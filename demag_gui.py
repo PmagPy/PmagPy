@@ -40,7 +40,7 @@
 
 import os
 global CURRENT_VERSION, PMAGPY_DIRECTORY
-CURRENT_VERSION = "v.0.50"
+CURRENT_VERSION = "v.0.33"
 path = os.path.abspath(__file__)
 PMAGPY_DIRECTORY = os.path.dirname(path)
 import matplotlib
@@ -2022,60 +2022,6 @@ class Zeq_GUI(wx.Frame):
         #print position
         g_index=event.GetIndex()
 
-#        GBpopupmenu=self.PopupMenu(demag_dialogs.GBPopupMenu(self.Data,self.magic_file,self.mag_meas_data,self.s,g_index,position))
-
-
-        #print "OK"
-        #self.write_good_bad_magic_measurements()
-        # write the corrected magic_measurements.txt
-
-    #def write_good_bad_magic_measurements(self):
-    #    print "write_good_bad_magic_measurements"
-    #    # read magic_measurements.txt
-    #    #meas_data,file_type=pmag.magic_read(self.magic_file)
-    #
-    #    pmag.magic_write("kaka.txt",self.mag_meas_data,"magic_measurements")
-    #
-    #    # read again the data from the new file
-    #    self.Data,self.Data_hierarchy=self.get_data()
-
-        # delete interpretation
-#        TXT="measurement good or bad data is saved in magic_measurements.txt file"
-#        dlg = wx.MessageDialog(self, caption="Saved",message=TXT,style=wx.OK)
-#        result = dlg.ShowModal()
-#        if result == wx.ID_OK:
-#            dlg.Destroy()
-#        else:
-#            return
-
-#        if 'specimens' in self.pmag_results_data.keys() and str(self.s) in self.pmag_results_data['specimens'].keys():
-#            self.pmag_results_data['specimens'][str(self.s)] = []
-
-        # read again the data, um no change flag
-#        if self.Data[self.s]['measurement_flag'][g_index] == 'g':
-#            self.Data[self.s]['measurement_flag'][g_index] = 'b'
-#        if self.Data[self.s]['measurement_flag'][g_index] == 'b':
-#            self.Data[self.s]['measurement_flag'][g_index] = 'g'
-#        #update the fits
-#        if str(self.s) in self.pmag_results_data['specimens']:
-#            for fit in self.pmag_results_data['specimens'][str(self.s)]:
-#                fit.put(self.COORDINATE_SYSTEM,self.get_PCA_parameters(self.s,fit.tmin,fit.tmax,self.COORDINATE_SYSTEM,fit.get(self.COORDINATE_SYSTEM)['calculation_type']))
-
-#        if str(self.s) in self.pmag_results_data['specimens']:
-#            self.pmag_results_data['specimens'][str(self.s)] = []
-
-#        print("-----------------------Data-------------------------")
-#        print(pd.DataFrame(self.Data))
-#        print("-----------------------Data Hierarchy-------------------------")
-#        print(pd.DataFrame(self.Data_hierarchy))
-
-#        print('reading')
-#        self.Data,self.Data_hierarchy=self.get_data()
-#        print('calculating higher levels data')
-#        self.calculate_higher_levels_data()
-#        print('updating pmag tables')
-#        self.update_pmag_tables()
-
         meas_index = 0
         for i,meas_data in enumerate(self.mag_meas_data):
             if meas_data['er_specimen_name'] == self.s:
@@ -2748,6 +2694,7 @@ class Zeq_GUI(wx.Frame):
 
         if calculation_type == "None": return
 
+        if high_level_type not in self.high_level_means: self.high_level_means[high_level_type] = {}
         self.high_level_means[high_level_type][high_level_name]={}
         for dirtype in ["DA-DIR","DA-DIR-GEO","DA-DIR-TILT"]:
             if high_level_name not in self.Data_hierarchy[high_level_type].keys():
@@ -2970,10 +2917,10 @@ class Zeq_GUI(wx.Frame):
     def plot_higher_level_equalarea(self,element): #BLARGE
         if self.interpretation_editor_open:
             higher_level = self.interpretation_editor.show_box.GetValue()
-        else: higher_level = "specimens"
+        else: higher_level = self.UPPER_LEVEL_SHOW
         fits = []
         if higher_level not in self.pmag_results_data: print("no level: " + str(higher_level)); return
-        if element not in self.pmag_results_data[higher_level]: print("no element: " + str(higher_level)); return
+        if element not in self.pmag_results_data[higher_level]: print("no element: " + str(element)); return
         if self.mean_fit == 'All':
             fits = self.pmag_results_data[higher_level][element]
         elif self.mean_fit != 'None' and self.mean_fit != None:
@@ -5114,17 +5061,31 @@ class Zeq_GUI(wx.Frame):
         if fit and not tmin and not tmax:
             tmin = fit.tmin
             tmax = fit.tmax
-        if tmin in self.Data[specimen]['zijdblock_steps'] and tmax in self.Data[specimen]['zijdblock_steps']:
+        if tmin in self.Data[specimen]['zijdblock_steps']:
             tmin_index=self.Data[specimen]['zijdblock_steps'].index(tmin)
+        elif type(tmin) == str or type(tmin) == unicode and tmin != '':
+            int_steps = map(lambda x: int(x.strip("C mT")), self.Data[specimen]['zijdblock_steps'])
+            int_tmin = int(tmin.strip("C mT"))
+            diffs = map(lambda x: abs(x-int_tmin),int_steps)
+            tmin_index = diffs.index(min(diffs))
+        else: tmin_index=self.tmin_box.GetSelection()
+        if tmax in self.Data[specimen]['zijdblock_steps']:
             tmax_index=self.Data[specimen]['zijdblock_steps'].index(tmax)
-        else:
-            tmin_index=self.tmin_box.GetSelection()
-            tmax_index=self.tmax_box.GetSelection()
+        elif type(tmax) == str or type(tmax) == unicode and tmax != '':
+            int_steps = map(lambda x: int(x.strip("C mT")), self.Data[specimen]['zijdblock_steps'])
+            int_tmax = int(tmax.strip("C mT"))
+            diffs = map(lambda x: abs(x-int_tmax),int_steps)
+            tmax_index = diffs.index(min(diffs))
+        else: tmax_index=self.tmin_box.GetSelection()
 
         max_index = len(self.Data[specimen]['zijdblock_steps'])-1
         while (self.Data[specimen]['measurement_flag'][max_index] == 'b' and \
                max_index-1 > 0):
             max_index -= 1
+
+        if tmin_index >= max_index:
+            print("lower bound is greater or equal to max step cannot determine bounds for specimen: " + specimen)
+            return (None,None)
 
         if (tmin_index > 0):
             while (self.Data[specimen]['measurement_flag'][tmin_index] == 'b' and \
@@ -6016,15 +5977,23 @@ class EditFitFrame(wx.Frame):
                 if new_name not in map(lambda x: x.name, self.parent.pmag_results_data['specimens'][specimen]): fit.name = new_name
             if new_color:
                 fit.color = self.color_dict[new_color]
-            if new_tmin:
+            #testing
+            not_both = True
+            if new_tmin and new_tmax:
+                if fit == self.parent.current_fit:
+                    self.parent.tmin_box.SetStringSelection(new_tmin)
+                    self.parent.tmax_box.SetStringSelection(new_tmax)
+                fit.put(specimen,self.parent.COORDINATE_SYSTEM, self.parent.get_PCA_parameters(specimen,new_tmin,new_tmax,self.parent.COORDINATE_SYSTEM,fit.PCA_type))
+                not_both = False
+            if new_tmin and not_both:
                 if fit == self.parent.current_fit:
                     self.parent.tmin_box.SetStringSelection(new_tmin)
                 fit.put(specimen,self.parent.COORDINATE_SYSTEM, self.parent.get_PCA_parameters(specimen,new_tmin,fit.tmax,self.parent.COORDINATE_SYSTEM,fit.PCA_type))
-            if new_tmax:
+            if new_tmax and not_both:
                 if fit == self.parent.current_fit:
                     self.parent.tmax_box.SetStringSelection(new_tmax)
                 fit.put(specimen,self.parent.COORDINATE_SYSTEM, self.parent.get_PCA_parameters(specimen,fit.tmin,new_tmax,self.parent.COORDINATE_SYSTEM,fit.PCA_type))
-                changed_i.append(next_i)
+            changed_i.append(next_i)
 
         offset = 0
         for i in changed_i:
