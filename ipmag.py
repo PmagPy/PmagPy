@@ -4603,3 +4603,184 @@ def read_core_csv_file(sum_file):
             return core_depth_key, core_label_key, Cores
     else:
         return False, False, []
+
+class Site(object):
+
+    def __init__(self, site_name, data_path, mean_path=None, er_sites_path=None, data_format="MagIC"):
+        import os
+        from matplotlib import pyplot as plt
+        import pandas as pd
+        global pd
+        global plt
+        global os
+        import re
+        dir_name = os.path.relpath(data_path)
+        self.all_file_names = os.listdir(dir_name)
+        os.path.join
+        self.file_names = []
+        for file_name in self.all_file_names:
+            if re.match('.*txt',file_name) != None:
+                self.file_names.append(file_name)
+        for i in self.file_names:
+            path_to_open = os.path.join(dir_name,i)
+            text_file = open(path_to_open,'r')
+            first_line = text_file.readlines()[0]
+            text_file.close()
+            if 'er_sites' in first_line:
+                self.er_sites_path = path_to_open
+            elif 'pmag_sites' in first_line:
+                self.mean_path = path_to_open
+            elif 'pmag_specimens' in first_line:
+                self.data_path = path_to_open
+        self.name = site_name
+        #self.data_path = data_path # default name of 'pmag_specimens'
+        self.data_format = data_format # default name of 'pmag_sites'
+        #self.mean_path = mean_path # default name of 'er_sites'
+        #self.er_sites_path = er_sites_path
+        if self.data_format == "MagIC":
+            self.fits = pd.read_csv(self.data_path, sep = "\t", skiprows = 1)
+            if self.mean_path != None:
+                self.means = pd.read_csv(self.mean_path, sep = "\t", skiprows = 1)
+            if self.er_sites_path != None:
+                self.location = pd.read_csv(self.er_sites_path, sep = "\t", skiprows = 1)
+        else:
+            raise Exception("Please convert data to MagIC format")
+        self.parse_all_fits()
+        self.lat = float(self.location.site_lat)
+        self.lon = float(self.location.site_lon)
+        if self.mean_path == None:
+            raise Exception('Make fisher means within the demag GUI - functionality for handling this is in progress')
+
+    def parse_fits(self, fit_name):
+        # USE PARSE_ALL_FITS unless otherwise necessary
+        # isolate fits by the name of the fit; we also set 'specimen_tilt_correction' to zero in order
+        # to only include data in geographic coordinates
+        fits = self.fits.ix[self.fits.specimen_comp_name==fit_name].ix[self.fits.specimen_tilt_correction==0]
+        fits.reset_index(inplace=True)
+        means = self.means.ix[self.means.site_comp_name==fit_name].ix[self.means.site_tilt_correction==0]
+        means.reset_index(inplace=True)
+        mean_name = str(fit_name) + "_mean"
+        setattr(self,fit_name,fits)
+        setattr(self,mean_name,means)
+
+    def parse_all_fits(self):
+        # This is run upon initialization of the Site class
+        self.fit_types = self.fits.specimen_comp_name.unique().tolist()
+        for fit_type in self.fit_types:
+            self.parse_fits(fit_type)
+        print "Data separated by ", self.fit_types, "fits and can be accessed by <site_name>.<fit_name>"
+
+    def get_fit_names(self):
+        return self.fit_types
+
+
+    def get_fisher_mean(self, fit_name):
+        mean_name = str(fit_name) + "_mean"
+        if self.mean_path != None:
+            self.fisher_dict = {'dec':float(getattr(self,mean_name).site_dec),
+                                'inc':float(getattr(self,mean_name).site_inc),
+                                'alpha95':float(getattr(self,mean_name).site_alpha95),
+                                'k':float(getattr(self,mean_name).site_k),
+                                'r':float(getattr(self,mean_name).site_r),
+                                'n':float(getattr(self,mean_name).site_n)}
+            return self.fisher_dict
+
+        else:
+            '''PI15_hc_fits_dec=[]
+                PI15_hc_fits_inc=[]
+                PI15_hc_fits_directions=[]
+
+                for n in range(0,len(PI15_hc_fits)):
+                    dec = PI15_hc_fits['dec_tc'][n]
+                    inc = PI15_hc_fits['inc_tc'][n]
+                    PI15_hc_fits_dec.append(dec)
+                    PI15_hc_fits_inc.append(inc)
+                    PI15_hc_fits_directions.append([dec,inc,1.])
+            '''
+            #self.fit_list = getattr(self,fit_name)
+            self.directions = []
+            for fit_num in range(0,len(getattr(self,fit_name))):
+                self.directions.append([list(getattr(self,fit_name).specimen_dec)[fit_num],
+                                        list(getattr(self,fit_name).specimen_inc)[fit_num],1.])
+            #fish_mean = pmag.fisher_mean(directions)
+            self.fisher_dict = pmag.fisher_mean(self.directions)
+            #setattr(self,fisher_dict,fish_mean)
+            #self.fisher_dict = getattr(self,mean_name)
+            return self.fisher_dict
+
+    def get_lat(self):
+        return self.lat
+
+    def get_lon(self):
+        return self.lon
+
+    def get_site_coor(self):
+        return [self.lat,self.lon]
+
+    def get_name(self):
+        return self
+
+    def eq_plot_everything(self,title=None):
+        fignum = 0
+        plt.figure(num=fignum,figsize=(8,8),dpi=200)
+        pmagplotlib.plotNET(fignum)
+        for fits in self.fit_types:
+            mean_code = str(fits)+"_mean"
+            print mean_code
+            random_color = np.random.rand(3)
+            plot_di(getattr(self,fits).specimen_dec,
+            getattr(self,fits).specimen_inc,color=random_color, label=fits+' directions')
+            print float(getattr(self,mean_code).site_dec),float(getattr(self,mean_code).site_inc)
+            #ipmag.plot_di_mean(getattr(self,mean_name).site_dec,getattr(self,mean_name))
+            plot_di_mean(float(getattr(self,mean_code).site_dec),
+                               float(getattr(self,mean_code).site_inc),
+                               float(getattr(self,mean_code).site_alpha95),
+                               color='r',marker='s',label=fits+' mean')
+        plt.legend()
+        if title != None:
+            plt.title(title)
+        plt.show()
+        #return plt.figure()
+
+    def eq_plot(self,fit_name,title=None):
+        fignum = 0
+        plt.figure(num=fignum,figsize=(8,8),dpi=200)
+        pmagplotlib.plotNET(fignum)
+        mean_code = str(fit_name)+"_mean"
+        #print mean_code
+        random_color = np.random.rand(3)
+        plot_di(getattr(self,fit_name).specimen_dec,
+                      getattr(self,fit_name).specimen_inc,
+                      color=random_color,label=fit_name+' directions')
+            #print float(getattr(self,mean_code).site_dec),float(getattr(self,mean_code).site_inc)
+            #ipmag.plot_di_mean(getattr(self,mean_name).site_dec,getattr(self,mean_name))
+        plot_di_mean(float(getattr(self,mean_code).site_dec),
+                           float(getattr(self,mean_code).site_inc),
+                           float(getattr(self,mean_code).site_alpha95),
+                           color='r',marker='s',label=fit_name+' mean')
+        plt.legend()
+        if title != None:
+            plt.title(title)
+        plt.show()
+        #return plt.figure()
+
+    def eq_plot_sidebyside(self, fit_name):
+        fig,ax = plt.subplots(1,2)
+        ax[0].plot(self.eq_plot_everything())
+        ax[1].plot(self.eq_plot(fit_name))
+        plt.show()
+
+    def get_site_data(self, description, fit_name,demag_type = 'Thermal',cong_test_result = None):
+        self.site_data = pd.Series({'site_type':str(description),
+                                   'site_lat':self.get_lat(),
+                                   'site_lon':self.get_lon(),
+                                   'demag_type':demag_type,
+                                   'dec_tc':float(self.get_fisher_mean(fit_name)['dec']),
+                                   'inc_tc':float(self.get_fisher_mean(fit_name)['inc']),
+                                   'a_95':float(self.get_fisher_mean(fit_name)['alpha95']),
+                                   'N':int(self.get_fisher_mean(fit_name)['n']),
+                                   'kappa':float(self.get_fisher_mean(fit_name)['k']),
+                                   'R':float(self.get_fisher_mean(fit_name)['r']),
+                                    'cong_test_result':cong_test_result},
+                                   name=str(self.name))
+        return self.site_data
