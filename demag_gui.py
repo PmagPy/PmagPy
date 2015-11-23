@@ -1831,6 +1831,10 @@ class Zeq_GUI(wx.Frame):
         """
 
         self.clear_boxes()
+        self.clear_higher_level_pars()
+
+        if self.UPPER_LEVEL_SHOW != "specimens":
+            self.mean_type_box.SetValue("None")
 
         #--------------------------
         # check if the coordinate system in the window exists (if not change to "specimen" coordinate system)
@@ -2349,9 +2353,6 @@ class Zeq_GUI(wx.Frame):
                 fit.lines[0] = self.zijplot.lines[-2]
                 fit.lines[1] = self.zijplot.lines[-1]
 
-#                self.zijplot.set_xlim(xmin=self.zij_xlim_initial[0],xmax=self.zij_xlim_initial[1])
-#                self.zijplot.set_ylim(ymin=self.zij_ylim_initial[0],ymax=self.zij_ylim_initial[1])
-
             # Equal Area plot
             self.toolbar2.home()
 
@@ -2430,7 +2431,7 @@ class Zeq_GUI(wx.Frame):
                         relability = self.Data[self.s]['measurement_flag'][item]
                     except IndexError:
                         relability = 'b'
-#                        print('-E- IndexError in bad data')
+                        print('-E- IndexError in bad data')
                     if relability=='b':
                         self.logger.SetItemBackgroundColour(item,"YELLOW")
 
@@ -2739,7 +2740,7 @@ class Zeq_GUI(wx.Frame):
                             pars_for_mean[fit.name].append({'dec':float(dec),'inc':float(inc),'direction_type':direction_type,'element_name':element})
                             pars_for_mean["All"].append({'dec':float(dec),'inc':float(inc),'direction_type':direction_type,'element_name':element})
                         except KeyError:
-#                            print("KeyError in calculate_high_level_mean for element: " + str(element))
+                            print("KeyError in calculate_high_level_mean for element: " + str(element))
                             continue
                 else:
                     try:
@@ -2747,7 +2748,7 @@ class Zeq_GUI(wx.Frame):
                         if "dec" in pars.keys() and "inc" in pars.keys():
                             dec,inc,direction_type=pars["dec"],pars["inc"],'l'
                         else:
-                            print "-E- ERROR: cant find mean for element %s"%element
+#                            print "-E- ERROR: cant find mean for element %s"%element
                             continue 
                     except KeyError:
 #                        print("KeyError in calculate_high_level_mean for element: " + str(element) + " please report to a dev")
@@ -2813,17 +2814,6 @@ class Zeq_GUI(wx.Frame):
                 mpars[key]['n_planes'] = 0
                 mpars[key]['calculation_type'] = 'Fisher'
 
-        # change strigs to floats
-#        if  calculation_type!='Fisher by polarity':
-#            for key in mpars.keys():
-#                mpars[key]=float( mpars[key] )
-
-#        else:
-#            for mode in ['A','B','All']:
-#                print mode
-#                if mode in mpars.keys():
-#                    for key in mpars[mode].keys():
-#                        mpars[mode][key]=float(mpars[mode][key])
         mpars['calculation_type']=calculation_type
 
         return(mpars)
@@ -2878,22 +2868,10 @@ class Zeq_GUI(wx.Frame):
 
        # plot elements directions
        for element in elements_list:
-#            if elements_type=='specimens':
-#            print(element)
-#            print(elements_type)
             if element not in self.pmag_results_data[elements_type].keys():
                 self.calculate_high_level_mean(elements_type,element,"Fisher","specimens")
-#            print(self.pmag_results_data[elements_type])
             if element in self.pmag_results_data[elements_type].keys():
                 self.plot_higher_level_equalarea(element)
-
-#            else:
-#                if element not in self.high_level_means[elements_type].keys():
-#                    self.calculate_high_level_mean(elements_type,element,calculation_type,elements_type)
-#                if element in self.high_level_means[elements_type].keys():
-#                    if dirtype in self.high_level_means[elements_type][element].keys():
-#                        mpars=self.high_level_means[elements_type][element][dirtype]
-#                        self.plot_eqarea_pars(mpars,self.high_level_eqarea)
 
             else:
                 if element in self.high_level_means[elements_type].keys():
@@ -3060,9 +3038,6 @@ class Zeq_GUI(wx.Frame):
                 FC='yellow';EC='green'
             fig.scatter([XY[0]],[XY[1]],marker='o',edgecolor=EC, facecolor=FC,s=30,lw=1,clip_on=False)
 
-            #if 'calculation_type' not in mpars.keys():
-            #    return
-
             if "alpha95" in mpars.keys():
             # get the alpha95
                 Xcirc,Ycirc=[],[]
@@ -3072,73 +3047,6 @@ class Zeq_GUI(wx.Frame):
                     Xcirc.append(XY[0])
                     Ycirc.append(XY[1])
                 fig.plot(Xcirc,Ycirc,'g')
-#            elif 'calculation_type' in mpars.keys() and mpars['calculation_type']=='Bingham':
-#                # copied from plotELL function in pmagplotlib
-#                rad=numpy.pi/180.
-#                #Pdec,Pinc,beta,Bdec,Binc,gamma,Gdec,Ginc=pars[0],pars[1],pars[2],pars[3],pars[4],pars[5],pars[6],pars[7]
-#                Pdec,Pinc,beta,Bdec,Binc,gamma,Gdec,Ginc=\
-#                mpars['dec'],mpars['inc'],mpars['Zeta'],mpars['Zdec'],mpars['Zinc'],mpars['Eta'],mpars['Edec'],mpars['Einc']
-
-#                if beta > 90. or gamma>90:
-#                    beta=180.-beta
-#                    gamma=180.-beta
-#                    Pdec=Pdec-180.
-#                    Pinc=-Pinc
-#                beta,gamma=beta*rad,gamma*rad # convert to radians
-#                X_ell,Y_ell,X_up,Y_up,PTS=[],[],[],[],[]
-#                nums=201
-#                xnum=float(nums-1.)/2.
-#            # set up t matrix
-#                t=[[0,0,0],[0,0,0],[0,0,0]]
-#                X=pmag.dir2cart((Pdec,Pinc,1.0)) # convert to cartesian coordintes
-#                if  X[2]<0:
-#                    for i in range(3):
-#                        X[i]=-X[i]
-#            # set up rotation matrix t
-#                t[0][2]=X[0]
-#                t[1][2]=X[1]
-#                t[2][2]=X[2]
-#                X=pmag.dir2cart((Bdec,Binc,1.0))
-#                if  X[2]<0:
-#                    for i in range(3):
-#                        X[i]=-X[i]
-#                t[0][0]=X[0]
-#                t[1][0]=X[1]
-#                t[2][0]=X[2]
-#                X=pmag.dir2cart((Gdec,Ginc,1.0))
-#                if X[2]<0:
-#                    for i in range(3):
-#                        X[i]=-X[i]
-#                t[0][1]=X[0]
-#                t[1][1]=X[1]
-#                t[2][1]=X[2]
-#            # set up v matrix
-#                v=[0,0,0]
-#                for i in range(nums):  # incremental point along ellipse
-#                    psi=float(i)*numpy.pi/xnum
-#                    v[0]=numpy.sin(beta)*numpy.cos(psi)
-#                    v[1]=numpy.sin(gamma)*numpy.sin(psi)
-#                    v[2]=numpy.sqrt(1.-v[0]**2 - v[1]**2)
-#                    elli=[0,0,0]
-#            # calculate points on the ellipse
-#                    for j in range(3):
-#                        for k in range(3):
-#                            elli[j]=elli[j] + t[j][k]*v[k]  # cartesian coordinate j of ellipse
-#                    PTS.append(pmag.cart2dir(elli))
-#                    R=numpy.sqrt( 1.-abs(elli[2]))/(numpy.sqrt(elli[0]**2+elli[1]**2)) # put on an equal area projection
-#                    if elli[2]<0:
-#            #            for i in range(3): elli[i]=-elli[i]
-#                        X_up.append(elli[1]*R)
-#                        Y_up.append(elli[0]*R)
-#                    else:
-#                        X_ell.append(elli[1]*R)
-#                        Y_ell.append(elli[0]*R)
-#                #if plot==1:
-#                if X_ell!=[]:fig.plot(X_ell,Y_ell,'b')
-#                if X_up!=[]:fig.plot(X_up,Y_up,'g-')
-#                #pylab.draw()
-#                #else:
-#                #    return PTS
 
         fig.set_xlim(xmin, xmax)
         fig.set_ylim(ymin, ymax)
@@ -3146,13 +3054,16 @@ class Zeq_GUI(wx.Frame):
     def on_select_stats_button(self,events):
         i = self.switch_stats_button.GetValue()
         self.update_higher_level_stats()
-#        while True:
-#            i = input("~/:")
-#            if i == '-1': break
-#            hl = self.high_level_means
-#            for j in i.split():
-#                print(j + ": " + str(hl[j]))
-#                hl = hl[j]
+
+    def clear_higher_level_pars(self):
+        for val in ['mean_type','dec','inc','alpha95','K','R','n_lines','n_planes']:
+            COMMAND = """self.%s_window.SetValue("")"""%(val)
+            exec COMMAND
+        if self.interpretation_editor_open:
+            ie = self.interpretation_editor
+            for val in ['mean_type','dec','inc','alpha95','K','R','n_lines','n_planes']:
+                COMMAND = """ie.%s_window.SetValue("")"""%(val)
+                exec COMMAND
 
     def show_higher_levels_pars(self,mpars):
 
@@ -5843,6 +5754,8 @@ class EditFitFrame(wx.Frame):
         @param: event -> the wx.ComboBoxEvent that triggered this function
         """
         new_mean_type = self.mean_type_box.GetValue()
+        if new_mean_type == "None":
+            self.parent.clear_higher_level_pars()
         self.parent.mean_type_box.SetStringSelection(new_mean_type)
         self.parent.onSelect_mean_type_box(event)
 
