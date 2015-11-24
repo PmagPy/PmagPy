@@ -16,7 +16,7 @@ import pmag_er_magic_dialogs
 import quickmagic_menu
 import ErMagicBuilder
 import builder
-#import check_updates
+# import check_updates
 
 
 class MagMainFrame(wx.Frame):
@@ -401,7 +401,8 @@ class MagMainFrame(wx.Frame):
         print "-I- running python script:\n %s"%(outstring)
         wait = wx.BusyInfo("Please wait, working...")
 
-        upfile, error_message, errors = ipmag.upload_magic(dir_path=self.WD)
+        upfile, error_message, errors = ipmag.upload_magic(dir_path=self.WD,
+                                                           data_model=self.er_magic.data_model)
         del wait
         if upfile:
             text = "You are ready to upload.\n Your file: {}  was generated in MagIC Project Directory.\nDrag and drop this file in the MagIC database.".format(os.path.split(upfile)[1])

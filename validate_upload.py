@@ -70,7 +70,7 @@ def get_data_model():
     return complete_ref
 
 
-def read_upload(up_file):
+def read_upload(up_file, data_model=None):
     """
     take a file that should be ready for upload
     using the data model, check that all required columns are full,
@@ -89,7 +89,8 @@ def read_upload(up_file):
     non_numeric = {}
     invalid_col_names = {}
     missing_file_type = False
-    data_model = get_data_model()
+    if not data_model:
+        data_model = get_data_model()
     reqd_file_types = ['er_locations']
     provided_file_types = set()
     if not data_model:

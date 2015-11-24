@@ -1958,7 +1958,7 @@ def download_magic(infile, dir_path='.', input_dir_path='.', overwrite=False):
     return True
 
 
-def upload_magic(concat=0, dir_path='.'):
+def upload_magic(concat=0, dir_path='.', data_model=None):
     """
     Finds all magic files in a given directory, and compiles them into an upload.txt file which can be uploaded into the MagIC database.
     returns a tuple of either: (False, error_message, errors) if there was a problem creating/validating the upload file
@@ -2103,7 +2103,7 @@ def upload_magic(concat=0, dir_path='.'):
     if os.path.isfile(up):
         import validate_upload
         validated = False
-        validated, errors = validate_upload.read_upload(up)
+        validated, errors = validate_upload.read_upload(up, data_model)
 
     else:
         print "no data found, upload file not created"

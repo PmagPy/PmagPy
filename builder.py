@@ -538,6 +538,7 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
         self.get_data()
         for child, parent in [('specimen', 'sample'), ('sample', 'site'),
                               ('site', 'location'), ('location', '')]:
+            print '-I- Getting {} info'.format(child)
             self.get_magic_info(child, parent, 'er')
             if self.get_magic_info(child, parent, 'pmag'):
                 self.incl_pmag_data.add(child)
