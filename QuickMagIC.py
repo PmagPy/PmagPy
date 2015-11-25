@@ -337,6 +337,7 @@ class MagMainFrame(wx.Frame):
             return False
 
         #self.ErMagic_frame = ErMagicBuilder.MagIC_model_builder(self.WD, self, self.ErMagic_data)#,self.Data,self.Data_hierarchy)
+        wait = wx.BusyInfo('Compiling required data, please wait...')
         self.ErMagic_frame = ErMagicBuilder.MagIC_model_builder(self.WD, self, self.er_magic)#,self.Data,self.Data_hierarchy)
         self.ErMagic_frame.Show()
         self.ErMagic_frame.Center()
@@ -344,6 +345,7 @@ class MagMainFrame(wx.Frame):
         size = wx.DisplaySize()
         size = (size[0] - 0.3 * size[0], size[1] - 0.3 * size[1]) # gets total available screen space - 10%
         self.ErMagic_frame.Raise()
+        del wait
 
     def init_check_window(self):
         #self.check_dia = pmag_er_magic_dialogs.ErMagicCheckFrame(self, 'Check Data', self.WD, self.ErMagic_data)# initiates the object that will control steps 1-6 of checking headers, filling in cell values, etc.
