@@ -8614,6 +8614,7 @@ class Arai_GUI(wx.Frame):
             self.update_GUI_with_new_interpretation()
         except:
             pass
+        
                     
 
 
@@ -8977,7 +8978,6 @@ class Arai_GUI(wx.Frame):
                 #print "I",scipy.sqrt(sum(X**2))
         araiblock=(first_Z,first_I,ptrm_check,ptrm_tail,zptrm_check,GammaChecks,additivity_check)
 
-        
         return araiblock,field
 
 
