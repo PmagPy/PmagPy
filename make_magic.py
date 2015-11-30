@@ -220,6 +220,7 @@ class MainFrame(wx.Frame):
             self.dir_path.SetValue(self.WD)
         change_dir_dialog.Destroy()
         wait = wx.BusyInfo('Initializing data object in new directory, please wait...')
+        wx.Yield()
         print '-I- Initializing magic data object'
         self.er_magic = builder.ErMagicBuilder(self.WD)
         print '-I- Read in any available data from working directory'
@@ -255,6 +256,7 @@ class MainFrame(wx.Frame):
         except AttributeError:
             grid_type = self.FindWindowById(event.Id).Name[:-4] # remove ('_btn')
         wait = wx.BusyInfo('Making {} grid, please wait...'.format(grid_type))
+        wx.Yield()
         self.on_open_grid_frame()
         self.grid_frame = grid_frame.GridFrame(self.er_magic, self.WD, grid_type, grid_type, self.panel)
         if self.validation_mode:
@@ -288,6 +290,7 @@ Once each item in the data has its proper parent, validations will be correct.
         """
         # coherence validations
         wait = wx.BusyInfo('Validating data, please wait...')
+        wx.Yield()
         spec_warnings, samp_warnings, site_warnings, loc_warnings = self.er_magic.validate_data()
         result_warnings = self.er_magic.validate_results(self.er_magic.results)
         meas_warnings = self.er_magic.validate_measurements(self.er_magic.measurements)
@@ -298,6 +301,7 @@ Once each item in the data has its proper parent, validations will be correct.
         del wait
         # write upload file and perform data validations
         wait = wx.BusyInfo('Making upload file, please wait...')
+        wx.Yield()
         self.er_magic.write_files()
         upfile, error_message, errors = ipmag.upload_magic(dir_path=self.WD,
                                                            data_model=self.data_model)
