@@ -4606,7 +4606,24 @@ def read_core_csv_file(sum_file):
 
 class Site(object):
 
-    def __init__(self, site_name, data_path, mean_path=None, er_sites_path=None, data_format="MagIC"):
+    ''' This Site class is for use within Jupyter/IPython notebooks. It reads in
+    MagIC-formatted data (text files) and compiles fits, separates them by type,
+    and plots equal-area projections inline. If means were not taken and output
+    within the Demag GUI, it should automatically compute the Fisher mean for each
+    fit type. Code is still a work in progress, but it is currently useful for
+    succinctly computing/displaying data in notebook format.
+    '''
+
+    def __init__(self, site_name, data_path, data_format="MagIC"):
+        '''
+        site_name: the name of the site
+        data_path: put all MagIC data (text files) in a single directory and
+        provide its path
+        data_format: MagIC-formatted data is necessary in this code, but future
+        compatability with other formats possible (built-in CIT_magic conversion?)
+        *other keyword arguments not necessary*
+        '''
+        # import necessary functions to be used in the notebook
         import os
         from matplotlib import pyplot as plt
         import pandas as pd
@@ -4648,13 +4665,15 @@ class Site(object):
         self.parse_all_fits()
         self.lat = float(self.location.site_lat)
         self.lon = float(self.location.site_lon)
+        # the following exception won't be necessary if parse_all_fits is working properly
         if self.mean_path == None:
             raise Exception('Make fisher means within the demag GUI - functionality for handling this is in progress')
 
     def parse_fits(self, fit_name):
         # USE PARSE_ALL_FITS unless otherwise necessary
         # isolate fits by the name of the fit; we also set 'specimen_tilt_correction' to zero in order
-        # to only include data in geographic coordinates
+        # to only include data in geographic coordinates - this needs to be
+        # generalized.
         fits = self.fits.ix[self.fits.specimen_comp_name==fit_name].ix[self.fits.specimen_tilt_correction==0]
         fits.reset_index(inplace=True)
         means = self.means.ix[self.means.site_comp_name==fit_name].ix[self.means.site_tilt_correction==0]
@@ -4686,17 +4705,6 @@ class Site(object):
             return self.fisher_dict
 
         else:
-            '''PI15_hc_fits_dec=[]
-                PI15_hc_fits_inc=[]
-                PI15_hc_fits_directions=[]
-
-                for n in range(0,len(PI15_hc_fits)):
-                    dec = PI15_hc_fits['dec_tc'][n]
-                    inc = PI15_hc_fits['inc_tc'][n]
-                    PI15_hc_fits_dec.append(dec)
-                    PI15_hc_fits_inc.append(inc)
-                    PI15_hc_fits_directions.append([dec,inc,1.])
-            '''
             #self.fit_list = getattr(self,fit_name)
             self.directions = []
             for fit_num in range(0,len(getattr(self,fit_name))):
@@ -4727,9 +4735,9 @@ class Site(object):
         for fits in self.fit_types:
             mean_code = str(fits)+"_mean"
             print mean_code
-            random_color = np.random.rand(3)
+            self.random_color = np.random.rand(3)
             plot_di(getattr(self,fits).specimen_dec,
-            getattr(self,fits).specimen_inc,color=random_color, label=fits+' directions')
+            getattr(self,fits).specimen_inc,color=self.random_color, label=fits+' directions')
             print float(getattr(self,mean_code).site_dec),float(getattr(self,mean_code).site_inc)
             #ipmag.plot_di_mean(getattr(self,mean_name).site_dec,getattr(self,mean_name))
             plot_di_mean(float(getattr(self,mean_code).site_dec),
@@ -4748,10 +4756,10 @@ class Site(object):
         pmagplotlib.plotNET(fignum)
         mean_code = str(fit_name)+"_mean"
         #print mean_code
-        random_color = np.random.rand(3)
+        self.random_color = np.random.rand(3)
         plot_di(getattr(self,fit_name).specimen_dec,
                       getattr(self,fit_name).specimen_inc,
-                      color=random_color,label=fit_name+' directions')
+                      color=self.random_color,label=fit_name+' directions')
             #print float(getattr(self,mean_code).site_dec),float(getattr(self,mean_code).site_inc)
             #ipmag.plot_di_mean(getattr(self,mean_name).site_dec,getattr(self,mean_name))
         plot_di_mean(float(getattr(self,mean_code).site_dec),
@@ -4764,11 +4772,11 @@ class Site(object):
         plt.show()
         #return plt.figure()
 
-    def eq_plot_sidebyside(self, fit_name):
-        fig,ax = plt.subplots(1,2)
-        ax[0].plot(self.eq_plot_everything())
-        ax[1].plot(self.eq_plot(fit_name))
-        plt.show()
+    # def eq_plot_sidebyside(self, fit_name):
+    #     fig,ax = plt.subplots(1,2)
+    #     ax[0].plot(self.eq_plot_everything())
+    #     ax[1].plot(self.eq_plot(fit_name))
+    #     plt.show()
 
     def get_site_data(self, description, fit_name,demag_type = 'Thermal',cong_test_result = None):
         self.site_data = pd.Series({'site_type':str(description),
