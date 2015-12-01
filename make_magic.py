@@ -299,7 +299,8 @@ Once each item in the data has its proper parent, validations will be correct.
         # write upload file and perform data validations
         wait = wx.BusyInfo('Making upload file, please wait...')
         self.er_magic.write_files()
-        upfile, error_message, errors = ipmag.upload_magic(dir_path=self.WD)
+        upfile, error_message, errors = ipmag.upload_magic(dir_path=self.WD,
+                                                           data_model=self.data_model)
         del wait
         if upfile:
             text = "You are ready to upload.\nYour file:\n{}\nwas generated in directory: \n{}\nDrag and drop this file in the MagIC database.".format(os.path.split(upfile)[1], self.WD)

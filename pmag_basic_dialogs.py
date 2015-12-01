@@ -11,16 +11,16 @@ import sys
 import pmag
 import ipmag
 import pmag_widgets as pw
-import ErMagicBuilder
+#import ErMagicBuilder
 import drop_down_menus
 import check_updates
 import magic_grid
 
 
 class import_magnetometer_data(wx.Dialog):
-    def __init__(self,parent,id,title,WD):
+    def __init__(self, parent, id, title, WD):
         wx.Dialog.__init__(self, parent, id, title, name='import_magnetometer_data')
-        self.WD=WD
+        self.WD = WD
         self.InitUI()
         self.SetTitle(title)
         self.parent = parent
@@ -29,7 +29,9 @@ class import_magnetometer_data(wx.Dialog):
         self.panel = wx.Panel(self)
         vbox = wx.BoxSizer(wx.VERTICAL)
 
-        formats = ['generic format','SIO format','CIT format','2G-binary format','HUJI format','LDEO format','IODP SRM (csv) format','PMD (ascii) format','TDT format', 'JR6 format']
+        formats = ['generic format','SIO format','CIT format','2G-binary format',
+                   'HUJI format','LDEO format','IODP SRM (csv) format','PMD (ascii) format',
+                   'TDT format', 'JR6 format']
         sbs = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.ID_ANY, 'step 1: choose file format'), wx.VERTICAL)
         sbs.AddSpacer(5)
 
@@ -40,7 +42,6 @@ class import_magnetometer_data(wx.Dialog):
             sbs.Add(radio_button, flag=wx.BOTTOM, border=5)
             if len(radio_buttons) == 1:
                 sbs.Add(wx.StaticLine(self.panel), 0, wx.ALL|wx.EXPAND, 5)
-
             #sbs.AddSpacer(5)
             self.Bind(wx.EVT_RADIOBUTTON, self.OnRadioButtonSelect, radio_button)
 
@@ -68,7 +69,6 @@ class import_magnetometer_data(wx.Dialog):
         #-----------------------
         # design the frame
         #-----------------------
-
         vbox.AddSpacer(10)
         vbox.Add(sbs)
         vbox.AddSpacer(10)
@@ -82,6 +82,10 @@ class import_magnetometer_data(wx.Dialog):
 
         self.panel.SetSizer(hbox1)
         hbox1.Fit(self)
+    
+    #-----------------------
+    # button methods
+    #-----------------------
 
     def on_cancelButton(self,event):
         self.Destroy()
@@ -196,7 +200,6 @@ class combine_magic_dialog(wx.Frame):
 
 
     def on_add_file_button(self,event):
-
         dlg = wx.FileDialog(
             None,message="choose MagIC formatted measurement file",
             defaultDir=self.WD,
@@ -207,6 +210,7 @@ class combine_magic_dialog(wx.Frame):
             full_path = dlg.GetPath()
             infile = os.path.split(full_path)[1]
             self.file_paths.AppendText(infile + "\n")
+
 
     def on_add_all_files_button(self,event):
         all_files=os.listdir(self.WD)
@@ -293,7 +297,6 @@ class combine_everything_dialog(wx.Frame):
             dlg.Destroy()
             # deleted by rshaar 10.11.2015
             #self.Destroy()
-
 
         #------------------
 
@@ -2492,22 +2495,21 @@ class OrientFrameGrid(wx.Frame):
         save demag_orient.txt
         (only the columns that appear on the grid frame)
         '''
-
-        fout=open(os.path.join(self.WD, "demag_orient.txt"),'w')
-        STR="tab\tdemag_orient\n"
+        fout = open(os.path.join(self.WD, "demag_orient.txt"), 'w')
+        STR = "tab\tdemag_orient\n"
         fout.write(STR)
         headers = [header[0] for header in self.headers]
-        STR="\t".join(headers)+"\n"
+        STR = "\t".join(headers) + "\n"
         fout.write(STR)
         for sample in self.samples_list:
-            STR=""
+            STR = ""
             for header in headers:
-                sample_index=self.samples_list.index(sample)
-                i=headers.index(header)
-                value=self.grid.GetCellValue(sample_index,i)
-                STR=STR+value+"\t"
-            fout.write(STR[:-1]+"\n")
-        if event!=None:
+                sample_index = self.samples_list.index(sample)
+                i = headers.index(header)
+                value = self.grid.GetCellValue(sample_index, i)
+                STR = STR + value + "\t"
+            fout.write(STR[:-1] + "\n")
+        if event != None:
             dlg1 = wx.MessageDialog(None,caption="Message:", message="data saved in file demag_orient.txt" ,style=wx.OK|wx.ICON_INFORMATION)
             dlg1.ShowModal()
             dlg1.Destroy()
@@ -2552,9 +2554,6 @@ class OrientFrameGrid(wx.Frame):
         average_bedding = method_code_dia.average_bedding
         bed_correction = method_code_dia.bed_correction
 
-
-        # to run as command-line:
-        #logfile=open(self.WD+"/orientation_magic.log",'w')
         command_args=['orientation_magic.py']
         command_args.append("-WD %s"%self.WD)
         command_args.append("-Fsa er_samples_orient.txt")
@@ -2770,10 +2769,12 @@ class orient_convention(wx.Dialog):
         sbs3 = wx.StaticBoxSizer( wx.StaticBox( pnl, wx.ID_ANY, 'orientation priority' ), wx.VERTICAL )
 
         sbs3.AddSpacer(5)
-        self.op_rb1 = wx.RadioButton(pnl, -1, label='1) differential GPS 2) sun compass 3) magnetic compass',name='1', style=wx.RB_GROUP)
+        self.op_rb1 = wx.RadioButton(pnl, -1, label='1) differential GPS 2) sun compass 3) magnetic compass',
+                                     name='1', style=wx.RB_GROUP)
         sbs3.Add(self.op_rb1)
         sbs3.AddSpacer(5)
-        self.op_rb2 = wx.RadioButton(pnl, -1, label='1) differential GPS 2) magnetic compass 3) sun compass ', name='2')
+        self.op_rb2 = wx.RadioButton(pnl, -1, label='1) differential GPS 2) magnetic compass 3) sun compass ',
+                                     name='2')
         sbs3.Add(self.op_rb2)
         sbs3.AddSpacer(5)
 
@@ -2787,8 +2788,8 @@ class orient_convention(wx.Dialog):
 
         sbs4.AddSpacer(5)
         self.dc_alt = wx.TextCtrl(pnl,style=wx.CENTER)
-        #alt_txt = wx.StaticText(pnl,label="Hours to ADD local time for GMT, default is 0",style=wx.TE_CENTER)
-        alt_txt = wx.StaticText(pnl,label="Hours to SUBTRACT from local time for GMT, default is 0",style=wx.TE_CENTER)
+        alt_txt = wx.StaticText(pnl, label="Hours to SUBTRACT from local time for GMT, default is 0",
+                                style=wx.TE_CENTER)
         sbs4.Add(alt_txt)
         sbs4.AddSpacer(5)
         sbs4.Add(self.dc_alt)
@@ -2825,7 +2826,6 @@ class orient_convention(wx.Dialog):
 
         pnl.SetSizer(hbox1)
         hbox1.Fit(self)
-
 
         #-----------------------
         # intialize defalut value

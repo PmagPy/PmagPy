@@ -1,22 +1,22 @@
 #!/usr/bin/env pythonw
 
-# pylint: disable=W0612,C0111,C0103,W0201,C0301
+# pylint: disable=W0612,C0111,C0103,W0201,C0301,E265
 
 #============================================================================================
 # LOG HEADER:
 #============================================================================================
 
 import matplotlib
-matplotlib.use('WXAgg')
-import  wx.html
-import pmag_widgets as pw
-import check_updates
-import builder
-
-#from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigCanvas \
 import os
 import wx
 import wx.grid
+import wx.html
+import pmag_widgets as pw
+import check_updates
+import builder
+matplotlib.use('WXAgg')
+
+#from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigCanvas \
 
 #--------------------------------------------------------------
 # MagIC model builder
@@ -27,9 +27,10 @@ class MagIC_model_builder(wx.Frame):
     #----------------------------------------------------------------------
     def __init__(self, WD, parent, ErMagic_data=None):
         SIZE = wx.DisplaySize()
-        SIZE = (SIZE[0] *.95, SIZE[1] * .95)
+        SIZE = (SIZE[0] * .95, SIZE[1] * .95)
 
-        wx.Frame.__init__(self, parent, wx.ID_ANY, size=SIZE, name='ErMagicBuilder')
+        wx.Frame.__init__(self, parent, wx.ID_ANY, size=SIZE,
+                          name='ErMagicBuilder')
         #self.panel = wx.Panel(self)
         self.main_frame = self.Parent
         self.panel = wx.ScrolledWindow(self)
@@ -40,7 +41,8 @@ class MagIC_model_builder(wx.Frame):
         self.site_lons = []
         self.site_lats = []
 
-        # if ErMagic data object was not passed in, created one based on the working directory
+        # if ErMagic data object was not passed in,
+        # create one based on the working directory
 
         if not ErMagic_data:
             self.er_magic = builder.ErMagicBuilder(self.WD)
@@ -49,13 +51,10 @@ class MagIC_model_builder(wx.Frame):
 
         print '-I- Read in any available data from working directory'
         self.er_magic.get_all_magic_info()
-
         print '-I- Initializing headers'
         self.er_magic.init_default_headers()
         self.er_magic.init_actual_headers()
-
         self.SetTitle("Earth-Ref Magic Builder" )
-        
         self.InitUI()
 
     def InitUI(self):
@@ -76,13 +75,17 @@ class MagIC_model_builder(wx.Frame):
             optional_headers = self.er_magic.headers[label]['er'][2]
             actual_headers = self.er_magic.headers[label]['er'][0]
 
-            box_sizer = wx.StaticBoxSizer( wx.StaticBox(self.panel, wx.ID_ANY, table), wx.VERTICAL)
+            box_sizer = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.ID_ANY,
+                                                        table), wx.VERTICAL)
             box_sizers.append(box_sizer)
 
-            text_control = wx.TextCtrl(self.panel, id=-1, size=(210, 250), style=wx.TE_MULTILINE | wx.TE_READONLY | wx.HSCROLL, name=table)
+            text_control = wx.TextCtrl(self.panel, id=-1, size=(210, 250),
+                                       style=wx.TE_MULTILINE | wx.TE_READONLY | wx.HSCROLL,
+                                       name=table)
             self.text_controls[table] = text_control
 
-            info_option = wx.ListBox(choices=optional_headers, id=-1, name=table, parent=self.panel, size=(200, 250), style=0)
+            info_option = wx.ListBox(choices=optional_headers, id=-1, name=table,
+                                     parent=self.panel, size=(200, 250), style=0)
             self.info_options[table] = info_option
 
             add_button = wx.Button(self.panel, id=-1, label='add', name=table)
@@ -95,11 +98,13 @@ class MagIC_model_builder(wx.Frame):
             self.Bind(wx.EVT_BUTTON, self.on_remove_button, remove_button)
 
             #------
-            box_sizer.Add(wx.StaticText(pnl1, label='{} header list:'.format(table)), wx.ALIGN_TOP)
+            box_sizer.Add(wx.StaticText(pnl1, label='{} header list:'.format(table)),
+                          wx.ALIGN_TOP)
 
             box_sizer.Add(text_control, wx.ALIGN_TOP)
 
-            box_sizer.Add(wx.StaticText(pnl1, label='{} optional:'.format(table)), flag=wx.ALIGN_TOP|wx.TOP, border=10)
+            box_sizer.Add(wx.StaticText(pnl1, label='{} optional:'.format(table)),
+                          flag=wx.ALIGN_TOP|wx.TOP, border=10)
 
             box_sizer.Add(info_option, wx.ALIGN_TOP)
 
@@ -140,7 +145,7 @@ class MagIC_model_builder(wx.Frame):
         #vbox.AddSpacer(20)
         vbox.Add(hbox)
         vbox.AddSpacer(20)
-        vbox.Add(hbox1,flag=wx.ALIGN_CENTER_HORIZONTAL)
+        vbox.Add(hbox1, flag=wx.ALIGN_CENTER_HORIZONTAL)
         vbox.AddSpacer(20)
 
         # if they are not already present
@@ -203,7 +208,6 @@ class MagIC_model_builder(wx.Frame):
             # take out 'er_specimen_name' and other unnecessary headers
             self.er_magic.headers[table]['er'][0] = builder.remove_list_headers(self.er_magic.headers[table]['er'][0])
 
-        #self.data.update_ErMagic()
         self.main_frame.init_check_window()
         self.Destroy()
 

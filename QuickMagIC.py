@@ -16,7 +16,7 @@ import pmag_er_magic_dialogs
 import quickmagic_menu
 import ErMagicBuilder
 import builder
-#import check_updates
+# import check_updates
 
 
 class MagMainFrame(wx.Frame):
@@ -337,6 +337,7 @@ class MagMainFrame(wx.Frame):
             return False
 
         #self.ErMagic_frame = ErMagicBuilder.MagIC_model_builder(self.WD, self, self.ErMagic_data)#,self.Data,self.Data_hierarchy)
+        wait = wx.BusyInfo('Compiling required data, please wait...')
         self.ErMagic_frame = ErMagicBuilder.MagIC_model_builder(self.WD, self, self.er_magic)#,self.Data,self.Data_hierarchy)
         self.ErMagic_frame.Show()
         self.ErMagic_frame.Center()
@@ -344,6 +345,7 @@ class MagMainFrame(wx.Frame):
         size = wx.DisplaySize()
         size = (size[0] - 0.3 * size[0], size[1] - 0.3 * size[1]) # gets total available screen space - 10%
         self.ErMagic_frame.Raise()
+        del wait
 
     def init_check_window(self):
         #self.check_dia = pmag_er_magic_dialogs.ErMagicCheckFrame(self, 'Check Data', self.WD, self.ErMagic_data)# initiates the object that will control steps 1-6 of checking headers, filling in cell values, etc.
@@ -401,7 +403,8 @@ class MagMainFrame(wx.Frame):
         print "-I- running python script:\n %s"%(outstring)
         wait = wx.BusyInfo("Please wait, working...")
 
-        upfile, error_message, errors = ipmag.upload_magic(dir_path=self.WD)
+        upfile, error_message, errors = ipmag.upload_magic(dir_path=self.WD,
+                                                           data_model=self.er_magic.data_model)
         del wait
         if upfile:
             text = "You are ready to upload.\n Your file: {}  was generated in MagIC Project Directory.\nDrag and drop this file in the MagIC database.".format(os.path.split(upfile)[1])
@@ -437,8 +440,13 @@ if __name__ == "__main__":
     app = wx.App(redirect=False)
     app.frame = MagMainFrame()
     working_dir = pmag.get_named_arg_from_sys('-WD', '.')
-    if working_dir == '.':
-        app.frame.on_change_dir_button(None)
+
+    ## this causes an error with Canopy Python
+    ## (it works with brew Python)
+    ## need to use these lines for Py2app
+    #if working_dir == '.':
+    #    app.frame.on_change_dir_button(None)
+
     app.frame.Show()
     app.frame.Center()
     if '-i' in sys.argv:
