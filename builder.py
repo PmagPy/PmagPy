@@ -5,6 +5,7 @@ Module for building or reading in specimen, sample, site, and location data.
 """
 
 import os
+import time
 import pmag
 import validate_upload
 import pmag_widgets as pw
@@ -88,11 +89,14 @@ class ErMagicBuilder(object):
         return pmag_object
 
 
-    def find_by_name(self, item_name, items_list):
+    def find_by_name(self, item_name, items_list, name_list=None):
         """
         Return item from items_list with name item_name.
         """
-        names = [item.name for item in items_list]
+        if not name_list:
+            names = [item.name for item in items_list]
+        else:
+            names = name_list
         if item_name in names:
             ind = names.index(item_name)
             return items_list[ind]
@@ -497,42 +501,54 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
         if file_type == 'bad_file':
             print "-E- ERROR: Can't read magic_measurements.txt file. File is corrupted."
 
+        old_specimen_name = ''
+        #start_time = time.time()
+        meas_name_list = [measurement.name for measurement in self.measurements]
+        
         for rec in meas_data:
             #print 'rec', rec
             specimen_name = rec["er_specimen_name"]
             if specimen_name == "" or specimen_name == " ":
                 continue
-            sample_name = rec["er_sample_name"]
-            site_name = rec["er_site_name"]
-            location_name = rec["er_location_name"]
 
-            # add items and parents
-            location = self.find_by_name(location_name, self.locations)
-            if location_name and not location:
-                location = self.add_location(location_name)
-            site = self.find_by_name(site_name, self.sites)
-            if site_name and not site:
-                site = self.add_site(site_name, location_name)
-            sample = self.find_by_name(sample_name, self.samples)
-            if sample_name and not sample:
-                sample = self.add_sample(sample_name, site_name)
-            specimen = self.find_by_name(specimen_name, self.specimens)
-            if specimen_name and not specimen:
-                specimen = self.add_specimen(specimen_name, sample_name)
+            if specimen_name != old_specimen_name:
+                sample_name = rec["er_sample_name"]
+                site_name = rec["er_site_name"]
+                location_name = rec["er_location_name"]
+
+                # add items and parents
+                location = self.find_by_name(location_name, self.locations)
+                if location_name and not location:
+                    location = self.add_location(location_name)
+                site = self.find_by_name(site_name, self.sites)
+                if site_name and not site:
+                    site = self.add_site(site_name, location_name)
+                sample = self.find_by_name(sample_name, self.samples)
+                if sample_name and not sample:
+                    sample = self.add_sample(sample_name, site_name)
+                specimen = self.find_by_name(specimen_name, self.specimens)
+                if specimen_name and not specimen:
+                    specimen = self.add_specimen(specimen_name, sample_name)
+
+                # add child_items
+                if sample and not self.find_by_name(specimen_name, sample.specimens):
+                    sample.specimens.append(specimen)
+                if site and not self.find_by_name(sample_name, site.samples):
+                    site.samples.append(sample)
+                if location and not self.find_by_name(site_name, location.sites):
+                    location.sites.append(site)
+
             exp_name = rec['magic_experiment_name']
             meas_num = rec['measurement_number']
-            
-            measurement = self.find_by_name(exp_name + '_' + str(meas_num), self.measurements)
+
+            meas_name = exp_name + '_' + str(meas_num)
+            measurement = self.find_by_name(meas_num, self.measurements, meas_name_list)
             if not measurement:
                 self.add_measurement(exp_name, meas_num, specimen.name, rec)
+                meas_name_list.append(meas_name)
 
-            # add child_items
-            if sample and not self.find_by_name(specimen_name, sample.specimens):
-                sample.specimens.append(specimen)
-            if site and not self.find_by_name(sample_name, site.samples):
-                site.samples.append(sample)
-            if location and not self.find_by_name(site_name, location.sites):
-                location.sites.append(site)
+            old_specimen_name = specimen_name
+        #end_time = time.time() - start_time
 
     def get_all_magic_info(self):
         self.get_data()
