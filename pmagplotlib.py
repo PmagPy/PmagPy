@@ -6,7 +6,7 @@ import numpy
 #from pmagpyrc import *
 # stuff to replace above line:
 import matplotlib
-#matplotlib.use("TkAgg")
+matplotlib.use("TkAgg")
 isServer = False
 verbose = True
 

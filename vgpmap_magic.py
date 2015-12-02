@@ -169,7 +169,8 @@ def main():
         Opts['sym']=rsym
         Opts['symsize']=rsize
         pmagplotlib.plotMAP(FIG['map'],rlats,rlons,Opts) # add the lats and lons of the poles
-    if plot==0:pmagplotlib.drawFIGS(FIG)
+    if plot==0:
+        pmagplotlib.drawFIGS(FIG)
     if ell==1: # add ellipses if desired.
         Opts['details']={'coasts':0,'rivers':0, 'states':0, 'countries':0,'ocean':0}
         Opts['pltgrid']=-1 # turn off meridian replotting
