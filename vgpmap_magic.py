@@ -115,7 +115,9 @@ def main():
     Results=pmag.get_dictitem(Results,'vgp_lat','','F') # get all non-blank latitudes
     Results=pmag.get_dictitem(Results,'vgp_lon','','F') # get all non-blank longitudes
     if coord!="":Results=pmag.get_dictitem(Results,'tilt_correction',coord,'T') # get specified coordinate system
+    location=""
     for rec in Results:
+            if rec['er_location_names'] not in location:location = location+':'+rec['er_location_names']
             if 'average_age' in rec.keys() and rec['average_age']!="" and ages==1:
                 dates.append(rec['average_age'])
             lat=float(rec['vgp_lat'])
@@ -156,6 +158,7 @@ def main():
                 ppars.append(lons[-1]+90.)
                 ppars.append(0.)
                 Pars.append(ppars)
+    location=location.strip(':')
     Opts={'latmin':-90,'latmax':90,'lonmin':0.,'lonmax':360.,'lat_0':lat_0,'lon_0':lon_0,'proj':proj,'sym':'bs','symsize':3,'pltgrid':0,'res':res,'boundinglat':0.}
     Opts['details']={'coasts':1,'rivers':0, 'states':0, 'countries':0,'ocean':1,'fancy':fancy}
     pmagplotlib.plotMAP(FIG['map'],[90.],[0.],Opts) # make the base map with a blue triangle at the pole`
@@ -187,12 +190,12 @@ def main():
                 if plot==0:pmagplotlib.drawFIGS(FIG)
     files={}
     for key in FIG.keys():
-        files[key]='VGP_map'+'.'+fmt
+        files[key]='LO:_'+location+'_VGP_map.'+fmt
     if pmagplotlib.isServer:
         black     = '#000000'
         purple    = '#800080'
         titles={}
-        titles['eq']='VGP Map'
+        titles['eq']='LO:_'+location+'_VGP_map'
         FIG = pmagplotlib.addBorders(FIG,titles,black,purple)
         pmagplotlib.saveP(FIG,files)
     elif plot==0:

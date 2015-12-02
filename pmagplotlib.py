@@ -2400,8 +2400,10 @@ def plotMAP(fignum,lats,lons,Opts):
             circles=numpy.arange(latmin-2.*Opts['padlat'],latmax+2.*Opts['padlat'],Opts['gridspace'])
             meridians=numpy.arange(lonmin-2.*Opts['padlon'],lonmax+2.*Opts['padlon'],Opts['gridspace'])
     if Opts['pltgrid']>=0:
-        m.drawparallels(circles,color='black',labels=plabels)
-        m.drawmeridians(meridians,color='black',labels=mlabels)
+        #m.drawparallels(circles,color='black',labels=plabels)
+        #m.drawmeridians(meridians,color='black',labels=mlabels)
+        m.drawparallels(circles,color='black') # skip the labels - they are ugly
+        m.drawmeridians(meridians,color='black') # skip the labels - they are ugly
         m.drawmapboundary()
     prn_name,symsize=0,5
     if 'names' in Opts.keys()>0:
