@@ -6,17 +6,21 @@ pylab.ion()
 def main():
     """
     NAME
-       histplot
+       histplot.py
     
     DESCRIPTION
        makes histograms for data
 
     OPTIONS
        -h prints help message and quits
+       -sav save figure and quit
        -f input file name
        -b binsize
        -fmt [svg,png,pdf,eps,jpg] specify format for image, default is svg
-       -N don't normize
+       -F output file name, default is hist.fmt
+       -N don't normalize
+       -xlab Label of X axis
+       -ylab Label of Y axis
     
     INPUT FORMAT
         single variable
@@ -26,6 +30,8 @@ def main():
     
     """
     file,fmt="",'svg'
+    plot=0
+    if '-sav' in sys.argv:plot=1
     if '-h' in sys.argv:
         print main.__doc__
         sys.exit()
@@ -35,6 +41,12 @@ def main():
     if '-f' in sys.argv:
         ind=sys.argv.index('-f')
         file=sys.argv[ind+1]
+    if '-F' in sys.argv:
+        ind=sys.argv.index('-F')
+        outfile=sys.argv[ind+1]
+        fmt=""
+    else:  outfile='hist.'+fmt
+    print outfile
     if '-N' in sys.argv:
         norm=0
         ylab='Number'
@@ -64,9 +76,10 @@ def main():
     pylab.ylabel(ylab)
     name='N = '+str(len(D))
     pylab.title(name)
-    pylab.draw()
-    p=raw_input('s[a]ve to save plot, [q]uit to exit without saving  ')
-    if p=='a': 
-        pylab.savefig('hist.'+fmt)
-        print 'plot saved in hist.'+fmt
+    if plot==0:
+        pylab.draw()
+        p=raw_input('s[a]ve to save plot, [q]uit to exit without saving  ')
+        if p!='a':  sys.exit()
+    pylab.savefig(outfile)
+    print 'plot saved in ',outfile
 main()
