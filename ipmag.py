@@ -694,18 +694,22 @@ def plot_di_mean(Dec,Inc,a95,color='k',marker='o',markersize=20,label='',legend=
     """
     DI_dimap=pmag.dimap(Dec,Inc)
     if Inc < 0:
-        plt.scatter(DI_dimap[0],DI_dimap[1],edgecolor=color ,facecolor='white', marker=marker,s=markersize,label=label)
+        plt.scatter(DI_dimap[0],DI_dimap[1],
+        edgecolors=color ,facecolors='white',
+        marker=marker,s=markersize,label=label)
     if Inc >= 0:
-        plt.scatter(DI_dimap[0],DI_dimap[1],color=color,marker=marker,s=markersize,label=label)
+        plt.scatter(DI_dimap[0],DI_dimap[1],
+        edgecolors=color,facecolors=color,
+        marker=marker,s=markersize,label=label)
     Xcirc,Ycirc=[],[]
     Da95,Ia95=pmag.circ(Dec,Inc,a95)
     if legend=='yes':
         plt.legend(loc=2)
-    for k in  range(len(Da95)):
+    for k in range(len(Da95)):
         XY=pmag.dimap(Da95[k],Ia95[k])
         Xcirc.append(XY[0])
         Ycirc.append(XY[1])
-    plt.plot(Xcirc,Ycirc,color)
+    plt.plot(Xcirc,Ycirc,c=color)
     plt.tight_layout()
 
 
@@ -4672,10 +4676,10 @@ class Site(object):
             raise Exception('Make fisher means within the demag GUI - functionality for handling this is in progress')
 
     def parse_fits(self, fit_name):
-        # USE PARSE_ALL_FITS unless otherwise necessary
-        # isolate fits by the name of the fit; we also set 'specimen_tilt_correction' to zero in order
-        # to only include data in geographic coordinates - this needs to be
-        # generalized.
+        '''USE PARSE_ALL_FITS unless otherwise necessary
+        Isolate fits by the name of the fit; we also set 'specimen_tilt_correction' to zero in order
+        to only include data in geographic coordinates - THIS NEEDS TO BE GENERALIZED
+        '''
         fits = self.fits.ix[self.fits.specimen_comp_name==fit_name].ix[self.fits.specimen_tilt_correction==0]
         fits.reset_index(inplace=True)
         means = self.means.ix[self.means.site_comp_name==fit_name].ix[self.means.site_tilt_correction==0]
@@ -4707,7 +4711,6 @@ class Site(object):
             return self.fisher_dict
 
         else:
-            #self.fit_list = getattr(self,fit_name)
             self.directions = []
             for fit_num in range(0,len(getattr(self,fit_name))):
                 self.directions.append([list(getattr(self,fit_name).specimen_dec)[fit_num],
@@ -4745,12 +4748,11 @@ class Site(object):
             plot_di_mean(float(getattr(self,mean_code).site_dec),
                                float(getattr(self,mean_code).site_inc),
                                float(getattr(self,mean_code).site_alpha95),
-                               color='r',marker='s',label=fits+' mean')
+                               color=self.random_color,marker='s',label=fits+' mean')
         plt.legend()
         if title != None:
             plt.title(title)
         plt.show()
-        #return plt.figure()
 
     def eq_plot(self,fit_name,title=None):
         fignum = 0
@@ -4762,17 +4764,13 @@ class Site(object):
         plot_di(getattr(self,fit_name).specimen_dec,
                       getattr(self,fit_name).specimen_inc,
                       color=self.random_color,label=fit_name+' directions')
-            #print float(getattr(self,mean_code).site_dec),float(getattr(self,mean_code).site_inc)
-            #ipmag.plot_di_mean(getattr(self,mean_name).site_dec,getattr(self,mean_name))
         plot_di_mean(float(getattr(self,mean_code).site_dec),
                            float(getattr(self,mean_code).site_inc),
-                           float(getattr(self,mean_code).site_alpha95),
-                           color='r',marker='s',label=fit_name+' mean')
+                           float(getattr(self,mean_code).site_alpha95), color = self.random_color, marker='s', label=fit_name+' mean')
         plt.legend()
         if title != None:
             plt.title(title)
         plt.show()
-        #return plt.figure()
 
     # def eq_plot_sidebyside(self, fit_name):
     #     fig,ax = plt.subplots(1,2)
