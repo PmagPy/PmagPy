@@ -26,40 +26,40 @@ def main():
         except:
             cont=0
     low,k,iz=100,0,0
-    vline='\t%s\n'%('     |      |        |         |          |       |    |      |')
-    hline='____________________________________________________________________________________________\n'
+    vline='\t%s\n'%('   |      |        |         |          |       |    |      |')
+    hline='______________________________________________________________________________\n'
     f.write('file:_________________    field:___________uT\n\n\n')
-    f.write('\t\t\t%s\n'%('date | run# | zone I | zone II | zone III | start | sp | cool |'))
+    f.write('%s\n'%('               date | run# | zone I | zone II | zone III | start | sp | cool|'))
     f.write(hline)
-    f.write('\t\t%s'%('   0.0'))
+    f.write('\t%s'%('   0.0'))
     f.write(vline)
     f.write(hline)
     for k in range(len(Top)):
         for t in range(low,Top[k]+Int[k],Int[k]):
             if iz==0:
                 Tzero.append(t) # zero field first step
-                f.write('\t %s \t %s'%('Z',str(t)+'.'+str(iz)))
+                f.write('%s \t %s'%('Z',str(t)+'.'+str(iz)))
                 f.write(vline)
                 f.write(hline)
                 if len(Tzero)>1:
-                   f.write('\t %s \t %s'%('P',str(Tzero[-2])+'.'+str(2)))
+                   f.write('%s \t %s'%('P',str(Tzero[-2])+'.'+str(2)))
                    f.write(vline)
                    f.write(hline)
                 iz=1
-                f.write('\t %s \t %s'%('I',str(t)+'.'+str(iz))) # infield after zero field first
+                f.write('%s \t %s'%('I',str(t)+'.'+str(iz))) # infield after zero field first
                 f.write(vline)
                 f.write(hline)
 
-#                f.write('\t %s \t %s'%('T',str(t)+'.'+str(3))) # print second zero field (tail check)
+#                f.write('%s \t %s'%('T',str(t)+'.'+str(3))) # print second zero field (tail check)
 #                f.write(vline)
 #                f.write(hline)
 
             elif iz==1:
-                f.write('\t %s \t %s'%('I',str(t)+'.'+str(iz))) # infield first step
+                f.write('%s \t %s'%('I',str(t)+'.'+str(iz))) # infield first step
                 f.write(vline)
                 f.write(hline)
                 iz=0
-                f.write('\t %s \t %s'%('Z',str(t)+'.'+str(iz)))# zero field step (after infield)
+                f.write('%s \t %s'%('Z',str(t)+'.'+str(iz)))# zero field step (after infield)
                 f.write(vline)
                 f.write(hline)
         try:
