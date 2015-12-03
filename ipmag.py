@@ -709,7 +709,7 @@ def plot_di_mean(Dec,Inc,a95,color='k',marker='o',markersize=20,label='',legend=
         XY=pmag.dimap(Da95[k],Ia95[k])
         Xcirc.append(XY[0])
         Ycirc.append(XY[1])
-    plt.plot(Xcirc,Ycirc,c=color)
+    plt.plot(Xcirc,Ycirc,color)
     plt.tight_layout()
 
 
