@@ -6,10 +6,10 @@
   <H1>MakeMagIC</H1>
   <h3>Why</h3>
   <UL>
-    <LI>Make_magic.py is a Python program for putting together a contribution for the MagIC database.  Make_magic.py is specifically designed for making a contribution without measurement data; if you ARE including measurement data, we recommend that you use QuickMagIC instead.  Make_magic allows you to add data at the location, site, sample, and specimen levels.  You can also add results and ages.  Make_magic uses an Excel-like grid interface for entering and editing data.  Useful features include: pop-up menus with controlled vocabularies, multi-cell pasting from external spreadsheets, and built-in validations for MagIC database requirements.</UL>
+    <LI></UL>
   <h3>Mainframe</h3>
   <UL>
-    <LI>The main window of the application has buttons that allow you to open grids and navigate through your file system.  Whatever folder you select becomes your "working directory."  Data will be read in from files in your working directory, and as you make edits data will be saved to your working directory.  You can start with an empty directory and build your contribution from scratch, however if your working directory contains any MagIC format files, those files WILL be read in.</LI>
+    <LI>The main window of the application has buttons that allow you to open grids and navigate through your file system.  Whatever folder you select becomesMake_magic.py is a Python program for putting together a contribution for the MagIC database.  Make_magic.py is specifically designed for making a contribution without measurement data; if you ARE including measurement data, we recommend that you use QuickMagIC instead.  Make_magic allows you to add data at the location, site, sample, and specimen levels.  You can also add results and ages.  Make_magic uses an Excel-like grid interface for entering and editing data.  Useful features include: pop-up menus with controlled vocabularies, multi-cell pasting from external spreadsheets, and built-in validations for MagIC database requirements. your "working directory."  Data will be read in from files in your working directory, and as you make edits data will be saved to your working directory.  You can start with an empty directory and build your contribution from scratch, however if your working directory contains any MagIC format files, those files WILL be read in.</LI>
 
     <LI> Uploading and validation:   In order to make your uploading process as smooth as possible, we've provided a set of validations to make sure your upload is in good shape before you put it into the database.  When you click "prepare upload txt file", the program will do two things.  First, it will try to create a MagIC-format upload file containing all of your data.  Second, it will check that your data is in good order.  If there are problems with your data, an upload file will still be created, but you may have problems uploading it to the database.  Make_magic will highlight any grids that have missing or incorrect data.  When you open the grids with problems, you will see that the rows and columns with data issues have been highlighted.  The specific cells are color-coded according to what type of validation they've failed (click the grid's Help button to see a key of what each color means).  Once you have corrected these validation problems, try "prepare upload txt file" again.  </LI>
   </ul>
@@ -44,6 +44,10 @@
         <LI>Controlled vocabularies:  For more information on controlled vocabularies, see: <TT><A HREF="http://earthref.org/MAGIC/shortlists.htm">Controlled vocabularies</A></TT>.
         </LI>
       </UL>
+      <h3>Internet issues</h3>
+      <ul>
+        <li>MakeMagIC can work with or without an internet connection.  Certain data -- like the complete set of controled vocabularies -- will not be available without a connection.</li>
+        <li>
 </BODY>
 
 
