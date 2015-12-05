@@ -1,5 +1,5 @@
 import pmag
-import pmagplotlib
+import ipmagplotlib
 import copy
 import pylab
 import numpy as np
@@ -159,7 +159,7 @@ def bootstrap_fold_test(Data,num_sims=1000,min_untilt=-10,max_untilt=120,bedding
 
     plt.figure(figsize=[5,5])
     plot_net(1)
-    pmagplotlib.plotDI(1,Data)  # plot directions
+    ipmagplotlib.plotDI(1,Data)  # plot directions
     plt.text(-1.1,1.15,'Geographic')
 
     D,I=pmag.dotilt_V(Data)
@@ -167,7 +167,7 @@ def bootstrap_fold_test(Data,num_sims=1000,min_untilt=-10,max_untilt=120,bedding
 
     plt.figure(figsize=[5,5])
     plot_net(2)
-    pmagplotlib.plotDI(2,TCs)  # plot directions
+    ipmagplotlib.plotDI(2,TCs)  # plot directions
     plt.text(-1.1,1.15,'Tilt-corrected')
     plt.show()
 
@@ -253,33 +253,33 @@ def bootstrap_common_mean(Data1,Data2,NumSims=1000):
 
     X1,y=pmagplotlib.plotCDF(fignum,X1,"X component",'r',"")
     bounds1=[X1[minimum],X1[maximum]]
-    pmagplotlib.plotVs(fignum,bounds1,'r','-')
+    ipmagplotlib.plotVs(fignum,bounds1,'r','-')
 
     X2,y=pmagplotlib.plotCDF(fignum,X2,"X component",'b',"")
     bounds2=[X2[minimum],X2[maximum]]
-    pmagplotlib.plotVs(fignum,bounds2,'b','--')
+    ipmagplotlib.plotVs(fignum,bounds2,'b','--')
     plt.ylim(0,1)
 
     plt.subplot(1,3,2)
 
     Y1,y=pmagplotlib.plotCDF(fignum,Y1,"Y component",'r',"")
     bounds1=[Y1[minimum],Y1[maximum]]
-    pmagplotlib.plotVs(fignum,bounds1,'r','-')
+    ipmagplotlib.plotVs(fignum,bounds1,'r','-')
 
     Y2,y=pmagplotlib.plotCDF(fignum,Y2,"Y component",'b',"")
     bounds2=[Y2[minimum],Y2[maximum]]
-    pmagplotlib.plotVs(fignum,bounds2,'b','--')
+    ipmagplotlib.plotVs(fignum,bounds2,'b','--')
     plt.ylim(0,1)
 
     plt.subplot(1,3,3)
 
     Z1,y=pmagplotlib.plotCDF(fignum,Z1,"Z component",'r',"")
     bounds1=[Z1[minimum],Z1[maximum]]
-    pmagplotlib.plotVs(fignum,bounds1,'r','-')
+    ipmagplotlib.plotVs(fignum,bounds1,'r','-')
 
     Z2,y=pmagplotlib.plotCDF(fignum,Z2,"Z component",'b',"")
     bounds2=[Z2[minimum],Z2[maximum]]
-    pmagplotlib.plotVs(fignum,bounds2,'b','--')
+    ipmagplotlib.plotVs(fignum,bounds2,'b','--')
     plt.ylim(0,1)
 
     plt.tight_layout()
@@ -309,7 +309,6 @@ def watson_common_mean(Data1,Data2,NumSims=5000,plot='no'):
     """
     pars_1=pmag.fisher_mean(Data1)
     pars_2=pmag.fisher_mean(Data2)
-
     cart_1=pmag.dir2cart([pars_1["dec"],pars_1["inc"],pars_1["r"]])
     cart_2=pmag.dir2cart([pars_2['dec'],pars_2['inc'],pars_2["r"]])
     Sw=pars_1['k']*pars_1['r']+pars_2['k']*pars_2['r'] # k1*r1+k2*r2
@@ -414,10 +413,11 @@ def watson_common_mean(Data1,Data2,NumSims=5000,plot='no'):
     if plot=='yes':
         CDF={'cdf':1}
         #pmagplotlib.plot_init(CDF['cdf'],5,5)
-        p1 = pmagplotlib.plotCDF(CDF['cdf'],Vp,"Watson's V",'r',"")
-        p2 = pmagplotlib.plotVs(CDF['cdf'],[V],'g','-')
-        p3 = pmagplotlib.plotVs(CDF['cdf'],[Vp[k]],'b','--')
-        pmagplotlib.drawFIGS(CDF)
+        p1 = ipmagplotlib.plotCDF(CDF['cdf'],Vp,"Watson's V",'r',"")
+        p2 = ipmagplotlib.plotVs(CDF['cdf'],[V],'g','-')
+        p3 = ipmagplotlib.plotVs(CDF['cdf'],[Vp[k]],'b','--')
+        #pmagplotlib.drawFIGS(CDF)
+        ipmagplotlib.showFIG(CDF['cdf'])
 
 
 def fishqq(longitude, latitude):
@@ -1323,7 +1323,7 @@ def aniso_depthplot(ani_file='rmag_anisotropy.txt', meas_file='magic_measurement
                         plt.plot([0,bmax],[depth,depth],'b--')
                         if label==1:plt.text(1.1*bmax,depth+tint,core[core_label_key])
         for x in Axs:
-            pmagplotlib.delticks(x) # this makes the x-tick labels more reasonable - they were overcrowded using the defaults
+            ipmagplotlib.delticks(x) # this makes the x-tick labels more reasonable - they were overcrowded using the defaults
         fig_name = location + '_ani_depthplot.' + fmt
         return main_plot, fig_name
     else:
@@ -1679,7 +1679,7 @@ def core_depthplot(input_dir_path='.', meas_file='magic_measurements.txt', spc_f
             plt.xlabel('Declination')
             plt.ylabel(ylab)
             plot+=1
-            pmagplotlib.delticks(ax) # dec xticks are too crowded otherwise
+            ipmagplotlib.delticks(ax) # dec xticks are too crowded otherwise
     else:
         return False, 'No data found to plot\nTry again with different parameters'
     if pltInc:
@@ -2151,6 +2151,7 @@ def specimens_results_magic(infile='pmag_specimens.txt', measfile='magic_measure
     @param -> documentation incomplete if you know more about the purpose of the parameters in this function and it's side effects please extend and complete this string
     """
     # initialize some variables
+    plotsites=False # cannot use drawFIGS from within ipmag
     Comps=[] # list of components
     version_num=pmag.get_version()
     args=sys.argv
@@ -2215,12 +2216,12 @@ def specimens_results_magic(infile='pmag_specimens.txt', measfile='magic_measure
 
 
     if plotsites and not skip_directions: # plot by site - set up plot window
-        import pmagplotlib
+        import ipmagplotlib
         EQ={}
         EQ['eqarea']=1
-        pmagplotlib.plot_init(EQ['eqarea'],5,5) # define figure 1 as equal area projection
-        pmagplotlib.plotNET(EQ['eqarea']) # I don't know why this has to be here, but otherwise the first plot never plots...
-        pmagplotlib.drawFIGS(EQ)
+        ipmagplotlib.plot_init(EQ['eqarea'],5,5) # define figure 1 as equal area projection
+        ipmagplotlib.plotNET(EQ['eqarea']) # I don't know why this has to be here, but otherwise the first plot never plots...
+        ipmagplotlib.drawFIGS(EQ)
 
     infile = os.path.join(dir_path, infile)
     measfile = os.path.join(dir_path, measfile)
@@ -2503,8 +2504,8 @@ def specimens_results_magic(infile='pmag_specimens.txt', measfile='magic_measure
                             PmagSiteRec['magic_method_codes'].strip(":")
                             if plotsites:
                                 print PmagSiteRec['er_site_name']
-                                pmagplotlib.plotSITE(EQ['eqarea'],PmagSiteRec,siteD,key) # plot and list the data
-                                pmagplotlib.drawFIGS(EQ)
+                                ipmagplotlib.plotSITE(EQ['eqarea'],PmagSiteRec,siteD,key) # plot and list the data
+                                ipmagplotlib.drawFIGS(EQ)
                             PmagSites.append(PmagSiteRec)
                 else: # last component only
                     siteD=tmp1[:] # get the last orientation system specified
@@ -2526,8 +2527,8 @@ def specimens_results_magic(infile='pmag_specimens.txt', measfile='magic_measure
                         PmagSiteRec['magic_method_codes'].strip(":")
                         if not avg_directions_by_sample:PmagSiteRec['site_comp_name']= pmag.get_list(siteD,key+'_comp_name')
                         if plotsites:
-                            pmagplotlib.plotSITE(EQ['eqarea'],PmagSiteRec,siteD,key)
-                            pmagplotlib.drawFIGS(EQ)
+                            ipmagplotlib.plotSITE(EQ['eqarea'],PmagSiteRec,siteD,key)
+                            ipmagplotlib.drawFIGS(EQ)
                         PmagSites.append(PmagSiteRec)
             else:
                 print 'site information not found in er_sites for site, ',site,' site will be skipped'
@@ -4736,7 +4737,7 @@ class Site(object):
     def eq_plot_everything(self,title=None):
         fignum = 0
         plt.figure(num=fignum,figsize=(8,8),dpi=200)
-        pmagplotlib.plotNET(fignum)
+        ipmagplotlib.plotNET(fignum)
         for fits in self.fit_types:
             mean_code = str(fits)+"_mean"
             print mean_code
@@ -4757,7 +4758,7 @@ class Site(object):
     def eq_plot(self,fit_name,title=None):
         fignum = 0
         plt.figure(num=fignum,figsize=(8,8),dpi=200)
-        pmagplotlib.plotNET(fignum)
+        ipmagplotlib.plotNET(fignum)
         mean_code = str(fit_name)+"_mean"
         #print mean_code
         self.random_color = np.random.rand(3)

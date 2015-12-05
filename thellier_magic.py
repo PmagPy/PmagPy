@@ -1,6 +1,6 @@
 #!/usr/bin/env python
-import sys,pmag,math,pmagplotlib,exceptions
-if not pmagplotlib.isServer: import nlt
+import sys,pmag,math,ipmagplotlib,exceptions
+if not ipmagplotlib.isServer: import nlt
 # initialize some variables
 def save_redo(SpecRecs,inspec):
     SpecRecs,keys=pmag.fillkeys(SpecRecs)
@@ -76,7 +76,7 @@ def main():
     user,comment,AniSpec,locname="",'',"",""
     ans,specimen,recnum,start,end=0,0,0,0,0
     plots,pmag_out,samp_file,style=0,"","","svg"
-    verbose=pmagplotlib.verbose 
+    verbose=ipmagplotlib.verbose 
     fmt='.'+style
 #
 # default acceptance criteria
@@ -154,10 +154,10 @@ def main():
     #   de-,re-magization diagrams
     AZD={}
     AZD['deremag'], AZD['zijd'],AZD['arai'],AZD['eqarea']=1,2,3,4
-    pmagplotlib.plot_init(AZD['arai'],5,5)
-    pmagplotlib.plot_init(AZD['zijd'],5,5)
-    pmagplotlib.plot_init(AZD['deremag'],5,5)
-    pmagplotlib.plot_init(AZD['eqarea'],5,5)
+    ipmagplotlib.plot_init(AZD['arai'],5,5)
+    ipmagplotlib.plot_init(AZD['zijd'],5,5)
+    ipmagplotlib.plot_init(AZD['deremag'],5,5)
+    ipmagplotlib.plot_init(AZD['eqarea'],5,5)
     #
     #
     #
@@ -206,16 +206,16 @@ def main():
             if Tinit==0:
                 Tinit=1
                 AZD['TRM']=5
-                pmagplotlib.plot_init(AZD['TRM'],5,5)
+                ipmagplotlib.plot_init(AZD['TRM'],5,5)
         elif Tinit==1: # clear the TRM figure if not needed
-            pmagplotlib.clearFIG(AZD['TRM'])
+            ipmagplotlib.clearFIG(AZD['TRM'])
         if len(tdsrecs)>2:
             if TDinit==0:
                 TDinit=1
                 AZD['TDS']=6
-                pmagplotlib.plot_init(AZD['TDS'],5,5)
+                ipmagplotlib.plot_init(AZD['TDS'],5,5)
         elif TDinit==1: # clear the TDS figure if not needed
-            pmagplotlib.clearFIG(AZD['TDS'])
+            ipmagplotlib.clearFIG(AZD['TDS'])
         if len(datablock) <4:
            if backup==0:
                specimen+=1
@@ -277,8 +277,8 @@ def main():
                        else:
                            print '%i     %i %7.1f %7.1f %8.3e ' % (recnum,plotrec[0]-273,plotrec[1],plotrec[2],plotrec[3])
                        recnum += 1
-               pmagplotlib.plotAZ(AZD,araiblock,zijdblock,s,units[0])
-               if verbose:pmagplotlib.drawFIGS(AZD)
+               ipmagplotlib.plotAZ(AZD,araiblock,zijdblock,s,units[0])
+               if verbose:ipmagplotlib.drawFIGS(AZD)
                if len(tdsrecs)>2: # a TDS experiment
                    tdsblock=[] # make a list for the TDS  data
                    Mkeys=['measurement_magnitude','measurement_magn_moment','measurement_magn_volume','measuruement_magn_mass']
@@ -306,8 +306,8 @@ def main():
                                        tdsblock.append([step,zrec[3]/Tnorm,Tint/Tnorm])
                                        break
                    if len(tdsblock)>2: 
-                       pmagplotlib.plotTDS(AZD['TDS'],tdsblock,s+':LP-PI-TDS:')
-                       if verbose:pmagplotlib(drawFIGS(AZD)) 
+                       ipmagplotlib.plotTDS(AZD['TDS'],tdsblock,s+':LP-PI-TDS:')
+                       if verbose:ipmagplotlib(drawFIGS(AZD)) 
                    else: 
                        print "Something wrong here"
                if anis==1:   # look up anisotropy data for this specimen
@@ -339,8 +339,8 @@ def main():
                                if verbose:
                                    print 'Saved interpretation: '
                                pars,kill=pmag.scoreit(pars,PmagSpecRec,accept,'',verbose)
-                               pmagplotlib.plotB(AZD,araiblock,zijdblock,pars)
-                               if verbose:pmagplotlib.drawFIGS(AZD)
+                               ipmagplotlib.plotB(AZD,araiblock,zijdblock,pars)
+                               if verbose:ipmagplotlib.drawFIGS(AZD)
                                if len(trmblock)>2:
                                    blab=field
                                    best=pars["specimen_int"]
@@ -354,11 +354,11 @@ def main():
                                        Bp.append(float(k)*1e-6)
                                        npred=nlt.TRM(Bp[-1],NLpars['xopt'][0],NLpars['xopt'][1]) # predicted NRM for this field
                                        Mp.append(npred)
-                                   pmagplotlib.plotTRM(AZD['TRM'],Bs,TRMs,Bp,Mp,NLpars,trec['magic_experiment_name'])
+                                   ipmagplotlib.plotTRM(AZD['TRM'],Bs,TRMs,Bp,Mp,NLpars,trec['magic_experiment_name'])
                                    PmagSpecRec['specimen_int']=NLpars['banc'] 
                                    if verbose:
                                        print 'Banc= ',float(NLpars['banc'])*1e6
-                                       pmagplotlib.drawFIGS(AZD)
+                                       ipmagplotlib.drawFIGS(AZD)
                                mpars=pmag.domean(araiblock[1],start,end,'DE-BFL')
                                if verbose:
                                        print 'pTRM direction= ','%7.1f'%(mpars['specimen_dec']),' %7.1f'%(mpars['specimen_inc']),' MAD:','%7.1f'%(mpars['specimen_mad'])
@@ -381,8 +381,8 @@ def main():
                        pars["specimen_int"]=-1*field*pars["specimen_b"]
                        pars["er_specimen_name"]=s
                        pars['specimen_grade']='' # ungraded
-                       pmagplotlib.plotB(AZD,araiblock,zijdblock,pars)
-                       if verbose:pmagplotlib.drawFIGS(AZD)
+                       ipmagplotlib.plotB(AZD,araiblock,zijdblock,pars)
+                       if verbose:ipmagplotlib.drawFIGS(AZD)
                        if len(trmblock)>2:
                            if inlt==0:
                                inlt=1
@@ -401,7 +401,7 @@ def main():
                    files={}
                    for key in AZD.keys():
                        files[key]=s+'_'+key+fmt 
-                   pmagplotlib.saveP(AZD,files)
+                   ipmagplotlib.saveP(AZD,files)
                    sys.exit()
                if verbose:
                    ans='b'
@@ -415,13 +415,13 @@ def main():
                        if ans=="d": 
                            save_redo(PriorRecs,inspec)
                            CurrRec=[]
-                           pmagplotlib.plotAZ(AZD,araiblock,zijdblock,s,units[0])
-                           if verbose:pmagplotlib.drawFIGS(AZD)
+                           ipmagplotlib.plotAZ(AZD,araiblock,zijdblock,s,units[0])
+                           if verbose:ipmagplotlib.drawFIGS(AZD)
                        if ans=='a':
                            files={}
                            for key in AZD.keys():
                                files[key]="LO:_"+locname+'_SI:_'+PmagSpecRec['er_site_name']+'_SA:_'+PmagSpecRec['er_sample_name']+'_SP:_'+s+'_CO:_s_TY:_'+key+fmt
-                           pmagplotlib.saveP(AZD,files)
+                           ipmagplotlib.saveP(AZD,files)
                            ans=""
                        if ans=='q':
                            print "Good bye"
@@ -511,9 +511,9 @@ def main():
                            PmagSpecRec["magic_method_codes"]=methods[:-1]
                            PmagSpecRec["specimen_description"]=comment
                            PmagSpecRec["magic_software_packages"]=version_num
-                           pmagplotlib.plotAZ(AZD,araiblock,zijdblock,s,units[0])
-                           pmagplotlib.plotB(AZD,araiblock,zijdblock,pars)
-                           if verbose:pmagplotlib.drawFIGS(AZD)
+                           ipmagplotlib.plotAZ(AZD,araiblock,zijdblock,s,units[0])
+                           ipmagplotlib.plotB(AZD,araiblock,zijdblock,pars)
+                           if verbose:ipmagplotlib.drawFIGS(AZD)
                            if len(trmblock)>2:
                                blab=field
                                best=pars["specimen_int"]
@@ -527,10 +527,10 @@ def main():
                                    Bp.append(float(k)*1e-6)
                                    npred=nlt.TRM(Bp[-1],NLpars['xopt'][0],NLpars['xopt'][1]) # predicted NRM for this field
                                    Mp.append(npred)
-                               pmagplotlib.plotTRM(AZD['TRM'],Bs,TRMs,Bp,Mp,NLpars,trec['magic_experiment_name'])
+                               ipmagplotlib.plotTRM(AZD['TRM'],Bs,TRMs,Bp,Mp,NLpars,trec['magic_experiment_name'])
                                if verbose:
                                    print 'Non-linear TRM corrected intensity= ',float(NLpars['banc'])*1e6
-                           if verbose:pmagplotlib.drawFIGS(AZD)
+                           if verbose:ipmagplotlib.drawFIGS(AZD)
                            pars["specimen_lab_field_dc"]=field
                            pars["specimen_int"]=-1*field*pars["specimen_b"]
                            pars,kill=pmag.scoreit(pars,PmagSpecRec,accept,'',verbose)
@@ -546,16 +546,16 @@ def main():
                        files={}
                        for key in AZD.keys():
                            files[key]="LO:_"+locname+'_SI:_'+PmagSpecRec['er_site_name']+'_SA:_'+PmagSpecRec['er_sample_name']+'_SP:_'+s+'_CO:_s_TY:_'+key+'_'+fmt
-                       if pmagplotlib.isServer:
+                       if ipmagplotlib.isServer:
                            black     = '#000000'
                            purple    = '#800080'
                            titles={}
                            titles['deremag']='DeReMag Plot'
                            titles['zijd']='Zijderveld Plot'
                            titles['arai']='Arai Plot'
-                           AZD = pmagplotlib.addBorders(AZD,titles,black,purple)
-                       pmagplotlib.saveP(AZD,files)
-    #                   pmagplotlib.combineFigs(s,files,3)
+                           AZD = ipmagplotlib.addBorders(AZD,titles,black,purple)
+                       ipmagplotlib.saveP(AZD,files)
+    #                   ipmagplotlib.combineFigs(s,files,3)
                    else:  # save in pmag format 
                        script="grep "+s+" output.mag | thellier -mfsi"
                        script=script+' %8.4e'%(field)
@@ -576,7 +576,7 @@ def main():
                 files={}
                 for key in AZD.keys():
                     files[key]=s+'_'+key+fmt
-                pmagplotlib.saveP(AZD,files)
+                ipmagplotlib.saveP(AZD,files)
         else:
             print "\n Good bye\n"
             sys.exit()
