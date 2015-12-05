@@ -6,7 +6,7 @@ import numpy
 #from pmagpyrc import *
 # stuff to replace above line:
 import matplotlib
-matplotlib.use("TkAgg")
+#matplotlib.use("TkAgg")
 isServer = False
 verbose = True
 
@@ -28,12 +28,12 @@ def showFIG(fig):
     pylab.figure(fig)
     pylab.show()
 
-def drawFIGS(FIGS):
-	pylab.ion()
-	for fig in FIGS.keys():
-		pylab.figure(FIGS[fig])
-		pylab.draw()
-	pylab.ioff()
+#def drawFIGS(FIGS):
+#	pylab.ion()
+#	for fig in FIGS.keys():
+#		pylab.figure(FIGS[fig])
+#		pylab.draw()
+#	pylab.ioff()
 	
 def clearFIG(fignum):
     pylab.figure(num=fignum)

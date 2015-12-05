@@ -79,12 +79,12 @@ def main():
         Crits,file_type=pmag.magic_read(crit_file)
     else:
         Crits=[]
-    SiteCols=["Site","Samples","Location","Lat. (N)","Long. (E)","Age ","Age sigma","Units"]
-    SiteKeys=["er_site_names","er_sample_names","average_lat","average_lon","average_age","average_age_sigma","average_age_unit"]
-    DirCols=["Site","Samples",'Comp.',"%TC","Dec.","Inc.","Nl","Np","k    ","R","a95","PLat","PLong"]
-    DirKeys=["er_site_names","er_sample_names","pole_comp_name","tilt_correction","average_dec","average_inc","average_n_lines","average_n_planes","average_k","average_r","average_alpha95","vgp_lat","vgp_lon"]
-    IntCols=["Site","Specimens","Samples","N","B (uT)","sigma","sigma perc","VADM","VADM sigma"]
-    IntKeys=["er_site_names","er_specimen_names","er_sample_names","average_int_n","average_int","average_int_sigma",'average_int_sigma_perc',"vadm","vadm_sigma"]
+    SiteCols=["Site","Location","Lat. (N)","Long. (E)","Age ","Age sigma","Units"]
+    SiteKeys=["er_site_names","average_lat","average_lon","average_age","average_age_sigma","average_age_unit"]
+    DirCols=["Site",'Comp.',"perc TC","Dec.","Inc.","Nl","Np","k    ","R","a95","PLat","PLong"]
+    DirKeys=["er_site_names","pole_comp_name","tilt_correction","average_dec","average_inc","average_n_lines","average_n_planes","average_k","average_r","average_alpha95","vgp_lat","vgp_lon"]
+    IntCols=["Site","N","B (uT)","sigma","sigma perc","VADM","VADM sigma"]
+    IntKeys=["er_site_names","average_int_n","average_int","average_int_sigma",'average_int_sigma_perc',"vadm","vadm_sigma"]
     AllowedKeys=['specimen_frac','specimen_scat','specimen_gap_max','measurement_step_min', 'measurement_step_max', 'measurement_step_unit', 'specimen_polarity', 'specimen_nrm', 'specimen_direction_type', 'specimen_comp_nmb', 'specimen_mad', 'specimen_alpha95', 'specimen_n', 'specimen_int_sigma', 'specimen_int_sigma_perc', 'specimen_int_rel_sigma', 'specimen_int_rel_sigma_perc', 'specimen_int_mad', 'specimen_int_n', 'specimen_w', 'specimen_q', 'specimen_f', 'specimen_fvds', 'specimen_b_sigma', 'specimen_b_beta', 'specimen_g', 'specimen_dang', 'specimen_md', 'specimen_ptrm', 'specimen_drat', 'specimen_drats', 'specimen_rsc', 'specimen_viscosity_index', 'specimen_magn_moment', 'specimen_magn_volume', 'specimen_magn_mass', 'specimen_int_ptrm_n', 'specimen_delta', 'specimen_theta', 'specimen_gamma', 'sample_polarity', 'sample_nrm', 'sample_direction_type', 'sample_comp_nmb', 'sample_sigma', 'sample_alpha95', 'sample_n', 'sample_n_lines', 'sample_n_planes', 'sample_k', 'sample_r', 'sample_tilt_correction', 'sample_int_sigma', 'sample_int_sigma_perc', 'sample_int_rel_sigma', 'sample_int_rel_sigma_perc', 'sample_int_n', 'sample_magn_moment', 'sample_magn_volume', 'sample_magn_mass', 'site_polarity', 'site_nrm', 'site_direction_type', 'site_comp_nmb', 'site_sigma', 'site_alpha95', 'site_n', 'site_n_lines', 'site_n_planes', 'site_k', 'site_r', 'site_tilt_correction', 'site_int_sigma', 'site_int_sigma_perc', 'site_int_rel_sigma', 'site_int_rel_sigma_perc', 'site_int_n', 'site_magn_moment', 'site_magn_volume', 'site_magn_mass', 'average_age_min', 'average_age_max', 'average_age_sigma', 'average_age_unit', 'average_sigma', 'average_alpha95', 'average_n', 'average_nn', 'average_k', 'average_r', 'average_int_sigma', 'average_int_rel_sigma', 'average_int_rel_sigma_perc', 'average_int_n', 'average_int_nn', 'vgp_dp', 'vgp_dm', 'vgp_sigma', 'vgp_alpha95', 'vgp_n', 'vdm_sigma', 'vdm_n', 'vadm_sigma', 'vadm_n']
     if crit_file!="":
         crit=Crits[0] # get a list of useful keys
@@ -116,20 +116,37 @@ def main():
     if latex: #write out the latex header stuff
         sep=' & '
         end='\\\\'
-        f.write('\\begin{table}\n')
-        sf.write('\\begin{table}\n')
-        fI.write('\\begin{table}\n')
-        if crit_file!="":cr.write('\\begin{table}\n')
-        if spec_file!="": fsp.write('\\begin{table}\n')
-        tabstring='\\begin{tabular}{'
+        f.write('\\documentclass{article}\n')
+        f.write('\\usepackage[margin=1in]{geometry}\n')
+        f.write('\\usepackage{longtable}\n')
+        f.write('\\begin{document}\n')
+        sf.write('\\documentclass{article}\n')
+        sf.write('\\usepackage[margin=1in]{geometry}\n')
+        sf.write('\\usepackage{longtable}\n')
+        sf.write('\\begin{document}\n')
+        fI.write('\\documentclass{article}\n')
+        fI.write('\\usepackage[margin=1in]{geometry}\n')
+        fI.write('\\usepackage{longtable}\n')
+        fI.write('\\begin{document}\n')
+        if crit_file!="":
+            cr.write('\\documentclass{article}\n')
+            cr.write('\\usepackage[margin=1in]{geometry}\n')
+            cr.write('\\usepackage{longtable}\n')
+            cr.write('\\begin{document}\n')
+        if spec_file!="": 
+            fsp.write('\\documentclass{article}\n')
+            fsp.write('\\usepackage[margin=1in]{geometry}\n')
+            fsp.write('\\usepackage{longtable}\n')
+            fsp.write('\\begin{document}\n')
+        tabstring='\\begin{longtable}{'
         fstring=tabstring
         for k in range(len(SiteCols)):fstring=fstring+'r'
-        f.write(fstring+'}\n')
-        f.write('\hline\n')
-        fstring=tabstring
-        for k in range(len(DirCols)):fstring=fstring+'r'
         sf.write(fstring+'}\n')
         sf.write('\hline\n')
+        fstring=tabstring
+        for k in range(len(DirCols)):fstring=fstring+'r'
+        f.write(fstring+'}\n')
+        f.write('\hline\n')
         fstring=tabstring
         for k in range(len(IntCols)):fstring=fstring+'r'
         fI.write(fstring+'}\n')
@@ -150,26 +167,26 @@ def main():
 # now write out the actual column headers
     Soutstring,Doutstring,Ioutstring,Spoutstring,Croutstring="","","","",""
     for k in range(len(SiteCols)): Soutstring=Soutstring+SiteCols[k]+sep
-    Soutstring=Soutstring+end
-    Soutstring=Soutstring.strip(sep) +"\n"
+    Soutstring=Soutstring.strip(sep) 
+    Soutstring=Soutstring+end +'\n'
     sf.write(Soutstring)
     for k in range(len(DirCols)): Doutstring=Doutstring+DirCols[k]+sep
-    Doutstring=Doutstring+end
-    Doutstring=Doutstring.strip(sep) +"\n"
+    Doutstring=Doutstring.strip(sep) 
+    Doutstring=Doutstring+end +'\n'
     f.write(Doutstring)
     for k in range(len(IntCols)): Ioutstring=Ioutstring+IntCols[k]+sep
-    Ioutstring=Ioutstring+end
-    Ioutstring=Ioutstring.strip(sep) +"\n"
+    Ioutstring=Ioutstring.strip(sep) 
+    Ioutstring=Ioutstring+end +'\n'
     fI.write(Ioutstring)
     if crit_file!="":
         for k in range(len(CritKeys)): Croutstring=Croutstring+CritKeys[k]+sep
-        Croutstring=Croutstring+end
-        Croutstring=Croutstring.strip(sep) +"\n"
+        Croutstring=Croutstring.strip(sep) 
+        Croutstring=Croutstring+end +'\n'
         cr.write(Croutstring)
     if spec_file!="":
         for k in range(len(SpecCols)): Spoutstring=Spoutstring+SpecCols[k]+sep
-        Spoutstring=Spoutstring+end
-        Spoutstring=Spoutstring.strip(sep) +"\n"
+        Spoutstring=Spoutstring.strip(sep) 
+        Spoutstring=Spoutstring+end +"\n"
         fsp.write(Spoutstring)
     if latex: # put in a horizontal line in latex file
         f.write('\hline\n')
@@ -187,6 +204,7 @@ def main():
             cr.write(Croutstring+'\n')
  # do directions 
     VGPs=pmag.get_dictitem(Sites,'vgp_lat','','F') # get all results with VGPs
+    VGPs=pmag.get_dictitem(VGPs,'data_type','i','T') # get site level stuff
     for site in VGPs:
         if len(site['er_site_names'].split(":"))==1:
             if 'er_sample_names' not in site.keys():site['er_sample_names']=''
@@ -204,6 +222,7 @@ def main():
             f.write(Doutstring+'\n')
 # now do intensities
     VADMs=pmag.get_dictitem(Sites,'vadm','','F')
+    VADMs=pmag.get_dictitem(VADMs,'data_type','i','T')
     for site in VADMs: # do results level stuff
         if site not in VGPs:
             Soutstring=""
@@ -213,7 +232,7 @@ def main():
                 else: Soutstring=Soutstring + " " + sep
             Soutstring=Soutstring.strip(sep) +end
             sf.write(Soutstring+'\n')
-        if len(site['er_site_names'].split(":"))==1:
+        if len(site['er_site_names'].split(":"))==1 and site['data_type']=='i':
             if 'average_int_sigma_perc' not in site.keys():site['average_int_sigma_perc']="0"
             if site["average_int_sigma"]=="":site["average_int_sigma"]="0"        
             if site["average_int_sigma_perc"]=="":site["average_int_sigma_perc"]="0"        
@@ -265,15 +284,20 @@ def main():
         f.write('\hline\n')
         sf.write('\hline\n')
         fI.write('\hline\n')
-        f.write('\end{tabular}\n')
-        sf.write('\end{tabular}\n')
-        fI.write('\end{tabular}\n')
-        f.write('\end{table}\n')
-        fI.write('\end{table}\n')
+        f.write('\end{longtable}\n')
+        sf.write('\end{longtable}\n')
+        fI.write('\end{longtable}\n')
+        f.write('\end{document}\n')
+        sf.write('\end{document}\n')
+        fI.write('\end{document}\n')
         if spec_file!="":
             fsp.write('\hline\n')
-            fsp.write('\end{tabular}\n')
-            fsp.write('\end{table}\n')
+            fsp.write('\end{longtable}\n')
+            fsp.write('\end{document}\n')
+        if crit_file!="":
+            cr.write('\hline\n')
+            cr.write('\end{longtable}\n')
+            cr.write('\end{document}\n')
     f.close()
     sf.close()
     fI.close()

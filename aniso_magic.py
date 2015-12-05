@@ -1,12 +1,13 @@
 #!/usr/bin/env python
 #
+#import draw
+import sys,pmag,math,pmagplotlib
 def save(ANIS,fmt,title):
   files={}
   for key in ANIS.keys():
       files[key]=title+'_TY:_aniso-'+key+'_.'+fmt 
   pmagplotlib.saveP(ANIS,files)
 
-import sys,pmag,math,pmagplotlib
 def main():
     """
     NAME

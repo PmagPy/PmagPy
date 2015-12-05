@@ -8426,7 +8426,7 @@ def read_criteria_from_file(path,acceptance_criteria):
                 continue
             if crit=="specimen_dang" and "pmag_criteria_code" in rec.keys() and "IE-SPEC" in rec["pmag_criteria_code"]:
                 crit="specimen_int_dang"
-                print "-W- Found backward compatibility problem with selection criteria specimen_dang. Cannot be assotiated with IE-SPEC. Program assumes that the statistic is specimen_int_dang"
+                print "-W- Found backward compatibility problem with selection criteria specimen_dang. Cannot be associated with IE-SPEC. Program assumes that the statistic is specimen_int_dang"
                 acceptance_criteria["specimen_int_dang"]['value']=float(rec["specimen_dang"])
             elif crit not in acceptance_criteria_list:
                 print "-W- WARNING: criteria code %s is not supported by PmagPy GUI. please check"%crit
