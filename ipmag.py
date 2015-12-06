@@ -279,33 +279,33 @@ def bootstrap_common_mean(Data1,Data2,NumSims=1000):
     minimum = int(0.025*len(X1))
     maximum = int(0.975*len(X1))
 
-    X1,y=pmagplotlib.plotCDF(fignum,X1,"X component",'r',"")
+    X1,y=ipmagplotlib.plotCDF(fignum,X1,"X component",'r',"")
     bounds1=[X1[minimum],X1[maximum]]
     ipmagplotlib.plotVs(fignum,bounds1,'r','-')
 
-    X2,y=pmagplotlib.plotCDF(fignum,X2,"X component",'b',"")
+    X2,y=ipmagplotlib.plotCDF(fignum,X2,"X component",'b',"")
     bounds2=[X2[minimum],X2[maximum]]
     ipmagplotlib.plotVs(fignum,bounds2,'b','--')
     plt.ylim(0,1)
 
     plt.subplot(1,3,2)
 
-    Y1,y=pmagplotlib.plotCDF(fignum,Y1,"Y component",'r',"")
+    Y1,y=ipmagplotlib.plotCDF(fignum,Y1,"Y component",'r',"")
     bounds1=[Y1[minimum],Y1[maximum]]
     ipmagplotlib.plotVs(fignum,bounds1,'r','-')
 
-    Y2,y=pmagplotlib.plotCDF(fignum,Y2,"Y component",'b',"")
+    Y2,y=ipmagplotlib.plotCDF(fignum,Y2,"Y component",'b',"")
     bounds2=[Y2[minimum],Y2[maximum]]
     ipmagplotlib.plotVs(fignum,bounds2,'b','--')
     plt.ylim(0,1)
 
     plt.subplot(1,3,3)
 
-    Z1,y=pmagplotlib.plotCDF(fignum,Z1,"Z component",'r',"")
+    Z1,y=ipmagplotlib.plotCDF(fignum,Z1,"Z component",'r',"")
     bounds1=[Z1[minimum],Z1[maximum]]
     ipmagplotlib.plotVs(fignum,bounds1,'r','-')
 
-    Z2,y=pmagplotlib.plotCDF(fignum,Z2,"Z component",'b',"")
+    Z2,y=ipmagplotlib.plotCDF(fignum,Z2,"Z component",'b',"")
     bounds2=[Z2[minimum],Z2[maximum]]
     ipmagplotlib.plotVs(fignum,bounds2,'b','--')
     plt.ylim(0,1)
@@ -520,8 +520,8 @@ def fishqq(longitude, latitude):
                 I1.append(irot)
                 Dtit='Mode 1 Declinations'
                 Itit='Mode 1 Inclinations'
-        Mu_n,Mu_ncr=pmagplotlib.plotQQunf(QQ['unf1'],D1,Dtit) # make plot
-        Me_n,Me_ncr=pmagplotlib.plotQQexp(QQ['exp1'],I1,Itit) # make plot
+        Mu_n,Mu_ncr=ipmagplotlib.plotQQunf(QQ['unf1'],D1,Dtit) # make plot
+        Me_n,Me_ncr=ipmagplotlib.plotQQexp(QQ['exp1'],I1,Itit) # make plot
         if Mu_n<=Mu_ncr and Me_n<=Me_ncr:
            F_n = 'consistent with Fisherian model'
         else:
@@ -551,8 +551,8 @@ def fishqq(longitude, latitude):
             I2.append(irot)
             Dtit='Mode 2 Declinations'
             Itit='Mode 2 Inclinations'
-        Mu_r,Mu_rcr=pmagplotlib.plotQQunf(QQ['unf2'],D2,Dtit) # make plot
-        Me_r,Me_rcr=pmagplotlib.plotQQexp(QQ['exp2'],I2,Itit) # make plot
+        Mu_r,Mu_rcr=ipmagplotlib.plotQQunf(QQ['unf2'],D2,Dtit) # make plot
+        Me_r,Me_rcr=ipmagplotlib.plotQQexp(QQ['exp2'],I2,Itit) # make plot
 
         if Mu_r<=Mu_rcr and Me_r<=Me_rcr:
            F_r = 'consistent with Fisherian model'
