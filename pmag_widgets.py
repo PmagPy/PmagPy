@@ -548,7 +548,7 @@ class combine_files(wx.BoxSizer):
         self.on_add_all_files_button(None)
 
     def on_add_file_button(self, event):
-
+        #make easier to read later but maintain path differences such that same named files in different directories are recognized
         dlg = wx.FileDialog(
             None, message="choose MagIC formatted measurement file",
             defaultDir=self.WD,
@@ -557,9 +557,8 @@ class combine_files(wx.BoxSizer):
             )
         if dlg.ShowModal() == wx.ID_OK:
             full_path = dlg.GetPath()
-            infile = os.path.split(full_path)[1]
-            if infile not in [self.file_paths.GetLineText(line) for line in range(self.file_paths.GetNumberOfLines())]:
-                self.file_paths.AppendText(infile + "\n")
+            if full_path not in [self.file_paths.GetLineText(line) for line in range(self.file_paths.GetNumberOfLines())]:
+                self.file_paths.AppendText(full_path + "\n")
 
     def on_add_all_files_button(self, event):
         all_files = os.listdir(self.WD)
