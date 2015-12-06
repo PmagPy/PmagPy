@@ -47,6 +47,13 @@ def fisher_mean(dec,inc):
     return pmag.fisher_mean(di_block)
 
 
+def print_fisher_mean(mean_dictionary):
+    print 'Dec.: ' + str(round(mean_dictionary['dec'],1)) + '  Inc.: ' + str(round(mean_dictionary['inc'],1))
+    print 'Number of directions in mean (n): ' + str(mean_dictionary['n'])
+    print 'Angular radius of 95% confidence (a_95): ' + str(round(mean_dictionary['alpha95'],1))
+    print 'Precision parameter (k) estimate: ' + str(round(mean_dictionary['k'],1))
+
+
 def fishrot(k=20,n=100,Dec=0,Inc=90):
     """
     Generates Fisher distributed unit vectors from a specified distribution
