@@ -273,6 +273,12 @@ class Zeq_GUI(wx.Frame):
 
         self.fig3 = Figure((2.5*self.GUI_RESOLUTION, 2.5*self.GUI_RESOLUTION), dpi=self.dpi)
         self.canvas3 = FigCanvas(self.panel, -1, self.fig3)
+        self.toolbar3 = NavigationToolbar(self.canvas3)
+        self.toolbar3.Hide()
+        self.toolbar3.zoom()
+        self.MM0_setting = "Zoom"
+        self.canvas3.Bind(wx.EVT_RIGHT_DOWN, self.right_click_MM0)
+        self.canvas3.Bind(wx.EVT_MIDDLE_DOWN, self.home_MM0)
 
         self.fig4 = Figure((2.5*self.GUI_RESOLUTION, 2.5*self.GUI_RESOLUTION), dpi=self.dpi)
         self.canvas4 = FigCanvas(self.panel, -1, self.fig4)
@@ -1039,6 +1045,17 @@ class Zeq_GUI(wx.Frame):
             self.canvas1.draw()
         else:
             return
+
+    def right_click_MM0(self,event):
+        if self.MM0_setting == "Zoom":
+            self.MM0_setting = "Pan"
+            self.toolbar3.pan()
+        elif self.MM0_setting == "Pan":
+            self.MM0_setting = "Zoom"
+            self.toolbar3.zoom()
+
+    def home_MM0(self,event):
+        self.toolbar3.home()
 
     #----------------------------------------------------------------------
     # Picking bounds from Zijderveld plot
