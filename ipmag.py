@@ -1832,13 +1832,13 @@ def core_depthplot(input_dir_path='.', meas_file='magic_measurements.txt', spc_f
     return main_plot, figname
 
 
-def download_magic(infile, dir_path='.', input_dir_path='.', overwrite=False):
+def download_magic(infile, dir_path='.', input_dir_path='.',overwrite=False,print_progress=True):
     """
     takes the name of a text file downloaded from the MagIC database and
     unpacks it into magic-formatted files. by default, download_magic assumes
     that you are doing everything in your current directory. if not, you may
     provide optional arguments dir_path (where you want the results to go) and
-    input_dir_path (where the dowloaded file is).
+    input_dir_path (where the downloaded file is).
     """
     f=open(os.path.join(input_dir_path, infile),'rU')
     infile=f.readlines()
@@ -1856,7 +1856,8 @@ def download_magic(infile, dir_path='.', input_dir_path='.', overwrite=False):
         file_type=file_type.lower()
         if file_type=='delimited':file_type=Input[skip].split('\t')[2]
         if file_type[-1]=="\n":file_type=file_type[:-1]
-        print 'working on: ',repr(file_type)
+        if print_progress==True:
+            print 'working on: ',repr(file_type)
         if file_type not in type_list:
             type_list.append(file_type)
         else:
@@ -1886,7 +1887,8 @@ def download_magic(infile, dir_path='.', input_dir_path='.', overwrite=False):
                             rec['magic_method_codes']=methods[:-1]
                     NewRecs.append(rec)
                 pmag.magic_write(outfile,Recs,file_type)
-                print file_type," data put in ",outfile
+                if print_progress==True:
+                    print file_type," data put in ",outfile
                 if file_type =='pmag_specimens' and 'magic_measurements.txt' in File and 'measurement_step_min' in File and 'measurement_step_max' in File: # sort out zeq_specimens and thellier_specimens
                     os.system('mk_redo.py')
                     os.system('zeq_magic_redo.py')
@@ -1928,14 +1930,16 @@ def download_magic(infile, dir_path='.', input_dir_path='.', overwrite=False):
                     rec['magic_method_codes']=methods[:-1]
             NewRecs.append(rec)
         pmag.magic_write(outfile,Recs,file_type)
-        print file_type," data put in ",outfile
+        if print_progress==True:
+            print file_type," data put in ",outfile
 # look through locations table and create separate directories for each location
     locs,locnum=[],1
     if 'er_locations' in type_list:
         locs,file_type=pmag.magic_read(dir_path+'/er_locations.txt')
     if len(locs)>0: # at least one location
         for loc in locs:
-            print 'location_'+str(locnum)+": ",loc['er_location_name']
+            if print_progress==True:
+                print 'location_'+str(locnum)+": ",loc['er_location_name']
             lpath=dir_path+'/Location_'+str(locnum)
             locnum+=1
             try:
@@ -1946,19 +1950,23 @@ def download_magic(infile, dir_path='.', input_dir_path='.', overwrite=False):
                     print "-W- download_magic encountered a duplicate subdirectory ({}) and could not finish.\nRerun with overwrite=True, or unpack this file in a different directory.".format(lpath)
                     return False
             for f in type_list:
-                print 'unpacking: ',dir_path+'/'+f+'.txt'
+                if print_progress==True:
+                    print 'unpacking: ',dir_path+'/'+f+'.txt'
                 recs,file_type=pmag.magic_read(dir_path+'/'+f+'.txt')
-                print len(recs),' read in'
+                if print_progress==True:
+                    print len(recs),' read in'
                 if 'results' not in f:
                     lrecs=pmag.get_dictitem(recs,'er_location_name',loc['er_location_name'],'T')
                     if len(lrecs)>0:
                         pmag.magic_write(lpath+'/'+f+'.txt',lrecs,file_type)
-                        print len(lrecs),' stored in ',lpath+'/'+f+'.txt'
+                        if print_progress==True:
+                            print len(lrecs),' stored in ',lpath+'/'+f+'.txt'
                 else:
                     lrecs=pmag.get_dictitem(recs,'er_location_names',loc['er_location_name'],'T')
                     if len(lrecs)>0:
                         pmag.magic_write(lpath+'/'+f+'.txt',lrecs,file_type)
-                        print len(lrecs),' stored in ',lpath+'/'+f+'.txt'
+                        if print_progress==True:
+                            print len(lrecs),' stored in ',lpath+'/'+f+'.txt'
     return True
 
 
