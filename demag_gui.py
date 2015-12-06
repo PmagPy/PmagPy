@@ -1270,7 +1270,7 @@ class Zeq_GUI(wx.Frame):
             for i in range(len(self.zijdblock_steps)):
                 if int(self.preferences['show_Zij_treatments_steps']) !=1:
                     if i!=0  and (i+1)%int(self.preferences['show_Zij_treatments_steps'])==0:
-                        self.zijplot.text(self.CART_rot[i][0], -1*self.CART_rot[i][2], "  %s"%(self.zijdblock_steps[i]), fontsize=10*self.GUI_RESOLUTION, color='gray', ha='left', va='center')   #inc
+                        self.zijplot.text(self.CART_rot[i][0], -1*self.CART_rot[i][2], "  %s"%(self.zijdblock_steps[i]), fontsize=8*self.GUI_RESOLUTION, color='gray', ha='left', va='center')   #inc
                 else:
                   self.zijplot.text(self.CART_rot[i][0], -1*self.CART_rot[i][2], "  %s"%(self.zijdblock_steps[i]), fontsize=10*self.GUI_RESOLUTION, color='gray', ha='left', va='center')   #inc
 
@@ -1890,6 +1890,8 @@ class Zeq_GUI(wx.Frame):
         self.Add_text()
         #update higher level stats
         self.update_higher_level_stats()
+        #redraw interpretations
+        self.update_GUI_with_new_interpretation()
 
     #--------------------------
     # check if high level interpretation exists and display it
@@ -2067,8 +2069,10 @@ class Zeq_GUI(wx.Frame):
                     fit.put(self.s,'specimen',self.get_PCA_parameters(self.s,fit.tmin,fit.tmax,'specimen',fit.get('specimen')['calculation_type']))
                 if len(self.Data[self.s]['zijdblock_geo'])>0 and fit.get('geographic') and 'calculation_type' in fit.get('geographic'):
                     fit.put(self.s,'geographic',self.get_PCA_parameters(self.s,fit.tmin,fit.tmax,'geographic',fit.get('geographic')['calculation_type']))
-                if len(self.Data[self.s]['zijdblock_tilt'])>0 and fit.get('tilt_corrected') and 'calculation_type' in fit.get('tilt_corrected'):
-                    fit.put(self.s,'tilt-corrected',self.get_PCA_parameters(self.s,fit.tmin,fit.tmax,'tilt-corrected',fit.get('tilt_corrected')['calculation_type']))
+                if len(self.Data[self.s]['zijdblock_tilt'])>0 and fit.get('tilt-corrected') and 'calculation_type' in fit.get('tilt-corrected'):
+                    fit.put(self.s,'tilt-corrected',self.get_PCA_parameters(self.s,fit.tmin,fit.tmax,'tilt-corrected',fit.get('tilt-corrected')['calculation_type']))
+        if self.interpretation_editor_open:
+            self.interpretation_editor.update_current_fit_data()
         self.calculate_higher_levels_data()
         self.update_selection()
 
@@ -2631,6 +2635,7 @@ class Zeq_GUI(wx.Frame):
            if self.interpretation_editor_open:
                self.interpretation_editor.show_box.SetItems(['specimens'])
                self.interpretation_editor.show_box.SetStringSelection('specimens')
+           if self.UPPER_LEVEL_SHOW not in ['specimens']: self.UPPER_LEVEL_SHOW = u'specimens'
            self.level_names.SetItems(self.samples)
            self.level_names.SetStringSelection(self.Data_hierarchy['sample_of_specimen'][self.s])
 
@@ -2639,6 +2644,7 @@ class Zeq_GUI(wx.Frame):
                self.interpretation_editor.show_box.SetItems(['specimens','samples'])
                if self.interpretation_editor.show_box.GetValue() not in ['specimens','samples']:
                    self.interpretation_editor.show_box.SetStringSelection('samples')
+           if self.UPPER_LEVEL_SHOW not in ['specimens','samples']: self.UPPER_LEVEL_SHOW = u'specimens'
            self.level_names.SetItems(self.sites)
            self.level_names.SetStringSelection(self.Data_hierarchy['site_of_specimen'][self.s])
 
@@ -2760,6 +2766,15 @@ class Zeq_GUI(wx.Frame):
 
             for key in pars_for_mean.keys():
                 if len(pars_for_mean[key]) > 0 and key != "All":
+<<<<<<< HEAD
+                    if high_level_name not in self.pmag_results_data[self.UPPER_LEVEL_SHOW].keys():
+                        self.pmag_results_data[self.UPPER_LEVEL_SHOW][high_level_name] = []
+                    if key not in map(lambda x: x.name, self.pmag_results_data[self.UPPER_LEVEL_SHOW][high_level_name]):
+                        self.pmag_results_data[self.UPPER_LEVEL_SHOW][high_level_name].append(Fit(key, None, None, colors_for_means[key], self))
+                        key_index = -1
+                    else:
+                        key_index = map(lambda x: x.name, self.pmag_results_data[self.UPPER_LEVEL_SHOW][high_level_name]).index(key)
+=======
                     if high_level_name not in self.pmag_results_data[high_level_type].keys():
                         self.pmag_results_data[high_level_type][high_level_name] = []
                     if key not in map(lambda x: x.name, self.pmag_results_data[high_level_type][high_level_name]):
@@ -2767,13 +2782,18 @@ class Zeq_GUI(wx.Frame):
                         key_index = -1
                     else:
                         key_index = map(lambda x: x.name, self.pmag_results_data[high_level_type][high_level_name]).index(key)
+>>>>>>> origin/master
                     new_pars = self.calculate_mean(pars_for_mean[key],calculation_type)
                     map_keys = new_pars.keys()
                     map_keys.remove("calculation_type")
                     if calculation_type == "Fisher":
                         for mkey in map_keys:
                             new_pars[mkey] = float(new_pars[mkey])
+<<<<<<< HEAD
+                    self.pmag_results_data[self.UPPER_LEVEL_SHOW][high_level_name][key_index].put(None, dirtype,new_pars)
+=======
                     self.pmag_results_data[high_level_type][high_level_name][key_index].put(None, dirtype,new_pars)
+>>>>>>> origin/master
                 if len(pars_for_mean[key]) > 0 and key == "All":
                     self.high_level_means[high_level_type][high_level_name][dirtype] = self.calculate_mean(pars_for_mean["All"],calculation_type)
 
@@ -6035,7 +6055,7 @@ class Fit():
         elif coordinate_system == 'DA-DIR-TILT' or coordinate_system == 'tilt-corrected':
             return self.tiltpars
         else:
-            print("-E- no such parameters to fetch in fit: " + self.name)
+            print("-E- no such parameters to fetch for " + coordinate_system + " in fit: " + self.name)
             return None
 
     def put(self,specimen,coordinate_system,new_pars):
