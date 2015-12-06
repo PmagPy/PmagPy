@@ -3,7 +3,7 @@ import pmag,sys
 def spitout(kappa):
     dec,inc= pmag.fshdev(kappa)  # send kappa to fshdev
     print '%7.1f %7.1f ' % (dec,inc)
-    return 
+    return
 def main():
     """
     NAME
@@ -14,7 +14,7 @@ def main():
 
     INPUT (COMMAND LINE ENTRY)
     OUTPUT
-        dec,  inc   
+        dec,  inc
 
     SYNTAX
         fisher.py [-h] [-i] [command line options]
@@ -46,4 +46,5 @@ def main():
             ind=sys.argv.index('-n')
             N=int(sys.argv[ind+1])
     for k in range(N): spitout(kappa)
-main()
+if __name__=='__main__':
+    main()
