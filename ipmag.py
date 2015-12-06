@@ -645,7 +645,7 @@ def plot_net(fignum):
             Ytick.append(XY[1])
         plt.plot(Xtick,Ytick,'k')
     plt.axis("equal")
-    plt.tight_layout()
+    plt.axis((-1.05,1.05,-1.05,1.05))
 
 
 def plot_di(dec,inc,color='k',marker='o',markersize=20,legend='no',label=''):
