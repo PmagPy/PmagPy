@@ -1,7 +1,6 @@
 import pmag
 import ipmagplotlib
 import copy
-import pylab
 import numpy as np
 import random
 import matplotlib
@@ -11,7 +10,6 @@ import sys
 import time
 import re
 import math
-
 
 
 #from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigureCanvas
@@ -36,7 +34,8 @@ def fisher_mean(dec,inc):
     """
     Calculates the Fisher mean and associated parameters from a list of
     declination values and a separate list of inclination values (which are
-    in order such that they are paired with one another)
+    in order such that they are paired with one another and made into a di_block
+    that is passed to pmag.fisher_mean)
 
     Arguments
     ----------
@@ -47,18 +46,18 @@ def fisher_mean(dec,inc):
     return pmag.fisher_mean(di_block)
 
 
-def print_fisher_mean(mean_dictionary):
-    print 'Dec.: ' + str(round(mean_dictionary['dec'],1)) + '  Inc.: ' + str(round(mean_dictionary['inc'],1))
+def print_direction_mean(mean_dictionary):
+    print 'Dec: ' + str(round(mean_dictionary['dec'],1)) + '  Inc: ' + str(round(mean_dictionary['inc'],1))
     print 'Number of directions in mean (n): ' + str(mean_dictionary['n'])
     print 'Angular radius of 95% confidence (a_95): ' + str(round(mean_dictionary['alpha95'],1))
     print 'Precision parameter (k) estimate: ' + str(round(mean_dictionary['k'],1))
 
 
-def print_fisher_mean_pole(mean_dictionary):
-    print 'Pole Longitude: ' + str(round(mean_dictionary['dec'],1)) + '  Pole Latitude: ' + str(round(mean_dictionary['inc'],1))
+def print_pole_mean(mean_dictionary):
+    print 'Plong: ' + str(round(mean_dictionary['dec'],1)) + '  Plat: ' + str(round(mean_dictionary['inc'],1))
     print 'Number of directions in mean (n): ' + str(mean_dictionary['n'])
     print 'Angular radius of 95% confidence (A_95): ' + str(round(mean_dictionary['alpha95'],1))
-    print 'Precision parameter (K) estimate: ' + str(round(mean_dictionary['k'],1))
+    print 'Precision parameter (k) estimate: ' + str(round(mean_dictionary['k'],1))
 
 
 def fishrot(k=20,n=100,Dec=0,Inc=90):
@@ -601,9 +600,9 @@ def plot_net(fignum):
     """
 
 # make the perimeter
-    pylab.figure(num=fignum)
-    pylab.clf()
-    pylab.axis("off")
+    plt.figure(num=fignum)
+    plt.clf()
+    plt.axis("off")
     Dcirc=np.arange(0,361.)
     Icirc=np.zeros(361,'f')
     Xcirc,Ycirc=[],[]
@@ -611,7 +610,7 @@ def plot_net(fignum):
         XY= pmag.dimap(Dcirc[k],Icirc[k])
         Xcirc.append(XY[0])
         Ycirc.append(XY[1])
-    pylab.plot(Xcirc,Ycirc,'k')
+    plt.plot(Xcirc,Ycirc,'k')
 
 # put on the tick marks
     Xsym,Ysym=[],[]
@@ -619,34 +618,34 @@ def plot_net(fignum):
         XY=pmag.dimap(0.,I)
         Xsym.append(XY[0])
         Ysym.append(XY[1])
-    pylab.plot(Xsym,Ysym,'k+')
+    plt.plot(Xsym,Ysym,'k+')
     Xsym,Ysym=[],[]
     for I in range(10,90,10):
         XY=pmag.dimap(90.,I)
         Xsym.append(XY[0])
         Ysym.append(XY[1])
-    pylab.plot(Xsym,Ysym,'k+')
+    plt.plot(Xsym,Ysym,'k+')
     Xsym,Ysym=[],[]
     for I in range(10,90,10):
         XY=pmag.dimap(180.,I)
         Xsym.append(XY[0])
         Ysym.append(XY[1])
-    pylab.plot(Xsym,Ysym,'k+')
+    plt.plot(Xsym,Ysym,'k+')
     Xsym,Ysym=[],[]
     for I in range(10,90,10):
         XY=pmag.dimap(270.,I)
         Xsym.append(XY[0])
         Ysym.append(XY[1])
-    pylab.plot(Xsym,Ysym,'k+')
+    plt.plot(Xsym,Ysym,'k+')
     for D in range(0,360,10):
         Xtick,Ytick=[],[]
         for I in range(4):
             XY=pmag.dimap(D,I)
             Xtick.append(XY[0])
             Ytick.append(XY[1])
-        pylab.plot(Xtick,Ytick,'k')
-    pylab.axis("equal")
-    pylab.tight_layout()
+        plt.plot(Xtick,Ytick,'k')
+    plt.axis("equal")
+    plt.tight_layout()
 
 
 def plot_di(dec,inc,color='k',marker='o',markersize=20,legend='no',label=''):
@@ -767,7 +766,7 @@ def plot_pole(mapname,plong,plat,A95,label='',color='k',marker='o',markersize=20
     mapname.scatter(centerlon,centerlat,marker=marker,color=color,s=markersize,label=label,zorder=101)
     equi(mapname, plong, plat, A95_km,color)
     if legend=='yes':
-        pylab.legend(loc=2)
+        plt.legend(loc=2)
 
 
 def plot_pole_colorbar(mapname,plong,plat,A95,cmap,vmin,vmax,label='',color='k',marker='o',markersize='20',alpha='1.0',legend='no'):
@@ -794,7 +793,7 @@ def plot_pole_colorbar(mapname,plong,plat,A95,cmap,vmin,vmax,label='',color='k',
     mapname.scatter(centerlon,centerlat,c=cmap,vmin=vmin,vmax=vmax,s=markersize,marker=marker,color=color,alpha=alpha,label=label,zorder=101)
     equi_colormap(mapname, plong, plat, A95_km, color, alpha)
     if legend=='yes':
-        pylab.legend(loc=2)
+        plt.legend(loc=2)
 
 
 def plot_vgp(mapname,plong,plat,label='',color='k',marker='o',legend='no'):
@@ -818,21 +817,7 @@ def plot_vgp(mapname,plong,plat,label='',color='k',marker='o',legend='no'):
     centerlon, centerlat = mapname(plong,plat)
     mapname.scatter(centerlon,centerlat,20,marker=marker,color=color,label=label,zorder=100)
     if legend=='yes':
-        pylab.legend(loc=2)
-
-
-def print_direction_mean(mean_dictionary):
-    print 'Dec: ' + str(round(mean_dictionary['dec'],1)) + '  Inc: ' + str(round(mean_dictionary['inc'],1))
-    print 'Number of directions in mean (n): ' + str(mean_dictionary['n'])
-    print 'Angular radius of 95% confidence (a_95): ' + str(round(mean_dictionary['alpha95'],1))
-    print 'Precision parameter (k) estimate: ' + str(round(mean_dictionary['k'],2))
-
-
-def print_pole_mean(mean_dictionary):
-    print 'Plong: ' + str(round(mean_dictionary['dec'],1)) + '  Plat: ' + str(round(mean_dictionary['inc'],1))
-    print 'Number of directions in mean (n): ' + str(mean_dictionary['n'])
-    print 'Angular radius of 95% confidence (A_95): ' + str(round(mean_dictionary['alpha95'],1))
-    print 'Precision parameter (k) estimate: ' + str(round(mean_dictionary['k'],2))
+        plt.legend(loc=2)
 
 
 def vgp_calc(dataframe,tilt_correction='yes'):
