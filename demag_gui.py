@@ -5674,8 +5674,7 @@ class EditFitFrame(wx.Frame):
             color_name = color_list[0]
             color_val = map(eval, tuple(color_list[1].strip('( )').split(',')))
         else:
-            color_val = map(eval, tuple(color_list[1].strip('( )').split(',')))
-            color_name = str(color_val)
+            return
         self.color_dict[color_name] = color_val
         #clear old box
         self.color_box.Clear()
