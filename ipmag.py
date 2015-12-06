@@ -54,6 +54,13 @@ def print_fisher_mean(mean_dictionary):
     print 'Precision parameter (k) estimate: ' + str(round(mean_dictionary['k'],1))
 
 
+def print_fisher_mean_pole(mean_dictionary):
+    print 'Pole Longitude: ' + str(round(mean_dictionary['dec'],1)) + '  Pole Latitude: ' + str(round(mean_dictionary['inc'],1))
+    print 'Number of directions in mean (n): ' + str(mean_dictionary['n'])
+    print 'Angular radius of 95% confidence (A_95): ' + str(round(mean_dictionary['alpha95'],1))
+    print 'Precision parameter (K) estimate: ' + str(round(mean_dictionary['k'],1))
+
+
 def fishrot(k=20,n=100,Dec=0,Inc=90):
     """
     Generates Fisher distributed unit vectors from a specified distribution
