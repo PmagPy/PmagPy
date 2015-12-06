@@ -2766,7 +2766,6 @@ class Zeq_GUI(wx.Frame):
 
             for key in pars_for_mean.keys():
                 if len(pars_for_mean[key]) > 0 and key != "All":
-<<<<<<< HEAD
                     if high_level_name not in self.pmag_results_data[self.UPPER_LEVEL_SHOW].keys():
                         self.pmag_results_data[self.UPPER_LEVEL_SHOW][high_level_name] = []
                     if key not in map(lambda x: x.name, self.pmag_results_data[self.UPPER_LEVEL_SHOW][high_level_name]):
@@ -2774,26 +2773,13 @@ class Zeq_GUI(wx.Frame):
                         key_index = -1
                     else:
                         key_index = map(lambda x: x.name, self.pmag_results_data[self.UPPER_LEVEL_SHOW][high_level_name]).index(key)
-=======
-                    if high_level_name not in self.pmag_results_data[high_level_type].keys():
-                        self.pmag_results_data[high_level_type][high_level_name] = []
-                    if key not in map(lambda x: x.name, self.pmag_results_data[high_level_type][high_level_name]):
-                        self.pmag_results_data[high_level_type][high_level_name].append(Fit(key, None, None, colors_for_means[key], self))
-                        key_index = -1
-                    else:
-                        key_index = map(lambda x: x.name, self.pmag_results_data[high_level_type][high_level_name]).index(key)
->>>>>>> origin/master
                     new_pars = self.calculate_mean(pars_for_mean[key],calculation_type)
                     map_keys = new_pars.keys()
                     map_keys.remove("calculation_type")
                     if calculation_type == "Fisher":
                         for mkey in map_keys:
                             new_pars[mkey] = float(new_pars[mkey])
-<<<<<<< HEAD
                     self.pmag_results_data[self.UPPER_LEVEL_SHOW][high_level_name][key_index].put(None, dirtype,new_pars)
-=======
-                    self.pmag_results_data[high_level_type][high_level_name][key_index].put(None, dirtype,new_pars)
->>>>>>> origin/master
                 if len(pars_for_mean[key]) > 0 and key == "All":
                     self.high_level_means[high_level_type][high_level_name][dirtype] = self.calculate_mean(pars_for_mean["All"],calculation_type)
 
@@ -5694,8 +5680,7 @@ class EditFitFrame(wx.Frame):
             color_name = color_list[0]
             color_val = map(eval, tuple(color_list[1].strip('( )').split(',')))
         else:
-            color_val = map(eval, tuple(color_list[1].strip('( )').split(',')))
-            color_name = str(color_val)
+            return
         self.color_dict[color_name] = color_val
         #clear old box
         self.color_box.Clear()
