@@ -324,6 +324,7 @@ class Zeq_GUI(wx.Frame):
         self.logger.InsertColumn(5, 'M',width=45*self.GUI_RESOLUTION)
         self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnClick_listctrl, self.logger)
         self.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK,self.OnRightClickListctrl,self.logger)
+
  #----------------------------------------------------------------------
         #  select specimen box
  #----------------------------------------------------------------------
@@ -346,8 +347,6 @@ class Zeq_GUI(wx.Frame):
         select_specimen_window = wx.GridSizer(1, 2, 5, 10)
         select_specimen_window.AddMany( [(self.prevbutton, wx.ALIGN_LEFT),
             (self.nextbutton, wx.ALIGN_LEFT)])
-
-
 
  #----------------------------------------------------------------------
         #  select coordinate box
@@ -415,7 +414,6 @@ class Zeq_GUI(wx.Frame):
             (self.tmax_box, wx.ALIGN_LEFT)])
         self.box_sizer_select_bounds.Add(select_temp_window, 0, wx.ALIGN_LEFT, 3.5 )
 
-
         #----------------------------------------------------------------------
         #  save/delete box
         #----------------------------------------------------------------------
@@ -435,10 +433,10 @@ class Zeq_GUI(wx.Frame):
             (self.delete_interpretation_button, wx.ALIGN_LEFT)])
         self.box_sizer_save.Add(save_delete_window, 0, wx.TOP, 5.5 )
 
-
  #----------------------------------------------------------------------
         # Specimen interpretation window
  #----------------------------------------------------------------------
+
         self.box_sizer_specimen = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY,"specimen mean type"  ), wx.HORIZONTAL )
 
         self.PCA_type_box = wx.ComboBox(self.panel, -1, size=(100*self.GUI_RESOLUTION, 25), value='line',choices=['line','line-anchored','line-with-origin','plane','Fisher'], style=wx.CB_DROPDOWN,name="coordinates")
@@ -447,7 +445,7 @@ class Zeq_GUI(wx.Frame):
         #Plane displays box
 #        self.plane_display_sizer = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY,"plane display type"  ), wx.HORIZONTAL )
 
-        self.plane_display_box = wx.ComboBox(self.panel, -1, size=(100*self.GUI_RESOLUTION, 25), value='show poles',choices=['show poles','show u. hemisphere', 'show l. hemisphere', 'show whole plane'], style=wx.CB_DROPDOWN,name="PlaneType")
+        self.plane_display_box = wx.ComboBox(self.panel, -1, size=(100*self.GUI_RESOLUTION, 25), value='show whole plane',choices=['show whole plane','show u. hemisphere', 'show l. hemisphere','show poles'], style=wx.CB_DROPDOWN,name="PlaneType")
         self.Bind(wx.EVT_COMBOBOX, self.on_select_plane_display_box, self.plane_display_box)
 
         specimen_stat_type_window = wx.GridSizer(2, 1, 10*self.GUI_RESOLUTION, 19*self.GUI_RESOLUTION)
@@ -485,6 +483,7 @@ class Zeq_GUI(wx.Frame):
 #----------------------------------------------------------------------
 # High level mean window
  #----------------------------------------------------------------------
+
         self.box_sizer_high_level = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY,"higher level mean"  ), wx.HORIZONTAL )
 
         self.level_box = wx.ComboBox(self.panel, -1, size=(100*self.GUI_RESOLUTION, 25),value='site',  choices=['sample','site','location','study'], style=wx.CB_DROPDOWN,name="high_level")
@@ -544,9 +543,9 @@ class Zeq_GUI(wx.Frame):
 #        self.high_level_text_box = wx.TextCtrl(self.panel, id=-1, size=(220*self.GUI_RESOLUTION,210*self.GUI_RESOLUTION), style=wx.TE_MULTILINE | wx.TE_READONLY )
 #        self.high_level_text_box.SetFont(font1)
 #        self.box_sizer_high_level_text.Add(self.high_level_text_box, 0, wx.ALIGN_LEFT, 0 )
+
  #----------------------------------------------------------------------
 # Design the panel
-
 #----------------------------------------------------------------------
 
         vbox1 = wx.BoxSizer(wx.VERTICAL)
@@ -591,7 +590,6 @@ class Zeq_GUI(wx.Frame):
         hbox2.Add(vbox2,flag=wx.ALIGN_CENTER_HORIZONTAL)
         hbox2.Add(vbox3,flag=wx.ALIGN_CENTER_HORIZONTAL)
 
-
         vbox1.Add(hbox1, flag=wx.ALIGN_LEFT)
         vbox1.Add(hbox2, flag=wx.LEFT)
 
@@ -601,7 +599,7 @@ class Zeq_GUI(wx.Frame):
         self.GUI_SIZE = self.GetSize()
 
         # get previous interpretations from pmag tables
-        # Draw figures and add  text
+        # Draw figures and add text
         if self.Data:
             self.update_pmag_tables()
             if not self.current_fit:
@@ -667,7 +665,7 @@ class Zeq_GUI(wx.Frame):
     def pick_bounds(self,event):
         """
         (unsupported)
-        attempt at a functionallity to pick bounds by clicking on the zijderveld
+        attempt at a functionality to pick bounds by clicking on the zijderveld
         @param: event -> the wx.MouseEvent that triggered the call of this function
         @alters: ...
         """
@@ -999,7 +997,6 @@ class Zeq_GUI(wx.Frame):
                 self.canvas1.draw()
 
 
-
     def on_leave_zij_fig (self,event):
         self.canvas1.mpl_disconnect(self.cid3)
         self.canvas1.mpl_disconnect(self.cid4)
@@ -1206,11 +1203,9 @@ class Zeq_GUI(wx.Frame):
         self.CART_rot_good=array(self.CART_rot_good)
         self.CART_rot_bad=array(self.CART_rot_bad)
 
-
     #----------------------------------------------------------------------
     # Draw plots
     #----------------------------------------------------------------------
-
 
     def draw_figure(self,s,update_higher_plots=True):
 
@@ -1359,6 +1354,7 @@ class Zeq_GUI(wx.Frame):
         self.zij_ylim_initial=(ymin, ymax)
 
         self.canvas1.draw()
+
         #-----------------------------------------------------------
         # specimen equal area
         #-----------------------------------------------------------
@@ -1413,7 +1409,6 @@ class Zeq_GUI(wx.Frame):
             self.specimen_eqarea.scatter([eqarea_data_x_dn],[eqarea_data_y_dn],marker='o',edgecolor='black', facecolor='gray',s=15*self.GUI_RESOLUTION,lw=1,clip_on=False)
 
 
-
         x_eq_up,y_eq_up,z_eq_up=[],[],[]
         x_eq_up=array([row[0] for row in self.zij_norm if row[2]<=0])
         y_eq_up=array([row[1] for row in self.zij_norm if row[2]<=0])
@@ -1429,8 +1424,6 @@ class Zeq_GUI(wx.Frame):
             for i in range(len(self.zijdblock_steps)):
                 self.specimen_eqarea.text(eqarea_data_x[i],eqarea_data_y[i],"%.1f"%float(self.zijdblock_steps[i]),fontsize=8*self.GUI_RESOLUTION,color="0.5")
 
-
-
         # add line to show the direction of the x axis in the Zijderveld plot
 
         if str(self.orthogonal_box.GetValue()) in ["X=best fit line dec","X=NRM dec"]:
@@ -1444,8 +1437,6 @@ class Zeq_GUI(wx.Frame):
                     XY=pmag.dimap(dec_zij,0)
             if XY!=[]:
                 self.specimen_eqarea.plot([0,XY[0]],[0,XY[1]],ls='-',c='gray',lw=0.5)#,zorder=0)
-
-
 
         self.specimen_eqarea.set_xlim(-1., 1.)
         self.specimen_eqarea.set_ylim(-1., 1.)
@@ -1677,7 +1668,6 @@ class Zeq_GUI(wx.Frame):
     # add text to text box
     #----------------------------------------------------------------------
 
-
     def Add_text(self):
       """
       Add measurement data lines to the text window.
@@ -1765,6 +1755,7 @@ class Zeq_GUI(wx.Frame):
             self.interpretation_editor.coordinates_box.SetStringSelection(new)
             self.interpretation_editor.update_editor(True)
         self.update_selection()
+
     #----------------------------------------------------------------------
 
     def onSelect_orthogonal_box(self, event):
@@ -1823,7 +1814,6 @@ class Zeq_GUI(wx.Frame):
       self.update_selection()
 
     #----------------------------------------------------------------------
-
 
     def update_selection(self):
         """
@@ -1884,11 +1874,10 @@ class Zeq_GUI(wx.Frame):
         #update higher level stats
         self.update_higher_level_stats()
 
-    #----------------------------------------------------------------------
-
     #--------------------------
     # check if high level interpretation exists and display it
     #--------------------------
+
     def update_higher_level_stats(self):
         dirtype=str(self.coordinates_box.GetValue())
         if dirtype=='specimen':dirtype='DA-DIR'
@@ -1909,6 +1898,7 @@ class Zeq_GUI(wx.Frame):
     #--------------------------
     # update treatment list
     #--------------------------
+
     def update_temp_boxes(self):
         if self.s not in self.Data.keys():
             self.s = self.Data.keys()[0]
@@ -1968,7 +1958,6 @@ class Zeq_GUI(wx.Frame):
         self.GUI_log=open(os.path.join(self.WD, "demag_gui.log"),'a')
 
     #----------------------------------------------------------------------
-
 
     def OnClick_listctrl(self,event):
 
@@ -2076,7 +2065,7 @@ class Zeq_GUI(wx.Frame):
 
     def get_new_PCA_parameters(self,event):  #BLARGE
         """
-        calcualte statisics when temperatures are selected
+        calculate statistics when temperatures are selected
         or PCA type is changed
         """
 
@@ -2126,7 +2115,7 @@ class Zeq_GUI(wx.Frame):
 
     def get_PCA_parameters(self,specimen,tmin,tmax,coordinate_system,calculation_type):
         """
-        calcualte statisics
+        calculate statisics
         """
 
         beg_pca,end_pca = self.get_temp_indecies(None, tmin, tmax, specimen)
@@ -2408,8 +2397,6 @@ class Zeq_GUI(wx.Frame):
                 self.specimen_eqarea_interpretation.set_ylim(-1., 1.)
                 self.specimen_eqarea_interpretation.axes.set_aspect('equal')
                 self.specimen_eqarea_interpretation.axis('off')
-
-
 
             # M/M0 plot (only if C or mT - not both)
             if self.Data[self.s]['measurement_step_unit'] !="mT:C" and self.Data[self.s]['measurement_step_unit'] !="C:mT":
@@ -2777,7 +2764,7 @@ class Zeq_GUI(wx.Frame):
 
     def calculate_mean(self,pars_for_mean,calculation_type):
         '''
-        claculates:
+        calculates:
             Fisher mean (lines/planes)
             or Fisher by polarity
         '''
@@ -2817,7 +2804,6 @@ class Zeq_GUI(wx.Frame):
         mpars['calculation_type']=calculation_type
 
         return(mpars)
-
 
 
     def calculate_higher_levels_data(self):
@@ -3296,10 +3282,10 @@ class Zeq_GUI(wx.Frame):
                      Data[s]['magic_instrument_codes']=rec['magic_instrument_codes']
                  Data[s]["magic_method_codes"]=LPcode
 
-
                  #--------------
                  # ""good" or "bad" data
                  #--------------
+
                  flag='g'
                  if 'measurement_flag' in rec.keys():
                      if str(rec["measurement_flag"])=='b':
@@ -3423,6 +3409,7 @@ class Zeq_GUI(wx.Frame):
         #--------------------------------------------------------------
         # collect all zijderveld data to array and calculate VDS
         #--------------------------------------------------------------
+
         zdata=[]
         zdata_geo=[]
         zdata_tilt=[]
@@ -3724,11 +3711,6 @@ class Zeq_GUI(wx.Frame):
                 #print "found previose interpretation",site,calculation_type,elements_type
             #print "this is sites"
             #print self.high_level_means['sites']
-
-
-
-
-
 
     #-----------------------------------
 
