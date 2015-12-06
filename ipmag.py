@@ -32,6 +32,21 @@ def igrf(input_list):
     return Dir
 
 
+def fisher_mean(dec,inc):
+    """
+    Calculates the Fisher mean and associated parameters from a list of
+    declination values and a separate list of inclination values (which are
+    in order such that they are paired with one another)
+
+    Arguments
+    ----------
+    dec : list with declination values
+    inc : list with inclination values
+    """
+    di_block = make_di_block(dec,inc)
+    return pmag.fisher_mean(di_block)
+
+
 def fishrot(k=20,n=100,Dec=0,Inc=90):
     """
     Generates Fisher distributed unit vectors from a specified distribution
