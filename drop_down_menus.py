@@ -41,7 +41,7 @@ class Menus(object):
                                     'sample_type', 'sample_class', 'sample_lithology',
                                     'site_type', 'site_class', 'site_lithology',
                                     'er_specimen_names', 'er_sample_names', 'er_site_names',
-                                    'er_location_names', 'magic_method_codes']
+                                    'er_location_names', 'magic_method_codes', 'magic_method_codes++']
         self.InitUI()
 
     def InitUI(self):
