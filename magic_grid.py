@@ -1,7 +1,7 @@
 import wx
 import wx.grid
 import wx.lib.mixins.gridlabelrenderer as gridlabelrenderer
-import pdb
+#import pdb
 
 class MagicGrid(wx.grid.Grid, gridlabelrenderer.GridWithLabelRenderersMixin):
     """
@@ -402,9 +402,12 @@ class MagicGrid(wx.grid.Grid, gridlabelrenderer.GridWithLabelRenderersMixin):
             for col_name in warn_dict[item][problem_type]:
                 if col_name in ('er_location_name', 'er_site_name', 'er_sample_name'):
                     continue
+                # in result grid, magic_method_codes doesn't have ++
                 if col_name in self.double:
-                    if col_name == 'magic_method_codes':
+                    if col_name == 'magic_method_codes' and self.name != 'result':
                         col_name = 'magic_method_codes++'
+                    elif col_name == 'magic_method_codes' and self.name == 'result':
+                        pass
                     else:
                         continue
                 col_ind = self.col_labels.index(col_name)

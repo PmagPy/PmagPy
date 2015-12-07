@@ -344,6 +344,11 @@ Once each item in the data has its proper parent, validations will be correct.
             self.message.SetLabel('Highlighted grids have incorrect or incomplete data')
             self.bSizer_msg.ShowItems(True)
             self.hbox.Fit(self)
+        if not has_problems:
+            self.validation_mode = set()
+            self.message.SetLabel('')
+            self.bSizer_msg.ShowItems(False)
+            self.hbox.Fit(self)
 
     def highlight_button(self, event):
         """

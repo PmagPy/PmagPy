@@ -126,6 +126,8 @@ class Menus(object):
             method_list = vocabulary.age_methods
         elif '++' in col_label:
             method_list = vocabulary.pmag_methods
+        elif self.data_type == 'result':
+            method_list = vocabulary.pmag_methods
         else:
             method_list = vocabulary.er_methods
         self.choices[col_number] = (method_list, True)

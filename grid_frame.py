@@ -980,5 +980,7 @@ class GridBuilder(object):
             header_name = 'er_' + dtype + '_names'
             if result_data[header_name]:
                 children[dtype] = result_data[header_name].split(":")
+                # make sure there are no extra spaces in names
+                children[dtype] = [child.strip() for child in children[dtype]]
 
         return children['specimen'], children['sample'], children['site'], children['location']
