@@ -2,7 +2,7 @@
 GridFrame -- subclass of wx.Frame.  Contains grid and buttons to manipulate it.
 GridBuilder -- data methods for GridFrame (add data to frame, save it, etc.)
 """
-
+import pdb
 import wx
 import builder
 import pmag
@@ -420,8 +420,28 @@ class GridFrame(wx.Frame):
         self.grid.changes = set(range(self.grid.GetNumberRows()))
         dia.Destroy()
 
-    #self.add_new_grid_headers(grid_headers)
     def add_new_grid_headers(self, new_headers, er_items, pmag_items):
+        """
+        Add in all user-added headers.
+        If those new headers depend on other headers, add the other headers too.
+        """
+        import controlled_vocabularies as vocabulary
+        from controlled_vocabularies import vocabularies as vocab
+
+        def add_pmag_reqd_headers():
+            if self.grid_type == 'result':
+                return []
+            add_in = []
+            col_labels = self.grid.col_labels
+            for reqd_head in self.grid_headers[self.grid_type]['pmag'][1]:
+                if reqd_head in self.er_magic.double:
+                    if reqd_head + "++"  not in col_labels:
+                        add_in.append(reqd_head + "++")
+                else:
+                    if reqd_head not in col_labels:
+                        add_in.append(reqd_head)
+            return add_in
+        #
         already_present = []
         for name in new_headers:
             if name:
@@ -434,10 +454,19 @@ class GridFrame(wx.Frame):
                         name = name.strip('++')
                         if name not in self.grid_headers[self.grid_type]['pmag'][0]:
                             self.grid_headers[self.grid_type]['pmag'][0].append(str(name))
-                    import controlled_vocabularies as vocabulary
-                    from controlled_vocabularies import vocabularies as vocab
+                            # add any required pmag headers that are not in the grid already
+                            for header in add_pmag_reqd_headers():
+                                col_number = self.grid.add_col(header)
+                                # add drop_down_menus for added reqd columns
+                                if header in vocabulary.possible_vocabularies:
+                                    self.drop_down_menu.add_drop_down(col_number, name)
+                                if header in ['magic_method_codes++']:
+                                    self.drop_down_menu.add_method_drop_down(col_number, header)
+                    # add drop down menus for user-added column
                     if name in vocabulary.possible_vocabularies:
                         self.drop_down_menu.add_drop_down(col_number, name)
+                    if name in ['magic_method_codes', 'magic_method_codes++']:
+                        self.drop_down_menu.add_method_drop_down(col_number, name)
                 else:
                     already_present.append(name)
                     #pw.simple_warning('You are already using column header: {}'.format(name))

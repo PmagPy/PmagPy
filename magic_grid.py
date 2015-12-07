@@ -1,6 +1,7 @@
 import wx
 import wx.grid
 import wx.lib.mixins.gridlabelrenderer as gridlabelrenderer
+import pdb
 
 class MagicGrid(wx.grid.Grid, gridlabelrenderer.GridWithLabelRenderersMixin):
     """
@@ -92,6 +93,7 @@ class MagicGrid(wx.grid.Grid, gridlabelrenderer.GridWithLabelRenderersMixin):
         for num, row in enumerate(self.row_labels):
             if row:
                 for n, col in enumerate(self.col_labels[1:]):
+                    value = ''
                     ## catch pmag double codes
                     # in specimen, sample, and site grids,
                     # if we have a column name like 'magic_method_codes++'
