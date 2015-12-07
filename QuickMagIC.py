@@ -338,6 +338,7 @@ class MagMainFrame(wx.Frame):
 
         #self.ErMagic_frame = ErMagicBuilder.MagIC_model_builder(self.WD, self, self.ErMagic_data)#,self.Data,self.Data_hierarchy)
         wait = wx.BusyInfo('Compiling required data, please wait...')
+        wx.Yield()
         self.ErMagic_frame = ErMagicBuilder.MagIC_model_builder(self.WD, self, self.er_magic)#,self.Data,self.Data_hierarchy)
         self.ErMagic_frame.Show()
         self.ErMagic_frame.Center()
@@ -353,33 +354,36 @@ class MagMainFrame(wx.Frame):
 
 
     def on_orientation_button(self, event):
+        wait = wx.BusyInfo('Compiling required data, please wait...')
+        wx.Yield()
         #dw, dh = wx.DisplaySize()
         size = wx.DisplaySize()
         size = (size[0]-0.1 * size[0], size[1]-0.1 * size[1])
-        frame = pmag_basic_dialogs.OrientFrameGrid(self, -1, 'demag_orient.txt', self.WD, self.er_magic, size)        
+        frame = pmag_basic_dialogs.OrientFrameGrid(self, -1, 'demag_orient.txt', self.WD, self.er_magic, size)
         frame.Show(True)
         frame.Centre()
         self.Hide()
+        del wait
 
     def on_unpack(self, event):
-
         dlg = wx.FileDialog(
             None, message = "choose txt file to unpack",
             defaultDir=self.WD,
             defaultFile="",
             style=wx.OPEN #| wx.CHANGE_DIR
-            )        
+            )
         if dlg.ShowModal() == wx.ID_OK:
-            FILE = dlg.GetPath()                
+            FILE = dlg.GetPath()
             input_dir, f = os.path.split(FILE)
         else:
             return False
 
         outstring="download_magic.py -f {} -WD {} -ID {}".format(f, self.WD, input_dir)
-        
+
         # run as module:
         print "-I- running python script:\n %s"%(outstring)
         wait = wx.BusyInfo("Please wait, working...")
+        wx.Yield()
         ex = None 
         try:
             if ipmag.download_magic(f, self.WD, input_dir, overwrite=True):
@@ -402,9 +406,9 @@ class MagMainFrame(wx.Frame):
         outstring="upload_magic.py"
         print "-I- running python script:\n %s"%(outstring)
         wait = wx.BusyInfo("Please wait, working...")
+        wx.Yield()
 
-        upfile, error_message, errors = ipmag.upload_magic(dir_path=self.WD,
-                                                           data_model=self.er_magic.data_model)
+        upfile, error_message, errors = ipmag.upload_magic(dir_path=self.WD, data_model=self.er_magic.data_model)
         del wait
         if upfile:
             text = "You are ready to upload.\n Your file: {}  was generated in MagIC Project Directory.\nDrag and drop this file in the MagIC database.".format(os.path.split(upfile)[1])
@@ -413,10 +417,10 @@ class MagMainFrame(wx.Frame):
             text = "There were some problems with the creation of your upload file.\nError message: {}\nSee Terminal/Command Prompt for details".format(error_message)
             dlg = wx.MessageDialog(self, caption="Error", message=text, style=wx.OK)
         result = dlg.ShowModal()
-        if result == wx.ID_OK:            
+        if result == wx.ID_OK:
             dlg.Destroy()
 
-           
+
     def on_menu_exit(self, event):
         # also delete appropriate copy file
         try:

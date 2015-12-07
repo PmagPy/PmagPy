@@ -706,10 +706,12 @@ You may use the drop-down menus to add as many values as needed in these columns
         self.panel.Destroy()
         if next_dia:
             wait = wx.BusyInfo("Please wait, working...")
+            wx.Yield()
             next_dia()
             del wait
         else:
             wait = wx.BusyInfo("Please wait, writing data to files...")
+            wx.Yield()
             self.er_magic_data.write_files()
             self.Destroy()
             del wait
@@ -718,6 +720,7 @@ You may use the drop-down menus to add as many values as needed in these columns
     def on_saveButton(self, event, grid):
         """saves any editing of the grid but does not continue to the next window"""
         wait = wx.BusyInfo("Please wait, working...")
+        wx.Yield()
 
         if self.drop_down_menu:  # unhighlight selected columns, etc.
             self.drop_down_menu.clean_up()
@@ -751,6 +754,7 @@ You may use the drop-down menus to add as many values as needed in these columns
 
     def on_backButton(self, event, previous_dia, current_dia=None):
         wait = wx.BusyInfo("Please wait, working...")
+        wx.Yield()
         if current_dia == self.InitLocCheck:
             pass
         elif previous_dia == self.InitSpecCheck or previous_dia == self.InitSampCheck:

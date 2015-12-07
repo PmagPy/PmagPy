@@ -47,7 +47,7 @@ def main():
     pmagplotlib.plotCDF(CDF['X'],X,'','r','')
     pmagplotlib.plotCDF(CDF['X'],X2,title,'b','')
     D,p=scipy.stats.ks_2samp(X,X2)
-    if p<.05:
+    if p>=.05:
         print D,p,' not rejected at 95%'
     else:
         print D,p,' rejected at 95%'

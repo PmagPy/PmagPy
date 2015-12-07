@@ -59,7 +59,7 @@ def main():
         print main.__doc__
         sys.exit()
 
-    dataframe = extractor.command_line_dataframe([ ['f', False, ''], ['fsum', False, ''],
+    dataframe = extractor.command_line_dataframe([ ['f', False, 'magic_measurements.txt'], ['fsum', False, ''],
                                                    ['fwig', False, ''], ['fsa', False, ''],
                                                    ['fa', False, ''], ['fsp', False, ''],
                                                    ['fres', False, '' ],  ['fmt', False, 'svg'], 

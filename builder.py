@@ -1585,6 +1585,11 @@ class Sample(Pmag_object):
                     if self.site.er_data['site_' + dtype]:
                         value = self.site.er_data['site_' + dtype]
                         self.er_data['sample_' + dtype] = value
+        for dtype in ['_lat', '_lon']:
+            if 'sample' + dtype in self.er_data.keys():
+                if not self.er_data['sample' + dtype]:
+                    if 'site' + dtype in self.site.er_data.keys():
+                        self.er_data['sample' + dtype] = self.site.er_data['site' + dtype]
 
         
 
