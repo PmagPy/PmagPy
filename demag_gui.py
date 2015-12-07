@@ -2759,7 +2759,7 @@ class Zeq_GUI(wx.Frame):
                             dec,inc,direction_type=pars["dec"],pars["inc"],'l'
                         else:
 #                            print "-E- ERROR: cant find mean for element %s"%element
-                            continue 
+                            continue
                     except KeyError:
 #                        print("KeyError in calculate_high_level_mean for element: " + str(element) + " please report to a dev")
                         continue
@@ -4984,7 +4984,8 @@ class Zeq_GUI(wx.Frame):
             tmin_index=self.Data[specimen]['zijdblock_steps'].index(tmin)
         elif type(tmin) == str or type(tmin) == unicode and tmin != '':
             int_steps = map(lambda x: int(x.strip("C mT")), self.Data[specimen]['zijdblock_steps'])
-            int_tmin = int(tmin.strip("C mT"))
+            try: int_tmin = int(tmin.strip("C mT"))
+            except ValueError: print(tmin, tmin.strip("C mT")); raise ValueError
             diffs = map(lambda x: abs(x-int_tmin),int_steps)
             tmin_index = diffs.index(min(diffs))
         else: tmin_index=self.tmin_box.GetSelection()
@@ -6070,7 +6071,7 @@ class Fit():
                 if str(t) in steps: tl[i] = str(t)
                 elif "%.1fmT"%t in steps: tl[i] = "%.1fmT"%t
                 elif "%.0fC"%t in steps: tl[i] = "%.0fC"%t
-                else: 
+                else:
                     print("-E- Step " + str(tl[i]) + " does not exsist (func: Fit.put)")
                     tl[i] = str(t)
             self.tmin,self.tmax = tl
