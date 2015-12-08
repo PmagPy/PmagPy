@@ -875,6 +875,8 @@ You may use the drop-down menus to add as many values as needed in these columns
             self.drop_down_menu.clean_up()
 
         self.grid_builder.save_grid_data()
+        
+        self.er_magic_data.write_files()
 
         wx.MessageBox('Saved!', 'Info',
                       style=wx.OK | wx.ICON_INFORMATION)
