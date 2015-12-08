@@ -699,7 +699,7 @@ class Arai_GUI(wx.Frame):
         # collect all interpretation by site
         
         #site=thellier_gui_lib.get_site_from_hierarchy(sample,self.Data_hierarchy)
-        site=thellier_gui_lib.get_site_from_hierarchy(site,self.Data_hierarchy)
+        site=thellier_gui_lib.get_site_from_hierarchy(sample,self.Data_hierarchy)
         if site not in self.Data_sites.keys():
             self.Data_sites[site]={}
         if self.s not in self.Data_sites[site].keys():
