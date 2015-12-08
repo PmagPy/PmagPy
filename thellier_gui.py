@@ -145,6 +145,7 @@ from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigCanvas
 
 
 import sys,pylab,scipy,os
+#import pdb
 import pmag
 ##try:
 ##    import pmag
@@ -2026,7 +2027,6 @@ class Arai_GUI(wx.Frame):
         read pmag_criteria.txt file 
         and open change criteria dialog
         """
-
     
         dlg = wx.FileDialog(
             self, message="choose a file in a pmagpy format",
@@ -2074,7 +2074,8 @@ class Arai_GUI(wx.Frame):
            
         dia = thellier_gui_dialogs.Criteria_Dialog(None, self.acceptance_criteria,self.preferences,title='Acceptance Criteria')
         dia.Center()
-        if dia.ShowModal() == wx.ID_OK: # Until the user clicks OK, show the message            
+        result = dia.ShowModal()
+        if result == wx.ID_OK: # Until the user clicks OK, show the message
             self.On_close_criteria_box(dia)
             if len(crit_list_not_in_pref)>0:
                 dlg1 = wx.MessageDialog(self,caption="WARNING:", 
@@ -2085,10 +2086,10 @@ class Arai_GUI(wx.Frame):
                 #self.Destroy()
                 sys.exit()
                 
-        if dia.ShowModal() == wx.ID_CANCEL: # Until the user clicks OK, show the message                        
+        if result == wx.ID_CANCEL: # Until the user clicks OK, show the message
             for crit in crit_list_not_in_pref:
                short_crit=crit.split('specimen_')[-1] 
-               self.preferences['show_statistics_on_gui'].remove(short_crit) 
+               self.preferences['show_statistics_on_gui'].remove(short_crit)
 
     #----------------------------------------------------------------------        
 
@@ -2115,7 +2116,6 @@ class Arai_GUI(wx.Frame):
         Take the acceptance criteria values and update
         self.acceptance_criteria
         """
-        
         criteria_list=self.acceptance_criteria.keys()
         criteria_list.sort()
         
