@@ -33,11 +33,11 @@ def main(command_line=True, **kwargs):
                 The treatment coding of the measurement file should be: XXX.00,XXX.10, XXX.20 ...XX.70 etc. (XXX.00 is optional)
                 where XXX in the temperature and .10,.20... are running numbers of the cooling rates steps.
                 XXX.00 is optional zerofield baseline. XXX.70 is alteration check.
-                syntax in sio_magic is: -LP CR xxx,yyy,zzz,.....xx -A
-                where xx, yyy,zzz...xxx  are cooling time in [K/minutes], seperated by comma, ordered at the same order as XXX.10,XXX.20 ...XX.70
+                syntax in sio_magic is: -LP CR xxx,yyy,zzz,..... xxx -A
+                where xxx, yyy, zzz...xxx  are cooling time in [K/minutes], seperated by comma, ordered at the same order as XXX.10,XXX.20 ...XX.70
                 if you use a zerofield step then no need to specify the cooling rate for the zerofield
-                It is important to add to the command line the -A option so the measurements will not be evraged.
-                But users need to make sure that there are no duplicate meaurements in the file
+                It is important to add to the command line the -A option so the measurements will not be averaged.
+                But users need to make sure that there are no duplicate measurements in the file
         -V [1,2,3] units of IRM field in volts using ASC coil #1,2 or 3
         -spc NUM : specify number of characters to designate a  specimen, default = 0
         -loc LOCNAME : specify location/study name, must have either LOCNAME or SAMPFILE or be a synthetic

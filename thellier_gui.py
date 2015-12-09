@@ -2603,7 +2603,7 @@ class Arai_GUI(wx.Frame):
                 trmblock=self.Data[specimen]['trmblock']
                 zijdblock=self.Data[specimen]['zijdblock']
                 if len(atrmblock)<6:
-                    aniso_logfile.write("-W- specimen %s does not have enough measurements for 6 poistions ATRM calculation\n"%specimen)
+                    aniso_logfile.write("-W- specimen %s does not have enough measurements for 6 positions ATRM calculation\n"%specimen)
                     continue
                 
                 B=Matrices[6]['B']
