@@ -41,8 +41,12 @@
 import os
 global CURRENT_VERSION, PMAGPY_DIRECTORY
 CURRENT_VERSION = "v.0.33"
-path = os.path.abspath(__file__)
-PMAGPY_DIRECTORY = os.path.dirname(path)
+# get directory in a way that works whether being used
+# on the command line or in a frozen binary
+import check_updates
+PMAGPY_DIRECTORY = check_updates.get_pmag_dir()
+#path = os.path.abspath(__file__)
+#PMAGPY_DIRECTORY = os.path.dirname(path)
 import matplotlib
 #import matplotlib.font_manager as font_manager
 matplotlib.use('WXAgg')

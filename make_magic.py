@@ -411,6 +411,10 @@ class MagICMenu(wx.MenuBar):
         if self.parent.edited:
             self.parent.er_magic.write_files()
         self.parent.Close()
+        try:
+            sys.exit()
+        except TypeError:
+            pass
 
     def on_clear(self, event):
         """
