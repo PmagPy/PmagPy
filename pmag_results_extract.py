@@ -209,6 +209,7 @@ def main():
         if len(site['er_site_names'].split(":"))==1:
             if 'er_sample_names' not in site.keys():site['er_sample_names']=''
             if 'pole_comp_name' not in site.keys(): site['pole_comp_name']="A"
+            if 'average_nn' not in site.keys() and 'average_n' in site.keys():site['average_nn']=site['average_n']
             if 'average_n_lines' not in site.keys():site['average_n_lines']=site['average_nn']
             if 'average_n_planes' not in site.keys():site['average_n_planes']=""
             Soutstring,Doutstring="",""
