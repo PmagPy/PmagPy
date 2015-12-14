@@ -135,9 +135,12 @@ class Zeq_GUI(wx.Frame):
             self.get_DIR()        # choose directory dialog, then initialize directory variables
 
         #set icon
-        icon = wx.EmptyIcon()
-        icon.CopyFromBitmap(wx.Bitmap(os.path.join(PMAGPY_DIRECTORY, "images/PmagPy.ico"), wx.BITMAP_TYPE_ANY))
-        self.SetIcon(icon)
+        try:
+            icon = wx.EmptyIcon()
+            icon.CopyFromBitmap(wx.Bitmap(os.path.join(PMAGPY_DIRECTORY, "images", "PmagPy.ico"), wx.BITMAP_TYPE_ANY))
+            self.SetIcon(icon)
+        except:
+            pass
 
         # initialize acceptence criteria with NULL values
         self.acceptance_criteria=pmag.initialize_acceptance_criteria()
