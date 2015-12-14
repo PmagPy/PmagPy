@@ -159,7 +159,6 @@ import stat
 import shutil
 import time
 import wx
-import wx.lib.inspection
 import wx.grid
 import random
 from pylab import * # keep this line for now, but I've tried to add pylab to any pylab functions for better namespacing
@@ -9006,11 +9005,12 @@ def do_main(WD=None, standalone_app=True, parent=None):
         app.frame.Show()
         app.frame.Center()
         app.MainLoop()
+
+    ## use for debugging:
+    #if '-i' in sys.argv:
+    #    import wx.lib.inspection
+    #    wx.lib.inspection.InspectionTool().Show()
         
-    if '-i' in sys.argv:
-        wx.lib.inspection.InspectionTool().Show()
-        
-    #app.MainLoop()
 
 if __name__ == '__main__':
     do_main()

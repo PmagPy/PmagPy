@@ -470,7 +470,6 @@ if __name__ == "__main__":
     # this sends stdout to wxPython:
     #app = wx.App(redirect=True)
     working_dir = pmag.get_named_arg_from_sys('-WD', '.')
-    working_dir = os.path.realpath(working_dir)
     app.frame = MainFrame(working_dir)
     ## this causes an error with Canopy Python
     ## (it works with brew Python)
@@ -480,8 +479,9 @@ if __name__ == "__main__":
 
     app.frame.Show()
     app.frame.Center()
-    if '-i' in sys.argv:
-        import wx.lib.inspection
-        wx.lib.inspection.InspectionTool().Show()
+    ## use for debugging:
+    #if '-i' in sys.argv:
+    #    import wx.lib.inspection
+    #    wx.lib.inspection.InspectionTool().Show()
     app.MainLoop()
 
