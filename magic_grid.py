@@ -403,10 +403,11 @@ class MagicGrid(wx.grid.Grid, gridlabelrenderer.GridWithLabelRenderersMixin):
                 if col_name in ('er_location_name', 'er_site_name', 'er_sample_name'):
                     continue
                 # in result grid, magic_method_codes doesn't have ++
-                if col_name in self.double:
-                    if col_name == 'magic_method_codes' and self.name != 'result':
+                stripped_name = col_name.strip('++')
+                if stripped_name in self.double:
+                    if stripped_name == 'magic_method_codes' and self.name not in ['age', 'result']:
                         col_name = 'magic_method_codes++'
-                    elif col_name == 'magic_method_codes' and self.name == 'result':
+                    elif stripped_name == 'magic_method_codes' and self.name in ['age', 'result']:
                         pass
                     else:
                         continue
