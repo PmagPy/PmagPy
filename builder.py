@@ -185,6 +185,10 @@ class ErMagicBuilder(object):
             self.headers['age']['er'][0] = age_headers
         else:
             self.headers['age']['er'][0] = remove_list_headers(self.headers['age']['er'][1])
+        # make sure that some recommended but not required age headers are added in
+        for head in self.first_age_headers:
+            if head not in self.headers['age']['er'][0]:
+                self.headers['age']['er'][0].append(head)
 
         self.headers['result']['er'][0], self.headers['result']['pmag'][0] = headers(self.results, self.headers['result']['er'][1], self.headers['result']['pmag'][1])
 
@@ -708,7 +712,7 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
                         break
             if not item_type:
                 print '-W- You must provide a name for your age'
-                print '    This data:\n{}\n    will not be imported'.format(item_dict)
+                print '    These data:\n{}\n    will not be imported'.format(item_dict)
                 continue
             items_list = self.data_lists[item_type][0]
             item = self.find_by_name(item_name, items_list)
