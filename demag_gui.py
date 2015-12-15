@@ -6134,9 +6134,12 @@ def alignToTop(win):
 def do_main(WD=None, standalone_app=True, parent=None):
     # to run as module:
     if not standalone_app:
+        wait = wx.BusyInfo('Compiling required data, please wait...')
+        wx.Yield()
         frame = Zeq_GUI(WD, parent)
         frame.Center()
         frame.Show()
+        del wait
 
     # to run as command_line:
     else:

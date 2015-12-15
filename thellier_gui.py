@@ -8994,9 +8994,12 @@ class Arai_GUI(wx.Frame):
 def do_main(WD=None, standalone_app=True, parent=None):
     # to run as module, i.e. with QuickMagIC:
     if not standalone_app:
+        wait = wx.BusyInfo('Compiling required data, please wait...')
+        wx.Yield()
         frame = Arai_GUI(WD, parent)
         frame.Centre()
         frame.Show()
+        del wait
         
     # to run as command line:
     else:
