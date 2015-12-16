@@ -1514,7 +1514,9 @@ class Core_depthplot(wx.Frame):
             elif input_dir_path == new_dir_path:
                 return input_dir_path
 
-        
+        wait = wx.BusyInfo('Making plots, please wait...')
+        wx.Yield()
+
         os.chdir(self.WD)
         input_dir_path = None
         meas_file = self.bSizer0.return_value()
@@ -1525,12 +1527,14 @@ class Core_depthplot(wx.Frame):
             new_dir_path, pmag_spec_file = os.path.split(pmag_spec_file)
             input_dir_path = check_input_dir_path(input_dir_path, new_dir_path)
             if not input_dir_path:
+                del wait
                 return False
-        sum_file = self.bSizer2.return_value()
+            sum_file = self.bSizer2.return_value()
         if sum_file:
             new_dir_path, sum_file = os.path.split(sum_file)
             input_dir_path = check_input_dir_path(input_dir_path, new_dir_path)
             if not input_dir_path:
+                del wait
                 return False
             
         spec_sym, spec_sym_shape, spec_sym_color, spec_sym_size = "", "", "", ""
@@ -1548,12 +1552,14 @@ class Core_depthplot(wx.Frame):
             age_file = ''
             input_dir_path = check_input_dir_path(input_dir_path, new_dir_path)
             if not input_dir_path:
+                del wait
                 return False
         else:
             samp_file = ''
             new_dir_path, age_file = os.path.split(self.bSizer1.return_value())
             input_dir_path = check_input_dir_path(input_dir_path, new_dir_path)
             if not input_dir_path:
+                del wait
                 return False
             
         depth_scale = self.bSizer8.return_value()
@@ -1571,6 +1577,7 @@ class Core_depthplot(wx.Frame):
             amin = self.bSizer11.return_value()
             amax = self.bSizer12.return_value()
             if not amin or not amax:
+                del wait
                 pw.simple_warning("If plotting timescale, you must provide both a lower and an upper bound.\nIf you don't want to plot timescale, uncheck the 'Plot GPTS' checkbox")
                 return False
         else: # if plot GPTS is not checked
@@ -1627,8 +1634,10 @@ class Core_depthplot(wx.Frame):
             pixel_width = dpi * fig.get_figwidth()
             pixel_height = dpi * fig.get_figheight()
             plot_frame = PlotFrame((pixel_width, pixel_height + 50), fig, figname)
+            del wait
             return plot_frame
         else:
+            del wait
             pw.simple_warning("No data points met your criteria - try again\nError message: {}".format(figname))
             return False
 
@@ -1816,6 +1825,9 @@ class Ani_depthplot(wx.Frame):
             add_here.SetValue(infile)
 
     def on_okButton(self, event):
+        wait = wx.BusyInfo('Making plots, please wait...')
+        wx.Yield()
+
         os.chdir(self.WD)
         ani_file = self.bSizer0.return_value()
         meas_file = self.bSizer1.return_value()
@@ -1850,8 +1862,10 @@ class Ani_depthplot(wx.Frame):
             dpi = fig.get_dpi()
             pixel_width = dpi * fig.get_figwidth()
             pixel_height = dpi * fig.get_figheight()
+            del wait
             plot_frame = PlotFrame((pixel_width, pixel_height + 50), fig, figname)
         else:
+            del wait
             pw.simple_warning("No data points met your criteria - try again\nError message: {}".format(figname))
 
 
