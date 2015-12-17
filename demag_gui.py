@@ -3618,25 +3618,6 @@ class Zeq_GUI(wx.Frame):
 
             self.s = specimen
 
-            #if interpretation doesn't exsist create it.
-            if 'specimen_comp_name' in rec.keys():
-                if rec['specimen_comp_name'] not in map(lambda x: x.name, self.pmag_results_data['specimens'][specimen]):
-                    next_fit = str(len(self.pmag_results_data['specimens'][self.s]) + 1)
-                    color = self.colors[(int(next_fit)-1) % len(self.colors)]
-                    self.pmag_results_data['specimens'][self.s].append(Fit(rec['specimen_comp_name'], None, None, color, self))
-                    fit = self.pmag_results_data['specimens'][specimen][-1]
-                else:
-                    fit = None
-            else:
-                next_fit = str(len(self.pmag_results_data['specimens'][self.s]) + 1)
-                color = self.colors[(int(next_fit)-1) % len(self.colors)]
-                self.pmag_results_data['specimens'][self.s].append(Fit('Fit ' + next_fit, None, None, color, self))
-                fit = self.pmag_results_data['specimens'][specimen][-1]
-
-
-            if 'specimen_flag' in rec and rec['specimen_flag'] == 'b':
-                self.bad_fits.append(fit)
-
             methods=rec['magic_method_codes'].strip("\n").replace(" ","").split(":")
             LPDIR=False;calculation_type=""
 
@@ -3647,6 +3628,26 @@ class Zeq_GUI(wx.Frame):
                     calculation_type=method
 
             if LPDIR: # this a mean of directions
+
+                #if interpretation doesn't exsist create it.
+                if 'specimen_comp_name' in rec.keys():
+                    if rec['specimen_comp_name'] not in map(lambda x: x.name, self.pmag_results_data['specimens'][specimen]):
+                        next_fit = str(len(self.pmag_results_data['specimens'][self.s]) + 1)
+                        color = self.colors[(int(next_fit)-1) % len(self.colors)]
+                        self.pmag_results_data['specimens'][self.s].append(Fit(rec['specimen_comp_name'], None, None, color, self))
+                        fit = self.pmag_results_data['specimens'][specimen][-1]
+                    else:
+                        fit = None
+                else:
+                    next_fit = str(len(self.pmag_results_data['specimens'][self.s]) + 1)
+                    color = self.colors[(int(next_fit)-1) % len(self.colors)]
+                    self.pmag_results_data['specimens'][self.s].append(Fit('Fit ' + next_fit, None, None, color, self))
+                    fit = self.pmag_results_data['specimens'][specimen][-1]
+    
+    
+                if 'specimen_flag' in rec and rec['specimen_flag'] == 'b':
+                    self.bad_fits.append(fit)
+
                 if float(rec['measurement_step_min'])==0 or float(rec['measurement_step_min'])==273.:
                     tmin="0"
                 elif float(rec['measurement_step_min'])>2: # thermal
