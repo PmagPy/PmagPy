@@ -113,6 +113,7 @@ class Zeq_GUI(wx.Frame):
    	GUI for interpreting demagnetization data (AF and/or thermal).
    	For tutorial chcek PmagPy cookbook in http://earthref.org/PmagPy/cookbook/
         """
+        PMAGPY_DIRECTORY = check_updates.get_pmag_dir()
         args=sys.argv
         if "-h" in args:
             print TEXT
@@ -1232,7 +1233,7 @@ class Zeq_GUI(wx.Frame):
     #----------------------------------------------------------------------
 
     def draw_figure(self,s,update_higher_plots=True):
-
+        step = ""
         self.initialize_CART_rot(s)
 
         #-----------------------------------------------------------
