@@ -36,14 +36,7 @@ class ErMagicCheckFrame(wx.Frame):
         """make an interactive grid in which users can edit specimen names
         as well as which sample a specimen belongs to"""
 
-        # using ScrolledWindow works on up to date wxPython and is necessary for windows
-        # it breaks with Canopy wxPython, so for Mac we just use Panel
-
-        if sys.platform in ['win32', 'win64']:
-            self.panel = wx.ScrolledWindow(self, style=wx.SIMPLE_BORDER)
-        else:
-            self.panel = wx.Panel(self, style=wx.SIMPLE_BORDER)
-
+        self.panel = wx.Panel(self, style=wx.SIMPLE_BORDER)
         #import wx.lib.scrolledpanel as libpanel # does not work well
         #self.panel = libpanel.ScrolledPanel(self, style=wx.SIMPLE_BORDER)
 
@@ -123,13 +116,7 @@ Check that all specimens belong to the correct sample
         """make an interactive grid in which users can edit sample names
         as well as which site a sample belongs to"""
         self.sample_window += 1
-
-        # using ScrolledWindow works on up to date wxPython and is necessary for windows
-        # it breaks with Canopy wxPython, so for Mac we just use Panel
-        if sys.platform in ['win32', 'win64']:
-            self.panel = wx.ScrolledWindow(self, style=wx.SIMPLE_BORDER)
-        else:
-            self.panel = wx.Panel(self, style=wx.SIMPLE_BORDER)
+        self.panel = wx.Panel(self, style=wx.SIMPLE_BORDER)
 
         if self.sample_window == 1:
             text = """Step 2:
@@ -245,12 +232,7 @@ You may use the drop-down menus to add as many values as needed in these columns
     def InitSiteCheck(self):
         """make an interactive grid in which users can edit site names
         as well as which location a site belongs to"""
-        # using ScrolledWindow works on up to date wxPython and is necessary for windows
-        # it breaks with Canopy wxPython, so for Mac we just use Panel
-        if sys.platform in ['win32', 'win64']:
-            self.panel = wx.ScrolledWindow(self, style=wx.SIMPLE_BORDER)
-        else:
-            self.panel = wx.Panel(self, style=wx.SIMPLE_BORDER)
+        self.panel = wx.Panel(self, style=wx.SIMPLE_BORDER)
 
         text = """Step 3:
 Check that all sites are correctly named, and that they belong to the correct location.
@@ -358,12 +340,7 @@ However, you will be able to edit sample_class, sample_lithology, and sample_typ
     def InitLocCheck(self):
         """make an interactive grid in which users can edit specimen names
         as well as which sample a specimen belongs to"""
-        # using ScrolledWindow works on up to date wxPython and is necessary for windows
-        # it breaks with Canopy wxPython, so for Mac we just use Panel
-        if sys.platform in ['win32', 'win64']:
-            self.panel = wx.ScrolledWindow(self, style=wx.SIMPLE_BORDER)
-        else:
-            self.panel = wx.Panel(self, style=wx.SIMPLE_BORDER)
+        self.panel = wx.Panel(self, style=wx.SIMPLE_BORDER)
 
         text = """Step 5:
 Check that locations are correctly named.
@@ -461,12 +438,7 @@ Fill in any blank cells using controlled vocabularies.
 
     def InitAgeCheck(self):
         """make an interactive grid in which users can edit ages"""
-        # using ScrolledWindow works on up to date wxPython and is necessary for windows
-        # it breaks with Canopy wxPython, so for Mac we just use Panel
-        if sys.platform in ['win32', 'win64']:
-            self.panel = wx.ScrolledWindow(self, style=wx.SIMPLE_BORDER)
-        else:
-            self.panel = wx.Panel(self, style=wx.SIMPLE_BORDER)
+        self.panel = wx.Panel(self, style=wx.SIMPLE_BORDER)
 
         text = """Step 6:
 Fill in or correct any cells with information about ages.

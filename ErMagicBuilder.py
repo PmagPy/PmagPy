@@ -8,6 +8,7 @@
 
 import matplotlib
 import os
+import sys
 import wx
 import wx.grid
 import wx.html
@@ -36,7 +37,8 @@ class MagIC_model_builder(wx.Frame):
         self.main_frame = self.Parent
         self.panel = wx.ScrolledWindow(self)
         self.panel.SetScrollbars(1, 1, 1, 1)
-
+        if sys.platform in ['win32', 'win64']:
+            self.panel.SetScrollbars(20, 20, 50, 50)
         os.chdir(WD)
         self.WD = os.getcwd()
         self.site_lons = []
