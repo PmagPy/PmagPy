@@ -2146,8 +2146,12 @@ def upload_magic(concat=0, dir_path='.', data_model=None):
     new_up = os.path.join(dir_path, new_up)
     if os.path.isfile(new_up):
         fname, extension = os.path.splitext(new_up)
-        new_up = fname + "_1" + extension
-
+        for i in range(1, 100):
+            if os.path.isfile(fname + "_" + str(i) + extension):
+                continue
+            else:
+                new_up = fname + "_" + str(i) + extension
+                break
     os.rename(up, new_up)
     print "Finished preparing upload file: {} ".format(new_up)
     if not validated:
