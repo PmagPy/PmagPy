@@ -1,5 +1,5 @@
 import os
-#import sys
+import sys
 #import time
 #import urllib2
 #import pickle
@@ -12,12 +12,28 @@ def get_pmag_dir():
     # need to update this so that it works with compiled version
     # this is correct for use with PmagPy:
     #return os.path.dirname(os.path.realpath(__file__))
-    # this is correct for use with py2app:
+    # this is correct for py2exe
+    win_frozen = is_frozen()
+    if win_frozen:
+        path = os.path.abspath(unicode(sys.executable, sys.getfilesystemencoding()))
+        path = os.path.split(path)[0]
+        return path
+    # this is correct for py2app
     try:
         return os.environ['RESOURCEPATH']
+    # this works for everything else
     except KeyError:
         return os.path.dirname(os.path.realpath(__file__))
 
+
+def is_frozen():
+    """
+    Checks whether python is running as a Windows frozen binary
+    """
+    if hasattr(sys, "frozen"):
+        if sys.frozen in ("windows_exe", "console_exe"):
+            return True
+    return False
 
 def get_version():
     import version
