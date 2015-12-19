@@ -8,9 +8,11 @@
 
 import matplotlib
 import os
+import sys
 import wx
 import wx.grid
 import wx.html
+#import pdb
 import pmag_widgets as pw
 import check_updates
 import builder
@@ -35,7 +37,8 @@ class MagIC_model_builder(wx.Frame):
         self.main_frame = self.Parent
         self.panel = wx.ScrolledWindow(self)
         self.panel.SetScrollbars(1, 1, 1, 1)
-
+        if sys.platform in ['win32', 'win64']:
+            self.panel.SetScrollbars(20, 20, 50, 50)
         os.chdir(WD)
         self.WD = os.getcwd()
         self.site_lons = []
@@ -159,7 +162,9 @@ class MagIC_model_builder(wx.Frame):
         vbox.Fit(self)
         self.Show()
         self.Centre()
-
+        # these two lines ensure that everything shows up 
+        wx.CallAfter(self.Refresh)
+        self.Update()
 
     def update_text_box(self, headers_list, text_control):
         text = ""
@@ -170,6 +175,7 @@ class MagIC_model_builder(wx.Frame):
         text = text[:-1]
         text_control.SetValue('')
         text_control.SetValue(text)
+        self.Refresh()
 
     ### Button methods ###
 

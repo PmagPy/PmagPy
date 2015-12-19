@@ -41,8 +41,12 @@
 import os
 global CURRENT_VERSION, PMAGPY_DIRECTORY
 CURRENT_VERSION = "v.0.33"
-path = os.path.abspath(__file__)
-PMAGPY_DIRECTORY = os.path.dirname(path)
+# get directory in a way that works whether being used
+# on the command line or in a frozen binary
+import check_updates
+PMAGPY_DIRECTORY = check_updates.get_pmag_dir()
+#path = os.path.abspath(__file__)
+#PMAGPY_DIRECTORY = os.path.dirname(path)
 import matplotlib
 #import matplotlib.font_manager as font_manager
 matplotlib.use('WXAgg')
@@ -109,6 +113,7 @@ class Zeq_GUI(wx.Frame):
    	GUI for interpreting demagnetization data (AF and/or thermal).
    	For tutorial chcek PmagPy cookbook in http://earthref.org/PmagPy/cookbook/
         """
+        PMAGPY_DIRECTORY = check_updates.get_pmag_dir()
         args=sys.argv
         if "-h" in args:
             print TEXT
@@ -131,9 +136,12 @@ class Zeq_GUI(wx.Frame):
             self.get_DIR()        # choose directory dialog, then initialize directory variables
 
         #set icon
-        icon = wx.EmptyIcon()
-        icon.CopyFromBitmap(wx.Bitmap(os.path.join(PMAGPY_DIRECTORY, "images/PmagPy.ico"), wx.BITMAP_TYPE_ANY))
-        self.SetIcon(icon)
+        try:
+            icon = wx.EmptyIcon()
+            icon.CopyFromBitmap(wx.Bitmap(os.path.join(PMAGPY_DIRECTORY, "images", "PmagPy.ico"), wx.BITMAP_TYPE_ANY))
+            self.SetIcon(icon)
+        except:
+            pass
 
         # initialize acceptence criteria with NULL values
         self.acceptance_criteria=pmag.initialize_acceptance_criteria()
@@ -1225,7 +1233,7 @@ class Zeq_GUI(wx.Frame):
     #----------------------------------------------------------------------
 
     def draw_figure(self,s,update_higher_plots=True):
-
+        step = ""
         self.initialize_CART_rot(s)
 
         #-----------------------------------------------------------
@@ -3611,25 +3619,6 @@ class Zeq_GUI(wx.Frame):
 
             self.s = specimen
 
-            #if interpretation doesn't exsist create it.
-            if 'specimen_comp_name' in rec.keys():
-                if rec['specimen_comp_name'] not in map(lambda x: x.name, self.pmag_results_data['specimens'][specimen]):
-                    next_fit = str(len(self.pmag_results_data['specimens'][self.s]) + 1)
-                    color = self.colors[(int(next_fit)-1) % len(self.colors)]
-                    self.pmag_results_data['specimens'][self.s].append(Fit(rec['specimen_comp_name'], None, None, color, self))
-                    fit = self.pmag_results_data['specimens'][specimen][-1]
-                else:
-                    fit = None
-            else:
-                next_fit = str(len(self.pmag_results_data['specimens'][self.s]) + 1)
-                color = self.colors[(int(next_fit)-1) % len(self.colors)]
-                self.pmag_results_data['specimens'][self.s].append(Fit('Fit ' + next_fit, None, None, color, self))
-                fit = self.pmag_results_data['specimens'][specimen][-1]
-
-
-            if 'specimen_flag' in rec and rec['specimen_flag'] == 'b':
-                self.bad_fits.append(fit)
-
             methods=rec['magic_method_codes'].strip("\n").replace(" ","").split(":")
             LPDIR=False;calculation_type=""
 
@@ -3640,6 +3629,26 @@ class Zeq_GUI(wx.Frame):
                     calculation_type=method
 
             if LPDIR: # this a mean of directions
+
+                #if interpretation doesn't exsist create it.
+                if 'specimen_comp_name' in rec.keys():
+                    if rec['specimen_comp_name'] not in map(lambda x: x.name, self.pmag_results_data['specimens'][specimen]):
+                        next_fit = str(len(self.pmag_results_data['specimens'][self.s]) + 1)
+                        color = self.colors[(int(next_fit)-1) % len(self.colors)]
+                        self.pmag_results_data['specimens'][self.s].append(Fit(rec['specimen_comp_name'], None, None, color, self))
+                        fit = self.pmag_results_data['specimens'][specimen][-1]
+                    else:
+                        fit = None
+                else:
+                    next_fit = str(len(self.pmag_results_data['specimens'][self.s]) + 1)
+                    color = self.colors[(int(next_fit)-1) % len(self.colors)]
+                    self.pmag_results_data['specimens'][self.s].append(Fit('Fit ' + next_fit, None, None, color, self))
+                    fit = self.pmag_results_data['specimens'][specimen][-1]
+    
+    
+                if 'specimen_flag' in rec and rec['specimen_flag'] == 'b':
+                    self.bad_fits.append(fit)
+
                 if float(rec['measurement_step_min'])==0 or float(rec['measurement_step_min'])==273.:
                     tmin="0"
                 elif float(rec['measurement_step_min'])>2: # thermal
@@ -6127,9 +6136,12 @@ def alignToTop(win):
 def do_main(WD=None, standalone_app=True, parent=None):
     # to run as module:
     if not standalone_app:
+        wait = wx.BusyInfo('Compiling required data, please wait...')
+        wx.Yield()
         frame = Zeq_GUI(WD, parent)
         frame.Center()
         frame.Show()
+        del wait
 
     # to run as command_line:
     else:

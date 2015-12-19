@@ -344,6 +344,11 @@ Once each item in the data has its proper parent, validations will be correct.
             self.message.SetLabel('Highlighted grids have incorrect or incomplete data')
             self.bSizer_msg.ShowItems(True)
             self.hbox.Fit(self)
+        if not has_problems:
+            self.validation_mode = set()
+            self.message.SetLabel('')
+            self.bSizer_msg.ShowItems(False)
+            self.hbox.Fit(self)
 
     def highlight_button(self, event):
         """
@@ -406,6 +411,10 @@ class MagICMenu(wx.MenuBar):
         if self.parent.edited:
             self.parent.er_magic.write_files()
         self.parent.Close()
+        try:
+            sys.exit()
+        except TypeError:
+            pass
 
     def on_clear(self, event):
         """
@@ -461,7 +470,6 @@ if __name__ == "__main__":
     # this sends stdout to wxPython:
     #app = wx.App(redirect=True)
     working_dir = pmag.get_named_arg_from_sys('-WD', '.')
-    working_dir = os.path.realpath(working_dir)
     app.frame = MainFrame(working_dir)
     ## this causes an error with Canopy Python
     ## (it works with brew Python)
@@ -471,8 +479,9 @@ if __name__ == "__main__":
 
     app.frame.Show()
     app.frame.Center()
-    if '-i' in sys.argv:
-        import wx.lib.inspection
-        wx.lib.inspection.InspectionTool().Show()
+    ## use for debugging:
+    #if '-i' in sys.argv:
+    #    import wx.lib.inspection
+    #    wx.lib.inspection.InspectionTool().Show()
     app.MainLoop()
 

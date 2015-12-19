@@ -453,7 +453,8 @@ if __name__ == "__main__":
 
     app.frame.Show()
     app.frame.Center()
-    if '-i' in sys.argv:
-        import wx.lib.inspection
-        wx.lib.inspection.InspectionTool().Show()
+    ## use for debugging:
+    #if '-i' in sys.argv:
+    #    import wx.lib.inspection
+    #    wx.lib.inspection.InspectionTool().Show()
     app.MainLoop()

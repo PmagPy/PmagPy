@@ -145,6 +145,7 @@ from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigCanvas
 
 
 import sys,pylab,scipy,os
+#import pdb
 import pmag
 ##try:
 ##    import pmag
@@ -158,7 +159,6 @@ import stat
 import shutil
 import time
 import wx
-import wx.lib.inspection
 import wx.grid
 import random
 from pylab import * # keep this line for now, but I've tried to add pylab to any pylab functions for better namespacing
@@ -698,7 +698,7 @@ class Arai_GUI(wx.Frame):
         # collect all interpretation by site
         
         #site=thellier_gui_lib.get_site_from_hierarchy(sample,self.Data_hierarchy)
-        site=thellier_gui_lib.get_site_from_hierarchy(site,self.Data_hierarchy)
+        site=thellier_gui_lib.get_site_from_hierarchy(sample,self.Data_hierarchy)
         if site not in self.Data_sites.keys():
             self.Data_sites[site]={}
         if self.s not in self.Data_sites[site].keys():
@@ -2026,7 +2026,6 @@ class Arai_GUI(wx.Frame):
         read pmag_criteria.txt file 
         and open change criteria dialog
         """
-
     
         dlg = wx.FileDialog(
             self, message="choose a file in a pmagpy format",
@@ -2074,7 +2073,8 @@ class Arai_GUI(wx.Frame):
            
         dia = thellier_gui_dialogs.Criteria_Dialog(None, self.acceptance_criteria,self.preferences,title='Acceptance Criteria')
         dia.Center()
-        if dia.ShowModal() == wx.ID_OK: # Until the user clicks OK, show the message            
+        result = dia.ShowModal()
+        if result == wx.ID_OK: # Until the user clicks OK, show the message
             self.On_close_criteria_box(dia)
             if len(crit_list_not_in_pref)>0:
                 dlg1 = wx.MessageDialog(self,caption="WARNING:", 
@@ -2085,10 +2085,10 @@ class Arai_GUI(wx.Frame):
                 #self.Destroy()
                 sys.exit()
                 
-        if dia.ShowModal() == wx.ID_CANCEL: # Until the user clicks OK, show the message                        
+        if result == wx.ID_CANCEL: # Until the user clicks OK, show the message
             for crit in crit_list_not_in_pref:
                short_crit=crit.split('specimen_')[-1] 
-               self.preferences['show_statistics_on_gui'].remove(short_crit) 
+               self.preferences['show_statistics_on_gui'].remove(short_crit)
 
     #----------------------------------------------------------------------        
 
@@ -2115,7 +2115,6 @@ class Arai_GUI(wx.Frame):
         Take the acceptance criteria values and update
         self.acceptance_criteria
         """
-        
         criteria_list=self.acceptance_criteria.keys()
         criteria_list.sort()
         
@@ -2603,7 +2602,7 @@ class Arai_GUI(wx.Frame):
                 trmblock=self.Data[specimen]['trmblock']
                 zijdblock=self.Data[specimen]['zijdblock']
                 if len(atrmblock)<6:
-                    aniso_logfile.write("-W- specimen %s does not have enough measurements for 6 poistions ATRM calculation\n"%specimen)
+                    aniso_logfile.write("-W- specimen %s does not have enough measurements for 6 positions ATRM calculation\n"%specimen)
                     continue
                 
                 B=Matrices[6]['B']
@@ -8995,9 +8994,12 @@ class Arai_GUI(wx.Frame):
 def do_main(WD=None, standalone_app=True, parent=None):
     # to run as module, i.e. with QuickMagIC:
     if not standalone_app:
+        wait = wx.BusyInfo('Compiling required data, please wait...')
+        wx.Yield()
         frame = Arai_GUI(WD, parent)
         frame.Centre()
         frame.Show()
+        del wait
         
     # to run as command line:
     else:
@@ -9006,11 +9008,12 @@ def do_main(WD=None, standalone_app=True, parent=None):
         app.frame.Show()
         app.frame.Center()
         app.MainLoop()
+
+    ## use for debugging:
+    #if '-i' in sys.argv:
+    #    import wx.lib.inspection
+    #    wx.lib.inspection.InspectionTool().Show()
         
-    if '-i' in sys.argv:
-        wx.lib.inspection.InspectionTool().Show()
-        
-    #app.MainLoop()
 
 if __name__ == '__main__':
     do_main()

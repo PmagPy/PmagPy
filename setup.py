@@ -6,10 +6,13 @@ Usage:
 """
 
 from setuptools import setup
+import os
+directory = os.getcwd()
 
 APP = ['make_magic.py']
-DATA_FILES = [('', ['help_files', 'data_model', 'documentation'])]
-OPTIONS = {'argv_emulation': False}
+DATA_FILES = [('', ['help_files', 'data_model', 'documentation', 'images'])]
+OPTIONS = {'argv_emulation': False,
+           'iconfile': os.path.join(directory, 'images', 'text_x_xslfo.icns')}
 
 setup(
     app=APP,
