@@ -60,7 +60,7 @@ def print_pole_mean(mean_dictionary):
     print 'Precision parameter (k) estimate: ' + str(round(mean_dictionary['k'],1))
 
 
-def fishrot(k=20,n=100,Dec=0,Inc=90):
+def fishrot(k=20,n=100,Dec=0,Inc=90,DIBlock=True):
     """
     Generates Fisher distributed unit vectors from a specified distribution
     using the pmag.py fshdev and dodirot functions.
@@ -73,12 +73,21 @@ def fishrot(k=20,n=100,Dec=0,Inc=90):
     Inc : mean inclination of distribution (default is 90)
     """
     directions=[]
-    for data in range(n):
-        d,i=pmag.fshdev(k)
-        drot,irot=pmag.dodirot(d,i,Dec,Inc)
-        directions.append([drot,irot,1.])
-    return directions
-
+    declinations=[]
+    inclinations=[]
+    if DIBlock == True:
+        for data in range(n):
+            d,i=pmag.fshdev(k)
+            drot,irot=pmag.dodirot(d,i,Dec,Inc)
+            directions.append([drot,irot,1.])
+        return directions
+    else:
+        for data in range(n):
+            d,i=pmag.fshdev(k)
+            drot,irot=pmag.dodirot(d,i,Dec,Inc)
+            declinations.append(drot)
+            inclinations.append(irot)
+        return declinations, inclinations
 
 def tk03(n=100,dec=0,lat=0,rev='no',G2=0,G3=0):
     """
