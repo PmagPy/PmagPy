@@ -1583,7 +1583,7 @@ class convert_IODP_files_to_MagIC(convert_files_to_MagIC):
         #self.bSizer0a = pw.radio_buttons(pnl, ['old format', 'srm', 'discrete'], 'IODP file type')
 
         #---sizer 0b ---
-        TEXT = "If you don't choose a file, QuickMagIC will try to import any .csv files in your working directory into one MagIC format file"
+        TEXT = "If you don't choose a file, Pmag GUI will try to import any .csv files in your working directory into one MagIC format file"
         self.bSizer0b = pw.simple_text(pnl, TEXT)
 
         #---sizer 0 ----
@@ -2329,7 +2329,7 @@ class OrientFrameGrid(wx.Frame):
         TEXT = """
         A template for a file named 'demag_orient.txt', which contains samples orientation data, was created in MagIC working directory.
         You can view/modify demag_orient.txt using this Python frame, or you can use Excel/Open Office.
-        If you use Excel, save the file as 'tab delimited' and then use the 'Import Orientation File' button below to import the data into QuickMagIC.
+        If you use Excel, save the file as 'tab delimited' and then use the 'Import Orientation File' button below to import the data into Pmag GUI.
         If you use the Python frame, you can edit all the values in a column by clicking on the column header and then entering your desired value.
         After orientation data is filled in, you can Calculate sample orientations.
 """

@@ -1,5 +1,5 @@
 """
-tests for make_magic
+tests for magic_gui
 """
 
 import wx
@@ -7,7 +7,7 @@ import unittest
 import os
 import sys
 #import ErMagicBuilder
-import make_magic
+import magic_gui
 import builder
 import grid_frame
 import pmag_widgets
@@ -20,7 +20,7 @@ class TestMainFrame(unittest.TestCase):
     def setUp(self):
         self.app = wx.App()
         #WD = os.path.join(os.getcwd(), 'unittests', 'examples', 'my_project')
-        self.frame = make_magic.MainFrame(WD, "zebra")
+        self.frame = magic_gui.MainFrame(WD, "zebra")
         self.pnl = self.frame.GetChildren()[0]
 
     def tearDown(self):
@@ -162,7 +162,7 @@ class TestMainFrameWithData(unittest.TestCase):
     def setUp(self):
         self.app = wx.App()
         #WD = os.path.join(os.getcwd(), 'unittests', 'examples', 'my_project')
-        self.frame = make_magic.MainFrame(os.path.join(WD, 'Datafiles', 'copy_ErMagicBuilder'))
+        self.frame = magic_gui.MainFrame(os.path.join(WD, 'Datafiles', 'copy_ErMagicBuilder'))
         self.pnl = self.frame.GetChildren()[0]
 
     def tearDown(self):
@@ -220,7 +220,7 @@ class TestMainFrameWithData(unittest.TestCase):
 
 
 
-class TestMakeMagicGridFrame(unittest.TestCase):
+class TestMagICGuiGridFrame(unittest.TestCase):
 
     def setUp(self):
         self.app = wx.App()
@@ -253,7 +253,7 @@ class TestMakeMagicGridFrame(unittest.TestCase):
         # oh, this sucks.  showmodal and all that
 
 
-class TestMakeMagicMenu(unittest.TestCase):
+class TestMagICGUIMenu(unittest.TestCase):
 
     
     def setUp(self):
@@ -262,7 +262,7 @@ class TestMakeMagicMenu(unittest.TestCase):
         self.ErMagic = builder.ErMagicBuilder(WD)
         self.ErMagic.init_default_headers()
         self.ErMagic.init_actual_headers()
-        self.frame = make_magic.MainFrame(WD)
+        self.frame = magic_gui.MainFrame(WD)
         #self.frame = grid_frame.GridFrame(ErMagic, WD, "specimen", "specimen")
         #self.pnl = self.frame.GetChildren()[0]
 
@@ -317,7 +317,7 @@ class TestMakeMagicMenu(unittest.TestCase):
         self.assertTrue(help_window)
         self.assertTrue(help_window.IsEnabled())
         file_name = os.path.split(help_window.page)[1]
-        self.assertEqual('make_magic.html', file_name)
+        self.assertEqual('magic_gui.html', file_name)
         self.assertTrue(isinstance(help_window, pmag_widgets.HtmlFrame))
 
     def test_show_mainframe(self):
@@ -423,7 +423,7 @@ class TestMethodCodes(unittest.TestCase):
         self.other_er_magic.init_default_headers()
         self.other_er_magic.init_actual_headers()
         self.other_er_magic.get_all_magic_info()
-        #self.frame = make_magic.MainFrame(self.method_WD)
+        #self.frame = magic_gui.MainFrame(self.method_WD)
         self.other_frame = grid_frame.GridFrame(self.other_er_magic, other_WD,
                                                 "specimen", "specimen")
         spec = self.other_er_magic.specimens[0]

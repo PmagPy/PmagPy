@@ -24,7 +24,7 @@ import grid_frame
 
 class MainFrame(wx.Frame):
     """
-    make magic
+    MagIC GUI
     """
 
 
@@ -33,7 +33,7 @@ class MainFrame(wx.Frame):
             version= pmag.get_version()
         except:
             version = ""
-        title = "MakeMagIC   version: %s"%version
+        title = "MagIC GUI   version: %s"%version
         wx.Frame.__init__(self, None, wx.ID_ANY, title, name=name)
         #
         self.grid_frame = None
@@ -369,7 +369,7 @@ Once each item in the data has its proper parent, validations will be correct.
 
 class MagICMenu(wx.MenuBar):
     """
-    initialize menu bar for QuickMagIC GUI
+    initialize menu bar for GUI
     """
     #pylint: disable=R0904
     #pylint: disable=R0914
@@ -440,13 +440,13 @@ class MagICMenu(wx.MenuBar):
         # for use with pyinstaller:
         #path = self.Parent.resource_dir
         
-        html_frame = pw.HtmlFrame(self, page=(os.path.join(path, "documentation", "make_magic.html")))
+        html_frame = pw.HtmlFrame(self, page=(os.path.join(path, "documentation", "magic_gui.html")))
         html_frame.Center()
         html_frame.Show()
 
     def on_show_mainframe(self, event):
         """
-        Show main make_magic window
+        Show main magic_gui window
         """
         self.parent.Show()
         self.parent.Raise()

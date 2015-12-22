@@ -1,7 +1,7 @@
 #!/usr/bin/env pythonw
 
 """
-Create QuickMagIC menubar
+Create Pmag GUI menubar
 """
 
 import wx
@@ -11,7 +11,7 @@ import builder
 
 class MagICMenu(wx.MenuBar):
     """
-    initialize menu bar for QuickMagIC GUI
+    initialize menu bar for Pmag GUI
     """
 
     # prevent error message about too many public methods
