@@ -151,16 +151,23 @@ def squish(f,incs):
     return incnew
 
 
-def flip(D): #function simplified from PmagPy pmag.flip function
+def flip(D,DIBlock=True): #function simplified from PmagPy pmag.flip function
     """
     This function returns the antipode (i.e. it flips) of the unit vectors
     in D (dec,inc,length).
     """
     Dflip=[]
+    dec_flip = []
+    inc_flip = []
     for rec in D:
-        d,i=(rec[0]-180.)%360.,-rec[1]
-        Dflip.append([d,i])
-    return Dflip
+        d, i = (rec[0]-180.)%360., -rec[1]
+        Dflip.append([d, i, 1.0])
+        dec_flip.append(d)
+        inc_flip.append(i)
+    if DIBlock == True:
+        return Dflip
+    else:
+        return dec_flip, inc_flip
 
 
 def bootstrap_fold_test(Data,num_sims=1000,min_untilt=-10,max_untilt=120,bedding_error=0):
