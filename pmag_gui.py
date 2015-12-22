@@ -13,11 +13,10 @@ import pmag
 import ipmag
 import pmag_basic_dialogs
 import pmag_er_magic_dialogs
-import quickmagic_menu
+import pmag_gui_menu
 import ErMagicBuilder
 import builder
 # import check_updates
-
 
 class MagMainFrame(wx.Frame):
     """"""
@@ -25,13 +24,13 @@ class MagMainFrame(wx.Frame):
         version= pmag.get_version()
     except:
         version = ""
-    title = "QuickMagIC   version: %s"%version
+    title = "Pmag GUI   version: %s"%version
 
     def __init__(self, WD=None):
 
         self.FIRST_RUN = True
         wx.Frame.__init__(self, None, wx.ID_ANY, self.title)
-        self.panel = wx.Panel(self, name='quickmagic main panel')
+        self.panel = wx.Panel(self, name='pmag_gui main panel')
         self.InitUI()
 
         # for use as module:
@@ -50,7 +49,7 @@ class MagMainFrame(wx.Frame):
 
     def InitUI(self):
 
-        menubar = quickmagic_menu.MagICMenu(self)
+        menubar = pmag_gui_menu.MagICMenu(self)
         self.SetMenuBar(menubar)
 
         #pnl = self.panel

@@ -60,7 +60,7 @@ def print_pole_mean(mean_dictionary):
     print 'Precision parameter (k) estimate: ' + str(round(mean_dictionary['k'],1))
 
 
-def fishrot(k=20,n=100,Dec=0,Inc=90):
+def fishrot(k=20,n=100,Dec=0,Inc=90,DIBlock=True):
     """
     Generates Fisher distributed unit vectors from a specified distribution
     using the pmag.py fshdev and dodirot functions.
@@ -73,12 +73,21 @@ def fishrot(k=20,n=100,Dec=0,Inc=90):
     Inc : mean inclination of distribution (default is 90)
     """
     directions=[]
-    for data in range(n):
-        d,i=pmag.fshdev(k)
-        drot,irot=pmag.dodirot(d,i,Dec,Inc)
-        directions.append([drot,irot,1.])
-    return directions
-
+    declinations=[]
+    inclinations=[]
+    if DIBlock == True:
+        for data in range(n):
+            d,i=pmag.fshdev(k)
+            drot,irot=pmag.dodirot(d,i,Dec,Inc)
+            directions.append([drot,irot,1.])
+        return directions
+    else:
+        for data in range(n):
+            d,i=pmag.fshdev(k)
+            drot,irot=pmag.dodirot(d,i,Dec,Inc)
+            declinations.append(drot)
+            inclinations.append(irot)
+        return declinations, inclinations
 
 def tk03(n=100,dec=0,lat=0,rev='no',G2=0,G3=0):
     """
@@ -1997,6 +2006,8 @@ def upload_magic(concat=0, dir_path='.', data_model=None):
 
     # begin the upload process
     up = os.path.join(dir_path, "upload.txt")
+    if os.path.exists(up):
+        os.remove(up)
     RmKeys = ['citation_label', 'compilation', 'calculation_type', 'average_n_lines', 'average_n_planes',
               'specimen_grade', 'site_vgp_lat', 'site_vgp_lon', 'direction_type', 'specimen_Z',
               'magic_instrument_codes', 'cooling_rate_corr', 'cooling_rate_mcd', 'anisotropy_atrm_alt',
@@ -2102,7 +2113,12 @@ def upload_magic(concat=0, dir_path='.', data_model=None):
                             if meth.strip() not in methods:
                                 if meth.strip() != "LP-DIR-":
                                     methods.append(meth.strip())
-                    pmag.putout(up,keystring,rec)
+                    try:
+                        pmag.putout(up,keystring,rec)
+                    except IOError:
+                        print '-W- File input error: slowing down'
+                        time.sleep(1)
+                        pmag.putout(up, keystring, rec)
 
     # write out the file separator
             f=open(up,'a')
@@ -2119,7 +2135,12 @@ def upload_magic(concat=0, dir_path='.', data_model=None):
         MethRec["magic_method_code"]=meth
         if first_rec==1:meth_keys=pmag.first_up(up,MethRec,"magic_methods")
         first_rec=0
-        pmag.putout(up,meth_keys,MethRec)
+        try:
+            pmag.putout(up,meth_keys,MethRec)
+        except IOError:
+            print '-W- File input error: slowing down'
+            time.sleep(1)
+            pmag.putout(up,meth_keys,MethRec)
     if concat==1:
         f=open(up,'a')
         f.write('>>>>>>>>>>\n')

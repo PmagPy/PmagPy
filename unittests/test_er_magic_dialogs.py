@@ -11,7 +11,6 @@ import magic_grid
 #import wx.lib.inspection
 #import numpy as np
 #import ipmag
-#import QuickMagIC as qm
 
 WD = os.getcwd()
 project_WD = os.path.join(os.getcwd(), 'unittests', 'examples', 'my_project')

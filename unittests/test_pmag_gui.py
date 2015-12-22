@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+print 'importing'
 import unittest
 import sys
 import os
@@ -7,10 +8,11 @@ import wx
 import wx.lib.inspection
 import numpy as np
 import ipmag
-import QuickMagIC as qm
+import pmag_gui
 import pmag_menu_dialogs
+print 'done'
 
-# get WD before all the QuickMagIC stuff starts to happen
+# get WD before all the Pmag GUI stuff starts to happen
 WD = os.getcwd()
 project_WD = os.path.join(os.getcwd(), 'unittests', 'examples', 'my_project')
 core_depthplot_WD = os.path.join(os.getcwd(), 'Datafiles', 'core_depthplot')
@@ -20,7 +22,7 @@ class TestMainFrame(unittest.TestCase):
     def setUp(self):
         self.app = wx.App()
         #WD = os.path.join(os.getcwd(), 'unittests', 'examples', 'my_project')
-        self.frame = qm.MagMainFrame(project_WD)
+        self.frame = pmag_gui.MagMainFrame(project_WD)
         self.pnl = self.frame.GetChildren()[0]
         #wx.lib.inspection.InspectionTool().Show()
 
@@ -35,7 +37,7 @@ class TestMainFrame(unittest.TestCase):
         """
         self.assertTrue(self.pnl.IsEnabled())
         self.assertTrue(self.pnl.IsShown())
-        self.assertEqual('quickmagic main panel', self.pnl.GetName())
+        self.assertEqual('pmag_gui main panel', self.pnl.GetName())
 
     def test_click_button_one(self):
         """
@@ -154,7 +156,7 @@ class TestMenus(unittest.TestCase):
     def setUp(self):
         self.app = wx.App()
         #WD = os.path.join(os.getcwd(), 'unittests', 'examples', 'my_project')
-        self.frame = qm.MagMainFrame(project_WD)
+        self.frame = pmag_gui.MagMainFrame(project_WD)
         self.pnl = self.frame.GetChildren()[0]
         
         #wx.lib.inspection.InspectionTool().Show()
@@ -277,12 +279,12 @@ class TestMenus(unittest.TestCase):
         self.assertTrue(window.IsShown())
         return window
 
-
+@unittest.skip("just do it")
 class TestCoreDepthplot(unittest.TestCase):
 
     def setUp(self):
         self.app = wx.App()
-        self.frame = qm.MagMainFrame(core_depthplot_WD)
+        self.frame = pmag_gui.MagMainFrame(core_depthplot_WD)
         self.pnl = self.frame.GetChildren()[0]
         self.core_window = pmag_menu_dialogs.Core_depthplot(self.frame, self.frame.WD)
 

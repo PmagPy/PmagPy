@@ -205,8 +205,8 @@ You may use the drop-down menus to add as many values as needed in these columns
         hbox_all.AddSpacer(20)
 
         self.panel.SetSizer(hbox_all)
-        if sys.platform in ['win32', 'win64']:
-            self.panel.SetScrollbars(20, 20, 50, 50)
+        #if sys.platform in ['win32', 'win64']:
+        #    self.panel.SetScrollbars(20, 20, 50, 50)
         hbox_all.Fit(self)
 
         self.Centre()
@@ -324,8 +324,8 @@ However, you will be able to edit sample_class, sample_lithology, and sample_typ
         hbox_all.AddSpacer(20)
 
         self.panel.SetSizer(hbox_all)
-        if sys.platform in ['win32', 'win64']:
-            self.panel.SetScrollbars(20, 20, 50, 50)
+        #if sys.platform in ['win32', 'win64']:
+        #    self.panel.SetScrollbars(20, 20, 50, 50)
         hbox_all.Fit(self)
         self.Centre()
         self.Show()
@@ -427,8 +427,8 @@ Fill in any blank cells using controlled vocabularies.
         hbox_all.AddSpacer(20)
 
         self.panel.SetSizer(hbox_all)
-        if sys.platform in ['win32', 'win64']:
-            self.panel.SetScrollbars(20, 20, 50, 50)
+        #if sys.platform in ['win32', 'win64']:
+        #    self.panel.SetScrollbars(20, 20, 50, 50)
         hbox_all.Fit(self)
         self.Centre()
         self.Show()
@@ -509,8 +509,8 @@ You may use the drop-down menus to add as many values as needed in these columns
         hbox_all.AddSpacer(20)
 
         self.panel.SetSizer(hbox_all)
-        if sys.platform in ['win32', 'win64']:
-            self.panel.SetScrollbars(20, 20, 50, 50)
+        #if sys.platform in ['win32', 'win64']:
+        #    self.panel.SetScrollbars(20, 20, 50, 50)
         hbox_all.Fit(self)
         self.Centre()
         self.Show()

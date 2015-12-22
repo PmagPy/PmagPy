@@ -2,6 +2,7 @@
 
 import unittest
 import os
+import sys
 import pmag
 import ipmag
 import matplotlib
@@ -251,7 +252,7 @@ class TestAgmMagic(unittest.TestCase):
         self.assertEqual(filename, os.path.join('.', 'agm_magic_example.magic'))
 
     
-        
+@unittest.skipIf(sys.platform in ['darwin'], 'currently causing fatal errors on OSX')
 class TestCoreDepthplot(unittest.TestCase):
 
     def setUp(self):
@@ -313,7 +314,7 @@ class TestCoreDepthplot(unittest.TestCase):
         self.assertTrue(program_ran)
         self.assertEqual(plot_name, 'DSDP Site 522_m:_LT-AF-Z_core-depthplot.png')
 
-        
+@unittest.skipIf(sys.platform in ['darwin'], 'currently causing fatal errors on OSX')
 class TestAnisoDepthplot(unittest.TestCase):
     
     def setUp(self):
