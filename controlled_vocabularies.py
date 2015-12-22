@@ -29,7 +29,13 @@ def get_meth_codes():
     all_codes = []
     for code_name in code_types.index:
         code_url = 'http://api.earthref.org/MAGIC/method_codes/{}.json'.format(code_name)
-        raw_df = pd.io.json.read_json(code_url)
+        # if internet fails in the middle, cut out
+        try:
+            raw_df = pd.io.json.read_json(code_url)
+        except urllib2.URLError:
+            return [], []
+        except httplib.BadStatusLine:
+            return [], []
         # unpack the data into a dataframe, drop unnecessary columns
         df = DataFrame(raw_df[code_name][0])[['definition', 'code']]
         # remake the dataframe with the code (i.e., 'SM_VAR') as the index
