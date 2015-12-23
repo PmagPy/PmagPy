@@ -20,6 +20,7 @@ def main():
         -h prints help message and quits
         -f pmag_sites  formatted file [default is pmag_sites.txt]
         -fsa er_samples  formatted file [default is er_samples.txt]
+        -fsi er_sites  formatted file 
         -exc use pmag_criteria.txt to set acceptance criteria
         -n NB, set number of bootstraps, default is 1000
         -b MIN, MAX, set bounds for untilting, default is -10, 150
@@ -51,6 +52,7 @@ def main():
     dir_path='.'
     infile,orfile='pmag_sites.txt','er_samples.txt'
     critfile='pmag_criteria.txt'
+    dipkey,azkey='sample_bed_dip','sample_bed_dip_direction'
     fmt='svg'
     if '-WD' in sys.argv:
         ind=sys.argv.index('-WD')
@@ -74,6 +76,10 @@ def main():
     if '-fsa' in sys.argv:
         ind=sys.argv.index('-fsa')
         orfile=sys.argv[ind+1] 
+    elif '-fsi' in sys.argv:
+        ind=sys.argv.index('-fsi')
+        orfile=sys.argv[ind+1] 
+        dipkey,azkey='site_bed_dip','site_bed_dip_direction'
     orfile=dir_path+'/'+orfile
     infile=dir_path+'/'+infile
     critfile=dir_path+'/'+critfile
@@ -100,8 +106,8 @@ def main():
             Inc=float(rec['site_inc'])
             orecs=pmag.get_dictitem(ordata,'er_site_name',rec['er_site_name'],'T')
             if len(orecs)>0:
-                    if orecs[0]['sample_bed_dip_direction']!="":dip_dir=float(orecs[0]['sample_bed_dip_direction'])
-                    if orecs[0]['sample_bed_dip']!="":dip=float(orecs[0]['sample_bed_dip'])
+                    if orecs[0][azkey]!="":dip_dir=float(orecs[0][azkey])
+                    if orecs[0][dipkey]!="":dip=float(orecs[0][dipkey])
             if dip!=0 and dip_dir!=-1:
                 if  '-exc' in  sys.argv:
                     keep=1
