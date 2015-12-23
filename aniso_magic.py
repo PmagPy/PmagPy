@@ -5,7 +5,7 @@ import sys,pmag,math,pmagplotlib
 def save(ANIS,fmt,title):
   files={}
   for key in ANIS.keys():
-      files[key]=title+'_TY:_aniso-'+key+'_.'+fmt 
+      files[key]=title+'_TY:_aniso-'+key+'_.'+fmt
   pmagplotlib.saveP(ANIS,files)
 
 def main():
@@ -15,10 +15,10 @@ def main():
 
     DESCRIPTION
         plots anisotropy data with either bootstrap or hext ellipses
-    
+
     SYNTAX
         aniso_magic.py [-h] [command line options]
-    OPTIONS 
+    OPTIONS
         -h plots help message and quits
         -usr USER: set the user name
         -f AFILE, specify rmag_anisotropy formatted file for input
@@ -35,7 +35,7 @@ def main():
         -gtc DEC INC  dec,inc of pole to great circle [down(up) in green (cyan)
         -d Vi DEC INC; Vi (1,2,3) to compare to direction DEC INC
         -nb N; specifies the number of bootstraps - default is 1000
-    DEFAULTS  
+    DEFAULTS
        AFILE:  rmag_anisotropy.txt
        RFILE:  rmag_results.txt
        plot bootstrap ellipses of Constable & Tauxe [1987]
@@ -108,7 +108,7 @@ def main():
         comp=1
         ind=args.index('-d')
         vec=int(args[ind+1])-1
-        Dir=[float(args[ind+2]),float(args[ind+3])] 
+        Dir=[float(args[ind+2]),float(args[ind+3])]
 #
 # set up plots
 #
@@ -117,7 +117,7 @@ def main():
     ANIS={}
     initcdf,inittcdf=0,0
     ANIS['data'],ANIS['conf']=1,2
-    if iboot==1: 
+    if iboot==1:
         ANIS['tcdf']=3
         if iplot==1:
             inittcdf=1
@@ -135,13 +135,13 @@ def main():
     data,ifiletype=pmag.magic_read(infile)
     for rec in data:  # find all the orientation systems
         if 'anisotropy_tilt_correction' not in rec.keys():rec['anisotropy_tilt_correction']='-1'
-        if rec['anisotropy_tilt_correction'] not in orlist: 
+        if rec['anisotropy_tilt_correction'] not in orlist:
             orlist.append(rec['anisotropy_tilt_correction'])
     if CS not in orlist:
         if len(orlist)>0:
             CS=orlist[0]
         else:
-            CS='-1'   
+            CS='-1'
         if CS=='-1':crd='s'
         if CS=='0':crd='g'
         if CS=='100':crd='t'
@@ -149,8 +149,8 @@ def main():
     if isite==1:
         sitelist=[]
         for rec in data:
-            if rec['er_site_name'] not in sitelist:sitelist.append(rec['er_site_name']) 
-        sitelist.sort()  
+            if rec['er_site_name'] not in sitelist:sitelist.append(rec['er_site_name'])
+        sitelist.sort()
         plt=len(sitelist)
     else:plt=1
     k=0
@@ -163,7 +163,7 @@ def main():
       else:
           site=sitelist[k]
           for rec in data:
-              if rec['er_site_name']==site:sdata.append(rec) 
+              if rec['er_site_name']==site:sdata.append(rec)
       anitypes=[]
       csrecs=pmag.get_dictitem(sdata,'anisotropy_tilt_correction',CS,'T')
       for rec in csrecs:
@@ -207,7 +207,7 @@ def main():
           ResRec["anisotropy_ftest23"]='%10.3f'%(fpars['F23'])
           ResRec["result_description"]='F_crit: '+fpars['F_crit']+'; F12,F23_crit: '+fpars['F12_crit']
           ResRec['anisotropy_type']=pmag.makelist(anitypes)
-          ResRecs.append(ResRec) 
+          ResRecs.append(ResRec)
       if len(Ss)>1:
           title="LO:_"+ResRec['er_location_names']+'_SI:_'+site+'_SA:__SP:__CO:_'+crd
           ResRec['er_location_names']=pmag.makelist(Locs)
@@ -233,7 +233,7 @@ def main():
           if isite=="1":ResRec['result_description']="Site average using coordinate system: " +CS
           if hpars!=[] and ihext==1:
               HextRec={}
-              for key in ResRec.keys():HextRec[key]=ResRec[key]   # copy over stuff 
+              for key in ResRec.keys():HextRec[key]=ResRec[key]   # copy over stuff
               HextRec["anisotropy_v1_dec"]='%7.1f'%(hpars["v1_dec"])
               HextRec["anisotropy_v2_dec"]='%7.1f'%(hpars["v2_dec"])
               HextRec["anisotropy_v3_dec"]='%7.1f'%(hpars["v3_dec"])
@@ -275,7 +275,7 @@ def main():
               ResRecs.append(HextRec)
           if bpars!=[]:
               BootRec={}
-              for key in ResRec.keys():BootRec[key]=ResRec[key]   # copy over stuff 
+              for key in ResRec.keys():BootRec[key]=ResRec[key]   # copy over stuff
               BootRec["anisotropy_v1_dec"]='%7.1f'%(bpars["v1_dec"])
               BootRec["anisotropy_v2_dec"]='%7.1f'%(bpars["v2_dec"])
               BootRec["anisotropy_v3_dec"]='%7.1f'%(bpars["v3_dec"])
@@ -318,7 +318,7 @@ def main():
               ResRecs.append(BootRec)
           k+=1
           goon=1
-          while goon==1 and iplot==1 and verbose: 
+          while goon==1 and iplot==1 and verbose:
               if iboot==1: print "compare with [d]irection "
               print " plot [g]reat circle,  change [c]oord. system, change [e]llipse calculation,  s[a]ve plots, [q]uit "
               if isite==1: print "  [p]revious, [s]ite, [q]uit, <return> for next "
@@ -328,12 +328,12 @@ def main():
               if ans=="e":
                  iboot,ipar,ihext,ivec=1,0,0,0
                  e=raw_input("Do Hext Statistics  1/[0]: ")
-                 if e=="1":ihext=1  
+                 if e=="1":ihext=1
                  e=raw_input("Suppress bootstrap 1/[0]: ")
-                 if e=="1":iboot=0  
+                 if e=="1":iboot=0
                  if iboot==1:
                      e=raw_input("Parametric bootstrap 1/[0]: ")
-                     if e=="1":ipar=1  
+                     if e=="1":ipar=1
                      e=raw_input("Plot bootstrap eigenvectors:  1/[0]: ")
                      if e=="1":ivec=1
                      if iplot==1:
@@ -356,7 +356,7 @@ def main():
                       if len(orlist)>0:
                           CS=orlist[0]
                       else:
-                          CS='-1'   
+                          CS='-1'
                       if CS=='-1':crd='s'
                       if CS=='0':crd='g'
                       if CS=='100':crd='t'
@@ -377,7 +377,7 @@ def main():
                       pmagplotlib.plot_init(ANIS['vycdf'],5,5)
                       pmagplotlib.plot_init(ANIS['vzcdf'],5,5)
                   Dir,comp=[],1
-                  print """ 
+                  print """
                       Input: Vi D I to  compare  eigenvector Vi with direction D/I
                              where Vi=1: principal
                                    Vi=2: major
@@ -392,7 +392,7 @@ def main():
                           Dir=[float(vdi[1]),float(vdi[2])]
                           con=0
                       except IndexError:
-                          print " Incorrect entry, try again " 
+                          print " Incorrect entry, try again "
                   bpars,hpars=pmagplotlib.plotANIS(ANIS,Ss,iboot,ihext,ivec,ipar,title,iplot,comp,vec,Dir,nb)
                   Dir,comp=[],0
               if ans=='g':
@@ -414,10 +414,10 @@ def main():
                   pmagplotlib.plotC(ANIS['data'],PDir,90.,'g')
                   pmagplotlib.plotC(ANIS['conf'],PDir,90.,'g')
                   if verbose and plots==0:pmagplotlib.drawFIGS(ANIS)
-              if ans=="p": 
+              if ans=="p":
                   k-=2
                   goon=0
-              if ans=="q": 
+              if ans=="q":
                   k=plt
                   goon=0
               if ans=="s":
@@ -443,7 +443,7 @@ def main():
                   goon=0
       else:
           if verbose:print 'skipping plot - not enough data points'
-          k+=1 
+          k+=1
 #   put rmag_results stuff here
     if len(ResRecs)>0:
         ResOut,keylist=pmag.fillkeys(ResRecs)
@@ -451,4 +451,5 @@ def main():
     if verbose:
         print " Good bye "
 #
-main()
+if __name__=="__main__":
+    main()
