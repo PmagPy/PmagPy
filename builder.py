@@ -237,6 +237,7 @@ Creating a new sample named: {} """.format(new_sample_name, new_sample_name)
             sample.specimens.remove(specimen)
         self.specimens.remove(specimen)
         del specimen
+        return []
 
     def add_specimen(self, spec_name, samp_name=None, er_data=None, pmag_data=None):
         """

@@ -753,7 +753,9 @@ You may use the drop-down menus to add as many values as needed in these columns
         orphans = []
         for name in names:
             row = self.grid.row_labels.index(name)
-            orphans.extend(self.er_magic_data.delete_methods[data_type](name))
+            orphan = self.er_magic_data.delete_methods[data_type](name)
+            if orphan:
+                orphans.extend(orphan)
             self.grid.remove_row(row)
         if orphans:
             orphan_names = self.er_magic_data.make_name_list(orphans)
