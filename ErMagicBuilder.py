@@ -154,7 +154,9 @@ class MagIC_model_builder(wx.Frame):
         # if they are not already present
         # add some strongly-recommended categories to age text_box
         actual_age_headers = self.er_magic.headers['age']['er'][0]
-        actual_age_headers.extend(['age', 'age_unit'])
+        for extra_header in ['age', 'age_unit']:
+            if extra_header not in actual_age_headers:
+                actual_age_headers.append(extra_header)
         add_age_headers = list(set(actual_age_headers))
         self.update_text_box(add_age_headers, self.text_controls['age'])
         
