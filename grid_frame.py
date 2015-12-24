@@ -440,6 +440,7 @@ class GridFrame(wx.Frame):
                 else:
                     if reqd_head not in col_labels:
                         add_in.append(reqd_head)
+            add_in = builder.remove_list_headers(add_in)
             return add_in
         #
         already_present = []
