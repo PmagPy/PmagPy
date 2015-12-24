@@ -684,6 +684,7 @@ You may use the drop-down menus to add as many values as needed in these columns
         else:
             wait = wx.BusyInfo("Please wait, writing data to files...")
             wx.Yield()
+            # actually write data:
             self.er_magic_data.write_files()
             self.Destroy()
             del wait
@@ -718,6 +719,7 @@ You may use the drop-down menus to add as many values as needed in these columns
         dlg.Destroy()
         if res == wx.ID_YES:
             self.onSave(self.grid)
+            self.er_magic_data.write_files()
             self.Destroy()
         if res == wx.ID_NO:
             self.Destroy()
@@ -843,12 +845,16 @@ You may use the drop-down menus to add as many values as needed in these columns
         """
         Save grid data in the data object
         """
+        # deselect column, including remove 'EDIT ALL' label
         if self.drop_down_menu:
             self.drop_down_menu.clean_up()
 
+        # save all changes to er_magic data object
         self.grid_builder.save_grid_data()
-        
-        self.er_magic_data.write_files()
+
+        # don't actually write data in this step (time-consuming)
+        # instead, write to files when user is done editing
+        #self.er_magic_data.write_files()
 
         wx.MessageBox('Saved!', 'Info',
                       style=wx.OK | wx.ICON_INFORMATION)

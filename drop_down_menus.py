@@ -196,11 +196,11 @@ class Menus(object):
         """
         if self.selected_col:
             col_label_value = self.grid.GetColLabelValue(self.selected_col)
-            self.grid.SetColLabelValue(self.selected_col, col_label_value[:-10])
+            col_label_value = col_label_value.strip('\nEDIT ALL')
+            self.grid.SetColLabelValue(self.selected_col, col_label_value)
             for row in range(self.grid.GetNumberRows()):
                 self.grid.SetCellBackgroundColour(row, self.selected_col, 'white')
         self.grid.ForceRefresh()
-
 
     def on_left_click(self, event, grid, choices):
         """
