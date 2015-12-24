@@ -2006,6 +2006,7 @@ def upload_magic(concat=0, dir_path='.', data_model=None):
     returns a tuple of either: (False, error_message, errors) if there was a problem creating/validating the upload file
     or: (filename, '', None) if the upload was fully successful
     """
+    SpecDone=[]
     locations = []
     concat = int(concat)
     files_list = ["er_expeditions.txt", "er_locations.txt", "er_samples.txt", "er_specimens.txt", "er_sites.txt", "er_ages.txt", "er_citations.txt", "er_mailinglist.txt", "magic_measurements.txt", "rmag_hysteresis.txt", "rmag_anisotropy.txt", "rmag_remanence.txt", "rmag_results.txt", "pmag_specimens.txt", "pmag_samples.txt", "pmag_sites.txt", "pmag_results.txt", "pmag_criteria.txt", "magic_instruments.txt"]
