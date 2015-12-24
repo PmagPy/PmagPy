@@ -209,7 +209,7 @@ class TestMainFrameWithData(unittest.TestCase):
         self.assertTrue(site.er_data)
         self.assertTrue(site.pmag_data)
         self.assertTrue(location.er_data)
-        self.assertFalse(location.pmag_data)
+        self.assertFalse(len(location.pmag_data.keys()) > 1)
 
         #self.assertTrue(self.frame.er_magic.pmag_results_header)
         #self.assertTrue(self.frame.er_magic.pmag_results_reqd_header)

@@ -508,13 +508,20 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
         old_specimen_name = ''
         #start_time = time.time()
         meas_name_list = [measurement.name for measurement in self.measurements]
-        
+
         for rec in meas_data:
-            #print 'rec', rec
+            # get citation information 
+            citation = rec.get('er_citation_names', 'This study')
+            if 'This study' not in citation:
+                citation = citation.strip() + ':This study'
+            er_data = {'er_citation_names': citation}
+            pmag_data = {'er_citation_names': 'This study'}
             specimen_name = rec["er_specimen_name"]
+            # ignore measurement if there is no specimen
             if specimen_name == "" or specimen_name == " ":
                 continue
-
+            # if we've moved onto a new specimen, make sure a sample/site/location
+            # exists for that specimen
             if specimen_name != old_specimen_name:
                 sample_name = rec["er_sample_name"]
                 site_name = rec["er_site_name"]
@@ -523,16 +530,20 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
                 # add items and parents
                 location = self.find_by_name(location_name, self.locations)
                 if location_name and not location:
-                    location = self.add_location(location_name)
+                    location = self.add_location(location_name, er_data=er_data,
+                                                 pmag_data=pmag_data)
                 site = self.find_by_name(site_name, self.sites)
                 if site_name and not site:
-                    site = self.add_site(site_name, location_name)
+                    site = self.add_site(site_name, location_name,
+                                         er_data, pmag_data)
                 sample = self.find_by_name(sample_name, self.samples)
                 if sample_name and not sample:
-                    sample = self.add_sample(sample_name, site_name)
+                    sample = self.add_sample(sample_name, site_name,
+                                             er_data, pmag_data)
                 specimen = self.find_by_name(specimen_name, self.specimens)
                 if specimen_name and not specimen:
-                    specimen = self.add_specimen(specimen_name, sample_name)
+                    specimen = self.add_specimen(specimen_name, sample_name,
+                                                 er_data, pmag_data)
 
                 # add child_items
                 if sample and not self.find_by_name(specimen_name, sample.specimens):

@@ -114,8 +114,13 @@ class MagicGrid(wx.grid.Grid, gridlabelrenderer.GridWithLabelRenderersMixin):
                     elif col in data_dict[row].keys():
                         value = data_dict[row][col]
                         # set defaults
-                        if col == 'er_citation_names' and not value:
-                            value = 'This study'
+                        if col == 'er_citation_names':
+                            if value == 'This study':
+                                current_val = self.GetCellValue(num, n+1).strip()
+                                if current_val:
+                                    value = current_val
+                                else:
+                                    value = "This study"
                     else:
                         value = ''
                     if value:

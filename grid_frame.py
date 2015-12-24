@@ -905,6 +905,11 @@ class GridBuilder(object):
                             col_name = col_label[:-2]
                             new_pmag_data[col_name] = value
                             continue
+
+                        if col_label == 'er_citation_names':# and pmag:
+                            new_pmag_data[col_label] = 'This study'
+                            new_er_data[col_label] = value
+                            continue
                             
                         if er_header and col_label in er_header:
                             new_er_data[col_label] = value
