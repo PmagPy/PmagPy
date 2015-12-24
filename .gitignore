@@ -12,7 +12,7 @@ Essentials_Problem_Datafiles
 *.log
 *.redo
 *.ipynb       
-
+.eggs*
 consistency_test/pmag_fixed_criteria.txt
 all_errors_list.txt
 bootstrap_full_output.txt
