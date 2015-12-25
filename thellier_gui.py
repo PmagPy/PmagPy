@@ -7577,6 +7577,9 @@ class Arai_GUI(wx.Frame):
           Data[s]['T_or_MW']="T"
           sample=rec["er_sample_name"]
           site=rec["er_site_name"]
+          # if "er_site_name" in an empty string: use er_sample_name tp assign site to sample.
+          if rec["er_site_name"]=="":
+                site=sample
           location=""
           if "er_location_name" in rec.keys():
             location=rec["er_location_name"]   
