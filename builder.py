@@ -94,7 +94,7 @@ class ErMagicBuilder(object):
         Return item from items_list with name item_name.
         """
         if not name_list:
-            names = [item.name for item in items_list]
+            names = [item.name for item in items_list if item]
         else:
             names = name_list
         if item_name in names:
@@ -423,7 +423,8 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
         sites = location.sites
         self.locations.remove(location)
         for site in sites:
-            site.location = ''
+            if site:
+                site.location = ''
         del location
         return sites
 
@@ -1382,7 +1383,7 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
             sites = location.sites
             max_lat, min_lat = '', ''
             max_lon, min_lon = '', ''
-            if not sites:
+            if not any(sites):
                 d[location.name] = {'location_begin_lat': min_lat, 'location_begin_lon': min_lon,
                                     'location_end_lat': max_lat, 'location_end_lon': max_lon}
                 #return d
