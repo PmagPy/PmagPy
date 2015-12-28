@@ -9,6 +9,7 @@ import wx
 import wx.lib.buttons as buttons
 import sys
 import os
+import webbrowser
 import check_updates
 #import ErMagicBuilder
 import builder
@@ -380,16 +381,27 @@ class MagICMenu(wx.MenuBar):
         file_menu = wx.Menu()
         file_quit = file_menu.Append(wx.ID_EXIT, 'Quit', 'Quit application')
         file_clear = file_menu.Append(wx.ID_ANY, 'Clear directory', 'Delete all files from working directory')
-        file_help = file_menu.Append(wx.ID_ANY, 'Help', 'More information about creating a MagIC contribution')
+        #file_help = file_menu.Append(wx.ID_ANY, 'Help', 'More information about creating a MagIC contribution')
         file_show = file_menu.Append(wx.ID_ANY, 'Show main window', 'Show main window')
         file_close_grid = file_menu.Append(wx.ID_ANY, 'Close current grid', 'Close current grid')
         parent.Bind(wx.EVT_MENU, self.on_quit, file_quit)
         parent.Bind(wx.EVT_MENU, self.on_clear, file_clear)
-        parent.Bind(wx.EVT_MENU, self.on_help, file_help)
+        #parent.Bind(wx.EVT_MENU, self.on_help, file_help)
         parent.Bind(wx.EVT_MENU, self.on_show_mainframe, file_show)
         parent.Bind(wx.EVT_MENU, self.on_close_grid, file_close_grid)
-
         self.Append(file_menu, 'File')
+
+        help_menu = wx.Menu()
+        help_cookbook = help_menu.Append(wx.ID_ANY, 'PmagPy Cookbook', 'Access the online documentation')
+        help_git = help_menu.Append(wx.ID_ANY, 'Github Page', 'Access the PmagPy repository')
+        parent.Bind(wx.EVT_MENU, self.on_cookbook, help_cookbook)
+        parent.Bind(wx.EVT_MENU, self.on_git, help_git)
+        if self.get_output_frame():
+            help_show = help_menu.Append(wx.ID_ANY, 'Show output', 'Show help')
+            help_hide = help_menu.Append(wx.ID_ANY, 'Hide output', 'Hide output')
+            parent.Bind(wx.EVT_MENU, self.on_show_output, help_show)
+            parent.Bind(wx.EVT_MENU, self.on_hide_output, help_hide)
+        self.Append(help_menu, 'Help ')
 
     def on_quit(self, event):
         """
@@ -458,6 +470,29 @@ class MagICMenu(wx.MenuBar):
         if self.parent.grid_frame:
             self.parent.grid_frame.onSave(None)
             self.parent.grid_frame.Destroy()
+
+
+    def on_cookbook(self, event):
+        webbrowser.open("http://earthref.org/PmagPy/cookbook/", new=2)
+
+    def on_git(self,event):
+        webbrowser.open("https://github.com/ltauxe/PmagPy", new=2)
+
+    def on_show_output(self, event):
+        outframe = self.get_output_frame()
+        outframe.Show()
+        outframe.Raise()
+
+    def on_hide_output(self, event):
+        outframe = self.get_output_frame()
+        outframe.Hide()
+
+    def get_output_frame(self):
+        wins = wx.GetTopLevelWindows()
+        for win in wins:
+            if win.Name == 'frame':
+                return win
+        return False
 
 
 if __name__ == "__main__":

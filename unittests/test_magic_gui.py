@@ -279,7 +279,7 @@ class TestMagICGUIMenu(unittest.TestCase):
         check that all expected menus were created
         and that each menu item is enabled
         """
-        menu_names = ['File']
+        menu_names = ['File', 'Help ']
         menus = self.frame.MenuBar.Menus
         for menu, menu_name in menus:
             self.assertIsInstance(menu, wx.Menu)
@@ -287,7 +287,8 @@ class TestMagICGUIMenu(unittest.TestCase):
                 self.assertTrue(item.IsEnabled())
             self.assertIn(menu_name, menu_names)
 
-    @unittest.skipIf('darwin' not in sys.platform, 'Fails remotely for unknown reason')
+    #@unittest.skipIf('darwin' not in sys.platform, 'Fails remotely for unknown reason')
+    @unittest.skip('directing users to the cookbook instead of creating a frame')
     def test_click_help(self):
         """
         Test that help HtmlFrame is created
