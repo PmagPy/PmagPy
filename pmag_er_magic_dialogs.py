@@ -676,6 +676,14 @@ You may use the drop-down menus to add as many values as needed in these columns
 
         self.deleteRowButton = None
         self.panel.Destroy()
+
+        # make sure that specimens get propagated with
+        # any default sample info
+        if next_dia == self.InitLocCheck:
+            if self.er_magic_data.specimens:
+                for spec in self.er_magic_data.specimens:
+                    spec.propagate_data()
+        
         if next_dia:
             wait = wx.BusyInfo("Please wait, working...")
             wx.Yield()
