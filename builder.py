@@ -559,7 +559,7 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
             meas_num = rec['measurement_number']
 
             meas_name = exp_name + '_' + str(meas_num)
-            measurement = self.find_by_name(meas_num, self.measurements, meas_name_list)
+            measurement = self.find_by_name(meas_name, self.measurements, meas_name_list)
             if not measurement:
                 self.add_measurement(exp_name, meas_num, specimen.name, rec)
                 meas_name_list.append(meas_name)
