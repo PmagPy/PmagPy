@@ -43,7 +43,6 @@ class TestMainFrame(unittest.TestCase):
     def test_auto_interpreter(self):
         menus = self.frame.MenuBar.Menus
         for m, name in menus:
-            print 'name', name
             if name == '&Auto Interpreter':
                 menu = m
                 break
