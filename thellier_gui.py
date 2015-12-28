@@ -2919,6 +2919,7 @@ class Arai_GUI(wx.Frame):
     def on_menu_run_interpreter(self, event):
         import thellier_interpreter
         busy_frame=wx.BusyInfo("Running Thellier auto interpreter\n It may take several minutes depending on the number of specimens ...", self)
+        wx.Yield()
         thellier_auto_interpreter=thellier_interpreter.thellier_auto_interpreter(self.Data,self.Data_hierarchy,self.WD,self.acceptance_criteria,self.preferences,self.GUI_log,THERMAL,MICROWAVE)
         thellier_auto_interpreter.run_interpreter()
         self.Data={}
@@ -2938,7 +2939,6 @@ class Arai_GUI(wx.Frame):
         dlg1.ShowModal()
         dlg1.Destroy()
         busy_frame.Destroy()
-
         return()
         #self.Data=copy.deepcopy      
 #

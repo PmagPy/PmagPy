@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-print 'importing'
 import unittest
 import sys
 import os
@@ -10,7 +9,6 @@ import numpy as np
 import ipmag
 import pmag_gui
 import pmag_menu_dialogs
-print 'done'
 
 # get WD before all the Pmag GUI stuff starts to happen
 WD = os.getcwd()
