@@ -497,9 +497,8 @@ class MagICMenu(wx.MenuBar):
 
 if __name__ == "__main__":
     print '-I- Starting MagIC GUI - please be patient'
-    #app = wx.App(redirect=True, filename="beta_log.log")
     # if redirect is true, wxpython makes its own output window for stdout/stderr
-    #app = wx.App(redirect=False)
+    #app = wx.App(redirect=True)
     # this sends stdout to terminal:
     app = wx.App(redirect=False)
     # this sends stdout to wxPython:

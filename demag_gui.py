@@ -6142,6 +6142,7 @@ def do_main(WD=None, standalone_app=True, parent=None):
         frame.Center()
         frame.Show()
         del wait
+        frame.Raise()
 
     # to run as command_line:
     else:
