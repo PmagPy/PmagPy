@@ -348,9 +348,7 @@ class MagMainFrame(wx.Frame):
         del wait
 
     def init_check_window(self):
-        #self.check_dia = pmag_er_magic_dialogs.ErMagicCheckFrame(self, 'Check Data', self.WD, self.ErMagic_data)# initiates the object that will control steps 1-6 of checking headers, filling in cell values, etc.
         self.check_dia = pmag_er_magic_dialogs.ErMagicCheckFrame(self, 'Check Data', self.WD, self.er_magic)# initiates the object that will control steps 1-6 of checking headers, filling in cell values, etc.
-
 
     def on_orientation_button(self, event):
         wait = wx.BusyInfo('Compiling required data, please wait...')
@@ -438,6 +436,7 @@ class MagMainFrame(wx.Frame):
 
 
 if __name__ == "__main__":
+    print '-I- Starting Pmag GUI - please be patient'
     #app = wx.App(redirect=True, filename="beta_log.log")
     # if redirect is true, wxpython makes its own output window for stdout/stderr
     app = wx.App(redirect=False)

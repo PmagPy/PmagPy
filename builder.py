@@ -1599,7 +1599,9 @@ class Sample(Pmag_object):
         for dtype in ['class', 'lithology', 'type']:
             if 'sample_' + dtype in self.er_data.keys():
                 if not self.er_data['sample_' + dtype]:
-                    if self.site.er_data['site_' + dtype]:
+                    if 'site_' + dtype not in self.site.er_data:
+                        self.site.er_data['site_' + dtype] = ''
+                    elif self.site.er_data['site_' + dtype]:
                         value = self.site.er_data['site_' + dtype]
                         self.er_data['sample_' + dtype] = value
         for dtype in ['_lat', '_lon']:
