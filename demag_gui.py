@@ -1735,7 +1735,7 @@ class Zeq_GUI(wx.Frame):
           if i >= tmin_index and i <= tmax_index:
             self.logger.SetItemBackgroundColour(i,"LIGHT BLUE")
           if self.Data[self.s]['measurement_flag'][i]=='b':
-            self.logger.SetItemBackgroundColour(i,"YELLOW")
+            self.logger.SetItemBackgroundColour(i,"red")
 
     #----------------------------------------------------------------------
 
@@ -2449,7 +2449,7 @@ class Zeq_GUI(wx.Frame):
                         relability = 'b'
                         print('-E- IndexError in bad data')
                     if relability=='b':
-                        self.logger.SetItemBackgroundColour(item,"YELLOW")
+                        self.logger.SetItemBackgroundColour(item,"red")
 
         self.canvas1.draw()
         self.canvas2.draw()
@@ -3644,8 +3644,8 @@ class Zeq_GUI(wx.Frame):
                     color = self.colors[(int(next_fit)-1) % len(self.colors)]
                     self.pmag_results_data['specimens'][self.s].append(Fit('Fit ' + next_fit, None, None, color, self))
                     fit = self.pmag_results_data['specimens'][specimen][-1]
-    
-    
+
+
                 if 'specimen_flag' in rec and rec['specimen_flag'] == 'b':
                     self.bad_fits.append(fit)
 
@@ -5567,7 +5567,7 @@ class EditFitFrame(wx.Frame):
         self.logger.SetItemBackgroundColour(i,"WHITE")
         a,b = False,False
         if fit in self.parent.bad_fits:
-            self.logger.SetItemBackgroundColour(i,"YELLOW")
+            self.logger.SetItemBackgroundColour(i,"red")
             b = True
         if self.parent.current_fit == fit:
             self.logger.SetItemBackgroundColour(i,"LIGHT BLUE")
@@ -5575,7 +5575,7 @@ class EditFitFrame(wx.Frame):
             self.current_fit_index = i
             a = True
         if a and b:
-            self.logger.SetItemBackgroundColour(i,"GREEN")
+            self.logger.SetItemBackgroundColour(i,"red")
 
     def update_current_fit_data(self):
         """
@@ -5609,12 +5609,12 @@ class EditFitFrame(wx.Frame):
         if self.current_fit_index != None and \
         len(self.fit_list) > 0 and \
         self.fit_list[self.current_fit_index][0] in self.parent.bad_fits:
-            self.logger.SetItemBackgroundColour(self.current_fit_index,"YELLOW")
+            self.logger.SetItemBackgroundColour(self.current_fit_index,"")
         else:
             self.logger.SetItemBackgroundColour(self.current_fit_index,"WHITE")
         self.current_fit_index = i
         if self.fit_list[self.current_fit_index][0] in self.parent.bad_fits:
-            self.logger.SetItemBackgroundColour(self.current_fit_index,"GREEN")
+            self.logger.SetItemBackgroundColour(self.current_fit_index,"red")
         else:
             self.logger.SetItemBackgroundColour(self.current_fit_index,"LIGHT BLUE")
 
@@ -5665,9 +5665,9 @@ class EditFitFrame(wx.Frame):
         else:
             self.parent.bad_fits.append(fit)
             if i == self.current_fit_index:
-                self.logger.SetItemBackgroundColour(i,"GREEN")
+                self.logger.SetItemBackgroundColour(i,"red")
             else:
-                self.logger.SetItemBackgroundColour(i,"YELLOW")
+                self.logger.SetItemBackgroundColour(i,"red")
         self.parent.calculate_higher_levels_data()
         self.parent.plot_higher_levels_data()
         self.logger_focus(i)
