@@ -29,7 +29,7 @@ class MagMainFrame(wx.Frame):
     def __init__(self, WD=None):
 
         self.FIRST_RUN = True
-        wx.Frame.__init__(self, None, wx.ID_ANY, self.title)
+        wx.Frame.__init__(self, None, wx.ID_ANY, self.title, name='pmag_gui mainframe')
         self.panel = wx.Panel(self, name='pmag_gui main panel')
         self.InitUI()
 
