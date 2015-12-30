@@ -394,13 +394,13 @@ class MagICMenu(wx.MenuBar):
         help_menu = wx.Menu()
         help_cookbook = help_menu.Append(wx.ID_ANY, 'PmagPy Cookbook', 'Access the online documentation')
         help_git = help_menu.Append(wx.ID_ANY, 'Github Page', 'Access the PmagPy repository')
-        parent.Bind(wx.EVT_MENU, self.on_cookbook, help_cookbook)
-        parent.Bind(wx.EVT_MENU, self.on_git, help_git)
-        if self.get_output_frame():
+        parent.Bind(wx.EVT_MENU, pw.on_cookbook, help_cookbook)
+        parent.Bind(wx.EVT_MENU, pw.on_git, help_git)
+        if pw.get_output_frame():
             help_show = help_menu.Append(wx.ID_ANY, 'Show output', 'Show help')
             help_hide = help_menu.Append(wx.ID_ANY, 'Hide output', 'Hide output')
-            parent.Bind(wx.EVT_MENU, self.on_show_output, help_show)
-            parent.Bind(wx.EVT_MENU, self.on_hide_output, help_hide)
+            parent.Bind(wx.EVT_MENU, pw.on_show_output, help_show)
+            parent.Bind(wx.EVT_MENU, pw.on_hide_output, help_hide)
         self.Append(help_menu, 'Help ')
 
     def on_quit(self, event):
@@ -470,29 +470,6 @@ class MagICMenu(wx.MenuBar):
         if self.parent.grid_frame:
             self.parent.grid_frame.onSave(None)
             self.parent.grid_frame.Destroy()
-
-
-    def on_cookbook(self, event):
-        webbrowser.open("http://earthref.org/PmagPy/cookbook/", new=2)
-
-    def on_git(self,event):
-        webbrowser.open("https://github.com/ltauxe/PmagPy", new=2)
-
-    def on_show_output(self, event):
-        outframe = self.get_output_frame()
-        outframe.Show()
-        outframe.Raise()
-
-    def on_hide_output(self, event):
-        outframe = self.get_output_frame()
-        outframe.Hide()
-
-    def get_output_frame(self):
-        wins = wx.GetTopLevelWindows()
-        for win in wins:
-            if win.Name == 'frame':
-                return win
-        return False
 
 
 if __name__ == "__main__":

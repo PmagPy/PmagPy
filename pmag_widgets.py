@@ -7,6 +7,7 @@ assorted wxPython custom widgets
 import os
 import wx
 import wx.html
+import webbrowser
 import controlled_vocabularies as vocabulary
 
 
@@ -823,7 +824,7 @@ class MethodCodeDemystifier(wx.StaticBoxSizer):
 
 
 
-# methods!
+# assorted useful methods!
 
 def on_add_dir_button(SELF, text):
     dlg = wx.DirDialog(
@@ -915,3 +916,29 @@ def close_window(SELF, command, outfile):
     dlg.Destroy()
     SELF.Destroy()
     SELF.Parent.Raise()
+
+# menu events
+    
+def on_cookbook(event):
+    webbrowser.open("http://earthref.org/PmagPy/cookbook/", new=2)
+
+def on_git(event):
+    webbrowser.open("https://github.com/ltauxe/PmagPy", new=2)
+
+def on_show_output(event):
+    outframe = get_output_frame()
+    outframe.Show()
+    outframe.Raise()
+
+def on_hide_output(event):
+    outframe = get_output_frame()
+    outframe.Hide()
+
+def get_output_frame():
+    print '-I- Fetching output frame'
+    wins = wx.GetTopLevelWindows()
+    for win in wins:
+        if win.Name == 'frame':
+            return win
+    return False
+
