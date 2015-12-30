@@ -2,7 +2,7 @@
 GridFrame -- subclass of wx.Frame.  Contains grid and buttons to manipulate it.
 GridBuilder -- data methods for GridFrame (add data to frame, save it, etc.)
 """
-import pdb
+#import pdb
 import wx
 import builder
 import pmag
@@ -276,14 +276,26 @@ class GridFrame(wx.Frame):
             self.SetSize((actual_size[0], disp_size[1] * .95))
         self.Centre()
 
-    def toggle_help(self, event):
-        btn = event.GetEventObject()
-        if btn.Label == 'Show help':
+    def toggle_help(self, event, mode=None):
+        # if mode == 'open', show no matter what.
+        # if mode == 'close', close.  otherwise, change state
+        btn = self.toggle_help_btn
+        shown = self.help_msg_boxsizer.GetStaticBox().IsShown()
+        # if mode is specified, do that mode
+        if mode == 'open':
             self.help_msg_boxsizer.ShowItems(True)
             btn.SetLabel('Hide help')
-        else:
+        elif mode == 'close':
             self.help_msg_boxsizer.ShowItems(False)
             btn.SetLabel('Show help')
+        # otherwise, simply toggle states
+        else:
+            if shown:
+                self.help_msg_boxsizer.ShowItems(False)
+                btn.SetLabel('Show help')
+            else:
+                self.help_msg_boxsizer.ShowItems(True)
+                btn.SetLabel('Hide help')
         self.do_fit(None)
 
     def toggle_codes(self, event):
@@ -479,6 +491,8 @@ class GridFrame(wx.Frame):
         """
         enter 'remove columns' mode
         """
+        # open the help message
+        self.toggle_help(event=None, mode='open')
         # first unselect any selected cols/cells
         self.remove_cols_mode = True
         self.grid.ClearSelection()
@@ -498,7 +512,6 @@ class GridFrame(wx.Frame):
         self.grid.Refresh()
         self.main_sizer.Fit(self) # might not need this one
         self.grid.changes = set(range(self.grid.GetNumberRows()))
-
 
     def on_add_rows(self, event):
         """
@@ -560,6 +573,9 @@ class GridFrame(wx.Frame):
         """
         go back from 'remove cols' mode to normal
         """
+        # close help messge
+        self.toggle_help(event=None, mode='close')
+        # update mode
         self.remove_cols_mode = False
         # re-enable all buttons
         for btn in [self.add_cols_button, self.remove_row_button, self.add_many_rows_button]:
