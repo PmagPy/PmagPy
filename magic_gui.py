@@ -392,8 +392,10 @@ class MagICMenu(wx.MenuBar):
         self.Append(file_menu, 'File')
 
         help_menu = wx.Menu()
-        help_cookbook = help_menu.Append(wx.ID_ANY, 'PmagPy Cookbook', 'Access the online documentation')
-        help_git = help_menu.Append(wx.ID_ANY, 'Github Page', 'Access the PmagPy repository')
+        help_cookbook = help_menu.Append(wx.ID_ANY, '&PmagPy Cookbook\tCtrl-Shift-H',
+                                         'Access the online documentation')
+        help_git = help_menu.Append(wx.ID_ANY, '&Github Page\tCtrl-Shift-G',
+                                    'Access the PmagPy repository')
         parent.Bind(wx.EVT_MENU, pw.on_cookbook, help_cookbook)
         parent.Bind(wx.EVT_MENU, pw.on_git, help_git)
         if pw.get_output_frame():

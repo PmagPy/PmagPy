@@ -25,16 +25,20 @@ class MagICMenu(wx.MenuBar):
 
         file_menu = wx.Menu()
         file_quit = file_menu.Append(wx.ID_EXIT, 'Quit', 'Quit application')
-        file_show = file_menu.Append(wx.ID_ANY, 'Show main window', 'Show main window')
-        file_clear = file_menu.Append(wx.ID_ANY, 'Clear directory', 'Delete all files from working directory')
+        file_show = file_menu.Append(wx.ID_ANY, 'Show main window',
+                                     'Show main window')
+        file_clear = file_menu.Append(wx.ID_ANY, 'Clear directory',
+                                      'Delete all files from working directory')
 
         parent.Bind(wx.EVT_MENU, self.on_quit, file_quit)
         parent.Bind(wx.EVT_MENU, self.on_show_mainframe, file_show)
         parent.Bind(wx.EVT_MENU, self.on_clear, file_clear)
 
         help_menu = wx.Menu()
-        help_cookbook = help_menu.Append(wx.ID_ANY, 'PmagPy Cookbook', 'Access the online documentation')
-        help_git = help_menu.Append(wx.ID_ANY, 'Github Page', 'Access the PmagPy repository')
+        help_cookbook = help_menu.Append(wx.ID_ANY, '&PmagPy Cookbook\tCtrl-Shift-H',
+                                         'Access the online documentation')
+        help_git = help_menu.Append(wx.ID_ANY, '&Github Page\tCtrl-Shift-G',
+                                    'Access the PmagPy repository')
         parent.Bind(wx.EVT_MENU, pw.on_cookbook, help_cookbook)
         parent.Bind(wx.EVT_MENU, pw.on_git, help_git)
         if pw.get_output_frame():
