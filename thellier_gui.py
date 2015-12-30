@@ -2935,10 +2935,9 @@ class Arai_GUI(wx.Frame):
         self.draw_figure(self.s)
         #print "just drew figure"
         self.update_GUI_with_new_interpretation()
-
+        del busy_frame
         dlg1.ShowModal()
         dlg1.Destroy()
-        busy_frame.Destroy()
         return()
         #self.Data=copy.deepcopy      
 #
