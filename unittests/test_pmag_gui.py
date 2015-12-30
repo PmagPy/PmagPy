@@ -170,7 +170,7 @@ class TestMenus(unittest.TestCase):
         check that all expected menus were created
         and that each menu item is enabled
         """
-        menu_names = ['File', 'Import', 'Analysis and Plots']
+        menu_names = ['File', 'Help ', 'Import', 'Analysis and Plots']
         menus = self.frame.MenuBar.Menus
         for menu, menu_name in menus:
             self.assertIsInstance(menu, wx.Menu)
