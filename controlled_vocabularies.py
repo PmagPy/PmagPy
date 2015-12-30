@@ -7,7 +7,7 @@ import json
 import os
 import backup_vocabulary as backup
 # get list of controlled vocabularies form this part of the api:
-#'http://api.earthref.org/MAGIC/vocabularies.json'
+#'http://api.earthref.org/MagIC/vocabularies.json'
 # then, use that list to determine whether or not any given column has a controlled vocabulary list
 import check_updates
 pmag_dir = check_updates.get_pmag_dir()
@@ -18,7 +18,7 @@ def get_meth_codes():
     Get method codes from the MagIC API
     """
     try:
-        raw_codes = pd.io.json.read_json('http://api.earthref.org/MAGIC/method_codes.json')
+        raw_codes = pd.io.json.read_json('https://api.earthref.org/MagIC/method_codes.json')
     except urllib2.URLError:
         return [], []
     except httplib.BadStatusLine:
@@ -28,7 +28,7 @@ def get_meth_codes():
 
     all_codes = []
     for code_name in code_types.index:
-        code_url = 'http://api.earthref.org/MAGIC/method_codes/{}.json'.format(code_name)
+        code_url = 'https://api.earthref.org/MagIC/method_codes/{}.json'.format(code_name)
         # if internet fails in the middle, cut out
         try:
             raw_df = pd.io.json.read_json(code_url)
@@ -95,22 +95,20 @@ def get_controlled_vocabularies():
     Get all non-method controlled vocabularies
     """
     vocab_types = ['lithology', 'class', 'type', 'location_type', 'age_unit', 'site_definition']
-
+    connected = True
     try:
         controlled_vocabularies = []
-
-        print '-I- Importing controlled vocabularies from http://earthref.org'
-        url = 'http://api.earthref.org/MAGIC/vocabularies.json'
+        print '-I- Importing controlled vocabularies from https://earthref.org'
+        url = 'https://api.earthref.org/MagIC/vocabularies.json'
         data = pd.io.json.read_json(url)
         possible_vocabularies = data.columns
-
         for vocab in vocab_types:
-            url = 'http://api.earthref.org/MAGIC/vocabularies/{}.json'.format(vocab)
+            url = 'https://api.earthref.org/MagIC/vocabularies/{}.json'.format(vocab)
             data = pd.io.json.read_json(url)
             stripped_list = [item['item'] for item in data[vocab][0]]
-
             if len(stripped_list) > 100:
-            # split out the list alphabetically, into a dict of lists {'A': ['alpha', 'artist'], 'B': ['beta', 'beggar']...}
+            # split out the list alphabetically, into a dict of lists:
+            # {'A': ['alpha', 'artist'], 'B': ['beta', 'beggar']...}
                 dictionary = {}
                 for item in stripped_list:
                     letter = item[0].upper()
@@ -123,8 +121,12 @@ def get_controlled_vocabularies():
             controlled_vocabularies.append(stripped_list)
 
         vocabularies = pd.Series(controlled_vocabularies, index=vocab_types)
-
-    except:
+    
+    except urllib2.URLError:
+        connected = False
+    except httplib.BadStatusLine:
+        connected = False
+    if not connected:
         print "-W- Could not connect to internet -- will not be able to provide all controlled vocabularies"
         vocabularies = pd.Series([backup.site_lithology, backup.site_class, backup.site_type,
                                   backup.location_type, backup.age_unit, backup.site_definition], index=vocab_types)

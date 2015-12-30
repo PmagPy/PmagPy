@@ -582,7 +582,7 @@ class HtmlFrame(wx.Frame):
     """ This window displays a HtmlWindow """
     def __init__(self, *args, **kwargs):
         wx.Frame.__init__(self, None, wx.ID_ANY, title="Help Window", size=(600, 400))
-        self.page = kwargs.get('page', 'http://earthref.org/MAGIC/shortlists/')
+        self.page = kwargs.get('page', 'http://earthref.org/MagIC/shortlists/')
         htmlwin = LinkEnabledHtmlWindow(self)
         htmlwin.LoadPage(self.page)
         htmlwin.Fit()
