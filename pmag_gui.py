@@ -109,13 +109,13 @@ class MagMainFrame(wx.Frame):
         self.btn2.SetBackgroundColour("#FDC68A")
         self.btn2.InitColours()
         self.Bind(wx.EVT_BUTTON, self.on_orientation_button, self.btn2)
-        text = "3. fill EarthRef data using EarthRef Magic Builder "
+        text = "3. complete EarthRef data using EarthRef Magic Builder "
         self.btn3 = buttons.GenButton(self.panel, id=-1, label=text, size=(450, 50), name='step 3')
         self.btn3.SetBackgroundColour("#FDC68A")
         self.btn3.InitColours()
         self.Bind(wx.EVT_BUTTON, self.on_er_data, self.btn3)
 
-        text = "unpack downloaded txt file "
+        text = "unpack txt file downloaded from MagIC"
         self.btn4 = buttons.GenButton(self.panel, id=-1, label=text, size=(300, 50))
         self.btn4.SetBackgroundColour("#FDC68A")
         self.btn4.InitColours()
