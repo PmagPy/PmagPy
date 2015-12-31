@@ -109,7 +109,7 @@ class MagMainFrame(wx.Frame):
         self.btn2.SetBackgroundColour("#FDC68A")
         self.btn2.InitColours()
         self.Bind(wx.EVT_BUTTON, self.on_orientation_button, self.btn2)
-        text = "3. complete EarthRef data using EarthRef Magic Builder "
+        text = "3. complete EarthRef data using EarthRef MagIC Builder "
         self.btn3 = buttons.GenButton(self.panel, id=-1, label=text, size=(450, 50), name='step 3')
         self.btn3.SetBackgroundColour("#FDC68A")
         self.btn3.InitColours()
