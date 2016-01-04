@@ -1,6 +1,6 @@
 tab 	er_locations
 location_type	er_citation_names	location_end_lat	location_begin_lon	er_location_name	ocean_sea	location_begin_lat	location_end_lon
-Drill Site	This study	91.0	30.00	location1	Imaginary Sea	-100.	180.10
+Drill Site	This study	91.0	30.00	location1	Imaginary Sea	-100.	370.10
 >>>>>>>>>>
 tab 	er_sites
 er_citation_names	site_lithology	site_class	site_definition	er_site_name	er_location_name	site_type
