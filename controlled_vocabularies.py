@@ -90,11 +90,14 @@ def get_tiered_meth_category(mtype, all_codes, code_types):
     codes = {cat: list(get_one_meth_type(cat, all_codes).index) for cat in categories}
     return codes
 
-def get_controlled_vocabularies():
+default_vocab_types = ('lithology', 'class', 'type','location_type',
+                       'age_unit', 'site_definition')
+
+def get_controlled_vocabularies(vocab_types=default_vocab_types):
     """
     Get all non-method controlled vocabularies
     """
-    vocab_types = ['lithology', 'class', 'type', 'location_type', 'age_unit', 'site_definition']
+    #vocab_types = ['lithology', 'class', 'type', 'location_type', 'age_unit', 'site_definition']
     connected = True
     try:
         controlled_vocabularies = []
@@ -102,6 +105,8 @@ def get_controlled_vocabularies():
         url = 'https://api.earthref.org/MagIC/vocabularies.json'
         data = pd.io.json.read_json(url)
         possible_vocabularies = data.columns
+        ## this line means, grab every single controlled vocabulary
+        #vocab_types = possible_vocabularies
         for vocab in vocab_types:
             url = 'https://api.earthref.org/MagIC/vocabularies/{}.json'.format(vocab)
             data = pd.io.json.read_json(url)
@@ -111,6 +116,8 @@ def get_controlled_vocabularies():
             # {'A': ['alpha', 'artist'], 'B': ['beta', 'beggar']...}
                 dictionary = {}
                 for item in stripped_list:
+                    if not item: # ignore null values
+                        continue
                     letter = item[0].upper()
                     if letter not in dictionary.keys():
                         dictionary[letter] = []
@@ -121,7 +128,6 @@ def get_controlled_vocabularies():
             controlled_vocabularies.append(stripped_list)
 
         vocabularies = pd.Series(controlled_vocabularies, index=vocab_types)
-    
     except urllib2.URLError:
         connected = False
     except httplib.BadStatusLine:
@@ -132,6 +138,9 @@ def get_controlled_vocabularies():
                                   backup.location_type, backup.age_unit, backup.site_definition], index=vocab_types)
         possible_vocabularies = []
     return vocabularies, possible_vocabularies
+
+
+#def get_all_possible_vocabularies(possible_list):
     
 
 all_codes, code_types = get_meth_codes()
