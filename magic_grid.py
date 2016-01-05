@@ -407,6 +407,10 @@ class MagicGrid(wx.grid.Grid, gridlabelrenderer.GridWithLabelRenderersMixin):
             for col_name in warn_dict[item][problem_type]:
                 if col_name in ('er_location_name', 'er_site_name', 'er_sample_name'):
                     continue
+                if col_name in ('lithology', 'type', 'class'):
+                    dtype = self.GetColLabelValue(0)
+                    dtype = dtype[3:-5]
+                    col_name = dtype + "_" + col_name
                 # in result grid, magic_method_codes doesn't have ++
                 stripped_name = col_name.strip('++')
                 if stripped_name in self.double:
@@ -471,6 +475,10 @@ class MagicGrid(wx.grid.Grid, gridlabelrenderer.GridWithLabelRenderersMixin):
                     pass
                 elif problem in ('specimen', 'sample', 'site', 'location'):
                     highlight_names(problem, row_ind, 'purple')
+                elif problem in 'coordinates':
+                    highlight('coordinates', item, row_ind, 'GOLDENROD')
+                elif problem in 'vocab_problem':
+                    highlight('vocab_problem', item, row_ind, 'WHITE')
                 else:
                     print 'other problem', problem
         #  looks like we can do tooltips over cells using techniques in
