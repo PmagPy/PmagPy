@@ -40,17 +40,18 @@ class GridFrame(wx.Frame):
 
         if self.grid_type == 'age':
             ancestry_ind = self.er_magic.ancestry.index(self.er_magic.age_type)
-            self.child_type = self.er_magic.ancestry[ancestry_ind-1]#'sample'
-            self.parent_type = self.er_magic.ancestry[ancestry_ind+1]#'location'
+            self.child_type = self.er_magic.ancestry[ancestry_ind-1]
+            self.parent_type = self.er_magic.ancestry[ancestry_ind+1]
         else:
             try:
-                self.child_type = self.er_magic.ancestry[self.er_magic.ancestry.index(self.grid_type) - 1]
-                self.parent_type = self.er_magic.ancestry[self.er_magic.ancestry.index(self.grid_type) + 1]
+                child_ind = self.er_magic.ancestry.index(self.grid_type) - 1
+                self.child_type = self.er_magic.ancestry[child_ind]
+                parent_ind = self.er_magic.ancestry.index(self.grid_type) + 1
+                self.parent_type = self.er_magic.ancestry[parent_ind]
             except ValueError:
                 self.child_type = None
                 self.parent_type = None
 
-        #self.current_age_type = 'site'
         self.WD = WD
         self.InitUI()
 
@@ -485,8 +486,6 @@ class GridFrame(wx.Frame):
                     #pw.simple_warning('You are already using column header: {}'.format(name))
         return already_present
 
-
-
     def on_remove_cols(self, event):
         """
         enter 'remove columns' mode
@@ -563,10 +562,8 @@ class GridFrame(wx.Frame):
                     pass
             self.grid.remove_row(row)
         self.selected_rows = set()
-
         self.deleteRowButton.Disable()
         self.grid.Refresh()
-
         self.main_sizer.Fit(self)
 
     def exit_col_remove_mode(self, event):
@@ -592,7 +589,6 @@ class GridFrame(wx.Frame):
         # re-bind self.remove_cols_button
         self.Bind(wx.EVT_BUTTON, self.on_remove_cols, self.remove_cols_button)
         self.remove_cols_button.SetLabel("Remove columns")
-
 
     def onSelectRow(self, event):
         """
@@ -636,7 +632,6 @@ class GridFrame(wx.Frame):
         else:
             if event.Col < 0  and self.grid_type != 'age':
                 self.onSelectRow(event)
-
 
     ## Meta buttons -- cancel & save functions
 
@@ -743,6 +738,9 @@ class GridFrame(wx.Frame):
 
 
 class GridBuilder(object):
+    """
+    Takes ErMagicBuilder data and put them into a MagicGrid
+    """
     
     def __init__(self, er_magic, grid_type, grid_headers, panel, parent_type=None):
         self.er_magic = er_magic
@@ -854,7 +852,6 @@ class GridBuilder(object):
             if not grid.GetCellValue(0, 0):
                 grid.remove_row(0)
 
-
     def add_age_data_to_grid(self):
         dtype = self.er_magic.age_type
         row_labels = [self.grid.GetCellValue(row, 0) for row in xrange(self.grid.GetNumberRows())]
@@ -877,7 +874,6 @@ class GridBuilder(object):
                     # otherwise non-age magic_method_codes can fill in here
                     elif label == 'magic_method_codes':
                         self.grid.SetCellValue(row_num, col_num, '')
-
 
     def save_grid_data(self):
         """
@@ -923,26 +919,28 @@ class GridBuilder(object):
                             new_pmag_data[col_name] = value
                             continue
 
-                        if col_label == 'er_citation_names':# and pmag:
+                        # pmag_* files are new interpretations, so should only have "This study"
+                        # er_* files can have multiple citations
+                        if col_label == 'er_citation_names':
                             new_pmag_data[col_label] = 'This study'
                             new_er_data[col_label] = value
                             continue
                             
-                        if er_header and col_label in er_header:
+                        if er_header and (col_label in er_header):
                             new_er_data[col_label] = value
 
                         if self.grid_type in ('specimen', 'sample', 'site'):
                             if pmag_header and (col_label in pmag_header) and (col_label not in self.er_magic.double):
                                 new_pmag_data[col_label] = value
                         else:
-                            if pmag_header and col_label in pmag_header:
+                            if pmag_header and (col_label in pmag_header):
                                 new_pmag_data[col_label] = value
 
-                        if col_label in ['er_specimen_names', 'er_sample_names',
-                                         'er_site_names', 'er_location_names']:
+                        if col_label in ('er_specimen_names', 'er_sample_names',
+                                         'er_site_names', 'er_location_names'):
                             result_data[col_label] = value
 
-                    # if there is an item
+                    # if there is an item in the data, get its name
                     if isinstance(old_item, str):
                         old_item_name = None
                     else:
