@@ -351,6 +351,9 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
             new_location.sites.append(site)
         else:
             new_location = None
+        ## check all declinations/azimuths/longitudes in range 0=>360.
+        #for key, value in new_er_data.items():
+        #    new_er_data[key] = pmag.adjust_to_360(value, key)
         site.change_site(new_site_name, new_location, new_er_data, new_pmag_data, replace_data)
         return site
 
@@ -365,6 +368,11 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
                 location = self.add_location(location_name)
         else:
             location = None
+            
+        ## check all declinations/azimuths/longitudes in range 0=>360.
+        #for key, value in er_data.items():
+        #    er_data[key] = pmag.adjust_to_360(value, key)
+
         new_site = Site(site_name, location, self.data_model, er_data, pmag_data)
         self.sites.append(new_site)
         if location:
@@ -455,6 +463,7 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
             locations = [self.find_by_name(name, self.locations) for name in loc_names]
         result = Result(result_name, specimens, samples, sites, locations, pmag_data, self.data_model)
         self.results.append(result)
+        return result
         
     def delete_result(self, result_name):
         result = self.find_by_name(result_name, self.results)
@@ -1472,8 +1481,11 @@ class Pmag_object(object):
             self.age_data = {key: '' for key in self.age_reqd_headers}
             remove_dict_headers(self.age_data)
 
+        # take out unneeded headers
         remove_dict_headers(self.er_data)
         remove_dict_headers(self.pmag_data)
+        # make sure all longitudes/declinations/azimuths are in 0-360
+        self.er_data = pmag.adjust_all_to_360(self.er_data)
 
     def __repr__(self):
         return self.dtype + ": " + self.name
@@ -1497,11 +1509,15 @@ class Pmag_object(object):
                 self.er_data = er_data
             else:
                 self.er_data = combine_dicts(er_data, self.er_data)
+        if er_data:
+            pmag.adjust_all_to_360(self.er_data)
         if pmag_data:
             if replace_data:
                 self.pmag_data = pmag_data
             else:
                 self.pmag_data = combine_dicts(pmag_data, self.pmag_data)
+        if pmag_data:
+            pmag.adjust_all_to_360(self.pmag_data)
 
     def add_child(self, child):
         if 'children' in dir(self):
@@ -1699,6 +1715,8 @@ class Result(object):
             self.pmag_data = combine_dicts(pmag_data, pmag_reqd_data)
         else:
             self.pmag_data = pmag_reqd_data
+        # make sure all longitudes/declinations/azimuths are in 0-360
+        self.pmag_data = pmag.adjust_all_to_360(self.pmag_data)
 
     def __repr__(self):
         if self.pmag_data:
@@ -1729,6 +1747,9 @@ class Result(object):
         self.samples = samps
         self.sites = sites
         self.locations = locs
+        # make sure all longitudes/declinations/azimuths are in 0-360
+        self.pmag_data = pmag.adjust_all_to_360(self.pmag_data)
+
 
 
 if __name__ == '__main__':
