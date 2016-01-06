@@ -2022,7 +2022,7 @@ def upload_magic(concat=0, dir_path='.', data_model=None):
               'anisotropy_apar_perc', 'anisotropy_F', 'anisotropy_F_crit', 'specimen_scat', 'specimen_gmax',
               'specimen_frac', 'site_vadm', 'site_lon', 'site_vdm', 'site_lat', 'measurement_chi',
               'specimen_k_prime','specimen_k_prime_sse','external_database_names','external_database_ids']
-    print "Removing: ", RmKeys
+    print "-I- Removing: ", RmKeys
     CheckDec = ['_dec', '_lon', '_azimuth', 'dip_direction']
     CheckSign = ['specimen_b_beta']
     last = file_names[-1]
@@ -2031,28 +2031,25 @@ def upload_magic(concat=0, dir_path='.', data_model=None):
     # read in the data
         Data,file_type=pmag.magic_read(File)
         if file_type!="bad_file":
-            print "file", File, " successfully read in"
+            print "-I- file", File, " successfully read in"
             if len(RmKeys)>0:
                 for rec in Data:
+                    # remove unwanted keys
                     for key in RmKeys:
                         if key=='specimen_Z' and key in rec.keys():
                             rec[key]='specimen_z' # change  # change this to lower case
                         if key in rec.keys():
                             del rec[key] # get rid of unwanted keys
+                    # make sure b_beta is positive
                     if 'specimen_b_beta' in rec.keys() and rec['specimen_b_beta']!="": # ignore blanks
                         if float(rec['specimen_b_beta'])< 0:
                             rec['specimen_b_beta']=str(-float(rec['specimen_b_beta']))  # make sure value is positive
-                            print 'adjusted to positive: ','specimen_b_beta',rec['specimen_b_beta']
-                    for key in CheckDec: # check all declinations/azimuths/longitudes in range 0=>360.
-                        for k in rec.keys():
-                            if key in k and rec[k]!="": # ignore blanks
-                                rec[k]='%8.2f'%(float(rec[k])%360)  # make sure value is between 0 and 360.
-                                # PUT ME BACK IN
-                                #print 'adjusted to 0=>360.: ',rec[k]
+                            print '-I- adjusted to positive: ','specimen_b_beta',rec['specimen_b_beta']
+                    # make all declinations/azimuths/longitudes in range 0=>360.
+                    rec = pmag.adjust_all_to_360(rec)
             if file_type=='er_locations':
                 for rec in Data:
                     locations.append(rec['er_location_name'])
-
             if file_type in ['pmag_samples', 'pmag_sites', 'pmag_specimens']:
                 # if there is NO pmag data for specimens (samples/sites),
                 # do not try to write it to file

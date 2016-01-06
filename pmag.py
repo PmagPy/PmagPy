@@ -996,7 +996,7 @@ def putout(ofile,keylist,Rec):
     outstring=""
     for key in keylist:
         try:
-           outstring=outstring+'\t'+Rec[key].strip()
+           outstring=outstring + '\t' + str(Rec[key]).strip()
         except:
            print key,Rec[key]
            #raw_input()
@@ -8559,9 +8559,40 @@ def get_attr(obj, attr='name'):
     except AttributeError:
         name = str(obj)
     return name
-        
 
-            
+def adjust_to_360(val, key):
+    """
+    Take in a value and a key.  If the key is of the type:
+    declination/longitude/azimuth/direction, adjust it to be within
+    the range 0-360 as required by the MagIC data model
+    """
+    CheckDec = ['_dec', '_lon', '_azimuth', 'dip_direction']
+    adjust = False
+    for dec_key in CheckDec:
+        if dec_key in key:
+            if key.endswith(dec_key) or key.endswith('_'):
+                adjust = True
+    if not val:
+        return ''
+    elif not adjust:
+        return val
+    elif adjust:
+        new_val = float(val) % 360
+        if new_val != float(val):
+            print '-I- adjusted {} {} to 0=>360.: {}'.format(key, val, new_val)
+        return new_val
+
+
+def adjust_all_to_360(dictionary):
+    """
+    Take a dictionary and check each key/value pair.
+    If this key is of type: declination/longitude/azimuth/direction, 
+    adjust it to be within 0-360 as required by the MagIC data model
+    """
+    for key in dictionary:
+        dictionary[key] = adjust_to_360(dictionary[key], key)
+    return dictionary
+
 class MissingCommandLineArgException(Exception):
 
     def __init__(self, message):
