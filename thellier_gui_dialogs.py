@@ -1193,7 +1193,7 @@ class Plot_Dialog(wx.Dialog):
         self.set_x_axis_auto=wx.CheckBox(pnl1, -1, '', (50, 50))
         self.set_x_axis_auto.SetValue(True)
 
-        self.set_age_unit=wx.ComboBox(pnl1, -1, 'Years AD (+/-)',choices=['Years AD (+/-)','Years BP','Ka','Ma','Ga'],style=wx.CB_DROPDOWN)
+        self.set_age_unit=wx.ComboBox(pnl1, -1, 'Automatic',choices=['Automatic','Years AD (+/-)','Years BP','Ka','Ma','Ga'],style=wx.CB_DROPDOWN)
         
         #self.set_plot_year = wx.RadioButton(pnl1, -1, 'timescale = date (year)', (10, 10), style=wx.RB_GROUP)
         # self.set_plot_BP = wx.RadioButton(pnl1, -1, 'timescale = BP ', (10, 30))
@@ -2048,9 +2048,13 @@ class preferences_stats_dialog(wx.Dialog):
                     
                 #----------------------
 
-#if __name__ == '__main__':
-#    app = wx.App()
-#    app.frame = PI_Statistics_Dialog(None, {},title='SPD list')
-#    app.frame.Show()
-#    app.frame.Center()
-#    app.MainLoop()
+#--------------------------------------------------------------    
+# show figures
+#--------------------------------------------------------------
+
+class ShowFigure():
+    def __init__(self,fig):
+        self.fig=fig
+        self.fig.show()
+    
+    
