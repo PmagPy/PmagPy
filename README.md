@@ -26,3 +26,7 @@ The code base for the PmagPy project has been built up over many years by Lisa T
 ## More information
 
 This code and the PmagPy cookbook (http://earthref.org/PmagPy/cookbook) are companions to the the book Essentials of Paleomagnetism: Third Web Edition (http://earthref.org/MagIC/books/Tauxe/Essentials/) written by Lisa Tauxe with contributions from Subir K. Banerjee, Robert F. Butler and Rob van der Voo. The printed version of the book came out in January, 2010 from University of California Press (http://www.ucpress.edu/book.php?isbn=9780520260313).
+
+## Licensing
+
+This code is open source and may be redistributed; see [license.txt](https://github.com/ltauxe/PmagPy/blob/master/license.txt) for details.  
