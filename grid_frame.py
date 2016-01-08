@@ -671,11 +671,13 @@ class GridFrame(wx.Frame):
             self.er_magic.init_actual_headers()
             er_headers = list(set(self.er_magic.headers[self.grid_type]['er'][0]).union(current_headers))
             self.er_magic.headers[self.grid_type]['er'][0] = er_headers
-
-            #include_pmag = True
+            
             include_pmag = False
-            if 'pmag' in filename:
+            if 'pmag' in filename and import_type == self.grid_type:
                 include_pmag = True
+            elif 'pmag' in filename and import_type != self.grid_type:
+                self.er_magic.incl_pmag_data.add(import_type)
+            #
             if include_pmag:
                 pmag_headers = self.er_magic.headers[self.grid_type]['pmag'][0]
                 headers = set(er_headers).union(pmag_headers)
