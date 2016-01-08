@@ -9,6 +9,8 @@ import pmag
 import drop_down_menus
 import pmag_widgets as pw
 import magic_grid
+import controlled_vocabularies as vocabulary
+from controlled_vocabularies import vocabularies as vocab
 
 
 class GridFrame(wx.Frame):
@@ -438,8 +440,6 @@ class GridFrame(wx.Frame):
         Add in all user-added headers.
         If those new headers depend on other headers, add the other headers too.
         """
-        import controlled_vocabularies as vocabulary
-        from controlled_vocabularies import vocabularies as vocab
 
         def add_pmag_reqd_headers():
             if self.grid_type == 'result':
@@ -672,8 +672,10 @@ class GridFrame(wx.Frame):
             er_headers = list(set(self.er_magic.headers[self.grid_type]['er'][0]).union(current_headers))
             self.er_magic.headers[self.grid_type]['er'][0] = er_headers
 
-            #include_pmag = self.pmag_checkbox.cb.IsChecked()
-            include_pmag = True
+            #include_pmag = True
+            include_pmag = False
+            if 'pmag' in filename:
+                include_pmag = True
             if include_pmag:
                 pmag_headers = self.er_magic.headers[self.grid_type]['pmag'][0]
                 headers = set(er_headers).union(pmag_headers)
@@ -681,7 +683,9 @@ class GridFrame(wx.Frame):
                 headers = er_headers
             for head in sorted(list(headers)):
                 if head not in self.grid.col_labels:
-                    self.grid.add_col(head)
+                    col_num = self.grid.add_col(head)
+                    if head in vocabulary.possible_vocabularies:
+                        self.drop_down_menu.add_drop_down(col_num, head)
             # add age data
             if import_type == 'age' and self.grid_type == 'age':
                 self.grid_builder.add_age_data_to_grid()
@@ -694,7 +698,7 @@ class GridFrame(wx.Frame):
             # if imported data will not show up in current grid,
             # warn user
             else:
-                pw.simple_warning('You have imported a {} type file.\nYou\'ll need to open up your {} grid to see this data'.format(import_type, import_type))
+                pw.simple_warning('You have imported a {} type file.\nYou\'ll need to open up your {} grid to see the added data'.format(import_type, import_type))
 
     def onCancelButton(self, event):
         if self.grid.changes:

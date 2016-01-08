@@ -633,7 +633,10 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
             magic_name = 'er_' + child_type + '_name'
             ind = self.ancestry.index(child_type)
             parent_type = self.ancestry[ind+1]
-            grandparent_type = self.ancestry[ind+2]
+            if item_type != 'location':
+                grandparent_type = self.ancestry[ind+2]
+            else:
+                grandparent_type = ''
         if not grandparent_type:
             ind = self.ancestry.index(child_type)
             try:
