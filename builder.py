@@ -1040,7 +1040,7 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
                     # add default values
                     if key == 'er_citation_names' and not add_string.strip('\t'):
                         add_string = 'This study'
-                    pmag_string.append(add_string)
+                    pmag_string.append(str(add_string))
                 pmag_string = '\t'.join(pmag_string)
                 pmag_strings.append(pmag_string)
         # write acutal pmag file with all collected data
@@ -1089,7 +1089,7 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
                 add_string = result.pmag_data[key]
                 if key == 'er_citation_names' and not add_string.strip('\t'):
                     add_string = 'This study'
-                result_string.append(add_string)
+                result_string.append(str(add_string))
             result_string = '\t'.join(result_string)
             result_strings.append(result_string)
 
