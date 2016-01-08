@@ -159,7 +159,7 @@ class Zeq_GUI(wx.Frame):
         self.preferences=preferences
 
         # initialize selecting criteria
-        self.COORDINATE_SYSTEM='geographic'
+        self.COORDINATE_SYSTEM='specimen'
         self.UPPER_LEVEL_SHOW='specimens'
         self.Data_info=self.get_data_info() # Read  er_* data
         self.Data,self.Data_hierarchy=self.get_data() # Get data from magic_measurements and rmag_anistropy if exist.
