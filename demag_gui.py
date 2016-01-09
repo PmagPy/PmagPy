@@ -1,4 +1,4 @@
-#!/bin/env pythonw
+#!/usr/bin/env pythonw
 
 #============================================================================================
 # LOG HEADER:
@@ -159,7 +159,7 @@ class Zeq_GUI(wx.Frame):
         self.preferences=preferences
 
         # initialize selecting criteria
-        self.COORDINATE_SYSTEM='geographic'
+        self.COORDINATE_SYSTEM='specimen'
         self.UPPER_LEVEL_SHOW='specimens'
         self.Data_info=self.get_data_info() # Read  er_* data
         self.Data,self.Data_hierarchy=self.get_data() # Get data from magic_measurements and rmag_anistropy if exist.
@@ -1685,7 +1685,7 @@ class Zeq_GUI(wx.Frame):
 
       tmin_index,tmax_index = -1,-1
       if self.current_fit and self.current_fit.tmin and self.current_fit.tmax:
-        tmin_index,tmax_index = self.get_temp_indecies(self.current_fit)
+        tmin_index,tmax_index = self.get_temp_indices(self.current_fit)
 
       TEXT=""
       self.logger.DeleteAllItems()
@@ -2125,7 +2125,7 @@ class Zeq_GUI(wx.Frame):
         calculate statisics
         """
 
-        beg_pca,end_pca = self.get_temp_indecies(None, tmin, tmax, specimen)
+        beg_pca,end_pca = self.get_temp_indices(None, tmin, tmax, specimen)
         if coordinate_system=='geographic':
             block=self.Data[specimen]['zijdblock_geo']
         elif coordinate_system=='tilt-corrected':
@@ -2270,7 +2270,7 @@ class Zeq_GUI(wx.Frame):
 
             PCA_type=fit.PCA_type
 
-            tmin_index,tmax_index = self.get_temp_indecies(fit);
+            tmin_index,tmax_index = self.get_temp_indices(fit);
 
             marker_shape = 'o'
             SIZE = 30
@@ -4919,9 +4919,9 @@ class Zeq_GUI(wx.Frame):
     # Utility Funcitons
     #------------------
 
-    def get_temp_indecies(self, fit = None, tmin = None, tmax = None, specimen = None):
+    def get_temp_indices(self, fit = None, tmin = None, tmax = None, specimen = None):
         """
-        Finds the appropriate indecies in self.Data[self.s]['zijdplot_steps'] given a set of upper/lower bounds. This is to resolve duplicate steps using the convention that the first good step of that name is the indicated step by that bound if there are no steps of the names tmin or tmax then it complains and reutrns a tuple (None,None).
+        Finds the appropriate indices in self.Data[self.s]['zijdplot_steps'] given a set of upper/lower bounds. This is to resolve duplicate steps using the convention that the first good step of that name is the indicated step by that bound if there are no steps of the names tmin or tmax then it complains and reutrns a tuple (None,None).
         @param: fit -> the fit who's bounds to find the indecies of if no upper or lower bounds are specified
         @param: tmin -> the lower bound to find the index of
         @param: tmax -> the upper bound to find the index of
@@ -6077,8 +6077,6 @@ def alignToTop(win):
     #y = dh - h
 
     win.SetPosition(((dw-w)/2.,0 ))
-
-
 
 def do_main(WD=None, standalone_app=True, parent=None):
     # to run as module:

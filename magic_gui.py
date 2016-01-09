@@ -258,6 +258,7 @@ class MainFrame(wx.Frame):
             grid_type = self.FindWindowById(event.Id).Name[:-4] # remove ('_btn')
         wait = wx.BusyInfo('Making {} grid, please wait...'.format(grid_type))
         wx.Yield()
+        # hide mainframe
         self.on_open_grid_frame()
         self.grid_frame = grid_frame.GridFrame(self.er_magic, self.WD, grid_type, grid_type, self.panel)
         if self.validation_mode:
@@ -272,6 +273,8 @@ Green: missing or invalid parent
 Blue: non-numeric data provided in a numeric field
 Gray: unrecognized column
 Purple: invalid result child
+Yellow: Out-of-range latitude (should be -90 - 90) or longitude (should be 0-360)
+Light gray: Unrecognized term in controlled vocabulary
 
 Note: It is possible to have a row highlighted that has no highlighted column.  
 This means that you are missing information higher up in the data.
@@ -279,7 +282,7 @@ For example: a specimen could be missing a site name.
 However, you need to fix this in the sample grid, not the specimen grid.  
 Once each item in the data has its proper parent, validations will be correct.
 """
-                self.grid_frame.msg_text.SetLabel(current_label + add_text)
+                self.grid_frame.msg_text.SetLabel(add_text)
         #self.on_finish_change_dir(self.change_dir_dialog)
         del wait
 
@@ -392,15 +395,17 @@ class MagICMenu(wx.MenuBar):
         self.Append(file_menu, 'File')
 
         help_menu = wx.Menu()
-        help_cookbook = help_menu.Append(wx.ID_ANY, 'PmagPy Cookbook', 'Access the online documentation')
-        help_git = help_menu.Append(wx.ID_ANY, 'Github Page', 'Access the PmagPy repository')
-        parent.Bind(wx.EVT_MENU, self.on_cookbook, help_cookbook)
-        parent.Bind(wx.EVT_MENU, self.on_git, help_git)
-        if self.get_output_frame():
+        help_cookbook = help_menu.Append(wx.ID_ANY, '&PmagPy Cookbook\tCtrl-Shift-H',
+                                         'Access the online documentation')
+        help_git = help_menu.Append(wx.ID_ANY, '&Github Page\tCtrl-Shift-G',
+                                    'Access the PmagPy repository')
+        parent.Bind(wx.EVT_MENU, pw.on_cookbook, help_cookbook)
+        parent.Bind(wx.EVT_MENU, pw.on_git, help_git)
+        if pw.get_output_frame():
             help_show = help_menu.Append(wx.ID_ANY, 'Show output', 'Show help')
             help_hide = help_menu.Append(wx.ID_ANY, 'Hide output', 'Hide output')
-            parent.Bind(wx.EVT_MENU, self.on_show_output, help_show)
-            parent.Bind(wx.EVT_MENU, self.on_hide_output, help_hide)
+            parent.Bind(wx.EVT_MENU, pw.on_show_output, help_show)
+            parent.Bind(wx.EVT_MENU, pw.on_hide_output, help_hide)
         self.Append(help_menu, 'Help ')
 
     def on_quit(self, event):
@@ -470,29 +475,6 @@ class MagICMenu(wx.MenuBar):
         if self.parent.grid_frame:
             self.parent.grid_frame.onSave(None)
             self.parent.grid_frame.Destroy()
-
-
-    def on_cookbook(self, event):
-        webbrowser.open("http://earthref.org/PmagPy/cookbook/", new=2)
-
-    def on_git(self,event):
-        webbrowser.open("https://github.com/ltauxe/PmagPy", new=2)
-
-    def on_show_output(self, event):
-        outframe = self.get_output_frame()
-        outframe.Show()
-        outframe.Raise()
-
-    def on_hide_output(self, event):
-        outframe = self.get_output_frame()
-        outframe.Hide()
-
-    def get_output_frame(self):
-        wins = wx.GetTopLevelWindows()
-        for win in wins:
-            if win.Name == 'frame':
-                return win
-        return False
 
 
 if __name__ == "__main__":

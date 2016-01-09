@@ -5,6 +5,7 @@ Create Pmag GUI menubar
 """
 
 import wx
+import pmag_widgets as pw
 import pmag_menu_dialogs
 import builder
 
@@ -24,12 +25,27 @@ class MagICMenu(wx.MenuBar):
 
         file_menu = wx.Menu()
         file_quit = file_menu.Append(wx.ID_EXIT, 'Quit', 'Quit application')
-        file_show = file_menu.Append(wx.ID_ANY, 'Show main window', 'Show main window')
-        file_clear = file_menu.Append(wx.ID_ANY, 'Clear directory', 'Delete all files from working directory')
+        file_show = file_menu.Append(wx.ID_ANY, 'Show main window',
+                                     'Show main window')
+        file_clear = file_menu.Append(wx.ID_ANY, 'Clear directory',
+                                      'Delete all files from working directory')
 
         parent.Bind(wx.EVT_MENU, self.on_quit, file_quit)
         parent.Bind(wx.EVT_MENU, self.on_show_mainframe, file_show)
         parent.Bind(wx.EVT_MENU, self.on_clear, file_clear)
+
+        help_menu = wx.Menu()
+        help_cookbook = help_menu.Append(wx.ID_ANY, '&PmagPy Cookbook\tCtrl-Shift-H',
+                                         'Access the online documentation')
+        help_git = help_menu.Append(wx.ID_ANY, '&Github Page\tCtrl-Shift-G',
+                                    'Access the PmagPy repository')
+        parent.Bind(wx.EVT_MENU, pw.on_cookbook, help_cookbook)
+        parent.Bind(wx.EVT_MENU, pw.on_git, help_git)
+        if pw.get_output_frame():
+            help_show = help_menu.Append(wx.ID_ANY, 'Show output', 'Show help')
+            help_hide = help_menu.Append(wx.ID_ANY, 'Hide output', 'Hide output')
+            parent.Bind(wx.EVT_MENU, pw.on_show_output, help_show)
+            parent.Bind(wx.EVT_MENU, pw.on_hide_output, help_hide)
 
         import_menu = wx.Menu()
         orient_submenu = wx.Menu()
@@ -108,6 +124,7 @@ class MagICMenu(wx.MenuBar):
         #parent.Bind(wx.EVT_MENU, self.analysis13, analysis13)
 
         self.Append(file_menu, 'File')
+        self.Append(help_menu, 'Help ')
         self.Append(import_menu, 'Import')
         self.Append(analysis_menu, 'Analysis and Plots') # probably won't use this
         

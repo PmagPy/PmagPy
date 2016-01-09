@@ -7,6 +7,7 @@ assorted wxPython custom widgets
 import os
 import wx
 import wx.html
+import webbrowser
 import controlled_vocabularies as vocabulary
 
 
@@ -582,7 +583,7 @@ class HtmlFrame(wx.Frame):
     """ This window displays a HtmlWindow """
     def __init__(self, *args, **kwargs):
         wx.Frame.__init__(self, None, wx.ID_ANY, title="Help Window", size=(600, 400))
-        self.page = kwargs.get('page', 'http://earthref.org/MAGIC/shortlists/')
+        self.page = kwargs.get('page', 'http://earthref.org/MagIC/shortlists/')
         htmlwin = LinkEnabledHtmlWindow(self)
         htmlwin.LoadPage(self.page)
         htmlwin.Fit()
@@ -823,7 +824,7 @@ class MethodCodeDemystifier(wx.StaticBoxSizer):
 
 
 
-# methods!
+# assorted useful methods!
 
 def on_add_dir_button(SELF, text):
     dlg = wx.DirDialog(
@@ -915,3 +916,29 @@ def close_window(SELF, command, outfile):
     dlg.Destroy()
     SELF.Destroy()
     SELF.Parent.Raise()
+
+# menu events
+    
+def on_cookbook(event):
+    webbrowser.open("http://earthref.org/PmagPy/cookbook/", new=2)
+
+def on_git(event):
+    webbrowser.open("https://github.com/ltauxe/PmagPy", new=2)
+
+def on_show_output(event):
+    outframe = get_output_frame()
+    outframe.Show()
+    outframe.Raise()
+
+def on_hide_output(event):
+    outframe = get_output_frame()
+    outframe.Hide()
+
+def get_output_frame():
+    print '-I- Fetching output frame'
+    wins = wx.GetTopLevelWindows()
+    for win in wins:
+        if win.Name == 'frame':
+            return win
+    return False
+

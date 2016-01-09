@@ -92,7 +92,7 @@ class Menus(object):
         if col_label in vocabulary.possible_vocabularies:
             if col_number not in self.choices.keys(): # if not already assigned above
                 self.grid.SetColLabelValue(col_number, col_label + "**") # mark it as using a controlled vocabulary
-                url = 'http://api.earthref.org/MAGIC/vocabularies/{}.json'.format(col_label)
+                url = 'https://api.earthref.org/MagIC/vocabularies/{}.json'.format(col_label)
                 controlled_vocabulary = pd.io.json.read_json(url)
                 stripped_list = []
                 for item in controlled_vocabulary[col_label][0]:

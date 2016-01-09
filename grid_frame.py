@@ -2,13 +2,15 @@
 GridFrame -- subclass of wx.Frame.  Contains grid and buttons to manipulate it.
 GridBuilder -- data methods for GridFrame (add data to frame, save it, etc.)
 """
-import pdb
+#import pdb
 import wx
 import builder
 import pmag
 import drop_down_menus
 import pmag_widgets as pw
 import magic_grid
+import controlled_vocabularies as vocabulary
+from controlled_vocabularies import vocabularies as vocab
 
 
 class GridFrame(wx.Frame):
@@ -40,17 +42,18 @@ class GridFrame(wx.Frame):
 
         if self.grid_type == 'age':
             ancestry_ind = self.er_magic.ancestry.index(self.er_magic.age_type)
-            self.child_type = self.er_magic.ancestry[ancestry_ind-1]#'sample'
-            self.parent_type = self.er_magic.ancestry[ancestry_ind+1]#'location'
+            self.child_type = self.er_magic.ancestry[ancestry_ind-1]
+            self.parent_type = self.er_magic.ancestry[ancestry_ind+1]
         else:
             try:
-                self.child_type = self.er_magic.ancestry[self.er_magic.ancestry.index(self.grid_type) - 1]
-                self.parent_type = self.er_magic.ancestry[self.er_magic.ancestry.index(self.grid_type) + 1]
+                child_ind = self.er_magic.ancestry.index(self.grid_type) - 1
+                self.child_type = self.er_magic.ancestry[child_ind]
+                parent_ind = self.er_magic.ancestry.index(self.grid_type) + 1
+                self.parent_type = self.er_magic.ancestry[parent_ind]
             except ValueError:
                 self.child_type = None
                 self.parent_type = None
 
-        #self.current_age_type = 'site'
         self.WD = WD
         self.InitUI()
 
@@ -276,14 +279,26 @@ class GridFrame(wx.Frame):
             self.SetSize((actual_size[0], disp_size[1] * .95))
         self.Centre()
 
-    def toggle_help(self, event):
-        btn = event.GetEventObject()
-        if btn.Label == 'Show help':
+    def toggle_help(self, event, mode=None):
+        # if mode == 'open', show no matter what.
+        # if mode == 'close', close.  otherwise, change state
+        btn = self.toggle_help_btn
+        shown = self.help_msg_boxsizer.GetStaticBox().IsShown()
+        # if mode is specified, do that mode
+        if mode == 'open':
             self.help_msg_boxsizer.ShowItems(True)
             btn.SetLabel('Hide help')
-        else:
+        elif mode == 'close':
             self.help_msg_boxsizer.ShowItems(False)
             btn.SetLabel('Show help')
+        # otherwise, simply toggle states
+        else:
+            if shown:
+                self.help_msg_boxsizer.ShowItems(False)
+                btn.SetLabel('Show help')
+            else:
+                self.help_msg_boxsizer.ShowItems(True)
+                btn.SetLabel('Hide help')
         self.do_fit(None)
 
     def toggle_codes(self, event):
@@ -425,8 +440,6 @@ class GridFrame(wx.Frame):
         Add in all user-added headers.
         If those new headers depend on other headers, add the other headers too.
         """
-        import controlled_vocabularies as vocabulary
-        from controlled_vocabularies import vocabularies as vocab
 
         def add_pmag_reqd_headers():
             if self.grid_type == 'result':
@@ -473,12 +486,12 @@ class GridFrame(wx.Frame):
                     #pw.simple_warning('You are already using column header: {}'.format(name))
         return already_present
 
-
-
     def on_remove_cols(self, event):
         """
         enter 'remove columns' mode
         """
+        # open the help message
+        self.toggle_help(event=None, mode='open')
         # first unselect any selected cols/cells
         self.remove_cols_mode = True
         self.grid.ClearSelection()
@@ -498,7 +511,6 @@ class GridFrame(wx.Frame):
         self.grid.Refresh()
         self.main_sizer.Fit(self) # might not need this one
         self.grid.changes = set(range(self.grid.GetNumberRows()))
-
 
     def on_add_rows(self, event):
         """
@@ -550,16 +562,17 @@ class GridFrame(wx.Frame):
                     pass
             self.grid.remove_row(row)
         self.selected_rows = set()
-
         self.deleteRowButton.Disable()
         self.grid.Refresh()
-
         self.main_sizer.Fit(self)
 
     def exit_col_remove_mode(self, event):
         """
         go back from 'remove cols' mode to normal
         """
+        # close help messge
+        self.toggle_help(event=None, mode='close')
+        # update mode
         self.remove_cols_mode = False
         # re-enable all buttons
         for btn in [self.add_cols_button, self.remove_row_button, self.add_many_rows_button]:
@@ -576,7 +589,6 @@ class GridFrame(wx.Frame):
         # re-bind self.remove_cols_button
         self.Bind(wx.EVT_BUTTON, self.on_remove_cols, self.remove_cols_button)
         self.remove_cols_button.SetLabel("Remove columns")
-
 
     def onSelectRow(self, event):
         """
@@ -621,7 +633,6 @@ class GridFrame(wx.Frame):
             if event.Col < 0  and self.grid_type != 'age':
                 self.onSelectRow(event)
 
-
     ## Meta buttons -- cancel & save functions
 
     def onImport(self, event):
@@ -660,9 +671,13 @@ class GridFrame(wx.Frame):
             self.er_magic.init_actual_headers()
             er_headers = list(set(self.er_magic.headers[self.grid_type]['er'][0]).union(current_headers))
             self.er_magic.headers[self.grid_type]['er'][0] = er_headers
-
-            #include_pmag = self.pmag_checkbox.cb.IsChecked()
-            include_pmag = True
+            
+            include_pmag = False
+            if 'pmag' in filename and import_type == self.grid_type:
+                include_pmag = True
+            elif 'pmag' in filename and import_type != self.grid_type:
+                self.er_magic.incl_pmag_data.add(import_type)
+            #
             if include_pmag:
                 pmag_headers = self.er_magic.headers[self.grid_type]['pmag'][0]
                 headers = set(er_headers).union(pmag_headers)
@@ -670,7 +685,9 @@ class GridFrame(wx.Frame):
                 headers = er_headers
             for head in sorted(list(headers)):
                 if head not in self.grid.col_labels:
-                    self.grid.add_col(head)
+                    col_num = self.grid.add_col(head)
+                    if head in vocabulary.possible_vocabularies:
+                        self.drop_down_menu.add_drop_down(col_num, head)
             # add age data
             if import_type == 'age' and self.grid_type == 'age':
                 self.grid_builder.add_age_data_to_grid()
@@ -683,7 +700,7 @@ class GridFrame(wx.Frame):
             # if imported data will not show up in current grid,
             # warn user
             else:
-                pw.simple_warning('You have imported a {} type file.\nYou\'ll need to open up your {} grid to see this data'.format(import_type, import_type))
+                pw.simple_warning('You have imported a {} type file.\nYou\'ll need to open up your {} grid to see the added data'.format(import_type, import_type))
 
     def onCancelButton(self, event):
         if self.grid.changes:
@@ -727,6 +744,9 @@ class GridFrame(wx.Frame):
 
 
 class GridBuilder(object):
+    """
+    Takes ErMagicBuilder data and put them into a MagicGrid
+    """
     
     def __init__(self, er_magic, grid_type, grid_headers, panel, parent_type=None):
         self.er_magic = er_magic
@@ -838,7 +858,6 @@ class GridBuilder(object):
             if not grid.GetCellValue(0, 0):
                 grid.remove_row(0)
 
-
     def add_age_data_to_grid(self):
         dtype = self.er_magic.age_type
         row_labels = [self.grid.GetCellValue(row, 0) for row in xrange(self.grid.GetNumberRows())]
@@ -861,7 +880,6 @@ class GridBuilder(object):
                     # otherwise non-age magic_method_codes can fill in here
                     elif label == 'magic_method_codes':
                         self.grid.SetCellValue(row_num, col_num, '')
-
 
     def save_grid_data(self):
         """
@@ -907,26 +925,28 @@ class GridBuilder(object):
                             new_pmag_data[col_name] = value
                             continue
 
-                        if col_label == 'er_citation_names':# and pmag:
+                        # pmag_* files are new interpretations, so should only have "This study"
+                        # er_* files can have multiple citations
+                        if col_label == 'er_citation_names':
                             new_pmag_data[col_label] = 'This study'
                             new_er_data[col_label] = value
                             continue
                             
-                        if er_header and col_label in er_header:
+                        if er_header and (col_label in er_header):
                             new_er_data[col_label] = value
 
                         if self.grid_type in ('specimen', 'sample', 'site'):
                             if pmag_header and (col_label in pmag_header) and (col_label not in self.er_magic.double):
                                 new_pmag_data[col_label] = value
                         else:
-                            if pmag_header and col_label in pmag_header:
+                            if pmag_header and (col_label in pmag_header):
                                 new_pmag_data[col_label] = value
 
-                        if col_label in ['er_specimen_names', 'er_sample_names',
-                                         'er_site_names', 'er_location_names']:
+                        if col_label in ('er_specimen_names', 'er_sample_names',
+                                         'er_site_names', 'er_location_names'):
                             result_data[col_label] = value
 
-                    # if there is an item
+                    # if there is an item in the data, get its name
                     if isinstance(old_item, str):
                         old_item_name = None
                     else:

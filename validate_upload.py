@@ -4,8 +4,10 @@
 import urllib2
 import os
 import httplib
+import pandas as pd
 import pmag
 import check_updates
+
 
 
 def get_data_offline():
@@ -79,22 +81,30 @@ def read_upload(up_file, data_model=None):
     return True if there were no problems, otherwise return False
     """
     print "-I- Running validation for your upload file"
+
+    ## Read file
     f = open(up_file)
     lines = f.readlines()
     f.close()
     data = split_lines(lines)
     data_dicts = get_dicts(data)
+    ## initialize
     invalid_data = {}
     missing_data = {}
     non_numeric = {}
+    bad_vocab = {}
+    bad_coords = {}
     invalid_col_names = {}
     missing_file_type = False
+    ## make sure you have the data model
     if not data_model:
         data_model = get_data_model()
     reqd_file_types = ['er_locations']
     provided_file_types = set()
     if not data_model:
         return False, None
+    ## Iterate through data
+    # each dictionary is one tab delimited line in a csv file
     for dictionary in data_dicts:
         for k, v in dictionary.items():
             if k == "file_type": # meta data
@@ -126,6 +136,23 @@ def read_upload(up_file, data_model=None):
                 continue
             specific_data_model = data_model[file_type]
 
+            ## Function for building problems list
+            def add_to_invalid_data(item_name, item_type, invalid_data,
+                                    validation, problem_type):
+                """
+                correctly create or add to the dictionary of invalid values
+                """
+                if item_name:
+                    if item_type not in invalid_data:
+                        invalid_data[item_type] = {}
+                    if item_name not in invalid_data[item_type]:
+                        invalid_data[item_type][item_name] = {}
+                    if problem_type not in invalid_data[item_type][item_name]:
+                        invalid_data[item_type][item_name][problem_type] = []
+                    invalid_data[item_type][item_name][problem_type].append(validation)
+
+            ## Validate for each problem type
+            
             # check if column header is in the data model
             invalid_col_name = validate_for_recognized_column(k, v, specific_data_model)
             if invalid_col_name:
@@ -135,16 +162,10 @@ def read_upload(up_file, data_model=None):
                 # skip to next item, as additional validations won't work (key is not in the data model)
 
                 ## new style
-                if item_name:
-                    if item_type not in invalid_data:
-                        invalid_data[item_type] = {}
-                    if item_name not in invalid_data[item_type]:
-                        invalid_data[item_type][item_name] = {}
-                    if 'invalid_col' not in invalid_data[item_type][item_name]:
-                        invalid_data[item_type][item_name]['invalid_col'] = []
-                    invalid_data[item_type][item_name]['invalid_col'].append(invalid_col_name)
-                ##
-                continue 
+                add_to_invalid_data(item_name, item_type, invalid_data,
+                                    invalid_col_name, 'invalid_col')
+                # skip to next item, as additional validations won't work (key is not in the data model)
+                continue
             
             # make a list of missing, required data
             missing_item = validate_for_presence(k, v, specific_data_model)
@@ -153,51 +174,43 @@ def read_upload(up_file, data_model=None):
                 if item_type not in missing_data.keys():
                     missing_data[item_type] = set()
                 missing_data[item_type].add(missing_item)
-
-                ## new style
                 if item_name:
                     ## don't double count if a site is missing its parent location
                     if item_type == 'age' and missing_item == 'er_location_name':
                         pass
                     else:
-                        if item_type not in invalid_data.keys():
-                            invalid_data[item_type] = {}
-                        if item_name not in invalid_data[item_type].keys():
-                            invalid_data[item_type][item_name] = {}
-                        if 'missing_data' not in invalid_data[item_type][item_name]:
-                            invalid_data[item_type][item_name]['missing_data'] = []
-                        invalid_data[item_type][item_name]['missing_data'].append(missing_item)
-                ##
+                        add_to_invalid_data(item_name, item_type, invalid_data,
+                                            missing_item, 'missing_data')
 
-            # make a list of data that should be numeric, but isn't
+            # vocabulary problems
+            vocab_problem = validate_for_controlled_vocab(k, v, specific_data_model)
+            if vocab_problem:
+                if item_type not in bad_vocab.keys():
+                    bad_vocab[item_type] = set()
+                bad_vocab[item_type].add(vocab_problem)
+                add_to_invalid_data(item_name, item_type, invalid_data,
+                                    vocab_problem, 'vocab_problem')
+
+            # illegal coordinates
+            coord_problem = validate_for_coordinates(k, v, specific_data_model)
+            if coord_problem:
+                if item_type not in bad_coords.keys():
+                    bad_coords[item_type] = set()
+                bad_coords[item_type].add(coord_problem)
+                add_to_invalid_data(item_name, item_type, invalid_data,
+                                    coord_problem, 'coordinates')
+
+            # make a list of data that should be numeric, but aren't
             number_fail = validate_for_numericality(k, v, specific_data_model)
             if number_fail:
                 if item_type not in non_numeric.keys():
                     non_numeric[item_type] = set()
                 non_numeric[item_type].add(number_fail)
+                add_to_invalid_data(item_name, item_type, invalid_data,
+                                    number_fail, 'number_fail')
 
-                ## new style
-                if item_name:
-                    if item_type not in invalid_data:
-                        invalid_data[item_type] = {}
-                    if item_name not in invalid_data[item_type]:
-                        invalid_data[item_type][item_name] = {}
-                    if 'number_fail' not in invalid_data[item_type][item_name]:
-                        invalid_data[item_type][item_name]['number_fail'] = []
-                    invalid_data[item_type][item_name]['number_fail'].append(number_fail)
-                ##
-
-    #print '---'
-    #for d, problems in invalid_data.items():
-    #    print d
-    #    print '...'
-    #    for item, item_warnings in problems.items():
-    #        print item
-    #        print item_warnings
-    #        print '...'
-    #    print '---'
-    #print '********'
-
+    ## Print out all issues
+                
     for file_type, invalid_names in invalid_col_names.items():
         print "-W- In your {} file, you are using the following unrecognized columns: {}".format(file_type, ', '.join(invalid_names))
 
@@ -211,8 +224,15 @@ def read_upload(up_file, data_model=None):
         if file_type not in provided_file_types:
             print "-W- You have not provided a(n) {} type file, which is required data".format(file_type)
             missing_file_type = True
-            
-    if invalid_col_names or non_numeric or missing_data or missing_file_type:
+
+    for file_type, vocab_types in bad_vocab.items():
+        print "-W- In your {} file, you are using an unrecognized value for these controlled vocabularies: {}".format(file_type, ', '.join(vocab_types))
+
+    for file_type, coords in bad_coords.items():
+        print "-W- In your {} file, you are using an illegal value for these columns: {}".format(file_type, ', '.join(coords))
+
+
+    if any((invalid_col_names, non_numeric, missing_data, missing_file_type, bad_vocab, bad_coords)):
         return False, invalid_data
     else:
         print "-I- validation was successful"
@@ -294,3 +314,66 @@ def validate_for_numericality(key, value, complete_ref):
                 except ValueError:
                     return key
     return
+
+
+def validate_for_controlled_vocab(key, value, complete_ref):
+    import controlled_vocabularies as vocab
+    #
+    cv = False
+    stripped_key = ''
+    for level in ['specimen_', 'sample_', 'site_']:
+        if key.startswith(level):
+            #stripped_key = key.strip(level)
+            stripped_key = key[len(level):]
+            break
+    #print 'key', key
+    #print 'stripped_key', stripped_key
+    if key in vocab.possible_vocabularies or key in vocab.vocabularies:
+        cv = True
+    elif stripped_key in vocab.possible_vocabularies or stripped_key in vocab.vocabularies:
+        cv = True
+        key = stripped_key
+        #return key
+
+    #if there is a controlled vocabulary for the given header,
+    # check and see if all values provided are legitimate
+    if cv: 
+        # make sure colon-delimited lists are split
+        values = value.split(':')
+        values = [v.strip() for v in values]
+        #print 'key', key
+        #print 'values', values
+        
+        # if we don't have the options for the needed controlled vocabulary,
+        # fetch them from earthref
+        if key not in vocab.vocabularies:
+            add = vocab.get_controlled_vocabularies((key,))
+            vocab.vocabularies = pd.concat((vocab.vocabularies, add[0]))
+
+        for val in values:
+            if val not in vocab.vocabularies[key]:
+                if isinstance(vocab.vocabularies[key], dict):
+                    if val not in vocab.vocabularies[key][val[0].upper()]:
+                        return key
+                else:
+                    return key
+
+
+def validate_for_coordinates(key, value, complete_ref):
+    keys = ['location_begin_lat', 'location_end_lat',
+            'location_begin_lon', 'location_end_lon']
+    # see if it is lat/lon
+    if key not in keys:
+        return
+    # if it is lat/lon, see if it is a float
+    try:
+        val = float(value)
+    except ValueError:
+        return key
+    # then, see if it is a float within proper bounds
+    if 'lat' in key:
+        if not -90. < val < 90.:
+            return key
+    if 'lon' in key:
+        if not 0 < val < 360.:
+            return key

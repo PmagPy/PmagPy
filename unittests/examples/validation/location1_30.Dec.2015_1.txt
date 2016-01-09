@@ -1,0 +1,10 @@
+tab 	er_locations
+location_type	er_citation_names	location_end_lat	location_begin_lon	er_location_name	ocean_sea	location_begin_lat	location_end_lon
+Drill Site	This study	91.0	30.00	location1	Adriatic Sea	10.0	180.10
+>>>>>>>>>>
+tab 	er_sites
+er_citation_names	site_lithology	site_class	site_definition	er_site_name	er_location_name	site_type
+This study	Eclogite	invalid_class	s	site1	location1	
+This study	invalid_lithology	Extraterrestrial	s	site2	location1	Diabase
+This study	Enderbite	Extrusive	s	site3	location1	invalid_type
+>>>>>>>>>>

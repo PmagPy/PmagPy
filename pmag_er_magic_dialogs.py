@@ -127,7 +127,7 @@ and that they belong to the correct site
         else:
             text = """Step 4:
 Some of the data from the er_sites table has propogated into er_samples.
-Check that this data is correct, and fill in missing cells using controlled vocabularies.
+Check that these data are correct, and fill in missing cells using controlled vocabularies.
 The columns for class, lithology, and type can take multiple values in the form of a colon-delimited list.
 You may use the drop-down menus to add as many values as needed in these columns.  
 (see Help button for more details)\n\n** Denotes controlled vocabulary"""
@@ -662,10 +662,10 @@ You may use the drop-down menus to add as many values as needed in these columns
         grid.SaveEditControlValue() # locks in value in cell currently edited
         grid_name = str(grid.GetName())
 
-        # check that all required data is present
+        # check that all required data are present
         validation_errors = self.validate(grid)
         if validation_errors:
-            result = pw.warning_with_override("You are missing required data in these columns: {}\nAre you sure you want to continue without this data?".format(', '.join(validation_errors)))
+            result = pw.warning_with_override("You are missing required data in these columns: {}\nAre you sure you want to continue without these data?".format(', '.join(validation_errors)))
             if result == wx.ID_YES:
                 pass
             else:
