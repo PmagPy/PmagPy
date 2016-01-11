@@ -1,3 +1,5 @@
+import matplotlib
+matplotlib.use('WXAgg')
 import wx
 import wx.grid
 import wx.lib.mixins.gridlabelrenderer as gridlabelrenderer

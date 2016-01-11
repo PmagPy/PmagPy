@@ -140,7 +140,7 @@ THERMAL=True
 
 
 import matplotlib
-#matplotlib.use('WXAgg')
+matplotlib.use('WXAgg')
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigCanvas 
 
 
