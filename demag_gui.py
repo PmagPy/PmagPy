@@ -4916,7 +4916,7 @@ class Zeq_GUI(wx.Frame):
         pdb.set_trace()
 
     #------------------
-    # Utility Functions
+    # Utility Funcitons
     #------------------
 
     def get_temp_indices(self, fit = None, tmin = None, tmax = None, specimen = None):
@@ -4936,8 +4936,8 @@ class Zeq_GUI(wx.Frame):
         if tmin in self.Data[specimen]['zijdblock_steps']:
             tmin_index=self.Data[specimen]['zijdblock_steps'].index(tmin)
         elif type(tmin) == str or type(tmin) == unicode and tmin != '':
-            int_steps = map(lambda x: int(x.strip("C mT")), self.Data[specimen]['zijdblock_steps'])
-            try: int_tmin = int(tmin.strip("C mT"))
+            int_steps = map(lambda x: float(x.strip("C mT")), self.Data[specimen]['zijdblock_steps'])
+            try: int_tmin = float(tmin.strip("C mT"))
             except ValueError: print(tmin, tmin.strip("C mT")); raise ValueError
             diffs = map(lambda x: abs(x-int_tmin),int_steps)
             tmin_index = diffs.index(min(diffs))
@@ -4945,7 +4945,7 @@ class Zeq_GUI(wx.Frame):
         if tmax in self.Data[specimen]['zijdblock_steps']:
             tmax_index=self.Data[specimen]['zijdblock_steps'].index(tmax)
         elif type(tmax) == str or type(tmax) == unicode and tmax != '':
-            int_steps = map(lambda x: int(x.strip("C mT")), self.Data[specimen]['zijdblock_steps'])
+            int_steps = map(lambda x: float(x.strip("C mT")), self.Data[specimen]['zijdblock_steps'])
             int_tmax = int(tmax.strip("C mT"))
             diffs = map(lambda x: abs(x-int_tmax),int_steps)
             tmax_index = diffs.index(min(diffs))
@@ -6022,6 +6022,7 @@ class Fit():
             tl = [self.tmin,self.tmax]
             for i,t in enumerate(tl):
                 if str(t) in steps: tl[i] = str(t)
+                elif str(int(t)) in steps: tl[i] = str(int(t))
                 elif "%.1fmT"%t in steps: tl[i] = "%.1fmT"%t
                 elif "%.0fC"%t in steps: tl[i] = "%.0fC"%t
                 else:
