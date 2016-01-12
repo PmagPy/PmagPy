@@ -26,6 +26,8 @@ class MagMainFrame(wx.Frame):
     except:
         version = ""
     title = "Pmag GUI   version: %s"%version
+    if 'win' in sys.platform:
+        title += "   Powered by Enthought Canopy"
 
     def __init__(self, WD=None):
 
