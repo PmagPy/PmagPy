@@ -412,6 +412,7 @@ class GridFrame(wx.Frame):
         # remove unneeded headers
         pmag_items = sorted(builder.remove_list_headers(pmag_items))
         dia = pw.HeaderDialog(self, 'columns to add', er_items, pmag_items)
+        dia.Centre()
         result = dia.ShowModal()
         new_headers = []
         if result == 5100:
@@ -430,6 +431,7 @@ class GridFrame(wx.Frame):
             self.grid.SetWindowStyle(wx.DOUBLE_BORDER)
         self.main_sizer.Fit(self)
         self.grid.SetWindowStyle(wx.NO_BORDER)
+        self.Centre()
         self.main_sizer.Fit(self)
         #
         self.grid.changes = set(range(self.grid.GetNumberRows()))
