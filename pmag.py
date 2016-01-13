@@ -7,6 +7,7 @@ from numpy import random
 import numpy.linalg
 import exceptions
 import os
+import time
 #import check_updates
 import scipy
 from scipy import array,sqrt,mean
@@ -1009,7 +1010,15 @@ def first_rec(ofile,Rec,file_type):
     opens the file ofile as a magic template file with headers as the keys to Rec
     """
     keylist=[]
-    pmag_out=open(ofile,'w')
+    opened = False
+    # sometimes Windows needs a little extra time to open a file
+    # or else it throws an error
+    while not opened:
+        try:
+            pmag_out = open(ofile,'w')
+            opened = True
+        except IOError:
+            time.sleep(1)
     outstring="tab \t"+file_type+"\n"
     pmag_out.write(outstring)
     keystring=""

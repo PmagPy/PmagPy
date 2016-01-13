@@ -26,7 +26,7 @@ class MagMainFrame(wx.Frame):
     except:
         version = ""
     title = "Pmag GUI   version: %s"%version
-    if 'win' in sys.platform:
+    if sys.platform in ['win32', 'win64']:
         title += "   Powered by Enthought Canopy"
 
     def __init__(self, WD=None):
@@ -248,7 +248,7 @@ class MagMainFrame(wx.Frame):
 
     def on_change_dir_button(self, event, show=True):
         currentDirectory = os.getcwd()
-        self.change_dir_dialog = wx.DirDialog(self.panel, "choose directory:", defaultPath=currentDirectory, style=wx.DD_DEFAULT_STYLE | wx.DD_NEW_DIR_BUTTON | wx.DD_CHANGE_DIR)
+        self.change_dir_dialog = wx.DirDialog(self.panel, "Choose your working directory to create or edit a MagIC contribution:", defaultPath=currentDirectory, style=wx.DD_DEFAULT_STYLE | wx.DD_NEW_DIR_BUTTON | wx.DD_CHANGE_DIR)
         if show:
             self.on_finish_change_dir(self.change_dir_dialog)
 
