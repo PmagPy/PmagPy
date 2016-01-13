@@ -45,6 +45,21 @@ def fisher_mean(dec,inc):
     di_block = make_di_block(dec,inc)
     return pmag.fisher_mean(di_block)
 
+def bingham_mean(dec,inc):
+    """
+    Calculates the Bingham mean and associated parameters from a list of
+    declination values and a separate list of inclination values (which are
+    in order such that they are paired with one another and made into a di_block
+    that is passed to pmag.fisher_mean)
+
+    Arguments
+    ----------
+    dec : list with declination values
+    inc : list with inclination values
+    """
+    di_block = make_di_block(dec,inc)
+    return pmag.dobingham(di_block)
+
 
 def print_direction_mean(mean_dictionary):
     print 'Dec: ' + str(round(mean_dictionary['dec'],1)) + '  Inc: ' + str(round(mean_dictionary['inc'],1))
