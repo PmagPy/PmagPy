@@ -5,10 +5,13 @@ doc string
 
 # pylint: disable=C0103
 print '-I- Importing dependencies'
+import matplotlib
+matplotlib.use('WXAgg')
 import wx
 import wx.lib.buttons as buttons
 import sys
 import os
+import webbrowser
 import check_updates
 #import ErMagicBuilder
 import builder
@@ -257,6 +260,7 @@ class MainFrame(wx.Frame):
             grid_type = self.FindWindowById(event.Id).Name[:-4] # remove ('_btn')
         wait = wx.BusyInfo('Making {} grid, please wait...'.format(grid_type))
         wx.Yield()
+        # hide mainframe
         self.on_open_grid_frame()
         self.grid_frame = grid_frame.GridFrame(self.er_magic, self.WD, grid_type, grid_type, self.panel)
         if self.validation_mode:
@@ -271,6 +275,8 @@ Green: missing or invalid parent
 Blue: non-numeric data provided in a numeric field
 Gray: unrecognized column
 Purple: invalid result child
+Yellow: Out-of-range latitude (should be -90 - 90) or longitude (should be 0-360)
+Light gray: Unrecognized term in controlled vocabulary
 
 Note: It is possible to have a row highlighted that has no highlighted column.  
 This means that you are missing information higher up in the data.
@@ -278,7 +284,7 @@ For example: a specimen could be missing a site name.
 However, you need to fix this in the sample grid, not the specimen grid.  
 Once each item in the data has its proper parent, validations will be correct.
 """
-                self.grid_frame.msg_text.SetLabel(current_label + add_text)
+                self.grid_frame.msg_text.SetLabel(add_text)
         #self.on_finish_change_dir(self.change_dir_dialog)
         del wait
 
@@ -380,16 +386,29 @@ class MagICMenu(wx.MenuBar):
         file_menu = wx.Menu()
         file_quit = file_menu.Append(wx.ID_EXIT, 'Quit', 'Quit application')
         file_clear = file_menu.Append(wx.ID_ANY, 'Clear directory', 'Delete all files from working directory')
-        file_help = file_menu.Append(wx.ID_ANY, 'Help', 'More information about creating a MagIC contribution')
+        #file_help = file_menu.Append(wx.ID_ANY, 'Help', 'More information about creating a MagIC contribution')
         file_show = file_menu.Append(wx.ID_ANY, 'Show main window', 'Show main window')
         file_close_grid = file_menu.Append(wx.ID_ANY, 'Close current grid', 'Close current grid')
         parent.Bind(wx.EVT_MENU, self.on_quit, file_quit)
         parent.Bind(wx.EVT_MENU, self.on_clear, file_clear)
-        parent.Bind(wx.EVT_MENU, self.on_help, file_help)
+        #parent.Bind(wx.EVT_MENU, self.on_help, file_help)
         parent.Bind(wx.EVT_MENU, self.on_show_mainframe, file_show)
         parent.Bind(wx.EVT_MENU, self.on_close_grid, file_close_grid)
-
         self.Append(file_menu, 'File')
+
+        help_menu = wx.Menu()
+        help_cookbook = help_menu.Append(wx.ID_ANY, '&PmagPy Cookbook\tCtrl-Shift-H',
+                                         'Access the online documentation')
+        help_git = help_menu.Append(wx.ID_ANY, '&Github Page\tCtrl-Shift-G',
+                                    'Access the PmagPy repository')
+        parent.Bind(wx.EVT_MENU, pw.on_cookbook, help_cookbook)
+        parent.Bind(wx.EVT_MENU, pw.on_git, help_git)
+        if pw.get_output_frame():
+            help_show = help_menu.Append(wx.ID_ANY, 'Show output', 'Show help')
+            help_hide = help_menu.Append(wx.ID_ANY, 'Hide output', 'Hide output')
+            parent.Bind(wx.EVT_MENU, pw.on_show_output, help_show)
+            parent.Bind(wx.EVT_MENU, pw.on_hide_output, help_hide)
+        self.Append(help_menu, 'Help ')
 
     def on_quit(self, event):
         """
@@ -461,10 +480,9 @@ class MagICMenu(wx.MenuBar):
 
 
 if __name__ == "__main__":
-    #app = wx.App(redirect=True, filename="beta_log.log")
+    print '-I- Starting MagIC GUI - please be patient'
     # if redirect is true, wxpython makes its own output window for stdout/stderr
-    #app = wx.App(redirect=False)
-    print '-I- Creating application'
+    #app = wx.App(redirect=True)
     # this sends stdout to terminal:
     app = wx.App(redirect=False)
     # this sends stdout to wxPython:

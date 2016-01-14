@@ -94,7 +94,7 @@ class ErMagicBuilder(object):
         Return item from items_list with name item_name.
         """
         if not name_list:
-            names = [item.name for item in items_list]
+            names = [item.name for item in items_list if item]
         else:
             names = name_list
         if item_name in names:
@@ -237,6 +237,7 @@ Creating a new sample named: {} """.format(new_sample_name, new_sample_name)
             sample.specimens.remove(specimen)
         self.specimens.remove(specimen)
         del specimen
+        return []
 
     def add_specimen(self, spec_name, samp_name=None, er_data=None, pmag_data=None):
         """
@@ -350,6 +351,9 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
             new_location.sites.append(site)
         else:
             new_location = None
+        ## check all declinations/azimuths/longitudes in range 0=>360.
+        #for key, value in new_er_data.items():
+        #    new_er_data[key] = pmag.adjust_to_360(value, key)
         site.change_site(new_site_name, new_location, new_er_data, new_pmag_data, replace_data)
         return site
 
@@ -364,6 +368,11 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
                 location = self.add_location(location_name)
         else:
             location = None
+            
+        ## check all declinations/azimuths/longitudes in range 0=>360.
+        #for key, value in er_data.items():
+        #    er_data[key] = pmag.adjust_to_360(value, key)
+
         new_site = Site(site_name, location, self.data_model, er_data, pmag_data)
         self.sites.append(new_site)
         if location:
@@ -422,7 +431,8 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
         sites = location.sites
         self.locations.remove(location)
         for site in sites:
-            site.location = ''
+            if site:
+                site.location = ''
         del location
         return sites
 
@@ -453,6 +463,7 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
             locations = [self.find_by_name(name, self.locations) for name in loc_names]
         result = Result(result_name, specimens, samples, sites, locations, pmag_data, self.data_model)
         self.results.append(result)
+        return result
         
     def delete_result(self, result_name):
         result = self.find_by_name(result_name, self.results)
@@ -508,13 +519,20 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
         old_specimen_name = ''
         #start_time = time.time()
         meas_name_list = [measurement.name for measurement in self.measurements]
-        
+
         for rec in meas_data:
-            #print 'rec', rec
+            # get citation information 
+            citation = rec.get('er_citation_names', 'This study')
+            if 'This study' not in citation:
+                citation = citation.strip() + ':This study'
+            er_data = {'er_citation_names': citation}
+            pmag_data = {'er_citation_names': 'This study'}
             specimen_name = rec["er_specimen_name"]
+            # ignore measurement if there is no specimen
             if specimen_name == "" or specimen_name == " ":
                 continue
-
+            # if we've moved onto a new specimen, make sure a sample/site/location
+            # exists for that specimen
             if specimen_name != old_specimen_name:
                 sample_name = rec["er_sample_name"]
                 site_name = rec["er_site_name"]
@@ -523,16 +541,20 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
                 # add items and parents
                 location = self.find_by_name(location_name, self.locations)
                 if location_name and not location:
-                    location = self.add_location(location_name)
+                    location = self.add_location(location_name, er_data=er_data,
+                                                 pmag_data=pmag_data)
                 site = self.find_by_name(site_name, self.sites)
                 if site_name and not site:
-                    site = self.add_site(site_name, location_name)
+                    site = self.add_site(site_name, location_name,
+                                         er_data, pmag_data)
                 sample = self.find_by_name(sample_name, self.samples)
                 if sample_name and not sample:
-                    sample = self.add_sample(sample_name, site_name)
+                    sample = self.add_sample(sample_name, site_name,
+                                             er_data, pmag_data)
                 specimen = self.find_by_name(specimen_name, self.specimens)
                 if specimen_name and not specimen:
-                    specimen = self.add_specimen(specimen_name, sample_name)
+                    specimen = self.add_specimen(specimen_name, sample_name,
+                                                 er_data, pmag_data)
 
                 # add child_items
                 if sample and not self.find_by_name(specimen_name, sample.specimens):
@@ -546,7 +568,7 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
             meas_num = rec['measurement_number']
 
             meas_name = exp_name + '_' + str(meas_num)
-            measurement = self.find_by_name(meas_num, self.measurements, meas_name_list)
+            measurement = self.find_by_name(meas_name, self.measurements, meas_name_list)
             if not measurement:
                 self.add_measurement(exp_name, meas_num, specimen.name, rec)
                 meas_name_list.append(meas_name)
@@ -611,7 +633,10 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
             magic_name = 'er_' + child_type + '_name'
             ind = self.ancestry.index(child_type)
             parent_type = self.ancestry[ind+1]
-            grandparent_type = self.ancestry[ind+2]
+            if item_type != 'location':
+                grandparent_type = self.ancestry[ind+2]
+            else:
+                grandparent_type = ''
         if not grandparent_type:
             ind = self.ancestry.index(child_type)
             try:
@@ -1018,7 +1043,7 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
                     # add default values
                     if key == 'er_citation_names' and not add_string.strip('\t'):
                         add_string = 'This study'
-                    pmag_string.append(add_string)
+                    pmag_string.append(str(add_string))
                 pmag_string = '\t'.join(pmag_string)
                 pmag_strings.append(pmag_string)
         # write acutal pmag file with all collected data
@@ -1067,7 +1092,7 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
                 add_string = result.pmag_data[key]
                 if key == 'er_citation_names' and not add_string.strip('\t'):
                     add_string = 'This study'
-                result_string.append(add_string)
+                result_string.append(str(add_string))
             result_string = '\t'.join(result_string)
             result_strings.append(result_string)
 
@@ -1370,7 +1395,7 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
             sites = location.sites
             max_lat, min_lat = '', ''
             max_lon, min_lon = '', ''
-            if not sites:
+            if not any(sites):
                 d[location.name] = {'location_begin_lat': min_lat, 'location_begin_lon': min_lon,
                                     'location_end_lat': max_lat, 'location_end_lon': max_lon}
                 #return d
@@ -1459,8 +1484,11 @@ class Pmag_object(object):
             self.age_data = {key: '' for key in self.age_reqd_headers}
             remove_dict_headers(self.age_data)
 
+        # take out unneeded headers
         remove_dict_headers(self.er_data)
         remove_dict_headers(self.pmag_data)
+        # make sure all longitudes/declinations/azimuths are in 0-360
+        self.er_data = pmag.adjust_all_to_360(self.er_data)
 
     def __repr__(self):
         return self.dtype + ": " + self.name
@@ -1484,11 +1512,15 @@ class Pmag_object(object):
                 self.er_data = er_data
             else:
                 self.er_data = combine_dicts(er_data, self.er_data)
+        if er_data:
+            pmag.adjust_all_to_360(self.er_data)
         if pmag_data:
             if replace_data:
                 self.pmag_data = pmag_data
             else:
                 self.pmag_data = combine_dicts(pmag_data, self.pmag_data)
+        if pmag_data:
+            pmag.adjust_all_to_360(self.pmag_data)
 
     def add_child(self, child):
         if 'children' in dir(self):
@@ -1586,7 +1618,9 @@ class Sample(Pmag_object):
         for dtype in ['class', 'lithology', 'type']:
             if 'sample_' + dtype in self.er_data.keys():
                 if not self.er_data['sample_' + dtype]:
-                    if self.site.er_data['site_' + dtype]:
+                    if 'site_' + dtype not in self.site.er_data:
+                        self.site.er_data['site_' + dtype] = ''
+                    elif self.site.er_data['site_' + dtype]:
                         value = self.site.er_data['site_' + dtype]
                         self.er_data['sample_' + dtype] = value
         for dtype in ['_lat', '_lon']:
@@ -1684,6 +1718,8 @@ class Result(object):
             self.pmag_data = combine_dicts(pmag_data, pmag_reqd_data)
         else:
             self.pmag_data = pmag_reqd_data
+        # make sure all longitudes/declinations/azimuths are in 0-360
+        self.pmag_data = pmag.adjust_all_to_360(self.pmag_data)
 
     def __repr__(self):
         if self.pmag_data:
@@ -1714,6 +1750,9 @@ class Result(object):
         self.samples = samps
         self.sites = sites
         self.locations = locs
+        # make sure all longitudes/declinations/azimuths are in 0-360
+        self.pmag_data = pmag.adjust_all_to_360(self.pmag_data)
+
 
 
 if __name__ == '__main__':

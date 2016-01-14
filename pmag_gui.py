@@ -1,7 +1,8 @@
 #!/usr/bin/env pythonw
 
 # pylint: disable=W0612,C0111,C0103,W0201
-
+import matplotlib
+matplotlib.use('WXAgg')
 import wx
 import wx.lib.buttons as buttons
 #import thellier_gui_dialogs
@@ -29,7 +30,7 @@ class MagMainFrame(wx.Frame):
     def __init__(self, WD=None):
 
         self.FIRST_RUN = True
-        wx.Frame.__init__(self, None, wx.ID_ANY, self.title)
+        wx.Frame.__init__(self, None, wx.ID_ANY, self.title, name='pmag_gui mainframe')
         self.panel = wx.Panel(self, name='pmag_gui main panel')
         self.InitUI()
 
@@ -45,7 +46,7 @@ class MagMainFrame(wx.Frame):
         self.er_magic = builder.ErMagicBuilder(self.WD)
         #self.er_magic.init_default_headers()
         #self.er_magic.init_actual_headers()
-        
+
 
     def InitUI(self):
 
@@ -55,12 +56,12 @@ class MagMainFrame(wx.Frame):
         #pnl = self.panel
 
         #---sizer logo ----
-                
+
         #start_image = wx.Image("/Users/ronshaar/PmagPy/images/logo2.png")
         #start_image = wx.Image("/Users/Python/simple_examples/001.png")
         #start_image.Rescale(start_image.GetWidth(), start_image.GetHeight())
         #image = wx.BitmapFromImage(start_image)
-        #self.logo = wx.StaticBitmap(self.panel, -1, image) 
+        #self.logo = wx.StaticBitmap(self.panel, -1, image)
 
 
         #---sizer 0 ----
@@ -77,7 +78,7 @@ class MagMainFrame(wx.Frame):
 
         # not fully implemented method for saving/reverting WD
         # last saved: []
-        #bSizer0_1 = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "Save MagIC project directory in current state or revert to last-saved state" ), wx.HORIZONTAL ) 
+        #bSizer0_1 = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "Save MagIC project directory in current state or revert to last-saved state" ), wx.HORIZONTAL )
         #saved_label = wx.StaticText(self.panel, -1, "Last saved:", (20, 120))
         #self.last_saved_time = wx.TextCtrl(self.panel, id=-1, size=(100,25), style=wx.TE_READONLY)
         #now = datetime.datetime.now()
@@ -88,7 +89,7 @@ class MagMainFrame(wx.Frame):
 
         #self.Bind(wx.EVT_BUTTON, self.on_revert_dir_button, self.revert_dir_button)
         #self.Bind(wx.EVT_BUTTON, self.on_save_dir_button, self.save_dir_button)
-        
+
 
         #bSizer0_1.Add(saved_label, flag=wx.RIGHT, border=10)
         #bSizer0_1.Add(self.last_saved_time, flag=wx.RIGHT, border=10)
@@ -97,7 +98,7 @@ class MagMainFrame(wx.Frame):
 
         #
         #---sizer 1 ----
-        bSizer1 = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.ID_ANY, "Import MagIC formatted data to working directory"), wx.HORIZONTAL)
+        bSizer1 = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.ID_ANY, "Import data to working directory"), wx.HORIZONTAL)
 
         TEXT="1. convert magnetometer files to MagIC format"
         self.btn1 = buttons.GenButton(self.panel, id=-1, label=TEXT, size=(450, 50), name='step 1')
@@ -109,13 +110,13 @@ class MagMainFrame(wx.Frame):
         self.btn2.SetBackgroundColour("#FDC68A")
         self.btn2.InitColours()
         self.Bind(wx.EVT_BUTTON, self.on_orientation_button, self.btn2)
-        text = "3. fill Earth-Ref data using EarthRef Magic-Builder "
+        text = "3. complete EarthRef data using EarthRef MagIC Builder "
         self.btn3 = buttons.GenButton(self.panel, id=-1, label=text, size=(450, 50), name='step 3')
         self.btn3.SetBackgroundColour("#FDC68A")
         self.btn3.InitColours()
         self.Bind(wx.EVT_BUTTON, self.on_er_data, self.btn3)
 
-        text = "unpack downloaded txt file "
+        text = "unpack txt file downloaded from MagIC"
         self.btn4 = buttons.GenButton(self.panel, id=-1, label=text, size=(300, 50))
         self.btn4.SetBackgroundColour("#FDC68A")
         self.btn4.InitColours()
@@ -169,7 +170,7 @@ class MagMainFrame(wx.Frame):
         #---sizer 3 ----
         bSizer3 = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.ID_ANY, "Upload to MagIC database"), wx.HORIZONTAL)
 
-        text = "prepare upload txt file"
+        text = "prepare txt file for upload"
         self.btn_upload = buttons.GenButton(self.panel, id=-1, label=text, size=(300, 50))
         self.btn_upload.SetBackgroundColour("#C4DF9B")
         self.btn_upload.InitColours()
@@ -181,7 +182,7 @@ class MagMainFrame(wx.Frame):
 
 
         #---arange sizers ----
-        
+
         hbox = wx.BoxSizer(wx.HORIZONTAL)
         vbox = wx.BoxSizer(wx.VERTICAL)
         vbox.AddSpacer(5)
@@ -207,7 +208,7 @@ class MagMainFrame(wx.Frame):
     #----------------------------------------------------------------------
 
     def get_DIR(self):
-        """ 
+        """
         Choose a working directory dialog
         """
 
@@ -240,7 +241,7 @@ class MagMainFrame(wx.Frame):
 
     #def getFolderBitmap():
     #    img = folder_icon.GetImage().Rescale(50, 50)
-    #    return img.ConvertToBitmap()   
+    #    return img.ConvertToBitmap()
 
 
     def on_change_dir_button(self, event, show=True):
@@ -287,7 +288,7 @@ class MagMainFrame(wx.Frame):
 #        try:
 #            if len(self.WD.split('/')) <= 4:
 #                self.last_saved_time.Clear()
-#                self.last_saved_time.write("not saved")            
+#                self.last_saved_time.write("not saved")
 #                return
 #            os.chdir('..')
 #            wd = self.WD
@@ -348,9 +349,7 @@ class MagMainFrame(wx.Frame):
         del wait
 
     def init_check_window(self):
-        #self.check_dia = pmag_er_magic_dialogs.ErMagicCheckFrame(self, 'Check Data', self.WD, self.ErMagic_data)# initiates the object that will control steps 1-6 of checking headers, filling in cell values, etc.
         self.check_dia = pmag_er_magic_dialogs.ErMagicCheckFrame(self, 'Check Data', self.WD, self.er_magic)# initiates the object that will control steps 1-6 of checking headers, filling in cell values, etc.
-
 
     def on_orientation_button(self, event):
         wait = wx.BusyInfo('Compiling required data, please wait...')
@@ -383,7 +382,7 @@ class MagMainFrame(wx.Frame):
         print "-I- running python script:\n %s"%(outstring)
         wait = wx.BusyInfo("Please wait, working...")
         wx.Yield()
-        ex = None 
+        ex = None
         try:
             if ipmag.download_magic(f, self.WD, input_dir, overwrite=True):
                 text = "Successfully ran download_magic.py program.\nMagIC files were saved in your working directory.\nSee Terminal/Command Prompt for details."
@@ -438,7 +437,7 @@ class MagMainFrame(wx.Frame):
 
 
 if __name__ == "__main__":
-    #app = wx.App(redirect=True, filename="beta_log.log")
+    print '-I- Starting Pmag GUI - please be patient'
     # if redirect is true, wxpython makes its own output window for stdout/stderr
     app = wx.App(redirect=False)
     app.frame = MagMainFrame()

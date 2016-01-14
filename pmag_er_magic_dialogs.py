@@ -127,7 +127,7 @@ and that they belong to the correct site
         else:
             text = """Step 4:
 Some of the data from the er_sites table has propogated into er_samples.
-Check that this data is correct, and fill in missing cells using controlled vocabularies.
+Check that these data are correct, and fill in missing cells using controlled vocabularies.
 The columns for class, lithology, and type can take multiple values in the form of a colon-delimited list.
 You may use the drop-down menus to add as many values as needed in these columns.  
 (see Help button for more details)\n\n** Denotes controlled vocabulary"""
@@ -662,10 +662,10 @@ You may use the drop-down menus to add as many values as needed in these columns
         grid.SaveEditControlValue() # locks in value in cell currently edited
         grid_name = str(grid.GetName())
 
-        # check that all required data is present
+        # check that all required data are present
         validation_errors = self.validate(grid)
         if validation_errors:
-            result = pw.warning_with_override("You are missing required data in these columns: {}\nAre you sure you want to continue without this data?".format(', '.join(validation_errors)))
+            result = pw.warning_with_override("You are missing required data in these columns: {}\nAre you sure you want to continue without these data?".format(', '.join(validation_errors)))
             if result == wx.ID_YES:
                 pass
             else:
@@ -676,6 +676,14 @@ You may use the drop-down menus to add as many values as needed in these columns
 
         self.deleteRowButton = None
         self.panel.Destroy()
+
+        # make sure that specimens get propagated with
+        # any default sample info
+        if next_dia == self.InitLocCheck:
+            if self.er_magic_data.specimens:
+                for spec in self.er_magic_data.specimens:
+                    spec.propagate_data()
+        
         if next_dia:
             wait = wx.BusyInfo("Please wait, working...")
             wx.Yield()
@@ -684,6 +692,7 @@ You may use the drop-down menus to add as many values as needed in these columns
         else:
             wait = wx.BusyInfo("Please wait, writing data to files...")
             wx.Yield()
+            # actually write data:
             self.er_magic_data.write_files()
             self.Destroy()
             del wait
@@ -718,6 +727,7 @@ You may use the drop-down menus to add as many values as needed in these columns
         dlg.Destroy()
         if res == wx.ID_YES:
             self.onSave(self.grid)
+            self.er_magic_data.write_files()
             self.Destroy()
         if res == wx.ID_NO:
             self.Destroy()
@@ -751,7 +761,9 @@ You may use the drop-down menus to add as many values as needed in these columns
         orphans = []
         for name in names:
             row = self.grid.row_labels.index(name)
-            orphans.extend(self.er_magic_data.delete_methods[data_type](name))
+            orphan = self.er_magic_data.delete_methods[data_type](name)
+            if orphan:
+                orphans.extend(orphan)
             self.grid.remove_row(row)
         if orphans:
             orphan_names = self.er_magic_data.make_name_list(orphans)
@@ -843,12 +855,16 @@ You may use the drop-down menus to add as many values as needed in these columns
         """
         Save grid data in the data object
         """
+        # deselect column, including remove 'EDIT ALL' label
         if self.drop_down_menu:
             self.drop_down_menu.clean_up()
 
+        # save all changes to er_magic data object
         self.grid_builder.save_grid_data()
-        
-        self.er_magic_data.write_files()
+
+        # don't actually write data in this step (time-consuming)
+        # instead, write to files when user is done editing
+        #self.er_magic_data.write_files()
 
         wx.MessageBox('Saved!', 'Info',
                       style=wx.OK | wx.ICON_INFORMATION)

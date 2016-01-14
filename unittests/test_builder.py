@@ -391,7 +391,10 @@ class TestSpecimen(unittest.TestCase):
         self.assertTrue(specimen)
         self.assertTrue(specimen.er_data)
         for key in specimen.er_data.keys():
-            self.assertEqual('', specimen.er_data[key])
+            if key == 'er_citation_names':
+                self.assertEqual('This study', specimen.er_data[key])
+            else:
+                self.assertEqual('', specimen.er_data[key])
         #self.data1.get_spec_data()
         #self.data1.get_magic_info('specimen', 'sample', 'er')
         self.data1.get_magic_info('specimen', 'sample', 'er')
@@ -407,7 +410,10 @@ class TestSpecimen(unittest.TestCase):
         self.assertTrue(specimen)
         self.assertTrue(specimen.pmag_data)
         for key in specimen.pmag_data.keys():
-            self.assertEqual('', specimen.pmag_data[key])
+            if key == 'er_citation_names':
+                self.assertEqual('This study', specimen.pmag_data[key])
+            else:
+                self.assertEqual('', specimen.pmag_data[key])
         self.assertIn('er_citation_names', specimen.pmag_data.keys())
         self.assertNotIn('pmag_rotation_codes', specimen.pmag_data.keys())
         
@@ -661,7 +667,10 @@ class TestSample(unittest.TestCase):
         self.assertTrue(sample)
         self.assertTrue(sample.er_data)
         for key in sample.er_data.keys():
-            self.assertEqual('', sample.er_data[key])
+            if key == 'er_citation_names':
+                self.assertEqual('This study', sample.er_data[key])
+            else:
+                self.assertEqual('', sample.er_data[key])
         self.data1.get_magic_info('sample', 'site', 'er')
         self.assertEqual('This study', sample.er_data['er_citation_names'])
         self.assertEqual('Archeologic', sample.er_data['sample_class'])
@@ -678,9 +687,15 @@ class TestSample(unittest.TestCase):
         self.assertTrue(sample.pmag_data)
         self.assertTrue(sample2.pmag_data)
         for key in sample.pmag_data.keys():
-            self.assertEqual('', sample.pmag_data[key])
+            if key == 'er_citation_names':
+                self.assertEqual('This study', sample.pmag_data[key])
+            else:
+                self.assertEqual('', sample.pmag_data[key])
         for key in sample2.pmag_data.keys():
-            self.assertEqual('', sample.pmag_data[key])
+            if key == 'er_citation_names':
+                self.assertEqual('This study', sample2.pmag_data[key])
+            else:
+                self.assertEqual('', sample2.pmag_data[key])
         self.data1.get_magic_info('sample', 'site', 'pmag')
         self.assertEqual('This study', sample.pmag_data['er_citation_names'])
         self.assertEqual('fake_instrument_code', sample.pmag_data['magic_instrument_codes'])
@@ -935,7 +950,10 @@ class TestSite(unittest.TestCase):
         self.assertTrue(site)
         self.assertTrue(site.er_data)
         for key in site.er_data.keys():
-            self.assertEqual('', site.er_data[key])
+            if key == 'er_citation_names':
+                self.assertEqual('This study', site.er_data[key])
+            else:
+                self.assertEqual('', site.er_data[key])
         self.data1.get_magic_info('site', 'location', 'er')
         self.assertEqual('This study', site.er_data['er_citation_names'])
         self.assertEqual('Archeologic', site.er_data['site_class'])
@@ -952,9 +970,16 @@ class TestSite(unittest.TestCase):
         self.assertTrue(site.pmag_data)
         self.assertTrue(site2.pmag_data)
         for key in site.pmag_data.keys():
-            self.assertEqual('', site.pmag_data[key])
+            if key == 'er_citation_names':
+                self.assertEqual('This study', site.pmag_data[key])
+            else:
+                self.assertEqual('', site.pmag_data[key])
         for key in site2.pmag_data.keys():
-            self.assertEqual('', site.pmag_data[key])
+            if key == 'er_citation_names':
+                self.assertEqual('This study', site.pmag_data[key])
+            else:
+                self.assertEqual('', site.pmag_data[key])
+                
         self.data1.get_magic_info('site', 'location', 'pmag')
         self.assertEqual('This study', site.pmag_data['er_citation_names'])
 
@@ -1116,7 +1141,10 @@ class TestLocation(unittest.TestCase):
         self.assertTrue(location)
         self.assertTrue(location.er_data)
         for key in location.er_data.keys():
-            self.assertEqual('', location.er_data[key])
+            if key == 'er_citation_names':
+                self.assertEqual('This study', location.er_data[key])
+            else:
+                self.assertEqual('', location.er_data[key])
         self.data1.get_magic_info('location', attr='er')
         self.assertEqual('This study', location.er_data['er_citation_names'])
         self.assertEqual('Lake Core', location.er_data['location_type'])
@@ -1503,3 +1531,44 @@ class TestOddImport(unittest.TestCase):
             self.assertTrue(site.location)
 
         warnings = self.data2.validate_data()
+
+class TestPmagObject(unittest.TestCase):
+    """
+    Make sure automatic Pmag object stuff happens
+    """
+
+    def setUp(self):
+        self.data3 = builder.ErMagicBuilder(WD)
+
+
+    def test_adjust_to_360(self):
+        """
+        Make sure appropriate values (longitudes/azimuths/declinations)
+        are corrected to be 0-360
+        """
+        er_data = {'site_dec': 370., 'site_lon': 280., 'site_decay': 700}
+        site = self.data3.add_site('new_site', er_data=er_data)
+        self.assertIn(site, self.data3.sites)
+        self.assertAlmostEqual(10., site.er_data['site_dec'])
+        self.assertAlmostEqual(280., site.er_data['site_lon'])
+        self.assertAlmostEqual(700., site.er_data['site_decay'])
+
+        self.data3.change_site('new_site', 'new_site', new_er_data={'site_azimuth': 3000,
+                                                                    'site_other_azimuth': 30})
+        self.assertAlmostEqual(120., site.er_data['site_azimuth'])
+        self.assertAlmostEqual(30., site.er_data['site_other_azimuth'])
+                               
+
+    def test_result_adjust_to_360(self):
+        pmag_data = {'something_lon': 390., 'something_dec': 355.}
+        res = self.data3.add_result('new_res', pmag_data=pmag_data)
+        self.assertAlmostEqual(30., res.pmag_data['something_lon'])
+        self.assertAlmostEqual(355., res.pmag_data['something_dec'])
+
+        self.data3.change_result('new_res', 'new_res', new_pmag_data={'new_lon': 370.,
+                                                                      'result_azimuth': 220.})
+        self.assertAlmostEqual(30., res.pmag_data['something_lon'])
+        self.assertAlmostEqual(355., res.pmag_data['something_dec'])
+        self.assertAlmostEqual(10., res.pmag_data['new_lon'])
+        self.assertAlmostEqual(220., res.pmag_data['result_azimuth'])
+

@@ -12,7 +12,7 @@ Essentials_Problem_Datafiles
 *.log
 *.redo
 *.ipynb       
-
+.eggs*
 consistency_test/pmag_fixed_criteria.txt
 all_errors_list.txt
 bootstrap_full_output.txt
@@ -102,3 +102,8 @@ Datafiles/thellier_GUI.zip
 plot_example.py
 simple_show_hide.py
 #*.txt
+unittests/examples/my_project/thellier_interpreter/thellier_interpreter_specimens_bounds.txt
+unittests/examples/my_project/thellier_interpreter/thellier_interpreter_all.txt
+unittests/examples/my_project/thellier_interpreter/thellier_interpreter_STDEV-OPT_specimens.txt
+unittests/examples/my_project/thellier_interpreter/thellier_interpreter_STDEV-OPT_samples.txt
+unittests/examples/my_project/thellier_interpreter/thellier_interpreter_STDEV-OPT_redo

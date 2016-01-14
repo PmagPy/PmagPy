@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-print 'importing'
 import unittest
 import sys
 import os
@@ -10,7 +9,6 @@ import numpy as np
 import ipmag
 import pmag_gui
 import pmag_menu_dialogs
-print 'done'
 
 # get WD before all the Pmag GUI stuff starts to happen
 WD = os.getcwd()
@@ -172,7 +170,7 @@ class TestMenus(unittest.TestCase):
         check that all expected menus were created
         and that each menu item is enabled
         """
-        menu_names = ['File', 'Import', 'Analysis and Plots']
+        menu_names = ['File', 'Help ', 'Import', 'Analysis and Plots']
         menus = self.frame.MenuBar.Menus
         for menu, menu_name in menus:
             self.assertIsInstance(menu, wx.Menu)

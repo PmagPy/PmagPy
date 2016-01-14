@@ -22,19 +22,19 @@ column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_ty
 9	Expedition Standard Equipment	expedition_std_equipment	String(300)	Text	Optional		Equipment available on vessel		
 10	Expedition Science Equipment	expedition_sci_equipment	String(300)	Text	Optional		Equipment brought on ship by scientists		
 11	Expedition Start Latitude	expedition_start_lat	Number	Number in Degrees	Recommended		Start location, Latitude	Decimal degrees between -90 and 90	min:-90;max:90
-12	Expedition Start Longitude	expedition_start_lon	Number	Number in Degrees	Recommended		Start location, Longitude	Decimal degrees between 0 and 360	lon:0,360
-13	Expedition Start Date	expedition_start_date	Date	Text	Recommended		Start location, Date	Number in the ''yyyy:mm:dd:hh:mm:ss.ss'' format	
+12	Expedition Start Longitude	expedition_start_lon	Number	Number in Degrees	Recommended		Start location, Longitude	Decimal degrees between 0 and 360	min:0;max:360
+13	Expedition Start Date	expedition_start_date	Date	Text	Recommended		Start location, Date	Number in the "yyyy:mm:dd:hh:mm:ss.ss" format	
 14	Expedition Start Time Zone	expedition_start_time_zone	String(10)	Text	Recommended		Start location, Time zone	UTC, PDT, GMT	
 15	Expedition Start Location	expedition_start_loc	String(50)	Text	Recommended		Start location, Name	Majuro, Pago Pago, Guam	
 16	Expedition End Latitude	expedition_end_lat	Number	Number in Degrees	Recommended		Ending location, Latitude	Decimal degrees between -90 and 90	min:-90;max:90
-17	Expedition End Longitude	expedition_end_lon	Number	Number in Degrees	Recommended		Ending location, Longitude	Decimal degrees between 0 and 360	lon:0,360
-18	Expedition End Date	expedition_end_date	Date	Text	Recommended		Ending location, Date	Number in the ''yyyy:mm:dd:hh:mm:ss.ss'' format	
+17	Expedition End Longitude	expedition_end_lon	Number	Number in Degrees	Recommended		Ending location, Longitude	Decimal degrees between 0 and 360	min:0;max:360
+18	Expedition End Date	expedition_end_date	Date	Text	Recommended		Ending location, Date	Number in the "yyyy:mm:dd:hh:mm:ss.ss" format	
 19	Expedition End Time Zone	expedition_end_time_zone	String(10)	Text	Recommended		Ending location, Time zone	UTC, PDT, GMT	
 20	Expedition End Location	expedition_end_loc	String(50)	Text	Recommended		Ending location, Name	Majuro, Pago Pago, Guam	
 21	Expedition Box Latitude	expedition_box_lat_min	Number	Number in Degrees	Optional		Encompassing latitude and longitude box, Latitude minimum	Decimal degrees between -90 and 90	min:-90;max:90
 22	Expedition Box Latitude	expedition_box_lat_max	Number	Number in Degrees	Optional		Encompassing latitude and longitude box, Latitude maximum	Decimal degrees between -90 and 90	min:-90;max:90
-23	Expedition Box Longitude	expedition_box_lon_min	Number	Number in Degrees	Optional		Encompassing latitude and longitude box, Longitude minimum	Decimal degrees between 0 and 360	lon:0,360
-24	Expedition Box Longitude	expedition_box_lon_max	Number	Number in Degrees	Optional		Encompassing latitude and longitude box, Longitude maximum	Decimal degrees between 0 and 360	lon:0,360
+23	Expedition Box Longitude	expedition_box_lon_min	Number	Number in Degrees	Optional		Encompassing latitude and longitude box, Longitude minimum	Decimal degrees between 0 and 360	min:0;max:360
+24	Expedition Box Longitude	expedition_box_lon_max	Number	Number in Degrees	Optional		Encompassing latitude and longitude box, Longitude maximum	Decimal degrees between 0 and 360	min:0;max:360
 25	Vessel Sonar Type	expedition_mb_sonar	String(30)	Text	Optional		Ship sensors, Sonar		
 26	Vessel NAV Sensor	expedition_nav_sensor	String(30)	Text	Optional		Ship sensors, NAV		
 27	Vessel VRU Sensor	expedition_vru_sensor	String(30)	Text	Optional		Ship sensors, VRU		
@@ -42,10 +42,10 @@ column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_ty
 29	Vessel MDG Sensor	expedition_mdg_sensor	String(30)	Text	Optional		Ship sensors, MDG		
 30	Expedition Description	expedition_description	String(1000)	Text	Recommended		Detailed description		type:description
 31	Expedition URL	expedition_url	String(200)	Text	Recommended		Website URL for the expedition	http://earthref.org	type:url
-32	Principal Investigator Names	er_pi_mail_names	List(500)	Text	Recommended	R	Colon-delimited list of names for PI's of expedition	Jean Smith : Conan H. Blacksun	in:er_mailinglist.er_mail_name
-33	Research Scientist Names	er_scientist_mail_names	List(500)	Text	Recommended	R	Colon-delimited list of names for scientists participating in expedition	Jim R.D. Hart : Alexis Heard : Bob McIntire	in:er_mailinglist.er_mail_name
-34	Crew Names	er_crew_mail_names	List(500)	Text	Recommended	R	Colon-delimited list of names for marine technicians and other crew	Josh Coldheart : Jane Goodall	in:er_mailinglist.er_mail_name
-35	Citation Names	er_citation_names	List(500)	Text	Required	R	Colon-delimited list of citations	Smith et al. 2003 : Hart & Heard 1967 : This study	in:er_citations.er_citation_name
+32	Principal Investigator Names	er_pi_mail_names	List(500)	Text	Recommended	R	Colon-delimited list of names and emails for PI's of expedition	Jim R.D. Hart <user1@email.com>, Alexis Heard <user1@email.com>:Bob McIntire <user2@email.com>	in:er_mailinglist.er_mail_name
+33	Research Scientist Names	er_scientist_mail_names	List(500)	Text	Recommended	R	Colon-delimited list of names and emails for scientists participating in expedition	Jim R.D. Hart <user1@email.com>, Alexis Heard <user1@email.com>:Bob McIntire <user2@email.com>	in:er_mailinglist.er_mail_name
+34	Crew Names	er_crew_mail_names	List(500)	Text	Recommended	R	Colon-delimited list of names and emails for marine technicians and other crew	Jim R.D. Hart <user1@email.com>, Alexis Heard <user1@email.com>:Bob McIntire <user2@email.com>	in:er_mailinglist.er_mail_name
+35	Citation Names	er_citation_names	List(500)	Text	Required	R	Colon-delimited list of citation DOIs	10.1029/92JB01202, 10.1029/2003GC000635:This study, "10.1023/A:1015035228810":This study	in:er_citations.er_citation_name
 >>>>>>>>>>
 tab delimited	er_locations
 column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_type	field_description	field_examples	field_validation_rule
@@ -53,10 +53,10 @@ column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_ty
 2	Location Name Alternatives	er_location_alternatives	List(300)	Text	Optional		Colon-delimited list of alternative names and abbreviations		
 3	Location Type	location_type	String(50)	Text	Required	E	Location type	Drill Site, Core, Land Section, Submarine Section, Stratigraphic Section, Archeological Site, Outcrop, Region	cv:location_type
 4	Geographic Begin Latitude	location_begin_lat	Number	Number in Degrees	Required		Beginning of section or core, Outcrop, Latitude	Decimal degrees between -90 and 90	min:-90;max:90
-5	Geographic Begin Longitude	location_begin_lon	Number	Number in Degrees	Required		Beginning of section or core, Outcrop, Longitude	Decimal degrees between 0 and 360	lon:0,360
+5	Geographic Begin Longitude	location_begin_lon	Number	Number in Degrees	Required		Beginning of section or core, Outcrop, Longitude	Decimal degrees between 0 and 360	min:0;max:360
 6	Geographic Begin Elevation	location_begin_elevation	Number	Number in m	Recommended		Beginning of section or core, Outcrop, Elevation relative to sealevel	Meters above sealevel	
 7	Geographic End Latitude	location_end_lat	Number	Number in Degrees	Required		End of section or core, Latitude	Decimal degrees between -90 and 90	min:-90;max:90
-8	Geographic End Longitude	location_end_lon	Number	Number in Degrees	Required		End of section or core, Longitude	Decimal degrees between 0 and 360	lon:0,360
+8	Geographic End Longitude	location_end_lon	Number	Number in Degrees	Required		End of section or core, Longitude	Decimal degrees between 0 and 360	min:0;max:360
 9	Geographic End Elevation	location_end_elevation	Number	Number in m	Recommended		End of section or core, Elevation relative to sealevel	Meters above sealevel	
 10	Location Precision	location_precision	Number	Number in Degrees	Recommended		Precision in latitude and longitude	Decimal degrees	min:0;max:360
 11	Location Geoid	location_geoid	String(20)	Text	Recommended	E	Geoid used in determination of latitude and longitude	WGS84, GEOID03, USGG2003, GEOID99, G99SSS , G99BM, DEFLEC99 	cv:geoid
@@ -73,8 +73,8 @@ column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_ty
 22	Location Lithology	location_lithology	String(200)	Text	Recommended	E	Location lithology or archeological classification	Basalt, Granite, Mudstone, Tuff, Granodiorite, Marl	cv:lithology
 23	Location Description	location_description	String(1000)	Text	Optional		Detailed description		type:description
 24	Location URL	location_url	String(200)	Text	Optional		Website URL for the location	http://earthref.org	type:url
-25	Research Scientist Names	er_scientist_mail_names	List(500)	Text	Recommended	R	Colon-delimited list of names for scientists who described location	Jim R.D. Hart : Alexis Heard : Bob McIntire	in:er_mailinglist.er_mail_name
-26	Citation Names	er_citation_names	List(500)	Text	Required	R	Colon-delimited list of citations	Smith et al. 2003 : Hart & Heard 1967 : This study	in:er_citations.er_citation_name
+25	Research Scientist Names	er_scientist_mail_names	List(500)	Text	Recommended	R	Colon-delimited list of names and emails for scientists who described location	Jim R.D. Hart <user1@email.com>, Alexis Heard <user1@email.com>:Bob McIntire <user2@email.com>	in:er_mailinglist.er_mail_name
+26	Citation Names	er_citation_names	List(500)	Text	Required	R	Colon-delimited list of citation DOIs	10.1029/92JB01202, 10.1029/2003GC000635:This study, "10.1023/A:1015035228810":This study	in:er_citations.er_citation_name
 >>>>>>>>>>
 tab delimited	er_formations
 column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_type	field_description	field_examples	field_validation_rule
@@ -85,8 +85,8 @@ column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_ty
 5	Formation Paleo Environment	formation_paleo_environment	String(50)	Text	Recommended	E	Depositional environment	Fluvial, Continental Shelf, Eolian, Fringing Reef	cv:paleo_environment
 6	Formation Thickness	formation_thickness	Number	Number in m	Optional		Formation thickness		
 7	Formation Description	formation_description	String(1000)	Text	Optional		Detailed description		type:description
-8	Research Scientist Names	er_scientist_mail_names	List(500)	Text	Recommended	R	Colon-delimited list of names for scientists who described formation	Jim R.D. Hart : Alexis Heard : Bob McIntire	in:er_mailinglist.er_mail_name
-9	Citation Names	er_citation_names	List(500)	Text	Required	R	Colon-delimited list of citations	Smith et al. 2003 : Hart & Heard 1967 : This study	in:er_citations.er_citation_name
+8	Research Scientist Names	er_scientist_mail_names	List(500)	Text	Recommended	R	Colon-delimited list of names and emails for scientists who described formation	Jim R.D. Hart <user1@email.com>, Alexis Heard <user1@email.com>:Bob McIntire <user2@email.com>	in:er_mailinglist.er_mail_name
+9	Citation Names	er_citation_names	List(500)	Text	Required	R	Colon-delimited list of citation DOIs	10.1029/92JB01202, 10.1029/2003GC000635:This study, "10.1023/A:1015035228810":This study	in:er_citations.er_citation_name
 >>>>>>>>>>
 tab delimited	er_members
 column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_type	field_description	field_examples	field_validation_rule
@@ -98,8 +98,8 @@ column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_ty
 6	Member Paleo Environment	member_paleo_environment	String(50)	Text	Recommended	E	Depositional environment	Fluvial, Continental Shelf, Eolian, Fringing Reef	cv:paleo_environment
 7	Member Thickness	member_thickness	Number	Number in m	Optional		Member thickness		
 8	Member Description	member_description	String(1000)	Text	Optional		Detailed description		type:description
-9	Research Scientist Names	er_scientist_mail_names	List(500)	Text	Recommended	R	Colon-delimited list of names for scientists who described member	Jim R.D. Hart : Alexis Heard : Bob McIntire	in:er_mailinglist.er_mail_name
-10	Citation Names	er_citation_names	List(500)	Text	Required	R	Colon-delimited list of citations	Smith et al. 2003 : Hart & Heard 1967 : This study	in:er_citations.er_citation_name
+9	Research Scientist Names	er_scientist_mail_names	List(500)	Text	Recommended	R	Colon-delimited list of names and emails for scientists who described member	Jim R.D. Hart <user1@email.com>, Alexis Heard <user1@email.com>:Bob McIntire <user2@email.com>	in:er_mailinglist.er_mail_name
+10	Citation Names	er_citation_names	List(500)	Text	Required	R	Colon-delimited list of citation DOIs	10.1029/92JB01202, 10.1029/2003GC000635:This study, "10.1023/A:1015035228810":This study	in:er_citations.er_citation_name
 >>>>>>>>>>
 tab delimited	er_sites
 column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_type	field_description	field_examples	field_validation_rule
@@ -114,7 +114,7 @@ column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_ty
 9	Site Lithology	site_lithology	String(200)	Text	Required	E	Site lithology or archeological classification	Basalt, Granite, Mudstone, Tuff, Granodiorite, Marl	                     
 10	Site Type	site_type	String(50)	Text	Required	E	Site type	Flow Top, Glassy Margin, Pot Rim, Pillow, Kiln, Sediment Layer	cv:type
 11	Site Latitude	site_lat	Number	Number in Degrees	Required		Site location, Latitude	Decimal degrees between -90 and 90	min:-90;max:90
-12	Site Longitude	site_lon	Number	Number in Degrees	Required		Site location, Longitude	Decimal degrees between 0 and 360	lon:0,360
+12	Site Longitude	site_lon	Number	Number in Degrees	Required		Site location, Longitude	Decimal degrees between 0 and 360	min:0;max:360
 13	Site Location Precision	site_location_precision	Number	Number in Degrees	Recommended		Site location, Precision in latitude and longitude	Decimal degrees	min:0;max:360
 14	Site Location Geoid	site_location_geoid	String(20)	Text	Recommended	E	Site location, Geoid used in determination of latitude and longitude	WGS84, GEOID03, USGG2003, GEOID99, G99SSS , G99BM, DEFLEC99 	cv:geoid
 15	Site Elevation	site_elevation	Number	Number in m	Recommended		Site location, Elevation relative to sealevel	Meters above sealevel	
@@ -122,13 +122,13 @@ column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_ty
 17	Site Core Depth	site_core_depth	Number	Number in m	Optional		Site location, Core depth in MBSF	Meters below seafloor	
 18	Site Composite Depth	site_composite_depth	Number	Number in m	Optional		Site location, Composite depth in MBSF	Meters below seafloor	
 19	Site Bedding Dip Direction	site_bed_dip_direction	Number	Number in Degrees	Recommended		Direction of the dip of a paleo-horizontal plane in the bedding	Decimal degrees between 0 and 360	min:0;max:360
-20	Site Bedding Dip	site_bed_dip	Number	Number in Degrees	Recommended		Dip of the bedding as measured to the right of strike direction	Decimal degrees between 0 and 90	min:0;max:90
+20	Site Bedding Dip	site_bed_dip	Number	Number in Degrees	Recommended		Dip of the bedding as measured to the right of strike direction	Decimal degrees between -90 and 90	min:-90;max:90
 21	Site Cooling Rate Estimate	site_cooling_rate	Number	Number in K/Ma	Optional		Estimated ancient in-situ cooling rate per Ma		
 22	Site IGSN Number	site_igsn	String(9)	Text	Optional		International Geological Sample Number (IGSN)	SIO0A0987, SIO001317	
 23	Site Description	site_description	String(1000)	Text	Optional		Detailed description		type:description
-24	Method Codes	magic_method_codes	List(500)	Text	Recommended	R	Colon-delimited list of method codes	DE-DC0 : FT-F1 : LP-DCDMAG	in:magic_methods.magic_method_code
-25	Research Scientist Names	er_scientist_mail_names	List(500)	Text	Recommended	R	Colon-delimited list of names for scientists who described site	Jim R.D. Hart : Alexis Heard : Bob McIntire	in:er_mailinglist.er_mail_name
-26	Citation Names	er_citation_names	List(500)	Text	Required	R	Colon-delimited list of citations	Smith et al. 2003 : Hart & Heard 1967 : This study	in:er_citations.er_citation_name
+24	Method Codes	magic_method_codes	List(500)	Text	Recommended	R	Colon-delimited list of method codes	DE-DC0, FT-F1, LP-DCDMAG	in:magic_methods.magic_method_code
+25	Research Scientist Names	er_scientist_mail_names	List(500)	Text	Recommended	R	Colon-delimited list of names and emails for scientists who described site	Jim R.D. Hart <user1@email.com>, Alexis Heard <user1@email.com>:Bob McIntire <user2@email.com>	in:er_mailinglist.er_mail_name
+26	Citation Names	er_citation_names	List(500)	Text	Required	R	Colon-delimited list of citation DOIs	10.1029/92JB01202, 10.1029/2003GC000635:This study, "10.1023/A:1015035228810":This study	in:er_citations.er_citation_name
 >>>>>>>>>>
 tab delimited	er_samples
 column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_type	field_description	field_examples	field_validation_rule
@@ -146,27 +146,27 @@ column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_ty
 12	Sample Alteration	sample_alteration	String(50)	Text	Optional	E	Sample alteration, Grade	Severe, High, Mild, Trace, Unaltered	cv:alteration
 13	Sample Alteration Type	sample_alteration_type	String(50)	Text	Optional	E	Sample alteration, Type	Hydrothermal, Diagenetic, Weathering, Oxidation, Metamorphic	cv:alteration_type
 14	Sample Latitude	sample_lat	Number	Number in Degrees	Required		Sample location, Latitude	Decimal degrees between -90 and 90	min:-90;max:90
-15	Sample Longitude	sample_lon	Number	Number in Degrees	Required		Sample location, Longitude	Decimal degrees between 0 and 360	lon:0,360
+15	Sample Longitude	sample_lon	Number	Number in Degrees	Required		Sample location, Longitude	Decimal degrees between 0 and 360	min:0;max:360
 16	Sample Location Precision	sample_location_precision	Number	Number in Degrees	Recommended		Sample location, Precision in latitude and longitude	Decimal degrees	min:0;max:360
 17	Sample Location Geoid	sample_location_geoid	String(20)	Text	Recommended	E	Sample location, Geoid used in determination of latitude and longitude	WGS84, GEOID03, USGG2003, GEOID99, G99SSS , G99BM, DEFLEC99 	cv:geoid
 18	Sample Elevation	sample_elevation	Number	Number in m	Recommended		Sample location, Elevation relative to sealevel	Meters above sealevel	
 19	Sample Stratigraphic Height	sample_height	Number	Number in m	Recommended		Sample location, Stratigraphic height	Positive is up in section or core, while negative is down relative to reference height	
 20	Sample Core Depth	sample_core_depth	Number	Number in m	Optional		Sample location, Core depth in MBSF	Meters below seafloor	
 21	Sample Composite Depth	sample_composite_depth	Number	Number in m	Optional		Sample location, Composite depth in MBSF	Meters below seafloor	
-22	Sample Date	sample_date	Date	Text	Recommended		Sampling date	Number in the ''yyyy:mm:dd:hh:mm:ss.ss'' format	
+22	Sample Date	sample_date	Date	Text	Recommended		Sampling date	Number in the "yyyy:mm:dd:hh:mm:ss.ss" format	
 23	Sample Time Zone	sample_time_zone	String(10)	Text	Recommended		Sampling time zone	UTC, PDT, GMT	
 24	Sample Orientation Flag	sample_orientation_flag	String(1)	Flag	Recommended	F	Indicating if good (g, the default) or bad (b) orientation data		cv:data_quality
-25	Sample Declination Correction	sample_declination_correction	Number	Number in Degrees	Recommended		Declination correction applied while determining sample azimuth	Decimal degrees	
+25	Sample Declination Correction	sample_declination_correction	Number	Number in Degrees	Recommended		Declination correction applied while determining sample azimuth	Decimal degrees	min:0;max:360
 26	Sample Azimuth	sample_azimuth	Number	Number in Degrees	Recommended		Sample azimuth as measured clockwise from the north	Decimal degrees between 0 and 360	min:0;max:360
-27	Sample Dip	sample_dip	Number	Number in Degrees	Recommended		Sample dip as measured into the outcrop	Decimal degrees between 0 and 90	min:0;max:90
+27	Sample Dip	sample_dip	Number	Number in Degrees	Recommended		Sample dip as measured into the outcrop	Decimal degrees between -90 and 90	min:-90;max:90
 28	Sample Bedding Dip Direction	sample_bed_dip_direction	Number	Number in Degrees	Recommended		Direction of the dip of a paleo-horizontal plane in the bedding	Decimal degrees between 0 and 360	min:0;max:360
-29	Sample Bedding Dip	sample_bed_dip	Number	Number in Degrees	Recommended		Dip of the bedding as measured to the right of strike direction	Decimal degrees between 0 and 90	min:0;max:90
+29	Sample Bedding Dip	sample_bed_dip	Number	Number in Degrees	Recommended		Dip of the bedding as measured to the right of strike direction	Decimal degrees between -90 and 90	min:-90;max:90
 30	Sample Cooling Rate Estimate	sample_cooling_rate	Number	Number in K/Ma	Optional		Estimated ancient in-situ cooling rate per Ma		
 31	Sample IGSN Number	sample_igsn	String(9)	Text	Optional		International Geological Sample Number (IGSN)	SIO0A0987, SIO001317	
 32	Sample Description	sample_description	String(1000)	Text	Optional		Detailed description		type:description
-33	Method Codes	magic_method_codes	List(500)	Text	Recommended	R	Colon-delimited list of method codes	DE-DC0 : FT-F1 : LP-DCDMAG	in:magic_methods.magic_method_code
-34	Research Scientist Names	er_scientist_mail_names	List(500)	Text	Recommended	R	Colon-delimited list of names for scientists who took sample	Jim R.D. Hart : Alexis Heard : Bob McIntire	in:er_mailinglist.er_mail_name
-35	Citation Names	er_citation_names	List(500)	Text	Required	R	Colon-delimited list of citations	Smith et al. 2003 : Hart & Heard 1967 : This study	in:er_citations.er_citation_name
+33	Method Codes	magic_method_codes	List(500)	Text	Recommended	R	Colon-delimited list of method codes	DE-DC0, FT-F1, LP-DCDMAG	in:magic_methods.magic_method_code
+34	Research Scientist Names	er_scientist_mail_names	List(500)	Text	Recommended	R	Colon-delimited list of names and emails for scientists who took sample	Jim R.D. Hart <user1@email.com>, Alexis Heard <user1@email.com>:Bob McIntire <user2@email.com>	in:er_mailinglist.er_mail_name
+35	Citation Names	er_citation_names	List(500)	Text	Required	R	Colon-delimited list of citation DOIs	10.1029/92JB01202, 10.1029/2003GC000635:This study, "10.1023/A:1015035228810":This study	in:er_citations.er_citation_name
 >>>>>>>>>>
 tab delimited	er_specimens
 column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_type	field_description	field_examples	field_validation_rule
@@ -189,7 +189,7 @@ column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_ty
 17	Specimen Core Depth	specimen_core_depth	Number	Number in m	Optional		Specimen location, Core depth in MBSF	Meters below seafloor	
 18	Specimen Composite Depth	specimen_composite_depth	Number	Number in m	Optional		Specimen location, Composite depth in MBSF	Meters below seafloor	
 19	Specimen Azimuth	specimen_azimuth	Number	Number in Degrees	Recommended		Specimen azimuth as measured clockwise from the north	Decimal degrees between 0 and 360	min:0;max:360
-20	Specimen Dip	specimen_dip	Number	Number in Degrees	Recommended		Specimen dip as measured into the outcrop	Decimal degrees between 0 and 90	min:0;max:90
+20	Specimen Dip	specimen_dip	Number	Number in Degrees	Recommended		Specimen dip as measured into the outcrop	Decimal degrees between -90 and 90	min:-90;max:90
 21	Specimen Volume	specimen_volume	Number	Number in m3	Recommended		Specimen volume		
 22	Specimen Weight	specimen_weight	Number	Number in kg	Recommended		Specimen weight		
 23	Specimen Density	specimen_density	Number	Number in kg/m3	Recommended		Specimen density		
@@ -197,9 +197,9 @@ column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_ty
 25	Specimen Grain Shape	specimen_shape	String(50)	Text	Recommended		Specimen shape	Cube, Cylinder, Single Crystal, Chip	
 26	Specimen IGSN Number	specimen_igsn	String(9)	Text	Optional		International Geological Sample Number (IGSN)	SIO0A0987, SIO001317	
 27	Specimen Description	specimen_description	String(1000)	Text	Optional		Detailed description		type:description
-28	Method Codes	magic_method_codes	List(500)	Text	Recommended	R	Colon-delimited list of method codes	DE-DC0 : FT-F1 : LP-DCDMAG	in:magic_methods.magic_method_code
-29	Research Scientist Names	er_scientist_mail_names	List(500)	Text	Recommended	R	Colon-delimited list of names for scientists who prepared specimen	Jim R.D. Hart : Alexis Heard : Bob McIntire	in:er_mailinglist.er_mail_name
-30	Citation Names	er_citation_names	List(500)	Text	Required	R	Colon-delimited list of citations	Smith et al. 2003 : Hart & Heard 1967 : This study	in:er_citations.er_citation_name
+28	Method Codes	magic_method_codes	List(500)	Text	Recommended	R	Colon-delimited list of method codes	DE-DC0, FT-F1, LP-DCDMAG	in:magic_methods.magic_method_code
+29	Research Scientist Names	er_scientist_mail_names	List(500)	Text	Recommended	R	Colon-delimited list of names and emails for scientists who prepared specimen	Jim R.D. Hart <user1@email.com>, Alexis Heard <user1@email.com>:Bob McIntire <user2@email.com>	in:er_mailinglist.er_mail_name
+30	Citation Names	er_citation_names	List(500)	Text	Required	R	Colon-delimited list of citation DOIs	10.1029/92JB01202, 10.1029/2003GC000635:This study, "10.1023/A:1015035228810":This study	in:er_citations.er_citation_name
 >>>>>>>>>>
 tab delimited	er_fossils
 column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_type	field_description	field_examples	field_validation_rule
@@ -228,9 +228,9 @@ column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_ty
 23	Fossil Density	fossil_density	Number	Number in kg/m3	Optional		Fossil density		
 24	Fossil IGSN Number	fossil_igsn	String(9)	Text	Optional		International Geological Sample Number (IGSN)	SIO0A0987, SIO001317	
 25	Fossil Description	fossil_description	String(1000)	Text	Optional		Detailed description		type:description
-26	Method Codes	magic_method_codes	List(500)	Text	Recommended	R	Colon-delimited list of method codes	DE-DC0 : FT-F1 : LP-DCDMAG	in:magic_methods.magic_method_code
-27	Research Scientist Names	er_scientist_mail_names	List(500)	Text	Recommended	R	Colon-delimited list of names for scientists who prepared fossil sample	Jim R.D. Hart : Alexis Heard : Bob McIntire	in:er_mailinglist.er_mail_name
-28	Citation Names	er_citation_names	List(500)	Text	Required	R	Colon-delimited list of citations	Smith et al. 2003 : Hart & Heard 1967 : This study	in:er_citations.er_citation_name
+26	Method Codes	magic_method_codes	List(500)	Text	Recommended	R	Colon-delimited list of method codes	DE-DC0, FT-F1, LP-DCDMAG	in:magic_methods.magic_method_code
+27	Research Scientist Names	er_scientist_mail_names	List(500)	Text	Recommended	R	Colon-delimited list of names and emails for scientists who prepared fossil sample	Jim R.D. Hart <user1@email.com>, Alexis Heard <user1@email.com>:Bob McIntire <user2@email.com>	in:er_mailinglist.er_mail_name
+28	Citation Names	er_citation_names	List(500)	Text	Required	R	Colon-delimited list of citation DOIs	10.1029/92JB01202, 10.1029/2003GC000635:This study, "10.1023/A:1015035228810":This study	in:er_citations.er_citation_name
 >>>>>>>>>>
 tab delimited	er_minerals
 column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_type	field_description	field_examples	field_validation_rule
@@ -256,9 +256,9 @@ column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_ty
 20	Mineral Density	mineral_density	Number	Number in kg/m3	Optional		Mineral density		
 21	Mineral IGSN Number	mineral_igsn	String(9)	Text	Optional		International Geological Sample Number (IGSN)	SIO0A0987, SIO001317	
 22	Mineral Description	mineral_description	String(1000)	Text	Optional		Detailed description		type:description
-23	Method Codes	magic_method_codes	List(500)	Text	Recommended	R	Colon-delimited list of method codes	DE-DC0 : FT-F1 : LP-DCDMAG	in:magic_methods.magic_method_code
-24	Research Scientist Names	er_scientist_mail_names	List(500)	Text	Recommended	R	Colon-delimited list of names for scientists who prepared mineral sample	Jim R.D. Hart : Alexis Heard : Bob McIntire	in:er_mailinglist.er_mail_name
-25	Citation Names	er_citation_names	List(500)	Text	Required	R	Colon-delimited list of citations	Smith et al. 2003 : Hart & Heard 1967 : This study	in:er_citations.er_citation_name
+23	Method Codes	magic_method_codes	List(500)	Text	Recommended	R	Colon-delimited list of method codes	DE-DC0, FT-F1, LP-DCDMAG	in:magic_methods.magic_method_code
+24	Research Scientist Names	er_scientist_mail_names	List(500)	Text	Recommended	R	Colon-delimited list of names and emails for scientists who prepared mineral sample	Jim R.D. Hart <user1@email.com>, Alexis Heard <user1@email.com>:Bob McIntire <user2@email.com>	in:er_mailinglist.er_mail_name
+25	Citation Names	er_citation_names	List(500)	Text	Required	R	Colon-delimited list of citation DOIs	10.1029/92JB01202, 10.1029/2003GC000635:This study, "10.1023/A:1015035228810":This study	in:er_citations.er_citation_name
 >>>>>>>>>>
 tab delimited	er_synthetics
 column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_type	field_description	field_examples	field_validation_rule
@@ -285,9 +285,9 @@ column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_ty
 21	Synthetic Material Dope	synthetic_dope_material	String(50)	Text	Optional		Synthetic dope material	Ti, Al, Mn, Mg	
 22	Synthetic Material IGSN Number	synthetic_igsn	String(9)	Text	Optional		International Geological Sample Number (IGSN)	SIO0A0987, SIO001317	
 23	Synthetic Material Description	synthetic_description	String(1000)	Text	Optional		Detailed description		type:description
-24	Method Codes	magic_method_codes	List(500)	Text	Recommended	R	Colon-delimited list of method codes	DE-DC0 : FT-F1 : LP-DCDMAG	in:magic_methods.magic_method_code
-25	Research Scientist Names	er_scientist_mail_names	List(500)	Text	Recommended	R	Colon-delimited list of names for scientists who prepared synthetic material	Jim R.D. Hart : Alexis Heard : Bob McIntire	in:er_mailinglist.er_mail_name
-26	Citation Names	er_citation_names	List(500)	Text	Required	R	Colon-delimited list of citations	Smith et al. 2003 : Hart & Heard 1967 : This study	in:er_citations.er_citation_name
+24	Method Codes	magic_method_codes	List(500)	Text	Recommended	R	Colon-delimited list of method codes	DE-DC0, FT-F1, LP-DCDMAG	in:magic_methods.magic_method_code
+25	Research Scientist Names	er_scientist_mail_names	List(500)	Text	Recommended	R	Colon-delimited list of names and emails for scientists who prepared synthetic material	Jim R.D. Hart <user1@email.com>, Alexis Heard <user1@email.com>:Bob McIntire <user2@email.com>	in:er_mailinglist.er_mail_name
+26	Citation Names	er_citation_names	List(500)	Text	Required	R	Colon-delimited list of citation DOIs	10.1029/92JB01202, 10.1029/2003GC000635:This study, "10.1023/A:1015035228810":This study	in:er_citations.er_citation_name
 >>>>>>>>>>
 tab delimited	er_ages
 column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_type	field_description	field_examples	field_validation_rule
@@ -323,9 +323,9 @@ column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_ty
 30	Oxygen Stage Name	oxygen_stage	String(50)	Text	Recommended	N	Oxygen stage name	5e, MIS 19, Younger Dryas	sv:oxygen_stage
 31	Age Culture Name	age_culture_name	String(50)	Text	Recommended	N	Age culture name	Halaf culture	sv:age_culture_name
 32	Age Description	age_description	String(1000)	Text	Recommended		Detailed description		type:description
-33	Method Codes	magic_method_codes	List(500)	Text	Required	R	Colon-delimited list of method codes	DE-DC0 : FT-F1 : LP-DCDMAG	in:magic_methods.magic_method_code
-34	Citation Names Timescale Definition	er_timescale_citation_names	List(500)	Text	Recommended	R	Colon-delimited list of citations	Harland et al. 1993 : Cande & Kent 1992 : This study	in:er_citations.er_citation_name
-35	Citation Names	er_citation_names	List(500)	Text	Required	R	Colon-delimited list of citations	Smith et al. 2003 : Hart & Heard 1967 : This study	in:er_citations.er_citation_name
+33	Method Codes	magic_method_codes	List(500)	Text	Required	R	Colon-delimited list of method codes	DE-DC0, FT-F1, LP-DCDMAG	in:magic_methods.magic_method_code
+34	Citation Names Timescale Definition	er_timescale_citation_names	List(500)	Text	Recommended	R	Colon-delimited list of citation DOIs	10.1029/92JB01202, 10.1029/2003GC000635:This study, "10.1023/A:1015035228810":This study	in:er_citations.er_citation_name
+35	Citation Names	er_citation_names	List(500)	Text	Required	R	Colon-delimited list of citation DOIs	10.1029/92JB01202, 10.1029/2003GC000635:This study, "10.1023/A:1015035228810":This study	in:er_citations.er_citation_name
 >>>>>>>>>>
 tab delimited	er_plots
 column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_type	field_description	field_examples	field_validation_rule
@@ -343,12 +343,12 @@ column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_ty
 12	Synthetic Material Name	er_synthetic_name	String(50)	Text	Recommended	R	Name for synthetic material	STD1546-A1	in:er_synthetics.er_synthetic_name
 13	Plot Type	plot_type	String(50)	Text	Required	E	Type of plot	Equal Area, Zijderveld, Demagnetization, Anisotropy Data, etc.	cv:plot_type
 14	Plot Title	plot_title	String(100)	Text	Required		Short plot title	Anisotropy Confidence, Demagnetization in Specimen Coordinates, Equal Area in Tilt Corrected Coordinates	
-15	Plot Keywords	plot_keywords	List(500)	Text	Recommended		Colon delimited list of keywords associated with plot	Remanence : Zijderveld : PmagPy : Cryogenic Magnetometer	
+15	Plot Keywords	plot_keywords	List(500)	Text	Recommended		Colon delimited list of keywords associated with plot	Remanence, Zijderveld, PmagPy, Cryogenic Magnetometer	
 16	Plot Description	plot_description	String(1000)	Text	Recommended		Detailed description		type:description
-17	Plot Date and Time	plot_date	Date	Text	Recommended		Date and time of when the plot was made	Number in the ''yyyy:mm:dd:hh:mm:ss.ss'' format	
+17	Plot Date and Time	plot_date	Date	Text	Recommended		Date and time of when the plot was made	Number in the "yyyy:mm:dd:hh:mm:ss.ss" format	
 18	Plot Time Zone	plot_time_zone	String(10)	Text	Recommended		Time zone	UTC, PDT, GMT	
-19	Analyst Names	er_analyst_mail_names	List(500)	Text	Recommended	R	Colon-delimited list of names for analysts	Jim R.D. Hart : Alexis Heard : Bob McIntire	in:er_mailinglist.er_mail_name
-20	Citation Names	er_citation_names	List(500)	Text	Required	R	Colon-delimited list of citations	Smith et al. 2003 : Hart & Heard 1967 : This study	in:er_citations.er_citation_name
+19	Analyst Names	er_analyst_mail_names	List(500)	Text	Recommended	R	Colon-delimited list of names and emails for analysts	Jim R.D. Hart <user1@email.com>, Alexis Heard <user1@email.com>:Bob McIntire <user2@email.com>	in:er_mailinglist.er_mail_name
+20	Citation Names	er_citation_names	List(500)	Text	Required	R	Colon-delimited list of citation DOIs	10.1029/92JB01202, 10.1029/2003GC000635:This study, "10.1023/A:1015035228810":This study	in:er_citations.er_citation_name
 >>>>>>>>>>
 tab delimited	er_images
 column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_type	field_description	field_examples	field_validation_rule
@@ -366,12 +366,12 @@ column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_ty
 12	Synthetic Material Name	er_synthetic_name	String(50)	Text	Recommended	R	Name for synthetic material	STD1546-A1	in:er_synthetics.er_synthetic_name
 13	Image Type	image_type	String(50)	Text	Required	E	Type of image	Outcrop, thin section, MFM image, hologram, scanning squid, Bitter, Moke, etc.	cv:image_type
 14	Image Title	image_title	String(100)	Text	Required		Short Image title	High tech solutions for being lonely at sea	
-15	Image Keywords	image_keywords	List(500)	Text	Required		Colon delimited list of keywords associated with image	Simrad Computer : Multibeam : Seamounts	
+15	Image Keywords	image_keywords	List(500)	Text	Required		Colon delimited list of keywords associated with image	Simrad Computer, Multibeam, Seamounts	
 16	Image Description	image_description	String(1000)	Text	Recommended		Detailed description		type:description
-17	Image Date and Time	image_date	Date	Text	Recommended		Date and time of when image was taken	Number in the ''yyyy:mm:dd:hh:mm:ss.ss'' format	
+17	Image Date and Time	image_date	Date	Text	Recommended		Date and time of when image was taken	Number in the "yyyy:mm:dd:hh:mm:ss.ss" format	
 18	Image Time Zone	image_time_zone	String(10)	Text	Recommended		Time zone	UTC, PDT, GMT	
-19	Photographer Names	er_photographer_mail_names	List(500)	Text	Recommended	R	Colon-delimited list of names for photographers	Jim R.D. Hart : Alexis Heard : Bob McIntire	in:er_mailinglist.er_mail_name
-20	Citation Names	er_citation_names	List(500)	Text	Required	R	Colon-delimited list of citations	Smith et al. 2003 : Hart & Heard 1967 : This study	in:er_citations.er_citation_name
+19	Photographer Names	er_photographer_mail_names	List(500)	Text	Recommended	R	Colon-delimited list of names and emails for photographers	Jim R.D. Hart <user1@email.com>, Alexis Heard <user1@email.com>:Bob McIntire <user2@email.com>	in:er_mailinglist.er_mail_name
+20	Citation Names	er_citation_names	List(500)	Text	Required	R	Colon-delimited list of citation DOIs	10.1029/92JB01202, 10.1029/2003GC000635:This study, "10.1023/A:1015035228810":This study	in:er_citations.er_citation_name
 >>>>>>>>>>
 tab delimited	magic_measurements
 column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_type	field_description	field_examples	field_validation_rule
@@ -385,11 +385,11 @@ column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_ty
 8	Fossil Name	er_fossil_name	String(50)	Text	Recommended	R	Name for fossil	AMM43-03	in:er_fossils.er_fossil_name
 9	Mineral Name	er_mineral_name	String(50)	Text	Recommended	R	Name for mineral	San03-001	in:er_minerals.er_mineral_name
 10	Synthetic Material Name	er_synthetic_name	String(50)	Text	Required	R	Name for synthetic material	STD1546-A1	in:er_synthetics.er_synthetic_name
-11	Experiment Name	magic_experiment_name	String(100)	Text	Required	X	Name for experiment	KOPA-299-1 : KOPA-299-2 : KOPA-299-6	type:magic_experiment_name
+11	Experiment Name	magic_experiment_name	String(100)	Text	Required	X	Name for experiment	KOPA-299-1, KOPA-299-2, KOPA-299-6	type:magic_experiment_name
 12	Measurement Flag	measurement_flag	String(1)	Flag	Required	F	Indicating if good (g, the default) or bad (b) measurement		cv:data_quality
 13	Measurement Standard Flag	measurement_standard	String(1)	Flag	Required	F	Indicating if a standard (s) or an unknown (u, the default) measurement		cv:measurement_type
 14	Measurement Number	measurement_number	String(50)	Text	Required		Measurement identifier or lab number	03C3012	
-15	Measurement Date and Time	measurement_date	Date	Text	Recommended		Date and time of the measurement	Number in the ''yyyy:mm:dd:hh:mm:ss.ss'' format	
+15	Measurement Date and Time	measurement_date	Date	Text	Recommended		Date and time of the measurement	Number in the "yyyy:mm:dd:hh:mm:ss.ss" format	
 16	Measurement Time Zone	measurement_time_zone	String(10)	Text	Recommended		Time zone	UTC, PDT, GMT	
 17	Measurement Hysteresis Loop Number	measurement_loop_x	Integer	Integer	Recommended		Hysteresis loop, Counter		
 18	Measurement Hysteresis Loop Total	measurement_loop_n	Integer	Integer	Recommended		Hysteresis loop, Total number of loops		min:0
@@ -402,15 +402,15 @@ column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_ty
 25	Measurement Core Depth	measurement_core_depth	Number	Number in m	Optional		Measurement location, Core depth in MBSF	Meters below seafloor	
 26	Measurement Composite Depth	measurement_composite_depth	Number	Number in m	Optional		Measurement location, Composite depth in MBSF	Meters below seafloor	
 27	Lab Treatment Temperature	treatment_temp	Number	Number in K	Recommended		Demagnetization temperature		min:0
-28	Lab Treatment Temperature Decay Rate	treatment_temp_decay_rate	Number	Number in K/s	Optional		Decay rate of temperature on cooling		
+28	Lab Treatment Temperature Decay Rate	treatment_temp_decay_rate	Number	Number in K/s	Optional		Decay rate of temperature on cooling		min:0;max:360
 29	Lab Treatment Temperature DC Field On	treatment_temp_dc_on	Number	Number in K	Optional		Temperature in a pTRM experiment at which DC field is turned on		min:0
 30	Lab Treatment Temperature DC Field Off	treatment_temp_dc_off	Number	Number in K	Optional		Temperature in a pTRM experiment at which DC field is turned off		min:0
 31	Lab Treatment AC Field	treatment_ac_field	Number	Number in T	Recommended		Peak field in AC demagnetization experiment		min:-5;max:5
-32	Lab Treatment AC Field Decay Rate	treatment_ac_field_decay_rate	Number	Number in T/s	Optional		Decay rate of AC field in AC field demagnetization experiment		
+32	Lab Treatment AC Field Decay Rate	treatment_ac_field_decay_rate	Number	Number in T/s	Optional		Decay rate of AC field in AC field demagnetization experiment		min:0;max:360
 33	Lab Treatment AC Field DC Field On	treatment_ac_field_dc_on	Number	Number in T	Optional		AC field in a pARM experiment at which DC field is turned on		min:-5;max:5
 34	Lab Treatment AC Field DC Field Off	treatment_ac_field_dc_off	Number	Number in T	Optional		AC field in a pARM experiment at which DC field is turned off		min:-5;max:5
 35	Lab Treatment DC Field	treatment_dc_field	Number	Number in T	Recommended		Applied DC field		min:-100;max:100
-36	Lab Treatment DC Field Decay Rate	treatment_dc_field_decay_rate	Number	Number in T/s	Optional		Decay rate of DC field after switching off		
+36	Lab Treatment DC Field Decay Rate	treatment_dc_field_decay_rate	Number	Number in T/s	Optional		Decay rate of DC field after switching off		min:0;max:360
 37	Lab Treatment DC Field AC Field On	treatment_dc_field_ac_on	Number	Number in T	Optional		DC field in DC field experiment at which AC field is turned on		min:-100;max:100
 38	Lab Treatment DC Field AC Field Off	treatment_dc_field_ac_off	Number	Number in T	Optional		DC field in DC field experiment at which AC field is turned off		min:-100;max:100
 39	Lab Treatment Orientation Phi	treatment_dc_field_phi	Number	Number in Degrees	Optional		Orientation of sample in magnetometer		
@@ -427,7 +427,7 @@ column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_ty
 50	Measurement Orientation Theta	measurement_orient_theta	Number	Number in Degrees	Recommended		Orientation of sample in magnetometer		
 51	Measurement Lab Field AC	measurement_lab_field_ac	Number	Number in T	Recommended		Measured AC field in laboratory		min:0;max:1
 52	Measurement Lab Field DC	measurement_lab_field_dc	Number	Number in T	Recommended		Measured DC field in laboratory		min:-30;max:30
-53	Measurement Inclination	measurement_inc	Number	Number in Degrees	Recommended		Directions in sample coordinates, Inclination	Decimal degrees between 0 and 90	min:0;max:90
+53	Measurement Inclination	measurement_inc	Number	Number in Degrees	Recommended		Directions in sample coordinates, Inclination	Decimal degrees between -90 and 90	min:-90;max:90
 54	Measurement Declination	measurement_dec	Number	Number in Degrees	Recommended		Directions in sample coordinates, Declination	Decimal degrees between 0 and 360	min:0;max:360
 55	Measurement Magnitude	measurement_magnitude	Number	Dimensionless	Recommended		Uncalibrated magnitude measurement		
 56	Measurement Magnetization Moment	measurement_magn_moment	Number	Number in Am2	Recommended		Measured magnetic moment		min:-1;max:1
@@ -446,13 +446,13 @@ column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_ty
 69	Measurement Standard Deviation Y	measurement_sd_y	Number	Number in Degrees	Recommended		Standard deviation in measurements, Y	Uncertainty = 1xSD	
 70	Measurement Standard Deviation Z	measurement_sd_z	Number	Number in Degrees	Recommended		Standard deviation in measurements, Z	Uncertainty = 1xSD	
 71	Measurement Description	measurement_description	String(1000)	Text	Optional		Detailed description		type:description
-72	MagIC Software Packages	magic_software_packages	List(500)	Text	Recommended		Colon-delimited list of software used for data reduction	PmagPy v1.67b : FORCinel v1.11 	
-73	External Database Names	external_database_names	List	Text	Optional	E	Colon-delimited list of external databases where data are used	GEOMAGIA50 : CALS7K.2 : ARCHEO00	cv:database_name
-74	External Database ID Numbers	external_database_ids	List	Text	Optional		Colon-delimited list of ID numbers linking to external database records	1435 : 23 : 2329	
-75	Method Codes	magic_method_codes	List(500)	Text	Required	R	Colon-delimited list of method codes	DE-DC0 : FT-F1 : LP-DCDMAG	in:magic_methods.magic_method_code
-76	Instrument Code	magic_instrument_codes	List(500)	Text	Required	R	Colon-delimited list of instrument codes	SIO-Bubba : IRM-OldBlue	in:magic_instruments.magic_instrument_code
-77	Analyst Names	er_analyst_mail_names	List(500)	Text	Recommended	R	Colon-delimited list of names for analysts	Jim R.D. Hart : Alexis Heard : Bob McIntire	in:er_mailinglist.er_mail_name
-78	Citation Names	er_citation_names	List(500)	Text	Required	R	Colon-delimited list of citations	Smith et al. 2003 : Hart & Heard 1967 : This study	in:er_citations.er_citation_name
+72	MagIC Software Packages	magic_software_packages	List(500)	Text	Recommended		Colon-delimited list of software used for data reduction	PmagPy v1.67b, FORCinel v1.11 	
+73	External Database Names	external_database_names	List	Text	Optional	E	Colon-delimited list of external databases where data are used	GEOMAGIA50, CALS7K.2, ARCHEO00	cv:database_name
+74	External Database ID Numbers	external_database_ids	List	Text	Optional		Colon-delimited list of ID numbers linking to external database records	1435, 23, 2329	
+75	Method Codes	magic_method_codes	List(500)	Text	Required	R	Colon-delimited list of method codes	DE-DC0, FT-F1, LP-DCDMAG	in:magic_methods.magic_method_code
+76	Instrument Code	magic_instrument_codes	List(500)	Text	Required	R	Colon-delimited list of instrument codes	SIO-Bubba, IRM-OldBlue	in:magic_instruments.magic_instrument_code
+77	Analyst Names	er_analyst_mail_names	List(500)	Text	Recommended	R	Colon-delimited list of names and emails for analysts	Jim R.D. Hart <user1@email.com>, Alexis Heard <user1@email.com>:Bob McIntire <user2@email.com>	in:er_mailinglist.er_mail_name
+78	Citation Names	er_citation_names	List(500)	Text	Required	R	Colon-delimited list of citation DOIs	10.1029/92JB01202, 10.1029/2003GC000635:This study, "10.1023/A:1015035228810":This study	in:er_citations.er_citation_name
 >>>>>>>>>>
 tab delimited	magic_calibrations
 column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_type	field_description	field_examples	field_validation_rule
@@ -460,13 +460,13 @@ column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_ty
 2	Specimen Name	er_specimen_name	String(50)	Text	Required	R	Name for specimen	Bas123a-01x	in:er_specimens.er_specimen_name
 3	Mineral Name	er_mineral_name	String(50)	Text	Required	R	Name for mineral	San03-001	in:er_minerals.er_mineral_name
 4	Synthetic Material Name	er_synthetic_name	String(50)	Text	Required	R	Name for synthetic material	STD1546-A1	in:er_synthetis.er_synthetic_name
-5	Calibration Date	calibration_date	Date	Text	Required		Date of last calibration	Number in the ''yyyy:mm:dd:hh:mm:ss.ss'' format	
+5	Calibration Date	calibration_date	Date	Text	Required		Date of last calibration	Number in the "yyyy:mm:dd:hh:mm:ss.ss" format	
 6	Calibration Date Time Zone	calibration_time_zone	String(10)	Text	Required		Time zone	UTC, PDT, GMT	
 7	Calibration Description	calibration_description	String(1000)	Text	Optional		Detailed description		type:description
-8	Method Codes	magic_method_codes	List(500)	Text	Required	R	Colon-delimited list of method codes	DE-DC0 : FT-F1 : LP-DCDMAG	in:magic_methods.magic_method_code
-9	Instrument Codes	magic_instrument_codes	List(500)	Text	Required	R	Colon-delimited list of instrument codes	SIO-Bubba : IRM-OldBlue	in:magic_instruments.magic_instrument_code
-10	Analyst Names	er_analyst_mail_names	List(500)	Text	Recommended	R	Colon-delimited list of names for analysts	Jim R.D. Hart : Alexis Heard : Bob McIntire	in:er_mailinglist.er_mail_name
-11	Citation Names	er_citation_names	List(500)	Text	Required	R	Colon-delimited list of citations	Smith et al. 2003 : Hart & Heard 1967 : This study	in:er_citations.er_citation_name
+8	Method Codes	magic_method_codes	List(500)	Text	Required	R	Colon-delimited list of method codes	DE-DC0, FT-F1, LP-DCDMAG	in:magic_methods.magic_method_code
+9	Instrument Codes	magic_instrument_codes	List(500)	Text	Required	R	Colon-delimited list of instrument codes	SIO-Bubba, IRM-OldBlue	in:magic_instruments.magic_instrument_code
+10	Analyst Names	er_analyst_mail_names	List(500)	Text	Recommended	R	Colon-delimited list of names and emails for analysts	Jim R.D. Hart <user1@email.com>, Alexis Heard <user1@email.com>:Bob McIntire <user2@email.com>	in:er_mailinglist.er_mail_name
+11	Citation Names	er_citation_names	List(500)	Text	Required	R	Colon-delimited list of citation DOIs	10.1029/92JB01202, 10.1029/2003GC000635:This study, "10.1023/A:1015035228810":This study	in:er_citations.er_citation_name
 >>>>>>>>>>
 tab delimited	pmag_specimens
 column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_type	field_description	field_examples	field_validation_rule
@@ -480,7 +480,7 @@ column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_ty
 8	Fossil Name	er_fossil_name	String(50)	Text	Recommended	R	Name for fossil	AMM43-03	in:er_fossils.er_fossil_name
 9	Mineral Name	er_mineral_name	String(50)	Text	Recommended	R	Name for mineral	San03-001	in:er_minerals.er_mineral_name
 10	Synthetic Material Name	er_synthetic_name	String(50)	Text	Optional	R	Name for synthetic material	STD1546-A1	in:er_synthetis.er_synthetic_name
-11	Experiment Name List	magic_experiment_names	List(2000)	Text	Optional	X	Colon-delimited list of experiments	KOPA-299-1 : KOPA-299-2 : KOPA-299-6	type:magic_experiment_name
+11	Experiment Name List	magic_experiment_names	List(2000)	Text	Optional	X	Colon-delimited list of experiments	KOPA-299-1, KOPA-299-2, KOPA-299-6	type:magic_experiment_name
 12	Measurement Step Minimum	measurement_step_min	Number	Custom	Optional	M	Step included in calculation, Lower bound		
 13	Measurement Step Maximum	measurement_step_max	Number	Custom	Optional	M	Step included in calculation, Higher bound		
 14	Measurement Step Unit	measurement_step_unit	String(30)	Text	Optional	M	Step included in calculation, Unit		
@@ -498,7 +498,7 @@ column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_ty
 26	Specimen Inferred Age Low	specimen_inferred_age_low	Number	Custom	Recommended		Specimen inferred age, Low range		
 27	Specimen Inferred Age High	specimen_inferred_age_high	Number	Custom	Recommended		Specimen inferred age, High range		
 28	Specimen Inferred Age Unit	specimen_inferred_age_unit	String(30)	Text	Recommended	E	Specimen inferred age, Age unit	Ma, Ka, Ga, Years BP, Years AD (+/-), Years Cal BP, Years Cal AD (+/-)	cv:age_unit
-29	Specimen Inclination	specimen_inc	Number	Number in Degrees	Recommended		Directions in coordinates specified by tilt correction, Inclination	Decimal degrees between 0 and 90	min:0;max:90
+29	Specimen Inclination	specimen_inc	Number	Number in Degrees	Recommended		Directions in coordinates specified by tilt correction, Inclination	Decimal degrees between -90 and 90	min:-90;max:90
 30	Specimen Declination	specimen_dec	Number	Number in Degrees	Recommended		Directions in coordinates specified by tilt correction, Declination	Decimal degrees between 0 and 360	min:0;max:360
 31	Specimen Alpha 95%	specimen_alpha95	Number	Number in Degrees	Recommended		Fisher circle	Confidence Level = 95%	
 32	Number of Measurements	specimen_n	Integer	Integer	Recommended		Number of measurements included in directional calculations		min:0
@@ -522,7 +522,7 @@ column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_ty
 50	Specimen Q	specimen_q	Number	Dimensionless	Optional		A measure of the overall quality of the paleointensity estimate and combines the relative scatter of the best-fit line, the NRM fraction and the gap factor		min:0
 51	Specimen f	specimen_f	Number	Dimensionless	Optional		NRM fraction used for the best-fit on an Arai plot 		min:0
 52	Specimen f VDS	specimen_fvds	Number	Dimensionless	Optional		NRM fraction used for the best-fit on an Arai plot calculated as a vector difference sum		min:0
-53	Specimen b	specimen_b	Number	Dimensionless	Optional		The slope of the best-fit line of the selected TRM and NRM points on an Arai plot		min:0
+53	Specimen b	specimen_b	Number	Dimensionless	Optional		The slope of the best-fit line of the selected TRM and NRM points on an Arai plot		
 54	Specimen b Sigma	specimen_b_sigma	Number	Dimensionless	Optional		The standard error on the slope on an Arai plot		min:0
 55	Specimen Sigma over b	specimen_b_beta	Number	Dimensionless	Optional		The ratio of the standard error of the slope to the absolute value of the slope on an Arai plot		min:0
 56	Specimen g	specimen_g	Number	Dimensionless	Optional		The gap reflects the average spacing of the selected Arai plot points along the best-fit line		min:0
@@ -568,15 +568,15 @@ column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_ty
 96	Specimen Theta	specimen_theta	Number	Number in Degrees	Optional		The angle between the applied field direction and the ChRM direction of the NRM as determined from the free-floating PCA fit to the selected demagnetization steps of the paleointensity experiment		min:0
 97	Specimen Gamma	specimen_gamma	Number	Number in Degrees	Recommended		Maximum angle of deviation between acquired pTRM direction and assumed applied field direction		
 98	Specimen Description	specimen_description	String(1000)	Text	Optional		Detailed description		type:description
-99	MagIC Software Packages	magic_software_packages	List(500)	Text	Recommended		Colon-delimited list of software used for data reduction	PmagPy v1.67b : FORCinel v1.11 	
-100	External Database Names	external_database_names	List(500)	Text	Optional	E	Colon-delimited list of external databases where data are used	GEOMAGIA50 : CALS7K.2 : ARCHEO00	cv:database_name
-101	External Database ID Numbers	external_database_ids	List(500)	Text	Optional		Colon-delimited list of ID numbers linking to external database records	1435 : 23 : 2329	
-102	Criteria Codes	pmag_criteria_codes	List(500)	Text	Recommended	R	Colon-delimited list of criteria codes	MY-MAD : MY-APLHA95	in:pmag_criteria.pmag_criteria_code
-103	Rotation Codes	pmag_rotation_codes	List(500)	Text	Optional	R	Colon-delimited list of rotation codes	MY-TILT1 : MY-TILT2 : MY-TRANS1	in:pmag_rotations.pmag_rotation_code
-104	Method Codes	magic_method_codes	List(500)	Text	Required	R	Colon-delimited list of method codes	DE-DC0 : FT-F1 : LP-DCDMAG	in:magic_methods.magic_method_code
-105	Instrument Codes	magic_instrument_codes	List(500)	Text	Required	R	Colon-delimited list of instrument codes	SIO-Bubba : IRM-OldBlue	in:magic_instruments.magic_instrument_code
-106	Analyst Names	er_analyst_mail_names	List(500)	Text	Recommended	R	Colon-delimited list of names for analysts	Jim R.D. Hart : Alexis Heard : Bob McIntire	in:er_mailinglist.er_mail_name
-107	Citation Names	er_citation_names	List(500)	Text	Required	R	Colon-delimited list of citations	Smith et al. 2003 : Hart & Heard 1967 : This study	in:er_citations.er_citation_name
+99	MagIC Software Packages	magic_software_packages	List(500)	Text	Recommended		Colon-delimited list of software used for data reduction	PmagPy v1.67b, FORCinel v1.11 	
+100	External Database Names	external_database_names	List(500)	Text	Optional	E	Colon-delimited list of external databases where data are used	GEOMAGIA50, CALS7K.2, ARCHEO00	cv:database_name
+101	External Database ID Numbers	external_database_ids	List(500)	Text	Optional		Colon-delimited list of ID numbers linking to external database records	1435, 23, 2329	
+102	Criteria Codes	pmag_criteria_codes	List(500)	Text	Recommended	R	Colon-delimited list of criteria codes	MY-MAD, MY-APLHA95	in:pmag_criteria.pmag_criteria_code
+103	Rotation Codes	pmag_rotation_codes	List(500)	Text	Optional	R	Colon-delimited list of rotation codes	MY-TILT1, MY-TILT2, MY-TRANS1	in:pmag_rotations.pmag_rotation_code
+104	Method Codes	magic_method_codes	List(500)	Text	Required	R	Colon-delimited list of method codes	DE-DC0, FT-F1, LP-DCDMAG	in:magic_methods.magic_method_code
+105	Instrument Codes	magic_instrument_codes	List(500)	Text	Required	R	Colon-delimited list of instrument codes	SIO-Bubba, IRM-OldBlue	in:magic_instruments.magic_instrument_code
+106	Analyst Names	er_analyst_mail_names	List(500)	Text	Recommended	R	Colon-delimited list of names and emails for analysts	Jim R.D. Hart <user1@email.com>, Alexis Heard <user1@email.com>:Bob McIntire <user2@email.com>	in:er_mailinglist.er_mail_name
+107	Citation Names	er_citation_names	List(500)	Text	Required	R	Colon-delimited list of citation DOIs	10.1029/92JB01202, 10.1029/2003GC000635:This study, "10.1023/A:1015035228810":This study	in:er_citations.er_citation_name
 >>>>>>>>>>
 tab delimited	pmag_samples
 column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_type	field_description	field_examples	field_validation_rule
@@ -586,11 +586,11 @@ column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_ty
 4	Member Name	er_member_name	String(50)	Text	Optional	R	Name for member	Glasshound Member	in:er_members.er_member_name
 5	Site Name	er_site_name	String(50)	Text	Required	R	Name for site	Bas123a	in:er_sites.er_site_name
 6	Sample Name	er_sample_name	String(50)	Text	Required	R	Name for sample	Bas123a-01	in:er_samples.er_sample_name
-7	Specimen Name List	er_specimen_names	List(2000)	Text	Recommended	R	Colon-delimited list of specimen names	Bas123a-01x : Bas123a-01y	in:er_specimens.er_specimen_name
-8	Fossil Name List	er_fossil_names	List(2000)	Text	Recommended	R	Colon-delimited list of fossil names	AMM43-03 : AMM43-19	in:er_fossils.er_fossil_name
-9	Mineral Name List	er_mineral_names	List(2000)	Text	Recommended	R	Colon-delimited list of mineral names	PLG33a : MAGN-MJ-034	in:er_minerals.er_mineral_name
-10	Synthetic Material Name List	er_synthetic_names	List(2000)	Text	Optional	R	Colon-delimited list of synthetic material names	STD1546-A1 : STD1546-X23	in:er_synthetis.er_synthetic_name
-11	Experiment Name List	magic_experiment_names	List(2000)	Text	Optional	X	Colon-delimited list of experiments	KOPA-299-1 : KOPA-299-2 : KOPA-299-6	type:magic_experiment_name
+7	Specimen Name List	er_specimen_names	List(2000)	Text	Recommended	R	Colon-delimited list of specimen names	Bas123a-01x, Bas123a-01y	in:er_specimens.er_specimen_name
+8	Fossil Name List	er_fossil_names	List(2000)	Text	Recommended	R	Colon-delimited list of fossil names	AMM43-03, AMM43-19	in:er_fossils.er_fossil_name
+9	Mineral Name List	er_mineral_names	List(2000)	Text	Recommended	R	Colon-delimited list of mineral names	PLG33a, MAGN-MJ-034	in:er_minerals.er_mineral_name
+10	Synthetic Material Name List	er_synthetic_names	List(2000)	Text	Optional	R	Colon-delimited list of synthetic material names	STD1546-A1, STD1546-X23	in:er_synthetis.er_synthetic_name
+11	Experiment Name List	magic_experiment_names	List(2000)	Text	Optional	X	Colon-delimited list of experiments	KOPA-299-1, KOPA-299-2, KOPA-299-6	type:magic_experiment_name
 12	Measurement Step Minimum	measurement_step_min	Number	Custom	Optional	M	Step included in calculation, Lower bound		
 13	Measurement Step Maximum	measurement_step_max	Number	Custom	Optional	M	Step included in calculation, Higher bound		
 14	Measurement Step Unit	measurement_step_unit	String(30)	Text	Optional	M	Step included in calculation, Unit		
@@ -606,7 +606,7 @@ column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_ty
 24	Sample Inferred Age Low	sample_inferred_age_low	Number	Custom	Recommended		Sample inferred age, Low range		
 25	Sample Inferred Age High	sample_inferred_age_high	Number	Custom	Recommended		Sample inferred age, High range		
 26	Sample Inferred Age Unit	sample_inferred_age_unit	String(30)	Text	Recommended	E	Sample inferred age, Age unit	Ma, Ka, Ga, Years BP, Years AD (+/-), Years Cal BP, Years Cal AD (+/-)	cv:age_unit
-27	Sample Inclination	sample_inc	Number	Number in Degrees	Recommended		Directions in coordinates specified by tilt correction, Inclination	Decimal degrees between 0 and 90	min:0;max:90
+27	Sample Inclination	sample_inc	Number	Number in Degrees	Recommended		Directions in coordinates specified by tilt correction, Inclination	Decimal degrees between -90 and 90	min:-90;max:90
 28	Sample Declination	sample_dec	Number	Number in Degrees	Recommended		Directions in coordinates specified by tilt correction, Declination	Decimal degrees between 0 and 360	min:0;max:360
 29	Sample Sigma	sample_sigma	Number	Number in Degrees	Recommended		Directions in coordinates specified by tilt correction, Circular standard deviation	Uncertainty = 1xSD	
 30	Sample Alpha 95%	sample_alpha95	Number	Number in Degrees	Recommended		Fisher circle	Confidence Level = 95%	
@@ -628,15 +628,15 @@ column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_ty
 46	Sample Magnetization Volume	sample_magn_volume	Number	Number in A/m	Optional		Measured intensity of magnetization, Volume normalized		min:-1000000;max:1000000
 47	Sample Magnetization Mass	sample_magn_mass	Number	Number in Am2/kg	Optional		Measured intensity of magnetization, Mass normalized		min:-200;max:200
 48	Sample Description	sample_description	String(1000)	Text	Optional		Detailed description		type:description
-49	MagIC Software Packages	magic_software_packages	List(500)	Text	Recommended		Colon-delimited list of software used for data reduction	PmagPy v1.67b : FORCinel v1.11 	
-50	External Database Names	external_database_names	List(500)	Text	Optional	E	Colon-delimited list of external databases where data are used	GEOMAGIA50 : CALS7K.2 : ARCHEO00	cv:database_name
-51	External Database ID Numbers	external_database_ids	List(500)	Text	Optional		Colon-delimited list of ID numbers linking to external database records	1435 : 23 : 2329	
-52	Criteria Codes	pmag_criteria_codes	List(500)	Text	Recommended	R	Colon-delimited list of criteria codes	MY-MAD : MY-APLHA95	in:pmag_criteria.pmag_criteria_code
-53	Rotation Codes	pmag_rotation_codes	List(500)	Text	Optional	R	Colon-delimited list of rotation codes	MY-TILT1 : MY-TILT2 : MY-TRANS1	in:pmag_rotations.pmag_rotation_code
-54	Method Codes	magic_method_codes	List(500)	Text	Required	R	Colon-delimited list of method codes	DE-DC0 : FT-F1 : LP-DCDMAG	in:magic_methods.magic_method_code
-55	Instrument Codes	magic_instrument_codes	List(500)	Text	Required	R	Colon-delimited list of instrument codes	SIO-Bubba : IRM-OldBlue	in:magic_instruments.magic_instrument_code
-56	Analyst Names	er_analyst_mail_names	List(500)	Text	Recommended	R	Colon-delimited list of names for analysts	Jim R.D. Hart : Alexis Heard : Bob McIntire	in:er_mailinglist.er_mail_name
-57	Citation Names	er_citation_names	List(500)	Text	Required	R	Colon-delimited list of citations	Smith et al. 2003 : Hart & Heard 1967 : This study	in:er_citations.er_citation_name
+49	MagIC Software Packages	magic_software_packages	List(500)	Text	Recommended		Colon-delimited list of software used for data reduction	PmagPy v1.67b, FORCinel v1.11 	
+50	External Database Names	external_database_names	List(500)	Text	Optional	E	Colon-delimited list of external databases where data are used	GEOMAGIA50, CALS7K.2, ARCHEO00	cv:database_name
+51	External Database ID Numbers	external_database_ids	List(500)	Text	Optional		Colon-delimited list of ID numbers linking to external database records	1435, 23, 2329	
+52	Criteria Codes	pmag_criteria_codes	List(500)	Text	Recommended	R	Colon-delimited list of criteria codes	MY-MAD, MY-APLHA95	in:pmag_criteria.pmag_criteria_code
+53	Rotation Codes	pmag_rotation_codes	List(500)	Text	Optional	R	Colon-delimited list of rotation codes	MY-TILT1, MY-TILT2, MY-TRANS1	in:pmag_rotations.pmag_rotation_code
+54	Method Codes	magic_method_codes	List(500)	Text	Required	R	Colon-delimited list of method codes	DE-DC0, FT-F1, LP-DCDMAG	in:magic_methods.magic_method_code
+55	Instrument Codes	magic_instrument_codes	List(500)	Text	Required	R	Colon-delimited list of instrument codes	SIO-Bubba, IRM-OldBlue	in:magic_instruments.magic_instrument_code
+56	Analyst Names	er_analyst_mail_names	List(500)	Text	Recommended	R	Colon-delimited list of names and emails for analysts	Jim R.D. Hart <user1@email.com>, Alexis Heard <user1@email.com>:Bob McIntire <user2@email.com>	in:er_mailinglist.er_mail_name
+57	Citation Names	er_citation_names	List(500)	Text	Required	R	Colon-delimited list of citation DOIs	10.1029/92JB01202, 10.1029/2003GC000635:This study, "10.1023/A:1015035228810":This study	in:er_citations.er_citation_name
 >>>>>>>>>>
 tab delimited	pmag_sites
 column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_type	field_description	field_examples	field_validation_rule
@@ -645,12 +645,12 @@ column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_ty
 3	Formation Name	er_formation_name	String(50)	Text	Optional	R	Name for formation	Bluebird Formation	in:er_formations.er_formation_name
 4	Member Name	er_member_name	String(50)	Text	Optional	R	Name for member	Glasshound Member	in:er_members.er_member_name
 5	Site Name	er_site_name	String(50)	Text	Required	R	Name for site	Bas123a	in:er_sites.er_site_name
-6	Sample Name List	er_sample_names	List(2000)	Text	Recommended	R	Colon-delimited list of sample names	Bas123a-01 : Bas123a-04 : Bas123a-19	in:er_samples.er_sample_name
-7	Specimen Name List	er_specimen_names	List(2000)	Text	Recommended	R	Colon-delimited list of specimen names	Bas123a-01x : Bas123a-01y	in:er_specimens.er_specimen_name
-8	Fossil Name List	er_fossil_names	List(2000)	Text	Recommended	R	Colon-delimited list of fossil names	AMM43-03 : AMM43-19	in:er_fossils.er_fossil_name
-9	Mineral Name List	er_mineral_names	List(2000)	Text	Recommended	R	Colon-delimited list of mineral names	PLG33a : MAGN-MJ-034	in:er_minerals.er_mineral_name
-10	Synthetic Material Name List	er_synthetic_names	List(2000)	Text	Optional	R	Colon-delimited list of synthetic material names	STD1546-A1 : STD1546-X23	in:er_synthetis.er_synthetic_name
-11	Experiment Name List	magic_experiment_names	List(2000)	Text	Optional	X	Colon-delimited list of experiments	KOPA-299-1 : KOPA-299-2 : KOPA-299-6	type:magic_experiment_name
+6	Sample Name List	er_sample_names	List(2000)	Text	Recommended	R	Colon-delimited list of sample names	Bas123a-01, Bas123a-04, Bas123a-19	in:er_samples.er_sample_name
+7	Specimen Name List	er_specimen_names	List(2000)	Text	Recommended	R	Colon-delimited list of specimen names	Bas123a-01x, Bas123a-01y	in:er_specimens.er_specimen_name
+8	Fossil Name List	er_fossil_names	List(2000)	Text	Recommended	R	Colon-delimited list of fossil names	AMM43-03, AMM43-19	in:er_fossils.er_fossil_name
+9	Mineral Name List	er_mineral_names	List(2000)	Text	Recommended	R	Colon-delimited list of mineral names	PLG33a, MAGN-MJ-034	in:er_minerals.er_mineral_name
+10	Synthetic Material Name List	er_synthetic_names	List(2000)	Text	Optional	R	Colon-delimited list of synthetic material names	STD1546-A1, STD1546-X23	in:er_synthetis.er_synthetic_name
+11	Experiment Name List	magic_experiment_names	List(2000)	Text	Optional	X	Colon-delimited list of experiments	KOPA-299-1, KOPA-299-2, KOPA-299-6	type:magic_experiment_name
 12	Measurement Step Minimum	measurement_step_min	Number	Custom	Optional	M	Step included in calculation, Lower bound		
 13	Measurement Step Maximum	measurement_step_max	Number	Custom	Optional	M	Step included in calculation, Higher bound		
 14	Measurement Step Unit	measurement_step_unit	String(30)	Text	Optional	M	Step included in calculation, Unit		
@@ -666,7 +666,7 @@ column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_ty
 24	Site Inferred Age Low	site_inferred_age_low	Number	Custom	Recommended		Site inferred age, Low range		
 25	Site Inferred Age High	site_inferred_age_high	Number	Custom	Recommended		Site inferred age, High range		
 26	Site Inferred Age Unit	site_inferred_age_unit	String(30)	Text	Recommended	E	Site inferred age, Unit	Ma, Ka, Ga, Years BP, Years AD (+/-), Years Cal BP, Years Cal AD (+/-)	cv:age_unit
-27	Site Inclination	site_inc	Number	Number in Degrees	Recommended		Directions in coordinates specified by tilt correction, Inclination	Decimal degrees between 0 and 90	min:0;max:90
+27	Site Inclination	site_inc	Number	Number in Degrees	Recommended		Directions in coordinates specified by tilt correction, Inclination	Decimal degrees between -90 and 90	min:-90;max:90
 28	Site Declination	site_dec	Number	Number in Degrees	Recommended		Directions in coordinates specified by tilt correction, Declination	Decimal degrees between 0 and 360	min:0;max:360
 29	Site Sigma	site_sigma	Number	Number in Degrees	Recommended		Directions in coordinates specified by tilt correction, Circular standard deviation	Uncertainty = 1xSD	
 30	Site Alpha 95%	site_alpha95	Number	Number in Degrees	Recommended		Fisher circle	Confidence Level = 95%	
@@ -688,27 +688,27 @@ column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_ty
 46	Site Magnetization Volume	site_magn_volume	Number	Number in A/m	Optional		Measured intensity of magnetization, Volume normalized		min:-1000000;max:1000000
 47	Site Magnetization Mass	site_magn_mass	Number	Number in Am2/kg	Optional		Measured intensity of magnetization, Mass normalized		min:-200;max:200
 48	Site Description	site_description	String(1000)	Text	Optional		Detailed description		type:description
-49	MagIC Software Packages	magic_software_packages	List(500)	Text	Recommended		Colon-delimited list of software used for data reduction	PmagPy v1.67b : FORCinel v1.11 	
-50	External Database Names	external_database_names	List(500)	Text	Optional	E	Colon-delimited list of external databases where data are used	GEOMAGIA50 : CALS7K.2 : ARCHEO00	cv:database_name
-51	External Database ID Numbers	external_database_ids	List(500)	Text	Optional		Colon-delimited list of ID numbers linking to external database records	1435 : 23 : 2329	
-52	Criteria Codes	pmag_criteria_codes	List(500)	Text	Recommended	R	Colon-delimited list of criteria codes	MY-MAD : MY-APLHA95	in:pmag_criteria.pmag_criteria_code
-53	Rotation Codes	pmag_rotation_codes	List(500)	Text	Optional	R	Colon-delimited list of rotation codes	MY-TILT1 : MY-TILT2 : MY-TRANS1	in:pmag_rotations.pmag_rotation_code
-54	Method Codes	magic_method_codes	List(500)	Text	Required	R	Colon-delimited list of method codes	DE-DC0 : FT-F1 : LP-DCDMAG	in:magic_methods.magic_method_code
-55	Instrument Codes	magic_instrument_codes	List(500)	Text	Required	R	Colon-delimited list of instrument codes	SIO-Bubba : IRM-OldBlue	in:magic_instruments.magic_instrument_code
-56	Analyst Names	er_analyst_mail_names	List(500)	Text	Recommended	R	Colon-delimited list of names for analysts	Jim R.D. Hart : Alexis Heard : Bob McIntire	in:er_mailinglist.er_mail_name
-57	Citation Names	er_citation_names	List(500)	Text	Required	R	Colon-delimited list of citations	Smith et al. 2003 : Hart & Heard 1967 : This study	in:er_citations.er_citation_name
+49	MagIC Software Packages	magic_software_packages	List(500)	Text	Recommended		Colon-delimited list of software used for data reduction	PmagPy v1.67b, FORCinel v1.11 	
+50	External Database Names	external_database_names	List(500)	Text	Optional	E	Colon-delimited list of external databases where data are used	GEOMAGIA50, CALS7K.2, ARCHEO00	cv:database_name
+51	External Database ID Numbers	external_database_ids	List(500)	Text	Optional		Colon-delimited list of ID numbers linking to external database records	1435, 23, 2329	
+52	Criteria Codes	pmag_criteria_codes	List(500)	Text	Recommended	R	Colon-delimited list of criteria codes	MY-MAD, MY-APLHA95	in:pmag_criteria.pmag_criteria_code
+53	Rotation Codes	pmag_rotation_codes	List(500)	Text	Optional	R	Colon-delimited list of rotation codes	MY-TILT1, MY-TILT2, MY-TRANS1	in:pmag_rotations.pmag_rotation_code
+54	Method Codes	magic_method_codes	List(500)	Text	Required	R	Colon-delimited list of method codes	DE-DC0, FT-F1, LP-DCDMAG	in:magic_methods.magic_method_code
+55	Instrument Codes	magic_instrument_codes	List(500)	Text	Required	R	Colon-delimited list of instrument codes	SIO-Bubba, IRM-OldBlue	in:magic_instruments.magic_instrument_code
+56	Analyst Names	er_analyst_mail_names	List(500)	Text	Recommended	R	Colon-delimited list of names and emails for analysts	Jim R.D. Hart <user1@email.com>, Alexis Heard <user1@email.com>:Bob McIntire <user2@email.com>	in:er_mailinglist.er_mail_name
+57	Citation Names	er_citation_names	List(500)	Text	Required	R	Colon-delimited list of citation DOIs	10.1029/92JB01202, 10.1029/2003GC000635:This study, "10.1023/A:1015035228810":This study	in:er_citations.er_citation_name
 >>>>>>>>>>
 tab delimited	pmag_results
 column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_type	field_description	field_examples	field_validation_rule
 1	Result Name	pmag_result_name	String(50)	Text	Required	P	Name or number to identify results	MY-POLE-XX	unique
-2	Location Name List	er_location_names	List(2000)	Text	Recommended	R	Colon-delimited list of location, dredge or drill site names	Site 801 : Site 1129 : Dredge AMAT02-D15	in:er_locations.er_location_name
-3	Site Name List	er_site_names	List(2000)	Text	Recommended	R	Colon-delimited list of site names	Bas123a : Bas156z : Bas445c	in:er_sites.er_site_name
-4	Sample Name List	er_sample_names	List(2000)	Text	Recommended	R	Colon-delimited list of sample names	Bas123a-01 : Bas123a-04 : Bas123a-19	in:er_samples.er_sample_name
-5	Specimen Name List	er_specimen_names	List(2000)	Text	Recommended	R	Colon-delimited list of specimen names	Bas123a-01x : Bas123a-01y	in:er_specimens.er_specimen_name
-6	Fossil Name List	er_fossil_names	List(2000)	Text	Recommended	R	Colon-delimited list of fossil names	AMM43-03 : AMM43-19	in:er_fossils.er_fossil_name
-7	Mineral Name List	er_mineral_names	List(2000)	Text	Recommended	R	Colon-delimited list of mineral names	PLG33a : MAGN-MJ-034	in:er_minerals.er_mineral_name
-8	Synthetic Material Name List	er_synthetic_names	List(2000)	Text	Optional	R	Colon-delimited list of synthetic material names	STD1546-A1 : STD1546-X23	in:er_synthetis.er_synthetic_name
-9	Experiment Name List	magic_experiment_names	List(2000)	Text	Optional	X	Colon-delimited list of experiments	KOPA-299-1 : KOPA-299-2 : KOPA-299-6	type:magic_experiment_name
+2	Location Name List	er_location_names	List(2000)	Text	Recommended	R	Colon-delimited list of location, dredge or drill site names	Site 801, Site 1129, Dredge AMAT02-D15	in:er_locations.er_location_name
+3	Site Name List	er_site_names	List(2000)	Text	Recommended	R	Colon-delimited list of site names	Bas123a, Bas156z, Bas445c	in:er_sites.er_site_name
+4	Sample Name List	er_sample_names	List(2000)	Text	Recommended	R	Colon-delimited list of sample names	Bas123a-01, Bas123a-04, Bas123a-19	in:er_samples.er_sample_name
+5	Specimen Name List	er_specimen_names	List(2000)	Text	Recommended	R	Colon-delimited list of specimen names	Bas123a-01x, Bas123a-01y	in:er_specimens.er_specimen_name
+6	Fossil Name List	er_fossil_names	List(2000)	Text	Recommended	R	Colon-delimited list of fossil names	AMM43-03, AMM43-19	in:er_fossils.er_fossil_name
+7	Mineral Name List	er_mineral_names	List(2000)	Text	Recommended	R	Colon-delimited list of mineral names	PLG33a, MAGN-MJ-034	in:er_minerals.er_mineral_name
+8	Synthetic Material Name List	er_synthetic_names	List(2000)	Text	Optional	R	Colon-delimited list of synthetic material names	STD1546-A1, STD1546-X23	in:er_synthetis.er_synthetic_name
+9	Experiment Name List	magic_experiment_names	List(2000)	Text	Optional	X	Colon-delimited list of experiments	KOPA-299-1, KOPA-299-2, KOPA-299-6	type:magic_experiment_name
 10	Data Type	data_type	String(1)	Flag	Required	F	Individual (i, the default), average (a), model (m) or stacked (s) data		cv:data_type
 11	Fold Test	fold_test	String(3)	Flag	Recommended	E	Classification and result of the folding test	F+, SF+, RF+, + (pos), Fo, SFo, RFo, o (indeterminate), F-, SF-, RF-, - (neg), ND (not done) 	cv:fold_test
 12	Conglomerate Test	conglomerate_test	String(3)	Flag	Recommended	E	Classification and result of the (intra-formational) conglomerate test	G+, IG+, + (pos), Go, IGo, o (indeterminate), G-, IG-, - (neg), ND (not done)	cv:conglomerate_test
@@ -718,7 +718,7 @@ column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_ty
 16	Pole Component Name	pole_comp_name	String(30)	Text	Recommended		Name of magnetic component for which pole is calculated	Characteristic, VRM, Overprint, A, B, C	
 17	Average Latitude	average_lat	Number	Number in Degrees	Recommended		Average location based on multiple sites, Latitude	Decimal degrees between -90 and 90	min:-90;max:90
 18	Average Latitude Sigma	average_lat_sigma	Number	Number in Degrees	Recommended		Average location based on multiple sites, Latitude uncertainty	Uncertainty = 1xSD	min:0;max:180
-19	Average Longitude	average_lon	Number	Number in Degrees	Recommended		Average location based on multiple sites, Longitude	Decimal degrees between 0 and 360	lon:0,360
+19	Average Longitude	average_lon	Number	Number in Degrees	Recommended		Average location based on multiple sites, Longitude	Decimal degrees between 0 and 360	min:0;max:360
 20	Average Longitude Sigma	average_lon_sigma	Number	Number in Degrees	Recommended		Average location based on multiple sites, Longitude uncertainty	Uncertainty = 1xSD	min:0;max:360
 21	Average Height	average_height	Number	Number in m	Recommended		Measurement stratigraphic height relative to reference height	Positive is up in section or core, negative is down	
 22	Average Age	average_age	Number	Custom	Recommended		Average magnetization age based on multiple sites		
@@ -726,7 +726,7 @@ column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_ty
 24	Average Age Low	average_age_low	Number	Custom	Recommended		Average magnetization age based on multiple sites, Low range		
 25	Average Age High	average_age_high	Number	Custom	Recommended		Average magnetization age based on multiple sites, High range		
 26	Average Age Unit	average_age_unit	String(30)	Text	Recommended	E	Average magnetization age based on multiple sites, Unit	Ma, Ka, Ga, Years BP, Years AD (+/-), Years Cal BP, Years Cal AD (+/-)	cv:age_unit
-27	Average Inclination	average_inc	Number	Number in Degrees	Recommended		Average direction in stratigraphic coordinates, Inclination	Decimal degrees between 0 and 90	min:0;max:90
+27	Average Inclination	average_inc	Number	Number in Degrees	Recommended		Average direction in stratigraphic coordinates, Inclination	Decimal degrees between -90 and 90	min:-90;max:90
 28	Average Declination	average_dec	Number	Number in Degrees	Recommended		Average direction in stratigraphic coordinates, Declination	Decimal degrees between 0 and 360	min:0;max:360
 29	Average Sigma	average_sigma	Number	Number in Degrees	Recommended		Average direction in stratigraphic coordinates, Circular standard deviation	Uncertainty = 1xSD	
 30	Average Alpha 95%	average_alpha95	Number	Number in Degrees	Recommended		Average direction Fisher circle	Confidence Level = 95%	
@@ -742,20 +742,20 @@ column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_ty
 40	Average Intensity Relative Sigma %	average_int_rel_sigma_perc	Number	Number in %	Recommended		Relative average field strength, Uncertainty in percent	Uncertainty = 1xSD	
 41	Number of Independent Estimates	average_int_n	Integer	Integer	Recommended		Number of independent estimates included in intensity calculations		min:0
 42	Number of Samples	average_int_nn	Integer	Integer	Recommended		Number of samples included in intensity calculations		min:0
-43	Confidence Ellipse	eta_inc	Number	Number in Degrees	Recommended		Definition of confidence ellipse, Inclination	Decimal degrees between 0 and 90	min:0;max:90
+43	Confidence Ellipse	eta_inc	Number	Number in Degrees	Recommended		Definition of confidence ellipse, Inclination	Decimal degrees between -90 and 90	min:-90;max:90
 44	Confidence Ellipse	eta_dec	Number	Number in Degrees	Recommended		Definition of confidence ellipse, Declination	Decimal degrees between 0 and 360	min:0;max:360
 45	Confidence Ellipse	eta_semi_angle	Number	Number in Degrees	Recommended		Definition of confidence ellipse, Semi angle	Confidence Level = 95%	
-46	Confidence Ellipse	zeta_inc	Number	Number in Degrees	Recommended		Definition of confidence ellipse, Inclination	Decimal degrees between 0 and 90	min:0;max:90
+46	Confidence Ellipse	zeta_inc	Number	Number in Degrees	Recommended		Definition of confidence ellipse, Inclination	Decimal degrees between -90 and 90	min:-90;max:90
 47	Confidence Ellipse	zeta_dec	Number	Number in Degrees	Recommended		Definition of confidence ellipse, Declination	Decimal degrees between 0 and 360	min:0;max:360
 48	Confidence Ellipse	zeta_semi_angle	Number	Number in Degrees	Recommended		Definition of confidence ellipse, Semi angle	Confidence Level = 95%	
 49	Model Latitude	model_lat	Number	Number in Degrees	Recommended		Model latitude based on plate reconstruction	Decimal degrees between -90 and 90	min:-90;max:90
 50	Model Latitude Sigma	model_lat_sigma	Number	Number in Degrees	Recommended		Model latitude based on plate reconstruction, Uncertainty	Uncertainty = 1xSD	min:0;max:180
-51	Model Longitude	model_lon	Number	Number in Degrees	Recommended		Model longitude based on plate reconstruction	Decimal degrees between -90 and 90	min:-90;max:90
+51	Model Longitude	model_lon	Number	Number in Degrees	Recommended		Model longitude based on plate reconstruction	Decimal degrees between -90 and 90	min:0;max:360
 52	Model Longitude Sigma	model_lon_sigma	Number	Number in Degrees	Recommended		Model longitude based on plate reconstruction, Uncertainty	Uncertainty = 1xSD	min:0;max:360
 53	VGP Latitude	vgp_lat	Number	Number in Degrees	Recommended		Virtual geomagnetic pole, Latitude	Decimal degrees between -90 and 90	min:-90;max:90
-54	VGP Longitude	vgp_lon	Number	Number in Degrees	Recommended		Virtual geomagnetic pole, Longitude	Decimal degrees between 0 and 360	lon:0,360
-55	VGP DP	vgp_dp	Number	Number in Degrees	Recommended		Virtual geomagnetic pole, Parallel latitude, Uncertainty	Uncertainty = 1xSD	min:0;max:1
-56	VGP DM	vgp_dm	Number	Number in Degrees	Recommended		Virtual geomagnetic pole, Meridian, Uncertainty	Uncertainty = 1xSD	min:0;max:1
+54	VGP Longitude	vgp_lon	Number	Number in Degrees	Recommended		Virtual geomagnetic pole, Longitude	Decimal degrees between 0 and 360	min:0;max:360
+55	VGP DP	vgp_dp	Number	Number in Degrees	Recommended		Virtual geomagnetic pole, Parallel latitude, Uncertainty	Uncertainty = 1xSD	min:0;max:180
+56	VGP DM	vgp_dm	Number	Number in Degrees	Recommended		Virtual geomagnetic pole, Meridian, Uncertainty	Uncertainty = 1xSD	min:0;max:180
 57	VGP Sigma	vgp_sigma	Number	Number in Degrees	Recommended		Virtual geomagnetic pole, Circular standard deviation	Uncertainty = 1xSD	min:0;max:1
 58	VGP Alpha 95%	vgp_alpha95	Number	Number in Degrees	Recommended		Fisher circle	Confidence Level = 95%	
 59	VGP N	vgp_n	Integer	Integer	Recommended		Number of data points included in VGP calculations		min:0
@@ -768,40 +768,40 @@ column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_ty
 66	Tilt Correction	tilt_correction	Number	Number in %	Optional		Tilt correction applied to the data	Correction between geographic (0%) and stratigraphic (100%); unoriented (-1%); partially oriented to horizontal only (-2%)	min:-2;max:100
 67	Tilt K Ratio	tilt_k_ratio	Number	Dimensionless	Optional		Comparison of Fisher dispersion K after and before tilt correction		
 68	Tilt N	tilt_n	Integer	Integer	Optional		Number of data points included in tilt correction		min:0
-69	Tilt Corrected Inclination	tilt_inc_corr	Number	Number in Degrees	Optional		Tilt corrected inclination	Decimal degrees between 0 and 90	min:0;max:90
+69	Tilt Corrected Inclination	tilt_inc_corr	Number	Number in Degrees	Optional		Tilt corrected inclination	Decimal degrees between -90 and 90	min:-90;max:90
 70	Tilt Corrected Declination	tilt_dec_corr	Number	Number in Degrees	Optional		Tilt corrected declination	Decimal degrees between 0 and 360	min:0;max:360
 71	Tilt Corrected K	tilt_k_corr	Number	Dimensionless	Optional		Average direction Fisher's dispersion parameter Kappa		
 72	Tilt Corrected Alpha 95%	tilt_alpha95_corr	Number	Number in Degrees	Optional		Fisher circle	Confidence Level = 95%	
-73	Tilt Uncorrected Inclination	tilt_inc_uncorr	Number	Number in Degrees	Optional		Tilt uncorrected inclination	Decimal degrees between 0 and 90	min:0;max:90
+73	Tilt Uncorrected Inclination	tilt_inc_uncorr	Number	Number in Degrees	Optional		Tilt uncorrected inclination	Decimal degrees between -90 and 90	min:-90;max:90
 74	Tilt Uncorrected Declination	tilt_dec_uncorr	Number	Number in Degrees	Optional		Tilt uncorrected declination	Decimal degrees between 0 and 360	min:0;max:360
 75	Tilt Uncorrected K	tilt_k_uncorr	Number	Dimensionless	Optional		Average direction Fisher's dispersion parameter Kappa		
 76	Tilt Uncorrected Alpha 95%	tilt_alpha95_uncorr	Number	Number in Degrees	Optional		Fisher circle	Confidence Level = 95%	
 77	Fold Test Significance	fold_test_significance	Number	Number in %	Optional		Significance level achieved in tilt correction calculations		
-78	Percentage Reversed Data	percent_reversed	Number	Number in %	Optional		Percentage of sites and samples that is reversed	200 indicates 'mixed' polarity and negative numbers indicate 'unknown' polarity	
+78	Percentage Reversed Data	percent_reversed	Number	Number in %	Optional		Percentage of sites and samples that is reversed	200 indicates "mixed" polarity and negative numbers indicate "unknown" polarity	
 79	Antipodal Angle	antipodal	Number	Number in Degrees	Optional		Great circle distance between normal and reversed poles	Decimal degrees between 0 and 180	min:0;max:180
 80	Normal Pole Latitude	normal_lat	Number	Number in Degrees	Optional		Normal pole, Latitude	Decimal degrees between -90 and 90	min:-90;max:90
-81	Normal Pole Longitude	normal_lon	Number	Number in Degrees	Optional		Normal pole, Longitude	Decimal degrees between 0 and 360	lon:0,360
-82	Normal Inclination	normal_inc	Number	Number in Degrees	Optional		Normal pole, Inclination	Decimal degrees between 0 and 90	min:0;max:90
+81	Normal Pole Longitude	normal_lon	Number	Number in Degrees	Optional		Normal pole, Longitude	Decimal degrees between 0 and 360	min:0;max:360
+82	Normal Inclination	normal_inc	Number	Number in Degrees	Optional		Normal pole, Inclination	Decimal degrees between -90 and 90	min:-90;max:90
 83	Normal Declination	normal_dec	Number	Number in Degrees	Optional		Normal pole, Declination	Decimal degrees between 0 and 360	min:0;max:360
 84	Normal N	normal_n	Integer	Integer	Optional		Number of sites or samples included in normal pole calculation		min:0
 85	Normal K	normal_k	Number	Dimensionless	Optional		Average direction Fisher's dispersion parameter Kappa		
 86	Normal Alpha 95%	normal_alpha95	Number	Number in Degrees	Optional		Average direction Fisher circle	Confidence Level = 95%	
 87	Reversed Pole Latitude	reversed_lat	Number	Number in Degrees	Optional		Reversed pole, Latitude	Decimal degrees between -90 and 90	min:-90;max:90
-88	Reversed Pole Longitude	reversed_lon	Number	Number in Degrees	Optional		Reversed pole, Longitude	Decimal degrees between 0 and 360	lon:0,360
-89	Reversed Inclination	reversed_inc	Number	Number in Degrees	Optional		Reversed pole, Inclination	Decimal degrees between 0 and 90	min:0;max:90
+88	Reversed Pole Longitude	reversed_lon	Number	Number in Degrees	Optional		Reversed pole, Longitude	Decimal degrees between 0 and 360	min:0;max:360
+89	Reversed Inclination	reversed_inc	Number	Number in Degrees	Optional		Reversed pole, Inclination	Decimal degrees between -90 and 90	min:-90;max:90
 90	Reversed Declination	reversed_dec	Number	Number in Degrees	Optional		Reversed pole, Declination	Decimal degrees between 0 and 360	min:0;max:360
 91	Reversed N	reversed_n	Integer	Integer	Optional		Number of sites or samples included in reversed pole calculation		min:0
 92	Reversed K	reversed_k	Number	Dimensionless	Optional		Average direction Fisher's dispersion parameter Kappa		
 93	Reversed Alpha 95%	reversed_alpha95	Number	Number in Degrees	Optional		Average direction Fisher circle	Confidence Level = 95%	
 94	Result Description	result_description	String(1000)	Text	Optional		Detailed description of results		type:description
-95	MagIC Software Packages	magic_software_packages	List(500)	Text	Recommended		Colon-delimited list of software used for data reduction	PmagPy v1.67b : FORCinel v1.11 	
-96	External Database Names	external_database_names	List(500)	Text	Optional	E	Colon-delimited list of external databases where data are used	GEOMAGIA50 : CALS7K.2 : ARCHEO00	cv:database_name
-97	External Database ID Numbers	external_database_ids	List(500)	Text	Optional		Colon-delimited list of ID numbers linking to external database records	1435 : 23 : 2329	
-98	Criteria Codes	pmag_criteria_codes	List(500)	Text	Optional	R	Colon-delimited list of criteria codes	MY-MAD : MY-APLHA95	in:pmag_criteria.pmag_criteria_code
-99	Rotation Codes	pmag_rotation_codes	List(500)	Text	Optional	R	Colon-delimited list of rotation codes	MY-TILT1 : MY-TILT2 : MY-TRANS1	in:pmag_rotations.pmag_rotation_code
-100	Method Codes	magic_method_codes	List(500)	Text	Required	R	Colon-delimited list of method codes	DE-DC0 : FT-F1 : LP-DCDMAG	in:magic_methods.magic_method_code
-101	Analyst Names	er_analyst_mail_names	List(500)	Text	Recommended	R	Colon-delimited list of names for analysts	Jim R.D. Hart : Alexis Heard : Bob McIntire	in:er_mailinglist.er_mail_name
-102	Citation Names	er_citation_names	List(500)	Text	Required	R	Colon-delimited list of citations	Smith et al. 2003 : Hart & Heard 1967 : This study	in:er_citations.er_citation_name
+95	MagIC Software Packages	magic_software_packages	List(500)	Text	Recommended		Colon-delimited list of software used for data reduction	PmagPy v1.67b, FORCinel v1.11 	
+96	External Database Names	external_database_names	List(500)	Text	Optional	E	Colon-delimited list of external databases where data are used	GEOMAGIA50, CALS7K.2, ARCHEO00	cv:database_name
+97	External Database ID Numbers	external_database_ids	List(500)	Text	Optional		Colon-delimited list of ID numbers linking to external database records	1435, 23, 2329	
+98	Criteria Codes	pmag_criteria_codes	List(500)	Text	Optional	R	Colon-delimited list of criteria codes	MY-MAD, MY-APLHA95	in:pmag_criteria.pmag_criteria_code
+99	Rotation Codes	pmag_rotation_codes	List(500)	Text	Optional	R	Colon-delimited list of rotation codes	MY-TILT1, MY-TILT2, MY-TRANS1	in:pmag_rotations.pmag_rotation_code
+100	Method Codes	magic_method_codes	List(500)	Text	Required	R	Colon-delimited list of method codes	DE-DC0, FT-F1, LP-DCDMAG	in:magic_methods.magic_method_code
+101	Analyst Names	er_analyst_mail_names	List(500)	Text	Recommended	R	Colon-delimited list of names and emails for analysts	Jim R.D. Hart <user1@email.com>, Alexis Heard <user1@email.com>:Bob McIntire <user2@email.com>	in:er_mailinglist.er_mail_name
+102	Citation Names	er_citation_names	List(500)	Text	Required	R	Colon-delimited list of citation DOIs	10.1029/92JB01202, 10.1029/2003GC000635:This study, "10.1023/A:1015035228810":This study	in:er_citations.er_citation_name
 >>>>>>>>>>
 tab delimited	pmag_rotations
 column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_type	field_description	field_examples	field_validation_rule
@@ -811,7 +811,7 @@ column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_ty
 4	Rotation Parameter Phi	rotation_phi	Number	Number in Degrees	Recommended		Finite rotation pole, Axis in degrees from North (strike if lambda is zero)		
 5	Rotation Parameter Omega	rotation_omega	Number	Number in Degrees	Recommended		Finite rotation pole, Degrees of clockwise rotation around axis (negative dip if lambda is zero)		
 6	Rotation Description	rotation_description	String(1000)	Text	Optional		Detailed description		type:description
-7	Citation Names	er_citation_names	List(500)	Text	Required	R	Colon-delimited list of citations	Smith et al. 2003 : Hart & Heard 1967 : This study	in:er_citations.er_citation_name
+7	Citation Names	er_citation_names	List(500)	Text	Required	R	Colon-delimited list of citation DOIs	10.1029/92JB01202, 10.1029/2003GC000635:This study, "10.1023/A:1015035228810":This study	in:er_citations.er_citation_name
 >>>>>>>>>>
 tab delimited	pmag_criteria
 column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_type	field_description	field_examples	field_validation_rule
@@ -945,8 +945,8 @@ column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_ty
 128	Number of Sites	average_int_n	Integer	Integer	Recommended		Number of sites included in intensity calculations		min:0
 129	Number of Samples	average_int_nn	Integer	Integer	Recommended		Number of samples included in intensity calculations		min:0
 130	Number of Specimens	average_int_nnn	Integer	Integer	Recommended		Number of specimens included in intensity calculations		min:0
-131	VGP DP	vgp_dp	Number	Number in Degrees	Optional		Parallel latitude, Uncertainty	Criterion = maximum; Uncertainty = 1xSD	min:0;max:90
-132	VGP DM	vgp_dm	Number	Number in Degrees	Optional		Meridian, Uncertainty	Criterion = maximum; Uncertainty = 1xSD	min:0;max:90
+131	VGP DP	vgp_dp	Number	Number in Degrees	Optional		Parallel latitude, Uncertainty	Criterion = maximum; Uncertainty = 1xSD	min:0;max:180
+132	VGP DM	vgp_dm	Number	Number in Degrees	Optional		Meridian, Uncertainty	Criterion = maximum; Uncertainty = 1xSD	min:0;max:180
 133	VGP Sigma	vgp_sigma	Number	Number in Degrees	Optional		Virtual geomagnetic pole, Circular standard deviation	Criterion = maximum; Uncertainty = 1xSD	min:0;max:90
 134	VGP Alpha 95%	vgp_alpha95	Number	Number in Degrees	Optional		Fisher circle	Criterion = maximum; Confidence Level = 95%	min:0;max:90
 135	VGP N	vgp_n	Integer	Integer	Optional		Number of data points included in VGP calculations	Criterion = minimum	min:0
@@ -956,7 +956,7 @@ column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_ty
 139	VADM N	vadm_n	Integer	Integer	Optional		Number of data points included in VADM calculations	Criterion = minimum	min:0
 140	Remanence Anisotropy Alteration	anisotropy_alt	Number	Number in %	Optional		Comparison of 1st and 2nd TRMs in TRM anisotropy experiment	Criterion = maximum	min:0;max:1
 141	Criteria Description	criteria_description	String(1000)	Text	Optional		Detailed description		type:description
-142	Citation Names	er_citation_names	List(500)	Text	Required	R	Colon-delimited list of citations	Smith et al. 2003 : Hart & Heard 1967 : This study	in:er_citations.er_citation_name
+142	Citation Names	er_citation_names	List(500)	Text	Required	R	Colon-delimited list of citation DOIs	10.1029/92JB01202, 10.1029/2003GC000635:This study, "10.1023/A:1015035228810":This study	in:er_citations.er_citation_name
 >>>>>>>>>>
 tab delimited	rmag_susceptibility
 column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_type	field_description	field_examples	field_validation_rule
@@ -970,7 +970,7 @@ column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_ty
 8	Fossil Name	er_fossil_name	String(50)	Text	Recommended	R	Name for fossil	AMM43-03	in:er_fossils.er_fossil_name
 9	Mineral Name	er_mineral_name	String(50)	Text	Recommended	R	Name for mineral	San03-001	in:er_minerals.er_mineral_name
 10	Synthetic Material Name	er_synthetic_name	String(50)	Text	Required	R	Name for synthetic material	STD1546-A1	in:er_synthetis.er_synthetic_name
-11	Experiment Name List	magic_experiment_names	List(2000)	Text	Optional	X	Colon-delimited list of experiments	KOPA-299-1 : KOPA-299-2 : KOPA-299-6	type:magic_experiment_name
+11	Experiment Name List	magic_experiment_names	List(2000)	Text	Optional	X	Colon-delimited list of experiments	KOPA-299-1, KOPA-299-2, KOPA-299-6	type:magic_experiment_name
 12	Susceptibility Flag	susceptibility_flag	String(1)	Flag	Recommended	F	Indicating if good (g, the default) or bad (b) data		cv:data_quality
 13	Susceptibility Volume	susceptibility_chi_volume	Number	Number in SI	Recommended		Average magnetic susceptibility, Volume normalized		
 14	Susceptibility Mass	susceptibility_chi_mass	Number	Number in m3/kg	Recommended		Average magnetic susceptibility, Mass normalized		
@@ -982,14 +982,14 @@ column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_ty
 20	Susceptibility Amplitude High	susceptibility_h_high	Number	Number in T	Recommended		Xhd calculation, High amplitude		
 21	Susceptibility Loss Tangent	susceptibility_loss_tangent	Number	Dimensionless	Recommended		Loss tangent or X(quadrature) over X(inphase)		
 22	Susceptibility Description	susceptibility_description	String(1000)	Text	Optional		Detailed description		type:description
-23	MagIC Software Packages	magic_software_packages	List(500)	Text	Recommended		Colon-delimited list of software used for data reduction	PmagPy v1.67b : FORCinel v1.11 	
-24	External Database Names	external_database_names	List(500)	Text	Optional	E	Colon-delimited list of external databases where data are used	GEOMAGIA50 : CALS7K.2 : ARCHEO00	cv:database_name
-25	External Database ID Numbers	external_database_ids	List(500)	Text	Optional		Colon-delimited list of ID numbers linking to external database records	1435 : 23 : 2329	
-26	Criteria Codes	rmag_criteria_codes	List(500)	Text	Recommended	R	Colon-delimited list of criteria codes	MY-MAD : MY-APLHA95	in:rmag_criteria.rmag_criteria_code
-27	Method Codes	magic_method_codes	List(500)	Text	Required	R	Colon-delimited list of method codes	DE-DC0 : FT-F1 : LP-DCDMAG	in:magic_methods.magic_method_code
-28	Instrument Codes	magic_instrument_codes	List(500)	Text	Required	R	Colon-delimited list of instrument codes	SIO-Bubba : IRM-OldBlue	in:magic_instruments.magic_instrument_code
-29	Analyst Names	er_analyst_mail_names	List(500)	Text	Recommended	R	Colon-delimited list of names for analysts	Jim R.D. Hart : Alexis Heard : Bob McIntire	in:er_mailinglist.er_mail_name
-30	Citation Names	er_citation_names	List(500)	Text	Required	R	Colon-delimited list of citations	Smith et al. 2003 : Hart & Heard 1967 : This study	in:er_citations.er_citation_name
+23	MagIC Software Packages	magic_software_packages	List(500)	Text	Recommended		Colon-delimited list of software used for data reduction	PmagPy v1.67b, FORCinel v1.11 	
+24	External Database Names	external_database_names	List(500)	Text	Optional	E	Colon-delimited list of external databases where data are used	GEOMAGIA50, CALS7K.2, ARCHEO00	cv:database_name
+25	External Database ID Numbers	external_database_ids	List(500)	Text	Optional		Colon-delimited list of ID numbers linking to external database records	1435, 23, 2329	
+26	Criteria Codes	rmag_criteria_codes	List(500)	Text	Recommended	R	Colon-delimited list of criteria codes	MY-MAD, MY-APLHA95	in:rmag_criteria.rmag_criteria_code
+27	Method Codes	magic_method_codes	List(500)	Text	Required	R	Colon-delimited list of method codes	DE-DC0, FT-F1, LP-DCDMAG	in:magic_methods.magic_method_code
+28	Instrument Codes	magic_instrument_codes	List(500)	Text	Required	R	Colon-delimited list of instrument codes	SIO-Bubba, IRM-OldBlue	in:magic_instruments.magic_instrument_code
+29	Analyst Names	er_analyst_mail_names	List(500)	Text	Recommended	R	Colon-delimited list of names and emails for analysts	Jim R.D. Hart <user1@email.com>, Alexis Heard <user1@email.com>:Bob McIntire <user2@email.com>	in:er_mailinglist.er_mail_name
+30	Citation Names	er_citation_names	List(500)	Text	Required	R	Colon-delimited list of citation DOIs	10.1029/92JB01202, 10.1029/2003GC000635:This study, "10.1023/A:1015035228810":This study	in:er_citations.er_citation_name
 >>>>>>>>>>
 tab delimited	rmag_remanence
 column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_type	field_description	field_examples	field_validation_rule
@@ -1003,7 +1003,7 @@ column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_ty
 8	Fossil Name	er_fossil_name	String(50)	Text	Recommended	R	Name for fossil	AMM43-03	in:er_fossils.er_fossil_name
 9	Mineral Name	er_mineral_name	String(50)	Text	Recommended	R	Name for mineral	San03-001	in:er_minerals.er_mineral_name
 10	Synthetic Material Name	er_synthetic_name	String(50)	Text	Required	R	Name for synthetic material	STD1546-A1	in:er_synthetis.er_synthetic_name
-11	Experiment Name List	magic_experiment_names	List(2000)	Text	Optional	X	Colon-delimited list of experiments	KOPA-299-1 : KOPA-299-2 : KOPA-299-6	type:magic_experiment_name
+11	Experiment Name List	magic_experiment_names	List(2000)	Text	Optional	X	Colon-delimited list of experiments	KOPA-299-1, KOPA-299-2, KOPA-299-6	type:magic_experiment_name
 12	Remanence Flag	remanence_flag	String(1)	Flag	Recommended	F	Indicating if good (g, the default) or bad (b) data		cv:data_quality
 13	Measurement Temperature	measurement_temp	Number	Number in K	Recommended		Temperature		min:0
 14	Measurement Orientation Phi	measurement_orient_phi	Number	Number in Degrees	Recommended		Orientation of sample in magnetometer		
@@ -1039,14 +1039,14 @@ column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_ty
 44	Remanence Sd	remanence_sd	Number	Number in Am2/log(s)	Recommended		Decay in the viscosity coefficient dM/d(log t) during the acquisition of viscous remanence		
 45	Remanence Koenigsberger Ratio	remanence_q	Number	Dimensionless	Recommended		Koenigsberger ratio		
 46	Remanence Description	remanence_description	String(1000)	Text	Optional		Detailed description		type:description
-47	MagIC Software Packages	magic_software_packages	List(500)	Text	Recommended		Colon-delimited list of software used for data reduction	PmagPy v1.67b : FORCinel v1.11 	
-48	External Database Names	external_database_names	List(500)	Text	Optional	E	Colon-delimited list of external databases where data are used	GEOMAGIA50 : CALS7K.2 : ARCHEO00	cv:database_name
-49	External Database ID Numbers	external_database_ids	List(500)	Text	Optional		Colon-delimited list of ID numbers linking to external database records	1435 : 23 : 2329	
-50	Criteria Codes	rmag_criteria_codes	List(500)	Text	Recommended	R	Colon-delimited list of criteria codes	MY-MAD : MY-APLHA95	in:rmag_criteria.rmag_criteria_code
-51	Method Codes	magic_method_codes	List(500)	Text	Required	R	Colon-delimited list of method codes	DE-DC0 : FT-F1 : LP-DCDMAG	in:magic_methods.magic_method_code
-52	Instrument Codes	magic_instrument_codes	List(500)	Text	Required	R	Colon-delimited list of instrument codes	SIO-Bubba : IRM-OldBlue	in:magic_instruments.magic_instrument_code
-53	Analyst Names	er_analyst_mail_names	List(500)	Text	Recommended	R	Colon-delimited list of names for analysts	Jim R.D. Hart : Alexis Heard : Bob McIntire	in:er_mailinglist.er_mail_name
-54	Citation Names	er_citation_names	List(500)	Text	Required	R	Colon-delimited list of citations	Smith et al. 2003 : Hart & Heard 1967 : This study	in:er_citations.er_citation_name
+47	MagIC Software Packages	magic_software_packages	List(500)	Text	Recommended		Colon-delimited list of software used for data reduction	PmagPy v1.67b, FORCinel v1.11 	
+48	External Database Names	external_database_names	List(500)	Text	Optional	E	Colon-delimited list of external databases where data are used	GEOMAGIA50, CALS7K.2, ARCHEO00	cv:database_name
+49	External Database ID Numbers	external_database_ids	List(500)	Text	Optional		Colon-delimited list of ID numbers linking to external database records	1435, 23, 2329	
+50	Criteria Codes	rmag_criteria_codes	List(500)	Text	Recommended	R	Colon-delimited list of criteria codes	MY-MAD, MY-APLHA95	in:rmag_criteria.rmag_criteria_code
+51	Method Codes	magic_method_codes	List(500)	Text	Required	R	Colon-delimited list of method codes	DE-DC0, FT-F1, LP-DCDMAG	in:magic_methods.magic_method_code
+52	Instrument Codes	magic_instrument_codes	List(500)	Text	Required	R	Colon-delimited list of instrument codes	SIO-Bubba, IRM-OldBlue	in:magic_instruments.magic_instrument_code
+53	Analyst Names	er_analyst_mail_names	List(500)	Text	Recommended	R	Colon-delimited list of names and emails for analysts	Jim R.D. Hart <user1@email.com>, Alexis Heard <user1@email.com>:Bob McIntire <user2@email.com>	in:er_mailinglist.er_mail_name
+54	Citation Names	er_citation_names	List(500)	Text	Required	R	Colon-delimited list of citation DOIs	10.1029/92JB01202, 10.1029/2003GC000635:This study, "10.1023/A:1015035228810":This study	in:er_citations.er_citation_name
 >>>>>>>>>>
 tab delimited	rmag_hysteresis
 column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_type	field_description	field_examples	field_validation_rule
@@ -1060,7 +1060,7 @@ column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_ty
 8	Fossil Name	er_fossil_name	String(50)	Text	Recommended	R	Name for fossil	AMM43-03	in:er_fossils.er_fossil_name
 9	Mineral Name	er_mineral_name	String(50)	Text	Recommended	R	Name for mineral	San03-001	in:er_minerals.er_mineral_name
 10	Synthetic Material Name	er_synthetic_name	String(50)	Text	Required	R	Name for synthetic material	STD1546-A1	in:er_synthetis.er_synthetic_name
-11	Experiment Name List	magic_experiment_names	List(2000)	Text	Optional	X	Colon-delimited list of experiments	KOPA-299-1 : KOPA-299-2 : KOPA-299-6	type:magic_experiment_name
+11	Experiment Name List	magic_experiment_names	List(2000)	Text	Optional	X	Colon-delimited list of experiments	KOPA-299-1, KOPA-299-2, KOPA-299-6	type:magic_experiment_name
 12	Hysteresis Flag	hysteresis_flag	String(1)	Flag	Recommended	F	Indicating if good (g, the default) or bad (b) data		cv:data_quality
 13	Measurement Hysteresis Loop Number	measurement_loop_x	Integer	Integer	Recommended		Hysteresis loop counter		
 14	Measurement Hysteresis Loop Total	measurement_loop_n	Integer	Integer	Recommended		Total number of hysteresis loops in experiment		min:0
@@ -1081,14 +1081,14 @@ column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_ty
 29	Hysteresis Xhf	hysteresis_xhf	Number	Number in m3	Recommended		High field slope		
 30	Hysteresis Transient Magnetization	hysteresis_th	Number	Number in T	Recommended		Transient energy dissipation related to domain state		
 31	Hysteresis Description	hysteresis_description	String(1000)	Text	Optional		Detailed description		type:description
-32	MagIC Software Packages	magic_software_packages	List(500)	Text	Recommended		Colon-delimited list of software used for data reduction	PmagPy v1.67b : FORCinel v1.11 	
-33	External Database Names	external_database_names	List(500)	Text	Optional	E	Colon-delimited list of external databases where data are used	GEOMAGIA50 : CALS7K.2 : ARCHEO00	cv:database_name
-34	External Database ID Numbers	external_database_ids	List(500)	Text	Optional		Colon-delimited list of ID numbers linking to external database records	1435 : 23 : 2329	
-35	Criteria Codes	rmag_criteria_codes	List(500)	Text	Recommended	R	Colon-delimited list of criteria codes	MY-MAD : MY-APLHA95	in:rmag_criteria.rmag_criteria_code
-36	Method Codes	magic_method_codes	List(500)	Text	Required	R	Colon-delimited list of method codes	DE-DC0 : FT-F1 : LP-DCDMAG	in:magic_methods.magic_method_code
-37	Instrument Codes	magic_instrument_codes	List(500)	Text	Required	R	Colon-delimited list of instrument codes	SIO-Bubba : IRM-OldBlue	in:magic_instruments.magic_instrument_code
-38	Analyst Names	er_analyst_mail_names	List(500)	Text	Recommended	R	Colon-delimited list of names for analysts	Jim R.D. Hart : Alexis Heard : Bob McIntire	in:er_mailinglist.er_mail_name
-39	Citation Names	er_citation_names	List(500)	Text	Required	R	Colon-delimited list of citations	Smith et al. 2003 : Hart & Heard 1967 : This study	in:er_citations.er_citation_name
+32	MagIC Software Packages	magic_software_packages	List(500)	Text	Recommended		Colon-delimited list of software used for data reduction	PmagPy v1.67b, FORCinel v1.11 	
+33	External Database Names	external_database_names	List(500)	Text	Optional	E	Colon-delimited list of external databases where data are used	GEOMAGIA50, CALS7K.2, ARCHEO00	cv:database_name
+34	External Database ID Numbers	external_database_ids	List(500)	Text	Optional		Colon-delimited list of ID numbers linking to external database records	1435, 23, 2329	
+35	Criteria Codes	rmag_criteria_codes	List(500)	Text	Recommended	R	Colon-delimited list of criteria codes	MY-MAD, MY-APLHA95	in:rmag_criteria.rmag_criteria_code
+36	Method Codes	magic_method_codes	List(500)	Text	Required	R	Colon-delimited list of method codes	DE-DC0, FT-F1, LP-DCDMAG	in:magic_methods.magic_method_code
+37	Instrument Codes	magic_instrument_codes	List(500)	Text	Required	R	Colon-delimited list of instrument codes	SIO-Bubba, IRM-OldBlue	in:magic_instruments.magic_instrument_code
+38	Analyst Names	er_analyst_mail_names	List(500)	Text	Recommended	R	Colon-delimited list of names and emails for analysts	Jim R.D. Hart <user1@email.com>, Alexis Heard <user1@email.com>:Bob McIntire <user2@email.com>	in:er_mailinglist.er_mail_name
+39	Citation Names	er_citation_names	List(500)	Text	Required	R	Colon-delimited list of citation DOIs	10.1029/92JB01202, 10.1029/2003GC000635:This study, "10.1023/A:1015035228810":This study	in:er_citations.er_citation_name
 >>>>>>>>>>
 tab delimited	rmag_anisotropy
 column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_type	field_description	field_examples	field_validation_rule
@@ -1102,7 +1102,7 @@ column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_ty
 8	Fossil Name	er_fossil_name	String(50)	Text	Recommended	R	Name for fossil	AMM43-03	in:er_fossils.er_fossil_name
 9	Mineral Name	er_mineral_name	String(50)	Text	Recommended	R	Name for mineral	San03-001	in:er_minerals.er_mineral_name
 10	Synthetic Material Name	er_synthetic_name	String(50)	Text	Required	R	Name for synthetic material	STD1546-A1	in:er_synthetis.er_synthetic_name
-11	Experiment Name List	magic_experiment_names	List(2000)	Text	Optional	X	Colon-delimited list of experiments	KOPA-299-1 : KOPA-299-2 : KOPA-299-6	type:magic_experiment_name
+11	Experiment Name List	magic_experiment_names	List(2000)	Text	Optional	X	Colon-delimited list of experiments	KOPA-299-1, KOPA-299-2, KOPA-299-6	type:magic_experiment_name
 12	Anisotropy Flag	anisotropy_flag	String(1)	Flag	Recommended	F	Indicating if good (g, the default) or bad (b) data		cv:data_quality
 13	Anisotropy Type	anisotropy_type	String(30)	Text	Required		Anisotropy calculation type	AMS, AARM, AIRM, ATRM	
 14	Anisotropy Tensor Element 1	anisotropy_s1	Number	Number	Recommended		Anisotropy tensor element, c11		
@@ -1118,26 +1118,26 @@ column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_ty
 24	Anisotropy Tilt Correction	anisotropy_tilt_correction	Number	Number in %	Optional		Percentage tilt correction applied to the data	Correction between geographic (0%) and stratigraphic (100%); unoriented (-1%); partially oriented to horizontal only (-2%)	min:-2;max:100
 25	Remanence Anisotropy Alteration	anisotropy_alt	Number	Number in %	Optional		Comparison of 1st and 2nd TRMs in TRM anisotropy experiment		
 26	Anisotropy Description	anisotropy_description	String(1000)	Text	Optional		Detailed description		type:description
-27	MagIC Software Packages	magic_software_packages	List(500)	Text	Recommended		Colon-delimited list of software used for data reduction	PmagPy v1.67b : FORCinel v1.11 	
-28	External Database Names	external_database_names	List(500)	Text	Optional	E	Colon-delimited list of external databases where data are used	GEOMAGIA50 : CALS7K.2 : ARCHEO00	cv:database_name
-29	External Database ID Numbers	external_database_ids	List(500)	Text	Optional		Colon-delimited list of ID numbers linking to external database records	1435 : 23 : 2329	
-30	Criteria Codes	rmag_criteria_codes	List(500)	Text	Recommended	R	Colon-delimited list of criteria codes	MY-MAD : MY-APLHA95	in:rmag_criteria.rmag_criteria_code
-31	Method Codes	magic_method_codes	List(500)	Text	Required	R	Colon-delimited list of method codes	DE-DC0 : FT-F1 : LP-DCDMAG	in:magic_methods.magic_method_code
-32	Instrument Codes	magic_instrument_codes	List(500)	Text	Required	R	Colon-delimited list of instrument codes	SIO-Bubba : IRM-OldBlue	in:magic_instruments.magic_instrument_code
-33	Analyst Names	er_analyst_mail_names	List(500)	Text	Recommended	R	Colon-delimited list of names for analysts	Jim R.D. Hart : Alexis Heard : Bob McIntire	in:er_mailinglist.er_mail_name
-34	Citation Names	er_citation_names	List(500)	Text	Required	R	Colon-delimited list of citations	Smith et al. 2003 : Hart & Heard 1967 : This study	in:er_citations.er_citation_name
+27	MagIC Software Packages	magic_software_packages	List(500)	Text	Recommended		Colon-delimited list of software used for data reduction	PmagPy v1.67b, FORCinel v1.11 	
+28	External Database Names	external_database_names	List(500)	Text	Optional	E	Colon-delimited list of external databases where data are used	GEOMAGIA50, CALS7K.2, ARCHEO00	cv:database_name
+29	External Database ID Numbers	external_database_ids	List(500)	Text	Optional		Colon-delimited list of ID numbers linking to external database records	1435, 23, 2329	
+30	Criteria Codes	rmag_criteria_codes	List(500)	Text	Recommended	R	Colon-delimited list of criteria codes	MY-MAD, MY-APLHA95	in:rmag_criteria.rmag_criteria_code
+31	Method Codes	magic_method_codes	List(500)	Text	Required	R	Colon-delimited list of method codes	DE-DC0, FT-F1, LP-DCDMAG	in:magic_methods.magic_method_code
+32	Instrument Codes	magic_instrument_codes	List(500)	Text	Required	R	Colon-delimited list of instrument codes	SIO-Bubba, IRM-OldBlue	in:magic_instruments.magic_instrument_code
+33	Analyst Names	er_analyst_mail_names	List(500)	Text	Recommended	R	Colon-delimited list of names and emails for analystsColon-delimited list of names and emails for analysts	Jim R.D. Hart <user1@email.com>, Alexis Heard <user1@email.com>:Bob McIntire <user2@email.com>	in:er_mailinglist.er_mail_name
+34	Citation Names	er_citation_names	List(500)	Text	Required	R	Colon-delimited list of citation DOIs	10.1029/92JB01202, 10.1029/2003GC000635:This study, "10.1023/A:1015035228810":This study	in:er_citations.er_citation_name
 >>>>>>>>>>
 tab delimited	rmag_results
 column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_type	field_description	field_examples	field_validation_rule
 1	Result Name	rmag_result_name	String(50)	Text	Required	P	Name or number to identify results	MY-POLE-XX	unique
-2	Location Name List	er_location_names	List(2000)	Text	Recommended	R	Colon-delimited list of location, dredge or drill site names	Site 801 : Site 1129 : Dredge AMAT02-D15	in:er_locations.er_location_name
-3	Site Name List	er_site_names	List(2000)	Text	Recommended	R	Colon-delimited list of site names	Bas123a : Bas156z : Bas445c	in:er_sites.er_site_name
-4	Sample Name List	er_sample_names	List(2000)	Text	Recommended	R	Colon-delimited list of sample names	Bas123a-01 : Bas123a-04 : Bas123a-19	in:er_samples.er_sample_name
-5	Specimen Name List	er_specimen_names	List(2000)	Text	Recommended	R	Colon-delimited list of specimen names	Bas123a-01x : Bas123a-01y	in:er_specimens.er_specimen_name
-6	Fossil Name List	er_fossil_names	List(2000)	Text	Recommended	R	Colon-delimited list of fossil names	AMM43-03 : AMM43-19	in:er_fossils.er_fossil_name
-7	Mineral Name List	er_mineral_names	List(2000)	Text	Recommended	R	Colon-delimited list of mineral names	PLG33a : MAGN-MJ-034	in:er_minerals.er_mineral_name
-8	Synthetic Material Name List	er_synthetic_names	List(2000)	Text	Recommended	R	Colon-delimited list of synthetic material names	STD1546-A1 : STD1546-X23	in:er_synthetis.er_synthetic_name
-9	Experiment Name List	magic_experiment_names	List(2000)	Text	Optional	X	Colon-delimited list of experiments	KOPA-299-1 : KOPA-299-2 : KOPA-299-6	type:magic_experiment_name
+2	Location Name List	er_location_names	List(2000)	Text	Recommended	R	Colon-delimited list of location, dredge or drill site names	Site 801, Site 1129, Dredge AMAT02-D15	in:er_locations.er_location_name
+3	Site Name List	er_site_names	List(2000)	Text	Recommended	R	Colon-delimited list of site names	Bas123a, Bas156z, Bas445c	in:er_sites.er_site_name
+4	Sample Name List	er_sample_names	List(2000)	Text	Recommended	R	Colon-delimited list of sample names	Bas123a-01, Bas123a-04, Bas123a-19	in:er_samples.er_sample_name
+5	Specimen Name List	er_specimen_names	List(2000)	Text	Recommended	R	Colon-delimited list of specimen names	Bas123a-01x, Bas123a-01y	in:er_specimens.er_specimen_name
+6	Fossil Name List	er_fossil_names	List(2000)	Text	Recommended	R	Colon-delimited list of fossil names	AMM43-03, AMM43-19	in:er_fossils.er_fossil_name
+7	Mineral Name List	er_mineral_names	List(2000)	Text	Recommended	R	Colon-delimited list of mineral names	PLG33a, MAGN-MJ-034	in:er_minerals.er_mineral_name
+8	Synthetic Material Name List	er_synthetic_names	List(2000)	Text	Recommended	R	Colon-delimited list of synthetic material names	STD1546-A1, STD1546-X23	in:er_synthetis.er_synthetic_name
+9	Experiment Name List	magic_experiment_names	List(2000)	Text	Optional	X	Colon-delimited list of experiments	KOPA-299-1, KOPA-299-2, KOPA-299-6	type:magic_experiment_name
 10	Critical Temperature Low	critical_temp_low	Number	Number in K	Recommended		Critical, Xfd or Xhd temperature calculation, Low range		min:0
 11	Critical Temperature High	critical_temp_high	Number	Number in K	Recommended		Critical, Xfd or Xhd temperature calculation, High range		min:0
 12	Critical Temperature	critical_temp	Number	Number in K	Recommended		Temperature at which some transition occurs		min:0
@@ -1149,27 +1149,27 @@ column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_ty
 18	Anisotropy Eigenvalue 1	anisotropy_t1	Number	Number	Recommended		Maximum eigenvalue		
 19	Anisotropy Eigenvalue 2	anisotropy_t2	Number	Number	Recommended		Intermediate eigenvalue		
 20	Anisotropy Eigenvalue 3	anisotropy_t3	Number	Number	Recommended		Minimum eigenvalue		
-21	Anisotropy Eigenvector 1 Declination	anisotropy_v1_dec	Number	Number in Degrees	Recommended		Declination eigenvector associated with maximum eigenvalue		
-22	Anisotropy Eigenvector 2 Declination	anisotropy_v2_dec	Number	Number in Degrees	Recommended		Declination eigenvector associated with intermediate eigenvalue		
-23	Anisotropy Eigenvector 3 Declination	anisotropy_v3_dec	Number	Number in Degrees	Recommended		Declination eigenvector associated with minimum eigenvalue		
+21	Anisotropy Eigenvector 1 Declination	anisotropy_v1_dec	Number	Number in Degrees	Recommended		Declination eigenvector associated with maximum eigenvalue		min:0;max:360
+22	Anisotropy Eigenvector 2 Declination	anisotropy_v2_dec	Number	Number in Degrees	Recommended		Declination eigenvector associated with intermediate eigenvalue		min:0;max:360
+23	Anisotropy Eigenvector 3 Declination	anisotropy_v3_dec	Number	Number in Degrees	Recommended		Declination eigenvector associated with minimum eigenvalue		min:0;max:360
 24	Anisotropy Eigenvector 1 Inclination	anisotropy_v1_inc	Number	Number in Degrees	Recommended		Inclination eigenvector associated with maximum eigenvalue		
 25	Anisotropy Eigenvector 2 Inclination	anisotropy_v2_inc	Number	Number in Degrees	Recommended		Inclination eigenvector associated with intermediate eigenvalue		
 26	Anisotropy Eigenvector 3 Inclination	anisotropy_v3_inc	Number	Number in Degrees	Recommended		Inclination eigenvector associated with minimum eigenvalue		
 27	Anisotropy ETA Eigenvector 1 Inclination	anisotropy_v1_eta_inc	Number	Number in Degrees	Recommended		Minor axis eigenvector 1, Inclination		
 28	Anisotropy ETA Eigenvector 2 Inclination	anisotropy_v2_eta_inc	Number	Number in Degrees	Recommended		Minor axis eigenvector 2, Inclination		
 29	Anisotropy ETA Eigenvector 3 Inclination	anisotropy_v3_eta_inc	Number	Number in Degrees	Recommended		Minor axis eigenvector 3, Inclination		
-30	Anisotropy ETA Eigenvector 1 Declination	anisotropy_v1_eta_dec	Number	Number in Degrees	Recommended		Minor axis eigenvector 1, Declination		
-31	Anisotropy ETA Eigenvector 2 Declination	anisotropy_v2_eta_dec	Number	Number in Degrees	Recommended		Minor axis eigenvector 2, Declination		
-32	Anisotropy ETA Eigenvector 3 Declination	anisotropy_v3_eta_dec	Number	Number in Degrees	Recommended		Minor axis eigenvector 3, Declination		
+30	Anisotropy ETA Eigenvector 1 Declination	anisotropy_v1_eta_dec	Number	Number in Degrees	Recommended		Minor axis eigenvector 1, Declination		min:0;max:360
+31	Anisotropy ETA Eigenvector 2 Declination	anisotropy_v2_eta_dec	Number	Number in Degrees	Recommended		Minor axis eigenvector 2, Declination		min:0;max:360
+32	Anisotropy ETA Eigenvector 3 Declination	anisotropy_v3_eta_dec	Number	Number in Degrees	Recommended		Minor axis eigenvector 3, Declination		min:0;max:360
 33	Anisotropy ETA Eigenvector 1 Semi Angle	anisotropy_v1_eta_semi_angle	Number	Number in Degrees	Recommended		Minor axis eigenvector 1, Semi angle	Confidence Level = 95%	
 34	Anisotropy ETA Eigenvector 2 Semi Angle	anisotropy_v2_eta_semi_angle	Number	Number in Degrees	Recommended		Minor axis eigenvector 2, Semi angle	Confidence Level = 95%	
 35	Anisotropy ETA Eigenvector 3 Semi Angle	anisotropy_v3_eta_semi_angle	Number	Number in Degrees	Recommended		Minor axis eigenvector 3, Semi angle	Confidence Level = 95%	
 36	Anisotropy ZETA Eigenvector 1 Inclination	anisotropy_v1_zeta_inc	Number	Number in Degrees	Recommended		Major axis eigenvector 1, Inclination		
 37	Anisotropy ZETA Eigenvector 2 Inclination	anisotropy_v2_zeta_inc	Number	Number in Degrees	Recommended		Major axis eigenvector 2, Inclination		
 38	Anisotropy ZETA Eigenvector 3 Inclination	anisotropy_v3_zeta_inc	Number	Number in Degrees	Recommended		Major axis eigenvector 3, Inclination		
-39	Anisotropy ZETA Eigenvector 1 Declination	anisotropy_v1_zeta_dec	Number	Number in Degrees	Recommended		Major axis eigenvector 1, Declination		
-40	Anisotropy ZETA Eigenvector 2 Declination	anisotropy_v2_zeta_dec	Number	Number in Degrees	Recommended		Major axis eigenvector 2, Declination		
-41	Anisotropy ZETA Eigenvector 3 Declination	anisotropy_v3_zeta_dec	Number	Number in Degrees	Recommended		Major axis eigenvector 3, Declination		
+39	Anisotropy ZETA Eigenvector 1 Declination	anisotropy_v1_zeta_dec	Number	Number in Degrees	Recommended		Major axis eigenvector 1, Declination		min:0;max:360
+40	Anisotropy ZETA Eigenvector 2 Declination	anisotropy_v2_zeta_dec	Number	Number in Degrees	Recommended		Major axis eigenvector 2, Declination		min:0;max:360
+41	Anisotropy ZETA Eigenvector 3 Declination	anisotropy_v3_zeta_dec	Number	Number in Degrees	Recommended		Major axis eigenvector 3, Declination		min:0;max:360
 42	Anisotropy ZETA Eigenvector 1 Semi Angle	anisotropy_v1_zeta_semi_angle	Number	Number in Degrees	Recommended		Major axis eigenvector 1, Semi angle	Confidence Level = 95%	
 43	Anisotropy ZETA Eigenvector 2 Semi Angle	anisotropy_v2_zeta_semi_angle	Number	Number in Degrees	Recommended		Major axis eigenvector 2, Semi angle	Confidence Level = 95%	
 44	Anisotropy ZETA Eigenvector 3 Semi Angle	anisotropy_v3_zeta_semi_angle	Number	Number in Degrees	Recommended		Major axis eigenvector 3, Semi angle	Confidence Level = 95%	
@@ -1189,19 +1189,19 @@ column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_ty
 58	Anisotropy F Test Oblateness	anisotropy_ftest23	Number	Number in %	Optional		F statistical test for oblateness		
 59	Tilt Correction	tilt_correction	Number	Number in %	Optional		Tilt correction applied to the data	Correction between geographic (0%) and stratigraphic (100%); unoriented (-1%); partially oriented to horizontal only (-2%)	min:-2;max:100
 60	Result Description	result_description	String(1000)	Text	Optional		Detailed description of results		type:description
-61	MagIC Software Packages	magic_software_packages	List(500)	Text	Recommended		Colon-delimited list of software used for data reduction	PmagPy v1.67b : FORCinel v1.11 	
-62	External Database Names	external_database_names	List(500)	Text	Optional	E	Colon-delimited list of external databases where data are used	GEOMAGIA50 : CALS7K.2 : ARCHEO00	cv:database_name
-63	External Database ID Numbers	external_database_ids	List(500)	Text	Optional		Colon-delimited list of ID numbers linking to external database records	1435 : 23 : 2329	
-64	Criteria Codes	rmag_criteria_codes	List(500)	Text	Optional	R	Colon-delimited list of criteria codes	MY-MAD : MY-APLHA95	in:rmag_criteria.rmag_criteria_code
-65	Method Codes	magic_method_codes	List(500)	Text	Required	R	Colon-delimited list of method codes	DE-DC0 : FT-F1 : LP-DCDMAG	in:magic_methods.magic_method_code
-66	Instrument Codes	magic_instrument_codes	List(500)	Text	Required	R	Colon-delimited list of instrument codes	SIO-Bubba : IRM-OldBlue	in:magic_instruments.magic_instrument_code
-67	Analyst Names	er_analyst_mail_names	List(500)	Text	Recommended	R	Colon-delimited list of names for analysts	Jim R.D. Hart : Alexis Heard : Bob McIntire	in:er_mailinglist.er_mail_name
-68	Citation Names	er_citation_names	List(500)	Text	Required	R	Colon-delimited list of citations	Smith et al. 2003 : Hart & Heard 1967 : This study	in:er_citations.er_citation_name
+61	MagIC Software Packages	magic_software_packages	List(500)	Text	Recommended		Colon-delimited list of software used for data reduction	PmagPy v1.67b, FORCinel v1.11 	
+62	External Database Names	external_database_names	List(500)	Text	Optional	E	Colon-delimited list of external databases where data are used	GEOMAGIA50, CALS7K.2, ARCHEO00	cv:database_name
+63	External Database ID Numbers	external_database_ids	List(500)	Text	Optional		Colon-delimited list of ID numbers linking to external database records	1435, 23, 2329	
+64	Criteria Codes	rmag_criteria_codes	List(500)	Text	Optional	R	Colon-delimited list of criteria codes	MY-MAD, MY-APLHA95	in:rmag_criteria.rmag_criteria_code
+65	Method Codes	magic_method_codes	List(500)	Text	Required	R	Colon-delimited list of method codes	DE-DC0, FT-F1, LP-DCDMAG	in:magic_methods.magic_method_code
+66	Instrument Codes	magic_instrument_codes	List(500)	Text	Required	R	Colon-delimited list of instrument codes	SIO-Bubba, IRM-OldBlue	in:magic_instruments.magic_instrument_code
+67	Analyst Names	er_analyst_mail_names	List(500)	Text	Recommended	R	Colon-delimited list of names and emails for analysts	Jim R.D. Hart <user1@email.com>, Alexis Heard <user1@email.com>:Bob McIntire <user2@email.com>	in:er_mailinglist.er_mail_name
+68	Citation Names	er_citation_names	List(500)	Text	Required	R	Colon-delimited list of citation DOIs	10.1029/92JB01202, 10.1029/2003GC000635:This study, "10.1023/A:1015035228810":This study	in:er_citations.er_citation_name
 >>>>>>>>>>
 tab delimited	rmag_criteria
 column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_type	field_description	field_examples	field_validation_rule
 1	Criteria Code	rmag_criteria_code	String(50)	Text	Required	P	Criteria type name or number	MY-ANIS567, MY-LOOPS-12	unique
 2	Criteria Definition	criteria_definition	String(300)	Text	Required		Definition of the criteria		
 4	Criteria Description	criteria_description	String(1000)	Text	Optional		Detailed description		type:description
-5	Citation Names	er_citation_names	List(500)	Text	Required	R	Colon-delimited list of citations	Smith et al. 2003 : Hart & Heard 1967 : This study	in:er_citations.er_citation_name
+5	Citation Names	er_citation_names	List(500)	Text	Required	R	Colon-delimited list of citation DOIs	10.1029/92JB01202, 10.1029/2003GC000635:This study, "10.1023/A:1015035228810":This study	in:er_citations.er_citation_name
 >>>>>>>>>>

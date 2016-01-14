@@ -533,6 +533,7 @@ class thellier_auto_interpreter():
         #    os.system('\a')
         #except:
         #    pass
+        return True, len(specimens_list)
 
 
 

@@ -140,7 +140,7 @@ THERMAL=True
 
 
 import matplotlib
-#matplotlib.use('WXAgg')
+matplotlib.use('WXAgg')
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigCanvas 
 
 
@@ -991,9 +991,9 @@ class Arai_GUI(wx.Frame):
         m_plot_data = menu_Plot.Append(-1, "&Plot paleointensity curve", "")
         self.Bind(wx.EVT_MENU, self.on_menu_plot_data, m_plot_data)
 
-        menu_results_table= wx.Menu()
-        m_make_results_table = menu_results_table.Append(-1, "&Make results table", "")
-        self.Bind(wx.EVT_MENU, self.on_menu_results_data, m_make_results_table)
+        #menu_results_table= wx.Menu()
+        #m_make_results_table = menu_results_table.Append(-1, "&Make results table", "")
+        #self.Bind(wx.EVT_MENU, self.on_menu_results_data, m_make_results_table)
 
 
         #menu_MagIC= wx.Menu()
@@ -1015,7 +1015,7 @@ class Arai_GUI(wx.Frame):
         self.menubar.Append(menu_Auto_Interpreter, "&Auto Interpreter")
         self.menubar.Append(menu_consistency_test, "&Consistency Test")
         self.menubar.Append(menu_Plot, "&Plot")
-        self.menubar.Append(menu_results_table, "&Table")
+        #self.menubar.Append(menu_results_table, "&Table")
         #self.menubar.Append(menu_MagIC, "&MagIC")
         
         self.SetMenuBar(self.menubar)
@@ -2919,6 +2919,7 @@ class Arai_GUI(wx.Frame):
     def on_menu_run_interpreter(self, event):
         import thellier_interpreter
         busy_frame=wx.BusyInfo("Running Thellier auto interpreter\n It may take several minutes depending on the number of specimens ...", self)
+        wx.Yield()
         thellier_auto_interpreter=thellier_interpreter.thellier_auto_interpreter(self.Data,self.Data_hierarchy,self.WD,self.acceptance_criteria,self.preferences,self.GUI_log,THERMAL,MICROWAVE)
         thellier_auto_interpreter.run_interpreter()
         self.Data={}
@@ -2934,11 +2935,9 @@ class Arai_GUI(wx.Frame):
         self.draw_figure(self.s)
         #print "just drew figure"
         self.update_GUI_with_new_interpretation()
-
+        del busy_frame
         dlg1.ShowModal()
         dlg1.Destroy()
-        busy_frame.Destroy()
-
         return()
         #self.Data=copy.deepcopy      
 #
@@ -4343,209 +4342,187 @@ class Arai_GUI(wx.Frame):
         
     #----------------------------------------------------------------------            
 
-    def on_menu_results_data (self, event):
-        import copy
-        
-        #----------------------------------------------------
-        # Easy tables with the results of all the samples or site that passed the criteria
-        #----------------------------------------------------
-        
-        # search for ages and Latitudes
-        if self.acceptance_criteria['average_by_sample_or_site']['value']=='sample':
-            BY_SITES=False; BY_SAMPLES=True
-        else:
-            BY_SITES=True; BY_SAMPLES=False        
-        
-        if BY_SAMPLES:
-            Data_samples_or_sites=copy.deepcopy(self.Data_samples)
-        else:
-            Data_samples_or_sites=copy.deepcopy(self.Data_sites)
-        samples_or_sites_list=Data_samples_or_sites.keys()
-        samples_or_sites_list.sort()
-        Results_table_data={}
-
-        if self.acceptance_criteria['average_by_sample_or_site']['value']=='sample':
-            BY_SITES=False; BY_SAMPLES=True
-        else:
-            BY_SITES=True; BY_SAMPLES=False        
-
-                
-        for sample_or_site in samples_or_sites_list:
-
-            Age,age_unit,age_range_low,age_range_high="","","",""
-            lat,lon,VADM,VADM_sigma="","","",""
-
-            found_age,found_lat=False,False
-
-            # Find the mean paleointenisty for each sample
-            tmp_B=[]
-            for spec in Data_samples_or_sites[sample_or_site].keys():
-                if 'B' in Data_samples_or_sites[sample_or_site][spec].keys():
-                    tmp_B.append( Data_samples_or_sites[sample_or_site][spec]['B'])
-            if len(tmp_B)<1:
-                continue
-            
-            sample_or_site_pars=self.calculate_sample_mean(Data_samples_or_sites[sample_or_site])        
-            if sample_or_site_pars['pass_or_fail']=='fail':
-                continue
-            
-            N=sample_or_site_pars['N']
-            B_uT=sample_or_site_pars['B_uT']
-            B_std_uT=sample_or_site_pars['B_std_uT']
-            B_std_perc=sample_or_site_pars['B_std_perc']
-            
-            #tmp_B=array(tmp_B)
-            #B_uT=mean(tmp_B)
-            #B_std_uT=std(tmp_B,ddof=1)
-            #B_std_perc=100*(B_std_uT/B_uT)
-            #
-            ## check if sample passed the criteria
-            #sample_pass_criteria=False
-            #if len(tmp_B)>=self.acceptance_criteria['sample_int_n']:
-            #    if (self.acceptance_criteria['sample_int_sigma_uT']==0 and self.acceptance_criteria['sample_int_sigma_perc']==0) or\
-            #       ( B_std_uT <=self.acceptance_criteria['sample_int_sigma_uT'] or B_std_perc <= self.acceptance_criteria['sample_int_sigma_perc']):
-            #        if ( (max(tmp_B)-min(tmp_B)) <= self.acceptance_criteria['sample_int_interval_uT'] or 100*((max(tmp_B)-min(tmp_B))/mean((tmp_B))) <= self.acceptance_criteria['sample_int_interval_perc']):
-            #            sample_pass_criteria=True
-
-            #if not sample_pass_criteria:
-            #    continue
-
-            Results_table_data[sample_or_site]={}
-            
-            # search for samples age in er_ages.txt by sample or by site
-            if BY_SAMPLES:
-                site = self.Data_info["er_samples"][sample_or_site]['er_site_name']
-            else:
-                site=sample_or_site
-            found_age=False
-            if sample_or_site in self.Data_info["er_ages"].keys():
-                age_key=sample_or_site
-            elif site in self.Data_info["er_ages"].keys():
-                age_key=site
-            else:
-                age_key=""
-            if age_key !="":
-                try:
-                    age_unit=self.Data_info["er_ages"][age_key]["age_unit"]                
-                except:
-                    age_unit="unknown"               
-                    
-                if self.Data_info["er_ages"][age_key]["age"] !="":
-                    Age = float(self.Data_info["er_ages"][age_key]["age"])
-                    found_age=True
-                    
-                if "age_range_low" in self.Data_info["er_ages"][age_key].keys() and "age_range_high" in self.Data_info["er_ages"][age_key].keys():
-                   age_range_low=float(self.Data_info["er_ages"][age_key]["age_range_low"])
-                   age_range_high=float(self.Data_info["er_ages"][age_key]["age_range_high"])
-                   
-                   if not found_age:
-                       Age=(age_range_low+age_range_high)/2
-                       found_age=True
-
-                elif "age_sigma" in self.Data_info["er_ages"][age_key].keys() and found_age:
-                   age_range_low=Age-float(self.Data_info["er_ages"][age_key]["age_sigma"])
-                   age_range_high= Age+float(self.Data_info["er_ages"][age_key]["age_sigma"])
-
-                elif found_age:
-                   age_range_low=Age
-                   age_range_high=Age
-
-            # convert ages from Years BP to Years Cal AD (+/-)
-                if "Years BP" in age_unit:
-                    Age=1950-Age
-                    age_range_low=1950-age_range_low
-                    age_range_high=1950-age_range_high
-                    age_unit="Years Cal AD (+/-)"             
-            
-            # search for Lon/Lat
-
-            if BY_SAMPLES and sample_or_site in self.Data_info["er_samples"].keys() and "site_lat" in self.Data_info["er_samples"][sample_or_site].keys():
-                lat=float(self.Data_info["er_samples"][sample_or_site]["site_lat"])
-                lon=float(self.Data_info["er_samples"][sample_or_site]["site_lon"])
-                found_lat=True
-                
-            elif site in self.Data_info["er_sites"].keys() and "site_lat" in self.Data_info["er_sites"][site].keys():
-                lat=float(self.Data_info["er_sites"][site]["site_lat"])
-                lon=float(self.Data_info["er_sites"][site]["site_lon"])
-                found_lat=True
-
-            if found_lat:
-                VADM=pmag.b_vdm(B_uT*1e-6,lat)*1e-21
-                VADM_plus=pmag.b_vdm((B_uT+B_std_uT)*1e-6,lat)*1e-21
-                VADM_minus=pmag.b_vdm((B_uT-B_std_uT)*1e-6,lat)*1e-21
-                VADM_sigma=(VADM_plus-VADM_minus)/2
-                
-            Results_table_data[sample_or_site]["N"]="%i"%(int(N))            
-            Results_table_data[sample_or_site]["B_uT"]="%.1f"%(B_uT)
-            Results_table_data[sample_or_site]["B_std_uT"]="%.1f"%(B_std_uT)
-            Results_table_data[sample_or_site]["B_std_perc"]="%.1f"%(B_std_perc)
-            if found_lat:
-                Results_table_data[sample_or_site]["Lat"]="%f"%lat
-                Results_table_data[sample_or_site]["Lon"]="%f"%lon
-                Results_table_data[sample_or_site]["VADM"]="%.1f"%VADM
-                Results_table_data[sample_or_site]["VADM_sigma"]="%.1f"%VADM_sigma
-            else:
-                Results_table_data[sample_or_site]["Lat"]=""
-                Results_table_data[sample_or_site]["Lon"]=""
-                Results_table_data[sample_or_site]["VADM"]=""
-                Results_table_data[sample_or_site]["VADM_sigma"]=""
-            if found_age:
-                Results_table_data[sample_or_site]["Age"]="%.2f"%Age
-                Results_table_data[sample_or_site]["Age_low"]="%.2f"%age_range_low
-                Results_table_data[sample_or_site]["Age_high"]="%.2f"%age_range_high
-            else:
-                Results_table_data[sample_or_site]["Age"]=""
-                Results_table_data[sample_or_site]["Age_low"]=""
-                Results_table_data[sample_or_site]["Age_high"]=""
-            Results_table_data[sample_or_site]["Age_units"]=age_unit
-                
-        sample_or_site_list= Results_table_data.keys()
-        sample_or_site_list.sort()
-        if len(sample_or_site_list) <1:
-            return
-                        
-        fout=open(os.path.join(self.WD, "results_table.txt"),'w')
-        Keys=["sample/site","Lat","Lon","Age","Age_low","Age_high","Age_units","N","B_uT","B_std_uT","VADM","VADM_sigma"]
-        fout.write("\t".join(Keys)+"\n")
-        for sample_or_site in sample_or_site_list:
-            String=sample_or_site+"\t"
-            for k in Keys[1:]:
-                String=String+Results_table_data[sample_or_site][k]+"\t"
-            fout.write(String[:-1]+"\n")
-        fout.close()
-
-
-#        #----------------------------------------------------------------------------
-#        # Easy tables with the results of all the specimens that passed the criteria
-#        #----------------------------------------------------------------------------
-#
-#        fout=open(self.WD+"/results_table_specimmens.txt",'w')
-#        Keys=["specimen","B_raw","B_corrected","ATRM","CR","NLT"]
-#        for 
-#        fout.write("\t".join(Keys)+"\n")
+#    def on_menu_results_data (self, event):
+#        import copy
 #        
+#        #----------------------------------------------------
+#        # Easy tables with the results of all the samples or site that passed the criteria
+#        #----------------------------------------------------
+#        
+#        # search for ages and Latitudes
+#        if self.acceptance_criteria['average_by_sample_or_site']['value']=='sample':
+#            BY_SITES=False; BY_SAMPLES=True
+#        else:
+#            BY_SITES=True; BY_SAMPLES=False        
+#        
+#        if BY_SAMPLES:
+#            Data_samples_or_sites=copy.deepcopy(self.Data_samples)
+#        else:
+#            Data_samples_or_sites=copy.deepcopy(self.Data_sites)
+#        samples_or_sites_list=Data_samples_or_sites.keys()
+#        samples_or_sites_list.sort()
+#        Results_table_data={}
+#                
 #        for sample_or_site in samples_or_sites_list:
-#            specimens_list=samples_or_sites_list.keys()
-#            specimens_list.sort()
-#            if len(specimens_list) <1:
+#
+#            Age,age_unit,age_range_low,age_range_high="","","",""
+#            lat,lon,VADM,VADM_sigma="","","",""
+#
+#            found_age,found_lat=False,False
+#
+#            # Find the mean paleointenisty for each sample
+#            tmp_B=[]
+#            for spec in Data_samples_or_sites[sample_or_site].keys():
+#                if 'B' in Data_samples_or_sites[sample_or_site][spec].keys():
+#                    tmp_B.append( Data_samples_or_sites[sample_or_site][spec]['B'])
+#            if len(tmp_B)<1:
 #                continue
-#            for specimen in specimens_list:
-#                if 'specimen_fail_criteria' not in self.Data[specimen]['pars'].keys():
-#                    continue
-#                if len(self.Data[specimen]['pars']['specimen_fail_criteria'])>0:
-#                    continue
-#                keys=["sample/site","Lat","Lon","Age","Age_low","Age_high","Age_units","N","B_uT","B_std_uT","VADM","VADM_sigma"]:
-#                    for key in Keys:
-#                         Results_table_data_specimens[specimen]   
+#            
+#            sample_or_site_pars=self.calculate_sample_mean(Data_samples_or_sites[sample_or_site])        
+#            if sample_or_site_pars['pass_or_fail']=='fail':
+#                continue
+#            
+#            N=sample_or_site_pars['N']
+#            B_uT=sample_or_site_pars['B_uT']
+#            B_std_uT=sample_or_site_pars['B_std_uT']
+#            B_std_perc=sample_or_site_pars['B_std_perc']
+#            
+#            Results_table_data[sample_or_site]={}
+#            
+#            # search for samples age in er_ages.txt by sample or by site
+#            if BY_SAMPLES:
+#                site = self.Data_info["er_samples"][sample_or_site]['er_site_name']
+#            else:
+#                site=sample_or_site
+#            found_age=False
+#            if sample_or_site in self.Data_info["er_ages"].keys():
+#                age_key=sample_or_site
+#            elif site in self.Data_info["er_ages"].keys():
+#                age_key=site
+#            else:
+#                age_key=""
+#            if age_key !="":
+#                try:
+#                    age_unit=self.Data_info["er_ages"][age_key]["age_unit"]                
+#                except:
+#                    age_unit="unknown"               
 #                    
-                
-
-
-        dlg1 = wx.MessageDialog(self,caption="Message:", message="Output results table is saved in 'results_table.txt'" ,style=wx.OK|wx.ICON_INFORMATION)
-        dlg1.ShowModal()
-        dlg1.Destroy()
-            
-        return
+#                if self.Data_info["er_ages"][age_key]["age"] !="":
+#                    Age = float(self.Data_info["er_ages"][age_key]["age"])
+#                    found_age=True
+#                    
+#                if "age_range_low" in self.Data_info["er_ages"][age_key].keys() and "age_range_high" in self.Data_info["er_ages"][age_key].keys():
+#                   age_range_low=float(self.Data_info["er_ages"][age_key]["age_range_low"])
+#                   age_range_high=float(self.Data_info["er_ages"][age_key]["age_range_high"])
+#                   
+#                   if not found_age:
+#                       Age=(age_range_low+age_range_high)/2
+#                       found_age=True
+#
+#                elif "age_sigma" in self.Data_info["er_ages"][age_key].keys() and found_age:
+#                   age_range_low=Age-float(self.Data_info["er_ages"][age_key]["age_sigma"])
+#                   age_range_high= Age+float(self.Data_info["er_ages"][age_key]["age_sigma"])
+#
+#                elif found_age:
+#                   age_range_low=Age
+#                   age_range_high=Age
+#
+#            # convert ages from Years BP to Years Cal AD (+/-)
+#                if "Years BP" in age_unit:
+#                    Age=1950-Age
+#                    age_range_low=1950-age_range_low
+#                    age_range_high=1950-age_range_high
+#                    age_unit="Years Cal AD (+/-)"             
+#            
+#            # search for Lon/Lat
+#
+#            if BY_SAMPLES and sample_or_site in self.Data_info["er_samples"].keys() and "site_lat" in self.Data_info["er_samples"][sample_or_site].keys():
+#                lat=float(self.Data_info["er_samples"][sample_or_site]["site_lat"])
+#                lon=float(self.Data_info["er_samples"][sample_or_site]["site_lon"])
+#                found_lat=True
+#                
+#            elif site in self.Data_info["er_sites"].keys() and "site_lat" in self.Data_info["er_sites"][site].keys():
+#                lat=float(self.Data_info["er_sites"][site]["site_lat"])
+#                lon=float(self.Data_info["er_sites"][site]["site_lon"])
+#                found_lat=True
+#
+#            if found_lat:
+#                VADM=pmag.b_vdm(B_uT*1e-6,lat)*1e-21
+#                VADM_plus=pmag.b_vdm((B_uT+B_std_uT)*1e-6,lat)*1e-21
+#                VADM_minus=pmag.b_vdm((B_uT-B_std_uT)*1e-6,lat)*1e-21
+#                VADM_sigma=(VADM_plus-VADM_minus)/2
+#                
+#            Results_table_data[sample_or_site]["N"]="%i"%(int(N))            
+#            Results_table_data[sample_or_site]["B_uT"]="%.1f"%(B_uT)
+#            Results_table_data[sample_or_site]["B_std_uT"]="%.1f"%(B_std_uT)
+#            Results_table_data[sample_or_site]["B_std_perc"]="%.1f"%(B_std_perc)
+#            if found_lat:
+#                Results_table_data[sample_or_site]["Lat"]="%f"%lat
+#                Results_table_data[sample_or_site]["Lon"]="%f"%lon
+#                Results_table_data[sample_or_site]["VADM"]="%.1f"%VADM
+#                Results_table_data[sample_or_site]["VADM_sigma"]="%.1f"%VADM_sigma
+#            else:
+#                Results_table_data[sample_or_site]["Lat"]=""
+#                Results_table_data[sample_or_site]["Lon"]=""
+#                Results_table_data[sample_or_site]["VADM"]=""
+#                Results_table_data[sample_or_site]["VADM_sigma"]=""
+#            if found_age:
+#                Results_table_data[sample_or_site]["Age"]="%.2f"%Age
+#                Results_table_data[sample_or_site]["Age_low"]="%.2f"%age_range_low
+#                Results_table_data[sample_or_site]["Age_high"]="%.2f"%age_range_high
+#            else:
+#                Results_table_data[sample_or_site]["Age"]=""
+#                Results_table_data[sample_or_site]["Age_low"]=""
+#                Results_table_data[sample_or_site]["Age_high"]=""
+#            Results_table_data[sample_or_site]["Age_units"]=age_unit
+#                
+#        sample_or_site_list= Results_table_data.keys()
+#        sample_or_site_list.sort()
+#        if len(sample_or_site_list) <1:
+#            return
+#                        
+#        fout=open(os.path.join(self.WD, "results_table.txt"),'w')
+#        Keys=["sample/site","Lat","Lon","Age","Age_low","Age_high","Age_units","N","B_uT","B_std_uT","VADM","VADM_sigma"]
+#        fout.write("\t".join(Keys)+"\n")
+#        for sample_or_site in sample_or_site_list:
+#            String=sample_or_site+"\t"
+#            for k in Keys[1:]:
+#                String=String+Results_table_data[sample_or_site][k]+"\t"
+#            fout.write(String[:-1]+"\n")
+#        fout.close()
+#
+#
+##        #----------------------------------------------------------------------------
+##        # Easy tables with the results of all the specimens that passed the criteria
+##        #----------------------------------------------------------------------------
+##
+##        fout=open(self.WD+"/results_table_specimmens.txt",'w')
+##        Keys=["specimen","B_raw","B_corrected","ATRM","CR","NLT"]
+##        for 
+##        fout.write("\t".join(Keys)+"\n")
+##        
+##        for sample_or_site in samples_or_sites_list:
+##            specimens_list=samples_or_sites_list.keys()
+##            specimens_list.sort()
+##            if len(specimens_list) <1:
+##                continue
+##            for specimen in specimens_list:
+##                if 'specimen_fail_criteria' not in self.Data[specimen]['pars'].keys():
+##                    continue
+##                if len(self.Data[specimen]['pars']['specimen_fail_criteria'])>0:
+##                    continue
+##                keys=["sample/site","Lat","Lon","Age","Age_low","Age_high","Age_units","N","B_uT","B_std_uT","VADM","VADM_sigma"]:
+##                    for key in Keys:
+##                         Results_table_data_specimens[specimen]   
+##                    
+#                
+#
+#
+#        dlg1 = wx.MessageDialog(self,caption="Message:", message="Output results table is saved in 'results_table.txt'" ,style=wx.OK|wx.ICON_INFORMATION)
+#        dlg1.ShowModal()
+#        dlg1.Destroy()
+#            
+#        return
 
     #----------------------------------------------------------------------            
 
@@ -4786,13 +4763,28 @@ class Arai_GUI(wx.Frame):
                     MagIC_results_data['pmag_samples_or_sites'][sample_or_site][name+'int_sigma']="%.2e"%(B_std_uT*1e-6)
                     MagIC_results_data['pmag_samples_or_sites'][sample_or_site][name+'int_sigma_perc']="%.2f"%(B_std_perc)
                     MagIC_results_data['pmag_samples_or_sites'][sample_or_site][name+'description']="paleointensity mean"
-                    for key in pmag_samples_header_1:
-                        if BY_SAMPLES:
-                            #MagIC_results_data['pmag_samples_or_sites'][sample_or_site][key]=self.MagIC_model["er_samples"][sample_or_site][key]
-                            MagIC_results_data['pmag_samples_or_sites'][sample_or_site][key]=sample_or_site
-                        else:
+                    if BY_SAMPLES:
+                        sample_name=sample_or_site
+                        site_name=thellier_gui_lib.get_site_from_hierarchy(sample_name,self.Data_hierarchy)
+                        location_name=thellier_gui_lib.get_location_from_hierarchy(site_name,self.Data_hierarchy) 
+                        MagIC_results_data['pmag_samples_or_sites'][sample_or_site]['er_sample_name']=sample_name
+                        
+                    if BY_SITES:
+                        site_name=sample_or_site
+                        location_name=thellier_gui_lib.get_location_from_hierarchy(site_name,self.Data_hierarchy) 
+                    
+                    MagIC_results_data['pmag_samples_or_sites'][sample_or_site]['er_site_name']=site_name
+                    MagIC_results_data['pmag_samples_or_sites'][sample_or_site]['er_location_name']=location_name
+
+                    #for key in pmag_samples_header_1:
+                    #        sample_name=sample_or_site
+                    #        site_name=thellier_gui_lib.get_site_from_hierarchy(sample_name,self.Data_hierarchy)
+                    #        location_name=thellier_gui_lib.get_location_from_hierarchy(site_name,self.Data_hierarchy) 
+                            
+                                           
+                        #else:
                             #MagIC_results_data['pmag_samples_or_sites'][sample_or_site][key]=self.MagIC_model["er_sites"][sample_or_site][key]
-                            MagIC_results_data['pmag_samples_or_sites'][sample_or_site][key]=sample_or_site
+                            #MagIC_results_data['pmag_samples_or_sites'][sample_or_site][key]=sample_or_site
                                                 
                     MagIC_results_data['pmag_samples_or_sites'][sample_or_site]["pmag_criteria_codes"]=""
                     MagIC_results_data['pmag_samples_or_sites'][sample_or_site]['magic_method_codes']=magic_codes
@@ -4913,11 +4905,13 @@ class Arai_GUI(wx.Frame):
 
             site=MagIC_results_data['pmag_results'][sample_or_site]["er_site_names"]
             lat,lon="",""
-            if site in self.Data_info["er_sites"].keys() and "site_lat" in self.Data_info["er_sites"].keys():
-                MagIC_results_data['pmag_results'][sample_or_site]["average_lat"]=self.Data_info["er_sites"][site]["site_lat"]
-            if site in self.Data_info["er_sites"].keys() and "site_lon" in self.Data_info["er_sites"].keys():
-                MagIC_results_data['pmag_results'][sample_or_site]["average_lon"]=self.Data_info["er_sites"][site]["site_lon"]
+            if site in self.Data_info["er_sites"].keys() and "site_lat" in self.Data_info["er_sites"][site].keys():
+                #MagIC_results_data['pmag_results'][sample_or_site]["average_lat"]=self.Data_info["er_sites"][site]["site_lat"]
+                lat=self.Data_info["er_sites"][site]["site_lat"]
 
+            if site in self.Data_info["er_sites"].keys() and "site_lon" in self.Data_info["er_sites"][site].keys():
+                #MagIC_results_data['pmag_results'][sample_or_site]["average_lon"]=self.Data_info["er_sites"][site]["site_lon"]
+                lon=self.Data_info["er_sites"][site]["site_lon"]
             MagIC_results_data['pmag_results'][sample_or_site]["average_lat"]=lat
             MagIC_results_data['pmag_results'][sample_or_site]["average_lon"]=lon
             if BY_SAMPLES:
@@ -5008,7 +5002,7 @@ class Arai_GUI(wx.Frame):
             if not found_age:
                 continue
             foundkeys=False       
-            print    "element_with_age",element_with_age                                    
+            #print    "element_with_age",element_with_age                                    
             for key in ['age','age_sigma','age_range_low','age_range_high','age_unit']:
                 if "er_ages" in self.Data_info.keys() and element_with_age in self.Data_info["er_ages"].keys():
                     if key in  self.Data_info["er_ages"][element_with_age].keys():
@@ -5023,7 +5017,7 @@ class Arai_GUI(wx.Frame):
                             MagIC_results_data['pmag_results'][sample_or_site]["magic_method_codes"]=MagIC_results_data['pmag_results'][sample_or_site]["magic_method_codes"] + ":"+ meth
                              
                            
-        # wrire pmag_results.txt
+        # write pmag_results.txt
         fout=open(os.path.join(self.WD, "pmag_results.txt"),'w')
         fout.write("tab\tpmag_results\n")
         headers=pmag_results_header_1+pmag_results_header_2+pmag_results_header_3+pmag_results_header_4+pmag_results_header_5
@@ -5832,7 +5826,7 @@ class Arai_GUI(wx.Frame):
                 m.scatter(x1,y1,s=[50],marker=SYMBOLS[cnt%len(SYMBOLS)],color=COLORS[cnt%len(COLORS)],edgecolor='black')
             cnt+=1
                 
-        fig1=figure(1)#,(15,6))
+        #fig1=figure(1)#,(15,6))
         
         legend_font_props = matplotlib.font_manager.FontProperties()
         legend_font_props.set_size(12)
@@ -5858,7 +5852,10 @@ class Arai_GUI(wx.Frame):
         #if plt_x_years:
         #    #xlabel("Date")
         #    ax.set_xlabel("Date",fontsize=12)
-        ax.set_xlabel(set_age_unit,fontsize=12)
+        if set_age_unit=="Automatic":
+            ax.set_xlabel("Age",fontsize=12)
+        else:    
+            ax.set_xlabel(set_age_unit,fontsize=12)
         
         if not x_autoscale:
             try:
@@ -5886,15 +5883,23 @@ class Arai_GUI(wx.Frame):
         if  show_sample_labels:
             for location in locations:
                 for i in  range(len(plot_by_locations[location]['samples_names'])):
-                    text(plot_by_locations[location]['X_data'][i],plot_by_locations[location]['Y_data'][i],"  "+ plot_by_locations[location]['samples_names'][i],fontsize=10,color="0.5")
+                    Fig.text(plot_by_locations[location]['X_data'][i],plot_by_locations[location]['Y_data'][i],"  "+ plot_by_locations[location]['samples_names'][i],fontsize=10,color="0.5")
 
-        dia.Destroy()
+        xmin,xmax=xlim()
+        #print "xmin,xmax",xmin,xmax
+        if max ([abs(xmin), abs(xmax) ]) > 10000 and set_age_unit=="Automatic":
+            gca().ticklabel_format(style='scientific', axis='x',scilimits=(0,0))
+       # matplotlib.pyplot.ticklabel_format(style='scientific', axis='x')
+
         #fr=thellier_gui_dialogs.ShowPlot(None,fig1)
         #panel = CanvasPanel(fr)
         #panel.draw()
         #fr.Show()
         #PI_Fig.Show()
-        fig1.show()
+        #Fig.show()
+        thellier_gui_dialogs.ShowFigure(Fig)
+        dia.Destroy()
+        #Fig.show()
     
 #===========================================================
 # Draw plots
@@ -7577,6 +7582,9 @@ class Arai_GUI(wx.Frame):
           Data[s]['T_or_MW']="T"
           sample=rec["er_sample_name"]
           site=rec["er_site_name"]
+          # if "er_site_name" in an empty string: use er_sample_name tp assign site to sample.
+          if rec["er_site_name"]=="":
+                site=sample
           location=""
           if "er_location_name" in rec.keys():
             location=rec["er_location_name"]   

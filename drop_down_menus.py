@@ -92,7 +92,7 @@ class Menus(object):
         if col_label in vocabulary.possible_vocabularies:
             if col_number not in self.choices.keys(): # if not already assigned above
                 self.grid.SetColLabelValue(col_number, col_label + "**") # mark it as using a controlled vocabulary
-                url = 'http://api.earthref.org/MAGIC/vocabularies/{}.json'.format(col_label)
+                url = 'https://api.earthref.org/MagIC/vocabularies/{}.json'.format(col_label)
                 controlled_vocabulary = pd.io.json.read_json(url)
                 stripped_list = []
                 for item in controlled_vocabulary[col_label][0]:
@@ -196,11 +196,11 @@ class Menus(object):
         """
         if self.selected_col:
             col_label_value = self.grid.GetColLabelValue(self.selected_col)
-            self.grid.SetColLabelValue(self.selected_col, col_label_value[:-10])
+            col_label_value = col_label_value.strip('\nEDIT ALL')
+            self.grid.SetColLabelValue(self.selected_col, col_label_value)
             for row in range(self.grid.GetNumberRows()):
                 self.grid.SetCellBackgroundColour(row, self.selected_col, 'white')
         self.grid.ForceRefresh()
-
 
     def on_left_click(self, event, grid, choices):
         """

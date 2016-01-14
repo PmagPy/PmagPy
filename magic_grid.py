@@ -1,3 +1,5 @@
+import matplotlib
+matplotlib.use('WXAgg')
 import wx
 import wx.grid
 import wx.lib.mixins.gridlabelrenderer as gridlabelrenderer
@@ -114,8 +116,13 @@ class MagicGrid(wx.grid.Grid, gridlabelrenderer.GridWithLabelRenderersMixin):
                     elif col in data_dict[row].keys():
                         value = data_dict[row][col]
                         # set defaults
-                        if col == 'er_citation_names' and not value:
-                            value = 'This study'
+                        if col == 'er_citation_names':
+                            if value == 'This study':
+                                current_val = self.GetCellValue(num, n+1).strip()
+                                if current_val:
+                                    value = current_val
+                                else:
+                                    value = "This study"
                     else:
                         value = ''
                     if value:
@@ -402,6 +409,10 @@ class MagicGrid(wx.grid.Grid, gridlabelrenderer.GridWithLabelRenderersMixin):
             for col_name in warn_dict[item][problem_type]:
                 if col_name in ('er_location_name', 'er_site_name', 'er_sample_name'):
                     continue
+                if col_name in ('lithology', 'type', 'class'):
+                    dtype = self.GetColLabelValue(0)
+                    dtype = dtype[3:-5]
+                    col_name = dtype + "_" + col_name
                 # in result grid, magic_method_codes doesn't have ++
                 stripped_name = col_name.strip('++')
                 if stripped_name in self.double:
@@ -466,6 +477,10 @@ class MagicGrid(wx.grid.Grid, gridlabelrenderer.GridWithLabelRenderersMixin):
                     pass
                 elif problem in ('specimen', 'sample', 'site', 'location'):
                     highlight_names(problem, row_ind, 'purple')
+                elif problem in 'coordinates':
+                    highlight('coordinates', item, row_ind, 'GOLDENROD')
+                elif problem in 'vocab_problem':
+                    highlight('vocab_problem', item, row_ind, 'WHITE')
                 else:
                     print 'other problem', problem
         #  looks like we can do tooltips over cells using techniques in
