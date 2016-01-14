@@ -339,17 +339,24 @@ Once each item in the data has its proper parent, validations will be correct.
                 has_problems.append(item_type)
         # for any dtypes with validation problems (data or coherence),
         # highlight the button to the corresponding grid
-        for dtype in self.warn_dict:
-            wind = self.FindWindowByName(dtype + '_btn')
-            if wind:
-                if dtype in has_problems:
-                    wind.Bind(wx.EVT_PAINT, self.highlight_button)
-                else:
-                    wind.Unbind(wx.EVT_PAINT, handler=self.highlight_button)# this sucks (makes buttons disappear)
-        self.Refresh()
+        # skip this step for Windows
+        if sys.platform in ['win32', 'win62']:
+            pass
+        else:
+            for dtype in self.warn_dict:
+                wind = self.FindWindowByName(dtype + '_btn')
+                if wind:
+                    if dtype in has_problems:
+                        wind.Bind(wx.EVT_PAINT, self.highlight_button)
+                    else:
+                        wind.Unbind(wx.EVT_PAINT, handler=self.highlight_button)
+            self.Refresh()
         if has_problems:
             self.validation_mode = set(has_problems)
-            self.message.SetLabel('Highlighted grids have incorrect or incomplete data')
+            if sys.platform in ['win32', 'win62']:
+                self.message.SetLabel('The following grid(s) have incorrect or incomplete data:\n{}'.format(', '.join(self.validation_mode)))
+            else:
+                self.message.SetLabel('Highlighted grids have incorrect or incomplete data')
             self.bSizer_msg.ShowItems(True)
             self.hbox.Fit(self)
         if not has_problems:
