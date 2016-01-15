@@ -45,7 +45,7 @@ global CURRENT_VERSION, PMAGPY_DIRECTORY
 CURRENT_VERSION = "v.0.33"
 # get directory in a way that works whether being used
 # on the command line or in a frozen binary
-import check_updates
+import pmagpy.check_updates as check_updates
 PMAGPY_DIRECTORY = check_updates.get_pmag_dir()
 #path = os.path.abspath(__file__)
 #PMAGPY_DIRECTORY = os.path.dirname(path)
@@ -80,7 +80,9 @@ try:
 except:
     pass
 
-import pmag,demag_dialogs,ipmag
+import pmagpy.pmag as pmag
+import pmagpy.ipmag as ipmag
+import dialogs.demag_dialogs as demag_dialogs 
 from matplotlib.backends.backend_wx import NavigationToolbar2Wx
 import copy
 from copy import deepcopy
@@ -140,9 +142,11 @@ class Zeq_GUI(wx.Frame):
         #set icon
         try:
             icon = wx.EmptyIcon()
-            icon.CopyFromBitmap(wx.Bitmap(os.path.join(PMAGPY_DIRECTORY, "images", "PmagPy.ico"), wx.BITMAP_TYPE_ANY))
+            icon_path = os.path.join(PMAGPY_DIRECTORY, 'images', 'PmagPy.ico')
+            print 'icon_path', icon_path
+            icon.CopyFromBitmap(wx.Bitmap(icon_path, wx.BITMAP_TYPE_ANY))
             self.SetIcon(icon)
-        except:
+        except Exception as ex:
             pass
 
         # initialize acceptence criteria with NULL values

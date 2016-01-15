@@ -2,7 +2,7 @@
 
 import matplotlib
 #matplotlib.use('WXAgg')
-import pmag
+import pmagpy.pmag as pmag
 import wx
 import copy
 import os
