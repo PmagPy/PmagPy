@@ -1,0 +1,4 @@
+tab	er_sites
+er_site_name	er_citation_names	site_type	site_class	site_definition	site_lon	er_location_name	site_location_geoid	site_igsn	site_lithology	site_lat
+site	This study	Burnt Floor:Bell Mould	Extraterrestrial	s	245.602	Snake River			Foid-Bearing-Monzodiorite:Foid-Bearing-Microsyenite	42.60264
+sr01	This study	Lava Flow	Extrusive:Igneous	s	245.60200	Snake River			Foid-Bearing-Microsyenite	42.60264

@@ -1,0 +1,53 @@
+<!DOCTYPE HTML>
+
+
+<BODY>
+
+  <H1>MagIC GUI</H1>
+  <h3>Why</h3>
+  <UL>
+    <LI></UL>
+  <h3>Mainframe</h3>
+  <UL>
+    <LI>The main window of the application has buttons that allow you to open grids and navigate through your file system.  MagIC GUI is a Python program for putting together a contribution for the MagIC database.  MagIC GUI is specifically designed for making a contribution without measurement data; if you ARE including measurement data, we recommend that you use Pmag GUI instead.  MagIC GUI allows you to add data at the location, site, sample, and specimen levels.  You can also add results and ages.  MagIC GUI uses an Excel-like grid interface for entering and editing data.  Useful features include: pop-up menus with controlled vocabularies, multi-cell pasting from external spreadsheets, and built-in validations for MagIC database requirements. your "working directory."  Data will be read in from files in your working directory, and as you make edits data will be saved to your working directory.  You can start with an empty directory and build your contribution from scratch, however if your working directory contains any MagIC format files, those files WILL be read in.</LI>
+
+    <LI> Uploading and validation:   In order to make your uploading process as smooth as possible, we've provided a set of validations to make sure your upload is in good shape before you put it into the database.  When you click "prepare upload txt file", the program will do two things.  First, it will try to create a MagIC-format upload file containing all of your data.  Second, it will check that your data is in good order.  If there are problems with your data, an upload file will still be created, but you may have problems uploading it to the database.  MagIC GUI will highlight any grids that have missing or incorrect data.  When you open the grids with problems, you will see that the rows and columns with data issues have been highlighted.  The specific cells are color-coded according to what type of validation they've failed (click the grid's Help button to see a key of what each color means).  Once you have corrected these validation problems, try "prepare upload txt file" again.  </LI>
+  </ul>
+  <h3>Grid tips</h3>
+      <UL>
+        <LI> Help:  For more help on a particular grid, click the Help button directly above the grid, and a useful message will pop up.</LI>
+        <LI>  Reading in MagIC format files: Any MagIC-format files in your working directory will be read in automatically, and data from those files will populate their respective grids.  However, if you want to read in data from a MagIC file outside of your working directory, you can use the "Import MagIC-format file" button. If the file you select has data that belongs in your current grid, it will fill in immediately.  Otherwise, the data will be added to the grid in which it does belong. </LI>
+        <LI>How copy/paste works:  Multiple-cell pasting is enabled.  You can paste from Excel or Excel-like programs into MagIC GUI.  (At this time, it is not possible to paste from MagIC GUI into other formats).  To paste data into MagIC GUI, simply highlight the cells you want, select the top-left cell where the block should begin, and click 'control v'.  If the grid doesn't have enough rows to accomodate the data you're pasting in, it will automatically enlarge.  However, if you try to paste extra columns, that data will be truncated.  </LI>
+
+        <LI>How drop-down menus work:  Columns that have controlled vocabularies will have a pop-up menu when you click on a cell in that row.  It is possible to enter a value that is NOT on the menu; simply double click the cell in question.  The menus are populated by the data model at earthref.org.  </LI>
+
+        <LI>How to select an entire column:  To edit all the cells in a column, first click on the column header.  If there is no controlled vocabulary list for that column, a text box will pop up, and whatever you enter there will propagate into all of the cells in that column.  If there is a controlled vocabulary available, first click the column header to highlight all cells, then click on any cell and select a value (or values) from the pop-up menu.  </LI>
+
+        <LI>How to add/remove headers:    Click on 'Add additional columns'.  Click on a header you wish to add to the grid.  Double-click that same header to remove it from the list of headers to add.  You can add as many headers at a time as you want.  Edit the list of headers until you have what you need, then click Ok to add them to the grid.</LI>
+
+        <LI>How to delete rows:  To delete the last row in the grid, simply click 'Remove last row'.  To delete multiple rows at once (and remove all the data in them), click on the row label for the data you wish to remove.  Once you have highlighted all rows that you want to delete, click the button labeled 'Delete selected rows'.  </LI>
+      </UL>
+      <h3> Menubar (file menu)</h3>
+      <UL>
+        <LI> Clear directory: This will delete all files in your working directory and re-set your data.</LI>
+        <LI> Help:  Brings you here!</LI>
+        <LI>Show main window:  Brings up the main window of the application.</LI>
+        <LI> Close current grid: If you have a grid open, close it.</LI>
+      </UL>
+      <h3>Notes on the data structure</h3>
+      <ul>
+        <LI>  The data are structured hierarchically.  For example, each specimen must be associated with a sample.  You cannot assign a specimen directly to a location: a specimen must belong to a sample, which must belong to a site, which must belong to a location.  You will notice that there is no field to specify a specimen's location in the specimen grid.  This information will be filled in for your upload file, as long as you correctly specify that specimen's sample.
+        </LI>
+        <LI>Data model: For more information on the data model, see: 
+          <TT><A HREF="http://earthref.org/MagIC/metadata.htm">Earthref site</A></TT>.   
+        </LI>
+        <LI>Controlled vocabularies:  For more information on controlled vocabularies, see: <TT><A HREF="http://earthref.org/MagIC/shortlists.htm">Controlled vocabularies</A></TT>.
+        </LI>
+      </UL>
+      <h3>Internet issues</h3>
+      <ul>
+        <li>MagIC GUI can work with or without an internet connection.  Certain data -- like the complete set of controled vocabularies -- will not be available without a connection.</li>
+        <li>
+</BODY>
+
+

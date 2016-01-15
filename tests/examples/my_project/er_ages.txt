@@ -1,0 +1,4 @@
+tab	er_ages
+er_site_name	er_citation_names	magic_method_codes	age_description	age_unit	er_location_name	biostrat_zone	timescale_epoch	age
+site	This study	GM-ARAR-AP		Ka	Snake River	NN10	Early Devonian	3.4
+sr01	This study	GM-ARAR-AP		Ma	Snake River	NN10	Early Cretaceous	3.4

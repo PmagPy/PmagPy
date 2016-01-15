@@ -1,0 +1,3 @@
+tab	er_locations
+er_location_name	village_city	er_citation_names	location_end_lat	location_end_lon	location_begin_lon	location_begin_lat	location_type
+Snake River	Jeddah	This study	42.602640	245.602000	245.602000	42.602640	Stratigraphic Section

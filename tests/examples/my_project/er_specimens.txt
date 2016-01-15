@@ -1,0 +1,10 @@
+tab	er_specimens
+er_specimen_name	er_citation_names	specimen_class	er_site_name	er_sample_name	er_location_name	specimen_lithology	specimen_type
+sr01a1	This study	Extraterrestrial	site	sr01a	Snake River	Foid-Bearing-Monzodiorite:Foid-Bearing-Microsyenite	Burnt Floor:Bell Mould
+sr01a2	This study	Extraterrestrial	site	sr01a	Snake River	Foid-Bearing-Monzodiorite:Foid-Bearing-Microsyenite	Burnt Floor:Bell Mould
+sr01c2	This study	Igneous:Extrusive	sr01	sr01c	Snake River	Foid-Bearing-Microsyenite	Lava Flow
+sr01d1	This study	Igneous:Extrusive	sr01	sr01d	Snake River	Foid-Bearing-Microsyenite	Lava Flow
+sr01e2	This study	Igneous:Extrusive	sr01	sr01e	Snake River	Foid-Bearing-Microsyenite	Lava Flow
+sr01f2	This study	Igneous:Extrusive	sr01	sr01f	Snake River	Foid-Bearing-Microsyenite	Lava Flow
+sr01g2	This study	Igneous:Extrusive	sr01	sr01g	Snake River	Foid-Bearing-Microsyenite	Lava Flow
+sr01i1	This study	Igneous:Extrusive	sr01	sr01i	Snake River	Foid-Bearing-Microsyenite	Lava Flow

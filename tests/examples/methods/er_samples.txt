@@ -1,0 +1,4 @@
+tab	er_samples
+er_sample_name	er_site_name	er_location_name	er_citation_names	sample_class	sample_lat	sample_lithology	sample_lon	sample_type
+sampleA	site1	location	This study	Archeologic	1	Ankerite-Pseudosparstone	3	Baked Clay
+sampleB	site1	location	This study	Archeologic	2	Ankerite-Pseudosparstone	4	Baked Clay
