@@ -1,5 +1,7 @@
 #!/usr/bin/env python
-import pmag,sys,exceptions
+import sys
+import pmagpy.pmag as pmag
+
 def spitout(line):
     if '\t' in line:
         dat=line.split('\t') # split the data on a space into columns
@@ -8,6 +10,7 @@ def spitout(line):
     b,lat=float(dat[0])*1e-6,float(dat[1])
     vdm= pmag.b_vdm(b,lat)  # 
     return vdm
+
 def main():
     """
     NAME
@@ -65,4 +68,6 @@ def main():
             print '%10.3e'%(vdm)
         else:
             out.write('%10.3e \n'%(vdm))
-main() 
+
+if __name__ == "__main__":
+    main() 

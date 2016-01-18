@@ -1,5 +1,8 @@
 #!/usr/bin/env python
-import pmag,sys,exceptions,numpy
+import numpy
+import sys
+import pmagpy.pmag as pmag
+
 def main():
     """
     NAME
@@ -67,4 +70,6 @@ def main():
             if ofile!="":
                outstring='%7.1f %7.1f %10.8e\n' %(line[0],line[1],line[2]) 
                outfile.write(outstring)
-main() 
+
+if __name__ == "__main__":
+    main() 

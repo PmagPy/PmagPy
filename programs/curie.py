@@ -1,6 +1,9 @@
 #!/usr/bin/env python
-import sys,pmag,pmagplotlib,numpy
+import sys
+import numpy
 from pylab import *
+import pmagpy.pmagplotlib as pmagplotlib
+
 
 # contributed by Ron Shaar 6/26/08
 #

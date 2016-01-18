@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 #
-import sys,pmag,math,numpy
-import numpy.linalg
+import sys
+import pmagpy.pmag as pmag
+#import numpy.linalg
+
 def main():
     """
     NAME
@@ -70,5 +72,7 @@ tau tau_sigma V_dec V_inc V_eta V_eta_dec V_eta_inc V_zeta V_zeta_dec V_zeta_inc
     print outstring
     outstring='%7.5f %7.5f %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f'%(bpars["t3"],bpars["t3_sigma"],bpars["v3_dec"],bpars["v3_inc"],bpars["v3_zeta"],bpars["v3_zeta_dec"],bpars["v3_zeta_inc"],bpars["v3_eta"],bpars["v3_eta_dec"],bpars["v3_eta_inc"])
     print outstring
-main() 
+
+if __name__ == "__main__":
+    main() 
 

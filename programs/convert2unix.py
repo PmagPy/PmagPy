@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import sys
+
 def main():
     """
     NAME
@@ -26,4 +27,6 @@ def main():
     for line in Input:
         out.write(line)
     out.close()
-main()
+
+if __name__ == "__main__":
+    main()

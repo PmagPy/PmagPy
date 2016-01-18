@@ -1,5 +1,6 @@
 #!/usr/bin/env python
-import string,sys,pmag,exceptions
+import sys
+import pmagpy.pmag as pmag
 #
 #
 def main():
@@ -89,4 +90,6 @@ def main():
             outfile=orient_file
         pmag.magic_write(outfile,OrOut,location_name)
         print "Data saved in: ", outfile
-main()
+
+if __name__ == "__main__":
+    main()

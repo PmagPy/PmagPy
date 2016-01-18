@@ -1,5 +1,7 @@
 #!/usr/bin/env python
-import pmag,sys
+import sys
+import pmagpy.pmag as pmag
+
 def main():
     """
     NAME 
@@ -57,5 +59,7 @@ def main():
                 rec[grab_key]=rec[grab_key].upper()
     else:
         print 'bad file name'
-    pmag.magic_write(out_file,Data,file_type) 
-main()
+    pmag.magic_write(out_file,Data,file_type)
+
+if __name__ == "__main__":
+    main()

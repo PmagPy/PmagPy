@@ -1,6 +1,10 @@
 #!/usr/bin/env python
 # define some variables
-import pmag,sys,pmagplotlib,continents
+import sys
+import pmagpy.pmag as pmag
+import pmagpy.pmagplotlib as pmagplotlib
+import pmagpy.continents as continents
+
 def main():
     """
     NAME 
@@ -275,4 +279,5 @@ def main():
         if ans=="a":
             pmagplotlib.saveP(FIG,files)
 
-main()
+if __name__ == "__main__":
+    main()

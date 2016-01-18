@@ -1,5 +1,7 @@
 #!/usr/bin/env python
-import pmag,sys
+import sys
+import pmagpy.pmag as pmag
+
 def main():
     """
     NAME
@@ -64,4 +66,6 @@ def main():
             if new != "": CritRec[key]=(new)
     pmag.magic_write(critout,[CritRec],'pmag_criteria')
     print "Criteria saved in pmag_criteria.txt"
-main()
+
+if __name__ == "__main__":
+    main()

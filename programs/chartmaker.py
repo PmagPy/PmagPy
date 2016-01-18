@@ -1,5 +1,6 @@
 #!/usr/bin/env python
-import exceptions,sys
+import sys
+
 def main():
     """
     Welcome to the thellier-thellier experiment automatic chart maker.   
@@ -67,4 +68,6 @@ def main():
         except:
             f.close()
     print "output stored in: chart.txt"
-main()
+
+if __name__ == "__main__":
+    main()

@@ -1,9 +1,12 @@
 #!/usr/bin/env python
 # define some variables
-import pmag,sys
-import pmagplotlib
+import sys
 import numpy
-from mpl_toolkits.basemap import Basemap
+#from mpl_toolkits.basemap import Basemap
+import pmagpy.pmag as pmag
+import pmagpy.pmagplotlib as pmagplotlib
+
+
 import matplotlib.pylab as plt
 def main():
     """

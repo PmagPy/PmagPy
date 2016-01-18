@@ -1,5 +1,9 @@
 #!/usr/bin/env python
-import sys,pmagplotlib,pmag,exceptions,numpy
+import sys
+import numpy
+import pmagpy.pmagplotlib as pmagplotlib
+import pmagpy.pmag as pmag
+
 def main():
     """
     NAME
@@ -74,6 +78,7 @@ def main():
         files['Y']='CD_Y.svg'
         files['Z']='CD_Z.svg'
         pmagplotlib.saveP(CDF,files)
- 
-main()
+        
+if __name__ == "__main__":
+    main()
 
