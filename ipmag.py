@@ -4860,3 +4860,434 @@ class Site(object):
                                     'cong_test_result':cong_test_result},
                                    name=str(self.name))
         return self.site_data
+
+def dayplot(path_to_file = '.',hyst_file="rmag_hysteresis.txt",
+            rem_file="rmag_remanence.txt", save = False, save_folder='.', fmt = 'pdf'):
+    """
+    Makes 'day plots' (Day et al. 1977) and squareness/coercivity plots
+    (Neel, 1955; plots after Tauxe et al., 2002); plots 'linear mixing'
+    curve from Dunlop and Carter-Stiglitz (2006).
+
+    Optional Keywords (defaults are used if not specified)
+    ----------
+    path_to_file : path to directory that contains files (default is current directory, '.')
+    hyst_file : hysteresis file (default is 'rmag_hysteresis.txt')
+    rem_file : remanence file (default is 'rmag_remanence.txt')
+    save : boolean argument to save plots (default is False)
+    save_folder : relative directory where plots will be saved (default is current directory, '.')
+    fmt : format of saved figures (default is 'pdf')
+    """
+    args=sys.argv
+    hyst_path = os.path.join(path_to_file,hyst_file)
+    rem_path = os.path.join(path_to_file,rem_file)
+    #hyst_file,rem_file="rmag_hysteresis.txt","rmag_remanence.txt"
+    dir_path = path_to_file
+    verbose=ipmagplotlib.verbose
+    # initialize some variables
+    # define figure numbers for Day,S-Bc,S-Bcr
+    DSC={}
+    DSC['day'],DSC['S-Bc'],DSC['S-Bcr'],DSC['bcr1-bcr2']=1,2,3,4
+    plt.figure(num=DSC['day'],figsize=(5,5));
+    plt.figure(num=DSC['S-Bc'],figsize=(5,5));
+    plt.figure(num=DSC['S-Bcr'],figsize=(5,5));
+    plt.figure(num=DSC['bcr1-bcr2'],figsize=(5,5));
+    hyst_data,file_type=pmag.magic_read(hyst_path)
+    rem_data,file_type=pmag.magic_read(rem_path)
+    S,BcrBc,Bcr2,Bc,hsids,Bcr=[],[],[],[],[],[]
+    Ms,Bcr1,Bcr1Bc,S1=[],[],[],[]
+    locations=''
+    for rec in  hyst_data:
+        if 'er_location_name' in rec.keys() and rec['er_location_name'] not in locations: locations=locations+rec['er_location_name']+'_'
+        if rec['hysteresis_bcr'] !="" and rec['hysteresis_mr_moment']!="":
+            S.append(float(rec['hysteresis_mr_moment'])/float(rec['hysteresis_ms_moment']))
+            Bcr.append(float(rec['hysteresis_bcr']))
+            Bc.append(float(rec['hysteresis_bc']))
+            BcrBc.append(Bcr[-1]/Bc[-1])
+            if 'er_synthetic_name' in rec.keys() and rec['er_synthetic_name']!="":
+                rec['er_specimen_name']=rec['er_synthetic_name']
+            hsids.append(rec['er_specimen_name'])
+    if len(rem_data)>0:
+        for rec in  rem_data:
+            if rec['remanence_bcr'] !="" and float(rec['remanence_bcr'])>0:
+                try:
+                    ind=hsids.index(rec['er_specimen_name'])
+                    Bcr1.append(float(rec['remanence_bcr']))
+                    Bcr1Bc.append(Bcr1[-1]/Bc[ind])
+                    S1.append(S[ind])
+                    Bcr2.append(Bcr[ind])
+                except ValueError:
+                    if verbose:print 'hysteresis data for ',rec['er_specimen_name'],' not found'
+    #
+    # now plot the day and S-Bc, S-Bcr plots
+    #
+    leglist=[]
+    if len(Bcr1)>0:
+        ipmagplotlib.plotDay(DSC['day'],Bcr1Bc,S1,'ro')
+        ipmagplotlib.plotSBcr(DSC['S-Bcr'],Bcr1,S1,'ro')
+        ipmagplotlib.plot_init(DSC['bcr1-bcr2'],5,5)
+        ipmagplotlib.plotBcr(DSC['bcr1-bcr2'],Bcr1,Bcr2)
+        plt.show()
+    else:
+        del DSC['bcr1-bcr2']
+    if save==True:
+        ipmagplotlib.plotDay(DSC['day'],BcrBc,S,'bs')
+        plt.savefig(os.path.join(save_folder,'Day.' + fmt))
+        ipmagplotlib.plotSBcr(DSC['S-Bcr'],Bcr,S,'bs')
+        plt.savefig(os.path.join(save_folder,'S-Bcr.' + fmt))
+        ipmagplotlib.plotSBc(DSC['S-Bc'],Bc,S,'bs')
+        plt.savefig(os.path.join(save_folder,'S-Bc.' + fmt))
+    else:
+        ipmagplotlib.plotDay(DSC['day'],BcrBc,S,'bs')
+        ipmagplotlib.plotSBcr(DSC['S-Bcr'],Bcr,S,'bs')
+        ipmagplotlib.plotSBc(DSC['S-Bc'],Bc,S,'bs')
+        plt.show()
+
+def smooth(x,window_len,window='bartlett'):
+    """
+    Smooth the data using a sliding window with requested size - meant to be
+    used with the ipmag function curie().
+    This method is based on the convolution of a scaled window with the signal.
+    The signal is prepared by padding the beginning and the end of the signal
+    with average of the first (last) ten values of the signal, to evoid jumps
+    at the beggining/end. Output is an array of the smoothed signal.
+
+    Required Arguments
+    ----------
+    x : the input signal, equaly spaced!
+    window_len : the dimension of the smoothing window
+
+    Optional Keywords (defaults are used if not specified)
+    ----------
+    window : type of window from numpy library ['flat','hanning','hamming','bartlett','blackman']
+        (default is Bartlett)
+        -flat window will produce a moving average smoothing.
+        -Bartlett window is very similar to triangular window,
+            but always ends with zeros at points 1 and n.
+        -hanning,hamming,blackman are used for smoothing the Fourier transfrom
+    """
+
+    if x.ndim != 1:
+        raise ValueError, "smooth only accepts 1 dimension arrays."
+
+    if x.size < window_len:
+        raise ValueError, "Input vector needs to be bigger than window size."
+
+    if window_len<3:
+        return x
+
+    # numpy available windows
+    if not window in ['flat', 'hanning', 'hamming', 'bartlett', 'blackman']:
+        raise ValueError, "Window is on of 'flat', 'hanning', 'hamming', 'bartlett', 'blackman'"
+
+    # padding the beggining and the end of the signal with an average value to evoid edge effect
+    start=[np.average(x[0:10])]*window_len
+    end=[np.average(x[-10:])]*window_len
+    s=start+list(x)+end
+
+
+    #s=numpy.r_[2*x[0]-x[window_len:1:-1],x,2*x[-1]-x[-1:-window_len:-1]]
+    if window == 'flat': #moving average
+        w=ones(window_len,'d')
+    else:
+        w=eval('np.'+window+'(window_len)')
+    y=np.convolve(w/w.sum(),s,mode='same')
+    return np.array(y[window_len:-window_len])
+
+
+
+def deriv1(x,y,i,n):
+    """
+    Alternative way to smooth the derivative of a noisy signal
+    using least square fit. In this method the slope in position
+    'i' is calculated by least square fit of 'n' points before
+    and after position.
+
+    Required Arguments
+    ----------
+    x : array of x axis
+    y : array of y axis
+    n : smoothing factor
+    i : position
+    """
+    m_,x_,y_,xy_,x_2=0.,0.,0.,0.,0.
+    for ix in range(i,i+n,1):
+        x_=x_+x[ix]
+        y_=y_+y[ix]
+        xy_=xy_+x[ix]*y[ix]
+        x_2=x_2+x[ix]**2
+    m = ((n*xy_) - (x_*y_) ) / ( n*x_2-(x_)**2)
+    return(m)
+
+def curie(path_to_file = '.',file_name = 'magic_measurements.txt',
+        window_length = 3, save = False, save_folder = '.', fmt = 'svg'):
+    """
+    Plots and interprets curie temperature data.
+    ***
+    The 1st derivative is calculated from smoothed M-T curve (convolution
+    with trianfular window with width= <-w> degrees)
+    ***
+    The 2nd derivative is calculated from smoothed 1st derivative curve
+    (using the same sliding window width)
+    ***
+    The estimated curie temp. is the maximum of the 2nd derivative.
+    Temperature steps should be in multiples of 1.0 degrees.
+
+    Optional Keywords (defaults are used if not specified)
+    ----------
+    path_to_file : path to directory that contains file (default is current directory, '.')
+    file_name : name of file to be opened (default is 'magic_measurements.txt')
+    window_length : dimension of smoothing window (input to smooth() function)
+    save : boolean argument to save plots (default is False)
+    save_folder : relative directory where plots will be saved (default is current directory, '.')
+    fmt : format of saved figures
+    """
+
+    plot=0
+    window_len=window_length
+    t_begin=''
+    t_end=''
+
+    # read data from file
+    complete_path = os.path.join(path_to_file,file_name)
+    Data=np.loadtxt(complete_path,dtype=np.float)
+    T=Data.transpose()[0]
+    M=Data.transpose()[1]
+    T=list(T)
+    M=list(M)
+    # cut the data if -t is one of the flags
+    if t_begin:
+        while T[0]<t_begin:
+            M.pop(0);T.pop(0)
+        while T[-1]>t_end:
+            M.pop(-1);T.pop(-1)
+
+
+    # prepare the signal:
+    # from M(T) array with unequal deltaT
+    # to M(T) array with deltaT=(1 degree).
+    # if delataT is larger, then points are added using linear fit between
+    # consecutive data points.
+    # exit if deltaT is not integer
+    i=0
+    while i<(len(T)-1):
+        if (T[i+1]-T[i])%1>0.001:
+            print "delta T should be integer, this program will not work!"
+            print "temperature range:",T[i],T[i+1]
+            sys.exit()
+        if (T[i+1]-T[i])==0.:
+            M[i]=np.average([M[i],M[i+1]])
+            M.pop(i+1);T.pop(i+1)
+        elif (T[i+1]-T[i])<0.:
+            M.pop(i+1);T.pop(i+1)
+            print "check data in T=%.0f ,M[T] is ignored"%(T[i])
+        elif (T[i+1]-T[i])>1.:
+            slope,b=np.polyfit([T[i],T[i+1]],[M[i],M[i+1]],1)
+            for j in range(int(T[i+1])-int(T[i])-1):
+                M.insert(i+1,slope*(T[i]+1.)+b)
+                T.insert(i+1,(T[i]+1.))
+                i=i+1
+        i=i+1
+
+    # calculate the smoothed signal
+    M=np.array(M,'f')
+    T=np.array(T,'f')
+    M_smooth=[]
+    M_smooth=smooth(M,window_len)
+
+    #plot the original data and the smooth data
+    PLT={'M_T':1,'der1':2,'der2':3,'Curie':4}
+    plt.figure(num=PLT['M_T'],figsize=(5,5))
+    string='M-T (sliding window=%i)'%int(window_len)
+    ipmagplotlib.plotXY(PLT['M_T'],T,M_smooth,sym='-')
+    ipmagplotlib.plotXY(PLT['M_T'],T,M,sym='--',xlab='Temperature C',ylab='Magnetization',title=string)
+
+    #calculate first derivative
+    d1,T_d1=[],[]
+    for i in range(len(M_smooth)-1):
+        Dy=M_smooth[i-1]-M_smooth[i+1]
+        Dx=T[i-1]-T[i+1]
+        d1.append(Dy/Dx)
+    T_d1=T[1:len(T-1)]
+    d1=np.array(d1,'f')
+    d1_smooth=smooth(d1,window_len)
+
+    #plot the first derivative
+    plt.figure(num=PLT['der1'],figsize=(5,5))
+    string='1st derivative (sliding window=%i)'%int(window_len)
+    ipmagplotlib.plotXY(PLT['der1'],T_d1,d1_smooth,sym='-',xlab='Temperature C',title=string)
+    ipmagplotlib.plotXY(PLT['der1'],T_d1,d1,sym='b--')
+
+    #calculate second derivative
+    d2,T_d2=[],[]
+    for i in range(len(d1_smooth)-1):
+        Dy=d1_smooth[i-1]-d1_smooth[i+1]
+        Dx=T[i-1]-T[i+1]
+        #print Dy/Dx
+        d2.append(Dy/Dx)
+    T_d2=T[2:len(T-2)]
+    d2=np.array(d2,'f')
+    d2_smooth=smooth(d2,window_len)
+
+    #plot the second derivative
+    plt.figure(num=PLT['der2'],figsize=(5,5))
+    string='2nd dervative (sliding window=%i)'%int(window_len)
+    ipmagplotlib.plotXY(PLT['der2'],T_d2,d2,sym='-',xlab='Temperature C',title=string)
+    d2=list(d2)
+    print 'second deriative maximum is at T=%i'%int(T_d2[d2.index(max(d2))])
+
+    # calculate Curie temperature for different width of sliding windows
+    curie,curie_1=[],[]
+    wn=range(5,50,1)
+    for win in wn:
+        # calculate the smoothed signal
+        M_smooth=[]
+        M_smooth=smooth(M,win)
+        #calculate first derivative
+        d1,T_d1=[],[]
+        for i in range(len(M_smooth)-1):
+            Dy=M_smooth[i-1]-M_smooth[i+1]
+            Dx=T[i-1]-T[i+1]
+            d1.append(Dy/Dx)
+        T_d1=T[1:len(T-1)]
+        d1=np.array(d1,'f')
+        d1_smooth=smooth(d1,win)
+        #calculate second derivative
+        d2,T_d2=[],[]
+        for i in range(len(d1_smooth)-1):
+            Dy=d1_smooth[i-1]-d1_smooth[i+1]
+            Dx=T[i-1]-T[i+1]
+            d2.append(Dy/Dx)
+        T_d2=T[2:len(T-2)]
+        d2=np.array(d2,'f')
+        d2_smooth=smooth(d2,win)
+        d2=list(d2)
+        d2_smooth=list(d2_smooth)
+        curie.append(T_d2[d2.index(max(d2))])
+        curie_1.append(T_d2[d2_smooth.index(max(d2_smooth))])
+
+    #plot Curie temp for different sliding window length
+    plt.figure(num=PLT['Curie'],figsize=(5,5))
+    ipmagplotlib.plotXY(PLT['Curie'],wn,curie,sym='.',xlab='Sliding Window Width (degrees)',ylab='Curie Temp',title='Curie Statistics')
+    files = {}
+    for key in PLT.keys(): files[key]=str(key) + '.' + fmt
+    if save == True:
+        for key in PLT.keys():
+            try:
+                plt.figure(num=PLT[key])
+                plt.savefig(save_folder + '/' + files[key].replace('/','-'))
+            except:
+                print 'could not save: ',PLT[key],files[key]
+                print "output file format not supported "
+    plt.show()
+
+def chi_magic(path_to_file = '.', file_name = 'magic_measurements.txt',
+            save = False, save_folder = '.', fmt='svg'):
+    """
+    Generates plots that compare susceptibility to temperature at different
+    frequencies.
+
+    Optional Keywords (defaults are used if not specified)
+    ----------
+    path_to_file : path to directory that contains file (default is current directory, '.')
+    file_name : name of file to be opened (default is 'magic_measurements.txt')
+    save : boolean argument to save plots (default is False)
+    save_folder : relative directory where plots will be saved (default is current directory, '.')
+    """
+    cont,FTinit,BTinit,k="",0,0,0
+    complete_path = os.path.join(path_to_file,file_name)
+    Tind,cont=0,""
+    EXP=""
+    #
+    meas_data,file_type=pmag.magic_read(complete_path)
+    #
+    # get list of unique experiment names
+    #
+    # initialize some variables (a continuation flag, plot initialization flags and the experiment counter
+    experiment_names=[]
+    for rec in meas_data:
+        if rec['magic_experiment_name'] not in experiment_names:experiment_names.append(rec['magic_experiment_name'])
+    #
+    # hunt through by experiment name
+    if EXP!="":
+        try:
+            k=experiment_names.index(EXP)
+        except:
+            print "Bad experiment name"
+            sys.exit()
+    while k < len(experiment_names):
+        e=experiment_names[k]
+        if EXP=="":print e, k+1 , 'out of ',len(experiment_names)
+    #
+    #  initialize lists of data, susceptibility, temperature, frequency and field
+        X,T,F,B=[],[],[],[]
+        for rec in meas_data:
+            methcodes=rec['magic_method_codes']
+            meths=methcodes.strip().split(':')
+            if rec['magic_experiment_name']==e and "LP-X" in meths: # looking for chi measurement
+                if 'measurement_temp' not in rec.keys():rec['measurement_temp']='300' # set defaults
+                if 'measurement_freq' not in rec.keys():rec['measurement_freq']='0' # set defaults
+                if 'measurement_lab_field_ac' not in rec.keys():rec['measurement_lab_field_ac']='0' # set default
+                X.append(float(rec['measurement_x']))
+                T.append(float(rec['measurement_temp']))
+                F.append(float(rec['measurement_freq']))
+                B.append(float(rec['measurement_lab_field_ac']))
+    #
+    # get unique list of Ts,Fs, and Bs
+    #
+        Ts,Fs,Bs=[],[],[]
+        for k in range(len(X)):   # hunt through all the measurements
+            if T[k] not in Ts:Ts.append(T[k])  # append if not in list
+            if F[k] not in Fs:Fs.append(F[k])
+            if B[k] not in Bs:Bs.append(B[k])
+        Ts.sort() # sort list of temperatures, frequencies and fields
+        Fs.sort()
+        Bs.sort()
+        if '-x' in sys.argv:
+            k=len(experiment_names)+1 # just plot the one
+        else:
+            k+=1  # increment experiment number
+    #
+    # plot chi versus T and F holding B constant
+    #
+        plotnum=1  # initialize plot number to 1
+        if len(X)>2:  # if there are any data to plot, continue
+            b=Bs[-1]  # keeping field constant and at maximum
+            XTF=[] # initialize list of chi versus Temp and freq
+            for f in Fs:   # step through frequencies sequentially
+                XT=[]  # initialize list of chi versus temp
+                for kk in range(len(X)): # hunt through all the data
+                    if F[kk]==f and B[kk]==b:  # select data with given freq and field
+                        XT.append([X[kk],T[kk]]) # append to list
+                XTF.append(XT) # append list to list of frequencies
+            if len(XT)>1: # if there are any temperature dependent data
+                plt.figure(num=plotnum,figsize=(5,5)) # initialize plot
+                ipmagplotlib.plotXTF(plotnum,XTF,Fs,e,b) # call the plotting function
+                ipmagplotlib.showFIG(plotnum)
+                plotnum+=1 # increment plot number
+            f=Fs[0] # set frequency to minimum
+            XTB=[] # initialize list if chi versus Temp and field
+            for b in Bs:  # step through field values
+                XT=[] # initial chi versus temp list for this field
+                for kk in range(len(X)): # hunt through all the data
+                    if F[kk]==f and B[kk]==b: # select data with given freq and field
+                        XT.append([X[kk],T[kk]]) # append to list
+                XTB.append(XT)
+            if len(XT)>1: # if there are any temperature dependent data
+                plt.figure(num=plotnum,figsize=(5,5)) # set up plot
+                ipmagplotlib.plotXTB(plotnum,XTB,Bs,e,f) # call the plotting function
+                ipmagplotlib.showFIG(plotnum)
+                plotnum+=1 # increment plot number
+            if save == True:
+                files={}
+                PLTS={}
+                for p in range(1,plotnum):
+                    key=str(p)
+                    files[key]=e+'_'+key+'.'+fmt
+                    PLTS[key]=p
+                for key in PLTS.keys():
+                    try:
+                        plt.figure(num=PLTS[key])
+                        plt.savefig(save_folder + '/' + files[key].replace('/','-'))
+                    except:
+                        print 'could not save: ',PLTS[key],files[key]
+                        print "output file format not supported "
