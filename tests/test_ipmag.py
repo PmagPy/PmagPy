@@ -23,7 +23,7 @@ class TestIGRF(unittest.TestCase):
 class TestUploadMagic(unittest.TestCase):
 
     def setUp(self):
-        self.dir_path = os.path.join(os.getcwd(), 'unittests', 'examples')
+        self.dir_path = os.path.join(os.getcwd(), 'tests', 'examples')
 
     def test_empty_dir(self):
         outfile, error_message, errors = ipmag.upload_magic(dir_path=os.path.join(self.dir_path, 'empty_dir'))
@@ -78,7 +78,7 @@ class TestIODP_samples_magic(unittest.TestCase):
 
 
     def test_with_right_format(self):
-        reference_file = os.path.join(WD, 'unittests', 'examples', 'ODP_magic_er_samples.txt')
+        reference_file = os.path.join(WD, 'tests', 'examples', 'ODP_magic_er_samples.txt')
         infile = os.path.join(self.input_dir, 'samples_318_U1359_B.csv')
         program_ran, outfile = ipmag.IODP_samples_magic(infile)
         self.assertTrue(program_ran)
@@ -88,7 +88,7 @@ class TestIODP_samples_magic(unittest.TestCase):
 
 
     def test_content_with_right_format(self):
-        reference_file = os.path.join(WD, 'unittests', 'examples', 'ODP_magic_er_samples.txt')
+        reference_file = os.path.join(WD, 'tests', 'examples', 'ODP_magic_er_samples.txt')
         infile = os.path.join(self.input_dir, 'samples_318_U1359_B.csv')
         program_ran, outfile = ipmag.IODP_samples_magic(infile)
         self.assertEqual(open(reference_file).readlines(), open(outfile).readlines())

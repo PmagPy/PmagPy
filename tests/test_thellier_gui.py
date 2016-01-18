@@ -11,18 +11,18 @@ import wx
 #import pmag_gui
 #import pmag_menu_dialogs
 import thellier_gui
-import dialogs.thellier_interpreter
+import dialogs.thellier_interpreter as thellier_interpreter
 
 # get WD before all the Pmag GUI stuff starts to happen
 WD = os.getcwd()
-project_WD = os.path.join(os.getcwd(), 'unittests', 'examples', 'my_project')
+project_WD = os.path.join(os.getcwd(), 'tests', 'examples', 'my_project')
 
 
 class TestMainFrame(unittest.TestCase):
 
     def setUp(self):
         self.app = wx.App()
-        #WD = os.path.join(os.getcwd(), 'unittests', 'examples', 'my_project')
+        #WD = os.path.join(os.getcwd(), 'tests', 'examples', 'my_project')
         self.frame = thellier_gui.Arai_GUI(project_WD)
         self.pnl = self.frame.GetChildren()[0]
         #wx.lib.inspection.InspectionTool().Show()

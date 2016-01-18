@@ -9,14 +9,14 @@ import dialogs.pmag_menu_dialogs as pmag_menu_dialogs
 
 # get WD before all the Pmag GUI stuff starts to happen
 WD = os.getcwd()
-project_WD = os.path.join(os.getcwd(), 'unittests', 'examples', 'my_project')
+project_WD = os.path.join(os.getcwd(), 'tests', 'examples', 'my_project')
 core_depthplot_WD = os.path.join(os.getcwd(), 'Datafiles', 'core_depthplot')
 
 class TestMainFrame(unittest.TestCase):
 
     def setUp(self):
         self.app = wx.App()
-        #WD = os.path.join(os.getcwd(), 'unittests', 'examples', 'my_project')
+        #WD = os.path.join(os.getcwd(), 'tests', 'examples', 'my_project')
         self.frame = pmag_gui.MagMainFrame(project_WD)
         self.pnl = self.frame.GetChildren()[0]
         #wx.lib.inspection.InspectionTool().Show()
@@ -150,7 +150,7 @@ class TestMenus(unittest.TestCase):
 
     def setUp(self):
         self.app = wx.App()
-        #WD = os.path.join(os.getcwd(), 'unittests', 'examples', 'my_project')
+        #WD = os.path.join(os.getcwd(), 'tests', 'examples', 'my_project')
         self.frame = pmag_gui.MagMainFrame(project_WD)
         self.pnl = self.frame.GetChildren()[0]
         

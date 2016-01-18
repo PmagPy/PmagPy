@@ -10,10 +10,10 @@ import subprocess
 import sys
 import pmagpy.pmag as pmag
 import pmagpy.ipmag as ipmag
-import pmagpy.check_updates
+import pmagpy.check_updates as check_updates
 import dialogs.pmag_widgets as pw
-import dialogs.drop_down_menus
-import dialogs.magic_grid
+import dialogs.drop_down_menus as drop_down_menus
+import dialogs.magic_grid as magic_grid
 
 
 class import_magnetometer_data(wx.Dialog):

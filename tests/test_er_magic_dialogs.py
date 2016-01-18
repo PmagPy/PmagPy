@@ -5,15 +5,14 @@ import sys
 import os
 import wx
 
-import dialogs.pmag_er_magic_dialogs
-import dialogs.magic_grid
+import dialogs.magic_grid as magic_grid
 
 #import wx.lib.inspection
 #import numpy as np
 #import ipmag
 
 WD = os.getcwd()
-project_WD = os.path.join(os.getcwd(), 'unittests', 'examples', 'my_project')
+project_WD = os.path.join(os.getcwd(), 'tests', 'examples', 'my_project')
 
 class TestMagicGrid(unittest.TestCase):
     """

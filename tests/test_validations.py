@@ -19,7 +19,7 @@ class TestValidation(unittest.TestCase):
 
     def tearDown(self):
         # delete any upload file that was partially created
-        directory = os.path.join(WD, 'unittests', 'examples', 'validation')
+        directory = os.path.join(WD, 'tests', 'examples', 'validation')
         pattern = re.compile('\w*[.]\w*[.]\w*[20]\d{2}\w*.txt$')
         possible_files = os.listdir(directory)
         files = []
@@ -30,7 +30,7 @@ class TestValidation(unittest.TestCase):
         pmag.remove_files(files, directory)
 
     def test_controlled_vocab(self):
-        upfile = os.path.join(WD, 'unittests', 'examples',
+        upfile = os.path.join(WD, 'tests', 'examples',
                               'validation', 'location1_30.Dec.2015.txt')
         ran, errors = validate_upload.read_upload(upfile)
         self.assertFalse(ran)
@@ -45,7 +45,7 @@ class TestValidation(unittest.TestCase):
         self.assertIn('type', errors['site']['site3']['vocab_problem'])
 
     def test_lat_lon(self):
-        upfile = os.path.join(WD, 'unittests', 'examples',
+        upfile = os.path.join(WD, 'tests', 'examples',
                               'validation', 'location1_30.Dec.2015.txt')
         ran, errors = validate_upload.read_upload(upfile)
         self.assertFalse(ran)
@@ -59,7 +59,7 @@ class TestValidation(unittest.TestCase):
 
 
     def test_missing_data(self):
-        upfile = os.path.join(WD, 'unittests', 'examples',
+        upfile = os.path.join(WD, 'tests', 'examples',
                               'validation', 'location1_30.Dec.2015_1.txt')
         ran, errors = validate_upload.read_upload(upfile)
         self.assertFalse(ran)
