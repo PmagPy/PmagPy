@@ -5,10 +5,11 @@ Module for building or reading in specimen, sample, site, and location data.
 """
 
 import os
-import time
-import pmag
-import validate_upload
-import pmag_widgets as pw
+# import time
+import pmagpy.pmag as pmag
+import pmagpy.validate_upload as validate_upload
+import dialogs.pmag_widgets as pw
+
 
 class ErMagicBuilder(object):
     """
@@ -26,7 +27,8 @@ class ErMagicBuilder(object):
         self.write_ages = False
         self.ancestry = [None, 'specimen', 'sample', 'site', 'location', None]
         #
-        self.double = ['magic_method_codes', 'specimen_description', 'sample_description', 'site_description']
+        self.double = ['magic_method_codes', 'specimen_description',
+                       'sample_description', 'site_description']
         #
         self.incl_pmag_data = set(['result'])
         if not data_model:
@@ -34,12 +36,12 @@ class ErMagicBuilder(object):
         else:
             self.data_model = data_model
         self.data_lists = {'specimen': [self.specimens, Specimen, self.add_specimen],
-                   'sample': [self.samples, Sample, self.add_sample],
-                   'site': [self.sites, Site, self.add_site],
-                   'location': [self.locations, Location, self.add_location],
-                   'age': [self.sites, Site, self.add_site],
-                   'result': [self.results, Result, self.add_result],
-                   'measurement': [self.measurements, Measurement, self.add_measurement]}
+                           'sample': [self.samples, Sample, self.add_sample],
+                           'site': [self.sites, Site, self.add_site],
+                           'location': [self.locations, Location, self.add_location],
+                           'age': [self.sites, Site, self.add_site],
+                           'result': [self.results, Result, self.add_result],
+                           'measurement': [self.measurements, Measurement, self.add_measurement]}
         self.add_methods = {'specimen': self.add_specimen, 'sample': self.add_sample,
                             'site': self.add_site, 'location': self.add_location,
                             'age': None, 'result': self.add_result}
@@ -54,13 +56,13 @@ class ErMagicBuilder(object):
             'measurement': {'er': [[], [], []], 'pmag': [[], [], []]},
 
             'specimen': {'er': [[], [], []], 'pmag': [[], [], []]},
-            
+
             'sample': {'er': [[], [], []], 'pmag': [[], [], []]},
-            
+
             'site': {'er': [[], [], []], 'pmag': [[], [], []]},
-            
+
             'location': {'er': [[], [], []], 'pmag': [[], [], []]},
-            
+
             'age': {'er': [[], [], []], 'pmag': [[], [], []]},
 
             'result': {'er': [[], [], []], 'pmag': [[], [], []]}

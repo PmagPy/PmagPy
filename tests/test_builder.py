@@ -6,12 +6,12 @@
 Tests for new ErMagicBuilder
 """
 
-import unittest   
+import unittest
 import os
-import builder
-#import pmag    
-#import ipmag
-#import matplotlib
+import pmagpy.builder as builder
+# import pmag 
+# import ipmag
+# import matplotlib
 WD = os.getcwd()
 
 
