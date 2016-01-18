@@ -2,7 +2,7 @@
 
 import pandas as pd
 import sys
-import pmag
+import pmagpy.pmag as pmag
 
 class command_line_dataframe():
     """

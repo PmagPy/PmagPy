@@ -3,7 +3,7 @@
 doc string
 """
 
-# pylint: disable=C0103
+# pylint: disable=C0103,E402
 print '-I- Importing dependencies'
 import matplotlib
 matplotlib.use('WXAgg')
@@ -12,17 +12,16 @@ import wx.lib.buttons as buttons
 import sys
 import os
 import webbrowser
-import check_updates
-#import ErMagicBuilder
-import builder
-import pmag
-import ipmag
-import drop_down_menus
-import pmag_widgets as pw
-import magic_grid
-import pmag_menu_dialogs
-import validate_upload
-import grid_frame
+import pmagpy.check_updates as check_updates
+import pmagpy.builder as builder
+import pmagpy.pmag as pmag
+import pmagpy.ipmag as ipmag
+import pmagpy.validate_upload as validate_upload
+import dialogs.drop_down_menus as drop_down_menus
+import dialogs.pmag_widgets as pw
+import dialogs.magic_grid as magic_grid
+import dialogs.pmag_menu_dialogs as pmag_menu_dialogs
+import dialogs.grid_frame as grid_frame
 
 
 class MainFrame(wx.Frame):

@@ -1,8 +1,8 @@
 #!/usr/bin/env python
-import sys,pmag #,exceptions,struct, string
+import sys
 import os
-#
-#
+import pmagpy.pmag as pmag
+
 def skip(N,ind,L):
     for b in range(N):
         ind+=1

@@ -8,7 +8,7 @@ import os
 import wx
 import wx.html
 import webbrowser
-import controlled_vocabularies as vocabulary
+import pmagpy.controlled_vocabularies as vocabulary
 
 
 # library for commonly used widgets.

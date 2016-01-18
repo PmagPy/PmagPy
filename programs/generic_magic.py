@@ -1,8 +1,10 @@
 #!/usr/bin/env python
-import string,sys,pmag
+import sys
 import scipy
 import copy
 import os
+import pmagpy.pmag as pmag
+
 def main(command_line=True, **kwargs):
     """
     NAME

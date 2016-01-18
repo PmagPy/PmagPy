@@ -7,7 +7,10 @@
 # Rev 1.0 Initial revision August 2012 
 #---------------------------------------------------------------------------
 import matplotlib
-import pylab,scipy,os,time
+import pylab
+import scipy
+import os
+import time
 from pylab import * 
 from scipy import *
 import  scipy.interpolate

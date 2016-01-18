@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 import pandas as pd
-import string,sys,pmag
+import sys
 import numpy as np
+import pmagpy.pmag as pmag
 
 def main(command_line=True, **kwargs):
     """

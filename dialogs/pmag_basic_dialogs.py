@@ -8,13 +8,12 @@ import wx.grid
 import os
 import subprocess
 import sys
-import pmag
-import ipmag
-import pmag_widgets as pw
-#import ErMagicBuilder
-import drop_down_menus
-import check_updates
-import magic_grid
+import pmagpy.pmag as pmag
+import pmagpy.ipmag as ipmag
+import pmagpy.check_updates
+import dialogs.pmag_widgets as pw
+import dialogs.drop_down_menus
+import dialogs.magic_grid
 
 
 class import_magnetometer_data(wx.Dialog):

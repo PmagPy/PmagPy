@@ -4,15 +4,15 @@ import unittest
 #import sys
 import os
 #import numpy as np
-import pmag
+import pmagpy.pmag as pmag
 #import ipmag
-import sio_magic
-import CIT_magic
-import IODP_srm_magic
-import IODP_dscr_magic
-import IODP_jr6_magic
-import _2G_bin_magic
-import BGC_magic
+import programs.sio_magic as sio_magic
+import programs.CIT_magic as CIT_magic
+import programs.IODP_srm_magic as IODP_srm_magic
+import programs.IODP_dscr_magic as IODP_dscr_magic
+import programs.IODP_jr6_magic as IODP_jr6_magic
+import programs._2G_bin_magic as _2G_bin_magic
+import programs.BGC_magic as BGC_magic
 WD = os.getcwd()
 
 class TestSIO_magic(unittest.TestCase):

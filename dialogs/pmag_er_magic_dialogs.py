@@ -4,13 +4,13 @@ dialogs for ErMagicBuilder
 # pylint: disable=W0612,C0111,C0103,W0201,C0301
 import wx
 import wx.grid
-import sys
+#import sys
 import os
 import drop_down_menus
 import pmag_widgets as pw
-import check_updates
 import magic_grid
 import grid_frame
+import pmagpy.check_updates as check_updates
 
 
 class ErMagicCheckFrame(wx.Frame):

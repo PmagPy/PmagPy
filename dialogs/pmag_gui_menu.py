@@ -7,7 +7,7 @@ Create Pmag GUI menubar
 import wx
 import pmag_widgets as pw
 import pmag_menu_dialogs
-import builder
+import pmagpy.builder as builder
 
 
 class MagICMenu(wx.MenuBar):

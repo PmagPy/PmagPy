@@ -8,9 +8,9 @@ import os
 import sys
 #import ErMagicBuilder
 import magic_gui
-import builder
-import grid_frame
-import pmag_widgets
+import pmagpy.builder as builder
+import dialogs.grid_frame as grid_frame
+import dialogs.pmag_widgets as pmag_widgets
 
 WD = os.getcwd()
 

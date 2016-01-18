@@ -5,8 +5,8 @@ import sys
 import os
 import wx
 
-import pmag_er_magic_dialogs
-import magic_grid
+import dialogs.pmag_er_magic_dialogs
+import dialogs.magic_grid
 
 #import wx.lib.inspection
 #import numpy as np

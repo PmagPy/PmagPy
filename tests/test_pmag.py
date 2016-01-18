@@ -2,10 +2,7 @@
 
 import unittest
 import os
-import sys
-import pmag
-import ipmag
-import matplotlib
+import pmagpy.pmag as pmag
 WD = os.getcwd()
 
 class TestLonAdjust(unittest.TestCase):

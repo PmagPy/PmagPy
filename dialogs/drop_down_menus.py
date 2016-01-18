@@ -4,8 +4,8 @@
 
 import wx
 import pandas as pd
-from controlled_vocabularies import vocabularies as vocab
-import controlled_vocabularies as vocabulary
+from pmagpy.controlled_vocabularies import vocabularies as vocab
+import pmagpy.controlled_vocabularies as vocabulary
 
 
 # this module will provide all the functionality for the drop-down controlled vocabulary menus

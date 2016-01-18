@@ -10,13 +10,14 @@ import os
 import sys
 #import datetime
 #import shutil
-import pmag
-import ipmag
-import pmag_basic_dialogs
-import pmag_er_magic_dialogs
-import pmag_gui_menu
-import ErMagicBuilder
-import builder
+import pmagpy.pmag as pmag
+import pmagpy.ipmag as ipmag
+import pmagpy.builder as builder
+import dialogs.pmag_basic_dialogs as pmag_basic_dialogs
+import dialogs.pmag_er_magic_dialogs as pmag_er_magic_dialogs
+import dialogs.pmag_gui_menu as pmag_gui_menu
+import dialogs.ErMagicBuilder as ErMagicBuilder
+
 # import check_updates
 
 class MagMainFrame(wx.Frame):
@@ -334,7 +335,7 @@ class MagMainFrame(wx.Frame):
 
     def on_er_data(self, event):
         if not os.path.isfile(os.path.join(self.WD, 'magic_measurements.txt')):
-            import pmag_widgets as pw
+            import dialogs.pmag_widgets as pw
             pw.simple_warning("Your working directory must have a magic_measurements.txt file to run this step.  Make sure you have fully completed step 1 (import magnetometer file), by combining all imported magnetometer files into one magic_measurements file.")
             return False
 

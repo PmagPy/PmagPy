@@ -4,13 +4,13 @@ GridBuilder -- data methods for GridFrame (add data to frame, save it, etc.)
 """
 #import pdb
 import wx
-import builder
-import pmag
 import drop_down_menus
 import pmag_widgets as pw
 import magic_grid
-import controlled_vocabularies as vocabulary
-from controlled_vocabularies import vocabularies as vocab
+import pmagpy.builder as builder
+import pmagpy.pmag as pmag
+import pmagpy.controlled_vocabularies as vocabulary
+from pmagpy.controlled_vocabularies import vocabularies as vocab
 
 
 class GridFrame(wx.Frame):

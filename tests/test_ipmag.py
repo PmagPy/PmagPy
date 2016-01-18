@@ -3,9 +3,10 @@
 import unittest
 import os
 import sys
-import pmag
-import ipmag
 import matplotlib
+import pmagpy.pmag as pmag
+import pmagpy.ipmag as ipmag
+
 WD = os.getcwd()
 
 class TestIGRF(unittest.TestCase):

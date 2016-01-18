@@ -1,14 +1,11 @@
 #!/usr/bin/env python
 
 import unittest
-import sys
 import os
 import wx
 import wx.lib.inspection
-import numpy as np
-import ipmag
 import pmag_gui
-import pmag_menu_dialogs
+import dialogs.pmag_menu_dialogs as pmag_menu_dialogs
 
 # get WD before all the Pmag GUI stuff starts to happen
 WD = os.getcwd()

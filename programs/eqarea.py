@@ -1,5 +1,8 @@
 #!/usr/bin/env python
-import sys,pmagplotlib,numpy
+import sys
+import numpy
+import pmagpy.pmagplotlib as pmagplotlib
+
 def main():
     """
     NAME
@@ -76,5 +79,7 @@ def main():
         pmagplotlib.saveP(EQ,files)
     else:
         ans=raw_input(" S[a]ve to save plot, [q]uit without saving:  ")
-        if ans=="a": pmagplotlib.saveP(EQ,files) 
-main()
+        if ans=="a": pmagplotlib.saveP(EQ,files)
+
+if __name__ == "__main__":
+    main()

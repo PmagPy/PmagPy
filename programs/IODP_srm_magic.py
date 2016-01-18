@@ -1,5 +1,8 @@
 #!/usr/bin/env python
-import pmag,sys,os,exceptions
+import sys
+import os
+import pmagpy.pmag as pmag
+
 def main(command_line=True, **kwargs):
     """
     NAME

@@ -4,13 +4,11 @@
 tests for validations
 """
 
-import wx
 import unittest
 import os
 import re
-import magic_gui
-import validate_upload
-import pmag
+import pmagpy.validate_upload as validate_upload
+import pmagpy.pmag as pmag
 
 WD = os.getcwd()
 

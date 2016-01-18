@@ -11,9 +11,9 @@ import subprocess
 import wx.grid
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigureCanvas
 from matplotlib import pyplot as plt
-import pmag
-import pmag_widgets as pw
-import ipmag
+import pmagpy.pmag as pmag
+import pmagpy.ipmag as ipmag
+import dialogs.pmag_widgets as pw
 #import thellier_gui_dialogs
 #import thellier_gui
 #import ErMagicBuilder
