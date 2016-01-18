@@ -1,7 +1,10 @@
 #!/usr/bin/env python
 #
 #import draw
-import sys,pmag,math,pmagplotlib
+import sys
+import pmagpy.pmag as pmag
+import pmagpy.pmagplotlib as pmagplotlib
+
 def save(ANIS,fmt,title):
   files={}
   for key in ANIS.keys():

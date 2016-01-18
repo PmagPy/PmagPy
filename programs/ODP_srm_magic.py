@@ -1,5 +1,8 @@
 #!/usr/bin/env python
-import pmag,sys,os,exceptions
+import sys
+import os
+import pmagpy.pmag as pmag
+
 def main():
     """
     NAME
@@ -185,4 +188,6 @@ def main():
     Fixed=pmag.measurements_methods(MagRecs,noave)
     pmag.magic_write(meas_file,Fixed,'magic_measurements')
     print 'data stored in ',meas_file
-main()
+
+if __name__ == "__main__":
+    main()

@@ -1,5 +1,8 @@
 #!/usr/bin/env python
-import sys,pmag,math,numpy
+import sys
+import numpy
+import pmagpy.pmag as pmag
+
 def main():
     """
     NAME
@@ -282,4 +285,6 @@ def main():
     print "specimen tensor elements stored in ",rmag_anis
     pmag.magic_write(rmag_res,RmagResRecs,'rmag_results')
     print "specimen statistics and eigenparameters stored in ",rmag_res
-main()
+
+if __name__ == "__main__":
+    main()

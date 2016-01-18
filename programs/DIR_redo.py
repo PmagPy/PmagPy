@@ -1,5 +1,6 @@
 #!/usr/bin/env python
-import sys,string
+import sys
+
 def main():
     """
     NAME
@@ -72,4 +73,6 @@ def main():
                 if beg==0:beg=273
             outstring='%s %s %s %s %s \n'%(spec,calculation_type,beg,end,comp_name)
             zredo.write(outstring)
-main()        
+
+if __name__ == "__main__":
+    main()        

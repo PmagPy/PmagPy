@@ -1,12 +1,13 @@
 #!/usr/bin/env python
-import pmagplotlib
-import pmag,sys #,exceptions,pylab
-import pmag_widgets as pw
-import command_line_extractor as extractor
-import ipmag
-import pmag_menu_dialogs
+import sys
 import wx
 import os
+import pmagpy.pmagplotlib as pmagplotlib
+import pmagpy.pmag as pmag
+import pmagpy.command_line_extractor as extractor
+import pmagpy.ipmag as ipmag
+import dialogs.pmag_widgets as pw
+import dialogs.pmag_menu_dialogs as pmag_menu_dialogs
 
 def main():
     """

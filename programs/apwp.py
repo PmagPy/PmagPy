@@ -1,5 +1,7 @@
 #!/usr/bin/env python
-import sys,pmag,string,exceptions
+import sys
+import pmagpy.pmag as pmag
+
 def spitout(data):
     pole_lat,pole_lon=pmag.bc02(data)
     dec,inc=pmag.vgp_di(pole_lat,pole_lon,data[1],data[2])
@@ -110,4 +112,6 @@ def main():
     else:
        print 'no input data'
        sys.exit()
-main()
+
+if __name__ == "__main__":
+    main()

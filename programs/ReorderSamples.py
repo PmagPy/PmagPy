@@ -1,5 +1,6 @@
 #!/usr/bin/env python
-import sys,pmag,math
+import sys
+import pmagpy.pmag as pmag
 #
 #
 def main():
@@ -46,4 +47,6 @@ def main():
         outfile=dir_path+'/'+outfile
 # now do re-ordering 
     pmag.ReorderSamples(infile,sampfile,outfile)
-main()
+
+if __name__ == "__main__":
+    main()

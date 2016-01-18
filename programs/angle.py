@@ -1,5 +1,8 @@
 #!/usr/bin/env python
-import pmag,sys,exceptions,numpy
+import sys
+import numpy
+import pmagpy.pmag as pmag
+
 def main():
     """
     NAME
@@ -63,4 +66,6 @@ def main():
     for ang in angs:   # read in the data (as string variable), line by line
         print '%7.1f'%(ang)
         if out!="":out.write('%7.1f \n'%(ang))
-main() 
+
+if __name__ == "__main__":
+    main() 

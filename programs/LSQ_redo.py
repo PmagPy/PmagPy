@@ -1,5 +1,8 @@
 #!/usr/bin/env python
-import sys,string,pmag
+import sys
+import string
+import pmagpy.pmag as pmag
+
 def main():
     """
     NAME
@@ -133,5 +136,7 @@ def main():
     for s in meas_data: # collect the rest of the measurement data not already included
         if s['er_specimen_name'] not in specs:
             MeasRecs.append(s)
-    pmag.magic_write(meas_file,MeasRecs,'magic_measurements')  # write out annotated measurements   
-main()        
+    pmag.magic_write(meas_file,MeasRecs,'magic_measurements')  # write out annotated measurements
+
+if __name__ == "__main__":
+    main()        

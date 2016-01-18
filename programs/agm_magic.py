@@ -1,5 +1,7 @@
 #!/usr/bin/env python
-import string,sys,pmag
+import sys
+import pmagpy.pmag as pmag
+
 def main():
     """
     NAME
@@ -233,4 +235,6 @@ def main():
 # 
     pmag.magic_write(output,MeasRecs,'magic_measurements')
     print "results put in ",output
-main()
+
+if __name__ == "__main__":
+    main()

@@ -1,6 +1,8 @@
 #!/usr/bin/env pythonw
 # -*- coding: utf-8 -*-
-import wx,string,sys,math,os
+import wx
+import sys
+import os
 import scipy
 from scipy import *
 

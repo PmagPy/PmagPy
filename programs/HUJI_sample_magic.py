@@ -1,5 +1,6 @@
 #!/usr/bin/env python
-import string,sys,pmag,exceptions
+import sys
+import pmagpy.pmag as pmag
 #
 #
 def main():
@@ -165,4 +166,6 @@ def main():
     print "Sample info saved in ", samp_file
     pmag.magic_write(site_file,SiteOut,"er_sites")
     print "Site info saved in ", site_file
-main()
+
+if __name__ == "__main__":
+    main()
