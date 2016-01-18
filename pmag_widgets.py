@@ -563,15 +563,20 @@ class combine_files(wx.BoxSizer):
 
     def on_add_all_files_button(self, event):
         all_files = os.listdir(self.WD)
-        include_files = []
+        files_already_listed = [str(self.file_paths.GetLineText(line)) for line in range(self.file_paths.GetNumberOfLines())]
+        include_files = [f for f in files_already_listed if f]
+        add_files = []
         for F in all_files:
             F = str(F)
             if len(F) > 6:
                 if self.text in F:
-                    if "#" not in F and "~" not in F and not F.endswith('.pyc'): # prevents binary files from going into the mix, as well as misc saved stuff
-                        if F not in include_files:
-                            include_files.append(F)
-        for f in include_files:
+                    # prevents adding binary files, as well as misc saved stuff
+                    if "#" not in F and "~" not in F and not F.endswith('.pyc'):
+                        # prevent adding files that are already listed
+                        if str(F) not in include_files:
+                            include_files.append(str(F))
+                            add_files.append(str(F))
+        for f in add_files:
             self.file_paths.AppendText(f+"\n")
 
 

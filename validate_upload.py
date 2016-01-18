@@ -229,7 +229,7 @@ def read_upload(up_file, data_model=None):
         print "-W- In your {} file, you are using an unrecognized value for these controlled vocabularies: {}".format(file_type, ', '.join(vocab_types))
 
     for file_type, coords in bad_coords.items():
-        print "-W- In your {} file, you are using an illegal value for these columns: {}".format(file_type, ', '.join(coords))
+        print "-W- In your {} file, you are using an illegal value for these columns: {}.  (Latitude must be between -90 and +90)".format(file_type, ', '.join(coords))
 
 
     if any((invalid_col_names, non_numeric, missing_data, missing_file_type, bad_vocab, bad_coords)):
@@ -350,8 +350,11 @@ def validate_for_controlled_vocab(key, value, complete_ref):
             add = vocab.get_controlled_vocabularies((key,))
             vocab.vocabularies = pd.concat((vocab.vocabularies, add[0]))
 
+        ## for each value from a controlled vocabulary header,
+        ## make sure it is within the controlled vocabulary list
+        ## and that the value is not null
         for val in values:
-            if val not in vocab.vocabularies[key]:
+            if val not in vocab.vocabularies[key] and val:
                 if isinstance(vocab.vocabularies[key], dict):
                     if val not in vocab.vocabularies[key][val[0].upper()]:
                         return key

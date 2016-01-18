@@ -31,7 +31,7 @@ class import_magnetometer_data(wx.Dialog):
 
         formats = ['generic format','SIO format','CIT format','2G-binary format',
                    'HUJI format','LDEO format','IODP SRM (csv) format','PMD (ascii) format',
-                   'TDT format', 'JR6 format']
+                   'TDT format', 'JR6 format', "BGC format"]
         sbs = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.ID_ANY, 'step 1: choose file format'), wx.VERTICAL)
         sbs.AddSpacer(5)
 
@@ -110,9 +110,9 @@ class import_magnetometer_data(wx.Dialog):
         elif file_type == 'IODP':
             dia = convert_IODP_files_to_MagIC(self, self.WD, "PmagPy IODP csv conversion")
         elif file_type == 'PMD':
-            dia = convert_PMD_files_to_MagIC(self, self.WD)
+            dia = convert_PMD_files_to_MagIC(self, self.WD, "PmagPy PMD conversion")
         elif file_type == 'BGC':
-            dia = convert_BGC_files_to_magic(self, self.WD)
+            dia = convert_BGC_files_to_magic(self, self.WD, "PmagPy BGC conversion")
         elif file_type == 'TDT':
             import TDT_magic
             TDT_magic.main(False, self.WD)
@@ -151,7 +151,7 @@ class combine_magic_dialog(wx.Frame):
     def InitUI(self):
         pnl = self.panel
 
-        #---sizer infor ----
+        #---sizer information ----
 
         TEXT="Step 2: \nCombine different MagIC formatted files to one file named 'magic_measurements.txt'"
         bSizer_info = wx.BoxSizer(wx.HORIZONTAL)
@@ -197,29 +197,6 @@ class combine_magic_dialog(wx.Frame):
         hbox_all.Fit(self)
         self.Centre()
         self.Show()
-
-
-    def on_add_file_button(self,event):
-        dlg = wx.FileDialog(
-            None,message="choose MagIC formatted measurement file",
-            defaultDir=self.WD,
-            defaultFile="",
-            style=wx.OPEN | wx.CHANGE_DIR
-            )
-        if dlg.ShowModal() == wx.ID_OK:
-            full_path = dlg.GetPath()
-            infile = os.path.split(full_path)[1]
-            self.file_paths.AppendText(infile + "\n")
-
-
-    def on_add_all_files_button(self,event):
-        all_files=os.listdir(self.WD)
-        for F in all_files:
-            str(F) # fix strange Python bug (rshaar)
-            F=str(F)
-            if len(F)>6:
-                if F[-6:]==".magic":
-                    self.file_paths.AppendText(F+"\n")
 
 
     def on_cancelButton(self,event):
@@ -539,9 +516,9 @@ class convert_generic_files_to_MagIC(convert_files_to_MagIC):
         self.hbox_all.Fit(self)
 
 
-    #def on_add_file_button(self,event):
-    #    text = "choose file to convert to MagIC"
-    #    pw.on_add_file_button(self.bSizer0, text)
+    def on_add_file_button(self,event):
+        text = "choose file to convert to MagIC"
+        pw.on_add_file_button(self.bSizer0, text)
 
 
     def on_okButton(self,event):
@@ -2056,7 +2033,7 @@ class convert_BGC_files_to_magic(wx.Frame):
     """ """
     title = "PmagPy BGC file conversion"
 
-    def __init__(self, parent, WD):
+    def __init__(self, parent, WD, title):
         wx.Frame.__init__(self, parent, wx.ID_ANY, self.title)
         self.panel = wx.ScrolledWindow(self)
         self.WD = WD
