@@ -13,10 +13,10 @@ from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigureCanvas
 from matplotlib import pyplot as plt
 import pmag
 import pmag_widgets as pw
-import thellier_gui_dialogs
-import thellier_gui
 import ipmag
-import ErMagicBuilder
+#import thellier_gui_dialogs
+#import thellier_gui
+#import ErMagicBuilder
 
 class ImportAzDipFile(wx.Frame):
 
