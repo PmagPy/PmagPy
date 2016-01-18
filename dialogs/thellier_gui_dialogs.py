@@ -24,7 +24,6 @@
 
 import matplotlib
 #matplotlib.use('WXAgg')
-import pmag
 import wx
 import copy
 import os
@@ -34,6 +33,7 @@ from scipy import arange
 import wx
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigCanvas \
 
+import pmagpy.pmag as pmag
 #--------------------------------------------------------------    
 # paleointensity statistics list (SPD.v.1.0)
 #--------------------------------------------------------------

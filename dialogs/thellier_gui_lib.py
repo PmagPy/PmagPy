@@ -13,7 +13,7 @@ from pylab import *
 from scipy import *
 #import pmag
 import copy
-import pmag
+import pmagpy.pmag as pmag
     
 
 def get_PI_parameters(Data,acceptance_criteria,preferences,s,tmin,tmax,GUI_log,THERMAL,MICROWAVE):
