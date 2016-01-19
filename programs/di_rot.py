@@ -1,5 +1,8 @@
 #!/usr/bin/env python
-import pmag,sys,math,numpy
+import sys
+import numpy
+import pmagpy.pmag as pmag
+
 def main():
     """
     NAME
@@ -62,4 +65,6 @@ def main():
             print '%7.1f %7.1f ' % ((d-180.)%360.,i)
         else:
             out.write('%7.1f %7.1f\n' % ((d-180.)%360.,i))
-main()
+
+if __name__ == "__main__":
+    main()

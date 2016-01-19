@@ -1,7 +1,10 @@
 #!/usr/bin/env python
-import sys,pmag,matplotlib,pmagplotlib
-import exceptions
-import pylab,numpy
+import sys
+import numpy
+import pylab
+import pmagpy.pmag as pmag
+import pmagpy.pmagplotlib as pmagplotlib
+
 def main():
     """
     NAME

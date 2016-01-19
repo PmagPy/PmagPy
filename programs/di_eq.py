@@ -1,5 +1,8 @@
 #!/usr/bin/env python
-import sys,math,pmag,numpy
+import sys
+import numpy
+import pmagpy.pmag as pmag
+
 def main():
     """
     NAME
@@ -37,4 +40,5 @@ def main():
        XY=pmag.dimap(Ds,Is)
        print '%f %f'%(XY[0],XY[1])
 
-main() 
+if __name__ == "__main__":
+    main()

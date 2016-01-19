@@ -1,5 +1,8 @@
 #!/usr/bin/env python
-import sys,pmagplotlib,pmag
+import sys
+import pmagpy.pmagplotlib as pmagplotlib
+import pmagpy.pmag as pmag
+
 def main():
     """
     NAME
@@ -10,7 +13,7 @@ def main():
 
     INPUT FORMAT
        takes dec/inc pairs in space delimited file
-   
+
     SYNTAX
        fishqq.py [command line options]
 
@@ -144,5 +147,7 @@ def main():
     else:
         pmagplotlib.drawFIGS(QQ) 
         ans=raw_input(" S[a]ve to save plot, [q]uit without saving:  ")
-        if ans=="a": pmagplotlib.saveP(QQ,files) 
-main()
+        if ans=="a": pmagplotlib.saveP(QQ,files)
+
+if __name__ == "__main__":
+    main()

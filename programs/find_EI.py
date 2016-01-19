@@ -1,6 +1,10 @@
 #!/usr/bin/env python
-import pmag,sys,numpy,pmagplotlib
+import sys
+import numpy
+import pmagpy.pmag as pmag
+import pmagpy.pmagplotlib as pmagplotlib
 from numpy import random
+
 def EI(inc):
     poly_tk03= [  3.15976125e-06,  -3.52459817e-04,  -1.46641090e-02,   2.89538539e+00]  
     return poly_tk03[0]*inc**3 + poly_tk03[1]*inc**2+poly_tk03[2]*inc+poly_tk03[3]
@@ -154,4 +158,6 @@ def main():
     files['cdf']='findEI_cdf.'+fmt
     files['v2']='findEI_v2.'+fmt
     pmagplotlib.saveP(PLTS,files)
-main()
+
+if __name__ == "__main__":
+    main()

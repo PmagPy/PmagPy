@@ -1,5 +1,7 @@
 #!/usr/bin/env python
-import pmag,sys,math
+import sys
+import pmagpy.pmag as pmag
+
 def main():
     """
     NAME
@@ -56,4 +58,6 @@ def main():
         dec,inc= pmag.fshdev(kappa)  # send kappa to fshdev
         drot,irot=pmag.dodirot(dec,inc,D,I)   
         print '%7.1f %7.1f ' % (drot,irot)
-main()
+
+if __name__ == "__main__":
+    main()

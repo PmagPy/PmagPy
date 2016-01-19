@@ -1,5 +1,8 @@
 #!/usr/bin/env python
-import sys,pmagplotlib,pmag
+import sys
+import pmagpy.pmagplotlib as pmagplotlib
+import pmagpy.pmag as pmag
+
 def main():
     """
     NAME
@@ -289,4 +292,6 @@ def main():
     if len(RemRecs)>0 and verbose:
         pmag.magic_write(rmag_rem,RemRecs,"rmag_remanence")
         print "remanence parameters saved in ",rmag_rem
-main()
+
+if __name__ == "__main__":
+    main()

@@ -1,5 +1,8 @@
 #!/usr/bin/env python
-import sys,pmag,pmagplotlib
+import sys
+import pmagpy.pmag as pmag
+import pmagpy.pmagplotlib as pmagplotlib
+
 def main():
     """
     NAME
@@ -86,4 +89,6 @@ def main():
         elif ans=='q':
             sys.exit()
         pmagplotlib.clearFIG(FIG['lowrie'])
-main() 
+
+if __name__ == "__main__":
+    main()

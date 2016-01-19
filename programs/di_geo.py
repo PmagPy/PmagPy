@@ -1,5 +1,8 @@
 #!/usr/bin/env python
-import pmag,sys,exceptions,numpy
+import numpy
+import sys
+import pmagpy.pmag as pmag
+
 def main():
     """
     NAME
@@ -56,4 +59,6 @@ def main():
             print '%7.1f %7.1f'%(D[k],I[k])
         else:
             out.write('%7.1f %7.1f\n'%(D[k],I[k]))
-main()
+
+if __name__ == "__main__":
+    main()

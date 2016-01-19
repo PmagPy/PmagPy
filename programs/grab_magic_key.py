@@ -1,5 +1,7 @@
 #!/usr/bin/env python
-import pmag,sys
+import sys
+import pmagpy.pmag as pmag
+
 def main():
     """
     NAME 
@@ -44,4 +46,6 @@ def main():
         for rec in Data: print rec[grab_key]
     else:
         print 'bad file name'
-main()
+
+if __name__ == "__main__":
+    main()

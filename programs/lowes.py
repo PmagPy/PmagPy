@@ -1,9 +1,12 @@
 #! /usr/bin/env python
-import pmag,numpy,sys
+import numpy
+import sys
 import matplotlib
-matplotlib.use("TkAgg")
 import pylab
+import pmagpy.pmag as pmag
+matplotlib.use("TkAgg")
 pylab.ion()
+
 def main():
     """
     NAME
@@ -56,4 +59,6 @@ def main():
         pylab.legend(labels,'upper right')
         pylab.draw()
     raw_input()
-main()
+
+if __name__ == "__main__":
+    main()

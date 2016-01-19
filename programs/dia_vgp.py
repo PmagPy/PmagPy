@@ -1,5 +1,7 @@
 #!/usr/bin/env python
-import pmag,sys
+
+import sys
+import pmagpy.pmag as pmag
 
 def spitout(*input):
     output = []
@@ -95,4 +97,6 @@ def main():
             for el in line.split():
                 inlist[-1].append(float(el))
         spitout(inlist)
-main()
+
+if __name__ == "__main__":
+    main()

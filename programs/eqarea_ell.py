@@ -1,5 +1,9 @@
 #!/usr/bin/env python
-import sys,pmag,pmagplotlib,numpy
+import sys
+import numpy
+import pmagpy.pmag as pmag
+import pmagpy.pmagplotlib as pmagplotlib
+
 def main():
     """
     NAME
@@ -225,4 +229,6 @@ def main():
             pmagplotlib.saveP(FIG,files) 
     else:
         pmagplotlib.saveP(FIG,files)
-main() 
+
+if __name__ == "__main__":
+    main() 

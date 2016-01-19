@@ -1,9 +1,12 @@
 #!/usr/bin/env python
-import pmag,sys
+import sys
+import pmagpy.pmag as pmag
+
 def spitout(kappa):
     dec,inc= pmag.fshdev(kappa)  # send kappa to fshdev
     print '%7.1f %7.1f ' % (dec,inc)
     return
+
 def main():
     """
     NAME
@@ -46,5 +49,6 @@ def main():
             ind=sys.argv.index('-n')
             N=int(sys.argv[ind+1])
     for k in range(N): spitout(kappa)
-if __name__=='__main__':
+
+if __name__ == '__main__':
     main()

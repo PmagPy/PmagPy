@@ -1,5 +1,7 @@
 #!/usr/bin/env python
-import string,sys,pmag
+import sys
+import pmagpy.pmag as pmag
+
 def main():
     """
     NAME
@@ -50,4 +52,6 @@ def main():
                 MethRec['magic_method_code']=meth
                 MethRecs.append(MethRec)
     pmag.magic_write(outfile,MethRecs,'magic_methods')
-main() 
+
+if __name__ == "__main__":
+    main()

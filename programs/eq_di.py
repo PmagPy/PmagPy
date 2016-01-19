@@ -1,5 +1,7 @@
 #!/usr/bin/env python
-import sys,math
+import sys
+import math
+
 def main():
     """
     NAME
@@ -61,4 +63,5 @@ def main():
         else:
             out.write(outstring+'\n')
         #end
-main() 
+if __name__ == "__main__":
+    main()

@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import wx,string,sys,math,os
+import wx
+import sys
+import math
+import os
 import scipy
 from scipy import *
-import sys
-
 
 
 #------
@@ -1189,6 +1190,9 @@ DESCRIPTION
 """
 
 if __name__ == '__main__':
+    if '-h' in sys.argv:
+        print "Convert Livdb files to MagIC format"
+        sys.exit()
     app = wx.App()
     app.frame = convert_livdb_files_to_MagIC("./")
     app.frame.Show()

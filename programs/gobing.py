@@ -1,5 +1,7 @@
 #!/usr/bin/env python
-import pmag,sys
+import sys
+import pmagpy.pmag as pmag
+
 def main():
     """
     NAME
@@ -54,5 +56,6 @@ def main():
         out.write(output+'\n')
     #print '%7.1f %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f %i' % (bpars["dec"],bpars["inc"],bpars["Eta"],bpars["Edec"],bpars["Einc"],bpars["Zeta"],bpars["Zdec"],bpars["Zinc"],bpars["n"])
     #
-main()
 
+if __name__ == "__main__":
+    main()

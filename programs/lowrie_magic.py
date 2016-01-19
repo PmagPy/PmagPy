@@ -1,5 +1,8 @@
 #!/usr/bin/env python
-import sys,pmag,pmagplotlib
+import sys
+import pmagpy.pmag as pmag
+import pmagpy.pmagplotlib as pmagplotlib
+
 def main():
     """
     NAME
@@ -9,7 +12,7 @@ def main():
        plots intensity decay curves for Lowrie experiments
 
     SYNTAX 
-        lowrie -h [command line options]
+        lowrie_magic.py -h [command line options]
     
     INPUT 
        takes magic_measurements formatted input files
@@ -84,4 +87,6 @@ def main():
         elif ans=='q':
             sys.exit()
         pmagplotlib.clearFIG(FIG['lowrie'])
-main() 
+
+if __name__ == "__main__":
+    main()

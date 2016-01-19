@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 #
-import sys,pmag,copy
-import ipmag
-import command_line_extractor as extractor
-import os
+import sys
+import pmagpy.ipmag as ipmag
+import pmagpy.command_line_extractor as extractor
+
 def main():
     """
     NAME
@@ -363,4 +363,4 @@ def do_help():
     return main.__doc__
 
 if __name__ == "__main__":
-    main() 
+    main()

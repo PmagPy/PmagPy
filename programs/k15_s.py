@@ -1,5 +1,7 @@
 #!/usr/bin/env python
-import sys,pmag
+import sys
+import pmagpy.pmag as pmag
+
 def main():
     """
     NAME
@@ -91,5 +93,5 @@ def main():
                     out.write(outstring+'\n')
                 linecnt,firstline,k15=0,1,[]
 #
-main() 
-
+if __name__ == "__main__":
+    main()

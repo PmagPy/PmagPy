@@ -1,5 +1,7 @@
 #!/usr/bin/env python
-import pmag,sys
+import sys
+import pmagpy.pmag as pmag
+
 def main():
     """
     NAME
@@ -48,4 +50,6 @@ def main():
             print x
         else:
            out.write(x+'\n')
-main()
+
+if __name__ == "__main__":
+    main()

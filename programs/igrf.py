@@ -1,5 +1,7 @@
 #!/usr/bin/env python
-import pmag,sys,numpy,exceptions
+import sys
+import numpy
+import pmagpy.pmag as pmag
 #
 def main():
     """
@@ -150,5 +152,6 @@ def main():
             pylab.savefig('igrf.'+fmt)
             print 'Figure saved as: ','igrf.'+fmt
         sys.exit()
-main()
 
+if __name__ == "__main__":
+    main()

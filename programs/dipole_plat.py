@@ -1,5 +1,7 @@
 #!/usr/bin/env python
-import sys,math,pmag,exceptions
+import sys
+import pmagpy.pmag as pmag
+
 def main():
     """
     NAME 
@@ -38,4 +40,6 @@ def main():
            except:
                print '\n Good-bye \n'
                sys.exit()
-main()        
+
+if __name__ == "__main__":
+    main()

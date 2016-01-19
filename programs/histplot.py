@@ -1,8 +1,11 @@
 #!/usr/bin/env python
-import sys,pmag,matplotlib
-matplotlib.use("TkAgg")
-import pylab,numpy
+import sys
+import matplotlib
+import numpy
+import pylab
 pylab.ion()
+matplotlib.use("TkAgg")
+
 def main():
     """
     NAME
@@ -82,4 +85,6 @@ def main():
         if p!='a':  sys.exit()
     pylab.savefig(outfile)
     print 'plot saved in ',outfile
-main()
+
+if __name__ == "__main__":
+    main()

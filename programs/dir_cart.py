@@ -1,5 +1,8 @@
 #!/usr/bin/env python
-import pmag,sys,numpy
+import sys
+import numpy
+import pmagpy.pmag as pmag
+
 def main():
     """
     NAME
@@ -66,4 +69,6 @@ def main():
         for line in cart:
             print '%8.4e %8.4e %8.4e'%(line[0],line[1],line[2])
             if out!="":out.write('%8.4e %8.4e %8.4e\n'%(line[0],line[1],line[2]))
-main() 
+
+if __name__ == "__main__":
+    main()

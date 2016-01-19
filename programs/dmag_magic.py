@@ -1,5 +1,8 @@
 #!/usr/bin/env python
-import sys,pmag,pmagplotlib
+import sys
+import pmagpy.pmag as pmag
+import pmagpy.pmagplotlib as pmagplotlib
+
 def main():
     """
     NAME
@@ -8,12 +11,12 @@ def main():
     DESCRIPTION
        plots intensity decay curves for demagnetization experiments
 
-    SYNTAX 
+    SYNTAX
         dmag_magic -h [command line options]
-    
+
     INPUT 
        takes magic formatted magic_measurements.txt files
-    
+
     OPTIONS
         -h prints help message and quits
         -f FILE: specify input file, default is: magic_measurements.txt
@@ -125,4 +128,6 @@ def main():
                         files[key]=title+'_'+LT+'.svg' 
                     pmagplotlib.saveP(FIG,files) 
             pmagplotlib.clearFIG(FIG['demag'])
-main() 
+
+if __name__ == "__main__":
+    main()

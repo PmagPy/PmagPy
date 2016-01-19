@@ -1,5 +1,7 @@
 #!/usr/bin/env python
-import sys,pmag
+import sys
+import pmagpy.pmag as pmag
+
 def main():
     """
     NAME
@@ -120,5 +122,6 @@ def main():
                 if ans=="q": sys.exit()
         else:
             print 'skipping site - not enough data with specified coordinate system'
-         
-main()
+
+if __name__ == "__main__":
+    main()

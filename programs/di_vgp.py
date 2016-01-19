@@ -1,5 +1,8 @@
 #!/usr/bin/env python
-import pmag,sys,numpy
+import sys
+import numpy
+import pmagpy.pmag as pmag
+
 def main():
     """
     NAME
@@ -83,4 +86,6 @@ def main():
             print '%7.1f %7.1f'%(output[0],output[1]) 
         else: # write to file
             out.write('%7.1f %7.1f\n'%(output[0],output[1]))
-main()
+
+if __name__ == "__main__":
+    main()
