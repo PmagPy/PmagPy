@@ -1,8 +1,11 @@
 #!/usr/bin/env python
-import matplotlib,sys,pmag
-matplotlib.use("TkAgg")
+import sys
+import set_env
+set_env.set_backend(wx=False)
+import pmagpy.pmag as pmag
 import pylab
 pylab.ion()
+
 def main():
     """
     NAME
@@ -110,4 +113,6 @@ def main():
     pylab.draw()
     ans=raw_input("Press return to quit  ")
     sys.exit()
-main()
+
+if __name__ == "__main__":
+    main()

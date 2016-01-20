@@ -1,7 +1,12 @@
 #!/usr/bin/env python
-import sys,pmag,matplotlib,pmagplotlib
-import exceptions
-import pylab,numpy
+import sys
+import numpy
+import set_env
+set_env.set_backend(wx=False)
+import pylab
+import pmagpy.pmag as pmag
+import pmagpy.pmagplotlib as pmagplotlib
+
 def main():
     """
     NAME
@@ -175,4 +180,6 @@ def main():
     for key in PLTS.keys():
         files[key]=('foldtest_'+'%s'%(key.strip()[:2])+'.'+fmt)
     pmagplotlib.saveP(PLTS,files)
-main()
+
+if __name__ == "__main__":
+    main()

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 #
 import sys
-import pmag
+import pmagpy.pmag as pmag
 
 def main():
     """

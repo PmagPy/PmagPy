@@ -7,7 +7,8 @@ import test_pmag
 import test_pmag_gui
 import test_thellier_gui
 import test_validations
+import test_programs
 
 __all__ = [test_builder, test_er_magic_dialogs, test_imports, test_ipmag,
            test_magic_gui, test_pmag, test_pmag_gui, test_thellier_gui,
-           test_validations]
+           test_validations, test_programs]

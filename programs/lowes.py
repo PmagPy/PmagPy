@@ -1,10 +1,10 @@
 #! /usr/bin/env python
 import numpy
 import sys
-import matplotlib
+import set_env
+set_env.set_backend(wx=False)
 import pylab
 import pmagpy.pmag as pmag
-matplotlib.use("TkAgg")
 pylab.ion()
 
 def main():
