@@ -6,14 +6,10 @@
 
 Full documentation for PmagPy installation and use is available in the PmagPy cookbook: http://earthref.org/PmagPy/cookbook
 
-To get started, download a zip file of the latest release here: https://github.com/ltauxe/PmagPy/releases/latest
-Click on "Source code (zip)" or "Source code (tar.gz)" to download. To install the software on a Mac or a PC, unzip the downloaded folder and double-click on the install script for your system. Linux and advanced users on Mac and PCs can copy the contents of the folder into a directory and then add the directory to the main repository (and the program directory for access to the command line programs) to their path and pythonpath. On a Mac, this can be done by adding these lines to the bash_profile:
-
-```export PATH=~/PmagPy:./:$PATH```
-
-```export PATH=~/PmagPy/programs:./:$PATH```
-
-```export PYTHONPATH=$PYTHONPATH:~/PmagPy```
+To get started:
+- download a zip file of the latest release here: https://github.com/ltauxe/PmagPy/releases/latest. Click on "Source code (zip)" or "Source code (tar.gz)" to download. 
+- To install the software on a Mac or a PC, unzip the downloaded folder and double-click on the install script for your system. 
+- Linux and advanced users on Mac and PCs can copy the contents of the folder into a directory and then add the directory to the main repository (and the program directory for access to the command line programs) to their path and pythonpath. On a Mac, this can be done by adding these lines to the bash_profile: ```export PATH=~/PmagPy:./:$PATH```; ```export PATH=~/PmagPy/programs:./:$PATH```; ```export PYTHONPATH=$PYTHONPATH:~/PmagPy```
 
 ## Main features
 
