@@ -1,5 +1,7 @@
 #!/usr/bin/env python
-import sys,pmag
+import sys
+import pmagpy.pmag as pmag
+
 def main():
     """
     NAME
@@ -64,4 +66,6 @@ def main():
     if len(Locations)>0:
         pmag.magic_write(loc_file,Locations,"er_locations")
         print "Locations written to: ",loc_file
-main()
+
+if __name__ == "__main__":
+    main()

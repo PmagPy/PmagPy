@@ -1,5 +1,8 @@
 #!/usr/bin/env python
-import sys,pmag,math,exceptions,nlt,string
+import sys
+import pmagpy.pmag as pmag
+import pmagpy.nlt as nlt
+
 def main():
     """
     NAME
@@ -377,4 +380,6 @@ def main():
         crout=dir_path+'/'+crout
         pmag.magic_write(crout,CRSpecs,'pmag_specimens')
         print 'cooling rate corrected data saved in: ',crout
-main()
+
+if __name__ == "__main__":
+    main()

@@ -1,5 +1,7 @@
 #!/usr/bin/env python
-import pmag,sys
+import sys
+import pmagpy.pmag as pmag
+
 def spitout(line):
     dat=[]  # initialize list for  dec,inc,slat,slon
     line.replace('\t',' ')
@@ -9,6 +11,7 @@ def spitout(line):
     dec,inc=pmag.vgp_di(dat[0],dat[1],dat[2],dat[3])  # call vgp_di function from pmag module
     print '%7.1f %7.1f'%(dec,inc) # print out returned stuff
     return dec,inc
+
 def main():
     """
     NAME
@@ -70,4 +73,6 @@ def main():
         input = sys.stdin.readlines()  # read from standard input
         for line in input:   # read in the data (as string variable), line by line
             spitout(line)
-main()
+
+if __name__ == "__main__":
+    main()

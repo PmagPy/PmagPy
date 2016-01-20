@@ -1,5 +1,7 @@
 #!/usr/bin/env python
-import pmag,sys,string
+import sys
+import pmagpy.pmag as pmag
+
 def main():
     """
     NAME
@@ -63,4 +65,5 @@ def main():
             pmag.magic_write(ofile,speclist,'pmag_specimens')
             print 'coordinate system: ',coord,' component name: ',comp,' saved in ',ofile
 
-main()                     
+if __name__ == "__main__":
+    main()

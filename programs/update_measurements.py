@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # define some variables
-import pmag,math,sys
+import sys
+import pmagpy.pmag as pmag
+
 def main():
     """
     NAME 
@@ -73,4 +75,6 @@ def main():
     if sflag==1:
          pmag.magic_write(samp_file,samps,'er_samples')
          print "updated sample file stored in ", samp_file
-main()
+
+if __name__ == "__main__":
+    main()

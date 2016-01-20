@@ -1,6 +1,11 @@
 #!/usr/bin/env python
-import sys,pmagplotlib,pmag
+import sys
 import numpy
+import set_env
+set_env.set_backend(wx=False)
+import pmagpy.pmagplotlib as pmagplotlib
+import pmagpy.pmag as pmag
+
 def main():
     """
     NAME
@@ -134,5 +139,7 @@ def main():
             if ans=="a": pmagplotlib.saveP(CDF,files) 
         if plot==1: # save and quit silently
             pmagplotlib.saveP(CDF,files)
-main()
+
+if __name__ == "__main__":
+    main()
 

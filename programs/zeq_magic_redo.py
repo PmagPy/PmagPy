@@ -1,5 +1,8 @@
 #! /usr/bin/env python
-import sys,pmag,exceptions,string
+import sys
+import string
+import pmagpy.pmag as pmag
+
 def main():
     """
     NAME
@@ -271,4 +274,6 @@ def main():
             k+=1
     pmag.magic_write(pmag_file,PmagSpecs,'pmag_specimens')
     print "Recalculated specimen data stored in ",pmag_file
-main()
+
+if __name__ == "__main__":
+    main()

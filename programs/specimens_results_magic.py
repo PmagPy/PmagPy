@@ -1,5 +1,6 @@
 #!/usr/bin/env python
-import sys,pmag,math
+import sys
+import pmagpy.pmag as pmag
 
 def main():
     """
@@ -654,4 +655,6 @@ def main():
         pmag.magic_write(resout,TmpRes,'pmag_results')
         print ' results written to ',resout
     else: print "No Results level table"
-main()
+
+if __name__ == "__main__":
+    main()

@@ -1,5 +1,7 @@
 #!/usr/bin/env python
-import pmag,sys,exceptions
+import sys
+import pmagpy.pmag as pmag
+
 def spitout(line):
     rec=line.split()
     sundata={}
@@ -73,4 +75,6 @@ def main():
         data=sys.stdin.readlines() # read in data from standard input
     for line in data: # step through line by line
         dec=spitout(line)
-main()
+
+if __name__ == "__main__":
+    main()

@@ -1,5 +1,8 @@
 #!/usr/bin/env python
-import pmag,sys,math,random
+import sys
+import random
+import pmagpy.pmag as pmag
+
 def main():
     """
     NAME
@@ -63,4 +66,6 @@ def main():
                vec[1]=-vec[1]
             if vec[0]>=360.:vec[0]-=360.
             print'%7.1f %7.1f %8.2f ' % (vec[0],vec[1],vec[2])
-main()
+
+if __name__ == "__main__":
+    main()

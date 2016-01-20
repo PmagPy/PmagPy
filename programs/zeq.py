@@ -1,5 +1,10 @@
 #!/usr/bin/env python
-import sys,pmagplotlib,pmag
+import sys
+import set_env
+set_env.set_backend(wx=False)
+import pmagpy.pmagplotlib as pmagplotlib
+import pmagpy.pmag as pmag
+
 def main():
     """
     NAME
@@ -127,4 +132,6 @@ def main():
             if units=='mT':print '%s %s %i  %6.2f %6.2f %6.1f %7.1f %7.1f' % (s,calculation_type,mpars["specimen_n"],mpars["measurement_step_min"]*1e3,mpars["measurement_step_max"]*1e3,mpars["specimen_mad"],mpars["specimen_dec"],mpars["specimen_inc"])
             if units=='C':print '%s %s %i  %6.2f %6.2f %6.1f %7.1f %7.1f' % (s,calculation_type,mpars["specimen_n"],mpars["measurement_step_min"]-273,mpars["measurement_step_max"]-273,mpars["specimen_mad"],mpars["specimen_dec"],mpars["specimen_inc"])
             if units=='U':print '%s %s %i  %6.2f %6.2f %6.1f %7.1f %7.1f' % (s,calculation_type,mpars["specimen_n"],mpars["measurement_step_min"],mpars["measurement_step_max"],mpars["specimen_mad"],mpars["specimen_dec"],mpars["specimen_inc"])
-main() # run the main program
+
+if __name__ == "__main__":
+    main()  # run the main program

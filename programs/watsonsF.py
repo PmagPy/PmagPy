@@ -1,5 +1,10 @@
 #!/usr/bin/env python
-import sys,pmagplotlib,pmag
+import sys
+import set_env
+set_env.set_backend(wx=False)
+import pmagpy.pmagplotlib as pmagplotlib
+import pmagpy.pmag as pmag
+
 def main():
     """
     NAME
@@ -73,5 +78,7 @@ def main():
     F=(N-2)*((R1+R2-R)/(N-R1-R2))
     Fcrit=pmag.fcalc(2,2*(N-2))
     print '%7.2f %7.2f'%(F,Fcrit)
-main()
+
+if __name__ == "__main__":
+    main()
 

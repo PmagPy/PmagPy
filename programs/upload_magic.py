@@ -1,7 +1,7 @@
 #!/usr/bin/env python
-import pmag,sys
-import ipmag
-import command_line_extractor as extractor
+import sys
+import pmagpy.ipmag as ipmag
+import pmagpy.command_line_extractor as extractor
 
 def main():
     """

@@ -1,5 +1,10 @@
 #!/usr/bin/env python
-import pmagplotlib,pmag,sys,exceptions
+import sys
+import set_env
+set_env.set_backend(wx=False)
+import pmagpy.pmagplotlib as pmagplotlib
+import pmagpy.pmag as pmag
+
 def main():
     """
     NAME 
@@ -286,5 +291,7 @@ def main():
     else:
         pmagplotlib.drawFIGS(FIG)
         ans=raw_input(" S[a]ve to save plot, [q]uit without saving:  ")
-        if ans=="a": pmagplotlib.saveP(FIG,files) 
-main()
+        if ans=="a": pmagplotlib.saveP(FIG,files)
+
+if __name__ == "__main__":
+    main()

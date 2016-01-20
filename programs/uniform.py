@@ -1,5 +1,7 @@
 #! /usr/bin/env python
-import sys,pmag,numpy
+import sys
+import numpy
+import pmagpy.pmag as pmag
 
 def main():
     """
@@ -33,4 +35,6 @@ def main():
             print '%7.1f %7.1f'%(dir[0],dir[1])
     else:
         numpy.savetxt(outf,dirs,fmt='%7.1f %7.1f')
-main()
+
+if __name__ == "__main__":
+    main()

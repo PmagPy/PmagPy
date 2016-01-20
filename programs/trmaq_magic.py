@@ -1,8 +1,11 @@
 #!/usr/bin/env python
-import sys,pmag,math,pmagplotlib,nlt
-import matplotlib
-matplotlib.use("TkAgg")
-import pylab
+import sys
+import set_env
+set_env.set_backend(wx=False)
+import pmagpy.pmag as pmag
+import pmagpy.pmagplotlib as pmagplotlib
+import pmagpy.nlt as nlt
+
 def main():
     """
     NAME
@@ -131,4 +134,6 @@ def main():
                     pmagplotlib.saveP(PLT,Name)
                 specimen+=1
     pmag.magic_write(output,PmagSpecRecs,'pmag_specimens')
-main()
+
+if __name__ == "__main__":
+    main()

@@ -1,5 +1,10 @@
 #!/usr/bin/env python
-import sys,pmag,exceptions, pmagplotlib
+import sys
+import set_env
+set_env.set_backend(wx=False)
+import pmagpy.pmag as pmag
+import pmagpy.pmagplotlib as pmagplotlib
+
 def main():
     """
     NAME
@@ -225,4 +230,6 @@ def main():
             print 'skipping site - not enough data with specified coordinate system'
         k+=1 
     print "sample flags stored in ",sampfile
-main()
+
+if __name__ == "__main__":
+    main()

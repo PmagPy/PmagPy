@@ -1,8 +1,15 @@
 #!/usr/bin/env python
-import sys,pmagplotlib,pmag,exceptions,string,os
+import sys
+import os
+import set_env
+set_env.set_backend(wx=False)
+import pmagpy.pmagplotlib as pmagplotlib
+import pmagpy.pmag as pmag
+
 def save_redo(SpecRecs,inspec):
     print "Saving changes to specimen file"
     pmag.magic_write(inspec,SpecRecs,'pmag_specimens')
+
 def main():
     """
     NAME
@@ -716,4 +723,6 @@ def main():
         else: k+=1 # skip record - not enough data
     if changeM==1:
         pmag.magic_write(meas_file,meas_data,'magic_measurements')
-main()
+
+if __name__ == "__main__":
+    main()

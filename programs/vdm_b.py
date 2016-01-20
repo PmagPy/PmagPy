@@ -1,10 +1,13 @@
 #!/usr/bin/env python
-import pmag,sys,exceptions
+import sys
+import pmagpy.pmag as pmag
+
 def spitout(line):
     dat=line.split() # split the data on a space into columns
     vdm,lat=float(dat[0]),float(dat[1])
     b= pmag.vdm_b(vdm,lat)  # 
     return b
+
 def main():
     """
     NAME
@@ -62,4 +65,6 @@ def main():
             print '%10.3e'%(b)
         else:
             out.write('%10.3e \n'%(b))
-main() 
+
+if __name__ == "__main__":
+    main() 
