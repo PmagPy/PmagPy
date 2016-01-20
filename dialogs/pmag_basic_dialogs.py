@@ -30,7 +30,7 @@ class import_magnetometer_data(wx.Dialog):
 
         formats = ['generic format','SIO format','CIT format','2G-binary format',
                    'HUJI format','LDEO format','IODP SRM (csv) format','PMD (ascii) format',
-                   'TDT format', 'JR6 format']
+                   'TDT format', 'JR6 format', "BGC format"]
         sbs = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.ID_ANY, 'step 1: choose file format'), wx.VERTICAL)
         sbs.AddSpacer(5)
 
@@ -109,9 +109,9 @@ class import_magnetometer_data(wx.Dialog):
         elif file_type == 'IODP':
             dia = convert_IODP_files_to_MagIC(self, self.WD, "PmagPy IODP csv conversion")
         elif file_type == 'PMD':
-            dia = convert_PMD_files_to_MagIC(self, self.WD)
+            dia = convert_PMD_files_to_MagIC(self, self.WD, "PmagPy PMD conversion")
         elif file_type == 'BGC':
-            dia = convert_BGC_files_to_magic(self, self.WD)
+            dia = convert_BGC_files_to_magic(self, self.WD, "PmagPy BGC conversion")
         elif file_type == 'TDT':
             import TDT_magic
             TDT_magic.main(False, self.WD)
@@ -2032,7 +2032,7 @@ class convert_BGC_files_to_magic(wx.Frame):
     """ """
     title = "PmagPy BGC file conversion"
 
-    def __init__(self, parent, WD):
+    def __init__(self, parent, WD, title):
         wx.Frame.__init__(self, parent, wx.ID_ANY, self.title)
         self.panel = wx.ScrolledWindow(self)
         self.WD = WD
