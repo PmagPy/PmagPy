@@ -1,5 +1,7 @@
 #!/usr/bin/env python
-import string,sys,pmag,copy
+import sys
+import pmagpy.pmag as pmag
+
 def main():
     """
     NAME
@@ -257,4 +259,6 @@ def main():
          You can now import your data into the Magic Console and complete data entry, 
          for example the site locations, lithologies, etc. plotting can be done with aniso_magic.py
     """
-main()
+
+if __name__ == "__main__":
+    main()

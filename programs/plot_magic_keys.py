@@ -1,5 +1,8 @@
 #!/usr/bin/env python
-import pmag,sys,pmagplotlib,exceptions
+import sys
+import pmagpy.pmag as pmag
+import pmagpy.pmagplotlib as pmagplotlib
+
 def main():
     """
     NAME 
@@ -77,6 +80,8 @@ def main():
         sys.exit()
     else:
         print 'no data to plot'
-main()
+
+if __name__ == "__main__":
+    main()
 
 

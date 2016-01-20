@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 # define some variables
-import pmag,sys,frp
+import sys
+import pmagpy.pmag as pmag
+import pmagpy.frp as frp
+
 def main():
     """
     NAME 
@@ -125,4 +128,6 @@ def main():
                         ResRecs.append(ResRec)
     if len(ResRecs)>0:
         pmag.magic_write(ofile,ResRecs,'pmag_results')
-main()
+
+if __name__ == "__main__":
+    main()

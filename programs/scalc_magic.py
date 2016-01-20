@@ -1,5 +1,8 @@
 #!/usr/bin/env python
-import sys,pmag,random
+import sys
+import random
+import pmagpy.pmag as pmag
+
 def main():
     """
     NAME
@@ -141,5 +144,5 @@ def main():
 
     
 # 
-
-main()
+if __name__ == "__main__":
+    main()

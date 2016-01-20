@@ -1,9 +1,15 @@
 #!/usr/bin/env python
-# data from http://geomagia.ucsd.edu 
+# data from http://geomagia.ucsd.edu
+
+import set_env
+set_env.set_backend(wx=False)
 import matplotlib
-matplotlib.use("TkAgg")
-import pmagplotlib
-import pylab,numpy,sys
+import sys
+import pylab
+import numpy
+#matplotlib.use("TkAgg")
+import pmagpy.pmagplotlib as pmagplotlib
+
 def main():
     """
     NAME
@@ -114,4 +120,6 @@ def main():
             pmagplotlib.saveP(FIGS,files)
     else:
         pmagplotlib.saveP(FIGS,files)
-main() 
+
+if __name__ == "__main__":
+    main() 

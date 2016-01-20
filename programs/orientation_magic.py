@@ -1,7 +1,9 @@
 #!/usr/bin/env python
-import string,sys,os,pmag,exceptions
-import command_line_extractor as extractor
-import ipmag
+import sys
+#import os
+#import pmagpy.pmag as pmag
+import pmagpy.command_line_extractor as extractor
+import pmagpy.ipmag as ipmag
 #
 #
 def main():

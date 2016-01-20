@@ -1,5 +1,7 @@
 #!/usr/bin/env python
-import sys,pmag
+import sys
+import pmagpy.pmag as pmag
+
 def main():
     """
     NAME
@@ -67,4 +69,6 @@ def main():
         print '%s %s %i  %6.2f %6.2f %6.1f %7.1f %7.1f' % (s,calculation_type,mpars["specimen_n"],mpars["measurement_step_min"],mpars["measurement_step_max"],mpars["specimen_a95"],mpars["specimen_dec"],mpars["specimen_inc"])
     else:
         print '%s %s %i  %6.2f %6.2f %6.1f %7.1f %7.1f' % (s,calculation_type,mpars["specimen_n"],mpars["measurement_step_min"],mpars["measurement_step_max"],mpars["specimen_mad"],mpars["specimen_dec"],mpars["specimen_inc"])
-main()
+
+if __name__ == "__main__":
+    main()

@@ -1,5 +1,8 @@
 #!/usr/bin/env python
-import sys,pmagplotlib,pmag,exceptions
+import sys
+import pmagpy.pmagplotlib as pmagplotlib
+import pmagpy.pmag as pmag
+
 def main():
     """
     NAME
@@ -104,5 +107,6 @@ def main():
     else:
         print 'good bye'
         sys.exit()
-main()
 
+if __name__ == "__main__":
+    main()

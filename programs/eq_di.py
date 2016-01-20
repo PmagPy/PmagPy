@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import sys
 import math
+import pmagpy.pmag as pmag
 
 def main():
     """

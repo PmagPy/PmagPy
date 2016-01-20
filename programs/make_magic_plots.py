@@ -1,5 +1,8 @@
 #!/usr/bin/env python
-import pmag,sys,os,exceptions
+import sys
+import os
+import pmagpy.pmag as pmag
+
 def main():
     """
     NAME
@@ -149,5 +152,6 @@ def main():
             if len(tdata)>3:
                 os.system('aniso_magic.py -x -B -crd t -sav -fmt '+fmt)
         if loc!='./':os.chdir('..') # change working directories to each location
-        
-main()
+
+if __name__ == "__main__":
+    main()

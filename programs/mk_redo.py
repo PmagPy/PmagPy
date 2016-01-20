@@ -1,5 +1,8 @@
 #!/usr/bin/env python
-import pmag,sys,string
+import sys
+import string
+import pmagpy.pmag as pmag
+
 def main():
     """
     NAME
@@ -82,4 +85,6 @@ def main():
             if outstring not in outstrings:
                 tredo.write(outstring)
             outstrings.append(outstring) # only writes unique interpretions
-main()        
+
+if __name__ == "__main__":
+    main()

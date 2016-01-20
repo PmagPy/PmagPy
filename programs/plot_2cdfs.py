@@ -1,6 +1,9 @@
 #!/usr/bin/env python
-import sys,pmag,pmagplotlib,numpy,scipy
-from scipy import stats
+import sys
+import scipy
+import numpy
+import pmagpy.pmagplotlib as pmagplotlib
+
 def main():
     """
     NAME
@@ -56,4 +59,6 @@ def main():
     if ans=='a':
         files={'X':'CDF_.'+fmt}
         pmagplotlib.saveP(CDF,files)
-main()
+
+if __name__ == "__main__":
+    main()

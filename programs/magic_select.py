@@ -1,5 +1,7 @@
 #!/usr/bin/env python
-import pmag,sys
+import sys
+import pmagpy.pmag as pmag
+
 def main():
     """
     NAME 
@@ -74,4 +76,6 @@ def main():
         pmag.magic_write(outfile,Selection,file_type)
     else:
         print 'no data matched your criteria'
-main()
+
+if __name__ == "__main__":
+    main()

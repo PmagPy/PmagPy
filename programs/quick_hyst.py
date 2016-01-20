@@ -1,5 +1,11 @@
 #!/usr/bin/env python
-import sys,pmagplotlib,pmag,numpy
+import sys
+import numpy
+import set_env
+set_env.set_backend(wx=False)
+import pmagpy.pmag as pmag
+import pmagpy.pmagplotlib as pmagplotlib
+
 def main():
     """
     NAME
@@ -27,6 +33,7 @@ def main():
     dir_path='.'
     fmt='png'
     verbose=pmagplotlib.verbose
+    print 'verbose?', verbose
     version_num=pmag.get_version()
     if '-WD' in args:
         ind=args.index('-WD')
@@ -52,6 +59,7 @@ def main():
         ind=args.index("-fmt")
         fmt=args[ind+1]
     meas_file=dir_path+'/'+meas_file
+    print 'verbose', verbose
     #
     #
     meas_data,file_type=pmag.magic_read(meas_file)
@@ -180,4 +188,6 @@ def main():
         if len(B)==0:
     	    if verbose:print 'skipping this one - no hysteresis data'
        	    k+=1
-main()
+
+if __name__ == "__main__":
+    main()

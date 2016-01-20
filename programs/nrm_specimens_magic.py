@@ -1,5 +1,7 @@
 #! /usr/bin/env python
-import sys,pmag
+import sys
+import pmagpy.pmag as pmag
+
 def main():
     """
         NAME
@@ -210,4 +212,6 @@ def main():
                 PmagSpecRecs.append(PmagSpecRec)
     pmag.magic_write(pmag_file,PmagSpecRecs,'pmag_specimens')
     print "Data saved in ",pmag_file
-main()
+
+if __name__ == "__main__":
+    main()

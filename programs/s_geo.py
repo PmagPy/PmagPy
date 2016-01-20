@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 #
-import sys,pmag,math, numpy
+import sys
+import pmagpy.pmag as pmag
+
 def main():
     """
     NAME
@@ -61,4 +63,5 @@ def main():
         else:
             out.write(outstring+"\n")
 #
-main() 
+if __name__ == "__main__":
+    main()

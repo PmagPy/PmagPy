@@ -2,9 +2,11 @@
 import sys
 import matplotlib
 import numpy
+import set_env
+set_env.set_backend(wx=False)
 import pylab
 pylab.ion()
-matplotlib.use("TkAgg")
+
 
 def main():
     """

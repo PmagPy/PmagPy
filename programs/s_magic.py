@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 #
-import sys,pmag,copy
+import sys
+import pmag
+
 def main():
     """
     NAME
@@ -173,4 +175,5 @@ def main():
     pmag.magic_write(anisfile,AnisRecs,'rmag_anisotropy')
     print 'data saved in ',anisfile 
     #
-main() 
+if __name__ == "__main__":
+    main()

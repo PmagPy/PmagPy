@@ -1,5 +1,6 @@
 #!/usr/bin/env python
-import sys,pmag,math
+import sys
+import pmagpy.pmag as pmag
 #
 #
 def main():
@@ -52,4 +53,6 @@ def main():
         instout=dir_path+'/'+instout
 # now do re-ordering 
     pmag.ParseMeasFile(infile,sitefile,instout,specout)
-main()
+
+if __name__ == "__main__":
+    main()

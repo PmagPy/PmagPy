@@ -1,13 +1,15 @@
 #!/usr/bin/env python
 
-import matplotlib
+#import matplotlib
 #matplotlib.use('WXAgg')
-
-
-import sys,pylab,scipy,os
+import set_env
+set_env.set_backend(wx=False)
+import sys
+import pylab
 from pylab import *
-
-import pmag
+import scipy
+import os
+import pmagpy.pmag as pmag
 
 def main():
     """
@@ -642,5 +644,5 @@ def main():
     print "log file is  in rmag_anisotropy.log"
 
 
-    
-main()
+if __name__ == "__main__":    
+    main()

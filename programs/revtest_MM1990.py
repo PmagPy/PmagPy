@@ -1,5 +1,10 @@
 #!/usr/bin/env python
-import sys,pmagplotlib,pmag,numpy
+import sys
+import numpy
+import set_env
+set_env.set_backend(wx=False)
+import pmagpy.pmagplotlib as pmagplotlib
+import pmagpy.pmag as pmag
 #
 #contributed by N. Swanson-Hysell on 5/3/2013 relying heavily on the implementation of the Watson V test developed by L. Tauxe in watsonsV.py
 #
@@ -173,5 +178,7 @@ def main():
             pmagplotlib.saveP(CDF,files)
         else:
             ans=raw_input(" S[a]ve to save plot, [q]uit without saving:  ")
-            if ans=="a": pmagplotlib.saveP(CDF,files) 
-main()
+            if ans=="a": pmagplotlib.saveP(CDF,files)
+
+if __name__ == "__main__":
+    main()

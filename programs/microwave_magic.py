@@ -1,6 +1,11 @@
 #!/usr/bin/env python
-import sys,pmag,math,pmagplotlib,exceptions
-if not pmagplotlib.isServer: import nlt
+import sys
+import pmagpy.pmag as pmag
+import pmagpy.pmagplotlib as pmagplotlib
+import set_env
+if not set_env.isServer:
+    import pmagpy.nlt as nlt
+
 # initialize some variables
 def save_redo(SpecRecs,inspec):
     pmag.magic_write(inspec,SpecRecs,'pmag_specimens')
@@ -506,4 +511,6 @@ def main():
             print 'Updated interpretations saved in ',inspec
     if pmagplotlib.verbose:
         print "Good bye"
-main()
+
+if __name__ == "__main__":
+    main()

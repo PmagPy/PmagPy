@@ -1,7 +1,11 @@
 #!/usr/bin/env python
-import sys,pmag,random,matplotlib
-matplotlib.use("TkAgg")
+import sys
+import random
+import set_env
+set_env.set_backend(wx=False)
 import pylab
+import pmagpy.pmag as pmag
+
 def main():
     """
     NAME
@@ -131,5 +135,7 @@ def main():
       print len(Vgps),'%7.1f  %7.1f '%(S_B,A)
     if  len(slats)>2:
         stats= pmag.gausspars(slats)
-        print 'mean lat = ','%7.1f'%(stats[0]) 
-main()
+        print 'mean lat = ','%7.1f'%(stats[0])
+
+if __name__ == "__main__":
+    main()

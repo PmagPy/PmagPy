@@ -1,15 +1,18 @@
 #!/usr/bin/env python
-import sys,pmag,pmagplotlib,numpy
+import sys
+import numpy
+import pmagpy.pmagplotlib as pmagplotlib
+
 def main():
     """
     NAME
-        plot_cdfs.py
+        plot_cdf.py
 
     DESCRIPTION
         makes plots of cdfs of data in input file 
 
     SYNTAX
-        plot_cdfs.py [-h][command line options]
+        plot_cdf.py [-h][command line options]
 
     OPTIONS
         -h prints help message and quits
@@ -47,4 +50,6 @@ def main():
     if ans=='a':
         files={'X':'CDF_.'+fmt}
         pmagplotlib.saveP(CDF,files)
-main()
+
+if __name__ == "__main__":
+    main()

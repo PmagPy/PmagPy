@@ -1,5 +1,6 @@
 #!/usr/bin/env python
-import string,sys,pmag,exceptions
+import sys
+import pmagpy.pmag as pmag
 #
 #
 def main():
@@ -60,4 +61,6 @@ def main():
         OutRecs.append(rec) 
     pmag.magic_write(out_file,OutRecs,"magic_measurements")
     print "Data saved in ", out_file
-main()
+
+if __name__ == "__main__":
+    main()

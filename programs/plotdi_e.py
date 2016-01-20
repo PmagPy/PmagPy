@@ -1,7 +1,11 @@
 #!/usr/bin/env python
-import sys,pmag,matplotlib,pmagplotlib
-matplotlib.use("TkAgg")
-import pylab
+import sys
+import set_env
+set_env.set_backend(wx=False)
+import pmagpy.pmag as pmag
+import pmagpy.pmagplotlib as pmagplotlib
+
+
 def main():
     """
     NAME
@@ -247,4 +251,6 @@ def main():
             files[key]=key+'.svg'
         pmagplotlib.saveP(EQ,files)
     #
-main()
+
+if __name__ == "__main__":
+    main()

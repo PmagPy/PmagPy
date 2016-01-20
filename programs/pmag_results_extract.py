@@ -1,5 +1,7 @@
 #!/usr/bin/env python
-import pmag,math,sys
+import sys
+import pmagpy.pmag as pmag
+
 def main():
     """
     NAME 
@@ -309,4 +311,6 @@ def main():
     if crit_file!="":
         cr.close()
         print 'Selection criteria saved in: ',Critout
-main()
+
+if __name__ == "__main__":
+    main()

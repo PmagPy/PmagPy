@@ -1,9 +1,12 @@
 #!/usr/bin/env python
-import matplotlib,sys
-matplotlib.use("TkAgg")
+import sys
+import numpy
+import set_env
+set_env.set_backend(wx=False)
 import pylab
 pylab.ion()
-import numpy
+import pmagpy.pmag as pmag
+
 def main():
     """
     NAME
@@ -32,6 +35,7 @@ def main():
         -l  connect symbols with lines
         -fmt [svg,png,pdf,eps] specify output format, default is svg
         -poly X   plot a degree X polynomial through the data
+        -skip n   Number of lines to skip before reading in data
     """
     fmt='svg' 
     col1,col2=0,1
@@ -78,9 +82,12 @@ def main():
         size=int(sys.argv[ind+2])
     if '-l' in sys.argv: lines=1
     if '-S' in sys.argv: sym=''
+    skip = int(pmag.get_named_arg_from_sys('-skip', default_val=0))
     X,Y=[],[]
     Xerrs,Yerrs=[],[]
     f=open(file,'rU')
+    for num in range(skip):
+        f.readline()
     data=f.readlines()
     for line in data:
         line.replace('\n','')
@@ -116,4 +123,6 @@ def main():
         pylab.savefig('plotXY.'+fmt) 
         print 'Figure saved as: ','plotXY.'+fmt
     sys.exit()
-main()
+
+if __name__ == "__main__":
+    main()

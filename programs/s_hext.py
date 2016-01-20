@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 #
-import sys,pmag,math
+import sys
+import pmagpy.pmag as pmag
+
 def main():
     """
     NAME
@@ -70,5 +72,6 @@ def main():
         print '%7.5f %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f'%(hpars["t1"],hpars["v1_dec"],hpars["v1_inc"],hpars["e12"],hpars["v2_dec"],hpars["v2_inc"],hpars["e13"],hpars["v3_dec"],hpars["v3_inc"] )
         print '%7.5f %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f'%(hpars["t2"],hpars["v2_dec"],hpars["v2_inc"],hpars["e23"],hpars["v3_dec"],hpars["v3_inc"],hpars["e12"],hpars["v1_dec"],hpars["v1_inc"] )
         print '%7.5f %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f'%(hpars["t3"],hpars["v3_dec"],hpars["v3_inc"],hpars["e13"],hpars["v1_dec"],hpars["v1_inc"],hpars["e23"],hpars["v2_dec"],hpars["v2_inc"] )
-main() 
 
+if __name__ == "__main__":
+    main()
