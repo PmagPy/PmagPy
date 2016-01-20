@@ -1,18 +1,16 @@
 ##from Tkinter import *
-import sys,os
-sys.path.insert(0,os.getcwd())
+import sys, os
+sys.path.insert(0, os.getcwd())
 import numpy
 
-#from pmagpyrc import *
-# stuff to replace above line:
+# no longer setting backend here
 import matplotlib
-matplotlib.use("TkAgg")
-isServer = False
-verbose = True
-
+import set_env
+isServer = set_env.isServer
+verbose = set_env.verbose
 
 #wmpl_version=matplotlib.__version__
-import pmag,pylab,exceptions,sys
+import pmag, pylab
 globals = 0
 graphmenu = 0
 global version_num

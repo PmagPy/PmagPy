@@ -1,8 +1,11 @@
 #!/usr/bin/env pythonw
 
 # pylint: disable=W0612,C0111,C0103,W0201
-import matplotlib
-matplotlib.use('WXAgg')
+
+import set_env
+set_env.set_backend(wx=True)
+#import matplotlib
+#matplotlib.use('WXAgg')
 import wx
 import wx.lib.buttons as buttons
 #import thellier_gui_dialogs

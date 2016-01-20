@@ -5,8 +5,10 @@ doc string
 
 # pylint: disable=C0103,E402
 print '-I- Importing dependencies'
-import matplotlib
-matplotlib.use('WXAgg')
+import set_env
+set_env.set_backend(wx=True)
+#import matplotlib
+#matplotlib.use('WXAgg')
 import wx
 import wx.lib.buttons as buttons
 import sys

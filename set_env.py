@@ -1,5 +1,6 @@
 import matplotlib
 isServer = False
+verbose = True
 
 def set_backend(wx=True):
     if wx:
@@ -7,5 +8,8 @@ def set_backend(wx=True):
     else:
         matplotlib.use('TKAgg')
 
-def set_server():
-    isServer = True
+def set_server(boolean=True):
+    isServer = boolean
+
+def set_verbose(boolean=True):
+    verbose = boolean

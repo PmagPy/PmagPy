@@ -138,19 +138,14 @@ CURRENT_VRSION = "v.2.29"
 MICROWAVE=False
 THERMAL=True
 
-
+import set_env
+set_env.set_backend(wx=True)
 import matplotlib
-matplotlib.use('WXAgg')
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigCanvas 
 
-
-import sys,pylab,scipy,os
+import sys, pylab, scipy, os
 #import pdb
 import pmagpy.pmag as pmag
-##try:
-##    import pmag
-##except:
-##    pass
 try:
     import thellier_gui_preferences
 except:
