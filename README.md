@@ -14,7 +14,9 @@ To get started:
 ## Main features
 
 PmagPy is comprised of:
-  - GUI programs for getting data into MagIC database format (pmag_gui), analyzing demagnetization data (demag_gui) and analyzing paleointensity data (thellier_gui). These GUIs are also availible for download as executable programs.
+  - GUI programs for getting data into MagIC database format (pmag_gui), analyzing demagnetization data (demag_gui) and analyzing paleointensity data (thellier_gui). These GUIs are also availible for download as executable programs outside of this repository: 
+    - [Mac PmagPy Executable Application](https://github.com/PmagPy/PmagPy-Standalone-OSX) 
+    - [Windows PmagPy Executable Application](https://github.com/PmagPy/PmagPy-Standalone-Windows)
   - Command line programs for all sorts of paleomagnetic data analysis and wrangling (contained within the programs folder of the repository).
   - The pmagpy function module for paleomagnetic data analysis (pmagpy.pmag) and plotting (pmagpy.pmagplotlib) as well as a function module that further enables paleomagnetic data analysis within interactive computing environments such as the Jupyter notebook (pmagpy.ipmag). The functions within this modules are at the heart of the GUI and command line programs. With pmagpy in the python path (which is accomplished with the install scripts), these modules are can be imported (e.g. ```import pmagpy.ipmag as ipmag```).
   - Example data files that are used in the examples provided in the PmagPy cookbook http://earthref.org/PmagPy/cookbook
