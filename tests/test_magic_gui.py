@@ -139,7 +139,7 @@ class TestMainFrame(unittest.TestCase):
 
     def does_top_window_exist(self, parent, btn_name, window_name):
         """
-        produces a click event on the button called btn_name, 
+        produces a click event on the button called btn_name,
         see if it produces a top-level window called window_name
         """
         btn = None
@@ -162,7 +162,7 @@ class TestMainFrameWithData(unittest.TestCase):
     def setUp(self):
         self.app = wx.App()
         #WD = os.path.join(os.getcwd(), 'tests', 'examples', 'my_project')
-        self.frame = magic_gui.MainFrame(os.path.join(WD, 'Datafiles', 'copy_ErMagicBuilder'))
+        self.frame = magic_gui.MainFrame(os.path.join(WD, 'data_files', 'copy_ErMagicBuilder'))
         self.pnl = self.frame.GetChildren()[0]
 
     def tearDown(self):
@@ -181,7 +181,7 @@ class TestMainFrameWithData(unittest.TestCase):
         self.assertTrue(self.frame.er_magic)
         #self.assertTrue
         #self.assertTrue(self.frame.er_magic.specimens)
-        
+
 
         self.assertTrue(self.frame.er_magic.specimens)
         self.assertTrue(self.frame.er_magic.samples)
@@ -247,7 +247,7 @@ class TestMagICGuiGridFrame(unittest.TestCase):
         #event = wx.CommandEvent(wx.EVT_MENU.evtType[0], help_id)
         #self.frame.GetEventHandler().ProcessEvent(event)
         btn_id = self.frame.add_cols_button.Id
-        
+
         event = wx.CommandEvent(wx.EVT_BUTTON.evtType[0], btn_id)
         self.frame.GetEventHandler().ProcessEvent(event)
         # oh, this sucks.  showmodal and all that
@@ -255,7 +255,7 @@ class TestMagICGuiGridFrame(unittest.TestCase):
 
 class TestMagICGUIMenu(unittest.TestCase):
 
-    
+
     def setUp(self):
         self.app = wx.App()
         #self.grid = GridFrame(self.ErMagic, self.WD, grid_type, grid_type, self.panel)
@@ -331,7 +331,7 @@ class TestMagICGUIMenu(unittest.TestCase):
 
         self.frame.Hide()
         self.assertFalse(self.frame.IsShown())
-        
+
         event = wx.CommandEvent(wx.EVT_MENU.evtType[0], show_id)
         self.frame.GetEventHandler().ProcessEvent(event)
         self.assertTrue(self.frame.IsShown())
@@ -352,7 +352,7 @@ class TestMagICGUIMenu(unittest.TestCase):
 
 class TestMethodCodes(unittest.TestCase):
 
-    
+
     def setUp(self):
         self.app = wx.App()
         #self.grid = GridFrame(self.ErMagic, self.WD, grid_type, grid_type, self.panel)
@@ -395,7 +395,7 @@ class TestMethodCodes(unittest.TestCase):
         col_ind = self.frame.grid.col_labels.index('specimen_description')
         descr = self.frame.grid.GetCellValue(0, col_ind)
         self.assertEqual('er_descr1', descr)
-        
+
         self.frame.grid.add_col('specimen_description++')
         col_ind = self.frame.grid.col_labels.index('specimen_description++')
         self.frame.grid.SetCellValue(0, col_ind, 'pmag_descr1')
@@ -452,6 +452,3 @@ class TestMethodCodes(unittest.TestCase):
         # test that the result (and method codes) are written to the new grid
         self.assertEqual('result1', self.new_frame.grid.GetCellValue(0, 0))
         self.assertEqual('code1', self.new_frame.grid.GetCellValue(0, method_col))
-
-
-

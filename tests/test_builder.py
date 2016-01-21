@@ -9,7 +9,7 @@ Tests for new ErMagicBuilder
 import unittest
 import os
 import pmagpy.builder as builder
-# import pmag 
+# import pmag
 # import ipmag
 # import matplotlib
 WD = os.getcwd()
@@ -21,7 +21,7 @@ class TestBuilder(unittest.TestCase):
     """
 
     def setUp(self):
-        dir_path = os.path.join(WD, 'Datafiles', 'copy_ErMagicBuilder')
+        dir_path = os.path.join(WD, 'data_files', 'copy_ErMagicBuilder')
         self.data1 = builder.ErMagicBuilder(dir_path)
         self.data1.get_data()
         #self.data2 = builder.ErMagicBuilder(WD)
@@ -44,14 +44,14 @@ class TestBuilder(unittest.TestCase):
     def test_get_magic_info_append(self):
         spec_name = '318-U1361A-001H-2-W-35'
         self.assertFalse(self.data1.find_by_name(spec_name, self.data1.specimens))
-        file_name = os.path.join(WD, 'Datafiles', 'ani_depthplot', 'er_specimens.txt')
+        file_name = os.path.join(WD, 'data_files', 'ani_depthplot', 'er_specimens.txt')
         self.data1.get_magic_info('specimen', 'sample', filename=file_name)
         self.assertTrue(self.data1.find_by_name(spec_name, self.data1.specimens))
 
     def test_get_magic_info_append_wrong_type(self):
         spec_name = 'sml0109b1'
         self.assertFalse(self.data1.find_by_name(spec_name, self.data1.specimens))
-        file_name = os.path.join(WD, 'Datafiles', 'misc_files', 'er_specimens.txt')
+        file_name = os.path.join(WD, 'data_files', 'misc_files', 'er_specimens.txt')
         self.data1.get_magic_info('sample', 'site', filename=file_name, sort_by_file_type=True)
         specimen = self.data1.find_by_name(spec_name, self.data1.specimens)
         self.assertTrue(specimen)
@@ -63,7 +63,7 @@ class TestBuilder(unittest.TestCase):
     def test_get_magic_info_append_wrong_type_pmag_file(self):
         spec_name = 'sv07b1'
         self.assertFalse(self.data1.find_by_name(spec_name, self.data1.specimens))
-        file_name = os.path.join(WD, 'Datafiles', 'misc_files', 'pmag_specimens.txt')
+        file_name = os.path.join(WD, 'data_files', 'misc_files', 'pmag_specimens.txt')
         result = self.data1.get_magic_info('sample', 'site', filename=file_name, sort_by_file_type=True)
         self.assertTrue(result)
         specimen = self.data1.find_by_name(spec_name, self.data1.specimens)
@@ -73,14 +73,14 @@ class TestBuilder(unittest.TestCase):
 
 
     def test_get_magic_info_invalid_filename(self):
-        file_name = os.path.join(WD, 'Datafiles', 'misc_files', 'pmag_specimen.txt')
+        file_name = os.path.join(WD, 'data_files', 'misc_files', 'pmag_specimen.txt')
         result = self.data1.get_magic_info('sample', 'site',
                                            filename=file_name,
                                            sort_by_file_type=True)
         self.assertFalse(result)
 
     def test_get_magic_info_invalid_file_type(self):
-        file_name = os.path.join(WD, 'Datafiles', 'plot_cdf', 'gaussian.out')
+        file_name = os.path.join(WD, 'data_files', 'plot_cdf', 'gaussian.out')
         res = self.data1.get_magic_info('sample', 'site', filename=file_name, sort_by_file_type=True)
         self.assertFalse(res)
 
@@ -114,13 +114,13 @@ class TestBuilder(unittest.TestCase):
         self.assertEqual(30., result_dict[loc2.name]['location_begin_lon'])
         self.assertEqual(40., result_dict[loc2.name]['location_end_lon'])
         self.assertEqual('', result_dict[loc3.name]['location_begin_lat'])
-        
+
 
 
 class TestMeasurement(unittest.TestCase):
-    
+
     def setUp(self):
-        self.dir_path = os.path.join(WD, 'Datafiles', 'copy_ErMagicBuilder')
+        self.dir_path = os.path.join(WD, 'data_files', 'copy_ErMagicBuilder')
         self.data1 = builder.ErMagicBuilder(self.dir_path)
         self.data1.get_data()
 
@@ -165,17 +165,17 @@ class TestMeasurement(unittest.TestCase):
         self.assertEqual(measurement.specimen.name, spec_name)
         self.assertEqual(measurement.specimen.sample.name, 'Z35.1')
         self.assertEqual(measurement.specimen.sample.site.name, 'Z35.')
-        
+
         self.data1.change_specimen(spec_name, 'new_name', 'MGH1')
         self.assertEqual(measurement.specimen.name, 'new_name')
         self.assertEqual(measurement.specimen.sample.name, 'MGH1')
         self.assertEqual(measurement.specimen.sample.site.name, 'MGH1')
-        
-    
+
+
 class TestSpecimen(unittest.TestCase):
 
     def setUp(self):
-        dir_path = os.path.join(WD, 'Datafiles', 'copy_ErMagicBuilder')
+        dir_path = os.path.join(WD, 'data_files', 'copy_ErMagicBuilder')
         self.data1 = builder.ErMagicBuilder(dir_path)
         self.data1.get_data()
         #self.data2 = builder.ErMagicBuilder(WD)
@@ -237,7 +237,7 @@ class TestSpecimen(unittest.TestCase):
         new_sample_name = 'Z35.2'
         sample = self.data1.find_by_name(new_sample_name, self.data1.samples)
         self.data1.change_specimen(specimen_name, specimen_name, new_sample_name, new_er_data={'er_sample_name': 'Z35.5'})
-        
+
         specimen = self.data1.find_by_name(specimen_name, self.data1.specimens)
         self.assertTrue(specimen)
         self.assertEqual(specimen.sample.name, new_sample_name)
@@ -266,7 +266,7 @@ class TestSpecimen(unittest.TestCase):
         self.data1.get_magic_info('specimen', 'sample', 'pmag')
         self.data1.change_specimen(specimen_name, specimen_name, new_pmag_data={'er_fossil_name': 'Mr. Bone'})
         self.assertTrue(specimen)
-        # make sure new data is added in 
+        # make sure new data is added in
         self.assertIn('er_fossil_name', specimen.pmag_data.keys())
         self.assertEqual('Mr. Bone', specimen.pmag_data['er_fossil_name'])
         # make sure old data hasn't disappeared
@@ -280,17 +280,17 @@ class TestSpecimen(unittest.TestCase):
         self.data1.change_specimen(specimen_name, specimen_name,
                                    new_pmag_data={'er_fossil_name': 'Mr. Bone'}, replace_data=True)
         self.assertTrue(specimen)
-        # make sure new data is added in 
+        # make sure new data is added in
         self.assertIn('er_fossil_name', specimen.pmag_data.keys())
         self.assertEqual('Mr. Bone', specimen.pmag_data['er_fossil_name'])
         # make sure old data has disappeared
         self.assertNotIn('magic_experiment_names', specimen.pmag_data.keys())
 
-        
+
     #def test_update_specimen_with_invalid_sample(self):
     #    specimen_name = 'Z35.6a'
     #    sample_name = 'invalid_sample'
-    #    self.data1.change_specimen(specimen_name, specimen_name, sample_name) 
+    #    self.data1.change_specimen(specimen_name, specimen_name, sample_name)
     #    specimen = self.data1.find_by_name('Z35.6a', self.data1.specimens)
     #    sample = self.data1.find_by_name('Z35.6', self.data1.samples)
     #    self.assertTrue(specimen)
@@ -306,7 +306,7 @@ class TestSpecimen(unittest.TestCase):
         sample = self.data1.find_by_name(sample_name, self.data1.samples)
         specimen.sample = ''
         self.assertFalse(specimen.sample)
-        self.data1.change_specimen(specimen_name, specimen_name, sample_name) 
+        self.data1.change_specimen(specimen_name, specimen_name, sample_name)
         self.assertTrue(specimen.sample)
         self.assertEqual(specimen.sample, sample)
         self.assertIn(specimen, sample.specimens)
@@ -321,7 +321,7 @@ class TestSpecimen(unittest.TestCase):
         self.assertTrue(specimen.er_data)
         self.assertTrue(specimen.pmag_reqd_headers)
         self.assertTrue(specimen.er_reqd_headers)
-        
+
     def test_add_specimen_with_sample(self):
         spec_name = 'new specimen'
         samp_name = 'Z35.6'
@@ -347,7 +347,7 @@ class TestSpecimen(unittest.TestCase):
     def test_add_specimen_with_er_data(self):
         specimen_name = 'new_spec'
         self.data1.add_specimen(specimen_name, er_data={'specimen_type': 'special', 'specimen_elevation': 22})
-        
+
         specimen = self.data1.find_by_name(specimen_name, self.data1.specimens)
 
         self.assertNotIn('er_specimen_name', specimen.er_data.keys())
@@ -398,7 +398,7 @@ class TestSpecimen(unittest.TestCase):
         #self.data1.get_spec_data()
         #self.data1.get_magic_info('specimen', 'sample', 'er')
         self.data1.get_magic_info('specimen', 'sample', 'er')
-        
+
         self.assertEqual('This study', specimen.er_data['er_citation_names'])
         self.assertEqual('Archeologic', specimen.er_data['specimen_class'])
         self.assertEqual('s', specimen.er_data['specimen_type'])
@@ -416,10 +416,10 @@ class TestSpecimen(unittest.TestCase):
                 self.assertEqual('', specimen.pmag_data[key])
         self.assertIn('er_citation_names', specimen.pmag_data.keys())
         self.assertNotIn('pmag_rotation_codes', specimen.pmag_data.keys())
-        
+
         #self.data1.get_magic_info('specimen', 'sample', 'pmag')
         self.data1.get_magic_info('specimen', 'sample', 'pmag')
-        
+
         self.assertIn('measurement_step_max', specimen.pmag_data.keys())
         self.assertEqual(828, int(specimen.pmag_data['measurement_step_max']))
         self.assertIn('magic_experiment_names', specimen.pmag_data.keys())
@@ -454,12 +454,12 @@ class TestSpecimen(unittest.TestCase):
         sample = self.data1.find_by_name(sample_name, self.data1.samples)
         self.assertTrue(sample)
         self.assertIn(specimen, sample.specimens)
-        
+
 
 class TestSample(unittest.TestCase):
 
     def setUp(self):
-        self.dir_path = os.path.join(WD, 'Datafiles', 'copy_ErMagicBuilder')
+        self.dir_path = os.path.join(WD, 'data_files', 'copy_ErMagicBuilder')
         self.data1 = builder.ErMagicBuilder(self.dir_path)
         self.data1.get_data()
 
@@ -513,9 +513,9 @@ class TestSample(unittest.TestCase):
         site_name = 'Z35.'
         location_name = 'locale'
         new_site_name = 'MGH1'
-        
+
         sample = self.data1.find_by_name(sample_name, self.data1.samples)
-        
+
         self.data1.change_sample(sample_name, sample_name, new_site_name=new_site_name, new_er_data=None)
 
         sample = self.data1.find_by_name(sample_name, self.data1.samples)
@@ -572,7 +572,7 @@ class TestSample(unittest.TestCase):
         self.assertEqual('awesome', sample.pmag_data['er_mineral_names'])
         self.assertIn('magic_instrument_codes', sample.pmag_data.keys())
         self.assertEqual('12345', sample.pmag_data['magic_instrument_codes'])
-        
+
     #def test_update_sample_with_invalid_site(self):
     #    sample_name = 'Z35.6'
     #    site_name = 'invalid site name'
@@ -593,7 +593,7 @@ class TestSample(unittest.TestCase):
         self.assertTrue(sample.site)
         self.assertEqual(sample.site, site)
         self.assertIn(sample, site.samples)
-        
+
     def test_add_sample(self):
         samp_name = 'new_sample'
         sample = self.data1.add_sample(samp_name)
@@ -658,7 +658,7 @@ class TestSample(unittest.TestCase):
         self.assertTrue(site)
         self.assertEqual('', specimen.sample)
         self.assertNotIn(sample_name, [samp.name for samp in site.samples])
-        
+
         self.assertNotIn(sample_name, [samp.name for samp in self.data1.samples])
 
     def test_er_data(self):
@@ -741,12 +741,12 @@ class TestSample(unittest.TestCase):
         site = self.data1.find_by_name(site_name, self.data1.sites)
         self.assertTrue(site)
         self.assertIn(sample, site.samples)
-        
+
 
 class TestSite(unittest.TestCase):
 
     def setUp(self):
-        self.dir_path = os.path.join(WD, 'Datafiles', 'copy_ErMagicBuilder')
+        self.dir_path = os.path.join(WD, 'data_files', 'copy_ErMagicBuilder')
         self.data1 = builder.ErMagicBuilder(self.dir_path)
         self.data1.get_data()
 
@@ -806,7 +806,7 @@ class TestSite(unittest.TestCase):
         site = self.data1.find_by_name(site_name, self.data1.sites)
         old_location = self.data1.find_by_name(location_name, self.data1.locations)
         location = self.data1.find_by_name(new_location_name, self.data1.locations)
-        
+
         self.data1.change_site(site_name, 'new_site', new_location_name=new_location_name, new_er_data=None)
         self.assertTrue(site)
         self.assertTrue(old_location)
@@ -814,7 +814,7 @@ class TestSite(unittest.TestCase):
         self.assertEqual(site.location, location)
         self.assertIn(site, location.sites)
         self.assertNotIn(site, old_location.sites)
-        
+
 
     def test_update_site_with_er_data(self):
         sample_name = 'Z35.6'
@@ -979,7 +979,7 @@ class TestSite(unittest.TestCase):
                 self.assertEqual('This study', site.pmag_data[key])
             else:
                 self.assertEqual('', site.pmag_data[key])
-                
+
         self.data1.get_magic_info('site', 'location', 'pmag')
         self.assertEqual('This study', site.pmag_data['er_citation_names'])
 
@@ -993,7 +993,7 @@ class TestSite(unittest.TestCase):
         self.assertNotIn(site2.name, data_dict)
 
 
-        
+
 
     def test_write_magic_file(self):
         self.data1.get_all_magic_info()
@@ -1027,11 +1027,11 @@ class TestSite(unittest.TestCase):
         self.assertIn(site, location.sites)
 
 
-        
+
 class TestLocation(unittest.TestCase):
 
     def setUp(self):
-        dir_path = os.path.join(WD, 'Datafiles', 'copy_ErMagicBuilder')
+        dir_path = os.path.join(WD, 'data_files', 'copy_ErMagicBuilder')
         self.data1 = builder.ErMagicBuilder(dir_path)
         self.data1.get_data()
 
@@ -1048,7 +1048,7 @@ class TestLocation(unittest.TestCase):
 
         location = self.data1.find_by_name(location_name, self.data1.locations)
         sites = location.sites
-        
+
         self.data1.change_location(location_name, new_location_name, new_er_data=None, new_pmag_data=None)
         location = self.data1.find_by_name(new_location_name, self.data1.locations)
         self.assertTrue(location)
@@ -1090,7 +1090,7 @@ class TestLocation(unittest.TestCase):
         self.assertIn('continent_ocean', location.er_data.keys())
         self.assertEqual('Indian', location.er_data['continent_ocean'])
 
-        
+
     def test_update_location_with_data_and_name_change(self):
         location_name = 'locale'
         new_location_name = 'new_locale'
@@ -1164,7 +1164,7 @@ class TestLocation(unittest.TestCase):
 class TestAge(unittest.TestCase):
 
     def setUp(self):
-        self.dir_path = os.path.join(WD, 'Datafiles', 'copy_ErMagicBuilder')
+        self.dir_path = os.path.join(WD, 'data_files', 'copy_ErMagicBuilder')
         self.data1 = builder.ErMagicBuilder(self.dir_path)
         self.data1.get_data()
 
@@ -1268,19 +1268,19 @@ class TestAge(unittest.TestCase):
 class TestResult(unittest.TestCase):
 
     def setUp(self):
-        dir_path = os.path.join(WD, 'Datafiles', 'mk_redo')
+        dir_path = os.path.join(WD, 'data_files', 'mk_redo')
         self.data1 = builder.ErMagicBuilder(dir_path)
         #self.data1.get_data()
 
         self.data1.get_magic_info('specimen', 'sample', 'er')
         self.data1.get_magic_info('specimen', 'sample', 'pmag')
-        
+
         self.data1.get_magic_info('sample', 'site', 'er')
         self.data1.get_magic_info('sample', 'site', 'pmag')
-        
+
         self.data1.get_magic_info('site', 'location', 'er')
         self.data1.get_magic_info('site', 'location', 'pmag')
-        
+
         self.data1.get_magic_info('location', attr='er')
         self.data1.get_age_info()
 
@@ -1311,13 +1311,13 @@ class TestResult(unittest.TestCase):
         self.data1.change_specimen('sr03a1', 'new_name')
         self.assertEqual(specimen.name, 'new_name')
         self.assertIn(specimen, result.specimens)
-        
+
     def test_delete_result(self):
         result = self.data1.find_by_name('sr03', self.data1.results)
         self.assertIn(result, self.data1.results)
         self.data1.delete_result(result.name)
         self.assertNotIn(result, self.data1.results)
-        
+
     def test_update_result_name(self):
         result = self.data1.find_by_name('sr03', self.data1.results)
         self.assertIn(result, self.data1.results)
@@ -1354,10 +1354,10 @@ class TestResult(unittest.TestCase):
 
 class TestValidation(unittest.TestCase):
 
-    
+
     def setUp(self):
-        dir_path = os.path.join(WD, 'Datafiles', 'copy_ErMagicBuilder')
-        result_dir_path = os.path.join(WD, 'Datafiles', 'mk_redo')
+        dir_path = os.path.join(WD, 'data_files', 'copy_ErMagicBuilder')
+        result_dir_path = os.path.join(WD, 'data_files', 'mk_redo')
         self.data1 = builder.ErMagicBuilder(dir_path)
         self.data1.get_all_magic_info()
         self.data2 = builder.ErMagicBuilder(result_dir_path)
@@ -1388,7 +1388,7 @@ class TestValidation(unittest.TestCase):
         self.assertIn('specimen', result_warnings[result.name].keys())
         self.assertIn('string_not_specimen', result_warnings[result.name]['specimen'])
         self.assertIn(fake_specimen.name, result_warnings[result.name]['specimen'])
-        
+
 
     def test_validation(self):
         # set up some invalid data
@@ -1407,7 +1407,7 @@ class TestValidation(unittest.TestCase):
         site.children.append('fake_sample')
         location = self.data1.find_by_name('locale', self.data1.locations)
         location.children.append('fake_site')
-        
+
         # then make sure validation function catches the bad data
         spec_warnings, samp_warnings, site_warnings, loc_warnings = self.data1.validate_data()
 
@@ -1416,7 +1416,7 @@ class TestValidation(unittest.TestCase):
         # {sample1: {'parent': [warning1, warning2, warning3], 'child': [warning1, warning2]},
         #  sample2: {'child': [warning1], 'type': [warning1, warning2]},
         #  ...}
-                    
+
         self.assertIn(specimen.name, spec_warnings)
         self.assertIn(specimen2, spec_warnings)
         self.assertIn(sample.name, samp_warnings)
@@ -1480,18 +1480,18 @@ class TestValidation(unittest.TestCase):
         self.assertIn('parent', meas_warnings[meas2].keys())
         ex = meas_warnings[meas2]['parent'][0]
         self.assertEqual('parent not in data object', ex.message)
-        
+
 
 class TestOddImport(unittest.TestCase):
 
     def setUp(self):
-        result_dir_path = os.path.join(WD, 'Datafiles', 'mk_redo')
+        result_dir_path = os.path.join(WD, 'data_files', 'mk_redo')
         self.data2 = builder.ErMagicBuilder(result_dir_path)
         self.data2.get_all_magic_info()
 
     def test_samp_import(self):
         sample = self.data2.find_by_name('sr37g', self.data2.samples)
-        
+
         samps = ['sr01a', 'sr01a', 'sr01c', 'sr01d', 'sr01e', 'sr01f', 'sr01g', 'sr01i',
                  'sr03a', 'sr03c', 'sr03e', 'sr03f', 'sr03g', 'sr03h', 'sr03k', 'sr04d',
                  'sr04e', 'sr04f', 'sr04g', 'sr04h', 'sr09b', 'sr09c', 'sr09e', 'sr09f',
@@ -1557,7 +1557,7 @@ class TestPmagObject(unittest.TestCase):
                                                                     'site_other_azimuth': 30})
         self.assertAlmostEqual(120., site.er_data['site_azimuth'])
         self.assertAlmostEqual(30., site.er_data['site_other_azimuth'])
-                               
+
 
     def test_result_adjust_to_360(self):
         pmag_data = {'something_lon': 390., 'something_dec': 355.}
@@ -1571,4 +1571,3 @@ class TestPmagObject(unittest.TestCase):
         self.assertAlmostEqual(355., res.pmag_data['something_dec'])
         self.assertAlmostEqual(10., res.pmag_data['new_lon'])
         self.assertAlmostEqual(220., res.pmag_data['result_azimuth'])
-
