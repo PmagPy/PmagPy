@@ -1,5 +1,6 @@
 import pmag
-import ipmagplotlib
+#import ipmagplotlib
+import pmagplotlib as ipmagplotlib
 import copy
 import numpy as np
 import random

@@ -2,8 +2,6 @@
 import sys
 import wx
 import os
-import pmagpy.pmagplotlib as pmagplotlib
-import pmagpy.pmag as pmag
 import pmagpy.command_line_extractor as extractor
 import pmagpy.ipmag as ipmag
 import dialogs.pmag_widgets as pw

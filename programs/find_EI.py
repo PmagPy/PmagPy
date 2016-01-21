@@ -1,9 +1,11 @@
 #!/usr/bin/env python
 import sys
 import numpy
+import set_env
+set_env.set_backend(wx=False)
 import pmagpy.pmag as pmag
 import pmagpy.pmagplotlib as pmagplotlib
-from numpy import random
+
 
 def EI(inc):
     poly_tk03= [  3.15976125e-06,  -3.52459817e-04,  -1.46641090e-02,   2.89538539e+00]  
