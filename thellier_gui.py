@@ -138,19 +138,14 @@ CURRENT_VRSION = "v.2.29"
 MICROWAVE=False
 THERMAL=True
 
-
+import set_env
+set_env.set_backend(wx=True)
 import matplotlib
-matplotlib.use('WXAgg')
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigCanvas 
 
-
-import sys,pylab,scipy,os
+import sys, pylab, scipy, os
 #import pdb
-import pmag
-##try:
-##    import pmag
-##except:
-##    pass
+import pmagpy.pmag as pmag
 try:
     import thellier_gui_preferences
 except:
@@ -171,12 +166,12 @@ except:
 
 from matplotlib.backends.backend_wx import NavigationToolbar2Wx
 
-import thellier_consistency_test
+import dialogs.thellier_consistency_test as thellier_consistency_test
 import copy
 from copy import deepcopy
 
-import thellier_gui_dialogs
-import thellier_gui_lib
+import dialogs.thellier_gui_dialogs as thellier_gui_dialogs
+import dialogs.thellier_gui_lib as thellier_gui_lib
 
 matplotlib.rc('xtick', labelsize=10) 
 matplotlib.rc('ytick', labelsize=10) 

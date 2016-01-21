@@ -1,0 +1,6 @@
+acceptance criteria:
+interpreter_method	average_by_sample_or_site	include_nrm	interpreter_method	average_by_sample_or_site	include_nrm
+stdev_opt	sample	True	stdev_opt	sample	True
+---------------------------------
+er_sample_name	sample_int_n	sample_int_uT	sample_int_sigma_uT	sample_int_sigma_perc	sample_int_min_uT	sample_int_min_sigma_uT	sample_int_max_uT	sample_int_max_sigma_uT	sample_int_interval_uT	sample_int_interval_perc	Warning
+sr01a	2	40.41	0.00	0.01	23.19	0.74	82.47	6.657	59.28	146.71	No anisotropy corrections;  No cooling rate corrections; 

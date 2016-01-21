@@ -107,3 +107,6 @@ unittests/examples/my_project/thellier_interpreter/thellier_interpreter_all.txt
 unittests/examples/my_project/thellier_interpreter/thellier_interpreter_STDEV-OPT_specimens.txt
 unittests/examples/my_project/thellier_interpreter/thellier_interpreter_STDEV-OPT_samples.txt
 unittests/examples/my_project/thellier_interpreter/thellier_interpreter_STDEV-OPT_redo
+
+notes_pmagpy/
+notes_pmagpy/*
