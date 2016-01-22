@@ -2051,9 +2051,11 @@ def upload_magic(concat=0, dir_path='.', data_model=None):
     RmKeys = ['citation_label', 'compilation', 'calculation_type', 'average_n_lines', 'average_n_planes',
               'specimen_grade', 'site_vgp_lat', 'site_vgp_lon', 'direction_type', 'specimen_Z',
               'magic_instrument_codes', 'cooling_rate_corr', 'cooling_rate_mcd', 'anisotropy_atrm_alt',
-              'anisotropy_apar_perc', 'anisotropy_F', 'anisotropy_F_crit', 'specimen_scat', 'specimen_gmax',
-              'specimen_frac', 'site_vadm', 'site_lon', 'site_vdm', 'site_lat', 'measurement_chi',
-              'specimen_k_prime','specimen_k_prime_sse','external_database_names','external_database_ids']
+              'anisotropy_apar_perc', 'anisotropy_F', 'anisotropy_F_crit', 'specimen_scat',
+              'specimen_gmax','specimen_frac', 'site_vadm', 'site_lon', 'site_vdm', 'site_lat',
+              'measurement_chi', 'specimen_k_prime','specimen_k_prime_sse','external_database_names',
+              'external_database_ids', 'Further Notes', 'Typology', 'Notes (Year/Area/Locus/Level)',
+              'Site', 'Object Number']
     print "-I- Removing: ", RmKeys
     CheckDec = ['_dec', '_lon', '_azimuth', 'dip_direction']
     CheckSign = ['specimen_b_beta']
