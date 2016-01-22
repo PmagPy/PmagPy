@@ -2,6 +2,10 @@
 import sys
 import wx
 import os
+import set_env
+set_env.set_backend(wx=True)
+import matplotlib
+import matplotlib.pyplot as plt
 import pmagpy.command_line_extractor as extractor
 import pmagpy.ipmag as ipmag
 import dialogs.pmag_widgets as pw
@@ -69,10 +73,11 @@ def main():
                                                    ['I', False, True], ['M', False, True],
                                                    ['log', False,  0],
                                                    ['ds', False, 'sample_core_depth'],
-                                                   ['sym', False, 'bo 5'], ['ID', False, '.']])
+                                                   ['sym', False, 'bo 5'], ['ID', False, '.'],
+                                                   ['sav', False, False]])
 
     checked_args = extractor.extract_and_check_args(args, dataframe)
-    meas_file, sum_file, wig_file, samp_file, age_file, spc_file, res_file, fmt, meth, norm, depth, timescale, dir_path, pltLine, pltSus, pltDec, pltInc, pltMag, logit, depth_scale, symbol, input_dir = extractor.get_vars(['f', 'fsum', 'fwig', 'fsa', 'fa', 'fsp', 'fres', 'fmt',  'LP', 'n', 'd', 'ts', 'WD', 'L', 'S', 'D', 'I', 'M', 'log', 'ds', 'sym', 'ID'], checked_args)
+    meas_file, sum_file, wig_file, samp_file, age_file, spc_file, res_file, fmt, meth, norm, depth, timescale, dir_path, pltLine, pltSus, pltDec, pltInc, pltMag, logit, depth_scale, symbol, input_dir, save = extractor.get_vars(['f', 'fsum', 'fwig', 'fsa', 'fa', 'fsp', 'fres', 'fmt',  'LP', 'n', 'd', 'ts', 'WD', 'L', 'S', 'D', 'I', 'M', 'log', 'ds', 'sym', 'ID', 'sav'], checked_args)
 
     # format some variables
     # format symbol/size
@@ -151,7 +156,10 @@ def main():
 
     fig, figname = ipmag.core_depthplot(input_dir, meas_file, spc_file, samp_file, age_file, sum_file, wt_file, depth_scale, dmin, dmax, sym, size, spc_sym, spc_size, method, step, fmt, pltDec, pltInc, pltMag, pltLine, pltSus, logit, pltTime, timescale, amin, amax, norm)
 
-
+    if fig and save:
+        plt.savefig(figname)
+        return
+    
     app = wx.App(redirect=False)
     if not fig:
         pw.simple_warning('No plot was able to be created with the data you provided.\nMake sure you have given all the required information and try again')
@@ -161,7 +169,8 @@ def main():
     pixel_width = dpi * fig.get_figwidth()
     pixel_height = dpi * fig.get_figheight()
     figname = os.path.join(dir_path, figname)
-    plot_frame = pmag_menu_dialogs.PlotFrame((int(pixel_width), int(pixel_height + 50)), fig, figname)
+    plot_frame = pmag_menu_dialogs.PlotFrame((int(pixel_width), int(pixel_height + 50)),
+                                             fig, figname, standalone=True)
 
     app.MainLoop()
 

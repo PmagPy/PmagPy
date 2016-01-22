@@ -1385,7 +1385,13 @@ def aniso_depthplot(ani_file='rmag_anisotropy.txt', meas_file='magic_measurement
     else:
         return False, "No data to plot"
 
-def core_depthplot(input_dir_path='.', meas_file='magic_measurements.txt', spc_file='', samp_file='', age_file='', sum_file='', wt_file='', depth_scale='sample_core_depth', dmin=-1, dmax=-1, sym='bo',  size=5, spc_sym='ro', spc_size=5, meth='', step=0, fmt='svg',  pltDec=True, pltInc=True, pltMag=True, pltLine=True, pltSus=True, logit=False, pltTime=False, timescale=None, amin=-1, amax=-1, norm=False):
+def core_depthplot(input_dir_path='.', meas_file='magic_measurements.txt', spc_file='',
+                   samp_file='', age_file='', sum_file='', wt_file='',
+                   depth_scale='sample_core_depth', dmin=-1, dmax=-1, sym='bo',
+                   size=5, spc_sym='ro', spc_size=5, meth='', step=0, fmt='svg',
+                   pltDec=True, pltInc=True, pltMag=True, pltLine=True, pltSus=True,
+                   logit=False, pltTime=False, timescale=None, amin=-1, amax=-1,
+                   norm=False):
     """
     depth scale can be 'sample_core_depth' or 'sample_composite_depth'
     if age file is provided, depth_scale will be set to 'age' by default

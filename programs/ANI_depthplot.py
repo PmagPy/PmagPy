@@ -2,6 +2,9 @@
 import wx
 import os
 import sys
+import set_env
+set_env.set_backend(wx=True)
+import matplotlib.pyplot as plt
 import pmagpy.command_line_extractor as extractor
 import pmagpy.ipmag as ipmag
 import dialogs.pmag_widgets as pw
@@ -41,7 +44,13 @@ def main():
     if '-h' in args:
         print main.__doc__
         sys.exit()
-    dataframe = extractor.command_line_dataframe([['f', False, 'rmag_anisotropy.txt'],  ['fb', False, 'magic_measurements.txt'], ['fsa', False, 'er_samples.txt'], ['fa', False, None], ['fsum', False, None], ['fmt', False, 'svg'], ['ds', False, 'mbsf'], ['d', False, '-1 -1'], ['sav', False, False], ['WD', False, '.' ]])
+    dataframe = extractor.command_line_dataframe([['f', False, 'rmag_anisotropy.txt'],
+                                                  ['fb', False, 'magic_measurements.txt'],
+                                                  ['fsa', False, 'er_samples.txt'],
+                                                  ['fa', False, None], ['fsum', False, None],
+                                                  ['fmt', False, 'svg'], ['ds', False, 'mbsf'],
+                                                  ['d', False, '-1 -1'], ['sav', False, False],
+                                                  ['WD', False, '.' ]])
         #args = sys.argv
     checked_args = extractor.extract_and_check_args(args, dataframe)
     ani_file, meas_file, samp_file, age_file, sum_file, fmt, depth_scale, depth, save_quietly, dir_path = extractor.get_vars(['f', 'fb', 'fsa', 'fa', 'fsum', 'fmt', 'ds', 'd', 'sav', 'WD'], checked_args)
@@ -70,6 +79,8 @@ def main():
     if save_quietly:
         if dir_path == '.':
             dir_path = os.getcwd()
+        plt.savefig(figname)
+        plt.clf()
         print 'Saved file: {} in folder: {}'.format(figname, dir_path)
         return False
     
@@ -82,7 +93,8 @@ def main():
     pixel_width = dpi * fig.get_figwidth()
     pixel_height = dpi * fig.get_figheight()
     figname = os.path.join(dir_path, figname)
-    plot_frame = pmag_menu_dialogs.PlotFrame((int(pixel_width), int(pixel_height + 50)), fig, figname)
+    plot_frame = pmag_menu_dialogs.PlotFrame((int(pixel_width), int(pixel_height + 50)),
+                                             fig, figname, standalone=True)
 
     app.MainLoop()
 
