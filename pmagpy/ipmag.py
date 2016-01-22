@@ -3464,6 +3464,8 @@ def IODP_samples_magic(samp_file, output_samp_file=None, output_dir_path='.', in
         text_key="Text Id"
     elif "Text identifier" in keys:
         text_key="Text identifier"
+    elif "Text ID" in keys:
+        text_key="Text ID"
     if "Sample Date Logged" in keys:
         date_key="Sample Date Logged"
     elif "Sample date logged" in keys:
@@ -3474,6 +3476,7 @@ def IODP_samples_magic(samp_file, output_samp_file=None, output_dir_path='.', in
         date_key="Timestamp (UTC)"
     if 'Volume (cc)' in keys:volume_key='Volume (cc)'
     if 'Volume (cm^3)' in keys:volume_key='Volume (cm^3)'
+    if 'Volume (cm3)' in keys:volume_key='Volume (cm3)'
     if not text_key:
         return False, "Could not extract the necessary data from your input file.\nPlease make sure you are providing a correctly formated IODP samples csv file."
     ErSamples,samples,file_format=[],[],'old'
