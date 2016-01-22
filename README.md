@@ -1,6 +1,6 @@
 ## What is it
 
-**PmagPy** is a comprehensive set of tools for analyzing paleomagnetic data. It facilitates interpretation of demagnetization and Thellier-type experimental data and can create a wide variety of useful plots. It is designed to work with the MagIC database (https://earthref.org/MagIC), allowing manipulation of downloaded data sets as well as preparation of new contributions for uploading to the MagIC database. It also supports the use of IPython/Jupyter notebooks for fully documented and nicely illustrated data analysis.
+**PmagPy** is a comprehensive set of tools for analyzing paleomagnetic data. It facilitates interpretation of demagnetization data, Thellier-type experimental data and data from other types of rock magnetic experiments. PmagPy can be used to create a wide variety of useful plots. It is designed to work with the MagIC database (https://earthref.org/MagIC), allowing manipulation of downloaded data sets as well as preparation of new contributions for uploading to the MagIC database. It also supports the use of IPython/Jupyter notebooks for fully documented and nicely illustrated data analysis.
 
 ## Main features
 
