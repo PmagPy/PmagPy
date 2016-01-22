@@ -185,7 +185,7 @@ def flip(D,DIBlock=True): #function simplified from PmagPy pmag.flip function
         return dec_flip, inc_flip
 
 
-def bootstrap_fold_test(Data,num_sims=1000,min_untilt=-10,max_untilt=120,bedding_error=0):
+def bootstrap_fold_test(Data,num_sims=1000,min_untilt=-10,max_untilt=120, bedding_error=0, save = False, save_folder = '.',fmt = 'svg'):
     """
     Conduct a bootstrap fold test (Tauxe and Watson, 1994)
 
@@ -220,6 +220,8 @@ def bootstrap_fold_test(Data,num_sims=1000,min_untilt=-10,max_untilt=120,bedding
     plot_net(1)
     ipmagplotlib.plotDI(1,Data)  # plot directions
     plt.text(-1.1,1.15,'Geographic')
+    if save==True:
+        plt.savefig(os.path.join(save_folder, 'eq_geo') + '.' + fmt)
 
     D,I=pmag.dotilt_V(Data)
     TCs=np.array([D,I]).transpose()
@@ -228,6 +230,8 @@ def bootstrap_fold_test(Data,num_sims=1000,min_untilt=-10,max_untilt=120,bedding
     plot_net(2)
     ipmagplotlib.plotDI(2,TCs)  # plot directions
     plt.text(-1.1,1.15,'Tilt-corrected')
+    if save==True:
+        plt.savefig(os.path.join(save_folder, 'eq_tc') + '.' + fmt)
     plt.show()
 
     Percs = range(min_untilt,max_untilt)
@@ -270,10 +274,12 @@ def bootstrap_fold_test(Data,num_sims=1000,min_untilt=-10,max_untilt=120,bedding
     print 'range of all bootstrap samples: '
     print Untilt[0], ' - ', Untilt[-1],'percent unfolding'
     plt.title(title)
+    if save == True:
+        plt.savefig(os.path.join(save_folder, 'bootstrap_CDF') + '.' + fmt)
     plt.show()
 
 
-def bootstrap_common_mean(Data1,Data2,NumSims=1000):
+def bootstrap_common_mean(Data1,Data2,NumSims=1000, save=False, save_folder = '.', fmt = 'svg'):
     """
     Conduct a bootstrap test (Tauxe, 2010) for a common mean on two declination,
     inclination data sets
@@ -342,10 +348,12 @@ def bootstrap_common_mean(Data1,Data2,NumSims=1000):
     plt.ylim(0,1)
 
     plt.tight_layout()
+    if save == True:
+        plt.savefig(os.path.join(save_folder, 'bootstrap_common_mean') + '.' + fmt)
     plt.show()
 
 
-def watson_common_mean(Data1,Data2,NumSims=5000,plot='no'):
+def watson_common_mean(Data1,Data2,NumSims=5000,plot='no', save=False, save_folder = '.', fmt = 'svg'):
     """
     Conduct a Watson V test for a common mean on two directional data sets.
 
@@ -476,6 +484,8 @@ def watson_common_mean(Data1,Data2,NumSims=5000,plot='no'):
         p2 = ipmagplotlib.plotVs(CDF['cdf'],[V],'g','-')
         p3 = ipmagplotlib.plotVs(CDF['cdf'],[Vp[k]],'b','--')
         #pmagplotlib.drawFIGS(CDF)
+        if save==True:
+            plt.savefig(os.path.join(save_folder, 'watson_common_mean') + '.' + fmt)
         ipmagplotlib.showFIG(CDF['cdf'])
 
 
