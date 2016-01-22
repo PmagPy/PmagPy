@@ -1624,7 +1624,6 @@ class Core_depthplot(wx.Frame):
         #print "meas_file", meas_file, "pmag_spec_file", pmag_spec_file, "spec_sym_shape", spec_sym_shape, "spec_sym_color", spec_sym_color, "spec_sym_size", spec_sym_size, "samp_file", samp_file, "age_file", age_file, "depth_scale", depth_scale, "dmin", dmin, "dmax", dmax, "timescale", timescale, "amin", amin, "amax", amax, "sym", sym, "size", size, "method", method, "step", step, "pltDec", pltDec, "pltInc", pltInc, "pltMag", pltMag, "pltTime", pltTime, "logit", logit, "fmt", fmt
 
         # for use as module:
-        import ipmag
         #print "pltLine:", pltLine
         #print "pltSus:", pltSus
 
@@ -1856,7 +1855,6 @@ class Ani_depthplot(wx.Frame):
         dmax = self.bSizer6.return_value() or -1
 
         # for use as module:
-        import ipmag
         fig, figname = ipmag.aniso_depthplot(ani_file, meas_file, samp_file, age_file, sum_file, fmt, float(dmin), float(dmax), depth_scale)
         if fig:
             self.Destroy() 
