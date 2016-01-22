@@ -19,6 +19,7 @@ class TestProgramsHelp(unittest.TestCase):
     def setUp(self):
         pass
 
+    @unittest.skipIf(sys.platform not in ['darwin', 'win32', 'win62'], "Doesn't work without PmagPy in PYTHONPATH")
     def test_all(self):
         programs = os.listdir(programs_WD)
         not_checked = []

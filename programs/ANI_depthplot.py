@@ -2,17 +2,10 @@
 import wx
 import os
 import sys
-#import pylab as pyplot
-#import numpy as np
-#import pmagpy.pmag as pmag
-#import pmagpy.pmagplotlib as pmagplotlib
 import pmagpy.command_line_extractor as extractor
 import pmagpy.ipmag as ipmag
 import dialogs.pmag_widgets as pw
 import dialogs.pmag_menu_dialogs as pmag_menu_dialogs
-
-# turn interactive mode on
-#pyplot.ion()
 
 def main():
     """

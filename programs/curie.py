@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 import sys
 import numpy
+import set_env
+set_env.set_backend(wx=False)
 from pylab import *
 import pmagpy.pmagplotlib as pmagplotlib
 

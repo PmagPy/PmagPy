@@ -10,7 +10,7 @@ import dialogs.pmag_menu_dialogs as pmag_menu_dialogs
 # get WD before all the Pmag GUI stuff starts to happen
 WD = os.getcwd()
 project_WD = os.path.join(os.getcwd(), 'tests', 'examples', 'my_project')
-core_depthplot_WD = os.path.join(os.getcwd(), 'Datafiles', 'core_depthplot')
+core_depthplot_WD = os.path.join(os.getcwd(), 'data_files', 'core_depthplot')
 
 class TestMainFrame(unittest.TestCase):
 
@@ -97,12 +97,12 @@ class TestMainFrame(unittest.TestCase):
         def do_test():
             new_WD = self.frame.WD
             self.assertNotEqual(old_WD, new_WD)
-            
+
         old_WD = self.frame.WD
         self.click_change_dir()
         wx.CallLater(2000, do_test)
 
-    
+
     def click_change_dir(self):
         def cancel_dia():
             new_path = os.path.split(self.frame.WD)[0]
@@ -119,7 +119,7 @@ class TestMainFrame(unittest.TestCase):
         # meaning, everything happens as in real operation, just without actually showing the modal dialog
         # hmph
         #self.frame.change_dir_dialog.ShowModal()
-    
+
     def does_window_exist(self, btn_name, window_name):
         """
         produces a click event on the button called btn_name, see if it produces the window called window_name
@@ -153,7 +153,7 @@ class TestMenus(unittest.TestCase):
         #WD = os.path.join(os.getcwd(), 'tests', 'examples', 'my_project')
         self.frame = pmag_gui.MagMainFrame(project_WD)
         self.pnl = self.frame.GetChildren()[0]
-        
+
         #wx.lib.inspection.InspectionTool().Show()
 
     def tearDown(self):
@@ -161,7 +161,7 @@ class TestMenus(unittest.TestCase):
         self.app.Destroy()
         os.chdir(WD)
 
-        
+
     def test_that_all_menus_exist(self):
         """
         check that all expected menus were created
@@ -216,21 +216,21 @@ class TestMenus(unittest.TestCase):
         self.assertTrue(window.IsEnabled())
         self.assertTrue(window.IsShown())
 
-        
+
     def test_click_agm_folder_format(self):
         window = self.does_window_exist('Import', 'Import entire directory', 'agm_directory', 'Hysteresis files')
         self.assertTrue(window, 'Import agm folder window was not created')
         self.assertTrue(window.IsEnabled())
         self.assertTrue(window.IsShown())
 
-        
+
     def test_click_ani_depthplot(self):
         window = self.does_window_exist('Analysis and Plots', "Anisotropy data vs. depth/height/age", 'aniso_depthplot')
         self.assertTrue(window, 'Aniso_depthplot window was not created')
         self.assertTrue(window.IsEnabled())
         self.assertTrue(window.IsShown())
 
-            
+
     def test_click_core_depthplot(self):
         window = self.does_window_exist('Analysis and Plots', "Remanence data vs. depth/height/age", 'core_depthplot')
         self.assertTrue(window, 'Core_depthplot window was not created')
@@ -256,7 +256,7 @@ class TestMenus(unittest.TestCase):
         # once you have the correct menu
         item_id = menu.FindItem(menuitem_name)
         item = menu.FindItemById(item_id)
-        
+
         if not item:
             return None
         # generate command event with the relevant menuitem id
@@ -269,7 +269,7 @@ class TestMenus(unittest.TestCase):
                 window = w
                 break
         if not window:
-            return None        
+            return None
         self.assertTrue(window.IsEnabled())
         self.assertTrue(window.IsShown())
         return window
@@ -317,7 +317,7 @@ class TestCoreDepthplot(unittest.TestCase):
         #wx.CallAfter(do_thing)
         #wx.CallLater(10000, do_thing)
         #btn.GetEventHandler().ProcessEvent(event)
-        
+
         #text = "Something went wrong\nSee warnings in Terminal/Command Prompt and try again\nMake sure you have filled out all required fields"
         #dlg = wx.MessageDialog(None, message=text, caption="warning", style=wx.ICON_ERROR|wx.OK)
         #dlg.ShowModal()
@@ -342,4 +342,3 @@ class TestCoreDepthplot(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
-            

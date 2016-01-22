@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 import sys
-import pmagpy.pmag as pmag
-import pmagpy.pmagplotlib as pmagplotlib
 import set_env
+set_env.set_backend(wx=False)
 if not set_env.isServer:
     import pmagpy.nlt as nlt
+import pmagpy.pmag as pmag
+import pmagpy.pmagplotlib as pmagplotlib
 
 # initialize some variables
 def save_redo(SpecRecs,inspec):

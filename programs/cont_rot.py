@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # define some variables
 import sys
+import set_env
+set_env.set_backend(wx=False)
 import pmagpy.pmag as pmag
 import pmagpy.pmagplotlib as pmagplotlib
 import pmagpy.continents as continents
