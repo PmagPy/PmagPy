@@ -82,9 +82,8 @@ except:
 
 import pmagpy.pmag as pmag
 import pmagpy.ipmag as ipmag
-import dialogs.demag_dialogs as demag_dialogs 
+import dialogs.demag_dialogs as demag_dialogs
 from matplotlib.backends.backend_wx import NavigationToolbar2Wx
-import copy
 from copy import deepcopy
 
 
@@ -3162,7 +3161,7 @@ class Zeq_GUI(wx.Frame):
       Data_hierarchy['study_of_specimen']={}
       Data_hierarchy['expedition_name_of_specimen']={}
       mag_meas_data,file_type=pmag.magic_read(self.magic_file)
-      self.mag_meas_data=copy.deepcopy(self.merge_pmag_recs(mag_meas_data))
+      self.mag_meas_data=deepcopy(self.merge_pmag_recs(mag_meas_data))
 
       self.GUI_log.write("-I- Read magic file  %s\n"%self.magic_file)
 
@@ -4831,7 +4830,7 @@ class Zeq_GUI(wx.Frame):
         # fix the headers of pmag recs
         # make sure that all headers appear in all recs
         recs={}
-        recs=copy.deepcopy(old_recs)
+        recs=deepcopy(old_recs)
         headers=[]
         for rec in recs:
             for key in rec.keys():
