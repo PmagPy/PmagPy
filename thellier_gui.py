@@ -2228,7 +2228,7 @@ class Arai_GUI(wx.Frame):
         '''
         update self.Data[specimen]['pars'] for all specimens.
         '''
-        gframe=wx.BusyInfo("Re-calculating statsictics for all specimens\n Please wait..", self)
+        gframe=wx.BusyInfo("Re-calculating statistics for all specimens\n Please wait..", self)
 
         for specimen in self.Data.keys():
             if 'pars' not in self.Data[specimen].keys():
