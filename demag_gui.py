@@ -38,9 +38,7 @@
 # definitions
 #--------------------------------------
 
-import pdb
-
-import os
+import os,sys,pdb
 global CURRENT_VERSION, PMAGPY_DIRECTORY
 CURRENT_VERSION = "v.0.33"
 # get directory in a way that works whether being used
@@ -56,7 +54,6 @@ matplotlib.use('WXAgg')
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigCanvas
 from matplotlib.backends.backend_wxagg import NavigationToolbar2WxAgg as NavigationToolbar
 
-import sys,os
 try:
     import zeq_gui_preferences
 except:
@@ -84,7 +81,7 @@ import pmagpy.pmag as pmag
 import pmagpy.ipmag as ipmag
 import dialogs.demag_dialogs as demag_dialogs
 from matplotlib.backends.backend_wx import NavigationToolbar2Wx
-from copy import deepcopy
+from copy import deepcopy,copy
 
 
 matplotlib.rc('xtick', labelsize=10)
@@ -110,11 +107,11 @@ class Zeq_GUI(wx.Frame):
 
         TEXT="""
         NAME:
-   	demag_gui.py
+    demag_gui.py
 
         DESCRIPTION:
-   	GUI for interpreting demagnetization data (AF and/or thermal).
-   	For tutorial chcek PmagPy cookbook in http://earthref.org/PmagPy/cookbook/
+    GUI for interpreting demagnetization data (AF and/or thermal).
+    For tutorial chcek PmagPy cookbook in http://earthref.org/PmagPy/cookbook/
         """
         PMAGPY_DIRECTORY = check_updates.get_pmag_dir()
         args=sys.argv
@@ -669,7 +666,7 @@ class Zeq_GUI(wx.Frame):
 
     def pick_bounds(self,event):
         """
-        (unsupported)
+        (currently unsupported)
         attempt at a functionality to pick bounds by clicking on the zijderveld
         @param: event -> the wx.MouseEvent that triggered the call of this function
         @alters: ...
@@ -686,19 +683,11 @@ class Zeq_GUI(wx.Frame):
         pos = (xpick_data,ypick_data)
         for data in [self.zij_xy_points,self.zij_xz_points]:
             x, y = data.get_data()
-#            xy_pixels = self.zijplot.transData.transform(numpy.vstack([x,y]).T)
-#            xpix, ypix = xy_pixels.T
-#            width, height = self.canvas1.get_width_height()
-#            y_pix = height - ypix
             points += [(x[i],y[i]) for i in range(len(x))]
         index = None
-#        reverse = inv.transform(numpy.vstack([xpix,ypix]).T)
-#        xprime, yprime = reverse.T
-#        self.zijplot.plot(xprime,yprime,'k*-',mfc=self.dec_MFC,mec=self.dec_MEC,markersize=self.MS,clip_on=False,picker=True)
         print("getting nearest step at: " + str(pos))
         print(points)
         for point in points:
-#            print(map(int,point))
             if 0 <= distance(pos,point) <= e:
                 index = points.index(point)%l
                 step = self.Data[self.s]['zijdblock_steps'][index]
@@ -722,14 +711,14 @@ class Zeq_GUI(wx.Frame):
         """
         if event.LeftIsDown() or event.ButtonDClick():
             return
-#        elif self.specimen_EA_setting == "Zoom":
-#            self.specimen_EA_setting = "Pan"
-#            try: self.toolbar2.pan('off')
-#            except TypeError: pass
-#        elif self.specimen_EA_setting == "Pan":
-#            self.specimen_EA_setting = "Zoom"
-#            try: self.toolbar2.zoom()
-#            except TypeError: pass
+        elif self.specimen_EA_setting == "Zoom":
+            self.specimen_EA_setting = "Pan"
+            try: self.toolbar2.pan('off')
+            except TypeError: pass
+        elif self.specimen_EA_setting == "Pan":
+            self.specimen_EA_setting = "Zoom"
+            try: self.toolbar2.zoom()
+            except TypeError: pass
 
     def home_specimen_equalarea(self,event):
         """
@@ -748,12 +737,6 @@ class Zeq_GUI(wx.Frame):
         pos=event.GetPosition()
         width, height = self.canvas2.get_width_height()
         pos[1] = height - pos[1]
-#        inv = self.specimen_eqarea_interpretation.transData.inverted()
-#        reverse = inv.transform(numpy.vstack([pos[0],pos[1]]).T)
-#        xpick_data,ypick_data = map(float,reverse.T)
-#        xdata = self.specimen_EA_xdata
-#        ydata = self.specimen_EA_ydata
-#        e = 5e-2
         xpick_data,ypick_data = pos
         xdata_org = self.specimen_EA_xdata
         ydata_org = self.specimen_EA_ydata
@@ -763,13 +746,8 @@ class Zeq_GUI(wx.Frame):
         ydata = map(float,ydata)
         e = 4e0
 
-#        if event.LeftIsDown(): # and self.old_pos==None:
-#            self.toolbar2.draw_rubberband(event)
-
         if self.specimen_EA_setting == "Zoom":
             self.canvas2.SetCursor(wx.StockCursor(wx.CURSOR_CROSS))
-        elif self.specimen_EA_setting == "Pan":
-            self.canvas2.SetCursor(wx.StockCursor(wx.CURSOR_HAND))
         else:
             self.canvas2.SetCursor(wx.StockCursor(wx.CURSOR_ARROW))
         for i,(x,y) in enumerate(zip(xdata,ydata)):
@@ -788,12 +766,6 @@ class Zeq_GUI(wx.Frame):
         pos=event.GetPosition()
         width, height = self.canvas2.get_width_height()
         pos[1] = height - pos[1]
-#        inv = self.specimen_eqarea_interpretation.transData.inverted()
-#        reverse = inv.transform(numpy.vstack([pos[0],pos[1]]).T)
-#        xpick_data,ypick_data = map(float,reverse.T)
-#        xdata = self.specimen_EA_xdata
-#        ydata = self.specimen_EA_ydata
-#        e = 5e-2
         xpick_data,ypick_data = pos
         xdata_org = self.specimen_EA_xdata
         ydata_org = self.specimen_EA_ydata
@@ -820,14 +792,14 @@ class Zeq_GUI(wx.Frame):
         """
         if event.LeftIsDown():
             return
-#        elif self.higher_EA_setting == "Zoom":
-#            self.higher_EA_setting = "Pan"
-#            try: self.toolbar4.pan('off')
-#            except TypeError: pass
-#        elif self.higher_EA_setting == "Pan":
-#            self.higher_EA_setting = "Zoom"
-#            try: self.toolbar4.zoom()
-#            except TypeError: pass
+        elif self.higher_EA_setting == "Zoom":
+            self.higher_EA_setting = "Pan"
+            try: self.toolbar4.pan('off')
+            except TypeError: pass
+        elif self.higher_EA_setting == "Pan":
+            self.higher_EA_setting = "Zoom"
+            try: self.toolbar4.zoom()
+            except TypeError: pass
 
     def home_higher_equalarea(self,event):
         """
@@ -846,11 +818,6 @@ class Zeq_GUI(wx.Frame):
         pos=event.GetPosition()
         width, height = self.canvas4.get_width_height()
         pos[1] = height - pos[1]
-#        inv = self.high_level_eqarea.transData.inverted()
-#        reverse = inv.transform(numpy.vstack([pos[0],pos[1]]).T)
-#        xpick_data,ypick_data = map(float,reverse.T)
-#        xdata = self.higher_EA_xdata
-#        ydata = self.higher_EA_ydata
         xpick_data,ypick_data = pos
         xdata_org = self.higher_EA_xdata
         ydata_org = self.higher_EA_ydata
@@ -860,30 +827,8 @@ class Zeq_GUI(wx.Frame):
         ydata = map(float,ydata)
         e = 4e0
 
-        #prelimenary rectangle drawing mechanism for the zoom feature (not currently opperational)
-#        if event.LeftIsDown() and self.old_pos==None:
-#            self.old_pos = event.GetPosition()
-#            inv = self.high_level_eqarea.transData.inverted()
-#            reverse = inv.transform(numpy.vstack([self.old_pos[0],self.old_pos[1]]).T)
-#            self.old_pos = map(float,reverse.T)
-#        elif not event.LeftIsDown() and self.old_pos!=None:
-#            self.old_pos = None
-#        if self.old_pos!=None:
-#            mat_event = matplotlib.backend_bases.MouseEvent('motion_notify_event',self.canvas4,xpick_data,ypick_data,guiEvent=event)
-#            self.toolbar4.draw_rubberband(mat_event, self.old_pos[0], self.old_pos[1], xpick_data, ypick_data)
-#            self.canvas4.draw()
-#            print("is doing stuff")
-#            print(array(self.old_pos[0],self.old_pos[1]),array(self.old_pos[0],ydata))
-#            self.high_level_eqarea.plot(ndarray(self.old_pos),ndarray(self.old_pos[0],ydata),'k-')
-#            self.high_level_eqarea.plot(ndarray(self.old_pos),ndarray(xdata,self.old_pos[1]),'k-')
-#            self.high_level_eqarea.plot(ndarray(xdata,self.old_pos[1]),ndarray(xdata,ydata),'k-')
-#            self.high_level_eqarea.plot(ndarray(self.old_pos[0],ydata),ndarray(xdata,ydata),'k-')
-#            self.canvas4.draw()
-
         if self.higher_EA_setting == "Zoom":
             self.canvas4.SetCursor(wx.StockCursor(wx.CURSOR_CROSS))
-        elif self.higher_EA_setting == "Pan":
-            self.canvas4.SetCursor(wx.StockCursor(wx.CURSOR_WATCH))
         else:
             self.canvas4.SetCursor(wx.StockCursor(wx.CURSOR_ARROW))
         if not self.higher_EA_xdata or not self.higher_EA_ydata: return
@@ -939,8 +884,6 @@ class Zeq_GUI(wx.Frame):
                     l = 0
                     for fit in self.pmag_results_data[elements_type][specimen]:
                         l += 1
-#                        if fit in self.bad_fits:
-#                            l -= 1
                 else:
                     try:
                         disp_fit_index = map(lambda x: x.name, self.pmag_results_data[elements_type][specimen]).index(disp_fit_name)
@@ -975,76 +918,6 @@ class Zeq_GUI(wx.Frame):
             if self.interpretation_editor_open:
                 self.interpretation_editor.change_selected(self.current_fit)
 
-    def Zij_zoom(self):
-        #cursur_entry_zij=self.canvas1.mpl_connect('axes_enter_event', self.on_enter_zij_fig_new)
-        cursur_entry_zij=self.canvas1.mpl_connect('axes_enter_event', self.on_enter_zij_fig)
-        cursur_leave_zij=self.canvas1.mpl_connect('axes_leave_event', self.on_leave_zij_fig)
-
-    def on_enter_zij_fig_new(self,event):
-        #self.toolbar1.zoom()
-        self.curser_in_zij_figure=True
-        self.canvas2.SetCursor(wx.StockCursor(wx.CURSOR_CROSS))
-        cid3=self.canvas1.mpl_connect('button_press_event', self.onclick_z_11)
-        cid4=self.canvas1.mpl_connect('button_release_event', self.onclick_z_22)
-
-
-    def onclick_z_11(self,event):
-        #if self.curser_in_zij_figure:
-        self.tmp_x_press=event.xdata
-        self.tmp_y_press=event.ydata
-
-    def onclick_z_22(self,event):
-        self.tmp_x_release=event.xdata
-        self.tmp_y_release=event.ydata
-        if abs(self.tmp_x_press-self.tmp_x_release)<0.05 and abs(self.tmp_y_press-self.tmp_y_release)<0.05:
-                self.zijplot.set_xlim(xmin=self.zij_xlim_initial[0],xmax=self.zij_xlim_initial[1])
-                self.zijplot.set_ylim(ymin=self.zij_ylim_initial[0],ymax=self.zij_ylim_initial[1])
-                self.canvas1.draw()
-
-
-    def on_leave_zij_fig (self,event):
-        self.canvas1.mpl_disconnect(self.cid3)
-        self.canvas1.mpl_disconnect(self.cid4)
-        self.canvas1.SetCursor(wx.StockCursor(wx.CURSOR_ARROW))
-        self.curser_in_zij_figure=False
-
-
-    def on_enter_zij_fig(self,event):
-        #AX=gca(label='zig_orig')
-        #print AX
-        self.fig1.sca(self.zijplot)
-        self.curser_in_zij_figure=True
-        self.canvas1.SetCursor(wx.StockCursor(wx.CURSOR_CROSS))
-        cid3=self.canvas1.mpl_connect('button_press_event', self.onclick_z_1)
-        cid4=self.canvas1.mpl_connect('button_release_event', self.onclick_z_2)
-
-    def onclick_z_1(self,event):
-        if self.curser_in_zij_figure:
-            self.tmp3_x=event.xdata
-            self.tmp3_y=event.ydata
-
-    def onclick_z_2(self,event):
-        self.canvas1.mpl_connect('axes_leave_event', self.on_leave_zij_fig)
-        if self.curser_in_zij_figure:
-            self.tmp4_x=event.xdata
-            self.tmp4_y=event.ydata
-            try:
-                delta_x=abs(self.tmp3_x - self.tmp4_x )
-                delta_y=abs(self.tmp3_y - self.tmp4_y )
-            except:
-                return
-
-            if self.tmp3_x < self.tmp4_x and self.tmp3_y > self.tmp4_y:
-                self.zijplot.set_xlim(xmin=self.tmp3_x,xmax=self.tmp4_x)
-                self.zijplot.set_ylim(ymin=self.tmp4_y,ymax=self.tmp3_y)
-            else:
-                self.zijplot.set_xlim(xmin=self.zij_xlim_initial[0],xmax=self.zij_xlim_initial[1])
-                self.zijplot.set_ylim(ymin=self.zij_ylim_initial[0],ymax=self.zij_ylim_initial[1])
-
-            self.canvas1.draw()
-        else:
-            return
-
     def right_click_MM0(self,event):
         if self.MM0_setting == "Zoom":
             self.MM0_setting = "Pan"
@@ -1056,88 +929,7 @@ class Zeq_GUI(wx.Frame):
     def home_MM0(self,event):
         self.toolbar3.home()
 
-    #----------------------------------------------------------------------
-    # Picking bounds from Zijderveld plot
-    #----------------------------------------------------------------------
-
-    def Zij_picker(self):
-       self.canvas1.mpl_connect('pick_event', self.onpick)
-       #self.canvas1.mpl_connect('pick_event', self.onpick())
-
-    def onpick(self,event):
-        self.second_click=time.time()
-        try:
-            if self.second_click-self.first_click > 1:
-                self.first_click=self.second_click
-                return
-        except:
-            self.first_click= self.second_click
-            return
-
-        index = event.ind[0]
-
-        # delete previose interpretation on screen
-        for fit in self.pmag_results_data['specimens'][self.s]['fits']:
-            for line in fit.lines:
-                if line in self.zijplot.lines:
-                    self.zijplot.lines.remove(line)
-
-        # clear selection in measurement window
-        for item in range(self.logger.GetItemCount()):
-            self.logger.SetItemBackgroundColour(item,"WHITE")
-            self.logger.Select(item, on=0)
-
-        # clear equal area plot
-        self.specimen_eqarea_interpretation.clear()   # equal area
-        self.mplot_interpretation.clear() # M / M0
-
-        tmin_index,tmax_index="",""
-        if str(self.tmin_box.GetValue())!="":
-            tmin_index=self.tmin_box.GetSelection()
-        if str(self.tmax_box.GetValue())!="":
-            tmax_index=self.tmax_box.GetSelection()
-
-
-        # set slection in
-        if tmin_index !="" and tmax_index =="":
-            if index<tmin_index:
-                self.tmin_box.SetSelection(index)
-                self.tmax_box.SetSelection(tmin_index)
-            else:
-                self.tmax_box.SetSelection(index)
-            self.logger.Select(index, on=0)
-            self.get_new_PCA_parameters(-1)
-
-        elif tmin_index =="" and tmax_index !="":
-            if index>tmax_index:
-                self.tmin_box.SetSelection(tmax_index)
-                self.tmax_box.SetSelection(index)
-            else:
-                self.tmin_box.SetSelection(index)
-            self.logger.Select(index, on=0)
-            self.get_new_PCA_parameters(-1)
-        else:
-            if int(index) > (self.logger.GetItemCount())/2.:
-                self.tmin_box.SetValue("")
-                self.tmax_box.SetSelection(int(index))
-            else:
-                self.tmin_box.SetSelection(int(index))
-                self.tmax_box.SetValue("")
-
-            self.logger.Select(index, on=1)
-            self.zijplot.scatter([self.CART_rot[:,0][index]],[-1* self.CART_rot[:,1][index]],marker='o',s=40,facecolor='g',edgecolor ='k',zorder=100,clip_on=False)
-            self.zijplot.scatter([self.CART_rot[:,0][index]],[-1* self.CART_rot[:,2][index]],marker='s',s=50,facecolor='g',edgecolor ='k',zorder=100,clip_on=False)
-
-            self.mplot_interpretation.scatter([self.Data[self.s]['zijdblock'][index][0]],[self.Data[self.s]['zijdblock'][index][3]/self.Data[self.s]['zijdblock'][0][3]],marker='o',s=30,facecolor='g',edgecolor ='k',zorder=100,clip_on=False)
-        self.canvas1.draw()
-        self.canvas2.draw()
-        self.canvas3.draw()
-
     def initialize_CART_rot(self,s):
-
-        #-----------------------------------------------------------
-        #  initialization
-        #-----------------------------------------------------------
 
         self.s = s
 
@@ -1466,10 +1258,6 @@ class Zeq_GUI(wx.Frame):
 
         self.canvas2.draw()
 
-        #start_time_2=time.time()
-        #runtime_sec2 = start_time_2 - start_time_1
-        #print "-I- draw eqarea figures is", runtime_sec2,"seconds"
-
         #-----------------------------------------------------------
         # Draw M/M0 plot ( or NLT data on the same area in the GUI)
         #-----------------------------------------------------------
@@ -1700,6 +1488,8 @@ class Zeq_GUI(wx.Frame):
               Step="N"
           elif "AF" in  methods:
               Step="AF"
+          elif "ARM" in methods:
+              Step="ARM"
           elif "T" in  methods or "LT" in methods:
               Step="T"
           Tr=zijdblock[i][0]
@@ -1866,6 +1656,9 @@ class Zeq_GUI(wx.Frame):
         if higher_level=='location':
             new_string=self.Data_hierarchy['location_of_specimen'][self.s]
         self.level_names.SetValue(new_string)
+        if self.interpretation_editor_open and new_string!=old_string:
+            self.interpretation_editor.level_names.SetValue(new_string)
+            self.interpretation_editor.on_select_level_name(-1,True)
 
         self.update_PCA_box()
 
@@ -1897,7 +1690,6 @@ class Zeq_GUI(wx.Frame):
         elif str(self.level_box.GetValue())=='study': high_level_type='study'
         high_level_name=str(self.level_names.GetValue())
         elements_type=self.UPPER_LEVEL_SHOW
-#        self.high_level_text_box.SetValue("")
         if high_level_name in self.high_level_means[high_level_type].keys():
             if dirtype in self.high_level_means[high_level_type][high_level_name].keys():
                 mpars=self.high_level_means[high_level_type][high_level_name][dirtype]
@@ -1965,7 +1757,9 @@ class Zeq_GUI(wx.Frame):
         self.GUI_log.close()
         self.GUI_log=open(os.path.join(self.WD, "demag_gui.log"),'a')
 
-    #----------------------------------------------------------------------
+    #--------------------------
+    # Measurement Logger Functions
+    #--------------------------
 
     def OnClick_listctrl(self,event):
 
@@ -2018,12 +1812,25 @@ class Zeq_GUI(wx.Frame):
         If there is  change, the program rewrirte magic_measurements.txt a
         and reads it again.
         '''
-        #print "dialogs"
-        #y_offset=300*self.GUI_RESOLUTION
         position=event.GetPosition()
         position[1]=position[1]+300*self.GUI_RESOLUTION
-        #print position
         g_index=event.GetIndex()
+
+        if self.Data[self.s]['measurement_flag'][g_index] == 'g':
+            self.mark_meas_bad(g_index)
+        else:
+            self.mark_meas_good(g_index)
+
+        pmag.magic_write(os.path.join(self.WD, "magic_measurements.txt"),self.mag_meas_data,"magic_measurements")
+
+        self.recalculate_current_specimen_interpreatations()
+
+        if self.interpretation_editor_open:
+            self.interpretation_editor.update_current_fit_data()
+        self.calculate_higher_levels_data()
+        self.update_selection()
+
+    def mark_meas_good(self,g_index):
 
         meas_index = 0
         for i,meas_data in enumerate(self.mag_meas_data):
@@ -2032,25 +1839,32 @@ class Zeq_GUI(wx.Frame):
                 break
         meas_index += g_index
 
-        if self.Data[self.s]['measurement_flag'][g_index] == 'g':
-            self.Data[self.s]['measurement_flag'][g_index] = 'b'
-            self.Data[self.s]['zijdblock'][g_index][5] = 'b'
-            if 'zijdblock_geo' in self.Data[self.s] and g_index < len(self.Data[self.s]['zijdblock_geo']):
-                self.Data[self.s]['zijdblock_geo'][g_index][5] = 'b'
-            if 'zijdblock_tilt' in self.Data[self.s] and g_index < len(self.Data[self.s]['zijdblock_tilt']):
-                self.Data[self.s]['zijdblock_tilt'][g_index][5] = 'b'
-            self.mag_meas_data[meas_index]['measurement_flag'] = 'b'
-        else:
-            self.Data[self.s]['measurement_flag'][g_index] = 'g'
-            self.Data[self.s]['zijdblock'][g_index][5] = 'g'
-            if 'zijdblock_geo' in self.Data[self.s] and g_index < len(self.Data[self.s]['zijdblock_geo']):
-                self.Data[self.s]['zijdblock_geo'][g_index][5] = 'g'
-            if 'zijdblock_tilt' in self.Data[self.s] and g_index < len(self.Data[self.s]['zijdblock_tilt']):
-                self.Data[self.s]['zijdblock_tilt'][g_index][5] = 'g'
-            self.mag_meas_data[meas_index]['measurement_flag'] = 'g'
+        self.Data[self.s]['measurement_flag'][g_index] = 'g'
+        self.Data[self.s]['zijdblock'][g_index][5] = 'g'
+        if 'zijdblock_geo' in self.Data[self.s] and g_index < len(self.Data[self.s]['zijdblock_geo']):
+            self.Data[self.s]['zijdblock_geo'][g_index][5] = 'g'
+        if 'zijdblock_tilt' in self.Data[self.s] and g_index < len(self.Data[self.s]['zijdblock_tilt']):
+            self.Data[self.s]['zijdblock_tilt'][g_index][5] = 'g'
+        self.mag_meas_data[meas_index]['measurement_flag'] = 'g'
 
-        pmag.magic_write(os.path.join(self.WD, "magic_measurements.txt"),self.mag_meas_data,"magic_measurements")
+    def mark_meas_bad(self,g_index):
 
+        meas_index = 0
+        for i,meas_data in enumerate(self.mag_meas_data):
+            if meas_data['er_specimen_name'] == self.s:
+                meas_index = i
+                break
+        meas_index += g_index
+
+        self.Data[self.s]['measurement_flag'][g_index] = 'b'
+        self.Data[self.s]['zijdblock'][g_index][5] = 'b'
+        if 'zijdblock_geo' in self.Data[self.s] and g_index < len(self.Data[self.s]['zijdblock_geo']):
+            self.Data[self.s]['zijdblock_geo'][g_index][5] = 'b'
+        if 'zijdblock_tilt' in self.Data[self.s] and g_index < len(self.Data[self.s]['zijdblock_tilt']):
+            self.Data[self.s]['zijdblock_tilt'][g_index][5] = 'b'
+        self.mag_meas_data[meas_index]['measurement_flag'] = 'b'
+
+    def recalculate_current_specimen_interpreatations(self):
         self.initialize_CART_rot(self.s)
         if str(self.s) in self.pmag_results_data['specimens']:
             for fit in self.pmag_results_data['specimens'][self.s]:
@@ -2060,10 +1874,6 @@ class Zeq_GUI(wx.Frame):
                     fit.put(self.s,'geographic',self.get_PCA_parameters(self.s,fit.tmin,fit.tmax,'geographic',fit.get('geographic')['calculation_type']))
                 if len(self.Data[self.s]['zijdblock_tilt'])>0 and fit.get('tilt-corrected') and 'calculation_type' in fit.get('tilt-corrected'):
                     fit.put(self.s,'tilt-corrected',self.get_PCA_parameters(self.s,fit.tmin,fit.tmax,'tilt-corrected',fit.get('tilt-corrected')['calculation_type']))
-        if self.interpretation_editor_open:
-            self.interpretation_editor.update_current_fit_data()
-        self.calculate_higher_levels_data()
-        self.update_selection()
 
 
     #----------------------------------------------------------------------
@@ -2136,25 +1946,7 @@ class Zeq_GUI(wx.Frame):
         else:
             block=self.Data[specimen]['zijdblock']
         if  end_pca > beg_pca and   end_pca - beg_pca > 1:
-#            print("------------Input Data--------------")
-#            print("length of block: " + str(len(block)))
-#            print(beg_pca)
-#            print("start: " + str(block[beg_pca][0]))
-#            print(block[beg_pca][5])
-#            print(end_pca)
-#            print("end: " + str(block[end_pca][0]))
-#            print(block[end_pca][5])
-#            print("length: " + str(len(block[beg_pca:end_pca+1])))
-#            print("good steps: " + str(sum(map(lambda x: x[5]=='g', block[beg_pca:end_pca+1]))))
-#            if block[beg_pca][5]=='b':
-#                import pdb
-#                pdb.set_trace()
-#            print(len(block[beg_pca][5]), len(block[end_pca][5]))
-#            print(block[beg_pca][5], block[end_pca][5])
-#            print(map(lambda x: [x[0],x[5]],block[beg_pca:end_pca+1]))
             mpars=pmag.domean(block,beg_pca,end_pca,calculation_type) #preformes regression
-#            print("included steps: " + str(mpars['specimen_n']))
-#            print(mpars['measurement_step_min'],mpars['measurement_step_max'])
         else:
             mpars={}
         for k in mpars.keys():
@@ -3872,6 +3664,15 @@ class Zeq_GUI(wx.Frame):
 #        m_previous_sample = menu_edit.Append(-1, "&Previous Sample\tCtrl-PageDown", "")
 #        self.Bind(wx.EVT_MENU, self.on_menu_prev_sample, m_previous_sample)
 
+        menu_flag_meas = wx.Menu()
+
+        m_good = menu_flag_meas.Append(-1, "&Good Measurement\tCtrl-Alt-G", "")
+        self.Bind(wx.EVT_MENU, self.on_menu_flag_meas_good, m_good)
+        m_bad = menu_flag_meas.Append(-1, "&Bad Measurement\tCtrl-Alt-B", "")
+        self.Bind(wx.EVT_MENU, self.on_menu_flag_meas_bad, m_bad)
+
+        m_flag_meas = menu_edit.AppendMenu(-1, "&Flag Measurement Data", menu_flag_meas)
+
         menu_coordinates = wx.Menu()
 
         m_speci = menu_coordinates.Append(-1, "&Specimen Coordinates\tCtrl-P", "")
@@ -3976,7 +3777,7 @@ class Zeq_GUI(wx.Frame):
         FIRST_RUN=False
 
     #--------------------------------------------------------------
-    # File menu
+    # File Menu Functions
     #--------------------------------------------------------------
 
     def on_menu_exit(self, event):
@@ -4029,14 +3830,7 @@ class Zeq_GUI(wx.Frame):
             if self.interpretation_editor_open:
                 self.interpretation_editor.on_close_edit_window(event)
             self.Destroy()
-            #sys.exit()
 
-#        dlg1 = wx.MessageDialog(None,caption="Warning:", message="Exiting program.\nSave all interpretation to a 'redo' file or to MagIC specimens result table\n\nPress OK to exit" ,style=wx.OK|wx.CANCEL|wx.ICON_INFORMATION)
-#        if dlg1.ShowModal() == wx.ID_OK:
-#            dlg1.Destroy()
-#            self.Destroy()
-#            exit()
-#
     def on_save_Zij_plot(self, event):
         self.current_fit = None
         self.draw_interpretation()
@@ -4115,7 +3909,7 @@ class Zeq_GUI(wx.Frame):
         self.reset()
 
     #--------------------------------------------------------------
-    # Edit menu Bar functions
+    # Edit Menu Functions
     #--------------------------------------------------------------
 
     def on_menu_change_speci_coord(self, event):
@@ -4158,6 +3952,36 @@ class Zeq_GUI(wx.Frame):
     def on_menu_prev_sample(self, event):
         s_index = self.specimens.index(self.s)
         print(s_index)
+
+    def on_menu_flag_meas_good(self, event):
+        next_i = self.logger.GetNextSelected(-1)
+        while next_i != -1:
+            self.mark_meas_good(next_i)
+            next_i = self.logger.GetNextSelected(next_i)
+
+        pmag.magic_write(os.path.join(self.WD, "magic_measurements.txt"),self.mag_meas_data,"magic_measurements")
+
+        self.recalculate_current_specimen_interpreatations()
+
+        if self.interpretation_editor_open:
+            self.interpretation_editor.update_current_fit_data()
+        self.calculate_higher_levels_data()
+        self.update_selection()
+
+    def on_menu_flag_meas_bad(self, event):
+        next_i = self.logger.GetNextSelected(-1)
+        while next_i != -1:
+            self.mark_meas_bad(next_i)
+            next_i = self.logger.GetNextSelected(next_i)
+
+        pmag.magic_write(os.path.join(self.WD, "magic_measurements.txt"),self.mag_meas_data,"magic_measurements")
+
+        self.recalculate_current_specimen_interpreatations()
+
+        if self.interpretation_editor_open:
+            self.interpretation_editor.update_current_fit_data()
+        self.calculate_higher_levels_data()
+        self.update_selection()
 
     #--------------------------------------------------------------
     # Analysis menu Bar functions
@@ -4604,18 +4428,6 @@ class Zeq_GUI(wx.Frame):
                     if fit in self.bad_fits:
                         PmagSpecRec['specimen_flag'] = "b"
 
-                    #magic_ood_codes=[]
-                    #all_methods=self.Data[specimen]['magic_method_codes'].strip('\n').replace(" ","").split(":")
-                    #for method in all_methods:
-                    #    if "LP" in method:
-                    #        magic_method_codes.append(method)
-                    #if
-                    #-------
-                    #if self.Data[specimen]['measurement_step_unit']=="C":
-                    #     PmagSpecRec['measurement_step_unit']="K"
-                    #else:
-                    #     PmagSpecRec['measurement_step_unit']="T"
-
                     if  fit.tmin =="0":
                          PmagSpecRec['measurement_step_min'] ="0"
                     elif "C" in fit.tmin:
@@ -4949,7 +4761,7 @@ class Zeq_GUI(wx.Frame):
             tmax_index=self.Data[specimen]['zijdblock_steps'].index(tmax)
         elif type(tmax) == str or type(tmax) == unicode and tmax != '':
             int_steps = map(lambda x: float(x.strip("C mT")), self.Data[specimen]['zijdblock_steps'])
-            int_tmax = int(tmax.strip("C mT"))
+            int_tmax = float(tmax.strip("C mT"))
             diffs = map(lambda x: abs(x-int_tmax),int_steps)
             tmax_index = diffs.index(min(diffs))
         else: tmax_index=self.tmin_box.GetSelection()
@@ -5374,7 +5186,7 @@ class EditFitFrame(wx.Frame):
         self.buttons_sizer.Add(buttons3_window, 0, wx.TOP, button_spacing)
 
         #duplicate higher levels plot
-        self.fig = copy.copy(self.parent.fig4)
+        self.fig = copy(self.parent.fig4)
         self.canvas = FigCanvas(self.panel, -1, self.fig)
         self.toolbar = NavigationToolbar(self.canvas)
         self.toolbar.Hide()
@@ -5460,7 +5272,7 @@ class EditFitFrame(wx.Frame):
 
         #use copy so that the fig doesn't close when the editor closes
         self.toolbar.home()
-        self.fig = copy.copy(self.parent.fig4)
+        self.fig = copy(self.parent.fig4)
         self.canvas.draw()
 
     def update_logger_entry(self,i):
@@ -5594,7 +5406,6 @@ class EditFitFrame(wx.Frame):
         self.parent.fit_box.SetSelection(fi-1)
         self.parent.update_fit_boxs(False)
         self.parent.Add_text()
-
 
     def OnRightClickListctrl(self, event):
         """
@@ -6064,14 +5875,17 @@ class Fit():
 # Run the GUI
 #--------------------------------------------------------------
 def specimens_comparator(s1,s2):
-    l1 = map(int, re.findall('\d+', s1))
-    l2 = map(int, re.findall('\d+', s2))
-    for i1,i2 in zip(l1,l2):
-        if i1-i2 != 0:
-            return i1-i2
-    for c1,c2 in zip(s1,s2):
-        if c1 != c2 and c1.isalpha() and c2.isalpha():
-            return ord(c1)-ord(c2)
+    sam_sp1 = s1.split(". -")
+    sam_sp2 = s2.split(". -")
+    for e1,e2 in zip(sam_sp1,sam_sp2):
+        for c1,c2 in zip(e1,e2): #sort by letters
+            if c1 != c2 and c1.isalpha() and c2.isalpha():
+                return ord(c1)-ord(c2)
+        l1 = map(int, re.findall('\d+', e1)) #retrieves numbers from names
+        l2 = map(int, re.findall('\d+', e2))
+        for i1,i2 in zip(l1,l2): #sort by numbers
+            if i1-i2 != 0:
+                return i1-i2
     return 0
 
 def alignToTop(win):

@@ -14,6 +14,7 @@ import pmagpy.check_updates as check_updates
 import dialogs.pmag_widgets as pw
 import dialogs.drop_down_menus as drop_down_menus
 import dialogs.magic_grid as magic_grid
+sys.path.append("../programs") #later fix imports further down in code to "from programs import ...." also imports should be moved to top of file unless import is so large it slows down the program
 
 
 class import_magnetometer_data(wx.Dialog):
