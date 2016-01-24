@@ -138,19 +138,14 @@ CURRENT_VRSION = "v.2.29"
 MICROWAVE=False
 THERMAL=True
 
-
+import set_env
+set_env.set_backend(wx=True)
 import matplotlib
-#matplotlib.use('WXAgg')
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigCanvas 
 
-
-import sys,pylab,scipy,os
+import sys, pylab, scipy, os
 #import pdb
-import pmag
-##try:
-##    import pmag
-##except:
-##    pass
+import pmagpy.pmag as pmag
 try:
     import thellier_gui_preferences
 except:
@@ -171,12 +166,12 @@ except:
 
 from matplotlib.backends.backend_wx import NavigationToolbar2Wx
 
-import thellier_consistency_test
+import dialogs.thellier_consistency_test as thellier_consistency_test
 import copy
 from copy import deepcopy
 
-import thellier_gui_dialogs
-import thellier_gui_lib
+import dialogs.thellier_gui_dialogs as thellier_gui_dialogs
+import dialogs.thellier_gui_lib as thellier_gui_lib
 
 matplotlib.rc('xtick', labelsize=10) 
 matplotlib.rc('ytick', labelsize=10) 
@@ -2233,7 +2228,7 @@ class Arai_GUI(wx.Frame):
         '''
         update self.Data[specimen]['pars'] for all specimens.
         '''
-        gframe=wx.BusyInfo("Re-calculating statsictics for all specimens\n Please wait..", self)
+        gframe=wx.BusyInfo("Re-calculating statistics for all specimens\n Please wait..", self)
 
         for specimen in self.Data.keys():
             if 'pars' not in self.Data[specimen].keys():
@@ -2917,7 +2912,7 @@ class Arai_GUI(wx.Frame):
 #    #==================================================        
 
     def on_menu_run_interpreter(self, event):
-        import thellier_interpreter
+        import dialogs.thellier_interpreter as thellier_interpreter
         busy_frame=wx.BusyInfo("Running Thellier auto interpreter\n It may take several minutes depending on the number of specimens ...", self)
         wx.Yield()
         thellier_auto_interpreter=thellier_interpreter.thellier_auto_interpreter(self.Data,self.Data_hierarchy,self.WD,self.acceptance_criteria,self.preferences,self.GUI_log,THERMAL,MICROWAVE)
@@ -4313,7 +4308,7 @@ class Arai_GUI(wx.Frame):
         #    return
         
         self.GUI_log.write ("-I- running thellier consistency test\n")
-        import  thellier_consistency_test
+        import dialogs.thellier_consistency_test as thellier_consistency_test
 
         #thellier_gui_dialogs.Consistency_Test(self.Data,self.Data_hierarchy,self.WD,self.acceptance_criteria_default)
         thellier_gui_dialogs.Consistency_Test(self.Data,self.Data_hierarchy,self.WD,self.acceptance_criteria,self.preferences,THERMAL,MICROWAVE)

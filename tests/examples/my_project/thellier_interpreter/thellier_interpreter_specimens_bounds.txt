@@ -1,0 +1,9 @@
+acceptance criteria:
+
+--------------------------------
+er_sample_name	er_specimen_name	specimen_int_corr_anisotropy	Anisotropy_code	specimen_int_corr_nlt	specimen_int_corr_cooling_rate	specimen_lab_field_dc_uT	specimen_int_min_uT	specimen_int_max_uT	WARNING
+sr01a	sr01a1	-	-	-	-	40.0	22.7	87.2	WARNING: No anisotropy correction
+sr01a	sr01a2	-	-	-	-	40.0	23.7	77.8	WARNING: No anisotropy correction
+sr01c	sr01c2	-	-	-	-	40.0	-84.0	91.7	WARNING: No anisotropy correction
+sr01d	sr01d1	-	-	-	-	40.0	27.2	137.8	WARNING: No anisotropy correction
+sr01i	sr01i1	-	-	-	-	40.0	8.1	71.1	WARNING: No anisotropy correction

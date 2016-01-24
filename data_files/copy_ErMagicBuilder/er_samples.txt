@@ -1,0 +1,10 @@
+tab	er_samples
+er_sample_name	er_site_name	er_location_name	er_citation_names	magic_method_codes	sample_azimuth	sample_bed_dip	sample_bed_dip_direction	sample_class	sample_declination_correction	sample_dip	sample_height	sample_lat	sample_lithology	sample_lon	sample_type
+MGH1	MGH1	Munich	This study												
+Z35.1	MGH1	Munich	This study	SO-CMD-NORTH	23.5	55	84.5		0.5	-83	148.16	47.1		95.4	
+Z35.2	Z35.	locale	This study	SO-CMD-NORTH	79.5	55	84.5		0.5	-37	148.22	47.1		95.4	
+Z35.3	Z35.	locale	This study	SO-CMD-NORTH	41.5	55	84.5		0.5	-31	148.32	47.1		95.4	
+Z35.4	Z35.	locale	This study	SO-CMD-NORTH	56.5	55	84.5		0.5	-50	248.23	47.1		95.4	
+Z35.5	Z35.	locale	This study	SO-CMD-NORTH	5.5	55	84.5		0.5	-82	148.25	47.1		95.4	
+Z35.6	Z35.	locale	This study	SO-CMD-NORTH	2.5	55	84.5	Archeologic	0.5	-20	148.26	47.1	Baked Clay	95.4	s
+Z35.7	Z35.	locale	This study	SO-CMD-NORTH	14.5	55	84.5		0.5	-22	148.35	47.1		95.4	

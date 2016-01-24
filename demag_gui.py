@@ -45,7 +45,7 @@ global CURRENT_VERSION, PMAGPY_DIRECTORY
 CURRENT_VERSION = "v.0.33"
 # get directory in a way that works whether being used
 # on the command line or in a frozen binary
-import check_updates
+import pmagpy.check_updates as check_updates
 PMAGPY_DIRECTORY = check_updates.get_pmag_dir()
 #path = os.path.abspath(__file__)
 #PMAGPY_DIRECTORY = os.path.dirname(path)
@@ -80,9 +80,10 @@ try:
 except:
     pass
 
-import pmag,demag_dialogs,ipmag
+import pmagpy.pmag as pmag
+import pmagpy.ipmag as ipmag
+import dialogs.demag_dialogs as demag_dialogs
 from matplotlib.backends.backend_wx import NavigationToolbar2Wx
-import copy
 from copy import deepcopy
 
 
@@ -140,9 +141,11 @@ class Zeq_GUI(wx.Frame):
         #set icon
         try:
             icon = wx.EmptyIcon()
-            icon.CopyFromBitmap(wx.Bitmap(os.path.join(PMAGPY_DIRECTORY, "images", "PmagPy.ico"), wx.BITMAP_TYPE_ANY))
+            icon_path = os.path.join(PMAGPY_DIRECTORY, 'images', 'PmagPy.ico')
+            print 'icon_path', icon_path
+            icon.CopyFromBitmap(wx.Bitmap(icon_path, wx.BITMAP_TYPE_ANY))
             self.SetIcon(icon)
-        except:
+        except Exception as ex:
             pass
 
         # initialize acceptence criteria with NULL values
@@ -3158,7 +3161,7 @@ class Zeq_GUI(wx.Frame):
       Data_hierarchy['study_of_specimen']={}
       Data_hierarchy['expedition_name_of_specimen']={}
       mag_meas_data,file_type=pmag.magic_read(self.magic_file)
-      self.mag_meas_data=copy.deepcopy(self.merge_pmag_recs(mag_meas_data))
+      self.mag_meas_data=deepcopy(self.merge_pmag_recs(mag_meas_data))
 
       self.GUI_log.write("-I- Read magic file  %s\n"%self.magic_file)
 
@@ -4827,7 +4830,7 @@ class Zeq_GUI(wx.Frame):
         # fix the headers of pmag recs
         # make sure that all headers appear in all recs
         recs={}
-        recs=copy.deepcopy(old_recs)
+        recs=deepcopy(old_recs)
         headers=[]
         for rec in recs:
             for key in rec.keys():
@@ -4936,8 +4939,8 @@ class Zeq_GUI(wx.Frame):
         if tmin in self.Data[specimen]['zijdblock_steps']:
             tmin_index=self.Data[specimen]['zijdblock_steps'].index(tmin)
         elif type(tmin) == str or type(tmin) == unicode and tmin != '':
-            int_steps = map(lambda x: int(x.strip("C mT")), self.Data[specimen]['zijdblock_steps'])
-            try: int_tmin = int(tmin.strip("C mT"))
+            int_steps = map(lambda x: float(x.strip("C mT")), self.Data[specimen]['zijdblock_steps'])
+            try: int_tmin = float(tmin.strip("C mT"))
             except ValueError: print(tmin, tmin.strip("C mT")); raise ValueError
             diffs = map(lambda x: abs(x-int_tmin),int_steps)
             tmin_index = diffs.index(min(diffs))
@@ -4945,7 +4948,7 @@ class Zeq_GUI(wx.Frame):
         if tmax in self.Data[specimen]['zijdblock_steps']:
             tmax_index=self.Data[specimen]['zijdblock_steps'].index(tmax)
         elif type(tmax) == str or type(tmax) == unicode and tmax != '':
-            int_steps = map(lambda x: int(x.strip("C mT")), self.Data[specimen]['zijdblock_steps'])
+            int_steps = map(lambda x: float(x.strip("C mT")), self.Data[specimen]['zijdblock_steps'])
             int_tmax = int(tmax.strip("C mT"))
             diffs = map(lambda x: abs(x-int_tmax),int_steps)
             tmax_index = diffs.index(min(diffs))
@@ -6022,6 +6025,7 @@ class Fit():
             tl = [self.tmin,self.tmax]
             for i,t in enumerate(tl):
                 if str(t) in steps: tl[i] = str(t)
+                elif str(int(t)) in steps: tl[i] = str(int(t))
                 elif "%.1fmT"%t in steps: tl[i] = "%.1fmT"%t
                 elif "%.0fC"%t in steps: tl[i] = "%.0fC"%t
                 else:

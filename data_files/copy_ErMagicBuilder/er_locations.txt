@@ -1,0 +1,4 @@
+tab	er_locations
+er_location_name	er_citation_names	location_begin_lat	location_begin_lon	location_end_lat	location_end_lon	location_type
+Munich	This study	47.100000	95.4	47.100000	95.4	
+locale	This study	47.100000	95.4	47.100000	95.4	Lake Core

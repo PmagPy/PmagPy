@@ -3,24 +3,27 @@
 doc string
 """
 
-# pylint: disable=C0103
-print '-I- Importing dependencies'
+# pylint: disable=C0103,E402
+print '-I- Importing MagIC GUI dependencies'
+import set_env
+set_env.set_backend(wx=True)
+#import matplotlib
+#matplotlib.use('WXAgg')
 import wx
 import wx.lib.buttons as buttons
 import sys
 import os
 import webbrowser
-import check_updates
-#import ErMagicBuilder
-import builder
-import pmag
-import ipmag
-import drop_down_menus
-import pmag_widgets as pw
-import magic_grid
-import pmag_menu_dialogs
-import validate_upload
-import grid_frame
+import pmagpy.check_updates as check_updates
+import pmagpy.builder as builder
+import pmagpy.pmag as pmag
+import pmagpy.ipmag as ipmag
+import pmagpy.validate_upload as validate_upload
+import dialogs.drop_down_menus as drop_down_menus
+import dialogs.pmag_widgets as pw
+import dialogs.magic_grid as magic_grid
+import dialogs.pmag_menu_dialogs as pmag_menu_dialogs
+import dialogs.grid_frame as grid_frame
 
 
 class MainFrame(wx.Frame):
@@ -35,6 +38,8 @@ class MainFrame(wx.Frame):
         except:
             version = ""
         title = "MagIC GUI   version: %s"%version
+        if sys.platform in ['win32', 'win64']:
+            title += "  Powered by Enthought Canopy"
         wx.Frame.__init__(self, None, wx.ID_ANY, title, name=name)
         #
         self.grid_frame = None
@@ -335,17 +340,24 @@ Once each item in the data has its proper parent, validations will be correct.
                 has_problems.append(item_type)
         # for any dtypes with validation problems (data or coherence),
         # highlight the button to the corresponding grid
-        for dtype in self.warn_dict:
-            wind = self.FindWindowByName(dtype + '_btn')
-            if wind:
-                if dtype in has_problems:
-                    wind.Bind(wx.EVT_PAINT, self.highlight_button)
-                else:
-                    wind.Unbind(wx.EVT_PAINT, handler=self.highlight_button)# this sucks (makes buttons disappear)
-        self.Refresh()
+        # skip this step for Windows
+        if sys.platform in ['win32', 'win62']:
+            pass
+        else:
+            for dtype in self.warn_dict:
+                wind = self.FindWindowByName(dtype + '_btn')
+                if wind:
+                    if dtype in has_problems:
+                        wind.Bind(wx.EVT_PAINT, self.highlight_button)
+                    else:
+                        wind.Unbind(wx.EVT_PAINT, handler=self.highlight_button)
+            self.Refresh()
         if has_problems:
             self.validation_mode = set(has_problems)
-            self.message.SetLabel('Highlighted grids have incorrect or incomplete data')
+            if sys.platform in ['win32', 'win62']:
+                self.message.SetLabel('The following grid(s) have incorrect or incomplete data:\n{}'.format(', '.join(self.validation_mode)))
+            else:
+                self.message.SetLabel('Highlighted grids have incorrect or incomplete data')
             self.bSizer_msg.ShowItems(True)
             self.hbox.Fit(self)
         if not has_problems:
@@ -447,19 +459,19 @@ class MagICMenu(wx.MenuBar):
             self.parent.er_magic.init_actual_headers()
 
 
-    def on_help(self, event):
-        """
-        point user to Cookbook help
-        """
-        #for use on the command line
-        path = check_updates.get_pmag_dir()
-        
-        # for use with pyinstaller:
-        #path = self.Parent.resource_dir
-        
-        html_frame = pw.HtmlFrame(self, page=(os.path.join(path, "documentation", "magic_gui.html")))
-        html_frame.Center()
-        html_frame.Show()
+    #def on_help(self, event):
+    #    """
+    #    point user to Cookbook help
+    #    """
+    #    #for use on the command line
+    #    path = check_updates.get_pmag_dir()
+    #    
+    #    # for use with pyinstaller:
+    #    #path = self.Parent.resource_dir
+    #    
+    #    html_frame = pw.HtmlFrame(self, page=(os.path.join(path, "documentation", #"magic_gui.html")))
+    #    html_frame.Center()
+    #    html_frame.Show()
 
     def on_show_mainframe(self, event):
         """
