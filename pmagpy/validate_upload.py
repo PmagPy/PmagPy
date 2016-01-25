@@ -159,12 +159,14 @@ def read_upload(up_file, data_model=None):
                 if item_type not in invalid_col_names.keys():
                     invalid_col_names[item_type] = set()
                 invalid_col_names[item_type].add(invalid_col_name)
-                # skip to next item, as additional validations won't work (key is not in the data model)
+                # skip to next item, as additional validations won't work
+                # (key is not in the data model)
 
                 ## new style
                 add_to_invalid_data(item_name, item_type, invalid_data,
                                     invalid_col_name, 'invalid_col')
-                # skip to next item, as additional validations won't work (key is not in the data model)
+                # skip to next item, as additional validations won't work
+                # (key is not in the data model)
                 continue
             
             # make a list of missing, required data
@@ -175,8 +177,11 @@ def read_upload(up_file, data_model=None):
                     missing_data[item_type] = set()
                 missing_data[item_type].add(missing_item)
                 if item_name:
-                    ## don't double count if a site is missing its parent location
+                    # don't double count if a site is missing its parent location
                     if item_type == 'age' and missing_item == 'er_location_name':
+                        pass
+                    # ignore er_synthetic_name (data model is incorrect here)
+                    if missing_item == 'er_synthetic_name':
                         pass
                     else:
                         add_to_invalid_data(item_name, item_type, invalid_data,

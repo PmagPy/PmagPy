@@ -2228,7 +2228,7 @@ class Arai_GUI(wx.Frame):
         '''
         update self.Data[specimen]['pars'] for all specimens.
         '''
-        gframe=wx.BusyInfo("Re-calculating statsictics for all specimens\n Please wait..", self)
+        gframe=wx.BusyInfo("Re-calculating statistics for all specimens\n Please wait..", self)
 
         for specimen in self.Data.keys():
             if 'pars' not in self.Data[specimen].keys():
@@ -2912,7 +2912,7 @@ class Arai_GUI(wx.Frame):
 #    #==================================================        
 
     def on_menu_run_interpreter(self, event):
-        import thellier_interpreter
+        import dialogs.thellier_interpreter as thellier_interpreter
         busy_frame=wx.BusyInfo("Running Thellier auto interpreter\n It may take several minutes depending on the number of specimens ...", self)
         wx.Yield()
         thellier_auto_interpreter=thellier_interpreter.thellier_auto_interpreter(self.Data,self.Data_hierarchy,self.WD,self.acceptance_criteria,self.preferences,self.GUI_log,THERMAL,MICROWAVE)
@@ -4308,7 +4308,7 @@ class Arai_GUI(wx.Frame):
         #    return
         
         self.GUI_log.write ("-I- running thellier consistency test\n")
-        import  thellier_consistency_test
+        import dialogs.thellier_consistency_test as thellier_consistency_test
 
         #thellier_gui_dialogs.Consistency_Test(self.Data,self.Data_hierarchy,self.WD,self.acceptance_criteria_default)
         thellier_gui_dialogs.Consistency_Test(self.Data,self.Data_hierarchy,self.WD,self.acceptance_criteria,self.preferences,THERMAL,MICROWAVE)

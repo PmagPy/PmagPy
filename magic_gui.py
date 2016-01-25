@@ -459,19 +459,19 @@ class MagICMenu(wx.MenuBar):
             self.parent.er_magic.init_actual_headers()
 
 
-    def on_help(self, event):
-        """
-        point user to Cookbook help
-        """
-        #for use on the command line
-        path = check_updates.get_pmag_dir()
-        
-        # for use with pyinstaller:
-        #path = self.Parent.resource_dir
-        
-        html_frame = pw.HtmlFrame(self, page=(os.path.join(path, "documentation", "magic_gui.html")))
-        html_frame.Center()
-        html_frame.Show()
+    #def on_help(self, event):
+    #    """
+    #    point user to Cookbook help
+    #    """
+    #    #for use on the command line
+    #    path = check_updates.get_pmag_dir()
+    #    
+    #    # for use with pyinstaller:
+    #    #path = self.Parent.resource_dir
+    #    
+    #    html_frame = pw.HtmlFrame(self, page=(os.path.join(path, "documentation", #"magic_gui.html")))
+    #    html_frame.Center()
+    #    html_frame.Show()
 
     def on_show_mainframe(self, event):
         """

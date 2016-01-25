@@ -1385,7 +1385,13 @@ def aniso_depthplot(ani_file='rmag_anisotropy.txt', meas_file='magic_measurement
     else:
         return False, "No data to plot"
 
-def core_depthplot(input_dir_path='.', meas_file='magic_measurements.txt', spc_file='', samp_file='', age_file='', sum_file='', wt_file='', depth_scale='sample_core_depth', dmin=-1, dmax=-1, sym='bo',  size=5, spc_sym='ro', spc_size=5, meth='', step=0, fmt='svg',  pltDec=True, pltInc=True, pltMag=True, pltLine=True, pltSus=True, logit=False, pltTime=False, timescale=None, amin=-1, amax=-1, norm=False):
+def core_depthplot(input_dir_path='.', meas_file='magic_measurements.txt', spc_file='',
+                   samp_file='', age_file='', sum_file='', wt_file='',
+                   depth_scale='sample_core_depth', dmin=-1, dmax=-1, sym='bo',
+                   size=5, spc_sym='ro', spc_size=5, meth='', step=0, fmt='svg',
+                   pltDec=True, pltInc=True, pltMag=True, pltLine=True, pltSus=True,
+                   logit=False, pltTime=False, timescale=None, amin=-1, amax=-1,
+                   norm=False):
     """
     depth scale can be 'sample_core_depth' or 'sample_composite_depth'
     if age file is provided, depth_scale will be set to 'age' by default
@@ -2045,9 +2051,11 @@ def upload_magic(concat=0, dir_path='.', data_model=None):
     RmKeys = ['citation_label', 'compilation', 'calculation_type', 'average_n_lines', 'average_n_planes',
               'specimen_grade', 'site_vgp_lat', 'site_vgp_lon', 'direction_type', 'specimen_Z',
               'magic_instrument_codes', 'cooling_rate_corr', 'cooling_rate_mcd', 'anisotropy_atrm_alt',
-              'anisotropy_apar_perc', 'anisotropy_F', 'anisotropy_F_crit', 'specimen_scat', 'specimen_gmax',
-              'specimen_frac', 'site_vadm', 'site_lon', 'site_vdm', 'site_lat', 'measurement_chi',
-              'specimen_k_prime','specimen_k_prime_sse','external_database_names','external_database_ids']
+              'anisotropy_apar_perc', 'anisotropy_F', 'anisotropy_F_crit', 'specimen_scat',
+              'specimen_gmax','specimen_frac', 'site_vadm', 'site_lon', 'site_vdm', 'site_lat',
+              'measurement_chi', 'specimen_k_prime','specimen_k_prime_sse','external_database_names',
+              'external_database_ids', 'Further Notes', 'Typology', 'Notes (Year/Area/Locus/Level)',
+              'Site', 'Object Number']
     print "-I- Removing: ", RmKeys
     CheckDec = ['_dec', '_lon', '_azimuth', 'dip_direction']
     CheckSign = ['specimen_b_beta']
@@ -3474,6 +3482,8 @@ def IODP_samples_magic(samp_file, output_samp_file=None, output_dir_path='.', in
         text_key="Text Id"
     elif "Text identifier" in keys:
         text_key="Text identifier"
+    elif "Text ID" in keys:
+        text_key="Text ID"
     if "Sample Date Logged" in keys:
         date_key="Sample Date Logged"
     elif "Sample date logged" in keys:
@@ -3484,6 +3494,7 @@ def IODP_samples_magic(samp_file, output_samp_file=None, output_dir_path='.', in
         date_key="Timestamp (UTC)"
     if 'Volume (cc)' in keys:volume_key='Volume (cc)'
     if 'Volume (cm^3)' in keys:volume_key='Volume (cm^3)'
+    if 'Volume (cm3)' in keys:volume_key='Volume (cm3)'
     if not text_key:
         return False, "Could not extract the necessary data from your input file.\nPlease make sure you are providing a correctly formated IODP samples csv file."
     ErSamples,samples,file_format=[],[],'old'

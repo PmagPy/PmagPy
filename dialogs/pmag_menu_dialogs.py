@@ -6,6 +6,7 @@
 
 import wx
 import os
+import sys
 import shutil
 import subprocess
 import wx.grid
@@ -1623,7 +1624,6 @@ class Core_depthplot(wx.Frame):
         #print "meas_file", meas_file, "pmag_spec_file", pmag_spec_file, "spec_sym_shape", spec_sym_shape, "spec_sym_color", spec_sym_color, "spec_sym_size", spec_sym_size, "samp_file", samp_file, "age_file", age_file, "depth_scale", depth_scale, "dmin", dmin, "dmax", dmax, "timescale", timescale, "amin", amin, "amax", amax, "sym", sym, "size", size, "method", method, "step", step, "pltDec", pltDec, "pltInc", pltInc, "pltMag", pltMag, "pltTime", pltTime, "logit", logit, "fmt", fmt
 
         # for use as module:
-        import ipmag
         #print "pltLine:", pltLine
         #print "pltSus:", pltSus
 
@@ -1855,7 +1855,6 @@ class Ani_depthplot(wx.Frame):
         dmax = self.bSizer6.return_value() or -1
 
         # for use as module:
-        import ipmag
         fig, figname = ipmag.aniso_depthplot(ani_file, meas_file, samp_file, age_file, sum_file, fmt, float(dmin), float(dmax), depth_scale)
         if fig:
             self.Destroy() 
@@ -2007,10 +2006,11 @@ class ClearWD(wx.MessageDialog):
 
 
 class PlotFrame(wx.Frame):
-    def __init__(self, size, figure, figname):
+    def __init__(self, size, figure, figname, standalone=False):
         super(PlotFrame, self).__init__(None, -1, size=size)
         self.figure = figure
         self.figname = figname
+        self.standalone = standalone
         panel = wx.Panel(self, -1)
         canvas = FigureCanvas(panel, -1, self.figure)
         btn_panel = self.make_btn_panel()
@@ -2038,10 +2038,13 @@ class PlotFrame(wx.Frame):
         dir_path, figname = os.path.split(self.figname)
         if not dir_path:
             dir_path = os.getcwd()
+        dir_path = os.path.abspath(dir_path)
         dlg = wx.MessageDialog(None, message="Plot saved in directory:\n{}\nas {}".format(dir_path, figname), style=wx.OK)
         dlg.ShowModal()
         dlg.Destroy()
         self.Destroy()
+        if self.standalone:
+            sys.exit()
 
     def on_discard(self, event):
         dlg = wx.MessageDialog(self, "Are you sure you want to delete this plot?", "Not so fast", style=wx.YES_NO|wx.NO_DEFAULT|wx.ICON_EXCLAMATION)
@@ -2050,5 +2053,7 @@ class PlotFrame(wx.Frame):
             plt.clf() # clear figure
             dlg.Destroy()
             self.Destroy()
+            if self.standalone:
+                sys.exit()
         
 

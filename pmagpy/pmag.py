@@ -47,15 +47,15 @@ def get_dictitem(In,k,v,flag):
     except Exception, err:
         return []
 
-def get_dictkey(In,k,dtype): 
-    """ 
+def get_dictkey(In,k,dtype):
+    """
         returns list of given key (k)  from input list of dictionaries (In) in data type dtype.  uses command:
         get_dictkey(In,k,dtype).  If dtype =="", data are strings; if "int", data are integers; if "f", data are floats.
     """
-    
+
     Out=[]
-    for d in In: 
-        if dtype=='': Out.append(d[k]) 
+    for d in In:
+        if dtype=='': Out.append(d[k])
         if dtype=='f':
             if d[k]=="":
                 Out.append(0)
@@ -66,7 +66,7 @@ def get_dictkey(In,k,dtype):
                 Out.append(0)
             else:
                 Out.append(int(d[k]))
-    return Out     
+    return Out
 
 def find(f,seq):
     for item in seq:
@@ -96,7 +96,7 @@ def get_orient(samp_data,er_sample_name):
         az_type=SO_methods[SO_methods.index(SO_priorities[0])]
         orient=get_dictitem(orients,'magic_method_codes',az_type,'has')[0] # re-initialize to best one
     return orient,az_type
-    
+
 
 def cooling_rate(SpecRec,SampRecs,crfrac,crtype):
     CrSpecRec,frac,crmcd={},0,'DA-CR'
@@ -128,12 +128,12 @@ def convert_lat(Recs):
     for rec in Recs:
         if 'model_lat' in rec.keys() and rec['model_lat']!="":
              New.append(rec)
-        elif 'average_age'  in rec.keys() and rec['average_age']!="" and  float(rec['average_age'])<=5.: 
+        elif 'average_age'  in rec.keys() and rec['average_age']!="" and  float(rec['average_age'])<=5.:
             if 'site_lat' in rec.keys() and rec['site_lat']!="":
                  rec['model_lat']=rec['site_lat']
                  New.append(rec)
         elif 'average_inc' in rec.keys() and rec['average_inc']!="":
-            rec['model_lat']='%7.1f'%(plat(float(rec['average_inc']))) 
+            rec['model_lat']='%7.1f'%(plat(float(rec['average_inc'])))
             New.append(rec)
     return New
 
@@ -147,7 +147,7 @@ def convert_ages(Recs):
         agekey=find('age',rec.keys())
         if agekey!="":
             keybase=agekey.split('_')[0]+'_'
-            if rec[keybase+'age']!="": 
+            if rec[keybase+'age']!="":
                 age=float(rec[keybase+"age"])
             elif rec[keybase+'age_low']!="" and rec[keybase+'age_high']!='':
                 age=float(rec[keybase+'age_low'])  +(float(rec[keybase+'age_high'])-float(rec[keybase+'age_low']))/2.
@@ -177,7 +177,7 @@ def convert_ages(Recs):
 def getsampVGP(SampRec,SiteNFO):
     site=get_dictitem(SiteNFO,'er_site_name',SampRec['er_site_name'],'T')
     try:
-        lat=float(site['site_lat'])    
+        lat=float(site['site_lat'])
         lon=float(site['site_lon'])
         dec = float(SampRec['sample_dec'])
         inc = float(SampRec['sample_inc'])
@@ -185,7 +185,7 @@ def getsampVGP(SampRec,SiteNFO):
             a95=float(SampRec['sample_alpha95'])
         else:
             a95=0
-        plong,plat,dp,dm=dia_vgp(dec,inc,a95,lat,lon)         
+        plong,plat,dp,dm=dia_vgp(dec,inc,a95,lat,lon)
         ResRec={}
         ResRec['pmag_result_name']='VGP Sample: '+SampRec['er_sample_name']
         ResRec['er_location_names']=SampRec['er_location_name']
@@ -209,9 +209,9 @@ def getsampVDM(SampRec,SampNFO):
     samps=get_dictitem(SampNFO,'er_sample_name',SampRec['er_sample_name'],'T')
     if len(samps)>0:
         samp=samps[0]
-        lat=float(samp['sample_lat'])    
+        lat=float(samp['sample_lat'])
         int = float(SampRec['sample_int'])
-        vdm=b_vdm(int,lat)     
+        vdm=b_vdm(int,lat)
         if 'sample_int_sigma' in SampRec.keys() and  SampRec['sample_int_sigma']!="":
             sig=b_vdm(float(SampRec['sample_int_sigma']),lat)
             sig='%8.3e'%(sig)
@@ -219,7 +219,7 @@ def getsampVDM(SampRec,SampNFO):
             sig=""
     else:
         print 'could not find sample info for: ', SampRec['er_sample_name']
-        return {} 
+        return {}
     ResRec={}
     ResRec['pmag_result_name']='V[A]DM Sample: '+SampRec['er_sample_name']
     ResRec['er_location_names']=SampRec['er_location_name']
@@ -246,8 +246,8 @@ def getfield(irmunits,coil,treat):
     if coil=="3": m,b=0.0071,-0.004 # B=mh+b where B is in T, treat is in Volts
     if coil=="2": m,b=0.00329,-0.002455 # B=mh+b where B is in T, treat is in Volts
     if coil=="1": m,b=0.0002,-0.0002 # B=mh+b where B is in T, treat is in Volts
-    return float(treat)*m+b 
-     
+    return float(treat)*m+b
+
 def sortbykeys(input,sort_list):
     Output = []
     List=[] # get a list of what to be sorted by second key
@@ -266,7 +266,7 @@ def get_list(data,key): # return a colon delimited list of unique key values
     keylist=[]
     for rec in data:
         keys=rec[key].split(':')
-        for k in keys: 
+        for k in keys:
             if k not in keylist:keylist.append(k)
     keystring=""
     if len(keylist)==0:return keystring
@@ -343,9 +343,9 @@ def ParseMeasFile(measfile,sitefile,instout,specout): # fix up some stuff for up
                 site['site_class']='Not Specified'
                 site['site_lithology']='Not Specified'
                 site['site_type']='Not Specified'
-            if 'specimen_class' not in ErSpecRec.keys():ErSpecRec["specimen_class"]=site['site_class'] 
-            if 'specimen_lithology' not in ErSpecRec.keys():ErSpecRec["specimen_lithology"]=site['site_lithology'] 
-            if 'specimen_type' not in ErSpecRec.keys():ErSpecRec["specimen_type"]=site['site_type'] 
+            if 'specimen_class' not in ErSpecRec.keys():ErSpecRec["specimen_class"]=site['site_class']
+            if 'specimen_lithology' not in ErSpecRec.keys():ErSpecRec["specimen_lithology"]=site['site_lithology']
+            if 'specimen_type' not in ErSpecRec.keys():ErSpecRec["specimen_type"]=site['site_type']
             if 'specimen_volume' not in ErSpecRec.keys():ErSpecRec["specimen_volume"]=""
             if 'specimen_weight' not in ErSpecRec.keys():ErSpecRec["specimen_weight"]=""
             ErSpecs.append(ErSpecRec)
@@ -360,7 +360,7 @@ def ParseMeasFile(measfile,sitefile,instout,specout): # fix up some stuff for up
     if len(InstRecs) >0:
         magic_write(instout,InstRecs,"magic_instruments")
         print " Instruments data saved in ",instout
-    else: 
+    else:
         print "No instruments found"
 
 def ReorderSamples(specfile,sampfile,outfile): # take care of re-ordering sample table, putting used orientations first
@@ -374,12 +374,12 @@ def ReorderSamples(specfile,sampfile,outfile): # take care of re-ordering sample
             if 'SO' in methtype:
                 SO_meth=meth # find the orientation method code
         samprecs=get_dictitem(Samps,'er_sample_name',rec['er_sample_name'],'T')
-        used=get_dictitem(samprecs,'magic_method_codes',SO_meth,'has') 
+        used=get_dictitem(samprecs,'magic_method_codes',SO_meth,'has')
         if len(used)>0:
             UsedSamps.append(used[0])
         else:
             print 'orientation not found for: ',rec['er_specimen_name']
-        rest=get_dictitem(samprecs,'magic_method_codes',SO_meth,'not') 
+        rest=get_dictitem(samprecs,'magic_method_codes',SO_meth,'not')
         for rec in rest:
             RestSamps.append(rec)
     for rec in RestSamps:
@@ -436,9 +436,9 @@ def default_criteria(nocrit):
     Crits['criteria_definition']='acceptance criteria for study'
     Crits['er_citation_names']='This study'
     if nocrit==0: # use default criteria
-# 
+#
 # set some sort of quasi-reasonable default criteria
-#   
+#
         Crits['specimen_mad']='5'
         Crits['specimen_dang']='10'
         Crits['specimen_int_n']='4'
@@ -452,14 +452,14 @@ def default_criteria(nocrit):
         Crits['specimen_int_mad']='10'
         Crits['sample_alpha95']='5'
         Crits['site_int_n']='2'
-        Crits['site_int_sigma']='5e-6' 
+        Crits['site_int_sigma']='5e-6'
         Crits['site_int_sigma_perc']='15'
         Crits['site_n']='5'
         Crits['site_n_lines']='4'
         Crits['site_k']='50'
     return [Crits]
 
-def grade(PmagRec,ACCEPT,type): 
+def grade(PmagRec,ACCEPT,type):
     """
     Finds the 'grade' (pass/fail; A/F) of a record (specimen,sample,site) given the acceptance criteria
     """
@@ -469,8 +469,8 @@ def grade(PmagRec,ACCEPT,type):
     sigma_types=['sample_int_sigma','sample_int_sigma_perc','site_int_sigma','site_int_sigma_perc','average_int_sigma','average_int_sigma_perc']
     sigmas=[]
     accept={}
-    if type=='specimen_int': 
-        USEKEYS=['specimen_q','measurement_step_min','measurement_step_max','specimen_int_ptrm_n','specimen_fvds','specimen_frac','specimen_f','specimen_int_n','specimen_magn_moment','specimen_magn_volumn','specimen_rsc','specimen_scat','specimen_drats','specimen_int_mad','specimen_int_dang','specimen_md','specimen_b_beta','specimen_w','specimen_gmax'] 
+    if type=='specimen_int':
+        USEKEYS=['specimen_q','measurement_step_min','measurement_step_max','specimen_int_ptrm_n','specimen_fvds','specimen_frac','specimen_f','specimen_int_n','specimen_magn_moment','specimen_magn_volumn','specimen_rsc','specimen_scat','specimen_drats','specimen_int_mad','specimen_int_dang','specimen_md','specimen_b_beta','specimen_w','specimen_gmax']
     elif type=='specimen_dir':
         USEKEYS=['measurement_step_min','measurement_step_max','specimen_mad','specimen_n','specimen_magn_moment','specimen_magn_volumn']
     elif type=='sample_int':
@@ -481,31 +481,31 @@ def grade(PmagRec,ACCEPT,type):
         USEKEYS=['site_int_sigma','site_int_sigma_perc','site_int_n']
     elif type=='site_dir':
         USEKEYS=['site_alpha95','site_k','site_n','site_n_lines','site_n_planes','site_r']
- 
+
     for key in ACCEPT.keys():
         if ACCEPT[key]!="" and key in USEKEYS:
             if key in ISTRUE and ACCEPT[key]=='TRUE' or ACCEPT[key]=='True':
                 ACCEPT[key]='1' # this is because Excel always capitalizes True to TRUE and python doesn't recognize that as a boolean.  never mind
             elif ACCEPT[key]=='FALSE' or ACCEPT[key]=='False':
                 ACCEPT[key]='0'
-            elif eval(ACCEPT[key])==0: 
+            elif eval(ACCEPT[key])==0:
                 ACCEPT[key]=""
             accept[key]=ACCEPT[key]
     for key in sigma_types:
         if key in USEKEYS and key in accept.keys() and key in PmagRec.keys(): sigmas.append(key)
     if len(sigmas)>1:
         if PmagRec[sigmas[0]]=="" or PmagRec[sigmas[1]]=="":
-           kill.append(sigmas[0]) 
-           kill.append(sigmas[1]) 
+           kill.append(sigmas[0])
+           kill.append(sigmas[1])
         elif eval(PmagRec[sigmas[0]])>eval(accept[sigmas[0]]) and eval(PmagRec[sigmas[1]])>eval(accept[sigmas[1]]):
-           kill.append(sigmas[0]) 
-           kill.append(sigmas[1]) 
+           kill.append(sigmas[0])
+           kill.append(sigmas[1])
     elif len(sigmas)==1 and sigmas[0] in accept.keys():
         if PmagRec[sigmas[0]]>accept[sigmas[0]]:
-           kill.append(sigmas[0]) 
+           kill.append(sigmas[0])
     for key in accept.keys():
-     if accept[key]!="": 
-        if key not in PmagRec.keys() or PmagRec[key]=='': 
+     if accept[key]!="":
+        if key not in PmagRec.keys() or PmagRec[key]=='':
             kill.append(key)
         elif key not in sigma_types:
             if key in ISTRUE: # boolean must be true
@@ -518,13 +518,17 @@ def grade(PmagRec,ACCEPT,type):
                 if eval(PmagRec[key])>eval(accept[key]):
                     kill.append(key)
     return kill
-    
+
 #
 def flip(D):
     """
-     flip reverse mode
+    determines principle direction and calculates the antipode of
+    the reverse mode
+
+    input: a nested list of directions
+    returns a normal mode and flipped reverse mode as two DI blocks
     """
-    ppars=doprinc(D) # get principle direction
+    ppars=doprinc(D) #get principle direction
     D1,D2=[],[]
     for rec in D:
         ang=angle([rec[0],rec[1]],[ppars['dec'],ppars['inc']])
@@ -538,19 +542,19 @@ def flip(D):
 def dia_vgp(*args): # new function interface by J.Holmes, SIO, 6/1/2011
     """
     converts declination, inclination, alpha95 to VGP, dp, dm
-    takes input as (Decs, Incs, a95, Site latitudes, Site Longitudes).  
+    takes input as (Decs, Incs, a95, Site latitudes, Site Longitudes).
     These can be lists or individual values.
     Returns longitude, latitude, dp, dm
     """
-    # test whether arguments are one 2-D list or 5 floats 
+    # test whether arguments are one 2-D list or 5 floats
     if len(args) == 1: # args comes in as a tuple of multi-dim lists.
         largs=list(args).pop() # scrap the tuple.
-        (decs, dips, a95s, slats, slongs) = zip(*largs) # reorganize the lists so that we get columns of data in each var.       
+        (decs, dips, a95s, slats, slongs) = zip(*largs) # reorganize the lists so that we get columns of data in each var.
     else:
-        # When args > 1, we are receiving five floats. This usually happens when the invoking script is 
+        # When args > 1, we are receiving five floats. This usually happens when the invoking script is
         # executed in interactive mode.
         (decs, dips, a95s, slats, slongs) = (args)
-       
+
     # We send all incoming data to numpy in an array form. Even if it means a 1x1 matrix. That's OKAY. Really.
     (dec, dip, a95, slat, slong) = (numpy.array(decs), numpy.array(dips), numpy.array(a95s), \
                                     numpy.array(slats), numpy.array(slongs)) # package columns into arrays
@@ -559,13 +563,13 @@ def dia_vgp(*args): # new function interface by J.Holmes, SIO, 6/1/2011
     p=numpy.arctan2(2.0,numpy.tan(dip))
     plat=numpy.arcsin(numpy.sin(slat)*numpy.cos(p)+numpy.cos(slat)*numpy.sin(p)*numpy.cos(dec))
     beta=(numpy.sin(p)*numpy.sin(dec))/numpy.cos(plat)
-    
+
     #------------------------------------------------------------------------------------------------------------
     # The deal with "boolmask":
     # We needed a quick way to assign matrix values based on a logic decision, in this case setting boundaries
-    # on out-of-bounds conditions. Creating a matrix of boolean values the size of the original matrix and using 
-    # it to "mask" the assignment solves this problem nicely. The downside to this is that Numpy complains if you 
-    # attempt to mask a non-matrix, so we have to check for array type and do a normal assignment if the type is 
+    # on out-of-bounds conditions. Creating a matrix of boolean values the size of the original matrix and using
+    # it to "mask" the assignment solves this problem nicely. The downside to this is that Numpy complains if you
+    # attempt to mask a non-matrix, so we have to check for array type and do a normal assignment if the type is
     # scalar. These checks are made before calculating for the rest of the function.
     #------------------------------------------------------------------------------------------------------------
 
@@ -591,7 +595,7 @@ def dia_vgp(*args): # new function interface by J.Holmes, SIO, 6/1/2011
         else:
             if boolmask:
                 plong = slong+beta
-        
+
     boolmask = (plong < 0)
     if isinstance(plong,numpy.ndarray):
         plong[boolmask] = plong[boolmask]+2*numpy.pi
@@ -711,10 +715,10 @@ def vspec_magic(data):
     for i in range(k,len(data)):
         FDirdata,Dirdata,DataStateCurr,newstate=[],[],{},0
         for key in treats:  # check if anything changed
-	    DataStateCurr[key]=data[i][key] 
+	    DataStateCurr[key]=data[i][key]
             if DataStateCurr[key].strip() !=  DataState0[key].strip(): newstate=1 # something changed
         if newstate==1:
-            if i==k: # sample is unique 
+            if i==k: # sample is unique
                 vdata.append(data[i-1])
             else: # measurement is not unique
                 #print "averaging: records " ,k,i
@@ -777,9 +781,9 @@ def vector_mean(data):
         R+=Xbar[c]**2
     R=numpy.sqrt(R)
     for c in range(3):
-        Xbar[c]=Xbar[c]/R    
+        Xbar[c]=Xbar[c]/R
     dir=cart2dir(Xbar)
-    return dir, R 
+    return dir, R
 
 def mark_dmag_rec(s,ind,data):
     """
@@ -834,17 +838,17 @@ def find_dmag_rec(s,data):
            for meth in EX:
                if meth in methods:skip=1
            if skip==0:
-               if "LT-NO" in methods: 
+               if "LT-NO" in methods:
                    tr = float(rec["treatment_temp"])
-               if "LT-AF-Z" in methods: 
+               if "LT-AF-Z" in methods:
                    af_flag=1
                    tr = float(rec["treatment_ac_field"])
                    if "T" not in units:units.append("T")
-               if "LT-T-Z" in methods: 
+               if "LT-T-Z" in methods:
                    therm_flag=1
                    tr = float(rec["treatment_temp"])
                    if "K" not in units:units.append("K")
-               if "LT-M-Z" in methods: 
+               if "LT-M-Z" in methods:
                    mw_flag=1
                    tr = float(rec["treatment_mw_power"])*float(rec["treatment_mw_time"])
                    if "J" not in units:units.append("J")
@@ -874,13 +878,13 @@ def find_dmag_rec(s,data):
         for u in units:meas_units=meas_units+u+":"
         meas_units=meas_units[:-1]
     return datablock,meas_units
- 
+
 def magic_read(infile, data=None):
-    """ 
+    """
     reads  a Magic template file, puts data in a list of dictionaries.
     """
     hold,magic_data,magic_record,magic_keys=[],[],{},[]
-    if data: # 
+    if data: #
         f = data
     else:
         try:
@@ -890,12 +894,12 @@ def magic_read(infile, data=None):
 
     d = f.readline()[:-1].strip('\n')
     if not d:
-        return [], 'empty_file' 
+        return [], 'empty_file'
     if d[0]=="s" or d[1]=="s":
         delim='space'
     elif d[0]=="t" or d[1]=="t":
         delim='tab'
-    else: 
+    else:
         print 'error reading ', infile
         #sys.exit()
         return [], 'bad_file'
@@ -916,7 +920,7 @@ def magic_read(infile, data=None):
         magic_keys.append(key)
     lines=f.readlines()
     if len(lines)<1:
-       return [],'empty_file' 
+       return [],'empty_file'
     for line in lines[:-1]:
         line.replace('\n','')
         if delim=='space':rec=line[:-1].split()
@@ -949,7 +953,7 @@ def magic_read(infile, data=None):
 
 def upload_read(infile,table):
     """
-    reads  a table from a MagIC upload (or downloaded) txt file, 
+    reads  a table from a MagIC upload (or downloaded) txt file,
      puts data in a list of dictionaries
     """
     delim='tab'
@@ -1005,7 +1009,7 @@ def putout(ofile,keylist,Rec):
     pmag_out.write(outstring[1:])
     pmag_out.close()
 
-def first_rec(ofile,Rec,file_type): 
+def first_rec(ofile,Rec,file_type):
     """
     opens the file ofile as a magic template file with headers as the keys to Rec
     """
@@ -1034,7 +1038,7 @@ def magic_write_old(ofile,Recs,file_type):
     """
     writes out a magic format list of dictionaries to ofile
     """
-    
+
     if len(Recs)<1:
         return
     pmag_out=open(ofile,'w')
@@ -1056,9 +1060,9 @@ def magic_write_old(ofile,Recs,file_type):
               outstring=outstring+'\t'+str(Rec[key].strip())
            except:
               if 'er_specimen_name' in Rec.keys():
-                  print Rec['er_specimen_name'] 
+                  print Rec['er_specimen_name']
               elif 'er_specimen_names' in Rec.keys():
-                  print Rec['er_specimen_names'] 
+                  print Rec['er_specimen_names']
               print key,Rec[key]
               #raw_input()
         outstring=outstring+'\n'
@@ -1094,9 +1098,9 @@ def magic_write(ofile,Recs,file_type):
               outstring=outstring+'\t'+str(Rec[key].strip())
            except:
               if 'er_specimen_name' in Rec.keys():
-                  print Rec['er_specimen_name'] 
+                  print Rec['er_specimen_name']
               elif 'er_specimen_names' in Rec.keys():
-                  print Rec['er_specimen_names'] 
+                  print Rec['er_specimen_names']
               print key,Rec[key]
               #raw_input()
         outstring=outstring+'\n'
@@ -1111,8 +1115,8 @@ def dotilt(dec,inc,bed_az,bed_dip):
     rad=numpy.pi/180. # converts from degrees to radians
     X=dir2cart([dec,inc,1.]) # get cartesian coordinates of dec,inc
 # get some sines and cosines of new coordinate system
-    sa,ca= -numpy.sin(bed_az*rad),numpy.cos(bed_az*rad) 
-    cdp,sdp= numpy.cos(bed_dip*rad),numpy.sin(bed_dip*rad) 
+    sa,ca= -numpy.sin(bed_az*rad),numpy.cos(bed_az*rad)
+    cdp,sdp= numpy.cos(bed_dip*rad),numpy.sin(bed_dip*rad)
 # do the rotation
     xc=X[0]*(sa*sa+ca*ca*cdp)+X[1]*(ca*sa*(1.-cdp))+X[2]*sdp*ca
     yc=X[0]*ca*sa*(1.-cdp)+X[1]*(ca*ca+sa*sa*cdp)-X[2]*sa*sdp
@@ -1125,7 +1129,7 @@ def dotilt_V(input):
     """
     does a tilt correction on dec,inc using bedding dip direction bed_az and dip bed_dip
     """
-    input=input.transpose() 
+    input=input.transpose()
     dec, inc, bed_az, bed_dip =input[0],input[1],input[2],input[3]  # unpack input array into separate arrays
     rad=numpy.pi/180. # convert to radians
     Dir=numpy.array([dec,inc]).transpose()
@@ -1133,8 +1137,8 @@ def dotilt_V(input):
     N=numpy.size(dec)
 
 # get some sines and cosines of new coordinate system
-    sa,ca= -numpy.sin(bed_az*rad),numpy.cos(bed_az*rad) 
-    cdp,sdp= numpy.cos(bed_dip*rad),numpy.sin(bed_dip*rad) 
+    sa,ca= -numpy.sin(bed_az*rad),numpy.cos(bed_az*rad)
+    cdp,sdp= numpy.cos(bed_dip*rad),numpy.sin(bed_dip*rad)
 # do the rotation
     xc=X[0]*(sa*sa+ca*ca*cdp)+X[1]*(ca*sa*(1.-cdp))+X[2]*sdp*ca
     yc=X[0]*ca*sa*(1.-cdp)+X[1]*(ca*ca+sa*sa*cdp)-X[2]*sa*sdp
@@ -1173,9 +1177,9 @@ def dogeo(dec,inc,az,pl):
 def dogeo_V(input):
     """
     rotates dec,in into geographic coordinates using az,pl as azimuth and plunge of X direction
-    handles  array for  input 
+    handles  array for  input
     """
-    input=input.transpose() 
+    input=input.transpose()
     dec, inc, az, pl =input[0],input[1],input[2],input[3]  # unpack input array into separate arrays
     Dir=numpy.array([dec,inc]).transpose()
     X=dir2cart(Dir).transpose() # get cartesian coordinates
@@ -1218,7 +1222,7 @@ def find_samp_rec(s,data,az_type):
     orient['sample_description']=""
     for rec in data:
         if rec["er_sample_name"].lower()==s.lower():
-           if 'sample_orientation_flag' in  rec.keys() and rec['sample_orientation_flag']=='b': 
+           if 'sample_orientation_flag' in  rec.keys() and rec['sample_orientation_flag']=='b':
                orient['sample_orientation_flag']='b'
                return orient
            if "magic_method_codes" in rec.keys() and az_type != "0":
@@ -1227,7 +1231,7 @@ def find_samp_rec(s,data,az_type):
                if "sample_dip" in rec.keys() and rec["sample_dip"]!="": orient["sample_dip"]=float(rec["sample_dip"])
                if "sample_bed_dip_direction" in rec.keys() and rec["sample_bed_dip_direction"]!="":orient["sample_bed_dip_direction"]=float(rec["sample_bed_dip_direction"])
                if "sample_bed_dip" in rec.keys() and rec["sample_bed_dip"]!="":orient["sample_bed_dip"]=float(rec["sample_bed_dip"])
-           else: 
+           else:
                if "sample_azimuth" in rec.keys():orient["sample_azimuth"]=float(rec["sample_azimuth"])
                if "sample_dip" in rec.keys(): orient["sample_dip"]=float(rec["sample_dip"])
                if "sample_bed_dip_direction" in rec.keys(): orient["sample_bed_dip_direction"]=float(rec["sample_bed_dip_direction"])
@@ -1246,7 +1250,7 @@ def vspec(data):
     k,R=1,0
     for i in range(k,len(data)):
         Dirdata=[]
-        if data[i][0] != tr0: 
+        if data[i][0] != tr0:
             if i==k: # sample is unique
                 vdata.append(data[i-1])
                 step_meth.append(" ")
@@ -1307,11 +1311,11 @@ def cart2dir(cart):
     Rs=numpy.sqrt(Xs**2+Ys**2+Zs**2) # calculate resultant vector length
     Decs=(numpy.arctan2(Ys,Xs)/rad)%360. # calculate declination taking care of correct quadrants (arctan2) and making modulo 360.
     try:
-        Incs=numpy.arcsin(Zs/Rs)/rad # calculate inclination (converting to degrees) # 
+        Incs=numpy.arcsin(Zs/Rs)/rad # calculate inclination (converting to degrees) #
     except:
         print 'trouble in cart2dir' # most likely division by zero somewhere
         return numpy.zeros(3)
-        
+
     return numpy.array([Decs,Incs,Rs]).transpose() # return the directions list
 
 #def cart2dir(cart): # OLD ONE
@@ -1352,12 +1356,12 @@ def tauV(T):
 # sort evalues,evectors
     t1,t2,t3=0.,0.,1.
     for k in range(3):
-        if evalues[k] > t1: 
-            t1,ind1=evalues[k],k 
-        if evalues[k] < t3: 
-            t3,ind3=evalues[k],k 
+        if evalues[k] > t1:
+            t1,ind1=evalues[k],k
+        if evalues[k] < t3:
+            t3,ind3=evalues[k],k
     for k in range(3):
-        if evalues[k] != t1 and evalues[k] != t3: 
+        if evalues[k] != t1 and evalues[k] != t3:
             t2,ind2=evalues[k],k
     V.append(evectors[ind1])
     V.append(evectors[ind2])
@@ -1388,7 +1392,7 @@ def dir2cart(d):
         if d.shape[1]==3: ints=d[:,2] # take the given lengths
     else: # single vector
         decs,incs=numpy.array(d[0])*rad,numpy.array(d[1])*rad
-        if len(d)==3: 
+        if len(d)==3:
             ints=numpy.array(d[2])
         else:
             ints=numpy.array([1.])
@@ -1396,7 +1400,7 @@ def dir2cart(d):
     return cart
 
 def dms2dd(d):
-   # converts list or array of degree, minute, second locations to array of decimal degrees 
+   # converts list or array of degree, minute, second locations to array of decimal degrees
     d=numpy.array(d)
     if len(d.shape)>1: # array of angles
         degs,mins,secs=d[:,0],d[:,1],d[:,2]
@@ -1426,11 +1430,11 @@ def domean(indata,start,end,calculation_type):
     start0,end0=start,end
     for ind,rec in enumerate(indata):
         if len(rec)<6:rec.append('g')
-        if rec[5]=='b' and ind==start0: 
+        if rec[5]=='b' and ind==start0:
             mpars["specimen_direction_type"]="Error"
             print "Can't select 'bad' point as start for PCA"
             return mpars
-        if rec[5]=='b' and ind<start: 
+        if rec[5]=='b' and ind<start:
             start-=1
             end-=1
         if rec[5]=='b' and ind>start and ind<=end+1:
@@ -1449,7 +1453,7 @@ def domean(indata,start,end,calculation_type):
     for k in range(start,end+1):
         if calculation_type == 'DE-BFL' or calculation_type=='DE-BFL-A' or calculation_type=='DE-BFL-O' :  # best-fit line
             data=[datablock[k][1],datablock[k][2],datablock[k][3]]
-        else: 
+        else:
             data=[datablock[k][1],datablock[k][2],1.0] # unit weight
         fdata.append(data)
         cart= dir2cart(data)
@@ -1458,7 +1462,7 @@ def domean(indata,start,end,calculation_type):
         X.append([0.,0.,0.])
         #pass
     if calculation_type=='DE-FM': # for fisher means
-        fpars=fisher_mean(fdata)    
+        fpars=fisher_mean(fdata)
         mpars["specimen_direction_type"]='l'
         mpars["specimen_dec"]=fpars["dec"]
         mpars["specimen_inc"]=fpars["inc"]
@@ -1500,10 +1504,10 @@ def domean(indata,start,end,calculation_type):
     if t==[]:
         mpars["specimen_direction_type"]="Error"
         print "Error in calculation"
-        return mpars 
+        return mpars
     v1,v3=V[0],V[2]
     if calculation_type=='DE-BFL-A':
-        Dir,R=vector_mean(fdata) 
+        Dir,R=vector_mean(fdata)
         mpars["specimen_direction_type"]='l'
         mpars["specimen_dec"]=Dir[0]
         mpars["specimen_inc"]=Dir[1]
@@ -1532,7 +1536,7 @@ def domean(indata,start,end,calculation_type):
         # control is taken as the center of mass
         #control=cm
 
-        
+
         dot = 0
         for k in range(3):
             dot += v1[k]*control[k]
@@ -1586,16 +1590,16 @@ def circ(dec,dip,alpha):
     t[2][1]=numpy.sin(dip1)
     t[0][0]=numpy.cos(dec1)
     t[1][0]=numpy.sin(dec1)
-    t[2][0]=0   
-    for i in range(101): 
-        psi=float(i)*numpy.pi/50. 
-        v[0]=numpy.sin(alpha)*numpy.cos(psi) 
-        v[1]=numpy.sin(alpha)*numpy.sin(psi) 
+    t[2][0]=0
+    for i in range(101):
+        psi=float(i)*numpy.pi/50.
+        v[0]=numpy.sin(alpha)*numpy.cos(psi)
+        v[1]=numpy.sin(alpha)*numpy.sin(psi)
         v[2]=numpy.sqrt(abs(1.-v[0]**2 - v[1]**2))
         elli=[0,0,0]
         for j in range(3):
             for k in range(3):
-                elli[j]=elli[j] + t[j][k]*v[k] 
+                elli[j]=elli[j] + t[j][k]*v[k]
         Dir=cart2dir(elli)
         D_out.append(Dir[0])
         I_out.append(Dir[1])
@@ -1607,15 +1611,15 @@ def PintPars(datablock,araiblock,zijdblock,start,end,accept):
     """
     methcode,ThetaChecks,DeltaChecks,GammaChecks="","","",""
     zptrm_check=[]
-    first_Z,first_I,ptrm_check,ptrm_tail,zptrm_check,GammaChecks=araiblock[0],araiblock[1],araiblock[2],araiblock[3],araiblock[4],araiblock[5]  
-    if len(araiblock)>6: 
+    first_Z,first_I,ptrm_check,ptrm_tail,zptrm_check,GammaChecks=araiblock[0],araiblock[1],araiblock[2],araiblock[3],araiblock[4],araiblock[5]
+    if len(araiblock)>6:
         ThetaChecks=araiblock[6] # used only for perpendicular method of paleointensity
         DeltaChecks=araiblock[7] # used only for perpendicular  method of paleointensity
     xi,yi,diffcum=[],[],0
     xiz,xzi,yiz,yzi=[],[],[],[]
     Nptrm,dmax=0,-1e-22
 # check if even zero and infield steps
-    if len(first_Z)>len(first_I): 
+    if len(first_Z)>len(first_I):
         maxe=len(first_I)-1
     else: maxe=len(first_Z)-1
     if end==0 or end > maxe:
@@ -1624,15 +1628,15 @@ def PintPars(datablock,araiblock,zijdblock,start,end,accept):
     bstep=araiblock[0][start][0]
     estep=araiblock[0][end][0]
     zstart,zend=0,len(zijdblock)
-    for k in range(len(zijdblock)): 
+    for k in range(len(zijdblock)):
         zrec=zijdblock[k]
         if zrec[0]==bstep:zstart=k
         if zrec[0]==estep:zend=k
-    PCA=domean(zijdblock,zstart,zend,'DE-BFL')  
+    PCA=domean(zijdblock,zstart,zend,'DE-BFL')
     D,Diz,Dzi,Du=[],[],[],[]  # list of NRM vectors, and separated by zi and iz
     for rec in zijdblock:
-        D.append((rec[1],rec[2],rec[3])) 
-        Du.append((rec[1],rec[2])) 
+        D.append((rec[1],rec[2],rec[3]))
+        Du.append((rec[1],rec[2]))
         if rec[4]==1:
             Dzi.append((rec[1],rec[2]))  # if this is ZI step
         else:
@@ -1648,10 +1652,10 @@ def PintPars(datablock,araiblock,zijdblock,start,end,accept):
     for k in range(start,end+1):
        for l in range(len(first_I)):
            irec=first_I[l]
-           if irec[0]==first_Z[k][0]: 
+           if irec[0]==first_Z[k][0]:
                xi.append(irec[3])
                yi.append(first_Z[k][3])
-    pars,errcode=int_pars(xi,yi,vds) 
+    pars,errcode=int_pars(xi,yi,vds)
     if errcode==1:return pars,errcode
 #    for k in range(start,end+1):
     for k in range(len(first_Z)-1):
@@ -1685,7 +1689,7 @@ def PintPars(datablock,araiblock,zijdblock,start,end,accept):
 # if directions are TOO well grouped, can get false positive for ftest, so
 # angles must be > 3 degrees apart.
 #
-        if angle([dizp['dec'],dizp['inc']],[dzip['dec'],dzip['inc']])>3.: 
+        if angle([dizp['dec'],dizp['inc']],[dzip['dec'],dzip['inc']])>3.:
             F=(dup['n']-2.)* (dzip['r']+dizp['r']-dup['r'])/(dup['n']-dzip['r']-dizp['r']) # Watson test for common mean
             nf=2.*(dup['n']-2.) # number of degees of freedom
             ftest=fcalc(2,nf)
@@ -1693,10 +1697,10 @@ def PintPars(datablock,araiblock,zijdblock,start,end,accept):
             if Frat>1.:
                 ZigZag=Frat # fails zigzag on directions
                 methcode="SM-FTEST"
-# now do slopes 
+# now do slopes
     if len(b_zi)>2 and len(b_iz)>2:
         bzi_m,bzi_sig=gausspars(b_zi)  # mean, std dev
-        biz_m,biz_sig=gausspars(b_iz) 
+        biz_m,biz_sig=gausspars(b_iz)
         n_zi=float(len(b_zi))
         n_iz=float(len(b_iz))
         b_diff=abs(bzi_m-biz_m) # difference in means
@@ -1711,7 +1715,7 @@ def PintPars(datablock,araiblock,zijdblock,start,end,accept):
             if Trat>1  and Trat>Frat:
                 ZigZag=Trat # fails zigzag on directions
                 methcode="SM-TTEST"
-    pars["specimen_Z"]=ZigZag 
+    pars["specimen_Z"]=ZigZag
     pars["method_codes"]=methcode
 # do drats
     if len(ptrm_check) != 0:
@@ -1744,7 +1748,7 @@ def PintPars(datablock,araiblock,zijdblock,start,end,accept):
                     if irec[0]==step:break
                 diffcum+=prec[3]-irec[3]
         pars["specimen_drats"]=(100*abs(diffcum)/first_I[zend][3])
-    else: 
+    else:
         pars["specimen_drats"]=-1
         pars["specimen_drat"]=-1
 # and the pTRM tails
@@ -1801,7 +1805,7 @@ def PintPars(datablock,araiblock,zijdblock,start,end,accept):
     #--------------------------------------------------------------
 
     # collect all zijderveld data to arrays and calculate VDS
-    
+
     z_temperatures=[row[0] for row in zijdblock]
     zdata=[]                # array of zero-fields measurements in Cartezian coordinates
     vector_diffs=[]         # array of vector differences (for vds calculation)
@@ -1814,11 +1818,11 @@ def PintPars(datablock,araiblock,zijdblock,start,end,accept):
         if k>0:
             vector_diffs.append(sqrt(sum((array(zdata[-2])-array(zdata[-1]))**2)))
     vector_diffs.append(sqrt(sum(array(zdata[-1])**2))) # last vector differnce: from the last point to the origin.
-    vds=sum(vector_diffs)  # vds calculation       
+    vds=sum(vector_diffs)  # vds calculation
     zdata=array(zdata)
     vector_diffs=array(vector_diffs)
 
-    # calculate the vds within the chosen segment 
+    # calculate the vds within the chosen segment
     vector_diffs_segment=vector_diffs[zstart:zend]
     # FRAC calculation
     FRAC=sum(vector_diffs_segment)/vds
@@ -1827,12 +1831,12 @@ def PintPars(datablock,araiblock,zijdblock,start,end,accept):
     # gap_max calculation
     max_FRAC_gap=max(vector_diffs_segment/sum(vector_diffs_segment))
     pars['specimen_gmax']=max_FRAC_gap
-    
 
-    #---------------------------------------------------------------------                     
+
+    #---------------------------------------------------------------------
     # Calculate the "scat box"
     # all data-points, pTRM checks, and tail-checks, should be inside a "scat box"
-    #---------------------------------------------------------------------                     
+    #---------------------------------------------------------------------
 
     # intialization
     pars["fail_arai_beta_box_scatter"]=False # fail scat due to arai plot data points
@@ -1841,19 +1845,19 @@ def PintPars(datablock,araiblock,zijdblock,start,end,accept):
     pars["specimen_scat"]="1" # Pass by default
 
     #--------------------------------------------------------------
-    # collect all Arai plot data points in arrays 
+    # collect all Arai plot data points in arrays
 
-    x_Arai,y_Arai,t_Arai,steps_Arai=[],[],[],[]           
+    x_Arai,y_Arai,t_Arai,steps_Arai=[],[],[],[]
     NRMs=araiblock[0]
     PTRMs=araiblock[1]
     ptrm_checks = araiblock[2]
     ptrm_tail = araiblock[3]
-    
+
     PTRMs_temperatures=[row[0] for row in PTRMs]
     NRMs_temperatures=[row[0] for row in NRMs]
-    NRM=NRMs[0][3]    
+    NRM=NRMs[0][3]
 
-    for k in range(len(NRMs)):                  
+    for k in range(len(NRMs)):
       index_pTRMs=PTRMs_temperatures.index(NRMs[k][0])
       x_Arai.append(PTRMs[index_pTRMs][3]/NRM)
       y_Arai.append(NRMs[k][3]/NRM)
@@ -1861,21 +1865,21 @@ def PintPars(datablock,araiblock,zijdblock,start,end,accept):
       if NRMs[k][4]==1:
         steps_Arai.append('ZI')
       else:
-        steps_Arai.append('IZ')        
+        steps_Arai.append('IZ')
     x_Arai=array(x_Arai)
     y_Arai=array(y_Arai)
 
     #--------------------------------------------------------------
-    # collect all pTRM check to arrays 
+    # collect all pTRM check to arrays
 
     x_ptrm_check,y_ptrm_check,ptrm_checks_temperatures,=[],[],[]
     x_ptrm_check_starting_point,y_ptrm_check_starting_point,ptrm_checks_starting_temperatures=[],[],[]
-    
+
     for k in range(len(ptrm_checks)):
       if ptrm_checks[k][0] in NRMs_temperatures:
         # find the starting point of the pTRM check:
         for i in range(len(datablock)):
-            rec=datablock[i]                
+            rec=datablock[i]
             if "LT-PTRM-I" in rec['magic_method_codes'] and float(rec['treatment_temp'])==ptrm_checks[k][0]:
                 starting_temperature=(float(datablock[i-1]['treatment_temp']))
                 try:
@@ -1899,7 +1903,7 @@ def PintPars(datablock,araiblock,zijdblock,start,end,accept):
     x_ptrm_check=array(x_ptrm_check)
     y_ptrm_check=array(y_ptrm_check)
     ptrm_checks_temperatures=array(ptrm_checks_temperatures)
-    
+
     #--------------------------------------------------------------
     # collect tail checks to arrays
 
@@ -1911,7 +1915,7 @@ def PintPars(datablock,araiblock,zijdblock,start,end,accept):
 
         # find the starting point of the pTRM check:
         for i in range(len(datablock)):
-            rec=datablock[i]                
+            rec=datablock[i]
             if "LT-PTRM-MD" in rec['magic_method_codes'] and float(rec['treatment_temp'])==ptrm_tail[k][0]:
                 starting_temperature=(float(datablock[i-1]['treatment_temp']))
                 try:
@@ -1930,14 +1934,14 @@ def PintPars(datablock,araiblock,zijdblock,start,end,accept):
                 except:
                     pass
 
-    x_tail_check=array(x_tail_check)  
+    x_tail_check=array(x_tail_check)
     y_tail_check=array(y_tail_check)
     tail_check_temperatures=array(tail_check_temperatures)
     x_tail_check_starting_point=array(x_tail_check_starting_point)
     y_tail_check_starting_point=array(y_tail_check_starting_point)
     tail_checks_starting_temperatures=array(tail_checks_starting_temperatures)
 
-            
+
     #--------------------------------------------------------------
     # collect the chosen segment in the Arai plot to arraya
 
@@ -1948,7 +1952,7 @@ def PintPars(datablock,araiblock,zijdblock,start,end,accept):
     # collect pTRM checks in segment to arrays
     # notice, this is different than the conventional DRATS.
     # for scat calculation we take only the pTRM checks which were carried out
-    # before reaching the highest temperature in the chosen segment  
+    # before reaching the highest temperature in the chosen segment
 
     x_ptrm_check_for_SCAT,y_ptrm_check_for_SCAT=[],[]
     for k in range(len(ptrm_checks_temperatures)):
@@ -1958,11 +1962,11 @@ def PintPars(datablock,araiblock,zijdblock,start,end,accept):
 
     x_ptrm_check_for_SCAT=array(x_ptrm_check_for_SCAT)
     y_ptrm_check_for_SCAT=array(y_ptrm_check_for_SCAT)
-    
+
     #--------------------------------------------------------------
     # collect Tail checks in segment to arrays
     # for scat calculation we take only the tail checks which were carried out
-    # before reaching the highest temperature in the chosen segment  
+    # before reaching the highest temperature in the chosen segment
 
     x_tail_check_for_SCAT,y_tail_check_for_SCAT=[],[]
 
@@ -1971,27 +1975,27 @@ def PintPars(datablock,araiblock,zijdblock,start,end,accept):
             x_tail_check_for_SCAT.append(x_tail_check[k])
             y_tail_check_for_SCAT.append(y_tail_check[k])
 
-            
+
     x_tail_check_for_SCAT=array(x_tail_check_for_SCAT)
     y_tail_check_for_SCAT=array(y_tail_check_for_SCAT)
-    
+
     #--------------------------------------------------------------
-    # calculate the lines that define the scat box:            
+    # calculate the lines that define the scat box:
 
     # if threshold value for beta is not defined, then scat cannot be calculated (pass)
     # in this case, scat pass
-    if 'specimen_b_beta' in accept.keys() and accept['specimen_b_beta']!="": 
+    if 'specimen_b_beta' in accept.keys() and accept['specimen_b_beta']!="":
         b_beta_threshold=float(accept['specimen_b_beta'])
         b=pars['specimen_b']             # best fit line
         cm_x=mean(array(x_Arai_segment)) # x center of mass
         cm_y=mean(array(y_Arai_segment)) # y center of mass
-        a=cm_y-b*cm_x                   
+        a=cm_y-b*cm_x
 
         # lines with slope = slope +/- 2*(specimen_b_beta)
 
         two_sigma_beta_threshold=2*b_beta_threshold
         two_sigma_slope_threshold=abs(two_sigma_beta_threshold*b)
-             
+
         # a line with a  shallower  slope  (b + 2*beta*b) passing through the center of mass
         # y=a1+b1x
         b1=b+two_sigma_slope_threshold
@@ -2011,7 +2015,7 @@ def PintPars(datablock,araiblock,zijdblock,start,end,accept):
         # y=intercept2+slop2x
 
         slop2=a2/((a1/b1))
-        intercept2=a2       
+        intercept2=a2
 
         pars['specimen_scat_bounding_line_high']=[intercept2,slop2]
         pars['specimen_scat_bounding_line_low']=[intercept1,slop1]
@@ -2027,7 +2031,7 @@ def PintPars(datablock,araiblock,zijdblock,start,end,accept):
         check_1=y_Arai_segment>ymax
         check_2=y_Arai_segment<ymin
 
-        # check if at least one "True" 
+        # check if at least one "True"
         if (sum(check_1)+sum(check_2))>0:
          pars["fail_arai_beta_box_scatter"]=True
 
@@ -2045,11 +2049,11 @@ def PintPars(datablock,araiblock,zijdblock,start,end,accept):
           check_2=y_ptrm_check_for_SCAT<ymin
 
 
-          # check if at least one "True" 
+          # check if at least one "True"
           if (sum(check_1)+sum(check_2))>0:
             pars["fail_ptrm_beta_box_scatter"]=True
-            
-        #--------------------------------------------------------------    
+
+        #--------------------------------------------------------------
         # check if the tail checks data points are in the 'box'
 
 
@@ -2064,18 +2068,18 @@ def PintPars(datablock,araiblock,zijdblock,start,end,accept):
           check_2=y_tail_check_for_SCAT<ymin
 
 
-          # check if at least one "True" 
+          # check if at least one "True"
           if (sum(check_1)+sum(check_2))>0:
             pars["fail_tail_beta_box_scatter"]=True
 
-        #--------------------------------------------------------------    
-        # check if specimen_scat is PASS or FAIL:   
+        #--------------------------------------------------------------
+        # check if specimen_scat is PASS or FAIL:
 
         if pars["fail_tail_beta_box_scatter"] or pars["fail_ptrm_beta_box_scatter"] or pars["fail_arai_beta_box_scatter"]:
               pars["specimen_scat"]='0'
         else:
               pars["specimen_scat"]='1'
-                
+
     return pars,0
 
 def getkeys(table):
@@ -2083,8 +2087,8 @@ def getkeys(table):
     customize by commenting out unwanted keys
     """
     keys=[]
-    if table=="ER_expedition": 
-        pass 
+    if table=="ER_expedition":
+        pass
     if table=="ER_citations":
         keys.append("er_citation_name")
         keys.append("long_authors")
@@ -2567,12 +2571,12 @@ def dosundec(sundata):
          LAT,LON are the site latitude,longitude (negative for south and west respectively)
          SHADAZ is the shadow angle of the desired direction with respect to the sun.
     OUTPUT:
-      the declination of the desired direction wrt true north. 
+      the declination of the desired direction wrt true north.
     """
     rad=numpy.pi/180.
     iday=0
     timedate=sundata["date"]
-    timedate=timedate.split(":") 
+    timedate=timedate.split(":")
     year=int(timedate[0])
     mon=int(timedate[1])
     day=int(timedate[2])
@@ -2645,11 +2649,11 @@ def julian(mon,day,year):
     returns julian day
     """
     ig=15+31*(10+12*1582)
-    if year == 0: 
+    if year == 0:
         print "Julian no can do"
         return
     if year < 0: year=year+1
-    if mon > 2:  
+    if mon > 2:
         julian_year=year
         julian_month=mon+1
     else:
@@ -2670,7 +2674,7 @@ def fillkeys(Recs):
     """
     keylist,OutRecs=[],[]
     for rec in Recs:
-        for key in rec.keys(): 
+        for key in rec.keys():
             if key not in keylist:keylist.append(key)
     for rec in  Recs:
         for key in keylist:
@@ -2680,7 +2684,7 @@ def fillkeys(Recs):
 
 def fisher_mean(data):
     """
-    call to fisher_mean(data) calculates fisher statistics for data, which is a list of [dec,inc] pairs.  
+    call to fisher_mean(data) calculates fisher statistics for data, which is a list of [dec,inc] pairs.
     """
     R,Xbar,X,fpars=0,[0,0,0],[],{}
     N=len(data)
@@ -2694,7 +2698,7 @@ def fisher_mean(data):
         R+=Xbar[c]**2
     R=numpy.sqrt(R)
     for c in range(3):
-        Xbar[c]=Xbar[c]/R    
+        Xbar[c]=Xbar[c]/R
     dir=cart2dir(Xbar)
     fpars["dec"]=dir[0]
     fpars["inc"]=dir[1]
@@ -2715,7 +2719,7 @@ def fisher_mean(data):
     fpars["csd"]=csd
     if a<0: fpars["alpha95"] = 180.0
     return fpars
- 
+
 def gausspars(data):
     """
     calculates gaussian statistics for data
@@ -2726,7 +2730,7 @@ def gausspars(data):
     for j in range(N):
        mean+=data[j]/float(N)
     for j in range(N):
-       d+=(data[j]-mean)**2 
+       d+=(data[j]-mean)**2
     stdev=numpy.sqrt(d*(1./(float(N-1))))
     return mean,stdev
 
@@ -2742,11 +2746,11 @@ def weighted_mean(data):
     for x in data:
        mean+=(float(x[1])*float(x[0]))/float(W)
     for x in data:
-       d+=(float(x[1])/float(W))*(float(x[0])-mean)**2 
+       d+=(float(x[1])/float(W))*(float(x[0])-mean)**2
     stdev=numpy.sqrt(d*(1./(float(N-1))))
     return mean,stdev
 
-def lnpbykey(data,key0,key1): # calculate a fisher mean of key1 data for a group of key0 
+def lnpbykey(data,key0,key1): # calculate a fisher mean of key1 data for a group of key0
     PmagRec={}
     if len(data)>1:
         for rec in data:
@@ -2769,10 +2773,10 @@ def lnpbykey(data,key0,key1): # calculate a fisher mean of key1 data for a group
         PmagRec[key0+"_dec"]=data[0][key1+'_dec']
         PmagRec[key0+"_inc"]=data[0][key1+'_inc']
         PmagRec[key0+"_n"]='1'
-        if data[0][key1+'_direction_type']=='l': 
+        if data[0][key1+'_direction_type']=='l':
             PmagRec[key0+"_n_lines"]='1'
             PmagRec[key0+"_n_planes"]='0'
-        if data[0][key1+'_direction_type']=='p': 
+        if data[0][key1+'_direction_type']=='p':
             PmagRec[key0+"_n_planes"]='1'
             PmagRec[key0+"_n_lines"]='0'
         PmagRec[key0+"_alpha95"]=""
@@ -2788,7 +2792,7 @@ def fisher_by_pol(data):
     output: three dictionaries:
         'A'= polarity 'A'
         'B = polarity 'B'
-        'ALL'= switching polarity of 'B' directions, and calculate fisher mean of all data     
+        'ALL'= switching polarity of 'B' directions, and calculate fisher mean of all data
     code modified from eqarea_ell.py b rshaar 1/23/2014
     """
     FisherByPoles={}
@@ -2801,21 +2805,21 @@ def fisher_by_pol(data):
         if 'name' in rec.keys():
             nameblock.append(rec['name'])
         else:
-            nameblock.append("")    
+            nameblock.append("")
         if 'loc' in rec.keys():
             locblock.append(rec['loc'])
         else:
             locblock.append("")
-            
-    ppars=doprinc(array(DIblock)) # get principal directions  
-    reference_DI=[ppars['dec'],ppars['inc']] # choose the northerly declination principe component ("normal") 
+
+    ppars=doprinc(array(DIblock)) # get principal directions
+    reference_DI=[ppars['dec'],ppars['inc']] # choose the northerly declination principe component ("normal")
     if reference_DI[0]>90 and reference_DI[0]<270: # make reference direction in northern hemisphere
         reference_DI[0]=(reference_DI[0]+180.)%360
         reference_DI[1]=reference_DI[1]*-1.
     nDIs,rDIs,all_DI,npars,rpars=[],[],[],[],[]
     nlist,rlist,alllist="","",""
     nloclist,rloclist,allloclist="","",""
-    for k in range(len(DIblock)):            
+    for k in range(len(DIblock)):
         if angle([DIblock[k][0],DIblock[k][1]],reference_DI) > 90.:
             rDIs.append(DIblock[k])
             rlist=rlist+":"+nameblock[k]
@@ -2830,30 +2834,30 @@ def fisher_by_pol(data):
             all_DI.append(DIblock[k])
             alllist=alllist+":"+nameblock[k]
             if locblock[k] not in allloclist:allloclist=allloclist+":"+locblock[k]
-            
+
     for mode in ['A','B','All']:
         if mode=='A' and len(nDIs)>2:
             fpars=fisher_mean(nDIs)
             fpars['sites']=nlist.strip(':')
             fpars['locs']=nloclist.strip(':')
             FisherByPoles[mode]=fpars
-        elif mode=='B' and len(rDIs)>2:              
+        elif mode=='B' and len(rDIs)>2:
             fpars=fisher_mean(rDIs)
             fpars['sites']=rlist.strip(':')
             fpars['locs']=rloclist.strip(':')
             FisherByPoles[mode]=fpars
-        elif mode=='All' and len(all_DI)>2:           
+        elif mode=='All' and len(all_DI)>2:
             fpars=fisher_mean(all_DI)
             fpars['sites']=alllist.strip(':')
             fpars['locs']=allloclist.strip(':')
             FisherByPoles[mode]=fpars
-    return FisherByPoles       
-    
+    return FisherByPoles
+
 def dolnp(data,direction_type_key):
     """
     returns fisher mean, a95 for data  using method of mcfadden and mcelhinny '88 for lines and planes
     """
-    if "tilt_correction" in data[0].keys(): 
+    if "tilt_correction" in data[0].keys():
         tc=data[0]["tilt_correction"]
     else:
         tc='-1'
@@ -2872,16 +2876,16 @@ def dolnp(data,direction_type_key):
             n_lines+=1
             fdata.append([rec["dec"],rec["inc"],1.]) # collect data for fisher calculation
             X.append(cart)
-            E[0]+=cart[0] 
-            E[1]+=cart[1] 
-            E[2]+=cart[2] 
+            E[0]+=cart[0]
+            E[1]+=cart[1]
+            E[2]+=cart[2]
 # set up initial points on the great circles
     V,XV=[],[]
     if n_planes !=0:
         if n_lines==0:
             V=dir2cart([180.,-45.,1.]) # set the initial direction arbitrarily
         else:
-           R=numpy.sqrt(E[0]**2+E[1]**2+E[2]**2) 
+           R=numpy.sqrt(E[0]**2+E[1]**2+E[2]**2)
            for c in E:
                V.append(c/R) # set initial direction as mean of lines
         U=E[:]   # make a copy of E
@@ -2893,7 +2897,7 @@ def dolnp(data,direction_type_key):
         angle_tol=1.
         while angle_tol > 0.1:
             angles=[]
-            for k in range(n_planes): 
+            for k in range(n_planes):
                for c in range(3): U[c]=U[c]-XV[k][c]
                R=numpy.sqrt(U[0]**2+U[1]**2+U[2]**2)
                for c in range(3):V[c]=U[c]/R
@@ -2928,7 +2932,7 @@ def dolnp(data,direction_type_key):
             if abs(a) > 1.0: a95=1.
             if a<0:a95=-a95
             a95=numpy.arccos(a95)*180./numpy.pi
-        else: 
+        else:
             a95=0.
             K='inf'
     else:
@@ -2955,12 +2959,12 @@ def vclose(L,V):
     """
     lam,X=0,[]
     for k in range(3):
-        lam=lam+V[k]*L[k] 
+        lam=lam+V[k]*L[k]
     beta=numpy.sqrt(1.-lam**2)
     for k in range(3):
         X.append( ((V[k]-lam*L[k])/beta))
     return X
-  
+
 def scoreit(pars,PmagSpecRec,accept,text,verbose):
     """
     gets a grade for a given set of data, spits out stuff
@@ -3009,7 +3013,7 @@ def scoreit(pars,PmagSpecRec,accept,text,verbose):
     elif pars['measurement_step_unit']=='J':
         outstr= "specimen     Wmin  Wmax  N  lab_field  B_anc  b  q  f(coe)  Fvds  beta  MAD  Dang  Drats  Nptrm  Grade  R  MD%  sigma  ThetaMax DeltaMax GammaMax\n"
         pars_out= (s,(pars["measurement_step_min"]),(pars["measurement_step_max"]),(pars["specimen_int_n"]),1e6*(pars["specimen_lab_field_dc"]),1e6*(pars["specimen_int"]),pars["specimen_b"],pars["specimen_q"],pars["specimen_f"],pars["specimen_fvds"],pars["specimen_b_beta"],pars["specimen_int_mad"],pars["specimen_int_dang"],pars["specimen_drats"],pars["specimen_int_ptrm_n"],pars["specimen_grade"],numpy.sqrt(pars["specimen_rsc"]),int(pars["specimen_md"]), pars["specimen_b_sigma"],pars["specimen_theta"],pars["specimen_delta"],pars["specimen_gamma"])
-        outstring= '%s %4.0f %4.0f %i %4.1f %4.1f %5.3f %5.1f %5.3f %5.3f %5.3f  %7.1f %7.1f %7.1f %s %s %6.3f %i %5.3f %7.1f %7.1f %7.1f' % pars_out +'\n'               
+        outstring= '%s %4.0f %4.0f %i %4.1f %4.1f %5.3f %5.1f %5.3f %5.3f %5.3f  %7.1f %7.1f %7.1f %s %s %6.3f %i %5.3f %7.1f %7.1f %7.1f' % pars_out +'\n'
     if pars["specimen_grade"]!="A":
         print '\n killed by:'
         for k in kill:
@@ -3020,7 +3024,7 @@ def scoreit(pars,PmagSpecRec,accept,text,verbose):
     return pars,kill
 
 def b_vdm(B,lat):
-    """ 
+    """
     Converts field values in tesla to v(a)dm in Am^2
     """
     rad=numpy.pi/180.
@@ -3029,8 +3033,8 @@ def b_vdm(B,lat):
     return fact*B/(numpy.sqrt(1+3*(numpy.cos(colat)**2)))
 
 def vdm_b(vdm,lat):
-    """ 
-    Converts v(a)dm to  field values in tesla 
+    """
+    Converts v(a)dm to  field values in tesla
     """
     rad=numpy.pi/180.
     fact=((6.371e6)**3)*1e7 # changed radius of the earth from 3.367e6 3/12/2010
@@ -3040,7 +3044,7 @@ def vdm_b(vdm,lat):
 def binglookup(w1i,w2i):
     """
     Bingham statistics lookup table.
-    """ 
+    """
     K={'0.06': {'0.02': ['-25.58', '-8.996'], '0.06': ['-9.043', '-9.043'], '0.04': ['-13.14', '-9.019']}, '0.22': {'0.08': ['-6.944', '-2.644'], '0.02': ['-25.63', '-2.712'], '0.20': ['-2.649', '-2.354'], '0.06': [ '-9.027', '-2.673'], '0.04': ['-13.17', '-2.695'], '0.14': ['-4.071', '-2.521'], '0.16': ['-3.518', '-2.470'], '0.10': ['-5.658', '-2.609'], '0.12': ['-4.757', '-2.568'], '0.18': ['-3.053', '-2.414'], '0.22': ['-2.289', '-2.289']}, '0.46': {'0.02': ['-25.12', '-0.250'], '0.08': ['-6.215', '0.000'], '0.06': ['-8.371', '-0.090'], '0.04': ['-12.58', '-0.173']}, '0.44': {'0.08': ['-6.305', '-0.186'], '0.02': ['-25.19', '-0.418'], '0.06': ['-8.454', '-0.270'], '0.04': ['-12.66', '-0.347'], '0.10': ['-4.955', '-0.097'], '0.12': ['-3.992', '0.000']}, '0.42': {'0.08': ['-6.388', '-0.374'], '0.02': ['-25.5', '-0.589'], '0.06': [ '-8.532', '-0.452'], '0.04': ['-12.73', '-0.523'], '0.14': ['-3.349', '-0.104'], '0.16': ['-2.741', '0.000'], '0.10': ['-5.045', '-0.290'], '0.12': ['-4.089', '-0.200']}, '0.40': {'0.08': ['-6.466', '-0.564'], '0.02': ['-25.31', '-0.762'], '0.20': ['-1.874', '-0.000'], '0.06': ['-8.604', '-0.636'], '0.04': ['-12.80', '-0.702'], '0.14': ['-3.446', '-0.312'], '0.16': ['-2.845', '-0.215'], '0.10': ['-5.126', '-0.486'] , '0.12': ['-4.179', '-0.402'], '0.18': ['-2.330', '-0.111']}, '0.08': {'0.02': ['-25.6', '-6.977'], '0.08': ['-7.035', '-7.035'], '0.06': ['-9.065', '-7.020'], '0.04': ['-13.16', '-6.999']}, '0.28': {'0.08': ['-6.827', '-1.828'], '0.28': ['-1.106', '-1.106'], '0.02': ['-25.57', '-1.939'], '0.20': ['-2.441', '-1.458'], '0.26': ['-1.406', '-1.203'], '0.24': ['-1.724', '-1.294'], '0.06': ['-8.928', '-1.871'], '0.04': ['-13.09', '-1.908'], '0.14': ['-3.906', '-1.665'], '0.16': ['-3.338', '-1.601'], '0.10': ['-5.523', '-1.779'], '0.12': ['-4.606', '-1.725'], '0.18': ['-2.859', '-1.532'], '0.22': ['-2.066', '-1.378']}, '0.02': {'0.02': ['-25.55','-25.55']}, '0.26': {'0.08': ['-6.870', '-2.078'], '0.02': ['-25.59', '-2.175'], '0.20': ['-2.515', '-1.735'], '0.26': ['-1.497', '-1.497'], '0.24': ['-1.809', '-1.582'], '0.06': ['-8.96 6', '-2.117'], '0.04': ['-13.12', '-2.149'], '0.14': ['-3.965', '-1.929'], '0.16': ['-3.403', '-1.869'], '0.10': ['-5.573', '-2.034'], '0.12': ['-4.661', '-1.984'], '0.18': ['-2.928', '-1.805'], '0.22': ['-2.1 46', '-1.661']}, '0.20': {'0.08': ['-6.974', '-2.973'], '0.02': ['-25.64', '-3.025'], '0.20': ['-2.709', '-2.709'], '0.06': ['-9.05', '-2.997'], '0.04': ['-13.18', '-3.014'], '0.14': ['-4.118', '-2.863'], '0.1 6': ['-3.570', '-2.816'], '0.10': ['-5.694', '-2.942'], '0.12': ['-4.799', '-2.905'], '0.18': ['-3.109', '-2.765']}, '0.04': {'0.02': ['-25.56', '-13.09'], '0.04': ['-13.11', '-13.11']}, '0.14': {'0.08': ['-7.  033', '-4.294'], '0.02': ['-25.64', '-4.295'], '0.06': ['-9.087', '-4.301'], '0.04': ['-13.20', '-4.301'], '0.14': ['-4.231', '-4.231'], '0.10': ['-5.773', '-4.279'], '0.12': ['-4.896', '-4.258']}, '0.16': {'0 .08': ['-7.019', '-3.777'], '0.02': ['-25.65', '-3.796'], '0.06': ['-9.081', '-3.790'], '0.04': ['-13.20', '-3.796'], '0.14': ['-4.198', '-3.697'], '0.16': ['-3.659', '-3.659'], '0.10': ['-5.752', '-3.756'], ' 0.12': ['-4.868', '-3.729']}, '0.10': {'0.02': ['-25.62', '-5.760'], '0.08': ['-7.042', '-5.798'], '0.06': ['-9.080', '-5.791'], '0.10': ['-5.797', '-5.797'], '0.04': ['-13.18', '-5.777']}, '0.12': {'0.08': [' -7.041', '-4.941'], '0.02': ['-25.63', '-4.923'], '0.06': ['-9.087', '-4.941'], '0.04': ['-13.19', '-4.934'], '0.10': ['-5.789', '-4.933'], '0.12': ['-4.917', '-4.917']}, '0.18': {'0.08': ['-6.999', '-3.345'], '0.02': ['-25.65', '-3.381'], '0.06': ['-9.068', '-3.363'], '0.04': ['-13.19', '-3.375'], '0.14': ['-4.160', '-3.249'], '0.16': ['-3.616', '-3.207'], '0.10': ['-5.726', '-3.319'], '0.12': ['-4.836', '-3.287'] , '0.18': ['-3.160', '-3.160']}, '0.38': {'0.08': ['-6.539', '-0.757'], '0.02': ['-25.37', '-0.940'], '0.20': ['-1.986', '-0.231'], '0.24': ['-1.202', '0.000'], '0.06': ['-8.670', '-0.824'], '0.04': ['-12.86', '-0.885'], '0.14': ['-3.536', '-0.522'], '0.16': ['-2.941', '-0.432'], '0.10': ['-5.207', '-0.684'], '0.12': ['-4.263', '-0.606'], '0.18': ['-2.434', '-0.335'], '0.22': ['-1.579', '-0.120']}, '0.36': {'0.08': ['-6.606', '-9.555'], '0.28': ['-0.642', '0.000'], '0.02': ['-25.42', '-1.123'], '0.20': ['-2.089', '-0.464'], '0.26': ['-0.974', '-0.129'], '0.24': ['-1.322', '-0.249'], '0.06': ['-8.731', '-1.017'], '0.04': ['-12.91', '-1.073'], '0.14': ['-3.620', '-0.736'], '0.16': ['-3.032', '-0.651'], '0.10': ['-5.280', '-0.887'], '0.12': ['-4.342', '-0.814'], '0.18': ['-2.531', '-0.561'], '0.22': ['-1.690', '-0.360']}, '0.34 ': {'0.08': ['-6.668', '-1.159'], '0.28': ['-0.771', '-0.269'], '0.02': ['-25.46', '-1.312'], '0.20': ['-2.186', '-0.701'], '0.26': ['-1.094', '-0.389'], '0.24': ['-1.433', '-0.500'], '0.06': ['-8.788', '-1.21 6'], '0.32': ['-0.152', '0.000'], '0.04': ['-12.96', '-1.267'], '0.30': ['-0.459', '-0.140'], '0.14': ['-3.699', '-0.955'], '0.16': ['-3.116', '-0.876'], '0.10': ['-5.348', '-1.096'], '0.12': ['-4.415', '-1.02 8'], '0.18': ['-2.621', '-0.791'], '0.22': ['-1.794', '-0.604']}, '0.32': {'0.08': ['-6.725', '-1.371'], '0.28': ['-0.891', '-0.541'], '0.02': ['-25.50', '-1.510'], '0.20': ['-2.277', '-0.944'], '0.26': ['-1.2 06', '-0.653'], '0.24': ['-1.537', '-0.756'], '0.06': ['-8.839', '-1.423'], '0.32': ['-0.292', '-0.292'], '0.04': ['-13.01', '-1.470'], '0.30': ['-0.588', '-0.421'], '0.14': ['-3.773', '-1.181'], '0.16': ['-3.  195', '-1.108'], '0.10': ['-5.411', '-1.313'], '0.12': ['-4.484', '-1.250'], '0.18': ['-2.706', '-1.028'], '0.22': ['-1.891', '-0.853']}, '0.30': {'0.08': ['-6.778', '-1.596'], '0.28': ['-1.002', '-0.819'], '0 .02': ['-25.54', '-1.718'], '0.20': ['-2.361', '-1.195'], '0.26': ['-1.309', '-0.923'], '0.24': ['-1.634', '-1.020'], '0.06': ['-8.886', '-1.641'], '0.04': ['-13.05', '-1.682'], '0.30': ['-0.708', '-0.708'], ' 0.14': ['-3.842', '-1.417'], '0.16': ['-3.269', '-1.348'], '0.10': ['-5.469', '-1.540'], '0.12': ['-4.547', '-1.481'], '0.18': ['-2.785', '-1.274'], '0.22': ['-1.981', '-1.110']}, '0.24': {'0.08': ['-6.910', ' -2.349'], '0.02': ['-25.61', '-2.431'], '0.20': ['-2.584', '-2.032'], '0.24': ['-1.888', '-1.888'], '0.06': ['-8.999', '-2.382'], '0.04': ['-23.14', '-2.410'], '0.14': ['-4.021', '-2.212'], '0.16': ['-3.463', '-2.157'], '0.10': ['-5.618', '-2.309'], '0.12': ['-4.711', '-2.263'], '0.18': ['-2.993', '-2.097'], '0.22': ['-2.220', '-1.963']}}
     w1,w2=0.,0.
     wstart,incr=0.01,0.02
@@ -3048,9 +3052,9 @@ def binglookup(w1i,w2i):
     if w2i < wstart: w2='%4.2f'%(wstart+incr/2.)
     wnext=wstart+incr
     while wstart <0.5:
-        if w1i >=wstart and w1i <wnext :  
+        if w1i >=wstart and w1i <wnext :
             w1='%4.2f'%(wstart+incr/2.)
-        if w2i >=wstart and w2i <wnext :  
+        if w2i >=wstart and w2i <wnext :
             w2='%4.2f'%(wstart+incr/2.)
         wstart+=incr
         wnext+=incr
@@ -3091,10 +3095,10 @@ def dobingham(data):
     PDir=cart2dir(V[0])
     EDir=cart2dir(V[1])
     ZDir=cart2dir(V[2])
-    if PDir[1] < 0: 
+    if PDir[1] < 0:
         PDir[0]+=180.
         PDir[1]=-PDir[1]
-    PDir[0]=PDir[0]%360. 
+    PDir[0]=PDir[0]%360.
     bpars["dec"]=PDir[0]
     bpars["inc"]=PDir[1]
     bpars["Edec"]=EDir[0]
@@ -3133,10 +3137,10 @@ def doincfish(inc):
     fpars['ginc']=MI
     if MI<30:
         fpars['inc']=MI
-        fpars['k']=0 
-        fpars['alpha95']=0 
-        fpars['csd']=0 
-        fpars['r']=0 
+        fpars['k']=0
+        fpars['alpha95']=0
+        fpars['csd']=0
+        fpars['r']=0
         print 'WARNING: mean inc < 30, returning gaussian mean'
         return fpars
     for i in inc:  # sum over all incs (but take only positive inc)
@@ -3235,11 +3239,11 @@ def dokent(data,NN):
         for j in range(3):
             gamtmp=0.
             for k in range(3):
-                gamtmp+=H[i][k]*w[k][j]      
+                gamtmp+=H[i][k]*w[k][j]
             gam[i][j]=gamtmp
     for i in range(N):
         xg.append([0.,0.,0.])
-        for k in range(3):  
+        for k in range(3):
             xgtmp=0.
             for j in range(3):
                 xgtmp+=gam[j][k]*X[i][j]
@@ -3384,7 +3388,7 @@ def fshdev(k):
 def lowes(data):
     """
     gets Lowe's power spectrum from infile - writes to ofile
-    """  
+    """
     Ls=range(1,9)
     Rs=[]
     recno=0
@@ -3496,7 +3500,7 @@ def doaniscorr(PmagSpecRec,AniSpec):
         methcodes=""
     if methcodes=="": methcodes="DA-AC-"+AniSpec['anisotropy_type']
     if methcodes!="": methcodes=methcodes+":DA-AC-"+AniSpec['anisotropy_type']
-    if chi[0][0]==1.: # isotropic 
+    if chi[0][0]==1.: # isotropic
         methcodes= methcodes+':DA-AC-ISO' # indicates anisotropy was checked and no change necessary
     AniSpecRec["magic_method_codes"]=methcodes.strip(":")
     return AniSpecRec
@@ -3531,9 +3535,9 @@ def vgp_di(plat,plong,slat,slong):
     C=abs(1.-cosd**2)
     if C!=0:
          dec=-numpy.arctan(cosd/numpy.sqrt(abs(C)))+numpy.pi/2.
-    else:  
+    else:
         dec=numpy.arccos(cosd)
-    if -numpy.pi<signdec*delphi and signdec<0: dec=2.*numpy.pi-dec  # checking quadrant 
+    if -numpy.pi<signdec*delphi and signdec<0: dec=2.*numpy.pi-dec  # checking quadrant
     if signdec*delphi> numpy.pi: dec=2.*numpy.pi-dec
     dec=(dec/rad)%360.
     inc=(numpy.arctan2(2.*numpy.cos(thetaM),numpy.sin(thetaM)))/rad
@@ -3555,7 +3559,7 @@ def watsonsV(Dir1,Dir2):
     V=vfunc(pars_1,pars_2)
 #
 # do monte carlo simulation of datasets with same kappas, but common mean
-# 
+#
     Vp=[] # set of Vs from simulations
     print "Doing ",NumSims," simulations"
     for k in range(NumSims):
@@ -3620,7 +3624,7 @@ def dimap_V(D,I):
 
     """
 ### GET CARTESIAN COMPONENTS OF INPUT DIRECTION
-    DI=numpy.array([D,I]).transpose() # 
+    DI=numpy.array([D,I]).transpose() #
     X=dir2cart(DI).transpose()
 ### CALCULATE THE X,Y COORDINATES FOR THE EQUAL AREA PROJECTION
     R=numpy.sqrt( 1.-abs(X[2]))/(numpy.sqrt(X[0]**2+X[1]**2)) # from Collinson 1983
@@ -3666,10 +3670,10 @@ def getmeths(method_type):
         meths.append('GM-UPB')
         meths.append('GM-UTH')
         meths.append('GM-UTHHE')
-    else: pass 
+    else: pass
     return meths
 
-def first_up(ofile,Rec,file_type): 
+def first_up(ofile,Rec,file_type):
     """
     writes the header for a MagIC template file
     """
@@ -3701,7 +3705,7 @@ def average_int(data,keybase,outkey): # returns dictionary with average intensit
     DataRec[outkey+"_int"]='%8.3e '%(b)
     DataRec[outkey+"_int_n"]='%i '% (len(data))
     return DataRec
- 
+
 def get_age(Rec,sitekey,keybase,Ages,DefaultAge):
     """
     finds the age record for a given site
@@ -3744,7 +3748,7 @@ def adjust_ages(AgesIn):
                 if maxunit==1:maxunit,age_unit,factor=1e3,"Ka",1e3
             if "Years" in agerec[1].split():factors.append(1)
     if len(age_units)==1: # all ages are of same type
-        for agerec in AgesIn: 
+        for agerec in AgesIn:
             AgesOut.append(agerec[0])
     elif len(age_units)>1:
         for agerec in AgesIn:  # normalize all to largest age unit
@@ -3792,9 +3796,9 @@ def get_unf(N):
 #            y=numpy.sin(numpy.pi*float(i)/float(k))*numpy.sin(2.*numpy.pi*float(j)/float(m))
 #            z=numpy.cos(numpy.pi*float(i)/float(k))
 #            r=numpy.sqrt(x**2+y**2+z**2)
-#            xn.append(x/r)      
-#            yn.append(y/r)       
-#            zn.append(z/r) 
+#            xn.append(x/r)
+#            yn.append(y/r)
+#            zn.append(z/r)
 ##
 ## select N random phi/theta from unf dist.
 #
@@ -3802,7 +3806,7 @@ def get_unf(N):
 #        ind=random.randint(0,len(xn)-1)
 #        dir=cart2dir((xn[ind],yn[ind],zn[ind]))
 #        di.append([dir[0],dir[1]])
-#    return di 
+#    return di
 ##
 def s2a(s):
     """
@@ -4278,7 +4282,7 @@ def tcalc(nf,p):
         if nf> 98: t= 2.6269
         if nf> 99: t= 2.6264
         if nf> 100: t= 2.6259
-        return t   
+        return t
         return t
     else:
         return 0
@@ -4336,7 +4340,7 @@ def dohext(nf,sigma,s):
     hpars["e12"]=-1
     hpars["e23"]=-1
     hpars["e13"]=-1
-    if nf<0 or sigma==0:return hpars 
+    if nf<0 or sigma==0:return hpars
     f=numpy.sqrt(2.*fcalc(2,nf))
     t2sum=0
     tau,Vdir=doseigs(s)
@@ -4395,7 +4399,7 @@ def dok15_s(k15):
     Kbar=numpy.dot(A,sbar)  # get best fit values for K
     dels=k15-Kbar  # get deltas
     dels,sbar=dels/t,sbar/t# normalize by trace
-    So= sum(dels**2) 
+    So= sum(dels**2)
     sigma=numpy.sqrt(So/9.) # standard deviation
     return sbar,sigma,bulk
 #
@@ -4421,12 +4425,12 @@ def dosgeo(s,az,pl):
     A=numpy.transpose([X1,X2,X3])
     b=numpy.zeros((3,3,),'f') # initiale the b matrix
     for i in range(3):
-        for j in range(3): 
+        for j in range(3):
             dum=0
-            for k in range(3): 
-                for l in range(3): 
+            for k in range(3):
+                for l in range(3):
                     dum+=A[i][k]*A[j][l]*a[k][l]
-            b[i][j]=dum 
+            b[i][j]=dum
     return a2s(b)
 #
 #
@@ -4435,7 +4439,7 @@ def dostilt(s,bed_az,bed_dip):
      rotate "s" data to stratigraphic coordinates
     """
     tau,Vdirs=doseigs(s)
-    Vrot=[] 
+    Vrot=[]
     for evec in Vdirs:
         d,i=dotilt(evec[0],evec[1],bed_az,bed_dip)
         Vrot.append([d,i])
@@ -4477,11 +4481,11 @@ def sbootpars(Taus,Vs):
         V1s.append(Vs[k][0])
         V2s.append(Vs[k][1])
         V3s.append(Vs[k][2])
-    x,sig=gausspars(Tau1s) 
+    x,sig=gausspars(Tau1s)
     bpars["t1_sigma"]=sig
-    x,sig=gausspars(Tau2s) 
+    x,sig=gausspars(Tau2s)
     bpars["t2_sigma"]=sig
-    x,sig=gausspars(Tau3s) 
+    x,sig=gausspars(Tau3s)
     bpars["t3_sigma"]=sig
     kpars=dokent(V1s,len(V1s))
     bpars["v1_dec"]=kpars["dec"]
@@ -4539,8 +4543,8 @@ def s_boot(Ss,ipar,nb):
 #
 def designAARM(npos):
 #
-    """  
-    calculates B matrix for AARM calculations.  
+    """
+    calculates B matrix for AARM calculations.
     """
     if npos!=9:
         print 'Sorry - only 9 positions available'
@@ -4638,7 +4642,7 @@ def domagicmag(file,Recs):
     for rec in Recs:
         type=".0"
         meths=[]
-        tmp=rec["magic_method_codes"].split(':') 
+        tmp=rec["magic_method_codes"].split(':')
         for meth in tmp:
             meths.append(meth.strip())
         if 'LT-T-I' in meths: type=".1"
@@ -4664,9 +4668,9 @@ def cleanup(first_I,first_Z):
         if first_I[kk][0]!=first_Z[kk][0]:
             print "\n WARNING: "
             if first_I[kk]<first_Z[kk]:
-                del first_I[kk] 
+                del first_I[kk]
             else:
-                del first_Z[kk] 
+                del first_Z[kk]
             print "Unmatched step number: ",kk+1,'  ignored'
             cont=1
         if cont==1: return first_I,first_Z,cont
@@ -4704,11 +4708,11 @@ def sortarai(datablock,s,Zdiff):
             if phi=="":
                 phi=float(rec['treatment_dc_field_phi'])
                 theta=float(rec['treatment_dc_field_theta'])
-# stick  first zero field stuff into first_Z 
+# stick  first zero field stuff into first_Z
         if 'LT-NO' in methcodes:
             Treat_Z.append(temp)
             ZSteps.append(k)
-        if 'LT-T-Z' in methcodes: 
+        if 'LT-T-Z' in methcodes:
             Treat_Z.append(temp)
             ZSteps.append(k)
         if 'LT-PTRM-Z' in methcodes:
@@ -4733,19 +4737,19 @@ def sortarai(datablock,s,Zdiff):
             methcodes=[]
             tmp=irec["magic_method_codes"].split(":")
             for meth in tmp: methcodes.append(meth.strip())
-            brec=datablock[istep-1] # take last record as baseline to subtract  
+            brec=datablock[istep-1] # take last record as baseline to subtract
             zstep=ZSteps[Treat_Z.index(temp)]
             zrec=datablock[zstep]
-    # sort out first_Z records 
-            if "LP-PI-TRM-IZ" in methcodes: 
-                ZI=0    
-            else:   
-                ZI=1    
+    # sort out first_Z records
+            if "LP-PI-TRM-IZ" in methcodes:
+                ZI=0
+            else:
+                ZI=1
             dec=float(zrec["measurement_dec"])
             inc=float(zrec["measurement_inc"])
             str=float(zrec[momkey])
             first_Z.append([temp,dec,inc,str,ZI])
-    # sort out first_I records 
+    # sort out first_I records
             idec=float(irec["measurement_dec"])
             iinc=float(irec["measurement_inc"])
             istr=float(irec[momkey])
@@ -4843,7 +4847,7 @@ def sortmwarai(datablock,exp_type):
     POWT_I,POWT_Z,POWT_PZ,POWT_PI,POWT_M=[],[],[],[],[]
     ISteps,ZSteps,PZSteps,PISteps,MSteps=[],[],[],[],[]
     rad=numpy.pi/180.
-    ThetaChecks=[] # 
+    ThetaChecks=[] #
     DeltaChecks=[]
     GammaChecks=[]
 # first find all the steps
@@ -4881,17 +4885,17 @@ def sortmwarai(datablock,exp_type):
     if exp_type=="LP-PI-M-D":
 # now look trough infield steps and  find matching Z step
         for powt in POWT_I:
-            if powt in POWT_Z: 
+            if powt in POWT_Z:
                 istep=ISteps[POWT_I.index(powt)]
                 irec=datablock[istep]
                 methcodes=[]
                 tmp=irec["magic_method_codes"].split(":")
                 for meth in tmp: methcodes.append(meth.strip())
-                brec=datablock[istep-1] # take last record as baseline to subtract  
+                brec=datablock[istep-1] # take last record as baseline to subtract
                 zstep=ZSteps[POWT_Z.index(powt)]
                 zrec=datablock[zstep]
     # sort out first_Z records
-                if "LP-PI-M-IZ" in methcodes: 
+                if "LP-PI-M-IZ" in methcodes:
                     ZI=0
                 else:
                     ZI=1
@@ -4952,7 +4956,7 @@ def sortmwarai(datablock,exp_type):
         dec=float(rec["measurement_dec"])
         inc=float(rec["measurement_inc"])
         str=float(rec["measurement_magn_moment"])
-        brec=datablock[step-1] # take last record as baseline to subtract  
+        brec=datablock[step-1] # take last record as baseline to subtract
         pdec=float(brec["measurement_dec"])
         pinc=float(brec["measurement_inc"])
         pint=float(brec["measurement_magn_moment"])
@@ -4962,7 +4966,7 @@ def sortmwarai(datablock,exp_type):
         for c in range(3): I.append(X[c]-prevX[c])
         dir1=cart2dir(I)
         ptrm_check.append([powt,dir1[0],dir1[1],dir1[2]])
-    ## get zero field pTRM  checks together 
+    ## get zero field pTRM  checks together
     for powt in POWT_PZ:
         step=PZSteps[POWT_PZ.index(powt)]
         rec=datablock[step]
@@ -4979,7 +4983,7 @@ def sortmwarai(datablock,exp_type):
         for c in range(3): I.append(X[c]-prevX[c])
         dir2=cart2dir(I)
         zptrm_check.append([powt,dir2[0],dir2[1],dir2[2]])
-    ## get pTRM tail checks together - 
+    ## get pTRM tail checks together -
     for powt in POWT_M:
         step=MSteps[POWT_M.index(powt)] # tail check step
         rec=datablock[step]
@@ -5007,19 +5011,19 @@ def sortmwarai(datablock,exp_type):
                    print MaxRec
     araiblock=(first_Z,first_I,ptrm_check,ptrm_tail,zptrm_check,GammaChecks,ThetaChecks,DeltaChecks)
     return araiblock,field
-    
+
     #
 def doigrf(long,lat,alt,date,**kwargs):
     """
     called with doigrf(long,lat,alt,date,**kwargs)
 #       calculates the interpolated (<2010) or extrapolated (>2010) main field and
 #       secular variation coefficients and passes these to the Malin and Barraclough
-#       routine to calculate the IGRF field. dgrf coefficients for 1945 to 2005, igrf for pre 1945 and post 2010 
-#       from http://www.ngdc.noaa.gov/IAGA/vmod/igrf.html 
+#       routine to calculate the IGRF field. dgrf coefficients for 1945 to 2005, igrf for pre 1945 and post 2010
+#       from http://www.ngdc.noaa.gov/IAGA/vmod/igrf.html
 #
 #      for dates prior to between 1900 and 1600, this program uses coefficients from the GUFM1 model of Jackson et al. 2000
 #      prior to that, it uses either arch3k or one of the cals models
-#    
+#
 #
 #       input:
 #       long  = east longitude in degrees (0 to 360 or -180 to 180)
@@ -5039,11 +5043,11 @@ def doigrf(long,lat,alt,date,**kwargs):
 #
 #
     gh,sv=[],[]
-    colat = 90.-lat                                         
+    colat = 90.-lat
 #! convert to colatitude for MB routine
-    if long>0: long=long+360.                       
+    if long>0: long=long+360.
 # ensure all positive east longitudes
-    itype = 1                                                       
+    itype = 1
     models,igrf12coeffs=get_igrf12()
     if 'mod' in kwargs.keys():
         if kwargs['mod']=='arch3k':
@@ -5051,7 +5055,7 @@ def doigrf(long,lat,alt,date,**kwargs):
         elif kwargs['mod']=='cals3k':
             psvmodels,psvcoeffs=get_cals3k() # default: use CALS3K_4b coefficients between -1000,1940
         elif kwargs['mod']=='pfm9k':
-            psvmodels,psvcoeffs=get_pfm9k() #  use PFM9k (Nilsson et al., 2014), coefficients from -7000 to 1900 
+            psvmodels,psvcoeffs=get_pfm9k() #  use PFM9k (Nilsson et al., 2014), coefficients from -7000 to 1900
         else:
             psvmodels,psvcoeffs=get_cals10k() # use prior to -1000, back to -8000
 # use geodetic coordinates
@@ -5127,7 +5131,7 @@ def get_cals10k():
 
 
 def unpack(gh):
-    """ 
+    """
     unpacks gh list into l m g h type list
     """
     data=[]
@@ -5175,7 +5179,7 @@ def magsyn(gh,sv,b,date,itype,alt,colat,elong):
 # for extrapolation beyond 2005. Coefficients from Barton et al. PEPI, 97: 23-26
 # (1996), via web site for NOAA, World Data Center A. Modified to use
 #degree and
-# order 10 as per notes in Malin and Barraclough (1981). 
+# order 10 as per notes in Malin and Barraclough (1981).
 # coefficients for DGRF 1995 and IGRF 2005 are from http://nssdcftp.gsfc.nasa.gov/models/geomagnetic/igrf/fortran_code/
 # igrf subroutine calculates
 # the proper main field and secular variation coefficients (interpolated between
@@ -5261,11 +5265,11 @@ def magsyn(gh,sv,b,date,itype,alt,colat,elong):
             z = z - (fn + 1.0)*three*p[k]
             if st != 0.0: # else go to 5
                 y = y + (one*sl[m-1] - two*cl[m-1])*fm*p[k]/st
-            else: 
+            else:
 # 5
                 y = y + (one*sl[m-1] - two*cl[m-1])*q[k]*ct
             l = l + 2
-        else: 
+        else:
 # 7
             x = x + one*q[k]
             z = z - (fn + 1.0)*one*p[k]
@@ -5290,7 +5294,7 @@ def measurements_methods(meas_data,noave):
     sids=get_specs(meas_data)
 # list  of measurement records for this specimen
 #
-# step through spec by spec 
+# step through spec by spec
 #
     SpecTmps,SpecOuts=[],[]
     for spec in sids:
@@ -5303,24 +5307,24 @@ def measurements_methods(meas_data,noave):
             tmpmeths=rec['magic_method_codes'].split(":")
             meths=[]
             if "LP-TRM" in tmpmeths:TRM=1 # catch these suckers here!
-            if "LP-IRM-3D" in tmpmeths: 
+            if "LP-IRM-3D" in tmpmeths:
                 IRM3D=1 # catch these suckers here!
-            elif "LP-AN-TRM" in tmpmeths: 
+            elif "LP-AN-TRM" in tmpmeths:
                 ATRM=1 # catch these suckers here!
-            elif "LP-CR-TRM" in tmpmeths: 
+            elif "LP-CR-TRM" in tmpmeths:
                 CR=1 # catch these suckers here!
 #
 # otherwise write over existing method codes
 #
 # find NRM data (LT-NO)
 #
-            elif float(rec["measurement_temp"])>=273. and float(rec["measurement_temp"]) < 323.:   
+            elif float(rec["measurement_temp"])>=273. and float(rec["measurement_temp"]) < 323.:
 # between 0 and 50C is room T measurement
-                if ("measurement_dc_field" not in rec.keys() or float(rec["measurement_dc_field"])==0 or rec["measurement_dc_field"]=="") and ("measurement_ac_field" not in rec.keys() or float(rec["measurement_ac_field"])==0 or rec["measurement_ac_field"]==""): 
+                if ("measurement_dc_field" not in rec.keys() or float(rec["measurement_dc_field"])==0 or rec["measurement_dc_field"]=="") and ("measurement_ac_field" not in rec.keys() or float(rec["measurement_ac_field"])==0 or rec["measurement_ac_field"]==""):
 # measurement done in zero field!
-                    if  "treatment_temp" not in rec.keys() or rec["treatment_temp"].strip()=="" or (float(rec["treatment_temp"])>=273. and float(rec["treatment_temp"]) < 298.):   
+                    if  "treatment_temp" not in rec.keys() or rec["treatment_temp"].strip()=="" or (float(rec["treatment_temp"])>=273. and float(rec["treatment_temp"]) < 298.):
 # between 0 and 50C is room T treatment
-                        if "treatment_ac_field" not in rec.keys() or rec["treatment_ac_field"] =="" or float(rec["treatment_ac_field"])==0: 
+                        if "treatment_ac_field" not in rec.keys() or rec["treatment_ac_field"] =="" or float(rec["treatment_ac_field"])==0:
 # no AF
                             if "treatment_dc_field" not in rec.keys() or rec["treatment_dc_field"]=="" or float(rec["treatment_dc_field"])==0:# no IRM!
                                 if "LT-NO" not in meths:meths.append("LT-NO")
@@ -5338,7 +5342,7 @@ def measurements_methods(meas_data,noave):
 #
                     elif float(rec["treatment_temp"])>=323:  # treatment done at  high T
                         if TRM==1:
-                            if "LT-T-I" not in meths: meths.append("LT-T-I") # TRM - even if zero applied field! 
+                            if "LT-T-I" not in meths: meths.append("LT-T-I") # TRM - even if zero applied field!
                         elif "treatment_dc_field" not in rec.keys() or rec["treatment_dc_field"]=="" or float(rec["treatment_dc_field"])==0.: # no TRM
                             if  "LT-T-Z" not in meths: meths.append("LT-T-Z") # don't overwrite if part of a TRM experiment!
                         else: # yes TRM
@@ -5401,11 +5405,11 @@ def measurements_methods(meas_data,noave):
     # collect all the infield steps and look for changes in dc field vector
     #
                 Steps,TI=[],1
-                for rec in  NewSpecs: 
+                for rec in  NewSpecs:
                     methods=get_list(NewSpecs,'magic_method_codes').split(":")
                     if "LT-T-I" in methods:Steps.append(rec)  # get all infield steps together
                 rec_bak=Steps[0]
-                if "treatment_dc_field_phi" in rec_bak.keys() and "treatment_dc_field_theta" in rec_bak.keys():   
+                if "treatment_dc_field_phi" in rec_bak.keys() and "treatment_dc_field_theta" in rec_bak.keys():
                     if rec_bak["treatment_dc_field_phi"] !="" and rec_bak["treatment_dc_field_theta"]!="":   # at least there is field orientation info
                         phi0,theta0=rec_bak["treatment_dc_field_phi"],rec_bak["treatment_dc_field_theta"]
                         for k in range(1,len(Steps)):
@@ -5414,32 +5418,32 @@ def measurements_methods(meas_data,noave):
                             if phi!=phi0 or theta!=theta0: ANIS=1   # if direction changes, is some sort of anisotropy experiment
                 if "LT-AF-I" in SpecMeths and "LT-AF-Z" in SpecMeths: # must be Shaw :(
                     experiment_name="LP-PI-TRM:LP-PI-ALT-AFARM"
-                elif TRM==1: 
+                elif TRM==1:
                     experiment_name="LP-TRM"
             else: TI= 0 # no infield steps at all
             if "LT-T-Z" in  SpecMeths and experiment_name=="": # thermal demag steps
-                if TI==0: 
+                if TI==0:
                     experiment_name="LP-DIR-T" # just ordinary thermal demag
-                elif TRM!=1: # heart pounding - could be some  kind of TRM normalized paleointensity or LP-TRM-TD experiment 
+                elif TRM!=1: # heart pounding - could be some  kind of TRM normalized paleointensity or LP-TRM-TD experiment
                     Temps=[]
                     for step in Steps: # check through the infield steps - if all at same temperature, then must be a demag of a total TRM with checks
                         if step['treatment_temp'] not in Temps:Temps.append(step['treatment_temp'])
-                    if len(Temps)>1: 
-                        experiment_name="LP-PI-TRM" # paleointensity normalized by TRM 
-                    else: 
+                    if len(Temps)>1:
+                        experiment_name="LP-PI-TRM" # paleointensity normalized by TRM
+                    else:
                         experiment_name="LP-TRM-TD" # thermal demag of a lab TRM (could be part of a LP-PI-TDS experiment)
                 TZ=1
             else: TZ= 0 # no zero field steps at all
             if "LT-AF-I" in  SpecMeths: # ARM steps
                 Steps=[]
-                for rec in  NewSpecs: 
+                for rec in  NewSpecs:
                     tmp=rec["magic_method_codes"].split(":")
                     methods=[]
                     for meth in tmp:
                         methods.append(meth.strip())
                     if "LT-AF-I" in methods:Steps.append(rec)  # get all infield steps together
                 rec_bak=Steps[0]
-                if "treatment_dc_field_phi" in rec_bak.keys() and "treatment_dc_field_theta" in rec_bak.keys():   
+                if "treatment_dc_field_phi" in rec_bak.keys() and "treatment_dc_field_theta" in rec_bak.keys():
                     if rec_bak["treatment_dc_field_phi"] !="" and rec_bak["treatment_dc_field_theta"]!="":   # at least there is field orientation info
                         phi0,theta0=rec_bak["treatment_dc_field_phi"],rec_bak["treatment_dc_field_theta"]
                         ANIS=0
@@ -5449,7 +5453,7 @@ def measurements_methods(meas_data,noave):
                             if phi!=phi0 or theta!=theta0: ANIS=1   # if direction changes, is some sort of anisotropy experiment
                         if ANIS==1:
                             experiment_name="LP-AN-ARM"
-                if experiment_name=="":  # not anisotropy of ARM - acquisition?   
+                if experiment_name=="":  # not anisotropy of ARM - acquisition?
                         field0=rec_bak["treatment_dc_field"]
                         ARM=0
                         for k in range(1,len(Steps)):
@@ -5461,22 +5465,22 @@ def measurements_methods(meas_data,noave):
                 AFI=1
             else: AFI= 0 # no ARM steps at all
             if "LT-AF-Z" in  SpecMeths and experiment_name=="": # AF demag steps
-                if AFI==0: 
+                if AFI==0:
                     experiment_name="LP-DIR-AF" # just ordinary AF demag
                 else: # heart pounding - a pseudothellier?
-                    experiment_name="LP-PI-ARM" 
+                    experiment_name="LP-PI-ARM"
                 AFZ=1
             else: AFZ= 0 # no AF demag at all
             if "LT-IRM" in SpecMeths: # IRM
                 Steps=[]
-                for rec in  NewSpecs: 
+                for rec in  NewSpecs:
                     tmp=rec["magic_method_codes"].split(":")
                     methods=[]
                     for meth in tmp:
                         methods.append(meth.strip())
                     if "LT-IRM" in methods:Steps.append(rec)  # get all infield steps together
                 rec_bak=Steps[0]
-                if "treatment_dc_field_phi" in rec_bak.keys() and "treatment_dc_field_theta" in rec_bak.keys():   
+                if "treatment_dc_field_phi" in rec_bak.keys() and "treatment_dc_field_theta" in rec_bak.keys():
                     if rec_bak["treatment_dc_field_phi"] !="" and rec_bak["treatment_dc_field_theta"]!="":   # at least there is field orientation info
                         phi0,theta0=rec_bak["treatment_dc_field_phi"],rec_bak["treatment_dc_field_theta"]
                         ANIS=0
@@ -5485,9 +5489,9 @@ def measurements_methods(meas_data,noave):
                             phi,theta=rec["treatment_dc_field_phi"],rec["treatment_dc_field_theta"]
                             if phi!=phi0 or theta!=theta0: ANIS=1   # if direction changes, is some sort of anisotropy experiment
                         if ANIS==1:experiment_name="LP-AN-IRM"
-                if experiment_name=="":  # not anisotropy of IRM - acquisition?   
+                if experiment_name=="":  # not anisotropy of IRM - acquisition?
                     field0=rec_bak["treatment_dc_field"]
-                    IRM=0 
+                    IRM=0
                     for k in range(1,len(Steps)):
                         rec=Steps[k]
                         field=rec["treatment_dc_field"]
@@ -5499,7 +5503,7 @@ def measurements_methods(meas_data,noave):
                 Steps=get_dictitem(NewSpecs,'magic_method_codes','LT-X','has')
                 if len(Steps)>0:
                     rec_bak=Steps[0]
-                    if "treatment_dc_field_phi" in rec_bak.keys() and "treatment_dc_field_theta" in rec_bak.keys():   
+                    if "treatment_dc_field_phi" in rec_bak.keys() and "treatment_dc_field_theta" in rec_bak.keys():
                         if rec_bak["treatment_dc_field_phi"] !="" and rec_bak["treatment_dc_field_theta"]!="":   # at least there is field orientation info
                             phi0,theta0=rec_bak["treatment_dc_field_phi"],rec_bak["treatment_dc_field_theta"]
                             ANIS=0
@@ -5511,7 +5515,7 @@ def measurements_methods(meas_data,noave):
             else: CHI=0 # no susceptibility at all
     #
     # now need to deal with special thellier experiment problems - first clear up pTRM checks and  tail checks
-    # 
+    #
             if experiment_name=="LP-PI-TRM": # is some sort of thellier experiment
                 rec_bak=NewSpecs[0]
                 tmp=rec_bak["magic_method_codes"].split(":")
@@ -5528,7 +5532,7 @@ def measurements_methods(meas_data,noave):
     # check if this is a pTRM check
     #
                     if float(rec["treatment_temp"])<float(rec_bak["treatment_temp"]): # went backward
-                        if "LT-T-I" in meths and "LT-T-Z" in methbak:  #must be a pTRM check after first z 
+                        if "LT-T-I" in meths and "LT-T-Z" in methbak:  #must be a pTRM check after first z
     #
     # replace LT-T-I method code with LT-PTRM-I
     #
@@ -5587,17 +5591,17 @@ def measurements_methods(meas_data,noave):
     #
                     if float(rec["treatment_temp"])>float(rec_bak["treatment_temp"]) and "LT-PTRM-I" not in methbak: # new pair?
                         if "LT-T-I" in meths:  # infield of this pair
-                                IZorZI="LP-PI-TRM-IZ" 
+                                IZorZI="LP-PI-TRM-IZ"
                                 IZ=1 # at least one IZ pair
-                        elif "LT-T-Z" in meths: #zerofield 
-                                IZorZI="LP-PI-TRM-ZI" 
+                        elif "LT-T-Z" in meths: #zerofield
+                                IZorZI="LP-PI-TRM-ZI"
                                 ZI=1 # at least one ZI pair
                     elif float(rec["treatment_temp"])>float(rec_bak["treatment_temp"]) and "LT-PTRM-I" in methbak and IZorZI!="LP-PI-TRM-ZI": # new pair after out of sequence PTRM check?
                         if "LT-T-I" in meths:  # infield of this pair
-                                IZorZI="LP-PI-TRM-IZ" 
+                                IZorZI="LP-PI-TRM-IZ"
                                 IZ=1 # at least one IZ pair
-                        elif "LT-T-Z" in meths: #zerofield 
-                                IZorZI="LP-PI-TRM-ZI" 
+                        elif "LT-T-Z" in meths: #zerofield
+                                IZorZI="LP-PI-TRM-ZI"
                                 ZI=1 # at least one ZI pair
                     if float(rec["treatment_temp"])==float(rec_bak["treatment_temp"]): # stayed same temp
                         if "LT-T-Z" in meths and "LT-T-I" in methbak and IZorZI=="LP-PI-TRM-ZI":  #must be a tail check
@@ -5618,10 +5622,10 @@ def measurements_methods(meas_data,noave):
                     methcode=""
                     for meth in newmeths:
                         methcode=methcode+meth+":"
-                    rec["magic_method_codes"]=methcode[:-1] 
+                    rec["magic_method_codes"]=methcode[:-1]
                     rec_bak=rec # moving on to next record, making current one the backup
                     methbak=rec_bak["magic_method_codes"].split(":") # get last specimen's method codes in a list
-                   
+
     #
     # done with this specimen's records, now  check if any pTRM checks or MD checks
     #
@@ -5670,7 +5674,7 @@ def measurements_methods(meas_data,noave):
                     measnum+=1
                     SpecOuts.append(rec)
             else:  # not a Thellier-Thellier  or a Shaw experiemnt
-                for rec in  NewSpecs: 
+                for rec in  NewSpecs:
                     if experiment_name=="":
                         rec["magic_method_codes"]="LT-NO"
                         rec["magic_experiment_name"]=spec+":LT-NO"
@@ -5741,7 +5745,7 @@ def mw_measurements_methods(MagRecs):
             if ang> 178 and ang< 182: experiment_name=experiment_name+":LP-NRM-APAR"
 #
 # now check whether there are z pairs for all I steps or is this a single heating experiment
-#  
+#
         noZ=0
         for powt in POWT_I:
             if powt not in POWT_Z:noZ=1 # some I's missing their Z's
@@ -5762,7 +5766,7 @@ def mw_measurements_methods(MagRecs):
                 while IZorZI =="" and step<len(ZSteps)-1:
                     step+=1
                     zstep=ZSteps[step]
-                    zrec=MagRecs[zstep]  
+                    zrec=MagRecs[zstep]
                     powt_z=int(float(zrec["treatment_mw_energy"]))
                     if powt_i==powt_z:  # found a match
                         if zstep < istep: # zero field first
@@ -5787,7 +5791,7 @@ def mw_measurements_methods(MagRecs):
                     nrec=MagRecs[istep+1] # next step
                     nmeths=nrec['magic_method_codes'].split(":")
                     powt_n=int(float(nrec["treatment_mw_energy"]))
-                    if 'LT-M-Z' in nmeths and powt_n==powt_i:  # the step after this infield was a zero field at same energy 
+                    if 'LT-M-Z' in nmeths and powt_n==powt_i:  # the step after this infield was a zero field at same energy
                         MD=1  # found a second zero field  match
                         mdmeths=MagRecs[istep+1]['magic_method_codes'].split(":")
                         mdmeths[0]="LT-PMRM-MD" # replace method code with tail check code
@@ -5796,17 +5800,17 @@ def mw_measurements_methods(MagRecs):
                         MagRecs[istep+1]['magic_method_codes']=methods[1:]
             if MD==1: experiment_name=experiment_name+":LP-PI-BT-MD"
             if IZ==1:
-                if ZI==1: 
+                if ZI==1:
                     experiment_name=experiment_name+":LP-PI-BT-IZZI"
                 else:
                     experiment_name=experiment_name+":LP-PI-M-IZ"
             else:
-                if ZI==1: 
+                if ZI==1:
                     experiment_name=experiment_name+":LP-PI-M-ZI"
                 else:
                     print "problem in measurements_methods - no ZI or IZ in double heating experiment"
                     sys.exit()
-    for rec in MagRecs: 
+    for rec in MagRecs:
         if 'er_synthetic_name' in rec.keys() and rec['er_synthetic_name']!="":
             rec['magic_experiment_name']=rec['er_synthetic_name']+":"+experiment_name
         else:
@@ -5831,7 +5835,7 @@ def parse_site(sample,convention,Z):
         parts=sample.strip('-').split('-')
         return parts[0]
 #
-# Sample is XXXX.YY where XXX is site and YY is sample 
+# Sample is XXXX.YY where XXX is site and YY is sample
 #
     if convention=="3":
         parts=sample.split('.')
@@ -5842,14 +5846,14 @@ def parse_site(sample,convention,Z):
     if convention=="4":
        k=int(Z)-1
        return sample[0:-k]  # peel off Z characters from site
-    
+
     if convention=="5": # sample == site
         return sample
-    
+
     if convention=="7": # peel off Z characters for site
        k=int(Z)
-       return sample[0:k]  
-  
+       return sample[0:k]
+
     if convention=="8": # peel off Z characters for site
        return ""
     if convention=="9": # peel off Z characters for site
@@ -5869,34 +5873,34 @@ def get_samp_con():
             [1] XXXXY: where XXXX is an arbitrary length site designation and Y
                 is the single character sample designation.  e.g., TG001a is the
                 first sample from site TG001.  	 [default]
-            [2] XXXX-YY: YY sample from site XXXX (XXX, YY of arbitary length) 
+            [2] XXXX-YY: YY sample from site XXXX (XXX, YY of arbitary length)
             [3] XXXX.YY: YY sample from site XXXX (XXX, YY of arbitary length)
             [4-Z] XXXX[YYY]:  YYY is sample designation with Z characters from site XXX
             [5] site name same as sample
             [6] site is entered under a separate column
             [7-Z] [XXXX]YYY:  XXXX is site designation with Z characters with sample name XXXXYYYY
             NB: all others you will have to customize your self
-                 or e-mail ltauxe@ucsd.edu for help.  
-            select one:  
+                 or e-mail ltauxe@ucsd.edu for help.
+            select one:
 """)
     #
         if samp_con=="" or  samp_con =="1":
             samp_con,Z="1",1
-        if "4" in samp_con: 
+        if "4" in samp_con:
             if "-" not in samp_con:
                 print "option [4] must be in form 4-Z where Z is an integer"
                 samp_con=""
             else:
                 Z=samp_con.split("-")[1]
                 samp_con="4"
-        if "7" in samp_con: 
+        if "7" in samp_con:
             if "-" not in samp_con:
                 print "option [7] must be in form 7-Z where Z is an integer"
                 samp_con=""
             else:
                 Z=samp_con.split("-")[1]
                 samp_con="7"
-        if samp_con.isdigit()==False or int(samp_con)>7: 
+        if samp_con.isdigit()==False or int(samp_con)>7:
             print "Try again\n "
             samp_con=""
     return samp_con,Z
@@ -5959,14 +5963,14 @@ def set_priorities(SO_methods,ask):
                 SO_priorities.append(SO_defaults[l])
     pri,change=0,"1"
     if ask==1:
-        print  """These methods of sample orientation were found:  
+        print  """These methods of sample orientation were found:
       They have been assigned a provisional priority (top = zero, last = highest number) """
         for m in range(len(SO_defaults)):
             if SO_defaults[m] in SO_methods:
                 SO_priorities[SO_methods.index(SO_defaults[m])]=pri
                 pri+=1
         while change=="1":
-            prior_list=SO_priorities 
+            prior_list=SO_priorities
             for m in range(len(SO_methods)):
                 print SO_methods[m],SO_priorities[m]
             change=raw_input("Change these?  1/[0] ")
@@ -5980,7 +5984,7 @@ def set_priorities(SO_methods,ask):
              del prior_list[prior_list.index(pri)]
     return SO_priorities
 #
-# 
+#
 def get_EOL(file):
     """
      find EOL of input file (whether mac,PC or unix format)
@@ -6003,11 +6007,11 @@ def get_EOL(file):
         EOL='\n'
     f.close()
     return EOL
-# 
+#
 def sortshaw(s,datablock):
     """
      sorts data block in to ARM1,ARM2 NRM,TRM,ARM1,ARM2=[],[],[],[]
-     stick  first zero field stuff into first_Z 
+     stick  first zero field stuff into first_Z
     """
     for rec in datablock:
         methcodes=rec["magic_method_codes"].split(":")
@@ -6086,7 +6090,7 @@ def getvec(gh,lat,long):
     for x in range(pad):gh.append(0.)
     for x in range(len(gh)):sv.append(0.)
 #! convert to colatitude for MB routine
-    itype = 1 
+    itype = 1
     colat = 90.-lat
     date,alt=2000.,0. # use a dummy date and altitude
     x,y,z,f=magsyn(gh,sv,date,date,itype,alt,colat,long)
@@ -6138,7 +6142,7 @@ def mktk03(terms,seed,G2,G3):
             gnew=gh[-1]
             if m==0:
                 hnew=0
-            else: 
+            else:
                 gh.append(random.normal(0,s))
                 hnew=gh[-1]
             if p==1:print l,m,gnew,hnew
@@ -6184,10 +6188,10 @@ def di_boot(DIs):
 #
     nb,BDIs=5000,[]  # number of bootstraps, list of bootstrap directions
 #
-    
+
     for k in range(nb): # repeat nb times
 #        if k%50==0:print k,' out of ',nb
-        pDIs= pseudo(DIs) # get a pseudosample 
+        pDIs= pseudo(DIs) # get a pseudosample
         bfpars=fisher_mean(pDIs) # get bootstrap mean bootstrap sample
         BDIs.append([bfpars['dec'],bfpars['inc']])
     return BDIs
@@ -6201,7 +6205,7 @@ def pseudosample(x):
     for k in range(len(x)):
         ind=random.randint(0,len(x)-1)
         BXs.append(x[ind])
-    return BXs 
+    return BXs
 
 def get_plate_data(plate):
     """
@@ -7829,7 +7833,7 @@ def bc02(data):
     """
      get APWP from Besse and Courtillot 2002 paper
     """
-    
+
     plate,site_lat,site_lon,age=data[0],data[1],data[2],data[3]
     apwp=get_plate_data(plate)
     recs=apwp.split()
@@ -7841,7 +7845,7 @@ def bc02(data):
         rec=[float(recs[k]),float(recs[k+1]),float(recs[k+2])]
         plate_data.append(rec)
         k=k+3
-    
+
     #
     # find the right pole for the age
     #
@@ -7912,38 +7916,38 @@ def get_TS(ts):
 def initialize_acceptance_criteria ():
     '''
     initialize acceptance criteria with NULL values for thellier_gui and demag_gui
-    
-    acceptancec criteria format is doctionaries: 
-    
-    acceptance_criteria={} 
+
+    acceptancec criteria format is doctionaries:
+
+    acceptance_criteria={}
         acceptance_criteria[crit]={}
             acceptance_criteria[crit]['category']=
             acceptance_criteria[crit]['criterion_name']=
             acceptance_criteria[crit]['value']=
             acceptance_criteria[crit]['threshold_type']
             acceptance_criteria[crit]['decimal_points']
-    
-   'category':  
-       'DE-SPEC','DE-SAMP'..etc          
+
+   'category':
+       'DE-SPEC','DE-SAMP'..etc
    'criterion_name':
-       MagIC name   
-   'value': 
+       MagIC name
+   'value':
         a number (for 'regular criteria')
-        a string (for 'flag') 
+        a string (for 'flag')
         1 for True (if criteria is bullean)
         0 for False (if criteria is bullean)
         -999 means N/A
    'threshold_type':
        'low'for low threshold value
        'high'for high threshold value
-        [flag1.flag2]: for flags  
-        'bool' for bollean flags (can be 'g','b' or True/Flase or 1/0)      
+        [flag1.flag2]: for flags
+        'bool' for bollean flags (can be 'g','b' or True/Flase or 1/0)
    'decimal_points':
        number of decimal points in rounding
        (this is used in displaying criteria in the dialog box)
        -999 means Exponent with 3 descimal points for floats and string for string
     '''
-    
+
     acceptance_criteria={}
     # --------------------------------
     # 'DE-SPEC'
@@ -7952,7 +7956,7 @@ def initialize_acceptance_criteria ():
     # low cutoff value
     category='DE-SPEC'
     for crit in ['specimen_n']:
-        acceptance_criteria[crit]={} 
+        acceptance_criteria[crit]={}
         acceptance_criteria[crit]['category']=category
         acceptance_criteria[crit]['criterion_name']=crit
         acceptance_criteria[crit]['value']=-999
@@ -7962,16 +7966,16 @@ def initialize_acceptance_criteria ():
     # high cutoff value
     category='DE-SPEC'
     for crit in ['specimen_mad','specimen_dang','specimen_alpha95']:
-        acceptance_criteria[crit]={} 
+        acceptance_criteria[crit]={}
         acceptance_criteria[crit]['category']=category
         acceptance_criteria[crit]['criterion_name']=crit
         acceptance_criteria[crit]['value']=-999
         acceptance_criteria[crit]['threshold_type']="high"
-        acceptance_criteria[crit]['decimal_points']=1        
+        acceptance_criteria[crit]['decimal_points']=1
 
     # flag
     for crit in ['specimen_direction_type']:
-        acceptance_criteria[crit]={} 
+        acceptance_criteria[crit]={}
         acceptance_criteria[crit]['category']=category
         acceptance_criteria[crit]['criterion_name']=crit
         acceptance_criteria[crit]['value']=-999
@@ -7980,7 +7984,7 @@ def initialize_acceptance_criteria ():
         if crit=='specimen_polarity':
             acceptance_criteria[crit]['threshold_type']=['n','r','t','e','i']
         acceptance_criteria[crit]['decimal_points']=-999
-        
+
     # --------------------------------
     # 'DE-SAMP'
     # --------------------------------
@@ -7988,7 +7992,7 @@ def initialize_acceptance_criteria ():
     # low cutoff value
     category='DE-SAMP'
     for crit in ['sample_n','sample_n_lines','sample_n_planes']:
-        acceptance_criteria[crit]={} 
+        acceptance_criteria[crit]={}
         acceptance_criteria[crit]['category']=category
         acceptance_criteria[crit]['criterion_name']=crit
         acceptance_criteria[crit]['value']=-999
@@ -7998,21 +8002,21 @@ def initialize_acceptance_criteria ():
     # high cutoff value
     category='DE-SAMP'
     for crit in ['sample_r','sample_alpha95','sample_sigma','sample_k','sample_tilt_correction']:
-        acceptance_criteria[crit]={} 
+        acceptance_criteria[crit]={}
         acceptance_criteria[crit]['category']=category
         acceptance_criteria[crit]['criterion_name']=crit
         acceptance_criteria[crit]['value']=-999
         acceptance_criteria[crit]['threshold_type']="high"
         if crit in ['sample_tilt_correction']:
-            acceptance_criteria[crit]['decimal_points']=0            
+            acceptance_criteria[crit]['decimal_points']=0
         elif crit in ['sample_alpha95']:
-            acceptance_criteria[crit]['decimal_points']=1            
+            acceptance_criteria[crit]['decimal_points']=1
         else:
             acceptance_criteria[crit]['decimal_points']=-999
 
     # flag
     for crit in ['sample_direction_type','sample_polarity']:
-        acceptance_criteria[crit]={} 
+        acceptance_criteria[crit]={}
         acceptance_criteria[crit]['category']=category
         acceptance_criteria[crit]['criterion_name']=crit
         acceptance_criteria[crit]['value']=-999
@@ -8029,28 +8033,28 @@ def initialize_acceptance_criteria ():
     # low cutoff value
     category='DE-SITE'
     for crit in ['site_n','site_n_lines','site_n_planes']:
-        acceptance_criteria[crit]={} 
+        acceptance_criteria[crit]={}
         acceptance_criteria[crit]['category']=category
         acceptance_criteria[crit]['criterion_name']=crit
         acceptance_criteria[crit]['value']=-999
         acceptance_criteria[crit]['threshold_type']="low"
         acceptance_criteria[crit]['decimal_points']=0
-    
+
     # high cutoff value
     for crit in ['site_k','site_r','site_alpha95','site_sigma','site_tilt_correction']:
-        acceptance_criteria[crit]={} 
+        acceptance_criteria[crit]={}
         acceptance_criteria[crit]['category']=category
         acceptance_criteria[crit]['criterion_name']=crit
         acceptance_criteria[crit]['value']=-999
         acceptance_criteria[crit]['threshold_type']="high"
         if crit in ['site_tilt_correction']:
-            acceptance_criteria[crit]['decimal_points']=0            
+            acceptance_criteria[crit]['decimal_points']=0
         else:
             acceptance_criteria[crit]['decimal_points']=1
-        
-    # flag                
+
+    # flag
     for crit in ['site_direction_type','site_polarity']:
-        acceptance_criteria[crit]={} 
+        acceptance_criteria[crit]={}
         acceptance_criteria[crit]['category']=category
         acceptance_criteria[crit]['criterion_name']=crit
         acceptance_criteria[crit]['value']=-999
@@ -8061,12 +8065,12 @@ def initialize_acceptance_criteria ():
         acceptance_criteria[crit]['decimal_points']=-999
 
     # --------------------------------
-    # 'DE-STUDY' 
+    # 'DE-STUDY'
     # --------------------------------
     category='DE-STUDY'
-    # low cutoff value              
+    # low cutoff value
     for crit in ['average_k','average_n','average_nn','average_nnn','average_r']:
-        acceptance_criteria[crit]={} 
+        acceptance_criteria[crit]={}
         acceptance_criteria[crit]['category']=category
         acceptance_criteria[crit]['criterion_name']=crit
         acceptance_criteria[crit]['value']=-999
@@ -8077,10 +8081,10 @@ def initialize_acceptance_criteria ():
             acceptance_criteria[crit]['decimal_points']=1
         else:
             acceptance_criteria[crit]['decimal_points']=-999
-    
-    # high cutoff value                      
+
+    # high cutoff value
     for crit in ['average_alpha95','average_sigma']:
-        acceptance_criteria[crit]={} 
+        acceptance_criteria[crit]={}
         acceptance_criteria[crit]['category']=category
         acceptance_criteria[crit]['criterion_name']=crit
         acceptance_criteria[crit]['value']=-999
@@ -8099,7 +8103,7 @@ def initialize_acceptance_criteria ():
     # low cutoff value
     for crit in ['specimen_int_n','specimen_f','specimen_fvds','specimen_frac','specimen_q','specimen_w','specimen_r_sq','specimen_int_ptrm_n',\
     'specimen_int_ptrm_tail_n','specimen_ac_n']:
-        acceptance_criteria[crit]={} 
+        acceptance_criteria[crit]={}
         acceptance_criteria[crit]['category']=category
         acceptance_criteria[crit]['criterion_name']=crit
         acceptance_criteria[crit]['value']=-999
@@ -8111,13 +8115,13 @@ def initialize_acceptance_criteria ():
             acceptance_criteria[crit]['decimal_points']=2
         else :
             acceptance_criteria[crit]['decimal_points']=-999
-    
+
     # high cutoff value
     for crit in ['specimen_b_sigma','specimen_b_beta','specimen_g','specimen_gmax','specimen_k','specimen_k_sse','specimen_k_prime','specimen_k_prime_sse',\
     'specimen_coeff_det_sq','specimen_z','specimen_z_md','specimen_int_mad','specimen_int_mad_anc','specimen_int_alpha','specimen_alpha','specimen_alpha_prime',\
     'specimen_theta','specimen_int_dang','specimen_int_crm','specimen_ptrm','specimen_dck','specimen_drat','specimen_maxdev','specimen_cdrat',\
     'specimen_drats','specimen_mdrat','specimen_mdev','specimen_dpal','specimen_tail_drat','specimen_dtr','specimen_md','specimen_dt','specimen_dac','specimen_gamma']:
-        acceptance_criteria[crit]={} 
+        acceptance_criteria[crit]={}
         acceptance_criteria[crit]['category']=category
         acceptance_criteria[crit]['criterion_name']=crit
         acceptance_criteria[crit]['value']=-999
@@ -8130,34 +8134,34 @@ def initialize_acceptance_criteria ():
             acceptance_criteria[crit]['decimal_points']=3
         else :
             acceptance_criteria[crit]['decimal_points']=-999
-    
-    # flags                                       
+
+    # flags
     for crit in ['specimen_scat']:
-        acceptance_criteria[crit]={} 
+        acceptance_criteria[crit]={}
         acceptance_criteria[crit]['category']=category
         acceptance_criteria[crit]['criterion_name']=crit
         acceptance_criteria[crit]['value']=-999
         acceptance_criteria[crit]['threshold_type']='bool'
         acceptance_criteria[crit]['decimal_points']=-999
-                                        
-                                        
+
+
     # --------------------------------
-    # 'IE-SAMP' 
+    # 'IE-SAMP'
     # --------------------------------
     category='IE-SAMP'
 
-    # low cutoff value              
+    # low cutoff value
     for crit in ['sample_int_n']:
-        acceptance_criteria[crit]={} 
+        acceptance_criteria[crit]={}
         acceptance_criteria[crit]['category']=category
         acceptance_criteria[crit]['criterion_name']=crit
         acceptance_criteria[crit]['value']=-999
         acceptance_criteria[crit]['threshold_type']="low"
         acceptance_criteria[crit]['decimal_points']=0
 
-    # high cutoff value                      
+    # high cutoff value
     for crit in ['sample_int_rel_sigma','sample_int_rel_sigma_perc','sample_int_sigma','sample_int_sigma_perc']:
-        acceptance_criteria[crit]={} 
+        acceptance_criteria[crit]={}
         acceptance_criteria[crit]['category']=category
         acceptance_criteria[crit]['criterion_name']=crit
         acceptance_criteria[crit]['value']=-999
@@ -8166,25 +8170,25 @@ def initialize_acceptance_criteria ():
             acceptance_criteria[crit]['decimal_points']=1
         else :
             acceptance_criteria[crit]['decimal_points']=-999
-        
+
 
     # --------------------------------
-    # 'IE-SITE' 
+    # 'IE-SITE'
     # --------------------------------
     category='IE-SITE'
 
-    # low cutoff value              
+    # low cutoff value
     for crit in ['site_int_n']:
-        acceptance_criteria[crit]={} 
+        acceptance_criteria[crit]={}
         acceptance_criteria[crit]['category']=category
         acceptance_criteria[crit]['criterion_name']=crit
         acceptance_criteria[crit]['value']=-999
         acceptance_criteria[crit]['threshold_type']="low"
         acceptance_criteria[crit]['decimal_points']=0
 
-    # high cutoff value                      
+    # high cutoff value
     for crit in ['site_int_rel_sigma','site_int_rel_sigma_perc','site_int_sigma','site_int_sigma_perc']:
-        acceptance_criteria[crit]={} 
+        acceptance_criteria[crit]={}
         acceptance_criteria[crit]['category']=category
         acceptance_criteria[crit]['criterion_name']=crit
         acceptance_criteria[crit]['value']=-999
@@ -8195,21 +8199,21 @@ def initialize_acceptance_criteria ():
             acceptance_criteria[crit]['decimal_points']=-999
 
     # --------------------------------
-    # 'IE-STUDY' 
+    # 'IE-STUDY'
     # --------------------------------
     category='IE-STUDY'
-    # low cutoff value              
+    # low cutoff value
     for crit in ['average_int_n','average_int_n','average_int_nn','average_int_nnn',]:
-        acceptance_criteria[crit]={} 
+        acceptance_criteria[crit]={}
         acceptance_criteria[crit]['category']=category
         acceptance_criteria[crit]['criterion_name']=crit
         acceptance_criteria[crit]['value']=-999
         acceptance_criteria[crit]['threshold_type']="low"
         acceptance_criteria[crit]['decimal_points']=0
-    
-    # high cutoff value                      
+
+    # high cutoff value
     for crit in ['average_int_rel_sigma','average_int_rel_sigma_perc','average_int_sigma']:
-        acceptance_criteria[crit]={} 
+        acceptance_criteria[crit]={}
         acceptance_criteria[crit]['category']=category
         acceptance_criteria[crit]['criterion_name']=crit
         acceptance_criteria[crit]['value']=-999
@@ -8220,12 +8224,12 @@ def initialize_acceptance_criteria ():
             acceptance_criteria[crit]['decimal_points']=-999
 
     # --------------------------------
-    # 'NPOLE' 
+    # 'NPOLE'
     # --------------------------------
     category='NPOLE'
-    # flags                                       
+    # flags
     for crit in ['site_polarity']:
-        acceptance_criteria[crit]={} 
+        acceptance_criteria[crit]={}
         acceptance_criteria[crit]['category']=category
         acceptance_criteria[crit]['criterion_name']=crit
         acceptance_criteria[crit]['value']=-999
@@ -8233,26 +8237,26 @@ def initialize_acceptance_criteria ():
         acceptance_criteria[crit]['decimal_points']=-999
 
     # --------------------------------
-    # 'NPOLE' 
+    # 'NPOLE'
     # --------------------------------
     category='RPOLE'
-    # flags                                       
+    # flags
     for crit in ['site_polarity']:
-        acceptance_criteria[crit]={} 
+        acceptance_criteria[crit]={}
         acceptance_criteria[crit]['category']=category
         acceptance_criteria[crit]['criterion_name']=crit
         acceptance_criteria[crit]['value']=-999
         acceptance_criteria[crit]['threshold_type']=['n','r']
         acceptance_criteria[crit]['decimal_points']=-999
 
-                                   
+
     # --------------------------------
-    # 'VADM' 
+    # 'VADM'
     # --------------------------------
     category='VADM'
-    # low cutoff value              
+    # low cutoff value
     for crit in ['vadm_n']:
-        acceptance_criteria[crit]={} 
+        acceptance_criteria[crit]={}
         acceptance_criteria[crit]['category']=category
         acceptance_criteria[crit]['criterion_name']=crit
         acceptance_criteria[crit]['value']=-999
@@ -8263,21 +8267,21 @@ def initialize_acceptance_criteria ():
             acceptance_criteria[crit]['decimal_points']=-999
 
     # --------------------------------
-    # 'VADM' 
+    # 'VADM'
     # --------------------------------
     category='VADM'
-    # low cutoff value              
+    # low cutoff value
     for crit in ['vadm_n']:
-        acceptance_criteria[crit]={} 
+        acceptance_criteria[crit]={}
         acceptance_criteria[crit]['category']=category
         acceptance_criteria[crit]['criterion_name']=crit
         acceptance_criteria[crit]['value']=-999
         acceptance_criteria[crit]['threshold_type']="low"
         acceptance_criteria[crit]['decimal_points']=0
 
-    # high cutoff value              
+    # high cutoff value
     for crit in ['vadm_sigma']:
-        acceptance_criteria[crit]={} 
+        acceptance_criteria[crit]={}
         acceptance_criteria[crit]['category']=category
         acceptance_criteria[crit]['criterion_name']=crit
         acceptance_criteria[crit]['value']=-999
@@ -8285,43 +8289,43 @@ def initialize_acceptance_criteria ():
         acceptance_criteria[crit]['decimal_points']=-999
 
     # --------------------------------
-    # 'VADM' 
+    # 'VADM'
     # --------------------------------
     category='VDM'
-    # low cutoff value              
+    # low cutoff value
     for crit in ['vdm_n']:
-        acceptance_criteria[crit]={} 
+        acceptance_criteria[crit]={}
         acceptance_criteria[crit]['category']=category
         acceptance_criteria[crit]['criterion_name']=crit
         acceptance_criteria[crit]['value']=-999
         acceptance_criteria[crit]['threshold_type']="low"
         acceptance_criteria[crit]['decimal_points']=0
 
-    # high cutoff value              
+    # high cutoff value
     for crit in ['vdm_sigma']:
-        acceptance_criteria[crit]={} 
+        acceptance_criteria[crit]={}
         acceptance_criteria[crit]['category']=category
         acceptance_criteria[crit]['criterion_name']=crit
         acceptance_criteria[crit]['value']=-999
         acceptance_criteria[crit]['threshold_type']="low"
         acceptance_criteria[crit]['decimal_points']=-999
-                                                                                                                                                                                                                  
+
     # --------------------------------
-    # 'VGP' 
+    # 'VGP'
     # --------------------------------
     category='VDM'
-    # low cutoff value              
+    # low cutoff value
     for crit in ['vgp_n']:
-        acceptance_criteria[crit]={} 
+        acceptance_criteria[crit]={}
         acceptance_criteria[crit]['category']=category
         acceptance_criteria[crit]['criterion_name']=crit
         acceptance_criteria[crit]['value']=-999
         acceptance_criteria[crit]['threshold_type']="low"
         acceptance_criteria[crit]['decimal_points']=0
 
-    # high cutoff value              
+    # high cutoff value
     for crit in ['vgp_alpha95','vgp_dm','vgp_dp','vgp_sigma']:
-        acceptance_criteria[crit]={} 
+        acceptance_criteria[crit]={}
         acceptance_criteria[crit]['category']=category
         acceptance_criteria[crit]['criterion_name']=crit
         acceptance_criteria[crit]['value']=-999
@@ -8330,61 +8334,61 @@ def initialize_acceptance_criteria ():
             acceptance_criteria[crit]['decimal_points','vgp_dm','vgp_dp']=1
         else :
             acceptance_criteria[crit]['decimal_points']=-999
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      
+
     # --------------------------------
-    # 'AGE'     
+    # 'AGE'
     # --------------------------------
     category='AGE'
-    # low cutoff value              
+    # low cutoff value
     for crit in ['average_age_min']:
-        acceptance_criteria[crit]={} 
+        acceptance_criteria[crit]={}
         acceptance_criteria[crit]['category']=category
         acceptance_criteria[crit]['criterion_name']=crit
         acceptance_criteria[crit]['value']=-999
         acceptance_criteria[crit]['threshold_type']="low"
         acceptance_criteria[crit]['decimal_points']=-999
 
-    # high cutoff value                      
+    # high cutoff value
     for crit in ['average_age_max','average_age_sigma']:
-        acceptance_criteria[crit]={} 
+        acceptance_criteria[crit]={}
         acceptance_criteria[crit]['category']=category
         acceptance_criteria[crit]['criterion_name']=crit
         acceptance_criteria[crit]['value']=-999
         acceptance_criteria[crit]['threshold_type']="high"
         acceptance_criteria[crit]['decimal_points']=-999
 
-    # flags                                       
+    # flags
     for crit in ['average_age_unit']:
-        acceptance_criteria[crit]={} 
+        acceptance_criteria[crit]={}
         acceptance_criteria[crit]['category']=category
         acceptance_criteria[crit]['criterion_name']=crit
         acceptance_criteria[crit]['value']=-999
         acceptance_criteria[crit]['threshold_type']=['Ga','Ka','Ma','Years AD (+/-)','Years BP','Years Cal AD (+/-)','Years Cal BP']
         acceptance_criteria[crit]['decimal_points']=-999
- 
+
     # --------------------------------
-    # 'ANI'     
+    # 'ANI'
     # --------------------------------
     category='ANI'
-    # high cutoff value              
+    # high cutoff value
     for crit in ['anisotropy_alt','sample_aniso_mean','site_aniso_mean']: # value is in precent
-        acceptance_criteria[crit]={} 
+        acceptance_criteria[crit]={}
         acceptance_criteria[crit]['category']=category
         acceptance_criteria[crit]['criterion_name']=crit
         acceptance_criteria[crit]['value']=-999
         acceptance_criteria[crit]['threshold_type']="high"
         acceptance_criteria[crit]['decimal_points']=3
-                                                                                                                                                                                                                      
-    # flags                                       
+
+    # flags
     for crit in ['anisotropy_ftest_flag']:
-        acceptance_criteria[crit]={} 
+        acceptance_criteria[crit]={}
         acceptance_criteria[crit]['category']=category
         acceptance_criteria[crit]['criterion_name']=crit
         acceptance_criteria[crit]['value']=-999
         acceptance_criteria[crit]['threshold_type']='bool'
         acceptance_criteria[crit]['decimal_points']=-999
-                                                                                                                                                                                                                                                                                                                                                                                                                                           
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
+
+
     return(acceptance_criteria)
 
 
@@ -8394,36 +8398,36 @@ def read_criteria_from_file(path,acceptance_criteria):
     Read accceptance criteria from magic pmag_criteria file
     # old format:
     multiple lines.  pmag_criteria_code defines the type of criteria
-    
+
     to deal with old format this function reads all the lines and ignore empty cells.
-    i.e., the program assumes that in each column there is only one value (in one of the lines)   
+    i.e., the program assumes that in each column there is only one value (in one of the lines)
 
     special case in the old format:
-        specimen_dang has a value and pmag_criteria_code is IE-specimen. 
+        specimen_dang has a value and pmag_criteria_code is IE-specimen.
         The program assumes that the user means specimen_int_dang
     # New format for thellier_gui and demag_gui:
     one long line. pmag_criteria_code=ACCEPT
-    
+
     path is the full path to the criteria file
-    
+
     the fucntion takes exiting acceptance_criteria
     and updtate it with criteria from file
 
     output:
-    acceptance_criteria={} 
+    acceptance_criteria={}
     acceptance_criteria[MagIC Variable Names]={}
-    acceptance_criteria[MagIC Variable Names]['value']: 
+    acceptance_criteria[MagIC Variable Names]['value']:
         a number for acceptance criteria value
         -999 for N/A
         1/0 for True/False or Good/Bad
-    acceptance_criteria[MagIC Variable Names]['threshold_type']: 
+    acceptance_criteria[MagIC Variable Names]['threshold_type']:
         "low":  lower cutoff value i.e. crit>=value pass criteria
         "high": high cutoff value i.e. crit<=value pass criteria
         [string1,string2,....]: for flags
     acceptance_criteria[MagIC Variable Names]['decimal_points']:number of decimal points in rounding
             (this is used in displaying criteria in the dialog box)
-    
-    '''    
+
+    '''
     acceptance_criteria_list=acceptance_criteria.keys()
     meas_data,file_type=magic_read(path)
     for rec in meas_data:
@@ -8445,14 +8449,14 @@ def read_criteria_from_file(path,acceptance_criteria):
                 acceptance_criteria[crit]['decimal_points']=-999
                 # LJ add:
                 acceptance_criteria[crit]['category'] = None
-                
+
             # bollean flag
             elif acceptance_criteria[crit]['threshold_type']=='bool':
                 if str(rec[crit]) in ['1','g','True','TRUE']:
                     acceptance_criteria[crit]['value']=True
                 else:
                     acceptance_criteria[crit]['value']=False
-                                 
+
             # criteria as flags
             elif type(acceptance_criteria[crit]['threshold_type'])==list:
                 if str(rec[crit]) in acceptance_criteria[crit]['threshold_type']:
@@ -8460,24 +8464,24 @@ def read_criteria_from_file(path,acceptance_criteria):
                 else:
                     print "-W- WARNING: data %s from criteria code  %s and is not supported by PmagPy GUI. please check"%(crit,rec[crit])
             elif float(rec[crit]) == -999:
-                continue                
+                continue
             else:
                 acceptance_criteria[crit]['value']=float(rec[crit])
-    return(acceptance_criteria)   
+    return(acceptance_criteria)
 
 def write_criteria_to_file(path,acceptance_criteria):
     crit_list=acceptance_criteria.keys()
     crit_list.sort()
     rec={}
     rec['pmag_criteria_code']="ACCEPT"
-    rec['criteria_definition']="acceptance criteria for study" 
+    rec['criteria_definition']="acceptance criteria for study"
     rec['er_citation_names']="This study"
-            
+
     for crit in crit_list:
         # ignore criteria that are not in MagIc model 2.5
         if 'category' in acceptance_criteria[crit].keys():
             if acceptance_criteria[crit]['category']=='thellier_gui':
-                continue   
+                continue
 
         # fix True/False typoes
         if type(acceptance_criteria[crit]['value'])==str:
@@ -8485,7 +8489,7 @@ def write_criteria_to_file(path,acceptance_criteria):
                  acceptance_criteria[crit]['value']="True"
             if acceptance_criteria[crit]['value']=="FALSE":
                  acceptance_criteria[crit]['value']="False"
-                                                        
+
         if type(acceptance_criteria[crit]['value'])==str:
             if acceptance_criteria[crit]['value'] != "-999" and acceptance_criteria[crit]['value'] != "":
 
@@ -8507,7 +8511,7 @@ def write_criteria_to_file(path,acceptance_criteria):
         else:
             print "-W- WARNING: statistic %s not written to file:",acceptance_criteria[crit]['value']
     magic_write(path,[rec],"pmag_criteria")
-    
+
 
 
 def add_flag(var, flag):
@@ -8522,7 +8526,7 @@ def add_flag(var, flag):
         var = ""
     return var
 
-    
+
 def get_named_arg_from_sys(name, default_val=None, reqd=False):
     """
     Extract the value after a command-line flag such as '-f' and return it.
@@ -8595,7 +8599,7 @@ def adjust_to_360(val, key):
 def adjust_all_to_360(dictionary):
     """
     Take a dictionary and check each key/value pair.
-    If this key is of type: declination/longitude/azimuth/direction, 
+    If this key is of type: declination/longitude/azimuth/direction,
     adjust it to be within 0-360 as required by the MagIC data model
     """
     for key in dictionary:

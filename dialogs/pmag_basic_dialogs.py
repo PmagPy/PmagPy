@@ -14,6 +14,7 @@ import pmagpy.check_updates as check_updates
 import dialogs.pmag_widgets as pw
 import dialogs.drop_down_menus as drop_down_menus
 import dialogs.magic_grid as magic_grid
+sys.path.append("../programs") #later fix imports further down in code to "from programs import ...." also imports should be moved to top of file unless import is so large it slows down the program
 
 
 class import_magnetometer_data(wx.Dialog):
@@ -113,7 +114,7 @@ class import_magnetometer_data(wx.Dialog):
         elif file_type == 'BGC':
             dia = convert_BGC_files_to_magic(self, self.WD, "PmagPy BGC conversion")
         elif file_type == 'TDT':
-            import TDT_magic
+            import programs.TDT_magic as TDT_magic
             TDT_magic.main(False, self.WD)
             return True
         elif file_type == 'JR6':
@@ -653,7 +654,7 @@ class convert_generic_files_to_MagIC(convert_files_to_MagIC):
         %(WD,FILE,OUTFILE,EXP,SAMP,SITE,LOC,LABFIELD,DONT_AVERAGE, SAMP_OUTFILE)
 
         print "-I- Running Python command:\n %s"%COMMAND
-        import generic_magic
+        import programs.generic_magic as generic_magic
         program_run, error_message = generic_magic.main(False, **options)
 
         if program_run:
@@ -670,7 +671,7 @@ class convert_generic_files_to_MagIC(convert_files_to_MagIC):
     #    self.parent.Raise()
 
     def on_helpButton(self, event):
-        import generic_magic
+        import programs.generic_magic as generic_magic
         pw.on_helpButton(text=generic_magic.do_help())
 
     def get_sample_name(self, specimen, sample_naming_convenstion):
@@ -871,14 +872,14 @@ class convert_SIO_files_to_MagIC(convert_files_to_MagIC):
         COMMAND = "sio_magic.py -F {0} -f {1} {2} {3} {4} {5} -spc {6} -ncn {7} {8} {9} {10} {11} {12}".format(outfile, SIO_file, user, experiment_type, cooling_rates, loc_name,spc, ncn, lab_field, peak_AF, coil_number, instrument, replicate)
         print "COMMAND", COMMAND
         # to run as module:
-        import sio_magic
+        import programs.sio_magic as sio_magic
         if sio_magic.main(command_line=False, **options_dict):
             pw.close_window(self, COMMAND, outfile)
         else:
             pw.simple_warning()
 
     def on_helpButton(self, event):
-        import sio_magic
+        import programs.sio_magic as sio_magic
         pw.on_helpButton(text=sio_magic.do_help())
 
 
@@ -1014,7 +1015,7 @@ class convert_CIT_files_to_MagIC(convert_files_to_MagIC):
 
         COMMAND = "CIT_magic.py -WD {} -f {} -F {} {} {} {} {} -ncn {} {} {} -Fsp {} -Fsi {} -Fsa {} {}".format(wd, CIT_file, outfile, particulars, spec_num, loc_name, user, ncn, peak_AF, ID, spec_outfile, site_outfile, samp_outfile, replicate)
         # to run as module:
-        import CIT_magic
+        import programs.CIT_magic as CIT_magic
         program_ran, error_message = CIT_magic.main(command_line=False, **options_dict)
         if program_ran:
             pw.close_window(self, COMMAND, outfile)
@@ -1022,7 +1023,7 @@ class convert_CIT_files_to_MagIC(convert_files_to_MagIC):
             pw.simple_warning(error_message)
 
     def on_helpButton(self, event):
-        import CIT_magic
+        import programs.CIT_magic as CIT_magic
         pw.on_helpButton(text=CIT_magic.do_help())
 
 
@@ -1186,7 +1187,7 @@ class convert_HUJI_files_to_MagIC(convert_files_to_MagIC):
 
         if old_format:
             COMMAND = "HUJI_magic.py -f {} -F {} {} -LP {} {} -ncn {} {} {} {} {}".format(HUJI_file, outfile, user, experiment_type, loc_name, ncn, lab_field, spc, peak_AF, replicate)
-            import HUJI_magic
+            import programs.HUJI_magic as HUJI_magic
             program_ran, error_message = HUJI_magic.main(False, **options)
             if program_ran:
                 pw.close_window(self, COMMAND, outfile)
@@ -1195,7 +1196,7 @@ class convert_HUJI_files_to_MagIC(convert_files_to_MagIC):
 
         else: # new format
             COMMAND = "HUJI_magic_new.py -f {} -F {} {} -LP {} {} -ncn {} {} {} {}".format(HUJI_file, outfile, user, experiment_type, loc_name, ncn, lab_field, spc, peak_AF)
-            import HUJI_magic_new
+            import programs.HUJI_magic_new as HUJI_magic_new
             program_ran, error_message = HUJI_magic_new.main(False, **options)
             if program_ran:
                 pw.close_window(self, COMMAND, outfile)
@@ -1205,9 +1206,9 @@ class convert_HUJI_files_to_MagIC(convert_files_to_MagIC):
     def on_helpButton(self, event):
         old_format= self.bSizer0a.return_value()
         if old_format:
-            import HUJI_magic as HUJI
+            import programs.HUJI_magic as HUJI
         else:
-            import HUJI_magic_new as HUJI
+            import programs.HUJI_magic_new as HUJI
         pw.on_helpButton(text=HUJI.do_help())
 
 
@@ -1334,7 +1335,7 @@ class convert_2G_binary_files_to_MagIC(convert_files_to_MagIC):
         options_dict['samp_file'] = samp_outfile
         sites_outfile = files[0][:files[0].find('.')] + "_" + files[-1][:files[-1].find('.')] + "_er_sites.txt"
         options_dict['site_file'] = sites_outfile
-        import _2G_bin_magic
+        import programs._2G_bin_magic as _2G_bin_magic
         for f in files:
             file_2G_bin = f
             outfile = file_2G_bin + ".magic"
@@ -1357,7 +1358,7 @@ class convert_2G_binary_files_to_MagIC(convert_files_to_MagIC):
 
     def on_helpButton(self, event):
         # to run as module:
-        import _2G_bin_magic
+        import programs._2G_bin_magic as _2G_bin_magic
         pw.on_helpButton(text=_2G_bin_magic.do_help())
 
         # to run as command line:
@@ -1525,7 +1526,7 @@ class convert_LDEO_files_to_MagIC(convert_files_to_MagIC):
         #    synthetic = ''
         COMMAND = "LDEO_magic.py -f {0} -F {1} {2} {3} {4} -ncn {5} {6} {7} {8} {9} {10} {11}".format(LDEO_file, outfile, user, experiment_type, lab_field, ncn, spc, loc_name, instrument, replicate, AF_field, coil_number)
         # to run as module:
-        import LDEO_magic
+        import programs.LDEO_magic as LDEO_magic
         program_ran, error_message = LDEO_magic.main(False, **options_dict)
         if program_ran:
             pw.close_window(self, COMMAND, outfile)
@@ -1534,7 +1535,7 @@ class convert_LDEO_files_to_MagIC(convert_files_to_MagIC):
 
 
     def on_helpButton(self, event):
-        import LDEO_magic
+        import programs.LDEO_magic as LDEO_magic
         pw.on_helpButton(text=LDEO_magic.do_help())
 
 
@@ -1634,14 +1635,14 @@ class convert_IODP_files_to_MagIC(convert_files_to_MagIC):
         COMMAND = "IODP_srm_magic.py -WD {0} -f {1} -F {2} {3} -ID {4} -Fsp {5} -Fsa {6} -Fsi {7}".format(wd, IODP_file, outfile, replicate, ID, spec_outfile, samp_outfile, site_outfile)
 
         if is_section: # SRM section
-            import IODP_srm_magic
+            import programs.IODP_srm_magic as IODP_srm_magic
             program_ran, error_message = IODP_srm_magic.main(False, **options)
             if program_ran:
                 pw.close_window(self, COMMAND, outfile)
             else:
                 pw.simple_warning(error_message)
         else: # SRM discrete
-            import IODP_dscr_magic
+            import programs.IODP_dscr_magic as IODP_dscr_magic
             program_ran, error_message = IODP_dscr_magic.main(False, **options)
             if program_ran:
                 pw.close_window(self, COMMAND, outfile)
@@ -1653,10 +1654,10 @@ class convert_IODP_files_to_MagIC(convert_files_to_MagIC):
     def on_helpButton(self, event):
         is_section = self.bSizer0a.return_value()
         if is_section:
-            import IODP_srm_magic
+            import programs.IODP_srm_magic as IODP_srm_magic
             pw.on_helpButton(text=IODP_srm_magic.do_help())
         else:
-            import IODP_dscr_magic
+            import programs.IODP_dscr_magic as IODP_dscr_magic
             pw.on_helpButton(text=IODP_dscr_magic.do_help())
 
 
@@ -1761,7 +1762,7 @@ class convert_PMD_files_to_MagIC(convert_files_to_MagIC):
         else:
             replicate = '-A'
             options['noave'] = 1 # don't average
-        import PMD_magic
+        import programs.PMD_magic as PMD_magic
         for f in files:
             options['mag_file'] = f
             outfile = f + ".magic"
@@ -1789,7 +1790,7 @@ class convert_PMD_files_to_MagIC(convert_files_to_MagIC):
 
     def on_helpButton(self, event):
         # to run as module:
-        import PMD_magic
+        import programs.PMD_magic as PMD_magic
         pw.on_helpButton(text=PMD_magic.do_help())
 
         # to run as command line:
@@ -1980,7 +1981,7 @@ class convert_JR6_files_to_MagIC(wx.Frame):
                 pw.simple_warning("You must provide a .txt format file")
                 return False
             if input_format == 'txt': # .txt format
-                import JR6_txt_magic
+                import programs.JR6_txt_magic as JR6_txt_magic
                 program_ran, error_message = JR6_txt_magic.main(False, **options)
                 if program_ran:
                     COMMAND = "options={}\nJR6_txt_magic.main(False, **options)".format(str(options))
@@ -1988,7 +1989,7 @@ class convert_JR6_files_to_MagIC(wx.Frame):
                 else:
                     pw.simple_warning(error_message)
             else:
-                import JR6_jr6_magic
+                import programs.JR6_jr6_magic as JR6_jr6_magic
                 program_ran, error_message = JR6_jr6_magic.main(False, **options)
                 if program_ran:
                     pw.close_window(self, COMMAND, meas_file)
@@ -2000,7 +2001,7 @@ class convert_JR6_files_to_MagIC(wx.Frame):
             if not os.path.isfile(options['samp_file']):
                 pw.simple_warning("No 'er_samples.txt' file was provided or found in your input directory:\n{}\nYou can download the csv sample file and import it to MagIC.\nIn the menubar, use Import -> orientation/location/stratigraphic files -> ODP sample summary csv file".format(input_dir_path))
                 return False
-            import IODP_jr6_magic
+            import programs.IODP_jr6_magic as IODP_jr6_magic
             program_ran, error_message = IODP_jr6_magic.main(False, **options)
             if program_ran:
                 COMMAND = "options={}\nIODP_jr6_magic.main(False, **options)".format(str(options))
@@ -2020,10 +2021,10 @@ class convert_JR6_files_to_MagIC(wx.Frame):
         else:
             input_format = 'jr6'
         if input_format == 'txt': # .txt format
-            import JR6_txt_magic
+            import programs.JR6_txt_magic as JR6_txt_magic
             pw.on_helpButton(text=JR6_txt_magic.do_help())
         else:
-            import JR6_jr6_magic
+            import programs.JR6_jr6_magic as JR6_jr6_magic
             pw.on_helpButton(text=JR6_jr6_magic.do_help())
 
 
@@ -2152,7 +2153,7 @@ class convert_BGC_files_to_magic(wx.Frame):
         for key, value in options.items():
             print key, value
 
-        import BGC_magic
+        import programs.BGC_magic as BGC_magic
         COMMAND = "options = {}\nBGC_magic.main(False, **options)".format(str(options))
         program_ran, error_message = BGC_magic.main(False, **options)
 
@@ -2166,7 +2167,7 @@ class convert_BGC_files_to_magic(wx.Frame):
         self.Parent.Raise()
 
     def on_helpButton(self, event):
-        import BGC_magic
+        import programs.BGC_magic as BGC_magic
         pw.on_helpButton(text=BGC_magic.do_help())
 
 # template for an import window

@@ -27,11 +27,15 @@ def showFIG(fig):
     pylab.show()
 
 def drawFIGS(FIGS):
-	pylab.ion()
-	for fig in FIGS.keys():
-		pylab.figure(FIGS[fig])
-		pylab.draw()
-	pylab.ioff()
+    """
+    Can only be used if matplotlib backend is set to TKAgg
+    Does not play well with wxPython
+    """
+    pylab.ion()
+    for fig in FIGS.keys():
+            pylab.figure(FIGS[fig])
+            pylab.draw()
+    pylab.ioff()
 	
 def clearFIG(fignum):
     pylab.figure(num=fignum)

@@ -10,7 +10,7 @@ import os
 directory = os.getcwd()
 
 APP = ['pmag_gui.py']
-DATA_FILES = [('', ['help_files', 'data_model', 'documentation', 'images'])]
+DATA_FILES = [('', ['help_files', 'data_model', 'images'])]
 OPTIONS = {'argv_emulation': False,
            'iconfile': os.path.join(directory, 'images', 'text_x_xslfo.icns')}
 

@@ -2,6 +2,7 @@
 import os
 import sys
 import pmagpy.pmag as pmag
+import pdb
 
 def main(command_line=True, **kwargs):
     """
@@ -165,6 +166,7 @@ def main(command_line=True, **kwargs):
     if len(File) == 1: File = File[0].split('\r'); File = map(lambda x: x+"\r\n", File)
     sids,ln,format=[],0,'CIT'
     formats=['CIT','2G','APP','JRA']
+    if File[ln].strip()=='CIT': ln+=1
     ErLocRec={}
     ErLocRec["er_location_name"]=locname
     ErLocRec["er_citation_names"]=citation
@@ -185,7 +187,8 @@ def main(command_line=True, **kwargs):
         ErLocRec["location_end_lat"]=site_lat
         ErLocRec["location_end_lon"]=site_lon
         ErLocs.append(ErLocRec)
-        Cdec=float(line[2])
+        try: Cdec=float(line[2])
+        except ValueError: pdb.set_trace()
         for k in range(ln+1,len(File)):
             line=File[k]
             rec=line.split()
@@ -266,33 +269,44 @@ def main(command_line=True, **kwargs):
             del MeasRec["specimen_weight"]
 
             treat_type=line[0:3]
-            treat=line[3:6]
+            treat=line[2:6]
+            if len(treat_type.strip()) == 3: treat=line[3:6]
             #print 'treat:', treat
-            if treat_type.strip()=='NRM':
+            if treat_type.startswith('NRM'):
                 MeasRec['magic_method_codes']='LT-NO'
                 MeasRec['measurement_temp']='273'
                 MeasRec['treatment_temp']='273'
                 MeasRec['treatment_dc_field']='0'
                 MeasRec['treatment_ac_field']='0'
-            elif treat_type.strip()=='AF':
+            elif treat_type.startswith('AF'):
                 MeasRec['magic_method_codes']='LT-AF-Z'
                 MeasRec['measurement_temp']='273'
                 MeasRec['treatment_temp']='273'
                 MeasRec['treatment_dc_field']='0'
-                if treat == '   ':
+                if treat.strip() == '':
                     MeasRec['treatment_ac_field']='0'
                 else:
                     MeasRec['treatment_ac_field']='%10.3e'%(float(treat)*1e-3)
-            elif treat_type.strip()=='TT':
+            elif treat_type.startswith('ARM'):
+                MeasRec['magic_method_codes']="LP-ARM"
+                MeasRec['measurement_temp']='273'
+                MeasRec['treatment_temp']='273'
+                MeasRec['treatment_dc_field']='0'
+                if treat.strip() == '':
+                    MeasRec['treatment_ac_field']='0'
+                else:
+                    MeasRec['magic_method_codes']="LP-ARM-AFD"
+                    MeasRec['treatment_ac_field']='%10.3e'%(float(treat)*1e-3)
+            elif treat_type.startswith('TT'):
                 MeasRec['magic_method_codes']='LT-T-Z'
                 MeasRec['measurement_temp']='273'
-                if treat == '   ':
+                if treat.strip() == '':
                     MeasRec['treatment_temp']='273'
                 else:
                     MeasRec['treatment_temp']='%7.1f'%(float(treat)+273)
                 MeasRec['treatment_dc_field']='0'
                 MeasRec['treatment_ac_field']='0'
-            elif treat_type.strip()=='LT' or treat_type.strip()=='LN2':
+            elif treat_type.startswith('LT') or treat_type.startswith('LN2'):
                 MeasRec['magic_method_codes']='LT-LT-Z'
                 MeasRec['measurement_temp']='273'
                 MeasRec['treatment_temp']='77'
@@ -300,6 +314,7 @@ def main(command_line=True, **kwargs):
                 MeasRec['treatment_ac_field']='0'
             else:
                 print "trouble with your treatment steps"
+                pdb.set_trace()
             MeasRec['measurement_dec']=line[46:51]
             MeasRec['measurement_inc']=line[52:58]
             M='%8.2e'%(float(line[31:39])*vol*1e-3) # convert to Am2
