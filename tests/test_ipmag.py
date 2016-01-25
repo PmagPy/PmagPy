@@ -383,9 +383,9 @@ class TestPmagResultsExtract(unittest.TestCase):
                  crit_file]
         for f in files:
             self.assertFalse(os.path.exists(f))
-        res = ipmag.pmag_results_extract()
+        res, outfiles = ipmag.pmag_results_extract()
         self.assertTrue(res)
-        files = [direction_file, intensity_file, site_file]
+        files = [os.path.join(self.result_WD, f) for f in outfiles]
         for f in files:
             self.assertTrue(os.path.exists(f))
 
@@ -399,9 +399,9 @@ class TestPmagResultsExtract(unittest.TestCase):
                  crit_file]
         for f in files:
             self.assertFalse(os.path.exists(f))
-        res = ipmag.pmag_results_extract(latex=True)
+        res, outfiles = ipmag.pmag_results_extract(latex=True)
         self.assertTrue(res)
-        files = [direction_file, intensity_file, site_file]
+        files = [os.path.join(self.result_WD, f) for f in outfiles]
         for f in files:
             self.assertTrue(os.path.exists(f))
 

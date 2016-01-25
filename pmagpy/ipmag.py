@@ -5351,6 +5351,8 @@ def pmag_results_extract(res_file="pmag_results.txt", crit_file="", spec_file=""
         crit_file = os.path.join(dir_path, crit_file)
     if spec_file:
         spec_file = os.path.join(dir_path, spec_file)
+    else:
+        grade = False
     # open output files
     f = open(outfile, 'w')
     sf = open(Soutfile, 'w')
@@ -5656,12 +5658,15 @@ def pmag_results_extract(res_file="pmag_results.txt", crit_file="", spec_file=""
     sf.close()
     fI.close()
     print 'data saved in: ', outfile, Ioutfile, Soutfile
+    outfiles = [outfile, Ioutfile, Soutfile]
     if spec_file:
         fsp.close()
         print 'specimen data saved in: ', Specout
+        outfiles.append(Specout)
     if crit_file:
         cr.close()
         print 'Selection criteria saved in: ', Critout
-    return True
+        outfiles.append(Critout)
+    return True, outfiles
 
 
