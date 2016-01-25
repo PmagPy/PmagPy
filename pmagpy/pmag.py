@@ -8533,13 +8533,18 @@ def get_named_arg_from_sys(name, default_val=None, reqd=False):
     If the command-line flag is missing, return default_val.
     If reqd == True and the command-line flag is missing, throw an error.
     """
-    import sys
     if name in sys.argv: # if the command line flag is found in sys.argv
         ind = sys.argv.index(name)
         return sys.argv[ind+1]
     if reqd: # if arg is required but not present
         raise MissingCommandLineArgException(name)
     return default_val # if arg is not provided but has a default value, return that value
+
+def get_flag_arg_from_sys(name):
+    if name in sys.argv:
+        return True
+    else:
+        return False
 
 
 def merge_recs_headers(recs):
