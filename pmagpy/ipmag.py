@@ -5313,3 +5313,112 @@ def chi_magic(path_to_file = '.', file_name = 'magic_measurements.txt',
                     except:
                         print 'could not save: ',PLTS[key],files[key]
                         print "output file format not supported "
+
+def bootstrap_reversal_test(D, I=None, plot_stereo = False, save=False, save_folder='.',fmt='svg'):
+    """
+    Conduct a reversal test using bootstrap statistics to determine whether two
+    directions could have been pulled from a bipolar common mean.
+
+    Required Arguments
+    ----------
+    D : data in declination/inclination blocks if I is None; OR declination if
+        I (inclination) keyword argument is specified
+
+    Optional Keywords (defaults are used if not specified)
+    ----------
+    I : list of inclinations (default is None -- leave as default if both
+        declination AND inclination data are included in D)
+    plot_stereo : before plotting the CDFs, plot stereonet with the
+        bidirectionally separated data (default is False)
+    save : boolean argument to save plots (default is False)
+    save_folder : relative directory where plots will be saved (default is current directory, '.')
+    fmt : format of saved figures (default is 'pdf')
+    """
+    if I == None:
+        dec = []
+        inc = []
+        for i in range(len(D)):
+            dec.append(D[i][0])
+            inc.append(D[i][1])
+        all_dirs = make_di_block(dec, inc)
+    else:
+        dec = D
+        inc = I
+        all_dirs = make_di_block(dec, inc)
+    D1, D2 = pmag.flip(all_dirs)
+
+    if plot_stereo == True:
+        # plot equal area with two modes
+        plt.figure(num=0,figsize=(4,4))
+        plot_net(0)
+        upper_dec = []
+        upper_inc = []
+        lower_dec= []
+        lower_inc = []
+        for n in range(len(D1)):
+            upper_dec.append(D1[n][0])
+            upper_inc.append(D1[n][1])
+        for n in range(len(D2)):
+            lower_dec.append(flip(D2)[n][0])
+            lower_inc.append(flip(D2)[n][1])
+
+        plot_di(upper_dec, upper_inc,color='b'),
+        plot_di(lower_dec, lower_inc, color = 'r')
+    bootstrap_common_mean(D1, D2, save=save, save_folder=save_folder, fmt=fmt)
+
+def MM1990_reversal_test(D, I=None, plot_CDF=False, plot_stereo = False, save=False, save_folder='.', fmt='svg'):
+    """
+    Conduct a reversal test using the Watson V test to determine whether two
+    directions could have been pulled from a bipolar common mean.
+
+    Required Arguments
+    ----------
+    D : data in declination/inclination blocks if I is None; OR declination if
+        I (inclination) keyword argument is specified
+
+    Optional Keywords (defaults are used if not specified)
+    ----------
+    I : list of inclinations (default is None -- leave as default if both
+        declination AND inclination data are included in D)
+    plot_CDF : plot the CDF accompanying the printed results (default is False)
+    plot_stereo : plot stereonet with the bidirectionally separated data
+        (default is False)
+    save : boolean argument to save plots (default is False)
+    save_folder : relative directory where plots will be saved
+        (default is current directory, '.')
+    fmt : format of saved figures (default is 'pdf')
+    """
+    if I == None:
+        dec = []
+        inc = []
+        for i in range(len(D)):
+            dec.append(D[i][0])
+            inc.append(D[i][1])
+        all_dirs = make_di_block(dec, inc)
+    else:
+        dec = D
+        inc = I
+        all_dirs = make_di_block(dec, inc)
+    D1, D2 = pmag.flip(all_dirs)
+
+    if plot_stereo == True:
+        # plot equal area with two modes
+        plt.figure(num=0,figsize=(4,4))
+        plot_net(0)
+        upper_dec = []
+        upper_inc = []
+        lower_dec= []
+        lower_inc = []
+        for n in range(len(D1)):
+            upper_dec.append(D1[n][0])
+            upper_inc.append(D1[n][1])
+        for n in range(len(D2)):
+            lower_dec.append(flip(D2)[n][0])
+            lower_inc.append(flip(D2)[n][1])
+
+        plot_di(upper_dec, upper_inc,color='b'),
+        plot_di(lower_dec, lower_inc, color = 'r')
+    if plot_CDF == False:
+        watson_common_mean(D1, D2, save=save, save_folder=save_folder, fmt=fmt)
+    else:
+        watson_common_mean(D1, D2, plot = 'yes', save=save, save_folder=save_folder, fmt=fmt)
