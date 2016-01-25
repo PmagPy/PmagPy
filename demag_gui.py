@@ -3631,7 +3631,7 @@ class Zeq_GUI(wx.Frame):
         m_git = menu_Help.Append(-1, "&Github Page\tCtrl-Shift-G", "")
         self.Bind(wx.EVT_MENU, self.on_menu_git, m_git)
 
-        m_debug = menu_Help.Append(-1, "&Open Debugger\tCtrl-X-D", "")
+        m_debug = menu_Help.Append(-1, "&Open Debugger\tCtrl-Shift-D", "")
         self.Bind(wx.EVT_MENU, self.on_menu_debug, m_debug)
 
         #-----------------
@@ -5143,18 +5143,24 @@ class EditFitFrame(wx.Frame):
         h_size_buttons,button_spacing = 25,5.5
         if is_mac: h_size_buttons,button_spacing = 18,0.
 
-        self.add_fit_button = wx.Button(self.panel, id=-1, label='add to selected',size=(160*self.GUI_RESOLUTION,h_size_buttons))
+        #buttons
+        self.add_all_button = wx.Button(self.panel, id=-1, label='add fit to highlighted specimens',size=(160*self.GUI_RESOLUTION,h_size_buttons))
+        self.add_all_button.SetFont(font1)
+        self.Bind(wx.EVT_BUTTON, self.add_fit_to_all, self.add_all_button)
+
+        self.add_fit_button = wx.Button(self.panel, id=-1, label='add fit to all',size=(160*self.GUI_RESOLUTION,h_size_buttons))
         self.add_fit_button.SetFont(font1)
         self.Bind(wx.EVT_BUTTON, self.add_highlighted_fits, self.add_fit_button)
 
-        self.delete_fit_button = wx.Button(self.panel, id=-1, label='delete selected',size=(160*self.GUI_RESOLUTION,h_size_buttons))
+        self.delete_fit_button = wx.Button(self.panel, id=-1, label='delete highlighted fits',size=(160*self.GUI_RESOLUTION,h_size_buttons))
         self.delete_fit_button.SetFont(font1)
         self.Bind(wx.EVT_BUTTON, self.delete_highlighted_fits, self.delete_fit_button)
 
-        self.apply_changes_button = wx.Button(self.panel, id=-1, label='apply changes',size=(160*self.GUI_RESOLUTION,h_size_buttons))
+        self.apply_changes_button = wx.Button(self.panel, id=-1, label='apply changes to highlighted fits',size=(160*self.GUI_RESOLUTION,h_size_buttons))
         self.apply_changes_button.SetFont(font1)
         self.Bind(wx.EVT_BUTTON, self.apply_changes, self.apply_changes_button)
 
+        #windows
         display_window_0 = wx.GridSizer(2, 1, 10*self.GUI_RESOLUTION, 19*self.GUI_RESOLUTION)
         display_window_1 = wx.GridSizer(2, 1, 10*self.GUI_RESOLUTION, 19*self.GUI_RESOLUTION)
         display_window_2 = wx.GridSizer(2, 1, 10*self.GUI_RESOLUTION, 19*self.GUI_RESOLUTION)
@@ -5163,6 +5169,7 @@ class EditFitFrame(wx.Frame):
         buttons1_window = wx.GridSizer(2, 1, 10*self.GUI_RESOLUTION, 19*self.GUI_RESOLUTION)
         buttons2_window = wx.GridSizer(2, 1, 10*self.GUI_RESOLUTION, 19*self.GUI_RESOLUTION)
         buttons3_window = wx.GridSizer(2, 1, 10*self.GUI_RESOLUTION, 19*self.GUI_RESOLUTION)
+        buttons4_window = wx.GridSizer(2, 1, 10*self.GUI_RESOLUTION, 19*self.GUI_RESOLUTION)
         display_window_0.AddMany( [(self.coordinates_box, wx.ALIGN_LEFT),
                                    (self.show_box, wx.ALIGN_LEFT)] )
         display_window_1.AddMany( [(self.level_box, wx.ALIGN_LEFT),
@@ -5174,8 +5181,9 @@ class EditFitFrame(wx.Frame):
         bounds_window.AddMany( [(self.tmin_box, wx.ALIGN_LEFT),
                                 (self.tmax_box, wx.ALIGN_LEFT)] )
         buttons1_window.Add(self.add_fit_button, wx.ALIGN_TOP)
-        buttons2_window.Add(self.delete_fit_button, wx.ALIGN_TOP)
-        buttons3_window.Add(self.apply_changes_button, wx.ALIGN_TOP)
+        buttons2_window.Add(self.add_all_button, wx.ALIGN_TOP)
+        buttons3_window.Add(self.delete_fit_button, wx.ALIGN_TOP)
+        buttons4_window.Add(self.apply_changes_button, wx.ALIGN_TOP)
         self.display_sizer.Add(display_window_0, 0, wx.TOP, 8)
         self.display_sizer.Add(display_window_1, 0, wx.TOP | wx.LEFT, 8)
         self.display_sizer.Add(display_window_2, 0, wx.TOP | wx.LEFT, 8)
@@ -5184,6 +5192,7 @@ class EditFitFrame(wx.Frame):
         self.buttons_sizer.Add(buttons1_window, 0, wx.TOP, button_spacing)
         self.buttons_sizer.Add(buttons2_window, 0, wx.TOP, button_spacing)
         self.buttons_sizer.Add(buttons3_window, 0, wx.TOP, button_spacing)
+        self.buttons_sizer.Add(buttons4_window, 0, wx.TOP, button_spacing)
 
         #duplicate higher levels plot
         self.fig = copy(self.parent.fig4)
@@ -5569,37 +5578,47 @@ class EditFitFrame(wx.Frame):
                 next_i = self.logger.GetNextSelected(next_i)
 
         for specimen in specimens:
+            self.add_fit_to_specimen(specimen)
 
-            if specimen not in self.parent.pmag_results_data['specimens']:
-                self.parent.pmag_results_data['specimens'][specimen] = []
-
-            new_name = self.name_box.GetLineText(0)
-            new_color = self.color_box.GetValue()
-            new_tmin = self.tmin_box.GetValue()
-            new_tmax = self.tmax_box.GetValue()
-
-            if not new_name:
-                next_fit = str(len(self.parent.pmag_results_data['specimens'][specimen]) + 1)
-                while ("Fit " + next_fit) in map(lambda x: x.name, self.parent.pmag_results_data['specimens'][specimen]):
-                    next_fit = str(int(next_fit) + 1)
-                new_name = ("Fit " + next_fit)
-            if not new_color:
-                next_fit = str(len(self.parent.pmag_results_data['specimens'][specimen]) + 1)
-                new_color = self.parent.colors[(int(next_fit)-1) % len(self.parent.colors)]
-            else: new_color = self.color_dict[new_color]
-            if not new_tmin: new_tmin = None
-            if not new_tmax: new_tmax = None
-
-            if new_name in map(lambda x: x.name, self.parent.pmag_results_data['specimens'][specimen]):
-                print('-E- interpretation called ' + new_name + ' already exsists for specimen ' + specimen)
-                continue
-
-            new_fit = Fit(new_name, new_tmin, new_tmax, new_color, self.parent)
-            new_fit.put(specimen,self.parent.COORDINATE_SYSTEM,self.parent.get_PCA_parameters(specimen,new_tmin,new_tmax,self.parent.COORDINATE_SYSTEM,"DE-BFL"))
-
-            self.parent.pmag_results_data['specimens'][specimen].append(new_fit)
         self.update_editor(True)
         self.parent.update_selection()
+
+    def add_fit_to_all(self,event):
+        for specimen in self.parent.specimens:
+            self.add_fit_to_specimen(specimen)
+
+        self.update_editor(True)
+        self.parent.update_selection()
+
+    def add_fit_to_specimen(self,specimen):
+        if specimen not in self.parent.pmag_results_data['specimens']:
+            self.parent.pmag_results_data['specimens'][specimen] = []
+
+        new_name = self.name_box.GetLineText(0)
+        new_color = self.color_box.GetValue()
+        new_tmin = self.tmin_box.GetValue()
+        new_tmax = self.tmax_box.GetValue()
+
+        if not new_name:
+            next_fit = str(len(self.parent.pmag_results_data['specimens'][specimen]) + 1)
+            while ("Fit " + next_fit) in map(lambda x: x.name, self.parent.pmag_results_data['specimens'][specimen]):
+                next_fit = str(int(next_fit) + 1)
+            new_name = ("Fit " + next_fit)
+        if not new_color:
+            next_fit = str(len(self.parent.pmag_results_data['specimens'][specimen]) + 1)
+            new_color = self.parent.colors[(int(next_fit)-1) % len(self.parent.colors)]
+        else: new_color = self.color_dict[new_color]
+        if not new_tmin: new_tmin = None
+        if not new_tmax: new_tmax = None
+
+        if new_name in map(lambda x: x.name, self.parent.pmag_results_data['specimens'][specimen]):
+            print('-E- interpretation called ' + new_name + ' already exsists for specimen ' + specimen)
+            return
+
+        new_fit = Fit(new_name, new_tmin, new_tmax, new_color, self.parent)
+        new_fit.put(specimen,self.parent.COORDINATE_SYSTEM,self.parent.get_PCA_parameters(specimen,new_tmin,new_tmax,self.parent.COORDINATE_SYSTEM,"DE-BFL"))
+
+        self.parent.pmag_results_data['specimens'][specimen].append(new_fit)
 
     def delete_highlighted_fits(self, event):
         """
