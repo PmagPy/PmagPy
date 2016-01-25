@@ -166,7 +166,7 @@ class Zeq_GUI(wx.Frame):
 
 
         self.pmag_results_data={}
-        for level in ['specimens','samples','sites','lcoations','study']:
+        for level in ['specimens','samples','sites','locations','study']:
             self.pmag_results_data[level]={}
 
         self.high_level_means={}
@@ -1706,8 +1706,6 @@ class Zeq_GUI(wx.Frame):
         if self.current_fit:
             self.tmin_box.SetItems(self.T_list)
             self.tmax_box.SetItems(self.T_list)
-#            self.tmin_box.SetSelection(-1) #made an edit from SetStringSelection("")
-#            self.tmax_box.SetSelection(-1) #made an edit from SetStringSelection("")
             if type(self.current_fit.tmin)==str and type(self.current_fit.tmax)==str:
                 self.tmin_box.SetStringSelection(self.current_fit.tmin)
                 self.tmax_box.SetStringSelection(self.current_fit.tmax)
@@ -1767,7 +1765,10 @@ class Zeq_GUI(wx.Frame):
             self.add_fit(1)
 
         for item in range(self.logger.GetItemCount()):
-            self.logger.SetItemBackgroundColour(item,"WHITE")
+            if self.Data[self.s]['measurement_flag'][item] == 'b':
+                self.logger.SetItemBackgroundColour(item,"red")
+            else:
+                self.logger.SetItemBackgroundColour(item,"WHITE")
 
         index=int(event.GetText())
         tmin_index,tmax_index="",""
@@ -2112,8 +2113,6 @@ class Zeq_GUI(wx.Frame):
                 else:#Zijderveld
                     rotation_declination=pmag.cart2dir(first_data)[0]
 
-#                print(reduce(lambda x,y: x+y,map(lambda x: 'key: ' + str(x[0]) + '\n' + 'data: ' + str(x[1]) + '\n',[[i,self.pars[i]] for i in self.pars])))
-
                 PCA_dir=[pars['specimen_dec'],pars['specimen_inc'],1]
                 PCA_dir_rotated=[PCA_dir[0]-rotation_declination,PCA_dir[1],1]
                 PCA_CART_rotated=pmag.dir2cart(PCA_dir_rotated)
@@ -2122,7 +2121,6 @@ class Zeq_GUI(wx.Frame):
                 slop_xz_PCA=-1*PCA_CART_rotated[2]/PCA_CART_rotated[0]
 
                 # Center of mass rotated for plotting
-                # (self.CART_rot_good) ignoring the bad points
                 CM_x=mean(self.CART_rot_good[:,0][tmin_index:tmax_index+1])
                 CM_y=mean(self.CART_rot_good[:,1][tmin_index:tmax_index+1])
                 CM_z=mean(self.CART_rot_good[:,2][tmin_index:tmax_index+1])
@@ -2270,13 +2268,6 @@ class Zeq_GUI(wx.Frame):
                 numer = self.CART_rot[:,2][fit_max] - self.CART_rot[:,2][fit_min]
                 old_slope_xz = numer/denom
 
-#                print('----------------CALCULATIONS-----------------')
-#                print('fit_max: ' + str(fit_max))
-#                print('slope_xy: ' + str(slope_xy))
-#                print('slope_xz: ' + str(slope_xz))
-#                print('y_dist: ' + str(y_dist))
-#                print('z_dist: ' + str(z_dist))
-
                 if (direction < 0 and old_direction > 0) or \
                    (direction > 0 and old_direction < 0) or \
                    (slope_xy < 0 and old_slope_xy > 0) or \
@@ -2296,9 +2287,6 @@ class Zeq_GUI(wx.Frame):
                     length_xy = sqrt((self.CART_rot[:,0][fit_max] - self.CART_rot[:,0][fit_min])**2 + (self.CART_rot[:,1][fit_max] - self.CART_rot[:,1][fit_min])**2)
                     length_xz = sqrt((self.CART_rot[:,0][fit_max] - self.CART_rot[:,0][fit_min])**2 + (self.CART_rot[:,2][fit_max] - self.CART_rot[:,2][fit_min])**2)
 
-#                    if self.Data[self.s]['zijdblock'][fit_max][5] == 'b' or \
-#                       self.Data[self.s]['zijdblock_geo'][fit_max][5] == 'b' or \
-#                       self.Data[self.s]['zijdblock_tilt'][fit_max][5] == 'b' or \
                     if self.Data[self.s]['measurement_flag'][fit_max] == 'b' or \
                        fit_max - fit_min <= 3 or \
                        length_xy < .2 or length_xz < .2:
@@ -2609,19 +2597,20 @@ class Zeq_GUI(wx.Frame):
 
         mpars['calculation_type']=calculation_type
 
-        return(mpars)
+        return mpars
 
 
     def calculate_higher_levels_data(self):
 
         high_level_type=str(self.level_box.GetValue())
-        if high_level_type=='sample':high_level_type='samples'
-        if high_level_type=='site':high_level_type='sites'
-        if high_level_type=='location':high_level_type='locations'
+        if high_level_type=='sample': high_level_type='samples'
+        if high_level_type=='site': high_level_type='sites'
+        if high_level_type=='location': high_level_type='locations'
         high_level_name=str(self.level_names.GetValue())
         calculation_type=str(self.mean_type_box.GetValue())
         elements_type=self.UPPER_LEVEL_SHOW
-        if self.interpretation_editor_open: self.interpretation_editor.mean_type_box.SetStringSelection(calculation_type)
+        if self.interpretation_editor_open:
+             self.interpretation_editor.mean_type_box.SetStringSelection(calculation_type)
         self.calculate_high_level_mean(high_level_type,high_level_name,calculation_type,elements_type)
 
     def on_select_plane_display_box(self,event):
@@ -2697,17 +2686,7 @@ class Zeq_GUI(wx.Frame):
         if self.mean_fit == 'All':
             fits = self.pmag_results_data[higher_level][element]
         elif self.mean_fit != 'None' and self.mean_fit != None:
-#             if self.s not in self.pmag_results_data['specimens'] or \
-# self.mean_fit not in map(lambda x: x.name, self.pmag_results_data['specimens'][self.s]):
-#                 self.mean_fit_box.SetStringSelection('None')
-#                 self.mean_fits = 'None'
-#             else:
-            #by name fit grouping
             fits = [fit for fit in self.pmag_results_data[higher_level][element] if fit.name == self.mean_fit]
-            #by index fit grouping
-            # fit_index = map(lambda x: x.name, self.pmag_results_data['specimens'][self.s]).index(self.mean_fit)
-            # try: fits = [self.pmag_results_data['specimens'][specimen][fit_index]]
-            # except IndexError: pass #print('-W- Not all specimens have this fit');
         else:
             fits = []
         fig = self.high_level_eqarea
@@ -3720,7 +3699,7 @@ class Zeq_GUI(wx.Frame):
         self.Data,self.Data_hierarchy=self.get_data() # Get data from magic_measurements and rmag_anistropy if exist.
 
         self.pmag_results_data={}
-        for level in ['specimens','samples','sites','lcoations','study']:
+        for level in ['specimens','samples','sites','locations','study']:
             self.pmag_results_data[level]={}
         self.high_level_means={}
 
@@ -5148,7 +5127,7 @@ class EditFitFrame(wx.Frame):
         self.add_all_button.SetFont(font1)
         self.Bind(wx.EVT_BUTTON, self.add_fit_to_all, self.add_all_button)
 
-        self.add_fit_button = wx.Button(self.panel, id=-1, label='add fit to all',size=(160*self.GUI_RESOLUTION,h_size_buttons))
+        self.add_fit_button = wx.Button(self.panel, id=-1, label='add new fit to all specimens',size=(160*self.GUI_RESOLUTION,h_size_buttons))
         self.add_fit_button.SetFont(font1)
         self.Bind(wx.EVT_BUTTON, self.add_highlighted_fits, self.add_fit_button)
 
