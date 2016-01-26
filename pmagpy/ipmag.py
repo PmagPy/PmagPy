@@ -862,7 +862,7 @@ def plot_vgp(mapname,plong,plat,label='',color='k',marker='o',legend='no'):
         plt.legend(loc=2)
 
 
-def vgp_calc(dataframe,tilt_correction='yes'):
+def vgp_calc(dataframe,tilt_correction='yes', dec_is = 'dec_is', inc_is = 'inc_is', dec_tc = 'dec_tc', inc_tc = 'inc_tc'):
     """
     This function calculates paleomagnetic poles using directional data and site location data within a pandas.DataFrame. The function adds the columns 'paleolatitude', 'pole_lat', 'pole_lon', 'pole_lat_rev', and 'pole_lon_rev' to the dataframe. The '_rev' columns allow for subsequent choice as to which polarity will be used for the VGPs.
 
@@ -872,6 +872,7 @@ def vgp_calc(dataframe,tilt_correction='yes'):
     dataframe : the name of the pandas.DataFrame containing the data
     dataframe['site_lat'] : the latitude of the site
     dataframe['site_lon'] : the longitude of the site
+    ----- the following default keys can be changes by keyword argument -----
     dataframe['inc_tc'] : the tilt-corrected inclination (used by default tilt-correction='yes')
     dataframe['dec_tc'] : the tilt-corrected declination (used by default tilt-correction='yes')
     dataframe['inc_is'] : the insitu inclination (used when tilt-correction='no')
@@ -880,17 +881,17 @@ def vgp_calc(dataframe,tilt_correction='yes'):
     dataframe.is_copy = False
     if tilt_correction=='yes':
         #calculate the paleolatitude/colatitude
-        dataframe['paleolatitude']=np.degrees(np.arctan(0.5*np.tan(np.radians(dataframe['inc_tc']))))
+        dataframe['paleolatitude']=np.degrees(np.arctan(0.5*np.tan(np.radians(dataframe[inc_tc]))))
         dataframe['colatitude']=90-dataframe['paleolatitude']
         #calculate the latitude of the pole
         dataframe['vgp_lat']=np.degrees(np.arcsin(np.sin(np.radians(dataframe['site_lat']))*
                                                              np.cos(np.radians(dataframe['colatitude']))+
                                                              np.cos(np.radians(dataframe['site_lat']))*
                                                              np.sin(np.radians(dataframe['colatitude']))*
-                                                             np.cos(np.radians(dataframe['dec_tc']))))
+                                                             np.cos(np.radians(dataframe[dec_tc]))))
         #calculate the longitudinal difference between the pole and the site (beta)
         dataframe['beta']=np.degrees(np.arcsin((np.sin(np.radians(dataframe['colatitude']))*
-                                          np.sin(np.radians(dataframe['dec_tc'])))/
+                                          np.sin(np.radians(dataframe[dec_tc])))/
                                          (np.cos(np.radians(dataframe['vgp_lat'])))))
         #generate a boolean array (mask) to use to distinguish between the two possibilities for pole longitude
         #and then calculate pole longitude using the site location and calculated beta
@@ -905,14 +906,14 @@ def vgp_calc(dataframe,tilt_correction='yes'):
         del dataframe['beta']
     if tilt_correction=='no':
         #calculate the paleolatitude/colatitude
-        dataframe['paleolatitude']=np.degrees(np.arctan(0.5*np.tan(np.radians(dataframe['inc_is']))))
+        dataframe['paleolatitude']=np.degrees(np.arctan(0.5*np.tan(np.radians(dataframe[inc_is]))))
         dataframe['colatitude']=90-dataframe['paleolatitude']
         #calculate the latitude of the pole
         dataframe['vgp_lat']=np.degrees(np.arcsin(np.sin(np.radians(dataframe['site_lat']))*
                                                              np.cos(np.radians(dataframe['colatitude']))+
                                                              np.cos(np.radians(dataframe['site_lat']))*
                                                              np.sin(np.radians(dataframe['colatitude']))*
-                                                             np.cos(np.radians(dataframe['dec_is']))))
+                                                             np.cos(np.radians(dataframe[dec_is]))))
         #calculate the longitudinal difference between the pole and the site (beta)
         dataframe['beta']=np.degrees(np.arcsin((np.sin(np.radians(dataframe['colatitude']))*
                                           np.sin(np.radians(dataframe['dec_is'])))/
@@ -929,8 +930,7 @@ def vgp_calc(dataframe,tilt_correction='yes'):
         del dataframe['colatitude']
         del dataframe['beta']
 
-
-def sb_vgp_calc(dataframe,site_correction = 'yes'):
+def sb_vgp_calc(dataframe,site_correction = 'yes', dec_tc = 'dec_tc', inc_tc = 'inc_tc'):
     """
     This function calculates the angular dispersion of VGPs and corrects
     for within site dispersion (unless site_correction = 'no') to return
@@ -943,11 +943,12 @@ def sb_vgp_calc(dataframe,site_correction = 'yes'):
     the data frame needs to contain these columns:
     dataframe['site_lat'] : latitude of the site
     dataframe['site_lon'] : longitude of the site
-    dataframe['inc_tc'] : tilt-corrected inclination
-    dataframe['dec_tc'] : tilt-corrected declination
     dataframe['k'] : fisher precision parameter for directions
     dataframe['vgp_lat'] : VGP latitude
     dataframe['vgp_lon'] : VGP longitude
+    ----- the following default keys can be changes by keyword argument -----
+    dataframe['inc_tc'] : tilt-corrected inclination
+    dataframe['dec_tc'] : tilt-corrected declination
 
     plot : default is 'no', will make a plot of poles if 'yes'
     """
@@ -955,8 +956,8 @@ def sb_vgp_calc(dataframe,site_correction = 'yes'):
     # calculate the mean from the directional data
     dataframe_dirs=[]
     for n in range(0,len(dataframe)):
-        dataframe_dirs.append([dataframe['dec_tc'][n],
-                               dataframe['inc_tc'][n],1.])
+        dataframe_dirs.append([dataframe[dec_tc][n],
+                               dataframe[inc_tc][n],1.])
     dataframe_dir_mean=pmag.fisher_mean(dataframe_dirs)
 
     # calculate the mean from the vgp data
@@ -1010,7 +1011,6 @@ def sb_vgp_calc(dataframe,site_correction = 'yes'):
         Sb=((1.0/(N-1.0))*summation)**0.5
 
     return Sb
-
 
 def make_di_block(dec,inc):
     """
@@ -5320,7 +5320,7 @@ def pmag_results_extract(res_file="pmag_results.txt", crit_file="", spec_file=""
     """
     Generate tab delimited output file(s) with result data.
     Save output files and return True if successful.
-    Possible output files: Directions, Intensities, SiteNfo, Criteria,  
+    Possible output files: Directions, Intensities, SiteNfo, Criteria,
                            Specimens
 
     Optional Keywords (defaults are used if not specified)
@@ -5358,7 +5358,7 @@ def pmag_results_extract(res_file="pmag_results.txt", crit_file="", spec_file=""
     sf = open(Soutfile, 'w')
     fI = open(Ioutfile, 'w')
     if crit_file:
-        cr = open(Critout, 'w') 
+        cr = open(Critout, 'w')
     # set up column headers
     Sites, file_type = pmag.magic_read(res_file)
     if crit_file:
@@ -5412,7 +5412,7 @@ def pmag_results_extract(res_file="pmag_results.txt", crit_file="", spec_file=""
             if (not crit[key]) or (eval(crit[key]) > 1000) or (eval(crit[key])==0):
                 del(crit[key]) # get rid of all blank or too big ones or too little ones
         CritKeys = crit.keys()
-    if spec_file: 
+    if spec_file:
         Specs, file_type =pmag.magic_read(spec_file)
         fsp = open(Specout,'w') # including specimen intensities if desired
         SpecCols = ["Site", "Specimen", "B (uT)", "MAD", "Beta", "N", "Q", "DANG", "f-vds",
@@ -5456,7 +5456,7 @@ def pmag_results_extract(res_file="pmag_results.txt", crit_file="", spec_file=""
             cr.write('\\usepackage[margin=1in]{geometry}\n')
             cr.write('\\usepackage{longtable}\n')
             cr.write('\\begin{document}\n')
-        if spec_file: 
+        if spec_file:
             fsp.write('\\documentclass{article}\n')
             fsp.write('\\usepackage[margin=1in]{geometry}\n')
             fsp.write('\\usepackage{longtable}\n')
@@ -5496,29 +5496,29 @@ def pmag_results_extract(res_file="pmag_results.txt", crit_file="", spec_file=""
     Soutstring, Doutstring, Ioutstring, Spoutstring, Croutstring = "", "", "", "", ""
     for k in range(len(SiteCols)):
         Soutstring = Soutstring + SiteCols[k] + sep
-    Soutstring = Soutstring.strip(sep) 
+    Soutstring = Soutstring.strip(sep)
     Soutstring =Soutstring + end + '\n'
     sf.write(Soutstring)
     for k in range(len(DirCols)):
         Doutstring = Doutstring + DirCols[k] + sep
-    Doutstring = Doutstring.strip(sep) 
+    Doutstring = Doutstring.strip(sep)
     Doutstring = Doutstring + end + '\n'
     f.write(Doutstring)
     for k in range(len(IntCols)):
         Ioutstring=Ioutstring+IntCols[k]+sep
-    Ioutstring = Ioutstring.strip(sep) 
+    Ioutstring = Ioutstring.strip(sep)
     Ioutstring = Ioutstring + end + '\n'
     fI.write(Ioutstring)
     if crit_file:
         for k in range(len(CritKeys)):
             Croutstring = Croutstring + CritKeys[k] + sep
-        Croutstring = Croutstring.strip(sep) 
+        Croutstring = Croutstring.strip(sep)
         Croutstring = Croutstring + end + '\n'
         cr.write(Croutstring)
     if spec_file:
         for k in range(len(SpecCols)):
             Spoutstring = Spoutstring + SpecCols[k] + sep
-        Spoutstring = Spoutstring.strip(sep) 
+        Spoutstring = Spoutstring.strip(sep)
         Spoutstring = Spoutstring + end + "\n"
         fsp.write(Spoutstring)
     if latex: # put in a horizontal line in latex file
@@ -5529,15 +5529,15 @@ def pmag_results_extract(res_file="pmag_results.txt", crit_file="", spec_file=""
             cr.write('\hline\n')
         if spec_file:
             fsp.write('\hline\n')
- # do criteria 
+ # do criteria
     if crit_file:
-        for crit in Crits: # 
+        for crit in Crits: #
             Croutstring=""
             for key in CritKeys:
                 Croutstring = Croutstring + crit[key] + sep
             Croutstring = Croutstring.strip(sep) + end
             cr.write(Croutstring + '\n')
- # do directions 
+ # do directions
     VGPs = pmag.get_dictitem(Sites, 'vgp_lat', '', 'F') # get all results with VGPs
     VGPs = pmag.get_dictitem(VGPs, 'data_type', 'i', 'T') # get site level stuff
     for site in VGPs:
@@ -5582,11 +5582,11 @@ def pmag_results_extract(res_file="pmag_results.txt", crit_file="", spec_file=""
             if site["average_int_sigma"] == "":
                 site["average_int_sigma"] = "0"
             if site["average_int_sigma_perc"] == "":
-                site["average_int_sigma_perc"] = "0"        
+                site["average_int_sigma_perc"] = "0"
             if site["vadm"] == "":
-                site["vadm"] = "0"        
+                site["vadm"] = "0"
             if site["vadm_sigma"]=="":
-                site["vadm_sigma"]="0"       
+                site["vadm_sigma"]="0"
         for key in site.keys(): # reformat vadms, intensities
             if key in Micro:
                 site[key]='%7.1f'%(float(site[key])*1e6)
@@ -5603,10 +5603,10 @@ def pmag_results_extract(res_file="pmag_results.txt", crit_file="", spec_file=""
 #    for site in VDMs: # do results level stuff
 #      if len(site['er_site_names'].split(":"))==1:
 #            if 'average_int_sigma_perc' not in site.keys():site['average_int_sigma_perc']="0"
-#            if site["average_int_sigma"]=="":site["average_int_sigma"]="0"        
-#            if site["average_int_sigma_perc"]=="":site["average_int_sigma_perc"]="0"        
-#            if site["vadm"]=="":site["vadm"]="0"        
-#            if site["vadm_sigma"]=="":site["vadm_sigma"]="0"       
+#            if site["average_int_sigma"]=="":site["average_int_sigma"]="0"
+#            if site["average_int_sigma_perc"]=="":site["average_int_sigma_perc"]="0"
+#            if site["vadm"]=="":site["vadm"]="0"
+#            if site["vadm_sigma"]=="":site["vadm_sigma"]="0"
 #      for key in site.keys(): # reformat vadms, intensities
 #            if key in Micro: site[key]='%7.1f'%(float(site[key])*1e6)
 #            if key in Zeta: site[key]='%7.1f'%(float(site[key])*1e-21)
@@ -5615,7 +5615,7 @@ def pmag_results_extract(res_file="pmag_results.txt", crit_file="", spec_file=""
 #          outstring=outstring+site[key]+sep
 #      fI.write(outstring.strip(sep)+'\n')
     if spec_file:
-        SpecsInts = pmag.get_dictitem(Specs, 'specimen_int', '', 'F') 
+        SpecsInts = pmag.get_dictitem(Specs, 'specimen_int', '', 'F')
         for spec in SpecsInts:
             spec['trange'] = '%i'%(int(float(spec['measurement_step_min'])-273))+'-'+'%i'%(int(float(spec['measurement_step_max'])-273))
             meths = spec['magic_method_codes'].split(':')
@@ -5635,7 +5635,7 @@ def pmag_results_extract(res_file="pmag_results.txt", crit_file="", spec_file=""
                     spec[key] = '%7.1f'%(float(spec[key]) * 1e-21)
                 outstring = outstring + spec[key] + sep
             fsp.write(outstring.strip(sep) + end + '\n')
-    # 
+    #
     if latex: # write out the tail stuff
         f.write('\hline\n')
         sf.write('\hline\n')
@@ -5669,4 +5669,111 @@ def pmag_results_extract(res_file="pmag_results.txt", crit_file="", spec_file=""
         outfiles.append(Critout)
     return True, outfiles
 
+def bootstrap_reversal_test(D, I=None, plot_stereo = False, save=False, save_folder='.',fmt='svg'):
+    """
+    Conduct a reversal test using bootstrap statistics to determine whether two
+    directions could have been pulled from a bipolar common mean.
 
+    Required Arguments
+    ----------
+    D : data in declination/inclination blocks if I is None; OR declination if
+        I (inclination) keyword argument is specified
+
+    Optional Keywords (defaults are used if not specified)
+    ----------
+    I : list of inclinations (default is None -- leave as default if both
+        declination AND inclination data are included in D)
+    plot_stereo : before plotting the CDFs, plot stereonet with the
+        bidirectionally separated data (default is False)
+    save : boolean argument to save plots (default is False)
+    save_folder : relative directory where plots will be saved (default is current directory, '.')
+    fmt : format of saved figures (default is 'pdf')
+    """
+    if I == None:
+        dec = []
+        inc = []
+        for i in range(len(D)):
+            dec.append(D[i][0])
+            inc.append(D[i][1])
+        all_dirs = make_di_block(dec, inc)
+    else:
+        dec = D
+        inc = I
+        all_dirs = make_di_block(dec, inc)
+    D1, D2 = pmag.flip(all_dirs)
+
+    if plot_stereo == True:
+        # plot equal area with two modes
+        plt.figure(num=0,figsize=(4,4))
+        plot_net(0)
+        upper_dec = []
+        upper_inc = []
+        lower_dec= []
+        lower_inc = []
+        for n in range(len(D1)):
+            upper_dec.append(D1[n][0])
+            upper_inc.append(D1[n][1])
+        for n in range(len(D2)):
+            lower_dec.append(flip(D2)[n][0])
+            lower_inc.append(flip(D2)[n][1])
+
+        plot_di(upper_dec, upper_inc,color='b'),
+        plot_di(lower_dec, lower_inc, color = 'r')
+    bootstrap_common_mean(D1, D2, save=save, save_folder=save_folder, fmt=fmt)
+
+def MM1990_reversal_test(D, I=None, plot_CDF=False, plot_stereo = False, save=False, save_folder='.', fmt='svg'):
+    """
+    Conduct a reversal test using the Watson V test to determine whether two
+    directions could have been pulled from a bipolar common mean.
+
+    Required Arguments
+    ----------
+    D : data in declination/inclination blocks if I is None; OR declination if
+        I (inclination) keyword argument is specified
+
+    Optional Keywords (defaults are used if not specified)
+    ----------
+    I : list of inclinations (default is None -- leave as default if both
+        declination AND inclination data are included in D)
+    plot_CDF : plot the CDF accompanying the printed results (default is False)
+    plot_stereo : plot stereonet with the bidirectionally separated data
+        (default is False)
+    save : boolean argument to save plots (default is False)
+    save_folder : relative directory where plots will be saved
+        (default is current directory, '.')
+    fmt : format of saved figures (default is 'pdf')
+    """
+    if I == None:
+        dec = []
+        inc = []
+        for i in range(len(D)):
+            dec.append(D[i][0])
+            inc.append(D[i][1])
+        all_dirs = make_di_block(dec, inc)
+    else:
+        dec = D
+        inc = I
+        all_dirs = make_di_block(dec, inc)
+    D1, D2 = pmag.flip(all_dirs)
+
+    if plot_stereo == True:
+        # plot equal area with two modes
+        plt.figure(num=0,figsize=(4,4))
+        plot_net(0)
+        upper_dec = []
+        upper_inc = []
+        lower_dec= []
+        lower_inc = []
+        for n in range(len(D1)):
+            upper_dec.append(D1[n][0])
+            upper_inc.append(D1[n][1])
+        for n in range(len(D2)):
+            lower_dec.append(flip(D2)[n][0])
+            lower_inc.append(flip(D2)[n][1])
+
+        plot_di(upper_dec, upper_inc,color='b'),
+        plot_di(lower_dec, lower_inc, color = 'r')
+    if plot_CDF == False:
+        watson_common_mean(D1, D2, save=save, save_folder=save_folder, fmt=fmt)
+    else:
+        watson_common_mean(D1, D2, plot = 'yes', save=save, save_folder=save_folder, fmt=fmt)
