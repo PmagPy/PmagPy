@@ -178,7 +178,7 @@ matplotlib.rc('ytick', labelsize=10)
 matplotlib.rc('axes', labelsize=8) 
 matplotlib.rcParams['savefig.dpi'] = 300.
 
-pylab.rcParams.update({"svg.embed_char_paths":False})
+#pylab.rcParams.update({"svg.embed_char_paths":False})
 pylab.rcParams.update({"svg.fonttype":'none'})
 
 

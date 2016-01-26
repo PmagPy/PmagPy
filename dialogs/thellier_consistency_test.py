@@ -20,7 +20,7 @@ import copy
 from scipy.optimize import curve_fit
 import thellier_interpreter
 import thellier_gui_lib
-rcParams.update({"svg.embed_char_paths":False})
+#rcParams.update({"svg.embed_char_paths":False})
 
 def run_thellier_consistency_test(WD, Data,Data_hierarchy,acceptance_criteria,optimizer_group_file_path,optimizer_functions_path,preferences,stat1_range,stat2_range,THERMAL,MICROWAVE):
   """
