@@ -23,7 +23,6 @@ class MagICMenu(wx.MenuBar):
         self.parent = parent
         super(MagICMenu, self).__init__()
 
-        ## File
         file_menu = wx.Menu()
         file_quit = file_menu.Append(wx.ID_EXIT, 'Quit', 'Quit application')
         file_show = file_menu.Append(wx.ID_ANY, 'Show main window',
@@ -35,7 +34,6 @@ class MagICMenu(wx.MenuBar):
         parent.Bind(wx.EVT_MENU, self.on_show_mainframe, file_show)
         parent.Bind(wx.EVT_MENU, self.on_clear, file_clear)
 
-        ## Help
         help_menu = wx.Menu()
         help_cookbook = help_menu.Append(wx.ID_ANY, '&PmagPy Cookbook\tCtrl-Shift-H',
                                          'Access the online documentation')
@@ -50,7 +48,6 @@ class MagICMenu(wx.MenuBar):
             parent.Bind(wx.EVT_MENU, pw.on_hide_output, help_hide)
 
         import_menu = wx.Menu()
-            
         orient_submenu = wx.Menu()
         orient2 = orient_submenu.Append(-1, 'AzDip format')
         #orient3 = orient_submenu.Append(-1, "IODP Core Summary csv file")
@@ -86,13 +83,6 @@ class MagICMenu(wx.MenuBar):
 
         parent.Bind(wx.EVT_MENU, self.on_import1, import1)
 
-        ## Export
-        export_menu = wx.Menu()
-        export1 = export_menu.Append(-1, "Export result tables")
-
-        parent.Bind(wx.EVT_MENU, self.on_export_results, export1)
-
-        ## Plotting and analysis
         analysis_menu = wx.Menu()
         #analysis1 = analysis_menu.Append(-1, "Customize Criteria")
         #analysis_menu.AppendSeparator()
@@ -136,7 +126,6 @@ class MagICMenu(wx.MenuBar):
         self.Append(file_menu, 'File')
         self.Append(help_menu, 'Help ')
         self.Append(import_menu, 'Import')
-        self.Append(export_menu, 'Export')
         self.Append(analysis_menu, 'Analysis and Plots') # probably won't use this
         
 
@@ -169,9 +158,6 @@ class MagICMenu(wx.MenuBar):
         initialize window to import an arbitrary file into the working directory
         """
         pmag_menu_dialogs.MoveFileIntoWD(self.parent, self.parent.WD)
-
-    def on_export_results(self, event):
-        pmag_menu_dialogs.ExportResults(self.parent, self.parent.WD)
         
     def orient_import2(self, event):
         """

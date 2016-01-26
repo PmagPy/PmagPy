@@ -193,7 +193,7 @@ class Arai_GUI(wx.Frame):
     """
     title = "PmagPy Thellier GUI %s"%CURRENT_VRSION
     
-    def __init__(self, WD=None, parent=None, standalone=True):
+    def __init__(self, WD=None, parent=None):
 
         TEXT="""
         NAME
@@ -209,7 +209,7 @@ class Arai_GUI(wx.Frame):
 	   sys.exit()
               
         global FIRST_RUN
-        FIRST_RUN = True if standalone else False
+        FIRST_RUN=True
         wx.Frame.__init__(self, parent, wx.ID_ANY, self.title, name='thellier gui')
         self.redo_specimens={}
         self.currentDirectory = os.getcwd() # get the current working directory
@@ -285,7 +285,6 @@ class Arai_GUI(wx.Frame):
         self.GUI_log=open(os.path.join(self.WD, "thellier_GUI.log"),'a')
         os.chdir(self.WD)
         self.WD=os.getcwd()
-        
     def Main_Frame(self):
         """ 
         Build main frame od panel: buttons, etc.
@@ -9000,7 +8999,7 @@ def do_main(WD=None, standalone_app=True, parent=None):
     if not standalone_app:
         wait = wx.BusyInfo('Compiling required data, please wait...')
         wx.Yield()
-        frame = Arai_GUI(WD, parent, standalone=False)
+        frame = Arai_GUI(WD, parent)
         frame.Centre()
         frame.Show()
         del wait

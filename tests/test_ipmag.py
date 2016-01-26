@@ -357,56 +357,7 @@ class TestAnisoDepthplot(unittest.TestCase):
         self.assertEqual(plot_name, 'U1361A_ani_depthplot.png')
 
 
-class TestPmagResultsExtract(unittest.TestCase):
-    def setUp(self):
-        self.result_WD = os.path.join(WD, 'data_files', 'download_magic')
-        os.chdir(self.result_WD)
 
-    def tearDown(self):
-        filelist = ['magic_measurements.txt', 'my_magic_measurements.txt',
-                    'er_specimens.txt', 'er_samples.txt', 'my_er_samples.txt',
-                    'er_sites.txt', 'rmag_anisotropy.txt',
-                    'my_rmag_anisotropy.txt', 'rmag_results.txt',
-                    'my_rmag_results.txt', 'my_samples.txt', 'Directions.txt',
-                    'Directions.tex', 'Intensities.txt', 'Intensities.tex',
-                    'SiteNfo.txt', 'SiteNfo.tex', 'Specimens.txt',
-                    'Specimens.tex', 'Criteria.txt', 'Criteria.tex']
-        pmag.remove_files(filelist, self.result_WD)
-
-    def test_extract(self):
-        direction_file = os.path.join(self.result_WD, 'Directions.txt')
-        intensity_file = os.path.join(self.result_WD, 'Intensities.txt')
-        site_file = os.path.join(self.result_WD, 'SiteNfo.txt')
-        specimen_file = os.path.join(self.result_WD, 'Specimens.txt')
-        crit_file = os.path.join(self.result_WD, 'Criteria.txt')
-        files = [direction_file, intensity_file, site_file, specimen_file,
-                 crit_file]
-        for f in files:
-            self.assertFalse(os.path.exists(f))
-        res, outfiles = ipmag.pmag_results_extract()
-        self.assertTrue(res)
-        files = [os.path.join(self.result_WD, f) for f in outfiles]
-        for f in files:
-            self.assertTrue(os.path.exists(f))
-
-    def test_extract_latex(self):
-        direction_file = os.path.join(self.result_WD, 'Directions.tex')
-        intensity_file = os.path.join(self.result_WD, 'Intensities.tex')
-        site_file = os.path.join(self.result_WD, 'SiteNfo.tex')
-        specimen_file = os.path.join(self.result_WD, 'Specimens.tex')
-        crit_file = os.path.join(self.result_WD, 'Criteria.tex')
-        files = [direction_file, intensity_file, site_file, specimen_file,
-                 crit_file]
-        for f in files:
-            self.assertFalse(os.path.exists(f))
-        res, outfiles = ipmag.pmag_results_extract(latex=True)
-        self.assertTrue(res)
-        files = [os.path.join(self.result_WD, f) for f in outfiles]
-        for f in files:
-            self.assertTrue(os.path.exists(f))
-
-    
-        
 
 
 if __name__ == '__main__':
