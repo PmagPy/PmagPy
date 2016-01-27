@@ -348,7 +348,7 @@ def bootstrap_fold_test(Data,num_sims=1000,min_untilt=-10,max_untilt=120, beddin
     plt.show()
 
 
-def bootstrap_common_mean(Data1,Data2,NumSims=1000, save=False, save_folder = '.', fmt = 'svg'):
+def common_mean_bootstrap(Data1,Data2,NumSims=1000, save=False, save_folder = '.', fmt = 'svg'):
     """
     Conduct a bootstrap test (Tauxe, 2010) for a common mean on two declination,
     inclination data sets
@@ -418,11 +418,11 @@ def bootstrap_common_mean(Data1,Data2,NumSims=1000, save=False, save_folder = '.
 
     plt.tight_layout()
     if save == True:
-        plt.savefig(os.path.join(save_folder, 'bootstrap_common_mean') + '.' + fmt)
+        plt.savefig(os.path.join(save_folder, 'common_mean_bootstrap') + '.' + fmt)
     plt.show()
 
 
-def watson_common_mean(Data1,Data2,NumSims=5000,plot='no', save=False, save_folder = '.', fmt = 'svg'):
+def common_mean_watson(Data1,Data2,NumSims=5000,plot='no', save=False, save_folder = '.', fmt = 'svg'):
     """
     Conduct a Watson V test for a common mean on two directional data sets.
 
@@ -554,7 +554,7 @@ def watson_common_mean(Data1,Data2,NumSims=5000,plot='no', save=False, save_fold
         p3 = ipmagplotlib.plotVs(CDF['cdf'],[Vp[k]],'b','--')
         #pmagplotlib.drawFIGS(CDF)
         if save==True:
-            plt.savefig(os.path.join(save_folder, 'watson_common_mean') + '.' + fmt)
+            plt.savefig(os.path.join(save_folder, 'common_mean_watson') + '.' + fmt)
         ipmagplotlib.showFIG(CDF['cdf'])
 
 
@@ -5811,7 +5811,9 @@ def reversal_test_bootstrap(dec=None, inc=None, di_block=None, plot_stereo = Fal
         plot_net(0)
         plot_di(di_block = directions1,color='b'),
         plot_di(di_block = do_flip(di_block = directions2), color = 'r')
-    bootstrap_common_mean(directions1, directions2, save=save, save_folder=save_folder, fmt=fmt)
+
+    common_mean_bootstrap(directions1, directions2, save=save, save_folder=save_folder, fmt=fmt)
+
 
 def reversal_test_MM1990(dec=None, inc=None, di_block=None, plot_CDF=False, plot_stereo = False, save=False, save_folder='.', fmt='svg'):
     """
@@ -5839,39 +5841,23 @@ def reversal_test_MM1990(dec=None, inc=None, di_block=None, plot_CDF=False, plot
     save : boolean argument to save plots (default is False)
     save_folder : relative directory where plots will be saved
         (default is current directory, '.')
-    fmt : format of saved figures (default is 'pdf')
+    fmt : format of saved figures (default is 'svg')
     """
-    if I == None:
-        dec = []
-        inc = []
-        for i in range(len(D)):
-            dec.append(D[i][0])
-            inc.append(D[i][1])
+    if di_block == None:
         all_dirs = make_di_block(dec, inc)
     else:
-        dec = D
-        inc = I
-        all_dirs = make_di_block(dec, inc)
-    D1, D2 = pmag.flip(all_dirs)
+        all_dirs = di_block
+
+    directions1, directions2 = pmag.flip(all_dirs)
 
     if plot_stereo == True:
         # plot equal area with two modes
         plt.figure(num=0,figsize=(4,4))
         plot_net(0)
-        upper_dec = []
-        upper_inc = []
-        lower_dec= []
-        lower_inc = []
-        for n in range(len(D1)):
-            upper_dec.append(D1[n][0])
-            upper_inc.append(D1[n][1])
-        for n in range(len(D2)):
-            lower_dec.append(do_flip(D2)[n][0])
-            lower_inc.append(do_flip(D2)[n][1])
+        plot_di(di_block = directions1,color='b'),
+        plot_di(di_block = do_flip(di_block = directions2), color = 'r')
 
-        plot_di(upper_dec, upper_inc,color='b'),
-        plot_di(lower_dec, lower_inc, color = 'r')
     if plot_CDF == False:
-        watson_common_mean(D1, D2, save=save, save_folder=save_folder, fmt=fmt)
+        common_mean_watson(directions1, directions2, save=save, save_folder=save_folder, fmt=fmt)
     else:
-        watson_common_mean(D1, D2, plot = 'yes', save=save, save_folder=save_folder, fmt=fmt)
+        common_mean_watson(directions1, directions2, plot = 'yes', save=save, save_folder=save_folder, fmt=fmt)
