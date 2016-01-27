@@ -221,7 +221,7 @@ def unsquish(incs,f):
 #     return incnew
 
 
-def flip(dec=None, inc=None, di_block=None):
+def do_flip(dec=None, inc=None, di_block=None):
     """
     This function returns the antipode (i.e. it flips) of directions.
 
@@ -5808,9 +5808,8 @@ def bootstrap_reversal_test(dec=None, inc=None, di_block=None, plot_stereo = Fal
         # plot equal area with two modes
         plt.figure(num=0,figsize=(4,4))
         plot_net(0)
-
         plot_di(di_block = directions1,color='b'),
-        plot_di(di_block = flip(directions2), color = 'r')
+        plot_di(di_block = do_flip(di_block = directions2), color = 'r')
     bootstrap_common_mean(D1, D2, save=save, save_folder=save_folder, fmt=fmt)
 
 def MM1990_reversal_test(D, I=None, plot_CDF=False, plot_stereo = False, save=False, save_folder='.', fmt='svg'):
@@ -5860,8 +5859,8 @@ def MM1990_reversal_test(D, I=None, plot_CDF=False, plot_stereo = False, save=Fa
             upper_dec.append(D1[n][0])
             upper_inc.append(D1[n][1])
         for n in range(len(D2)):
-            lower_dec.append(flip(D2)[n][0])
-            lower_inc.append(flip(D2)[n][1])
+            lower_dec.append(do_flip(D2)[n][0])
+            lower_inc.append(do_flip(D2)[n][1])
 
         plot_di(upper_dec, upper_inc,color='b'),
         plot_di(lower_dec, lower_inc, color = 'r')
