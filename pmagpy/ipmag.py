@@ -200,25 +200,30 @@ def unsquish(incs,f):
         return inc_new
 
 
-# def squish(f,incs):
-#     """
-#     This function applies an flattening factor (f) to inclination data
-#     (incs) and returns 'squished' values.
-#
-#     Arguments
-#     ----------
-#     incs : list of inclination values or a single value
-#     f : flattening factor
-#     """
-#     try:
-#         length = len(incs)
-#         incs_unsquished = []
-#         for n in range(0,length):
-#
-#     incs=incs*np.pi/180. # convert to radians
-#     tincnew=f*np.tan(incs)
-#     incnew=np.arctan(tincnew)*180./np.pi # convert back to degrees
-#     return incnew
+def squish(incs,f):
+    """
+    This function applies an flattening factor (f) to inclination data
+    (incs) and returns 'squished' values.
+
+    Arguments
+    ----------
+    incs : list of inclination values or a single value
+    f : flattening factor (between 0.0 and 1.0)
+    """
+    try:
+        length = len(incs)
+        incs_squished = []
+        for n in range(0,length):
+            inc_rad = incs[n]*np.pi/180. # convert to radians
+            inc_new_rad = f*np.tan(inc_rad)
+            inc_new = np.arctan(inc_new_rad)*180./np.pi # convert back to degrees
+            incs_squished.append(inc_new)
+        return incs_squished
+    except:
+        inc_rad = incs*np.pi/180. # convert to radians
+        inc_new_rad = f*np.tan(inc_rad)
+        inc_new = np.arctan(inc_new_rad)*180./np.pi # convert back to degrees
+        return inc_new
 
 
 def do_flip(dec=None, inc=None, di_block=None):
@@ -556,6 +561,95 @@ def common_mean_watson(Data1,Data2,NumSims=5000,plot='no', save=False, save_fold
         if save==True:
             plt.savefig(os.path.join(save_folder, 'common_mean_watson') + '.' + fmt)
         ipmagplotlib.showFIG(CDF['cdf'])
+
+
+def reversal_test_bootstrap(dec=None, inc=None, di_block=None, plot_stereo = False, save=False, save_folder='.',fmt='svg'):
+    """
+    Conduct a reversal test using bootstrap statistics (Tauxe, 2010) to
+    determine whether two populations of directions could be from an antipodal
+    common mean.
+
+    Required Arguments
+    ----------
+    dec: list of declinations
+    inc: list of inclinations
+
+    or
+
+    di_block: a nested list of [dec,inc,1.0]
+    (di_block can be provided instead of dec, inc in which case it will be used)
+
+    Optional Keywords (defaults are used if not specified)
+    ----------
+    plot_stereo : before plotting the CDFs, plot stereonet with the
+    bidirectionally separated data (default is False)
+    save : boolean argument to save plots (default is False)
+    save_folder : directory where plots will be saved (default is current directory, '.')
+    fmt : format of saved figures (default is 'svg')
+    """
+    if di_block == None:
+        all_dirs = make_di_block(dec, inc)
+    else:
+        all_dirs = di_block
+
+    directions1, directions2 = pmag.flip(all_dirs)
+
+    if plot_stereo == True:
+        # plot equal area with two modes
+        plt.figure(num=0,figsize=(4,4))
+        plot_net(0)
+        plot_di(di_block = directions1,color='b'),
+        plot_di(di_block = do_flip(di_block = directions2), color = 'r')
+
+    common_mean_bootstrap(directions1, directions2, save=save, save_folder=save_folder, fmt=fmt)
+
+
+def reversal_test_MM1990(dec=None, inc=None, di_block=None, plot_CDF=False, plot_stereo = False, save=False, save_folder='.', fmt='svg'):
+    """
+    Calculates Watson's V statistic from input files through Monte Carlo
+    simulation in order to test whether normal and reversed populations could
+    have been drawn from a common mean (equivalent to watsonV.py). Also provides
+    the critical angle between the two sample mean directions and the
+    corresponding McFadden and McElhinny (1990) classification.
+
+    Required Arguments
+    ----------
+    dec: list of declinations
+    inc: list of inclinations
+
+    or
+
+    di_block: a nested list of [dec,inc,1.0]
+    (di_block can be provided instead of dec, inc in which case it will be used)
+
+    Optional Keywords (defaults are used if not specified)
+    ----------
+    plot_CDF : plot the CDF accompanying the printed results (default is False)
+    plot_stereo : plot stereonet with the bidirectionally separated data
+        (default is False)
+    save : boolean argument to save plots (default is False)
+    save_folder : relative directory where plots will be saved
+        (default is current directory, '.')
+    fmt : format of saved figures (default is 'svg')
+    """
+    if di_block == None:
+        all_dirs = make_di_block(dec, inc)
+    else:
+        all_dirs = di_block
+
+    directions1, directions2 = pmag.flip(all_dirs)
+
+    if plot_stereo == True:
+        # plot equal area with two modes
+        plt.figure(num=0,figsize=(4,4))
+        plot_net(0)
+        plot_di(di_block = directions1,color='b'),
+        plot_di(di_block = do_flip(di_block = directions2), color = 'r')
+
+    if plot_CDF == False:
+        common_mean_watson(directions1, directions2, save=save, save_folder=save_folder, fmt=fmt)
+    else:
+        common_mean_watson(directions1, directions2, plot = 'yes', save=save, save_folder=save_folder, fmt=fmt)
 
 
 def fishqq(longitude, latitude):
@@ -3011,7 +3105,6 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
     BPs=[]# bedding pole declinations, bedding pole inclinations
     #
     #
-
     orient_file,samp_file= os.path.join(input_dir_path,orient_file), os.path.join(output_dir_path,samp_file)
     site_file = os.path.join(output_dir_path, site_file)
     image_file= os.path.join(output_dir_path, "er_images.txt")
@@ -3050,7 +3143,6 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
             print 'image data to be appended to: ',image_file
         except:
             print 'problem with existing file: ',image_file,' will create new.'
-
     #
     # read in file to convert
     #
@@ -3368,7 +3460,6 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
                     SunRec["magic_method_codes"]=methcodes+':SO-SUN'
                     SunRec["magic_method_codes"]=SunRec['magic_method_codes'].strip(':')
                     SampOuts.append(SunRec)
-
     #
     # check for differential GPS data
     #
@@ -3732,7 +3823,6 @@ def kly4s_magic(infile, specnum=0, locname="unknown", inst='SIO-KLY4S', samp_con
 
     """
 
-
     # initialize variables
     #not used: #cont=0
 
@@ -3740,7 +3830,6 @@ def kly4s_magic(infile, specnum=0, locname="unknown", inst='SIO-KLY4S', samp_con
     Z=1
     AniRecs,SpecRecs,SampRecs,MeasRecs=[],[],[],[]
     AppSpec=0
-
 
     # format variables
     specnum = int(specnum)
@@ -4290,6 +4379,7 @@ def k15_magic(k15file, specnum=0, sample_naming_con='1', er_location_name="unkno
     print "Data saved to: ",sampfile,aniso_outfile,result_file,measfile
     return True, measfile
 
+
 def SUFAR4_magic(ascfile, meas_output='magic_measurements.txt', aniso_output='rmag_anisotropy.txt', spec_infile=None, spec_outfile='er_specimens.txt', samp_outfile='er_samples.txt', site_outfile='er_sites.txt', specnum=0, sample_naming_con='1', user="", locname="unknown", instrument='', static_15_position_mode=False, output_dir_path='.', input_dir_path='.'):
     """
     NAME
@@ -4374,7 +4464,6 @@ def SUFAR4_magic(ascfile, meas_output='magic_measurements.txt', aniso_output='rm
         else:
             Z=sample_naming_con.split("-")[1]
             sample_naming_con="7"
-
 
     if static_15_position_mode:
         spin=0
@@ -4580,6 +4669,7 @@ def SUFAR4_magic(ascfile, meas_output='magic_measurements.txt', aniso_output='rm
     pmag.magic_write(site_outfile,SiteOut,'er_sites')
     print "site info put in ", site_outfile
     return True, meas_output
+
 
 def agm_magic(agm_file, samp_infile=None, outfile='agm_measurements.txt', spec_outfile='er_specimens.txt', user="", input_dir_path='.', output_dir_path='.', backfield_curve=False, specnum=0, samp_con='1', er_location_name='unknown', units='cgs', er_specimen_name='', fmt='old', inst='', synthetic=False):
     """
@@ -4805,6 +4895,7 @@ def read_core_csv_file(sum_file):
     else:
         return False, False, []
 
+
 class Site(object):
 
     ''' This Site class is for use within Jupyter/IPython notebooks. It reads in
@@ -4870,6 +4961,7 @@ class Site(object):
         if self.mean_path == None:
             raise Exception('Make fisher means within the demag GUI - functionality for handling this is in progress')
 
+
     def parse_fits(self, fit_name):
         '''USE PARSE_ALL_FITS unless otherwise necessary
         Isolate fits by the name of the fit; we also set 'specimen_tilt_correction' to zero in order
@@ -4883,12 +4975,14 @@ class Site(object):
         setattr(self,fit_name,fits)
         setattr(self,mean_name,means)
 
+
     def parse_all_fits(self):
         # This is run upon initialization of the Site class
         self.fit_types = self.fits.specimen_comp_name.unique().tolist()
         for fit_type in self.fit_types:
             self.parse_fits(fit_type)
         print "Data separated by ", self.fit_types, "fits and can be accessed by <site_name>.<fit_name>"
+
 
     def get_fit_names(self):
         return self.fit_types
@@ -4988,6 +5082,7 @@ class Site(object):
                                    name=str(self.name))
         return self.site_data
 
+
 def dayplot(path_to_file = '.',hyst_file="rmag_hysteresis.txt",
             rem_file="rmag_remanence.txt", save = False, save_folder='.', fmt = 'pdf'):
     """
@@ -5068,6 +5163,7 @@ def dayplot(path_to_file = '.',hyst_file="rmag_hysteresis.txt",
         ipmagplotlib.plotSBcr(DSC['S-Bcr'],Bcr,S,'bs')
         ipmagplotlib.plotSBc(DSC['S-Bc'],Bc,S,'bs')
         plt.show()
+
 
 def smooth(x,window_len,window='bartlett'):
     """
@@ -5773,91 +5869,3 @@ def pmag_results_extract(res_file="pmag_results.txt", crit_file="", spec_file=""
         print 'Selection criteria saved in: ', Critout
         outfiles.append(Critout)
     return True, outfiles
-
-def reversal_test_bootstrap(dec=None, inc=None, di_block=None, plot_stereo = False, save=False, save_folder='.',fmt='svg'):
-    """
-    Conduct a reversal test using bootstrap statistics (Tauxe, 2010) to
-    determine whether two populations of directions could be from an antipodal
-    common mean.
-
-    Required Arguments
-    ----------
-    dec: list of declinations
-    inc: list of inclinations
-
-    or
-
-    di_block: a nested list of [dec,inc,1.0]
-    (di_block can be provided instead of dec, inc in which case it will be used)
-
-    Optional Keywords (defaults are used if not specified)
-    ----------
-    plot_stereo : before plotting the CDFs, plot stereonet with the
-    bidirectionally separated data (default is False)
-    save : boolean argument to save plots (default is False)
-    save_folder : directory where plots will be saved (default is current directory, '.')
-    fmt : format of saved figures (default is 'svg')
-    """
-    if di_block == None:
-        all_dirs = make_di_block(dec, inc)
-    else:
-        all_dirs = di_block
-
-    directions1, directions2 = pmag.flip(all_dirs)
-
-    if plot_stereo == True:
-        # plot equal area with two modes
-        plt.figure(num=0,figsize=(4,4))
-        plot_net(0)
-        plot_di(di_block = directions1,color='b'),
-        plot_di(di_block = do_flip(di_block = directions2), color = 'r')
-
-    common_mean_bootstrap(directions1, directions2, save=save, save_folder=save_folder, fmt=fmt)
-
-
-def reversal_test_MM1990(dec=None, inc=None, di_block=None, plot_CDF=False, plot_stereo = False, save=False, save_folder='.', fmt='svg'):
-    """
-    Calculates Watson's V statistic from input files through Monte Carlo
-    simulation in order to test whether normal and reversed populations could
-    have been drawn from a common mean (equivalent to watsonV.py). Also provides
-    the critical angle between the two sample mean directions and the
-    corresponding McFadden and McElhinny (1990) classification.
-
-    Required Arguments
-    ----------
-    dec: list of declinations
-    inc: list of inclinations
-
-    or
-
-    di_block: a nested list of [dec,inc,1.0]
-    (di_block can be provided instead of dec, inc in which case it will be used)
-
-    Optional Keywords (defaults are used if not specified)
-    ----------
-    plot_CDF : plot the CDF accompanying the printed results (default is False)
-    plot_stereo : plot stereonet with the bidirectionally separated data
-        (default is False)
-    save : boolean argument to save plots (default is False)
-    save_folder : relative directory where plots will be saved
-        (default is current directory, '.')
-    fmt : format of saved figures (default is 'svg')
-    """
-    if di_block == None:
-        all_dirs = make_di_block(dec, inc)
-    else:
-        all_dirs = di_block
-
-    directions1, directions2 = pmag.flip(all_dirs)
-
-    if plot_stereo == True:
-        # plot equal area with two modes
-        plt.figure(num=0,figsize=(4,4))
-        plot_net(0)
-        plot_di(di_block = directions1,color='b'),
-        plot_di(di_block = do_flip(di_block = directions2), color = 'r')
-
-    if plot_CDF == False:
-        common_mean_watson(directions1, directions2, save=save, save_folder=save_folder, fmt=fmt)
-    else:
-        common_mean_watson(directions1, directions2, plot = 'yes', save=save, save_folder=save_folder, fmt=fmt)
