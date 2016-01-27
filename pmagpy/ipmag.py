@@ -30,6 +30,10 @@ def igrf(input_list):
     Dir=pmag.cart2dir((x,y,z))
     return Dir
 
+def print_igrf(igrf_array):
+    print "Declination: %0.3f"%(igrf_array[0])
+    print "Inclination: %0.3f"%(igrf_array[1])
+    print "Intensity: %0.3f n"%(igrf_array[0])
 
 def fisher_mean(dec,inc):
     """
