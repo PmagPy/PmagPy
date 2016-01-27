@@ -174,7 +174,7 @@ def tk03(n=100,dec=0,lat=0,rev='no',G2=0,G3=0):
     return tk_03_output
 
 
-def unsquish(f,incs):
+def unsquish(incs,f):
     """
     This function applies an unflattening factor (f) to inclination data
     (incs) and returns 'unsquished' values.
@@ -758,7 +758,7 @@ def plot_net(fignum):
     plt.axis((-1.05,1.05,-1.05,1.05))
 
 
-def plot_di(dec,inc,color='k',marker='o',markersize=20,legend='no',label=''):
+def plot_di(dec=None, inc=None, di_block=None, color='k', marker='o', markersize=20, legend='no', label=''):
     """
     Plot declination, inclination data on an equal area plot.
 
@@ -773,6 +773,11 @@ def plot_di(dec,inc,color='k',marker='o',markersize=20,legend='no',label=''):
     dec : declination being plotted
     inc : inclination being plotted
 
+    or
+
+    di_block: a nested list of [dec,inc,1.0]
+    (di_block can be provided instead of dec, inc in which case it will be used)
+
     Optional Keywords
     -----------
     color : the default color is black. Other colors can be chosen (e.g. 'r')
@@ -785,9 +790,23 @@ def plot_di(dec,inc,color='k',marker='o',markersize=20,legend='no',label=''):
     X_up = []
     Y_down = []
     Y_up = []
-    for n in range(0,len(dec)):
-        XY=pmag.dimap(dec[n],inc[n])
-        if inc[n] >= 0:
+
+    if di_block != None:
+        dec, inc = unpack_di_block(di_block)
+
+    try:
+        length = len(dec)
+        for n in range(0,len(dec)):
+            XY=pmag.dimap(dec[n],inc[n])
+            if inc[n] >= 0:
+                X_down.append(XY[0])
+                Y_down.append(XY[1])
+            else:
+                X_up.append(XY[0])
+                Y_up.append(XY[1])
+    except:
+        XY=pmag.dimap(dec,inc)
+        if inc >= 0:
             X_down.append(XY[0])
             Y_down.append(XY[1])
         else:
@@ -1091,6 +1110,22 @@ def make_di_block(dec,inc):
     for n in range(0,len(dec)):
         di_block.append([dec[n],inc[n],1.0])
     return di_block
+
+
+def unpack_di_block(di_block):
+    """
+    This function unpacks a nested list of [dec,inc,1.] into a list of
+    declination values and a list of inclination values.
+    """
+    dec_list = []
+    inc_list = []
+
+    for n in range(0,len(di_block)):
+        dec = di_block[n][0]
+        inc = di_block[n][1]
+        dec_list.append(dec)
+        inc_list.append(inc)
+    return dec_list, inc_list
 
 
 def make_diddd_array(dec,inc,dip_direction,dip):
@@ -5739,56 +5774,43 @@ def pmag_results_extract(res_file="pmag_results.txt", crit_file="", spec_file=""
         outfiles.append(Critout)
     return True, outfiles
 
-def bootstrap_reversal_test(D, I=None, plot_stereo = False, save=False, save_folder='.',fmt='svg'):
+def bootstrap_reversal_test(dec=None, inc=None, di_block=None, plot_stereo = False, save=False, save_folder='.',fmt='svg'):
     """
     Conduct a reversal test using bootstrap statistics to determine whether two
-    directions could have been pulled from a bipolar common mean.
+    populations of directions could be from an antipodal common mean.
 
     Required Arguments
     ----------
-    D : data in declination/inclination blocks if I is None; OR declination if
-        I (inclination) keyword argument is specified
+    dec: list of declinations
+    inc: list of inclinations
+
+    or
+
+    di_block: a nested list of [dec,inc,1.0]
+    (di_block can be provided instead of dec, inc in which case it will be used)
 
     Optional Keywords (defaults are used if not specified)
     ----------
-    I : list of inclinations (default is None -- leave as default if both
-        declination AND inclination data are included in D)
     plot_stereo : before plotting the CDFs, plot stereonet with the
-        bidirectionally separated data (default is False)
+    bidirectionally separated data (default is False)
     save : boolean argument to save plots (default is False)
-    save_folder : relative directory where plots will be saved (default is current directory, '.')
-    fmt : format of saved figures (default is 'pdf')
+    save_folder : directory where plots will be saved (default is current directory, '.')
+    fmt : format of saved figures (default is 'svg')
     """
-    if I == None:
-        dec = []
-        inc = []
-        for i in range(len(D)):
-            dec.append(D[i][0])
-            inc.append(D[i][1])
+    if di_block == None:
         all_dirs = make_di_block(dec, inc)
     else:
-        dec = D
-        inc = I
-        all_dirs = make_di_block(dec, inc)
-    D1, D2 = pmag.flip(all_dirs)
+        all_dirs = di_block
+
+    directions1, directions2 = pmag.flip(all_dirs)
 
     if plot_stereo == True:
         # plot equal area with two modes
         plt.figure(num=0,figsize=(4,4))
         plot_net(0)
-        upper_dec = []
-        upper_inc = []
-        lower_dec= []
-        lower_inc = []
-        for n in range(len(D1)):
-            upper_dec.append(D1[n][0])
-            upper_inc.append(D1[n][1])
-        for n in range(len(D2)):
-            lower_dec.append(flip(D2)[n][0])
-            lower_inc.append(flip(D2)[n][1])
 
-        plot_di(upper_dec, upper_inc,color='b'),
-        plot_di(lower_dec, lower_inc, color = 'r')
+        plot_di(di_block = directions1,color='b'),
+        plot_di(di_block = flip(directions2), color = 'r')
     bootstrap_common_mean(D1, D2, save=save, save_folder=save_folder, fmt=fmt)
 
 def MM1990_reversal_test(D, I=None, plot_CDF=False, plot_stereo = False, save=False, save_folder='.', fmt='svg'):
