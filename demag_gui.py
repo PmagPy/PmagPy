@@ -440,7 +440,7 @@ class Zeq_GUI(wx.Frame):
         # Specimen interpretation window
  #----------------------------------------------------------------------
 
-        self.box_sizer_specimen = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY,"specimen mean type"  ), wx.HORIZONTAL )
+        self.box_sizer_specimen = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY,"interpretation type"  ), wx.HORIZONTAL )
 
         self.PCA_type_box = wx.ComboBox(self.panel, -1, size=(100*self.GUI_RESOLUTION, 25), value='line',choices=['line','line-anchored','line-with-origin','plane','Fisher'], style=wx.CB_DROPDOWN,name="coordinates")
         self.Bind(wx.EVT_COMBOBOX, self.on_select_specimen_mean_type_box,self.PCA_type_box)
@@ -456,7 +456,7 @@ class Zeq_GUI(wx.Frame):
                                            (self.plane_display_box, wx.ALIGN_LEFT)])
         self.box_sizer_specimen.Add(specimen_stat_type_window, 0, wx.ALIGN_LEFT, 0 )
 
-        self.box_sizer_specimen_stat = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.ID_ANY,"specimen fit statistics"), wx.HORIZONTAL )
+        self.box_sizer_specimen_stat = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.ID_ANY,"interpretation direction and statistics"), wx.HORIZONTAL )
 
         for parameter in ['dec','inc','n','mad','dang','alpha95']:
             COMMAND="self.s%s_window=wx.TextCtrl(self.panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50*self.GUI_RESOLUTION,25))"%parameter
