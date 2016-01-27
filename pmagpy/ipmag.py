@@ -5774,10 +5774,11 @@ def pmag_results_extract(res_file="pmag_results.txt", crit_file="", spec_file=""
         outfiles.append(Critout)
     return True, outfiles
 
-def bootstrap_reversal_test(dec=None, inc=None, di_block=None, plot_stereo = False, save=False, save_folder='.',fmt='svg'):
+def reversal_test_bootstrap(dec=None, inc=None, di_block=None, plot_stereo = False, save=False, save_folder='.',fmt='svg'):
     """
-    Conduct a reversal test using bootstrap statistics to determine whether two
-    populations of directions could be from an antipodal common mean.
+    Conduct a reversal test using bootstrap statistics (Tauxe, 2010) to
+    determine whether two populations of directions could be from an antipodal
+    common mean.
 
     Required Arguments
     ----------
@@ -5812,7 +5813,7 @@ def bootstrap_reversal_test(dec=None, inc=None, di_block=None, plot_stereo = Fal
         plot_di(di_block = do_flip(di_block = directions2), color = 'r')
     bootstrap_common_mean(D1, D2, save=save, save_folder=save_folder, fmt=fmt)
 
-def MM1990_reversal_test(D, I=None, plot_CDF=False, plot_stereo = False, save=False, save_folder='.', fmt='svg'):
+def reversal_test_MM1990(D, I=None, plot_CDF=False, plot_stereo = False, save=False, save_folder='.', fmt='svg'):
     """
     Conduct a reversal test using the Watson V test to determine whether two
     directions could have been pulled from a bipolar common mean.
