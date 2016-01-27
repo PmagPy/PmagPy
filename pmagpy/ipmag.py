@@ -54,7 +54,7 @@ def fisher_mean(dec=None, inc=None, di_block=None):
         return pmag.fisher_mean(di_block)
 
 
-def bingham_mean(dec,inc):
+def bingham_mean(dec, inc, di_block=None):
     """
     Calculates the Bingham mean and associated parameters from either a list of
     declination values and a separate list of inclination values or from a
