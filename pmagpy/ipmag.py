@@ -131,13 +131,13 @@ def fishrot(k=20, n=100, dec=0, inc=90, di_block=True):
     if di_block == True:
         for data in range(n):
             d,i=pmag.fshdev(k)
-            drot,irot=pmag.dodirot(d,i,Dec,Inc)
+            drot,irot=pmag.dodirot(d,i,dec,inc)
             directions.append([drot,irot,1.])
         return directions
     else:
         for data in range(n):
             d,i=pmag.fshdev(k)
-            drot,irot=pmag.dodirot(d,i,Dec,Inc)
+            drot,irot=pmag.dodirot(d,i,dec,inc)
             declinations.append(drot)
             inclinations.append(irot)
         return declinations, inclinations
@@ -791,7 +791,7 @@ def plot_di(dec,inc,color='k',marker='o',markersize=20,legend='no',label=''):
     plt.tight_layout()
 
 
-def plot_di_mean(Dec,Inc,a95,color='k',marker='o',markersize=20,label='',legend='no'):
+def plot_di_mean(dec,inc,a95,color='k',marker='o',markersize=20,label='',legend='no'):
     """
     Plot a mean declination, inclination with alpha_95 ellipse on an equal area plot.
 
@@ -803,8 +803,8 @@ def plot_di_mean(Dec,Inc,a95,color='k',marker='o',markersize=20,label='',legend=
 
     Required Arguments
     -----------
-    Dec : declination of mean being plotted
-    Inc : inclination of mean being plotted
+    dec : declination of mean being plotted
+    inc : inclination of mean being plotted
     a95 : a95 confidence ellipse of mean being plotted
 
     Optional Keywords
@@ -815,7 +815,7 @@ def plot_di_mean(Dec,Inc,a95,color='k',marker='o',markersize=20,label='',legend=
     label : the default is no label. Labels can be assigned.
     legend : the default is no legend ('no'). Putting 'yes' will plot a legend.
     """
-    DI_dimap=pmag.dimap(Dec,Inc)
+    DI_dimap=pmag.dimap(dec,inc)
     if Inc < 0:
         plt.scatter(DI_dimap[0],DI_dimap[1],
         edgecolors=color ,facecolors='white',
@@ -825,7 +825,7 @@ def plot_di_mean(Dec,Inc,a95,color='k',marker='o',markersize=20,label='',legend=
         edgecolors=color,facecolors=color,
         marker=marker,s=markersize,label=label)
     Xcirc,Ycirc=[],[]
-    Da95,Ia95=pmag.circ(Dec,Inc,a95)
+    Da95,Ia95=pmag.circ(dec,inc,a95)
     if legend=='yes':
         plt.legend(loc=2)
     for k in range(len(Da95)):
