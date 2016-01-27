@@ -177,13 +177,23 @@ def unsquish(f,incs):
 
     Arguments
     ----------
-    f : unflattening factor
-    incs : inclination values
+    incs : list of inclination values or a single value
+    f : unflattening factor (between 0.0 and 1.0)
     """
-    incs=incs*np.pi/180. # convert to radians
-    tincnew=(1./f)*np.tan(incs)
-    incnew=np.arctan(tincnew)*180./np.pi # convert back to degrees
-    return incnew
+    try:
+        length = len(incs)
+        incs_unsquished = []
+        for n in range(0,length):
+            inc_rad = incs[n]*np.pi/180. # convert to radians
+            inc_new_rad = (1./f)*np.tan(inc_rad)
+            inc_new = np.arctan(inc_new_rad)*180./np.pi # convert back to degrees
+            incs_unsquished.append(inc_new)
+        return incs_unsquished
+    except:
+        inc_rad = incs*np.pi/180. # convert to radians
+        inc_new_rad = (1./f)*np.tan(inc_rad)
+        inc_new = np.arctan(inc_new_rad)*180./np.pi # convert back to degrees
+        return inc_new
 
 
 def squish(f,incs):
@@ -194,7 +204,7 @@ def squish(f,incs):
     Arguments
     ----------
     f : flattening factor
-    incs : inclination values
+    incs : list of inclination values
     """
     incs=incs*np.pi/180. # convert to radians
     tincnew=f*np.tan(incs)
