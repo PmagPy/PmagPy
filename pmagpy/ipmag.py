@@ -118,7 +118,7 @@ def fishrot(k=20, n=100, dec=0, inc=90, di_block=True):
     n : number of vectors to determine (default is 100)
     dec : mean declination of distribution (default is 0)
     inc : mean inclination of distribution (default is 90)
-    di_block : this function will return a nested of [dec,inc,1.0] as the default
+    di_block : this function returns a nested of [dec,inc,1.0] as the default
     if di_block = False it will return a list of dec and a list of inc
     """
     directions=[]
@@ -203,9 +203,14 @@ def squish(f,incs):
 
     Arguments
     ----------
+    incs : list of inclination values or a single value
     f : flattening factor
-    incs : list of inclination values
     """
+    try:
+        length = len(incs)
+        incs_unsquished = []
+        for n in range(0,length):
+
     incs=incs*np.pi/180. # convert to radians
     tincnew=f*np.tan(incs)
     incnew=np.arctan(tincnew)*180./np.pi # convert back to degrees
@@ -822,11 +827,11 @@ def plot_di_mean(dec,inc,a95,color='k',marker='o',markersize=20,label='',legend=
     legend : the default is no legend ('no'). Putting 'yes' will plot a legend.
     """
     DI_dimap=pmag.dimap(dec,inc)
-    if Inc < 0:
+    if inc < 0:
         plt.scatter(DI_dimap[0],DI_dimap[1],
         edgecolors=color ,facecolors='white',
         marker=marker,s=markersize,label=label)
-    if Inc >= 0:
+    if inc >= 0:
         plt.scatter(DI_dimap[0],DI_dimap[1],
         edgecolors=color,facecolors=color,
         marker=marker,s=markersize,label=label)
