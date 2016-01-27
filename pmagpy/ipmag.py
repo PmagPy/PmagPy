@@ -46,6 +46,7 @@ def fisher_mean(dec,inc):
     di_block = make_di_block(dec,inc)
     return pmag.fisher_mean(di_block)
 
+
 def bingham_mean(dec,inc):
     """
     Calculates the Bingham mean and associated parameters from a list of
@@ -104,6 +105,7 @@ def fishrot(k=20,n=100,Dec=0,Inc=90,DIBlock=True):
             declinations.append(drot)
             inclinations.append(irot)
         return declinations, inclinations
+
 
 def tk03(n=100,dec=0,lat=0,rev='no',G2=0,G3=0):
     """
@@ -862,21 +864,22 @@ def plot_vgp(mapname,plong,plat,label='',color='k',marker='o',legend='no'):
         plt.legend(loc=2)
 
 
-def vgp_calc(dataframe,tilt_correction='yes', dec_is = 'dec_is', inc_is = 'inc_is', dec_tc = 'dec_tc', inc_tc = 'inc_tc'):
+def vgp_calc(dataframe,tilt_correction='yes', site_lon = 'site_lon', site_lat = 'site_lat', dec_is = 'dec_is', inc_is = 'inc_is', dec_tc = 'dec_tc', inc_tc = 'inc_tc'):
     """
     This function calculates paleomagnetic poles using directional data and site location data within a pandas.DataFrame. The function adds the columns 'paleolatitude', 'pole_lat', 'pole_lon', 'pole_lat_rev', and 'pole_lon_rev' to the dataframe. The '_rev' columns allow for subsequent choice as to which polarity will be used for the VGPs.
 
     Parameters
     -----------
-    tilt-correction : 'yes' is the default and uses tilt-corrected data (dec_tc, inc_tc), 'no' uses data that is not tilt-corrected and is geographic coordinates
     dataframe : the name of the pandas.DataFrame containing the data
-    dataframe['site_lat'] : the latitude of the site
-    dataframe['site_lon'] : the longitude of the site
+
     ----- the following default keys can be changes by keyword argument -----
-    dataframe['inc_tc'] : the tilt-corrected inclination (used by default tilt-correction='yes')
-    dataframe['dec_tc'] : the tilt-corrected declination (used by default tilt-correction='yes')
-    dataframe['inc_is'] : the insitu inclination (used when tilt-correction='no')
-    dataframe['dec_is'] : the insitu declination (used when tilt-correction='no')
+    tilt-correction : 'yes' is the default and uses tilt-corrected data (dec_tc, inc_tc), 'no' uses data that is not tilt-corrected and is in geographic coordinates
+    dataframe['site_lat'] : the name of the Dataframe column containing the latitude of the site
+    dataframe['site_lon'] : the name of the Dataframe column containing the longitude of the site
+    dataframe['inc_tc'] : the name of the Dataframe column containing the tilt-corrected inclination (used by default tilt-correction='yes')
+    dataframe['dec_tc'] : the name of the Dataframe column containing the tilt-corrected declination (used by default tilt-correction='yes')
+    dataframe['inc_is'] : the name of the Dataframe column containing the insitu inclination (used when tilt-correction='no')
+    dataframe['dec_is'] : the name of the Dataframe column containing the insitu declination (used when tilt-correction='no')
     """
     dataframe.is_copy = False
     if tilt_correction=='yes':
@@ -884,9 +887,9 @@ def vgp_calc(dataframe,tilt_correction='yes', dec_is = 'dec_is', inc_is = 'inc_i
         dataframe['paleolatitude']=np.degrees(np.arctan(0.5*np.tan(np.radians(dataframe[inc_tc]))))
         dataframe['colatitude']=90-dataframe['paleolatitude']
         #calculate the latitude of the pole
-        dataframe['vgp_lat']=np.degrees(np.arcsin(np.sin(np.radians(dataframe['site_lat']))*
+        dataframe['vgp_lat']=np.degrees(np.arcsin(np.sin(np.radians(dataframe[site_lat]))*
                                                              np.cos(np.radians(dataframe['colatitude']))+
-                                                             np.cos(np.radians(dataframe['site_lat']))*
+                                                             np.cos(np.radians(dataframe[site_lat]))*
                                                              np.sin(np.radians(dataframe['colatitude']))*
                                                              np.cos(np.radians(dataframe[dec_tc]))))
         #calculate the longitudinal difference between the pole and the site (beta)
@@ -895,8 +898,8 @@ def vgp_calc(dataframe,tilt_correction='yes', dec_is = 'dec_is', inc_is = 'inc_i
                                          (np.cos(np.radians(dataframe['vgp_lat'])))))
         #generate a boolean array (mask) to use to distinguish between the two possibilities for pole longitude
         #and then calculate pole longitude using the site location and calculated beta
-        mask = np.cos(np.radians(dataframe['colatitude']))>np.sin(np.radians(dataframe['site_lat']))*np.sin(np.radians(dataframe['vgp_lat']))
-        dataframe['vgp_lon']=np.where(mask,(dataframe['site_lon']+dataframe['beta'])%360.,(dataframe['site_lon']+180-dataframe['beta'])%360.)
+        mask = np.cos(np.radians(dataframe['colatitude']))>np.sin(np.radians(dataframe[site_lat]))*np.sin(np.radians(dataframe['vgp_lat']))
+        dataframe['vgp_lon']=np.where(mask,(dataframe[site_lon]+dataframe['beta'])%360.,(dataframe[site_lon]+180-dataframe['beta'])%360.)
         #calculate the antipode of the poles
         dataframe['vgp_lat_rev']=-dataframe['vgp_lat']
         dataframe['vgp_lon_rev']=(dataframe['vgp_lon']-180.)%360.
@@ -909,9 +912,9 @@ def vgp_calc(dataframe,tilt_correction='yes', dec_is = 'dec_is', inc_is = 'inc_i
         dataframe['paleolatitude']=np.degrees(np.arctan(0.5*np.tan(np.radians(dataframe[inc_is]))))
         dataframe['colatitude']=90-dataframe['paleolatitude']
         #calculate the latitude of the pole
-        dataframe['vgp_lat']=np.degrees(np.arcsin(np.sin(np.radians(dataframe['site_lat']))*
+        dataframe['vgp_lat']=np.degrees(np.arcsin(np.sin(np.radians(dataframe[site_lat]))*
                                                              np.cos(np.radians(dataframe['colatitude']))+
-                                                             np.cos(np.radians(dataframe['site_lat']))*
+                                                             np.cos(np.radians(dataframe[site_lat]))*
                                                              np.sin(np.radians(dataframe['colatitude']))*
                                                              np.cos(np.radians(dataframe[dec_is]))))
         #calculate the longitudinal difference between the pole and the site (beta)
@@ -920,8 +923,8 @@ def vgp_calc(dataframe,tilt_correction='yes', dec_is = 'dec_is', inc_is = 'inc_i
                                          (np.cos(np.radians(dataframe['vgp_lat'])))))
         #generate a boolean array (mask) to use to distinguish between the two possibilities for pole longitude
         #and then calculate pole longitude using the site location and calculated beta
-        mask = np.cos(np.radians(dataframe['colatitude']))>np.sin(np.radians(dataframe['site_lat']))*np.sin(np.radians(dataframe['vgp_lat']))
-        dataframe['vgp_lon']=np.where(mask,(dataframe['site_lon']+dataframe['beta'])%360.,(dataframe['site_lon']+180-dataframe['beta'])%360.)
+        mask = np.cos(np.radians(dataframe['colatitude']))>np.sin(np.radians(dataframe[site_lat]))*np.sin(np.radians(dataframe['vgp_lat']))
+        dataframe['vgp_lon']=np.where(mask,(dataframe[site_lon]+dataframe['beta'])%360.,(dataframe[site_lon]+180-dataframe['beta'])%360.)
         #calculate the antipode of the poles
         dataframe['vgp_lat_rev']=-dataframe['vgp_lat']
         dataframe['vgp_lon_rev']=(dataframe['vgp_lon']-180.)%360.
