@@ -196,25 +196,25 @@ def unsquish(f,incs):
         return inc_new
 
 
-def squish(f,incs):
-    """
-    This function applies an flattening factor (f) to inclination data
-    (incs) and returns 'squished' values.
-
-    Arguments
-    ----------
-    incs : list of inclination values or a single value
-    f : flattening factor
-    """
-    try:
-        length = len(incs)
-        incs_unsquished = []
-        for n in range(0,length):
-
-    incs=incs*np.pi/180. # convert to radians
-    tincnew=f*np.tan(incs)
-    incnew=np.arctan(tincnew)*180./np.pi # convert back to degrees
-    return incnew
+# def squish(f,incs):
+#     """
+#     This function applies an flattening factor (f) to inclination data
+#     (incs) and returns 'squished' values.
+#
+#     Arguments
+#     ----------
+#     incs : list of inclination values or a single value
+#     f : flattening factor
+#     """
+#     try:
+#         length = len(incs)
+#         incs_unsquished = []
+#         for n in range(0,length):
+#
+#     incs=incs*np.pi/180. # convert to radians
+#     tincnew=f*np.tan(incs)
+#     incnew=np.arctan(tincnew)*180./np.pi # convert back to degrees
+#     return incnew
 
 
 def flip(dec=None, inc=None, di_block=None):
@@ -804,10 +804,11 @@ def plot_di(dec,inc,color='k',marker='o',markersize=20,legend='no',label=''):
 
 def plot_di_mean(dec,inc,a95,color='k',marker='o',markersize=20,label='',legend='no'):
     """
-    Plot a mean declination, inclination with alpha_95 ellipse on an equal area plot.
+    Plot a mean direction (declination, inclination) with alpha_95 ellipse on
+    an equal area plot.
 
-    Before this function is called a plot needs to be initialized with code that looks
-    something like:
+    Before this function is called, a plot needs to be initialized with code
+    that looks something like:
     >fignum = 1
     >plt.figure(num=fignum,figsize=(10,10),dpi=160)
     >ipmag.plot_net(fignum)
@@ -820,9 +821,9 @@ def plot_di_mean(dec,inc,a95,color='k',marker='o',markersize=20,label='',legend=
 
     Optional Keywords
     -----------
-    color : the default color is black. Other colors can be chosen (e.g. 'r')
-    marker : the default is a circle. Other symbols can be chosen (e.g. 's')
-    markersize : the default is 20. Other size can be chosen
+    color : the default color is black. Other colors can be chosen (e.g. 'r').
+    marker : the default is a circle. Other symbols can be chosen (e.g. 's').
+    markersize : the default is 20. Other sizes can be chosen.
     label : the default is no label. Labels can be assigned.
     legend : the default is no legend ('no'). Putting 'yes' will plot a legend.
     """
