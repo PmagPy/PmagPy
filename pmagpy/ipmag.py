@@ -128,7 +128,7 @@ def fishrot(k=20, n=100, dec=0, inc=90, di_block=True):
     directions=[]
     declinations=[]
     inclinations=[]
-    if DIBlock == True:
+    if di_block == True:
         for data in range(n):
             d,i=pmag.fshdev(k)
             drot,irot=pmag.dodirot(d,i,Dec,Inc)
@@ -147,7 +147,8 @@ def tk03(n=100,dec=0,lat=0,rev='no',G2=0,G3=0):
     """
     Generates vectors drawn from the TK03.gad model of secular
     variation (Tauxe and Kent, 2004) at given latitude and rotated
-    about a vertical axis by the given declination.
+    about a vertical axis by the given declination. Return a nested list of
+    of [dec,inc,intensity].
 
     Parameters
     ----------
