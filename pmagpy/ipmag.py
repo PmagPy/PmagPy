@@ -35,39 +35,61 @@ def print_igrf(igrf_array):
     print "Inclination: %0.3f"%(igrf_array[1])
     print "Intensity: %0.3f n"%(igrf_array[0])
 
-def fisher_mean(dec,inc):
+def fisher_mean(dec=None, inc=None, di_block=None):
     """
-    Calculates the Fisher mean and associated parameters from a list of
-    declination values and a separate list of inclination values (which are
-    in order such that they are paired with one another and made into a di_block
-    that is passed to pmag.fisher_mean)
+    Calculates the Fisher mean and associated parameters from either a list of
+    declination values and a separate list of inclination values or from a
+    di_block (a nested list a nested list of [dec,inc,1.0]). Returns a
+    dictionary with the Fisher mean and statistical parameters.
 
-    Arguments
+    Keywords
     ----------
-    dec : list with declination values
-    inc : list with inclination values
+    dec: list of declinations
+    inc: list of inclinations
+
+    di_block: a nested list of [dec,inc,1.0]
+    A di_block can be provided instead of dec, inc lists in which case it will
+    be used. Either dec, inc lists or a di_block need to passed to the function.
     """
-    di_block = make_di_block(dec,inc)
-    return pmag.fisher_mean(di_block)
+    if di_block == None:
+        di_block = make_di_block(dec,inc)
+        return pmag.fisher_mean(di_block)
+    else:
+        return pmag.fisher_mean(di_block)
 
 
 def bingham_mean(dec,inc):
     """
-    Calculates the Bingham mean and associated parameters from a list of
-    declination values and a separate list of inclination values (which are
-    in order such that they are paired with one another and made into a di_block
-    that is passed to pmag.fisher_mean)
+    Calculates the Bingham mean and associated parameters from either a list of
+    declination values and a separate list of inclination values or from a
+    di_block (a nested list a nested list of [dec,inc,1.0]). Returns a
+    dictionary with the Bingham mean and statistical parameters.
 
-    Arguments
+    Keywords
     ----------
-    dec : list with declination values
-    inc : list with inclination values
+    dec: list of declinations
+    inc: list of inclinations
+
+    di_block: a nested list of [dec,inc,1.0]
+    A di_block can be provided instead of dec, inc lists in which case it will
+    be used. Either dec, inc lists or a di_block need to passed to the function.
     """
-    di_block = make_di_block(dec,inc)
-    return pmag.dobingham(di_block)
+    if di_block == None:
+        di_block = make_di_block(dec,inc)
+        return pmag.dobingham(di_block)
+    else:
+        return pmag.dobingham(di_block)
 
 
 def print_direction_mean(mean_dictionary):
+    """
+    Does a pretty job printing a Fisher mean and associated statistics for
+    directional data.
+
+    Arguments
+    ----------
+    mean_dictionary: output of pmag.fisher_mean
+    """
     print 'Dec: ' + str(round(mean_dictionary['dec'],1)) + '  Inc: ' + str(round(mean_dictionary['inc'],1))
     print 'Number of directions in mean (n): ' + str(mean_dictionary['n'])
     print 'Angular radius of 95% confidence (a_95): ' + str(round(mean_dictionary['alpha95'],1))
@@ -75,13 +97,21 @@ def print_direction_mean(mean_dictionary):
 
 
 def print_pole_mean(mean_dictionary):
+    """
+    Does a pretty job printing a Fisher mean and associated statistics for
+    mean paleomagnetic poles.
+
+    Arguments
+    ----------
+    mean_dictionary: output of pmag.fisher_mean
+    """
     print 'Plong: ' + str(round(mean_dictionary['dec'],1)) + '  Plat: ' + str(round(mean_dictionary['inc'],1))
     print 'Number of directions in mean (n): ' + str(mean_dictionary['n'])
     print 'Angular radius of 95% confidence (A_95): ' + str(round(mean_dictionary['alpha95'],1))
     print 'Precision parameter (k) estimate: ' + str(round(mean_dictionary['k'],1))
 
 
-def fishrot(k=20,n=100,Dec=0,Inc=90,DIBlock=True):
+def fishrot(k=20, n=100, dec=0, inc=90, di_block=True):
     """
     Generates Fisher distributed unit vectors from a specified distribution
     using the pmag.py fshdev and dodirot functions.
@@ -90,8 +120,10 @@ def fishrot(k=20,n=100,Dec=0,Inc=90,DIBlock=True):
     ----------
     k : kappa precision parameter (default is 20)
     n : number of vectors to determine (default is 100)
-    Dec : mean declination of distribution (default is 0)
-    Inc : mean inclination of distribution (default is 90)
+    dec : mean declination of distribution (default is 0)
+    inc : mean inclination of distribution (default is 90)
+    di_block : this function will return a nested of [dec,inc,1.0] as the default
+    if di_block = False it will return a list of dec and a list of inc
     """
     directions=[]
     declinations=[]
@@ -173,23 +205,37 @@ def squish(f,incs):
     return incnew
 
 
-def flip(D,DIBlock=True): #function simplified from PmagPy pmag.flip function
+def flip(dec=None, inc=None, di_block=None):
     """
-    This function returns the antipode (i.e. it flips) of the unit vectors
-    in D (dec,inc,length).
+    This function returns the antipode (i.e. it flips) of directions.
+
+    The function can take dec and inc as seperate lists if they are of equal
+    length and explicitly specified or are the first two arguments. It will then
+    return a list of flipped decs and a list of flipped incs. If a di_block (a
+    nested list of [dec,inc,1.0]) is specified then it is used and the function
+    returns a di_block with the flipped directions.
+
+    Keywords (defaults are used if not specified)
+    ----------
+    dec: list of declinations
+    inc: list of inclinations
+
+    di_block: a nested list of [dec,inc,1.0]
+    (di_block can be provided instead of dec, inc in which case it will be used)
     """
-    Dflip=[]
-    dec_flip = []
-    inc_flip = []
-    for rec in D:
-        d, i = (rec[0]-180.)%360., -rec[1]
-        Dflip.append([d, i, 1.0])
-        dec_flip.append(d)
-        inc_flip.append(i)
-    if DIBlock == True:
-        return Dflip
-    else:
+    if di_block == None:
+        dec_flip = []
+        inc_flip = []
+        for n in range(0,len(dec)):
+            dec_flip.append((dec[n]-180.)%360.0)
+            inc_flip.append(-inc[n])
         return dec_flip, inc_flip
+    else:
+        dflip=[]
+        for rec in di_block:
+            d, i = (rec[0]-180.)%360., -rec[1]
+            dflip.append([d, i, 1.0])
+        return dflip
 
 
 def bootstrap_fold_test(Data,num_sims=1000,min_untilt=-10,max_untilt=120, bedding_error=0, save = False, save_folder = '.',fmt = 'svg'):
