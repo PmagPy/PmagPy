@@ -1,6 +1,5 @@
 import pmag
-#import ipmagplotlib
-import pmagplotlib as ipmagplotlib
+import pmagplotlib
 import copy
 import numpy as np
 import random
@@ -11,11 +10,10 @@ import sys
 import time
 import re
 import math
-
-
 #from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigureCanvas
 #from matplotlib.backends.backend_wx import NavigationToolbar2Wx
 from matplotlib.figure import Figure
+
 
 def igrf(input_list):
     """
@@ -288,7 +286,7 @@ def bootstrap_fold_test(Data,num_sims=1000,min_untilt=-10,max_untilt=120, beddin
 
     plt.figure(figsize=[5,5])
     plot_net(1)
-    ipmagplotlib.plotDI(1,Data)  # plot directions
+    pmagplotlib.plotDI(1,Data)  # plot directions
     plt.text(-1.1,1.15,'Geographic')
     if save==True:
         plt.savefig(os.path.join(save_folder, 'eq_geo') + '.' + fmt)
@@ -298,7 +296,7 @@ def bootstrap_fold_test(Data,num_sims=1000,min_untilt=-10,max_untilt=120, beddin
 
     plt.figure(figsize=[5,5])
     plot_net(2)
-    ipmagplotlib.plotDI(2,TCs)  # plot directions
+    pmagplotlib.plotDI(2,TCs)  # plot directions
     plt.text(-1.1,1.15,'Tilt-corrected')
     if save==True:
         plt.savefig(os.path.join(save_folder, 'eq_tc') + '.' + fmt)
@@ -361,8 +359,8 @@ def common_mean_bootstrap(Data1,Data2,NumSims=1000, save=False, save_folder = '.
 
     Arguments
     ----------
-    Data1 : a list of directional data [dec,inc]
-    Data2 : a list of directional data [dec,inc]
+    Data1 : a nested list of directional data [dec,inc] (a di_block)
+    Data2 : a nested list of directional data [dec,inc] (a di_block)
 
     Optional Keywords (defaults are used if not specified)
     ----------
@@ -386,35 +384,35 @@ def common_mean_bootstrap(Data1,Data2,NumSims=1000, save=False, save_folder = '.
     minimum = int(0.025*len(X1))
     maximum = int(0.975*len(X1))
 
-    X1,y=ipmagplotlib.plotCDF(fignum,X1,"X component",'r',"")
+    X1,y=pmagplotlib.plotCDF(fignum,X1,"X component",'r',"")
     bounds1=[X1[minimum],X1[maximum]]
-    ipmagplotlib.plotVs(fignum,bounds1,'r','-')
+    pmagplotlib.plotVs(fignum,bounds1,'r','-')
 
-    X2,y=ipmagplotlib.plotCDF(fignum,X2,"X component",'b',"")
+    X2,y=pmagplotlib.plotCDF(fignum,X2,"X component",'b',"")
     bounds2=[X2[minimum],X2[maximum]]
-    ipmagplotlib.plotVs(fignum,bounds2,'b','--')
+    pmagplotlib.plotVs(fignum,bounds2,'b','--')
     plt.ylim(0,1)
 
     plt.subplot(1,3,2)
 
-    Y1,y=ipmagplotlib.plotCDF(fignum,Y1,"Y component",'r',"")
+    Y1,y=pmagplotlib.plotCDF(fignum,Y1,"Y component",'r',"")
     bounds1=[Y1[minimum],Y1[maximum]]
-    ipmagplotlib.plotVs(fignum,bounds1,'r','-')
+    pmagplotlib.plotVs(fignum,bounds1,'r','-')
 
-    Y2,y=ipmagplotlib.plotCDF(fignum,Y2,"Y component",'b',"")
+    Y2,y=pmagplotlib.plotCDF(fignum,Y2,"Y component",'b',"")
     bounds2=[Y2[minimum],Y2[maximum]]
-    ipmagplotlib.plotVs(fignum,bounds2,'b','--')
+    pmagplotlib.plotVs(fignum,bounds2,'b','--')
     plt.ylim(0,1)
 
     plt.subplot(1,3,3)
 
-    Z1,y=ipmagplotlib.plotCDF(fignum,Z1,"Z component",'r',"")
+    Z1,y=pmagplotlib.plotCDF(fignum,Z1,"Z component",'r',"")
     bounds1=[Z1[minimum],Z1[maximum]]
-    ipmagplotlib.plotVs(fignum,bounds1,'r','-')
+    pmagplotlib.plotVs(fignum,bounds1,'r','-')
 
-    Z2,y=ipmagplotlib.plotCDF(fignum,Z2,"Z component",'b',"")
+    Z2,y=pmagplotlib.plotCDF(fignum,Z2,"Z component",'b',"")
     bounds2=[Z2[minimum],Z2[maximum]]
-    ipmagplotlib.plotVs(fignum,bounds2,'b','--')
+    pmagplotlib.plotVs(fignum,bounds2,'b','--')
     plt.ylim(0,1)
 
     plt.tight_layout()
@@ -435,8 +433,8 @@ def common_mean_watson(Data1,Data2,NumSims=5000,plot='no', save=False, save_fold
 
     Required Arguments
     ----------
-    Data1 : a list of directional data [dec,inc]
-    Data2 : a list of directional data [dec,inc]
+    Data1 : a nested list of directional data [dec,inc] (a di_block)
+    Data2 : a nested list of directional data [dec,inc] (a di_block)
 
     Optional Keywords (defaults are used if not specified)
     ----------
@@ -550,13 +548,13 @@ def common_mean_watson(Data1,Data2,NumSims=5000,plot='no', save=False, save_fold
     if plot=='yes':
         CDF={'cdf':1}
         #pmagplotlib.plot_init(CDF['cdf'],5,5)
-        p1 = ipmagplotlib.plotCDF(CDF['cdf'],Vp,"Watson's V",'r',"")
-        p2 = ipmagplotlib.plotVs(CDF['cdf'],[V],'g','-')
-        p3 = ipmagplotlib.plotVs(CDF['cdf'],[Vp[k]],'b','--')
+        p1 = pmagplotlib.plotCDF(CDF['cdf'],Vp,"Watson's V",'r',"")
+        p2 = pmagplotlib.plotVs(CDF['cdf'],[V],'g','-')
+        p3 = pmagplotlib.plotVs(CDF['cdf'],[Vp[k]],'b','--')
         #pmagplotlib.drawFIGS(CDF)
         if save==True:
             plt.savefig(os.path.join(save_folder, 'common_mean_watson') + '.' + fmt)
-        ipmagplotlib.showFIG(CDF['cdf'])
+        pmagplotlib.showFIG(CDF['cdf'])
 
 
 def reversal_test_bootstrap(dec=None, inc=None, di_block=None, plot_stereo = False, save=False, save_folder='.',fmt='svg'):
@@ -720,8 +718,8 @@ def fishqq(longitude, latitude):
                 I1.append(irot)
                 Dtit='Mode 1 Declinations'
                 Itit='Mode 1 Inclinations'
-        Mu_n,Mu_ncr=ipmagplotlib.plotQQunf(QQ['unf1'],D1,Dtit) # make plot
-        Me_n,Me_ncr=ipmagplotlib.plotQQexp(QQ['exp1'],I1,Itit) # make plot
+        Mu_n,Mu_ncr=pmagplotlib.plotQQunf(QQ['unf1'],D1,Dtit) # make plot
+        Me_n,Me_ncr=pmagplotlib.plotQQexp(QQ['exp1'],I1,Itit) # make plot
         if Mu_n<=Mu_ncr and Me_n<=Me_ncr:
            F_n = 'consistent with Fisherian model'
         else:
@@ -751,8 +749,8 @@ def fishqq(longitude, latitude):
             I2.append(irot)
             Dtit='Mode 2 Declinations'
             Itit='Mode 2 Inclinations'
-        Mu_r,Mu_rcr=ipmagplotlib.plotQQunf(QQ['unf2'],D2,Dtit) # make plot
-        Me_r,Me_rcr=ipmagplotlib.plotQQexp(QQ['exp2'],I2,Itit) # make plot
+        Mu_r,Mu_rcr=pmagplotlib.plotQQunf(QQ['unf2'],D2,Dtit) # make plot
+        Me_r,Me_rcr=pmagplotlib.plotQQexp(QQ['exp2'],I2,Itit) # make plot
 
         if Mu_r<=Mu_rcr and Me_r<=Me_rcr:
            F_r = 'consistent with Fisherian model'
@@ -1109,6 +1107,7 @@ def vgp_calc(dataframe,tilt_correction='yes', site_lon = 'site_lon', site_lat = 
         del dataframe['colatitude']
         del dataframe['beta']
 
+
 def sb_vgp_calc(dataframe,site_correction = 'yes', dec_tc = 'dec_tc', inc_tc = 'inc_tc'):
     """
     This function calculates the angular dispersion of VGPs and corrects
@@ -1190,6 +1189,7 @@ def sb_vgp_calc(dataframe,site_correction = 'yes', dec_tc = 'dec_tc', inc_tc = '
         Sb=((1.0/(N-1.0))*summation)**0.5
 
     return Sb
+
 
 def make_di_block(dec,inc):
     """
@@ -1574,7 +1574,7 @@ def aniso_depthplot(ani_file='rmag_anisotropy.txt', meas_file='magic_measurement
                         plt.plot([0,bmax],[depth,depth],'b--')
                         if label==1:plt.text(1.1*bmax,depth+tint,core[core_label_key])
         for x in Axs:
-            ipmagplotlib.delticks(x) # this makes the x-tick labels more reasonable - they were overcrowded using the defaults
+            pmagplotlib.delticks(x) # this makes the x-tick labels more reasonable - they were overcrowded using the defaults
         fig_name = location + '_ani_depthplot.' + fmt
         return main_plot, fig_name
     else:
@@ -1936,7 +1936,7 @@ def core_depthplot(input_dir_path='.', meas_file='magic_measurements.txt', spc_f
             plt.xlabel('Declination')
             plt.ylabel(ylab)
             plot+=1
-            ipmagplotlib.delticks(ax) # dec xticks are too crowded otherwise
+            pmagplotlib.delticks(ax) # dec xticks are too crowded otherwise
     else:
         return False, 'No data found to plot\nTry again with different parameters'
     if pltInc:
@@ -2497,12 +2497,12 @@ def specimens_results_magic(infile='pmag_specimens.txt', measfile='magic_measure
 
 
     if plotsites and not skip_directions: # plot by site - set up plot window
-        import ipmagplotlib
+        import pmagplotlib
         EQ={}
         EQ['eqarea']=1
-        ipmagplotlib.plot_init(EQ['eqarea'],5,5) # define figure 1 as equal area projection
-        ipmagplotlib.plotNET(EQ['eqarea']) # I don't know why this has to be here, but otherwise the first plot never plots...
-        ipmagplotlib.drawFIGS(EQ)
+        pmagplotlib.plot_init(EQ['eqarea'],5,5) # define figure 1 as equal area projection
+        pmagplotlib.plotNET(EQ['eqarea']) # I don't know why this has to be here, but otherwise the first plot never plots...
+        pmagplotlib.drawFIGS(EQ)
 
     infile = os.path.join(dir_path, infile)
     measfile = os.path.join(dir_path, measfile)
@@ -2785,8 +2785,8 @@ def specimens_results_magic(infile='pmag_specimens.txt', measfile='magic_measure
                             PmagSiteRec['magic_method_codes'].strip(":")
                             if plotsites:
                                 print PmagSiteRec['er_site_name']
-                                ipmagplotlib.plotSITE(EQ['eqarea'],PmagSiteRec,siteD,key) # plot and list the data
-                                ipmagplotlib.drawFIGS(EQ)
+                                pmagplotlib.plotSITE(EQ['eqarea'],PmagSiteRec,siteD,key) # plot and list the data
+                                pmagplotlib.drawFIGS(EQ)
                             PmagSites.append(PmagSiteRec)
                 else: # last component only
                     siteD=tmp1[:] # get the last orientation system specified
@@ -2808,8 +2808,8 @@ def specimens_results_magic(infile='pmag_specimens.txt', measfile='magic_measure
                         PmagSiteRec['magic_method_codes'].strip(":")
                         if not avg_directions_by_sample:PmagSiteRec['site_comp_name']= pmag.get_list(siteD,key+'_comp_name')
                         if plotsites:
-                            ipmagplotlib.plotSITE(EQ['eqarea'],PmagSiteRec,siteD,key)
-                            ipmagplotlib.drawFIGS(EQ)
+                            pmagplotlib.plotSITE(EQ['eqarea'],PmagSiteRec,siteD,key)
+                            pmagplotlib.drawFIGS(EQ)
                         PmagSites.append(PmagSiteRec)
             else:
                 print 'site information not found in er_sites for site, ',site,' site will be skipped'
@@ -5021,7 +5021,7 @@ class Site(object):
     def eq_plot_everything(self,title=None):
         fignum = 0
         plt.figure(num=fignum,figsize=(8,8),dpi=200)
-        ipmagplotlib.plotNET(fignum)
+        pmagplotlib.plotNET(fignum)
         for fits in self.fit_types:
             mean_code = str(fits)+"_mean"
             print mean_code
@@ -5042,7 +5042,7 @@ class Site(object):
     def eq_plot(self,fit_name,title=None):
         fignum = 0
         plt.figure(num=fignum,figsize=(8,8),dpi=200)
-        ipmagplotlib.plotNET(fignum)
+        pmagplotlib.plotNET(fignum)
         mean_code = str(fit_name)+"_mean"
         #print mean_code
         self.random_color = np.random.rand(3)
@@ -5100,7 +5100,7 @@ def dayplot(path_to_file = '.',hyst_file="rmag_hysteresis.txt",
     rem_path = os.path.join(path_to_file,rem_file)
     #hyst_file,rem_file="rmag_hysteresis.txt","rmag_remanence.txt"
     dir_path = path_to_file
-    verbose=ipmagplotlib.verbose
+    verbose=pmagplotlib.verbose
     # initialize some variables
     # define figure numbers for Day,S-Bc,S-Bcr
     DSC={}
@@ -5140,24 +5140,24 @@ def dayplot(path_to_file = '.',hyst_file="rmag_hysteresis.txt",
     #
     leglist=[]
     if len(Bcr1)>0:
-        ipmagplotlib.plotDay(DSC['day'],Bcr1Bc,S1,'ro')
-        ipmagplotlib.plotSBcr(DSC['S-Bcr'],Bcr1,S1,'ro')
-        ipmagplotlib.plot_init(DSC['bcr1-bcr2'],5,5)
-        ipmagplotlib.plotBcr(DSC['bcr1-bcr2'],Bcr1,Bcr2)
+        pmagplotlib.plotDay(DSC['day'],Bcr1Bc,S1,'ro')
+        pmagplotlib.plotSBcr(DSC['S-Bcr'],Bcr1,S1,'ro')
+        pmagplotlib.plot_init(DSC['bcr1-bcr2'],5,5)
+        pmagplotlib.plotBcr(DSC['bcr1-bcr2'],Bcr1,Bcr2)
         plt.show()
     else:
         del DSC['bcr1-bcr2']
     if save==True:
-        ipmagplotlib.plotDay(DSC['day'],BcrBc,S,'bs')
+        pmagplotlib.plotDay(DSC['day'],BcrBc,S,'bs')
         plt.savefig(os.path.join(save_folder,'Day.' + fmt))
-        ipmagplotlib.plotSBcr(DSC['S-Bcr'],Bcr,S,'bs')
+        pmagplotlib.plotSBcr(DSC['S-Bcr'],Bcr,S,'bs')
         plt.savefig(os.path.join(save_folder,'S-Bcr.' + fmt))
-        ipmagplotlib.plotSBc(DSC['S-Bc'],Bc,S,'bs')
+        pmagplotlib.plotSBc(DSC['S-Bc'],Bc,S,'bs')
         plt.savefig(os.path.join(save_folder,'S-Bc.' + fmt))
     else:
-        ipmagplotlib.plotDay(DSC['day'],BcrBc,S,'bs')
-        ipmagplotlib.plotSBcr(DSC['S-Bcr'],Bcr,S,'bs')
-        ipmagplotlib.plotSBc(DSC['S-Bc'],Bc,S,'bs')
+        pmagplotlib.plotDay(DSC['day'],BcrBc,S,'bs')
+        pmagplotlib.plotSBcr(DSC['S-Bcr'],Bcr,S,'bs')
+        pmagplotlib.plotSBc(DSC['S-Bc'],Bc,S,'bs')
         plt.show()
 
 
@@ -5317,8 +5317,8 @@ def curie(path_to_file = '.',file_name = 'magic_measurements.txt',
     PLT={'M_T':1,'der1':2,'der2':3,'Curie':4}
     plt.figure(num=PLT['M_T'],figsize=(5,5))
     string='M-T (sliding window=%i)'%int(window_len)
-    ipmagplotlib.plotXY(PLT['M_T'],T,M_smooth,sym='-')
-    ipmagplotlib.plotXY(PLT['M_T'],T,M,sym='--',xlab='Temperature C',ylab='Magnetization',title=string)
+    pmagplotlib.plotXY(PLT['M_T'],T,M_smooth,sym='-')
+    pmagplotlib.plotXY(PLT['M_T'],T,M,sym='--',xlab='Temperature C',ylab='Magnetization',title=string)
 
     #calculate first derivative
     d1,T_d1=[],[]
@@ -5333,8 +5333,8 @@ def curie(path_to_file = '.',file_name = 'magic_measurements.txt',
     #plot the first derivative
     plt.figure(num=PLT['der1'],figsize=(5,5))
     string='1st derivative (sliding window=%i)'%int(window_len)
-    ipmagplotlib.plotXY(PLT['der1'],T_d1,d1_smooth,sym='-',xlab='Temperature C',title=string)
-    ipmagplotlib.plotXY(PLT['der1'],T_d1,d1,sym='b--')
+    pmagplotlib.plotXY(PLT['der1'],T_d1,d1_smooth,sym='-',xlab='Temperature C',title=string)
+    pmagplotlib.plotXY(PLT['der1'],T_d1,d1,sym='b--')
 
     #calculate second derivative
     d2,T_d2=[],[]
@@ -5350,7 +5350,7 @@ def curie(path_to_file = '.',file_name = 'magic_measurements.txt',
     #plot the second derivative
     plt.figure(num=PLT['der2'],figsize=(5,5))
     string='2nd dervative (sliding window=%i)'%int(window_len)
-    ipmagplotlib.plotXY(PLT['der2'],T_d2,d2,sym='-',xlab='Temperature C',title=string)
+    pmagplotlib.plotXY(PLT['der2'],T_d2,d2,sym='-',xlab='Temperature C',title=string)
     d2=list(d2)
     print 'second deriative maximum is at T=%i'%int(T_d2[d2.index(max(d2))])
 
@@ -5386,7 +5386,7 @@ def curie(path_to_file = '.',file_name = 'magic_measurements.txt',
 
     #plot Curie temp for different sliding window length
     plt.figure(num=PLT['Curie'],figsize=(5,5))
-    ipmagplotlib.plotXY(PLT['Curie'],wn,curie,sym='.',xlab='Sliding Window Width (degrees)',ylab='Curie Temp',title='Curie Statistics')
+    pmagplotlib.plotXY(PLT['Curie'],wn,curie,sym='.',xlab='Sliding Window Width (degrees)',ylab='Curie Temp',title='Curie Statistics')
     files = {}
     for key in PLT.keys(): files[key]=str(key) + '.' + fmt
     if save == True:
@@ -5480,8 +5480,8 @@ def chi_magic(path_to_file = '.', file_name = 'magic_measurements.txt',
                 XTF.append(XT) # append list to list of frequencies
             if len(XT)>1: # if there are any temperature dependent data
                 plt.figure(num=plotnum,figsize=(5,5)) # initialize plot
-                ipmagplotlib.plotXTF(plotnum,XTF,Fs,e,b) # call the plotting function
-                ipmagplotlib.showFIG(plotnum)
+                pmagplotlib.plotXTF(plotnum,XTF,Fs,e,b) # call the plotting function
+                pmagplotlib.showFIG(plotnum)
                 plotnum+=1 # increment plot number
             f=Fs[0] # set frequency to minimum
             XTB=[] # initialize list if chi versus Temp and field
@@ -5493,8 +5493,8 @@ def chi_magic(path_to_file = '.', file_name = 'magic_measurements.txt',
                 XTB.append(XT)
             if len(XT)>1: # if there are any temperature dependent data
                 plt.figure(num=plotnum,figsize=(5,5)) # set up plot
-                ipmagplotlib.plotXTB(plotnum,XTB,Bs,e,f) # call the plotting function
-                ipmagplotlib.showFIG(plotnum)
+                pmagplotlib.plotXTB(plotnum,XTB,Bs,e,f) # call the plotting function
+                pmagplotlib.showFIG(plotnum)
                 plotnum+=1 # increment plot number
             if save == True:
                 files={}
