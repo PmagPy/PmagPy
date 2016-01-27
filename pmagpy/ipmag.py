@@ -5807,22 +5807,28 @@ def reversal_test_bootstrap(dec=None, inc=None, di_block=None, plot_stereo = Fal
         plot_net(0)
         plot_di(di_block = directions1,color='b'),
         plot_di(di_block = do_flip(di_block = directions2), color = 'r')
-    bootstrap_common_mean(D1, D2, save=save, save_folder=save_folder, fmt=fmt)
+    bootstrap_common_mean(directions1, directions2, save=save, save_folder=save_folder, fmt=fmt)
 
-def reversal_test_MM1990(D, I=None, plot_CDF=False, plot_stereo = False, save=False, save_folder='.', fmt='svg'):
+def reversal_test_MM1990(dec=None, inc=None, di_block=None, plot_CDF=False, plot_stereo = False, save=False, save_folder='.', fmt='svg'):
     """
-    Conduct a reversal test using the Watson V test to determine whether two
-    directions could have been pulled from a bipolar common mean.
+    Calculates Watson's V statistic from input files through Monte Carlo
+    simulation in order to test whether normal and reversed populations could
+    have been drawn from a common mean (equivalent to watsonV.py). Also provides
+    the critical angle between the two sample mean directions and the
+    corresponding McFadden and McElhinny (1990) classification.
 
     Required Arguments
     ----------
-    D : data in declination/inclination blocks if I is None; OR declination if
-        I (inclination) keyword argument is specified
+    dec: list of declinations
+    inc: list of inclinations
+
+    or
+
+    di_block: a nested list of [dec,inc,1.0]
+    (di_block can be provided instead of dec, inc in which case it will be used)
 
     Optional Keywords (defaults are used if not specified)
     ----------
-    I : list of inclinations (default is None -- leave as default if both
-        declination AND inclination data are included in D)
     plot_CDF : plot the CDF accompanying the printed results (default is False)
     plot_stereo : plot stereonet with the bidirectionally separated data
         (default is False)
