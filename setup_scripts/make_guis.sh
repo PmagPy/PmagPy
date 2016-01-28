@@ -27,6 +27,8 @@ fi
 my_commit="$new"
 echo $my_commit
 
+# change to PmagPy main directory
+
 echo "starting make_guis script"
 cp setup_scripts/setup_pmag_gui.py .
 cp setup_scripts/setup_magic_gui.py .
