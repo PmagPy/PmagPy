@@ -51,7 +51,7 @@ def fisher_mean(dec=None, inc=None, di_block=None):
     A di_block can be provided instead of dec, inc lists in which case it will
     be used. Either dec, inc lists or a di_block need to passed to the function.
     """
-    if di_block == None:
+    if di_block is None:
         di_block = make_di_block(dec,inc)
         return pmag.fisher_mean(di_block)
     else:
@@ -74,7 +74,7 @@ def bingham_mean(dec, inc, di_block=None):
     A di_block can be provided instead of dec, inc lists in which case it will
     be used. Either dec, inc lists or a di_block need to passed to the function.
     """
-    if di_block == None:
+    if di_block is None:
         di_block = make_di_block(dec,inc)
         return pmag.dobingham(di_block)
     else:
@@ -244,7 +244,7 @@ def do_flip(dec=None, inc=None, di_block=None):
     di_block: a nested list of [dec,inc,1.0]
     (di_block can be provided instead of dec, inc in which case it will be used)
     """
-    if di_block == None:
+    if di_block is None:
         dec_flip = []
         inc_flip = []
         for n in range(0,len(dec)):
@@ -587,7 +587,7 @@ def reversal_test_bootstrap(dec=None, inc=None, di_block=None, plot_stereo = Fal
     save_folder : directory where plots will be saved (default is current directory, '.')
     fmt : format of saved figures (default is 'svg')
     """
-    if di_block == None:
+    if di_block is None:
         all_dirs = make_di_block(dec, inc)
     else:
         all_dirs = di_block
@@ -632,7 +632,7 @@ def reversal_test_MM1990(dec=None, inc=None, di_block=None, plot_CDF=False, plot
         (default is current directory, '.')
     fmt : format of saved figures (default is 'svg')
     """
-    if di_block == None:
+    if di_block is None:
         all_dirs = make_di_block(dec, inc)
     else:
         all_dirs = di_block
@@ -885,7 +885,7 @@ def plot_di(dec=None, inc=None, di_block=None, color='k', marker='o', markersize
     Y_down = []
     Y_up = []
 
-    if di_block != None:
+    if di_block is not None:
         dec, inc = unpack_di_block(di_block)
 
     try:
