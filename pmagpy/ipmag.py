@@ -353,7 +353,7 @@ def bootstrap_fold_test(Data,num_sims=1000,min_untilt=-10,max_untilt=120, beddin
     plt.show()
 
 
-def common_mean_bootstrap(Data1,Data2,NumSims=1000, save=False, save_folder = '.', fmt = 'svg'):
+def common_mean_bootstrap(Data1,Data2,NumSims=1000, save=False, save_folder = '.', fmt = 'svg',figsize=(7,2.3)):
     """
     Conduct a bootstrap test (Tauxe, 2010) for a common mean on two declination,
     inclination data sets
@@ -384,7 +384,7 @@ def common_mean_bootstrap(Data1,Data2,NumSims=1000, save=False, save_folder = '.
     print "Here are the results of the bootstrap test for a common mean:"
 
     fignum = 1
-    fig = plt.figure(figsize=(9,3))
+    fig = plt.figure(figsize=figsize)
     fig = plt.subplot(1,3,1)
 
     minimum = int(0.025*len(X1))
@@ -554,6 +554,7 @@ def common_mean_watson(Data1,Data2,NumSims=5000,plot='no', save=False, save_fold
     if plot=='yes':
         CDF={'cdf':1}
         #pmagplotlib.plot_init(CDF['cdf'],5,5)
+        plt.figure(figsize=(3.5,2.5))
         p1 = pmagplotlib.plotCDF(CDF['cdf'],Vp,"Watson's V",'r',"")
         p2 = pmagplotlib.plotVs(CDF['cdf'],[V],'g','-')
         p3 = pmagplotlib.plotVs(CDF['cdf'],[Vp[k]],'b','--')
