@@ -2,7 +2,7 @@
 #pylint: disable-all
 # causes too many errors and crashes
 
-import  numpy,string,sys
+import numpy,string,sys
 from numpy import random
 import numpy.linalg
 import exceptions
@@ -26,6 +26,7 @@ def sort_diclist(undecorated,sort_on):
     decorated=[(dict_[sort_on],dict_) for dict_ in undecorated]
     decorated.sort()
     return[dict_ for (key, dict_) in decorated]
+
 
 def get_dictitem(In,k,v,flag):
     """ returns a list of dictionaries from list In with key,k  = value, v . CASE INSENSITIVE # allowed keywords:"""
@@ -96,6 +97,49 @@ def get_orient(samp_data,er_sample_name):
         az_type=SO_methods[SO_methods.index(SO_priorities[0])]
         orient=get_dictitem(orients,'magic_method_codes',az_type,'has')[0] # re-initialize to best one
     return orient,az_type
+
+
+def EI(inc):
+    poly_tk03= [  3.15976125e-06,  -3.52459817e-04,  -1.46641090e-02,   2.89538539e+00]
+    return poly_tk03[0]*inc**3 + poly_tk03[1]*inc**2+poly_tk03[2]*inc+poly_tk03[3]
+
+
+def find_f(data):
+    rad=numpy.pi/180.
+    Es,Is,Fs,V2s=[],[],[],[]
+    ppars=doprinc(data)
+    D=ppars['dec']
+    Decs,Incs=data.transpose()[0],data.transpose()[1]
+    Tan_Incs=numpy.tan(Incs*rad)
+    for f in numpy.arange(1.,.2 ,-.01):
+        U=numpy.arctan((1./f)*Tan_Incs)/rad
+        fdata=numpy.array([Decs,U]).transpose()
+        ppars=doprinc(fdata)
+        Fs.append(f)
+        Es.append(ppars["tau2"]/ppars["tau3"])
+        ang = angle([D,0],[ppars["V2dec"],0])
+        if 180.-ang<ang:ang=180.-ang
+        V2s.append(ang)
+        Is.append(abs(ppars["inc"]))
+        if EI(abs(ppars["inc"]))<=Es[-1]:
+            del Es[-1]
+            del Is[-1]
+            del Fs[-1]
+            del V2s[-1]
+            if len(Fs)>0:
+                for f in numpy.arange(Fs[-1],.2 ,-.005):
+                    U=numpy.arctan((1./f)*Tan_Incs)/rad
+                    fdata=numpy.array([Decs,U]).transpose()
+                    ppars=doprinc(fdata)
+                    Fs.append(f)
+                    Es.append(ppars["tau2"]/ppars["tau3"])
+                    Is.append(abs(ppars["inc"]))
+                    ang=angle([D,0],[ppars["V2dec"],0])
+                    if 180.-ang<ang:ang=180.-ang
+                    V2s.append(ang)
+                    if EI(abs(ppars["inc"]))<=Es[-1]:
+                        return Es,Is,Fs,V2s
+    return [0],[0],[0],[0]
 
 
 def cooling_rate(SpecRec,SampRecs,crfrac,crtype):

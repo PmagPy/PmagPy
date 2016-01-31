@@ -6,56 +6,14 @@ set_env.set_backend(wx=False)
 import pmagpy.pmag as pmag
 import pmagpy.pmagplotlib as pmagplotlib
 
-
-def EI(inc):
-    poly_tk03= [  3.15976125e-06,  -3.52459817e-04,  -1.46641090e-02,   2.89538539e+00]  
-    return poly_tk03[0]*inc**3 + poly_tk03[1]*inc**2+poly_tk03[2]*inc+poly_tk03[3]
-
-
-def find_f(data):
-    rad=numpy.pi/180.
-    Es,Is,Fs,V2s=[],[],[],[]
-    ppars=pmag.doprinc(data)
-    D=ppars['dec']
-    Decs,Incs=data.transpose()[0],data.transpose()[1]
-    Tan_Incs=numpy.tan(Incs*rad)
-    for f in numpy.arange(1.,.2 ,-.01):
-        U=numpy.arctan((1./f)*Tan_Incs)/rad
-        fdata=numpy.array([Decs,U]).transpose()
-        ppars=pmag.doprinc(fdata)
-        Fs.append(f)
-        Es.append(ppars["tau2"]/ppars["tau3"])
-        angle=pmag.angle([D,0],[ppars["V2dec"],0])
-        if 180.-angle<angle:angle=180.-angle
-        V2s.append(angle)
-        Is.append(abs(ppars["inc"]))
-        if EI(abs(ppars["inc"]))<=Es[-1]:
-            del Es[-1]
-            del Is[-1]
-            del Fs[-1]
-            del V2s[-1]
-            if len(Fs)>0:
-                for f in numpy.arange(Fs[-1],.2 ,-.005):
-                    U=numpy.arctan((1./f)*Tan_Incs)/rad
-                    fdata=numpy.array([Decs,U]).transpose()
-                    ppars=pmag.doprinc(fdata)
-                    Fs.append(f)
-                    Es.append(ppars["tau2"]/ppars["tau3"])
-                    Is.append(abs(ppars["inc"]))
-                    angle=pmag.angle([D,0],[ppars["V2dec"],0])
-                    if 180.-angle<angle:angle=180.-angle
-                    V2s.append(angle)
-                    if EI(abs(ppars["inc"]))<=Es[-1]:
-                        return Es,Is,Fs,V2s
-    return [0],[0],[0],[0]
 def main():
     """
     NAME
         find_EI.py
- 
+
     DESCRIPTION
         Applies series of assumed flattening factor and "unsquishes" inclinations assuming tangent function.
-        Finds flattening factor that gives elongation/inclination pair consistent with TK03.  
+        Finds flattening factor that gives elongation/inclination pair consistent with TK03.
         Finds bootstrap confidence bounds
 
     SYNTAX
@@ -106,16 +64,16 @@ def main():
     upper,lower=int(round(.975*nb)),int(round(.025*nb))
     E,I=[],[]
     PLTS={'eq':1,'ei':2,'cdf':3,'v2':4}
-    pmagplotlib.plot_init(PLTS['eq'],6,6) 
-    pmagplotlib.plot_init(PLTS['ei'],5,5) 
-    pmagplotlib.plot_init(PLTS['cdf'],5,5) 
-    pmagplotlib.plot_init(PLTS['v2'],5,5) 
+    pmagplotlib.plot_init(PLTS['eq'],6,6)
+    pmagplotlib.plot_init(PLTS['ei'],5,5)
+    pmagplotlib.plot_init(PLTS['cdf'],5,5)
+    pmagplotlib.plot_init(PLTS['v2'],5,5)
     pmagplotlib.plotEQ(PLTS['eq'],data,'Data')
     if plot==0:pmagplotlib.drawFIGS(PLTS)
     ppars=pmag.doprinc(data)
     Io=ppars['inc']
     n=ppars["N"]
-    Es,Is,Fs,V2s=find_f(data)
+    Es,Is,Fs,V2s=pmag.find_f(data)
     Inc,Elong=Is[-1],Es[-1]
     pmagplotlib.plotEI(PLTS['ei'],Es,Is,Fs[-1])
     pmagplotlib.plotV2s(PLTS['v2'],V2s,Is,Fs[-1])
@@ -123,7 +81,7 @@ def main():
     print "Bootstrapping.... be patient"
     while b<nb:
         bdata=pmag.pseudo(data)
-        Es,Is,Fs,V2s=find_f(bdata)
+        Es,Is,Fs,V2s=pmag.find_f(bdata)
         if b<25:
             pmagplotlib.plotEI(PLTS['ei'],Es,Is,Fs[-1])
         if Es[-1]!=0:
@@ -136,7 +94,7 @@ def main():
     E.sort()
     Eexp=[]
     for i in I:
-       Eexp.append(EI(i)) 
+       Eexp.append(pmag.EI(i))
     if Inc==0:
         title= 'Pathological Distribution: '+'[%7.1f, %7.1f]' %(I[lower],I[upper])
     else:
