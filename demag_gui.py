@@ -38,6 +38,9 @@
 # definitions
 #--------------------------------------
 
+import matplotlib
+matplotlib.use('WXAgg')
+
 import os,sys,pdb
 global CURRENT_VERSION, PMAGPY_DIRECTORY
 CURRENT_VERSION = "v.0.33"
@@ -47,9 +50,6 @@ import pmagpy.check_updates as check_updates
 PMAGPY_DIRECTORY = check_updates.get_pmag_dir()
 #path = os.path.abspath(__file__)
 #PMAGPY_DIRECTORY = os.path.dirname(path)
-import matplotlib
-#import matplotlib.font_manager as font_manager
-matplotlib.use('WXAgg')
 
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigCanvas
 from matplotlib.backends.backend_wxagg import NavigationToolbar2WxAgg as NavigationToolbar
@@ -122,9 +122,8 @@ class Zeq_GUI(wx.Frame):
         global FIRST_RUN
         FIRST_RUN=True
 
-        # wx.Frame.__init__(self, None, wx.ID_ANY, self.title) merge confilct testing
-
-        wx.Frame.__init__(self, parent, wx.ID_ANY, self.title, name='demag gui')
+        default_style = wx.MINIMIZE_BOX | wx.MAXIMIZE_BOX | wx.RESIZE_BORDER | wx.SYSTEM_MENU | wx.CAPTION | wx.CLOSE_BOX | wx.CLIP_CHILDREN | wx.NO_FULL_REPAINT_ON_RESIZE
+        wx.Frame.__init__(self, parent, wx.ID_ANY, self.title, style = default_style, name='demag gui')
         self.parent = parent
 
         self.redo_specimens={}
@@ -139,7 +138,7 @@ class Zeq_GUI(wx.Frame):
         try:
             icon = wx.EmptyIcon()
             icon_path = os.path.join(PMAGPY_DIRECTORY, 'images', 'PmagPy.ico')
-            print 'icon_path', icon_path
+            print('icon_path ' + str(icon_path))
             icon.CopyFromBitmap(wx.Bitmap(icon_path, wx.BITMAP_TYPE_ANY))
             self.SetIcon(icon)
         except Exception as ex:
@@ -153,6 +152,8 @@ class Zeq_GUI(wx.Frame):
             print "-I- Cant find/read file  pmag_criteria.txt"
 
 
+        self.font_type = "Arial"
+        if sys.platform.startswith("linux"): self.font_type = "Liberation Serif"
         preferences=self.get_preferences()
         self.dpi = 100
         self.preferences={}
@@ -175,8 +176,8 @@ class Zeq_GUI(wx.Frame):
                 self.high_level_means[high_level]={}
 
         self.interpretation_editor_open = False
-        self.color_dict = {'green':'g','yellow':'y','maroon':'m','cyan':'c','black':'k','brown':(139./255.,69./255.,19./255.),'orange':(255./255.,127./255.,0./255.),'pink':(255./255.,20./255.,147./255.),'violet':(153./255.,50./255.,204./255.),'grey':(84./255.,84./255.,84./255.)}
-        self.colors = ['g','y','m','c','k',(139./255.,69./255.,19./255.),(255./255.,127./255.,0./255.),(255./255.,20./255.,147./255.),(153./255.,50./255.,204./255.),(84./255.,84./255.,84./255.)] #for fits
+        self.color_dict = {'green':'g','yellow':'y','maroon':'m','cyan':'c','black':'k','brown':(139./255.,69./255.,19./255.),'orange':(255./255.,127./255.,0./255.),'pink':(255./255.,20./255.,147./255.),'violet':(153./255.,50./255.,204./255.),'grey':(84./255.,84./255.,84./255.),'goldenrod':'goldenrod'}
+        self.colors = ['g','y','m','c','k',(139./255.,69./255.,19./255.),(255./255.,127./255.,0./255.),(255./255.,20./255.,147./255.),(153./255.,50./255.,204./255.),(84./255.,84./255.,84./255.),'goldenrod'] #for fits
         self.current_fit = None
         self.dirtypes = ['DA-DIR','DA-DIR-GEO','DA-DIR-TILT']
         self.bad_fits = []
@@ -196,10 +197,11 @@ class Zeq_GUI(wx.Frame):
         self.locations=self.Data_hierarchy['locations'].keys()      # get list of sites
         self.locations.sort()                   # get list of sites
 
-        w, h = self.GetSize()
-        self.panel = wx.lib.scrolledpanel.ScrolledPanel(self,-1,size=(w,h)) # make the Panel
+        self.Bind(wx.EVT_SIZE, self.resize_UI)
+
+        self.panel = wx.lib.scrolledpanel.ScrolledPanel(self,-1) # make the Panel
         self.panel.SetupScrolling()
-        self.Main_Frame()                   # build the main frame
+        self.init_UI()                   # build the main frame
         self.create_menu()                  # create manu bar
         self.arrow_keys()
         self.Bind(wx.EVT_CLOSE, self.on_menu_exit)
@@ -207,7 +209,7 @@ class Zeq_GUI(wx.Frame):
         self.close_warning=False
 
 
-    def Main_Frame(self):
+    def init_UI(self):
         """
         Build main frame of panel: buttons, etc.
         choose the first specimen and display data
@@ -306,10 +308,10 @@ class Zeq_GUI(wx.Frame):
  #----------------------------------------------------------------------
 
         FONT_RATIO=1
-        font1 = wx.Font(9+FONT_RATIO, wx.SWISS, wx.NORMAL, wx.NORMAL, False, u'Arial')
+        font1 = wx.Font(9+FONT_RATIO, wx.SWISS, wx.NORMAL, wx.NORMAL, False, self.font_type)
         # GUI headers
-        font2 = wx.Font(12+min(1,FONT_RATIO), wx.SWISS, wx.NORMAL, wx.NORMAL, False, u'Arial')
-        font3 = wx.Font(11+FONT_RATIO, wx.SWISS, wx.NORMAL, wx.NORMAL, False, u'Arial')
+        font2 = wx.Font(12+min(1,FONT_RATIO), wx.SWISS, wx.NORMAL, wx.NORMAL, False, self.font_type)
+        font3 = wx.Font(11+FONT_RATIO, wx.SWISS, wx.NORMAL, wx.NORMAL, False, self.font_type)
         font = wx.SystemSettings_GetFont(wx.SYS_SYSTEM_FONT)
         font.SetPointSize(10+FONT_RATIO)
 
@@ -335,7 +337,7 @@ class Zeq_GUI(wx.Frame):
         self.box_sizer_select_specimen = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY), wx.VERTICAL )
 
         # Combo-box with a list of specimen
-        self.specimens_box = wx.ComboBox(self.panel, -1, value=self.s,choices=self.specimens, style=wx.CB_DROPDOWN,name="specimen")
+        self.specimens_box = wx.ComboBox(self.panel, -1, value=self.s, size=(150*self.GUI_RESOLUTION,25), choices=self.specimens, style=wx.CB_DROPDOWN,name="specimen")
         self.Bind(wx.EVT_COMBOBOX, self.onSelect_specimen,self.specimens_box)
 
         # buttons to move forward and backwards from specimens
@@ -354,7 +356,7 @@ class Zeq_GUI(wx.Frame):
  #----------------------------------------------------------------------
         #  select coordinate box
  #----------------------------------------------------------------------
-        # stopped here
+
         self.coordinate_list = ['specimen']
         intial_coordinate = 'specimen'
         for specimen in self.specimens:
@@ -363,9 +365,12 @@ class Zeq_GUI(wx.Frame):
                 intial_coordinate = 'geographic'
             if 'tilt-corrected' not in self.coordinate_list and self.Data[specimen]['zijdblock_tilt']:
                 self.coordinate_list.append('tilt-corrected')
-        self.coordinates_box = wx.ComboBox(self.panel, -1, choices=self.coordinate_list, value=intial_coordinate,style=wx.CB_DROPDOWN,name="coordinates")
+
+        self.COORDINATE_SYSTEM = intial_coordinate
+        self.coordinates_box = wx.ComboBox(self.panel, -1, size=(150*self.GUI_RESOLUTION,25), choices=self.coordinate_list, value=intial_coordinate,style=wx.CB_DROPDOWN,name="coordinates")
         self.Bind(wx.EVT_COMBOBOX, self.onSelect_coordinates,self.coordinates_box)
-        self.orthogonal_box = wx.ComboBox(self.panel, -1, value='X=East', choices=['X=NRM dec','X=East','X=North','X=best fit line dec'], style=wx.CB_DROPDOWN,name="orthogonal_plot")
+
+        self.orthogonal_box = wx.ComboBox(self.panel, -1, value='X=East', size=(150*self.GUI_RESOLUTION,25), choices=['X=NRM dec','X=East','X=North','X=best fit line dec'], style=wx.CB_DROPDOWN,name="orthogonal_plot")
         self.Bind(wx.EVT_COMBOBOX, self.onSelect_orthogonal_box,self.orthogonal_box)
 
         self.box_sizer_select_specimen.Add(wx.StaticText(self.panel,label="specimen:",style=wx.TE_CENTER))
@@ -445,9 +450,6 @@ class Zeq_GUI(wx.Frame):
         self.PCA_type_box = wx.ComboBox(self.panel, -1, size=(100*self.GUI_RESOLUTION, 25), value='line',choices=['line','line-anchored','line-with-origin','plane','Fisher'], style=wx.CB_DROPDOWN,name="coordinates")
         self.Bind(wx.EVT_COMBOBOX, self.on_select_specimen_mean_type_box,self.PCA_type_box)
 
-        #Plane displays box
-#        self.plane_display_sizer = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY,"plane display type"  ), wx.HORIZONTAL )
-
         self.plane_display_box = wx.ComboBox(self.panel, -1, size=(100*self.GUI_RESOLUTION, 25), value='show whole plane',choices=['show whole plane','show u. hemisphere', 'show l. hemisphere','show poles'], style=wx.CB_DROPDOWN,name="PlaneType")
         self.Bind(wx.EVT_COMBOBOX, self.on_select_plane_display_box, self.plane_display_box)
 
@@ -471,14 +473,12 @@ class Zeq_GUI(wx.Frame):
             (wx.StaticText(self.panel,label="\ninc",style=wx.TE_CENTER), wx.EXPAND),
             (wx.StaticText(self.panel,label="\nn",style=wx.TE_CENTER),wx.EXPAND),
             (wx.StaticText(self.panel,label="\nmad",style=wx.TE_CENTER),wx.EXPAND),
-            #(wx.StaticText(self.panel,label="\nmad-anc",style=wx.TE_CENTER),wx.EXPAND),
             (wx.StaticText(self.panel,label="\ndang",style=wx.TE_CENTER),wx.TE_CENTER),
             (wx.StaticText(self.panel,label="\na95",style=wx.TE_CENTER),wx.TE_CENTER),
             (self.sdec_window, wx.EXPAND),
             (self.sinc_window, wx.EXPAND) ,
             (self.sn_window, wx.EXPAND) ,
             (self.smad_window, wx.EXPAND),
-            #(self.mad_anc_window, wx.EXPAND),
             (self.sdang_window, wx.EXPAND),
             (self.salpha95_window, wx.EXPAND)])
         self.box_sizer_specimen_stat.Add( specimen_stat_window, 0, wx.ALIGN_LEFT, 0)
@@ -542,14 +542,13 @@ class Zeq_GUI(wx.Frame):
         self.switch_stats_button = wx.SpinButton(self.panel, id=wx.ID_ANY, style=wx.SP_HORIZONTAL|wx.SP_ARROW_KEYS|wx.SP_WRAP, name="change stats")
         self.Bind(wx.EVT_SPIN, self.on_select_stats_button,self.switch_stats_button)
 
-#        self.box_sizer_high_level_text = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY,""  ), wx.HORIZONTAL )
-#        self.high_level_text_box = wx.TextCtrl(self.panel, id=-1, size=(220*self.GUI_RESOLUTION,210*self.GUI_RESOLUTION), style=wx.TE_MULTILINE | wx.TE_READONLY )
-#        self.high_level_text_box.SetFont(font1)
-#        self.box_sizer_high_level_text.Add(self.high_level_text_box, 0, wx.ALIGN_LEFT, 0 )
-
  #----------------------------------------------------------------------
 # Design the panel
 #----------------------------------------------------------------------
+
+        outer_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        outer_sizer.Add(self.panel)
+        self.SetSizerAndFit(outer_sizer)
 
         vbox1 = wx.BoxSizer(wx.VERTICAL)
         hbox1 = wx.BoxSizer(wx.HORIZONTAL)
@@ -600,6 +599,7 @@ class Zeq_GUI(wx.Frame):
         vbox1.Fit(self)
 
         self.GUI_SIZE = self.GetSize()
+
         # get previous interpretations from pmag tables
         # Draw figures and add text
         if self.Data:
@@ -613,6 +613,11 @@ class Zeq_GUI(wx.Frame):
             print("------------------------------ no magic_measurements.txt found---------------------------------------")
             self.Destroy()
 
+    def resize_UI(self, event):
+        self.GUI_SIZE = self.GetSize()
+        self.panel.SetSizeWH(self.GUI_SIZE[0],self.GUI_SIZE[1])
+        self.panel.Update()
+
     #----------------------------------------------------------------------
     # Arrow keys control
     #----------------------------------------------------------------------
@@ -622,15 +627,10 @@ class Zeq_GUI(wx.Frame):
 
     def onCharEvent(self, event):
         keycode = event.GetKeyCode()
-        #controlDown = event.CmdDown()
-        #altDown = event.AltDown()
-        #shiftDown = event.ShiftDown()
 
         if keycode == wx.WXK_RIGHT or keycode == wx.WXK_NUMPAD_RIGHT or keycode == wx.WXK_WINDOWS_RIGHT:
-            #print "you pressed the right!"
             self.on_next_button(None)
         elif keycode == wx.WXK_LEFT or keycode == wx.WXK_NUMPAD_LEFT or keycode == wx.WXK_WINDOWS_LEFT:
-            #print "you pressed the right!"
             self.on_prev_button(None)
         event.Skip()
 
@@ -1134,26 +1134,26 @@ class Zeq_GUI(wx.Frame):
         if self.ORTHO_PLOT_TYPE=='N-S':
             STRING=""
             #STRING1="N-S orthogonal plot"
-            self.fig1.text(0.01,0.98,"Zijderveld plot: x = North",{'family':'Arial', 'fontsize':10*self.GUI_RESOLUTION, 'style':'normal','va':'center', 'ha':'left' })
+            self.fig1.text(0.01,0.98,"Zijderveld plot: x = North",{'family':self.font_type, 'fontsize':10*self.GUI_RESOLUTION, 'style':'normal','va':'center', 'ha':'left' })
         elif self.ORTHO_PLOT_TYPE=='E-W':
             STRING=""
             #STRING1="E-W orthogonal plot"
-            self.fig1.text(0.01,0.98,"Zijderveld plot:: x = East",{'family':'Arial', 'fontsize':10*self.GUI_RESOLUTION, 'style':'normal','va':'center', 'ha':'left' })
+            self.fig1.text(0.01,0.98,"Zijderveld plot:: x = East",{'family':self.font_type, 'fontsize':10*self.GUI_RESOLUTION, 'style':'normal','va':'center', 'ha':'left' })
 
         elif self.ORTHO_PLOT_TYPE=='PCA_dec':
-            self.fig1.text(0.01,0.98,"Zijderveld plot",{'family':'Arial', 'fontsize':10*self.GUI_RESOLUTION, 'style':'normal','va':'center', 'ha':'left' })
+            self.fig1.text(0.01,0.98,"Zijderveld plot",{'family':self.font_type, 'fontsize':10*self.GUI_RESOLUTION, 'style':'normal','va':'center', 'ha':'left' })
             if 'specimen_dec' in self.current_fit.pars.keys() and type(self.current_fit.pars['specimen_dec'])!=str:
                 STRING="X-axis rotated to best fit line declination (%.0f); "%(self.current_fit.pars['specimen_dec'])
             else:
                 STRING="X-axis rotated to NRM (%.0f); "%(self.zijblock[0][1])
         else:
-            self.fig1.text(0.01,0.98,"Zijderveld plot",{'family':'Arial', 'fontsize':10*self.GUI_RESOLUTION, 'style':'normal','va':'center', 'ha':'left' })
+            self.fig1.text(0.01,0.98,"Zijderveld plot",{'family':self.font_type, 'fontsize':10*self.GUI_RESOLUTION, 'style':'normal','va':'center', 'ha':'left' })
             STRING="X-axis rotated to NRM (%.0f); "%(self.zijblock[0][1])
             #STRING1="Zijderveld plot"
 
 
         STRING=STRING+"NRM=%.2e "%(self.zijblock[0][3])+ 'Am^2'
-        self.fig1.text(0.01,0.95,STRING, {'family':'Arial', 'fontsize':8*self.GUI_RESOLUTION, 'style':'normal','va':'center', 'ha':'left' })
+        self.fig1.text(0.01,0.95,STRING, {'family':self.font_type, 'fontsize':8*self.GUI_RESOLUTION, 'style':'normal','va':'center', 'ha':'left' })
 
         xmin, xmax = self.zijplot.get_xlim()
         ymin, ymax = self.zijplot.get_ylim()
@@ -1169,7 +1169,7 @@ class Zeq_GUI(wx.Frame):
 
         self.specimen_eqarea.clear()
         self.specimen_eqarea_interpretation.clear()
-        self.specimen_eqarea.text(-1.2,1.15,"specimen: %s"%self.s,{'family':'Arial', 'fontsize':10*self.GUI_RESOLUTION, 'style':'normal','va':'center', 'ha':'left' })
+        self.specimen_eqarea.text(-1.2,1.15,"specimen: %s"%self.s,{'family':self.font_type, 'fontsize':10*self.GUI_RESOLUTION, 'style':'normal','va':'center', 'ha':'left' })
 
         x_eq=array([row[0] for row in self.zij_norm])
         y_eq=array([row[1] for row in self.zij_norm])
@@ -1263,7 +1263,7 @@ class Zeq_GUI(wx.Frame):
         #-----------------------------------------------------------
 
         self.fig3.clf()
-        self.fig3.text(0.02,0.96,'M/M0',{'family':'Arial', 'fontsize':10*self.GUI_RESOLUTION, 'style':'normal','va':'center', 'ha':'left' })
+        self.fig3.text(0.02,0.96,'M/M0',{'family':self.font_type, 'fontsize':10*self.GUI_RESOLUTION, 'style':'normal','va':'center', 'ha':'left' })
         self.mplot = self.fig3.add_axes([0.2,0.15,0.7,0.7],frameon=True,axisbg='None')
         self.mplot_interpretation = self.fig3.add_axes(self.mplot.get_position(), frameon=False,axisbg='None')
         self.mplot_interpretation.xaxis.set_visible(False)
@@ -1476,7 +1476,7 @@ class Zeq_GUI(wx.Frame):
 
       tmin_index,tmax_index = -1,-1
       if self.current_fit and self.current_fit.tmin and self.current_fit.tmax:
-        tmin_index,tmax_index = self.get_temp_indices(self.current_fit)
+        tmin_index,tmax_index = self.get_indices(self.current_fit)
 
       TEXT=""
       self.logger.DeleteAllItems()
@@ -1545,7 +1545,7 @@ class Zeq_GUI(wx.Frame):
 
         for specimen in self.pmag_results_data['specimens'].keys():
             for fit in self.pmag_results_data['specimens'][specimen]:
-                fit.put(specimen,self.COORDINATE_SYSTEM,self.get_PCA_parameters(specimen,fit.tmin,fit.tmax,self.COORDINATE_SYSTEM,fit.PCA_type))
+                fit.put(specimen,self.COORDINATE_SYSTEM,self.get_PCA_parameters(specimen,fit,fit.tmin,fit.tmax,self.COORDINATE_SYSTEM,fit.PCA_type))
 
         if self.interpretation_editor_open:
             self.interpretation_editor.coordinates_box.SetStringSelection(new)
@@ -1870,11 +1870,11 @@ class Zeq_GUI(wx.Frame):
         if str(self.s) in self.pmag_results_data['specimens']:
             for fit in self.pmag_results_data['specimens'][self.s]:
                 if fit.get('specimen') and 'calculation_type' in fit.get('specimen'):
-                    fit.put(self.s,'specimen',self.get_PCA_parameters(self.s,fit.tmin,fit.tmax,'specimen',fit.get('specimen')['calculation_type']))
+                    fit.put(self.s,'specimen',self.get_PCA_parameters(self.s,fit,fit.tmin,fit.tmax,'specimen',fit.get('specimen')['calculation_type']))
                 if len(self.Data[self.s]['zijdblock_geo'])>0 and fit.get('geographic') and 'calculation_type' in fit.get('geographic'):
-                    fit.put(self.s,'geographic',self.get_PCA_parameters(self.s,fit.tmin,fit.tmax,'geographic',fit.get('geographic')['calculation_type']))
+                    fit.put(self.s,'geographic',self.get_PCA_parameters(self.s,fit,fit.tmin,fit.tmax,'geographic',fit.get('geographic')['calculation_type']))
                 if len(self.Data[self.s]['zijdblock_tilt'])>0 and fit.get('tilt-corrected') and 'calculation_type' in fit.get('tilt-corrected'):
-                    fit.put(self.s,'tilt-corrected',self.get_PCA_parameters(self.s,fit.tmin,fit.tmax,'tilt-corrected',fit.get('tilt-corrected')['calculation_type']))
+                    fit.put(self.s,'tilt-corrected',self.get_PCA_parameters(self.s,fit,fit.tmin,fit.tmax,'tilt-corrected',fit.get('tilt-corrected')['calculation_type']))
 
 
     #----------------------------------------------------------------------
@@ -1890,14 +1890,6 @@ class Zeq_GUI(wx.Frame):
         or PCA type is changed
         """
 
-        #remember the last saved interpretation
-
-        #if "saved" in self.pars.keys():
-        #    if self.pars['saved']:
-        #        self.last_saved_pars={}
-        #        for key in self.pars.keys():
-        #            self.last_saved_pars[key]=self.pars[key]
-        #self.pars['saved']=False
         tmin=str(self.tmin_box.GetValue())
         tmax=str(self.tmax_box.GetValue())
         if tmin=="" or tmax=="":
@@ -1915,7 +1907,7 @@ class Zeq_GUI(wx.Frame):
         elif PCA_type=="plane":calculation_type="DE-BFP"
         coordinate_system=self.COORDINATE_SYSTEM
         if self.current_fit:
-            self.current_fit.put(self.s,coordinate_system,self.get_PCA_parameters(self.s,tmin,tmax,coordinate_system,calculation_type))
+            self.current_fit.put(self.s,coordinate_system,self.get_PCA_parameters(self.s,self.current_fit,tmin,tmax,coordinate_system,calculation_type))
         if self.interpretation_editor_open:
             self.interpretation_editor.update_current_fit_data()
         self.update_GUI_with_new_interpretation()
@@ -1934,19 +1926,29 @@ class Zeq_GUI(wx.Frame):
         return(blockout)
 
 
-    def get_PCA_parameters(self,specimen,tmin,tmax,coordinate_system,calculation_type):
+    def get_PCA_parameters(self,specimen,fit,tmin,tmax,coordinate_system,calculation_type):
         """
         calculate statisics
         """
+        if tmin == '' or tmax == '': return
+        beg_pca,end_pca = self.get_indices(fit, tmin, tmax, specimen)
 
-        beg_pca,end_pca = self.get_temp_indices(None, tmin, tmax, specimen)
+        check_duplicates = []
+        for s,f in zip(self.Data[specimen]['zijdblock_steps'][beg_pca:end_pca+1],self.Data[specimen]['measurement_flag'][beg_pca:end_pca+1]):
+            if f == 'g' and [s,'g'] in check_duplicates:
+                if s == tmin: print("There are multiple good %s steps. The first measurement will be used for lower bound of fit %s."%(tmin,fit.name))
+                if s == tmax: print("There are multiple good %s steps. The first measurement will be used for upper bound of fit %s."%(tmax,fit.name))
+                else: print("Within Fit %s, there are multiple good measurements at the %s step. Both measurements are included in the fit."%(fit.name,s))
+            else:
+                check_duplicates.append([s,f])
+
         if coordinate_system=='geographic':
             block=self.Data[specimen]['zijdblock_geo']
         elif coordinate_system=='tilt-corrected':
             block=self.Data[specimen]['zijdblock_tilt']
         else:
             block=self.Data[specimen]['zijdblock']
-        if  end_pca > beg_pca and   end_pca - beg_pca > 1:
+        if  end_pca > beg_pca and end_pca - beg_pca > 1:
             mpars=pmag.domean(block,beg_pca,end_pca,calculation_type) #preformes regression
         else:
             mpars={}
@@ -2066,7 +2068,7 @@ class Zeq_GUI(wx.Frame):
 
             PCA_type=fit.PCA_type
 
-            tmin_index,tmax_index = self.get_temp_indices(fit);
+            tmin_index,tmax_index = self.get_indices(fit);
 
             marker_shape = 'o'
             SIZE = 30
@@ -2309,7 +2311,7 @@ class Zeq_GUI(wx.Frame):
                     elif PCA_type=="plane":calculation_type="DE-BFP"
                     coordinate_system=self.COORDINATE_SYSTEM
                     if new_fit:
-                        new_fit.put(self.s,coordinate_system,self.get_PCA_parameters(self.s,new_fit_tmin,new_fit_tmax,coordinate_system,calculation_type))
+                        new_fit.put(self.s,coordinate_system,self.get_PCA_parameters(self.s,new_fit,new_fit_tmin,new_fit_tmax,coordinate_system,calculation_type))
                     fit_min = fit_max+1
 
         self.s = self.specimens[0]
@@ -2336,11 +2338,11 @@ class Zeq_GUI(wx.Frame):
             tmin=str(self.tmin_box.GetValue())
             tmax=str(self.tmax_box.GetValue())
 
-            self.current_fit.put(self.s,'specimen',self.get_PCA_parameters(self.s,tmin,tmax,'specimen',calculation_type))
+            self.current_fit.put(self.s,'specimen',self.get_PCA_parameters(self.s,self.current_fit,tmin,tmax,'specimen',calculation_type))
             if len(self.Data[self.s]['zijdblock_geo'])>0:
-                self.current_fit.put(self.s,'geographic',self.get_PCA_parameters(self.s,tmin,tmax,'geographic',calculation_type))
+                self.current_fit.put(self.s,'geographic',self.get_PCA_parameters(self.s,self.current_fit,tmin,tmax,'geographic',calculation_type))
             if len(self.Data[self.s]['zijdblock_tilt'])>0:
-                self.current_fit.put(self.s,'tilt-corrected',self.get_PCA_parameters(self.s,tmin,tmax,'tilt-corrected',calculation_type))
+                self.current_fit.put(self.s,'tilt-corrected',self.get_PCA_parameters(self.s,self.current_fit,tmin,tmax,'tilt-corrected',calculation_type))
 
         # calculate higher level data
         self.calculate_higher_levels_data()
@@ -2502,7 +2504,7 @@ class Zeq_GUI(wx.Frame):
                             if self.mean_fit == 'All' or self.mean_fit == fit.name:
                                 pars = fit.get(dirtype)
                                 if pars == {}:
-                                    pars = self.get_PCA_parameters(element,fit.tmin,fit.tmax,dirtype,fit.PCA_type)
+                                    pars = self.get_PCA_parameters(element,fit,fit.tmin,fit.tmax,dirtype,fit.PCA_type)
                                     fit.put(element,dirtype,pars)
                             else:
                                 continue
@@ -2627,7 +2629,7 @@ class Zeq_GUI(wx.Frame):
 
        self.high_level_eqarea.clear()
        what_is_it=self.level_box.GetValue()+": "+self.level_names.GetValue()
-       self.high_level_eqarea.text(-1.2,1.15,what_is_it,{'family':'Arial', 'fontsize':10*self.GUI_RESOLUTION, 'style':'normal','va':'center', 'ha':'left' })
+       self.high_level_eqarea.text(-1.2,1.15,what_is_it,{'family':self.font_type, 'fontsize':10*self.GUI_RESOLUTION, 'style':'normal','va':'center', 'ha':'left' })
 
        if self.COORDINATE_SYSTEM=="geographic": dirtype='DA-DIR-GEO'
        elif self.COORDINATE_SYSTEM=="tilt-corrected": dirtype='DA-DIR-TILT'
@@ -2839,7 +2841,7 @@ class Zeq_GUI(wx.Frame):
     def show_higher_levels_pars(self,mpars):
 
         FONT_RATIO=self.GUI_RESOLUTION+(self.GUI_RESOLUTION-1)*5
-        font2 = wx.Font(12+min(1,FONT_RATIO), wx.SWISS, wx.NORMAL, wx.NORMAL, False, u'Arial')
+        font2 = wx.Font(12+min(1,FONT_RATIO), wx.SWISS, wx.NORMAL, wx.NORMAL, False, self.font_type)
 
         if mpars["calculation_type"]=='Fisher':
             if mpars["calculation_type"]=='Fisher' and "alpha95" in mpars.keys():
@@ -3423,13 +3425,13 @@ class Zeq_GUI(wx.Frame):
                     and tmax in self.Data[specimen]['zijdblock_steps']:
 
                         if fit:
-                            fit.put(specimen,'specimen',self.get_PCA_parameters(specimen,tmin,tmax,'specimen',calculation_type))
+                            fit.put(specimen,'specimen',self.get_PCA_parameters(specimen,fit,tmin,tmax,'specimen',calculation_type))
 
                             if len(self.Data[specimen]['zijdblock_geo'])>0:
-                                fit.put(specimen,'geographic',self.get_PCA_parameters(specimen,tmin,tmax,'geographic',calculation_type))
+                                fit.put(specimen,'geographic',self.get_PCA_parameters(specimen,fit,tmin,tmax,'geographic',calculation_type))
 
                             if len(self.Data[specimen]['zijdblock_tilt'])>0:
-                                fit.put(specimen,'tilt-corrected',self.get_PCA_parameters(specimen,tmin,tmax,'tilt-corrected',calculation_type))
+                                fit.put(specimen,'tilt-corrected',self.get_PCA_parameters(specimen,fit,tmin,tmax,'tilt-corrected',calculation_type))
 
                     else:
                         self.GUI_log.write ( "-W- WARNING: Cant find specimen and steps of specimen %s tmin=%s, tmax=%s"%(specimen,tmin,tmax))
@@ -3461,10 +3463,9 @@ class Zeq_GUI(wx.Frame):
                 if "DE-" in method:
                     calculation_method=method
             if LPDIR: # this a mean of directions
-                #if  calculation_method in ["DE-FM","DE-FM-LP","DE-FM-UV"]:
-                    calculation_type="Fisher"
-                    for dirtype in self.dirtypes:
-                        self.calculate_high_level_mean('samples',sample,calculation_type,'specimens')
+                calculation_type="Fisher"
+                for dirtype in self.dirtypes:
+                    self.calculate_high_level_mean('samples',sample,calculation_type,'specimens')
 
         #--------------------------
         # reads pmag_sites.txt and
@@ -3493,9 +3494,6 @@ class Zeq_GUI(wx.Frame):
                 if 'er_specimen_names' in rec.keys() and len(rec['er_specimen_names'].strip('\n').replace(" ","").split(":"))>0:
                     elements_type='specimens'
                 self.calculate_high_level_mean('sites',site,calculation_type,elements_type)
-                #print "found previose interpretation",site,calculation_type,elements_type
-            #print "this is sites"
-            #print self.high_level_means['sites']
 
     #-----------------------------------
 
@@ -3814,7 +3812,7 @@ class Zeq_GUI(wx.Frame):
         self.current_fit = None
         self.draw_interpretation()
         self.plot_higher_levels_data()
-        self.fig1.text(0.9,0.98,'%s'%(self.s),{'family':'Arial', 'fontsize':10, 'style':'normal','va':'center', 'ha':'right' })
+        self.fig1.text(0.9,0.98,'%s'%(self.s),{'family':self.font_type, 'fontsize':10, 'style':'normal','va':'center', 'ha':'right' })
         SaveMyPlot(self.fig1,self.s,"Zij",self.WD)
 #        self.fig1.clear()
         self.draw_figure(self.s)
@@ -3824,7 +3822,7 @@ class Zeq_GUI(wx.Frame):
         self.current_fit = None
         self.draw_interpretation()
         self.plot_higher_levels_data()
-        #self.fig2.text(0.9,0.96,'%s'%(self.s),{'family':'Arial', 'fontsize':10, 'style':'normal','va':'center', 'ha':'right' })
+        #self.fig2.text(0.9,0.96,'%s'%(self.s),{'family':self.font_type, 'fontsize':10, 'style':'normal','va':'center', 'ha':'right' })
         #self.canvas4.print_figure("./tmp.pdf")#, dpi=self.dpi)
         SaveMyPlot(self.fig2,self.s,"EqArea",self.WD)
 #        self.fig2.clear()
@@ -3835,7 +3833,7 @@ class Zeq_GUI(wx.Frame):
         self.current_fit = None
         self.draw_interpretation()
         self.plot_higher_levels_data()
-        self.fig3.text(0.9,0.96,'%s'%(self.s),{'family':'Arial', 'fontsize':10, 'style':'normal','va':'center', 'ha':'right' })
+        self.fig3.text(0.9,0.96,'%s'%(self.s),{'family':self.font_type, 'fontsize':10, 'style':'normal','va':'center', 'ha':'right' })
         SaveMyPlot(self.fig3,self.s,"M_M0",self.WD)
 #        self.fig3.clear()
         self.draw_figure(self.s)
@@ -3867,12 +3865,12 @@ class Zeq_GUI(wx.Frame):
         for i in range(4):
             try:
                 if plot_types[i]=="Zij":
-                    self.fig1.text(0.9,0.98,'%s'%(self.s),{'family':'Arial', 'fontsize':10, 'style':'normal','va':'center', 'ha':'right' })
+                    self.fig1.text(0.9,0.98,'%s'%(self.s),{'family':self.font_type, 'fontsize':10, 'style':'normal','va':'center', 'ha':'right' })
                     SaveMyPlot(self.fig1,self.s,"Zij",dir_path)
                 if plot_types[i]=="EqArea":
                     SaveMyPlot(self.fig2,self.s,"EqArea",dir_path)
                 if plot_types[i]=="M_M0":
-                    self.fig3.text(0.9,0.96,'%s'%(self.s),{'family':'Arial', 'fontsize':10, 'style':'normal','va':'center', 'ha':'right' })
+                    self.fig3.text(0.9,0.96,'%s'%(self.s),{'family':self.font_type, 'fontsize':10, 'style':'normal','va':'center', 'ha':'right' })
                     SaveMyPlot(self.fig3,self.s,"M_M0",dir_path)
                 if plot_types[i]==str(self.level_box.GetValue()):
                     SaveMyPlot(self.fig4,str(self.level_names.GetValue()),str(self.level_box.GetValue()),dir_path )
@@ -4072,7 +4070,7 @@ class Zeq_GUI(wx.Frame):
                 self.pmag_results_data['specimens'][self.s].append(Fit('Fit ' + next_fit, None, None, self.colors[(int(next_fit)-1) % len(self.colors)], self))
                 fit = self.pmag_results_data['specimens'][specimen][-1]
 
-            fit.put(self.s,self.COORDINATE_SYSTEM,self.get_PCA_parameters(specimen,tmin,tmax,self.COORDINATE_SYSTEM,calculation_type))
+            fit.put(self.s,self.COORDINATE_SYSTEM,self.get_PCA_parameters(specimen,fit,tmin,tmax,self.COORDINATE_SYSTEM,calculation_type))
 
         fin.close()
         self.s=str(self.specimens_box.GetValue())
@@ -4382,7 +4380,7 @@ class Zeq_GUI(wx.Frame):
 
                     mpars = fit.get(dirtype)
                     if not mpars:
-                        mpars = self.get_PCA_parameters(specimen,fit.tmin,fit.tmax,dirtype,fit.PCA_type)
+                        mpars = self.get_PCA_parameters(specimen,fit,fit.tmin,fit.tmax,dirtype,fit.PCA_type)
                         if not mpars: continue
 
                     PmagSpecRec={}
@@ -4713,7 +4711,7 @@ class Zeq_GUI(wx.Frame):
     # Utility Funcitons
     #------------------
 
-    def get_temp_indices(self, fit = None, tmin = None, tmax = None, specimen = None):
+    def get_indices(self, fit = None, tmin = None, tmax = None, specimen = None):
         """
         Finds the appropriate indices in self.Data[self.s]['zijdplot_steps'] given a set of upper/lower bounds. This is to resolve duplicate steps using the convention that the first good step of that name is the indicated step by that bound if there are no steps of the names tmin or tmax then it complains and reutrns a tuple (None,None).
         @param: fit -> the fit who's bounds to find the indecies of if no upper or lower bounds are specified
@@ -4727,12 +4725,13 @@ class Zeq_GUI(wx.Frame):
         if fit and not tmin and not tmax:
             tmin = fit.tmin
             tmax = fit.tmax
+        if specimen not in self.Data.keys(): raise ValueError("No data for specimen " + specimen)
         if tmin in self.Data[specimen]['zijdblock_steps']:
             tmin_index=self.Data[specimen]['zijdblock_steps'].index(tmin)
         elif type(tmin) == str or type(tmin) == unicode and tmin != '':
             int_steps = map(lambda x: float(x.strip("C mT")), self.Data[specimen]['zijdblock_steps'])
-            try: int_tmin = float(tmin.strip("C mT"))
-            except ValueError: print(tmin, tmin.strip("C mT")); raise ValueError
+            if tmin == '': print("No lower bound for fit one of the fits on specimen %s"%(specimen))
+            int_tmin = float(tmin.strip("C mT"))
             diffs = map(lambda x: abs(x-int_tmin),int_steps)
             tmin_index = diffs.index(min(diffs))
         else: tmin_index=self.tmin_box.GetSelection()
@@ -4740,6 +4739,7 @@ class Zeq_GUI(wx.Frame):
             tmax_index=self.Data[specimen]['zijdblock_steps'].index(tmax)
         elif type(tmax) == str or type(tmax) == unicode and tmax != '':
             int_steps = map(lambda x: float(x.strip("C mT")), self.Data[specimen]['zijdblock_steps'])
+            if tmax == '': print("No upper bound for fit one of the fits on specimen %s"%(specimen))
             int_tmax = float(tmax.strip("C mT"))
             diffs = map(lambda x: abs(x-int_tmax),int_steps)
             tmax_index = diffs.index(min(diffs))
@@ -4754,13 +4754,20 @@ class Zeq_GUI(wx.Frame):
             print("lower bound is greater or equal to max step cannot determine bounds for specimen: " + specimen)
             return (None,None)
 
-        if (tmin_index > 0):
+        if (tmin_index >= 0):
             while (self.Data[specimen]['measurement_flag'][tmin_index] == 'b' and \
                    tmin_index+1 < len(self.Data[specimen]['zijdblock_steps'])):
                 if (self.Data[specimen]['zijdblock_steps'][tmin_index+1] == tmin):
                     tmin_index += 1
                 else:
-                    print("For specimen " + str(specimen) + " there are no good measurement steps with value - " + str(tmin))
+                    tmin_old = tmin
+                    while (self.Data[specimen]['measurement_flag'][tmin_index] == 'b' and \
+                           tmin_index+1 < len(self.Data[specimen]['zijdblock_steps'])):
+                        tmin_index += 1
+                    tmin = self.Data[specimen]['zijdblock_steps'][tmin_index]
+                    if fit != None: fit.tmin = tmin
+                    self.tmin_box.SetStringSelection(tmin)
+                    print("For specimen " + str(specimen) + " there are no good measurement steps with value - " + str(tmin_old) + " using step " + str(tmin) + " as lower bound instead")
                     break
 
         if (tmax_index < max_index):
@@ -4769,7 +4776,14 @@ class Zeq_GUI(wx.Frame):
                 if (self.Data[specimen]['zijdblock_steps'][tmax_index+1] == tmax):
                     tmax_index += 1
                 else:
-                    print("For specimen " + str(specimen) + " there are no good measurement steps with value - " + str(tmax))
+                    tmax_old = tmax
+                    while (self.Data[specimen]['measurement_flag'][tmax_index] == 'b' and \
+                           tmax_index >= 0):
+                        tmax_index -= 1
+                    tmax = self.Data[specimen]['zijdblock_steps'][tmax_index]
+                    if fit != None: fit.tmax = tmax
+                    self.tmax_box.SetStringSelection(tmax)
+                    print("For specimen " + str(specimen) + " there are no good measurement steps with value - " + str(tmax_old) + " using step " + str(tmax) + " as upper bound instead")
                     break
 
         if (tmin_index < 0): tmin_index = 0
@@ -5032,8 +5046,8 @@ class EditFitFrame(wx.Frame):
         """
 
         #set fonts
-        font1 = wx.Font(10, wx.SWISS, wx.NORMAL, wx.NORMAL, False, u'Arial')
-        font2 = wx.Font(13, wx.SWISS, wx.NORMAL, wx.NORMAL, False, u'Arial')
+        font1 = wx.Font(10, wx.SWISS, wx.NORMAL, wx.NORMAL, False, self.font_type)
+        font2 = wx.Font(13, wx.SWISS, wx.NORMAL, wx.NORMAL, False, self.font_type)
 
         #if you're on mac do some funny stuff to make it look okay
         is_mac = False

@@ -2,7 +2,6 @@
 import os
 import sys
 import pmagpy.pmag as pmag
-import pdb
 
 def main(command_line=True, **kwargs):
     """
@@ -272,7 +271,6 @@ def main(command_line=True, **kwargs):
             treat=line[2:6]
             try: float(treat)
             except ValueError: treat = line[3:6]
-            print(treat_type,treat)
             if treat_type.startswith('NRM'):
                 MeasRec['magic_method_codes']='LT-NO'
                 MeasRec['measurement_temp']='273'
@@ -315,8 +313,6 @@ def main(command_line=True, **kwargs):
                 MeasRec['treatment_ac_field']='0'
             else:
                 print "trouble with your treatment steps"
-                pdb.set_trace()
-            print(MeasRec['treatment_ac_field'])
             MeasRec['measurement_dec']=line[46:51]
             MeasRec['measurement_inc']=line[52:58]
             M='%8.2e'%(float(line[31:39])*vol*1e-3) # convert to Am2
