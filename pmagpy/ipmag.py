@@ -5874,7 +5874,7 @@ def pmag_results_extract(res_file="pmag_results.txt", crit_file="", spec_file=""
     return True, outfiles
 
 
-def dmag_magic(path_to_file = '.', file_name = 'magic_measurements.txt',
+def demag_magic(path_to_file = '.', file_name = 'magic_measurements.txt',
                save = False, save_folder = '.', fmt='svg', plot_by='loc',
                treat=None, XLP = "", individual = None):
     '''
@@ -5891,7 +5891,7 @@ def dmag_magic(path_to_file = '.', file_name = 'magic_measurements.txt',
     plot_by : specifies what sampling level you wish to plot the data at
         ('loc' -- plots all samples of the same location on the same plot
         'exp' -- plots all samples of the same expedition on the same plot
-        'sit' -- plots all samples of the same site on the same plot
+        'site' -- plots all samples of the same site on the same plot
         'sample' -- plots all measurements of the same sample on the same plot
         'spc' -- plots each specimen individually)
     treat : treatment step
@@ -5918,7 +5918,7 @@ def dmag_magic(path_to_file = '.', file_name = 'magic_measurements.txt',
         plot_key='er_location_name'
     elif plot_by=='exp':
         plot_key='er_expedition_name'
-    elif plot_by=='sit':
+    elif plot_by=='site':
         plot_key='er_site_name'
     elif plot_by=='sam':
         plot_key='er_sample_name'
@@ -6136,7 +6136,7 @@ def hysteresis_magic(path_to_file = '.',hyst_file="rmag_hysteresis.txt",
         print hysteresis_magic.__doc__
         print 'bad file'
         return
-        
+
     # initialize some variables
     # define figure numbers for hyst,deltaM,DdeltaM curves
     HystRecs,RemRecs=[],[]
