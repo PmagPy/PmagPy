@@ -353,7 +353,7 @@ def bootstrap_fold_test(Data,num_sims=1000,min_untilt=-10,max_untilt=120, beddin
     plt.show()
 
 
-def common_mean_bootstrap(Data1,Data2,NumSims=1000, save=False, save_folder = '.', fmt = 'svg',figsize=(7,2.3), nbins = 4):
+def common_mean_bootstrap(Data1,Data2,NumSims=1000, save=False, save_folder = '.', fmt = 'svg',figsize=(7,2.3), x_tick_bins = 4):
     """
     Conduct a bootstrap test (Tauxe, 2010) for a common mean on two declination,
     inclination data sets
@@ -405,7 +405,7 @@ def common_mean_bootstrap(Data1,Data2,NumSims=1000, save=False, save_folder = '.
     bounds2=[X2[minimum],X2[maximum]]
     pmagplotlib.plotVs(fignum,bounds2,'b','--')
     plt.ylim(0,1)
-    plt.locator_params(nbins=nbins)
+    plt.locator_params(nbins=x_tick_bins)
 
     plt.subplot(1,3,2)
 
@@ -417,7 +417,7 @@ def common_mean_bootstrap(Data1,Data2,NumSims=1000, save=False, save_folder = '.
     bounds2=[Y2[minimum],Y2[maximum]]
     pmagplotlib.plotVs(fignum,bounds2,'b','--')
     plt.ylim(0,1)
-    plt.locator_params(nbins=nbins)
+    plt.locator_params(nbins=x_tick_bins)
 
     plt.subplot(1,3,3)
 
@@ -429,7 +429,7 @@ def common_mean_bootstrap(Data1,Data2,NumSims=1000, save=False, save_folder = '.
     bounds2=[Z2[minimum],Z2[maximum]]
     pmagplotlib.plotVs(fignum,bounds2,'b','--')
     plt.ylim(0,1)
-    plt.locator_params(nbins=nbins)
+    plt.locator_params(nbins=x_tick_bins)
 
     plt.tight_layout()
     if save == True:
