@@ -353,7 +353,7 @@ def bootstrap_fold_test(Data,num_sims=1000,min_untilt=-10,max_untilt=120, beddin
     plt.show()
 
 
-def common_mean_bootstrap(Data1,Data2,NumSims=1000, save=False, save_folder = '.', fmt = 'svg',figsize=(7,2.3)):
+def common_mean_bootstrap(Data1,Data2,NumSims=1000, save=False, save_folder = '.', fmt = 'svg',figsize=(7,2.3), nbins = 4):
     """
     Conduct a bootstrap test (Tauxe, 2010) for a common mean on two declination,
     inclination data sets
@@ -371,6 +371,13 @@ def common_mean_bootstrap(Data1,Data2,NumSims=1000, save=False, save_folder = '.
     Optional Keywords (defaults are used if not specified)
     ----------
     NumSims : number of bootstrap samples (default is 1000)
+    save : optional save of plots (default is False)
+    save_folder : path to directory where plots should be saved
+    fmt : format of figures to be saved (default is 'svg')
+    figsize : optionally adjust figure size (default is (7, 2.3))
+    nbins : because they occasionally overlap depending on the data, this
+        argument allows you adjust number of tick marks on the x axis of graphs
+        (default is 4)
     """
     counter=0
     BDI1=pmag.di_boot(Data1)
@@ -398,6 +405,7 @@ def common_mean_bootstrap(Data1,Data2,NumSims=1000, save=False, save_folder = '.
     bounds2=[X2[minimum],X2[maximum]]
     pmagplotlib.plotVs(fignum,bounds2,'b','--')
     plt.ylim(0,1)
+    plt.locator_params(nbins=nbins)
 
     plt.subplot(1,3,2)
 
@@ -409,6 +417,7 @@ def common_mean_bootstrap(Data1,Data2,NumSims=1000, save=False, save_folder = '.
     bounds2=[Y2[minimum],Y2[maximum]]
     pmagplotlib.plotVs(fignum,bounds2,'b','--')
     plt.ylim(0,1)
+    plt.locator_params(nbins=nbins)
 
     plt.subplot(1,3,3)
 
@@ -420,6 +429,7 @@ def common_mean_bootstrap(Data1,Data2,NumSims=1000, save=False, save_folder = '.
     bounds2=[Z2[minimum],Z2[maximum]]
     pmagplotlib.plotVs(fignum,bounds2,'b','--')
     plt.ylim(0,1)
+    plt.locator_params(nbins=nbins)
 
     plt.tight_layout()
     if save == True:
@@ -447,6 +457,9 @@ def common_mean_watson(Data1,Data2,NumSims=5000,plot='no', save=False, save_fold
     NumSims : number of Monte Carlo simulations (default is 5000)
     plot : the default is no plot ('no'). Putting 'yes' will the plot the CDF from
     the Monte Carlo simulations.
+    save : optional save of plots (default is False)
+    save_folder : path to directory where plots should be saved
+    fmt : format of figures to be saved (default is 'svg')
     """
     pars_1=pmag.fisher_mean(Data1)
     pars_2=pmag.fisher_mean(Data2)
