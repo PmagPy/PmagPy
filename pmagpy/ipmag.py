@@ -353,7 +353,7 @@ def bootstrap_fold_test(Data,num_sims=1000,min_untilt=-10,max_untilt=120, beddin
     plt.show()
 
 
-def common_mean_bootstrap(Data1,Data2,NumSims=1000, save=False, save_folder = '.', fmt = 'svg',figsize=(7,2.3)):
+def common_mean_bootstrap(Data1,Data2,NumSims=1000, save=False, save_folder = '.', fmt = 'svg',figsize=(7,2.3), x_tick_bins = 4):
     """
     Conduct a bootstrap test (Tauxe, 2010) for a common mean on two declination,
     inclination data sets
@@ -371,6 +371,13 @@ def common_mean_bootstrap(Data1,Data2,NumSims=1000, save=False, save_folder = '.
     Optional Keywords (defaults are used if not specified)
     ----------
     NumSims : number of bootstrap samples (default is 1000)
+    save : optional save of plots (default is False)
+    save_folder : path to directory where plots should be saved
+    fmt : format of figures to be saved (default is 'svg')
+    figsize : optionally adjust figure size (default is (7, 2.3))
+    nbins : because they occasionally overlap depending on the data, this
+        argument allows you adjust number of tick marks on the x axis of graphs
+        (default is 4)
     """
     counter=0
     BDI1=pmag.di_boot(Data1)
@@ -398,6 +405,7 @@ def common_mean_bootstrap(Data1,Data2,NumSims=1000, save=False, save_folder = '.
     bounds2=[X2[minimum],X2[maximum]]
     pmagplotlib.plotVs(fignum,bounds2,'b','--')
     plt.ylim(0,1)
+    plt.locator_params(nbins=x_tick_bins)
 
     plt.subplot(1,3,2)
 
@@ -409,6 +417,7 @@ def common_mean_bootstrap(Data1,Data2,NumSims=1000, save=False, save_folder = '.
     bounds2=[Y2[minimum],Y2[maximum]]
     pmagplotlib.plotVs(fignum,bounds2,'b','--')
     plt.ylim(0,1)
+    plt.locator_params(nbins=x_tick_bins)
 
     plt.subplot(1,3,3)
 
@@ -420,6 +429,7 @@ def common_mean_bootstrap(Data1,Data2,NumSims=1000, save=False, save_folder = '.
     bounds2=[Z2[minimum],Z2[maximum]]
     pmagplotlib.plotVs(fignum,bounds2,'b','--')
     plt.ylim(0,1)
+    plt.locator_params(nbins=x_tick_bins)
 
     plt.tight_layout()
     if save == True:
@@ -447,6 +457,9 @@ def common_mean_watson(Data1,Data2,NumSims=5000,plot='no', save=False, save_fold
     NumSims : number of Monte Carlo simulations (default is 5000)
     plot : the default is no plot ('no'). Putting 'yes' will the plot the CDF from
     the Monte Carlo simulations.
+    save : optional save of plots (default is False)
+    save_folder : path to directory where plots should be saved
+    fmt : format of figures to be saved (default is 'svg')
     """
     pars_1=pmag.fisher_mean(Data1)
     pars_2=pmag.fisher_mean(Data2)
@@ -5872,3 +5885,412 @@ def pmag_results_extract(res_file="pmag_results.txt", crit_file="", spec_file=""
         print 'Selection criteria saved in: ', Critout
         outfiles.append(Critout)
     return True, outfiles
+
+
+def demag_magic(path_to_file = '.', file_name = 'magic_measurements.txt',
+               save = False, save_folder = '.', fmt='svg', plot_by='loc',
+               treat=None, XLP = "", individual = None):
+    '''
+    Takes demagnetization data (from magic_measurements file) and outputs
+    intensity plots (with optional save).
+
+    Arguments
+    -----------
+    path_to_file : path to directory that contains files (default is current directory, '.')
+    file_name : name of measurements file (default is 'magic_measurements.txt')
+    save : boolean argument to save plots (default is False)
+    save_folder : relative directory where plots will be saved (default is current directory, '.')
+    fmt : format of saved figures (default is 'svg')
+    plot_by : specifies what sampling level you wish to plot the data at
+        ('loc' -- plots all samples of the same location on the same plot
+        'exp' -- plots all samples of the same expedition on the same plot
+        'site' -- plots all samples of the same site on the same plot
+        'sample' -- plots all measurements of the same sample on the same plot
+        'spc' -- plots each specimen individually)
+    treat : treatment step
+        'T' = thermal demagnetization
+        'AF' = alternating field demagnetization
+        'M' = microwave radiation demagnetization
+        (default is 'AF')
+    XLP : filter data by a particular method
+    individual : This function outputs all plots by default. If plotting by sample
+        or specimen, you may not wish to see (or wait for) every single plot. You can
+        therefore specify a particular plot by setting this keyword argument to
+        a string of the site/sample/specimen name.
+    '''
+
+    FIG={} # plot dictionary
+    FIG['demag']=1 # demag is figure 1
+    in_file,plot_key,LT=os.path.join(path_to_file, file_name),'er_location_name',"LT-AF-Z"
+    XLP=""
+    norm=1
+    units,dmag_key='T','treatment_ac_field'
+    plot_num=0
+
+    if plot_by=='loc':
+        plot_key='er_location_name'
+    elif plot_by=='exp':
+        plot_key='er_expedition_name'
+    elif plot_by=='site':
+        plot_key='er_site_name'
+    elif plot_by=='sam':
+        plot_key='er_sample_name'
+    elif plot_by=='spc':
+        plot_key='er_specimen_name'
+
+    if treat != None:
+        LT='LT-'+treat+'-Z' # get lab treatment for plotting
+        if  LT=='LT-T-Z':
+            units,dmag_key='K','treatment_temp'
+        elif  LT=='LT-AF-Z':
+            units,dmag_key='T','treatment_ac_field'
+        elif  LT=='LT-M-Z':
+            units,dmag_key='J','treatment_mw_energy'
+        else:
+            units='U'
+    else:
+        LT='LT-AF-Z'
+
+    plot_dict = {}
+    data,file_type=pmag.magic_read(in_file)
+    sids=pmag.get_specs(data)
+    plt.figure(num=FIG['demag'],figsize=(5,5))
+    print len(data),' records read from ',in_file
+    #
+    #
+    # find desired intensity data
+    #
+    # get plotlist
+    #
+    plotlist,intlist=[],['measurement_magnitude','measurement_magn_moment',
+                         'measurement_magn_volume','measurement_magn_mass']
+    IntMeths=[]
+    FixData=[]
+    for rec in data:
+        meths=[]
+        methcodes=rec['magic_method_codes'].split(':')
+        for meth in methcodes:
+            meths.append(meth.strip())
+        for key in rec.keys():
+            if key in intlist and rec[key]!="":
+                if key not in IntMeths:
+                    IntMeths.append(key)
+                if rec[plot_key] not in plotlist and LT in meths:
+                    plotlist.append(rec[plot_key])
+                if 'measurement_flag' not in rec.keys():
+                    rec['measurement_flag']='g'
+                FixData.append(rec)
+        plotlist.sort()
+    if len(IntMeths)==0:
+        print 'No intensity information found'
+    data=FixData
+    int_key=IntMeths[0] # plot first intensity method found - normalized to initial value anyway - doesn't matter which used
+    # print plotlist
+    if individual is not None:
+        plotlist = []
+        plotlist.append(individual)
+    for plot in plotlist:
+        print plot,'plotting by: ',plot_key
+        PLTblock=pmag.get_dictitem(data,plot_key,plot,'T') # fish out all the data for this type of plot
+        PLTblock=pmag.get_dictitem(PLTblock,'magic_method_codes',LT,'has') # fish out all the dmag for this experiment type
+        PLTblock=pmag.get_dictitem(PLTblock,int_key,'','F') # get all with this intensity key non-blank
+        if XLP!="":
+            # reject data with XLP in method_code
+            PLTblock=pmag.get_dictitem(PLTblock,'magic_method_codes',XLP,'not')
+    # for plot in plotlist:
+        if len(PLTblock)>2:
+            title=PLTblock[0][plot_key]
+            spcs=[]
+            for rec in PLTblock:
+                if rec['er_specimen_name'] not in spcs:
+                    spcs.append(rec['er_specimen_name'])
+            for spc in spcs:
+                SPCblock=pmag.get_dictitem(PLTblock,'er_specimen_name',spc,'T') # plot specimen by specimen
+                INTblock=[]
+                for rec in SPCblock:
+                    INTblock.append([float(rec[dmag_key]),0,0,float(rec[int_key]),1,rec['measurement_flag']])
+                if len(INTblock)>2:
+                    pmagplotlib.plotMT(FIG['demag'],INTblock,title,0,units,norm)
+        if save==True:
+            plt.savefig(os.path.join(save_folder, title)+ '.' + fmt)
+        plt.show()
+
+
+def iplotHYS(fignum,B,M,s):
+    """
+    function to plot hysteresis data
+
+    This function has been adapted from pmagplotlib.iplotHYS for specific use
+    within a Jupyter notebook.
+
+    Arguments
+    -----------
+    fignum : reference number for matplotlib figure being created
+    B : list of B (flux density) values of hysteresis experiment
+    M : list of M (magnetization) values of hysteresis experiment
+    s : sample name
+    """
+    import pmagpy.spline as spline
+    from matplotlib.pylab import polyfit
+    if fignum!=0:
+        plt.figure(num=fignum)
+        plt.clf()
+    hpars={}
+# close up loop
+    Npts=len(M)
+    B70=0.7*B[0] # 70 percent of maximum field
+    for b in B:
+        if b<B70:
+            break
+    Nint=B.index(b)-1
+    if Nint>30:Nint=30
+    if Nint<10:Nint=10
+    Bzero,Mzero,Mfix,Mnorm,Madj,MadjN="","",[],[],[],[]
+    Mazero=""
+    m_init=0.5*(M[0]+M[1])
+    m_fin=0.5*(M[-1]+M[-2])
+    diff=m_fin-m_init
+    Bmin=0.
+    for k in range(Npts):
+        frac=float(k)/float(Npts-1)
+        Mfix.append((M[k]-diff*frac))
+        if Bzero=="" and B[k]<0: Bzero=k
+        if B[k]<Bmin:
+            Bmin=B[k]
+            kmin=k
+    Bslop=B[2:Nint+2] # adjust slope with first 30 data points (throwing out first 3)
+    Mslop=Mfix[2:Nint+2]
+    polyU=polyfit(Bslop,Mslop,1) # best fit line to high field points
+    Bslop=B[kmin:kmin+(Nint+1)] # adjust slope with first 30 points of ascending branch
+    Mslop=Mfix[kmin:kmin+(Nint+1)]
+    polyL=polyfit(Bslop,Mslop,1) # best fit line to high field points
+    xhf=0.5*(polyU[0]+polyL[0]) # mean of two slopes
+    hpars['hysteresis_xhf']='%8.2e'%(xhf*4*np.pi*1e-7) # convert B to A/m, high field slope in m^3
+    meanint=0.5*(polyU[1]+polyL[1]) # mean of two intercepts
+    Msat=0.5*(polyU[1]-polyL[1]) # mean of saturation remanence
+    Moff=[]
+    for k in range(Npts):
+        Moff.append((Mfix[k]-xhf*B[k]-meanint))  # take out linear slope and offset (makes symmetric about origin)
+        if Mzero=="" and Moff[k]<0:
+            Mzero=k
+        if Mzero!="" and Mazero=="" and Moff[k]>0:
+            Mazero=k
+    hpars['hysteresis_ms_moment']='%8.3e'%(Msat) # Ms in Am^2
+#
+# split into upper and lower loops for splining
+    Mupper,Bupper,Mlower,Blower=[],[],[],[]
+    deltaM,Bdm=[],[] # diff between upper and lower curves at Bdm
+    for k in range(kmin-2,0,-1):
+        Mupper.append(Moff[k]/Msat)
+        Bupper.append(B[k])
+    for k in range(kmin+2,len(B)):
+        Mlower.append(Moff[k]/Msat)
+        Blower.append(B[k])
+    Iupper=spline.Spline(Bupper,Mupper) # get splines for upper up and down
+    Ilower=spline.Spline(Blower,Mlower) # get splines for lower
+    for b in np.arange(B[0],step=.01):  # get range of field values
+        Mpos=((Iupper(b)-Ilower(b))) # evaluate on both sides of B
+        Mneg=((Iupper(-b)-Ilower(-b)))
+        Bdm.append(b)
+        deltaM.append(0.5*(Mpos+Mneg))# take average delta M
+    for k in range(Npts):
+        MadjN.append(Moff[k]/Msat)
+        Mnorm.append(M[k]/Msat)
+# find Mr : average of two spline fits evaluted at B=0 (times Msat)
+    Mr=Msat*0.5*(Iupper(0.)-Ilower(0.))
+    hpars['hysteresis_mr_moment']='%8.3e'%(Mr)
+# find Bc (x intercept), interpolate between two bounding points
+    Bz=B[Mzero-1:Mzero+1]
+    Mz=Moff[Mzero-1:Mzero+1]
+    Baz=B[Mazero-1:Mazero+1]
+    Maz=Moff[Mazero-1:Mazero+1]
+    try:
+        poly=polyfit(Bz,Mz,1) # best fit line through two bounding points
+        Bc=-poly[1]/poly[0] # x intercept
+        poly=polyfit(Baz,Maz,1) # best fit line through two bounding points
+        Bac=-poly[1]/poly[0] # x intercept
+        hpars['hysteresis_bc']='%8.3e'%(0.5*(abs(Bc)+abs(Bac)))
+    except:
+        hpars['hysteresis_bc']='0'
+    return hpars,deltaM,Bdm, B, Mnorm, MadjN
+
+
+def hysteresis_magic(path_to_file = '.',hyst_file="rmag_hysteresis.txt",
+                     save = False, save_folder = '.',
+                     fmt = "svg", plots = True):
+    """
+    Calculates hysteresis parameters, saves them in rmag_hysteresis format file.
+    If selected, this function also plots hysteresis loops, delta M curves,
+    d (Delta M)/dB curves, and IRM backfield curves.
+
+    Arguments (defaults are used if not specified)
+    ----------
+    path_to_file : path to directory that contains files (default is current directory, '.')
+    hyst_file : hysteresis file (default is 'rmag_hysteresis.txt')
+    save : boolean argument to save plots (default is False)
+    save_folder : relative directory where plots will be saved (default is current directory, '.')
+    fmt : format of saved figures (default is 'pdf')
+    plots: whether or not to display the plots (default is true)
+    """
+    from matplotlib.pylab import polyfit
+    import matplotlib.ticker as mtick
+    user,meas_file,rmag_out,rmag_file="","agm_measurements.txt","rmag_hysteresis.txt",""
+    pltspec=""
+    dir_path=save_folder
+    verbose=pmagplotlib.verbose
+    version_num=pmag.get_version()
+    rmag_out=save_folder+'/'+rmag_out
+    meas_file=path_to_file+'/'+hyst_file
+    rmag_rem=save_folder+"/rmag_remanence.txt"
+    #
+    #
+    meas_data,file_type=pmag.magic_read(meas_file)
+    if file_type!='magic_measurements':
+        print hysteresis_magic.__doc__
+        print 'bad file'
+        return
+
+    # initialize some variables
+    # define figure numbers for hyst,deltaM,DdeltaM curves
+    HystRecs,RemRecs=[],[]
+    HDD = {}
+    HDD['hyst'],HDD['deltaM'],HDD['DdeltaM']=1,2,3
+    experiment_names,sids=[],[]
+    for rec in meas_data:
+        meths=rec['magic_method_codes'].split(':')
+        methods=[]
+        for meth in meths:
+            methods.append(meth.strip())
+        if 'LP-HYS' in methods:
+            if 'er_synthetic_name' in rec.keys() and rec['er_synthetic_name']!="":
+                rec['er_specimen_name']=rec['er_synthetic_name']
+            if rec['magic_experiment_name'] not in experiment_names:experiment_names.append(rec['magic_experiment_name'])
+            if rec['er_specimen_name'] not in sids:sids.append(rec['er_specimen_name'])
+    #
+    fignum = 1
+    sample_num = 0
+    # initialize variables to record some bulk info in first loop
+    first_dcd_rec,first_rec,first_imag_rec=1,1,1
+    while sample_num < len(sids):
+        sample = sids[sample_num]
+        print sample, sample_num+1 , 'out of ',len(sids)
+        B,M,Bdcd,Mdcd=[],[],[],[] #B,M for hysteresis, Bdcd,Mdcd for irm-dcd data
+        Bimag,Mimag=[],[] #Bimag,Mimag for initial magnetization curves
+        for rec in meas_data:
+            methcodes=rec['magic_method_codes'].split(':')
+            meths=[]
+            for meth in methcodes:
+                meths.append(meth.strip())
+            if rec['er_specimen_name']==sample and "LP-HYS" in meths:
+                B.append(float(rec['measurement_lab_field_dc']))
+                M.append(float(rec['measurement_magn_moment']))
+                if first_rec==1:
+                    e=rec['magic_experiment_name']
+                    HystRec={}
+                    first_rec=0
+                    if "er_location_name" in rec.keys():
+                        HystRec["er_location_name"]=rec["er_location_name"]
+                        locname=rec['er_location_name'].replace('/','-')
+                    if "er_sample_name" in rec.keys():HystRec["er_sample_name"]=rec["er_sample_name"]
+                    if "er_site_name" in rec.keys():HystRec["er_site_name"]=rec["er_site_name"]
+                    if "er_synthetic_name" in rec.keys() and rec['er_synthetic_name']!="":
+                        HystRec["er_synthetic_name"]=rec["er_synthetic_name"]
+                    else:
+                        HystRec["er_specimen_name"]=rec["er_specimen_name"]
+            if rec['er_specimen_name']==sample and "LP-IRM-DCD" in meths:
+                Bdcd.append(float(rec['treatment_dc_field']))
+                Mdcd.append(float(rec['measurement_magn_moment']))
+                if first_dcd_rec==1:
+                    RemRec={}
+                    irm_exp=rec['magic_experiment_name']
+                    first_dcd_rec=0
+                    if "er_location_name" in rec.keys():RemRec["er_location_name"]=rec["er_location_name"]
+                    if "er_sample_name" in rec.keys():RemRec["er_sample_name"]=rec["er_sample_name"]
+                    if "er_site_name" in rec.keys():RemRec["er_site_name"]=rec["er_site_name"]
+                    if "er_synthetic_name" in rec.keys() and rec['er_synthetic_name']!="":
+                        RemRec["er_synthetic_name"]=rec["er_synthetic_name"]
+                    else:
+                        RemRec["er_specimen_name"]=rec["er_specimen_name"]
+            if rec['er_specimen_name']==sample and "LP-IMAG" in meths:
+                if first_imag_rec==1:
+                    imag_exp=rec['magic_experiment_name']
+                    first_imag_rec=0
+                Bimag.append(float(rec['measurement_lab_field_dc']))
+                Mimag.append(float(rec['measurement_magn_moment']))
+        if len(B)>0:
+            hmeths=[]
+            for meth in meths:
+                hmeths.append(meth)
+    #         fignum = 1
+            fig = plt.figure(figsize=(8,8))
+            hpars,deltaM,Bdm, B, Mnorm, MadjN = iplotHYS(1,B,M,sample)
+            ax1 = fig.add_subplot(2,2,1)
+            ax1.axhline(0,color='k')
+            ax1.axvline(0,color='k')
+            ax1.plot(B,Mnorm,'r')
+            ax1.plot(B,MadjN,'b')
+            ax1.set_xlabel('B (T)')
+            ax1.set_ylabel("M/Msat")
+    #         ax1.set_title(sample)
+            ax1.set_xlim(-1,1)
+            ax1.set_ylim(-1,1)
+            bounds=ax1.axis()
+            n4='Ms: '+'%8.2e'%(float(hpars['hysteresis_ms_moment']))+' Am^2'
+            ax1.text(bounds[1]-.9*bounds[1],-.9,n4, fontsize=9)
+            n1='Mr: '+'%8.2e'%(float(hpars['hysteresis_mr_moment']))+' Am^2'
+            ax1.text(bounds[1]-.9*bounds[1],-.7,n1, fontsize=9)
+            n2='Bc: '+'%8.2e'%(float(hpars['hysteresis_bc']))+' T'
+            ax1.text(bounds[1]-.9*bounds[1],-.5,n2, fontsize=9)
+            if 'hysteresis_xhf' in hpars.keys():
+                n3=r'Xhf: '+'%8.2e'%(float(hpars['hysteresis_xhf']))+' m^3'
+                ax1.text(bounds[1]-.9*bounds[1],-.3,n3, fontsize=9)
+    #         plt.subplot(1,2,2)
+    #         plt.subplot(1,3,3)
+        DdeltaM=[]
+        Mhalf=""
+        for k in range(2,len(Bdm)):
+            DdeltaM.append(abs(deltaM[k]-deltaM[k-2])/(Bdm[k]-Bdm[k-2])) # differnential
+        for k in range(len(deltaM)):
+            if deltaM[k]/deltaM[0] < 0.5:
+                Mhalf=k
+                break
+        try:
+            Bhf=Bdm[Mhalf-1:Mhalf+1]
+            Mhf=deltaM[Mhalf-1:Mhalf+1]
+            poly=polyfit(Bhf,Mhf,1) # best fit line through two bounding points
+            Bcr=(.5*deltaM[0] - poly[1])/poly[0]
+            hpars['hysteresis_bcr']='%8.3e'%(Bcr)
+            hpars['magic_method_codes']="LP-BCR-HDM"
+            if HDD['deltaM']!=0:
+                ax2 = fig.add_subplot(2,2,2)
+                ax2.plot(Bdm,deltaM,'b')
+                ax2.set_xlabel('B (T)')
+                ax2.set_ylabel('Delta M')
+                linex=[0,Bcr,Bcr]
+                liney=[deltaM[0]/2.,deltaM[0]/2.,0]
+                ax2.plot(linex,liney,'r')
+    #             ax2.set_title(sample)
+                ax3 = fig.add_subplot(2,2,3)
+                ax3.plot(Bdm[(len(Bdm)-len(DdeltaM)):],DdeltaM,'b')
+                ax3.set_xlabel('B (T)')
+                ax3.set_ylabel('d (Delta M)/dB')
+    #             ax3.set_title(sample)
+
+                ax4 = fig.add_subplot(2,2,4)
+                ax4.plot(Bdcd,Mdcd)
+                ax4.yaxis.set_major_formatter(mtick.FormatStrFormatter('%.2e'))
+                ax4.axhline(0,color='k')
+                ax4.axvline(0,color='k')
+                ax4.set_xlabel('B (T)')
+                ax4.set_ylabel('M/Mr')
+        except:
+            print "not doing it"
+            hpars['hysteresis_bcr']='0'
+            hpars['magic_method_codes']=""
+        plt.gcf()
+        plt.gca()
+        plt.tight_layout()
+        if save:
+            plt.savefig(save_folder + '/' + sample + '_hysteresis.' + fmt)
+        plt.show()
+        sample_num += 1
