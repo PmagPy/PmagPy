@@ -1936,9 +1936,9 @@ class Zeq_GUI(wx.Frame):
         check_duplicates = []
         for s,f in zip(self.Data[specimen]['zijdblock_steps'][beg_pca:end_pca+1],self.Data[specimen]['measurement_flag'][beg_pca:end_pca+1]):
             if f == 'g' and [s,'g'] in check_duplicates:
-                if s == tmin: print("There are multiple good %s steps. The first measurement will be used for lower bound of fit %s."%(tmin,fit.name))
-                if s == tmax: print("There are multiple good %s steps. The first measurement will be used for upper bound of fit %s."%(tmax,fit.name))
-                else: print("Within Fit %s, there are multiple good measurements at the %s step. Both measurements are included in the fit."%(fit.name,s))
+                if s == tmin: print("There are multiple good %s steps. The first measurement will be used for lower bound of fit %s for specimen."%(tmin,fit.name,specimen))
+                if s == tmax: print("There are multiple good %s steps. The first measurement will be used for upper bound of fit %s for specimen %s."%(tmax,fit.name,specimen))
+                else: print("Within Fit %s on specimen %s, there are multiple good measurements at the %s step. Both measurements are included in the fit."%(fit.name,specimen,s))
             else:
                 check_duplicates.append([s,f])
 
@@ -5035,6 +5035,7 @@ class EditFitFrame(wx.Frame):
         self.specimens_list.sort(cmp=specimens_comparator)
         self.current_fit_index = None
         self.search_query = ""
+        self.font_type = self.parent.font_type
         #build UI
         self.init_UI()
         #update with stuff
