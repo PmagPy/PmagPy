@@ -60,7 +60,7 @@ except:
     pass
 import stat
 import subprocess
-import time
+from time import time
 from datetime import datetime
 import wx
 import wx.grid
@@ -82,6 +82,7 @@ import pmagpy.ipmag as ipmag
 import dialogs.demag_dialogs as demag_dialogs
 from matplotlib.backends.backend_wx import NavigationToolbar2Wx
 from copy import deepcopy,copy
+import programs.CIT_magic as CIT_magic
 
 
 matplotlib.rc('xtick', labelsize=10)
@@ -126,13 +127,17 @@ class Zeq_GUI(wx.Frame):
         wx.Frame.__init__(self, parent, wx.ID_ANY, self.title, style = default_style, name='demag gui')
         self.parent = parent
 
-        self.redo_specimens={}
         self.currentDirectory = os.getcwd() # get the current working directory
         if WD:
             self.WD = WD
-            self.get_DIR(WD)        # initialize directory variables
+            self.change_WD(WD)
+        elif "-WD" in sys.argv and FIRST_RUN:
+            ind=sys.argv.index('-WD')
+            self.change_WD(sys.argv[ind+1])
         else:
-            self.get_DIR()        # choose directory dialog, then initialize directory variables
+            new_WD = self.get_DIR()        # choose directory dialog, then initialize directory variables
+            self.change_WD(new_WD)
+        self.init_log_file()
 
         #set icon
         try:
@@ -148,19 +153,18 @@ class Zeq_GUI(wx.Frame):
         self.acceptance_criteria=pmag.initialize_acceptance_criteria()
         try:
             self.acceptance_criteria=pmag.read_criteria_from_file(os.path.join(self.WD, "pmag_criteria.txt"), self.acceptance_criteria)
-        except:
+        except IOError:
             print "-I- Cant find/read file  pmag_criteria.txt"
 
 
         self.font_type = "Arial"
         if sys.platform.startswith("linux"): self.font_type = "Liberation Serif"
-        preferences=self.get_preferences()
+
+        self.preferences=self.get_preferences()
         self.dpi = 100
-        self.preferences={}
-        self.preferences=preferences
 
         # initialize selecting criteria
-        self.COORDINATE_SYSTEM='specimen'
+        self.COORDINATE_SYSTEM='geographic'
         self.UPPER_LEVEL_SHOW='specimens'
         self.Data_info=self.get_data_info() # Read  er_* data
         self.Data,self.Data_hierarchy=self.get_data() # Get data from magic_measurements and rmag_anistropy if exist.
@@ -177,13 +181,11 @@ class Zeq_GUI(wx.Frame):
 
         self.interpretation_editor_open = False
         self.color_dict = {'green':'g','yellow':'y','maroon':'m','cyan':'c','black':'k','brown':(139./255.,69./255.,19./255.),'orange':(255./255.,127./255.,0./255.),'pink':(255./255.,20./255.,147./255.),'violet':(153./255.,50./255.,204./255.),'grey':(84./255.,84./255.,84./255.),'goldenrod':'goldenrod'}
-        self.colors = ['g','y','m','c','k',(139./255.,69./255.,19./255.),(255./255.,127./255.,0./255.),(255./255.,20./255.,147./255.),(153./255.,50./255.,204./255.),(84./255.,84./255.,84./255.),'goldenrod'] #for fits
+        self.colors = ['g','y','m','c','k',(139./255.,69./255.,19./255.),(255./255.,127./255.,0./255.),(255./255.,20./255.,147./255.),(153./255.,50./255.,204./255.),(84./255.,84./255.,84./255.), 'goldenrod']
         self.current_fit = None
         self.dirtypes = ['DA-DIR','DA-DIR-GEO','DA-DIR-TILT']
         self.bad_fits = []
 
-        self.Data_samples={}
-        self.last_saved_pars={}
         self.specimens=self.Data.keys()         # get list of specimens
         self.specimens.sort(cmp=specimens_comparator) # sort list of specimens
         if len(self.specimens)>0:
@@ -191,18 +193,30 @@ class Zeq_GUI(wx.Frame):
         else:
             self.s=""
         self.samples=self.Data_hierarchy['samples'].keys()         # get list of samples
-        self.samples.sort()                   # get list of specimens
+        self.samples.sort(cmp=specimens_comparator)                   # get list of specimens
         self.sites=self.Data_hierarchy['sites'].keys()         # get list of sites
-        self.sites.sort()                   # get list of sites
+        self.sites.sort(cmp=specimens_comparator)                   # get list of sites
         self.locations=self.Data_hierarchy['locations'].keys()      # get list of sites
         self.locations.sort()                   # get list of sites
-
-        self.Bind(wx.EVT_SIZE, self.resize_UI)
 
         self.panel = wx.lib.scrolledpanel.ScrolledPanel(self,-1) # make the Panel
         self.panel.SetupScrolling()
         self.init_UI()                   # build the main frame
         self.create_menu()                  # create manu bar
+
+        # get previous interpretations from pmag tables
+        # Draw figures and add text
+        if self.Data:
+            self.update_pmag_tables()
+            if not self.current_fit:
+                self.update_selection()
+            else:
+                self.Add_text()
+                self.update_fit_boxs()
+        else:
+            print("------------------------------ no magic_measurements.txt found---------------------------------------")
+            self.Destroy()
+
         self.arrow_keys()
         self.Bind(wx.EVT_CLOSE, self.on_menu_exit)
         FIRST_RUN=False
@@ -599,24 +613,7 @@ class Zeq_GUI(wx.Frame):
         vbox1.Fit(self)
 
         self.GUI_SIZE = self.GetSize()
-
-        # get previous interpretations from pmag tables
-        # Draw figures and add text
-        if self.Data:
-            self.update_pmag_tables()
-            if not self.current_fit:
-                self.update_selection()
-            else:
-                self.Add_text()
-                self.update_fit_boxs()
-        else:
-            print("------------------------------ no magic_measurements.txt found---------------------------------------")
-            self.Destroy()
-
-    def resize_UI(self, event):
-        self.GUI_SIZE = self.GetSize()
-        self.panel.SetSizeWH(self.GUI_SIZE[0],self.GUI_SIZE[1])
-        self.panel.Update()
+        self.panel.SetSizeHints(self.GUI_SIZE[0],self.GUI_SIZE[1])
 
     #----------------------------------------------------------------------
     # Arrow keys control
@@ -1368,7 +1365,7 @@ class Zeq_GUI(wx.Frame):
         #xt=xticks()
 
         self.canvas3.draw()
-        #start_time_3=time.time()
+        #start_time_3=time()
         #runtime_sec3 = start_time_3 - start_time_2
         #print "-I- draw M_M0 figures is", runtime_sec3,"seconds"
 
@@ -1730,27 +1727,46 @@ class Zeq_GUI(wx.Frame):
             self.PCA_type_box.SetStringSelection(PCA_type)
 
 
-    def get_DIR(self, WD=None):
+    def get_DIR(self):
         """
         Choose a working directory dialog
         """
-        if not WD and "-WD" in sys.argv and FIRST_RUN:
-            ind=sys.argv.index('-WD')
-            self.WD=sys.argv[ind+1]
-            #self.WD=os.getcwd()+"/"
 
-        elif not WD:
-            dialog = wx.DirDialog(None, "Choose a directory:",defaultPath = self.currentDirectory ,style=wx.DD_DEFAULT_STYLE | wx.DD_NEW_DIR_BUTTON | wx.DD_CHANGE_DIR)
-            ok = dialog.ShowModal()
-            if ok == wx.ID_OK:
-                self.WD=dialog.GetPath()
-            else:
-                self.WD = os.getcwd()
-            dialog.Destroy()
+        dialog = wx.DirDialog(None, "Choose a directory:",defaultPath = self.currentDirectory ,style=wx.DD_DEFAULT_STYLE | wx.DD_NEW_DIR_BUTTON | wx.DD_CHANGE_DIR)
+        ok = dialog.ShowModal()
+        if ok == wx.ID_OK:
+            new_WD=dialog.GetPath()
+        else:
+            new_WD = os.getcwd()
+        dialog.Destroy()
+        return new_WD
+
+    def change_WD(self,new_WD):
+        self.WD = new_WD
         os.chdir(self.WD)
         self.WD=os.getcwd()
-        self.magic_file=os.path.join(self.WD, "magic_measurements.txt")
-        self.GUI_log=open(os.path.join(self.WD, "demag_gui.log"),'w')
+        meas_file = os.path.join(self.WD, "magic_measurements.txt")
+        if os.path.isfile(meas_file): self.magic_file=meas_file
+        else: self.magic_file = self.choose_meas_file()
+
+    def choose_meas_file(self):
+        dlg = wx.FileDialog(
+            self, message="Choose a Magic Measurement File",
+            defaultDir=self.WD,
+            defaultFile="magic_measurements.txt",
+            wildcard="*.magic|*.txt",
+            style=wx.OPEN | wx.CHANGE_DIR
+            )
+        if dlg.ShowModal() == wx.ID_OK:
+            meas_file = dlg.GetPath()
+        else:
+            meas_file = None
+        dlg.Destroy()
+        return meas_file
+
+
+    def init_log_file(self):
+        self.GUI_log=open(os.path.join(self.WD, "demag_gui.log"),'w+')
         self.GUI_log.write("start gui\n")
         self.GUI_log.close()
         self.GUI_log=open(os.path.join(self.WD, "demag_gui.log"),'a')
@@ -1933,10 +1949,11 @@ class Zeq_GUI(wx.Frame):
         if tmin == '' or tmax == '': return
         beg_pca,end_pca = self.get_indices(fit, tmin, tmax, specimen)
 
+        if beg_pca == None or end_pca == None: print("%s to %s are invalid bounds, to fit %s for specimen %s"%(tmin,tmax,fit.name,specimen)); return
         check_duplicates = []
         for s,f in zip(self.Data[specimen]['zijdblock_steps'][beg_pca:end_pca+1],self.Data[specimen]['measurement_flag'][beg_pca:end_pca+1]):
             if f == 'g' and [s,'g'] in check_duplicates:
-                if s == tmin: print("There are multiple good %s steps. The first measurement will be used for lower bound of fit %s for specimen."%(tmin,fit.name,specimen))
+                if s == tmin: print("There are multiple good %s steps. The first measurement will be used for lower bound of fit %s for specimen %s."%(tmin,fit.name,specimen))
                 if s == tmax: print("There are multiple good %s steps. The first measurement will be used for upper bound of fit %s for specimen %s."%(tmax,fit.name,specimen))
                 else: print("Within Fit %s on specimen %s, there are multiple good measurements at the %s step. Both measurements are included in the fit."%(fit.name,specimen,s))
             else:
@@ -2933,10 +2950,13 @@ class Zeq_GUI(wx.Frame):
       Data_hierarchy['location_of_specimen']={}
       Data_hierarchy['study_of_specimen']={}
       Data_hierarchy['expedition_name_of_specimen']={}
+      try:
+        self.GUI_log.write("-I- Read magic file  %s\n"%self.magic_file)
+      except ValueError:
+        self.magic_measurement = self.choose_meas_file()
+        self.GUI_log.write("-I- Read magic file  %s\n"%self.magic_file)
       mag_meas_data,file_type=pmag.magic_read(self.magic_file)
       self.mag_meas_data=deepcopy(self.merge_pmag_recs(mag_meas_data))
-
-      self.GUI_log.write("-I- Read magic file  %s\n"%self.magic_file)
 
       # get list of unique specimen names
 
@@ -3530,7 +3550,20 @@ class Zeq_GUI(wx.Frame):
 
         menu_file = wx.Menu()
 
-        m_make_MagIC_results_tables= menu_file.Append(-1, "&Save MagIC pmag tables\tCtrl-Shift-S", "")
+        m_read = wx.Menu()
+
+        m_choose_inp = m_read.Append(-1, "&Read in Data Using Single .inp File\tCtrl-O", "")
+        self.Bind(wx.EVT_MENU, self.on_menu_pick_read_inp, m_choose_inp)
+
+        m_read_all_inp = m_read.Append(-1, "&Read in all .inp files from sub-directories\tCtrl-Shift-O", "")
+        self.Bind(wx.EVT_MENU, self.on_menu_read_all_inp, m_read_all_inp)
+
+        menu_file.AppendMenu(-1, "&Read in Data", m_read)
+
+        m_change_WD = menu_file.Append(-1, "Change Working Directory\tCtrl-W","")
+        self.Bind(wx.EVT_MENU, self.on_menu_change_working_directory, m_change_WD)
+
+        m_make_MagIC_results_tables = menu_file.Append(-1, "&Save MagIC pmag tables\tCtrl-Shift-S", "")
         self.Bind(wx.EVT_MENU, self.on_menu_make_MagIC_results_tables, m_make_MagIC_results_tables)
 
         submenu_save_plots = wx.Menu()
@@ -3678,23 +3711,21 @@ class Zeq_GUI(wx.Frame):
 
     #============================================
 
-    def reset(self):
-        '''
-        reset the GUI like restarting it (almost same as __init__)
-        '''
-        #global FIRST_RUN
-        FIRST_RUN=False
-        self.currentDirectory = os.getcwd() # get the current working directory
-        self.get_DIR()        # choose directory dialog
+    def data_loss_warning(self):
+        TEXT="This action will result in a loss of all unsaved data. Would you like to continue"
+        dlg = wx.MessageDialog(None,caption="Warning:", message=TEXT ,style=wx.OK|wx.CANCEL|wx.ICON_EXCLAMATION)
+        if dlg.ShowModal() == wx.ID_OK:
+            continue_bool = True
+        else:
+            continue_bool = False
+        dlg.Destroy()
+        return continue_bool
 
-        #preferences=self.get_preferences()
-        #self.dpi = 100
-        #self.preferences={}
-        #self.preferences=preferences
+    def reset_backend(self):
+        if not self.data_loss_warning(): return False
 
-        self.COORDINATE_SYSTEM='specimen'
-        self.Data_info=self.get_data_info() # Read  er_* data
-        self.Data,self.Data_hierarchy=self.get_data() # Get data from magic_measurements and rmag_anistropy if exist.
+        self.Data_info=self.get_data_info()
+        self.Data,self.Data_hierarchy=self.get_data()
 
         self.pmag_results_data={}
         for level in ['specimens','samples','sites','locations','study']:
@@ -3706,21 +3737,16 @@ class Zeq_GUI(wx.Frame):
             if high_level not in self.high_level_means.keys():
                 self.high_level_means[high_level]={}
 
-
-        self.Data_samples={}
-        self.last_saved_pars={}
         self.specimens=self.Data.keys()         # get list of specimens
         self.specimens.sort(cmp=specimens_comparator) # sort list of specimens
         if len(self.specimens)>0:
             self.s=str(self.specimens[0])
         else:
             self.s=""
-        for fit in self.pmag_results_data['specimens'][self.s]:
-            fit.pars={}
         self.samples=self.Data_hierarchy['samples'].keys()         # get list of samples
-        self.samples.sort()                   # get list of specimens
+        self.samples.sort(cmp=specimens_comparator)                   # get list of specimens
         self.sites=self.Data_hierarchy['sites'].keys()         # get list of sites
-        self.sites.sort()                   # get list of sites
+        self.sites.sort(cmp=specimens_comparator)                   # get list of sites
         self.locations=self.Data_hierarchy['locations'].keys()         # get list of sites
         self.locations.sort()                   # get list of sites
 
@@ -3729,84 +3755,151 @@ class Zeq_GUI(wx.Frame):
         #----------------------------------------------------------------------
         try:
             self.s=str(self.specimens[0])
-        except:
+        except IndexError:
             self.s=""
         try:
             self.sample=self.Data_hierarchy['sample_of_specimen'][self.s]
-        except:
+        except KeyError:
             self.sample=""
         try:
             self.site=self.Data_hierarchy['site_of_specimen'][self.s]
-        except:
+        except KeyError:
             self.site=""
-
-        #self.get_previous_interpretation() # get interpretations from pmag_specimens.txt
 
         self.specimens_box.SetItems(self.specimens)
         self.specimens_box.SetStringSelection(str(self.s))
-        self.update_pmag_tables()
-        # Draw figures and add  text
-        try:
-            self.update_selection()
-        except:
-            pass
 
-        FIRST_RUN=False
+        if self.Data:
+            self.update_pmag_tables()
+            if not self.current_fit:
+                self.update_selection()
+            else:
+                self.Add_text()
+                self.update_fit_boxs()
+
+        if self.interpretation_editor_open:
+            self.interpretation_editor.update_editor(True)
 
     #--------------------------------------------------------------
     # File Menu Functions
     #--------------------------------------------------------------
 
-    def on_menu_exit(self, event):
+    def on_menu_pick_read_inp(self, event):
+        inp_file_name = self.pick_inp()
+        magic_files = []
+        self.read_inp(inp_file_name,magic_files)
+        self.combine_magic_files(magic_files)
+        self.reset_backend()
 
-        #check if interpretations have changed and were not saved
-        write_session_to_failsafe = False
-        try:
-            number_saved_fits = sum(1 for line in open("demag_gui.redo"))
-            number_current_fits = sum(len(self.pmag_results_data['specimens'][specimen]) for specimen in self.pmag_results_data['specimens'].keys())
-            #break if there are no fits there's no need to save an empty file
-            if number_current_fits == 0: raise RuntimeError("get out and don't write")
-            write_session_to_failsafe = (number_saved_fits != number_current_fits)
-            default_redo = open("demag_gui.redo")
-            i,specimen = 0,None
-            for line in default_redo:
-                if line == None:
-                    write_session_to_failsafe = True
-                vals = line.strip("\n").split("\t")
-                if vals[0] != specimen:
-                    i = 0
-                specimen = vals[0]
-                tmin,tmax = self.parse_bound_data(vals[2],vals[3],specimen)
-                if specimen in self.pmag_results_data['specimens']:
-                    fit = self.pmag_results_data['specimens'][specimen][i]
-                if write_session_to_failsafe:
-                    break
-                write_session_to_failsafe = ((specimen not in self.specimens) or \
-                                             (tmin != fit.tmin or tmax != fit.tmax) or \
-                                             (vals[4] != fit.name))
-                i += 1
-        except IOError: write_session_to_failsafe = True
-        except IndexError: write_session_to_failsafe = True
-        except RuntimeError: write_session_to_failsafe = False
+    def on_menu_read_all_inp(self, event):
+        inp_file_names = self.get_all_inp_files()
 
-        if write_session_to_failsafe:
-            self.on_menu_save_interpretation(event,"demag_last_session.redo")
+        magic_files = []
+        for inp_file_name in inp_file_names:
+            self.read_inp(inp_file_name,magic_files)
+        self.combine_magic_files(magic_files)
+        self.reset_backend()
 
-        if self.close_warning:
-            TEXT="Data is not saved to a file yet!\nTo properly save your data:\n1) Analysis --> Save current interpretations to a redo file.\nor\n1) File --> Save MagIC pmag tables.\n\n Press OK to exit without saving."
+    def read_inp(self,inp_file_name,magic_files):
+        inp_file = open(inp_file_name, "r")
+        new_inp_file = ""
 
-            #Save all interpretation to a 'redo' file or to MagIC specimens result table\n\nPress OK to exit"
-            dlg1 = wx.MessageDialog(None,caption="Warning:", message=TEXT ,style=wx.OK|wx.CANCEL|wx.ICON_EXCLAMATION)
-            if dlg1.ShowModal() == wx.ID_OK:
-                dlg1.Destroy()
-                if self.interpretation_editor_open:
-                    self.interpretation_editor.on_close_edit_window(event)
-                self.Destroy()
-                #sys.exit()
+        lines = inp_file.read().split("\n")
+        if len(lines) < 3: print(".inp file improperly formated"); return
+        new_inp_file = lines[0] + "\n" + lines[1] + "\n"
+        [lines.remove('') for i in range(lines.count(''))]
+        format = lines[0].strip()
+        header = lines[1].split('\t')
+        update_files = lines[2:]
+        for i,update_file in enumerate(update_files):
+            update_lines = update_file.split('\t')
+            if not os.path.isfile(update_lines[0]):
+                print("%s does not exist and will be skipped"%(update_lines[0]))
+                continue
+            d = reduce(lambda x,y: x+"/"+y, update_lines[0].split("/")[:-1])+"/"
+            f = update_lines[0].split("/")[-1].split(".")[0] + ".magic"
+            if (d+f) in magic_files:
+                new_inp_file += update_file+"\n"
+                continue
+            if float(update_lines[-1]) >= os.path.getctime(update_lines[0]):
+                if os.path.isfile(d+f):
+                    magic_files.append(d+f)
+                    new_inp_file += update_file+"\n"
+                    continue
+            if len(header) != len(update_lines):
+                print("length of header and length of enteries for the file %s are different and will be skipped"%(update_lines[0]))
+                new_inp_file += update_file+"\n"
+                continue
+            update_dict = {}
+            for head,entry in zip(header,update_lines):
+                update_dict[head] = entry
+            if format == "CIT":
+                CIT_kwargs = {}
+                CIT_name = update_dict["sam_path"].split("/")[-1].split(".")[0]
+
+                CIT_kwargs["dir_path"] = self.WD + "/"#reduce(lambda x,y: x+"/"+y, update_dict["sam_path"].split("/")[:-1])
+                CIT_kwargs["user"] = ""
+                CIT_kwargs["meas_file"] = CIT_name + ".magic"
+                CIT_kwargs["spec_file"] = CIT_name + "_er_specimens.txt"
+                CIT_kwargs["samp_file"] = CIT_name + "_er_samples.txt"
+                CIT_kwargs["site_file"] = CIT_name + "_er_sites.txt"
+                CIT_kwargs["locname"] = update_dict["location"]
+                CIT_kwargs["methods"] = update_dict["field_magic_codes"]
+                CIT_kwargs["specnum"] = update_dict["num_terminal_char"]
+                CIT_kwargs["avg"] = update_dict["dont_average_replicate_measurements"]
+                CIT_kwargs["samp_con"] = update_dict["naming_convention"]
+                CIT_kwargs["peak_AF"] = update_dict["peak_AF"]
+                CIT_kwargs["magfile"] = update_dict["sam_path"].split("/")[-1]
+                CIT_kwargs["input_dir_path"] = reduce(lambda x,y: x+"/"+y, update_dict["sam_path"].split("/")[:-1])
+
+                program_ran, error_message = CIT_magic.main(command_line=False, **CIT_kwargs)
+
+                if program_ran:
+                    update_lines[-1] = time()
+                    new_inp_file += reduce(lambda x,y: str(x)+"\t"+str(y), update_lines)+"\n"
+                    magic_files.append(CIT_kwargs["dir_path"]+CIT_kwargs["meas_file"])
+                else:
+                    new_inp_file += update_file
+                    if os.path.isfile(CIT_kwargs["dir_path"]+CIT_kwargs["meas_file"]):
+                        magic_files.append(CIT_kwargs["dir_path"]+CIT_kwargs["meas_file"])
+
+        inp_file.close()
+        out_file = open(inp_file_name, "w")
+        out_file.write(new_inp_file)
+
+    def combine_magic_files(self,magic_files):
+        if ipmag.combine_magic(magic_files, self.WD+"/magic_measurements.txt"):
+            print("recalculated magic files have been recombine to %s"%(self.WD+"/magic_measurements.txt"))
+        else: print("trouble combining magic files to %s"%(self.WD+"/magic_measurements.txt"))
+
+    def pick_inp(self):
+        dlg = wx.FileDialog(
+            self, message="choose .inp file",
+            defaultDir=self.WD,
+            defaultFile="magic.inp",
+            wildcard="*.inp",
+            style=wx.OPEN
+            )
+        if dlg.ShowModal() == wx.ID_OK:
+            inp_file_name = dlg.GetPath()
         else:
-            if self.interpretation_editor_open:
-                self.interpretation_editor.on_close_edit_window(event)
-            self.Destroy()
+            inp_file_name = None
+        dlg.Destroy()
+        return inp_file_name
+
+    def get_all_inp_files(self,WD=None):
+        if WD == None: WD = self.WD
+        try:
+            all_inp_files = []
+            for root, dirs, files in os.walk(WD):
+                for d in dirs:
+                    all_inp_files += self.get_all_inp_files(d)
+                for f in files:
+                    if f.endswith(".inp"):
+                         all_inp_files.append(os.path.join(root, f))
+            return all_inp_files
+        except RuntimeError:
+            print("Recursion depth exceded, please use different working directory there are too many sub-directeries to walk")
 
     def on_save_Zij_plot(self, event):
         self.current_fit = None
@@ -3883,7 +3976,57 @@ class Zeq_GUI(wx.Frame):
         self.update_selection()
 
     def on_menu_change_working_directory(self, event):
-        self.reset()
+        print("for now restart gui this operation is under development")
+
+    def on_menu_exit(self, event):
+
+        #check if interpretations have changed and were not saved
+        write_session_to_failsafe = False
+        try:
+            number_saved_fits = sum(1 for line in open("demag_gui.redo"))
+            number_current_fits = sum(len(self.pmag_results_data['specimens'][specimen]) for specimen in self.pmag_results_data['specimens'].keys())
+            #break if there are no fits there's no need to save an empty file
+            if number_current_fits == 0: raise RuntimeError("get out and don't write")
+            write_session_to_failsafe = (number_saved_fits != number_current_fits)
+            default_redo = open("demag_gui.redo")
+            i,specimen = 0,None
+            for line in default_redo:
+                if line == None:
+                    write_session_to_failsafe = True
+                vals = line.strip("\n").split("\t")
+                if vals[0] != specimen:
+                    i = 0
+                specimen = vals[0]
+                tmin,tmax = self.parse_bound_data(vals[2],vals[3],specimen)
+                if specimen in self.pmag_results_data['specimens']:
+                    fit = self.pmag_results_data['specimens'][specimen][i]
+                if write_session_to_failsafe:
+                    break
+                write_session_to_failsafe = ((specimen not in self.specimens) or \
+                                             (tmin != fit.tmin or tmax != fit.tmax) or \
+                                             (vals[4] != fit.name))
+                i += 1
+        except IOError: write_session_to_failsafe = True
+        except IndexError: write_session_to_failsafe = True
+        except RuntimeError: write_session_to_failsafe = False
+
+        if write_session_to_failsafe:
+            self.on_menu_save_interpretation(event,"demag_last_session.redo")
+
+        if self.close_warning:
+            TEXT="Data is not saved to a file yet!\nTo properly save your data:\n1) Analysis --> Save current interpretations to a redo file.\nor\n1) File --> Save MagIC pmag tables.\n\n Press OK to exit without saving."
+
+            #Save all interpretation to a 'redo' file or to MagIC specimens result table\n\nPress OK to exit"
+            dlg1 = wx.MessageDialog(None,caption="Warning:", message=TEXT ,style=wx.OK|wx.CANCEL|wx.ICON_EXCLAMATION)
+            if dlg1.ShowModal() == wx.ID_OK:
+                dlg1.Destroy()
+                if self.interpretation_editor_open:
+                    self.interpretation_editor.on_close_edit_window(event)
+                self.Destroy()
+        else:
+            if self.interpretation_editor_open:
+                self.interpretation_editor.on_close_edit_window(event)
+            self.Destroy()
 
     #--------------------------------------------------------------
     # Edit Menu Functions
@@ -4519,13 +4662,13 @@ class Zeq_GUI(wx.Frame):
             elif age_units=="Ka":
                 max_age="%f"%(4.56*1e6)
             elif age_units=="Years AD (+/-)":
-                max_age="%f"%((time.time()/3.15569e7)+1970)
+                max_age="%f"%((time()/3.15569e7)+1970)
             elif age_units=="Years BP":
-                max_age="%f"%((time.time()/3.15569e7)+1950)
+                max_age="%f"%((time()/3.15569e7)+1950)
             elif age_units=="Years Cal AD (+/-)":
                 max_age=str(datetime.now())
             elif age_units=="Years Cal BP":
-                max_age=((time.time()/3.15569e7)+1950)
+                max_age=((time()/3.15569e7)+1950)
             else:
                 max_age="4.56"
                 age_units="Ga"
@@ -5450,6 +5593,8 @@ class EditFitFrame(wx.Frame):
             color_list = new_color.split(':')
             color_name = color_list[0]
             color_val = map(eval, tuple(color_list[1].strip('( )').split(',')))
+            for val in color_val:
+                if val > 1 or val < 0: print("invalid RGB sequence"); return
         else:
             return
         self.color_dict[color_name] = color_val
@@ -5610,7 +5755,7 @@ class EditFitFrame(wx.Frame):
             return
 
         new_fit = Fit(new_name, new_tmin, new_tmax, new_color, self.parent)
-        new_fit.put(specimen,self.parent.COORDINATE_SYSTEM,self.parent.get_PCA_parameters(specimen,new_tmin,new_tmax,self.parent.COORDINATE_SYSTEM,"DE-BFL"))
+        new_fit.put(specimen,self.parent.COORDINATE_SYSTEM,self.parent.get_PCA_parameters(specimen,new_fit,new_tmin,new_tmax,self.parent.COORDINATE_SYSTEM,"DE-BFL"))
 
         self.parent.pmag_results_data['specimens'][specimen].append(new_fit)
 
@@ -5684,16 +5829,16 @@ class EditFitFrame(wx.Frame):
                 if fit == self.parent.current_fit:
                     self.parent.tmin_box.SetStringSelection(new_tmin)
                     self.parent.tmax_box.SetStringSelection(new_tmax)
-                fit.put(specimen,self.parent.COORDINATE_SYSTEM, self.parent.get_PCA_parameters(specimen,new_tmin,new_tmax,self.parent.COORDINATE_SYSTEM,fit.PCA_type))
+                fit.put(specimen,self.parent.COORDINATE_SYSTEM, self.parent.get_PCA_parameters(specimen,new_fit,new_tmin,new_tmax,self.parent.COORDINATE_SYSTEM,fit.PCA_type))
                 not_both = False
             if new_tmin and not_both:
                 if fit == self.parent.current_fit:
                     self.parent.tmin_box.SetStringSelection(new_tmin)
-                fit.put(specimen,self.parent.COORDINATE_SYSTEM, self.parent.get_PCA_parameters(specimen,new_tmin,fit.tmax,self.parent.COORDINATE_SYSTEM,fit.PCA_type))
+                fit.put(specimen,self.parent.COORDINATE_SYSTEM, self.parent.get_PCA_parameters(specimen,new_fit,new_tmin,fit.tmax,self.parent.COORDINATE_SYSTEM,fit.PCA_type))
             if new_tmax and not_both:
                 if fit == self.parent.current_fit:
                     self.parent.tmax_box.SetStringSelection(new_tmax)
-                fit.put(specimen,self.parent.COORDINATE_SYSTEM, self.parent.get_PCA_parameters(specimen,fit.tmin,new_tmax,self.parent.COORDINATE_SYSTEM,fit.PCA_type))
+                fit.put(specimen,self.parent.COORDINATE_SYSTEM, self.parent.get_PCA_parameters(specimen,new_fit,fit.tmin,new_tmax,self.parent.COORDINATE_SYSTEM,fit.PCA_type))
             changed_i.append(next_i)
 
         offset = 0
