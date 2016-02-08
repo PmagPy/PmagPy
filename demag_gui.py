@@ -3712,7 +3712,7 @@ class Zeq_GUI(wx.Frame):
     #============================================
 
     def data_loss_warning(self):
-        TEXT="This action will result in a loss of all unsaved data. Would you like to continue"
+        TEXT="This action could result in a loss of all unsaved data. Would you like to continue"
         dlg = wx.MessageDialog(None,caption="Warning:", message=TEXT ,style=wx.OK|wx.CANCEL|wx.ICON_EXCLAMATION)
         if dlg.ShowModal() == wx.ID_OK:
             continue_bool = True
@@ -3724,8 +3724,14 @@ class Zeq_GUI(wx.Frame):
     def reset_backend(self):
         if not self.data_loss_warning(): return False
 
-        self.Data_info=self.get_data_info()
-        self.Data,self.Data_hierarchy=self.get_data()
+        new_Data_info=self.get_data_info()
+        new_Data,new_Data_hierarchy=self.get_data()
+
+        if not new_Data:
+            print("Data read in failed reseting to old data")
+            return
+        else:
+            self.Data,self.Data_hierarchy,self.Data_info = new_Data,new_Data_hierarchy,new_Data_info
 
         self.pmag_results_data={}
         for level in ['specimens','samples','sites','locations','study']:
@@ -3778,7 +3784,8 @@ class Zeq_GUI(wx.Frame):
                 self.update_fit_boxs()
 
         if self.interpretation_editor_open:
-            self.interpretation_editor.update_editor(True)
+            self.interpretation_editor.specimens_list = self.specimens
+            self.interpretation_editor.update_editor()
 
     #--------------------------------------------------------------
     # File Menu Functions
@@ -3786,6 +3793,7 @@ class Zeq_GUI(wx.Frame):
 
     def on_menu_pick_read_inp(self, event):
         inp_file_name = self.pick_inp()
+        if inp_file_name == None: return
         magic_files = []
         self.read_inp(inp_file_name,magic_files)
         self.combine_magic_files(magic_files)
@@ -3793,6 +3801,7 @@ class Zeq_GUI(wx.Frame):
 
     def on_menu_read_all_inp(self, event):
         inp_file_names = self.get_all_inp_files()
+        if inp_file_name == []: return 
 
         magic_files = []
         for inp_file_name in inp_file_names:
@@ -3976,7 +3985,10 @@ class Zeq_GUI(wx.Frame):
         self.update_selection()
 
     def on_menu_change_working_directory(self, event):
-        print("for now restart gui this operation is under development")
+        old_WD = self.WD
+        new_WD = self.get_DIR()
+        self.change_WD(new_WD)
+        print("Working Directory altered from %s to %s, all output will be sent here"%(old_WD,new_WD))
 
     def on_menu_exit(self, event):
 
@@ -5175,7 +5187,6 @@ class EditFitFrame(wx.Frame):
         icon.CopyFromBitmap(wx.Bitmap(os.path.join(PMAGPY_DIRECTORY, "images/PmagPy.ico"), wx.BITMAP_TYPE_ANY))
         self.SetIcon(icon)
         self.specimens_list=self.parent.specimens
-        self.specimens_list.sort(cmp=specimens_comparator)
         self.current_fit_index = None
         self.search_query = ""
         self.font_type = self.parent.font_type
