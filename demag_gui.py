@@ -3474,7 +3474,10 @@ class Zeq_GUI(wx.Frame):
         #--------------------------
 
         for rec in pmag_samples:
-            methods=rec['magic_method_codes'].strip("\n").replace(" ","").split(":")
+            if "magic_method_codes" in rec.keys():
+                methods=rec['magic_method_codes'].strip("\n").replace(" ","").split(":")
+            else:
+                methods=""
             sample=rec['er_sample_name'].strip("\n")
             LPDIR=False;calculation_method=""
             for method in methods:
