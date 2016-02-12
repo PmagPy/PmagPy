@@ -24,6 +24,7 @@ def main():
         -i interactively set filename and axes for plotting
         -f FILE: specifies file name, default: magic_measurements.txt
         -fmt [svg,png,jpg], format for images - default is svg
+        -sav figure and quit
         -x XMETH:key:step, specify method code for X axis (optional key and treatment values)
         -y YMETH:key:step, specify method code for X axis
         -obj OBJ: specify object [loc, sit, sam, spc] for plot, default is whole file
@@ -38,6 +39,7 @@ def main():
     methx,methy,fmt="","",'.svg'
     plot_key=''
     norm_by=""
+    plot=0
     if '-h' in sys.argv:
         print main.__doc__
         sys.exit()
@@ -72,7 +74,7 @@ def main():
         if plot_by=='sit':plot_key='er_site_name'
         if plot_by=='sam':plot_key='er_sample_name'
         if plot_by=='spc':plot_key='er_specimen_name'
-
+    if '-h' in sys.argv:plot=1
     if '-i' in sys.argv: 
     #
     # get name of file from command line
@@ -180,7 +182,7 @@ def main():
         if len(X)>0:
             pmagplotlib.clearFIG(FIG['fig'])
             pmagplotlib.plotXY(FIG['fig'],X,Y,sym='ro',xlab=methx,ylab=methy,title=plot+':Biplot')
-            if not pmagplotlib.isServer:
+            if not pmagplotlib.isServer and plot==0:
                 pmagplotlib.drawFIGS(FIG)
                 ans=raw_input('S[a]ve plots, [q]uit,  Return for next plot ' )
                 if ans=='a':
