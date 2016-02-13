@@ -27,6 +27,7 @@ def main():
         -XLP [PI]: exclude specific  lab protocols (for example, method codes like LP-PI)
         -N do not normalize by NRM magnetization
         -sav save plots silently and quit
+        -fmt [svg,jpg,png,pdf] set figure format [default is svg]
     NOTE
         loc: location (study); sit: site; sam: sample; spc: specimen
     """
@@ -37,17 +38,21 @@ def main():
     norm=1
     LT='LT-AF-Z'
     units,dmag_key='T','treatment_ac_field'
-    plot_key='er_location_name'
-    plt=0
+    plot=0
+    fmt='svg'
     if len(sys.argv)>1:
         if '-h' in sys.argv:
             print main.__doc__
             sys.exit()
         if '-N' in sys.argv: norm=0
-        if '-sav' in sys.argv: plt=1
+        if '-sav' in sys.argv: 
+            plot=1
         if '-f' in sys.argv:
             ind=sys.argv.index("-f")
             in_file=sys.argv[ind+1]
+        if '-fmt' in sys.argv:
+            ind=sys.argv.index("-fmt")
+            fmt=sys.argv[ind+1]
         if '-obj' in sys.argv:
             ind=sys.argv.index('-obj')
             plot_by=sys.argv[ind+1]
@@ -76,7 +81,6 @@ def main():
     #
     # find desired intensity data
     #
-    # get plotlist
     #
     plotlist,intlist=[],['measurement_magnitude','measurement_magn_moment','measurement_magn_volume','measurement_magn_mass']
     IntMeths=[]
@@ -97,9 +101,9 @@ def main():
         sys.exit()
     data=FixData
     int_key=IntMeths[0] # plot first intensity method found - normalized to initial value anyway - doesn't matter which used
-    for plot in plotlist:
-        if plt==0: print plt,'plotting by: ',plot_key
-        PLTblock=pmag.get_dictitem(data,plot_key,plot,'T') # fish out all the data for this type of plot
+    for plt in plotlist:
+        if plot==0: print plt,'plotting by: ',plot_key
+        PLTblock=pmag.get_dictitem(data,plot_key,plt,'T') # fish out all the data for this type of plot
         PLTblock=pmag.get_dictitem(PLTblock,'magic_method_codes',LT,'has') # fish out all the dmag for this experiment type
         PLTblock=pmag.get_dictitem(PLTblock,int_key,'','F') # get all with this intensity key non-blank
         if XLP!="":PLTblock=pmag.get_dictitem(PLTblock,'magic_method_codes',XLP,'not') # reject data with XLP in method_code
@@ -115,11 +119,12 @@ def main():
                     INTblock.append([float(rec[dmag_key]),0,0,float(rec[int_key]),1,rec['measurement_flag']])
                 if len(INTblock)>2:
                     pmagplotlib.plotMT(FIG['demag'],INTblock,title,0,units,norm)
-            if plt==1:
+            if plot==1:
                 files={}
                 for key in FIG.keys():
-                    files[key]=title+'_'+LT+'.svg' 
+                    files[key]=title+'_'+LT+'.'+fmt
                 pmagplotlib.saveP(FIG,files) 
+                sys.exit()
             else:
                 pmagplotlib.drawFIGS(FIG)
                 ans=raw_input(" S[a]ve to save plot, [q]uit,  Return to continue:  ")
