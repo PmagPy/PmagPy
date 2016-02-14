@@ -4252,6 +4252,9 @@ class Zeq_GUI(wx.Frame):
            @return tmax -> the converted upper bound temperature/AF or None if the input
                            format was wrong
         """
+        if specimen not in self.Data:
+            print("%s not in measurement file and will be ignored"%(specimen))
+            return (None,None)
         if self.Data[specimen]['measurement_step_unit']=="C":
             if float(tmin0)==0 or float(tmin0)==273:
                 tmin="0"
@@ -4885,7 +4888,9 @@ class Zeq_GUI(wx.Frame):
             tmin_index=self.Data[specimen]['zijdblock_steps'].index(tmin)
         elif type(tmin) == str or type(tmin) == unicode and tmin != '':
             int_steps = map(lambda x: float(x.strip("C mT")), self.Data[specimen]['zijdblock_steps'])
-            if tmin == '': print("No lower bound for fit one of the fits on specimen %s"%(specimen))
+            if tmin == '':
+                tmin = self.Data[specimen]['zijdblock_steps'][0]
+                print("No lower bound for %s on specimen %s using lowest step (%s) for lower bound"%(fit.name, specimen, tmin))
             int_tmin = float(tmin.strip("C mT"))
             diffs = map(lambda x: abs(x-int_tmin),int_steps)
             tmin_index = diffs.index(min(diffs))
@@ -4894,7 +4899,9 @@ class Zeq_GUI(wx.Frame):
             tmax_index=self.Data[specimen]['zijdblock_steps'].index(tmax)
         elif type(tmax) == str or type(tmax) == unicode and tmax != '':
             int_steps = map(lambda x: float(x.strip("C mT")), self.Data[specimen]['zijdblock_steps'])
-            if tmax == '': print("No upper bound for fit one of the fits on specimen %s"%(specimen))
+            if tmax == '':
+                tmax = self.Data[specimen]['zijdblock_steps'][-1]
+                print("No upper bound for fit %s on specimen %s using last step (%s) for upper bound"%(fit.name, specimen, tmax))
             int_tmax = float(tmax.strip("C mT"))
             diffs = map(lambda x: abs(x-int_tmax),int_steps)
             tmax_index = diffs.index(min(diffs))
