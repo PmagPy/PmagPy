@@ -110,7 +110,7 @@ def main():
             print main.__doc__
             print 'age must be multiple of 5 less than 325'
             sys.exit()
-        import frp
+        import pmagpy.frp as frp
     if '-res' in sys.argv:
         ind = sys.argv.index('-res')
         res=sys.argv[ind+1]

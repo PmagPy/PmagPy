@@ -5369,7 +5369,7 @@ def curie(path_to_file = '.',file_name = 'magic_measurements.txt',
 
     #plot the second derivative
     plt.figure(num=PLT['der2'],figsize=(5,5))
-    string='2nd dervative (sliding window=%i)'%int(window_len)
+    string='2nd derivative (sliding window=%i)'%int(window_len)
     pmagplotlib.plotXY(PLT['der2'],T_d2,d2,sym='-',xlab='Temperature C',title=string)
     d2=list(d2)
     print 'second deriative maximum is at T=%i'%int(T_d2[d2.index(max(d2))])

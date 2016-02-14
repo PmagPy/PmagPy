@@ -111,12 +111,13 @@ def main():
         -w size of sliding window in degrees (default - 3 degrees)
         -t <min> <max> temperature range (optional)
         -sav save figures and quit
+        -fmt [svg,jpg,eps,png,pdf] set format for figure output [default: svg]
 
     example:
     curie.py -f ex2.1 -w 30 -t 300 700
 
     """
-    plot=0
+    plot,fmt=0,'svg'
     if '-h' in sys.argv:
         print main.__doc__
         sys.exit()
@@ -139,8 +140,10 @@ def main():
         t_begin=''      
         t_end=''
     if '-sav' in sys.argv:plot=1
+    if '-fmt' in sys.argv:
+        ind=sys.argv.index('-fmt')
+        fmt=sys.argv[ind+1]
    
-
 
     # read data from file
     Data=numpy.loadtxt(meas_file,dtype=numpy.float)
@@ -263,7 +266,7 @@ def main():
     pmagplotlib.plot_init(PLT['Curie'],5,5)
     pmagplotlib.plotXY(PLT['Curie'],wn,curie,sym='.',xlab='Sliding Window Width (degrees)',ylab='Curie Temp',title='Curie Statistics')    
     files = {}
-    for key in PLT.keys(): files[key]=str(key) + ".png"
+    for key in PLT.keys(): files[key]=str(key) + "." +fmt
     if plot==0:
         pmagplotlib.drawFIGS(PLT)
         ans=raw_input(" S[a]ve to save plot, [q]uit, Return to continue:  ")

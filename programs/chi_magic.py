@@ -22,6 +22,8 @@ def main():
         -f FILE, specify magic_measurements format file
         -T IND, specify temperature step to plot
         -e EXP, specify experiment name to plot
+        -fmt [svg,jpg,png,pdf] set figure format [default is svg]
+        -sav save figure and quit
 
     DEFAULTS
          FILE: magic_measurements.txt
@@ -34,6 +36,7 @@ def main():
     Tind,cont=0,""
     EXP=""
     fmt='svg' # default image type for saving
+    plot=0
     if '-h' in sys.argv:
         print main.__doc__
         sys.exit()
@@ -49,6 +52,10 @@ def main():
     if '-T' in sys.argv:
         ind=sys.argv.index('-T')
         Tind=int(sys.argv[ind+1])
+    if '-fmt'  in sys.argv:
+        ind=sys.argv.index('-fmt')
+        fmt=sys.argv[ind+1]
+    if '-sav' in sys.argv:plot=1
     #
     meas_data,file_type=pmag.magic_read(meas_file)
     #
@@ -114,7 +121,7 @@ def main():
             if len(XT)>1: # if there are any temperature dependent data
                 pmagplotlib.plot_init(plotnum,5,5) # initialize plot
                 pmagplotlib.plotXTF(plotnum,XTF,Fs,e,b) # call the plotting function
-                pmagplotlib.drawFIGS({'fig':plotnum})
+                if plot==0:pmagplotlib.drawFIGS({'fig':plotnum}) #make it visible
                 plotnum+=1 # increment plot number
             f=Fs[0] # set frequency to minimum
             XTB=[] # initialize list if chi versus Temp and field
@@ -127,7 +134,7 @@ def main():
             if len(XT)>1: # if there are any temperature dependent data
                 pmagplotlib.plot_init(plotnum,5,5) # set up plot
                 pmagplotlib.plotXTB(plotnum,XTB,Bs,e,f) # call the plotting function
-                pmagplotlib.drawFIGS({'fig':plotnum})
+                if plot==0:pmagplotlib.drawFIGS({'fig':plotnum})
                 plotnum+=1 # increment plot number
             if '-i' in sys.argv: 
                 for ind in range(len(Ts)):  # print list of temperatures available
@@ -152,12 +159,13 @@ def main():
                         XF.append([X[kk],F[kk]]) # append the data
                 if len(XF)>1: # if there are any data to plot
                     if FTinit==0: # if not already initialized, initialize plot
+                        #print 'initializing ',plotnum 
                         pmagplotlib.plot_init(plotnum,5,5)
                         FTinit=1 
                         XFplot=plotnum
                         plotnum+=1 # increment plotnum
                     pmagplotlib.plotXFT(XFplot,XF,Ts[Tind],e,b)
-                    pmagplotlib.drawFIGS({'fig':plotnum})
+                    if plot==0:pmagplotlib.drawFIGS({'fig':plotnum})
                 else:
                     print '\n *** Skipping susceptibitily-frequency plot as a function of temperature *** \n'
                 f=Fs[0] # set frequency to minimum available
@@ -165,42 +173,39 @@ def main():
                 for kk in range(len(X)): # hunt through the data
                     if T[kk]==Ts[Tind] and F[kk]==f:  # if temperature and field match those desired
                         XB.append([X[kk],B[kk]]) # append the data to list
-                if len(XB)>1: # if there are any data
+                if len(XB)>4: # if there are any data
                     if BTinit==0: # if plot not already initialized
                         pmagplotlib.plot_init(plotnum,5,5) # do it
                         BTinit=1 
                     pmagplotlib.plotXBT(plotnum,XB,Ts[Tind],e,f) # and call plotting function 
-                    pmagplotlib.drawFIGS({'fig':plotnum})
+                    if plot==0:pmagplotlib.drawFIGS({'fig':plotnum})
                 else:
                     print 'Skipping susceptibitily - AC field plot as a function of temperature'
+                files={}
+                PLTS={}
+                for p in range(1,plotnum):
+                    key=str(p)
+                    files[key]=e+'_'+key+'.'+fmt
+                    PLTS[key]=p
                 if '-i' in sys.argv:
                     for ind in range(len(Ts)): # just in case you forgot, print out a new list of temperatures
                         print ind,int(Ts[ind]) 
                     cont=raw_input("Enter index of next temperature step, s[a]ve plots,  [return] to quit ") # ask for new temp
                     if cont=="":sys.exit()
                     if cont=='a':
-                        files={}
-                        PLTS={}
-                        for p in range(1,plotnum):
-                            key=str(p)
-                            files[key]=e+'_'+key+'.'+fmt
-                            PLTS[key]=p
                         pmagplotlib.saveP(PLTS,files)
                         cont=raw_input("Enter index of desired temperature step, s[a]ve plots, [return] to quit ")
                         if cont=="":sys.exit()
-                else:
+                elif plot==0:
                     ans=raw_input("enter s[a]ve to save files,  [return] to quit ")
                     if ans=='a': 
-                        files={}
-                        PLTS={}
-                        for p in range(1,plotnum):
-                            key=str(p)
-                            files[key]=e+'_'+key+'.'+fmt
-                            PLTS[key]=p
                         pmagplotlib.saveP(PLTS,files)
                         sys.exit()
                     else:
                         sys.exit()
+                else:
+                   pmagplotlib.saveP(PLTS,files)
+                   sys.exit()
 
 if __name__ == "__main__":
     main()

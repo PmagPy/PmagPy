@@ -317,14 +317,14 @@ def main(command_line=True, **kwargs):
             MeasRec['measurement_inc']=line[52:58]
             M='%8.2e'%(float(line[31:39])*vol*1e-3) # convert to Am2
             MeasRec['measurement_magn_moment']=M
-            MeasRec['measurement_sd_x']='%8.2e'%(float(line[58:67])*1e-8) #(convert e-5emu to Am2)
-            MeasRec['measurement_sd_y']='%8.2e'%(float(line[67:76])*1e-8)
-            MeasRec['measurement_sd_z']='%8.2e'%(float(line[76:85])*1e-8)
             MeasRec['measurement_csd']='%7.1f'%(eval(line[41:46]))
-            MeasRec['magic_instrument_codes']=line[85:]
             MeasRec["measurement_positions"]='1'
             MeasRec['measurement_standard']='u'
-
+            if len(line)>60:
+                MeasRec['magic_instrument_codes']=line[85:]
+                MeasRec['measurement_sd_x']='%8.2e'%(float(line[58:67])*1e-8) #(convert e-5emu to Am2)
+                MeasRec['measurement_sd_y']='%8.2e'%(float(line[67:76])*1e-8)
+                MeasRec['measurement_sd_z']='%8.2e'%(float(line[76:85])*1e-8)
             MeasRecs.append(MeasRec)
         ErSpecs.append(ErSpecRec)
         if sample not in samples:

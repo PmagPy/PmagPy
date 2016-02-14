@@ -25,15 +25,21 @@ def main():
        -f FILE, input file 
        -f2 FILE, optional second file to compare with first file
        -dir D I, optional direction to compare with input file
+       -fmt [svg,jpg,pnd,pdf] set figure format [default is svg]
     NOTES
        must have either F2 OR dir but not both
      
 
     """
     d,i,file2="","",""
+    fmt,plot='svg',0
     if '-h' in sys.argv: # check if help is needed
         print main.__doc__
         sys.exit() # graceful quit
+    if '-sav' in sys.argv: plot=1
+    if '-fmt'  in sys.argv:
+        ind=sys.argv.index('-fmt')
+        fmt=sys.argv[ind+1]
     if '-f' in sys.argv:
         ind=sys.argv.index('-f')
         file1=sys.argv[ind+1]
@@ -68,19 +74,21 @@ def main():
     pmagplotlib.plot_init(CDF['Z'],4,4)
 # draw the cdfs
     pmagplotlib.plotCOM(CDF,BDI1,BDI2,[d,i])
-    pmagplotlib.drawFIGS(CDF)
-    try:
+    files={}
+    files['X']='CD_X.'+fmt
+    files['Y']='CD_Y.'+fmt
+    files['Z']='CD_Z.'+fmt
+    if plot==0:
+        pmagplotlib.drawFIGS(CDF)
         ans=raw_input("S[a]ve plots, <Return> to quit ")
-    except:
-       print "\n Good bye\n"
-       sys.exit()
-    if ans=="a":
-        files={}
-        files['X']='CD_X.svg'
-        files['Y']='CD_Y.svg'
-        files['Z']='CD_Z.svg'
-        pmagplotlib.saveP(CDF,files)
+        if ans=="a":
+            pmagplotlib.saveP(CDF,files)
+        else:
+            sys.exit()
         
+    else: 
+        pmagplotlib.saveP(CDF,files)
+        sys.exit()
 if __name__ == "__main__":
     main()
 

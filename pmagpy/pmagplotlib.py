@@ -1839,11 +1839,11 @@ def plotXTF(fignum,XTF,Fs,e,b):
             X.append(xt[0])
             T.append(xt[1])
         pylab.plot(T,X)
-#        pylab.text(T[-1],X[-1],str(int(Fs[k])))
-        Flab.append(str(int(Fs[k]))+' Hz')
+        pylab.text(T[-1],X[-1],str(int(Fs[k]))+' Hz')
+#        Flab.append(str(int(Fs[k]))+' Hz')
         k+=1
     pylab.title(e+': B = '+'%8.1e'%(b)+' T')
-    pylab.legend(Flab,'upper left')
+#    pylab.legend(Flab,'upper left')
 #
 def plotXTB(fignum,XTB,Bs,e,f):
     """ function to plot series of chi measurements as a function of temperature, holding frequency constant and varying B
@@ -1859,11 +1859,11 @@ def plotXTB(fignum,XTB,Bs,e,f):
             X.append(xt[0])
             T.append(xt[1])
         pylab.plot(T,X)
-#        pylab.text(T[-1],X[-1],'%8.2e'%(Bs[k]))
-        Blab.append('%8.1e'%(Bs[k])+' T')
+        pylab.text(T[-1],X[-1],'%8.2e'%(Bs[k])+' T')
+#        Blab.append('%8.1e'%(Bs[k])+' T')
         k+=1
     pylab.title(e+': f = '+'%i'%(int(f))+' Hz')
-    pylab.legend(Blab,'upper left')
+#    pylab.legend(Blab,'upper left')
 #
 def plotXFT(fignum,XF,T,e,b):
     """ function to plot series of chi measurements as a function of temperature, holding field constant and varying frequency

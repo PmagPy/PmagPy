@@ -3303,10 +3303,10 @@ def dokent(data,NN):
     sigma1=sigma1/float(N)
     sigma2=sigma2/float(N)
     g=-2.0*numpy.log(0.05)/(float(NN)*xmu**2)
-    if numpy.sqrt(sigma1*g)<1:zeta=numpy.arcsin(numpy.sqrt(sigma1*g))
-    if numpy.sqrt(sigma2*g)<1:eta=numpy.arcsin(numpy.sqrt(sigma2*g))
-    if numpy.sqrt(sigma1*g)>=1.:zeta=numpy.pi/2.
-    if numpy.sqrt(sigma2*g)>=1.:eta=numpy.pi/2.
+    if numpy.sqrt(sigma1*g)<1:eta=numpy.arcsin(numpy.sqrt(sigma1*g))
+    if numpy.sqrt(sigma2*g)<1:zeta=numpy.arcsin(numpy.sqrt(sigma2*g))
+    if numpy.sqrt(sigma1*g)>=1.:eta=numpy.pi/2.
+    if numpy.sqrt(sigma2*g)>=1.:zeta=numpy.pi/2.
 #
 #  convert Kent parameters to directions,angles
 #
