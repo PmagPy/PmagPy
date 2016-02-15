@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 import sys
+import set_env
+set_env.set_backend(wx=False)
 import numpy
 import pmagpy.pmag as pmag
 #
