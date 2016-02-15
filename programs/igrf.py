@@ -7,7 +7,6 @@ def main():
     """
     NAME
         igrf.py
-
     DESCRIPTION
         This program calculates igrf field values 
     using the routine of Malin and  Barraclough (1981) 
@@ -15,11 +14,9 @@ def main():
     between 1900 and 1000BCE, it uses CALS3K.4 or ARCH3K.1 
     Prior to 1000BCE, it uses CALS10k-4b
     Calculates reference field vector at  specified location and time.
-
   
     SYNTAX
        igrf.py [-h] [-i] -f FILE  [< filename]
-
     OPTIONS:
        -h prints help message and quits
        -i for interactive data entry
@@ -41,7 +38,6 @@ def main():
            lon: positive east
        for file entry:
            space delimited string: date  alt   lat long
-
     OUTPUT  FORMAT
         Declination Inclination Intensity (nT) date alt lat long
     """

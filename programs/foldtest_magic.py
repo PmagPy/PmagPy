@@ -30,6 +30,7 @@ def main():
         -n NB, set number of bootstraps, default is 1000
         -b MIN, MAX, set bounds for untilting, default is -10, 150
         -fmt FMT, specify format - default is svg
+        -sav saves plots and quits
     
     OUTPUT
         Geographic: is an equal area projection of the input data in 
@@ -59,6 +60,7 @@ def main():
     critfile='pmag_criteria.txt'
     dipkey,azkey='sample_bed_dip','sample_bed_dip_direction'
     fmt='svg'
+    plot=0
     if '-WD' in sys.argv:
         ind=sys.argv.index('-WD')
         dir_path=sys.argv[ind+1]
@@ -71,6 +73,7 @@ def main():
     if '-fmt' in sys.argv:
         ind=sys.argv.index('-fmt')
         fmt=sys.argv[ind+1]
+    if '-sav' in sys.argv:plot=1
     if '-b' in sys.argv:
         ind=sys.argv.index('-b')
         min=int(sys.argv[ind+1])
@@ -135,7 +138,7 @@ def main():
     D,I=pmag.dotilt_V(data)
     TCs=numpy.array([D,I]).transpose()
     pmagplotlib.plotEQ(PLTS['strat'],TCs,'Stratigraphic')
-    pmagplotlib.drawFIGS(PLTS)
+    if plot==0:pmagplotlib.drawFIGS(PLTS)
     Percs=range(min,max)
     Cdf,Untilt=[],[]
     pylab.figure(num=PLTS['taus'])
@@ -171,11 +174,12 @@ def main():
     tit= '%i - %i %s'%(Untilt[lower],Untilt[upper],'Percent Unfolding')
     print tit
     pylab.title(tit)
-    pmagplotlib.drawFIGS(PLTS)
-    ans= raw_input('S[a]ve all figures, <Return> to quit  \n ')
-    if ans!='a':
-        print "Good bye"
-        sys.exit()
+    if plot==0:
+        pmagplotlib.drawFIGS(PLTS)
+        ans= raw_input('S[a]ve all figures, <Return> to quit  \n ')
+        if ans!='a':
+            print "Good bye"
+            sys.exit()
     files={}
     for key in PLTS.keys():
         files[key]=('foldtest_'+'%s'%(key.strip()[:2])+'.'+fmt)
