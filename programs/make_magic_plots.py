@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 import sys
 import os
+import set_env
+set_env.set_env(wx=False)
 import pmagpy.pmag as pmag
 
 def main():
