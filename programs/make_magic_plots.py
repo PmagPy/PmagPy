@@ -2,7 +2,7 @@
 import sys
 import os
 import set_env
-set_env.set_env(wx=False)
+set_env.set_backend(wx=False)
 import pmagpy.pmag as pmag
 
 def main():
