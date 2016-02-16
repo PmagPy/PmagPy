@@ -62,7 +62,6 @@ def main():
     if '-sav' in sys.argv: 
         plt=1
         verbose=0
-    print 'plt: ',plt
     if '-ell' in sys.argv:
         plotE=1
         ind=sys.argv.index('-ell')
@@ -111,7 +110,7 @@ def main():
     else:
         plotlist.append('All')
     for plot in plotlist:
-        if verbose: print plot
+        #if verbose: print plot
         DIblock=[]
         GCblock=[]
         SLblock,SPblock=[],[]

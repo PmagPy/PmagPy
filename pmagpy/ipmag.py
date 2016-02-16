@@ -4218,6 +4218,7 @@ def k15_magic(k15file, specnum=0, sample_naming_con='1', er_location_name="unkno
                 AnisRec["er_specimen_name"]=rec[0]
                 SampRec["er_specimen_name"]=rec[0]
                 ResRec["rmag_result_name"]=rec[0]
+                specnum=int(specnum)
                 if specnum!=0:
                     MeasRec["er_sample_name"]=rec[0][:-specnum]
                 if specnum==0:

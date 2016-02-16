@@ -24,8 +24,9 @@ def main():
         -f FILE: specify input file
         -N do not normalize by maximum magnetization
         -fmt [svg, pdf, eps, png] specify fmt, default is svg
+        -sav save plots and quit
     """
-    fmt='svg'
+    fmt,plot='svg',0
     FIG={} # plot dictionary
     FIG['lowrie']=1 # demag is figure 1
     pmagplotlib.plot_init(FIG['lowrie'],6,6)
@@ -35,6 +36,10 @@ def main():
             print main.__doc__
             sys.exit()
         if '-N' in sys.argv: norm=0 # don't normalize
+        if '-sav' in sys.argv: plot=1 # don't normalize
+        if '-fmt' in sys.argv: # sets input filename
+            ind=sys.argv.index("-fmt")
+            fmt=sys.argv[ind+1]
         if '-f' in sys.argv: # sets input filename
             ind=sys.argv.index("-f")
             in_file=sys.argv[ind+1]
@@ -83,13 +88,16 @@ def main():
         pmagplotlib.plotXY(FIG['lowrie'],Temps,abs(carts[1])/nrm,sym='cs') # Y direction
         pmagplotlib.plotXY(FIG['lowrie'],Temps,abs(carts[2])/nrm,sym='k-')
         pmagplotlib.plotXY(FIG['lowrie'],Temps,abs(carts[2])/nrm,sym='k^',title=spc,xlab=xlab,ylab=ylab) # Z direction
-        pmagplotlib.drawFIGS(FIG)
-        ans=raw_input('S[a]ve figure? [q]uit, <return> to continue   ')
-        if ans=='a':
-            files={'lowrie':'lowrie:_'+spc+'_.'+fmt}
+        files={'lowrie':'lowrie:_'+spc+'_.'+fmt}
+        if plot==0:
+            pmagplotlib.drawFIGS(FIG)
+            ans=raw_input('S[a]ve figure? [q]uit, <return> to continue   ')
+            if ans=='a':
+                pmagplotlib.saveP(FIG,files)
+            elif ans=='q':
+                sys.exit()
+        else:
             pmagplotlib.saveP(FIG,files)
-        elif ans=='q':
-            sys.exit()
         pmagplotlib.clearFIG(FIG['lowrie'])
 
 if __name__ == "__main__":

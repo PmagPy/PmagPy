@@ -63,8 +63,8 @@ def main():
     for line in data:
         PtRec={}
         rec=line.split()
-        PtRec['site_lat']=rec[0]
-        PtRec['site_lon']=rec[1]
+        PtRec['site_lon']=rec[0]
+        PtRec['site_lat']=rec[1]
         if '-ff' in sys.argv:
             pt_lat,pt_lon=float(rec[0]),float(rec[1])
             for pole in Poles:
@@ -115,8 +115,9 @@ def main():
                     pole=frp.get_pole(pt['dcont'],age)
                     pole[2]=-pole[2] 
                     ptrot= pmag.PTrot(pole,[pt_lat],[pt_lon])
+                    print ptrot
                     if ofile=="":
-                        print ptrot[1][0], ptrot[0][0]
+                        print ptrot[1][0], ptrot[0][0] 
                     else:
                         ResRec={'vgp_lat': '%7.1f'%(ptrot[0][0]),'vgp_lon':'%7.1f'%( ptrot[1][0])}
                         ResRecs.append(ResRec)

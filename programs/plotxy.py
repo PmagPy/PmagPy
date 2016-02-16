@@ -3,8 +3,9 @@ import sys
 import numpy
 import set_env
 set_env.set_backend(wx=False)
+import matplotlib
 import pylab
-pylab.ion()
+#pylab.ion()
 import pmagpy.pmag as pmag
 
 def main():
@@ -34,10 +35,11 @@ def main():
         -ylab YLAB
         -l  connect symbols with lines
         -fmt [svg,png,pdf,eps] specify output format, default is svg
+        -sav saves plot and quits
         -poly X   plot a degree X polynomial through the data
         -skip n   Number of lines to skip before reading in data
     """
-    fmt='svg' 
+    fmt,plot='svg',0
     col1,col2=0,1
     sym,size = 'ro',50
     xlab,ylab='',''
@@ -51,6 +53,7 @@ def main():
     if '-fmt' in sys.argv:
         ind=sys.argv.index('-fmt')
         fmt=sys.argv[ind+1]
+    if '-sav' in sys.argv:plot=1
     if '-c' in sys.argv:
         ind=sys.argv.index('-c')
         col1=int(sys.argv[ind+1])-1
@@ -98,6 +101,7 @@ def main():
         if '-xsig' in sys.argv:Xerrs.append(float(rec[col3]))
         if '-ysig' in sys.argv:Yerrs.append(float(rec[col4]))
     if '-poly' in sys.argv:
+          pylab.plot(xs,ys)
           coeffs=numpy.polyfit(X,Y,degr)
           correl=numpy.corrcoef(X,Y)**2
           polynomial=numpy.poly1d(coeffs)
@@ -106,7 +110,10 @@ def main():
           pylab.plot(xs,ys)
           print polynomial
           if degr=='1': print 'R-square value =', '%5.4f'%(correl[0,1])
-    if sym!='':pylab.scatter(X,Y,marker=sym[1],c=sym[0],s=size)
+    if sym!='':
+       pylab.scatter(X,Y,marker=sym[1],c=sym[0],s=size)
+    else:
+       pylab.plot(X,Y)
     if '-xsig' in sys.argv and '-ysig' in sys.argv:
         pylab.errorbar(X,Y,xerr=Xerrs,yerr=Yerrs,fmt=None)
     if '-xsig' in sys.argv and '-ysig' not in sys.argv:
@@ -117,11 +124,11 @@ def main():
     if ylab!='':pylab.ylabel(ylab)
     if lines==1:pylab.plot(X,Y,'k-')
     if '-b' in sys.argv:pylab.axis([xmin,xmax,ymin,ymax])
-    pylab.draw()
-    ans=raw_input("S[a]ve to save figure, <Return>  to quit  ")
-    if ans=='a':
+    if plot==0:
+        pylab.show()
+    else:
         pylab.savefig('plotXY.'+fmt) 
-        print 'Figure saved as: ','plotXY.'+fmt
+        print 'Figure saved as ','plotXY.'+fmt
     sys.exit()
 
 if __name__ == "__main__":

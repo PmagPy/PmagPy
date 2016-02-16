@@ -41,23 +41,27 @@ def main():
     geo,tilt,orient=0,0,0
     doave=1
     user,comment,doave,coord="","",1,""
-    meas_file="magic_measurements.txt"
-    pmag_file="nrm_specimens.txt"
-    samp_file="er_samples.txt"
+    dir_path='.'
     if "-h" in args:
         print main.__doc__
         sys.exit()
+    if '-WD' in sys.argv:
+        ind=sys.argv.index('-WD')
+        dir_path=sys.argv[ind+1]
+    meas_file=dir_path+"/magic_measurements.txt"
+    pmag_file=dir_path+"/nrm_specimens.txt"
+    samp_file=dir_path+"/er_samples.txt"
     if "-A" in args: doave=0
     if "-f" in args:
         ind=args.index("-f")
         meas_file=sys.argv[ind+1]
     if "-F" in args:
         ind=args.index("-F")
-        pmag_file=sys.argv[ind+1]
+        pmag_file=dir_path+'/'+sys.argv[ind+1]
     speclist=[]
     if "-fsa" in args:
         ind=args.index("-fsa")
-        samp_file=sys.argv[ind+1]
+        samp_file=dir_path+'/'+sys.argv[ind+1]
     if "-crd" in args:
         ind=args.index("-crd")
         coord=sys.argv[ind+1]

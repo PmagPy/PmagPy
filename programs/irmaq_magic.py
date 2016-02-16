@@ -24,12 +24,15 @@ def main():
         -f FILE: specify input file, default is: magic_measurements.txt
         -obj OBJ: specify  object  [loc, sit, sam, spc] for plot, default is by location
         -N ; do not normalize by last point - use original units
+        -fmt [png,jpg,eps,pdf] set plot file format [default is svg]
+        -sav save plot[s] and quit
     NOTE
         loc: location (study); sit: site; sam: sample; spc: specimen
     """
     FIG={} # plot dictionary
     FIG['exp']=1 # exp is figure 1
     dir_path='./'
+    plot,fmt=0,'svg'
     units,dmag_key='T','treatment_dc_field'
     XLP=[]
     norm=1
@@ -39,6 +42,10 @@ def main():
             print main.__doc__
             sys.exit()
         if '-N' in sys.argv:norm=0
+        if '-sav' in sys.argv:plot=1
+        if '-fmt' in sys.argv:
+            ind=sys.argv.index("-fmt")
+            fmt=sys.argv[ind+1]
         if '-f' in sys.argv:
             ind=sys.argv.index("-f")
             in_file=sys.argv[ind+1]
@@ -77,10 +84,10 @@ def main():
     for  rec in Ints[int_key]:
         if rec[plot_key] not in plotlist: plotlist.append(rec[plot_key])
     plotlist.sort()
-    for plot in plotlist:
-        print plot
+    for plt in plotlist:
+        print plt
         INTblock=[]
-        data=pmag.get_dictitem(Ints[int_key],plot_key,plot,'T') # get data with right intensity info whose plot_key matches plot
+        data=pmag.get_dictitem(Ints[int_key],plot_key,plt,'T') # get data with right intensity info whose plot_key matches plot
         sids=pmag.get_specs(data) # get a list of specimens with appropriate data
         if len(sids)>0: 
             title=data[0][plot_key]
@@ -90,13 +97,16 @@ def main():
             for rec in sdata:
                 INTblock.append([float(rec[dmag_key]),0,0,float(rec[int_key]),1,'g'])
             pmagplotlib.plotMT(FIG['exp'],INTblock,title,0,units,norm)
-        pmagplotlib.drawFIGS(FIG)
-        ans=raw_input(" S[a]ve to save plot, [q]uit,  Return to continue:  ")
-        if ans=='q':sys.exit()
-        if ans=="a": 
-            files={}
-            for key in FIG.keys():
-                files[key]=title+'_'+LP+'.svg' 
+        files={}
+        for key in FIG.keys():
+            files[key]=title+'_'+LP+'.'+fmt 
+        if plot==0:
+            pmagplotlib.drawFIGS(FIG)
+            ans=raw_input(" S[a]ve to save plot, [q]uit,  Return to continue:  ")
+            if ans=='q':sys.exit()
+            if ans=="a": 
+                pmagplotlib.saveP(FIG,files) 
+        else:
             pmagplotlib.saveP(FIG,files) 
         pmagplotlib.clearFIG(FIG['exp'])
 

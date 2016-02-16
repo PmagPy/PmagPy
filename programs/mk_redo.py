@@ -85,6 +85,6 @@ def main():
             if outstring not in outstrings:
                 tredo.write(outstring)
             outstrings.append(outstring) # only writes unique interpretions
-
+    print 'Redo files saved to: ',zfile,tfile
 if __name__ == "__main__":
     main()
