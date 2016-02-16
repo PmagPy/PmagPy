@@ -25,10 +25,10 @@ def main():
        -crd [s,g,t], set coordinate system, default is geographic
        -exc use pmag_criteria.txt to set acceptance criteria
        -fmt [svg,png,jpg], sets format for image output
-               
+       -sav saves plot and quits               
 
     """
-    D,fmt=[],'svg'
+    D,fmt,plot=[],'svg',0
     coord='0'
     infile='pmag_sites.txt'
     critfile='pmag_criteria.txt'
@@ -39,6 +39,7 @@ def main():
     if '-WD' in sys.argv:
         ind=sys.argv.index('-WD')
         dir_path=sys.argv[ind+1]
+    if '-sav' in sys.argv:plot=1
     if '-f' in sys.argv:
         ind=sys.argv.index('-f')
         infile=sys.argv[ind+1]
@@ -99,15 +100,15 @@ def main():
     print 'doing second mode, be patient'
     BDI2=pmag.di_boot(D2)
     pmagplotlib.plotCOM(CDF,BDI1,BDI2,[""])
-    pmagplotlib.drawFIGS(CDF)
-    ans=  raw_input("s[a]ve plots, [q]uit: ")
-    if ans=='a':
-        files={}
-        for key in CDF.keys():
-            files[key]='REV'+'_'+key+'.'+fmt 
-        pmagplotlib.saveP(CDF,files)
+    files={}
+    for key in CDF.keys(): files[key]='REV'+'_'+key+'.'+fmt 
+    if plot==0:
+        pmagplotlib.drawFIGS(CDF)
+        ans=  raw_input("s[a]ve plots, [q]uit: ")
+        if ans=='a':
+            pmagplotlib.saveP(CDF,files)
     else:
-        print 'good bye'
+        pmagplotlib.saveP(CDF,files)
         sys.exit()
 
 if __name__ == "__main__":
