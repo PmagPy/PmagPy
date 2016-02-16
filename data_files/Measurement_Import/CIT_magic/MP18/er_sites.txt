@@ -1,0 +1,3 @@
+tab 	er_sites
+er_citation_names	er_location_name	er_site_name	site_lat	site_lon
+This study	‘‘Mamainse	MP18	47.1	275.3

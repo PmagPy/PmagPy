@@ -1,0 +1,8 @@
+tab 	er_specimens
+er_citation_names	er_location_name	er_sample_name	er_site_name	er_specimen_name	specimen_volume	specimen_weight
+This study	‘‘Mamainse	MP18-1	MP18	MP18-1		1.000e-03
+This study	‘‘Mamainse	MP18-2	MP18	MP18-2		1.000e-03
+This study	‘‘Mamainse	MP18-3	MP18	MP18-3		1.000e-03
+This study	‘‘Mamainse	MP18-4	MP18	MP18-4		1.000e-03
+This study	‘‘Mamainse	MP18-5	MP18	MP18-5		1.000e-03
+This study	‘‘Mamainse	MP18-6	MP18	MP18-6		1.000e-03
