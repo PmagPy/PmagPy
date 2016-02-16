@@ -13,7 +13,7 @@ def main():
         This program calculates igrf field values 
     using the routine of Malin and  Barraclough (1981) 
     based on d/igrfs from 1900 to 2010.
-    between 1900 and 1000BCE, it uses CALS3K.4 or ARCH3K.1 
+    between 1900 and 1000BCE, it uses CALS3K.4, ARCH3K.1 , or PFM9K
     Prior to 1000BCE, it uses CALS10k-4b
     Calculates reference field vector at  specified location and time.
   
@@ -28,6 +28,7 @@ def main():
        -loc LAT LON;  specify location, default is line by line
        -alt ALT;  specify altitude in km, default is sealevel (0)
        -plt; make a plot of the time series
+       -sav, saves plot and quits
        -fmt [pdf,jpg,eps,svg]  specify format for output figure  (default is svg)
        -mod [arch3k,cals3k,pfm9k] specify model for 3ka to 1900 AD, default is cals3k.4b
              NB:  program uses IGRF12 for dates 1900 to 2015.
@@ -43,7 +44,8 @@ def main():
     OUTPUT  FORMAT
         Declination Inclination Intensity (nT) date alt lat long
     """
-    plt,fmt=0,'svg'
+    plot,fmt=0,'svg'
+    plt=0
     if '-fmt' in sys.argv:
         ind=sys.argv.index('-fmt')
         fmt=sys.argv[ind+1]
@@ -105,6 +107,7 @@ def main():
         outfile=sys.argv[ind+1]
         out=open(outfile,'w')
     else:outfile=""
+    if '-sav' in sys.argv:plot=1
     if '-plt' in sys.argv:
         plt=1
         import matplotlib
@@ -144,9 +147,13 @@ def main():
         pylab.plot(Ages,VADMs)
         pylab.ylabel('VADMs (ZAm$^2$)')
         pylab.xlabel('Ages')
-        pylab.draw()
-        ans=raw_input("S[a]ve to save figure, <Return>  to quit  ")
-        if ans=='a':
+        if plot==0:
+            pylab.draw()
+            ans=raw_input("S[a]ve to save figure, <Return>  to quit  ")
+            if ans=='a':
+                pylab.savefig('igrf.'+fmt)
+                print 'Figure saved as: ','igrf.'+fmt
+        else: 
             pylab.savefig('igrf.'+fmt)
             print 'Figure saved as: ','igrf.'+fmt
         sys.exit()
