@@ -116,6 +116,8 @@ def main():
         print "Watson's V,  Vcrit: " 
         print '   %10.1f %10.1f'%(V,Vp[k])
     if show==1 or plot==1:
+        print "Watson's V,  Vcrit: " 
+        print '   %10.1f %10.1f'%(V,Vp[k])
         CDF={'cdf':1}
         pmagplotlib.plot_init(CDF['cdf'],5,5)
         pmagplotlib.plotCDF(CDF['cdf'],Vp,"Watson's V",'r',"")
