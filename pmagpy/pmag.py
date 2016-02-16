@@ -3370,8 +3370,8 @@ def doprinc(data):
 def PTrot(EP,Lats,Lons):
     """ Does rotation of points on a globe  by finite rotations, using method of Cox and Hart 1986, box 7-3. """
 # gets user input of Rotation pole lat,long, omega for plate and converts to radians
-    E=dir2cart([EP[1],EP[0],1.])
-    omega=EP[2]*numpy.pi/180.
+    E=dir2cart([EP[1],EP[0],1.]) # EP is pole lat,lon omega
+    omega=EP[2]*numpy.pi/180. # convert to radians
     RLats,RLons=[],[]
     for k in range(len(Lats)):
       if Lats[k]<=90.: # peel off delimiters

@@ -56,7 +56,7 @@ def main():
         Poles=[]
         for p in edata:
              rec=p.split()
-             pole=[float(rec[0]),float(rec[1]),float(rec[2])]
+             pole=[float(rec[0]),float(rec[1]),float(rec[2])] # pole is lat/lon/omega
              Poles.append(pole)
     else:
         data=sys.stdin.readlines()
@@ -66,7 +66,7 @@ def main():
         PtRec['site_lon']=rec[0]
         PtRec['site_lat']=rec[1]
         if '-ff' in sys.argv:
-            pt_lat,pt_lon=float(rec[0]),float(rec[1])
+            pt_lat,pt_lon=float(rec[1]),float(rec[0])
             for pole in Poles:
                 ptrot= pmag.PTrot(pole,[pt_lat],[pt_lon])
                 pt_lat=ptrot[0][0]
