@@ -2,7 +2,7 @@
 import sys
 import matplotlib
 import numpy
-import set_env
+from pmag_env import set_env
 set_env.set_backend(wx=False)
 import pylab
 pylab.ion()

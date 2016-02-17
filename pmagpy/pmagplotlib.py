@@ -4,8 +4,7 @@ sys.path.insert(0, os.getcwd())
 import numpy
 
 # no longer setting backend here
-import matplotlib
-import set_env
+from pmag_env import set_env
 isServer = set_env.isServer
 verbose = set_env.verbose
 
@@ -2309,8 +2308,6 @@ def plotCOM(CDF,BDI1,BDI2,d):
 
 
 def addBorders(Figs,titles,border_color,text_color):
-
-    import matplotlib
 
     import datetime
     now = datetime.datetime.now()

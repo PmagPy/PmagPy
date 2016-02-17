@@ -2,7 +2,7 @@
 import sys
 import wx
 import os
-import set_env
+from pmag_env import set_env
 set_env.set_backend(wx=True)
 import matplotlib
 import matplotlib.pyplot as plt
