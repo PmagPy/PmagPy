@@ -13,12 +13,16 @@ Essentials_Problem_Datafiles
 *.redo
 *.ipynb       
 .eggs*
+*/*.png
 consistency_test/pmag_fixed_criteria.txt
 all_errors_list.txt
 bootstrap_full_output.txt
 extra_out_full_output.txt
 random_full_output.txt
 rename_me_full_output.txt
+data_files/*checkpoint*.ipynb
+demag_orient.txt
+pmagpy/*.png
 
 new-test-output/*
 
