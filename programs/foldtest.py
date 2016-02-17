@@ -30,6 +30,8 @@ def main():
         -n NB  number of bootstrap samples [default is 1000]
         -fmt FMT, specify format - default is svg
         -sav  save figures and quit
+    INPUT FILE
+	Dec Inc Dip_Direction Dip  in space delimited file
 
     OUTPUT PLOTS
         Geographic: is an equal area projection of the input data in

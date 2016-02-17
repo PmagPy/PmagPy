@@ -1,4 +1,0 @@
-tab 	magic_instruments
-instrument_atmosphere	instrument_category	instrument_field_control	instrument_manufacturer	instrument_model	instrument_operation_mode	instrument_shielding	instrument_temp_control	instrument_type	instrument_year	magic_instrument_code
-Air	Magnetometer	Mu-Metal	2G		3-Axis	Transformer Steel : Mu-Metal	Air Flow	DC-SQUID	1992	IPGP-2GH
-Air	Demagnetizer	Solinoid	Sapphire	SI-4	1-Axis	Transformer Steel	Air Flow	AF	1997	SIO-SUZY

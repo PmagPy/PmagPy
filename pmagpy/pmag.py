@@ -5963,6 +5963,7 @@ def get_tilt(dec_geo,inc_geo,dec_tilt,inc_tilt):
     SCart[1]=numpy.sqrt(1/(X**2+1.))
     SCart[0]=SCart[1]*X
     SDir=cart2dir(SCart)
+    DipDir=(SDir[0]-90.)%360.
     DipDir=(SDir[0]+90.)%360.
 # D is creat circle distance between geo direction and strike
 # theta is GCD between geo and tilt (on unit sphere).  use law of cosines
@@ -5971,6 +5972,7 @@ def get_tilt(dec_geo,inc_geo,dec_tilt,inc_tilt):
     d=numpy.arccos(cosd)
     cosTheta=GCart[0]*TCart[0]+GCart[1]*TCart[1]+GCart[2]*TCart[2]
     Dip =(180./numpy.pi)*numpy.arccos(-((cosd**2-cosTheta)/numpy.sin(d)**2))
+    if Dip>90:Dip=-Dip
     return DipDir,Dip
 #
 def get_azpl(cdec,cinc,gdec,ginc):

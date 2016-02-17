@@ -1,11 +1,7 @@
 tab 	er_citations
-book_editors	book_title	citation_type	city	doi	er_citation_name	journal	long_authors	pages	publisher	title	volume	year
-		Journal		10.1111/j.1365-246X.2010.04833.x	This study	Geophysical Journal International	Lippert, PC, Zhao, X.X., Coe, R.S. and Lo, C.H.	131-161		Paleomagnetism and 40Ar/39Ar Geochronology of Upper Paleogene Volcanic Rocks from Central Tibet: Implications for the Central Asia Inclination Anomaly, the Paleolatitude of Tibet, and Post-50 Ma Shortening within Asia	184	2011
-	Methods in rock magnetism and Paleomagnetism: Techniques and instrumentation	Book	London		Collinson 1983		Collinson, D.W.	503	Chapman and Hall			1983
-		Journal		10.1016/j.epsl.2006.11.019	Ding et al. 2007	Earth and Planetary Science Letters	Ding, L., Kapp, P., Yue, Y.H. and Lai, Q.Z.	28-38		Postcollisional calc-alkaline lavas and xenoliths from the southern Qiangtang terrane, central Tibet	254	2007
-		Journal			Fisher 1953	Proceedings of the Royal Society of London	Fisher, R.A.	295-305		Dispersion on a sphere	A217	1953
-Gradstein, F.M. and J. G. Ogg, A.B.Smith	A Geological Time Scale	Book	Cambridge, UK		Gradstein 2004		Gradstein, F.M. and J. G. Ogg, A.B.Smith	610	Cambridge University Press	A Geological Time Scale		2004
-		Journal			Kirschvink 1980	Geophysical Journal of the Royal Astronomical Society	Kirschvink, J.L.	699-718		The least squares line and plane and the analysis of palaeomagnetic data	62	1980
-		Journal		10.1126/science.1154339	Kuiper et al. 2008	Science	Kuiper, K.F., Deino, A., Hilgen, F.J., Krijgsman, W., Renne, P.R. and Wijbrans, J.R.	500-504		Synchronizing Rock Clocks of Earth History	320	2008
-Dmowska, R., Holton, J.R. and Rossby, H.T.	Paleomagnetism: continents and oceans	Serial Book	San Diego		McElhinny & McFadden 2000	International Geophysics Series	McElhinny, M.W. and McFadden, P.L.	1-1	Academic Press		73	2000
-		Journal			McFadden & McElhinny 1988	Earth and Planetary Science Letters	McFadden, P.L. and McElhinny, M.W.	163-189		The combined analysis of remagnetization circles and direct observations in palaeomagnetism	87	1988
+book_editors	book_title	citation_type	city	er_citation_name	journal	long_authors	pages	publisher	title	volume	year
+		Journal		This study	Canadian Journal of Earth Sciences	Halls, H.	1,200-1,207		A paleomagnetic reversal in the Osler Volcanic Group, northern Lake Superior	11	1974
+	Methods in rock magnetism and Paleomagnetism: Techniques and instrumentation	Book	London	Collinson 1983		Collinson, D.W.	503	Chapman and Hall			1983
+		Journal		Cox & Doell 1960	Geological Society of America, Bulletin	Cox, A. and Doell, R.R.	645		Review of paleomagnetism	71	1960
+		Journal		Fisher 1953	Proceedings of the Royal Society of London	Fisher, R.A.	295-305		Dispersion on a sphere	A217	1953
+Dmowska, R., Holton, J.R. and Rossby, H.T.	Paleomagnetism: continents and oceans	Serial Book	San Diego	McElhinny & McFadden 2000	International Geophysics Series	McElhinny, M.W. and McFadden, P.L.	1-1	Academic Press		73	2000

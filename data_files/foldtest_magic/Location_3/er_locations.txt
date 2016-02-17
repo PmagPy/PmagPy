@@ -1,3 +1,0 @@
-tab 	er_locations
-continent_ocean	country	er_citation_names	er_location_name	er_scientist_mail_names	location_begin_lat	location_begin_lon	location_end_lat	location_end_lon	location_type	region
-Asia	China	This study	Nading Co	Peter C. Lippert	32.685	85.575	32.737	85.604	Region	Tibet

@@ -1,16 +1,7 @@
 tab 	er_sites
-er_citation_names	er_location_name	er_scientist_mail_names	er_site_name	magic_method_codes	site_bed_dip	site_bed_dip_direction	site_class	site_definition	site_lat	site_lithology	site_lon	site_type
-This study	Ejumaima	Peter C. Lippert	EJU-1	FS-FD:FS-LOC-GPS	21	117	Extrusive : Igneous : Subaerial	s	32.219	Basalt : Basaltic Lava : Trachybasalt	86.63	Lava Flow
-This study	Ejumaima	Peter C. Lippert	EJU-2	FS-FD:FS-LOC-GPS	21	117	Extrusive : Igneous : Subaerial	s	32.219	Basalt : Basaltic Lava : Trachybasalt	86.63	Lava Flow
-This study	Ejumaima	Peter C. Lippert	EJU-3	FS-FD:FS-LOC-GPS	21	117	Extrusive : Igneous : Subaerial	s	32.219	Basalt : Basaltic Lava : Trachybasalt	86.63	Lava Flow
-This study	Ejumaima	Peter C. Lippert	EJU-4	FS-FD:FS-LOC-GPS	21	117	Extrusive : Igneous : Subaerial	s	32.219	Basalt : Basaltic Lava : Trachybasalt	86.63	Lava Flow
-This study	Ejumaima	Peter C. Lippert	EJU-5	FS-FD:FS-LOC-GPS	21	117	Extrusive : Igneous : Subaerial	s	32.219	Basalt : Basaltic Lava : Trachybasalt	86.63	Lava Flow
-This study	Ejumaima	Peter C. Lippert	EJU-6	FS-FD:FS-LOC-GPS	21	117	Extrusive : Igneous : Subaerial	s	32.219	Basalt : Basaltic Lava : Trachybasalt	86.63	Lava Flow
-This study	Ejumaima	Peter C. Lippert	EJU-7	FS-FD:FS-LOC-GPS	21	117	Extrusive : Igneous : Subaerial	s	32.219	Basalt : Basaltic Lava : Trachybasalt	86.63	Lava Flow
-This study	Ejumaima	Peter C. Lippert	EJU-8	FS-FD:FS-LOC-GPS	21	117	Extrusive : Igneous : Subaerial	s	32.219	Basalt : Basaltic Lava : Trachybasalt	86.63	Lava Flow
-This study	Ejumaima	Peter C. Lippert	EJU-9	FS-FD:FS-LOC-GPS	21	117	Extrusive : Igneous : Subaerial	s	32.219	Basalt : Basaltic Lava : Trachybasalt	86.63	Lava Flow
-This study	Ejumaima	Peter C. Lippert	EJU-10	FS-FD:FS-LOC-GPS	21	117	Extrusive : Igneous : Subaerial	s	32.219	Basalt : Basaltic Lava : Trachybasalt	86.805	Lava Flow
-This study	Ejumaima	Peter C. Lippert	EJU-11	FS-FD:FS-LOC-GPS	21	117	Extrusive : Igneous : Subaerial	s	32.219	Basalt : Basaltic Lava : Trachybasalt	86.805	Lava Flow
-This study	Ejumaima	Peter C. Lippert	EJU-12	FS-FD:FS-LOC-GPS	21	117	Extrusive : Igneous : Subaerial	s	32.219	Basalt : Basaltic Lava : Trachybasalt	86.805	Lava Flow
-This study	Ejumaima	Peter C. Lippert	EJU-13	FS-FD:FS-LOC-GPS	21	117	Extrusive : Igneous : Subaerial	s	32.219	Basalt : Basaltic Lava : Trachybasalt	86.805	Lava Flow
-This study	Ejumaima	Peter C. Lippert	EJU-14	FS-FD:FS-LOC-GPS	21	117	Extrusive : Igneous : Subaerial	s	32.219	Basalt : Basaltic Lava : Trachybasalt	86.805	Lava Flow
+er_citation_names	er_location_name	er_site_name	magic_method_codes	site_bed_dip	site_bed_dip_direction	site_class	site_definition	site_lithology	site_type
+This study	Osler Volcanics, Nipigon Strait, Upper Normal	1	FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM	10	135.0	Extrusive	s	Basalt	Lava Flow
+This study	Osler Volcanics, Nipigon Strait, Upper Normal	2	FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM	12	140.0	Extrusive	s	Basalt	Lava Flow
+This study	Osler Volcanics, Nipigon Strait, Upper Normal	3	FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM	14	146.0	Extrusive	s	Basalt	Lava Flow
+This study	Osler Volcanics, Nipigon Strait, Upper Normal	4	FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM	12	135.0	Extrusive	s	Basalt	Lava Flow
+This study	Osler Volcanics, Nipigon Strait, Upper Normal	5	FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM	10	135.0	Extrusive	s	Basalt	Lava Flow

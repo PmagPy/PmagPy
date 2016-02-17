@@ -1,30 +1,12 @@
 tab 	pmag_sites
-er_analyst_mail_names	er_citation_names	er_location_name	er_site_name	er_specimen_names	magic_instrument_codes	magic_method_codes	site_alpha95	site_dec	site_inc	site_inferred_age	site_inferred_age_sigma	site_inferred_age_unit	site_k	site_n	site_n_lines	site_n_planes	site_n_total	site_polarity	site_tilt_correction
-Peter C. Lippert	This study	Ejumaima	EJU-1	07EJ001a : 07EJ002a : 07EJ003a : 07EJ004a : 07EJ005a : 07EJ006a : 07EJ007a : 07EJ008a	IPGP-2GH : SIO-SUZY	DE-FM-LP:LP-DIR-AF	4.2	115.8	-42	34.2	1.3	Ma	173.2	8	8	0	8	r	100
-Peter C. Lippert	This study	Ejumaima	EJU-2	07EJ009a : 07EJ010a : 07EJ011a : 07EJ012a : 07EJ013a : 07EJ014a : 07EJ015a : 07EJ016a	IPGP-2GH : SIO-SUZY	DE-FM:LP-DIR-AF	5	114.9	-47.9	34.2	1.3	Ma	124.1	8	8	0	8	r	100
-Peter C. Lippert	This study	Ejumaima	EJU-3	07EJ017a : 07EJ018a : 07EJ019a : 07EJ020a : 07EJ021a : 07EJ022a : 07EJ023a : 07EJ024a : 07EJ025a	IPGP-2GH : SIO-SUZY	DE-FM:LP-DIR-AF	5.5	114.2	-47.7	34.2	1.3	Ma	88.9	9	9	0	9	r	100
-Peter C. Lippert	This study	Ejumaima	EJU-4	07EJ026a : 07EJ027a : 07EJ028a : 07EJ029a : 07EJ030a : 07EJ031a	IPGP-2GH : SIO-SUZY	DE-FM:LP-DIR-AF	4.9	103.2	-55.7	34.2	1.3	Ma	188.3	6	6	0	6	r	100
-Peter C. Lippert	This study	Ejumaima	EJU-5	07EJ032a : 07EJ033a : 07EJ034a : 07EJ035a : 07EJ036a : 07EJ037a : 07EJ038a	IPGP-2GH : SIO-SUZY	DE-FM:LP-DIR-AF	3.7	125.4	-50.2	34.2	1.3	Ma	165.4	7	7	0	7	r	100
-Peter C. Lippert	This study	Ejumaima	EJU-6	07EJ039a : 07EJ040a : 07EJ041a : 07EJ042a : 07EJ043a : 07EJ044a : 07EJ045a	IPGP-2GH : SIO-SUZY	DE-FM:LP-DIR-AF	5.8	135.1	-49.5	34.2	1.3	Ma	111.1	7	7	0	7	r	100
-Peter C. Lippert	This study	Ejumaima	EJU-7	07EJ046a : 07EJ047a : 07EJ048a : 07EJ049a : 07EJ050a : 07EJ051a : 07EJ052a	IPGP-2GH : SIO-SUZY	DE-FM:LP-DIR-AF	3	132.1	-46.6	34.2	1.3	Ma	405.4	7	7	0	7	r	100
-Peter C. Lippert	This study	Ejumaima	EJU-8	07EJ053a : 07EJ054a : 07EJ055a : 07EJ056a : 07EJ057a : 07EJ058a	IPGP-2GH : SIO-SUZY	DE-FM-LP:LP-DIR-AF	6.2	128.3	-46.7	34.2	1.3	Ma	120.9	6	5	1	7	r	100
-Peter C. Lippert	This study	Ejumaima	EJU-9	07EJ060a : 07EJ061a : 07EJ062a : 07EJ063a : 07EJ064a : 07EJ065a	IPGP-2GH : SIO-SUZY	DE-FM:LP-DIR-AF	5.9	126.2	-46	34.2	1.3	Ma	128.2	6	6	0	6	r	100
-Peter C. Lippert	This study	Ejumaima	EJU-10	07EJ066a : 07EJ069a : 07EJ070a : 07EJ071a : 07EJ072a	IPGP-2GH : SIO-SUZY	DE-FM:LP-DIR-AF	9.3	127.9	-52.9	34.2	1.3	Ma	52.6	6	6	0	7	r	100
-Peter C. Lippert	This study	Ejumaima	EJU-11	07EJ073a : 07EJ074a : 07EJ075a : 07EJ076a : 07EJ077a : 07EJ078a : 07EJ079a	IPGP-2GH : SIO-SUZY	DE-FM:LP-DIR-AF	4.1	117.7	-55.5	34.2	1.3	Ma	219.2	7	7	0	7	r	100
-Peter C. Lippert	This study	Ejumaima	EJU-12	07EJ081a : 07EJ083a : 07EJ085a : 07EJ086a	IPGP-2GH : SIO-SUZY	DE-FM:LP-DIR-AF	2.4	119.7	-57.2	34.2	1.3	Ma	1450	4	5	0	7	r	100
-Peter C. Lippert	This study	Ejumaima	EJU-13	07EJ087a : 07EJ088a : 07EJ089a : 07EJ090a : 07EJ091a : 07EJ092a : 07EJ093a	IPGP-2GH : SIO-SUZY	DE-FM:LP-DIR-AF	4	108.5	-56	34.2	1.3	Ma	229.4	7	7	0	7	r	100
-Peter C. Lippert	This study	Ejumaima	EJU-14	07EJ094a : 07EJ095a : 07EJ096a : 07EJ097a : 07EJ098a : 07EJ099a : 07EJ100a	IPGP-2GH : SIO-SUZY	DE-FM:LP-DIR-AF	2.9	120.7	-53.4	34.2	1.3	Ma	434.7	7	7	0	7	r	100
-Peter C. Lippert	This study	Ejumaima	EJU-1	07EJ001a : 07EJ002a : 07EJ003a : 07EJ004a : 07EJ005a : 07EJ006a : 07EJ007a : 07EJ008a	IPGP-2GH : SIO-SUZY	DE-FM-LP:LP-DIR-AF	4.2	116	-21	34.2	1.3	Ma	173.2	8	8	0	8	r	0
-Peter C. Lippert	This study	Ejumaima	EJU-2	07EJ009a : 07EJ010a : 07EJ011a : 07EJ012a : 07EJ013a : 07EJ014a : 07EJ015a : 07EJ016a	IPGP-2GH : SIO-SUZY	DE-FM:LP-DIR-AF	5	115.4	-26.9	34.2	1.3	Ma	124.1	8	8	0	8	r	0
-Peter C. Lippert	This study	Ejumaima	EJU-3	07EJ017a : 07EJ018a : 07EJ019a : 07EJ020a : 07EJ021a : 07EJ022a : 07EJ023a : 07EJ024a : 07EJ025a	IPGP-2GH : SIO-SUZY	DE-FM:LP-DIR-AF	5.5	114.9	-26.7	34.2	1.3	Ma	88.9	9	9	0	9	r	0
-Peter C. Lippert	This study	Ejumaima	EJU-4	07EJ026a : 07EJ027a : 07EJ028a : 07EJ029a : 07EJ030a : 07EJ031a	IPGP-2GH : SIO-SUZY	DE-FM:LP-DIR-AF	4.9	107.5	-35.1	34.2	1.3	Ma	188.3	6	6	0	6	r	0
-Peter C. Lippert	This study	Ejumaima	EJU-5	07EJ032a : 07EJ033a : 07EJ034a : 07EJ035a : 07EJ036a : 07EJ037a : 07EJ038a	IPGP-2GH : SIO-SUZY	DE-FM:LP-DIR-AF	3.7	123.2	-29.4	34.2	1.3	Ma	165.4	7	7	0	7	r	0
-Peter C. Lippert	This study	Ejumaima	EJU-6	07EJ039a : 07EJ040a : 07EJ041a : 07EJ042a : 07EJ043a : 07EJ044a : 07EJ045a	IPGP-2GH : SIO-SUZY	DE-FM:LP-DIR-AF	5.8	130.4	-29.3	34.2	1.3	Ma	111.1	7	7	0	7	r	0
-Peter C. Lippert	This study	Ejumaima	EJU-7	07EJ046a : 07EJ047a : 07EJ048a : 07EJ049a : 07EJ050a : 07EJ051a : 07EJ052a	IPGP-2GH : SIO-SUZY	DE-FM:LP-DIR-AF	3	128.5	-26.1	34.2	1.3	Ma	405.4	7	7	0	7	r	0
-Peter C. Lippert	This study	Ejumaima	EJU-8	07EJ053a : 07EJ054a : 07EJ055a : 07EJ056a : 07EJ057a : 07EJ058a	IPGP-2GH : SIO-SUZY	DE-FM-LP:LP-DIR-AF	6.2	125.6	-26	34.2	1.3	Ma	120.9	6	5	1	7	r	0
-Peter C. Lippert	This study	Ejumaima	EJU-9	07EJ060a : 07EJ061a : 07EJ062a : 07EJ063a : 07EJ064a : 07EJ065a	IPGP-2GH : SIO-SUZY	DE-FM:LP-DIR-AF	5.9	124.1	-25.2	34.2	1.3	Ma	128.2	6	6	0	6	r	0
-Peter C. Lippert	This study	Ejumaima	EJU-10	07EJ066a : 07EJ069a : 07EJ070a : 07EJ071a : 07EJ072a	IPGP-2GH : SIO-SUZY	DE-FM:LP-DIR-AF	9.3	124.7	-32.2	34.2	1.3	Ma	52.6	6	6	0	7	r	0
-Peter C. Lippert	This study	Ejumaima	EJU-11	07EJ073a : 07EJ074a : 07EJ075a : 07EJ076a : 07EJ077a : 07EJ078a : 07EJ079a	IPGP-2GH : SIO-SUZY	DE-FM:LP-DIR-AF	4.1	117.5	-34.5	34.2	1.3	Ma	219.2	7	7	0	7	r	0
-Peter C. Lippert	This study	Ejumaima	EJU-12	07EJ081a : 07EJ083a : 07EJ085a : 07EJ086a	IPGP-2GH : SIO-SUZY	DE-FM:LP-DIR-AF	2.4	118.8	-36.2	34.2	1.3	Ma	1450	4	5	0	7	r	0
-Peter C. Lippert	This study	Ejumaima	EJU-13	07EJ087a : 07EJ088a : 07EJ089a : 07EJ090a : 07EJ091a : 07EJ092a : 07EJ093a	IPGP-2GH : SIO-SUZY	DE-FM:LP-DIR-AF	4	111.2	-35.2	34.2	1.3	Ma	229.4	7	7	0	7	r	0
-Peter C. Lippert	This study	Ejumaima	EJU-14	07EJ094a : 07EJ095a : 07EJ096a : 07EJ097a : 07EJ098a : 07EJ099a : 07EJ100a	IPGP-2GH : SIO-SUZY	DE-FM:LP-DIR-AF	2.9	119.6	-32.4	34.2	1.3	Ma	434.7	7	7	0	7	r	0
+er_citation_names	er_location_name	er_site_name	magic_method_codes	site_dec	site_inc	site_k	site_n	site_polarity	site_tilt_correction
+This study	Osler Volcanics, Nipigon Strait, Upper Normal	1	DE-K:FS-FD:FS-H:LP-DC2:SO-SM	289.8	43.6	517	5	n	100
+This study	Osler Volcanics, Nipigon Strait, Upper Normal	1	DE-K:FS-FD:FS-H:LP-DC2:SO-SM	293.1	34.5	517	5	n	0
+This study	Osler Volcanics, Nipigon Strait, Upper Normal	2	DE-K:FS-FD:FS-H:LP-DC2:SO-SM	285.7	42	243	5	n	100
+This study	Osler Volcanics, Nipigon Strait, Upper Normal	2	DE-K:FS-FD:FS-H:LP-DC2:SO-SM	290.6	31.9	243	5	n	0
+This study	Osler Volcanics, Nipigon Strait, Upper Normal	3	DE-K:FS-FD:FS-H:LP-DC2:SO-SM	307.4	37.9	2485	5	n	100
+This study	Osler Volcanics, Nipigon Strait, Upper Normal	3	DE-K:FS-FD:FS-H:LP-DC2:SO-SM	310.0	24.6	2485	5	n	0
+This study	Osler Volcanics, Nipigon Strait, Upper Normal	4	DE-K:FS-FD:FS-H:LP-DC2:SO-SM	302.8	29.9	331	5	n	100
+This study	Osler Volcanics, Nipigon Strait, Upper Normal	4	DE-K:FS-FD:FS-H:LP-DC2:SO-SM	303.9	18.2	331	5	n	0
+This study	Osler Volcanics, Nipigon Strait, Upper Normal	5	DE-K:FS-FD:FS-H:LP-DC2:SO-SM	294.7	42.5	130	5	n	100
+This study	Osler Volcanics, Nipigon Strait, Upper Normal	5	DE-K:FS-FD:FS-H:LP-DC2:SO-SM	297.3	33.1	130	5	n	0
