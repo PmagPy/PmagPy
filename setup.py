@@ -6,7 +6,7 @@ from codecs import open
 from os import path
 
 
-version_num = '0.0.0'
+version_num = '0.0.6'
 here = path.abspath(path.dirname(__file__))
 
 # Get the long description from the README file
@@ -42,7 +42,7 @@ setup(
                     'Development Status :: 4 - Beta',
 
                     # Indicate who your project is intended for
-                    'Intended Audience :: Geologists',
+                    #'Intended Audience :: Geologists',
 
                     # Pick your license as you wish (should match "license" above)
                     'License :: OSI Approved :: MIT License',
@@ -58,7 +58,8 @@ setup(
 
     # You can just specify the packages manually here if your project is
     # simple. Or you can use find_packages().
-    packages=find_packages(exclude=['contrib', 'docs', 'tests']),
+    packages=find_packages(exclude=['programs', 'tests', 'dialogs',
+                                    'tests.examples']),
 
 
     # List run-time dependencies here.  These will be installed by pip when
@@ -98,5 +99,3 @@ setup(
                             ],
             },
 )
-
-
