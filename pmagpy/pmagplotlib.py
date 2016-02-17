@@ -4,7 +4,7 @@ sys.path.insert(0, os.getcwd())
 import numpy
 
 # no longer setting backend here
-import set_env
+from pmag_env import set_env
 isServer = set_env.isServer
 verbose = set_env.verbose
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import sys
 import random
-import set_env
+from pmag_env import set_env
 set_env.set_backend(wx=False)
 import pylab
 import pmagpy.pmag as pmag

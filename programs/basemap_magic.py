@@ -2,7 +2,7 @@
 # define some variables
 import sys
 import numpy
-import set_env
+from pmag_env import set_env
 set_env.set_backend(wx=False)
 #from mpl_toolkits.basemap import Basemap
 import pmagpy.pmag as pmag

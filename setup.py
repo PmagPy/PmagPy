@@ -6,7 +6,7 @@ from codecs import open
 from os import path
 
 
-version_num = '0.0.6'
+version_num = '0.0.8'
 here = path.abspath(path.dirname(__file__))
 
 # Get the long description from the README file
@@ -58,8 +58,7 @@ setup(
 
     # You can just specify the packages manually here if your project is
     # simple. Or you can use find_packages().
-    packages=find_packages(exclude=['programs', 'tests', 'dialogs',
-                                    'tests.examples']),
+    packages=find_packages(exclude=['programs', 'tests', 'tests.examples']),
 
 
     # List run-time dependencies here.  These will be installed by pip when
