@@ -1,6 +1,6 @@
 Metadata-Version: 1.1
-Name: pmagpy
-Version: 0.0.14
+Name: command-line-pmagpy
+Version: 0.0.6
 Summary: Analysis tools for paleo/rock magnetic data
 Home-page: https://github.com/PmagPy/PmagPy
 Author: PmagPy team

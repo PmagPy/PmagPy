@@ -1,0 +1,6 @@
+SPD
+dialogs
+pmag_env
+pmagpy
+programs
+tests
