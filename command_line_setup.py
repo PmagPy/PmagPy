@@ -6,7 +6,7 @@ from codecs import open
 from os import path
 
 
-version_num = '0.0.6'
+version_num = '0.0.12'
 here = path.abspath(path.dirname(__file__))
 
 # Get the long description from the README file
@@ -64,7 +64,8 @@ setup(
 
     # You can just specify the packages manually here if your project is
     # simple. Or you can use find_packages().
-    packages=find_packages(exclude=['pmagpy', 'tests', 'tests.examples']),
+    packages=find_packages(exclude=['pmagpy', 'tests', 'tests.examples'
+                                    'SPD']),
 
 
     # List run-time dependencies here.  These will be installed by pip when
