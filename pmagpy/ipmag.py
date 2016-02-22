@@ -4742,7 +4742,7 @@ def agm_magic(agm_file, samp_infile=None, outfile='agm_measurements.txt', spec_o
     Z = 1
     if backfield_curve:
         meth="LP-IRM-DCD"
-        outfile = "irm_measurements.txt"
+        #outfile = "irm_measurements.txt"
     output = os.path.join(output_dir_path, outfile)
     specfile = os.path.join(output_dir_path, spec_outfile)
 
@@ -4816,7 +4816,7 @@ def agm_magic(agm_file, samp_infile=None, outfile='agm_measurements.txt', spec_o
     Data=f.readlines()
     if "ASCII" not in Data[0]:
         fmt='new'
-    measnum,start=1,""
+    measnum,start,end=1,"",1
     if fmt=='new': # new Micromag formatted file
         end=2
         for skip in range(len(Data)):
@@ -4829,11 +4829,13 @@ def agm_magic(agm_file, samp_infile=None, outfile='agm_measurements.txt', spec_o
             if "Field" in rec and "Moment" in rec and start=="":
                 start=skip+2
                 break
+            if "Field" in rec and "Remanence" in rec and start=="":
+                start=skip+2
+                break
     else:
         start = 2
         end=1
     for i in range(start,len(Data)-end): # skip header stuff
-
         MeasRec={}
         for key in ErSpecRec.keys():
             MeasRec[key]=ErSpecRec[key]
