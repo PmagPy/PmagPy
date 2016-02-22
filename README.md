@@ -9,7 +9,7 @@ PmagPy is comprised of:
     - [Mac PmagPy Executable Application](https://github.com/PmagPy/PmagPy-Standalone-OSX/releases/latest)
     - [Windows PmagPy Executable Application](https://github.com/PmagPy/PmagPy-Standalone-Windows/releases/latest)
   - Command line programs for all sorts of paleomagnetic data analysis and wrangling (contained within the programs folder of the repository).
-  - The pmagpy function module for paleomagnetic data analysis (pmagpy.pmag) and plotting (pmagpy.pmagplotlib) as well as a function module that further enables paleomagnetic data analysis within interactive computing environments such as the Jupyter notebook (pmagpy.ipmag). The functions within these modules are at the heart of the GUI and command line programs. With pmagpy in the python path (which is accomplished with the install scripts), these modules are can be imported (e.g. ```import pmagpy.ipmag as ipmag```).
+  - The pmagpy function module for paleomagnetic data analysis (pmagpy.pmag) and plotting (pmagpy.pmagplotlib) as well as a function module that further enables paleomagnetic data analysis within interactive computing environments such as the Jupyter notebook (pmagpy.ipmag). The functions within these modules are at the heart of the GUI and command line programs. With pmagpy in the python path (which is accomplished using pip, see below), these modules are can be imported (e.g. ```import pmagpy.ipmag as ipmag```).
   - Example data files that are used in the examples provided in the PmagPy cookbook http://earthref.org/PmagPy/cookbook
   
 Use of all these features is described in the cookbook and the underlying science behind the data and code can be explored in the book Essentials of Paleomagnetism: Third Web Edition (http://earthref.org/MagIC/books/Tauxe/Essentials/).
@@ -19,9 +19,10 @@ Use of all these features is described in the cookbook and the underlying scienc
 Full documentation for PmagPy installation and use is available in the PmagPy cookbook: http://earthref.org/PmagPy/cookbook
 
 To get started:
-- download a zip file of the latest release here: [PmagPy latest release](https://github.com/ltauxe/PmagPy/releases/latest). Click on "Source code (zip)" or "Source code (tar.gz)" to download. 
+- find your command prompt and run "pip install pmagpy --upgrade" (for help finding your command prompt, see the [documentation](http://earthref.org/PmagPy/#command_line))
+- next, download a zip file of the latest release here: [PmagPy latest release](https://github.com/ltauxe/PmagPy/releases/latest). Click on "Source code (zip)" or "Source code (tar.gz)" to download. 
 - To install the software on a Mac or a PC, unzip the downloaded folder and double-click on the install script for your system. 
-- Linux and advanced users on Mac and PCs can either clone the repository or download the latest release and then add the directory of the main repository folder (and the program directory for access to the command line programs) to their path and pythonpath. On a Mac, this can be done by adding these lines to the bash_profile (edited as necessary for where the PmagPy directory is on your local machine): ```export PATH=~/PmagPy:./:$PATH```; ```export PATH=~/PmagPy/programs:./:$PATH```; ```export PYTHONPATH=$PYTHONPATH:~/PmagPy```
+- Linux and advanced users on Mac and PCs can either clone the repository or download the latest release and then add the directory of the main repository folder (and the program directory for access to the command line programs) to their path.  On a Mac, this can be done by adding these lines to the bash_profile (edited as necessary for where the PmagPy directory is on your local machine): ```export PATH=~/PmagPy:./:$PATH```; ```export PATH=~/PmagPy/programs:./:$PATH```
 
 ## Background and support
 
