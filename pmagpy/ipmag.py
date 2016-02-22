@@ -6295,3 +6295,122 @@ def hysteresis_magic(path_to_file = '.',hyst_file="rmag_hysteresis.txt",
             plt.savefig(save_folder + '/' + sample + '_hysteresis.' + fmt)
         plt.show()
         sample_num += 1
+
+
+def find_EI(data, nb=1000, save = False, save_folder = '.', fmt='svg',
+            site_correction = False, return_new_dirs = False):
+    """
+    Applies series of assumed flattening factor and "unsquishes" inclinations assuming tangent function.
+    Finds flattening factor that gives elongation/inclination pair consistent with TK03;
+    or, if correcting by site instead of for study-level secular variation,
+    finds flattening factor that minimizes elongation and most resembles a
+    Fisherian distribution.
+    Finds bootstrap confidence bounds
+
+    Arguments
+    -----------
+    data: a nested list of dec/inc pairs
+
+    Keywords
+    -----------
+    nb: number of bootstrapped pseudo-samples (default is 1000)
+    save: Boolean argument to save plots (default is False)
+    save_folder: path to folder in which plots should be saved (default is current directory)
+    fmt: specify format of saved plots (default is 'svg')
+    site_correction: Boolean argument to specify whether to "unsquish" data to
+        1) the elongation/inclination pair consistent with TK03 secular variation model
+        (site_correction = False)
+        or
+        2) a Fisherian distribution (site_correction = True).
+        Default is FALSE
+    return_new_dirs: optional return of newly "unflattened" directions (default is False)
+
+    Output
+    -----------
+    four plots:   1) equal area plot of original directions
+                  2) Elongation/inclination pairs as a function of f,  data plus 25 bootstrap samples
+                  3) Cumulative distribution of bootstrapped optimal inclinations plus uncertainties.
+                     Estimate from original data set plotted as solid line
+                  4) Orientation of principle direction through unflattening
+
+    NOTE: If distribution does not have a solution, plot labeled: Pathological.  Some bootstrap samples may have
+       valid solutions and those are plotted in the CDFs and E/I plot.
+    """
+    print "Bootstrapping.... be patient"
+    print ""
+    sys.stdout.flush()
+
+    upper,lower=int(round(.975*nb)),int(round(.025*nb))
+    E,I=[],[]
+
+    plt.figure(num=1,figsize=(4,4))
+    plot_net(1)
+    plot_di(di_block=data)
+
+    ppars=pmag.doprinc(data)
+    Io=ppars['inc']
+    n=ppars["N"]
+    Es,Is,Fs,V2s=pmag.find_f(data)
+    if site_correction == True:
+        Inc,Elong=Is[Es.index(min(Es))],Es[Es.index(min(Es))]
+        flat_f = Fs[Es.index(min(Es))]
+    else:
+        Inc,Elong=Is[-1],Es[-1]
+        flat_f = Fs[-1]
+
+    plt.figure(num=2,figsize=(4,4))
+    plt.plot(Is,Es,'r')
+    plt.xlabel("Inclination")
+    plt.ylabel("Elongation")
+    plt.text(Inc,Elong,' %3.1f'%(flat_f))
+    plt.text(Is[0]-2,Es[0],' %s'%('f=1'))
+
+    b=0
+
+    while b < nb:
+        bdata = pmag.pseudo(data)
+        Esb,Isb,Fsb,V2sb = pmag.find_f(bdata)
+        if b<25:
+            plt.plot(Isb,Esb,'y')
+        if Esb[-1] != 0:
+            ppars=pmag.doprinc(bdata)
+            if site_correction == True:
+                I.append(abs(Isb[Esb.index(min(Esb))]))
+                E.append(Esb[Esb.index(min(Esb))])
+            else:
+                I.append(abs(Isb[-1]))
+                E.append(Esb[-1])
+            b += 1
+
+    I.sort()
+    E.sort()
+    Eexp=[]
+    for i in I:
+        Eexp.append(pmag.EI(i))
+    plt.plot(I,Eexp,'g-')
+    if Inc==0:
+        title= 'Pathological Distribution: '+'[%7.1f, %7.1f]' %(I[lower],I[upper])
+    else:
+        title= '%7.1f [%7.1f, %7.1f]' %(Inc, I[lower],I[upper])
+
+    cdf_fig_num = 3
+    plt.figure(num=cdf_fig_num,figsize=(4,4))
+    pmagplotlib.plotCDF(cdf_fig_num,I,'Inclinations','r',title)
+    pmagplotlib.plotVs(cdf_fig_num,[I[lower],I[upper]],'b','--')
+    pmagplotlib.plotVs(cdf_fig_num,[Inc],'g','-')
+    pmagplotlib.plotVs(cdf_fig_num,[Io],'k','-')
+
+    # plot corrected directional data
+    decs, incs = unpack_di_block(data)
+    unsquished_incs = unsquish(incs, flat_f)
+    plt.figure(num=4,figsize=(4,4))
+    plot_net(4)
+    plot_di(decs,unsquished_incs)
+
+    print "The original inclination was: " + str(Io)
+    print ""
+    print "The corrected inclination is: " + str(Inc)
+    print "with bootstrapped confidence bounds of: " +  str(I[lower]) + ' to ' + str(I[upper])
+    print "and elongation parameter of: " + str(Elong)
+    if return_new_dirs is True:
+        return make_di_block(decs, unsquished_incs)
