@@ -24,8 +24,9 @@ def main():
         -i allows interactive input of file name
         -f FILE specify input file name
         -nb N specify number of bootstraps - the more the better, but slower!, default is 1000
-        -sc optional "site-level" correction to a Fisherian distribution
-            instead of "study-level" TK03-consistent distribution
+        -sc uses a "site-level" correction to a Fisherian distribution instead
+            of a "study-level" correction to a TK03-consistent distribution.
+            Note that many directions (~ 100) are needed for this correction to be reliable.
         -fmt [svg,png,eps,pdf..] change plot format, default is svg
         -sav  saves the figures and quits
 

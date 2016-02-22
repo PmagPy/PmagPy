@@ -6321,8 +6321,8 @@ def find_EI(data, nb=1000, save = False, save_folder = '.', fmt='svg',
         1) the elongation/inclination pair consistent with TK03 secular variation model
         (site_correction = False)
         or
-        2) a Fisherian distribution (site_correction = True).
-        Default is FALSE
+        2) a Fisherian distribution (site_correction = True). Default is FALSE.
+        Note that many directions (~ 100) are needed for this correction to be reliable.
     return_new_dirs: optional return of newly "unflattened" directions (default is False)
 
     Output
