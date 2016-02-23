@@ -61,6 +61,8 @@ def main():
         nb=int(sys.argv[ind+1])
     if '-sc' in sys.argv:
         site_correction = True
+    else:
+        site_correction = False
     if '-fmt' in sys.argv:
         ind=sys.argv.index('-fmt')
         fmt=sys.argv[ind+1]
@@ -79,7 +81,7 @@ def main():
     Io=ppars['inc']
     n=ppars["N"]
     Es,Is,Fs,V2s=pmag.find_f(data)
-    if site_correction == True:
+    if site_correction:
         Inc,Elong=Is[Es.index(min(Es))],Es[Es.index(min(Es))]
         flat_f = Fs[Es.index(min(Es))]
     else:
@@ -96,7 +98,7 @@ def main():
             pmagplotlib.plotEI(PLTS['ei'],Esb,Isb,Fsb[-1])
         if Es[-1]!=0:
             ppars=pmag.doprinc(bdata)
-            if site_correction == True:
+            if site_correction:
                 I.append(abs(Isb[Esb.index(min(Esb))]))
                 E.append(Esb[Esb.index(min(Esb))])
             else:
