@@ -9,8 +9,7 @@ import pmag_widgets as pw
 import magic_grid
 import pmagpy.builder as builder
 import pmagpy.pmag as pmag
-import pmagpy.controlled_vocabularies as vocabulary
-from pmagpy.controlled_vocabularies import vocabularies as vocab
+from pmagpy.controlled_vocabularies import vocab
 
 
 class GridFrame(wx.Frame):
@@ -27,6 +26,11 @@ class GridFrame(wx.Frame):
         #wx.Frame.__init__(self, parent=parent, id=wx.ID_ANY, name=frame_name, title=title)
         #wx.ScrolledWindow.__init__(self, parent=parent, id=wx.ID_ANY, name=frame_name)#, title=title)
         super(GridFrame, self).__init__(parent=parent, id=wx.ID_ANY, name=frame_name, title=title)
+
+        # if controlled vocabularies haven't already been grabbed from earthref
+        # do so now
+        if not any(vocab.vocabularies):
+            vocab.get_stuff()
 
         self.remove_cols_mode = False
         self.deleteRowButton = None
@@ -474,12 +478,12 @@ class GridFrame(wx.Frame):
                             for header in add_pmag_reqd_headers():
                                 col_number = self.grid.add_col(header)
                                 # add drop_down_menus for added reqd columns
-                                if header in vocabulary.possible_vocabularies:
+                                if header in vocab.possible_vocabularies:
                                     self.drop_down_menu.add_drop_down(col_number, name)
                                 if header in ['magic_method_codes++']:
                                     self.drop_down_menu.add_method_drop_down(col_number, header)
                     # add drop down menus for user-added column
-                    if name in vocabulary.possible_vocabularies:
+                    if name in vocab.possible_vocabularies:
                         self.drop_down_menu.add_drop_down(col_number, name)
                     if name in ['magic_method_codes', 'magic_method_codes++']:
                         self.drop_down_menu.add_method_drop_down(col_number, name)
@@ -688,7 +692,7 @@ class GridFrame(wx.Frame):
             for head in sorted(list(headers)):
                 if head not in self.grid.col_labels:
                     col_num = self.grid.add_col(head)
-                    if head in vocabulary.possible_vocabularies:
+                    if head in vocab.possible_vocabularies:
                         self.drop_down_menu.add_drop_down(col_num, head)
             # add age data
             if import_type == 'age' and self.grid_type == 'age':
