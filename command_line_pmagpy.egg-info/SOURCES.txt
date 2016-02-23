@@ -168,6 +168,7 @@ programs/plotdi_e.py
 programs/plotxy.py
 programs/plotxy_magic.py
 programs/pmag_results_extract.py
+programs/prog_env.py
 programs/pt_rot.py
 programs/qqplot.py
 programs/qqunf.py
