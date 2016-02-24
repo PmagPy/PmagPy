@@ -67,7 +67,7 @@ End If
 ' Create the command prompt batch script that sets the PATH and prints the welcome message
 Set file = FileSystemObject.CreateTextFile(installation_path & "\pmagpy_prompt.bat", True)
 file.WriteLine("@ECHO OFF")
-file.WriteLine("SET ""PATH=" & installation_path & ";%PATH%""")
+file.WriteLine("SET ""PATH=" & installation_path & ";" & installation_path & "\programs;%PATH%""")
 file.WriteLine("ECHO -------------------------------------------------------------------------------")
 file.WriteLine("ECHO ^|                                                                             ^|")
 file.WriteLine("ECHO ^| Welcome to the PmagPy Command Prompt for Windows!                           ^|")
