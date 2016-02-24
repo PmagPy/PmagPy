@@ -76,7 +76,7 @@ programs/ODP_srm_magic.py
 programs/PMD_magic.py
 programs/PMM_redo.py
 programs/ReorderSamples.py
-programs/SUFAR4-asc_magic.py
+programs/SUFAR4_asc_magic.py
 programs/TDT_magic.py
 programs/UMICH_magic.py
 programs/_2G_bin_magic.py
@@ -153,7 +153,7 @@ programs/measurements_normalize.py
 programs/microwave_magic.py
 programs/mk_redo.py
 programs/nrm_specimens_magic.py
-programs/odp-kly4s_magic.py
+programs/odp_kly4s_magic.py
 programs/old_IODP_jr6_magic.py
 programs/orientation_magic.py
 programs/parse_measurements.py
@@ -168,7 +168,7 @@ programs/plotdi_e.py
 programs/plotxy.py
 programs/plotxy_magic.py
 programs/pmag_results_extract.py
-programs/prog_env.py
+programs/program_envs.py
 programs/pt_rot.py
 programs/qqplot.py
 programs/qqunf.py
@@ -195,7 +195,7 @@ programs/squish.py
 programs/stats.py
 programs/strip_magic.py
 programs/sundec.py
-programs/susar4-asc_magic.py
+programs/susar4_asc_magic.py
 programs/thellier_magic.py
 programs/thellier_magic_redo.py
 programs/tk03.py

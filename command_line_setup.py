@@ -6,7 +6,7 @@ from codecs import open
 from os import path
 
 
-version_num = '0.0.12'
+version_num = '0.2.0'
 here = path.abspath(path.dirname(__file__))
 
 # Get the long description from the README file
