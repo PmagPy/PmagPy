@@ -2,8 +2,8 @@
 import wx
 import os
 import sys
-from pmag_env import set_env
-set_env.set_backend(wx=True)
+
+
 import matplotlib.pyplot as plt
 import pmagpy.command_line_extractor as extractor
 import pmagpy.ipmag as ipmag

@@ -2,8 +2,8 @@
 # define some variables
 import sys
 import numpy
-from pmag_env import set_env
-set_env.set_backend(wx=False)
+
+
 #from mpl_toolkits.basemap import Basemap
 import pmagpy.pmag as pmag
 import pmagpy.pmagplotlib as pmagplotlib
