@@ -1,9 +1,8 @@
 #!/usr/bin/env python
 import sys
-
-
 import pmagpy.pmag as pmag
 import pmagpy.pmagplotlib as pmagplotlib
+
 
 def main():
     """
@@ -39,7 +38,12 @@ def main():
     methx,methy,fmt="","",'.svg'
     plot_key=''
     norm_by=""
-    plot=0
+    #plot=0
+    no_plot = pmag.get_flag_arg_from_sys('-sav')
+    if not no_plot:
+        do_plot = True
+    else:
+        do_plot = False
     if '-h' in sys.argv:
         print main.__doc__
         sys.exit()
@@ -74,7 +78,8 @@ def main():
         if plot_by=='sit':plot_key='er_site_name'
         if plot_by=='sam':plot_key='er_sample_name'
         if plot_by=='spc':plot_key='er_specimen_name'
-    if '-h' in sys.argv:plot=1
+    if '-h' in sys.argv:
+        do_plot = False
     if '-i' in sys.argv: 
     #
     # get name of file from command line
@@ -142,7 +147,8 @@ def main():
     xmeaskey,ymeaskey="",""
     plotlist.sort()
     for plot in plotlist: # go through objects
-        if pmagplotlib.verbose: print plot
+        if pmagplotlib.verbose:
+            print plot
         X,Y=[],[]
         x,y='',''
         for rec in data:
@@ -156,14 +162,16 @@ def main():
                             for key in measkeys:
                                 if key in rec.keys() and rec[key]!="":
                                     xmeaskey=key
-                                    if pmagplotlib.verbose: print xmeaskey,' being used for plotting X.'
+                                    if pmagplotlib.verbose:
+                                        print xmeaskey,' being used for plotting X.'
                                     break 
                     if meth.strip()==methy:
                         if ymeaskey=="":
                             for key in measkeys:
                                 if key in rec.keys() and rec[key]!="":
                                     ymeaskey=key
-                                    if pmagplotlib.verbose: print ymeaskey,' being used for plotting Y'
+                                    if pmagplotlib.verbose:
+                                        print ymeaskey,' being used for plotting Y'
                                     break 
         if ymeaskey!="" and xmeaskey!="":
             for rec in data:
@@ -182,7 +190,7 @@ def main():
         if len(X)>0:
             pmagplotlib.clearFIG(FIG['fig'])
             pmagplotlib.plotXY(FIG['fig'],X,Y,sym='ro',xlab=methx,ylab=methy,title=plot+':Biplot')
-            if not pmagplotlib.isServer and plot==0:
+            if not pmagplotlib.isServer and do_plot:
                 pmagplotlib.drawFIGS(FIG)
                 ans=raw_input('S[a]ve plots, [q]uit,  Return for next plot ' )
                 if ans=='a':
