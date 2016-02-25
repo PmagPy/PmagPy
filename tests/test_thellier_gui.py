@@ -10,7 +10,7 @@ import wx
 #import ipmag
 #import pmag_gui
 #import pmag_menu_dialogs
-import thellier_gui
+from programs import thellier_gui
 import dialogs.thellier_interpreter as thellier_interpreter
 
 # get WD before all the Pmag GUI stuff starts to happen

@@ -25,9 +25,9 @@ class TestProgramsHelp(unittest.TestCase):
         not_checked = []
         for prog in programs:
             print "Testing help message for:", prog
-            if prog == '__init__.py':
+            if prog in ['__init__.py', 'program_envs.py']:
                 continue
-            if not prog.endswith('.py'):
+            if not prog.endswith('.py') or '#' in prog:
                 not_checked.append(prog)
                 continue
             res = env.run(prog, '-h')

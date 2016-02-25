@@ -4,7 +4,7 @@ import unittest
 import os
 import wx
 import wx.lib.inspection
-import pmag_gui
+import programs.pmag_gui as pmag_gui
 import dialogs.pmag_menu_dialogs as pmag_menu_dialogs
 
 # get WD before all the Pmag GUI stuff starts to happen

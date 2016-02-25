@@ -4,7 +4,7 @@ import unittest
 import os
 import wx
 import wx.lib.inspection
-import demag_gui
+from programs import demag_gui
 
 WD = os.getcwd()
 project_WD = os.path.join(os.getcwd(), 'tests', 'examples', 'my_project')

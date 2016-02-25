@@ -489,6 +489,9 @@ class MagICMenu(wx.MenuBar):
             self.parent.grid_frame.Destroy()
 
 def main():
+    if '-h' in sys.argv:
+        print "See https://earthref.org/PmagPy/cookbook/#magic_gui.py for a complete tutorial"
+        sys.exit()
     print '-I- Starting MagIC GUI - please be patient'
     # if redirect is true, wxpython makes its own output window for stdout/stderr
     #app = wx.App(redirect=True)

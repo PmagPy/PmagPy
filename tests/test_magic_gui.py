@@ -7,7 +7,7 @@ import unittest
 import os
 import sys
 #import ErMagicBuilder
-import magic_gui
+import programs.magic_gui as magic_gui
 import pmagpy.builder as builder
 import dialogs.grid_frame as grid_frame
 import dialogs.pmag_widgets as pmag_widgets

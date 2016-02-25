@@ -3,8 +3,8 @@
 # pylint: disable=W0612,C0111,C0103,W0201
 
 print "-I- Importing Pmag GUI dependencies"
-from pmag_env import set_env
-set_env.set_backend(wx=True)
+#from pmag_env import set_env
+#set_env.set_backend(wx=True)
 #import matplotlib
 #matplotlib.use('WXAgg')
 import wx
@@ -443,6 +443,9 @@ class MagMainFrame(wx.Frame):
                 raise ex
 
 def main():
+    if '-h' in sys.argv:
+        print "See https://earthref.org/PmagPy/cookbook/#pmag_gui.py for a complete tutorial"
+        sys.exit()
     print '-I- Starting Pmag GUI - please be patient'
     # if redirect is true, wxpython makes its own output window for stdout/stderr
     app = wx.App(redirect=False)
