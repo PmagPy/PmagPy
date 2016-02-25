@@ -29,7 +29,7 @@ class import_magnetometer_data(wx.Dialog):
         self.panel = wx.Panel(self)
         vbox = wx.BoxSizer(wx.VERTICAL)
 
-        formats = ['generic format','SIO format','CIT format','2G-binary format',
+        formats = ['generic format','SIO format','CIT format','2g-binary format',
                    'HUJI format','LDEO format','IODP SRM (csv) format','PMD (ascii) format',
                    'TDT format', 'JR6 format', "BGC format"]
         sbs = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.ID_ANY, 'step 1: choose file format'), wx.VERTICAL)
@@ -101,8 +101,8 @@ class import_magnetometer_data(wx.Dialog):
             dia = convert_SIO_files_to_MagIC(self, self.WD, "PmagPy SIO file conversion")
         elif file_type == 'CIT':
             dia = convert_CIT_files_to_MagIC(self, self.WD, "PmagPy CIT file conversion")
-        elif file_type == '2G-binary':
-            dia = convert_2G_binary_files_to_MagIC(self, self.WD, "PmagPy 2G-binary file conversion")
+        elif file_type == '2g-binary':
+            dia = convert_2g_binary_files_to_MagIC(self, self.WD, "PmagPy 2g-binary file conversion")
         elif file_type == 'HUJI':
             dia = convert_HUJI_files_to_MagIC(self, self.WD, "PmagPy HUJI file conversion")
         elif file_type == 'LDEO':
@@ -1212,13 +1212,13 @@ class convert_HUJI_files_to_MagIC(convert_files_to_MagIC):
         pw.on_helpButton(text=HUJI.do_help())
 
 
-class convert_2G_binary_files_to_MagIC(convert_files_to_MagIC):
+class convert_2g_binary_files_to_MagIC(convert_files_to_MagIC):
 
     def InitUI(self):
 
         pnl = self.panel
 
-        TEXT = "Folder containing one or more 2G-binary format files"
+        TEXT = "Folder containing one or more 2g-binary format files"
         bSizer_info = wx.BoxSizer(wx.HORIZONTAL)
         bSizer_info.Add(wx.StaticText(pnl, label=TEXT), wx.ALIGN_LEFT)
 
@@ -1292,7 +1292,7 @@ class convert_2G_binary_files_to_MagIC(convert_files_to_MagIC):
         directory = self.bSizer0.return_value()
         options_dict['ID'] = directory
         if not directory:
-            pw.simple_warning('You must select a directory containing 2G binary files')
+            pw.simple_warning('You must select a directory containing 2g binary files')
             return False
         files = os.listdir(directory)
         files = [str(f) for f in files if str(f).endswith('.dat')]
@@ -1335,34 +1335,34 @@ class convert_2G_binary_files_to_MagIC(convert_files_to_MagIC):
         options_dict['samp_file'] = samp_outfile
         sites_outfile = files[0][:files[0].find('.')] + "_" + files[-1][:files[-1].find('.')] + "_er_sites.txt"
         options_dict['site_file'] = sites_outfile
-        import programs._2G_bin_magic as _2G_bin_magic
+        import programs._2g_bin_magic as _2g_bin_magic
         for f in files:
-            file_2G_bin = f
-            outfile = file_2G_bin + ".magic"
+            file_2g_bin = f
+            outfile = file_2g_bin + ".magic"
             options_dict['meas_file'] = outfile
             options_dict['mag_file'] = f
-            COMMAND = "_2G_bin_magic.py -WD {} -f {} -F {} -Fsa {} -Fsi {} -ncn {} {} {} -ocn {} {} {} {} {}".format(WD, file_2G_bin, outfile, samp_outfile, sites_outfile, ncn, mcd, spc, ocn, loc_name, replicate, ID, instrument)
+            COMMAND = "_2g_bin_magic.py -WD {} -f {} -F {} -Fsa {} -Fsi {} -ncn {} {} {} -ocn {} {} {} {} {}".format(WD, file_2g_bin, outfile, samp_outfile, sites_outfile, ncn, mcd, spc, ocn, loc_name, replicate, ID, instrument)
             if files.index(f) == (len(files) - 1): # terminate process on last file call
                 # to run as module:
-                if _2G_bin_magic.main(False, **options_dict):
+                if _2g_bin_magic.main(False, **options_dict):
                     pw.close_window(self, COMMAND, outfile)
                 else:
                     pw.simple_warning()
 
             else:
                 print "Running equivalent of python command: ", COMMAND
-                if _2G_bin_magic.main(False, **options_dict):
+                if _2g_bin_magic.main(False, **options_dict):
                     pass # success, continue on to next file
                 else:
                     pw.simple_warning()
 
     def on_helpButton(self, event):
         # to run as module:
-        import programs._2G_bin_magic as _2G_bin_magic
-        pw.on_helpButton(text=_2G_bin_magic.do_help())
+        import programs._2g_bin_magic as _2g_bin_magic
+        pw.on_helpButton(text=_2g_bin_magic.do_help())
 
         # to run as command line:
-        #pw.on_helpButton("_2G_bin_magic.py -h")
+        #pw.on_helpButton("_2g_bin_magic.py -h")
 
 
 

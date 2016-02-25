@@ -51,7 +51,6 @@ pmag_env/set_env.py
 pmagpy/SPD_consistency_tests/__init__.py
 pmagpy/SPD_consistency_tests/comp_files.py
 pmagpy/SPD_consistency_tests/write_SPD.py
-programs/ANI_depthplot.py
 programs/BGC_magic.py
 programs/CIT_magic.py
 programs/Core_depthplot.py
@@ -79,11 +78,12 @@ programs/ReorderSamples.py
 programs/SUFAR4_asc_magic.py
 programs/TDT_magic.py
 programs/UMICH_magic.py
-programs/_2G_bin_magic.py
+programs/_2g_bin_magic.py
 programs/__init__.py
 programs/aarm_magic.py
 programs/agm_magic.py
 programs/angle.py
+programs/ani_depthplot.py
 programs/aniso_magic.py
 programs/apwp.py
 programs/atrm_magic.py
@@ -121,7 +121,7 @@ programs/eqarea.py
 programs/eqarea_ell.py
 programs/eqarea_magic.py
 programs/extract_methods.py
-programs/find_EI.py
+programs/find_ei.py
 programs/fisher.py
 programs/fishqq.py
 programs/fishrot.py
@@ -154,7 +154,7 @@ programs/microwave_magic.py
 programs/mk_redo.py
 programs/nrm_specimens_magic.py
 programs/odp_kly4s_magic.py
-programs/old_IODP_jr6_magic.py
+programs/old_iodp_jr6_magic.py
 programs/orientation_magic.py
 programs/parse_measurements.py
 programs/pca.py
@@ -162,7 +162,7 @@ programs/plot_2cdfs.py
 programs/plot_cdf.py
 programs/plot_geomagia.py
 programs/plot_magic_keys.py
-programs/plot_mapPTS.py
+programs/plot_map_pts.py
 programs/plotdi_a.py
 programs/plotdi_e.py
 programs/plotxy.py
@@ -175,10 +175,10 @@ programs/qqunf.py
 programs/quick_hyst.py
 programs/remanence_anisotropy_magic.py
 programs/remove_bad_chars.py
-programs/replace_AC_specimens.py
+programs/replace_ac_specimens.py
 programs/revtest.py
-programs/revtest_MM1990.py
 programs/revtest_magic.py
+programs/revtest_mm1990.py
 programs/s_eigs.py
 programs/s_geo.py
 programs/s_hext.py
@@ -208,8 +208,8 @@ programs/vdm_b.py
 programs/vector_mean.py
 programs/vgp_di.py
 programs/vgpmap_magic.py
-programs/watsonsF.py
 programs/watsonsV.py
+programs/watsons_f.py
 programs/zeq.py
 programs/zeq_magic.py
 programs/zeq_magic_redo.py

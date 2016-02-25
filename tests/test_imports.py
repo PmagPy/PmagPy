@@ -11,7 +11,7 @@ import programs.CIT_magic as CIT_magic
 import programs.IODP_srm_magic as IODP_srm_magic
 import programs.IODP_dscr_magic as IODP_dscr_magic
 import programs.IODP_jr6_magic as IODP_jr6_magic
-import programs._2G_bin_magic as _2G_bin_magic
+import programs._2g_bin_magic as _2g_bin_magic
 import programs.BGC_magic as BGC_magic
 WD = os.getcwd()
 
@@ -279,7 +279,7 @@ class TestIODP_jr6_magic(unittest.TestCase):
         os.rename(hidden_samp_file, samp_file)
 
 
-class Test2G_bin_magic(unittest.TestCase):
+class Test2g_bin_magic(unittest.TestCase):
 
     def setUp(self):
         os.chdir(WD)
@@ -290,78 +290,87 @@ class Test2G_bin_magic(unittest.TestCase):
         files = ['mn001-1a.magic', 'er_samples.txt', 'er_sites.txt', 'magic_measurements.txt']
         pmag.remove_files(files, WD)
 
-    def test_2G_with_no_files(self):
+    def test_2g_with_no_files(self):
         options = {}
-        program_ran, error_message = _2G_bin_magic.main(False, **options)
+        program_ran, error_message = _2g_bin_magic.main(False, **options)
         self.assertFalse(program_ran)
         self.assertEqual(error_message, 'mag file is required input')
 
-    def test_2G_with_files(self):
+    def test_2g_with_files(self):
         options = {}
-        options['ID'] = os.path.join(WD, 'data_files', 'Measurement_Import', '2G_bin_magic', 'mn1')
+        options['ID'] = os.path.join(WD, 'data_files', 'Measurement_Import',
+                                     '2g_bin_magic', 'mn1')
         options['mag_file'] = 'mn001-1a.dat'
-        program_ran, outfile = _2G_bin_magic.main(False, **options)
+        program_ran, outfile = _2g_bin_magic.main(False, **options)
         self.assertTrue(program_ran)
         self.assertEqual(outfile, './magic_measurements.txt')
         self.assertTrue(os.path.isfile(outfile))
 
 
-    def test_2G_fail_option4(self):
+    def test_2g_fail_option4(self):
         options = {}
-        options['input_dir_path'] = os.path.join(WD, 'data_files', 'Measurement_Import', '2G_bin_magic', 'mn1')
+        options['input_dir_path'] = os.path.join(WD, 'data_files',
+                                                 'Measurement_Import',
+                                                 '2g_bin_magic', 'mn1')
         options['magfile'] =  'mn001-1a.dat'
         options['samp_con'] = '4'
-        program_ran, error_message = _2G_bin_magic.main(False, **options)
+        program_ran, error_message = _2g_bin_magic.main(False, **options)
         self.assertFalse(program_ran)
         self.assertEqual(error_message, 'option [4] must be in form 4-Z where Z is an integer')
 
-    def test_2G_succeed_option4(self):
+    def test_2g_succeed_option4(self):
         options = {}
-        options['ID'] = os.path.join(WD, 'data_files', 'Measurement_Import', '2G_bin_magic', 'mn1')
+        options['ID'] = os.path.join(WD, 'data_files', 'Measurement_Import',
+                                     '2g_bin_magic', 'mn1')
         options['mag_file'] =  'mn001-1a.dat'
         options['samp_con'] = '4-3'
-        program_ran, outfile = _2G_bin_magic.main(False, **options)
+        program_ran, outfile = _2g_bin_magic.main(False, **options)
         self.assertTrue(program_ran)
         self.assertEqual(outfile, './magic_measurements.txt')
 
-    def test_2G_fail_option7(self):
+    def test_2g_fail_option7(self):
         options = {}
-        options['ID'] = os.path.join(WD, 'data_files', 'Measurement_Import', '2G_bin_magic', 'mn1')
+        options['ID'] = os.path.join(WD, 'data_files', 'Measurement_Import',
+                                     '2g_bin_magic', 'mn1')
         options['mag_file'] = 'mn001-1a.dat'
         options['samp_con'] = '7'
-        program_ran, error_message = _2G_bin_magic.main(False, **options)
+        program_ran, error_message = _2g_bin_magic.main(False, **options)
         self.assertFalse(program_ran)
         self.assertEqual(error_message, 'option [7] must be in form 7-Z where Z is an integer')
 
-    def test_2G_succeed_option7(self):
+    def test_2g_succeed_option7(self):
         options = {}
-        options['ID'] = os.path.join(WD, 'data_files', 'Measurement_Import', '2G_bin_magic', 'mn1')
+        options['ID'] = os.path.join(WD, 'data_files', 'Measurement_Import',
+                                     '2g_bin_magic', 'mn1')
         options['mag_file'] = 'mn001-1a.dat'
         options['samp_con'] = '7-3'
-        program_ran, outfile = _2G_bin_magic.main(False, **options)
+        program_ran, outfile = _2g_bin_magic.main(False, **options)
         self.assertTrue(program_ran)
         self.assertEqual(outfile, './magic_measurements.txt')
 
-    def test_2G_fail_option6(self):
+    def test_2g_fail_option6(self):
         options = {}
-        options['ID'] = os.path.join(WD, 'data_files', 'Measurement_Import', '2G_bin_magic', 'mn1')
+        options['ID'] = os.path.join(WD, 'data_files', 'Measurement_Import',
+                                     '2g_bin_magic', 'mn1')
         options['mag_file'] =  'mn001-1a.dat'
         options['samp_con'] = '6'
-        program_ran, error_message = _2G_bin_magic.main(False, **options)
+        program_ran, error_message = _2g_bin_magic.main(False, **options)
         self.assertFalse(program_ran)
         self.assertEqual(error_message, "there is no er_samples.txt file in your input directory - you can't use naming convention #6")
 
-    def test_2G_with_bad_file(self):
+    def test_2g_with_bad_file(self):
         options = {}
-        options['ID'] = os.path.join(WD, 'data_files', 'Measurement_Import', '2G_bin_magic', 'mn1')
+        options['ID'] = os.path.join(WD, 'data_files', 'Measurement_Import',
+                                     '2g_bin_magic', 'mn1')
         options['mag_file'] =  'mn001-1ax.dat'
-        program_ran, error_message = _2G_bin_magic.main(False, **options)
+        program_ran, error_message = _2g_bin_magic.main(False, **options)
         self.assertFalse(program_ran)
         self.assertEqual(error_message, "bad mag file")
 
-    def test_2G_with_options(self):
+    def test_2g_with_options(self):
         options = {}
-        options['ID'] = os.path.join(WD, 'data_files', 'Measurement_Import', '2G_bin_magic', 'mn1')
+        options['ID'] = os.path.join(WD, 'data_files', 'Measurement_Import',
+                                     '2g_bin_magic', 'mn1')
         options['mag_file'] = 'mn001-1a.dat'
         options['meas_file'] = 'mn001-1a.magic'
         options['samp_con'] = '4-3'
@@ -371,7 +380,7 @@ class Test2G_bin_magic(unittest.TestCase):
         options['location_name'] = 'location'
         options['or_con'] = '4'
         options['gmeths'] = 'FS-LOC-MAP:SO-POM'
-        program_ran, outfile = _2G_bin_magic.main(False, **options)
+        program_ran, outfile = _2g_bin_magic.main(False, **options)
         self.assertTrue(program_ran)
 
 

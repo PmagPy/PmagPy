@@ -13,16 +13,16 @@ def skip(N,ind,L):
 def main(command_line=True, **kwargs):
     """
     NAME
-        2G_bin_magic.py
+        _2g_bin_magic.py
    
     DESCRIPTION
-        takes the binary 2G format magnetometer files and converts them to magic_measurements, er_samples.txt and er_sites.txt file
+        takes the binary 2g format magnetometer files and converts them to magic_measurements, er_samples.txt and er_sites.txt file
  
     SYNTAX
-        2G_bin_magic.py [command line options]
+        2g_bin_magic.py [command line options]
 
     OPTIONS
-        -f FILE: specify input 2G (binary) file
+        -f FILE: specify input 2g (binary) file
         -F FILE: specify magic_measurements output file, default is: magic_measurements.txt
         -Fsa FILE: specify output file, default is: er_samples.txt 
         -Fsi FILE: specify output file, default is: er_sites.txt 
