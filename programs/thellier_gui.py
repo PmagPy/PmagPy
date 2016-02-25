@@ -8995,7 +8995,7 @@ class Arai_GUI(wx.Frame):
 
 
 
-def do_main(WD=None, standalone_app=True, parent=None):
+def main(WD=None, standalone_app=True, parent=None):
     # to run as module, i.e. with Pmag GUI:
     if not standalone_app:
         wait = wx.BusyInfo('Compiling required data, please wait...')
@@ -9020,5 +9020,5 @@ def do_main(WD=None, standalone_app=True, parent=None):
         
 
 if __name__ == '__main__':
-    do_main()
+    main()
 

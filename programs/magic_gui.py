@@ -488,8 +488,7 @@ class MagICMenu(wx.MenuBar):
             self.parent.grid_frame.onSave(None)
             self.parent.grid_frame.Destroy()
 
-
-if __name__ == "__main__":
+def main():
     print '-I- Starting MagIC GUI - please be patient'
     # if redirect is true, wxpython makes its own output window for stdout/stderr
     #app = wx.App(redirect=True)
@@ -512,4 +511,8 @@ if __name__ == "__main__":
     #    import wx.lib.inspection
     #    wx.lib.inspection.InspectionTool().Show()
     app.MainLoop()
+            
+            
 
+if __name__ == "__main__":
+    main()

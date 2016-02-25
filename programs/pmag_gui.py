@@ -322,14 +322,14 @@ class MagMainFrame(wx.Frame):
         print "-I- running python script:\n %s"%(outstring)
 
         import thellier_gui
-        thellier_gui.do_main(self.WD, standalone_app=False, parent=self)
+        thellier_gui.main(self.WD, standalone_app=False, parent=self)
 
     def on_run_demag_gui(self, event):
         outstring = "demag_gui.py -WD %s"%self.WD
         print "-I- running python script:\n %s"%(outstring)
         # for use as module:
         import demag_gui
-        demag_gui.do_main(self.WD, standalone_app=False, parent=self)
+        demag_gui.main(self.WD, standalone_app=False, parent=self)
 
     def on_convert_file(self, event):
         pmag_dialogs_dia = pmag_basic_dialogs.import_magnetometer_data(self, wx.ID_ANY, '', self.WD)
@@ -442,8 +442,7 @@ class MagMainFrame(wx.Frame):
             else:
                 raise ex
 
-
-if __name__ == "__main__":
+def main():
     print '-I- Starting Pmag GUI - please be patient'
     # if redirect is true, wxpython makes its own output window for stdout/stderr
     app = wx.App(redirect=False)
@@ -463,3 +462,7 @@ if __name__ == "__main__":
     #    import wx.lib.inspection
     #    wx.lib.inspection.InspectionTool().Show()
     app.MainLoop()
+            
+
+if __name__ == "__main__":
+    main()

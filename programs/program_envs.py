@@ -2,5 +2,7 @@
 
 prog_env = {'Core_depthplot': 'WXAgg',
             'ani_depthplot': 'WXAgg',
+            'demag_gui': 'WXAgg',
             'magic_gui': 'WXAgg',
-            'pmag_gui': 'WXAgg'}
+            'pmag_gui': 'WXAgg',
+            'thellier_gui': 'WXAgg'}

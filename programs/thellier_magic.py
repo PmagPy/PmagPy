@@ -1,9 +1,8 @@
 #!/usr/bin/env python
 import sys
-
-
 import pmagpy.pmag as pmag
 import pmagpy.pmagplotlib as pmagplotlib
+from pmag_env import set_env
 if not set_env.isServer:
     import pmagpy.nlt as nlt
 
