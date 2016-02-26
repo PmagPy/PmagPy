@@ -38,7 +38,7 @@
 # definitions
 #--------------------------------------
 
-#import matplotlib
+import matplotlib
 #matplotlib.use('WXAgg')
 
 import os,sys,pdb

@@ -1,4 +1,3 @@
-
 import sys
 from os import path
 command = path.split(sys.argv[0])[-1]
