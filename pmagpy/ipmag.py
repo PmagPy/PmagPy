@@ -1034,7 +1034,7 @@ def plot_pole_colorbar(mapname,plong,plat,A95,cmap,vmin,vmax,label='',color='k',
         plt.legend(loc=2)
 
 
-def plot_vgp(mapname,plong,plat,label='',color='k',marker='o',legend='no'):
+def plot_vgp(mapname,vgp_lon=None,vgp_lat=None,di_block=None,label='',color='k',marker='o',legend='no'):
     """
     This function plots a paleomagnetic pole on whatever current map projection
     has been set using the basemap plotting library.
@@ -1052,7 +1052,9 @@ def plot_vgp(mapname,plong,plat,label='',color='k',marker='o',legend='no'):
     label : the default is no label. Labels can be assigned.
     legend : the default is no legend ('no'). Putting 'yes' will plot a legend.
     """
-    centerlon, centerlat = mapname(plong,plat)
+    if di_block!=None:
+        vgp_lon,vgp_lat = unpack_di_block(di_block)
+    centerlon, centerlat = mapname(vgp_lon,vgp_lat)
     mapname.scatter(centerlon,centerlat,20,marker=marker,color=color,label=label,zorder=100)
     if legend=='yes':
         plt.legend(loc=2)
