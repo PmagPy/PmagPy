@@ -6,13 +6,13 @@ import pmagpy.pmag as pmag
 def main():
     """
     NAME
-        LSQ_redo.py
+        lsq_redo.py
 
     DESCRIPTION
         converts a tab delimited LSQ format to PmagPy redo file and edits the magic_measurements table to mark "bad" measurements.
 
     SYNTAX 
-        LSQ_redo.py [-h] [command line options]
+        lsq_redo.py [-h] [command line options]
 
     OPTIONS
         -h: prints help message and quits

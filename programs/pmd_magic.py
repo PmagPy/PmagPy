@@ -5,25 +5,24 @@ import pmagpy.pmag as pmag
 def main(command_line=True, **kwargs):
     """
     NAME
-        JR6_txt_magic.py
+        pmd_magic.py
  
     DESCRIPTION
-        converts JR6 .txt format files to magic_measurements format files
+        converts PMD (Enkin)  format files to magic_measurements format files
 
     SYNTAX
-        JR6_txt_magic.py [command line options]
+        pmd_magic.py [command line options]
 
     OPTIONS
         -h: prints the help message and quits.
         -f FILE: specify  input file, or
         -F FILE: specify output file, default is magic_measurements.txt
-        -Fsa: specify er_samples format file for appending, default is new er_samples.txt (Not working yet)
+        -Fsa: specify er_samples format file for appending, default is new er_samples.txt
         -spc NUM : specify number of characters to designate a  specimen, default = 1
         -loc LOCNAME : specify location/study name
         -A: don't average replicate measurements
-        -ncn NCON: specify sample naming convention (6 and 7 not yet implemented)
+        -ncn NCON: specify naming convention
         -mcd [SO-MAG,SO-SUN,SO-SIGHT...] supply how these samples were oriented
-        -v NUM : specify the volume of the sample, default 2.5cm^3.
        Sample naming convention:
             [1] XXXXY: where XXXX is an arbitrary length site designation and Y
                 is the single character sample designation.  e.g., TG001a is the
@@ -38,11 +37,10 @@ def main(command_line=True, **kwargs):
                  or e-mail ltauxe@ucsd.edu for help.
  
     INPUT
-        JR6 .txt format file
+        PMD format files
     """
 # initialize some stuff
     noave=0
-    volume = 2.5 * 1e-6 # default volume is 2.5 cm^3 (2.5 * 1e-6 meters^3)
     inst=""
     samp_con,Z='1',""
     missing=1
@@ -55,6 +53,8 @@ def main(command_line=True, **kwargs):
     MagRecs=[]
     version_num=pmag.get_version()
     Samps=[] # keeps track of sample orientations
+    DIspec=[]
+    MagFiles=[]
 
     user=""
     mag_file=""
@@ -112,9 +112,6 @@ def main(command_line=True, **kwargs):
         if "-mcd" in args: 
             ind=args.index("-mcd")
             meth_code=args[ind+1]
-        if "-v" in args: 
-            ind=args.index("-v")
-            volume=float(args[ind+1]) * 1e-6
 
     if not command_line:
         dir_path = kwargs.get('dir_path', '.')
@@ -123,132 +120,83 @@ def main(command_line=True, **kwargs):
         meas_file = kwargs.get('meas_file', 'magic_measurements.txt')
         mag_file = kwargs.get('mag_file')
         samp_file = kwargs.get('samp_file', 'er_samples.txt')
-        specnum = kwargs.get('specnum', 1)
+        specnum = kwargs.get('specnum', 0)
         samp_con = kwargs.get('samp_con', '1')
         er_location_name = kwargs.get('er_location_name', '')
         noave = kwargs.get('noave', 0) # default (0) means DO average
         meth_code = kwargs.get('meth_code', "LP-NO")
-        volume = float(kwargs.get('volume', 0))
-        if not volume:
-            volume = 2.5 * 1e-6 #default volume is a 2.5 cm cube, translated to meters cubed
-        else:
-            #convert cm^3 to m^3
-            volume *= 1e-6
 
-
+    print samp_con
     # format variables
     mag_file = input_dir_path+"/" + mag_file
     meas_file = output_dir_path+"/" + meas_file
     samp_file = output_dir_path+"/" + samp_file
-    if specnum!=0:
-        specnum=-specnum
+    if specnum!=0:specnum=-specnum
     if "4" in samp_con:
         if "-" not in samp_con:
-            print "option [4] must be in form 4-Z where Z is an integer"
-            return False, "option [4] must be in form 4-Z where Z is an integer"
+            print "naming convention option [4] must be in form 4-Z where Z is an integer"
+            return False, "naming convention option [4] must be in form 4-Z where Z is an integer"
         else:
             Z=samp_con.split("-")[1]
             samp_con="4"
     if "7" in samp_con:
         if "-" not in samp_con:
             print "option [7] must be in form 7-Z where Z is an integer"
-            return False, "option [7] must be in form 7-Z where Z is an integer"
+            return False, "naming convention option [7] must be in form 7-Z where Z is an integer"
         else:
             Z=samp_con.split("-")[1]
             samp_con="7"
 
-    ErSampRec,ErSiteRec={},{}
-
     # parse data
-    data=open(mag_file,'rU')
-    line=data.readline()
-    line=data.readline()
-    line=data.readline()
-    while line !='':
-        parsedLine=line.split()
-        sampleName=parsedLine[0]
-        demagLevel=parsedLine[2]
-        date=parsedLine[3]
-        line=data.readline()
-        line=data.readline()
-        line=data.readline()
-        line=data.readline()
-        parsedLine=line.split()
-        specimenAngleDec=parsedLine[1]
-        specimenAngleInc=parsedLine[2]
-        while parsedLine[0] != 'MEAN' :
-            line=data.readline() 
-            parsedLine=line.split()
-            if len(parsedLine) == 0:
-                parsedLine=["Hello"]
-        Mx=parsedLine[1]
-        My=parsedLine[2]
-        Mz=parsedLine[3]
-        line=data.readline() 
-        line=data.readline() 
-        parsedLine=line.split()
-        splitExp = parsedLine[2].split('A')
-        intensityVolStr=parsedLine[1] + splitExp[0]
-        intensityVol = float(intensityVolStr)
-
-        # check and see if Prec is too big and messes with the parcing.
-        precisionStr=''
-        if len(parsedLine) == 6:  #normal line
-            precisionStr=parsedLine[5][0:-1]
-        else:
-            precisionStr=parsedLine[4][0:-1]
-            
-        precisionPer = float(precisionStr)
-        precision=intensityVol*precisionPer/100
-
-        while parsedLine[0] != 'SPEC.' :
-            line=data.readline() 
-            parsedLine=line.split()
-            if len(parsedLine) == 0:
-                parsedLine=["Hello"]
-
-        specimenDec=parsedLine[2]    
-        specimenInc=parsedLine[3]    
-        line=data.readline()
-        line=data.readline()
-        parsedLine=line.split()
-        geographicDec=parsedLine[1]
-        geographicInc=parsedLine[2]
-    
-        # Add data to various MagIC data tables.
-
-        er_specimen_name = sampleName
-
-        if specnum!=0: 
-            er_sample_name=er_specimen_name[:specnum]
-        else:
-            er_sample_name=er_specimen_name
-
-        if int(samp_con)<6:
-            er_site_name=pmag.parse_site(er_sample_name,samp_con,Z)
-        # else:
-        #     if 'er_site_name' in ErSampRec.keys():er_site_name=ErSampRec['er_site_name']
-        #     if 'er_location_name' in ErSampRec.keys():er_location_name=ErSampRec['er_location_name']
-
-        # check sample list(SampOuts) to see if sample already exists in list before adding new sample info
-        sampleFlag=0
-        for sampRec in SampOuts:
-            if sampRec['er_sample_name'] == er_sample_name:
-                sampleFlag=1
-                break
-        if sampleFlag == 0:
-            ErSampRec['er_sample_name']=er_sample_name
-            ErSampRec['sample_azimuth']=specimenAngleDec
-            sample_dip=str(float(specimenAngleInc)-90.0) #convert to magic orientation
-            ErSampRec['sample_dip']=sample_dip
-            ErSampRec['magic_method_codes']=meth_code 
-            ErSampRec['er_location_name']=er_location_name
-            ErSampRec['er_site_name']=er_site_name
-            ErSampRec['er_citation_names']='This study'
-            SampOuts.append(ErSampRec.copy())
-
+    data=open(mag_file,'rU').readlines() # read in data from file
+    comment=data[0]
+    line=data[1].strip()
+    line=line.replace("=","= ")  # make finding orientations easier
+    rec=line.split() # read in sample orientation, etc.
+    er_specimen_name=rec[0]
+    ErSampRec,ErSiteRec={},{} # make a  sample record
+    if specnum!=0:
+        er_sample_name=rec[0][:specnum]
+    else:
+        er_sample_name=rec[0]
+    if len(ErSamps)>0: # need to copy existing
+       for samp in ErSamps:
+           if samp['er_sample_name']==er_sample_name:
+               ErSampRec=samp  # we'll ammend this one
+           else:
+               SampOuts.append(samp) # keep all the others
+    if int(samp_con)<6:
+        er_site_name=pmag.parse_site(er_sample_name,samp_con,Z)
+    else:
+        if 'er_site_name' in ErSampRec.keys():er_site_name=ErSampREc['er_site_name']
+        if 'er_location_name' in ErSampRec.keys():er_location_name=ErSampREc['er_location_name']
+    az_ind=rec.index('a=')+1
+    ErSampRec['er_sample_name']=er_sample_name
+    ErSampRec['er_sample_description']=comment
+    ErSampRec['sample_azimuth']=rec[az_ind]
+    dip_ind=rec.index('b=')+1
+    dip=-float(rec[dip_ind])
+    ErSampRec['sample_dip']='%7.1f'%(dip)
+    strike_ind=rec.index('s=')+1
+    ErSampRec['sample_bed_dip_direction']='%7.1f'%(float(rec[strike_ind])+90.)
+    bd_ind=rec.index('d=')+1
+    ErSampRec['sample_bed_dip']=rec[bd_ind]
+    v_ind=rec.index('v=')+1
+    vol=rec[v_ind][:-3]
+    date=rec[-2]
+    time=rec[-1]
+    ErSampRec['magic_method_codes']=meth_code
+    if 'er_location_name' not in ErSampRec.keys():ErSampRec['er_location_name']=er_location_name
+    if 'er_site_name' not in ErSampRec.keys():ErSampRec['er_site_name']=er_site_name
+    if 'er_citation_names' not in ErSampRec.keys():ErSampRec['er_citation_names']='This study'
+    if 'magic_method_codes' not in ErSampRec.keys():ErSampRec['magic_method_codes']='SO-NO'
+    SampOuts.append(ErSampRec)
+    for k in range(3,len(data)): # read in data
+      line=data[k]
+      rec=line.split()
+      if len(rec)>1: # skip blank lines at bottom  
         MagRec={}
-        MagRec['measurement_description']='Date: '+date
+        MagRec['measurement_description']='Date: '+date+' '+time
         MagRec["er_citation_names"]="This study"
         MagRec['er_location_name']=er_location_name
         MagRec['er_site_name']=er_site_name
@@ -260,46 +208,37 @@ def main(command_line=True, **kwargs):
         MagRec["measurement_standard"]='u'
         MagRec["measurement_number"]='1'
         MagRec["er_specimen_name"]=er_specimen_name
-        MagRec["treatment_ac_field"]='0'
-        if demagLevel == 'NRM':
+        if rec[0]=='NRM': 
             meas_type="LT-NO"
-        elif demagLevel[0] == 'A':
+        elif rec[0][0]=='M' or rec[0][0]=='H': 
             meas_type="LT-AF-Z"
-            treat=float(demagLevel[1:])
-            MagRec["treatment_ac_field"]='%8.3e' %(treat*1e-3) # convert from mT to tesla
-        elif demagLevel[0] == 'T':
+        elif rec[0][0]=='T': 
             meas_type="LT-T-Z"
-            treat=float(demagLevel[1:])
-            MagRec["treatment_temp"]='%8.3e' % (treat+273.) # temp in kelvin
         else:
-            print "measurement type unknown", demag_level
+            print "measurement type unknown"
             return False, "measurement type unknown"
-
-        MagRec["measurement_magn_moment"]=str(intensityVol*volume) # Am^2
-        MagRec["measurement_magn_volume"]=intensityVolStr # A/m
-        MagRec["measurement_dec"]=specimenDec
-        MagRec["measurement_inc"]=specimenInc
+        X=[float(rec[1]),float(rec[2]),float(rec[3])]
+        Vec=pmag.cart2dir(X)
+        MagRec["measurement_magn_moment"]='%10.3e'% (Vec[2]) # Am^2 
+        MagRec["measurement_magn_volume"]=rec[4] # A/m 
+        MagRec["measurement_dec"]='%7.1f'%(Vec[0])
+        MagRec["measurement_inc"]='%7.1f'%(Vec[1])
+        MagRec["treatment_ac_field"]='0'
+        if meas_type!='LT-NO':
+            treat=float(rec[0][1:])
+        else:
+            treat=0
+        if meas_type=="LT-AF-Z":
+            MagRec["treatment_ac_field"]='%8.3e' %(treat*1e-3) # convert from mT to tesla
+        elif meas_type=="LT-T-Z":
+            MagRec["treatment_temp"]='%8.3e' % (treat+273.) # temp in kelvin
         MagRec['magic_method_codes']=meas_type
-        MagRecs.append(MagRec.copy())
-
-        #read lines till end of record
-        line=data.readline()
-        line=data.readline()
-        line=data.readline()
-        line=data.readline()
-        line=data.readline()
-
-        # read all the rest of the special characters. Some data files not consistantly formatted.
-        while (len(line) <=3 and line!=''):
-            line=data.readline()
-            
-        #end of data while loop
-
+        MagRecs.append(MagRec) 
     MagOuts=pmag.measurements_methods(MagRecs,noave)
-    pmag.magic_write(samp_file,SampOuts,'er_samples') 
-    print "sample orientations put in ",samp_file
     pmag.magic_write(meas_file,MagOuts,'magic_measurements')
     print "results put in ",meas_file
+    pmag.magic_write(samp_file,SampOuts,'er_samples')
+    print "sample orientations put in ",samp_file
     return True, meas_file
 
 def do_help():

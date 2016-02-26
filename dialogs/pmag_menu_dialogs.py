@@ -243,11 +243,11 @@ class ImportIODPSampleSummary(wx.Frame):
         full_infile = self.bSizer0.return_value()
         ID, infile = os.path.split(full_infile)
         Fsa = infile[:infile.find('.')] + "_er_samples.txt"
-        program_ran, error_message = ipmag.IODP_samples_magic(infile, Fsa, WD, ID)
+        program_ran, error_message = ipmag.iodp_samples_magic(infile, Fsa, WD, ID)
         if not program_ran:
             pw.simple_warning(error_message)
         else:
-            COMMAND = "IODP_samples_magic.py -WD {} -f {} -Fsa {} -ID {}".format(WD, infile, Fsa, ID)
+            COMMAND = "iodp_samples_magic.py -WD {} -f {} -Fsa {} -ID {}".format(WD, infile, Fsa, ID)
             pw.close_window(self, COMMAND, Fsa)
         #pw.run_command_and_close_window(self, COMMAND, Fsa)
 
@@ -256,7 +256,7 @@ class ImportIODPSampleSummary(wx.Frame):
         self.Parent.Raise()
 
     def on_helpButton(self, event):
-        pw.on_helpButton(text=ipmag.IODP_samples_magic.__doc__)
+        pw.on_helpButton(text=ipmag.iodp_samples_magic.__doc__)
 
 
 """

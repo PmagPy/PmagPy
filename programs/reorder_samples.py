@@ -6,13 +6,13 @@ import pmagpy.pmag as pmag
 def main():
     """
     NAME
-        ReorderSamples.py
+        reorder_samples.py
 
     DESCRIPTION
         takes specimen file and reorders sample file with selected orientation methods placed first
 
     SYNTAX
-        ReorderSamples.py [command line options]
+        reorder_samples.py [command line options]
 
     OPTIONS
         -h prints help message and quits

@@ -6,13 +6,13 @@ import pmagpy.pmag as pmag
 def main():
     """
     NAME
-        ODP_srm_magic.py
+        odp_srm_magic.py
  
     DESCRIPTION
         converts ODP measurement format files to magic_measurements format files
 
     SYNTAX
-        ODP_srm_magic.py [command line options]
+        odp_srm_magic.py [command line options]
 
     OPTIONS
         -h: prints the help message and quits.

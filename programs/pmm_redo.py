@@ -5,13 +5,13 @@ import string
 def main():
     """
     NAME
-        PMM_redo.py
+        pmm_redo.py
 
     DESCRIPTION
         converts the UCSC PMM files format to PmagPy redo file
 
     SYNTAX 
-        PMM_redo.py [-h] [command line options]
+        pmm_redo.py [-h] [command line options]
 
     OPTIONS
         -h: prints help message and quits

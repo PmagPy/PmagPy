@@ -5,13 +5,13 @@ import pmagpy.pmag as pmag
 def main():
     """
     NAME
-        MINI_magic.py
+        mini_magic.py
  
     DESCRIPTION
         converts the Yale minispin format to magic_measurements format files
 
     SYNTAX
-        MINI_magic.py [command line options]
+        mini_magic.py [command line options]
 
     OPTIONS
         -h: prints the help message and quits.

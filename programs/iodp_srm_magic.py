@@ -6,14 +6,14 @@ import pmagpy.pmag as pmag
 def main(command_line=True, **kwargs):
     """
     NAME
-        IODP_srm_magic.py
+        iodp_srm_magic.py
  
     DESCRIPTION
         converts IODP LIMS and LORE SRM archive half sample format files to magic_measurements format files
 
 
     SYNTAX
-        IODP_srm_magic.py [command line options]
+        iodp_srm_magic.py [command line options]
 
     OPTIONS
         -h: prints the help message and quits.

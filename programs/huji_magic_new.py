@@ -1,18 +1,18 @@
 #!/usr/bin/env python
 import sys
-import pmagpy.pmag as pmag
+import pmagpy.pmag
 
 def main(command_line=True, **kwargs):
     """
 
     NAME
-        HUJI_magic.py
+        huji_magic_new.py
  
     DESCRIPTION
-        converts HUJI format files to magic_measurements format files
+        converts HUJI new format files to magic_measurements format files
 
     SYNTAX
-        HUJI_magic.py [command line options]
+        huji_magic.py [command line options]
 
     OPTIONS
         -h: prints the help message and quits.
@@ -39,7 +39,7 @@ def main(command_line=True, **kwargs):
               NB: use PHI, THETA = -1 -1 to signal that it changes, i.e. in anisotropy experiment
         # to do! -ac B : peak AF field (in mT) for ARM acquisition, default is none
         -ncn NCON:  specify naming convention: default is #1 below
-        -A: don't average replicate measurements        
+        
        Sample naming convention:
             [1] XXXXY: where XXXX is an arbitrary length site designation and Y
                 is the single character sample designation.  e.g., TG001a is the
@@ -103,16 +103,15 @@ def main(command_line=True, **kwargs):
              NMEAS: number of measurements in a single position (1,3,200...)
      
     """
-    # initialize default values
+    # initialize some variables
     mag_file = ''
     meas_file="magic_measurements.txt"
     user=""
     specnum = 0
     samp_con = '1'
     labfield = 0
-    er_location_name = ""
+    er_location_name = ''
     codelist = None
-    noave = 0
 
     # get command line args
     if command_line:
@@ -131,6 +130,7 @@ def main(command_line=True, **kwargs):
         if '-f' in args:
             ind=args.index("-f")
             magfile=args[ind+1]
+            print "got magfile:", magfile
         if "-dc" in args:
             ind=args.index("-dc")
             labfield=float(args[ind+1])*1e-6
@@ -148,33 +148,32 @@ def main(command_line=True, **kwargs):
         if "-ncn" in args:
             ind=args.index("-ncn")
             samp_con=sys.argv[ind+1]
-        # lab process:
         if '-LP' in args:
             ind=args.index("-LP")
             codelist=args[ind+1]
-        if "-A" in args:
-            noave=1
-            
+
+
+
+        # lab process:
+
+    # unpack key-word args if used as module
     if not command_line:
         user = kwargs.get('user', '')
         meas_file = kwargs.get('meas_file', 'magic_measurements.txt')
         magfile = kwargs.get('magfile', '')
-        labfield = int(kwargs.get('labfield', 0))*1e-6
-        phi = kwargs.get('phi', 0)
-        theta = kwargs.get('theta', 0)
+        specnum = int(kwargs.get('specnum', 0))
+        labfield = int(kwargs.get('labfield', 0)) *1e-3
+        phi = int(kwargs.get('phi', 0))
+        theta = int(kwargs.get('theta', 0))
         peakfield = kwargs.get('peakfield', 0)
         if peakfield:
-            peakfield = float(peakfield) *1e-3
-        else:
-            peakfield = 0
-        specnum = int(kwargs.get('specnum', 0))
+            peakfield = float(peakfield)*1e-3
         er_location_name = kwargs.get('er_location_name', '')
-        samp_con = kwargs.get('samp_con')
-        codelist = kwargs.get('codelist')
-        CR_cooling_times = kwargs.get('CR_cooling_times', None)
-        noave = kwargs.get('noave', 0)
+        samp_con = kwargs.get('samp_con', '1')
+        codelist = kwargs.get('codelist', '')
+        CR_cooling_times=kwargs.get('CR_cooling_times', None)
 
-    # format and validate variables:
+    # format and validate variables
     if magfile:
         try:
             input=open(magfile,'rU')
@@ -185,10 +184,9 @@ def main(command_line=True, **kwargs):
         print "mag_file field is required option"
         print main.__doc__
         return False, "mag_file field is required option"
-
+                              
     if specnum!=0:
         specnum=-specnum
-
     if "4" in samp_con:
         if "-" not in samp_con:
             print "option [4] must be in form 4-Z where Z is an integer"
@@ -214,11 +212,11 @@ def main(command_line=True, **kwargs):
         LPcode="LP-DIR-AF"
     if "T" in codes:
         demag="T"
-        if not labfield: LPcode="LP-DIR-T" # changed from if '-dc' in args
+        if not labfield: LPcode="LP-DIR-T"
         if labfield: LPcode="LP-PI-TRM"
         if "ANI" in codes:
             if not labfield:
-                print "missing labfield option"
+                print "missing lab field option"
                 return False, "missing lab field option"
             LPcode="LP-AN-TRM"
 
@@ -226,26 +224,21 @@ def main(command_line=True, **kwargs):
         demag="T"
         LPcode="LP-TRM"
         #trm=1
-
+                              
     if "CR" in codes:
         demag="T"
         # dc should be in the code
         if not labfield:
             print "missing lab field option"
-            return False, "missing labfield option"
+            return False, "missing lab field option"
 
         LPcode="LP-TRM-CR" # TRM in different cooling rates
         if command_line:
             ind=args.index("-LP")
             CR_cooling_times=args[ind+2].split(",")
 
+
         #print CR_cooling_time ,"CR_cooling_time"
-
-
-
-    ###
-                
-
 
     version_num=pmag.get_version()
 
@@ -278,22 +271,24 @@ def main(command_line=True, **kwargs):
         hour=rec[3].split(":")
         treatment_type=rec[4]
         treatment=rec[5].split(".")
-        dec=rec[6]
-        inc=rec[7]
-        dec_tilted=rec[8]
-        inc_tilted=rec[9]
-        moment_emu=float(rec[10])
+        dec_core=rec[6]
+        inc_core=rec[7]
+        dec_geo=rec[8]
+        inc_geo=rec[9]
+        dec_tilted=rec[10]
+        inc_tilted=rec[11]
+        moment_emu=float(rec[12])
 
         if specimen not in Data.keys():
             Data[specimen]=[]
             
         # check duplicate treatments:
         # if yes, delete the first and use the second
-        if noave==1:
-            if len(Data[specimen])>0:
-                if treatment==Data[specimen][-1]['treatment']:
-                    del(Data[specimen][-1])
-                    print "-W- Identical treatments in file %s magfile line %i: specimen %s, treatment %s deleting the first. " %(magfile, line_no, specimen,".".join(treatment))
+
+        if len(Data[specimen])>0:
+            if treatment==Data[specimen][-1]['treatment']:
+                del(Data[specimen][-1])
+                print "-W- Identical treatments in file %s magfile line %i: specimen %s, treatment %s ignoring the first. " %(magfile, line_no, specimen,".".join(treatment))
 
         this_line_data={}
         this_line_data['specimen']=specimen
@@ -301,8 +296,10 @@ def main(command_line=True, **kwargs):
         this_line_data['hour']=hour
         this_line_data['treatment_type']=treatment_type
         this_line_data['treatment']=treatment
-        this_line_data['dec']=dec
-        this_line_data['inc']=inc
+        this_line_data['dec_core']=dec_core
+        this_line_data['inc_core']=inc_core
+        this_line_data['dec_geo']=dec_geo
+        this_line_data['inc_geo']=inc_geo
         this_line_data['dec_tilted']=dec_tilted
         this_line_data['inc_tilted']=inc_tilted
         this_line_data['moment_emu']=moment_emu                                     
@@ -322,7 +319,6 @@ def main(command_line=True, **kwargs):
     MagRecs=[]
     for specimen in  specimens_list:
         for i in range(len(Data[specimen])):
-            #print LPcode
             this_line_data=Data[specimen][i]
             methcode=""
             MagRec={}
@@ -356,8 +352,8 @@ def main(command_line=True, **kwargs):
                 
             MagRec["measurement_temp"]='%8.3e' % (273) # room temp in kelvin
             MagRec["measurement_magn_moment"]='%10.3e'% (float(this_line_data['moment_emu'])*1e-3) # moment in Am^2 (from emu)
-            MagRec["measurement_dec"]=this_line_data['dec']
-            MagRec["measurement_inc"]=this_line_data['inc']
+            MagRec["measurement_dec"]=this_line_data['dec_core']
+            MagRec["measurement_inc"]=this_line_data['inc_core']
             date=this_line_data['date']
             hour=this_line_data['hour']    
 
@@ -370,7 +366,6 @@ def main(command_line=True, **kwargs):
             if len (date[1])==1:
                 date[1]="0"+date[1]
             MagRec["measurement_date"]=":".join([yyyy,date[0],date[1],hour[0],hour[1],"00.00"])
-            #print MagRec["measurement_date"],"   Ron check please"
             MagRec["measurement_time_zone"]='JER'
             MagRec['er_analyst_mail_names'] =user         
             MagRec["er_citation_names"]="This study"
@@ -380,7 +375,8 @@ def main(command_line=True, **kwargs):
             MagRec["measurement_positions"]="1"
             MagRec["measurement_standard"]="u"
             MagRec["measurement_description"]=""
-            MagRec["treatment_temp"]='%8.3e' % (float(treatment[0])+273.) # temp in kelvin
+            #MagRec["treatment_temp"]='%8.3e' % (float(treatment[0])+273.) # temp in kelvin
+            
             #----------------------------------------            
             # AF demag
             # do not support AARM yet
@@ -411,7 +407,6 @@ def main(command_line=True, **kwargs):
                 MagRec["measurement_description"]=""
 
                 MagRecs.append(MagRec)
-                #continue
                                 
             #----------------------------------------
             # Thermal:  
@@ -607,7 +602,6 @@ def main(command_line=True, **kwargs):
                 #----------------------------------------
                 
                 if  LPcode =="LP-TRM-CR":
-                    print 'treatment', treatment
                     index=int(treatment[1][0])
                     #print index,"index"
                     #print CR_cooling_times,"CR_cooling_times"
@@ -635,6 +629,6 @@ def main(command_line=True, **kwargs):
 
 def do_help():
     return main.__doc__
-                    
+
 if __name__ == "__main__":
     main()

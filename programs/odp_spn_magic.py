@@ -5,13 +5,13 @@ import pmagpy.pmag as pmag
 def main():
     """
     NAME
-        ODP_spn_magic.py
+        odp_spn_magic.py
  
     DESCRIPTION
         converts ODP's Molspin's .spn format files to magic_measurements format files
 
     SYNTAX
-        ODP_spn_magic.py [command line options]
+        odp_spn_magic.py [command line options]
 
     OPTIONS
         -h: prints the help message and quits.

@@ -5,13 +5,13 @@ import pmagpy.pmag as pmag
 def main():
     """
     NAME
-        MsT_magic.py
+        mst_magic.py
  
     DESCRIPTION
         converts MsT data (T,M) to magic_measurements format files
 
     SYNTAX
-        MsT_magic.py [command line options]
+        mst_magic.py [command line options]
 
     OPTIONS
         -h: prints the help message and quits.

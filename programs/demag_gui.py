@@ -38,8 +38,8 @@
 # definitions
 #--------------------------------------
 
-import matplotlib
-matplotlib.use('WXAgg')
+#import matplotlib
+#matplotlib.use('WXAgg')
 
 import os,sys,pdb
 global CURRENT_VERSION, PMAGPY_DIRECTORY
@@ -82,7 +82,7 @@ import pmagpy.ipmag as ipmag
 import dialogs.demag_dialogs as demag_dialogs
 from matplotlib.backends.backend_wx import NavigationToolbar2Wx
 from copy import deepcopy,copy
-import programs.CIT_magic as CIT_magic
+import programs.cit_magic as cit_magic
 
 
 matplotlib.rc('xtick', labelsize=10)
@@ -3864,7 +3864,7 @@ class Zeq_GUI(wx.Frame):
                 CIT_kwargs["magfile"] = update_dict["sam_path"].split("/")[-1]
                 CIT_kwargs["input_dir_path"] = reduce(lambda x,y: x+"/"+y, update_dict["sam_path"].split("/")[:-1])
 
-                program_ran, error_message = CIT_magic.main(command_line=False, **CIT_kwargs)
+                program_ran, error_message = cit_magic.main(command_line=False, **CIT_kwargs)
 
                 if program_ran:
                     update_lines[-1] = time()

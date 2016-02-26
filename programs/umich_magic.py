@@ -5,13 +5,13 @@ import pmagpy.pmag as pmag
 def main():
     """
     NAME
-        UMICH_magic.py
+        umich_magic.py
  
     DESCRIPTION
         converts UMICH .mag format files to magic_measurements format files
 
     SYNTAX
-        UMICH_magic.py [command line options]
+        umich_magic.py [command line options]
 
     OPTIONS
         -h: prints the help message and quits.

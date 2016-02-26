@@ -9,13 +9,13 @@ import pmagpy.pmag as pmag
 def main(command_line=True, **kwargs):
     """
     NAME
-        BGC_magic.py
+        bgc_magic.py
 
     DESCRIPTION
         converts Berkeley Geochronology Center (BGC) format files to magic_measurements format files
 
     SYNTAX
-        BGC_magic.py [command line options]
+        bgc_magic.py [command line options]
 
     OPTIONS
         -h: prints the help message and quits.
@@ -132,7 +132,7 @@ def main(command_line=True, **kwargs):
     # parse data
 
     # Open up the BGC file and read the header information
-    print 'mag_file in BGC_magic', mag_file
+    print 'mag_file in bgc_magic', mag_file
     pre_data = open(mag_file, 'rU')
     line = pre_data.readline()
     line_items = line.split(' ')

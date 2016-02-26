@@ -5,13 +5,13 @@ import pmagpy.pmag as pmag
 def main(command_line=True, **kwargs):
     """
     NAME
-        LDEO_magic.py
+        ldeo_magic.py
  
     DESCRIPTION
         converts LDEO  format files to magic_measurements format files
 
     SYNTAX
-        LDEO_magic.py [command line options]
+        ldeo_magic.py [command line options]
 
     OPTIONS
         -h: prints the help message and quits.

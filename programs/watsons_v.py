@@ -9,7 +9,7 @@ import pmagpy.pmag as pmag
 def main():
     """
     NAME
-       watsonsV.py
+       watsons_v.py
 
     DESCRIPTION
        calculates Watson's V statistic from input files
@@ -18,7 +18,7 @@ def main():
        takes dec/inc as first two columns in two space delimited files
    
     SYNTAX
-       watsonsV.py [command line options]
+       watsons_v.py [command line options]
 
     OPTIONS
         -h prints help message and quits

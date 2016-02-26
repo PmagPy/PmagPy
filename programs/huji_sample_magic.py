@@ -6,13 +6,13 @@ import pmagpy.pmag as pmag
 def main():
     """
     NAME
-        HUJI_sample_magic.py
+        huji_sample_magic.py
    
     DESCRIPTION
         takes tab delimited Hebrew University sample file and converts to MagIC formatted tables
  
     SYNTAX
-        HUJI_sample_magic.py [command line options]
+        huji_sample_magic.py [command line options]
 
     OPTIONS
         -f FILE: specify input file

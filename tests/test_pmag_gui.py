@@ -281,7 +281,7 @@ class TestCoreDepthplot(unittest.TestCase):
         self.app = wx.App()
         self.frame = pmag_gui.MagMainFrame(core_depthplot_WD)
         self.pnl = self.frame.GetChildren()[0]
-        self.core_window = pmag_menu_dialogs.Core_depthplot(self.frame, self.frame.WD)
+        self.core_window = pmag_menu_dialogs.core_depthplot(self.frame, self.frame.WD)
 
 
     def tearDown(self):

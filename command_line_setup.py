@@ -6,7 +6,7 @@ from codecs import open
 from os import path
 
 
-version_num = '0.3.6'
+version_num = '0.3.7'
 here = path.abspath(path.dirname(__file__))
 
 # Get the long description from the README file
@@ -20,7 +20,7 @@ from programs_list import programs_list
 print 'programs_list', programs_list
 
 setup(
-        name='command_line_pmagpy',
+        name='pmagpy-cli',
 
         # Versions should comply with PEP440.  For a discussion on single-sourcing
         # the version across setup.py and the project code, see

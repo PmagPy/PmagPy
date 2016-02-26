@@ -1,6 +1,6 @@
 # programs that require a non-TKAgg backend
 
-prog_env = {'Core_depthplot': 'WXAgg',
+prog_env = {'core_depthplot': 'WXAgg',
             'ani_depthplot': 'WXAgg',
             'demag_gui': 'WXAgg',
             'magic_gui': 'WXAgg',

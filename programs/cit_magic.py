@@ -6,13 +6,13 @@ import pmagpy.pmag as pmag
 def main(command_line=True, **kwargs):
     """
     NAME
-        CIT_magic.py
+        cit_magic.py
 
     DESCRIPTION
         converts CIT and .sam  format files to magic_measurements format files
 
     SYNTAX
-        CIT_magic.py [command line options]
+        cit_magic.py [command line options]
 
     OPTIONS
         -h: prints the help message and quits.

@@ -4,13 +4,13 @@ import sys
 def main():
     """
     NAME
-        DIR_redo.py
+        dir_redo.py
 
     DESCRIPTION
         converts the Cogne DIR format to PmagPy redo file
 
     SYNTAX 
-        DIR_redo.py [-h] [command line options]
+        dir_redo.py [-h] [command line options]
 
     OPTIONS
         -h: prints help message and quits

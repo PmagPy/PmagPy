@@ -6,13 +6,13 @@ import pmagpy.pmag as pmag
 def main():
     """
     NAME
-        ODP_dcs_magic.py
+        odp_dcs_magic.py
  
     DESCRIPTION
         converts ODP discrete sample format files to magic_measurements format files
 
     SYNTAX
-        ODP_dsc_magic.py [command line options]
+        odp_dsc_magic.py [command line options]
 
     OPTIONS
         -h: prints the help message and quits.

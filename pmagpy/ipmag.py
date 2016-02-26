@@ -3662,9 +3662,9 @@ def azdip_magic(orient_file='orient.txt', samp_file="er_samples.txt", samp_con="
     return True, None
 
 
-def IODP_samples_magic(samp_file, output_samp_file=None, output_dir_path='.', input_dir_path='.'):
+def iodp_samples_magic(samp_file, output_samp_file=None, output_dir_path='.', input_dir_path='.'):
     """
-    IODP_samples_magic(samp_file, output_samp_file=None, output_dir_path='.', input_dir_path='.')
+    iodp_samples_magic(samp_file, output_samp_file=None, output_dir_path='.', input_dir_path='.')
     Default is to overwrite er_samples.txt in your output working directory.
     To specify an er_samples file to append to, use output_samp_file.
     """

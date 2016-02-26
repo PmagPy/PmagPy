@@ -14,13 +14,13 @@ from scipy import *
 
 """
 NAME
-    TDT_magic.py.py
+    tdt_magic.py.py
 
 DESCRIPTION
     converts TDT formatted files to magic_measurements format files
     
 SYNTAX
-    TDT_magic.py -WD <PATH> 
+    tdt_magic.py -WD <PATH> 
 
 INPUT:
     TDT formatted files with suffix .tdt 

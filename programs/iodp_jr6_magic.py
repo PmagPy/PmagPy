@@ -7,13 +7,13 @@ import pmagpy.pmag as pmag
 def main(command_line=True, **kwargs):
     """
     NAME
-        IODP_jr6_magic.py
+        iodp_jr6_magic.py
  
     DESCRIPTION
         converts shipboard .jr6 format files to magic_measurements format files
 
     SYNTAX
-        IODP_jr6_magic.py [command line options]
+        iodp_jr6_magic.py [command line options]
 
     OPTIONS
         -h: prints the help message and quits.
@@ -119,7 +119,7 @@ def main(command_line=True, **kwargs):
                 ErSamps,file_type=pmag.magic_read(samp_file)
             except:
                 print samp_file,' not found: '
-                print '   download csv file and import to MagIC with IODP_samples_magic.py'
+                print '   download csv file and import to MagIC with iodp_samples_magic.py'
         if '-f' in args:
             ind = args.index("-f")
             mag_file= args[ind+1]

@@ -138,8 +138,8 @@ CURRENT_VRSION = "v.2.29"
 MICROWAVE=False
 THERMAL=True
 
-from pmag_env import set_env
-set_env.set_backend(wx=True)
+#from pmag_env import set_env
+#set_env.set_backend(wx=True)
 import matplotlib
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigCanvas 
 

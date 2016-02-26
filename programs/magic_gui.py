@@ -5,8 +5,8 @@ doc string
 
 # pylint: disable=C0103,E402
 print '-I- Importing MagIC GUI dependencies'
-from pmag_env import set_env
-set_env.set_backend(wx=True)
+#from pmag_env import set_env
+#set_env.set_backend(wx=True)
 #import matplotlib
 #matplotlib.use('WXAgg')
 import wx
