@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 import sys
 import numpy
+from pmag_env import set_env
+set_env.set_backend(wx=False)
 import pmagpy.pmagplotlib as pmagplotlib
 
 def main():
@@ -19,13 +21,15 @@ def main():
         -f FILE
         -t TITLE
         -fmt [svg,eps,png,pdf,jpg..] specify format of output figure, default is svg
+        -sav saves plot and quits
         
     """
-    fmt='svg'
+    fmt,plot='svg',0
     title=""
     if '-h' in sys.argv:
         print main.__doc__
         sys.exit()
+    if '-sav' in sys.argv:plot=1
     if '-f' in sys.argv:
        ind=sys.argv.index('-f')
        file=sys.argv[ind+1] 
@@ -45,11 +49,13 @@ def main():
     CDF={'X':1}
     pmagplotlib.plot_init(CDF['X'],5,5)
     pmagplotlib.plotCDF(CDF['X'],X,title,'r','')
-    pmagplotlib.drawFIGS(CDF)
-    ans= raw_input('S[a]ve  plot, <Return> to quit ')
-    if ans=='a':
-        files={'X':'CDF_.'+fmt}
+    files={'X':'CDF_.'+fmt}
+    if plot==0:
+        pmagplotlib.drawFIGS(CDF)
+        ans= raw_input('S[a]ve  plot, <Return> to quit ')
+        if ans=='a':
+            pmagplotlib.saveP(CDF,files)
+    else:
         pmagplotlib.saveP(CDF,files)
-
 if __name__ == "__main__":
     main()

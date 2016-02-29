@@ -7,8 +7,7 @@ import httplib
 import pandas as pd
 import pmag
 import check_updates
-
-
+from pmagpy.controlled_vocabularies import vocab
 
 def get_data_offline():
     try:
@@ -322,7 +321,9 @@ def validate_for_numericality(key, value, complete_ref):
 
 
 def validate_for_controlled_vocab(key, value, complete_ref):
-    import controlled_vocabularies as vocab
+
+    if not any(vocab.vocabularies):
+        vocab.get_stuff()
     #
     cv = False
     stripped_key = ''

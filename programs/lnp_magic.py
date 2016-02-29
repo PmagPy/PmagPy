@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 import sys
+from pmag_env import set_env
+set_env.set_backend(wx=False)
+import pmagpy.pmagplotlib as pmagplotlib
 import pmagpy.pmag as pmag
-
 def main():
     """
     NAME
@@ -28,6 +30,7 @@ def main():
         -crd [s,g,t]: specify coordinate system, [s]pecimen, [g]eographic, [t]ilt adjusted
                 default is specimen
         -fmt [svg,png,jpg] format for plots, default is svg
+        -sav save plots and quit
         -P: do not plot
         -F FILE, specify output file of dec, inc, alpha95 data for plotting with plotdi_a and plotdi_e
         -exc use criteria in pmag_criteria.txt
@@ -37,7 +40,7 @@ def main():
     FIG['eqarea']=1 # eqarea is figure 1
     in_file,plot_key,coord='pmag_specimens.txt','er_site_name',"-1"
     out_file=""
-    fmt,plot='svg',1
+    fmt,plt,plot='svg',1,0
     Crits=""
     M,N,acutoff,kcutoff=180.,1,180.,0.
     if '-h' in sys.argv:
@@ -69,7 +72,8 @@ def main():
     if '-fmt' in sys.argv:
         ind=sys.argv.index("-fmt")
         fmt=sys.argv[ind+1]
-    if '-P' in sys.argv:plot=0
+    if '-P' in sys.argv:plt=0
+    if '-sav' in sys.argv:plot=1
 # 
     in_file=dir_path+'/'+in_file
     Specs,file_type=pmag.magic_read(in_file)
@@ -80,8 +84,7 @@ def main():
     for rec in Specs:
         if rec['er_site_name'] not in sitelist: sitelist.append(rec['er_site_name'])
     sitelist.sort()
-    if plot==1:
-        import pmagplotlib
+    if plt==1:
         EQ={} 
         EQ['eqarea']=1
         pmagplotlib.plot_init(EQ['eqarea'],4,4)
@@ -111,15 +114,18 @@ def main():
                 if float(fpars["alpha95"])<=acutoff and float(fpars["K"])>=kcutoff:
                     out.write('%s %s %s\n'%(fpars["dec"],fpars['inc'],fpars['alpha95']))
             print '% tilt correction: ',coord
-            if plot==1:
+            if plt==1:
+                files={}
+                files['eqarea']=site+'_'+crd+'_'+'eqarea'+'.'+fmt
                 pmagplotlib.plotLNP(EQ['eqarea'],site,data,fpars,'specimen_direction_type')
-                pmagplotlib.drawFIGS(EQ)
-                ans=raw_input("s[a]ve plot, [q]uit, <return> to continue:\n ")
-                if ans=="a":
-                    files={}
-                    files['eqarea']=site+'_'+crd+'_'+'eqarea'+'.'+fmt
+                if plot==0:
+                    pmagplotlib.drawFIGS(EQ)
+                    ans=raw_input("s[a]ve plot, [q]uit, <return> to continue:\n ")
+                    if ans=="a":
+                        pmagplotlib.saveP(EQ,files)
+                    if ans=="q": sys.exit()
+                else:
                     pmagplotlib.saveP(EQ,files)
-                if ans=="q": sys.exit()
         else:
             print 'skipping site - not enough data with specified coordinate system'
 

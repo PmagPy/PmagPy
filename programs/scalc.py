@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import sys
 import random
-import set_env
+from pmag_env import set_env
 set_env.set_backend(wx=False)
 import pylab
 import pmagpy.pmag as pmag
@@ -120,6 +120,7 @@ def main():
         for vgp in vVgps:Vgps.append(vgp) # make a new Vgp list
     SBs,Ns=[],[]
     if boot==1:
+      print 'please be patient...   bootstrapping'
       for i in range(nb): # now do bootstrap 
         BVgps=[]
         for k in range(len(Vgps)):

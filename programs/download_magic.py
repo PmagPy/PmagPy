@@ -28,6 +28,9 @@ def main():
     if '-h' in sys.argv:
         print main.__doc__
         sys.exit()
+    if '-WD' in sys.argv:
+        ind=sys.argv.index('-WD')
+        dir_path=sys.argv[ind+1]
     # interactive entry
     if '-i' in sys.argv:
         infile=raw_input("Magic txt file for unpacking? ")

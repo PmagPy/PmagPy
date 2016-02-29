@@ -1,0 +1,8 @@
+tab 	er_samples
+er_citation_names	er_location_name	er_sample_name	er_site_name	magic_method_codes	sample_azimuth	sample_bed_dip	sample_bed_dip_direction	sample_class	sample_declination_correction	sample_dip	sample_height	sample_lithology	sample_type
+This study	‘‘Mamainse	MP18-1	MP18	SO-CMD-NORTH	71.8	42.0	252.8		-7.2	-47.0	0		
+This study	‘‘Mamainse	MP18-2	MP18	SO-CMD-NORTH	82.8	42.0	252.8		-7.2	-34.0	0		
+This study	‘‘Mamainse	MP18-3	MP18	SO-CMD-NORTH	94.8	42.0	252.8		-7.2	-36.0	0		
+This study	‘‘Mamainse	MP18-4	MP18	SO-CMD-NORTH	133.8	42.0	252.8		-7.2	-52.0	0		
+This study	‘‘Mamainse	MP18-5	MP18	SO-CMD-NORTH	113.8	42.0	252.8		-7.2	-49.0	0		
+This study	‘‘Mamainse	MP18-6	MP18	SO-CMD-NORTH	136.8	42.0	252.8		-7.2	-49.0	0		

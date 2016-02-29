@@ -4,8 +4,7 @@ sys.path.insert(0, os.getcwd())
 import numpy
 
 # no longer setting backend here
-import matplotlib
-import set_env
+from pmag_env import set_env
 isServer = set_env.isServer
 verbose = set_env.verbose
 
@@ -2310,8 +2309,6 @@ def plotCOM(CDF,BDI1,BDI2,d):
 
 def addBorders(Figs,titles,border_color,text_color):
 
-    import matplotlib
-
     import datetime
     now = datetime.datetime.now()
 
@@ -2403,8 +2400,10 @@ def plotMAP(fignum,lats,lons,Opts):
             g=Opts['gridspace']
             latmin,lonmin=g*int(Opts['latmin']/g), g*int(Opts['lonmin']/g)
             latmax,lonmax=g*int(Opts['latmax']/g), g*int(Opts['lonmax']/g)
-            circles=numpy.arange(latmin-2.*Opts['padlat'],latmax+2.*Opts['padlat'],Opts['gridspace'])
-            meridians=numpy.arange(lonmin-2.*Opts['padlon'],lonmax+2.*Opts['padlon'],Opts['gridspace'])
+            #circles=numpy.arange(latmin-2.*Opts['padlat'],latmax+2.*Opts['padlat'],Opts['gridspace'])
+            #meridians=numpy.arange(lonmin-2.*Opts['padlon'],lonmax+2.*Opts['padlon'],Opts['gridspace'])
+            circles=numpy.arange(0,360,30)
+            meridians=numpy.arange(-90,90,30)
     if Opts['pltgrid']>=0:
         #m.drawparallels(circles,color='black',labels=plabels)
         #m.drawmeridians(meridians,color='black',labels=mlabels)

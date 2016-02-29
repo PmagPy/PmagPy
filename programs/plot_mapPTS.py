@@ -2,7 +2,7 @@
 # define some variables
 import numpy
 import sys
-import set_env
+from pmag_env import set_env
 set_env.set_backend(wx=False)
 import pmagpy.pmag as pmag
 import pmagpy.pmagplotlib as pmagplotlib
@@ -154,7 +154,6 @@ def main():
             if prn_name==1:names=pmag.get_dictkey(Sites,namekey,'')
             if prn_loc==1:names=pmag.get_dictkey(Sites,lockey,'')
         else:
-            f=open(file,'rU')
             ptdata=numpy.loadtxt(file)
             Lons=ptdata.transpose()[0]
             Lats=ptdata.transpose()[1]
@@ -198,14 +197,16 @@ def main():
     Opts['symsize']=symsize
     pmagplotlib.plotMAP(FIG['map'],Lats,Lons,Opts)
     files={}
+    titles={}
+    titles['map']='PT Map'
     for key in FIG.keys():
         files[key]='Map_PTS'+'.'+fmt
-    if pmagplotlib.isServer or plot:
+    if pmagplotlib.isServer:
         black     = '#000000'
         purple    = '#800080'
-        titles={}
-        titles['eq']='PT Map'
         FIG = pmagplotlib.addBorders(FIG,titles,black,purple)
+        pmagplotlib.saveP(FIG,files)
+    if plot==1:
         pmagplotlib.saveP(FIG,files)
     else:
         pmagplotlib.drawFIGS(FIG)

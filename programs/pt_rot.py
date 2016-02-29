@@ -56,17 +56,17 @@ def main():
         Poles=[]
         for p in edata:
              rec=p.split()
-             pole=[float(rec[0]),float(rec[1]),float(rec[2])]
+             pole=[float(rec[0]),float(rec[1]),float(rec[2])] # pole is lat/lon/omega
              Poles.append(pole)
     else:
         data=sys.stdin.readlines()
     for line in data:
         PtRec={}
         rec=line.split()
-        PtRec['site_lat']=rec[0]
-        PtRec['site_lon']=rec[1]
+        PtRec['site_lon']=rec[0]
+        PtRec['site_lat']=rec[1]
         if '-ff' in sys.argv:
-            pt_lat,pt_lon=float(rec[0]),float(rec[1])
+            pt_lat,pt_lon=float(rec[1]),float(rec[0])
             for pole in Poles:
                 ptrot= pmag.PTrot(pole,[pt_lat],[pt_lon])
                 pt_lat=ptrot[0][0]
@@ -115,8 +115,9 @@ def main():
                     pole=frp.get_pole(pt['dcont'],age)
                     pole[2]=-pole[2] 
                     ptrot= pmag.PTrot(pole,[pt_lat],[pt_lon])
+                    print ptrot
                     if ofile=="":
-                        print ptrot[1][0], ptrot[0][0]
+                        print ptrot[1][0], ptrot[0][0] 
                     else:
                         ResRec={'vgp_lat': '%7.1f'%(ptrot[0][0]),'vgp_lon':'%7.1f'%( ptrot[1][0])}
                         ResRecs.append(ResRec)

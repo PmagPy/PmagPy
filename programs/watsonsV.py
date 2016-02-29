@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import sys
 import numpy
-import set_env
+from pmag_env import set_env
 set_env.set_backend(wx=False)
 import pmagpy.pmagplotlib as pmagplotlib
 import pmagpy.pmag as pmag
@@ -116,6 +116,8 @@ def main():
         print "Watson's V,  Vcrit: " 
         print '   %10.1f %10.1f'%(V,Vp[k])
     if show==1 or plot==1:
+        print "Watson's V,  Vcrit: " 
+        print '   %10.1f %10.1f'%(V,Vp[k])
         CDF={'cdf':1}
         pmagplotlib.plot_init(CDF['cdf'],5,5)
         pmagplotlib.plotCDF(CDF['cdf'],Vp,"Watson's V",'r',"")

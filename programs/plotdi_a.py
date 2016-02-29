@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import sys
-import set_env
+from pmag_env import set_env
 set_env.set_backend(wx=False)
 import pmagpy.pmagplotlib as pmagplotlib
 
@@ -19,20 +19,21 @@ def main():
        plotdi_a.py [-i][-f FILE] 
 
     OPTIONS
-        -i for interactive filename entry
         -f FILE to read file name from command line
+        -fmt [png,jpg,eps,pdf,svg] set plot file format ['svg' is default]
+        -sav save plot and quit
 
     """
-    fmt='svg'
+    fmt,plot='svg',0
     if len(sys.argv) > 0:
         if '-h' in sys.argv: # check if help is needed
             print main.__doc__
             sys.exit() # graceful quit
-        if '-i' in sys.argv: # ask for filename
-            file=raw_input("Enter file name with dec, inc data: ")
-            f=open(file,'rU')
-            data=f.readlines()
-        elif '-f' in sys.argv:
+        if '-fmt' in sys.argv:
+            ind=sys.argv.index('-fmt')
+            fmt=sys.argv[ind+1]
+        if '-sav' in sys.argv:plot=1
+        if '-f' in sys.argv:
             ind=sys.argv.index('-f')
             file=sys.argv[ind+1]
             f=open(file,'rU')
@@ -61,22 +62,24 @@ def main():
     pmagplotlib.plotEQ(EQ['eq'],DIs,title)# plot directions
     for k in range(len(Pars)):
         pmagplotlib.plotELL(EQ['eq'],Pars[k],'b',0,1) # plot ellipses
-    pmagplotlib.drawFIGS(EQ)
     files={}
     for key in EQ.keys():
         files[key]=key+'.'+fmt 
+    titles={}
+    titles['eq']='Equal Area Plot'
     if pmagplotlib.isServer:
         black     = '#000000'
         purple    = '#800080'
-        titles={}
-        titles['eq']='Equal Area Plot'
         EQ = pmagplotlib.addBorders(EQ,titles,black,purple)
         pmagplotlib.saveP(EQ,files)
-    else:
+    elif plot==0:
+        pmagplotlib.drawFIGS(EQ)
         ans=raw_input(" S[a]ve to save plot, [q]uit, Return to continue:  ")
         if ans=="q": sys.exit()
         if ans=="a": 
             pmagplotlib.saveP(EQ,files) 
+    else:
+        pmagplotlib.saveP(EQ,files) 
     #
 
 if __name__ == "__main__":

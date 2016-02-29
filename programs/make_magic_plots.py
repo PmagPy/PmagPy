@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 import sys
 import os
+from pmag_env import set_env
+set_env.set_backend(wx=False)
 import pmagpy.pmag as pmag
 
 def main():
@@ -8,7 +10,7 @@ def main():
     NAME
         make_magic_plots.py
 
-    DESCRIPTION	
+    DESCRIPTION
  	inspects magic directory for available plots.
 
     SYNTAX

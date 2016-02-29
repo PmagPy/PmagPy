@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # data from http://geomagia.ucsd.edu
 
-import set_env
+from pmag_env import set_env
 set_env.set_backend(wx=False)
 import matplotlib
 import sys

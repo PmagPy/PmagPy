@@ -760,8 +760,8 @@ class ImportAgmFile(wx.Frame):
         if loc:
             loc = "-loc " + loc
         ins = self.bSizer5.return_value()
-        if ins:
-            ins = "-ins " + ins
+        #if ins:
+        #    ins = "-ins " + ins
         units = self.bSizer6.return_value()
         if units:
             units = 'cgs'
@@ -876,8 +876,8 @@ class ImportAgmFolder(wx.Frame):
         spc = self.bSizer2.return_value()
         ncn = self.bSizer3.return_value()
         loc = self.bSizer4.return_value()
-        #if loc:
-        #    loc = "-loc " + loc
+        if loc:
+            loc = "-loc " + loc
         ins = self.bSizer5.return_value()
         #if ins:
         #    ins = "-ins " + ins

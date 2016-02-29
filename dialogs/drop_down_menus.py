@@ -4,8 +4,7 @@
 
 import wx
 import pandas as pd
-from pmagpy.controlled_vocabularies import vocabularies as vocab
-import pmagpy.controlled_vocabularies as vocabulary
+from pmagpy.controlled_vocabularies import vocab
 
 
 # this module will provide all the functionality for the drop-down controlled vocabulary menus
@@ -20,6 +19,11 @@ class Menus(object):
         take: data_type (string), ErMagicCheck (top level class object for ErMagic steps 1-6), 
         grid (grid object), belongs_to (list of options for data object to belong to, i.e. locations for the site Menus)
         """
+        # if controlled vocabularies haven't already been grabbed from earthref
+        # do so now
+        if not any(vocab.vocabularies):
+            vocab.get_stuff()
+        
         self.data_type = data_type
         self.check = ErMagicCheck # check is top level class object for entire ErMagic steps 1-6
         self.grid = grid
@@ -47,20 +51,20 @@ class Menus(object):
     def InitUI(self):
         belongs_to = self.belongs_to
         if self.data_type == 'specimen':
-            self.choices = {1: (belongs_to, False), 3: (vocab['class'], False), 4: (vocab['lithology'], True), 5: (vocab['type'], False)}
+            self.choices = {1: (belongs_to, False), 3: (vocab.vocabularies['class'], False), 4: (vocab.vocabularies['lithology'], True), 5: (vocab.vocabularies['type'], False)}
         if self.data_type == 'sample' or self.data_type == 'site':
-            self.choices = {1: (belongs_to, False), 3: (vocab['class'], False), 4: (vocab['lithology'], True), 5: (vocab['type'], False)}
+            self.choices = {1: (belongs_to, False), 3: (vocab.vocabularies['class'], False), 4: (vocab.vocabularies['lithology'], True), 5: (vocab.vocabularies['type'], False)}
         if self.data_type in ['specimen', 'sample', 'site']:
             map(lambda (x, y): self.grid.SetColLabelValue(x, y), [(3, '{}_class**'.format(self.data_type)), (4, '{}_lithology**'.format(self.data_type)), (5, '{}_type**'.format(self.data_type))])
         if self.data_type == 'site':
-            self.choices[6] = (vocab['site_definition'], False)
+            self.choices[6] = (vocab.vocabularies['site_definition'], False)
             self.grid.SetColLabelValue(6, 'site_definition**')
         if self.data_type == 'location':
-            self.choices = {2: (vocab['location_type'], False)}
+            self.choices = {2: (vocab.vocabularies['location_type'], False)}
             self.grid.SetColLabelValue(2, 'location_type**')
         if self.data_type == 'age':
-            #self.choices = {2: (vocabulary.age_methods, False), 3: (vocab['age_unit'], False)}
-            self.choices = {3: (vocab['age_unit'], False)}
+            #self.choices = {2: (vocab.vocabulariesulary.age_methods, False), 3: (vocab['age_unit'], False)}
+            self.choices = {3: (vocab.vocabularies['age_unit'], False)}
             #map(lambda (x, y): self.grid.SetColLabelValue(x, y), [(2, 'magic_method_codes**'), (3, 'age_unit**')])
             map(lambda (x, y): self.grid.SetColLabelValue(x, y), [(3, 'age_unit**')])
             for row in range(self.grid.GetNumberRows()):
@@ -89,7 +93,7 @@ class Menus(object):
         """
         if col_label in ['magic_method_codes', 'magic_method_codes++']:
             self.add_method_drop_down(col_number, col_label)
-        if col_label in vocabulary.possible_vocabularies:
+        if col_label in vocab.possible_vocabularies:
             if col_number not in self.choices.keys(): # if not already assigned above
                 self.grid.SetColLabelValue(col_number, col_label + "**") # mark it as using a controlled vocabulary
                 url = 'https://api.earthref.org/MagIC/vocabularies/{}.json'.format(col_label)
@@ -123,13 +127,13 @@ class Menus(object):
         Add drop-down-menu options for magic_method_codes columns
         """
         if self.data_type == 'age':
-            method_list = vocabulary.age_methods
+            method_list = vocab.age_methods
         elif '++' in col_label:
-            method_list = vocabulary.pmag_methods
+            method_list = vocab.pmag_methods
         elif self.data_type == 'result':
-            method_list = vocabulary.pmag_methods
+            method_list = vocab.pmag_methods
         else:
-            method_list = vocabulary.er_methods
+            method_list = vocab.er_methods
         self.choices[col_number] = (method_list, True)
         
     def on_label_click(self, event):

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import sys
 import numpy
-import set_env
+from pmag_env import set_env
 set_env.set_backend(wx=False)
 import pmagpy.pmag as pmag
 import pmagpy.pmagplotlib as pmagplotlib
@@ -24,6 +24,9 @@ def main():
         -i allows interactive input of file name
         -f FILE specify input file name
         -nb N specify number of bootstraps - the more the better, but slower!, default is 1000
+        -sc uses a "site-level" correction to a Fisherian distribution instead
+            of a "study-level" correction to a TK03-consistent distribution.
+            Note that many directions (~ 100) are needed for this correction to be reliable.
         -fmt [svg,png,eps,pdf..] change plot format, default is svg
         -sav  saves the figures and quits
 
@@ -56,6 +59,10 @@ def main():
     if '-nb' in sys.argv:
         ind=sys.argv.index('-nb')
         nb=int(sys.argv[ind+1])
+    if '-sc' in sys.argv:
+        site_correction = True
+    else:
+        site_correction = False
     if '-fmt' in sys.argv:
         ind=sys.argv.index('-fmt')
         fmt=sys.argv[ind+1]
@@ -74,20 +81,29 @@ def main():
     Io=ppars['inc']
     n=ppars["N"]
     Es,Is,Fs,V2s=pmag.find_f(data)
-    Inc,Elong=Is[-1],Es[-1]
-    pmagplotlib.plotEI(PLTS['ei'],Es,Is,Fs[-1])
-    pmagplotlib.plotV2s(PLTS['v2'],V2s,Is,Fs[-1])
+    if site_correction:
+        Inc,Elong=Is[Es.index(min(Es))],Es[Es.index(min(Es))]
+        flat_f = Fs[Es.index(min(Es))]
+    else:
+        Inc,Elong=Is[-1],Es[-1]
+        flat_f = Fs[-1]
+    pmagplotlib.plotEI(PLTS['ei'],Es,Is,flat_f)
+    pmagplotlib.plotV2s(PLTS['v2'],V2s,Is,flat_f)
     b=0
     print "Bootstrapping.... be patient"
     while b<nb:
         bdata=pmag.pseudo(data)
-        Es,Is,Fs,V2s=pmag.find_f(bdata)
+        Esb,Isb,Fsb,V2sb=pmag.find_f(bdata)
         if b<25:
-            pmagplotlib.plotEI(PLTS['ei'],Es,Is,Fs[-1])
-        if Es[-1]!=0:
+            pmagplotlib.plotEI(PLTS['ei'],Esb,Isb,Fsb[-1])
+        if Esb[-1]!=0:
             ppars=pmag.doprinc(bdata)
-            I.append(abs(Is[-1]))
-            E.append(Es[-1])
+            if site_correction:
+                I.append(abs(Isb[Esb.index(min(Esb))]))
+                E.append(Esb[Esb.index(min(Esb))])
+            else:
+                I.append(abs(Isb[-1]))
+                E.append(Esb[-1])
             b+=1
             if b%25==0:print b,' out of ',nb
     I.sort()

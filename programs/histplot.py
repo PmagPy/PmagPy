@@ -2,7 +2,7 @@
 import sys
 import matplotlib
 import numpy
-import set_env
+from pmag_env import set_env
 set_env.set_backend(wx=False)
 import pylab
 pylab.ion()
@@ -18,10 +18,10 @@ def main():
 
     OPTIONS
        -h prints help message and quits
-       -sav save figure and quit
        -f input file name
        -b binsize
        -fmt [svg,png,pdf,eps,jpg] specify format for image, default is svg
+       -sav save figure and quit
        -F output file name, default is hist.fmt
        -N don't normalize
        -xlab Label of X axis

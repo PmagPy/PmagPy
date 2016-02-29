@@ -1,0 +1,14 @@
+tab 	er_samples
+er_citation_names	er_location_name	er_sample_name	er_site_name	er_specimen_name	magic_method_codes	magic_software_packages	sample_azimuth	sample_bed_dip	sample_bed_dip_direction	sample_dip
+This study	test	tr245f	tr245	tr245f		pmagpy-3.4.0	80.00	25	294.0	-46.0
+This study	test	tr245g	tr245	tr245g		pmagpy-3.4.0	52.00	25	294.0	-23.0
+This study	test	tr245h	tr245	tr245h		pmagpy-3.4.0	123.00	25	294.0	-29.0
+This study	test	tr245i1	tr245i	tr245i1		pmagpy-3.4.0	68.00	25	294.0	-26.0
+This study	test	tr245i2	tr245i	tr245i2		pmagpy-3.4.0	68.00	25	294.0	-26.0
+This study	test	tr245j	tr245	tr245j		pmagpy-3.4.0	86.00	25	294.0	-34.0
+This study	test	tr245k	tr245	tr245k		pmagpy-3.4.0	108.00	25	294.0	-31.0
+This study	test	tr245l	tr245	tr245l		pmagpy-3.4.0	115.00	25	294.0	-25.0
+This study	test	tr245	tr24	tr245f		pmagpy-3.4.0	80.00	25	294.0	-46.0
+This study	test	tr245i	tr245	tr245i1		pmagpy-3.4.0	68.00	25	294.0	-26.0
+This study	test	tr2	tr	tr245f		pmagpy-3.4.0	80.00	25	294.0	-46.0
+This study	test	tr24	tr2	tr245i1		pmagpy-3.4.0	68.00	25	294.0	-26.0
