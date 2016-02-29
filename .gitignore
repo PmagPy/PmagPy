@@ -172,3 +172,5 @@ pmagpy_cli.egg-info/SOURCES.txt
 pmagpy_cli.egg-info/dependency_links.txt
 pmagpy_cli.egg-info/entry_points.txt
 pmagpy_cli.egg-info/top_level.txt
+pmagpy_cli.egg-info/pbr.json
+pmagpy_cli.egg-info/requires.txt

@@ -6,7 +6,7 @@ from codecs import open
 from os import path
 
 
-version_num = '0.4.0'
+version_num = '0.4.5'
 here = path.abspath(path.dirname(__file__))
 
 # Get the long description from the README file
@@ -99,11 +99,21 @@ setup(
     # To provide executable scripts, use entry points in preference to the
     # "scripts" keyword. Entry points provide cross-platform support and allow
     # pip to create the appropriate form of executable for the target platform.
+    #entry_points={
+    #            #'console_scripts': [
+    #            #                'angle=programs.angle:main',
+    #            #                'angle2.py=programs.angle:main',
+    #            #            ],
+    #            'console_scripts': programs_list
+    #        },
     entry_points={
-                #'console_scripts': [
-                #                'angle=programs.angle:main',
-                #                'angle2.py=programs.angle:main',
-                #            ],
-                'console_scripts': programs_list
-            },
+            'console_scripts': programs_list,
+            'gui_scripts': [
+                    'magic_gui.py = programs.magic_gui:main',
+                    'pmag_gui.py = programs.pmag_gui:main',
+                    'demag_gui.py = programs.demag_gui:main',
+                    'thellier_gui.py = programs.thellier_gui:main'
+            ]
+    }
+
 )
