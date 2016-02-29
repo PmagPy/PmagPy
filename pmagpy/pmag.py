@@ -1140,12 +1140,12 @@ def magic_write(ofile,Recs,file_type):
         for key in keylist:
            try:
               outstring=outstring+'\t'+str(Rec[key].strip())
-           except:
+           except KeyError:
               if 'er_specimen_name' in Rec.keys():
                   print Rec['er_specimen_name']
               elif 'er_specimen_names' in Rec.keys():
                   print Rec['er_specimen_names']
-              print key,Rec[key]
+              print("No data for %s"%key)
               #raw_input()
         outstring=outstring+'\n'
         pmag_out.write(outstring[1:])
@@ -1519,7 +1519,7 @@ def domean(indata,start,end,calculation_type):
         mpars["specimen_dang"]=-1
         return mpars
 #
-#	get center of mass for principal components (DE-BFL or DE-BFP)
+#   get center of mass for principal components (DE-BFL or DE-BFP)
 #
     for cart in X:
         for l in range(3):
