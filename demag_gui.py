@@ -1796,7 +1796,7 @@ class Demag_GUI(wx.Frame):
                 elif calculation_type=="DE-BFL-O": PCA_type="line-with-origin"
                 elif calculation_type=="DE-FM": PCA_type="Fisher"
                 elif calculation_type=="DE-BFP": PCA_type="plane"
-                self.mean_type_box.SetValue(PCA_type)
+                self.PCA_type_box.SetValue(PCA_type)
                 self.add_fit(event,plot_new_fit=False)
                 new_fit = self.pmag_results_data['specimens'][specimen][-1]
                 new_fit.put(specimen,self.COORDINATE_SYSTEM,self.get_PCA_parameters(specimen,new_fit,tmin,tmax,self.COORDINATE_SYSTEM,calculation_type))
