@@ -105,8 +105,8 @@ setup(
 
     # You can just specify the packages manually here if your project is
     # simple. Or you can use find_packages().
-    packages=find_packages(exclude=['pmagpy', 'tests', 'tests.examples'
-                                    'SPD']),
+    packages=find_packages(exclude=['pmagpy', 'tests.examples'
+                                    'SPD']), # tests
 
 
     # List run-time dependencies here.  These will be installed by pip when
