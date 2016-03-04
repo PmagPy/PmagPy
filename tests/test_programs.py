@@ -30,6 +30,8 @@ class TestProgramsHelp(unittest.TestCase):
             if not prog.endswith('.py') or '#' in prog:
                 not_checked.append(prog)
                 continue
+            if prog.lower() != prog:
+                continue
             res = env.run(prog, '-h')
             #except AssertionError as ex:
             #    not_checked.append(prog)

@@ -19,7 +19,6 @@ class TestMainFrame(unittest.TestCase):
 
     def setUp(self):
         self.app = wx.App()
-        #WD = os.path.join(os.getcwd(), 'tests', 'examples', 'my_project')
         self.frame = magic_gui.MainFrame(WD, "zebra")
         self.pnl = self.frame.GetChildren()[0]
 
@@ -161,8 +160,8 @@ class TestMainFrameWithData(unittest.TestCase):
 
     def setUp(self):
         self.app = wx.App()
-        #WD = os.path.join(os.getcwd(), 'tests', 'examples', 'my_project')
-        self.frame = magic_gui.MainFrame(os.path.join(WD, 'pmagpy_data_files', 'copy_ErMagicBuilder'))
+        self.frame = magic_gui.MainFrame(os.path.join(WD, 'pmagpy_data_files',
+                                                      'copy_ErMagicBuilder'))
         self.pnl = self.frame.GetChildren()[0]
 
     def tearDown(self):
@@ -356,7 +355,8 @@ class TestMethodCodes(unittest.TestCase):
     def setUp(self):
         self.app = wx.App()
         #self.grid = GridFrame(self.ErMagic, self.WD, grid_type, grid_type, self.panel)
-        self.method_WD = os.path.join(os.getcwd(), 'tests', 'examples', 'methods')
+        self.method_WD = os.path.join(WD, 'pmagpy_data_files',
+                                      'testing', 'methods')
         self.ErMagic = builder.ErMagicBuilder(self.method_WD)
         self.ErMagic.get_all_magic_info()
         self.ErMagic.init_default_headers()
@@ -419,7 +419,8 @@ class TestMethodCodes(unittest.TestCase):
 
 
     def test_without_codes(self):
-        other_WD = os.path.join(os.getcwd(), 'tests', 'examples', 'my_project')
+        other_WD = os.path.join(WD, 'pmagpy_data_files',
+                                'testing', 'my_project')
         self.other_er_magic = builder.ErMagicBuilder(other_WD)
         self.other_er_magic.init_default_headers()
         self.other_er_magic.init_actual_headers()

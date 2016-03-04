@@ -12,7 +12,7 @@ import dialogs.magic_grid as magic_grid
 #import ipmag
 
 WD = sys.prefix
-project_WD = os.path.join(WD, 'pmag_data_files', 'testing', 'my_project')
+project_WD = os.path.join(WD, 'pmagpy_data_files', 'testing', 'my_project')
 
 class TestMagicGrid(unittest.TestCase):
     """

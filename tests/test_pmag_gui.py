@@ -10,15 +10,14 @@ import dialogs.pmag_menu_dialogs as pmag_menu_dialogs
 
 # get WD before all the Pmag GUI stuff starts to happen
 WD = sys.prefix
-project_WD = os.path.join(WD, 'pmag_data_files', 'testing', 'my_project')
-core_depthplot_WD = os.path.join(WD, 'pmag_data_files',
+project_WD = os.path.join(WD, 'pmagpy_data_files', 'testing', 'my_project')
+core_depthplot_WD = os.path.join(WD, 'pmagpy_data_files',
                                  'testing', 'core_depthplot')
 
 class TestMainFrame(unittest.TestCase):
 
     def setUp(self):
         self.app = wx.App()
-        #WD = os.path.join(os.getcwd(), 'tests', 'examples', 'my_project')
         self.frame = pmag_gui.MagMainFrame(project_WD)
         self.pnl = self.frame.GetChildren()[0]
         #wx.lib.inspection.InspectionTool().Show()
@@ -40,6 +39,7 @@ class TestMainFrame(unittest.TestCase):
         """
         make sure import window is created when user clicks btn 1
         """
+        print 'about to do test_click_button_one'
         window = self.does_window_exist('step 1', 'import_magnetometer_data')
         self.assertTrue(window)
         self.assertTrue(window.IsEnabled())
@@ -126,6 +126,7 @@ class TestMainFrame(unittest.TestCase):
         """
         produces a click event on the button called btn_name, see if it produces the window called window_name
         """
+        print 'calling does_window_exist'
         btn, window = None, None
         pnl_children = self.pnl.GetChildren()
         for child in pnl_children:
@@ -152,7 +153,6 @@ class TestMenus(unittest.TestCase):
 
     def setUp(self):
         self.app = wx.App()
-        #WD = os.path.join(os.getcwd(), 'tests', 'examples', 'my_project')
         self.frame = pmag_gui.MagMainFrame(project_WD)
         self.pnl = self.frame.GetChildren()[0]
 
@@ -275,7 +275,7 @@ class TestMenus(unittest.TestCase):
         self.assertTrue(window.IsEnabled())
         self.assertTrue(window.IsShown())
         return window
-
+"""
 @unittest.skip("just do it")
 class TestCoreDepthplot(unittest.TestCase):
 
@@ -331,9 +331,7 @@ class TestCoreDepthplot(unittest.TestCase):
         #print self.core_window.bSizer14 # labeled_Text_field (step)
 
     def test_run_core_depthplot_with_correct_info(self):
-        """
-        make sure a PlotFrame instance is created by running core_depthplot
-        """
+        "make sure a PlotFrame instance is created by running core_depthplot"
         radio_buttons = self.core_window.bSizer13.radio_buttons
         for rb in radio_buttons:
             if rb.Label == 'AF':
@@ -341,6 +339,6 @@ class TestCoreDepthplot(unittest.TestCase):
         self.core_window.bSizer14.text_field.SetValue('15')
         plot_frame = self.core_window.on_okButton(None)
         self.assertIsInstance(plot_frame, pmag_menu_dialogs.PlotFrame)
-
+"""
 if __name__ == '__main__':
     unittest.main()

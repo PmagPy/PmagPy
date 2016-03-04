@@ -19,23 +19,25 @@ class TestIGRF(unittest.TestCase):
 
     def test_igrf_output(self):
         result = ipmag.igrf([1999.1, 30, 20, 50])
-        reference = [  1.20288657e+00,   2.82331112e+01,   3.9782338913649881e+04]
+        reference = [1.20288657e+00, 2.82331112e+01, 3.9782338913649881e+04]
         for num, item in enumerate(result):
             self.assertAlmostEqual(item, reference[num])
 
 class TestUploadMagic(unittest.TestCase):
 
     def setUp(self):
-        self.dir_path = os.path.join(os.getcwd(), 'testing')
+        self.dir_path = os.path.join(WD, 'pmagpy_data_files', 'testing')
 
     def test_empty_dir(self):
-        outfile, error_message, errors = ipmag.upload_magic(dir_path=os.path.join(self.dir_path, 'empty_dir'))
+        directory = os.path.join(self.dir_path, 'empty_dir')
+        outfile, error_message, errors = ipmag.upload_magic(dir_path=directory)
         self.assertFalse(errors)
         self.assertFalse(outfile)
         self.assertEqual(error_message, "no data found, upload file not created")
 
     def test_with_invalid_files(self):
-        outfile, error_message, errors = ipmag.upload_magic(dir_path=os.path.join(self.dir_path, 'my_project_with_errors'))
+        directory = os.path.join(self.dir_path, 'my_project_with_errors')
+        outfile, error_message, errors = ipmag.upload_magic(dir_path=directory)
         self.assertTrue(errors)
         self.assertFalse(outfile)
         self.assertEqual(error_message, "file validation has failed.  You may run into problems if you try to upload this file.")
@@ -82,7 +84,8 @@ class Test_iodp_samples_magic(unittest.TestCase):
 
 
     def test_with_right_format(self):
-        reference_file = os.path.join(WD, 'testing', 'ODP_magic_er_samples.txt')
+        reference_file = os.path.join(WD, 'testing', 'odp_magic',
+                                      'odp_magic_er_samples.txt')
         infile = os.path.join(self.input_dir, 'samples_318_U1359_B.csv')
         program_ran, outfile = ipmag.iodp_samples_magic(infile)
         self.assertTrue(program_ran)
@@ -92,7 +95,8 @@ class Test_iodp_samples_magic(unittest.TestCase):
 
 
     def test_content_with_right_format(self):
-        reference_file = os.path.join(WD, 'testing', 'ODP_magic_er_samples.txt')
+        reference_file = os.path.join(WD, 'pmagpy_data_files', 'testing',
+                                      'odp_magic', 'odp_magic_er_samples.txt')
         infile = os.path.join(self.input_dir, 'samples_318_U1359_B.csv')
         program_ran, outfile = ipmag.iodp_samples_magic(infile)
         self.assertEqual(open(reference_file).readlines(), open(outfile).readlines())
@@ -266,21 +270,6 @@ class TestSUFAR_asc_magic(unittest.TestCase):
         self.assertTrue(program_ran)
         self.assertEqual(outfile, os.path.join('.', 'my_magic_measurements.txt'))
 
-    def test_files(self):
-        print "os.getcwd()", os.getcwd()
-        print "os.listdir(os.getcwd())", os.listdir(os.getcwd())
-        print "os.path.exists(os.path.join('.', 'data_files'))", os.path.exists(os.path.join('.', 'data_files'))
-        print "os.path.exists(os.path.join('.', 'pmagpy_data_files'))", os.path.exists(os.path.join('.', 'pmagpy_data_files'))
-        print "os.path.exists('../../../pmagpy_data_files')", os.path.exists('../../../pmagpy_data_files')
-        print "os.path.exists('../../../data_files')", os.path.exists('../../../data_files')
-        print "os.path.exists(WD)", WD, os.path.exists(WD)
-        print "__name__", __name__
-        print "pkg_resources.resource_string(__name__, 'pmagpy_data_files')", pkg_resources.resource_string(__name__, "pmagpy_data_files")
-        #new_WD = pkg_resources.resource_string(__name__, "foo.dat")
-        #print 'pkg_resources.resource_string(__name__, "foo.dat")', pkg_resources.resource_string(__name__, "foo.dat")
-
-
-
 class TestAgmMagic(unittest.TestCase):
     def setUp(self):
         os.chdir(WD)
@@ -299,8 +288,11 @@ class TestAgmMagic(unittest.TestCase):
         self.assertEqual(error_message, 'You must provide a valid agm file')
 
     def test_agm_success(self):
-        input_dir = os.path.join(WD, 'pmagpy_data_files', 'Measurement_Import', 'agm_magic')
-        program_ran, filename = ipmag.agm_magic('agm_magic_example.agm', outfile='agm_magic_example.magic', input_dir_path=input_dir)
+        input_dir = os.path.join(WD, 'pmagpy_data_files',
+                                 'Measurement_Import', 'agm_magic')
+        program_ran, filename = ipmag.agm_magic('agm_magic_example.agm',
+                                                outfile='agm_magic_example.magic',
+                                                input_dir_path=input_dir)
         self.assertTrue(program_ran)
         self.assertEqual(filename, os.path.join('.', 'agm_magic_example.magic'))
 

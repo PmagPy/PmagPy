@@ -15,7 +15,7 @@ import dialogs.thellier_interpreter as thellier_interpreter
 
 # get WD before all the Pmag GUI stuff starts to happen
 WD = sys.prefix
-project_WD = os.path.join(WD, 'pmag_data_files', 'testing', 'my_project')
+project_WD = os.path.join(WD, 'pmagpy_data_files', 'testing', 'my_project')
 
 
 class TestMainFrame(unittest.TestCase):
