@@ -12,7 +12,7 @@ import pmagpy.builder as builder
 import dialogs.grid_frame as grid_frame
 import dialogs.pmag_widgets as pmag_widgets
 
-WD = os.getcwd()
+WD = sys.prefix
 
 #@unittest.skip('seg fault')
 class TestMainFrame(unittest.TestCase):
@@ -162,7 +162,7 @@ class TestMainFrameWithData(unittest.TestCase):
     def setUp(self):
         self.app = wx.App()
         #WD = os.path.join(os.getcwd(), 'tests', 'examples', 'my_project')
-        self.frame = magic_gui.MainFrame(os.path.join(WD, 'data_files', 'copy_ErMagicBuilder'))
+        self.frame = magic_gui.MainFrame(os.path.join(WD, 'pmagpy_data_files', 'copy_ErMagicBuilder'))
         self.pnl = self.frame.GetChildren()[0]
 
     def tearDown(self):

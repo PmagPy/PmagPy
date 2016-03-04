@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 
 import unittest
-import os
 import pmagpy.pmag as pmag
-WD = os.getcwd()
+#import os
+#import sys
+#WD = sys.prefix
 
 class TestLonAdjust(unittest.TestCase):
 

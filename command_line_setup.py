@@ -9,7 +9,7 @@ from os import path
 from programs_list import programs_list
 print 'programs_list', programs_list
 
-version_num = '0.5.2'
+version_num = '0.5.16'
 here = path.abspath(path.dirname(__file__))
 
 # Get the long description from the README file
@@ -46,6 +46,7 @@ def do_walk(data_path):
 
 def parse_dict(dictionary):
     formatted = []
+    formatted_dict = {}
     for key in dictionary.keys():
         files = dictionary.pop(key)
         formatted_files = [path.join(key, f) for f in files]
@@ -53,11 +54,12 @@ def parse_dict(dictionary):
         new_key = key[ind:]
         new_key = os.path.join('pmagpy_data_files', new_key)
         formatted.append((new_key, formatted_files))
-    return formatted
+        formatted_dict[new_key] = formatted_files
+    return formatted, formatted_dict
 
 # get formatted list of data_files for setup()
 data_files = do_walk(path.join(here, 'data_files'))
-formatted = parse_dict(data_files)
+formatted, formatted_dict = parse_dict(data_files)
 
 
 setup(
@@ -127,9 +129,11 @@ setup(
     # If there are data files included in your packages that need to be
     # installed, specify them here.  If using Python 2.6 or less, then these
     # have to be included in MANIFEST.in as well.
+    #include_package_data=True,
     #package_data={
     #            'flamingo_data_files': glob.glob('data_files/*/*.*'),
     #        },
+    #package_data=formatted_dict,
 
     # Although 'package_data' is the preferred approach, in some case you may
     # need to place data files outside of your packages. See:

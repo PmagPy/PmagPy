@@ -1,0 +1,5 @@
+tab	er_sites
+er_site_name	er_location_name	er_citation_names	magic_method_codes	site_class	site_definition	site_lat	site_lithology	site_lon	site_type
+site1	location	This study	er_methods	Archeologic	s	15	Ankerite-Pseudosparstone	16	Baked Clay
+site1	location	This study	er_methods	Archeologic	s	15	Ankerite-Pseudosparstone	16	Baked Clay
+site2	location	This study	er_methods	Archeologic	s	15.2	Ankerite-Pseudosparstone	16.2	Baked Contact

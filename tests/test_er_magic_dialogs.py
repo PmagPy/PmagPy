@@ -11,8 +11,8 @@ import dialogs.magic_grid as magic_grid
 #import numpy as np
 #import ipmag
 
-WD = os.getcwd()
-project_WD = os.path.join(os.getcwd(), 'tests', 'examples', 'my_project')
+WD = sys.prefix
+project_WD = os.path.join(WD, 'pmag_data_files', 'testing', 'my_project')
 
 class TestMagicGrid(unittest.TestCase):
     """

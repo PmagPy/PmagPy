@@ -2,15 +2,17 @@
 
 import unittest
 import os
+import sys
 import wx
 import wx.lib.inspection
 import programs.pmag_gui as pmag_gui
 import dialogs.pmag_menu_dialogs as pmag_menu_dialogs
 
 # get WD before all the Pmag GUI stuff starts to happen
-WD = os.getcwd()
-project_WD = os.path.join(os.getcwd(), 'tests', 'examples', 'my_project')
-core_depthplot_WD = os.path.join(os.getcwd(), 'data_files', 'core_depthplot')
+WD = sys.prefix
+project_WD = os.path.join(WD, 'pmag_data_files', 'testing', 'my_project')
+core_depthplot_WD = os.path.join(WD, 'pmag_data_files',
+                                 'testing', 'core_depthplot')
 
 class TestMainFrame(unittest.TestCase):
 

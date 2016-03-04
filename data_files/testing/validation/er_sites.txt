@@ -1,0 +1,5 @@
+tab	er_sites
+er_site_name	er_location_name	er_citation_names	site_class	site_definition	site_lat	site_lithology	site_lon	site_type
+site1	location1	This study	invalid_class	s	91	Eclogite	180.1	Drift
+site2	location1	This study	Extraterrestrial	s	89.99	invalid_lithology	361	Diabase
+site3	location1	This study		s	10	Enderbite	30	invalid_type
