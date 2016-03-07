@@ -96,7 +96,7 @@ def main():
         Esb,Isb,Fsb,V2sb=pmag.find_f(bdata)
         if b<25:
             pmagplotlib.plotEI(PLTS['ei'],Esb,Isb,Fsb[-1])
-        if Es[-1]!=0:
+        if Esb[-1]!=0:
             ppars=pmag.doprinc(bdata)
             if site_correction:
                 I.append(abs(Isb[Esb.index(min(Esb))]))
