@@ -9,7 +9,7 @@ from os import path
 from programs_list import programs_list
 print 'programs_list', programs_list
 
-version_num = '0.5.21'
+version_num = '0.6.6'
 here = path.abspath(path.dirname(__file__))
 
 # Get the long description from the README file
@@ -107,7 +107,7 @@ setup(
 
     # You can just specify the packages manually here if your project is
     # simple. Or you can use find_packages().
-    packages=find_packages(exclude=['pmagpy', 'tests.examples'
+    packages=find_packages(exclude=['pmagpy', 'pmagpy_tests.examples'
                                     'SPD']), # tests
 
 

@@ -6,7 +6,7 @@ from codecs import open
 from os import path
 
 
-version_num = '0.3.0'
+version_num = '0.3.1'
 here = path.abspath(path.dirname(__file__))
 
 # Get the long description from the README file
@@ -58,10 +58,11 @@ setup(
 
     # You can just specify the packages manually here if your project is
     # simple. Or you can use find_packages().
-    packages=find_packages(exclude=['programs', 'tests', 'tests.examples',
-                                    'pmag_env', 'tests.examples.my_project',
-                                    'tests.examples.empty_dir',
-                                    'tests.examples.my_project_with_errors']),
+    packages=find_packages(exclude=['programs', 'pmagpy_tests',
+                                    'pmagpy_tests.examples', 'pmag_env',
+                                    'pmagpy_tests.examples.my_project',
+                                    'pmagpy_tests.examples.empty_dir',
+                                    'pmagpy_tests.examples.my_project_with_errors']),
 
 
     # List run-time dependencies here.  These will be installed by pip when
