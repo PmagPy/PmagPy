@@ -395,17 +395,16 @@ class InterpretationEditorFrame(wx.Frame):
         """
         i = event.GetIndex()
         if self.parent.current_fit == self.fit_list[i][0]: return
+        self.parent.initialize_CART_rot(self.fit_list[i][1])
         si = self.parent.specimens.index(self.fit_list[i][1])
         self.parent.specimens_box.SetSelection(si)
         self.parent.select_specimen(self.fit_list[i][1])
-        self.parent.draw_figure(self.fit_list[i][1], False)
         self.change_selected(i)
         fi = 0
         while (self.parent.s == self.fit_list[i][1] and i >= 0): i,fi = (i-1,fi+1)
         self.parent.update_fit_box()
         self.parent.fit_box.SetSelection(fi-1)
-        self.parent.update_fit_boxs(False)
-        self.parent.Add_text()
+        self.parent.update_selection()
 
     def OnRightClickListctrl(self, event):
         """
@@ -608,7 +607,7 @@ class InterpretationEditorFrame(wx.Frame):
             print('-E- interpretation called ' + new_name + ' already exsists for specimen ' + specimen)
             return
 
-        new_fit = Fit(new_name, new_tmin, new_tmax, new_color, self.parent)
+        new_fit = Fit(new_name, new_tmax, new_tmin, new_color, self.parent)
         new_fit.put(specimen,self.parent.COORDINATE_SYSTEM,self.parent.get_PCA_parameters(specimen,new_fit,new_tmin,new_tmax,self.parent.COORDINATE_SYSTEM,"DE-BFL"))
 
         self.parent.pmag_results_data['specimens'][specimen].append(new_fit)

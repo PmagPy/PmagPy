@@ -1544,12 +1544,12 @@ def domean(indata,start,end,calculation_type):
 #   get sorted evals/evects
 #
     t,V=tauV(T)
-    if t[2]<0:t[2]=0 # make positive
     if t==[]:
         mpars["specimen_direction_type"]="Error"
         print "Error in calculation"
         return mpars
     v1,v3=V[0],V[2]
+    if t[2]<0:t[2]=0 # make positive
     if calculation_type=='DE-BFL-A':
         Dir,R=vector_mean(fdata)
         mpars["specimen_direction_type"]='l'

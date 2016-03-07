@@ -14,11 +14,17 @@ class Fit():
         """
         self.name = name
         if type(tmax) != str:
-            self.tmax = ""
+            if tmax == None: self.tmax = ""
+            else:
+                try: self.tmax = str(tmax)
+                except ValueError: self.tmax = ""
         else:
             self.tmax = tmax
         if type(tmin) != str:
-            self.tmin = ""
+            if tmin == None: self.tmin = ""
+            else:
+                try: self.tmin = str(tmin)
+                except ValueError: self.tmin = ""
         else:
             self.tmin = tmin
         self.color = color
@@ -133,9 +139,9 @@ class Fit():
         elif self.tmax != other.tmax: return False
         elif self.color != other.color: print("color difference between fits")
         elif self.PCA_type != other.PCA_type: return False
-        elif 'specimen_dec' in self.pars.keys() and 'specimen_dec' in other.pars.keys() and self.pars != other.pars: return False
-        elif 'specimen_dec' in self.geopars.keys() and 'specimen_dec' in other.geopars.keys() and self.geopars != other.geopars: return False
-        elif 'specimen_dec' in self.tiltpars.keys() and 'specimen_dec' in other.tiltpars.keys() and self.tiltpars != other.tiltpars: return False
+#        elif 'specimen_dec' in self.pars.keys() and 'specimen_dec' in other.pars.keys() and self.pars!=other.pars: return False
+#        elif 'specimen_dec' in self.geopars.keys() and 'specimen_dec' in other.geopars.keys() and self.geopars!=other.geopars: return False
+#        elif 'specimen_dec' in self.tiltpars.keys() and 'specimen_dec' in other.tiltpars.keys() and self.tiltpars!=other.tiltpars: return False
         else: return True
 
     def has_values(self, name, tmin, tmax):

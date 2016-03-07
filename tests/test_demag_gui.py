@@ -11,12 +11,19 @@ WD = os.getcwd()
 #project_WD = os.path.join(os.getcwd(), 'tests', 'examples', 'demag_test_data', 'Location_1')
 project_WD = os.path.join(os.getcwd(), 'tests', 'examples', 'my_project')
 empty_WD = os.path.join(os.getcwd(), 'tests', 'examples', 'empty_dir')
-core_depthplot_WD = os.path.join(os.getcwd(), 'data_files', 'core_depthplot')
 
 class TestMainFrame(unittest.TestCase):
+
     def setUp(self):
         self.app = wx.App()
         self.frame = demag_gui.Demag_GUI(project_WD)
+        def clickOK():
+            clickEvent = wx.CommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, self.frame.dlg.GetAffirmativeId())
+            self.frame.dlg.ProcessEvent(clickEvent)
+            if self.frame.dlg.IsModal:
+                self.frame.dlg.EndModal(wx.ID_OK)
+            self.frame.dlg.Close()
+#        wx.CallAfter(clickOK)
         self.frame.clear_interpretations()
 
     def test_check_empty_dir(self):
@@ -209,10 +216,21 @@ class TestMainFrame(unittest.TestCase):
         for i,b in enumerate(meas_data_before):
             if b == 'b': self.frame.logger.Select(i)
         self.frame.ProcessEvent(markbad_menu_evt)
+        for i,b in enumerate(meas_data_before):
+            if b == 'g': self.frame.logger.Select(i)
+        self.frame.ProcessEvent(markgood_menu_evt)
         if self.frame.Data[self.frame.s]['measurement_flag'][0]=='b': total_num_of_good_meas_data+=1
         self.assertEqual(fit.get(self.frame.COORDINATE_SYSTEM)['specimen_n'],total_num_of_good_meas_data)
 
     def test_read_write_redo(self):
+        old_s = self.frame.s
+        for specimen in self.frame.specimens:
+            self.frame.s = specimen
+            for i in range(len(self.frame.Data[specimen]['zijdblock'])):
+                self.frame.mark_meas_good(i)
+        self.frame.s = old_s
+        self.frame.update_selection()
+
         self.assertFalse(self.frame.interpretation_editor_open)
         self.frame.on_menu_edit_interpretations(-1)
         self.assertTrue(self.frame.interpretation_editor_open)
@@ -242,16 +260,21 @@ class TestMainFrame(unittest.TestCase):
         self.frame.ProcessEvent(importredo_menu_evt)
         imported_frame = str(self.frame)
         imported_interpretations = []
-        for speci in self.frame.specimens:
+        for speci in self.frame.pmag_results_data['specimens'].keys():
             imported_interpretations += self.frame.pmag_results_data['specimens'][speci]
 
-        os.remove(project_WD + "/demag_gui.redo")
-
         for ofit,ifit in zip(old_interpretations,imported_interpretations):
-            print(ofit.name==ifit.name, ofit.tmin==ifit.tmin, ofit.tmax==ifit.tmax, ofit.color==ifit.color, ofit.PCA_type==ifit.PCA_type, ofit.pars==ifit.pars, ofit.geopars==ifit.geopars, ofit.tiltpars==ifit.tiltpars)
             self.assertTrue(ofit.equal(ifit))
 
     def test_read_write_pmag_tables(self):
+        old_s = self.frame.s
+        for specimen in self.frame.specimens:
+            self.frame.s = specimen
+            for i in range(len(self.frame.Data[specimen]['zijdblock'])):
+                self.frame.mark_meas_good(i)
+        self.frame.s = old_s
+        self.frame.update_selection()
+
         self.assertFalse(self.frame.interpretation_editor_open)
         self.frame.on_menu_edit_interpretations(-1)
         self.assertTrue(self.frame.interpretation_editor_open)
@@ -277,22 +300,20 @@ class TestMainFrame(unittest.TestCase):
 
         frame2 = demag_gui.Demag_GUI(project_WD)
 
+        old_s = frame2.s
+        for specimen in frame2.specimens:
+            frame2.s = specimen
+            for i in range(len(frame2.Data[specimen]['zijdblock'])):
+                frame2.mark_meas_good(i)
+        frame2.s = old_s
+        frame2.update_selection()
+
         imported_frame = str(frame2)
         imported_interpretations = []
-        for speci in frame2.specimens:
+        for speci in frame2.pmag_results_data['specimens'].keys():
             imported_interpretations += frame2.pmag_results_data['specimens'][speci]
 
-        try: os.remove(project_WD + "/pmag_specimens.txt")
-        except OSError: pass
-        try: os.remove(project_WD + "/pmag_sites.txt")
-        except OSError: pass
-        try: os.remove(project_WD + "/pmag_results.txt")
-        except OSError: pass
-        try: os.remove(project_WD + "/demag_gui.redo")
-        except OSError: pass
-
         for ofit,ifit in zip(old_interpretations,imported_interpretations):
-            print(ofit.name,ifit.name, ofit.tmin,ifit.tmin, ofit.tmax,ifit.tmax, ofit.color,ifit.color, ofit.PCA_type,ifit.PCA_type, ofit.pars, ifit.pars, ofit.geopars,ifit.geopars, ofit.tiltpars,ifit.tiltpars)
             self.assertTrue(ofit.equal(ifit))
 
     def test_ie_buttons(self):
@@ -323,7 +344,6 @@ class TestMainFrame(unittest.TestCase):
 
         #test add fit to all button
         ie.ProcessEvent(addall_evt)
-        self.assertEqual(self.frame.total_num_of_interpertations(),len(self.frame.specimens))
         self.assertEqual(self.frame.current_fit,self.frame.pmag_results_data['specimens'][self.frame.s][0])
 
         #check fit parameters
@@ -536,6 +556,16 @@ class TestMainFrame(unittest.TestCase):
 
     def tearDown(self):
         self.app.Destroy()
+        try: os.remove(project_WD + "/demag_gui.redo")
+        except OSError: pass
+        try: os.remove(project_WD + "/pmag_specimens.txt")
+        except OSError: pass
+        try: os.remove(project_WD + "/pmag_sites.txt")
+        except OSError: pass
+        try: os.remove(project_WD + "/pmag_results.txt")
+        except OSError: pass
+        try: os.remove(project_WD + "/demag_gui.redo")
+        except OSError: pass
         os.chdir(WD)
 
 if __name__ == '__main__':

@@ -617,16 +617,6 @@ class Demag_GUI(wx.Frame):
 
         menu_file = wx.Menu()
 
-        m_read = wx.Menu()
-
-        m_choose_inp = m_read.Append(-1, "&Read in Data Using Single .inp File\tCtrl-O", "")
-        self.Bind(wx.EVT_MENU, self.on_menu_pick_read_inp, m_choose_inp)
-
-        m_read_all_inp = m_read.Append(-1, "&Read in all .inp files from sub-directories\tCtrl-Shift-O", "")
-        self.Bind(wx.EVT_MENU, self.on_menu_read_all_inp, m_read_all_inp)
-
-        menu_file.AppendMenu(-1, "&Read in Data", m_read)
-
         m_change_WD = menu_file.Append(-1, "Change Working Directory\tCtrl-W","")
         self.Bind(wx.EVT_MENU, self.on_menu_change_working_directory, m_change_WD)
 
@@ -668,6 +658,16 @@ class Demag_GUI(wx.Frame):
         self.Bind(wx.EVT_MENU, self.on_menu_criteria_file, m_import_criteria_file)
 
         m_new_sub = menu_Analysis.AppendMenu(-1, "Acceptance criteria", submenu_criteria)
+
+        m_read = wx.Menu()
+
+        m_choose_inp = m_read.Append(-1, "&Read in Data Using Single .inp File\tCtrl-O", "")
+        self.Bind(wx.EVT_MENU, self.on_menu_pick_read_inp, m_choose_inp)
+
+        m_read_all_inp = m_read.Append(-1, "&Read in all .inp files from sub-directories\tCtrl-Shift-O", "")
+        self.Bind(wx.EVT_MENU, self.on_menu_read_all_inp, m_read_all_inp)
+
+        menu_Analysis.AppendMenu(-1, "&Convert and Combine MagFiles", m_read)
 
         m_previous_interpretation = menu_Analysis.Append(-1, "&Import previous interpretation from a redo file\tCtrl-R", "")
         self.Bind(wx.EVT_MENU, self.on_menu_previous_interpretation, m_previous_interpretation)
@@ -1684,9 +1684,7 @@ class Demag_GUI(wx.Frame):
 
         self.zij_norm=array([row/sqrt(sum(row**2)) for row in self.zij])
 
-        #-----------------------------------------------------------
         # remove bad data from plotting:
-        #-----------------------------------------------------------
 
         self.CART_rot_good=[]
         self.CART_rot_bad=[]
@@ -1735,6 +1733,9 @@ class Demag_GUI(wx.Frame):
             block=self.Data[specimen]['zijdblock']
         if  end_pca > beg_pca and end_pca - beg_pca > 1:
             mpars=pmag.domean(block,beg_pca,end_pca,calculation_type) #preformes regression
+            if 'specimen_direction_type' in mpars and mpars['specimen_direction_type']=='Error':
+                print("-E- no measurement data for specimen %s in coordinate system %s"%(specimen, coordinate_system))
+                return {}
         else:
             mpars={}
         for k in mpars.keys():
@@ -2040,7 +2041,7 @@ class Demag_GUI(wx.Frame):
                            format was wrong
         """
         if specimen not in self.Data:
-            print("%s not in measurement file and will be ignored"%(specimen))
+            print("no measurement data found loaded for specimen %s and will be ignored"%(specimen))
             return (None,None)
         if self.Data[specimen]['measurement_step_unit']=="C":
             if float(tmin0)==0 or float(tmin0)==273:
@@ -2101,6 +2102,7 @@ class Demag_GUI(wx.Frame):
             if tmin == '':
                 tmin = self.Data[specimen]['zijdblock_steps'][0]
                 print("No lower bound for %s on specimen %s using lowest step (%s) for lower bound"%(fit.name, specimen, tmin))
+                if fit!=None: fit.tmin = tmin
             int_tmin = float(tmin.strip("C mT"))
             diffs = map(lambda x: abs(x-int_tmin),int_steps)
             tmin_index = diffs.index(min(diffs))
@@ -2112,6 +2114,7 @@ class Demag_GUI(wx.Frame):
             if tmax == '':
                 tmax = self.Data[specimen]['zijdblock_steps'][-1]
                 print("No upper bound for fit %s on specimen %s using last step (%s) for upper bound"%(fit.name, specimen, tmax))
+                if fit!=None: fit.tmax = tmax
             int_tmax = float(tmax.strip("C mT"))
             diffs = map(lambda x: abs(x-int_tmax),int_steps)
             tmax_index = diffs.index(min(diffs))
@@ -2217,9 +2220,9 @@ class Demag_GUI(wx.Frame):
             return True
 
         TEXT="All interpretations will be deleted all unsaved data will be irretrievable"
-        dlg = wx.MessageDialog(self, caption="Delete?",message=TEXT,style=wx.OK|wx.CANCEL )
-        result = dlg.ShowModal()
-        dlg.Destroy()
+        self.dlg = wx.MessageDialog(self, caption="Delete?",message=TEXT,style=wx.OK|wx.CANCEL)
+        result = self.dlg.ShowModal()
+        self.dlg.Destroy()
         if result != wx.ID_OK:
             return False
 
@@ -2667,13 +2670,16 @@ class Demag_GUI(wx.Frame):
         Read previous interpretation from a redo file
         and update gui with the new interpretation
         """
-        self.clear_interpretations()
+        if not self.clear_interpretations(): return
         self.GUI_log.write ("-I- read redo file and processing new bounds")
         fin=open(redo_file,'rU')
 
         for Line in fin.readlines():
             line=Line.strip('\n').split('\t')
             specimen=line[0]
+            if specimen not in self.specimens:
+                print("specimen %s not found in this data set and will be ignored"%(specimen))
+                continue
             self.s = specimen
             if not (self.s in self.pmag_results_data['specimens'].keys()):
                 self.pmag_results_data['specimens'][self.s] = []
@@ -2725,6 +2731,7 @@ class Demag_GUI(wx.Frame):
         if self.interpretation_editor_open:
             self.interpretation_editor.update_editor()
         self.update_selection()
+        print(self.pmag_results_data['sites'])
 
     def read_inp(self,inp_file_name,magic_files):
         inp_file = open(inp_file_name, "r")
@@ -3031,55 +3038,55 @@ class Demag_GUI(wx.Frame):
         Choose a working directory dialog
         """
 
-        dialog = wx.DirDialog(None, "Choose a directory:",defaultPath = self.currentDirectory ,style=wx.DD_DEFAULT_STYLE | wx.DD_NEW_DIR_BUTTON | wx.DD_CHANGE_DIR)
-        ok = dialog.ShowModal()
+        self.dlg = wx.DirDialog(self, "Choose a directory:",defaultPath = self.currentDirectory ,style=wx.DD_DEFAULT_STYLE | wx.DD_NEW_DIR_BUTTON | wx.DD_CHANGE_DIR)
+        ok = self.dlg.ShowModal()
         if ok == wx.ID_OK:
-            new_WD=dialog.GetPath()
-            dialog.Destroy()
+            new_WD=self.dlg.GetPath()
+            self.dlg.Destroy()
         else:
             new_WD = os.getcwd()
-            dialog.Destroy()
+            self.dlg.Destroy()
         return new_WD
 
     def choose_meas_file(self):
-        dlg = wx.FileDialog(
+        self.dlg = wx.FileDialog(
             self, message="No magif_measurements.txt found. Please choose a magic measurement file",
             defaultDir=self.WD,
             defaultFile="magic_measurements.txt",
             wildcard="*.magic|*.txt",
             style=wx.OPEN | wx.CHANGE_DIR
             )
-        if dlg.ShowModal() == wx.ID_OK:
-            meas_file = dlg.GetPath()
-            dlg.Destroy()
+        if self.dlg.ShowModal() == wx.ID_OK:
+            meas_file = self.dlg.GetPath()
+            self.dlg.Destroy()
         else:
             meas_file = None
-            dlg.Destroy()
+            self.dlg.Destroy()
         return meas_file
 
     def data_loss_warning(self):
         TEXT="This action could result in a loss of all unsaved data. Would you like to continue"
-        dlg = wx.MessageDialog(None,caption="Warning:", message=TEXT ,style=wx.OK|wx.CANCEL|wx.ICON_EXCLAMATION)
-        if dlg.ShowModal() == wx.ID_OK:
+        self.dlg = wx.MessageDialog(self,caption="Warning:", message=TEXT ,style=wx.OK|wx.CANCEL|wx.ICON_EXCLAMATION)
+        if self.dlg.ShowModal() == wx.ID_OK:
             continue_bool = True
         else:
             continue_bool = False
-        dlg.Destroy()
+        self.dlg.Destroy()
         return continue_bool
 
     def pick_inp(self):
-        dlg = wx.FileDialog(
+        self.dlg = wx.FileDialog(
             self, message="choose .inp file",
             defaultDir=self.WD,
             defaultFile="magic.inp",
             wildcard="*.inp",
             style=wx.OPEN
             )
-        if dlg.ShowModal() == wx.ID_OK:
-            inp_file_name = dlg.GetPath()
+        if self.dlg.ShowModal() == wx.ID_OK:
+            inp_file_name = self.dlg.GetPath()
         else:
             inp_file_name = None
-        dlg.Destroy()
+        self.dlg.Destroy()
         return inp_file_name
 
     def on_close_criteria_box (self,dia):
@@ -3105,21 +3112,21 @@ class Demag_GUI(wx.Frame):
             self.acceptance_criteria[crit]['value']=float(new_value)
 
         #  message dialog
-        dlg1 = wx.MessageDialog(self,caption="Warning:", message="Canges are saved to pmag_criteria.txt\n " ,style=wx.OK)
-        result = dlg1.ShowModal()
+        self.dlg = wx.MessageDialog(self,caption="Warning:", message="Canges are saved to pmag_criteria.txt\n " ,style=wx.OK)
+        result = self.dlg.ShowModal()
         if result == wx.ID_OK:
             self.write_acceptance_criteria_to_file()
-            dlg1.Destroy()
+            self.dlg.Destroy()
             dia.Destroy()
 
     def show_crit_window_err_messege(self,crit):
         '''
         error message if a valid naumber is not entered to criteria dialog boxes
         '''
-        dlg1 = wx.MessageDialog(self,caption="Error:",message="not a vaild value for statistic %s\n ignoring value"%crit ,style=wx.OK)
-        result = dlg1.ShowModal()
+        self.dlg = wx.MessageDialog(self,caption="Error:",message="not a vaild value for statistic %s\n ignoring value"%crit ,style=wx.OK)
+        result = self.dlg.ShowModal()
         if result == wx.ID_OK:
-            dlg1.Destroy()
+            self.dlg.Destroy()
 
     def On_close_MagIC_dialog(self,dia):
 
@@ -3248,10 +3255,10 @@ class Demag_GUI(wx.Frame):
         self.update_pmag_tables()
         self.update_selection()
         TEXT="interpretations are saved in pmag tables.\n"
-        dlg = wx.MessageDialog(self, caption="Saved",message=TEXT,style=wx.OK)
-        result = dlg.ShowModal()
+        self.dlg = wx.MessageDialog(self, caption="Saved",message=TEXT,style=wx.OK)
+        result = self.dlg.ShowModal()
         if result == wx.ID_OK:
-            dlg.Destroy()
+            self.dlg.Destroy()
 
         self.close_warning=False
 
@@ -3772,12 +3779,12 @@ class Demag_GUI(wx.Frame):
         self.GUI_log.write( "specimen data stored in %s\n"%os.path.join(self.WD, "pmag_specimens.txt"))
 
         TEXT="specimens interpretations are saved in pmag_specimens.txt.\nPress OK for pmag_samples/pmag_sites/pmag_results tables."
-        dlg = wx.MessageDialog(self, caption="Saved",message=TEXT,style=wx.OK|wx.CANCEL )
-        result = dlg.ShowModal()
+        self.dlg = wx.MessageDialog(self, caption="Saved",message=TEXT,style=wx.OK|wx.CANCEL)
+        result = self.dlg.ShowModal()
         if result == wx.ID_OK:
-            dlg.Destroy()
+            self.dlg.Destroy()
         if result == wx.ID_CANCEL:
-            dlg.Destroy()
+            self.dlg.Destroy()
             return
 
         #--------------------------------
@@ -3834,10 +3841,10 @@ class Demag_GUI(wx.Frame):
         self.current_fit = None
         self.draw_interpretation()
         self.plot_higher_levels_data()
-        dialog = wx.DirDialog(None, "choose a folder:",defaultPath = self.WD ,style=wx.DD_DEFAULT_STYLE | wx.DD_NEW_DIR_BUTTON | wx.DD_CHANGE_DIR)
-        if dialog.ShowModal() == wx.ID_OK:
-              dir_path=dialog.GetPath()
-              dialog.Destroy()
+        self.dlg = wx.DirDialog(self, "choose a folder:",defaultPath = self.WD ,style=wx.DD_DEFAULT_STYLE | wx.DD_NEW_DIR_BUTTON | wx.DD_CHANGE_DIR)
+        if self.dlg.ShowModal() == wx.ID_OK:
+              dir_path=self.dlg.GetPath()
+              self.dlg.Destroy()
 
         #figs=[self.fig1,self.fig2,self.fig3,self.fig4]
         plot_types=["Zij","EqArea","M_M0",str(self.level_box.GetValue())]
@@ -3907,9 +3914,9 @@ class Demag_GUI(wx.Frame):
             TEXT="Data is not saved to a file yet!\nTo properly save your data:\n1) Analysis --> Save current interpretations to a redo file.\nor\n1) File --> Save MagIC pmag tables.\n\n Press OK to exit without saving."
 
             #Save all interpretation to a 'redo' file or to MagIC specimens result table\n\nPress OK to exit"
-            dlg1 = wx.MessageDialog(None,caption="Warning:", message=TEXT ,style=wx.OK|wx.CANCEL|wx.ICON_EXCLAMATION)
-            if dlg1.ShowModal() == wx.ID_OK:
-                dlg1.Destroy()
+            self.dlg = wx.MessageDialog(self,caption="Warning:", message=TEXT ,style=wx.OK|wx.CANCEL|wx.ICON_EXCLAMATION)
+            if self.dlg.ShowModal() == wx.ID_OK:
+                self.dlg.Destroy()
                 if self.interpretation_editor_open:
                     self.interpretation_editor.on_close_edit_window(event)
                 self.Destroy()
@@ -4006,18 +4013,18 @@ class Demag_GUI(wx.Frame):
         [specimen name] [tmin(Tesla)] [tmax(Tesla)]
         There is a problem with experiment that combines AF and thermal
         """
-        dlg = wx.FileDialog(
+        self.dlg = wx.FileDialog(
             self, message="choose a file in a pmagpy redo format",
             defaultDir=self.WD,
             defaultFile="demag_gui.redo",
             wildcard="*.redo",
             style=wx.OPEN | wx.CHANGE_DIR
             )
-        if dlg.ShowModal() == wx.ID_OK:
-            redo_file = dlg.GetPath()
+        if self.dlg.ShowModal() == wx.ID_OK:
+            redo_file = self.dlg.GetPath()
         else:
             redo_file = None
-        dlg.Destroy()
+        self.dlg.Destroy()
 
         if redo_file:
             self.read_redo_file(redo_file)
@@ -4025,7 +4032,7 @@ class Demag_GUI(wx.Frame):
     def on_menu_save_interpretation(self,event,redo_file_name = "demag_gui.redo"):
         fout=open(redo_file_name,'w')
         specimens_list=self.pmag_results_data['specimens'].keys()
-        specimens_list.sort()
+        specimens_list.sort(cmp=specimens_comparator)
         for specimen in specimens_list:
             for fit in self.pmag_results_data['specimens'][specimen]:
                 if fit.tmin==None or fit.tmax==None:
@@ -4052,11 +4059,12 @@ class Demag_GUI(wx.Frame):
 
                 STRING=STRING+tmin+"\t"+tmax+"\t"+fit.name+"\t"+str(fit.color)+"\t"+fit_flag+"\n"
                 fout.write(STRING)
+        fout.close()
         TEXT="specimens interpretations are saved in " + redo_file_name
-        dlg = wx.MessageDialog(self, caption="Saved",message=TEXT,style=wx.OK|wx.CANCEL )
-        result = dlg.ShowModal()
+        self.dlg = wx.MessageDialog(self, caption="Saved",message=TEXT,style=wx.OK|wx.CANCEL )
+        result = self.dlg.ShowModal()
         if result == wx.ID_OK:
-            dlg.Destroy()
+            self.dlg.Destroy()
 
     def on_menu_change_criteria(self, event):
         dia=demag_dialogs.demag_criteria_dialog(None,self.acceptance_criteria,title='PmagPy Demag Gui Acceptance Criteria')
@@ -4070,25 +4078,25 @@ class Demag_GUI(wx.Frame):
         and open changecriteria dialog
         """
         read_sucsess=False
-        dlg = wx.FileDialog(
+        self.dlg = wx.FileDialog(
             self, message="choose pmag criteria file",
             defaultDir=self.WD,
             defaultFile="pmag_criteria.txt",
             style=wx.OPEN | wx.CHANGE_DIR
             )
-        if dlg.ShowModal() == wx.ID_OK:
-            criteria_file = dlg.GetPath()
+        if self.dlg.ShowModal() == wx.ID_OK:
+            criteria_file = self.dlg.GetPath()
             self.GUI_log.write ("-I- Read new criteria file: %s\n"%criteria_file)
 
             # check if this is a valid pmag_criteria file
             try:
                 mag_meas_data,file_type=pmag.magic_read(criteria_file)
             except:
-                dlg1 = wx.MessageDialog(self, caption="Error",message="not a valid pmag_criteria file",style=wx.OK)
-                result = dlg1.ShowModal()
+                self.dlg = wx.MessageDialog(self, caption="Error",message="not a valid pmag_criteria file",style=wx.OK)
+                result = self.dlg.ShowModal()
                 if result == wx.ID_OK:
-                    dlg1.Destroy()
-                dlg.Destroy()
+                    self.dlg.Destroy()
+                self.dlg.Destroy()
                 return
 
             # initialize criteria
@@ -4096,7 +4104,7 @@ class Demag_GUI(wx.Frame):
             self.acceptance_criteria=pmag.read_criteria_from_file(criteria_file,self.acceptance_criteria)
             read_sucsess=True
 
-        dlg.Destroy()
+        self.dlg.Destroy()
         if read_sucsess:
             self.on_menu_change_criteria(None)
 
@@ -4113,9 +4121,9 @@ class Demag_GUI(wx.Frame):
             self.interpretation_editor.Show(True)
             if self.parent==None and sys.platform.startswith('darwin'):
                 TEXT="This is a refresher window for mac os to insure that wx opens the new window"
-                dlg = wx.MessageDialog(self, caption="Open",message=TEXT,style=wx.OK | wx.ICON_INFORMATION | wx.STAY_ON_TOP )
-                dlg.ShowModal()
-                dlg.Destroy()
+                self.dlg = wx.MessageDialog(self, caption="Open",message=TEXT,style=wx.OK | wx.ICON_INFORMATION | wx.STAY_ON_TOP )
+                self.dlg.ShowModal()
+                self.dlg.Destroy()
         else:
             self.interpretation_editor.ToggleWindowStyle(wx.STAY_ON_TOP)
             self.interpretation_editor.ToggleWindowStyle(wx.STAY_ON_TOP)
