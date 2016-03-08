@@ -21,7 +21,9 @@ def copy_directory(src, dest):
 
 def main():
     if '-h' in sys.argv:
-        print "Some help"
+        print "Choose the folder where you want the PmagPy data files to be."
+        print "Navigate to that folder, and use the command: 'move_data_files.py -d .'"
+        print "Alternatively, you may use the full path to the directory of your choice from anywhere in the file system: 'move_data_files.py -d /Users/***/Desktop' where *** is your username"
         sys.exit()
     dest = pmag.get_named_arg_from_sys('-d', None, True)
     data_files = path.join(sys.prefix, 'pmagpy_data_files')
