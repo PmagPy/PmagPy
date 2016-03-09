@@ -141,6 +141,8 @@ THERMAL=True
 #from pmag_env import set_env
 #set_env.set_backend(wx=True)
 import matplotlib
+if not matplotlib.get_backend() == 'WXAgg':
+    matplotlib.use('WXAgg')
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigCanvas 
 
 import sys, pylab, scipy, os

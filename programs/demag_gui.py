@@ -39,7 +39,8 @@
 #--------------------------------------
 
 import matplotlib
-#matplotlib.use('WXAgg')
+if not matplotlib.get_backend() == 'WXAgg':
+    matplotlib.use('WXAgg')
 
 import os,sys,pdb
 global CURRENT_VERSION, PMAGPY_DIRECTORY
@@ -2785,7 +2786,7 @@ class Demag_GUI(wx.Frame):
                 CIT_kwargs["magfile"] = update_dict["sam_path"].split("/")[-1]
                 CIT_kwargs["input_dir_path"] = reduce(lambda x,y: x+"/"+y, update_dict["sam_path"].split("/")[:-1])
 
-                program_ran, error_message = CIT_magic.main(command_line=False, **CIT_kwargs)
+                program_ran, error_message = cit_magic.main(command_line=False, **CIT_kwargs)
 
                 if program_ran:
                     update_lines[-1] = time()
