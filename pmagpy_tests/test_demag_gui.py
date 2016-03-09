@@ -10,6 +10,7 @@ from programs import demag_gui
 WD = sys.prefix
 project_WD = os.path.join(WD, 'pmagpy_data_files', 'testing', 'my_project')
 core_depthplot_WD = os.path.join(WD, 'pmagpy_data_files', 'core_depthplot')
+empty_WD = os.path.join(WD, 'pmagpy_data_files', 'testing', 'empty_dir')
 
 
 class TestMainFrame(unittest.TestCase):

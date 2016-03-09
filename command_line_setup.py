@@ -9,7 +9,7 @@ from os import path
 from programs_list import programs_list
 print 'programs_list', programs_list
 
-version_num = '0.6.6'
+version_num = '0.7.2'
 here = path.abspath(path.dirname(__file__))
 
 # Get the long description from the README file
