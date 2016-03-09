@@ -1139,7 +1139,7 @@ def magic_write(ofile,Recs,file_type):
         outstring=""
         for key in keylist:
            try:
-              outstring=outstring+'\t'+str(Rec[key].strip())
+              outstring=outstring+'\t'+str(Rec[key]).strip()
            except KeyError:
               if 'er_specimen_name' in Rec.keys():
                   print Rec['er_specimen_name']
@@ -8664,3 +8664,7 @@ class MissingCommandLineArgException(Exception):
 
     def __str__(self):
         return self.message
+
+
+def main():
+    print "Full PmagPy documentation is available at: https://earthref.org/PmagPy/cookbook/"

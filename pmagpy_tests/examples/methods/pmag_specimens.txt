@@ -1,0 +1,3 @@
+tab	pmag_specimens
+er_specimen_name	er_sample_name	er_site_name	er_location_name	er_citation_names	magic_instrument_codes	magic_method_codes	specimen_b	specimen_correction
+spec1	sampleA	site1	location	This study	code	pmag_method_codes	22	none

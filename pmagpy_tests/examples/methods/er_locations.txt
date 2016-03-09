@@ -1,0 +1,3 @@
+tab	er_locations
+er_location_name	er_citation_names	location_begin_lat	location_begin_lon	location_end_lat	location_end_lon	location_geoid	location_precision	location_type	ocean_sea
+location	This study	15.0	16.0	15.2	16.2			Archeological Site	

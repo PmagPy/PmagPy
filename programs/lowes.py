@@ -1,8 +1,8 @@
 #! /usr/bin/env python
 import numpy
 import sys
-from pmag_env import set_env
-set_env.set_backend(wx=False)
+
+
 import pylab
 import pmagpy.pmag as pmag
 pylab.ion()
