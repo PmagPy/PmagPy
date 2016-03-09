@@ -5043,40 +5043,53 @@ class Site(object):
     def get_name(self):
         return self
 
-    def eq_plot_everything(self,title=None):
+    def eq_plot_everything(self, title=None, clrs = None, size = (5,5)):
         fignum = 0
-        plt.figure(num=fignum,figsize=(8,8),dpi=200)
-        pmagplotlib.plotNET(fignum)
+        plt.figure(num=fignum,figsize=size,dpi=200)
+        plot_net(fignum)
+        clr_idx = 0
         for fits in self.fit_types:
             mean_code = str(fits)+"_mean"
             print mean_code
-            self.random_color = np.random.rand(3)
-            plot_di(getattr(self,fits).specimen_dec,
-            getattr(self,fits).specimen_inc,color=self.random_color, label=fits+' directions')
-            print float(getattr(self,mean_code).site_dec),float(getattr(self,mean_code).site_inc)
-            #ipmag.plot_di_mean(getattr(self,mean_name).site_dec,getattr(self,mean_name))
-            plot_di_mean(float(getattr(self,mean_code).site_dec),
-                               float(getattr(self,mean_code).site_inc),
-                               float(getattr(self,mean_code).site_alpha95),
-                               color=self.random_color,marker='s',label=fits+' mean')
+            if clrs is not None:
+                plot_di(getattr(self,fits).specimen_dec,
+                getattr(self,fits).specimen_inc,color=clrs[clr_idx], label=fits+' directions')
+                print float(getattr(self,mean_code).site_dec),float(getattr(self,mean_code).site_inc)
+                plot_di_mean(float(getattr(self,mean_code).site_dec),
+                                   float(getattr(self,mean_code).site_inc),
+                                   float(getattr(self,mean_code).site_alpha95),
+                                   color=clrs[clr_idx],marker='s',label=fits+' mean')
+                clr_idx += 1
+
+            else:
+                self.random_color = np.random.rand(3)
+                plot_di(getattr(self,fits).specimen_dec,
+                getattr(self,fits).specimen_inc,color=self.random_color, label=fits+' directions')
+                print float(getattr(self,mean_code).site_dec),float(getattr(self,mean_code).site_inc)
+                plot_di_mean(float(getattr(self,mean_code).site_dec),
+                                   float(getattr(self,mean_code).site_inc),
+                                   float(getattr(self,mean_code).site_alpha95),
+                                   color=self.random_color,marker='s',label=fits+' mean')
         plt.legend()
         if title != None:
             plt.title(title)
         plt.show()
 
-    def eq_plot(self,fit_name,title=None):
+    def eq_plot(self,fit_name,title=None, clr = None, size = (5,5)):
         fignum = 0
-        plt.figure(num=fignum,figsize=(8,8),dpi=200)
-        pmagplotlib.plotNET(fignum)
+        plt.figure(num=fignum,figsize=size,dpi=200)
+        plot_net(fignum)
         mean_code = str(fit_name)+"_mean"
-        #print mean_code
-        self.random_color = np.random.rand(3)
+        if clr is not None:
+            self.random_color = clr
+        else:
+            self.random_color = np.random.rand(3)
         plot_di(getattr(self,fit_name).specimen_dec,
                       getattr(self,fit_name).specimen_inc,
                       color=self.random_color,label=fit_name+' directions')
         plot_di_mean(float(getattr(self,mean_code).site_dec),
                            float(getattr(self,mean_code).site_inc),
-                           float(getattr(self,mean_code).site_alpha95), color = self.random_color, marker='s', label=fit_name+' mean')
+                           float(getattr(self,mean_code).site_alpha95), marker='s', label=fit_name+' mean')
         plt.legend()
         if title != None:
             plt.title(title)
