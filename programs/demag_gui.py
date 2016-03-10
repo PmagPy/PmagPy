@@ -66,6 +66,8 @@ from pylab import rcParams,Figure,arange,pi,cos,sin,array,mean
 from scipy.optimize import curve_fit
 from scipy.signal import find_peaks_cwt
 from webbrowser import open as webopen
+from pkg_resources import resource_filename
+
 import pmagpy.pmag as pmag
 import pmagpy.ipmag as ipmag
 from dialogs.demag_interpretation_editor import InterpretationEditorFrame
@@ -136,8 +138,9 @@ class Demag_GUI(wx.Frame):
 
         #set icon
         try:
+            icon_path = resource_filename(__name__, os.path.join('images', 'PmagPy.ico'))
             icon = wx.EmptyIcon()
-            icon_path = os.path.join(PMAGPY_DIRECTORY, 'images', 'PmagPy.ico')
+            #icon_path = os.path.join(PMAGPY_DIRECTORY, 'images', 'PmagPy.ico')
             icon.CopyFromBitmap(wx.Bitmap(icon_path, wx.BITMAP_TYPE_ANY))
             self.SetIcon(icon)
         except Exception as ex:

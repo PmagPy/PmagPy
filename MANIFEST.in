@@ -1,0 +1,2 @@
+recursive-include images *.txt *.ico
+recursive-include programs/images *.txt *.ico

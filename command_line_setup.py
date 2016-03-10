@@ -6,10 +6,10 @@ from codecs import open
 import os
 from os import path
 #import glob
+# Get list of programs to alias
 from programs_list import programs_list
-print 'programs_list', programs_list
 
-version_num = '0.7.2'
+version_num = '0.7.12'
 here = path.abspath(path.dirname(__file__))
 
 # Get the long description from the README file
@@ -129,9 +129,9 @@ setup(
     # If there are data files included in your packages that need to be
     # installed, specify them here.  If using Python 2.6 or less, then these
     # have to be included in MANIFEST.in as well.
-    #include_package_data=True,
+    include_package_data=True,
     #package_data={
-    #            'flamingo_data_files': glob.glob('data_files/*/*.*'),
+    #            'images': glob.glob('images/*'),
     #        },
     #package_data=formatted_dict,
 
