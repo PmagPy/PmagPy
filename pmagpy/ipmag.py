@@ -5043,7 +5043,7 @@ class Site(object):
     def get_name(self):
         return self
 
-    def eq_plot_everything(self, title=None, clrs = None, size = (5,5)):
+    def eq_plot_everything(self, title=None, clrs = None, size = (5,5), **kwargs):
         fignum = 0
         plt.figure(num=fignum,figsize=size,dpi=200)
         plot_net(fignum)
@@ -5070,12 +5070,12 @@ class Site(object):
                                    float(getattr(self,mean_code).site_inc),
                                    float(getattr(self,mean_code).site_alpha95),
                                    color=self.random_color,marker='s',label=fits+' mean')
-        plt.legend()
+        plt.legend(**kwargs)
         if title != None:
             plt.title(title)
         plt.show()
 
-    def eq_plot(self,fit_name,title=None, clr = None, size = (5,5)):
+    def eq_plot(self,fit_name,title=None, clr = None, size = (5,5), **kwargs):
         fignum = 0
         plt.figure(num=fignum,figsize=size,dpi=200)
         plot_net(fignum)
@@ -5090,7 +5090,7 @@ class Site(object):
         plot_di_mean(float(getattr(self,mean_code).site_dec),
                            float(getattr(self,mean_code).site_inc),
                            float(getattr(self,mean_code).site_alpha95), marker='s', label=fit_name+' mean')
-        plt.legend()
+        plt.legend(**kwargs)
         if title != None:
             plt.title(title)
         plt.show()
