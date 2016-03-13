@@ -1,0 +1,669 @@
+tab 	er_specimens
+er_citation_names	er_location_name	er_sample_name	er_site_name	er_specimen_name	specimen_class	specimen_lithology	specimen_type
+This study	Simpson Island	SI1-116.95	SI1(116.3 to 118.8)	SI1-116.95a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI1-116.96	SI1(116.3 to 118.8)	SI1-116.96a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI1-116.97	SI1(116.3 to 118.8)	SI1-116.97a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI1-116.9	SI1(116.3 to 118.8)	SI1-116.9a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI1-117.05	SI1(116.3 to 118.8)	SI1-117.05a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI1-117.2	SI1(116.3 to 118.8)	SI1-117.2a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI1-12.5	SI1(11.8 to 26.4)	SI1-12.5-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI1-12.55	SI1(11.8 to 26.4)	SI1-12.55-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI1-120.42	SI1(119.7 to 122.1)	SI1-120.42a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI1-120.45	SI1(119.7 to 122.1)	SI1-120.45a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI1-120.4	SI1(119.7 to 122.1)	SI1-120.4a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI1-120.52	SI1(119.7 to 122.1)	SI1-120.52a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI1-120.5	SI1(119.7 to 122.1)	SI1-120.5a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI1-120.6	SI1(119.7 to 122.1)	SI1-120.6a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI1-122.4	SI1(122.1 to 123.7)	SI1-122.4a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI1-122.5	SI1(122.1 to 123.7)	SI1-122.5a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI1-122.65	SI1(122.1 to 123.7)	SI1-122.65a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI1-122.69	SI1(122.1 to 123.7)	SI1-122.69a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI1-123.35	SI1(122.1 to 123.7)	SI1-123.35a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI1-123.4	SI1(122.1 to 123.7)	SI1-123.4a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI1-13.0	SI1(11.8 to 26.4)	SI1-13.0-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI1-13.4	SI1(11.8 to 26.4)	SI1-13.4-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI1-14.2	SI1(11.8 to 26.4)	SI1-14.2-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI1-14.4	SI1(11.8 to 26.4)	SI1-14.4-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI1-14.9	SI1(11.8 to 26.4)	SI1-14.9-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI1-28.68	SI1(28.3 to 29.2)	SI1-28.68-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI1-28.7	SI1(28.3 to 29.2)	SI1-28.7-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI1-28.8	SI1(28.3 to 29.2)	SI1-28.8-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI1-28.9	SI1(28.3 to 29.2)	SI1-28.9-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI1-29.0	SI1(28.3 to 29.2)	SI1-29.0-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI1-29.1	SI1(28.3 to 29.2)	SI1-29.1-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI1-29.15	SI1(29.2 to 29.7)	SI1-29.15-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI1-29.2	SI1(28.3 to 29.2)	SI1-29.2-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI1-29.24	SI1(29.2 to 29.7)	SI1-29.24-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI1-29.25	SI1(29.2 to 29.7)	SI1-29.25-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI1-29.4	SI1(29.2 to 29.7)	SI1-29.4-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI1-33.4	SI1(33.3 to 37.1)	SI1-33.4a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI1-33.5	SI1(33.3 to 37.1)	SI1-33.5a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI1-34.2	SI1(33.3 to 37.1)	SI1-34.2a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI1-34.75	SI1(33.3 to 37.1)	SI1-34.75a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI1-34.7	SI1(33.3 to 37.1)	SI1-34.7a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI1-34.8	SI1(33.3 to 37.1)	SI1-34.8a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI1-40.95	SI1(40.6 to 42.5)	SI1-40.95a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI1-40.96	SI1(40.6 to 42.5)	SI1-40.96a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI1-40.9	SI1(40.6 to 42.5)	SI1-40.9a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI1-41.15	SI1(40.6 to 42.5)	SI1-41.15a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI1-41.1	SI1(40.6 to 42.5)	SI1-41.1a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI1-41	SI1(40.6 to 42.5)	SI1-41a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI1-43.19	SI1(40.6 to 42.5)	SI1-43.19-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI1-43.2	SI1(40.6 to 42.5)	SI1-43.2-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI1-43.4	SI1(40.6 to 42.5)	SI1-43.4-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI1-43.51	SI1(40.6 to 42.5)	SI1-43.51-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI1-43.6	SI1(40.6 to 42.5)	SI1-43.6-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI1-43.61	SI1(40.6 to 42.5)	SI1-43.61-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI1-61.1	SI1(58.1 to 64.1)	SI1-61.1-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI1-61.15	SI1(58.1 to 64.1)	SI1-61.15-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI1-61.2	SI1(58.1 to 64.1)	SI1-61.2-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI1-61.73	SI1(58.1 to 64.1)	SI1-61.73-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI1-61.78	SI1(58.1 to 64.1)	SI1-61.78-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI1-80.3	SI1(69.7 to 87.6)	SI1-80.3-D	Intrusive : Igneous	Diabase	Sill
+This study	Simpson Island	SI1-80.7	SI1(69.7 to 87.6)	SI1-80.7-D	Intrusive : Igneous	Diabase	Sill
+This study	Simpson Island	SI1-81.8	SI1(69.7 to 87.6)	SI1-81.8-D	Intrusive : Igneous	Diabase	Sill
+This study	Simpson Island	SI1-82.1	SI1(69.7 to 87.6)	SI1-82.1-D	Intrusive : Igneous	Diabase	Sill
+This study	Simpson Island	SI1-84.5	SI1(69.7 to 87.6)	SI1-84.5-D	Intrusive : Igneous	Diabase	Sill
+This study	Simpson Island	SI1-86.1	SI1(69.7 to 87.6)	SI1-86.1-D	Intrusive : Igneous	Diabase	Sill
+This study	Simpson Island	SI1-86.4	SI1(69.7 to 87.6)	SI1-86.4-D	Intrusive : Igneous	Diabase	Sill
+This study	Simpson Island	SI1-88.25	SI1(87.6 to 88.5)	SI1-88.25-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI1-88.35	SI1(87.6 to 88.5)	SI1-88.35-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI1-88.37	SI1(87.6 to 88.5)	SI1-88.37-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI1-88.4	SI1(87.6 to 88.5)	SI1-88.4-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI1-88.43	SI1(87.6 to 88.5)	SI1-88.43-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI1-88.55	SI1(88.5 to 89.2)	SI1-88.55-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI1-88.9	SI1(88.5 to 89.2)	SI1-88.9-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI1-88.93	SI1(88.5 to 89.2)	SI1-88.93-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI1-88.97	SI1(88.5 to 89.2)	SI1-88.97-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI1-89.0	SI1(88.5 to 89.2)	SI1-89.0-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI1-89.15	SI1(88.5 to 89.2)	SI1-89.15-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI1-89.25	SI1(89.2 to 91.5)	SI1-89.25-A	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI1-89.92	SI1(89.2 to 91.5)	SI1-89.92-A	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI1-90.0	SI1(89.2 to 91.5)	SI1-90.0-A	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI1-90.05	SI1(89.2 to 91.5)	SI1-90.05-A	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI1-91.1	SI1(89.2 to 91.5)	SI1-91.1-A	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI1-91.2	SI1(89.2 to 91.5)	SI1-91.2-A	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI1-91.6	SI1(91.5 to 92.6)	SI1-91.6-A	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI1-91.61	SI1(91.5 to 92.6)	SI1-91.61-A	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI1-91.64	SI1(91.5 to 92.6)	SI1-91.64-A	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI1-91.67	SI1(91.5 to 92.6)	SI1-91.67-A	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI1-91.75	SI1(91.5 to 92.6)	SI1-91.75-A	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI1-92.0	SI1(91.5 to 92.6)	SI1-92.0-A	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI1-94.57	SI1(94.3 to 94.9)	SI1-94.57a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI1-94.67	SI1(94.3 to 94.9)	SI1-94.67a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI1-94.6	SI1(94.3 to 94.9)	SI1-94.6a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI1-94.7	SI1(94.3 to 94.9)	SI1-94.7a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI1-94.8	SI1(94.3 to 94.9)	SI1-94.8a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI1-95	SI1(94.9 to 96.6)	SI1-95a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI1-96.02	SI1(94.9 to 96.6)	SI1-96.02a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI1-96.04	SI1(94.9 to 96.6)	SI1-96.04a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI1-96.1	SI1(94.9 to 96.6)	SI1-96.1a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI1-96	SI1(94.9 to 96.6)	SI1-96a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI2a-1.1	SI2a(1.1 to 1.6)	SI2a-1.1a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI2a-1.35	SI2a(1.1 to 1.6)	SI2a-1.35a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI2a-1.3	SI2a(1.1 to 1.6)	SI2a-1.3a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI2a-1.4	SI2a(1.1 to 1.6)	SI2a-1.4a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI2a-1.5	SI2a(1.1 to 1.6)	SI2a-1.5a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI2a-1.6	SI2a(1.1 to 1.6)	SI2a-1.6a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI2a-10.2	SI2a(10.2 to 12.8)	SI2a-10.2a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI2a-10.4	SI2a(10.2 to 12.8)	SI2a-10.4a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI2a-10.5	SI2a(10.2 to 12.8)	SI2a-10.5a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI2a-12.2	SI2a(10.2 to 12.8)	SI2a-12.2a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI2a-12.7	SI2a(10.2 to 12.8)	SI2a-12.7a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI2a-12.8	SI2a(10.2 to 12.8)	SI2a-12.8a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI2b-10.56	SI2b(10.5 to 10.6)	SI2b-10.56a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI2b-10.58	SI2b(10.5 to 10.6)	SI2b-10.58a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI2b-10.5	SI2b(10.5 to 10.6)	SI2b-10.5a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI2b-10.63	SI2b(10.5 to 10.6)	SI2b-10.63a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI2b-10.6	SI2b(10.5 to 10.6)	SI2b-10.6a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI2b-2.2	SI2b(2.2 to 2.6)	SI2b-2.2a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI2b-2.3	SI2b(2.2 to 2.6)	SI2b-2.3a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI2b-2.42	SI2b(2.2 to 2.6)	SI2b-2.42a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI2b-2.46	SI2b(2.2 to 2.6)	SI2b-2.46a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI2b-2.53	SI2b(2.2 to 2.6)	SI2b-2.53a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI2b-2.5	SI2b(2.2 to 2.6)	SI2b-2.5a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI2b-2.61	SI2b(2.2 to 2.6)	SI2b-2.61a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI2b-2.6	SI2b(2.2 to 2.6)	SI2b-2.6a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI2c-0.15	SI2c(0.0 to 2.1)	SI2c-0.15a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI2c-0.35	SI2c(0.0 to 2.1)	SI2c-0.35a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI2c-0.45	SI2c(0.0 to 2.1)	SI2c-0.45a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI2c-0.55	SI2c(0.0 to 2.1)	SI2c-0.55a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI2c-0.5	SI2c(0.0 to 2.1)	SI2c-0.5a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI2c-1.0	SI2c(0.0 to 2.1)	SI2c-1.0a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI2c-3.05	SI2c(2.1 to 18.6)	SI2c-3.05a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI2c-3.0	SI2c(2.1 to 18.6)	SI2c-3.0a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI2c-3.15	SI2c(2.1 to 18.6)	SI2c-3.15a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI2c-4.7	SI2c(2.1 to 18.6)	SI2c-4.7a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI2c-4.8	SI2c(2.1 to 18.6)	SI2c-4.8a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI2c-6.3	SI2c(2.1 to 18.6)	SI2c-6.3a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI3-103.4	SI3(103.3 to 110.3)	SI3-103.4-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI3-103.5	SI3(103.3 to 110.3)	SI3-103.5-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI3-103.9	SI3(103.3 to 110.3)	SI3-103.9-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI3-103.95	SI3(103.3 to 110.3)	SI3-103.95-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI3-104.3	SI3(103.3 to 110.3)	SI3-104.3-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI3-104.4	SI3(103.3 to 110.3)	SI3-104.4-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI3-12.95	SI3(12.5 to 20.1)	SI3-12.95-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI3-126.9	SI3(124.8 to 130.4)	SI3-126.9-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI3-127.1	SI3(124.8 to 130.4)	SI3-127.1-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI3-127.3	SI3(124.8 to 130.4)	SI3-127.3-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI3-129.3	SI3(124.8 to 130.4)	SI3-129.3-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI3-129.45	SI3(124.8 to 130.4)	SI3-129.45-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI3-13.05	SI3(12.5 to 20.1)	SI3-13.05-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI3-16.3	SI3(12.5 to 20.1)	SI3-16.3-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI3-16.4	SI3(12.5 to 20.1)	SI3-16.4-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI3-18.75	SI3(12.5 to 20.1)	SI3-18.75-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI3-19.9	SI3(12.5 to 20.1)	SI3-19.9-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI3-20.40	SI3(20.1 to 28.9)	SI3-20.4-D	Extrusive : Igneous	Basaltic Lava	Lava Flow
+This study	Simpson Island	SI3-20.40	SI3(20.1 to 28.9)	SI3-20.40a	Extrusive : Igneous	Basaltic Lava	Lava Flow
+This study	Simpson Island	SI3-20.45	SI3(20.1 to 28.9)	SI3-20.45-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI3-20.45	SI3(20.1 to 28.9)	SI3-20.45a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI3-21.30	SI3(20.1 to 28.9)	SI3-21.30a	Extrusive : Igneous	Basaltic Lava	Lava Flow
+This study	Simpson Island	SI3-21.35	SI3(20.1 to 28.9)	SI3-21.35-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI3-22.30	SI3(20.1 to 28.9)	SI3-22.30a	Extrusive : Igneous	Basaltic Lava	Lava Flow
+This study	Simpson Island	SI3-22.35	SI3(20.1 to 28.9)	SI3-22.35-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI3-22.35	SI3(20.1 to 28.9)	SI3-22.35a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI3-22.60	SI3(20.1 to 28.9)	SI3-22.6-D	Extrusive : Igneous	Basaltic Lava	Lava Flow
+This study	Simpson Island	SI3-22.60	SI3(20.1 to 28.9)	SI3-22.60a	Extrusive : Igneous	Basaltic Lava	Lava Flow
+This study	Simpson Island	SI3-22.65	SI3(20.1 to 28.9)	SI3-22.65a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI3-27.90	SI3(20.1 to 28.9)	SI3-27.9-D	Extrusive : Igneous	Basaltic Lava	Lava Flow
+This study	Simpson Island	SI3-27.90	SI3(20.1 to 28.9)	SI3-27.90a	Extrusive : Igneous	Basaltic Lava	Lava Flow
+This study	Simpson Island	SI3-3.60	SI3(2.3 to 5.5)	SI3-3.6-D	Extrusive : Igneous	Basaltic Lava	Lava Flow
+This study	Simpson Island	SI3-3.60	SI3(2.3 to 5.5)	SI3-3.60a	Extrusive : Igneous	Basaltic Lava	Lava Flow
+This study	Simpson Island	SI3-3.70	SI3(2.3 to 5.5)	SI3-3.7-D	Extrusive : Igneous	Basaltic Lava	Lava Flow
+This study	Simpson Island	SI3-3.70	SI3(2.3 to 5.5)	SI3-3.70a	Extrusive : Igneous	Basaltic Lava	Lava Flow
+This study	Simpson Island	SI3-37.80	SI3(36.9 to 48.4)	SI3-37.8-D	Extrusive : Igneous	Basaltic Lava	Lava Flow
+This study	Simpson Island	SI3-37.80	SI3(36.9 to 48.4)	SI3-37.80a	Extrusive : Igneous	Basaltic Lava	Lava Flow
+This study	Simpson Island	SI3-37.85	SI3(36.9 to 48.4)	SI3-37.85-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI3-37.85	SI3(36.9 to 48.4)	SI3-37.85a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI3-38.70	SI3(36.9 to 48.4)	SI3-38.7-D	Extrusive : Igneous	Basaltic Lava	Lava Flow
+This study	Simpson Island	SI3-38.70	SI3(36.9 to 48.4)	SI3-38.70a	Extrusive : Igneous	Basaltic Lava	Lava Flow
+This study	Simpson Island	SI3-38.80	SI3(36.9 to 48.4)	SI3-38.8-D	Extrusive : Igneous	Basaltic Lava	Lava Flow
+This study	Simpson Island	SI3-38.80	SI3(36.9 to 48.4)	SI3-38.80a	Extrusive : Igneous	Basaltic Lava	Lava Flow
+This study	Simpson Island	SI3-39.80	SI3(36.9 to 48.4)	SI3-39.8-D	Extrusive : Igneous	Basaltic Lava	Lava Flow
+This study	Simpson Island	SI3-39.80	SI3(36.9 to 48.4)	SI3-39.80a	Extrusive : Igneous	Basaltic Lava	Lava Flow
+This study	Simpson Island	SI3-39.82	SI3(36.9 to 48.4)	SI3-39.82-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI3-39.82	SI3(36.9 to 48.4)	SI3-39.82a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI3-4.10	SI3(2.3 to 5.5)	SI3-4.1-D	Extrusive : Igneous	Basaltic Lava	Lava Flow
+This study	Simpson Island	SI3-4.10	SI3(2.3 to 5.5)	SI3-4.10a	Extrusive : Igneous	Basaltic Lava	Lava Flow
+This study	Simpson Island	SI3-4.20	SI3(2.3 to 5.5)	SI3-4.2-D	Extrusive : Igneous	Basaltic Lava	Lava Flow
+This study	Simpson Island	SI3-4.20	SI3(2.3 to 5.5)	SI3-4.20a	Extrusive : Igneous	Basaltic Lava	Lava Flow
+This study	Simpson Island	SI3-4.60	SI3(2.3 to 5.5)	SI3-4.6-D	Extrusive : Igneous	Basaltic Lava	Lava Flow
+This study	Simpson Island	SI3-4.60	SI3(2.3 to 5.5)	SI3-4.60a	Extrusive : Igneous	Basaltic Lava	Lava Flow
+This study	Simpson Island	SI3-4.7	SI3(2.3 to 5.5)	SI3-4.7-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI3-5.6	SI3(5.5 to 12.5)	SI3-5.6-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI3-58.00	SI3(55.8 to 60.9)	SI3-58.0-D	Extrusive : Igneous	Basaltic Lava	Lava Flow
+This study	Simpson Island	SI3-58.00	SI3(55.8 to 60.9)	SI3-58.00a	Extrusive : Igneous	Basaltic Lava	Lava Flow
+This study	Simpson Island	SI3-58.02	SI3(55.8 to 60.9)	SI3-58.02-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI3-58.02	SI3(55.8 to 60.9)	SI3-58.02a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI3-58.04	SI3(55.8 to 60.9)	SI3-58.04-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI3-58.04	SI3(55.8 to 60.9)	SI3-58.04a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI3-59.70	SI3(55.8 to 60.9)	SI3-59.7-D	Extrusive : Igneous	Basaltic Lava	Lava Flow
+This study	Simpson Island	SI3-59.70	SI3(55.8 to 60.9)	SI3-59.70a	Extrusive : Igneous	Basaltic Lava	Lava Flow
+This study	Simpson Island	SI3-59.80	SI3(55.8 to 60.9)	SI3-59.8-D	Extrusive : Igneous	Basaltic Lava	Lava Flow
+This study	Simpson Island	SI3-59.80	SI3(55.8 to 60.9)	SI3-59.80a	Extrusive : Igneous	Basaltic Lava	Lava Flow
+This study	Simpson Island	SI3-59.90	SI3(55.8 to 60.9)	SI3-59.9-D	Extrusive : Igneous	Basaltic Lava	Lava Flow
+This study	Simpson Island	SI3-59.80	SI3(55.8 to 60.9)	SI3-59.90a	Extrusive : Igneous	Basaltic Lava	Lava Flow
+This study	Simpson Island	SI3-6.4	SI3(5.5 to 12.5)	SI3-6.4-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI3-7.05	SI3(5.5 to 12.5)	SI3-7.05a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI3-7.20	SI3(5.5 to 12.5)	SI3-7.20a	Extrusive : Igneous	Basaltic Lava	Lava Flow
+This study	Simpson Island	SI3-7.25	SI3(5.5 to 12.5)	SI3-7.25-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI3-7.30	SI3(5.5 to 12.5)	SI3-7.30a	Extrusive : Igneous	Basaltic Lava	Lava Flow
+This study	Simpson Island	SI3-8.30	SI3(5.5 to 12.5)	SI3-8.30a	Extrusive : Igneous	Basaltic Lava	Lava Flow
+This study	Simpson Island	SI3-8.80	SI3(5.5 to 12.5)	SI3-8.8-D	Extrusive : Igneous	Basaltic Lava	Lava Flow
+This study	Simpson Island	SI3-8.80	SI3(5.5 to 12.5)	SI3-8.80a	Extrusive : Igneous	Basaltic Lava	Lava Flow
+This study	Simpson Island	SI3-9.60	SI3(5.5 to 12.5)	SI3-9.6-D	Extrusive : Igneous	Basaltic Lava	Lava Flow
+This study	Simpson Island	SI3-9.60	SI3(5.5 to 12.5)	SI3-9.60a	Extrusive : Igneous	Basaltic Lava	Lava Flow
+This study	Simpson Island	SI3-9.63	SI3(5.5 to 12.5)	SI3-9.63-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI3-D10	SI3(D1 to D10)	SI3-D10a	Intrusive : Igneous	Diabase	Dike
+This study	Simpson Island	SI3-D1	SI3(D1 to D10)	SI3-D1a	Intrusive : Igneous	Diabase	Dike
+This study	Simpson Island	SI3-D2	SI3(D1 to D10)	SI3-D2a	Intrusive : Igneous	Diabase	Dike
+This study	Simpson Island	SI3-D4	SI3(D1 to D10)	SI3-D4a	Intrusive : Igneous	Diabase	Dike
+This study	Simpson Island	SI3-D5	SI3(D1 to D10)	SI3-D5a	Intrusive : Igneous	Diabase	Dike
+This study	Simpson Island	SI3-D6	SI3(D1 to D10)	SI3-D6a	Intrusive : Igneous	Diabase	Dike
+This study	Simpson Island	SI3-D7	SI3(D1 to D10)	SI3-D7a	Intrusive : Igneous	Diabase	Dike
+This study	Simpson Island	SI3-D9	SI3(D1 to D10)	SI3-D9a	Intrusive : Igneous	Diabase	Dike
+This study	Simpson Island	SI4-1.9	SI4(0.0 to 13.8)	SI4-1.9a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI4-108.00	SI4(106.0 to 121.4)	SI4-108.00a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI4-109.20	SI4(106.0 to 121.4)	SI4-109.20a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI4-109.21	SI4(106.0 to 121.4)	SI4-109.21a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI4-109.40	SI4(106.0 to 121.4)	SI4-109.40a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI4-111.40	SI4(106.0 to 121.4)	SI4-111.40a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI4-113.40	SI4(106.0 to 121.4)	SI4-113.40a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI4-113.50	SI4(106.0 to 121.4)	SI4-113.50a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI4-113.60	SI4(106.0 to 121.4)	SI4-113.60a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI4-122.80	SI4(121.4 to 127.3)	SI4-122.80a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI4-123.10	SI4(121.4 to 127.3)	SI4-123.10a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI4-123.65	SI4(121.4 to 127.3)	SI4-123.65a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI4-123.70	SI4(121.4 to 127.3)	SI4-123.70a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI4-123.80	SI4(121.4 to 127.3)	SI4-123.80a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI4-123.81	SI4(121.4 to 127.3)	SI4-123.81a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI4-124.05	SI4(121.4 to 127.3)	SI4-124.05a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI4-124.10	SI4(121.4 to 127.3)	SI4-124.10a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI4-138.60	SI4(133.8 to 143.1)	SI4-138.60a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI4-138.70	SI4(133.8 to 143.1)	SI4-138.70a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI4-139.20	SI4(133.8 to 143.1)	SI4-139.20a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI4-139.80	SI4(133.8 to 143.1)	SI4-139.80a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI4-139.81	SI4(133.8 to 143.1)	SI4-139.81a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI4-14.0	SI4(13.8 to 20.2)	SI4-14.0a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI4-140.80	SI4(133.8 to 143.1)	SI4-140.80a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI4-140.85	SI4(133.8 to 143.1)	SI4-140.85a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI4-141.30	SI4(133.8 to 143.1)	SI4-141.30a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI4-15.1	SI4(13.8 to 20.2)	SI4-15.1a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI4-15.7	SI4(13.8 to 20.2)	SI4-15.7a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI4-161.10	SI4(160.4 to 171.1)	SI4-161.10a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI4-161.21	SI4(160.4 to 171.1)	SI4-161.21a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI4-161.22	SI4(160.4 to 171.1)	SI4-161.22a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI4-161.23	SI4(160.4 to 171.1)	SI4-161.23a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI4-162.00	SI4(160.4 to 171.1)	SI4-162.00a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI4-162.11	SI4(160.4 to 171.1)	SI4-162.11a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI4-162.12	SI4(160.4 to 171.1)	SI4-162.12a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI4-162.20	SI4(160.4 to 171.1)	SI4-162.20a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI4-18.5	SI4(13.8 to 20.2)	SI4-18.5a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI4-18.7	SI4(13.8 to 20.2)	SI4-18.7a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI4-18.9	SI4(13.8 to 20.2)	SI4-18.9a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI4-2.5	SI4(0.0 to 13.8)	SI4-2.5a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI4-23.0	SI4(21.4 to 30.0)	SI4-23.0a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI4-24.1	SI4(21.4 to 30.0)	SI4-24.1a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI4-24.7	SI4(21.4 to 30.0)	SI4-24.7a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI4-25.2	SI4(21.4 to 30.0)	SI4-25.2a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI4-25.6	SI4(21.4 to 30.0)	SI4-25.6a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI4-25.8	SI4(21.4 to 30.0)	SI4-25.8a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI4-25.9	SI4(21.4 to 30.0)	SI4-25.9a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI4-3.2	SI4(0.0 to 13.8)	SI4-3.2a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI4-4.5	SI4(0.0 to 13.8)	SI4-4.5a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI4-4.6	SI4(0.0 to 13.8)	SI4-4.6a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI4-40.15	SI4(39.7 to 44.7)	SI4-40.15a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI4-40.2	SI4(39.7 to 44.7)	SI4-40.2a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI4-40.3	SI4(39.7 to 44.7)	SI4-40.3a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI4-40.5	SI4(39.7 to 44.7)	SI4-40.5a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI4-40.8	SI4(39.7 to 44.7)	SI4-40.8a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI4-41.0	SI4(39.7 to 44.7)	SI4-41.0a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI4-6.4	SI4(0.0 to 13.8)	SI4-6.4a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI4-73.65	SI4(72.3 to 74.6)	SI4-73.65a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI4-73.66	SI4(72.3 to 74.6)	SI4-73.66a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI4-73.70	SI4(72.3 to 74.6)	SI4-73.70a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI4-73.90	SI4(72.3 to 74.6)	SI4-73.90a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI4-74.00	SI4(72.3 to 74.6)	SI4-74.00a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI4-74.20	SI4(72.3 to 74.6)	SI4-74.20a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI4-74.39	SI4(72.3 to 74.6)	SI4-74.39a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI4-74.41	SI4(72.3 to 74.6)	SI4-74.41a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI4-75.20	SI4(74.6 to 80.0)	SI4-75.20a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI4-75.30	SI4(74.6 to 80.0)	SI4-75.30a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI4-75.35	SI4(74.6 to 80.0)	SI4-75.35a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI4-75.45	SI4(74.6 to 80.0)	SI4-75.45a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI4-75.60	SI4(74.6 to 80.0)	SI4-75.60a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI4-75.70	SI4(74.6 to 80.0)	SI4-75.70a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI4-76.00	SI4(74.6 to 80.0)	SI4-76.00a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI4-82.00	SI4(80.2 to 100.7)	SI4-82.00a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI4-82.60	SI4(80.2 to 100.7)	SI4-82.60a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI4-82.61	SI4(80.2 to 100.7)	SI4-82.61a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI4-82.90	SI4(80.2 to 100.7)	SI4-82.90a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI4-85.20	SI4(80.2 to 100.7)	SI4-85.20a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI4-86.70	SI4(80.2 to 100.7)	SI4-86.70a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI4-86.75	SI4(80.2 to 100.7)	SI4-86.75a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI4-86.85	SI4(80.2 to 100.7)	SI4-86.85a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI5a-1.40	SI5a(0.0 to 9.0)	SI5a-1.40a	Extrusive : Igneous	Basaltic Lava	Lava Flow
+This study	Simpson Island	SI5a-1.60	SI5a(0.0 to 9.0)	SI5a-1.60a	Extrusive : Igneous	Basaltic Lava	Lava Flow
+This study	Simpson Island	SI5a-2.1	SI5a(0.0 to 9.0)	SI5a-2.1-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI5a-2.1	SI5a(0.0 to 9.0)	SI5a-2.10a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI5a-2.3	SI5a(0.0 to 9.0)	SI5a-2.3-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI5a-2.3	SI5a(0.0 to 9.0)	SI5a-2.30a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI5a-2.60	SI5a(0.0 to 9.0)	SI5a-2.60a	Extrusive : Igneous	Basaltic Lava	Lava Flow
+This study	Simpson Island	SI5a-3.00	SI5a(0.0 to 9.0)	SI5a-3.00a	Extrusive : Igneous	Basaltic Lava	Lava Flow
+This study	Simpson Island	SI5a-5.00	SI5a(0.0 to 9.0)	SI5a-5.00a	Extrusive : Igneous	Basaltic Lava	Lava Flow
+This study	Simpson Island	SI5a-6.93	SI5a(0.0 to 9.0)	SI5a-6.93-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI5a-6.93	SI5a(0.0 to 9.0)	SI5a-6.93a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI5a-6.99	SI5a(0.0 to 9.0)	SI5a-6.99-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI5a-6.99	SI5a(0.0 to 9.0)	SI5a-6.99a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI5a-7.0	SI5a(0.0 to 9.0)	SI5a-7.0-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI5a-7.0	SI5a(0.0 to 9.0)	SI5a-7.00a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI5a-7.25	SI5a(0.0 to 9.0)	SI5a-7.25-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI5a-7.25	SI5a(0.0 to 9.0)	SI5a-7.25a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI5a-7.30	SI5a(0.0 to 9.0)	SI5a-7.30a	Extrusive : Igneous	Basaltic Lava	Lava Flow
+This study	Simpson Island	SI5b-116.6	SI5b(115.0 to 120.2)	SI5b-116.6-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI5b-116.90	SI5b(115.0 to 120.2)	SI5b-116.90a	Extrusive : Igneous	Basaltic Lava	Lava Flow
+This study	Simpson Island	SI5b-117.0	SI5b(115.0 to 120.2)	SI5b-117.0-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI5b-117.05	SI5b(115.0 to 120.2)	SI5b-117.05a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI5b-117.1	SI5b(115.0 to 120.2)	SI5b-117.1-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI5b-117.15	SI5b(115.0 to 120.2)	SI5b-117.15-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI5b-117.4	SI5b(115.0 to 120.2)	SI5b-117.4-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI5b-117.90	SI5b(115.0 to 120.2)	SI5b-117.90a	Extrusive : Igneous	Basaltic Lava	Lava Flow
+This study	Simpson Island	SI5b-118.25	SI5b(115.0 to 120.2)	SI5b-118.25-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI5b-13.6	SI5b(3.2 to 30.7)	SI5b-13.6-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI5b-133.3	SI5b(132.4 to 171.9)	SI5b-133.3-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI5b-133.4	SI5b(132.4 to 171.9)	SI5b-133.4-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI5b-14.4	SI5b(3.2 to 30.7)	SI5b-14.4-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI5b-14.7	SI5b(3.2 to 30.7)	SI5b-14.7-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI5b-146.00	SI5b(132.4 to 171.9)	SI5b-146.00a	Extrusive : Igneous	Basaltic Lava	Lava Flow
+This study	Simpson Island	SI5b-146.3	SI5b(132.4 to 171.9)	SI5b-146.3-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI5b-146.5	SI5b(132.4 to 171.9)	SI5b-146.5-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI5b-15.0	SI5b(3.2 to 30.7)	SI5b-15.0-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI5b-15.5	SI5b(3.2 to 30.7)	SI5b-15.5-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI5b-159.7	SI5b(132.4 to 171.9)	SI5b-159.7-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI5b-159.9	SI5b(132.4 to 171.9)	SI5b-159.9-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI5b-16.2	SI5b(3.2 to 30.7)	SI5b-16.2-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI5b-160.00	SI5b(132.4 to 171.9)	SI5b-160.00a	Extrusive : Igneous	Basaltic Lava	Lava Flow
+This study	Simpson Island	SI5b-184.2	SI5b(183.4 to 188.7)	SI5b-184.2-A	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI5b-184.2	SI5b(183.4 to 188.7)	SI5b-184.2-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI5b-184.3	SI5b(183.4 to 188.7)	SI5b-184.3-A	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI5b-184.3	SI5b(183.4 to 188.7)	SI5b-184.3-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI5b-184.5	SI5b(183.4 to 188.7)	SI5b-184.5-A	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI5b-184.5	SI5b(183.4 to 188.7)	SI5b-184.5-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI5b-185.7	SI5b(183.4 to 188.7)	SI5b-185.7-A	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI5b-185.7	SI5b(183.4 to 188.7)	SI5b-185.7-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI5b-186.2	SI5b(183.4 to 188.7)	SI5b-186.2-A	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI5b-186.2	SI5b(183.4 to 188.7)	SI5b-186.2-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI5b-186.5	SI5b(183.4 to 188.7)	SI5b-186.5-A	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI5b-186.5	SI5b(183.4 to 188.7)	SI5b-186.5-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI5b-198.3	SI5b(197.5 to 216.7)	SI5b-198.3-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI5b-198.6	SI5b(197.5 to 216.7)	SI5b-198.6-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI5b-198.8	SI5b(197.5 to 216.7)	SI5b-198.8-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI5b-212.4	SI5b(197.5 to 216.7)	SI5b-212.4-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI5b-214.0	SI5b(197.5 to 216.7)	SI5b-214.0-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI5b-214.2	SI5b(197.5 to 216.7)	SI5b-214.2-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI5b-57.6	SI5b(57.2 to 63.3)	SI5b-57.6-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI5b-57.65	SI5b(57.2 to 63.3)	SI5b-57.65-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI5b-57.7	SI5b(57.2 to 63.3)	SI5b-57.7-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI5b-58.0	SI5b(57.2 to 63.3)	SI5b-58.0-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI5b-58.05	SI5b(57.2 to 63.3)	SI5b-58.05-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI5b-58.7	SI5b(57.2 to 63.3)	SI5b-58.7-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI5b-65.1	SI5b(64.6 to 70.4)	SI5b-65.1-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI5b-65.2	SI5b(64.6 to 70.4)	SI5b-65.2-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI5b-65.4	SI5b(64.6 to 70.4)	SI5b-65.4-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI5b-68.35	SI5b(64.6 to 70.4)	SI5b-68.35-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI5b-68.4	SI5b(64.6 to 70.4)	SI5b-68.4-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI5b-68.45	SI5b(64.6 to 70.4)	SI5b-68.45-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI5b-74.0	SI5b(72.6 to 79.0)	SI5b-74.0-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI5b-74.25	SI5b(72.6 to 79.0)	SI5b-74.25-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI5b-74.3	SI5b(72.6 to 79.0)	SI5b-74.3-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI5b-75.4	SI5b(72.6 to 79.0)	SI5b-75.4-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI5b-76.0	SI5b(72.6 to 79.0)	SI5b-76.0-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI5b-76.2	SI5b(72.6 to 79.0)	SI5b-76.2-D	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI6-0.30	SI6(0.0 to 3.0)	SI6-0.30a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI6-0.50	SI6(0.0 to 3.0)	SI6-0.50a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI6-0.70	SI6(0.0 to 3.0)	SI6-0.70a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI6-0.80	SI6(0.0 to 3.0)	SI6-0.80a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI6-1.35	SI6(0.0 to 3.0)	SI6-1.35a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI6-1.40	SI6(0.0 to 3.0)	SI6-1.40a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI6-123.90	SI6(122.3 to 127.6)	SI6-123.90a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI6-124.00	SI6(122.3 to 127.6)	SI6-124.00a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI6-125.30	SI6(122.3 to 127.6)	SI6-125.30a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI6-125.80	SI6(122.3 to 127.6)	SI6-125.80a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI6-125.90	SI6(122.3 to 127.6)	SI6-125.90a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI6-126.00	SI6(122.3 to 127.6)	SI6-126.00a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI6-126.20	SI6(122.3 to 127.6)	SI6-126.20a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI6-13.35	SI6(12.0 to 28.4)	SI6-13.35a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI6-13.36	SI6(12.0 to 28.4)	SI6-13.36a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI6-13.45	SI6(12.0 to 28.4)	SI6-13.45a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI6-13.50	SI6(12.0 to 28.4)	SI6-13.50a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI6-14.20	SI6(12.0 to 28.4)	SI6-14.20a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI6-14.40	SI6(12.0 to 28.4)	SI6-14.40a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI6-14.45	SI6(12.0 to 28.4)	SI6-14.45a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI6-15.00	SI6(12.0 to 28.4)	SI6-15.00a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI6-181.60	SI6(180.6 to 188.8)	SI6-181.60a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI6-181.75	SI6(180.6 to 188.8)	SI6-181.75a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI6-182.20	SI6(180.6 to 188.8)	SI6-182.20a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI6-182.30	SI6(180.6 to 188.8)	SI6-182.30a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI6-182.40	SI6(180.6 to 188.8)	SI6-182.40a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI6-182.50	SI6(180.6 to 188.8)	SI6-182.50a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI6-183.00	SI6(180.6 to 188.8)	SI6-183.00a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI6-183.10	SI6(180.6 to 188.8)	SI6-183.10a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI6-2.20	SI6(0.0 to 3.0)	SI6-2.20a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI6-2.40	SI6(0.0 to 3.0)	SI6-2.40a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI6-208.60	SI6(208.4 to 219.9)	SI6-208.60a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI6-209.00	SI6(208.4 to 219.9)	SI6-209.00a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI6-209.10	SI6(208.4 to 219.9)	SI6-209.10a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI6-209.40	SI6(208.4 to 219.9)	SI6-209.40a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI6-209.50	SI6(208.4 to 219.9)	SI6-209.50a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI6-209.80	SI6(208.4 to 219.9)	SI6-209.80a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI6-210.05	SI6(208.4 to 219.9)	SI6-210.05a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI6-247.4	SI6(245.4 to 252.7)	SI6-247.4a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI6-247.7	SI6(245.4 to 252.7)	SI6-247.7a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI6-248.1	SI6(245.4 to 252.7)	SI6-248.1a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI6-248.8	SI6(245.4 to 252.7)	SI6-248.8a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI6-248.9	SI6(245.4 to 252.7)	SI6-248.9a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI6-249.2	SI6(245.4 to 252.7)	SI6-249.2a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI6-251.0	SI6(245.4 to 252.7)	SI6-251.0a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI6-251.2	SI6(245.4 to 252.7)	SI6-251.2a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI6-274.2	SI6(268.4 to 289.5)	SI6-274.2a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI6-274.3	SI6(268.4 to 289.5)	SI6-274.3a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI6-274.9	SI6(268.4 to 289.5)	SI6-274.9a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI6-275.3	SI6(268.4 to 289.5)	SI6-275.3a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI6-276.3	SI6(268.4 to 289.5)	SI6-276.3a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI6-277.0	SI6(268.4 to 289.5)	SI6-277.0a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI6-277.3	SI6(268.4 to 289.5)	SI6-277.3a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI6-277.5	SI6(268.4 to 289.5)	SI6-277.5a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI6-291.4	SI6(289.8 to 301.1)	SI6-291.4a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI6-291.8	SI6(289.8 to 301.1)	SI6-291.8a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI6-293.2	SI6(289.8 to 301.1)	SI6-293.2a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI6-294.0	SI6(289.8 to 301.1)	SI6-294.0a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI6-294.4	SI6(289.8 to 301.1)	SI6-294.4a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI6-294.6	SI6(289.8 to 301.1)	SI6-294.6a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI6-295.2	SI6(289.8 to 301.1)	SI6-295.2a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI6-296.2	SI6(289.8 to 301.1)	SI6-296.2a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI6-41.6	SI6(40.6 to 57.8)	SI6-41.6a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI6-42.6	SI6(40.6 to 57.8)	SI6-42.6a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI6-43.5	SI6(40.6 to 57.8)	SI6-43.5a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI6-43.6	SI6(40.6 to 57.8)	SI6-43.6a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI6-43.8	SI6(40.6 to 57.8)	SI6-43.8a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI6-46.5	SI6(40.6 to 57.8)	SI6-46.5a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI6-46.6	SI6(40.6 to 57.8)	SI6-46.6a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI6-50.9	SI6(40.6 to 57.8)	SI6-50.9a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI6-78.05	SI6(76.5 to 94.1)	SI6-78.05a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI6-78.20	SI6(76.5 to 94.1)	SI6-78.20a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI6-78.40	SI6(76.5 to 94.1)	SI6-78.40a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI6-79.80	SI6(76.5 to 94.1)	SI6-79.80a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI6-79.85	SI6(76.5 to 94.1)	SI6-79.85a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI6-79.90	SI6(76.5 to 94.1)	SI6-79.90a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI6-80.40	SI6(76.5 to 94.1)	SI6-80.40a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI6-80.45	SI6(76.5 to 94.1)	SI6-80.45a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI6-95.40	SI6(94.1 to 104.2)	SI6-95.40a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI6-95.50	SI6(94.1 to 104.2)	SI6-95.50a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI6-95.51	SI6(94.1 to 104.2)	SI6-95.51a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI6-95.60	SI6(94.1 to 104.2)	SI6-95.60a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI6-96.38	SI6(94.1 to 104.2)	SI6-96.38a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI6-96.40	SI6(94.1 to 104.2)	SI6-96.40a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI6-96.60	SI6(94.1 to 104.2)	SI6-96.60a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI7-0.2	SI7(0.0 to 3.9)	SI7-0.2a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI7-0.5	SI7(0.0 to 3.9)	SI7-0.5a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI7-1.0	SI7(0.0 to 3.9)	SI7-1.0a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI7-1.1	SI7(0.0 to 3.9)	SI7-1.1a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI7-1.4	SI7(0.0 to 3.9)	SI7-1.4a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI7-10.9	SI7(9.6 to 18.0)	SI7-10.9a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI7-11.80	SI7(9.6 to 18.0)	SI7-11.80a	Extrusive : Igneous	Basaltic Lava	Lava Flow
+This study	Simpson Island	SI7-11.8	SI7(9.6 to 18.0)	SI7-11.8a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI7-12.70	SI7(9.6 to 18.0)	SI7-12.70a	Extrusive : Igneous	Basaltic Lava	Lava Flow
+This study	Simpson Island	SI7-12.7	SI7(9.6 to 18.0)	SI7-12.7a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI7-13.20	SI7(9.6 to 18.0)	SI7-13.20a	Extrusive : Igneous	Basaltic Lava	Lava Flow
+This study	Simpson Island	SI7-13.2	SI7(9.6 to 18.0)	SI7-13.2a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI7-13.70	SI7(9.6 to 18.0)	SI7-13.70a	Extrusive : Igneous	Basaltic Lava	Lava Flow
+This study	Simpson Island	SI7-13.7	SI7(9.6 to 18.0)	SI7-13.7a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI7-14.2	SI7(9.6 to 18.0)	SI7-14.2a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI7-15.6	SI7(9.6 to 18.0)	SI7-15.6a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI7-16.0	SI7(9.6 to 18.0)	SI7-16.0a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI7-2.4	SI7(0.0 to 3.9)	SI7-2.4a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI7-2.6	SI7(0.0 to 3.9)	SI7-2.6a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI7-2.7	SI7(0.0 to 3.9)	SI7-2.7a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI7-3.94	SI7(3.9 to 5.4)	SI7-3.94a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI7-3.95	SI7(3.9 to 5.4)	SI7-3.95a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI7-3.96	SI7(3.9 to 5.4)	SI7-3.96a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI7-3.98	SI7(3.9 to 5.4)	SI7-3.98a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI7-4.20	SI7(3.9 to 5.4)	SI7-4.20a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI7-4.70	SI7(3.9 to 5.4)	SI7-4.70a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI7-4.75	SI7(3.9 to 5.4)	SI7-4.75a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI8-1.70	SI8(0.0 to 3.9)	SI8-1.70a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI8-1.80	SI8(0.0 to 3.9)	SI8-1.80a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI8-1.90	SI8(0.0 to 3.9)	SI8-1.90a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI8-108.6	SI8(106.6 to 115.4)	SI8-108.6a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI8-109.8	SI8(106.6 to 115.4)	SI8-109.8a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI8-111.2	SI8(106.6 to 115.4)	SI8-111.2a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI8-111.6	SI8(106.6 to 115.4)	SI8-111.6a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI8-111.8	SI8(106.6 to 115.4)	SI8-111.8a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI8-113.6	SI8(106.6 to 115.4)	SI8-113.6a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI8-114.4	SI8(106.6 to 115.4)	SI8-114.4a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI8-115.4	SI8(106.6 to 115.4)	SI8-115.4a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI8-2.00	SI8(0.0 to 3.9)	SI8-2.00a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI8-2.30	SI8(0.0 to 3.9)	SI8-2.30a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI8-2.70	SI8(0.0 to 3.9)	SI8-2.70a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI8-2.75	SI8(0.0 to 3.9)	SI8-2.75a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI8-28.7	SI8(19.3 to 45.0)	SI8-28.7a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI8-29.7	SI8(19.3 to 45.0)	SI8-29.7a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI8-29.9	SI8(19.3 to 45.0)	SI8-29.9a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI8-3.30	SI8(0.0 to 3.9)	SI8-3.30a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI8-31.5	SI8(19.3 to 45.0)	SI8-31.5a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI8-31.7	SI8(19.3 to 45.0)	SI8-31.7a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI8-32.4	SI8(19.3 to 45.0)	SI8-32.4a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI8-32.8	SI8(19.3 to 45.0)	SI8-32.8a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI8-35.2	SI8(19.3 to 45.0)	SI8-35.2a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI8-50.0	SI8(47.5 to 56.7)	SI8-50.0a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI8-50.5	SI8(47.5 to 56.7)	SI8-50.5a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI8-50.6	SI8(47.5 to 56.7)	SI8-50.6a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI8-51.3	SI8(47.5 to 56.7)	SI8-51.3a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI8-52.2	SI8(47.5 to 56.7)	SI8-52.2a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI8-53.0	SI8(47.5 to 56.7)	SI8-53.0a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI8-53.2	SI8(47.5 to 56.7)	SI8-53.2a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI8-54.0	SI8(47.5 to 56.7)	SI8-54.0a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI8-6.0	SI8(3.9 to 19.3)	SI8-6.0a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI8-6.2	SI8(3.9 to 19.3)	SI8-6.2a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI8-6.3	SI8(3.9 to 19.3)	SI8-6.3a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI8-6.4	SI8(3.9 to 19.3)	SI8-6.4a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI8-6.5	SI8(3.9 to 19.3)	SI8-6.5a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI8-7.8	SI8(3.9 to 19.3)	SI8-7.8a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI8-70.3	SI8(62.9 to 84.4)	SI8-70.3a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI8-70.4	SI8(62.9 to 84.4)	SI8-70.4a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI8-70.7	SI8(62.9 to 84.4)	SI8-70.7a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI8-72.1	SI8(62.9 to 84.4)	SI8-72.1a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI8-72.3	SI8(62.9 to 84.4)	SI8-72.3a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI8-72.9	SI8(62.9 to 84.4)	SI8-72.9a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI8-73.2	SI8(62.9 to 84.4)	SI8-73.2a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI8-73.4	SI8(62.9 to 84.4)	SI8-73.4a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI8-88.2	SI8(84.4 to 102.6)	SI8-88.2a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI8-9.0	SI8(3.9 to 19.3)	SI8-9.0a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI8-9.2	SI8(3.9 to 19.3)	SI8-9.2a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI8-90.2	SI8(84.4 to 102.6)	SI8-90.2a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI8-90.8	SI8(84.4 to 102.6)	SI8-90.8a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI8-90.9	SI8(84.4 to 102.6)	SI8-90.9a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI8-91.3	SI8(84.4 to 102.6)	SI8-91.3a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI8-92.5	SI8(84.4 to 102.6)	SI8-92.5a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI8-96.9	SI8(84.4 to 102.6)	SI8-96.9a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI8-97.0	SI8(84.4 to 102.6)	SI8-97.0a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI8-D1	SI8(D1-D9)	SI8-D1a	Intrusive : Igneous	Diabase	Dike
+This study	Simpson Island	SI8-D2	SI8(D1-D9)	SI8-D2a	Intrusive : Igneous	Diabase	Dike
+This study	Simpson Island	SI8-D3	SI8(D1-D9)	SI8-D3a	Intrusive : Igneous	Diabase	Dike
+This study	Simpson Island	SI8-D5	SI8(D1-D9)	SI8-D5a	Intrusive : Igneous	Diabase	Dike
+This study	Simpson Island	SI8-D6	SI8(D1-D9)	SI8-D6a	Intrusive : Igneous	Diabase	Dike
+This study	Simpson Island	SI8-D7	SI8(D1-D9)	SI8-D7a	Intrusive : Igneous	Diabase	Dike
+This study	Simpson Island	SI8-D8	SI8(D1-D9)	SI8-D8a	Intrusive : Igneous	Diabase	Dike
+This study	Simpson Island	SI8-D9	SI8(D1-D9)	SI8-D9a	Intrusive : Igneous	Diabase	Dike
+This study	Simpson Island	SI9-14.00	SI9(12.0 to 21.2)	SI9-14.00a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI9-14.20	SI9(12.0 to 21.2)	SI9-14.20a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI9-14.21	SI9(12.0 to 21.2)	SI9-14.21a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI9-14.50	SI9(12.0 to 21.2)	SI9-14.50a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI9-14.80	SI9(12.0 to 21.2)	SI9-14.80a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI9-142.8	SI9(139.8 to 160.0)	SI9-142.8a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI9-143.4	SI9(139.8 to 160.0)	SI9-143.4a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI9-143.6	SI9(139.8 to 160.0)	SI9-143.6a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI9-144.8	SI9(139.8 to 160.0)	SI9-144.8a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI9-146.0	SI9(139.8 to 160.0)	SI9-146.0a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI9-146.4	SI9(139.8 to 160.0)	SI9-146.4a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI9-148.3	SI9(139.8 to 160.0)	SI9-148.3a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI9-148.4	SI9(139.8 to 160.0)	SI9-148.4a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI9-15.30	SI9(12.0 to 21.2)	SI9-15.30a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI9-16.00	SI9(12.0 to 21.2)	SI9-16.00a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI9-16.10	SI9(12.0 to 21.2)	SI9-16.10a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI9-162.90	SI9(160.0 to 166.5)	SI9-162.90a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI9-163.50	SI9(160.0 to 166.5)	SI9-163.50a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI9-163.90	SI9(160.0 to 166.5)	SI9-163.90a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI9-164.10	SI9(160.0 to 166.5)	SI9-164.10a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI9-164.20	SI9(160.0 to 166.5)	SI9-164.20a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI9-164.25	SI9(160.0 to 166.5)	SI9-164.25a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI9-164.30	SI9(160.0 to 166.5)	SI9-164.30a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI9-164.40	SI9(160.0 to 166.5)	SI9-164.40a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI9-166.9	SI9(166.5 to 171.4)	SI9-166.9a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI9-167.0	SI9(166.5 to 171.4)	SI9-167.0a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI9-167.1	SI9(166.5 to 171.4)	SI9-167.1a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI9-167.2	SI9(166.5 to 171.4)	SI9-167.2a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI9-167.3	SI9(166.5 to 171.4)	SI9-167.3a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI9-167.6	SI9(166.5 to 171.4)	SI9-167.6a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI9-167.7	SI9(166.5 to 171.4)	SI9-167.7a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI9-168.1	SI9(166.5 to 171.4)	SI9-168.1a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI9-173.0	SI9(171.4 to 188.8)	SI9-173.0a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI9-173.1	SI9(171.4 to 188.8)	SI9-173.1a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI9-173.3	SI9(171.4 to 188.8)	SI9-173.3a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI9-173.5	SI9(171.4 to 188.8)	SI9-173.5a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI9-173.6	SI9(171.4 to 188.8)	SI9-173.6a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI9-173.7	SI9(171.4 to 188.8)	SI9-173.7a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI9-3.90	SI9(0.0 to 9.2)	SI9-3.90a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI9-315.30	SI9(312.1 to 321.0)	SI9-315.30a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI9-315.35	SI9(312.1 to 321.0)	SI9-315.35a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI9-315.40	SI9(312.1 to 321.0)	SI9-315.40a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI9-316.40	SI9(312.1 to 321.0)	SI9-316.40a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI9-316.80	SI9(312.1 to 321.0)	SI9-316.80a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI9-317.10	SI9(312.1 to 321.0)	SI9-317.10a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI9-317.60	SI9(312.1 to 321.0)	SI9-317.60a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI9-317.70	SI9(312.1 to 321.0)	SI9-317.70a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI9-337.4	SI9(336.4 to 353.8)	SI9-337.4a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI9-337.7	SI9(336.4 to 353.8)	SI9-337.7a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI9-337.8	SI9(336.4 to 353.8)	SI9-337.8a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI9-337.9	SI9(336.4 to 353.8)	SI9-337.9a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI9-338.3	SI9(336.4 to 353.8)	SI9-338.3a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI9-338.5	SI9(336.4 to 353.8)	SI9-338.5a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI9-340.2	SI9(336.4 to 353.8)	SI9-340.2a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI9-340.3	SI9(336.4 to 353.8)	SI9-340.3a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI9-377.0	SI9(375.9 to 381.0)	SI9-377.0a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI9-377.3	SI9(375.9 to 381.0)	SI9-377.3a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI9-377.4	SI9(375.9 to 381.0)	SI9-377.4a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI9-377.5	SI9(375.9 to 381.0)	SI9-377.5a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI9-377.6	SI9(375.9 to 381.0)	SI9-377.6a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI9-390.20	SI9(387.6 to 395.3)	SI9-390.20a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI9-390.30	SI9(387.6 to 395.3)	SI9-390.30a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI9-390.90	SI9(387.6 to 395.3)	SI9-390.90a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI9-391.00	SI9(387.6 to 395.3)	SI9-391.00a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI9-391.10	SI9(387.6 to 395.3)	SI9-391.10a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI9-391.50	SI9(387.6 to 395.3)	SI9-391.50a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI9-391.51	SI9(387.6 to 395.3)	SI9-391.51a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI9-392.30	SI9(387.6 to 395.3)	SI9-392.30a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI9-396.10	SI9(395.3 to 399.3)	SI9-396.10a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI9-396.50	SI9(395.3 to 399.3)	SI9-396.50a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI9-396.51	SI9(395.3 to 399.3)	SI9-396.51a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI9-396.60	SI9(395.3 to 399.3)	SI9-396.60a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI9-396.80	SI9(395.3 to 399.3)	SI9-396.80a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI9-396.85	SI9(395.3 to 399.3)	SI9-396.85a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI9-396.90	SI9(395.3 to 399.3)	SI9-396.90a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI9-4.00	SI9(0.0 to 9.2)	SI9-4.00a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI9-4.80	SI9(0.0 to 9.2)	SI9-4.80a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI9-4.81	SI9(0.0 to 9.2)	SI9-4.81a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI9-6.50	SI9(0.0 to 9.2)	SI9-6.50a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI9-6.68	SI9(0.0 to 9.2)	SI9-6.68a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI9-6.70	SI9(0.0 to 9.2)	SI9-6.70a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI9-80.60	SI9(66.9 to 84.0)	SI9-80.60a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI9-80.70	SI9(66.9 to 84.0)	SI9-80.70a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI9-81.20	SI9(66.9 to 84.0)	SI9-81.20a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI9-81.30	SI9(66.9 to 84.0)	SI9-81.30a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI9-81.40	SI9(66.9 to 84.0)	SI9-81.40a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI9-81.85	SI9(66.9 to 84.0)	SI9-81.85a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI9-81.90	SI9(66.9 to 84.0)	SI9-81.90a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI9-84.60	SI9(84.0 to 88.9)	SI9-84.60a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI9-84.70	SI9(84.0 to 88.9)	SI9-84.70a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI9-85.10	SI9(84.0 to 88.9)	SI9-85.10a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI9-85.15	SI9(84.0 to 88.9)	SI9-85.15a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI9-85.20	SI9(84.0 to 88.9)	SI9-85.20a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI9-85.40	SI9(84.0 to 88.9)	SI9-85.40a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI9-85.60	SI9(84.0 to 88.9)	SI9-85.60a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI9-85.64	SI9(84.0 to 88.9)	SI9-85.64a	Igneous : Extrusive	Basalt	Lava Flow
+This study	Simpson Island	SI9-D10	SI9(D10 to D18)	SI9-D10a	Intrusive : Igneous	Diabase	Dike
+This study	Simpson Island	SI9-D11	SI9(D10 to D18)	SI9-D11a	Intrusive : Igneous	Diabase	Dike
+This study	Simpson Island	SI9-D12	SI9(D10 to D18)	SI9-D12a	Intrusive : Igneous	Diabase	Dike
+This study	Simpson Island	SI9-D13	SI9(D10 to D18)	SI9-D13a	Intrusive : Igneous	Diabase	Dike
+This study	Simpson Island	SI9-D14	SI9(D10 to D18)	SI9-D14a	Intrusive : Igneous	Diabase	Dike
+This study	Simpson Island	SI9-D16	SI9(D10 to D18)	SI9-D16a	Intrusive : Igneous	Diabase	Dike
+This study	Simpson Island	SI9-D17	SI9(D10 to D18)	SI9-D17a	Intrusive : Igneous	Diabase	Dike
+This study	Simpson Island	SI9-D18	SI9(D10 to D18)	SI9-D18a	Intrusive : Igneous	Diabase	Dike
+This study	Simpson Island	SI9-D1	SI9(D1-D9)	SI9-D1a	Intrusive : Igneous	Diabase	Dike
+This study	Simpson Island	SI9-D2	SI9(D1-D9)	SI9-D2a	Intrusive : Igneous	Diabase	Dike
+This study	Simpson Island	SI9-D3	SI9(D1-D9)	SI9-D3a	Intrusive : Igneous	Diabase	Dike
+This study	Simpson Island	SI9-D4	SI9(D1-D9)	SI9-D4a	Intrusive : Igneous	Diabase	Dike
+This study	Simpson Island	SI9-D6	SI9(D1-D9)	SI9-D6a	Intrusive : Igneous	Diabase	Dike
+This study	Simpson Island	SI9-D7	SI9(D1-D9)	SI9-D7a	Intrusive : Igneous	Diabase	Dike
+This study	Simpson Island	SI9-D8	SI9(D1-D9)	SI9-D8a	Intrusive : Igneous	Diabase	Dike
+This study	Simpson Island	SI9-D9	SI9(D1-D9)	SI9-D9a	Intrusive : Igneous	Diabase	Dike

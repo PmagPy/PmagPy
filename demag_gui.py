@@ -645,6 +645,7 @@ class Demag_GUI(wx.Frame):
         menu_file.AppendSeparator()
         m_exit = menu_file.Append(-1, "E&xit\tCtrl-Q", "Exit")
         self.Bind(wx.EVT_MENU, self.on_menu_exit, m_exit)
+
         #-------------------------------------------------------------------------------
 
         menu_Analysis = wx.Menu()
@@ -668,6 +669,9 @@ class Demag_GUI(wx.Frame):
         self.Bind(wx.EVT_MENU, self.on_menu_read_all_inp, m_read_all_inp)
 
         menu_Analysis.AppendMenu(-1, "&Convert and Combine MagFiles", m_read)
+
+        m_import_LSQ = menu_Analysis.Append(-1, "&Import Interpretations from LSQ file\tCtrl-L", "")
+        self.Bind(wx.EVT_MENU, self.on_menu_read_from_LSQ, m_import_LSQ)
 
         m_previous_interpretation = menu_Analysis.Append(-1, "&Import previous interpretation from a redo file\tCtrl-R", "")
         self.Bind(wx.EVT_MENU, self.on_menu_previous_interpretation, m_previous_interpretation)
@@ -2665,6 +2669,25 @@ class Demag_GUI(wx.Frame):
         fin.close()
         return(DATA)
 
+    def read_from_LSQ(self,LSQ_file):
+        interps = read_LSQ(LSQ_file)
+        for interp in interps:
+            specimen = interp['er_specimen_name']
+            if specimen not in self.specimens: continue
+            PCA_type = interp['magic_method_codes'].split(':')[0]
+            tmin_index = interp['measurement_min_index']
+            tmax_index = interp['measurement_max_index']
+            tmin = self.Data[specimen]['zijdblock_steps'][tmin_index]
+            tmax = self.Data[specimen]['zijdblock_steps'][tmax_index]
+            if specimen not in self.pmag_results_data['specimens'].keys():
+                self.pmag_results_data['specimens'][specimen] = []
+            next_fit = str(len(self.pmag_results_data['specimens'][specimen]) + 1)
+            while ('Fit ' + next_fit) in map(lambda x: x.name, self.pmag_results_data['specimens'][specimen]): 
+                next_fit = str(int(next_fit)+1)
+            new_fit = Fit('Fit ' + next_fit, tmin, tmax, self.colors[(int(next_fit)-1) % len(self.colors)], self, PCA_type)
+            self.pmag_results_data['specimens'][specimen].append(new_fit)
+            new_fit.put(specimen,self.COORDINATE_SYSTEM,self.get_PCA_parameters(specimen,new_fit,tmin,tmax,self.COORDINATE_SYSTEM,PCA_type))
+
     def read_redo_file(self,redo_file):
         """
         Read previous interpretation from a redo file
@@ -2707,7 +2730,7 @@ class Demag_GUI(wx.Frame):
                     except IndexError: color = self.colors[(int(next_fit)-1) % len(self.colors)]
                     if ',' in color:
                         color = map(float,color.strip('( ) [ ]').split(','))
-                    self.pmag_results_data['specimens'][self.s].append(Fit('Fit ' + next_fit, None, None, color, self))
+                    self.pmag_results_data['specimens'][self.s].append(Fit('Fit ' + next_fit, tmax, tmin, color, self))
                 fit = self.pmag_results_data['specimens'][specimen][fit_index];
                 fit.name = line[4]
                 try:
@@ -2716,10 +2739,10 @@ class Demag_GUI(wx.Frame):
                 except IndexError: pass
             else:
                 next_fit = str(len(self.pmag_results_data['specimens'][self.s]) + 1)
-                self.pmag_results_data['specimens'][self.s].append(Fit('Fit ' + next_fit, None, None, self.colors[(int(next_fit)-1) % len(self.colors)], self))
+                self.pmag_results_data['specimens'][self.s].append(Fit('Fit ' + next_fit, tmax, tmin, self.colors[(int(next_fit)-1) % len(self.colors)], self))
                 fit = self.pmag_results_data['specimens'][specimen][-1]
 
-            fit.put(self.s,self.COORDINATE_SYSTEM,self.get_PCA_parameters(specimen,fit,tmin,tmax,self.COORDINATE_SYSTEM,calculation_type))
+            fit.put(specimen,self.COORDINATE_SYSTEM,self.get_PCA_parameters(specimen,fit,tmin,tmax,self.COORDINATE_SYSTEM,calculation_type))
 
         fin.close()
         self.s=str(self.specimens_box.GetValue())
@@ -2731,7 +2754,6 @@ class Demag_GUI(wx.Frame):
         if self.interpretation_editor_open:
             self.interpretation_editor.update_editor()
         self.update_selection()
-        print(self.pmag_results_data['sites'])
 
     def read_inp(self,inp_file_name,magic_files):
         inp_file = open(inp_file_name, "r")
@@ -2829,7 +2851,7 @@ class Demag_GUI(wx.Frame):
 
     def init_log_file(self):
         #redirect terminal output
-        #sys.stdout = open(os.path.join(self.WD, "demag_gui.log"),'w+')
+#        sys.stdout = open(os.path.join(self.WD, "demag_gui.log"),'w+')
         #create log file variable
         self.GUI_log=open(os.path.join(self.WD, "demag_gui.log"),'w+')
         self.GUI_log.write("start gui\n")
@@ -4028,6 +4050,21 @@ class Demag_GUI(wx.Frame):
 
         if redo_file:
             self.read_redo_file(redo_file)
+
+    def on_menu_read_from_LSQ(self,event):
+        self.dlg = wx.FileDialog(
+            self, message="choose a LSQ file",
+            defaultDir=self.WD,
+            wildcard="*.LSQ",
+            style=wx.OPEN
+            )
+        if self.dlg.ShowModal() == wx.ID_OK:
+            LSQ_file = self.dlg.GetPath()
+        else:
+            LSQ_file = None
+        self.dlg.Destroy()
+
+        self.read_from_LSQ(LSQ_file)
 
     def on_menu_save_interpretation(self,event,redo_file_name = "demag_gui.redo"):
         fout=open(redo_file_name,'w')

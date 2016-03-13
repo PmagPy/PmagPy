@@ -1,0 +1,722 @@
+tab 	er_samples
+er_citation_names	er_location_name	er_sample_name	er_site_name	magic_method_codes	sample_azimuth	sample_class	sample_description	sample_dip	sample_lat	sample_lithology	sample_lon	sample_type
+This study	Simpson Island	SI1-116.9	SI1(116.3 to 118.8)	FS-FD:SO-POM:SO-CMD-NORTH	271.0	Igneous : Extrusive	oriented core	-92	48.8062	Basalt	272.3366	Lava Flow
+This study	Simpson Island	SI1-116.95	SI1(116.3 to 118.8)	FS-FD:SO-POM:SO-CMD-NORTH	264.0	Igneous : Extrusive	oriented core	-85	48.8062	Basalt	272.3366	Lava Flow
+This study	Simpson Island	SI1-116.96	SI1(116.3 to 118.8)	FS-FD:SO-POM:SO-CMD-NORTH	11.0	Igneous : Extrusive	oriented core	-20	48.8062	Basalt	272.3366	Lava Flow
+This study	Simpson Island	SI1-116.97	SI1(116.3 to 118.8)	FS-FD:SO-POM:SO-CMD-NORTH	29.0	Igneous : Extrusive	oriented core	-18	48.8062	Basalt	272.3366	Lava Flow
+This study	Simpson Island	SI1-117.05	SI1(116.3 to 118.8)	FS-FD:SO-POM:SO-CMD-NORTH	251.0	Igneous : Extrusive	oriented core	-58	48.8062	Basalt	272.3366	Lava Flow
+This study	Simpson Island	SI1-117.2	SI1(116.3 to 118.8)	FS-FD:SO-POM:SO-CMD-NORTH	278.0	Igneous : Extrusive	oriented core	-80	48.8062	Basalt	272.3366	Lava Flow
+This study	Simpson Island	SI1-12.5	SI1(11.8 to 26.4)	FS-FD:SO-POM:SO-CMD-NORTH	266.0	Igneous : Extrusive	oriented core	-63	48.8122	Basalt	272.338	Lava Flow
+This study	Simpson Island	SI1-12.55	SI1(11.8 to 26.4)	FS-FD:SO-POM:SO-CMD-NORTH	186.0	Igneous : Extrusive	oriented core	-47	48.8122	Basalt	272.338	Lava Flow
+This study	Simpson Island	SI1-12.95	SI1(11.8 to 26.4)	FS-FD:SO-POM:SO-CMD-NORTH	310.0	Igneous : Extrusive	oriented core	-25	48.8122	Basalt	272.338	Lava Flow
+This study	Simpson Island	SI1-120.4	SI1(119.7 to 122.1)	FS-FD:SO-POM:SO-CMD-NORTH	253.0	Igneous : Extrusive	oriented core	-64	48.806	Basalt	272.3366	Lava Flow
+This study	Simpson Island	SI1-120.42	SI1(119.7 to 122.1)	FS-FD:SO-POM:SO-CMD-NORTH	254.0	Igneous : Extrusive	oriented core	-70	48.806	Basalt	272.3366	Lava Flow
+This study	Simpson Island	SI1-120.45	SI1(119.7 to 122.1)	FS-FD:SO-POM:SO-CMD-NORTH	255.0	Igneous : Extrusive	oriented core	-72	48.806	Basalt	272.3366	Lava Flow
+This study	Simpson Island	SI1-120.5	SI1(119.7 to 122.1)	FS-FD:SO-POM:SO-CMD-NORTH	223.0	Igneous : Extrusive	oriented core	-30	48.806	Basalt	272.3366	Lava Flow
+This study	Simpson Island	SI1-120.52	SI1(119.7 to 122.1)	FS-FD:SO-POM:SO-CMD-NORTH	297.0	Igneous : Extrusive	oriented core	-16	48.806	Basalt	272.3366	Lava Flow
+This study	Simpson Island	SI1-120.6	SI1(119.7 to 122.1)	FS-FD:SO-POM:SO-CMD-NORTH	243.0	Igneous : Extrusive	oriented core	-14	48.806	Basalt	272.3366	Lava Flow
+This study	Simpson Island	SI1-122.4	SI1(122.1 to 123.7)	FS-FD:SO-POM:SO-CMD-NORTH	192.0	Igneous : Extrusive	oriented core	-79	48.8058	Basalt	272.3367	Lava Flow
+This study	Simpson Island	SI1-122.5	SI1(122.1 to 123.7)	FS-FD:SO-POM:SO-CMD-NORTH	305.0	Igneous : Extrusive	oriented core	-7	48.8058	Basalt	272.3367	Lava Flow
+This study	Simpson Island	SI1-122.65	SI1(122.1 to 123.7)	FS-FD:SO-POM:SO-CMD-NORTH	227.0	Igneous : Extrusive	oriented core	-32	48.8058	Basalt	272.3367	Lava Flow
+This study	Simpson Island	SI1-122.69	SI1(122.1 to 123.7)	FS-FD:SO-POM:SO-CMD-NORTH	223.0	Igneous : Extrusive	oriented core	-35	48.8058	Basalt	272.3367	Lava Flow
+This study	Simpson Island	SI1-123.35	SI1(122.1 to 123.7)	FS-FD:SO-POM:SO-CMD-NORTH	316.0	Igneous : Extrusive	oriented core	-24	48.8058	Basalt	272.3367	Lava Flow
+This study	Simpson Island	SI1-123.4	SI1(122.1 to 123.7)	FS-FD:SO-POM:SO-CMD-NORTH	297.0	Igneous : Extrusive	oriented core	-13	48.8058	Basalt	272.3367	Lava Flow
+This study	Simpson Island	SI1-13.0	SI1(11.8 to 26.4)	FS-FD:SO-POM:SO-CMD-NORTH	336.0	Igneous : Extrusive	oriented core	-29	48.8122	Basalt	272.338	Lava Flow
+This study	Simpson Island	SI1-13.4	SI1(11.8 to 26.4)	FS-FD:SO-POM:SO-CMD-NORTH	253.0	Igneous : Extrusive	oriented core	-53	48.8122	Basalt	272.338	Lava Flow
+This study	Simpson Island	SI1-14.2	SI1(11.8 to 26.4)	FS-FD:SO-POM:SO-CMD-NORTH	294.0	Igneous : Extrusive	oriented core	-26	48.8122	Basalt	272.338	Lava Flow
+This study	Simpson Island	SI1-14.4	SI1(11.8 to 26.4)	FS-FD:SO-POM:SO-CMD-NORTH	289.0	Igneous : Extrusive	oriented core	-40	48.8122	Basalt	272.338	Lava Flow
+This study	Simpson Island	SI1-14.9	SI1(11.8 to 26.4)	FS-FD:SO-POM:SO-CMD-NORTH	272.0	Igneous : Extrusive	oriented core	-66	48.8122	Basalt	272.338	Lava Flow
+This study	Simpson Island	SI1-28.68	SI1(28.3 to 29.2)	FS-FD:SO-POM:SO-CMD-NORTH	241.0	Igneous : Extrusive	oriented core	-75	48.8104	Basalt	272.3378	Lava Flow
+This study	Simpson Island	SI1-28.7	SI1(28.3 to 29.2)	FS-FD:SO-POM:SO-CMD-NORTH	255.0	Igneous : Extrusive	oriented core	-81	48.8104	Basalt	272.3378	Lava Flow
+This study	Simpson Island	SI1-28.8	SI1(28.3 to 29.2)	FS-FD:SO-POM:SO-CMD-NORTH	273.0	Igneous : Extrusive	oriented core	-69	48.8104	Basalt	272.3378	Lava Flow
+This study	Simpson Island	SI1-28.85	SI1(28.3 to 29.2)	FS-FD:SO-POM:SO-CMD-NORTH	276.0	Igneous : Extrusive	oriented core	-70	48.8104	Basalt	272.3378	Lava Flow
+This study	Simpson Island	SI1-28.9	SI1(28.3 to 29.2)	FS-FD:SO-POM:SO-CMD-NORTH	249.0	Igneous : Extrusive	oriented core	-87	48.8104	Basalt	272.3378	Lava Flow
+This study	Simpson Island	SI1-29.0	SI1(28.3 to 29.2)	FS-FD:SO-POM:SO-CMD-NORTH	252.0	Igneous : Extrusive	oriented core	-83	48.8104	Basalt	272.3378	Lava Flow
+This study	Simpson Island	SI1-29.1	SI1(28.3 to 29.2)	FS-FD:SO-POM:SO-CMD-NORTH	291.0	Igneous : Extrusive	oriented core	-77	48.8104	Basalt	272.3377	Lava Flow
+This study	Simpson Island	SI1-29.15	SI1(29.2 to 29.7)	FS-FD:SO-POM:SO-CMD-NORTH	269.0	Igneous : Extrusive	oriented core	-107	48.8104	Basalt	272.3377	Lava Flow
+This study	Simpson Island	SI1-29.2	SI1(28.3 to 29.2)	FS-FD:SO-POM:SO-CMD-NORTH	278.0	Igneous : Extrusive	oriented core	-80	48.8104	Basalt	272.3377	Lava Flow
+This study	Simpson Island	SI1-29.24	SI1(29.2 to 29.7)	FS-FD:SO-POM:SO-CMD-NORTH	230.0	Igneous : Extrusive	oriented core	-61	48.8104	Basalt	272.3377	Lava Flow
+This study	Simpson Island	SI1-29.25	SI1(29.2 to 29.7)	FS-FD:SO-POM:SO-CMD-NORTH	295.0	Igneous : Extrusive	oriented core	-79	48.8104	Basalt	272.3377	Lava Flow
+This study	Simpson Island	SI1-29.4	SI1(29.2 to 29.7)	FS-FD:SO-POM:SO-CMD-NORTH	263.0	Igneous : Extrusive	oriented core	-76	48.8104	Basalt	272.3377	Lava Flow
+This study	Simpson Island	SI1-33.4	SI1(33.3 to 37.1)	FS-FD:SO-POM:SO-CMD-NORTH	213.0	Igneous : Extrusive	oriented core	-59	48.81	Basalt	272.3377	Lava Flow
+This study	Simpson Island	SI1-33.5	SI1(33.3 to 37.1)	FS-FD:SO-POM:SO-CMD-NORTH	309.0	Igneous : Extrusive	oriented core	-39	48.81	Basalt	272.3377	Lava Flow
+This study	Simpson Island	SI1-34.2	SI1(33.3 to 37.1)	FS-FD:SO-POM:SO-CMD-NORTH	218.0	Igneous : Extrusive	oriented core	-37	48.81	Basalt	272.3377	Lava Flow
+This study	Simpson Island	SI1-34.7	SI1(33.3 to 37.1)	FS-FD:SO-POM:SO-CMD-NORTH	232.0	Igneous : Extrusive	oriented core	-89	48.81	Basalt	272.3377	Lava Flow
+This study	Simpson Island	SI1-34.75	SI1(33.3 to 37.1)	FS-FD:SO-POM:SO-CMD-NORTH	232.0	Igneous : Extrusive	oriented core	-90	48.81	Basalt	272.3377	Lava Flow
+This study	Simpson Island	SI1-34.8	SI1(33.3 to 37.1)	FS-FD:SO-POM:SO-CMD-NORTH	229.0	Igneous : Extrusive	oriented core	-91	48.81	Basalt	272.3377	Lava Flow
+This study	Simpson Island	SI1-40.9	SI1(40.6 to 42.5)	FS-FD:SO-POM:SO-CMD-NORTH	265.0	Igneous : Extrusive	oriented core	-53	48.8096	Basalt	272.3374	Lava Flow
+This study	Simpson Island	SI1-40.95	SI1(40.6 to 42.5)	FS-FD:SO-POM:SO-CMD-NORTH	268.0	Igneous : Extrusive	oriented core	-48	48.8096	Basalt	272.3374	Lava Flow
+This study	Simpson Island	SI1-40.96	SI1(40.6 to 42.5)	FS-FD:SO-POM:SO-CMD-NORTH	275.0	Igneous : Extrusive	oriented core	-44	48.8096	Basalt	272.3374	Lava Flow
+This study	Simpson Island	SI1-41	SI1(40.6 to 42.5)	FS-FD:SO-POM:SO-CMD-NORTH	259.8	Igneous : Extrusive	oriented core	-41	48.8096	Basalt	272.3374	Lava Flow
+This study	Simpson Island	SI1-41.0	SI1(40.6 to 42.5)	FS-FD:SO-POM:SO-CMD-NORTH	260.0	Igneous : Extrusive	oriented core	-41	48.8096	Basalt	272.3374	Lava Flow
+This study	Simpson Island	SI1-41.1	SI1(40.6 to 42.5)	FS-FD:SO-POM:SO-CMD-NORTH	272.0	Igneous : Extrusive	oriented core	-65	48.8096	Basalt	272.3374	Lava Flow
+This study	Simpson Island	SI1-41.15	SI1(40.6 to 42.5)	FS-FD:SO-POM:SO-CMD-NORTH	205.0	Igneous : Extrusive	oriented core	-79	48.8096	Basalt	272.3374	Lava Flow
+This study	Simpson Island	SI1-43.19	SI1(40.6 to 42.5)	FS-FD:SO-POM:SO-CMD-NORTH	224.0	Igneous : Extrusive	oriented core	-70	48.8095	Basalt	272.3373	Lava Flow
+This study	Simpson Island	SI1-43.2	SI1(40.6 to 42.5)	FS-FD:SO-POM:SO-CMD-NORTH	270.0	Igneous : Extrusive	oriented core	-58	48.8095	Basalt	272.3373	Lava Flow
+This study	Simpson Island	SI1-43.3	SI1(42.5 to 44.4)	FS-FD:SO-POM:SO-CMD-NORTH	251.0	Igneous : Extrusive	oriented core	-72	48.8095	Basalt	272.3373	Lava Flow
+This study	Simpson Island	SI1-43.31	SI1(42.5 to 44.4)	FS-FD:SO-POM:SO-CMD-NORTH	188.0	Igneous : Extrusive	oriented core	-77	48.8095	Basalt	272.3373	Lava Flow
+This study	Simpson Island	SI1-43.4	SI1(40.6 to 42.5)	FS-FD:SO-POM:SO-CMD-NORTH	258.0	Igneous : Extrusive	oriented core	-79	48.8095	Basalt	272.3373	Lava Flow
+This study	Simpson Island	SI1-43.5	SI1(42.5 to 44.4)	FS-FD:SO-POM:SO-CMD-NORTH	267.0	Igneous : Extrusive	oriented core	-76	48.8095	Basalt	272.3373	Lava Flow
+This study	Simpson Island	SI1-43.51	SI1(40.6 to 42.5)	FS-FD:SO-POM:SO-CMD-NORTH	228.0	Igneous : Extrusive	oriented core	-86	48.8095	Basalt	272.3373	Lava Flow
+This study	Simpson Island	SI1-43.59	SI1(42.5 to 44.4)	FS-FD:SO-POM:SO-CMD-NORTH	243.0	Igneous : Extrusive	oriented core	-91	48.8095	Basalt	272.3373	Lava Flow
+This study	Simpson Island	SI1-43.6	SI1(40.6 to 42.5)	FS-FD:SO-POM:SO-CMD-NORTH	294.0	Igneous : Extrusive	oriented core	-99	48.8095	Basalt	272.3373	Lava Flow
+This study	Simpson Island	SI1-43.61	SI1(40.6 to 42.5)	FS-FD:SO-POM:SO-CMD-NORTH	276.0	Igneous : Extrusive	oriented core	-102	48.8095	Basalt	272.3373	Lava Flow
+This study	Simpson Island	SI1-60.59	SI1(58.1 to 64.1)	FS-FD:SO-POM:SO-CMD-NORTH	254.0	Igneous : Extrusive	oriented core	-24	48.8086	Basalt	272.3378	Lava Flow
+This study	Simpson Island	SI1-60.6	SI1(58.1 to 64.1)	FS-FD:SO-POM:SO-CMD-NORTH	239.0	Igneous : Extrusive	oriented core	-31	48.8086	Basalt	272.3378	Lava Flow
+This study	Simpson Island	SI1-61.1	SI1(58.1 to 64.1)	FS-FD:SO-POM:SO-CMD-NORTH	219.0	Igneous : Extrusive	oriented core	-64	48.8086	Basalt	272.3378	Lava Flow
+This study	Simpson Island	SI1-61.13	SI1(58.1 to 64.1)	FS-FD:SO-POM:SO-CMD-NORTH	286.0	Igneous : Extrusive	oriented core	-77	48.8086	Basalt	272.3378	Lava Flow
+This study	Simpson Island	SI1-61.15	SI1(58.1 to 64.1)	FS-FD:SO-POM:SO-CMD-NORTH	216.0	Igneous : Extrusive	oriented core	-67	48.8086	Basalt	272.3378	Lava Flow
+This study	Simpson Island	SI1-61.2	SI1(58.1 to 64.1)	FS-FD:SO-POM:SO-CMD-NORTH	219.0	Igneous : Extrusive	oriented core	-73	48.8086	Basalt	272.3378	Lava Flow
+This study	Simpson Island	SI1-61.73	SI1(58.1 to 64.1)	FS-FD:SO-POM:SO-CMD-NORTH	256.0	Igneous : Extrusive	oriented core	-71	48.8086	Basalt	272.3378	Lava Flow
+This study	Simpson Island	SI1-61.78	SI1(58.1 to 64.1)	FS-FD:SO-POM:SO-CMD-NORTH	261.0	Igneous : Extrusive	oriented core	-72	48.8086	Basalt	272.3378	Lava Flow
+This study	Simpson Island	SI1-61.8	SI1(58.1 to 64.1)	FS-FD:SO-POM:SO-CMD-NORTH	254.0	Igneous : Extrusive	oriented core	-77	48.8086	Basalt	272.3378	Lava Flow
+This study	Simpson Island	SI1-80.3	SI1(69.7 to 87.6)	FS-FD:SO-POM:SO-CMD-NORTH	300.0	Intrusive : Igneous	oriented core	-20	48.8078	Diabase	272.3382	Sill
+This study	Simpson Island	SI1-80.7	SI1(69.7 to 87.6)	FS-FD:SO-POM:SO-CMD-NORTH	275.0	Intrusive : Igneous	oriented core	-69	48.8078	Diabase	272.3382	Sill
+This study	Simpson Island	SI1-81.8	SI1(69.7 to 87.6)	FS-FD:SO-POM:SO-CMD-NORTH	278.0	Intrusive : Igneous	oriented core	-59	48.8078	Diabase	272.3382	Sill
+This study	Simpson Island	SI1-82.1	SI1(69.7 to 87.6)	FS-FD:SO-POM:SO-CMD-NORTH	299.0	Intrusive : Igneous	oriented core	-96	48.8078	Diabase	272.3382	Sill
+This study	Simpson Island	SI1-84.5	SI1(69.7 to 87.6)	FS-FD:SO-POM:SO-CMD-NORTH	1.0	Intrusive : Igneous	oriented core	-84	48.8078	Diabase	272.3382	Sill
+This study	Simpson Island	SI1-86.1	SI1(69.7 to 87.6)	FS-FD:SO-POM:SO-CMD-NORTH	340.0	Intrusive : Igneous	oriented core	-82	48.8078	Diabase	272.3382	Sill
+This study	Simpson Island	SI1-86.4	SI1(69.7 to 87.6)	FS-FD:SO-POM:SO-CMD-NORTH	176.0	Intrusive : Igneous	oriented core	-19	48.8078	Diabase	272.3382	Sill
+This study	Simpson Island	SI1-88.25	SI1(87.6 to 88.5)	FS-FD:SO-POM:SO-CMD-NORTH	162.0	Igneous : Extrusive	oriented core	-72	48.8073	Basalt	272.338	Lava Flow
+This study	Simpson Island	SI1-88.3	SI1(87.6 to 88.5)	FS-FD:SO-POM:SO-CMD-NORTH	165.0	Igneous : Extrusive	oriented core	-75	48.8073	Basalt	272.338	Lava Flow
+This study	Simpson Island	SI1-88.35	SI1(87.6 to 88.5)	FS-FD:SO-POM:SO-CMD-NORTH	159.0	Igneous : Extrusive	oriented core	-72	48.8073	Basalt	272.338	Lava Flow
+This study	Simpson Island	SI1-88.37	SI1(87.6 to 88.5)	FS-FD:SO-POM:SO-CMD-NORTH	275.0	Igneous : Extrusive	oriented core	-77	48.8073	Basalt	272.338	Lava Flow
+This study	Simpson Island	SI1-88.4	SI1(87.6 to 88.5)	FS-FD:SO-POM:SO-CMD-NORTH	277.0	Igneous : Extrusive	oriented core	-80	48.8073	Basalt	272.338	Lava Flow
+This study	Simpson Island	SI1-88.43	SI1(87.6 to 88.5)	FS-FD:SO-POM:SO-CMD-NORTH	274.0	Igneous : Extrusive	oriented core	-83	48.8073	Basalt	272.338	Lava Flow
+This study	Simpson Island	SI1-88.55	SI1(88.5 to 89.2)	FS-FD:SO-POM:SO-CMD-NORTH	221.0	Igneous : Extrusive	oriented core	-83	48.8071	Basalt	272.3381	Lava Flow
+This study	Simpson Island	SI1-88.9	SI1(88.5 to 89.2)	FS-FD:SO-POM:SO-CMD-NORTH	179.0	Igneous : Extrusive	oriented core	-84	48.8071	Basalt	272.3381	Lava Flow
+This study	Simpson Island	SI1-88.93	SI1(88.5 to 89.2)	FS-FD:SO-POM:SO-CMD-NORTH	173.0	Igneous : Extrusive	oriented core	-90	48.8071	Basalt	272.3381	Lava Flow
+This study	Simpson Island	SI1-88.97	SI1(88.5 to 89.2)	FS-FD:SO-POM:SO-CMD-NORTH	170.0	Igneous : Extrusive	oriented core	-92	48.8071	Basalt	272.3381	Lava Flow
+This study	Simpson Island	SI1-89.0	SI1(88.5 to 89.2)	FS-FD:SO-POM:SO-CMD-NORTH	171.0	Igneous : Extrusive	oriented core	-92	48.8071	Basalt	272.3381	Lava Flow
+This study	Simpson Island	SI1-89.15	SI1(88.5 to 89.2)	FS-FD:SO-POM:SO-CMD-NORTH	176.0	Igneous : Extrusive	oriented core	-87	48.8071	Basalt	272.3381	Lava Flow
+This study	Simpson Island	SI1-89.25	SI1(89.2 to 91.5)	FS-FD:SO-POM:SO-CMD-NORTH	250.0	Igneous : Extrusive	oriented core	-68	48.807	Basalt	272.3382	Lava Flow
+This study	Simpson Island	SI1-89.92	SI1(89.2 to 91.5)	FS-FD:SO-POM:SO-CMD-NORTH	215.0	Igneous : Extrusive	oriented core	-87	48.807	Basalt	272.3382	Lava Flow
+This study	Simpson Island	SI1-90.0	SI1(89.2 to 91.5)	FS-FD:SO-POM:SO-CMD-NORTH	215.0	Igneous : Extrusive	oriented core	-85	48.807	Basalt	272.3382	Lava Flow
+This study	Simpson Island	SI1-90.05	SI1(89.2 to 91.5)	FS-FD:SO-POM:SO-CMD-NORTH	209.0	Igneous : Extrusive	oriented core	-97	48.807	Basalt	272.3382	Lava Flow
+This study	Simpson Island	SI1-91.1	SI1(89.2 to 91.5)	FS-FD:SO-POM:SO-CMD-NORTH	332.0	Igneous : Extrusive	oriented core	-93	48.807	Basalt	272.3382	Lava Flow
+This study	Simpson Island	SI1-91.2	SI1(89.2 to 91.5)	FS-FD:SO-POM:SO-CMD-NORTH	259.0	Igneous : Extrusive	oriented core	-85	48.807	Basalt	272.3382	Lava Flow
+This study	Simpson Island	SI1-91.6	SI1(91.5 to 92.6)	FS-FD:SO-POM:SO-CMD-NORTH	239.0	Igneous : Extrusive	oriented core	-77	48.8069	Basalt	272.3382	Lava Flow
+This study	Simpson Island	SI1-91.61	SI1(91.5 to 92.6)	FS-FD:SO-POM:SO-CMD-NORTH	262.0	Igneous : Extrusive	oriented core	-86	48.8069	Basalt	272.3382	Lava Flow
+This study	Simpson Island	SI1-91.64	SI1(91.5 to 92.6)	FS-FD:SO-POM:SO-CMD-NORTH	252.0	Igneous : Extrusive	oriented core	-59	48.8069	Basalt	272.3382	Lava Flow
+This study	Simpson Island	SI1-91.67	SI1(91.5 to 92.6)	FS-FD:SO-POM:SO-CMD-NORTH	242.0	Igneous : Extrusive	oriented core	-68	48.8069	Basalt	272.3382	Lava Flow
+This study	Simpson Island	SI1-91.7	SI1(91.5 to 92.6)	FS-FD:SO-POM:SO-CMD-NORTH	250.0	Igneous : Extrusive	oriented core	-60	48.8069	Basalt	272.3382	Lava Flow
+This study	Simpson Island	SI1-91.75	SI1(91.5 to 92.6)	FS-FD:SO-POM:SO-CMD-NORTH	247.0	Igneous : Extrusive	oriented core	-31	48.8069	Basalt	272.3382	Lava Flow
+This study	Simpson Island	SI1-92.0	SI1(91.5 to 92.6)	FS-FD:SO-POM:SO-CMD-NORTH	163.0	Igneous : Extrusive	oriented core	-90	48.8069	Basalt	272.3382	Lava Flow
+This study	Simpson Island	SI1-94.57	SI1(94.3 to 94.9)	FS-FD:SO-POM:SO-CMD-NORTH	194.0	Igneous : Extrusive	oriented core	-29	48.8068	Basalt	272.338	Lava Flow
+This study	Simpson Island	SI1-94.6	SI1(94.3 to 94.9)	FS-FD:SO-POM:SO-CMD-NORTH	201.0	Igneous : Extrusive	oriented core	-20	48.8068	Basalt	272.338	Lava Flow
+This study	Simpson Island	SI1-94.64	SI1(94.3 to 94.9)	FS-FD:SO-POM:SO-CMD-NORTH	209.0	Igneous : Extrusive	oriented core	-40	48.8068	Basalt	272.338	Lava Flow
+This study	Simpson Island	SI1-94.67	SI1(94.3 to 94.9)	FS-FD:SO-POM:SO-CMD-NORTH	188.0	Igneous : Extrusive	oriented core	-47	48.8068	Basalt	272.338	Lava Flow
+This study	Simpson Island	SI1-94.7	SI1(94.3 to 94.9)	FS-FD:SO-POM:SO-CMD-NORTH	255.0	Igneous : Extrusive	oriented core	-33	48.8068	Basalt	272.338	Lava Flow
+This study	Simpson Island	SI1-94.8	SI1(94.3 to 94.9)	FS-FD:SO-POM:SO-CMD-NORTH	191.0	Igneous : Extrusive	oriented core	-43	48.8068	Basalt	272.338	Lava Flow
+This study	Simpson Island	SI1-95	SI1(94.9 to 96.6)	FS-FD:SO-POM:SO-CMD-NORTH	10.8	Igneous : Extrusive	oriented core	-13	48.8066	Basalt	272.3379	Lava Flow
+This study	Simpson Island	SI1-95.0	SI1(94.9 to 96.6)	FS-FD:SO-POM:SO-CMD-NORTH	11.0	Igneous : Extrusive	oriented core	-13	48.8066	Basalt	272.3379	Lava Flow
+This study	Simpson Island	SI1-96	SI1(94.9 to 96.6)	FS-FD:SO-POM:SO-CMD-NORTH	293.8	Igneous : Extrusive	oriented core	-100	48.8066	Basalt	272.3379	Lava Flow
+This study	Simpson Island	SI1-96.0	SI1(94.9 to 96.6)	FS-FD:SO-POM:SO-CMD-NORTH	294.0	Igneous : Extrusive	oriented core	-100	48.8066	Basalt	272.3379	Lava Flow
+This study	Simpson Island	SI1-96.02	SI1(94.9 to 96.6)	FS-FD:SO-POM:SO-CMD-NORTH	289.0	Igneous : Extrusive	oriented core	-95	48.8066	Basalt	272.3379	Lava Flow
+This study	Simpson Island	SI1-96.04	SI1(94.9 to 96.6)	FS-FD:SO-POM:SO-CMD-NORTH	282.0	Igneous : Extrusive	oriented core	-79	48.8066	Basalt	272.3379	Lava Flow
+This study	Simpson Island	SI1-96.06	SI1(94.9 to 96.6)	FS-FD:SO-POM:SO-CMD-NORTH	275.0	Igneous : Extrusive	oriented core	-86	48.8066	Basalt	272.3379	Lava Flow
+This study	Simpson Island	SI1-96.1	SI1(94.9 to 96.6)	FS-FD:SO-POM:SO-CMD-NORTH	320.0	Igneous : Extrusive	oriented core	-35	48.8066	Basalt	272.3379	Lava Flow
+This study	Simpson Island	SI2a-1.1	SI2a(1.1 to 1.6)	FS-FD:SO-POM:SO-CMD-NORTH	218.0	Igneous : Extrusive	oriented core	-86	48.7943	Basalt	272.3444	Lava Flow
+This study	Simpson Island	SI2a-1.3	SI2a(1.1 to 1.6)	FS-FD:SO-POM:SO-CMD-NORTH	243.0	Igneous : Extrusive	oriented core	-95	48.7943	Basalt	272.3444	Lava Flow
+This study	Simpson Island	SI2a-1.35	SI2a(1.1 to 1.6)	FS-FD:SO-POM:SO-CMD-NORTH	235.0	Igneous : Extrusive	oriented core	-80	48.7943	Basalt	272.3444	Lava Flow
+This study	Simpson Island	SI2a-1.4	SI2a(1.1 to 1.6)	FS-FD:SO-POM:SO-CMD-NORTH	111.0	Igneous : Extrusive	oriented core	-5	48.7943	Basalt	272.3444	Lava Flow
+This study	Simpson Island	SI2a-1.5	SI2a(1.1 to 1.6)	FS-FD:SO-POM:SO-CMD-NORTH	227.0	Igneous : Extrusive	oriented core	-89	48.7943	Basalt	272.3444	Lava Flow
+This study	Simpson Island	SI2a-1.6	SI2a(1.1 to 1.6)	FS-FD:SO-POM:SO-CMD-NORTH	230.0	Igneous : Extrusive	oriented core	-14	48.7943	Basalt	272.3444	Lava Flow
+This study	Simpson Island	SI2a-10.2	SI2a(10.2 to 12.8)	FS-FD:SO-POM:SO-CMD-NORTH	195.0	Igneous : Extrusive	oriented core	-66	48.7942	Basalt	272.3444	Lava Flow
+This study	Simpson Island	SI2a-10.4	SI2a(10.2 to 12.8)	FS-FD:SO-POM:SO-CMD-NORTH	181.0	Igneous : Extrusive	oriented core	-85	48.7942	Basalt	272.3444	Lava Flow
+This study	Simpson Island	SI2a-10.5	SI2a(10.2 to 12.8)	FS-FD:SO-POM:SO-CMD-NORTH	273.0	Igneous : Extrusive	oriented core	-108	48.7942	Basalt	272.3444	Lava Flow
+This study	Simpson Island	SI2a-12.2	SI2a(10.2 to 12.8)	FS-FD:SO-POM:SO-CMD-NORTH	278.0	Igneous : Extrusive	oriented core	-67	48.7942	Basalt	272.3444	Lava Flow
+This study	Simpson Island	SI2a-12.7	SI2a(10.2 to 12.8)	FS-FD:SO-POM:SO-CMD-NORTH	275.0	Igneous : Extrusive	oriented core	-60	48.7942	Basalt	272.3444	Lava Flow
+This study	Simpson Island	SI2a-12.8	SI2a(10.2 to 12.8)	FS-FD:SO-POM:SO-CMD-NORTH	278.0	Igneous : Extrusive	oriented core	-65	48.7942	Basalt	272.3444	Lava Flow
+This study	Simpson Island	SI2b-10.3	SI2b(10.5 to 10.6)	FS-FD:SO-POM:SO-CMD-NORTH	326.0	Igneous : Extrusive	oriented core	-29	48.792	Basalt	272.3454	Lava Flow
+This study	Simpson Island	SI2b-10.5	SI2b(10.5 to 10.6)	FS-FD:SO-POM:SO-CMD-NORTH	299.0	Igneous : Extrusive	oriented core	-25	48.792	Basalt	272.3454	Lava Flow
+This study	Simpson Island	SI2b-10.56	SI2b(10.5 to 10.6)	FS-FD:SO-POM:SO-CMD-NORTH	190.0	Igneous : Extrusive	oriented core	-78	48.792	Basalt	272.3454	Lava Flow
+This study	Simpson Island	SI2b-10.58	SI2b(10.5 to 10.6)	FS-FD:SO-POM:SO-CMD-NORTH	192.0	Igneous : Extrusive	oriented core	-71	48.792	Basalt	272.3454	Lava Flow
+This study	Simpson Island	SI2b-10.6	SI2b(10.5 to 10.6)	FS-FD:SO-POM:SO-CMD-NORTH	186.0	Igneous : Extrusive	oriented core	-74	48.792	Basalt	272.3454	Lava Flow
+This study	Simpson Island	SI2b-10.63	SI2b(10.5 to 10.6)	FS-FD:SO-POM:SO-CMD-NORTH	180.0	Igneous : Extrusive	oriented core	-74	48.792	Basalt	272.3454	Lava Flow
+This study	Simpson Island	SI2b-2.2	SI2b(2.2 to 2.6)	FS-FD:SO-POM:SO-CMD-NORTH	202.0	Igneous : Extrusive	oriented core	-50	48.7921	Basalt	272.3454	Lava Flow
+This study	Simpson Island	SI2b-2.3	SI2b(2.2 to 2.6)	FS-FD:SO-POM:SO-CMD-NORTH	64.0	Igneous : Extrusive	oriented core	-43	48.7921	Basalt	272.3454	Lava Flow
+This study	Simpson Island	SI2b-2.38	SI2b(2.2 to 2.6)	FS-FD:SO-POM:SO-CMD-NORTH	186.0	Igneous : Extrusive	oriented core	-68	48.7921	Basalt	272.3454	Lava Flow
+This study	Simpson Island	SI2b-2.42	SI2b(2.2 to 2.6)	FS-FD:SO-POM:SO-CMD-NORTH	190.0	Igneous : Extrusive	oriented core	-60	48.7921	Basalt	272.3454	Lava Flow
+This study	Simpson Island	SI2b-2.46	SI2b(2.2 to 2.6)	FS-FD:SO-POM:SO-CMD-NORTH	221.0	Igneous : Extrusive	oriented core	-69	48.7921	Basalt	272.3454	Lava Flow
+This study	Simpson Island	SI2b-2.5	SI2b(2.2 to 2.6)	FS-FD:SO-POM:SO-CMD-NORTH	186.0	Igneous : Extrusive	oriented core	-75	48.7921	Basalt	272.3454	Lava Flow
+This study	Simpson Island	SI2b-2.53	SI2b(2.2 to 2.6)	FS-FD:SO-POM:SO-CMD-NORTH	186.0	Igneous : Extrusive	oriented core	-76	48.7921	Basalt	272.3454	Lava Flow
+This study	Simpson Island	SI2b-2.57	SI2b(2.2 to 2.6)	FS-FD:SO-POM:SO-CMD-NORTH	182.0	Igneous : Extrusive	oriented core	-76	48.7921	Basalt	272.3454	Lava Flow
+This study	Simpson Island	SI2b-2.6	SI2b(2.2 to 2.6)	FS-FD:SO-POM:SO-CMD-NORTH	193.0	Igneous : Extrusive	oriented core	-77	48.7921	Basalt	272.3454	Lava Flow
+This study	Simpson Island	SI2b-2.61	SI2b(2.2 to 2.6)	FS-FD:SO-POM:SO-CMD-NORTH	178.0	Igneous : Extrusive	oriented core	-79	48.7921	Basalt	272.3454	Lava Flow
+This study	Simpson Island	SI2c-0.15	SI2c(0.0 to 2.1)	FS-FD:SO-POM:SO-CMD-NORTH	300.0	Igneous : Extrusive	oriented core	-44	48.7903	Basalt	272.3455	Lava Flow
+This study	Simpson Island	SI2c-0.35	SI2c(0.0 to 2.1)	FS-FD:SO-POM:SO-CMD-NORTH	253.0	Igneous : Extrusive	oriented core	-20	48.7903	Basalt	272.3455	Lava Flow
+This study	Simpson Island	SI2c-0.45	SI2c(0.0 to 2.1)	FS-FD:SO-POM:SO-CMD-NORTH	183.0	Igneous : Extrusive	oriented core	-42	48.7903	Basalt	272.3455	Lava Flow
+This study	Simpson Island	SI2c-0.5	SI2c(0.0 to 2.1)	FS-FD:SO-POM:SO-CMD-NORTH	179.0	Igneous : Extrusive	oriented core	-41	48.7903	Basalt	272.3455	Lava Flow
+This study	Simpson Island	SI2c-0.55	SI2c(0.0 to 2.1)	FS-FD:SO-POM:SO-CMD-NORTH	187.0	Igneous : Extrusive	oriented core	-37	48.7903	Basalt	272.3455	Lava Flow
+This study	Simpson Island	SI2c-1.0	SI2c(0.0 to 2.1)	FS-FD:SO-POM:SO-CMD-NORTH	131.0	Igneous : Extrusive	oriented core	-16	48.7903	Basalt	272.3455	Lava Flow
+This study	Simpson Island	SI2c-3.0	SI2c(2.1 to 18.6)	FS-FD:SO-POM:SO-CMD-NORTH	197.0	Igneous : Extrusive	oriented core	-48	48.7902	Basalt	272.3455	Lava Flow
+This study	Simpson Island	SI2c-3.05	SI2c(2.1 to 18.6)	FS-FD:SO-POM:SO-CMD-NORTH	195.0	Igneous : Extrusive	oriented core	-51	48.7902	Basalt	272.3455	Lava Flow
+This study	Simpson Island	SI2c-3.15	SI2c(2.1 to 18.6)	FS-FD:SO-POM:SO-CMD-NORTH	196.0	Igneous : Extrusive	oriented core	-44	48.7902	Basalt	272.3455	Lava Flow
+This study	Simpson Island	SI2c-4.7	SI2c(2.1 to 18.6)	FS-FD:SO-POM:SO-CMD-NORTH	232.0	Igneous : Extrusive	oriented core	-31	48.7902	Basalt	272.3455	Lava Flow
+This study	Simpson Island	SI2c-4.8	SI2c(2.1 to 18.6)	FS-FD:SO-POM:SO-CMD-NORTH	229.0	Igneous : Extrusive	oriented core	-16	48.7902	Basalt	272.3455	Lava Flow
+This study	Simpson Island	SI2c-6.3	SI2c(2.1 to 18.6)	FS-FD:SO-POM:SO-CMD-NORTH	193.0	Igneous : Extrusive	oriented core	-37	48.7902	Basalt	272.3455	Lava Flow
+This study	Simpson Island	SI3-103.4	SI3(103.3 to 110.3)	FS-FD:SO-POM:SO-CMD-NORTH	201.0	Igneous : Extrusive	oriented core	-66	48.7799	Basalt	272.3705	Lava Flow
+This study	Simpson Island	SI3-103.5	SI3(103.3 to 110.3)	FS-FD:SO-POM:SO-CMD-NORTH	217.0	Igneous : Extrusive	oriented core	-67	48.7799	Basalt	272.3705	Lava Flow
+This study	Simpson Island	SI3-103.9	SI3(103.3 to 110.3)	FS-FD:SO-POM:SO-CMD-NORTH	259.0	Igneous : Extrusive	oriented core	-72	48.7799	Basalt	272.3705	Lava Flow
+This study	Simpson Island	SI3-103.95	SI3(103.3 to 110.3)	FS-FD:SO-POM:SO-CMD-NORTH	265.0	Igneous : Extrusive	oriented core	-73	48.7799	Basalt	272.3705	Lava Flow
+This study	Simpson Island	SI3-104.3	SI3(103.3 to 110.3)	FS-FD:SO-POM:SO-CMD-NORTH	187.0	Igneous : Extrusive	oriented core	-70	48.7799	Basalt	272.3705	Lava Flow
+This study	Simpson Island	SI3-104.4	SI3(103.3 to 110.3)	FS-FD:SO-POM:SO-CMD-NORTH	188.0	Igneous : Extrusive	oriented core	-75	48.7799	Basalt	272.3705	Lava Flow
+This study	Simpson Island	SI3-12.95	SI3(12.5 to 20.1)	FS-FD:SO-POM:SO-CMD-NORTH	178.0	Igneous : Extrusive	oriented core	-38	48.7823	Basalt	272.3682	Lava Flow
+This study	Simpson Island	SI3-126.9	SI3(124.8 to 130.4)	FS-FD:SO-POM:SO-CMD-NORTH	269.0	Igneous : Extrusive	oriented core	-14	48.7791	Basalt	272.3708	Lava Flow
+This study	Simpson Island	SI3-127.1	SI3(124.8 to 130.4)	FS-FD:SO-POM:SO-CMD-NORTH	288.0	Igneous : Extrusive	oriented core	-23	48.7791	Basalt	272.3708	Lava Flow
+This study	Simpson Island	SI3-127.3	SI3(124.8 to 130.4)	FS-FD:SO-POM:SO-CMD-NORTH	289.0	Igneous : Extrusive	oriented core	-20	48.7791	Basalt	272.3708	Lava Flow
+This study	Simpson Island	SI3-129.3	SI3(124.8 to 130.4)	FS-FD:SO-POM:SO-CMD-NORTH	210.0	Igneous : Extrusive	oriented core	-58	48.7791	Basalt	272.3708	Lava Flow
+This study	Simpson Island	SI3-129.45	SI3(124.8 to 130.4)	FS-FD:SO-POM:SO-CMD-NORTH	319.0	Igneous : Extrusive	oriented core	-34	48.7791	Basalt	272.3708	Lava Flow
+This study	Simpson Island	SI3-13.05	SI3(12.5 to 20.1)	FS-FD:SO-POM:SO-CMD-NORTH	158.0	Igneous : Extrusive	oriented core	-29	48.7823	Basalt	272.3682	Lava Flow
+This study	Simpson Island	SI3-13.2	SI3(12.5 to 20.1)	FS-FD:SO-POM:SO-CMD-NORTH	192.0	Igneous : Extrusive	oriented core	-55	48.7823	Basalt	272.3682	Lava Flow
+This study	Simpson Island	SI3-16.3	SI3(12.5 to 20.1)	FS-FD:SO-POM:SO-CMD-NORTH	125.0	Igneous : Extrusive	oriented core	-69	48.7823	Basalt	272.3682	Lava Flow
+This study	Simpson Island	SI3-16.4	SI3(12.5 to 20.1)	FS-FD:SO-POM:SO-CMD-NORTH	177.0	Igneous : Extrusive	oriented core	-49	48.7823	Basalt	272.3682	Lava Flow
+This study	Simpson Island	SI3-18.75	SI3(12.5 to 20.1)	FS-FD:SO-POM:SO-CMD-NORTH	304.0	Igneous : Extrusive	oriented core	-24	48.7823	Basalt	272.3682	Lava Flow
+This study	Simpson Island	SI3-18.8	SI3(12.5 to 20.1)	FS-FD:SO-POM:SO-CMD-NORTH	335.0	Igneous : Extrusive	oriented core	-31	48.7823	Basalt	272.3682	Lava Flow
+This study	Simpson Island	SI3-19.9	SI3(12.5 to 20.1)	FS-FD:SO-POM:SO-CMD-NORTH	226.0	Igneous : Extrusive	oriented core	-43	48.7823	Basalt	272.3682	Lava Flow
+This study	Simpson Island	SI3-20.4	SI3(20.1 to 28.9)	FS-FD:SO-POM:SO-CMD-NORTH	189.0	Igneous : Extrusive	oriented core	-63	48.7822	Basalt	272.3684	Lava Flow
+This study	Simpson Island	SI3-20.40	SI3(20.1 to 28.9)			Extrusive : Igneous			48.7822	Basaltic Lava	272.3684	Lava Flow
+This study	Simpson Island	SI3-20.45	SI3(20.1 to 28.9)	FS-FD:SO-POM:SO-CMD-NORTH	192.0	Igneous : Extrusive	oriented core	-65	48.7822	Basalt	272.3684	Lava Flow
+This study	Simpson Island	SI3-21.3	SI3(20.1 to 28.9)	FS-FD:SO-POM:SO-CMD-NORTH	195.0	Igneous : Extrusive	oriented core	-90	48.7822	Basalt	272.3684	Lava Flow
+This study	Simpson Island	SI3-21.30	SI3(20.1 to 28.9)			Extrusive : Igneous			48.7822	Basaltic Lava	272.3684	Lava Flow
+This study	Simpson Island	SI3-21.35	SI3(20.1 to 28.9)	FS-FD:SO-POM:SO-CMD-NORTH	192.0	Igneous : Extrusive	oriented core	-89	48.7822	Basalt	272.3684	Lava Flow
+This study	Simpson Island	SI3-22.3	SI3(20.1 to 28.9)	FS-FD:SO-POM:SO-CMD-NORTH	176.0	Igneous : Extrusive	oriented core	-50	48.7822	Basalt	272.3684	Lava Flow
+This study	Simpson Island	SI3-22.30	SI3(20.1 to 28.9)			Extrusive : Igneous			48.7822	Basaltic Lava	272.3684	Lava Flow
+This study	Simpson Island	SI3-22.35	SI3(20.1 to 28.9)	FS-FD:SO-POM:SO-CMD-NORTH	218.0	Igneous : Extrusive	oriented core	-33	48.7822	Basalt	272.3684	Lava Flow
+This study	Simpson Island	SI3-22.6	SI3(20.1 to 28.9)	FS-FD:SO-POM:SO-CMD-NORTH	44.0	Igneous : Extrusive	oriented core	-30	48.7822	Basalt	272.3684	Lava Flow
+This study	Simpson Island	SI3-22.60	SI3(20.1 to 28.9)			Extrusive : Igneous			48.7822	Basaltic Lava	272.3684	Lava Flow
+This study	Simpson Island	SI3-22.65	SI3(20.1 to 28.9)	FS-FD:SO-POM:SO-CMD-NORTH	26.0	Igneous : Extrusive	oriented core	-32	48.7822	Basalt	272.3684	Lava Flow
+This study	Simpson Island	SI3-27.9	SI3(20.1 to 28.9)	FS-FD:SO-POM:SO-CMD-NORTH	330.0	Igneous : Extrusive	oriented core	-57	48.7822	Basalt	272.3684	Lava Flow
+This study	Simpson Island	SI3-27.90	SI3(20.1 to 28.9)			Extrusive : Igneous			48.7822	Basaltic Lava	272.3684	Lava Flow
+This study	Simpson Island	SI3-3.6	SI3(2.3 to 5.5)	FS-FD:SO-POM:SO-CMD-NORTH	207.0	Igneous : Extrusive	oriented core	-53	48.7827	Basalt	272.3674	Lava Flow
+This study	Simpson Island	SI3-3.60	SI3(2.3 to 5.5)			Extrusive : Igneous			48.7827	Basaltic Lava	272.3674	Lava Flow
+This study	Simpson Island	SI3-3.7	SI3(2.3 to 5.5)	FS-FD:SO-POM:SO-CMD-NORTH	221.0	Igneous : Extrusive	oriented core	-62	48.7827	Basalt	272.3674	Lava Flow
+This study	Simpson Island	SI3-3.70	SI3(2.3 to 5.5)			Extrusive : Igneous			48.7827	Basaltic Lava	272.3674	Lava Flow
+This study	Simpson Island	SI3-37.8	SI3(36.9 to 48.4)	FS-FD:SO-POM:SO-CMD-NORTH	164.0	Igneous : Extrusive	oriented core	-26	48.7817	Basalt	272.369	Lava Flow
+This study	Simpson Island	SI3-37.80	SI3(36.9 to 48.4)			Extrusive : Igneous			48.7817	Basaltic Lava	272.369	Lava Flow
+This study	Simpson Island	SI3-37.85	SI3(36.9 to 48.4)	FS-FD:SO-POM:SO-CMD-NORTH	173.0	Igneous : Extrusive	oriented core	-19	48.7817	Basalt	272.369	Lava Flow
+This study	Simpson Island	SI3-38.7	SI3(36.9 to 48.4)	FS-FD:SO-POM:SO-CMD-NORTH	190.0	Igneous : Extrusive	oriented core	-85	48.7817	Basalt	272.369	Lava Flow
+This study	Simpson Island	SI3-38.70	SI3(36.9 to 48.4)			Extrusive : Igneous			48.7817	Basaltic Lava	272.369	Lava Flow
+This study	Simpson Island	SI3-38.8	SI3(36.9 to 48.4)	FS-FD:SO-POM:SO-CMD-NORTH	184.0	Igneous : Extrusive	oriented core	-62	48.7817	Basalt	272.369	Lava Flow
+This study	Simpson Island	SI3-38.80	SI3(36.9 to 48.4)			Extrusive : Igneous			48.7817	Basaltic Lava	272.369	Lava Flow
+This study	Simpson Island	SI3-39.8	SI3(36.9 to 48.4)	FS-FD:SO-POM:SO-CMD-NORTH	60.0	Igneous : Extrusive	oriented core	-14	48.7817	Basalt	272.369	Lava Flow
+This study	Simpson Island	SI3-39.80	SI3(36.9 to 48.4)			Extrusive : Igneous			48.7817	Basaltic Lava	272.369	Lava Flow
+This study	Simpson Island	SI3-39.82	SI3(36.9 to 48.4)	FS-FD:SO-POM:SO-CMD-NORTH	70.0	Igneous : Extrusive	oriented core	-15	48.7817	Basalt	272.369	Lava Flow
+This study	Simpson Island	SI3-4.1	SI3(2.3 to 5.5)	FS-FD:SO-POM:SO-CMD-NORTH	174.0	Igneous : Extrusive	oriented core	-76	48.7827	Basalt	272.3674	Lava Flow
+This study	Simpson Island	SI3-4.10	SI3(2.3 to 5.5)			Extrusive : Igneous			48.7827	Basaltic Lava	272.3674	Lava Flow
+This study	Simpson Island	SI3-4.2	SI3(2.3 to 5.5)	FS-FD:SO-POM:SO-CMD-NORTH	196.0	Igneous : Extrusive	oriented core	-60	48.7827	Basalt	272.3674	Lava Flow
+This study	Simpson Island	SI3-4.20	SI3(2.3 to 5.5)			Extrusive : Igneous			48.7827	Basaltic Lava	272.3674	Lava Flow
+This study	Simpson Island	SI3-4.6	SI3(2.3 to 5.5)	FS-FD:SO-POM:SO-CMD-NORTH	276.0	Igneous : Extrusive	oriented core	-83	48.7827	Basalt	272.3674	Lava Flow
+This study	Simpson Island	SI3-4.60	SI3(2.3 to 5.5)			Extrusive : Igneous			48.7827	Basaltic Lava	272.3674	Lava Flow
+This study	Simpson Island	SI3-4.7	SI3(2.3 to 5.5)	FS-FD:SO-POM:SO-CMD-NORTH	274.0	Igneous : Extrusive	oriented core	-84	48.7827	Basalt	272.3674	Lava Flow
+This study	Simpson Island	SI3-5.6	SI3(5.5 to 12.5)	FS-FD:SO-POM:SO-CMD-NORTH	294.0	Igneous : Extrusive	oriented core	-74	48.7826	Basalt	272.3676	Lava Flow
+This study	Simpson Island	SI3-58.0	SI3(55.8 to 60.9)	FS-FD:SO-POM:SO-CMD-NORTH	122.0	Igneous : Extrusive	oriented core	-12	48.7812	Basalt	272.3696	Lava Flow
+This study	Simpson Island	SI3-58.00	SI3(55.8 to 60.9)			Extrusive : Igneous			48.7812	Basaltic Lava	272.3696	Lava Flow
+This study	Simpson Island	SI3-58.02	SI3(55.8 to 60.9)	FS-FD:SO-POM:SO-CMD-NORTH	49.0	Igneous : Extrusive	oriented core	-6	48.7812	Basalt	272.3696	Lava Flow
+This study	Simpson Island	SI3-58.04	SI3(55.8 to 60.9)	FS-FD:SO-POM:SO-CMD-NORTH	131.0	Igneous : Extrusive	oriented core	-12	48.7812	Basalt	272.3696	Lava Flow
+This study	Simpson Island	SI3-59.7	SI3(55.8 to 60.9)	FS-FD:SO-POM:SO-CMD-NORTH	80.0	Igneous : Extrusive	oriented core	-14	48.7812	Basalt	272.3696	Lava Flow
+This study	Simpson Island	SI3-59.70	SI3(55.8 to 60.9)			Extrusive : Igneous			48.7812	Basaltic Lava	272.3696	Lava Flow
+This study	Simpson Island	SI3-59.8	SI3(55.8 to 60.9)	FS-FD:SO-POM:SO-CMD-NORTH	309.0	Igneous : Extrusive	oriented core	-67	48.7812	Basalt	272.3696	Lava Flow
+This study	Simpson Island	SI3-59.80	SI3(55.8 to 60.9)			Extrusive : Igneous			48.7812	Basaltic Lava	272.3696	Lava Flow
+This study	Simpson Island	SI3-59.9	SI3(55.8 to 60.9)	FS-FD:SO-POM:SO-CMD-NORTH	90.0	Igneous : Extrusive	oriented core	-20	48.7812	Basalt	272.3696	Lava Flow
+This study	Simpson Island	SI3-59.90	SI3(55.8 to 60.9)			Extrusive : Igneous			48.7812	Basaltic Lava	272.3696	Lava Flow
+This study	Simpson Island	SI3-6.4	SI3(5.5 to 12.5)	FS-FD:SO-POM:SO-CMD-NORTH	182.0	Igneous : Extrusive	oriented core	-77	48.7826	Basalt	272.3676	Lava Flow
+This study	Simpson Island	SI3-7.05	SI3(5.5 to 12.5)	FS-FD:SO-POM:SO-CMD-NORTH	222.0	Igneous : Extrusive	oriented core	-80	48.7826	Basalt	272.3676	Lava Flow
+This study	Simpson Island	SI3-7.2	SI3(5.5 to 12.5)	FS-FD:SO-POM:SO-CMD-NORTH	61.0	Igneous : Extrusive	oriented core	-54	48.7826	Basalt	272.3676	Lava Flow
+This study	Simpson Island	SI3-7.20	SI3(5.5 to 12.5)			Extrusive : Igneous			48.7826	Basaltic Lava	272.3676	Lava Flow
+This study	Simpson Island	SI3-7.25	SI3(5.5 to 12.5)	FS-FD:SO-POM:SO-CMD-NORTH	52.0	Igneous : Extrusive	oriented core	-41	48.7826	Basalt	272.3676	Lava Flow
+This study	Simpson Island	SI3-7.3	SI3(5.5 to 12.5)	FS-FD:SO-POM:SO-CMD-NORTH	268.0	Igneous : Extrusive	oriented core	-21	48.7826	Basalt	272.3676	Lava Flow
+This study	Simpson Island	SI3-7.30	SI3(5.5 to 12.5)			Extrusive : Igneous			48.7826	Basaltic Lava	272.3676	Lava Flow
+This study	Simpson Island	SI3-8.3	SI3(5.5 to 12.5)	FS-FD:SO-POM:SO-CMD-NORTH	176.0	Igneous : Extrusive	oriented core	-27	48.7826	Basalt	272.3676	Lava Flow
+This study	Simpson Island	SI3-8.30	SI3(5.5 to 12.5)			Extrusive : Igneous			48.7826	Basaltic Lava	272.3676	Lava Flow
+This study	Simpson Island	SI3-8.8	SI3(5.5 to 12.5)	FS-FD:SO-POM:SO-CMD-NORTH	171.0	Igneous : Extrusive	oriented core	-50	48.7826	Basalt	272.3676	Lava Flow
+This study	Simpson Island	SI3-8.80	SI3(5.5 to 12.5)			Extrusive : Igneous			48.7826	Basaltic Lava	272.3676	Lava Flow
+This study	Simpson Island	SI3-9.6	SI3(5.5 to 12.5)	FS-FD:SO-POM:SO-CMD-NORTH	181.0	Igneous : Extrusive	oriented core	-70	48.7826	Basalt	272.3676	Lava Flow
+This study	Simpson Island	SI3-9.60	SI3(5.5 to 12.5)			Extrusive : Igneous			48.7826	Basaltic Lava	272.3676	Lava Flow
+This study	Simpson Island	SI3-9.63	SI3(5.5 to 12.5)	FS-FD:SO-POM:SO-CMD-NORTH	175.0	Igneous : Extrusive	oriented core	-74	48.7826	Basalt	272.3676	Lava Flow
+This study	Simpson Island	SI3-D1	SI3(D1 to D10)	FS-FD:SO-POM:SO-CMD-NORTH	176.0	Intrusive : Igneous	oriented core	-56	48.7805	Diabase	272.3699	Dike
+This study	Simpson Island	SI3-D10	SI3(D1 to D10)	FS-FD:SO-POM:SO-CMD-NORTH	185.0	Intrusive : Igneous	oriented core	-80	48.7805	Diabase	272.3699	Dike
+This study	Simpson Island	SI3-D2	SI3(D1 to D10)	FS-FD:SO-POM:SO-CMD-NORTH	178.0	Intrusive : Igneous	oriented core	-57	48.7805	Diabase	272.3699	Dike
+This study	Simpson Island	SI3-D3	SI3(D1 to D10)	FS-FD:SO-POM:SO-CMD-NORTH	160.0	Intrusive : Igneous	oriented core	-59	48.7805	Diabase	272.3699	Dike
+This study	Simpson Island	SI3-D4	SI3(D1 to D10)	FS-FD:SO-POM:SO-CMD-NORTH	167.0	Intrusive : Igneous	oriented core	-57	48.7805	Diabase	272.3699	Dike
+This study	Simpson Island	SI3-D5	SI3(D1 to D10)	FS-FD:SO-POM:SO-CMD-NORTH	173.0	Intrusive : Igneous	oriented core	-52	48.7805	Diabase	272.3699	Dike
+This study	Simpson Island	SI3-D6	SI3(D1 to D10)	FS-FD:SO-POM:SO-CMD-NORTH	150.0	Intrusive : Igneous	oriented core	-42	48.7805	Diabase	272.3699	Dike
+This study	Simpson Island	SI3-D7	SI3(D1 to D10)	FS-FD:SO-POM:SO-CMD-NORTH	171.0	Intrusive : Igneous	oriented core	-31	48.7805	Diabase	272.3699	Dike
+This study	Simpson Island	SI3-D8	SI3(D1 to D10)	FS-FD:SO-POM:SO-CMD-NORTH	184.0	Intrusive : Igneous	oriented core	-37	48.7805	Diabase	272.3699	Dike
+This study	Simpson Island	SI3-D9	SI3(D1 to D10)	FS-FD:SO-POM:SO-CMD-NORTH	189.0	Intrusive : Igneous	oriented core	-51	48.7805	Diabase	272.3699	Dike
+This study	Simpson Island	SI4-1.9	SI4(0.0 to 13.8)	FS-FD:SO-POM:SO-CMD-NORTH	12.0	Igneous : Extrusive	oriented core	-23	48.7525	Basalt	272.4029	Lava Flow
+This study	Simpson Island	SI4-108.00	SI4(106.0 to 121.4)	FS-FD:SO-POM:SO-CMD-NORTH	345.0	Igneous : Extrusive	oriented core	-25	48.7499	Basalt	272.4047	Lava Flow
+This study	Simpson Island	SI4-109.20	SI4(106.0 to 121.4)	FS-FD:SO-POM:SO-CMD-NORTH	15.0	Igneous : Extrusive	oriented core	-26	48.7499	Basalt	272.4047	Lava Flow
+This study	Simpson Island	SI4-109.21	SI4(106.0 to 121.4)	FS-FD:SO-POM:SO-CMD-NORTH	314.0	Igneous : Extrusive	oriented core	-30	48.7499	Basalt	272.4047	Lava Flow
+This study	Simpson Island	SI4-109.40	SI4(106.0 to 121.4)	FS-FD:SO-POM:SO-CMD-NORTH	324.0	Igneous : Extrusive	oriented core	-32	48.7499	Basalt	272.4047	Lava Flow
+This study	Simpson Island	SI4-111.40	SI4(106.0 to 121.4)	FS-FD:SO-POM:SO-CMD-NORTH	336.0	Igneous : Extrusive	oriented core	-28	48.7499	Basalt	272.4047	Lava Flow
+This study	Simpson Island	SI4-111.60	SI4(106.0 to 121.4)	FS-FD:SO-POM:SO-CMD-NORTH	231.0	Igneous : Extrusive	oriented core	-60	48.7499	Basalt	272.4047	Lava Flow
+This study	Simpson Island	SI4-113.40	SI4(106.0 to 121.4)	FS-FD:SO-POM:SO-CMD-NORTH	190.0	Igneous : Extrusive	oriented core	-77	48.7499	Basalt	272.4047	Lava Flow
+This study	Simpson Island	SI4-113.50	SI4(106.0 to 121.4)	FS-FD:SO-POM:SO-CMD-NORTH	184.0	Igneous : Extrusive	oriented core	-74	48.7499	Basalt	272.4047	Lava Flow
+This study	Simpson Island	SI4-113.60	SI4(106.0 to 121.4)	FS-FD:SO-POM:SO-CMD-NORTH	185.0	Igneous : Extrusive	oriented core	-78	48.7499	Basalt	272.4047	Lava Flow
+This study	Simpson Island	SI4-122.80	SI4(121.4 to 127.3)	FS-FD:SO-POM:SO-CMD-NORTH	322.0	Igneous : Extrusive	oriented core	-55	48.7494	Basalt	272.4046	Lava Flow
+This study	Simpson Island	SI4-123.10	SI4(121.4 to 127.3)	FS-FD:SO-POM:SO-CMD-NORTH	274.0	Igneous : Extrusive	oriented core	-79	48.7494	Basalt	272.4046	Lava Flow
+This study	Simpson Island	SI4-123.65	SI4(121.4 to 127.3)	FS-FD:SO-POM:SO-CMD-NORTH	256.0	Igneous : Extrusive	oriented core	-74	48.7494	Basalt	272.4046	Lava Flow
+This study	Simpson Island	SI4-123.70	SI4(121.4 to 127.3)	FS-FD:SO-POM:SO-CMD-NORTH	262.0	Igneous : Extrusive	oriented core	-69	48.7494	Basalt	272.4046	Lava Flow
+This study	Simpson Island	SI4-123.80	SI4(121.4 to 127.3)	FS-FD:SO-POM:SO-CMD-NORTH	226.0	Igneous : Extrusive	oriented core	-52	48.7494	Basalt	272.4046	Lava Flow
+This study	Simpson Island	SI4-123.81	SI4(121.4 to 127.3)	FS-FD:SO-POM:SO-CMD-NORTH	283.0	Igneous : Extrusive	oriented core	-112	48.7494	Basalt	272.4046	Lava Flow
+This study	Simpson Island	SI4-124.05	SI4(121.4 to 127.3)	FS-FD:SO-POM:SO-CMD-NORTH	220.0	Igneous : Extrusive	oriented core	-60	48.7494	Basalt	272.4046	Lava Flow
+This study	Simpson Island	SI4-124.10	SI4(121.4 to 127.3)	FS-FD:SO-POM:SO-CMD-NORTH	268.0	Igneous : Extrusive	oriented core	-75	48.7494	Basalt	272.4046	Lava Flow
+This study	Simpson Island	SI4-138.60	SI4(133.8 to 143.1)	FS-FD:SO-POM:SO-CMD-NORTH	326.0	Igneous : Extrusive	oriented core	-26	48.749	Basalt	272.4045	Lava Flow
+This study	Simpson Island	SI4-138.70	SI4(133.8 to 143.1)	FS-FD:SO-POM:SO-CMD-NORTH	159.0	Igneous : Extrusive	oriented core	-67	48.749	Basalt	272.4045	Lava Flow
+This study	Simpson Island	SI4-139.20	SI4(133.8 to 143.1)	FS-FD:SO-POM:SO-CMD-NORTH	227.0	Igneous : Extrusive	oriented core	-30	48.749	Basalt	272.4045	Lava Flow
+This study	Simpson Island	SI4-139.80	SI4(133.8 to 143.1)	FS-FD:SO-POM:SO-CMD-NORTH	78.0	Igneous : Extrusive	oriented core	-15	48.749	Basalt	272.4045	Lava Flow
+This study	Simpson Island	SI4-139.81	SI4(133.8 to 143.1)	FS-FD:SO-POM:SO-CMD-NORTH	68.0	Igneous : Extrusive	oriented core	-26	48.749	Basalt	272.4045	Lava Flow
+This study	Simpson Island	SI4-14.0	SI4(13.8 to 20.2)	FS-FD:SO-POM:SO-CMD-NORTH	185.0	Igneous : Extrusive	oriented core	-67	48.7524	Basalt	272.4027	Lava Flow
+This study	Simpson Island	SI4-140.80	SI4(133.8 to 143.1)	FS-FD:SO-POM:SO-CMD-NORTH	144.0	Igneous : Extrusive	oriented core	-63	48.749	Basalt	272.4045	Lava Flow
+This study	Simpson Island	SI4-140.85	SI4(133.8 to 143.1)	FS-FD:SO-POM:SO-CMD-NORTH	143.0	Igneous : Extrusive	oriented core	-65	48.749	Basalt	272.4045	Lava Flow
+This study	Simpson Island	SI4-140.90	SI4(133.8 to 143.1)	FS-FD:SO-POM:SO-CMD-NORTH	142.0	Igneous : Extrusive	oriented core	-67	48.749	Basalt	272.4045	Lava Flow
+This study	Simpson Island	SI4-141.30	SI4(133.8 to 143.1)	FS-FD:SO-POM:SO-CMD-NORTH	63.0	Igneous : Extrusive	oriented core	-59	48.749	Basalt	272.4045	Lava Flow
+This study	Simpson Island	SI4-15.1	SI4(13.8 to 20.2)	FS-FD:SO-POM:SO-CMD-NORTH	164.0	Igneous : Extrusive	oriented core	-64	48.7524	Basalt	272.4027	Lava Flow
+This study	Simpson Island	SI4-15.7	SI4(13.8 to 20.2)	FS-FD:SO-POM:SO-CMD-NORTH	178.0	Igneous : Extrusive	oriented core	-82	48.7524	Basalt	272.4027	Lava Flow
+This study	Simpson Island	SI4-161.10	SI4(160.4 to 171.1)	FS-FD:SO-POM:SO-CMD-NORTH	242.0	Igneous : Extrusive	oriented core	-79	48.7485	Basalt	272.4042	Lava Flow
+This study	Simpson Island	SI4-161.21	SI4(160.4 to 171.1)	FS-FD:SO-POM:SO-CMD-NORTH	274.0	Igneous : Extrusive	oriented core	-11	48.7485	Basalt	272.4042	Lava Flow
+This study	Simpson Island	SI4-161.22	SI4(160.4 to 171.1)	FS-FD:SO-POM:SO-CMD-NORTH	253.0	Igneous : Extrusive	oriented core	-12	48.7485	Basalt	272.4042	Lava Flow
+This study	Simpson Island	SI4-161.23	SI4(160.4 to 171.1)	FS-FD:SO-POM:SO-CMD-NORTH	257.0	Igneous : Extrusive	oriented core	-9	48.7485	Basalt	272.4042	Lava Flow
+This study	Simpson Island	SI4-161.30	SI4(160.4 to 171.1)	FS-FD:SO-POM:SO-CMD-NORTH	169.0	Igneous : Extrusive	oriented core	-68	48.7485	Basalt	272.4042	Lava Flow
+This study	Simpson Island	SI4-162.00	SI4(160.4 to 171.1)	FS-FD:SO-POM:SO-CMD-NORTH	182.0	Igneous : Extrusive	oriented core	-92	48.7485	Basalt	272.4042	Lava Flow
+This study	Simpson Island	SI4-162.11	SI4(160.4 to 171.1)	FS-FD:SO-POM:SO-CMD-NORTH	316.0	Igneous : Extrusive	oriented core	-28	48.7485	Basalt	272.4042	Lava Flow
+This study	Simpson Island	SI4-162.12	SI4(160.4 to 171.1)	FS-FD:SO-POM:SO-CMD-NORTH	251.0	Igneous : Extrusive	oriented core	-45	48.7485	Basalt	272.4042	Lava Flow
+This study	Simpson Island	SI4-162.20	SI4(160.4 to 171.1)	FS-FD:SO-POM:SO-CMD-NORTH	182.0	Igneous : Extrusive	oriented core	-94	48.7485	Basalt	272.4042	Lava Flow
+This study	Simpson Island	SI4-18.5	SI4(13.8 to 20.2)	FS-FD:SO-POM:SO-CMD-NORTH	143.0	Igneous : Extrusive	oriented core	-67	48.7524	Basalt	272.4027	Lava Flow
+This study	Simpson Island	SI4-18.7	SI4(13.8 to 20.2)	FS-FD:SO-POM:SO-CMD-NORTH	71.0	Igneous : Extrusive	oriented core	-27	48.7524	Basalt	272.4027	Lava Flow
+This study	Simpson Island	SI4-18.9	SI4(13.8 to 20.2)	FS-FD:SO-POM:SO-CMD-NORTH	104.0	Igneous : Extrusive	oriented core	-25	48.7524	Basalt	272.4027	Lava Flow
+This study	Simpson Island	SI4-2.5	SI4(0.0 to 13.8)	FS-FD:SO-POM:SO-CMD-NORTH	307.0	Igneous : Extrusive	oriented core	-60	48.7525	Basalt	272.4029	Lava Flow
+This study	Simpson Island	SI4-23.0	SI4(21.4 to 30.0)	FS-FD:SO-POM:SO-CMD-NORTH	117.0	Igneous : Extrusive	oriented core	-57	48.752	Basalt	272.4028	Lava Flow
+This study	Simpson Island	SI4-24.1	SI4(21.4 to 30.0)	FS-FD:SO-POM:SO-CMD-NORTH	141.0	Igneous : Extrusive	oriented core	-57	48.752	Basalt	272.4028	Lava Flow
+This study	Simpson Island	SI4-24.7	SI4(21.4 to 30.0)	FS-FD:SO-POM:SO-CMD-NORTH	217.0	Igneous : Extrusive	oriented core	-52	48.752	Basalt	272.4028	Lava Flow
+This study	Simpson Island	SI4-25.2	SI4(21.4 to 30.0)	FS-FD:SO-POM:SO-CMD-NORTH	131.0	Igneous : Extrusive	oriented core	-57	48.752	Basalt	272.4028	Lava Flow
+This study	Simpson Island	SI4-25.6	SI4(21.4 to 30.0)	FS-FD:SO-POM:SO-CMD-NORTH	17.0	Igneous : Extrusive	oriented core	-25	48.752	Basalt	272.4028	Lava Flow
+This study	Simpson Island	SI4-25.8	SI4(21.4 to 30.0)	FS-FD:SO-POM:SO-CMD-NORTH	9.0	Igneous : Extrusive	oriented core	-71	48.752	Basalt	272.4028	Lava Flow
+This study	Simpson Island	SI4-25.9	SI4(21.4 to 30.0)	FS-FD:SO-POM:SO-CMD-NORTH	329.0	Igneous : Extrusive	oriented core	-84	48.752	Basalt	272.4028	Lava Flow
+This study	Simpson Island	SI4-3.2	SI4(0.0 to 13.8)	FS-FD:SO-POM:SO-CMD-NORTH	317.0	Igneous : Extrusive	oriented core	-22	48.7525	Basalt	272.4029	Lava Flow
+This study	Simpson Island	SI4-4.5	SI4(0.0 to 13.8)	FS-FD:SO-POM:SO-CMD-NORTH	320.0	Igneous : Extrusive	oriented core	-89	48.7525	Basalt	272.4029	Lava Flow
+This study	Simpson Island	SI4-4.6	SI4(0.0 to 13.8)	FS-FD:SO-POM:SO-CMD-NORTH	316.0	Igneous : Extrusive	oriented core	-94	48.7525	Basalt	272.4029	Lava Flow
+This study	Simpson Island	SI4-40.15	SI4(39.7 to 44.7)	FS-FD:SO-POM:SO-CMD-NORTH	227.0	Igneous : Extrusive	oriented core	-99	48.7516	Basalt	272.4033	Lava Flow
+This study	Simpson Island	SI4-40.2	SI4(39.7 to 44.7)	FS-FD:SO-POM:SO-CMD-NORTH	220.0	Igneous : Extrusive	oriented core	-93	48.7516	Basalt	272.4033	Lava Flow
+This study	Simpson Island	SI4-40.3	SI4(39.7 to 44.7)	FS-FD:SO-POM:SO-CMD-NORTH	220.0	Igneous : Extrusive	oriented core	-48	48.7516	Basalt	272.4033	Lava Flow
+This study	Simpson Island	SI4-40.5	SI4(39.7 to 44.7)	FS-FD:SO-POM:SO-CMD-NORTH	216.0	Igneous : Extrusive	oriented core	-97	48.7516	Basalt	272.4033	Lava Flow
+This study	Simpson Island	SI4-40.8	SI4(39.7 to 44.7)	FS-FD:SO-POM:SO-CMD-NORTH	225.0	Igneous : Extrusive	oriented core	-92	48.7516	Basalt	272.4033	Lava Flow
+This study	Simpson Island	SI4-41.0	SI4(39.7 to 44.7)	FS-FD:SO-POM:SO-CMD-NORTH	231.0	Igneous : Extrusive	oriented core	-101	48.7516	Basalt	272.4033	Lava Flow
+This study	Simpson Island	SI4-6.4	SI4(0.0 to 13.8)	FS-FD:SO-POM:SO-CMD-NORTH	107.0	Igneous : Extrusive	oriented core	-34	48.7525	Basalt	272.4029	Lava Flow
+This study	Simpson Island	SI4-73.65	SI4(72.3 to 74.6)	FS-FD:SO-POM:SO-CMD-NORTH	315.0	Igneous : Extrusive	oriented core	-25	48.7508	Basalt	272.4043	Lava Flow
+This study	Simpson Island	SI4-73.66	SI4(72.3 to 74.6)	FS-FD:SO-POM:SO-CMD-NORTH	334.0	Igneous : Extrusive	oriented core	-26	48.7508	Basalt	272.4043	Lava Flow
+This study	Simpson Island	SI4-73.70	SI4(72.3 to 74.6)	FS-FD:SO-POM:SO-CMD-NORTH	0.0	Igneous : Extrusive	oriented core	-18	48.7508	Basalt	272.4043	Lava Flow
+This study	Simpson Island	SI4-73.90	SI4(72.3 to 74.6)	FS-FD:SO-POM:SO-CMD-NORTH	310.0	Igneous : Extrusive	oriented core	-16	48.7508	Basalt	272.4043	Lava Flow
+This study	Simpson Island	SI4-74.00	SI4(72.3 to 74.6)	FS-FD:SO-POM:SO-CMD-NORTH	310.0	Igneous : Extrusive	oriented core	-36	48.7508	Basalt	272.4043	Lava Flow
+This study	Simpson Island	SI4-74.20	SI4(72.3 to 74.6)	FS-FD:SO-POM:SO-CMD-NORTH	286.0	Igneous : Extrusive	oriented core	-27	48.7508	Basalt	272.4043	Lava Flow
+This study	Simpson Island	SI4-74.39	SI4(72.3 to 74.6)	FS-FD:SO-POM:SO-CMD-NORTH	312.0	Igneous : Extrusive	oriented core	-21	48.7508	Basalt	272.4043	Lava Flow
+This study	Simpson Island	SI4-74.41	SI4(72.3 to 74.6)	FS-FD:SO-POM:SO-CMD-NORTH	312.0	Igneous : Extrusive	oriented core	-13	48.7508	Basalt	272.4043	Lava Flow
+This study	Simpson Island	SI4-75.20	SI4(74.6 to 80.0)	FS-FD:SO-POM:SO-CMD-NORTH	236.0	Igneous : Extrusive	oriented core	-72	48.7507	Basalt	272.4047	Lava Flow
+This study	Simpson Island	SI4-75.30	SI4(74.6 to 80.0)	FS-FD:SO-POM:SO-CMD-NORTH	276.0	Igneous : Extrusive	oriented core	-15	48.7507	Basalt	272.4047	Lava Flow
+This study	Simpson Island	SI4-75.35	SI4(74.6 to 80.0)	FS-FD:SO-POM:SO-CMD-NORTH	282.0	Igneous : Extrusive	oriented core	-22	48.7507	Basalt	272.4047	Lava Flow
+This study	Simpson Island	SI4-75.45	SI4(74.6 to 80.0)	FS-FD:SO-POM:SO-CMD-NORTH	238.0	Igneous : Extrusive	oriented core	-101	48.7507	Basalt	272.4047	Lava Flow
+This study	Simpson Island	SI4-75.50	SI4(74.6 to 80.0)	FS-FD:SO-POM:SO-CMD-NORTH	245.0	Igneous : Extrusive	oriented core	-102	48.7507	Basalt	272.4047	Lava Flow
+This study	Simpson Island	SI4-75.60	SI4(74.6 to 80.0)	FS-FD:SO-POM:SO-CMD-NORTH	203.0	Igneous : Extrusive	oriented core	-90	48.7507	Basalt	272.4047	Lava Flow
+This study	Simpson Island	SI4-75.70	SI4(74.6 to 80.0)	FS-FD:SO-POM:SO-CMD-NORTH	223.0	Igneous : Extrusive	oriented core	-93	48.7507	Basalt	272.4047	Lava Flow
+This study	Simpson Island	SI4-76.00	SI4(74.6 to 80.0)	FS-FD:SO-POM:SO-CMD-NORTH	290.0	Igneous : Extrusive	oriented core	-76	48.7507	Basalt	272.4047	Lava Flow
+This study	Simpson Island	SI4-82.00	SI4(80.2 to 100.7)	FS-FD:SO-POM:SO-CMD-NORTH	250.0	Igneous : Extrusive	oriented core	-91	48.7505	Basalt	272.4049	Lava Flow
+This study	Simpson Island	SI4-82.60	SI4(80.2 to 100.7)	FS-FD:SO-POM:SO-CMD-NORTH	196.0	Igneous : Extrusive	oriented core	-61	48.7505	Basalt	272.4049	Lava Flow
+This study	Simpson Island	SI4-82.61	SI4(80.2 to 100.7)	FS-FD:SO-POM:SO-CMD-NORTH	193.0	Igneous : Extrusive	oriented core	-60	48.7505	Basalt	272.4049	Lava Flow
+This study	Simpson Island	SI4-82.90	SI4(80.2 to 100.7)	FS-FD:SO-POM:SO-CMD-NORTH	168.0	Igneous : Extrusive	oriented core	-74	48.7505	Basalt	272.4049	Lava Flow
+This study	Simpson Island	SI4-85.20	SI4(80.2 to 100.7)	FS-FD:SO-POM:SO-CMD-NORTH	150.0	Igneous : Extrusive	oriented core	-62	48.7505	Basalt	272.4049	Lava Flow
+This study	Simpson Island	SI4-86.70	SI4(80.2 to 100.7)	FS-FD:SO-POM:SO-CMD-NORTH	218.0	Igneous : Extrusive	oriented core	-32	48.7505	Basalt	272.4049	Lava Flow
+This study	Simpson Island	SI4-86.75	SI4(80.2 to 100.7)	FS-FD:SO-POM:SO-CMD-NORTH	226.0	Igneous : Extrusive	oriented core	-24	48.7505	Basalt	272.4049	Lava Flow
+This study	Simpson Island	SI4-86.80	SI4(80.2 to 100.7)	FS-FD:SO-POM:SO-CMD-NORTH	321.0	Igneous : Extrusive	oriented core	-59	48.7505	Basalt	272.4049	Lava Flow
+This study	Simpson Island	SI4-86.85	SI4(80.2 to 100.7)	FS-FD:SO-POM:SO-CMD-NORTH	325.0	Igneous : Extrusive	oriented core	-76	48.7505	Basalt	272.4049	Lava Flow
+This study	Simpson Island	SI5a-1.4	SI5a(0.0 to 9.0)	FS-FD:SO-POM:SO-CMD-NORTH	257.0	Igneous : Extrusive	oriented core	-25	48.7363	Basalt	272.3038	Lava Flow
+This study	Simpson Island	SI5a-1.40	SI5a(0.0 to 9.0)			Extrusive : Igneous			48.7363	Basaltic Lava	272.3038	Lava Flow
+This study	Simpson Island	SI5a-1.6	SI5a(0.0 to 9.0)	FS-FD:SO-POM:SO-CMD-NORTH	161.0	Igneous : Extrusive	oriented core	-77	48.7363	Basalt	272.3038	Lava Flow
+This study	Simpson Island	SI5a-1.60	SI5a(0.0 to 9.0)			Extrusive : Igneous			48.7363	Basaltic Lava	272.3038	Lava Flow
+This study	Simpson Island	SI5a-2.1	SI5a(0.0 to 9.0)	FS-FD:SO-POM:SO-CMD-NORTH	142.0	Igneous : Extrusive	oriented core	-92	48.7363	Basalt	272.3038	Lava Flow
+This study	Simpson Island	SI5a-2.3	SI5a(0.0 to 9.0)	FS-FD:SO-POM:SO-CMD-NORTH	141.0	Igneous : Extrusive	oriented core	-83	48.7363	Basalt	272.3038	Lava Flow
+This study	Simpson Island	SI5a-2.6	SI5a(0.0 to 9.0)	FS-FD:SO-POM:SO-CMD-NORTH	153.0	Igneous : Extrusive	oriented core	-51	48.7363	Basalt	272.3038	Lava Flow
+This study	Simpson Island	SI5a-2.60	SI5a(0.0 to 9.0)			Extrusive : Igneous			48.7363	Basaltic Lava	272.3038	Lava Flow
+This study	Simpson Island	SI5a-3.0	SI5a(0.0 to 9.0)	FS-FD:SO-POM:SO-CMD-NORTH	161.0	Igneous : Extrusive	oriented core	-43	48.7363	Basalt	272.3038	Lava Flow
+This study	Simpson Island	SI5a-3.00	SI5a(0.0 to 9.0)			Extrusive : Igneous			48.7363	Basaltic Lava	272.3038	Lava Flow
+This study	Simpson Island	SI5a-5.0	SI5a(0.0 to 9.0)	FS-FD:SO-POM:SO-CMD-NORTH	114.0	Igneous : Extrusive	oriented core	-9	48.7363	Basalt	272.3038	Lava Flow
+This study	Simpson Island	SI5a-5.00	SI5a(0.0 to 9.0)			Extrusive : Igneous			48.7363	Basaltic Lava	272.3038	Lava Flow
+This study	Simpson Island	SI5a-6.93	SI5a(0.0 to 9.0)	FS-FD:SO-POM:SO-CMD-NORTH	188.0	Igneous : Extrusive	oriented core	-52	48.7363	Basalt	272.3038	Lava Flow
+This study	Simpson Island	SI5a-6.99	SI5a(0.0 to 9.0)	FS-FD:SO-POM:SO-CMD-NORTH	179.0	Igneous : Extrusive	oriented core	-61	48.7363	Basalt	272.3038	Lava Flow
+This study	Simpson Island	SI5a-7.0	SI5a(0.0 to 9.0)	FS-FD:SO-POM:SO-CMD-NORTH	175.0	Igneous : Extrusive	oriented core	-66	48.7363	Basalt	272.3038	Lava Flow
+This study	Simpson Island	SI5a-7.25	SI5a(0.0 to 9.0)	FS-FD:SO-POM:SO-CMD-NORTH	185.0	Igneous : Extrusive	oriented core	-63	48.7363	Basalt	272.3038	Lava Flow
+This study	Simpson Island	SI5a-7.3	SI5a(0.0 to 9.0)	FS-FD:SO-POM:SO-CMD-NORTH	185.0	Igneous : Extrusive	oriented core	-42	48.7363	Basalt	272.3038	Lava Flow
+This study	Simpson Island	SI5a-7.30	SI5a(0.0 to 9.0)			Extrusive : Igneous			48.7363	Basaltic Lava	272.3038	Lava Flow
+This study	Simpson Island	SI5b-116.6	SI5b(115.0 to 120.2)	FS-FD:SO-POM:SO-CMD-NORTH	190.0	Igneous : Extrusive	oriented core	-62	48.7388	Basalt	272.3145	Lava Flow
+This study	Simpson Island	SI5b-116.9	SI5b(115.0 to 120.2)	FS-FD:SO-POM:SO-CMD-NORTH	206.0	Igneous : Extrusive	oriented core	-65	48.7388	Basalt	272.3145	Lava Flow
+This study	Simpson Island	SI5b-116.90	SI5b(115.0 to 120.2)			Extrusive : Igneous			48.7388	Basaltic Lava	272.3145	Lava Flow
+This study	Simpson Island	SI5b-117.0	SI5b(115.0 to 120.2)	FS-FD:SO-POM:SO-CMD-NORTH	205.0	Igneous : Extrusive	oriented core	-70	48.7388	Basalt	272.3145	Lava Flow
+This study	Simpson Island	SI5b-117.05	SI5b(115.0 to 120.2)	FS-FD:SO-POM:SO-CMD-NORTH	205.0	Igneous : Extrusive	oriented core	-70	48.7388	Basalt	272.3145	Lava Flow
+This study	Simpson Island	SI5b-117.1	SI5b(115.0 to 120.2)	FS-FD:SO-POM:SO-CMD-NORTH	199.0	Igneous : Extrusive	oriented core	-76	48.7388	Basalt	272.3145	Lava Flow
+This study	Simpson Island	SI5b-117.15	SI5b(115.0 to 120.2)	FS-FD:SO-POM:SO-CMD-NORTH	204.0	Igneous : Extrusive	oriented core	-78	48.7388	Basalt	272.3145	Lava Flow
+This study	Simpson Island	SI5b-117.4	SI5b(115.0 to 120.2)	FS-FD:SO-POM:SO-CMD-NORTH	114.0	Igneous : Extrusive	oriented core	-75	48.7388	Basalt	272.3145	Lava Flow
+This study	Simpson Island	SI5b-117.9	SI5b(115.0 to 120.2)	FS-FD:SO-POM:SO-CMD-NORTH	185.0	Igneous : Extrusive	oriented core	-86	48.7388	Basalt	272.3145	Lava Flow
+This study	Simpson Island	SI5b-117.90	SI5b(115.0 to 120.2)			Extrusive : Igneous			48.7388	Basaltic Lava	272.3145	Lava Flow
+This study	Simpson Island	SI5b-118.2	SI5b(115.0 to 120.2)	FS-FD:SO-POM:SO-CMD-NORTH	193.0	Igneous : Extrusive	oriented core	-85	48.7388	Basalt	272.3145	Lava Flow
+This study	Simpson Island	SI5b-118.25	SI5b(115.0 to 120.2)	FS-FD:SO-POM:SO-CMD-NORTH	187.0	Igneous : Extrusive	oriented core	-74	48.7388	Basalt	272.3145	Lava Flow
+This study	Simpson Island	SI5b-13.6	SI5b(3.2 to 30.7)	FS-FD:SO-POM:SO-CMD-NORTH	159.0	Igneous : Extrusive	oriented core	-64	48.7408	Basalt	272.3235	Lava Flow
+This study	Simpson Island	SI5b-133.3	SI5b(132.4 to 171.9)	FS-FD:SO-POM:SO-CMD-NORTH	221.0	Igneous : Extrusive	oriented core	-32	48.7385	Basalt	272.3136	Lava Flow
+This study	Simpson Island	SI5b-133.4	SI5b(132.4 to 171.9)	FS-FD:SO-POM:SO-CMD-NORTH	189.0	Igneous : Extrusive	oriented core	-38	48.7385	Basalt	272.3136	Lava Flow
+This study	Simpson Island	SI5b-14.4	SI5b(3.2 to 30.7)	FS-FD:SO-POM:SO-CMD-NORTH	160.0	Igneous : Extrusive	oriented core	-34	48.7408	Basalt	272.3235	Lava Flow
+This study	Simpson Island	SI5b-14.7	SI5b(3.2 to 30.7)	FS-FD:SO-POM:SO-CMD-NORTH	167.0	Igneous : Extrusive	oriented core	-25	48.7408	Basalt	272.3235	Lava Flow
+This study	Simpson Island	SI5b-146.0	SI5b(132.4 to 171.9)	FS-FD:SO-POM:SO-CMD-NORTH	265.0	Igneous : Extrusive	oriented core	-80	48.7385	Basalt	272.3136	Lava Flow
+This study	Simpson Island	SI5b-146.00	SI5b(132.4 to 171.9)			Extrusive : Igneous			48.7385	Basaltic Lava	272.3136	Lava Flow
+This study	Simpson Island	SI5b-146.3	SI5b(132.4 to 171.9)	FS-FD:SO-POM:SO-CMD-NORTH	247.0	Igneous : Extrusive	oriented core	-86	48.7385	Basalt	272.3136	Lava Flow
+This study	Simpson Island	SI5b-146.5	SI5b(132.4 to 171.9)	FS-FD:SO-POM:SO-CMD-NORTH	220.0	Igneous : Extrusive	oriented core	-79	48.7385	Basalt	272.3136	Lava Flow
+This study	Simpson Island	SI5b-15.0	SI5b(3.2 to 30.7)	FS-FD:SO-POM:SO-CMD-NORTH	174.0	Igneous : Extrusive	oriented core	-33	48.7408	Basalt	272.3235	Lava Flow
+This study	Simpson Island	SI5b-15.5	SI5b(3.2 to 30.7)	FS-FD:SO-POM:SO-CMD-NORTH	36.0	Igneous : Extrusive	oriented core	-22	48.7408	Basalt	272.3235	Lava Flow
+This study	Simpson Island	SI5b-159.7	SI5b(132.4 to 171.9)	FS-FD:SO-POM:SO-CMD-NORTH	70.0	Igneous : Extrusive	oriented core	-33	48.7385	Basalt	272.3136	Lava Flow
+This study	Simpson Island	SI5b-159.9	SI5b(132.4 to 171.9)	FS-FD:SO-POM:SO-CMD-NORTH	297.0	Igneous : Extrusive	oriented core	-37	48.7385	Basalt	272.3136	Lava Flow
+This study	Simpson Island	SI5b-16.2	SI5b(3.2 to 30.7)	FS-FD:SO-POM:SO-CMD-NORTH	80.0	Igneous : Extrusive	oriented core	-41	48.7408	Basalt	272.3235	Lava Flow
+This study	Simpson Island	SI5b-160.0	SI5b(132.4 to 171.9)	FS-FD:SO-POM:SO-CMD-NORTH	54.0	Igneous : Extrusive	oriented core	-49	48.7385	Basalt	272.3136	Lava Flow
+This study	Simpson Island	SI5b-160.00	SI5b(132.4 to 171.9)			Extrusive : Igneous			48.7385	Basaltic Lava	272.3136	Lava Flow
+This study	Simpson Island	SI5b-184.2	SI5b(183.4 to 188.7)	FS-FD:SO-POM:SO-CMD-NORTH	13.0	Igneous : Extrusive	oriented core	-22	48.7376	Basalt	272.3066	Lava Flow
+This study	Simpson Island	SI5b-184.3	SI5b(183.4 to 188.7)	FS-FD:SO-POM:SO-CMD-NORTH	294.0	Igneous : Extrusive	oriented core	-60	48.7376	Basalt	272.3066	Lava Flow
+This study	Simpson Island	SI5b-184.5	SI5b(183.4 to 188.7)	FS-FD:SO-POM:SO-CMD-NORTH	4.0	Igneous : Extrusive	oriented core	-8	48.7376	Basalt	272.3066	Lava Flow
+This study	Simpson Island	SI5b-185.7	SI5b(183.4 to 188.7)	FS-FD:SO-POM:SO-CMD-NORTH	114.0	Igneous : Extrusive	oriented core	-29	48.7376	Basalt	272.3066	Lava Flow
+This study	Simpson Island	SI5b-186.2	SI5b(183.4 to 188.7)	FS-FD:SO-POM:SO-CMD-NORTH	164.0	Igneous : Extrusive	oriented core	-39	48.7376	Basalt	272.3066	Lava Flow
+This study	Simpson Island	SI5b-186.5	SI5b(183.4 to 188.7)	FS-FD:SO-POM:SO-CMD-NORTH	236.0	Igneous : Extrusive	oriented core	-13	48.7376	Basalt	272.3066	Lava Flow
+This study	Simpson Island	SI5b-198.3	SI5b(197.5 to 216.7)	FS-FD:SO-POM:SO-CMD-NORTH	185.0	Igneous : Extrusive	oriented core	-92	48.7373	Basalt	272.3065	Lava Flow
+This study	Simpson Island	SI5b-198.4	SI5b(197.5 to 216.7)	FS-FD:SO-POM:SO-CMD-NORTH	159.0	Igneous : Extrusive	oriented core	-107	48.7373	Basalt	272.3065	Lava Flow
+This study	Simpson Island	SI5b-198.6	SI5b(197.5 to 216.7)	FS-FD:SO-POM:SO-CMD-NORTH	146.0	Igneous : Extrusive	oriented core	-87	48.7373	Basalt	272.3065	Lava Flow
+This study	Simpson Island	SI5b-198.8	SI5b(197.5 to 216.7)	FS-FD:SO-POM:SO-CMD-NORTH	221.0	Igneous : Extrusive	oriented core	-67	48.7373	Basalt	272.3065	Lava Flow
+This study	Simpson Island	SI5b-212.4	SI5b(197.5 to 216.7)	FS-FD:SO-POM:SO-CMD-NORTH	181.0	Igneous : Extrusive	oriented core	-65	48.7373	Basalt	272.3065	Lava Flow
+This study	Simpson Island	SI5b-212.6	SI5b(197.5 to 216.7)	FS-FD:SO-POM:SO-CMD-NORTH	207.0	Igneous : Extrusive	oriented core	-73	48.7373	Basalt	272.3065	Lava Flow
+This study	Simpson Island	SI5b-214.0	SI5b(197.5 to 216.7)	FS-FD:SO-POM:SO-CMD-NORTH	305.0	Igneous : Extrusive	oriented core	-71	48.7373	Basalt	272.3065	Lava Flow
+This study	Simpson Island	SI5b-214.2	SI5b(197.5 to 216.7)	FS-FD:SO-POM:SO-CMD-NORTH	289.0	Igneous : Extrusive	oriented core	-91	48.7373	Basalt	272.3065	Lava Flow
+This study	Simpson Island	SI5b-57.6	SI5b(57.2 to 63.3)	FS-FD:SO-POM:SO-CMD-NORTH	158.0	Igneous : Extrusive	oriented core	-59	48.7402	Basalt	272.3162	Lava Flow
+This study	Simpson Island	SI5b-57.65	SI5b(57.2 to 63.3)	FS-FD:SO-POM:SO-CMD-NORTH	321.0	Igneous : Extrusive	oriented core	-27	48.7402	Basalt	272.3162	Lava Flow
+This study	Simpson Island	SI5b-57.7	SI5b(57.2 to 63.3)	FS-FD:SO-POM:SO-CMD-NORTH	165.0	Igneous : Extrusive	oriented core	-57	48.7402	Basalt	272.3162	Lava Flow
+This study	Simpson Island	SI5b-58.0	SI5b(57.2 to 63.3)	FS-FD:SO-POM:SO-CMD-NORTH	135.0	Igneous : Extrusive	oriented core	-44	48.7402	Basalt	272.3162	Lava Flow
+This study	Simpson Island	SI5b-58.05	SI5b(57.2 to 63.3)	FS-FD:SO-POM:SO-CMD-NORTH	140.0	Igneous : Extrusive	oriented core	-46	48.7402	Basalt	272.3162	Lava Flow
+This study	Simpson Island	SI5b-58.1	SI5b(57.2 to 63.3)	FS-FD:SO-POM:SO-CMD-NORTH	130.0	Igneous : Extrusive	oriented core	-70	48.7402	Basalt	272.3162	Lava Flow
+This study	Simpson Island	SI5b-58.65	SI5b(57.2 to 63.3)	FS-FD:SO-POM:SO-CMD-NORTH		Igneous : Extrusive	oriented core	-90	48.7402	Basalt	272.3162	Lava Flow
+This study	Simpson Island	SI5b-58.7	SI5b(57.2 to 63.3)	FS-FD:SO-POM:SO-CMD-NORTH	203.0	Igneous : Extrusive	oriented core	-74	48.7402	Basalt	272.3162	Lava Flow
+This study	Simpson Island	SI5b-6.0	SI5b(3.2 to 30.7)	FS-FD:SO-POM:SO-CMD-NORTH	356.0	Igneous : Extrusive	oriented core	-45	48.7408	Basalt	272.3235	Lava Flow
+This study	Simpson Island	SI5b-65.0	SI5b(64.6 to 70.4)	FS-FD:SO-POM:SO-CMD-NORTH	219.0	Igneous : Extrusive	oriented core	-68	48.7401	Basalt	272.3159	Lava Flow
+This study	Simpson Island	SI5b-65.1	SI5b(64.6 to 70.4)	FS-FD:SO-POM:SO-CMD-NORTH	95.0	Igneous : Extrusive	oriented core	-89	48.7401	Basalt	272.3159	Lava Flow
+This study	Simpson Island	SI5b-65.2	SI5b(64.6 to 70.4)	FS-FD:SO-POM:SO-CMD-NORTH	260.0	Igneous : Extrusive	oriented core	-87	48.7401	Basalt	272.3159	Lava Flow
+This study	Simpson Island	SI5b-65.4	SI5b(64.6 to 70.4)	FS-FD:SO-POM:SO-CMD-NORTH	229.0	Igneous : Extrusive	oriented core	-38	48.7401	Basalt	272.3159	Lava Flow
+This study	Simpson Island	SI5b-68.35	SI5b(64.6 to 70.4)	FS-FD:SO-POM:SO-CMD-NORTH	277.0	Igneous : Extrusive	oriented core	-90	48.7401	Basalt	272.3159	Lava Flow
+This study	Simpson Island	SI5b-68.4	SI5b(64.6 to 70.4)	FS-FD:SO-POM:SO-CMD-NORTH	283.0	Igneous : Extrusive	oriented core	-77	48.7401	Basalt	272.3159	Lava Flow
+This study	Simpson Island	SI5b-68.45	SI5b(64.6 to 70.4)	FS-FD:SO-POM:SO-CMD-NORTH	278.0	Igneous : Extrusive	oriented core	-102	48.7401	Basalt	272.3159	Lava Flow
+This study	Simpson Island	SI5b-7.1	SI5b(3.2 to 30.7)	FS-FD:SO-POM:SO-CMD-NORTH	68.0	Igneous : Extrusive	oriented core	-34	48.7408	Basalt	272.3235	Lava Flow
+This study	Simpson Island	SI5b-74.0	SI5b(72.6 to 79.0)	FS-FD:SO-POM:SO-CMD-NORTH	146.0	Igneous : Extrusive	oriented core	-72	48.7399	Basalt	272.3155	Lava Flow
+This study	Simpson Island	SI5b-74.25	SI5b(72.6 to 79.0)	FS-FD:SO-POM:SO-CMD-NORTH	229.0	Igneous : Extrusive	oriented core	-83	48.7399	Basalt	272.3155	Lava Flow
+This study	Simpson Island	SI5b-74.3	SI5b(72.6 to 79.0)	FS-FD:SO-POM:SO-CMD-NORTH	208.0	Igneous : Extrusive	oriented core	-67	48.7399	Basalt	272.3155	Lava Flow
+This study	Simpson Island	SI5b-75.4	SI5b(72.6 to 79.0)	FS-FD:SO-POM:SO-CMD-NORTH	16.0	Igneous : Extrusive	oriented core	-10	48.7399	Basalt	272.3155	Lava Flow
+This study	Simpson Island	SI5b-76.0	SI5b(72.6 to 79.0)	FS-FD:SO-POM:SO-CMD-NORTH	228.0	Igneous : Extrusive	oriented core	-42	48.7399	Basalt	272.3155	Lava Flow
+This study	Simpson Island	SI5b-76.2	SI5b(72.6 to 79.0)	FS-FD:SO-POM:SO-CMD-NORTH	238.0	Igneous : Extrusive	oriented core	-24	48.7399	Basalt	272.3155	Lava Flow
+This study	Simpson Island	SI6-0.30	SI6(0.0 to 3.0)	FS-FD:SO-POM:SO-CMD-NORTH	272.0	Igneous : Extrusive	oriented core	-29	48.7462	Basalt	272.3607	Lava Flow
+This study	Simpson Island	SI6-0.50	SI6(0.0 to 3.0)	FS-FD:SO-POM:SO-CMD-NORTH	27.0	Igneous : Extrusive	oriented core	-19	48.7462	Basalt	272.3607	Lava Flow
+This study	Simpson Island	SI6-0.70	SI6(0.0 to 3.0)	FS-FD:SO-POM:SO-CMD-NORTH	161.0	Igneous : Extrusive	oriented core	-26	48.7462	Basalt	272.3607	Lava Flow
+This study	Simpson Island	SI6-0.80	SI6(0.0 to 3.0)	FS-FD:SO-POM:SO-CMD-NORTH	275.0	Igneous : Extrusive	oriented core	-29	48.7462	Basalt	272.3607	Lava Flow
+This study	Simpson Island	SI6-1.35	SI6(0.0 to 3.0)	FS-FD:SO-POM:SO-CMD-NORTH	194.0	Igneous : Extrusive	oriented core	-84	48.7462	Basalt	272.3607	Lava Flow
+This study	Simpson Island	SI6-1.40	SI6(0.0 to 3.0)	FS-FD:SO-POM:SO-CMD-NORTH	248.0	Igneous : Extrusive	oriented core	-67	48.7462	Basalt	272.3607	Lava Flow
+This study	Simpson Island	SI6-123.90	SI6(122.3 to 127.6)	FS-FD:SO-POM:SO-CMD-NORTH	293.0	Igneous : Extrusive	oriented core	-67	48.7439	Basalt	272.3507	Lava Flow
+This study	Simpson Island	SI6-124.00	SI6(122.3 to 127.6)	FS-FD:SO-POM:SO-CMD-NORTH	291.0	Igneous : Extrusive	oriented core	-79	48.7439	Basalt	272.3507	Lava Flow
+This study	Simpson Island	SI6-125.30	SI6(122.3 to 127.6)	FS-FD:SO-POM:SO-CMD-NORTH	1.0	Igneous : Extrusive	oriented core	-32	48.7439	Basalt	272.3507	Lava Flow
+This study	Simpson Island	SI6-125.80	SI6(122.3 to 127.6)	FS-FD:SO-POM:SO-CMD-NORTH	8.0	Igneous : Extrusive	oriented core	-110	48.7439	Basalt	272.3507	Lava Flow
+This study	Simpson Island	SI6-125.9	SI6(122.3 to 127.6)	FS-FD:SO-POM:SO-CMD-NORTH	12.0	Igneous : Extrusive	oriented core	-112	48.7439	Basalt	272.3507	Lava Flow
+This study	Simpson Island	SI6-125.90	SI6(122.3 to 127.6)	FS-FD:SO-POM:SO-CMD-NORTH	12.0	Igneous : Extrusive	oriented core	-112	48.7439	Basalt	272.3507	Lava Flow
+This study	Simpson Island	SI6-126.00	SI6(122.3 to 127.6)	FS-FD:SO-POM:SO-CMD-NORTH	257.0	Igneous : Extrusive	oriented core	-83	48.7439	Basalt	272.3507	Lava Flow
+This study	Simpson Island	SI6-126.20	SI6(122.3 to 127.6)	FS-FD:SO-POM:SO-CMD-NORTH	279.0	Igneous : Extrusive	oriented core	-84	48.7439	Basalt	272.3507	Lava Flow
+This study	Simpson Island	SI6-13.35	SI6(12.0 to 28.4)	FS-FD:SO-POM:SO-CMD-NORTH	181.0	Igneous : Extrusive	oriented core	-66	48.746	Basalt	272.3606	Lava Flow
+This study	Simpson Island	SI6-13.36	SI6(12.0 to 28.4)	FS-FD:SO-POM:SO-CMD-NORTH	190.0	Igneous : Extrusive	oriented core	-76	48.746	Basalt	272.3606	Lava Flow
+This study	Simpson Island	SI6-13.45	SI6(12.0 to 28.4)	FS-FD:SO-POM:SO-CMD-NORTH	154.0	Igneous : Extrusive	oriented core	-77	48.746	Basalt	272.3606	Lava Flow
+This study	Simpson Island	SI6-13.50	SI6(12.0 to 28.4)	FS-FD:SO-POM:SO-CMD-NORTH	152.0	Igneous : Extrusive	oriented core	-79	48.746	Basalt	272.3606	Lava Flow
+This study	Simpson Island	SI6-14.20	SI6(12.0 to 28.4)	FS-FD:SO-POM:SO-CMD-NORTH	177.0	Igneous : Extrusive	oriented core	-87	48.746	Basalt	272.3606	Lava Flow
+This study	Simpson Island	SI6-14.40	SI6(12.0 to 28.4)	FS-FD:SO-POM:SO-CMD-NORTH	198.0	Igneous : Extrusive	oriented core	-89	48.746	Basalt	272.3606	Lava Flow
+This study	Simpson Island	SI6-14.45	SI6(12.0 to 28.4)	FS-FD:SO-POM:SO-CMD-NORTH	201.0	Igneous : Extrusive	oriented core	-86	48.746	Basalt	272.3606	Lava Flow
+This study	Simpson Island	SI6-15.00	SI6(12.0 to 28.4)	FS-FD:SO-POM:SO-CMD-NORTH	127.0	Igneous : Extrusive	oriented core	-80	48.746	Basalt	272.3606	Lava Flow
+This study	Simpson Island	SI6-181.60	SI6(180.6 to 188.8)	FS-FD:SO-POM:SO-CMD-NORTH	151.0	Igneous : Extrusive	oriented core	-52	48.7423	Basalt	272.35	Lava Flow
+This study	Simpson Island	SI6-181.75	SI6(180.6 to 188.8)	FS-FD:SO-POM:SO-CMD-NORTH	147.0	Igneous : Extrusive	oriented core	-56	48.7423	Basalt	272.35	Lava Flow
+This study	Simpson Island	SI6-182.20	SI6(180.6 to 188.8)	FS-FD:SO-POM:SO-CMD-NORTH	198.0	Igneous : Extrusive	oriented core	-40	48.7423	Basalt	272.35	Lava Flow
+This study	Simpson Island	SI6-182.30	SI6(180.6 to 188.8)	FS-FD:SO-POM:SO-CMD-NORTH	189.0	Igneous : Extrusive	oriented core	-50	48.7423	Basalt	272.35	Lava Flow
+This study	Simpson Island	SI6-182.40	SI6(180.6 to 188.8)	FS-FD:SO-POM:SO-CMD-NORTH	237.0	Igneous : Extrusive	oriented core	-24	48.7423	Basalt	272.35	Lava Flow
+This study	Simpson Island	SI6-182.50	SI6(180.6 to 188.8)	FS-FD:SO-POM:SO-CMD-NORTH	232.0	Igneous : Extrusive	oriented core	-21	48.7423	Basalt	272.35	Lava Flow
+This study	Simpson Island	SI6-183.00	SI6(180.6 to 188.8)	FS-FD:SO-POM:SO-CMD-NORTH	80.0	Igneous : Extrusive	oriented core	-84	48.7423	Basalt	272.35	Lava Flow
+This study	Simpson Island	SI6-183.10	SI6(180.6 to 188.8)	FS-FD:SO-POM:SO-CMD-NORTH	77.0	Igneous : Extrusive	oriented core	-80	48.7423	Basalt	272.35	Lava Flow
+This study	Simpson Island	SI6-2.10	SI6(0.0 to 3.0)	FS-FD:SO-POM:SO-CMD-NORTH	307.0	Igneous : Extrusive	oriented core	-93	48.7462	Basalt	272.3607	Lava Flow
+This study	Simpson Island	SI6-2.20	SI6(0.0 to 3.0)	FS-FD:SO-POM:SO-CMD-NORTH	255.0	Igneous : Extrusive	oriented core	-44	48.7462	Basalt	272.3607	Lava Flow
+This study	Simpson Island	SI6-2.40	SI6(0.0 to 3.0)	FS-FD:SO-POM:SO-CMD-NORTH	93.0	Igneous : Extrusive	oriented core	-23	48.7462	Basalt	272.3607	Lava Flow
+This study	Simpson Island	SI6-208.60	SI6(208.4 to 219.9)	FS-FD:SO-POM:SO-CMD-NORTH	202.0	Igneous : Extrusive	oriented core	-77	48.7415	Basalt	272.3517	Lava Flow
+This study	Simpson Island	SI6-209.00	SI6(208.4 to 219.9)	FS-FD:SO-POM:SO-CMD-NORTH	191.0	Igneous : Extrusive	oriented core	-78	48.7415	Basalt	272.3517	Lava Flow
+This study	Simpson Island	SI6-209.10	SI6(208.4 to 219.9)	FS-FD:SO-POM:SO-CMD-NORTH	196.0	Igneous : Extrusive	oriented core	-86	48.7415	Basalt	272.3517	Lava Flow
+This study	Simpson Island	SI6-209.40	SI6(208.4 to 219.9)	FS-FD:SO-POM:SO-CMD-NORTH	191.0	Igneous : Extrusive	oriented core	-88	48.7415	Basalt	272.3517	Lava Flow
+This study	Simpson Island	SI6-209.50	SI6(208.4 to 219.9)	FS-FD:SO-POM:SO-CMD-NORTH	189.0	Igneous : Extrusive	oriented core	-88	48.7415	Basalt	272.3517	Lava Flow
+This study	Simpson Island	SI6-209.80	SI6(208.4 to 219.9)	FS-FD:SO-POM:SO-CMD-NORTH	146.0	Igneous : Extrusive	oriented core	-101	48.7415	Basalt	272.3517	Lava Flow
+This study	Simpson Island	SI6-210.05	SI6(208.4 to 219.9)	FS-FD:SO-POM:SO-CMD-NORTH	199.0	Igneous : Extrusive	oriented core	-112	48.7415	Basalt	272.3517	Lava Flow
+This study	Simpson Island	SI6-247.4	SI6(245.4 to 252.7)	FS-FD:SO-POM:SO-CMD-NORTH	152.0	Igneous : Extrusive	oriented core	-72	48.7405	Basalt	272.3524	Lava Flow
+This study	Simpson Island	SI6-247.7	SI6(245.4 to 252.7)	FS-FD:SO-POM:SO-CMD-NORTH	162.0	Igneous : Extrusive	oriented core	-91	48.7405	Basalt	272.3524	Lava Flow
+This study	Simpson Island	SI6-248.1	SI6(245.4 to 252.7)	FS-FD:SO-POM:SO-CMD-NORTH	152.0	Igneous : Extrusive	oriented core	-80	48.7405	Basalt	272.3524	Lava Flow
+This study	Simpson Island	SI6-248.8	SI6(245.4 to 252.7)	FS-FD:SO-POM:SO-CMD-NORTH	249.0	Igneous : Extrusive	oriented core	-54	48.7405	Basalt	272.3524	Lava Flow
+This study	Simpson Island	SI6-248.9	SI6(245.4 to 252.7)	FS-FD:SO-POM:SO-CMD-NORTH	249.0	Igneous : Extrusive	oriented core	-48	48.7405	Basalt	272.3524	Lava Flow
+This study	Simpson Island	SI6-249.2	SI6(245.4 to 252.7)	FS-FD:SO-POM:SO-CMD-NORTH	172.0	Igneous : Extrusive	oriented core	-49	48.7405	Basalt	272.3524	Lava Flow
+This study	Simpson Island	SI6-251.0	SI6(245.4 to 252.7)	FS-FD:SO-POM:SO-CMD-NORTH	306.0	Igneous : Extrusive	oriented core	-29	48.7405	Basalt	272.3524	Lava Flow
+This study	Simpson Island	SI6-251.2	SI6(245.4 to 252.7)	FS-FD:SO-POM:SO-CMD-NORTH	190.0	Igneous : Extrusive	oriented core	-53	48.7405	Basalt	272.3524	Lava Flow
+This study	Simpson Island	SI6-274.2	SI6(268.4 to 289.5)	FS-FD:SO-POM:SO-CMD-NORTH	217.0	Igneous : Extrusive	oriented core	-77	48.7399	Basalt	272.3533	Lava Flow
+This study	Simpson Island	SI6-274.3	SI6(268.4 to 289.5)	FS-FD:SO-POM:SO-CMD-NORTH	224.0	Igneous : Extrusive	oriented core	-74	48.7399	Basalt	272.3533	Lava Flow
+This study	Simpson Island	SI6-274.9	SI6(268.4 to 289.5)	FS-FD:SO-POM:SO-CMD-NORTH	301.0	Igneous : Extrusive	oriented core	-29	48.7399	Basalt	272.3533	Lava Flow
+This study	Simpson Island	SI6-275.3	SI6(268.4 to 289.5)	FS-FD:SO-POM:SO-CMD-NORTH	126.0	Igneous : Extrusive	oriented core	-62	48.7399	Basalt	272.3533	Lava Flow
+This study	Simpson Island	SI6-276.3	SI6(268.4 to 289.5)	FS-FD:SO-POM:SO-CMD-NORTH	15.0	Igneous : Extrusive	oriented core	-31	48.7399	Basalt	272.3533	Lava Flow
+This study	Simpson Island	SI6-277.0	SI6(268.4 to 289.5)	FS-FD:SO-POM:SO-CMD-NORTH	184.0	Igneous : Extrusive	oriented core	-68	48.7399	Basalt	272.3533	Lava Flow
+This study	Simpson Island	SI6-277.3	SI6(268.4 to 289.5)	FS-FD:SO-POM:SO-CMD-NORTH	292.0	Igneous : Extrusive	oriented core	-60	48.7399	Basalt	272.3533	Lava Flow
+This study	Simpson Island	SI6-277.5	SI6(268.4 to 289.5)	FS-FD:SO-POM:SO-CMD-NORTH	266.0	Igneous : Extrusive	oriented core	-32	48.7399	Basalt	272.3533	Lava Flow
+This study	Simpson Island	SI6-291.4	SI6(289.8 to 301.1)	FS-FD:SO-POM:SO-CMD-NORTH	139.0	Igneous : Extrusive	oriented core	-29	48.7393	Basalt	272.3536	Lava Flow
+This study	Simpson Island	SI6-291.8	SI6(289.8 to 301.1)	FS-FD:SO-POM:SO-CMD-NORTH	226.0	Igneous : Extrusive	oriented core	-63	48.7393	Basalt	272.3536	Lava Flow
+This study	Simpson Island	SI6-293.2	SI6(289.8 to 301.1)	FS-FD:SO-POM:SO-CMD-NORTH	182.0	Igneous : Extrusive	oriented core	-51	48.7393	Basalt	272.3536	Lava Flow
+This study	Simpson Island	SI6-294.0	SI6(289.8 to 301.1)	FS-FD:SO-POM:SO-CMD-NORTH	193.0	Igneous : Extrusive	oriented core	-64	48.7393	Basalt	272.3536	Lava Flow
+This study	Simpson Island	SI6-294.4	SI6(289.8 to 301.1)	FS-FD:SO-POM:SO-CMD-NORTH	263.0	Igneous : Extrusive	oriented core	-92	48.7393	Basalt	272.3536	Lava Flow
+This study	Simpson Island	SI6-294.6	SI6(289.8 to 301.1)	FS-FD:SO-POM:SO-CMD-NORTH	287.0	Igneous : Extrusive	oriented core	-101	48.7393	Basalt	272.3536	Lava Flow
+This study	Simpson Island	SI6-295.2	SI6(289.8 to 301.1)	FS-FD:SO-POM:SO-CMD-NORTH	152.0	Igneous : Extrusive	oriented core	-35	48.7393	Basalt	272.3536	Lava Flow
+This study	Simpson Island	SI6-296.2	SI6(289.8 to 301.1)	FS-FD:SO-POM:SO-CMD-NORTH	17.0	Igneous : Extrusive	oriented core	-23	48.7393	Basalt	272.3536	Lava Flow
+This study	Simpson Island	SI6-41.6	SI6(40.6 to 57.8)	FS-FD:SO-POM:SO-CMD-NORTH	171.0	Igneous : Extrusive	oriented core	-51	48.7451	Basalt	272.3607	Lava Flow
+This study	Simpson Island	SI6-42.6	SI6(40.6 to 57.8)	FS-FD:SO-POM:SO-CMD-NORTH	188.0	Igneous : Extrusive	oriented core	-39	48.7451	Basalt	272.3607	Lava Flow
+This study	Simpson Island	SI6-43.5	SI6(40.6 to 57.8)	FS-FD:SO-POM:SO-CMD-NORTH	15.0	Igneous : Extrusive	oriented core	-9	48.7451	Basalt	272.3607	Lava Flow
+This study	Simpson Island	SI6-43.6	SI6(40.6 to 57.8)	FS-FD:SO-POM:SO-CMD-NORTH	145.0	Igneous : Extrusive	oriented core	-60	48.7451	Basalt	272.3607	Lava Flow
+This study	Simpson Island	SI6-43.8	SI6(40.6 to 57.8)	FS-FD:SO-POM:SO-CMD-NORTH	164.0	Igneous : Extrusive	oriented core	-76	48.7451	Basalt	272.3607	Lava Flow
+This study	Simpson Island	SI6-46.5	SI6(40.6 to 57.8)	FS-FD:SO-POM:SO-CMD-NORTH	258.0	Igneous : Extrusive	oriented core	-89	48.7451	Basalt	272.3607	Lava Flow
+This study	Simpson Island	SI6-46.6	SI6(40.6 to 57.8)	FS-FD:SO-POM:SO-CMD-NORTH	258.0	Igneous : Extrusive	oriented core	-89	48.7451	Basalt	272.3607	Lava Flow
+This study	Simpson Island	SI6-50.5	SI6(40.6 to 57.8)	FS-FD:SO-POM:SO-CMD-NORTH	99.0	Igneous : Extrusive	oriented core	-43	48.7451	Basalt	272.3607	Lava Flow
+This study	Simpson Island	SI6-50.9	SI6(40.6 to 57.8)	FS-FD:SO-POM:SO-CMD-NORTH	90.0	Igneous : Extrusive	oriented core	-14	48.7451	Basalt	272.3607	Lava Flow
+This study	Simpson Island	SI6-78.05	SI6(76.5 to 94.1)	FS-FD:SO-POM:SO-CMD-NORTH	191.0	Igneous : Extrusive	oriented core	-26	48.7448	Basalt	272.3514	Lava Flow
+This study	Simpson Island	SI6-78.20	SI6(76.5 to 94.1)	FS-FD:SO-POM:SO-CMD-NORTH	172.0	Igneous : Extrusive	oriented core	-30	48.7448	Basalt	272.3514	Lava Flow
+This study	Simpson Island	SI6-78.40	SI6(76.5 to 94.1)	FS-FD:SO-POM:SO-CMD-NORTH	158.0	Igneous : Extrusive	oriented core	-60	48.7448	Basalt	272.3514	Lava Flow
+This study	Simpson Island	SI6-78.60	SI6(76.5 to 94.1)	FS-FD:SO-POM:SO-CMD-NORTH	99.0	Igneous : Extrusive	oriented core	-30	48.7448	Basalt	272.3514	Lava Flow
+This study	Simpson Island	SI6-79.80	SI6(76.5 to 94.1)	FS-FD:SO-POM:SO-CMD-NORTH	135.0	Igneous : Extrusive	oriented core	-25	48.7448	Basalt	272.3514	Lava Flow
+This study	Simpson Island	SI6-79.85	SI6(76.5 to 94.1)	FS-FD:SO-POM:SO-CMD-NORTH	138.0	Igneous : Extrusive	oriented core	-33	48.7448	Basalt	272.3514	Lava Flow
+This study	Simpson Island	SI6-79.90	SI6(76.5 to 94.1)	FS-FD:SO-POM:SO-CMD-NORTH	130.0	Igneous : Extrusive	oriented core	-40	48.7448	Basalt	272.3514	Lava Flow
+This study	Simpson Island	SI6-80.40	SI6(76.5 to 94.1)	FS-FD:SO-POM:SO-CMD-NORTH	130.0	Igneous : Extrusive	oriented core	-36	48.7448	Basalt	272.3514	Lava Flow
+This study	Simpson Island	SI6-80.45	SI6(76.5 to 94.1)	FS-FD:SO-POM:SO-CMD-NORTH	129.0	Igneous : Extrusive	oriented core	-34	48.7448	Basalt	272.3514	Lava Flow
+This study	Simpson Island	SI6-95.40	SI6(94.1 to 104.2)	FS-FD:SO-POM:SO-CMD-NORTH	215.0	Igneous : Extrusive	oriented core	-79	48.7445	Basalt	272.3514	Lava Flow
+This study	Simpson Island	SI6-95.50	SI6(94.1 to 104.2)	FS-FD:SO-POM:SO-CMD-NORTH	231.0	Igneous : Extrusive	oriented core	-85	48.7445	Basalt	272.3514	Lava Flow
+This study	Simpson Island	SI6-95.51	SI6(94.1 to 104.2)	FS-FD:SO-POM:SO-CMD-NORTH	249.0	Igneous : Extrusive	oriented core	-77	48.7445	Basalt	272.3514	Lava Flow
+This study	Simpson Island	SI6-95.60	SI6(94.1 to 104.2)	FS-FD:SO-POM:SO-CMD-NORTH	225.0	Igneous : Extrusive	oriented core	-82	48.7445	Basalt	272.3514	Lava Flow
+This study	Simpson Island	SI6-96.38	SI6(94.1 to 104.2)	FS-FD:SO-POM:SO-CMD-NORTH	265.0	Igneous : Extrusive	oriented core	-92	48.7445	Basalt	272.3514	Lava Flow
+This study	Simpson Island	SI6-96.40	SI6(94.1 to 104.2)	FS-FD:SO-POM:SO-CMD-NORTH	240.0	Igneous : Extrusive	oriented core	-65	48.7445	Basalt	272.3514	Lava Flow
+This study	Simpson Island	SI6-96.60	SI6(94.1 to 104.2)	FS-FD:SO-POM:SO-CMD-NORTH	287.0	Igneous : Extrusive	oriented core	-57	48.7445	Basalt	272.3514	Lava Flow
+This study	Simpson Island	SI7-0.2	SI7(0.0 to 3.9)	FS-FD:SO-POM:SO-CMD-NORTH	195.0	Igneous : Extrusive	oriented core	-79	48.7406	Basalt	272.3317	Lava Flow
+This study	Simpson Island	SI7-0.5	SI7(0.0 to 3.9)	FS-FD:SO-POM:SO-CMD-NORTH	313.0	Igneous : Extrusive	oriented core	-27	48.7406	Basalt	272.3317	Lava Flow
+This study	Simpson Island	SI7-1.0	SI7(0.0 to 3.9)	FS-FD:SO-POM:SO-CMD-NORTH	247.0	Igneous : Extrusive	oriented core	-75	48.7406	Basalt	272.3317	Lava Flow
+This study	Simpson Island	SI7-1.1	SI7(0.0 to 3.9)	FS-FD:SO-POM:SO-CMD-NORTH	249.0	Igneous : Extrusive	oriented core	-80	48.7406	Basalt	272.3317	Lava Flow
+This study	Simpson Island	SI7-1.4	SI7(0.0 to 3.9)	FS-FD:SO-POM:SO-CMD-NORTH	180.0	Igneous : Extrusive	oriented core	-62	48.7406	Basalt	272.3317	Lava Flow
+This study	Simpson Island	SI7-10.9	SI7(9.6 to 18.0)	FS-FD:SO-POM:SO-CMD-NORTH	260.0	Igneous : Extrusive	oriented core	-45	48.7403	Basalt	272.3316	Lava Flow
+This study	Simpson Island	SI7-11.8	SI7(9.6 to 18.0)	FS-FD:SO-POM:SO-CMD-NORTH	216.0	Igneous : Extrusive	oriented core	-26	48.7403	Basalt	272.3316	Lava Flow
+This study	Simpson Island	SI7-11.80	SI7(9.6 to 18.0)			Extrusive : Igneous			48.7403	Basaltic Lava	272.3316	Lava Flow
+This study	Simpson Island	SI7-12.7	SI7(9.6 to 18.0)	FS-FD:SO-POM:SO-CMD-NORTH	284.0	Igneous : Extrusive	oriented core	-36	48.7403	Basalt	272.3316	Lava Flow
+This study	Simpson Island	SI7-12.70	SI7(9.6 to 18.0)			Extrusive : Igneous			48.7403	Basaltic Lava	272.3316	Lava Flow
+This study	Simpson Island	SI7-13.2	SI7(9.6 to 18.0)	FS-FD:SO-POM:SO-CMD-NORTH	323.0	Igneous : Extrusive	oriented core	-53	48.7403	Basalt	272.3316	Lava Flow
+This study	Simpson Island	SI7-13.20	SI7(9.6 to 18.0)			Extrusive : Igneous			48.7403	Basaltic Lava	272.3316	Lava Flow
+This study	Simpson Island	SI7-13.7	SI7(9.6 to 18.0)	FS-FD:SO-POM:SO-CMD-NORTH	348.0	Igneous : Extrusive	oriented core	-48	48.7403	Basalt	272.3316	Lava Flow
+This study	Simpson Island	SI7-13.70	SI7(9.6 to 18.0)			Extrusive : Igneous			48.7403	Basaltic Lava	272.3316	Lava Flow
+This study	Simpson Island	SI7-14.2	SI7(9.6 to 18.0)	FS-FD:SO-POM:SO-CMD-NORTH	307.0	Igneous : Extrusive	oriented core	-40	48.7403	Basalt	272.3316	Lava Flow
+This study	Simpson Island	SI7-15.6	SI7(9.6 to 18.0)	FS-FD:SO-POM:SO-CMD-NORTH	342.0	Igneous : Extrusive	oriented core	-51	48.7403	Basalt	272.3316	Lava Flow
+This study	Simpson Island	SI7-16.0	SI7(9.6 to 18.0)	FS-FD:SO-POM:SO-CMD-NORTH	351.0	Igneous : Extrusive	oriented core	-55	48.7403	Basalt	272.3316	Lava Flow
+This study	Simpson Island	SI7-2.4	SI7(0.0 to 3.9)	FS-FD:SO-POM:SO-CMD-NORTH	176.0	Igneous : Extrusive	oriented core	-49	48.7406	Basalt	272.3317	Lava Flow
+This study	Simpson Island	SI7-2.6	SI7(0.0 to 3.9)	FS-FD:SO-POM:SO-CMD-NORTH	209.0	Igneous : Extrusive	oriented core	-52	48.7406	Basalt	272.3317	Lava Flow
+This study	Simpson Island	SI7-2.7	SI7(0.0 to 3.9)	FS-FD:SO-POM:SO-CMD-NORTH	203.0	Igneous : Extrusive	oriented core	-53	48.7406	Basalt	272.3317	Lava Flow
+This study	Simpson Island	SI7-3.94	SI7(3.9 to 5.4)	FS-FD:SO-POM:SO-CMD-NORTH	258.0	Igneous : Extrusive	oriented core	-64	48.7405	Basalt	272.3316	Lava Flow
+This study	Simpson Island	SI7-3.95	SI7(3.9 to 5.4)	FS-FD:SO-POM:SO-CMD-NORTH	259.0	Igneous : Extrusive	oriented core	-62	48.7405	Basalt	272.3316	Lava Flow
+This study	Simpson Island	SI7-3.96	SI7(3.9 to 5.4)	FS-FD:SO-POM:SO-CMD-NORTH	214.0	Igneous : Extrusive	oriented core	-75	48.7405	Basalt	272.3316	Lava Flow
+This study	Simpson Island	SI7-3.98	SI7(3.9 to 5.4)	FS-FD:SO-POM:SO-CMD-NORTH	249.0	Igneous : Extrusive	oriented core	-66	48.7405	Basalt	272.3316	Lava Flow
+This study	Simpson Island	SI7-4.20	SI7(3.9 to 5.4)	FS-FD:SO-POM:SO-CMD-NORTH	217.0	Igneous : Extrusive	oriented core	-75	48.7405	Basalt	272.3316	Lava Flow
+This study	Simpson Island	SI7-4.40	SI7(3.9 to 5.4)	FS-FD:SO-POM:SO-CMD-NORTH	252.0	Igneous : Extrusive	oriented core	-86	48.7405	Basalt	272.3316	Lava Flow
+This study	Simpson Island	SI7-4.70	SI7(3.9 to 5.4)	FS-FD:SO-POM:SO-CMD-NORTH	256.0	Igneous : Extrusive	oriented core	-74	48.7405	Basalt	272.3316	Lava Flow
+This study	Simpson Island	SI7-4.75	SI7(3.9 to 5.4)	FS-FD:SO-POM:SO-CMD-NORTH	2.0	Igneous : Extrusive	oriented core	-19	48.7405	Basalt	272.3316	Lava Flow
+This study	Simpson Island	SI8-1.70	SI8(0.0 to 3.9)	FS-FD:SO-POM:SO-CMD-NORTH	334.0	Igneous : Extrusive	oriented core	-46	48.7466	Basalt	272.3806	Lava Flow
+This study	Simpson Island	SI8-1.80	SI8(0.0 to 3.9)	FS-FD:SO-POM:SO-CMD-NORTH	112.0	Igneous : Extrusive	oriented core	-13	48.7466	Basalt	272.3806	Lava Flow
+This study	Simpson Island	SI8-1.90	SI8(0.0 to 3.9)	FS-FD:SO-POM:SO-CMD-NORTH	282.0	Igneous : Extrusive	oriented core	-16	48.7466	Basalt	272.3806	Lava Flow
+This study	Simpson Island	SI8-108.6	SI8(106.6 to 115.4)	FS-FD:SO-POM:SO-CMD-NORTH	291.0	Igneous : Extrusive	oriented core	-39	48.7449	Basalt	272.3724	Lava Flow
+This study	Simpson Island	SI8-109.8	SI8(106.6 to 115.4)	FS-FD:SO-POM:SO-CMD-NORTH	274.0	Igneous : Extrusive	oriented core	-23	48.7449	Basalt	272.3724	Lava Flow
+This study	Simpson Island	SI8-111.2	SI8(106.6 to 115.4)	FS-FD:SO-POM:SO-CMD-NORTH	123.0	Igneous : Extrusive	oriented core	-56	48.7449	Basalt	272.3724	Lava Flow
+This study	Simpson Island	SI8-111.6	SI8(106.6 to 115.4)	FS-FD:SO-POM:SO-CMD-NORTH	116.0	Igneous : Extrusive	oriented core	-28	48.7449	Basalt	272.3724	Lava Flow
+This study	Simpson Island	SI8-111.8	SI8(106.6 to 115.4)	FS-FD:SO-POM:SO-CMD-NORTH	131.0	Igneous : Extrusive	oriented core	-25	48.7449	Basalt	272.3724	Lava Flow
+This study	Simpson Island	SI8-113.4	SI8(106.6 to 115.4)	FS-FD:SO-POM:SO-CMD-NORTH	100.0	Igneous : Extrusive	oriented core	-73	48.7449	Basalt	272.3724	Lava Flow
+This study	Simpson Island	SI8-113.6	SI8(106.6 to 115.4)	FS-FD:SO-POM:SO-CMD-NORTH	166.0	Igneous : Extrusive	oriented core	-41	48.7449	Basalt	272.3724	Lava Flow
+This study	Simpson Island	SI8-114.4	SI8(106.6 to 115.4)	FS-FD:SO-POM:SO-CMD-NORTH		Igneous : Extrusive	oriented core	-90	48.7449	Basalt	272.3724	Lava Flow
+This study	Simpson Island	SI8-115.4	SI8(106.6 to 115.4)	FS-FD:SO-POM:SO-CMD-NORTH	170.0	Igneous : Extrusive	oriented core	-22	48.7449	Basalt	272.3724	Lava Flow
+This study	Simpson Island	SI8-2.00	SI8(0.0 to 3.9)	FS-FD:SO-POM:SO-CMD-NORTH	208.0	Igneous : Extrusive	oriented core	-8	48.7466	Basalt	272.3806	Lava Flow
+This study	Simpson Island	SI8-2.30	SI8(0.0 to 3.9)	FS-FD:SO-POM:SO-CMD-NORTH	285.0	Igneous : Extrusive	oriented core	-21	48.7466	Basalt	272.3806	Lava Flow
+This study	Simpson Island	SI8-2.70	SI8(0.0 to 3.9)	FS-FD:SO-POM:SO-CMD-NORTH	217.0	Igneous : Extrusive	oriented core	-85	48.7466	Basalt	272.3806	Lava Flow
+This study	Simpson Island	SI8-2.75	SI8(0.0 to 3.9)	FS-FD:SO-POM:SO-CMD-NORTH	218.0	Igneous : Extrusive	oriented core	-85	48.7466	Basalt	272.3806	Lava Flow
+This study	Simpson Island	SI8-28.7	SI8(19.3 to 45.0)	FS-FD:SO-POM:SO-CMD-NORTH	301.0	Igneous : Extrusive	oriented core	-38	48.7463	Basalt	272.38	Lava Flow
+This study	Simpson Island	SI8-29.7	SI8(19.3 to 45.0)	FS-FD:SO-POM:SO-CMD-NORTH	296.0	Igneous : Extrusive	oriented core	-87	48.7463	Basalt	272.38	Lava Flow
+This study	Simpson Island	SI8-29.9	SI8(19.3 to 45.0)	FS-FD:SO-POM:SO-CMD-NORTH	266.0	Igneous : Extrusive	oriented core	-67	48.7463	Basalt	272.38	Lava Flow
+This study	Simpson Island	SI8-3.30	SI8(0.0 to 3.9)	FS-FD:SO-POM:SO-CMD-NORTH	248.0	Igneous : Extrusive	oriented core	-15	48.7466	Basalt	272.3806	Lava Flow
+This study	Simpson Island	SI8-31.5	SI8(19.3 to 45.0)	FS-FD:SO-POM:SO-CMD-NORTH	303.0	Igneous : Extrusive	oriented core	-15	48.7463	Basalt	272.38	Lava Flow
+This study	Simpson Island	SI8-31.7	SI8(19.3 to 45.0)	FS-FD:SO-POM:SO-CMD-NORTH	275.0	Igneous : Extrusive	oriented core	-35	48.7463	Basalt	272.38	Lava Flow
+This study	Simpson Island	SI8-32.4	SI8(19.3 to 45.0)	FS-FD:SO-POM:SO-CMD-NORTH	280.0	Igneous : Extrusive	oriented core	-73	48.7463	Basalt	272.38	Lava Flow
+This study	Simpson Island	SI8-32.8	SI8(19.3 to 45.0)	FS-FD:SO-POM:SO-CMD-NORTH	307.0	Igneous : Extrusive	oriented core	-44	48.7463	Basalt	272.38	Lava Flow
+This study	Simpson Island	SI8-35.2	SI8(19.3 to 45.0)	FS-FD:SO-POM:SO-CMD-NORTH	315.0	Igneous : Extrusive	oriented core	-29	48.7463	Basalt	272.38	Lava Flow
+This study	Simpson Island	SI8-50.0	SI8(47.5 to 56.7)	FS-FD:SO-POM:SO-CMD-NORTH	116.0	Igneous : Extrusive	oriented core	-67	48.7458	Basalt	272.3789	Lava Flow
+This study	Simpson Island	SI8-50.5	SI8(47.5 to 56.7)	FS-FD:SO-POM:SO-CMD-NORTH	31.0	Igneous : Extrusive	oriented core	-31	48.7458	Basalt	272.3789	Lava Flow
+This study	Simpson Island	SI8-50.6	SI8(47.5 to 56.7)	FS-FD:SO-POM:SO-CMD-NORTH	92.0	Igneous : Extrusive	oriented core	-22	48.7458	Basalt	272.3789	Lava Flow
+This study	Simpson Island	SI8-51.3	SI8(47.5 to 56.7)	FS-FD:SO-POM:SO-CMD-NORTH	129.0	Igneous : Extrusive	oriented core	-30	48.7458	Basalt	272.3789	Lava Flow
+This study	Simpson Island	SI8-52.2	SI8(47.5 to 56.7)	FS-FD:SO-POM:SO-CMD-NORTH	281.0	Igneous : Extrusive	oriented core	-34	48.7458	Basalt	272.3789	Lava Flow
+This study	Simpson Island	SI8-53.0	SI8(47.5 to 56.7)	FS-FD:SO-POM:SO-CMD-NORTH	291.0	Igneous : Extrusive	oriented core	-93	48.7458	Basalt	272.3789	Lava Flow
+This study	Simpson Island	SI8-53.2	SI8(47.5 to 56.7)	FS-FD:SO-POM:SO-CMD-NORTH	330.0	Igneous : Extrusive	oriented core	-38	48.7458	Basalt	272.3789	Lava Flow
+This study	Simpson Island	SI8-54.0	SI8(47.5 to 56.7)	FS-FD:SO-POM:SO-CMD-NORTH	22.0	Igneous : Extrusive	oriented core	-85	48.7458	Basalt	272.3789	Lava Flow
+This study	Simpson Island	SI8-6.0	SI8(3.9 to 19.3)	FS-FD:SO-POM:SO-CMD-NORTH	358.0	Igneous : Extrusive	oriented core	-18	48.7465	Basalt	272.3805	Lava Flow
+This study	Simpson Island	SI8-6.2	SI8(3.9 to 19.3)	FS-FD:SO-POM:SO-CMD-NORTH	268.0	Igneous : Extrusive	oriented core	-27	48.7465	Basalt	272.3805	Lava Flow
+This study	Simpson Island	SI8-6.3	SI8(3.9 to 19.3)	FS-FD:SO-POM:SO-CMD-NORTH	43.0	Igneous : Extrusive	oriented core	-50	48.7465	Basalt	272.3805	Lava Flow
+This study	Simpson Island	SI8-6.4	SI8(3.9 to 19.3)	FS-FD:SO-POM:SO-CMD-NORTH	44.0	Igneous : Extrusive	oriented core	-51	48.7465	Basalt	272.3805	Lava Flow
+This study	Simpson Island	SI8-6.5	SI8(3.9 to 19.3)	FS-FD:SO-POM:SO-CMD-NORTH	197.0	Igneous : Extrusive	oriented core	-19	48.7465	Basalt	272.3805	Lava Flow
+This study	Simpson Island	SI8-7.8	SI8(3.9 to 19.3)	FS-FD:SO-POM:SO-CMD-NORTH	264.0	Igneous : Extrusive	oriented core	-80	48.7465	Basalt	272.3805	Lava Flow
+This study	Simpson Island	SI8-70.3	SI8(62.9 to 84.4)	FS-FD:SO-POM:SO-CMD-NORTH	300.0	Igneous : Extrusive	oriented core	-28	48.7457	Basalt	272.3777	Lava Flow
+This study	Simpson Island	SI8-70.4	SI8(62.9 to 84.4)	FS-FD:SO-POM:SO-CMD-NORTH	283.0	Igneous : Extrusive	oriented core	-30	48.7457	Basalt	272.3777	Lava Flow
+This study	Simpson Island	SI8-70.7	SI8(62.9 to 84.4)	FS-FD:SO-POM:SO-CMD-NORTH	304.0	Igneous : Extrusive	oriented core	-75	48.7457	Basalt	272.3777	Lava Flow
+This study	Simpson Island	SI8-72.1	SI8(62.9 to 84.4)	FS-FD:SO-POM:SO-CMD-NORTH	281.0	Igneous : Extrusive	oriented core	-19	48.7457	Basalt	272.3777	Lava Flow
+This study	Simpson Island	SI8-72.3	SI8(62.9 to 84.4)	FS-FD:SO-POM:SO-CMD-NORTH	120.0	Igneous : Extrusive	oriented core	-15	48.7457	Basalt	272.3777	Lava Flow
+This study	Simpson Island	SI8-72.9	SI8(62.9 to 84.4)	FS-FD:SO-POM:SO-CMD-NORTH	264.0	Igneous : Extrusive	oriented core	-61	48.7457	Basalt	272.3777	Lava Flow
+This study	Simpson Island	SI8-73.2	SI8(62.9 to 84.4)	FS-FD:SO-POM:SO-CMD-NORTH	282.0	Igneous : Extrusive	oriented core	-31	48.7457	Basalt	272.3777	Lava Flow
+This study	Simpson Island	SI8-73.4	SI8(62.9 to 84.4)	FS-FD:SO-POM:SO-CMD-NORTH	278.0	Igneous : Extrusive	oriented core	-32	48.7457	Basalt	272.3777	Lava Flow
+This study	Simpson Island	SI8-88.2	SI8(84.4 to 102.6)	FS-FD:SO-POM:SO-CMD-NORTH	253.0	Igneous : Extrusive	oriented core	-47	48.7453	Basalt	272.3761	Lava Flow
+This study	Simpson Island	SI8-89.0	SI8(84.4 to 102.6)	FS-FD:SO-POM:SO-CMD-NORTH	57.0	Igneous : Extrusive	oriented core	-96	48.7453	Basalt	272.3761	Lava Flow
+This study	Simpson Island	SI8-9.0	SI8(3.9 to 19.3)	FS-FD:SO-POM:SO-CMD-NORTH	235.0	Igneous : Extrusive	oriented core	-92	48.7465	Basalt	272.3805	Lava Flow
+This study	Simpson Island	SI8-9.2	SI8(3.9 to 19.3)	FS-FD:SO-POM:SO-CMD-NORTH	126.0	Igneous : Extrusive	oriented core	-90	48.7465	Basalt	272.3805	Lava Flow
+This study	Simpson Island	SI8-90.2	SI8(84.4 to 102.6)	FS-FD:SO-POM:SO-CMD-NORTH	129.0	Igneous : Extrusive	oriented core	-39	48.7453	Basalt	272.3761	Lava Flow
+This study	Simpson Island	SI8-90.8	SI8(84.4 to 102.6)	FS-FD:SO-POM:SO-CMD-NORTH	191.0	Igneous : Extrusive	oriented core	-42	48.7453	Basalt	272.3761	Lava Flow
+This study	Simpson Island	SI8-90.9	SI8(84.4 to 102.6)	FS-FD:SO-POM:SO-CMD-NORTH	31.0	Igneous : Extrusive	oriented core	-49	48.7453	Basalt	272.3761	Lava Flow
+This study	Simpson Island	SI8-91.3	SI8(84.4 to 102.6)	FS-FD:SO-POM:SO-CMD-NORTH	179.0	Igneous : Extrusive	oriented core	-50	48.7453	Basalt	272.3761	Lava Flow
+This study	Simpson Island	SI8-92.5	SI8(84.4 to 102.6)	FS-FD:SO-POM:SO-CMD-NORTH	34.0	Igneous : Extrusive	oriented core	-101	48.7453	Basalt	272.3761	Lava Flow
+This study	Simpson Island	SI8-96.9	SI8(84.4 to 102.6)	FS-FD:SO-POM:SO-CMD-NORTH	227.0	Igneous : Extrusive	oriented core	-93	48.7453	Basalt	272.3761	Lava Flow
+This study	Simpson Island	SI8-97.0	SI8(84.4 to 102.6)	FS-FD:SO-POM:SO-CMD-NORTH	213.0	Igneous : Extrusive	oriented core	-48	48.7453	Basalt	272.3761	Lava Flow
+This study	Simpson Island	SI8-D1	SI8(D1-D9)	FS-FD:SO-POM:SO-CMD-NORTH	242.0	Intrusive : Igneous	oriented core	-73	48.7459	Diabase	272.3785	Dike
+This study	Simpson Island	SI8-D2	SI8(D1-D9)	FS-FD:SO-POM:SO-CMD-NORTH	80.0	Intrusive : Igneous	oriented core	-15	48.7459	Diabase	272.3785	Dike
+This study	Simpson Island	SI8-D3	SI8(D1-D9)	FS-FD:SO-POM:SO-CMD-NORTH	229.0	Intrusive : Igneous	oriented core	-30	48.7459	Diabase	272.3785	Dike
+This study	Simpson Island	SI8-D5	SI8(D1-D9)	FS-FD:SO-POM:SO-CMD-NORTH	275.0	Intrusive : Igneous	oriented core	-28	48.7459	Diabase	272.3785	Dike
+This study	Simpson Island	SI8-D6	SI8(D1-D9)	FS-FD:SO-POM:SO-CMD-NORTH	102.0	Intrusive : Igneous	oriented core	-46	48.7459	Diabase	272.3785	Dike
+This study	Simpson Island	SI8-D7	SI8(D1-D9)	FS-FD:SO-POM:SO-CMD-NORTH	115.0	Intrusive : Igneous	oriented core	-51	48.7459	Diabase	272.3785	Dike
+This study	Simpson Island	SI8-D8	SI8(D1-D9)	FS-FD:SO-POM:SO-CMD-NORTH	106.0	Intrusive : Igneous	oriented core	-59	48.7459	Diabase	272.3785	Dike
+This study	Simpson Island	SI8-D9	SI8(D1-D9)	FS-FD:SO-POM:SO-CMD-NORTH	31.0	Intrusive : Igneous	oriented core	-44	48.7459	Diabase	272.3785	Dike
+This study	Simpson Island	SI9-14.00	SI9(12.0 to 21.2)	FS-FD:SO-POM:SO-CMD-NORTH	185.0	Igneous : Extrusive	oriented core	-75	48.7718	Basalt	272.3779	Lava Flow
+This study	Simpson Island	SI9-14.20	SI9(12.0 to 21.2)	FS-FD:SO-POM:SO-CMD-NORTH	242.0	Igneous : Extrusive	oriented core	-22	48.7718	Basalt	272.3779	Lava Flow
+This study	Simpson Island	SI9-14.21	SI9(12.0 to 21.2)	FS-FD:SO-POM:SO-CMD-NORTH	54.0	Igneous : Extrusive	oriented core	-29	48.7718	Basalt	272.3779	Lava Flow
+This study	Simpson Island	SI9-14.50	SI9(12.0 to 21.2)	FS-FD:SO-POM:SO-CMD-NORTH	131.0	Igneous : Extrusive	oriented core	-76	48.7718	Basalt	272.3779	Lava Flow
+This study	Simpson Island	SI9-14.80	SI9(12.0 to 21.2)	FS-FD:SO-POM:SO-CMD-NORTH	35.0	Igneous : Extrusive	oriented core	-14	48.7718	Basalt	272.3779	Lava Flow
+This study	Simpson Island	SI9-142.8	SI9(139.8 to 160.0)	FS-FD:SO-POM:SO-CMD-NORTH	242.0	Igneous : Extrusive	oriented core	-68	48.768	Basalt	272.3808	Lava Flow
+This study	Simpson Island	SI9-143.4	SI9(139.8 to 160.0)	FS-FD:SO-POM:SO-CMD-NORTH	215.0	Igneous : Extrusive	oriented core	-71	48.768	Basalt	272.3808	Lava Flow
+This study	Simpson Island	SI9-143.6	SI9(139.8 to 160.0)	FS-FD:SO-POM:SO-CMD-NORTH	294.0	Igneous : Extrusive	oriented core	-15	48.768	Basalt	272.3808	Lava Flow
+This study	Simpson Island	SI9-144.8	SI9(139.8 to 160.0)	FS-FD:SO-POM:SO-CMD-NORTH	262.0	Igneous : Extrusive	oriented core	-92	48.768	Basalt	272.3808	Lava Flow
+This study	Simpson Island	SI9-146.0	SI9(139.8 to 160.0)	FS-FD:SO-POM:SO-CMD-NORTH	249.0	Igneous : Extrusive	oriented core	-69	48.768	Basalt	272.3808	Lava Flow
+This study	Simpson Island	SI9-146.4	SI9(139.8 to 160.0)	FS-FD:SO-POM:SO-CMD-NORTH	210.0	Igneous : Extrusive	oriented core	-86	48.768	Basalt	272.3808	Lava Flow
+This study	Simpson Island	SI9-148.3	SI9(139.8 to 160.0)	FS-FD:SO-POM:SO-CMD-NORTH	151.0	Igneous : Extrusive	oriented core	-54	48.768	Basalt	272.3808	Lava Flow
+This study	Simpson Island	SI9-148.4	SI9(139.8 to 160.0)	FS-FD:SO-POM:SO-CMD-NORTH	148.0	Igneous : Extrusive	oriented core	-54	48.768	Basalt	272.3808	Lava Flow
+This study	Simpson Island	SI9-15.30	SI9(12.0 to 21.2)	FS-FD:SO-POM:SO-CMD-NORTH	74.0	Igneous : Extrusive	oriented core	-30	48.7718	Basalt	272.3779	Lava Flow
+This study	Simpson Island	SI9-16.00	SI9(12.0 to 21.2)	FS-FD:SO-POM:SO-CMD-NORTH	127.0	Igneous : Extrusive	oriented core	-64	48.7718	Basalt	272.3779	Lava Flow
+This study	Simpson Island	SI9-16.10	SI9(12.0 to 21.2)	FS-FD:SO-POM:SO-CMD-NORTH	31.0	Igneous : Extrusive	oriented core	-22	48.7718	Basalt	272.3779	Lava Flow
+This study	Simpson Island	SI9-162.90	SI9(160.0 to 166.5)	FS-FD:SO-POM:SO-CMD-NORTH	193.0	Igneous : Extrusive	oriented core	-39	48.7676	Basalt	272.3811	Lava Flow
+This study	Simpson Island	SI9-163.50	SI9(160.0 to 166.5)	FS-FD:SO-POM:SO-CMD-NORTH	264.0	Igneous : Extrusive	oriented core	-20	48.7676	Basalt	272.3811	Lava Flow
+This study	Simpson Island	SI9-163.90	SI9(160.0 to 166.5)	FS-FD:SO-POM:SO-CMD-NORTH	0.0	Igneous : Extrusive	oriented core	-30	48.7676	Basalt	272.3811	Lava Flow
+This study	Simpson Island	SI9-164.10	SI9(160.0 to 166.5)	FS-FD:SO-POM:SO-CMD-NORTH	16.0	Igneous : Extrusive	oriented core	-9	48.7676	Basalt	272.3811	Lava Flow
+This study	Simpson Island	SI9-164.20	SI9(160.0 to 166.5)	FS-FD:SO-POM:SO-CMD-NORTH	240.0	Igneous : Extrusive	oriented core	-61	48.7676	Basalt	272.3811	Lava Flow
+This study	Simpson Island	SI9-164.25	SI9(160.0 to 166.5)	FS-FD:SO-POM:SO-CMD-NORTH	197.0	Igneous : Extrusive	oriented core	-58	48.7676	Basalt	272.3811	Lava Flow
+This study	Simpson Island	SI9-164.30	SI9(160.0 to 166.5)	FS-FD:SO-POM:SO-CMD-NORTH	175.0	Igneous : Extrusive	oriented core	-7	48.7676	Basalt	272.3811	Lava Flow
+This study	Simpson Island	SI9-164.4.0	SI9(160.0 to 166.5)	FS-FD:SO-POM:SO-CMD-NORTH	194.0	Igneous : Extrusive	oriented core	-22	48.7676	Basalt	272.3811	Lava Flow
+This study	Simpson Island	SI9-164.40	SI9(160.0 to 166.5)	FS-FD:SO-POM:SO-CMD-NORTH	194.0	Igneous : Extrusive	oriented core	-22	48.7676	Basalt	272.3811	Lava Flow
+This study	Simpson Island	SI9-166.9	SI9(166.5 to 171.4)	FS-FD:SO-POM:SO-CMD-NORTH	185.0	Igneous : Extrusive	oriented core	-48	48.7674	Basalt	272.3815	Lava Flow
+This study	Simpson Island	SI9-167.0	SI9(166.5 to 171.4)	FS-FD:SO-POM:SO-CMD-NORTH	319.0	Igneous : Extrusive	oriented core	-33	48.7674	Basalt	272.3815	Lava Flow
+This study	Simpson Island	SI9-167.1	SI9(166.5 to 171.4)	FS-FD:SO-POM:SO-CMD-NORTH	258.0	Igneous : Extrusive	oriented core	-48	48.7674	Basalt	272.3815	Lava Flow
+This study	Simpson Island	SI9-167.2	SI9(166.5 to 171.4)	FS-FD:SO-POM:SO-CMD-NORTH	245.0	Igneous : Extrusive	oriented core	-90	48.7674	Basalt	272.3815	Lava Flow
+This study	Simpson Island	SI9-167.3	SI9(166.5 to 171.4)	FS-FD:SO-POM:SO-CMD-NORTH	68.0	Igneous : Extrusive	oriented core	-26	48.7674	Basalt	272.3815	Lava Flow
+This study	Simpson Island	SI9-167.6	SI9(166.5 to 171.4)	FS-FD:SO-POM:SO-CMD-NORTH	121.0	Igneous : Extrusive	oriented core	-70	48.7674	Basalt	272.3815	Lava Flow
+This study	Simpson Island	SI9-167.7	SI9(166.5 to 171.4)	FS-FD:SO-POM:SO-CMD-NORTH	93.0	Igneous : Extrusive	oriented core	-57	48.7674	Basalt	272.3815	Lava Flow
+This study	Simpson Island	SI9-168.1	SI9(166.5 to 171.4)	FS-FD:SO-POM:SO-CMD-NORTH	149.0	Igneous : Extrusive	oriented core	-75	48.7674	Basalt	272.3815	Lava Flow
+This study	Simpson Island	SI9-173.0	SI9(171.4 to 188.8)	FS-FD:SO-POM:SO-CMD-NORTH	191.0	Igneous : Extrusive	oriented core	-29	48.7672	Basalt	272.381	Lava Flow
+This study	Simpson Island	SI9-173.1	SI9(171.4 to 188.8)	FS-FD:SO-POM:SO-CMD-NORTH	197.0	Igneous : Extrusive	oriented core	-32	48.7672	Basalt	272.381	Lava Flow
+This study	Simpson Island	SI9-173.3	SI9(171.4 to 188.8)	FS-FD:SO-POM:SO-CMD-NORTH	276.0	Igneous : Extrusive	oriented core	-25	48.7672	Basalt	272.381	Lava Flow
+This study	Simpson Island	SI9-173.5	SI9(171.4 to 188.8)	FS-FD:SO-POM:SO-CMD-NORTH	299.0	Igneous : Extrusive	oriented core	-29	48.7672	Basalt	272.381	Lava Flow
+This study	Simpson Island	SI9-173.6	SI9(171.4 to 188.8)	FS-FD:SO-POM:SO-CMD-NORTH	323.0	Igneous : Extrusive	oriented core	-21	48.7672	Basalt	272.381	Lava Flow
+This study	Simpson Island	SI9-173.7	SI9(171.4 to 188.8)	FS-FD:SO-POM:SO-CMD-NORTH	294.0	Igneous : Extrusive	oriented core	-34	48.7672	Basalt	272.381	Lava Flow
+This study	Simpson Island	SI9-173.8	SI9(171.4 to 188.8)	FS-FD:SO-POM:SO-CMD-NORTH	280.0	Igneous : Extrusive	oriented core	-38	48.7672	Basalt	272.381	Lava Flow
+This study	Simpson Island	SI9-173.9	SI9(171.4 to 188.8)	FS-FD:SO-POM:SO-CMD-NORTH	283.0	Igneous : Extrusive	oriented core	-37	48.7672	Basalt	272.381	Lava Flow
+This study	Simpson Island	SI9-3.90	SI9(0.0 to 9.2)	FS-FD:SO-POM:SO-CMD-NORTH	151.0	Igneous : Extrusive	oriented core	-43	48.7721	Basalt	272.3778	Lava Flow
+This study	Simpson Island	SI9-3.95	SI9(0.0 to 9.2)	FS-FD:SO-POM:SO-CMD-NORTH	153.0	Igneous : Extrusive	oriented core	-39	48.7721	Basalt	272.3778	Lava Flow
+This study	Simpson Island	SI9-315.30	SI9(312.1 to 321.0)	FS-FD:SO-POM:SO-CMD-NORTH	313.0	Igneous : Extrusive	oriented core	-17	48.7638	Basalt	272.3824	Lava Flow
+This study	Simpson Island	SI9-315.35	SI9(312.1 to 321.0)	FS-FD:SO-POM:SO-CMD-NORTH	353.0	Igneous : Extrusive	oriented core	-23	48.7638	Basalt	272.3824	Lava Flow
+This study	Simpson Island	SI9-315.40	SI9(312.1 to 321.0)	FS-FD:SO-POM:SO-CMD-NORTH	326.0	Igneous : Extrusive	oriented core	-38	48.7638	Basalt	272.3824	Lava Flow
+This study	Simpson Island	SI9-316.40	SI9(312.1 to 321.0)	FS-FD:SO-POM:SO-CMD-NORTH	7.0	Igneous : Extrusive	oriented core	-32	48.7638	Basalt	272.3824	Lava Flow
+This study	Simpson Island	SI9-316.80	SI9(312.1 to 321.0)	FS-FD:SO-POM:SO-CMD-NORTH	44.0	Igneous : Extrusive	oriented core	-41	48.7638	Basalt	272.3824	Lava Flow
+This study	Simpson Island	SI9-317.10	SI9(312.1 to 321.0)	FS-FD:SO-POM:SO-CMD-NORTH	12.0	Igneous : Extrusive	oriented core	-26	48.7638	Basalt	272.3824	Lava Flow
+This study	Simpson Island	SI9-317.60	SI9(312.1 to 321.0)	FS-FD:SO-POM:SO-CMD-NORTH	161.0	Igneous : Extrusive	oriented core	-59	48.7638	Basalt	272.3824	Lava Flow
+This study	Simpson Island	SI9-317.70	SI9(312.1 to 321.0)	FS-FD:SO-POM:SO-CMD-NORTH	121.0	Igneous : Extrusive	oriented core	-53	48.7638	Basalt	272.3824	Lava Flow
+This study	Simpson Island	SI9-337.4	SI9(336.4 to 353.8)	FS-FD:SO-POM:SO-CMD-NORTH	158.0	Igneous : Extrusive	oriented core	-17	48.7631	Basalt	272.3849	Lava Flow
+This study	Simpson Island	SI9-337.7	SI9(336.4 to 353.8)	FS-FD:SO-POM:SO-CMD-NORTH	127.0	Igneous : Extrusive	oriented core	-89	48.7631	Basalt	272.3849	Lava Flow
+This study	Simpson Island	SI9-337.8	SI9(336.4 to 353.8)	FS-FD:SO-POM:SO-CMD-NORTH	118.0	Igneous : Extrusive	oriented core	-75	48.7631	Basalt	272.3849	Lava Flow
+This study	Simpson Island	SI9-337.9	SI9(336.4 to 353.8)	FS-FD:SO-POM:SO-CMD-NORTH	132.0	Igneous : Extrusive	oriented core	-76	48.7631	Basalt	272.3849	Lava Flow
+This study	Simpson Island	SI9-338.3	SI9(336.4 to 353.8)	FS-FD:SO-POM:SO-CMD-NORTH	158.0	Igneous : Extrusive	oriented core	-28	48.7631	Basalt	272.3849	Lava Flow
+This study	Simpson Island	SI9-338.5	SI9(336.4 to 353.8)	FS-FD:SO-POM:SO-CMD-NORTH	129.0	Igneous : Extrusive	oriented core	-37	48.7631	Basalt	272.3849	Lava Flow
+This study	Simpson Island	SI9-340.2	SI9(336.4 to 353.8)	FS-FD:SO-POM:SO-CMD-NORTH	196.0	Igneous : Extrusive	oriented core	-30	48.7631	Basalt	272.3849	Lava Flow
+This study	Simpson Island	SI9-340.3	SI9(336.4 to 353.8)	FS-FD:SO-POM:SO-CMD-NORTH	244.0	Igneous : Extrusive	oriented core	-21	48.7631	Basalt	272.3849	Lava Flow
+This study	Simpson Island	SI9-376.9	SI9(375.9 to 381.0)	FS-FD:SO-POM:SO-CMD-NORTH	127.0	Igneous : Extrusive	oriented core	-78	48.7623	Basalt	272.3858	Lava Flow
+This study	Simpson Island	SI9-377.0	SI9(375.9 to 381.0)	FS-FD:SO-POM:SO-CMD-NORTH	135.0	Igneous : Extrusive	oriented core	-80	48.7623	Basalt	272.3858	Lava Flow
+This study	Simpson Island	SI9-377.3	SI9(375.9 to 381.0)	FS-FD:SO-POM:SO-CMD-NORTH	158.0	Igneous : Extrusive	oriented core	-83	48.7623	Basalt	272.3858	Lava Flow
+This study	Simpson Island	SI9-377.4	SI9(375.9 to 381.0)	FS-FD:SO-POM:SO-CMD-NORTH	156.0	Igneous : Extrusive	oriented core	-79	48.7623	Basalt	272.3858	Lava Flow
+This study	Simpson Island	SI9-377.5	SI9(375.9 to 381.0)	FS-FD:SO-POM:SO-CMD-NORTH	54.0	Igneous : Extrusive	oriented core	-84	48.7623	Basalt	272.3858	Lava Flow
+This study	Simpson Island	SI9-377.6	SI9(375.9 to 381.0)	FS-FD:SO-POM:SO-CMD-NORTH	161.0	Igneous : Extrusive	oriented core	-82	48.7623	Basalt	272.3858	Lava Flow
+This study	Simpson Island	SI9-377.7	SI9(375.9 to 381.0)	FS-FD:SO-POM:SO-CMD-NORTH	162.0	Igneous : Extrusive	oriented core	-81	48.7623	Basalt	272.3858	Lava Flow
+This study	Simpson Island	SI9-377.8	SI9(375.9 to 381.0)	FS-FD:SO-POM:SO-CMD-NORTH	148.0	Igneous : Extrusive	oriented core	-91	48.7623	Basalt	272.3858	Lava Flow
+This study	Simpson Island	SI9-390.20	SI9(387.6 to 395.3)	FS-FD:SO-POM:SO-CMD-NORTH	252.0	Igneous : Extrusive	oriented core	-93	48.762	Basalt	272.386	Lava Flow
+This study	Simpson Island	SI9-390.30	SI9(387.6 to 395.3)	FS-FD:SO-POM:SO-CMD-NORTH	264.0	Igneous : Extrusive	oriented core	-84	48.762	Basalt	272.386	Lava Flow
+This study	Simpson Island	SI9-390.90	SI9(387.6 to 395.3)	FS-FD:SO-POM:SO-CMD-NORTH	202.0	Igneous : Extrusive	oriented core	-66	48.762	Basalt	272.386	Lava Flow
+This study	Simpson Island	SI9-391.00	SI9(387.6 to 395.3)	FS-FD:SO-POM:SO-CMD-NORTH	116.0	Igneous : Extrusive	oriented core	-61	48.762	Basalt	272.386	Lava Flow
+This study	Simpson Island	SI9-391.10	SI9(387.6 to 395.3)	FS-FD:SO-POM:SO-CMD-NORTH	209.0	Igneous : Extrusive	oriented core	-65	48.762	Basalt	272.386	Lava Flow
+This study	Simpson Island	SI9-391.50	SI9(387.6 to 395.3)	FS-FD:SO-POM:SO-CMD-NORTH	181.0	Igneous : Extrusive	oriented core	-35	48.762	Basalt	272.386	Lava Flow
+This study	Simpson Island	SI9-391.51	SI9(387.6 to 395.3)	FS-FD:SO-POM:SO-CMD-NORTH	193.0	Igneous : Extrusive	oriented core	-36	48.762	Basalt	272.386	Lava Flow
+This study	Simpson Island	SI9-392.30	SI9(387.6 to 395.3)	FS-FD:SO-POM:SO-CMD-NORTH	57.0	Igneous : Extrusive	oriented core	-20	48.762	Basalt	272.386	Lava Flow
+This study	Simpson Island	SI9-396.10	SI9(395.3 to 399.3)	FS-FD:SO-POM:SO-CMD-NORTH	355.0	Igneous : Extrusive	oriented core	-14	48.7617	Basalt	272.3863	Lava Flow
+This study	Simpson Island	SI9-396.11	SI9(395.3 to 399.3)	FS-FD:SO-POM:SO-CMD-NORTH	351.0	Igneous : Extrusive	oriented core	-15	48.7617	Basalt	272.3863	Lava Flow
+This study	Simpson Island	SI9-396.50	SI9(395.3 to 399.3)	FS-FD:SO-POM:SO-CMD-NORTH	244.0	Igneous : Extrusive	oriented core	-68	48.7617	Basalt	272.3863	Lava Flow
+This study	Simpson Island	SI9-396.51	SI9(395.3 to 399.3)	FS-FD:SO-POM:SO-CMD-NORTH	247.0	Igneous : Extrusive	oriented core	-64	48.7617	Basalt	272.3863	Lava Flow
+This study	Simpson Island	SI9-396.60	SI9(395.3 to 399.3)	FS-FD:SO-POM:SO-CMD-NORTH	157.0	Igneous : Extrusive	oriented core	-63	48.7617	Basalt	272.3863	Lava Flow
+This study	Simpson Island	SI9-396.80	SI9(395.3 to 399.3)	FS-FD:SO-POM:SO-CMD-NORTH	224.0	Igneous : Extrusive	oriented core	-42	48.7617	Basalt	272.3863	Lava Flow
+This study	Simpson Island	SI9-396.85	SI9(395.3 to 399.3)	FS-FD:SO-POM:SO-CMD-NORTH	217.0	Igneous : Extrusive	oriented core	-32	48.7617	Basalt	272.3863	Lava Flow
+This study	Simpson Island	SI9-396.90	SI9(395.3 to 399.3)	FS-FD:SO-POM:SO-CMD-NORTH	219.0	Igneous : Extrusive	oriented core	-24	48.7617	Basalt	272.3863	Lava Flow
+This study	Simpson Island	SI9-4.00	SI9(0.0 to 9.2)	FS-FD:SO-POM:SO-CMD-NORTH	158.0	Igneous : Extrusive	oriented core	-42	48.7721	Basalt	272.3778	Lava Flow
+This study	Simpson Island	SI9-4.80	SI9(0.0 to 9.2)	FS-FD:SO-POM:SO-CMD-NORTH	301.0	Igneous : Extrusive	oriented core	-48	48.7721	Basalt	272.3778	Lava Flow
+This study	Simpson Island	SI9-4.81	SI9(0.0 to 9.2)	FS-FD:SO-POM:SO-CMD-NORTH	339.0	Igneous : Extrusive	oriented core	-43	48.7721	Basalt	272.3778	Lava Flow
+This study	Simpson Island	SI9-4.88	SI9(0.0 to 9.2)	FS-FD:SO-POM:SO-CMD-NORTH	301.0	Igneous : Extrusive	oriented core	-48	48.7721	Basalt	272.3778	Lava Flow
+This study	Simpson Island	SI9-6.50	SI9(0.0 to 9.2)	FS-FD:SO-POM:SO-CMD-NORTH	205.0	Igneous : Extrusive	oriented core	-82	48.7721	Basalt	272.3778	Lava Flow
+This study	Simpson Island	SI9-6.68	SI9(0.0 to 9.2)	FS-FD:SO-POM:SO-CMD-NORTH	327.0	Igneous : Extrusive	oriented core	-59	48.7721	Basalt	272.3778	Lava Flow
+This study	Simpson Island	SI9-6.70	SI9(0.0 to 9.2)	FS-FD:SO-POM:SO-CMD-NORTH	276.0	Igneous : Extrusive	oriented core	-17	48.7721	Basalt	272.3778	Lava Flow
+This study	Simpson Island	SI9-79.40	SI9(66.9 to 84.0)	FS-FD:SO-POM:SO-CMD-NORTH	267.0	Igneous : Extrusive	oriented core	-34	48.77	Basalt	272.3797	Lava Flow
+This study	Simpson Island	SI9-80.60	SI9(66.9 to 84.0)	FS-FD:SO-POM:SO-CMD-NORTH	247.0	Igneous : Extrusive	oriented core	-24	48.77	Basalt	272.3797	Lava Flow
+This study	Simpson Island	SI9-80.70	SI9(66.9 to 84.0)	FS-FD:SO-POM:SO-CMD-NORTH	329.0	Igneous : Extrusive	oriented core	-41	48.77	Basalt	272.3797	Lava Flow
+This study	Simpson Island	SI9-81.20	SI9(66.9 to 84.0)	FS-FD:SO-POM:SO-CMD-NORTH	279.0	Igneous : Extrusive	oriented core	-27	48.77	Basalt	272.3797	Lava Flow
+This study	Simpson Island	SI9-81.30	SI9(66.9 to 84.0)	FS-FD:SO-POM:SO-CMD-NORTH	6.0	Igneous : Extrusive	oriented core	-21	48.77	Basalt	272.3797	Lava Flow
+This study	Simpson Island	SI9-81.40	SI9(66.9 to 84.0)	FS-FD:SO-POM:SO-CMD-NORTH	217.0	Igneous : Extrusive	oriented core	-21	48.77	Basalt	272.3797	Lava Flow
+This study	Simpson Island	SI9-81.85	SI9(66.9 to 84.0)	FS-FD:SO-POM:SO-CMD-NORTH	197.0	Igneous : Extrusive	oriented core	-29	48.77	Basalt	272.3797	Lava Flow
+This study	Simpson Island	SI9-81.90	SI9(66.9 to 84.0)	FS-FD:SO-POM:SO-CMD-NORTH	202.0	Igneous : Extrusive	oriented core	-24	48.77	Basalt	272.3797	Lava Flow
+This study	Simpson Island	SI9-84.60	SI9(84.0 to 88.9)	FS-FD:SO-POM:SO-CMD-NORTH	217.0	Igneous : Extrusive	oriented core	-32	48.7696	Basalt	272.3796	Lava Flow
+This study	Simpson Island	SI9-84.70	SI9(84.0 to 88.9)	FS-FD:SO-POM:SO-CMD-NORTH	216.0	Igneous : Extrusive	oriented core	-44	48.7696	Basalt	272.3796	Lava Flow
+This study	Simpson Island	SI9-85.10	SI9(84.0 to 88.9)	FS-FD:SO-POM:SO-CMD-NORTH	168.0	Igneous : Extrusive	oriented core	-70	48.7696	Basalt	272.3796	Lava Flow
+This study	Simpson Island	SI9-85.15	SI9(84.0 to 88.9)	FS-FD:SO-POM:SO-CMD-NORTH	171.0	Igneous : Extrusive	oriented core	-73	48.7696	Basalt	272.3796	Lava Flow
+This study	Simpson Island	SI9-85.20	SI9(84.0 to 88.9)	FS-FD:SO-POM:SO-CMD-NORTH	197.0	Igneous : Extrusive	oriented core	-22	48.7696	Basalt	272.3796	Lava Flow
+This study	Simpson Island	SI9-85.40	SI9(84.0 to 88.9)	FS-FD:SO-POM:SO-CMD-NORTH	167.0	Igneous : Extrusive	oriented core	-52	48.7696	Basalt	272.3796	Lava Flow
+This study	Simpson Island	SI9-85.60	SI9(84.0 to 88.9)	FS-FD:SO-POM:SO-CMD-NORTH	192.0	Igneous : Extrusive	oriented core	-36	48.7696	Basalt	272.3796	Lava Flow
+This study	Simpson Island	SI9-85.64	SI9(84.0 to 88.9)	FS-FD:SO-POM:SO-CMD-NORTH	193.0	Igneous : Extrusive	oriented core	-30	48.7696	Basalt	272.3796	Lava Flow
+This study	Simpson Island	SI9-D1	SI9(D1-D9)	FS-FD:SO-POM:SO-CMD-NORTH	286.0	Intrusive : Igneous	oriented core	-45	48.7718	Diabase	272.3779	Dike
+This study	Simpson Island	SI9-D10	SI9(D10 to D18)	FS-FD:SO-POM:SO-CMD-NORTH	202.0	Intrusive : Igneous	oriented core	-46	48.7657	Diabase	272.382	Dike
+This study	Simpson Island	SI9-D11	SI9(D10 to D18)	FS-FD:SO-POM:SO-CMD-NORTH	153.0	Intrusive : Igneous	oriented core	-35	48.7657	Diabase	272.382	Dike
+This study	Simpson Island	SI9-D12	SI9(D10 to D18)	FS-FD:SO-POM:SO-CMD-NORTH	38.0	Intrusive : Igneous	oriented core	-28	48.7657	Diabase	272.382	Dike
+This study	Simpson Island	SI9-D13	SI9(D10 to D18)	FS-FD:SO-POM:SO-CMD-NORTH	52.0	Intrusive : Igneous	oriented core	-19	48.7657	Diabase	272.382	Dike
+This study	Simpson Island	SI9-D14	SI9(D10 to D18)	FS-FD:SO-POM:SO-CMD-NORTH	72.0	Intrusive : Igneous	oriented core	-46	48.7657	Diabase	272.382	Dike
+This study	Simpson Island	SI9-D15	SI9(D10 to D18)	FS-FD:SO-POM:SO-CMD-NORTH	69.0	Intrusive : Igneous	oriented core	-47	48.7657	Diabase	272.382	Dike
+This study	Simpson Island	SI9-D16	SI9(D10 to D18)	FS-FD:SO-POM:SO-CMD-NORTH	68.0	Intrusive : Igneous	oriented core	-53	48.7657	Diabase	272.382	Dike
+This study	Simpson Island	SI9-D17	SI9(D10 to D18)	FS-FD:SO-POM:SO-CMD-NORTH	153.0	Intrusive : Igneous	oriented core	-65	48.7657	Diabase	272.382	Dike
+This study	Simpson Island	SI9-D18	SI9(D10 to D18)	FS-FD:SO-POM:SO-CMD-NORTH	179.0	Intrusive : Igneous	oriented core	-80	48.7657	Diabase	272.382	Dike
+This study	Simpson Island	SI9-D2	SI9(D1-D9)	FS-FD:SO-POM:SO-CMD-NORTH	349.0	Intrusive : Igneous	oriented core	-35	48.7718	Diabase	272.3779	Dike
+This study	Simpson Island	SI9-D3	SI9(D1-D9)	FS-FD:SO-POM:SO-CMD-NORTH	349.0	Intrusive : Igneous	oriented core	-37	48.7718	Diabase	272.3779	Dike
+This study	Simpson Island	SI9-D4	SI9(D1-D9)	FS-FD:SO-POM:SO-CMD-NORTH	273.0	Intrusive : Igneous	oriented core	-93	48.7718	Diabase	272.3779	Dike
+This study	Simpson Island	SI9-D5	SI9(D1-D9)	FS-FD:SO-POM:SO-CMD-NORTH	335.0	Intrusive : Igneous	oriented core	-41	48.7718	Diabase	272.3779	Dike
+This study	Simpson Island	SI9-D6	SI9(D1-D9)	FS-FD:SO-POM:SO-CMD-NORTH	12.0	Intrusive : Igneous	oriented core	-47	48.7718	Diabase	272.3779	Dike
+This study	Simpson Island	SI9-D7	SI9(D1-D9)	FS-FD:SO-POM:SO-CMD-NORTH	38.0	Intrusive : Igneous	oriented core	-77	48.7718	Diabase	272.3779	Dike
+This study	Simpson Island	SI9-D8	SI9(D1-D9)	FS-FD:SO-POM:SO-CMD-NORTH	251.0	Intrusive : Igneous	oriented core	-34	48.7718	Diabase	272.3779	Dike
+This study	Simpson Island	SI9-D9	SI9(D1-D9)	FS-FD:SO-POM:SO-CMD-NORTH	11.0	Intrusive : Igneous	oriented core	-36	48.7718	Diabase	272.3779	Dike

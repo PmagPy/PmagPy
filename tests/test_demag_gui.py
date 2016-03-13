@@ -6,11 +6,13 @@ import wx
 import wx.lib.inspection
 import demag_gui
 import random as rn
+from pmagpy.demag_gui_utilities import *
 
 WD = os.getcwd()
-#project_WD = os.path.join(os.getcwd(), 'tests', 'examples', 'demag_test_data', 'Location_1')
-project_WD = os.path.join(os.getcwd(), 'tests', 'examples', 'my_project')
+project_WD = os.path.join(os.getcwd(), 'tests', 'examples', 'demag_test_data')
+#project_WD = os.path.join(os.getcwd(), 'tests', 'examples', 'my_project')
 empty_WD = os.path.join(os.getcwd(), 'tests', 'examples', 'empty_dir')
+allowable_float_error = 0.1
 
 class TestMainFrame(unittest.TestCase):
 
@@ -223,6 +225,7 @@ class TestMainFrame(unittest.TestCase):
         self.assertEqual(fit.get(self.frame.COORDINATE_SYSTEM)['specimen_n'],total_num_of_good_meas_data)
 
     def test_read_write_redo(self):
+        self.frame.COORDINATE_SYSTEM = 'specimen'
         old_s = self.frame.s
         for specimen in self.frame.specimens:
             self.frame.s = specimen
@@ -246,8 +249,8 @@ class TestMainFrame(unittest.TestCase):
         analysis_menu = menu_bar.GetMenu(2)
         analysis_menu_items = analysis_menu.GetMenuItems()
 
-        importredo_menu_evt = wx.PyCommandEvent(wx.EVT_MENU.typeId,analysis_menu_items[1].GetId())
-        writeredo_menu_evt = wx.PyCommandEvent(wx.EVT_MENU.typeId,analysis_menu_items[2].GetId())
+        importredo_menu_evt = wx.PyCommandEvent(wx.EVT_MENU.typeId,analysis_menu_items[3].GetId())
+        writeredo_menu_evt = wx.PyCommandEvent(wx.EVT_MENU.typeId,analysis_menu_items[4].GetId())
 
         self.frame.ProcessEvent(writeredo_menu_evt)
         old_frame = str(self.frame)
@@ -552,7 +555,26 @@ class TestMainFrame(unittest.TestCase):
             self.assertEqual(fit.name,"OtherTest")
 
     def test_interpretation_accuracy(self):
-        pass
+
+        try:
+            interps = read_LSQ(os.path.join(project_WD, 'SI4(80.2 to 100.7).LSQ'))
+            self.frame.COORDINATE_SYSTEM = 'geographic'
+            self.frame.read_from_LSQ(os.path.join(project_WD, 'SI4(80.2 to 100.7).LSQ'))
+        except OSError: print("Could not read in LSQ file"); return
+        except IOError: print("No LSQ file"); return
+
+        for interp in interps:
+            specimen = interp['er_specimen_name']
+            gui_interps = self.frame.pmag_results_data['specimens'][specimen]
+            similar_fit_present = True
+            for gui_interp in gui_interps:
+                pars = gui_interp.get('geographic')
+                if int(pars['specimen_n']) != int(interp['specimen_n']): continue
+                for value in ['specimen_dec','specimen_inc','specimen_mad','specimen_n']:
+                    if round(float(pars[value]),1)-allowable_float_error > float(interp[value]) and float(interp[value]) > round(float(pars[value]),1)+allowable_float_error:
+                        print(round(float(pars[value]),1),float(interp[value]))
+                        similar_fit_present = False
+            self.assertTrue(similar_fit_present)
 
     def tearDown(self):
         self.app.Destroy()
@@ -563,8 +585,6 @@ class TestMainFrame(unittest.TestCase):
         try: os.remove(project_WD + "/pmag_sites.txt")
         except OSError: pass
         try: os.remove(project_WD + "/pmag_results.txt")
-        except OSError: pass
-        try: os.remove(project_WD + "/demag_gui.redo")
         except OSError: pass
         os.chdir(WD)
 
