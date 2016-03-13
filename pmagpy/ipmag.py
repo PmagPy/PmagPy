@@ -3827,6 +3827,7 @@ def kly4s_magic(infile, specnum=0, locname="unknown", inst='SIO-KLY4S', samp_con
             [4-Z] XXXXYYY:  YYY is sample designation with Z characters from site XXX
             [5] all others you will have to either customize your
                 self or e-mail ltauxe@ucsd.edu for help.
+            [7-Z] XXXXYYY:  XXX is site designation with Z characters
        Orientation convention:
             [1] Lab arrow azimuth= azimuth; Lab arrow dip=-dip
                 i.e., dip is degrees from vertical down - the hade [default]
@@ -3870,13 +3871,20 @@ def kly4s_magic(infile, specnum=0, locname="unknown", inst='SIO-KLY4S', samp_con
     anisfile = os.path.join(output_dir_path, aniso_outfile)
 
     # validate variables
-    if "4" in samp_con:
+    if "4" in samp_con[0]:
         if "-" not in samp_con:
             print "option [4] must be in form 4-Z where Z is an integer"
             return False, "option [4] must be in form 4-Z where Z is an integer"
         else:
             Z=samp_con.split("-")[1]
             samp_con="4"
+    if "7" in samp_con[0]:
+        if "-" not in samp_con:
+            print "option [7] must be in form 7-Z where Z is an integer"
+            return False, "option [7] must be in form 7-Z where Z is an integer"
+        else:
+            Z=samp_con.split("-")[1]
+            samp_con="7"
 
     try:
         file_input=open(amsfile,'rU')
