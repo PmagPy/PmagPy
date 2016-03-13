@@ -5867,7 +5867,6 @@ def parse_site(sample,convention,Z):
     parse the site name from the sample name using the specified convention
     """
     site=sample # default is that site = sample
-    print convention, Z
 #
 #
 # Sample is final letter on site designation eg:  TG001a (used by SIO lab in San Diego)
