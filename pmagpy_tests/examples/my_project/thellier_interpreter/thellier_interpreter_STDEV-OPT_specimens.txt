@@ -1,0 +1,4 @@
+tab	pmag_specimens
+er_sample_name	er_specimen_name	specimen_int_uT	measurement_step_min	measurement_step_min	specimen_lab_field_dc	Anisotropy_correction_factor	NLT_correction_factor	Cooling_rate_correction_factor
+sr01a	sr01a2	40.41	0	300	40	1.00	-	-	
+sr01a	sr01a1	40.40	400	550	40	1.00	-	-	

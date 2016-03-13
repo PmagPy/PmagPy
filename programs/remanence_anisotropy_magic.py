@@ -2,8 +2,8 @@
 
 #import matplotlib
 #matplotlib.use('WXAgg')
-from pmag_env import set_env
-set_env.set_backend(wx=False)
+
+
 import sys
 import pylab
 from pylab import *

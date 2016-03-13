@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import sys
+
 from pmag_env import set_env
-set_env.set_backend(wx=False)
 if not set_env.isServer:
     import pmagpy.nlt as nlt
 import pmagpy.pmag as pmag

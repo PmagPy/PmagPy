@@ -71,7 +71,7 @@ def main():
     dataframe = extractor.command_line_dataframe([['f', True, ''], ['fad', False, ''], ['fsa', False, ''], ['fsp', False, ''], ['Fsp', False, 'er_specimens.txt'], ['F', False, 'magic_measurements.txt'], ['Fa', False, 'rmag_anisotropy.txt'], ['ocn', False, '3'], ['usr', False, ''], ['loc', False, ''], ['ins', False, 'SIO-KLY4S'], ['spc', False, 0], ['ncn', False, '1'], ['WD', False, '.'], ['ID', False, '.'] ])
     checked_args = extractor.extract_and_check_args(args, dataframe)
     infile, azdip_infile, samp_infile, spec_infile, spec_outfile, measfile, aniso_outfile, or_con, user, locname, inst, specnum, samp_con, output_dir_path, input_dir_path = extractor.get_vars(['f', 'fad', 'fsa', 'fsp', 'Fsp', 'F', 'Fa', 'ocn', 'usr', 'loc', 'ins', 'spc', 'ncn', 'WD', 'ID'], checked_args)
-    ipmag.kly4s_magic(infile, specnum=specnum, locname=locname, inst=inst, user=user, or_con=or_con, samp_con=samp_con, aniso_outfile=aniso_outfile, samp_infile=samp_infile, spec_infile=spec_infile, spec_outfile=spec_outfile, azdip_infile=azdip_infile, output_dir_path=output_dir_path, input_dir_path=input_dir_path)
+    ipmag.kly4s_magic(infile, specnum=specnum, locname=locname, inst=inst, user=user, measfile=measfile,or_con=or_con, samp_con=samp_con, aniso_outfile=aniso_outfile, samp_infile=samp_infile, spec_infile=spec_infile, spec_outfile=spec_outfile, azdip_infile=azdip_infile, output_dir_path=output_dir_path, input_dir_path=input_dir_path)
 
     
 if __name__ == "__main__":

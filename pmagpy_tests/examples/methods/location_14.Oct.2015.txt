@@ -1,0 +1,34 @@
+tab 	er_locations
+location_type	er_citation_names	location_end_lat	location_precision	location_begin_lon	er_location_name	ocean_sea	location_begin_lat	location_end_lon	location_geoid
+Archeological Site	This study	15.2		16.00	location		15.0	16.20	
+>>>>>>>>>>
+tab 	er_samples
+er_citation_names	sample_lithology	er_site_name	er_sample_name	sample_lat	er_location_name	sample_type	sample_lon	sample_class
+This study	Ankerite-Pseudosparstone	site1	sampleA	1	location	Baked Clay	3.00	Archeologic
+This study	Ankerite-Pseudosparstone	site1	sampleB	2	location	Baked Clay	4.00	Archeologic
+>>>>>>>>>>
+tab 	er_specimens
+er_citation_names	specimen_class	er_site_name	er_sample_name	er_location_name	er_specimen_name	specimen_lithology	specimen_type	magic_method_codes
+This study	Archeologic	site1	sampleA	location	spec1	Ankerite-Pseudosparstone	Baked Clay	er_method_codes
+>>>>>>>>>>
+tab 	er_sites
+er_citation_names	site_lithology	site_class	site_definition	er_site_name	magic_method_codes	er_location_name	site_type
+This study	Ankerite-Pseudosparstone	Archeologic	s	site1	er_methods	location	Baked Clay
+This study	Ankerite-Pseudosparstone	Archeologic	s	site1	er_methods	location	Baked Clay
+This study	Ankerite-Pseudosparstone	Archeologic	s	site2	er_methods	location	Baked Contact
+>>>>>>>>>>
+tab 	er_ages
+er_citation_names	er_site_name	er_sample_name	age_unit	er_location_name	er_specimen_name	magic_method_codes
+This study	site1	sampleA	Years AD (+/-)	location		GM-ARAR-SC
+This study	site1	sampleB	Years AD (+/-)	location		GM-ARAR-SC
+>>>>>>>>>>
+tab 	pmag_specimens
+specimen_correction	er_citation_names	er_site_name	er_sample_name	er_location_name	specimen_b	er_specimen_name	magic_method_codes
+none	This study	site1	sampleA	location	22	spec1	pmag_method_codes
+>>>>>>>>>>
+tab 	magic_methods
+magic_method_code
+er_method_codes
+er_methods
+GM-ARAR-SC
+pmag_method_codes

@@ -3664,9 +3664,9 @@ def azdip_magic(orient_file='orient.txt', samp_file="er_samples.txt", samp_con="
     return True, None
 
 
-def IODP_samples_magic(samp_file, output_samp_file=None, output_dir_path='.', input_dir_path='.'):
+def iodp_samples_magic(samp_file, output_samp_file=None, output_dir_path='.', input_dir_path='.'):
     """
-    IODP_samples_magic(samp_file, output_samp_file=None, output_dir_path='.', input_dir_path='.')
+    iodp_samples_magic(samp_file, output_samp_file=None, output_dir_path='.', input_dir_path='.')
     Default is to overwrite er_samples.txt in your output working directory.
     To specify an er_samples file to append to, use output_samp_file.
     """
@@ -3827,6 +3827,7 @@ def kly4s_magic(infile, specnum=0, locname="unknown", inst='SIO-KLY4S', samp_con
             [4-Z] XXXXYYY:  YYY is sample designation with Z characters from site XXX
             [5] all others you will have to either customize your
                 self or e-mail ltauxe@ucsd.edu for help.
+            [7-Z] XXXXYYY:  XXX is site designation with Z characters
        Orientation convention:
             [1] Lab arrow azimuth= azimuth; Lab arrow dip=-dip
                 i.e., dip is degrees from vertical down - the hade [default]
@@ -3870,13 +3871,20 @@ def kly4s_magic(infile, specnum=0, locname="unknown", inst='SIO-KLY4S', samp_con
     anisfile = os.path.join(output_dir_path, aniso_outfile)
 
     # validate variables
-    if "4" in samp_con:
+    if "4" in samp_con[0]:
         if "-" not in samp_con:
             print "option [4] must be in form 4-Z where Z is an integer"
             return False, "option [4] must be in form 4-Z where Z is an integer"
         else:
             Z=samp_con.split("-")[1]
             samp_con="4"
+    if "7" in samp_con[0]:
+        if "-" not in samp_con:
+            print "option [7] must be in form 7-Z where Z is an integer"
+            return False, "option [7] must be in form 7-Z where Z is an integer"
+        else:
+            Z=samp_con.split("-")[1]
+            samp_con="7"
 
     try:
         file_input=open(amsfile,'rU')
@@ -5043,41 +5051,54 @@ class Site(object):
     def get_name(self):
         return self
 
-    def eq_plot_everything(self,title=None):
+    def eq_plot_everything(self, title=None, clrs = None, size = (5,5), **kwargs):
         fignum = 0
-        plt.figure(num=fignum,figsize=(8,8),dpi=200)
-        pmagplotlib.plotNET(fignum)
+        plt.figure(num=fignum,figsize=size,dpi=200)
+        plot_net(fignum)
+        clr_idx = 0
         for fits in self.fit_types:
             mean_code = str(fits)+"_mean"
             print mean_code
-            self.random_color = np.random.rand(3)
-            plot_di(getattr(self,fits).specimen_dec,
-            getattr(self,fits).specimen_inc,color=self.random_color, label=fits+' directions')
-            print float(getattr(self,mean_code).site_dec),float(getattr(self,mean_code).site_inc)
-            #ipmag.plot_di_mean(getattr(self,mean_name).site_dec,getattr(self,mean_name))
-            plot_di_mean(float(getattr(self,mean_code).site_dec),
-                               float(getattr(self,mean_code).site_inc),
-                               float(getattr(self,mean_code).site_alpha95),
-                               color=self.random_color,marker='s',label=fits+' mean')
-        plt.legend()
+            if clrs is not None:
+                plot_di(getattr(self,fits).specimen_dec,
+                getattr(self,fits).specimen_inc,color=clrs[clr_idx], label=fits+' directions')
+                print float(getattr(self,mean_code).site_dec),float(getattr(self,mean_code).site_inc)
+                plot_di_mean(float(getattr(self,mean_code).site_dec),
+                                   float(getattr(self,mean_code).site_inc),
+                                   float(getattr(self,mean_code).site_alpha95),
+                                   color=clrs[clr_idx],marker='s',label=fits+' mean')
+                clr_idx += 1
+
+            else:
+                self.random_color = np.random.rand(3)
+                plot_di(getattr(self,fits).specimen_dec,
+                getattr(self,fits).specimen_inc,color=self.random_color, label=fits+' directions')
+                print float(getattr(self,mean_code).site_dec),float(getattr(self,mean_code).site_inc)
+                plot_di_mean(float(getattr(self,mean_code).site_dec),
+                                   float(getattr(self,mean_code).site_inc),
+                                   float(getattr(self,mean_code).site_alpha95),
+                                   color=self.random_color,marker='s',label=fits+' mean')
+        plt.legend(**kwargs)
         if title != None:
             plt.title(title)
         plt.show()
 
-    def eq_plot(self,fit_name,title=None):
+    def eq_plot(self,fit_name,title=None, clr = None, size = (5,5), **kwargs):
         fignum = 0
-        plt.figure(num=fignum,figsize=(8,8),dpi=200)
-        pmagplotlib.plotNET(fignum)
+        plt.figure(num=fignum,figsize=size,dpi=200)
+        plot_net(fignum)
         mean_code = str(fit_name)+"_mean"
-        #print mean_code
-        self.random_color = np.random.rand(3)
+        if clr is not None:
+            self.random_color = clr
+        else:
+            self.random_color = np.random.rand(3)
         plot_di(getattr(self,fit_name).specimen_dec,
                       getattr(self,fit_name).specimen_inc,
                       color=self.random_color,label=fit_name+' directions')
         plot_di_mean(float(getattr(self,mean_code).site_dec),
                            float(getattr(self,mean_code).site_inc),
-                           float(getattr(self,mean_code).site_alpha95), color = self.random_color, marker='s', label=fit_name+' mean')
-        plt.legend()
+                           float(getattr(self,mean_code).site_alpha95), marker='s', label=fit_name+' mean')
+        plt.legend(**kwargs)
         if title != None:
             plt.title(title)
         plt.show()

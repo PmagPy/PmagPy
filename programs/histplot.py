@@ -2,8 +2,8 @@
 import sys
 import matplotlib
 import numpy
-from pmag_env import set_env
-set_env.set_backend(wx=False)
+
+
 import pylab
 pylab.ion()
 

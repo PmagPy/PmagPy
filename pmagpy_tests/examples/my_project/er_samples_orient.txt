@@ -1,0 +1,22 @@
+tab 	er_samples
+cooling_rate_corr	cooling_rate_mcd	er_citation_names	er_location_name	er_sample_name	er_scientist_mail_names	er_site_name	magic_method_codes	sample_azimuth	sample_bed_dip	sample_bed_dip_direction	sample_class	sample_cooling_rate	sample_date	sample_declination_correction	sample_description	sample_dip	sample_height	sample_igsn	sample_lat	sample_lithology	sample_lon	sample_orientation_flag	sample_texture	sample_type
+		This study	demag_orient	sr01a		sr01	FS-FD:FS-LOC-GPS:SO-POM:SO-SM:SO-MAG	295.0			Not Specified		1999:09:18			-87.0			42.60264	Not Specified	245.60200	g		Not Specified
+		This study	demag_orient	sr01a		sr01	FS-FD:FS-LOC-GPS:SO-POM:SO-SM:SO-CMD-NORTH	310.0			Not Specified		1999:09:18	15.0	Declination correction calculated from IGRF	-87.0			42.60264	Not Specified	245.60200	g		Not Specified
+		This study	demag_orient	sr01a		sr01	FS-FD:FS-LOC-GPS:SO-POM:SO-SM:SO-SUN	310.6			Not Specified		1999:09:18			-87.0			42.60264	Not Specified	245.60200	g		Not Specified
+		This study	demag_orient	sr01c		sr01	FS-FD:FS-LOC-GPS:SO-POM:SO-SM:SO-MAG	285.0			Not Specified		1999:09:18			-82.0			42.60264	Not Specified	245.60200	g		Not Specified
+		This study	demag_orient	sr01c		sr01	FS-FD:FS-LOC-GPS:SO-POM:SO-SM:SO-CMD-NORTH	300.0			Not Specified		1999:09:18	15.0	Declination correction calculated from IGRF	-82.0			42.60264	Not Specified	245.60200	g		Not Specified
+		This study	demag_orient	sr01c		sr01	FS-FD:FS-LOC-GPS:SO-POM:SO-SM:SO-SUN	300.7			Not Specified		1999:09:18			-82.0			42.60264	Not Specified	245.60200	g		Not Specified
+		This study	demag_orient	sr01d		sr01	FS-FD:FS-LOC-GPS:SO-POM:SO-SM:SO-MAG	325.0			Not Specified		1999:09:18			-76.0			42.60264	Not Specified	245.60200	g		Not Specified
+		This study	demag_orient	sr01d		sr01	FS-FD:FS-LOC-GPS:SO-POM:SO-SM:SO-CMD-NORTH	340.0			Not Specified		1999:09:18	15.0	Declination correction calculated from IGRF	-76.0			42.60264	Not Specified	245.60200	g		Not Specified
+		This study	demag_orient	sr01e		sr01	FS-FD:FS-LOC-GPS:SO-POM:SO-SM:SO-MAG	9.0			Not Specified		1999:09:18			-75.0			42.60264	Not Specified	245.60200	g		Not Specified
+		This study	demag_orient	sr01e		sr01	FS-FD:FS-LOC-GPS:SO-POM:SO-SM:SO-CMD-NORTH	24.0			Not Specified		1999:09:18	15.0	Declination correction calculated from IGRF	-75.0			42.60264	Not Specified	245.60200	g		Not Specified
+		This study	demag_orient	sr01e		sr01	FS-FD:FS-LOC-GPS:SO-POM:SO-SM:SO-SUN	26.3			Not Specified		1999:09:18			-75.0			42.60264	Not Specified	245.60200	g		Not Specified
+		This study	demag_orient	sr01f		sr01	FS-FD:FS-LOC-GPS:SO-POM:SO-SM:SO-MAG	7.0			Not Specified		1999:09:18			-80.0			42.60264	Not Specified	245.60200	g		Not Specified
+		This study	demag_orient	sr01f		sr01	FS-FD:FS-LOC-GPS:SO-POM:SO-SM:SO-CMD-NORTH	22.0			Not Specified		1999:09:18	15.0	Declination correction calculated from IGRF	-80.0			42.60264	Not Specified	245.60200	g		Not Specified
+		This study	demag_orient	sr01f		sr01	FS-FD:FS-LOC-GPS:SO-POM:SO-SM:SO-SUN	23.7			Not Specified		1999:09:18			-80.0			42.60264	Not Specified	245.60200	g		Not Specified
+		This study	demag_orient	sr01g		sr01	FS-FD:FS-LOC-GPS:SO-POM:SO-SM:SO-MAG	305.0			Not Specified		1999:09:18			-75.0			42.60264	Not Specified	245.60200	g		Not Specified
+		This study	demag_orient	sr01g		sr01	FS-FD:FS-LOC-GPS:SO-POM:SO-SM:SO-CMD-NORTH	320.0			Not Specified		1999:09:18	15.0	Declination correction calculated from IGRF	-75.0			42.60264	Not Specified	245.60200	g		Not Specified
+		This study	demag_orient	sr01g		sr01	FS-FD:FS-LOC-GPS:SO-POM:SO-SM:SO-SUN	322.7			Not Specified		1999:09:18			-75.0			42.60264	Not Specified	245.60200	g		Not Specified
+		This study	demag_orient	sr01i		sr01	FS-FD:FS-LOC-GPS:SO-POM:SO-SM:SO-MAG	350.0			Not Specified		1999:09:18			-56.0			42.60264	Not Specified	245.60200	g		Not Specified
+		This study	demag_orient	sr01i		sr01	FS-FD:FS-LOC-GPS:SO-POM:SO-SM:SO-CMD-NORTH	5.0			Not Specified		1999:09:18	15.0	Declination correction calculated from IGRF	-56.0			42.60264	Not Specified	245.60200	g		Not Specified
+		This study	demag_orient	sr01i		sr01	FS-FD:FS-LOC-GPS:SO-POM:SO-SM:SO-SUN	6.8			Not Specified		1999:09:18			-56.0			42.60264	Not Specified	245.60200	g		Not Specified

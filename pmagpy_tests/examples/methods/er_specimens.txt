@@ -1,0 +1,3 @@
+tab	er_specimens								
+er_specimen_name	er_sample_name	er_site_name	er_location_name	er_citation_names	magic_method_codes	specimen_class	specimen_lithology	specimen_type	specimen_description
+spec1	sampleA	site1	location	This study	er_method_codes	Archeologic	Ankerite-Pseudosparstone	Baked Clay	er_descr1

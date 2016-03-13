@@ -1189,7 +1189,7 @@ DESCRIPTION
 
 """
 
-if __name__ == '__main__':
+def main():
     if '-h' in sys.argv:
         print "Convert Livdb files to MagIC format"
         sys.exit()
@@ -1199,6 +1199,9 @@ if __name__ == '__main__':
     app.frame.Center()
     app.MainLoop()
 
+
+if __name__ == '__main__':
+    main()
 
 
 
