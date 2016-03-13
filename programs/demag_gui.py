@@ -48,7 +48,7 @@ CURRENT_VERSION = "v.0.33"
 # get directory in a way that works whether being used
 # on the command line or in a frozen binary
 import pmagpy.check_updates as check_updates
-PMAGPY_DIRECTORY = check_updates.get_pmag_dir()
+PMAGPY_DIRECTORY = os.path.split(check_updates.get_pmag_dir())[0]
 
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigCanvas
 from matplotlib.backends.backend_wxagg import NavigationToolbar2WxAgg as NavigationToolbar
@@ -105,7 +105,6 @@ class Demag_GUI(wx.Frame):
     GUI for interpreting demagnetization data (AF and/or thermal).
     For tutorial chcek PmagPy cookbook in http://earthref.org/PmagPy/cookbook/
         """
-        PMAGPY_DIRECTORY = check_updates.get_pmag_dir()
         args=sys.argv
         if "-h" in args:
             print TEXT
@@ -138,9 +137,9 @@ class Demag_GUI(wx.Frame):
 
         #set icon
         try:
-            icon_path = resource_filename(__name__, os.path.join('images', 'PmagPy.ico'))
+#            icon_path = resource_filename(__name__, os.path.join('images', 'PmagPy.ico'))
             icon = wx.EmptyIcon()
-            #icon_path = os.path.join(PMAGPY_DIRECTORY, 'images', 'PmagPy.ico')
+            icon_path = os.path.join(PMAGPY_DIRECTORY, 'images', 'PmagPy.ico')
             icon.CopyFromBitmap(wx.Bitmap(icon_path, wx.BITMAP_TYPE_ANY))
             self.SetIcon(icon)
         except Exception as ex:
