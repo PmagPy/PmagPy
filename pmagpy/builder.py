@@ -8,7 +8,6 @@ import os
 # import time
 import pmagpy.pmag as pmag
 import pmagpy.validate_upload as validate_upload
-import dialogs.pmag_widgets as pw
 
 
 class ErMagicBuilder(object):
@@ -123,7 +122,7 @@ class ErMagicBuilder(object):
         if not self.data_model:
             self.data_model = validate_upload.get_data_model()
             if not self.data_model:
-                pw.simple_warning("Can't access MagIC-data-model at the moment.\nIf you are working offline, make sure MagIC-data-model.txt is in your PmagPy directory (or download it from https://github.com/ltauxe/PmagPy and put it in your PmagPy directory).\nOtherwise, check your internet connection")
+                print "Can't access MagIC-data-model at the moment.\nIf you are working offline, make sure MagIC-data-model.txt is in your PmagPy directory (or download it from https://github.com/ltauxe/PmagPy and put it in your PmagPy directory).\nOtherwise, check your internet connection"
                 return False
 
         # actual is at position 0, reqd is at position 1, optional at position 2
