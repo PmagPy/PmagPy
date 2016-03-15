@@ -5,11 +5,11 @@ import os
 import unittest
 import shutil
 import sys
-import pmagpy.check_updates as check_updates
-
+from pkg_resources import resource_filename
+import programs
+fname = resource_filename(programs.__name__, 'angle.py')
+programs_WD = os.path.split(fname)[0]
 env = TestFileEnvironment('./new-test-output')
-WD = check_updates.get_pmag_dir()
-programs_WD = os.path.join(WD, 'programs')
 
 class TestProgramsHelp(unittest.TestCase):
 
@@ -24,6 +24,7 @@ class TestProgramsHelp(unittest.TestCase):
 
     @unittest.skipIf(sys.platform not in ['darwin', 'win32', 'win62'], "Doesn't work without PmagPy in PYTHONPATH")
     def test_all(self):
+        print 'programs_WD', programs_WD
         programs = os.listdir(programs_WD)
         not_checked = []
         for prog in programs:
