@@ -4176,22 +4176,13 @@ class Demag_GUI(wx.Frame):
         opens in library documentation for the usage of demag gui in a pdf/latex form
         @param: event -> the wx.MenuEvent that triggered this function
         """
-        pdf_path = os.path.join(PMAGPY_DIRECTORY, 'programs', 'help_files', 'demag_gui_doc.pdf')
-        if not os.path.exists(pdf_path):
-            print '-W- Demag GUI help file could not be found'
-            return
-        if sys.platform.startswith("darwin"):
-            os.system("open " + pdf_path)
-        elif sys.platform.startswith("linux"):
-            os.system("xdg-open " + pdf_path)
-        else:
-            os.system("start " + pdf_path)
+        webopen("http://earthref.org/PmagPy/cookbook/#demag_gui.py", new=2)
 
     def on_menu_cookbook(self,event):
-        webopen("http://earthref.org/PmagPy/cookbook/#x1-70002.4", new = 2)
+        webopen("http://earthref.org/PmagPy/cookbook/", new=2)
 
     def on_menu_git(self,event):
-        webopen("https://github.com/ltauxe/PmagPy", new = 2)
+        webopen("https://github.com/ltauxe/PmagPy", new=2)
 
     def on_menu_debug(self,event):
         pdb.set_trace()
