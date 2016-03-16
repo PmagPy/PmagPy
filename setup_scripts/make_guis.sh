@@ -8,12 +8,14 @@
 
 pyv="$(which python)"
 echo $pyv
-if [ "$pyv" = "/usr/local/bin/python" ]; then
+if [ $pyv == "/usr/local/bin/python" ]; then
     echo 'Using correct Python distribution'
-else
-    echo "-W- Using incorrect Python distribution (this can't be done with Canopy)"
+elif [[ $pyv == *"Canopy"* ]]; then
+    echo "-W- Using incorrect Python distribution (py2app can't run with Canopy)"
     echo "-W- Please try again with a non-Canopy distribution"
     exit
+else
+    echo "-W- Using unknown Python distribution.  This may or may not work!"
 fi
 
 new="$1"
