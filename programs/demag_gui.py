@@ -136,14 +136,13 @@ class Demag_GUI(wx.Frame):
         wx.Yield()
 
         #set icon
-        try:
-#            icon_path = resource_filename(__name__, os.path.join('images', 'PmagPy.ico'))
-            icon = wx.EmptyIcon()
-            icon_path = os.path.join(PMAGPY_DIRECTORY, 'images', 'PmagPy.ico')
+        icon = wx.EmptyIcon()
+        icon_path = os.path.join(PMAGPY_DIRECTORY, 'programs', 'images', 'PmagPy.ico')
+        if os.path.exists(icon_path):
             icon.CopyFromBitmap(wx.Bitmap(icon_path, wx.BITMAP_TYPE_ANY))
             self.SetIcon(icon)
-        except Exception as ex:
-            pass
+        else:
+            print "-I- PmagPy icon file not found -- skipping"
 
         # initialize acceptence criteria with NULL values
         self.acceptance_criteria=pmag.initialize_acceptance_criteria()
@@ -4177,12 +4176,16 @@ class Demag_GUI(wx.Frame):
         opens in library documentation for the usage of demag gui in a pdf/latex form
         @param: event -> the wx.MenuEvent that triggered this function
         """
+        pdf_path = os.path.join(PMAGPY_DIRECTORY, 'programs', 'help_files', 'demag_gui_doc.pdf')
+        if not os.path.exists(pdf_path):
+            print '-W- Demag GUI help file could not be found'
+            return
         if sys.platform.startswith("darwin"):
-            os.system("open " + os.path.join(PMAGPY_DIRECTORY + '/help_files/demag_gui_doc.pdf'))
+            os.system("open " + pdf_path)
         elif sys.platform.startswith("linux"):
-            os.system("xdg-open " + os.path.join(PMAGPY_DIRECTORY + '/help_files/demag_gui_doc.pdf'))
+            os.system("xdg-open " + pdf_path)
         else:
-            os.system("start " + os.path.join(PMAGPY_DIRECTORY + '/help_files/demag_gui_doc.pdf'))
+            os.system("start " + pdf_path)
 
     def on_menu_cookbook(self,event):
         webopen("http://earthref.org/PmagPy/cookbook/#x1-70002.4", new = 2)
@@ -4990,6 +4993,8 @@ class SaveMyPlot(wx.Frame):
 
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
+        else:
+            return
 
         title=name
         self.panel = wx.Panel(self)
