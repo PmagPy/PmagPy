@@ -3,7 +3,7 @@
 # usage: ./make_guis.sh "new_commit_name"
 # removes all pre-existing dist/ stuff
 # makes new frozen binaries
-# commits them to PmagPy-Standalone
+# commits them to PmagPy-Standalone-OSX
 # pushes the new commit to Github
 
 pyv="$(which python)"
@@ -40,26 +40,26 @@ echo "removed build & dist"
 
 python setup_pmag_gui.py py2app
 echo "ran setup script for Pmag GUI"
-rm -rf ../PmagPy-Standalone/pmag_gui.app
+rm -rf ../PmagPy-Standalone-OSX/pmag_gui.app
 echo "deleted old Pmag GUI"
-mv dist/pmag_gui.app ../PmagPy-Standalone
-echo "moved pmag_gui.app to PmagPy-Standalone"
+mv dist/pmag_gui.app ../PmagPy-Standalone-OSX
+echo "moved pmag_gui.app to PmagPy-Standalone-OSX"
 
 rm -rf build dist
 echo "removed build & dist"
 
 python setup_magic_gui.py py2app
 echo "ran setup script for MagIC GUI"
-rm -rf ../PmagPy-Standalone/magic_gui.app
+rm -rf ../PmagPy-Standalone-OSX/magic_gui.app
 echo "deleted old Pmag GUI"
-mv dist/magic_gui.app ../PmagPy-Standalone
-echo "moved magic_gui.app to PmagPy-Standalone"
+mv dist/magic_gui.app ../PmagPy-Standalone-OSX
+echo "moved magic_gui.app to PmagPy-Standalone-OSX"
 
 echo "clean up"
 rm setup_pmag_gui.py
 rm setup_magic_gui.py
 
-cd ../PmagPy-Standalone
+cd ../PmagPy-Standalone-OSX
 
 echo 'adding git stuff'
 git add .
