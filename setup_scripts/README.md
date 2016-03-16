@@ -14,17 +14,22 @@ Here are the steps to make standalone Pmag/Magic GUIs for OSX.
 
 1.  Make sure your path points to the correct version of Python.  At this time, py2app doesn't play nice with Canopy.  I've had success with brew-installed Python and wxWidgets, but other distributions may work, as well.  You will, of course, need to have all dependencies installed (numpy, matplotlib, etc.)
 
-2.  Open your Terminal and navigate to your PmagPy directory
+2.  Edit "main" function in Pmag GUI and MagIC GUI (desired behavior is slightly different when not launching from the command line).
+2a. Change:
+`wx.App(redirect=False)` to `wx.App(redirect=True)`
+2b. Remove comments from these lines:
+`if working_dir == '.':`
+    `app.frame.on_change_dir_button(None)`
 
-3.  Run:  $ `./setup_scripts/make_guis.sh <new commit name>`
+3.  Open your Terminal and navigate to your PmagPy directory
 
-4.  In PmagPy-Standalone-OSX you will find the updated MagIC GUI and Pmag GUI programs.  It is highly recommended that you open both applications and make sure they look good!
+4.  Run:  $ `./setup_scripts/make_guis.sh <new commit name>`
 
-5.  Once you are confident that both standalone applications look good, run: $ `./setup_scripts/release_guis.sh <github_user_name> <release_number>`.  To run this step, you will need to provide your Github credentials (so that you can push to the Standalone repo).
+5.  In PmagPy-Standalone-OSX you will find the updated MagIC GUI and Pmag GUI programs.  It is highly recommended that you open both applications and make sure they look good!
+
+6.  Once you are confident that both standalone applications look good, run: $ `./setup_scripts/release_guis.sh <github_user_name> <release_number>`.  To run this step, you will need to provide your Github credentials (so that you can push to the Standalone repo).
 
 ## Py2app troubleshooting
-
-
 
 If you get see an error message like this (the build _may_ keep running):
 TypeError: dyld_find() got an unexpected keyword argument 'loader'

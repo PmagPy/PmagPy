@@ -41,4 +41,4 @@ curl --user "$git_user" --data "{
     \"draft\": false,
     \"prerelease\": false}"  https://api.github.com/repos/PmagPy/PmagPy-Standalone-OSX/releases
 echo "Changes have been pushed to PmagPy-Standalone-OSX. A new release should be up and running, unless your credentials didn't go through.  If so, check your username and password and try again."
-echo "Verify your release at: https://api.github.com/repos/PmagPy/PmagPy-Standalone-OSX/releases/latest"
+echo "Verify your release at: https://github.com/PmagPy/PmagPy-Standalone-OSX/releases/latest"
