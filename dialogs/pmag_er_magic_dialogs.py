@@ -637,11 +637,10 @@ You may use the drop-down menus to add as many values as needed in these columns
         """shows html help page"""
         # for use on the command line:
         path = check_updates.get_pmag_dir()
-
         # for use with pyinstaller
         #path = self.main_frame.resource_dir
-
-        html_frame = pw.HtmlFrame(self, page=(os.path.join(path, 'help_files', page)))
+        html_frame = pw.HtmlFrame(self, page=(os.path.join(path, 'dialogs',
+                                                           'help_files', page)))
         html_frame.Show()
 
     def on_continueButton(self, event, grid, next_dia=None):

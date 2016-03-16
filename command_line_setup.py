@@ -9,7 +9,7 @@ from os import path
 # Get list of programs to alias
 from programs_list import programs_list
 
-version_num = '0.8.5'
+version_num = '0.8.10'
 here = path.abspath(path.dirname(__file__))
 
 # Get the long description from the README file
