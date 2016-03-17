@@ -2287,7 +2287,7 @@ class OrientFrameGrid(wx.Frame):
                                      "hh:mm", "GPS_baseline", "GPS_Az", "magic_method_codes"]
         self.header_names = ["sample_name", "sample_orientation_flag", "mag_azimuth",
                              "field_dip", "bedding_dip_direction", "bedding_dip",
-                             "shadow_angle", "lati", "long", "date",
+                             "shadow_angle", "lat", "long", "date",
                              "hhmm", "GPS_baseline", "GPS_Az", "magic_method_codes"]
         self.headers = zip(self.header_names, self.header_display_names)
         
@@ -2298,8 +2298,8 @@ class OrientFrameGrid(wx.Frame):
         try:
             self.orient_data = self.er_magic_data.read_magic_file(os.path.join(self.WD, "demag_orient.txt"), "sample_name")[0]
         except Exception as ex:
-            pass
-            
+            print "-W-", ex
+            #pass
         for sample_name in samples_name_list:
             if sample_name not in self.orient_data.keys():
                 sample = self.er_magic_data.find_by_name(sample_name, self.er_magic_data.samples)
