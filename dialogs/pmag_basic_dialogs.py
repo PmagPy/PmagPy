@@ -2281,13 +2281,13 @@ class OrientFrameGrid(wx.Frame):
         empty = True
         self.er_magic_data.get_data()
 
-        self.samples_name_list = self.er_magic_data.make_name_list(self.er_magic_data.samples)
+        samples_name_list = self.er_magic_data.make_name_list(self.er_magic_data.samples)
         self.orient_data = {}
         try:
             self.orient_data = self.er_magic_data.read_magic_file(os.path.join(self.WD, "demag_orient.txt"), "sample_name")[0]
         except Exception as ex:
             pass
-        for sample_name in self.samples_name_list:
+        for sample_name in samples_name_list:
             if sample_name not in self.orient_data.keys():
                 sample = self.er_magic_data.find_by_name(sample_name, self.er_magic_data.samples)
                 self.orient_data[sample_name]={}
@@ -2405,9 +2405,8 @@ class OrientFrameGrid(wx.Frame):
         #--------------------------------
         # fill data from self.orient_data
         #--------------------------------
-
         headers = [header[0] for header in self.headers]
-        for sample in self.samples_name_list:
+        for sample in self.samples_list:
             for key in self.orient_data[sample].keys():
                 if key in headers:
                     sample_index = self.samples_list.index(sample)
@@ -2715,7 +2714,6 @@ class orient_convention(wx.Dialog):
         sbs.Add(self.oc_rb6)
         sbs.AddSpacer(5)
 
-
         #-----------------------
         # declination correction
         #-----------------------
@@ -2746,7 +2744,7 @@ class orient_convention(wx.Dialog):
         sbs3 = wx.StaticBoxSizer( wx.StaticBox( pnl, wx.ID_ANY, 'orientation priority' ), wx.VERTICAL )
 
         sbs3.AddSpacer(5)
-        self.op_rb1 = wx.RadioButton(pnl, -1, label='1) differential GPS 2) sun compass 3) magnetic compass',
+        self.op_rb1 = wx.RadioButton(pnl, -1, label='1) sun compass 2) differential GPS 3) magnetic compass',
                                      name='1', style=wx.RB_GROUP)
         sbs3.Add(self.op_rb1)
         sbs3.AddSpacer(5)
