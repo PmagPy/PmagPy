@@ -2191,7 +2191,7 @@ class Demag_GUI(wx.Frame):
         return recs
 
     #---------------------------------------------#
-    #Specimen, Interpretation, & Measurement Alteration 
+    #Specimen, Interpretation, & Measurement Alteration
     #---------------------------------------------#
 
     def select_specimen(self, specimen):
@@ -2684,7 +2684,7 @@ class Demag_GUI(wx.Frame):
             if specimen not in self.pmag_results_data['specimens'].keys():
                 self.pmag_results_data['specimens'][specimen] = []
             next_fit = str(len(self.pmag_results_data['specimens'][specimen]) + 1)
-            while ('Fit ' + next_fit) in map(lambda x: x.name, self.pmag_results_data['specimens'][specimen]): 
+            while ('Fit ' + next_fit) in map(lambda x: x.name, self.pmag_results_data['specimens'][specimen]):
                 next_fit = str(int(next_fit)+1)
             new_fit = Fit('Fit ' + next_fit, tmin, tmax, self.colors[(int(next_fit)-1) % len(self.colors)], self, PCA_type)
             self.pmag_results_data['specimens'][specimen].append(new_fit)
@@ -3074,7 +3074,7 @@ class Demag_GUI(wx.Frame):
 
     def choose_meas_file(self):
         self.dlg = wx.FileDialog(
-            self, message="No magif_measurements.txt found. Please choose a magic measurement file",
+            self, message="No magic_measurements.txt found. Please choose a magic measurement file",
             defaultDir=self.WD,
             defaultFile="magic_measurements.txt",
             wildcard="*.magic|*.txt",
@@ -3632,7 +3632,7 @@ class Demag_GUI(wx.Frame):
     #---------------------------------------------#
     #File Menu Functions
     #---------------------------------------------#
- 
+
     def on_menu_pick_read_inp(self, event):
         inp_file_name = self.pick_inp()
         if inp_file_name == None: return
@@ -3643,7 +3643,7 @@ class Demag_GUI(wx.Frame):
 
     def on_menu_read_all_inp(self, event):
         inp_file_names = self.get_all_inp_files()
-        if inp_file_name == []: return 
+        if inp_file_name == []: return
 
         magic_files = []
         for inp_file_name in inp_file_names:
@@ -3948,7 +3948,7 @@ class Demag_GUI(wx.Frame):
             if self.interpretation_editor_open:
                 self.interpretation_editor.on_close_edit_window(event)
             self.Destroy()
-   
+
     #---------------------------------------------#
     #Edit Menu Functions
     #---------------------------------------------#
