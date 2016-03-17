@@ -2278,15 +2278,28 @@ class OrientFrameGrid(wx.Frame):
         # and save it to self.orient_data={}
         #--------------------
 
+        # self.headers is a list of two-item tuples.
+        #the first is the proper column name as understood by orientation_magic.py
+        # the second is the name for display in the GUI
+        self.header_display_names = ["sample_name", "sample_orientation_flag", "mag_azimuth",
+                                     "field_dip", "bedding_dip_direction", "bedding_dip",
+                                     "shadow_angle", "latitude", "longitude", "mm/dd/yy",
+                                     "hh:mm", "GPS_baseline", "GPS_Az", "magic_method_codes"]
+        self.header_names = ["sample_name", "sample_orientation_flag", "mag_azimuth",
+                             "field_dip", "bedding_dip_direction", "bedding_dip",
+                             "shadow_angle", "lati", "long", "date",
+                             "hhmm", "GPS_baseline", "GPS_Az", "magic_method_codes"]
+        self.headers = zip(self.header_names, self.header_display_names)
+        
         empty = True
         self.er_magic_data.get_data()
-
         samples_name_list = self.er_magic_data.make_name_list(self.er_magic_data.samples)
         self.orient_data = {}
         try:
             self.orient_data = self.er_magic_data.read_magic_file(os.path.join(self.WD, "demag_orient.txt"), "sample_name")[0]
         except Exception as ex:
             pass
+            
         for sample_name in samples_name_list:
             if sample_name not in self.orient_data.keys():
                 sample = self.er_magic_data.find_by_name(sample_name, self.er_magic_data.samples)
@@ -2339,6 +2352,24 @@ class OrientFrameGrid(wx.Frame):
         self.Centre()
         self.Show()
 
+
+    def add_extra_headers(self, sample_names):
+        """
+        If there are samples, add any additional keys they might use
+        to supplement the default headers.
+        Return the headers headers for adding, with the format:
+        [(header_name, header_display_name), ....]
+        """
+        if not sample_names:
+            return []
+        full_headers = self.orient_data[sample_names[0]].keys()
+        add_ons = []
+        for head in full_headers:
+            if head not in self.header_names:
+                add_ons.append((head, head))
+        return add_ons
+
+        
     def create_sheet(self):
         '''
         creat an editable grid showing deamg_orient.txt
@@ -2350,26 +2381,6 @@ class OrientFrameGrid(wx.Frame):
         # sample orientation
         #--------------------------------
 
-        # self.headers is a list of two-item tuples.
-        #the first is the proper column name as understood by orientation_magic.py
-        # the second is the name for display in the GUI
-        self.headers=[("sample_name","sample_name"),
-                ("sample_orientation_flag","sample_orientation_flag"),
-                 #"site_name",
-                ("mag_azimuth","mag_azimuth"),
-                ("field_dip","field_dip"),
-                ("bedding_dip_direction", "bedding_dip_direction"),
-                ("bedding_dip", "bedding_dip"),
-                ("shadow_angle", "shadow_angle"),
-                ("lat", "latitude"),
-                ("long", "longitude"),
-                ("date", "mm/dd/yy"),
-                ("hhmm", "hh:mm"),
-                ("GPS_baseline","GPS_baseline"),
-                ("GPS_Az", "GPS_Az"),
-                 #"participants",
-                ("magic_method_codes", "magic_method_codes")
-                 ]
 
         #--------------------------------
         # create the grid
@@ -2378,8 +2389,10 @@ class OrientFrameGrid(wx.Frame):
         samples_list = self.orient_data.keys()
         samples_list.sort()
         self.samples_list = [ sample for sample in samples_list if sample is not "" ]
+        self.headers.extend(self.add_extra_headers(samples_list))
         display_headers = [header[1] for header in self.headers]
-        self.grid = magic_grid.MagicGrid(self.panel, 'orient grid', self.samples_list, display_headers)
+        self.grid = magic_grid.MagicGrid(self.panel, 'orient grid',
+                                         self.samples_list, display_headers)
         self.grid.InitUI()
 
         #--------------------------------
