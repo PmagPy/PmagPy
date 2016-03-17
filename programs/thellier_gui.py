@@ -1710,7 +1710,7 @@ class Arai_GUI(wx.Frame):
                 #sys.exit()
         else:
             self.Destroy()
-            #self.Destroy() # works if I comment out matplotlib.use('WXAgg'), otherwise doesn't quit fully
+            #self.Destroy() # works if matplotlib isn't using 'WXAgg', otherwise doesn't quit fully
             #wx.Exit() # works by itself, but if called in conjunction with self.Destroy you get a seg error
             # wx.Exit() # forces the program to exit, with no clean up.  works, but not an ideal solution
             #sys.exit() # program closes, but with segmentation error

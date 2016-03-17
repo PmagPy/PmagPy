@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 import matplotlib
-#matplotlib.use('WXAgg')
 import pmagpy.pmag as pmag
 import wx
 import copy
