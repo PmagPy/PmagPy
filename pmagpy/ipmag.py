@@ -3860,13 +3860,13 @@ def kly4s_magic(infile, specnum=0, locname="unknown", inst='SIO-KLY4S', samp_con
         AzDipDat=azfile.readlines()
     amsfile = os.path.join(input_dir_path, infile)
     if spec_infile:
-        spec_infile = os.path.join(input_dir_path, spec_infile)
+        spec_infile = os.path.join(output_dir_path, spec_infile)
         AppSpec = 1
     else:
         spec_outfile = os.path.join(output_dir_path, spec_outfile)
         AppSpec = 0
     if samp_infile:
-        samp_infile = os.path.join(input_dir_path, samp_infile)
+        samp_infile = os.path.join(output_dir_path, samp_infile)
     measfile = os.path.join(output_dir_path, measfile)
     anisfile = os.path.join(output_dir_path, aniso_outfile)
 
