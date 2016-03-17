@@ -3779,7 +3779,11 @@ def iodp_samples_magic(samp_file, output_samp_file=None, output_dir_path='.', in
     return True, samp_out
 
 
-def kly4s_magic(infile, specnum=0, locname="unknown", inst='SIO-KLY4S', samp_con="1", or_con='3' ,user='', measfile='magic_measurements.txt', aniso_outfile='rmag_anisotropy.txt', samp_infile='', spec_infile='', spec_outfile='er_specimens.txt', azdip_infile='', output_dir_path='.', input_dir_path='.'):
+def kly4s_magic(infile, specnum=0, locname="unknown", inst='SIO-KLY4S',
+                samp_con="1", or_con='3' ,user='', measfile='magic_measurements.txt',
+                aniso_outfile='rmag_anisotropy.txt', samp_infile='', spec_infile='',
+                spec_outfile='er_specimens.txt', azdip_infile='', output_dir_path='.',
+                input_dir_path='.'):
     """
     def kly4s_magic(infile, specnum=0, locname="unknown", inst='SIO-KLY4S', samp_con="1", or_con='3' ,user='', measfile='magic_measurements.txt', aniso_outfile='rmag_anisotropy.txt', samp_infile='', spec_infile='', azdip_infile='', output_dir_path='.', input_dir_path='.'):
 
