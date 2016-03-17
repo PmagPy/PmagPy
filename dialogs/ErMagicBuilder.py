@@ -6,7 +6,6 @@
 # LOG HEADER:
 #============================================================================================
 
-import matplotlib
 import os
 import sys
 import wx
@@ -16,7 +15,6 @@ import wx.html
 import pmag_widgets as pw
 import pmagpy.check_updates as check_updates
 import pmagpy.builder as builder
-matplotlib.use('WXAgg')
 
 #from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigCanvas \
 

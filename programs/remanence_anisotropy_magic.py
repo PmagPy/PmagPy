@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 
 #import matplotlib
-#matplotlib.use('WXAgg')
-
 
 import sys
 import pylab
