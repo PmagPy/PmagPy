@@ -32,7 +32,7 @@ def main(command_line=True, **kwargs):
             [3] XXXX.YY: YY sample from site XXXX (XXX, YY of arbitary length)
             [4-Z] XXXX[YYY]:  YYY is sample designation with Z characters from site XXX
             [5] site name same as sample
-            [6] site is entered under a separate column
+            [6] site is entered under a separate column NOT CURRENTLY SUPPORTED
             [7-Z] [XXXX]YYY:  XXXX is site designation with Z characters with sample name XXXXYYYY
             NB: all others you will have to customize your self
                  or e-mail ltauxe@ucsd.edu for help.
@@ -224,8 +224,10 @@ def main(command_line=True, **kwargs):
         else:
             er_sample_name=er_specimen_name
 
-        if int(samp_con)<6:
+        if int(samp_con) in [1, 2, 3, 4, 5, 7]:
             er_site_name=pmag.parse_site(er_sample_name,samp_con,Z)
+        else:
+            print "-W- Using unreognized sample convention option: ", samp_con
         # else:
         #     if 'er_site_name' in ErSampRec.keys():er_site_name=ErSampRec['er_site_name']
         #     if 'er_location_name' in ErSampRec.keys():er_location_name=ErSampRec['er_location_name']
