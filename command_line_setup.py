@@ -9,7 +9,7 @@ from os import path
 # Get list of programs to alias
 from programs_list import programs_list
 
-version_num = '0.9.0'
+version_num = '0.9.1'
 here = path.abspath(path.dirname(__file__))
 
 # Get the long description from the README file
@@ -94,7 +94,7 @@ setup(
     # http://docs.python.org/3.4/distutils/setupscript.html#installing-additional-files # noqa
     # In this case, 'data_file' will be installed into '<sys.prefix>/my_data'
     #data_files=[('pmag_data_files', glob.glob('data_files/*/*.*'))],
-    data_files=formatted,
+    #data_files=formatted,
 
 
             #data_files=[('bitmaps', ['bm/b1.gif', 'bm/b2.gif']),

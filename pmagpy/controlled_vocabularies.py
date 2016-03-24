@@ -12,6 +12,10 @@ import backup_vocabulary as backup
 import check_updates
 pmag_dir = check_updates.get_pmag_dir()
 data_model_dir = os.path.join(pmag_dir, 'pmagpy', 'data_model')
+# if using with py2app, the directory structure is flat,
+# so check to see where the resource actually is
+if not os.path.exists(data_model_dir):
+    data_model_dir = os.path.join(pmag_dir, 'data_model')
 
 class Vocabulary(object):
 
