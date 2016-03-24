@@ -3,6 +3,7 @@
 from setuptools import setup, find_packages
 # To use a consistent encoding
 from codecs import open
+import os
 from os import path
 
 
@@ -17,8 +18,53 @@ packages.append('pmag_env')
 print 'packages', packages
 
 
-version_num = '0.5.22'
+version_num = '0.6.1'
 here = path.abspath(path.dirname(__file__))
+
+def do_walk(data_path):
+    """
+    Walk through data_files and list all in dict format
+    """
+    data_files = {}
+    def cond(File, prefix):
+        """
+        Return True for useful files
+        Return False for non-useful files
+        """
+        file_path = path.join(prefix, 'data_files', File)
+        return (not File.startswith('!') and
+                not File.endswith('~') and
+                not File.endswith('#') and
+                not File.endswith('.pyc') and
+                not File.startswith('.') and
+                path.exists(path.join(prefix, File)))
+
+    for (dir_path, dirs, files) in os.walk(data_path):
+        data_files[dir_path] = [f for f in files if cond(f, dir_path)]
+        if not dirs:
+            continue
+        else:
+            for Dir in dirs:
+                do_walk(os.path.join(dir_path, Dir))
+    return data_files
+
+def parse_dict(dictionary):
+    formatted = []
+    formatted_dict = {}
+    for key in dictionary.keys():
+        files = dictionary.pop(key)
+        formatted_files = [path.join(key, f) for f in files]
+        ind = key.index('/data_files') + len('/data_files/')
+        new_key = key[ind:]
+        new_key = os.path.join('pmagpy_data_files', new_key)
+        formatted.append((new_key, formatted_files))
+        formatted_dict[new_key] = formatted_files
+    return formatted, formatted_dict
+
+# get formatted list of data_files for setup()
+data_files = do_walk(path.join(here, 'data_files'))
+formatted, formatted_dict = parse_dict(data_files)
+
 
 # Get the long description from the README file
 with open(path.join(here, 'README.md'), encoding='utf-8') as f:
@@ -106,7 +152,7 @@ setup(
     # need to place data files outside of your packages. See:
     # http://docs.python.org/3.4/distutils/setupscript.html#installing-additional-files # noqa
     # In this case, 'data_file' will be installed into '<sys.prefix>/my_data'
-    #data_files=[('my_data', ['data/data_file'])],
+    data_files=formatted,
 
     # To provide executable scripts, use entry points in preference to the
     # "scripts" keyword. Entry points provide cross-platform support and allow

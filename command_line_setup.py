@@ -9,58 +9,12 @@ from os import path
 # Get list of programs to alias
 from programs_list import programs_list
 
-version_num = '0.8.10'
+version_num = '0.9.0'
 here = path.abspath(path.dirname(__file__))
 
 # Get the long description from the README file
 with open(path.join(here, 'README.md'), encoding='utf-8') as f:
         long_description = f.read()
-
-
-def do_walk(data_path):
-    """
-    Walk through data_files and list all in dict format
-    """
-    data_files = {}
-    def cond(File, prefix):
-        """
-        Return True for useful files
-        Return False for non-useful files
-        """
-        file_path = path.join(prefix, 'data_files', File)
-        return (not File.startswith('!') and
-                not File.endswith('~') and
-                not File.endswith('#') and
-                not File.endswith('.pyc') and
-                not File.startswith('.') and
-                path.exists(path.join(prefix, File)))
-
-    for (dir_path, dirs, files) in os.walk(data_path):
-        data_files[dir_path] = [f for f in files if cond(f, dir_path)]
-        if not dirs:
-            continue
-        else:
-            for Dir in dirs:
-                do_walk(os.path.join(dir_path, Dir))
-    return data_files
-
-def parse_dict(dictionary):
-    formatted = []
-    formatted_dict = {}
-    for key in dictionary.keys():
-        files = dictionary.pop(key)
-        formatted_files = [path.join(key, f) for f in files]
-        ind = key.index('/data_files') + len('/data_files/')
-        new_key = key[ind:]
-        new_key = os.path.join('pmagpy_data_files', new_key)
-        formatted.append((new_key, formatted_files))
-        formatted_dict[new_key] = formatted_files
-    return formatted, formatted_dict
-
-# get formatted list of data_files for setup()
-data_files = do_walk(path.join(here, 'data_files'))
-formatted, formatted_dict = parse_dict(data_files)
-
 
 setup(
     name='pmagpy-cli',
