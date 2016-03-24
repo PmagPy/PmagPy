@@ -7,7 +7,7 @@ from os import path
 
 
 packages = find_packages(exclude=['programs', 'pmagpy_tests',
-                                  'dialogs',
+                                  #'dialogs',
                                   'pmagpy_tests.examples', 'pmag_env',
                                   'pmagpy_tests.examples.my_project',
                                   'pmagpy_tests.examples.empty_dir',
@@ -17,7 +17,7 @@ packages.append('pmag_env')
 print 'packages', packages
 
 
-version_num = '0.5.3'
+version_num = '0.5.22'
 here = path.abspath(path.dirname(__file__))
 
 # Get the long description from the README file
@@ -97,8 +97,9 @@ setup(
     # If there are data files included in your packages that need to be
     # installed, specify them here.  If using Python 2.6 or less, then these
     # have to be included in MANIFEST.in as well.
+    include_package_data=True,
     #package_data={
-    #            'sample': ['package_data.dat'],
+    #            'zebra': ['demag_gui.log'],
     #        },
 
     # Although 'package_data' is the preferred approach, in some case you may

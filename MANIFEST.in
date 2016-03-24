@@ -1,3 +1,4 @@
+recursive-include pmagpy/data_model *.*
 recursive-include images *.txt *.ico
 recursive-include programs/images *.txt *.ico
 recursive-include dialogs/help_files *.html

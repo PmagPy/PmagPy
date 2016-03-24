@@ -22,8 +22,13 @@ def get_pmag_dir():
     try:
         return os.environ['RESOURCEPATH']
     # this works for everything else
-    except KeyError:
+    except KeyError as ex:
         lib_dir = os.path.dirname(os.path.realpath(__file__))
+        if not os.path.exists(lib_dir):
+            lib_dir = os.get_cwd()
+        if not os.path.exists(lib_dir):
+            print '-W- Can\'t find the data model!  Make sure you have installed pmagpy using pip: "pip install pmagpy --upgrade"'
+            return
         lib_dir = lib_dir.strip(os.pathsep)
         if lib_dir.endswith('pmagpy'):
             pmag_dir = lib_dir[:-6]
