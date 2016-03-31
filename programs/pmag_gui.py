@@ -269,7 +269,7 @@ class MagMainFrame(wx.Frame):
             self.dir_path.SetValue(self.WD)
             dialog.Destroy()
             #self.ErMagic_data = ErMagicBuilder.ErMagicBuilder(self.WD)
-            self.er_magic = builder.ErMagicBuilder(self.WD)
+            self.er_magic = builder.ErMagicBuilder(self.WD, self.er_magic.data_model)
         else:
             dialog.Destroy()
 
