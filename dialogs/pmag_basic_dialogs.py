@@ -2520,7 +2520,8 @@ class OrientFrameGrid(wx.Frame):
             dcn_flag = orient_convention_dia.dcn_flag
             gmt_flags = orient_convention_dia.gmt_flags
             orient_convention_dia.Destroy()
-
+        else:
+            return
 
         or_con = orient_convention_dia.ocn
         dec_correction_con = int(orient_convention_dia.dcn)
@@ -2535,10 +2536,13 @@ class OrientFrameGrid(wx.Frame):
 
         method_code_dia=method_code_dialog(None)
         method_code_dia.Center()
-        if method_code_dia.ShowModal()== wx.ID_OK:
+        if method_code_dia.ShowModal() == wx.ID_OK:
             bedding_codes_flags=method_code_dia.bedding_codes_flags
             methodcodes_flags=method_code_dia.methodcodes_flags
             method_code_dia.Destroy()
+        else:
+            print "-I- Canceling calculation"
+            return
 
         method_codes = method_code_dia.methodcodes
         average_bedding = method_code_dia.average_bedding
@@ -2702,6 +2706,10 @@ class orient_convention(wx.Dialog):
         self.okButton = wx.Button(pnl, wx.ID_OK, "&OK")
         self.Bind(wx.EVT_BUTTON, self.OnOK, self.okButton)
         hbox2.Add(self.okButton)
+        self.cancelButton = wx.Button(pnl, wx.ID_CANCEL, "&Cancel")
+        self.Bind(wx.EVT_BUTTON, self.OnCancel, self.cancelButton)
+        hbox2.Add(self.cancelButton)
+
 
         #-----------------------
         # design the frame
@@ -2735,6 +2743,9 @@ class orient_convention(wx.Dialog):
         self.dc_rb1.SetValue(True)
         self.op_rb1.SetValue(True)
 
+    def OnCancel(self, e):
+        self.EndModal(wx.ID_CANCEL)
+        
     def OnOK(self, e):
         self.ocn = ""
         if self.oc_rb1.GetValue() == True:
@@ -2840,6 +2851,9 @@ class method_code_dialog(wx.Dialog):
         self.okButton = wx.Button(pnl, wx.ID_OK, "&OK")
         self.Bind(wx.EVT_BUTTON, self.OnOK, self.okButton)
         hbox2.Add(self.okButton)
+        self.cancelButton = wx.Button(pnl, wx.ID_CANCEL, "&Cancel")
+        self.Bind(wx.EVT_BUTTON, self.OnCancel, self.cancelButton)
+        hbox2.Add(self.cancelButton)
 
         #-----------------------
         # design the frame
@@ -2859,6 +2873,9 @@ class method_code_dialog(wx.Dialog):
         pnl.SetSizer(hbox1)
         hbox1.Fit(self)
 
+    def OnCancel(self, e):
+        self.EndModal(wx.ID_CANCEL)
+        
     def OnOK(self, e):
         methodcodes=[]
         if self.cb1.GetValue() == True:

@@ -3167,6 +3167,8 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
     # read in file to convert
     #
     OrData, location_name=pmag.magic_read(orient_file)
+    if location_name == "demag_orient":
+        location_name = ""
     #
     # step through the data sample by sample
     #
