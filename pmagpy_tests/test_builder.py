@@ -202,6 +202,29 @@ class TestSpecimen(unittest.TestCase):
     def tearDown(self):
         pass
 
+    def test_propagate_data(self):
+        spec_name = 'Z35.6a'
+        samp_name = 'Z35.6'
+        specimen = self.data1.find_by_name(spec_name, self.data1.specimens)
+        sample = self.data1.find_by_name(samp_name, self.data1.samples)
+        sample.er_data['sample_lithology'] = "Basalt"
+        specimen.er_data['specimen_lithology'] = "Not Specified"
+        self.assertNotEqual("Basalt", specimen.er_data['specimen_lithology'])
+        specimen.propagate_data()
+        self.assertEqual("Basalt", specimen.er_data['specimen_lithology'])
+
+    def test_not_propagate_data(self):
+        spec_name = 'Z35.6a'
+        samp_name = 'Z35.6'
+        specimen = self.data1.find_by_name(spec_name, self.data1.specimens)
+        sample = self.data1.find_by_name(samp_name, self.data1.samples)
+        sample.er_data['sample_lithology'] = "Basalt"
+        specimen.er_data['specimen_lithology'] = "Something else"
+        self.assertNotEqual("Basalt", specimen.er_data['specimen_lithology'])
+        specimen.propagate_data()
+        self.assertEqual("Something else", specimen.er_data['specimen_lithology'])
+
+
     def test_get_parent(self):
         spec_name = 'Z35.6a'
         samp_name = 'Z35.6'
@@ -484,6 +507,27 @@ class TestSample(unittest.TestCase):
         self.data1.get_data()
 
 
+    def test_propagate_data(self):
+        samp_name = 'Z35.6'
+        site_name = 'Z35.'
+        sample = self.data1.find_by_name(samp_name, self.data1.samples)
+        site = self.data1.find_by_name(site_name, self.data1.sites)
+        site.er_data['site_lithology'] = "Basalt"
+        sample.er_data['sample_lithology'] = "Not Specified"
+        sample.propagate_data()
+        self.assertEqual(sample.er_data['sample_lithology'], site.er_data['site_lithology'])
+
+    def test_not_propagate_data(self):
+        samp_name = 'Z35.6'
+        site_name = 'Z35.'
+        sample = self.data1.find_by_name(samp_name, self.data1.samples)
+        site = self.data1.find_by_name(site_name, self.data1.sites)
+        site.er_data['site_lithology'] = "Basalt"
+        sample.er_data['sample_lithology'] = "Fake type of lithology"
+        sample.propagate_data()
+        self.assertNotEqual(sample.er_data['sample_lithology'], site.er_data['site_lithology'])
+
+        
     def test_get_parent(self):
         samp_name = 'Z35.6'
         site_name = 'Z35.'
