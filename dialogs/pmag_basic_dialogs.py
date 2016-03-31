@@ -2477,6 +2477,7 @@ class OrientFrameGrid(wx.Frame):
                 self.orient_data=new_data
             #self.create_sheet()
             self.update_sheet()
+            print "-I- If you don't see a change in the spreadsheet, you may need to manually re-size the window"
 
     def on_m_save_file(self,event):
 
@@ -2557,8 +2558,13 @@ class OrientFrameGrid(wx.Frame):
 
         print "-I- executing command: %s" %commandline
         os.chdir(self.WD)
-
-        ran_successfully, error_message = ipmag.orientation_magic(or_con, dec_correction_con, dec_correction, bed_correction, hours_from_gmt=hours_from_gmt, method_codes=method_codes, average_bedding=average_bedding, orient_file='demag_orient.txt', samp_file='er_samples_orient.txt', site_file='er_sites_orient.txt', input_dir_path=self.WD, output_dir_path=self.WD)
+        if os.path.exists(os.path.join(self.WD, 'er_samples.txt')) or os.path.exists(os.path.join(self.WD, 'er_sites.txt')):
+            append = True
+        else:
+            append = False
+        samp_file = "er_samples.txt"
+        site_file = "er_sites.txt"
+        ran_successfully, error_message = ipmag.orientation_magic(or_con, dec_correction_con, dec_correction, bed_correction, hours_from_gmt=hours_from_gmt, method_codes=method_codes, average_bedding=average_bedding, orient_file='demag_orient.txt', samp_file=samp_file, site_file=site_file, input_dir_path=self.WD, output_dir_path=self.WD, append=append)
 
         if not ran_successfully:
             dlg1 = wx.MessageDialog(None,caption="Message:", message="-E- ERROR: Error in running orientation_magic.py\n{}".format(error_message) ,style=wx.OK|wx.ICON_INFORMATION)
@@ -2567,108 +2573,14 @@ class OrientFrameGrid(wx.Frame):
 
             print "-E- ERROR: Error in running orientation_magic.py"
             return
-
-        # check if orientation_magic.py finished sucsessfuly
-        data_saved = False
-        if os.path.isfile(os.path.join(self.WD, "er_samples_orient.txt")):
-            data_saved = True
-            #fin=open(self.WD+"/orientation_magic.log",'r')
-            #for line in fin.readlines():
-            #    if "Data saved in" in line:
-            #        data_saved=True
-            #        break
-
-        if not data_saved:
+        else:
+            dlg2 = wx.MessageDialog(None,caption="Message:", message="-I- Successfully ran orientation_magic", style=wx.OK|wx.ICON_INFORMATION)
+            dlg2.ShowModal()
+            dlg2.Destroy()
+            self.Parent.Show()
+            self.Parent.Raise()
+            self.Destroy()
             return
-
-        # check if er_samples.txt exists.
-        # If yes add/change the following columns:
-        # 1) sample_azimuth,sample_dip
-        # 2) sample_bed_dip, sample_bed_dip_direction
-        # 3) sample_date,
-        # 4) sample_declination_correction
-        # 5) add magic_method_codes
-
-        er_samples_data={}
-        er_samples_orient_data={}
-        if os.path.isfile(os.path.join(self.WD, "er_samples.txt")):
-            er_samples_file=os.path.join(self.WD, "er_samples.txt")
-            er_samples_data=self.er_magic_data.read_magic_file(er_samples_file, "er_sample_name")[0]
-
-        if os.path.isfile(os.path.join(self.WD, "er_samples_orient.txt")):
-            er_samples_orient_file=os.path.join(self.WD, "er_samples_orient.txt")
-            er_samples_orient_data=self.er_magic_data.read_magic_file(er_samples_orient_file, "er_sample_name")[0]
-        new_samples_added=[]
-        for sample in er_samples_orient_data.keys():
-            if sample not in er_samples_data.keys():
-                new_samples_added.append(sample)
-                er_samples_data[sample]={}
-                er_samples_data[sample]['er_sample_name']=sample
-              #er_samples_data[sample]['er_citation_names']=
-                #continue
-                #er_samples_data[sample]={}
-                #er_samples_data[sample]["er_sample_name"]=sample
-            for key in ["sample_orientation_flag","sample_azimuth","sample_dip","sample_bed_dip","sample_bed_dip_direction","sample_date","sample_declination_correction", "sample_lat", "sample_lon"]:
-                if key in er_samples_orient_data[sample].keys():
-                    er_samples_data[sample][key]=er_samples_orient_data[sample][key]
-            if "magic_method_codes" in er_samples_orient_data[sample].keys():
-                if "magic_method_codes" in er_samples_data[sample].keys():
-                    codes=er_samples_data[sample]["magic_method_codes"].strip("\n").replace(" ","").replace("::",":").split(":")
-                else:
-                    codes=[]
-                new_codes=er_samples_orient_data[sample]["magic_method_codes"].strip("\n").replace(" ","").replace("::",":").split(":")
-                all_codes=codes+new_codes
-                all_codes=list(set(all_codes)) # remove duplicates
-                er_samples_data[sample]["magic_method_codes"]=":".join(all_codes)
-        samples=er_samples_data.keys()
-        samples.sort()
-        er_recs=[]
-        for sample in samples:
-            er_recs.append(er_samples_data[sample])
-        er_recs=pmag.merge_recs_headers(er_recs)
-        pmag.magic_write(os.path.join(self.WD, "er_samples.txt"),er_recs,"er_samples")
-
-        #------------
-        # now er_sites.txt
-        er_sites_data={}
-        if os.path.isfile(os.path.join(self.WD, "er_sites.txt")):
-            er_sites_file = os.path.join(self.WD, "er_sites.txt")
-            er_sites_data = self.er_magic_data.read_magic_file(er_sites_file, "er_site_name")[0]
-        er_sites_orient_data={}
-        if os.path.isfile(os.path.join(self.WD, "er_sites_orient.txt")):
-            er_sites_orient_file = os.path.join(self.WD, "er_sites_orient.txt")
-            er_sites_orient_data = self.er_magic_data.read_magic_file(er_sites_orient_file, "er_site_name")[0]
-        new_sites_added = []
-        for site in er_sites_orient_data.keys():
-            if site not in er_sites_data.keys():
-                new_sites_added.append(site)
-                er_sites_data[site] = {}
-                er_sites_data[site]['er_site_name'] = site
-            for key in ["site_definition", "site_lat", "site_lon"]:
-                if key in er_sites_orient_data[site].keys():
-                    er_sites_data[site][key] = er_sites_orient_data[site][key]
-        sites = er_sites_data.keys()
-        sites.sort()
-        er_recs = []
-        for site in sites:
-            er_recs.append(er_sites_data[site])
-        er_recs = pmag.merge_recs_headers(er_recs)
-        pmag.magic_write(os.path.join(self.WD, "er_sites.txt"), er_recs, "er_sites")
-
-            #pmag.magic_write(os.path.join(self.WD, "er_samples.txt"),er_recs,"er_samples")
-
-        dlg1 = wx.MessageDialog(None, caption="Message:", message="orientation data is saved/appended to er_samples.txt", style=wx.OK|wx.ICON_INFORMATION)
-        dlg1.ShowModal()
-        dlg1.Destroy()
-
-        if len(new_samples_added) > 0:
-            dlg1 = wx.MessageDialog(None, caption="Warning:", message="The following samples were added to er_samples.txt:\n %s "%(" , ".join(new_samples_added)), style=wx.OK|wx.ICON_INFORMATION)
-            dlg1.ShowModal()
-            dlg1.Destroy()
-
-        self.Parent.Show()
-        self.Parent.Raise()
-        self.Destroy()
 
 
     def OnCloseWindow(self,event):
