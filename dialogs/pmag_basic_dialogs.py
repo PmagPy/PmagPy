@@ -2335,6 +2335,7 @@ class OrientFrameGrid(wx.Frame):
         btn_box.Add(save_btn)
         btn_box.Add(import_btn, flag=wx.LEFT, border=5)
         btn_box.Add(calculate_btn, flag=wx.LEFT, border=5)
+
         self.vbox = wx.BoxSizer(wx.VERTICAL)
         self.vbox.Add(label, flag=wx.CENTRE)
         self.vbox.Add(btn_box, flag=wx.CENTRE)
@@ -2372,13 +2373,14 @@ class OrientFrameGrid(wx.Frame):
         
     def create_sheet(self):
         '''
-        creat an editable grid showing deamg_orient.txt
+        create an editable grid showing demag_orient.txt
         '''
         #--------------------------------
-        # orient.txt support many other headers
-        # but here I put only
+        # orient.txt supports many other headers
+        # but we will only initialize with
         # the essential headers for
-        # sample orientation
+        # sample orientation and headers present
+        # in existing demag_orient.txt file
         #--------------------------------
 
 
@@ -2443,6 +2445,7 @@ class OrientFrameGrid(wx.Frame):
 
         self.grid.AutoSize()
         self.drop_down_menu = drop_down_menus.Menus("orient", self, self.grid, '')
+        self.Bind(wx.grid.EVT_GRID_LABEL_LEFT_CLICK, self.onLeftClickLabel, self.grid)
 
 
     def update_sheet(self):
@@ -2456,6 +2459,20 @@ class OrientFrameGrid(wx.Frame):
         self.Hide()
         self.Show()
 
+    def onLeftClickLabel(self, event):
+        """
+        When user clicks on a grid label, determine if it is a row label or a col label.
+        Pass along the event to the appropriate function.
+        (It will either highlight a column for editing all values, or highlight a row for deletion).
+        """
+        #if event.Col == -1 and event.Row == -1:
+        #    pass
+        #elif event.Col < 0:
+        #    self.onSelectRow(event)
+        if event.Row < 0:
+            self.drop_down_menu.on_label_click(event)
+
+        
     def on_m_open_file(self,event):
         '''
         open orient.txt
