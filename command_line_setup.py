@@ -9,7 +9,7 @@ from os import path
 # Get list of programs to alias
 from programs_list import programs_list
 
-version_num = '0.9.1'
+version_num = '0.9.10'
 here = path.abspath(path.dirname(__file__))
 
 # Get the long description from the README file
@@ -62,7 +62,7 @@ setup(
     # You can just specify the packages manually here if your project is
     # simple. Or you can use find_packages().
     packages=find_packages(exclude=['pmagpy', 'pmagpy_tests.examples'
-                                    'SPD']), # tests
+                                    'SPD', 'pmag_env']), # tests
 
 
     # List run-time dependencies here.  These will be installed by pip when
