@@ -1523,7 +1523,6 @@ class Arai_GUI(wx.Frame):
             dlg1.Destroy()
             PATH="~/PmagPy"
             try:
-                #PATH = sys.modules['pmag'].__file__
                 PATH = check_updates.get_pmag_dir()
             except:
                 pass
@@ -5217,37 +5216,6 @@ class Arai_GUI(wx.Frame):
         fin.close()        
         return(DATA)
 
-
-    def on_menu_MagIC_model_builder(self,event):
-        #dia = MagIC_model_builder(self.WD,self.Data,self.Data_hierarchy)
-        #dia.Show()
-        #dia.Center()
-
-        import MagIC_Model_Builder
-        foundHTML=False
-        try:
-            PATH= sys.modules['MagIC_Model_Builder'].__file__
-            HTML_PATH="/".join(PATH.split("/")[:-1]+["MagICModlBuilderHelp.html"])
-            foundHTML=True
-        except:
-            pass
-        if foundHTML:
-            help_window=MagIC_Model_Builder.MyHtmlPanel(None,HTML_PATH)
-            help_window.Show()
-            
-        #dia = MagIC_Model_Builder.MagIC_model_builder(self.WD,self.Data,self.Data_hierarchy)
-        dia = MagIC_Model_Builder.MagIC_model_builder(self.WD)
-        dia.Show()
-        dia.Center()
-        #help_window.Close()
-        self.Data,self.Data_hierarchy,self.Data_info={},{},{}
-        self.Data,self.Data_hierarchy=self.get_data() # Get data from magic_measurements and rmag_anistropy if exist.
-        self.Data_info=self.get_data_info() # get all ages, locations etc. (from er_ages, er_sites, er_locations)
-        
-        #self.Data,self.Data_hierarchy,self.Data_info={},{},{}
-        #self.Data,self.Data_hierarchy=self.get_data() # Get data from magic_measurements and rmag_anistropy if exist.
-        #self.Data_info=self.get_data_info() # get all ages, locations etc. (from er_ages, er_sites, er_locations)
-       
     def on_menu_convert_to_magic(self,event):
         dia = thellier_gui_dialogs.convert_generic_files_to_MagIC(self.WD)
         dia.Show()
