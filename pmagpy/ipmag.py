@@ -1,6 +1,5 @@
 import pmag
 import pmagplotlib
-#import descriptive_text
 import copy
 import numpy as np
 import random
