@@ -18,7 +18,7 @@ packages.append('pmag_env')
 print 'packages', packages
 
 
-version_num = '0.6.7'
+version_num = '0.7.4'
 here = path.abspath(path.dirname(__file__))
 
 def do_walk(data_path):

@@ -3,7 +3,7 @@ import sys
 import scipy
 import copy
 import os
-import pmagpy.pmag as pmag
+from pmagpy import pmag
 
 def main(command_line=True, **kwargs):
     """

@@ -26,7 +26,7 @@ def get_pmag_dir():
     except KeyError:
         # new way:
         lib_file = resource_filename('pmagpy', 'pmag.py')
-        lib_dir = os.path.split(lib_file)[1]
+        lib_dir = os.path.split(lib_file)[0]
         # old way:
         #lib_dir = os.path.dirname(os.path.realpath(__file__))
         if not os.path.exists(lib_dir):

@@ -9,8 +9,13 @@ from os import path
 # Get list of programs to alias
 from programs_list import programs_list
 
-version_num = '0.9.10'
+version_num = '0.10.1'
 here = path.abspath(path.dirname(__file__))
+
+packages=find_packages(exclude=['pmagpy', 'pmagpy_tests.examples'
+                                'SPD', 'pmag_env'])
+print 'packages', packages
+
 
 # Get the long description from the README file
 with open(path.join(here, 'README.md'), encoding='utf-8') as f:
