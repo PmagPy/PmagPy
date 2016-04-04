@@ -5894,17 +5894,22 @@ def parse_site(sample,convention,Z):
     if convention=="5": # sample == site
         return sample
 
+    if convention=="6": # should be names in orient.txt
+        print "-W- Finding names in orient.txt is not currently supported"
+
     if convention=="7": # peel off Z characters for site
        k=int(Z)
        return sample[0:k]
 
     if convention=="8": # peel off Z characters for site
        return ""
+
     if convention=="9": # peel off Z characters for site
        return sample
 
     print "Error in site parsing routine"
     sys.exit()
+
 def get_samp_con():
     """
      get sample naming  convention

@@ -162,7 +162,8 @@ class MagICMenu(wx.MenuBar):
         dia = pmag_menu_dialogs.ClearWD(self.parent, self.parent.WD)
         clear = dia.do_clear()
         if clear:
-            self.parent.er_magic = builder.ErMagicBuilder(self.parent.WD)
+            # clear directory, but use previously acquired data_model
+            self.parent.er_magic = builder.ErMagicBuilder(self.parent.WD, self.parent.er_magic.data_model)
 
     def on_import1(self, event):
         """

@@ -37,7 +37,7 @@ def main():
             [3] XXXX.YY: YY sample from site XXXX (XXX, YY of arbitary length)
             [4-Z] XXXX[YYY]:  YYY is sample designation with Z characters from site XXX
             [5] site name same as sample
-            [6] site is entered under a separate column
+            [6] site is entered under a separate column -- NOT CURRENTLY SUPPORTED
             [7-Z] [XXXX]YYY:  XXXX is site designation with Z characters with sample name XXXXYYYY
             [8] specimen is a synthetic - it has no sample, site, location information
             NB: all others you will have to customize your self

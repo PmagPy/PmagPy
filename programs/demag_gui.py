@@ -75,7 +75,7 @@ from pmagpy.demag_gui_utilities import *
 from pmagpy.Fit import *
 import dialogs.demag_dialogs as demag_dialogs
 from copy import deepcopy,copy
-import programs.cit_magic as cit_magic
+import cit_magic as cit_magic
 
 
 matplotlib.rc('xtick', labelsize=10)

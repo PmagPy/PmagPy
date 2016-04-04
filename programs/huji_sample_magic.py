@@ -46,10 +46,13 @@ def main():
                 first sample from site TG001.    [default]
             [2] XXXX-YY: YY sample from site XXXX (XXX, YY of arbitary length)
             [3] XXXX.YY: YY sample from site XXXX (XXX, YY of arbitary length)
-            [4-Z] XXXXYYY:  YYY is sample designation with Z characters from site XXX
-            [5] sample = site
-            [5] all others you will have to either customize your 
-                self or e-mail ltauxe@ucsd.edu for help.  
+            [4-Z] XXXX[YYY]:  YYY is sample designation with Z characters from site XXX
+            [5] site name = sample name
+            [6] site name entered in site_name column in the orient.txt format input file  -- NOT CURRENTLY SUPPORTED
+            [7-Z] [XXX]YYY:  XXX is site designation with Z characters from samples  XXXYYY
+            NB: all others you will have to either customize your
+                self or e-mail ltauxe@ucsd.edu for help.
+
     OUTPUT
             output saved in er_samples.txt  will overwrite any existing files 
     """

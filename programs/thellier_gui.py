@@ -148,6 +148,7 @@ from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigCanvas
 import sys, pylab, scipy, os
 #import pdb
 import pmagpy.pmag as pmag
+from pmagpy import check_updates
 try:
     import thellier_gui_preferences
 except:
@@ -1522,7 +1523,8 @@ class Arai_GUI(wx.Frame):
             dlg1.Destroy()
             PATH="~/PmagPy"
             try:
-                PATH= sys.modules['pmag'].__file__
+                #PATH = sys.modules['pmag'].__file__
+                PATH = check_updates.get_pmag_dir()
             except:
                 pass
             dlg2 = wx.FileDialog(

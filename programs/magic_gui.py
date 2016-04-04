@@ -229,7 +229,8 @@ class MainFrame(wx.Frame):
         wait = wx.BusyInfo('Initializing data object in new directory, please wait...')
         wx.Yield()
         print '-I- Initializing magic data object'
-        self.er_magic = builder.ErMagicBuilder(self.WD)
+        # make new builder object, but reuse old data_model
+        self.er_magic = builder.ErMagicBuilder(self.WD, self.er_magic.data_model)
         print '-I- Read in any available data from working directory'
         self.er_magic.get_all_magic_info()
         print '-I- Initializing headers'

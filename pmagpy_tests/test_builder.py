@@ -10,20 +10,23 @@ import unittest
 import os
 import sys
 import pmagpy.builder as builder
-# import pmag
-# import ipmag
-# import matplotlib
+from pmagpy import validate_upload
+
 WD = sys.prefix
+data_dir = os.path.join(WD, 'pmagpy_data_files')
+if not os.path.exists(data_dir):
+    data_dir = os.path.join(os.getcwd(), 'data_files')
+data_model = validate_upload.get_data_model()
 
-
+    
 class TestBuilder(unittest.TestCase):
     """
     Test ErMagicBuilder data structure
     """
 
     def setUp(self):
-        dir_path = os.path.join(WD, 'pmagpy_data_files', 'copy_ErMagicBuilder')
-        self.data1 = builder.ErMagicBuilder(dir_path)
+        dir_path = os.path.join(data_dir, 'copy_ErMagicBuilder')
+        self.data1 = builder.ErMagicBuilder(dir_path, data_model)
         self.data1.get_data()
         #self.data2 = builder.ErMagicBuilder(WD)
         #self.data2.get_data()
@@ -45,7 +48,7 @@ class TestBuilder(unittest.TestCase):
     def test_get_magic_info_append(self):
         spec_name = '318-U1361A-001H-2-W-35'
         self.assertFalse(self.data1.find_by_name(spec_name, self.data1.specimens))
-        file_name = os.path.join(WD, 'pmagpy_data_files', 'ani_depthplot', 'er_specimens.txt')
+        file_name = os.path.join(data_dir, 'ani_depthplot', 'er_specimens.txt')
         self.data1.get_magic_info('specimen', 'sample', filename=file_name)
         self.assertTrue(self.data1.find_by_name(spec_name, self.data1.specimens))
 
@@ -53,7 +56,7 @@ class TestBuilder(unittest.TestCase):
         spec_name = 'sml0109b1'
         self.assertFalse(self.data1.find_by_name(spec_name,
                                                  self.data1.specimens))
-        file_name = os.path.join(WD, 'pmagpy_data_files', 'misc_files',
+        file_name = os.path.join(data_dir, 'misc_files',
                                  'er_specimens.txt')
         self.data1.get_magic_info('sample', 'site', filename=file_name,
                                   sort_by_file_type=True)
@@ -68,7 +71,7 @@ class TestBuilder(unittest.TestCase):
         spec_name = 'sv07b1'
         self.assertFalse(self.data1.find_by_name(spec_name,
                                                  self.data1.specimens))
-        file_name = os.path.join(WD, 'pmagpy_data_files', 'misc_files',
+        file_name = os.path.join(data_dir, 'misc_files',
                                  'pmag_specimens.txt')
         result = self.data1.get_magic_info('sample', 'site',
                                            filename=file_name,
@@ -81,7 +84,7 @@ class TestBuilder(unittest.TestCase):
 
 
     def test_get_magic_info_invalid_filename(self):
-        file_name = os.path.join(WD, 'pmagpy_data_files', 'misc_files',
+        file_name = os.path.join(data_dir, 'misc_files',
                                  'pmag_specimen.txt')
         result = self.data1.get_magic_info('sample', 'site',
                                            filename=file_name,
@@ -89,7 +92,7 @@ class TestBuilder(unittest.TestCase):
         self.assertFalse(result)
 
     def test_get_magic_info_invalid_file_type(self):
-        file_name = os.path.join(WD, 'pmagpy_data_files',
+        file_name = os.path.join(data_dir,
                                  'plot_cdf', 'gaussian.out')
         res = self.data1.get_magic_info('sample', 'site', filename=file_name,
                                         sort_by_file_type=True)
@@ -131,9 +134,9 @@ class TestBuilder(unittest.TestCase):
 class TestMeasurement(unittest.TestCase):
 
     def setUp(self):
-        self.dir_path = os.path.join(WD, 'pmagpy_data_files',
+        self.dir_path = os.path.join(data_dir,
                                      'copy_ErMagicBuilder')
-        self.data1 = builder.ErMagicBuilder(self.dir_path)
+        self.data1 = builder.ErMagicBuilder(self.dir_path, data_model)
         self.data1.get_data()
 
     def tearDown(self):
@@ -190,14 +193,37 @@ class TestMeasurement(unittest.TestCase):
 class TestSpecimen(unittest.TestCase):
 
     def setUp(self):
-        dir_path = os.path.join(WD, 'pmagpy_data_files', 'copy_ErMagicBuilder')
-        self.data1 = builder.ErMagicBuilder(dir_path)
+        dir_path = os.path.join(data_dir, 'copy_ErMagicBuilder')
+        self.data1 = builder.ErMagicBuilder(dir_path, data_model)
         self.data1.get_data()
         #self.data2 = builder.ErMagicBuilder(WD)
         #self.data2.get_data()
 
     def tearDown(self):
         pass
+
+    def test_propagate_data(self):
+        spec_name = 'Z35.6a'
+        samp_name = 'Z35.6'
+        specimen = self.data1.find_by_name(spec_name, self.data1.specimens)
+        sample = self.data1.find_by_name(samp_name, self.data1.samples)
+        sample.er_data['sample_lithology'] = "Basalt"
+        specimen.er_data['specimen_lithology'] = "Not Specified"
+        self.assertNotEqual("Basalt", specimen.er_data['specimen_lithology'])
+        specimen.propagate_data()
+        self.assertEqual("Basalt", specimen.er_data['specimen_lithology'])
+
+    def test_not_propagate_data(self):
+        spec_name = 'Z35.6a'
+        samp_name = 'Z35.6'
+        specimen = self.data1.find_by_name(spec_name, self.data1.specimens)
+        sample = self.data1.find_by_name(samp_name, self.data1.samples)
+        sample.er_data['sample_lithology'] = "Basalt"
+        specimen.er_data['specimen_lithology'] = "Something else"
+        self.assertNotEqual("Basalt", specimen.er_data['specimen_lithology'])
+        specimen.propagate_data()
+        self.assertEqual("Something else", specimen.er_data['specimen_lithology'])
+
 
     def test_get_parent(self):
         spec_name = 'Z35.6a'
@@ -476,11 +502,32 @@ class TestSpecimen(unittest.TestCase):
 class TestSample(unittest.TestCase):
 
     def setUp(self):
-        self.dir_path = os.path.join(WD, 'pmagpy_data_files', 'copy_ErMagicBuilder')
+        self.dir_path = os.path.join(data_dir, 'copy_ErMagicBuilder')
         self.data1 = builder.ErMagicBuilder(self.dir_path)
         self.data1.get_data()
 
 
+    def test_propagate_data(self):
+        samp_name = 'Z35.6'
+        site_name = 'Z35.'
+        sample = self.data1.find_by_name(samp_name, self.data1.samples)
+        site = self.data1.find_by_name(site_name, self.data1.sites)
+        site.er_data['site_lithology'] = "Basalt"
+        sample.er_data['sample_lithology'] = "Not Specified"
+        sample.propagate_data()
+        self.assertEqual(sample.er_data['sample_lithology'], site.er_data['site_lithology'])
+
+    def test_not_propagate_data(self):
+        samp_name = 'Z35.6'
+        site_name = 'Z35.'
+        sample = self.data1.find_by_name(samp_name, self.data1.samples)
+        site = self.data1.find_by_name(site_name, self.data1.sites)
+        site.er_data['site_lithology'] = "Basalt"
+        sample.er_data['sample_lithology'] = "Fake type of lithology"
+        sample.propagate_data()
+        self.assertNotEqual(sample.er_data['sample_lithology'], site.er_data['site_lithology'])
+
+        
     def test_get_parent(self):
         samp_name = 'Z35.6'
         site_name = 'Z35.'
@@ -763,8 +810,8 @@ class TestSample(unittest.TestCase):
 class TestSite(unittest.TestCase):
 
     def setUp(self):
-        self.dir_path = os.path.join(WD, 'pmagpy_data_files', 'copy_ErMagicBuilder')
-        self.data1 = builder.ErMagicBuilder(self.dir_path)
+        self.dir_path = os.path.join(data_dir, 'copy_ErMagicBuilder')
+        self.data1 = builder.ErMagicBuilder(self.dir_path, data_model)
         self.data1.get_data()
 
 
@@ -1048,8 +1095,8 @@ class TestSite(unittest.TestCase):
 class TestLocation(unittest.TestCase):
 
     def setUp(self):
-        dir_path = os.path.join(WD, 'pmagpy_data_files', 'copy_ErMagicBuilder')
-        self.data1 = builder.ErMagicBuilder(dir_path)
+        dir_path = os.path.join(data_dir, 'copy_ErMagicBuilder')
+        self.data1 = builder.ErMagicBuilder(dir_path, data_model)
         self.data1.get_data()
 
     def test_parent(self):
@@ -1181,8 +1228,8 @@ class TestLocation(unittest.TestCase):
 class TestAge(unittest.TestCase):
 
     def setUp(self):
-        self.dir_path = os.path.join(WD, 'pmagpy_data_files', 'copy_ErMagicBuilder')
-        self.data1 = builder.ErMagicBuilder(self.dir_path)
+        self.dir_path = os.path.join(data_dir, 'copy_ErMagicBuilder')
+        self.data1 = builder.ErMagicBuilder(self.dir_path, data_model)
         self.data1.get_data()
 
     def test_initialize_age_data_structures(self):
@@ -1285,8 +1332,8 @@ class TestAge(unittest.TestCase):
 class TestResult(unittest.TestCase):
 
     def setUp(self):
-        dir_path = os.path.join(WD, 'pmagpy_data_files', 'mk_redo')
-        self.data1 = builder.ErMagicBuilder(dir_path)
+        dir_path = os.path.join(data_dir, 'mk_redo')
+        self.data1 = builder.ErMagicBuilder(dir_path, data_model)
         #self.data1.get_data()
 
         self.data1.get_magic_info('specimen', 'sample', 'er')
@@ -1373,11 +1420,11 @@ class TestValidation(unittest.TestCase):
 
 
     def setUp(self):
-        dir_path = os.path.join(WD, 'pmagpy_data_files', 'copy_ErMagicBuilder')
-        result_dir_path = os.path.join(WD, 'pmagpy_data_files', 'mk_redo')
-        self.data1 = builder.ErMagicBuilder(dir_path)
+        dir_path = os.path.join(data_dir, 'copy_ErMagicBuilder')
+        result_dir_path = os.path.join(data_dir, 'mk_redo')
+        self.data1 = builder.ErMagicBuilder(dir_path, data_model)
         self.data1.get_all_magic_info()
-        self.data2 = builder.ErMagicBuilder(result_dir_path)
+        self.data2 = builder.ErMagicBuilder(result_dir_path, data_model)
 
     def test_result_validation(self):
         self.data2.get_all_magic_info()
@@ -1502,8 +1549,8 @@ class TestValidation(unittest.TestCase):
 class TestOddImport(unittest.TestCase):
 
     def setUp(self):
-        result_dir_path = os.path.join(WD, 'pmagpy_data_files', 'mk_redo')
-        self.data2 = builder.ErMagicBuilder(result_dir_path)
+        result_dir_path = os.path.join(data_dir, 'mk_redo')
+        self.data2 = builder.ErMagicBuilder(result_dir_path, data_model)
         self.data2.get_all_magic_info()
 
     def test_samp_import(self):
@@ -1555,7 +1602,7 @@ class TestPmagObject(unittest.TestCase):
     """
 
     def setUp(self):
-        self.data3 = builder.ErMagicBuilder(WD)
+        self.data3 = builder.ErMagicBuilder(WD, data_model)
 
 
     def test_adjust_to_360(self):
