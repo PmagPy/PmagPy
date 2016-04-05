@@ -53,6 +53,8 @@ class TestProgramsHelp(unittest.TestCase):
                 continue
             if prog.lower() != prog:
                 continue
+            if sys.platform in ['win32', 'win62']:
+                prog = prog[:-3]
             res = env.run(prog, '-h')
             #except AssertionError as ex:
             #    not_checked.append(prog)
@@ -64,4 +66,6 @@ class TestProgramsHelp(unittest.TestCase):
         tests = ['pmag_gui.py', 'magic_gui.py', 'demag_gui.py',
                  'thellier_gui.py']
         for prog in tests:
+            if sys.platform in ['win32', 'win62']:
+                prog = prog[:-3]
             res = env.run(prog, '-h')
