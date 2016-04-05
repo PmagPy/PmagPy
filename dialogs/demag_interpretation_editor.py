@@ -1,14 +1,16 @@
-global CURRENT_VERSION, PMAGPY_DIRECTORY
-CURRENT_VERSION = "v.0.33"
+import wx, os, sys
 import pmagpy.check_updates as check_updates
-PMAGPY_DIRECTORY = check_updates.get_pmag_dir()
-import wx,os,sys
 from copy import copy
 from numpy import vstack,sqrt
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigCanvas
 from matplotlib.backends.backend_wxagg import NavigationToolbar2WxAgg as NavigationToolbar
 from pmagpy.demag_gui_utilities import *
 from pmagpy.Fit import *
+
+global CURRENT_VERSION, PMAGPY_DIRECTORY
+CURRENT_VERSION = "v.0.33"
+PMAGPY_DIRECTORY = check_updates.get_pmag_dir()
+IMG_DIRECTORY = os.path.join(PMAGPY_DIRECTORY, 'dialogs', 'images')
 
 
 class InterpretationEditorFrame(wx.Frame):
@@ -27,8 +29,10 @@ class InterpretationEditorFrame(wx.Frame):
         self.panel = wx.Panel(self,-1,size=(700*self.GUI_RESOLUTION,450*self.GUI_RESOLUTION))
         #set icon
         icon = wx.EmptyIcon()
-        icon.CopyFromBitmap(wx.Bitmap(os.path.join(PMAGPY_DIRECTORY, "images/PmagPy.ico"), wx.BITMAP_TYPE_ANY))
-        self.SetIcon(icon)
+        icon_path = os.path.join(IMG_DIRECTORY, 'PmagPy.ico')
+        if os.path.exists(icon_path):
+            icon.CopyFromBitmap(wx.Bitmap(icon_path), wx.BITMAP_TYPE_ANY)
+            self.SetIcon(icon)
         self.specimens_list=self.parent.specimens
         self.current_fit_index = None
         self.search_query = ""
