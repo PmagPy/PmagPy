@@ -16,9 +16,12 @@ else:
 print "You are running:"
 try:
     print pkg_resources.get_distribution('pmagpy')
+except 
+    pass
+try:
+    print pkg_resources.get_distribution('pmagpy-cli')
 except pkg_resources.DistributionNotFound:
     pass
-print pkg_resources.get_distribution('pmagpy-cli')
 
 
 import generic_magic
