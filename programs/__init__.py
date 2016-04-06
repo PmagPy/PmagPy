@@ -16,7 +16,7 @@ else:
 print "You are running:"
 try:
     print pkg_resources.get_distribution('pmagpy')
-except 
+except pkg_resources.DistributionNotFound:
     pass
 try:
     print pkg_resources.get_distribution('pmagpy-cli')
