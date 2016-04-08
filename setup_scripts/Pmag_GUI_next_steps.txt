@@ -1,0 +1,1 @@
+A tutorial and more complete documentation are available at: http://earthref.org/PmagPy/cookbook/#pmag_gui.py
