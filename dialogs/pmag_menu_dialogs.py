@@ -338,9 +338,8 @@ class ImportKly4s(wx.Frame):
         self.bSizer0 = pw.choose_file(pnl, btn_text="Add kly4s format file", method = self.on_add_file_button)
 
         #---sizer 1 ---
-        self.bSizer1 = pw.choose_file(pnl, btn_text='add AZDIP file (optional)', method = self.on_add_AZDIP_file_button)
-        self.bSizer1a = pw.select_specimen_ocn(pnl)
-        self.bSizer1a.select_orientation_convention.SetSelection(2)
+        # changed to er_samples only, not azdip
+        self.bSizer1 = pw.choose_file(pnl, btn_text='add er_samples file (optional)', method = self.on_add_AZDIP_file_button)
         
         #---sizer 2 ----
         self.bSizer2 = pw.labeled_text_field(pnl)
@@ -370,7 +369,6 @@ class ImportKly4s(wx.Frame):
         vbox.Add(bSizer_info, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer0, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer1, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
-        vbox.Add(self.bSizer1a, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer2, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer3, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer4, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
@@ -393,7 +391,7 @@ class ImportKly4s(wx.Frame):
         pw.on_add_file_button(self.bSizer0, text)
 
     def on_add_AZDIP_file_button(self,event):
-        text = "choose AZDIP file (optional)"
+        text = "choose er_samples file (optional)"
         pw.on_add_file_button(self.bSizer1, text)
 
     def on_okButton(self, event):
@@ -404,12 +402,10 @@ class ImportKly4s(wx.Frame):
         outfile = infile + ".magic"
         spec_outfile = infile[:infile.find('.')] + "_er_specimens.txt"
         ani_outfile = infile[:infile.find('.')] + "_rmag_anisotropy.txt"
-        full_azdip_file = self.bSizer1.return_value()
-        azdip_file = os.path.split(full_azdip_file)[1]
-        if azdip_file:
-            azdip_file = "-fad " + azdip_file
-        orient_con = self.bSizer1a.return_value()
-        ocn = "-ocn " + str(self.bSizer1a.return_value())
+        full_samp_file = self.bSizer1.return_value()
+        samp_file = os.path.split(full_samp_file)[1]
+        if samp_file:
+            samp_file = "-fsa " + samp_file
         user = self.bSizer2.return_value()
         if user:
             user = "-usr " + user
@@ -428,8 +424,14 @@ class ImportKly4s(wx.Frame):
             ins = "-ins " + ins
         else:
             instrument='SIO-KLY4S'
-        COMMAND = "kly4s_magic.py -WD {} -f {} -F {} {} -ncn {} {} {} {} {} {} -ID {} -fsp {}".format(self.WD, infile, outfile, azdip_file, ncn, ocn, user, n, loc, ins, ID, spec_outfile)
-        program_ran, error_message = ipmag.kly4s_magic(infile, specnum=specnum, locname=location, inst=instrument, samp_con=ncn, or_con=orient_con, user=user, measfile=outfile, aniso_outfile=ani_outfile, samp_infile='', spec_infile='', spec_outfile=spec_outfile, output_dir_path=self.WD, input_dir_path=ID)
+        COMMAND = "kly4s_magic.py -WD {} -f {} -F {} {} -ncn {} {} {} {} {} -ID {} -fsp {}".format(self.WD, infile, outfile, samp_file, ncn, user, n, loc, ins, ID, spec_outfile)
+        program_ran, error_message = ipmag.kly4s_magic(infile, specnum=specnum,
+                                                       locname=location, inst=instrument,
+                                                       samp_con=ncn, user=user, measfile=outfile,
+                                                       aniso_outfile=ani_outfile,
+                                                       samp_infile=samp_file, spec_infile='',
+                                                       spec_outfile=spec_outfile,
+                                                       output_dir_path=self.WD, input_dir_path=ID)
         if program_ran:
             pw.close_window(self, COMMAND, outfile)
         else:

@@ -2,6 +2,7 @@
 
 import sys
 from os import path
+import pkg_resources
 command = path.split(sys.argv[0])[-1]
 
 from program_envs import prog_env
@@ -11,6 +12,16 @@ if mpl_env:
     matplotlib.use(mpl_env)
 else:
     matplotlib.use("TKAgg")
+
+print "You are running:"
+try:
+    print pkg_resources.get_distribution('pmagpy')
+except pkg_resources.DistributionNotFound:
+    pass
+try:
+    print pkg_resources.get_distribution('pmagpy-cli')
+except pkg_resources.DistributionNotFound:
+    pass
 
 
 import generic_magic

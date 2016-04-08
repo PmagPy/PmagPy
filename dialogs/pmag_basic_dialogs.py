@@ -2278,16 +2278,29 @@ class OrientFrameGrid(wx.Frame):
         # and save it to self.orient_data={}
         #--------------------
 
+        # self.headers is a list of two-item tuples.
+        #the first is the proper column name as understood by orientation_magic.py
+        # the second is the name for display in the GUI
+        self.header_display_names = ["sample_name", "sample_orientation_flag", "mag_azimuth",
+                                     "field_dip", "bedding_dip_direction", "bedding_dip",
+                                     "shadow_angle", "latitude", "longitude", "mm/dd/yy",
+                                     "hh:mm", "GPS_baseline", "GPS_Az", "magic_method_codes"]
+        self.header_names = ["sample_name", "sample_orientation_flag", "mag_azimuth",
+                             "field_dip", "bedding_dip_direction", "bedding_dip",
+                             "shadow_angle", "lat", "long", "date",
+                             "hhmm", "GPS_baseline", "GPS_Az", "magic_method_codes"]
+        self.headers = zip(self.header_names, self.header_display_names)
+        
         empty = True
         self.er_magic_data.get_data()
-
-        self.samples_name_list = self.er_magic_data.make_name_list(self.er_magic_data.samples)
+        samples_name_list = self.er_magic_data.make_name_list(self.er_magic_data.samples)
         self.orient_data = {}
         try:
             self.orient_data = self.er_magic_data.read_magic_file(os.path.join(self.WD, "demag_orient.txt"), "sample_name")[0]
         except Exception as ex:
-            pass
-        for sample_name in self.samples_name_list:
+            print "-W-", ex
+            #pass
+        for sample_name in samples_name_list:
             if sample_name not in self.orient_data.keys():
                 sample = self.er_magic_data.find_by_name(sample_name, self.er_magic_data.samples)
                 self.orient_data[sample_name]={}
@@ -2322,6 +2335,7 @@ class OrientFrameGrid(wx.Frame):
         btn_box.Add(save_btn)
         btn_box.Add(import_btn, flag=wx.LEFT, border=5)
         btn_box.Add(calculate_btn, flag=wx.LEFT, border=5)
+
         self.vbox = wx.BoxSizer(wx.VERTICAL)
         self.vbox.Add(label, flag=wx.CENTRE)
         self.vbox.Add(btn_box, flag=wx.CENTRE)
@@ -2339,37 +2353,36 @@ class OrientFrameGrid(wx.Frame):
         self.Centre()
         self.Show()
 
+
+    def add_extra_headers(self, sample_names):
+        """
+        If there are samples, add any additional keys they might use
+        to supplement the default headers.
+        Return the headers headers for adding, with the format:
+        [(header_name, header_display_name), ....]
+        """
+        if not sample_names:
+            return []
+        full_headers = self.orient_data[sample_names[0]].keys()
+        add_ons = []
+        for head in full_headers:
+            if head not in self.header_names:
+                add_ons.append((head, head))
+        return add_ons
+
+        
     def create_sheet(self):
         '''
-        creat an editable grid showing deamg_orient.txt
+        create an editable grid showing demag_orient.txt
         '''
         #--------------------------------
-        # orient.txt support many other headers
-        # but here I put only
+        # orient.txt supports many other headers
+        # but we will only initialize with
         # the essential headers for
-        # sample orientation
+        # sample orientation and headers present
+        # in existing demag_orient.txt file
         #--------------------------------
 
-        # self.headers is a list of two-item tuples.
-        #the first is the proper column name as understood by orientation_magic.py
-        # the second is the name for display in the GUI
-        self.headers=[("sample_name","sample_name"),
-                ("sample_orientation_flag","sample_orientation_flag"),
-                 #"site_name",
-                ("mag_azimuth","mag_azimuth"),
-                ("field_dip","field_dip"),
-                ("bedding_dip_direction", "bedding_dip_direction"),
-                ("bedding_dip", "bedding_dip"),
-                ("shadow_angle", "shadow_angle"),
-                ("lat", "latitude"),
-                ("long", "longitude"),
-                ("date", "mm/dd/yy"),
-                ("hhmm", "hh:mm"),
-                ("GPS_baseline","GPS_baseline"),
-                ("GPS_Az", "GPS_Az"),
-                 #"participants",
-                ("magic_method_codes", "magic_method_codes")
-                 ]
 
         #--------------------------------
         # create the grid
@@ -2378,8 +2391,10 @@ class OrientFrameGrid(wx.Frame):
         samples_list = self.orient_data.keys()
         samples_list.sort()
         self.samples_list = [ sample for sample in samples_list if sample is not "" ]
+        self.headers.extend(self.add_extra_headers(samples_list))
         display_headers = [header[1] for header in self.headers]
-        self.grid = magic_grid.MagicGrid(self.panel, 'orient grid', self.samples_list, display_headers)
+        self.grid = magic_grid.MagicGrid(self.panel, 'orient grid',
+                                         self.samples_list, display_headers)
         self.grid.InitUI()
 
         #--------------------------------
@@ -2405,9 +2420,8 @@ class OrientFrameGrid(wx.Frame):
         #--------------------------------
         # fill data from self.orient_data
         #--------------------------------
-
         headers = [header[0] for header in self.headers]
-        for sample in self.samples_name_list:
+        for sample in self.samples_list:
             for key in self.orient_data[sample].keys():
                 if key in headers:
                     sample_index = self.samples_list.index(sample)
@@ -2431,6 +2445,7 @@ class OrientFrameGrid(wx.Frame):
 
         self.grid.AutoSize()
         self.drop_down_menu = drop_down_menus.Menus("orient", self, self.grid, '')
+        self.Bind(wx.grid.EVT_GRID_LABEL_LEFT_CLICK, self.onLeftClickLabel, self.grid)
 
 
     def update_sheet(self):
@@ -2444,6 +2459,20 @@ class OrientFrameGrid(wx.Frame):
         self.Hide()
         self.Show()
 
+    def onLeftClickLabel(self, event):
+        """
+        When user clicks on a grid label, determine if it is a row label or a col label.
+        Pass along the event to the appropriate function.
+        (It will either highlight a column for editing all values, or highlight a row for deletion).
+        """
+        #if event.Col == -1 and event.Row == -1:
+        #    pass
+        #elif event.Col < 0:
+        #    self.onSelectRow(event)
+        if event.Row < 0:
+            self.drop_down_menu.on_label_click(event)
+
+        
     def on_m_open_file(self,event):
         '''
         open orient.txt
@@ -2465,6 +2494,7 @@ class OrientFrameGrid(wx.Frame):
                 self.orient_data=new_data
             #self.create_sheet()
             self.update_sheet()
+            print "-I- If you don't see a change in the spreadsheet, you may need to manually re-size the window"
 
     def on_m_save_file(self,event):
 
@@ -2507,7 +2537,8 @@ class OrientFrameGrid(wx.Frame):
             dcn_flag = orient_convention_dia.dcn_flag
             gmt_flags = orient_convention_dia.gmt_flags
             orient_convention_dia.Destroy()
-
+        else:
+            return
 
         or_con = orient_convention_dia.ocn
         dec_correction_con = int(orient_convention_dia.dcn)
@@ -2522,10 +2553,13 @@ class OrientFrameGrid(wx.Frame):
 
         method_code_dia=method_code_dialog(None)
         method_code_dia.Center()
-        if method_code_dia.ShowModal()== wx.ID_OK:
+        if method_code_dia.ShowModal() == wx.ID_OK:
             bedding_codes_flags=method_code_dia.bedding_codes_flags
             methodcodes_flags=method_code_dia.methodcodes_flags
             method_code_dia.Destroy()
+        else:
+            print "-I- Canceling calculation"
+            return
 
         method_codes = method_code_dia.methodcodes
         average_bedding = method_code_dia.average_bedding
@@ -2545,8 +2579,13 @@ class OrientFrameGrid(wx.Frame):
 
         print "-I- executing command: %s" %commandline
         os.chdir(self.WD)
-
-        ran_successfully, error_message = ipmag.orientation_magic(or_con, dec_correction_con, dec_correction, bed_correction, hours_from_gmt=hours_from_gmt, method_codes=method_codes, average_bedding=average_bedding, orient_file='demag_orient.txt', samp_file='er_samples_orient.txt', site_file='er_sites_orient.txt', input_dir_path=self.WD, output_dir_path=self.WD)
+        if os.path.exists(os.path.join(self.WD, 'er_samples.txt')) or os.path.exists(os.path.join(self.WD, 'er_sites.txt')):
+            append = True
+        else:
+            append = False
+        samp_file = "er_samples.txt"
+        site_file = "er_sites.txt"
+        ran_successfully, error_message = ipmag.orientation_magic(or_con, dec_correction_con, dec_correction, bed_correction, hours_from_gmt=hours_from_gmt, method_codes=method_codes, average_bedding=average_bedding, orient_file='demag_orient.txt', samp_file=samp_file, site_file=site_file, input_dir_path=self.WD, output_dir_path=self.WD, append=append)
 
         if not ran_successfully:
             dlg1 = wx.MessageDialog(None,caption="Message:", message="-E- ERROR: Error in running orientation_magic.py\n{}".format(error_message) ,style=wx.OK|wx.ICON_INFORMATION)
@@ -2555,108 +2594,14 @@ class OrientFrameGrid(wx.Frame):
 
             print "-E- ERROR: Error in running orientation_magic.py"
             return
-
-        # check if orientation_magic.py finished sucsessfuly
-        data_saved = False
-        if os.path.isfile(os.path.join(self.WD, "er_samples_orient.txt")):
-            data_saved = True
-            #fin=open(self.WD+"/orientation_magic.log",'r')
-            #for line in fin.readlines():
-            #    if "Data saved in" in line:
-            #        data_saved=True
-            #        break
-
-        if not data_saved:
+        else:
+            dlg2 = wx.MessageDialog(None,caption="Message:", message="-I- Successfully ran orientation_magic", style=wx.OK|wx.ICON_INFORMATION)
+            dlg2.ShowModal()
+            dlg2.Destroy()
+            self.Parent.Show()
+            self.Parent.Raise()
+            self.Destroy()
             return
-
-        # check if er_samples.txt exists.
-        # If yes add/change the following columns:
-        # 1) sample_azimuth,sample_dip
-        # 2) sample_bed_dip, sample_bed_dip_direction
-        # 3) sample_date,
-        # 4) sample_declination_correction
-        # 5) add magic_method_codes
-
-        er_samples_data={}
-        er_samples_orient_data={}
-        if os.path.isfile(os.path.join(self.WD, "er_samples.txt")):
-            er_samples_file=os.path.join(self.WD, "er_samples.txt")
-            er_samples_data=self.er_magic_data.read_magic_file(er_samples_file, "er_sample_name")[0]
-
-        if os.path.isfile(os.path.join(self.WD, "er_samples_orient.txt")):
-            er_samples_orient_file=os.path.join(self.WD, "er_samples_orient.txt")
-            er_samples_orient_data=self.er_magic_data.read_magic_file(er_samples_orient_file, "er_sample_name")[0]
-        new_samples_added=[]
-        for sample in er_samples_orient_data.keys():
-            if sample not in er_samples_data.keys():
-                new_samples_added.append(sample)
-                er_samples_data[sample]={}
-                er_samples_data[sample]['er_sample_name']=sample
-              #er_samples_data[sample]['er_citation_names']=
-                #continue
-                #er_samples_data[sample]={}
-                #er_samples_data[sample]["er_sample_name"]=sample
-            for key in ["sample_orientation_flag","sample_azimuth","sample_dip","sample_bed_dip","sample_bed_dip_direction","sample_date","sample_declination_correction", "sample_lat", "sample_lon"]:
-                if key in er_samples_orient_data[sample].keys():
-                    er_samples_data[sample][key]=er_samples_orient_data[sample][key]
-            if "magic_method_codes" in er_samples_orient_data[sample].keys():
-                if "magic_method_codes" in er_samples_data[sample].keys():
-                    codes=er_samples_data[sample]["magic_method_codes"].strip("\n").replace(" ","").replace("::",":").split(":")
-                else:
-                    codes=[]
-                new_codes=er_samples_orient_data[sample]["magic_method_codes"].strip("\n").replace(" ","").replace("::",":").split(":")
-                all_codes=codes+new_codes
-                all_codes=list(set(all_codes)) # remove duplicates
-                er_samples_data[sample]["magic_method_codes"]=":".join(all_codes)
-        samples=er_samples_data.keys()
-        samples.sort()
-        er_recs=[]
-        for sample in samples:
-            er_recs.append(er_samples_data[sample])
-        er_recs=pmag.merge_recs_headers(er_recs)
-        pmag.magic_write(os.path.join(self.WD, "er_samples.txt"),er_recs,"er_samples")
-
-        #------------
-        # now er_sites.txt
-        er_sites_data={}
-        if os.path.isfile(os.path.join(self.WD, "er_sites.txt")):
-            er_sites_file = os.path.join(self.WD, "er_sites.txt")
-            er_sites_data = self.er_magic_data.read_magic_file(er_sites_file, "er_site_name")[0]
-        er_sites_orient_data={}
-        if os.path.isfile(os.path.join(self.WD, "er_sites_orient.txt")):
-            er_sites_orient_file = os.path.join(self.WD, "er_sites_orient.txt")
-            er_sites_orient_data = self.er_magic_data.read_magic_file(er_sites_orient_file, "er_site_name")[0]
-        new_sites_added = []
-        for site in er_sites_orient_data.keys():
-            if site not in er_sites_data.keys():
-                new_sites_added.append(site)
-                er_sites_data[site] = {}
-                er_sites_data[site]['er_site_name'] = site
-            for key in ["site_definition", "site_lat", "site_lon"]:
-                if key in er_sites_orient_data[site].keys():
-                    er_sites_data[site][key] = er_sites_orient_data[site][key]
-        sites = er_sites_data.keys()
-        sites.sort()
-        er_recs = []
-        for site in sites:
-            er_recs.append(er_sites_data[site])
-        er_recs = pmag.merge_recs_headers(er_recs)
-        pmag.magic_write(os.path.join(self.WD, "er_sites.txt"), er_recs, "er_sites")
-
-            #pmag.magic_write(os.path.join(self.WD, "er_samples.txt"),er_recs,"er_samples")
-
-        dlg1 = wx.MessageDialog(None, caption="Message:", message="orientation data is saved/appended to er_samples.txt", style=wx.OK|wx.ICON_INFORMATION)
-        dlg1.ShowModal()
-        dlg1.Destroy()
-
-        if len(new_samples_added) > 0:
-            dlg1 = wx.MessageDialog(None, caption="Warning:", message="The following samples were added to er_samples.txt:\n %s "%(" , ".join(new_samples_added)), style=wx.OK|wx.ICON_INFORMATION)
-            dlg1.ShowModal()
-            dlg1.Destroy()
-
-        self.Parent.Show()
-        self.Parent.Raise()
-        self.Destroy()
 
 
     def OnCloseWindow(self,event):
@@ -2715,7 +2660,6 @@ class orient_convention(wx.Dialog):
         sbs.Add(self.oc_rb6)
         sbs.AddSpacer(5)
 
-
         #-----------------------
         # declination correction
         #-----------------------
@@ -2746,7 +2690,7 @@ class orient_convention(wx.Dialog):
         sbs3 = wx.StaticBoxSizer( wx.StaticBox( pnl, wx.ID_ANY, 'orientation priority' ), wx.VERTICAL )
 
         sbs3.AddSpacer(5)
-        self.op_rb1 = wx.RadioButton(pnl, -1, label='1) differential GPS 2) sun compass 3) magnetic compass',
+        self.op_rb1 = wx.RadioButton(pnl, -1, label='1) sun compass 2) differential GPS 3) magnetic compass',
                                      name='1', style=wx.RB_GROUP)
         sbs3.Add(self.op_rb1)
         sbs3.AddSpacer(5)
@@ -2779,6 +2723,10 @@ class orient_convention(wx.Dialog):
         self.okButton = wx.Button(pnl, wx.ID_OK, "&OK")
         self.Bind(wx.EVT_BUTTON, self.OnOK, self.okButton)
         hbox2.Add(self.okButton)
+        self.cancelButton = wx.Button(pnl, wx.ID_CANCEL, "&Cancel")
+        self.Bind(wx.EVT_BUTTON, self.OnCancel, self.cancelButton)
+        hbox2.Add(self.cancelButton)
+
 
         #-----------------------
         # design the frame
@@ -2812,6 +2760,9 @@ class orient_convention(wx.Dialog):
         self.dc_rb1.SetValue(True)
         self.op_rb1.SetValue(True)
 
+    def OnCancel(self, e):
+        self.EndModal(wx.ID_CANCEL)
+        
     def OnOK(self, e):
         self.ocn = ""
         if self.oc_rb1.GetValue() == True:
@@ -2917,6 +2868,9 @@ class method_code_dialog(wx.Dialog):
         self.okButton = wx.Button(pnl, wx.ID_OK, "&OK")
         self.Bind(wx.EVT_BUTTON, self.OnOK, self.okButton)
         hbox2.Add(self.okButton)
+        self.cancelButton = wx.Button(pnl, wx.ID_CANCEL, "&Cancel")
+        self.Bind(wx.EVT_BUTTON, self.OnCancel, self.cancelButton)
+        hbox2.Add(self.cancelButton)
 
         #-----------------------
         # design the frame
@@ -2936,6 +2890,9 @@ class method_code_dialog(wx.Dialog):
         pnl.SetSizer(hbox1)
         hbox1.Fit(self)
 
+    def OnCancel(self, e):
+        self.EndModal(wx.ID_CANCEL)
+        
     def OnOK(self, e):
         methodcodes=[]
         if self.cb1.GetValue() == True:

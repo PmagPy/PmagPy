@@ -1,0 +1,153 @@
+<!DOCTYPE HTML>
+<HTML>
+<HEAD>
+<META NAME="description" CONTENT="ErMagicBuilder help window">
+<META NAME="keywords" CONTENT="ErMagicBuilderHelp">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META NAME="Generator" CONTENT="LaTeX2HTML v2008">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="MagIC_Model_Builder_Help.css">
+
+<LINK REL="next" HREF="node1.html">
+</HEAD>
+<u> Earth-Ref Magic Builder Help Window</u> 
+<HEAD>
+
+<BODY >
+
+<P>
+
+<P>
+The <I>ErMagicBuilder </I>is a Python tool for adding Earth-Ref data to MagIC project.<br>
+
+The top row in the dialog window shows the headers of the Earth-Ref tables. The required headers are added and cannot be removed. The bottom row in the dialog window shows a list of optional headers.<br>
+(Details on MagIC model different headers are in: <TT><A NAME="tex2html0"
+  HREF="http://earthref.org/MagIC/metadata/">"http://earthref.org/MagIC/metadata/</A></TT>)<br>
+
+ To add or remove headers from your project model: choose the header name and click the add/remove buttons.
+<BR>
+<p>
+
+
+
+After you choose the headers of the tables press the OK button and follow the following steps in order:
+<p>
+<OL>
+<LI>Open er_specimens.txt with Excel.<br>
+<UL>
+<LI> Check sample name for each specimen (under the header er_sample_name). Add or correct if necessary.<br> </LI>
+<LI> Save and close the file. If any changes has made: Re-run <I>Earth-Ref Magic Builder </I>and press OK. (the OK button propagates the information to all levels) </LI>
+</UL>
+</LI>
+<P>
+<LI>Open er_samples.txt with Excel.<br>
+<UL>
+<LI> Check site names for each sample (under the header er_site_name). Add or correct if necessary.<br> </LI>
+<LI>Save and close the file. If any changes has made: Re-run <I>Earth-Ref Magic Builder </I>and press OK. (the OK button propagates the information to all levels) </LI>
+</UL>
+</LI>
+<P>
+<LI>Open er_sites.txt with Excel.
+<UL>
+<LI>Check location name (under the header er_location_name).  
+</LI>
+<LI>Fill site class (under the header site_class).<br> 
+Use controlled vocabularies from: <TT><A NAME="tex2html1"
+  HREF="http://earthref.org/cgi-bin/er-s1-controlled-vocabularies.cgi?category=class&amp;type=E">site class controlled vocabularies</A></TT>
+</LI>
+<LI>Fill site lithology (under the header site_lithology).<br>
+Use controlled vocabularies from <TT><A NAME="tex2html2"
+  HREF="http://earthref.org/cgi-bin/er-s1-controlled-vocabularies.cgi?category=lithology&amp;type=E">site lithology controlled vocabularies</A></TT>. If you cant find any appropriate definition use: Not Specified.
+</LI>
+<LI>Fill site type (under the header site_type). <br>
+Use controlled vocabularies from  <TT><A NAME="tex2html3"
+  HREF="http://earthref.org/cgi-bin/er-s1-controlled-vocabularies.cgi?category=type&amp;type=E">site type controlled vocabularies</A></TT>. If you cant find any appropriate definition use: Not Specified.
+</LI>
+<LI>Fill site definition (under the header site_definition: the letter "s" for single site or the letter "c" for composite site (including various units).
+</LI>
+<LI>Fill site longitude (under the header site_lon):Decimal degrees between 0 and 360.
+</LI>
+<LI>Fill site latitude (under the header site_lat): Decimal degrees between -90 and 90
+</LI>
+<LI>Save and close the file. Re-run <I>Earth-Ref Magic Builder </I>and press OK. 
+</LI>
+</UL>
+
+<P>
+</LI>
+<LI>Open er_samples.txt with Excel. some of the data you entered in er_sites.txt is now propagated into er_samples.txt. Fill in manually the rest of the information:
+
+<UL>
+<LI>Check sample class (under the header sample_class). <br>
+If you need to change it because site class is different from sample class: use controlled vocabularies from <TT><A NAME="tex2html4"
+  HREF="http://earthref.org/cgi-bin/er-s1-controlled-vocabularies.cgi?category=class&amp;type=E">sample class controlled vocabularies</A></TT>. 
+</LI>
+<LI>Check sample lithology (under the header sample_lithology).<br>
+If you need to change it because site lithology is different from sample lithology: use controlled vocabularies from <TT><A NAME="tex2html5"
+  HREF="http://earthref.org/cgi-bin/er-s1-controlled-vocabularies.cgi?category=lithology&amp;type=E">sample lithology controlled vocabularies</A></TT>. If you cant find any appropriate definition use: Not Specified.
+</LI>
+<LI>Check sample type (under the header sample_type).<br>
+If you need to change it because site type is different from sample type: use controlled vocabularies from <TT><A NAME="tex2html6"
+  HREF="http://earthref.org/cgi-bin/er-s1-controlled-vocabularies.cgi?category=type&amp;type=E">sample type controlled vocabularies</A></TT>. If you cant find any appropriate definition use: Not Specified.
+</LI>
+<LI>If any changes has made: Save and close the file. Re-run <I>Earth-Ref Magic Builder </I>and press OK. 
+</LI>
+</UL>
+</LI>
+<P>
+
+
+<LI>Open er_locations.txt with Excel.
+<UL>
+<LI>Fill location type (under the header location_type). <br>
+Use controlled vocabularies from  <TT><A NAME="tex2html7"
+  HREF="http://earthref.org/cgi-bin/er-s1-controlled-vocabularies.cgi?category=location_type&type=E">location type controlled vocabularies</A></TT>. If you cant find any appropriate definition use: Not Specified.
+</LI>
+<LI>Save and close the file. Re-run <I>Earth-Ref Magic Builder </I>and press OK. 
+</LI>
+</UL>
+<P>
+
+<LI> Now we need to add ages. You can specify ages to any level (specimen, sample, site, location). But it is most recommended to assign ages to sites. 
+
+<UL>
+
+<LI>Open the <I>Earth-Ref Magic Builder </I>and see that er_site_name is already assigned as a header in er_ages.txt by default.<br>
+  Manually add your choices of headers (for example: age, age_sigma or age,  age_range_low ,age_range_high) and press OK.<br>
+  For explanation in the different headers see:
+  <TT><A NAME="tex2html7"
+  HREF="http://earthref.org/cgi-bin/magic-s1-data-model.cgi?database_name=magic&search_start=data-model&version=2.4&tbl_name=er_ages">er_ages Table</A></TT> 
+</LI>
+<LI>Open er_ages.txt with Excel.
+  Insert age information under the appropriate headers.<br>
+  For Example:
+  <UL>
+  <LI> Fill age units (under the header age_unit).<br>
+Use controlled vocabularies from <TT><A NAME="tex2html6"
+  HREF="http://earthref.org/cgi-bin/er-s1-controlled-vocabularies.cgi?category=age_unit&type=E">age unit controlled vocabularies</A></TT>.   
+  <LI> Fill age (under the header age).<br>
+  <LI> Fill age_range_low (under the header age_range_low).<br>
+  <LI> Fill age_range_high (under the header age_range_high).<br>
+  <LI> Fill age_description  (under the header age_description): any text line. <br>
+
+  </LI> Fill geochronology method specifying dating technique (under the header magic_method_codes).<br>
+  Use controlled vocabularies from <TT><A NAME="tex2html6"
+  HREF="http://earthref.org/cgi-bin/magic-s1-methods.cgi?database_name=magic&search_start=methods&category=Geochronology%20Method">Geochronology Method  codes</A></TT>.   
+
+  </UL>
+<LI> Save and close the file.
+
+</LI>
+</UL>
+<P>
+<!-- <LI> The MagIC Model is ready. Quit the GUI and restart it. The new MagIC model will be uploaded.  -- >
+
+</OL>
+
+
+<P>
+</BODY>
+</HTML>

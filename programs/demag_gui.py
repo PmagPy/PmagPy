@@ -75,7 +75,7 @@ from pmagpy.demag_gui_utilities import *
 from pmagpy.Fit import *
 import dialogs.demag_dialogs as demag_dialogs
 from copy import deepcopy,copy
-import programs.cit_magic as cit_magic
+import cit_magic as cit_magic
 
 
 matplotlib.rc('xtick', labelsize=10)
@@ -136,14 +136,13 @@ class Demag_GUI(wx.Frame):
         wx.Yield()
 
         #set icon
-        try:
-#            icon_path = resource_filename(__name__, os.path.join('images', 'PmagPy.ico'))
-            icon = wx.EmptyIcon()
-            icon_path = os.path.join(PMAGPY_DIRECTORY, 'images', 'PmagPy.ico')
+        icon = wx.EmptyIcon()
+        icon_path = os.path.join(PMAGPY_DIRECTORY, 'programs', 'images', 'PmagPy.ico')
+        if os.path.exists(icon_path):
             icon.CopyFromBitmap(wx.Bitmap(icon_path, wx.BITMAP_TYPE_ANY))
             self.SetIcon(icon)
-        except Exception as ex:
-            pass
+        else:
+            print "-I- PmagPy icon file not found -- skipping"
 
         # initialize acceptence criteria with NULL values
         self.acceptance_criteria=pmag.initialize_acceptance_criteria()
@@ -2192,7 +2191,7 @@ class Demag_GUI(wx.Frame):
         return recs
 
     #---------------------------------------------#
-    #Specimen, Interpretation, & Measurement Alteration 
+    #Specimen, Interpretation, & Measurement Alteration
     #---------------------------------------------#
 
     def select_specimen(self, specimen):
@@ -2685,7 +2684,7 @@ class Demag_GUI(wx.Frame):
             if specimen not in self.pmag_results_data['specimens'].keys():
                 self.pmag_results_data['specimens'][specimen] = []
             next_fit = str(len(self.pmag_results_data['specimens'][specimen]) + 1)
-            while ('Fit ' + next_fit) in map(lambda x: x.name, self.pmag_results_data['specimens'][specimen]): 
+            while ('Fit ' + next_fit) in map(lambda x: x.name, self.pmag_results_data['specimens'][specimen]):
                 next_fit = str(int(next_fit)+1)
             new_fit = Fit('Fit ' + next_fit, tmin, tmax, self.colors[(int(next_fit)-1) % len(self.colors)], self, PCA_type)
             self.pmag_results_data['specimens'][specimen].append(new_fit)
@@ -3075,7 +3074,7 @@ class Demag_GUI(wx.Frame):
 
     def choose_meas_file(self):
         self.dlg = wx.FileDialog(
-            self, message="No magif_measurements.txt found. Please choose a magic measurement file",
+            self, message="No magic_measurements.txt found. Please choose a magic measurement file",
             defaultDir=self.WD,
             defaultFile="magic_measurements.txt",
             wildcard="*.magic|*.txt",
@@ -3633,7 +3632,7 @@ class Demag_GUI(wx.Frame):
     #---------------------------------------------#
     #File Menu Functions
     #---------------------------------------------#
- 
+
     def on_menu_pick_read_inp(self, event):
         inp_file_name = self.pick_inp()
         if inp_file_name == None: return
@@ -3644,7 +3643,7 @@ class Demag_GUI(wx.Frame):
 
     def on_menu_read_all_inp(self, event):
         inp_file_names = self.get_all_inp_files()
-        if inp_file_name == []: return 
+        if inp_file_name == []: return
 
         magic_files = []
         for inp_file_name in inp_file_names:
@@ -3949,7 +3948,7 @@ class Demag_GUI(wx.Frame):
             if self.interpretation_editor_open:
                 self.interpretation_editor.on_close_edit_window(event)
             self.Destroy()
-   
+
     #---------------------------------------------#
     #Edit Menu Functions
     #---------------------------------------------#
@@ -4177,18 +4176,13 @@ class Demag_GUI(wx.Frame):
         opens in library documentation for the usage of demag gui in a pdf/latex form
         @param: event -> the wx.MenuEvent that triggered this function
         """
-        if sys.platform.startswith("darwin"):
-            os.system("open " + os.path.join(PMAGPY_DIRECTORY + '/help_files/demag_gui_doc.pdf'))
-        elif sys.platform.startswith("linux"):
-            os.system("xdg-open " + os.path.join(PMAGPY_DIRECTORY + '/help_files/demag_gui_doc.pdf'))
-        else:
-            os.system("start " + os.path.join(PMAGPY_DIRECTORY + '/help_files/demag_gui_doc.pdf'))
+        webopen("http://earthref.org/PmagPy/cookbook/#demag_gui.py", new=2)
 
     def on_menu_cookbook(self,event):
-        webopen("http://earthref.org/PmagPy/cookbook/#x1-70002.4", new = 2)
+        webopen("http://earthref.org/PmagPy/cookbook/", new=2)
 
     def on_menu_git(self,event):
-        webopen("https://github.com/ltauxe/PmagPy", new = 2)
+        webopen("https://github.com/ltauxe/PmagPy", new=2)
 
     def on_menu_debug(self,event):
         pdb.set_trace()
@@ -4990,6 +4984,8 @@ class SaveMyPlot(wx.Frame):
 
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
+        else:
+            return
 
         title=name
         self.panel = wx.Panel(self)

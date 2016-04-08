@@ -186,7 +186,7 @@ class specimen_n(wx.StaticBoxSizer):
 
 class select_ncn(wx.StaticBoxSizer):
     """provides box sizer with a drop down menu for the standard naming conventions"""
-    ncn_keys = ('XXXXY', 'XXXX-YY', 'XXXX.YY', 'XXXX[YYY] where YYY is sample designation, enter number of Y', 'sample name=site name', 'Site names in orient.txt file', '[XXXX]YYY where XXXX is the site name, enter number of X')#, 'this is a synthetic and has no site name']
+    ncn_keys = ('XXXXY', 'XXXX-YY', 'XXXX.YY', 'XXXX[YYY] where YYY is sample designation, enter number of Y', 'sample name=site name', 'names in orient.txt -- NOT CURRENTLY SUPPORTED', '[XXXX]YYY where XXXX is the site name, enter number of X')#, 'this is a synthetic and has no site name']
     def __init__(self, parent, ncn_keys=ncn_keys):
         self.parent = parent
         box = wx.StaticBox(parent, wx.ID_ANY, "")

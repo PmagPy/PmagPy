@@ -1,5 +1,6 @@
 import os
 import sys
+from pkg_resources import resource_filename
 #import time
 #import urllib2
 #import pickle
@@ -23,12 +24,25 @@ def get_pmag_dir():
         return os.environ['RESOURCEPATH']
     # this works for everything else
     except KeyError:
-        lib_dir = os.path.dirname(os.path.realpath(__file__))
+        # new way:
+        lib_file = resource_filename('pmagpy', 'pmag.py')
+        lib_dir = os.path.split(lib_file)[0]
+        lib_dir = os.path.realpath(lib_dir)
+        # old way:
+        #lib_dir = os.path.dirname(os.path.realpath(__file__))
+        if not os.path.exists(lib_dir):
+            lib_dir = os.getcwd()
+        if not os.path.exists(lib_dir):
+            print '-W- Can\'t find the data model!  Make sure you have installed pmagpy using pip: "pip install pmagpy --upgrade"'
+            return
         lib_dir = lib_dir.strip(os.pathsep)
         if lib_dir.endswith('pmagpy'):
             pmag_dir = lib_dir[:-6]
         else:
             pmag_dir = lib_dir
+        if not os.path.exists(pmag_dir):
+            print '-W- Can\'t find the data model!  Make sure you have installed pmagpy using pip: "pip install pmagpy --upgrade"'
+            return
         return pmag_dir # os.path.dirname(os.path.realpath(__file__))
 
     ##except KeyError:

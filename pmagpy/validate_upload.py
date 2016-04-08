@@ -12,7 +12,11 @@ from pmagpy.controlled_vocabularies import vocab
 def get_data_offline():
     try:
         pmag_dir = check_updates.get_pmag_dir()
-        the_file = os.path.join(pmag_dir, 'data_model', "MagIC-data-model.txt")
+        the_file = os.path.join(pmag_dir, 'pmagpy', 'data_model', "MagIC-data-model.txt")
+        # if using with py2app, the directory structure is flat,
+        # so check to see where the resource actually is
+        if not os.path.exists(the_file):
+            the_file = os.path.join(pmag_dir, 'data_model', 'MagIC-data-model.txt')
         data = open(the_file, 'rU')
         return data
     except IOError:

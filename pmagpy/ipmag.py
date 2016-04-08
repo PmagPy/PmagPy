@@ -3084,7 +3084,7 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
         [3] mag_az is already corrected in file
         [4] Correct mag_az but not bedding_dip_dir
 
-    Sample naming convention:
+    Sample naming convention: 
         [1] XXXXY: where XXXX is an arbitrary length site designation and Y
             is the single character sample designation.  e.g., TG001a is the
             first sample from site TG001.    [default]
@@ -3092,7 +3092,7 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
         [3] XXXX.YY: YY sample from site XXXX (XXX, YY of arbitary length)
         [4-Z] XXXX[YYY]:  YYY is sample designation with Z characters from site XXX
         [5] site name = sample name
-        [6] site name entered in site_name column in the orient.txt format input file
+        [6] site name entered in site_name column in the orient.txt format input file  -- NOT CURRENTLY SUPPORTED
         [7-Z] [XXX]YYY:  XXX is site designation with Z characters from samples  XXXYYY
         NB: all others you will have to either customize your
             self or e-mail ltauxe@ucsd.edu for help.
@@ -3123,7 +3123,8 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
     BPs=[]# bedding pole declinations, bedding pole inclinations
     #
     #
-    orient_file,samp_file= os.path.join(input_dir_path,orient_file), os.path.join(output_dir_path,samp_file)
+    orient_file = os.path.join(input_dir_path,orient_file)
+    samp_file = os.path.join(output_dir_path,samp_file)
     site_file = os.path.join(output_dir_path, site_file)
     image_file= os.path.join(output_dir_path, "er_images.txt")
 
@@ -3164,7 +3165,9 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
     #
     # read in file to convert
     #
-    OrData,location_name=pmag.magic_read(orient_file)
+    OrData, location_name=pmag.magic_read(orient_file)
+    if location_name == "demag_orient":
+        location_name = ""
     #
     # step through the data sample by sample
     #
@@ -3575,7 +3578,7 @@ def azdip_magic(orient_file='orient.txt', samp_file="er_samples.txt", samp_con="
             [3] XXXX.YY: YY sample from site XXXX (XXX, YY of arbitary length)
             [4-Z] XXXX[YYY]:  YYY is sample designation with Z characters from site XXX
             [5] site name same as sample
-            [6] site is entered under a separate column
+            [6] site name entered in site_name column in the orient.txt format input file  -- NOT CURRENTLY SUPPORTED
             [7-Z] [XXXX]YYY:  XXXX is site designation with Z characters with sample name XXXXYYYY
             NB: all others you will have to customize your self
                  or e-mail ltauxe@ucsd.edu for help.
@@ -3779,7 +3782,11 @@ def iodp_samples_magic(samp_file, output_samp_file=None, output_dir_path='.', in
     return True, samp_out
 
 
-def kly4s_magic(infile, specnum=0, locname="unknown", inst='SIO-KLY4S', samp_con="1", or_con='3' ,user='', measfile='magic_measurements.txt', aniso_outfile='rmag_anisotropy.txt', samp_infile='', spec_infile='', spec_outfile='er_specimens.txt', azdip_infile='', output_dir_path='.', input_dir_path='.'):
+def kly4s_magic(infile, specnum=0, locname="unknown", inst='SIO-KLY4S',
+                samp_con="1", or_con='3' ,user='', measfile='magic_measurements.txt',
+                aniso_outfile='rmag_anisotropy.txt', samp_infile='', spec_infile='',
+                spec_outfile='er_specimens.txt', azdip_infile='', output_dir_path='.',
+                input_dir_path='.'):
     """
     def kly4s_magic(infile, specnum=0, locname="unknown", inst='SIO-KLY4S', samp_con="1", or_con='3' ,user='', measfile='magic_measurements.txt', aniso_outfile='rmag_anisotropy.txt', samp_infile='', spec_infile='', azdip_infile='', output_dir_path='.', input_dir_path='.'):
 
@@ -3825,9 +3832,13 @@ def kly4s_magic(infile, specnum=0, locname="unknown", inst='SIO-KLY4S', samp_con
             [2] XXXX-YY: YY sample from site XXXX (XXX, YY of arbitary length)
             [3] XXXX.YY: YY sample from site XXXX (XXX, YY of arbitary length)
             [4-Z] XXXXYYY:  YYY is sample designation with Z characters from site XXX
-            [5] all others you will have to either customize your
-                self or e-mail ltauxe@ucsd.edu for help.
-            [7-Z] XXXXYYY:  XXX is site designation with Z characters
+            [5] site name same as sample
+            [6] site name entered in site_name column in the orient.txt format input file  -- NOT CURRENTLY SUPPORTED
+            [7-Z] [XXXX]YYY:  XXXX is site designation with Z characters with sample name XXXXYYYY
+            NB: all others you will have to customize your self
+                 or e-mail ltauxe@ucsd.edu for help.
+
+
        Orientation convention:
             [1] Lab arrow azimuth= azimuth; Lab arrow dip=-dip
                 i.e., dip is degrees from vertical down - the hade [default]
@@ -3860,13 +3871,13 @@ def kly4s_magic(infile, specnum=0, locname="unknown", inst='SIO-KLY4S', samp_con
         AzDipDat=azfile.readlines()
     amsfile = os.path.join(input_dir_path, infile)
     if spec_infile:
-        spec_infile = os.path.join(input_dir_path, spec_infile)
+        spec_infile = os.path.join(output_dir_path, spec_infile)
         AppSpec = 1
     else:
         spec_outfile = os.path.join(output_dir_path, spec_outfile)
         AppSpec = 0
     if samp_infile:
-        samp_infile = os.path.join(input_dir_path, samp_infile)
+        samp_infile = os.path.join(output_dir_path, samp_infile)
     measfile = os.path.join(output_dir_path, measfile)
     anisfile = os.path.join(output_dir_path, aniso_outfile)
 
@@ -4129,9 +4140,12 @@ def k15_magic(k15file, specnum=0, sample_naming_con='1', er_location_name="unkno
             [2] XXXX-YY: YY sample from site XXXX (XXX, YY of arbitary length)
             [3] XXXX.YY: YY sample from site XXXX (XXX, YY of arbitary length)
             [4-Z] XXXXYYY:  YYY is sample designation with Z characters from site XXX
-            [5] sample = site
-            [6] sample, site, location info in er_samples.txt
-            [7] all others you will have to either customize your
+            [5] site name same as sample
+            [6] site name entered in site_name column in the orient.txt format input file  -- NOT CURRENTLY SUPPORTED
+            [7-Z] [XXXX]YYY:  XXXX is site designation with Z characters with sample name XXXXYYYY
+            NB: all others you will have to customize your self
+                 or e-mail ltauxe@ucsd.edu for help.
+
 
     DEFAULTS
         MFILE: k15_measurements.txt
@@ -4452,7 +4466,7 @@ def SUFAR4_magic(ascfile, meas_output='magic_measurements.txt', aniso_output='rm
             [3] XXXX.YY: YY sample from site XXXX (XXX, YY of arbitary length)
             [4-Z] XXXX[YYY]:  YYY is sample designation with Z characters from site XXX
             [5] site name same as sample
-            [6] site is entered under a separate column
+            [6] site name entered in site_name column in the orient.txt format input file  -- NOT CURRENTLY SUPPORTED
             [7-Z] [XXXX]YYY:  XXXX is site designation with Z characters with sample name XXXXYYYY
             NB: all others you will have to customize your self
                  or e-mail ltauxe@ucsd.edu for help.
@@ -4733,7 +4747,7 @@ def agm_magic(agm_file, samp_infile=None, outfile='agm_measurements.txt', spec_o
             [3] XXXX.YY: YY sample from site XXXX (XXX, YY of arbitary length)
             [4-Z] XXXX[YYY]:  YYY is sample designation with Z characters from site XXX
             [5] site name same as sample
-            [6] site is entered under a separate column
+            [6] site name entered in site_name column in the orient.txt format input file  -- NOT CURRENTLY SUPPORTED
             [7-Z] [XXXX]YYY:  XXXX is site designation with Z characters with sample name XXXXYYYY
             [8] specimen is a synthetic - it has no sample, site, location information
             NB: all others you will have to customize your self
@@ -5114,10 +5128,10 @@ class Site(object):
                                    'site_lat':self.get_lat(),
                                    'site_lon':self.get_lon(),
                                    'demag_type':demag_type,
-                                   'dec_tc':float(self.get_fisher_mean(fit_name)['dec']),
-                                   'inc_tc':float(self.get_fisher_mean(fit_name)['inc']),
+                                   'dec':float(self.get_fisher_mean(fit_name)['dec']),
+                                   'inc':float(self.get_fisher_mean(fit_name)['inc']),
                                    'a_95':float(self.get_fisher_mean(fit_name)['alpha95']),
-                                   'N':int(self.get_fisher_mean(fit_name)['n']),
+                                   'n':int(self.get_fisher_mean(fit_name)['n']),
                                    'kappa':float(self.get_fisher_mean(fit_name)['k']),
                                    'R':float(self.get_fisher_mean(fit_name)['r']),
                                     'cong_test_result':cong_test_result},

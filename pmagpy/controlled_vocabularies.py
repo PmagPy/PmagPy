@@ -11,6 +11,11 @@ import backup_vocabulary as backup
 # then, use that list to determine whether or not any given column has a controlled vocabulary list
 import check_updates
 pmag_dir = check_updates.get_pmag_dir()
+data_model_dir = os.path.join(pmag_dir, 'pmagpy', 'data_model')
+# if using with py2app, the directory structure is flat,
+# so check to see where the resource actually is
+if not os.path.exists(data_model_dir):
+    data_model_dir = os.path.join(pmag_dir, 'data_model')
 
 class Vocabulary(object):
 
@@ -161,7 +166,7 @@ class Vocabulary(object):
     #def get_all_possible_vocabularies(possible_list):
 
     def get_tiered_meth_category_offline(self, category):
-        path = os.path.join(pmag_dir, 'data_model', 'er_methods.txt')
+        path = os.path.join(data_model_dir, 'er_methods.txt')
         dfile = open(path)
         json_data = json.load(dfile)
         dfile.close()
@@ -192,11 +197,11 @@ class Vocabulary(object):
             er_methods = self.get_tiered_meth_category_offline('er')
             pmag_methods = self.get_tiered_meth_category_offline('pmag')
             age_methods = self.get_tiered_meth_category_offline('age')
-            path = os.path.join(pmag_dir, 'data_model', 'code_types.txt')
+            path = os.path.join(data_model_dir, 'code_types.txt')
             with open(path, 'r') as type_file:
                 raw_code_types = json.load(type_file)
             code_types = pd.read_json(raw_code_types)
-            path = os.path.join(pmag_dir, 'data_model', 'all_codes.txt')
+            path = os.path.join(data_model_dir, 'all_codes.txt')
             with open(path, 'r') as code_file:
                 raw_all_codes = json.load(code_file)
             all_codes = pd.read_json(raw_all_codes)

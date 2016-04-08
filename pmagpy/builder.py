@@ -8,7 +8,6 @@ import os
 # import time
 import pmagpy.pmag as pmag
 import pmagpy.validate_upload as validate_upload
-import dialogs.pmag_widgets as pw
 
 
 class ErMagicBuilder(object):
@@ -123,7 +122,7 @@ class ErMagicBuilder(object):
         if not self.data_model:
             self.data_model = validate_upload.get_data_model()
             if not self.data_model:
-                pw.simple_warning("Can't access MagIC-data-model at the moment.\nIf you are working offline, make sure MagIC-data-model.txt is in your PmagPy directory (or download it from https://github.com/ltauxe/PmagPy and put it in your PmagPy directory).\nOtherwise, check your internet connection")
+                print "Can't access MagIC-data-model at the moment.\nIf you are working offline, make sure MagIC-data-model.txt is in your PmagPy directory (or download it from https://github.com/ltauxe/PmagPy and put it in your PmagPy directory).\nOtherwise, check your internet connection"
                 return False
 
         # actual is at position 0, reqd is at position 1, optional at position 2
@@ -1570,7 +1569,7 @@ class Specimen(Pmag_object):
             return
         for dtype in ['class', 'lithology', 'type']:
             if 'specimen_' + dtype in self.er_data.keys():
-                if not self.er_data['specimen_' + dtype]:
+                if (not self.er_data['specimen_' + dtype]) or (self.er_data['specimen_' + dtype].lower() == "not specified"):
                     if self.sample.er_data['sample_' + dtype]:
                         value = self.sample.er_data['sample_' + dtype]
                         self.er_data['specimen_' + dtype] = value
@@ -1618,19 +1617,22 @@ class Sample(Pmag_object):
         if not self.site:
             return
         for dtype in ['class', 'lithology', 'type']:
-            if 'sample_' + dtype in self.er_data.keys():
-                if not self.er_data['sample_' + dtype]:
-                    if 'site_' + dtype not in self.site.er_data:
-                        self.site.er_data['site_' + dtype] = ''
-                    elif self.site.er_data['site_' + dtype]:
-                        value = self.site.er_data['site_' + dtype]
-                        self.er_data['sample_' + dtype] = value
-        for dtype in ['_lat', '_lon']:
-            if 'sample' + dtype in self.er_data.keys():
-                if not self.er_data['sample' + dtype]:
-                    if 'site' + dtype in self.site.er_data.keys():
-                        self.er_data['sample' + dtype] = self.site.er_data['site' + dtype]
-
+            samp_key = 'sample_' + dtype
+            site_key = 'site_' + dtype
+            if samp_key in self.er_data.keys():
+                if (not self.er_data[samp_key]) or (self.er_data[samp_key].lower() == "not specified"):
+                    if site_key not in self.site.er_data:
+                        self.site.er_data[site_key] = ''
+                    elif self.site.er_data[site_key]:
+                        value = self.site.er_data[site_key]
+                        self.er_data[samp_key] = value
+        for dtype in ['lat', 'lon']:
+            samp_key = 'sample_' + dtype
+            site_key = 'site_' + dtype
+            if samp_key in self.er_data.keys():
+                if not self.er_data[samp_key]:
+                    if site_key in self.site.er_data.keys():
+                        self.er_data[samp_key] = self.site.er_data[site_key]
         
 
 class Site(Pmag_object):
