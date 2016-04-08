@@ -671,10 +671,10 @@ class Demag_GUI(wx.Frame):
         m_read_all_inp = m_read.Append(-1, "&Read in all .inp files from sub-directories\tCtrl-Shift-O", "")
         self.Bind(wx.EVT_MENU, self.on_menu_read_all_inp, m_read_all_inp)
 
-        menu_Analysis.AppendMenu(-1, "&Convert and Combine MagFiles", m_read)
+#        menu_Analysis.AppendMenu(-1, "&Convert and Combine MagFiles", m_read)
 
-        m_import_LSQ = menu_Analysis.Append(-1, "&Import Interpretations from LSQ file\tCtrl-L", "")
-        self.Bind(wx.EVT_MENU, self.on_menu_read_from_LSQ, m_import_LSQ)
+#        m_import_LSQ = menu_Analysis.Append(-1, "&Import Interpretations from LSQ file\tCtrl-L", "")
+#        self.Bind(wx.EVT_MENU, self.on_menu_read_from_LSQ, m_import_LSQ)
 
         m_previous_interpretation = menu_Analysis.Append(-1, "&Import previous interpretation from a redo file\tCtrl-R", "")
         self.Bind(wx.EVT_MENU, self.on_menu_previous_interpretation, m_previous_interpretation)
@@ -694,8 +694,8 @@ class Demag_GUI(wx.Frame):
         #m_bulk_demagnetization = menu_Tools.Append(-1, "&Bulk demagnetization\tCtrl-B", "")
         #self.Bind(wx.EVT_MENU, self.on_menu_bulk_demagnetization, m_bulk_demagnetization)
 
-        m_auto_interpret = menu_Tools.Append(-1, "&Auto interpret (alpha version)\tCtrl-A", "")
-        self.Bind(wx.EVT_MENU, self.autointerpret, m_auto_interpret)
+#        m_auto_interpret = menu_Tools.Append(-1, "&Auto interpret (alpha version)\tCtrl-A", "")
+#        self.Bind(wx.EVT_MENU, self.autointerpret, m_auto_interpret)
 
         m_edit_interpretations = menu_Tools.Append(-1, "&Interpretation editor\tCtrl-E", "")
         self.Bind(wx.EVT_MENU, self.on_menu_edit_interpretations, m_edit_interpretations)
