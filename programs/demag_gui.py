@@ -96,8 +96,7 @@ class Demag_GUI(wx.Frame):
 #==========================================================================================#
 
     def __init__(self, WD=None, parent=None):
-
-        TEXT="""
+        """
         NAME:
     demag_gui.py
 
@@ -105,9 +104,10 @@ class Demag_GUI(wx.Frame):
     GUI for interpreting demagnetization data (AF and/or thermal).
     For tutorial chcek PmagPy cookbook in http://earthref.org/PmagPy/cookbook/
         """
+
         args=sys.argv
         if "-h" in args:
-            print TEXT
+            help(self)
             sys.exit()
 
         default_style = wx.MINIMIZE_BOX | wx.MAXIMIZE_BOX | wx.RESIZE_BORDER | wx.SYSTEM_MENU | wx.CAPTION | wx.CLOSE_BOX | wx.CLIP_CHILDREN | wx.NO_FULL_REPAINT_ON_RESIZE
@@ -142,14 +142,14 @@ class Demag_GUI(wx.Frame):
             icon.CopyFromBitmap(wx.Bitmap(icon_path, wx.BITMAP_TYPE_ANY))
             self.SetIcon(icon)
         else:
-            print "-I- PmagPy icon file not found -- skipping"
+            print("-I- PmagPy icon file not found -- skipping")
 
         # initialize acceptence criteria with NULL values
         self.acceptance_criteria=pmag.initialize_acceptance_criteria()
         try:
             self.acceptance_criteria=pmag.read_criteria_from_file(os.path.join(self.WD, "pmag_criteria.txt"), self.acceptance_criteria)
         except IOError:
-            print "-I- Cant find/read file  pmag_criteria.txt"
+            print("-I- Cant find/read file  pmag_criteria.txt")
 
 
         self.font_type = "Arial"
@@ -175,8 +175,8 @@ class Demag_GUI(wx.Frame):
                 self.high_level_means[high_level]={}
 
         self.interpretation_editor_open = False
-        self.color_dict = {'green':'g','yellow':'y','maroon':'m','cyan':'c','black':'k','brown':(139./255.,69./255.,19./255.),'orange':(255./255.,127./255.,0./255.),'pink':(255./255.,20./255.,147./255.),'violet':(153./255.,50./255.,204./255.),'grey':(84./255.,84./255.,84./255.),'goldenrod':'goldenrod'}
-        self.colors = ['g','y','m','c','k',(139./255.,69./255.,19./255.),(255./255.,127./255.,0./255.),(255./255.,20./255.,147./255.),(153./255.,50./255.,204./255.),(84./255.,84./255.,84./255.), 'goldenrod']
+        self.color_dict = {'green':'g','yellow':'y','maroon':'m','cyan':'c','blue':'b','red':'r','black':'k','brown':(139./255.,69./255.,19./255.),'orange':(255./255.,127./255.,0./255.),'pink':(255./255.,20./255.,147./255.),'violet':(153./255.,50./255.,204./255.),'grey':(84./255.,84./255.,84./255.),'goldenrod':'goldenrod'}
+        self.colors = ['g','y','m','c','b','r','k',(139./255.,69./255.,19./255.),(255./255.,127./255.,0./255.),(255./255.,20./255.,147./255.),(153./255.,50./255.,204./255.),(84./255.,84./255.,84./255.), 'goldenrod']
         self.current_fit = None
         self.dirtypes = ['DA-DIR','DA-DIR-GEO','DA-DIR-TILT']
         self.bad_fits = []
@@ -1849,7 +1849,7 @@ class Demag_GUI(wx.Frame):
                             #is this fit to be included in mean
                             if self.mean_fit == 'All' or self.mean_fit == fit.name:
                                 pars = fit.get(dirtype)
-                                if pars == {}:
+                                if pars == {} or pars == None:
                                     pars = self.get_PCA_parameters(element,fit,fit.tmin,fit.tmax,dirtype,fit.PCA_type)
                                     fit.put(element,dirtype,pars)
                             else:
@@ -1861,7 +1861,7 @@ class Demag_GUI(wx.Frame):
                             elif "dec" in pars.keys() and "inc" in pars.keys():
                                 dec,inc,direction_type=pars["dec"],pars["inc"],'l'
                             else:
-                                print "-E- ERROR: cant find mean for specimen interpertation: %s , %s"%(element,fit.name)
+                                print("-E- ERROR: cant find mean for specimen interpertation: %s , %s"%(element,fit.name))
                                 print(dec,inc,direction_type)
                                 print(pars)
                                 continue
@@ -2299,10 +2299,10 @@ class Demag_GUI(wx.Frame):
       Data_hierarchy['study_of_specimen']={}
       Data_hierarchy['expedition_name_of_specimen']={}
       try:
-        self.GUI_log.write("-I- Read magic file  %s\n"%self.magic_file)
+        print("-I- Read magic file  %s"%self.magic_file)
       except ValueError:
         self.magic_measurement = self.choose_meas_file()
-        self.GUI_log.write("-I- Read magic file  %s\n"%self.magic_file)
+        print("-I- Read magic file  %s"%self.magic_file)
       mag_meas_data,file_type=pmag.magic_read(self.magic_file)
       self.mag_meas_data=deepcopy(self.merge_pmag_recs(mag_meas_data))
 
@@ -2424,7 +2424,7 @@ class Demag_GUI(wx.Frame):
                      rec['magic_instrument_codes']=''
                  Data[s]['zijdblock'].append([tr,dec,inc,intensity,ZI,rec['measurement_flag'],rec['magic_instrument_codes']])
                  if 'magic_experiment_name' in Data[s].keys() and Data[s]['magic_experiment_name']!=rec["magic_experiment_name"]:
-                      self.GUI_log.write("-E- ERROR: specimen %s has more than one demagnetization experiment name. You need to merge them to one experiment-name?\n")
+                      print("-E- ERROR: specimen %s has more than one demagnetization experiment name. You need to merge them to one experiment-name?\n")
                  if float(tr)==0 or float(tr)==273:
                     Data[s]['zijdblock_steps'].append("0")
                  elif measurement_step_unit=="C":
@@ -2460,7 +2460,7 @@ class Demag_GUI(wx.Frame):
                         d_geo,i_geo=pmag.dogeo(dec,inc,sample_azimuth,sample_dip)
                         Data[s]['zijdblock_geo'].append([tr,d_geo,i_geo,intensity,ZI,rec['measurement_flag'],rec['magic_instrument_codes']])
                  except:
-                    self.GUI_log.write( "-W- cant find sample_azimuth,sample_dip for sample %s\n"%sample)
+                    print( "-W- cant find sample_azimuth,sample_dip for sample %s\n"%sample)
 
                  # tilt-corrected coordinates
 
@@ -2470,7 +2470,7 @@ class Demag_GUI(wx.Frame):
                     d_tilt,i_tilt=pmag.dotilt(d_geo,i_geo,sample_bed_dip_direction,sample_bed_dip)
                     Data[s]['zijdblock_tilt'].append([tr,d_tilt,i_tilt,intensity,ZI,rec['measurement_flag'],rec['magic_instrument_codes']])
                  except:
-                    self.GUI_log.write("-W- cant find tilt-corrected data for sample %s\n"%sample)
+                    print("-W- cant find tilt-corrected data for sample %s\n"%sample)
 
 
           #---------------------
@@ -2536,7 +2536,7 @@ class Demag_GUI(wx.Frame):
 
 
 
-      print "-I- done sorting meas data"
+      print("-I- done sorting meas data")
 
       self.specimens=Data.keys()
 
@@ -2569,18 +2569,31 @@ class Demag_GUI(wx.Frame):
         zdata_tilt=[]
         vector_diffs=[]
         NRM=zijdblock[0][3]
+        if NRM == 0: raise ValueError("-E- NRM is 0 cannot normalize magnetic vector magnitude by NRM.")
         for k in range(len(zijdblock)):
             # specimen coordinates
+            if len(zijdblock[k]) < 4:
+                print("-E- Speciemen measurement data incomplete on entry #%d. Skipping data point"%(k))
+                self.user_warning("Speciemen measurement data incomplete on entry #%d. Skipping data point"%(k))
+                continue
             DIR=[zijdblock[k][1],zijdblock[k][2],zijdblock[k][3]/NRM]
             cart=pmag.dir2cart(DIR)
             zdata.append(array([cart[0],cart[1],cart[2]]))
             # geographic coordinates
             if len(zijdblock_geo)!=0:
+                if len(zijdblock_geo[k]) < 4:
+                    print("-E- Geographic measurement data incomplete on entry #%d. Skipping data point"%(k))
+                    self.user_warning("Geographic measurement data incomplete on entry #%d. Skipping data point"%(k))
+                    continue
                 DIR=[zijdblock_geo[k][1],zijdblock_geo[k][2],zijdblock_geo[k][3]/NRM]
                 cart=pmag.dir2cart(DIR)
                 zdata_geo.append(array([cart[0],cart[1],cart[2]]))
             # tilt-corrected coordinates
             if len(zijdblock_tilt)!=0:
+                if len(zijdblock_tilt[k]) < 4:
+                    print("-E- Tilt-Corrected measurement data incomplete on entry #%d. Skipping data point"%(k))
+                    self.user_warning("Til-Corrected measurement data incomplete on entry #%d. Skipping data point"%(k))
+                    continue
                 DIR=[zijdblock_tilt[k][1],zijdblock_tilt[k][2],zijdblock_tilt[k][3]/NRM]
                 cart=pmag.dir2cart(DIR)
                 zdata_tilt.append(array([cart[0],cart[1],cart[2]]))
@@ -2608,17 +2621,17 @@ class Demag_GUI(wx.Frame):
         try:
             data_er_samples=self.read_magic_file(os.path.join(self.WD, "er_samples.txt"),'er_sample_name')
         except:
-            self.GUI_log.write ("-W- Cant find er_sample.txt in project directory")
+            print("-W- Cant find er_sample.txt in project directory")
 
         try:
             data_er_sites=self.read_magic_file(os.path.join(self.WD, "er_sites.txt"),'er_site_name')
         except:
-            self.GUI_log.write ("-W- Cant find er_sites.txt in project directory")
+            print("-W- Cant find er_sites.txt in project directory")
 
         try:
             data_er_locations=self.read_magic_file(os.path.join(self.WD, "er_locations.txt"), 'er_location_name')
         except:
-            self.GUI_log.write ("-W- Cant find er_locations.txt in project directory")
+            print("-W- Cant find er_locations.txt in project directory")
 
         try:
             data_er_ages=self.read_magic_file(os.path.join(self.WD, "er_ages.txt"),'er_sample_name')
@@ -2626,7 +2639,7 @@ class Demag_GUI(wx.Frame):
             try:
                 data_er_ages=self.read_magic_file(os.path.join(self.WD, "er_ages.txt"),'er_site_name')
             except:
-                self.GUI_log.write ("-W- Cant find er_ages in project directory")
+                print("-W- Cant find er_ages in project directory")
 
 
 
@@ -2648,10 +2661,10 @@ class Demag_GUI(wx.Frame):
         #try to read preferences file:
         try:
             import zeq_gui_preferences
-            self.GUI_log.write( "-I- zeq_gui.preferences imported\n")
+            print( "-I- zeq_gui.preferences imported")
             preferences.update(thellier_gui_preferences.preferences)
         except:
-            self.GUI_log.write( " -I- cant find zeq_gui_preferences file, using defualt default \n")
+            print( "-I- cant find zeq_gui_preferences file, using defualt default")
         return(preferences)
 
     def read_magic_file(self,path,sort_by_this_name):
@@ -2666,7 +2679,7 @@ class Demag_GUI(wx.Frame):
             for i in range(len(tmp_line)):
                 tmp_data[header[i]]=tmp_line[i]
             if tmp_data[sort_by_this_name] in DATA.keys():
-                self.GUI_log.write("-E- ERROR: magic file %s has more than one line for %s %s\n"%(path,sort_by_this_name,tmp_data[sort_by_this_name]))
+                print("-E- ERROR: magic file %s has more than one line for %s %s"%(path,sort_by_this_name,tmp_data[sort_by_this_name]))
             DATA[tmp_data[sort_by_this_name]]=tmp_data
         fin.close()
         return(DATA)
@@ -2696,7 +2709,7 @@ class Demag_GUI(wx.Frame):
         and update gui with the new interpretation
         """
         if not self.clear_interpretations(): return
-        self.GUI_log.write ("-I- read redo file and processing new bounds")
+        print("-I- read redo file and processing new bounds")
         fin=open(redo_file,'rU')
 
         for Line in fin.readlines():
@@ -2716,7 +2729,7 @@ class Demag_GUI(wx.Frame):
             if tmin == None or tmax == None:
                 continue
             if tmin not in self.Data[specimen]['zijdblock_steps'] or  tmax not in self.Data[specimen]['zijdblock_steps']:
-                print "-E- ERROR in redo file specimen %s. Cant find treatment steps"%specimen
+                print("-E- ERROR in redo file specimen %s. Cant find treatment steps"%specimen)
 
             if len(line) >= 6:
                 fit_index = -1
@@ -2852,13 +2865,12 @@ class Demag_GUI(wx.Frame):
     #---------------------------------------------#
 
     def init_log_file(self):
+        """
+        redirects stdout to a log file to prevent printing to a hanging terminal when dealing with the compiled binary. Just uncomment the stdout line otherwise the function does nothing.
+        """
         #redirect terminal output
-#        sys.stdout = open(os.path.join(self.WD, "demag_gui.log"),'w+')
-        #create log file variable
-        self.GUI_log=open(os.path.join(self.WD, "demag_gui.log"),'w+')
-        self.GUI_log.write("start gui\n")
-        self.GUI_log.close()
-        self.GUI_log=open(os.path.join(self.WD, "demag_gui.log"),'a')
+        #sys.stdout = open(os.path.join(self.WD, "demag_gui.log"),'w+')
+        pass
 
     def update_pmag_tables(self):
 
@@ -2866,16 +2878,16 @@ class Demag_GUI(wx.Frame):
         try:
             pmag_specimens,file_type=pmag.magic_read(os.path.join(self.WD, "pmag_specimens.txt"))
         except:
-            print "-I- Cant read pmag_specimens.txt"
+            print("-I- Cant read pmag_specimens.txt")
         try:
             pmag_samples,file_type=pmag.magic_read(os.path.join(self.WD, "pmag_samples.txt"))
         except:
-            print "-I- Cant read pmag_samples.txt"
+            print("-I- Cant read pmag_samples.txt")
         try:
             pmag_sites,file_type=pmag.magic_read(os.path.join(self.WD, "pmag_sites.txt"))
         except:
-            print "-I- Cant read pmag_sites.txt"
-        self.GUI_log.write ("-I- Reading previous interpretations from pmag* tables\n")
+            print("-I- Cant read pmag_sites.txt")
+        print("-I- Reading previous interpretations from pmag* tables\n")
         #--------------------------
         # reads pmag_specimens.txt and
         # update pmag_results_data['specimens'][specimen] BLARGE
@@ -2957,7 +2969,7 @@ class Demag_GUI(wx.Frame):
                                 fit.put(specimen,'tilt-corrected',self.get_PCA_parameters(specimen,fit,tmin,tmax,'tilt-corrected',calculation_type))
 
                     else:
-                        self.GUI_log.write ( "-W- WARNING: Cant find specimen and steps of specimen %s tmin=%s, tmax=%s"%(specimen,tmin,tmax))
+                        print( "-W- WARNING: Cant find specimen and steps of specimen %s tmin=%s, tmax=%s"%(specimen,tmin,tmax))
 
         #BUG FIX-almost replaced first sample with last due to above assignment to self.s
         if self.specimens:
@@ -3087,6 +3099,11 @@ class Demag_GUI(wx.Frame):
             meas_file = None
             self.dlg.Destroy()
         return meas_file
+
+    def user_warning(self, message, caption = 'Warning!'):
+        dlg = wx.MessageDialog(self, message, caption, wx.OK | wx.ICON_WARNING)
+        dlg.ShowModal()
+        dlg.Destroy()
 
     def data_loss_warning(self):
         TEXT="This action could result in a loss of all unsaved data. Would you like to continue"
@@ -3232,10 +3249,10 @@ class Demag_GUI(wx.Frame):
             self.PmagRecsOld[FILE]=[]
             try:
                 meas_data,file_type=pmag.magic_read(os.path.join(self.WD, FILE))
-                self.GUI_log.write("-I- Read old magic file  %s\n"%os.path.join(self.WD, FILE))
+                print("-I- Read old magic file  %s\n"%os.path.join(self.WD, FILE))
                 if FILE !='pmag_specimens.txt':
                     os.remove(os.path.join(self.WD, FILE))
-                    self.GUI_log.write("-I- Delete old magic file  %s\n"%os.path.join(self.WD,FILE))
+                    print("-I- Delete old magic file  %s\n"%os.path.join(self.WD,FILE))
             except:
                 continue
 
@@ -3250,7 +3267,7 @@ class Demag_GUI(wx.Frame):
 #        print "-I- running python script:\n %s"%(outstring)
         #os.system(outstring)
 
-        print 'coord', coord, 'vgps_level', vgps_level, 'DefaultAge', DefaultAge, 'avg_directions_by_sample', avg_directions_by_sample, 'avg_by_polarity', avg_by_polarity, 'use_criteria', use_criteria
+        print('coord', coord, 'vgps_level', vgps_level, 'DefaultAge', DefaultAge, 'avg_directions_by_sample', avg_directions_by_sample, 'avg_by_polarity', avg_by_polarity, 'use_criteria', use_criteria)
         ipmag.specimens_results_magic(coord=coord, vgps_level=vgps_level, DefaultAge=DefaultAge, avg_directions_by_sample=avg_directions_by_sample, avg_by_polarity=avg_by_polarity, use_criteria=use_criteria)
 
         # reads new pmag tables, and merge the old lines:
@@ -3266,7 +3283,7 @@ class Demag_GUI(wx.Frame):
             if len(pmag_data) >0:
                 pmag_data_fixed=self.merge_pmag_recs(pmag_data)
                 pmag.magic_write(os.path.join(self.WD, FILE), pmag_data_fixed, FILE.split(".")[0])
-                self.GUI_log.write( "write new interpretations in %s\n"%(os.path.join(self.WD, FILE)))
+                print( "write new interpretations in %s\n"%(os.path.join(self.WD, FILE)))
 
         # make pmag_criteria.txt if it does not exist
         if not os.path.isfile(os.path.join(self.WD, "pmag_criteria.txt")):
@@ -3695,10 +3712,10 @@ class Demag_GUI(wx.Frame):
             meas_data=[]
             try:
                 meas_data,file_type=pmag.magic_read(os.path.join(self.WD, FILE))
-                self.GUI_log.write("-I- Read old magic file  %s\n"%os.path.join(self.WD, FILE))
+                print("-I- Read old magic file  %s\n"%os.path.join(self.WD, FILE))
                 #if FILE !='pmag_specimens.txt':
                 os.remove(os.path.join(self.WD,FILE))
-                self.GUI_log.write("-I- Delete old magic file  %s\n"%os.path.join(self.WD,FILE))
+                print("-I- Delete old magic file  %s\n"%os.path.join(self.WD,FILE))
 
             except:
                 continue
@@ -3802,7 +3819,7 @@ class Demag_GUI(wx.Frame):
             PmagSpecs.append(rec)
         PmagSpecs_fixed=self.merge_pmag_recs(PmagSpecs)
         pmag.magic_write(os.path.join(self.WD, "pmag_specimens.txt"),PmagSpecs_fixed,'pmag_specimens')
-        self.GUI_log.write( "specimen data stored in %s\n"%os.path.join(self.WD, "pmag_specimens.txt"))
+        print( "specimen data stored in %s\n"%os.path.join(self.WD, "pmag_specimens.txt"))
 
         TEXT="specimens interpretations are saved in pmag_specimens.txt.\nPress OK for pmag_samples/pmag_sites/pmag_results tables."
         self.dlg = wx.MessageDialog(self, caption="Saved",message=TEXT,style=wx.OK|wx.CANCEL)
@@ -4127,7 +4144,7 @@ class Demag_GUI(wx.Frame):
             )
         if self.dlg.ShowModal() == wx.ID_OK:
             criteria_file = self.dlg.GetPath()
-            self.GUI_log.write ("-I- Read new criteria file: %s\n"%criteria_file)
+            print("-I- Read new criteria file: %s"%criteria_file)
 
             # check if this is a valid pmag_criteria file
             try:
