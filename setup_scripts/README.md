@@ -41,7 +41,33 @@ You may have to monkey-patch this file: MachOGraph.py.  (Located here on my mach
 
 ## Windows standalones
 
-Coming soon
+1. Make sure your path points to the correct version of Python.  I've had success with Canopy Python, but you may be able to use a different installation.
+
+2. From the main PmagPy directory, run `python programs/win_magic_gui_setup.py py2exe'.
+
+3.  From the main PmagPy directory, run `python programs/win_pmag_gui_setup.py py2exe'.
+
+4.  Try to run the distributions.  If one of them doesn't work, you may need to find "numpy-atlas.dll" in your system and copy it to the distribution folders.  (I've had to add "numpy-atlas.dll" to the list of ignored dlls in the setup files.  Otherwise, the build halts with an error halfway through.  However, the finished program needs numpy-atlas to run.)
+
+5.  If you don't already have it, you'll need to download Inno Setup Compiler: http://www.jrsoftware.org/isdl.php
+
+6.  ....
+
+## Py2exe troubleshooting ##
+
+Editing registry for use with Canopy.  
+
+	open regedit
+
+	find .py
+	change Enthought.Canopy to Python.File
+	also add Python.File to .py subfolder OpenWithProgIds
+
+	find Python.File
+	get path where python is installed (python_path = which python)
+	in subfolder Python.File/shell/Edit with Pythonwin/command, change Data to "python_path + .exe" + "%1"
+	
+
 
 
 ## Details for people who want them
