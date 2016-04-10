@@ -3084,7 +3084,7 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
         [3] mag_az is already corrected in file
         [4] Correct mag_az but not bedding_dip_dir
 
-    Sample naming convention: 
+    Sample naming convention:
         [1] XXXXY: where XXXX is an arbitrary length site designation and Y
             is the single character sample designation.  e.g., TG001a is the
             first sample from site TG001.    [default]
@@ -6336,7 +6336,7 @@ def hysteresis_magic(path_to_file = '.',hyst_file="rmag_hysteresis.txt",
         sample_num += 1
 
 
-def find_EI(data, nb=1000, save = False, save_folder = '.', fmt='svg',
+def find_ei(data, nb=1000, save = False, save_folder = '.', fmt='svg',
             site_correction = False, return_new_dirs = False):
     """
     Applies series of assumed flattening factor and "unsquishes" inclinations assuming tangent function.
