@@ -11,26 +11,26 @@ import pmagpy.pmagplotlib as pmagplotlib
 #
 def smooth(x,window_len,window='bartlett'):
     """smooth the data using a sliding window with requested size.
-    
+
     This method is based on the convolution of a scaled window with the signal.
     The signal is prepared by padding the beginning and the end of the signal
     with average of the first (last) ten values of the signal, to evoid jumps
     at the beggining/end
-    
+
     input:
-        x: the input signal, equaly spaced! 
+        x: the input signal, equaly spaced!
         window_len: the dimension of the smoothing window
         window:  type of window from numpy library ['flat','hanning','hamming','bartlett','blackman']
             -flat window will produce a moving average smoothing.
             -Bartlett window is very similar to triangular window,
                 but always ends with zeros at points 1 and n,
             -hanning,hamming,blackman are used for smoothing the Fourier transfrom
-            
+
             for curie temperature calculation the default is Bartlett
 
     output:
         aray of the smoothed signal
-             
+
     """
 
     if x.ndim != 1:
@@ -51,7 +51,7 @@ def smooth(x,window_len,window='bartlett'):
     end=[average(x[-10:])]*window_len
     s=start+list(x)+end
 
-        
+
     #s=numpy.r_[2*x[0]-x[window_len:1:-1],x,2*x[-1]-x[-1:-window_len:-1]]
     if window == 'flat': #moving average
         w=ones(window_len,'d')
@@ -72,7 +72,7 @@ def deriv1(x,y,i,n):
     i= position
 
     in this method the slope in position i is calculated by least square fit of n points
-    before and after position. 
+    before and after position.
     """
     m_,x_,y_,xy_,x_2=0.,0.,0.,0.,0.
     for ix in range(i,i+n,1):
@@ -82,8 +82,8 @@ def deriv1(x,y,i,n):
         x_2=x_2+x[ix]**2
     m= ( (n*xy_) - (x_*y_) ) / ( n*x_2-(x_)**2)
     return(m)
-        
-   
+
+
 def main():
     """
     NAME
@@ -101,7 +101,7 @@ def main():
 
     INPUT
         T,M
-  
+
     SYNTAX
         curie.py [command line options]
 
@@ -128,22 +128,22 @@ def main():
         print "missing -f\n"
         sys.exit()
     if '-w' in sys.argv:
-        ind=sys.argv.index('-w')    
-        window_len=int(sys.argv[ind+1])       
+        ind=sys.argv.index('-w')
+        window_len=int(sys.argv[ind+1])
     else:
         window_len=3
     if '-t' in sys.argv:
-        ind=sys.argv.index('-t')    
-        t_begin=int(sys.argv[ind+1])       
+        ind=sys.argv.index('-t')
+        t_begin=int(sys.argv[ind+1])
         t_end=int(sys.argv[ind+2])
     else:
-        t_begin=''      
+        t_begin=''
         t_end=''
     if '-sav' in sys.argv:plot=1
     if '-fmt' in sys.argv:
         ind=sys.argv.index('-fmt')
         fmt=sys.argv[ind+1]
-   
+
 
     # read data from file
     Data=numpy.loadtxt(meas_file,dtype=numpy.float)
@@ -157,8 +157,8 @@ def main():
             M.pop(0);T.pop(0)
         while T[-1]>t_end:
             M.pop(-1);T.pop(-1)
-        
-            
+
+
     # prepare the signal:
     # from M(T) array with unequal deltaT
     # to M(T) array with deltaT=(1 degree).
@@ -192,12 +192,12 @@ def main():
     M_smooth=smooth(M,window_len)
 
     #plot the original data and the smooth data
-    PLT={'M_T':1,'der1':2,'der2':3,'Curie':4} 
+    PLT={'M_T':1,'der1':2,'der2':3,'Curie':4}
     pmagplotlib.plot_init(PLT['M_T'],5,5)
     string='M-T (sliding window=%i)'%int(window_len)
     pmagplotlib.plotXY(PLT['M_T'],T,M_smooth,sym='-')
     pmagplotlib.plotXY(PLT['M_T'],T,M,sym='--',xlab='Temperature C',ylab='Magnetization',title=string)
-    
+
     #calculate first derivative
     d1,T_d1=[],[]
     for i in range(len(M_smooth)-1):
@@ -210,7 +210,7 @@ def main():
 
     #plot the first derivative
     pmagplotlib.plot_init(PLT['der1'],5,5)
-    string='1st dervative (sliding window=%i)'%int(window_len)
+    string='1st derivative (sliding window=%i)'%int(window_len)
     pmagplotlib.plotXY(PLT['der1'],T_d1,d1_smooth,sym='-',xlab='Temperature C',title=string)
     pmagplotlib.plotXY(PLT['der1'],T_d1,d1,sym='b--')
 
@@ -224,13 +224,13 @@ def main():
     T_d2=T[2:len(T-2)]
     d2=array(d2,'f')
     d2_smooth=smooth(d2,window_len)
-    
+
     #plot the second derivative
     pmagplotlib.plot_init(PLT['der2'],5,5)
-    string='2nd dervative (sliding window=%i)'%int(window_len)
+    string='2nd derivative (sliding window=%i)'%int(window_len)
     pmagplotlib.plotXY(PLT['der2'],T_d2,d2,sym='-',xlab='Temperature C',title=string)
     d2=list(d2)
-    print 'second deriative maximum is at T=%i'%int(T_d2[d2.index(max(d2))])
+    print 'second derivative maximum is at T=%i'%int(T_d2[d2.index(max(d2))])
 
     # calculate Curie temperature for different width of sliding windows
     curie,curie_1=[],[]
@@ -259,12 +259,12 @@ def main():
         d2_smooth=smooth(d2,win)
         d2=list(d2)
         d2_smooth=list(d2_smooth)
-        curie.append(T_d2[d2.index(max(d2))])    
-        curie_1.append(T_d2[d2_smooth.index(max(d2_smooth))])    
+        curie.append(T_d2[d2.index(max(d2))])
+        curie_1.append(T_d2[d2_smooth.index(max(d2_smooth))])
 
     #plot Curie temp for different sliding window length
     pmagplotlib.plot_init(PLT['Curie'],5,5)
-    pmagplotlib.plotXY(PLT['Curie'],wn,curie,sym='.',xlab='Sliding Window Width (degrees)',ylab='Curie Temp',title='Curie Statistics')    
+    pmagplotlib.plotXY(PLT['Curie'],wn,curie,sym='.',xlab='Sliding Window Width (degrees)',ylab='Curie Temp',title='Curie Statistics')
     files = {}
     for key in PLT.keys(): files[key]=str(key) + "." +fmt
     if plot==0:
@@ -276,4 +276,3 @@ def main():
     sys.exit()
 
 main()
-
