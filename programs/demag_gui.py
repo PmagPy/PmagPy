@@ -1885,20 +1885,20 @@ class Demag_GUI(wx.Frame):
 
             for key in pars_for_mean.keys():
                 if len(pars_for_mean[key]) > 0 and key != "All":
-                    if high_level_name not in self.pmag_results_data[self.UPPER_LEVEL_SHOW].keys():
-                        self.pmag_results_data[self.UPPER_LEVEL_SHOW][high_level_name] = []
-                    if key not in map(lambda x: x.name, self.pmag_results_data[self.UPPER_LEVEL_SHOW][high_level_name]):
-                        self.pmag_results_data[self.UPPER_LEVEL_SHOW][high_level_name].append(Fit(key, None, None, colors_for_means[key], self))
+                    if high_level_name not in self.pmag_results_data[high_level_type].keys():
+                        self.pmag_results_data[high_level_type][high_level_name] = []
+                    if key not in map(lambda x: x.name, self.pmag_results_data[high_level_type][high_level_name]):
+                        self.pmag_results_data[high_level_type][high_level_name].append(Fit(key, None, None, colors_for_means[key], self))
                         key_index = -1
                     else:
-                        key_index = map(lambda x: x.name, self.pmag_results_data[self.UPPER_LEVEL_SHOW][high_level_name]).index(key)
+                        key_index = map(lambda x: x.name, self.pmag_results_data[high_level_type][high_level_name]).index(key)
                     new_pars = self.calculate_mean(pars_for_mean[key],calculation_type)
                     map_keys = new_pars.keys()
                     map_keys.remove("calculation_type")
                     if calculation_type == "Fisher":
                         for mkey in map_keys:
                             new_pars[mkey] = float(new_pars[mkey])
-                    self.pmag_results_data[self.UPPER_LEVEL_SHOW][high_level_name][key_index].put(None, dirtype,new_pars)
+                    self.pmag_results_data[high_level_type][high_level_name][key_index].put(None, dirtype,new_pars)
                 if len(pars_for_mean[key]) > 0 and key == "All":
                     self.high_level_means[high_level_type][high_level_name][dirtype] = self.calculate_mean(pars_for_mean["All"],calculation_type)
 
@@ -3540,6 +3540,8 @@ class Demag_GUI(wx.Frame):
 
         FONT_RATIO=self.GUI_RESOLUTION+(self.GUI_RESOLUTION-1)*5
         font2 = wx.Font(12+min(1,FONT_RATIO), wx.SWISS, wx.NORMAL, wx.NORMAL, False, self.font_type)
+
+        if not mpars or len(mpars)==1: print("No parameters to display for higher level mean"); return
 
         if mpars["calculation_type"]=='Fisher':
             if mpars["calculation_type"]=='Fisher' and "alpha95" in mpars.keys():
