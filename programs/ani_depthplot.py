@@ -2,7 +2,9 @@
 import wx
 import os
 import sys
-
+import matplotlib
+if matplotlib.get_backend() != "WXAgg":
+  matplotlib.use("WXAgg")
 
 import matplotlib.pyplot as plt
 import pmagpy.command_line_extractor as extractor

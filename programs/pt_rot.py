@@ -1,6 +1,10 @@
 #!/usr/bin/env python
 # define some variables
 import sys
+import matplotlib
+if matplotlib.get_backend() != "TKAgg":
+  matplotlib.use("TKAgg")
+
 import pmagpy.pmag as pmag
 import pmagpy.frp as frp
 

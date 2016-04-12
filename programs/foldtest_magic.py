@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 import sys
 import numpy
-
+if matplotlib.get_backend() != "TKAgg":
+  matplotlib.use("TKAgg")
 
 import pylab
 import pmagpy.pmag as pmag
