@@ -18,8 +18,8 @@ DefaultGroupName=MagIC GUI
 LicenseFile=C:\Users\***\PmagPy\setup_scripts\windows_standalone_license.txt
 InfoAfterFile=C:\Users\***\PmagPy\setup_scripts\MagIC_GUI_next_steps.txt
 OutputDir=MagIC GUI setup
-OutputBaseFilename=install MagIC GUI
-SetupIconFile=C:\Users\***\PmagPy\setup_scripts\PmagPy.ico
+OutputBaseFilename=install_MagIC_GUI
+SetupIconFile=C:\Users\***\PmagPy\programs\images\PmagPy.ico
 Compression=lzma
 SolidCompression=yes
 
@@ -30,8 +30,8 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-Source: "C:\Users\***\Desktop\MagIC_GUI_dist\magic_gui.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\Users\***\Desktop\MagIC_GUI_dist\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "C:\Users\***\PmagPy\MagIC_GUI_dist\magic_gui.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\Users\***\PmagPy\MagIC_GUI_dist\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]

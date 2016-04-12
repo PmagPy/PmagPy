@@ -32,7 +32,7 @@ distutils.core.setup(
         }
     },
     data_files=all_data_files,
-    windows=['programs\pmag_gui.py']
+    windows=['programs\pmag_gui.py'] # may need to be just pmag_gui.py and be manually moved to main directory
 )
 
 #setup(windows=['simple.py'])
