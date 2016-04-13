@@ -2111,7 +2111,8 @@ def core_depthplot(input_dir_path='.', meas_file='magic_measurements.txt', spc_f
     return main_plot, figname
 
 
-def download_magic(infile, dir_path='.', input_dir_path='.',overwrite=False,print_progress=True):
+def download_magic(infile, dir_path='.', input_dir_path='.',
+                   overwrite=False, print_progress=True):
     """
     takes the name of a text file downloaded from the MagIC database and
     unpacks it into magic-formatted files. by default, download_magic assumes
@@ -2121,22 +2122,22 @@ def download_magic(infile, dir_path='.', input_dir_path='.',overwrite=False,prin
     """
     f=open(os.path.join(input_dir_path, infile),'rU')
     infile=f.readlines()
-    File=[]
+    File=[] # will contain all non-blank lines from downloaded file
     for line in infile:
         line=line.replace('\n','')
         if line[0:4]=='>>>>' or len(line.split('\t'))>1: # skip blank lines
             File.append(line)
-    LN=0
+    LN=0 # tracks our progress iterating through File
     type_list=[]
     filenum=0
-    while LN<len(File)-1:
+    while LN < len(File) - 1:
         line=File[LN]
         file_type=line.split('\t')[1]
         file_type=file_type.lower()
-        if file_type=='delimited':file_type=Input[skip].split('\t')[2]
-        if file_type[-1]=="\n":file_type=file_type[:-1]
+        if file_type[-1]=="\n":
+            file_type=file_type[:-1]
         if print_progress==True:
-            print 'working on: ',repr(file_type)
+            print 'working on: ', repr(file_type)
         if file_type not in type_list:
             type_list.append(file_type)
         else:
@@ -2168,12 +2169,6 @@ def download_magic(infile, dir_path='.', input_dir_path='.',overwrite=False,prin
                 pmag.magic_write(outfile,Recs,file_type)
                 if print_progress==True:
                     print file_type," data put in ",outfile
-                if file_type =='pmag_specimens' and 'magic_measurements.txt' in File and 'measurement_step_min' in File and 'measurement_step_max' in File: # sort out zeq_specimens and thellier_specimens
-                    os.system('mk_redo.py')
-                    os.system('zeq_magic_redo.py')
-                    os.system('thellier_magic_redo.py')
-                    type_list.append('zeq_specimens')
-                    type_list.append('thellier_specimens')
                 Recs=[]
                 LN+=1
                 break
@@ -2205,20 +2200,22 @@ def download_magic(infile, dir_path='.', input_dir_path='.',overwrite=False,prin
                 meths=rec['magic_method_codes'].split(":")
                 if len(meths)>0:
                     methods=""
-                    for meth in meths: methods=methods+meth.strip()+":" # get rid of nasty spaces!!!!!!
+                    for meth in meths:
+                        methods=methods+meth.strip()+":" # get rid of nasty spaces!!!!!!
                     rec['magic_method_codes']=methods[:-1]
             NewRecs.append(rec)
         pmag.magic_write(outfile,Recs,file_type)
         if print_progress==True:
             print file_type," data put in ",outfile
-# look through locations table and create separate directories for each location
+    # look through locations table and create separate directories for each location
     locs,locnum=[],1
-    if 'er_locations' in type_list:
-        locs,file_type=pmag.magic_read(dir_path+'/er_locations.txt')
+    if 'locations' in type_list:
+        locs,file_type=pmag.magic_read(os.path.join(dir_path, 'locations.txt'))
     if len(locs)>0: # at least one location
         for loc in locs:
+            loc_name = loc['location_name']
             if print_progress==True:
-                print 'location_'+str(locnum)+": ",loc['er_location_name']
+                print 'location_'+str(locnum)+": ", loc_name
             lpath=dir_path+'/Location_'+str(locnum)
             locnum+=1
             try:
@@ -2234,18 +2231,11 @@ def download_magic(infile, dir_path='.', input_dir_path='.',overwrite=False,prin
                 recs,file_type=pmag.magic_read(dir_path+'/'+f+'.txt')
                 if print_progress==True:
                     print len(recs),' read in'
-                if 'results' not in f:
-                    lrecs=pmag.get_dictitem(recs,'er_location_name',loc['er_location_name'],'T')
-                    if len(lrecs)>0:
-                        pmag.magic_write(lpath+'/'+f+'.txt',lrecs,file_type)
-                        if print_progress==True:
-                            print len(lrecs),' stored in ',lpath+'/'+f+'.txt'
-                else:
-                    lrecs=pmag.get_dictitem(recs,'er_location_names',loc['er_location_name'],'T')
-                    if len(lrecs)>0:
-                        pmag.magic_write(lpath+'/'+f+'.txt',lrecs,file_type)
-                        if print_progress==True:
-                            print len(lrecs),' stored in ',lpath+'/'+f+'.txt'
+                lrecs=pmag.get_dictitem(recs, 'location_name', loc_name, 'T')
+                if len(lrecs)>0:
+                    pmag.magic_write(lpath+'/'+f+'.txt',lrecs,file_type)
+                    if print_progress==True:
+                        print len(lrecs),' stored in ',lpath+'/'+f+'.txt'
     return True
 
 
