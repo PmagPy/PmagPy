@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import sys
 import numpy
+import matplotlib
 if matplotlib.get_backend() != "TKAgg":
   matplotlib.use("TKAgg")
 
