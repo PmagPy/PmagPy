@@ -4754,7 +4754,6 @@ def agm_magic(agm_file, samp_infile=None, outfile='agm_measurements.txt', spec_o
     OUTPUT
         MagIC format files: magic_measurements, er_specimens, er_sample, er_site
     """
-
     #return False, 'fake error message'
     citation='This study'
     MeasRecs=[]

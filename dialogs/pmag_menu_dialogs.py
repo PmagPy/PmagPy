@@ -19,6 +19,7 @@ import dialogs.pmag_widgets as pw
 #import thellier_gui
 #import ErMagicBuilder
 
+
 class ImportAzDipFile(wx.Frame):
 
     title = "Import AzDip format file"
@@ -877,13 +878,13 @@ class ImportAgmFolder(wx.Frame):
         #    usr = "-usr " + usr
         spc = self.bSizer2.return_value()
         ncn = self.bSizer3.return_value()
-        loc = self.bSizer4.return_value()
-        if loc:
-            loc = "-loc " + loc
+        loc_name = self.bSizer4.return_value()
+        if loc_name:
+            loc = "-loc " + loc_name
         ins = self.bSizer5.return_value()
         #if ins:
         #    ins = "-ins " + ins
-        units = self.bSizer5.return_value()
+        units = self.bSizer6.return_value()
         if units:
             units = 'cgs'
         else:
@@ -899,10 +900,10 @@ class ImportAgmFolder(wx.Frame):
             outfile = f + ".magic"
             COMMAND = "agm_magic.py -WD {} -ID {} -f {} -F {} {} -spc {} -ncn {} {} {} -u {} {}".format(WD, ID, f, outfile, usr, spc, ncn, loc, ins, units, bak)
             if files.index(f) == (len(files) - 1): # terminate process on last file call
-                ipmag.agm_magic(f, outfile=outfile, user=usr, input_dir_path=ID, output_dir_path=WD, backfield_curve=bak_curve, specnum=spc, samp_con=ncn, er_location_name=loc, units=units, inst=ins)
+                ipmag.agm_magic(f, outfile=outfile, user=usr, input_dir_path=ID, output_dir_path=WD, backfield_curve=bak_curve, specnum=spc, samp_con=ncn, er_location_name=loc_name, units=units, inst=ins)
                 pw.close_window(self, COMMAND, outfile) # close window
             else: # continue through
-                ipmag.agm_magic(f, outfile=outfile, user=usr, input_dir_path=ID, output_dir_path=WD, backfield_curve=bak_curve, specnum=spc, samp_con=ncn, er_location_name=loc, units=units, inst=ins)
+                ipmag.agm_magic(f, outfile=outfile, user=usr, input_dir_path=ID, output_dir_path=WD, backfield_curve=bak_curve, specnum=spc, samp_con=ncn, er_location_name=loc_name, units=units, inst=ins)
 
     def on_cancelButton(self,event):
         self.Destroy()
