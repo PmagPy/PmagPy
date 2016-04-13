@@ -388,8 +388,6 @@ def common_mean_bootstrap(Data1,Data2,NumSims=1000, save=False, save_folder = '.
     cart2= pmag.dir2cart(BDI2).transpose()
     X2,Y2,Z2=cart2[0],cart2[1],cart2[2]
 
-    print "Here are the results of the bootstrap test for a common mean:"
-
     fignum = 1
     fig = plt.figure(figsize=figsize)
     fig = plt.subplot(1,3,1)
