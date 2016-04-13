@@ -41,7 +41,7 @@ You may have to monkey-patch this file: MachOGraph.py.  (Located here on my mach
 
 ## Windows standalones
 
-1. Make sure your path points to the correct version of Python.  I've had success with Canopy Python, but you may be able to use a different installation.  You should have pmagpy and pmagpy-cli installed using pip.  
+1. Make sure your path points to the correct version of Python.  I've had success with Canopy Python, but you may be able to use a different installation.  You should have pmagpy installed using pip.
 
 2.  Edit "main" function in Pmag GUI and MagIC GUI (desired behavior is slightly different when not launching from the command line).
 2a. Change:
@@ -50,19 +50,19 @@ You may have to monkey-patch this file: MachOGraph.py.  (Located here on my mach
 `if working_dir == '.':`
     `app.frame.on_change_dir_button(None)`
 
-3. Run unittests to make sure that everything works on Windows.  In PmagPy directory: `python -m unittest discover`.
+3. Run unittests to make sure that everything works on Windows.  In PmagPy directory: `python -m unittest discover`.  Note: not all tests necessarily have to been passing to have a successful build.  It's still a good point of reference.
 
 4.  Move both Windows setup scripts from the setup_scripts directory to the main PmagPy directory.
 
-5. From the main PmagPy directory, run `python programs/win\_magic\_gui\_setup.py py2exe'. (expect this to take a horribly long time)
+5. From the main PmagPy directory, run `python win_magic_gui_setup.py py2exe'. (expect this to take a horribly long time)
 
-6.  From the main PmagPy directory, run `python programs/win\_pmag\_gui\_setup.py py2exe'.  (same as above)
+6.  From the main PmagPy directory, run `python win_pmag_gui_setup.py py2exe'.  (same as above)
 
 7.  Try to run the distributions.  If one of them doesn't work, you may need to find "numpy-atlas.dll" in your system and copy it to the distribution folders.  (I've had to add "numpy-atlas.dll" to the list of ignored dlls in the setup files.  Otherwise, the build halts with an error halfway through.  However, the finished program needs numpy-atlas to run.)  Once you have the standalones working correctly, you can move on to packaging them up.
 
 8.  If you don't already have it, you'll need to download Inno Setup Compiler: http://www.jrsoftware.org/isdl.php
 
-9.  Either in Inno Setup Compiler or in a text editor, edit setup\_scripts/Pmag_GUI.iss and setup\_scripts/Magic\_GUI.iss.  You'll want to: a) update the version number, b) edit the paths to be correct to your local machine (everywhere you see '\***').
+9.  Either in Inno Setup Compiler or in a text editor, edit setup\_scripts/Pmag_GUI.iss and setup\_scripts/Magic\_GUI.iss.  You'll want to: a) update the version number, b) edit the paths to be correct to your local machine (everywhere you see '\***'), and c) increment the AppVersion number.
 
 10.  Select build --> compile in Inno Setup Compiler.
 
