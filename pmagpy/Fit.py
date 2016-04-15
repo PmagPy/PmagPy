@@ -9,7 +9,7 @@ class Fit():
         @param: name -> the name of the fit as it will be displayed to the user
         @param: tmax -> the upper bound of the fit
         @param: tmin -> the lower bound of the fit
-        @param: color -> the color of the fit when it is graphed
+        @param: color -> the color of the fit when it is plotted
         @param: GUI -> the Zeq_GUI on which this fit is drawn
         """
         self.name = name
@@ -161,4 +161,3 @@ class Fit():
         """
         try: return self.name + ": \n" + "Tmax = " + self.tmax + ", Tmin = " + self.tmin + "\n" + "Color = " + str(self.color)
         except ValueError: return self.name + ": \n" + " Color = " + self.color
-
