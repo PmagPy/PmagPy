@@ -1548,7 +1548,8 @@ def plotHYS(fignum,B,M,s):
         Blower.append(B[k])
     Iupper=spline.Spline(Bupper,Mupper) # get splines for upper up and down
     Ilower=spline.Spline(Blower,Mlower) # get splines for lower
-    for b in numpy.arange(B[0],step=.01):  # get range of field values
+    incr=B[0]*.01
+    for b in numpy.arange(B[0],step=incr):  # get range of field values
         Mpos=((Iupper(b)-Ilower(b))) # evaluate on both sides of B
         Mneg=((Iupper(-b)-Ilower(-b)))
         Bdm.append(b)
