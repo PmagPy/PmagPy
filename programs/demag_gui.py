@@ -1851,6 +1851,9 @@ class Demag_GUI(wx.Frame):
                                 pars = fit.get(dirtype)
                                 if pars == {} or pars == None:
                                     pars = self.get_PCA_parameters(element,fit,fit.tmin,fit.tmax,dirtype,fit.PCA_type)
+                                    if pars == {} or pars == None:
+                                        print("cannot calculate parameters for element %s and fit %s in calculate_high_level_mean leaving out of fisher mean, please check this value."%(element,fit.name))
+                                        continue
                                     fit.put(element,dirtype,pars)
                             else:
                                 continue
@@ -2100,7 +2103,7 @@ class Demag_GUI(wx.Frame):
         if fit and not tmin and not tmax:
             tmin = fit.tmin
             tmax = fit.tmax
-        if specimen not in self.Data.keys(): raise ValueError("No data for specimen " + specimen)
+        if specimen not in self.Data.keys(): self.user_warning("No data for specimen " + specimen)
         if tmin in self.Data[specimen]['zijdblock_steps']:
             tmin_index=self.Data[specimen]['zijdblock_steps'].index(tmin)
         elif type(tmin) == str or type(tmin) == unicode and tmin != '':
@@ -2569,7 +2572,7 @@ class Demag_GUI(wx.Frame):
         zdata_tilt=[]
         vector_diffs=[]
         NRM=zijdblock[0][3]
-        if NRM == 0: raise ValueError("-E- NRM is 0 cannot normalize magnetic vector magnitude by NRM.")
+        if NRM == 0: self.user_warning("-E- NRM is 0 cannot normalize magnetic vector magnitude by NRM.")
         for k in range(len(zijdblock)):
             # specimen coordinates
             if len(zijdblock[k]) < 4:
@@ -2866,11 +2869,20 @@ class Demag_GUI(wx.Frame):
 
     def init_log_file(self):
         """
-        redirects stdout to a log file to prevent printing to a hanging terminal when dealing with the compiled binary. Just uncomment the stdout line otherwise the function does nothing.
+        redirects stdout to a log file to prevent printing to a hanging terminal when dealing with the compiled binary.
         """
         #redirect terminal output
-        #sys.stdout = open(os.path.join(self.WD, "demag_gui.log"),'w+')
-        pass
+        self.old_stdout = sys.stdout
+        sys.stdout = open(os.path.join(self.WD, "demag_gui.log"),'w+')
+
+    def close_log_file(self):
+        """
+        if log file has been opened and you wish to stop printing to file but back to terminal this function redirects stdout back to origional output.
+        """
+        try:
+            sys.stdout = self.old_stdout
+        except NameError:
+            print("Log file was never openned it cannot be closed")
 
     def update_pmag_tables(self):
 
@@ -3717,7 +3729,9 @@ class Demag_GUI(wx.Frame):
                 os.remove(os.path.join(self.WD,FILE))
                 print("-I- Delete old magic file  %s\n"%os.path.join(self.WD,FILE))
 
-            except:
+            except OSError:
+                continue
+            except IOError:
                 continue
 
             for rec in meas_data:
@@ -3740,7 +3754,7 @@ class Demag_GUI(wx.Frame):
                     mpars = fit.get(dirtype)
                     if not mpars:
                         mpars = self.get_PCA_parameters(specimen,fit,fit.tmin,fit.tmax,dirtype,fit.PCA_type)
-                        if not mpars: continue
+                        if not mpars: print("Could not calculate interpretation for specimen %s and fit %s while exporting pmag tables, skipping"%(specimen,fit.name));continue
 
                     PmagSpecRec={}
                     user="" # Todo
@@ -3926,7 +3940,7 @@ class Demag_GUI(wx.Frame):
             number_saved_fits = sum(1 for line in open("demag_gui.redo"))
             number_current_fits = sum(len(self.pmag_results_data['specimens'][specimen]) for specimen in self.pmag_results_data['specimens'].keys())
             #break if there are no fits there's no need to save an empty file
-            if number_current_fits == 0: raise RuntimeError("get out and don't write")
+            if number_current_fits == 0: raise RuntimeError("get out and don't write, lol this is such a hack")
             write_session_to_failsafe = (number_saved_fits != number_current_fits)
             default_redo = open("demag_gui.redo")
             i,specimen = 0,None
@@ -3966,6 +3980,7 @@ class Demag_GUI(wx.Frame):
         else:
             if self.interpretation_editor_open:
                 self.interpretation_editor.on_close_edit_window(event)
+            self.close_log_file()
             self.Destroy()
 
     #---------------------------------------------#
