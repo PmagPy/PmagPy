@@ -1442,22 +1442,28 @@ class Demag_GUI(wx.Frame):
 
        # plot elements directions
        for element in elements_list:
-            if element not in self.pmag_results_data[elements_type].keys():
+            if element not in self.pmag_results_data[elements_type].keys() and self.UPPER_LEVEL_SHOW == 'specimens':
                 self.calculate_high_level_mean(elements_type,element,"Fisher","specimens")
             if element in self.pmag_results_data[elements_type].keys():
                 self.plot_higher_level_equalarea(element)
 
             else:
+                if element not in self.high_level_means[elements_type].keys():
+                    self.calculate_high_level_mean(elements_type,element,"Fisher",'specimens')
+                if self.mean_fit not in self.high_level_means[elements_type][element].keys():
+                    self.calculate_high_level_mean(elements_type,element,"Fisher",'specimens')
                 if element in self.high_level_means[elements_type].keys():
-                    if dirtype in self.high_level_means[elements_type][element].keys():
-                        mpars=self.high_level_means[elements_type][element][dirtype]
-                        self.plot_eqarea_pars(mpars,self.high_level_eqarea)
+                    if self.mean_fit in self.high_level_means[elements_type][element].keys():
+                        if dirtype in self.high_level_means[elements_type][element][self.mean_fit].keys():
+                            mpars=self.high_level_means[elements_type][element][self.mean_fit][dirtype]
+                            self.plot_eqarea_pars(mpars,self.high_level_eqarea)
 
        # plot elements means
        if calculation_type!="None":
            if high_level_name in self.high_level_means[high_level_type].keys():
-               if dirtype in self.high_level_means[high_level_type][high_level_name].keys():
-                   self.plot_eqarea_mean(self.high_level_means[high_level_type][high_level_name][dirtype],self.high_level_eqarea)
+                if self.mean_fit in self.high_level_means[high_level_type][high_level_name].keys():
+                    if dirtype in self.high_level_means[high_level_type][high_level_name][self.mean_fit].keys():
+                        self.plot_eqarea_mean(self.high_level_means[high_level_type][high_level_name][self.mean_fit][dirtype],self.high_level_eqarea)
 
 
        self.high_level_eqarea.set_xlim(-1., 1.)
@@ -1573,7 +1579,7 @@ class Demag_GUI(wx.Frame):
                 dec=pars["specimen_dec"];inc=pars["specimen_inc"]
             elif "dec" in pars.keys() and "inc" in pars.keys():
                 dec=pars["dec"];inc=pars["inc"]
-            XY=pmag.dimap(dec,inc)
+            XY=pmag.dimap(float(dec),float(inc))
             if inc>0:
                 FC='gray';SIZE=15*self.GUI_RESOLUTION
             else:
@@ -1832,6 +1838,7 @@ class Demag_GUI(wx.Frame):
             if high_level_name not in self.Data_hierarchy[high_level_type].keys():
                 continue
 
+
             elements_list=self.Data_hierarchy[high_level_type][high_level_name][elements_type]
             pars_for_mean={}
             pars_for_mean["All"] = []
@@ -1876,7 +1883,7 @@ class Demag_GUI(wx.Frame):
                             continue
                 else:
                     try:
-                        pars=self.high_level_means[elements_type][element][dirtype]
+                        pars=self.high_level_means[elements_type][element][self.mean_fit][dirtype]
                         if "dec" in pars.keys() and "inc" in pars.keys():
                             dec,inc,direction_type=pars["dec"],pars["inc"],'l'
                         else:
@@ -1887,23 +1894,26 @@ class Demag_GUI(wx.Frame):
                         continue
 
             for key in pars_for_mean.keys():
-                if len(pars_for_mean[key]) > 0 and key != "All":
-                    if high_level_name not in self.pmag_results_data[high_level_type].keys():
-                        self.pmag_results_data[high_level_type][high_level_name] = []
-                    if key not in map(lambda x: x.name, self.pmag_results_data[high_level_type][high_level_name]):
-                        self.pmag_results_data[high_level_type][high_level_name].append(Fit(key, None, None, colors_for_means[key], self))
-                        key_index = -1
-                    else:
-                        key_index = map(lambda x: x.name, self.pmag_results_data[high_level_type][high_level_name]).index(key)
-                    new_pars = self.calculate_mean(pars_for_mean[key],calculation_type)
-                    map_keys = new_pars.keys()
-                    map_keys.remove("calculation_type")
-                    if calculation_type == "Fisher":
-                        for mkey in map_keys:
-                            new_pars[mkey] = float(new_pars[mkey])
-                    self.pmag_results_data[high_level_type][high_level_name][key_index].put(None, dirtype,new_pars)
-                if len(pars_for_mean[key]) > 0 and key == "All":
-                    self.high_level_means[high_level_type][high_level_name][dirtype] = self.calculate_mean(pars_for_mean["All"],calculation_type)
+#                if len(pars_for_mean[key]) > 0 and key != "All":
+#                    if high_level_name not in self.pmag_results_data[high_level_type].keys():
+#                        self.pmag_results_data[high_level_type][high_level_name] = []
+#                    if key not in map(lambda x: x.name, self.pmag_results_data[high_level_type][high_level_name]):
+#                        self.pmag_results_data[high_level_type][high_level_name].append(Fit(key, None, None, colors_for_means[key], self))
+#                        key_index = -1
+#                    else:
+#                        key_index = map(lambda x: x.name, self.pmag_results_data[high_level_type][high_level_name]).index(key)
+#                    new_pars = self.calculate_mean(pars_for_mean[key],calculation_type)
+#                    map_keys = new_pars.keys()
+#                    map_keys.remove("calculation_type")
+#                    if calculation_type == "Fisher":
+#                        for mkey in map_keys:
+#                            new_pars[mkey] = float(new_pars[mkey])
+#                    print(high_level_type,high_level_name,key_index)
+#                    self.pmag_results_data[high_level_type][high_level_name][key_index].put(None, dirtype,new_pars)
+                if len(pars_for_mean[key]) > 0:# and key == "All":
+                    if self.mean_fit not in self.high_level_means[high_level_type][high_level_name].keys():
+                        self.high_level_means[high_level_type][high_level_name][self.mean_fit] = {}
+                    self.high_level_means[high_level_type][high_level_name][self.mean_fit][dirtype] = self.calculate_mean(pars_for_mean["All"],calculation_type)
 
     def calculate_mean(self,pars_for_mean,calculation_type):
         '''
@@ -2881,7 +2891,7 @@ class Demag_GUI(wx.Frame):
         """
         try:
             sys.stdout = self.old_stdout
-        except NameError:
+        except AttributeError:
             print("Log file was never openned it cannot be closed")
 
     def update_pmag_tables(self):
@@ -3464,9 +3474,10 @@ class Demag_GUI(wx.Frame):
         high_level_name=str(self.level_names.GetValue())
         elements_type=self.UPPER_LEVEL_SHOW
         if high_level_name in self.high_level_means[high_level_type].keys():
-            if dirtype in self.high_level_means[high_level_type][high_level_name].keys():
-                mpars=self.high_level_means[high_level_type][high_level_name][dirtype]
-                self.show_higher_levels_pars(mpars)
+            if self.mean_fit in self.high_level_means[high_level_type][high_level_name].keys():
+                if dirtype in self.high_level_means[high_level_type][high_level_name][self.mean_fit].keys():
+                    mpars=self.high_level_means[high_level_type][high_level_name][self.mean_fit][dirtype]
+                    self.show_higher_levels_pars(mpars)
 
     def update_temp_boxes(self):
         if self.s not in self.Data.keys():
@@ -4219,6 +4230,7 @@ class Demag_GUI(wx.Frame):
         webopen("https://github.com/ltauxe/PmagPy", new=2)
 
     def on_menu_debug(self,event):
+        self.close_log_file()
         pdb.set_trace()
 
 #==========================================================================================#
