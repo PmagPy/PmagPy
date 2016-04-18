@@ -22,6 +22,8 @@ import dialogs.pmag_basic_dialogs as pmag_basic_dialogs
 import dialogs.pmag_er_magic_dialogs as pmag_er_magic_dialogs
 import dialogs.pmag_gui_menu as pmag_gui_menu
 import dialogs.ErMagicBuilder as ErMagicBuilder
+from programs import demag_gui
+from programs import thellier_gui
 
 # import check_updates
 
@@ -321,15 +323,11 @@ class MagMainFrame(wx.Frame):
 
         outstring = "thellier_gui.py -WD %s"%self.WD
         print "-I- running python script:\n %s"%(outstring)
-
-        import thellier_gui
         thellier_gui.main(self.WD, standalone_app=False, parent=self)
 
     def on_run_demag_gui(self, event):
         outstring = "demag_gui.py -WD %s"%self.WD
         print "-I- running python script:\n %s"%(outstring)
-        # for use as module:
-        import demag_gui
         demag_gui.main(self.WD, standalone_app=False, parent=self)
 
     def on_convert_file(self, event):

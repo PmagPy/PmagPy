@@ -102,7 +102,7 @@ class Demag_GUI(wx.Frame):
 
         DESCRIPTION:
     GUI for interpreting demagnetization data (AF and/or thermal).
-    For tutorial chcek PmagPy cookbook in http://earthref.org/PmagPy/cookbook/
+    For tutorial on usage see the PmagPy cookbook at http://earthref.org/PmagPy/cookbook/
         """
 
         args=sys.argv
@@ -378,7 +378,8 @@ class Demag_GUI(wx.Frame):
         self.coordinates_box = wx.ComboBox(self.panel, -1, size=(150*self.GUI_RESOLUTION,25), choices=self.coordinate_list, value=intial_coordinate,style=wx.CB_DROPDOWN,name="coordinates")
         self.Bind(wx.EVT_COMBOBOX, self.onSelect_coordinates,self.coordinates_box)
 
-        self.orthogonal_box = wx.ComboBox(self.panel, -1, value='X=East', size=(150*self.GUI_RESOLUTION,25), choices=['X=NRM dec','X=East','X=North','X=best fit line dec'], style=wx.CB_DROPDOWN,name="orthogonal_plot")
+        self.orthogonal_box = wx.ComboBox(self.panel, -1, value='X=East', size=(150*self.GUI_RESOLUTION,25), choices=['X=NRM dec','X=East','X=North'], style=wx.CB_DROPDOWN,name="orthogonal_plot")
+        #remove 'X=best fit line dec' as option given that is isn't implemented for multiple components
         self.Bind(wx.EVT_COMBOBOX, self.onSelect_orthogonal_box,self.orthogonal_box)
 
         self.box_sizer_select_specimen.Add(wx.StaticText(self.panel,label="specimen:",style=wx.TE_CENTER))
@@ -675,7 +676,7 @@ class Demag_GUI(wx.Frame):
 #        m_import_LSQ = menu_Analysis.Append(-1, "&Import Interpretations from LSQ file\tCtrl-L", "")
 #        self.Bind(wx.EVT_MENU, self.on_menu_read_from_LSQ, m_import_LSQ)
 
-        m_previous_interpretation = menu_Analysis.Append(-1, "&Import previous interpretation from a redo file\tCtrl-R", "")
+        m_previous_interpretation = menu_Analysis.Append(-1, "&Import previous interpretations from a redo file\tCtrl-R", "")
         self.Bind(wx.EVT_MENU, self.on_menu_previous_interpretation, m_previous_interpretation)
 
         m_save_interpretation = menu_Analysis.Append(-1, "&Save current interpretations to a redo file\tCtrl-S", "")

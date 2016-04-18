@@ -13,15 +13,16 @@ if mpl_env:
 else:
     matplotlib.use("TKAgg")
 
-print "You are running:"
-try:
-    print pkg_resources.get_distribution('pmagpy')
-except pkg_resources.DistributionNotFound:
-    pass
-try:
-    print pkg_resources.get_distribution('pmagpy-cli')
-except pkg_resources.DistributionNotFound:
-    pass
+if "-v" in sys.argv:
+    print "You are running:"
+    try:
+        print pkg_resources.get_distribution('pmagpy')
+    except pkg_resources.DistributionNotFound:
+        pass
+    try:
+        print pkg_resources.get_distribution('pmagpy-cli')
+    except pkg_resources.DistributionNotFound:
+        pass
 
 
 import generic_magic

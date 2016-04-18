@@ -31,6 +31,9 @@ class TestProgramsHelp(unittest.TestCase):
             return prog
 
     def setUp(self):
+        if os.path.exists('./new-test-output'):
+            shutil.rmtree('./new-test-output')
+
         if not os.path.exists('./new-test-output'):
             os.mkdir('./new-test-output')
 

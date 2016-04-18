@@ -388,8 +388,6 @@ def common_mean_bootstrap(Data1,Data2,NumSims=1000, save=False, save_folder = '.
     cart2= pmag.dir2cart(BDI2).transpose()
     X2,Y2,Z2=cart2[0],cart2[1],cart2[2]
 
-    print "Here are the results of the bootstrap test for a common mean:"
-
     fignum = 1
     fig = plt.figure(figsize=figsize)
     fig = plt.subplot(1,3,1)
@@ -3084,7 +3082,7 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
         [3] mag_az is already corrected in file
         [4] Correct mag_az but not bedding_dip_dir
 
-    Sample naming convention: 
+    Sample naming convention:
         [1] XXXXY: where XXXX is an arbitrary length site designation and Y
             is the single character sample designation.  e.g., TG001a is the
             first sample from site TG001.    [default]
@@ -4756,7 +4754,6 @@ def agm_magic(agm_file, samp_infile=None, outfile='agm_measurements.txt', spec_o
     OUTPUT
         MagIC format files: magic_measurements, er_specimens, er_sample, er_site
     """
-
     #return False, 'fake error message'
     citation='This study'
     MeasRecs=[]
@@ -5412,7 +5409,7 @@ def curie(path_to_file = '.',file_name = 'magic_measurements.txt',
     string='2nd derivative (sliding window=%i)'%int(window_len)
     pmagplotlib.plotXY(PLT['der2'],T_d2,d2,sym='-',xlab='Temperature C',title=string)
     d2=list(d2)
-    print 'second deriative maximum is at T=%i'%int(T_d2[d2.index(max(d2))])
+    print 'second derivative maximum is at T=%i'%int(T_d2[d2.index(max(d2))])
 
     # calculate Curie temperature for different width of sliding windows
     curie,curie_1=[],[]
@@ -6336,7 +6333,7 @@ def hysteresis_magic(path_to_file = '.',hyst_file="rmag_hysteresis.txt",
         sample_num += 1
 
 
-def find_EI(data, nb=1000, save = False, save_folder = '.', fmt='svg',
+def find_ei(data, nb=1000, save = False, save_folder = '.', fmt='svg',
             site_correction = False, return_new_dirs = False):
     """
     Applies series of assumed flattening factor and "unsquishes" inclinations assuming tangent function.

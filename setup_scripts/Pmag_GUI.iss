@@ -15,11 +15,11 @@ AppSupportURL=http://www.earthref.org/PmagPy/Cookbook/
 AppUpdatesURL=http://www.earthref.org/PmagPy/Cookbook/
 DefaultDirName={pf}\Pmag GUI
 DefaultGroupName=Pmag GUI
-LicenseFile=C:\Users\nebula\Desktop\license.txt
-InfoAfterFile=C:\Users\nebula\Desktop\Pmag_GUI_next_steps.txt
+LicenseFile=C:\Users\***\PmagPy\setup_scripts\windows_standalone_license.txt
+InfoAfterFile=C:\Users\***\PmagPy\setup_scripts\MagIC_GUI_next_steps.txt
 OutputDir=Pmag GUI setup
-OutputBaseFilename=install Pmag GUI
-SetupIconFile=C:\Users\nebula\Desktop\PmagPy.ico
+OutputBaseFilename=install_Pmag_GUI
+SetupIconFile=C:\Users\***\PmagPy\programs\images\PmagPy.ico
 Compression=lzma
 SolidCompression=yes
 
@@ -30,8 +30,8 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-Source: "C:\Users\nebula\Desktop\PmagGUI_dist\pmag_gui.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\Users\nebula\Desktop\PmagGUI_dist\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "C:\Users\***\PmagPy\PmagGUI_dist\pmag_gui.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\Users\***\PmagPy\PmagGUI_dist\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]

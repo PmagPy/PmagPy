@@ -16,6 +16,7 @@ core_depthplot_WD = os.path.join(WD, 'pmagpy_data_files', 'core_depthplot')
 empty_WD = os.path.join(os.getcwd(), 'pmagpy_tests', 'examples', 'empty_dir')
 allowable_float_error = 0.1
 
+@unittest.skip("requires interaction")
 class TestMainFrame(unittest.TestCase):
 
     def setUp(self):

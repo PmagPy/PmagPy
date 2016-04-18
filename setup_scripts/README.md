@@ -41,21 +41,49 @@ You may have to monkey-patch this file: MachOGraph.py.  (Located here on my mach
 
 ## Windows standalones
 
-1. Make sure your path points to the correct version of Python.  I've had success with Canopy Python, but you may be able to use a different installation.
+1. Make sure your path points to the correct version of Python.  I've had success with Canopy Python, but you may be able to use a different installation.  You should have pmagpy installed using pip.
 
-2. From the main PmagPy directory, run `python programs/win_magic_gui_setup.py py2exe'.
+2.  Edit "main" function in Pmag GUI and MagIC GUI (desired behavior is slightly different when not launching from the command line).
+2a. Change:
+`wx.App(redirect=False)` to `wx.App(redirect=True)`
+2b. Remove comments from these lines:
+`if working_dir == '.':`
+    `app.frame.on_change_dir_button(None)`
 
-3.  From the main PmagPy directory, run `python programs/win_pmag_gui_setup.py py2exe'.
+3. Run unittests to make sure that everything works on Windows.  In PmagPy directory: `python -m unittest discover`.  Note: not all tests necessarily have to been passing to have a successful build.  It's still a good point of reference.
 
-4.  Try to run the distributions.  If one of them doesn't work, you may need to find "numpy-atlas.dll" in your system and copy it to the distribution folders.  (I've had to add "numpy-atlas.dll" to the list of ignored dlls in the setup files.  Otherwise, the build halts with an error halfway through.  However, the finished program needs numpy-atlas to run.)
+4.  Move both Windows setup scripts from the setup_scripts directory to the main PmagPy directory.
 
-5.  If you don't already have it, you'll need to download Inno Setup Compiler: http://www.jrsoftware.org/isdl.php
+5. From the main PmagPy directory, run `python win_magic_gui_setup.py py2exe'. (expect this to take a horribly long time)
 
-6.  ....
+6.  From the main PmagPy directory, run `python win_pmag_gui_setup.py py2exe'.  (same as above)
+
+7.  Try to run the distributions.  If one of them doesn't work, you may need to find "numpy-atlas.dll" in your system and copy it to the distribution folders.  (I've had to add "numpy-atlas.dll" to the list of ignored dlls in the setup files.  Otherwise, the build halts with an error halfway through.  However, the finished program needs numpy-atlas to run.)  Once you have the standalones working correctly, you can move on to packaging them up.
+
+8.  If you don't already have it, you'll need to download Inno Setup Compiler: http://www.jrsoftware.org/isdl.php
+
+9.  Either in Inno Setup Compiler or in a text editor, edit setup\_scripts/Pmag_GUI.iss and setup\_scripts/Magic\_GUI.iss.  You'll want to: a) update the version number, b) edit the paths to be correct to your local machine (everywhere you see '\***'), and c) increment the AppVersion number.
+
+10.  Select build --> compile in Inno Setup Compiler.
+
+11.  Sometimes you'll get an error with "EndUpdateResource failed" or something like that.  This may or may not be a real error.  Check that the path of the resource is in fact correct and customized to your machine.  If it is, try again to build the setup script.  Sometimes you might have to try a few times in a row (I don't know why).  
+
+12.  Run Pmag\_GUI.iss and Magic\_GUI.iss in the Inno Setup Compiler GUI.  You can find the output files through the Inno GUI by selecting Build --> Open Output Folder.  They should be called: "install\_Pmag\_GUI.exe" and "install\_Magic\_GUI.exe".
+
+13.  Try running the setup for each and see if you get a nice, happy installation.  
+
+14.  If everything is good, upload "install\_Pmag\_GUI.exe" and "install\_MagIC\_GUI.exe" to https://github.com/PmagPy/PmagPy-Standalone-Windows
+
+15.  Create a new Github release.  Make sure to update the release number and the links.
+
+NB: I know this process sucks.  Sorry.
 
 ## Py2exe troubleshooting ##
 
-Editing registry for use with Canopy.  
+
+1.  If the executable works fine but the Inno-installed program doesn't, you may want to install the program into a directory where the log can be created (i.e., Desktop.)  You'll want to do this if the program won't run AND you get an error message that the log can't be opened.  
+
+2.  Editing registry for use with Canopy.  
 
 	open regedit
 
@@ -64,8 +92,8 @@ Editing registry for use with Canopy.
 	also add Python.File to .py subfolder OpenWithProgIds
 
 	find Python.File
-	get path where python is installed (python_path = which python)
-	in subfolder Python.File/shell/Edit with Pythonwin/command, change Data to "python_path + .exe" + "%1"
+	get path where python is installed (python\_path = which python)
+	in subfolder Python.File/shell/Edit with Pythonwin/command, change Data to "python\_path + .exe" + "%1"
 	
 
 
