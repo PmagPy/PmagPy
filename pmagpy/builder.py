@@ -22,7 +22,6 @@ class ErMagicBuilder(object):
         self.samples = []
         self.sites = []
         self.locations = []
-        self.results = []
         self.write_ages = False
         self.ancestry = [None, 'specimen', 'sample', 'site', 'location', None]
         #
@@ -50,6 +49,8 @@ class ErMagicBuilder(object):
         self.delete_methods = {'specimen': self.delete_specimen, 'sample': self.delete_sample,
                                'site': self.delete_site, 'location': self.delete_location,
                                'age': None}
+
+        
         # actual is at position 0, reqd is at position 1, optional at position 2
         #self.headers = {
         #    'measurement': {'er': [[], [], []], 'pmag': [[], [], []]},
@@ -67,7 +68,7 @@ class ErMagicBuilder(object):
         #    'result': {'er': [[], [], []], 'pmag': [[], [], []]}
         #}
         #self.first_age_headers = ['er_citation_names', 'magic_method_codes', 'age_unit']
-        #self.age_type = 'site'
+
 
 
     def make_name_list(self, obj_list):
@@ -134,7 +135,6 @@ class ErMagicBuilder(object):
         self.headers['location']['er'][1], self.headers['location']['er'][2] = self.get_headers('er_locations')
         self.headers['age']['er'][1], self.headers['age']['er'][2] = self.get_headers('er_ages')
         
-        self.headers['result']['pmag'][1], self.headers['result']['pmag'][2] = self.get_headers('pmag_results')
         self.headers['specimen']['pmag'][1], self.headers['specimen']['pmag'][2] = self.get_headers('pmag_specimens')
         self.headers['sample']['pmag'][1], self.headers['sample']['pmag'][2] = self.get_headers('pmag_samples')
         self.headers['site']['pmag'][1], self.headers['site']['pmag'][2] = self.get_headers('pmag_sites')
@@ -192,7 +192,6 @@ class ErMagicBuilder(object):
             if head not in self.headers['age']['er'][0]:
                 self.headers['age']['er'][0].append(head)
 
-        self.headers['result']['er'][0], self.headers['result']['pmag'][0] = headers(self.results, self.headers['result']['er'][1], self.headers['result']['pmag'][1])
 
     def add_measurement(self, exp_name, meas_num, spec_name=None, data=None):
         """
@@ -223,7 +222,7 @@ Creating a new sample named: {} """.format(new_sample_name, new_sample_name)
                 new_sample = self.add_sample(new_sample_name)
         else:
             new_sample = None
-        specimen.change_specimen(new_spec_name, new_sample, new_data, new_pmag_data, replace_data)
+        specimen.change_specimen(new_spec_name, new_sample, new_data, replace_data)
         return specimen
 
     def delete_specimen(self, spec_name):
@@ -537,7 +536,6 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
             print '-I- Getting {} info'.format(child)
             self.get_magic_info(child, parent)
         self.get_age_info()
-        self.get_results_info()
                 
     def get_magic_info(self, child_type, parent_type=None,
                        filename=None, sort_by_file_type=False):
@@ -715,60 +713,6 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
         self.write_ages = True
         return file_type
 
-    def get_results_info(self, filename=None):
-        """
-        Read pmag_results.txt file.
-        Parse information into dictionaries for each item.
-        Then add it to the item object as object.results_data.
-        """
-        if not filename:
-            short_filename = "pmag_results.txt"
-            magic_file = os.path.join(self.WD, short_filename)
-        else:
-            magic_file = filename
-        if not os.path.isfile(magic_file):
-            print '-W- Could not find {} in your working directory {}'.format(short_filename, self.WD)
-            return False
-        # get the data from the pmag_results.txt file
-        data_dict = self.read_magic_file(magic_file, 'by_line_number')[0]
-
-        def make_items_list(string, search_items_list):
-            names = string.split(':')
-            items = []
-            for name in names:
-                name = name.strip(' ')
-                item = self.find_by_name(name, search_items_list)
-                if item:
-                    items.append(item)
-            return items
-        
-        for num, result in data_dict.items():
-            name, specimens, samples, sites, locations = None, None, None, None, None
-            for key, value in result.items():
-                #print key, ':', value
-                if key == 'er_specimen_names':
-                    specimens = make_items_list(value, self.specimens)
-                if key == 'er_sample_names':
-                    samples = make_items_list(value, self.samples)
-                if key == 'er_site_names':
-                    sites = make_items_list(value, self.sites)
-                if key == 'er_location_names':
-                    locations = make_items_list(value, self.locations)
-                if key == 'pmag_result_name':
-                    name = value
-            for header_name in ['er_specimen_names', 'er_site_names',
-                                'er_sample_names', 'er_location_names']:
-                if header_name in result.keys():
-                    result.pop(header_name)
-            if not name:
-                name = num
-            result_item = self.find_by_name(name, self.results)
-            if not result_item:
-                result_item = Result(name, specimens, samples, sites, locations, result, self.data_model)
-            else:
-                print '-W- Two or more results with name: {} found in your result file.\n    Taking only the first.'.format(name)
-            if result_item and result_item not in self.results:
-                self.results.append(result_item)
 
     def read_magic_file(self, path, sort_by_this_name, sort_by_file_type=False):
         """
@@ -879,9 +823,6 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
 
         self.write_age_file()
         
-        if self.results:
-            self.write_result_file()
-
         if warnings:
             print '-W- ' + str(warnings)
             return False, warnings
@@ -1000,41 +941,6 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
             er_outfile.close()
         return er_outfile, pmag_outfile
 
-    def write_result_file(self):
-        actual_headers = sorted(self.headers['result']['pmag'][0])
-        add_headers = ['pmag_result_name', 'er_specimen_names', 'er_sample_names',
-                       'er_site_names', 'er_location_names']
-        full_headers = add_headers[:]
-        full_headers.extend(actual_headers)
-        header_string = '\t'.join(full_headers)
-        results = self.data_lists['result'][0]
-        result_strings = []
-
-        for result in results:
-            result_string = []
-            result_string.append(result.name)
-            spec_str = get_item_string(result.specimens)
-            samp_str = get_item_string(result.samples)
-            site_str = get_item_string(result.sites)
-            loc_str = get_item_string(result.locations)
-            strings = [spec_str, samp_str, site_str, loc_str]
-            for string in strings:
-                result_string.append(string)
-            for key in actual_headers:
-                add_string = result.pmag_data[key]
-                if key == 'er_citation_names' and not add_string.strip('\t'):
-                    add_string = 'This study'
-                result_string.append(str(add_string))
-            result_string = '\t'.join(result_string)
-            result_strings.append(result_string)
-
-        outfile = open(os.path.join(self.WD, 'pmag_results.txt'), 'w')
-        outfile.write('tab\tpmag_results\n')
-        outfile.write(header_string + '\n')
-        for string in result_strings:
-            outfile.write(string + '\n')
-        outfile.close()
-        return outfile
 
     def write_age_file(self):
         """
@@ -1337,7 +1243,6 @@ class Measurement(object):
         self.name = experiment_name.strip() + '_' + str(meas_number)
         self.specimen = specimen
         self.data = remove_dict_headers(data)
-        self.pmag_data = {}
 
     def __repr__(self):
         return 'Measurement: ' + self.name
@@ -1407,7 +1312,7 @@ class Pmag_object(object):
         optional_headers = sorted([header for header in data_dict.keys() if data_dict[header]['data_status'] != 'Required'])
         return reqd_headers, optional_headers
 
-    def update_data(self, data=None, pmag_data=None, replace_data=False):
+    def update_data(self, data=None, replace_data=False):
         if data:
             if replace_data:
                 self.data = data
@@ -1415,13 +1320,6 @@ class Pmag_object(object):
                 self.data = combine_dicts(data, self.data)
         if data:
             pmag.adjust_all_to_360(self.data)
-        if pmag_data:
-            if replace_data:
-                self.pmag_data = pmag_data
-            else:
-                self.pmag_data = combine_dicts(pmag_data, self.pmag_data)
-        if pmag_data:
-            pmag.adjust_all_to_360(self.pmag_data)
 
     def add_child(self, child):
         if 'children' in dir(self):
@@ -1465,7 +1363,6 @@ class Specimen(Pmag_object):
         self.propagate_data()
 
     def propagate_data(self):
-        print 'self.sample', self.sample
         if not self.sample:
             return
         for dtype in ['class', 'lithology', 'type']:
@@ -1504,18 +1401,17 @@ class Sample(Pmag_object):
         self.propagate_data()
         return new_site
         
-    def change_sample(self, new_name, new_site=None, data=None, pmag_data=None, replace_data=False):
+    def change_sample(self, new_name, new_site=None, data=None, replace_data=False):
         self.name = new_name
         if new_site:
             if self.site:
                 self.site.samples.remove(self)
             self.site = new_site
             self.site.samples.append(self)
-        self.update_data(data, pmag_data, replace_data)
+        self.update_data(data, replace_data)
         self.propagate_data()
         
     def propagate_data(self):
-        print 'self.site', self.site
         if not self.site:
             return
         for dtype in ['geologic_classes', 'geologic_lithologies', 'geologic_types']:
@@ -1539,9 +1435,9 @@ class Site(Pmag_object):
     Site level object
     """
 
-    def __init__(self, name, location, data_model=None, data=None, pmag_data=None):
+    def __init__(self, name, location, data_model=None, data=None):
         dtype = 'site'
-        super(Site, self).__init__(name, dtype, data_model, data, pmag_data)
+        super(Site, self).__init__(name, dtype, data_model, data)
         self.samples = []
         self.children = self.samples
         self.location = location or ""
@@ -1557,16 +1453,16 @@ class Site(Pmag_object):
         return new_loc
         
     def change_site(self, new_name, new_location=None, new_data=None,
-                    new_pmag_data=None, replace_data=False):
+                    replace_data=False):
         """
-        Update a site's name, location, data, and pmag_data.
+        Update a site's name, location, and data
         By default, new data will be added in to pre-existing data, overwriting existing values.
         If replace_data is True, the new data dictionary will simply take the place of the existing dict.
         """
         self.name = new_name
         if new_location:
             self.location = new_location
-        self.update_data(new_data, new_pmag_data, replace_data)
+        self.update_data(new_data, replace_data)
 
 
 class Location(Pmag_object):
@@ -1575,10 +1471,9 @@ class Location(Pmag_object):
     Location level object
     """
 
-    def __init__(self, name, parent=None, data_model=None, data=None, pmag_data=None):
+    def __init__(self, name, parent=None, data_model=None, data=None):
         dtype = 'location'
-        super(Location, self).__init__(name, dtype, data_model, data, pmag_data)
-        #def __init__(self, name, dtype, data_model=None, data=None, pmag_data=None, results_data=None):#, headers={}):
+        super(Location, self).__init__(name, dtype, data_model, data)
         self.sites = []
         self.children = self.sites
 
@@ -1588,60 +1483,11 @@ class Location(Pmag_object):
     def set_parent(self, parent=None):
         return False
         
-    def change_location(self, new_name, new_data=None, new_pmag_data=None, replace_data=False):
+    def change_location(self, new_name, new_data=None, replace_data=False):
         self.name = new_name
         #if new_data:
         #    self.data = combine_dicts(new_data, self.data)
-        self.update_data(new_data, new_pmag_data, replace_data)
-
-class Result(object):
-
-    def __init__(self, name, specimens='', samples='', sites='',
-                 locations='', pmag_data=None, data_model=None):
-        if not data_model:
-            self.data_model = validate_upload.get_data_model()
-        else:
-            self.data_model = data_model
-        self.name = name.strip() # names shouldn't start or end with a space!
-        self.specimens = specimens
-        self.samples = samples
-        self.sites = sites
-        self.locations = locations
-        self.data = {}
-
-        pmag_name = 'pmag_results'
-        self.pmag_reqd_headers, self.pmag_optional_headers = self.get_headers(pmag_name)
-        #self.results_reqd_headers, self.results_optional_headers = self.get_headers('pmag_results')
-        
-        pmag_reqd_data = {key: '' for key in self.pmag_reqd_headers}
-        #results_reqd_data = {key: '' for key in self.results_reqd_headers}
-
-        if pmag_data:
-            self.pmag_data = combine_dicts(pmag_data, pmag_reqd_data)
-        else:
-            self.pmag_data = pmag_reqd_data
-        # make sure all longitudes/declinations/azimuths are in 0-360
-        self.pmag_data = pmag.adjust_all_to_360(self.pmag_data)
-
-    def __repr__(self):
-        if self.pmag_data:
-            descr = self.pmag_data.get('result_description')
-        else:
-            descr = ''
-        return 'Result: {}, {}'.format(self.name, descr)
-
-    def get_headers(self, data_type):
-        """
-        If data model not present, get data model from Earthref site or PmagPy directory.
-        Return a list of required headers and optional headers for given data type.
-        """
-        try:
-            data_dict = self.data_model[data_type]
-        except KeyError:
-            return [], []
-        reqd_headers = sorted([header for header in data_dict.keys() if data_dict[header]['data_status'] == 'Required'])
-        optional_headers = sorted([header for header in data_dict.keys() if data_dict[header]['data_status'] != 'Required'])
-        return reqd_headers, optional_headers
+        self.update_data(new_data, replace_data)
 
 
 
