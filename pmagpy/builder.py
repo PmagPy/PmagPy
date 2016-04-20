@@ -1265,7 +1265,9 @@ class Pmag_object(object):
         if not groups:
             groups = set()
             for key in data:
-                if data_model[dtype + 's'].ix[key]["group"] not in groups:
+                if key not in data_model[dtype + 's']:
+                    pass
+                elif data_model[dtype + 's'].ix[key]["group"] not in groups:
                     groups.add(key)
         self.groups = groups
 
