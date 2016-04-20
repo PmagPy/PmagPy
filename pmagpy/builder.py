@@ -5,7 +5,6 @@ Module for building or reading in specimen, sample, site, and location data.
 """
 import os
 import pandas as pd
-# import time
 import pmagpy.pmag as pmag
 import pmagpy.validate_upload as validate_upload
 
@@ -133,7 +132,7 @@ class ErMagicBuilder(object):
         self.headers['sample']['er'][1], self.headers['sample']['er'][2] = self.get_headers('er_samples')
         self.headers['site']['er'][1], self.headers['site']['er'][2] = self.get_headers('er_sites')
         self.headers['location']['er'][1], self.headers['location']['er'][2] = self.get_headers('er_locations')
-        self.headers['age']['er'][1], self.headers['age']['er'][2] = self.get_headers('er_ages')
+        self.headers['age']['er'][1], self.headers['age']['er'][2] = self.get_headers('ages')
         
         self.headers['specimen']['pmag'][1], self.headers['specimen']['pmag'][2] = self.get_headers('pmag_specimens')
         self.headers['sample']['pmag'][1], self.headers['sample']['pmag'][2] = self.get_headers('pmag_samples')
@@ -240,7 +239,7 @@ Creating a new sample named: {} """.format(new_sample_name, new_sample_name)
         del specimen
         return []
 
-    def add_specimen(self, spec_name, samp_name=None, data=None):
+    def add_specimen(self, spec_name, samp_name=None, data=None, groups=[]):
         """
         Create a Specimen object and add it to self.specimens.
         If a sample name is provided, add the specimen to sample.specimens as well.
@@ -254,7 +253,7 @@ Creating a new sample named: {} """.format(samp_name, samp_name)
         else:
             sample = None
 
-        specimen = Specimen(spec_name, sample, self.data_model, data)
+        specimen = Specimen(spec_name, sample, self.data_model, data, groups)
 
         self.specimens.append(specimen)
         if sample:
@@ -540,8 +539,8 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
     def get_magic_info(self, child_type, parent_type=None,
                        filename=None, sort_by_file_type=False):
         """
-        Read er_*.txt or pmag_*.txt file.
-        If no filename is provided, use er_* or pmag_* file in WD.
+        Read MagIC format file
+        If no filename is provided, use file in WD.
         If sort_by_file_type, use file header to determine child, parent types,
         instead of passing those in as arguments.
         Once file is open, parse information into dictionaries for each item.
@@ -550,10 +549,10 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
         """
         parent = ''
         grandparent_type = None
-        magic_name = 'er_' + child_type + '_name'
+        magic_name = child_type + '_name'
         expected_item_type = child_type
         if not filename:
-            short_filename = child_type + '.txt'
+            short_filename = child_type + 's.txt'
             magic_file = os.path.join(self.WD, short_filename)
         else:
             short_filename = os.path.split(filename)[1]
@@ -570,7 +569,7 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
             print '-W- Could not read in file: {}.\n    Make sure it is a MagIC-format file'.format(magic_file)
             return False
         
-        item_type = file_type.split('_')[1][:-1]
+        item_type = file_type[:-1]
         if item_type != expected_item_type:
             print '-W- Expected data of type: {} but instead got: {}'.format(expected_item_type,
                                                                              item_type)
@@ -601,7 +600,7 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
         for child_name in data_dict:
             # if there is a possible parent, try to find parent object in the data model
             if parent_type:
-                parent_name = data_dict[child_name].get('er_' + parent_type + '_name', '')
+                parent_name = data_dict[child_name].get(parent_type + '_name', '')
                 parent = self.find_by_name(parent_name, parent_list)
                 if parent:
                     remove_dict_headers(parent.data)
@@ -614,7 +613,7 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
                 grandparent_name = None
                 if grandparent_type:
                     grandparent_list, grandparent_class, grandparent_constructor = self.data_lists[grandparent_type]
-                    grandparent_name = data_dict[child_name]['er_' + grandparent_type + '_name']
+                    grandparent_name = data_dict[child_name][grandparent_type + '_name']
                     grandparent = self.find_by_name(grandparent_name, grandparent_list)
                     if grandparent_name and not grandparent:
                         grandparent = grandparent_constructor(grandparent_name, None)
@@ -646,13 +645,13 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
 
     def get_age_info(self, filename=None):
         """
-        Read er_ages.txt file.
+        Read ages.txt file.
         Parse information into dictionaries for each site/sample.
         Then add it to the site/sample object as site/sample.age_data.
         """
-        # use filename if provided, otherwise find er_ages.txt in WD
+        # use filename if provided, otherwise find ages.txt in WD
         if not filename:
-            short_filename = 'er_ages.txt'
+            short_filename = 'ages.txt'
             magic_file = os.path.join(self.WD, short_filename)
         else:
             magic_file = filename
@@ -663,7 +662,7 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
         data_dict, header, file_type = self.read_magic_file(magic_file, 'by_line_number')
         # if provided file is not an age_file,
         # try to read it in as whatever type of file it actually is
-        if file_type != 'er_ages':
+        if file_type != 'ages':
             item_type = file_type.split('_')[1][:-1]
             self.get_magic_info(item_type, filename=filename, sort_by_file_type=True)
             return file_type
@@ -673,7 +672,7 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
         for item_dict in data_dict.values():
             item_type = None
             for dtype in ['specimen', 'sample', 'site', 'location']:
-                header_name = 'er_' + dtype + '_name'
+                header_name = dtype + '_name'
                 if header_name in item_dict.keys():
                     if item_dict[header_name]:
                         item_type = dtype
@@ -686,7 +685,7 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
             items_list = self.data_lists[item_type][0]
             item = self.find_by_name(item_name, items_list)
             if not item:
-                ## the following code creates any item in er_ages that does not exist already
+                ## the following code creates any item in ages that does not exist already
                 ## however, we may not WANT that behavior
                 print """-I- A {} named {} in your age file was not found in the data object: 
     Now initializing {} {}""".format(item_type, item_name, item_type, item_name)
@@ -695,7 +694,7 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
                 parent_header, parent_constructor = None, None
                 if parent_type:
                     parent_list, parent_class, parent_constructor = self.data_lists[parent_type]
-                    parent_header = 'er_' + parent_type + '_name'
+                    parent_header = parent_type + '_name'
                 parent_name = item_dict.get(parent_header, '')
                 parent = self.find_by_name(parent_name, parent_list)
                 # if the parent item doesn't exist, and should, create it
@@ -718,7 +717,7 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
         """
         read a magic-formatted tab-delimited file.
         return a dictionary of dictionaries, with this format:
-        {'Z35.5a': {'specimen_weight': '1.000e-03', 'er_citation_names': 'This study', 'specimen_volume': '', 'er_location_name': '', 'er_site_name': 'Z35.', 'er_sample_name': 'Z35.5', 'specimen_class': '', 'er_specimen_name': 'Z35.5a', 'specimen_lithology': '', 'specimen_type': ''}, ....}
+        {'Z35.5a': {'specimen_weight': '1.000e-03', 'citation_names': 'This study', 'specimen_volume': '', 'location_name': '', 'site_name': 'Z35.', 'sample_name': 'Z35.5', 'specimen_class': '', 'specimen_name': 'Z35.5a', 'specimen_lithology': '', 'specimen_type': ''}, ....}
         """
         DATA = {}
         fin = open(path, 'rU')
@@ -944,7 +943,7 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
 
     def write_age_file(self):
         """
-        Write er_ages.txt based on updated ErMagicBuilder data object
+        Write ages.txt based on updated ErMagicBuilder data object
         """
         if not self.write_ages:
             print '-I- No age data available to write'
@@ -1008,12 +1007,12 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
             # only write ages to file if there is data provided
             if data_found:
                 age_strings.append(string)
-        outfile = open(os.path.join(self.WD, 'er_ages.txt'), 'w')
-        outfile.write('tab\ter_ages\n')
+        outfile = open(os.path.join(self.WD, 'ages.txt'), 'w')
+        outfile.write('tab\tages\n')
         outfile.write(header_string + '\n')
         if not age_strings:
             outfile.close()
-            os.remove(os.path.join(self.WD, 'er_ages.txt'))
+            os.remove(os.path.join(self.WD, 'ages.txt'))
             return False
         for string in age_strings:
             outfile.write(string + '\n')
@@ -1253,7 +1252,7 @@ class Pmag_object(object):
     Base class for Specimens, Samples, Sites, etc.
     """
 
-    def __init__(self, name, dtype, data_model=None, data=None, groups=[]):#, headers={}):
+    def __init__(self, name, dtype, data_model=None, data=None, groups=None):#, headers={}):
         if not data_model:
             self.data_model = validate_upload.get_data_model()
         else:
@@ -1263,6 +1262,15 @@ class Pmag_object(object):
         if not data:
             data = {}
         self.data = data
+        if not groups:
+            groups = set()
+            for key in data:
+                if data_model[dtype + 's'].ix[key]["group"] not in groups:
+                    groups.add(key)
+        self.groups = groups
+
+        #  add in any groups needed
+        
 
         #name = 'er_' + dtype + 's'
         
@@ -1286,7 +1294,7 @@ class Pmag_object(object):
         #    self.results_data = None
 
         #if dtype in ('specimen', 'sample', 'site', 'location'):
-        #    self.age_reqd_headers, self.age_optional_headers = self.get_headers('er_ages')
+        #    self.age_reqd_headers, self.age_optional_headers = self.get_headers('ages')
         #    self.age_data = {key: '' for key in self.age_reqd_headers}
         #    remove_dict_headers(self.age_data)
 
@@ -1331,9 +1339,9 @@ class Specimen(Pmag_object):
     """
     Specimen level object
     """
-    def __init__(self, name, sample, data_model=None, data=None):
+    def __init__(self, name, sample, data_model=None, data=None, groups=None):
         dtype = 'specimen'
-        super(Specimen, self).__init__(name, dtype, data_model, data)
+        super(Specimen, self).__init__(name, dtype, data_model, data, groups)
         self.sample = sample or ""
         self.children = []
         self.propagate_data()
