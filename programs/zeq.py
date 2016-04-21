@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 import sys
+import matplotlib
+if matplotlib.get_backend() != "TKAgg":
+  matplotlib.use("TKAgg")
 
 
 import pmagpy.pmagplotlib as pmagplotlib
@@ -27,7 +30,11 @@ def main():
     OPTIONS
         -f FILE for reading from command line
         -u [mT,C] specify units of mT OR C, default is unscaled
+        -sav save figure and quit
+        -fmt [svg,jpg,png,pdf] set figure format [default is svg]
+
     """
+    files,fmt,plot={},'svg',0
     if '-h' in sys.argv: # check if help is needed
         print main.__doc__
         sys.exit() # graceful quit
@@ -46,11 +53,14 @@ def main():
         else:
             units="U"
             SIunits="U"
+    if '-sav' in sys.argv:plot=1
+    if '-fmt' in sys.argv:
+        ind=sys.argv.index('-fmt')
+        fmt=sys.argv[ind+1]
     f=open(file,'rU')
     data=f.readlines()
 #
     datablock= [] # set up list for data
-    fmt='svg' # default image format
     s="" # initialize specimen name
     angle=0.
     for line in data:   # read in the data from standard input
@@ -70,20 +80,19 @@ def main():
 #
 #
     pmagplotlib.plotZED(ZED,datablock,angle,s,SIunits) # plot the data
-    pmagplotlib.drawFIGS(ZED)
-    while 1:
-
+    if plot==0:pmagplotlib.drawFIGS(ZED)
 #
 # print out data for this sample to screen
 #
-        recnum=0
-        for plotrec in datablock:
-            if units=='mT':print '%i  %7.1f %8.3e %7.1f %7.1f ' % (recnum,plotrec[0]*1e3,plotrec[3],plotrec[1],plotrec[2])
-            if units=='C':print '%i  %7.1f %8.3e %7.1f %7.1f ' % (recnum,plotrec[0]-273.,plotrec[3],plotrec[1],plotrec[2])
-            if units=='U':print '%i  %7.1f %8.3e %7.1f %7.1f ' % (recnum,plotrec[0],plotrec[3],plotrec[1],plotrec[2])
-            recnum += 1
-        end_pca=len(datablock)-1 # initialize end_pca, beg_pca to first and last measurement
-        beg_pca=0
+    recnum=0
+    for plotrec in datablock:
+        if units=='mT':print '%i  %7.1f %8.3e %7.1f %7.1f ' % (recnum,plotrec[0]*1e3,plotrec[3],plotrec[1],plotrec[2])
+        if units=='C':print '%i  %7.1f %8.3e %7.1f %7.1f ' % (recnum,plotrec[0]-273.,plotrec[3],plotrec[1],plotrec[2])
+        if units=='U':print '%i  %7.1f %8.3e %7.1f %7.1f ' % (recnum,plotrec[0],plotrec[3],plotrec[1],plotrec[2])
+        recnum += 1
+    end_pca=len(datablock)-1 # initialize end_pca, beg_pca to first and last measurement
+    beg_pca=0
+    if plot==0:
         ans=raw_input(" s[a]ve plot, [b]ounds for pca and calculate, change [h]orizontal projection angle, [q]uit:   ")
         if ans =='q':
             sys.exit() 
@@ -132,6 +141,11 @@ def main():
             if units=='mT':print '%s %s %i  %6.2f %6.2f %6.1f %7.1f %7.1f' % (s,calculation_type,mpars["specimen_n"],mpars["measurement_step_min"]*1e3,mpars["measurement_step_max"]*1e3,mpars["specimen_mad"],mpars["specimen_dec"],mpars["specimen_inc"])
             if units=='C':print '%s %s %i  %6.2f %6.2f %6.1f %7.1f %7.1f' % (s,calculation_type,mpars["specimen_n"],mpars["measurement_step_min"]-273,mpars["measurement_step_max"]-273,mpars["specimen_mad"],mpars["specimen_dec"],mpars["specimen_inc"])
             if units=='U':print '%s %s %i  %6.2f %6.2f %6.1f %7.1f %7.1f' % (s,calculation_type,mpars["specimen_n"],mpars["measurement_step_min"],mpars["measurement_step_max"],mpars["specimen_mad"],mpars["specimen_dec"],mpars["specimen_inc"])
+    else:
+        files={}
+        for key in ZED.keys():
+            files[key]=s+'_'+key+'.'+fmt 
+        pmagplotlib.saveP(ZED,files)
 
 if __name__ == "__main__":
     main()  # run the main program
