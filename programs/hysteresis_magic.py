@@ -290,12 +290,12 @@ def main():
     	    print 'i thought not - goodbye'
     	    sys.exit()
         rmag_out="rmag_hysteresis.txt"
-    if len(HystRecs)>0 and verbose:
+    if len(HystRecs)>0:
         pmag.magic_write(rmag_out,HystRecs,"rmag_hysteresis")
-        print "hysteresis parameters saved in ",rmag_out
-    if len(RemRecs)>0 and verbose:
+        if verbose:print "hysteresis parameters saved in ",rmag_out
+    if len(RemRecs)>0:
         pmag.magic_write(rmag_rem,RemRecs,"rmag_remanence")
-        print "remanence parameters saved in ",rmag_rem
+        if verbose:print "remanence parameters saved in ",rmag_rem
 
 if __name__ == "__main__":
     main()

@@ -498,8 +498,8 @@ def main():
 
     # if redirect is true, wxpython makes its own output window for stdout/stderr
     app = wx.App(redirect=False)
-    app.frame = MainFrame(working_dir)
     working_dir = pmag.get_named_arg_from_sys('-WD', '.')
+    app.frame = MainFrame('.')
     ## this causes an error with Canopy Python
     ## (it works with brew Python)
     ## need to use these lines for Py2app

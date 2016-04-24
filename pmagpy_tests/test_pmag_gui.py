@@ -4,7 +4,7 @@ import unittest
 import os
 import sys
 import wx
-import wx.lib.inspection
+#import wx.lib.inspection
 import programs.pmag_gui as pmag_gui
 import dialogs.pmag_menu_dialogs as pmag_menu_dialogs
 
@@ -13,6 +13,7 @@ WD = sys.prefix
 project_WD = os.path.join(WD, 'pmagpy_data_files', 'testing', 'my_project')
 core_depthplot_WD = os.path.join(WD, 'pmagpy_data_files',
                                  'testing', 'core_depthplot')
+
 
 class TestMainFrame(unittest.TestCase):
 
@@ -340,5 +341,9 @@ class TestCoreDepthplot(unittest.TestCase):
         plot_frame = self.core_window.on_okButton(None)
         self.assertIsInstance(plot_frame, pmag_menu_dialogs.PlotFrame)
 """
-if __name__ == '__main__':
-    unittest.main()
+#if __name__ == '__main__':
+#    #unittest.main()
+#    app = wx.App()
+#    print 'app', app
+#    app.frame = pmag_gui.MagMainFrame(project_WD)
+#    print app.frame

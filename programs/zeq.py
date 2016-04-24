@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 import sys
+import matplotlib
+if matplotlib.get_backend() != "TKAgg":
+  matplotlib.use("TKAgg")
 
 
 import pmagpy.pmagplotlib as pmagplotlib
@@ -27,7 +30,16 @@ def main():
     OPTIONS
         -f FILE for reading from command line
         -u [mT,C] specify units of mT OR C, default is unscaled
+        -sav save figure and quit
+        -fmt [svg,jpg,png,pdf] set figure format [default is svg]
+        -beg [step number] treatment step for beginning of PCA calculation, 0 is default
+        -end [step number] treatment step for end of PCA calculation, last step is default
+        -ct [l,p,f] Calculation Type: best-fit line,  plane or fisher mean; line is default
+
     """
+    files,fmt,plot={},'svg',0
+    end_pca,beg_pca="",""
+    calculation_type='DE-BFL' 
     if '-h' in sys.argv: # check if help is needed
         print main.__doc__
         sys.exit() # graceful quit
@@ -46,11 +58,25 @@ def main():
         else:
             units="U"
             SIunits="U"
+    if '-sav' in sys.argv:plot=1
+    if '-ct' in sys.argv:
+        ind=sys.argv.index('-ct')
+        ct=sys.argv[ind+1]
+        if ct=='f':calculation_type='DE-FM' 
+        if ct=='p':calculation_type='DE-BFP' 
+    if '-fmt' in sys.argv:
+        ind=sys.argv.index('-fmt')
+        fmt=sys.argv[ind+1]
+    if '-beg' in sys.argv:
+        ind=sys.argv.index('-beg')
+        beg_pca=int(sys.argv[ind+1])
+    if '-end' in sys.argv:
+        ind=sys.argv.index('-end')
+        end_pca=int(sys.argv[ind+1])
     f=open(file,'rU')
     data=f.readlines()
 #
     datablock= [] # set up list for data
-    fmt='svg' # default image format
     s="" # initialize specimen name
     angle=0.
     for line in data:   # read in the data from standard input
@@ -70,20 +96,20 @@ def main():
 #
 #
     pmagplotlib.plotZED(ZED,datablock,angle,s,SIunits) # plot the data
-    pmagplotlib.drawFIGS(ZED)
-    while 1:
-
+    if plot==0:pmagplotlib.drawFIGS(ZED)
 #
 # print out data for this sample to screen
 #
-        recnum=0
-        for plotrec in datablock:
-            if units=='mT':print '%i  %7.1f %8.3e %7.1f %7.1f ' % (recnum,plotrec[0]*1e3,plotrec[3],plotrec[1],plotrec[2])
-            if units=='C':print '%i  %7.1f %8.3e %7.1f %7.1f ' % (recnum,plotrec[0]-273.,plotrec[3],plotrec[1],plotrec[2])
-            if units=='U':print '%i  %7.1f %8.3e %7.1f %7.1f ' % (recnum,plotrec[0],plotrec[3],plotrec[1],plotrec[2])
-            recnum += 1
-        end_pca=len(datablock)-1 # initialize end_pca, beg_pca to first and last measurement
-        beg_pca=0
+    recnum=0
+    for plotrec in datablock:
+        if units=='mT':print '%i  %7.1f %8.3e %7.1f %7.1f ' % (recnum,plotrec[0]*1e3,plotrec[3],plotrec[1],plotrec[2])
+        if units=='C':print '%i  %7.1f %8.3e %7.1f %7.1f ' % (recnum,plotrec[0]-273.,plotrec[3],plotrec[1],plotrec[2])
+        if units=='U':print '%i  %7.1f %8.3e %7.1f %7.1f ' % (recnum,plotrec[0],plotrec[3],plotrec[1],plotrec[2])
+        recnum += 1
+    if plot==0:
+      while 1:
+        if end_pca=="":end_pca=len(datablock)-1 # initialize end_pca, beg_pca to first and last measurement
+        if beg_pca=="":beg_pca=0
         ans=raw_input(" s[a]ve plot, [b]ounds for pca and calculate, change [h]orizontal projection angle, [q]uit:   ")
         if ans =='q':
             sys.exit() 
@@ -125,6 +151,18 @@ def main():
                     GoOn=1 # all good
                 else: 
                     print "bad entry of calculation type: try again. " # keep going
+                pmagplotlib.plotZED(ZED,datablock,angle,s,SIunits) # plot the data
+                mpars=pmag.domean(datablock,beg_pca,end_pca,calculation_type) # get best-fit direction/great circle
+                pmagplotlib.plotDir(ZED,mpars,datablock,angle) # plot the best-fit direction/great circle
+                print 'Specimen, calc_type, N, min, max, MAD, dec, inc'
+                if units=='mT':print '%s %s %i  %6.2f %6.2f %6.1f %7.1f %7.1f' % (s,calculation_type,mpars["specimen_n"],mpars["measurement_step_min"]*1e3,mpars["measurement_step_max"]*1e3,mpars["specimen_mad"],mpars["specimen_dec"],mpars["specimen_inc"])
+                if units=='C':print '%s %s %i  %6.2f %6.2f %6.1f %7.1f %7.1f' % (s,calculation_type,mpars["specimen_n"],mpars["measurement_step_min"]-273,mpars["measurement_step_max"]-273,mpars["specimen_mad"],mpars["specimen_dec"],mpars["specimen_inc"])
+                if units=='U':print '%s %s %i  %6.2f %6.2f %6.1f %7.1f %7.1f' % (s,calculation_type,mpars["specimen_n"],mpars["measurement_step_min"],mpars["measurement_step_max"],mpars["specimen_mad"],mpars["specimen_dec"],mpars["specimen_inc"])
+        pmagplotlib.drawFIGS(ZED)
+        
+    else:
+        print beg_pca,end_pca
+        if beg_pca!="" and end_pca!="":
             pmagplotlib.plotZED(ZED,datablock,angle,s,SIunits) # plot the data
             mpars=pmag.domean(datablock,beg_pca,end_pca,calculation_type) # get best-fit direction/great circle
             pmagplotlib.plotDir(ZED,mpars,datablock,angle) # plot the best-fit direction/great circle
@@ -132,6 +170,10 @@ def main():
             if units=='mT':print '%s %s %i  %6.2f %6.2f %6.1f %7.1f %7.1f' % (s,calculation_type,mpars["specimen_n"],mpars["measurement_step_min"]*1e3,mpars["measurement_step_max"]*1e3,mpars["specimen_mad"],mpars["specimen_dec"],mpars["specimen_inc"])
             if units=='C':print '%s %s %i  %6.2f %6.2f %6.1f %7.1f %7.1f' % (s,calculation_type,mpars["specimen_n"],mpars["measurement_step_min"]-273,mpars["measurement_step_max"]-273,mpars["specimen_mad"],mpars["specimen_dec"],mpars["specimen_inc"])
             if units=='U':print '%s %s %i  %6.2f %6.2f %6.1f %7.1f %7.1f' % (s,calculation_type,mpars["specimen_n"],mpars["measurement_step_min"],mpars["measurement_step_max"],mpars["specimen_mad"],mpars["specimen_dec"],mpars["specimen_inc"])
+        files={}
+        for key in ZED.keys():
+            files[key]=s+'_'+key+'.'+fmt 
+        pmagplotlib.saveP(ZED,files)
 
 if __name__ == "__main__":
     main()  # run the main program

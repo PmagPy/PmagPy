@@ -2294,7 +2294,13 @@ class OrientFrameGrid(wx.Frame):
                 self.orient_data[sample_name]={}
                 self.orient_data[sample_name]["sample_name"] = sample_name
                 if sample:
-                    self.orient_data[sample_name]["site_name"] = sample.site
+                    val = sample.site
+                    # if it is a pmag_object, use its name
+                    try:
+                        val = val.name
+                    except AttributeError:
+                        pass
+                    self.orient_data[sample_name]["site_name"] = val
                 else:
                     self.orient_data[sample_name]["site_name"] = ''
 
@@ -2414,7 +2420,13 @@ class OrientFrameGrid(wx.Frame):
                 if key in headers:
                     sample_index = self.samples_list.index(sample)
                     i = headers.index(key)
-                    self.grid.SetCellValue(sample_index, i, self.orient_data[sample][key])
+                    val = str(self.orient_data[sample][key])
+                    # if it's a pmag_object, use its name
+                    try:
+                        val = val.name
+                    except AttributeError:
+                        pass
+                    self.grid.SetCellValue(sample_index, i, val)
 
         #--------------------------------
 
