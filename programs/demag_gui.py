@@ -1603,10 +1603,10 @@ class Demag_GUI(wx.Frame):
         # put on the mean direction
         for mpars in mpars_to_plot:
             XY=pmag.dimap(float(mpars["dec"]),float(mpars["inc"]))
-            if mpars["inc"]>0:
-                FC='green';EC='0.1'
+            if float(mpars["inc"])>0:
+                FC='black';EC='0.1'
             else:
-                FC='yellow';EC='green'
+                FC='white';EC='black'
             fig.scatter([XY[0]],[XY[1]],marker='o',edgecolor=EC, facecolor=FC,s=30,lw=1,clip_on=False)
 
             if "alpha95" in mpars.keys():
@@ -1617,7 +1617,7 @@ class Demag_GUI(wx.Frame):
                     XY=pmag.dimap(Da95[k],Ia95[k])
                     Xcirc.append(XY[0])
                     Ycirc.append(XY[1])
-                fig.plot(Xcirc,Ycirc,'g')
+                fig.plot(Xcirc,Ycirc,'black')
 
         fig.set_xlim(xmin, xmax)
         fig.set_ylim(ymin, ymax)
@@ -2963,8 +2963,6 @@ class Demag_GUI(wx.Frame):
                         self.pmag_results_data['specimens'][self.s].append(Fit('Fit ' + next_fit, None, None, color, self))
                         fit = self.pmag_results_data['specimens'][specimen][-1]
                     else: fit = None
-
-                print(self.COORDINATE_SYSTEM, current_tilt_correction, rec['specimen_tilt_correction'], fit)
 
 
                 if 'specimen_flag' in rec and rec['specimen_flag'] == 'b':
