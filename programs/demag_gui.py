@@ -175,8 +175,8 @@ class Demag_GUI(wx.Frame):
                 self.high_level_means[high_level]={}
 
         self.interpretation_editor_open = False
-        self.color_dict = {'green':'g','yellow':'y','maroon':'m','cyan':'c','blue':'b','red':'r','black':'k','brown':(139./255.,69./255.,19./255.),'orange':(255./255.,127./255.,0./255.),'pink':(255./255.,20./255.,147./255.),'violet':(153./255.,50./255.,204./255.),'grey':(84./255.,84./255.,84./255.),'goldenrod':'goldenrod'}
-        self.colors = ['g','y','m','c','b','r','k',(139./255.,69./255.,19./255.),(255./255.,127./255.,0./255.),(255./255.,20./255.,147./255.),(153./255.,50./255.,204./255.),(84./255.,84./255.,84./255.), 'goldenrod']
+        self.color_dict = {'green':'g','yellow':'y','maroon':'m','cyan':'c','blue':'b','red':'r','brown':(139./255.,69./255.,19./255.),'orange':(255./255.,127./255.,0./255.),'pink':(255./255.,20./255.,147./255.),'violet':(153./255.,50./255.,204./255.),'grey':(84./255.,84./255.,84./255.),'goldenrod':'goldenrod'}
+        self.colors = ['g','y','m','c','b','r',(139./255.,69./255.,19./255.),(255./255.,127./255.,0./255.),(255./255.,20./255.,147./255.),(153./255.,50./255.,204./255.),(84./255.,84./255.,84./255.), 'goldenrod']
         self.current_fit = None
         self.dirtypes = ['DA-DIR','DA-DIR-GEO','DA-DIR-TILT']
         self.bad_fits = []
@@ -2913,9 +2913,13 @@ class Demag_GUI(wx.Frame):
         print("-I- Reading previous interpretations from pmag* tables\n")
         #--------------------------
         # reads pmag_specimens.txt and
-        # update pmag_results_data['specimens'][specimen] BLARGE
+        # update pmag_results_data['specimens'][specimen]
         # with the new interpretation
         #--------------------------
+
+        if self.COORDINATE_SYSTEM == 'geographic': current_tilt_correction = 0
+        elif self.COORDINATE_SYSTEM == 'tilt-corrected': current_tilt_correction = 100
+        else: current_tilt_correction = -1
 
         self.pmag_results_data['specimens'] = {}
         for rec in pmag_specimens:
@@ -2945,7 +2949,7 @@ class Demag_GUI(wx.Frame):
 
                 #if interpretation doesn't exsist create it.
                 if 'specimen_comp_name' in rec.keys():
-                    if rec['specimen_comp_name'] not in map(lambda x: x.name, self.pmag_results_data['specimens'][specimen]):
+                    if rec['specimen_comp_name'] not in map(lambda x: x.name, self.pmag_results_data['specimens'][specimen]) and int(rec['specimen_tilt_correction']) == current_tilt_correction:
                         next_fit = str(len(self.pmag_results_data['specimens'][self.s]) + 1)
                         color = self.colors[(int(next_fit)-1) % len(self.colors)]
                         self.pmag_results_data['specimens'][self.s].append(Fit(rec['specimen_comp_name'], None, None, color, self))
@@ -2953,10 +2957,14 @@ class Demag_GUI(wx.Frame):
                     else:
                         fit = None
                 else:
-                    next_fit = str(len(self.pmag_results_data['specimens'][self.s]) + 1)
-                    color = self.colors[(int(next_fit)-1) % len(self.colors)]
-                    self.pmag_results_data['specimens'][self.s].append(Fit('Fit ' + next_fit, None, None, color, self))
-                    fit = self.pmag_results_data['specimens'][specimen][-1]
+                    if int(rec['specimen_tilt_correction']) == current_tilt_correction:
+                        next_fit = str(len(self.pmag_results_data['specimens'][self.s]) + 1)
+                        color = self.colors[(int(next_fit)-1) % len(self.colors)]
+                        self.pmag_results_data['specimens'][self.s].append(Fit('Fit ' + next_fit, None, None, color, self))
+                        fit = self.pmag_results_data['specimens'][specimen][-1]
+                    else: fit = None
+
+                print(self.COORDINATE_SYSTEM, current_tilt_correction, rec['specimen_tilt_correction'], fit)
 
 
                 if 'specimen_flag' in rec and rec['specimen_flag'] == 'b':
@@ -2999,6 +3007,7 @@ class Demag_GUI(wx.Frame):
             self.s = self.specimens[0]
             self.specimens_box.SetSelection(0)
         if self.s in self.pmag_results_data['specimens'] and self.pmag_results_data['specimens'][self.s]:
+            self.initialize_CART_rot(self.specimens[0])
             self.pmag_results_data['specimens'][self.s][-1].select()
 
 
@@ -3040,6 +3049,7 @@ class Demag_GUI(wx.Frame):
             methods=rec['magic_method_codes'].strip("\n").replace(" ","").split(":")
             site=rec['er_site_name'].strip("\n")
             LPDIR=False;calculation_method=""
+            elements_type = "specimens"
             for method in methods:
                 if "LP-DIR" in method or "DA-DIR" in method or "DE-FM" in method:
                     LPDIR=True
