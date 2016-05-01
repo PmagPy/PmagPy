@@ -1444,20 +1444,28 @@ class Demag_GUI(wx.Frame):
        # plot elements directions
        for element in elements_list:
             if element not in self.pmag_results_data[elements_type].keys() and self.UPPER_LEVEL_SHOW == 'specimens':
-                self.calculate_high_level_mean(elements_type,element,"Fisher","specimens")
+                self.calculate_high_level_mean(elements_type,element,"Fisher","specimens",self.mean_fit)
             if element in self.pmag_results_data[elements_type].keys():
                 self.plot_higher_level_equalarea(element)
 
             else:
                 if element not in self.high_level_means[elements_type].keys():
-                    self.calculate_high_level_mean(elements_type,element,"Fisher",'specimens')
+                    self.calculate_high_level_mean(elements_type,element,"Fisher",'specimens',self.mean_fit)
                 if self.mean_fit not in self.high_level_means[elements_type][element].keys():
-                    self.calculate_high_level_mean(elements_type,element,"Fisher",'specimens')
+                    self.calculate_high_level_mean(elements_type,element,"Fisher",'specimens',self.mean_fit)
                 if element in self.high_level_means[elements_type].keys():
-                    if self.mean_fit in self.high_level_means[elements_type][element].keys():
+                    if self.mean_fit != "All" and self.mean_fit in self.high_level_means[elements_type][element].keys():
                         if dirtype in self.high_level_means[elements_type][element][self.mean_fit].keys():
                             mpars=self.high_level_means[elements_type][element][self.mean_fit][dirtype]
                             self.plot_eqarea_pars(mpars,self.high_level_eqarea)
+                    else:
+                        for mf in self.all_fits_list:
+                            if mf not in self.high_level_means[elements_type][element].keys():
+                                self.calculate_high_level_mean(elements_type,element,"Fisher",'specimens',mf)
+                            if mf in self.high_level_means[elements_type][element].keys():
+                                if dirtype in self.high_level_means[elements_type][element][mf].keys():
+                                    mpars=self.high_level_means[elements_type][element][mf][dirtype]
+                                    self.plot_eqarea_pars(mpars,self.high_level_eqarea)
 
        # plot elements means
        if calculation_type!="None":
@@ -1582,10 +1590,12 @@ class Demag_GUI(wx.Frame):
                 dec=pars["dec"];inc=pars["inc"]
             XY=pmag.dimap(float(dec),float(inc))
             if inc>0:
-                FC='gray';SIZE=15*self.GUI_RESOLUTION
+                if 'color' in pars.keys(): FC=pars['color'];EC=pars['color'];SIZE=15*self.GUI_RESOLUTION
+                else: FC='grey';EC='grey';SIZE=15*self.GUI_RESOLUTION
             else:
-                FC='white';SIZE=15*self.GUI_RESOLUTION
-            fig.scatter([XY[0]],[XY[1]],marker='o',edgecolor='black', facecolor=FC,s=SIZE,lw=1,clip_on=False)
+                if 'color' in pars.keys(): FC='white';EC=pars['color'];SIZE=15*self.GUI_RESOLUTION
+                else: FC='white';EC='grey';SIZE=15*self.GUI_RESOLUTION
+            fig.scatter([XY[0]],[XY[1]],marker='o',edgecolor=EC, facecolor=FC,s=SIZE,lw=1,clip_on=False)
 
     def plot_eqarea_mean(self,meanpars,fig):
         #fig.clear()
@@ -1823,7 +1833,7 @@ class Demag_GUI(wx.Frame):
         print("Autointerpretation Complete")
         self.update_selection()
 
-    def calculate_high_level_mean (self,high_level_type,high_level_name,calculation_type,elements_type):
+    def calculate_high_level_mean (self,high_level_type,high_level_name,calculation_type,elements_type,mean_fit):
         """
         high_level_type:'samples','sites','locations','study'
         calculation_type: 'Bingham','Fisher','Fisher by polarity'
@@ -1855,7 +1865,7 @@ class Demag_GUI(wx.Frame):
                             colors_for_means[fit.name] = fit.color
                         try:
                             #is this fit to be included in mean
-                            if self.mean_fit == 'All' or self.mean_fit == fit.name:
+                            if mean_fit == 'All' or mean_fit == fit.name:
                                 pars = fit.get(dirtype)
                                 if pars == {} or pars == None:
                                     pars = self.get_PCA_parameters(element,fit,fit.tmin,fit.tmax,dirtype,fit.PCA_type)
@@ -1884,7 +1894,7 @@ class Demag_GUI(wx.Frame):
                             continue
                 else:
                     try:
-                        pars=self.high_level_means[elements_type][element][self.mean_fit][dirtype]
+                        pars=self.high_level_means[elements_type][element][mean_fit][dirtype]
                         if "dec" in pars.keys() and "inc" in pars.keys():
                             dec,inc,direction_type=pars["dec"],pars["inc"],'l'
                         else:
@@ -1912,9 +1922,14 @@ class Demag_GUI(wx.Frame):
 #                    print(high_level_type,high_level_name,key_index)
 #                    self.pmag_results_data[high_level_type][high_level_name][key_index].put(None, dirtype,new_pars)
                 if len(pars_for_mean[key]) > 0:# and key == "All":
-                    if self.mean_fit not in self.high_level_means[high_level_type][high_level_name].keys():
-                        self.high_level_means[high_level_type][high_level_name][self.mean_fit] = {}
-                    self.high_level_means[high_level_type][high_level_name][self.mean_fit][dirtype] = self.calculate_mean(pars_for_mean["All"],calculation_type)
+                    if mean_fit not in self.high_level_means[high_level_type][high_level_name].keys():
+                        self.high_level_means[high_level_type][high_level_name][mean_fit] = {}
+                    self.high_level_means[high_level_type][high_level_name][mean_fit][dirtype] = self.calculate_mean(pars_for_mean["All"],calculation_type)
+                    color = "black"
+                    for specimen in self.pmag_results_data['specimens']:
+                        colors = [f.color for f in self.pmag_results_data['specimens'][specimen] if f.name == mean_fit]
+                        if colors != []: color = colors[0]
+                    self.high_level_means[high_level_type][high_level_name][mean_fit][dirtype]['color'] = color
 
     def calculate_mean(self,pars_for_mean,calculation_type):
         '''
@@ -1970,7 +1985,7 @@ class Demag_GUI(wx.Frame):
         elements_type=self.UPPER_LEVEL_SHOW
         if self.interpretation_editor_open:
              self.interpretation_editor.mean_type_box.SetStringSelection(calculation_type)
-        self.calculate_high_level_mean(high_level_type,high_level_name,calculation_type,elements_type)
+        self.calculate_high_level_mean(high_level_type,high_level_name,calculation_type,elements_type,self.mean_fit)
 
     def reset_backend(self):
         if not self.data_loss_warning(): return False
@@ -3046,7 +3061,7 @@ class Demag_GUI(wx.Frame):
             if LPDIR: # this a mean of directions
                 calculation_type="Fisher"
                 for dirtype in self.dirtypes:
-                    self.calculate_high_level_mean('samples',sample,calculation_type,'specimens')
+                    self.calculate_high_level_mean('samples',sample,calculation_type,'specimens',self.mean_fit)
 
         #--------------------------
         # reads pmag_sites.txt and
@@ -3075,7 +3090,7 @@ class Demag_GUI(wx.Frame):
                     elements_type='samples'
                 if 'er_specimen_names' in rec.keys() and len(rec['er_specimen_names'].strip('\n').replace(" ","").split(":"))>0:
                     elements_type='specimens'
-                self.calculate_high_level_mean('sites',site,calculation_type,elements_type)
+                self.calculate_high_level_mean('sites',site,calculation_type,elements_type,self.mean_fit)
 
     def write_acceptance_criteria_to_file(self):
         crit_list=self.acceptance_criteria.keys()
