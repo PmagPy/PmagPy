@@ -673,8 +673,8 @@ class Demag_GUI(wx.Frame):
 
 #        menu_Analysis.AppendMenu(-1, "&Convert and Combine MagFiles", m_read)
 
-#        m_import_LSQ = menu_Analysis.Append(-1, "&Import Interpretations from LSQ file\tCtrl-L", "")
-#        self.Bind(wx.EVT_MENU, self.on_menu_read_from_LSQ, m_import_LSQ)
+        m_import_LSQ = menu_Analysis.Append(-1, "&Import Interpretations from LSQ file\tCtrl-L", "")
+        self.Bind(wx.EVT_MENU, self.on_menu_read_from_LSQ, m_import_LSQ)
 
         m_previous_interpretation = menu_Analysis.Append(-1, "&Import previous interpretations from a redo file\tCtrl-R", "")
         self.Bind(wx.EVT_MENU, self.on_menu_previous_interpretation, m_previous_interpretation)
@@ -2699,23 +2699,36 @@ class Demag_GUI(wx.Frame):
         return(DATA)
 
     def read_from_LSQ(self,LSQ_file):
+        cont = self.user_warning("LSQ import only works if magic_measurements file all measurements are present and not averaged during import from magnetometer files. Do you wish to continue reading interpretations?")
+        if not cont: return
+        print("Reading LSQ file")
         interps = read_LSQ(LSQ_file)
         for interp in interps:
             specimen = interp['er_specimen_name']
             if specimen not in self.specimens: continue
             PCA_type = interp['magic_method_codes'].split(':')[0]
-            tmin_index = interp['measurement_min_index']
-            tmax_index = interp['measurement_max_index']
-            tmin = self.Data[specimen]['zijdblock_steps'][tmin_index]
-            tmax = self.Data[specimen]['zijdblock_steps'][tmax_index]
+            tmin = self.Data[specimen]['zijdblock_steps'][interp['measurement_min_index']]
+            tmax = self.Data[specimen]['zijdblock_steps'][interp['measurement_max_index']]
             if specimen not in self.pmag_results_data['specimens'].keys():
                 self.pmag_results_data['specimens'][specimen] = []
             next_fit = str(len(self.pmag_results_data['specimens'][specimen]) + 1)
             while ('Fit ' + next_fit) in map(lambda x: x.name, self.pmag_results_data['specimens'][specimen]):
                 next_fit = str(int(next_fit)+1)
-            new_fit = Fit('Fit ' + next_fit, tmin, tmax, self.colors[(int(next_fit)-1) % len(self.colors)], self, PCA_type)
+            if 'specimen_comp_name' in interp.keys() and interp['specimen_comp_name'] not in map(lambda x: x.name, self.pmag_results_data['specimens'][specimen]):
+                name = interp['specimen_comp_name']
+            else:
+                name = 'Fit ' + next_fit
+            new_fit = Fit(name, tmin, tmax, self.colors[(int(next_fit)-1) % len(self.colors)], self, PCA_type)
             self.pmag_results_data['specimens'][specimen].append(new_fit)
             new_fit.put(specimen,self.COORDINATE_SYSTEM,self.get_PCA_parameters(specimen,new_fit,tmin,tmax,self.COORDINATE_SYSTEM,PCA_type))
+            if 'bad_measurement_index' in interp.keys():
+                old_s = self.s
+                self.s = specimen
+                for bmi in interp["bad_measurement_index"]:
+                    try: self.mark_meas_bad(bmi)
+                    except IndexError: print("Magic Measurments length does not match that recorded in LSQ file")
+                self.s = old_s
+        self.update_selection()
 
     def read_redo_file(self,redo_file):
         """
@@ -3132,9 +3145,13 @@ class Demag_GUI(wx.Frame):
         return meas_file
 
     def user_warning(self, message, caption = 'Warning!'):
-        dlg = wx.MessageDialog(self, message, caption, wx.OK | wx.ICON_WARNING)
-        dlg.ShowModal()
+        dlg = wx.MessageDialog(self, message, caption, wx.OK | wx.CANCEL | wx.ICON_WARNING)
+        if dlg.ShowModal() == wx.ID_OK:
+            continue_bool = True
+        else:
+            continue_bool = False
         dlg.Destroy()
+        return continue_bool
 
     def data_loss_warning(self):
         TEXT="This action could result in a loss of all unsaved data. Would you like to continue"

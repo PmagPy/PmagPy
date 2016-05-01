@@ -18,6 +18,7 @@ def read_LSQ(filepath):
     fin = open(filepath, 'r')
     interps = fin.readlines()
     interps_out = []
+    parse_LSQ_bound = lambda x: ord(x)-ord("A") if ord(x)-ord("A") < 25 else ord(x)-ord("A")-6
     for i,interp in enumerate(interps):
         interps_out.append({})
         enteries = interp.split()
@@ -25,13 +26,21 @@ def read_LSQ(filepath):
         if enteries[1] == 'L':
             interps_out[i]['magic_method_codes'] = 'DE-BFL:DA-DIR-GEO'
         j = 2
-        if enteries[j] == "MAG": j+=1
+        if len(enteries) > 9: interps_out[i]['specimen_comp_name'] = enteries[j]; j += 1;
+        else: interps_out[i]['specimen_comp_name'] = None
         interps_out[i]['specimen_dec'] = enteries[j]
         interps_out[i]['specimen_inc'] = enteries[j+1]
-        j+=4
+        j += 4
         bounds = enteries[j].split('-')
-        interps_out[i]['measurement_min_index'] = ord(bounds[0])-ord('A')
-        interps_out[i]['measurement_max_index'] = ord(bounds[1])-ord('A')
+        interps_out[i]['measurement_min_index'] = parse_LSQ_bound(bounds[0])
+        interps_out[i]['measurement_max_index'] = parse_LSQ_bound(bounds[-1])
+        bad_meas = [bounds[k] for k in range(len(bounds)) if len(bounds[k]) > 1]
+        for bad_m in bad_meas:
+             fc = parse_LSQ_bound(bad_m[0])
+             lc = parse_LSQ_bound(bad_m[-1])
+             interps_out[i]['bad_measurement_index'] = []
+             for k in range(1,lc-fc+1):
+                     interps_out[i]['bad_measurement_index'].append(fc+k)
         interps_out[i]['specimen_n'] = enteries[j+1]
         interps_out[i]['specimen_mad'] = enteries[j+2]
     fin.close()
