@@ -1,0 +1,7 @@
+tab 	er_citations
+book_editors	book_title	citation_type	city	er_citation_name	journal	long_authors	pages	publisher	title	volume	year
+		Journal		This study	Canadian Journal of Earth Sciences	Halls, H.	1,200-1,207		A paleomagnetic reversal in the Osler Volcanic Group, northern Lake Superior	11	1974
+	Methods in rock magnetism and Paleomagnetism: Techniques and instrumentation	Book	London	Collinson 1983		Collinson, D.W.	503	Chapman and Hall			1983
+		Journal		Cox & Doell 1960	Geological Society of America, Bulletin	Cox, A. and Doell, R.R.	645		Review of paleomagnetism	71	1960
+		Journal		Fisher 1953	Proceedings of the Royal Society of London	Fisher, R.A.	295-305		Dispersion on a sphere	A217	1953
+Dmowska, R., Holton, J.R. and Rossby, H.T.	Paleomagnetism: continents and oceans	Serial Book	San Diego	McElhinny & McFadden 2000	International Geophysics Series	McElhinny, M.W. and McFadden, P.L.	1-1	Academic Press		73	2000
