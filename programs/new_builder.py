@@ -113,7 +113,10 @@ class MagicDataFrame(object):
             return ""
         value = df_or_series[col_name]
         if isinstance(value, pd.Series):
-            return value[0]
+            if any(value):
+                return value[0]
+            else:
+                return ""
 
 
 

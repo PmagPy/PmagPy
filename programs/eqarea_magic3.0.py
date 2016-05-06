@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import sys
+import os
 import matplotlib
 if matplotlib.get_backend() != "TKAgg":
   matplotlib.use("TKAgg")
@@ -36,64 +37,56 @@ def main():
     NOTE
         all: entire file; sit: site; sam: sample; spc: specimen
     """
+    # initialize some default variables
     FIG = {} # plot dictionary
     FIG['eqarea'] = 1 # eqarea is figure 1
-    in_file, plot_key, coord, crd = 'sites.txt', 'all', "0", 'g'
-    plotE, contour = 0, 0
-    dir_path = '.'
-    fmt = 'svg'
+    plotE = 0
+    plt = 0  # default to not plotting
     verbose = pmagplotlib.verbose
+    # extract arguments from sys.argv
     if '-h' in sys.argv:
         print main.__doc__
         sys.exit()
-    if '-WD' in sys.argv:
-        ind=sys.argv.index('-WD')
-        dir_path=sys.argv[ind+1]
+    dir_path = pmag.get_named_arg_from_sys("-WD", default_val=os.getcwd())
     pmagplotlib.plot_init(FIG['eqarea'],5,5)
-    if '-f' in sys.argv:
-        ind=sys.argv.index("-f")
-        in_file=dir_path+"/"+sys.argv[ind+1]
-    if '-obj' in sys.argv:
-        ind=sys.argv.index('-obj')
-        plot_by=sys.argv[ind+1]
-        if plot_by=='all':
-          plot_key='all'
-        if plot_by=='sit':
-          plot_key='site_name'
-        if plot_by=='sam':
-          plot_key='sample_name'
-        if plot_by=='spc':
-          plot_key='specimen_name'
-    else:
-         plot_by = "all" 
+    in_file = os.path.join(dir_path, pmag.get_named_arg_from_sys("-f", default_val="sites.txt"))
+    plot_by = pmag.get_named_arg_from_sys("-obj", default_val="all").lower()
+    if plot_by == 'all':
+        plot_key = 'all'
+    if plot_by == 'sit':
+        plot_key = 'site_name'
+    if plot_by == 'sam':
+        plot_key = 'sample_name'
+    if plot_by == 'spc':
+        plot_key = 'specimen_name'
     if '-c' in sys.argv:
-      contour=1
-    plt=0
+        contour = 1
+    else:
+        contour = 0
     if '-sav' in sys.argv: 
-        plt=1
-        verbose=0
+        plt = 1
+        verbose = 0
     if '-ell' in sys.argv:
-        plotE=1
-        ind=sys.argv.index('-ell')
-        ell_type=sys.argv[ind+1]
-        if ell_type=='F':dist='F' 
-        if ell_type=='K':dist='K' 
-        if ell_type=='B':dist='B' 
-        if ell_type=='Be':dist='BE' 
-        if ell_type=='Bv':
-            dist='BV' 
-            FIG['bdirs']=2
+        plotE = 1
+        ind = sys.argv.index('-ell')
+        ell_type = sys.argv[ind+1]
+        ell_type = pmag.get_named_arg_from_sys("-ell", "F")
+        dist = ell_type.upper()
+        # if dist type is unrecognized, use Fisher
+        if dist not in ['F', 'K', 'B', 'BE', 'BV']:
+            dist = 'F'
+        if dist == "BV":
+            FIG['bdirs'] = 2
             pmagplotlib.plot_init(FIG['bdirs'],5,5)
-    if '-crd' in sys.argv:
-        ind=sys.argv.index("-crd")
-        crd=sys.argv[ind+1]
-        if crd=='s':coord="-1"
-        if crd=='g':coord="0"
-        if crd=='t':coord="100"
-    if '-fmt' in sys.argv:
-        ind=sys.argv.index("-fmt")
-        fmt=sys.argv[ind+1]
-
+    crd = pmag.get_named_arg_from_sys("-crd", default_val="g")
+    if crd == 's':
+        coord = "-1"
+    elif crd == 't':
+        coord="100"
+    else: 
+        coord = "0"
+    fmt = pmag.get_named_arg_from_sys("-fmt", "svg")
+        
     # all of these are probs wrong....
     Dec_keys=['site_dec','sample_dec','specimen_dec','measurement_dec','average_dec','none']
     Dec_keys = ['dir_dec']
@@ -102,20 +95,15 @@ def main():
     Tilt_keys=['tilt_correction','site_tilt_correction','sample_tilt_correction','specimen_tilt_correction','none']
     Tilt_keys=['dir_tilt_correction']
     Dir_type_keys=['','site_direction_type','sample_direction_type','specimen_direction_type']
-    Name_keys=['er_specimen_name','er_sample_name','er_site_name','pmag_result_name']
 
-
-    data3 = nb.MagicDataFrame(in_file)
-    data = data3.df
+    data_container = nb.MagicDataFrame(in_file)
+    data = data_container.df
     
-    #data,file_type=pmag.magic_read(in_file)
-    #if file_type=='pmag_results' and plot_key!="all":plot_key=plot_key+'s' # need plural for results table
     if verbose:    
         print len(data),' records read from ',in_file
     #
-    #
+
     # find desired dec,inc data:
-    #
     dir_type_key=''
     #
     # get plotlist if not plotting all records
@@ -128,7 +116,6 @@ def main():
     else:
         plotlist.append('All')
 
-    
     for plot in plotlist:
         if verbose:
             print plot
@@ -137,18 +124,19 @@ def main():
         else:
             plot_data = data.ix[plot]
       
-        DIblock=[]
-        GCblock=[]
-        SLblock,SPblock=[],[]
-        title=plot
-        mode=1
-        dec_key,inc_key,tilt_key,name_key,k="","","","",0
+        DIblock = []
+        GCblock = []
+        SLblock, SPblock = [], []
+        title = plot
+        mode = 1
+        k = 0
         
         # get all records where dec & inc values exist
         dec_key = Dec_keys[0]
         inc_key = Inc_keys[0]
         plot_data = plot_data[plot_data[dec_key].notnull() & plot_data[inc_key].notnull()]
 
+        # add tilt key into DataFrame columns if it isn't there already
         tilt_key = Tilt_keys[0] # 'tilt_correction'
         if tilt_key not in plot_data.columns:
             plot_data[tilt_key] = ''
@@ -158,43 +146,31 @@ def main():
         else:  # not geographic coordinates, use only records with correct tilt_key
             plot_data = plot_data[plot_data[tilt_key] == coord]
 
-        locations = data3.get_name(plot_data, 'location_name')
-        site = data3.get_name(plot_data, 'site_name')
-        sample = data3.get_name(plot_data, 'sample_name')
-        specimen = data3.get_name(plot_data, 'specimen_name')
-
-        # DIblock
-        # equivalent: DIblock.append([float(rec[dec_key]),float(rec[inc_key])])
-        #print data[[dec_key, inc_key]]
-
+        # get metadata for naming the plot file
+        locations = data_container.get_name(plot_data, 'location_name')
+        site = data_container.get_name(plot_data, 'site_name')
+        sample = data_container.get_name(plot_data, 'sample_name')
+        specimen = data_container.get_name(plot_data, 'specimen_name')
 
         DIblock = [[float(row[dec_key]), float(row[inc_key])] for ind, row in plot_data.iterrows()]
-        #print DIblock
-
-        
+        # make sure magic_method_codes is in plot_data
         if 'magic_method_codes' not in plot_data.columns:
             plot_data['magic_method_codes'] = ''
-        #SLblock
-        # equivalent SLblock.append([rec[name_key],rec['magic_method_codes']])
-        #print data['magic_method_codes']
+
         SLblock = [[ind, row['magic_method_codes']] for ind, row in plot_data.iterrows()]
 
         cond = plot_data[tilt_key] == coord # LJ ADD to this cond: rec[dir_type_key] != 'l'.  just don't know what dir_type_key is in 3.0 yet
-        #GCblock = [[float(row[dec_key]), float(row[inc_key])] for ind, row in  plot_data[cond].iterrows()]
-        GCblock = []  # LJ GCblock is being incorrectly filled in above.  problem is probably the [dir_type_key] != 'l' issue
+        GCblock = [[float(row[dec_key]), float(row[inc_key])] for ind, row in  plot_data[cond].iterrows()]
+        #GCblock = []  # LJ GCblock is being incorrectly filled in above.  problem is probably the [dir_type_key] != 'l' issue
         SPblock = [[ind, row['magic_method_codes']] for ind, row in plot_data[cond].iterrows()]
 
 
-        if len(DIblock)>0:
-            if contour==0:
-                print 'plot without contour'
-                pmagplotlib.plotEQ(FIG['eqarea'],DIblock,title)
+        if len(DIblock) > 0:
+            if contour == 0:
+                pmagplotlib.plotEQ(FIG['eqarea'], DIblock, title)
             else:
-                print 'plot with contour'
-                print 'DIblock[0]', DIblock[0], DIblock[15], DIblock[-3], DIblock[-2], DIblock[-1]
-                pmagplotlib.plotEQcont(FIG['eqarea'],DIblock)
+                pmagplotlib.plotEQcont(FIG['eqarea'], DIblock)
         else:
-            print 'plotNET'
             pmagplotlib.plotNET(FIG['eqarea'])
 
 
@@ -203,9 +179,14 @@ def main():
                 pmagplotlib.plotC(FIG['eqarea'],rec,90.,'g')
 
 
-        if plotE==1:
-            ppars=pmag.doprinc(DIblock) # get principal directions
-            nDIs,rDIs,npars,rpars=[],[],[],[]
+        if len(DIblock) == 0 and len(GCblock) == 0:
+            if verbose:
+                print "no records for plotting"
+            sys.exit()
+                
+        if plotE == 1:
+            ppars = pmag.doprinc(DIblock) # get principal directions
+            nDIs, rDIs, npars, rpars = [], [], [], []
             for rec in DIblock:
                 angle=pmag.angle([rec[0],rec[1]],[ppars['dec'],ppars['inc']])
                 if angle>90.:
