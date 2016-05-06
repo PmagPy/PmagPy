@@ -95,10 +95,28 @@ class MagicDataFrame(object):
             self.df[self.df == ''] = np.nan
                 
                 
-        def add_blank_row(self, label):
-            col_labels = self.df.columns
-            blank_item = pd.Series({}, index=col_labels, name=label)
-            self.df = self.df.append(blank_item)
+    def add_blank_row(self, label):
+        col_labels = self.df.columns
+        blank_item = pd.Series({}, index=col_labels, name=label)
+        self.df = self.df.append(blank_item)
+
+
+    def get_name(self, df_or_series, col_name):
+        # series
+        if isinstance(df_or_series, pd.Series):
+            if col_name not in df_or_series.index:
+                return ""
+            else:
+                return df_or_series[col_name]
+        # dataframe
+        if col_name not in df_or_series.columns:
+            return ""
+        value = df_or_series[col_name]
+        if isinstance(value, pd.Series):
+            return value[0]
+
+
+
 
 
 if __name__ == "__main__":
