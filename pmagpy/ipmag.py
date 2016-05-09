@@ -6070,19 +6070,14 @@ def demag_magic(path_to_file = '.', file_name = 'magic_measurements.txt',
                 for spc in spcs:
                     SPCblock=pmag.get_dictitem(PLTblock,'er_specimen_name',spc,'T') # plot specimen by specimen
                     for rec in SPCblock:
-                        #INTblock=[]
                         if rec['measurement_flag'] == 'g':
-                            if rec[dmag_key] not in AVGblock.keys():
+                            if float(rec[dmag_key]) not in AVGblock.keys():
                                 AVGblock[float(rec[dmag_key])] = [float(rec[int_key])]
                             else:
                                 AVGblock[float(rec[dmag_key])].append(float(rec[int_key]))
-                            #INTblock.append([float(rec[dmag_key]),0,0,float(rec[int_key]),1])
-                    #print INTblock
                 INTblock = []
                 for step in sorted(AVGblock.keys()):
                     INTblock.append([float(step), 0, 0, float(sum(AVGblock[step]))/float(len(AVGblock[step])), 1, 'g'])
-                #print INTblock
-                #print AVGblock
                 pmagplotlib.plotMT(FIG['demag'],INTblock,title,0,units,norm)
         if save==True:
             plt.savefig(os.path.join(save_folder, title)+ '.' + fmt)
