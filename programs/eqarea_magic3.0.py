@@ -148,13 +148,12 @@ def main():
         sample = data_container.get_name('sample_name', df_slice=plot_data)
         specimen = data_container.get_name('specimen_name', df_slice=plot_data)
 
-
         # make sure method_codes is in plot_data
         if 'method_codes' not in plot_data.columns:
             plot_data['method_codes'] = ''
 
         # get data blocks
-        DIblock = data_container.get_di_block(df_slice=plot_data)
+        DIblock = data_container.get_di_block(df_slice=plot_data, tilt_corr=coord)
         SLblock = [[ind, row['method_codes']] for ind, row in plot_data.iterrows()]
         # LISA
         cond = plot_data[tilt_key] == coord

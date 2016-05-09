@@ -9,10 +9,7 @@ from pmagpy import pmag
 class Contribution(object):
 
     def __init__(self, directory):
-        print 'directory', directory
-        print os.path.relpath(directory)
         directory = os.path.realpath(directory)
-        print 'directory', directory
         tables = ['measurements', 'specimens', 'samples',
                   'sites', 'locations', 'contribution',
                   'criteria', 'ages', 'images']
@@ -22,7 +19,6 @@ class Contribution(object):
             filename = os.path.join(directory, name + ".txt")
             print filename
             if os.path.exists(filename):
-                print 'filename', filename
                 self.tables[name] = MagicDataFrame(filename)
 
                
@@ -40,7 +36,6 @@ class Contribution(object):
                 return ":".join(x)
             except TypeError:
                 return x
-
 
         def replace_colon_delimited_value(df, col_name, old_value, new_value):
             """
@@ -70,10 +65,10 @@ class Contribution(object):
             if col_name in col_names:
                 df[col_name].where(df[col_name] != item_old_name, item_new_name, inplace=True)
                 # change anywhere col_name (plural, i.e. site_names) is found
-                if col_name_plural in col_names:
-                    df[col_name_plural + "_list"] = df[col_name_plural].apply(split_if_str)
-                    replace_colon_delimited_value(df, col_name_plural + "_list", item_old_name, item_new_name)
-                    df[col_name_plural] = df[col_name_plural + "_list"].apply(put_together_if_str)
+            if col_name_plural in col_names:
+                df[col_name_plural + "_list"] = df[col_name_plural].apply(split_if_str)
+                replace_colon_delimited_value(df, col_name_plural + "_list", item_old_name, item_new_name)
+                df[col_name_plural] = df[col_name_plural + "_list"].apply(put_together_if_str)
 
 
 class MagicDataFrame(object):
@@ -83,7 +78,6 @@ class MagicDataFrame(object):
         self.df = DataFrame(data)
         if dtype.endswith('s'):
             dtype = dtype[:-1]
-            print 'dtype', dtype
             name = '{}_name'.format(dtype)
             if dtype == 'contribution':
                 name = 'doi'
@@ -96,28 +90,70 @@ class MagicDataFrame(object):
                 
                 
     def add_blank_row(self, label):
+        """
+        Add a blank row with only an index value to self.df
+        """
         col_labels = self.df.columns
         blank_item = pd.Series({}, index=col_labels, name=label)
         self.df = self.df.append(blank_item)
 
 
-    def get_name(self, df_or_series, col_name):
-        # series
-        if isinstance(df_or_series, pd.Series):
-            if col_name not in df_or_series.index:
-                return ""
-            else:
-                return df_or_series[col_name]
-        # dataframe
-        if col_name not in df_or_series.columns:
+    def get_name(self, col_name, df_slice="", index_names=""):
+        """
+        Takes in a column name, and either a DataFrame slice or
+        a list of index_names to slice self.df using fancy indexing.
+        Then return the value for that column in the relevant slice.
+        """
+        # if slice is provided, use it
+        if any(df_slice):
+            df_slice = df_slice
+        # if given index_names, grab a slice using fancy indexing
+        elif index_names:
+            df_slice = self.df.ix[index_names]
+        # otherwise, use the full DataFrame
+        else:
+            df_slice = self.df
+        # if the slice is empty, return ""
+        if len(df_slice) == 0:
             return ""
-        value = df_or_series[col_name]
-        if isinstance(value, pd.Series):
-            if any(value):
-                return value[0]
-            else:
-                return ""
+        # if the column name isn't present in the slice, return ""
+        if col_name not in df_slice.columns:
+            return ""
+        # otherwise, return the first value from that column
+        return df_slice[col_name][0]
 
+
+    def get_di_block(self, df_slice=None, do_index=False, item_names=[], tilt_corr='100'):
+        """
+        Input either a DataFrame slice
+        or
+        do_index=True and a list of index_names.
+        Output dec/inc from the slice in this format:
+        [[dec1, inc1], [dec2, inc2], ...]
+        """
+        if isinstance(df_slice, str):
+            if df_slice == "all":
+                # use entire DataFrame
+                df_slice = self.df
+        elif do_index:
+            # use fancy indexing (but note this will give duplicates)
+            df_slice = self.df.ix[item_names]
+        elif not do_index:
+            # otherwise use the provided slice
+            df_slice = df_slice
+
+        # once you have the slice, fix up the data
+        df_slice = df_slice[df_slice['dir_tilt_correction'] == tilt_corr]
+        df_slice = df_slice[df_slice['dir_inc'].notnull() & df_slice['dir_dec'].notnull()]
+        # possible add in:
+        # split out di_block from this study from di_block from other studies (in citations column)
+        # for now, just use "This study"
+        if 'citations' in df_slice.columns:
+            df_slice = df_slice[df_slice['citations'] == "This study"]
+
+        # convert values into DIblock format
+        di_block = [[float(row['dir_dec']), float(row['dir_inc'])] for ind, row in df_slice.iterrows()]
+        return di_block
 
 
 
@@ -131,3 +167,4 @@ if __name__ == "__main__":
     print con
     print con.tables.keys()
     print con.tables['locations'].df[['site_names', 'site_name']]
+    
