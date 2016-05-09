@@ -79,29 +79,26 @@ def main():
             FIG['bdirs'] = 2
             pmagplotlib.plot_init(FIG['bdirs'],5,5)
     crd = pmag.get_named_arg_from_sys("-crd", default_val="g")
-    if crd == 's':
+    if crd == "s":
         coord = "-1"
-    elif crd == 't':
-        coord="100"
+    elif crd == "t":
+        coord = "100"
     else: 
         coord = "0"
     fmt = pmag.get_named_arg_from_sys("-fmt", "svg")
         
-    # all of these are probs wrong....
-    Dec_keys=['site_dec','sample_dec','specimen_dec','measurement_dec','average_dec','none']
-    Dec_keys = ['dir_dec']
-    Inc_keys=['site_inc','sample_inc','specimen_inc','measurement_inc','average_inc','none']
-    Inc_keys = ['dir_inc']
-    Tilt_keys=['tilt_correction','site_tilt_correction','sample_tilt_correction','specimen_tilt_correction','none']
-    Tilt_keys=['dir_tilt_correction']
-    Dir_type_keys=['','site_direction_type','sample_direction_type','specimen_direction_type']
+    dec_key = 'dir_dec'
+    inc_key = 'dir_inc'
+    tilt_key = 'dir_tilt_correction'
+    #Dir_type_keys=['','site_direction_type','sample_direction_type','specimen_direction_type']
 
+    # the object that contains the DataFrame + useful helper methods:
     data_container = nb.MagicDataFrame(in_file)
+    # the actual DataFrame:
     data = data_container.df
     
     if verbose:    
         print len(data),' records read from ',in_file
-    #
 
     # find desired dec,inc data:
     dir_type_key=''
@@ -109,7 +106,7 @@ def main():
     # get plotlist if not plotting all records
     #
     plotlist=[]
-    if plot_key!="all":
+    if plot_key != "all":
         # return all where plot_key is not blank
         plots = data[data[plot_key].notnull()]
         plotlist = list(plots.index.unique()) # grab unique index
@@ -120,8 +117,10 @@ def main():
         if verbose:
             print plot
         if plot == 'All':
+            # plot everything at once
             plot_data = data
         else:
+            # pull out only partial data
             plot_data = data.ix[plot]
       
         DIblock = []
@@ -132,38 +131,37 @@ def main():
         k = 0
         
         # get all records where dec & inc values exist
-        dec_key = Dec_keys[0]
-        inc_key = Inc_keys[0]
         plot_data = plot_data[plot_data[dec_key].notnull() & plot_data[inc_key].notnull()]
 
         # add tilt key into DataFrame columns if it isn't there already
-        tilt_key = Tilt_keys[0] # 'tilt_correction'
         if tilt_key not in plot_data.columns:
             plot_data[tilt_key] = ''
 
-        if coord =='0':  # geographic, use blank records
+        if coord == '0':  # geographic, use records with no tilt key (or tilt_key 0)
             plot_data = plot_data[(plot_data[tilt_key] == coord) | (plot_data[tilt_key] == '')]
         else:  # not geographic coordinates, use only records with correct tilt_key
             plot_data = plot_data[plot_data[tilt_key] == coord]
 
         # get metadata for naming the plot file
-        locations = data_container.get_name(plot_data, 'location_name')
-        site = data_container.get_name(plot_data, 'site_name')
-        sample = data_container.get_name(plot_data, 'sample_name')
-        specimen = data_container.get_name(plot_data, 'specimen_name')
+        locations = data_container.get_name('location_name', df_slice=plot_data)
+        site = data_container.get_name('site_name', df_slice=plot_data)
+        sample = data_container.get_name('sample_name', df_slice=plot_data)
+        specimen = data_container.get_name('specimen_name', df_slice=plot_data)
 
-        DIblock = [[float(row[dec_key]), float(row[inc_key])] for ind, row in plot_data.iterrows()]
-        # make sure magic_method_codes is in plot_data
-        if 'magic_method_codes' not in plot_data.columns:
-            plot_data['magic_method_codes'] = ''
 
-        SLblock = [[ind, row['magic_method_codes']] for ind, row in plot_data.iterrows()]
+        # make sure method_codes is in plot_data
+        if 'method_codes' not in plot_data.columns:
+            plot_data['method_codes'] = ''
 
-        cond = plot_data[tilt_key] == coord # LJ ADD to this cond: rec[dir_type_key] != 'l'.  just don't know what dir_type_key is in 3.0 yet
-        GCblock = [[float(row[dec_key]), float(row[inc_key])] for ind, row in  plot_data[cond].iterrows()]
-        #GCblock = []  # LJ GCblock is being incorrectly filled in above.  problem is probably the [dir_type_key] != 'l' issue
-        SPblock = [[ind, row['magic_method_codes']] for ind, row in plot_data[cond].iterrows()]
-
+        # get data blocks
+        DIblock = data_container.get_di_block(df_slice=plot_data)
+        SLblock = [[ind, row['method_codes']] for ind, row in plot_data.iterrows()]
+        # LISA
+        cond = plot_data[tilt_key] == coord
+        #GCblock = [[float(row[dec_key]), float(row[inc_key])] for ind, row in  plot_data[cond].iterrows()]
+        GCblock = []  # GCblock is being incorrectly filled in above.  problem is probably the [dir_type_key] != 'l' issue, so forcing it bo be blank for now
+        #
+        SPblock = [[ind, row['method_codes']] for ind, row in plot_data[cond].iterrows()]
 
         if len(DIblock) > 0:
             if contour == 0:
@@ -172,18 +170,13 @@ def main():
                 pmagplotlib.plotEQcont(FIG['eqarea'], DIblock)
         else:
             pmagplotlib.plotNET(FIG['eqarea'])
-
-
         if len(GCblock)>0:
             for rec in GCblock:
-                pmagplotlib.plotC(FIG['eqarea'],rec,90.,'g')
-
-
+                pmagplotlib.plotC(FIG['eqarea'], rec, 90., 'g')
         if len(DIblock) == 0 and len(GCblock) == 0:
             if verbose:
                 print "no records for plotting"
             sys.exit()
-                
         if plotE == 1:
             ppars = pmag.doprinc(DIblock) # get principal directions
             nDIs, rDIs, npars, rpars = [], [], [], []
@@ -197,8 +190,8 @@ def main():
                 etitle="Bingham confidence ellipse"
                 bpars=pmag.dobingham(DIblock)
                 for key in bpars.keys():
-                    if key!='n' and verbose:print "    ",key, '%7.1f'%(bpars[key])
-                    if key=='n' and verbose:print "    ",key, '       %i'%(bpars[key])
+                    if key!='n' and verbose: print "    ",key, '%7.1f'%(bpars[key])
+                    if key=='n' and verbose: print "    ",key, '       %i'%(bpars[key])
                 npars.append(bpars['dec']) 
                 npars.append(bpars['inc'])
                 npars.append(bpars['Zeta']) 
@@ -212,8 +205,8 @@ def main():
                 if len(nDIs)>2:
                     fpars=pmag.fisher_mean(nDIs)
                     for key in fpars.keys():
-                        if key!='n' and verbose:print "    ",key, '%7.1f'%(fpars[key])
-                        if key=='n' and verbose:print "    ",key, '       %i'%(fpars[key])
+                        if key!='n' and verbose: print "    ",key, '%7.1f'%(fpars[key])
+                        if key=='n' and verbose: print "    ",key, '       %i'%(fpars[key])
                     mode+=1
                     npars.append(fpars['dec']) 
                     npars.append(fpars['inc'])
@@ -226,10 +219,10 @@ def main():
                     npars.append(0.) #Beta inc
                 if len(rDIs)>2:
                     fpars=pmag.fisher_mean(rDIs)
-                    if verbose:print "mode ",mode
+                    if verbose: print "mode ",mode
                     for key in fpars.keys():
-                        if key!='n' and verbose:print "    ",key, '%7.1f'%(fpars[key])
-                        if key=='n' and verbose:print "    ",key, '       %i'%(fpars[key])
+                        if key!='n' and verbose: print "    ",key, '%7.1f'%(fpars[key])
+                        if key=='n' and verbose: print "    ",key, '       %i'%(fpars[key])
                     mode+=1
                     rpars.append(fpars['dec']) 
                     rpars.append(fpars['inc'])
@@ -244,10 +237,10 @@ def main():
                 etitle="Kent confidence ellipse"
                 if len(nDIs)>3:
                     kpars=pmag.dokent(nDIs,len(nDIs))
-                    if verbose:print "mode ",mode
+                    if verbose: print "mode ",mode
                     for key in kpars.keys():
-                        if key!='n' and verbose:print "    ",key, '%7.1f'%(kpars[key])
-                        if key=='n' and verbose:print "    ",key, '       %i'%(kpars[key])
+                        if key!='n' and verbose: print "    ",key, '%7.1f'%(kpars[key])
+                        if key=='n' and verbose: print "    ",key, '       %i'%(kpars[key])
                     mode+=1
                     npars.append(kpars['dec']) 
                     npars.append(kpars['inc'])
@@ -259,10 +252,10 @@ def main():
                     npars.append(kpars['Einc'])
                 if len(rDIs)>3:
                     kpars=pmag.dokent(rDIs,len(rDIs))
-                    if verbose:print "mode ",mode
+                    if verbose: print "mode ",mode
                     for key in kpars.keys():
-                        if key!='n' and verbose:print "    ",key, '%7.1f'%(kpars[key])
-                        if key=='n' and verbose:print "    ",key, '       %i'%(kpars[key])
+                        if key!='n' and verbose: print "    ",key, '%7.1f'%(kpars[key])
+                        if key=='n' and verbose: print "    ",key, '       %i'%(kpars[key])
                     mode+=1
                     rpars.append(kpars['dec']) 
                     rpars.append(kpars['inc'])
@@ -277,10 +270,10 @@ def main():
                     if len(nDIs)>5:
                         BnDIs=pmag.di_boot(nDIs)
                         Bkpars=pmag.dokent(BnDIs,1.)
-                        if verbose:print "mode ",mode
+                        if verbose: print "mode ",mode
                         for key in Bkpars.keys():
-                            if key!='n' and verbose:print "    ",key, '%7.1f'%(Bkpars[key])
-                            if key=='n' and verbose:print "    ",key, '       %i'%(Bkpars[key])
+                            if key!='n' and verbose: print "    ",key, '%7.1f'%(Bkpars[key])
+                            if key=='n' and verbose: print "    ",key, '       %i'%(Bkpars[key])
                         mode+=1
                         npars.append(Bkpars['dec']) 
                         npars.append(Bkpars['inc'])
@@ -293,10 +286,10 @@ def main():
                     if len(rDIs)>5:
                         BrDIs=pmag.di_boot(rDIs)
                         Bkpars=pmag.dokent(BrDIs,1.)
-                        if verbose:print "mode ",mode
+                        if verbose: print "mode ",mode
                         for key in Bkpars.keys():
-                            if key!='n' and verbose:print "    ",key, '%7.1f'%(Bkpars[key])
-                            if key=='n' and verbose:print "    ",key, '       %i'%(Bkpars[key])
+                            if key!='n' and verbose: print "    ",key, '%7.1f'%(Bkpars[key])
+                            if key=='n' and verbose: print "    ",key, '       %i'%(Bkpars[key])
                         mode+=1
                         rpars.append(Bkpars['dec']) 
                         rpars.append(Bkpars['inc'])
@@ -354,7 +347,6 @@ def main():
                 sys.exit()
             if ans == "a":
                 pmagplotlib.saveP(FIG,files) 
-
         continue
         
 
