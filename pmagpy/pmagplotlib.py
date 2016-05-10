@@ -731,13 +731,11 @@ def plotDir(ZED,pars,datablock,angle):
             StartDir[1]=rec[2]
             if pars["specimen_direction_type"]=='l':
                 StartDir[2]=rec[3]/datablock[0][3]
-                StartDir[2]=rec[3]
         if rec[0]==pars["measurement_step_max"]:
             EndDir[0]=rec[1]
             EndDir[1]=rec[2]
             if pars["specimen_direction_type"]=='l':
                 EndDir[2]=rec[3]/datablock[0][3]
-                EndDir[2]=rec[3]
 
 #
 #  put them on the plots
