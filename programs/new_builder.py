@@ -95,7 +95,8 @@ class MagicDataFrame(object):
         """
         col_labels = self.df.columns
         blank_item = pd.Series({}, index=col_labels, name=label)
-        self.df = self.df.append(blank_item)
+        # use .loc to add in place (append won't do that)
+        self.df.loc[blank_item.name] = blank_item
 
 
     def get_name(self, col_name, df_slice="", index_names=""):
