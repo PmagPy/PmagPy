@@ -703,7 +703,7 @@ def plotZED(ZED,datablock,angle,s,units):
     if AngleX[-1]==0:AngleX[-1]=0.01
     pylab.text(AngleX[-1]+(AngleX[-1]/abs(AngleX[-1]))*.1,AngleY[-1]+(AngleY[-1]/abs(AngleY[-1]))*.1,'X')
     norm=1
-    if units=="U": norm=0
+    #if units=="U": norm=0
     plotMT(ZED['demag'],datablock,s,1,units,norm)
     plotZ(ZED['zijd'],datablock,angle,s,norm)
 
