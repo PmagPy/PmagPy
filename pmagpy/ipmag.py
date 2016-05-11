@@ -810,6 +810,24 @@ def lat_from_inc(inc):
     return paleo_lat
 
 
+def lat_from_pole(ref_loc_lon,ref_loc_lat,pole_plon,pole_plat):
+    """
+    Calculate paleolatitude for a reference location based on a paleomagnetic pole
+
+    Required Arguments
+    ----------
+    ref_loc_lon: longitude of reference location
+    ref_loc_lat: latitude of reference location
+    pole_plon: paleopole longitude
+    pole_plat: paleopole latitude
+    """
+
+    ref_loc = (ref_loc_lon,ref_loc_lat)
+    pole = (pole_plon, pole_plat)
+    paleo_lat = 90-pmag.angle(pole,ref_loc)
+    return float(paleo_lat)
+
+
 def inc_from_lat(lat):
     """
     Calculate inclination predicted from latitude using the dipole equation.
