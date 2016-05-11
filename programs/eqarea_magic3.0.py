@@ -157,8 +157,9 @@ def main():
         SLblock = [[ind, row['method_codes']] for ind, row in plot_data.iterrows()]
         # LISA
         cond = plot_data[tilt_key] == coord
-        #GCblock = [[float(row[dec_key]), float(row[inc_key])] for ind, row in  plot_data[cond].iterrows()]
-        GCblock = []  # GCblock is being incorrectly filled in above.  problem is probably the [dir_type_key] != 'l' issue, so forcing it bo be blank for now
+        
+        great_circle_data = data_container.get_records_for_code('DE-BFP', without=False)
+        GCblock = [[float(row[dec_key]), float(row[inc_key])] for ind, row in great_circle_data[cond].iterrows()]
         #
         SPblock = [[ind, row['method_codes']] for ind, row in plot_data[cond].iterrows()]
 

@@ -3,6 +3,7 @@
 import os
 import numpy as np
 import pandas as pd
+import re
 from pandas import DataFrame, Series
 from pmagpy import pmag
 
@@ -157,6 +158,19 @@ class MagicDataFrame(object):
         return di_block
 
 
+    def get_records_for_code(self, meth_code, without=False):
+        pattern = re.compile('{}(?=:|\s|\Z)'.format(meth_code))
+        # use regex to see if the pattern shows up in the method codes col
+        # (must use fillna to replace np.nan with False for indexing)
+        cond = self.df['method_codes'].str.contains(pattern).fillna(False)
+        if not without:
+            # return a copy of records with that method code:
+            return self.df[cond].copy()
+        
+        else:
+            # return a copy of records without that method code
+            return self.df[~cond].copy()
+     
 
 
 if __name__ == "__main__":
