@@ -18,7 +18,6 @@ class Contribution(object):
         self.tables = {}
         for name in tables:
             filename = os.path.join(directory, name + ".txt")
-            print filename
             if os.path.exists(filename):
                 self.tables[name] = MagicDataFrame(filename)
 
@@ -82,6 +81,16 @@ class MagicDataFrame(object):
             name = '{}_name'.format(dtype)
             if dtype == 'contribution':
                 name = 'doi'
+            elif dtype == 'measurement':
+                self.df['measurement_name'] = self.df['experiment_name'] + self.df['measurement_number']
+                name = 'measurement_name'
+            # fix these:
+            elif dtype == 'age':
+                self.df = pd.DataFrame()
+                return
+            elif dtype == 'image':
+                self.df = pd.DataFrame()
+                return
             self.df.index = self.df[name]
             #del self.df[name]
             self.df.dtype = dtype
@@ -159,14 +168,17 @@ class MagicDataFrame(object):
 
 
     def get_records_for_code(self, meth_code, without=False):
+        """
+        Use regex to see if meth_code is in the method_codes ":" delimited list.
+        If without == True, return all records WITHOUT meth_code.
+        If without == False, return all records WITH meth_code.
+        """
         pattern = re.compile('{}(?=:|\s|\Z)'.format(meth_code))
-        # use regex to see if the pattern shows up in the method codes col
         # (must use fillna to replace np.nan with False for indexing)
         cond = self.df['method_codes'].str.contains(pattern).fillna(False)
         if not without:
             # return a copy of records with that method code:
             return self.df[cond].copy()
-        
         else:
             # return a copy of records without that method code
             return self.df[~cond].copy()
