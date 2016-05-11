@@ -21,12 +21,12 @@ def main():
         eqarea_magic.py [command line options]
     
     INPUT 
-       takes magic formatted pmag_results, pmag_sites, pmag_samples or pmag_specimens
+       takes magic formatted sites, samples, specimens, or measurements
     
     OPTIONS
         -h prints help message and quits
-        -f FILE: specify input magic format file from magic,default='pmag_results.txt'
-         supported types=[magic_measurements,pmag_specimens, pmag_samples, pmag_sites, pmag_results, magic_web]
+        -f FILE: specify input magic format file from magic, default='sites.txt'
+         supported types=[measurements, specimens, samples, sites]
         -obj OBJ: specify  level of plot  [all, sit, sam, spc], default is all
         -crd [s,g,t]: specify coordinate system, [s]pecimen, [g]eographic, [t]ilt adjusted
                 default is geographic, unspecified assumed geographic
