@@ -1,0 +1,4 @@
+tab 	locations
+citations	conglomerate_test	contact_test	continent_ocean	country	description	dir_alpha95	dir_dec	dir_inc	dir_k	dir_n_sites	dir_r	dir_tilt_correction	fold_test	geologic_classes	lat_n	lat_s	lithologies	location_name	location_type	lon_e	lon_w	method_codes	plate_blocks	pole_alpha95	pole_comp_name	pole_lat	pole_lon	pole_n_sites	region	result_type	reversal_test	rock_magnetic_test	site_names	tectonic_settings
+This study			North America	Canada										Extrusive	48.66	48.64	Basalt	Osler Volcanics, Nipigon Strait, Upper Normal	Region	271.96	271.91		North American Plate						Lake Superior					Continental Rift
+Cox & Doell 1960:Fisher 1953:McElhinny & McFadden 2000	ND	ND			All Normal Flows	8.47928537	296.4616437	39.46409514	82.38571031	5	4.951447891	100	ND					Osler Volcanics, Nipigon Strait, Upper Normal				DE-FM:DE-VGP:FS-LOC-GOOGLE:LP-DC2		5.853207367	Characteristic	43.6574194	196.3384635	25		a	ND	ND	1:2:3:4:5	

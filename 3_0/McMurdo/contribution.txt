@@ -1,0 +1,3 @@
+tab 	contribution
+author	doi
+@ltauxe	10.1029/2008GC002072

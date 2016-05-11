@@ -1,0 +1,3 @@
+tab 	er_locations
+continent_ocean	country	er_citation_names	er_location_name	location_begin_lat	location_begin_lon	location_class	location_end_lat	location_end_lon	location_lithology	location_type	plate_block	region	tectonic_setting
+North America	Canada	This study	Osler Volcanics, Nipigon Strait, Lower Reversed	48.711501	271.93353	Extrusive	48.66	271.95	Basalt	Region	North American Plate	Lake Superior	Continental Rift
