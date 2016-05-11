@@ -167,21 +167,25 @@ class MagicDataFrame(object):
         return di_block
 
 
-    def get_records_for_code(self, meth_code, without=False):
+    def get_records_for_code(self, meth_code, incl=True, use_slice=False, sli=None):
         """
         Use regex to see if meth_code is in the method_codes ":" delimited list.
-        If without == True, return all records WITHOUT meth_code.
-        If without == False, return all records WITH meth_code.
+        If incl == True, return all records WITH meth_code.
+        If incl == False, return all records WITHOUT meth_code.
         """
         pattern = re.compile('{}(?=:|\s|\Z)'.format(meth_code))
         # (must use fillna to replace np.nan with False for indexing)
-        cond = self.df['method_codes'].str.contains(pattern).fillna(False)
-        if not without:
+        if use_slice:
+            df = sli
+        else:
+            df = self.df.copy()
+        cond = df['method_codes'].str.contains(pattern).fillna(False)
+        if incl:
             # return a copy of records with that method code:
-            return self.df[cond].copy()
+            return df[cond]
         else:
             # return a copy of records without that method code
-            return self.df[~cond].copy()
+            return df[~cond]
      
 
 

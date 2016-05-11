@@ -53,12 +53,14 @@ def main():
     plot_by = pmag.get_named_arg_from_sys("-obj", default_val="all").lower()
     if plot_by == 'all':
         plot_key = 'all'
-    if plot_by == 'sit':
+    elif plot_by == 'sit':
         plot_key = 'site_name'
-    if plot_by == 'sam':
+    elif plot_by == 'sam':
         plot_key = 'sample_name'
-    if plot_by == 'spc':
+    elif plot_by == 'spc':
         plot_key = 'specimen_name'
+    else:
+        plot_key = 'all'
     if '-c' in sys.argv:
         contour = 1
     else:
@@ -122,14 +124,17 @@ def main():
         else:
             # pull out only partial data
             plot_data = data.ix[plot]
-      
+            plot_data = data[data[plot_key] == plot]
+            #plot_data = data[data[plot_key] == plot].copy()
+
+
         DIblock = []
         GCblock = []
         SLblock, SPblock = [], []
         title = plot
         mode = 1
         k = 0
-        
+
         # get all records where dec & inc values exist
         plot_data = plot_data[plot_data[dec_key].notnull() & plot_data[inc_key].notnull()]
 
@@ -155,13 +160,13 @@ def main():
         # get data blocks
         DIblock = data_container.get_di_block(df_slice=plot_data, tilt_corr=coord)
         SLblock = [[ind, row['method_codes']] for ind, row in plot_data.iterrows()]
-        # LISA
-        cond = plot_data[tilt_key] == coord
-        
-        great_circle_data = data_container.get_records_for_code('DE-BFP', without=False)
-        GCblock = [[float(row[dec_key]), float(row[inc_key])] for ind, row in great_circle_data[cond].iterrows()]
+        # get great circles
+        great_circle_data = data_container.get_records_for_code('DE-BFP', incl=True,
+                                                                use_slice=True, sli=plot_data)
+        gc_cond = great_circle_data[tilt_key] == coord
+        GCblock = [[float(row[dec_key]), float(row[inc_key])] for ind, row in great_circle_data[gc_cond].iterrows()]
         #
-        SPblock = [[ind, row['method_codes']] for ind, row in plot_data[cond].iterrows()]
+        SPblock = [[ind, row['method_codes']] for ind, row in great_circle_data[gc_cond].iterrows()]
 
         if len(DIblock) > 0:
             if contour == 0:
@@ -176,7 +181,8 @@ def main():
         if len(DIblock) == 0 and len(GCblock) == 0:
             if verbose:
                 print "no records for plotting"
-            sys.exit()
+            continue
+            #sys.exit()
         if plotE == 1:
             ppars = pmag.doprinc(DIblock) # get principal directions
             nDIs, rDIs, npars, rpars = [], [], [], []
