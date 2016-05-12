@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import sys
 import os
+import numpy as np
 import matplotlib
 if matplotlib.get_backend() != "TKAgg":
   matplotlib.use("TKAgg")
@@ -98,6 +99,10 @@ def main():
     data_container = nb.MagicDataFrame(in_file)
     # the actual DataFrame:
     data = data_container.df
+    # add tilt key into DataFrame columns if it isn't there already
+    if tilt_key not in data.columns:
+        data.loc[:, tilt_key] = None
+
     
     if verbose:    
         print len(data),' records read from ',in_file
@@ -110,8 +115,11 @@ def main():
     plotlist=[]
     if plot_key != "all":
         # return all where plot_key is not blank
+        if plot_key not in data.columns:
+            print "Can't plot by {}.  That header is not in infile: {}".format(plot_key, in_file)
+            return
         plots = data[data[plot_key].notnull()]
-        plotlist = list(plots.index.unique()) # grab unique index
+        plotlist = plots[plot_key].unique() # grab unique values
     else:
         plotlist.append('All')
 
@@ -123,10 +131,7 @@ def main():
             plot_data = data
         else:
             # pull out only partial data
-            plot_data = data.ix[plot]
             plot_data = data[data[plot_key] == plot]
-            #plot_data = data[data[plot_key] == plot].copy()
-
 
         DIblock = []
         GCblock = []
@@ -137,16 +142,16 @@ def main():
 
         # get all records where dec & inc values exist
         plot_data = plot_data[plot_data[dec_key].notnull() & plot_data[inc_key].notnull()]
-
-        # add tilt key into DataFrame columns if it isn't there already
-        if tilt_key not in plot_data.columns:
-            plot_data[tilt_key] = ''
+        if plot_data.empty:
+            continue
 
         if coord == '0':  # geographic, use records with no tilt key (or tilt_key 0)
-            plot_data = plot_data[(plot_data[tilt_key] == coord) | (plot_data[tilt_key] == '')]
+            cond1 = plot_data[tilt_key].fillna('') == coord
+            cond2 = plot_data[tilt_key].isnull()
+            plot_data = plot_data[cond1 | cond2]
         else:  # not geographic coordinates, use only records with correct tilt_key
             plot_data = plot_data[plot_data[tilt_key] == coord]
-
+            
         # get metadata for naming the plot file
         locations = data_container.get_name('location_name', df_slice=plot_data)
         site = data_container.get_name('site_name', df_slice=plot_data)
@@ -163,10 +168,11 @@ def main():
         # get great circles
         great_circle_data = data_container.get_records_for_code('DE-BFP', incl=True,
                                                                 use_slice=True, sli=plot_data)
-        gc_cond = great_circle_data[tilt_key] == coord
-        GCblock = [[float(row[dec_key]), float(row[inc_key])] for ind, row in great_circle_data[gc_cond].iterrows()]
-        #
-        SPblock = [[ind, row['method_codes']] for ind, row in great_circle_data[gc_cond].iterrows()]
+
+        if len(great_circle_data) > 0:
+            gc_cond = great_circle_data[tilt_key] == coord
+            GCblock = [[float(row[dec_key]), float(row[inc_key])] for ind, row in great_circle_data[gc_cond].iterrows()]
+            SPblock = [[ind, row['method_codes']] for ind, row in great_circle_data[gc_cond].iterrows()]
 
         if len(DIblock) > 0:
             if contour == 0:

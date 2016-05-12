@@ -94,9 +94,9 @@ class MagicDataFrame(object):
             self.df.index = self.df[name]
             #del self.df[name]
             self.df.dtype = dtype
-            # replace '' with np.nan, so you can use isnull(), notnull(), etc.
+            # replace '' with None, so you can use isnull(), notnull(), etc.
             # can always switch back with DataFrame.fillna('')
-            self.df[self.df == ''] = np.nan
+            self.df[self.df == ''] = None
                 
                 
     def add_blank_row(self, label):
@@ -143,7 +143,7 @@ class MagicDataFrame(object):
         [[dec1, inc1], [dec2, inc2], ...]
         """
         if isinstance(df_slice, str):
-            if df_slice == "all":
+            if df_slice.lower() == "all":
                 # use entire DataFrame
                 df_slice = self.df
         elif do_index:
@@ -154,7 +154,12 @@ class MagicDataFrame(object):
             df_slice = df_slice
 
         # once you have the slice, fix up the data
-        df_slice = df_slice[df_slice['dir_tilt_correction'] == tilt_corr]
+        if tilt_corr != "0":
+            df_slice = df_slice[df_slice['dir_tilt_correction'] == tilt_corr]
+        else:
+            cond1 = df_slice['dir_tilt_correction'].fillna('') == tilt_corr
+            cond2 = df_slice['dir_tilt_correction'].isnull()
+            df_slice = df_slice
         df_slice = df_slice[df_slice['dir_inc'].notnull() & df_slice['dir_dec'].notnull()]
         # possible add in:
         # split out di_block from this study from di_block from other studies (in citations column)
@@ -179,7 +184,7 @@ class MagicDataFrame(object):
             df = sli
         else:
             df = self.df.copy()
-        cond = df['method_codes'].str.contains(pattern).fillna(False)
+        cond = df['method_codes'].str.contains(pattern).fillna('')
         if incl:
             # return a copy of records with that method code:
             return df[cond]
