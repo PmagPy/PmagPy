@@ -9,19 +9,70 @@ from pmagpy import pmag
 
 class Contribution(object):
 
-    def __init__(self, directory):
-        directory = os.path.realpath(directory)
-        tables = ['measurements', 'specimens', 'samples',
-                  'sites', 'locations', 'contribution',
-                  'criteria', 'ages', 'images']
+    def __init__(self, directory, read_tables='all', custom_filenames=None, single_file=None):
+        self.directory = os.path.realpath(directory)
+        self.table_names = ['measurements', 'specimens', 'samples',
+                            'sites', 'locations', 'contribution',
+                            'criteria', 'ages', 'images']
+        # create standard filenames from table names
+        self.filenames = {t: t + ".txt" for t in self.table_names}
+        # update self.filenames to include custom names
+        if custom_filenames:
+            self.add_custom_filenames(custom_filenames)
 
         self.tables = {}
-        for name in tables:
-            filename = os.path.join(directory, name + ".txt")
-            if os.path.exists(filename):
-                self.tables[name] = MagicDataFrame(filename)
+        # if not otherwise specified, read in all possible tables
+        if read_tables == 'all':
+            read_tables = self.table_names
 
-               
+        if single_file: # use if filename is known but type isn't
+            self.add_magic_table('unknown', single_file)
+            print 'self.tables.keys()', self.tables.keys()
+            return
+        else:  # read in data for all required tables
+            for name in read_tables:
+                self.add_magic_table(name)
+        
+
+
+    def add_custom_filenames(self, custom_filenames):
+        """
+        Update/overwrite self.filenames with custom names.
+        Input dict should have the format: 
+        {"specimens": "custom_spec_file.txt", ...}
+        """
+        if custom_filenames:
+            self.filenames.update(custom_filenames)
+
+        
+    def add_magic_table(self, dtype, fname=None):
+        """
+        Add a table to self.tables.
+        """
+        # if providing a filename but no data type
+        if dtype == "unknown":
+            filename = os.path.join(self.directory, fname)
+            data_container = MagicDataFrame(filename)
+            dtype = data_container.dtype
+            print 'dtype', dtype
+            if dtype == 'empty':
+                return
+            else:
+                self.tables[dtype] = data_container
+                return
+        # if providing a data type, use the canonical filename
+        elif dtype not in self.filenames:
+            print '-W- "{}" is not a valid MagIC table type'.format(dtype)
+            print "-I- Available table types are: {}".format(", ".join(self.table_names))
+            return
+        filename = os.path.join(self.directory, self.filenames[dtype])
+        print 'filename', filename
+        if os.path.exists(filename):
+            self.tables[dtype] = MagicDataFrame(filename)
+        else:
+            print "-W- No such file: {}".format(filename)
+
+
     def rename_item(self, table_name, item_old_name, item_new_name):
 
         # define some helper methods:
@@ -71,32 +122,66 @@ class Contribution(object):
                 df[col_name_plural] = df[col_name_plural + "_list"].apply(put_together_if_str)
 
 
+    def add_site_names_to_specimen_table(self):
+        """
+        Add temporary column "site_name" at specimen level.
+        Requires specimen & sample data to be available.
+        """
+        # first make sure contribution has both specimen & sample level data
+        print 'trying to add site_name'
+        for dtype in ['specimens', 'samples']:
+            if dtype not in self.tables:
+                self.add_magic_table(dtype)
+            # if no data was found to add:
+            if dtype not in self.tables:
+                print "-W- No {} data found".format(dtype)
+                return
+        # next, do SQL style join
+        spec_container = self.tables['specimens']
+        samp_container = self.tables['samples']
+        print 'samp_container', len(samp_container.df)
+        spec_container.merge_in(join_on='sample_name',
+                                right_df=samp_container.df,
+                                add_col='site_name')
+        print 'self.tables.keys() at end of add_site_names', self.tables.keys()
+            
+
+
 class MagicDataFrame(object):
 
     def __init__(self, magic_file):
         data, dtype = pmag.magic_read(magic_file)
         self.df = DataFrame(data)
-        if dtype.endswith('s'):
+        if dtype == 'bad_file':
+            print "-W- Bad file {}".format(magic_file)
+            self.dtype = 'empty'
+            return
+        #
+        self.dtype = dtype
+        if dtype == 'measurements':
+            self.df['measurement_name'] = self.df['experiment_name'] + self.df['measurement_number']
+            name = 'measurement_name'
+        elif dtype.endswith('s'):
             dtype = dtype[:-1]
             name = '{}_name'.format(dtype)
-            if dtype == 'contribution':
-                name = 'doi'
-            elif dtype == 'measurement':
-                self.df['measurement_name'] = self.df['experiment_name'] + self.df['measurement_number']
-                name = 'measurement_name'
-            # fix these:
-            elif dtype == 'age':
-                self.df = pd.DataFrame()
-                return
-            elif dtype == 'image':
-                self.df = pd.DataFrame()
-                return
-            self.df.index = self.df[name]
-            #del self.df[name]
-            self.df.dtype = dtype
-            # replace '' with None, so you can use isnull(), notnull(), etc.
-            # can always switch back with DataFrame.fillna('')
-            self.df[self.df == ''] = None
+        elif dtype == 'contribution':
+            name = 'doi'
+        # fix these:
+        if dtype == 'age':
+            self.df = pd.DataFrame()
+            return
+        if dtype == 'image':
+            self.df = pd.DataFrame()
+            return
+        if dtype == 'criteria':
+            self.df = pd.DataFrame()
+            return
+        self.df.index = self.df[name]
+        #del self.df[name]
+        #self.dtype = dtype
+        # replace '' with None, so you can use isnull(), notnull(), etc.
+        # can always switch back with DataFrame.fillna('')
+        self.df[self.df == ''] = None
                 
                 
     def add_blank_row(self, label):
@@ -191,6 +276,15 @@ class MagicDataFrame(object):
         else:
             # return a copy of records without that method code
             return df[~cond]
+
+
+    def merge_in(self, join_on, right_df, add_col):
+        #if 'site_name' not in spec_df.columns:
+        #    spec_df = spec_df.merge(samp_df[['site_name']], left_on=['sample_name'], right_index=True, how="left")
+        if add_col not in self.df.columns:
+            # SQL style merge between two DataFrames
+            # joins on self.df.index and specified col for other dataframe
+            self.df = self.df.merge(right_df[[add_col]], left_on=[join_on], right_index=True, how="left")
      
 
 
