@@ -28,6 +28,8 @@ def main():
         -h prints help message and quits
         -f FILE: specify input magic format file from magic, default='sites.txt'
          supported types=[measurements, specimens, samples, sites]
+        -fsa FILE: specify sample file name, (required if you want to plot specimens by site) 
+                default='samples.txt'
         -obj OBJ: specify  level of plot  [all, sit, sam, spc], default is all
         -crd [s,g,t]: specify coordinate system, [s]pecimen, [g]eographic, [t]ilt adjusted
                 default is geographic, unspecified assumed geographic
@@ -50,8 +52,10 @@ def main():
         sys.exit()
     dir_path = pmag.get_named_arg_from_sys("-WD", default_val=os.getcwd())
     pmagplotlib.plot_init(FIG['eqarea'],5,5)
-    in_file = os.path.join(dir_path, pmag.get_named_arg_from_sys("-f", default_val="sites.txt"))
+    in_file = pmag.get_named_arg_from_sys("-f", default_val="sites.txt")
+    full_in_file = os.path.join(dir_path, in_file)
     plot_by = pmag.get_named_arg_from_sys("-obj", default_val="all").lower()
+    samp_file = pmag.get_named_arg_from_sys("-fsa", default_val="samples.txt")
     if plot_by == 'all':
         plot_key = 'all'
     elif plot_by == 'sit':
@@ -88,6 +92,7 @@ def main():
         coord = "100"
     else: 
         coord = "0"
+
     fmt = pmag.get_named_arg_from_sys("-fmt", "svg")
         
     dec_key = 'dir_dec'
@@ -95,10 +100,23 @@ def main():
     tilt_key = 'dir_tilt_correction'
     #Dir_type_keys=['','site_direction_type','sample_direction_type','specimen_direction_type']
 
+    #
+    contribution = nb.Contribution(dir_path, custom_filenames={"samples": samp_file},
+                                   single_file=in_file)
     # the object that contains the DataFrame + useful helper methods:
-    data_container = nb.MagicDataFrame(in_file)
+    key = contribution.tables.keys()[0]
+    data_container = contribution.tables[key]
     # the actual DataFrame:
     data = data_container.df
+
+    # uses sample infile to add temporary site_name
+    # column to the specimen table
+    contribution.add_site_names_to_specimen_table()
+    c1 = data.columns
+    c2 = contribution.tables[key].df.columns
+    data_container = contribution.tables[key]
+    data = data_container.df
+    
     # add tilt key into DataFrame columns if it isn't there already
     if tilt_key not in data.columns:
         data.loc[:, tilt_key] = None
@@ -116,7 +134,7 @@ def main():
     if plot_key != "all":
         # return all where plot_key is not blank
         if plot_key not in data.columns:
-            print "Can't plot by {}.  That header is not in infile: {}".format(plot_key, in_file)
+            print 'Can\'t plot by "{}".  That header is not in infile: {}'.format(plot_key, in_file)
             return
         plots = data[data[plot_key].notnull()]
         plotlist = plots[plot_key].unique() # grab unique values
@@ -140,6 +158,10 @@ def main():
         mode = 1
         k = 0
 
+
+        if dec_key not in plot_data.columns:
+            print "-W- No dec/inc data"
+            continue
         # get all records where dec & inc values exist
         plot_data = plot_data[plot_data[dec_key].notnull() & plot_data[inc_key].notnull()]
         if plot_data.empty:
