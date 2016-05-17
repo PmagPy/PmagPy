@@ -9,7 +9,7 @@ from os import path
 # Get list of programs to alias
 from programs_list import programs_list
 
-version_num = '1.0.6'
+version_num = '1.0.7'
 here = path.abspath(path.dirname(__file__))
 
 packages=find_packages(exclude=['pmagpy', 'pmagpy_tests.examples'
@@ -122,7 +122,8 @@ setup(
                     'magic_gui.py = programs.magic_gui:main',
                     'pmag_gui.py = programs.pmag_gui:main',
                     'demag_gui.py = programs.demag_gui:main',
-                    'thellier_gui.py = programs.thellier_gui:main'
+                    'thellier_gui.py = programs.thellier_gui:main',
+                    'pmag_gui = programs.pmag_gui:main'
             ]
     }
 

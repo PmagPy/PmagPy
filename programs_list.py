@@ -159,4 +159,5 @@ programs_list=["ani_depthplot.py=programs.ani_depthplot:main",
 "watsons_v.py=programs.watsons_v:main",
 "zeq.py=programs.zeq:main",
 "zeq_magic.py=programs.zeq_magic:main",
-"zeq_magic_redo.py=programs.zeq_magic_redo:main"]
+"zeq_magic_redo.py=programs.zeq_magic_redo:main",
+"pmag_gui2=programs.pmag_gui:main"]
