@@ -169,7 +169,8 @@ def main():
         AnisRec["anisotropy_s4"]=s4
         AnisRec["anisotropy_s5"]=s5
         AnisRec["anisotropy_s6"]=s6
-        if sigma==1:AnisRec["anisotropy_sigma"]='%10.8e'%(float(rec[k+6])/trace)
+        AnisRec["anisotropy_n"]='6'
+        if sigma==1: AnisRec["anisotropy_sigma"]='%10.8e'%(float(rec[k+6])/trace)
         AnisRec["anisotropy_unit"]='SI'
         AnisRec["anisotropy_tilt_correction"]=coord
         AnisRec["magic_method_codes"]='LP-'+type
