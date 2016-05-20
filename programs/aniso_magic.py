@@ -189,7 +189,6 @@ def main():
           s.append(float(rec["anisotropy_s6"]))
           if s[0]<=1.0:Ss.append(s) # protect against crap
           #tau,Vdirs=pmag.doseigs(s)
-          fpars=pmag.dohext(int(rec["anisotropy_n"])-6,float(rec["anisotropy_sigma"]),s)
           ResRec={}
           ResRec['er_location_names']=rec['er_location_name']
           ResRec['er_citation_names']=rec['er_citation_names']
@@ -200,6 +199,9 @@ def main():
           ResRec["er_analyst_mail_names"]=user
           ResRec["tilt_correction"]=CS
           ResRec["anisotropy_type"]=rec['anisotropy_type']
+          if "anisotropy_n" not in rec.keys(): rec["anisotropy_n"]="6"
+          if "anisotropy_sigma" not in rec.keys(): rec["anisotropy_sigma"]="0"
+          fpars=pmag.dohext(int(rec["anisotropy_n"])-6,float(rec["anisotropy_sigma"]),s)
           ResRec["anisotropy_v1_dec"]='%7.1f'%(fpars['v1_dec'])
           ResRec["anisotropy_v2_dec"]='%7.1f'%(fpars['v2_dec'])
           ResRec["anisotropy_v3_dec"]='%7.1f'%(fpars['v3_dec'])

@@ -703,7 +703,7 @@ def plotZED(ZED,datablock,angle,s,units):
     if AngleX[-1]==0:AngleX[-1]=0.01
     pylab.text(AngleX[-1]+(AngleX[-1]/abs(AngleX[-1]))*.1,AngleY[-1]+(AngleY[-1]/abs(AngleY[-1]))*.1,'X')
     norm=1
-    if units=="U": norm=0
+    #if units=="U": norm=0
     plotMT(ZED['demag'],datablock,s,1,units,norm)
     plotZ(ZED['zijd'],datablock,angle,s,norm)
 
@@ -729,11 +729,14 @@ def plotDir(ZED,pars,datablock,angle):
         if rec[0]==pars["measurement_step_min"]:
             StartDir[0]=rec[1]
             StartDir[1]=rec[2]
-            if pars["specimen_direction_type"]=='l':StartDir[2]=rec[3]/datablock[0][3]
+            if pars["specimen_direction_type"]=='l':
+                StartDir[2]=rec[3]/datablock[0][3]
         if rec[0]==pars["measurement_step_max"]:
             EndDir[0]=rec[1]
             EndDir[1]=rec[2]
-            if pars["specimen_direction_type"]=='l':EndDir[2]=rec[3]/datablock[0][3]
+            if pars["specimen_direction_type"]=='l':
+                EndDir[2]=rec[3]/datablock[0][3]
+
 #
 #  put them on the plots
 #

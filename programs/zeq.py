@@ -108,6 +108,14 @@ def main():
         recnum += 1
     if plot==0:
       while 1:
+        if beg_pca!="" and end_pca!="" and calculation_type!="":
+                pmagplotlib.plotZED(ZED,datablock,angle,s,SIunits) # plot the data
+                mpars=pmag.domean(datablock,beg_pca,end_pca,calculation_type) # get best-fit direction/great circle
+                pmagplotlib.plotDir(ZED,mpars,datablock,angle) # plot the best-fit direction/great circle
+                print 'Specimen, calc_type, N, min, max, MAD, dec, inc'
+                if units=='mT':print '%s %s %i  %6.2f %6.2f %6.1f %7.1f %7.1f' % (s,calculation_type,mpars["specimen_n"],mpars["measurement_step_min"]*1e3,mpars["measurement_step_max"]*1e3,mpars["specimen_mad"],mpars["specimen_dec"],mpars["specimen_inc"])
+                if units=='C':print '%s %s %i  %6.2f %6.2f %6.1f %7.1f %7.1f' % (s,calculation_type,mpars["specimen_n"],mpars["measurement_step_min"]-273,mpars["measurement_step_max"]-273,mpars["specimen_mad"],mpars["specimen_dec"],mpars["specimen_inc"])
+                if units=='U':print '%s %s %i  %6.2f %6.2f %6.1f %7.1f %7.1f' % (s,calculation_type,mpars["specimen_n"],mpars["measurement_step_min"],mpars["measurement_step_max"],mpars["specimen_mad"],mpars["specimen_dec"],mpars["specimen_inc"])
         if end_pca=="":end_pca=len(datablock)-1 # initialize end_pca, beg_pca to first and last measurement
         if beg_pca=="":beg_pca=0
         ans=raw_input(" s[a]ve plot, [b]ounds for pca and calculate, change [h]orizontal projection angle, [q]uit:   ")
@@ -121,6 +129,7 @@ def main():
         if ans=='h':
             angle=float(raw_input(" Declination to project onto horizontal axis? "))
             pmagplotlib.plotZED(ZED,datablock,angle,s,SIunits) # plot the data
+
         if ans=='b':
             GoOn=0
             while GoOn==0: # keep going until reasonable bounds are set
@@ -159,7 +168,6 @@ def main():
                 if units=='C':print '%s %s %i  %6.2f %6.2f %6.1f %7.1f %7.1f' % (s,calculation_type,mpars["specimen_n"],mpars["measurement_step_min"]-273,mpars["measurement_step_max"]-273,mpars["specimen_mad"],mpars["specimen_dec"],mpars["specimen_inc"])
                 if units=='U':print '%s %s %i  %6.2f %6.2f %6.1f %7.1f %7.1f' % (s,calculation_type,mpars["specimen_n"],mpars["measurement_step_min"],mpars["measurement_step_max"],mpars["specimen_mad"],mpars["specimen_dec"],mpars["specimen_inc"])
         pmagplotlib.drawFIGS(ZED)
-        
     else:
         print beg_pca,end_pca
         if beg_pca!="" and end_pca!="":

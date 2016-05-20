@@ -9,7 +9,7 @@ from os import path
 # Get list of programs to alias
 from programs_list import programs_list
 
-version_num = '1.0.3'
+version_num = '1.0.6'
 here = path.abspath(path.dirname(__file__))
 
 packages=find_packages(exclude=['pmagpy', 'pmagpy_tests.examples'

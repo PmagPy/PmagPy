@@ -165,7 +165,8 @@ class Demag_GUI(wx.Frame):
         self.Data_info=self.get_data_info() # Read  er_* data
         self.Data,self.Data_hierarchy=self.get_data() # Get data from magic_measurements and rmag_anistropy if exist.
 
-
+        self.all_fits_list = []
+        
         self.pmag_results_data={}
         for level in ['specimens','samples','sites','locations','study']:
             self.pmag_results_data[level]={}

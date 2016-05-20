@@ -664,7 +664,7 @@ def reversal_test_MM1990(dec=None, inc=None, di_block=None, plot_CDF=False, plot
         common_mean_watson(directions1, directions2, plot = 'yes', save=save, save_folder=save_folder, fmt=fmt)
 
 
-def fishqq(longitude, latitude):
+def fishqq(lon=None, lat=None, di_block=None):
     """
     Test whether a distribution is Fisherian and make a corresponding Q-Q plot.
     The Q-Q plot shows the data plotted against the value expected from a
@@ -677,8 +677,13 @@ def fishqq(longitude, latitude):
     distribution is Fisherian is rejected (see Fisher et al., 1987).
 
     Parameters:
-    longitude : longitude or declination of the data
-    latitude : latitude or inclination of the data
+    lon : longitude or declination of the data
+    lat : latitude or inclination of the data
+
+    or
+
+    di_block: a nested list of [lon,lat,1.0] or [dec,inc,1.0]
+    (di_block can be provided instead of lon, lat in which case it will be used)
 
     Output:
     dictionary containing
@@ -694,15 +699,19 @@ def fishqq(longitude, latitude):
     two of these dictionaries will be returned
 
     """
-    DIs = make_di_block(longitude,latitude)
-    ppars = pmag.doprinc(DIs) # get principal directions
+    if di_block is None:
+        all_dirs = make_di_block(lon, lat)
+    else:
+        all_dirs = di_block
+
+    ppars = pmag.doprinc(all_dirs) # get principal directions
 
     rDIs = []
     nDIs = []
     QQ_dict1 = {}
     QQ_dict2 = {}
 
-    for rec in DIs:
+    for rec in all_dirs:
         angle=pmag.angle([rec[0],rec[1]],[ppars['dec'],ppars['inc']])
         if angle>90.:
             rDIs.append(rec)
@@ -799,6 +808,24 @@ def lat_from_inc(inc):
     rad=np.pi/180.
     paleo_lat=np.arctan(0.5*np.tan(inc*rad))/rad
     return paleo_lat
+
+
+def lat_from_pole(ref_loc_lon,ref_loc_lat,pole_plon,pole_plat):
+    """
+    Calculate paleolatitude for a reference location based on a paleomagnetic pole
+
+    Required Arguments
+    ----------
+    ref_loc_lon: longitude of reference location
+    ref_loc_lat: latitude of reference location
+    pole_plon: paleopole longitude
+    pole_plat: paleopole latitude
+    """
+
+    ref_loc = (ref_loc_lon,ref_loc_lat)
+    pole = (pole_plon, pole_plat)
+    paleo_lat = 90-pmag.angle(pole,ref_loc)
+    return float(paleo_lat)
 
 
 def inc_from_lat(lat):
@@ -5926,7 +5953,8 @@ def pmag_results_extract(res_file="pmag_results.txt", crit_file="", spec_file=""
 
 def demag_magic(path_to_file = '.', file_name = 'magic_measurements.txt',
                save = False, save_folder = '.', fmt='svg', plot_by='loc',
-               treat=None, XLP = "", individual = None):
+               treat=None, XLP = "", individual = None, average_measurements = False,
+               single_plot = False):
     '''
     Takes demagnetization data (from magic_measurements file) and outputs
     intensity plots (with optional save).
@@ -5954,6 +5982,9 @@ def demag_magic(path_to_file = '.', file_name = 'magic_measurements.txt',
         or specimen, you may not wish to see (or wait for) every single plot. You can
         therefore specify a particular plot by setting this keyword argument to
         a string of the site/sample/specimen name.
+    average_measurements : Option to average demagnetization measurements by
+        the grouping specified with the 'plot_by' keyword argument (default is False)
+    single_plot : Option to output a single plot with all measurements (default is False)
     '''
 
     FIG={} # plot dictionary
@@ -6024,8 +6055,11 @@ def demag_magic(path_to_file = '.', file_name = 'magic_measurements.txt',
     int_key=IntMeths[0] # plot first intensity method found - normalized to initial value anyway - doesn't matter which used
     # print plotlist
     if individual is not None:
-        plotlist = []
-        plotlist.append(individual)
+        if type(individual) == list or type(individual)==tuple:
+            plotlist = list(individual)
+        else:
+            plotlist = []
+            plotlist.append(individual)
     for plot in plotlist:
         print plot,'plotting by: ',plot_key
         PLTblock=pmag.get_dictitem(data,plot_key,plot,'T') # fish out all the data for this type of plot
@@ -6041,15 +6075,33 @@ def demag_magic(path_to_file = '.', file_name = 'magic_measurements.txt',
             for rec in PLTblock:
                 if rec['er_specimen_name'] not in spcs:
                     spcs.append(rec['er_specimen_name'])
-            for spc in spcs:
-                SPCblock=pmag.get_dictitem(PLTblock,'er_specimen_name',spc,'T') # plot specimen by specimen
-                INTblock=[]
-                for rec in SPCblock:
-                    INTblock.append([float(rec[dmag_key]),0,0,float(rec[int_key]),1,rec['measurement_flag']])
-                if len(INTblock)>2:
-                    pmagplotlib.plotMT(FIG['demag'],INTblock,title,0,units,norm)
+            if average_measurements is False:
+                for spc in spcs:
+                    SPCblock=pmag.get_dictitem(PLTblock,'er_specimen_name',spc,'T') # plot specimen by specimen
+                    INTblock=[]
+                    for rec in SPCblock:
+                        INTblock.append([float(rec[dmag_key]),0,0,float(rec[int_key]),1,rec['measurement_flag']])
+                    if len(INTblock)>2:
+                        pmagplotlib.plotMT(FIG['demag'],INTblock,title,0,units,norm)
+            else:
+                AVGblock={}
+                for spc in spcs:
+                    SPCblock=pmag.get_dictitem(PLTblock,'er_specimen_name',spc,'T') # plot specimen by specimen
+                    for rec in SPCblock:
+                        if rec['measurement_flag'] == 'g':
+                            if float(rec[dmag_key]) not in AVGblock.keys():
+                                AVGblock[float(rec[dmag_key])] = [float(rec[int_key])]
+                            else:
+                                AVGblock[float(rec[dmag_key])].append(float(rec[int_key]))
+                INTblock = []
+                for step in sorted(AVGblock.keys()):
+                    INTblock.append([float(step), 0, 0, float(sum(AVGblock[step]))/float(len(AVGblock[step])), 1, 'g'])
+                pmagplotlib.plotMT(FIG['demag'],INTblock,title,0,units,norm)
         if save==True:
             plt.savefig(os.path.join(save_folder, title)+ '.' + fmt)
+        if single_plot is False:
+            plt.show()
+    if single_plot is True:
         plt.show()
 
 
