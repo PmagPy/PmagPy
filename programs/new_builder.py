@@ -54,7 +54,6 @@ class Contribution(object):
             filename = os.path.join(self.directory, fname)
             data_container = MagicDataFrame(filename)
             dtype = data_container.dtype
-            print 'dtype', dtype
             if dtype == 'empty':
                 return
             else:
@@ -174,7 +173,8 @@ class MagicDataFrame(object):
             self.df = pd.DataFrame()
             return
         if dtype == 'criteria':
-            self.df = pd.DataFrame()
+            #self.df = pd.DataFrame()
+            self.df.index = self.df['table_column_name']
             return
         self.df.index = self.df[name]
         #del self.df[name]
@@ -182,6 +182,8 @@ class MagicDataFrame(object):
         # replace '' with None, so you can use isnull(), notnull(), etc.
         # can always switch back with DataFrame.fillna('')
         self.df[self.df == ''] = None
+        # drop any completely blank columns
+        self.df.dropna(axis=1, how='all', inplace=True)
                 
                 
     def add_blank_row(self, label):
