@@ -95,7 +95,7 @@ class Demag_GUI(wx.Frame):
 #============================Initalization Functions=======================================#
 #==========================================================================================#
 
-    def __init__(self, WD=None, parent=None):
+    def __init__(self, WD=None, parent=None, write_to_log_file=True):
         """
         NAME:
     demag_gui.py
@@ -128,7 +128,8 @@ class Demag_GUI(wx.Frame):
             if new_WD == self.currentDirectory and sys.version.split()[0] == '2.7.11':
                 new_WD = self.get_DIR()
             self.change_WD(new_WD)
-        self.init_log_file()
+        if write_to_log_file:
+            self.init_log_file()
 
         #init wait dialog
         disableAll = wx.WindowDisabler()
@@ -177,6 +178,7 @@ class Demag_GUI(wx.Frame):
         self.interpretation_editor_open = False
         self.color_dict = {'green':'g','yellow':'y','maroon':'m','cyan':'c','blue':'b','red':'r','brown':(139./255.,69./255.,19./255.),'orange':(255./255.,127./255.,0./255.),'pink':(255./255.,20./255.,147./255.),'violet':(153./255.,50./255.,204./255.),'grey':(84./255.,84./255.,84./255.),'goldenrod':'goldenrod'}
         self.colors = ['g','y','m','c','b','r',(139./255.,69./255.,19./255.),(255./255.,127./255.,0./255.),(255./255.,20./255.,147./255.),(153./255.,50./255.,204./255.),(84./255.,84./255.,84./255.), 'goldenrod']
+        self.all_fits_list = []
         self.current_fit = None
         self.dirtypes = ['DA-DIR','DA-DIR-GEO','DA-DIR-TILT']
         self.bad_fits = []
@@ -209,8 +211,11 @@ class Demag_GUI(wx.Frame):
                 self.Add_text()
                 self.update_fit_boxes()
         else:
+            self.user_warning("No magic_measuremnts.txt was found")
             print("---------------------------no magic_measurements.txt found----------------------------------")
             self.Destroy()
+
+        self.running = True
 
         self.arrow_keys()
         self.Bind(wx.EVT_CLOSE, self.on_menu_exit)
@@ -1223,6 +1228,8 @@ class Demag_GUI(wx.Frame):
         @alters: fit.lines, zijplot, specimen_eqarea_interpretation, mplot_interpretation
         """
 
+        problems = {}
+
         if self.s in self.pmag_results_data['specimens'] and \
             self.pmag_results_data['specimens'][self.s] != []:
             self.zijplot.collections=[] # delete fit points
@@ -1240,7 +1247,8 @@ class Demag_GUI(wx.Frame):
             pars = fit.get(self.COORDINATE_SYSTEM)
 
             if (fit.tmin == None or fit.tmax == None or not pars):
-                print(fit.tmin,fit.tmax,len(fit.pars))
+                if 'no bounds' not in problems.keys(): problems['no bounds'] = []
+                problems['no bounds'].append(fit)
                 continue
 
             for line in fit.lines:
@@ -1403,9 +1411,15 @@ class Demag_GUI(wx.Frame):
                         relability = self.Data[self.s]['measurement_flag'][item]
                     except IndexError:
                         relability = 'b'
-                        print('-E- IndexError in bad data')
                     if relability=='b':
                         self.logger.SetItemBackgroundColour(item,"red")
+
+        if problems != {}:
+            if 'no bounds' in problems.keys():
+                text = "Fits "
+                for problem in problems['no bounds']:
+                    text += fit.name + ' '
+                text += " for the current specimen are missing bounds and will not be displayed."
 
         self.canvas1.draw()
         self.canvas2.draw()
@@ -1623,7 +1637,7 @@ class Demag_GUI(wx.Frame):
             # get the alpha95
                 Xcirc,Ycirc=[],[]
                 Da95,Ia95=pmag.circ(float(mpars["dec"]),float(mpars["inc"]),float(mpars["alpha95"]))
-                for k in  range(len(Da95)):
+                for k in range(len(Da95)):
                     XY=pmag.dimap(Da95[k],Ia95[k])
                     Xcirc.append(XY[0])
                     Ycirc.append(XY[1])
@@ -1754,8 +1768,13 @@ class Demag_GUI(wx.Frame):
             block=self.Data[specimen]['zijdblock_tilt']
         else:
             block=self.Data[specimen]['zijdblock']
-        if  end_pca > beg_pca and end_pca - beg_pca > 1:
+        if block == []:
+            print("-E- no measurement data for specimen %s in coordinate system %s"%(specimen, coordinate_system))
+            mpars={}
+        elif  end_pca > beg_pca and end_pca - beg_pca > 1:
+
             mpars=pmag.domean(block,beg_pca,end_pca,calculation_type) #preformes regression
+
             if 'specimen_direction_type' in mpars and mpars['specimen_direction_type']=='Error':
                 print("-E- no measurement data for specimen %s in coordinate system %s"%(specimen, coordinate_system))
                 return {}
@@ -1987,34 +2006,30 @@ class Demag_GUI(wx.Frame):
              self.interpretation_editor.mean_type_box.SetStringSelection(calculation_type)
         self.calculate_high_level_mean(high_level_type,high_level_name,calculation_type,elements_type,self.mean_fit)
 
-    def reset_backend(self):
-        if not self.data_loss_warning(): return False
+    def quiet_reset_backend(self,reset_interps=True):
 
         new_Data_info=self.get_data_info()
         new_Data,new_Data_hierarchy=self.get_data()
 
         if not new_Data:
-            print("Data read in failed reseting to old data")
+            print("Data read in failed when reseting, aborting reset")
             return
         else:
             self.Data,self.Data_hierarchy,self.Data_info = new_Data,new_Data_hierarchy,new_Data_info
 
-        self.pmag_results_data={}
-        for level in ['specimens','samples','sites','locations','study']:
-            self.pmag_results_data[level]={}
-        self.high_level_means={}
+        if reset_interps:
+            self.pmag_results_data={}
+            for level in ['specimens','samples','sites','locations','study']:
+                self.pmag_results_data[level]={}
+            self.high_level_means={}
 
-        high_level_means={}
-        for high_level in ['samples','sites','locations','study']:
-            if high_level not in self.high_level_means.keys():
-                self.high_level_means[high_level]={}
+            high_level_means={}
+            for high_level in ['samples','sites','locations','study']:
+                if high_level not in self.high_level_means.keys():
+                    self.high_level_means[high_level]={}
 
         self.specimens=self.Data.keys()         # get list of specimens
         self.specimens.sort(cmp=specimens_comparator) # sort list of specimens
-        if len(self.specimens)>0:
-            self.s=str(self.specimens[0])
-        else:
-            self.s=""
         self.samples=self.Data_hierarchy['samples'].keys()         # get list of samples
         self.samples.sort(cmp=specimens_comparator)                   # get list of specimens
         self.sites=self.Data_hierarchy['sites'].keys()         # get list of sites
@@ -2025,10 +2040,9 @@ class Demag_GUI(wx.Frame):
         #----------------------------------------------------------------------
         # initialize first specimen in list as current specimen
         #----------------------------------------------------------------------
-        try:
-            self.s=str(self.specimens[0])
-        except IndexError:
-            self.s=""
+        if self.s in self.specimens: pass
+        elif len(self.specimens)>0: self.s=str(self.specimens[0])
+        else: self.s=""
         try:
             self.sample=self.Data_hierarchy['sample_of_specimen'][self.s]
         except KeyError:
@@ -2038,11 +2052,23 @@ class Demag_GUI(wx.Frame):
         except KeyError:
             self.site=""
 
+        if self.Data and reset_interps:
+            self.update_pmag_tables()
+
+        if self.interpretation_editor_open:
+            self.interpretation_editor.specimens_list = self.specimens
+
+
+
+    def reset_backend(self,warn_user=True,reset_interps=True):
+        if warn_user and not self.data_loss_warning(): return False
+
+        self.quiet_reset_backend(reset_interps=reset_interps)
+
         self.specimens_box.SetItems(self.specimens)
         self.specimens_box.SetStringSelection(str(self.s))
 
         if self.Data:
-            self.update_pmag_tables()
             if not self.current_fit:
                 self.update_selection()
             else:
@@ -2050,7 +2076,6 @@ class Demag_GUI(wx.Frame):
                 self.update_fit_boxes()
 
         if self.interpretation_editor_open:
-            self.interpretation_editor.specimens_list = self.specimens
             self.interpretation_editor.update_editor()
 
     def recalculate_current_specimen_interpreatations(self):
@@ -2823,6 +2848,7 @@ class Demag_GUI(wx.Frame):
         format = lines[0].strip()
         header = lines[1].split('\t')
         update_files = lines[2:]
+        update_data = False
         for i,update_file in enumerate(update_files):
             update_lines = update_file.split('\t')
             if not os.path.isfile(update_lines[0]):
@@ -2867,6 +2893,7 @@ class Demag_GUI(wx.Frame):
                 program_ran, error_message = cit_magic.main(command_line=False, **CIT_kwargs)
 
                 if program_ran:
+                    update_data = True
                     update_lines[-1] = time()
                     new_inp_file += reduce(lambda x,y: str(x)+"\t"+str(y), update_lines)+"\n"
                     magic_files.append(CIT_kwargs["dir_path"]+CIT_kwargs["meas_file"])
@@ -2878,6 +2905,7 @@ class Demag_GUI(wx.Frame):
         inp_file.close()
         out_file = open(inp_file_name, "w")
         out_file.write(new_inp_file)
+        return update_data
 
     def get_all_inp_files(self,WD=None):
         if WD == None: WD = self.WD
@@ -3726,7 +3754,7 @@ class Demag_GUI(wx.Frame):
 
     def on_menu_read_all_inp(self, event):
         inp_file_names = self.get_all_inp_files()
-        if inp_file_name == []: return
+        if inp_file_names == []: return
 
         magic_files = []
         for inp_file_name in inp_file_names:
@@ -4034,6 +4062,7 @@ class Demag_GUI(wx.Frame):
                 self.interpretation_editor.on_close_edit_window(event)
             self.close_log_file()
             self.Destroy()
+        self.running = False
 
     #---------------------------------------------#
     #Edit Menu Functions
@@ -4970,6 +4999,8 @@ class Demag_GUI(wx.Frame):
             self.current_fit = None
         self.close_warning = True
         self.calculate_higher_levels_data()
+        if self.interpretation_editor_open:
+            self.interpretation_editor.update_editor()
         self.update_selection()
 
     def on_next_button(self,event):

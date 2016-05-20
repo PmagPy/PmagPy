@@ -1352,6 +1352,9 @@ def cart2dir(cart):
         Xs,Ys,Zs=cart[:,0],cart[:,1],cart[:,2]
     else: #single vector
         Xs,Ys,Zs=cart[0],cart[1],cart[2]
+    if numpy.iscomplexobj(Xs): Xs = Xs.real
+    if numpy.iscomplexobj(Ys): Ys = Ys.real
+    if numpy.iscomplexobj(Zs): Zs = Zs.real
     Rs=numpy.sqrt(Xs**2+Ys**2+Zs**2) # calculate resultant vector length
     Decs=(numpy.arctan2(Ys,Xs)/rad)%360. # calculate declination taking care of correct quadrants (arctan2) and making modulo 360.
     try:
@@ -1561,6 +1564,7 @@ def domean(indata,start,end,calculation_type):
         mpars["center_of_mass"]=cm
         s1=numpy.sqrt(t[0])
         MAD=numpy.arctan(numpy.sqrt(t[1]+t[2])/s1)/rad
+        if numpy.iscomplexobj(MAD): MAD = MAD.real
         mpars["specimen_mad"]=MAD # I think this is how it is done - i never anchor the "PCA" - check
         return mpars
     if calculation_type!='DE-BFP':
@@ -1594,9 +1598,11 @@ def domean(indata,start,end,calculation_type):
         s1=numpy.sqrt(t[0])
         Dir=cart2dir(v1)
         MAD=numpy.arctan(numpy.sqrt(t[1]+t[2])/s1)/rad
+        if numpy.iscomplexobj(MAD): MAD = MAD.real
     if calculation_type=="DE-BFP":
         Dir=cart2dir(v3)
         MAD=numpy.arctan(numpy.sqrt(t[2]/t[1]+t[2]/t[0]))/rad
+        if numpy.iscomplexobj(MAD): MAD = MAD.real
 #
 #  	get angle with  center of mass
 #
