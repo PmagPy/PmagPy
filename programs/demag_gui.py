@@ -3421,6 +3421,9 @@ class Demag_GUI(wx.Frame):
         elif coordinate_system=='geographic' and \
              len(self.Data[self.s]['zijdblock_geo'])==0:
             self.coordinates_box.SetStringSelection("specimen")
+        if coordinate_system != self.coordinates_box.GetValue() and self.interpretation_editor_open:
+            self.interpretation_editor.coordinates_box.SetStringSelection(self.coordinates_box.GetValue())
+            self.interpretation_editor.update_editor(False)
         coordinate_system=self.coordinates_box.GetValue()
         self.COORDINATE_SYSTEM=coordinate_system
 
