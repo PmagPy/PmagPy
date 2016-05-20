@@ -1,0 +1,3 @@
+tab 	pmag_criteria
+check_aniso_ftest	criteria_definition	er_citation_names	pmag_criteria_code	sample_int_stdev_opt	site_int_n	specimen_b_beta	specimen_dck	specimen_dpal	specimen_dt	specimen_dtr	specimen_f	specimen_int_alpha	specimen_int_mad_anc	specimen_int_n	specimen_q
+True	acceptance criteria for study	This study	ACCEPT	True	1	0.100	5.000000e+00	5.000000e+00	3.000000e+00	10.0	0.50	1.500000e+01	6.0	5	5.00
