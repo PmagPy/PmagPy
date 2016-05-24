@@ -1510,8 +1510,7 @@ def domean(indata,start,end,calculation_type):
     if calculation_type=='DE-FM': # for fisher means
         fpars=fisher_mean(fdata)
         mpars["specimen_direction_type"]='l'
-        try: mpars["specimen_dec"]=fpars["dec"]
-        except KeyError: print(fpars,fdata,start,end)
+        mpars["specimen_dec"]=fpars["dec"]
         mpars["specimen_inc"]=fpars["inc"]
         mpars["specimen_alpha95"]=fpars["alpha95"]
         mpars["specimen_n"]=fpars["n"]
