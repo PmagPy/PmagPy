@@ -1475,22 +1475,21 @@ def domean(indata,start,end,calculation_type):
     mpars={}
     datablock=[]
     start0,end0=start,end
-    for ind,rec in enumerate(indata):
-        if len(rec)<6:rec.append('g')
-        if rec[5]=='b' and ind==start0:
-            mpars["specimen_direction_type"]="Error"
-            print "Can't select 'bad' point as start for PCA"
-            return mpars
-        if rec[5]=='b' and ind<start:
-            start-=1
-            end-=1
-        if rec[5]=='b' and ind>start and ind<=end+1:
-            end-=1
-        if rec[5]=='g':
-            datablock.append(rec) # use only good data
+    if indata[start0][5] == 'b': print("Can't select 'bad' point as start for PCA")
+    indata = [rec.append('g') if len(rec)<6 else rec for rec in indata]
+    flags = map(lambda x: x[5], indata)
+    bad_before_start = flags[:start0].count('b')
+    bad_in_mean = flags[start0:end0+1].count('b')
+    start = start0 - bad_before_start
+    end = end0 - bad_before_start - bad_in_mean
+    datablock = filter(lambda x: x[5]=='g', indata)
+    if indata[start0] != datablock[start]:
+        print('problem removing bad data in pmag.domean start of datablock shifted:\norigional: %d\nafter removal: %d'%(start0,indata.index(datablock[start])))
+    if indata[end0] != datablock[end]:
+        print('problem removing bad data in pmag.domean end of datablock shifted:\norigional: %d\nafter removal: %d'%(end0,indata.index(datablock[end])))
     mpars["calculation_type"]=calculation_type
     rad=numpy.pi/180.
-    if end>len(datablock)-1 or end<start : end=len(datablock)-1
+    if end>len(datablock)-1 or end<start: end=len(datablock)-1
     control,data,X,Nrec=[],[],[],float(end-start+1)
     cm=[0.,0.,0.]
 #
@@ -1503,7 +1502,7 @@ def domean(indata,start,end,calculation_type):
         else:
             data=[datablock[k][1],datablock[k][2],1.0] # unit weight
         fdata.append(data)
-        cart= dir2cart(data)
+        cart=dir2cart(data)
         X.append(cart)
     if calculation_type=='DE-BFL-O': # include origin as point
         X.append([0.,0.,0.])
@@ -1511,7 +1510,8 @@ def domean(indata,start,end,calculation_type):
     if calculation_type=='DE-FM': # for fisher means
         fpars=fisher_mean(fdata)
         mpars["specimen_direction_type"]='l'
-        mpars["specimen_dec"]=fpars["dec"]
+        try: mpars["specimen_dec"]=fpars["dec"]
+        except KeyError: print(fpars,fdata,start,end)
         mpars["specimen_inc"]=fpars["inc"]
         mpars["specimen_alpha95"]=fpars["alpha95"]
         mpars["specimen_n"]=fpars["n"]
