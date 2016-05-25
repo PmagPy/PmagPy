@@ -1,19 +1,41 @@
 #!/usr/bin/env python
 
+"""
+This module is for creating or editing a MagIC contribution,
+(or a piece of one).
+You can build a contribution or an individual table from the ground up,
+or you can read in one or more MagIC-format files.
+You can also extract specific data from a table --
+for instance, you can build a DIblock for plotting.
+"""
+
 import os
-import numpy as np
-import pandas as pd
 import re
-from pandas import DataFrame, Series
+import pandas as pd
+from pandas import DataFrame
 from pmagpy import pmag
+
 
 class Contribution(object):
 
-    def __init__(self, directory, read_tables='all', custom_filenames=None, single_file=None):
+    """
+    A Contribution is a collection of MagicDataFrames,
+    each of which corresponds to one MagIC table.
+    The Contribution object also has methods for
+    manipulating one or more tables in the contribution --
+    for example, renaming a site.
+    """
+
+    def __init__(self, directory, read_tables='all',
+                 custom_filenames=None, single_file=None):
+
         self.directory = os.path.realpath(directory)
         self.table_names = ['measurements', 'specimens', 'samples',
                             'sites', 'locations', 'contribution',
                             'criteria', 'ages', 'images']
+        self.ancestry = ['measurements', 'specimens', 'samples',
+                         'sites', 'locations']
+
         # create standard filenames from table names
         self.filenames = {t: t + ".txt" for t in self.table_names}
         # update self.filenames to include custom names
@@ -25,26 +47,22 @@ class Contribution(object):
         if read_tables == 'all':
             read_tables = self.table_names
 
-        if single_file: # use if filename is known but type isn't
+        if single_file:  # use if filename is known but type isn't
             self.add_magic_table('unknown', single_file)
-            print 'self.tables.keys()', self.tables.keys()
             return
         else:  # read in data for all required tables
             for name in read_tables:
                 self.add_magic_table(name)
-        
-
 
     def add_custom_filenames(self, custom_filenames):
         """
         Update/overwrite self.filenames with custom names.
-        Input dict should have the format: 
+        Input dict should have the format:
         {"specimens": "custom_spec_file.txt", ...}
         """
         if custom_filenames:
             self.filenames.update(custom_filenames)
 
-        
     def add_magic_table(self, dtype, fname=None):
         """
         Add a table to self.tables.
@@ -71,21 +89,33 @@ class Contribution(object):
         else:
             print "-W- No such file: {}".format(filename)
 
-
     def rename_item(self, table_name, item_old_name, item_new_name):
-
+        """
+        Rename itme (such as a site) everywhere that it occurs.
+        This change often spans multiple tables.
+        For example, a site name will occur in the sites table,
+        the samples table, and possibly in the locations/ages tables.
+        """
         # define some helper methods:
-        def split_if_str(x):
-            if isinstance(x, str):
-                return x.split(':')
+        def split_if_str(item):
+            """
+            String splitting function
+            that doesn't break with None/np.nan
+            """
+            if isinstance(item, str):
+                return item.split(':')
             else:
-                return x
+                return item
 
-        def put_together_if_str(x):
+        def put_together_if_str(item):
+            """
+            String joining function
+            that doesn't break with None/np.nan
+            """
             try:
-                return ":".join(x)
+                return ":".join(item)
             except TypeError:
-                return x
+                return item
 
         def replace_colon_delimited_value(df, col_name, old_value, new_value):
             """
@@ -98,7 +128,6 @@ class Contribution(object):
                 except ValueError:
                     continue
                 names_list[ind] = new_value
-
 
         # initialize some things
         item_type = table_name
@@ -120,12 +149,81 @@ class Contribution(object):
                 replace_colon_delimited_value(df, col_name_plural + "_list", item_old_name, item_new_name)
                 df[col_name_plural] = df[col_name_plural + "_list"].apply(put_together_if_str)
 
+    def get_table_name(self, ind):
+        if ind > -1:
+            table_name = self.ancestry[ind]
+            name = table_name[:-1] + "_name"
+            return table_name, name
+        return "", ""
+
+    def propagate_col_name_down(self, col_name, df_name):
+        """
+        Put the data for "col_name" into dataframe with df_name
+        Used to add 'site_name' to specimen table, for example.
+        """
+        df = self.tables[df_name].df
+        if col_name in df.columns:
+            print '{} already in {}'.format(col_name, df_name)
+            return df
+
+        # otherwise, do necessary merges to get col_name into df
+        # get names for each level
+        grandparent_table_name = col_name.split('_')[0] + "s"
+        grandparent_name = grandparent_table_name[:-1] + "_name"
+        ind = self.ancestry.index(grandparent_table_name) - 1
+        #
+        parent_table_name, parent_name = self.get_table_name(ind)
+        child_table_name, child_name = self.get_table_name(ind - 1)
+        bottom_table_name, bottom_name = self.get_table_name(ind - 2)
+
+        # merge in bottom level
+        if child_name not in df.columns:
+            # add child table if missing
+            if bottom_table_name not in self.tables:
+                result = self.add_magic_table(bottom_table_name)
+                if not isinstance(result, MagicDataFrame):
+                    print "-W- Couldn't read in {} data".format(bottom_table_name)
+                    print "-I- Make sure you've provided the correct file name"
+                    return df
+            # add child_name to df
+            add_df = self.tables[bottom_table_name].df
+            df = df.merge(add_df[[child_name]],
+                          left_on=[bottom_name],
+                          right_index=True, how="left")
+
+        # merge in one level above
+        if parent_name not in df.columns:
+            # add parent_table if missing
+            if child_table_name not in self.tables:
+                self.add_magic_table(child_table_name)
+            # add parent_name to df
+            add_df = self.tables[child_table_name].df
+            df = df.merge(add_df[[parent_name]],
+                          left_on=[child_name],
+                          right_index=True, how="left")
+
+        # merge in two levels above
+        if grandparent_name not in df.columns:
+            # add grandparent table if it is missing
+            if parent_table_name not in self.tables:
+                self.add_magic_table(parent_table_name)
+            # add grandparent name to df
+            add_df = self.tables[parent_table_name].df
+            df = df.merge(add_df[[grandparent_name]],
+                          left_on=[parent_name],
+                          right_index=True, how="left")
+
+        return df
 
     def add_site_names_to_specimen_table(self):
-        """
+        self.propagate_col_name('site_name', 'specimens')
+
+    """
+    def add_site_names_to_specimen_table(self):
+
         Add temporary column "site_name" at specimen level.
         Requires specimen & sample data to be available.
-        """
+
         # first make sure contribution has both specimen & sample level data
         print 'trying to add site_name'
         for dtype in ['specimens', 'samples']:
@@ -143,10 +241,16 @@ class Contribution(object):
                                 right_df=samp_container.df,
                                 add_col='site_name')
         print 'self.tables.keys() at end of add_site_names', self.tables.keys()
-            
+    """
 
 
 class MagicDataFrame(object):
+
+    """
+    Each MagicDataFrame corresponds to one MagIC table.
+    The MagicDataFrame object consists of a pandas DataFrame,
+    and assorted methods for manipulating that DataFrame.
+    """
 
     def __init__(self, magic_file):
         data, dtype = pmag.magic_read(magic_file)
@@ -184,8 +288,7 @@ class MagicDataFrame(object):
         self.df[self.df == ''] = None
         # drop any completely blank columns
         self.df.dropna(axis=1, how='all', inplace=True)
-                
-                
+
     def add_blank_row(self, label):
         """
         Add a blank row with only an index value to self.df
@@ -194,7 +297,6 @@ class MagicDataFrame(object):
         blank_item = pd.Series({}, index=col_labels, name=label)
         # use .loc to add in place (append won't do that)
         self.df.loc[blank_item.name] = blank_item
-
 
     def get_name(self, col_name, df_slice="", index_names=""):
         """
@@ -220,8 +322,8 @@ class MagicDataFrame(object):
         # otherwise, return the first value from that column
         return df_slice[col_name][0]
 
-
-    def get_di_block(self, df_slice=None, do_index=False, item_names=[], tilt_corr='100'):
+    def get_di_block(self, df_slice=None, do_index=False,
+                     item_names=None, tilt_corr='100'):
         """
         Input either a DataFrame slice
         or
@@ -258,7 +360,6 @@ class MagicDataFrame(object):
         di_block = [[float(row['dir_dec']), float(row['dir_inc'])] for ind, row in df_slice.iterrows()]
         return di_block
 
-
     def get_records_for_code(self, meth_code, incl=True, use_slice=False, sli=None):
         """
         Use regex to see if meth_code is in the method_codes ":" delimited list.
@@ -280,23 +381,14 @@ class MagicDataFrame(object):
             return df[~cond]
 
 
-    def merge_in(self, join_on, right_df, add_col):
-        #if 'site_name' not in spec_df.columns:
-        #    spec_df = spec_df.merge(samp_df[['site_name']], left_on=['sample_name'], right_index=True, how="left")
-        if add_col not in self.df.columns:
-            # SQL style merge between two DataFrames
-            # joins on self.df.index and specified col for other dataframe
-            self.df = self.df.merge(right_df[[add_col]], left_on=[join_on], right_index=True, how="left")
-     
+    #def merge_in(self, join_on, right_df, add_col):
+    #    #if 'site_name' not in spec_df.columns:
+    #    #    spec_df = spec_df.merge(samp_df[['site_name']], left_on=['sample_name'], right_index=True, how="left")
+    #    if add_col not in self.df.columns:
+    #        # SQL style merge between two DataFrames
+    #        # joins on self.df.index and specified col for other dataframe
+    #        self.df = self.df.merge(right_df[[add_col]], left_on=[join_on], right_index=True, how="left")
 
 
 if __name__ == "__main__":
-    working_dir = "/Users/nebula/Python/PmagPy/3_0"
-    print 'working_dir', working_dir
-    con = Contribution(working_dir)
-    con.tables['locations'].df['site_name'] = ['16', np.nan, '30', '22']
-    con.rename_item('sites', '16', 'classier_site')
-    print con
-    print con.tables.keys()
-    print con.tables['locations'].df[['site_names', 'site_name']]
-    
+    pass
