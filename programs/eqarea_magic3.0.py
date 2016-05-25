@@ -1,10 +1,12 @@
 #!/usr/bin/env python
+
+# -*- python-indent-offset: 4; -*-
+
 import sys
 import os
-import numpy as np
 import matplotlib
 if matplotlib.get_backend() != "TKAgg":
-  matplotlib.use("TKAgg")
+    matplotlib.use("TKAgg")
 
 import pmagpy.pmag as pmag
 import pmagpy.pmagplotlib as pmagplotlib
@@ -28,8 +30,12 @@ def main():
         -h prints help message and quits
         -f FILE: specify input magic format file from magic, default='sites.txt'
          supported types=[measurements, specimens, samples, sites]
+        -fsp FILE: specify specimen file name, (required if you want to plot measurements by sample) 
+                default='specimens.txt'
         -fsa FILE: specify sample file name, (required if you want to plot specimens by site) 
                 default='samples.txt'
+        -fsi FILE: specify site file name, default='sites.txt'
+
         -obj OBJ: specify  level of plot  [all, sit, sam, spc], default is all
         -crd [s,g,t]: specify coordinate system, [s]pecimen, [g]eographic, [t]ilt adjusted
                 default is geographic, unspecified assumed geographic
@@ -55,7 +61,9 @@ def main():
     in_file = pmag.get_named_arg_from_sys("-f", default_val="sites.txt")
     full_in_file = os.path.join(dir_path, in_file)
     plot_by = pmag.get_named_arg_from_sys("-obj", default_val="all").lower()
+    spec_file = pmag.get_named_arg_from_sys("-fsp", default_val="specimens.txt")
     samp_file = pmag.get_named_arg_from_sys("-fsa", default_val="samples.txt")
+    site_file = pmag.get_named_arg_from_sys("-fsi", default_val="sites.txt")
     if plot_by == 'all':
         plot_key = 'all'
     elif plot_by == 'sit':
@@ -101,32 +109,35 @@ def main():
     #Dir_type_keys=['','site_direction_type','sample_direction_type','specimen_direction_type']
 
     #
-    contribution = nb.Contribution(dir_path, custom_filenames={"samples": samp_file},
+    fnames = {"specimens": spec_file, "samples": samp_file, 'sites': site_file}
+    contribution = nb.Contribution(dir_path, custom_filenames=fnames,
                                    single_file=in_file)
     # the object that contains the DataFrame + useful helper methods:
-    key = contribution.tables.keys()[0]
-    data_container = contribution.tables[key]
+    table_name = contribution.tables.keys()[0]
+    data_container = contribution.tables[table_name]
     # the actual DataFrame:
     data = data_container.df
 
     # uses sample infile to add temporary site_name
     # column to the specimen table
-    contribution.add_site_names_to_specimen_table()
-    c1 = data.columns
-    c2 = contribution.tables[key].df.columns
-    data_container = contribution.tables[key]
+
+
+
+    data_container = contribution.tables[table_name]
     data = data_container.df
-    
+
+    if (plot_key != "all") and (plot_key not in data.columns):
+        data = contribution.propagate_col_name_down(plot_key, table_name)
+
     # add tilt key into DataFrame columns if it isn't there already
     if tilt_key not in data.columns:
         data.loc[:, tilt_key] = None
 
-    
-    if verbose:    
-        print len(data),' records read from ',in_file
+    if verbose:
+        print len(data), ' records read from ', in_file
 
     # find desired dec,inc data:
-    dir_type_key=''
+    dir_type_key = ''
     #
     # get plotlist if not plotting all records
     #

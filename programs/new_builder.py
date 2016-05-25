@@ -73,21 +73,23 @@ class Contribution(object):
             data_container = MagicDataFrame(filename)
             dtype = data_container.dtype
             if dtype == 'empty':
-                return
+                return False
             else:
                 self.tables[dtype] = data_container
-                return
+                return data_container
         # if providing a data type, use the canonical filename
         elif dtype not in self.filenames:
             print '-W- "{}" is not a valid MagIC table type'.format(dtype)
             print "-I- Available table types are: {}".format(", ".join(self.table_names))
-            return
+            return False
         filename = os.path.join(self.directory, self.filenames[dtype])
-        print 'filename', filename
         if os.path.exists(filename):
-            self.tables[dtype] = MagicDataFrame(filename)
+            data_container = MagicDataFrame(filename)
+            self.tables[dtype] = data_container
+            return data_container
         else:
             print "-W- No such file: {}".format(filename)
+            return False
 
     def rename_item(self, table_name, item_old_name, item_new_name):
         """
@@ -150,6 +152,11 @@ class Contribution(object):
                 df[col_name_plural] = df[col_name_plural + "_list"].apply(put_together_if_str)
 
     def get_table_name(self, ind):
+        """
+        Return both the table_name (i.e., 'specimens')
+        and the col_name (i.e., 'specimen_name')
+        for a given index in self.ancestry.
+        """
         if ind > -1:
             table_name = self.ancestry[ind]
             name = table_name[:-1] + "_name"
@@ -195,7 +202,11 @@ class Contribution(object):
         if parent_name not in df.columns:
             # add parent_table if missing
             if child_table_name not in self.tables:
-                self.add_magic_table(child_table_name)
+                result = self.add_magic_table(child_table_name)
+                if not isinstance(result, MagicDataFrame):
+                    print "-W- Couldn't read in {} data".format(child_table_name)
+                    print "-I- Make sure you've provided the correct file name"
+                    return df
             # add parent_name to df
             add_df = self.tables[child_table_name].df
             df = df.merge(add_df[[parent_name]],
@@ -206,7 +217,11 @@ class Contribution(object):
         if grandparent_name not in df.columns:
             # add grandparent table if it is missing
             if parent_table_name not in self.tables:
-                self.add_magic_table(parent_table_name)
+                result = self.add_magic_table(parent_table_name)
+                if not isinstance(result, MagicDataFrame):
+                    print "-W- Couldn't read in {} data".format(parent_table_name)
+                    print "-I- Make sure you've provided the correct file name"
+                    return df
             # add grandparent name to df
             add_df = self.tables[parent_table_name].df
             df = df.merge(add_df[[grandparent_name]],
@@ -214,34 +229,6 @@ class Contribution(object):
                           right_index=True, how="left")
 
         return df
-
-    def add_site_names_to_specimen_table(self):
-        self.propagate_col_name('site_name', 'specimens')
-
-    """
-    def add_site_names_to_specimen_table(self):
-
-        Add temporary column "site_name" at specimen level.
-        Requires specimen & sample data to be available.
-
-        # first make sure contribution has both specimen & sample level data
-        print 'trying to add site_name'
-        for dtype in ['specimens', 'samples']:
-            if dtype not in self.tables:
-                self.add_magic_table(dtype)
-            # if no data was found to add:
-            if dtype not in self.tables:
-                print "-W- No {} data found".format(dtype)
-                return
-        # next, do SQL style join
-        spec_container = self.tables['specimens']
-        samp_container = self.tables['samples']
-        print 'samp_container', len(samp_container.df)
-        spec_container.merge_in(join_on='sample_name',
-                                right_df=samp_container.df,
-                                add_col='site_name')
-        print 'self.tables.keys() at end of add_site_names', self.tables.keys()
-    """
 
 
 class MagicDataFrame(object):
@@ -379,15 +366,6 @@ class MagicDataFrame(object):
         else:
             # return a copy of records without that method code
             return df[~cond]
-
-
-    #def merge_in(self, join_on, right_df, add_col):
-    #    #if 'site_name' not in spec_df.columns:
-    #    #    spec_df = spec_df.merge(samp_df[['site_name']], left_on=['sample_name'], right_index=True, how="left")
-    #    if add_col not in self.df.columns:
-    #        # SQL style merge between two DataFrames
-    #        # joins on self.df.index and specified col for other dataframe
-    #        self.df = self.df.merge(right_df[[add_col]], left_on=[join_on], right_index=True, how="left")
 
 
 if __name__ == "__main__":
