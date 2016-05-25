@@ -227,7 +227,8 @@ class Contribution(object):
             df = df.merge(add_df[[grandparent_name]],
                           left_on=[parent_name],
                           right_index=True, how="left")
-
+        # update the Contribution
+        self.tables[df_name].df = df
         return df
 
 
@@ -353,12 +354,17 @@ class MagicDataFrame(object):
         If incl == True, return all records WITH meth_code.
         If incl == False, return all records WITHOUT meth_code.
         """
-        pattern = re.compile('{}(?=:|\s|\Z)'.format(meth_code))
+
         # (must use fillna to replace np.nan with False for indexing)
         if use_slice:
-            df = sli
+            df = sli.copy()
         else:
             df = self.df.copy()
+        # if meth_code not provided, return unchanged dataframe
+        if not meth_code:
+            return df
+        # get regex
+        pattern = re.compile('{}(?=:|\s|\Z)'.format(meth_code))
         cond = df['method_codes'].str.contains(pattern).fillna('')
         if incl:
             # return a copy of records with that method code:
