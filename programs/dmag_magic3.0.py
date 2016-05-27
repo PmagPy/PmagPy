@@ -50,7 +50,7 @@ def main():
     in_file = pmag.get_named_arg_from_sys("-f", default_val="measurements.txt")
     plot_by = pmag.get_named_arg_from_sys("-obj", default_val="loc")
     name_dict = {'loc': 'location_name', 'sit': 'site_name',
-                 'sam': 'samp_name', 'spc': 'specimen_name'}
+                 'sam': 'sample_name', 'spc': 'specimen_name'}
     plot_key = name_dict[plot_by]
     LT = "LT-" + pmag.get_named_arg_from_sys("-LP", "AF") + "-Z"
     if LT == "LT-T-Z":
@@ -100,7 +100,7 @@ def main():
     pmagplotlib.plot_init(FIG['demag'], 5, 5)
     # iterate through and plot the data
     for plt in plotlist:
-        plot_data = data[data[plot_key] == plt]
+        plot_data = data[data[plot_key] == plt].copy()
         if plot:
             print plt, 'plotting by: ', plot_key
         if len(plot_data) > 2:
@@ -109,11 +109,13 @@ def main():
             spcs = plot_data['specimen_name'].unique()
             for spc in spcs:
                 INTblock = []
-                for ind, rec in plot_data[plot_data['specimen_name'] == spc].iterrows(): #[[dmag_key, int_key, 'flag']]
+                spec_data = plot_data[plot_data['specimen_name'] == spc]
+                for ind, rec in spec_data.iterrows():
                     INTblock.append([float(rec[dmag_key]), 0, 0, float(rec[int_key]), 1, rec['flag']])
                 if len(INTblock) > 2:
                     pmagplotlib.plotMT(FIG['demag'], INTblock,
                                        title, 0, units, norm)
+
             if not plot:
                 files = {}
                 for key in FIG.keys():

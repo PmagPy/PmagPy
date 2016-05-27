@@ -46,7 +46,6 @@ class Contribution(object):
         # if not otherwise specified, read in all possible tables
         if read_tables == 'all':
             read_tables = self.table_names
-
         if single_file:  # use if filename is known but type isn't
             self.add_magic_table('unknown', single_file)
             return
@@ -168,6 +167,8 @@ class Contribution(object):
         Put the data for "col_name" into dataframe with df_name
         Used to add 'site_name' to specimen table, for example.
         """
+        if df_name not in self.tables:
+            self.add_magic_table(df_name)
         df = self.tables[df_name].df
         if col_name in df.columns:
             print '{} already in {}'.format(col_name, df_name)
@@ -194,6 +195,8 @@ class Contribution(object):
                     return df
             # add child_name to df
             add_df = self.tables[bottom_table_name].df
+            # drop duplicate names
+            add_df = add_df.drop_duplicates(subset=bottom_name)
             df = df.merge(add_df[[child_name]],
                           left_on=[bottom_name],
                           right_index=True, how="left")
@@ -209,6 +212,8 @@ class Contribution(object):
                     return df
             # add parent_name to df
             add_df = self.tables[child_table_name].df
+            # drop duplicate names
+            add_df = add_df.drop_duplicates(subset=child_name)
             df = df.merge(add_df[[parent_name]],
                           left_on=[child_name],
                           right_index=True, how="left")
@@ -224,6 +229,8 @@ class Contribution(object):
                     return df
             # add grandparent name to df
             add_df = self.tables[parent_table_name].df
+            # drop duplicate names
+            add_df = add_df.drop_duplicates(subset=parent_name)
             df = df.merge(add_df[[grandparent_name]],
                           left_on=[parent_name],
                           right_index=True, how="left")

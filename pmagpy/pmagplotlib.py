@@ -1,3 +1,7 @@
+#pylint: skip-file
+#pylint: disable-all
+# causes too many errors and crashes
+
 ##from Tkinter import *
 import sys, os
 sys.path.insert(0, os.getcwd())
