@@ -177,8 +177,15 @@ class Demag_GUI(wx.Frame):
                 self.high_level_means[high_level]={}
 
         self.interpretation_editor_open = False
-        self.color_dict = {'green':'g','yellow':'y','maroon':'m','cyan':'c','blue':'b','red':'r','brown':(139./255.,69./255.,19./255.),'orange':(255./255.,127./255.,0./255.),'pink':(255./255.,20./255.,147./255.),'violet':(153./255.,50./255.,204./255.),'grey':(84./255.,84./255.,84./255.),'goldenrod':'goldenrod'}
-        self.colors = ['g','y','m','c','b','r',(139./255.,69./255.,19./255.),(255./255.,127./255.,0./255.),(255./255.,20./255.,147./255.),(153./255.,50./255.,204./255.),(84./255.,84./255.,84./255.), 'goldenrod']
+        self.color_dict = {}
+        self.colors = ['#008000','#FFFF00','#800000','#00FFFF']
+        for name, hexval in matplotlib.colors.cnames.iteritems():
+            if name == 'black' or name == 'blue' or name == 'red': continue
+            elif name == 'green' or name == 'yellow' or name == 'maroon' or name == 'cyan':
+                self.color_dict[name] = hexval
+            else: self.color_dict[name] = hexval; self.colors.append(hexval)
+#        self.color_dict = {'green':'g','yellow':'y','maroon':'m','cyan':'c','blue':'b','red':'r','brown':(139./255.,69./255.,19./255.),'orange':(255./255.,127./255.,0./255.),'pink':(255./255.,20./255.,147./255.),'violet':(153./255.,50./255.,204./255.),'grey':(84./255.,84./255.,84./255.),'goldenrod':'goldenrod'}
+#        self.colors = ['g','y','m','c','b','r',(139./255.,69./255.,19./255.),(255./255.,127./255.,0./255.),(255./255.,20./255.,147./255.),(153./255.,50./255.,204./255.),(84./255.,84./255.,84./255.), 'goldenrod']
         self.all_fits_list = []
         self.current_fit = None
         self.dirtypes = ['DA-DIR','DA-DIR-GEO','DA-DIR-TILT']
@@ -534,9 +541,21 @@ class Demag_GUI(wx.Frame):
         self.box_sizer_mean_types.Add(mean_types_window, 0, wx.TOP, 5.5 )
 
     #----------------------------------------------------------------------
+        # Warnings TextCtrl
+    #----------------------------------------------------------------------
+
+        self.box_sizer_warning = wx.StaticBoxSizer( wx.StaticBox(self.panel, wx.ID_ANY, "current data warnings"), wx.VERTICAL)
+
+        self.warning_box = wx.TextCtrl(self.panel, -1, size=(120*self.GUI_RESOLUTION, 65), value="No Problems", style=wx.TE_MULTILINE|wx.TE_READONLY|wx.HSCROLL, name="warning_box")
+
+        warning_window = wx.GridSizer(1, 1, 10*self.GUI_RESOLUTION, 19*self.GUI_RESOLUTION)
+        warning_window.Add(self.warning_box,wx.ALIGN_LEFT)
+        self.box_sizer_warning.Add(warning_window, 0, wx.TOP, 5.5)
+
+    #----------------------------------------------------------------------
         # High level text box
     #----------------------------------------------------------------------
-        self.stats_sizer = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY,"mean statistics"  ), wx.VERTICAL)
+        self.stats_sizer = wx.StaticBoxSizer( wx.StaticBox(self.panel, wx.ID_ANY,"mean statistics"), wx.VERTICAL)
 
         for parameter in ['mean_type','dec','inc','alpha95','K','R','n_lines','n_planes']:
             COMMAND="self.%s_window=wx.TextCtrl(self.panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(75*self.GUI_RESOLUTION,35))"%parameter
@@ -581,7 +600,10 @@ class Demag_GUI(wx.Frame):
         hbox1.Add(self.box_sizer_specimen_stat, flag=wx.ALIGN_LEFT|wx.ALIGN_BOTTOM)
         hbox1.AddSpacer(2)
         hbox1.Add(self.box_sizer_high_level, flag=wx.ALIGN_LEFT|wx.ALIGN_BOTTOM)
+        hbox1.AddSpacer(2)
         hbox1.Add(self.box_sizer_mean_types, flag=wx.ALIGN_LEFT|wx.ALIGN_BOTTOM)
+        hbox1.AddSpacer(2)
+        hbox1.Add(self.box_sizer_warning, flag=wx.ALIGN_LEFT|wx.ALIGN_BOTTOM)
 
         vbox2a=wx.BoxSizer(wx.VERTICAL)
         vbox2a.Add(self.box_sizer_select_specimen,flag=wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND,border=8)
@@ -1751,6 +1773,25 @@ class Demag_GUI(wx.Frame):
         CART_rot=array(CART_rot)
         return(CART_rot)
 
+    def generate_warning_text(self):
+        """
+        generates warnings for the current specimen then adds them to the current warning text for the GUI which will be rendered on a call to update_warning_box.
+        """
+        self.warning_text = ""
+        for fit in self.pmag_results_data['specimens'][self.s]:
+            beg_pca,end_pca = self.get_indices(fit, fit.tmin, fit.tmax, self.s)
+            if beg_pca == None or end_pca == None: self.warning_text += "%s to %s are invalid bounds, to fit %s.\n"%(fit.tmin,fit.tmax,fit.name)
+            elif end_pca - beg_pca < 2: self.warning_text += "there are not enough points between %s to %s, on fit %s.\n"%(fit.tmin,fit.tmax,fit.name)
+            else:
+                check_duplicates = []
+                for s,f in zip(self.Data[self.s]['zijdblock_steps'][beg_pca:end_pca+1],self.Data[self.s]['measurement_flag'][beg_pca:end_pca+1]):
+                    if f == 'g' and [s,'g'] in check_duplicates:
+                        if s == fit.tmin: self.warning_text += "There are multiple good %s steps. The first measurement will be used for lower bound of fit %s.\n"%(s,fit.name)
+                        elif s == fit.tmax: self.warning_text += "There are multiple good %s steps. The first measurement will be used for upper bound of fit %s.\n"%(s,fit.name)
+                        else: self.warning_text += "Within Fit %s, there are multiple good measurements at the %s step. Both measurements are included in the fit.\n"%(fit.name,s)
+                    else:
+                        check_duplicates.append([s,f])
+
     def get_PCA_parameters(self,specimen,fit,tmin,tmax,coordinate_system,calculation_type):
         """
         calculate statisics
@@ -2083,7 +2124,7 @@ class Demag_GUI(wx.Frame):
                 self.update_fit_boxes()
 
         if self.interpretation_editor_open:
-            self.interpretation_editor.update_editor()
+            self.interpretation_editor.update_editor(True)
 
     def recalculate_current_specimen_interpreatations(self):
         self.initialize_CART_rot(self.s)
@@ -2311,10 +2352,16 @@ class Demag_GUI(wx.Frame):
         meas_index = ind_data[g_index]
 
         self.Data[self.s]['measurement_flag'][g_index] = 'g'
+        if len(self.Data[self.s]['zijdblock'][g_index]) < 6:
+            self.Data[self.s]['zijdblock'][g_index].append('g')
         self.Data[self.s]['zijdblock'][g_index][5] = 'g'
         if 'zijdblock_geo' in self.Data[self.s] and g_index < len(self.Data[self.s]['zijdblock_geo']):
+            if len(self.Data[self.s]['zijdblock_geo'][g_index]) < 6:
+                self.Data[self.s]['zijdblock_geo'][g_index].append('g')
             self.Data[self.s]['zijdblock_geo'][g_index][5] = 'g'
         if 'zijdblock_tilt' in self.Data[self.s] and g_index < len(self.Data[self.s]['zijdblock_tilt']):
+            if len(self.Data[self.s]['zijdblock_tilt'][g_index]) < 6:
+                self.Data[self.s]['zijdblock_tilt'][g_index].append('g')
             self.Data[self.s]['zijdblock_tilt'][g_index][5] = 'g'
         self.mag_meas_data[meas_index]['measurement_flag'] = 'g'
 
@@ -2327,10 +2374,16 @@ class Demag_GUI(wx.Frame):
         meas_index = ind_data[g_index]
 
         self.Data[self.s]['measurement_flag'][g_index] = 'b'
+        if len(self.Data[self.s]['zijdblock'][g_index]) < 6:
+            self.Data[self.s]['zijdblock'][g_index].append('g')
         self.Data[self.s]['zijdblock'][g_index][5] = 'b'
         if 'zijdblock_geo' in self.Data[self.s] and g_index < len(self.Data[self.s]['zijdblock_geo']):
+            if len(self.Data[self.s]['zijdblock_geo'][g_index]) < 6:
+                self.Data[self.s]['zijdblock_geo'][g_index].append('g')
             self.Data[self.s]['zijdblock_geo'][g_index][5] = 'b'
         if 'zijdblock_tilt' in self.Data[self.s] and g_index < len(self.Data[self.s]['zijdblock_tilt']):
+            if len(self.Data[self.s]['zijdblock_tilt'][g_index]) < 6:
+                self.Data[self.s]['zijdblock_tilt'][g_index].append('g')
             self.Data[self.s]['zijdblock_tilt'][g_index][5] = 'b'
         self.mag_meas_data[meas_index]['measurement_flag'] = 'b'
 
@@ -3010,60 +3063,58 @@ class Demag_GUI(wx.Frame):
                 if "DE-" in method:
                     calculation_type=method
 
-            if LPDIR: # this a mean of directions
-
-                #if interpretation doesn't exsist create it.
-                if 'specimen_comp_name' in rec.keys():
-                    if rec['specimen_comp_name'] not in map(lambda x: x.name, self.pmag_results_data['specimens'][specimen]) and int(rec['specimen_tilt_correction']) == current_tilt_correction:
-                        next_fit = str(len(self.pmag_results_data['specimens'][self.s]) + 1)
-                        color = self.colors[(int(next_fit)-1) % len(self.colors)]
-                        self.pmag_results_data['specimens'][self.s].append(Fit(rec['specimen_comp_name'], None, None, color, self))
-                        fit = self.pmag_results_data['specimens'][specimen][-1]
-                    else:
-                        fit = None
+            #if interpretation doesn't exsist create it.
+            if 'specimen_comp_name' in rec.keys():
+                if rec['specimen_comp_name'] not in map(lambda x: x.name, self.pmag_results_data['specimens'][specimen]) and int(rec['specimen_tilt_correction']) == current_tilt_correction:
+                    next_fit = str(len(self.pmag_results_data['specimens'][self.s]) + 1)
+                    color = self.colors[(int(next_fit)-1) % len(self.colors)]
+                    self.pmag_results_data['specimens'][self.s].append(Fit(rec['specimen_comp_name'], None, None, color, self))
+                    fit = self.pmag_results_data['specimens'][specimen][-1]
                 else:
-                    if int(rec['specimen_tilt_correction']) == current_tilt_correction:
-                        next_fit = str(len(self.pmag_results_data['specimens'][self.s]) + 1)
-                        color = self.colors[(int(next_fit)-1) % len(self.colors)]
-                        self.pmag_results_data['specimens'][self.s].append(Fit('Fit ' + next_fit, None, None, color, self))
-                        fit = self.pmag_results_data['specimens'][specimen][-1]
-                    else: fit = None
+                    fit = None
+            else:
+                if int(rec['specimen_tilt_correction']) == current_tilt_correction:
+                    next_fit = str(len(self.pmag_results_data['specimens'][self.s]) + 1)
+                    color = self.colors[(int(next_fit)-1) % len(self.colors)]
+                    self.pmag_results_data['specimens'][self.s].append(Fit('Fit ' + next_fit, None, None, color, self))
+                    fit = self.pmag_results_data['specimens'][specimen][-1]
+                else: fit = None
 
 
-                if 'specimen_flag' in rec and rec['specimen_flag'] == 'b':
-                    self.bad_fits.append(fit)
+            if 'specimen_flag' in rec and rec['specimen_flag'] == 'b':
+                self.bad_fits.append(fit)
 
-                if float(rec['measurement_step_min'])==0 or float(rec['measurement_step_min'])==273.:
-                    tmin="0"
-                elif float(rec['measurement_step_min'])>2: # thermal
-                    tmin="%.0fC"%(float(rec['measurement_step_min'])-273.)
-                else: # AF
-                    tmin="%.1fmT"%(float(rec['measurement_step_min'])*1000.)
+            if float(rec['measurement_step_min'])==0 or float(rec['measurement_step_min'])==273.:
+                tmin="0"
+            elif float(rec['measurement_step_min'])>2: # thermal
+                tmin="%.0fC"%(float(rec['measurement_step_min'])-273.)
+            else: # AF
+                tmin="%.1fmT"%(float(rec['measurement_step_min'])*1000.)
 
-                if float(rec['measurement_step_max'])==0 or float(rec['measurement_step_max'])==273.:
-                    tmax="0"
-                elif float(rec['measurement_step_max'])>2: # thermal
-                    tmax="%.0fC"%(float(rec['measurement_step_max'])-273.)
-                else: # AF
-                    tmax="%.1fmT"%(float(rec['measurement_step_max'])*1000.)
+            if float(rec['measurement_step_max'])==0 or float(rec['measurement_step_max'])==273.:
+                tmax="0"
+            elif float(rec['measurement_step_max'])>2: # thermal
+                tmax="%.0fC"%(float(rec['measurement_step_max'])-273.)
+            else: # AF
+                tmax="%.1fmT"%(float(rec['measurement_step_max'])*1000.)
 
-                if calculation_type !="":
+            if calculation_type !="":
 
-                    if specimen in self.Data.keys() and 'zijdblock_steps' in self.Data[specimen]\
-                    and tmin in self.Data[specimen]['zijdblock_steps']\
-                    and tmax in self.Data[specimen]['zijdblock_steps']:
+                if specimen in self.Data.keys() and 'zijdblock_steps' in self.Data[specimen]\
+                and tmin in self.Data[specimen]['zijdblock_steps']\
+                and tmax in self.Data[specimen]['zijdblock_steps']:
 
-                        if fit:
-                            fit.put(specimen,'specimen',self.get_PCA_parameters(specimen,fit,tmin,tmax,'specimen',calculation_type))
+                    if fit:
+                        fit.put(specimen,'specimen',self.get_PCA_parameters(specimen,fit,tmin,tmax,'specimen',calculation_type))
 
-                            if len(self.Data[specimen]['zijdblock_geo'])>0:
-                                fit.put(specimen,'geographic',self.get_PCA_parameters(specimen,fit,tmin,tmax,'geographic',calculation_type))
+                        if len(self.Data[specimen]['zijdblock_geo'])>0:
+                            fit.put(specimen,'geographic',self.get_PCA_parameters(specimen,fit,tmin,tmax,'geographic',calculation_type))
 
-                            if len(self.Data[specimen]['zijdblock_tilt'])>0:
-                                fit.put(specimen,'tilt-corrected',self.get_PCA_parameters(specimen,fit,tmin,tmax,'tilt-corrected',calculation_type))
+                        if len(self.Data[specimen]['zijdblock_tilt'])>0:
+                            fit.put(specimen,'tilt-corrected',self.get_PCA_parameters(specimen,fit,tmin,tmax,'tilt-corrected',calculation_type))
 
-                    else:
-                        print( "-W- WARNING: Cant find specimen and steps of specimen %s tmin=%s, tmax=%s"%(specimen,tmin,tmax))
+                else:
+                    print( "-W- WARNING: Cant find specimen and steps of specimen %s tmin=%s, tmax=%s"%(specimen,tmin,tmax))
 
         #BUG FIX-almost replaced first sample with last due to above assignment to self.s
         if self.specimens:
@@ -3466,6 +3517,10 @@ class Demag_GUI(wx.Frame):
         else:
             self.draw_figure(self.s,True)
 
+        #update warning
+        self.generate_warning_text()
+        self.update_warning_box()
+        #update choices in the fit box
         self.update_fit_boxes()
         # measurements text box
         self.Add_text()
@@ -3473,6 +3528,16 @@ class Demag_GUI(wx.Frame):
         self.update_higher_level_stats()
         #redraw interpretations
         self.update_GUI_with_new_interpretation()
+
+    def update_warning_box(self):
+        """
+        updates the warning box with whatever the warning_text variable contains for this specimen
+        """
+        self.warning_box.Clear()
+        if self.warning_text == "":
+            self.warning_box.AppendText("No Problems")
+        else:
+            self.warning_box.AppendText(self.warning_text)
 
     def update_GUI_with_new_interpretation(self):
         """
