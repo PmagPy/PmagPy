@@ -3302,8 +3302,8 @@ def dokent(data,NN):
     xmu,sigma1,sigma2=0.,0.,0.
     for  i in range(N):
         xmu+= xg[i][2]
-        sigma1=sigma1+xg[i][1]**2
-        sigma2=sigma2+xg[i][0]**2
+        sigma1=sigma1+xg[i][0]**2
+        sigma2=sigma2+xg[i][1]**2
     xmu=xmu/float(N)
     sigma1=sigma1/float(N)
     sigma2=sigma2/float(N)

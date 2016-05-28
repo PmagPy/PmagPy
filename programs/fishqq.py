@@ -98,6 +98,7 @@ def main():
                 Itit='Mode 1 Inclinations'
         Mu_n,Mu_ncr=pmagplotlib.plotQQunf(QQ['unf1'],D1,Dtit) # make plot
         Me_n,Me_ncr=pmagplotlib.plotQQexp(QQ['exp1'],I1,Itit) # make plot
+        #print Mu_n,Mu_ncr,Me_n, Me_ncr
         if outfile!="":
 #        Dec Inc N Mu Mu_crit Me Me_crit Y/N
             if Mu_n<=Mu_ncr and Me_n<=Me_ncr:
