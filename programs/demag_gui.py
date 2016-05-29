@@ -589,21 +589,21 @@ class Demag_GUI(wx.Frame):
         vbox1.AddSpacer(10)
 
         hbox1.AddSpacer(2)
-        hbox1.Add(self.box_sizer_select_bounds,flag=wx.ALIGN_LEFT|wx.ALIGN_BOTTOM)
+        hbox1.Add(self.box_sizer_select_bounds,flag=wx.ALIGN_LEFT|wx.ALIGN_TOP)
         hbox1.AddSpacer(2)
-        hbox1.Add(self.box_sizer_fit,flag=wx.ALIGN_LEFT|wx.ALIGN_BOTTOM)
+        hbox1.Add(self.box_sizer_fit,flag=wx.ALIGN_LEFT|wx.ALIGN_TOP)
         hbox1.AddSpacer(2)
-        hbox1.Add(self.box_sizer_save,flag=wx.ALIGN_LEFT|wx.ALIGN_BOTTOM)
+        hbox1.Add(self.box_sizer_save,flag=wx.ALIGN_LEFT|wx.ALIGN_TOP)
         hbox1.AddSpacer(2)
-        hbox1.Add(self.box_sizer_specimen, flag=wx.ALIGN_LEFT|wx.ALIGN_BOTTOM)
+        hbox1.Add(self.box_sizer_specimen, flag=wx.ALIGN_LEFT|wx.ALIGN_TOP)
         hbox1.AddSpacer(2)
-        hbox1.Add(self.box_sizer_specimen_stat, flag=wx.ALIGN_LEFT|wx.ALIGN_BOTTOM)
+        hbox1.Add(self.box_sizer_specimen_stat, flag=wx.ALIGN_LEFT|wx.ALIGN_TOP)
         hbox1.AddSpacer(2)
-        hbox1.Add(self.box_sizer_high_level, flag=wx.ALIGN_LEFT|wx.ALIGN_BOTTOM)
+        hbox1.Add(self.box_sizer_high_level, flag=wx.ALIGN_LEFT|wx.ALIGN_TOP)
         hbox1.AddSpacer(2)
-        hbox1.Add(self.box_sizer_mean_types, flag=wx.ALIGN_LEFT|wx.ALIGN_BOTTOM)
+        hbox1.Add(self.box_sizer_mean_types, flag=wx.ALIGN_LEFT|wx.ALIGN_TOP)
         hbox1.AddSpacer(2)
-        hbox1.Add(self.box_sizer_warning, flag=wx.ALIGN_LEFT|wx.ALIGN_BOTTOM)
+        hbox1.Add(self.box_sizer_warning, flag=wx.ALIGN_LEFT|wx.ALIGN_TOP)
 
         vbox2a=wx.BoxSizer(wx.VERTICAL)
         vbox2a.Add(self.box_sizer_select_specimen,flag=wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND,border=8)
@@ -1778,19 +1778,23 @@ class Demag_GUI(wx.Frame):
         generates warnings for the current specimen then adds them to the current warning text for the GUI which will be rendered on a call to update_warning_box.
         """
         self.warning_text = ""
-        for fit in self.pmag_results_data['specimens'][self.s]:
-            beg_pca,end_pca = self.get_indices(fit, fit.tmin, fit.tmax, self.s)
-            if beg_pca == None or end_pca == None: self.warning_text += "%s to %s are invalid bounds, to fit %s.\n"%(fit.tmin,fit.tmax,fit.name)
-            elif end_pca - beg_pca < 2: self.warning_text += "there are not enough points between %s to %s, on fit %s.\n"%(fit.tmin,fit.tmax,fit.name)
-            else:
-                check_duplicates = []
-                for s,f in zip(self.Data[self.s]['zijdblock_steps'][beg_pca:end_pca+1],self.Data[self.s]['measurement_flag'][beg_pca:end_pca+1]):
-                    if f == 'g' and [s,'g'] in check_duplicates:
-                        if s == fit.tmin: self.warning_text += "There are multiple good %s steps. The first measurement will be used for lower bound of fit %s.\n"%(s,fit.name)
-                        elif s == fit.tmax: self.warning_text += "There are multiple good %s steps. The first measurement will be used for upper bound of fit %s.\n"%(s,fit.name)
-                        else: self.warning_text += "Within Fit %s, there are multiple good measurements at the %s step. Both measurements are included in the fit.\n"%(fit.name,s)
-                    else:
-                        check_duplicates.append([s,f])
+        if self.s in self.pmag_results_data['specimens'].keys():
+            for fit in self.pmag_results_data['specimens'][self.s]:
+                beg_pca,end_pca = self.get_indices(fit, fit.tmin, fit.tmax, self.s)
+                if beg_pca == None or end_pca == None: self.warning_text += "%s to %s are invalid bounds, to fit %s.\n"%(fit.tmin,fit.tmax,fit.name)
+                elif end_pca - beg_pca < 2: self.warning_text += "there are not enough points between %s to %s, on fit %s.\n"%(fit.tmin,fit.tmax,fit.name)
+                else:
+                    check_duplicates = []
+                    for s,f in zip(self.Data[self.s]['zijdblock_steps'][beg_pca:end_pca+1],self.Data[self.s]['measurement_flag'][beg_pca:end_pca+1]):
+                        if f == 'g' and [s,'g'] in check_duplicates:
+                            if s == fit.tmin: self.warning_text += "There are multiple good %s steps. The first measurement will be used for lower bound of fit %s.\n"%(s,fit.name)
+                            elif s == fit.tmax: self.warning_text += "There are multiple good %s steps. The first measurement will be used for upper bound of fit %s.\n"%(s,fit.name)
+                            else: self.warning_text += "Within Fit %s, there are multiple good measurements at the %s step. Both measurements are included in the fit.\n"%(fit.name,s)
+                        else:
+                            check_duplicates.append([s,f])
+        if self.s in self.Data.keys():
+            if not self.Data[self.s]['zijdblock_geo']: self.warning_text += "There is no geographic data for this specimen.\n"
+            if not self.Data[self.s]['zijdblock_tilt']: self.warning_text += "There is no tilt-corrected data for this specimen.\n"
 
     def get_PCA_parameters(self,specimen,fit,tmin,tmax,coordinate_system,calculation_type):
         """
@@ -2914,8 +2918,16 @@ class Demag_GUI(wx.Frame):
         for i,update_file in enumerate(update_files):
             update_lines = update_file.split('\t')
             if not os.path.isfile(update_lines[0]):
-                print("%s does not exist and will be skipped"%(update_lines[0]))
-                continue
+                print("%s not found searching for location of file"%(update_lines[0]))
+                sam_file_name = os.path.split(update_lines[0])[-1]
+                new_file_path = find_file(sam_file_name, self.WD)
+                if new_file_path == None or not os.path.isfile(new_file_path):
+                    print("%s does not exist in any subdirectory of %s and will be skipped"%(update_lines[0], self.WD))
+                    new_inp_file += update_file+"\n"
+                    continue
+                else:
+                    print("new location for file found at %s"%(new_file_path))
+                    update_lines[0] = new_file_path
             d = reduce(lambda x,y: x+"/"+y, update_lines[0].split("/")[:-1])+"/"
             f = update_lines[0].split("/")[-1].split(".")[0] + ".magic"
             if (d+f) in magic_files:

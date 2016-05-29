@@ -1,3 +1,4 @@
+import os
 from re import findall,split
 
 def specimens_comparator(s1,s2):
@@ -45,3 +46,8 @@ def read_LSQ(filepath):
         interps_out[i]['specimen_mad'] = enteries[j+2]
     fin.close()
     return interps_out
+
+def find_file(name, path):
+    for root, dirs, files in os.walk(path):
+        if name in files:
+            return os.path.join(root, name)
