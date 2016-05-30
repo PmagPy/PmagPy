@@ -271,6 +271,8 @@ class Demag_GUI(wx.Frame):
         self.toolbar1.zoom()
         self.canvas1.Bind(wx.EVT_RIGHT_DOWN,self.right_click_zijderveld)
         self.canvas1.Bind(wx.EVT_MIDDLE_DOWN,self.home_zijderveld)
+        self.canvas1.Bind(wx.EVT_LEFT_DCLICK,self.on_zijd_select)
+        self.canvas1.Bind(wx.EVT_RIGHT_DCLICK,self.on_zijd_mark)
 
         self.fig2 = Figure((2.5*self.GUI_RESOLUTION, 2.5*self.GUI_RESOLUTION), dpi=self.dpi)
         self.specimen_eqarea_net = self.fig2.add_subplot(111)
@@ -639,7 +641,7 @@ class Demag_GUI(wx.Frame):
         vbox1.Fit(self)
 
         self.GUI_SIZE = self.GetSize()
-        self.panel.SetSizeHints(.5*self.GUI_SIZE[0],.5*self.GUI_SIZE[1])
+        self.panel.SetSizeHints(self.GUI_SIZE[0],self.GUI_SIZE[1])
 
     def create_menu(self):
         """
@@ -819,8 +821,6 @@ class Demag_GUI(wx.Frame):
 #==========================================================================================#
 
     def draw_figure(self,s,update_higher_plots=True):
-
-        print("drawing figure")
 
         step = ""
         self.initialize_CART_rot(s)
@@ -1256,8 +1256,6 @@ class Demag_GUI(wx.Frame):
         draw the specimen interpretations on the zijderveld and the specimen equal area
         @alters: fit.lines, zijplot, specimen_eqarea_interpretation, mplot_interpretation
         """
-
-        print("drawing interpretation")
 
         problems = {}
 
@@ -4446,44 +4444,76 @@ class Demag_GUI(wx.Frame):
         try: self.toolbar1.home()
         except TypeError: pass
 
-    def pick_bounds(self,event):
+    def on_zijd_select(self,event):
         """
-        (currently unsupported)
-        attempt at a functionality to pick bounds by clicking on the zijderveld
-        @param: event -> the wx.MouseEvent that triggered the call of this function
-        @alters: ...
+        Get mouse position on double click find the nearest interpretation to the mouse
+        position then select that interpretation
+        @param: event -> the wx Mouseevent for that click
+        @alters: current_fit
         """
+        if not self.CART_rot_good.any(): return
         pos=event.GetPosition()
-        e = 1e-2
-        l = len(self.CART_rot_good[:,0])
-        def distance(p1,p2):
-            return sqrt((p1[0]-p2[0])**2 + (p1[1]-p2[1])**2)
-        points = []
-        inv = self.zijplot.transData.inverted()
-        reverse = inv.transform(vstack([pos[0],pos[1]]).T)
-        xpick_data,ypick_data = reverse.T
-        pos = (xpick_data,ypick_data)
-        for data in [self.zij_xy_points,self.zij_xz_points]:
-            x, y = data.get_data()
-            points += [(x[i],y[i]) for i in range(len(x))]
+        width, height = self.canvas1.get_width_height()
+        pos[1] = height - pos[1]
+        xpick_data,ypick_data = pos
+        xdata_org = list(self.CART_rot_good[:,0]) + list(self.CART_rot_good[:,0])
+        ydata_org = list(-1*self.CART_rot_good[:,1]) + list(-1*self.CART_rot_good[:,2])
+        data_corrected = self.zijplot.transData.transform(vstack([xdata_org,ydata_org]).T)
+        xdata,ydata = data_corrected.T
+        xdata = map(float,xdata)
+        ydata = map(float,ydata)
+        e = 4e0
+
         index = None
-        print("getting nearest step at: " + str(pos))
-        print(points)
-        for point in points:
-            if 0 <= distance(pos,point) <= e:
-                index = points.index(point)%l
-                step = self.Data[self.s]['zijdblock_steps'][index]
-                print(step)
+        for i,(x,y) in enumerate(zip(xdata,ydata)):
+            if 0 < sqrt((x-xpick_data)**2. + (y-ypick_data)**2.) < e:
+                index = i
                 break
-        class Dumby_Event:
-            def __init__(self,text):
-                self.text = text
-            def GetText(self):
-                return self.text
-        if index:
-            dumby_event = Dumby_Event(index)
-            self.OnClick_listctrl(dumby_event)
-        self.zoom(event)
+        if index != None:
+            steps = self.Data[self.s]['zijdblock_steps']
+            if not self.current_fit:
+                self.add_fit(event)
+            self.select_bounds_in_logger(index%len(steps))
+
+    def on_zijd_mark(self,event):
+        """
+        Get mouse position on double right click find the interpretation in range of mose
+        position then mark that interpretation bad or good
+        @param: event -> the wx Mouseevent for that click
+        @alters: current_fit
+        """
+        if not self.CART_rot_good.any(): return
+        pos=event.GetPosition()
+        width, height = self.canvas1.get_width_height()
+        pos[1] = height - pos[1]
+        xpick_data,ypick_data = pos
+        xdata_org = list(self.CART_rot[:,0]) + list(self.CART_rot[:,0])
+        ydata_org = list(-1*self.CART_rot[:,1]) + list(-1*self.CART_rot[:,2])
+        data_corrected = self.zijplot.transData.transform(vstack([xdata_org,ydata_org]).T)
+        xdata,ydata = data_corrected.T
+        xdata = map(float,xdata)
+        ydata = map(float,ydata)
+        e = 4e0
+
+        index = None
+        for i,(x,y) in enumerate(zip(xdata,ydata)):
+            if 0 < sqrt((x-xpick_data)**2. + (y-ypick_data)**2.) < e:
+                index = i
+                break
+        if index != None:
+            steps = self.Data[self.s]['zijdblock']
+            if self.Data[self.s]['measurement_flag'][index%len(steps)] == "g":
+                self.mark_meas_bad(index%len(steps))
+            else:
+                self.mark_meas_good(index%len(steps))
+            pmag.magic_write(os.path.join(self.WD, "magic_measurements.txt"),self.mag_meas_data,"magic_measurements")
+
+            self.recalculate_current_specimen_interpreatations()
+
+            if self.interpretation_editor_open:
+                self.interpretation_editor.update_current_fit_data()
+            self.calculate_higher_levels_data()
+            self.update_selection()
 
     def right_click_specimen_equalarea(self,event):
         """
@@ -4773,6 +4803,14 @@ class Demag_GUI(wx.Frame):
                 self.logger.SetItemBackgroundColour(item,"WHITE")
 
         index=int(event.GetText())
+        self.select_bounds_in_logger(index)
+
+    def select_bounds_in_logger(self, index):
+        """
+        sets index as the upper or lower bound of a fit based on what the other bound is and selects it in the logger. Requires 2 calls to completely update a interpretation. NOTE: Requires an interpretation to exist before it is called.
+        @param: index - index of the step to select in the logger
+        """
+
         tmin_index,tmax_index="",""
 
         if str(self.tmin_box.GetValue())!="":
