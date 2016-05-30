@@ -68,8 +68,14 @@ def main():
     fmt = pmag.get_named_arg_from_sys("-fmt", "svg")
     XLP = pmag.get_named_arg_from_sys("-XLP", "")
     dir_path = pmag.get_named_arg_from_sys("-WD", os.getcwd())
+    spec_file = pmag.get_named_arg_from_sys("-fsp", default_val="specimens.txt")
+    samp_file = pmag.get_named_arg_from_sys("-fsa", default_val="samples.txt")
+    site_file = pmag.get_named_arg_from_sys("-fsi", default_val="sites.txt")
+
     # create contribution and add required headers
-    contribution = nb.Contribution(dir_path, single_file=in_file)
+    fnames = {"specimens": spec_file, "samples": samp_file, 'sites': site_file}
+    contribution = nb.Contribution(dir_path, single_file=in_file,
+                                   custom_filenames=fnames)
     file_type = contribution.tables.keys()[0]
     print len(contribution.tables['measurements'].df), ' records read from ', in_file
     # add plot_key into measurements table
