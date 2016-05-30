@@ -98,7 +98,7 @@ def main():
         coord = "-1"
     elif crd == "t":
         coord = "100"
-    else: 
+    else:
         coord = "0"
 
     fmt = pmag.get_named_arg_from_sys("-fmt", "svg")
@@ -164,7 +164,7 @@ def main():
 
         DIblock = []
         GCblock = []
-        SLblock, SPblock = [], []
+        # SLblock, SPblock = [], []
         title = plot
         mode = 1
         k = 0
@@ -177,14 +177,14 @@ def main():
         plot_data = plot_data[plot_data[dec_key].notnull() & plot_data[inc_key].notnull()]
         if plot_data.empty:
             continue
+        # this sorting out is done in get_di_bock
+        #if coord == '0':  # geographic, use records with no tilt key (or tilt_key 0)
+        #    cond1 = plot_data[tilt_key].fillna('') == coord
+        #    cond2 = plot_data[tilt_key].isnull()
+        #    plot_data = plot_data[cond1 | cond2]
+        #else:  # not geographic coordinates, use only records with correct tilt_key
+        #    plot_data = plot_data[plot_data[tilt_key] == coord]
 
-        if coord == '0':  # geographic, use records with no tilt key (or tilt_key 0)
-            cond1 = plot_data[tilt_key].fillna('') == coord
-            cond2 = plot_data[tilt_key].isnull()
-            plot_data = plot_data[cond1 | cond2]
-        else:  # not geographic coordinates, use only records with correct tilt_key
-            plot_data = plot_data[plot_data[tilt_key] == coord]
-            
         # get metadata for naming the plot file
         locations = data_container.get_name('location_name', df_slice=plot_data)
         site = data_container.get_name('site_name', df_slice=plot_data)
@@ -196,8 +196,9 @@ def main():
             plot_data['method_codes'] = ''
 
         # get data blocks
-        DIblock = data_container.get_di_block(df_slice=plot_data, tilt_corr=coord)
-        SLblock = [[ind, row['method_codes']] for ind, row in plot_data.iterrows()]
+        DIblock = data_container.get_di_block(df_slice=plot_data,
+                                              tilt_corr=coord, excl=['DE-BFP'])
+        #SLblock = [[ind, row['method_codes']] for ind, row in plot_data.iterrows()]
         # get great circles
         great_circle_data = data_container.get_records_for_code('DE-BFP', incl=True,
                                                                 use_slice=True, sli=plot_data)
@@ -205,7 +206,7 @@ def main():
         if len(great_circle_data) > 0:
             gc_cond = great_circle_data[tilt_key] == coord
             GCblock = [[float(row[dec_key]), float(row[inc_key])] for ind, row in great_circle_data[gc_cond].iterrows()]
-            SPblock = [[ind, row['method_codes']] for ind, row in great_circle_data[gc_cond].iterrows()]
+            #SPblock = [[ind, row['method_codes']] for ind, row in great_circle_data[gc_cond].iterrows()]
 
         if len(DIblock) > 0:
             if contour == 0:

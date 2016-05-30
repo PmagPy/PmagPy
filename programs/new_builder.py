@@ -318,7 +318,8 @@ class MagicDataFrame(object):
         return df_slice[col_name][0]
 
     def get_di_block(self, df_slice=None, do_index=False,
-                     item_names=None, tilt_corr='100'):
+                     item_names=None, tilt_corr='100',
+                     excl=None):
         """
         Input either a DataFrame slice
         or
@@ -338,12 +339,22 @@ class MagicDataFrame(object):
             df_slice = df_slice
 
         # once you have the slice, fix up the data
+        # tilt correction must match
         if tilt_corr != "0":
             df_slice = df_slice[df_slice['dir_tilt_correction'] == tilt_corr]
         else:
-            cond1 = df_slice['dir_tilt_correction'].fillna('') == tilt_corr
-            cond2 = df_slice['dir_tilt_correction'].isnull()
-            df_slice = df_slice
+            # if geographic ("0"),
+            # use records with no tilt_corr and assume geographic
+            cond1 = df_slice['dir_tilt_correction'] == None
+            cond2 = df_slice['dir_tilt_correction'] == tilt_corr
+            df_slice = df_slice[cond1 | cond2]
+        # exclude data with unwanted codes
+        if excl:
+            for ex in excl:
+                df_slice = self.get_records_for_code(ex, incl=False,
+                                                     use_slice=True,
+                                                     sli=df_slice)
+
         df_slice = df_slice[df_slice['dir_inc'].notnull() & df_slice['dir_dec'].notnull()]
         # possible add in:
         # split out di_block from this study from di_block from other studies (in citations column)
@@ -361,7 +372,6 @@ class MagicDataFrame(object):
         If incl == True, return all records WITH meth_code.
         If incl == False, return all records WITHOUT meth_code.
         """
-
         # (must use fillna to replace np.nan with False for indexing)
         if use_slice:
             df = sli.copy()
