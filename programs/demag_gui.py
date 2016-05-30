@@ -4462,7 +4462,7 @@ class Demag_GUI(wx.Frame):
         xdata,ydata = data_corrected.T
         xdata = map(float,xdata)
         ydata = map(float,ydata)
-        e = 4e0
+        e = 4.0
 
         index = None
         for i,(x,y) in enumerate(zip(xdata,ydata)):
@@ -4471,9 +4471,11 @@ class Demag_GUI(wx.Frame):
                 break
         if index != None:
             steps = self.Data[self.s]['zijdblock_steps']
+            bad_count = self.Data[self.s]['measurement_flag'][:index].count('b')
+            if index > len(steps): bad_count *= 2
             if not self.current_fit:
                 self.add_fit(event)
-            self.select_bounds_in_logger(index%len(steps))
+            self.select_bounds_in_logger((index+bad_count)%len(steps))
 
     def on_zijd_mark(self,event):
         """
