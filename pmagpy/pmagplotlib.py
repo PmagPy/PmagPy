@@ -1373,7 +1373,7 @@ def plotELL(fignum,pars,col,lower,plot):
             Y_ell.append(elli[0]*R)
     if plot==1:
         if X_ell!=[]:pylab.plot(X_ell,Y_ell,col)
-        if X_up!=[]:pylab.plot(X_up,Y_up,'g-')
+        if X_up!=[]:pylab.plot(X_up,Y_up,'k-')
     else:
         return PTS
 #
@@ -2199,14 +2199,17 @@ def plotCONF(fignum,s,datablock,pars,new):
     y.append(XY[1])
     pylab.figure(num=fignum)
     if new==1:
-        pylab.scatter(x,y,marker='d',s=80,c='g')
+        pylab.scatter(x,y,marker='d',s=80,c='r')
     else:
-        pylab.scatter(x,y,marker='^',s=80,c='g')
+        if float(pars[1]>0):
+            pylab.scatter(x,y,marker='^',s=100,c='r')
+        else:
+            pylab.scatter(x,y,marker='^',s=100,c='y')
     pylab.title(s)
 #
 # plot the ellipse
 #
-    plotELL(fignum,pars,'b-,',0,1)
+    plotELL(fignum,pars,'r-,',0,1)
 
 EI_plot_num=0
 maxE,minE,maxI,minI=0,10,0,90
