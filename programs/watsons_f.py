@@ -8,7 +8,7 @@ import pmagpy.pmag as pmag
 def main():
     """
     NAME
-       watsonsF.py
+       watsons_f.py
 
     DESCRIPTION
        calculates Watson's F statistic from input files
@@ -17,7 +17,7 @@ def main():
        takes dec/inc as first two columns in two space delimited files
    
     SYNTAX
-       watsonsF.py [command line options]
+       watsons_f.py [command line options]
 
     OPTIONS
         -h prints help message and quits

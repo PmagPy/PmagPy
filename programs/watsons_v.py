@@ -128,9 +128,9 @@ def main():
         if plot==0:pmagplotlib.drawFIGS(CDF)
         files={}
         if file2!="":
-            files['cdf']='WatsonsV_'+file1+'_'+file2+'.'+fmt
+            files['cdf']='watsons_v_'+file1+'_'+file2+'.'+fmt
         else:
-            files['cdf']='WatsonsV_'+file1+'.'+fmt
+            files['cdf']='watsons_v_'+file1+'.'+fmt
         if pmagplotlib.isServer:
             black     = '#000000'
             purple    = '#800080'
