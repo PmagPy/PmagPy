@@ -205,8 +205,8 @@ class Demag_GUI(wx.Frame):
         self.locations.sort()                   # get list of sites
 
         self.panel = wx.lib.scrolledpanel.ScrolledPanel(self,-1) # make the Panel
-        self.panel.SetupScrolling()
         self.init_UI()                   # build the main frame
+        self.panel.SetupScrolling()     #endable scrolling
         self.create_menu()                  # create manu bar
 
         # get previous interpretations from pmag tables
@@ -355,7 +355,7 @@ class Demag_GUI(wx.Frame):
         #  select specimen box
     #----------------------------------------------------------------------
 
-        self.box_sizer_select_specimen = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY), wx.VERTICAL )
+        self.box_sizer_select_specimen = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, label="specimen:"), wx.VERTICAL )
 
         # Combo-box with a list of specimen
         self.specimens_box = wx.ComboBox(self.panel, -1, value=self.s, size=(150*self.GUI_RESOLUTION,25), choices=self.specimens, style=wx.CB_DROPDOWN,name="specimen")
@@ -371,12 +371,14 @@ class Demag_GUI(wx.Frame):
         self.Bind(wx.EVT_BUTTON, self.on_prev_button, self.prevbutton)
 
         select_specimen_window = wx.GridSizer(1, 2, 5, 10)
-        select_specimen_window.AddMany( [(self.prevbutton, wx.ALIGN_LEFT),
-            (self.nextbutton, wx.ALIGN_LEFT)])
+        select_specimen_window.AddMany( [(self.prevbutton, 1, wx.ALIGN_LEFT|wx.EXPAND),
+            (self.nextbutton, 1, wx.ALIGN_LEFT|wx.EXPAND)])
 
     #----------------------------------------------------------------------
         #  select coordinate box
     #----------------------------------------------------------------------
+
+        self.box_sizer_select_coordinates = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, label="coordinate system:"), wx.VERTICAL )
 
         self.coordinate_list = ['specimen']
         intial_coordinate = 'specimen'
@@ -391,19 +393,18 @@ class Demag_GUI(wx.Frame):
         self.coordinates_box = wx.ComboBox(self.panel, -1, size=(150*self.GUI_RESOLUTION,25), choices=self.coordinate_list, value=intial_coordinate,style=wx.CB_DROPDOWN,name="coordinates")
         self.Bind(wx.EVT_COMBOBOX, self.onSelect_coordinates,self.coordinates_box)
 
+        self.box_sizer_select_zijd_options = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, label="Zijderveld plot options:"), wx.VERTICAL )
+
         self.orthogonal_box = wx.ComboBox(self.panel, -1, value='X=East', size=(150*self.GUI_RESOLUTION,25), choices=['X=NRM dec','X=East','X=North'], style=wx.CB_DROPDOWN,name="orthogonal_plot")
         #remove 'X=best fit line dec' as option given that is isn't implemented for multiple components
         self.Bind(wx.EVT_COMBOBOX, self.onSelect_orthogonal_box,self.orthogonal_box)
 
-        self.box_sizer_select_specimen.Add(wx.StaticText(self.panel,label="specimen:",style=wx.TE_CENTER))
-        self.box_sizer_select_specimen.Add(self.specimens_box, 0, wx.TOP, 0 )
-        self.box_sizer_select_specimen.Add(select_specimen_window, 0, wx.TOP, 4 )
-        self.box_sizer_select_specimen.Add(wx.StaticLine(self.panel), 0, wx.ALL|wx.EXPAND, 5)
-        self.box_sizer_select_specimen.Add(wx.StaticText(self.panel,label="coordinate system:",style=wx.TE_CENTER))
-        self.box_sizer_select_specimen.Add(self.coordinates_box, 0, wx.TOP, 4 )
-        self.box_sizer_select_specimen.Add(wx.StaticLine(self.panel), 0, wx.ALL|wx.EXPAND, 5)
-        self.box_sizer_select_specimen.Add(wx.StaticText(self.panel,label="Zijderveld plot options:",style=wx.TE_CENTER))
-        self.box_sizer_select_specimen.Add(self.orthogonal_box, 0, wx.TOP, 4 )
+        self.box_sizer_select_specimen.Add(self.specimens_box, 1, wx.TOP|wx.EXPAND, 0 )
+        self.box_sizer_select_specimen.Add(select_specimen_window, 1, wx.TOP|wx.EXPAND, 4 )
+        self.box_sizer_select_specimen.Add(wx.StaticLine(self.panel), 1, wx.ALL|wx.EXPAND, 5)
+        self.box_sizer_select_coordinates.Add(self.coordinates_box, 1, wx.TOP|wx.EXPAND, 4 )
+        self.box_sizer_select_coordinates.Add(wx.StaticLine(self.panel), 1, wx.ALL|wx.EXPAND, 5)
+        self.box_sizer_select_zijd_options.Add(self.orthogonal_box, 1, wx.TOP|wx.EXPAND, 4 )
 
     #----------------------------------------------------------------------
         #  fit box
@@ -422,9 +423,9 @@ class Demag_GUI(wx.Frame):
         self.Bind(wx.EVT_BUTTON, self.add_fit, self.add_fit_button)
 
         fit_window = wx.GridSizer(2, 1, 10*self.GUI_RESOLUTION, 19*self.GUI_RESOLUTION)
-        fit_window.AddMany( [(self.add_fit_button, wx.ALIGN_LEFT),
-            (self.fit_box, wx.ALIGN_LEFT)])
-        self.box_sizer_fit.Add(fit_window, 0, wx.TOP, 5.5 )
+        fit_window.AddMany( [(self.add_fit_button, 1, wx.ALIGN_LEFT|wx.EXPAND),
+            (self.fit_box, 1, wx.ALIGN_LEFT|wx.EXPAND)])
+        self.box_sizer_fit.Add(fit_window, 1, wx.TOP|wx.EXPAND, 5.5 )
 
     #----------------------------------------------------------------------
         #  select bounds box
@@ -440,9 +441,9 @@ class Demag_GUI(wx.Frame):
         self.Bind(wx.EVT_COMBOBOX, self.get_new_PCA_parameters,self.tmax_box)
 
         select_temp_window = wx.GridSizer(2, 1, 10*self.GUI_RESOLUTION, 0)
-        select_temp_window.AddMany( [(self.tmin_box, wx.ALIGN_LEFT),
-            (self.tmax_box, wx.ALIGN_LEFT)])
-        self.box_sizer_select_bounds.Add(select_temp_window, 0, wx.ALIGN_LEFT, 3.5 )
+        select_temp_window.AddMany( [(self.tmin_box, 1, wx.ALIGN_LEFT|wx.EXPAND),
+            (self.tmax_box, 1, wx.ALIGN_LEFT)])
+        self.box_sizer_select_bounds.Add(select_temp_window, 1, wx.ALIGN_LEFT|wx.EXPAND, 3.5 )
 
     #----------------------------------------------------------------------
         #  save/delete box
@@ -459,9 +460,9 @@ class Demag_GUI(wx.Frame):
         self.Bind(wx.EVT_BUTTON, self.delete_fit, self.delete_interpretation_button)
 
         save_delete_window = wx.GridSizer(2, 1, 10*self.GUI_RESOLUTION, 19*self.GUI_RESOLUTION)
-        save_delete_window.AddMany( [(self.save_interpretation_button, wx.ALIGN_LEFT),
-            (self.delete_interpretation_button, wx.ALIGN_LEFT)])
-        self.box_sizer_save.Add(save_delete_window, 0, wx.TOP, 5.5 )
+        save_delete_window.AddMany( [(self.save_interpretation_button, 1, wx.ALIGN_LEFT|wx.EXPAND),
+            (self.delete_interpretation_button, 1, wx.ALIGN_LEFT|wx.EXPAND)])
+        self.box_sizer_save.Add(save_delete_window, 1, wx.TOP|wx.EXPAND, 5.5 )
 
     #----------------------------------------------------------------------
         # Specimen interpretation window
@@ -476,9 +477,9 @@ class Demag_GUI(wx.Frame):
         self.Bind(wx.EVT_COMBOBOX, self.on_select_plane_display_box, self.plane_display_box)
 
         specimen_stat_type_window = wx.GridSizer(2, 1, 10*self.GUI_RESOLUTION, 19*self.GUI_RESOLUTION)
-        specimen_stat_type_window.AddMany([(self.PCA_type_box, wx.ALIGN_LEFT),
-                                           (self.plane_display_box, wx.ALIGN_LEFT)])
-        self.box_sizer_specimen.Add(specimen_stat_type_window, 0, wx.ALIGN_LEFT, 0 )
+        specimen_stat_type_window.AddMany([(self.PCA_type_box, 1, wx.ALIGN_LEFT|wx.EXPAND),
+                                           (self.plane_display_box, 1, wx.ALIGN_LEFT|wx.EXPAND)])
+        self.box_sizer_specimen.Add(specimen_stat_type_window, 1, wx.ALIGN_LEFT|wx.EXPAND, 0 )
 
         self.box_sizer_specimen_stat = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.ID_ANY,"interpretation direction and statistics"), wx.HORIZONTAL )
 
@@ -491,19 +492,19 @@ class Demag_GUI(wx.Frame):
             exec COMMAND
 
         specimen_stat_window = wx.GridSizer(2, 6, 0, 15*self.GUI_RESOLUTION)
-        specimen_stat_window.AddMany( [(wx.StaticText(self.panel,label="\ndec",style=wx.TE_CENTER), wx.EXPAND),
-            (wx.StaticText(self.panel,label="\ninc",style=wx.TE_CENTER), wx.EXPAND),
-            (wx.StaticText(self.panel,label="\nn",style=wx.TE_CENTER),wx.EXPAND),
-            (wx.StaticText(self.panel,label="\nmad",style=wx.TE_CENTER),wx.EXPAND),
-            (wx.StaticText(self.panel,label="\ndang",style=wx.TE_CENTER),wx.TE_CENTER),
-            (wx.StaticText(self.panel,label="\na95",style=wx.TE_CENTER),wx.TE_CENTER),
-            (self.sdec_window, wx.EXPAND),
-            (self.sinc_window, wx.EXPAND) ,
-            (self.sn_window, wx.EXPAND) ,
-            (self.smad_window, wx.EXPAND),
-            (self.sdang_window, wx.EXPAND),
-            (self.salpha95_window, wx.EXPAND)])
-        self.box_sizer_specimen_stat.Add( specimen_stat_window, 0, wx.ALIGN_LEFT, 0)
+        specimen_stat_window.AddMany( [(wx.StaticText(self.panel,label="\ndec",style=wx.TE_CENTER), 1, wx.EXPAND),
+            (wx.StaticText(self.panel,label="\ninc",style=wx.TE_CENTER), 1, wx.EXPAND),
+            (wx.StaticText(self.panel,label="\nn",style=wx.TE_CENTER), 1, wx.EXPAND),
+            (wx.StaticText(self.panel,label="\nmad",style=wx.TE_CENTER), 1, wx.EXPAND),
+            (wx.StaticText(self.panel,label="\ndang",style=wx.TE_CENTER), 1, wx.TE_CENTER|wx.EXPAND),
+            (wx.StaticText(self.panel,label="\na95",style=wx.TE_CENTER), 1, wx.TE_CENTER|wx.EXPAND),
+            (self.sdec_window, 1, wx.EXPAND),
+            (self.sinc_window, 1, wx.EXPAND) ,
+            (self.sn_window, 1, wx.EXPAND) ,
+            (self.smad_window, 1, wx.EXPAND),
+            (self.sdang_window, 1, wx.EXPAND),
+            (self.salpha95_window, 1, wx.EXPAND)])
+        self.box_sizer_specimen_stat.Add( specimen_stat_window, 1, wx.ALIGN_LEFT|wx.EXPAND, 0)
 
     #----------------------------------------------------------------------
         # High level mean window
@@ -518,9 +519,9 @@ class Demag_GUI(wx.Frame):
         self.Bind(wx.EVT_COMBOBOX, self.onSelect_level_name,self.level_names)
 
         high_level_window = wx.GridSizer(2, 1, 10*self.GUI_RESOLUTION, 19*self.GUI_RESOLUTION)
-        high_level_window.AddMany( [(self.level_box, wx.ALIGN_LEFT),
-            (self.level_names, wx.ALIGN_LEFT)])
-        self.box_sizer_high_level.Add( high_level_window, 0, wx.TOP, 5.5 )
+        high_level_window.AddMany( [(self.level_box, 1, wx.ALIGN_LEFT|wx.EXPAND),
+            (self.level_names, 1, wx.ALIGN_LEFT|wx.EXPAND)])
+        self.box_sizer_high_level.Add( high_level_window, 1, wx.TOP|wx.EXPAND, 5.5 )
 
     #----------------------------------------------------------------------
         # mean types box
@@ -536,9 +537,9 @@ class Demag_GUI(wx.Frame):
         self.mean_fit = 'None'
 
         mean_types_window = wx.GridSizer(2, 1, 10*self.GUI_RESOLUTION, 19*self.GUI_RESOLUTION)
-        mean_types_window.AddMany([(self.mean_type_box,wx.ALIGN_LEFT),
-            (self.mean_fit_box,wx.ALIGN_LEFT)])
-        self.box_sizer_mean_types.Add(mean_types_window, 0, wx.TOP, 5.5 )
+        mean_types_window.AddMany([(self.mean_type_box,1,wx.ALIGN_LEFT|wx.EXPAND),
+            (self.mean_fit_box,1,wx.ALIGN_LEFT|wx.EXPAND)])
+        self.box_sizer_mean_types.Add(mean_types_window, 1, wx.TOP|wx.EXPAND, 5.5 )
 
     #----------------------------------------------------------------------
         # Warnings TextCtrl
@@ -549,8 +550,8 @@ class Demag_GUI(wx.Frame):
         self.warning_box = wx.TextCtrl(self.panel, -1, size=(120*self.GUI_RESOLUTION, 65), value="No Problems", style=wx.TE_MULTILINE|wx.TE_READONLY|wx.HSCROLL, name="warning_box")
 
         warning_window = wx.GridSizer(1, 1, 10*self.GUI_RESOLUTION, 19*self.GUI_RESOLUTION)
-        warning_window.Add(self.warning_box,wx.ALIGN_LEFT)
-        self.box_sizer_warning.Add(warning_window, 0, wx.TOP, 5.5)
+        warning_window.Add(self.warning_box,1,wx.ALIGN_LEFT|wx.EXPAND)
+        self.box_sizer_warning.Add(warning_window, 1, wx.TOP|wx.EXPAND, 5.5)
 
     #----------------------------------------------------------------------
         # High level text box
@@ -567,10 +568,10 @@ class Demag_GUI(wx.Frame):
             COMMAND="self.%s_outer_window = wx.GridSizer(1,2,5*self.GUI_RESOLUTION,15*self.GUI_RESOLUTION)"%parameter
             exec COMMAND
             COMMAND="""self.%s_outer_window.AddMany([
-                    (wx.StaticText(self.panel,label='%s',style=wx.TE_CENTER),wx.EXPAND),
-                    (self.%s_window, wx.EXPAND)])"""%(parameter,parameter,parameter)
+                    (wx.StaticText(self.panel,label='%s',style=wx.TE_CENTER),1,wx.EXPAND),
+                    (self.%s_window, 1, wx.EXPAND)])"""%(parameter,parameter,parameter)
             exec COMMAND
-            COMMAND="self.stats_sizer.Add(self.%s_outer_window, 0, wx.ALIGN_LEFT, 0)"%parameter
+            COMMAND="self.stats_sizer.Add(self.%s_outer_window, 1, wx.ALIGN_LEFT|wx.EXPAND, 0)"%parameter
             exec COMMAND
 
         self.switch_stats_button = wx.SpinButton(self.panel, id=wx.ID_ANY, style=wx.SP_HORIZONTAL|wx.SP_ARROW_KEYS|wx.SP_WRAP, name="change stats")
@@ -580,63 +581,65 @@ class Demag_GUI(wx.Frame):
         # Design the panel
     #----------------------------------------------------------------------
 
-        outer_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        outer_sizer.Add(self.panel)
-        self.SetSizerAndFit(outer_sizer)
+#        outer_sizer = wx.BoxSizer(wx.HORIZONTAL)
+#        outer_sizer.Add(self.panel)
+#        self.SetSizerAndFit(outer_sizer)
 
         vbox1 = wx.BoxSizer(wx.VERTICAL)
         hbox1 = wx.BoxSizer(wx.HORIZONTAL)
         vbox1.AddSpacer(10)
 
         hbox1.AddSpacer(2)
-        hbox1.Add(self.box_sizer_select_bounds,flag=wx.ALIGN_LEFT|wx.ALIGN_TOP)
+        hbox1.Add(self.box_sizer_select_bounds,proportion=.5,flag=wx.ALIGN_LEFT|wx.ALIGN_TOP|wx.EXPAND)
         hbox1.AddSpacer(2)
-        hbox1.Add(self.box_sizer_fit,flag=wx.ALIGN_LEFT|wx.ALIGN_TOP)
+        hbox1.Add(self.box_sizer_fit,proportion=.5,flag=wx.ALIGN_LEFT|wx.ALIGN_TOP|wx.EXPAND)
         hbox1.AddSpacer(2)
-        hbox1.Add(self.box_sizer_save,flag=wx.ALIGN_LEFT|wx.ALIGN_TOP)
+        hbox1.Add(self.box_sizer_save,proportion=.5,flag=wx.ALIGN_LEFT|wx.ALIGN_TOP|wx.EXPAND)
         hbox1.AddSpacer(2)
-        hbox1.Add(self.box_sizer_specimen, flag=wx.ALIGN_LEFT|wx.ALIGN_TOP)
+        hbox1.Add(self.box_sizer_specimen,proportion=.5, flag=wx.ALIGN_LEFT|wx.ALIGN_TOP|wx.EXPAND)
         hbox1.AddSpacer(2)
-        hbox1.Add(self.box_sizer_specimen_stat, flag=wx.ALIGN_LEFT|wx.ALIGN_TOP)
+        hbox1.Add(self.box_sizer_specimen_stat,proportion=.5, flag=wx.ALIGN_LEFT|wx.ALIGN_TOP|wx.EXPAND)
         hbox1.AddSpacer(2)
-        hbox1.Add(self.box_sizer_high_level, flag=wx.ALIGN_LEFT|wx.ALIGN_TOP)
+        hbox1.Add(self.box_sizer_high_level,proportion=.5, flag=wx.ALIGN_LEFT|wx.ALIGN_TOP|wx.EXPAND)
         hbox1.AddSpacer(2)
-        hbox1.Add(self.box_sizer_mean_types, flag=wx.ALIGN_LEFT|wx.ALIGN_TOP)
+        hbox1.Add(self.box_sizer_mean_types,proportion=.5, flag=wx.ALIGN_LEFT|wx.ALIGN_TOP|wx.EXPAND)
         hbox1.AddSpacer(2)
-        hbox1.Add(self.box_sizer_warning, flag=wx.ALIGN_LEFT|wx.ALIGN_TOP)
+        hbox1.Add(self.box_sizer_warning,proportion=1, flag=wx.ALIGN_LEFT|wx.ALIGN_TOP|wx.EXPAND)
 
         vbox2a=wx.BoxSizer(wx.VERTICAL)
-        vbox2a.Add(self.box_sizer_select_specimen,flag=wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND,border=8)
-        vbox2a.Add(self.logger,flag=wx.ALIGN_TOP,border=8)
+        vbox2a.Add(self.box_sizer_select_specimen,proportion=.5,flag=wx.ALIGN_LEFT|wx.RIGHT|wx.EXPAND,border=4)
+        vbox2a.Add(self.box_sizer_select_coordinates,proportion=.5,flag=wx.ALIGN_LEFT|wx.RIGHT|wx.EXPAND,border=4)
+        vbox2a.Add(self.box_sizer_select_zijd_options,proportion=.5,flag=wx.ALIGN_LEFT|wx.RIGHT|wx.EXPAND,border=4)
+        vbox2a.Add(self.logger,proportion=1,flag=wx.ALIGN_TOP|wx.TOP|wx.EXPAND,border=8)
         hbox2 = wx.BoxSizer(wx.HORIZONTAL)
         hbox2.AddSpacer(2)
-        hbox2.Add(vbox2a,flag=wx.ALIGN_CENTER_HORIZONTAL)
-        hbox2.Add(self.canvas1,flag=wx.ALIGN_CENTER_HORIZONTAL,border=8)
+        hbox2.Add(vbox2a,flag=wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND)
+        hbox2.Add(self.canvas1,proportion=1,flag=wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND,border=8)
 
         vbox2 = wx.BoxSizer(wx.VERTICAL)
-        vbox2.Add(self.canvas2,flag=wx.ALIGN_LEFT,border=8)
-        vbox2.Add(self.canvas3,flag=wx.ALIGN_LEFT,border=8)
+        vbox2.Add(self.canvas2,proportion=1,flag=wx.ALIGN_LEFT|wx.EXPAND,border=8)
+        vbox2.Add(self.canvas3,proportion=1,flag=wx.ALIGN_LEFT|wx.EXPAND,border=8)
 
         vbox3 = wx.BoxSizer(wx.VERTICAL)
-        vbox3.Add(self.canvas4,flag=wx.ALIGN_LEFT|wx.ALIGN_TOP,border=8)
+        vbox3.Add(self.canvas4,proportion=1,flag=wx.ALIGN_LEFT|wx.ALIGN_TOP|wx.EXPAND,border=8)
 
         hbox3 = wx.BoxSizer(wx.HORIZONTAL)
-        hbox3.Add(self.stats_sizer,flag=wx.ALIGN_CENTER_VERTICAL,border=8)
-        hbox3.Add(self.switch_stats_button,flag=wx.ALIGN_CENTER_VERTICAL,border=8)
+        hbox3.Add(self.stats_sizer,proportion=1,flag=wx.ALIGN_CENTER_VERTICAL|wx.EXPAND,border=8)
+        hbox3.Add(self.switch_stats_button,proportion=.5,flag=wx.ALIGN_CENTER_VERTICAL|wx.EXPAND,border=8)
 
-        vbox3.Add(hbox3,flag=wx.ALIGN_CENTER_VERTICAL,border=8)
+        vbox3.Add(hbox3,proportion=1,flag=wx.ALIGN_CENTER_VERTICAL|wx.EXPAND,border=8)
 
-        hbox2.Add(vbox2,flag=wx.ALIGN_CENTER_HORIZONTAL)
-        hbox2.Add(vbox3,flag=wx.ALIGN_CENTER_HORIZONTAL)
+        hbox2.Add(vbox2,proportion=.75,flag=wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND)
+        hbox2.Add(vbox3,proportion=.75,flag=wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND)
 
-        vbox1.Add(hbox1, flag=wx.ALIGN_LEFT)
-        vbox1.Add(hbox2, flag=wx.LEFT)
+        vbox1.Add(hbox1,proportion=.75, flag=wx.ALIGN_LEFT|wx.EXPAND)
+        vbox1.Add(hbox2,proportion=1, flag=wx.LEFT|wx.EXPAND)
 
-        self.panel.SetSizer(vbox1)
+        self.panel.SetSizerAndFit(vbox1)
         vbox1.Fit(self)
 
         self.GUI_SIZE = self.GetSize()
-        self.panel.SetSizeHints(self.GUI_SIZE[0],self.GUI_SIZE[1])
+        self.panel.SetSizeHints(.5*self.GUI_SIZE[0],.5*self.GUI_SIZE[1])
 
     def create_menu(self):
         """
@@ -1522,6 +1525,7 @@ class Demag_GUI(wx.Frame):
        self.high_level_eqarea.axes.set_aspect('equal')
        self.high_level_eqarea.axis('off')
        self.canvas4.draw()
+
        if self.interpretation_editor_open:
            self.update_higher_level_stats()
            self.interpretation_editor.update_editor(False)
@@ -3085,7 +3089,7 @@ class Demag_GUI(wx.Frame):
                 else:
                     fit = None
             else:
-                if int(rec['specimen_tilt_correction']) == current_tilt_correction:
+                if rec['specimen_tilt_correction'].isdigit() and int(float(rec['specimen_tilt_correction'])) == current_tilt_correction:
                     next_fit = str(len(self.pmag_results_data['specimens'][self.s]) + 1)
                     color = self.colors[(int(next_fit)-1) % len(self.colors)]
                     self.pmag_results_data['specimens'][self.s].append(Fit('Fit ' + next_fit, None, None, color, self))
@@ -5071,6 +5075,8 @@ class Demag_GUI(wx.Frame):
         if ('Fit ' + next_fit) in map(lambda x: x.name, self.pmag_results_data['specimens'][self.s]): print('bad name'); return
         self.pmag_results_data['specimens'][self.s].append(Fit('Fit ' + next_fit, None, None, self.colors[(int(next_fit)-1) % len(self.colors)], self))
 #        print("New Fit for sample: " + str(self.s) + '\n' + reduce(lambda x,y: x+'\n'+y, map(str,self.pmag_results_data['specimens'][self.s]['fits'])))
+        self.generate_warning_text()
+        self.update_warning_box()
         if plot_new_fit:
             self.new_fit()
 
