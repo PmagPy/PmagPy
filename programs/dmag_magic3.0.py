@@ -52,7 +52,7 @@ def main():
     name_dict = {'loc': 'location_name', 'sit': 'site_name',
                  'sam': 'sample_name', 'spc': 'specimen_name'}
     plot_key = name_dict[plot_by]
-    LT = "LT-" + pmag.get_named_arg_from_sys("-LP", "AF") + "-Z"
+    LT = "LT-" + pmag.get_named_arg_from_sys("-LT", "AF") + "-Z"
     if LT == "LT-T-Z":
         units, dmag_key = 'K', 'treat_temp'
     elif LT == "LT-AF-Z":
