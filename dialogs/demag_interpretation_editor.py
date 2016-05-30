@@ -237,7 +237,7 @@ class InterpretationEditorFrame(wx.Frame):
         hbox1 = wx.BoxSizer(wx.HORIZONTAL)
         hbox1.Add(vbox0,flag=wx.ALIGN_TOP,border=8)
         hbox1.Add(self.stats_sizer,flag=wx.ALIGN_TOP,border=8)
-        hbox1.Add(self.switch_stats_button,flag=wx.ALIGN_TOP,border=8)
+        hbox1.Add(self.switch_stats_button,flag=wx.ALIGN_TOP|wx.EXPAND,border=8)
 
         vbox1 = wx.BoxSizer(wx.VERTICAL)
         vbox1.Add(self.display_sizer,flag=wx.ALIGN_TOP,border=8)
@@ -252,7 +252,7 @@ class InterpretationEditorFrame(wx.Frame):
         hbox2.Add(vbox2,proportion=1,flag=wx.ALIGN_LEFT|wx.EXPAND)
         hbox2.Add(vbox1,flag=wx.ALIGN_TOP|wx.EXPAND)
 
-        self.panel.SetSizer(hbox2)
+        self.panel.SetSizerAndFit(hbox2)
         hbox2.Fit(self)
 
     ################################Logger Functions##################################
