@@ -108,20 +108,19 @@ def main():
     table_name=contribution.tables.keys()[0]
     data_container=contribution.tables[table_name]
     meas_data=data_container.df
-    print meas_data.head()
+    print contribution.tables
+    #PriorSpecs=data_container.tables['specimens'].df
+    #print PriorSpecs
     raw_input()
-    #START HERE
     changeM,changeS=0,0 # check if data or interpretations have changed
-    for rec in  meas_data:
-        if  "magic_method_codes" not in rec.keys(): rec["magic_method_codes"]=""
-        methods=""
-        tmp=rec["magic_method_codes"].replace(" ","").split(":")
-        for meth in tmp:
-            methods=methods+meth+":"
-        rec["magic_method_codes"]=methods[:-1]  # get rid of annoying spaces in Anthony's export files 
-        if "magic_instrument_codes" not in rec.keys() :rec["magic_instrument_codes"]=""
-    PriorSpecs=[]
-    PriorRecs,file_type=pmag.magic_read(inspec)
+    #for meas in  meas_data:
+    #    if  "magic_method_codes" not in rec.keys(): rec["magic_method_codes"]=""
+    #    methods=""
+    #    tmp=rec["magic_method_codes"].replace(" ","").split(":")
+    #    for meth in tmp:
+    #        methods=methods+meth+":"
+    #    rec["magic_method_codes"]=methods[:-1]  # get rid of annoying spaces in Anthony's export files 
+    #    if "magic_instrument_codes" not in rec.keys() :rec["magic_instrument_codes"]=""
     if len(PriorRecs)==0: 
         if verbose:print "starting new file ",inspec
     for Rec in PriorRecs:

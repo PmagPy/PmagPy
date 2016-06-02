@@ -92,7 +92,7 @@ class Contribution(object):
 
     def rename_item(self, table_name, item_old_name, item_new_name):
         """
-        Rename itme (such as a site) everywhere that it occurs.
+        Rename item (such as a site) everywhere that it occurs.
         This change often spans multiple tables.
         For example, a site name will occur in the sites table,
         the samples table, and possibly in the locations/ages tables.
