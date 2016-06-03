@@ -112,37 +112,27 @@ def main():
         spec_data=spec_container.df
         spec_data= spec_data[spec_data['method_codes'].str.contains('DE-')==True] # select only directional records
         spec_data.sofware_packages=version_num
-        print spec_data.software_packages
+        if 'dir_comp_name' not in spec_data.columns:spec_data.dir_comp_name='A'
+        spec_data.loc[spec_data['dir_comp_name'].isnull(),'dir_comp_name']='A'
+        print spec_data.dir_comp_name
     else:
        	spec_container, spec_data = None, None
     raw_input()
     changeM,changeS=0,0 # check if data or interpretations have changed
-    if spec_data==None:
-        if verbose:print "starting new file ",spec_file
-    for Rec in PriorRecs:
-        if 'magic_software_packages' not in Rec.keys():Rec['magic_software_packages']=""
-        if Rec['er_specimen_name'] not in PriorSpecs:
-            if 'specimen_comp_name' not in Rec.keys():Rec['specimen_comp_name']="A"
-            PriorSpecs.append(Rec['er_specimen_name'])
-        else:
-            if 'specimen_comp_name' not in Rec.keys():Rec['specimen_comp_name']="A"
-        if "magic_method_codes" in Rec.keys():
-            methods=[]
-            tmp=Rec["magic_method_codes"].replace(" ","").split(":")
-            for meth in tmp:
-                methods.append(meth)
-            if 'DE-FM' in methods:
-                Rec['calculation_type']='DE-FM' # this won't be imported but helps
-            if 'DE-BFL' in methods:
-                Rec['calculation_type']='DE-BFL'
-            if 'DE-BFL-A' in methods:
-                Rec['calculation_type']='DE-BFL-A'
-            if 'DE-BFL-O' in methods:
-                Rec['calculation_type']='DE-BFL-O'
-            if 'DE-BFP' in methods:
-                Rec['calculation_type']='DE-BFP'
-        else:
-            Rec['calculation_type']='DE-BFL' # default is to assume a best-fit line
+    #for Rec in PriorRecs:
+            #if 'DE-FM' in methods:
+            #    Rec['calculation_type']='DE-FM' # this won't be imported but helps
+            #if 'DE-BFL' in methods:
+            #    Rec['calculation_type']='DE-BFL'
+            #if 'DE-BFL-A' in methods:
+            #    Rec['calculation_type']='DE-BFL-A'
+            #if 'DE-BFL-O' in methods:
+            #    Rec['calculation_type']='DE-BFL-O'
+            #if 'DE-BFP' in methods:
+            #    Rec['calculation_type']='DE-BFP'
+        #else:
+        #    Rec['calculation_type']='DE-BFL' # default is to assume a best-fit line
+    #START HERE
     #
     # get list of unique specimen names
     #
