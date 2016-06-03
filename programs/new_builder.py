@@ -366,11 +366,16 @@ class MagicDataFrame(object):
         di_block = [[float(row['dir_dec']), float(row['dir_inc'])] for ind, row in df_slice.iterrows()]
         return di_block
 
-    def get_records_for_code(self, meth_code, incl=True, use_slice=False, sli=None):
+
+    def get_records_for_code(self, meth_code, incl=True, use_slice=False,
+                             sli=None, strict_match=True):
         """
         Use regex to see if meth_code is in the method_codes ":" delimited list.
         If incl == True, return all records WITH meth_code.
         If incl == False, return all records WITHOUT meth_code.
+        If strict_match == True, return only records with the exact meth_code.
+        If strict_match == False, return records that contain the meth_code partial string,
+        (i.e., "DE-")
         """
         # (must use fillna to replace np.nan with False for indexing)
         if use_slice:
@@ -381,8 +386,13 @@ class MagicDataFrame(object):
         if not meth_code:
             return df
         # get regex
-        pattern = re.compile('{}(?=:|\s|\Z)'.format(meth_code))
-        cond = df['method_codes'].str.contains(pattern).fillna('')
+        if not strict_match:
+            # grab any record that contains any part of meth_code
+            cond = df['method_codes'].str.contains(meth_code).fillna(False)
+        else:
+            # grab only an exact match
+            pattern = re.compile('{}(?=:|\s|\Z)'.format(meth_code))
+            cond = df['method_codes'].str.contains(pattern).fillna(False)
         if incl:
             # return a copy of records with that method code:
             return df[cond]
