@@ -111,10 +111,10 @@ def main():
         spec_container = contribution.tables['specimens']
         spec_data=spec_container.df
         spec_data= spec_data[spec_data['method_codes'].str.contains('DE-')==True] # select only directional records
-        spec_data.sofware_packages=version_num
+        if 'software_packages' not in spec_data.columns:spec_data.software_packages=version_num
+        spec_data.loc[spec_data['software_packages'].notnull(),'software_packages']=version_num
         if 'dir_comp_name' not in spec_data.columns:spec_data.dir_comp_name='A'
         spec_data.loc[spec_data['dir_comp_name'].isnull(),'dir_comp_name']='A'
-        print spec_data.dir_comp_name
     else:
        	spec_container, spec_data = None, None
     raw_input()
