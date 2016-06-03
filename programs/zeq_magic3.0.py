@@ -103,26 +103,22 @@ def main():
     if '-sav' in sys.argv: plots,verbose=1,0
     #
     first_save=1
-    fnames = {"specimens": spec_file, "samples": samp_file}
-    contribution=nb.Contribution(dir_path,custom_filenames=fnames,single_file=meas_file)
-    table_name=contribution.tables.keys()[0]
-    data_container=contribution.tables[table_name]
-    meas_data=data_container.df
-    print contribution.tables
-    #PriorSpecs=data_container.tables['specimens'].df
-    #print PriorSpecs
+    fnames = {'measurements': meas_file, 'specimens': spec_file}
+    contribution = nb.Contribution(dir_path, custom_filenames=fnames, read_tables=['measurements', 'specimens'])
+    meas_container = contribution.tables['measurements']
+    meas_data = meas_container.df
+    if 'specimens' in contribution.tables:
+        spec_container = contribution.tables['specimens']
+        spec_data=spec_container.df
+        spec_data= spec_data[spec_data['method_codes'].str.contains('DE-')==True] # select only directional records
+        spec_data.sofware_packages=version_num
+        print spec_data.software_packages
+    else:
+       	spec_container, spec_data = None, None
     raw_input()
     changeM,changeS=0,0 # check if data or interpretations have changed
-    #for meas in  meas_data:
-    #    if  "magic_method_codes" not in rec.keys(): rec["magic_method_codes"]=""
-    #    methods=""
-    #    tmp=rec["magic_method_codes"].replace(" ","").split(":")
-    #    for meth in tmp:
-    #        methods=methods+meth+":"
-    #    rec["magic_method_codes"]=methods[:-1]  # get rid of annoying spaces in Anthony's export files 
-    #    if "magic_instrument_codes" not in rec.keys() :rec["magic_instrument_codes"]=""
-    if len(PriorRecs)==0: 
-        if verbose:print "starting new file ",inspec
+    if spec_data==None:
+        if verbose:print "starting new file ",spec_file
     for Rec in PriorRecs:
         if 'magic_software_packages' not in Rec.keys():Rec['magic_software_packages']=""
         if Rec['er_specimen_name'] not in PriorSpecs:
