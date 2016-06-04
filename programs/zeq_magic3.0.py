@@ -2,7 +2,7 @@
 
 # -*- python-indent-offset: 4; -*-
 
-
+import pandas as pd
 import sys
 import os
 import matplotlib
@@ -117,7 +117,6 @@ def main():
         spec_data.loc[spec_data['dir_comp_name'].isnull(),'dir_comp_name']='A'
     else:
        	spec_container, spec_data = None, None
-    raw_input()
     changeM,changeS=0,0 # check if data or interpretations have changed
     #for Rec in PriorRecs:
             #if 'DE-FM' in methods:
@@ -132,11 +131,10 @@ def main():
             #    Rec['calculation_type']='DE-BFP'
         #else:
         #    Rec['calculation_type']='DE-BFL' # default is to assume a best-fit line
-    #START HERE
     #
     # get list of unique specimen names
     #
-    sids=pmag.get_specs(meas_data)
+    sids= spec_data.specimen_name.unique()
     #
     #  set up plots, angle sets X axis to horizontal,  direction_type 'l' is best-fit line
     # direction_type='p' is great circle
@@ -149,9 +147,9 @@ def main():
     #  and intensity vs. demagnetiztion step respectively
     ZED={}
     ZED['eqarea'],ZED['zijd'],  ZED['demag']=1,2,3 
-    pmagplotlib.plot_init(ZED['eqarea'],5,5)
-    pmagplotlib.plot_init(ZED['zijd'],6,5)
-    pmagplotlib.plot_init(ZED['demag'],5,5)
+    pmagplotlib.plot_init(ZED['eqarea'],6,6)
+    pmagplotlib.plot_init(ZED['zijd'],6,6)
+    pmagplotlib.plot_init(ZED['demag'],6,6)
     save_pca=0
     if specimen=="":
         k = 0
@@ -166,32 +164,35 @@ def main():
         method_codes,inst_code=[],""
         s=sids[k]
         PmagSpecRec={}
-        PmagSpecRec["er_analyst_mail_names"]=user
-        PmagSpecRec['magic_software_packages']=version_num
+        PmagSpecRec["analyst_mail_names"]=user
+        PmagSpecRec['software_packages']=version_num
         PmagSpecRec['specimen_description']=""
-        PmagSpecRec['magic_method_codes']=""
+        PmagSpecRec['method_codes']=""
         if verbose and  s!="":print s, k , 'out of ',len(sids)
     #
     #  collect info for the PmagSpecRec dictionary
     #
-        s_meas=pmag.get_dictitem(meas_data,'er_specimen_name',s,'T') # fish out this specimen
-        s_meas=pmag.get_dictitem(s_meas,'magic_method_codes','Z','has') # fish out zero field steps
+        s_meas= meas_data[meas_data['specimen_name'].str.contains(s)==True] # fish out this specimen
+        s_meas= s_meas[s_meas['method_codes'].str.contains('LT-NO|LT-AF-Z|LT-T-Z')==True] # fish out zero field steps specimen
+        print s_meas.columns
+        raw_input()
         if len(s_meas)>0:
-          for rec in  s_meas: # fix up a few things for the output record
-               PmagSpecRec["magic_instrument_codes"]=rec["magic_instrument_codes"]  # copy over instruments
-               PmagSpecRec["er_citation_names"]="This study"
-               PmagSpecRec["er_specimen_name"]=s
-               PmagSpecRec["er_sample_name"]=rec["er_sample_name"]
-               PmagSpecRec["er_site_name"]=rec["er_site_name"]
-               PmagSpecRec["er_location_name"]=rec["er_location_name"]
-               locname=rec['er_location_name']
-               if 'er_expedition_name' in rec.keys(): PmagSpecRec["er_expedition_name"]=rec["er_expedition_name"]
-               PmagSpecRec["magic_method_codes"]=rec["magic_method_codes"]
-               if "magic_experiment_name" not in rec.keys():
-                   PmagSpecRec["magic_experiment_names"]=""
-               else:    
-                   PmagSpecRec["magic_experiment_names"]=rec["magic_experiment_name"]
-               break
+          for rec in  s_meas: # fix up a few things for the output record 
+               print rec
+               ##if 'instrument_codes' in rec.keys():PmagSpecRec["instrument_codes"]=rec["instrument_codes"]  # copy over instruments
+               #PmagSpecRec["er_citation_names"]="This study"
+               #PmagSpecRec["er_specimen_name"]=s
+               #PmagSpecRec["er_sample_name"]=rec["er_sample_name"]
+               #PmagSpecRec["er_site_name"]=rec["er_site_name"]
+               #PmagSpecRec["er_location_name"]=rec["er_location_name"]
+               #locname=rec['er_location_name']
+               #if 'er_expedition_name' in rec.keys(): PmagSpecRec["er_expedition_name"]=rec["er_expedition_name"]
+               #PmagSpecRec["magic_method_codes"]=rec["magic_method_codes"]
+               #if "magic_experiment_name" not in rec.keys():
+               #    PmagSpecRec["magic_experiment_names"]=""
+               #else:    
+               #    PmagSpecRec["magic_experiment_names"]=rec["magic_experiment_name"]
+               #break
     #
     # find the data from the meas_data file for this specimen
     #
