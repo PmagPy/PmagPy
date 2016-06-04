@@ -247,42 +247,72 @@ class MagicDataFrame(object):
     and assorted methods for manipulating that DataFrame.
     """
 
-    def __init__(self, magic_file):
-        data, dtype = pmag.magic_read(magic_file)
-        self.df = DataFrame(data)
-        if dtype == 'bad_file':
-            print "-W- Bad file {}".format(magic_file)
-            self.dtype = 'empty'
-            return
-        #
-        self.dtype = dtype
-        if dtype == 'measurements':
-            self.df['measurement_name'] = self.df['experiment_name'] + self.df['measurement_number']
-            name = 'measurement_name'
-        elif dtype.endswith('s'):
-            dtype = dtype[:-1]
-            name = '{}_name'.format(dtype)
-        elif dtype == 'contribution':
-            name = 'doi'
-        # fix these:
-        if dtype == 'age':
-            self.df = pd.DataFrame()
-            return
-        if dtype == 'image':
-            self.df = pd.DataFrame()
-            return
-        if dtype == 'criteria':
-            #self.df = pd.DataFrame()
-            self.df.index = self.df['table_column_name']
-            return
-        self.df.index = self.df[name]
-        #del self.df[name]
-        #self.dtype = dtype
-        # replace '' with None, so you can use isnull(), notnull(), etc.
-        # can always switch back with DataFrame.fillna('')
-        self.df[self.df == ''] = None
-        # drop any completely blank columns
-        self.df.dropna(axis=1, how='all', inplace=True)
+    def __init__(self, magic_file=None, columns=None, dtype=None):
+        """
+        Provide either a magic_file or a dtype.  
+        List of columns is optional, 
+        and will only be used if magic_file == None
+        """
+        if not magic_file:
+            self.dtype = dtype
+            if not isinstance(columns, type(None)):
+                self.df = DataFrame(columns=columns)
+            else:
+                self.df = DataFrame()
+                
+        else:
+            data, dtype = pmag.magic_read(magic_file)
+            self.df = DataFrame(data)
+            if dtype == 'bad_file':
+                print "-W- Bad file {}".format(magic_file)
+                self.dtype = 'empty'
+                return
+            #
+            self.dtype = dtype
+            if dtype == 'measurements':
+                self.df['measurement_name'] = self.df['experiment_name'] + self.df['measurement_number']
+                name = 'measurement_name'
+            elif dtype.endswith('s'):
+                dtype = dtype[:-1]
+                name = '{}_name'.format(dtype)
+            elif dtype == 'contribution':
+                name = 'doi'
+            # fix these:
+            if dtype == 'age':
+                self.df = pd.DataFrame()
+                return
+            if dtype == 'image':
+                self.df = pd.DataFrame()
+                return
+            if dtype == 'criteria':
+                #self.df = pd.DataFrame()
+                self.df.index = self.df['table_column_name']
+                return
+            self.df.index = self.df[name]
+            #del self.df[name]
+            #self.dtype = dtype
+            # replace '' with None, so you can use isnull(), notnull(), etc.
+            # can always switch back with DataFrame.fillna('')
+            self.df[self.df == ''] = None
+            # drop any completely blank columns
+            self.df.dropna(axis=1, how='all', inplace=True)
+
+    def add_row(self, label, row_data):
+        """
+        Add a row with data.
+        If any new keys are present in row_data dictionary,
+        that column will be added to the dataframe
+        """
+        if sorted(row_data.keys()) != sorted(self.df.columns):
+            # add any new column names
+            for key in row_data:
+                if key not in self.df.columns:
+                    self.df[key] = None
+            # add missing column names into row_data
+            for col_label in self.df.columns:
+                if col_label not in row_data.keys():
+                    row_data[col_label] = None
+        self.df.loc[label] = row_data
 
     def add_blank_row(self, label):
         """

@@ -127,7 +127,7 @@ def main():
                 for key in FIG.keys():
                     files[key] = title + '_' + LT + '.' + fmt
                 pmagplotlib.saveP(FIG, files)
-                sys.exit()
+                #sys.exit()
             else:
                 pmagplotlib.drawFIGS(FIG)
                 prompt = " S[a]ve to save plot, [q]uit,  Return to continue:  "
