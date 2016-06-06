@@ -107,10 +107,37 @@ def main():
     fnames = {'measurements': meas_file, 'specimens': spec_file, 'samples': samp_file}
     contribution = nb.Contribution(dir_path, custom_filenames=fnames, read_tables=['measurements', 'specimens', 'samples'])
 #
-#   work on measurement data
+#   import measurement data
 #
     meas_container = contribution.tables['measurements']
     meas_data = meas_container.df
+#
+#   import  specimens
+#
+    if 'specimens' in contribution.tables:
+        spec_container = contribution.tables['specimens']
+        spec_data=spec_container.get_records_for_code('DE-',strict_match=False) # look up all prior directional interpretations
+#
+#  tie sample names to measurement data
+#
+        meas_data.propagate_col_name_down('sample_name','measurements')
+    else:
+       	spec_container, spec_data = None, []
+
+
+#
+#   import samples  for orientation info
+#
+    if 'samples' in contribution.tables:
+        samp_container = contribution.tables['samples']
+        samp_data=samp_container.df
+#
+#  tie site names to measurement data
+#
+        meas_data.propagate_col_name_down('site_name','measurements')
+    else:
+       	samp_container, samp_data = None, []
+    #if  coord!='-1' and len(samp_data)>0:  # we need to correct directions and we can.... 
     meas_data= meas_data[meas_data['method_codes'].str.contains('LT-NO|LT-AF-Z|LT-T-Z|LT-M-Z')==True] # fish out zero field steps for plotting 
     meas_data= meas_data[meas_data['method_codes'].str.contains('AN|ARM|LP-TRM|LP-PI-ARM')==False] # strip out unwanted experiments
     intensity_types = [col_name for col_name in meas_data.columns if col_name in intlist]
@@ -123,32 +150,6 @@ def main():
     if 'treatment_mw_power' in meas_data.columns:
         meas_data.ix[meas_data.treatment_mw_power!=0,'treatment']=meas_data.treatment_mw_power*meas_data.treatment_mw_time # 
     specimen_names= meas_data.specimen_name.unique() # this is a list of all the specimen names
-#
-#   work on specimens
-#
-    if 'specimens' in contribution.tables:
-        spec_container = contribution.tables['specimens']
-        spec_data=spec_container.get_records_for_code('DE-',strict_match=False) # look up all prior directional interpretations
-    else:
-       	spec_container, spec_data = None, []
-#
-#  tie sample names to measurement data
-#
-    meas_data.ix[meas_data.specimen_name==spec_data.specimen_name,'sample_name']=spec_data.sample_name
-    print meas_data.sample_name
-    raw_input()
-   
-
-
-#
-#   work on samples for orientation info
-#
-    if 'samples' in contribution.tables:
-        samp_container = contribution.tables['samples']
-        samp_data=samp_container.df
-    else:
-       	samp_container, samp_data = None, []
-    #if  coord!='-1' and len(samp_data)>0:  # we need to correct directions and we can.... 
 
 
 
