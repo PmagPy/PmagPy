@@ -59,6 +59,7 @@ def main():
     """
     # initialize some variables
     doave,e,b=1,0,0 # average replicates, initial end and beginning step
+    intlist = ['magn_moment', 'magn_volume', 'magn_mass']
     plots,coord=0,'s'
     noorient=0
     version_num=pmag.get_version()
@@ -105,30 +106,63 @@ def main():
     first_save=1
     fnames = {'measurements': meas_file, 'specimens': spec_file, 'samples': samp_file}
     contribution = nb.Contribution(dir_path, custom_filenames=fnames, read_tables=['measurements', 'specimens', 'samples'])
+#
+#   work on measurement data
+#
     meas_container = contribution.tables['measurements']
     meas_data = meas_container.df
     meas_data= meas_data[meas_data['method_codes'].str.contains('LT-NO|LT-AF-Z|LT-T-Z|LT-M-Z')==True] # fish out zero field steps for plotting 
+    meas_data= meas_data[meas_data['method_codes'].str.contains('AN|ARM|LP-TRM|LP-PI-ARM')==False] # strip out unwanted experiments
+    intensity_types = [col_name for col_name in meas_data.columns if col_name in intlist]
+    int_key = intensity_types[0] # plot first intensity method found - normalized to initial value anyway - doesn't matter which used
+    meas_data = meas_data[meas_data[int_key].notnull()] # get all the non-null intensity records of the same type
+    if 'flag' not in meas_data.columns: meas_data['flag'] = 'g' # set the default flag to good
+    meas_data['treatment']=meas_data['treat_ac_field'] # set up treatment step starting with treat_ac_field
+    meas_data.ix[meas_data.treat_ac_field==0,'treatment']=meas_data.treat_temp # make it treat_temp if treat_ac_field is 0
+#   for unusual case of microwave power....
+    if 'treatment_mw_power' in meas_data.columns:
+        meas_data.ix[meas_data.treatment_mw_power!=0,'treatment']=meas_data.treatment_mw_power*meas_data.treatment_mw_time # 
+    specimen_names= meas_data.specimen_name.unique() # this is a list of all the specimen names
+#
+#   work on specimens
+#
     if 'specimens' in contribution.tables:
         spec_container = contribution.tables['specimens']
-        prior_spec_data=spec_container.get_records_for_code('DE-',strict_match=False) # look up all prior directional interpretations
+        spec_data=spec_container.get_records_for_code('DE-',strict_match=False) # look up all prior directional interpretations
     else:
-       	spec_container, prior_spec_data = None, []
+       	spec_container, spec_data = None, []
+#
+#  tie sample names to measurement data
+#
+    meas_data.ix[meas_data.specimen_name==spec_data.specimen_name,'sample_name']=spec_data.sample_name
+    print meas_data.sample_name
+    raw_input()
+   
+
+
+#
+#   work on samples for orientation info
+#
     if 'samples' in contribution.tables:
         samp_container = contribution.tables['samples']
         samp_data=samp_container.df
     else:
-       	samp_container, samp_data = None, None
-    changeM,changeS=0,0 # check if data or interpretations have changed
+       	samp_container, samp_data = None, []
+    #if  coord!='-1' and len(samp_data)>0:  # we need to correct directions and we can.... 
+
+
+
+
+#    changeM,changeS=0,0 # check if data or interpretations have changed
     #
     # get list of unique specimen names from measurement data
     #
-    specimen_names= meas_data.specimen_name.unique()
     # set up new DataFrame for this sessions specimen interpretations
-    cols = ['analyst_names', 'aniso_ftest', 'aniso_ftest12', 'aniso_ftest23', 'aniso_s', 'aniso_s_mean', 'aniso_s_n_measurements', 'aniso_s_sigma', 'aniso_s_unit', 'aniso_tilt_correction', 'aniso_type', 'aniso_v1', 'aniso_v2', 'aniso_v3', 'citations', 'description', 'dir_alpha95', 'dir_comp_name', 'dir_dec', 'dir_inc', 'dir_mad_free', 'dir_n_measurements', 'dir_tilt_correction', 'experiment_names', 'geologic_classes', 'geologic_types', 'hyst_bc', 'hyst_bcr', 'hyst_mr_moment', 'hyst_ms_moment', 'int_abs', 'int_b', 'int_b_beta', 'int_b_sigma', 'int_corr', 'int_dang', 'int_drats', 'int_f', 'int_fvds', 'int_gamma', 'int_mad_free', 'int_md', 'int_n_measurements', 'int_n_ptrm', 'int_q', 'int_rsc', 'int_treat_dc_field', 'lithologies', 'meas_step_max', 'meas_step_min', 'meas_step_unit', 'method_codes', 'sample_name', 'software_packages', 'specimen_name']
-    dtype = 'specimens'
-    data_container = nb.MagicDataFrame(dtype=dtype, columns=cols)
-    current_spec_data = data_container.df # this is for current interpretations
-    #
+#    cols = ['analyst_names', 'aniso_ftest', 'aniso_ftest12', 'aniso_ftest23', 'aniso_s', 'aniso_s_mean', 'aniso_s_n_measurements', 'aniso_s_sigma', 'aniso_s_unit', 'aniso_tilt_correction', 'aniso_type', 'aniso_v1', 'aniso_v2', 'aniso_v3', 'citations', 'description', 'dir_alpha95', 'dir_comp_name', 'dir_dec', 'dir_inc', 'dir_mad_free', 'dir_n_measurements', 'dir_tilt_correction', 'experiment_names', 'geologic_classes', 'geologic_types', 'hyst_bc', 'hyst_bcr', 'hyst_mr_moment', 'hyst_ms_moment', 'int_abs', 'int_b', 'int_b_beta', 'int_b_sigma', 'int_corr', 'int_dang', 'int_drats', 'int_f', 'int_fvds', 'int_gamma', 'int_mad_free', 'int_md', 'int_n_measurements', 'int_n_ptrm', 'int_q', 'int_rsc', 'int_treat_dc_field', 'lithologies', 'meas_step_max', 'meas_step_min', 'meas_step_unit', 'method_codes', 'sample_name', 'software_packages', 'specimen_name']
+#    dtype = 'specimens'
+#    data_container = nb.MagicDataFrame(dtype=dtype, columns=cols)
+#    current_spec_data = data_container.df # this is for current interpretations
+#    #
     #  set up plots, angle sets X axis to horizontal,  direction_type 'l' is best-fit line
     # direction_type='p' is great circle
     #     
@@ -150,59 +184,71 @@ def main():
         k=specimen_names.index(specimen)
     angle,direction_type="",""
     setangle=0
-    included_methods=['LT-NO','LT-AF-Z','LT-T-Z','LT-M-Z']
+    #included_methods=['LT-NO':'meas_temp','LT-AF-Z':'meas_field_ac','LT-T-Z':'meas_temp','LT-M-Z':'treatment_mw_treatment']
+    included_methods={'LT-NO':'meas_temp','LT-AF-Z':'meas_field_ac','LT-T-Z':'meas_temp'}
     # let's look at the data now
     while k < len(specimen_names):
         this_specimen=specimen_names[k] # set the current specimen for plotting
         if verbose and  this_specimen!="":print this_specimen, k+1 , 'out of ',len(specimen_names)
         if setangle==0:angle=""
-        # create a new specimen record for the interpreation for this specimen
-        this_specimen_interpretation={col: "" for col in cols}
-        this_specimen_interpretation["analyst_mail_names"]=user
-        this_specimen_interpretation['software_packages']=version_num
-        this_specimen_interpretation['specimen_name']=version_num
-    #
-    #  collect info for current_specimen_interpretation dictionary
-    #
         this_specimen_measurements= meas_data[meas_data['specimen_name'].str.contains(this_specimen)==True] # fish out this specimen
-        if len(this_specimen_measurements)>0:
-            units,methods="",""
-            meths=this_specimen_measurements.method_codes.tolist()
-            for meth in meths:
-                for m in meth.split(':'):
-                    if m.strip() not in methods and m.strip() in included_methods:
-                        methods=methods+':'+m.strip() # make string of methods used
-            if 'LT-AF-Z' in methods: units='T' # units include tesla
-            if 'LT-T-Z' in methods: units=units+":K" # units include kelvin
-            if 'LT-M-Z' in methods: units=units+':J' # units include joules
-            units=units.strip(':') # strip off extra colons
-            methods=methods.strip(':') # strip off extra colons
-            this_specimen_interpretation["method_codes"]= methods
-            this_specimen_interpretation["meas_step_unit"]= units
-    #
-    # find prior interpretation
-    #
-            if len(current_spec_data)==0: # no interpretations yet for this session
-                print "no current interpretation"
-                beg_pca,end_pca="",""
-                calculation_type=""
-                if len(prior_spec_data)!=0:
-                  if verbose: print "    looking up previous interpretations..."
-                  prior_specimen_interpretations= prior_spec_data[prior_spec_data['specimen_name'].str.contains(this_specimen)==True] # fish out prior interpretations 
-                  prior_spec_data= prior_spec_data[prior_spec_data['specimen_name'].str.contains(this_specimen)==False] # remove them from prior recs 
-         # get the ones that meet the current coordinate system
-                  print 'prior: ',prior_specimen_interpretations['meas_step_min']
-                  #    beg_pca=prior_specimen_interpretations.meas_step_min
-                  #    end_pca=prior_specimen_interpretations.meas_step_max
-                  #    print beg_pca,end_pca,prior_specimen_interpretations.tilt_correction
-                  raw_input()
-            else:
-                 print current_spec_data
+        if len(this_specimen_measurements)!=0:  # if there are measurements
+            raw_input()
+        # get intensity key and make sure intensity data is not blank
+            if len(IntTypes) != 0:
+                this_specimen_methods=this_specimen_measurements.method_codes.tolist()
+                for meths in this_specimen_methods:
+                    for m in meth.split(':'):
+                        if m.strip() in included_methods.keys(): # fish these out and add to datablock
+                          tr
+                        
+
+
+
+
+#                            methods=methods+':'+m.strip() # make string of methods used
+	             
+#                units,methods="",""
+#                for meth in meths:
+#                if 'LT-AF-Z' in methods: units='T' # units include tesla
+#                if 'LT-T-Z' in methods: units=units+":K" # units include kelvin
+#                if 'LT-M-Z' in methods: units=units+':J' # units include joules
+#                units=units.strip(':') # strip off extra colons
+#                methods=methods.strip(':') # strip off extra colons
+#
+        # create a new specimen record for the interpreation for this specimen
+#        this_specimen_interpretation={col: "" for col in cols}
+#        this_specimen_interpretation["analyst_mail_names"]=user
+#        this_specimen_interpretation['software_packages']=version_num
+#        this_specimen_interpretation['specimen_name']=version_num
+#        this_specimen_interpretation["method_codes"]= methods
+#        this_specimen_interpretation["meas_step_unit"]= units
+#    #
+#    #  collect info for current_specimen_interpretation dictionary
+#    #
+#    #
+#    # find prior interpretation
+#    #
+#            if len(current_spec_data)==0: # no interpretations yet for this session
+#                print "no current interpretation"
+#                beg_pca,end_pca="",""
+#                calculation_type=""
+#                if len(prior_spec_data)!=0:
+#                  if verbose: print "    looking up previous interpretations..."
+#                  prior_specimen_interpretations= prior_spec_data[prior_spec_data['specimen_name'].str.contains(this_specimen)==True] # fish out prior interpretations 
+#                  prior_spec_data= prior_spec_data[prior_spec_data['specimen_name'].str.contains(this_specimen)==False] # remove them from prior recs 
+#         # get the ones that meet the current coordinate system
+#                  print 'prior: ',prior_specimen_interpretations['meas_step_min']
+#                  #    beg_pca=prior_specimen_interpretations.meas_step_min
+#                  #    end_pca=prior_specimen_interpretations.meas_step_max
+#                  #    print beg_pca,end_pca,prior_specimen_interpretations.tilt_correction
+#                  raw_input()
+#            else:
+##                 print current_spec_data
         else:
              print "no data"
-             raw_input()
         raw_input('Ready for next specimen')
         k+=1
-
+#
 if __name__ == "__main__":
     main()
