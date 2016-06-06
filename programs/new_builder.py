@@ -462,5 +462,29 @@ class MagicDataFrame(object):
             return df[~cond]
 
 
+    def write_magic_file(self, custom_name=None, dir_path="."):
+        """
+        Write self.df out to tab-delimited file.
+        By default will use standard MagIC filenames (specimens.txt, etc.),
+        or you can provide a custom_name to write to instead.
+        By default will write to current directory, 
+        or provide dir_path to write out to instead.
+        """
+        df = self.df
+        dir_path = os.path.realpath(dir_path)
+        if custom_name:
+            fname = os.path.join(dir_path, custom_name)
+        else:
+            fname = os.path.join(dir_path, self.dtype + ".txt")
+        if os.path.exists(fname):
+            print '-I- overwriting {}'.format(fname)
+        else:
+            print '-I- writing {} data to {}'.format(self.dtype, fname)
+        f = open(fname, 'w')
+        f.write('tab\t{}\n'.format(self.dtype))
+        df.to_csv(f, sep="\t")
+        f.close()
+
+
 if __name__ == "__main__":
     pass
