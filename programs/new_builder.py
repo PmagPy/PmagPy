@@ -162,7 +162,8 @@ class Contribution(object):
             return table_name, name
         return "", ""
 
-    def propagate_col_name_down(self, col_name, df_name):
+    
+    def propagate_name_down(self, col_name, df_name):
         """
         Put the data for "col_name" into dataframe with df_name
         Used to add 'site_name' to specimen table, for example.
@@ -237,6 +238,36 @@ class Contribution(object):
         # update the Contribution
         self.tables[df_name].df = df
         return df
+
+
+    def propagate_cols_down(self, col_names, target_df_name, source_df_name):
+        """
+        Put the data for "col_name" from source_df into target_df
+        Used to get "azimuth" from sample table into measurements table
+        (for example).
+        Note: if getting data from the sample table, don't include "sample_name"
+        in the col_names list.  It is included automatically.
+        """
+        if target_df_name not in self.tables:
+            self.add_magic_table(target_df_name)
+        if target_df_name not in self.tables:
+            print "-W- Couldn't read in {} table".format(target_df_name)
+            return
+        if source_df_name not in self.tables:
+            self.add_magic_table(source_table_name)
+            print "-W- Couldn't read in {} table".format(source_df_name)
+            return
+        #
+        add_name = source_df_name[:-1] + "_name"
+        self.propagate_name_down(add_name, target_df_name)
+        #
+        target_df = self.tables[target_df_name].df
+        source_df = self.tables[source_df_name].df
+        #
+        target_df = target_df.merge(source_df[col_names], how='left', left_on=add_name, right_index=True)
+        self.tables[target_df_name] = target_df
+        return target_df
+    
 
 
 class MagicDataFrame(object):
@@ -429,6 +460,30 @@ class MagicDataFrame(object):
         else:
             # return a copy of records without that method code
             return df[~cond]
+
+
+    def write_magic_file(self, custom_name=None, dir_path="."):
+        """
+        Write self.df out to tab-delimited file.
+        By default will use standard MagIC filenames (specimens.txt, etc.),
+        or you can provide a custom_name to write to instead.
+        By default will write to current directory, 
+        or provide dir_path to write out to instead.
+        """
+        df = self.df
+        dir_path = os.path.realpath(dir_path)
+        if custom_name:
+            fname = os.path.join(dir_path, custom_name)
+        else:
+            fname = os.path.join(dir_path, self.dtype + ".txt")
+        if os.path.exists(fname):
+            print '-I- overwriting {}'.format(fname)
+        else:
+            print '-I- writing {} data to {}'.format(self.dtype, fname)
+        f = open(fname, 'w')
+        f.write('tab\t{}\n'.format(self.dtype))
+        df.to_csv(f, sep="\t")
+        f.close()
 
 
 if __name__ == "__main__":

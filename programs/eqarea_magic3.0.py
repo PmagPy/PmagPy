@@ -127,7 +127,7 @@ def main():
     data = data_container.df
 
     if (plot_key != "all") and (plot_key not in data.columns):
-        data = contribution.propagate_col_name_down(plot_key, table_name)
+        data = contribution.propagate_name_down(plot_key, table_name)
 
     # add tilt key into DataFrame columns if it isn't there already
     if tilt_key not in data.columns:
