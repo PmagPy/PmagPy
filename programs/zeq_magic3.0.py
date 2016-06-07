@@ -107,20 +107,15 @@ def main():
     fnames = {'measurements': meas_file, 'specimens': spec_file, 'samples': samp_file}
     contribution = nb.Contribution(dir_path, custom_filenames=fnames, read_tables=['measurements', 'specimens', 'samples'])
 #
-#   import measurement data
-#
-    meas_container = contribution.tables['measurements']
-    meas_data = meas_container.df
-#
 #   import  specimens
 #
     if 'specimens' in contribution.tables:
+#        contribution.propagate_name_down('sample_name','measurements')
         spec_container = contribution.tables['specimens']
         spec_data=spec_container.get_records_for_code('DE-',strict_match=False) # look up all prior directional interpretations
 #
 #  tie sample names to measurement data
 #
-        meas_data.propagate_col_name_down('sample_name','measurements')
     else:
        	spec_container, spec_data = None, []
 
@@ -129,14 +124,14 @@ def main():
 #   import samples  for orientation info
 #
     if 'samples' in contribution.tables:
-        samp_container = contribution.tables['samples']
-        samp_data=samp_container.df
+#        contribution.propagate_name_down('site_name','measurements')
+        contribution.propagate_cols_down(col_names=['azimuth','dip','orientation_flag'],target_df_name='measurements',source_df_name='samples')
 #
-#  tie site names to measurement data
+#   create measurement dataframe
 #
-        meas_data.propagate_col_name_down('site_name','measurements')
-    else:
-       	samp_container, samp_data = None, []
+    meas_container = contribution.tables['measurements']
+    meas_data = meas_container.df
+    print meas_data.columns
     #if  coord!='-1' and len(samp_data)>0:  # we need to correct directions and we can.... 
     meas_data= meas_data[meas_data['method_codes'].str.contains('LT-NO|LT-AF-Z|LT-T-Z|LT-M-Z')==True] # fish out zero field steps for plotting 
     meas_data= meas_data[meas_data['method_codes'].str.contains('AN|ARM|LP-TRM|LP-PI-ARM')==False] # strip out unwanted experiments
@@ -149,15 +144,11 @@ def main():
 #   for unusual case of microwave power....
     if 'treatment_mw_power' in meas_data.columns:
         meas_data.ix[meas_data.treatment_mw_power!=0,'treatment']=meas_data.treatment_mw_power*meas_data.treatment_mw_time # 
-    specimen_names= meas_data.specimen_name.unique() # this is a list of all the specimen names
-
-
-
-
-#    changeM,changeS=0,0 # check if data or interpretations have changed
     #
     # get list of unique specimen names from measurement data
     #
+    specimen_names= meas_data.specimen_name.unique() # this is a list of all the specimen names
+#    changeM,changeS=0,0 # check if data or interpretations have changed
     # set up new DataFrame for this sessions specimen interpretations
 #    cols = ['analyst_names', 'aniso_ftest', 'aniso_ftest12', 'aniso_ftest23', 'aniso_s', 'aniso_s_mean', 'aniso_s_n_measurements', 'aniso_s_sigma', 'aniso_s_unit', 'aniso_tilt_correction', 'aniso_type', 'aniso_v1', 'aniso_v2', 'aniso_v3', 'citations', 'description', 'dir_alpha95', 'dir_comp_name', 'dir_dec', 'dir_inc', 'dir_mad_free', 'dir_n_measurements', 'dir_tilt_correction', 'experiment_names', 'geologic_classes', 'geologic_types', 'hyst_bc', 'hyst_bcr', 'hyst_mr_moment', 'hyst_ms_moment', 'int_abs', 'int_b', 'int_b_beta', 'int_b_sigma', 'int_corr', 'int_dang', 'int_drats', 'int_f', 'int_fvds', 'int_gamma', 'int_mad_free', 'int_md', 'int_n_measurements', 'int_n_ptrm', 'int_q', 'int_rsc', 'int_treat_dc_field', 'lithologies', 'meas_step_max', 'meas_step_min', 'meas_step_unit', 'method_codes', 'sample_name', 'software_packages', 'specimen_name']
 #    dtype = 'specimens'
@@ -185,28 +176,19 @@ def main():
         k=specimen_names.index(specimen)
     angle,direction_type="",""
     setangle=0
-    #included_methods=['LT-NO':'meas_temp','LT-AF-Z':'meas_field_ac','LT-T-Z':'meas_temp','LT-M-Z':'treatment_mw_treatment']
-    included_methods={'LT-NO':'meas_temp','LT-AF-Z':'meas_field_ac','LT-T-Z':'meas_temp'}
     # let's look at the data now
     while k < len(specimen_names):
         this_specimen=specimen_names[k] # set the current specimen for plotting
         if verbose and  this_specimen!="":print this_specimen, k+1 , 'out of ',len(specimen_names)
         if setangle==0:angle=""
         this_specimen_measurements= meas_data[meas_data['specimen_name'].str.contains(this_specimen)==True] # fish out this specimen
+#        this_specimen_measurements= this_specimen_measurements[this_specimen_measurements['flag'].str.contains('g')==True] # fish out this specimen
         if len(this_specimen_measurements)!=0:  # if there are measurements
+#
+#    set up datablock [[treatment,dec, inc, int, direction_type],[....]]
+#
+            print this_specimen_measurements.treatment
             raw_input()
-        # get intensity key and make sure intensity data is not blank
-            if len(IntTypes) != 0:
-                this_specimen_methods=this_specimen_measurements.method_codes.tolist()
-                for meths in this_specimen_methods:
-                    for m in meth.split(':'):
-                        if m.strip() in included_methods.keys(): # fish these out and add to datablock
-                          tr
-                        
-
-
-
-
 #                            methods=methods+':'+m.strip() # make string of methods used
 	             
 #                units,methods="",""
