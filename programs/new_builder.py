@@ -277,7 +277,7 @@ class Contribution(object):
         source_df = self.tables[source_df_name].df
         #
         target_df = target_df.merge(source_df[col_names], how='left', left_on=add_name, right_index=True)
-        self.tables[target_df_name] = target_df
+        self.tables[target_df_name].df = target_df
         return target_df
     
 
