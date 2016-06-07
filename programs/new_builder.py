@@ -248,16 +248,28 @@ class Contribution(object):
         Note: if getting data from the sample table, don't include "sample_name"
         in the col_names list.  It is included automatically.
         """
+        # make sure target table is read in
         if target_df_name not in self.tables:
             self.add_magic_table(target_df_name)
         if target_df_name not in self.tables:
             print "-W- Couldn't read in {} table".format(target_df_name)
             return
+        # make sure source table is read in
         if source_df_name not in self.tables:
             self.add_magic_table(source_table_name)
             print "-W- Couldn't read in {} table".format(source_df_name)
             return
-        #
+        # make sure col_names are all available in source table
+        source_df = self.tables[source_df_name].df
+        if not set(col_names).issubset(source_df.columns):
+            for col in col_names[:]:
+                if col not in source_df.columns:
+                    print "-W- Column '{}' isn't in {} table, skipping it".format(col, source_df_name)
+                    col_names.remove(col)
+        if not col_names:
+            print "-W- Invalid or missing column names, could not propagate down"
+            return
+        
         add_name = source_df_name[:-1] + "_name"
         self.propagate_name_down(add_name, target_df_name)
         #
