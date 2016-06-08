@@ -538,7 +538,8 @@ def plotZ(fignum,datablock,angle,s,norm):
             if y[-1]<amin:amin=y[-1]
             if z[-1]<amin:amin=z[-1]
             if delta=="":delta=.02*x[-1]
-            if recnum%2==0 and len(x)>0: pylab.text(x[-1]-delta,z[-1]+delta,(' '+str(recnum)),fontsize=9)
+            #if recnum%2==0 and len(x)>0: pylab.text(x[-1]-delta,z[-1]+delta,(' '+str(recnum)),fontsize=9)
+            if recnum%2==0 and len(x)>0: pylab.text(x[-1]+delta,z[-1]+delta,(' '+str(recnum)),fontsize=9)
             recnum+=1
         elif len(plotrec)>=6 and plotrec[5]=='b':
           #  zb.append(-rec[2])
@@ -636,7 +637,7 @@ def plotMT(fignum,datablock,s,num,units,norm):
                 Vdif.append(vdir[2]/Ints[-1]) #
         recbak=[]
         for el in rec: recbak.append(el)
-        delta=.02*M[0]
+        delta=.005*M[0]
         if num==1:
             if recnum%2==0: pylab.text(T[-1]+delta,M[-1],(' '+str(recnum)),fontsize=9)
         recnum+=1

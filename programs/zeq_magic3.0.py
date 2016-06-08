@@ -131,8 +131,7 @@ def main():
 #
     meas_container = contribution.tables['measurements']
     meas_data = meas_container.df
-    print meas_data.columns
-    #if  coord!='-1' and len(samp_data)>0:  # we need to correct directions and we can.... 
+#
     meas_data= meas_data[meas_data['method_codes'].str.contains('LT-NO|LT-AF-Z|LT-T-Z|LT-M-Z')==True] # fish out zero field steps for plotting 
     meas_data= meas_data[meas_data['method_codes'].str.contains('AN|ARM|LP-TRM|LP-PI-ARM')==False] # strip out unwanted experiments
     intensity_types = [col_name for col_name in meas_data.columns if col_name in intlist]
@@ -140,42 +139,33 @@ def main():
     meas_data = meas_data[meas_data[int_key].notnull()] # get all the non-null intensity records of the same type
     if 'flag' not in meas_data.columns: meas_data['flag'] = 'g' # set the default flag to good
     meas_data['treatment']=meas_data['treat_ac_field'] # set up treatment step starting with treat_ac_field
-    meas_data.ix[meas_data.treat_ac_field==0,'treatment']=meas_data.treat_temp # make it treat_temp if treat_ac_field is 0
+    meas_data['treatment'] = meas_data['treat_ac_field'].where(cond=meas_data['treat_ac_field'] != 0, other=meas_data['treat_temp'])
+    #meas_data.ix[meas_data.treatment==0,'treatment']=meas_data.treat_temp # make it treat_temp if treat_ac_field is 0
+####  need to treat LP-NO specially - for af data, treatment should be zero, otherwise 273.
+    meas_data['ZI']=1 # initialize these to one
+    meas_data['instrument_codes']="" # initialize these to blank
 #   for unusual case of microwave power....
     if 'treatment_mw_power' in meas_data.columns:
         meas_data.ix[meas_data.treatment_mw_power!=0,'treatment']=meas_data.treatment_mw_power*meas_data.treatment_mw_time # 
-    #
-    # get list of unique specimen names from measurement data
-    #
+#
+# get list of unique specimen names from measurement data
+#
     specimen_names= meas_data.specimen_name.unique() # this is a list of all the specimen names
-#    changeM,changeS=0,0 # check if data or interpretations have changed
-    # set up new DataFrame for this sessions specimen interpretations
-#    cols = ['analyst_names', 'aniso_ftest', 'aniso_ftest12', 'aniso_ftest23', 'aniso_s', 'aniso_s_mean', 'aniso_s_n_measurements', 'aniso_s_sigma', 'aniso_s_unit', 'aniso_tilt_correction', 'aniso_type', 'aniso_v1', 'aniso_v2', 'aniso_v3', 'citations', 'description', 'dir_alpha95', 'dir_comp_name', 'dir_dec', 'dir_inc', 'dir_mad_free', 'dir_n_measurements', 'dir_tilt_correction', 'experiment_names', 'geologic_classes', 'geologic_types', 'hyst_bc', 'hyst_bcr', 'hyst_mr_moment', 'hyst_ms_moment', 'int_abs', 'int_b', 'int_b_beta', 'int_b_sigma', 'int_corr', 'int_dang', 'int_drats', 'int_f', 'int_fvds', 'int_gamma', 'int_mad_free', 'int_md', 'int_n_measurements', 'int_n_ptrm', 'int_q', 'int_rsc', 'int_treat_dc_field', 'lithologies', 'meas_step_max', 'meas_step_min', 'meas_step_unit', 'method_codes', 'sample_name', 'software_packages', 'specimen_name']
-#    dtype = 'specimens'
-#    data_container = nb.MagicDataFrame(dtype=dtype, columns=cols)
-#    current_spec_data = data_container.df # this is for current interpretations
-#    #
-    #  set up plots, angle sets X axis to horizontal,  direction_type 'l' is best-fit line
-    # direction_type='p' is great circle
-    #     
-    #
-    # draw plots for specimen spec - default is just to step through zijderveld diagrams
-    #
-    #
-    # define figure numbers for equal area, zijderveld,  
-    #  and intensity vs. demagnetiztion step respectively
+    specimen_names= specimen_names.tolist()
+#
+# define figure numbers for equal area, zijderveld,  
+#  and intensity vs. demagnetiztion step respectively
     ZED={}
     ZED['eqarea'],ZED['zijd'],  ZED['demag']=1,2,3 
     pmagplotlib.plot_init(ZED['eqarea'],6,6)
     pmagplotlib.plot_init(ZED['zijd'],6,6)
     pmagplotlib.plot_init(ZED['demag'],6,6)
-    save_pca=0
+#    save_pca=0
+    angle,direction_type,setangle="","",0
     if specimen=="":
         k = 0
     else:
         k=specimen_names.index(specimen)
-    angle,direction_type="",""
-    setangle=0
     # let's look at the data now
     while k < len(specimen_names):
         this_specimen=specimen_names[k] # set the current specimen for plotting
@@ -187,17 +177,28 @@ def main():
 #
 #    set up datablock [[treatment,dec, inc, int, direction_type],[....]]
 #
-            print this_specimen_measurements.treatment
-            raw_input()
-#                            methods=methods+':'+m.strip() # make string of methods used
-	             
-#                units,methods="",""
-#                for meth in meths:
-#                if 'LT-AF-Z' in methods: units='T' # units include tesla
-#                if 'LT-T-Z' in methods: units=units+":K" # units include kelvin
-#                if 'LT-M-Z' in methods: units=units+':J' # units include joules
-#                units=units.strip(':') # strip off extra colons
-#                methods=methods.strip(':') # strip off extra colons
+            tr=pd.to_numeric(this_specimen_measurements.treatment).tolist()
+            print tr
+            decs=pd.to_numeric(this_specimen_measurements.dir_dec).tolist()
+            if angle=="":angle=decs[0]
+            incs=pd.to_numeric(this_specimen_measurements.dir_inc).tolist()
+            ints=pd.to_numeric(this_specimen_measurements[int_key]).tolist()
+            ZI=this_specimen_measurements.ZI.tolist()
+            flags=this_specimen_measurements.flag.tolist()
+            codes=this_specimen_measurements.instrument_codes.tolist()
+            datalist=[tr,decs,incs,ints,ZI,flags,codes]
+            datablock=map(list,zip(*datalist)) # this transposes the columns and rows of the list of lists
+            meths= this_specimen_measurements.method_codes.unique() # this is a list of all the specimen names
+            units,methods="",""
+            for m in meths: 
+                if 'LT-AF-Z' in m: units='T' # units include tesla
+                if 'LT-T-Z' in m: units=units+":K" # units include kelvin
+                if 'LT-M-Z' in m: units=units+':J' # units include joules
+                units=units.strip(':') # strip off extra colons
+                #methods=methods.strip(':') # strip off extra colons
+            print units
+            pmagplotlib.plotZED(ZED,datablock,angle,this_specimen,units)
+            pmagplotlib.drawFIGS(ZED)
 #
         # create a new specimen record for the interpreation for this specimen
 #        this_specimen_interpretation={col: "" for col in cols}
@@ -230,7 +231,7 @@ def main():
 ##                 print current_spec_data
         else:
              print "no data"
-        raw_input('Ready for next specimen')
+        raw_input('Ready for next specimen  ')
         k+=1
 #
 if __name__ == "__main__":
