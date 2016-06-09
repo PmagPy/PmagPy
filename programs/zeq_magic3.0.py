@@ -138,8 +138,10 @@ def main():
     int_key = intensity_types[0] # plot first intensity method found - normalized to initial value anyway - doesn't matter which used
     meas_data = meas_data[meas_data[int_key].notnull()] # get all the non-null intensity records of the same type
     if 'flag' not in meas_data.columns: meas_data['flag'] = 'g' # set the default flag to good
-    meas_data['treatment']=meas_data['treat_ac_field'] # set up treatment step starting with treat_ac_field
-    meas_data['treatment'] = meas_data['treat_ac_field'].where(cond=meas_data['treat_ac_field'] != 0, other=meas_data['treat_temp'])
+    meas_data['treatment'] = meas_data['treat_ac_field'].where(cond=meas_data['treat_ac_field'] != '0', other=meas_data['treat_temp'])
+    print meas_data['treat_ac_field'].head()
+    print meas_data['treat_temp'].head()
+    print meas_data['treatment'][:20]
     #meas_data.ix[meas_data.treatment==0,'treatment']=meas_data.treat_temp # make it treat_temp if treat_ac_field is 0
 ####  need to treat LP-NO specially - for af data, treatment should be zero, otherwise 273.
     meas_data['ZI']=1 # initialize these to one
