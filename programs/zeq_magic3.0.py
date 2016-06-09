@@ -179,8 +179,16 @@ def main():
 #
 #    set up datablock [[treatment,dec, inc, int, direction_type],[....]]
 #
+            meths= this_specimen_measurements.method_codes.unique() # this is a list of all the specimen names
+            units,methods="",""
+            for m in meths: 
+                if 'LT-AF-Z' in m: units='T' # units include tesla
+                if 'LT-T-Z' in m: units=units+":K" # units include kelvin
+                if 'LT-M-Z' in m: units=units+':J' # units include joules
+                units=units.strip(':') # strip off extra colons
+                methods=methods.strip(':') # strip off extra colons
             tr=pd.to_numeric(this_specimen_measurements.treatment).tolist()
-            print tr
+            if units=='T' or units=='J': tr[0]=0 # for AF  and microwave data, the first treatment step is 0, not 273
             decs=pd.to_numeric(this_specimen_measurements.dir_dec).tolist()
             if angle=="":angle=decs[0]
             incs=pd.to_numeric(this_specimen_measurements.dir_inc).tolist()
@@ -190,15 +198,6 @@ def main():
             codes=this_specimen_measurements.instrument_codes.tolist()
             datalist=[tr,decs,incs,ints,ZI,flags,codes]
             datablock=map(list,zip(*datalist)) # this transposes the columns and rows of the list of lists
-            meths= this_specimen_measurements.method_codes.unique() # this is a list of all the specimen names
-            units,methods="",""
-            for m in meths: 
-                if 'LT-AF-Z' in m: units='T' # units include tesla
-                if 'LT-T-Z' in m: units=units+":K" # units include kelvin
-                if 'LT-M-Z' in m: units=units+':J' # units include joules
-                units=units.strip(':') # strip off extra colons
-                #methods=methods.strip(':') # strip off extra colons
-            print units
             pmagplotlib.plotZED(ZED,datablock,angle,this_specimen,units)
             pmagplotlib.drawFIGS(ZED)
 #

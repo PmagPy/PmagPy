@@ -706,7 +706,7 @@ def plotZED(ZED,datablock,angle,s,units):
     pylab.figure(num=ZED['eqarea'])
     pylab.plot(AngleX,AngleY,'r-') # Draw a line for Zijderveld horizontal axis
     if AngleX[-1]==0:AngleX[-1]=0.01
-    pylab.text(AngleX[-1]+(AngleX[-1]/abs(AngleX[-1]))*.1,AngleY[-1]+(AngleY[-1]/abs(AngleY[-1]))*.1,'X')
+    pylab.text(AngleX[-1]+(AngleX[-1]/abs(AngleX[-1]))*.025,AngleY[-1]+(AngleY[-1]/abs(AngleY[-1]))*.05,'X')
     norm=1
     if units=="U": norm=0
     plotMT(ZED['demag'],datablock,s,1,units,norm)
