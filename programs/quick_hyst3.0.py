@@ -55,7 +55,6 @@ def main():
 
     con = nb.Contribution(dir_path, read_tables=['measurements'],
                           custom_filenames={'measurements': meas_file})
-    meas_data,file_type = pmag.magic_read(meas_file)
 
     if 'measurements' not in con.tables:
         print main.__doc__
@@ -107,9 +106,11 @@ def main():
         B, M = [], [] #B,M for hysteresis, Bdcd,Mdcd for irm-dcd data
         spec = hyst_data[hyst_data['specimen_name'] == s]
         #spec = pmag.get_dictitem(hyst_data,'er_specimen_name',s,'T') # get all measurements for this specimen
+        print 'specimen_name', s
         print len(spec)
         print '!!!'
-        return
+        
+        # ignore these names for now:
         #if 'er_location_name' in spec[0].keys():
         #    locname=spec[0]['er_location_name']
         #if 'er_site_name' in spec[0].keys():
@@ -118,41 +119,62 @@ def main():
         #    sample=spec[0]['er_sample_name']
         #if 'er_synthetic_name' in spec[0].keys():
         #    synth=spec[0]['er_synthetic_name']
-        for m in intlist:
-            meas_data=pmag.get_dictitem(spec,m,'','F') # get all non-blank data for this specimen
-            if len(meas_data)>0: break
-        c=['k-','b-','c-','g-','m-','r-','y-']
-        cnum=0
-        if len(meas_data)>0:
-            Temps=[]
-            xlab,ylab,title='','',''
-            for rec in meas_data: 
-                if rec['measurement_temp'] not  in Temps:Temps.append(rec['measurement_temp'])
-            for t in Temps:
-              print 'working on t: ',t
-              t_data=pmag.get_dictitem(meas_data,'measurement_temp',t,'T')
-              B,M=[],[]
-              for rec in t_data: 
-                B.append(float(rec['measurement_lab_field_dc']))
-                M.append(float(rec[m]))
-    # now plot the hysteresis curve(s)
-    #
-              if len(B)>0: 
-                    B=numpy.array(B)
-                    M=numpy.array(M)
-                    if t==Temps[-1]:
-                        xlab='Field (T)'
-                        ylab=m
-                        title='Hysteresis: '+s
-                    if t==Temps[0]:
-                        pmagplotlib.clearFIG(HDD['hyst'])
-                    pmagplotlib.plotXY(HDD['hyst'],B,M,sym=c[cnum],xlab=xlab,ylab=ylab,title=title) 
-                    pmagplotlib.plotXY(HDD['hyst'],[1.1*B.min(),1.1*B.max()],[0,0],sym='k-',xlab=xlab,ylab=ylab,title=title) 
-                    pmagplotlib.plotXY(HDD['hyst'],[0,0],[1.1*M.min(),1.1*M.max()],sym='k-',xlab=xlab,ylab=ylab,title=title) 
-                    if verbose:pmagplotlib.drawFIGS(HDD)
-                    cnum+=1
-                    if cnum==len(c):cnum=0
-    #
+
+        # get all records with non-blank values in any intlist column
+        
+        #for m in intlist:
+        #    meas_data=pmag.get_dictitem(spec,m,'','F') # get all non-blank data for this specimen
+        #    if len(meas_data)>0: break
+
+        #meas_data = spec[spec[intlist].any(axis=1)]
+
+        for int_column in intlist:
+            if int_column in spec.columns:
+                int_col = int_column
+                break
+
+        meas_data = spec[spec[int_column].notnull()]
+
+        if len(meas_data) == 0:
+            break
+
+        c = ['k-', 'b-', 'c-', 'g-', 'm-', 'r-', 'y-']
+        cnum = 0
+        Temps = []
+        xlab, ylab, title = '', '', ''
+        Temps = meas_data['treat_temp'].unique()
+        print "Temps"
+        print Temps
+        for t in Temps:
+            print 'working on t: ',t
+            t_data = meas_data[meas_data['treat_temp'] == t]
+            print len(t_data)
+
+            m = int_col
+            ## !!!!!!! theoretically should be meas_field_dc
+            B = t_data['meas_field_ac'].astype(float).values
+            M = t_data[m].astype(float).values
+            print m
+            print B[:5]
+            print M[:5]
+  # now plot the hysteresis curve(s)
+  #
+            if len(B) > 0: 
+                  B = numpy.array(B)
+                  M = numpy.array(M)
+                  if t == Temps[-1]:
+                      xlab = 'Field (T)'
+                      ylab = m
+                      title = 'Hysteresis: ' + s
+                  if t == Temps[0]:
+                      pmagplotlib.clearFIG(HDD['hyst'])
+                  pmagplotlib.plotXY(HDD['hyst'],B,M,sym=c[cnum],xlab=xlab,ylab=ylab,title=title) 
+                  pmagplotlib.plotXY(HDD['hyst'],[1.1*B.min(),1.1*B.max()],[0,0],sym='k-',xlab=xlab,ylab=ylab,title=title) 
+                  pmagplotlib.plotXY(HDD['hyst'],[0,0],[1.1*M.min(),1.1*M.max()],sym='k-',xlab=xlab,ylab=ylab,title=title) 
+                  if verbose:pmagplotlib.drawFIGS(HDD)
+                  cnum+=1
+                  if cnum==len(c):cnum=0
+  #
         files={}
         if plots:
             if pltspec!="":s=pltspec
@@ -163,7 +185,8 @@ def main():
                 else:
                     files[key]='SY:_'+synth+'_TY:_'+key+'_.'+fmt
             pmagplotlib.saveP(HDD,files)
-            if pltspec!="":sys.exit()
+            if pltspec != "":
+                sys.exit()
         if verbose:
             pmagplotlib.drawFIGS(HDD)
             ans=raw_input("S[a]ve plots, [s]pecimen name, [q]uit, <return> to continue\n ")
@@ -174,11 +197,11 @@ def main():
                 pmagplotlib.saveP(HDD,files)
             if ans=='':k+=1
             if ans=="p":
-       	        del HystRecs[-1]
-    	        k-=1
+                del HystRecs[-1]
+                k-=1
             if  ans=='q': 
-    	        print "Good bye"
-    	        sys.exit()
+                print "Good bye"
+                sys.exit()
             if ans=='s':
                 keepon=1
                 specimen=raw_input('Enter desired specimen name (or first part there of): ')
@@ -197,8 +220,8 @@ def main():
         else:
             k+=1
         if len(B)==0:
-    	    if verbose:print 'skipping this one - no hysteresis data'
-       	    k+=1
+            if verbose:print 'skipping this one - no hysteresis data'
+            k+=1
 
 if __name__ == "__main__":
     main()
