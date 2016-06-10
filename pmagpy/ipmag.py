@@ -1251,18 +1251,25 @@ def make_di_block(dec,inc):
 
 def unpack_di_block(di_block):
     """
-    This function unpacks a nested list of [dec,inc,1.] into a list of
-    declination values and a list of inclination values.
+    This function unpacks a nested list of [dec,inc,mag_moment] into a list of
+    declination values, a list of inclination values and a list of magnetic
+    moment values. Mag_moment values are optional, while dec and inc values are
+    required.
     """
     dec_list = []
     inc_list = []
+    moment_list = []
 
     for n in range(0,len(di_block)):
         dec = di_block[n][0]
         inc = di_block[n][1]
         dec_list.append(dec)
         inc_list.append(inc)
-    return dec_list, inc_list
+        if len(di_block[n])>2:
+            moment = di_block[n][2]
+            moment_list.append(moment)
+
+    return dec_list, inc_list, moment_list
 
 
 def make_diddd_array(dec,inc,dip_direction,dip):
