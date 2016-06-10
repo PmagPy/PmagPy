@@ -3,6 +3,7 @@
 # -*- python-indent-offset: 4; -*-
 
 import pandas as pd
+import numpy as np
 import sys
 import os
 import matplotlib
@@ -40,7 +41,8 @@ def main():
         -h prints help message and quits
         -f  MEASFILE: sets measurements format input file, default: measurements.txt
         -fsp SPECFILE: sets specimens format file with prior interpreations, default: specimens.txt
-        -fsa SAMPFILE: sets samples format file with prior interpreations, default: samples.txt
+        -fsa SAMPFILE: sets samples format file sample=>site information, default: samples.txt
+        -fsi SITEFILE: sets sites format file with site=>location informationprior interpreations, default: samples.txt
         -Fp PLTFILE: sets filename for saved plot, default is name_type.fmt (where type is zijd, eqarea or decay curve)
         -crd [s,g,t]: sets coordinate system,  g=geographic, t=tilt adjusted, default: specimen coordinate system
         -spc SPEC  plots single specimen SPEC, saves plot with specified format 
@@ -66,7 +68,6 @@ def main():
     verbose=pmagplotlib.verbose
     calculation_type,fmt="","svg"
     user,spec_keys,locname="",[],''
-    sfile=""
     geo,tilt,ask=0,0,0
     PriorRecs=[] # empty list for prior interpretations
     backup=0
@@ -76,13 +77,14 @@ def main():
         sys.exit()
     dir_path = pmag.get_named_arg_from_sys("-WD", default_val=os.getcwd())
     meas_file = pmag.get_named_arg_from_sys("-f", default_val="measurements.txt") 
-    #full_meas_file=os.path.join(dir_path,meas_file)
     spec_file=pmag.get_named_arg_from_sys("-fsp", default_val="specimens.txt")
-    samp_file=pmag.get_named_arg_from_sys("-fsa",default_val="")
-    if samp_file!="":sfile='ok'
+    samp_file=pmag.get_named_arg_from_sys("-fsa",default_val="samples.txt")
+    site_file=pmag.get_named_arg_from_sys("-fsi",default_val="sites.txt")
+    spec_file=os.path.join(dir_path,spec_file)
     samp_file=os.path.join(dir_path,samp_file)
+    site_file=os.path.join(dir_path,site_file)
     plot_file=pmag.get_named_arg_from_sys("-Fp",default_val="")
-    crd = pmag.get_named_arg_from_sys("-crd", default_val="g")
+    crd = pmag.get_named_arg_from_sys("-crd", default_val="s")
     if crd == "s":
         coord = "-1"
     elif crd == "t":
@@ -91,7 +93,7 @@ def main():
         coord = "0"
     fmt = pmag.get_named_arg_from_sys("-fmt", "svg")
     specimen=pmag.get_named_arg_from_sys("-spc",default_val="")
-    beg_pca,end_pca,direction_type="","",'L'
+    beg_pca,end_pca="",""
     if '-dir' in sys.argv:
         ind=sys.argv.index('-dir')
         direction_type=sys.argv[ind+1]
@@ -104,20 +106,21 @@ def main():
     if '-sav' in sys.argv: plots,verbose=1,0
     #
     first_save=1
-    fnames = {'measurements': meas_file, 'specimens': spec_file, 'samples': samp_file}
-    contribution = nb.Contribution(dir_path, custom_filenames=fnames, read_tables=['measurements', 'specimens', 'samples'])
+    fnames = {'measurements': meas_file, 'specimens': spec_file, 'samples': samp_file,'sites': site_file}
+    contribution = nb.Contribution(dir_path, custom_filenames=fnames, read_tables=['measurements', 'specimens', 'samples','sites'])
 #
 #   import  specimens
 #
+    specimen_cols = ['analyst_names', 'aniso_ftest', 'aniso_ftest12', 'aniso_ftest23', 'aniso_s', 'aniso_s_mean', 'aniso_s_n_measurements', 'aniso_s_sigma', 'aniso_s_unit', 'aniso_tilt_correction', 'aniso_type', 'aniso_v1', 'aniso_v2', 'aniso_v3', 'citations', 'description', 'dir_alpha95', 'dir_comp_name', 'dir_dec', 'dir_inc', 'dir_mad_free', 'dir_n_measurements', 'dir_tilt_correction', 'experiment_names', 'geologic_classes', 'geologic_types', 'hyst_bc', 'hyst_bcr', 'hyst_mr_moment', 'hyst_ms_moment', 'int_abs', 'int_b', 'int_b_beta', 'int_b_sigma', 'int_corr', 'int_dang', 'int_drats', 'int_f', 'int_fvds', 'int_gamma', 'int_mad_free', 'int_md', 'int_n_measurements', 'int_n_ptrm', 'int_q', 'int_rsc', 'int_treat_dc_field', 'lithologies', 'meas_step_max', 'meas_step_min', 'meas_step_unit', 'method_codes', 'sample_name', 'software_packages', 'specimen_name']
     if 'specimens' in contribution.tables:
 #        contribution.propagate_name_down('sample_name','measurements')
         spec_container = contribution.tables['specimens']
-        spec_data=spec_container.get_records_for_code('DE-',strict_match=False) # look up all prior directional interpretations
+        prior_spec_data=spec_container.get_records_for_code('LP-DIR',strict_match=False) # look up all prior directional interpretations
 #
 #  tie sample names to measurement data
 #
     else:
-       	spec_container, spec_data = None, []
+           spec_container, prior_spec_data = None, []
 
 
 #
@@ -138,12 +141,8 @@ def main():
     int_key = intensity_types[0] # plot first intensity method found - normalized to initial value anyway - doesn't matter which used
     meas_data = meas_data[meas_data[int_key].notnull()] # get all the non-null intensity records of the same type
     if 'flag' not in meas_data.columns: meas_data['flag'] = 'g' # set the default flag to good
+####  need to treat LP-NO specially  for af data, treatment should be zero, otherwise 273.
     meas_data['treatment'] = meas_data['treat_ac_field'].where(cond=meas_data['treat_ac_field'] != '0', other=meas_data['treat_temp'])
-    print meas_data['treat_ac_field'].head()
-    print meas_data['treat_temp'].head()
-    print meas_data['treatment'][:20]
-    #meas_data.ix[meas_data.treatment==0,'treatment']=meas_data.treat_temp # make it treat_temp if treat_ac_field is 0
-####  need to treat LP-NO specially - for af data, treatment should be zero, otherwise 273.
     meas_data['ZI']=1 # initialize these to one
     meas_data['instrument_codes']="" # initialize these to blank
 #   for unusual case of microwave power....
@@ -154,6 +153,11 @@ def main():
 #
     specimen_names= meas_data.specimen_name.unique() # this is a list of all the specimen names
     specimen_names= specimen_names.tolist()
+    specimen_names.sort()
+#
+#   read in prior specimen data
+#
+
 #
 # define figure numbers for equal area, zijderveld,  
 #  and intensity vs. demagnetiztion step respectively
@@ -164,6 +168,12 @@ def main():
     pmagplotlib.plot_init(ZED['demag'],6,6)
 #    save_pca=0
     angle,direction_type,setangle="","",0
+#
+# set up new DataFrame for this sessions specimen interpretations
+#
+    data_container = nb.MagicDataFrame(dtype='specimens', columns=specimen_cols)
+    current_spec_data = data_container.df # this is for interpretations from this session
+    locname='LookItUp'
     if specimen=="":
         k = 0
     else:
@@ -174,65 +184,182 @@ def main():
         if verbose and  this_specimen!="":print this_specimen, k+1 , 'out of ',len(specimen_names)
         if setangle==0:angle=""
         this_specimen_measurements= meas_data[meas_data['specimen_name'].str.contains(this_specimen)==True] # fish out this specimen
-#        this_specimen_measurements= this_specimen_measurements[this_specimen_measurements['flag'].str.contains('g')==True] # fish out this specimen
+        this_specimen_measurements= this_specimen_measurements[this_specimen_measurements['flag'].str.contains('g')==True] # fish out this specimen
         if len(this_specimen_measurements)!=0:  # if there are measurements
 #
 #    set up datablock [[treatment,dec, inc, int, direction_type],[....]]
 #
-            meths= this_specimen_measurements.method_codes.unique() # this is a list of all the specimen names
-            units,methods="",""
-            for m in meths: 
-                if 'LT-AF-Z' in m: units='T' # units include tesla
-                if 'LT-T-Z' in m: units=units+":K" # units include kelvin
-                if 'LT-M-Z' in m: units=units+':J' # units include joules
-                units=units.strip(':') # strip off extra colons
-                methods=methods.strip(':') # strip off extra colons
+#
+# figure out the method codes
+#
+            units,methods,title="","",this_specimen
+            meas_meths= this_specimen_measurements.method_codes.unique() # this is a list of all the specimen method codes`
             tr=pd.to_numeric(this_specimen_measurements.treatment).tolist()
-            if units=='T' or units=='J': tr[0]=0 # for AF  and microwave data, the first treatment step is 0, not 273
+            for m in meas_meths: 
+                if 'LT-AF-Z' in m: 
+                    units='T' # units include tesla
+                    tr[0]=0
+                if 'LT-T-Z' in m: units=units+":K" # units include kelvin
+                if 'LT-M-Z' in m: 
+                    units=units+':J' # units include joules
+                    tr[0]=0
+                units=units.strip(':') # strip off extra colons
+                if 'LP-' in m:methods=methods+":"+m
             decs=pd.to_numeric(this_specimen_measurements.dir_dec).tolist()
-            if angle=="":angle=decs[0]
             incs=pd.to_numeric(this_specimen_measurements.dir_inc).tolist()
+#
+#    fix the coordinate system
+#
+            if coord!='-1' :  #need to transform coordinates to geographic
+               
+               azimuths=pd.to_numeric(this_specimen_measurements.azimuth).tolist() # get the azimuths 
+               dips=pd.to_numeric(this_specimen_measurements.dip).tolist() # get the azimuths 
+               dirs=[decs,incs,azimuths,dips]
+               dirs_geo=np.array(map(list,zip(*dirs))) # this transposes the columns and rows of the list of lists
+               decs,incs=pmag.dogeo_V(dirs_geo)
+               if coord=='100':  # need to do tilt correction too
+                   bed_dip_dirs=pd.to_numeric(this_specimen_measurements.bed_dip_dir).tolist() # get the azimuths 
+                   bed_dips=pd.to_numeric(this_specimen_measurements.bed_dip).tolist() # get the azimuths 
+                   dirs=[decs,incs,bed_dip_dirs,bed_dips]
+                   dirs_tilt=np.array(map(list,zip(*dirs))) # this transposes the columns and rows of the list of lists
+                   decs,incs=pmag.dotilt_V(dirs_tilt)
+                   title=title+'_t'
+               else:
+                   title=title+'_g'
+            if angle=="":angle=decs[0]
             ints=pd.to_numeric(this_specimen_measurements[int_key]).tolist()
             ZI=this_specimen_measurements.ZI.tolist()
             flags=this_specimen_measurements.flag.tolist()
             codes=this_specimen_measurements.instrument_codes.tolist()
             datalist=[tr,decs,incs,ints,ZI,flags,codes]
             datablock=map(list,zip(*datalist)) # this transposes the columns and rows of the list of lists
-            pmagplotlib.plotZED(ZED,datablock,angle,this_specimen,units)
-            pmagplotlib.drawFIGS(ZED)
+            pmagplotlib.plotZED(ZED,datablock,angle,title,units)
+            if verbose:pmagplotlib.drawFIGS(ZED)
+#    
+#     collect info for current_specimen_interpretation dictionary
+#    
+            if beg_pca=="" and len(prior_spec_data)!=0:
 #
-        # create a new specimen record for the interpreation for this specimen
-#        this_specimen_interpretation={col: "" for col in cols}
-#        this_specimen_interpretation["analyst_mail_names"]=user
-#        this_specimen_interpretation['software_packages']=version_num
-#        this_specimen_interpretation['specimen_name']=version_num
-#        this_specimen_interpretation["method_codes"]= methods
-#        this_specimen_interpretation["meas_step_unit"]= units
-#    #
-#    #  collect info for current_specimen_interpretation dictionary
-#    #
-#    #
-#    # find prior interpretation
-#    #
-#            if len(current_spec_data)==0: # no interpretations yet for this session
-#                print "no current interpretation"
-#                beg_pca,end_pca="",""
-#                calculation_type=""
-#                if len(prior_spec_data)!=0:
-#                  if verbose: print "    looking up previous interpretations..."
-#                  prior_specimen_interpretations= prior_spec_data[prior_spec_data['specimen_name'].str.contains(this_specimen)==True] # fish out prior interpretations 
-#                  prior_spec_data= prior_spec_data[prior_spec_data['specimen_name'].str.contains(this_specimen)==False] # remove them from prior recs 
-#         # get the ones that meet the current coordinate system
-#                  print 'prior: ',prior_specimen_interpretations['meas_step_min']
-#                  #    beg_pca=prior_specimen_interpretations.meas_step_min
-#                  #    end_pca=prior_specimen_interpretations.meas_step_max
-#                  #    print beg_pca,end_pca,prior_specimen_interpretations.tilt_correction
-#                  raw_input()
-#            else:
-##                 print current_spec_data
+#     find prior interpretation
+#
+                prior_specimen_interpretations= prior_spec_data[prior_spec_data['specimen_name'].str.contains(this_specimen)==True] 
+                beg_pcas=pd.to_numeric(prior_specimen_interpretations.meas_step_min.values).tolist()
+                end_pcas=pd.to_numeric(prior_specimen_interpretations.meas_step_max.values).tolist()
+                spec_methods= prior_specimen_interpretations.method_codes.tolist()
+                for ind in range(len(beg_pcas)): # step through all prior interpretations and plot them
+                     spec_meths=spec_methods[ind].split(':') 
+                     for m in spec_meths: 
+                         if 'DE-BFL' in m: calculation_type='DE-BFL' # best fit line 
+                         if 'DE-BFP' in m: calculation_type='DE-BFP' # best fit plane 
+                         if 'DE-FM' in m: calculation_type='DE-FM' # fisher mean
+                         if 'DE-BFL-A' in m: calculation_type='DE-BFL-A' # anchored best fit line
+                     start,end=tr.index(beg_pcas[ind]),tr.index(end_pcas[ind]) # getting the starting and ending points
+                     mpars=pmag.domean(datablock,start,end,calculation_type) # calculate direction/plane
+                     if mpars["specimen_direction_type"]!="Error":
+                         pmagplotlib.plotDir(ZED,mpars,datablock,angle) # put it on the plot
+                         if verbose:pmagplotlib.drawFIGS(ZED)
+            else:
+                start,end=int(beg_pca),int(end_pca)
+                mpars=pmag.domean(datablock,start,end,calculation_type) # calculate direction/plane
+                if mpars["specimen_direction_type"]!="Error":
+                    pmagplotlib.plotDir(ZED,mpars,datablock,angle) # put it on the plot
+                    if verbose:pmagplotlib.drawFIGS(ZED)
+            if plots==1 or specimen!="":
+                if plot_file=="":
+                    basename=title
+                else:
+                    basename=plot_file
+                files={}
+                for key in ZED.keys():
+                    files[key]=basename+'_'+key+'.'+fmt 
+                pmagplotlib.saveP(ZED,files)
+                if specimen!="": sys.exit()
+            if verbose:
+                recnum=0 
+                for plotrec in datablock:
+                    if units=='T' : print '%s: %i  %7.1f %s  %8.3e %7.1f %7.1f %s' % (plotrec[5], recnum,plotrec[0]*1e3," mT",plotrec[3],plotrec[1],plotrec[2],plotrec[6])
+                    if units=="K" : print '%s: %i  %7.1f %s  %8.3e %7.1f %7.1f %s' % (plotrec[5], recnum,plotrec[0]-273,' C',plotrec[3],plotrec[1],plotrec[2],plotrec[6])
+                    if units=="J" : print '%s: %i  %7.1f %s  %8.3e %7.1f %7.1f %s' % (plotrec[5], recnum,plotrec[0],' J',plotrec[3],plotrec[1],plotrec[2],plotrec[6])
+                    if 'K' in units and 'T' in units:
+                        if plotrec[0]>=1. : print '%s: %i  %7.1f %s  %8.3e %7.1f %7.1f %s' % (plotrec[5], recnum,plotrec[0]-273,' C',plotrec[3],plotrec[1],plotrec[2],plotrec[6])
+                        if plotrec[0]<1. : print '%s: %i  %7.1f %s  %8.3e %7.1f %7.1f %s' % (plotrec[5], recnum,plotrec[0]*1e3," mT",plotrec[3],plotrec[1],plotrec[2],plotrec[6])
+                    recnum += 1
+            elif mpars["specimen_direction_type"]!="Error": # we have a current interpretation
+#           
+# create a new specimen record for the interpreation for this specimen
+                this_specimen_interpretation={col: "" for col in specimen_cols}
+#               this_specimen_interpretation["analyst_names"]=user
+                this_specimen_interpretation['software_packages']=version_num
+                this_specimen_interpretation['specimen_name']=this_specimen
+                this_specimen_interpretation["method_codes"]= calculation_type
+                this_specimen_interpretation["meas_step_unit"]= units
+                this_specimen_interpretation["meas_step_min"]= tr[start]
+                this_specimen_interpretation["meas_step_max"]= tr[end]
+                this_specimen_interpretation["dir_dec"]= '%7.1f'%(mpars['specimen_dec'])
+                this_specimen_interpretation["dir_inc"]= '%7.1f'%(mpars['specimen_inc'])
+                this_specimen_interpretation["dir_dang"]= '%7.1f'%(mpars['specimen_dang'])
+                this_specimen_interpretation["dir_n_measurements"]= '%i'%(mpars['specimen_n'])
+                this_specimen_interpretation["dir_tilt_correction"]= coord
+                methods=methods.replace(" ","")
+                if "T" in units: methods=methods+":LP-DIR-AF"
+                if "K" in units: methods=methods+":LP-DIR-T"
+                if "J" in units: methods=methods+":LP-DIR-M"
+                this_specimen_interpretation["method_codes"]= methods.strip(':')
+                this_specimen_interpretation["experiment_names"]= this_specimen_measurements.experiment_name.unique()[0]
+#
+#   print some stuff
+#
+                if calculation_type!='DE-FM':
+                  this_specimen_interpretation["dir_mad_free"]= '%7.1f'%(mpars['specimen_mad'])
+                  this_specimen_interpretation["dir_alpha95"]= ''
+                  if verbose:
+                    if units=='K': 
+                        print '%s %i %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f %s \n' % (this_specimen_interpretation["specimen_name"],int(this_specimen_interpretation["dir_n_measurements"]),float(this_specimen_interpretation["dir_mad_free"]),float(this_specimen_interpretation["dir_dang"]),float(this_specimen_interpretation["meas_step_min"])-273,float(this_specimen_interpretation["meas_step_max"])-273,float(this_specimen_interpretation["dir_dec"]),float(this_specimen_interpretation["dir_inc"]),calculation_type)
+                    elif units== 'T':
+                        print '%s %i %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f %s \n' % (this_specimen_interpretation["specimen_name"],int(this_specimen_interpretation["dir_n_measurements"]),float(this_specimen_interpretation["dir_mad_free"]),float(this_specimen_interpretation["dir_dang"]),float(this_specimen_interpretation["meas_step_min"])*1e3,float(this_specimen_interpretation["meas_step_max"])*1e3,float(this_specimen_interpretation["dir_dec"]),float(this_specimen_interpretation["dir_inc"]),calculation_type)
+                    elif 'T' in units and 'K' in units:
+                        if float(this_specimen_interpretation['meas_step_min'])<1.0 :
+                            min=float(this_specimen_interpretation['meas_step_min'])*1e3
+                        else:
+                            min=float(this_specimen_interpretation['meas_step_min'])-273
+                        if float(this_specimen_interpretation['meas_step_max'])<1.0 :
+                            max=float(this_specimen_interpretation['meas_step_max'])*1e3
+                        else:
+                            max=float(this_specimen_interpretation['meas_step_max'])-273
+                        print '%s %i %7.1f %i %i %7.1f %7.1f %7.1f %s \n' % (this_specimen_interpretation["specimen_name"],int(this_specimen_interpretation["dir_n_measurements"]),float(this_specimen_interpretation["dir_mad_free"]),float(this_specimen_interpretation["dir_dang"]),min,max,float(this_specimen_interpretation["dir_dec"]),float(this_specimen_interpretation["dir_inc"]),calculation_type)
+                    else:
+                        print '%s %i %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f %s \n' % (this_specimen_interpretation["specimen_name"],int(this_specimen_interpretation["dir_n_measurements"]),float(this_specimen_interpretation["dir_mad_free"]),float(this_specimen_interpretation["dir_dang"]),float(this_specimen_interpretation["meas_step_min"]),float(this_specimen_interpretation["meas_step_max"]),float(this_specimen_interpretation["dir_dec"]),float(this_specimen_interpretation["dir_inc"]),calculation_type)
+                else:
+                  this_specimen_interpretation["dir_alpha95"]= '%7.1f'%(mpars['specimen_alpha95'])
+                  this_specimen_interpretation["dir_mad_free"]= ''
+                  if verbose:
+                    if 'K' in units:
+                        print '%s %i %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f %s \n' % (this_specimen_interpretation["specimen_name"],int(this_specimen_interpretation["dir_n_measurments"]),float(this_specimen_interpretation["dir_mad_free"]),float(this_specimen_interpretation["dir_dang"]),float(this_specimen_interpretation["meas_step_min"])-273,float(this_specimen_interpretation["meas_step_max"])-273,float(this_specimen_interpretation["dir_dec"]),float(this_specimen_interpretation["dir_inc"]),calculation_type)
+                    elif 'T' in units:
+                        print '%s %i %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f %s \n' % (this_specimen_interpretation["specimen_name"],int(this_specimen_interpretation["dir_n_measurements"]),float(this_specimen_interpretation["dir_alpha95"]),float(this_specimen_interpretation["dir_dang"]),float(this_specimen_interpretation["meas_step_min"])*1e3,float(this_specimen_interpretation["meas_step_max"])*1e3,float(this_specimen_interpretation["dir_dec"]),float(this_specimen_interpretation["dir_inc"]),calculation_type)
+                    elif 'T' in units and 'K' in units:
+                        if float(this_specimen_interpretation['meas_step_min'])<1.0 :
+                            min=float(this_specimen_interpretation['meas_step_min'])*1e3
+                        else:
+                            min=float(this_specimen_interpretation['meas_step_min'])-273
+                        if float(this_specimen_interpretation['meas_step_max'])<1.0 :
+                            max=float(this_specimen_interpretation['meas_step_max'])*1e3
+                        else:
+                            max=float(this_specimen_interpretation['meas_step_max'])-273
+                        print '%s %i %7.1f %i %i %7.1f %7.1f %s \n' % (this_specimen_interpretation["specimen_name"],int(this_specimen_interpretation["dir_n_measurements"]),float(this_specimen_interpretation["dir_alpha95"]),min,max,float(this_specimen_interpretation["dir_dec"]),float(this_specimen_interpretation["dir_inc"]),calculation_type)
+                    else:
+                        print '%s %i %7.1f %7.1f %7.1f %7.1f %7.1f %s \n' % (this_specimen_interpretation["specimen_name"],int(this_specimen_interpretation["dir_n_measurements"]),float(this_specimen_interpretation["dir_alpha95"]),float(this_specimen_interpretation["meas_step_min"]),float(this_specimen_interpretation["meas_step_max"]),float(this_specimen_interpretation["dir_dec"]),float(this_specimen_interpretation["dir_inc"]),calculation_type)
+                if verbose:saveit=raw_input("Save this interpretation? [y]/n \n")
+#   START HERE
+#
+#         if len(current_spec_data)==0: # no interpretations yet for this session
+#             print "no current interpretation"
+#             beg_pca,end_pca="",""
+#             calculation_type=""
+# get the ones that meet the current coordinate system
         else:
              print "no data"
-        raw_input('Ready for next specimen  ')
+        if verbose:raw_input('Ready for next specimen  ')
         k+=1
 #
 if __name__ == "__main__":

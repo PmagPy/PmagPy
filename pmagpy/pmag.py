@@ -1536,6 +1536,7 @@ def domean(indata,start,end,calculation_type):
                X[k][l]=X[k][l]-cm[l]
     else:
         mpars["specimen_direction_type"]='p'
+
 #
 #   put in T matrix
 #
