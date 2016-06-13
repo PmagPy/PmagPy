@@ -14,8 +14,6 @@ import pmagpy.pmag as pmag
 import pmagpy.pmagplotlib as pmagplotlib
 import new_builder as nb
 
-
-
 def save_redo(SpecRecs,inspec):
     print "Saving changes to specimen file"
     pmag.magic_write(inspec,SpecRecs,'specimens')
@@ -28,11 +26,11 @@ def main():
     DESCRIPTION
         reads in magic_measurements formatted file, makes plots of remanence decay
         during demagnetization experiments.  Reads in prior interpretations saved in 
-        a pmag_specimens formatted file and  allows re-interpretations of best-fit lines
+        a pmag_specimens formatted file [and  allows re-interpretations of best-fit lines
         and planes and saves (revised or new) interpretations in a pmag_specimens file.  
         interpretations are saved in the coordinate system used. Also allows judicious editting of
         measurements to eliminate "bad" measurements.  These are marked as such in the magic_measurements
-        input file.  they are NOT deleted, just ignored. 
+        input file.  they are NOT deleted, just ignored. ] Bracketed part not yet implemented
 
     SYNTAX
         zeq_magic.py [command line options]
@@ -61,7 +59,7 @@ def main():
     """
     # initialize some variables
     doave,e,b=1,0,0 # average replicates, initial end and beginning step
-    intlist = ['magn_moment', 'magn_volume', 'magn_mass']
+    intlist = ['magn_moment', 'magn_volume', 'magn_mass','magnitude']
     plots,coord=0,'s'
     noorient=0
     version_num=pmag.get_version()
@@ -80,6 +78,7 @@ def main():
     spec_file=pmag.get_named_arg_from_sys("-fsp", default_val="specimens.txt")
     samp_file=pmag.get_named_arg_from_sys("-fsa",default_val="samples.txt")
     site_file=pmag.get_named_arg_from_sys("-fsi",default_val="sites.txt")
+    meas_file=os.path.join(dir_path,meas_file)
     spec_file=os.path.join(dir_path,spec_file)
     samp_file=os.path.join(dir_path,samp_file)
     site_file=os.path.join(dir_path,site_file)
@@ -130,6 +129,16 @@ def main():
 #        contribution.propagate_name_down('site_name','measurements')
         contribution.propagate_cols_down(col_names=['azimuth','dip','orientation_flag'],target_df_name='measurements',source_df_name='samples')
 #
+# define figure numbers for equal area, zijderveld,  
+#  and intensity vs. demagnetiztion step respectively
+#
+    ZED={}
+    ZED['eqarea'],ZED['zijd'],  ZED['demag']=1,2,3 
+    pmagplotlib.plot_init(ZED['eqarea'],6,6)
+    pmagplotlib.plot_init(ZED['zijd'],6,6)
+    pmagplotlib.plot_init(ZED['demag'],6,6)
+#    save_pca=0
+    angle,direction_type,setangle="","",0
 #   create measurement dataframe
 #
     meas_container = contribution.tables['measurements']
@@ -146,28 +155,14 @@ def main():
     meas_data['ZI']=1 # initialize these to one
     meas_data['instrument_codes']="" # initialize these to blank
 #   for unusual case of microwave power....
-    if 'treatment_mw_power' in meas_data.columns:
-        meas_data.ix[meas_data.treatment_mw_power!=0,'treatment']=meas_data.treatment_mw_power*meas_data.treatment_mw_time # 
+    if 'treat_mw_power' in meas_data.columns:
+        meas_data.ix[meas_data.treat_mw_power!=0,'treatment']=meas_data.treat_mw_power*meas_data.treat_mw_time # 
 #
 # get list of unique specimen names from measurement data
 #
     specimen_names= meas_data.specimen_name.unique() # this is a list of all the specimen names
     specimen_names= specimen_names.tolist()
     specimen_names.sort()
-#
-#   read in prior specimen data
-#
-
-#
-# define figure numbers for equal area, zijderveld,  
-#  and intensity vs. demagnetiztion step respectively
-    ZED={}
-    ZED['eqarea'],ZED['zijd'],  ZED['demag']=1,2,3 
-    pmagplotlib.plot_init(ZED['eqarea'],6,6)
-    pmagplotlib.plot_init(ZED['zijd'],6,6)
-    pmagplotlib.plot_init(ZED['demag'],6,6)
-#    save_pca=0
-    angle,direction_type,setangle="","",0
 #
 # set up new DataFrame for this sessions specimen interpretations
 #

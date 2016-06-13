@@ -861,21 +861,40 @@ def mark_samp(Samps,data,crd):
 
     return Samps
 
-def find_dmag_rec(s,data):
+def find_dmag_rec(s,data,**kwargs):
     """
     returns demagnetization data for specimen s from the data - excludes other kinds of experiments and "bad" measurements
     """
+    if 'version' in kwargs.keys() and kwargs['version']==3:  
+        data=data.T.to_dict().values()  # convert dataframe to list of dictionaries
+        spec_key,dec_key,inc_key='specimen_name','dir_dec','dir_inc'
+        flag_key,temp_key,ac_key='flag','treat_temp','treat_ac_field'
+        meth_key='method_codes'
+        power_key,time_key='treat_mw_power','treat_mw_time'
+        Mkeys=['magn_moment','magn_volume','magn_mass','magnitude']
+        inst_key='instrument_codes'
+    else:
+        spec_key,dec_key,inc_key='er_specimen_name','dir_dec','dir_inc'
+        flag_key='measurement_flag'
+        flag_key,temp_key,ac_key='measurement_flag','treatment_temp','treatment_ac_field'
+        meth_key='magic_method_codes'
+        power_key,time_key='treatment_mw_power','treatment_mw_time'
+        Mkeys=['measurement_magn_moment','measurement_magn_volume','measurement_magn_mass','measurement_magnitude']
+        inst_key='magic_instrument_codes'
+
     EX=["LP-AN-ARM","LP-AN-TRM","LP-ARM-AFD","LP-ARM2-AFD","LP-TRM-AFD","LP-TRM","LP-TRM-TD","LP-X"] # list of excluded lab protocols
     INC=["LT-NO","LT-AF-Z","LT-T-Z", "LT-M-Z", "LP-PI-TRM-IZ", "LP-PI-M-IZ"]
     datablock,tr=[],""
     therm_flag,af_flag,mw_flag=0,0,0
     units=[]
-    spec_meas=get_dictitem(data,'er_specimen_name',s,'T')
+    spec_meas=get_dictitem(data,spec_key,s,'T')
     for rec in spec_meas:
-           if 'measurement_flag' not in rec.keys():rec['measurement_flag']='g'
+           if flag_key not in rec.keys():rec[flag_key]='g'
            skip=1
            tr=""
-           methods=rec["magic_method_codes"].split(":")
+           meths=rec[meth_key].split(":")
+           methods=[]
+           for m in meths:methods.append(m.strip()) # get rid of the stupid spaces!
            for meth in methods:
                if meth.strip() in INC:
                    skip=0
@@ -883,34 +902,33 @@ def find_dmag_rec(s,data):
                if meth in methods:skip=1
            if skip==0:
                if "LT-NO" in methods:
-                   tr = float(rec["treatment_temp"])
+                   tr = float(rec[temp_key])
                if "LT-AF-Z" in methods:
                    af_flag=1
-                   tr = float(rec["treatment_ac_field"])
+                   tr = float(rec[ac_key])
                    if "T" not in units:units.append("T")
                if "LT-T-Z" in methods:
                    therm_flag=1
-                   tr = float(rec["treatment_temp"])
+                   tr = float(rec[temp_key])
                    if "K" not in units:units.append("K")
                if "LT-M-Z" in methods:
                    mw_flag=1
-                   tr = float(rec["treatment_mw_power"])*float(rec["treatment_mw_time"])
+                   tr = float(rec[power_key])*float(rec[time_key])
                    if "J" not in units:units.append("J")
                if "LP-PI-TRM-IZ" in methods or "LP-PI-M-IZ" in methods:  # looking for in-field first thellier or microwave data - otherwise, just ignore this
                    ZI=0
                else:
                    ZI=1
-               Mkeys=['measurement_magnitude','measurement_magn_moment','measurement_magn_volume','measurement_magn_mass']
                if tr !="":
                    dec,inc,int = "","",""
-                   if "measurement_dec" in rec.keys() and rec["measurement_dec"] != "":
-                       dec=float(rec["measurement_dec"])
-                   if "measurement_inc" in rec.keys() and rec["measurement_inc"] != "":
-                       inc=float(rec["measurement_inc"])
+                   if dec_key in rec.keys() and rec[dec_key] != "":
+                       dec=float(rec[dec_key])
+                   if inc_key in rec.keys() and rec[inc_key] != "":
+                       inc=float(rec[inc_key])
                    for key in Mkeys:
                        if key in rec.keys() and rec[key]!="":int=float(rec[key])
-                   if 'magic_instrument_codes' not in rec.keys():rec['magic_instrument_codes']=''
-                   datablock.append([tr,dec,inc,int,ZI,rec['measurement_flag'],rec['magic_instrument_codes']])
+                   if inst_key not in rec.keys():rec[inst_key]=''
+                   datablock.append([tr,dec,inc,int,ZI,rec[flag_key],rec[inst_key]])
     if therm_flag==1:
         for k in range(len(datablock)):
             if datablock[k][0]==0.: datablock[k][0]=273.
@@ -4722,17 +4740,30 @@ def cleanup(first_I,first_Z):
     return first_I,first_Z,cont
 #
 #
-def sortarai(datablock,s,Zdiff):
+def sortarai(datablock,s,Zdiff,**kwargs):
     """
      sorts data block in to first_Z, first_I, etc.
     """
+    if 'version' in kwargs.keys() and kwargs['version']==3:  
+	pass # this is the new data format  
+        dec_key,inc_key='dir_dec','dir_inc'    
+        Mkeys=['magn_moment','magn_volume','magn_mass','magnitude']
+        meth_key='method_codes'
+        temp_key,dc_key='treat_temp','treat_dc_field'
+        dc_theta_key,dc_phi_key='treat_dc_field_theta','treat_dc_field_phi'
+        datablock=datablock.T.to_dict().values()  # convert dataframe to list of dictionaries
+    else:
+        dec_key,inc_key='measurement_dec','measurement_inc'
+        Mkeys=['measurement_magn_moment','measurement_magn_volume','measurement_magn_mass','measurement_magnitude']
+        meth_key='magic_method_codes'
+        temp_key,dc_key='treatment_temp','treatment_dc_field'
+        dc_theta_key,dc_phi_key='treatment_dc_field_theta','treatment_dc_field_phi'
     first_Z,first_I,zptrm_check,ptrm_check,ptrm_tail=[],[],[],[],[]
     field,phi,theta="","",""
     starthere=0
     Treat_I,Treat_Z,Treat_PZ,Treat_PI,Treat_M=[],[],[],[],[]
     ISteps,ZSteps,PISteps,PZSteps,MSteps=[],[],[],[],[]
     GammaChecks=[] # comparison of pTRM direction acquired and lab field
-    Mkeys=['measurement_magn_moment','measurement_magn_volume','measurement_magn_mass','measurement_magnitude']
     rec=datablock[0]
     for key in Mkeys:
         if key in rec.keys() and rec[key]!="":
@@ -4741,18 +4772,18 @@ def sortarai(datablock,s,Zdiff):
 # first find all the steps
     for k in range(len(datablock)):
 	rec=datablock[k]
-        temp=float(rec["treatment_temp"])
+        temp=float(rec[temp_key])
         methcodes=[]
-        tmp=rec["magic_method_codes"].split(":")
+        tmp=rec[meth_key].split(":")
         for meth in tmp:
             methcodes.append(meth.strip())
         if 'LT-T-I' in methcodes and 'LP-TRM' not in methcodes and 'LP-PI-TRM' in methcodes:
             Treat_I.append(temp)
             ISteps.append(k)
-            if field=="":field=float(rec["treatment_dc_field"])
+            if field=="":field=float(rec[dc_key])
             if phi=="":
-                phi=float(rec['treatment_dc_field_phi'])
-                theta=float(rec['treatment_dc_field_theta'])
+                phi=float(rec[dc_phi_key])
+                theta=float(rec[dc_theta_key])
 # stick  first zero field stuff into first_Z
         if 'LT-NO' in methcodes:
             Treat_Z.append(temp)
@@ -4770,8 +4801,8 @@ def sortarai(datablock,s,Zdiff):
             Treat_M.append(temp)
             MSteps.append(k)
         if 'LT-NO' in methcodes:
-            dec=float(rec["measurement_dec"])
-            inc=float(rec["measurement_inc"])
+            dec=float(rec[dec_key])
+            inc=float(rec[inc_key])
             str=float(rec[momkey])
             first_I.append([273,0.,0.,0.,1])
             first_Z.append([273,dec,inc,str,1])  # NRM step
@@ -4780,7 +4811,7 @@ def sortarai(datablock,s,Zdiff):
             istep=ISteps[Treat_I.index(temp)]
             irec=datablock[istep]
             methcodes=[]
-            tmp=irec["magic_method_codes"].split(":")
+            tmp=irec[meth_key].split(":")
             for meth in tmp: methcodes.append(meth.strip())
             brec=datablock[istep-1] # take last record as baseline to subtract
             zstep=ZSteps[Treat_Z.index(temp)]
@@ -4790,13 +4821,13 @@ def sortarai(datablock,s,Zdiff):
                 ZI=0
             else:
                 ZI=1
-            dec=float(zrec["measurement_dec"])
-            inc=float(zrec["measurement_inc"])
+            dec=float(zrec[dec_key])
+            inc=float(zrec[inc_key])
             str=float(zrec[momkey])
             first_Z.append([temp,dec,inc,str,ZI])
     # sort out first_I records
-            idec=float(irec["measurement_dec"])
-            iinc=float(irec["measurement_inc"])
+            idec=float(irec[dec_key])
+            iinc=float(irec[inc_key])
             istr=float(irec[momkey])
             X=dir2cart([idec,iinc,istr])
             BL=dir2cart([dec,inc,str])
@@ -4818,12 +4849,12 @@ def sortarai(datablock,s,Zdiff):
     for temp in Treat_PI: # look through infield steps and find matching Z step
         step=PISteps[Treat_PI.index(temp)]
         rec=datablock[step]
-        dec=float(rec["measurement_dec"])
-        inc=float(rec["measurement_inc"])
+        dec=float(rec[dec_key])
+        inc=float(rec[inc_key])
         str=float(rec[momkey])
         brec=datablock[step-1] # take last record as baseline to subtract
-        pdec=float(brec["measurement_dec"])
-        pinc=float(brec["measurement_inc"])
+        pdec=float(brec[dec_key])
+        pinc=float(brec[inc_key])
         pint=float(brec[momkey])
         X=dir2cart([dec,inc,str])
         prevX=dir2cart([pdec,pinc,pint])
@@ -4838,12 +4869,12 @@ def sortarai(datablock,s,Zdiff):
     for temp in Treat_PZ:
         step=PZSteps[Treat_PZ.index(temp)]
         rec=datablock[step]
-        dec=float(rec["measurement_dec"])
-        inc=float(rec["measurement_inc"])
+        dec=float(rec[dec_key])
+        inc=float(rec[inc_key])
         str=float(rec[momkey])
         brec=datablock[step-1]
-        pdec=float(brec["measurement_dec"])
-        pinc=float(brec["measurement_inc"])
+        pdec=float(brec[dec_key])
+        pinc=float(brec[inc_key])
         pint=float(brec[momkey])
         X=dir2cart([dec,inc,str])
         prevX=dir2cart([pdec,pinc,pint])
@@ -4855,14 +4886,10 @@ def sortarai(datablock,s,Zdiff):
     for temp in Treat_M:
         step=MSteps[Treat_M.index(temp)] # tail check step - just do a difference in magnitude!
         rec=datablock[step]
-#        dec=float(rec["measurement_dec"])
-#        inc=float(rec["measurement_inc"])
         str=float(rec[momkey])
         if temp in Treat_Z:
             step=ZSteps[Treat_Z.index(temp)]
             brec=datablock[step]
-#        pdec=float(brec["measurement_dec"])
-#        pinc=float(brec["measurement_inc"])
             pint=float(brec[momkey])
 #        X=dir2cart([dec,inc,str])
 #        prevX=dir2cart([pdec,pinc,pint])
