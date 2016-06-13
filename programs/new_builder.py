@@ -201,6 +201,7 @@ class Contribution(object):
             df = df.merge(add_df[[child_name]],
                           left_on=[bottom_name],
                           right_index=True, how="left")
+            self.tables[df_name].df = df
 
         # merge in one level above
         if parent_name not in df.columns:
@@ -218,6 +219,7 @@ class Contribution(object):
             df = df.merge(add_df[[parent_name]],
                           left_on=[child_name],
                           right_index=True, how="left")
+            self.tables[df_name].df = df
 
         # merge in two levels above
         if grandparent_name not in df.columns:

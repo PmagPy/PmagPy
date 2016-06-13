@@ -55,6 +55,7 @@ def main():
 
     con = nb.Contribution(dir_path, read_tables=['measurements'],
                           custom_filenames={'measurements': meas_file})
+    con.propagate_name_down('location_name', 'measurements')
 
     if 'measurements' not in con.tables:
         print main.__doc__
@@ -109,7 +110,13 @@ def main():
         print 'specimen_name', s
         print len(spec)
         print '!!!'
-        
+
+        if 'location_name' in spec:
+            locname = spec['location_name'][0]
+        if 'site_name' in spec:
+            site = spec['sample_name'][0]
+        if 'sample_name' in spec:
+            sample = spec['sample_name'][0]
         # ignore these names for now:
         #if 'er_location_name' in spec[0].keys():
         #    locname=spec[0]['er_location_name']
