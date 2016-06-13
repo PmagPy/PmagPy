@@ -108,27 +108,35 @@ class Contribution(object):
             else:
                 return item
 
-        def put_together_if_str(item):
+        def put_together_if_list(item):
             """
             String joining function
             that doesn't break with None/np.nan
             """
             try:
+                res = ":".join(item)
                 return ":".join(item)
-            except TypeError:
+            except TypeError as ex:
+                print ex
                 return item
 
         def replace_colon_delimited_value(df, col_name, old_value, new_value):
             """
             Col must contain list
             """
+            count = 1
             for index, row in df[df[col_name].notnull()].iterrows():
                 names_list = row[col_name]
+                names_list = [name.strip() for name in names_list]
                 try:
                     ind = names_list.index(old_value)
-                except ValueError:
+                except ValueError as ex:
+                    count += 1
                     continue
                 names_list[ind] = new_value
+                df.ix[count, col_name] = names_list
+                count += 1
+
 
         # initialize some things
         item_type = table_name
@@ -148,7 +156,8 @@ class Contribution(object):
             if col_name_plural in col_names:
                 df[col_name_plural + "_list"] = df[col_name_plural].apply(split_if_str)
                 replace_colon_delimited_value(df, col_name_plural + "_list", item_old_name, item_new_name)
-                df[col_name_plural] = df[col_name_plural + "_list"].apply(put_together_if_str)
+                df[col_name_plural] = df[col_name_plural + "_list"].apply(put_together_if_list)
+            self.tables[table_name].df = df
 
     def get_table_name(self, ind):
         """
