@@ -77,14 +77,13 @@ def main():
             5) Optional:  TRM acquisition
             6) Optional: TDS normalization
         command line window:
-            list is: temperature step numbers, temperatures (C), Dec, Inc, Int (units of magic_measuements)
+            list is: temperature step numbers, temperatures (C), Dec, Inc, Int (units of measuements)
                      list of possible commands: type letter followed by return to select option
                      saving of plots creates .svg format files with specimen_name, plot type as name
     """ 
 #
 #   initializations
 #
-    meas_file,critout,inspec="magic_measurements.txt","","thellier_specimens.txt"
     first=1
     inlt=0
     version_num=pmag.get_version()
@@ -124,28 +123,19 @@ def main():
     fnames = {'measurements': meas_file, 'specimens': spec_file, 'criteria': crit_file}
     contribution = nb.Contribution(dir_path, custom_filenames=fnames, read_tables=['measurements', 'specimens', 'criteria'])
 #
-#   import  specimens
+#   import  prior interpretations  from specimen file
 #
     specimen_cols = ['analyst_names', 'aniso_ftest', 'aniso_ftest12', 'aniso_ftest23', 'aniso_s', 'aniso_s_mean', 'aniso_s_n_measurements', 'aniso_s_sigma', 'aniso_s_unit', 'aniso_tilt_correction', 'aniso_type', 'aniso_v1', 'aniso_v2', 'aniso_v3', 'citations', 'description', 'dir_alpha95', 'dir_comp_name', 'dir_dec', 'dir_inc', 'dir_mad_free', 'dir_n_measurements', 'dir_tilt_correction', 'experiment_names', 'geologic_classes', 'geologic_types', 'hyst_bc', 'hyst_bcr', 'hyst_mr_moment', 'hyst_ms_moment', 'int_abs', 'int_b', 'int_b_beta', 'int_b_sigma', 'int_corr', 'int_dang', 'int_drats', 'int_f', 'int_fvds', 'int_gamma', 'int_mad_free', 'int_md', 'int_n_measurements', 'int_n_ptrm', 'int_q', 'int_rsc', 'int_treat_dc_field', 'lithologies', 'meas_step_max', 'meas_step_min', 'meas_step_unit', 'method_codes', 'sample_name', 'software_packages', 'specimen_name']
     if 'specimens' in contribution.tables:
 #        contribution.propagate_name_down('sample_name','measurements')
         spec_container = contribution.tables['specimens']
-        prior_spec_data=spec_container.get_records_for_code('LP-PI-TRM',strict_match=False) # look up all prior directional interpretations
+        prior_spec_data=spec_container.get_records_for_code('LP-PI-TRM',strict_match=False) # look up all prior intensity interpretations
 #
 #  tie sample names to measurement data
 #
     else:
            spec_container, prior_spec_data = None, []
     backup=0
-    # define figure numbers for arai, zijderveld and 
-    #   de-,re-magnetization diagrams
-    AZD={}
-    AZD['deremag'], AZD['zijd'],AZD['arai'],AZD['eqarea']=1,2,3,4
-    pmagplotlib.plot_init(AZD['arai'],5,5)
-    pmagplotlib.plot_init(AZD['zijd'],5,5)
-    pmagplotlib.plot_init(AZD['deremag'],5,5)
-    pmagplotlib.plot_init(AZD['eqarea'],5,5)
-    #
     #
     intlist = ['magn_moment', 'magn_volume', 'magn_mass']
 #
@@ -154,12 +144,17 @@ def main():
     meas_container = contribution.tables['measurements']
     meas_data = meas_container.df
 #
+    meas_data['method_codes']=meas_data['method_codes'].str.replace(" ","") # get rid of nasty spaces
     meas_data= meas_data[meas_data['method_codes'].str.contains('LP-PI-TRM|LP-TRM|LP-TRM-TD')==True] # fish out zero field steps for plotting
     intensity_types = [col_name for col_name in meas_data.columns if col_name in intlist]
     int_key = intensity_types[0] # plot first intensity method found - normalized to initial value anyway - doesn't matter which used
     meas_data = meas_data[meas_data[int_key].notnull()] # get all the non-null intensity records of the same type
     if 'flag' not in meas_data.columns: meas_data['flag'] = 'g' # set the default flag to good
-    
+    meas_data = meas_data[meas_data['flag'].str.contains('g')==True] # only the 'good' measurements
+    thel_data = meas_data[meas_data['method_codes'].str.contains('LP-PI-TRM')==True] # get all the Thellier data
+    trm_data = meas_data[meas_data['method_codes'].str.contains('LP-TRM')==True] # get all the TRM acquisition data
+    td_data = meas_data[meas_data['method_codes'].str.contains('LP-TRM-TD')==True] # get all the TD data
+    anis_data = meas_data[meas_data['method_codes'].str.contains('LP-AN')==True] # get all the anisotropy data
 #
 # get list of unique specimen names from measurement data
 #
@@ -176,76 +171,64 @@ def main():
         k = 0
     else:
         k=specimen_names.index(specimen)
-    # let's look at the data now
+    # define figure numbers for arai, zijderveld and 
+    #   de-,re-magnetization diagrams
+    AZD={}
+    AZD['deremag'], AZD['zijd'],AZD['arai'],AZD['eqarea']=1,2,3,4
+    pmagplotlib.plot_init(AZD['arai'],5,5)
+    pmagplotlib.plot_init(AZD['zijd'],5,5)
+    pmagplotlib.plot_init(AZD['deremag'],5,5)
+    pmagplotlib.plot_init(AZD['eqarea'],5,5)
+    if len(trm_data)>0: 
+        AZD['TRM']=5
+        pmagplotlib.plot_init(AZD['TRM'],5,5)
+    if len(td_data)>0: 
+        AZD['TDS']=6
+        pmagplotlib.plot_init(AZD['TDS'],5,5)
+    #
     while k < len(specimen_names):
         this_specimen=specimen_names[k] # set the current specimen for plotting
         if verbose and  this_specimen!="":print this_specimen, k+1 , 'out of ',len(specimen_names)
-        this_specimen_measurements= meas_data[meas_data['specimen_name'].str.contains(this_specimen)==True] # fish out this specimen
-        this_specimen_measurements= this_specimen_measurements[this_specimen_measurements['flag'].str.contains('g')==True] # fish out this specimen
-        if len(this_specimen_measurements)==0:  # if there are measurements
-            k+=1
-            break
 #
 #    set up datablocks
 #
-        methcodes=[]
-        datablock,trmblock,tdsrecs=[],[],[]
-        PmagSpecRec={}
-        datablock= this_specimen_measurements[this_specimen_measurements['method_codes'].str.contains('LP-PI-TRM')==True] # fish out thellier data
-        trmblock= this_specimen_measurements[this_specimen_measurements['method_codes'].str.contains('LP-TRM')==True] # fish out TRM acquisition data       
-        tdsrecs= this_specimen_measurements[this_specimen_measurements['method_codes'].str.contains('LP-TRM-TD')==True] # fish out TRMTD data 
-        if len(trmblock)>2 and spec_file!="":
-            if Tinit==0:
-                Tinit=1
-                AZD['TRM']=5
-                pmagplotlib.plot_init(AZD['TRM'],5,5)
-        elif Tinit==1: # clear the TRM figure if not needed
-            pmagplotlib.clearFIG(AZD['TRM'])
-        if len(tdsrecs)>2:
-            if TDinit==0:
-                TDinit=1
-                AZD['TDS']=6
-                pmagplotlib.plot_init(AZD['TDS'],5,5)
-        elif TDinit==1: # clear the TDS figure if not needed
-            pmagplotlib.clearFIG(AZD['TDS'])
-        if len(datablock) <4:
-           if backup==0:
-               k+=1
-               if verbose:
-                   print 'skipping specimen - moving forward ', this_specimen
-           else:
-               k-=1
-               if verbose:
-                   print 'skipping specimen - moving backward ', this_specimen
-    #
-    #  collect info for the PmagSpecRec dictionary
-    #
-        else:
+        thelblock= thel_data[thel_data['specimen_name'].str.contains(this_specimen)==True] # fish out this specimen
+        trmblock= trm_data[trm_data['specimen_name'].str.contains(this_specimen)==True] # fish out this specimen
+        tdsrecs= td_data[td_data['specimen_name'].str.contains(this_specimen)==True] # fish out this specimen
+        anisblock= anis_data[anis_data['specimen_name'].str.contains(this_specimen)==True] # fish out the anisotropy data
+        prior_specimen_interpretations= prior_spec_data[prior_spec_data['specimen_name'].str.contains(this_specimen)==True] # fish out prior interpretation 
 #
 # sort data into types
 #
-           araiblock,field=pmag.sortarai(datablock,this_specimen,Zdiff,version=3)
-           first_Z=araiblock[0]
-           GammaChecks=araiblock[5]
-           if len(first_Z)<3:
-               if backup==0:
-                   specimen+=1
+        araiblock,field=pmag.sortarai(thelblock,this_specimen,Zdiff,version=3)
+        first_Z=araiblock[0]
+        GammaChecks=araiblock[5]
+        if len(first_Z)<3:
+           if backup==0:
+                   k+=1
                    if verbose:
                        print 'skipping specimen - moving forward ', this_specimen
-               else:
-                   specimen-=1
+           else:
+                   k-=1
                    if verbose:
                        print 'skipping specimen - moving backward ', this_specimen
-           else:
+        else:
                backup=0
-               zijdblock,units=pmag.find_dmag_rec(this_specimen,this_specimen_measurements,version=3)
+               zijdblock,units=pmag.find_dmag_rec(this_specimen,thelblock,version=3)
+               if BEG=="" and len(prior_specimen_interpretations)>0:
+                   if verbose: print 'Looking up saved interpretation....'
 #
-#  START HERE!
+# get prior interpretation steps
 #
+                   beg_int=pd.to_numeric(prior_specimen_interpretations.meas_step_min.values).tolist()[0] 
+                   end_int=pd.to_numeric(prior_specimen_interpretations.meas_step_max.values).tolist()[0]
+               else: beg_int,end_int="",""
                recnum=0
-               if verbose:
-                   print "index step Dec   Inc  Int       Gamma"
-                   for plotrec in zijdblock:
+               if verbose: print "index step Dec   Inc  Int       Gamma"
+               for plotrec in zijdblock:
+                   if plotrec[0]==beg_int:start=recnum # while we are at it, collect these bounds
+                   if plotrec[0]==end_int:end=recnum
+                   if verbose:
                        if GammaChecks!="":
                            gamma=""
                            for g in GammaChecks:
@@ -256,315 +239,50 @@ def main():
                            print '%i     %i %7.1f %7.1f %8.3e %7.1f' % (recnum,plotrec[0]-273,plotrec[1],plotrec[2],plotrec[3],gamma)
                        else:
                            print '%i     %i %7.1f %7.1f %8.3e ' % (recnum,plotrec[0]-273,plotrec[1],plotrec[2],plotrec[3])
-                       recnum += 1
+                   recnum += 1
+               for fig in AZD.keys():pmagplotlib.clearFIG(AZD[fig]) # clear all figures
                pmagplotlib.plotAZ(AZD,araiblock,zijdblock,this_specimen,units[0])
                if verbose:pmagplotlib.drawFIGS(AZD)
-               if len(tdsrecs)>2: # a TDS experiment
-                   tdsblock=[] # make a list for the TDS  data
-                   mkey,k="",0
-                   while mkey=="" and k<len(intlist)-1: # find which type of intensity
-                       key= intlist[k]
-                       if key in tdsrecs[0].keys() and tdsrecs[0][key]!="": mkey=key
-                       k+=1
-                   if mkey=="":break # get outta here
-                   Tnorm=""
-                   for tdrec in tdsrecs:
-                       meths=tdrec['magic_method_codes'].split(":")
-                       for meth in meths: meth.replace(" ","") # strip off potential nasty spaces
-                       if  'LT-T-I' in meths and Tnorm=="": # found first total TRM 
-                           Tnorm=float(tdrec[mkey]) # normalize by total TRM 
-                           tdsblock.append([273,zijdblock[0][3]/Tnorm,1.]) # put in the zero step
-                       if  'LT-T-Z' in meths and Tnorm!="": # found a LP-TRM-TD demag step, now need complementary LT-T-Z from zijdblock
-                           step=float(tdrec['treatment_temp'])
-                           Tint=""
-                           if mkey!="":
-                               Tint=float(tdrec[mkey])
-                           if Tint!="":
-                               for zrec in zijdblock:
-                                   if zrec[0]==step:  # found matching
-                                       tdsblock.append([step,zrec[3]/Tnorm,Tint/Tnorm])
-                                       break
-                   if len(tdsblock)>2: 
-                       pmagplotlib.plotTDS(AZD['TDS'],tdsblock,s+':LP-PI-TDS:')
-                       if verbose:pmagplotlib(drawFIGS(AZD)) 
-                   else: 
-                       print "Something wrong here"
-               if anis==1:   # look up anisotropy data for this specimen
-                   AniSpec=""
-                   for aspec in anis_data:
-                       if aspec["er_specimen_name"]==PmagSpecRec["er_specimen_name"]:
-                           AniSpec=aspec
+               print beg_int,end_int
+               raw_input()
+#
+# work on TDS data later - no example available yet
+#
+    #           if len(tdsrecs)>2: # a TDS experiment
+    #               tdsblock=[] # make a list for the TDS  data
+    #               mkey,k="",0
+    #               while mkey=="" and k<len(intlist)-1: # find which type of intensity
+    #                   key= intlist[k]
+    #                   if key in tdsrecs[0].keys() and tdsrecs[0][key]!="": mkey=key
+    #                   k+=1
+    #               if mkey=="":break # get outta here
+    #               Tnorm=""
+    #               for tdrec in tdsrecs:
+    #                   meths=tdrec['method_codes'].split(":")
+    #                   if  'LT-T-I' in meths and Tnorm=="": # found first total TRM 
+    #                       Tnorm=float(tdrec[mkey]) # normalize by total TRM 
+    #                       tdsblock.append([273,zijdblock[0][3]/Tnorm,1.]) # put in the zero step
+    #                   if  'LT-T-Z' in meths and Tnorm!="": # found a LP-TRM-TD demag step, now need complementary LT-T-Z from zijdblock
+    #                       step=float(tdrec['treatment_temp'])
+    #                       Tint=""
+    #                       if mkey!="":
+    #                           Tint=float(tdrec[mkey])
+    #                       if Tint!="":
+    #                           for zrec in zijdblock:
+    #                               if zrec[0]==step:  # found matching
+    #                                   tdsblock.append([step,zrec[3]/Tnorm,Tint/Tnorm])
+    #                                   break
+    #               if len(tdsblock)>2: 
+    #                   pmagplotlib.plotTDS(AZD['TDS'],tdsblock,s+':LP-PI-TDS:')
+    #                   if verbose:pmagplotlib(drawFIGS(AZD)) 
+    #               else: 
+    #                   print "Something wrong here"
+               if len(anisblock)>0:  # this specimen has anisotropy data
                            if verbose: print 'Found anisotropy record...'
-                           break
-               if inspec !="":
-                   if verbose: print 'Looking up saved interpretation....'
-                   found = 0
-                   for k in range(len(PriorRecs)):
-                       try:
-                         if PriorRecs[k]["er_specimen_name"]==s:
-                           found =1
-                           CurrRec.append(PriorRecs[k])
-                           for j in range(len(zijdblock)):
-                               if float(zijdblock[j][0])==float(PriorRecs[k]["measurement_step_min"]):start=j
-                               if float(zijdblock[j][0])==float(PriorRecs[k]["measurement_step_max"]):end=j
-                           pars,errcode=pmag.PintPars(datablock,araiblock,zijdblock,start,end,accept)
-                           pars['measurement_step_unit']="K"
-                           pars['experiment_type']='LP-PI-TRM'
-                           del PriorRecs[k]  # put in CurrRec, take out of PriorRecs
-                           if errcode!=1:
-                               pars["specimen_lab_field_dc"]=field
-                               pars["specimen_int"]=-1*field*pars["specimen_b"]
-                               pars["er_specimen_name"]=s
-                               if verbose:
-                                   print 'Saved interpretation: '
-                               pars,kill=pmag.scoreit(pars,PmagSpecRec,accept,'',verbose)
-                               pmagplotlib.plotB(AZD,araiblock,zijdblock,pars)
-                               if verbose:pmagplotlib.drawFIGS(AZD)
-                               if len(trmblock)>2:
-                                   blab=field
-                                   best=pars["specimen_int"]
-                                   Bs,TRMs=[],[]
-                                   for trec in trmblock:
-                                       Bs.append(float(trec['treatment_dc_field']))
-                                       TRMs.append(float(trec['measurement_magn_moment']))
-                                   NLpars=nlt.NLtrm(Bs,TRMs,best,blab,0) # calculate best fit parameters through TRM acquisition data, and get new banc
-                                   Mp,Bp=[],[]
-                                   for k in  range(int(max(Bs)*1e6)):
-                                       Bp.append(float(k)*1e-6)
-                                       npred=nlt.TRM(Bp[-1],NLpars['xopt'][0],NLpars['xopt'][1]) # predicted NRM for this field
-                                       Mp.append(npred)
-                                   pmagplotlib.plotTRM(AZD['TRM'],Bs,TRMs,Bp,Mp,NLpars,trec['magic_experiment_name'])
-                                   PmagSpecRec['specimen_int']=NLpars['banc'] 
-                                   if verbose:
-                                       print 'Banc= ',float(NLpars['banc'])*1e6
-                                       pmagplotlib.drawFIGS(AZD)
-                               mpars=pmag.domean(araiblock[1],start,end,'DE-BFL')
-                               if verbose:
-                                       print 'pTRM direction= ','%7.1f'%(mpars['specimen_dec']),' %7.1f'%(mpars['specimen_inc']),' MAD:','%7.1f'%(mpars['specimen_mad'])
-                               if AniSpec!="":
-                                   CpTRM=pmag.Dir_anis_corr([mpars['specimen_dec'],mpars['specimen_inc']],AniSpec)
-                                   AniSpecRec=pmag.doaniscorr(PmagSpecRec,AniSpec)
-                                   if verbose:
-                                       print 'Anisotropy corrected TRM direction= ','%7.1f'%(CpTRM[0]),' %7.1f'%(CpTRM[1])
-                                       print 'Anisotropy corrected intensity= ',float(AniSpecRec['specimen_int'])*1e6
-                           else:
-                               print 'error on specimen ',s
-                       except:
-                         pass
-                   if verbose and found==0: print  '    None found :(  ' 
-               if this_specimen!="":
-                   if BEG!="": 
-                       pars,errcode=pmag.PintPars(datablock,araiblock,zijdblock,BEG,END,accept)
-                       pars['measurement_step_unit']="K"
-                       pars["specimen_lab_field_dc"]=field
-                       pars["specimen_int"]=-1*field*pars["specimen_b"]
-                       pars["er_specimen_name"]=s
-                       pars['specimen_grade']='' # ungraded
-                       pmagplotlib.plotB(AZD,araiblock,zijdblock,pars)
-                       if verbose:pmagplotlib.drawFIGS(AZD)
-                       if len(trmblock)>2:
-                           if inlt==0:
-                               inlt=1
-                           blab=field
-                           best=pars["specimen_int"]
-                           Bs,TRMs=[],[]
-                           for trec in trmblock:
-                               Bs.append(float(trec['treatment_dc_field']))
-                               TRMs.append(float(trec['measurement_magn_moment']))
-                           NLpars=nlt.NLtrm(Bs,TRMs,best,blab,0) # calculate best fit parameters through TRM acquisition data, and get new banc
-    #
-                           Mp,Bp=[],[]
-                           for k in  range(int(max(Bs)*1e6)):
-                               Bp.append(float(k)*1e-6)
-                               npred=nlt.TRM(Bp[-1],NLpars['xopt'][0],NLpars['xopt'][1]) # predicted NRM for this field
-                   files={}
-                   for key in AZD.keys():
-                       files[key]=s+'_'+key+fmt 
-                   pmagplotlib.saveP(AZD,files)
-                   sys.exit()
-               if verbose:
-                   ans='b'
-                   while ans != "":
-                       print """
-               s[a]ve plot, set [b]ounds for calculation, [d]elete current interpretation, [p]revious, [s]ample, [q]uit:
-               """
-                       ans=raw_input('Return for next specimen \n')
-                       if ans=="": 
-                           specimen +=1
-                       if ans=="d": 
-                           save_redo(PriorRecs,inspec)
-                           CurrRec=[]
-                           pmagplotlib.plotAZ(AZD,araiblock,zijdblock,s,units[0])
-                           if verbose:pmagplotlib.drawFIGS(AZD)
-                       if ans=='a':
-                           files={}
-                           for key in AZD.keys():
-                               files[key]="LO:_"+locname+'_SI:_'+PmagSpecRec['er_site_name']+'_SA:_'+PmagSpecRec['er_sample_name']+'_SP:_'+s+'_CO:_s_TY:_'+key+fmt
-                           pmagplotlib.saveP(AZD,files)
-                           ans=""
-                       if ans=='q':
-                           print "Good bye"
-                           sys.exit()
-                       if ans=='p':
-                           specimen =specimen -1
-                           backup = 1
-                           ans=""
-                       if ans=='s':
-                           keepon=1
-                           spec=raw_input('Enter desired specimen name (or first part there of): ')
-                           while keepon==1:
-                               try:
-                                   specimen =sids.index(spec)
-                                   keepon=0
-                               except:
-                                   tmplist=[]
-                                   for qq in range(len(sids)):
-                                       if spec in sids[qq]:tmplist.append(sids[qq])
-                                   print specimen," not found, but this was: "
-                                   print tmplist
-                                   spec=raw_input('Select one or try again\n ')
-                           ans=""
-                       if  ans=='b':
-                           if end==0 or end >=len(zijdblock):end=len(zijdblock)-1
-                           GoOn=0
-                           while GoOn==0:
-                               answer=raw_input('Enter index of first point for calculation: ['+str(start)+']  ')
-                               try:
-                                   start=int(answer)
-                                   answer=raw_input('Enter index  of last point for calculation: ['+str(end)+']  ')
-                                   end=int(answer)
-                                   if start >=0 and start <len(zijdblock)-2 and end >0 and end <len(zijdblock) or start>=end:
-                                       GoOn=1
-                                   else:
-                                       print "Bad endpoints - try again! "
-                                       start,end=0,len(zijdblock)
-                               except ValueError:
-                                   print "Bad endpoints - try again! "
-                                   start,end=0,len(zijdblock)
-                           s=sids[specimen] 
-                           pars,errcode=pmag.PintPars(datablock,araiblock,zijdblock,start,end,accept)
-                           pars['measurement_step_unit']="K"
-                           pars["specimen_lab_field_dc"]=field
-                           pars["specimen_int"]=-1*field*pars["specimen_b"]
-                           pars["er_specimen_name"]=s
-                           pars,kill=pmag.scoreit(pars,PmagSpecRec,accept,'',0)
-                           PmagSpecRec['specimen_scat']=pars['specimen_scat']
-                           PmagSpecRec['specimen_frac']='%5.3f'%(pars['specimen_frac'])
-                           PmagSpecRec['specimen_gmax']='%5.3f'%(pars['specimen_gmax'])
-                           PmagSpecRec["measurement_step_min"]='%8.3e' % (pars["measurement_step_min"])
-                           PmagSpecRec["measurement_step_max"]='%8.3e' % (pars["measurement_step_max"])
-                           PmagSpecRec["measurement_step_unit"]="K"
-                           PmagSpecRec["specimen_int_n"]='%i'%(pars["specimen_int_n"])
-                           PmagSpecRec["specimen_lab_field_dc"]='%8.3e'%(pars["specimen_lab_field_dc"])
-                           PmagSpecRec["specimen_int"]='%9.4e '%(pars["specimen_int"])
-                           PmagSpecRec["specimen_b"]='%5.3f '%(pars["specimen_b"])
-                           PmagSpecRec["specimen_q"]='%5.1f '%(pars["specimen_q"])
-                           PmagSpecRec["specimen_f"]='%5.3f '%(pars["specimen_f"])
-                           PmagSpecRec["specimen_fvds"]='%5.3f'%(pars["specimen_fvds"])
-                           PmagSpecRec["specimen_b_beta"]='%5.3f'%(pars["specimen_b_beta"])
-                           PmagSpecRec["specimen_int_mad"]='%7.1f'%(pars["specimen_int_mad"])
-                           PmagSpecRec["specimen_Z"]='%7.1f'%(pars["specimen_Z"])
-                           PmagSpecRec["specimen_gamma"]='%7.1f'%(pars["specimen_gamma"])
-                           PmagSpecRec["specimen_grade"]=pars["specimen_grade"]
-                           if pars["method_codes"]!="":
-                               tmpcodes=pars["method_codes"].split(":")
-                               for t in tmpcodes:
-                                   if t.strip() not in methcodes:methcodes.append(t.strip())
-                           PmagSpecRec["specimen_dec"]='%7.1f'%(pars["specimen_dec"])
-                           PmagSpecRec["specimen_inc"]='%7.1f'%(pars["specimen_inc"])
-                           PmagSpecRec["specimen_tilt_correction"]='-1'
-                           PmagSpecRec["specimen_direction_type"]='l'
-                           PmagSpecRec["direction_type"]='l' # this is redundant, but helpful - won't be imported
-                           PmagSpecRec["specimen_int_dang"]='%7.1f '%(pars["specimen_int_dang"])
-                           PmagSpecRec["specimen_drats"]='%7.1f '%(pars["specimen_drats"])
-                           PmagSpecRec["specimen_drat"]='%7.1f '%(pars["specimen_drat"])
-                           PmagSpecRec["specimen_int_ptrm_n"]='%i '%(pars["specimen_int_ptrm_n"])
-                           PmagSpecRec["specimen_rsc"]='%6.4f '%(pars["specimen_rsc"])
-                           PmagSpecRec["specimen_md"]='%i '%(int(pars["specimen_md"]))
-                           if PmagSpecRec["specimen_md"]=='-1':PmagSpecRec["specimen_md"]=""
-                           PmagSpecRec["specimen_b_sigma"]='%5.3f '%(pars["specimen_b_sigma"])
-                           if "IE-TT" not in  methcodes:methcodes.append("IE-TT")
-                           methods=""
-                           for meth in methcodes:
-                               methods=methods+meth+":"
-                           PmagSpecRec["magic_method_codes"]=methods[:-1]
-                           PmagSpecRec["specimen_description"]=comment
-                           PmagSpecRec["magic_software_packages"]=version_num
-                           pmagplotlib.plotAZ(AZD,araiblock,zijdblock,s,units[0])
-                           pmagplotlib.plotB(AZD,araiblock,zijdblock,pars)
-                           if verbose:pmagplotlib.drawFIGS(AZD)
-                           if len(trmblock)>2:
-                               blab=field
-                               best=pars["specimen_int"]
-                               Bs,TRMs=[],[]
-                               for trec in trmblock:
-                                   Bs.append(float(trec['treatment_dc_field']))
-                                   TRMs.append(float(trec['measurement_magn_moment']))
-                               NLpars=nlt.NLtrm(Bs,TRMs,best,blab,0) # calculate best fit parameters through TRM acquisition data, and get new banc
-                               Mp,Bp=[],[]
-                               for k in  range(int(max(Bs)*1e6)):
-                                   Bp.append(float(k)*1e-6)
-                                   npred=nlt.TRM(Bp[-1],NLpars['xopt'][0],NLpars['xopt'][1]) # predicted NRM for this field
-                                   Mp.append(npred)
-                               pmagplotlib.plotTRM(AZD['TRM'],Bs,TRMs,Bp,Mp,NLpars,trec['magic_experiment_name'])
-                               if verbose:
-                                   print 'Non-linear TRM corrected intensity= ',float(NLpars['banc'])*1e6
-                           if verbose:pmagplotlib.drawFIGS(AZD)
-                           pars["specimen_lab_field_dc"]=field
-                           pars["specimen_int"]=-1*field*pars["specimen_b"]
-                           pars,kill=pmag.scoreit(pars,PmagSpecRec,accept,'',verbose)
-                           saveit=raw_input("Save this interpretation? [y]/n \n")
-                           if saveit!='n':
-                               PriorRecs.append(PmagSpecRec) # put back an interpretation
-                               specimen+=1
-                               save_redo(PriorRecs,inspec)
-                           ans=""
-               elif plots==1:
-                   specimen+=1
-                   if fmt != ".pmag":
-                       files={}
-                       for key in AZD.keys():
-                           files[key]="LO:_"+locname+'_SI:_'+PmagSpecRec['er_site_name']+'_SA:_'+PmagSpecRec['er_sample_name']+'_SP:_'+s+'_CO:_s_TY:_'+key+'_'+fmt
-                       if pmagplotlib.isServer:
-                           black     = '#000000'
-                           purple    = '#800080'
-                           titles={}
-                           titles['deremag']='DeReMag Plot'
-                           titles['zijd']='Zijderveld Plot'
-                           titles['arai']='Arai Plot'
-                           AZD = pmagplotlib.addBorders(AZD,titles,black,purple)
-                       pmagplotlib.saveP(AZD,files)
-    #                   pmagplotlib.combineFigs(s,files,3)
-                   else:  # save in pmag format 
-                       script="grep "+s+" output.mag | thellier -mfsi"
-                       script=script+' %8.4e'%(field)
-                       min='%i'%((pars["measurement_step_min"]-273))
-                       Max='%i'%((pars["measurement_step_max"]-273))
-                       script=script+" "+min+" "+Max
-                       script=script+" |plotxy;cat mypost >>thellier.ps\n"
-                       pltf.write(script)
-                       pmag.domagicmag(outf,MeasRecs)
-        if len(CurrRec)>0:
-            for rec in CurrRec:
-                PriorRecs.append(rec)
-        CurrRec=[]
-    if plots!=1 and verbose:
-        ans=raw_input(" Save last plot? 1/[0] ")
-        if ans=="1":
-            if fmt != ".pmag":
-                files={}
-                for key in AZD.keys():
-                    files[key]=s+'_'+key+fmt
-                pmagplotlib.saveP(AZD,files)
-        else:
-            print "\n Good bye\n"
-            sys.exit()
-        if len(CurrRec)>0:PriorRecs.append(CurrRec) # put back an interpretation
-        if len(PriorRecs)>0:
-            save_redo(PriorRecs,inspec)
-            print 'Updated interpretations saved in ',inspec
-    if verbose:
-        print "Good bye"
+#
+# put in container for saving later
+#
+#
 
 if __name__ == "__main__":
     main()

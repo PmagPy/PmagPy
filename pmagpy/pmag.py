@@ -865,8 +865,8 @@ def find_dmag_rec(s,data,**kwargs):
     """
     returns demagnetization data for specimen s from the data - excludes other kinds of experiments and "bad" measurements
     """
-    if 'version' in kwargs.keys() and kwargs['version']==3:  
-        data=data.T.to_dict().values()  # convert dataframe to list of dictionaries
+    if 'version' in kwargs.keys() and kwargs['version']==3: 
+        data=data.to_dict('records')  # convert dataframe to list of dictionaries
         spec_key,dec_key,inc_key='specimen_name','dir_dec','dir_inc'
         flag_key,temp_key,ac_key='flag','treat_temp','treat_ac_field'
         meth_key='method_codes'
@@ -4745,13 +4745,12 @@ def sortarai(datablock,s,Zdiff,**kwargs):
      sorts data block in to first_Z, first_I, etc.
     """
     if 'version' in kwargs.keys() and kwargs['version']==3:  
-	pass # this is the new data format  
         dec_key,inc_key='dir_dec','dir_inc'    
         Mkeys=['magn_moment','magn_volume','magn_mass','magnitude']
         meth_key='method_codes'
         temp_key,dc_key='treat_temp','treat_dc_field'
         dc_theta_key,dc_phi_key='treat_dc_field_theta','treat_dc_field_phi'
-        datablock=datablock.T.to_dict().values()  # convert dataframe to list of dictionaries
+        datablock=datablock.to_dict('records')  # convert dataframe to list of dictionaries
     else:
         dec_key,inc_key='measurement_dec','measurement_inc'
         Mkeys=['measurement_magn_moment','measurement_magn_volume','measurement_magn_mass','measurement_magnitude']
