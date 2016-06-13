@@ -874,7 +874,7 @@ def find_dmag_rec(s,data,**kwargs):
         Mkeys=['magn_moment','magn_volume','magn_mass','magnitude']
         inst_key='instrument_codes'
     else:
-        spec_key,dec_key,inc_key='er_specimen_name','dir_dec','dir_inc'
+        spec_key,dec_key,inc_key='er_specimen_name','measurement_dec','measurement_inc'
         flag_key='measurement_flag'
         flag_key,temp_key,ac_key='measurement_flag','treatment_temp','treatment_ac_field'
         meth_key='magic_method_codes'
@@ -1668,10 +1668,21 @@ def circ(dec,dip,alpha):
         I_out.append(Dir[1])
     return D_out,I_out
 
-def PintPars(datablock,araiblock,zijdblock,start,end,accept):
+def PintPars(datablock,araiblock,zijdblock,start,end,accept,**kwargs):
     """
      calculate the paleointensity magic parameters  make some definitions
     """
+    if 'version' in kwargs.keys() and kwargs['version']==3:  
+        meth_key='method_codes'
+        beta_key='int_b_beta'
+        temp_key,min_key,max_key='treat_temp','meas_step_min','meas_step_max'
+        dc_theta_key,dc_phi_key='treat_dc_field_theta','treat_dc_field_phi'
+        datablock=datablock.to_dict('records')  # convert dataframe to list of dictionaries
+    else:
+        beta_key='specimen_b_beta'
+        meth_key='magic_method_codes'
+        temp_key,min_key,max_key='treatment_temp','measurement_step_min','measurement_step_max'
+    first_Z,first_I,zptrm_check,ptrm_check,ptrm_tail=[],[],[],[],[]
     methcode,ThetaChecks,DeltaChecks,GammaChecks="","","",""
     zptrm_check=[]
     first_Z,first_I,ptrm_check,ptrm_tail,zptrm_check,GammaChecks=araiblock[0],araiblock[1],araiblock[2],araiblock[3],araiblock[4],araiblock[5]
@@ -1943,8 +1954,8 @@ def PintPars(datablock,araiblock,zijdblock,start,end,accept):
         # find the starting point of the pTRM check:
         for i in range(len(datablock)):
             rec=datablock[i]
-            if "LT-PTRM-I" in rec['magic_method_codes'] and float(rec['treatment_temp'])==ptrm_checks[k][0]:
-                starting_temperature=(float(datablock[i-1]['treatment_temp']))
+            if "LT-PTRM-I" in rec[meth_key] and float(rec[temp_key])==ptrm_checks[k][0]:
+                starting_temperature=(float(datablock[i-1][temp_key]))
                 try:
                     index=t_Arai.index(starting_temperature)
                     x_ptrm_check_starting_point.append(x_Arai[index])
@@ -1979,8 +1990,8 @@ def PintPars(datablock,araiblock,zijdblock,start,end,accept):
         # find the starting point of the pTRM check:
         for i in range(len(datablock)):
             rec=datablock[i]
-            if "LT-PTRM-MD" in rec['magic_method_codes'] and float(rec['treatment_temp'])==ptrm_tail[k][0]:
-                starting_temperature=(float(datablock[i-1]['treatment_temp']))
+            if "LT-PTRM-MD" in rec[meth_key] and float(rec[temp_key])==ptrm_tail[k][0]:
+                starting_temperature=(float(datablock[i-1][temp_key]))
                 try:
 
                     index=t_Arai.index(starting_temperature)
@@ -2047,8 +2058,8 @@ def PintPars(datablock,araiblock,zijdblock,start,end,accept):
 
     # if threshold value for beta is not defined, then scat cannot be calculated (pass)
     # in this case, scat pass
-    if 'specimen_b_beta' in accept.keys() and accept['specimen_b_beta']!="":
-        b_beta_threshold=float(accept['specimen_b_beta'])
+    if beta_key in accept.keys() and accept[beta_key]!="":
+        b_beta_threshold=float(accept[beta_key])
         b=pars['specimen_b']             # best fit line
         cm_x=mean(array(x_Arai_segment)) # x center of mass
         cm_y=mean(array(y_Arai_segment)) # y center of mass
