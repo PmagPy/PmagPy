@@ -1,25 +1,25 @@
 #!/usr/bin/env python
+# -*- python-indent-offset: 4; -*-
 # define some variables
+
 import sys
 import matplotlib
-import os
 if matplotlib.get_backend() != "TKAgg":
-  matplotlib.use("TKAgg")
+    matplotlib.use("TKAgg")
 
 import pmagpy.pmag as pmag
-print pmag
 import pmagpy.pmagplotlib as pmagplotlib
-import pmagpy.continents as continents
+import new_builder as nb
 
 
 def main():
     """
-    NAME 
-        vgpmap_magic.py 
+    NAME
+        vgpmap_magic.py
 
     DESCRIPTION
         makes a map of vgps and a95/dp,dm for site means in a pmag_results table
- 
+
     SYNTAX
         vgpmap_magic.py [command line options]
 
@@ -90,122 +90,143 @@ def main():
     coord_dict = {'g': '0', 't': '100'}
     coord = coord_dict[crd] if crd else ""
     results_file = pmag.get_named_arg_from_sys("-f", "sites.txt")
-    results_file = os.path.join(dir_path, results_file)
 
-    print dir_path, plot, fmt,  res, proj, anti, fancy, ell, ages
-    print lat_0, lon_0, sym, size, flip, rsym, rsize
+    con = nb.Contribution(dir_path, single_file=results_file)
+    if not con.tables.keys():
+        print "-W - Couldn't read in data"
+        return
 
-    return
-    data,file_type=pmag.magic_read(results_file)
-    if file_type!='pmag_results':
-        print "bad results file"
-        sys.exit()
-    FIG={'map':1}
-    pmagplotlib.plot_init(FIG['map'],6,6)
+    FIG = {'map': 1}
+    pmagplotlib.plot_init(FIG['map'], 6, 6)
     # read in er_sites file
-    lats,lons,dp,dm,a95=[],[],[],[],[]
-    Pars=[]
-    dates,rlats,rlons=[],[],[]
-    if 'data_type' in data[0].keys():
-        Results=pmag.get_dictitem(data,'data_type','i','T') # get all site level data
-    else:
-        Results=data
-    Results=pmag.get_dictitem(Results,'vgp_lat','','F') # get all non-blank latitudes
-    Results=pmag.get_dictitem(Results,'vgp_lon','','F') # get all non-blank longitudes
-    if coord!="":Results=pmag.get_dictitem(Results,'tilt_correction',coord,'T') # get specified coordinate system
-    location=""
-    for rec in Results:
-            if rec['er_location_names'] not in location:location = location+':'+rec['er_location_names']
-            if 'average_age' in rec.keys() and rec['average_age']!="" and ages==1:
-                dates.append(rec['average_age'])
-            lat=float(rec['vgp_lat'])
-            lon=float(rec['vgp_lon'])
-            if flip==0:
+    lats, lons = [], []
+    Pars = []
+    dates, rlats, rlons = [], [], []
+
+    site_container = con.tables['sites']
+    site_df = site_container.df
+    # use individual results
+    site_df = site_df[site_df['result_type'] == 'i']
+    # use records with vgp_lat and vgp_lon
+    cond1, cond2 = site_df['vgp_lat'].notnull(), site_df['vgp_lon'].notnull()
+    Results = site_df[cond1 & cond2]
+    # use tilt correction
+    if coord and 'dir_tilt_correction' in Results.columns:
+        Results = Results[Results['dir_tilt_correction'] == coord]
+    # get location name and average ages
+    location = ":".join(Results['location_name'].unique())
+    if 'average_age' in Results.columns and ages == 1:
+        dates = Results['average_age'].unique()
+
+    # go through rows and extract data
+    for ind, row in Results.iterrows():
+        lat, lon = float(row['vgp_lat']), float(row['vgp_lon'])
+        if flip == 0:
+            lats.append(lat)
+            lons.append(lon)
+        elif flip == 1:
+            if lat < 0:
+                rlats.append(-lat)
+                lon = lon + 180.
+                if lon > 360:
+                    lon = lon - 360
+                rlons.append(lon)
+            else:
                 lats.append(lat)
                 lons.append(lon)
-            elif flip==1:
-                if lat<0:
-                    rlats.append(-lat)
-                    lon=lon+180.
-                    if lon>360:lon=lon-360.
-                    rlons.append(lon)
-                else:
-                    lats.append(lat)
-                    lons.append(lon)
-            elif anti==1:
-                lats.append(-lat)
-                lon=lon+180.
-                if lon>360:lon=lon-360.
-                lons.append(lon)
-            ppars=[]
-            ppars.append(lon)
-            ppars.append(lat)
-            ell1,ell2="",""
-            if 'vgp_dm' in rec.keys() and rec['vgp_dm']!="":ell1=float(rec['vgp_dm'])
-            if 'vgp_dp' in rec.keys() and rec['vgp_dp']!="":ell2=float(rec['vgp_dp'])
-            if 'vgp_alpha95' in rec.keys() and rec['vgp_alpha95']!="":ell1,ell2=float(rec['vgp_alpha95']),float(rec['vgp_alpha95'])
-            if ell1!="" and ell2!="":
-                ppars=[]
-                ppars.append(lons[-1])
-                ppars.append(lats[-1])
-                ppars.append(ell1)
-                ppars.append(lons[-1])
-                isign=abs(lats[-1])/lats[-1]
-                ppars.append(lats[-1]-isign*90.)
-                ppars.append(ell2)
-                ppars.append(lons[-1]+90.)
-                ppars.append(0.)
-                Pars.append(ppars)
-    location=location.strip(':')
-    Opts={'latmin':-90,'latmax':90,'lonmin':0.,'lonmax':360.,'lat_0':lat_0,'lon_0':lon_0,'proj':proj,'sym':'bs','symsize':3,'pltgrid':0,'res':res,'boundinglat':0.}
-    Opts['details']={'coasts':1,'rivers':0, 'states':0, 'countries':0,'ocean':1,'fancy':fancy}
-    pmagplotlib.plotMAP(FIG['map'],[90.],[0.],Opts) # make the base map with a blue triangle at the pole`
-    Opts['pltgrid']=-1
-    Opts['sym']=sym
-    Opts['symsize']=size
-    if len(dates)>0:Opts['names']=dates
-    if len(lats)>0:pmagplotlib.plotMAP(FIG['map'],lats,lons,Opts) # add the lats and lons of the poles
-    Opts['names']=[]
-    if len(rlats)>0:
-        Opts['sym']=rsym
-        Opts['symsize']=rsize
-        pmagplotlib.plotMAP(FIG['map'],rlats,rlons,Opts) # add the lats and lons of the poles
-    if plot==0:
+
+        # issue with anti (in original code, will never be hit)
+        elif anti == 1:
+            lats.append(-lat)
+            lon = lon + 180.
+            if lon > 360:
+                lon = lon - 360.
+            lons.append(lon)
+    
+        ppars = []
+        ppars.append(lon)
+        ppars.append(lat)
+        ell1, ell2 = "", ""
+        if 'vgp_dm' in row.keys() and row['vgp_dm']:
+            ell1 = float(row['vgp_dm'])
+        if 'vgp_dp' in row.keys() and row['vgp_dp']:
+            ell2 = float(row['vgp_dp'])
+        if 'vgp_alpha95' in row.keys() and row['vgp_alpha95'].notnull():
+            ell1, ell2 = float(row['vgp_alpha95']), float(row['vgp_alpha95'])
+        if ell1 and ell2:
+            ppars = []
+            ppars.append(lons[-1])
+            ppars.append(lats[-1])
+            ppars.append(ell1)
+            ppars.append(lons[-1])
+            isign = abs(lats[-1]) / lats[-1]
+            ppars.append(lats[-1] - isign * 90.)
+            ppars.append(ell2)
+            ppars.append(lons[-1] + 90.)
+            ppars.append(0.)
+            Pars.append(ppars)
+
+    location = location.strip(':')
+    Opts = {'latmin': -90, 'latmax': 90, 'lonmin': 0., 'lonmax': 360.,
+            'lat_0': lat_0, 'lon_0': lon_0, 'proj': proj, 'sym': 'bs',
+            'symsize': 3, 'pltgrid': 0, 'res': res, 'boundinglat': 0.}
+    Opts['details'] = {'coasts': 1, 'rivers': 0, 'states': 0,
+                       'countries': 0, 'ocean': 1, 'fancy': fancy}
+    # make the base map with a blue triangle at the pole
+    pmagplotlib.plotMAP(FIG['map'], [90.], [0.], Opts)
+    Opts['pltgrid'] = -1
+    Opts['sym'] = sym
+    Opts['symsize'] = size
+    if len(dates) > 0:
+        Opts['names'] = dates
+    if len(lats) > 0:
+        # add the lats and lons of the poles
+        pmagplotlib.plotMAP(FIG['map'], lats, lons, Opts)
+    Opts['names'] = []
+    if len(rlats) > 0:
+        Opts['sym'] = rsym
+        Opts['symsize'] = rsize
+        # add the lats and lons of the poles
+        pmagplotlib.plotMAP(FIG['map'], rlats, rlons, Opts) 
+    if plot == 0:
         pmagplotlib.drawFIGS(FIG)
-    if ell==1: # add ellipses if desired.
-        Opts['details']={'coasts':0,'rivers':0, 'states':0, 'countries':0,'ocean':0}
-        Opts['pltgrid']=-1 # turn off meridian replotting
-        Opts['symsize']=2
-        Opts['sym']='g-'
+    if ell == 1:  # add ellipses if desired.
+        Opts['details'] = {'coasts': 0, 'rivers': 0, 'states': 0,
+                           'countries': 0, 'ocean': 0, 'fancy': fancy}
+        Opts['pltgrid'] = -1  # turn off meridian replotting
+        Opts['symsize'] = 2
+        Opts['sym'] = 'g-'
         for ppars in Pars:
-            if ppars[2]!=0:
-                PTS=pmagplotlib.plotELL(FIG['map'],ppars,'g.',0,0)
-                elats,elons=[],[]
+            if ppars[2] != 0:
+                PTS = pmagplotlib.plotELL(FIG['map'], ppars, 'g.', 0, 0)
+                elats, elons = [], []
                 for pt in PTS:
                     elons.append(pt[0])
                     elats.append(pt[1])
-                pmagplotlib.plotMAP(FIG['map'],elats,elons,Opts) # make the base map with a blue triangle at the pole`
-                if plot==0:pmagplotlib.drawFIGS(FIG)
-    files={}
+                # make the base map with a blue triangle at the pole
+                pmagplotlib.plotMAP(FIG['map'], elats, elons, Opts)
+                if plot == 0:
+                    pmagplotlib.drawFIGS(FIG)
+    files = {}
     for key in FIG.keys():
-        files[key]='LO:_'+location+'_VGP_map.'+fmt
+        files[key] = 'LO:_' + location + '_VGP_map.' + fmt
     if pmagplotlib.isServer:
         black     = '#000000'
         purple    = '#800080'
-        titles={}
-        titles['eq']='LO:_'+location+'_VGP_map'
-        FIG = pmagplotlib.addBorders(FIG,titles,black,purple)
-        pmagplotlib.saveP(FIG,files)
-    elif plot==0:
+        titles = {}
+        titles['eq'] = 'LO:_' + location + '_VGP_map'
+        FIG = pmagplotlib.addBorders(FIG, titles, black, purple)
+        pmagplotlib.saveP(FIG, files)
+    elif plot == 0:
         pmagplotlib.drawFIGS(FIG)
-        ans=raw_input(" S[a]ve to save plot, Return to quit:  ")
-        if ans=="a":
-            pmagplotlib.saveP(FIG,files)
+        ans = raw_input(" S[a]ve to save plot, Return to quit:  ")
+        if ans == "a":
+            pmagplotlib.saveP(FIG, files)
         else:
             print "Good bye"
             sys.exit()
     else:
-        pmagplotlib.saveP(FIG,files)
+        pmagplotlib.saveP(FIG, files)
 
 if __name__ == "__main__":
     main()
