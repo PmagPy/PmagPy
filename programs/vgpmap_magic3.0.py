@@ -121,7 +121,13 @@ def main():
     # go through rows and extract data
     for ind, row in Results.iterrows():
         lat, lon = float(row['vgp_lat']), float(row['vgp_lon'])
-        if flip == 0:
+        if anti == 1:
+            lats.append(-lat)
+            lon = lon + 180.
+            if lon > 360:
+                lon = lon - 360.
+            lons.append(lon)
+        elif flip == 0:
             lats.append(lat)
             lons.append(lon)
         elif flip == 1:
@@ -134,14 +140,6 @@ def main():
             else:
                 lats.append(lat)
                 lons.append(lon)
-
-        # issue with anti (in original code, will never be hit)
-        elif anti == 1:
-            lats.append(-lat)
-            lon = lon + 180.
-            if lon > 360:
-                lon = lon - 360.
-            lons.append(lon)
     
         ppars = []
         ppars.append(lon)
