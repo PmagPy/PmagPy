@@ -144,7 +144,7 @@ def main():
     meas_container = contribution.tables['measurements']
     meas_data = meas_container.df
 #
-    meas_data= meas_data[meas_data['method_codes'].str.contains('LT-NO|LT-AF-Z|LT-T-Z|LT-M-Z')==True] # fish out zero field steps for plotting 
+    meas_data= meas_data[meas_data['method_codes'].str.contains('LT-NO|LT-AF-Z|LT-T-Z|LT-M-Z')==True] # fish out steps for plotting 
     meas_data= meas_data[meas_data['method_codes'].str.contains('AN|ARM|LP-TRM|LP-PI-ARM')==False] # strip out unwanted experiments
     intensity_types = [col_name for col_name in meas_data.columns if col_name in intlist]
     int_key = intensity_types[0] # plot first intensity method found - normalized to initial value anyway - doesn't matter which used
