@@ -8629,11 +8629,11 @@ def get_named_arg_from_sys(name, default_val=None, reqd=False):
         raise MissingCommandLineArgException(name)
     return default_val # if arg is not provided but has a default value, return that value
 
-def get_flag_arg_from_sys(name):
+def get_flag_arg_from_sys(name, true=True, false=False):
     if name in sys.argv:
-        return True
+        return true
     else:
-        return False
+        return false
 
 
 def merge_recs_headers(recs):
