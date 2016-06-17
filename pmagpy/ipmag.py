@@ -61,7 +61,7 @@ def fisher_mean(dec=None, inc=None, di_block=None):
         return pmag.fisher_mean(di_block)
 
 
-def bingham_mean(dec, inc, di_block=None):
+def bingham_mean(dec=None, inc=None, di_block=None):
     """
     Calculates the Bingham mean and associated parameters from either a list of
     declination values and a separate list of inclination values or from a
@@ -683,12 +683,13 @@ def fishqq(lon=None, lat=None, di_block=None):
     Test whether a distribution is Fisherian and make a corresponding Q-Q plot.
     The Q-Q plot shows the data plotted against the value expected from a
     Fisher distribution. The first plot is the uniform plot which is the
-    Fisher model distribution in terms of longitude. The second plot is the
-    exponential plot which is the Fisher model distribution in terms of latitude.
-    In addition to the plots, the test statistics Mu (uniform) and Me (exponential)
-    are calculated and compared against the critical test values. If Mu or Me are
-    too large in comparision to the test statistics, the hypothesis that the
-    distribution is Fisherian is rejected (see Fisher et al., 1987).
+    Fisher model distribution in terms of longitude (declination). The second
+    plot is the exponential plot which is the Fisher model distribution in terms
+    of latitude (inclination). In addition to the plots, the test statistics Mu
+    (uniform) and Me (exponential) are calculated and compared against the
+    critical test values. If Mu or Me are too large in comparision to the test
+    statistics, the hypothesis that the distribution is Fisherian is rejected
+    (see Fisher et al., 1987).
 
     Parameters:
     -----------
