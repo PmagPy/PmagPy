@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import sys
-import pmagpy.pmag
+import pmagpy.pmag as pmag
 
 def main(command_line=True, **kwargs):
     """
