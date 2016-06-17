@@ -7,11 +7,10 @@
 # Thellier GUI ersion 3.0 6/16/16 (revisions by Lisa Tauxe)
 # 1) fixed get_data() to read in new data format
 # TODO:  
-#   1) need to get prior interpretation from spec_data 
+#   1) need to get prior interpretation from spec_data  (almost there)
 #   2) need to do criteria and anisotropy
-#   3) need to pull ages from wherever they are (sites, samples, specimens)
-#   4) need to fix output of MagIC tables
-#   5) need to glue to new Pmag GUI
+#   3) need to fix output of MagIC tables
+#   4) need to glue to new Pmag GUI
 #
 # Thellier_GUI Version 2.29 01/29/2015
 # 1) fix STDEV-OPT extended error bar plor display bug 
