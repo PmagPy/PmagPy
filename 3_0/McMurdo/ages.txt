@@ -1,5 +1,5 @@
 tab 	ages
-age	age_description	age_sigma	age_unit	citations	method_codes	site_name
+age	age_description	age_sigma	age_unit	citations	method_codes	site
 1.18	Excellent flat spectrum.	0.005	Ma	10.129/2003GC000656	GM-ARAR-AP	mc01
 0.33	Reasonably flat, some recoil, climbs ar high T, but decent data. .	0.01	Ma	10.129/2003GC000656	GM-ARAR-AP	mc02
 0.348	Excellent flat spectrum for 70%, then climbs abruptly at high T as K/Ca drops. .	0.004	Ma	10.129/2003GC000656	GM-ARAR-AP	mc03

@@ -28,7 +28,6 @@ class Contribution(object):
 
     def __init__(self, directory, read_tables='all',
                  custom_filenames=None, single_file=None):
-
         self.directory = os.path.realpath(directory)
         self.table_names = ['measurements', 'specimens', 'samples',
                             'sites', 'locations', 'contribution',
@@ -140,7 +139,8 @@ class Contribution(object):
 
         # initialize some things
         item_type = table_name
-        col_name = item_type[:-1] + "_name"
+        ###col_name = item_type[:-1] + "_name"
+        col_name = item_type[:-1]
         col_name_plural = col_name + "s"
         table_df = self.tables[item_type].df
         # rename item in its own table
@@ -149,10 +149,10 @@ class Contribution(object):
         for table_name in self.tables:
             df = self.tables[table_name].df
             col_names = df.columns
-            # change anywhere col_name (singular, i.e. site_name) is found
+            # change anywhere col_name (singular, i.e. site) is found
             if col_name in col_names:
                 df[col_name].where(df[col_name] != item_old_name, item_new_name, inplace=True)
-                # change anywhere col_name (plural, i.e. site_names) is found
+                # change anywhere col_name (plural, i.e. sites) is found
             if col_name_plural in col_names:
                 df[col_name_plural + "_list"] = df[col_name_plural].apply(split_if_str)
                 replace_colon_delimited_value(df, col_name_plural + "_list", item_old_name, item_new_name)
@@ -162,12 +162,14 @@ class Contribution(object):
     def get_table_name(self, ind):
         """
         Return both the table_name (i.e., 'specimens')
-        and the col_name (i.e., 'specimen_name')
+        ###and the col_name (i.e., 'specimen_name')
+        and the col_name (i.e., 'specimen')
         for a given index in self.ancestry.
         """
         if ind > -1:
             table_name = self.ancestry[ind]
-            name = table_name[:-1] + "_name"
+            ###name = table_name[:-1] + "_name"
+            name = table_name[:-1]
             return table_name, name
         return "", ""
 
@@ -187,7 +189,7 @@ class Contribution(object):
         # otherwise, do necessary merges to get col_name into df
         # get names for each level
         grandparent_table_name = col_name.split('_')[0] + "s"
-        grandparent_name = grandparent_table_name[:-1] + "_name"
+        grandparent_name = grandparent_table_name[:-1]
         ind = self.ancestry.index(grandparent_table_name) - 1
         #
         parent_table_name, parent_name = self.get_table_name(ind)
@@ -256,7 +258,8 @@ class Contribution(object):
         Put the data for "col_name" from source_df into target_df
         Used to get "azimuth" from sample table into measurements table
         (for example).
-        Note: if getting data from the sample table, don't include "sample_name"
+        ###Note: if getting data from the sample table, don't include "sample_name"
+        Note: if getting data from the sample table, don't include "sample"
         in the col_names list.  It is included automatically.
         """
         # make sure target table is read in
@@ -281,7 +284,8 @@ class Contribution(object):
             print "-W- Invalid or missing column names, could not propagate down"
             return
         
-        add_name = source_df_name[:-1] + "_name"
+        ###add_name = source_df_name[:-1] + "_name"
+        add_name = source_df_name[:-1]
         self.propagate_name_down(add_name, target_df_name)
         #
         target_df = self.tables[target_df_name].df
@@ -324,11 +328,13 @@ class MagicDataFrame(object):
             #
             self.dtype = dtype
             if dtype == 'measurements':
-                self.df['measurement_name'] = self.df['experiment_name'] + self.df['measurement_number']
-                name = 'measurement_name'
+                ###self.df['measurement_name'] = self.df['experiment_name'] + self.df['measurement_number']
+                self.df['measurement'] = self.df['experiment'] + self.df['number']
+                name = 'measurement'
             elif dtype.endswith('s'):
                 dtype = dtype[:-1]
-                name = '{}_name'.format(dtype)
+                ###name = '{}_name'.format(dtype)
+                name = '{}'.format(dtype)
             elif dtype == 'contribution':
                 name = 'doi'
             # fix these:

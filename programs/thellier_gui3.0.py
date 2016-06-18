@@ -183,7 +183,7 @@ import dialogs.thellier_consistency_test as thellier_consistency_test
 import copy
 from copy import deepcopy
 
-import dialogs.thellier_gui_dialogs3.0 as thellier_gui_dialogs
+import dialogs.thellier_gui_dialogs3_0 as thellier_gui_dialogs
 import dialogs.thellier_gui_lib as thellier_gui_lib
 
 matplotlib.rc('xtick', labelsize=10) 
@@ -5133,27 +5133,27 @@ class Arai_GUI(wx.Frame):
         self.MagIC_model["locations"]={}
         self.MagIC_model["ages"]={}
         fail=[]
-        self.MagIC_model["specimens"]=self.read_magic_file(os.path.join(self.WD, "specimens.txt"),1,'specimen_name')
+        self.MagIC_model["specimens"]=self.read_magic_file(os.path.join(self.WD, "specimens.txt"),1,'specimen')
         try:
-            self.MagIC_model["specimens"]=self.read_magic_file(os.path.join(self.WD, "specimens.txt"),1,'specimen_name')
+            self.MagIC_model["specimens"]=self.read_magic_file(os.path.join(self.WD, "specimens.txt"),1,'specimen')
         except:
             self.GUI_log.write ("-W- Cant find specimens.txt in project directory")
             fail.append("specimens.txt")
             pass
         try:
-            self.MagIC_model["samples"]=self.read_magic_file(os.path.join(self.WD, "samples.txt"),1,'sample_name')
+            self.MagIC_model["samples"]=self.read_magic_file(os.path.join(self.WD, "samples.txt"),1,'sample')
         except:
             self.GUI_log.write ("-W- Cant find sample.txt in project directory")
-            fail.append("sample.txt")
+            fail.append("samples.txt")
             pass
         try:
-            self.MagIC_model["sites"]=self.read_magic_file(os.path.join(self.WD, "sites.txt"),1,'site_name')
+            self.MagIC_model["sites"]=self.read_magic_file(os.path.join(self.WD, "sites.txt"),1,'site')
         except:
             self.GUI_log.write ("-W- Cant find sites.txt in project directory")
             fail.append("sites.txt")
             pass
         try:
-            self.MagIC_model["locations"]=self.read_magic_file(os.path.join(self.WD, "locations.txt"),1,'location_name')
+            self.MagIC_model["locations"]=self.read_magic_file(os.path.join(self.WD, "locations.txt"),1,'location')
         except:
             self.GUI_log.write ("-W- Cant find locations.txt in project directory")
             fail.append("locations.txt")
@@ -5171,61 +5171,6 @@ class Arai_GUI(wx.Frame):
         return (fail)'''
         
                           
-#    def read_magic_file(self,path,ignore_lines_n,sort_by_this_name):
-#        DATA={}
-#        fin=open(path,'rU')
-#        #ignore first lines
-#        for i in range(ignore_lines_n):
-#            fin.readline()
-#        #header
-#        line=fin.readline()
-#        header=line.strip('\n').split('\t')
-#        #print header
-#        for line in fin.readlines():
-#            if line[0]=="#":
-#                continue
-#            tmp_data={}
-#            tmp_line=line.strip('\n').split('\t')
-#            #print tmp_line
-#            for i in range(len(tmp_line)):
-#                if i>= len(header):
-#                    continue
-#                tmp_data[header[i]]=tmp_line[i]
-#            DATA[tmp_data[sort_by_this_name]]=tmp_data
-#        fin.close()        
-#        return(DATA)
-#                
-#    def read_er_ages_file(self,path,ignore_lines_n,sort_by_these_names):
-#        '''
-#        read er_ages, sort it by site or sample (the header that is not empty)
-#        and convert ages to calender year
-#        
-#        '''
-#        DATA={}
-#        fin=open(path,'rU')
-#        #ignore first lines
-#        for i in range(ignore_lines_n):
-#            fin.readline()
-#        #header
-#        line=fin.readline()
-#        header=line.strip('\n').split('\t')
-#        #print header
-#        for line in fin.readlines():
-#            if line[0]=="#":
-#                continue
-#            tmp_data={}
-#            tmp_line=line.strip('\n').split('\t')
-#            for i in range(len(tmp_line)):
-#                if i>= len(header):
-#                    continue
-#                tmp_data[header[i]]=tmp_line[i]
-#            for name in sort_by_these_names:
-#                if name in tmp_data.keys() and   tmp_data[name] !="": 
-#                    er_ages_rec=self.convert_ages_to_calender_year(tmp_data)
-#                    DATA[tmp_data[name]]=er_ages_rec
-#        fin.close()        
-#        return(DATA)
-#
     def on_menu_convert_to_magic(self,event):
         dia = thellier_gui_dialogs.convert_generic_files_to_MagIC(self.WD)
         dia.Show()
@@ -7519,11 +7464,11 @@ class Arai_GUI(wx.Frame):
 ##              for zerofield in araiblock[0]:
 ##                  Data[s]['zijdblock'].append([zerofield[0],zerofield[1],zerofield[2],zerofield[3],0,'g',""])
 
-          sample=Data[s]['datablock'][0]['sample_name']
+          sample=Data[s]['datablock'][0]['sample']
           if sample not in Data_hierarchy['samples'].keys(): Data_hierarchy['samples'][sample]=[]
-          site=Data[s]['datablock'][0]['site_name']
+          site=Data[s]['datablock'][0]['site']
           if site not in Data_hierarchy['sites'].keys(): Data_hierarchy['sites'][site]=[]         
-          location=Data[s]['datablock'][0]['location_name']
+          location=Data[s]['datablock'][0]['location']
           if location not in Data_hierarchy['locations'].keys(): Data_hierarchy['locations'][location]=[]         
           if s not in Data_hierarchy['samples'][sample]: Data_hierarchy['samples'][sample].append(s)
           if sample not in Data_hierarchy['sites'][site]: Data_hierarchy['sites'][site].append(sample)
@@ -7927,7 +7872,8 @@ class Arai_GUI(wx.Frame):
               Data[s]['zijdblock'].append([zerofield[0],zerofield[1],zerofield[2],zerofield[3],0,'g',""])
            
         zijdblock=Data[s]['zijdblock']
-
+        print zijdblock
+        START HERE
 
 
         Data[s]['araiblock']=araiblock
