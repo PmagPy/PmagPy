@@ -109,10 +109,10 @@ def main():
     contribution = nb.Contribution(dir_path, custom_filenames=fnames, read_tables=['measurements', 'specimens', 'samples','sites'])
 #
 #   import  specimens
-#
-    specimen_cols = ['analyst_names', 'aniso_ftest', 'aniso_ftest12', 'aniso_ftest23', 'aniso_s', 'aniso_s_mean', 'aniso_s_n_measurements', 'aniso_s_sigma', 'aniso_s_unit', 'aniso_tilt_correction', 'aniso_type', 'aniso_v1', 'aniso_v2', 'aniso_v3', 'citations', 'description', 'dir_alpha95', 'dir_comp_name', 'dir_dec', 'dir_inc', 'dir_mad_free', 'dir_n_measurements', 'dir_tilt_correction', 'experiment_names', 'geologic_classes', 'geologic_types', 'hyst_bc', 'hyst_bcr', 'hyst_mr_moment', 'hyst_ms_moment', 'int_abs', 'int_b', 'int_b_beta', 'int_b_sigma', 'int_corr', 'int_dang', 'int_drats', 'int_f', 'int_fvds', 'int_gamma', 'int_mad_free', 'int_md', 'int_n_measurements', 'int_n_ptrm', 'int_q', 'int_rsc', 'int_treat_dc_field', 'lithologies', 'meas_step_max', 'meas_step_min', 'meas_step_unit', 'method_codes', 'sample_name', 'software_packages', 'specimen_name']
+
+    specimen_cols = ['analysts', 'aniso_ftest', 'aniso_ftest12', 'aniso_ftest23', 'aniso_s', 'aniso_s_mean', 'aniso_s_n_measurements', 'aniso_s_sigma', 'aniso_s_unit', 'aniso_tilt_correction', 'aniso_type', 'aniso_v1', 'aniso_v2', 'aniso_v3', 'citations', 'description', 'dir_alpha95', 'dir_comp', 'dir_dec', 'dir_inc', 'dir_mad_free', 'dir_n_measurements', 'dir_tilt_correction', 'experiments', 'geologic_classes', 'geologic_types', 'hyst_bc', 'hyst_bcr', 'hyst_mr_moment', 'hyst_ms_moment', 'int_abs', 'int_b', 'int_b_beta', 'int_b_sigma', 'int_corr', 'int_dang', 'int_drats', 'int_f', 'int_fvds', 'int_gamma', 'int_mad_free', 'int_md', 'int_n_measurements', 'int_n_ptrm', 'int_q', 'int_rsc', 'int_treat_dc_field', 'lithologies', 'meas_step_max', 'meas_step_min', 'meas_step_unit', 'method_codes', 'sample', 'software_packages', 'specimen']
     if 'specimens' in contribution.tables:
-#        contribution.propagate_name_down('sample_name','measurements')
+#        contribution.propagate_name_down('sample','measurements')
         spec_container = contribution.tables['specimens']
         prior_spec_data=spec_container.get_records_for_code('LP-DIR',strict_match=False) # look up all prior directional interpretations
 #
@@ -126,7 +126,7 @@ def main():
 #   import samples  for orientation info
 #
     if 'samples' in contribution.tables:
-#        contribution.propagate_name_down('site_name','measurements')
+#        contribution.propagate_name_down('site','measurements')
         contribution.propagate_cols_down(col_names=['azimuth','dip','orientation_flag'],target_df_name='measurements',source_df_name='samples')
 #
 # define figure numbers for equal area, zijderveld,  
@@ -160,7 +160,7 @@ def main():
 #
 # get list of unique specimen names from measurement data
 #
-    specimen_names= meas_data.specimen_name.unique() # this is a list of all the specimen names
+    specimen_names= meas_data.specimen.unique() # this is a list of all the specimen names
     specimen_names= specimen_names.tolist()
     specimen_names.sort()
 #
@@ -178,7 +178,7 @@ def main():
         this_specimen=specimen_names[k] # set the current specimen for plotting
         if verbose and  this_specimen!="":print this_specimen, k+1 , 'out of ',len(specimen_names)
         if setangle==0:angle=""
-        this_specimen_measurements= meas_data[meas_data['specimen_name'].str.contains(this_specimen)==True] # fish out this specimen
+        this_specimen_measurements= meas_data[meas_data['specimen'].str.contains(this_specimen)==True] # fish out this specimen
         this_specimen_measurements= this_specimen_measurements[this_specimen_measurements['flag'].str.contains('g')==True] # fish out this specimen
         if len(this_specimen_measurements)!=0:  # if there are measurements
 #
@@ -237,7 +237,7 @@ def main():
 #
 #     find prior interpretation
 #
-                prior_specimen_interpretations= prior_spec_data[prior_spec_data['specimen_name'].str.contains(this_specimen)==True] 
+                prior_specimen_interpretations= prior_spec_data[prior_spec_data['specimen'].str.contains(this_specimen)==True] 
                 beg_pcas=pd.to_numeric(prior_specimen_interpretations.meas_step_min.values).tolist()
                 end_pcas=pd.to_numeric(prior_specimen_interpretations.meas_step_max.values).tolist()
                 spec_methods= prior_specimen_interpretations.method_codes.tolist()
@@ -283,9 +283,9 @@ def main():
 #           
 # create a new specimen record for the interpreation for this specimen
                 this_specimen_interpretation={col: "" for col in specimen_cols}
-#               this_specimen_interpretation["analyst_names"]=user
+#               this_specimen_interpretation["analysts"]=user
                 this_specimen_interpretation['software_packages']=version_num
-                this_specimen_interpretation['specimen_name']=this_specimen
+                this_specimen_interpretation['specimen']=this_specimen
                 this_specimen_interpretation["method_codes"]= calculation_type
                 this_specimen_interpretation["meas_step_unit"]= units
                 this_specimen_interpretation["meas_step_min"]= tr[start]
@@ -300,7 +300,7 @@ def main():
                 if "K" in units: methods=methods+":LP-DIR-T"
                 if "J" in units: methods=methods+":LP-DIR-M"
                 this_specimen_interpretation["method_codes"]= methods.strip(':')
-                this_specimen_interpretation["experiment_names"]= this_specimen_measurements.experiment_name.unique()[0]
+                this_specimen_interpretation["experiments"]= this_specimen_measurements.experiment.unique()[0]
 #
 #   print some stuff
 #
@@ -309,9 +309,9 @@ def main():
                   this_specimen_interpretation["dir_alpha95"]= ''
                   if verbose:
                     if units=='K': 
-                        print '%s %i %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f %s \n' % (this_specimen_interpretation["specimen_name"],int(this_specimen_interpretation["dir_n_measurements"]),float(this_specimen_interpretation["dir_mad_free"]),float(this_specimen_interpretation["dir_dang"]),float(this_specimen_interpretation["meas_step_min"])-273,float(this_specimen_interpretation["meas_step_max"])-273,float(this_specimen_interpretation["dir_dec"]),float(this_specimen_interpretation["dir_inc"]),calculation_type)
+                        print '%s %i %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f %s \n' % (this_specimen_interpretation["specimen"],int(this_specimen_interpretation["dir_n_measurements"]),float(this_specimen_interpretation["dir_mad_free"]),float(this_specimen_interpretation["dir_dang"]),float(this_specimen_interpretation["meas_step_min"])-273,float(this_specimen_interpretation["meas_step_max"])-273,float(this_specimen_interpretation["dir_dec"]),float(this_specimen_interpretation["dir_inc"]),calculation_type)
                     elif units== 'T':
-                        print '%s %i %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f %s \n' % (this_specimen_interpretation["specimen_name"],int(this_specimen_interpretation["dir_n_measurements"]),float(this_specimen_interpretation["dir_mad_free"]),float(this_specimen_interpretation["dir_dang"]),float(this_specimen_interpretation["meas_step_min"])*1e3,float(this_specimen_interpretation["meas_step_max"])*1e3,float(this_specimen_interpretation["dir_dec"]),float(this_specimen_interpretation["dir_inc"]),calculation_type)
+                        print '%s %i %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f %s \n' % (this_specimen_interpretation["specimen"],int(this_specimen_interpretation["dir_n_measurements"]),float(this_specimen_interpretation["dir_mad_free"]),float(this_specimen_interpretation["dir_dang"]),float(this_specimen_interpretation["meas_step_min"])*1e3,float(this_specimen_interpretation["meas_step_max"])*1e3,float(this_specimen_interpretation["dir_dec"]),float(this_specimen_interpretation["dir_inc"]),calculation_type)
                     elif 'T' in units and 'K' in units:
                         if float(this_specimen_interpretation['meas_step_min'])<1.0 :
                             min=float(this_specimen_interpretation['meas_step_min'])*1e3
@@ -321,17 +321,17 @@ def main():
                             max=float(this_specimen_interpretation['meas_step_max'])*1e3
                         else:
                             max=float(this_specimen_interpretation['meas_step_max'])-273
-                        print '%s %i %7.1f %i %i %7.1f %7.1f %7.1f %s \n' % (this_specimen_interpretation["specimen_name"],int(this_specimen_interpretation["dir_n_measurements"]),float(this_specimen_interpretation["dir_mad_free"]),float(this_specimen_interpretation["dir_dang"]),min,max,float(this_specimen_interpretation["dir_dec"]),float(this_specimen_interpretation["dir_inc"]),calculation_type)
+                        print '%s %i %7.1f %i %i %7.1f %7.1f %7.1f %s \n' % (this_specimen_interpretation["specimen"],int(this_specimen_interpretation["dir_n_measurements"]),float(this_specimen_interpretation["dir_mad_free"]),float(this_specimen_interpretation["dir_dang"]),min,max,float(this_specimen_interpretation["dir_dec"]),float(this_specimen_interpretation["dir_inc"]),calculation_type)
                     else:
-                        print '%s %i %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f %s \n' % (this_specimen_interpretation["specimen_name"],int(this_specimen_interpretation["dir_n_measurements"]),float(this_specimen_interpretation["dir_mad_free"]),float(this_specimen_interpretation["dir_dang"]),float(this_specimen_interpretation["meas_step_min"]),float(this_specimen_interpretation["meas_step_max"]),float(this_specimen_interpretation["dir_dec"]),float(this_specimen_interpretation["dir_inc"]),calculation_type)
+                        print '%s %i %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f %s \n' % (this_specimen_interpretation["specimen"],int(this_specimen_interpretation["dir_n_measurements"]),float(this_specimen_interpretation["dir_mad_free"]),float(this_specimen_interpretation["dir_dang"]),float(this_specimen_interpretation["meas_step_min"]),float(this_specimen_interpretation["meas_step_max"]),float(this_specimen_interpretation["dir_dec"]),float(this_specimen_interpretation["dir_inc"]),calculation_type)
                 else:
                   this_specimen_interpretation["dir_alpha95"]= '%7.1f'%(mpars['specimen_alpha95'])
                   this_specimen_interpretation["dir_mad_free"]= ''
                   if verbose:
                     if 'K' in units:
-                        print '%s %i %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f %s \n' % (this_specimen_interpretation["specimen_name"],int(this_specimen_interpretation["dir_n_measurments"]),float(this_specimen_interpretation["dir_mad_free"]),float(this_specimen_interpretation["dir_dang"]),float(this_specimen_interpretation["meas_step_min"])-273,float(this_specimen_interpretation["meas_step_max"])-273,float(this_specimen_interpretation["dir_dec"]),float(this_specimen_interpretation["dir_inc"]),calculation_type)
+                        print '%s %i %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f %s \n' % (this_specimen_interpretation["specimen"],int(this_specimen_interpretation["dir_n_measurments"]),float(this_specimen_interpretation["dir_mad_free"]),float(this_specimen_interpretation["dir_dang"]),float(this_specimen_interpretation["meas_step_min"])-273,float(this_specimen_interpretation["meas_step_max"])-273,float(this_specimen_interpretation["dir_dec"]),float(this_specimen_interpretation["dir_inc"]),calculation_type)
                     elif 'T' in units:
-                        print '%s %i %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f %s \n' % (this_specimen_interpretation["specimen_name"],int(this_specimen_interpretation["dir_n_measurements"]),float(this_specimen_interpretation["dir_alpha95"]),float(this_specimen_interpretation["dir_dang"]),float(this_specimen_interpretation["meas_step_min"])*1e3,float(this_specimen_interpretation["meas_step_max"])*1e3,float(this_specimen_interpretation["dir_dec"]),float(this_specimen_interpretation["dir_inc"]),calculation_type)
+                        print '%s %i %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f %s \n' % (this_specimen_interpretation["specimen"],int(this_specimen_interpretation["dir_n_measurements"]),float(this_specimen_interpretation["dir_alpha95"]),float(this_specimen_interpretation["dir_dang"]),float(this_specimen_interpretation["meas_step_min"])*1e3,float(this_specimen_interpretation["meas_step_max"])*1e3,float(this_specimen_interpretation["dir_dec"]),float(this_specimen_interpretation["dir_inc"]),calculation_type)
                     elif 'T' in units and 'K' in units:
                         if float(this_specimen_interpretation['meas_step_min'])<1.0 :
                             min=float(this_specimen_interpretation['meas_step_min'])*1e3
@@ -341,9 +341,9 @@ def main():
                             max=float(this_specimen_interpretation['meas_step_max'])*1e3
                         else:
                             max=float(this_specimen_interpretation['meas_step_max'])-273
-                        print '%s %i %7.1f %i %i %7.1f %7.1f %s \n' % (this_specimen_interpretation["specimen_name"],int(this_specimen_interpretation["dir_n_measurements"]),float(this_specimen_interpretation["dir_alpha95"]),min,max,float(this_specimen_interpretation["dir_dec"]),float(this_specimen_interpretation["dir_inc"]),calculation_type)
+                        print '%s %i %7.1f %i %i %7.1f %7.1f %s \n' % (this_specimen_interpretation["specimen"],int(this_specimen_interpretation["dir_n_measurements"]),float(this_specimen_interpretation["dir_alpha95"]),min,max,float(this_specimen_interpretation["dir_dec"]),float(this_specimen_interpretation["dir_inc"]),calculation_type)
                     else:
-                        print '%s %i %7.1f %7.1f %7.1f %7.1f %7.1f %s \n' % (this_specimen_interpretation["specimen_name"],int(this_specimen_interpretation["dir_n_measurements"]),float(this_specimen_interpretation["dir_alpha95"]),float(this_specimen_interpretation["meas_step_min"]),float(this_specimen_interpretation["meas_step_max"]),float(this_specimen_interpretation["dir_dec"]),float(this_specimen_interpretation["dir_inc"]),calculation_type)
+                        print '%s %i %7.1f %7.1f %7.1f %7.1f %7.1f %s \n' % (this_specimen_interpretation["specimen"],int(this_specimen_interpretation["dir_n_measurements"]),float(this_specimen_interpretation["dir_alpha95"]),float(this_specimen_interpretation["meas_step_min"]),float(this_specimen_interpretation["meas_step_max"]),float(this_specimen_interpretation["dir_dec"]),float(this_specimen_interpretation["dir_inc"]),calculation_type)
                 if verbose:saveit=raw_input("Save this interpretation? [y]/n \n")
 #   START HERE
 #

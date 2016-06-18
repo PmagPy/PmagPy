@@ -234,6 +234,9 @@ class Arai_GUI(wx.Frame):
         
          
         # inialize selecting criteria
+#
+#      START HERE WITH NEW ACCEPTANCE STUFF
+#
         self.acceptance_criteria=pmag.initialize_acceptance_criteria()
         self.add_thellier_gui_criteria()
 #        self.read_criteria_file(os.path.join(self.WD,"criteria.txt"))
