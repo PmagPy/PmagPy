@@ -184,7 +184,7 @@ import copy
 from copy import deepcopy
 
 import dialogs.thellier_gui_dialogs3_0 as thellier_gui_dialogs
-import dialogs.thellier_gui_lib as thellier_gui_lib
+import dialogs.thellier_gui_lib3_0 as thellier_gui_lib
 
 matplotlib.rc('xtick', labelsize=10) 
 matplotlib.rc('ytick', labelsize=10) 
@@ -724,10 +724,9 @@ class Arai_GUI(wx.Frame):
 
         del self.Data[self.s]['pars']
         self.Data[self.s]['pars']={}
-        self.Data[self.s]['pars']['lab_dc_field']=self.Data[self.s]['lab_dc_field']
-        self.Data[self.s]['pars']['er_specimen_name']=self.Data[self.s]['er_specimen_name']   
-        self.Data[self.s]['pars']['er_sample_name']=self.Data[self.s]['er_sample_name']   
-        self.Data[self.s]['pars']['er_sample_name']=self.Data[self.s]['er_sample_name']   
+        self.Data[self.s]['pars']['treat_dc_field']=self.Data[self.s]['treat_dc_field']
+        self.Data[self.s]['pars']['specimen']=self.Data[self.s]['specimen']   
+        self.Data[self.s]['pars']['sample']=self.Data[self.s]['sample']   
         sample=self.Data_hierarchy['specimens'][self.s]
         if sample in self.Data_samples.keys():
             if self.s in self.Data_samples[sample].keys():
@@ -744,7 +743,7 @@ class Arai_GUI(wx.Frame):
         self.tmin_box.SetValue("")
         self.tmax_box.SetValue("")
         self.clear_boxes()
-        self.draw_figure(self.s)
+        self.DRAW_figure(self.s)
         self.draw_sample_mean()
         self.write_sample_box()
         self.close_warning=True
@@ -757,18 +756,18 @@ class Arai_GUI(wx.Frame):
         Update paleointensity statistics in acceptance criteria boxes.
         (after changing temperature bounds or changing specimen)
         """
+# took out the short_name convention
 
         self.ignore_parameters={}
-        for crit_short_name in self.preferences['show_statistics_on_gui']:
-            crit="specimen_"+crit_short_name
+        for crit in self.preferences['show_statistics_on_gui']:
             if self.acceptance_criteria[crit]['value']==-999:
-                command="self.%s_threshold_window.SetValue(\"\")"%crit_short_name
+                command="self.%s_threshold_window.SetValue(\"\")"%crit
                 exec command
-                command="self.%s_threshold_window.SetBackgroundColour(wx.Colour(128, 128, 128))"%crit_short_name
+                command="self.%s_threshold_window.SetBackgroundColour(wx.Colour(128, 128, 128))"%crit
                 exec command
                 self.ignore_parameters[crit]=True
                 continue
-            elif crit=="specimen_scat":
+            elif crit=="int_scat":
                 if self.acceptance_criteria[crit]['value'] in ['g',1,'1',True,"True"]:
                     value="True"
                     #self.scat_threshold_window.SetBackgroundColour(wx.Colour(128, 128, 128))
@@ -787,9 +786,9 @@ class Arai_GUI(wx.Frame):
             else:
                 continue
                     
-            command="self.%s_threshold_window.SetValue('%s')"%(crit_short_name,value)
+            command="self.%s_threshold_window.SetValue('%s')"%(crit,value)
             exec command
-            command="self.%s_threshold_window.SetBackgroundColour(wx.WHITE)"%crit_short_name
+            command="self.%s_threshold_window.SetBackgroundColour(wx.WHITE)"%crit
             exec command
                 
                     
@@ -1051,7 +1050,7 @@ class Arai_GUI(wx.Frame):
         self.tmax_box.SetItems(self.T_list)
         self.tmin_box.SetValue("")
         self.tmax_box.SetValue("")
-        self.Blab_window.SetValue("%.0f"%(float(self.Data[self.s]['pars']['lab_dc_field'])*1e6))
+        self.Blab_window.SetValue("%.0f"%(float(self.Data[self.s]['pars']['treat_dc_field'])*1e6))
         if "saved" in self.Data[self.s]['pars']:
             self.pars=self.Data[self.s]['pars']
             self.update_GUI_with_new_interpretation()
@@ -1076,11 +1075,13 @@ class Arai_GUI(wx.Frame):
       if 'saved' not in self.Data[self.s]['pars'] or self.Data[self.s]['pars']['saved']!= True:
             del self.Data[self.s]['pars']
             self.Data[self.s]['pars']={}
-            self.Data[self.s]['pars']['lab_dc_field']=self.Data[self.s]['lab_dc_field']
-            self.Data[self.s]['pars']['er_specimen_name']=self.Data[self.s]['er_specimen_name']   
-            self.Data[self.s]['pars']['er_sample_name']=self.Data[self.s]['er_sample_name']
+            self.Data[self.s]['pars']['treat_dc_field']=self.Data[self.s]['treat_dc_field']
+            self.Data[self.s]['pars']['treat_dc_field_phi']=self.Data[self.s]['treat_dc_field_phi']
+            self.Data[self.s]['pars']['treat_dc_field_theta']=self.Data[self.s]['treat_dc_field_theta']
+            self.Data[self.s]['pars']['specimen']=self.Data[self.s]['specimen']   
+            self.Data[self.s]['pars']['sample']=self.Data[self.s]['sample']
             # return to last saved interpretation if exist
-            if 'er_specimen_name' in self.last_saved_pars.keys() and self.last_saved_pars['er_specimen_name']==self.s:
+            if 'specimen' in self.last_saved_pars.keys() and self.last_saved_pars['specimen']==self.s:
                 for key in self.last_saved_pars.keys():
                     self.Data[self.s]['pars'][key]=self.last_saved_pars[key]
                 self.last_saved_pars={}
@@ -1103,11 +1104,13 @@ class Arai_GUI(wx.Frame):
       if 'saved' not in self.Data[self.s]['pars'] or self.Data[self.s]['pars']['saved']!= True:
             del self.Data[self.s]['pars']
             self.Data[self.s]['pars']={}
-            self.Data[self.s]['pars']['lab_dc_field']=self.Data[self.s]['lab_dc_field']
-            self.Data[self.s]['pars']['er_specimen_name']=self.Data[self.s]['er_specimen_name']   
-            self.Data[self.s]['pars']['er_sample_name']=self.Data[self.s]['er_sample_name']
+            self.Data[self.s]['pars']['treat_dc_field']=self.Data[self.s]['treat_dc_field']
+            self.Data[self.s]['pars']['treat_dc_field_phi']=self.Data[self.s]['treat_dc_field_phi']
+            self.Data[self.s]['pars']['treat_dc_field_theta']=self.Data[self.s]['treat_dc_field_theta']
+            self.Data[self.s]['pars']['specimen']=self.Data[self.s]['specimen']   
+            self.Data[self.s]['pars']['sample']=self.Data[self.s]['sample']
             # return to last saved interpretation if exist
-            if 'er_specimen_name' in self.last_saved_pars.keys() and self.last_saved_pars['er_specimen_name']==self.s:
+            if 'specimen' in self.last_saved_pars.keys() and self.last_saved_pars['specimen']==self.s:
                 for key in self.last_saved_pars.keys():
                     self.Data[self.s]['pars'][key]=self.last_saved_pars[key]
                 self.last_saved_pars={}
@@ -1594,7 +1597,7 @@ class Arai_GUI(wx.Frame):
         preferences['show_CR_plot']=True
         preferences['BOOTSTRAP_N']=1e4
         preferences['VDM_or_VADM']="VADM"
-        preferences['show_statistics_on_gui']=["int_n","int_ptrm_n","frac","scat","gmax","b_beta","int_mad","int_dang","f","fvds","g","q","drats"]#,'ptrms_dec','ptrms_inc','ptrms_mad','ptrms_angle']
+        preferences['show_statistics_on_gui']=["int_n","int_ptrm_n","int_frac","int_scat","int_gmax","int_b_beta","int_mad","int_dang","int_f","int_fvds","int_g","int_q","int_drats"]#,'ptrms_dec','ptrms_inc','ptrms_mad','ptrms_angle']
         #try to read preferences file:
         try:
             import thellier_gui_preferences
@@ -2248,11 +2251,14 @@ class Arai_GUI(wx.Frame):
                 continue
             tmin=self.Data[specimen]['pars']['meas_step_min']
             tmax=self.Data[specimen]['pars']['meas_step_max']
+            print 'GUI1: ',self.Data.keys()
             pars=thellier_gui_lib.get_PI_parameters(self.Data,self.acceptance_criteria,self.preferences,specimen,tmin,tmax,self.GUI_log,THERMAL,MICROWAVE)
             self.Data[specimen]['pars']=pars
-            self.Data[specimen]['pars']['lab_dc_field']=self.Data[specimen]['lab_dc_field']
-            self.Data[specimen]['pars']['er_specimen_name']=self.Data[specimen]['er_specimen_name']   
-            self.Data[specimen]['pars']['er_sample_name']=self.Data[specimen]['er_sample_name']   
+            self.Data[specimen]['pars']['treat_dc_field']=self.Data[specimen]['treat_dc_field']
+            self.Data[specimen]['pars']['treat_dc_field_phi']=self.Data[specimen]['treat_dc_field_phi']
+            self.Data[specimen]['pars']['treat_dc_field_theta']=self.Data[specimen]['treat_dc_field_theta']
+            self.Data[specimen]['pars']['specimen']=self.Data[specimen]['specimen']   
+            self.Data[specimen]['pars']['sample']=self.Data[specimen]['sample']   
         gframe.Destroy()    
                                
         
@@ -2333,6 +2339,8 @@ class Arai_GUI(wx.Frame):
             del self.Data[sp]['pars']
             self.Data[sp]['pars']={}
             self.Data[sp]['pars']['treat_dc_field']=self.Data[sp]['treat_dc_field']
+            self.Data[sp]['pars']['treat_dc_field_phi']=self.Data[sp]['treat_dc_field_phi']
+            self.Data[sp]['pars']['treat_dc_field_theta']=self.Data[sp]['treat_dc_field_theta']
             self.Data[sp]['pars']['specimen']=self.Data[sp]['specimen']   
             self.Data[sp]['pars']['sample']=self.Data[sp]['sample']   
         self.Data_samples={}
@@ -2680,8 +2688,8 @@ class Arai_GUI(wx.Frame):
                         continue
                     if  "LT-PTRM-I" in rec['method_codes'].split(":"): #  alteration check
                         Alteration_check=CART
-                        Alteration_check_dc_field_phi=float(rec['treatment_dc_field_phi'])
-                        Alteration_check_dc_field_theta=float(rec['treatment_dc_field_theta'])
+                        Alteration_check_dc_field_phi=float(rec['treat_dc_field_phi'])
+                        Alteration_check_dc_field_theta=float(rec['treat_dc_field_theta'])
                         if Alteration_check_dc_field_phi==0 and Alteration_check_dc_field_theta==0 :
                             Alteration_check_index=0
                         if Alteration_check_dc_field_phi==90 and Alteration_check_dc_field_theta==0 :
@@ -2697,27 +2705,27 @@ class Arai_GUI(wx.Frame):
                         aniso_logfile.write(  "-I- found alteration check  for specimen %s\n"%specimen)
                         continue
                     
-                    treatment_dc_field_phi=float(rec['treatment_dc_field_phi'])
-                    treatment_dc_field_theta=float(rec['treatment_dc_field_theta'])
-                    treatment_dc_field=float(rec['treatment_dc_field'])
+                    treat_dc_field_phi=float(rec['treat_dc_field_phi'])
+                    treat_dc_field_theta=float(rec['treat_dc_field_theta'])
+                    treat_dc_field=float(rec['treat_dc_field'])
                     
                     #+x, M[0]
-                    if treatment_dc_field_phi==0 and treatment_dc_field_theta==0 :
+                    if treat_dc_field_phi==0 and treat_dc_field_theta==0 :
                         M[0]=CART
                     #+Y , M[1]
-                    if treatment_dc_field_phi==90 and treatment_dc_field_theta==0 :
+                    if treat_dc_field_phi==90 and treat_dc_field_theta==0 :
                         M[1]=CART
                     #+Z , M[2]
-                    if treatment_dc_field_phi==0 and treatment_dc_field_theta==90 :
+                    if treat_dc_field_phi==0 and treat_dc_field_theta==90 :
                         M[2]=CART
                     #-x, M[3]
-                    if treatment_dc_field_phi==180 and treatment_dc_field_theta==0 :
+                    if treat_dc_field_phi==180 and treat_dc_field_theta==0 :
                         M[3]=CART
                     #-Y , M[4]
-                    if treatment_dc_field_phi==270 and treatment_dc_field_theta==0 :
+                    if treat_dc_field_phi==270 and treat_dc_field_theta==0 :
                         M[4]=CART
                     #-Z , M[5]
-                    if treatment_dc_field_phi==0 and treatment_dc_field_theta==-90 :
+                    if treat_dc_field_phi==0 and treat_dc_field_theta==-90 :
                         M[5]=CART
             
                 # check if at least one measurement in missing
@@ -2728,7 +2736,7 @@ class Arai_GUI(wx.Frame):
 
                 # alteration check        
 
-                anisotropy_alt=0
+                aniso_alt=0
                 if Alteration_check!="":
                     for i in range(len(M)):
                         if Alteration_check_index==i:
@@ -2760,8 +2768,8 @@ class Arai_GUI(wx.Frame):
                     diff_ratio=diff/scipy.mean([M_1,M_2])
                     diff_ratio_perc=100*diff_ratio
                     
-                    if diff_ratio_perc>anisotropy_alt:
-                        anisotropy_alt=diff_ratio_perc
+                    if diff_ratio_perc>aniso_alt:
+                        aniso_alt=diff_ratio_perc
                         
                 if not Reject_specimen:
                 
@@ -2778,15 +2786,14 @@ class Arai_GUI(wx.Frame):
                         Data_anisotropy[specimen]={}
                     aniso_parameters=calculate_aniso_parameters(B,K)
                     Data_anisotropy[specimen]['ATRM']=aniso_parameters
-                    Data_anisotropy[specimen]['ATRM']['anisotropy_alt']="%.2f"%anisotropy_alt               
-                    Data_anisotropy[specimen]['ATRM']['anisotropy_type']="ATRM"
-                    Data_anisotropy[specimen]['ATRM']['er_sample_name']=atrmblock[0]['er_sample_name']
-                    Data_anisotropy[specimen]['ATRM']['er_specimen_name']=specimen
-                    Data_anisotropy[specimen]['ATRM']['er_site_name']=atrmblock[0]['er_site_name']
-                    Data_anisotropy[specimen]['ATRM']['anisotropy_description']='Hext statistics adapted to ATRM'
-                    Data_anisotropy[specimen]['ATRM']['magic_experiment_names']=specimen+";ATRM"
+                    Data_anisotropy[specimen]['ATRM']['aniso_alt']="%.2f"%anisotropy_alt               
+                    Data_anisotropy[specimen]['ATRM']['aniso_type']="ATRM"
+                    Data_anisotropy[specimen]['ATRM']['sample']=atrmblock[0]['sample']
+                    Data_anisotropy[specimen]['ATRM']['specimen']=specimen
+                    #Data_anisotropy[specimen]['ATRM']['site']=atrmblock[0]['site']
+                    Data_anisotropy[specimen]['ATRM']['description']='Hext statistics adapted to ATRM'
+                    Data_anisotropy[specimen]['ATRM']['experiments']=specimen+";ATRM"
                     Data_anisotropy[specimen]['ATRM']['method_codes']="LP-AN-TRM:AE-H"
-                    #Data_anisotropy[specimen]['ATRM']['rmag_anisotropy_name']=specimen
 
 
             if 'aarmblock' in self.Data[specimen].keys():    
@@ -2846,15 +2853,14 @@ class Arai_GUI(wx.Frame):
                     Data_anisotropy[specimen]={}
                 aniso_parameters=calculate_aniso_parameters(B,K)
                 Data_anisotropy[specimen]['AARM']=aniso_parameters
-                Data_anisotropy[specimen]['AARM']['anisotropy_alt']=""               
-                Data_anisotropy[specimen]['AARM']['anisotropy_type']="AARM"
-                Data_anisotropy[specimen]['AARM']['er_sample_name']=aarmblock[0]['er_sample_name']
-                Data_anisotropy[specimen]['AARM']['er_site_name']=aarmblock[0]['er_site_name']
-                Data_anisotropy[specimen]['AARM']['er_specimen_name']=specimen
-                Data_anisotropy[specimen]['AARM']['anisotropy_description']='Hext statistics adapted to AARM'
-                Data_anisotropy[specimen]['AARM']['magic_experiment_names']=specimen+";AARM"
+                Data_anisotropy[specimen]['AARM']['aniso_alt']=""               
+                Data_anisotropy[specimen]['AARM']['aniso_type']="AARM"
+                Data_anisotropy[specimen]['AARM']['sample']=aarmblock[0]['sample']
+                #Data_anisotropy[specimen]['AARM']['site']=aarmblock[0]['site'] # don't put site at specimen level
+                Data_anisotropy[specimen]['AARM']['specimen']=specimen
+                Data_anisotropy[specimen]['AARM']['description']='Hext statistics adapted to AARM'
+                Data_anisotropy[specimen]['AARM']['experiments']=specimen+";AARM"
                 Data_anisotropy[specimen]['AARM']['method_codes']="LP-AN-ARM:AE-H"
-                #Data_anisotropy[specimen]['AARM']['rmag_anisotropy_name']=specimen
                 
 
         #-----------------------------------   
@@ -2886,9 +2892,9 @@ class Arai_GUI(wx.Frame):
                 rmag_anisotropy_file.write(String[:-1]+"\n")
 
                 String=""
-                Data_anisotropy[specimen][TYPE]['er_specimen_names']=Data_anisotropy[specimen][TYPE]['er_specimen_name']
-                Data_anisotropy[specimen][TYPE]['er_sample_names']=Data_anisotropy[specimen][TYPE]['er_sample_name']
-                Data_anisotropy[specimen][TYPE]['er_site_names']=Data_anisotropy[specimen][TYPE]['er_site_name']
+                Data_anisotropy[specimen][TYPE]['specimen']=Data_anisotropy[specimen][TYPE]['specimen']
+                #Data_anisotropy[specimen][TYPE]['er_sample_names']=Data_anisotropy[specimen][TYPE]['er_sample_name']
+                #Data_anisotropy[specimen][TYPE]['er_site_names']=Data_anisotropy[specimen][TYPE]['er_site_name']
                 for i in range (len(rmag_results_header)):
                     try:
                         String=String+Data_anisotropy[specimen][TYPE][rmag_results_header[i]]+'\t'
@@ -2946,1142 +2952,6 @@ class Arai_GUI(wx.Frame):
         dlg1.Destroy()
         return()
         #self.Data=copy.deepcopy      
-#
-#        """
-
-
-#    def find_close_value(self,LIST, value):
-#            '''
-#            take a LIST and find the nearest value in LIST to 'value'
-#            '''
-#            diff=inf
-#            for a in LIST:
-#                if abs(value-a)<diff:
-#                    diff=abs(value-a)
-#                    result=a
-#            return(result)
-#
-#    def find_sample_min_std (self,Intensities): 
-#            '''
-#            find the best interpretation with the minimum stratard deviation (in units of percent % !)
-#            '''
-#                
-#            Best_array=[]
-#            best_array_std_perc=inf
-#            Best_array_tmp=[]
-#            Best_interpretations={}
-#            Best_interpretations_tmp={}
-#            for this_specimen in Intensities.keys():
-#                for value in Intensities[this_specimen]:
-#                    Best_interpretations_tmp[this_specimen]=value
-#                    Best_array_tmp=[value]
-#                    all_other_specimens=Intensities.keys()
-#                    all_other_specimens.remove(this_specimen)
-#                    
-#                    for other_specimen in all_other_specimens:
-#                        closest_value=self.find_close_value(Intensities[other_specimen], value)
-#                        Best_array_tmp.append(closest_value)
-#                        Best_interpretations_tmp[other_specimen]=closest_value                   
-#
-#                    if std(Best_array_tmp,ddof=1)/scipy.mean(Best_array_tmp)<best_array_std_perc:
-#                        Best_array=Best_array_tmp
-#                        best_array_std_perc=std(Best_array,ddof=1)/scipy.mean(Best_array_tmp)
-#                        Best_interpretations=copy.deepcopy(Best_interpretations_tmp)
-#                        Best_interpretations_tmp={}
-#            return Best_interpretations,scipy.mean(Best_array),std(Best_array,ddof=1)
-#                                                               
-#    def pass_or_fail_sigma(self,B,int_sigma_cutoff,int_sigma_perc_cutoff):
-#        #pass_or_fail='fail'
-#        B_mean=scipy.mean(B)
-#        B_sigma=std(B,ddof=1)
-#        B_sigma_perc=100*(B_sigma/B_mean)
-#        
-#        if int_sigma_cutoff==-999 and int_sigma_perc_cutoff==-999:
-#            return('pass')
-#        if  B_sigma<=int_sigma_cutoff*1e6 and int_sigma_cutoff!=-999:
-#            pass_sigma=True
-#        else:
-#            pass_sigma=False
-#        if  B_sigma_perc<=int_sigma_perc_cutoff and int_sigma_perc_cutoff!=-999:
-#            pass_sigma_perc=True
-#        else:
-#            pass_sigma_perc=False
-#        if pass_sigma or pass_sigma_perc:
-#            return('pass')
-#        else:
-#            return('fail')
-#                          
-#        
-#    def find_sample_min_max_interpretation (self,Intensities):
-#
-#          '''
-#          find the minimum and maximum acceptable sample mean
-#          Intensities={}
-#          Intensities[specimen_name]=[] array of acceptable interpretations ( units of uT)         
-#          '''
-#        # acceptance criteria
-#          if self.acceptance_criteria['average_by_sample_or_site']['value']=='sample':
-#            int_n_cutoff=self.acceptance_criteria['sample_int_n']['value']
-#            int_sigma_cutoff=self.acceptance_criteria['sample_int_sigma']['value']
-#            int_sigma_perc_cutoff=self.acceptance_criteria['sample_int_sigma_perc']['value']
-#          else:
-#            int_n_cutoff=self.acceptance_criteria['site_int_n']['value']
-#            int_sigma_cutoff=self.acceptance_criteria['site_int_sigma']['value']
-#            int_sigma_perc_cutoff=self.acceptance_criteria['site_int_sigma_perc']['value']
-#          if int_n_cutoff == -999:
-#            int_n_cutoff=2 
-#          #if int_sigma_cutoff==-999:
-#          #    int_sigma_cutoff=999     
-#          #if int_sigma_perc_cutoff==-999:
-#          #    int_sigma_perc_cutoff=999     
-#          
-#          # make a new dictionary named "tmp_Intensities" with all grade A interpretation sorted. 
-#          tmp_Intensities={}
-#          Acceptable_sample_min_mean,Acceptable_sample_max_mean="",""
-#          for this_specimen in Intensities.keys():
-#            B_list=[B  for B in Intensities[this_specimen]]
-#            if len(B_list)>0:
-#                B_list.sort()
-#                tmp_Intensities[this_specimen]=B_list
-#
-#          # find the minmum acceptable values
-#          while len(tmp_Intensities.keys())>=int_n_cutoff:
-#              B_tmp=[]
-#              B_tmp_min=1e10
-#              for specimen in tmp_Intensities.keys():
-#                  B_tmp.append(min(tmp_Intensities[specimen]))
-#                  if min(tmp_Intensities[specimen])<B_tmp_min:
-#                      specimen_to_remove=specimen
-#                      B_tmp_min=min(tmp_Intensities[specimen])
-#              pass_or_fail=self.pass_or_fail_sigma(B_tmp,int_sigma_cutoff,int_sigma_perc_cutoff)
-#              if pass_or_fail=='pass':
-#                  Acceptable_sample_min_mean=scipy.mean(B_tmp)
-#                  Acceptable_sample_min_std=std(B_tmp,ddof=1)
-#                  #print "min value,std,",scipy.mean(B_tmp),std(B_tmp),100*(std(B_tmp)/scipy.mean(B_tmp))
-#                  break
-#              else:
-#                  tmp_Intensities[specimen_to_remove].remove(B_tmp_min)
-#                  if len(tmp_Intensities[specimen_to_remove])==0:
-#                      break
-#                  
-#                                                                    
-#          tmp_Intensities={}
-#          for this_specimen in Intensities.keys():
-#            B_list=[B  for B in Intensities[this_specimen]]
-#            if len(B_list)>0:
-#                B_list.sort()
-#                tmp_Intensities[this_specimen]=B_list
-#
-#          while len(tmp_Intensities.keys())>=int_n_cutoff:
-#              B_tmp=[]
-#              B_tmp_max=0
-#              for specimen in tmp_Intensities.keys():
-#                  B_tmp.append(max(tmp_Intensities[specimen]))
-#                  if max(tmp_Intensities[specimen])>B_tmp_max:
-#                      specimen_to_remove=specimen
-#                      B_tmp_max=max(tmp_Intensities[specimen])
-#
-#              pass_or_fail=self.pass_or_fail_sigma(B_tmp,int_sigma_cutoff,int_sigma_perc_cutoff)
-#              if pass_or_fail=='pass':                                            
-#              #if std(B_tmp,ddof=1)<=int_sigma_cutoff*1e6 or 100*(std(B_tmp,ddof=1)/scipy.mean(B_tmp))<=int_sigma_perc_cutoff:
-#                  Acceptable_sample_max_mean=scipy.mean(B_tmp)
-#                  Acceptable_sample_max_std=std(B_tmp,ddof=1)
-#                  #print "max value,std,",scipy.mean(B_tmp),std(B_tmp),100*(std(B_tmp)/scipy.mean(B_tmp))
-#
-#                  break
-#              else:
-#                  tmp_Intensities[specimen_to_remove].remove(B_tmp_max)
-#                  if len(tmp_Intensities[specimen_to_remove])<1:
-#                      break
-#
-#          if Acceptable_sample_min_mean=="" or Acceptable_sample_max_mean=="":
-#              return(0.,0.,0.,0.)
-#          return(Acceptable_sample_min_mean,Acceptable_sample_min_std,Acceptable_sample_max_mean,Acceptable_sample_max_std) 
-#
-#        ############
-#        # End function definitions
-#        ############
-#
-#    def thellier_interpreter_pars_calc(self,Grade_As):
-#        '''
-#        calcualte sample or site STDEV-OPT paleointensities
-#        and statistics 
-#        Grade_As={}
-#        
-#        '''
-#        thellier_interpreter_pars={}
-#        thellier_interpreter_pars['stdev-opt']={}
-#        #thellier_interpreter_pars['stdev-opt']['B']=
-#        #thellier_interpreter_pars['stdev-opt']['std']=
-#        thellier_interpreter_pars['min-value']={}
-#        #thellier_interpreter_pars['min-value']['B']=
-#        #thellier_interpreter_pars['min-value']['std']=
-#        thellier_interpreter_pars['max-value']={}
-#        #thellier_interpreter_pars['max-value']['B']=
-#        #thellier_interpreter_pars['max-value']['std']=
-#        thellier_interpreter_pars['fail_criteria']=[]
-#        thellier_interpreter_pars['pass_or_fail']='pass'
-#        
-#        # acceptance criteria
-#        if self.acceptance_criteria['average_by_sample_or_site']['value']=='sample':
-#            int_n_cutoff=self.acceptance_criteria['sample_int_n']['value']
-#            int_sigma_cutoff=self.acceptance_criteria['sample_int_sigma']['value']
-#            int_sigma_perc_cutoff=self.acceptance_criteria['sample_int_sigma_perc']['value']
-#            int_interval_cutoff=self.acceptance_criteria['sample_int_interval_uT']['value']
-#            int_interval_perc_cutoff=self.acceptance_criteria['sample_int_interval_perc']['value']
-#        else:
-#            int_n_cutoff=self.acceptance_criteria['site_int_n']['value']
-#            int_sigma_cutoff=self.acceptance_criteria['site_int_sigma']['value']
-#            int_sigma_perc_cutoff=self.acceptance_criteria['site_int_sigma_perc']['value']
-#            int_interval_cutoff=self.acceptance_criteria['site_int_interval_uT']['value']
-#            int_interval_perc_cutoff=self.acceptance_criteria['site_int_interval_perc']['value']
-#        
-#        N= len(Grade_As.keys())                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   
-#        if N <= 1:
-#           thellier_interpreter_pars['pass_or_fail']='fail'
-#           thellier_interpreter_pars['fail_criteria'].append("int_n")
-#           return(thellier_interpreter_pars)
-#                                
-#        Best_interpretations,best_mean,best_std=self.find_sample_min_std(Grade_As)
-#        sample_acceptable_min,sample_acceptable_min_std,sample_acceptable_max,sample_acceptable_max_std = self.find_sample_min_max_interpretation (Grade_As)
-#        sample_int_interval_uT=sample_acceptable_max-sample_acceptable_min
-#        sample_int_interval_perc=100*((sample_acceptable_max-sample_acceptable_min)/best_mean)       
-#        thellier_interpreter_pars['stdev_opt_interpretations']=Best_interpretations
-#        thellier_interpreter_pars['stdev-opt']['B']=best_mean
-#        thellier_interpreter_pars['stdev-opt']['std']=best_std
-#        thellier_interpreter_pars['stdev-opt']['std_perc']=100.*(best_std/best_mean)    
-#        thellier_interpreter_pars['min-value']['B']=sample_acceptable_min
-#        thellier_interpreter_pars['min-value']['std']=sample_acceptable_min_std
-#        thellier_interpreter_pars['max-value']['B']=sample_acceptable_max
-#        thellier_interpreter_pars['max-value']['std']=sample_acceptable_max_std
-#        thellier_interpreter_pars['sample_int_interval_uT']=sample_int_interval_uT
-#        thellier_interpreter_pars['sample_int_interval_perc']=sample_int_interval_perc
-#
-#        if N < int_n_cutoff:
-#           thellier_interpreter_pars['pass_or_fail']='fail'
-#           thellier_interpreter_pars['fail_criteria'].append("int_n")
-#
-#        
-#                
-#        pass_int_sigma,pass_int_sigma_perc=True,True
-#        pass_int_interval,pass_int_interval_perc=True,True
-#        
-#
-#        if not (int_sigma_cutoff==-999 and int_sigma_perc_cutoff)==-999:
-#            if  best_std<=int_sigma_cutoff*1e6 and int_sigma_cutoff!=-999:
-#                pass_sigma=True
-#            else:
-#                pass_sigma=False
-#            if  100.*(best_std/best_mean)<=int_sigma_perc_cutoff and int_sigma_perc_cutoff!=-999:
-#                pass_sigma_perc=True
-#            else:
-#                pass_sigma_perc=False
-#            if not (pass_sigma or pass_sigma_perc):
-#                thellier_interpreter_pars['pass_or_fail']='fail'
-#                thellier_interpreter_pars['fail_criteria'].append("int_sigma")
-#
-#        if not (int_interval_cutoff==-999 and int_interval_perc_cutoff)==-999:
-#            if  sample_int_interval_uT<=int_interval_perc_cutoff and int_interval_perc_cutoff!=-999:
-#                pass_interval=True
-#            else:
-#                pass_interval=False
-#            if  sample_int_interval_perc<=int_interval_perc_cutoff and int_interval_perc_cutoff!=-999:
-#                pass_interval_perc=True
-#            else:
-#                pass_interval_perc=False
-#            if not (pass_interval or pass_interval_perc):
-#                thellier_interpreter_pars['pass_or_fail']='fail'
-#                thellier_interpreter_pars['fail_criteria'].append("int_interval")
-#                
-#                        
-#
-#                
-#        return(thellier_interpreter_pars )
-#           
-#                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       
-#    def on_menu_run_interpreter(self, event):
-#
-#        """
-#        Run thellier_auto_interpreter
-#        """
-#
-#        import random
-#        import copy
-#        
-#
-#
-#        start_time=time.time()
-#        #------------------------------------------------
-#        # Clean work directory
-#        #------------------------------------------------
-#
-#        #self.write_acceptance_criteria_to_file()
-#        try:
-#            shutil.rmtree(self.WD+"/thellier_interpreter")
-#        except:
-#            pass
-#
-#        try:
-#            os.mkdir(self.WD+"/thellier_interpreter")
-#        except:
-#            pass
-#
-#
-#        #------------------------------------------------
-#        # Intialize interpreter output files:
-#        # Prepare header for "Thellier_auto_interpretation.all.txt" 
-#        # All the acceptable interpretation are saved in this file
-#        #------------------------------------------------
-#
-#        # sort acceptance criteria
-#        specimen_criteria=[]
-#        for crit in self.acceptance_criteria.keys():
-#            if 'category' in self.acceptance_criteria[crit].keys():
-#                if self.acceptance_criteria[crit]['category']=="IE-SPEC":
-#                    if self.acceptance_criteria[crit]['value']!=-999:
-#                        specimen_criteria.append(crit)
-#
-#                                        
-#        # sort acceptance criteria
-#        sample_criteria=[]
-#        for crit in self.acceptance_criteria.keys():
-#            if 'category' in self.acceptance_criteria[crit].keys():
-#                if self.acceptance_criteria[crit]['category']=="IE-SAMP":
-#                    if self.acceptance_criteria[crit]['value']!=-999:
-#                        sample_criteria.append(crit)
-#
-#        # sort acceptance criteria
-#        site_criteria=[]
-#        for crit in self.acceptance_criteria.keys():
-#            if 'category' in self.acceptance_criteria[crit].keys():
-#                if self.acceptance_criteria[crit]['category']=="thellier_gui":
-#                    if self.acceptance_criteria[crit]['value']!=-999:
-#                        site_criteria.append(crit)
-#
-#        # sort acceptance criteria
-#        thellier_gui_criteria=[]
-#        for crit in self.acceptance_criteria.keys():
-#            if 'category' in self.acceptance_criteria[crit].keys():
-#                if self.acceptance_criteria[crit]['category']=="thellier_gui":
-#                    if self.acceptance_criteria[crit]['value']!=-999:
-#                        thellier_gui_criteria.append(crit)
-#                                        
-#        #----------------------------
-#                                                                    
-#        # log file
-#        thellier_interpreter_log=open(self.WD+"/"+"/thellier_interpreter//thellier_interpreter.log",'w')
-#        thellier_interpreter_log.write("-I- Start auto interpreter\n")
-#
-#        # "all grade A interpretation
-#        thellier_interpreter_all=open(self.WD+"/thellier_interpreter/thellier_interpreter_all.txt",'w')
-#        thellier_interpreter_all.write("tab\tpmag_specimens\n")
-#        String="er_specimen_name\tmeasurement_step_min\tmeasurement_step_max\tspecimen_lab_field_dc_uT\tspecimen_int_corr_anisotropy\tspecimen_int_corr_nlt\tspecimen_int_corr_cooling_rate\tspecimen_int_uT\t"
-#        for crit in specimen_criteria: #+ ["specimen_b"] + ['specimen_cm_x'] + ['specimen_cm_y']:
-#            String=String+crit+"\t"
-#        String=String[:-1]+"\n"
-#        thellier_interpreter_all.write(String)
-#
-#        #specimen_bound
-#        Fout_specimens_bounds=open(self.WD+"/thellier_interpreter/thellier_interpreter_specimens_bounds.txt",'w')
-#        String="acceptance criteria:\n"
-#        for crit in specimen_criteria:
-#                String=String+crit+"\t"
-#        Fout_specimens_bounds.write(String[:-1]+"\n")
-#        String=""
-#        for crit in specimen_criteria:
-#            if type(self.acceptance_criteria[crit]['value'])==str:
-#                string=self.acceptance_criteria[crit]['value']
-#            elif type(self.acceptance_criteria[crit]['value'])==bool:
-#                string=str(self.acceptance_criteria[crit]['value'])
-#            elif type(self.acceptance_criteria[crit]['value'])==int or type(self.acceptance_criteria[crit]['value'])==float:
-#                if self.acceptance_criteria[crit]['decimal_points']==-999:
-#                  string="%.3e"%(float(self.acceptance_criteria[crit]['value']))
-#                else:
-#                    command=  "string='%%.%if'%%(self.acceptance_criteria[crit]['value'])"%int(self.acceptance_criteria[crit]['decimal_points'])
-#                    exec command
-#            else:
-#                string=""
-#                
-#            String=String+"%s\t"%string               
-#        Fout_specimens_bounds.write(String[:-1]+"\n")
-#        
-#        Fout_specimens_bounds.write("--------------------------------\n")
-#        Fout_specimens_bounds.write("er_sample_name\ter_specimen_name\tspecimen_int_corr_anisotropy\tAnisotropy_code\tspecimen_int_corr_nlt\tspecimen_int_corr_cooling_rate\tspecimen_lab_field_dc_uT\tspecimen_int_min_uT\tspecimen_int_max_uT\tWARNING\n")
-#
-#
-#        #----------------------------------
-#        
-#        criteria_string="acceptance criteria:\n"
-#        for crit in specimen_criteria + sample_criteria + site_criteria + thellier_gui_criteria:
-#            criteria_string=criteria_string+crit+"\t"
-#        criteria_string=criteria_string[:-1]+"\n"
-#        for crit in specimen_criteria + sample_criteria + site_criteria + thellier_gui_criteria:
-#            if type(self.acceptance_criteria[crit]['value'])==str:
-#                string=self.acceptance_criteria[crit]['value']
-#            elif type(self.acceptance_criteria[crit]['value'])==bool:
-#                string=str(self.acceptance_criteria[crit]['value'])
-#            elif type(self.acceptance_criteria[crit]['value'])==int or type(self.acceptance_criteria[crit]['value'])==float:
-#                if self.acceptance_criteria[crit]['decimal_points']==-999:
-#                  string="%.3e"%(float(self.acceptance_criteria[crit]['value']))
-#                else:
-#                    command=  "string='%%.%if'%%(self.acceptance_criteria[crit]['value'])"%int(self.acceptance_criteria[crit]['decimal_points'])
-#                    exec command
-#            else:
-#                string=""
-#                
-#            criteria_string=criteria_string+"%s\t"%string                       
-#        criteria_string=criteria_string[:-1]+"\n"
-#        criteria_string=criteria_string+"---------------------------------\n"
-#        
-#               
-#        # STDEV-OPT output files
-#        if self.acceptance_criteria['interpreter_method']['value']=='stdev_opt':
-#            Fout_STDEV_OPT_redo=open(self.WD+"/thellier_interpreter/thellier_interpreter_STDEV-OPT_redo",'w')
-#            Fout_STDEV_OPT_specimens=open(self.WD+"/thellier_interpreter/thellier_interpreter_STDEV-OPT_specimens.txt",'w')
-#
-#            Fout_STDEV_OPT_specimens.write("tab\tpmag_specimens\n")
-#            String="er_sample_name\ter_specimen_name\tspecimen_int_uT\tmeasurement_step_min\tmeasurement_step_min\tspecimen_lab_field_dc\tAnisotropy_correction_factor\tNLT_correction_factor\tCooling_rate_correction_factor\t"
-#            for crit in specimen_criteria:
-#                String=String+crit+"\t"        
-#            Fout_STDEV_OPT_specimens.write(String[:-1]+"\n")
-#
-#            if self.acceptance_criteria['average_by_sample_or_site']['value']=='sample':
-#                Fout_STDEV_OPT_samples=open(self.WD+"/thellier_interpreter/thellier_interpreter_STDEV-OPT_samples.txt",'w')
-#                Fout_STDEV_OPT_samples.write(criteria_string)
-#                Fout_STDEV_OPT_samples.write("er_sample_name\tsample_int_n\tsample_int_uT\tsample_int_sigma_uT\tsample_int_sigma_perc\tsample_int_min_uT\tsample_int_min_sigma_uT\tsample_int_max_uT\tsample_int_max_sigma_uT\tsample_int_interval_uT\tsample_int_interval_perc\tWarning\n")
-#            else:
-#                Fout_STDEV_OPT_sites=open(self.WD+"/thellier_interpreter/thellier_interpreter_STDEV-OPT_sites.txt",'w')
-#                Fout_STDEV_OPT_sites.write(criteria_string)
-#                Fout_STDEV_OPT_sites.write("er_site_name\tsite_int_n\tsite_int_uT\tsite_int_sigma_uT\tsite_int_sigma_perc\tsite_int_min_uT\tsite_int_min_sigma_uT\tsite_int_max_uT\tsite_int_max_sigma_uT\tsite_int_interval_uT\tsite_int_interval_perc\tWarning\n")
-#                
-#        # simple bootstrap output files
-#        # Dont supports site yet!
-# 
-#        if self.acceptance_criteria['interpreter_method']['value']=='bs':
-#           Fout_BS_samples=open(self.WD+"/thellier_interpreter/thellier_interpreter_BS_samples.txt",'w')
-#           Fout_BS_samples.write(criteria_string)
-#           #Fout_BS_samples.write("---------------------------------\n")
-#           Fout_BS_samples.write("er_sample_name\tsample_int_n\tsample_int_uT\tsample_int_68_low\tsample_int_68_high\tsample_int_95_low\tsample_int_95_high\tsample_int_sigma_uT\tsample_int_sigma_perc\tWARNING\n")
-#        # parameteric bootstrap output files
-#
-#        if self.acceptance_criteria['interpreter_method']['value']=='bs_par':
-#           Fout_BS_PAR_samples=open(self.WD+"/thellier_interpreter/thellier_interpreter_BS-PAR_samples.txt",'w')
-#           Fout_BS_PAR_samples.write(criteria_string) 
-#           #Fout_BS_PAR_samples.write("---------------------------------\n")
-#           Fout_BS_PAR_samples.write("er_sample_name\tsample_int_n\tsample_int_uT\tsample_int_68_low\tsample_int_68_high\tsample_int_95_low\tsample_int_95_high\tsample_int_sigma_uT\tsample_int_sigma_perc\tWARNING\n")
-#           
-#        thellier_interpreter_log.write("-I- using paleointenisty statistics:\n")
-#        thellier_interpreter_log.write(criteria_string)
-#                                
-#        
-#        #------------------------------------------------
-#
-#        busy_frame=wx.BusyInfo("Running Thellier auto interpreter\n It may take several minutes depending on the number of specimens ...", self)
-#
-#        specimens_list=self.Data.keys()
-#        specimens_list.sort()
-#        thellier_interpreter_log.write("-I- Found %i specimens\n"%(len(specimens_list)))
-#
-#        #try:
-#        All_grade_A_Recs={}
-#        for s in specimens_list:
-#            thellier_interpreter_log.write("-I- doing now specimen %s\n"%s)
-#            self.Data[s]['pars']={}
-#            self.Data[s]['pars']['lab_dc_field']=self.Data[s]['lab_dc_field']
-#            self.Data[s]['pars']['er_specimen_name']=s
-#            self.Data[s]['pars']['er_sample_name']=self.Data_hierarchy['specimens'][s]
-#            temperatures=self.Data[s]['t_Arai']
-#            
-#            # check that all temperatures are in right order:
-#            ignore_specimen=False
-#            for t in range(len(temperatures)-1):
-#                if float(temperatures[t+1])<float(temperatures[t]):
-#                    thellier_interpreter_log.write("-W- Found problem in the temperature order of specimen %s. skipping specimen\n"%(s))
-#                    ignore_specimen=True
-#            if ignore_specimen:
-#                continue
-#            if self.acceptance_criteria['specimen_int_n']['value'] != -999:
-#                specimen_int_n=min(3,int(self.acceptance_criteria['specimen_int_n']['value']))
-#            else:
-#                specimen_int_n=3
-#            #-------------------------------------------------            
-#            # loop through all possible tmin,tmax and check if pass criteria
-#            #-------------------------------------------------
-#            #print s
-#            for tmin_i in range(len(temperatures)-specimen_int_n+1):
-#                # check if to include NRM
-#                #print temperatures
-#                #print  self.acceptance_criteria['include_nrm']['value']
-#                if self.acceptance_criteria['include_nrm']['value']==-999:
-#                    #print " Its False"
-#                    if temperatures[tmin_i]==273:
-#                        continue
-#                    #    print "ignoring NRM",tmin_i,temperatures[tmin_i]
-#                #print tmin_i
-#                for tmax_i in range(tmin_i+specimen_int_n-1,len(temperatures)):
-#                    #print tmax_i
-#                    #print len(temperatures)
-#                    tmin=temperatures[tmin_i]
-#                    tmax=temperatures[tmax_i]
-#                    pars=self.get_PI_parameters(s,tmin,tmax)
-#                    if not pars: # error with getting pars
-#                        message_string = '-W- Problem in SPD. Could not calculate any parameters for {} with tmin: {} and tmax {}. Check data for typos, make sure temperatures are correct, etc.'.format(s, tmin, tmax)
-#                        thellier_interpreter_log.write(message_string+"\n")
-#                        continue
-#                    if 'NLT_specimen_correction_factor' not in pars.keys():
-#                        # problem in get_PI_parameters (probably with tmin/zdata).  can't run specimen
-#                        message_string = '-W- Problem in get_PI_parameters. Could not get all parameters for {} with tmin: {} and tmax: {}. Check data for typos, make sure temperatures are correct, etc.'.format(s, tmin, tmax)
-#                        thellier_interpreter_log.write(message_string+"\n")
-#                        continue
-#                    pars=self.check_specimen_PI_criteria(pars)
-#                    #-------------------------------------------------            
-#                    # check if pass the criteria
-#                    #-------------------------------------------------
-#
-#                    if  'specimen_fail_criteria' in pars.keys() and len(pars['specimen_fail_criteria'])>0:
-#                        # Fail:
-#                        message_string= "-I- specimen %s (%.0f-%.0f) FAIL on: "%(s,float(pars["measurement_step_min"])-273, float(pars["measurement_step_max"])-273)
-#                        for parameter in pars['specimen_fail_criteria']:
-#                            if "scat" not in parameter:
-#                                message_string=message_string+parameter + "= %f,  "%pars[parameter]
-#                            else:
-#                                message_string=message_string+parameter + "= %s,  "%str(pars[parameter])
-#                                
-#                        thellier_interpreter_log.write(message_string+"\n")        
-#                    elif 'specimen_fail_criteria' in pars.keys() and len(pars['specimen_fail_criteria'])==0:
-#
-#                        # PASS:
-#                        message_string = "-I- specimen %s (%.0f-%.0f) PASS"%(s,float(pars["measurement_step_min"])-273, float(pars["measurement_step_max"])-273)
-#                        thellier_interpreter_log.write(message_string+"\n")
-#                        
-#                        #--------------------------------------------------------------
-#                        # Save all the grade A interpretation in thellier_interpreter_all.txt
-#                        #--------------------------------------------------------------
-#
-#                        String=s+"\t"
-#                        String=String+"%.0f\t"%(float(pars["measurement_step_min"])-273.)
-#                        String=String+"%.0f\t"%(float(pars["measurement_step_max"])-273.)
-#                        String=String+"%.0f\t"%(float(pars["lab_dc_field"])*1e6)
-#
-#                        if "Anisotropy_correction_factor" in pars.keys():
-#                           String=String+"%.2f\t"%float(pars["Anisotropy_correction_factor"])
-#                        else:
-#                           String=String+"-\t"
-#                        if  float(pars["NLT_specimen_correction_factor"])!=-999:
-#                           String=String+"%.2f\t"%float(pars["NLT_specimen_correction_factor"])
-#                        else:
-#                           String=String+"-\t"
-#                        if  float(pars["specimen_int_corr_cooling_rate"])!=-999 and float(pars["specimen_int_corr_cooling_rate"])!=-1 :
-#                           String=String+"%.2f\t"%float(pars["specimen_int_corr_cooling_rate"])
-#                        else:
-#                           String=String+"-\t"
-#                        Bancient=float(pars['specimen_int_uT'])
-#                        String=String+"%.1f\t"%(Bancient)
-#                        for key in specimen_criteria:# + ["specimen_b"] + ["specimen_cm_x"] + ["specimen_cm_y"]:
-#                           if type( pars[key])==str:
-#                            String=String+pars[key]+"\t"                               
-#                           else: 
-#                            String=String+"%.3e"%(float(pars[key]))+"\t"
-#                        String=String[:-1]+"\n"
-#
-#                        thellier_interpreter_all.write(String)
-#
-#
-#                        #-------------------------------------------------                    
-#                        # save 'acceptable' (grade A) specimen interpretaion
-#                        # All_grade_A_Recs={}
-#                        # All_grade_A_Recs[specimen_name]["tmin,tmax"]={PI pars sorted in dictionary}
-#                        #-------------------------------------------------
-#                        
-#                        if s not in All_grade_A_Recs.keys():
-#                           All_grade_A_Recs[s]={}
-#                        new_pars={}
-#                        for k in pars.keys():
-#                            new_pars[k]=pars[k]
-#                        TEMP="%.0f,%.0f"%(float(pars["measurement_step_min"])-273,float(pars["measurement_step_max"])-273)
-#                        All_grade_A_Recs[s][TEMP]=new_pars
-#
-#
-#        specimens_list=All_grade_A_Recs.keys()
-#        specimens_list.sort()
-#        Grade_A_samples={}
-#        Grade_A_sites={}
-#        Redo_data_specimens={}
-#        
-#        #--------------------------------------------------------------
-#        # specimens bound file
-#        #--------------------------------------------------------------
-#
-#        for s in specimens_list:
-#
-#            sample=self.Data_hierarchy['specimens'][s]
-#            site=thellier_gui_lib.get_site_from_hierarchy(sample,self.Data_hierarchy)
-#            B_lab=float(self.Data[s]['lab_dc_field'])*1e6
-#            B_min,B_max=1e10,0.
-#            NLT_factor_min,NLT_factor_max=1e10,0.
-#            all_B_tmp_array=[]
-#
-#            for TEMP in All_grade_A_Recs[s].keys():
-#                pars=All_grade_A_Recs[s][TEMP]
-#                if "AC_anisotropy_type" in pars.keys():
-#                    AC_correction_factor=pars["Anisotropy_correction_factor"]
-#                    AC_correction_type=pars["AC_anisotropy_type"]
-#                    WARNING=""
-#                    if "AC_WARNING" in pars.keys():
-#                        WARNING=WARNING+pars["AC_WARNING"]
-#                else:
-#                    AC_correction_factor=1.
-#                    AC_correction_type="-"
-#                    WARNING="WARNING: No anisotropy correction"
-#                
-#                B_anc=pars['specimen_int_uT']
-#                    
-#                if B_anc< B_min:
-#                    B_min=B_anc
-#                if B_anc > B_max:
-#                    B_max=B_anc
-#                if pars["NLT_specimen_correction_factor"]!=-1:
-#                    NLT_f=pars['NLT_specimen_correction_factor']
-#                    if NLT_f< NLT_factor_min:
-#                        NLT_factor_min=NLT_f
-#                    if NLT_f > NLT_factor_max:
-#                        NLT_factor_max=NLT_f                
-#
-#                # sort by samples
-#                #--------------------------------------------------------------
-#                
-#                if sample not in Grade_A_samples.keys():
-#                    Grade_A_samples[sample]={}
-#                if s not in Grade_A_samples[sample].keys() and len(All_grade_A_Recs[s])>0:
-#                    Grade_A_samples[sample][s]=[]
-#
-#                Grade_A_samples[sample][s].append(B_anc)                
-#
-#                # sort by sites
-#                #--------------------------------------------------------------
-#                
-#                if site not in Grade_A_sites.keys():
-#                    Grade_A_sites[site]={}
-#                if s not in Grade_A_sites[site].keys() and len(All_grade_A_Recs[s])>0:
-#                    Grade_A_sites[site][s]=[]
-#                Grade_A_sites[site][s].append(B_anc)                
-#
-#                # ? check
-#                #--------------------------------------------------------------
-#
-#                if s not in Redo_data_specimens.keys():
-#                    Redo_data_specimens[s]={}
-#
-#            # write to specimen_bounds
-#            #--------------------------------------------------------------
-#
-#            if pars["NLT_specimen_correction_factor"] != -1:
-#                NLT_factor="%.2f"%(NLT_factor_max)
-#            else:
-#                NLT_factor="-"
-#
-#            if pars["specimen_int_corr_cooling_rate"] != -1 and pars["specimen_int_corr_cooling_rate"] != -999:
-#                CR_factor="%.2f"%(float(pars["specimen_int_corr_cooling_rate"]))
-#            else:
-#                CR_factor="-"
-#            if 'cooling_rate_data' in  self.Data[s].keys():
-#                if 'CR_correction_factor_flag' in  self.Data[s]['cooling_rate_data'].keys():
-#                    if self.Data[s]['cooling_rate_data']['CR_correction_factor_flag'] != "calculated":
-#                        if "inferred" in self.Data[s]['cooling_rate_data']['CR_correction_factor_flag']:
-#                            WARNING=WARNING+";"+"cooling rate correction inferred from sister specimens"
-#                        if "alteration" in self.Data[s]['cooling_rate_data']['CR_correction_factor_flag']:
-#                            WARNING=WARNING+";"+"cooling rate experiment failed alteration"
-#                        if "bad" in self.Data[s]['cooling_rate_data']['CR_correction_factor_flag']:
-#                            WARNING=WARNING+";"+"cooling rate experiment failed"
-#                
-#            if AC_correction_type =="-":
-#                AC_correction_factor_to_print="-"
-#            else:
-#                AC_correction_factor_to_print="%.2f"%AC_correction_factor
-#            
-#            String="%s\t%s\t%s\t%s\t%s\t%s\t%.1f\t%.1f\t%.1f\t%s\n"\
-#                    %(sample,s,AC_correction_factor_to_print,AC_correction_type,NLT_factor,CR_factor,B_lab,B_min,B_max,WARNING)
-#            Fout_specimens_bounds.write(String)
-#
-#
-#        #--------------------------------------------------------------
-#        # Find the STDEV-OPT 'best mean':
-#        # the interprettaions that give
-#        # the minimum standrad deviation (perc!)
-#        # not nesseserily the standrad deviation in microT
-#        #
-#        #--------------------------------------------------------------
-#
-#        # Sort all grade A interpretation
-#
-#        samples=Grade_A_samples.keys()
-#        samples.sort()
-#
-#        sites=Grade_A_sites.keys()
-#        sites.sort()
-#
-#        #--------------------------------------------------------------        
-#        # clean workspace: delete all previous interpretation
-#        #--------------------------------------------------------------
-#       
-#        for sp in self.Data.keys():
-#            del self.Data[sp]['pars']
-#            self.Data[sp]['pars']={}
-#            self.Data[sp]['pars']['lab_dc_field']=self.Data[sp]['lab_dc_field']
-#            self.Data[sp]['pars']['er_specimen_name']=self.Data[sp]['er_specimen_name']   
-#            self.Data[sp]['pars']['er_sample_name']=self.Data[sp]['er_sample_name']
-#        self.Data_samples={}
-#        self.Data_sites={}
-#        interpreter_redo={}
-#
-#        #--------------------------------------------------------------        
-#        # STDEV can work by averaging specimens by sample (default)
-#        # or by averaging specimens by site
-#        #--------------------------------------------------------------
-#
-#                
-#        if self.acceptance_criteria['average_by_sample_or_site']['value']=='sample':
-#            Grade_A_sorted=copy.deepcopy(Grade_A_samples)
-#             
-#        else:
-#            Grade_A_sorted=copy.deepcopy(Grade_A_sites)
-#
-#        #--------------------------------------------------------------
-#        # check for anistropy issue:
-#        # If the average anisotropy correction in the sample is larger than a threshold value
-#        # and there are enough good specimens with anisotropy correction to pass sample's criteria
-#        # then dont use the uncorrected specimens for sample's calculation. 
-#        #--------------------------------------------------------------
-#        
-#        samples_or_sites=Grade_A_sorted.keys()
-#        samples_or_sites.sort()
-#        #print Grade_A_sorted
-#        for sample_or_site in samples_or_sites:
-#            if self.acceptance_criteria['average_by_sample_or_site']['value']=='sample':
-#                aniso_mean_cutoff = self.acceptance_criteria['sample_aniso_mean']['value']
-#            else:
-#                aniso_mean_cutoff = self.acceptance_criteria['site_aniso_mean']['value']
-#                                
-#            if aniso_mean_cutoff != -999:
-#                if self.acceptance_criteria['average_by_sample_or_site']['value']=='sample':
-#                    int_n = self.acceptance_criteria['sample_int_n']['value']
-#                else:
-#                    int_n = self.acceptance_criteria['site_int_n']['value']
-#                if len(Grade_A_sorted[sample_or_site].keys())>int_n:
-#                    aniso_corrections=[]
-#                    for specimen in Grade_A_sorted[sample_or_site].keys():
-#                        AC_correction_factor_1=0
-#                        for k in All_grade_A_Recs[specimen].keys():
-#                            pars=All_grade_A_Recs[specimen][k]
-#                            if "AC_anisotropy_type" in pars.keys():
-#                                if "AC_WARNING" in pars.keys():
-#                                    if "TRM" in pars["AC_WARNING"] and pars["AC_anisotropy_type"]== "ATRM" and "alteration" in pars["AC_WARNING"]:
-#                                        continue
-#                                    AC_correction_factor_1=max(AC_correction_factor,100*abs(1.-pars["Anisotropy_correction_factor"]))
-#                        if AC_correction_factor_1!=0:
-#                            aniso_corrections.append(AC_correction_factor_1)
-#                    if aniso_corrections!=[]:
-#                        thellier_interpreter_log.write("sample_or_site %s have anisotropy factor mean of %f\n"%(sample_or_site,scipy.mean(aniso_corrections)))
-#
-#                    if scipy.mean(aniso_corrections) > aniso_mean_cutoff:
-#                        tmp_Grade_A_sorted=copy.deepcopy(Grade_A_sorted)
-#                        warning_messeage=""
-#                        WARNING_tmp=""
-#                        #print "sample %s have anisotropy factor mean of %f"%(sample,scipy.mean(aniso_corrections))
-#                        for specimen in Grade_A_sorted[sample_or_site].keys():
-#                            ignore_specimen=False
-#                            intenstities=All_grade_A_Recs[specimen].keys()
-#                            pars=All_grade_A_Recs[specimen][intenstities[0]]
-#                            if "AC_anisotropy_type" not in pars.keys():
-#                                ignore_specimen=True
-#                                warning_messeage = warning_messeage + "-W- WARNING: specimen %s is exluded from sample %s because it doesnt have anisotropy correction, and other specimens are very anistropic\n"%(specimen,sample_or_site)
-#                            elif "AC_WARNING" in pars.keys():
-#                                #if "alteration check" in pars["AC_WARNING"]:
-#                                    if pars["AC_anisotropy_type"]== "ATRM" and "TRM" in pars["AC_WARNING"] and  "alteration" in pars["AC_WARNING"]  : 
-#                                       #or "ARM" in pars["AC_WARNING"] and  pars["AC_anisotropy_type"]== "AARM":
-#                                        ignore_specimen=True
-#                                        warning_messeage = warning_messeage + "-W- WARNING: specimen %s is exluded from sample %s because it failed ATRM alteration check and other specimens are very anistropic\n"%(specimen,sample_or_site)
-#                            if ignore_specimen: 
-#                                
-#                                WARNING_tmp=WARNING_tmp+"excluding specimen %s; "%(specimen)
-#                                del tmp_Grade_A_sorted[sample_or_site][specimen]
-#
-#                                
-#                        #--------------------------------------------------------------
-#                        # calculate the STDEV-OPT best mean (after possible ignoring of specimens with bad anisotropy)
-#                        # and check if pass after ignoring problematic anistopry specimens 
-#                        # if pass: delete the problematic specimens from Grade_A_sorted
-#                        #--------------------------------------------------------------
-#                        
-#                        thellier_interpreter_pars=self.thellier_interpreter_pars_calc(tmp_Grade_A_sorted[sample_or_site])
-#                        if thellier_interpreter_pars['pass_or_fail']=='pass':
-#                            Grade_A_sorted[sample_or_site]=copy.deepcopy(tmp_Grade_A_sorted[sample_or_site])
-#                            WARNING=WARNING_tmp
-#                            thellier_interpreter_log.write(warning_messeage)
-#                        else:
-#                            Grade_A_sorted[sample_or_site]=copy.deepcopy(tmp_Grade_A_sorted[sample_or_site])
-#                            WARNING=WARNING_tmp + "; sample fail criteria"
-#                            thellier_interpreter_log.write(warning_messeage)
-#                            
-#
-#                                
-#            #--------------------------------------------------------------
-#            # check for outlier specimens
-#            # Outlier check is done only if
-#            # (1) number of specimen >= acceptance_criteria['sample_int_n_outlier_check']
-#            # (2) an outlier exists if one (and only one!) specimen has an outlier result defined
-#            # by:
-#            # Bmax(specimen_1) < mean[max(specimen_2),max(specimen_3),max(specimen_3)...] - 2*sigma
-#            # or
-#            # Bmin(specimen_1) < mean[min(specimen_2),min(specimen_3),min(specimen_3)...] + 2*sigma
-#            # (3) 2*sigma > 5 microT
-#            #--------------------------------------------------------------
-#
-#            WARNING=""
-#            # check for outlier specimen
-#            exclude_specimen=""
-#            exclude_specimens_list=[]
-#            if self.acceptance_criteria['average_by_sample_or_site']['value']=='sample':
-#               int_n_outlier_check=self.acceptance_criteria['sample_int_n_outlier_check']['value']
-#            else:
-#               int_n_outlier_check=self.acceptance_criteria['site_int_n_outlier_check']['value']
-#            if int_n_outlier_check==-999:
-#                 int_n_outlier_check=9999   
-#               
-#            if len(Grade_A_sorted[sample_or_site].keys())>=int_n_outlier_check:
-#                thellier_interpreter_log.write( "-I- check outlier for sample %s \n"%sample)
-#                all_specimens=Grade_A_sorted[sample_or_site].keys()
-#                for specimen in all_specimens:
-#                    B_min_array,B_max_array=[],[]
-#                    for specimen_b in all_specimens:
-#                        if specimen_b==specimen: continue
-#                        B_min_array.append(min(Grade_A_sorted[sample_or_site][specimen_b]))
-#                        B_max_array.append(max(Grade_A_sorted[sample_or_site][specimen_b]))
-#                    if max(Grade_A_sorted[sample_or_site][specimen]) < (scipy.mean(B_min_array) - 2*std(B_min_array,ddof=1)):# and 2*std(B_min_array,ddof=1) >3.:
-#                        if specimen not in exclude_specimens_list:
-#                            exclude_specimens_list.append(specimen)
-#                    if min(Grade_A_sorted[sample_or_site][specimen]) > (scipy.mean(B_max_array) + 2*std(B_max_array,ddof=1)):# and 2*std(B_max_array,ddof=1) >3 :
-#                           if specimen not in exclude_specimens_list:
-#                            exclude_specimens_list.append(specimen)
-#                         
-#                if len(exclude_specimens_list)>1:
-#                    thellier_interpreter_log.write( "-I- specimen %s outlier check: more than one specimen can be outlier. first ones are : %s,%s... \n" %(sample,exclude_specimens_list[0],exclude_specimens_list[1]))
-#                    exclude_specimens_list=[]
-#
-#                if len(exclude_specimens_list)==1 :
-#                    #print exclude_specimens_list
-#                    exclude_specimen=exclude_specimens_list[0]
-#                    del Grade_A_sorted[sample_or_site][exclude_specimen]
-#                    thellier_interpreter_log.write( "-W- WARNING: specimen %s is exluded from sample %s because of an outlier result.\n"%(exclude_specimens_list[0],sample))
-#                    WARNING=WARNING+"excluding specimen %s; "%(exclude_specimens_list[0])
-#
-#           
-#            #--------------------------------------------------------------
-#            #  display all the specimens that passes criteria  after the interpreter ends running.
-#            #--------------------------------------------------------------
-#
-#
-#            # if only one specimen pass take the interpretation with maximum frac
-#            
-#            if len(Grade_A_sorted[sample_or_site].keys()) == 1:
-#                specimen=Grade_A_sorted[sample_or_site].keys()[0]
-#                frac_max=0
-#                for TEMP in All_grade_A_Recs[specimen].keys():
-#                    if All_grade_A_Recs[specimen][TEMP]['specimen_frac']>frac_max:
-#                        best_intensity=All_grade_A_Recs[specimen][TEMP]['specimen_int_uT']
-#                for TEMP in All_grade_A_Recs[specimen].keys():                        
-#                    if All_grade_A_Recs[specimen][TEMP]['specimen_int_uT']==best_intensity:
-#                        self.Data[specimen]['pars'].update(All_grade_A_Recs[specimen][TEMP])
-#                        self.Data[specimen]['pars']['saved']=True
-#                        sample=self.Data_hierarchy['specimens'][specimen]
-#                        if sample not in self.Data_samples.keys():
-#                          self.Data_samples[sample]={}
-#                        if specimen not in self.Data_samples[sample].keys():
-#                          self.Data_samples[sample][specimen]={}
-#                            
-#                        self.Data_samples[sample][specimen]['B']=self.Data[specimen]['pars']['specimen_int_uT']
-#
-#                        site=thellier_gui_lib.get_site_from_hierarchy(sample,self.Data_hierarchy)
-#                        if site not in self.Data_sites.keys():
-#                          self.Data_sites[site]={}
-#                        if specimen not in self.Data_sites[site].keys():
-#                          self.Data_sites[site][specimen]={}
-#                        self.Data_sites[site][specimen]['B']=self.Data[specimen]['pars']['specimen_int_uT']
-#
-#                                                
-#            if len(Grade_A_sorted[sample_or_site].keys()) > 1:
-#                thellier_interpreter_pars=self.thellier_interpreter_pars_calc(Grade_A_sorted[sample_or_site])
-#                Best_interpretations,best_mean,best_std=self.find_sample_min_std(Grade_A_sorted[sample_or_site])
-#                for specimen in Grade_A_sorted[sample_or_site].keys():
-#                    for TEMP in All_grade_A_Recs[specimen].keys():
-#                        if All_grade_A_Recs[specimen][TEMP]['specimen_int_uT']==thellier_interpreter_pars['stdev_opt_interpretations'][specimen]:    #Best_interpretations[specimen]:
-#                            self.Data[specimen]['pars'].update(All_grade_A_Recs[specimen][TEMP])
-#                            self.Data[specimen]['pars']['saved']=True
-#                            sample=self.Data_hierarchy['specimens'][specimen]
-#                            if sample not in self.Data_samples.keys():
-#                              self.Data_samples[sample]={}
-#                            if specimen not in self.Data_samples[sample].keys():
-#                              self.Data_samples[sample][specimen]={}
-#                            self.Data_samples[sample][specimen]['B']=self.Data[specimen]['pars']['specimen_int_uT']
-#                            site=thellier_gui_lib.get_site_from_hierarchy(sample,self.Data_hierarchy)
-#                            if site not in self.Data_sites.keys():
-#                                self.Data_sites[site]={}
-#                            if specimen not in self.Data_sites.keys():
-#                              self.Data_sites[site][specimen]={}
-#                            self.Data_sites[site][specimen]['B']=self.Data[specimen]['pars']['specimen_int_uT']
-#                            
-#
-#             #--------------------------------------------------------------
-#             # check if ATRM and cooling rate data exist
-#             #--------------------------------------------------------------
-#
-#
-#            if self.acceptance_criteria['interpreter_method']['value']=='stdev_opt':
-#                n_anistropy=0
-#                n_anistropy_fail=0
-#                n_anistropy_pass=0
-#                for specimen in Grade_A_sorted[sample_or_site].keys():
-#                    if "AniSpec" in self.Data[specimen].keys():
-#                        n_anistropy+=1
-#                        if 'pars' in self.Data[specimen].keys() and "AC_WARNING" in  self.Data[specimen]['pars'].keys():
-#                            #if "F-test" in self.Data[specimen]['pars']["AC_WARNING"] \
-#                            if  self.Data[specimen]['pars']["AC_anisotropy_type"]=='ATRM' and "alteration" in self.Data[specimen]['pars']["AC_WARNING"]:
-#                                n_anistropy_fail+=1
-#                            else:
-#                                n_anistropy_pass+=1
-#                               
-#                                 
-#                            
-#                no_cooling_rate=True
-#                n_cooling_rate=0
-#                n_cooling_rate_pass=0
-#                n_cooling_rate_fail=0
-#                
-#                for specimen in Grade_A_sorted[sample_or_site].keys():
-#                        if "cooling_rate_data" in self.Data[specimen].keys():
-#                            n_cooling_rate+=1
-#                            if "CR_correction_factor" in self.Data[specimen]["cooling_rate_data"].keys():
-#                                if self.Data[specimen]["cooling_rate_data"]["CR_correction_factor"]!= -1 and self.Data[specimen]["cooling_rate_data"]["CR_correction_factor"]!= -999:
-#                                    no_cooling_rate=False
-#                                if 'CR_correction_factor_flag' in self.Data[specimen]["cooling_rate_data"].keys():
-#                                    if 'calculated' in self.Data[specimen]['cooling_rate_data']['CR_correction_factor_flag']:
-#                                        n_cooling_rate_pass+=1
-#                                    elif 'failed'  in self.Data[specimen]['cooling_rate_data']['CR_correction_factor_flag']:
-#                                        n_cooling_rate_fail+=1 
-#                                
-# 
-#             #--------------------------------------------------------------
-#             # calcuate STDEV-OPT 'best means' and write results to files
-#             #--------------------------------------------------------------
-#                if len(Grade_A_sorted[sample_or_site].keys()) > 1 and "int_n" not in thellier_interpreter_pars['fail_criteria']:
-#                #if len(Grade_A_sorted[sample_or_site].keys())>=self.acceptance_criteria['sample_int_n'] and len(Grade_A_sorted[sample_or_site].keys()) > 1:
-#                    #Best_interpretations,best_mean,best_std=self.find_sample_min_std(Grade_A_sorted[sample_or_site])
-#                    #sample_acceptable_min,sample_acceptable_min_std,sample_acceptable_max,sample_acceptable_max_std = self.find_sample_min_max_interpretation (Grade_A_sorted[sample_or_site],self.acceptance_criteria)
-#                    #sample_int_interval_uT=sample_acceptable_max-sample_acceptable_min
-#                    #sample_int_interval_perc=100*((sample_acceptable_max-sample_acceptable_min)/best_mean)       
-#                    TEXT= "-I- sample %s 'STDEV-OPT interpretation: "%sample
-#                    for ss in thellier_interpreter_pars['stdev_opt_interpretations'].keys():
-#                        TEXT=TEXT+"%s=%.1f, "%(ss,thellier_interpreter_pars['stdev_opt_interpretations'][ss])
-#                    thellier_interpreter_log.write(TEXT+"\n")
-#                    thellier_interpreter_log.write("-I- sample %s STDEV-OPT mean=%f, STDEV-OPT std=%f \n"%(sample,thellier_interpreter_pars['stdev-opt']['B'],thellier_interpreter_pars['stdev-opt']['std']))
-#                    thellier_interpreter_log.write("-I- sample %s STDEV-OPT minimum/maximum accepted interpretation  %.2f,%.2f\n" %(sample,thellier_interpreter_pars['min-value']['B'],thellier_interpreter_pars['max-value']['B']))
-#
-#
-#                    # check if interpretation pass criteria for samples:
-#                    #if ( self.acceptance_criteria['sample_int_sigma_uT'] ==0 and self.acceptance_criteria['sample_int_sigma_perc']==0 ) or \
-#                    #   (best_std <= self.acceptance_criteria['sample_int_sigma_uT'] or 100*(best_std/best_mean) <= self.acceptance_criteria['sample_int_sigma_perc']):
-#                    #    if sample_int_interval_uT <= self.acceptance_criteria['sample_int_interval_uT'] or sample_int_interval_perc <= self.acceptance_criteria['sample_int_interval_perc']:
-#                    if thellier_interpreter_pars['pass_or_fail']=='pass':                
-#                            # write the interpretation to a redo file
-#                            for specimen in Grade_A_sorted[sample_or_site].keys():
-#                                #print Redo_data_specimens[specimen]
-#                                for TEMP in All_grade_A_Recs[specimen].keys():
-#                                    if All_grade_A_Recs[specimen][TEMP]['specimen_int_uT']==thellier_interpreter_pars['stdev_opt_interpretations'][specimen]:
-#                                        t_min=All_grade_A_Recs[specimen][TEMP]['measurement_step_min']
-#                                        t_max=All_grade_A_Recs[specimen][TEMP]['measurement_step_max']
-#                                        
-#                                            
-#                                        Fout_STDEV_OPT_redo.write("%s\t%i\t%i\n"%(specimen,t_min,t_max))
-#
-#                                    # write the interpretation to the specimen file
-#                                        #B_lab=float(Redo_data_specimens[specimen][Best_interpretations[specimen]]['lab_dc_field'])*1e6
-#                                        B_lab=float(All_grade_A_Recs[specimen][TEMP]['lab_dc_field'])*1e6
-#                                        sample=All_grade_A_Recs[specimen][TEMP]['er_sample_name']
-#                                        if "Anisotropy_correction_factor" in All_grade_A_Recs[specimen][TEMP].keys():
-#                                            Anisotropy_correction_factor="%.2f"%(All_grade_A_Recs[specimen][TEMP]["Anisotropy_correction_factor"])
-#                                            #AC_correction_type=pars["AC_anisotropy_type"]
-#                                        #if 'AC_specimen_correction_factor' in All_grade_A_Recs[specimen][TEMP].keys():
-#                                        #    Anisotropy_correction_factor="%.2f"%float(All_grade_A_Recs[specimen][TEMP]['AC_specimen_correction_factor'])
-#                                        else:
-#                                            Anisotropy_correction_factor="-"                
-#                                        if  All_grade_A_Recs[specimen][TEMP]["NLT_specimen_correction_factor"] != -1:
-#                                            NLT_correction_factor="%.2f"%float(All_grade_A_Recs[specimen][TEMP]['NLT_specimen_correction_factor'])
-#                                        else:
-#                                            NLT_correction_factor="-"
-#
-#                                        if  All_grade_A_Recs[specimen][TEMP]["specimen_int_corr_cooling_rate"] != -999 and All_grade_A_Recs[specimen][TEMP]["specimen_int_corr_cooling_rate"] != -1:
-#                                            CR_correction_factor="%.2f"%float(All_grade_A_Recs[specimen][TEMP]['specimen_int_corr_cooling_rate'])
-#                                        else:
-#                                            CR_correction_factor="-"
-#
-#                                        Fout_STDEV_OPT_specimens.write("%s\t%s\t%.2f\t%i\t%i\t%.0f\t%s\t%s\t%s\t"\
-#                                                             %(sample_or_site,specimen,float(thellier_interpreter_pars['stdev_opt_interpretations'][specimen]),t_min-273,t_max-273,B_lab,Anisotropy_correction_factor,NLT_correction_factor,CR_correction_factor))
-#                                        String=""
-#                                        for key in specimen_criteria:
-#                                            if type(All_grade_A_Recs[specimen][TEMP][key])==str:
-#                                                String=String+All_grade_A_Recs[specimen][TEMP][key]+"\t"
-#                                            else:
-#                                                String=String+"%.2f"%(All_grade_A_Recs[specimen][TEMP][key])+"\t"
-#                                        Fout_STDEV_OPT_specimens.write(String[:-1]+"\n")
-#                                                     
-#                            # write the interpretation to the sample file
-#                          
-#                            if n_anistropy == 0:
-#                                 WARNING=WARNING+"No anisotropy corrections; "
-#                            else:    
-#                                 WARNING=WARNING+"%i / %i specimens pass anisotropy criteria; "%(int(n_anistropy)-int(n_anistropy_fail),int(n_anistropy))
-#                            
-#                            if no_cooling_rate:
-#                                 WARNING=WARNING+" No cooling rate corrections; "
-#                            else:
-#                                 WARNING=WARNING+ "%i / %i specimens pass cooling rate criteria ;"%(int(n_cooling_rate_pass),int(n_cooling_rate))
-#                                                      
-#                            String="%s\t%i\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t%.3f\t%.2f\t%.2f\t%s\n"%\
-#                            (sample_or_site,len(thellier_interpreter_pars['stdev_opt_interpretations']),\
-#                            thellier_interpreter_pars['stdev-opt']['B'],\
-#                            thellier_interpreter_pars['stdev-opt']['std'],\
-#                            thellier_interpreter_pars['stdev-opt']['std_perc'],\
-#                            thellier_interpreter_pars['min-value']['B'],\
-#                            thellier_interpreter_pars['min-value']['std'],\
-#                            thellier_interpreter_pars['max-value']['B'],\
-#                            thellier_interpreter_pars['max-value']['std'],\
-#                            thellier_interpreter_pars['sample_int_interval_uT'],\
-#                            thellier_interpreter_pars['sample_int_interval_perc'],\
-#                            WARNING)
-#                            if self.acceptance_criteria['average_by_sample_or_site']['value']=='sample':
-#                                Fout_STDEV_OPT_samples.write(String)
-#                            else:
-#                                Fout_STDEV_OPT_sites.write(String)
-#                                
-#                    else:
-#                         thellier_interpreter_log.write("-I- sample %s FAIL on %s\n"%(sample,":".join(thellier_interpreter_pars['fail_criteria']) ) )                    
-#                                                                            
-#        #--------------------------------------------------------------
-#        # calcuate Bootstarp and write results to files
-#        #--------------------------------------------------------------
-#            if self.acceptance_criteria['interpreter_method']['value']=='bs' or self.acceptance_criteria['interpreter_method']['value']=='bs_par':
-#               if self.acceptance_criteria['interpreter_method']['value']=='bs':
-#                    #logfile=thellier_interpreter_log
-#                    results_file=Fout_BS_samples
-#               if self.acceptance_criteria['interpreter_method']['value']=='bs_par':
-#                    #logfile=thellier_interpreter_log
-#                    results_file=Fout_BS_PAR_samples
-#               BOOTSTRAP_N=int(self.preferences['BOOTSTRAP_N'])
-#               String="-I- caclulating bootstrap statistics for sample %s (N=%i)"%(sample,int(BOOTSTRAP_N))
-#               #print String
-#               thellier_interpreter_log.write(String)
-#               
-#               Grade_A_samples_BS={} 
-#               if len(Grade_A_sorted[sample_or_site].keys()) >= self.acceptance_criteria['sample_int_n']['value']:
-#                   for specimen in Grade_A_sorted[sample_or_site].keys():
-#                        if specimen not in Grade_A_samples_BS.keys() and len(Grade_A_sorted[sample_or_site][specimen])>0:
-#                           Grade_A_samples_BS[specimen]=[]
-#                        #for B in Grade_A_samples_BS[sample][specimen]:
-#                        for B in Grade_A_sorted[sample_or_site][specimen]:
-#                           Grade_A_samples_BS[specimen].append(B)
-#                        Grade_A_samples_BS[specimen].sort()
-#                        specimen_int_max_slope_diff=max(Grade_A_samples_BS[specimen])/min(Grade_A_samples_BS[specimen])
-#                        if specimen_int_max_slope_diff>self.acceptance_criteria['specimen_int_max_slope_diff']:
-#                           thellier_interpreter_log.write( "-I- specimen %s Failed specimen_int_max_slope_diff\n"%specimen,Grade_A_samples_BS[specimen])
-#                           del Grade_A_samples_BS[specimen]
-# 
-#               if len(Grade_A_samples_BS.keys())>=self.acceptance_criteria['sample_int_n']['value']:        
-#                   BS_means_collection=[]
-#                   for i in range(BOOTSTRAP_N):
-#                       B_BS=[]
-#                       for j in range(len(Grade_A_samples_BS.keys())):
-#                           LIST=list(Grade_A_samples_BS.keys())
-#                           specimen=random.choice(LIST)
-#                           if self.acceptance_criteria['interpreter_method']['value']=='bs':
-#                               B=random.choice(Grade_A_samples_BS[specimen])
-#                           if self.acceptance_criteria['interpreter_method']['value']=='bs_par':
-#                               B=random.uniform(min(Grade_A_samples_BS[specimen]),max(Grade_A_samples_BS[specimen]))
-#                           B_BS.append(B)
-#                       BS_means_collection.append(scipy.mean(B_BS))
-#                       
-#                   BS_means=array(BS_means_collection)
-#                   BS_means.sort()
-#                   sample_median=median(BS_means)
-#                   sample_std=std(BS_means,ddof=1)
-#                   sample_68=[BS_means[(0.16)*len(BS_means)],BS_means[(0.84)*len(BS_means)]]
-#                   sample_95=[BS_means[(0.025)*len(BS_means)],BS_means[(0.975)*len(BS_means)]]
-#
-#
-#                   thellier_interpreter_log.write( "-I-  bootstrap mean sample %s: median=%f, std=%f\n"%(sample,sample_median,sample_std))
-#                   String="%s\t%i\t%.1f\t%.1f\t%.1f\t%.1f\t%.1f\t%.1f\t%.1f\t%s\n"%\
-#                           (sample,len(Grade_A_samples_BS.keys()),sample_median,sample_68[0],sample_68[1],sample_95[0],sample_95[1],sample_std,100*(sample_std/sample_median),WARNING)
-#                   #print String
-#                   #if self.acceptance_criteria['sample_int_bs']:
-#                   #    Fout_BS_samples.write(String)
-#                   #if self.acceptance_criteria['sample_int_bs_par']:
-#                   #    Fout_BS_PAR_samples.write(String)
-#                   results_file.write(String)
-#               else:
-#                   String="-I- sample %s FAIL: not enough specimen int_n= %i < %i "%(sample,len(Grade_A_samples_BS.keys()),int(self.acceptance_criteria['sample_int_n']['value']))
-#                   #print String
-#                   thellier_interpreter_log.write(String)
-#
-#                                                  
-#        
-#        thellier_interpreter_log.write( "-I- Statistics:\n")
-#        thellier_interpreter_log.write( "-I- number of specimens analzyed = %i\n" % len(specimens_list)  )
-#        thellier_interpreter_log.write( "-I- number of sucsessful 'acceptable' specimens = %i\n" % len(All_grade_A_Recs.keys()))   
-#
-#        runtime_sec = time.time() - start_time
-#        m, s = divmod(runtime_sec, 60)
-#        h, m = divmod(m, 60)
-#        thellier_interpreter_log.write( "-I- runtime hh:mm:ss is " + "%d:%02d:%02d\n" % (h, m, s))
-#        thellier_interpreter_log.write( "-I- Finished sucsessfuly.\n")
-#        thellier_interpreter_log.write( "-I- DONE\n")
-#
-#
-#        # close all files
-#
-#        thellier_interpreter_log.close()
-#        thellier_interpreter_all.close()
-#        Fout_specimens_bounds.close()
-#        if self.acceptance_criteria['interpreter_method']['value']=='stdev_opt': 
-#            Fout_STDEV_OPT_redo.close()
-#            Fout_STDEV_OPT_specimens.close()
-#        if  self.acceptance_criteria['interpreter_method']['value']=='stdev_opt':
-#            if self.acceptance_criteria['average_by_sample_or_site']['value']=='sample':
-#                Fout_STDEV_OPT_samples.close()
-#            else:
-#                Fout_STDEV_OPT_sites.close()
-#           
-#        if self.acceptance_criteria['interpreter_method']['value']=='bs':
-#            Fout_BS_samples.close()
-#
-#        if self.acceptance_criteria['interpreter_method']['value']=='bs_par':
-#            Fout_BS_PAR_samples.close()
-#        #try:
-#        #    os.system('\a')
-#        #except:
-#        #    pass
-#        dlg1 = wx.MessageDialog(self,caption="Message:", message="Interpreter finished sucsessfuly\nCheck output files in folder /thellier_interpreter in the current project directory" ,style=wx.OK|wx.ICON_INFORMATION)
-#
-#
-#        # display the interpretation of the current specimen:
-#        self.pars=self.Data[self.s]['pars']
-#        self.clear_boxes()
-#        #print "about to draw figure" # this is where trouble happens when 1 or 2 specimens are accepted
-#        self.draw_figure(self.s)
-#        #print "just drew figure"
-#        self.update_GUI_with_new_interpretation()
-#
-#        dlg1.ShowModal()
-#        dlg1.Destroy()
-#        busy_frame.Destroy()
 
     #----------------------------------------------------------------------
 
@@ -4137,9 +3007,11 @@ class Arai_GUI(wx.Frame):
         for sp in self.Data.keys():
             del self.Data[sp]['pars']
             self.Data[sp]['pars']={}
-            self.Data[sp]['pars']['lab_dc_field']=self.Data[sp]['lab_dc_field']
-            self.Data[sp]['pars']['er_specimen_name']=self.Data[sp]['er_specimen_name']   
-            self.Data[sp]['pars']['er_sample_name']=self.Data[sp]['er_sample_name']
+            self.Data[sp]['pars']['treat_dc_field']=self.Data[sp]['treat_dc_field']
+            self.Data[sp]['pars']['treat_dc_field_phi']=self.Data[sp]['treat_dc_field_phi']
+            self.Data[sp]['pars']['treat_dc_field_theta']=self.Data[sp]['treat_dc_field_theta']
+            self.Data[sp]['pars']['specimen']=self.Data[sp]['specimen']   
+            self.Data[sp]['pars']['sample']=self.Data[sp]['sample']
             #print sp
             #print self.Data[sp]['pars']
         self.Data_samples={}
@@ -4159,6 +3031,7 @@ class Arai_GUI(wx.Frame):
               if tmin_kelvin not in self.Data[specimen]['t_Arai'] or tmax_kelvin not in self.Data[specimen]['t_Arai'] :
                   self.GUI_log.write ("-W- WARNING: cant fit temperature bounds in the redo file to the actual measurement. specimen %s\n"%specimen)
               else:
+                  print 'GUI2: ',self.Data.keys()
                   self.Data[specimen]['pars']=thellier_gui_lib.get_PI_parameters(self.Data,self.acceptance_criteria,self.preferences,specimen,float(tmin_kelvin),float(tmax_kelvin),self.GUI_log,THERMAL,MICROWAVE)
                   try:
                       self.Data[specimen]['pars']=thellier_gui_lib.get_PI_parameters(self.Data,self.acceptance_criteria,self.preferences,specimen,float(tmin_kelvin),float(tmax_kelvin),self.GUI_log,THERMAL,MICROWAVE)
@@ -6586,373 +5459,20 @@ class Arai_GUI(wx.Frame):
         #if (index_2-index_1)+1 >= self.acceptance_criteria['specimen_int_n']:
         if (index_2-index_1)+1 >= 3:
             if self.Data[self.s]['T_or_MW']!="MW":
+                print 'GUI3: ',self.Data[self.s].keys()
                 self.pars=thellier_gui_lib.get_PI_parameters(self.Data,self.acceptance_criteria, self.preferences,self.s,float(t1)+273.,float(t2)+273.,self.GUI_log,THERMAL,MICROWAVE)
                 self.Data[self.s]['pars'] = self.pars
             else:
+                print 'GUI4: ',self.Data.keys()
                 self.pars=thellier_gui_lib.get_PI_parameters(self.Data,self.acceptance_criteria, self.preferences,self.s,float(t1),float(t2),self.GUI_log,THERMAL,MICROWAVE)
                 self.Data[self.s]['pars'] = self.pars
             self.update_GUI_with_new_interpretation()
 
             
-#    def get_PI_parameters(self,s,tmin,tmax):
-#        #print 'calling get_PI_parameters'
-#        #print 's: {}, tmin: {}, tmax: {}'.format(s, tmin, tmax)
-#
-#        
-#        #pars=self.Data[s]['pars']
-#        datablock = self.Data[s]['datablock']
-#        pars=copy.deepcopy(self.Data[s]['pars']) # assignments to pars are assiging to self.Data[s]['pars']
-#        # get MagIC mothod codes:
-#
-#        #pars['method_codes']="LP-PI-TRM" # thellier Method
-#        import SPD
-#        import SPD.spd as spd
-#        Pint_pars = spd.PintPars(self.Data, str(s), tmin, tmax, 'magic', self.preferences['show_statistics_on_gui'])
-#        Pint_pars.reqd_stats() # calculate only statistics indicated in self.preferences
-#        if not Pint_pars.pars:
-#            print "Could not get any parameters for {}".format(Pint_pars)
-#            return 0
-#        #Pint_pars.calculate_all_statistics() # calculate every statistic available
-#        #print "-D- Debag"
-#        #print Pint_pars.keys()
-#        pars.update(Pint_pars.pars) # 
-#
-#        t_Arai=self.Data[s]['t_Arai']
-#        x_Arai=self.Data[s]['x_Arai']
-#        y_Arai=self.Data[s]['y_Arai']
-#        x_tail_check=self.Data[s]['x_tail_check']
-#        y_tail_check=self.Data[s]['y_tail_check']
-#
-#        zijdblock=self.Data[s]['zijdblock']        
-#        z_temperatures=self.Data[s]['z_temp']
-#
-#        #print tmin,tmax,z_temperatures
-#        # check tmin
-#        if tmin not in t_Arai or tmin not in z_temperatures:
-#            return(pars)
-#        
-#        # check tmax
-#        if tmax not in t_Arai or tmin not in z_temperatures:
-#            return(pars)
-#
-#        start=t_Arai.index(tmin)
-#        end=t_Arai.index(tmax)
-#
-#        zstart=z_temperatures.index(tmin)
-#        zend=z_temperatures.index(tmax)
-#
-#        zdata_segment=self.Data[s]['zdata'][zstart:zend+1]
-#
-#
-#        # replacing PCA for zdata and for ptrms here
-#       
-#
-### removed a bunch of Ron's commented out old code        
-#
-##lj
-#        #-------------------------------------------------
-#        # York regresssion (York, 1967) following Coe (1978)
-#        # calculate f,fvds,
-#        # modified from pmag.py
-#        #-------------------------------------------------               
-#
-#        x_Arai_segment= x_Arai[start:end+1]
-#        y_Arai_segment= y_Arai[start:end+1]
-#        # replace thellier_gui code for york regression here
-#
-#        pars["specimen_int"]=-1*pars['lab_dc_field']*pars["specimen_b"]
-#
-#
-#        # replace thellier_gui code for ptrm checks, DRAT etc. here
-#        # also tail checks and SCAT
-#
-#
-#
-#        # Ron removed this
-#        #-------------------------------------------------  
-#        # Check if specimen pass Acceptance criteria
-#        #-------------------------------------------------  
-#
-#        #pars['specimen_fail_criteria']=[]
-#        #for key in self.high_threshold_velue_list:
-#        #    if key in ['specimen_gmax','specimen_b_beta']:
-#        #        value=round(pars[key],5)
-#        #    elif key in ['specimen_dang','specimen_int_mad']:
-#        #        value=round(pars[key],5)
-#        #    else:
-#        #        value=pars[key]
-#        #        
-#        #    if pars[key]>float(self.acceptance_criteria[key]):
-#        #        pars['specimen_fail_criteria'].append(key)
-#        #for key in self.low_threshold_velue_list:
-#        #    if key in ['specimen_f','specimen_fvds','specimen_frac','specimen_g','specimen_q']:
-#        #        value=round(pars[key],5)
-#        #    else: 
-#        #        value=pars[key]
-#        #    if pars[key] < float(self.acceptance_criteria[key]):
-#        #        pars['specimen_fail_criteria'].append(key)
-#        #if 'specimen_scat' in pars.keys():
-#        #    if pars["specimen_scat"]=="Fail":
-#        #        pars['specimen_fail_criteria'].append('specimen_scat')
-#        #if 'specimen_mad_scat' in pars.keys():
-#        #    if pars["specimen_mad_scat"]=="Fail":
-#        #        pars['specimen_fail_criteria'].append('specimen_mad_scat')
-#
-#
-#        #-------------------------------------------------                     
-#        # Add missing parts of code from old get_PI
-#        #-------------------------------------------------                     
-#
-#        if MICROWAVE==True:
-#            LP_code="LP-PI-M"
-#        else:
-#            LP_code="LP-PI-TRM"
-#                   
-#            
-#        count_IZ= self.Data[s]['steps_Arai'].count('IZ')
-#        count_ZI= self.Data[s]['steps_Arai'].count('ZI')
-#        if count_IZ >1 and count_ZI >1:
-#            pars['method_codes']=LP_code+":"+"LP-PI-BT-IZZI"
-#        elif count_IZ <1 and count_ZI >1:
-#            pars['method_codes']=LP_code+":"+"LP-PI-ZI"
-#        elif count_IZ >1 and count_ZI <1:
-#            pars['method_codes']=LP_code+":"+"LP-PI-IZ"            
-#        else:
-#            pars['method_codes']=LP_code
-#
-#        if 'ptrm_checks_temperatures' in self.Data[s].keys() and len(self.Data[s]['ptrm_checks_temperatures'])>0:
-#            if MICROWAVE==True:
-#                pars['method_codes']+=":LP-PI-ALT-PMRM"
-#            else:
-#                pars['method_codes']+=":LP-PI-ALT-PTRM"
-#                
-#        if 'tail_check_temperatures' in self.Data[s].keys() and len(self.Data[s]['tail_check_temperatures'])>0:
-#            pars['method_codes']+=":LP-PI-BT-MD"
-#
-#        if 'additivity_check_temperatures' in self.Data[s].keys() and len(self.Data[s]['additivity_check_temperatures'])>0:
-#            pars['method_codes']+=":LP-PI-BT"
-#                        
-#        #-------------------------------------------------            
-#        # Calculate anistropy correction factor
-#        #-------------------------------------------------            
-#
-#        if "AniSpec" in self.Data[s].keys():
-#           pars["AC_WARNING"]=""
-#           # if both aarm and atrm tensor axist, try first the aarm. if it fails use the atrm.
-#           if 'AARM' in self.Data[s]["AniSpec"].keys() and 'ATRM' in self.Data[s]["AniSpec"].keys():
-#               TYPES=['AARM','ATRM']
-#           else:
-#               TYPES=self.Data[s]["AniSpec"].keys()
-#           for TYPE in TYPES:
-#               red_flag=False
-#               S_matrix=zeros((3,3),'f')
-#               S_matrix[0,0]=self.Data[s]['AniSpec'][TYPE]['anisotropy_s1']
-#               S_matrix[1,1]=self.Data[s]['AniSpec'][TYPE]['anisotropy_s2']
-#               S_matrix[2,2]=self.Data[s]['AniSpec'][TYPE]['anisotropy_s3']
-#               S_matrix[0,1]=self.Data[s]['AniSpec'][TYPE]['anisotropy_s4']
-#               S_matrix[1,0]=self.Data[s]['AniSpec'][TYPE]['anisotropy_s4']
-#               S_matrix[1,2]=self.Data[s]['AniSpec'][TYPE]['anisotropy_s5']
-#               S_matrix[2,1]=self.Data[s]['AniSpec'][TYPE]['anisotropy_s5']
-#               S_matrix[0,2]=self.Data[s]['AniSpec'][TYPE]['anisotropy_s6']
-#               S_matrix[2,0]=self.Data[s]['AniSpec'][TYPE]['anisotropy_s6']
-#
-#               #self.Data[s]['AniSpec']['anisotropy_type']=self.Data[s]['AniSpec']['anisotropy_type']
-#               self.Data[s]['AniSpec'][TYPE]['anisotropy_n']=int(float(self.Data[s]['AniSpec'][TYPE]['anisotropy_n']))
-#
-#               this_specimen_f_type=self.Data[s]['AniSpec'][TYPE]['anisotropy_type']+"_"+"%i"%(int(self.Data[s]['AniSpec'][TYPE]['anisotropy_n']))
-#               
-#               Ftest_crit={} 
-#               Ftest_crit['ATRM_6']=  3.1059
-#               Ftest_crit['AARM_6']=  3.1059
-#               Ftest_crit['AARM_9']= 2.6848
-#               Ftest_crit['AARM_15']= 2.4558
-#
-#               # threshold value for Ftest:
-#               
-#               if 'AniSpec' in self.Data[s].keys() and TYPE in self.Data[s]['AniSpec'].keys()\
-#                  and 'anisotropy_sigma' in  self.Data[s]['AniSpec'][TYPE].keys() \
-#                  and self.Data[s]['AniSpec'][TYPE]['anisotropy_sigma']!="":
-#                  # Calculate Ftest. If Ftest exceeds threshold value: set anistropy tensor to identity matrix
-#                   sigma=float(self.Data[s]['AniSpec'][TYPE]['anisotropy_sigma'])             
-#                   nf = 3*int(self.Data[s]['AniSpec'][TYPE]['anisotropy_n'])-6
-#                   F=thellier_gui_lib.calculate_ftest(S_matrix,sigma,nf)
-#                   #print s,"F",F
-#                   self.Data[s]['AniSpec'][TYPE]['ftest']=F
-#                   #print "s,sigma,nf,F,Ftest_crit[this_specimen_f_type]"
-#                   #print s,sigma,nf,F,Ftest_crit[this_specimen_f_type]
-#                   if self.acceptance_criteria['anisotropy_ftest_flag']['value'] in ['g','1',1,True,'TRUE','True'] :
-#                       Ftest_threshold=Ftest_crit[this_specimen_f_type]
-#                       if self.Data[s]['AniSpec'][TYPE]['ftest'] < Ftest_crit[this_specimen_f_type]:
-#                           S_matrix=identity(3,'f')
-#                           pars["AC_WARNING"]=pars["AC_WARNING"]+"%s tensor fails F-test; "%(TYPE)
-#                           red_flag=True
-#                           
-#               else:
-#                   self.Data[s]['AniSpec'][TYPE]['anisotropy_sigma']=""
-#                   self.Data[s]['AniSpec'][TYPE]['ftest']=99999
-#     
-#                
-#               if 'anisotropy_alt' in self.Data[s]['AniSpec'][TYPE].keys() and self.Data[s]['AniSpec'][TYPE]['anisotropy_alt']!="":
-#                   if self.acceptance_criteria['anisotropy_alt']['value'] != -999 and \
-#                   (float(self.Data[s]['AniSpec'][TYPE]['anisotropy_alt']) > float(self.acceptance_criteria['anisotropy_alt']['value'])):
-#                       S_matrix=identity(3,'f')
-#                       pars["AC_WARNING"]=pars["AC_WARNING"]+"%s tensor fails alteration check: %.1f > %.1f; "%(TYPE,float(self.Data[s]['AniSpec'][TYPE]['anisotropy_alt']),float(self.acceptance_criteria['anisotropy_alt']['value']))
-#                       red_flag=True
-#               else:
-#                   self.Data[s]['AniSpec'][TYPE]['anisotropy_alt']=""
-#
-#               self.Data[s]['AniSpec'][TYPE]['S_matrix']=S_matrix 
-#           #--------------------------  
-#           # if AARM passes all, use the AARM.
-#           # if ATRM fail alteration use the AARM
-#           # if both fail F-test: use AARM
-#           if len(TYPES)>1:
-#               if "ATRM tensor fails alteration check" in pars["AC_WARNING"]:
-#                   TYPE='AARM'
-#               elif "ATRM tensor fails F-test" in pars["AC_WARNING"]:
-#                   TYPE='AARM'
-#               else: 
-#                   TYPE=='AARM'
-#           S_matrix= self.Data[s]['AniSpec'][TYPE]['S_matrix']
-#           #---------------------------        
-#           TRM_anc_unit=array(pars['specimen_PCA_v1'])/scipy.sqrt(pars['specimen_PCA_v1'][0]**2+pars['specimen_PCA_v1'][1]**2+pars['specimen_PCA_v1'][2]**2)
-#           B_lab_unit=pmag.dir2cart([ self.Data[s]['Thellier_dc_field_phi'], self.Data[s]['Thellier_dc_field_theta'],1])
-#           #B_lab_unit=scipy.array([0,0,-1])
-#           Anisotropy_correction_factor=linalg.norm(dot(inv(S_matrix),TRM_anc_unit.transpose()))*norm(dot(S_matrix,B_lab_unit))
-#           pars["Anisotropy_correction_factor"]=Anisotropy_correction_factor
-#           pars["AC_specimen_int"]= pars["Anisotropy_correction_factor"] * float(pars["specimen_int"])
-#           
-#           pars["AC_anisotropy_type"]=self.Data[s]['AniSpec'][TYPE]["anisotropy_type"]
-#           pars["specimen_int_uT"]=float(pars["AC_specimen_int"])*1e6
-#           if TYPE=='AARM':
-#               if ":LP-AN-ARM" not in pars['method_codes']:
-#                  pars['method_codes']+=":LP-AN-ARM:AE-H:DA-AC-AARM"
-#                  pars['specimen_correction']='c'
-#                  pars['specimen_int_corr_anisotropy']=Anisotropy_correction_factor
-#           if TYPE=='ATRM':
-#               if ":LP-AN-TRM" not in pars['method_codes']:
-#                  pars['method_codes']+=":LP-AN-TRM:AE-H:DA-AC-ATRM"
-#                  pars['specimen_correction']='c' 
-#                  pars['specimen_int_corr_anisotropy']=Anisotropy_correction_factor
-#
-# 
-#        else:
-#           pars["Anisotropy_correction_factor"]=1.0
-#           pars["specimen_int_uT"]=float(pars["specimen_int"])*1e6
-#           pars["AC_WARNING"]="No anistropy correction"
-#           pars['specimen_correction']='u' 
-#
-#        pars["specimen_int_corr_anisotropy"]=pars["Anisotropy_correction_factor"]   
-#        #-------------------------------------------------                    
-#        # NLT and anisotropy correction together in one equation
-#        # See Shaar et al (2010), Equation (3)
-#        #-------------------------------------------------
-#
-#        if 'NLT_parameters' in self.Data[s].keys():
-#
-#           alpha=self.Data[s]['NLT_parameters']['tanh_parameters'][0][0]
-#           beta=self.Data[s]['NLT_parameters']['tanh_parameters'][0][1]
-#           b=float(pars["specimen_b"])
-#           Fa=pars["Anisotropy_correction_factor"]
-#
-#           if ((abs(b)*Fa)/alpha) <1.0:
-#               Banc_NLT=math.atanh( ((abs(b)*Fa)/alpha) ) / beta
-#               pars["NLTC_specimen_int"]=Banc_NLT
-#               pars["specimen_int_uT"]=Banc_NLT*1e6
-#
-#               if "AC_specimen_int" in pars.keys():
-#                   pars["NLT_specimen_correction_factor"]=Banc_NLT/float(pars["AC_specimen_int"])
-#               else:                       
-#                   pars["NLT_specimen_correction_factor"]=Banc_NLT/float(pars["specimen_int"])
-#               if ":LP-TRM" not in pars['method_codes']:
-#                  pars['method_codes']+=":LP-TRM:DA-NL"
-#               pars['specimen_correction']='c' 
-#
-#           else:
-#               self.GUI_log.write ("-W- WARNING: problematic NLT mesurements for specimens %s. Cant do NLT calculation. check data\n"%s)
-#               pars["NLT_specimen_correction_factor"]=-1
-#        else:
-#           pars["NLT_specimen_correction_factor"]=-1
-#
-#        #-------------------------------------------------                    
-#        # Calculate the final result with cooling rate correction
-#        #-------------------------------------------------
-#
-#        pars["specimen_int_corr_cooling_rate"]=-999
-#        if 'cooling_rate_data' in self.Data[s].keys():
-#            if 'CR_correction_factor' in self.Data[s]['cooling_rate_data'].keys():
-#                if self.Data[s]['cooling_rate_data']['CR_correction_factor'] != -1 and self.Data[s]['cooling_rate_data']['CR_correction_factor'] !=-999:
-#                    pars["specimen_int_corr_cooling_rate"]=self.Data[s]['cooling_rate_data']['CR_correction_factor']
-#                    pars['specimen_correction']='c'
-#                    pars["specimen_int_uT"]=pars["specimen_int_uT"]*pars["specimen_int_corr_cooling_rate"]
-#                    if ":DA-CR" not in pars['method_codes']:
-#                      pars['method_codes']+=":DA-CR"
-#                    if   'CR_correction_factor_flag' in self.Data[s]['cooling_rate_data'].keys():
-#                        if self.Data[s]['cooling_rate_data']['CR_correction_factor_flag']=="calculated":
-#                            pars['CR_flag']="calculated"
-#                        else:
-#                            pars['CR_flag']=""
-#                    if 'CR_correction_factor_flag' in self.Data[s]['cooling_rate_data'].keys() \
-#                       and self.Data[s]['cooling_rate_data']['CR_correction_factor_flag']!="calculated":
-#                        pars["CR_WARNING"]="inferred cooling rate correction"
-#                    
-#                
-#        else:
-#            pars["CR_WARNING"]="no cooling rate correction"
-#            
-#
-#
-#
-#        def combine_dictionaries(d1, d2):
-#            """
-#            combines dict1 and dict2 into a new dict.  
-#            if dict1 and dict2 share a key, the value from dict1 is used
-#            """
-#            for key, value in d2.iteritems():
-#                if key not in d1.keys():
-#                    d1[key] = value
-#            return d1
-#
-#        
-#        self.Data[s]['pars'] = pars
-#        #print pars.keys()
-#
-#        return(pars)
-                
-    #def check_specimen_PI_criteria(self,pars):
-    #    '''
-    #    # Check if specimen pass Acceptance criteria
-    #    '''
-    #    #if 'pars' not in self.Data[specimen].kes():
-    #    #    return
-    #        
-    #    pars['specimen_fail_criteria']=[]
-    #    for crit in self.acceptance_criteria.keys():
-    #        if crit not in pars.keys():
-    #            continue
-    #        if self.acceptance_criteria[crit]['value']==-999:
-    #            continue
-    #        if self.acceptance_criteria[crit]['category']!='IE-SPEC':
-    #            continue
-    #        cutoff_value=self.acceptance_criteria[crit]['value']
-    #        if crit=='specimen_scat':
-    #            if pars["specimen_scat"] in ["Fail",'b',0,'0','FALSE',"False",False]:
-    #                pars['specimen_fail_criteria'].append('specimen_scat')
-    #        elif crit=='specimen_k' or crit=='specimen_k_prime':
-    #            if abs(pars[crit])>cutoff_value:
-    #                pars['specimen_fail_criteria'].append(crit)
-    #        # high threshold value:
-    #        elif self.acceptance_criteria[crit]['threshold_type']=="high":
-    #            if pars[crit]>cutoff_value:
-    #                pars['specimen_fail_criteria'].append(crit)
-    #        elif self.acceptance_criteria[crit]['threshold_type']=="low":
-    #            if pars[crit]<cutoff_value:
-    #                pars['specimen_fail_criteria'].append(crit)
-    #    return pars                                                                                     
                 
     def  draw_interpretation(self):
 
-        if "measurement_step_min" not in self.pars.keys() or "measurement_step_max" not in self.pars.keys():
+        if "meas_step_min" not in self.pars.keys() or "meas_step_max" not in self.pars.keys():
             return()
 
         s=self.s
@@ -6971,8 +5491,8 @@ class Arai_GUI(wx.Frame):
 
 
 
-        start=t_Arai.index(self.pars["measurement_step_min"])
-        end=t_Arai.index(self.pars["measurement_step_max"])
+        start=t_Arai.index(self.pars["meas_step_min"])
+        end=t_Arai.index(self.pars["meas_step_max"])
         
         x_Arai_segment= x_Arai[start:end+1]
         y_Arai_segment= y_Arai[start:end+1]
@@ -6983,7 +5503,7 @@ class Arai_GUI(wx.Frame):
         xx=scipy.array([x_Arai_segment[0],x_Arai_segment[-1]])
         yy=b*xx+a
         self.araiplot.plot(xx,yy,'g-',lw=2,alpha=0.5)
-        if self.acceptance_criteria['specimen_scat']['value'] in [True,"True","TRUE",'1','g']:
+        if self.acceptance_criteria['int_scat']['value'] in [True,"True","TRUE",'1','g']:
             if 'specimen_scat_bounding_line_low' in pars:
                 if pars['specimen_scat_bounding_line_low'] != 0: # prevents error if there are no SCAT lines available
                     yy1=xx*pars['specimen_scat_bounding_line_low'][1]+pars['specimen_scat_bounding_line_low'][0]
@@ -7352,13 +5872,13 @@ class Arai_GUI(wx.Frame):
 #
 #   create measurement dataframe
 #
-      meas_container = contribution.tables['measurements']
 #
 #   propogate sample, site, location names if available
 #    
       if 'specimens' in contribution.tables: contribution.propagate_name_down('sample','measurements')
       if 'samples' in contribution.tables: contribution.propagate_name_down('site','measurements')
       if 'sites' in contribution.tables: contribution.propagate_name_down('location','measurements')
+      meas_container = contribution.tables['measurements']
       meas_data = meas_container.df
 #
       meas_data['method_codes']=meas_data['method_codes'].str.replace(" ","") # get rid of nasty spaces
@@ -7372,9 +5892,7 @@ class Arai_GUI(wx.Frame):
 # 
 # do special Shaar way stuff
 # 
-      meas_data['Thellier_dc_field_uT']=np.array(meas_data["treat_dc_field"],dtype=float)*1e6 # convert to uT
-      meas_data['Thellier_dc_field_phi']=meas_data["treat_dc_field_phi"]
-      meas_data['Thellier_dc_field_theta']=meas_data["treat_dc_field_theta"]
+      meas_data['treat_dc_field_uT']=np.array(meas_data["treat_dc_field"],dtype=float)*1e6 # convert to uT
 # sort data into different dataframes
       thel_data= meas_data[meas_data['method_codes'].str.contains('LP-PI-TRM|LP-PI-M')==True] # fish out steps for plotting
       trm_data = meas_data[meas_data['method_codes'].str.contains('LP-TRM')==True] # get all the TRM acquisition data
@@ -7419,7 +5937,7 @@ class Arai_GUI(wx.Frame):
 
       # get list of unique specimen names
       
-      CurrRec=[]
+      #CurrRec=[]
 
       #print "initialize blocks"
       
@@ -7447,16 +5965,6 @@ class Arai_GUI(wx.Frame):
           Data[s]['atrmblock']=atrmblock.to_dict('records')
           Data[s]['aarmblock']=aarmblock.to_dict('records')
           Data[s]['zijdblock']=zijdblock
-#             if  Data[s]['T_or_MW']=="T" and  'treat_temp' in rec.keys():
-#                 tr = float(rec["treat_temp"])
-#             elif Data[s]['T_or_MW']=="MW" and "measurement_description" in rec.keys():
-#                    MW_step=rec["measurement_description"].strip('\n').split(":")
-#                    for STEP in MW_step:
-#                        if "Number" in STEP:
-#                            tr=float(STEP.split("-")[-1])
-#
-#
-#                                  
 ##          araiblock,field=self.sortarai(Data[s]['datablock'],s,0)
 # NOT SURE THIS IS TAKEN CARE OF
 #
@@ -7487,24 +5995,9 @@ class Arai_GUI(wx.Frame):
 
 # anisotropy data now in specimens.txt      
       #------------------------------------------------
-      # Read anisotropy file from rmag_anisotropy.txt
+      # Read anisotropy file from rmag_anisotropy.txt  =>  Depricated
       #------------------------------------------------
 
-      #if self.WD != "":
-#      rmag_anis_data=[]
-#      results_anis_data=[]
-#      try:
-#          rmag_anis_data,file_type=pmag.magic_read(os.path.join(self.WD, 'rmag_anisotropy.txt'))
-#          self.GUI_log.write( "-I- Anisotropy data read  %s/from rmag_anisotropy.txt\n"%self.WD)
-#      except:
-#          self.GUI_log.write("-W- WARNING cant find rmag_anisotropy in working directory\n")
-#
-#      try:
-#          results_anis_data,file_type=pmag.magic_read(os.path.join(self.WD, 'rmag_results.txt'))
-#          self.GUI_log.write( "-I- Anisotropy data read  %s/from rmag_anisotropy.txt\n"%self.WD)
-          
-#      except:
-#          self.GUI_log.write("-W- WARNING cant find rmag_anisotropy in working directory\n")
 
       anis_data= spec_data[spec_data['method_codes'].str.contains('aniso_')==True] # find the anisotropy records 
       anis_data=anis_data.to_dict('records')
@@ -7582,7 +6075,6 @@ class Arai_GUI(wx.Frame):
                   break
           if not found_labfield:
               continue
-
           # collect the data from trmblock
           M_baseline=0.
           for rec in trmblock:
@@ -7602,7 +6094,7 @@ class Arai_GUI(wx.Frame):
                   M_NLT.append(float(rec['intensity']))'''
                   
     
-          # If cnat find baseline in trm block
+          # If cant find baseline in trm block
           #  search for baseline in the Data block. 
           if M_baseline==0:
               m_tmp=[]
@@ -7852,8 +6344,7 @@ class Arai_GUI(wx.Frame):
            Data_hierarchy['samples'][sample].remove(s)
            continue 
 
-        araiblock,field=self.sortarai(datablock,s,0)
-
+        araiblock,field,phi,theta=self.sortarai(datablock,s,0)
         # thermal or microwave
         rec=datablock[0]
         if "treat_temp" in rec.keys() and rec["treat_temp"]!="":
@@ -7868,24 +6359,26 @@ class Arai_GUI(wx.Frame):
 
         if "LP-PI-II" in Data[s]['datablock'][0]["method_codes"] or "LP-PI-M-II" in Data[s]['datablock'][0]["method_codes"] or "LP-PI-T-II" in Data[s]['datablock'][0]["method_codes"]:
           Data[s]['zijdblock']=[]  
+          print araiblock
           for zerofield in araiblock[0]:
               Data[s]['zijdblock'].append([zerofield[0],zerofield[1],zerofield[2],zerofield[3],0,'g',""])
            
         zijdblock=Data[s]['zijdblock']
-        print zijdblock
-        START HERE
 
 
         Data[s]['araiblock']=araiblock
+        Data[s]['treat_dc_field']=field
+        Data[s]['treat_dc_field_uT']=field*1e6
+        Data[s]['treat_dc_field_phi']=phi
+        Data[s]['treat_dc_field_theta']=theta
         Data[s]['pars']={}
         Data[s]['pars']['treat_dc_field']=field
+        Data[s]['pars']['treat_dc_field_phi']=phi
+        Data[s]['pars']['treat_dc_field_theta']=theta
         Data[s]['pars']['specimen']=s
         Data[s]['pars']['sample']=Data_hierarchy['specimens'][s]
-
-        Data[s]['treat_dc_field']=field
         Data[s]['specimen']=s   
         Data[s]['sample']=Data_hierarchy['specimens'][s]
-        
         first_Z=araiblock[0]
         #if len(first_Z)<3:
             #continue
@@ -7896,7 +6389,7 @@ class Arai_GUI(wx.Frame):
 
       # Fix zijderveld block for Thellier-Thellier protocol (II)
       # (take the vector subtruiction instead of the zerofield steps)
-        araiblock,field=self.sortarai(Data[s]['datablock'],s,0)
+      #  araiblock,field=self.sortarai(Data[s]['datablock'],s,0)
       #if "LP-PI-II" in Data[s]['datablock'][0]["method_codes"] or "LP-PI-M-II" in Data[s]['datablock'][0]["method_codes"] or "LP-PI-T-II" in Data[s]['datablock'][0]["method_codes"]:
       #    for zerofield in araiblock[0]:
       #        Data[s]['zijdblock'].append([zerofield[0],zerofield[1],zerofield[2],zerofield[3],0,'g',""])
@@ -8090,11 +6583,11 @@ class Arai_GUI(wx.Frame):
                 rec=datablock[i]                
                 if (THERMAL and "LT-PTRM-MD" in rec['method_codes'] and float(rec['treat_temp'])==ptrm_tail[k][0])\
                    or\
-                   (MICROWAVE and "LT-PMRM-MD" in rec['method_codes'] and "measurement_description" in rec.keys() and "Step Number-%.0f"%float(ptrm_tail[k][0]) in rec["measurement_description"]):
+                   (MICROWAVE and "LT-PMRM-MD" in rec['method_codes'] and "description" in rec.keys() and "Step Number-%.0f"%float(ptrm_tail[k][0]) in rec["description"]):
                     if THERMAL:
                         starting_temperature=(float(datablock[i-1]['treat_temp']))
                     elif MICROWAVE:
-                        MW_step=datablock[i-1]["measurement_description"].strip('\n').split(":")
+                        MW_step=datablock[i-1]["description"].strip('\n').split(":")
                         for STEP in MW_step:
                             if "Number" in STEP:
                                 starting_temperature=float(STEP.split("-")[-1])
@@ -8238,6 +6731,7 @@ class Arai_GUI(wx.Frame):
 #
 # NEED TO FIX THE get_PI_parameters FUNCTION
 #
+                        #print 'GUI6: ',Data[specimen].keys()
                         Data[specimen]['pars']=thellier_gui_lib.get_PI_parameters(Data,self.acceptance_criteria, self.preferences,specimen,float(tmin_kelvin),float(tmax_kelvin),self.GUI_log,THERMAL,MICROWAVE)
                         Data[specimen]['pars']['saved']=True
                         # write intrepretation into sample data
@@ -8301,86 +6795,9 @@ class Arai_GUI(wx.Frame):
     #--------------------------------------------------------------    
     # Read previuos interpretation from pmag_specimens.txt (if exist)
 
-### THIS IS DEPRECATED
+### THIS WAS DEPRECATED
     #--------------------------------------------------------------
     
-#    def get_previous_interpretation(self):
-#        prev_pmag_specimen=[]
-#        try:
-#            prev_pmag_specimen,file_type=pmag.magic_read(os.path.join(self.WD, "pmag_specimens.txt"))
-#            self.GUI_log.write ("-I- Read specimens.txt for previous interpretation")
-#            print "-I- Read pmag_specimens.txt for previous interpretation"
-#        except:
-#            self.GUI_log.write ("-I- No pmag_specimens.txt for previous interpretation")
-#            return
-#        # first delete all previous interpretation
-#        for sp in self.Data.keys():
-#            del self.Data[sp]['pars']
-#            self.Data[sp]['pars']={}
-#            self.Data[sp]['pars']['lab_dc_field']=self.Data[sp]['lab_dc_field']
-#            self.Data[sp]['pars']['er_specimen_name']=self.Data[sp]['er_specimen_name']   
-#            self.Data[sp]['pars']['er_sample_name']=self.Data[sp]['er_sample_name']
-#        self.Data_samples={}
-#        self.Data_sites={}
-#
-#        #specimens_list=pmag.get_specs(self.WD+"/specimens.txt")
-#        #specimens_list.sort()
-#        for rec in prev_pmag_specimen:
-#            if "LP-PI" not in rec["method_codes"]:
-#                continue
-#            if "measurement_step_min" not in rec.keys() or rec['measurement_step_min']=="":
-#                continue
-#            if "measurement_step_max" not in rec.keys() or rec['measurement_step_max']=="":
-#                continue
-#                
-#            specimen=rec['er_specimen_name']
-#            tmin_kelvin=float(rec['measurement_step_min'])
-#            tmax_kelvin=float(rec['measurement_step_max'])
-#            if specimen not in self.redo_specimens.keys():
-#                self.redo_specimens[specimen]={}
-#                self.redo_specimens[specimen]['t_min']=float(tmin_kelvin)
-#                self.redo_specimens[specimen]['t_max']=float(tmax_kelvin)
-#            if specimen in self.Data.keys():
-#                if tmin_kelvin not in self.Data[specimen]['t_Arai'] or tmax_kelvin not in self.Data[specimen]['t_Arai'] :
-#                    self.GUI_log.write ("-W- WARNING: cant fit temperature bounds in the redo file to the actual measurement. specimen %s\n"%specimen)
-#                else:
-#                    try:
-#                        self.Data[specimen]['pars']=thellier_gui_lib.get_PI_parameters(self.Data,self.acceptance_criteria, self.preferences,specimen,float(tmin_kelvin),float(tmax_kelvin),self.GUI_log,THERMAL,MICROWAVE)
-#                        self.Data[specimen]['pars']['saved']=True
-#                        # write intrepretation into sample data
-#                        sample=self.Data_hierarchy['specimens'][specimen]
-#                        if sample not in self.Data_samples.keys():
-#                            self.Data_samples[sample]={}
-#                        if specimen not in self.Data_samples[sample].keys():
-#                            self.Data_samples[sample][specimen]={}
-#                        self.Data_samples[sample][specimen]['B']=self.Data[specimen]['pars']['specimen_int_uT']
-#                        
-#                        site=thellier_gui_lib.get_site_from_hierarchy(sample,self.Data_hierarchy)
-#                        if site not in self.Data_sites.keys():
-#                            self.Data_sites[site]={}
-#                        if specimen not in self.Data_sites[site].keys():
-#                            self.Data_sites[site][specimen]={}
-#                        self.Data_sites[site][specimen]['B']=self.Data[specimen]['pars']['specimen_int_uT']
-#
-#                    except:
-#                        self.GUI_log.write ("-E- ERROR. Cant calculate PI paremeters for specimen %s using redo file. Check!"%(specimen))
-#            else:
-#                self.GUI_log.write ("-W- WARNING: Cant find specimen %s from redo file in measurement file!\n"%specimen)
-#
-##        #try:
-        #    self.s
-        #except:
-#        try:
-#            self.s=self.specimens[0]                
-#            self.pars=self.Data[self.s]['pars']
-#            self.clear_boxes()
-#            self.draw_figure(self.s)
-#            self.update_GUI_with_new_interpretation()
-#        except:
-#            pass
-#        
-#                    
-#
 
 #===========================================================
 #  definitions inherited and mofified from pmag.py
@@ -8738,7 +7155,7 @@ class Arai_GUI(wx.Frame):
                 #print "I",scipy.sqrt(sum(X**2))
         araiblock=(first_Z,first_I,ptrm_check,ptrm_tail,zptrm_check,GammaChecks,additivity_check)
 
-        return araiblock,field
+        return araiblock,field,phi,theta
 
 
 

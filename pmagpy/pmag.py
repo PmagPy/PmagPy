@@ -867,11 +867,12 @@ def find_dmag_rec(s,data,**kwargs):
     """
     if 'version' in kwargs.keys() and kwargs['version']==3: 
         data=data.to_dict('records')  # convert dataframe to list of dictionaries
-        spec_key,dec_key,inc_key='specimen_name','dir_dec','dir_inc'
+        spec_key,dec_key,inc_key='specimen','dir_dec','dir_inc'
         flag_key,temp_key,ac_key='flag','treat_temp','treat_ac_field'
         meth_key='method_codes'
         power_key,time_key='treat_mw_power','treat_mw_time'
         Mkeys=['magn_moment','magn_volume','magn_mass','magnitude']
+        # just look in the intensity column
         inst_key='instrument_codes'
     else:
         spec_key,dec_key,inc_key='er_specimen_name','measurement_dec','measurement_inc'
