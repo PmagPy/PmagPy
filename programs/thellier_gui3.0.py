@@ -183,7 +183,7 @@ import dialogs.thellier_consistency_test as thellier_consistency_test
 import copy
 from copy import deepcopy
 
-import dialogs.thellier_gui_dialogs as thellier_gui_dialogs
+import dialogs.thellier_gui_dialogs3.0 as thellier_gui_dialogs
 import dialogs.thellier_gui_lib as thellier_gui_lib
 
 matplotlib.rc('xtick', labelsize=10) 
@@ -1874,7 +1874,7 @@ class Arai_GUI(wx.Frame):
         #self.acceptance_criteria=acceptance_criteria
         self.Data,self.Data_hierarchy,self.Data_info={},{},{}
         self.Data,self.Data_hierarchy,self.container=self.get_data(self.meas_file) # Get data from magic_measurements and rmag_anistropy if exist.
-        self.Data_info=self.get_data_info(self.container) # get all ages, locations etc. (from er_ages, er_sites, er_locations)
+        self.Data_info=self.get_data_info(self.container) # get all ages, locations etc. (from sites, locations)
         self.Data_samples={}
         self.Data_sites={}
         self.last_saved_pars={}
@@ -2059,7 +2059,7 @@ class Arai_GUI(wx.Frame):
         self.acceptance_criteria=pmag.initialize_acceptance_criteria()
         self.add_thellier_gui_criteria()
         self.read_criteria_file(criteria_file)     
-        # check if some statistics are in the new pmag_criteria_file but not in old. If yes, add to  self.preferences['show_statistics_on_gui']
+        # check if some statistics are in the new criteria_file but not in old. If yes, add to  self.preferences['show_statistics_on_gui']
         crit_list_not_in_pref=[]
         for crit in   self.acceptance_criteria.keys():
             if  self.acceptance_criteria[crit]['category']=="IE-SPEC":
@@ -2278,11 +2278,11 @@ class Arai_GUI(wx.Frame):
         # guesss if average by site or sample:
         by_sample=True
         flag=False
-        for crit in ['sample_int_n','sample_int_sigma_perc','sample_int_sigma']:
+        for crit in ['samples.int_n','samples.int_sigma_perc','samples.int_sigma']:
             if self.acceptance_criteria[crit]['value']==-999:
                 flag=True
         if flag:
-            for crit in ['site_int_n','site_int_sigma_perc','site_int_sigma']:
+            for crit in ['sites.int_n','sites.int_sigma_perc','sites.int_sigma']:
                 if self.acceptance_criteria[crit]['value']!=-999:
                     by_sample=False
         if not by_sample:
@@ -2332,9 +2332,9 @@ class Arai_GUI(wx.Frame):
         for sp in self.Data.keys():
             del self.Data[sp]['pars']
             self.Data[sp]['pars']={}
-            self.Data[sp]['pars']['lab_dc_field']=self.Data[sp]['lab_dc_field']
-            self.Data[sp]['pars']['er_specimen_name']=self.Data[sp]['er_specimen_name']   
-            self.Data[sp]['pars']['er_sample_name']=self.Data[sp]['er_sample_name']   
+            self.Data[sp]['pars']['treat_dc_field']=self.Data[sp]['treat_dc_field']
+            self.Data[sp]['pars']['specimen']=self.Data[sp]['specimen']   
+            self.Data[sp]['pars']['sample']=self.Data[sp]['sample']   
         self.Data_samples={}
         self.Data_sites={}
         self.tmin_box.SetValue("")
@@ -2348,8 +2348,7 @@ class Arai_GUI(wx.Frame):
     def on_menu_calculate_aniso_tensor(self, event):
 
         self.calculate_anistropy_tensors()
-        text1="Anisotropy tensors elements are saved in rmag_anistropy.txt\n"
-        text2="Other anisotropy statistics are saved in rmag_results.txt\n"
+        text1="Anisotropy tensor elements and statistics are saved in specimens.txt\n"
         
         dlg1 = wx.MessageDialog(self,caption="Message:", message=text1+text2 ,style=wx.OK|wx.ICON_INFORMATION)
         dlg1.ShowModal()
@@ -2431,7 +2430,7 @@ class Arai_GUI(wx.Frame):
             DIR_v1=pmag.cart2dir(v1)
             DIR_v2=pmag.cart2dir(v2)
             DIR_v3=pmag.cart2dir(v3)
-
+# START HERE WITH CLEAN UP
                                
             aniso_parameters['anisotropy_s1']="%f"%s1
             aniso_parameters['anisotropy_s2']="%f"%s2
@@ -7412,9 +7411,9 @@ class Arai_GUI(wx.Frame):
 #
 #   propogate sample, site, location names if available
 #    
-      if 'specimens' in contribution.tables: contribution.propagate_name_down('sample_name','measurements')
-      if 'samples' in contribution.tables: contribution.propagate_name_down('site_name','measurements')
-      if 'sites' in contribution.tables: contribution.propagate_name_down('location_name','measurements')
+      if 'specimens' in contribution.tables: contribution.propagate_name_down('sample','measurements')
+      if 'samples' in contribution.tables: contribution.propagate_name_down('site','measurements')
+      if 'sites' in contribution.tables: contribution.propagate_name_down('location','measurements')
       meas_data = meas_container.df
 #
       meas_data['method_codes']=meas_data['method_codes'].str.replace(" ","") # get rid of nasty spaces
@@ -7449,7 +7448,7 @@ class Arai_GUI(wx.Frame):
 #
 # get list of unique specimen names from measurement data
 #
-      specimen_names= thel_data.specimen_name.unique() # this is a Series of all the specimen names that have Thellier data
+      specimen_names= thel_data.specimen.unique() # this is a Series of all the specimen names that have Thellier data
       sids= specimen_names.tolist() # turns it into a list
       sids.sort() # sorts by specimen name
 
@@ -7487,17 +7486,17 @@ class Arai_GUI(wx.Frame):
               Data[s]['zijdblock']=[]
 
       #print "done initialize blocks"
-          datablock= thel_data[thel_data['specimen_name'].str.contains(s)==True] # fish out this specimen
+          datablock= thel_data[thel_data['specimen'].str.contains(s)==True] # fish out this specimen
           mw_data= thel_data[thel_data['method_codes'].str.contains('LP-PI-M')==True] # fish out steps for plotting
           if len(mw_data)>0:
               Data[s]['T_or_MW']='MW'
           else:
               Data[s]['T_or_MW']='T'
-          trmblock= trm_data[trm_data['specimen_name'].str.contains(s)==True] # fish out this specimen
-          zijd= zijd_data[zijd_data['specimen_name'].str.contains(s)==True] # fish out this specimen
+          trmblock= trm_data[trm_data['specimen'].str.contains(s)==True] # fish out this specimen
+          zijd= zijd_data[zijd_data['specimen'].str.contains(s)==True] # fish out this specimen
           zijdblock,units=pmag.find_dmag_rec(s,zijd,version=3) # get the zijderveld # BUT HAVE TO PUT MW DATA INTO THIS PROGRAM
-          atrmblock= atrm_data[atrm_data['specimen_name'].str.contains(s)==True] # fish out this specimen
-          aarmblock= aarm_data[aarm_data['specimen_name'].str.contains(s)==True] # fish out this specimen
+          atrmblock= atrm_data[atrm_data['specimen'].str.contains(s)==True] # fish out this specimen
+          aarmblock= aarm_data[aarm_data['specimen'].str.contains(s)==True] # fish out this specimen
           Data[s]['datablock']=datablock.to_dict('records')
           Data[s]['trmblock']=trmblock.to_dict('records')
           Data[s]['atrmblock']=atrmblock.to_dict('records')
@@ -7565,7 +7564,7 @@ class Arai_GUI(wx.Frame):
       anis_data= spec_data[spec_data['method_codes'].str.contains('aniso_')==True] # find the anisotropy records 
       anis_data=anis_data.to_dict('records')
       for AniSpec in anis_data:
-          s=AniSpec['specimen_name']
+          s=AniSpec['specimen']
 
           if s not in Data.keys():
               self.GUI_log.write("-W- WARNING: specimen %s in specimens.txt but not in measurement.txt. Check it !\n"%s)
@@ -7933,13 +7932,13 @@ class Arai_GUI(wx.Frame):
 
         Data[s]['araiblock']=araiblock
         Data[s]['pars']={}
-        Data[s]['pars']['lab_dc_field']=field
-        Data[s]['pars']['specimen_name']=s
-        Data[s]['pars']['sample_name']=Data_hierarchy['specimens'][s]
+        Data[s]['pars']['treat_dc_field']=field
+        Data[s]['pars']['specimen']=s
+        Data[s]['pars']['sample']=Data_hierarchy['specimens'][s]
 
-        Data[s]['lab_dc_field']=field
-        Data[s]['er_specimen_name']=s   
-        Data[s]['er_sample_name']=Data_hierarchy['specimens'][s]
+        Data[s]['treat_dc_field']=field
+        Data[s]['specimen']=s   
+        Data[s]['sample']=Data_hierarchy['specimens'][s]
         
         first_Z=araiblock[0]
         #if len(first_Z)<3:
@@ -8359,83 +8358,83 @@ class Arai_GUI(wx.Frame):
 ### THIS IS DEPRECATED
     #--------------------------------------------------------------
     
-    def get_previous_interpretation(self):
-        prev_pmag_specimen=[]
-        try:
-            prev_pmag_specimen,file_type=pmag.magic_read(os.path.join(self.WD, "pmag_specimens.txt"))
-            self.GUI_log.write ("-I- Read specimens.txt for previous interpretation")
-            print "-I- Read pmag_specimens.txt for previous interpretation"
-        except:
-            self.GUI_log.write ("-I- No pmag_specimens.txt for previous interpretation")
-            return
-        # first delete all previous interpretation
-        for sp in self.Data.keys():
-            del self.Data[sp]['pars']
-            self.Data[sp]['pars']={}
-            self.Data[sp]['pars']['lab_dc_field']=self.Data[sp]['lab_dc_field']
-            self.Data[sp]['pars']['er_specimen_name']=self.Data[sp]['er_specimen_name']   
-            self.Data[sp]['pars']['er_sample_name']=self.Data[sp]['er_sample_name']
-        self.Data_samples={}
-        self.Data_sites={}
-
-        #specimens_list=pmag.get_specs(self.WD+"/specimens.txt")
-        #specimens_list.sort()
-        for rec in prev_pmag_specimen:
-            if "LP-PI" not in rec["method_codes"]:
-                continue
-            if "measurement_step_min" not in rec.keys() or rec['measurement_step_min']=="":
-                continue
-            if "measurement_step_max" not in rec.keys() or rec['measurement_step_max']=="":
-                continue
-                
-            specimen=rec['er_specimen_name']
-            tmin_kelvin=float(rec['measurement_step_min'])
-            tmax_kelvin=float(rec['measurement_step_max'])
-            if specimen not in self.redo_specimens.keys():
-                self.redo_specimens[specimen]={}
-                self.redo_specimens[specimen]['t_min']=float(tmin_kelvin)
-                self.redo_specimens[specimen]['t_max']=float(tmax_kelvin)
-            if specimen in self.Data.keys():
-                if tmin_kelvin not in self.Data[specimen]['t_Arai'] or tmax_kelvin not in self.Data[specimen]['t_Arai'] :
-                    self.GUI_log.write ("-W- WARNING: cant fit temperature bounds in the redo file to the actual measurement. specimen %s\n"%specimen)
-                else:
-                    try:
-                        self.Data[specimen]['pars']=thellier_gui_lib.get_PI_parameters(self.Data,self.acceptance_criteria, self.preferences,specimen,float(tmin_kelvin),float(tmax_kelvin),self.GUI_log,THERMAL,MICROWAVE)
-                        self.Data[specimen]['pars']['saved']=True
-                        # write intrepretation into sample data
-                        sample=self.Data_hierarchy['specimens'][specimen]
-                        if sample not in self.Data_samples.keys():
-                            self.Data_samples[sample]={}
-                        if specimen not in self.Data_samples[sample].keys():
-                            self.Data_samples[sample][specimen]={}
-                        self.Data_samples[sample][specimen]['B']=self.Data[specimen]['pars']['specimen_int_uT']
-                        
-                        site=thellier_gui_lib.get_site_from_hierarchy(sample,self.Data_hierarchy)
-                        if site not in self.Data_sites.keys():
-                            self.Data_sites[site]={}
-                        if specimen not in self.Data_sites[site].keys():
-                            self.Data_sites[site][specimen]={}
-                        self.Data_sites[site][specimen]['B']=self.Data[specimen]['pars']['specimen_int_uT']
-
-                    except:
-                        self.GUI_log.write ("-E- ERROR. Cant calculate PI paremeters for specimen %s using redo file. Check!"%(specimen))
-            else:
-                self.GUI_log.write ("-W- WARNING: Cant find specimen %s from redo file in measurement file!\n"%specimen)
-
-        #try:
+#    def get_previous_interpretation(self):
+#        prev_pmag_specimen=[]
+#        try:
+#            prev_pmag_specimen,file_type=pmag.magic_read(os.path.join(self.WD, "pmag_specimens.txt"))
+#            self.GUI_log.write ("-I- Read specimens.txt for previous interpretation")
+#            print "-I- Read pmag_specimens.txt for previous interpretation"
+#        except:
+#            self.GUI_log.write ("-I- No pmag_specimens.txt for previous interpretation")
+#            return
+#        # first delete all previous interpretation
+#        for sp in self.Data.keys():
+#            del self.Data[sp]['pars']
+#            self.Data[sp]['pars']={}
+#            self.Data[sp]['pars']['lab_dc_field']=self.Data[sp]['lab_dc_field']
+#            self.Data[sp]['pars']['er_specimen_name']=self.Data[sp]['er_specimen_name']   
+#            self.Data[sp]['pars']['er_sample_name']=self.Data[sp]['er_sample_name']
+#        self.Data_samples={}
+#        self.Data_sites={}
+#
+#        #specimens_list=pmag.get_specs(self.WD+"/specimens.txt")
+#        #specimens_list.sort()
+#        for rec in prev_pmag_specimen:
+#            if "LP-PI" not in rec["method_codes"]:
+#                continue
+#            if "measurement_step_min" not in rec.keys() or rec['measurement_step_min']=="":
+#                continue
+#            if "measurement_step_max" not in rec.keys() or rec['measurement_step_max']=="":
+#                continue
+#                
+#            specimen=rec['er_specimen_name']
+#            tmin_kelvin=float(rec['measurement_step_min'])
+#            tmax_kelvin=float(rec['measurement_step_max'])
+#            if specimen not in self.redo_specimens.keys():
+#                self.redo_specimens[specimen]={}
+#                self.redo_specimens[specimen]['t_min']=float(tmin_kelvin)
+#                self.redo_specimens[specimen]['t_max']=float(tmax_kelvin)
+#            if specimen in self.Data.keys():
+#                if tmin_kelvin not in self.Data[specimen]['t_Arai'] or tmax_kelvin not in self.Data[specimen]['t_Arai'] :
+#                    self.GUI_log.write ("-W- WARNING: cant fit temperature bounds in the redo file to the actual measurement. specimen %s\n"%specimen)
+#                else:
+#                    try:
+#                        self.Data[specimen]['pars']=thellier_gui_lib.get_PI_parameters(self.Data,self.acceptance_criteria, self.preferences,specimen,float(tmin_kelvin),float(tmax_kelvin),self.GUI_log,THERMAL,MICROWAVE)
+#                        self.Data[specimen]['pars']['saved']=True
+#                        # write intrepretation into sample data
+#                        sample=self.Data_hierarchy['specimens'][specimen]
+#                        if sample not in self.Data_samples.keys():
+#                            self.Data_samples[sample]={}
+#                        if specimen not in self.Data_samples[sample].keys():
+#                            self.Data_samples[sample][specimen]={}
+#                        self.Data_samples[sample][specimen]['B']=self.Data[specimen]['pars']['specimen_int_uT']
+#                        
+#                        site=thellier_gui_lib.get_site_from_hierarchy(sample,self.Data_hierarchy)
+#                        if site not in self.Data_sites.keys():
+#                            self.Data_sites[site]={}
+#                        if specimen not in self.Data_sites[site].keys():
+#                            self.Data_sites[site][specimen]={}
+#                        self.Data_sites[site][specimen]['B']=self.Data[specimen]['pars']['specimen_int_uT']
+#
+#                    except:
+#                        self.GUI_log.write ("-E- ERROR. Cant calculate PI paremeters for specimen %s using redo file. Check!"%(specimen))
+#            else:
+#                self.GUI_log.write ("-W- WARNING: Cant find specimen %s from redo file in measurement file!\n"%specimen)
+#
+##        #try:
         #    self.s
         #except:
-        try:
-            self.s=self.specimens[0]                
-            self.pars=self.Data[self.s]['pars']
-            self.clear_boxes()
-            self.draw_figure(self.s)
-            self.update_GUI_with_new_interpretation()
-        except:
-            pass
-        
-                    
-
+#        try:
+#            self.s=self.specimens[0]                
+#            self.pars=self.Data[self.s]['pars']
+#            self.clear_boxes()
+#            self.draw_figure(self.s)
+#            self.update_GUI_with_new_interpretation()
+#        except:
+#            pass
+#        
+#                    
+#
 
 #===========================================================
 #  definitions inherited and mofified from pmag.py
@@ -8455,12 +8454,8 @@ class Arai_GUI(wx.Frame):
         Treat_I,Treat_Z,Treat_PZ,Treat_PI,Treat_M,Treat_AC=[],[],[],[],[],[]
         ISteps,ZSteps,PISteps,PZSteps,MSteps,ACSteps=[],[],[],[],[],[]
         GammaChecks=[] # comparison of pTRM direction acquired and lab field
-        Mkeys=['measurement_magn_moment','measurement_magn_volume','measurement_magn_mass','measurement_magnitude']
+        momkey='intensity'
         rec=datablock[0]
-        for key in Mkeys:
-            if key in rec.keys() and rec[key]!="":
-                momkey=key
-                break
     # first find all the steps
         for k in range(len(datablock)):
             rec=datablock[k]
