@@ -319,7 +319,7 @@ class MagicDataFrame(object):
                 self.df = DataFrame()
                 
         else:
-            data, dtype = pmag.magic_read(magic_file)
+            data, dtype, keys = pmag.magic_read(magic_file, return_keys=True)
             self.df = DataFrame(data)
             if dtype == 'bad_file':
                 print "-W- Bad file {}".format(magic_file)
@@ -339,8 +339,12 @@ class MagicDataFrame(object):
                 name = 'doi'
             # fix these:
             if dtype == 'age':
-                self.df = pd.DataFrame()
-                return
+                # find which key has _name in it, use that as index
+                # this won't work if site_name/sample_name/etc. are interspersed
+                for key in keys:
+                    if 'name' in key:
+                        name = key
+                        break
             if dtype == 'image':
                 self.df = pd.DataFrame()
                 return

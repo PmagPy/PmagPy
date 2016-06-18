@@ -942,7 +942,7 @@ def find_dmag_rec(s,data,**kwargs):
         meas_units=meas_units[:-1]
     return datablock,meas_units
 
-def magic_read(infile, data=None):
+def magic_read(infile, data=None, return_keys=False):
     """
     reads  a Magic template file, puts data in a list of dictionaries.
     """
@@ -1012,6 +1012,8 @@ def magic_read(infile, data=None):
     magictype=file_type.lower().split("_")
     Types=['er','magic','pmag','rmag']
     if magictype in Types:file_type=file_type.lower()
+    if return_keys:
+        return magic_data, file_type, magic_keys
     return magic_data,file_type
 
 def upload_read(infile,table):

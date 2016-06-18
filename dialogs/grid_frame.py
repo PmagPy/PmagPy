@@ -18,7 +18,7 @@ class GridFrame(wx.Frame):
     make_magic
     """
 
-    def __init__(self, ErMagic, WD=None, frame_name="grid frame",
+    def __init__(self, contribution, WD=None, frame_name="grid frame",
                  panel_name="grid panel", parent=None):
         self.parent = parent
         wx.GetDisplaySize()
@@ -36,7 +36,7 @@ class GridFrame(wx.Frame):
         self.deleteRowButton = None
         self.selected_rows = set()
 
-        self.er_magic = ErMagic
+        self.contribution = contribution
 
         self.panel = wx.Panel(self, name=panel_name, size=wx.GetDisplaySize())
         self.grid_type = panel_name
@@ -45,15 +45,15 @@ class GridFrame(wx.Frame):
             self.Bind(wx.EVT_WINDOW_DESTROY, self.parent.Parent.on_close_grid_frame)
 
         if self.grid_type == 'age':
-            ancestry_ind = self.er_magic.ancestry.index(self.er_magic.age_type)
-            self.child_type = self.er_magic.ancestry[ancestry_ind-1]
-            self.parent_type = self.er_magic.ancestry[ancestry_ind+1]
+            ancestry_ind = self.contribution.ancestry.index(self.er_magic.age_type)
+            self.child_type = self.contribution.ancestry[ancestry_ind-1]
+            self.parent_type = self.contribution.ancestry[ancestry_ind+1]
         else:
             try:
-                child_ind = self.er_magic.ancestry.index(self.grid_type) - 1
-                self.child_type = self.er_magic.ancestry[child_ind]
-                parent_ind = self.er_magic.ancestry.index(self.grid_type) + 1
-                self.parent_type = self.er_magic.ancestry[parent_ind]
+                child_ind = self.contribution.ancestry.index(self.grid_type) - 1
+                self.child_type = self.contribution.ancestry[child_ind]
+                parent_ind = self.er_magic.contribution.index(self.grid_type) + 1
+                self.parent_type = self.contribution.ancestry[parent_ind]
             except ValueError:
                 self.child_type = None
                 self.parent_type = None

@@ -28,9 +28,7 @@ class DataModel(object):
 
     def get_data_model(self):
         full_df = self.download_data_model()
-        print 'got full_df'
         parsed_df = self.parse_data_model(full_df)
-        print 'got parsed_df'
         return parsed_df
 
     def get_groups(self, table_name):
@@ -52,13 +50,10 @@ class DataModel(object):
 
 
 
-DATA_MODEL = DataModel()
-#
-
-
 
 
 if __name__ == "__main__":
-    dm = DataModel()
+    #dm = DataModel()
+    pass
 
 
