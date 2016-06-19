@@ -8055,9 +8055,13 @@ def initialize_acceptance_criteria3_0 ():
               'specimens.int_rs_det','specimens.int_z','specimens.int_z_md','specimens.int_int_mad_free','specimens.int_mad_anc','specimens.int_alpha','specimens.int_alpha_prime',\
                'specimens.int_theta','specimens.int_dang','specimens.int_crm','specimens.int_n_ptrm','specimens.int_dck','specimens.int_drat','specimens.int_maxdev','specimens.int_cdrat',\
                'specimens.int_drats','specimens.int_mdrat','specimens.int_mdev','specimens.int_dpal','specimens.int_tail_drat','specimens.int_dtr','specimens.int_md','specimens.int_dt',\
-                specimens.int_dac','specimens.int_gamma','samples.int_rel_sigma','samples.int_rel_sigma_perc','samples.int_sigma','samples.int_sigma_perc',\
+                'specimens.int_dac','specimens.int_gamma','samples.int_rel_sigma','samples.int_rel_sigma_perc','samples.int_sigma','samples.int_sigma_perc',\
                 'sites.int_rel_sigma','sites.int_rel_sigma_perc','sites.int_sigma','sites.int_sigma_perc','sites.vadm_sigma','sites.vdm_sigma'\
-                'sites.vgp_alpha95','sites.vgp_dm','sites.vgp_dp','sites.age_high','specimens.aniso_alt','specimens.aniso_ftest']
+                'sites.vgp_alpha95','sites.vgp_dm','sites.vgp_dp','sites.age_high','specimens.aniso_alt','specimens.aniso_ftest']:
+        acceptance_criteria[column]={}
+        acceptance_criteria[column]['criterion_operation']=["<="]
+        acceptance_criteria[column]['criterion_value']=-999
+        acceptance_criteria[column]['decimal_points']=0
 # WHAT ARE THESE - THEY ARE NOT IN DATA MODEL 3.0:   'samples.aniso_mean','sites.aniso_mean']: # criterion_value is in precent
     # contains/does not contain
     for column in ['method_codes.DE-BFP','method_codes.DE-BFL','method_codes.DE-FM']:
@@ -8075,8 +8079,8 @@ def initialize_acceptance_criteria3_0 ():
 #
     for column in acceptance_criteria:
         criterion=""
-        if 'int_' in column: citerion='IE-"
-        if 'dir_' in column: citerion='DE-"
+        if 'int_' in column: citerion='IE-'
+        if 'dir_' in column: citerion='DE-'
         if 'specimens' in column: criterion=criterion+'SPEC'
         if 'samples' in column: criterion=criterion+'SAMP'
         if 'sites' in column: criterion=criterion+'SITE'
