@@ -234,12 +234,9 @@ class Arai_GUI(wx.Frame):
         
          
         # inialize selecting criteria
-#
-#      START HERE WITH NEW ACCEPTANCE STUFF
-#
         self.acceptance_criteria=pmag.initialize_acceptance_criteria()
         self.add_thellier_gui_criteria()
-#        self.read_criteria_file(os.path.join(self.WD,"criteria.txt"))
+        self.read_criteria_file(os.path.join(self.WD,"criteria.txt"))
         # preferences
 
         preferences=self.get_preferences()
@@ -381,7 +378,8 @@ class Arai_GUI(wx.Frame):
 
         self.fig4 = pylab.Figure((2.5*self.GUI_RESOLUTION, 2.5*self.GUI_RESOLUTION), dpi=self.dpi)
         self.canvas4 = FigCanvas(self.panel, -1, self.fig4)
-        if self.acceptance_criteria['average_by_sample_or_site']['value']=='site':
+        critrecs=pmag.get_dictitem(self.acceptance_criteria,'criterion','average_by_sample_or_site','T') # check for this constraint
+        if len(critrecs)>0 and critrecs[0]['table_column']=='sites.int_abs':
             TEXT="Site data"
         else:
             TEXT="Sample data"            
@@ -762,34 +760,36 @@ class Arai_GUI(wx.Frame):
 # took out the short_name convention
 
         self.ignore_parameters={}
-        for crit in self.preferences['show_statistics_on_gui']:
-            if self.acceptance_criteria[crit]['value']==-999:
-                command="self.%s_threshold_window.SetValue(\"\")"%crit
-                exec command
-                command="self.%s_threshold_window.SetBackgroundColour(wx.Colour(128, 128, 128))"%crit
-                exec command
-                self.ignore_parameters[crit]=True
-                continue
-            elif crit=="int_scat":
-                if self.acceptance_criteria[crit]['value'] in ['g',1,'1',True,"True"]:
-                    value="True"
-                    #self.scat_threshold_window.SetBackgroundColour(wx.Colour(128, 128, 128))
-                else:
-                    value=""
-                    self.scat_threshold_window.SetBackgroundColour(wx.Colour(128, 128, 128))
-                   
-            elif type(self.acceptance_criteria[crit]['value'])==int:
-                value="%i"%self.acceptance_criteria[crit]['value']
-            elif type(self.acceptance_criteria[crit]['value'])==float:
-                if self.acceptance_criteria[crit]['decimal_points']==-999:
-                    value="%.3e"%self.acceptance_criteria[crit]['value']
-                else:
-                    command="value='%%.%if'%%self.acceptance_criteria[crit]['value']"%(self.acceptance_criteria[crit]['decimal_points'])
+        for stat in self.preferences['show_statistics_on_gui']:
+            for crit in self.acceptance_criteria: 
+                if crit['criterion_value']=='-999':
+                    command="self.%s_threshold_window.SetValue(\"\")"%crit
                     exec command
+                    command="self.%s_threshold_window.SetBackgroundColour(wx.Colour(128, 128, 128))"%crit
+                    exec command
+                    self.ignore_parameters[crit]=True
+                    continue
+                elif "int_scat" in crit['table_column']:
+                    if crit['criterion_value'] in ['g',1,'1',True,"True"]:
+                        value="True"
+                        #self.scat_threshold_window.SetBackgroundColour(wx.Colour(128, 128, 128))
+                    else:
+                        value=""
+                        self.scat_threshold_window.SetBackgroundColour(wx.Colour(128, 128, 128))
+                elif 'decimal_points' in crit.keys():
+                    if  int(crit['decimal_points'])==0:
+                        value=crit['criterion_value']
+                    elif int(crit['decimal_points'])==-999:
+                        value=crit['criterion_value']
+                else: # this is all screwed up!
+                    #crit['decimal_points']=3
+                    #command="value=crit['criterion_value']"%(crit['decimal_points'])
+                    #exec command
+                    pass
             else:
                 continue
                     
-            command="self.%s_threshold_window.SetValue('%s')"%(crit,value)
+            command="self.%s_threshold_window.SetValue('%s')"%(crit,criterion_value)
             exec command
             command="self.%s_threshold_window.SetBackgroundColour(wx.WHITE)"%crit
             exec command
@@ -1178,7 +1178,7 @@ class Arai_GUI(wx.Frame):
 
         B=[]
         
-        if self.acceptance_criteria['average_by_sample_or_site']['value']=='sample':
+        if self.acceptance_criteria['average_by_sample_or_site']['table_column']=='samples.int_abs':
             sample=self.Data_hierarchy['specimens'][self.s]
             if sample in self.Data_samples.keys() and len(self.Data_samples[sample].keys())>0:
                 if self.s not in self.Data_samples[sample].keys():
@@ -1250,8 +1250,8 @@ class Arai_GUI(wx.Frame):
         fail_int_sigma_perc=False
         sample_failed=False
         
-        if self.acceptance_criteria['sample_int_n']['value'] != -999:
-            if N<self.acceptance_criteria['sample_int_n']['value']:
+        if self.acceptance_criteria['sample_int_n']['criterion_value'] != -999:
+            if N<self.acceptance_criteria['sample_int_n']['criterion_value']:
                 fail_int_n=True
                 sample_failed=True
                 self.sample_int_n_window.SetBackgroundColour(wx.RED)
@@ -1261,8 +1261,8 @@ class Arai_GUI(wx.Frame):
             self.sample_int_n_window.SetBackgroundColour(wx.NullColour)
                    
         
-        if self.acceptance_criteria['sample_int_sigma']['value'] != -999:
-            if  B_std*1.e-6 > self.acceptance_criteria['sample_int_sigma']['value']:
+        if self.acceptance_criteria['sample_int_sigma']['criterion_value'] != -999:
+            if  B_std*1.e-6 > self.acceptance_criteria['sample_int_sigma']['criterion_value']:
                 fail_int_sigma=True 
                 self.sample_int_sigma_window.SetBackgroundColour(wx.RED)
             else:
@@ -1270,7 +1270,7 @@ class Arai_GUI(wx.Frame):
         else:
             self.sample_int_sigma_window.SetBackgroundColour(wx.NullColour)
  
-        if self.acceptance_criteria['sample_int_sigma_perc']['value'] != -999:
+        if self.acceptance_criteria['sample_int_sigma_perc']['criterion_value'] != -999:
             if  B_std_perc > self.acceptance_criteria['sample_int_sigma_perc']:
                 fail_int_sigma_perc=True 
                 self.sample_int_sigma_perc_window.SetBackgroundColour(wx.RED)
@@ -1280,11 +1280,11 @@ class Arai_GUI(wx.Frame):
             self.sample_int_sigma_perc_window.SetBackgroundColour(wx.NullColour)
 
                           
-        if self.acceptance_criteria['sample_int_sigma']['value']==-999 and fail_int_sigma_perc:
+        if self.acceptance_criteria['sample_int_sigma']['criterion_value']==-999 and fail_int_sigma_perc:
             sample_failed=True
-        elif self.acceptance_criteria['sample_int_sigma_perc']['value']==-999 and fail_int_sigma:
+        elif self.acceptance_criteria['sample_int_sigma_perc']['criterion_value']==-999 and fail_int_sigma:
             sample_failed=True
-        elif self.acceptance_criteria['sample_int_sigma']['value'] !=-999 and self.acceptance_criteria['sample_int_sigma_perc']['value']!=-999:
+        elif self.acceptance_criteria['sample_int_sigma']['criterion_value'] !=-999 and self.acceptance_criteria['sample_int_sigma_perc']['criterion_value']!=-999:
             if fail_int_sigma and fail_int_sigma_perc:
                 sample_failed=True        
         
@@ -1293,7 +1293,7 @@ class Arai_GUI(wx.Frame):
         else:
             self.sample_int_uT_window.SetBackgroundColour(wx.GREEN)
             
-            #if self.acceptance_criteria['sample_int_sigma']['value'] != -999  or self.acceptance_criteria['sample_int_sigma_perc']['value'] != -999:
+            #if self.acceptance_criteria['sample_int_sigma']['criterion_value'] != -999  or self.acceptance_criteria['sample_int_sigma_perc']['criterion_value'] != -999:
             #    if   fail_int_sigma and fail_int_sigma_perc:
             #       self.sample_int_uT_window.SetBackgroundColour(wx.RED) 
             #else:
@@ -1609,32 +1609,17 @@ class Arai_GUI(wx.Frame):
         except:
             self.GUI_log.write( " -I- cant find thellier_gui_preferences file, using defualt default \n")
         
-        # check pmag_criteria.txt:
-        # if a statistic appear in pmag_criteria.txt but does not appear in 
+        # check criteria.txt:
+        # if a statistic appears in criteria.txt but does not appear in 
         # preferences['show_statistics_on_gui'] than it is added to ['show_statistics_on_gui']:
-        for stat in self.acceptance_criteria.keys():
-            if self.acceptance_criteria[stat]['category'] in ['IE-SPEC']:
-                if self.acceptance_criteria[stat]['value']!=-999:
-                    short_crit=stat.split('specimen_')[-1]
-                    if short_crit not in preferences['show_statistics_on_gui']:
-                        preferences['show_statistics_on_gui'].append(short_crit)
-                        print "-I-",short_crit, " was added to criteria list and will be displayed on screen"
+        for stat in self.acceptance_criteria:
+            if stat['criterion'] in ['IE-SPEC'] and stat['criterion_value']!=-999:
+                short_crit=stat['table_column'].split('.')[-1]
+                if short_crit not in preferences['show_statistics_on_gui']:
+                    preferences['show_statistics_on_gui'].append(short_crit)
+                    print "-I-",short_crit, " was added to criteria list and will be displayed on screen"
                      
         
-        # OLD code,
-        #try:
-        #    criteria_file=os.path.join(self.WD,"pmag_criteria.txt")
-        #    my_acceptance_criteria=pmag.read_criteria_from_file(criteria_file,self.acceptance_criteria)
-        #    #    print "-III- Read criteria",my_acceptance_criteria
-        #    for crit in my_acceptance_criteria.keys():
-        #        if 'specimen' in crit:
-        #            if my_acceptance_criteria[crit]['value']!=-999:
-        #                short_crit=crit.split('specimen_')[-1]
-        #                if short_crit not in preferences['show_statistics_on_gui']:
-        #                    preferences['show_statistics_on_gui'].append(short_crit)
-        #                    print "-I-",short_crit, " was added to criteria list and will be displayed on screen"
-        #except:
-        #    pass     
         return(preferences)
         
 
@@ -2069,7 +2054,7 @@ class Arai_GUI(wx.Frame):
         crit_list_not_in_pref=[]
         for crit in   self.acceptance_criteria.keys():
             if  self.acceptance_criteria[crit]['category']=="IE-SPEC":
-                if self.acceptance_criteria[crit]['value']!=-999:
+                if self.acceptance_criteria[crit]['criterion_value']!=-999:
                     short_crit=crit.split('specimen_')[-1]
                     if short_crit not in self.preferences['show_statistics_on_gui']:
                         print "-I- statitics %s is not in your preferences"%crit
@@ -2127,91 +2112,51 @@ class Arai_GUI(wx.Frame):
         Take the acceptance criteria values and update
         self.acceptance_criteria
         """
-        criteria_list=self.acceptance_criteria.keys()
-        criteria_list.sort()
-        
         #---------------------------------------
         # check if averaging by sample or by site
         # and intialize sample/site criteria
         #---------------------------------------
-        
+        accept=[] 
+        by_sample_crit={'citations':'This study','criterion_operation':'+','criterion_value':-999,'description':"",'criterion':'average_by_sample_or_site'}
         if dia.set_average_by_sample_or_site.GetValue()=='sample':
-            for crit in ['site_int_n','site_int_sigma','site_int_sigma_perc','site_aniso_mean','site_int_n_outlier_check']:
-                self.acceptance_criteria[crit]['value']=-999
-        if dia.set_average_by_sample_or_site.GetValue()=='site':
-            for crit in ['sample_int_n','sample_int_sigma','sample_int_sigma_perc','sample_aniso_mean','sample_int_n_outlier_check']:
-                self.acceptance_criteria[crit]['value']=-999
-
-        #---------
-        
-        for i in range(len(criteria_list)):            
-            crit=criteria_list[i]
-            #---------
-            # get the "value" from dialog box
-            #---------
-                # dealing with sample/site
-            if dia.set_average_by_sample_or_site.GetValue()=='sample':
-                if crit in ['site_int_n','site_int_sigma','site_int_sigma_perc','site_aniso_mean','site_int_n_outlier_check']:
-                    continue
-            if dia.set_average_by_sample_or_site.GetValue()=='site':
-                if crit in ['sample_int_n','sample_int_sigma','sample_int_sigma_perc','sample_aniso_mean','sample_int_n_outlier_check']:
-                    continue
-            #------
-            if crit in ['site_int_n','site_int_sigma_perc','site_aniso_mean','site_int_n_outlier_check']:
-                command="value=dia.set_%s.GetValue()"%crit.replace('site','sample')                
-            
-            elif crit=='sample_int_sigma' or crit=='site_int_sigma':
-                #command="value=float(dia.set_sample_int_sigma_uT.GetValue())*1e-6"            
-                command="value=dia.set_sample_int_sigma_uT.GetValue()"
-            else:
-                command="value=dia.set_%s.GetValue()"%crit
-            #------
-            try:
-                exec command
-            except:
-                continue
-            
-            #---------
-            # write the "value" to self.acceptance_criteria
-            #---------
-                        
-            if crit=='average_by_sample_or_site': 
-                self.acceptance_criteria[crit]['value']=str(value)
-                continue 
-
-            if type(value)==bool and value==True:
-                self.acceptance_criteria[crit]['value']=True
-            elif type(value)==bool and value==False:
-                self.acceptance_criteria[crit]['value']=-999                        
-            elif type(value)==unicode and str(value)=="":
-                self.acceptance_criteria[crit]['value']=-999
-            elif type(value)==unicode and str(value)!="": # should be a number
-                try:
-                    self.acceptance_criteria[crit]['value']=float(value)
-                except:
-                    self.show_messege(crit) 
-            elif type(value)==float or type(value)==int:
-                    self.acceptance_criteria[crit]['value']=float(value)         
-            else:  
-                self.show_messege(crit)
-            if ( crit=='sample_int_sigma' or crit=='site_int_sigma' ) and str(value)!="":
-                self.acceptance_criteria[crit]['value']=float(value)*1e-6  
-            #print crit
-            #print value
-            #print str(value)==""
-        #---------
+            by_sample_crit['table_column']='samples.int_abs'
+            accept.append(by_sample_crit)
+            for crit in self.acceptance_criteria:
+                for table_column in ['sites.int_n','sites.int_sigma','sites.int_sigma_perc','sites.aniso_mean','sites.int_n_outlier_check']:
+                    if self.acceptance_criteria[crit][table_column]==table_column:
+                        self.acceptance_criteria[crit]['criterion_value']=-999
+                accept.append(crit)
+            command="value=dia.set_sample_int_sigma_uT.GetValue()"
+              
+        elif dia.set_average_by_sample_or_site.GetValue()=='site':
+            by_sample_crit['table_column']='sites.int_abs'
+            for crit in self.acceptance_criteria:
+                for table_column in ['samples.int_n','samples.int_sigma','samples.int_sigma_perc','samples.aniso_mean','samples.int_n_outlier_check']:
+                    if self.acceptance_criteria[crit][table_column]==table_column:
+                        self.acceptance_criteria[crit]['criterion_value']=-999
+                accept.append(crit)
+            command="value=dia.set_%s.GetValue()"%crit.replace('site','sample')
+        try:
+            exec command
+        except:
+            pass        
+               
+        interpreter_method={'citations':'This study','criterion_operation':"",'description':"",'criterion':'interpreter_method','table_column':'N/A'}
         # thellier interpreter calculation type
         if dia.set_stdev_opt.GetValue()==True:
-            self.acceptance_criteria['interpreter_method']['value']='stdev_opt'
+            interpreter_method['criterion_value']='stdev_opt'
         elif  dia.set_bs.GetValue()==True:
-            self.acceptance_criteria['interpreter_method']['value']='bs'            
+            interpreter_method['criterion_value']='bs'
         elif  dia.set_bs_par.GetValue()==True:
-            self.acceptance_criteria['interpreter_method']['value']='bs_par'            
-            
-                
-            
+            interpreter_method['criterion_value']='bs_par'
+        accept.append(interpreter_method)    
+        # put in the rest of the unchanged critera    
+        #crits=pmag.get_dictkey(accept,'table_column','') 
+        for crit in self.acceptance_criteria:
+            #kif crit not in columns:
+            accept.append(crit) # carry over all the rest
         #  message dialog
-        dlg1 = wx.MessageDialog(self,caption="Warning:", message="changes are saved to pmag_criteria.txt\n " ,style=wx.OK)
+        dlg1 = wx.MessageDialog(self,caption="Warning:", message="changes are saved to criteria.txt\n " ,style=wx.OK)
         result = dlg1.ShowModal()
         if result == wx.ID_OK:
             try:
@@ -2222,15 +2167,19 @@ class Arai_GUI(wx.Frame):
                 self.write_acceptance_criteria_to_boxes()
             except:
                 pass
-            pmag.write_criteria_to_file(os.path.join(self.WD, "pmag_criteria.txt"),self.acceptance_criteria)
+            pmag.magic_write(os.path.join(self.WD, "criteria.txt"),self.acceptance_criteria,'criteria')
             dlg1.Destroy()    
             dia.Destroy()
+        self.acceptance_criteria=accept # replace old with new
         self.recaclulate_satistics()
         try:
             self.update_GUI_with_new_interpretation()
         except:
             pass
         
+
+
+
     # only valid naumber can be entered to boxes
     # used by On_close_criteria_box         
  
@@ -2278,26 +2227,23 @@ class Arai_GUI(wx.Frame):
         try to guess if averaging by sample or by site.
         '''
 
-                
-        try:
-            self.acceptance_criteria=pmag.read_criteria_from_file(criteria_file,self.acceptance_criteria)
-        except:
-            print "-E- Cant read pmag criteria file"
-
+        
+        self.acceptance_criteria,file_type = pmag.magic_read(criteria_file)
+        existing=pmag.get_dictkey(self.acceptance_criteria,'criterion','')
+        if len(self.acceptance_criteria)==0:
+            print "-E- Cant read criteria file"
         # guesss if average by site or sample:
         by_sample=True
         flag=False
-        for crit in ['samples.int_n','samples.int_sigma_perc','samples.int_sigma']:
-            if self.acceptance_criteria[crit]['value']==-999:
-                flag=True
-        if flag:
-            for crit in ['sites.int_n','sites.int_sigma_perc','sites.int_sigma']:
-                if self.acceptance_criteria[crit]['value']!=-999:
-                    by_sample=False
-        if not by_sample:
-            self.acceptance_criteria['average_by_sample_or_site']['value']='site'
-        
-
+        if 'average_by_sample_or_site' not in existing: # try to figure it out
+             for table_column in ['samples.int_n','samples.int_sigma_perc','samples.int_sigma']:
+                 for crit in self.acceptance_criteria:
+                     if crit['table_column']==table_column and crit['criterion_value']==-999: by_sample=False
+             if not by_sample:
+                 self.acceptance_criteria.append({'criterion':'average_by_sample_or_site','criterion_operation':'+','citations':'This study','criterion_value':-999,'description':'','table_column':'sites.int_abs'})
+             else:
+                 self.acceptance_criteria.append({'criterion':'average_by_sample_or_site','criterion_operation':'+','citations':'This study','criterion_value':-999,'description':'','table_column':'samples.int_abs'})
+    
     def on_menu_save_interpretation(self, event):
  
         '''
@@ -3068,124 +3014,7 @@ class Arai_GUI(wx.Frame):
 
     #----------------------------------------------------------------------            
 
-#    def write_acceptance_criteria_to_file(self):
-#        import copy
-#        """
-#        Write new acceptance criteria to pmag_criteria.txt
-#        """
-#        # check if an old pmag_criteria.txt exist:
-#        other_criteria={}
-#        try:
-#            fin=open(self.WD+"/"+"pmag_criteria.txt",'rU')
-#            lines=""
-#            line=fin.readline()
-#            line=fin.readline()
-#            header=line.strip('\n').split()
-#            code_index=header.index("pmag_criteria_code")
-#
-#            for line in fin.readlines():
-#                code=line[code_index]
-#                if "IE-" not in code:
-#                    for i in range(len(header)):
-#                        if line[i]!="":
-#                            try:
-#                                float(line[i])
-#                            except:
-#                                continue
-#                            other_criteria[code][header[i]]=float(line[i])
-#        except:
-#             pass
-#            
-#
-#            
-#        fout=open(self.WD+"/"+"pmag_criteria.txt",'w')
-#        String="tab\tpmag_criteria\n"
-#        fout.write(String)
-#        specimen_criteria_list=self.criteria_list+["specimen_int_max_slope_diff"]+['check_aniso_ftest']+['anisotropy_alt']
-#        sample_criteria_list=[key for key in self.acceptance_criteria.keys() if "sample" in key]
-#        if self.acceptance_criteria['sample_int_stdev_opt'] == True:                                      
-#            for k in ['sample_int_bs','sample_int_bs_par','sample_int_BS_68_uT','sample_int_BS_68_perc','sample_int_BS_95_uT','sample_int_BS_95_perc']:
-#                sample_criteria_list.remove(k)
-#                if "specimen_int_max_slope_diff" in specimen_criteria_list:
-#                    specimen_criteria_list.remove("specimen_int_max_slope_diff")
-#
-#        else:
-#            for k in ['sample_int_sigma_uT','sample_int_sigma_perc','sample_int_interval_uT','sample_int_stdev_opt','sample_aniso_threshold_perc']:
-#                sample_criteria_list.remove(k)
-#        for k in ['sample_int_sigma_uT','sample_int_sigma_perc','sample_int_interval_uT','sample_int_interval_perc','sample_aniso_threshold_perc','sample_int_BS_68_uT','sample_int_BS_68_perc','sample_int_BS_95_uT','sample_int_BS_95_perc',]:
-#            if  k in sample_criteria_list:
-#                if float(self.acceptance_criteria[k]) > 999:
-#                    sample_criteria_list.remove(k)
-#        if  float(self.acceptance_criteria["sample_int_n_outlier_check"])> 99:
-#            sample_criteria_list.remove("sample_int_n_outlier_check")
-#
-#        if "sample_int_sigma_uT"  in sample_criteria_list and "sample_int_sigma" not in sample_criteria_list:
-#            sample_criteria_list.append("sample_int_sigma")
-#            self.acceptance_criteria["sample_int_sigma"]=float(self.acceptance_criteria["sample_int_sigma_uT"])*1e-6
-#        
-#        if "specimen_int_max_slope_diff" in  specimen_criteria_list:
-#            if float(self.acceptance_criteria['specimen_int_max_slope_diff'])>999:
-#                specimen_criteria_list.remove("specimen_int_max_slope_diff")
-#        c_list=copy.copy(specimen_criteria_list)       
-#        for criteria in c_list:
-#            if criteria in (self.high_threshold_velue_list + ['anisotropy_alt']) and float(self.acceptance_criteria[criteria])>100:
-#                specimen_criteria_list.remove(criteria)
-#            #if criteria in ['specimen_g'] and float(self.acceptance_criteria[criteria])>100:
-#            if criteria in self.low_threshold_velue_list and float(self.acceptance_criteria[criteria])<0.1:
-#                specimen_criteria_list.remove(criteria)                
-#
-#        # special treatment for sample and site criteria:
-#        header="pmag_criteria_code\t"
-#        for i in range(len(sample_criteria_list)):
-#            key=sample_criteria_list[i]
-#            if key in ['average_by_sample_or_site','sample_int_sigma_uT','sample_int_stdev_opt','sample_int_n_outlier_check']:
-#                continue
-#            # special treatment for sample and site criteria:        
-#            if self.average_by_sample_or_site=='site':
-#                if key == 'sample_int_n' or key == "sample_int_n": key='site_int_nn'
-#                if key == 'sample_int_sigma' or key == "sample_int_sigma": key='site_int_sigma'
-#                if key == 'sample_int_sigma_perc' or key == "sample_int_sigma_perc": key='site_int_sigma_perc'
-#            header=header+key+"\t"
-#        for key in specimen_criteria_list:
-#            header=header+key+"\t"
-#        header=header+"specimen_scat\t"
-#
-#        # other criteria (not paleointensity)
-#        for code in other_criteria.keys():
-#            for key in other_criteria[code].keys():
-#                header=header+key+"\t"
-#        fout.write(header[:-1]+"\n")
-#                    
-#        line="IE-SPEC:IE-SAMP\t"
-#        for key in sample_criteria_list:
-#            if key in['average_by_sample_or_site','sample_int_sigma_uT','sample_int_stdev_opt','sample_int_n_outlier_check']:
-#                continue
-#            if key in ['sample_int_bs','sample_int_bs_par','sample_int_stdev_opt','check_aniso_ftest','average_by_sample_or_site']:
-#                line=line+"%s"%str(self.acceptance_criteria[key])+"\t"
-#            elif key in ['sample_int_sigma']:
-#                line=line+"%.2e"%self.acceptance_criteria[key]+"\t"                
-#            else:
-#                line=line+"%f"%self.acceptance_criteria[key]+"\t"
-#                
-#        for key in specimen_criteria_list:
-#            if key=='check_aniso_ftest':
-#                line=line+str(self.acceptance_criteria[key])+"\t"
-#            else:    
-#                line=line+"%f"%self.acceptance_criteria[key]+"\t"
-#        if self.acceptance_criteria["specimen_scat"]:
-#            line=line+"True"+"\t"
-#        else:
-#            line=line+"False"+"\t"
-#
-#        # other criteria (not paleointensity)
-#        for code in other_criteria.keys():
-#            for key in other_criteria[code].keys():
-#                line=line+other_criteria[code][key]+"\t"
-#    
-#        fout.write(line[:-1]+"\n")
-#        fout.close()
-            
-    #----------------------------------------------------------------------            
+#    def write_acceptance_criteria_to_file(self): # DEPRICATED
 
     def on_menu_run_consistency_test(self, event):
         #dlg1 = wx.MessageDialog(self,caption="Message:",message="Consistency test is no longer supported in this version" ,style=wx.OK)
@@ -3232,7 +3061,7 @@ class Arai_GUI(wx.Frame):
 #        #----------------------------------------------------
 #        
 #        # search for ages and Latitudes
-#        if self.acceptance_criteria['average_by_sample_or_site']['value']=='sample':
+#        if self.acceptance_criteria['average_by_sample_or_site']['criterion_value']=='sample':
 #            BY_SITES=False; BY_SAMPLES=True
 #        else:
 #            BY_SITES=True; BY_SAMPLES=False        
@@ -3573,7 +3402,7 @@ class Arai_GUI(wx.Frame):
         #-------------
         # pmag_samples.txt or pmag_sites.txt
         #-------------
-        if self.acceptance_criteria['average_by_sample_or_site']['value']=='sample':
+        if self.acceptance_criteria['average_by_sample_or_site']['criterion_value']=='sample':
             BY_SITES=False; BY_SAMPLES=True
         else:
             BY_SITES=True; BY_SAMPLES=False
@@ -4096,15 +3925,15 @@ class Arai_GUI(wx.Frame):
         #check if pass criteria
         #----------
         # int_n
-        if self.acceptance_criteria['average_by_sample_or_site']['value']=='sample':
+        if self.acceptance_criteria['average_by_sample_or_site']['criterion_value']=='sample':
             average_by_sample_or_site='sample'
         else:
             average_by_sample_or_site='site'
             
         if average_by_sample_or_site=='sample':
-            cutoff_value=self.acceptance_criteria['sample_int_n']['value']
+            cutoff_value=self.acceptance_criteria['sample_int_n']['criterion_value']
         else:
-            cutoff_value=self.acceptance_criteria['site_int_n']['value']
+            cutoff_value=self.acceptance_criteria['site_int_n']['criterion_value']
         if cutoff_value != -999:
             if pars['N']<cutoff_value:
                 pars['pass_or_fail']='fail'
@@ -4112,19 +3941,19 @@ class Arai_GUI(wx.Frame):
         #----------        
         # int_sigma ; int_sigma_perc
         pass_sigma,pass_sigma_perc=False,False
-        if self.acceptance_criteria['average_by_sample_or_site']['value']=='sample':
-            sigma_cutoff_value=self.acceptance_criteria['sample_int_sigma']['value']
+        if self.acceptance_criteria['average_by_sample_or_site']['criterion_value']=='sample':
+            sigma_cutoff_value=self.acceptance_criteria['sample_int_sigma']['criterion_value']
         else:
-            sigma_cutoff_value=self.acceptance_criteria['site_int_sigma']['value']
+            sigma_cutoff_value=self.acceptance_criteria['site_int_sigma']['criterion_value']
         
         if sigma_cutoff_value != -999:
             if pars['B_std_uT']*1e-6<=sigma_cutoff_value:
                 pass_sigma=True
 
-        if self.acceptance_criteria['average_by_sample_or_site']['value']=='sample':
-            sigma_perc_cutoff_value=self.acceptance_criteria['sample_int_sigma_perc']['value']
+        if self.acceptance_criteria['average_by_sample_or_site']['criterion_value']=='sample':
+            sigma_perc_cutoff_value=self.acceptance_criteria['sample_int_sigma_perc']['criterion_value']
         else:
-            sigma_perc_cutoff_value=self.acceptance_criteria['site_int_sigma_perc']['value']
+            sigma_perc_cutoff_value=self.acceptance_criteria['site_int_sigma_perc']['criterion_value']
         if sigma_perc_cutoff_value != -999:
             if pars['B_std_perc']<=sigma_perc_cutoff_value:
                 pass_sigma_perc=True
@@ -4143,13 +3972,13 @@ class Arai_GUI(wx.Frame):
         #----------        
         # int_sigma ; int_sigma_perc
         pass_int_interval,pass_int_interval_perc=False,False
-        if self.acceptance_criteria['average_by_sample_or_site']['value']=='sample':
-            cutoff_value=self.acceptance_criteria['sample_int_interval_uT']['value']
+        if self.acceptance_criteria['average_by_sample_or_site']['criterion_value']=='sample':
+            cutoff_value=self.acceptance_criteria['sample_int_interval_uT']['criterion_value']
             if cutoff_value != -999:
                 if pars['sample_int_interval_uT']<=cutoff_value:
                     pass_int_interval=True
     
-            cutoff_value_perc=self.acceptance_criteria['sample_int_interval_perc']['value']
+            cutoff_value_perc=self.acceptance_criteria['sample_int_interval_perc']['criterion_value']
             if cutoff_value_perc != -999:
                 if pars['sample_int_interval_perc']<=cutoff_value_perc:
                     pass_int_interval_perc=True
@@ -4287,7 +4116,7 @@ class Arai_GUI(wx.Frame):
 
         if show_STDEVOPT:
             data2plot={}
-            if self.acceptance_criteria['average_by_sample_or_site']['value']=='sample':
+            if self.acceptance_criteria['average_by_sample_or_site']['criterion_value']=='sample':
                 FILE=os.path.join(self.WD, 'thellier_interpreter', 'thellier_interpreter_STDEV-OPT_samples.txt')
                 NAME="er_sample_name"
             else:
@@ -4298,7 +4127,7 @@ class Arai_GUI(wx.Frame):
             except:
                 data2plot={}
         else:
-            if self.acceptance_criteria['average_by_sample_or_site']['value']=='sample':
+            if self.acceptance_criteria['average_by_sample_or_site']['criterion_value']=='sample':
                 data2plot=copy.deepcopy(self.Data_samples)   
             else:
                 data2plot=copy.deepcopy(self.Data_sites)
@@ -4348,7 +4177,7 @@ class Arai_GUI(wx.Frame):
                 sample_or_site_mean_pars=data2plot[sample_or_site]#,sample_or_site,self.acceptance_criteria)
                             
             # locate site_name
-            if self.acceptance_criteria['average_by_sample_or_site']['value']=='sample':
+            if self.acceptance_criteria['average_by_sample_or_site']['criterion_value']=='sample':
                 site_name=self.Data_hierarchy['site_of_sample'][sample_or_site] 
             else:
                 site_name=sample_or_site
@@ -5324,7 +5153,7 @@ class Arai_GUI(wx.Frame):
                 continue
             if type(self.acceptance_criteria[stat]['decimal_points'])!=float and type(self.acceptance_criteria[stat]['decimal_points'])!=int:
                 continue
-            if type(self.acceptance_criteria[stat]['value'])!=float and type(self.acceptance_criteria[stat]['value'])!=int:
+            if type(self.acceptance_criteria[stat]['criterion_value'])!=float and type(self.acceptance_criteria[stat]['criterion_value'])!=int:
                 continue
                 
             # get the value
@@ -5334,13 +5163,13 @@ class Arai_GUI(wx.Frame):
                 command="value='%%.%if'%%(float(self.pars[stat]))"%(int(self.acceptance_criteria[stat]['decimal_points']))
                 exec command
             #elif  stat=='specimen_scat':
-            #    value= str(self.acceptance_criteria[stat]['value'])  
+            #    value= str(self.acceptance_criteria[stat]['criterion_value'])  
             # write the value
             command= "self.%s_window.SetValue(value)"%stat.split('specimen_')[-1]
             exec command
             
             # set backgound color
-            cutoff_value=self.acceptance_criteria[stat]['value']
+            cutoff_value=self.acceptance_criteria[stat]['criterion_value']
             if cutoff_value==-999:
                 command="self.%s_window.SetBackgroundColour(wx.NullColour)"%stat.split('specimen_')[-1]  # set text color 
             elif stat=="specimen_k" or stat=="specimen_k_prime":
@@ -5359,7 +5188,7 @@ class Arai_GUI(wx.Frame):
 
         # specimen_scat                
         if 'scat' in     self.preferences['show_statistics_on_gui']:
-            if self.acceptance_criteria['specimen_scat']['value'] in ['True','TRUE','1',1,True,'g']:
+            if self.acceptance_criteria['specimen_scat']['criterion_value'] in ['True','TRUE','1',1,True,'g']:
                 if self.pars["specimen_scat"]=='Pass':
                     self.scat_window.SetValue("Pass")
                     self.scat_window.SetBackgroundColour(wx.GREEN) # set text color
@@ -5506,7 +5335,7 @@ class Arai_GUI(wx.Frame):
         xx=scipy.array([x_Arai_segment[0],x_Arai_segment[-1]])
         yy=b*xx+a
         self.araiplot.plot(xx,yy,'g-',lw=2,alpha=0.5)
-        if self.acceptance_criteria['int_scat']['value'] in [True,"True","TRUE",'1','g']:
+        if self.acceptance_criteria['int_scat']['criterion_value'] in [True,"True","TRUE",'1','g']:
             if 'specimen_scat_bounding_line_low' in pars:
                 if pars['specimen_scat_bounding_line_low'] != 0: # prevents error if there are no SCAT lines available
                     yy1=xx*pars['specimen_scat_bounding_line_low'][1]+pars['specimen_scat_bounding_line_low'][0]
@@ -5672,7 +5501,7 @@ class Arai_GUI(wx.Frame):
         
         # average by sample
         #print self.average_by_sample_or_site
-        if self.acceptance_criteria['average_by_sample_or_site']['value']=='sample':                         
+        if self.acceptance_criteria['average_by_sample_or_site']['criterion_value']=='sample':                         
             if sample in self.Data_samples.keys():
                 specimens_list=self.Data_samples[sample].keys()
                 if self.s not in specimens_list and 'specimen_int_uT' in self.pars.keys():
@@ -5728,10 +5557,10 @@ class Arai_GUI(wx.Frame):
             #if "sample_int_sigma" in self.acceptance_criteria.keys() and "sample_int_sigma_perc" in self.acceptance_criteria.keys():
             sigma_threshold_for_plot_1,sigma_threshold_for_plot_2=0,0                 
             #    sigma_threshold_for_plot=max(self.acceptance_criteria["sample_int_sigma"]*,0.01*self.acceptance_criteria["sample_int_sigma_perc"]*scipy.mean(specimens_B))
-            if self.acceptance_criteria["sample_int_sigma"]["value"]!=-999 and type(self.acceptance_criteria["sample_int_sigma"]["value"])==float:
-                sigma_threshold_for_plot_1=self.acceptance_criteria["sample_int_sigma"]["value"]*1e6               
-            if self.acceptance_criteria["sample_int_sigma_perc"]["value"]!=-999 and type(self.acceptance_criteria["sample_int_sigma_perc"]["value"])==float:
-                sigma_threshold_for_plot_2=scipy.mean(specimens_B)*0.01*self.acceptance_criteria["sample_int_sigma_perc"]['value']
+            if self.acceptance_criteria["sample_int_sigma"]["criterion_value"]!=-999 and type(self.acceptance_criteria["sample_int_sigma"]["criterion_value"])==float:
+                sigma_threshold_for_plot_1=self.acceptance_criteria["sample_int_sigma"]["criterion_value"]*1e6               
+            if self.acceptance_criteria["sample_int_sigma_perc"]["criterion_value"]!=-999 and type(self.acceptance_criteria["sample_int_sigma_perc"]["criterion_value"])==float:
+                sigma_threshold_for_plot_2=scipy.mean(specimens_B)*0.01*self.acceptance_criteria["sample_int_sigma_perc"]['criterion_value']
             #sigma_threshold_for_plot 100000
             sigma_threshold_for_plot=max(sigma_threshold_for_plot_1,sigma_threshold_for_plot_2)
             if sigma_threshold_for_plot < 20 and sigma_threshold_for_plot!=0:
@@ -5778,15 +5607,15 @@ class Arai_GUI(wx.Frame):
 
     def add_thellier_gui_criteria(self):
         '''criteria used only in thellier gui
-        these criteria are not written to pmag_criteria.txt
+        these criteria are not written to criteria.txt
         '''
         category="thellier_gui"      
         for crit in ['sample_int_n_outlier_check','site_int_n_outlier_check']:
             self.acceptance_criteria[crit]={} 
             self.acceptance_criteria[crit]['category']=category
-            self.acceptance_criteria[crit]['criterion_name']=crit
-            self.acceptance_criteria[crit]['value']=-999
-            self.acceptance_criteria[crit]['threshold_type']="low"
+            self.acceptance_criteria[crit]['criterion']=crit
+            self.acceptance_criteria[crit]['criterion_value']=-999
+            self.acceptance_criteria[crit]['criterion_operation']=">="
             self.acceptance_criteria[crit]['decimal_points']=0
             
         for crit in ['sample_int_interval_uT','sample_int_interval_perc',\
@@ -5794,32 +5623,32 @@ class Arai_GUI(wx.Frame):
         'sample_int_BS_68_uT','sample_int_BS_95_uT','sample_int_BS_68_perc','sample_int_BS_95_perc','specimen_int_max_slope_diff']:
             self.acceptance_criteria[crit]={} 
             self.acceptance_criteria[crit]['category']=category
-            self.acceptance_criteria[crit]['criterion_name']=crit
-            self.acceptance_criteria[crit]['value']=-999
-            self.acceptance_criteria[crit]['threshold_type']="high"
+            self.acceptance_criteria[crit]['criterion']=crit
+            self.acceptance_criteria[crit]['criterion_value']=-999
+            self.acceptance_criteria[crit]['criterion_operation']="<="
             if crit in ['specimen_int_max_slope_diff']:
                 self.acceptance_criteria[crit]['decimal_points']=-999
             else:        
                 self.acceptance_criteria[crit]['decimal_points']=1
-            self.acceptance_criteria[crit]['comments']="thellier_gui_only"
+            self.acceptance_criteria[crit]['description']="thellier_gui_only"
 
         for crit in ['average_by_sample_or_site','interpreter_method']:
             self.acceptance_criteria[crit]={} 
             self.acceptance_criteria[crit]['category']=category
-            self.acceptance_criteria[crit]['criterion_name']=crit
+            self.acceptance_criteria[crit]['criterion']=crit
             if crit in ['average_by_sample_or_site']:
-                self.acceptance_criteria[crit]['value']='sample'
+                self.acceptance_criteria[crit]['criterion_value']='sample'
             if crit in ['interpreter_method']:
-                self.acceptance_criteria[crit]['value']='stdev_opt'
-            self.acceptance_criteria[crit]['threshold_type']="flag"
+                self.acceptance_criteria[crit]['criterion_value']='stdev_opt'
+            self.acceptance_criteria[crit]['criterion_operation']="flag"
             self.acceptance_criteria[crit]['decimal_points']=-999
        
         for crit in ['include_nrm']:
             self.acceptance_criteria[crit]={} 
             self.acceptance_criteria[crit]['category']=category
-            self.acceptance_criteria[crit]['criterion_name']=crit
-            self.acceptance_criteria[crit]['value']=True
-            self.acceptance_criteria[crit]['threshold_type']="bool"
+            self.acceptance_criteria[crit]['criterion']=crit
+            self.acceptance_criteria[crit]['criterion_value']=True
+            self.acceptance_criteria[crit]['criterion_operation']="="
             self.acceptance_criteria[crit]['decimal_points']=-999
                     
         

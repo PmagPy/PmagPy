@@ -346,7 +346,7 @@ class MagicDataFrame(object):
                 return
             if dtype == 'criteria':
                 #self.df = pd.DataFrame()
-                self.df.index = self.df['table_column_name']
+                self.df.index = self.df['table_column']
                 return
             self.df.index = self.df[name]
             #del self.df[name]
