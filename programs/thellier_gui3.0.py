@@ -218,8 +218,8 @@ class Arai_GUI(wx.Frame):
         """  
         args=sys.argv
         if "-h" in args:
-	   print TEXT
-	   sys.exit()
+            print TEXT
+            sys.exit()
               
         global FIRST_RUN
         FIRST_RUN = True if standalone else False
@@ -230,8 +230,9 @@ class Arai_GUI(wx.Frame):
             self.WD = WD
             self.get_DIR(self.WD)
         else:
-            self.get_DIR()        # choose directory dialog        
-        
+            self.get_DIR()        # choose directory dialog
+
+        self.WD = os.path.realpath(self.WD)
          
         # inialize selecting criteria
         self.acceptance_criteria=pmag.initialize_acceptance_criteria()
@@ -281,7 +282,7 @@ class Arai_GUI(wx.Frame):
         """
         if "-WD" in sys.argv and FIRST_RUN:
             ind=sys.argv.index('-WD')
-            self.WD=sys.argv[ind+1] 
+            self.WD=sys.argv[ind+1]
         elif not WD: # if no arg was passed in for WD, make a dialog to choose one   
             dialog = wx.DirDialog(None, "Choose a directory:",defaultPath = self.currentDirectory ,style=wx.DD_DEFAULT_STYLE | wx.DD_NEW_DIR_BUTTON | wx.DD_CHANGE_DIR)
             ok = dialog.ShowModal()
@@ -290,7 +291,7 @@ class Arai_GUI(wx.Frame):
             else:
                 self.WD = os.getcwd()
             dialog.Destroy()
-        self.meas_file=os.path.join(self.WD,"measurements.txt")
+        self.meas_file="measurements.txt"
             #intialize GUI_log
         self.GUI_log=open(os.path.join(self.WD, "thellier_GUI.log"),'w')
         self.GUI_log.write("starting...\n")
@@ -5698,18 +5699,23 @@ class Arai_GUI(wx.Frame):
 #          print "-E- ERROR: Cant read measurement.txt file. File is corrupted."
 #          return {},{}
 
+
       fnames = {'measurements': meas_file}
       contribution = nb.Contribution(self.WD, custom_filenames=fnames, read_tables=['measurements', 'specimens', 'samples','sites'])
       Mkeys = ['magn_moment', 'magn_volume', 'magn_mass']
-#
-#   create measurement dataframe
-#
-#
-#   propogate sample, site, location names if available
-#    
-      if 'specimens' in contribution.tables: contribution.propagate_name_down('sample','measurements')
-      if 'samples' in contribution.tables: contribution.propagate_name_down('site','measurements')
-      if 'sites' in contribution.tables: contribution.propagate_name_down('location','measurements')
+      #
+      #   create measurement dataframe
+      #
+      #
+      #   propogate sample, site, location names if available
+      #
+      print contribution.tables
+      if 'specimens' in contribution.tables:
+          contribution.propagate_name_down('sample', 'measurements')
+      if 'samples' in contribution.tables:
+          contribution.propagate_name_down('site', 'measurements')
+      if 'sites' in contribution.tables:
+          contribution.propagate_name_down('location','measurements')
       meas_container = contribution.tables['measurements']
       meas_data = meas_container.df
 #
