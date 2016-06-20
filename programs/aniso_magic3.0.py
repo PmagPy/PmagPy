@@ -29,25 +29,23 @@ def main():
     OPTIONS
         -h plots help message and quits
         -usr USER: set the user name
-        -f AFILE, specify rmag_anisotropy formatted file for input
-        -fsa SAMPFILE, specify sample file (required to plot by site)
+        -f AFILE, specify specimens.txt formatted file for input
+        -fsa SAMPFILE, specify samples.txt file (required to plot by site)
         -fsi SITEFILE, specify site file (required to include location information)
-        -F RFILE, specify rmag_results formatted file for output
         -x Hext [1963] and bootstrap
         -B DON'T do bootstrap, do Hext
         -par Tauxe [1998] parametric bootstrap
         -v plot bootstrap eigenvectors instead of ellipses
         -sit plot by site instead of entire file
         -crd [s,g,t] coordinate system, default is specimen (g=geographic, t=tilt corrected)
-        -P don't make any plots - just make rmag_results table
-        -sav don't make the rmag_results table - just save all the plots
+        -P don't make any plots - just fill in the specimens, samples, sites tables
+        -sav don't make the tables - just save all the plots
         -fmt [svg, jpg, eps] format for output images, pdf default
         -gtc DEC INC  dec,inc of pole to great circle [down(up) in green (cyan)
         -d Vi DEC INC; Vi (1,2,3) to compare to direction DEC INC
         -nb N; specifies the number of bootstraps - default is 1000
     DEFAULTS
-       AFILE:  rmag_anisotropy.txt
-       RFILE:  rmag_results.txt
+       AFILE:  specimens.txt
        plot bootstrap ellipses of Constable & Tauxe [1987]
     NOTES
        minor axis: circles
@@ -130,7 +128,8 @@ def main():
     con = nb.Contribution(dir_path, read_tables=['specimens', 'samples', 'sites'],
                           custom_filenames=fnames)
     spec_container = con.tables['specimens']
-    spec_df = con.propagate_name_down('site_name', 'specimens')
+    spec_df = con.propagate_name_down('site', 'specimens')
+    
     # get only anisotropy records
     spec_df = spec_container.get_records_for_code('AE-', strict_match=False)
     if 'aniso_tilt_correction' not in spec_df.columns:
@@ -150,7 +149,7 @@ def main():
         if verbose:
             print "desired coordinate system not available, using available: ", crd
     if isite == 1:
-        sitelist = spec_df['site_name'].unique()
+        sitelist = spec_df['site'].unique()
         sitelist.sort()
         plt = len(sitelist)
     else:
@@ -164,17 +163,17 @@ def main():
             sdata = data
         else:
             site = sitelist[k]
-            sdata = spec_df[spec_df['site_name'] == site]
+            sdata = spec_df[spec_df['site'] == site]
         anitypes = []
         csrecs = sdata[sdata['aniso_tilt_correction'] == CS]
         anitypes = csrecs['aniso_type'].unique()
-        for name in ['citation_names', 'location_name', 'site_name', 'sample_name']:
+        for name in ['citations', 'location', 'site', 'sample']:
             if name not in csrecs:
                 csrecs[name] = ""
-        Locs = csrecs['location_name'].unique()
-        Sites = csrecs['site_name'].unique()
-        Samples = csrecs['sample_name'].unique()
-        Specimens = csrecs['specimen_name'].unique()
+        Locs = csrecs['location'].unique()
+        Sites = csrecs['site'].unique()
+        Samples = csrecs['sample'].unique()
+        Specimens = csrecs['specimen'].unique()
         Cits = csrecs['citation_names'].unique()
         for ind, rec in csrecs.iterrows():
             s = [float(i.strip()) for i in rec['aniso_s'].split(':')]
@@ -185,37 +184,39 @@ def main():
             """
             # fill in ResRecs (ignoring this for now, grab it from aniso_magic if needed)
             ResRec = {}
-            ResRec['er_location_names']=rec['er_location_name']
+            ResRec['location']=rec['location']
             """
         # we appear to be good up to here!!!
         print Ss
-        return
+        #return
         if len(Ss)>1:
-            title="LO:_"+ResRec['er_location_names']+'_SI:_'+site+'_SA:__SP:__CO:_'+crd
+            title="LO:_"+ResRec['location']+'_SI:_'+site+'_SA:__SP:__CO:_'+crd
             ResRec['er_location_names']=pmag.makelist(Locs)
             bpars,hpars=pmagplotlib.plotANIS(ANIS,Ss,iboot,ihext,ivec,ipar,title,iplot,comp,vec,Dir,num_bootstraps)
             if len(PDir)>0:
                 pmagplotlib.plotC(ANIS['data'],PDir,90.,'g')
                 pmagplotlib.plotC(ANIS['conf'],PDir,90.,'g')
             if verbose and plots==0:pmagplotlib.drawFIGS(ANIS)
-            ResRec['er_location_names']=pmag.makelist(Locs)
+            ResRec['locations']=pmag.makelist(Locs)
             if plots==1:
                 save(ANIS,fmt,title)
             ResRec={}
-            ResRec['er_citation_names']=pmag.makelist(Cits)
-            ResRec['er_location_names']=pmag.makelist(Locs)
-            ResRec['er_site_names']=pmag.makelist(Sites)
-            ResRec['er_sample_names']=pmag.makelist(Samples)
-            ResRec['er_specimen_names']=pmag.makelist(Specimens)
-            ResRec['rmag_result_name']=pmag.makelist(Sites)+":"+pmag.makelist(anitypes)
-            ResRec['anisotropy_type']=pmag.makelist(anitypes)
-            ResRec["er_analyst_mail_names"]=user
-            ResRec["tilt_correction"]=CS
-            if isite=="0":ResRec['result_description']="Study average using coordinate system: "+ CS
-            if isite=="1":ResRec['result_description']="Site average using coordinate system: " +CS
+            ResRec['citations']=pmag.makelist(Cits)
+            ResRec['locations']=pmag.makelist(Locs)
+            ResRec['sites']=pmag.makelist(Sites)
+            ResRec['samples']=pmag.makelist(Samples)
+            ResRec['specimens']=pmag.makelist(Specimens)
+            ResRec['aniso_type']=pmag.makelist(anitypes)
+            ResRec["analysts"]=user
+            ResRec["aniso_tilt_correction"]=CS
+            if isite=="0":ResRec['description']="Study average using coordinate system: "+ CS
+            if isite=="1":ResRec['description']="Site average using coordinate system: " +CS
             if hpars!=[] and ihext==1:
                 HextRec={}
                 for key in ResRec.keys():HextRec[key]=ResRec[key]   # copy over stuff
+#
+#  need to translate this to Model 3.0 format: 
+#
                 HextRec["anisotropy_v1_dec"]='%7.1f'%(hpars["v1_dec"])
                 HextRec["anisotropy_v2_dec"]='%7.1f'%(hpars["v2_dec"])
                 HextRec["anisotropy_v3_dec"]='%7.1f'%(hpars["v3_dec"])
