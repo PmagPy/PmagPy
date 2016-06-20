@@ -53,7 +53,10 @@ def main():
     con = nb.Contribution(dir_path, read_tables=['measurements'],
                           custom_filenames={'measurements': meas_file})
     # get as much name data as possible (used for naming plots)
-    con.propagate_name_down('location_name', 'measurements')
+    if not 'measurements' in con.tables:
+        print "-W- No measurement file found"
+        return
+    con.propagate_name_down('location', 'measurements')
 
     if 'measurements' not in con.tables:
         print main.__doc__
@@ -75,14 +78,18 @@ def main():
     sids = []
     hyst_data = meas_container.get_records_for_code('LP-HYS')
     #experiment_names = hyst_data['experiment_name'].unique()
-    sids = hyst_data['specimen_name'].unique()
+    if not len(hyst_data):
+        print "-W- No hysteresis data found"
+        return
+    sids = hyst_data['specimen'].unique()
 
     # if 'treat_temp' is provided, use that value, otherwise assume 300
     hyst_data['treat_temp'].where(hyst_data['treat_temp'], '300', inplace=True)
-    # start at first specimen, or at provided specimen_name ('-spc')
+    # start at first specimen, or at provided specimen ('-spc')
     k = 0
     if pltspec != "":
         try:
+            print sids
             k = list(sids).index(pltspec)
         except ValueError:
             print '-W- No specimen named: {}.'.format(pltspec)
@@ -98,14 +105,14 @@ def main():
         # B, M for hysteresis, Bdcd,Mdcd for irm-dcd data
         B, M = [], []
         # get all measurements for this specimen
-        spec = hyst_data[hyst_data['specimen_name'] == s]
+        spec = hyst_data[hyst_data['specimen'] == s]
         # get names
-        if 'location_name' in spec:
-            locname = spec['location_name'][0]
-        if 'site_name' in spec:
-            site = spec['sample_name'][0]
-        if 'sample_name' in spec:
-            sample = spec['sample_name'][0]
+        if 'location' in spec:
+            locname = spec['location'][0]
+        if 'site' in spec:
+            site = spec['sample'][0]
+        if 'sample' in spec:
+            sample = spec['sample'][0]
 
         # get all records with non-blank values in any intlist column
         # find intensity data

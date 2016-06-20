@@ -49,8 +49,8 @@ def main():
     FIG['demag'] = 1  # demag is figure 1
     in_file = pmag.get_named_arg_from_sys("-f", default_val="measurements.txt")
     plot_by = pmag.get_named_arg_from_sys("-obj", default_val="loc")
-    name_dict = {'loc': 'location_name', 'sit': 'site_name',
-                 'sam': 'sample_name', 'spc': 'specimen_name'}
+    name_dict = {'loc': 'location', 'sit': 'site',
+                 'sam': 'sample', 'spc': 'specimen'}
     plot_key = name_dict[plot_by]
     LT = "LT-" + pmag.get_named_arg_from_sys("-LT", "AF") + "-Z"
     if LT == "LT-T-Z":
@@ -112,10 +112,10 @@ def main():
         if len(plot_data) > 2:
             title = plt
             spcs = []
-            spcs = plot_data['specimen_name'].unique()
+            spcs = plot_data['specimen'].unique()
             for spc in spcs:
                 INTblock = []
-                spec_data = plot_data[plot_data['specimen_name'] == spc]
+                spec_data = plot_data[plot_data['specimen'] == spc]
                 for ind, rec in spec_data.iterrows():
                     INTblock.append([float(rec[dmag_key]), 0, 0, float(rec[int_key]), 1, rec['flag']])
                 if len(INTblock) > 2:

@@ -63,8 +63,8 @@ def main():
     Bcr1, Bcr1Bc, S1 = [], [], []
     locations = ''
 
-    if 'location_name' in spec_df.columns:
-        locations = spec_df['location_name'].unique()
+    if 'location' in spec_df.columns:
+        locations = spec_df['location'].unique()
     do_rem = bool('rem_bcr' in spec_df.columns)
 
     for ind, row in spec_df.iterrows():
@@ -73,7 +73,7 @@ def main():
             Bcr.append(float(row['hyst_bcr']))
             Bc.append(float(row['hyst_bc']))
             BcrBc.append(Bcr[-1] / Bc[-1])
-            hsids.append(row['specimen_name'])
+            hsids.append(row['specimen'])
         if do_rem:
             if row['rem_bcr'] and float(row['rem_bcr']) > 0:
                 try:
@@ -83,7 +83,7 @@ def main():
                     Bcr2.append(Bcr[-1])
                 except ValueError:
                     if verbose:
-                        print 'hysteresis data for ', row['er_specimen_name'],
+                        print 'hysteresis data for ', row['specimen'],
                         print ' not found'
 
     #

@@ -114,7 +114,7 @@ def main():
     if coord and 'dir_tilt_correction' in Results.columns:
         Results = Results[Results['dir_tilt_correction'] == coord]
     # get location name and average ages
-    location = ":".join(Results['location_name'].unique())
+    location = ":".join(Results['location'].unique())
     if 'average_age' in Results.columns and ages == 1:
         dates = Results['average_age'].unique()
 
