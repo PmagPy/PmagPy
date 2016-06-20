@@ -1,5 +1,5 @@
 tab 	samples
-azimuth	azimuth_dec_correction	citations	description	dip	geologic_classes	geologic_types	lat	lithologies	lon	method_codes	orientation_flag	sample_name	site_name
+azimuth	azimuth_dec_correction	citations	description	dip	geologic_classes	geologic_types	lat	lithologies	lon	method_codes	orientation_flag	sample	site
 260	0	This study	Archived samples from 1965, 66 expeditions.	-57	Igneous : Extrusive	Lava Flow	-77.85	Trachyte	166.64	FS-FD : SO-SIGHT	g	mc01a	mc01
 189	0	This study	Archived samples from 1965, 66 expeditions.	-63	Igneous : Extrusive	Lava Flow	-77.85	Trachyte	166.64	FS-FD : SO-SIGHT	g	mc01b	mc01
 183	0	This study	Archived samples from 1965, 66 expeditions.	-30	Igneous : Extrusive	Lava Flow	-77.85	Trachyte	166.64	FS-FD : SO-SIGHT	g	mc01c	mc01
