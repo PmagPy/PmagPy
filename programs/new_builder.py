@@ -409,7 +409,12 @@ class MagicDataFrame(object):
         if col_name not in df_slice.columns:
             return ""
         # otherwise, return the first value from that column
-        return df_slice[col_name][0]
+        first_val = df_slice[col_name].dropna()
+        if any(first_val):
+            return first_val[0]
+        else:
+            return ""
+        #return df_slice[col_name].dropna()[0]
 
     def get_di_block(self, df_slice=None, do_index=False,
                      item_names=None, tilt_corr='100',

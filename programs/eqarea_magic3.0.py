@@ -67,11 +67,11 @@ def main():
     if plot_by == 'all':
         plot_key = 'all'
     elif plot_by == 'sit':
-        plot_key = 'site_name'
+        plot_key = 'site'
     elif plot_by == 'sam':
-        plot_key = 'sample_name'
+        plot_key = 'sample'
     elif plot_by == 'spc':
-        plot_key = 'specimen_name'
+        plot_key = 'specimen'
     else:
         plot_key = 'all'
     if '-c' in sys.argv:
@@ -186,10 +186,10 @@ def main():
         #    plot_data = plot_data[plot_data[tilt_key] == coord]
 
         # get metadata for naming the plot file
-        locations = data_container.get_name('location_name', df_slice=plot_data)
-        site = data_container.get_name('site_name', df_slice=plot_data)
-        sample = data_container.get_name('sample_name', df_slice=plot_data)
-        specimen = data_container.get_name('specimen_name', df_slice=plot_data)
+        locations = data_container.get_name('location', df_slice=plot_data)
+        site = data_container.get_name('site', df_slice=plot_data)
+        sample = data_container.get_name('sample', df_slice=plot_data)
+        specimen = data_container.get_name('specimen', df_slice=plot_data)
 
         # make sure method_codes is in plot_data
         if 'method_codes' not in plot_data.columns:
