@@ -131,7 +131,7 @@ def main():
     con = nb.Contribution(dir_path, read_tables=['specimens', 'samples', 'sites'],
                           custom_filenames=fnames)
     spec_container = con.tables['specimens']
-    spec_df = con.propagate_name_down('location_name', 'specimens')
+    spec_df = con.propagate_name_down('location', 'specimens')
     # get only anisotropy records
     spec_df = spec_container.get_records_for_code('AE-', strict_match=False)
     if 'aniso_tilt_correction' not in spec_df.columns:
@@ -163,23 +163,23 @@ def main():
         sdata, Ss = [], [] # list of S format data
         if isite == 0:
             sdata = spec_df
-            if 'location_name' in sdata.columns:
-                loc_name = ':'.join(sdata['location_name'].unique())
+            if 'location' in sdata.columns:
+                loc_name = ':'.join(sdata['location'].unique())
         else:
             site = sitelist[k]
-            sdata = spec_df[spec_df['site_name'] == site]
-            if 'location_name' in sdata.columns:
-                loc_name = sdata['location_name'][0]
+            sdata = spec_df[spec_df['site'] == site]
+            if 'location' in sdata.columns:
+                loc_name = sdata['location'][0]
         csrecs = sdata[sdata['aniso_tilt_correction'] == CS]
         #anitypes = csrecs['aniso_type'].unique()
-        for name in ['citation_names', 'location_name', 'site_name', 'sample_name']:
+        for name in ['citations', 'location', 'site', 'sample']:
             if name not in csrecs:
                 csrecs[name] = ""
-        Locs = csrecs['location_name'].unique()
-        #Sites = csrecs['site_name'].unique()
-        #Samples = csrecs['sample_name'].unique()
-        #Specimens = csrecs['specimen_name'].unique()
-        #Cits = csrecs['citation_names'].unique()
+        Locs = csrecs['location'].unique()
+        #Sites = csrecs['site'].unique()
+        #Samples = csrecs['sample'].unique()
+        #Specimens = csrecs['specimen'].unique()
+        #Cits = csrecs['citations'].unique()
         for ind, rec in csrecs.iterrows():
             s = [float(i.strip()) for i in rec['aniso_s'].split(':')]
             if s[0] <= 1.0:
@@ -454,7 +454,10 @@ def main():
                     goon, ans = 0, ""
                 if ans == "a":
                     locs = pmag.makelist(Locs)
-                    title = "LO:_" + locs + '_SI:__' + '_SA:__SP:__CO:_' + crd
+                    site_name = "_"
+                    if isite:
+                        site_name = site
+                    title = "LO:_" + locs + '_SI:_' + site_name + '_SA:__SP:__CO:_' + crd
                     save(ANIS, fmt, title)
                     goon = 0
         else:
