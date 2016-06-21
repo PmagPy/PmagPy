@@ -75,13 +75,13 @@ class GridFrame(wx.Frame):
         """
         self.main_sizer = wx.BoxSizer(wx.VERTICAL)
 
-
         if self.grid_type in self.contribution.tables:
             dataframe = self.contribution.tables[self.grid_type]
         else:
             dataframe = None
         self.grid_builder = GridBuilder(dataframe, self.grid_type,
-                                        self.panel, parent_type=self.parent_type)
+                                        self.panel, parent_type=self.parent_type,
+                                        dmodel=self.contribution.data_model)
         self.grid = self.grid_builder.make_grid()
         self.grid.InitUI()
 
@@ -740,58 +740,44 @@ class GridFrame(wx.Frame):
 
 class GridBuilder(object):
     """
-    Takes ErMagicBuilder data and put them into a MagicGrid
+    Takes MagIC data and put them into a MagicGrid
     """
-    
-    def __init__(self, dataframe, grid_type, panel, grid_headers=None, parent_type=None):
+
+    def __init__(self, dataframe, grid_type, panel, grid_headers=None,
+                 parent_type=None, dmodel=None):
         self.magic_data_frame = dataframe
         self.grid_type = grid_type
-        self.grid_headers = grid_headers if grid_headers else [[], [], []]
+        self.data_model = dmodel
+        # get the names group and just start there
+
+        # *** do default grid headers
+
         self.panel = panel
         self.parent_type = parent_type
         self.grid = None
-    
-    def make_grid(self, incl_pmag=True):
+
+    def make_grid(self):
         """
         return grid
         """
-        header = self.grid_headers[0]
-
-        first_headers = []
-        for string in ['citation', '{}_class'.format(self.grid_type),
-                       '{}_lithology'.format(self.grid_type), '{}_type'.format(self.grid_type),
-                      'site_definition']:
-            for head in header[:]:
-                if string in head:
-                    header.remove(head)
-                    first_headers.append(head)
-
-        if self.grid_type == 'ages':
-            for header_type in self.er_magic.first_age_headers:
-                if header_type in header:
-                    header.remove(header_type)
-            lst = [self.grid_type]
-            lst.extend(self.er_magic.first_age_headers)
-            header[:0] = lst
-
-        # do headers for all other data types without parents
-        elif not self.parent_type:
-            lst = [self.grid_type]
-            lst.extend(first_headers)
-            header[:0] = lst
-        # do headers for all data types with parents
-        else:
-            lst = [self.grid_type, self.parent_type]
-            lst.extend(first_headers)
-            header[:0] = lst
-
-
         if isinstance(self.magic_data_frame, nb.MagicDataFrame):
-            col_labels = self.magic_data_frame.df.columns
+            # get columns and reorder slightly
+            col_labels = list(self.magic_data_frame.df.columns)
+            if self.parent_type:
+                col_labels.remove(self.parent_type[:-1])
+                col_labels[:0] = [self.parent_type[:-1]]
+            col_labels.remove(self.magic_data_frame.df.index.name)
+            col_labels[:0] = [self.magic_data_frame.df.index.name]
+            self.magic_data_frame.df = self.magic_data_frame.df[col_labels]
             row_labels = self.magic_data_frame.df.index
         else:
-            col_labels = ['label1', 'label2']
-            row_labels = []
+            # put in some default headers
+            col_labels = list(self.data_model.get_headers(self.grid_type, 'Names'))
+            if self.parent_type:
+                col_labels.remove(self.parent_type[:-1])
+                col_labels[:0] = [self.parent_type[:-1]]
+            col_labels.remove(self.grid_type[:-1])
+            col_labels[:0] = [self.grid_type[:-1]]
         grid = magic_grid.MagicGrid(parent=self.panel, name=self.grid_type,
                                     row_labels=[], col_labels=col_labels)
         grid.do_event_bindings()
@@ -800,28 +786,12 @@ class GridBuilder(object):
         return grid
 
     def add_data_to_grid(self, grid, grid_type=None, incl_pmag=True):
-        return
-        incl_parents = True
-        if not grid_type:
-            grid_type = self.grid_type
-        if grid_type == 'age':
-            grid_type = self.er_magic.age_type
-            incl_parents = False
-            incl_pmag = False
-        # the two loops below may be overly expensive operations
-        # consider doing this another way
-        if grid_type == 'sample':
-            for sample in self.er_magic.samples:
-                sample.propagate_data()
-        if grid_type == 'specimen':
-            for specimen in self.er_magic.specimens:
-                specimen.propagate_data()
-        rows = self.er_magic.data_lists[grid_type][0]
-        grid.add_items(rows, incl_pmag=incl_pmag, incl_parents=incl_parents)
+        if isinstance(self.magic_data_frame, nb.MagicDataFrame):
+            grid.add_items(self.magic_data_frame.df)
         grid.size_grid()
 
         # always start with at least one row:
-        if not rows:
+        if not grid.GetNumberRows():
             grid.add_row()
         # if adding actual data, remove the blank row
         else:

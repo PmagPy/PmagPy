@@ -1,9 +1,9 @@
-import matplotlib
+#import matplotlib
 #matplotlib.use('WXAgg')
 import wx
 import wx.grid
 import wx.lib.mixins.gridlabelrenderer as gridlabelrenderer
-#import pdb
+
 
 class MagicGrid(wx.grid.Grid, gridlabelrenderer.GridWithLabelRenderersMixin):
     """
@@ -62,73 +62,23 @@ class MagicGrid(wx.grid.Grid, gridlabelrenderer.GridWithLabelRenderersMixin):
             pass
         return data
 
-
-    def add_items(self, items_list, incl_pmag=True, incl_parents=True):
+    def add_items(self, dataframe):  #items_list, incl_pmag=True, incl_parents=True):
         """
         Add items and/or update existing items in grid
         """
-        num_rows = self.GetNumberRows()
-        current_grid_rows = [self.GetCellValue(num, 0) for num in xrange(num_rows)]
-        er_data = {item.name: item.er_data for item in items_list}
-        pmag_data = {item.name: item.pmag_data for item in items_list}
-        items_list = sorted(items_list, key=lambda item: item.name)
-        for item in items_list[:]:
-            if item.name in current_grid_rows:
-                pass
-            else:
-                self.add_row(item.name, item)
-        self.add_data(er_data)#, pmag=False)
-        if incl_pmag:
-            self.add_data(pmag_data, pmag=True)
-        if incl_parents:
-            self.add_parents()
-        
-        
-    def add_data(self, data_dict, pmag=False):
-        # requires dict in this this format:
-        # {spec_name: {}, spec2_name: {}}
-        for num, row in enumerate(self.row_labels):
-            if row:
-                for n, col in enumerate(self.col_labels[1:]):
-                    value = ''
-                    ## catch pmag double codes
-                    # in specimen, sample, and site grids,
-                    # if we have a column name like 'magic_method_codes++'
-                    # we need to strip the '++'
-                    if '++' in col:
-                        if pmag:
-                            col_name = col[:-2]
-                            if col_name in data_dict[row].keys():
-                                value = data_dict[row][col_name]
-                    # in pmag_results, magic_method_codes won't have '++'
-                    # so we have to handle it separately
-                    elif col == 'magic_method_codes' and pmag and self.name == 'result':
-                        value = data_dict[row]['magic_method_codes']
-                    # if we're doing pmag data, don't fill in magic_method_codes
-                    # (for pmag we use 'magic_method_codes++' and skip plain magic_method_codes
-                    elif col in data_dict[row].keys():
-                        value = data_dict[row][col]
-                        # set defaults
-                        if col == 'er_citation_names':
-                            if value == 'This study':
-                                current_val = self.GetCellValue(num, n+1).strip()
-                                if current_val:
-                                    value = current_val
-                                else:
-                                    value = "This study"
-                    else:
-                        value = ''
-                    if value:
-                        self.SetCellValue(num, n+1, str(value))
+        # replace "None" values with ""
+        dataframe = dataframe.fillna("")
+        # add more rows
+        self.AppendRows(len(dataframe))
+        columns = dataframe.columns
+        row_num = -1
+        # fill in all rows with appropriate values
+        for ind, row in dataframe.iterrows():
+            row_num += 1
+            for col_num, col in enumerate(columns):
+                value = row[col]
+                self.SetCellValue(row_num, col_num, str(value))
 
-    def add_parents(self, col_num=1):
-        if self.parent_type and self.row_items:
-            for num, row in enumerate(self.row_items):
-                if row:
-                    parent = row.get_parent()
-                    if parent:
-                        self.SetCellValue(num, col_num, parent.name)
-                
 
     def size_grid(self, event=None):
         self.AutoSizeColumns(True)
@@ -142,7 +92,6 @@ class MagicGrid(wx.grid.Grid, gridlabelrenderer.GridWithLabelRenderersMixin):
             self.SetColSize(col, size)
 
         self.ForceRefresh()
-
 
     def do_event_bindings(self):
         self.Bind(wx.grid.EVT_GRID_EDITOR_CREATED, self.on_edit_grid)
@@ -255,7 +204,6 @@ class MagicGrid(wx.grid.Grid, gridlabelrenderer.GridWithLabelRenderersMixin):
         wx.TheClipboard.Close()
         event.Skip()
 
-
     def add_row(self, label='', item=''):
         """
         Add a row to the grid
@@ -318,7 +266,6 @@ class MagicGrid(wx.grid.Grid, gridlabelrenderer.GridWithLabelRenderersMixin):
         self.col_labels.append(label)
         self.size_grid()
         return last_col
-
 
     def remove_col(self, col_num):
         """
@@ -474,7 +421,6 @@ class MagicGrid(wx.grid.Grid, gridlabelrenderer.GridWithLabelRenderersMixin):
         #  but these only work with brew python (wxPython version)
         #  don't know when Canopy will become more up to date : (
 
-                        
 
 
 class MyCustomRenderer(wx.grid.PyGridCellRenderer):
@@ -556,4 +502,3 @@ class MyRowLabelRenderer(gridlabelrenderer.GridLabelRenderer):
         text = grid.GetRowLabelValue(row)
         self.DrawBorder(grid, dc, rect)
         self.DrawText(grid, dc, rect, text, hAlign, vAlign)
-

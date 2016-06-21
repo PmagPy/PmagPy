@@ -14,6 +14,7 @@ import re
 import pandas as pd
 from pandas import DataFrame
 from pmagpy import pmag
+from pmagpy import data_model3 as data_model
 
 
 class Contribution(object):
@@ -27,7 +28,9 @@ class Contribution(object):
     """
 
     def __init__(self, directory, read_tables='all',
-                 custom_filenames=None, single_file=None):
+                 custom_filenames=None, single_file=None,
+                 dmodel=None):
+        self.data_model = dmodel
         self.directory = os.path.realpath(directory)
         self.table_names = ['measurements', 'specimens', 'samples',
                             'sites', 'locations', 'contribution',
@@ -68,7 +71,7 @@ class Contribution(object):
         # if providing a filename but no data type
         if dtype == "unknown":
             filename = os.path.join(self.directory, fname)
-            data_container = MagicDataFrame(filename)
+            data_container = MagicDataFrame(filename, dmodel=self.data_model)
             dtype = data_container.dtype
             if dtype == 'empty':
                 return False
@@ -82,7 +85,7 @@ class Contribution(object):
             return False
         filename = os.path.join(self.directory, self.filenames[dtype])
         if os.path.exists(filename):
-            data_container = MagicDataFrame(filename)
+            data_container = MagicDataFrame(filename, dmodel=self.data_model)
             self.tables[dtype] = data_container
             return data_container
         else:
@@ -294,7 +297,6 @@ class Contribution(object):
         target_df = target_df.merge(source_df[col_names], how='left', left_on=add_name, right_index=True)
         self.tables[target_df_name].df = target_df
         return target_df
-    
 
 
 class MagicDataFrame(object):
@@ -305,19 +307,33 @@ class MagicDataFrame(object):
     and assorted methods for manipulating that DataFrame.
     """
 
-    def __init__(self, magic_file=None, columns=None, dtype=None):
+    def __init__(self, magic_file=None, columns=None, dtype=None,
+                 groups=None, dmodel=None):
         """
-        Provide either a magic_file or a dtype.  
-        List of columns is optional, 
-        and will only be used if magic_file == None
+        Provide either a magic_file or a dtype.
+        List of columns is optional,
+        and will only be used if magic_file == None.
+        Instead of a list of columns, you can also provide
+        a list of group-names, and the specific col_names
+        will be filled in by the data model.
         """
+        # make sure all required arguments are present
+        if not magic_file and not dtype:
+            print "-W- To make a MagicDataFrame, you must provide either a filename or a datatype"
+            return
+        # fetch data model if not provided
+        if not dmodel:
+            self.data_model = data_model.DataModel()
+        else:
+            self.data_model = dmodel
+        # if no file is provided, make an empty dataframe of the appropriate type
         if not magic_file:
             self.dtype = dtype
             if not isinstance(columns, type(None)):
                 self.df = DataFrame(columns=columns)
             else:
                 self.df = DataFrame()
-                
+        # if there is a file provided, read in the data and ascertain dtype
         else:
             data, dtype, keys = pmag.magic_read(magic_file, return_keys=True)
             self.df = DataFrame(data)
@@ -360,6 +376,17 @@ class MagicDataFrame(object):
             self.df[self.df == ''] = None
             # drop any completely blank columns
             self.df.dropna(axis=1, how='all', inplace=True)
+
+        # add col_names by group
+        if groups and not columns:
+            columns = []
+            for group_name in groups:
+                columns.extend(list(self.data_model.get_headers(self.dtype, group_name)))
+            for col in columns:
+                if col not in self.df.columns:
+                    self.df[col] = None
+            self.df = self.df[columns]
+
 
     def add_row(self, label, row_data):
         """
