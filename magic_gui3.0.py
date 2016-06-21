@@ -52,7 +52,7 @@ class MainFrame(wx.Frame):
         self.data_model = data_model3.DataModel()
 
         print '-I- Read in any available data from working directory'
-        self.contribution = nb.Contribution(self.WD, data_model=self.data_model)
+        self.contribution = nb.Contribution(self.WD, dmodel=self.data_model)
         
         #self.er_magic = builder.ErMagicBuilder(self.WD, self.data_model)
         self.edited = False

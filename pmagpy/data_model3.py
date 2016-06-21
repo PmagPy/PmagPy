@@ -10,7 +10,7 @@ class DataModel(object):
         self.dm = self.get_data_model()
     
     def download_data_model(self):
-        model_file = os.path.join('3_0', 'MagIC Data Model v3.0 - unpublished.json')
+        model_file = os.path.join('3_0', 'data_model.json')
         f = open(model_file, 'r')
         string = '\n'.join(f.readlines())
         raw = json.loads(unicode(string, errors='ignore'))
