@@ -785,9 +785,17 @@ class GridBuilder(object):
             lst.extend(first_headers)
             header[:0] = lst
 
-
         if isinstance(self.magic_data_frame, nb.MagicDataFrame):
-            col_labels = self.magic_data_frame.df.columns
+            # get columns and reorder slightly
+            col_labels = list(self.magic_data_frame.df.columns)
+            print col_labels
+            print self.parent_type
+            if self.parent_type:
+                col_labels.remove(self.parent_type[:-1])
+                col_labels[:0] = [self.parent_type[:-1]]
+            col_labels.remove(self.magic_data_frame.df.index.name)
+            col_labels[:0] = [self.magic_data_frame.df.index.name]
+            self.magic_data_frame.df = self.magic_data_frame.df[col_labels]
             row_labels = self.magic_data_frame.df.index
         else:
             col_labels = ['label1', 'label2']
@@ -800,28 +808,12 @@ class GridBuilder(object):
         return grid
 
     def add_data_to_grid(self, grid, grid_type=None, incl_pmag=True):
-        return
-        incl_parents = True
-        if not grid_type:
-            grid_type = self.grid_type
-        if grid_type == 'age':
-            grid_type = self.er_magic.age_type
-            incl_parents = False
-            incl_pmag = False
-        # the two loops below may be overly expensive operations
-        # consider doing this another way
-        if grid_type == 'sample':
-            for sample in self.er_magic.samples:
-                sample.propagate_data()
-        if grid_type == 'specimen':
-            for specimen in self.er_magic.specimens:
-                specimen.propagate_data()
-        rows = self.er_magic.data_lists[grid_type][0]
-        grid.add_items(rows, incl_pmag=incl_pmag, incl_parents=incl_parents)
+        self.magic_data_frame
+        grid.add_items(self.magic_data_frame.df)
         grid.size_grid()
 
         # always start with at least one row:
-        if not rows:
+        if not grid.GetNumberRows():
             grid.add_row()
         # if adding actual data, remove the blank row
         else:

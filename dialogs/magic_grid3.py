@@ -62,28 +62,23 @@ class MagicGrid(wx.grid.Grid, gridlabelrenderer.GridWithLabelRenderersMixin):
             pass
         return data
 
-
-    def add_items(self, items_list, incl_pmag=True, incl_parents=True):
+    def add_items(self, dataframe):  #items_list, incl_pmag=True, incl_parents=True):
         """
         Add items and/or update existing items in grid
         """
-        num_rows = self.GetNumberRows()
-        current_grid_rows = [self.GetCellValue(num, 0) for num in xrange(num_rows)]
-        er_data = {item.name: item.er_data for item in items_list}
-        pmag_data = {item.name: item.pmag_data for item in items_list}
-        items_list = sorted(items_list, key=lambda item: item.name)
-        for item in items_list[:]:
-            if item.name in current_grid_rows:
-                pass
-            else:
-                self.add_row(item.name, item)
-        self.add_data(er_data)#, pmag=False)
-        if incl_pmag:
-            self.add_data(pmag_data, pmag=True)
-        if incl_parents:
-            self.add_parents()
-        
-        
+        # replace "None" values with ""
+        dataframe = dataframe.fillna("")
+        # add more rows
+        self.AppendRows(len(dataframe))
+        columns = dataframe.columns
+        row_num = -1
+        # fill in all rows with appropriate values
+        for ind, row in dataframe.iterrows():
+            row_num += 1
+            for col_num, col in enumerate(columns):
+                value = row[col]
+                self.SetCellValue(row_num, col_num, str(value))
+
     def add_data(self, data_dict, pmag=False):
         # requires dict in this this format:
         # {spec_name: {}, spec2_name: {}}
