@@ -8009,19 +8009,17 @@ def initialize_acceptance_criteria3_0 ():
     """
     initialize acceptance criteria with NULL criterion_values for thellier_gui and demag_gui
 
-    acceptancec criteria format is doctionaries:
-
-    acceptance_criteria={}
-        acceptance_criteria[table_column]={}
-            acceptance_criteria[crit]['criterion']=
-            acceptance_criteria[crit]['criterion_operation']
-            acceptance_criteria[crit]['criterion_value']=
-            acceptance_criteria[crit]['decimal_points']
+    acceptancec criteria format is a list of criteria dictionaries:
+        crit={}
+        crit['criterion']=
+        crit['criterion_operation']=
+        crit['criterion_value']=
+        crit['decimal_points']=
 
    'criterion':
        'DE-SPEC','DE-SAMP'..etc
    'table_column':
-       MagIC name
+       MagIC table and column name
    'criterion_value':
         a number (for 'regular criteria')
         a string (for 'flag')
@@ -8041,16 +8039,18 @@ def initialize_acceptance_criteria3_0 ():
        -999 means Exponent with 3 decimal points for floats and string for string
     """
 
-    acceptance_criteria={}
+    criteria=[]
     # >=
     for column in ['specimens.dir_n_measurements','samples.dir_n_specimens','samples.dir_n_specimens_lines','samples.dir_n_specimens_planes',\
              'sites.dir_n_samples','sites.dir_n_samples_lines','sites.dir_n_samples_planes','sites.dir_k','sites.dir_r','sites.dir_alpha95'\
               'specimens.int_n','specimens.int_f','specimens.int_fvds','specimens.int_frac','specimens.int_q','specimens.int_w','specimens.int_r2_corr','specimens.int_n_ptrm',\
               'specimens.int_n_ptrm_tail','specimens.int_n_ac','samples.int_n','sites.int_n','sites.vadm_n_samples','sites.vdm_n_samples','sites.vgp_n_samples', 'sites.age_low']:
-        acceptance_criteria[column]={}
-        acceptance_criteria[column]['criterion_operation']=[">="]
-        acceptance_criteria[column]['criterion_value']=0
-        acceptance_criteria[column]['decimal_points']=0
+        crit={}
+        crit['table_column']=column
+        crit['criterion_operation']=[">="]
+        crit['criterion_value']=0
+        crit['decimal_points']=0
+        criteria.append(crit)
     # <=
     for column in ['specimens.dir_mad_free','specimens.dir_dang','specimens.dir_alpha95','samples.dir_r','samples.dir_alpha95','samples.dir_k',\
               'sites.dir_alpha95','sites.dir_k','specimens.int_b_sigma','specimens.int_b_beta','specimens.int_g','specimens.int_gmax','specimens.int_k','specimens.int_k_sse','specimens.int_k_prime','specimens.int_k_prime_sse',\
@@ -8060,48 +8060,54 @@ def initialize_acceptance_criteria3_0 ():
                 'specimens.int_dac','specimens.int_gamma','samples.int_rel_sigma','samples.int_rel_sigma_perc','samples.int_sigma','samples.int_sigma_perc',\
                 'sites.int_rel_sigma','sites.int_rel_sigma_perc','sites.int_sigma','sites.int_sigma_perc','sites.vadm_sigma','sites.vdm_sigma'\
                 'sites.vgp_alpha95','sites.vgp_dm','sites.vgp_dp','sites.age_high','specimens.aniso_alt','specimens.aniso_ftest']:
-        acceptance_criteria[column]={}
-        acceptance_criteria[column]['criterion_operation']=["<="]
-        acceptance_criteria[column]['criterion_value']=-999
-        acceptance_criteria[column]['decimal_points']=0
+        crit={}
+        crit['table_column']=column
+        crit['criterion_operation']=["<="]
+        crit['criterion_value']=-999
+        crit['decimal_points']=0
+        criteria.append(crit)
 # WHAT ARE THESE - THEY ARE NOT IN DATA MODEL 3.0:   'samples.aniso_mean','sites.aniso_mean']: # criterion_value is in precent
     # contains/does not contain
     for column in ['method_codes.DE-BFP','method_codes.DE-BFL','method_codes.DE-FM']:
-        acceptance_criteria[column]={}
-        acceptance_criteria[column]['criterion_operation']=['contains','does not contain'] 
-        acceptance_criteria[column]['criterion_value']=crit.split('.')[-1]
+        crit={}
+        crit['table_column']=column
+        crit['criterion_operation']=['contains','does not contain'] 
+        crit['criterion_value']=crit.split('.')[-1]
+        crit['decimal_points']=0
+        criteria.append(crit)
     # equals
     for column in ['specimens.dir_polarity','samples.dir_polarity','sites.dir_polarity','sites.tilt_correction','specimens.int_scat','sites.age_unit']:
-        acceptance_criteria[column]={}
-        acceptance_criteria[column]['criterion']=crit
-        acceptance_criteria[column]['criterion_operation']='='
-        acceptance_criteria[column]['decimal_points']=-999
+        crit={}
+        crit['table_column']=column
+        crit['criterion_operation']=['=']
+        crit['decimal_points']=-999
 #
 # A little clean up here
 #
-    for column in acceptance_criteria:
+    acceptance_criteria=[]
+    for crit in criteria:
         criterion=""
-        if 'int_' in column: citerion='IE-'
+        if 'int_' in crit['table_column']: crit['citerion']='IE-'
         if 'dir_' in column: citerion='DE-'
         if 'specimens' in column: criterion=criterion+'SPEC'
         if 'samples' in column: criterion=criterion+'SAMP'
         if 'sites' in column: criterion=criterion+'SITE'
         if 'polarity' in column: 
             criterion='POLE'
-            acceptance_criteria[column]['criterion_value']=['n','r','t','e','i']
+            crit['criterion_value']=['n','r','t','e','i']
         if 'age' in column:
-            acceptance_criteria[crit]['criterion_value']=['Ga','Ka','Ma','Years AD (+/-)','Years BP','Years Cal AD (+/-)','Years Cal BP']
+            crit['criterion_value']=['Ga','Ka','Ma','Years AD (+/-)','Years BP','Years Cal AD (+/-)','Years Cal BP']
         if 'scat' in column:
-            acceptance_criteria[column]['criterion_value']=['true','false']
+            crit['criterion_value']=['true','false']
         for c in ['alpha95','sigma_perc','vgp_dm','vdp_dp']:
-            acceptance_criteria[column]['decimal_points']=1
+            crit['decimal_points']=1
         for c in ['int_f','int_fvds','int_frac','int_q','int_gmax']:
-            if c in column.split('.')[-1]:  acceptance_criteria[column]['decimal_points']=2
+            if c in crit['table_column'].split('.')[-1]:  crit['decimal_points']=2
         for c in ['int_b_sigma','int_b_beta','int_g','int_k', 'int_k_prime']:
-            if c in column.split('.')[-1]:  acceptance_criteria[column]['decimal_points']=3
-
-        acceptance_criteria[column]['criterion']=criterion
-
+            if c in crit['table_column'].split('.')[-1]:  crit['decimal_points']=3
+        crit['criterion']=criterion
+        acceptance_criteria.append(crit)
+    print 'PMAG1: ',acceptance_criteria
     return(acceptance_criteria)
 
 

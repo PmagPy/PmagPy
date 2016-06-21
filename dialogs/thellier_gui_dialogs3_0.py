@@ -72,7 +72,7 @@ class PI_Statistics_Dialog(wx.Dialog):
         self.DESC['int_n']='Number of measurements included in field strength calculations'
         self.DESC['int_alpha_prime']='Angular difference between the anchored best-fit direction from the paleointensity experiment and an independent measure of the paleomagnetic direction'
         self.DESC['int_alpha']='Angular difference between the anchored and free-floating best-fit directions on a vector component diagram from a paleointensity experiment'
-        self.DESC['int_mad']='Maximum Angular Deviation (MAD) of the free-floating directional PCA fits to the paleomagnetic vector from a paleointensity experiment'
+        self.DESC['int_mad_free']='Maximum Angular Deviation (MAD) of the free-floating directional PCA fits to the paleomagnetic vector from a paleointensity experiment'
         self.DESC['int_mad_anc']='Maximum Angular Deviation (MAD) of the anchored directional PCA fits to the paleomagnetic vector from a paleointensity experiment'
         self.DESC['int_w']='Weighting factor'
         self.DESC['int_q']='A measure of the overall quality of the paleointensity estimate and combines the relative scatter of the best-fit line, the NRM fraction and the gap factor'

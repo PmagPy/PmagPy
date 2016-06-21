@@ -22,7 +22,7 @@ def get_PI_parameters(Data,acceptance_criteria,preferences,s,tmin,tmax,GUI_log,T
     pars=copy.deepcopy(Data[s]['pars']) # assignments to pars are assiging to Data[s]['pars']
     # get MagIC mothod codes:
 
-    #pars['magic_method_codes']="LP-PI-TRM" # thellier Method
+    #pars['jmethod_codes']="LP-PI-TRM" # thellier Method
     import SPD
     import SPD.spd3_0 as spd
     Pint_pars = spd.PintPars(Data, str(s), tmin, tmax, 'magic', preferences['show_statistics_on_gui'])
@@ -100,13 +100,13 @@ def get_PI_parameters(Data,acceptance_criteria,preferences,s,tmin,tmax,GUI_log,T
     count_IZ= Data[s]['steps_Arai'].count('IZ')
     count_ZI= Data[s]['steps_Arai'].count('ZI')
     if count_IZ >1 and count_ZI >1:
-        pars['magic_method_codes']=LP_code+":"+"LP-PI-BT-IZZI"
+        pars['method_codes']=LP_code+":"+"LP-PI-BT-IZZI"
     elif count_IZ <1 and count_ZI >1:
-        pars['magic_method_codes']=LP_code+":"+"LP-PI-ZI"
+        pars['method_codes']=LP_code+":"+"LP-PI-ZI"
     elif count_IZ >1 and count_ZI <1:
-        pars['magic_method_codes']=LP_code+":"+"LP-PI-IZ"            
+        pars['method_codes']=LP_code+":"+"LP-PI-IZ"            
     else:
-        pars['magic_method_codes']=LP_code
+        pars['method_codes']=LP_code
 
     if 'ptrm_checks_temperatures' in Data[s].keys() and len(Data[s]['ptrm_checks_temperatures'])>0:
         if MICROWAVE==True:
@@ -218,7 +218,7 @@ def get_PI_parameters(Data,acceptance_criteria,preferences,s,tmin,tmax,GUI_log,T
                 pars['specimen_correction']='c'
                 pars['specimen_int_corr_anisotropy']=Anisotropy_correction_factor
         if TYPE=='ATRM':
-            if ":LP-AN-TRM" not in pars['magic_method_codes']:
+            if ":LP-AN-TRM" not in pars['jmethod_codes']:
                 pars['method_codes']+=":LP-AN-TRM:AE-H:DA-AC-ATRM"
                 pars['specimen_correction']='c' 
                 pars['specimen_int_corr_anisotropy']=Anisotropy_correction_factor
@@ -226,7 +226,7 @@ def get_PI_parameters(Data,acceptance_criteria,preferences,s,tmin,tmax,GUI_log,T
 
     else:
         pars["Anisotropy_correction_factor"]=1.0
-        pars["specimen_int_uT"]=float(pars["specimen_int"])*1e6
+        pars["specimen_int_uT"]=float(pars["int_abs"])*1e6
         pars["AC_WARNING"]="No anistropy correction"
         pars['specimen_correction']='u' 
 

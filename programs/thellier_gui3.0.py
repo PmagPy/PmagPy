@@ -4,11 +4,12 @@
 # LOG HEADER:
 #============================================================================================
 #
-# Thellier GUI ersion 3.0 6/16/16 (revisions by Lisa Tauxe)
+# Thellier GUI ersion 3.0 6/21/16 (revisions by Lisa Tauxe)
 # 1) fixed get_data() to read in new data format
+# 2) got acceptance criteria read in to a list of dictionaries
 # TODO:  
-#   1) need to get prior interpretation from spec_data  (almost there)
-#   2) need to do criteria and anisotropy
+#   1) need to fix drawing of interpretation and application of criteria
+#   2) need to do anisotropy, NLT and cooling rate
 #   3) need to fix output of MagIC tables
 #   4) need to glue to new Pmag GUI
 #
@@ -320,7 +321,7 @@ class Arai_GUI(wx.Frame):
 
         dw, dh = wx.DisplaySize() 
         w, h = self.GetSize()
-        #print 'diplay', dw, dh
+        #print 'display', dw, dh
         #print "gui", w, h
         r1=dw/1250.
         r2=dw/750.
@@ -1178,28 +1179,29 @@ class Arai_GUI(wx.Frame):
         """        
 
         B=[]
-        
-        if self.acceptance_criteria['average_by_sample_or_site']['table_column']=='samples.int_abs':
-            sample=self.Data_hierarchy['specimens'][self.s]
-            if sample in self.Data_samples.keys() and len(self.Data_samples[sample].keys())>0:
-                if self.s not in self.Data_samples[sample].keys():
-                    if 'specimen_int_uT' in self.pars.keys():
-                        B.append(self.pars['specimen_int_uT'])
-                for specimen in self.Data_samples[sample].keys():
-                    if specimen==self.s:
+        critrecs=pmag.get_dictitem(self.acceptance_criteria,'criterion','average_by_sample_or_site','T') # fish out the average_by criterion 
+        if len(critrecs)>0:
+            crit=critrecs[0]
+            if crit['table_column']=='samples.int_abs':
+                sample=self.Data_hierarchy['specimens'][self.s]
+                if sample in self.Data_samples.keys() and len(self.Data_samples[sample].keys())>0:
+                    if self.s not in self.Data_samples[sample].keys():
                         if 'specimen_int_uT' in self.pars.keys():
                             B.append(self.pars['specimen_int_uT'])
-                    else:
-                        if specimen in self.Data_samples[sample].keys() and 'B' in self.Data_samples[sample][specimen].keys():
-                            B.append(self.Data_samples[sample][specimen]['B'])
-            else:
-                if 'specimen_int_uT' in self.pars.keys():
-                    B.append(self.pars['specimen_int_uT'])
+                    for specimen in self.Data_samples[sample].keys():
+                        if specimen==self.s:
+                            if 'specimen_int_uT' in self.pars.keys():
+                                B.append(self.pars['specimen_int_uT'])
+                        else:
+                            if specimen in self.Data_samples[sample].keys() and 'B' in self.Data_samples[sample][specimen].keys():
+                                B.append(self.Data_samples[sample][specimen]['B'])
+                else:
+                    if 'specimen_int_uT' in self.pars.keys():
+                        B.append(self.pars['specimen_int_uT'])
 
 
         # if averaging by site
         else:
-            
             sample=self.Data_hierarchy['specimens'][self.s]
             site=thellier_gui_lib.get_site_from_hierarchy(sample,self.Data_hierarchy)
             if site in self.Data_sites.keys() and len(self.Data_sites[site].keys())>0:
@@ -1250,58 +1252,56 @@ class Arai_GUI(wx.Frame):
         fail_int_sigma=False
         fail_int_sigma_perc=False
         sample_failed=False
-        
-        if self.acceptance_criteria['sample_int_n']['criterion_value'] != -999:
-            if N<self.acceptance_criteria['sample_int_n']['criterion_value']:
-                fail_int_n=True
-                sample_failed=True
-                self.sample_int_n_window.SetBackgroundColour(wx.RED)
+        critrecs=pmag.get_dictitem(self.acceptance_criteria,'table_column','samples.int_n','T')
+        if len(critrecs)>0:
+            crit=critrecs[0] 
+            if crit['criterion_value'] != -999:
+                if N<crit['criterion_value']:
+                    fail_int_n=True
+                    sample_failed=True
+                    self.sample_int_n_window.SetBackgroundColour(wx.RED)
+                else:
+                    self.sample_int_n_window.SetBackgroundColour(wx.GREEN)
             else:
-                self.sample_int_n_window.SetBackgroundColour(wx.GREEN)
-        else:
-            self.sample_int_n_window.SetBackgroundColour(wx.NullColour)
+                self.sample_int_n_window.SetBackgroundColour(wx.NullColour)
                    
-        
-        if self.acceptance_criteria['sample_int_sigma']['criterion_value'] != -999:
-            if  B_std*1.e-6 > self.acceptance_criteria['sample_int_sigma']['criterion_value']:
-                fail_int_sigma=True 
-                self.sample_int_sigma_window.SetBackgroundColour(wx.RED)
+        critrecs=pmag.get_dictitem(self.acceptance_criteria,'table_column','samples.int_abs_sigma','T')
+        if len(critrecs)>0:
+            crit=critrecs[0] 
+            if crit['criterion_value'] != -999:
+                if  B_std*1.e-6 > crit['criterion_value']:
+                    fail_int_sigma=True 
+                    self.sample_int_sigma_window.SetBackgroundColour(wx.RED)
             else:
                 self.sample_int_sigma_window.SetBackgroundColour(wx.GREEN)
+                fail_int_sigma=True 
         else:
             self.sample_int_sigma_window.SetBackgroundColour(wx.NullColour)
  
-        if self.acceptance_criteria['sample_int_sigma_perc']['criterion_value'] != -999:
-            if  B_std_perc > self.acceptance_criteria['sample_int_sigma_perc']:
-                fail_int_sigma_perc=True 
-                self.sample_int_sigma_perc_window.SetBackgroundColour(wx.RED)
+        critrecs=pmag.get_dictitem(self.acceptance_criteria,'table_column','samples.int_abs_sigma','T')
+        if len(critrecs)>0:
+            crit=critrecs[0] 
+            if crit['criterion_value'] != -999:
+                if  B_std_perc > crit['criterion_value']:
+                    fail_int_sigma_perc=True 
+                    self.sample_int_sigma_perc_window.SetBackgroundColour(wx.RED)
+                else:
+                    self.sample_int_sigma_perc_window.SetBackgroundColour(wx.GREEN)
             else:
-                self.sample_int_sigma_perc_window.SetBackgroundColour(wx.GREEN)
-        else:
-            self.sample_int_sigma_perc_window.SetBackgroundColour(wx.NullColour)
-
-                          
-        if self.acceptance_criteria['sample_int_sigma']['criterion_value']==-999 and fail_int_sigma_perc:
-            sample_failed=True
-        elif self.acceptance_criteria['sample_int_sigma_perc']['criterion_value']==-999 and fail_int_sigma:
-            sample_failed=True
-        elif self.acceptance_criteria['sample_int_sigma']['criterion_value'] !=-999 and self.acceptance_criteria['sample_int_sigma_perc']['criterion_value']!=-999:
-            if fail_int_sigma and fail_int_sigma_perc:
-                sample_failed=True        
+                self.sample_int_sigma_perc_window.SetBackgroundColour(wx.NullColour)
+                fail_int_sigma_perc=True 
+#
+# THIS MAY NEED FIXING
+#
+        if fail_int_sigma_perc: sample_failed=True
+        if fail_int_sigma: sample_failed=True
+        if fail_int_sigma and fail_int_sigma_perc: sample_failed=True        
         
         if sample_failed:
             self.sample_int_uT_window.SetBackgroundColour(wx.RED) 
         else:
             self.sample_int_uT_window.SetBackgroundColour(wx.GREEN)
             
-            #if self.acceptance_criteria['sample_int_sigma']['criterion_value'] != -999  or self.acceptance_criteria['sample_int_sigma_perc']['criterion_value'] != -999:
-            #    if   fail_int_sigma and fail_int_sigma_perc:
-            #       self.sample_int_uT_window.SetBackgroundColour(wx.RED) 
-            #else:
-            #    self.sample_int_uT_window.SetBackgroundColour(wx.GREEN)
-                    
-
-        
         #else:
         #    self.sample_int_uT_window.SetBackgroundColour(wx.GREEN)
         #    
@@ -1601,7 +1601,7 @@ class Arai_GUI(wx.Frame):
         preferences['show_CR_plot']=True
         preferences['BOOTSTRAP_N']=1e4
         preferences['VDM_or_VADM']="VADM"
-        preferences['show_statistics_on_gui']=["int_n","int_ptrm_n","int_frac","int_scat","int_gmax","int_b_beta","int_mad","int_dang","int_f","int_fvds","int_g","int_q","int_drats"]#,'ptrms_dec','ptrms_inc','ptrms_mad','ptrms_angle']
+        preferences['show_statistics_on_gui']=["int_n","int_ptrm_n","int_frac","int_scat","int_gmax","int_b_beta","int_mad_free","int_dang","int_f","int_fvds","int_g","int_q","int_drats"]#,'ptrms_dec','ptrms_inc','ptrms_mad','ptrms_angle']
         #try to read preferences file:
         try:
             import thellier_gui_preferences
@@ -2227,13 +2227,17 @@ class Arai_GUI(wx.Frame):
         initialize self.acceptance_criteria
         try to guess if averaging by sample or by site.
         '''
-
-        
-        self.acceptance_criteria,file_type = pmag.magic_read(criteria_file)
-        existing=pmag.get_dictkey(self.acceptance_criteria,'criterion','')
+        fnames={'criteria':criteria_file}
+        contribution = nb.Contribution(self.WD, custom_filenames=fnames, read_tables=['criteria']) 
+        crit_container = contribution.tables['criteria']
+        crit_data = crit_container.df
+        self.acceptance_criteria=crit_data.to_dict("records") # convert to list of dictionaries
+        #print "GUI8: ",self.acceptance_criteria
+        #self.acceptance_criteria,file_type = pmag.magic_read(criteria_file)
         if len(self.acceptance_criteria)==0:
             print "-E- Cant read criteria file"
         # guesss if average by site or sample:
+        existing=pmag.get_dictkey(self.acceptance_criteria,'criterion','')
         by_sample=True
         flag=False
         if 'average_by_sample_or_site' not in existing: # try to figure it out
@@ -3053,191 +3057,9 @@ class Arai_GUI(wx.Frame):
             self.On_close_plot_dialog(dia)
         
     #----------------------------------------------------------------------            
-
-#    def on_menu_results_data (self, event):
-#        import copy
-#        
-#        #----------------------------------------------------
-#        # Easy tables with the results of all the samples or site that passed the criteria
-#        #----------------------------------------------------
-#        
-#        # search for ages and Latitudes
-#        if self.acceptance_criteria['average_by_sample_or_site']['criterion_value']=='sample':
-#            BY_SITES=False; BY_SAMPLES=True
-#        else:
-#            BY_SITES=True; BY_SAMPLES=False        
-#        
-#        if BY_SAMPLES:
-#            Data_samples_or_sites=copy.deepcopy(self.Data_samples)
-#        else:
-#            Data_samples_or_sites=copy.deepcopy(self.Data_sites)
-#        samples_or_sites_list=Data_samples_or_sites.keys()
-#        samples_or_sites_list.sort()
-#        Results_table_data={}
-#                
-#        for sample_or_site in samples_or_sites_list:
 #
-#            Age,age_unit,age_range_low,age_range_high="","","",""
-#            lat,lon,VADM,VADM_sigma="","","",""
+#  THIS STILL HAS TO BE FIXED!
 #
-#            found_age,found_lat=False,False
-#
-#            # Find the mean paleointenisty for each sample
-#            tmp_B=[]
-#            for spec in Data_samples_or_sites[sample_or_site].keys():
-#                if 'B' in Data_samples_or_sites[sample_or_site][spec].keys():
-#                    tmp_B.append( Data_samples_or_sites[sample_or_site][spec]['B'])
-#            if len(tmp_B)<1:
-#                continue
-#            
-#            sample_or_site_pars=self.calculate_sample_mean(Data_samples_or_sites[sample_or_site])        
-#            if sample_or_site_pars['pass_or_fail']=='fail':
-#                continue
-#            
-#            N=sample_or_site_pars['N']
-#            B_uT=sample_or_site_pars['B_uT']
-#            B_std_uT=sample_or_site_pars['B_std_uT']
-#            B_std_perc=sample_or_site_pars['B_std_perc']
-#            
-#            Results_table_data[sample_or_site]={}
-#            
-#            # search for samples age in er_ages.txt by sample or by site
-#            if BY_SAMPLES:
-#                site = self.Data_info["er_samples"][sample_or_site]['er_site_name']
-#            else:
-#                site=sample_or_site
-#            found_age=False
-#            if sample_or_site in self.Data_info["er_ages"].keys():
-#                age_key=sample_or_site
-#            elif site in self.Data_info["er_ages"].keys():
-#                age_key=site
-#            else:
-#                age_key=""
-#            if age_key !="":
-#                try:
-#                    age_unit=self.Data_info["er_ages"][age_key]["age_unit"]                
-#                except:
-#                    age_unit="unknown"               
-#                    
-#                if self.Data_info["er_ages"][age_key]["age"] !="":
-#                    Age = float(self.Data_info["er_ages"][age_key]["age"])
-#                    found_age=True
-#                    
-#                if "age_range_low" in self.Data_info["er_ages"][age_key].keys() and "age_range_high" in self.Data_info["er_ages"][age_key].keys():
-#                   age_range_low=float(self.Data_info["er_ages"][age_key]["age_range_low"])
-#                   age_range_high=float(self.Data_info["er_ages"][age_key]["age_range_high"])
-#                   
-#                   if not found_age:
-#                       Age=(age_range_low+age_range_high)/2
-#                       found_age=True
-#
-#                elif "age_sigma" in self.Data_info["er_ages"][age_key].keys() and found_age:
-#                   age_range_low=Age-float(self.Data_info["er_ages"][age_key]["age_sigma"])
-#                   age_range_high= Age+float(self.Data_info["er_ages"][age_key]["age_sigma"])
-#
-#                elif found_age:
-#                   age_range_low=Age
-#                   age_range_high=Age
-#
-#            # convert ages from Years BP to Years Cal AD (+/-)
-#                if "Years BP" in age_unit:
-#                    Age=1950-Age
-#                    age_range_low=1950-age_range_low
-#                    age_range_high=1950-age_range_high
-#                    age_unit="Years Cal AD (+/-)"             
-#            
-#            # search for Lon/Lat
-#
-#            if BY_SAMPLES and sample_or_site in self.Data_info["er_samples"].keys() and "site_lat" in self.Data_info["er_samples"][sample_or_site].keys():
-#                lat=float(self.Data_info["er_samples"][sample_or_site]["site_lat"])
-#                lon=float(self.Data_info["er_samples"][sample_or_site]["site_lon"])
-#                found_lat=True
-#                
-#            elif site in self.Data_info["er_sites"].keys() and "site_lat" in self.Data_info["er_sites"][site].keys():
-#                lat=float(self.Data_info["er_sites"][site]["site_lat"])
-#                lon=float(self.Data_info["er_sites"][site]["site_lon"])
-#                found_lat=True
-#
-#            if found_lat:
-#                VADM=pmag.b_vdm(B_uT*1e-6,lat)*1e-21
-#                VADM_plus=pmag.b_vdm((B_uT+B_std_uT)*1e-6,lat)*1e-21
-#                VADM_minus=pmag.b_vdm((B_uT-B_std_uT)*1e-6,lat)*1e-21
-#                VADM_sigma=(VADM_plus-VADM_minus)/2
-#                
-#            Results_table_data[sample_or_site]["N"]="%i"%(int(N))            
-#            Results_table_data[sample_or_site]["B_uT"]="%.1f"%(B_uT)
-#            Results_table_data[sample_or_site]["B_std_uT"]="%.1f"%(B_std_uT)
-#            Results_table_data[sample_or_site]["B_std_perc"]="%.1f"%(B_std_perc)
-#            if found_lat:
-#                Results_table_data[sample_or_site]["Lat"]="%f"%lat
-#                Results_table_data[sample_or_site]["Lon"]="%f"%lon
-#                Results_table_data[sample_or_site]["VADM"]="%.1f"%VADM
-#                Results_table_data[sample_or_site]["VADM_sigma"]="%.1f"%VADM_sigma
-#            else:
-#                Results_table_data[sample_or_site]["Lat"]=""
-#                Results_table_data[sample_or_site]["Lon"]=""
-#                Results_table_data[sample_or_site]["VADM"]=""
-#                Results_table_data[sample_or_site]["VADM_sigma"]=""
-#            if found_age:
-#                Results_table_data[sample_or_site]["Age"]="%.2f"%Age
-#                Results_table_data[sample_or_site]["Age_low"]="%.2f"%age_range_low
-#                Results_table_data[sample_or_site]["Age_high"]="%.2f"%age_range_high
-#            else:
-#                Results_table_data[sample_or_site]["Age"]=""
-#                Results_table_data[sample_or_site]["Age_low"]=""
-#                Results_table_data[sample_or_site]["Age_high"]=""
-#            Results_table_data[sample_or_site]["Age_units"]=age_unit
-#                
-#        sample_or_site_list= Results_table_data.keys()
-#        sample_or_site_list.sort()
-#        if len(sample_or_site_list) <1:
-#            return
-#                        
-#        fout=open(os.path.join(self.WD, "results_table.txt"),'w')
-#        Keys=["sample/site","Lat","Lon","Age","Age_low","Age_high","Age_units","N","B_uT","B_std_uT","VADM","VADM_sigma"]
-#        fout.write("\t".join(Keys)+"\n")
-#        for sample_or_site in sample_or_site_list:
-#            String=sample_or_site+"\t"
-#            for k in Keys[1:]:
-#                String=String+Results_table_data[sample_or_site][k]+"\t"
-#            fout.write(String[:-1]+"\n")
-#        fout.close()
-#
-#
-##        #----------------------------------------------------------------------------
-##        # Easy tables with the results of all the specimens that passed the criteria
-##        #----------------------------------------------------------------------------
-##
-##        fout=open(self.WD+"/results_table_specimmens.txt",'w')
-##        Keys=["specimen","B_raw","B_corrected","ATRM","CR","NLT"]
-##        for 
-##        fout.write("\t".join(Keys)+"\n")
-##        
-##        for sample_or_site in samples_or_sites_list:
-##            specimens_list=samples_or_sites_list.keys()
-##            specimens_list.sort()
-##            if len(specimens_list) <1:
-##                continue
-##            for specimen in specimens_list:
-##                if 'specimen_fail_criteria' not in self.Data[specimen]['pars'].keys():
-##                    continue
-##                if len(self.Data[specimen]['pars']['specimen_fail_criteria'])>0:
-##                    continue
-##                keys=["sample/site","Lat","Lon","Age","Age_low","Age_high","Age_units","N","B_uT","B_std_uT","VADM","VADM_sigma"]:
-##                    for key in Keys:
-##                         Results_table_data_specimens[specimen]   
-##                    
-#                
-#
-#
-#        dlg1 = wx.MessageDialog(self,caption="Message:", message="Output results table is saved in 'results_table.txt'" ,style=wx.OK|wx.ICON_INFORMATION)
-#        dlg1.ShowModal()
-#        dlg1.Destroy()
-#            
-#        return
-
-    #----------------------------------------------------------------------            
-
     def on_menu__prepare_MagIC_results_tables (self, event):
 
         import copy
@@ -5122,14 +4944,14 @@ class Arai_GUI(wx.Frame):
 
         # continue only if temperature bouds were asigned
 
-        if "measurement_step_min" not in self.pars.keys() or "measurement_step_max" not in self.pars.keys():
+        if "meas_step_min" not in self.pars.keys() or "meas_step_max" not in self.pars.keys():
             return(self.pars)
         if self.Data[self.s]['T_or_MW'] != "MW":
-            self.tmin_box.SetValue("%.0f"%(float(self.pars['measurement_step_min'])-273.))
-            self.tmax_box.SetValue("%.0f"%(float(self.pars['measurement_step_max'])-273.))
+            self.tmin_box.SetValue("%.0f"%(float(self.pars['meas_step_min'])-273.))
+            self.tmax_box.SetValue("%.0f"%(float(self.pars['meas_step_max'])-273.))
         else:
-            self.tmin_box.SetValue("%.0f"%(float(self.pars['measurement_step_min'])))
-            self.tmax_box.SetValue("%.0f"%(float(self.pars['measurement_step_max'])))
+            self.tmin_box.SetValue("%.0f"%(float(self.pars['meas_step_min'])))
+            self.tmax_box.SetValue("%.0f"%(float(self.pars['meas_step_max'])))
             
         
         # First,re-draw the figures
@@ -5140,37 +4962,32 @@ class Arai_GUI(wx.Frame):
         
         
         # declination/inclination
-        self.declination_window.SetValue("%.1f"%(self.pars['specimen_dec']))
-        self.inclination_window.SetValue("%.1f"%(self.pars['specimen_inc']))
+        self.declination_window.SetValue("%.1f"%(self.pars['dir_dec']))
+        self.inclination_window.SetValue("%.1f"%(self.pars['dir_inc']))
 
 
          
         # PI statsistics
         flag_Fail=False
         for short_stat in self.preferences['show_statistics_on_gui']:
-            stat="specimen_"+short_stat
+            stat="specimens."+short_stat
             # ignore unwanted statistics
-            if stat=='specimen_scat':
+            if stat=='specimens.int_scat':
                 continue
-            if type(self.acceptance_criteria[stat]['decimal_points'])!=float and type(self.acceptance_criteria[stat]['decimal_points'])!=int:
-                continue
-            if type(self.acceptance_criteria[stat]['criterion_value'])!=float and type(self.acceptance_criteria[stat]['criterion_value'])!=int:
-                continue
-                
+            critrecs=pmag.get_dictitem(self.acceptance_criteria,'table_column',stat,'T')
+            if len(critrecs)>0:
+                crit=critrecs[0]
             # get the value
-            if self.acceptance_criteria[stat]['decimal_points']==-999:
-                value='%.2e'%self.pars[stat]
-            elif type(self.acceptance_criteria[stat]['decimal_points'])==float or type(self.acceptance_criteria[stat]['decimal_points'])==int:
-                command="value='%%.%if'%%(float(self.pars[stat]))"%(int(self.acceptance_criteria[stat]['decimal_points']))
+                if crit['decimal_points']==-999:
+                    value='%.2e'%self.pars[stat]
+                elif type(crit['decimal_points'])==float or type(crit['decimal_points'])==int:
+                    command="value='%%.%if'%%(float(self.pars[stat]))"%(int(crit['decimal_points']))
                 exec command
-            #elif  stat=='specimen_scat':
-            #    value= str(self.acceptance_criteria[stat]['criterion_value'])  
-            # write the value
-            command= "self.%s_window.SetValue(value)"%stat.split('specimen_')[-1]
+            command= "self.%s_window.SetValue(value)"%stat.split('specimen.')[-1]
             exec command
             
             # set backgound color
-            cutoff_value=self.acceptance_criteria[stat]['criterion_value']
+            cutoff_value=crit['criterion_value']
             if cutoff_value==-999:
                 command="self.%s_window.SetBackgroundColour(wx.NullColour)"%stat.split('specimen_')[-1]  # set text color 
             elif stat=="specimen_k" or stat=="specimen_k_prime":
@@ -5188,9 +5005,10 @@ class Arai_GUI(wx.Frame):
             exec command
 
         # specimen_scat                
-        if 'scat' in     self.preferences['show_statistics_on_gui']:
-            if self.acceptance_criteria['specimen_scat']['criterion_value'] in ['True','TRUE','1',1,True,'g']:
-                if self.pars["specimen_scat"]=='Pass':
+        if 'int_scat' in     self.preferences['show_statistics_on_gui']:
+            crit=pmag.get_dictitem('self.acceptance_criteria','table_column','specimens.int_scat','T')[0]
+            if crit['criterion_value'] in ['True','TRUE','1',1,True,'g']:
+                if self.pars["int_scat"]=='Pass':
                     self.scat_window.SetValue("Pass")
                     self.scat_window.SetBackgroundColour(wx.GREEN) # set text color
                 else:
@@ -5204,7 +5022,7 @@ class Arai_GUI(wx.Frame):
 
         # Blab, Banc, correction factors
 
-        self.Blab_window.SetValue("%.0f"%(float(self.Data[self.s]['pars']['lab_dc_field'])*1e6))
+        self.Blab_window.SetValue("%.0f"%(float(self.Data[self.s]['pars']['treat_dc_field'])*1e6))
         
         self.Banc_window.SetValue("%.1f"%(self.pars['specimen_int_uT']))
         if flag_Fail:
@@ -5292,7 +5110,7 @@ class Arai_GUI(wx.Frame):
         #if (index_2-index_1)+1 >= self.acceptance_criteria['specimen_int_n']:
         if (index_2-index_1)+1 >= 3:
             if self.Data[self.s]['T_or_MW']!="MW":
-                print 'GUI3: ',self.Data[self.s].keys()
+                #print 'GUI3: ',self.Data[self.s].keys()
                 self.pars=thellier_gui_lib.get_PI_parameters(self.Data,self.acceptance_criteria, self.preferences,self.s,float(t1)+273.,float(t2)+273.,self.GUI_log,THERMAL,MICROWAVE)
                 self.Data[self.s]['pars'] = self.pars
             else:
@@ -5416,58 +5234,6 @@ class Arai_GUI(wx.Frame):
         self.zijplot.scatter([self.CART_rot[:,0][tmax_index]],[-1* self.CART_rot[:,2][tmax_index]],marker='s',s=50,facecolor='g',edgecolor ='k',zorder=100)
 
 
-##        # draw MAD-box
-##        self.acceptance_criteria['specimen_mad_scat']=True
-##        if 'specimen_mad_scat' in self.acceptance_criteria.keys() and 'specimen_int_mad' in self.acceptance_criteria.keys() :
-##            if self.acceptance_criteria['specimen_mad_scat']==True or self.acceptance_criteria['specimen_mad_scat'] in [1,"True","TRUE",'1']:
-##
-##                # center of mass 
-##                CM=scipy.array([CM_x,CM_y,CM_z])
-##
-##                # threshold value for the distance of the point from a line:
-##                # this is depends of MAD
-##                # if MAD= tan-1 [ sigma_perpendicular / sigma_max ]
-##                # then:
-##                # sigma_perpendicular_threshold=tan(MAD_threshold)*sigma_max
-##                sigma_perpendicular_threshold=abs(tan(radians(self.acceptance_criteria['specimen_int_mad'])) *  self.pars["specimen_PCA_sigma_max"] )
-##                mad_box_xy_x1,mad_box_xy_x2=[],[]                
-##                mad_box_xy_y1,mad_box_xy_y2=[],[]                
-##                mad_box_xz_x1,mad_box_xz_x2=[],[]                
-##                mad_box_xz_y1,mad_box_xz_y2=[],[]                
-##
-##                for i in range(len(xx)):
-##                    #xy_x_plus=scipy.array(xx[i],yy[i])
-##                                        
-##                    # X-Y projectoin
-##                    x_y_projection=cross(scipy.array(PCA_CART_rotated),scipy.array([0,0,1]))
-##                    x_y_projection=x_y_projection/scipy.sqrt(sum(x_y_projection**2))
-##                    new_vector1=scipy.array([xx[i],yy[i]])+2*sigma_perpendicular_threshold*scipy.array([x_y_projection[0],x_y_projection[1]])
-##                    new_vector2=scipy.array([xx[i],yy[i]])-2*sigma_perpendicular_threshold*scipy.array([x_y_projection[0],x_y_projection[1]])
-##                    mad_box_xy_x1.append(new_vector1[0])
-##                    mad_box_xy_y1.append(new_vector1[1])
-##                    mad_box_xy_x2.append(new_vector2[0])
-##                    mad_box_xy_y2.append(new_vector2[1])
-##                                                            
-##
-##                    # X-Z projectoin
-##                    x_z_projection=cross(scipy.array(PCA_CARTated),scipy.array([0,1,0]))
-##                    x_z_projection=x_z_projection/scipy.sqrt(sum(x_z_projection**2))
-##                    new_vector1=scipy.array([xx[i],zz[i]])+2*sigma_perpendicular_threshold*scipy.array([x_z_projection[0],x_z_projection[2]])
-##                    new_vector2=scipy.array([xx[i],zz[i]])-2*sigma_perpendicular_threshold*scipy.array([x_z_projection[0],x_z_projection[2]])
-##                    mad_box_xz_x1.append(new_vector1[0])
-##                    mad_box_xz_y1.append(new_vector1[1])
-##                    mad_box_xz_x2.append(new_vector2[0])
-##                    mad_box_xz_y2.append(new_vector2[1])
-##
-##
-##                #print mad_box_x1,mad_box_y1
-##                self.zijplot.plot(mad_box_xy_x1,mad_box_xy_y1,ls="--",c='k',lw=0.5)
-##                self.zijplot.plot(mad_box_xy_x2,mad_box_xy_y2,ls="--",c='k',lw=0.5)
-##                self.zijplot.plot(mad_box_xz_x1,mad_box_xz_y1,ls="--",c='k',lw=0.5)
-##                self.zijplot.plot(mad_box_xz_x2,mad_box_xz_y2,ls="--",c='k',lw=0.5)
-
-
-
 
         self.zijplot.set_xlim(xmin, xmax)
         self.zijplot.set_ylim(ymin, ymax)
@@ -5501,8 +5267,7 @@ class Arai_GUI(wx.Frame):
         site=thellier_gui_lib.get_site_from_hierarchy(sample,self.Data_hierarchy)
         
         # average by sample
-        #print self.average_by_sample_or_site
-        if self.acceptance_criteria['average_by_sample_or_site']['criterion_value']=='sample':                         
+        if self.average_by_sample_or_site=='sample':                         
             if sample in self.Data_samples.keys():
                 specimens_list=self.Data_samples[sample].keys()
                 if self.s not in specimens_list and 'specimen_int_uT' in self.pars.keys():
@@ -5555,13 +5320,18 @@ class Arai_GUI(wx.Frame):
             self.sampleplot.set_xticklabels(specimens_id,rotation=90,fontsize=8)
             #ymin,ymax=self.sampleplot.ylim()
             
-            #if "sample_int_sigma" in self.acceptance_criteria.keys() and "sample_int_sigma_perc" in self.acceptance_criteria.keys():
+            #if "sample_int_sigma" in self.acceptance_criteria.keys() and "sample_int_sigma_perc" in self.acceptance_criteria.keys():_
             sigma_threshold_for_plot_1,sigma_threshold_for_plot_2=0,0                 
-            #    sigma_threshold_for_plot=max(self.acceptance_criteria["sample_int_sigma"]*,0.01*self.acceptance_criteria["sample_int_sigma_perc"]*scipy.mean(specimens_B))
-            if self.acceptance_criteria["sample_int_sigma"]["criterion_value"]!=-999 and type(self.acceptance_criteria["sample_int_sigma"]["criterion_value"])==float:
-                sigma_threshold_for_plot_1=self.acceptance_criteria["sample_int_sigma"]["criterion_value"]*1e6               
-            if self.acceptance_criteria["sample_int_sigma_perc"]["criterion_value"]!=-999 and type(self.acceptance_criteria["sample_int_sigma_perc"]["criterion_value"])==float:
-                sigma_threshold_for_plot_2=scipy.mean(specimens_B)*0.01*self.acceptance_criteria["sample_int_sigma_perc"]['criterion_value']
+            #print 'GUI10: ',self.acceptance_criteria
+            crits=pmag.get_dictitem(self.acceptance_criteria,'table_column','samples.int_abs_sigma','T') #fish out the samples.int_abs_sigma criterion
+            if len(crits)>0:
+                crit=crits[0]
+                if crit["criterion_value"]!=-999 and type(crit["criterion_value"])==float:
+                    sigma_threshold_for_plot_1=crit["criterion_value"]*1e6               
+            crits=pmag.get_dictitem(self.acceptance_criteria,'table_column','samples.int_abs_sigma_perc','T') #fish out the samples.int_abs_sigma criterion
+            if len(crits)>0:
+                if crit["criterion_value"]!=-999 and type(crit["criterion_value"])==float:
+                    sigma_threshold_for_plot_2=scipy.mean(specimens_B)*0.01*crit['criterion_value']
             #sigma_threshold_for_plot 100000
             sigma_threshold_for_plot=max(sigma_threshold_for_plot_1,sigma_threshold_for_plot_2)
             if sigma_threshold_for_plot < 20 and sigma_threshold_for_plot!=0:
@@ -5709,7 +5479,6 @@ class Arai_GUI(wx.Frame):
       #
       #   propogate sample, site, location names if available
       #
-      print contribution.tables
       if 'specimens' in contribution.tables:
           contribution.propagate_name_down('sample', 'measurements')
       if 'samples' in contribution.tables:
@@ -6197,7 +5966,6 @@ class Arai_GUI(wx.Frame):
 
         if "LP-PI-II" in Data[s]['datablock'][0]["method_codes"] or "LP-PI-M-II" in Data[s]['datablock'][0]["method_codes"] or "LP-PI-T-II" in Data[s]['datablock'][0]["method_codes"]:
           Data[s]['zijdblock']=[]  
-          print araiblock
           for zerofield in araiblock[0]:
               Data[s]['zijdblock'].append([zerofield[0],zerofield[1],zerofield[2],zerofield[3],0,'g',""])
            
@@ -6539,7 +6307,7 @@ class Arai_GUI(wx.Frame):
       self.GUI_log.write("-I- number of specimens in this project directory: %i\n"%len(self.specimens))
       self.GUI_log.write("-I- number of samples in this project directory: %i\n"%len(Data_hierarchy['samples'].keys()))
 
-      print "done sort blocks to arai, zij. etc."
+      #print "done sort blocks to arai, zij. etc."
 #
 # PUT PRIOR SPECIMEN INTERPRETATIONS IN Data[s]
 #
@@ -6550,12 +6318,6 @@ class Arai_GUI(wx.Frame):
           prior_recs=prior_recs[prior_recs['meas_step_max'].notnull()] # specimen data for this specimen
           prev_pmag_specimen=prior_recs.to_dict('records') # convert to list of dictionaries
           for rec in prev_pmag_specimen: # step through interpretations
-            #if "LP-PI" not in rec["method_codes"]:
-            #    continue
-            #if "measurement_step_min" not in rec.keys() or rec['measurement_step_min']=="":
-            #    continue
-            #if "measurement_step_max" not in rec.keys() or rec['measurement_step_max']=="":
-            #    continue
             tmin_kelvin=float(rec['meas_step_min'])
             tmax_kelvin=float(rec['meas_step_max'])
             if specimen not in self.redo_specimens.keys():

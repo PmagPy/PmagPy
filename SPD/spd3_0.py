@@ -193,31 +193,32 @@ class PintPars(object):
         lab_dc_field = float(self.pars['treat_dc_field'])
         steps_Arai = self.specimen_Data['steps_Arai']
         data = lib_arai.York_Regression(x_segment, y_segment, x_mean, y_mean, n, lab_dc_field, steps_Arai)
+# York_Regression is still in Data Model 2.5 - keeping it that way for now...
         self.pars['x_err'] = data['x_err']
         self.pars['y_err'] = data['y_err']
         self.pars['x_tag'] = data['x_tag']
         self.pars['y_tag'] = data['y_tag']
-        self.pars['int_abs_b'] = data['int_abs_b']
-        self.pars['int_b_sigma'] = data['int_b_sigma']
-        self.pars['int_b_beta'] = data['int_b_beta']
+        self.pars['int_b'] = data['specimen_b']
+        self.pars['int_b_sigma'] = data['specimen_b_sigma']
+        self.pars['int_b_beta'] = data['specimen_b_beta']
         self.pars['specimen_YT'] = data['y_int']
         self.pars['specimen_XT'] = data['x_int']
         self.pars['x_prime'] = data['x_prime']
         self.pars['y_prime'] = data['y_prime']
         self.pars['delta_x_prime'] = data['delta_x_prime']
         self.pars['delta_y_prime'] = data['delta_y_prime']
-        self.pars['int_f'] = data['int_f']
-        self.pars['int_g'] = data['int_g']
-        self.pars['int_g_lim'] = data['int_g_lim'] # what is this?
-        self.pars['int_q'] = data['int_q']
-        self.pars['int_w'] = data['int_w']
+        self.pars['int_f'] = data['specimen_f']
+        self.pars['int_g'] = data['specimen_g']
+        self.pars['specimen_g_lim'] = data['specimen_g_lim'] # what is this?
+        self.pars['int_q'] = data['specimen_q']
+        self.pars['int_w'] = data['specimen_w']
         self.pars['count_IZ'] = data['count_IZ']
         self.pars['count_ZI'] = data['count_ZI']
         self.pars['B_lab'] = data['B_lab']  # think I don't need this, actually
         self.pars['B_anc'] = data['B_anc']
         self.pars['B_anc_sigma'] = data['B_anc_sigma']
-        self.pars['int_abs'] = data['int_abs']
-        self.pars['int_abs_sigma'] = data['int_abs_sigma']
+        self.pars['int_abs'] = data['specimen_int']
+        self.pars['int_abs_sigma'] = data['specimen_int_sigma']
         return data
 
     def get_vds(self):
@@ -227,14 +228,14 @@ class PintPars(object):
         data = lib_arai.get_vds(zdata, delta_y_prime, start, end)
         self.pars['max_diff'] = data['max_diff']
         self.pars['vector_diffs'] = data['vector_diffs']
-        self.pars['int_vds'] = data['int_vds']
-        self.pars['int_fvds']= data['int_fvds']
+        self.pars['int_vds'] = data['specimen_vds']
+        self.pars['int_fvds']= data['specimen_fvds']
         self.pars['vector_diffs_segment'] = data['vector_diffs_segment']
         self.pars['partial_vds'] = data['partial_vds']
-        self.pars['GAP-MAX'] = data['GAP-MAX']
-        return {'max_diff': data['max_diff'], 'vector_diffs': data['vector_diffs'], 'int_vds': data['int_vds'], 
-                'specimen_fvds': data['int_fvds'], 'vector_diffs_segment': data['vector_diffs_segment'], 
-                'partial_vds': data['partial_vds'], 'GAP-MAX': data['GAP-MAX']}
+        self.pars['int_gmax'] = data['GAP-MAX']
+        return {'max_diff': data['max_diff'], 'vector_diffs': data['vector_diffs'], 'int_vds': data['specimen_vds'], 
+                'int_fvds': data['specimen_fvds'], 'vector_diffs_segment': data['vector_diffs_segment'], 
+                'partial_vds': data['partial_vds'], 'int_gmax': data['GAP-MAX']}
 
     def get_FRAC(self):
         vds = self.pars['int_vds']
@@ -481,14 +482,14 @@ class PintPars(object):
 
     def get_mean_DRAT(self):
         mean_DRAT, mean_DRAT_prime = lib_ptrm.get_mean_DRAT(self.pars['sum_ptrm_checks'], self.pars['sum_abs_ptrm_checks'], 
-                                                            self.pars['n_ptrm'], self.pars['length_best_fit_line'])
+                                                            self.pars['int_n_ptrm'], self.pars['length_best_fit_line'])
         self.pars['int_mdrat'] = mean_DRAT
         self.pars['mean_DRAT_prime'] = mean_DRAT_prime
         return mean_DRAT, mean_DRAT_prime
 
     def get_mean_DEV(self):
         mean_DEV, mean_DEV_prime = lib_ptrm.get_mean_DEV(self.pars['sum_ptrm_checks'], self.pars['sum_abs_ptrm_checks'], 
-                                                         self.pars['n_ptrm'], self.pars['delta_x_prime'])
+                                                         self.pars['int_n_ptrm'], self.pars['delta_x_prime'])
         self.pars['int_mdev'] = mean_DEV
         self.pars['mean_DEV_prime'] = mean_DEV_prime
 
@@ -498,7 +499,7 @@ class PintPars(object):
             return 0
         ptrms_segment, checks_segment = lib_ptrm.get_segments(self.PTRMS, self.PTRM_Checks, self.tmax)
         delta_pal = lib_ptrm.get_full_delta_pal(self.PTRMS, self.PTRM_Checks, self.NRM, self.pars['y_err'], 
-                                                self.y_Arai_mean, self.pars['specimen_b'], self.start, self.end,
+                                                self.y_Arai_mean, self.pars['int_b'], self.start, self.end,
                                                 self.y_Arai_segment)
         self.pars['int_dpal'] = delta_pal
 
@@ -534,7 +535,7 @@ class PintPars(object):
         return delta_TR
 
     def get_MD_VDS(self):
-        MD_VDS = lib_tail.get_MD_VDS(self.pars['tail_check_max'], self.pars['specimen_vds'])
+        MD_VDS = lib_tail.get_MD_VDS(self.pars['tail_check_max'], self.pars['int_vds'])
         self.pars['int_md'] = MD_VDS
         return MD_VDS
 
@@ -650,7 +651,7 @@ class PintPars(object):
         'int_z': get_Z, 
         'int_mdev': get_max_DEV, 
         'fail_arai_beta_box_scatter': get_SCAT, 
-        'GAP-MAX': get_vds, 
+        'int_gmax': get_vds, 
         'pTRM_MAD_Free': get_ptrm_MAD, 
         'ptrms_dec_Free': get_ptrm_dec_and_inc, 
         'int_mad_anc': get_MAD, 
@@ -658,7 +659,7 @@ class PintPars(object):
         'ptrms_angle_Free': get_ptrm_dec_and_inc, 
         'scat_bounding_line_low': get_SCAT, 
         'PCA_sigma_min_Free': get_dec_and_inc, 
-        'int_abs_b': York_Regression, 
+        'int_b': York_Regression, 
         'int_scat': get_SCAT, 
         'int_r2_det': get_R_det2, 
         'best_fit_vector_Free': get_dec_and_inc, 
@@ -677,7 +678,7 @@ class PintPars(object):
         'int_alpha': get_alpha, 
         'int_fvds': get_vds, 
         'int_b_sigma': York_Regression, 
-        'int_abs_b': York_Regression, 
+        'int_b': York_Regression, 
         'int_g': York_Regression, 
         'int_f': York_Regression, 
         'tmax': None, 
@@ -733,6 +734,7 @@ class PintPars(object):
             self.pars = {}
             return None
         stats_run = []
+        #print 'SPD1: ',self.statistics
         for stat in self.calculate: # iterate through all stats that should be calculated
             func = self.statistics[stat]
             #print 'func', func
