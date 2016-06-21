@@ -35,7 +35,7 @@ class DataModel(object):
         """
         Return list of all groups for a particular data type
         """
-        df = self[table_name]
+        df = self.dm[table_name]
         return list(df['group'].unique())
 
 
@@ -44,7 +44,7 @@ class DataModel(object):
         Return a list of all headers for a given group
         """
         # get all headers of a particular group
-        df = DATA_MODEL[table_name]
+        df = self.dm[table_name]
         cond = df['group'] == group_name
         return df[cond].index
 

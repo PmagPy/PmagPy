@@ -5,8 +5,6 @@ doc string
 
 # pylint: disable=C0103,E402
 print '-I- Importing MagIC GUI dependencies'
-#from pmag_env import set_env
-#set_env.set_backend(wx=True)
 import matplotlib
 if not matplotlib.get_backend() == 'WXAgg':
     matplotlib.use('WXAgg')
@@ -14,19 +12,7 @@ import wx
 import wx.lib.buttons as buttons
 import sys
 import os
-import webbrowser
-
-
-#pmagpy_dir = os.path.join(os.getcwd(), 'pmagpy')
-#if pmagpy_dir not in sys.path:
-#    print pmagpy_dir
-#    sys.path[0] = pmagpy_dir
-#print sys.path
-#print 'os.getcwd()', os.getcwd()
-
 import pmagpy
-import pmagpy.data_model3 as dm
-
 import pmagpy.data_model3 as data_model3
 import pmagpy.check_updates as check_updates
 import pmagpy.builder as builder
@@ -48,10 +34,10 @@ class MainFrame(wx.Frame):
 
     def __init__(self, WD=None, name='Main Frame'):
         try:
-            version= pmag.get_version()
+            version = pmag.get_version()
         except:
             version = ""
-        title = "MagIC GUI   version: %s"%version
+        title = "MagIC GUI   version: %s" % version
         if sys.platform in ['win32', 'win64']:
             title += "  Powered by Enthought Canopy"
         wx.Frame.__init__(self, None, wx.ID_ANY, title, name=name)
@@ -66,7 +52,7 @@ class MainFrame(wx.Frame):
         self.data_model = data_model3.DataModel()
 
         print '-I- Read in any available data from working directory'
-        self.contribution = nb.Contribution(self.WD)
+        self.contribution = nb.Contribution(self.WD, data_model=self.data_model)
         
         #self.er_magic = builder.ErMagicBuilder(self.WD, self.data_model)
         self.edited = False

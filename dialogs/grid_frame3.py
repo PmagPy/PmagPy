@@ -75,13 +75,13 @@ class GridFrame(wx.Frame):
         """
         self.main_sizer = wx.BoxSizer(wx.VERTICAL)
 
-
         if self.grid_type in self.contribution.tables:
             dataframe = self.contribution.tables[self.grid_type]
         else:
             dataframe = None
         self.grid_builder = GridBuilder(dataframe, self.grid_type,
-                                        self.panel, parent_type=self.parent_type)
+                                        self.panel, parent_type=self.parent_type,
+                                        data_model=self.contribution.data_model)
         self.grid = self.grid_builder.make_grid()
         self.grid.InitUI()
 
@@ -742,10 +742,12 @@ class GridBuilder(object):
     """
     Takes ErMagicBuilder data and put them into a MagicGrid
     """
-    
-    def __init__(self, dataframe, grid_type, panel, grid_headers=None, parent_type=None):
+
+    def __init__(self, dataframe, grid_type, panel, grid_headers=None,
+                 parent_type=None, data_model=None):
         self.magic_data_frame = dataframe
         self.grid_type = grid_type
+        self.data_model = data_model
         self.grid_headers = grid_headers if grid_headers else [[], [], []]
         self.panel = panel
         self.parent_type = parent_type
@@ -808,8 +810,8 @@ class GridBuilder(object):
         return grid
 
     def add_data_to_grid(self, grid, grid_type=None, incl_pmag=True):
-        self.magic_data_frame
-        grid.add_items(self.magic_data_frame.df)
+        if isinstance(self.magic_data_frame, nb.MagicDataFrame):
+            grid.add_items(self.magic_data_frame.df)
         grid.size_grid()
 
         # always start with at least one row:

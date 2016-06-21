@@ -27,7 +27,9 @@ class Contribution(object):
     """
 
     def __init__(self, directory, read_tables='all',
-                 custom_filenames=None, single_file=None):
+                 custom_filenames=None, single_file=None,
+                 data_model=None):
+        self.data_model = data_model
         self.directory = os.path.realpath(directory)
         self.table_names = ['measurements', 'specimens', 'samples',
                             'sites', 'locations', 'contribution',
