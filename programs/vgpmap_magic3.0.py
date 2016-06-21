@@ -18,7 +18,7 @@ def main():
         vgpmap_magic.py
 
     DESCRIPTION
-        makes a map of vgps and a95/dp,dm for site means in a pmag_results table
+        makes a map of vgps and a95/dp,dm for site means in a sites table
 
     SYNTAX
         vgpmap_magic.py [command line options]
@@ -26,7 +26,7 @@ def main():
     OPTIONS
         -h prints help and quits
         -eye  ELAT ELON [specify eyeball location], default is 90., 0.
-        -f FILE pmag_results format file, [default is pmag_results.txt]
+        -f FILE sites format file, [default is sites.txt]
         -res [c,l,i,h] specify resolution (crude, low, intermediate, high]
         -etp plot the etopo20 topographpy data (requires high resolution data set)
         -prj PROJ,  specify one of the following:
