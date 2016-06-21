@@ -24,7 +24,7 @@ def main():
 
     OPTIONS
         -h prints help message and quits
-        -f: specify input file, default is magic_measurements.txt
+        -f: specify input file, default is measurements.txt
         -spc SPEC: specify specimen name to plot and quit
         -sav save all plots and quit
         -fmt [png,svg,eps,jpg]
