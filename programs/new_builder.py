@@ -381,8 +381,6 @@ class MagicDataFrame(object):
         if groups and not columns:
             columns = []
             for group_name in groups:
-                print self.dtype
-                print group_name
                 columns.extend(list(self.data_model.get_headers(self.dtype, group_name)))
             for col in columns:
                 if col not in self.df.columns:
