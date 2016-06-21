@@ -284,6 +284,7 @@ class MainFrame(wx.Frame):
         wx.Yield()
         # hide mainframe
         self.on_open_grid_frame()
+        grid_type += 's'
         self.grid_frame = grid_frame.GridFrame(self.contribution, self.WD, grid_type, grid_type, self.panel)
         if self.validation_mode:
             if grid_type in self.validation_mode:

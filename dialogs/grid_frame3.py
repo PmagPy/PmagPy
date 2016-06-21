@@ -10,6 +10,7 @@ import magic_grid3 as magic_grid
 import pmagpy.builder as builder
 import pmagpy.pmag as pmag
 from pmagpy.controlled_vocabularies import vocab
+import programs.new_builder as nb
 
 
 class GridFrame(wx.Frame):
@@ -51,9 +52,14 @@ class GridFrame(wx.Frame):
         else:
             try:
                 child_ind = self.contribution.ancestry.index(self.grid_type) - 1
+                if child_ind < 0:
+                    self.child_type = None
                 self.child_type = self.contribution.ancestry[child_ind]
-                parent_ind = self.er_magic.contribution.index(self.grid_type) + 1
-                self.parent_type = self.contribution.ancestry[parent_ind]
+                parent_ind = self.contribution.ancestry.index(self.grid_type) + 1
+                if parent_ind >= len(self.contribution.ancestry):
+                    self.parent_type = None
+                else:
+                    self.parent_type = self.contribution.ancestry[parent_ind]
             except ValueError:
                 self.child_type = None
                 self.parent_type = None
@@ -69,8 +75,13 @@ class GridFrame(wx.Frame):
         """
         self.main_sizer = wx.BoxSizer(wx.VERTICAL)
 
-        self.grid_builder = GridBuilder(self.contribution, self.grid_type, self.grid_headers,
-                                        self.panel, self.parent_type)
+
+        if self.grid_type in self.contribution.tables:
+            dataframe = self.contribution.tables[self.grid_type]
+        else:
+            dataframe = None
+        self.grid_builder = GridBuilder(dataframe, self.grid_type,
+                                        self.panel, parent_type=self.parent_type)
         self.grid = self.grid_builder.make_grid()
         self.grid.InitUI()
 
@@ -171,38 +182,39 @@ class GridFrame(wx.Frame):
             self.grid_builder.add_age_data_to_grid()
 
         # add drop_down menus
-        if self.parent_type:
-            belongs_to = sorted(self.er_magic.data_lists[self.parent_type][0], key=lambda item: item.name)
-        else:
-            belongs_to = ''
-        self.drop_down_menu = drop_down_menus.Menus(self.grid_type, self, self.grid, belongs_to)
+        #if self.parent_type:
+        #    belongs_to = sorted(self.er_magic.data_lists[self.parent_type][0], key=lambda item: item.name)
+        #else:
+        #    belongs_to = ''
+        #self.drop_down_menu = drop_down_menus.Menus(self.grid_type, self, self.grid, belongs_to)
         
         self.grid_box = wx.StaticBoxSizer(wx.StaticBox(self.panel, -1, name='grid container'), wx.VERTICAL)
         self.grid_box.Add(self.grid, flag=wx.ALL, border=5)
 
         # a few special touches if it is a location grid
         if self.grid_type == 'location':
-            lat_lon_dict = self.er_magic.get_min_max_lat_lon(self.er_magic.locations)
-            for loc in self.er_magic.locations:
-                # try to fill in min/max latitudes/longitudes from sites
-                d = lat_lon_dict[loc.name]
-                col_labels = [self.grid.GetColLabelValue(col) for col in xrange(self.grid.GetNumberCols())]
-                row_labels = [self.grid.GetCellValue(row, 0) for row in xrange(self.grid.GetNumberRows())]
-                for key, value in d.items():
-                    if value:
-                        if str(loc.er_data[key]) == str(value):
-                            # no need to update
-                            pass
-                        else:
-                            # update
-                            loc.er_data[key] = value
-                            col_ind = col_labels.index(key)
-                            row_ind = row_labels.index(loc.name)
-                            self.grid.SetCellValue(row_ind, col_ind, str(value))
-                            if not self.grid.changes:
-                                self.grid.changes = set([row_ind])
-                            else:
-                                self.grid.changes.add(row_ind)
+            pass
+            #lat_lon_dict = self.er_magic.get_min_max_lat_lon(self.er_magic.locations)
+            #for loc in self.er_magic.locations:
+            #    # try to fill in min/max latitudes/longitudes from sites
+            #    d = lat_lon_dict[loc.name]
+            #    col_labels = [self.grid.GetColLabelValue(col) for col in xrange(self.grid.GetNumberCols())]
+            #    row_labels = [self.grid.GetCellValue(row, 0) for row in xrange(self.grid.GetNumberRows())]
+            #    for key, value in d.items():
+            #        if value:
+            #            if str(loc.er_data[key]) == str(value):
+            #                # no need to update
+            #                pass
+            #            else:
+            #                # update
+            #                loc.er_data[key] = value
+            #                col_ind = col_labels.index(key)
+            #                row_ind = row_labels.index(loc.name)
+            #                self.grid.SetCellValue(row_ind, col_ind, str(value))
+            #                if not self.grid.changes:
+            #                    self.grid.changes = set([row_ind])
+            #                else:
+            #                    self.grid.changes.add(row_ind)
 
         # a few special touches if it is an age grid
         if self.grid_type == 'age':
@@ -220,27 +232,6 @@ class GridFrame(wx.Frame):
 
             self.Bind(wx.EVT_RADIOBUTTON, self.toggle_ages)
             self.hbox.Add(toggle_box)
-
-        # a few special touches if it is a result grid
-        if self.grid_type == 'result':
-            # populate specimen_names, sample_names, etc.
-            self.drop_down_menu.choices[2] = [sorted([spec.name for spec in self.er_magic.specimens if spec]), False]
-            self.drop_down_menu.choices[3] = [sorted([samp.name for samp in self.er_magic.samples if samp]), False]
-            self.drop_down_menu.choices[4] = [sorted([site.name for site in self.er_magic.sites if site]), False]
-            self.drop_down_menu.choices[5] = [sorted([loc.name for loc in self.er_magic.locations if loc]), False]
-            for row in xrange(self.grid.GetNumberRows()):
-                result_name = self.grid.GetCellValue(row, 0)
-                result = self.er_magic.find_by_name(result_name, self.er_magic.results)
-                if result:
-                    if result.specimens:
-                        self.grid.SetCellValue(row, 2, ' : '.join([pmag.get_attr(spec) for spec in result.specimens]))
-                    if result.samples:
-                        self.grid.SetCellValue(row, 3, ' : '.join([pmag.get_attr(samp) for samp in result.samples]))
-                    if result.sites:
-                        self.grid.SetCellValue(row, 4, ' : '.join([pmag.get_attr(site) for site in result.sites]))
-                    if result.locations:
-                        self.grid.SetCellValue(row, 5, ' : '.join([pmag.get_attr(loc) for loc in result.locations]))
-                    self.drop_down_menu.choices[5] = [sorted([loc.name for loc in self.er_magic.locations if loc]), False]
 
         # final layout, set size
         self.main_sizer.Add(self.hbox, flag=wx.ALL, border=20)
@@ -752,10 +743,10 @@ class GridBuilder(object):
     Takes ErMagicBuilder data and put them into a MagicGrid
     """
     
-    def __init__(self, contribution, grid_type, grid_headers, panel, parent_type=None):
-        self.contribution = contribution
+    def __init__(self, dataframe, grid_type, panel, grid_headers=None, parent_type=None):
+        self.magic_data_frame = dataframe
         self.grid_type = grid_type
-        self.grid_headers = grid_headers
+        self.grid_headers = grid_headers if grid_headers else [[], [], []]
         self.panel = panel
         self.parent_type = parent_type
         self.grid = None
@@ -764,9 +755,7 @@ class GridBuilder(object):
         """
         return grid
         """
-        header = self.grid_headers[self.grid_type][0]
-        # if we need to use '++' to distinguish pmag magic_method_codes from er
-        header = sorted(list(set(er_header).union(pmag_header)))
+        header = self.grid_headers[0]
 
         first_headers = []
         for string in ['citation', '{}_class'.format(self.grid_type),
@@ -777,22 +766,7 @@ class GridBuilder(object):
                     header.remove(head)
                     first_headers.append(head)
 
-        # the way we work it, each specimen is assigned to a sample
-        # each sample is assigned to a site
-        # specimens can not be added en masse to a site object, for example
-        # this data will be written in
-        for string in ['er_specimen_names', 'er_sample_names', 'er_site_names']:
-            for head in header[:]:
-                if string in head:
-                    header.remove(head)
-            
-        # do headers for results type grid
-        if self.grid_type == 'result':
-            #header.remove('pmag_result_name')
-            header[:0] = ['pmag_result_name', 'er_citation_names', 'er_specimen_names',
-                          'er_sample_names', 'er_site_names', 'er_location_names']
-
-        elif self.grid_type == 'age':
+        if self.grid_type == 'ages':
             for header_type in self.er_magic.first_age_headers:
                 if header_type in header:
                     header.remove(header_type)
@@ -812,9 +786,9 @@ class GridBuilder(object):
             header[:0] = lst
 
 
-        if self.grid_type in con.tables:
-            col_labels = con.tables[self.grid_type].columns
-            row_labels = con.tables[self.grid_type].index
+        if isinstance(self.magic_data_frame, nb.MagicDataFrame):
+            col_labels = self.magic_data_frame.df.columns
+            row_labels = self.magic_data_frame.df.index
         else:
             col_labels = ['label1', 'label2']
             row_labels = []
@@ -826,6 +800,7 @@ class GridBuilder(object):
         return grid
 
     def add_data_to_grid(self, grid, grid_type=None, incl_pmag=True):
+        return
         incl_parents = True
         if not grid_type:
             grid_type = self.grid_type
@@ -884,7 +859,7 @@ class GridBuilder(object):
             print '-I- No changes to save'
             return
 
-        if self.grid_type == 'age':
+        if self.grid_type == 'ages':
             age_data_type = self.er_magic.age_type
             self.er_magic.write_ages = True
 
@@ -953,40 +928,10 @@ class GridBuilder(object):
                         new_parent_name = ''
 
                     # create a new item
-                    if new_item_name and not old_item_name:
-                        print '-I- make new item named', new_item_name
-                        if self.grid_type == 'result':
-                            specs, samps, sites, locs = self.get_result_children(result_data)
-                            item = self.er_magic.add_result(new_item_name, specs, samps, sites,
-                                                            locs, new_pmag_data)
-                        else:
-                            item = self.er_magic.add_methods[self.grid_type](new_item_name, new_parent_name,
-                                                                             new_er_data, new_pmag_data)
+
+                    # insert code here
 
                     # update an existing item
-                    elif new_item_name and old_item_name:
-                        print '-I- update existing {} formerly named {} to {}'.format(self.grid_type,
-                                                                                  old_item_name,
-                                                                                  new_item_name)
-                        if self.grid_type == 'result':
-                            specs, samps, sites, locs = self.get_result_children(result_data)
-                            item = self.er_magic.update_methods['result'](old_item_name, new_item_name,
-                                                                          new_er_data=None,
-                                                                          new_pmag_data=new_pmag_data,
-                                                                          spec_names=specs,
-                                                                          samp_names=samps,
-                                                                          site_names=sites,
-                                                                          loc_names=locs,
-                                                                          replace_data=True)
-                        elif self.grid_type == 'age':
-                            item_type = age_data_type
-                            item = self.er_magic.update_methods['age'](old_item_name, new_er_data,
-                                                                       item_type, replace_data=True)
-                            
-                        else:
-                            item = self.er_magic.update_methods[self.grid_type](old_item_name, new_item_name,
-                                                                                new_parent_name, new_er_data,
-                                                                                new_pmag_data, replace_data=True)
 
     def get_result_children(self, result_data):
         """
