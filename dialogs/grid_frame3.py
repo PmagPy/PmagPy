@@ -2,19 +2,16 @@
 GridFrame -- subclass of wx.Frame.  Contains grid and buttons to manipulate it.
 GridBuilder -- data methods for GridFrame (add data to frame, save it, etc.)
 """
-#import pdb
 import wx
-import drop_down_menus
+import drop_down_menus3 as drop_down_menus
 import pmag_widgets as pw
 import magic_grid3 as magic_grid
 import pmagpy.builder as builder
-import pmagpy.pmag as pmag
 from pmagpy.controlled_vocabularies import vocab
 import programs.new_builder as nb
 
 
-class GridFrame(wx.Frame):
-#class GridFrame(wx.ScrolledWindow):
+class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
     """
     make_magic
     """
@@ -24,8 +21,6 @@ class GridFrame(wx.Frame):
         self.parent = parent
         wx.GetDisplaySize()
         title = 'Edit {} data'.format(panel_name)
-        #wx.Frame.__init__(self, parent=parent, id=wx.ID_ANY, name=frame_name, title=title)
-        #wx.ScrolledWindow.__init__(self, parent=parent, id=wx.ID_ANY, name=frame_name)#, title=title)
         super(GridFrame, self).__init__(parent=parent, id=wx.ID_ANY, name=frame_name, title=title)
 
         # if controlled vocabularies haven't already been grabbed from earthref
@@ -83,9 +78,8 @@ class GridFrame(wx.Frame):
             dataframe = self.contribution.tables[self.grid_type]
         else:
             dataframe = None
-        self.grid_builder = GridBuilder(dataframe, self.grid_type,
+        self.grid_builder = GridBuilder(self.contribution, self.grid_type,
                                         self.panel, parent_type=self.parent_type,
-                                        dmodel=self.contribution.data_model,
                                         reqd_headers=self.reqd_headers)
         self.grid = self.grid_builder.make_grid()
         self.grid.InitUI()
@@ -111,18 +105,23 @@ class GridFrame(wx.Frame):
         many_rows_box.Add(self.rows_spin_ctrl)
         self.Bind(wx.EVT_BUTTON, self.on_add_rows, self.add_many_rows_button)
 
-        self.deleteRowButton = wx.Button(self.panel, id=-1, label='Delete selected row(s)', name='delete_row_btn')
+        self.deleteRowButton = wx.Button(self.panel, id=-1,
+                                         label='Delete selected row(s)',
+                                         name='delete_row_btn')
         self.Bind(wx.EVT_BUTTON, lambda event: self.on_remove_row(event, False), self.deleteRowButton)
         self.deleteRowButton.Disable()
 
         ## Data management buttons
         self.importButton = wx.Button(self.panel, id=-1,
-                                      label='Import MagIC-format file', name='import_btn')
+                                      label='Import MagIC-format file',
+                                      name='import_btn')
         self.Bind(wx.EVT_BUTTON, self.onImport, self.importButton)
         self.exitButton = wx.Button(self.panel, id=-1,
-                                    label='Save and close grid', name='save_and_quit_btn')
+                                    label='Save and close grid',
+                                    name='save_and_quit_btn')
         self.Bind(wx.EVT_BUTTON, self.onSave, self.exitButton)
-        self.cancelButton = wx.Button(self.panel, id=-1, label='Cancel', name='cancel_btn')
+        self.cancelButton = wx.Button(self.panel, id=-1, label='Cancel',
+                                      name='cancel_btn')
         self.Bind(wx.EVT_BUTTON, self.onCancelButton, self.cancelButton)
 
         ## Help message and button
@@ -150,7 +149,8 @@ class GridFrame(wx.Frame):
 
         ## Code message and button
         # button
-        self.toggle_codes_btn = wx.Button(self.panel, id=-1, label="Show method codes",
+        self.toggle_codes_btn = wx.Button(self.panel, id=-1,
+                                          label="Show method codes",
                                           name='toggle_codes_btn')
         self.Bind(wx.EVT_BUTTON, self.toggle_codes, self.toggle_codes_btn)
         # message
@@ -185,7 +185,7 @@ class GridFrame(wx.Frame):
         self.grid_builder.add_data_to_grid(self.grid, self.grid_type)
         if self.grid_type == 'age':
             self.grid_builder.add_age_data_to_grid()
-
+        # ** need up-to-date vocab api first
         # add drop_down menus
         #if self.parent_type:
         #    belongs_to = sorted(self.er_magic.data_lists[self.parent_type][0], key=lambda item: item.name)
@@ -225,14 +225,15 @@ class GridFrame(wx.Frame):
         if self.grid_type == 'age':
             self.remove_row_button.Disable()
             self.add_many_rows_button.Disable()
-            self.grid.SetColLabelValue(0, 'er_site_name')
-            toggle_box = wx.StaticBoxSizer(wx.StaticBox(self.panel, -1, label='Ages level', name='Ages level'), wx.VERTICAL)
+            self.grid.SetColLabelValue(0, 'site')
+            toggle_box = wx.StaticBoxSizer(wx.StaticBox(self.panel, -1,
+                                                        label='Ages level',
+                                                        name='Ages level'), wx.VERTICAL)
 
             levels = ['specimen', 'sample', 'site', 'location']
             age_level = pw.radio_buttons(self.panel, levels, 'Choose level to assign ages')
             level_ind = levels.index(self.er_magic.age_type)
             age_level.radio_buttons[level_ind].SetValue(True)
-            
             toggle_box.Add(age_level)
 
             self.Bind(wx.EVT_RADIOBUTTON, self.toggle_ages)
@@ -240,10 +241,18 @@ class GridFrame(wx.Frame):
 
         # final layout, set size
         self.main_sizer.Add(self.hbox, flag=wx.ALL, border=20)
-        self.main_sizer.Add(self.toggle_help_btn, flag=wx.BOTTOM|wx.ALIGN_CENTRE, border=5)
-        self.main_sizer.Add(self.help_msg_boxsizer, flag=wx.BOTTOM|wx.ALIGN_CENTRE, border=10)
-        self.main_sizer.Add(self.toggle_codes_btn, flag=wx.BOTTOM|wx.ALIGN_CENTRE, border=5)
-        self.main_sizer.Add(self.code_msg_boxsizer, flag=wx.BOTTOM|wx.ALIGN_CENTRE, border=5)
+        self.main_sizer.Add(self.toggle_help_btn,
+                            flag=wx.BOTTOM|wx.ALIGN_CENTRE,
+                            border=5)
+        self.main_sizer.Add(self.help_msg_boxsizer,
+                            flag=wx.BOTTOM|wx.ALIGN_CENTRE,
+                            border=10)
+        self.main_sizer.Add(self.toggle_codes_btn,
+                            flag=wx.BOTTOM|wx.ALIGN_CENTRE,
+                            border=5)
+        self.main_sizer.Add(self.code_msg_boxsizer,
+                            flag=wx.BOTTOM|wx.ALIGN_CENTRE,
+                            border=5)
         self.main_sizer.Add(self.grid_box, flag=wx.ALL, border=10)
         self.panel.SetSizer(self.main_sizer)
         self.main_sizer.Fit(self)
@@ -254,7 +263,8 @@ class GridFrame(wx.Frame):
 
     def on_key_down(self, event):
         """
-        If user does command v, re-size window in case pasting has changed the content size.
+        If user does command v,
+        re-size window in case pasting has changed the content size.
         """
         keycode = event.GetKeyCode()
         meta_down = event.MetaDown() or event.GetCmdDown()
@@ -420,7 +430,8 @@ class GridFrame(wx.Frame):
     def add_new_grid_headers(self, new_headers, er_items, pmag_items):
         """
         Add in all user-added headers.
-        If those new headers depend on other headers, add the other headers too.
+        If those new headers depend on other headers,
+        add the other headers too.
         """
 
         def add_pmag_reqd_headers():
@@ -430,7 +441,7 @@ class GridFrame(wx.Frame):
             col_labels = self.grid.col_labels
             for reqd_head in self.grid_headers[self.grid_type]['pmag'][1]:
                 if reqd_head in self.er_magic.double:
-                    if reqd_head + "++"  not in col_labels:
+                    if reqd_head + "++" not in col_labels:
                         add_in.append(reqd_head + "++")
                 else:
                     if reqd_head not in col_labels:
@@ -523,13 +534,13 @@ class GridFrame(wx.Frame):
             row_num = self.grid.GetNumberRows() - 1
             self.deleteRowButton.Disable()
             self.selected_rows = {row_num}
-            
+
         function_mapping = {'specimen': self.er_magic.delete_specimen,
                             'sample': self.er_magic.delete_sample,
                             'site': self.er_magic.delete_site,
                             'location': self.er_magic.delete_location,
                             'result': self.er_magic.delete_result}
-        
+
         names = [self.grid.GetCellValue(row, 0) for row in self.selected_rows]
         orphans = []
         for name in names:
@@ -600,9 +611,11 @@ class GridFrame(wx.Frame):
 
     def onLeftClickLabel(self, event):
         """
-        When user clicks on a grid label, determine if it is a row label or a col label.
+        When user clicks on a grid label,
+        determine if it is a row label or a col label.
         Pass along the event to the appropriate function.
-        (It will either highlight a column for editing all values, or highlight a row for deletion).
+        (It will either highlight a column for editing all values,
+        or highlight a row for deletion).
         """
         if event.Col == -1 and event.Row == -1:
             pass
@@ -610,7 +623,8 @@ class GridFrame(wx.Frame):
             if self.remove_cols_mode:
                 self.remove_col_label(event)
             else:
-                self.drop_down_menu.on_label_click(event)
+                pass  # ** no drop_down_menus working yet
+                #self.drop_down_menu.on_label_click(event)
         else:
             if event.Col < 0  and self.grid_type != 'age':
                 self.onSelectRow(event)
@@ -695,26 +709,10 @@ class GridFrame(wx.Frame):
             self.Destroy()
 
     def onSave(self, event):#, age_data_type='site'):
-        # first, see if there's any pmag_* data
-        # set er_magic.incl_pmag_data accordingly
-        pmag_header_found = False
-        actual_er_headers = self.er_magic.headers[self.grid_type]['er'][0]
-        actual_pmag_headers = self.er_magic.headers[self.grid_type]['pmag'][0]
-        for col in self.grid.col_labels:
-            if col not in actual_er_headers:
-                if col in actual_pmag_headers or col == 'magic_method_codes++':
-                    pmag_header_found = True
-                    break
-        if pmag_header_found:
-            self.er_magic.incl_pmag_data.add(self.grid_type)
-        else:
-            try:
-                self.er_magic.incl_pmag_data.remove(self.grid_type)
-            except KeyError:
-                pass
-        # then, tidy up drop_down menu
-        if self.drop_down_menu:
-            self.drop_down_menu.clean_up()
+        # tidy up drop_down menu
+        # *** don't have drop_down_menu yet
+        #if self.drop_down_menu:
+        #    self.drop_down_menu.clean_up()
         # then save actual data
         self.grid_builder.save_grid_data()
         if not event:
@@ -730,11 +728,15 @@ class GridBuilder(object):
     Takes MagIC data and put them into a MagicGrid
     """
 
-    def __init__(self, dataframe, grid_type, panel, parent_type=None,
-                 dmodel=None, reqd_headers=None):
-        self.magic_data_frame = dataframe
+    def __init__(self, contribution, grid_type, panel,
+                 parent_type=None, reqd_headers=None):
+        self.contribution = contribution
+        if grid_type in contribution.tables:
+            self.magic_dataframe = contribution.tables[grid_type]
+        else:
+            self.magic_dataframe = nb.MagicDataFrame(dtype=grid_type)
         self.grid_type = grid_type
-        self.data_model = dmodel
+        self.data_model = contribution.data_model
         self.reqd_headers = reqd_headers
 
         # *** do default grid headers
@@ -747,16 +749,16 @@ class GridBuilder(object):
         """
         return grid
         """
-        if isinstance(self.magic_data_frame, nb.MagicDataFrame):
+        if isinstance(self.magic_dataframe, nb.MagicDataFrame) and len(self.magic_dataframe.df):
             # get columns and reorder slightly
-            col_labels = list(self.magic_data_frame.df.columns)
+            col_labels = list(self.magic_dataframe.df.columns)
             if self.parent_type:
                 col_labels.remove(self.parent_type[:-1])
                 col_labels[:0] = [self.parent_type[:-1]]
-            col_labels.remove(self.magic_data_frame.df.index.name)
-            col_labels[:0] = [self.magic_data_frame.df.index.name]
-            self.magic_data_frame.df = self.magic_data_frame.df[col_labels]
-            row_labels = self.magic_data_frame.df.index
+            col_labels.remove(self.magic_dataframe.df.index.name)
+            col_labels[:0] = [self.magic_dataframe.df.index.name]
+            self.magic_dataframe.df = self.magic_dataframe.df[col_labels]
+            row_labels = self.magic_dataframe.df.index
         else:
             # put in some default headers
             col_labels = list(self.data_model.get_headers(self.grid_type, 'Names'))
@@ -774,9 +776,11 @@ class GridBuilder(object):
         self.grid = grid
         return grid
 
+
+
     def add_data_to_grid(self, grid, grid_type=None, incl_pmag=True):
-        if isinstance(self.magic_data_frame, nb.MagicDataFrame):
-            grid.add_items(self.magic_data_frame.df)
+        if isinstance(self.magic_dataframe, nb.MagicDataFrame):
+            grid.add_items(self.magic_dataframe.df)
         grid.size_grid()
 
         # always start with at least one row:
@@ -823,74 +827,25 @@ class GridBuilder(object):
             self.er_magic.write_ages = True
 
         starred_cols = self.grid.remove_starred_labels()
-
-        self.grid.SaveEditControlValue() # locks in value in cell currently edited
-        
+        # locks in value in cell currently edited
+        self.grid.SaveEditControlValue()
+        # changes is a dict with key values == row number
         if self.grid.changes:
-            num_cols = self.grid.GetNumberCols()
-
-            for change in self.grid.changes:
-                if change == -1:
-                    continue
-                else:
-                    old_item = self.grid.row_items[change]
-                    new_item_name = self.grid.GetCellValue(change, 0)
-                    new_er_data = {}
-                    new_pmag_data = {}
-                    er_header = self.grid_headers[self.grid_type]['er'][0]
-                    pmag_header = self.grid_headers[self.grid_type]['pmag'][0]
-                    start_num = 2 if self.parent_type else 1
-                    result_data = {}
-
-                    for col in xrange(start_num, num_cols):
-                        col_label = str(self.grid.GetColLabelValue(col))
-                        value = str(self.grid.GetCellValue(change, col))
-                        #new_data[col_label] = value
-                        if value == '\t':
-                            value = ''
-
-                        if '++' in col_label:
-                            col_name = col_label[:-2]
-                            new_pmag_data[col_name] = value
-                            continue
-
-                        # pmag_* files are new interpretations, so should only have "This study"
-                        # er_* files can have multiple citations
-                        if col_label == 'er_citation_names':
-                            new_pmag_data[col_label] = 'This study'
-                            new_er_data[col_label] = value
-                            continue
-                            
-                        if er_header and (col_label in er_header):
-                            new_er_data[col_label] = value
-
-                        if self.grid_type in ('specimen', 'sample', 'site'):
-                            if pmag_header and (col_label in pmag_header) and (col_label not in self.er_magic.double):
-                                new_pmag_data[col_label] = value
-                        else:
-                            if pmag_header and (col_label in pmag_header):
-                                new_pmag_data[col_label] = value
-
-                        if col_label in ('er_specimen_names', 'er_sample_names',
-                                         'er_site_names', 'er_location_names'):
-                            result_data[col_label] = value
-
-                    # if there is an item in the data, get its name
-                    if isinstance(old_item, str):
-                        old_item_name = None
-                    else:
-                        old_item_name = self.grid.row_items[change].name
-
-                    if self.parent_type:
-                        new_parent_name = self.grid.GetCellValue(change, 1)
-                    else:
-                        new_parent_name = ''
-
-                    # create a new item
-
-                    # insert code here
-
-                    # update an existing item
+            new_data = self.grid.save_items()
+            for key in new_data:
+                data = new_data[key]
+                # update the row if it exists already,
+                # otherwise create a new row
+                try:
+                    self.magic_dataframe.update_row(key, data)
+                except IndexError:
+                    self.magic_dataframe.add_row(data[self.grid_type[:-1]], data)
+            # update the contribution with the new dataframe
+            self.contribution.tables[self.grid_type] = self.magic_dataframe
+            # *** probably don't actually want to write to file, here (but maybe)
+            self.magic_dataframe.write_magic_file("_{}.txt".format(self.grid_type),
+                                                  self.contribution.directory)
+            return
 
     def get_result_children(self, result_data):
         """

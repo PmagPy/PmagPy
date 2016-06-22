@@ -333,6 +333,7 @@ class MagicDataFrame(object):
                 self.df = DataFrame(columns=columns)
             else:
                 self.df = DataFrame()
+                self.df.index.name = dtype[:-1] if dtype.endswith("s") else dtype
         # if there is a file provided, read in the data and ascertain dtype
         else:
             data, dtype, keys = pmag.magic_read(magic_file, return_keys=True)
@@ -386,6 +387,26 @@ class MagicDataFrame(object):
                 if col not in self.df.columns:
                     self.df[col] = None
             self.df = self.df[columns]
+
+
+
+    def update_row(self, ind, row_data):
+        """
+        Update a row with data.
+        Must provide the specific numeric index (not row label).
+        If any new keys are present in row_data dictionary,
+        that column will be added to the dataframe
+        """
+        if sorted(row_data.keys()) != sorted(self.df.columns):
+            # add any new column names
+            for key in row_data:
+                if key not in self.df.columns:
+                    self.df[key] = None
+            # add missing column names into row_data
+            for col_label in self.df.columns:
+                if col_label not in row_data.keys():
+                    row_data[col_label] = None
+        self.df.iloc[ind] = row_data
 
 
     def add_row(self, label, row_data):
@@ -535,6 +556,8 @@ class MagicDataFrame(object):
         By default will write to current directory, 
         or provide dir_path to write out to instead.
         """
+        # *** maybe add some logical order to the column names, here?
+        # *** i.e., alphabetical...  see grid_frame3.GridBuilder.make_grid
         df = self.df
         dir_path = os.path.realpath(dir_path)
         if custom_name:
@@ -547,7 +570,7 @@ class MagicDataFrame(object):
             print '-I- writing {} data to {}'.format(self.dtype, fname)
         f = open(fname, 'w')
         f.write('tab\t{}\n'.format(self.dtype))
-        df.to_csv(f, sep="\t")
+        df.to_csv(f, sep="\t", header=True, index=True)
         f.close()
 
 

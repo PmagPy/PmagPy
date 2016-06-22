@@ -80,6 +80,26 @@ class MagicGrid(wx.grid.Grid, gridlabelrenderer.GridWithLabelRenderersMixin):
                 self.SetCellValue(row_num, col_num, str(value))
 
 
+    def save_items(self, rows=None):
+        """
+        Return a dictionary of row data for selected rows:
+        {1: {col1: val1, col2: val2}, ...}
+        If a list of row numbers isn't provided, get data for all.
+        """
+        if rows:
+            rows = rows
+        else:
+            rows = range(self.GetNumberRows())
+        cols = range(self.GetNumberCols())
+        data = {}
+        for row in rows:
+            data[row] = {}
+            for col in cols:
+                col_name = self.GetColLabelValue(col)
+                print col_name, ":", self.GetCellValue(row, col)
+                data[row][col_name] = self.GetCellValue(row, col)
+        return data
+
     def size_grid(self, event=None):
         self.AutoSizeColumns(True)
         for col in xrange(len(self.col_labels)):
