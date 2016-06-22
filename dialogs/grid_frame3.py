@@ -41,6 +41,10 @@ class GridFrame(wx.Frame):
 
         self.panel = wx.Panel(self, name=panel_name, size=wx.GetDisplaySize())
         self.grid_type = panel_name
+        dm = self.contribution.data_model.dm[self.grid_type]
+        dm['str_validations'] = dm['validations'].str.join(", ")
+        # these are the headers that are required no matter what for this datatype
+        self.reqd_headers = dm[dm['str_validations'].str.contains("required\(\)").fillna(False)].index
 
         if self.parent:
             self.Bind(wx.EVT_WINDOW_DESTROY, self.parent.Parent.on_close_grid_frame)
@@ -81,7 +85,8 @@ class GridFrame(wx.Frame):
             dataframe = None
         self.grid_builder = GridBuilder(dataframe, self.grid_type,
                                         self.panel, parent_type=self.parent_type,
-                                        dmodel=self.contribution.data_model)
+                                        dmodel=self.contribution.data_model,
+                                        reqd_headers=self.reqd_headers)
         self.grid = self.grid_builder.make_grid()
         self.grid.InitUI()
 
@@ -350,42 +355,24 @@ class GridFrame(wx.Frame):
 
     ##  Grid event methods
 
-    def remove_col_label(self, event):#, include_pmag=True):
+    def remove_col_label(self, event):
         """
         check to see if column is required
         if it is not, delete it from grid
         """
-        er_possible_headers = self.grid_headers[self.grid_type]['er'][2]
-        pmag_possible_headers = self.grid_headers[self.grid_type]['pmag'][2]
-        er_actual_headers = self.grid_headers[self.grid_type]['er'][0]
-        pmag_actual_headers = self.grid_headers[self.grid_type]['pmag'][0]
         col = event.GetCol()
         label = self.grid.GetColLabelValue(col)
         if '**' in label:
             label = label.strip('**')
-        if label in self.grid_headers[self.grid_type]['er'][1]:
+        if label in self.reqd_headers:
             pw.simple_warning("That header is required, and cannot be removed")
             return False
-        #elif include_pmag and label in self.grid_headers[self.grid_type]['pmag'][1]:
-        #    pw.simple_warning("That header is required, and cannot be removed")
-        #    return False
         else:
             print 'That header is not required:', label
             self.grid.remove_col(col)
-            #if label in er_possible_headers:
-            try:
-                print 'removing {} from er_actual_headers'.format(label)
-                er_actual_headers.remove(label)
-            except ValueError:
-                pass
-            #if label in pmag_possible_headers:
-            try:
-                pmag_actual_headers.remove(label)
-            except ValueError:
-                pass
         # causes resize on each column header delete
         # can leave this out if we want.....
-        self.main_sizer.Fit(self)    
+        self.main_sizer.Fit(self)
 
     def on_add_cols(self, event):
         """
@@ -743,12 +730,12 @@ class GridBuilder(object):
     Takes MagIC data and put them into a MagicGrid
     """
 
-    def __init__(self, dataframe, grid_type, panel, grid_headers=None,
-                 parent_type=None, dmodel=None):
+    def __init__(self, dataframe, grid_type, panel, parent_type=None,
+                 dmodel=None, reqd_headers=None):
         self.magic_data_frame = dataframe
         self.grid_type = grid_type
         self.data_model = dmodel
-        # get the names group and just start there
+        self.reqd_headers = reqd_headers
 
         # *** do default grid headers
 
@@ -773,6 +760,8 @@ class GridBuilder(object):
         else:
             # put in some default headers
             col_labels = list(self.data_model.get_headers(self.grid_type, 'Names'))
+            col_labels[:0] = self.reqd_headers
+            col_labels = sorted(set(col_labels))
             if self.parent_type:
                 col_labels.remove(self.parent_type[:-1])
                 col_labels[:0] = [self.parent_type[:-1]]
