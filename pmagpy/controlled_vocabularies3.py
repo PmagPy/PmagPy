@@ -24,8 +24,7 @@ class Vocabulary(object):
         self.possible_vocabularies = []
         self.all_codes = []
         self.code_types = []
-        self.er_methods = []
-        self.pmag_methods = []
+        self.methods = []
         self.age_methods = []
 
     def get_meth_codes(self):
@@ -34,7 +33,7 @@ class Vocabulary(object):
         """
         try:
             #old_raw_codes = pd.io.json.read_json('https://api.earthref.org/MagIC/method_codes.json')
-            raw_codes = pd.io.json.read_json("~/Python/PmagPy/3_0/method_codes.json")
+            raw_codes = pd.io.json.read_json(os.path.join(pmag_dir, "3_0", "method_codes.json"))
         except urllib2.URLError:
             return [], []
         except httplib.BadStatusLine:
@@ -103,27 +102,29 @@ class Vocabulary(object):
         codes = {cat: list(self.get_one_meth_type(cat, all_codes).index) for cat in categories}
         return codes
 
-    default_vocab_types = ('lithology', 'class', 'type','location_type',
-                           'age_unit', 'site_definition')
+    default_vocab_types = ('lithology', 'class', 'type', 'location_type',
+                           'age_unit')
 
     def get_controlled_vocabularies(self, vocab_types=default_vocab_types):
         """
         Get all non-method controlled vocabularies
         """
-        #vocab_types = ['lithology', 'class', 'type', 'location_type', 'age_unit', 'site_definition']
         connected = True
         try:
             controlled_vocabularies = []
             print '-I- Importing controlled vocabularies from https://earthref.org'
-            url = 'https://api.earthref.org/MagIC/vocabularies.json'
+            #url = 'https://api.earthref.org/MagIC/vocabularies.json'
+            url = os.path.join(pmag_dir, "3_0", "controlled_vocabularies.json")
             data = pd.io.json.read_json(url)
             possible_vocabularies = data.columns
             ## this line means, grab every single controlled vocabulary
             #vocab_types = possible_vocabularies
             for vocab in vocab_types:
-                url = 'https://api.earthref.org/MagIC/vocabularies/{}.json'.format(vocab)
-                data = pd.io.json.read_json(url)
-                stripped_list = [item['item'] for item in data[vocab][0]]
+                #url = 'https://api.earthref.org/MagIC/vocabularies/{}.json'.format(vocab)
+                #data = pd.io.json.read_json(url)
+                #stripped_list = [item['item'] for item in data[vocab][0]]
+                items = data[vocab]['items']
+                stripped_list = [item['item'] for item in items]
                 if len(stripped_list) > 100:
                 # split out the list alphabetically, into a dict of lists:
                 # {'A': ['alpha', 'artist'], 'B': ['beta', 'beggar']...}
@@ -155,7 +156,7 @@ class Vocabulary(object):
 
     #def get_all_possible_vocabularies(possible_list):
 
-    def get_tiered_meth_category_offline(self, category):
+    def get_tiered_meth_category_offline(self):
         path = os.path.join(data_model_dir, 'er_methods.txt')
         dfile = open(path)
         json_data = json.load(dfile)
@@ -163,30 +164,23 @@ class Vocabulary(object):
         return json_data
 
 
-
-    def get_stuff(self):
+    def get_all_vocabulary(self):
         all_codes, code_types = self.get_meth_codes()
-        ## do it this way if you want a non-nested list of all er/pmag/age codes
-        ##def get_one_meth_category(category, all_codes, code_types):
+        
+        ## do it this way if you want a non-nested list of all codes
         ## i.e. er_codes = [code1, code2,...]
-        #er_methods = list(get_one_meth_category('er', all_codes, code_types).index)
-        #pmag_methods = list(get_one_meth_category('pmag', all_codes, code_types).index)
-        #age_methods = list(get_one_meth_category('age', all_codes, code_types).index)
+        ##def get_one_meth_category(category, all_codes, code_types):
 
-        ## do it this way if you want a tiered list of all er/pmag_age codes
+        ## do it this way if you want a tiered list of all codes
         ## i.e. er_codes = {'anisotropy_codes': ['code1', 'code2'], ...}
         ##def get_tiered_meth_category(mtype, all_codes, code_types):
 
-
         if any(all_codes):
-            er_methods = self.get_tiered_meth_category('er', all_codes, code_types)
-            pmag_methods = self.get_tiered_meth_category('pmag', all_codes, code_types)
+            methods = self.get_tiered_meth_category('other', all_codes, code_types)
             age_methods = self.get_tiered_meth_category('age', all_codes, code_types)
         else:
-            #def get_tiered_meth_category_offline(category):
-            er_methods = self.get_tiered_meth_category_offline('er')
-            pmag_methods = self.get_tiered_meth_category_offline('pmag')
-            age_methods = self.get_tiered_meth_category_offline('age')
+            methods = self.get_tiered_meth_category_offline()
+            age_methods = self.get_tiered_meth_category_offline()
             path = os.path.join(data_model_dir, 'code_types.txt')
             with open(path, 'r') as type_file:
                 raw_code_types = json.load(type_file)
@@ -197,16 +191,11 @@ class Vocabulary(object):
             all_codes = pd.read_json(raw_all_codes)
 
         vocabularies, possible_vocabularies = self.get_controlled_vocabularies()
-        #return vocabularies, possible_vocabularies, all_codes, code_types, er_methods, pmag_methods, age_methods
         self.vocabularies = vocabularies
         self.possible_vocabularies = possible_vocabularies
         self.all_codes = all_codes
         self.code_types = code_types
-        self.er_methods = er_methods
-        self.pmag_methods = pmag_methods
+        self.methods = methods
         self.age_methods = age_methods
 
-
-vocab = Vocabulary()
-        
-# vocabularies, possible_vocabularies, all_codes, code_types, er_methods, pmag_methods, age_methods = get_stuff()
+    
