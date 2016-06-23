@@ -19,7 +19,6 @@ import pmagpy.builder as builder
 import pmagpy.pmag as pmag
 import pmagpy.ipmag as ipmag
 import pmagpy.validate_upload as validate_upload
-import dialogs.drop_down_menus as drop_down_menus
 import dialogs.pmag_widgets as pw
 import dialogs.magic_grid3 as magic_grid
 import dialogs.pmag_menu_dialogs as pmag_menu_dialogs

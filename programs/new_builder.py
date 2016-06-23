@@ -570,7 +570,7 @@ class MagicDataFrame(object):
             print '-I- writing {} data to {}'.format(self.dtype, fname)
         f = open(fname, 'w')
         f.write('tab\t{}\n'.format(self.dtype))
-        df.to_csv(f, sep="\t", header=True, index=True)
+        df.to_csv(f, sep="\t", header=True, index=False)
         f.close()
 
 

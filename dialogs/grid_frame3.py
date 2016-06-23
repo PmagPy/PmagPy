@@ -739,8 +739,6 @@ class GridBuilder(object):
         self.data_model = contribution.data_model
         self.reqd_headers = reqd_headers
 
-        # *** do default grid headers
-
         self.panel = panel
         self.parent_type = parent_type
         self.grid = None
