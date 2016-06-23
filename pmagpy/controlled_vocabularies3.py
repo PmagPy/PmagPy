@@ -199,3 +199,4 @@ class Vocabulary(object):
         self.age_methods = age_methods
 
     
+vocab = Vocabulary()

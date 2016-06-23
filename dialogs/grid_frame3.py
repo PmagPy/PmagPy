@@ -191,8 +191,8 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
         #    belongs_to = sorted(self.er_magic.data_lists[self.parent_type][0], key=lambda item: item.name)
         #else:
         #    belongs_to = ''
-        #self.drop_down_menu = drop_down_menus.Menus(self.grid_type, self, self.grid, belongs_to)
-        
+
+        self.drop_down_menu = drop_down_menus.Menus(self.grid_type, self.contribution, self.grid)
         self.grid_box = wx.StaticBoxSizer(wx.StaticBox(self.panel, -1, name='grid container'), wx.VERTICAL)
         self.grid_box.Add(self.grid, flag=wx.ALL, border=5)
 

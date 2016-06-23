@@ -169,6 +169,8 @@ class Contribution(object):
         and the col_name (i.e., 'specimen')
         for a given index in self.ancestry.
         """
+        if ind > len(self.ancestry):
+            return "", ""
         if ind > -1:
             table_name = self.ancestry[ind]
             ###name = table_name[:-1] + "_name"
