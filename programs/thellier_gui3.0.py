@@ -236,7 +236,7 @@ class Arai_GUI(wx.Frame):
         self.WD = os.path.realpath(self.WD)
          
         # inialize selecting criteria
-        self.acceptance_criteria=pmag.initialize_acceptance_criteria()
+        self.acceptance_criteria=pmag.initialize_acceptance_criteria3_0()
         self.add_thellier_gui_criteria()
         self.read_criteria_file(os.path.join(self.WD,"criteria.txt"))
         # preferences
@@ -2021,14 +2021,14 @@ class Arai_GUI(wx.Frame):
     def on_menu_criteria_file(self, event):
         
         """
-        read pmag_criteria.txt file 
+        read criteria.txt file 
         and open change criteria dialog
         """
     
         dlg = wx.FileDialog(
             self, message="choose a file in a pmagpy format",
             defaultDir=self.WD, 
-            defaultFile="pmag_criteria.txt",
+            defaultFile="criteria.txt",
             #wildcard=wildcard,
             style=wx.OPEN | wx.CHANGE_DIR
             )
@@ -2037,26 +2037,25 @@ class Arai_GUI(wx.Frame):
             self.GUI_log.write ("-I- Read new criteria file: %s\n"%criteria_file)
         dlg.Destroy()
 
-        try:        
-            replace_acceptance_criteria=pmag.initialize_acceptance_criteria()
-            replace_acceptance_criteria=pmag.read_criteria_from_file(criteria_file,replace_acceptance_criteria) # just to see if file exist        
-            
-        except:
+#        try:        
+#            replace_acceptance_criteria=pmag.initialize_acceptance_criteria3_0()
+#            replace_acceptance_criteria=pmag.read_criteria_from_file(criteria_file,replace_acceptance_criteria) # just to see if file exist        
+        test,file_type=pmag.magic_read(criteria_file)    
+        if file_type!="criteria":
             dlg1 = wx.MessageDialog(self,caption="Error:",message="error in reading file" ,style=wx.OK)
             result = dlg1.ShowModal()
             if result == wx.ID_OK:
                 dlg1.Destroy()
                 return
-        
-        self.acceptance_criteria=pmag.initialize_acceptance_criteria()
+        self.acceptance_criteria=pmag.initialize_acceptance_criteria3_0()
         self.add_thellier_gui_criteria()
         self.read_criteria_file(criteria_file)     
         # check if some statistics are in the new criteria_file but not in old. If yes, add to  self.preferences['show_statistics_on_gui']
         crit_list_not_in_pref=[]
-        for crit in   self.acceptance_criteria.keys():
-            if  self.acceptance_criteria[crit]['category']=="IE-SPEC":
-                if self.acceptance_criteria[crit]['criterion_value']!=-999:
-                    short_crit=crit.split('specimen_')[-1]
+        for crit in   self.acceptance_criteria:
+            if  crit['criterion']=="IE-SPEC":
+                if crit['criterion_value']!=-999:
+                    short_crit=crit['table_column'].split('.')[-1]
                     if short_crit not in self.preferences['show_statistics_on_gui']:
                         print "-I- statitics %s is not in your preferences"%crit
                         self.preferences['show_statistics_on_gui'].append(short_crit)
@@ -2064,7 +2063,7 @@ class Arai_GUI(wx.Frame):
         if  len(crit_list_not_in_pref)>0:
             stat_list=":".join(crit_list_not_in_pref)
             dlg1 = wx.MessageDialog(self,caption="WARNING:", 
-            message="statistics '%s' is in the imported pmag_criteria.txt but not in your appearence preferences.\nThis statistic will not appear on the gui panel.\n The program will exit after saving new acceptance criteria, and it will be added automatically the next time you open it "%stat_list ,
+            message="statistics '%s' is in the imported criteria.txt but not in your appearence preferences.\nThis statistic will not appear on the gui panel.\n The program will exit after saving new acceptance criteria, and it will be added automatically the next time you open it "%stat_list ,
             style=wx.OK|wx.ICON_INFORMATION)
             dlg1.ShowModal()
             dlg1.Destroy()
@@ -2094,7 +2093,7 @@ class Arai_GUI(wx.Frame):
         
         """
         Change acceptance criteria
-        and save it to pmag_criteria.txt
+        and save it to criteria.txt
         """
                             
 
@@ -2123,18 +2122,18 @@ class Arai_GUI(wx.Frame):
             by_sample_crit['table_column']='samples.int_abs'
             accept.append(by_sample_crit)
             for crit in self.acceptance_criteria:
-                for table_column in ['sites.int_n','sites.int_sigma','sites.int_sigma_perc','sites.aniso_mean','sites.int_n_outlier_check']:
-                    if self.acceptance_criteria[crit][table_column]==table_column:
-                        self.acceptance_criteria[crit]['criterion_value']=-999
+                for table_column in ['sites.int_n','sites.int_sigma','sites.int_sigma_perc','sites.aniso_mean','site_int_n_outlier_check']:
+                    if crit[table_column]==table_column:
+                        crit['criterion_value']=-999
                 accept.append(crit)
             command="value=dia.set_sample_int_sigma_uT.GetValue()"
               
         elif dia.set_average_by_sample_or_site.GetValue()=='site':
             by_sample_crit['table_column']='sites.int_abs'
             for crit in self.acceptance_criteria:
-                for table_column in ['samples.int_n','samples.int_sigma','samples.int_sigma_perc','samples.aniso_mean','samples.int_n_outlier_check']:
-                    if self.acceptance_criteria[crit][table_column]==table_column:
-                        self.acceptance_criteria[crit]['criterion_value']=-999
+                for table_column in ['samples.int_n','samples.int_sigma','samples.int_sigma_perc','samples.aniso_mean','sample_int_n_outlier_check']:
+                    if crit['table_column']==table_column:
+                        crit['criterion_value']=-999
                 accept.append(crit)
             command="value=dia.set_%s.GetValue()"%crit.replace('site','sample')
         try:
@@ -3584,51 +3583,14 @@ class Arai_GUI(wx.Frame):
             pass     
 
         
-        #-------------
-        # MAgic_methods.txt
-        #-------------
-
-        # search for all magic_methods in all files:
-        method_codes=[]
-        for F in ["magic_measurements.txt","rmag_anisotropy.txt","rmag_results.txt","rmag_results.txt","pmag_samples.txt","pmag_specimens.txt","pmag_sites.txt","er_ages.txt"]:
-            try:
-                fin=open(os.path.join(self.WD, F),'rU')
-            except:
-                continue
-            line=fin.readline()
-            line=fin.readline()
-            header=line.strip('\n').split('\t')
-            if  "method_codes" not in header:
-                continue
-            else:
-                index=header.index("method_codes")
-            for line in fin.readlines():
-                tmp=line.strip('\n').split('\t')
-                if len(tmp) >= index:
-                    codes=tmp[index].replace(" ","").split(":")
-                    for code in codes:
-                        if code !="" and code not in method_codes:
-                            method_codes.append(code)
-            fin.close()
-            
-        method_codes.sort()
-        #print method_codes
-        magic_methods_header_1=["magic_method_code"]
-        fout=open(os.path.join(self.WD, "magic_methods.txt"),'w')
-        fout.write("tab\tmagic_methods\n")
-        fout.write("magic_method_code\n")
-        for code in method_codes:
-            fout.write("%s\n"%code)
-        fout.close
                 
-        # make pmag_criteria.txt if it does not exist
-        if not os.path.isfile(os.path.join(self.WD, "pmag_criteria.txt")):
-            Fout=open(os.path.join(self.WD, "pmag_criteria.txt"),'w')
-            Fout.write("tab\tpmag_criteria\n")
-            Fout.write("er_citation_names\tpmag_criteria_code\n")
-            Fout.write("This study\tACCEPT\n")
+        # make criteria.txt if it does not exist
+        if not os.path.isfile(os.path.join(self.WD, "criteria.txt")):
+            Fout=open(os.path.join(self.WD, "criteria.txt"),'w')
+            Fout.write("tab\tcriteria\n")
+            Fout.write("citations\tcriterion\tcriterion_operation\tcriterion_value\tdescription\ttable_column\n")
 
-        dlg1 = wx.MessageDialog(self,caption="Message:", message="MagIC pmag files are saved in MagIC project folder" ,style=wx.OK|wx.ICON_INFORMATION)
+        dlg1 = wx.MessageDialog(self,caption="Message:", message="MagIC files are saved in MagIC project folder" ,style=wx.OK|wx.ICON_INFORMATION)
         dlg1.ShowModal()
         dlg1.Destroy()
         
@@ -5381,47 +5343,59 @@ class Arai_GUI(wx.Frame):
         these criteria are not written to criteria.txt
         '''
         category="thellier_gui"      
-        for crit in ['sample_int_n_outlier_check','site_int_n_outlier_check']:
-            self.acceptance_criteria[crit]={} 
-            self.acceptance_criteria[crit]['category']=category
-            self.acceptance_criteria[crit]['criterion']=crit
-            self.acceptance_criteria[crit]['criterion_value']=-999
-            self.acceptance_criteria[crit]['criterion_operation']=">="
-            self.acceptance_criteria[crit]['decimal_points']=0
+        for column in ['sample_int_n_outlier_check','site_int_n_outlier_check']:
+            crit={}
+	    crit['table_column']= column
+            crit['criterion']=category
+            crit['citations']="This study"
+            crit['criterion_value']=-999
+            crit['criterion_operation']=">="
+            crit['decimal_points']=0
+            crit['description']="thellier_gui_only"
+            self.acceptance_criteria.append(crit)
             
-        for crit in ['sample_int_interval_uT','sample_int_interval_perc',\
+        for column in ['sample_int_interval_uT','sample_int_interval_perc',\
         'site_int_interval_uT','site_int_interval_perc',\
         'sample_int_BS_68_uT','sample_int_BS_95_uT','sample_int_BS_68_perc','sample_int_BS_95_perc','specimen_int_max_slope_diff']:
-            self.acceptance_criteria[crit]={} 
-            self.acceptance_criteria[crit]['category']=category
-            self.acceptance_criteria[crit]['criterion']=crit
-            self.acceptance_criteria[crit]['criterion_value']=-999
-            self.acceptance_criteria[crit]['criterion_operation']="<="
-            if crit in ['specimen_int_max_slope_diff']:
-                self.acceptance_criteria[crit]['decimal_points']=-999
+            crit={}
+	    crit['table_column']= column
+            crit['criterion']=category
+            crit['citations']="This study"
+            crit['criterion_value']=-999
+            crit['criterion_operation']="<="
+            if column in ['specimen_int_max_slope_diff']:
+                crit['decimal_points']=-999
             else:        
-                self.acceptance_criteria[crit]['decimal_points']=1
-            self.acceptance_criteria[crit]['description']="thellier_gui_only"
+                crit['decimal_points']=1
+            crit['description']="thellier_gui_only"
+            self.acceptance_criteria.append(crit)
 
-        for crit in ['average_by_sample_or_site','interpreter_method']:
-            self.acceptance_criteria[crit]={} 
-            self.acceptance_criteria[crit]['category']=category
-            self.acceptance_criteria[crit]['criterion']=crit
-            if crit in ['average_by_sample_or_site']:
-                self.acceptance_criteria[crit]['criterion_value']='sample'
-            if crit in ['interpreter_method']:
-                self.acceptance_criteria[crit]['criterion_value']='stdev_opt'
-            self.acceptance_criteria[crit]['criterion_operation']="flag"
-            self.acceptance_criteria[crit]['decimal_points']=-999
-       
-        for crit in ['include_nrm']:
-            self.acceptance_criteria[crit]={} 
-            self.acceptance_criteria[crit]['category']=category
-            self.acceptance_criteria[crit]['criterion']=crit
-            self.acceptance_criteria[crit]['criterion_value']=True
-            self.acceptance_criteria[crit]['criterion_operation']="="
-            self.acceptance_criteria[crit]['decimal_points']=-999
-                    
+        for column in ['average_by_sample_or_site','interpreter_method']:
+            crit={}
+	    crit['table_column']= column
+            crit['criterion']=category
+            crit['citations']="This study"
+            crit['criterion_value']=-999
+            crit['criterion_operation']="<="
+            if column in ['average_by_sample_or_site']:
+                crit['criterion_value']="sample"
+            else:        
+                crit['criterion_value']=-999
+            crit['description']="thellier_gui_only"
+            crit['criterion_operation']='='
+            crit['decimal_points']=-999
+            self.acceptance_criteria.append(crit)
+
+        for column in ['include_nrm']:
+            crit={}
+	    crit['table_column']= column
+            crit['criterion']=category
+            crit['citations']="This study"
+            crit['criterion_value']=True
+            crit['criterion_operation']="="
+            crit['decimal_points']=-999
+            crit['description']="thellier_gui_only"
+            self.acceptance_criteria.append(crit)
         
         # define internal Thellier-GUI definitions:
         self.average_by_sample_or_site='sample'

@@ -147,7 +147,7 @@ class PI_Statistics_Dialog(wx.Dialog):
             exec command
             
             for stat in self.stat_by_category[categories[k]]:
-                short_name=stat.replace("specimen_","")
+                short_name=stat # these are already short names
                 command="self.set_specimen_%s=wx.CheckBox(pnl1,-1,label='%s',name='%s')"%(short_name,short_name,short_name)
                 exec command
                 command = "self.Bind(wx.EVT_CHECKBOX, self.OnCheckBox, self.set_specimen_%s)"%(short_name)
@@ -161,7 +161,7 @@ class PI_Statistics_Dialog(wx.Dialog):
                 command="hbox_%i= wx.BoxSizer(wx.HORIZONTAL)"%i
                 exec command
                 stat=self.stat_by_category[categories[k]][i]
-                short_name=stat.replace("specimen_","")
+                short_name=stat
                 command="hbox_%i.Add(self.specimen_%s_button)"%(i,short_name)
                 exec command
                 command="hbox_%i.AddSpacer(10)"%(i)
@@ -173,8 +173,6 @@ class PI_Statistics_Dialog(wx.Dialog):
                 exec command
                 command="bSizer%i.AddSpacer(10)"%k
                 exec command
-        #self.specimen_int_n_button.Bind(wx.EVT_BUTTON, lambda evt, name=specimen_int_n_button.GetLabel(): self.onButton(evt, name)        
-        #self.Bind(wx.EVT_BUTTON,self.PI_stat_description, self.specimen_int_n_button)
         #---------------------------
         # OK / CANCEL
         #---------------------------
@@ -218,7 +216,7 @@ class PI_Statistics_Dialog(wx.Dialog):
         categories=['Arai plot','Direction','pTRM Checks','Tail Checks','Additivity Checks']
         for short_name in self.show_statistics_on_gui:
             for category in categories:
-                if "specimen_" + short_name in self.stat_by_category[category]:
+                if short_name in self.stat_by_category[category]:
                     command="self.set_specimen_%s.SetValue(True)"%short_name
                     exec command
                     
@@ -296,12 +294,12 @@ class Criteria_Dialog(wx.Dialog):
         window_list_specimens=self.preferences['show_statistics_on_gui']
         
         for stat in window_list_specimens:
-            if stat=='scat':
-                self.set_specimen_scat=wx.CheckBox(pnl1, -1, '')
+            if stat=='int_scat':
+                self.set_int_scat=wx.CheckBox(pnl1, -1, '')
             else:
-                command="self.set_specimen_%s=wx.TextCtrl(pnl1,style=wx.TE_CENTER,size=(50,20))"%stat
+                command="self.set_%s=wx.TextCtrl(pnl1,style=wx.TE_CENTER,size=(50,20))"%stat
                 exec command
-            command="self.%s_label=wx.StaticText(pnl1,label='%s',style=wx.ALIGN_CENTRE)"%(stat,stat.replace("specimen_",""))
+            command="self.%s_label=wx.StaticText(pnl1,label='%s',style=wx.ALIGN_CENTRE)"%(stat,stat)
             exec command
             
             command="gs_%s = wx.GridSizer(2, 1,5,5)"%stat
@@ -343,16 +341,16 @@ class Criteria_Dialog(wx.Dialog):
         self.set_average_by_sample_or_site=wx.ComboBox(pnl1, -1,size=(150, -1), value = 'sample', choices=['sample','site'], style=wx.CB_READONLY)
         
         # Sample criteria
-        window_list_samples=['int_n','int_n_outlier_check']
+        window_list_samples=['int_n_specimens','sample_int_n_outlier_check']
         for key in window_list_samples:
-            command="self.set_sample_%s=wx.TextCtrl(pnl1,style=wx.TE_CENTER,size=(50,20))"%key
+            command="self.set_%s=wx.TextCtrl(pnl1,style=wx.TE_CENTER,size=(50,20))"%key
             exec command
         criteria_sample_window = wx.GridSizer(2, 3, 6, 6)
-        criteria_sample_window.AddMany( [(wx.StaticText(pnl1,label="averge by sample/site",style=wx.TE_CENTER), wx.EXPAND),
+        criteria_sample_window.AddMany( [(wx.StaticText(pnl1,label="average by sample/site",style=wx.TE_CENTER), wx.EXPAND),
             (wx.StaticText(pnl1,label="int_n",style=wx.TE_CENTER), wx.EXPAND),
             (wx.StaticText(pnl1,label="int_n_outlier_check",style=wx.TE_CENTER), wx.EXPAND),
             (self.set_average_by_sample_or_site),            
-            (self.set_sample_int_n),
+            (self.set_int_n_specimens),
             (self.set_sample_int_n_outlier_check)])
 
         bSizer2.Add( criteria_sample_window, 0, wx.ALIGN_LEFT|wx.ALL, 5 )
@@ -460,73 +458,70 @@ class Criteria_Dialog(wx.Dialog):
         # Intialize values: specimen criteria window
         #-------------------------------------------        
 
-        #criteria_list_for_window=['specimen_gmax','specimen_b_beta','specimen_int_dang','specimen_drats','specimen_int_mad','specimen_md']+\
-        #['specimen_int_n','specimen_int_ptrm_n','specimen_f','specimen_fvds','specimen_frac','specimen_g','specimen_q']
-        
         criteria_list_for_window=self.preferences['show_statistics_on_gui']
-        for crit in criteria_list_for_window:
+        for column in criteria_list_for_window:
             value=""
-            crit="specimen_"+crit
-            if crit!="specimen_scat":
-                if self.acceptance_criteria[crit]['value']==-999:
-                    value=""
-                elif type(self.acceptance_criteria[crit]['threshold_type'])==list:
-                    if type(self.acceptance_criteria[crit]['value'])==str:
-                        value=self.acceptance_criteria[crit]['value']
-                elif type(self.acceptance_criteria[crit]['value'])==float or  type(self.acceptance_criteria[crit]['value'])==int:
-                    if self.acceptance_criteria[crit]['decimal_points']!=-999:
-                        command="value='%%.%if'%%(self.acceptance_criteria[crit]['value'])"%int(self.acceptance_criteria[crit]['decimal_points'])
-                        exec command
-                    else:
-                        value="%.3e"%(self.acceptance_criteria[crit]['value'])
-    
-                command="self.set_%s.SetValue(value)"%crit
-    
-                exec command
+            if column!="int_scat":
+                for crit in self.acceptance_criteria:
+                    if crit['criterion_value']==-999:
+                         value=""
+                    elif type(crit['criterion_operation'])==list:
+                        if type(crit['criterion_value'])==str:
+                            value=crit['criterion_value']
+                    elif type(crit['criterion_value'])==float or  type(crit['criterion_value'])==int:
+                        if crit['decimal_points']!=-999:
+                            command="value='%%.%if'%%(crit['criterion_value'])"%int(crit['decimal_points'])
+                            exec command
+                        else:
+                            value="%.3e"%(crit['criterion_value'])
+                            command="self.set_%s.SetValue(value)"%column
+                            exec command
             else:    
-                if self.acceptance_criteria['specimen_scat']['value'] in [True,1,"True","TRUE","1","1.0",'g']:
-                    self.set_specimen_scat.SetValue(True)
+                if crit['criterion_value'] in [True,1,"True","TRUE","1","1.0",'g']:
+                    self.set_int_scat.SetValue(True)
                     
                 else:
-                    self.set_specimen_scat.SetValue(False)
+                    self.set_int_scat.SetValue(False)
 
         #-------------------------------------------        
         # Intialize values: anisotropy window
         #-------------------------------------------        
-        
-        crit="anisotropy_alt"
-        if self.acceptance_criteria[crit]['value']==-999:
-            value=""
-        else:
-            command="value='%%.%if'%%(self.acceptance_criteria[crit]['value'])"%int(self.acceptance_criteria[crit]['decimal_points'])
-            exec command
-        self.set_anisotropy_alt.SetValue(value) 
-
-        crit="anisotropy_ftest_flag"        
-        if self.acceptance_criteria[crit]['value'] in [True,1,"True","TRUE","1","1.0",'g']:
-            self.set_anisotropy_ftest_flag.SetValue(True)
-        else:
-            self.set_anisotropy_ftest_flag.SetValue(False)
-            
-        #-------------------------------------------        
-        # Intialize values: avearge by site or sample
-        #-------------------------------------------        
-        if 'average_by_sample_or_site' not in self.acceptance_criteria.keys():self.acceptance_criteria['average_by_sample_or_site']['value']='site' 
-        if str(self.acceptance_criteria['average_by_sample_or_site']['value'])=='site':
-            self.set_average_by_sample_or_site.SetStringSelection('site')           
-        else:
-            self.set_average_by_sample_or_site.SetStringSelection('sample')           
+  # NEED TO FIX THIS:     
+  #      column="anisotropy_alt"
+  #      if self.acceptance_criteria[crit]['value']==-999:
+  #          value=""
+  #      else:
+  #          command="value='%%.%if'%%(self.acceptance_criteria[crit]['value'])"%int(self.acceptance_criteria[crit]['decimal_points'])
+  #          exec command
+  #      self.set_anisotropy_alt.SetValue(value) 
+#
+#        crit="anisotropy_ftest_flag"        
+#        if self.acceptance_criteria[crit]['value'] in [True,1,"True","TRUE","1","1.0",'g']:
+#            self.set_anisotropy_ftest_flag.SetValue(True)
+#        else:
+#            self.set_anisotropy_ftest_flag.SetValue(False)
+#            
+#        #-------------------------------------------        
+#        # Intialize values: avearge by site or sample
+#        #-------------------------------------------        
+#        if 'average_by_sample_or_site' not in self.acceptance_criteria.keys():self.acceptance_criteria['average_by_sample_or_site']['value']='site' 
+#        if str(self.acceptance_criteria['average_by_sample_or_site']['value'])=='site':
+#            self.set_average_by_sample_or_site.SetStringSelection('site')           
+#        else:
+#            self.set_average_by_sample_or_site.SetStringSelection('sample')           
 
         #-------------------------------------------        
         # Intialize values: sample/site criteria method codes
         #-------------------------------------------        
-       
-        if self.acceptance_criteria['interpreter_method']=="bs":
-            self.set_bs.SetValue(True) 
-        elif self.acceptance_criteria['interpreter_method']=="bs_par":
-            self.set_bs_par.SetValue(True) 
-        else:
-            self.set_stdev_opt.SetValue(True) 
+        interp_crits=pmag.get_dictitem(self.acceptance_criteria,'table_column','interpreter_method','has')       
+        if len(interp_crits)>0:
+            interp_crit=inter_crits[0]
+            if interp_crit['criterion_value']=="bs":
+                self.set_bs.SetValue(True) 
+            elif interp_crit['criterion_value']=="bs_par":
+                self.set_bs_par.SetValue(True) 
+            else:
+                self.set_stdev_opt.SetValue(True) 
 
         #-------------------------------------------        
         # Intialize values: include NRM
@@ -537,53 +532,58 @@ class Criteria_Dialog(wx.Dialog):
         #------------------------------------------- 
                
         criteria_list_for_window=[]+\
-        ['samples.int_n_specimens','samples.int_abs_sigma','samples.int_abs_sigma_perc','samples.int_n_outlier_check']+\
-        ['sites.int_n_samples','sites.int_n_specimens','site.int_abs_sigma','site.int_abs_sigma_perc','site.int_n_outlier_check']+\
+        ['samples.int_n_specimens','samples.int_abs_sigma','samples.int_abs_sigma_perc','sample_int_n_outlier_check']+\
+        ['sites.int_n_samples','sites.int_n_specimens','site.int_abs_sigma','sites.int_abs_sigma_perc','site_int_n_outlier_check']+\
         ['samples.aniso_mean','sites.aniso_mean']+\
-        ['samples.int_interval_uT','samples.int_interval_perc']+\
-        ['samples.int_BS_68_uT','samples.int_BS_95_uT','samples.int_BS_68_perc','samples.int_BS_95_perc']
+        ['sample_int_interval_uT','sample_int_interval_perc']+\
+        ['sample_int_BS_68_uT','sample_int_BS_95_uT','sample_int_BS_68_perc','sample_int_BS_95_perc']
         
-        for crit in criteria_list_for_window:
+        for column  in criteria_list_for_window:
             
             # check if averaging by site or sample
-            if self.acceptance_criteria['average_by_sample_or_site']['value']=='site':
-                if 'sample' in crit:
-                    continue
-            else:
-                if 'site' in crit:
-                    continue
+            average_crits=pmag.get_dictitem(self.acceptance_criteria,'table_column','average_by_sample_or_site','has')       
+            if len(average_crits)>0:
+                average_crit=average_crits[0]
+                if average_crit['criterion_value']=='site':
+                    if 'sample' in column:
+                        continue
+                else:
+                    if 'site' in column:
+                        continue
                 
             #--------------
             # get the value to write         
-            if self.acceptance_criteria[crit]['value']==-999:
-                value=""            
-            elif crit in ['samples.int_sigma','sites.int_abs_sigma']:
-                value="%.1f"%(float(self.acceptance_criteria[crit]['value'])*1e6)
-            elif type(self.acceptance_criteria[crit]['value'])==float or type(self.acceptance_criteria[crit]['value'])==int :
-                command="value='%%.%if'%%(self.acceptance_criteria[crit]['value'])"%int(self.acceptance_criteria[crit]['decimal_points'])
-                exec command
-            elif type(self.acceptance_criteria[crit]['value'])==bool:
-                 value="%.s"%str(self.acceptance_criteria[crit]['value'])
-            elif type(self.acceptance_criteria[crit]['value'])==str:
-                 value=str(self.acceptance_criteria[crit]['value'])
+            crits=pmag.get_dictitem(self.acceptance_criteria,'table_column',column,'T')
+            if len(crits)>0:
+                crit=crits[0]
+                if crit['criterion_value']==-999:
+                   value=""            
+                elif column in ['samples.int_sigma','sites.int_abs_sigma']:
+                   value="%.1f"%(float(crit['criterion_value'])*1e6)
+                elif type(crit['criterion_value'])==float or type(crit['criterion_value'])==int :
+                    command="value='%%.%if'%%(crit['criterion_value'])"%int(crit['decimal_points'])
+                    exec command
+                elif type(crit['criterion_value'])==bool:
+                     value="%.s"%str(crit['criterion_value'])
+                elif type(crit['criterion_value'])==str:
+                     value=str(crit['criterion_value'])
             #-------
             
             # write the value to box       
-            
-            
-            if str(self.acceptance_criteria['average_by_sample_or_site']['value'])=='site':
-                if crit in ['sites.int_n','sites.int_sigma_perc','sites.int_n_outlier_check','sites.aniso_mean']:
-                    command="self.set_%s.SetValue(value)"%(crit.replace('sites.','samples.'))
-                    exec command
-                if crit in ['sites.int_sigma']:
-                    command="self.set_%s_uT.SetValue(value)"%(crit.replace('sites.','samples.'))
-                    exec command
-            else:
-                if crit in ['samples._int_sigma']:
-                    command="self.set_%s_uT.SetValue(value)"%crit
-                else:
-                    command="self.set_%s.SetValue(value)"%crit
-                exec command
+            if len(average_crits)>0: # finish up here 
+                if average_crit['criterion_value']=='site':
+                    if column in ['sites.int_n','sites.int_sigma_perc','site_int_n_outlier_check','sites.aniso_mean']:
+                        command="self.set_%s.SetValue(value)"%(column.replace('site','sample'))
+                        exec command
+                    if column in ['sites.int_sigma']:
+                        command="self.set_%s_uT.SetValue(value)"%(column.replace('site','sample'))
+                        exec command
+                    else:
+                        if crit in ['samples.int_sigma']:
+                            command="self.set_%s_uT.SetValue(value)"%column
+                        else:
+                            command="self.set_%s.SetValue(value)"%column
+                        exec command
                          
                                   
             
@@ -679,7 +679,7 @@ class SaveMyPlot(wx.Frame):
         wx.Frame.__init__(self, parent=None, title="")
 
         file_choices="(*.pdf)|*.pdf|(*.svg)|*.svg| (*.png)|*.png"
-        default_fig_name="%s_%s.pdf"%(pars['er_specimen_name'],plot_type)
+        default_fig_name="%s_%s.pdf"%(pars['specimen'],plot_type)
         dlg = wx.FileDialog(
             self, 
             message="Save plot as...",

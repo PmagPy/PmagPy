@@ -8009,7 +8009,7 @@ def initialize_acceptance_criteria3_0 ():
     """
     initialize acceptance criteria with NULL criterion_values for thellier_gui and demag_gui
 
-    acceptancec criteria format is a list of criteria dictionaries:
+    acceptance criteria format is a list of criteria dictionaries:
         crit={}
         crit['criterion']=
         crit['criterion_operation']=
@@ -8072,7 +8072,7 @@ def initialize_acceptance_criteria3_0 ():
         crit={}
         crit['table_column']=column
         crit['criterion_operation']=['contains','does not contain'] 
-        crit['criterion_value']=crit.split('.')[-1]
+        crit['criterion_value']=column.split('.')[-1]
         crit['decimal_points']=0
         criteria.append(crit)
     # equals
@@ -8107,7 +8107,7 @@ def initialize_acceptance_criteria3_0 ():
             if c in crit['table_column'].split('.')[-1]:  crit['decimal_points']=3
         crit['criterion']=criterion
         acceptance_criteria.append(crit)
-    print 'PMAG1: ',acceptance_criteria
+    #print 'PMAG1: ',acceptance_criteria
     return(acceptance_criteria)
 
 
