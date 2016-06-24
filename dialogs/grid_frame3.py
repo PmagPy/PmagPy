@@ -40,6 +40,8 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
         dm['str_validations'] = dm['validations'].str.join(", ")
         # these are the headers that are required no matter what for this datatype
         self.reqd_headers = dm[dm['str_validations'].str.contains("required\(\)").fillna(False)].index
+        self.dm = dm
+                
 
         if self.parent:
             self.Bind(wx.EVT_WINDOW_DESTROY, self.parent.Parent.on_close_grid_frame)
@@ -389,27 +391,30 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
         Show simple dialog that allows user to add a new column name
         """
         col_labels = self.grid.col_labels
-        # do not list headers that are already column labels in the grid
-        er_items = [head for head in self.grid_headers[self.grid_type]['er'][2] if head not in col_labels]
-        # remove unneeded headers
-        er_items = builder.remove_list_headers(er_items)
-        pmag_headers = sorted(list(set(self.grid_headers[self.grid_type]['pmag'][2]).union(self.grid_headers[self.grid_type]['pmag'][1])))
-        # do not list headers that are already column labels in the grid
-        # make sure that pmag_specific columns are marked with '++'
-        to_add = [i + '++' for i in self.er_magic.double if i in pmag_headers and i + '++' not in col_labels]
-        pmag_headers.extend(to_add)
-        pmag_items = [head for head in pmag_headers if head not in er_items and head not in col_labels]
-        # remove unneeded headers
-        pmag_items = sorted(builder.remove_list_headers(pmag_items))
-        dia = pw.HeaderDialog(self, 'columns to add', er_items, pmag_items)
-        dia.Centre()
-        result = dia.ShowModal()
+        dia = pw.ChooseOne(self, yes="Add single columns", no="Add groups")
+        result1 = dia.ShowModal()
+        if result1 == wx.ID_YES:
+            items = [col_name for col_name in self.dm.index if col_name not in col_labels]
+            dia = pw.HeaderDialog(self, 'columns to add', list(items), [])
+            dia.Centre()
+            result2 = dia.ShowModal()
+        else:
+            groups = self.dm['group'].unique()
+            dia = pw.HeaderDialog(self, 'groups to add', list(groups), True)
+            dia.Centre()
+            result2 = dia.ShowModal()
         new_headers = []
-        if result == 5100:
+        if result2 == 5100:
             new_headers = dia.text_list
+        # if there is nothing to add, quit
         if not new_headers:
             return
-        errors = self.add_new_grid_headers(new_headers, er_items, pmag_items)
+        if result1 == wx.ID_YES:
+            # add individual headers
+            errors = self.add_new_grid_headers(new_headers)
+        else:
+            # add header groups
+            errors = self.add_new_header_groups(new_headers)
         if errors:
             errors_str = ', '.join(errors)
             pw.simple_warning('You are already using the following headers: {}\nSo they will not be added'.format(errors_str))
@@ -427,52 +432,43 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
         self.grid.changes = set(range(self.grid.GetNumberRows()))
         dia.Destroy()
 
-    def add_new_grid_headers(self, new_headers, er_items, pmag_items):
+    def add_new_header_groups(self, groups):
+        # compile list of all headers belonging to all groups
+        # eliminate all headers that are already included
+        # add any req'd drop-down menus
+        # return errors
+        already_present = []
+        for group in groups:
+            col_names = self.dm[self.dm['group'] == group].index
+            for col in col_names:
+                if col not in self.grid.col_labels:
+                    col_number = self.grid.add_col(col)
+                    # add to appropriate headers list
+                    # add drop down menus for user-added column
+                    if col in vocab.possible_vocabularies:
+                        self.drop_down_menu.add_drop_down(col_number, col)
+                    if col == "method_codes":
+                        self.drop_down_menu.add_method_drop_down(col_number, col)
+                else:
+                    already_present.append(col)
+        return already_present
+
+    def add_new_grid_headers(self, new_headers):
         """
         Add in all user-added headers.
         If those new headers depend on other headers,
         add the other headers too.
         """
-
-        def add_pmag_reqd_headers():
-            if self.grid_type == 'result':
-                return []
-            add_in = []
-            col_labels = self.grid.col_labels
-            for reqd_head in self.grid_headers[self.grid_type]['pmag'][1]:
-                if reqd_head in self.er_magic.double:
-                    if reqd_head + "++" not in col_labels:
-                        add_in.append(reqd_head + "++")
-                else:
-                    if reqd_head not in col_labels:
-                        add_in.append(reqd_head)
-            add_in = builder.remove_list_headers(add_in)
-            return add_in
-        #
         already_present = []
         for name in new_headers:
             if name:
                 if name not in self.grid.col_labels:
                     col_number = self.grid.add_col(name)
                     # add to appropriate headers list
-                    if name in er_items:
-                        self.grid_headers[self.grid_type]['er'][0].append(str(name))
-                    if name in pmag_items:
-                        name = name.strip('++')
-                        if name not in self.grid_headers[self.grid_type]['pmag'][0]:
-                            self.grid_headers[self.grid_type]['pmag'][0].append(str(name))
-                            # add any required pmag headers that are not in the grid already
-                            for header in add_pmag_reqd_headers():
-                                col_number = self.grid.add_col(header)
-                                # add drop_down_menus for added reqd columns
-                                if header in vocab.possible_vocabularies:
-                                    self.drop_down_menu.add_drop_down(col_number, name)
-                                if header in ['magic_method_codes++']:
-                                    self.drop_down_menu.add_method_drop_down(col_number, header)
                     # add drop down menus for user-added column
                     if name in vocab.possible_vocabularies:
                         self.drop_down_menu.add_drop_down(col_number, name)
-                    if name in ['magic_method_codes', 'magic_method_codes++']:
+                    if name == "method_codes":
                         self.drop_down_menu.add_method_drop_down(col_number, name)
                 else:
                     already_present.append(name)

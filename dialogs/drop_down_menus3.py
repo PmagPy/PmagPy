@@ -80,9 +80,10 @@ class Menus(object):
         if col_label == 'method_codes':
             self.add_method_drop_down(col_number, col_label)
         elif col_label in ['specimens', 'samples', 'sites', 'locations']:
-            item_df = self.contribution.tables[col_label].df
-            item_names = item_df[col_label[:-1]].unique()
-            self.choices[col_number] = (sorted(item_names), False)
+            if col_label in self.contribution.tables:
+                item_df = self.contribution.tables[col_label].df
+                item_names = item_df[col_label[:-1]].unique()
+                self.choices[col_number] = (sorted(item_names), False)
         if col_label in vocab.vocabularies:
             # if not already assigned above
             if col_number not in self.choices.keys():

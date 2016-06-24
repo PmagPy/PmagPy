@@ -658,28 +658,24 @@ class HeaderDialog(wx.Dialog):
     As user clicks or double clicks, items are added to or removed from the selection,
     which is displayed in a text control.
     """
-    def __init__(self, parent, label, items1=None, items2=None):
+    def __init__(self, parent, label, items1=None, groups=False):
         super(HeaderDialog, self).__init__(parent, title='Choose headers', size=(500, 500))
+        if groups:
+            word = 'Groups'
+        else:
+            word = 'Headers'
         main_sizer = wx.BoxSizer(wx.VERTICAL)
 
         listbox_sizer = wx.BoxSizer(wx.HORIZONTAL)
         if items1:
-            box1 = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, 'Headers', name='box1'), wx.HORIZONTAL)
+            box1 = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, word, name='box1'), wx.HORIZONTAL)
             listbox1 = wx.ListBox(self, wx.ID_ANY, choices=items1, style=wx.LB_MULTIPLE, size=(200, 350))
             box1.Add(listbox1)
             listbox_sizer.Add(box1, flag=wx.ALL, border=5)
             self.Bind(wx.EVT_LISTBOX, self.on_click, listbox1)
             self.Bind(wx.EVT_LISTBOX_DCLICK, self.on_click, listbox1)
-        if items2:
-            box2 = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, 'Headers for interpretation data', name='box2'),
-                                     wx.HORIZONTAL)
-            listbox2 = wx.ListBox(self, wx.ID_ANY, choices=items2, style=wx.LB_MULTIPLE, size=(200, 350))
-            box2.Add(listbox2)
-            listbox_sizer.Add(box2, flag=wx.ALL, border=5)
-            self.Bind(wx.EVT_LISTBOX, self.on_click, listbox2)
-            self.Bind(wx.EVT_LISTBOX_DCLICK, self.on_click, listbox2)
 
-        text_sizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, 'Adding headers:', name='text_box'),
+        text_sizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, 'Adding {}:'.format(word.lower()), name='text_box'),
                                      wx.HORIZONTAL)
         self.text_ctrl = wx.TextCtrl(self, id=-1, style=wx.TE_MULTILINE|wx.TE_READONLY, size=(420, 100))
         text_sizer.Add(self.text_ctrl)
@@ -828,6 +824,47 @@ class MethodCodeDemystifier(wx.StaticBoxSizer):
         self.descriptions.SetValue(res)
 
 
+
+class ChooseOne(wx.Dialog):
+
+    def __init__(self, parent, yes, no):
+        super(ChooseOne, self).__init__(parent)
+        self.yes = yes
+        self.no = no
+        self.InitUI()
+        self.SetSize((250, 200))
+        self.SetTitle("Choose one")
+
+    def InitUI(self):
+        print self.yes
+        pnl = wx.Panel(self)
+        vbox = wx.BoxSizer(wx.VERTICAL)
+
+        btn_yes = wx.Button(self, label=self.yes)
+        btn_no = wx.Button(self, label=self.no)
+        
+        hbox1 = wx.BoxSizer(wx.HORIZONTAL)
+        hbox1.Add(btn_yes)
+        hbox1.Add(btn_no)
+
+        self.Bind(wx.EVT_BUTTON, self.on_yes, btn_yes)
+        self.Bind(wx.EVT_BUTTON, self.on_no, btn_no)
+        
+        #pnl.SetSizer(sbs)
+        
+        vbox.Add(hbox1,
+                 flag=wx.ALIGN_CENTER|wx.TOP|wx.BOTTOM, border=10)
+        
+        self.SetSizer(vbox)
+        
+    def on_yes(self, event):
+        self.Destroy()
+        self.EndModal(wx.ID_YES)
+
+    def on_no(self, event):
+        self.Destroy()
+        self.EndModal(wx.ID_NO)
+        
 
 # assorted useful methods!
 
