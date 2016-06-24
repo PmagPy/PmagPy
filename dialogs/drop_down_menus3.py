@@ -32,7 +32,7 @@ class Menus(object):
         else:
             self.magic_dataframe = None
         parent_ind = self.check.ancestry.index(self.data_type)
-        parent_table, self.parent_type = self.check.get_table_name(parent_ind)
+        parent_table, self.parent_type = self.check.get_table_name(parent_ind+1)
 
         self.grid = grid
         self.window = grid.Parent # parent window in which grid resides
@@ -41,11 +41,9 @@ class Menus(object):
         self.selection = [] # [(row, col), (row, col)], sequentially down a column
         self.dispersed_selection = [] # [(row, col), (row, col)], not sequential
         self.col_color = None
-        self.colon_delimited_lst = ['specimen_type', 'specimen_class', 'specimen_lithology',
-                                    'sample_type', 'sample_class', 'sample_lithology',
-                                    'site_type', 'site_class', 'site_lithology',
-                                    'er_specimen_names', 'er_sample_names', 'er_site_names',
-                                    'er_location_names', 'magic_method_codes', 'magic_method_codes++']
+        self.colon_delimited_lst = ['geologic_types', 'geologic_classes', 'lithologies',
+                                    'specimens', 'samples', 'sites',
+                                    'locations', 'method_codes']
         self.InitUI()
 
     def InitUI(self):
@@ -54,18 +52,11 @@ class Menus(object):
         else:
             belongs_to = []
 
+        self.choices = {}
         if self.data_type == 'specimens':
-            self.choices = {1: (belongs_to, False), 3: (vocab.vocabularies['class'], False), 4: (vocab.vocabularies['lithology'], True), 5: (vocab.vocabularies['type'], False)}
+            self.choices = {1: (belongs_to, False)}#, 3: (vocab.vocabularies['class'], False), 4: (vocab.vocabularies['lithology'], True), 5: (vocab.vocabularies['type'], False)}
         if self.data_type == 'samples' or self.data_type == 'sites':
-            self.choices = {1: (belongs_to, False), 3: (vocab.vocabularies['class'], False), 4: (vocab.vocabularies['lithology'], True), 5: (vocab.vocabularies['type'], False)}
-        if self.data_type in ['specimens', 'samples', 'sites']:
-            map(lambda (x, y): self.grid.SetColLabelValue(x, y), [(3, 'class**'.format(self.data_type)), (4, 'lithologies**'.format(self.data_type)), (5, 'type**'.format(self.data_type))])
-        if self.data_type == 'site':
-            self.choices[6] = (vocab.vocabularies['site_definition'], False)
-            self.grid.SetColLabelValue(6, 'site_definition**')
-        if self.data_type == 'locations':
-            self.choices = {2: (vocab.vocabularies['location_type'], False)}
-            self.grid.SetColLabelValue(2, 'location_type**')
+            self.choices = {1: (belongs_to, False)}#, 3: (vocab.vocabularies['class'], False), 4: (vocab.vocabularies['lithology'], True), 5: (vocab.vocabularies['type'], False)}
         if self.data_type == 'ages':
             #self.choices = {2: (vocab.vocabulariesulary.age_methods, False), 3: (vocab['age_unit'], False)}
             self.choices = {3: (vocab.vocabularies['age_unit'], False)}
@@ -95,19 +86,19 @@ class Menus(object):
         """
         if col_label in ['magic_method_codes', 'magic_method_codes++']:
             self.add_method_drop_down(col_number, col_label)
-        if col_label in vocab.possible_vocabularies:
+        if col_label in vocab.vocabularies:
             if col_number not in self.choices.keys(): # if not already assigned above
                 self.grid.SetColLabelValue(col_number, col_label + "**") # mark it as using a controlled vocabulary
-                url = 'https://api.earthref.org/MagIC/vocabularies/{}.json'.format(col_label)
-                controlled_vocabulary = pd.io.json.read_json(url)
+                #url = 'https://api.earthref.org/MagIC/vocabularies/{}.json'.format(col_label)
+                #controlled_vocabulary = pd.io.json.read_json(url)
+                controlled_vocabulary = vocab.vocabularies[col_label]
                 stripped_list = []
-                for item in controlled_vocabulary[col_label][0]:
+                for item in controlled_vocabulary:
                     try:
-                        stripped_list.append(str(item['item']))
+                        stripped_list.append(str(item))
                     except UnicodeEncodeError:
                         # skips items with non ASCII characters
                         pass
-                #stripped_list = [item['item'] for item in controlled_vocabulary[label][0]]
 
                 if len(stripped_list) > 100:
                 # split out the list alphabetically, into a dict of lists {'A': ['alpha', 'artist'], 'B': ['beta', 'beggar']...}
@@ -117,7 +108,6 @@ class Menus(object):
                         if letter not in dictionary.keys():
                             dictionary[letter] = []
                         dictionary[letter].append(item)
-
                     stripped_list = dictionary
 
                 two_tiered = True if isinstance(stripped_list, dict) else False
