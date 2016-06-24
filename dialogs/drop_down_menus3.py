@@ -22,17 +22,17 @@ class Menus(object):
         """
         # if controlled vocabularies haven't already been grabbed from earthref
         # do so now
-        self.check = contribution
+        self.contribution = contribution
         if not any(vocab.vocabularies):
             vocab.get_all_vocabulary()
 
         self.data_type = data_type
-        if self.data_type in self.check.tables:
-            self.magic_dataframe = self.check.tables[self.data_type]
+        if self.data_type in self.contribution.tables:
+            self.magic_dataframe = self.contribution.tables[self.data_type]
         else:
             self.magic_dataframe = None
-        parent_ind = self.check.ancestry.index(self.data_type)
-        parent_table, self.parent_type = self.check.get_table_name(parent_ind+1)
+        parent_ind = self.contribution.ancestry.index(self.data_type)
+        parent_table, self.parent_type = self.contribution.get_table_name(parent_ind+1)
 
         self.grid = grid
         self.window = grid.Parent # parent window in which grid resides
@@ -53,42 +53,41 @@ class Menus(object):
             belongs_to = []
 
         self.choices = {}
-        if self.data_type == 'specimens':
-            self.choices = {1: (belongs_to, False)}#, 3: (vocab.vocabularies['class'], False), 4: (vocab.vocabularies['lithology'], True), 5: (vocab.vocabularies['type'], False)}
-        if self.data_type == 'samples' or self.data_type == 'sites':
-            self.choices = {1: (belongs_to, False)}#, 3: (vocab.vocabularies['class'], False), 4: (vocab.vocabularies['lithology'], True), 5: (vocab.vocabularies['type'], False)}
-        if self.data_type == 'ages':
-            #self.choices = {2: (vocab.vocabulariesulary.age_methods, False), 3: (vocab['age_unit'], False)}
-            self.choices = {3: (vocab.vocabularies['age_unit'], False)}
-            #map(lambda (x, y): self.grid.SetColLabelValue(x, y), [(2, 'magic_method_codes**'), (3, 'age_unit**')])
-            map(lambda (x, y): self.grid.SetColLabelValue(x, y), [(3, 'age_unit**')])
-            for row in range(self.grid.GetNumberRows()):
-                self.grid.SetReadOnly(row, 0)
+        if self.data_type in ['specimens', 'samples', 'sites']:
+            self.choices = {1: (belongs_to, False)}
         if self.data_type == 'orient':
             self.choices = {1: (['g', 'b'], False)}
 
-        self.window.Bind(wx.grid.EVT_GRID_CELL_LEFT_CLICK, lambda event: self.on_left_click(event, self.grid, self.choices), self.grid)
+        self.window.Bind(wx.grid.EVT_GRID_CELL_LEFT_CLICK,
+                         lambda event: self.on_left_click(event, self.grid, self.choices),
+                         self.grid)
 
         #
         cols = self.grid.GetNumberCols()
         col_labels = [self.grid.GetColLabelValue(col) for col in range(cols)]
 
-        # check if any additional columns have associated controlled vocabularies
-        # if so, get the vocabulary list from the MagIC API
+        # check if any additional columns have controlled vocabularies
+        # if so, get the vocabulary list
         for col_number, label in enumerate(col_labels):
             self.add_drop_down(col_number, label)
 
-            
     def add_drop_down(self, col_number, col_label):
         """
-        Add a correctly formatted drop-down-menu for given col_label, if required.
+        Add a correctly formatted drop-down-menu for given col_label,
+        if required.
         Otherwise do nothing.
         """
         if col_label == 'method_codes':
             self.add_method_drop_down(col_number, col_label)
+        elif col_label in ['specimens', 'samples', 'sites', 'locations']:
+            item_df = self.contribution.tables[col_label].df
+            item_names = item_df[col_label[:-1]].unique()
+            self.choices[col_number] = (sorted(item_names), False)
         if col_label in vocab.vocabularies:
-            if col_number not in self.choices.keys(): # if not already assigned above
-                self.grid.SetColLabelValue(col_number, col_label + "**") # mark it as using a controlled vocabulary
+            # if not already assigned above
+            if col_number not in self.choices.keys():
+                # mark it as using a controlled vocabulary
+                self.grid.SetColLabelValue(col_number, col_label + "**")
                 #url = 'https://api.earthref.org/MagIC/vocabularies/{}.json'.format(col_label)
                 #controlled_vocabulary = pd.io.json.read_json(url)
                 controlled_vocabulary = vocab.vocabularies[col_label]
