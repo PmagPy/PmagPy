@@ -84,7 +84,7 @@ class Menus(object):
         Add a correctly formatted drop-down-menu for given col_label, if required.
         Otherwise do nothing.
         """
-        if col_label in ['magic_method_codes', 'magic_method_codes++']:
+        if col_label == 'method_codes':
             self.add_method_drop_down(col_number, col_label)
         if col_label in vocab.vocabularies:
             if col_number not in self.choices.keys(): # if not already assigned above
@@ -120,12 +120,8 @@ class Menus(object):
         """
         if self.data_type == 'age':
             method_list = vocab.age_methods
-        elif '++' in col_label:
-            method_list = vocab.pmag_methods
-        elif self.data_type == 'result':
-            method_list = vocab.pmag_methods
         else:
-            method_list = vocab.er_methods
+            method_list = vocab.methods
         self.choices[col_number] = (method_list, True)
         
     def on_label_click(self, event):
