@@ -382,6 +382,7 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
         else:
             print 'That header is not required:', label
             self.grid.remove_col(col)
+            del self.contribution.tables[self.grid_type].df[label]
         # causes resize on each column header delete
         # can leave this out if we want.....
         self.main_sizer.Fit(self)
@@ -706,9 +707,8 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
 
     def onSave(self, event):#, age_data_type='site'):
         # tidy up drop_down menu
-        # *** don't have drop_down_menu yet
-        #if self.drop_down_menu:
-        #    self.drop_down_menu.clean_up()
+        if self.drop_down_menu:
+            self.drop_down_menu.clean_up()
         # then save actual data
         self.grid_builder.save_grid_data()
         if not event:

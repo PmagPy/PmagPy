@@ -47,8 +47,9 @@ class Menus(object):
         self.InitUI()
 
     def InitUI(self):
-        if self.parent_type and self.magic_dataframe:
-            belongs_to = sorted(set(self.magic_dataframe.df[self.parent_type].values))
+        parent_table_name = self.parent_type + "s"
+        if parent_table_name in self.contribution.tables:
+            belongs_to = sorted(self.contribution.tables[parent_table_name].df[self.parent_type].unique())
         else:
             belongs_to = []
 
