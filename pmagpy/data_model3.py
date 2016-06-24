@@ -1,7 +1,7 @@
 import os
 import json
 from pandas import DataFrame
-
+from pmagpy import check_updates
 
 
 class DataModel(object):
@@ -10,7 +10,8 @@ class DataModel(object):
         self.dm = self.get_data_model()
     
     def download_data_model(self):
-        model_file = os.path.join('3_0', 'data_model.json')
+        pmag_dir = check_updates.get_pmag_dir()
+        model_file = os.path.join(pmag_dir, '3_0', 'data_model.json')
         f = open(model_file, 'r')
         string = '\n'.join(f.readlines())
         raw = json.loads(unicode(string, errors='ignore'))
