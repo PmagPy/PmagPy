@@ -102,7 +102,7 @@ class Vocabulary(object):
         codes = {cat: list(self.get_one_meth_type(cat, all_codes).index) for cat in categories}
         return codes
 
-    default_vocab_types = ('lithology', 'class', 'type', 'location_type',
+    default_vocab_types = ('lithologies', 'geologic_classes', 'geologic_types', 'location_types',
                            'age_unit')
 
     def get_controlled_vocabularies(self, vocab_types=default_vocab_types):
@@ -118,29 +118,21 @@ class Vocabulary(object):
             data = pd.io.json.read_json(url)
             possible_vocabularies = data.columns
             ## this line means, grab every single controlled vocabulary
-            #vocab_types = possible_vocabularies
-            for vocab in vocab_types:
+            vocab_types = list(possible_vocabularies)
+            vocab_dict = {'type': 'geologic_types', 'class': 'geologic_classes', 'lithology': 'lithologies'}
+            # some of the names are weird
+            for vocab in vocab_types[:]:
+                if vocab in vocab_dict:
+                    vocab_name = vocab_dict[vocab]
+                    ind = vocab_types.index(vocab)
+                    vocab_types.insert(ind, vocab_name)
+                    vocab_types.remove(vocab)
                 #url = 'https://api.earthref.org/MagIC/vocabularies/{}.json'.format(vocab)
                 #data = pd.io.json.read_json(url)
                 #stripped_list = [item['item'] for item in data[vocab][0]]
                 items = data[vocab]['items']
                 stripped_list = [item['item'] for item in items]
-                if len(stripped_list) > 100:
-                # split out the list alphabetically, into a dict of lists:
-                # {'A': ['alpha', 'artist'], 'B': ['beta', 'beggar']...}
-                    dictionary = {}
-                    for item in stripped_list:
-                        if not item: # ignore null values
-                            continue
-                        letter = item[0].upper()
-                        if letter not in dictionary.keys():
-                            dictionary[letter] = []
-                        dictionary[letter].append(item)
-
-                    stripped_list = dictionary
-
                 controlled_vocabularies.append(stripped_list)
-
             vocabularies = pd.Series(controlled_vocabularies, index=vocab_types)
         except urllib2.URLError:
             connected = False
