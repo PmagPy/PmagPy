@@ -250,14 +250,13 @@ class Arai_GUI(wx.Frame):
         self.MagIC_directories_list=[]
         self.Data,self.Data_hierarchy,self.container=self.get_data(self.meas_file) # Get data from measurements and specimen if exist.
         self.Data_info=self.get_data_info(self.container) # get all locations etc. (from sites, locations, criteria)
-
+        #print 'GUI1: ',self.Data['mc01a']['pars']
         #if  "-tree" in sys.argv and FIRST_RUN:
         #    self.open_magic_tree()
 
         self.Data_samples={} # interpretations of samples are kept here
         self.Data_sites={}   # interpretations of sites are kept here
         #self.Data_samples_or_sites={}   # interpretations of sites are kept here
-
         self.last_saved_pars={}
         self.specimens=self.Data.keys()         # get list of specimens
         self.specimens.sort()                   # get list of specimens
@@ -490,19 +489,12 @@ class Arai_GUI(wx.Frame):
         #----------------------------------------------------------------------                     
         
         self.Blab_window=wx.TextCtrl(self.panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50*self.GUI_RESOLUTION,25))
-        #self.Blab_window.SetFont(font2)
         self.Banc_window=wx.TextCtrl(self.panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50*self.GUI_RESOLUTION,25))
-        #self.Banc_window.SetFont(font2)        
         self.Aniso_factor_window=wx.TextCtrl(self.panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50*self.GUI_RESOLUTION,25))
-        #self.Aniso_factor_window.SetFont(font2) 
         self.NLT_factor_window=wx.TextCtrl(self.panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50*self.GUI_RESOLUTION,25))
-        #self.NLT_factor_window.SetFont(font2) 
         self.CR_factor_window=wx.TextCtrl(self.panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50*self.GUI_RESOLUTION,25))
-        #self.CR_factor_window.SetFont(font2) 
         self.declination_window=wx.TextCtrl(self.panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50*self.GUI_RESOLUTION,25))
-        #self.declination_window.SetFont(font2) 
         self.inclination_window=wx.TextCtrl(self.panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50*self.GUI_RESOLUTION,25))
-        #self.inclination_window.SetFont(font2) 
 
         self.Blab_label=wx.StaticText(self.panel,label="\nB_lab",style=wx.ALIGN_CENTRE)
         self.Blab_label.SetFont(font2)
@@ -995,30 +987,11 @@ class Arai_GUI(wx.Frame):
         m_run_consistency_test = menu_consistency_test.Append(-1, "&Run Consistency test", "")
         self.Bind(wx.EVT_MENU, self.on_menu_run_consistency_test, m_run_consistency_test)
 
-        #m_run_consistency_test_b = menu_Optimizer.Append(-1, "&Run Consistency test beta version", "")
-        #self.Bind(wx.EVT_MENU, self.on_menu_run_consistency_test_b, m_run_consistency_test_b)
 
         menu_Plot= wx.Menu()
         m_plot_data = menu_Plot.Append(-1, "&Plot paleointensity curve", "")
         self.Bind(wx.EVT_MENU, self.on_menu_plot_data, m_plot_data)
 
-        #menu_results_table= wx.Menu()
-        #m_make_results_table = menu_results_table.Append(-1, "&Make results table", "")
-        #self.Bind(wx.EVT_MENU, self.on_menu_results_data, m_make_results_table)
-
-
-        #menu_MagIC= wx.Menu()
-        #m_convert_to_magic= menu_MagIC.Append(-1, "&Convert generic files to MagIC format", "")
-        #self.Bind(wx.EVT_MENU, self.on_menu_convert_to_magic, m_convert_to_magic)
-        #m_build_magic_model= menu_MagIC.Append(-1, "&Run MagIC model builder", "")
-        #self.Bind(wx.EVT_MENU, self.on_menu_MagIC_model_builder, m_build_magic_model)
-        #m_prepare_MagIC_results_tables= menu_MagIC.Append(-1, "&Make MagIC results Table", "")
-        #self.Bind(wx.EVT_MENU, self.on_menu__prepare_MagIC_results_tables, m_prepare_MagIC_results_tables)
-
-
-        
-        #menu_help = wx.Menu()
-        #m_about = menu_help.Append(-1, "&About\tF1", "About this program")
         self.menubar.Append(menu_preferences, "& Preferences") 
         self.menubar.Append(menu_file, "&File")
         self.menubar.Append(menu_anistropy, "&Anistropy")
@@ -1026,8 +999,6 @@ class Arai_GUI(wx.Frame):
         self.menubar.Append(menu_Auto_Interpreter, "&Auto Interpreter")
         self.menubar.Append(menu_consistency_test, "&Consistency Test")
         self.menubar.Append(menu_Plot, "&Plot")
-        #self.menubar.Append(menu_results_table, "&Table")
-        #self.menubar.Append(menu_MagIC, "&MagIC")
         
         self.SetMenuBar(self.menubar)
 
@@ -1166,8 +1137,6 @@ class Arai_GUI(wx.Frame):
             command="self.%s_window.SetBackgroundColour(wx.NullColour)"%key
             exec command
                                          
-        #window_list=['int_n','int_ptrm_n','frac','scat','gmax','f','fvds','b_beta','g','q','int_mad','int_dang','drats','md','ptrms_dec','ptrms_inc','ptrms_mad','ptrms_angle']
-        #for key in window_list:
         for key in self.preferences['show_statistics_on_gui']:
             command="self.%s_window.SetValue(\"\")"%key
             exec command
@@ -1339,9 +1308,6 @@ class Arai_GUI(wx.Frame):
 
                 bSizer2 = wx.StaticBoxSizer( wx.StaticBox( pnl1, wx.ID_ANY, "Arai plot" ), wx.HORIZONTAL )
                 self.show_Arai_temperatures=wx.CheckBox(pnl1, -1, '', (50, 50))        
-                #self.show_Arai_temperatures_steps=FS.FloatSpin(pnl1, -1, min_val=1, max_val=9,increment=1, value=1, extrastyle=FS.FS_LEFT,size=(50,20))
-                #self.show_Arai_temperatures_steps.SetFormat("%f")
-                #self.show_Arai_temperatures_steps.SetDigits(0)
                 self.show_Arai_temperatures_steps=wx.SpinCtrl(pnl1, -1, '1', (50, 20), (60, -1), min=1, max=9)
 
                 self.show_Arai_pTRM_arrows=wx.CheckBox(pnl1, -1, '', (50, 50))        
@@ -1401,18 +1367,6 @@ class Arai_GUI(wx.Frame):
                     (self.show_CR_plot, wx.EXPAND)])                 
                 bSizer5.Add( NLT_window, 0, wx.ALIGN_LEFT|wx.ALL, 5 )
 
-##                #-----------box6        
-##
-##                bSizer6 = wx.StaticBoxSizer( wx.StaticBox( pnl1, wx.ID_ANY, "Statistical definitions" ), wx.HORIZONTAL )
-##                self.bootstrap_N=wx.TextCtrl(pnl1,style=wx.TE_CENTER,size=(80,20))
-##                #self.bootstrap_N=FS.FloatSpin(pnl1, -1, min_val=1000, max_val=10000000,increment=1000, value=10000, extrastyle=FS.FS_LEFT,size=(80,20))
-##                #self.bootstrap_N.SetFormat("%f")
-##                #self.bootstrap_N.SetDigits(0)
-##                                             
-##                Statistics_definitions_window = wx.GridSizer(1, 2, 12, 12)
-##                Statistics_definitions_window.AddMany( [(wx.StaticText(pnl1,label="Bootstrap N",style=wx.TE_CENTER), wx.EXPAND),
-##                    (self.bootstrap_N, wx.EXPAND)])                 
-##                bSizer6.Add( Statistics_definitions_window, 0, wx.ALIGN_LEFT|wx.ALL, 5 )
                          
                 #----------------------
 
@@ -1435,8 +1389,6 @@ class Arai_GUI(wx.Frame):
                 vbox.AddSpacer(20)
                 vbox.Add(bSizer5, flag=wx.ALIGN_CENTER_HORIZONTAL)
                 vbox.AddSpacer(20)
-##                vbox.Add(bSizer6, flag=wx.ALIGN_CENTER_HORIZONTAL)
-##                vbox.AddSpacer(20)
 
                 vbox.Add(hbox2, flag=wx.ALIGN_CENTER_HORIZONTAL)
                 vbox.AddSpacer(20)
@@ -1803,26 +1755,6 @@ class Arai_GUI(wx.Frame):
         else:
             return
 
-
-
-
-##    def on_save_all_plots(self,event):
-##        #search for NRM:
-##        nrm0=""
-##        for rec in self.Data[self.s]['datablock']:            
-##          if "LT-NO" in rec['method_codes']:
-##              nrm0= "%.2e"%float(rec['intensity'])
-##              break
-##
-##        self.fig1.text(0.1,0.93,'$NRM_0 = %s Am^2 $'%(nrm0),{'family':'Arial', 'fontsize':10, 'style':'normal','va':'center', 'ha':'left' })
-##        self.fig1.text(0.9,0.93,'%s'%(self.s),{'family':'Arial', 'fontsize':10, 'style':'normal','va':'center', 'ha':'right' })
-##        #self.canvas1.draw()
-##        SaveAllMyPlot(self.pars)
-##        self.fig1.clear()
-##        self.fig1.text(0.01,0.98,"Arai plot",{'family':'Arial', 'fontsize':10, 'style':'normal','va':'center', 'ha':'left' })
-##        self.araiplot = self.fig1.add_axes([0.1,0.1,0.8,0.8])
-##        self.draw_figure(self.s)
-##        self.update_selection()
         
     def on_menu_previous_interpretation(self, event):
         
@@ -2123,7 +2055,7 @@ class Arai_GUI(wx.Frame):
             accept.append(by_sample_crit)
             for crit in self.acceptance_criteria:
                 for table_column in ['sites.int_n','sites.int_sigma','sites.int_sigma_perc','sites.aniso_mean','site_int_n_outlier_check']:
-                    if crit[table_column]==table_column:
+                    if crit['table_column']==table_column:
                         crit['criterion_value']=-999
                 accept.append(crit)
             command="value=dia.set_sample_int_sigma_uT.GetValue()"
@@ -2135,7 +2067,7 @@ class Arai_GUI(wx.Frame):
                     if crit['table_column']==table_column:
                         crit['criterion_value']=-999
                 accept.append(crit)
-            command="value=dia.set_%s.GetValue()"%crit.replace('site','sample')
+            command="value=dia.set_%s.GetValue()"%crit['criterion_value'].replace('site','sample')
         try:
             exec command
         except:
@@ -2203,7 +2135,7 @@ class Arai_GUI(wx.Frame):
                 continue
             tmin=self.Data[specimen]['pars']['meas_step_min']
             tmax=self.Data[specimen]['pars']['meas_step_max']
-            print 'GUI1: ',self.Data.keys()
+            print 'GUI3: ',self.Data.keys()
             pars=thellier_gui_lib.get_PI_parameters(self.Data,self.acceptance_criteria,self.preferences,specimen,tmin,tmax,self.GUI_log,THERMAL,MICROWAVE)
             self.Data[specimen]['pars']=pars
             self.Data[specimen]['pars']['treat_dc_field']=self.Data[specimen]['treat_dc_field']
@@ -2358,7 +2290,7 @@ class Arai_GUI(wx.Frame):
         
         #def main():
             
-
+### THIS ALL HAS TO GET FIXED: 
         def calculate_aniso_parameters(B,K):
 
             aniso_parameters={}
@@ -3093,15 +3025,15 @@ class Arai_GUI(wx.Frame):
                     if "LP-PI" not in rec['method_codes'] and "IE-" not in rec['method_codes'] :
                         PmagRecsOld[FILE].append(rec)
 
-        pmag_specimens_header_1=["er_location_name","er_site_name","er_sample_name","er_specimen_name"]
-        pmag_specimens_header_2=['measurement_step_min','measurement_step_max','specimen_int']        
+        pmag_specimens_header_1=["location","site","sample","specimen"]
+        pmag_specimens_header_2=['meas_step_min','meas_step_max','int_abs']        
         pmag_specimens_header_3=["specimen_correction","specimen_int_corr_anisotropy","specimen_int_corr_nlt","specimen_int_corr_cooling_rate"]
         pmag_specimens_header_4=[]
         for short_stat in self.preferences['show_statistics_on_gui']:
             stat="specimen_"+short_stat
             pmag_specimens_header_4.append(stat)
-        pmag_specimens_header_5=["magic_experiment_names","method_codes","measurement_step_unit","specimen_lab_field_dc"]
-        pmag_specimens_header_6=["er_citation_names"]
+        pmag_specimens_header_5=["experiments","method_codes","meas_step_unit","specimen_lab_field_dc"]
+        pmag_specimens_header_6=["citations"]
         try:
             version= pmag.get_version()
         except:
@@ -3162,9 +3094,9 @@ class Arai_GUI(wx.Frame):
                     else:
                         MagIC_results_data['pmag_specimens'][specimen][key]="%.2f"%(self.Data[specimen]['pars'][key])                             
                                 
-                MagIC_results_data['pmag_specimens'][specimen]['specimen_int']="%.2e"%(self.Data[specimen]['pars']['specimen_int'])
-                MagIC_results_data['pmag_specimens'][specimen]['measurement_step_min']="%i"%(self.Data[specimen]['pars']['measurement_step_min'])
-                MagIC_results_data['pmag_specimens'][specimen]['measurement_step_max']="%i"%(self.Data[specimen]['pars']['measurement_step_max'])
+                MagIC_results_data['pmag_specimens'][specimen]['int_abs']="%.2e"%(self.Data[specimen]['pars']['int_abs'])
+                MagIC_results_data['pmag_specimens'][specimen]['meas_step_min']="%i"%(self.Data[specimen]['pars']['meas_step_min'])
+                MagIC_results_data['pmag_specimens'][specimen]['meas_step_max']="%i"%(self.Data[specimen]['pars']['meas_step_max'])
                 if "specimen_int_corr_anisotropy" in  self.Data[specimen]['pars'].keys():
                     MagIC_results_data['pmag_specimens'][specimen]['specimen_int_corr_anisotropy']="%.2f"%(self.Data[specimen]['pars']['specimen_int_corr_anisotropy'])
                 else:
@@ -4896,7 +4828,7 @@ class Arai_GUI(wx.Frame):
         '''
         pass
         
-        
+       ###START HERE 
     def update_GUI_with_new_interpretation(self):
        
         #-------------------------------------------------
@@ -4905,7 +4837,7 @@ class Arai_GUI(wx.Frame):
         s=self.s
 
         # continue only if temperature bouds were asigned
-
+        print 'GUI2: ',self.pars.keys()
         if "meas_step_min" not in self.pars.keys() or "meas_step_max" not in self.pars.keys():
             return(self.pars)
         if self.Data[self.s]['T_or_MW'] != "MW":
@@ -5072,11 +5004,9 @@ class Arai_GUI(wx.Frame):
         #if (index_2-index_1)+1 >= self.acceptance_criteria['specimen_int_n']:
         if (index_2-index_1)+1 >= 3:
             if self.Data[self.s]['T_or_MW']!="MW":
-                #print 'GUI3: ',self.Data[self.s].keys()
                 self.pars=thellier_gui_lib.get_PI_parameters(self.Data,self.acceptance_criteria, self.preferences,self.s,float(t1)+273.,float(t2)+273.,self.GUI_log,THERMAL,MICROWAVE)
                 self.Data[self.s]['pars'] = self.pars
             else:
-                print 'GUI4: ',self.Data.keys()
                 self.pars=thellier_gui_lib.get_PI_parameters(self.Data,self.acceptance_criteria, self.preferences,self.s,float(t1),float(t2),self.GUI_log,THERMAL,MICROWAVE)
                 self.Data[self.s]['pars'] = self.pars
             self.update_GUI_with_new_interpretation()
@@ -5162,8 +5092,8 @@ class Arai_GUI(wx.Frame):
         PCA_dir_rotated[0]=PCA_dir_rotated[0]-NRM_dec      
         PCA_CART_rotated=pmag.dir2cart(PCA_dir_rotated)
 
-        tmin_index=self.Data[self.s]['z_temp'].index(self.pars["measurement_step_min"])
-        tmax_index=self.Data[self.s]['z_temp'].index(self.pars["measurement_step_max"])
+        tmin_index=self.Data[self.s]['z_temp'].index(self.pars["meas_step_min"])
+        tmax_index=self.Data[self.s]['z_temp'].index(self.pars["meas_step_max"])
         
         PCA_dir_rotated=pmag.cart2dir(CART)         
         PCA_dir_rotated[0]=PCA_dir_rotated[0]-NRM_dec      
@@ -6302,11 +6232,10 @@ class Arai_GUI(wx.Frame):
                     self.GUI_log.write ("-W- WARNING: cant fit temperature bounds in the redo file to the actual measurement. specimen %s\n"%specimen)
                 else:
                     try:
-#
-# NEED TO FIX THE get_PI_parameters FUNCTION
-#
-                        #print 'GUI6: ',Data[specimen].keys()
+                        #print 'GUI5: ',Data[specimen]['pars']
                         Data[specimen]['pars']=thellier_gui_lib.get_PI_parameters(Data,self.acceptance_criteria, self.preferences,specimen,float(tmin_kelvin),float(tmax_kelvin),self.GUI_log,THERMAL,MICROWAVE)
+ 
+                        #print 'GUI4: ',Data[specimen]['pars']
                         Data[specimen]['pars']['saved']=True
                         # write intrepretation into sample data
                         sample=Data_hierarchy['specimens'][specimen]
@@ -6323,7 +6252,6 @@ class Arai_GUI(wx.Frame):
                         self.GUI_log.write ("-E- ERROR. Cant calculate PI paremeters for specimen %s using redo file. Check!"%(specimen))
             else:
                 self.GUI_log.write ("-W- WARNING: Cant find specimen %s from redo file in measurement file!\n"%specimen)
-
       return(Data,Data_hierarchy,contribution)
 
       

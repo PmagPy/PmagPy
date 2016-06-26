@@ -148,9 +148,9 @@ class PI_Statistics_Dialog(wx.Dialog):
             
             for stat in self.stat_by_category[categories[k]]:
                 short_name=stat # these are already short names
-                command="self.set_specimen_%s=wx.CheckBox(pnl1,-1,label='%s',name='%s')"%(short_name,short_name,short_name)
+                command="self.set_%s=wx.CheckBox(pnl1,-1,label='%s',name='%s')"%(short_name,short_name,short_name)
                 exec command
-                command = "self.Bind(wx.EVT_CHECKBOX, self.OnCheckBox, self.set_specimen_%s)"%(short_name)
+                command = "self.Bind(wx.EVT_CHECKBOX, self.OnCheckBox, self.set_%s)"%(short_name)
                 exec command                
                 command="self.specimen_%s_button = wx.Button(pnl1, -1, label='description',name='%s')" %(short_name,stat)
                 exec command
@@ -167,7 +167,7 @@ class PI_Statistics_Dialog(wx.Dialog):
                 command="hbox_%i.AddSpacer(10)"%(i)
                 exec command
                 
-                command="hbox_%i.Add(self.set_specimen_%s)"%(i,short_name)
+                command="hbox_%i.Add(self.set_%s)"%(i,short_name)
                 exec command
                 command="bSizer%i.Add(hbox_%i)"%(k,i)
                 exec command
@@ -217,7 +217,7 @@ class PI_Statistics_Dialog(wx.Dialog):
         for short_name in self.show_statistics_on_gui:
             for category in categories:
                 if short_name in self.stat_by_category[category]:
-                    command="self.set_specimen_%s.SetValue(True)"%short_name
+                    command="self.set_%s.SetValue(True)"%short_name
                     exec command
                     
                     
@@ -304,7 +304,7 @@ class Criteria_Dialog(wx.Dialog):
             
             command="gs_%s = wx.GridSizer(2, 1,5,5)"%stat
             exec command            
-            command="gs_%s.AddMany( [(self.%s_label,wx.EXPAND),(self.set_specimen_%s,wx.EXPAND)])"%(stat,stat,stat)
+            command="gs_%s.AddMany( [(self.%s_label,wx.EXPAND),(self.set_%s,wx.EXPAND)])"%(stat,stat,stat)
             exec command
             command="bSizer1.Add(gs_%s,flag=wx.ALIGN_LEFT)"%stat
             exec command
@@ -450,7 +450,7 @@ class Criteria_Dialog(wx.Dialog):
         #============================        
         
         for key in window_list_specimens:
-            command="self.set_specimen_%s.SetBackgroundColour(wx.NullColour)"%key
+            command="self.set_%s.SetBackgroundColour(wx.NullColour)"%key
         exec command
 
 

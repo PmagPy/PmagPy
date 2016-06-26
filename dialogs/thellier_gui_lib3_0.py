@@ -27,6 +27,7 @@ def get_PI_parameters(Data,acceptance_criteria,preferences,s,tmin,tmax,GUI_log,T
     import SPD.spd3_0 as spd
     Pint_pars = spd.PintPars(Data, str(s), tmin, tmax, 'magic', preferences['show_statistics_on_gui'])
     Pint_pars.reqd_stats() # calculate only statistics indicated in preferences
+    print 'LIB1: ',Pint_pars
     if not Pint_pars.pars:
         print "Could not get any parameters for {}".format(Pint_pars)
         return 0
@@ -34,6 +35,7 @@ def get_PI_parameters(Data,acceptance_criteria,preferences,s,tmin,tmax,GUI_log,T
     #print "-D- Debag"
     #print Pint_pars.keys()
     pars.update(Pint_pars.pars) # 
+    print 'LIB2: ',pars
 
     t_Arai=Data[s]['t_Arai']
     x_Arai=Data[s]['x_Arai']
@@ -301,7 +303,6 @@ def get_PI_parameters(Data,acceptance_criteria,preferences,s,tmin,tmax,GUI_log,T
                 d1[key] = value
         return d1
 
-    
     Data[s]['pars'] = pars
     #print pars.keys()
 
