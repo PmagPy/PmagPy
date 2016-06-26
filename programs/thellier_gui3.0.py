@@ -237,6 +237,7 @@ class Arai_GUI(wx.Frame):
          
         # inialize selecting criteria
         self.acceptance_criteria=pmag.initialize_acceptance_criteria3_0()
+        #print 'GUI7: ', self.acceptance_criteria
         self.add_thellier_gui_criteria()
         self.read_criteria_file(os.path.join(self.WD,"criteria.txt"))
         # preferences
@@ -746,47 +747,41 @@ class Arai_GUI(wx.Frame):
     #----------------------------------------------------------------------
             
         
-    def  write_acceptance_criteria_to_boxes(self):
+    def write_acceptance_criteria_to_boxes(self):
         """ 
         Update paleointensity statistics in acceptance criteria boxes.
         (after changing temperature bounds or changing specimen)
         """
-# took out the short_name convention
 
         self.ignore_parameters={}
-        for stat in self.preferences['show_statistics_on_gui']:
-            for crit in self.acceptance_criteria: 
-                if crit['criterion_value']=='-999':
-                    command="self.%s_threshold_window.SetValue(\"\")"%crit
+        for short_stat in self.preferences['show_statistics_on_gui']:
+            stat='specimens.'+short_stat
+            crits=pmag.get_dictitem(self.acceptance_criteria,'table_column',stat,'T')
+            if len(crits)>0:
+                crit=crits[0] 
+                if crit['decimal_points']==-999:
+                    value='%.2e'%crit['criterion_value']
+                    command="self.%s_threshold_window.SetValue(\"\")"%short_stat
                     exec command
-                    command="self.%s_threshold_window.SetBackgroundColour(wx.Colour(128, 128, 128))"%crit
+                    command="self.%s_threshold_window.SetBackgroundColour(wx.Colour(128, 128, 128))"%short_stat
                     exec command
                     self.ignore_parameters[crit]=True
                     continue
                 elif "int_scat" in crit['table_column']:
                     if crit['criterion_value'] in ['g',1,'1',True,"True"]:
                         value="True"
-                        #self.scat_threshold_window.SetBackgroundColour(wx.Colour(128, 128, 128))
                     else:
                         value=""
                         self.scat_threshold_window.SetBackgroundColour(wx.Colour(128, 128, 128))
-                elif 'decimal_points' in crit.keys():
-                    if  int(crit['decimal_points'])==0:
-                        value=crit['criterion_value']
-                    elif int(crit['decimal_points'])==-999:
-                        value=crit['criterion_value']
-                else: # this is all screwed up!
-                    #crit['decimal_points']=3
-                    #command="value=crit['criterion_value']"%(crit['decimal_points'])
-                    #exec command
-                    pass
-            else:
-                continue
-                    
-            command="self.%s_threshold_window.SetValue('%s')"%(crit,criterion_value)
-            exec command
-            command="self.%s_threshold_window.SetBackgroundColour(wx.WHITE)"%crit
-            exec command
+                elif type(crit['decimal_points'])==float or type(crit['decimal_points'])==int:
+                    command="value='%%.%if'%%float(crit['criterion_value'])"%(int(crit['decimal_points']))
+                    exec command
+                else:
+                    continue
+                command="self.%s_threshold_window.SetValue('%s')"%(short_stat,value)
+                exec command
+                command="self.%s_threshold_window.SetBackgroundColour(wx.WHITE)"%short_stat
+                exec command
                 
                     
     #----------------------------------------------------------------------
@@ -1787,8 +1782,7 @@ class Arai_GUI(wx.Frame):
         self.redo_specimens={}
         self.currentDirectory = os.getcwd() # get the current working directory
         self.get_DIR()                      # choose directory dialog
-        #acceptance_criteria_default,acceptance_criteria_null=self.get_default_criteria()    # inialize Null selecting criteria
-        acceptance_criteria_default,acceptance_criteria_null=pmag.initialize_acceptance_criteria(),pmag.initialize_acceptance_criteria()    # inialize Null selecting criteria
+        acceptance_criteria_default,acceptance_criteria_null=pmag.initialize_acceptance_criteria3_0(),pmag.initialize_acceptance_criteria3_0()    # inialize Null selecting criteria
 
         self.acceptance_criteria_null=acceptance_criteria_null
         self.acceptance_criteria_default=acceptance_criteria_default
@@ -2167,7 +2161,7 @@ class Arai_GUI(wx.Frame):
         #self.acceptance_criteria,file_type = pmag.magic_read(criteria_file)
         if len(self.acceptance_criteria)==0:
             print "-E- Cant read criteria file"
-        # guesss if average by site or sample:
+        # guess if average by site or sample:
         existing=pmag.get_dictkey(self.acceptance_criteria,'criterion','')
         by_sample=True
         flag=False
@@ -2179,6 +2173,24 @@ class Arai_GUI(wx.Frame):
                  self.acceptance_criteria.append({'criterion':'average_by_sample_or_site','criterion_operation':'+','citations':'This study','criterion_value':-999,'description':'','table_column':'sites.int_abs'})
              else:
                  self.acceptance_criteria.append({'criterion':'average_by_sample_or_site','criterion_operation':'+','citations':'This study','criterion_value':-999,'description':'','table_column':'samples.int_abs'})
+        crits=[]
+        for crit in self.acceptance_criteria:
+            if 'decimal_points' not in crit.keys(): # fix this up
+                crit['decimal_points']=0
+                if crit['table_column'] in ['specimens.dir_polarity','samples.dir_polarity','sites.dir_polarity','sites.tilt_correction','specimens.int_scat','sites.age_unit']:
+                    crit['decimal_points']=-999
+                elif crit['table_column'].split('.')[-1] in ['alpha95','sigma_perc','vgp_dm','vdp_dp']:
+                    crit['decimal_points']=1
+                elif crit['table_column'].split('.')[-1] in ['int_f','int_fvds','int_frac','int_q','int_gmax']:
+                    crit['decimal_points']=2
+                elif crit['table_column'].split('.')[-1] in ['int_b_sigma','int_b_beta','int_g','int_k', 'int_k_prime']:
+                    crit['decimal_points']=3
+            crits.append(crit)
+        self.acceptance_criteria=crits
+       
+            
+
+      
     
     def on_menu_save_interpretation(self, event):
  
@@ -2916,7 +2928,6 @@ class Arai_GUI(wx.Frame):
               if tmin_kelvin not in self.Data[specimen]['t_Arai'] or tmax_kelvin not in self.Data[specimen]['t_Arai'] :
                   self.GUI_log.write ("-W- WARNING: cant fit temperature bounds in the redo file to the actual measurement. specimen %s\n"%specimen)
               else:
-                  print 'GUI2: ',self.Data.keys()
                   self.Data[specimen]['pars']=thellier_gui_lib.get_PI_parameters(self.Data,self.acceptance_criteria,self.preferences,specimen,float(tmin_kelvin),float(tmax_kelvin),self.GUI_log,THERMAL,MICROWAVE)
                   try:
                       self.Data[specimen]['pars']=thellier_gui_lib.get_PI_parameters(self.Data,self.acceptance_criteria,self.preferences,specimen,float(tmin_kelvin),float(tmax_kelvin),self.GUI_log,THERMAL,MICROWAVE)
@@ -3206,16 +3217,6 @@ class Arai_GUI(wx.Frame):
                     B_uT=sample_or_site_pars['B_uT']
                     B_std_uT=sample_or_site_pars['B_std_uT']
                     B_std_perc=sample_or_site_pars['B_std_perc']
-                    #if len(B)>=self.acceptance_criteria['sample_int_n']:
-                    #    B_std_uT=std(B,ddof=1)
-                    #    B_std_perc=std(B,ddof=1)/scipy.mean(B)*100
-                    #    if (self.acceptance_criteria['sample_int_sigma_uT']==0 and self.acceptance_criteria['sample_int_sigma_perc']==0) or\
-                    #       ( B_std_uT <=self.acceptance_criteria['sample_int_sigma_uT'] or B_std_perc <= self.acceptance_criteria['sample_int_sigma_perc']):
-                    #        if ( (max(B)-min(B)) <= self.acceptance_criteria['sample_int_interval_uT'] or 100*((max(B)-min(B))/mean((B))) <= self.acceptance_criteria['sample_int_interval_perc']):
-                    #            sample_pass_criteria=True
-                    #if not sample_pass_criteria:
-                        #print "skipping sample" %sample
-                        #continue
                     pmag_samples_or_sites_list.append(sample_or_site)
                     MagIC_results_data['pmag_samples_or_sites'][sample_or_site]={}
                     MagIC_results_data['pmag_samples_or_sites'][sample_or_site]['er_specimen_names']=specimens_names
@@ -3833,7 +3834,7 @@ class Arai_GUI(wx.Frame):
 
         if show_STDEVOPT:
             data2plot={}
-            if self.acceptance_criteria['average_by_sample_or_site']['criterion_value']=='sample':
+            if self.acceptance_criteria['average_by_sample_or_site']['table_column']=='samples.int_abs':
                 FILE=os.path.join(self.WD, 'thellier_interpreter', 'thellier_interpreter_STDEV-OPT_samples.txt')
                 NAME="er_sample_name"
             else:
@@ -3844,7 +3845,7 @@ class Arai_GUI(wx.Frame):
             except:
                 data2plot={}
         else:
-            if self.acceptance_criteria['average_by_sample_or_site']['criterion_value']=='sample':
+            if self.acceptance_criteria['average_by_sample_or_site']['table_column']=='samples.int_abs':
                 data2plot=copy.deepcopy(self.Data_samples)   
             else:
                 data2plot=copy.deepcopy(self.Data_sites)
@@ -3894,7 +3895,7 @@ class Arai_GUI(wx.Frame):
                 sample_or_site_mean_pars=data2plot[sample_or_site]#,sample_or_site,self.acceptance_criteria)
                             
             # locate site_name
-            if self.acceptance_criteria['average_by_sample_or_site']['criterion_value']=='sample':
+            if self.acceptance_criteria['average_by_sample_or_site']['table_column']=='samples.int_abs':
                 site_name=self.Data_hierarchy['site_of_sample'][sample_or_site] 
             else:
                 site_name=sample_or_site
@@ -4828,7 +4829,6 @@ class Arai_GUI(wx.Frame):
         '''
         pass
         
-       ###START HERE 
     def update_GUI_with_new_interpretation(self):
        
         #-------------------------------------------------
@@ -4837,7 +4837,12 @@ class Arai_GUI(wx.Frame):
         s=self.s
 
         # continue only if temperature bouds were asigned
-        print 'GUI2: ',self.pars.keys()
+        if 'measurement_step_min' in self.pars.keys():
+            self.pars['meas_step_min']=self.pars['measurement_step_min']
+            self.pars['meas_step_max']=self.pars['measurement_step_max']
+        if 'Dec_Anc' in self.pars.keys() and 'Inc_Anc' in self.pars.keys():
+            self.pars['dir_dec']=self.pars['Dec_Anc']
+            self.pars['dir_inc']=self.pars['Inc_Anc']
         if "meas_step_min" not in self.pars.keys() or "meas_step_max" not in self.pars.keys():
             return(self.pars)
         if self.Data[self.s]['T_or_MW'] != "MW":
@@ -4875,43 +4880,45 @@ class Arai_GUI(wx.Frame):
                 if crit['decimal_points']==-999:
                     value='%.2e'%self.pars[stat]
                 elif type(crit['decimal_points'])==float or type(crit['decimal_points'])==int:
-                    command="value='%%.%if'%%(float(self.pars[stat]))"%(int(crit['decimal_points']))
+                    command="value='%%.%if'%%(float(self.pars[short_stat]))"%(int(crit['decimal_points']))
+                    exec command
+                command= "self.%s_window.SetValue(value)"%stat.split('specimens.')[-1]
                 exec command
-            command= "self.%s_window.SetValue(value)"%stat.split('specimen.')[-1]
-            exec command
             
             # set backgound color
-            cutoff_value=crit['criterion_value']
-            if cutoff_value==-999:
-                command="self.%s_window.SetBackgroundColour(wx.NullColour)"%stat.split('specimen_')[-1]  # set text color 
-            elif stat=="specimen_k" or stat=="specimen_k_prime":
-                if abs(self.pars[stat])>cutoff_value:
-                    command="self.%s_window.SetBackgroundColour(wx.RED)"%stat.split('specimen_')[-1]  # set text color
-                    flag_Fail=True                
-            elif self.acceptance_criteria[stat]['threshold_type']=='high' and self.pars[stat]>cutoff_value:
-                command="self.%s_window.SetBackgroundColour(wx.RED)"%stat.split('specimen_')[-1]  # set text color
-                flag_Fail=True
-            elif self.acceptance_criteria[stat]['threshold_type']=='low' and self.pars[stat]<cutoff_value:
-                command="self.%s_window.SetBackgroundColour(wx.RED)"%stat.split('specimen_')[-1]  # set text color
-                flag_Fail=True
-            else:
-                command="self.%s_window.SetBackgroundColour(wx.GREEN)"%stat.split('specimen_')[-1]  # set text color
-            exec command
+                cutoff_value=float(crit['criterion_value'])
+                if cutoff_value==-999:
+                    command="self.%s_window.SetBackgroundColour(wx.NullColour)"%stat.split('specimens.')[-1]  # set text color 
+                elif stat=="specimens.int_k" or stat=="specimens.k_prime":
+                    if abs(self.pars[short_stat])>cutoff_value:
+                        command="self.%s_window.SetBackgroundColour(wx.RED)"%stat.split('specimens.')[-1]  # set text color
+                        flag_Fail=True                
+                elif crit['criterion_operation']=='<=' and self.pars[short_stat]>cutoff_value:
+                    command="self.%s_window.SetBackgroundColour(wx.RED)"%stat.split('specimens.')[-1]  # set text color
+                    flag_Fail=True
+                elif crit['criterion_operation']=='>=' and self.pars[short_stat]<cutoff_value:
+                    command="self.%s_window.SetBackgroundColour(wx.RED)"%stat.split('specimens.')[-1]  # set text color
+                    flag_Fail=True
+                else:
+                    command="self.%s_window.SetBackgroundColour(wx.GREEN)"%stat.split('specimens.')[-1]  # set text color
+                exec command
 
         # specimen_scat                
         if 'int_scat' in     self.preferences['show_statistics_on_gui']:
-            crit=pmag.get_dictitem('self.acceptance_criteria','table_column','specimens.int_scat','T')[0]
-            if crit['criterion_value'] in ['True','TRUE','1',1,True,'g']:
-                if self.pars["int_scat"]=='Pass':
-                    self.scat_window.SetValue("Pass")
-                    self.scat_window.SetBackgroundColour(wx.GREEN) # set text color
-                else:
-                    self.scat_window.SetValue("Fail")
-                    self.scat_window.SetBackgroundColour(wx.RED) # set text color
+            crits=pmag.get_dictitem(self.acceptance_criteria,'table_column','specimens.int_scat','T')
+            if len(crits)>0:
+                crit=crits[0]
+                if crit['criterion_value'] in ['True','TRUE','1',1,True,'g']:
+                    if self.pars["int_scat"]=='Pass':
+                        self.scat_window.SetValue("Pass")
+                        self.scat_window.SetBackgroundColour(wx.GREEN) # set text color
+                    else:
+                        self.scat_window.SetValue("Fail")
+                        self.scat_window.SetBackgroundColour(wx.RED) # set text color
                                         
-            else:        
-                self.scat_window.SetValue("")
-                self.scat_window.SetBackgroundColour(wx.NullColour) # set text color
+                else:        
+                    self.scat_window.SetValue("")
+                    self.scat_window.SetBackgroundColour(wx.NullColour) # set text color
                 
 
         # Blab, Banc, correction factors
@@ -5041,13 +5048,16 @@ class Arai_GUI(wx.Frame):
         y_Arai_segment= y_Arai[start:end+1]
 
         self.araiplot.scatter([x_Arai_segment[0],x_Arai_segment[-1]],[y_Arai_segment[0],y_Arai_segment[-1]],marker='o',facecolor='g',edgecolor ='k',s=30)
-        b=pars["specimen_b"]
+        b=pars["int_b"]
         a=scipy.mean(y_Arai_segment) - b* scipy.mean(x_Arai_segment)
         xx=scipy.array([x_Arai_segment[0],x_Arai_segment[-1]])
         yy=b*xx+a
         self.araiplot.plot(xx,yy,'g-',lw=2,alpha=0.5)
-        if self.acceptance_criteria['int_scat']['criterion_value'] in [True,"True","TRUE",'1','g']:
-            if 'specimen_scat_bounding_line_low' in pars:
+        scatcrits=pmag.get_dictitem(self.acceptance_criteria,'table_column','int_scat','has')
+        if len(scatcrits)>0:
+            scatcrit=scatcrits[0]
+            if scatcrit['criterion_value'] in [True,"True","TRUE",'1','g']:
+              if 'specimen_scat_bounding_line_low' in pars:
                 if pars['specimen_scat_bounding_line_low'] != 0: # prevents error if there are no SCAT lines available
                     yy1=xx*pars['specimen_scat_bounding_line_low'][1]+pars['specimen_scat_bounding_line_low'][0]
                     yy2=xx*pars['specimen_scat_bounding_line_high'][1]+pars['specimen_scat_bounding_line_high'][0]

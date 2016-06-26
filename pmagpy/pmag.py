@@ -8087,8 +8087,8 @@ def initialize_acceptance_criteria3_0 ():
     acceptance_criteria=[]
     for crit in criteria:
         criterion=""
-        if 'int_' in crit['table_column']: crit['citerion']='IE-'
-        if 'dir_' in column: citerion='DE-'
+        if 'int_' in crit['table_column']: crit['criterion']='IE-'
+        if 'dir_' in column: criterion='DE-'
         if 'specimens' in column: criterion=criterion+'SPEC'
         if 'samples' in column: criterion=criterion+'SAMP'
         if 'sites' in column: criterion=criterion+'SITE'
@@ -8107,6 +8107,9 @@ def initialize_acceptance_criteria3_0 ():
             if c in crit['table_column'].split('.')[-1]:  crit['decimal_points']=3
         crit['criterion']=criterion
         acceptance_criteria.append(crit)
+# initialize average_by_sample_or_site to site
+    crit={'criterion':'average_by_sample_or_site','criterion_operation':'+','criterion_value':-999,'description':'','table_column':'sites.int_abs'}
+    acceptance_criteria.append(crit)
     #print 'PMAG1: ',acceptance_criteria
     return(acceptance_criteria)
 
