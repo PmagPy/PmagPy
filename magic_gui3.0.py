@@ -52,23 +52,13 @@ class MainFrame(wx.Frame):
 
         print '-I- Read in any available data from working directory'
         self.contribution = nb.Contribution(self.WD, dmodel=self.data_model)
-        
+
         #self.er_magic = builder.ErMagicBuilder(self.WD, self.data_model)
         self.edited = False
         self.validation_mode = False
 
-        # initialize magic data object
-        # attempt to read magic_measurements.txt, and all er_* and pmag_* files
-
-        #self.er_magic.get_all_magic_info()
-        
-        print '-I- Initializing headers'
-        #self.er_magic.init_default_headers()
-        #self.er_magic.init_actual_headers()
-        #
         print '-I- Initializing interface'
         self.InitUI()
-
 
     def InitUI(self):
         """
@@ -80,7 +70,7 @@ class MainFrame(wx.Frame):
         self.dir_path = wx.TextCtrl(self.panel, id=-1, size=(600, 25), style=wx.TE_READONLY)
         self.dir_path.SetValue(self.WD)
         self.change_dir_button = buttons.GenButton(
-            self.panel, id=-1, label="change dir", size=(-1, -1), name='change_dir_btn'
+            self.panel, id=-1, label="change directory", size=(-1, -1), name='change_dir_btn'
         )
         self.change_dir_button.SetBackgroundColour("#F8F8FF")
         self.change_dir_button.InitColours()
@@ -89,12 +79,18 @@ class MainFrame(wx.Frame):
         bSizer0.AddSpacer(40)
         bSizer0.Add(self.dir_path, wx.ALIGN_CENTER_VERTICAL)
 
-        self.bSizer_msg = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.ID_ANY, "Message", name='bsizer_msg'), wx.HORIZONTAL)
-        self.message = wx.StaticText(self.panel, -1, label="Some text will be here", name='messages')
+        self.bSizer_msg = wx.StaticBoxSizer(wx.StaticBox(
+            self.panel, wx.ID_ANY, "Message", name='bsizer_msg'),
+                                            wx.HORIZONTAL)
+        self.message = wx.StaticText(self.panel, -1,
+                                     label="Some text will be here",
+                                     name='messages')
         self.bSizer_msg.Add(self.message)
-        
+
         #---sizer 1 ----
-        bSizer1 = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.ID_ANY, "Add information to the data model", name='bSizer1'), wx.HORIZONTAL)
+        bSizer1 = wx.StaticBoxSizer(wx.StaticBox(
+            self.panel, wx.ID_ANY, "Add information to the data model", name='bSizer1'),
+                                    wx.HORIZONTAL)
 
         text = "1. add location data"
         self.btn1 = buttons.GenButton(self.panel, id=-1, label=text,
@@ -231,15 +227,13 @@ class MainFrame(wx.Frame):
         wait = wx.BusyInfo('Initializing data object in new directory, please wait...')
         wx.Yield()
         print '-I- Initializing magic data object'
-        # make new builder object, but reuse old data_model
-        #self.er_magic = builder.ErMagicBuilder(self.WD, self.er_magic.data_model)
-        self.contribution = nb.Contribution(self.WD)
+        # make new contribution object, but reuse old data_model
+        print dir(self)
+        self.contribution = nb.Contribution(self.WD, dmodel=self.data_model)
+        self.edited = False
         print '-I- Read in any available data from working directory'
         print '-I- Initializing headers'
-        #self.er_magic.init_default_headers()
-        #self.er_magic.init_actual_headers()
         del wait
-
 
     def on_open_grid_frame(self):
         self.Hide()
@@ -458,10 +452,9 @@ class MagICMenu(wx.MenuBar):
         clear = dia.do_clear()
         if clear:
             print '-I- Clear data object'
-            self.parent.er_magic = builder.ErMagicBuilder(self.parent.WD, self.parent.data_model)
-            print '-I- Initializing headers'
-            self.parent.er_magic.init_default_headers()
-            self.parent.er_magic.init_actual_headers()
+            self.contribution = nb.Contribution(self.WD, dmodel=self.data_model)
+            self.edited = False
+
 
 
     #def on_help(self, event):
