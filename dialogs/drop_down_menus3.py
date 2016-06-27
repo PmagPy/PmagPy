@@ -31,8 +31,11 @@ class Menus(object):
             self.magic_dataframe = self.contribution.tables[self.data_type]
         else:
             self.magic_dataframe = None
-        parent_ind = self.contribution.ancestry.index(self.data_type)
-        parent_table, self.parent_type = self.contribution.get_table_name(parent_ind+1)
+        if self.data_type == 'ages':
+            parent_ind, parent_table, self.parent_type = None, None, None
+        else:
+            parent_ind = self.contribution.ancestry.index(self.data_type)
+            parent_table, self.parent_type = self.contribution.get_table_name(parent_ind+1)
 
         self.grid = grid
         self.window = grid.Parent # parent window in which grid resides
@@ -47,11 +50,14 @@ class Menus(object):
         self.InitUI()
 
     def InitUI(self):
-        parent_table_name = self.parent_type + "s"
-        if parent_table_name in self.contribution.tables:
-            belongs_to = sorted(self.contribution.tables[parent_table_name].df[self.parent_type].unique())
-        else:
+        if self.data_type in ['orient', 'ages']:
             belongs_to = []
+        else:
+            parent_table_name = self.parent_type + "s"
+            if parent_table_name in self.contribution.tables:
+                belongs_to = sorted(self.contribution.tables[parent_table_name].df[self.parent_type].unique())
+            else:
+                belongs_to = []
 
         self.choices = {}
         if self.data_type in ['specimens', 'samples', 'sites']:

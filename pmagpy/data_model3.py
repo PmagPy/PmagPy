@@ -20,7 +20,7 @@ class DataModel(object):
 
     def parse_data_model(self, full_df):
         data_model = {}
-        levels = ['specimens', 'samples', 'sites', 'locations']
+        levels = ['specimens', 'samples', 'sites', 'locations', 'ages']
         for level in levels:
             df = DataFrame(full_df['tables'][level]['columns'])
             data_model[level] = df.transpose()

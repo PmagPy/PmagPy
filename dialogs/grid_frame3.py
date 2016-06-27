@@ -761,8 +761,9 @@ class GridBuilder(object):
             if self.parent_type:
                 col_labels.remove(self.parent_type[:-1])
                 col_labels[:0] = [self.parent_type[:-1]]
-            col_labels.remove(self.grid_type[:-1])
-            col_labels[:0] = [self.grid_type[:-1]]
+            if self.grid_type != 'ages':
+                col_labels.remove(self.grid_type[:-1])
+                col_labels[:0] = [self.grid_type[:-1]]
         grid = magic_grid.MagicGrid(parent=self.panel, name=self.grid_type,
                                     row_labels=[], col_labels=col_labels)
         grid.do_event_bindings()
