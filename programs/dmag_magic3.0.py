@@ -88,9 +88,9 @@ def main():
     # and don't have the offending code
     data = data_container.get_records_for_code(XLP, incl=False, use_slice=True,
                                                sli=data_slice)
-    # make sure measurement_flag is in the dataframe
-    if 'measurement_flag' not in data.columns:
-        data['measurement_flag'] = 'g'
+    # make sure quality is in the dataframe
+    if 'quality' not in data.columns:
+        data['quality'] = 'g'
     # get intensity key and make sure intensity data is not blank
     intlist = ['magn_moment', 'magn_volume', 'magn_mass']
     IntMeths = [col_name for col_name in data.columns if col_name in intlist]
@@ -117,7 +117,7 @@ def main():
                 INTblock = []
                 spec_data = plot_data[plot_data['specimen'] == spc]
                 for ind, rec in spec_data.iterrows():
-                    INTblock.append([float(rec[dmag_key]), 0, 0, float(rec[int_key]), 1, rec['flag']])
+                    INTblock.append([float(rec[dmag_key]), 0, 0, float(rec[int_key]), 1, rec['quality']])
                 if len(INTblock) > 2:
                     pmagplotlib.plotMT(FIG['demag'], INTblock,
                                        title, 0, units, norm)

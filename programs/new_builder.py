@@ -356,6 +356,8 @@ class MagicDataFrame(object):
                 name = '{}'.format(dtype)
             elif dtype == 'contribution':
                 name = 'doi'
+                # **** this is broken at the moment, fix it!
+                return
             # fix these:
             if dtype == 'age':
                 # find which key has _name in it, use that as index
@@ -371,7 +373,8 @@ class MagicDataFrame(object):
                 #self.df = pd.DataFrame()
                 self.df.index = self.df['table_column']
                 return
-            self.df.index = self.df[name]
+            if len(self.df):
+                self.df.index = self.df[name]
             #del self.df[name]
             #self.dtype = dtype
             # replace '' with None, so you can use isnull(), notnull(), etc.
