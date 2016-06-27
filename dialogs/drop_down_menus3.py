@@ -64,11 +64,17 @@ class Menus(object):
             self.choices = {1: (belongs_to, False)}
         if self.data_type == 'orient':
             self.choices = {1: (['g', 'b'], False)}
-
+        if self.data_type == 'ages':
+            for level in ['specimen', 'sample', 'site', 'location']:
+                if level in self.grid.col_labels:
+                    level_names = []
+                    if level + "s" in self.contribution.tables:
+                        level_names = list(self.contribution.tables[level+"s"].df.index.unique())
+                    num = self.grid.col_labels.index(level)
+                    self.choices[num] = (level_names, False)
         self.window.Bind(wx.grid.EVT_GRID_CELL_LEFT_CLICK,
                          lambda event: self.on_left_click(event, self.grid, self.choices),
                          self.grid)
-
         #
         cols = self.grid.GetNumberCols()
         col_labels = [self.grid.GetColLabelValue(col) for col in range(cols)]
@@ -125,7 +131,7 @@ class Menus(object):
         """
         Add drop-down-menu options for magic_method_codes columns
         """
-        if self.data_type == 'age':
+        if self.data_type == 'ages':
             method_list = vocab.age_methods
         else:
             method_list = vocab.methods

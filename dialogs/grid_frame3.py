@@ -133,15 +133,15 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
         self.Bind(wx.EVT_BUTTON, self.toggle_help, self.toggle_help_btn)
         # message
         self.help_msg_boxsizer = wx.StaticBoxSizer(wx.StaticBox(self.panel, -1, name='help_msg_boxsizer'), wx.VERTICAL)
-        self.default_msg_text = 'Edit {} here.\nYou can add or remove both rows and columns, however required columns may not be deleted.\nControlled vocabularies are indicated by **, and will have drop-down-menus.\nTo edit all values in a column, click the column header.\nYou can cut and paste a block of cells from an Excel-like file.\nJust click the top left cell and use command "v".\nColumns that pertain to interpretations will be marked with "++".'.format(self.grid_type + 's')
+        self.default_msg_text = 'Edit {} here.\nYou can add or remove both rows and columns, however required columns may not be deleted.\nControlled vocabularies are indicated by **, and will have drop-down-menus.\nTo edit all values in a column, click the column header.\nYou can cut and paste a block of cells from an Excel-like file.\nJust click the top left cell and use command "v".'.format(self.grid_type)
         txt = ''
-        if self.grid_type == 'location':
+        if self.grid_type == 'locations':
             txt = '\n\nNote: you can fill in location start/end latitude/longitude here.\nHowever, if you add sites in step 2, the program will calculate those values automatically,\nbased on site latitudes/logitudes.\nThese values will be written to your upload file.'
-        if self.grid_type == 'sample':
+        if self.grid_type == 'samples':
             txt = "\n\nNote: you can fill in lithology, class, and type for each sample here.\nHowever, if the sample's class, lithology, and type are the same as its parent site,\nthose values will propagate down, and will be written to your sample file automatically."
-        if self.grid_type == 'specimen':
+        if self.grid_type == 'specimens':
             txt = "\n\nNote: you can fill in lithology, class, and type for each specimen here.\nHowever, if the specimen's class, lithology, and type are the same as its parent sample,\nthose values will propagate down, and will be written to your specimen file automatically."
-        if self.grid_type == 'age':
+        if self.grid_type == 'ages':
             txt = "\n\nNote: only ages for which you provide data will be written to your upload file."
         self.default_msg_text += txt
         self.msg_text = wx.StaticText(self.panel, label=self.default_msg_text,
@@ -746,22 +746,37 @@ class GridBuilder(object):
         if isinstance(self.magic_dataframe, nb.MagicDataFrame) and len(self.magic_dataframe.df):
             # get columns and reorder slightly
             col_labels = list(self.magic_dataframe.df.columns)
-            if self.parent_type:
-                col_labels.remove(self.parent_type[:-1])
-                col_labels[:0] = [self.parent_type[:-1]]
-            col_labels.remove(self.magic_dataframe.df.index.name)
-            col_labels[:0] = [self.magic_dataframe.df.index.name]
+            if self.grid_type == 'ages':
+                levels = ['specimen', 'sample', 'site', 'location']
+                for label in levels[:]:
+                    if label in col_labels:
+                        col_labels.remove(label)
+                    else:
+                        levels.remove(label)
+                col_labels[:0] = levels
+            else:
+                if self.parent_type:
+                    col_labels.remove(self.parent_type[:-1])
+                    col_labels[:0] = [self.parent_type[:-1]]
+                col_labels.remove(self.magic_dataframe.df.index.name)
+                col_labels[:0] = [self.magic_dataframe.df.index.name]
             self.magic_dataframe.df = self.magic_dataframe.df[col_labels]
             row_labels = self.magic_dataframe.df.index
+        # if there is no pre-existing data, do some defaults:
         else:
-            # put in some default headers
+            # default headers
             col_labels = list(self.data_model.get_headers(self.grid_type, 'Names'))
             col_labels[:0] = self.reqd_headers
             col_labels = sorted(set(col_labels))
-            if self.parent_type:
+            # defaults are different for ages
+            if self.grid_type == 'ages':
+                levels = ['specimen', 'sample', 'site', 'location']
+                for label in levels:
+                    col_labels.remove(label)
+                col_labels[:0] = levels
+            else:
                 col_labels.remove(self.parent_type[:-1])
                 col_labels[:0] = [self.parent_type[:-1]]
-            if self.grid_type != 'ages':
                 col_labels.remove(self.grid_type[:-1])
                 col_labels[:0] = [self.grid_type[:-1]]
         grid = magic_grid.MagicGrid(parent=self.panel, name=self.grid_type,
@@ -770,8 +785,6 @@ class GridBuilder(object):
 
         self.grid = grid
         return grid
-
-
 
     def add_data_to_grid(self, grid, grid_type=None, incl_pmag=True):
         if isinstance(self.magic_dataframe, nb.MagicDataFrame):
@@ -817,9 +830,9 @@ class GridBuilder(object):
             print '-I- No changes to save'
             return
 
-        if self.grid_type == 'ages':
-            age_data_type = self.er_magic.age_type
-            self.er_magic.write_ages = True
+        #if self.grid_type == 'ages':
+        #    age_data_type = self.er_magic.age_type
+        #    self.er_magic.write_ages = True
 
         starred_cols = self.grid.remove_starred_labels()
         # locks in value in cell currently edited
