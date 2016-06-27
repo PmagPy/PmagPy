@@ -782,7 +782,7 @@ class GridBuilder(object):
             grid.add_row()
         # if adding actual data, remove the blank row
         else:
-            if not grid.GetCellValue(0, 0):
+            if not grid.GetCellValue(0, 0) and grid.GetNumberRows() > 1:
                 grid.remove_row(0)
 
     def add_age_data_to_grid(self):
