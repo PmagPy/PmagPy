@@ -2061,7 +2061,7 @@ class Arai_GUI(wx.Frame):
                     if crit['table_column']==table_column:
                         crit['criterion_value']=-999
                 accept.append(crit)
-            command="value=dia.set_%s.GetValue()"%crit['criterion_value'].replace('site','sample')
+            command="value=dia.set_site_int_sigma_uT.GetValue()"
         try:
             exec command
         except:
@@ -2127,10 +2127,14 @@ class Arai_GUI(wx.Frame):
                 continue
             if 'specimen_int_uT' not in self.Data[specimen]['pars'].keys():
                 continue
+            if 'measurement_step_min' in self.Data[specimen]['pars'].keys() and 'meas_step_min' not in self.Data[specimen]['pars'].keys():
+                self.Data[specimen]['pars']['meas_step_min']=self.Data[specimen]['pars']['measurement_step_min']
+            if 'measurement_step_max' in self.Data[specimen]['pars'].keys() and 'meas_step_max' not in self.Data[specimen]['pars'].keys():
+                self.Data[specimen]['pars']['meas_step_max']=self.Data[specimen]['pars']['measurement_step_max']
             tmin=self.Data[specimen]['pars']['meas_step_min']
             tmax=self.Data[specimen]['pars']['meas_step_max']
-            print 'GUI3: ',self.Data.keys()
             pars=thellier_gui_lib.get_PI_parameters(self.Data,self.acceptance_criteria,self.preferences,specimen,tmin,tmax,self.GUI_log,THERMAL,MICROWAVE)
+            #print 'GUI3: ',pars
             self.Data[specimen]['pars']=pars
             self.Data[specimen]['pars']['treat_dc_field']=self.Data[specimen]['treat_dc_field']
             self.Data[specimen]['pars']['treat_dc_field_phi']=self.Data[specimen]['treat_dc_field_phi']
