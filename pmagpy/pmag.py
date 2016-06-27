@@ -659,15 +659,36 @@ def dia_vgp(*args): # new function interface by J.Holmes, SIO, 6/1/2011
     plat,plong=plat/rad,plong/rad
     return plong.tolist(),plat.tolist(),dp.tolist(),dm.tolist()
 
-def int_pars(x,y,vds):
+def int_pars(x,y,vds,**kwargs):
     """
      calculates York regression and Coe parameters (with Tauxe Fvds)
     """
 # first do linear regression a la York
+    if 'version' in kwargs.keys() and kwargs['version']==3: # do Data Model 3 way:
+        n_key='int_n_measurements'
+        b_key='int_b'
+        sigma_key='int_b_sigma'
+        f_key='int_f'
+        fvds_key='int_fvds'
+        g_key='int_g'
+        q_key='int_q'
+        b_beta_key=='int_b_beta'
+
+    else: # version 2
+        n_key='specimen_int_n'
+        b_key='specimen_b'
+        sigma_key='specimen_b_sigma'
+        f_key='specimen_f'
+        fvds_key='specimen_fvds'
+        g_key='specimen_g'
+        q_key='specimen_q'
+        b_beta_key=='specimen_b_beta'
+
+
     xx,yer,xer,xyer,yy,xsum,ysum,xy=0.,0.,0.,0.,0.,0.,0.,0.
     xprime,yprime=[],[]
     pars={}
-    pars["specimen_int_n"]=len(x)
+    pars[n_key]=len(x)
     n=float(len(x))
     if n<=2:
         print "shouldn't be here at all!"
@@ -686,11 +707,11 @@ def int_pars(x,y,vds):
         xer+= (x[i]-xsum/n)**2.
         xyer+= (y[i]-ysum/n)*(x[i]-xsum/n)
     slop=-numpy.sqrt(yer/xer)
-    pars["specimen_b"]=slop
+    pars[b_key]=slop
     s1=2.*yer-2.*slop*xyer
     s2=(n-2.)*xer
     sigma=numpy.sqrt(s1/s2)
-    pars["specimen_b_sigma"]=sigma
+    pars[sigma_key]=sigma
     s=(xy-(xsum*ysum/n))/(xx-(xsum**2.)/n)
     r=(s*xsig)/ysig
     pars["specimen_rsc"]=r**2.
@@ -704,16 +725,16 @@ def int_pars(x,y,vds):
         dy.append(abs(yprime[i+1]-yprime[i]))
         sumdy+= dy[i]**2.
     f=dyt/ytot
-    pars["specimen_f"]=f
+    pars[f_key]=f
     pars["specimen_ytot"]=ytot
     ff=dyt/vds
-    pars["specimen_fvds"]=ff
+    pars[fvds_key]=ff
     ddy=(1./dyt)*sumdy
     g=1.-ddy/dyt
-    pars["specimen_g"]=g
+    pars[g_key]=g
     q=abs(slop)*f*g/sigma
-    pars["specimen_q"]=q
-    pars["specimen_b_beta"]=-sigma/slop
+    pars[q_key]=q
+    pars[b_beta_key]=-sigma/slop
     return pars,0
 
 def dovds(data):
@@ -1681,10 +1702,42 @@ def PintPars(datablock,araiblock,zijdblock,start,end,accept,**kwargs):
         temp_key,min_key,max_key='treat_temp','meas_step_min','meas_step_max'
         dc_theta_key,dc_phi_key='treat_dc_field_theta','treat_dc_field_phi'
         datablock=datablock.to_dict('records')  # convert dataframe to list of dictionaries
+        z_key='int_z'
+        drats_key='int_drats'
+        drat_key='int_drat'
+        md_key='int_md'
+        dec_key='dir_dec'
+        inc_key='dir_inc'
+        mad_key='int_mad_free'
+        dang_key='int_dang'
+        ptrm_key='int_n_ptrm'
+        theta_key='int_theta'
+        gamma_key='int_gamma'
+        delta_key='int_delta'
+        frac_key='int_frac'
+        gmax_key='int_gmax'
+        scat_key='int_scat'
     else:
         beta_key='specimen_b_beta'
         meth_key='magic_method_codes'
         temp_key,min_key,max_key='treatment_temp','measurement_step_min','measurement_step_max'
+        z_key='specimen_z'
+        drats_key='specimen_drats'
+        drat_key='specimen_drat'
+        md_key='specimen_md'
+        dec_key='specimen_dec'
+        inc_key='specimen_inc'
+        mad_key='specimen_mad'
+        dang_key='specimen_dang'
+        ptrm_key='specimen_int_ptrm_n'
+        theta_key='specimen_theta'
+        gamma_key='specimen_gamma'
+        delta_key='specimen_delta'
+        frac_key='specimen_frac'
+        gmax_key='specimen_gmax'
+        scat_key='specimen_scat'
+
+
     first_Z,first_I,zptrm_check,ptrm_check,ptrm_tail=[],[],[],[],[]
     methcode,ThetaChecks,DeltaChecks,GammaChecks="","","",""
     zptrm_check=[]
@@ -1792,8 +1845,8 @@ def PintPars(datablock,araiblock,zijdblock,start,end,accept,**kwargs):
             if Trat>1  and Trat>Frat:
                 ZigZag=Trat # fails zigzag on directions
                 methcode="SM-TTEST"
-    pars["specimen_Z"]=ZigZag
-    pars["method_codes"]=methcode
+    pars[z_key]=ZigZag
+    pars[meth_key]=methcode
 # do drats
     if len(ptrm_check) != 0:
         diffcum,drat_max=0,0
@@ -1809,8 +1862,8 @@ def PintPars(datablock,araiblock,zijdblock,start,end,accept,**kwargs):
                     if irec[0]==step:break
                 diffcum+=prec[3]-irec[3]
                 if abs(prec[3]-irec[3])>drat_max:drat_max=abs(prec[3]-irec[3])
-        pars["specimen_drats"]=(100*abs(diffcum)/first_I[zend][3])
-        pars["specimen_drat"]=(100*abs(drat_max)/first_I[zend][3])
+        pars[drats_key]=(100*abs(diffcum)/first_I[zend][3])
+        pars[drat_key]=(100*abs(drat_max)/first_I[zend][3])
     elif len(zptrm_check) != 0:
         diffcum=0
         for prec in zptrm_check:
@@ -1824,10 +1877,10 @@ def PintPars(datablock,araiblock,zijdblock,start,end,accept,**kwargs):
                 for irec in first_I:
                     if irec[0]==step:break
                 diffcum+=prec[3]-irec[3]
-        pars["specimen_drats"]=(100*abs(diffcum)/first_I[zend][3])
+        pars[drats_key]=(100*abs(diffcum)/first_I[zend][3])
     else:
-        pars["specimen_drats"]=-1
-        pars["specimen_drat"]=-1
+        pars[drats_key]=-1
+        pars[drat_key]=-1
 # and the pTRM tails
     if len(ptrm_tail) != 0:
         for trec in ptrm_tail:
@@ -1835,33 +1888,32 @@ def PintPars(datablock,araiblock,zijdblock,start,end,accept,**kwargs):
             for irec in first_I:
                 if irec[0]==step:break
             if abs(trec[3]) >dmax:dmax=abs(trec[3])
-        pars["specimen_md"]=(100*dmax/vds)
-    else: pars["specimen_md"]=-1
-    pars["measurement_step_min"]=bstep
-    pars["measurement_step_max"]=estep
-    pars["specimen_dec"]=PCA["specimen_dec"]
-    pars["specimen_inc"]=PCA["specimen_inc"]
-    pars["specimen_int_mad"]=PCA["specimen_mad"]
-    pars["specimen_int_dang"]=PCA["specimen_dang"]
-    #pars["specimen_int_ptrm_n"]=len(ptrm_check) # this is WRONG!
-    pars["specimen_int_ptrm_n"]=Nptrm
+        pars[md_key]=(100*dmax/vds)
+    else: pars[md_key]=-1
+    pars[min_key]=bstep
+    pars[max_key]=estep
+    pars[dec_key]=PCA["specimen_dec"]
+    pars[inc_key]=PCA["specimen_inc"]
+    pars[mad_key]=PCA["specimen_mad"]
+    pars[dang_key]=PCA["specimen_dang"]
+    pars[ptrm_key]=Nptrm
 # and the ThetaChecks
     if ThetaChecks!="":
         t=0
         for theta in ThetaChecks:
             if theta[0]>=bstep and theta[0]<=estep and theta[1]>t:t=theta[1]
-        pars['specimen_theta']=t
+        pars[theta_key]=t
     else:
-        pars['specimen_theta']=-1
+        pars[theta_key]=-1
 # and the DeltaChecks
     if DeltaChecks!="":
         d=0
         for delta in DeltaChecks:
             if delta[0]>=bstep and delta[0]<=estep and delta[1]>d:d=delta[1]
-        pars['specimen_delta']=d
+        pars[delta_keyd
     else:
-        pars['specimen_delta']=-1
-    pars['specimen_gamma']=-1
+        pars[delta_key]=-1
+    pars[gamma_key]=-1
     if GammaChecks!="":
         for gamma in GammaChecks:
             if gamma[0]<=estep: pars['specimen_gamma']=gamma[1]
@@ -1903,11 +1955,11 @@ def PintPars(datablock,araiblock,zijdblock,start,end,accept,**kwargs):
     vector_diffs_segment=vector_diffs[zstart:zend]
     # FRAC calculation
     FRAC=sum(vector_diffs_segment)/vds
-    pars['specimen_frac']=FRAC
+    pars[frac_key]=FRAC
 
     # gap_max calculation
     max_FRAC_gap=max(vector_diffs_segment/sum(vector_diffs_segment))
-    pars['specimen_gmax']=max_FRAC_gap
+    pars[gmax_key]=max_FRAC_gap
 
 
     #---------------------------------------------------------------------
@@ -1919,7 +1971,7 @@ def PintPars(datablock,araiblock,zijdblock,start,end,accept,**kwargs):
     pars["fail_arai_beta_box_scatter"]=False # fail scat due to arai plot data points
     pars["fail_ptrm_beta_box_scatter"]=False # fail scat due to pTRM checks
     pars["fail_tail_beta_box_scatter"]=False # fail scat due to tail checks
-    pars["specimen_scat"]="1" # Pass by default
+    pars[scat_key]="1" # Pass by default
 
     #--------------------------------------------------------------
     # collect all Arai plot data points in arrays
@@ -2033,7 +2085,7 @@ def PintPars(datablock,araiblock,zijdblock,start,end,accept,**kwargs):
 
     x_ptrm_check_for_SCAT,y_ptrm_check_for_SCAT=[],[]
     for k in range(len(ptrm_checks_temperatures)):
-      if ptrm_checks_temperatures[k] >= pars["measurement_step_min"] and ptrm_checks_starting_temperatures <= pars["measurement_step_max"] :
+      if ptrm_checks_temperatures[k] >= pars[min_key] and ptrm_checks_starting_temperatures <= pars[max_key] :
             x_ptrm_check_for_SCAT.append(x_ptrm_check[k])
             y_ptrm_check_for_SCAT.append(y_ptrm_check[k])
 
@@ -2048,7 +2100,7 @@ def PintPars(datablock,araiblock,zijdblock,start,end,accept,**kwargs):
     x_tail_check_for_SCAT,y_tail_check_for_SCAT=[],[]
 
     for k in range(len(tail_check_temperatures)):
-      if tail_check_temperatures[k] >= pars["measurement_step_min"] and tail_checks_starting_temperatures[k] <= pars["measurement_step_max"] :
+      if tail_check_temperatures[k] >= pars[min_key] and tail_checks_starting_temperatures[k] <= pars[max_key] :
             x_tail_check_for_SCAT.append(x_tail_check[k])
             y_tail_check_for_SCAT.append(y_tail_check[k])
 
@@ -2063,7 +2115,7 @@ def PintPars(datablock,araiblock,zijdblock,start,end,accept,**kwargs):
     # in this case, scat pass
     if beta_key in accept.keys() and accept[beta_key]!="":
         b_beta_threshold=float(accept[beta_key])
-        b=pars['specimen_b']             # best fit line
+        b=pars[b_key]             # best fit line
         cm_x=mean(array(x_Arai_segment)) # x center of mass
         cm_y=mean(array(y_Arai_segment)) # y center of mass
         a=cm_y-b*cm_x
@@ -2153,9 +2205,9 @@ def PintPars(datablock,araiblock,zijdblock,start,end,accept,**kwargs):
         # check if specimen_scat is PASS or FAIL:
 
         if pars["fail_tail_beta_box_scatter"] or pars["fail_ptrm_beta_box_scatter"] or pars["fail_arai_beta_box_scatter"]:
-              pars["specimen_scat"]='0'
+              pars[scat_key]='0'
         else:
-              pars["specimen_scat"]='1'
+              pars[scat_key]='1'
 
     return pars,0
 

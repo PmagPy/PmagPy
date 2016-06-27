@@ -13,6 +13,8 @@
 #
 # Initial revision: September 2013: 
 #
+# Conversion to Data Model 3.0:  June, 2016  / Lisa Tauxe
+#
 #============================================================================================
 
 import sys
@@ -150,7 +152,7 @@ class PintPars(object):
         self.B_lab_cart = lib_direct.dir2cart(self.B_lab_dir)
 
   #      self.pars['method_codes']=Data[self.s]['pars']['method_codes']
-        self.pars['int_n']=int(self.end-self.start+1)
+        self.pars['int_n_measurements']=int(self.end-self.start+1)
         self.pars['int_n_total']=len(self.x_Arai)
 
  
@@ -770,7 +772,7 @@ class PintPars(object):
 
 
 def make_thing():
-    """ makes example PintPars object """
+    """ makes example PintPars object - this is still in model 2.0 """
     cwd = os.getcwd()
     main_dir = cwd + '/SPD'
     try:
