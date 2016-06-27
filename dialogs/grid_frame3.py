@@ -775,8 +775,9 @@ class GridBuilder(object):
                     col_labels.remove(label)
                 col_labels[:0] = levels
             else:
-                col_labels.remove(self.parent_type[:-1])
-                col_labels[:0] = [self.parent_type[:-1]]
+                if self.parent_type:
+                    col_labels.remove(self.parent_type[:-1])
+                    col_labels[:0] = [self.parent_type[:-1]]
                 col_labels.remove(self.grid_type[:-1])
                 col_labels[:0] = [self.grid_type[:-1]]
         grid = magic_grid.MagicGrid(parent=self.panel, name=self.grid_type,
@@ -847,7 +848,11 @@ class GridBuilder(object):
                 try:
                     self.magic_dataframe.update_row(key, data)
                 except IndexError:
-                    self.magic_dataframe.add_row(data[self.grid_type[:-1]], data)
+                    if self.grid_type == 'ages':
+                        label = key
+                    else:
+                        label = self.grid_type[:-1]
+                    self.magic_dataframe.add_row(label, data)
             # update the contribution with the new dataframe
             self.contribution.tables[self.grid_type] = self.magic_dataframe
             # *** probably don't actually want to write to file, here (but maybe)
