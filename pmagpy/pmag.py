@@ -1910,7 +1910,7 @@ def PintPars(datablock,araiblock,zijdblock,start,end,accept,**kwargs):
         d=0
         for delta in DeltaChecks:
             if delta[0]>=bstep and delta[0]<=estep and delta[1]>d:d=delta[1]
-        pars[delta_keyd
+        pars[delta_key]
     else:
         pars[delta_key]=-1
     pars[gamma_key]=-1
