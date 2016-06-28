@@ -620,8 +620,7 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
             if self.remove_cols_mode:
                 self.remove_col_label(event)
             else:
-                pass  # ** no drop_down_menus working yet
-                #self.drop_down_menu.on_label_click(event)
+                self.drop_down_menu.on_label_click(event)
         else:
             if event.Col < 0  and self.grid_type != 'age':
                 self.onSelectRow(event)
