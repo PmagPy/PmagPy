@@ -2125,7 +2125,7 @@ def download_magic(infile, dir_path='.', input_dir_path='.',
     File=[] # will contain all non-blank lines from downloaded file
     for line in infile:
         line=line.replace('\n','')
-        if line[0:4]=='>>>>' or len(line.split('\t'))>1: # skip blank lines
+        if line[0:4]=='>>>>' or len(line.strip()) > 0:  # skip blank lines
             File.append(line)
     LN=0 # tracks our progress iterating through File
     type_list=[]
@@ -2152,6 +2152,7 @@ def download_magic(infile, dir_path='.', input_dir_path='.',
         Recs=[]
         while LN<len(File):
             line=File[LN]
+            # finish up one file type and then break
             if ">>>>" in line and len(Recs)>0:
                 if filenum==0:
                     outfile=dir_path+"/"+file_type.strip()+'.txt'
@@ -2159,11 +2160,12 @@ def download_magic(infile, dir_path='.', input_dir_path='.',
                     outfile=dir_path+"/"+file_type.strip()+'_'+str(filenum)+'.txt'
                 NewRecs=[]
                 for rec in Recs:
-                    if 'magic_method_codes' in rec.keys():
-                        meths=rec['magic_method_codes'].split(":")
+                    if 'method_codes' in rec.keys():
+                        meths=rec['method_codes'].split(":")
                         if len(meths)>0:
                             methods=""
-                            for meth in meths: methods=methods+meth.strip()+":" # get rid of nasty spaces!!!!!!
+                            for meth in meths:
+                                methods=methods+meth.strip()+":" # get rid of nasty spaces!!!!!!
                             rec['magic_method_codes']=methods[:-1]
                     NewRecs.append(rec)
                 pmag.magic_write(outfile,Recs,file_type)
@@ -2172,6 +2174,7 @@ def download_magic(infile, dir_path='.', input_dir_path='.',
                 Recs=[]
                 LN+=1
                 break
+            # keep adding records of the same file type
             else:
                 rec=line.split('\t')
                 Rec={}
@@ -2213,7 +2216,7 @@ def download_magic(infile, dir_path='.', input_dir_path='.',
         locs,file_type=pmag.magic_read(os.path.join(dir_path, 'locations.txt'))
     if len(locs)>0: # at least one location
         for loc in locs:
-            loc_name = loc['location_name']
+            loc_name = loc['location']
             if print_progress==True:
                 print 'location_'+str(locnum)+": ", loc_name
             lpath=dir_path+'/Location_'+str(locnum)
@@ -2231,7 +2234,7 @@ def download_magic(infile, dir_path='.', input_dir_path='.',
                 recs,file_type=pmag.magic_read(dir_path+'/'+f+'.txt')
                 if print_progress==True:
                     print len(recs),' read in'
-                lrecs=pmag.get_dictitem(recs, 'location_name', loc_name, 'T')
+                lrecs=pmag.get_dictitem(recs, 'location', loc_name, 'T')
                 if len(lrecs)>0:
                     pmag.magic_write(lpath+'/'+f+'.txt',lrecs,file_type)
                     if print_progress==True:
