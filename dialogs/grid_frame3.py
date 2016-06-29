@@ -521,8 +521,14 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
         Remove specified grid row.
         If no row number is given, remove the last row.
         """
+        text = "Are you sure?  If you select delete you won't be able to retrieve these rows..."
+        dia = pw.ChooseOne(self, "Yes, delete rows", "Leave rows for now", text)
+        dia.Centre()
+        result = dia.ShowModal()
+        if result == wx.ID_NO:
+            return
+        default = (255, 255, 255, 255)
         if row_num == -1:
-            default = (255, 255, 255, 255)
             # unhighlight any selected rows:
             for row in self.selected_rows:
                 attr = wx.grid.GridCellAttr()
@@ -531,26 +537,22 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
             row_num = self.grid.GetNumberRows() - 1
             self.deleteRowButton.Disable()
             self.selected_rows = {row_num}
-
-        function_mapping = {'specimen': self.er_magic.delete_specimen,
-                            'sample': self.er_magic.delete_sample,
-                            'site': self.er_magic.delete_site,
-                            'location': self.er_magic.delete_location,
-                            'result': self.er_magic.delete_result}
-
-        names = [self.grid.GetCellValue(row, 0) for row in self.selected_rows]
-        orphans = []
-        for name in names:
-            if name:
-                try:
-                    row = self.grid.row_labels.index(name)
-                    function_mapping[self.grid_type](name)
-                    orphans.extend([name])
-                # if user entered a name, then deletes the row before saving,
-                # there will be a ValueError
-                except ValueError:
-                    pass
+        # remove row(s) from the contribution
+        df = self.contribution.tables[self.grid_type].df
+        row_nums = range(len(df))
+        df = df.iloc[[i for i in row_nums if i not in self.selected_rows]]
+        self.contribution.tables[self.grid_type].df = df
+        # now remove row(s) from grid
+        # delete rows, adjusting the row # appropriately as you delete
+        for num, row in enumerate(self.selected_rows):
+            row -= num
+            if row < 0:
+                row = 0
             self.grid.remove_row(row)
+            attr = wx.grid.GridCellAttr()
+            attr.SetBackgroundColour(default)
+            self.grid.SetRowAttr(row, attr)
+        # reset the grid
         self.selected_rows = set()
         self.deleteRowButton.Disable()
         self.grid.Refresh()

@@ -827,35 +827,42 @@ class MethodCodeDemystifier(wx.StaticBoxSizer):
 
 class ChooseOne(wx.Dialog):
 
-    def __init__(self, parent, yes, no):
+    def __init__(self, parent, yes, no, text=""):
         super(ChooseOne, self).__init__(parent)
         self.yes = yes
         self.no = no
+        self.text = text
         self.InitUI()
-        self.SetSize((250, 200))
         self.SetTitle("Choose one")
 
+
     def InitUI(self):
-        print self.yes
-        pnl = wx.Panel(self)
         vbox = wx.BoxSizer(wx.VERTICAL)
 
         btn_yes = wx.Button(self, label=self.yes)
         btn_no = wx.Button(self, label=self.no)
-        
+        btn_yes.SetDefault()
+
         hbox1 = wx.BoxSizer(wx.HORIZONTAL)
-        hbox1.Add(btn_yes)
-        hbox1.Add(btn_no)
+        if self.text:
+            textBox = wx.StaticText(self, wx.ID_ANY, label=self.text)
+            hbox1.Add(textBox, flag=wx.ALL, border=5)
+        
+        hbox2 = wx.BoxSizer(wx.HORIZONTAL)
+        hbox2.Add(btn_yes)
+        hbox2.Add(btn_no, flag=wx.LEFT, border=20)
 
         self.Bind(wx.EVT_BUTTON, self.on_yes, btn_yes)
         self.Bind(wx.EVT_BUTTON, self.on_no, btn_no)
-        
-        #pnl.SetSizer(sbs)
-        
         vbox.Add(hbox1,
+                 flag=wx.ALIGN_CENTER|wx.TOP|wx.BOTTOM, border=10)
+
+        
+        vbox.Add(hbox2,
                  flag=wx.ALIGN_CENTER|wx.TOP|wx.BOTTOM, border=10)
         
         self.SetSizer(vbox)
+        vbox.Fit(self)
         
     def on_yes(self, event):
         self.Destroy()
