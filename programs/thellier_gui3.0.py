@@ -4,15 +4,14 @@
 # LOG HEADER:
 #============================================================================================
 #
-# Thellier GUI ersion 3.0 6/21/16 (revisions by Lisa Tauxe)
-# 1) fixed get_data() to read in new data format
-# 2) got acceptance criteria read in to a list of dictionaries
-# TODO:  
-#   1) need to fix drawing of interpretation and application of criteria
-#   2) need to do anisotropy, NLT and cooling rate
-#   3) need to fix output of MagIC tables
-#   4) need to glue to new Pmag GUI
-#
+# Thellier_GUI Version 3.0  6/30/16 (Lisa Tauxe)
+# Adding in the ability to read in and write out 
+# Data model 3.0 data sets
+# so far: 
+#   1) data read in as 3.0  and converted to 2.5
+#   2) acceptance criteria read in and converted to 2.5
+#   3) previous interpreations read  in   and converted to 2.5
+# 
 # Thellier_GUI Version 2.29 01/29/2015
 # 1) fix STDEV-OPT extended error bar plor display bug 
 # 2) fix paleointensity plot legend when using extended error bars
@@ -143,7 +142,7 @@
 global CURRENT_VERSION
 global MICROWAVE
 global THERMAL
-CURRENT_VERSION = "v.2.29"
+CURRENT_VERSION = "v.3.0"
 MICROWAVE=False
 THERMAL=True
 
@@ -157,9 +156,9 @@ from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigCanvas
 import sys, pylab, scipy, os
 #import pdb
 import pmagpy.pmag as pmag
-import new_builder as nb
-import numpy as np
 from pmagpy import check_updates
+import new_builder as nb
+#import numpy as np
 try:
     import thellier_gui_preferences
 except:
@@ -184,8 +183,8 @@ import dialogs.thellier_consistency_test as thellier_consistency_test
 import copy
 from copy import deepcopy
 
-import dialogs.thellier_gui_dialogs3_0 as thellier_gui_dialogs
-import dialogs.thellier_gui_lib3_0 as thellier_gui_lib
+import dialogs.thellier_gui_dialogs as thellier_gui_dialogs
+import dialogs.thellier_gui_lib as thellier_gui_lib
 
 matplotlib.rc('xtick', labelsize=10) 
 matplotlib.rc('ytick', labelsize=10) 
@@ -219,8 +218,8 @@ class Arai_GUI(wx.Frame):
         """  
         args=sys.argv
         if "-h" in args:
-            print TEXT
-            sys.exit()
+	   print TEXT
+	   sys.exit()
               
         global FIRST_RUN
         FIRST_RUN = True if standalone else False
@@ -231,15 +230,13 @@ class Arai_GUI(wx.Frame):
             self.WD = WD
             self.get_DIR(self.WD)
         else:
-            self.get_DIR()        # choose directory dialog
-
-        self.WD = os.path.realpath(self.WD)
+            self.get_DIR()        # choose directory dialog        
+        
          
         # inialize selecting criteria
-        self.acceptance_criteria=pmag.initialize_acceptance_criteria3_0()
-        #print 'GUI7: ', self.acceptance_criteria
+        self.acceptance_criteria=pmag.initialize_acceptance_criteria()
         self.add_thellier_gui_criteria()
-        self.read_criteria_file(os.path.join(self.WD,"criteria.txt"))
+        self.read_criteria_file(os.path.join(self.WD,"pmag_criteria.txt"))
         # preferences
 
         preferences=self.get_preferences()
@@ -249,15 +246,17 @@ class Arai_GUI(wx.Frame):
              
         self.Data,self.Data_hierarchy,self.Data_info={},{},{}
         self.MagIC_directories_list=[]
-        self.Data,self.Data_hierarchy,self.container=self.get_data(self.meas_file) # Get data from measurements and specimen if exist.
-        self.Data_info=self.get_data_info(self.container) # get all locations etc. (from sites, locations, criteria)
-        #print 'GUI1: ',self.Data['mc01a']['pars']
-        #if  "-tree" in sys.argv and FIRST_RUN:
-        #    self.open_magic_tree()
+
+        self.Data,self.Data_hierarchy=self.get_data() # Get data from magic_measurements and rmag_anisotropy if exist.
+        self.Data_info=self.get_data_info() # get all ages, locations etc. (from er_ages, er_sites, er_locations)
+
+        if  "-tree" in sys.argv and FIRST_RUN:
+            self.open_magic_tree()
 
         self.Data_samples={} # interpretations of samples are kept here
         self.Data_sites={}   # interpretations of sites are kept here
         #self.Data_samples_or_sites={}   # interpretations of sites are kept here
+
         self.last_saved_pars={}
         self.specimens=self.Data.keys()         # get list of specimens
         self.specimens.sort()                   # get list of specimens
@@ -272,7 +271,7 @@ class Arai_GUI(wx.Frame):
         self.arrow_keys()
         FIRST_RUN=False
 
-        #self.get_previous_interpretation() # get interpretations from specimens.txt
+        self.get_previous_interpretation() # get interpretations from pmag_specimens.txt
         FIRST_RUN=False
         self.Bind(wx.EVT_CLOSE, self.on_menu_exit) 
         self.close_warning=False
@@ -281,9 +280,16 @@ class Arai_GUI(wx.Frame):
         """ 
         open dialog box for choosing a working directory 
         """
+        if "-DM" in sys.argv and FIRST_RUN: # set data model version number - default is Data Model 2.5 
+            ind=sys.argv.index('-DM') # set
+            self.data_model=int(sys.argv[ind+1])
+            meas_file='measurements.txt'   
+        else:
+            self.data_model=2.5
+            meas_file='magic_measurements.txt'   
         if "-WD" in sys.argv and FIRST_RUN:
             ind=sys.argv.index('-WD')
-            self.WD=sys.argv[ind+1]
+            self.WD=sys.argv[ind+1] 
         elif not WD: # if no arg was passed in for WD, make a dialog to choose one   
             dialog = wx.DirDialog(None, "Choose a directory:",defaultPath = self.currentDirectory ,style=wx.DD_DEFAULT_STYLE | wx.DD_NEW_DIR_BUTTON | wx.DD_CHANGE_DIR)
             ok = dialog.ShowModal()
@@ -292,7 +298,7 @@ class Arai_GUI(wx.Frame):
             else:
                 self.WD = os.getcwd()
             dialog.Destroy()
-        self.meas_file="measurements.txt"
+        self.magic_file=os.path.join(self.WD,meas_file)
             #intialize GUI_log
         self.GUI_log=open(os.path.join(self.WD, "thellier_GUI.log"),'w')
         self.GUI_log.write("starting...\n")
@@ -321,7 +327,7 @@ class Arai_GUI(wx.Frame):
 
         dw, dh = wx.DisplaySize() 
         w, h = self.GetSize()
-        #print 'display', dw, dh
+        #print 'diplay', dw, dh
         #print "gui", w, h
         r1=dw/1250.
         r2=dw/750.
@@ -380,8 +386,7 @@ class Arai_GUI(wx.Frame):
 
         self.fig4 = pylab.Figure((2.5*self.GUI_RESOLUTION, 2.5*self.GUI_RESOLUTION), dpi=self.dpi)
         self.canvas4 = FigCanvas(self.panel, -1, self.fig4)
-        critrecs=pmag.get_dictitem(self.acceptance_criteria,'criterion','average_by_sample_or_site','T') # check for this constraint
-        if len(critrecs)>0 and critrecs[0]['table_column']=='sites.int_abs':
+        if self.acceptance_criteria['average_by_sample_or_site']['value']=='site':
             TEXT="Site data"
         else:
             TEXT="Sample data"            
@@ -439,6 +444,7 @@ class Arai_GUI(wx.Frame):
         #----------------------------------------------------------------------                     
         # select temperature bounds
         #----------------------------------------------------------------------                     
+
         if  self.s in self.Data.keys() and self.Data[self.s]['T_or_MW']=="T": 
             box_sizer_select_temp = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY,"temperatures" ), wx.HORIZONTAL )
         else: 
@@ -490,12 +496,19 @@ class Arai_GUI(wx.Frame):
         #----------------------------------------------------------------------                     
         
         self.Blab_window=wx.TextCtrl(self.panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50*self.GUI_RESOLUTION,25))
+        #self.Blab_window.SetFont(font2)
         self.Banc_window=wx.TextCtrl(self.panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50*self.GUI_RESOLUTION,25))
+        #self.Banc_window.SetFont(font2)        
         self.Aniso_factor_window=wx.TextCtrl(self.panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50*self.GUI_RESOLUTION,25))
+        #self.Aniso_factor_window.SetFont(font2) 
         self.NLT_factor_window=wx.TextCtrl(self.panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50*self.GUI_RESOLUTION,25))
+        #self.NLT_factor_window.SetFont(font2) 
         self.CR_factor_window=wx.TextCtrl(self.panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50*self.GUI_RESOLUTION,25))
+        #self.CR_factor_window.SetFont(font2) 
         self.declination_window=wx.TextCtrl(self.panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50*self.GUI_RESOLUTION,25))
+        #self.declination_window.SetFont(font2) 
         self.inclination_window=wx.TextCtrl(self.panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50*self.GUI_RESOLUTION,25))
+        #self.inclination_window.SetFont(font2) 
 
         self.Blab_label=wx.StaticText(self.panel,label="\nB_lab",style=wx.ALIGN_CENTRE)
         self.Blab_label.SetFont(font2)
@@ -720,9 +733,10 @@ class Arai_GUI(wx.Frame):
 
         del self.Data[self.s]['pars']
         self.Data[self.s]['pars']={}
-        self.Data[self.s]['pars']['treat_dc_field']=self.Data[self.s]['treat_dc_field']
-        self.Data[self.s]['pars']['specimen']=self.Data[self.s]['specimen']   
-        self.Data[self.s]['pars']['sample']=self.Data[self.s]['sample']   
+        self.Data[self.s]['pars']['lab_dc_field']=self.Data[self.s]['lab_dc_field']
+        self.Data[self.s]['pars']['er_specimen_name']=self.Data[self.s]['er_specimen_name']   
+        self.Data[self.s]['pars']['er_sample_name']=self.Data[self.s]['er_sample_name']   
+        self.Data[self.s]['pars']['er_sample_name']=self.Data[self.s]['er_sample_name']   
         sample=self.Data_hierarchy['specimens'][self.s]
         if sample in self.Data_samples.keys():
             if self.s in self.Data_samples[sample].keys():
@@ -739,7 +753,7 @@ class Arai_GUI(wx.Frame):
         self.tmin_box.SetValue("")
         self.tmax_box.SetValue("")
         self.clear_boxes()
-        self.DRAW_figure(self.s)
+        self.draw_figure(self.s)
         self.draw_sample_mean()
         self.write_sample_box()
         self.close_warning=True
@@ -747,41 +761,45 @@ class Arai_GUI(wx.Frame):
     #----------------------------------------------------------------------
             
         
-    def write_acceptance_criteria_to_boxes(self):
+    def  write_acceptance_criteria_to_boxes(self):
         """ 
         Update paleointensity statistics in acceptance criteria boxes.
         (after changing temperature bounds or changing specimen)
         """
 
         self.ignore_parameters={}
-        for short_stat in self.preferences['show_statistics_on_gui']:
-            stat='specimens.'+short_stat
-            crits=pmag.get_dictitem(self.acceptance_criteria,'table_column',stat,'T')
-            if len(crits)>0:
-                crit=crits[0] 
-                if crit['decimal_points']==-999:
-                    value='%.2e'%crit['criterion_value']
-                    command="self.%s_threshold_window.SetValue(\"\")"%short_stat
-                    exec command
-                    command="self.%s_threshold_window.SetBackgroundColour(wx.Colour(128, 128, 128))"%short_stat
-                    exec command
-                    self.ignore_parameters[crit]=True
-                    continue
-                elif "int_scat" in crit['table_column']:
-                    if crit['criterion_value'] in ['g',1,'1',True,"True"]:
-                        value="True"
-                    else:
-                        value=""
-                        self.scat_threshold_window.SetBackgroundColour(wx.Colour(128, 128, 128))
-                elif type(crit['decimal_points'])==float or type(crit['decimal_points'])==int:
-                    command="value='%%.%if'%%float(crit['criterion_value'])"%(int(crit['decimal_points']))
-                    exec command
+        for crit_short_name in self.preferences['show_statistics_on_gui']:
+            crit="specimen_"+crit_short_name
+            if self.acceptance_criteria[crit]['value']==-999:
+                command="self.%s_threshold_window.SetValue(\"\")"%crit_short_name
+                exec command
+                command="self.%s_threshold_window.SetBackgroundColour(wx.Colour(128, 128, 128))"%crit_short_name
+                exec command
+                self.ignore_parameters[crit]=True
+                continue
+            elif crit=="specimen_scat":
+                if self.acceptance_criteria[crit]['value'] in ['g',1,'1',True,"True"]:
+                    value="True"
+                    #self.scat_threshold_window.SetBackgroundColour(wx.Colour(128, 128, 128))
                 else:
-                    continue
-                command="self.%s_threshold_window.SetValue('%s')"%(short_stat,value)
-                exec command
-                command="self.%s_threshold_window.SetBackgroundColour(wx.WHITE)"%short_stat
-                exec command
+                    value=""
+                    self.scat_threshold_window.SetBackgroundColour(wx.Colour(128, 128, 128))
+                   
+            elif type(self.acceptance_criteria[crit]['value'])==int:
+                value="%i"%self.acceptance_criteria[crit]['value']
+            elif type(self.acceptance_criteria[crit]['value'])==float:
+                if self.acceptance_criteria[crit]['decimal_points']==-999:
+                    value="%.3e"%self.acceptance_criteria[crit]['value']
+                else:
+                    command="value='%%.%if'%%self.acceptance_criteria[crit]['value']"%(self.acceptance_criteria[crit]['decimal_points'])
+                    exec command
+            else:
+                continue
+                    
+            command="self.%s_threshold_window.SetValue('%s')"%(crit_short_name,value)
+            exec command
+            command="self.%s_threshold_window.SetBackgroundColour(wx.WHITE)"%crit_short_name
+            exec command
                 
                     
     #----------------------------------------------------------------------
@@ -804,7 +822,7 @@ class Arai_GUI(wx.Frame):
       #String="Step | Temp |  Dec  |  Inc  | M [Am^2]\n"
       String="  Step\tTemp\t Dec\t Inc\tM [Am^2]\n"
       # microwave
-      if "LP-PI-M" in self.Data[self.s]['datablock'][0]['method_codes']:
+      if "LP-PI-M" in self.Data[self.s]['datablock'][0]['magic_method_codes']:
           MICROWAVE=True; THERMAL=False
           String="  Step\tNumber\t Dec\t Inc\tMoment\n"
       else:
@@ -816,34 +834,34 @@ class Arai_GUI(wx.Frame):
       TEXT=""
       for rec in self.Data[self.s]['datablock']:
           #print rec.keys()
-          if "LT-NO" in rec['method_codes']:
+          if "LT-NO" in rec['magic_method_codes']:
               step="N"
-          elif "LT-AF-Z" in rec['method_codes']:
+          elif "LT-AF-Z" in rec['magic_method_codes']:
               step="AFD"
-          elif "LT-T-Z" in rec['method_codes'] or 'LT-M-Z' in rec['method_codes']:
+          elif "LT-T-Z" in rec['magic_method_codes'] or 'LT-M-Z' in rec['magic_method_codes']:
               step="Z"
-          elif "LT-T-I" in rec['method_codes'] or 'LT-M-I' in rec['method_codes']:
+          elif "LT-T-I" in rec['magic_method_codes'] or 'LT-M-I' in rec['magic_method_codes']:
               step="I"
-          elif "LT-PTRM-I" in rec['method_codes'] or "LT-PMRM-I" in rec['method_codes']:
+          elif "LT-PTRM-I" in rec['magic_method_codes'] or "LT-PMRM-I" in rec['magic_method_codes']:
               step="P"
-          elif "LT-PTRM-MD" in rec['method_codes'] or "LT-PMRM-MD" in rec['method_codes']:
+          elif "LT-PTRM-MD" in rec['magic_method_codes'] or "LT-PMRM-MD" in rec['magic_method_codes']:
               step="T"
-          elif "LT-PTRM-AC" in rec['method_codes'] or "LT-PMRM-AC" in rec['method_codes']:
+          elif "LT-PTRM-AC" in rec['magic_method_codes'] or "LT-PMRM-AC" in rec['magic_method_codes']:
               step="A"
           else:
-              print "unrecognized step in specimen",self.s,"  Method codes: ", rec['method_codes'] 
+              print "unrecognized step in specimen",self.s,"  Method codes: ", rec['magic_method_codes'] 
           if THERMAL:
-               TEXT=TEXT+"   %s\t%3.0f\t%5.1f\t%5.1f\t%.2e\n"%(step,float(rec['treat_temp'])-273.,float(rec['dir_dec']),float(rec['dir_inc']),float(rec['intensity']))
+               TEXT=TEXT+"   %s\t%3.0f\t%5.1f\t%5.1f\t%.2e\n"%(step,float(rec['treatment_temp'])-273.,float(rec['measurement_dec']),float(rec['measurement_inc']),float(rec['measurement_magn_moment']))
 
-#              TEXT=TEXT+"  %s      %3.0f      %5.1f    %5.1f   %.2e\n"%(step,float(rec['treat_temp'])-273.,float(rec['dir_dec']),float(rec['dir_inc']),float(rec['intensity']))
+#              TEXT=TEXT+"  %s      %3.0f      %5.1f    %5.1f   %.2e\n"%(step,float(rec['treatment_temp'])-273.,float(rec['measurement_dec']),float(rec['measurement_inc']),float(rec['measurement_magn_moment']))
           elif MICROWAVE: # mcrowave
-                if "description" in rec.keys():
-                    MW_step=rec["description"].strip('\n').split(":")
+                if "measurement_description" in rec.keys():
+                    MW_step=rec["measurement_description"].strip('\n').split(":")
                     for STEP in MW_step:
                         if "Number" in STEP:
                             temp=float(STEP.split("-")[-1])
               
-                            TEXT=TEXT+"   %s\t%1.0f\t%5.1f\t%5.1f\t%.2e\n"%(step,temp,float(rec['dir_dec']),float(rec['dir_inc']),float(rec['intensity']))
+                            TEXT=TEXT+"   %s\t%1.0f\t%5.1f\t%5.1f\t%.2e\n"%(step,temp,float(rec['measurement_dec']),float(rec['measurement_inc']),float(rec['measurement_magn_moment']))
               
       self.logger.AppendText( TEXT)
       
@@ -888,7 +906,10 @@ class Arai_GUI(wx.Frame):
         menu_file.AppendSeparator()
 
         m_prepare_MagIC_results_tables= menu_file.Append(-1, "&Save MagIC pmag tables", "")
-        self.Bind(wx.EVT_MENU, self.on_menu__prepare_MagIC_results_tables, m_prepare_MagIC_results_tables)
+        if self.data_model==3:
+            self.Bind(wx.EVT_MENU, self.on_menu_prepare_MagIC_data_model_3_tables, m_prepare_MagIC_results_tables)
+        else:
+            self.Bind(wx.EVT_MENU, self.on_menu__prepare_MagIC_results_tables, m_prepare_MagIC_results_tables)
 
         submenu_save_plots = wx.Menu()
 
@@ -926,12 +947,12 @@ class Arai_GUI(wx.Frame):
         self.Bind(wx.EVT_MENU, self.on_menu_exit, m_exit)
 
 
-        menu_anistropy = wx.Menu()
+        menu_anisotropy = wx.Menu()
         
-        m_calculate_aniso_tensor = menu_anistropy.Append(-1, "&Calculate anistropy tensors", "")
+        m_calculate_aniso_tensor = menu_anisotropy.Append(-1, "&Calculate anisotropy tensors", "")
         self.Bind(wx.EVT_MENU, self.on_menu_calculate_aniso_tensor, m_calculate_aniso_tensor)
 
-        m_show_anisotropy_errors = menu_anistropy.Append(-1, "&Show anisotropy calculation Warnings/Errors", "")
+        m_show_anisotropy_errors = menu_anisotropy.Append(-1, "&Show anisotropy calculation Warnings/Errors", "")
         self.Bind(wx.EVT_MENU, self.on_show_anisotropy_errors, m_show_anisotropy_errors)
 
 
@@ -982,18 +1003,39 @@ class Arai_GUI(wx.Frame):
         m_run_consistency_test = menu_consistency_test.Append(-1, "&Run Consistency test", "")
         self.Bind(wx.EVT_MENU, self.on_menu_run_consistency_test, m_run_consistency_test)
 
+        #m_run_consistency_test_b = menu_Optimizer.Append(-1, "&Run Consistency test beta version", "")
+        #self.Bind(wx.EVT_MENU, self.on_menu_run_consistency_test_b, m_run_consistency_test_b)
 
         menu_Plot= wx.Menu()
         m_plot_data = menu_Plot.Append(-1, "&Plot paleointensity curve", "")
         self.Bind(wx.EVT_MENU, self.on_menu_plot_data, m_plot_data)
 
+        #menu_results_table= wx.Menu()
+        #m_make_results_table = menu_results_table.Append(-1, "&Make results table", "")
+        #self.Bind(wx.EVT_MENU, self.on_menu_results_data, m_make_results_table)
+
+
+        #menu_MagIC= wx.Menu()
+        #m_convert_to_magic= menu_MagIC.Append(-1, "&Convert generic files to MagIC format", "")
+        #self.Bind(wx.EVT_MENU, self.on_menu_convert_to_magic, m_convert_to_magic)
+        #m_build_magic_model= menu_MagIC.Append(-1, "&Run MagIC model builder", "")
+        #self.Bind(wx.EVT_MENU, self.on_menu_MagIC_model_builder, m_build_magic_model)
+        #m_prepare_MagIC_results_tables= menu_MagIC.Append(-1, "&Make MagIC results Table", "")
+        #self.Bind(wx.EVT_MENU, self.on_menu__prepare_MagIC_results_tables, m_prepare_MagIC_results_tables)
+
+
+        
+        #menu_help = wx.Menu()
+        #m_about = menu_help.Append(-1, "&About\tF1", "About this program")
         self.menubar.Append(menu_preferences, "& Preferences") 
         self.menubar.Append(menu_file, "&File")
-        self.menubar.Append(menu_anistropy, "&Anistropy")
+        self.menubar.Append(menu_anisotropy, "&Anisotropy")
         self.menubar.Append(menu_Analysis, "&Analysis")
         self.menubar.Append(menu_Auto_Interpreter, "&Auto Interpreter")
         self.menubar.Append(menu_consistency_test, "&Consistency Test")
         self.menubar.Append(menu_Plot, "&Plot")
+        #self.menubar.Append(menu_results_table, "&Table")
+        #self.menubar.Append(menu_MagIC, "&MagIC")
         
         self.SetMenuBar(self.menubar)
 
@@ -1021,7 +1063,7 @@ class Arai_GUI(wx.Frame):
         self.tmax_box.SetItems(self.T_list)
         self.tmin_box.SetValue("")
         self.tmax_box.SetValue("")
-        self.Blab_window.SetValue("%.0f"%(float(self.Data[self.s]['pars']['treat_dc_field'])*1e6))
+        self.Blab_window.SetValue("%.0f"%(float(self.Data[self.s]['pars']['lab_dc_field'])*1e6))
         if "saved" in self.Data[self.s]['pars']:
             self.pars=self.Data[self.s]['pars']
             self.update_GUI_with_new_interpretation()
@@ -1046,13 +1088,11 @@ class Arai_GUI(wx.Frame):
       if 'saved' not in self.Data[self.s]['pars'] or self.Data[self.s]['pars']['saved']!= True:
             del self.Data[self.s]['pars']
             self.Data[self.s]['pars']={}
-            self.Data[self.s]['pars']['treat_dc_field']=self.Data[self.s]['treat_dc_field']
-            self.Data[self.s]['pars']['treat_dc_field_phi']=self.Data[self.s]['treat_dc_field_phi']
-            self.Data[self.s]['pars']['treat_dc_field_theta']=self.Data[self.s]['treat_dc_field_theta']
-            self.Data[self.s]['pars']['specimen']=self.Data[self.s]['specimen']   
-            self.Data[self.s]['pars']['sample']=self.Data[self.s]['sample']
+            self.Data[self.s]['pars']['lab_dc_field']=self.Data[self.s]['lab_dc_field']
+            self.Data[self.s]['pars']['er_specimen_name']=self.Data[self.s]['er_specimen_name']   
+            self.Data[self.s]['pars']['er_sample_name']=self.Data[self.s]['er_sample_name']
             # return to last saved interpretation if exist
-            if 'specimen' in self.last_saved_pars.keys() and self.last_saved_pars['specimen']==self.s:
+            if 'er_specimen_name' in self.last_saved_pars.keys() and self.last_saved_pars['er_specimen_name']==self.s:
                 for key in self.last_saved_pars.keys():
                     self.Data[self.s]['pars'][key]=self.last_saved_pars[key]
                 self.last_saved_pars={}
@@ -1075,13 +1115,11 @@ class Arai_GUI(wx.Frame):
       if 'saved' not in self.Data[self.s]['pars'] or self.Data[self.s]['pars']['saved']!= True:
             del self.Data[self.s]['pars']
             self.Data[self.s]['pars']={}
-            self.Data[self.s]['pars']['treat_dc_field']=self.Data[self.s]['treat_dc_field']
-            self.Data[self.s]['pars']['treat_dc_field_phi']=self.Data[self.s]['treat_dc_field_phi']
-            self.Data[self.s]['pars']['treat_dc_field_theta']=self.Data[self.s]['treat_dc_field_theta']
-            self.Data[self.s]['pars']['specimen']=self.Data[self.s]['specimen']   
-            self.Data[self.s]['pars']['sample']=self.Data[self.s]['sample']
+            self.Data[self.s]['pars']['lab_dc_field']=self.Data[self.s]['lab_dc_field']
+            self.Data[self.s]['pars']['er_specimen_name']=self.Data[self.s]['er_specimen_name']   
+            self.Data[self.s]['pars']['er_sample_name']=self.Data[self.s]['er_sample_name']
             # return to last saved interpretation if exist
-            if 'specimen' in self.last_saved_pars.keys() and self.last_saved_pars['specimen']==self.s:
+            if 'er_specimen_name' in self.last_saved_pars.keys() and self.last_saved_pars['er_specimen_name']==self.s:
                 for key in self.last_saved_pars.keys():
                     self.Data[self.s]['pars'][key]=self.last_saved_pars[key]
                 self.last_saved_pars={}
@@ -1132,6 +1170,8 @@ class Arai_GUI(wx.Frame):
             command="self.%s_window.SetBackgroundColour(wx.NullColour)"%key
             exec command
                                          
+        #window_list=['int_n','int_ptrm_n','frac','scat','gmax','f','fvds','b_beta','g','q','int_mad','int_dang','drats','md','ptrms_dec','ptrms_inc','ptrms_mad','ptrms_angle']
+        #for key in window_list:
         for key in self.preferences['show_statistics_on_gui']:
             command="self.%s_window.SetValue(\"\")"%key
             exec command
@@ -1143,29 +1183,28 @@ class Arai_GUI(wx.Frame):
         """        
 
         B=[]
-        critrecs=pmag.get_dictitem(self.acceptance_criteria,'criterion','average_by_sample_or_site','T') # fish out the average_by criterion 
-        if len(critrecs)>0:
-            crit=critrecs[0]
-            if crit['table_column']=='samples.int_abs':
-                sample=self.Data_hierarchy['specimens'][self.s]
-                if sample in self.Data_samples.keys() and len(self.Data_samples[sample].keys())>0:
-                    if self.s not in self.Data_samples[sample].keys():
-                        if 'specimen_int_uT' in self.pars.keys():
-                            B.append(self.pars['specimen_int_uT'])
-                    for specimen in self.Data_samples[sample].keys():
-                        if specimen==self.s:
-                            if 'specimen_int_uT' in self.pars.keys():
-                                B.append(self.pars['specimen_int_uT'])
-                        else:
-                            if specimen in self.Data_samples[sample].keys() and 'B' in self.Data_samples[sample][specimen].keys():
-                                B.append(self.Data_samples[sample][specimen]['B'])
-                else:
+        
+        if self.acceptance_criteria['average_by_sample_or_site']['value']=='sample':
+            sample=self.Data_hierarchy['specimens'][self.s]
+            if sample in self.Data_samples.keys() and len(self.Data_samples[sample].keys())>0:
+                if self.s not in self.Data_samples[sample].keys():
                     if 'specimen_int_uT' in self.pars.keys():
                         B.append(self.pars['specimen_int_uT'])
+                for specimen in self.Data_samples[sample].keys():
+                    if specimen==self.s:
+                        if 'specimen_int_uT' in self.pars.keys():
+                            B.append(self.pars['specimen_int_uT'])
+                    else:
+                        if specimen in self.Data_samples[sample].keys() and 'B' in self.Data_samples[sample][specimen].keys():
+                            B.append(self.Data_samples[sample][specimen]['B'])
+            else:
+                if 'specimen_int_uT' in self.pars.keys():
+                    B.append(self.pars['specimen_int_uT'])
 
 
         # if averaging by site
         else:
+            
             sample=self.Data_hierarchy['specimens'][self.s]
             site=thellier_gui_lib.get_site_from_hierarchy(sample,self.Data_hierarchy)
             if site in self.Data_sites.keys() and len(self.Data_sites[site].keys())>0:
@@ -1216,63 +1255,65 @@ class Arai_GUI(wx.Frame):
         fail_int_sigma=False
         fail_int_sigma_perc=False
         sample_failed=False
-        critrecs=pmag.get_dictitem(self.acceptance_criteria,'table_column','samples.int_n','T')
-        if len(critrecs)>0:
-            crit=critrecs[0] 
-            if crit['criterion_value'] != -999:
-                if N<crit['criterion_value']:
-                    fail_int_n=True
-                    sample_failed=True
-                    self.sample_int_n_window.SetBackgroundColour(wx.RED)
-                else:
-                    self.sample_int_n_window.SetBackgroundColour(wx.GREEN)
+        
+        if self.acceptance_criteria['sample_int_n']['value'] != -999:
+            if N<self.acceptance_criteria['sample_int_n']['value']:
+                fail_int_n=True
+                sample_failed=True
+                self.sample_int_n_window.SetBackgroundColour(wx.RED)
             else:
-                self.sample_int_n_window.SetBackgroundColour(wx.NullColour)
+                self.sample_int_n_window.SetBackgroundColour(wx.GREEN)
+        else:
+            self.sample_int_n_window.SetBackgroundColour(wx.NullColour)
                    
-        critrecs=pmag.get_dictitem(self.acceptance_criteria,'table_column','samples.int_abs_sigma','T')
-        if len(critrecs)>0:
-            crit=critrecs[0] 
-            if crit['criterion_value'] != -999:
-                if  B_std*1.e-6 > crit['criterion_value']:
-                    fail_int_sigma=True 
-                    self.sample_int_sigma_window.SetBackgroundColour(wx.RED)
+        
+        if self.acceptance_criteria['sample_int_sigma']['value'] != -999:
+            if  B_std*1.e-6 > self.acceptance_criteria['sample_int_sigma']['value']:
+                fail_int_sigma=True 
+                self.sample_int_sigma_window.SetBackgroundColour(wx.RED)
             else:
                 self.sample_int_sigma_window.SetBackgroundColour(wx.GREEN)
-                fail_int_sigma=True 
         else:
             self.sample_int_sigma_window.SetBackgroundColour(wx.NullColour)
  
-        critrecs=pmag.get_dictitem(self.acceptance_criteria,'table_column','samples.int_abs_sigma','T')
-        if len(critrecs)>0:
-            crit=critrecs[0] 
-            if crit['criterion_value'] != -999:
-                if  B_std_perc > crit['criterion_value']:
-                    fail_int_sigma_perc=True 
-                    self.sample_int_sigma_perc_window.SetBackgroundColour(wx.RED)
-                else:
-                    self.sample_int_sigma_perc_window.SetBackgroundColour(wx.GREEN)
-            else:
-                self.sample_int_sigma_perc_window.SetBackgroundColour(wx.NullColour)
+        if self.acceptance_criteria['sample_int_sigma_perc']['value'] != -999:
+            if  B_std_perc > self.acceptance_criteria['sample_int_sigma_perc']:
                 fail_int_sigma_perc=True 
-#
-# THIS MAY NEED FIXING
-#
-        if fail_int_sigma_perc: sample_failed=True
-        if fail_int_sigma: sample_failed=True
-        if fail_int_sigma and fail_int_sigma_perc: sample_failed=True        
+                self.sample_int_sigma_perc_window.SetBackgroundColour(wx.RED)
+            else:
+                self.sample_int_sigma_perc_window.SetBackgroundColour(wx.GREEN)
+        else:
+            self.sample_int_sigma_perc_window.SetBackgroundColour(wx.NullColour)
+
+                          
+        if self.acceptance_criteria['sample_int_sigma']['value']==-999 and fail_int_sigma_perc:
+            sample_failed=True
+        elif self.acceptance_criteria['sample_int_sigma_perc']['value']==-999 and fail_int_sigma:
+            sample_failed=True
+        elif self.acceptance_criteria['sample_int_sigma']['value'] !=-999 and self.acceptance_criteria['sample_int_sigma_perc']['value']!=-999:
+            if fail_int_sigma and fail_int_sigma_perc:
+                sample_failed=True        
         
         if sample_failed:
             self.sample_int_uT_window.SetBackgroundColour(wx.RED) 
         else:
             self.sample_int_uT_window.SetBackgroundColour(wx.GREEN)
             
+            #if self.acceptance_criteria['sample_int_sigma']['value'] != -999  or self.acceptance_criteria['sample_int_sigma_perc']['value'] != -999:
+            #    if   fail_int_sigma and fail_int_sigma_perc:
+            #       self.sample_int_uT_window.SetBackgroundColour(wx.RED) 
+            #else:
+            #    self.sample_int_uT_window.SetBackgroundColour(wx.GREEN)
+                    
+
+        
         #else:
         #    self.sample_int_uT_window.SetBackgroundColour(wx.GREEN)
         #    
 
 
     #----------------------------------------------------------------------
-    # manu bar options:
+    # menu bar options:
     #----------------------------------------------------------------------
 
     def on_menu_appearance_preferences(self,event):
@@ -1303,6 +1344,9 @@ class Arai_GUI(wx.Frame):
 
                 bSizer2 = wx.StaticBoxSizer( wx.StaticBox( pnl1, wx.ID_ANY, "Arai plot" ), wx.HORIZONTAL )
                 self.show_Arai_temperatures=wx.CheckBox(pnl1, -1, '', (50, 50))        
+                #self.show_Arai_temperatures_steps=FS.FloatSpin(pnl1, -1, min_val=1, max_val=9,increment=1, value=1, extrastyle=FS.FS_LEFT,size=(50,20))
+                #self.show_Arai_temperatures_steps.SetFormat("%f")
+                #self.show_Arai_temperatures_steps.SetDigits(0)
                 self.show_Arai_temperatures_steps=wx.SpinCtrl(pnl1, -1, '1', (50, 20), (60, -1), min=1, max=9)
 
                 self.show_Arai_pTRM_arrows=wx.CheckBox(pnl1, -1, '', (50, 50))        
@@ -1362,6 +1406,18 @@ class Arai_GUI(wx.Frame):
                     (self.show_CR_plot, wx.EXPAND)])                 
                 bSizer5.Add( NLT_window, 0, wx.ALIGN_LEFT|wx.ALL, 5 )
 
+##                #-----------box6        
+##
+##                bSizer6 = wx.StaticBoxSizer( wx.StaticBox( pnl1, wx.ID_ANY, "Statistical definitions" ), wx.HORIZONTAL )
+##                self.bootstrap_N=wx.TextCtrl(pnl1,style=wx.TE_CENTER,size=(80,20))
+##                #self.bootstrap_N=FS.FloatSpin(pnl1, -1, min_val=1000, max_val=10000000,increment=1000, value=10000, extrastyle=FS.FS_LEFT,size=(80,20))
+##                #self.bootstrap_N.SetFormat("%f")
+##                #self.bootstrap_N.SetDigits(0)
+##                                             
+##                Statistics_definitions_window = wx.GridSizer(1, 2, 12, 12)
+##                Statistics_definitions_window.AddMany( [(wx.StaticText(pnl1,label="Bootstrap N",style=wx.TE_CENTER), wx.EXPAND),
+##                    (self.bootstrap_N, wx.EXPAND)])                 
+##                bSizer6.Add( Statistics_definitions_window, 0, wx.ALIGN_LEFT|wx.ALL, 5 )
                          
                 #----------------------
 
@@ -1384,6 +1440,8 @@ class Arai_GUI(wx.Frame):
                 vbox.AddSpacer(20)
                 vbox.Add(bSizer5, flag=wx.ALIGN_CENTER_HORIZONTAL)
                 vbox.AddSpacer(20)
+##                vbox.Add(bSizer6, flag=wx.ALIGN_CENTER_HORIZONTAL)
+##                vbox.AddSpacer(20)
 
                 vbox.Add(hbox2, flag=wx.ALIGN_CENTER_HORIZONTAL)
                 vbox.AddSpacer(20)
@@ -1548,7 +1606,7 @@ class Arai_GUI(wx.Frame):
         preferences['show_CR_plot']=True
         preferences['BOOTSTRAP_N']=1e4
         preferences['VDM_or_VADM']="VADM"
-        preferences['show_statistics_on_gui']=["int_n","int_ptrm_n","int_frac","int_scat","int_gmax","int_b_beta","int_mad_free","int_dang","int_f","int_fvds","int_g","int_q","int_drats"]#,'ptrms_dec','ptrms_inc','ptrms_mad','ptrms_angle']
+        preferences['show_statistics_on_gui']=["int_n","int_ptrm_n","frac","scat","gmax","b_beta","int_mad","int_dang","f","fvds","g","q","drats"]#,'ptrms_dec','ptrms_inc','ptrms_mad','ptrms_angle']
         #try to read preferences file:
         try:
             import thellier_gui_preferences
@@ -1557,17 +1615,32 @@ class Arai_GUI(wx.Frame):
         except:
             self.GUI_log.write( " -I- cant find thellier_gui_preferences file, using defualt default \n")
         
-        # check criteria.txt:
-        # if a statistic appears in criteria.txt but does not appear in 
+        # check pmag_criteria.txt:
+        # if a statistic appear in pmag_criteria.txt but does not appear in 
         # preferences['show_statistics_on_gui'] than it is added to ['show_statistics_on_gui']:
-        for stat in self.acceptance_criteria:
-            if stat['criterion'] in ['IE-SPEC'] and stat['criterion_value']!=-999:
-                short_crit=stat['table_column'].split('.')[-1]
-                if short_crit not in preferences['show_statistics_on_gui']:
-                    preferences['show_statistics_on_gui'].append(short_crit)
-                    print "-I-",short_crit, " was added to criteria list and will be displayed on screen"
+        for stat in self.acceptance_criteria.keys():
+            if self.acceptance_criteria[stat]['category'] in ['IE-SPEC']:
+                if self.acceptance_criteria[stat]['value']!=-999:
+                    short_crit=stat.split('specimen_')[-1]
+                    if short_crit not in preferences['show_statistics_on_gui']:
+                        preferences['show_statistics_on_gui'].append(short_crit)
+                        print "-I-",short_crit, " was added to criteria list and will be displayed on screen"
                      
         
+        # OLD code,
+        #try:
+        #    criteria_file=os.path.join(self.WD,"pmag_criteria.txt")
+        #    my_acceptance_criteria=pmag.read_criteria_from_file(criteria_file,self.acceptance_criteria)
+        #    #    print "-III- Read criteria",my_acceptance_criteria
+        #    for crit in my_acceptance_criteria.keys():
+        #        if 'specimen' in crit:
+        #            if my_acceptance_criteria[crit]['value']!=-999:
+        #                short_crit=crit.split('specimen_')[-1]
+        #                if short_crit not in preferences['show_statistics_on_gui']:
+        #                    preferences['show_statistics_on_gui'].append(short_crit)
+        #                    print "-I-",short_crit, " was added to criteria list and will be displayed on screen"
+        #except:
+        #    pass     
         return(preferences)
         
 
@@ -1669,8 +1742,8 @@ class Arai_GUI(wx.Frame):
         #search for NRM:
         nrm0=""
         for rec in self.Data[self.s]['datablock']:            
-          if "LT-NO" in rec['method_codes']:
-              nrm0= "%.2e"%float(rec['intensity'])
+          if "LT-NO" in rec['magic_method_codes']:
+              nrm0= "%.2e"%float(rec['measurement_magn_moment'])
               break
 
         self.fig1.text(0.1,0.93,'$NRM_0 = %s Am^2 $'%(nrm0),{'family':'Arial', 'fontsize':10, 'style':'normal','va':'center', 'ha':'left' })
@@ -1750,6 +1823,26 @@ class Arai_GUI(wx.Frame):
         else:
             return
 
+
+
+
+##    def on_save_all_plots(self,event):
+##        #search for NRM:
+##        nrm0=""
+##        for rec in self.Data[self.s]['datablock']:            
+##          if "LT-NO" in rec['magic_method_codes']:
+##              nrm0= "%.2e"%float(rec['measurement_magn_moment'])
+##              break
+##
+##        self.fig1.text(0.1,0.93,'$NRM_0 = %s Am^2 $'%(nrm0),{'family':'Arial', 'fontsize':10, 'style':'normal','va':'center', 'ha':'left' })
+##        self.fig1.text(0.9,0.93,'%s'%(self.s),{'family':'Arial', 'fontsize':10, 'style':'normal','va':'center', 'ha':'right' })
+##        #self.canvas1.draw()
+##        SaveAllMyPlot(self.pars)
+##        self.fig1.clear()
+##        self.fig1.text(0.01,0.98,"Arai plot",{'family':'Arial', 'fontsize':10, 'style':'normal','va':'center', 'ha':'left' })
+##        self.araiplot = self.fig1.add_axes([0.1,0.1,0.8,0.8])
+##        self.draw_figure(self.s)
+##        self.update_selection()
         
     def on_menu_previous_interpretation(self, event):
         
@@ -1782,7 +1875,8 @@ class Arai_GUI(wx.Frame):
         self.redo_specimens={}
         self.currentDirectory = os.getcwd() # get the current working directory
         self.get_DIR()                      # choose directory dialog
-        acceptance_criteria_default,acceptance_criteria_null=pmag.initialize_acceptance_criteria3_0(),pmag.initialize_acceptance_criteria3_0()    # inialize Null selecting criteria
+        #acceptance_criteria_default,acceptance_criteria_null=self.get_default_criteria()    # inialize Null selecting criteria
+        acceptance_criteria_default,acceptance_criteria_null=pmag.initialize_acceptance_criteria(),pmag.initialize_acceptance_criteria()    # inialize Null selecting criteria
 
         self.acceptance_criteria_null=acceptance_criteria_null
         self.acceptance_criteria_default=acceptance_criteria_default
@@ -1791,8 +1885,8 @@ class Arai_GUI(wx.Frame):
         #acceptance_criteria=pmag.read_criteria_from_file(self.WD+"/pmag_criteria.txt",self.acceptance_criteria_null)        
         #self.acceptance_criteria=acceptance_criteria
         self.Data,self.Data_hierarchy,self.Data_info={},{},{}
-        self.Data,self.Data_hierarchy,self.container=self.get_data(self.meas_file) # Get data from magic_measurements and rmag_anistropy if exist.
-        self.Data_info=self.get_data_info(self.container) # get all ages, locations etc. (from sites, locations)
+        self.Data,self.Data_hierarchy=self.get_data() # Get data from magic_measurements and rmag_anisotropy if exist.
+        self.Data_info=self.get_data_info() # get all ages, locations etc. (from er_ages, er_sites, er_locations)
         self.Data_samples={}
         self.Data_sites={}
         self.last_saved_pars={}
@@ -1820,17 +1914,18 @@ class Arai_GUI(wx.Frame):
         
 
         self.WD=new_magic_dir
-        self.meas_file=os.path.join(new_magic_dir, "measurements.txt")
+        self.magic_file=os.path.join(new_magic_dir, "magic_measurements.txt")
 
-        new_Data,new_Data_hierarchy,new_container=self.get_data(self.meas_file)
-        new_Data_info=self.get_data_info(new_container)
+        new_Data,new_Data_hierarchy=self.get_data()
+        new_Data_info=self.get_data_info()
 
         self.Data.update(new_Data)
 
         self.Data_hierarchy['samples'].update(new_Data_hierarchy['samples'])
         self.Data_hierarchy['specimens'].update(new_Data_hierarchy['specimens'])
-        self.Data_info["sites"].update(new_Data_info["sites"])
-#        self.Data_info["er_ages"].update(new_Data_info["er_ages"])
+        self.Data_info["er_samples"].update(new_Data_info["er_samples"])
+        self.Data_info["er_sites"].update(new_Data_info["er_sites"])
+        self.Data_info["er_ages"].update(new_Data_info["er_ages"])
         
         #self.Data_samples={}
         #self.last_saved_pars={}
@@ -1865,19 +1960,22 @@ class Arai_GUI(wx.Frame):
             dialog.Destroy()
 
         #os.chdir(new_dir)
+        if self.data_model==3:
+            meas_file='measurements.txt'
+        else:
+            meas_file='magic_measurements.txt'
         for FILE in os.listdir(new_dir):
             path=new_dir+"/"+FILE
             if os.path.isdir(path):
                     print "importing from path %s"%path
                 #try:
                     self.WD=path
-                    self.meas_file = os.path.join(path, "measurements.txt")
-                    new_Data,new_Data_hierarchy,new_container=self.get_data(self.meas_file)
-                    new_Data_info=self.get_data_info(new_container)
-                    self.Data_info["samples"].update(new_Data_info["samples"])
-                    self.Data_info["sites"].update(new_Data_info["sites"])
-#                    self.Data_info["er_ages"].update(new_Data_info["er_ages"])
-                   
+                    self.magic_file = os.path.join(path, meas_file)
+                    new_Data_info=self.get_data_info(self.data_model)
+                    self.Data_info["er_samples"].update(new_Data_info["er_samples"])
+                    self.Data_info["er_sites"].update(new_Data_info["er_sites"])
+                    self.Data_info["er_ages"].update(new_Data_info["er_ages"])
+                    new_Data,new_Data_hierarchy=self.get_data(self.data_model)
                     if new_Data=={}:
                         print "-E- ERROR importing MagIC data from path."
                         continue                        
@@ -1928,12 +2026,12 @@ class Arai_GUI(wx.Frame):
             new_magic_file = dlg.GetPath()
             #print "You chose the following file(s):"
         dlg.Destroy()
-        self.meas_file=new_magic_file
+        self.magic_file=new_magic_file
         path=new_magic_file.split("/")
         self.WD=new_magic_file.strip(path[-1])
                                                                 
-        self.Data,self.Data_hierarchy,self.container=self.get_data(self.meas_file)
-        self.Data_info=self.get_data_info(self.container) 
+        self.Data,self.Data_hierarchy=self.get_data(self.data_model)
+        self.Data_info=self.get_data_info(self.data_model) 
 
         self.redo_specimens={}
         self.specimens=self.Data.keys()
@@ -1947,41 +2045,44 @@ class Arai_GUI(wx.Frame):
     def on_menu_criteria_file(self, event):
         
         """
-        read criteria.txt file 
+        read pmag_criteria.txt file 
         and open change criteria dialog
         """
-    
-        dlg = wx.FileDialog(
-            self, message="choose a file in a pmagpy format",
-            defaultDir=self.WD, 
-            defaultFile="criteria.txt",
-            #wildcard=wildcard,
-            style=wx.OPEN | wx.CHANGE_DIR
-            )
+        if self.data_model==3:
+            pass  
+        else: 
+            dlg = wx.FileDialog(
+                self, message="choose a file in a pmagpy format",
+                defaultDir=self.WD,
+                defaultFile="pmag_criteria.txt",
+                #wildcard=wildcard,
+                style=wx.OPEN | wx.CHANGE_DIR
+                )
+
         if dlg.ShowModal() == wx.ID_OK:
             criteria_file = dlg.GetPath()
             self.GUI_log.write ("-I- Read new criteria file: %s\n"%criteria_file)
         dlg.Destroy()
 
-#        try:        
-#            replace_acceptance_criteria=pmag.initialize_acceptance_criteria3_0()
-#            replace_acceptance_criteria=pmag.read_criteria_from_file(criteria_file,replace_acceptance_criteria) # just to see if file exist        
-        test,file_type=pmag.magic_read(criteria_file)    
-        if file_type!="criteria":
+        try:        
+            replace_acceptance_criteria=pmag.initialize_acceptance_criteria(data_model=self.data_model)
+            replace_acceptance_criteria=pmag.read_criteria_from_file(criteria_file,replace_acceptance_criteria,data_model=self.data_model) # just to see if file exists
+        except:
             dlg1 = wx.MessageDialog(self,caption="Error:",message="error in reading file" ,style=wx.OK)
             result = dlg1.ShowModal()
             if result == wx.ID_OK:
                 dlg1.Destroy()
                 return
-        self.acceptance_criteria=pmag.initialize_acceptance_criteria3_0()
+        
+        self.acceptance_criteria=pmag.initialize_acceptance_criteria(data_model=self.data_model)
         self.add_thellier_gui_criteria()
         self.read_criteria_file(criteria_file)     
-        # check if some statistics are in the new criteria_file but not in old. If yes, add to  self.preferences['show_statistics_on_gui']
+        # check if some statistics are in the new pmag_criteria_file but not in old. If yes, add to  self.preferences['show_statistics_on_gui']
         crit_list_not_in_pref=[]
-        for crit in   self.acceptance_criteria:
-            if  crit['criterion']=="IE-SPEC":
-                if crit['criterion_value']!=-999:
-                    short_crit=crit['table_column'].split('.')[-1]
+        for crit in   self.acceptance_criteria.keys():
+            if  self.acceptance_criteria[crit]['category']=="IE-SPEC":
+                if self.acceptance_criteria[crit]['value']!=-999:
+                    short_crit=crit.split('specimen_')[-1]
                     if short_crit not in self.preferences['show_statistics_on_gui']:
                         print "-I- statitics %s is not in your preferences"%crit
                         self.preferences['show_statistics_on_gui'].append(short_crit)
@@ -1989,7 +2090,7 @@ class Arai_GUI(wx.Frame):
         if  len(crit_list_not_in_pref)>0:
             stat_list=":".join(crit_list_not_in_pref)
             dlg1 = wx.MessageDialog(self,caption="WARNING:", 
-            message="statistics '%s' is in the imported criteria.txt but not in your appearence preferences.\nThis statistic will not appear on the gui panel.\n The program will exit after saving new acceptance criteria, and it will be added automatically the next time you open it "%stat_list ,
+            message="statistics '%s' is in the imported criteria file but not in your appearence preferences.\nThis statistic will not appear on the gui panel.\n The program will exit after saving new acceptance criteria, and it will be added automatically the next time you open it "%stat_list ,
             style=wx.OK|wx.ICON_INFORMATION)
             dlg1.ShowModal()
             dlg1.Destroy()
@@ -2019,7 +2120,7 @@ class Arai_GUI(wx.Frame):
         
         """
         Change acceptance criteria
-        and save it to criteria.txt
+        and save it to the criteria file (data_model=2: pmag_criteria.txt; data_model=3: criteria.txt)
         """
                             
 
@@ -2038,51 +2139,91 @@ class Arai_GUI(wx.Frame):
         Take the acceptance criteria values and update
         self.acceptance_criteria
         """
+        criteria_list=self.acceptance_criteria.keys()
+        criteria_list.sort()
+        
         #---------------------------------------
         # check if averaging by sample or by site
         # and intialize sample/site criteria
         #---------------------------------------
-        accept=[] 
-        by_sample_crit={'citations':'This study','criterion_operation':'+','criterion_value':-999,'description':"",'criterion':'average_by_sample_or_site'}
+        
         if dia.set_average_by_sample_or_site.GetValue()=='sample':
-            by_sample_crit['table_column']='samples.int_abs'
-            accept.append(by_sample_crit)
-            for crit in self.acceptance_criteria:
-                for table_column in ['sites.int_n','sites.int_sigma','sites.int_sigma_perc','sites.aniso_mean','site_int_n_outlier_check']:
-                    if crit['table_column']==table_column:
-                        crit['criterion_value']=-999
-                accept.append(crit)
-            command="value=dia.set_sample_int_sigma_uT.GetValue()"
-              
-        elif dia.set_average_by_sample_or_site.GetValue()=='site':
-            by_sample_crit['table_column']='sites.int_abs'
-            for crit in self.acceptance_criteria:
-                for table_column in ['samples.int_n','samples.int_sigma','samples.int_sigma_perc','samples.aniso_mean','sample_int_n_outlier_check']:
-                    if crit['table_column']==table_column:
-                        crit['criterion_value']=-999
-                accept.append(crit)
-            command="value=dia.set_site_int_sigma_uT.GetValue()"
-        try:
-            exec command
-        except:
-            pass        
-               
-        interpreter_method={'citations':'This study','criterion_operation':"",'description':"",'criterion':'interpreter_method','table_column':'N/A'}
+            for crit in ['site_int_n','site_int_sigma','site_int_sigma_perc','site_aniso_mean','site_int_n_outlier_check']:
+                self.acceptance_criteria[crit]['value']=-999
+        if dia.set_average_by_sample_or_site.GetValue()=='site':
+            for crit in ['sample_int_n','sample_int_sigma','sample_int_sigma_perc','sample_aniso_mean','sample_int_n_outlier_check']:
+                self.acceptance_criteria[crit]['value']=-999
+
+        #---------
+        
+        for i in range(len(criteria_list)):            
+            crit=criteria_list[i]
+            #---------
+            # get the "value" from dialog box
+            #---------
+                # dealing with sample/site
+            if dia.set_average_by_sample_or_site.GetValue()=='sample':
+                if crit in ['site_int_n','site_int_sigma','site_int_sigma_perc','site_aniso_mean','site_int_n_outlier_check']:
+                    continue
+            if dia.set_average_by_sample_or_site.GetValue()=='site':
+                if crit in ['sample_int_n','sample_int_sigma','sample_int_sigma_perc','sample_aniso_mean','sample_int_n_outlier_check']:
+                    continue
+            #------
+            if crit in ['site_int_n','site_int_sigma_perc','site_aniso_mean','site_int_n_outlier_check']:
+                command="value=dia.set_%s.GetValue()"%crit.replace('site','sample')                
+            
+            elif crit=='sample_int_sigma' or crit=='site_int_sigma':
+                #command="value=float(dia.set_sample_int_sigma_uT.GetValue())*1e-6"            
+                command="value=dia.set_sample_int_sigma_uT.GetValue()"
+            else:
+                command="value=dia.set_%s.GetValue()"%crit
+            #------
+            try:
+                exec command
+            except:
+                continue
+            
+            #---------
+            # write the "value" to self.acceptance_criteria
+            #---------
+                        
+            if crit=='average_by_sample_or_site': 
+                self.acceptance_criteria[crit]['value']=str(value)
+                continue 
+
+            if type(value)==bool and value==True:
+                self.acceptance_criteria[crit]['value']=True
+            elif type(value)==bool and value==False:
+                self.acceptance_criteria[crit]['value']=-999                        
+            elif type(value)==unicode and str(value)=="":
+                self.acceptance_criteria[crit]['value']=-999
+            elif type(value)==unicode and str(value)!="": # should be a number
+                try:
+                    self.acceptance_criteria[crit]['value']=float(value)
+                except:
+                    self.show_message(crit) 
+            elif type(value)==float or type(value)==int:
+                    self.acceptance_criteria[crit]['value']=float(value)         
+            else:  
+                self.show_message(crit)
+            if ( crit=='sample_int_sigma' or crit=='site_int_sigma' ) and str(value)!="":
+                self.acceptance_criteria[crit]['value']=float(value)*1e-6  
+            #print crit
+            #print value
+            #print str(value)==""
+        #---------
         # thellier interpreter calculation type
         if dia.set_stdev_opt.GetValue()==True:
-            interpreter_method['criterion_value']='stdev_opt'
+            self.acceptance_criteria['interpreter_method']['value']='stdev_opt'
         elif  dia.set_bs.GetValue()==True:
-            interpreter_method['criterion_value']='bs'
+            self.acceptance_criteria['interpreter_method']['value']='bs'            
         elif  dia.set_bs_par.GetValue()==True:
-            interpreter_method['criterion_value']='bs_par'
-        accept.append(interpreter_method)    
-        # put in the rest of the unchanged critera    
-        #crits=pmag.get_dictkey(accept,'table_column','') 
-        for crit in self.acceptance_criteria:
-            #kif crit not in columns:
-            accept.append(crit) # carry over all the rest
+            self.acceptance_criteria['interpreter_method']['value']='bs_par'            
+            
+                
+            
         #  message dialog
-        dlg1 = wx.MessageDialog(self,caption="Warning:", message="changes are saved to criteria.txt\n " ,style=wx.OK)
+        dlg1 = wx.MessageDialog(self,caption="Warning:", message="changes are saved to the criteria file\n " ,style=wx.OK)
         result = dlg1.ShowModal()
         if result == wx.ID_OK:
             try:
@@ -2093,30 +2234,30 @@ class Arai_GUI(wx.Frame):
                 self.write_acceptance_criteria_to_boxes()
             except:
                 pass
-            pmag.magic_write(os.path.join(self.WD, "criteria.txt"),self.acceptance_criteria,'criteria')
+            if self.data_model==3:
+                crit_file='criteria.txt'
+            else:
+                crit_file='pmag_criteria.txt'
+            pmag.write_criteria_to_file(os.path.join(self.WD, "pmag_criteria.txt"),self.acceptance_criteria)
             dlg1.Destroy()    
             dia.Destroy()
-        self.acceptance_criteria=accept # replace old with new
-        self.recaclulate_satistics()
+        self.recalculate_satistics()
         try:
             self.update_GUI_with_new_interpretation()
         except:
             pass
         
-
-
-
-    # only valid naumber can be entered to boxes
+    # only a valid number can be entered to boxes
     # used by On_close_criteria_box         
  
-    def show_messege(self,key):
+    def show_message(self,key):
         dlg1 = wx.MessageDialog(self,caption="Error:",
             message="non-vaild value for box %s"%key ,style=wx.OK)
         result = dlg1.ShowModal()
         if result == wx.ID_OK:
             dlg1.Destroy()
         
-    def recaclulate_satistics(self):
+    def recalculate_satistics(self):
         '''
         update self.Data[specimen]['pars'] for all specimens.
         '''
@@ -2127,20 +2268,13 @@ class Arai_GUI(wx.Frame):
                 continue
             if 'specimen_int_uT' not in self.Data[specimen]['pars'].keys():
                 continue
-            if 'measurement_step_min' in self.Data[specimen]['pars'].keys() and 'meas_step_min' not in self.Data[specimen]['pars'].keys():
-                self.Data[specimen]['pars']['meas_step_min']=self.Data[specimen]['pars']['measurement_step_min']
-            if 'measurement_step_max' in self.Data[specimen]['pars'].keys() and 'meas_step_max' not in self.Data[specimen]['pars'].keys():
-                self.Data[specimen]['pars']['meas_step_max']=self.Data[specimen]['pars']['measurement_step_max']
-            tmin=self.Data[specimen]['pars']['meas_step_min']
-            tmax=self.Data[specimen]['pars']['meas_step_max']
+            tmin=self.Data[specimen]['pars']['measurement_step_min']
+            tmax=self.Data[specimen]['pars']['measurement_step_max']
             pars=thellier_gui_lib.get_PI_parameters(self.Data,self.acceptance_criteria,self.preferences,specimen,tmin,tmax,self.GUI_log,THERMAL,MICROWAVE)
-            #print 'GUI3: ',pars
             self.Data[specimen]['pars']=pars
-            self.Data[specimen]['pars']['treat_dc_field']=self.Data[specimen]['treat_dc_field']
-            self.Data[specimen]['pars']['treat_dc_field_phi']=self.Data[specimen]['treat_dc_field_phi']
-            self.Data[specimen]['pars']['treat_dc_field_theta']=self.Data[specimen]['treat_dc_field_theta']
-            self.Data[specimen]['pars']['specimen']=self.Data[specimen]['specimen']   
-            self.Data[specimen]['pars']['sample']=self.Data[specimen]['sample']   
+            self.Data[specimen]['pars']['lab_dc_field']=self.Data[specimen]['lab_dc_field']
+            self.Data[specimen]['pars']['er_specimen_name']=self.Data[specimen]['er_specimen_name']   
+            self.Data[specimen]['pars']['er_sample_name']=self.Data[specimen]['er_sample_name']   
         gframe.Destroy()    
                                
         
@@ -2156,46 +2290,39 @@ class Arai_GUI(wx.Frame):
         initialize self.acceptance_criteria
         try to guess if averaging by sample or by site.
         '''
-        fnames={'criteria':criteria_file}
-        contribution = nb.Contribution(self.WD, custom_filenames=fnames, read_tables=['criteria']) 
-        crit_container = contribution.tables['criteria']
-        crit_data = crit_container.df
-        self.acceptance_criteria=crit_data.to_dict("records") # convert to list of dictionaries
-        #print "GUI8: ",self.acceptance_criteria
-        #self.acceptance_criteria,file_type = pmag.magic_read(criteria_file)
-        if len(self.acceptance_criteria)==0:
-            print "-E- Cant read criteria file"
-        # guess if average by site or sample:
-        existing=pmag.get_dictkey(self.acceptance_criteria,'criterion','')
+
+        if self.data_model==3:
+            magic2 = ['specimen_coeff_det_sq', 'specimen_int_ptrm_tail_n', 'specimen_dpal', 'specimen_tail_drat', 'specimen_md', 'specimen_ac_n', 'specimen_dac',  'specimen_int_mad', 'specimen_int_ptrm_n', 'specimen_drat', 'specimen_z_md', 'specimen_frac', 'specimen_cdrat', 'specimen_dec', 'specimen_mdev', 'specimen_drats', 'specimen_z', 'specimen_maxdev', 'specimen_gmax', 'specimen_int_mad_anc', 'specimen_scat', 'specimen_r_sq', 'specimen_b_beta', 'specimen_dck', 'lab_dc_field', 'specimen_inc', 'specimen_mdrat', 'specimen_theta', 'specimen_ptrm', 'measurement_step_min', 'specimen_dtr', 'specimen_int_alpha', 'specimen_fvds', 'specimen_b_sigma', 'specimen_b', 'specimen_g', 'specimen_f', 'measurement_step_max', 'specimen_int_n', 'specimen_q', 'specimen_int_dang', 'specimen_k_sse', 'specimen_gamma', 'specimen_k', 'specimen_int_crm', 'specimen_dt', 'specimen_k_prime', 'specimen_k_prime_sse','sample_int_n','sample_int_sigma_perc','sample_int_sigma','site_int_n','site_int_sigma_perc','site_int_sigma','pmag_criteria_code']
+            magic3 = ['specimens.int_r2_det', 'specimens.int_n_ptrm_tail', 'specimens.int_dpal', 'specimens.int_drat_tail', 'specimens.int_md', 'specimens.int_n_ac', 'specimens.int_dac', 'specimens.int_mad', 'specimens.int_n_ptrm', 'specimens.int_drat', 'specimens.int_z_md', 'specimens.int_frac', 'specimens.int_cdrat', 'specimens.dir_dec', 'specimens.int_mdev', 'specimens.int_drats', 'specimens.int_z', 'specimens.int_maxdev', 'specimens.int_gmax', 'specimens.int_mad_anc', 'specimens.int_scat', 'specimens.int_r2_corr', 'specimens.int_b_beta', 'specimens.int_dck', 'specimens.treat_dc_field', 'specimens.dir_inc', 'specimens.int_mdrat', 'specimens.int_theta', 'specimens.int_ptrm', 'specimens.meas_step_min', 'specimens.int_dtr', 'specimens.int_alpha', 'specimens.int_fvds', 'specimens.int_b_sigma', 'specimens.int_b', 'specimens.int_g', 'specimens.int_f', 'specimens.meas_step_max', 'specimens.int_n_measurements', 'specimens.int_q', 'specimens.int_dang',  'specimens.int_k_sse', 'specimens.int_gamma', 'specimens.int_k', 'specimens.int_crm', 'specimens.int_dt', 'specimens.int_k_prime', 'specimens.int_k_prime_sse','samples.int_n_specimens','samples.int_sigma_perc','samples.int_sigma','sites.int_n_specimens','sites.int_sigma_perc','sites.int_sigma','criterion']
+            contribution = nb.Contribution(self.WD, read_tables=['criteria'])
+            crit_container = contribution.tables['criteria']
+            crit_data = crit_container.df
+            crit_data = crit_data[crit_data['criterion'].str.contains('IE-')==True] # fish out all the relavent data 
+            crit_data=crit_data.to_dict('records') # convert to list of dictionaries
+            for crit in crit_data:  # step through and rename every f-ing one
+                if crit['table_column'] in magic3: 
+                    m2_name=magic2[magic3.index(crit['table_column'])] # find data model 2.5 name
+                    self.acceptance_criteria[m2_name]['value']=float(crit['criterion_value'])
+                    self.acceptance_criteria[m2_name]['pmag_criteria_code']=crit['criterion']
+        else: #      Do it the data model 2.5 way:    
+            try:
+                self.acceptance_criteria=pmag.read_criteria_from_file(criteria_file,self.acceptance_criteria)
+            except:
+                print "-E- Cant read pmag criteria file"
+        # guesss if average by site or sample:
         by_sample=True
         flag=False
-        if 'average_by_sample_or_site' not in existing: # try to figure it out
-             for table_column in ['samples.int_n','samples.int_sigma_perc','samples.int_sigma']:
-                 for crit in self.acceptance_criteria:
-                     if crit['table_column']==table_column and crit['criterion_value']==-999: by_sample=False
-             if not by_sample:
-                 self.acceptance_criteria.append({'criterion':'average_by_sample_or_site','criterion_operation':'+','citations':'This study','criterion_value':-999,'description':'','table_column':'sites.int_abs'})
-             else:
-                 self.acceptance_criteria.append({'criterion':'average_by_sample_or_site','criterion_operation':'+','citations':'This study','criterion_value':-999,'description':'','table_column':'samples.int_abs'})
-        crits=[]
-        for crit in self.acceptance_criteria:
-            if 'decimal_points' not in crit.keys(): # fix this up
-                crit['decimal_points']=0
-                if crit['table_column'] in ['specimens.dir_polarity','samples.dir_polarity','sites.dir_polarity','sites.tilt_correction','specimens.int_scat','sites.age_unit']:
-                    crit['decimal_points']=-999
-                elif crit['table_column'].split('.')[-1] in ['alpha95','sigma_perc','vgp_dm','vdp_dp']:
-                    crit['decimal_points']=1
-                elif crit['table_column'].split('.')[-1] in ['int_f','int_fvds','int_frac','int_q','int_gmax']:
-                    crit['decimal_points']=2
-                elif crit['table_column'].split('.')[-1] in ['int_b_sigma','int_b_beta','int_g','int_k', 'int_k_prime']:
-                    crit['decimal_points']=3
-            crits.append(crit)
-        self.acceptance_criteria=crits
-       
-            
+        for crit in ['sample_int_n','sample_int_sigma_perc','sample_int_sigma']:
+            if self.acceptance_criteria[crit]['value']==-999:
+                flag=True
+        if flag:
+            for crit in ['site_int_n','site_int_sigma_perc','site_int_sigma']:
+                if self.acceptance_criteria[crit]['value']!=-999:
+                    by_sample=False
+        if not by_sample:
+            self.acceptance_criteria['average_by_sample_or_site']['value']='site'
+        
 
-      
-    
     def on_menu_save_interpretation(self, event):
  
         '''
@@ -2221,7 +2348,7 @@ class Arai_GUI(wx.Frame):
                 continue
             redo_specimens_list.append(sp)
 
-            thellier_gui_redo_file.write("%s %.0f %.0f\n"%(sp,self.Data[sp]['pars']['meas_step_min'],self.Data[sp]['pars']['meas_step_max']))
+            thellier_gui_redo_file.write("%s %.0f %.0f\n"%(sp,self.Data[sp]['pars']['measurement_step_min'],self.Data[sp]['pars']['measurement_step_max']))
         dlg1 = wx.MessageDialog(self,caption="Saved:",message="File thellier_GUI.redo is saved in MagIC working folder" ,style=wx.OK)
         result = dlg1.ShowModal()
         if result == wx.ID_OK:
@@ -2239,11 +2366,9 @@ class Arai_GUI(wx.Frame):
         for sp in self.Data.keys():
             del self.Data[sp]['pars']
             self.Data[sp]['pars']={}
-            self.Data[sp]['pars']['treat_dc_field']=self.Data[sp]['treat_dc_field']
-            self.Data[sp]['pars']['treat_dc_field_phi']=self.Data[sp]['treat_dc_field_phi']
-            self.Data[sp]['pars']['treat_dc_field_theta']=self.Data[sp]['treat_dc_field_theta']
-            self.Data[sp]['pars']['specimen']=self.Data[sp]['specimen']   
-            self.Data[sp]['pars']['sample']=self.Data[sp]['sample']   
+            self.Data[sp]['pars']['lab_dc_field']=self.Data[sp]['lab_dc_field']
+            self.Data[sp]['pars']['er_specimen_name']=self.Data[sp]['er_specimen_name']   
+            self.Data[sp]['pars']['er_sample_name']=self.Data[sp]['er_sample_name']   
         self.Data_samples={}
         self.Data_sites={}
         self.tmin_box.SetValue("")
@@ -2256,20 +2381,24 @@ class Arai_GUI(wx.Frame):
 
     def on_menu_calculate_aniso_tensor(self, event):
 
-        self.calculate_anistropy_tensors()
-        text1="Anisotropy tensor elements and statistics are saved in specimens.txt\n"
-        
+        self.calculate_anisotropy_tensors(data_model=self.data_model)
+        if self.data_model==3:
+            text1="Anisotropy elements and statistics are saved in specimens.txt\n"
+            text2=""
+        else:
+            text1="Anisotropy tensors elements are saved in rmag_anisotropy.txt\n"
+            text2="Other anisotropy statistics are saved in rmag_results.txt\n"
         dlg1 = wx.MessageDialog(self,caption="Message:", message=text1+text2 ,style=wx.OK|wx.ICON_INFORMATION)
         dlg1.ShowModal()
         dlg1.Destroy()
         
 
     #========================================================
-    # Anistropy tensors
+    # Anisotropy tensors
     #========================================================
 
 
-    def calculate_anistropy_tensors(self):
+    def calculate_anisotropy_tensors(self,**kwargs):
 
         def tauV(T):
             """
@@ -2306,7 +2435,7 @@ class Arai_GUI(wx.Frame):
         
         #def main():
             
-### THIS ALL HAS TO GET FIXED: 
+
         def calculate_aniso_parameters(B,K):
 
             aniso_parameters={}
@@ -2339,7 +2468,7 @@ class Arai_GUI(wx.Frame):
             DIR_v1=pmag.cart2dir(v1)
             DIR_v2=pmag.cart2dir(v2)
             DIR_v3=pmag.cart2dir(v3)
-# START HERE WITH CLEAN UP
+
                                
             aniso_parameters['anisotropy_s1']="%f"%s1
             aniso_parameters['anisotropy_s2']="%f"%s2
@@ -2394,65 +2523,64 @@ class Arai_GUI(wx.Frame):
         aniso_logfile=open(os.path.join(self.WD, "rmag_anisotropy.log"),'w')
 
         aniso_logfile.write("------------------------\n")
-        aniso_logfile.write( "-I- Start rmag anisrotropy script\n")
+        aniso_logfile.write( "-I- Start rmag anisotropy script\n")
         aniso_logfile.write( "------------------------\n")
 
-#
-#  anisotropy stuff stored in specimens.txt now
+
 
         #-----------------------------------
-        # Prepare rmag_anisotropy.txt file for writing
+        # If data_model=2.5: Prepare anisotropy file for writing (data_model=3 anisotropy data go in the specimens.txt file)
         #-----------------------------------
+        if self.data_model!=3:
+            rmag_anisotropy_file =open(os.path.join(self.WD, "rmag_anisotropy.txt"),'w')
+            rmag_anisotropy_file.write("tab\trmag_anisotropy\n")
 
-#        rmag_anisotropy_file =open(os.path.join(self.WD, "rmag_anisotropy.txt"),'w')
-#        rmag_anisotropy_file.write("tab\trmag_anisotropy\n")
-#
-#        rmag_results_file =open(os.path.join(self.WD, "rmag_results.txt"),'w')
-#        rmag_results_file.write("tab\trmag_results\n")
-#        
-#        rmag_anistropy_header=['er_specimen_name','er_sample_name','er_site_name','anisotropy_type','anisotropy_n','anisotropy_description','anisotropy_s1','anisotropy_s2','anisotropy_s3','anisotropy_s4','anisotropy_s5','anisotropy_s6','anisotropy_sigma','anisotropy_alt','magic_experiment_names','method_codes']
-#
-#        String=""
-#        for i in range (len(rmag_anistropy_header)):
-#            String=String+rmag_anistropy_header[i]+'\t'
-#        rmag_anisotropy_file.write(String[:-1]+"\n")
-#        
-#
-#
-#        rmag_results_header=['er_specimen_names','er_sample_names','er_site_names','anisotropy_type','method_codes','magic_experiment_names','result_description','anisotropy_t1','anisotropy_t2','anisotropy_t3','anisotropy_ftest','anisotropy_ftest12','anisotropy_ftest23',\
-#                             'anisotropy_v1_dec','anisotropy_v1_inc','anisotropy_v2_dec','anisotropy_v2_inc','anisotropy_v3_dec','anisotropy_v3_inc']
-#
-#
-#        String=""
-#        for i in range (len(rmag_results_header)):
-#            String=String+rmag_results_header[i]+'\t'
-#        rmag_results_file.write(String[:-1]+"\n")
-#
-#        #-----------------------------------
-#        # Matrices definitions:
-#        # A design matrix
-#        # B dot(inv(dot(A.transpose(),A)),A.transpose())
+            rmag_results_file =open(os.path.join(self.WD, "rmag_results.txt"),'w')
+            rmag_results_file.write("tab\trmag_results\n")
+        
+            rmag_anisotropy_header=['er_specimen_name','er_sample_name','er_site_name','anisotropy_type','anisotropy_n','anisotropy_description','anisotropy_s1','anisotropy_s2','anisotropy_s3','anisotropy_s4','anisotropy_s5','anisotropy_s6','anisotropy_sigma','anisotropy_alt','magic_experiment_names','magic_method_codes']
+    
+            String=""
+            for i in range (len(rmag_anisotropy_header)):
+                String=String+rmag_anisotropy_header[i]+'\t'
+            rmag_anisotropy_file.write(String[:-1]+"\n")
+        
+
+
+            rmag_results_header=['er_specimen_names','er_sample_names','er_site_names','anisotropy_type','magic_method_codes','magic_experiment_names','result_description','anisotropy_t1','anisotropy_t2','anisotropy_t3','anisotropy_ftest','anisotropy_ftest12','anisotropy_ftest23',\
+                             'anisotropy_v1_dec','anisotropy_v1_inc','anisotropy_v2_dec','anisotropy_v2_inc','anisotropy_v3_dec','anisotropy_v3_inc']
+
+
+            String=""
+            for i in range (len(rmag_results_header)):
+                String=String+rmag_results_header[i]+'\t'
+            rmag_results_file.write(String[:-1]+"\n")
+
+        #-----------------------------------
+        # Matrices definitions:
+        # A design matrix
+        # B dot(inv(dot(A.transpose(),A)),A.transpose())
         # tmpH is used for sigma calculation (9,15 measurements only)
-#        # 
-#        #  Anisotropy tensor:
-#        #
-#        # |Mx|   |s1 s4 s6|   |Bx|
-#        # |My| = |s4 s2 s5| . |By|
-#        # |Mz|   |s6 s5 s3|   |Bz|
-#        #
-#        # A matrix (measurement matrix):
-#        # Each mesurement yields three lines in "A" matrix
-#        #
-#        # |Mi  |   |Bx 0  0   By  0   Bz|   |s1|
-#        # |Mi+1| = |0  By 0   Bx  Bz  0 | . |s2|
+        # 
+        #  Anisotropy tensor:
+        #
+        # |Mx|   |s1 s4 s6|   |Bx|
+        # |My| = |s4 s2 s5| . |By|
+        # |Mz|   |s6 s5 s3|   |Bz|
+        #
+        # A matrix (measurement matrix):
+        # Each mesurement yields three lines in "A" matrix
+        #
+        # |Mi  |   |Bx 0  0   By  0   Bz|   |s1|
+        # |Mi+1| = |0  By 0   Bx  Bz  0 | . |s2|
         # |Mi+2|   |0  0  Bz  0   By  Bx|   |s3|
         #                                   |s4|
         #                                   |s5|
         #
         #-----------------------------------
 
-#        Matrices={}
-#        
+        Matrices={}
+        
         for n_pos in [6,9,15]:
 
             Matrices[n_pos]={}
@@ -2541,14 +2669,14 @@ class Arai_GUI(wx.Frame):
 
                 # search for baseline in atrm blocks
                 for rec in atrmblock:
-                    dec=float(rec['dir_dec'])
-                    inc=float(rec['dir_inc'])
-                    moment=float(rec['intensity'])
+                    dec=float(rec['measurement_dec'])
+                    inc=float(rec['measurement_inc'])
+                    moment=float(rec['measurement_magn_moment'])
                     # find the temperature of the atrm
-                    if float(rec['treatment_dc_field'])!=0 and float(rec['treat_temp'])!=273:
-                        atrm_temperature=float(rec['treat_temp'])
+                    if float(rec['treatment_dc_field'])!=0 and float(rec['treatment_temp'])!=273:
+                        atrm_temperature=float(rec['treatment_temp'])
                     # find baseline
-                    if float(rec['treatment_dc_field'])==0 and float(rec['treat_temp'])!=273:
+                    if float(rec['treatment_dc_field'])==0 and float(rec['treatment_temp'])!=273:
                         baselines.append(scipy.array(pmag.dir2cart([dec,inc,moment])))
                     # Find alteration check
                     #print rec['measurement_number']
@@ -2580,17 +2708,17 @@ class Arai_GUI(wx.Frame):
                 
                 for rec in atrmblock:
 
-                    dec=float(rec['dir_dec'])
-                    inc=float(rec['dir_inc'])
-                    moment=float(rec['intensity'])
+                    dec=float(rec['measurement_dec'])
+                    inc=float(rec['measurement_inc'])
+                    moment=float(rec['measurement_magn_moment'])
                     CART=scipy.array(pmag.dir2cart([dec,inc,moment]))-baseline
                     
                     if float(rec['treatment_dc_field'])==0: # Ignore zero field steps
                         continue
-                    if  "LT-PTRM-I" in rec['method_codes'].split(":"): #  alteration check
+                    if  "LT-PTRM-I" in rec['magic_method_codes'].split(":"): #  alteration check
                         Alteration_check=CART
-                        Alteration_check_dc_field_phi=float(rec['treat_dc_field_phi'])
-                        Alteration_check_dc_field_theta=float(rec['treat_dc_field_theta'])
+                        Alteration_check_dc_field_phi=float(rec['treatment_dc_field_phi'])
+                        Alteration_check_dc_field_theta=float(rec['treatment_dc_field_theta'])
                         if Alteration_check_dc_field_phi==0 and Alteration_check_dc_field_theta==0 :
                             Alteration_check_index=0
                         if Alteration_check_dc_field_phi==90 and Alteration_check_dc_field_theta==0 :
@@ -2606,27 +2734,27 @@ class Arai_GUI(wx.Frame):
                         aniso_logfile.write(  "-I- found alteration check  for specimen %s\n"%specimen)
                         continue
                     
-                    treat_dc_field_phi=float(rec['treat_dc_field_phi'])
-                    treat_dc_field_theta=float(rec['treat_dc_field_theta'])
-                    treat_dc_field=float(rec['treat_dc_field'])
+                    treatment_dc_field_phi=float(rec['treatment_dc_field_phi'])
+                    treatment_dc_field_theta=float(rec['treatment_dc_field_theta'])
+                    treatment_dc_field=float(rec['treatment_dc_field'])
                     
                     #+x, M[0]
-                    if treat_dc_field_phi==0 and treat_dc_field_theta==0 :
+                    if treatment_dc_field_phi==0 and treatment_dc_field_theta==0 :
                         M[0]=CART
                     #+Y , M[1]
-                    if treat_dc_field_phi==90 and treat_dc_field_theta==0 :
+                    if treatment_dc_field_phi==90 and treatment_dc_field_theta==0 :
                         M[1]=CART
                     #+Z , M[2]
-                    if treat_dc_field_phi==0 and treat_dc_field_theta==90 :
+                    if treatment_dc_field_phi==0 and treatment_dc_field_theta==90 :
                         M[2]=CART
                     #-x, M[3]
-                    if treat_dc_field_phi==180 and treat_dc_field_theta==0 :
+                    if treatment_dc_field_phi==180 and treatment_dc_field_theta==0 :
                         M[3]=CART
                     #-Y , M[4]
-                    if treat_dc_field_phi==270 and treat_dc_field_theta==0 :
+                    if treatment_dc_field_phi==270 and treatment_dc_field_theta==0 :
                         M[4]=CART
                     #-Z , M[5]
-                    if treat_dc_field_phi==0 and treat_dc_field_theta==-90 :
+                    if treatment_dc_field_phi==0 and treatment_dc_field_theta==-90 :
                         M[5]=CART
             
                 # check if at least one measurement in missing
@@ -2637,7 +2765,7 @@ class Arai_GUI(wx.Frame):
 
                 # alteration check        
 
-                aniso_alt=0
+                anisotropy_alt=0
                 if Alteration_check!="":
                     for i in range(len(M)):
                         if Alteration_check_index==i:
@@ -2669,8 +2797,8 @@ class Arai_GUI(wx.Frame):
                     diff_ratio=diff/scipy.mean([M_1,M_2])
                     diff_ratio_perc=100*diff_ratio
                     
-                    if diff_ratio_perc>aniso_alt:
-                        aniso_alt=diff_ratio_perc
+                    if diff_ratio_perc>anisotropy_alt:
+                        anisotropy_alt=diff_ratio_perc
                         
                 if not Reject_specimen:
                 
@@ -2687,14 +2815,15 @@ class Arai_GUI(wx.Frame):
                         Data_anisotropy[specimen]={}
                     aniso_parameters=calculate_aniso_parameters(B,K)
                     Data_anisotropy[specimen]['ATRM']=aniso_parameters
-                    Data_anisotropy[specimen]['ATRM']['aniso_alt']="%.2f"%anisotropy_alt               
-                    Data_anisotropy[specimen]['ATRM']['aniso_type']="ATRM"
-                    Data_anisotropy[specimen]['ATRM']['sample']=atrmblock[0]['sample']
-                    Data_anisotropy[specimen]['ATRM']['specimen']=specimen
-                    #Data_anisotropy[specimen]['ATRM']['site']=atrmblock[0]['site']
-                    Data_anisotropy[specimen]['ATRM']['description']='Hext statistics adapted to ATRM'
-                    Data_anisotropy[specimen]['ATRM']['experiments']=specimen+";ATRM"
-                    Data_anisotropy[specimen]['ATRM']['method_codes']="LP-AN-TRM:AE-H"
+                    Data_anisotropy[specimen]['ATRM']['anisotropy_alt']="%.2f"%anisotropy_alt               
+                    Data_anisotropy[specimen]['ATRM']['anisotropy_type']="ATRM"
+                    Data_anisotropy[specimen]['ATRM']['er_sample_name']=atrmblock[0]['er_sample_name']
+                    Data_anisotropy[specimen]['ATRM']['er_specimen_name']=specimen
+                    Data_anisotropy[specimen]['ATRM']['er_site_name']=atrmblock[0]['er_site_name']
+                    Data_anisotropy[specimen]['ATRM']['anisotropy_description']='Hext statistics adapted to ATRM'
+                    Data_anisotropy[specimen]['ATRM']['magic_experiment_names']=specimen+";ATRM"
+                    Data_anisotropy[specimen]['ATRM']['magic_method_codes']="LP-AN-TRM:AE-H"
+                    #Data_anisotropy[specimen]['ATRM']['rmag_anisotropy_name']=specimen
 
 
             if 'aarmblock' in self.Data[specimen].keys():    
@@ -2731,15 +2860,15 @@ class Arai_GUI(wx.Frame):
                 for i in range(n_pos):
                     for rec in aarmblock:
                         if float(rec['measurement_number'])==i*2+1:
-                            dec=float(rec['dir_dec'])
-                            inc=float(rec['dir_inc'])
-                            moment=float(rec['intensity'])                    
+                            dec=float(rec['measurement_dec'])
+                            inc=float(rec['measurement_inc'])
+                            moment=float(rec['measurement_magn_moment'])                    
                             M_baseline=scipy.array(pmag.dir2cart([dec,inc,moment]))
                             
                         if float(rec['measurement_number'])==i*2+2:
-                            dec=float(rec['dir_dec'])
-                            inc=float(rec['dir_inc'])
-                            moment=float(rec['intensity'])                    
+                            dec=float(rec['measurement_dec'])
+                            inc=float(rec['measurement_inc'])
+                            moment=float(rec['measurement_magn_moment'])                    
                             M_arm=scipy.array(pmag.dir2cart([dec,inc,moment]))
                     M[i]=M_arm-M_baseline
 
@@ -2754,14 +2883,15 @@ class Arai_GUI(wx.Frame):
                     Data_anisotropy[specimen]={}
                 aniso_parameters=calculate_aniso_parameters(B,K)
                 Data_anisotropy[specimen]['AARM']=aniso_parameters
-                Data_anisotropy[specimen]['AARM']['aniso_alt']=""               
-                Data_anisotropy[specimen]['AARM']['aniso_type']="AARM"
-                Data_anisotropy[specimen]['AARM']['sample']=aarmblock[0]['sample']
-                #Data_anisotropy[specimen]['AARM']['site']=aarmblock[0]['site'] # don't put site at specimen level
-                Data_anisotropy[specimen]['AARM']['specimen']=specimen
-                Data_anisotropy[specimen]['AARM']['description']='Hext statistics adapted to AARM'
-                Data_anisotropy[specimen]['AARM']['experiments']=specimen+";AARM"
-                Data_anisotropy[specimen]['AARM']['method_codes']="LP-AN-ARM:AE-H"
+                Data_anisotropy[specimen]['AARM']['anisotropy_alt']=""               
+                Data_anisotropy[specimen]['AARM']['anisotropy_type']="AARM"
+                Data_anisotropy[specimen]['AARM']['er_sample_name']=aarmblock[0]['er_sample_name']
+                Data_anisotropy[specimen]['AARM']['er_site_name']=aarmblock[0]['er_site_name']
+                Data_anisotropy[specimen]['AARM']['er_specimen_name']=specimen
+                Data_anisotropy[specimen]['AARM']['anisotropy_description']='Hext statistics adapted to AARM'
+                Data_anisotropy[specimen]['AARM']['magic_experiment_names']=specimen+";AARM"
+                Data_anisotropy[specimen]['AARM']['magic_method_codes']="LP-AN-ARM:AE-H"
+                #Data_anisotropy[specimen]['AARM']['rmag_anisotropy_name']=specimen
                 
 
         #-----------------------------------   
@@ -2769,7 +2899,7 @@ class Arai_GUI(wx.Frame):
         specimens=Data_anisotropy.keys()
         specimens.sort
 
-        # remove previous anistropy data, and replace with the new one:
+        # remove previous anisotropy data, and replace with the new one:
         s_list=self.Data.keys()
         for sp in s_list:
             if 'AniSpec' in self.Data[sp].keys():
@@ -2785,17 +2915,17 @@ class Arai_GUI(wx.Frame):
                 aniso_logfile.write( "-W- WARNING: both aarm and atrm data exist for specimen %s. using AARM by default. If you prefer using one of them, delete the other!\n"%specimen)
             for TYPE in TYPES:
                 String=""
-                for i in range (len(rmag_anistropy_header)):
+                for i in range (len(rmag_anisotropy_header)):
                     try:
-                        String=String+Data_anisotropy[specimen][TYPE][rmag_anistropy_header[i]]+'\t'
+                        String=String+Data_anisotropy[specimen][TYPE][rmag_anisotropy_header[i]]+'\t'
                     except:
-                        String=String+"%f"%(Data_anisotropy[specimen][TYPE][rmag_anistropy_header[i]])+'\t'
+                        String=String+"%f"%(Data_anisotropy[specimen][TYPE][rmag_anisotropy_header[i]])+'\t'
                 rmag_anisotropy_file.write(String[:-1]+"\n")
 
                 String=""
-                Data_anisotropy[specimen][TYPE]['specimen']=Data_anisotropy[specimen][TYPE]['specimen']
-                #Data_anisotropy[specimen][TYPE]['er_sample_names']=Data_anisotropy[specimen][TYPE]['er_sample_name']
-                #Data_anisotropy[specimen][TYPE]['er_site_names']=Data_anisotropy[specimen][TYPE]['er_site_name']
+                Data_anisotropy[specimen][TYPE]['er_specimen_names']=Data_anisotropy[specimen][TYPE]['er_specimen_name']
+                Data_anisotropy[specimen][TYPE]['er_sample_names']=Data_anisotropy[specimen][TYPE]['er_sample_name']
+                Data_anisotropy[specimen][TYPE]['er_site_names']=Data_anisotropy[specimen][TYPE]['er_site_name']
                 for i in range (len(rmag_results_header)):
                     try:
                         String=String+Data_anisotropy[specimen][TYPE][rmag_results_header[i]]+'\t'
@@ -2808,7 +2938,7 @@ class Arai_GUI(wx.Frame):
                 self.Data[specimen]['AniSpec'][TYPE]=Data_anisotropy[specimen][TYPE]
 
         aniso_logfile.write("------------------------\n")
-        aniso_logfile.write("-I- Done rmag anisotropy script\n")
+        aniso_logfile.write("-I- Done anisotropy script\n")
         aniso_logfile.write( "------------------------\n")
         
         rmag_anisotropy_file.close()
@@ -2819,7 +2949,7 @@ class Arai_GUI(wx.Frame):
     def on_show_anisotropy_errors(self,event):
         
 
-        dia = thellier_gui_dialogs.MyLogFileErrors( "Anistropy calculation errors",os.path.join(self.WD, "rmag_anisotropy.log"))
+        dia = thellier_gui_dialogs.MyLogFileErrors( "Anisotropy calculation errors",os.path.join(self.WD, "rmag_anisotropy.log"))
         dia.Show()
         dia.Center()
     
@@ -2908,11 +3038,9 @@ class Arai_GUI(wx.Frame):
         for sp in self.Data.keys():
             del self.Data[sp]['pars']
             self.Data[sp]['pars']={}
-            self.Data[sp]['pars']['treat_dc_field']=self.Data[sp]['treat_dc_field']
-            self.Data[sp]['pars']['treat_dc_field_phi']=self.Data[sp]['treat_dc_field_phi']
-            self.Data[sp]['pars']['treat_dc_field_theta']=self.Data[sp]['treat_dc_field_theta']
-            self.Data[sp]['pars']['specimen']=self.Data[sp]['specimen']   
-            self.Data[sp]['pars']['sample']=self.Data[sp]['sample']
+            self.Data[sp]['pars']['lab_dc_field']=self.Data[sp]['lab_dc_field']
+            self.Data[sp]['pars']['er_specimen_name']=self.Data[sp]['er_specimen_name']   
+            self.Data[sp]['pars']['er_sample_name']=self.Data[sp]['er_sample_name']
             #print sp
             #print self.Data[sp]['pars']
         self.Data_samples={}
@@ -2965,7 +3093,6 @@ class Arai_GUI(wx.Frame):
 
     #----------------------------------------------------------------------            
 
-#    def write_acceptance_criteria_to_file(self): # DEPRICATED
 
     def on_menu_run_consistency_test(self, event):
         #dlg1 = wx.MessageDialog(self,caption="Message:",message="Consistency test is no longer supported in this version" ,style=wx.OK)
@@ -3003,9 +3130,10 @@ class Arai_GUI(wx.Frame):
             self.On_close_plot_dialog(dia)
         
     #----------------------------------------------------------------------            
-#
-#  THIS STILL HAS TO BE FIXED!
-#
+
+    def on_menu_prepare_MagIC_data_model_3_tables (self, m_prepare_MagIC_results_tables):
+        pass
+
     def on_menu__prepare_MagIC_results_tables (self, event):
 
         import copy
@@ -3016,15 +3144,14 @@ class Arai_GUI(wx.Frame):
             self.on_menu_save_interpretation(None)
         except:
             pass
-
         #------------------
         # read existing pmag results data and sort out the directional data. 
         # The directional data will be merged to one combined pmag table. 
-        # this data will be marged later  
+        # this data will be merged later  
         #-----------------------.
         
         PmagRecsOld={}
-        for FILE in ['specimens.txt','samples.txt','sites.txt']:
+        for FILE in ['pmag_specimens.txt','pmag_samples.txt','pmag_sites.txt','pmag_results.txt']:
             PmagRecsOld[FILE],meas_data=[],[]
             try: 
                 meas_data,file_type=pmag.magic_read(os.path.join(self.WD, FILE))
@@ -3036,19 +3163,19 @@ class Arai_GUI(wx.Frame):
                 self.GUI_log.write("-I- Cant read existing magic file  %s\n"%(os.path.join(self.WD, FILE)))                
                 continue                                                                           
             for rec in meas_data:
-                if "method_codes" in rec.keys():
-                    if "LP-PI" not in rec['method_codes'] and "IE-" not in rec['method_codes'] :
+                if "magic_method_codes" in rec.keys():
+                    if "LP-PI" not in rec['magic_method_codes'] and "IE-" not in rec['magic_method_codes'] :
                         PmagRecsOld[FILE].append(rec)
 
-        pmag_specimens_header_1=["location","site","sample","specimen"]
-        pmag_specimens_header_2=['meas_step_min','meas_step_max','int_abs']        
+        pmag_specimens_header_1=["er_location_name","er_site_name","er_sample_name","er_specimen_name"]
+        pmag_specimens_header_2=['measurement_step_min','measurement_step_max','specimen_int']        
         pmag_specimens_header_3=["specimen_correction","specimen_int_corr_anisotropy","specimen_int_corr_nlt","specimen_int_corr_cooling_rate"]
         pmag_specimens_header_4=[]
         for short_stat in self.preferences['show_statistics_on_gui']:
             stat="specimen_"+short_stat
             pmag_specimens_header_4.append(stat)
-        pmag_specimens_header_5=["experiments","method_codes","meas_step_unit","specimen_lab_field_dc"]
-        pmag_specimens_header_6=["citations"]
+        pmag_specimens_header_5=["magic_experiment_names","magic_method_codes","measurement_step_unit","specimen_lab_field_dc"]
+        pmag_specimens_header_6=["er_citation_names"]
         try:
             version= pmag.get_version()
         except:
@@ -3067,7 +3194,7 @@ class Arai_GUI(wx.Frame):
         MagIC_results_data['pmag_samples_or_sites']={}            
         MagIC_results_data['pmag_results']={}
 
-        # write down specimens.txt        
+        # write down pmag_specimens.txt        
         specimens_list.sort()
         for specimen in specimens_list:
             
@@ -3088,8 +3215,8 @@ class Arai_GUI(wx.Frame):
                 MagIC_results_data['pmag_specimens'][specimen]['er_sample_name']=sample_name
                 MagIC_results_data['pmag_specimens'][specimen]['er_site_name']=site_name
                 MagIC_results_data['pmag_specimens'][specimen]['er_location_name']=location_name
-                MagIC_results_data['pmag_specimens'][specimen]['method_codes']=self.Data[specimen]['pars']['method_codes']+":IE-TT"
-                tmp=MagIC_results_data['pmag_specimens'][specimen]['method_codes'].split(":")
+                MagIC_results_data['pmag_specimens'][specimen]['magic_method_codes']=self.Data[specimen]['pars']['magic_method_codes']+":IE-TT"
+                tmp=MagIC_results_data['pmag_specimens'][specimen]['magic_method_codes'].split(":")
                 magic_experiment_names=specimen
                 for m in tmp:
                     if "LP-" in m:
@@ -3109,9 +3236,9 @@ class Arai_GUI(wx.Frame):
                     else:
                         MagIC_results_data['pmag_specimens'][specimen][key]="%.2f"%(self.Data[specimen]['pars'][key])                             
                                 
-                MagIC_results_data['pmag_specimens'][specimen]['int_abs']="%.2e"%(self.Data[specimen]['pars']['int_abs'])
-                MagIC_results_data['pmag_specimens'][specimen]['meas_step_min']="%i"%(self.Data[specimen]['pars']['meas_step_min'])
-                MagIC_results_data['pmag_specimens'][specimen]['meas_step_max']="%i"%(self.Data[specimen]['pars']['meas_step_max'])
+                MagIC_results_data['pmag_specimens'][specimen]['specimen_int']="%.2e"%(self.Data[specimen]['pars']['specimen_int'])
+                MagIC_results_data['pmag_specimens'][specimen]['measurement_step_min']="%i"%(self.Data[specimen]['pars']['measurement_step_min'])
+                MagIC_results_data['pmag_specimens'][specimen]['measurement_step_max']="%i"%(self.Data[specimen]['pars']['measurement_step_max'])
                 if "specimen_int_corr_anisotropy" in  self.Data[specimen]['pars'].keys():
                     MagIC_results_data['pmag_specimens'][specimen]['specimen_int_corr_anisotropy']="%.2f"%(self.Data[specimen]['pars']['specimen_int_corr_anisotropy'])
                 else:
@@ -3125,8 +3252,8 @@ class Arai_GUI(wx.Frame):
                 else:
                     MagIC_results_data['pmag_specimens'][specimen]['specimen_int_corr_cooling_rate']=""
                     
-        # write specimens.txt
-        fout=open(os.path.join(self.WD, "specimens.txt"),'w')
+        # wrire pmag_specimens.txt
+        fout=open(os.path.join(self.WD, "pmag_specimens.txt"),'w')
         fout.write("tab\tpmag_specimens\n")
         headers=pmag_specimens_header_1+pmag_specimens_header_2+pmag_specimens_header_3+pmag_specimens_header_4+pmag_specimens_header_5+pmag_specimens_header_6
         String=""
@@ -3142,15 +3269,15 @@ class Arai_GUI(wx.Frame):
         
         
         # merge with non-intensity data
-        # read the new specimens.txt
-        meas_data,file_type=pmag.magic_read(os.path.join(self.WD, "specimens.txt"))
-        # add the old non-PI lines from specimens.txt
-        for rec in PmagRecsOld["specimens.txt"]:
+        # read the new pmag_specimens.txt
+        meas_data,file_type=pmag.magic_read(os.path.join(self.WD, "pmag_specimens.txt"))
+        # add the old non-PI lines from pmag_specimens.txt
+        for rec in PmagRecsOld["pmag_specimens.txt"]:
             meas_data.append(rec)
         # fix headers, so all headers in all lines
         meas_data=self.converge_pmag_rec_headers(meas_data)
-        # write the combined specimens.txt
-        pmag.magic_write(os.path.join(self.WD, "specimens.txt"),meas_data,'specimens')
+        # write the combined pmag_specimens.txt
+        pmag.magic_write(os.path.join(self.WD, "pmag_specimens.txt"),meas_data,'pmag_specimens')
         try:
             os.remove(os.path.join(self.WD, "pmag_specimens.txt.backup"))
         except:
@@ -3171,7 +3298,7 @@ class Arai_GUI(wx.Frame):
         #-------------
         # pmag_samples.txt or pmag_sites.txt
         #-------------
-        if self.acceptance_criteria['average_by_sample_or_site']['criterion_value']=='sample':
+        if self.acceptance_criteria['average_by_sample_or_site']['value']=='sample':
             BY_SITES=False; BY_SAMPLES=True
         else:
             BY_SITES=True; BY_SAMPLES=False
@@ -3183,7 +3310,7 @@ class Arai_GUI(wx.Frame):
             pmag_samples_header_2=["er_specimen_names","sample_int","sample_int_n","sample_int_sigma","sample_int_sigma_perc","sample_description"]
         else:
             pmag_samples_header_2=["er_specimen_names","site_int","site_int_n","site_int_sigma","site_int_sigma_perc","site_description"]
-        pmag_samples_header_3=["method_codes","magic_software_packages"]
+        pmag_samples_header_3=["magic_method_codes","magic_software_packages"]
         pmag_samples_header_4=["er_citation_names"]
 
         pmag_samples_or_sites_list=[]
@@ -3202,7 +3329,7 @@ class Arai_GUI(wx.Frame):
                 specimens_LP_codes=[]
                 for specimen in Data_samples_or_sites[sample_or_site].keys():
                     B.append(Data_samples_or_sites[sample_or_site][specimen])
-                    magic_codes=MagIC_results_data['pmag_specimens'][specimen]['method_codes']
+                    magic_codes=MagIC_results_data['pmag_specimens'][specimen]['magic_method_codes']
                     codes=magic_codes.replace(" ","").split(":")
                     for code in codes:
                         if "LP-" in code and code not in specimens_LP_codes:
@@ -3221,6 +3348,16 @@ class Arai_GUI(wx.Frame):
                     B_uT=sample_or_site_pars['B_uT']
                     B_std_uT=sample_or_site_pars['B_std_uT']
                     B_std_perc=sample_or_site_pars['B_std_perc']
+                    #if len(B)>=self.acceptance_criteria['sample_int_n']:
+                    #    B_std_uT=std(B,ddof=1)
+                    #    B_std_perc=std(B,ddof=1)/scipy.mean(B)*100
+                    #    if (self.acceptance_criteria['sample_int_sigma_uT']==0 and self.acceptance_criteria['sample_int_sigma_perc']==0) or\
+                    #       ( B_std_uT <=self.acceptance_criteria['sample_int_sigma_uT'] or B_std_perc <= self.acceptance_criteria['sample_int_sigma_perc']):
+                    #        if ( (max(B)-min(B)) <= self.acceptance_criteria['sample_int_interval_uT'] or 100*((max(B)-min(B))/mean((B))) <= self.acceptance_criteria['sample_int_interval_perc']):
+                    #            sample_pass_criteria=True
+                    #if not sample_pass_criteria:
+                        #print "skipping sample" %sample
+                        #continue
                     pmag_samples_or_sites_list.append(sample_or_site)
                     MagIC_results_data['pmag_samples_or_sites'][sample_or_site]={}
                     MagIC_results_data['pmag_samples_or_sites'][sample_or_site]['er_specimen_names']=specimens_names
@@ -3257,13 +3394,13 @@ class Arai_GUI(wx.Frame):
                             #MagIC_results_data['pmag_samples_or_sites'][sample_or_site][key]=sample_or_site
                                                 
                     MagIC_results_data['pmag_samples_or_sites'][sample_or_site]["pmag_criteria_codes"]=""
-                    MagIC_results_data['pmag_samples_or_sites'][sample_or_site]['method_codes']=magic_codes
+                    MagIC_results_data['pmag_samples_or_sites'][sample_or_site]['magic_method_codes']=magic_codes
                     MagIC_results_data['pmag_samples_or_sites'][sample_or_site]["magic_software_packages"]=version
                     
                     MagIC_results_data['pmag_samples_or_sites'][sample_or_site]["er_citation_names"]="This study"
                    
                     
-        # wrire pmag_samples.txt
+        # write pmag_samples.txt
         if BY_SAMPLES:
             fout=open(os.path.join(self.WD, "pmag_samples.txt"),'w')
             fout.write("tab\tpmag_samples\n")
@@ -3346,7 +3483,7 @@ class Arai_GUI(wx.Frame):
             pmag_results_header_4=["vdm","vdm_sigma"]        
         else:    
             pmag_results_header_4=["vadm","vadm_sigma"]
-        pmag_results_header_5=[ "data_type","pmag_result_name","method_codes","result_description","er_citation_names","magic_software_packages","pmag_criteria_codes"]                
+        pmag_results_header_5=[ "data_type","pmag_result_name","magic_method_codes","result_description","er_citation_names","magic_software_packages","pmag_criteria_codes"]                
                 
         # for ages, check the er_ages.txt, and take whats theres
         #age_headers=[]
@@ -3421,7 +3558,7 @@ class Arai_GUI(wx.Frame):
                 MagIC_results_data['pmag_results'][sample_or_site]["result_description"]="Paleointensity"
     
             MagIC_results_data['pmag_results'][sample_or_site]["magic_software_packages"]=version
-            MagIC_results_data['pmag_results'][sample_or_site]["method_codes"]=magic_codes
+            MagIC_results_data['pmag_results'][sample_or_site]["magic_method_codes"]=magic_codes
             # try to make a more meaningful name
             
             MagIC_results_data['pmag_results'][sample_or_site]["data_type"]="i"
@@ -3481,10 +3618,10 @@ class Arai_GUI(wx.Frame):
                             foundkeys=True
             if foundkeys==True:
                 if "er_ages" in self.Data_info.keys() and element_with_age in self.Data_info["er_ages"].keys():
-                    if 'method_codes' in self.Data_info["er_ages"][element_with_age].keys():
-                        methods= self.Data_info["er_ages"][element_with_age]['method_codes'].replace(" ","").strip('\n').split(":")
+                    if 'magic_method_codes' in self.Data_info["er_ages"][element_with_age].keys():
+                        methods= self.Data_info["er_ages"][element_with_age]['magic_method_codes'].replace(" ","").strip('\n').split(":")
                         for meth in methods:
-                            MagIC_results_data['pmag_results'][sample_or_site]["method_codes"]=MagIC_results_data['pmag_results'][sample_or_site]["method_codes"] + ":"+ meth
+                            MagIC_results_data['pmag_results'][sample_or_site]["magic_method_codes"]=MagIC_results_data['pmag_results'][sample_or_site]["magic_method_codes"] + ":"+ meth
                              
                            
         # write pmag_results.txt
@@ -3520,14 +3657,51 @@ class Arai_GUI(wx.Frame):
             pass     
 
         
-                
-        # make criteria.txt if it does not exist
-        if not os.path.isfile(os.path.join(self.WD, "criteria.txt")):
-            Fout=open(os.path.join(self.WD, "criteria.txt"),'w')
-            Fout.write("tab\tcriteria\n")
-            Fout.write("citations\tcriterion\tcriterion_operation\tcriterion_value\tdescription\ttable_column\n")
+        #-------------
+        # MAgic_methods.txt
+        #-------------
 
-        dlg1 = wx.MessageDialog(self,caption="Message:", message="MagIC files are saved in MagIC project folder" ,style=wx.OK|wx.ICON_INFORMATION)
+        # search for all magic_methods in all files:
+        magic_method_codes=[]
+        for F in ["magic_measurements.txt","rmag_anisotropy.txt","rmag_results.txt","rmag_results.txt","pmag_samples.txt","pmag_specimens.txt","pmag_sites.txt","er_ages.txt"]:
+            try:
+                fin=open(os.path.join(self.WD, F),'rU')
+            except:
+                continue
+            line=fin.readline()
+            line=fin.readline()
+            header=line.strip('\n').split('\t')
+            if  "magic_method_codes" not in header:
+                continue
+            else:
+                index=header.index("magic_method_codes")
+            for line in fin.readlines():
+                tmp=line.strip('\n').split('\t')
+                if len(tmp) >= index:
+                    codes=tmp[index].replace(" ","").split(":")
+                    for code in codes:
+                        if code !="" and code not in magic_method_codes:
+                            magic_method_codes.append(code)
+            fin.close()
+            
+        magic_method_codes.sort()
+        #print magic_method_codes
+        magic_methods_header_1=["magic_method_code"]
+        fout=open(os.path.join(self.WD, "magic_methods.txt"),'w')
+        fout.write("tab\tmagic_methods\n")
+        fout.write("magic_method_code\n")
+        for code in magic_method_codes:
+            fout.write("%s\n"%code)
+        fout.close
+                
+        # make pmag_criteria.txt if it does not exist
+        if not os.path.isfile(os.path.join(self.WD, "pmag_criteria.txt")):
+            Fout=open(os.path.join(self.WD, "pmag_criteria.txt"),'w')
+            Fout.write("tab\tpmag_criteria\n")
+            Fout.write("er_citation_names\tpmag_criteria_code\n")
+            Fout.write("This study\tACCEPT\n")
+
+        dlg1 = wx.MessageDialog(self,caption="Message:", message="MagIC pmag files are saved in MagIC project folder" ,style=wx.OK|wx.ICON_INFORMATION)
         dlg1.ShowModal()
         dlg1.Destroy()
         
@@ -3548,65 +3722,71 @@ class Arai_GUI(wx.Frame):
                     rec[header]=""
         return recs
     
-    '''outdated            
-    def read_magic_model (self):
-        # Read MagIC Data model:
-        
-
-        self.MagIC_model={}
-        self.MagIC_model["specimens"]={}
-        self.MagIC_model["samples"]={}
-        self.MagIC_model["sites"]={}
-        self.MagIC_model["locations"]={}
-        self.MagIC_model["ages"]={}
-        fail=[]
-        self.MagIC_model["specimens"]=self.read_magic_file(os.path.join(self.WD, "specimens.txt"),1,'specimen')
-        try:
-            self.MagIC_model["specimens"]=self.read_magic_file(os.path.join(self.WD, "specimens.txt"),1,'specimen')
-        except:
-            self.GUI_log.write ("-W- Cant find specimens.txt in project directory")
-            fail.append("specimens.txt")
-            pass
-        try:
-            self.MagIC_model["samples"]=self.read_magic_file(os.path.join(self.WD, "samples.txt"),1,'sample')
-        except:
-            self.GUI_log.write ("-W- Cant find sample.txt in project directory")
-            fail.append("samples.txt")
-            pass
-        try:
-            self.MagIC_model["sites"]=self.read_magic_file(os.path.join(self.WD, "sites.txt"),1,'site')
-        except:
-            self.GUI_log.write ("-W- Cant find sites.txt in project directory")
-            fail.append("sites.txt")
-            pass
-        try:
-            self.MagIC_model["locations"]=self.read_magic_file(os.path.join(self.WD, "locations.txt"),1,'location')
-        except:
-            self.GUI_log.write ("-W- Cant find locations.txt in project directory")
-            fail.append("locations.txt")
-            pass
-
-# 
-# don't use the ages table - use ages in the specimens, etc. files
-#
-#        try:
-#            self.MagIC_model["er_ages"]=self.read_magic_file(os.path.join(self.WD, "er_ages"),1,'er_site_name')
-#        except:
-#            self.GUI_log.write ("-W- Cant find er_ages.txt in project directory")
-#            pass
-
-        return (fail)'''
-        
                           
-    def on_menu_convert_to_magic(self,event):
+    def read_magic_file(self,path,ignore_lines_n,sort_by_this_name):
+        DATA={}
+        fin=open(path,'rU')
+        #ignore first lines
+        for i in range(ignore_lines_n):
+            fin.readline()
+        #header
+        line=fin.readline()
+        header=line.strip('\n').split('\t')
+        #print header
+        for line in fin.readlines():
+            if line[0]=="#":
+                continue
+            tmp_data={}
+            tmp_line=line.strip('\n').split('\t')
+            #print tmp_line
+            for i in range(len(tmp_line)):
+                if i>= len(header):
+                    continue
+                tmp_data[header[i]]=tmp_line[i]
+            DATA[tmp_data[sort_by_this_name]]=tmp_data
+        fin.close()        
+        return(DATA)
+                
+    def read_er_ages_file(self,path,ignore_lines_n,sort_by_these_names):
+        '''
+        read er_ages, sort it by site or sample (the header that is not empty)
+        and convert ages to calender year
+        
+        '''
+        DATA={}
+        fin=open(path,'rU')
+        #ignore first lines
+        for i in range(ignore_lines_n):
+            fin.readline()
+        #header
+        line=fin.readline()
+        header=line.strip('\n').split('\t')
+        #print header
+        for line in fin.readlines():
+            if line[0]=="#":
+                continue
+            tmp_data={}
+            tmp_line=line.strip('\n').split('\t')
+            for i in range(len(tmp_line)):
+                if i>= len(header):
+                    continue
+                tmp_data[header[i]]=tmp_line[i]
+            for name in sort_by_these_names:
+                if name in tmp_data.keys() and   tmp_data[name] !="": 
+                    er_ages_rec=self.convert_ages_to_calender_year(tmp_data)
+                    DATA[tmp_data[name]]=er_ages_rec
+        fin.close()        
+        return(DATA)
+
+    def on_menu_convert_to_magic(self,event): # this is depricated
         dia = thellier_gui_dialogs.convert_generic_files_to_MagIC(self.WD)
         dia.Show()
         dia.Center()
         self.magic_file = os.path.join(self.WD, "magic_measurements.txt")
         self.GUI_log=open("%s/Thellier_GUI.log"%self.WD,'w')
-        self.Data,self.Data_hierarchys,self.container={},{},{}
-        self.Data,self.Data_hierarchy,self.container=self.get_data(self.meas_file) # Get data from magic_measurements and rmag_anistropy if exist.
-        self.Data_info=self.get_data_info(self.container) # get all ages, etc. (from sites, er_locations)
+        self.Data,self.Data_hierarchy={},{}
+        self.Data,self.Data_hierarchy=self.get_data() # Get data from magic_measurements and rmag_anisotropy if exist.
+        self.Data_info=self.get_data_info() # get all ages, locations etc. (from er_ages, er_sites, er_locations)
         self.redo_specimens={}
         self.specimens=self.Data.keys()
         self.specimens.sort()                                                                
@@ -3647,15 +3827,15 @@ class Arai_GUI(wx.Frame):
         #check if pass criteria
         #----------
         # int_n
-        if self.acceptance_criteria['average_by_sample_or_site']['criterion_value']=='sample':
+        if self.acceptance_criteria['average_by_sample_or_site']['value']=='sample':
             average_by_sample_or_site='sample'
         else:
             average_by_sample_or_site='site'
             
         if average_by_sample_or_site=='sample':
-            cutoff_value=self.acceptance_criteria['sample_int_n']['criterion_value']
+            cutoff_value=self.acceptance_criteria['sample_int_n']['value']
         else:
-            cutoff_value=self.acceptance_criteria['site_int_n']['criterion_value']
+            cutoff_value=self.acceptance_criteria['site_int_n']['value']
         if cutoff_value != -999:
             if pars['N']<cutoff_value:
                 pars['pass_or_fail']='fail'
@@ -3663,19 +3843,19 @@ class Arai_GUI(wx.Frame):
         #----------        
         # int_sigma ; int_sigma_perc
         pass_sigma,pass_sigma_perc=False,False
-        if self.acceptance_criteria['average_by_sample_or_site']['criterion_value']=='sample':
-            sigma_cutoff_value=self.acceptance_criteria['sample_int_sigma']['criterion_value']
+        if self.acceptance_criteria['average_by_sample_or_site']['value']=='sample':
+            sigma_cutoff_value=self.acceptance_criteria['sample_int_sigma']['value']
         else:
-            sigma_cutoff_value=self.acceptance_criteria['site_int_sigma']['criterion_value']
+            sigma_cutoff_value=self.acceptance_criteria['site_int_sigma']['value']
         
         if sigma_cutoff_value != -999:
             if pars['B_std_uT']*1e-6<=sigma_cutoff_value:
                 pass_sigma=True
 
-        if self.acceptance_criteria['average_by_sample_or_site']['criterion_value']=='sample':
-            sigma_perc_cutoff_value=self.acceptance_criteria['sample_int_sigma_perc']['criterion_value']
+        if self.acceptance_criteria['average_by_sample_or_site']['value']=='sample':
+            sigma_perc_cutoff_value=self.acceptance_criteria['sample_int_sigma_perc']['value']
         else:
-            sigma_perc_cutoff_value=self.acceptance_criteria['site_int_sigma_perc']['criterion_value']
+            sigma_perc_cutoff_value=self.acceptance_criteria['site_int_sigma_perc']['value']
         if sigma_perc_cutoff_value != -999:
             if pars['B_std_perc']<=sigma_perc_cutoff_value:
                 pass_sigma_perc=True
@@ -3694,13 +3874,13 @@ class Arai_GUI(wx.Frame):
         #----------        
         # int_sigma ; int_sigma_perc
         pass_int_interval,pass_int_interval_perc=False,False
-        if self.acceptance_criteria['average_by_sample_or_site']['criterion_value']=='sample':
-            cutoff_value=self.acceptance_criteria['sample_int_interval_uT']['criterion_value']
+        if self.acceptance_criteria['average_by_sample_or_site']['value']=='sample':
+            cutoff_value=self.acceptance_criteria['sample_int_interval_uT']['value']
             if cutoff_value != -999:
                 if pars['sample_int_interval_uT']<=cutoff_value:
                     pass_int_interval=True
     
-            cutoff_value_perc=self.acceptance_criteria['sample_int_interval_perc']['criterion_value']
+            cutoff_value_perc=self.acceptance_criteria['sample_int_interval_perc']['value']
             if cutoff_value_perc != -999:
                 if pars['sample_int_interval_perc']<=cutoff_value_perc:
                     pass_int_interval_perc=True
@@ -3838,7 +4018,7 @@ class Arai_GUI(wx.Frame):
 
         if show_STDEVOPT:
             data2plot={}
-            if self.acceptance_criteria['average_by_sample_or_site']['table_column']=='samples.int_abs':
+            if self.acceptance_criteria['average_by_sample_or_site']['value']=='sample':
                 FILE=os.path.join(self.WD, 'thellier_interpreter', 'thellier_interpreter_STDEV-OPT_samples.txt')
                 NAME="er_sample_name"
             else:
@@ -3849,7 +4029,7 @@ class Arai_GUI(wx.Frame):
             except:
                 data2plot={}
         else:
-            if self.acceptance_criteria['average_by_sample_or_site']['table_column']=='samples.int_abs':
+            if self.acceptance_criteria['average_by_sample_or_site']['value']=='sample':
                 data2plot=copy.deepcopy(self.Data_samples)   
             else:
                 data2plot=copy.deepcopy(self.Data_sites)
@@ -3899,7 +4079,7 @@ class Arai_GUI(wx.Frame):
                 sample_or_site_mean_pars=data2plot[sample_or_site]#,sample_or_site,self.acceptance_criteria)
                             
             # locate site_name
-            if self.acceptance_criteria['average_by_sample_or_site']['table_column']=='samples.int_abs':
+            if self.acceptance_criteria['average_by_sample_or_site']['value']=='sample':
                 site_name=self.Data_hierarchy['site_of_sample'][sample_or_site] 
             else:
                 site_name=sample_or_site
@@ -4374,8 +4554,8 @@ class Arai_GUI(wx.Frame):
         #search for NRM:
         nrm0=""
         for rec in self.Data[self.s]['datablock']:            
-          if "LT-NO" in rec['method_codes']:
-              nrm0= "%.2e"%float(rec['intensity'])
+          if "LT-NO" in rec['magic_method_codes']:
+              nrm0= "%.2e"%float(rec['measurement_magn_moment'])
               break
 
             
@@ -4833,28 +5013,24 @@ class Arai_GUI(wx.Frame):
         '''
         pass
         
+        
     def update_GUI_with_new_interpretation(self):
        
         #-------------------------------------------------
-        # Updtae GUI
+        # Update GUI
         #-------------------------------------------------
         s=self.s
 
         # continue only if temperature bouds were asigned
-        if 'measurement_step_min' in self.pars.keys():
-            self.pars['meas_step_min']=self.pars['measurement_step_min']
-            self.pars['meas_step_max']=self.pars['measurement_step_max']
-        if 'Dec_Anc' in self.pars.keys() and 'Inc_Anc' in self.pars.keys():
-            self.pars['dir_dec']=self.pars['Dec_Anc']
-            self.pars['dir_inc']=self.pars['Inc_Anc']
-        if "meas_step_min" not in self.pars.keys() or "meas_step_max" not in self.pars.keys():
+
+        if "measurement_step_min" not in self.pars.keys() or "measurement_step_max" not in self.pars.keys():
             return(self.pars)
         if self.Data[self.s]['T_or_MW'] != "MW":
-            self.tmin_box.SetValue("%.0f"%(float(self.pars['meas_step_min'])-273.))
-            self.tmax_box.SetValue("%.0f"%(float(self.pars['meas_step_max'])-273.))
+            self.tmin_box.SetValue("%.0f"%(float(self.pars['measurement_step_min'])-273.))
+            self.tmax_box.SetValue("%.0f"%(float(self.pars['measurement_step_max'])-273.))
         else:
-            self.tmin_box.SetValue("%.0f"%(float(self.pars['meas_step_min'])))
-            self.tmax_box.SetValue("%.0f"%(float(self.pars['meas_step_max'])))
+            self.tmin_box.SetValue("%.0f"%(float(self.pars['measurement_step_min'])))
+            self.tmax_box.SetValue("%.0f"%(float(self.pars['measurement_step_max'])))
             
         
         # First,re-draw the figures
@@ -4865,69 +5041,71 @@ class Arai_GUI(wx.Frame):
         
         
         # declination/inclination
-        self.declination_window.SetValue("%.1f"%(self.pars['dir_dec']))
-        self.inclination_window.SetValue("%.1f"%(self.pars['dir_inc']))
+        self.declination_window.SetValue("%.1f"%(self.pars['specimen_dec']))
+        self.inclination_window.SetValue("%.1f"%(self.pars['specimen_inc']))
 
 
          
         # PI statsistics
         flag_Fail=False
         for short_stat in self.preferences['show_statistics_on_gui']:
-            stat="specimens."+short_stat
+            stat="specimen_"+short_stat
             # ignore unwanted statistics
-            if stat=='specimens.int_scat':
+            if stat=='specimen_scat':
                 continue
-            critrecs=pmag.get_dictitem(self.acceptance_criteria,'table_column',stat,'T')
-            if len(critrecs)>0:
-                crit=critrecs[0]
+            if type(self.acceptance_criteria[stat]['decimal_points'])!=float and type(self.acceptance_criteria[stat]['decimal_points'])!=int:
+                continue
+            if type(self.acceptance_criteria[stat]['value'])!=float and type(self.acceptance_criteria[stat]['value'])!=int:
+                continue
+                
             # get the value
-                if crit['decimal_points']==-999:
-                    value='%.2e'%self.pars[stat]
-                elif type(crit['decimal_points'])==float or type(crit['decimal_points'])==int:
-                    command="value='%%.%if'%%(float(self.pars[short_stat]))"%(int(crit['decimal_points']))
-                    exec command
-                command= "self.%s_window.SetValue(value)"%stat.split('specimens.')[-1]
+            if self.acceptance_criteria[stat]['decimal_points']==-999:
+                value='%.2e'%self.pars[stat]
+            elif type(self.acceptance_criteria[stat]['decimal_points'])==float or type(self.acceptance_criteria[stat]['decimal_points'])==int:
+                command="value='%%.%if'%%(float(self.pars[stat]))"%(int(self.acceptance_criteria[stat]['decimal_points']))
                 exec command
+            #elif  stat=='specimen_scat':
+            #    value= str(self.acceptance_criteria[stat]['value'])  
+            # write the value
+            command= "self.%s_window.SetValue(value)"%stat.split('specimen_')[-1]
+            exec command
             
             # set backgound color
-                cutoff_value=float(crit['criterion_value'])
-                if cutoff_value==-999:
-                    command="self.%s_window.SetBackgroundColour(wx.NullColour)"%stat.split('specimens.')[-1]  # set text color 
-                elif stat=="specimens.int_k" or stat=="specimens.k_prime":
-                    if abs(self.pars[short_stat])>cutoff_value:
-                        command="self.%s_window.SetBackgroundColour(wx.RED)"%stat.split('specimens.')[-1]  # set text color
-                        flag_Fail=True                
-                elif crit['criterion_operation']=='<=' and self.pars[short_stat]>cutoff_value:
-                    command="self.%s_window.SetBackgroundColour(wx.RED)"%stat.split('specimens.')[-1]  # set text color
-                    flag_Fail=True
-                elif crit['criterion_operation']=='>=' and self.pars[short_stat]<cutoff_value:
-                    command="self.%s_window.SetBackgroundColour(wx.RED)"%stat.split('specimens.')[-1]  # set text color
-                    flag_Fail=True
-                else:
-                    command="self.%s_window.SetBackgroundColour(wx.GREEN)"%stat.split('specimens.')[-1]  # set text color
-                exec command
+            cutoff_value=self.acceptance_criteria[stat]['value']
+            if cutoff_value==-999:
+                command="self.%s_window.SetBackgroundColour(wx.NullColour)"%stat.split('specimen_')[-1]  # set text color 
+            elif stat=="specimen_k" or stat=="specimen_k_prime":
+                if abs(self.pars[stat])>cutoff_value:
+                    command="self.%s_window.SetBackgroundColour(wx.RED)"%stat.split('specimen_')[-1]  # set text color
+                    flag_Fail=True                
+            elif self.acceptance_criteria[stat]['threshold_type']=='high' and self.pars[stat]>cutoff_value:
+                command="self.%s_window.SetBackgroundColour(wx.RED)"%stat.split('specimen_')[-1]  # set text color
+                flag_Fail=True
+            elif self.acceptance_criteria[stat]['threshold_type']=='low' and self.pars[stat]<cutoff_value:
+                command="self.%s_window.SetBackgroundColour(wx.RED)"%stat.split('specimen_')[-1]  # set text color
+                flag_Fail=True
+            else:
+                command="self.%s_window.SetBackgroundColour(wx.GREEN)"%stat.split('specimen_')[-1]  # set text color
+            exec command
 
         # specimen_scat                
-        if 'int_scat' in     self.preferences['show_statistics_on_gui']:
-            crits=pmag.get_dictitem(self.acceptance_criteria,'table_column','specimens.int_scat','T')
-            if len(crits)>0:
-                crit=crits[0]
-                if crit['criterion_value'] in ['True','TRUE','1',1,True,'g']:
-                    if self.pars["int_scat"]=='Pass':
-                        self.scat_window.SetValue("Pass")
-                        self.scat_window.SetBackgroundColour(wx.GREEN) # set text color
-                    else:
-                        self.scat_window.SetValue("Fail")
-                        self.scat_window.SetBackgroundColour(wx.RED) # set text color
+        if 'scat' in     self.preferences['show_statistics_on_gui']:
+            if self.acceptance_criteria['specimen_scat']['value'] in ['True','TRUE','1',1,True,'g']:
+                if self.pars["specimen_scat"]=='Pass':
+                    self.scat_window.SetValue("Pass")
+                    self.scat_window.SetBackgroundColour(wx.GREEN) # set text color
+                else:
+                    self.scat_window.SetValue("Fail")
+                    self.scat_window.SetBackgroundColour(wx.RED) # set text color
                                         
-                else:        
-                    self.scat_window.SetValue("")
-                    self.scat_window.SetBackgroundColour(wx.NullColour) # set text color
+            else:        
+                self.scat_window.SetValue("")
+                self.scat_window.SetBackgroundColour(wx.NullColour) # set text color
                 
 
         # Blab, Banc, correction factors
 
-        self.Blab_window.SetValue("%.0f"%(float(self.Data[self.s]['pars']['treat_dc_field'])*1e6))
+        self.Blab_window.SetValue("%.0f"%(float(self.Data[self.s]['pars']['lab_dc_field'])*1e6))
         
         self.Banc_window.SetValue("%.1f"%(self.pars['specimen_int_uT']))
         if flag_Fail:
@@ -5026,7 +5204,7 @@ class Arai_GUI(wx.Frame):
                 
     def  draw_interpretation(self):
 
-        if "meas_step_min" not in self.pars.keys() or "meas_step_max" not in self.pars.keys():
+        if "measurement_step_min" not in self.pars.keys() or "measurement_step_max" not in self.pars.keys():
             return()
 
         s=self.s
@@ -5045,23 +5223,20 @@ class Arai_GUI(wx.Frame):
 
 
 
-        start=t_Arai.index(self.pars["meas_step_min"])
-        end=t_Arai.index(self.pars["meas_step_max"])
+        start=t_Arai.index(self.pars["measurement_step_min"])
+        end=t_Arai.index(self.pars["measurement_step_max"])
         
         x_Arai_segment= x_Arai[start:end+1]
         y_Arai_segment= y_Arai[start:end+1]
 
         self.araiplot.scatter([x_Arai_segment[0],x_Arai_segment[-1]],[y_Arai_segment[0],y_Arai_segment[-1]],marker='o',facecolor='g',edgecolor ='k',s=30)
-        b=pars["int_b"]
+        b=pars["specimen_b"]
         a=scipy.mean(y_Arai_segment) - b* scipy.mean(x_Arai_segment)
         xx=scipy.array([x_Arai_segment[0],x_Arai_segment[-1]])
         yy=b*xx+a
         self.araiplot.plot(xx,yy,'g-',lw=2,alpha=0.5)
-        scatcrits=pmag.get_dictitem(self.acceptance_criteria,'table_column','int_scat','has')
-        if len(scatcrits)>0:
-            scatcrit=scatcrits[0]
-            if scatcrit['criterion_value'] in [True,"True","TRUE",'1','g']:
-              if 'specimen_scat_bounding_line_low' in pars:
+        if self.acceptance_criteria['specimen_scat']['value'] in [True,"True","TRUE",'1','g']:
+            if 'specimen_scat_bounding_line_low' in pars:
                 if pars['specimen_scat_bounding_line_low'] != 0: # prevents error if there are no SCAT lines available
                     yy1=xx*pars['specimen_scat_bounding_line_low'][1]+pars['specimen_scat_bounding_line_low'][0]
                     yy2=xx*pars['specimen_scat_bounding_line_high'][1]+pars['specimen_scat_bounding_line_high'][0]
@@ -5106,8 +5281,8 @@ class Arai_GUI(wx.Frame):
         PCA_dir_rotated[0]=PCA_dir_rotated[0]-NRM_dec      
         PCA_CART_rotated=pmag.dir2cart(PCA_dir_rotated)
 
-        tmin_index=self.Data[self.s]['z_temp'].index(self.pars["meas_step_min"])
-        tmax_index=self.Data[self.s]['z_temp'].index(self.pars["meas_step_max"])
+        tmin_index=self.Data[self.s]['z_temp'].index(self.pars["measurement_step_min"])
+        tmax_index=self.Data[self.s]['z_temp'].index(self.pars["measurement_step_max"])
         
         PCA_dir_rotated=pmag.cart2dir(CART)         
         PCA_dir_rotated[0]=PCA_dir_rotated[0]-NRM_dec      
@@ -5138,8 +5313,6 @@ class Arai_GUI(wx.Frame):
         self.zijplot.scatter([self.CART_rot[:,0][tmax_index]],[-1* self.CART_rot[:,1][tmax_index]],marker='o',s=40,facecolor='g',edgecolor ='k',zorder=100)
         self.zijplot.scatter([self.CART_rot[:,0][tmin_index]],[-1* self.CART_rot[:,2][tmin_index]],marker='s',s=50,facecolor='g',edgecolor ='k',zorder=100)
         self.zijplot.scatter([self.CART_rot[:,0][tmax_index]],[-1* self.CART_rot[:,2][tmax_index]],marker='s',s=50,facecolor='g',edgecolor ='k',zorder=100)
-
-
 
         self.zijplot.set_xlim(xmin, xmax)
         self.zijplot.set_ylim(ymin, ymax)
@@ -5173,7 +5346,8 @@ class Arai_GUI(wx.Frame):
         site=thellier_gui_lib.get_site_from_hierarchy(sample,self.Data_hierarchy)
         
         # average by sample
-        if self.average_by_sample_or_site=='sample':                         
+        #print self.average_by_sample_or_site
+        if self.acceptance_criteria['average_by_sample_or_site']['value']=='sample':                         
             if sample in self.Data_samples.keys():
                 specimens_list=self.Data_samples[sample].keys()
                 if self.s not in specimens_list and 'specimen_int_uT' in self.pars.keys():
@@ -5226,18 +5400,13 @@ class Arai_GUI(wx.Frame):
             self.sampleplot.set_xticklabels(specimens_id,rotation=90,fontsize=8)
             #ymin,ymax=self.sampleplot.ylim()
             
-            #if "sample_int_sigma" in self.acceptance_criteria.keys() and "sample_int_sigma_perc" in self.acceptance_criteria.keys():_
+            #if "sample_int_sigma" in self.acceptance_criteria.keys() and "sample_int_sigma_perc" in self.acceptance_criteria.keys():
             sigma_threshold_for_plot_1,sigma_threshold_for_plot_2=0,0                 
-            #print 'GUI10: ',self.acceptance_criteria
-            crits=pmag.get_dictitem(self.acceptance_criteria,'table_column','samples.int_abs_sigma','T') #fish out the samples.int_abs_sigma criterion
-            if len(crits)>0:
-                crit=crits[0]
-                if crit["criterion_value"]!=-999 and type(crit["criterion_value"])==float:
-                    sigma_threshold_for_plot_1=crit["criterion_value"]*1e6               
-            crits=pmag.get_dictitem(self.acceptance_criteria,'table_column','samples.int_abs_sigma_perc','T') #fish out the samples.int_abs_sigma criterion
-            if len(crits)>0:
-                if crit["criterion_value"]!=-999 and type(crit["criterion_value"])==float:
-                    sigma_threshold_for_plot_2=scipy.mean(specimens_B)*0.01*crit['criterion_value']
+            #    sigma_threshold_for_plot=max(self.acceptance_criteria["sample_int_sigma"]*,0.01*self.acceptance_criteria["sample_int_sigma_perc"]*scipy.mean(specimens_B))
+            if self.acceptance_criteria["sample_int_sigma"]["value"]!=-999 and type(self.acceptance_criteria["sample_int_sigma"]["value"])==float:
+                sigma_threshold_for_plot_1=self.acceptance_criteria["sample_int_sigma"]["value"]*1e6               
+            if self.acceptance_criteria["sample_int_sigma_perc"]["value"]!=-999 and type(self.acceptance_criteria["sample_int_sigma_perc"]["value"])==float:
+                sigma_threshold_for_plot_2=scipy.mean(specimens_B)*0.01*self.acceptance_criteria["sample_int_sigma_perc"]['value']
             #sigma_threshold_for_plot 100000
             sigma_threshold_for_plot=max(sigma_threshold_for_plot_1,sigma_threshold_for_plot_2)
             if sigma_threshold_for_plot < 20 and sigma_threshold_for_plot!=0:
@@ -5284,62 +5453,50 @@ class Arai_GUI(wx.Frame):
 
     def add_thellier_gui_criteria(self):
         '''criteria used only in thellier gui
-        these criteria are not written to criteria.txt
+        these criteria are not written to pmag_criteria.txt
         '''
         category="thellier_gui"      
-        for column in ['sample_int_n_outlier_check','site_int_n_outlier_check']:
-            crit={}
-	    crit['table_column']= column
-            crit['criterion']=category
-            crit['citations']="This study"
-            crit['criterion_value']=-999
-            crit['criterion_operation']=">="
-            crit['decimal_points']=0
-            crit['description']="thellier_gui_only"
-            self.acceptance_criteria.append(crit)
+        for crit in ['sample_int_n_outlier_check','site_int_n_outlier_check']:
+            self.acceptance_criteria[crit]={} 
+            self.acceptance_criteria[crit]['category']=category
+            self.acceptance_criteria[crit]['criterion_name']=crit
+            self.acceptance_criteria[crit]['value']=-999
+            self.acceptance_criteria[crit]['threshold_type']="low"
+            self.acceptance_criteria[crit]['decimal_points']=0
             
-        for column in ['sample_int_interval_uT','sample_int_interval_perc',\
+        for crit in ['sample_int_interval_uT','sample_int_interval_perc',\
         'site_int_interval_uT','site_int_interval_perc',\
         'sample_int_BS_68_uT','sample_int_BS_95_uT','sample_int_BS_68_perc','sample_int_BS_95_perc','specimen_int_max_slope_diff']:
-            crit={}
-	    crit['table_column']= column
-            crit['criterion']=category
-            crit['citations']="This study"
-            crit['criterion_value']=-999
-            crit['criterion_operation']="<="
-            if column in ['specimen_int_max_slope_diff']:
-                crit['decimal_points']=-999
+            self.acceptance_criteria[crit]={} 
+            self.acceptance_criteria[crit]['category']=category
+            self.acceptance_criteria[crit]['criterion_name']=crit
+            self.acceptance_criteria[crit]['value']=-999
+            self.acceptance_criteria[crit]['threshold_type']="high"
+            if crit in ['specimen_int_max_slope_diff']:
+                self.acceptance_criteria[crit]['decimal_points']=-999
             else:        
-                crit['decimal_points']=1
-            crit['description']="thellier_gui_only"
-            self.acceptance_criteria.append(crit)
+                self.acceptance_criteria[crit]['decimal_points']=1
+            self.acceptance_criteria[crit]['comments']="thellier_gui_only"
 
-        for column in ['average_by_sample_or_site','interpreter_method']:
-            crit={}
-	    crit['table_column']= column
-            crit['criterion']=category
-            crit['citations']="This study"
-            crit['criterion_value']=-999
-            crit['criterion_operation']="<="
-            if column in ['average_by_sample_or_site']:
-                crit['criterion_value']="sample"
-            else:        
-                crit['criterion_value']=-999
-            crit['description']="thellier_gui_only"
-            crit['criterion_operation']='='
-            crit['decimal_points']=-999
-            self.acceptance_criteria.append(crit)
-
-        for column in ['include_nrm']:
-            crit={}
-	    crit['table_column']= column
-            crit['criterion']=category
-            crit['citations']="This study"
-            crit['criterion_value']=True
-            crit['criterion_operation']="="
-            crit['decimal_points']=-999
-            crit['description']="thellier_gui_only"
-            self.acceptance_criteria.append(crit)
+        for crit in ['average_by_sample_or_site','interpreter_method']:
+            self.acceptance_criteria[crit]={} 
+            self.acceptance_criteria[crit]['category']=category
+            self.acceptance_criteria[crit]['criterion_name']=crit
+            if crit in ['average_by_sample_or_site']:
+                self.acceptance_criteria[crit]['value']='sample'
+            if crit in ['interpreter_method']:
+                self.acceptance_criteria[crit]['value']='stdev_opt'
+            self.acceptance_criteria[crit]['threshold_type']="flag"
+            self.acceptance_criteria[crit]['decimal_points']=-999
+       
+        for crit in ['include_nrm']:
+            self.acceptance_criteria[crit]={} 
+            self.acceptance_criteria[crit]['category']=category
+            self.acceptance_criteria[crit]['criterion_name']=crit
+            self.acceptance_criteria[crit]['value']=True
+            self.acceptance_criteria[crit]['threshold_type']="bool"
+            self.acceptance_criteria[crit]['decimal_points']=-999
+                    
         
         # define internal Thellier-GUI definitions:
         self.average_by_sample_or_site='sample'
@@ -5347,21 +5504,56 @@ class Arai_GUI(wx.Frame):
         self.bs=False
         self.bs_par=False
 
-#
-# 
-    def get_data(self,meas_file):
+
       
+    def get_data(self):
 
       def tan_h(x, a, b):
             return a*scipy.tanh(b*x)
 
-#
-# I STRIPPED OUT THE DIR2CART AND CART2DIR STUFF HERE - USE PMAG.PY
-# 
+      def cart2dir(cart): # OLD ONE
+            """
+            converts a direction to cartesian coordinates
+            """
+            Dir=[] # establish a list to put directions in
+            rad=pi/180. # constant to convert degrees to radians
+            R=scipy.sqrt(cart[0]**2+cart[1]**2+cart[2]**2) # calculate resultant vector length
+            if R==0:
+               #print 'trouble in cart2dir'
+               #print cart
+               return [0.0,0.0,0.0]
+            D=arctan2(cart[1],cart[0])/rad  # calculate declination taking care of correct quadrants (arctan2)
+            if D<0:D=D+360. # put declination between 0 and 360.
+            if D>360.:D=D-360.
+            Dir.append(D)  # append declination to Dir list
+            I=scipy.arcsin(cart[2]/R)/rad # calculate inclination (converting to degrees)
+            Dir.append(I) # append inclination to Dir list
+            Dir.append(R) # append vector length to Dir list
+            return Dir # return the directions list
+
+
+      def dir2cart(d):
+       # converts list or array of vector directions, in degrees, to array of cartesian coordinates, in x,y,z
+        ints=ones(len(d)).transpose() # get an array of ones to plug into dec,inc pairs
+        d=scipy.array(d)
+        rad=pi/180.
+        if len(d.shape)>1: # array of vectors
+            decs,incs=d[:,0]*rad,d[:,1]*rad
+            if d.shape[1]==3: ints=d[:,2] # take the given lengths
+        else: # single vector
+            decs,incs=scipy.array(d[0])*rad,scipy.array(d[1])*rad
+            if len(d)==3: 
+                ints=scipy.array(d[2])
+            else:
+                ints=scipy.array([1.])
+        cart= scipy.array([ints*scipy.cos(decs)*scipy.cos(incs),ints*scipy.sin(decs)*scipy.cos(incs),ints*scipy.sin(incs)]).transpose()
+        return cart
+
+      #self.dir_pathes=self.WD
 
 
       #------------------------------------------------
-      # Read magic measurement file and sort to blocks
+      # Read measurement file and sort to blocks
       #------------------------------------------------
 
       # All data information is stored in Data[secimen]={}
@@ -5380,89 +5572,67 @@ class Arai_GUI(wx.Frame):
           self.MagIC_directories_list.append(self.WD)
       #for dir_path in self.dir_pathes:
       #print "start Magic read %s " %self.magic_file
-
-#      try:
-#          meas_data,file_type=pmag.magic_read(self.magic_file)
-#      except:
-#          print "-E- ERROR: Cant read measurement.txt file. File is corrupted."
-#          return {},{}
-
-
-      fnames = {'measurements': meas_file}
-      contribution = nb.Contribution(self.WD, custom_filenames=fnames, read_tables=['measurements', 'specimens', 'samples','sites'])
-      Mkeys = ['magn_moment', 'magn_volume', 'magn_mass']
-      #
-      #   create measurement dataframe
-      #
-      #
-      #   propogate sample, site, location names if available
-      #
-      if 'specimens' in contribution.tables:
-          contribution.propagate_name_down('sample', 'measurements')
-      if 'samples' in contribution.tables:
-          contribution.propagate_name_down('site', 'measurements')
-      if 'sites' in contribution.tables:
-          contribution.propagate_name_down('location','measurements')
-      meas_container = contribution.tables['measurements']
-      meas_data = meas_container.df
-#
-      meas_data['method_codes']=meas_data['method_codes'].str.replace(" ","") # get rid of nasty spaces
-      if 'flag' not in meas_data.columns: meas_data['flag'] = 'g' # set the default flag to good
-      meas_data = meas_data[meas_data['flag'].str.contains('g')==True] # only the 'good' measurements
-      intensity_types = [col_name for col_name in meas_data.columns if col_name in Mkeys]
-      int_key = intensity_types[0] # plot first intensity method found - normalized to initial value anyway - doesn't matter which used
-      meas_data = meas_data[meas_data[int_key].notnull()] # get all the non-null intensity records of the same type
-      meas_data['intensity']=meas_data[int_key] # just stick whatever into generic 'intensity'
-      meas_data= meas_data[meas_data['method_codes'].str.contains('LP-PI-TRM|LP-TRM|LP-PI-M|LP-AN|LP-CR-TRM')==True] # fish out all the relavent data
-# 
-# do special Shaar way stuff
-# 
-      meas_data['treat_dc_field_uT']=np.array(meas_data["treat_dc_field"],dtype=float)*1e6 # convert to uT
-# sort data into different dataframes
-      thel_data= meas_data[meas_data['method_codes'].str.contains('LP-PI-TRM|LP-PI-M')==True] # fish out steps for plotting
-      trm_data = meas_data[meas_data['method_codes'].str.contains('LP-TRM')==True] # get all the TRM acquisition data
-      atrm_data = meas_data[meas_data['method_codes'].str.contains('LP-AN-TRM')==True] # get all the anisotropy measurement data
-      aarm_data = meas_data[meas_data['method_codes'].str.contains('LP-AN-ARM')==True] # get all the anisotropy measurement data
-      cr_data=meas_data[meas_data['method_codes'].str.contains('LP-CR-TRM')==True] # get all the cooling rate data
-      zijd_data= meas_data[meas_data['method_codes'].str.contains('LT-NO|LT-AF-Z|LT-T-Z|LT-M-Z')==True] # fish out steps for plotting
-      zijd_data= zijd_data[zijd_data['method_codes'].str.contains('AN|ARM|LP-TRM|LP-PI-ARM')==False] # strip out unwanted experiments
-      zijd_data['treatment'] =zijd_data['treat_ac_field'].where(cond=zijd_data['treat_ac_field'] != '0', other=zijd_data['treat_temp'])
-      zijd_data['ZI']=1 # initialize these to one
-      zijd_data['instrument_codes']="" # initialize these to blank
-#   for unusual case of microwave power....
-      if 'treat_mw_power' in zijd_data.columns: zijd_data.ix[zijd_data.treat_mw_power!=0,'treatment']=zijd_data.treat_mw_power*zijd_data.treat_mw_time #
-
-
-#
-# get list of unique specimen names from measurement data
-#
-      specimen_names= thel_data.specimen.unique() # this is a Series of all the specimen names that have Thellier data
-      sids= specimen_names.tolist() # turns it into a list
-      sids.sort() # sorts by specimen name
-
-
-#
-# now export nice panda frame to list of dictionaries!
-# 
-# 
-# make a specimen container and dataframe
-#
-      if 'specimens' in contribution.tables:
-          spec_container = contribution.tables['specimens']
-          spec_data = spec_container.df
+      if self.data_model==3:
+          fnames = {'measurements': self.magic_file}
+          self.contribution = nb.Contribution(self.WD, custom_filenames=fnames, read_tables=['measurements', 'specimens', 'samples','sites'])
+          if 'specimens' in self.contribution.tables:
+              self.contribution.propagate_name_down('sample', 'measurements')
+              self.contribution.propagate_name_down('sample', 'specimens') # need these for get_data_info
+          if 'samples' in self.contribution.tables:
+              self.contribution.propagate_name_down('site', 'measurements')
+              self.contribution.propagate_name_down('site', 'specimens')
+          if 'sites' in self.contribution.tables:
+              self.contribution.propagate_name_down('location','measurements')
+              self.contribution.propagate_name_down('location','specimens')
+          meas_container = self.contribution.tables['measurements']
+          meas_data3_0 = meas_container.df
+# do some filtering
+          Mkeys = ['magn_moment', 'magn_volume', 'magn_mass']
+          meas_data3_0= meas_data3_0[meas_data3_0['method_codes'].str.contains('LP-PI-TRM|LP-TRM|LP-PI-M|LP-AN|LP-CR-TRM')==True] # fish out all the relavent data 
+          intensity_types = [col_name for col_name in meas_data3_0.columns if col_name in Mkeys]
+          int_key = intensity_types[0] # plot first intensity method found - normalized to initial value anyway - doesn't matter which used
+          meas_data3_0 = meas_data3_0[meas_data3_0[int_key].notnull()] # get all the non-null intensity records of the same type
+# now convert back to 2.5  changing only those keys that are necessary for thellier_gui
+          meas_data2_5=meas_data3_0.rename(columns = {\
+                 'specimen':'er_specimen_name', \
+                 'sample':'er_sample_name', \
+                 'site':'er_site_name', \
+                 'location':'er_location_name', \
+                 'method_codes':'magic_method_codes', \
+                 'flag':'measurement_flag', \
+                 'treat_ac_field':'treatment_ac_field', \
+                 'treat_dc_field':'treatment_dc_field', \
+                 'treat_dc_field_phi':'treatment_dc_field_phi', \
+                 'treat_dc_field_theta':'treatment_dc_field_theta', \
+                 'flag':'measurement_flag', \
+                 'treat_temp':'treatment_temp', \
+                 'description':'measurement_description', \
+                 'magn_moment':'measurement_magn_moment', \
+                 'magn_volume':'measurement_magn_volume', \
+                 'magn_mass':'measurement_magn_mass', \
+                 'dir_dec':'measurement_dec', \
+                 'dir_inc':'measurement_inc', \
+                 'dir_csd':'measurement_csd', \
+                 'instrument_codes':'magic_instrument_codes', \
+                 })
+          meas_data=meas_data2_5.to_dict("records")  # make a list of dictionaries to maintain backward compatibility
       else:
-          spec_container, spec_data = None, []
-
-
-
+        try:
+          meas_data,file_type=pmag.magic_read(self.magic_file)
+        except:
+          print "-E- ERROR: Cant read measurement file. "
+          return {},{}
 
       #print "done Magic read %s " %self.magic_file
 
-      self.GUI_log.write("-I- Read magic file  %s\n"%self.meas_file)
+      self.GUI_log.write("-I- Read magic file  %s\n"%self.magic_file)
 
       # get list of unique specimen names
       
-      #CurrRec=[]
+      CurrRec=[]
+      #print "get sids"
+      sids=pmag.get_specs(meas_data) # samples ID's
+      #print "done get sids"
 
       #print "initialize blocks"
       
@@ -5472,40 +5642,133 @@ class Arai_GUI(wx.Frame):
               Data[s]['datablock']=[]
               Data[s]['trmblock']=[]
               Data[s]['zijdblock']=[]
+          #zijdblock,units=pmag.find_dmag_rec(s,meas_data)
+          #Data[s]['zijdblock']=zijdblock
+
 
       #print "done initialize blocks"
-          datablock= thel_data[thel_data['specimen'].str.contains(s)==True] # fish out this specimen
-          mw_data= thel_data[thel_data['method_codes'].str.contains('LP-PI-M')==True] # fish out steps for plotting
-          if len(mw_data)>0:
-              Data[s]['T_or_MW']='MW'
-          else:
-              Data[s]['T_or_MW']='T'
-          trmblock= trm_data[trm_data['specimen'].str.contains(s)==True] # fish out this specimen
-          zijd= zijd_data[zijd_data['specimen'].str.contains(s)==True] # fish out this specimen
-          zijdblock,units=pmag.find_dmag_rec(s,zijd,version=3) # get the zijderveld # BUT HAVE TO PUT MW DATA INTO THIS PROGRAM
-          atrmblock= atrm_data[atrm_data['specimen'].str.contains(s)==True] # fish out this specimen
-          aarmblock= aarm_data[aarm_data['specimen'].str.contains(s)==True] # fish out this specimen
-          Data[s]['datablock']=datablock.to_dict('records')
-          Data[s]['trmblock']=trmblock.to_dict('records')
-          Data[s]['atrmblock']=atrmblock.to_dict('records')
-          Data[s]['aarmblock']=aarmblock.to_dict('records')
-          Data[s]['zijdblock']=zijdblock
-##          araiblock,field=self.sortarai(Data[s]['datablock'],s,0)
-# NOT SURE THIS IS TAKEN CARE OF
-#
-##          if "LP-PI-II" in Data[s]['datablock'][0]["method_codes"] or "LP-PI-M-II" in Data[s]['datablock'][0]["method_codes"] or "LP-PI-T-II" in Data[s]['datablock'][0]["method_codes"]:
-##              for zerofield in araiblock[0]:
-##                  Data[s]['zijdblock'].append([zerofield[0],zerofield[1],zerofield[2],zerofield[3],0,'g',""])
 
-          sample=Data[s]['datablock'][0]['sample']
-          if sample not in Data_hierarchy['samples'].keys(): Data_hierarchy['samples'][sample]=[]
-          site=Data[s]['datablock'][0]['site']
-          if site not in Data_hierarchy['sites'].keys(): Data_hierarchy['sites'][site]=[]         
-          location=Data[s]['datablock'][0]['location']
-          if location not in Data_hierarchy['locations'].keys(): Data_hierarchy['locations'][location]=[]         
-          if s not in Data_hierarchy['samples'][sample]: Data_hierarchy['samples'][sample].append(s)
-          if sample not in Data_hierarchy['sites'][site]: Data_hierarchy['sites'][site].append(sample)
-          if site not in Data_hierarchy['locations'][location]: Data_hierarchy['locations'][location].append(site)
+      #print "sorting meas data"
+
+      for rec in meas_data:
+          s=rec["er_specimen_name"]
+          Data[s]['T_or_MW']="T"
+          sample=rec["er_sample_name"]
+          site=rec["er_site_name"]
+          # if "er_site_name" in an empty string: use er_sample_name tp assign site to sample.
+          if rec["er_site_name"]=="":
+                site=sample
+          location=""
+          if "er_location_name" in rec.keys():
+            location=rec["er_location_name"]   
+
+          if  "LP-PI-M" in rec["magic_method_codes"]:
+             Data[s]['T_or_MW']="MW"
+          else:
+             Data[s]['T_or_MW']="T"
+
+          if "magic_method_codes" not in rec.keys():
+              rec["magic_method_codes"]=""
+          #methods=rec["magic_method_codes"].split(":")
+          if "LP-PI-TRM" in rec["magic_method_codes"] or "LP-PI-M" in rec["magic_method_codes"]:
+              Data[s]['datablock'].append(rec)
+              # identify the lab DC field
+              if (("LT-PTRM-I" in rec["magic_method_codes"] or "LT-T-I" in rec["magic_method_codes"]) and 'LP-TRM' not in rec["magic_method_codes"] )\
+                 or "LT-PMRM-I" in rec["magic_method_codes"]:
+                  Data[s]['Thellier_dc_field_uT']=float(rec["treatment_dc_field"])
+                  Data[s]['Thellier_dc_field_phi']=float(rec['treatment_dc_field_phi'])
+                  Data[s]['Thellier_dc_field_theta']=float(rec['treatment_dc_field_theta'])
+                  
+                
+          if "LP-TRM" in rec["magic_method_codes"]:
+              Data[s]['trmblock'].append(rec)
+
+          if "LP-AN-TRM" in rec["magic_method_codes"]:
+              if 'atrmblock' not in Data[s].keys():
+                Data[s]['atrmblock']=[]
+              Data[s]['atrmblock'].append(rec)
+
+
+          if "LP-AN-ARM" in rec["magic_method_codes"]:
+              if 'aarmblock' not in Data[s].keys():
+                Data[s]['aarmblock']=[]
+              Data[s]['aarmblock'].append(rec)
+
+          if "LP-CR-TRM" in rec["magic_method_codes"]:
+              if 'crblock' not in Data[s].keys():
+                Data[s]['crblock']=[]
+              Data[s]['crblock'].append(rec)
+
+          #---- Zijderveld block
+
+          EX=["LP-AN-ARM","LP-AN-TRM","LP-ARM-AFD","LP-ARM2-AFD","LP-TRM-AFD","LP-TRM","LP-TRM-TD","LP-X","LP-CR-TRM"] # list of excluded lab protocols
+          #INC=["LT-NO","LT-AF-Z","LT-T-Z", "LT-M-Z", "LP-PI-TRM-IZ", "LP-PI-M-IZ"]
+          INC=["LT-NO","LT-T-Z","LT-M-Z","LT-AF-Z"]
+          methods=rec["magic_method_codes"].strip('\n').split(":")
+          for i in range (len(methods)):
+               methods[i]=methods[i].strip()
+          if 'measurement_flag' not in rec.keys(): rec['measurement_flag']='g'
+          skip=1
+          for meth in methods:
+               if meth in INC:
+                   skip=0
+          for meth in EX:
+               if meth in methods:
+                   skip=1
+          if skip==0:
+             if  Data[s]['T_or_MW']=="T" and  'treatment_temp' in rec.keys():
+                 tr = float(rec["treatment_temp"])
+             elif Data[s]['T_or_MW']=="MW" and "measurement_description" in rec.keys():
+                    MW_step=rec["measurement_description"].strip('\n').split(":")
+                    for STEP in MW_step:
+                        if "Number" in STEP:
+                            tr=float(STEP.split("-")[-1])
+                                  
+             if "LP-PI-TRM-IZ" in methods or "LP-PI-M-IZ" in methods:  # looking for in-field first thellier or microwave data - otherwise, just ignore this
+                 ZI=0
+             else:
+                 ZI=1
+
+             Mkeys=['measurement_magnitude','measurement_magn_moment','measurement_magn_volume','measurement_magn_mass']
+             if tr !="":
+                 dec,inc,int = "","",""
+                 if "measurement_dec" in rec.keys() and rec["measurement_dec"] != "":
+                     dec=float(rec["measurement_dec"])
+                 if "measurement_inc" in rec.keys() and rec["measurement_inc"] != "":
+                     inc=float(rec["measurement_inc"])
+                 for key in Mkeys:
+                     if key in rec.keys() and rec[key]!="":int=float(rec[key])
+                 if 'magic_instrument_codes' not in rec.keys():rec['magic_instrument_codes']=''
+                 #datablock.append([tr,dec,inc,int,ZI,rec['measurement_flag'],rec['magic_instrument_codes']])
+                 if Data[s]['T_or_MW']=="T":
+                     if tr==0.: tr=273.
+                 # AFD
+                 if "LT-AF-Z" in methods and "LP-AN-ARM" not in rec['magic_method_codes'] and "LP-DIR-AF" not in rec['magic_method_codes']:
+                     if Data[s]['T_or_MW']=="T":
+                         tr=tr-float(rec['treatment_ac_field'])*1e3 # AFD is amrked with negative
+
+                 Data[s]['zijdblock'].append([tr,dec,inc,int,ZI,rec['measurement_flag'],rec['magic_instrument_codes']])
+                 #print methods
+
+       
+          if sample not in Data_hierarchy['samples'].keys():
+              Data_hierarchy['samples'][sample]=[]
+
+          if site not in Data_hierarchy['sites'].keys():
+              Data_hierarchy['sites'][site]=[]         
+
+          if location not in Data_hierarchy['locations'].keys():
+              Data_hierarchy['locations'][location]=[]         
+          
+          if s not in Data_hierarchy['samples'][sample]:
+              Data_hierarchy['samples'][sample].append(s)
+
+          if sample not in Data_hierarchy['sites'][site]:
+              Data_hierarchy['sites'][site].append(sample)
+
+          if site not in Data_hierarchy['locations'][location]:
+              Data_hierarchy['locations'][location].append(site)
+
           Data_hierarchy['specimens'][s]=sample
           Data_hierarchy['sample_of_specimen'][s]=sample  
           Data_hierarchy['site_of_specimen'][s]=site  
@@ -5518,30 +5781,101 @@ class Arai_GUI(wx.Frame):
       self.specimens=Data.keys()
       self.specimens.sort()
 
-# anisotropy data now in specimens.txt      
+
+
       #------------------------------------------------
-      # Read anisotropy file from rmag_anisotropy.txt  =>  Depricated
+      # Read anisotropy file from rmag_anisotropy.txt (only data model 2.5) -data_model 3.0 reads from specimen table
       #------------------------------------------------
+      if self.data_model==3:   
+#
+# make a specimen container and dataframe for anisotropy and elsewhere specimen interpretations
+#
+          if 'specimens' in self.contribution.tables:
+              spec_container = self.contribution.tables['specimens']
+              self.spec_data = spec_container.df
+              anis_data=self.spec_data[self.spec_data['method_codes'].str.contains('LP-AN')==True] # get the anisotropy records
+              anis_data=anis_data[anis_data['aniso_s'].notnull()] # get the ones with anisotropy tensors that aren't blank
+              anis_data=anis_data[['specimen','aniso_s','aniso_ftest','aniso_ftest12','aniso_ftest23','aniso_s','aniso_s_mean','aniso_s_n_measurements','aniso_s_sigma','aniso_s_unit','aniso_tilt_correction','aniso_type','description']]
+              # rename column headers to 2.5
+              anis_data=anis_data.rename(columns = { \
+                    'specimen':'er_specimen_name', \
+                    'aniso_type':'anisotropy_type', \
+                    'description':'result_description', \
+                    'aniso_ftest':'anisotropy_ftest', \
+                    'aniso_ftest12':'anisotropy_ftest12', \
+                    'aniso_ftest23':'anisotropy_ftest23', \
+                    'aniso_s_mean':'anisotropy_mean', \
+                    'aniso_s_n_measurements':'anisotropy_n', \
+                    'aniso_s_sigma':'anisotropy_sigma', \
+                    'aniso_s_unit':'anisotropy_unit', \
+                    'aniso_tilt_correction':'anisotropy_tilt_correction', \
+                      }) #  
+              # convert to list of dictionaries
+              anis_dict=anis_data.to_dict("records") 
+              for AniSpec in anis_dict: 
+                  s=AniSpec['er_specimen_name']
+                  if 'AniSpec' not in Data[s].keys(): Data[s]['AniSpec']={}  # make a blank
+                  TYPE=AniSpec['anisotropy_type']
+                  s_data=AniSpec['aniso_s'].split(':')
+                  AniSpec['anisotropy_s1']=s_data[0]# need to add these things
+                  AniSpec['anisotropy_s2']=s_data[1]
+                  AniSpec['anisotropy_s3']=s_data[2]
+                  AniSpec['anisotropy_s4']=s_data[3]
+                  AniSpec['anisotropy_s5']=s_data[4]
+                  AniSpec['anisotropy_s6']=s_data[5]
+                  Data[s]['AniSpec'][TYPE]=AniSpec
+                  if 'result_description'  in AniSpec.keys():
+                      result_description=AniSpec['result_description'].split(";")
+                      for description in result_description:
+                        if "Critical F" in description:
+                           desc=description.split(":")
+                           Data[s]['AniSpec'][TYPE]['anisotropy_F_crit']=float(desc[1])
+          else:
+              self.spec_data=[] # no specimen data
+      else:  # do data_model=2.5 way...
+          rmag_anis_data=[]
+          results_anis_data=[]
+          try:
+              rmag_anis_data,file_type=pmag.magic_read(os.path.join(self.WD, 'rmag_anisotropy.txt'))
+              self.GUI_log.write( "-I- Anisotropy data read  %s/from rmag_anisotropy.txt\n"%self.WD)
+          except:
+              self.GUI_log.write("-W- WARNING cant find rmag_anisotropy in working directory\n")
 
+          try:
+              results_anis_data,file_type=pmag.magic_read(os.path.join(self.WD, 'rmag_results.txt'))
+              self.GUI_log.write( "-I- Anisotropy data read  %s/from rmag_anisotropy.txt\n"%self.WD)
+          
+          except:
+              self.GUI_log.write("-W- WARNING cant find rmag_anisotropy in working directory\n")
 
-      anis_data= spec_data[spec_data['method_codes'].str.contains('aniso_')==True] # find the anisotropy records 
-      anis_data=anis_data.to_dict('records')
-      for AniSpec in anis_data:
-          s=AniSpec['specimen']
-
-          if s not in Data.keys():
-              self.GUI_log.write("-W- WARNING: specimen %s in specimens.txt but not in measurement.txt. Check it !\n"%s)
-              continue
-          if 'AniSpec' in Data[s].keys():
-              self.GUI_log.write("-W- WARNING: more than one anisotropy data for specimen %s !\n"%s)
-          TYPE=AniSpec['aniso_type']
-          if 'AniSpec' not in Data[s].keys():
-              Data[s]['AniSpec']={}
-          Data[s]['AniSpec'][TYPE]=AniSpec
-          if "Critical F" in description:
-                       desc=description.split(":")
-                       Data[s]['AniSpec'][TYPE]['aniso_F_crit']=float(desc[1])
-                
+          
+          for AniSpec in rmag_anis_data:
+              s=AniSpec['er_specimen_name']
+              if s not in Data.keys():
+                  self.GUI_log.write("-W- WARNING: specimen %s in rmag_anisotropy.txt but not in magic_measurement.txt. Check it !\n"%s)
+                  continue
+              if 'AniSpec' in Data[s].keys():
+                  self.GUI_log.write("-W- WARNING: more than one anisotropy data for specimen %s !\n"%s)
+              TYPE=AniSpec['anisotropy_type']
+              if 'AniSpec' not in Data[s].keys():
+                  Data[s]['AniSpec']={}
+              Data[s]['AniSpec'][TYPE]=AniSpec
+      
+          for AniSpec in results_anis_data:
+              s=AniSpec['er_specimen_names']
+              if s not in Data.keys():
+                  self.GUI_log.write("-W- WARNING: specimen %s in rmag_results.txt but not in magic_measurement.txt. Check it !\n"%s)
+                  continue
+              TYPE=AniSpec['anisotropy_type']         
+              if 'AniSpec' in Data[s].keys() and TYPE in  Data[s]['AniSpec'].keys():
+                  Data[s]['AniSpec'][TYPE].update(AniSpec)
+                  if 'result_description' in AniSpec.keys():
+                    result_description=AniSpec['result_description'].split(";")
+                    for description in result_description:
+                        if "Critical F" in description:
+                           desc=description.split(":")
+                           Data[s]['AniSpec'][TYPE]['anisotropy_F_crit']=float(desc[1])
+            
                           
       #------------------------------------------------
       # Calculate Non Linear TRM parameters
@@ -5566,7 +5900,7 @@ class Arai_GUI(wx.Frame):
       # 2) Fit tanh function of the NLT measurement normalized by M[oven field]
       #   M/M[oven field] = alpha * tanh (beta*B)
       #   alpha and beta are used for the Banc calculation using equation (3) in Shaar et al. (2010):
-      #   Banc= tanh^-1[(b*Fa)/alpha]/beta where Fa  is anistropy correction factor and 'b' is the Arai plot slope.
+      #   Banc= tanh^-1[(b*Fa)/alpha]/beta where Fa  is anisotropy correction factor and 'b' is the Arai plot slope.
       #
       # 3) If best fit function algorithm does not converge, check NLT data using option (A) above.
       #    If 
@@ -5576,7 +5910,6 @@ class Arai_GUI(wx.Frame):
 
 
       # Searching and sorting NLT Data 
-      #print "searching NLT data"
 
       for s in sids:
           datablock = Data[s]['datablock']
@@ -5588,44 +5921,45 @@ class Arai_GUI(wx.Frame):
           B_NLT,M_NLT=[],[]
 
           # find temperature of NLT acquisition
-          NLT_temperature=float(trmblock[0]['treat_temp'])
+          NLT_temperature=float(trmblock[0]['treatment_temp'])
           
                  
           # search for Blab used in the IZZI experiment (need it for the following calculation)
           found_labfield=False  
           for rec in datablock:  
-              if float(rec['treat_dc_field'])!=0:
-                  labfield=float(rec['treat_dc_field'])
+              if float(rec['treatment_dc_field'])!=0:
+                  labfield=float(rec['treatment_dc_field'])
                   found_labfield=True
                   break
           if not found_labfield:
               continue
+
           # collect the data from trmblock
           M_baseline=0.
           for rec in trmblock:
 
               # if there is a baseline in TRM block, then use it 
-              if float(rec['treat_dc_field'])==0:
-                  M_baseline=float(rec['intensity'])
-              B_NLT.append(float(rec['treat_dc_field']))
-              M_NLT.append(float(rec['intensity']))
+              if float(rec['treatment_dc_field'])==0:
+                  M_baseline=float(rec['measurement_magn_moment'])
+              B_NLT.append(float(rec['treatment_dc_field']))
+              M_NLT.append(float(rec['measurement_magn_moment']))
 
           # collect more data from araiblock
 
           '''
           for rec in datablock:
-              if float(rec['treat_temp'])==NLT_temperature and float(rec['treat_dc_field']) !=0:
-                  B_NLT.append(float(rec['treat_dc_field']))
-                  M_NLT.append(float(rec['intensity']))'''
+              if float(rec['treatment_temp'])==NLT_temperature and float(rec['treatment_dc_field']) !=0:
+                  B_NLT.append(float(rec['treatment_dc_field']))
+                  M_NLT.append(float(rec['measurement_magn_moment']))'''
                   
     
-          # If cant find baseline in trm block
+          # If cnat find baseline in trm block
           #  search for baseline in the Data block. 
           if M_baseline==0:
               m_tmp=[]
               for rec in datablock:
-                  if float(rec['treat_temp'])==NLT_temperature and float(rec['treat_dc_field'])==0:
-                     m_tmp.append(float(rec['intensity']))
+                  if float(rec['treatment_temp'])==NLT_temperature and float(rec['treatment_dc_field'])==0:
+                     m_tmp.append(float(rec['measurement_magn_moment']))
                      self.GUI_log.write("-I- Found basleine for NLT measurements in datablock, specimen %s\n"%s)         
               if len(m_tmp)>0:
                   M_baseline = scipy.mean(m_tmp)
@@ -5739,31 +6073,37 @@ class Arai_GUI(wx.Frame):
 
               sample=Data_hierarchy['specimens'][s]
               # in MagIC format that cooling rate is in K/My
+##              try:
+##                  ancient_cooling_rate=float(self.Data_info["er_samples"][sample]['sample_cooling_rate'])
+##                  ancient_cooling_rate=ancient_cooling_rate/(1e6*365*24*60) # change to K/minute
+##              except:
+##                  self.GUI_log.write("-W- Cant find ancient cooling rate estimation for sample %s"%sample)
+##                  continue                  
               try:
-                  ancient_cooling_rate=float(self.Data_info["samples"][sample]['cooling_rate'])
+                  ancient_cooling_rate=float(self.Data_info["er_samples"][sample]['sample_cooling_rate'])
                   ancient_cooling_rate=ancient_cooling_rate/(1e6*365.*24.*60.) # change to K/minute
               except:
                   self.GUI_log.write("-W- Cant find ancient cooling rate estimation for sample %s\n"%sample)
                   continue
-              #self.Data_info["samples"]
+              #self.Data_info["er_samples"]
               cooling_rate_data={}
               cooling_rate_data['pairs']=[]
               cooling_rates_list=[]
               cooling_rate_data['alteration_check']=[]
               for rec in Data[s]['crblock']:
-                  method_codes=rec['method_codes'].strip(' ').strip('\n').split(":")
-                  measurement_description=rec['description'].strip(' ').strip('\n').split(":")
-                  if "LT-T-Z" in method_codes:
-                      cooling_rate_data['baseline']=float(rec['intensity'])
+                  magic_method_codes=rec['magic_method_codes'].strip(' ').strip('\n').split(":")
+                  measurement_description=rec['measurement_description'].strip(' ').strip('\n').split(":")
+                  if "LT-T-Z" in magic_method_codes:
+                      cooling_rate_data['baseline']=float(rec['measurement_magn_moment'])
                       continue
                 
                   index=measurement_description.index("K/min")
                   cooling_rate=float(measurement_description[index-1])
                   cooling_rates_list.append(cooling_rate)
-                  moment=float(rec['intensity'])
-                  if "LT-T-I" in method_codes:
+                  moment=float(rec['measurement_magn_moment'])
+                  if "LT-T-I" in magic_method_codes:
                       cooling_rate_data['pairs'].append([cooling_rate,moment])
-                  if "LT-PTRM-I" in method_codes:
+                  if "LT-PTRM-I" in magic_method_codes:
                       cooling_rate_data['alteration_check']=[cooling_rate,moment]
               lab_cooling_rate=max(cooling_rates_list) 
               cooling_rate_data['lab_cooling_rate']= lab_cooling_rate                  
@@ -5822,6 +6162,8 @@ class Arai_GUI(wx.Frame):
               
               Data[s]['cooling_rate_data']= cooling_rate_data     
 
+              
+               
       # go over all specimens. if there is a specimen with no cooling rate data
       # use the mean cooling rate corretion of the other specimens from the same sample
       # this cooling rate correction is flagges as "inferred"
@@ -5869,20 +6211,22 @@ class Arai_GUI(wx.Frame):
            Data_hierarchy['samples'][sample].remove(s)
            continue 
 
-        araiblock,field,phi,theta=self.sortarai(datablock,s,0)
+        araiblock,field=self.sortarai(datablock,s,0)
+
         # thermal or microwave
         rec=datablock[0]
-        if "treat_temp" in rec.keys() and rec["treat_temp"]!="":
-            temp=float(rec["treat_temp"])
+        if "treatment_temp" in rec.keys() and rec["treatment_temp"]!="":
+            temp=float(rec["treatment_temp"])
             THERMAL=True; MICROWAVE=False
-        elif "treat_mw_power" in rec.keys() and rec["treat_mw_power"]!="":
+        elif "treatment_mw_power" in rec.keys() and rec["treatment_mw_power"]!="":
             THERMAL=False; MICROWAVE=True
         
 
-        # Fix zijderveld block for Thellier-Thellier protocol (II) 
+        
+        # Fix zijderveld block for Thellier-Thellier protocol (II)
         # (take the vector subtruction instead of the zerofield steps)
 
-        if "LP-PI-II" in Data[s]['datablock'][0]["method_codes"] or "LP-PI-M-II" in Data[s]['datablock'][0]["method_codes"] or "LP-PI-T-II" in Data[s]['datablock'][0]["method_codes"]:
+        if "LP-PI-II" in Data[s]['datablock'][0]["magic_method_codes"] or "LP-PI-M-II" in Data[s]['datablock'][0]["magic_method_codes"] or "LP-PI-T-II" in Data[s]['datablock'][0]["magic_method_codes"]:
           Data[s]['zijdblock']=[]  
           for zerofield in araiblock[0]:
               Data[s]['zijdblock'].append([zerofield[0],zerofield[1],zerofield[2],zerofield[3],0,'g',""])
@@ -5890,19 +6234,17 @@ class Arai_GUI(wx.Frame):
         zijdblock=Data[s]['zijdblock']
 
 
+
         Data[s]['araiblock']=araiblock
-        Data[s]['treat_dc_field']=field
-        Data[s]['treat_dc_field_uT']=field*1e6
-        Data[s]['treat_dc_field_phi']=phi
-        Data[s]['treat_dc_field_theta']=theta
         Data[s]['pars']={}
-        Data[s]['pars']['treat_dc_field']=field
-        Data[s]['pars']['treat_dc_field_phi']=phi
-        Data[s]['pars']['treat_dc_field_theta']=theta
-        Data[s]['pars']['specimen']=s
-        Data[s]['pars']['sample']=Data_hierarchy['specimens'][s]
-        Data[s]['specimen']=s   
-        Data[s]['sample']=Data_hierarchy['specimens'][s]
+        Data[s]['pars']['lab_dc_field']=field
+        Data[s]['pars']['er_specimen_name']=s
+        Data[s]['pars']['er_sample_name']=Data_hierarchy['specimens'][s]
+
+        Data[s]['lab_dc_field']=field
+        Data[s]['er_specimen_name']=s   
+        Data[s]['er_sample_name']=Data_hierarchy['specimens'][s]
+        
         first_Z=araiblock[0]
         #if len(first_Z)<3:
             #continue
@@ -5913,13 +6255,13 @@ class Arai_GUI(wx.Frame):
 
       # Fix zijderveld block for Thellier-Thellier protocol (II)
       # (take the vector subtruiction instead of the zerofield steps)
-      #  araiblock,field=self.sortarai(Data[s]['datablock'],s,0)
-      #if "LP-PI-II" in Data[s]['datablock'][0]["method_codes"] or "LP-PI-M-II" in Data[s]['datablock'][0]["method_codes"] or "LP-PI-T-II" in Data[s]['datablock'][0]["method_codes"]:
+      #araiblock,field=self.sortarai(Data[s]['datablock'],s,0)
+      #if "LP-PI-II" in Data[s]['datablock'][0]["magic_method_codes"] or "LP-PI-M-II" in Data[s]['datablock'][0]["magic_method_codes"] or "LP-PI-T-II" in Data[s]['datablock'][0]["magic_method_codes"]:
       #    for zerofield in araiblock[0]:
       #        Data[s]['zijdblock'].append([zerofield[0],zerofield[1],zerofield[2],zerofield[3],0,'g',""])
-##        if "LP-PI-II" in datablock[0]["method_codes"] or "LP-PI-M-II" in datablock[0]["method_codes"] or "LP-PI-T-II" in datablock[0]["method_codes"]:
-#          for zerofield in araiblock[0]:
-#              Data[s]['zijdblock'].append([zerofield[0],zerofield[1],zerofield[2],zerofield[3],0,'g',""])
+##        if "LP-PI-II" in datablock[0]["magic_method_codes"] or "LP-PI-M-II" in datablock[0]["magic_method_codes"] or "LP-PI-T-II" in datablock[0]["magic_method_codes"]:
+##          for zerofield in araiblock[0]:
+##              Data[s]['zijdblock'].append([zerofield[0],zerofield[1],zerofield[2],zerofield[3],0,'g',""])
 
 
         #--------------------------------------------------------------
@@ -5968,7 +6310,7 @@ class Arai_GUI(wx.Frame):
           DIR=pmag.cart2dir(Data[s]['zdata'][i])
           DIR[0]=DIR[0]-NRM_dec
           CART_rot.append(scipy.array(pmag.dir2cart(DIR)))
-          #print array(pmag.dir2cart(DIR))
+          #print array(dir2cart(DIR))
           
         CART_rot=scipy.array(CART_rot)
         Data[s]['zij_rotated']=CART_rot
@@ -6001,7 +6343,7 @@ class Arai_GUI(wx.Frame):
         x_Arai=scipy.array(x_Arai)
         y_Arai=scipy.array(y_Arai)
         #else:
-        #    Data[s]['pars']['method_codes']=""
+        #    Data[s]['pars']['magic_method_codes']=""
         Data[s]['x_Arai']=x_Arai
         Data[s]['y_Arai']=y_Arai
         Data[s]['t_Arai']=t_Arai
@@ -6025,7 +6367,7 @@ class Arai_GUI(wx.Frame):
               # find the starting point of the pTRM check:
               rec=Data[s]['datablock'][zero_field_index]
               if THERMAL:
-                    starting_temperature=(float(rec['treat_temp']))
+                    starting_temperature=(float(rec['treatment_temp']))
                     #found_start_temp=True
               elif MICROWAVE:
                     MW_step=rec["measurement_description"].strip('\n').split(":")
@@ -6055,9 +6397,9 @@ class Arai_GUI(wx.Frame):
                 if ptrm_checks[k][5]==0:
                     index_zerofield=zerofield_temperatures.index(ptrm_checks[k][0])
                     index_infield=infield_temperatures.index(ptrm_checks[k][0])
-                    infield_cart=pmag.dir2cart([infields[index_infield][1],infields[index_infield][2],infields[index_infield][3]])
-                    ptrm_check_cart=pmag.dir2cart([ptrm_checks[k][1],ptrm_checks[k][2],ptrm_checks[k][3]])
-                    ptrm_check=pmag.cart2dir(scipy.array(infield_cart)-scipy.array(ptrm_check_cart))
+                    infield_cart=dir2cart([infields[index_infield][1],infields[index_infield][2],infields[index_infield][3]])
+                    ptrm_check_cart=dir2cart([ptrm_checks[k][1],ptrm_checks[k][2],ptrm_checks[k][3]])
+                    ptrm_check=cart2dir(scipy.array(infield_cart)-scipy.array(ptrm_check_cart))
                     x_ptrm_check.append(ptrm_check[2]/NRM)
                     y_ptrm_check.append(zerofields[index_zerofield][3]/NRM)
                     ptrm_checks_temperatures.append(ptrm_checks[k][0])
@@ -6105,13 +6447,13 @@ class Arai_GUI(wx.Frame):
             # find the starting point of the pTRM check:
             for i in range(len(datablock)):
                 rec=datablock[i]                
-                if (THERMAL and "LT-PTRM-MD" in rec['method_codes'] and float(rec['treat_temp'])==ptrm_tail[k][0])\
+                if (THERMAL and "LT-PTRM-MD" in rec['magic_method_codes'] and float(rec['treatment_temp'])==ptrm_tail[k][0])\
                    or\
-                   (MICROWAVE and "LT-PMRM-MD" in rec['method_codes'] and "description" in rec.keys() and "Step Number-%.0f"%float(ptrm_tail[k][0]) in rec["description"]):
+                   (MICROWAVE and "LT-PMRM-MD" in rec['magic_method_codes'] and "measurement_description" in rec.keys() and "Step Number-%.0f"%float(ptrm_tail[k][0]) in rec["measurement_description"]):
                     if THERMAL:
-                        starting_temperature=(float(datablock[i-1]['treat_temp']))
+                        starting_temperature=(float(datablock[i-1]['treatment_temp']))
                     elif MICROWAVE:
-                        MW_step=datablock[i-1]["description"].strip('\n').split(":")
+                        MW_step=datablock[i-1]["measurement_description"].strip('\n').split(":")
                         for STEP in MW_step:
                             if "Number" in STEP:
                                 starting_temperature=float(STEP.split("-")[-1])
@@ -6164,16 +6506,16 @@ class Arai_GUI(wx.Frame):
           if additivity_checks[k][0] in zerofield_temperatures:
             for i in range(len(tmp_data_block)):
                 rec=tmp_data_block[i]                
-                if "LT-PTRM-AC" in rec['method_codes'] and float(rec['treat_temp'])==additivity_checks[k][0]:
+                if "LT-PTRM-AC" in rec['magic_method_codes'] and float(rec['treatment_temp'])==additivity_checks[k][0]:
                     del(tmp_data_block[i])
                     break
                     
             # find the infield step that comes before the additivity check
             foundit=False
             for j in range(i-1,1,-1):
-                if "LT-T-I" in tmp_data_block[j]['method_codes']:
+                if "LT-T-I" in tmp_data_block[j]['magic_method_codes']:
                   found_starting_temperature=True
-                  starting_temperature=float(tmp_data_block[j]['treat_temp']);
+                  starting_temperature=float(tmp_data_block[j]['treatment_temp']);
                   break
             #for j in range(len(Data[s]['t_Arai'])):
             #    print Data[s]['t_Arai'][j]
@@ -6210,10 +6552,6 @@ class Arai_GUI(wx.Frame):
         AC=scipy.array(AC)
 
         Data[s]['AC']=AC
-        #print s
-        #print "AC",AC
-        #print "x_AC",x_AC
-        #print "x_AC",x_AC
         
         Data[s]['x_additivity_check']=x_AC
         Data[s]['y_additivity_check']=y_AC
@@ -6222,78 +6560,95 @@ class Arai_GUI(wx.Frame):
         Data[s]['y_additivity_check_starting_point']=y_AC_starting_point
         Data[s]['additivity_check_starting_temperatures']=AC_starting_temperatures
 
+        
+        
+
       self.GUI_log.write("-I- number of specimens in this project directory: %i\n"%len(self.specimens))
       self.GUI_log.write("-I- number of samples in this project directory: %i\n"%len(Data_hierarchy['samples'].keys()))
 
-      #print "done sort blocks to arai, zij. etc."
-#
-# PUT PRIOR SPECIMEN INTERPRETATIONS IN Data[s]
-#
-      for specimen in sids:
-          prior_recs=spec_data[spec_data['method_codes'].str.contains('specimen')==True] # specimen data for this specimen
-          prior_recs=spec_data[spec_data['method_codes'].str.contains('LP-PI')==True] # paleointensity data for this specimen 
-          prior_recs=prior_recs[prior_recs['meas_step_min'].notnull()] # specimen data for this specimen
-          prior_recs=prior_recs[prior_recs['meas_step_max'].notnull()] # specimen data for this specimen
-          prev_pmag_specimen=prior_recs.to_dict('records') # convert to list of dictionaries
-          for rec in prev_pmag_specimen: # step through interpretations
-            tmin_kelvin=float(rec['meas_step_min'])
-            tmax_kelvin=float(rec['meas_step_max'])
-            if specimen not in self.redo_specimens.keys():
-                self.redo_specimens[specimen]={}
-                self.redo_specimens[specimen]['t_min']=float(tmin_kelvin)
-                self.redo_specimens[specimen]['t_max']=float(tmax_kelvin)
-                if tmin_kelvin not in Data[specimen]['t_Arai'] or tmax_kelvin not in Data[specimen]['t_Arai'] :
-                    self.GUI_log.write ("-W- WARNING: cant fit temperature bounds in the redo file to the actual measurement. specimen %s\n"%specimen)
-                else:
-                    try:
-                        #print 'GUI5: ',Data[specimen]['pars']
-                        Data[specimen]['pars']=thellier_gui_lib.get_PI_parameters(Data,self.acceptance_criteria, self.preferences,specimen,float(tmin_kelvin),float(tmax_kelvin),self.GUI_log,THERMAL,MICROWAVE)
- 
-                        #print 'GUI4: ',Data[specimen]['pars']
-                        Data[specimen]['pars']['saved']=True
-                        # write intrepretation into sample data
-                        sample=Data_hierarchy['specimens'][specimen]
-                        if sample not in self.Data_samples.keys():
-                            self.Data_samples[sample]={}
-                        if specimen not in self.Data_samples[sample].keys():
-                            self.Data_samples[sample][specimen]={}
-                        self.Data_samples[sample][specimen]['B']=Data[specimen]['pars']['specimen_int_uT']
-                        site=thellier_gui_lib.get_site_from_hierarchy(sample,Data_hierarchy)
-                        if site not in self.Data_sites.keys(): self.Data_sites[site]={}
-                        if specimen not in self.Data_sites[site].keys(): self.Data_sites[site][specimen]={}
-                        self.Data_sites[site][specimen]['B']=self.Data[specimen]['pars']['specimen_int_uT']
-                    except:
-                        self.GUI_log.write ("-E- ERROR. Cant calculate PI paremeters for specimen %s using redo file. Check!"%(specimen))
-            else:
-                self.GUI_log.write ("-W- WARNING: Cant find specimen %s from redo file in measurement file!\n"%specimen)
-      return(Data,Data_hierarchy,contribution)
+      print "done sort blocks to arai, zij. etc."
+      return(Data,Data_hierarchy)
 
       
-#
-#  NEED TO DO THIS WITH CONTRIBUTION INSTEAD OF get_data_info AND DON"T NEED AGES
-#
-    #--------------------------------------------------------------    
-    # Read all information file (locations, samples, sites, and propogate the ages down)  
-    def get_data_info(self,contribution):
-        Data_info={}
-        data_samples={}
-        data_sites={}
-        if 'sites' in contribution.tables:
-            site_container = contribution.tables['sites']
-            site_data = site_container.df
-        else:
-            site_container, site_data = None, []
-            self.GUI_log.write ("-W- Cant find sites.txt in project directory\n")
-           
-        if 'samples' in contribution.tables:
-            samp_container = contribution.tables['samples']
-            samp_data = samp_container.df
-        else:
-            samp_container, samp_data = None, []
-            self.GUI_log.write ("-W- Cant find samples.txt in project directory\n")
 
-        Data_info["samples"]=samp_data.to_dict('records')
-        Data_info["sites"]=site_data.to_dict('records')
+    #--------------------------------------------------------------    
+    # Read all information from magic files
+    #--------------------------------------------------------------
+    def get_data_info(self,**kwargs):
+        Data_info={}
+        data_er_samples={}
+        data_er_ages={}
+        data_er_sites={}
+        if self.data_model==3: # pick out desired data and refactor to data model 2.5
+            Data_info["er_samples"]=[]
+            Data_info["er_sites"]=[]
+            Data_info["er_ages"]=[]
+            return(Data_info)
+ # fix this up later
+          #if len(self.spec_data)>0:  # already have specimen stuff read in
+          #    pass
+          #if 'samples' in self.contribution.tables:
+          #    samp_container = self.contribution.tables['samples']
+          #    samp_data = samp_container.df
+          #if 'sites' in self.contribution.tables:
+          ##    site_container = self.contribution.tables['sites']
+          #    site_data = site_container.df
+
+
+
+
+
+#              anis_data=self.spec_data[self.spec_data['method_codes'].str.contains('LP-AN')==True] # get the anisotropy records
+#              anis_data=anis_data[anis_data['aniso_s'].notnull()] # get the ones with anisotropy tensors that aren't blank
+#              anis_data=anis_data[['specimen','aniso_s','aniso_ftest','aniso_ftest12','aniso_ftest23','aniso_s','aniso_s_mean','aniso_s_n_measurements','aniso_s_sigma','aniso_s_unit','aniso_tilt_correction','aniso_type','description']]
+#              # rename column headers to 2.5
+#              anis_data=anis_data.rename(columns = { \
+#                    'specimen':'er_specimen_name', \
+#                    'aniso_type':'anisotropy_type', \
+#                    'description':'result_description', \
+#                    'aniso_ftest':'anisotropy_ftest', \
+#                    'aniso_ftest12':'anisotropy_ftest12', \
+#                    'aniso_ftest23':'anisotropy_ftest23', \
+#                    'aniso_s_mean':'anisotropy_mean', \
+#                    'aniso_s_n_measurements':'anisotropy_n', \
+#                    'aniso_s_sigma':'anisotropy_sigma', \
+#                    'aniso_s_unit':'anisotropy_unit', \
+#                    'aniso_tilt_correction':'anisotropy_tilt_correction', \
+#                      }) #  
+#              # convert to list of dictionaries
+#              anis_dict=anis_data.to_dict("records") 
+                
+
+
+
+
+
+        else:  # read from 2.5 formatted files
+            try:
+                data_er_samples=self.read_magic_file(os.path.join(self.WD, "er_samples.txt"),1,'er_sample_name')
+            except:
+                self.GUI_log.write ("-W- Cant find er_sample.txt in project directory\n")
+
+            try:
+                data_er_sites=self.read_magic_file(os.path.join(self.WD, "er_sites.txt"),1,'er_site_name')
+            except:
+                self.GUI_log.write ("-W- Cant find er_sites.txt in project directory\n")
+
+            try:
+                data_er_ages=self.read_er_ages_file(os.path.join(self.WD, "er_ages.txt"),1,["er_site_name","er_sample_name"])
+            except:
+                self.GUI_log.write ("-W- Cant find er_ages.txt in project directory\n")
+
+            #try:
+            #    data_er_ages=read_magic_file(self.WD+"/er_ages.txt",'er_site_name')
+            #except:    
+            #    self.GUI_log.write ("-W- Cant find er_ages in project directory\n")
+
+
+        Data_info["er_samples"]=data_er_samples
+        Data_info["er_sites"]=data_er_sites
+        Data_info["er_ages"]=data_er_ages
+        
         
         return(Data_info)
 
@@ -6309,11 +6664,103 @@ class Arai_GUI(wx.Frame):
     
     
     #--------------------------------------------------------------    
-    # Read previuos interpretation from pmag_specimens.txt (if exist)
-
-### THIS WAS DEPRECATED
+    # Read previose interpretation from pmag_specimens.txt (if exist)
     #--------------------------------------------------------------
     
+    def get_previous_interpretation(self):
+        # first delete all previous interpretation
+        for sp in self.Data.keys():
+            del self.Data[sp]['pars']
+            self.Data[sp]['pars']={}
+            self.Data[sp]['pars']['lab_dc_field']=self.Data[sp]['lab_dc_field']
+            self.Data[sp]['pars']['er_specimen_name']=self.Data[sp]['er_specimen_name']   
+            self.Data[sp]['pars']['er_sample_name']=self.Data[sp]['er_sample_name']
+        self.Data_samples={}
+        self.Data_sites={}
+  # read in data 
+        if self.data_model==3: # data model 3.0
+            if len(self.spec_data)>0:  # there are previous measurements
+              prev_specs=self.spec_data[self.spec_data['int_b'].notnull()] # get the previous intensity interpretations
+              prev_specs=prev_specs[prev_specs['meas_step_min'].notnull()] # eliminate ones without bounds
+              prev_specs=prev_specs[prev_specs['meas_step_max'].notnull()] # 
+              prev_specs=prev_specs[['specimen','meas_step_min','meas_step_max','method_codes']]
+              # rename column headers to 2.5
+              prev_specs=prev_specs.rename(columns = { \
+                    'specimen':'er_specimen_name', \
+                    'meas_step_min':'measurement_step_min', \
+                    'meas_step_max':'measurement_step_max', \
+                    'method_codes':'magic_method_codes', \
+                      }) #  
+              # convert to list of dictionaries
+              prev_pmag_specimen=prev_specs.to_dict("records") 
+        else: 
+            prev_pmag_specimen=[]
+            try:
+                prev_pmag_specimen,file_type=pmag.magic_read(os.path.join(self.WD, "pmag_specimens.txt"))
+                self.GUI_log.write ("-I- Read pmag_specimens.txt for previous interpretation")
+                print "-I- Read pmag_specimens.txt for previous interpretation"
+            except:
+                self.GUI_log.write ("-I- No pmag_specimens.txt for previous interpretation")
+                return
+
+        #specimens_list=pmag.get_specs(self.WD+"/pmag_specimens.txt")
+        #specimens_list.sort()
+        for rec in prev_pmag_specimen:
+            if "LP-PI" not in rec["magic_method_codes"]:
+                continue
+            if "measurement_step_min" not in rec.keys() or rec['measurement_step_min']=="":
+                continue
+            if "measurement_step_max" not in rec.keys() or rec['measurement_step_max']=="":
+                continue
+                
+            specimen=rec['er_specimen_name']
+            tmin_kelvin=float(rec['measurement_step_min'])
+            tmax_kelvin=float(rec['measurement_step_max'])
+            if specimen not in self.redo_specimens.keys():
+                self.redo_specimens[specimen]={}
+                self.redo_specimens[specimen]['t_min']=float(tmin_kelvin)
+                self.redo_specimens[specimen]['t_max']=float(tmax_kelvin)
+            if specimen in self.Data.keys():
+                if tmin_kelvin not in self.Data[specimen]['t_Arai'] or tmax_kelvin not in self.Data[specimen]['t_Arai'] :
+                    self.GUI_log.write ("-W- WARNING: cant fit temperature bounds in the redo file to the actual measurement. specimen %s\n"%specimen)
+                else:
+                    try:
+                        self.Data[specimen]['pars']=thellier_gui_lib.get_PI_parameters(self.Data,self.acceptance_criteria, self.preferences,specimen,float(tmin_kelvin),float(tmax_kelvin),self.GUI_log,THERMAL,MICROWAVE)
+                        self.Data[specimen]['pars']['saved']=True
+                        # write intrepretation into sample data
+                        sample=self.Data_hierarchy['specimens'][specimen]
+                        if sample not in self.Data_samples.keys():
+                            self.Data_samples[sample]={}
+                        if specimen not in self.Data_samples[sample].keys():
+                            self.Data_samples[sample][specimen]={}
+                        self.Data_samples[sample][specimen]['B']=self.Data[specimen]['pars']['specimen_int_uT']
+                        
+                        site=thellier_gui_lib.get_site_from_hierarchy(sample,self.Data_hierarchy)
+                        if site not in self.Data_sites.keys():
+                            self.Data_sites[site]={}
+                        if specimen not in self.Data_sites[site].keys():
+                            self.Data_sites[site][specimen]={}
+                        self.Data_sites[site][specimen]['B']=self.Data[specimen]['pars']['specimen_int_uT']
+
+                    except:
+                        self.GUI_log.write ("-E- ERROR. Cant calculate PI paremeters for specimen %s using redo file. Check!"%(specimen))
+            else:
+                self.GUI_log.write ("-W- WARNING: Cant find specimen %s from redo file in measurement file!\n"%specimen)
+
+        #try:
+        #    self.s
+        #except:
+        try:
+            self.s=self.specimens[0]                
+            self.pars=self.Data[self.s]['pars']
+            self.clear_boxes()
+            self.draw_figure(self.s)
+            self.update_GUI_with_new_interpretation()
+        except:
+            pass
+        
+                    
+
 
 #===========================================================
 #  definitions inherited and mofified from pmag.py
@@ -6333,60 +6780,64 @@ class Arai_GUI(wx.Frame):
         Treat_I,Treat_Z,Treat_PZ,Treat_PI,Treat_M,Treat_AC=[],[],[],[],[],[]
         ISteps,ZSteps,PISteps,PZSteps,MSteps,ACSteps=[],[],[],[],[],[]
         GammaChecks=[] # comparison of pTRM direction acquired and lab field
-        momkey='intensity'
+        Mkeys=['measurement_magn_moment','measurement_magn_volume','measurement_magn_mass','measurement_magnitude']
         rec=datablock[0]
+        for key in Mkeys:
+            if key in rec.keys() and rec[key]!="":
+                momkey=key
+                break
     # first find all the steps
         for k in range(len(datablock)):
             rec=datablock[k]
-            if "treat_temp" in rec.keys() and rec["treat_temp"]!="":
-                temp=float(rec["treat_temp"])
+            if "treatment_temp" in rec.keys() and rec["treatment_temp"]!="":
+                temp=float(rec["treatment_temp"])
                 THERMAL=True; MICROWAVE=False
-            elif "treat_mw_power" in rec.keys() and rec["treat_mw_power"]!="":
+            elif "treatment_mw_power" in rec.keys() and rec["treatment_mw_power"]!="":
                 THERMAL=False; MICROWAVE=True
-                if "description" in rec.keys():
-                    MW_step=rec["description"].strip('\n').split(":")
+                if "measurement_description" in rec.keys():
+                    MW_step=rec["measurement_description"].strip('\n').split(":")
                     for STEP in MW_step:
                         if "Number" in STEP:
                             temp=float(STEP.split("-")[-1])
 
                 
             methcodes=[]
-            tmp=rec["method_codes"].split(":")
+            tmp=rec["magic_method_codes"].split(":")
             for meth in tmp:
                 methcodes.append(meth.strip())
             # for thellier-thellier
             if 'LT-T-I' in methcodes and 'LP-PI-TRM' in methcodes and 'LP-TRM' not in methcodes :
                 Treat_I.append(temp)
                 ISteps.append(k)
-                if field=="":field=float(rec["treat_dc_field"])
+                if field=="":field=float(rec["treatment_dc_field"])
                 if phi=="":
-                    phi=float(rec['treat_dc_field_phi'])
-                    theta=float(rec['treat_dc_field_theta'])
+                    phi=float(rec['treatment_dc_field_phi'])
+                    theta=float(rec['treatment_dc_field_theta'])
                     
             # for Microwave
             if 'LT-M-I' in methcodes and 'LP-PI-M' in methcodes :
                 Treat_I.append(temp)
                 ISteps.append(k)
-                if field=="":field=float(rec["treat_dc_field"])
+                if field=="":field=float(rec["treatment_dc_field"])
                 if phi=="":
-                    phi=float(rec['treat_dc_field_phi'])
-                    theta=float(rec['treat_dc_field_theta'])
+                    phi=float(rec['treatment_dc_field_phi'])
+                    theta=float(rec['treatment_dc_field_theta'])
 
     # stick  first zero field stuff into first_Z 
             if 'LT-NO' in methcodes:
                 Treat_Z.append(temp)
                 ZSteps.append(k)
-            if "LT-AF-Z" in methcodes and 'treat_ac_field' in rec.keys():
+            if "LT-AF-Z" in methcodes and 'treatment_ac_field' in rec.keys():
                 AFD_after_NRM=True
                 # consider AFD before T-T experiment ONLY if it comes before the experiment
                 for i in range(len(first_I)):
                     if float(first_I[i][3])!=0: # check if there was an infield step before the AFD
                         AFD_after_NRM=False
                     if AFD_after_NRM:
-                        AF_field=float(rec['treat_ac_field'])*1000
-                        dec=float(rec["dir_dec"])
-                        inc=float(rec["dir_inc"])
-                        intensity=float(rec['intensity'])
+                        AF_field=float(rec['treatment_ac_field'])*1000
+                        dec=float(rec["measurement_dec"])
+                        inc=float(rec["measurement_inc"])
+                        intensity=float(rec[momkey])
                         first_I.append([273.-AF_field,0.,0.,0.,1])
                         first_Z.append([273.-AF_field,dec,inc,intensity,1])  # NRM step
             if 'LT-T-Z' in methcodes or 'LT-M-Z' in methcodes: 
@@ -6405,9 +6856,9 @@ class Arai_GUI(wx.Frame):
                 Treat_AC.append(temp)
                 ACSteps.append(k)
             if 'LT-NO' in methcodes:
-                dec=float(rec["dir_dec"])
-                inc=float(rec["dir_inc"])
-                moment=float(rec["intensity"])
+                dec=float(rec["measurement_dec"])
+                inc=float(rec["measurement_inc"])
+                moment=float(rec["measurement_magn_moment"])
                 if 'LP-PI-M'  not in methcodes:
                     first_I.append([273,0.,0.,0.,1])
                     first_Z.append([273,dec,inc,moment,1])  # NRM step
@@ -6425,7 +6876,7 @@ class Arai_GUI(wx.Frame):
                 istep=ISteps[Treat_I.index(temp)]
                 irec=datablock[istep]
                 methcodes=[]
-                tmp=irec["method_codes"].split(":")
+                tmp=irec["magic_method_codes"].split(":")
                 for meth in tmp: methcodes.append(meth.strip())
                 brec=datablock[istep-1] # take last record as baseline to subtract  
                 zstep=ZSteps[Treat_Z.index(temp)]
@@ -6443,20 +6894,20 @@ class Arai_GUI(wx.Frame):
                     foundit=False
                     for i in range(len(datablock)):
                         if THERMAL:
-                            if ('treat_temp' in datablock[i].keys() and float(temp)==float(datablock[i]['treat_temp'])):
+                            if ('treatment_temp' in datablock[i].keys() and float(temp)==float(datablock[i]['treatment_temp'])):
                                 foundit=True
                         if MICROWAVE:
-                            if ('description' in datablock[i].keys()):
-                                MW_step=datablock[i]["description"].strip('\n').split(":")
+                            if ('measurement_description' in datablock[i].keys()):
+                                MW_step=datablock[i]["measurement_description"].strip('\n').split(":")
                                 for STEP in MW_step:
                                     if "Number" in STEP:
                                         ThisStep=float(STEP.split("-")[-1])
                                         if ThisStep==float(temp):                                    
                                             foundit=True
                         if foundit:                        
-                            if "LT-T-Z" in datablock[i]['method_codes'].split(":") or "LT-M-Z" in datablock[i]['method_codes'].split(":"):
+                            if "LT-T-Z" in datablock[i]['magic_method_codes'].split(":") or "LT-M-Z" in datablock[i]['magic_method_codes'].split(":"):
                                 z_intex=i
-                            if "LT-T-I" in datablock[i]['method_codes'].split(":") or "LT-M-I" in datablock[i]['method_codes'].split(":"):
+                            if "LT-T-I" in datablock[i]['magic_method_codes'].split(":") or "LT-M-I" in datablock[i]['magic_method_codes'].split(":"):
                                 i_intex=i
                             foundit=False    
                             
@@ -6464,14 +6915,14 @@ class Arai_GUI(wx.Frame):
                         ZI=1
                     else:
                         ZI=0
-                dec=float(zrec["dir_dec"])
-                inc=float(zrec["dir_inc"])
-                str=float(zrec['intensity'])
+                dec=float(zrec["measurement_dec"])
+                inc=float(zrec["measurement_inc"])
+                str=float(zrec[momkey])
                 first_Z.append([temp,dec,inc,str,ZI])
         # sort out first_I records 
-                idec=float(irec["dir_dec"])
-                iinc=float(irec["dir_inc"])
-                istr=float(irec['intensity'])
+                idec=float(irec["measurement_dec"])
+                iinc=float(irec["measurement_inc"])
+                istr=float(irec[momkey])
                 X=pmag.dir2cart([idec,iinc,istr])
                 BL=pmag.dir2cart([dec,inc,str])
                 I=[]
@@ -6501,16 +6952,16 @@ class Arai_GUI(wx.Frame):
                     # ignore, if there are more than 
                     temp= Treat_I[i]
                     irec1=datablock[ISteps[i-1]]
-                    dec1=float(irec1["dir_dec"])
-                    inc1=float(irec1["dir_inc"])
-                    moment1=float(irec1["intensity"])
+                    dec1=float(irec1["measurement_dec"])
+                    inc1=float(irec1["measurement_inc"])
+                    moment1=float(irec1["measurement_magn_moment"])
                     if len(first_I)<2:
                         dec_initial=dec1;inc_initial=inc1
                     cart1=scipy.array(pmag.dir2cart([dec1,inc1,moment1]))
                     irec2=datablock[ISteps[i]]
-                    dec2=float(irec2["dir_dec"])
-                    inc2=float(irec2["dir_inc"])
-                    moment2=float(irec2["intensity"])
+                    dec2=float(irec2["measurement_dec"])
+                    inc2=float(irec2["measurement_inc"])
+                    moment2=float(irec2["measurement_magn_moment"])
                     cart2=scipy.array(pmag.dir2cart([dec2,inc2,moment2]))
 
                     # check if its in the same treatment
@@ -6536,11 +6987,11 @@ class Arai_GUI(wx.Frame):
             temp=Treat_PI[i]
             k=PISteps[i]   
             rec=datablock[k]
-            dec=float(rec["dir_dec"])
-            inc=float(rec["dir_inc"])
-            moment=float(rec["intensity"])
-            phi=float(rec["treat_dc_field_phi"])
-            theta=float(rec["treat_dc_field_theta"])
+            dec=float(rec["measurement_dec"])
+            inc=float(rec["measurement_inc"])
+            moment=float(rec["measurement_magn_moment"])
+            phi=float(rec["treatment_dc_field_phi"])
+            theta=float(rec["treatment_dc_field_theta"])
             M=scipy.array(pmag.dir2cart([dec,inc,moment]))
 
             foundit=False
@@ -6548,13 +6999,13 @@ class Arai_GUI(wx.Frame):
                  # Important: suport several pTRM checks in a row, but
                  # does not support pTRM checks after infield step
                  for j in range(k,1,-1):
-                     if "LT-M-I" in datablock[j]['method_codes'] or "LT-T-I" in datablock[j]['method_codes']:
+                     if "LT-M-I" in datablock[j]['magic_method_codes'] or "LT-T-I" in datablock[j]['magic_method_codes']:
                          after_zerofield=0. 
                          foundit=True
                          prev_rec=datablock[j]
                          zerofield_index=j  
                          break                       
-                     if float(datablock[j]['treat_dc_field'])==0:
+                     if float(datablock[j]['treatment_dc_field'])==0:
                          after_zerofield=1.
                          foundit=True
                          prev_rec=datablock[j]
@@ -6566,11 +7017,11 @@ class Arai_GUI(wx.Frame):
                 zerofield_index=k-1
             
             if foundit:                            
-                prev_dec=float(prev_rec["dir_dec"])
-                prev_inc=float(prev_rec["dir_inc"])
-                prev_moment=float(prev_rec["intensity"])
-                prev_phi=float(prev_rec["treat_dc_field_phi"])
-                prev_theta=float(prev_rec["treat_dc_field_theta"])
+                prev_dec=float(prev_rec["measurement_dec"])
+                prev_inc=float(prev_rec["measurement_inc"])
+                prev_moment=float(prev_rec["measurement_magn_moment"])
+                prev_phi=float(prev_rec["treatment_dc_field_phi"])
+                prev_theta=float(prev_rec["treatment_dc_field_theta"])
                 prev_M=scipy.array(pmag.dir2cart([prev_dec,prev_inc,prev_moment]))
             
                 if  'LP-PI-II' not in methcodes:   
@@ -6603,18 +7054,18 @@ class Arai_GUI(wx.Frame):
             #print temp
             step=MSteps[Treat_M.index(temp)]
             rec=datablock[step]
-            dec=float(rec["dir_dec"])
-            inc=float(rec["dir_inc"])
-            moment=float(rec["intensity"])
+            dec=float(rec["measurement_dec"])
+            inc=float(rec["measurement_inc"])
+            moment=float(rec["measurement_magn_moment"])
             foundit=False
             for i in range(1,len(datablock)):
-                if 'LT-T-Z' in datablock[i]['method_codes'] or 'LT-M-Z' in datablock[i]['method_codes'] :
-                    if (THERMAL and "treat_temp" in datablock[i].keys() and float(datablock[i]["treat_temp"])==float(temp) )\
-                       or (MICROWAVE and "description" in datablock[i].keys() and "Step Number-%.0f"%float(temp) in datablock[i]["description"]):
+                if 'LT-T-Z' in datablock[i]['magic_method_codes'] or 'LT-M-Z' in datablock[i]['magic_method_codes'] :
+                    if (THERMAL and "treatment_temp" in datablock[i].keys() and float(datablock[i]["treatment_temp"])==float(temp) )\
+                       or (MICROWAVE and "measurement_description" in datablock[i].keys() and "Step Number-%.0f"%float(temp) in datablock[i]["measurement_description"]):
                         prev_rec=datablock[i]
-                        prev_dec=float(prev_rec["dir_dec"])
-                        prev_inc=float(prev_rec["dir_inc"])
-                        prev_moment=float(prev_rec["intensity"])
+                        prev_dec=float(prev_rec["measurement_dec"])
+                        prev_inc=float(prev_rec["measurement_inc"])
+                        prev_moment=float(prev_rec["measurement_magn_moment"])
                         foundit=True
                         break
 
@@ -6639,39 +7090,39 @@ class Arai_GUI(wx.Frame):
         for i in range(len(Treat_AC)):
             step_0=ACSteps[i]
             temp=Treat_AC[i]
-            dec0=float(datablock[step_0]["dir_dec"])
-            inc0=float(datablock[step_0]["dir_inc"])
-            moment0=float(datablock[step_0]['intensity'])
+            dec0=float(datablock[step_0]["measurement_dec"])
+            inc0=float(datablock[step_0]["measurement_inc"])
+            moment0=float(datablock[step_0]['measurement_magn_moment'])
             V0=pmag.dir2cart([dec0,inc0,moment0])
             # find the infield step that comes before the additivity check
             foundit=False
             for j in range(step_0,1,-1):
-                if "LT-T-I" in datablock[j]['method_codes']:
+                if "LT-T-I" in datablock[j]['magic_method_codes']:
                   foundit=True ; break
             if foundit:
-                dec1=float(datablock[j]["dir_dec"])
-                inc1=float(datablock[j]["dir_inc"])
-                moment1=float(datablock[j]['intensity'])
+                dec1=float(datablock[j]["measurement_dec"])
+                inc1=float(datablock[j]["measurement_inc"])
+                moment1=float(datablock[j]['measurement_magn_moment'])
                 V1=pmag.dir2cart([dec1,inc1,moment1])
                 #print "additivity check: ",s
                 #print j
                 #print "ACC=V1-V0:"
-                #print "V1=",[dec1,inc1,moment1],pmag.dir2cart([dec1,inc1,moment1])/float(datablock[0]["intensity"])
-                #print "V1=",pmag.dir2cart([dec1,inc1,moment1])/float(datablock[0]["intensity"])
-                #print "V0=",[dec0,inc0,moment0],pmag.dir2cart([dec0,inc0,moment0])/float(datablock[0]["intensity"])
-                #print "NRM=",float(datablock[0]["intensity"])
+                #print "V1=",[dec1,inc1,moment1],pmag.dir2cart([dec1,inc1,moment1])/float(datablock[0]["measurement_magn_moment"])
+                #print "V1=",pmag.dir2cart([dec1,inc1,moment1])/float(datablock[0]["measurement_magn_moment"])
+                #print "V0=",[dec0,inc0,moment0],pmag.dir2cart([dec0,inc0,moment0])/float(datablock[0]["measurement_magn_moment"])
+                #print "NRM=",float(datablock[0]["measurement_magn_moment"])
                 #print "-------"
                 
                 I=[]
                 for c in range(3): I.append(V1[c]-V0[c])
                 dir1=pmag.cart2dir(I)
                 additivity_check.append([temp,dir1[0],dir1[1],dir1[2]])
-                #print "I",scipy.array(I)/float(datablock[0]["intensity"]),dir1,"(dir1 unnormalized)"
-                X=scipy.array(I)/float(datablock[0]["intensity"])
+                #print "I",scipy.array(I)/float(datablock[0]["measurement_magn_moment"]),dir1,"(dir1 unnormalized)"
+                X=scipy.array(I)/float(datablock[0]["measurement_magn_moment"])
                 #print "I",scipy.sqrt(sum(X**2))
         araiblock=(first_Z,first_I,ptrm_check,ptrm_tail,zptrm_check,GammaChecks,additivity_check)
 
-        return araiblock,field,phi,theta
+        return araiblock,field
 
 
 

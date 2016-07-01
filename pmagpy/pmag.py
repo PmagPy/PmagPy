@@ -8167,7 +8167,7 @@ def initialize_acceptance_criteria3_0 ():
 
 
 
-def initialize_acceptance_criteria ():
+def initialize_acceptance_criteria (**kwargs):
     '''
     initialize acceptance criteria with NULL values for thellier_gui and demag_gui
 
@@ -8647,9 +8647,9 @@ def initialize_acceptance_criteria ():
 
 
 
-def read_criteria_from_file(path,acceptance_criteria):
+def read_criteria_from_file(path,acceptance_criteria,**kwargs):
     '''
-    Read accceptance criteria from magic pmag_criteria file
+    Read accceptance criteria from magic criteria file
     # old format:
     multiple lines.  pmag_criteria_code defines the type of criteria
 
@@ -8683,8 +8683,12 @@ def read_criteria_from_file(path,acceptance_criteria):
 
     '''
     acceptance_criteria_list=acceptance_criteria.keys()
-    meas_data,file_type=magic_read(path)
-    for rec in meas_data:
+    if 'data_model' in kwargs.keys() and kwargs['data_model']==3:
+        crit_data=acceptance_criteria # data already read in
+        
+    else:
+        crit_data,file_type=magic_read(path)
+    for rec in crit_data:
         for crit in rec.keys():
             rec[crit]=rec[crit].strip('\n')
             if crit in ['pmag_criteria_code','criteria_definition','magic_experiment_names','er_citation_names']:
@@ -8704,7 +8708,7 @@ def read_criteria_from_file(path,acceptance_criteria):
                 # LJ add:
                 acceptance_criteria[crit]['category'] = None
 
-            # bollean flag
+            # boolean flag
             elif acceptance_criteria[crit]['threshold_type']=='bool':
                 if str(rec[crit]) in ['1','g','True','TRUE']:
                     acceptance_criteria[crit]['value']=True
