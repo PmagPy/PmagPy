@@ -10,8 +10,10 @@
 # so far for command line option -DM 3 (program works the same as always for no -DM switch): 
 #   1) data read in as 3.0  and converted to 2.5
 #   2) acceptance criteria read in and converted to 2.5
-#   3) previous interpreations read  in   and converted to 2.5
+#   3) previous interpretations read  in  and converted to 2.5
 #   4) saves acceptance criteria in data model 3.0 
+#   5) reads in age, lat, lon into data_info - makes plots
+# TODO:  save MagIC tables in 3.0 format
 # 
 # Thellier_GUI Version 2.29 01/29/2015
 # 1) fix STDEV-OPT extended error bar plor display bug 
@@ -2022,8 +2024,10 @@ class Arai_GUI(wx.Frame):
         path=new_magic_file.split("/")
         self.WD=new_magic_file.strip(path[-1])
                                                                 
-        self.Data,self.Data_hierarchy=self.get_data(self.data_model)
-        self.Data_info=self.get_data_info(self.data_model) 
+        #self.Data,self.Data_hierarchy=self.get_data(self.data_model)
+        #self.Data_info=self.get_data_info(self.data_model) 
+        self.Data,self.Data_hierarchy=self.get_data()
+        self.Data_info=self.get_data_info() 
 
         self.redo_specimens={}
         self.specimens=self.Data.keys()
@@ -3747,7 +3751,7 @@ class Arai_GUI(wx.Frame):
     def read_er_ages_file(self,path,ignore_lines_n,sort_by_these_names):
         '''
         read er_ages, sort it by site or sample (the header that is not empty)
-        and convert ages to calender year
+        and convert ages to calendar year
         
         '''
         DATA={}
@@ -3770,7 +3774,7 @@ class Arai_GUI(wx.Frame):
                 tmp_data[header[i]]=tmp_line[i]
             for name in sort_by_these_names:
                 if name in tmp_data.keys() and   tmp_data[name] !="": 
-                    er_ages_rec=self.convert_ages_to_calender_year(tmp_data)
+                    er_ages_rec=self.convert_ages_to_calendar_year(tmp_data)
                     DATA[tmp_data[name]]=er_ages_rec
         fin.close()        
         return(DATA)
@@ -3904,9 +3908,9 @@ class Arai_GUI(wx.Frame):
         return(pars)
         
         
-    def convert_ages_to_calender_year(self,er_ages_rec):
+    def convert_ages_to_calendar_year(self,er_ages_rec):
         '''
-        convert all age units to calender year
+        convert all age units to calendar year
         '''
 
         if "age" not in  er_ages_rec.keys():
@@ -6571,7 +6575,7 @@ class Arai_GUI(wx.Frame):
     #--------------------------------------------------------------    
     # Read all information from magic files
     #--------------------------------------------------------------
-    def get_data_info(self,**kwargs):
+    def get_data_info(self):
         Data_info={}
         data_er_samples={}
         data_er_ages={}
@@ -6580,45 +6584,30 @@ class Arai_GUI(wx.Frame):
             Data_info["er_samples"]=[]
             Data_info["er_sites"]=[]
             Data_info["er_ages"]=[]
-            return(Data_info)
- # fix this up later
-          #if len(self.spec_data)>0:  # already have specimen stuff read in
-          #    pass
-          #if 'samples' in self.contribution.tables:
-          #    samp_container = self.contribution.tables['samples']
-          #    samp_data = samp_container.df
-          #if 'sites' in self.contribution.tables:
-          ##    site_container = self.contribution.tables['sites']
-          #    site_data = site_container.df
-
-
-
-
-
-#              anis_data=self.spec_data[self.spec_data['method_codes'].str.contains('LP-AN')==True] # get the anisotropy records
-#              anis_data=anis_data[anis_data['aniso_s'].notnull()] # get the ones with anisotropy tensors that aren't blank
-#              anis_data=anis_data[['specimen','aniso_s','aniso_ftest','aniso_ftest12','aniso_ftest23','aniso_s','aniso_s_mean','aniso_s_n_measurements','aniso_s_sigma','aniso_s_unit','aniso_tilt_correction','aniso_type','description']]
-#              # rename column headers to 2.5
-#              anis_data=anis_data.rename(columns = { \
-#                    'specimen':'er_specimen_name', \
-#                    'aniso_type':'anisotropy_type', \
-#                    'description':'result_description', \
-#                    'aniso_ftest':'anisotropy_ftest', \
-#                    'aniso_ftest12':'anisotropy_ftest12', \
-#                    'aniso_ftest23':'anisotropy_ftest23', \
-#                    'aniso_s_mean':'anisotropy_mean', \
-#                    'aniso_s_n_measurements':'anisotropy_n', \
-#                    'aniso_s_sigma':'anisotropy_sigma', \
-#                    'aniso_s_unit':'anisotropy_unit', \
-#                    'aniso_tilt_correction':'anisotropy_tilt_correction', \
-#                      }) #  
-#              # convert to list of dictionaries
-#              anis_dict=anis_data.to_dict("records") 
-                
-
-
-
-
+            if len(self.spec_data)>0:  # already have specimen stuff read in
+                pass
+            if 'samples' in self.contribution.tables:
+                samp_container = self.contribution.tables['samples']
+                self.samp_data = samp_container.df # only need this for saving tables
+            if 'sites' in self.contribution.tables:
+                site_container = self.contribution.tables['sites']
+                self.site_data = site_container.df
+                self.site_data = self.site_data[self.site_data['lat'].notnull()] 
+                self.site_data = self.site_data[self.site_data['lon'].notnull()] 
+                age_data=self.site_data[['site','age','age_sigma','age_unit']]
+                age_data=age_data[age_data['age'].notnull()]
+                age_data=age_data.rename(columns={'site':'er_site_name'})
+                er_ages=age_data.to_dict('records')  # save this in 2.5 format
+                data_er_ages={}
+                for s in er_ages: 
+                   s=self.convert_ages_to_calendar_year(s)
+                   data_er_ages[s['er_site_name']]=s
+                sites=self.site_data[['site','lat','lon']]
+                sites=sites.rename(columns={'site':'er_site_name','lat':'site_lat','lon':'site_lon'})
+                er_sites=sites.to_dict('records') # pick out what is needed by thellier_gui and put in 2.5 format
+                data_er_sites={}
+                for s in er_sites:
+                   data_er_sites[s['er_site_name']]=s
 
         else:  # read from 2.5 formatted files
             try:
@@ -6635,33 +6624,17 @@ class Arai_GUI(wx.Frame):
                 data_er_ages=self.read_er_ages_file(os.path.join(self.WD, "er_ages.txt"),1,["er_site_name","er_sample_name"])
             except:
                 self.GUI_log.write ("-W- Cant find er_ages.txt in project directory\n")
-
-            #try:
-            #    data_er_ages=read_magic_file(self.WD+"/er_ages.txt",'er_site_name')
-            #except:    
-            #    self.GUI_log.write ("-W- Cant find er_ages in project directory\n")
-
-
         Data_info["er_samples"]=data_er_samples
         Data_info["er_sites"]=data_er_sites
         Data_info["er_ages"]=data_er_ages
         
-        
         return(Data_info)
 
 
-    #def get_site_from_hierarchy(self,sample):
-    #    site=""
-    #    sites=self.Data_hierarchy['sites'].keys()
-    #    for S in sites:
-    #        if sample in self.Data_hierarchy['sites'][S]:
-    #            site=S
-    #            break
-    #    return(site)
     
     
     #--------------------------------------------------------------    
-    # Read previose interpretation from pmag_specimens.txt (if exist)
+    # Read previous interpretation from specimen file (if it exists)
     #--------------------------------------------------------------
     
     def get_previous_interpretation(self):
@@ -6744,9 +6717,6 @@ class Arai_GUI(wx.Frame):
             else:
                 self.GUI_log.write ("-W- WARNING: Cant find specimen %s from redo file in measurement file!\n"%specimen)
 
-        #try:
-        #    self.s
-        #except:
         try:
             self.s=self.specimens[0]                
             self.pars=self.Data[self.s]['pars']
@@ -6760,7 +6730,7 @@ class Arai_GUI(wx.Frame):
 
 
 #===========================================================
-#  definitions inherited and mofified from pmag.py
+#  functions inherited and modified from pmag.py
 #===========================================================
        
                 
