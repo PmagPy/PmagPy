@@ -13,7 +13,9 @@
 #   3) previous interpretations read  in  and converted to 2.5
 #   4) saves acceptance criteria in data model 3.0 
 #   5) reads in age, lat, lon into data_info - makes plots
-# TODO:  save MagIC tables in 3.0 format
+# TODO:  
+#   cooling_rate and NLT
+#   save MagIC tables in 3.0 format
 # 
 # Thellier_GUI Version 2.29 01/29/2015
 # 1) fix STDEV-OPT extended error bar plor display bug 
