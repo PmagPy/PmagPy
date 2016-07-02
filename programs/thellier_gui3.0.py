@@ -13,8 +13,10 @@
 #   3) previous interpretations read  in  and converted to 2.5
 #   4) saves acceptance criteria in data model 3.0 
 #   5) reads in age, lat, lon into data_info - makes plots
+#   6) does the anisotropy calculation but does not save stuff in 3.0
+#   7) does cooling rate calculation
 # TODO:  
-#   cooling_rate and NLT
+#   check  NLT - need 3.0 file
 #   save MagIC tables in 3.0 format
 # 
 # Thellier_GUI Version 2.29 01/29/2015
