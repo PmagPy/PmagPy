@@ -4,13 +4,14 @@
 # LOG HEADER:
 #============================================================================================
 #
-# Thellier_GUI Version 3.0  6/30/16 (Lisa Tauxe)
+# Thellier_GUI Version 3.0  7/1/16 (Lisa Tauxe)
 # Adding in the ability to read in and write out 
 # Data model 3.0 data sets
-# so far: 
+# so far for command line option -DM 3 (program works the same as always for no -DM switch): 
 #   1) data read in as 3.0  and converted to 2.5
 #   2) acceptance criteria read in and converted to 2.5
 #   3) previous interpreations read  in   and converted to 2.5
+#   4) saves acceptance criteria in data model 3.0 
 # 
 # Thellier_GUI Version 2.29 01/29/2015
 # 1) fix STDEV-OPT extended error bar plor display bug 
@@ -236,7 +237,11 @@ class Arai_GUI(wx.Frame):
         # inialize selecting criteria
         self.acceptance_criteria=pmag.initialize_acceptance_criteria()
         self.add_thellier_gui_criteria()
-        self.read_criteria_file(os.path.join(self.WD,"pmag_criteria.txt"))
+        if self.data_model==3:
+            self.crit_file='criteria.txt'
+        else:
+            self.crit_file='pmag_criteria.txt'
+        self.read_criteria_file(os.path.join(self.WD,self.crit_file))
         # preferences
 
         preferences=self.get_preferences()
@@ -247,8 +252,8 @@ class Arai_GUI(wx.Frame):
         self.Data,self.Data_hierarchy,self.Data_info={},{},{}
         self.MagIC_directories_list=[]
 
-        self.Data,self.Data_hierarchy=self.get_data() # Get data from magic_measurements and rmag_anisotropy if exist.
-        self.Data_info=self.get_data_info() # get all ages, locations etc. (from er_ages, er_sites, er_locations)
+        self.Data,self.Data_hierarchy=self.get_data() # Get data from measurements and specimens or rmag_anisotropy (data model 2.5 if they exist.)
+        self.Data_info=self.get_data_info() # get all ages, locations etc. 
 
         if  "-tree" in sys.argv and FIRST_RUN:
             self.open_magic_tree()
@@ -271,7 +276,7 @@ class Arai_GUI(wx.Frame):
         self.arrow_keys()
         FIRST_RUN=False
 
-        self.get_previous_interpretation() # get interpretations from pmag_specimens.txt
+        self.get_previous_interpretation() # get interpretations from specimens file
         FIRST_RUN=False
         self.Bind(wx.EVT_CLOSE, self.on_menu_exit) 
         self.close_warning=False
@@ -1134,9 +1139,6 @@ class Arai_GUI(wx.Frame):
 
     #----------------------------------------------------------------------
 
-
-    #----------------------------------------------------------------------
-
     def clear_boxes(self):
         """ 
         Clear all boxes
@@ -1615,8 +1617,8 @@ class Arai_GUI(wx.Frame):
         except:
             self.GUI_log.write( " -I- cant find thellier_gui_preferences file, using defualt default \n")
         
-        # check pmag_criteria.txt:
-        # if a statistic appear in pmag_criteria.txt but does not appear in 
+        # check criteria file
+        # if a statistic appear in the criteria file  but does not appear in 
         # preferences['show_statistics_on_gui'] than it is added to ['show_statistics_on_gui']:
         for stat in self.acceptance_criteria.keys():
             if self.acceptance_criteria[stat]['category'] in ['IE-SPEC']:
@@ -1880,10 +1882,6 @@ class Arai_GUI(wx.Frame):
 
         self.acceptance_criteria_null=acceptance_criteria_null
         self.acceptance_criteria_default=acceptance_criteria_default
-        # inialize Null selecting criteria
-        #acceptance_criteria=self.read_criteria_from_file(self.WD+"/pmag_criteria.txt")  
-        #acceptance_criteria=pmag.read_criteria_from_file(self.WD+"/pmag_criteria.txt",self.acceptance_criteria_null)        
-        #self.acceptance_criteria=acceptance_criteria
         self.Data,self.Data_hierarchy,self.Data_info={},{},{}
         self.Data,self.Data_hierarchy=self.get_data() # Get data from magic_measurements and rmag_anisotropy if exist.
         self.Data_info=self.get_data_info() # get all ages, locations etc. (from er_ages, er_sites, er_locations)
@@ -1997,12 +1995,6 @@ class Arai_GUI(wx.Frame):
         self.specimens=self.Data.keys()         # get list of specimens
         self.specimens.sort()                   # get list of specimens
 
-        #temp patch
-        #for s in self.specimens:
-        #    if 'crblock' in self.Data[s].keys():
-        #        print s,': found crblock'
-        #    if 'cooling_rate_data' in self.Data[s].keys():
-        #         print s,': cooling_rate_data'
                
         # updtate plots and data
         if not FIRST_RUN:
@@ -2049,10 +2041,16 @@ class Arai_GUI(wx.Frame):
         and open change criteria dialog
         """
         if self.data_model==3:
-            pass  
+            dlg = wx.FileDialog(
+                self, message="choose a file in MagIC Data Model 3.0  format",
+                defaultDir=self.WD,
+                defaultFile="criteria.txt",
+                #wildcard=wildcard,
+                style=wx.OPEN | wx.CHANGE_DIR
+                )
         else: 
             dlg = wx.FileDialog(
-                self, message="choose a file in a pmagpy format",
+                self, message="choose a file in a MagIC Data Model 2.5 pmagpy format",
                 defaultDir=self.WD,
                 defaultFile="pmag_criteria.txt",
                 #wildcard=wildcard,
@@ -2077,7 +2075,7 @@ class Arai_GUI(wx.Frame):
         self.acceptance_criteria=pmag.initialize_acceptance_criteria(data_model=self.data_model)
         self.add_thellier_gui_criteria()
         self.read_criteria_file(criteria_file)     
-        # check if some statistics are in the new pmag_criteria_file but not in old. If yes, add to  self.preferences['show_statistics_on_gui']
+        # check if some statistics are in the new criteria but not in old. If yes, add to  self.preferences['show_statistics_on_gui']
         crit_list_not_in_pref=[]
         for crit in   self.acceptance_criteria.keys():
             if  self.acceptance_criteria[crit]['category']=="IE-SPEC":
@@ -2238,7 +2236,7 @@ class Arai_GUI(wx.Frame):
                 crit_file='criteria.txt'
             else:
                 crit_file='pmag_criteria.txt'
-            pmag.write_criteria_to_file(os.path.join(self.WD, "pmag_criteria.txt"),self.acceptance_criteria)
+            pmag.write_criteria_to_file(os.path.join(self.WD, crit_file),self.acceptance_criteria,data_model=self.data_model)
             dlg1.Destroy()    
             dia.Destroy()
         self.recalculate_satistics()
@@ -2292,18 +2290,17 @@ class Arai_GUI(wx.Frame):
         '''
 
         if self.data_model==3:
-            magic2 = ['specimen_coeff_det_sq', 'specimen_int_ptrm_tail_n', 'specimen_dpal', 'specimen_tail_drat', 'specimen_md', 'specimen_ac_n', 'specimen_dac',  'specimen_int_mad', 'specimen_int_ptrm_n', 'specimen_drat', 'specimen_z_md', 'specimen_frac', 'specimen_cdrat', 'specimen_dec', 'specimen_mdev', 'specimen_drats', 'specimen_z', 'specimen_maxdev', 'specimen_gmax', 'specimen_int_mad_anc', 'specimen_scat', 'specimen_r_sq', 'specimen_b_beta', 'specimen_dck', 'lab_dc_field', 'specimen_inc', 'specimen_mdrat', 'specimen_theta', 'specimen_ptrm', 'measurement_step_min', 'specimen_dtr', 'specimen_int_alpha', 'specimen_fvds', 'specimen_b_sigma', 'specimen_b', 'specimen_g', 'specimen_f', 'measurement_step_max', 'specimen_int_n', 'specimen_q', 'specimen_int_dang', 'specimen_k_sse', 'specimen_gamma', 'specimen_k', 'specimen_int_crm', 'specimen_dt', 'specimen_k_prime', 'specimen_k_prime_sse','sample_int_n','sample_int_sigma_perc','sample_int_sigma','site_int_n','site_int_sigma_perc','site_int_sigma','pmag_criteria_code']
-            magic3 = ['specimens.int_r2_det', 'specimens.int_n_ptrm_tail', 'specimens.int_dpal', 'specimens.int_drat_tail', 'specimens.int_md', 'specimens.int_n_ac', 'specimens.int_dac', 'specimens.int_mad', 'specimens.int_n_ptrm', 'specimens.int_drat', 'specimens.int_z_md', 'specimens.int_frac', 'specimens.int_cdrat', 'specimens.dir_dec', 'specimens.int_mdev', 'specimens.int_drats', 'specimens.int_z', 'specimens.int_maxdev', 'specimens.int_gmax', 'specimens.int_mad_anc', 'specimens.int_scat', 'specimens.int_r2_corr', 'specimens.int_b_beta', 'specimens.int_dck', 'specimens.treat_dc_field', 'specimens.dir_inc', 'specimens.int_mdrat', 'specimens.int_theta', 'specimens.int_ptrm', 'specimens.meas_step_min', 'specimens.int_dtr', 'specimens.int_alpha', 'specimens.int_fvds', 'specimens.int_b_sigma', 'specimens.int_b', 'specimens.int_g', 'specimens.int_f', 'specimens.meas_step_max', 'specimens.int_n_measurements', 'specimens.int_q', 'specimens.int_dang',  'specimens.int_k_sse', 'specimens.int_gamma', 'specimens.int_k', 'specimens.int_crm', 'specimens.int_dt', 'specimens.int_k_prime', 'specimens.int_k_prime_sse','samples.int_n_specimens','samples.int_sigma_perc','samples.int_sigma','sites.int_n_specimens','sites.int_sigma_perc','sites.int_sigma','criterion']
             contribution = nb.Contribution(self.WD, read_tables=['criteria'])
             crit_container = contribution.tables['criteria']
             crit_data = crit_container.df
             crit_data = crit_data[crit_data['criterion'].str.contains('IE-')==True] # fish out all the relavent data 
             crit_data=crit_data.to_dict('records') # convert to list of dictionaries
             for crit in crit_data:  # step through and rename every f-ing one
-                if crit['table_column'] in magic3: 
-                    m2_name=magic2[magic3.index(crit['table_column'])] # find data model 2.5 name
-                    self.acceptance_criteria[m2_name]['value']=float(crit['criterion_value'])
-                    self.acceptance_criteria[m2_name]['pmag_criteria_code']=crit['criterion']
+               # if crit['table_column'] in magic3: 
+                    m2_name=pmag.convert_data_models('magic2',crit['table_column']) #magic2[magic3.index(crit['table_column'])] # find data model 2.5 name
+                    if m2_name!=crit['table_column']:
+                        self.acceptance_criteria[m2_name]['value']=float(crit['criterion_value'])
+                        self.acceptance_criteria[m2_name]['pmag_criteria_code']=crit['criterion']
         else: #      Do it the data model 2.5 way:    
             try:
                 self.acceptance_criteria=pmag.read_criteria_from_file(criteria_file,self.acceptance_criteria)
