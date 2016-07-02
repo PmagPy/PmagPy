@@ -256,8 +256,8 @@ class Arai_GUI(wx.Frame):
         self.Data,self.Data_hierarchy,self.Data_info={},{},{}
         self.MagIC_directories_list=[]
 
-        self.Data,self.Data_hierarchy=self.get_data() # Get data from measurements and specimens or rmag_anisotropy (data model 2.5 if they exist.)
         self.Data_info=self.get_data_info() # get all ages, locations etc. 
+        self.Data,self.Data_hierarchy=self.get_data() # Get data from measurements and specimens or rmag_anisotropy (data model 2.5 if they exist.)
 
         if  "-tree" in sys.argv and FIRST_RUN:
             self.open_magic_tree()
@@ -1887,8 +1887,8 @@ class Arai_GUI(wx.Frame):
         self.acceptance_criteria_null=acceptance_criteria_null
         self.acceptance_criteria_default=acceptance_criteria_default
         self.Data,self.Data_hierarchy,self.Data_info={},{},{}
-        self.Data,self.Data_hierarchy=self.get_data() # Get data from magic_measurements and rmag_anisotropy if exist.
         self.Data_info=self.get_data_info() # get all ages, locations etc. (from er_ages, er_sites, er_locations)
+        self.Data,self.Data_hierarchy=self.get_data() # Get data from magic_measurements and rmag_anisotropy if exist.
         self.Data_samples={}
         self.Data_sites={}
         self.last_saved_pars={}
@@ -1918,8 +1918,8 @@ class Arai_GUI(wx.Frame):
         self.WD=new_magic_dir
         self.magic_file=os.path.join(new_magic_dir, "magic_measurements.txt")
 
-        new_Data,new_Data_hierarchy=self.get_data()
         new_Data_info=self.get_data_info()
+        new_Data,new_Data_hierarchy=self.get_data()
 
         self.Data.update(new_Data)
 
@@ -1973,7 +1973,7 @@ class Arai_GUI(wx.Frame):
                 #try:
                     self.WD=path
                     self.magic_file = os.path.join(path, meas_file)
-                    new_Data_info=self.get_data_info(self.data_model)
+                    new_Data_info=self.get_data_info()
                     self.Data_info["er_samples"].update(new_Data_info["er_samples"])
                     self.Data_info["er_sites"].update(new_Data_info["er_sites"])
                     self.Data_info["er_ages"].update(new_Data_info["er_ages"])
@@ -2027,9 +2027,9 @@ class Arai_GUI(wx.Frame):
         self.WD=new_magic_file.strip(path[-1])
                                                                 
         #self.Data,self.Data_hierarchy=self.get_data(self.data_model)
-        #self.Data_info=self.get_data_info(self.data_model) 
-        self.Data,self.Data_hierarchy=self.get_data()
+        #self.Data_info=self.get_data_info() 
         self.Data_info=self.get_data_info() 
+        self.Data,self.Data_hierarchy=self.get_data()
 
         self.redo_specimens={}
         self.specimens=self.Data.keys()
@@ -2917,25 +2917,29 @@ class Arai_GUI(wx.Frame):
                 TYPES=['ATRM','AARM']
                 aniso_logfile.write( "-W- WARNING: both aarm and atrm data exist for specimen %s. using AARM by default. If you prefer using one of them, delete the other!\n"%specimen)
             for TYPE in TYPES:
-                String=""
-                for i in range (len(rmag_anisotropy_header)):
-                    try:
-                        String=String+Data_anisotropy[specimen][TYPE][rmag_anisotropy_header[i]]+'\t'
-                    except:
-                        String=String+"%f"%(Data_anisotropy[specimen][TYPE][rmag_anisotropy_header[i]])+'\t'
-                rmag_anisotropy_file.write(String[:-1]+"\n")
-
+                if self.data_model==3:
+                    pass # haven't implemented output to specimens.txt yet
+                else:
+                    String=""
+                    for i in range (len(rmag_anisotropy_header)):
+                        try:
+                            String=String+Data_anisotropy[specimen][TYPE][rmag_anisotropy_header[i]]+'\t'
+                        except:
+                            String=String+"%f"%(Data_anisotropy[specimen][TYPE][rmag_anisotropy_header[i]])+'\t'
+                    rmag_anisotropy_file.write(String[:-1]+"\n")
                 String=""
                 Data_anisotropy[specimen][TYPE]['er_specimen_names']=Data_anisotropy[specimen][TYPE]['er_specimen_name']
                 Data_anisotropy[specimen][TYPE]['er_sample_names']=Data_anisotropy[specimen][TYPE]['er_sample_name']
                 Data_anisotropy[specimen][TYPE]['er_site_names']=Data_anisotropy[specimen][TYPE]['er_site_name']
-                for i in range (len(rmag_results_header)):
-                    try:
-                        String=String+Data_anisotropy[specimen][TYPE][rmag_results_header[i]]+'\t'
-                    except:
-                        String=String+"%f"%(Data_anisotropy[specimen][TYPE][rmag_results_header[i]])+'\t'
-                rmag_results_file.write(String[:-1]+"\n")
-
+                if self.data_model==3:
+                    pass # haven't implemented output to specimens.txt yet
+                else:
+                    for i in range (len(rmag_results_header)):
+                        try:
+                            String=String+Data_anisotropy[specimen][TYPE][rmag_results_header[i]]+'\t'
+                        except:
+                            String=String+"%f"%(Data_anisotropy[specimen][TYPE][rmag_results_header[i]])+'\t'
+                    rmag_results_file.write(String[:-1]+"\n")
                 if 'AniSpec' not in self.Data[specimen]:
                     self.Data[specimen]['AniSpec']={}
                 self.Data[specimen]['AniSpec'][TYPE]=Data_anisotropy[specimen][TYPE]
@@ -2943,8 +2947,10 @@ class Arai_GUI(wx.Frame):
         aniso_logfile.write("------------------------\n")
         aniso_logfile.write("-I- Done anisotropy script\n")
         aniso_logfile.write( "------------------------\n")
-        
-        rmag_anisotropy_file.close()
+        if self.data_model==3:
+            pass 
+        else:
+            rmag_anisotropy_file.close()
 
     #==================================================        
 
@@ -3788,8 +3794,8 @@ class Arai_GUI(wx.Frame):
         self.magic_file = os.path.join(self.WD, "magic_measurements.txt")
         self.GUI_log=open("%s/Thellier_GUI.log"%self.WD,'w')
         self.Data,self.Data_hierarchy={},{}
-        self.Data,self.Data_hierarchy=self.get_data() # Get data from magic_measurements and rmag_anisotropy if exist.
         self.Data_info=self.get_data_info() # get all ages, locations etc. (from er_ages, er_sites, er_locations)
+        self.Data,self.Data_hierarchy=self.get_data() # Get data from magic_measurements and rmag_anisotropy if exist.
         self.redo_specimens={}
         self.specimens=self.Data.keys()
         self.specimens.sort()                                                                
@@ -5576,8 +5582,6 @@ class Arai_GUI(wx.Frame):
       #for dir_path in self.dir_pathes:
       #print "start Magic read %s " %self.magic_file
       if self.data_model==3:
-          fnames = {'measurements': self.magic_file}
-          self.contribution = nb.Contribution(self.WD, custom_filenames=fnames, read_tables=['measurements', 'specimens', 'samples','sites'])
           if 'specimens' in self.contribution.tables:
               self.contribution.propagate_name_down('sample', 'measurements')
               self.contribution.propagate_name_down('sample', 'specimens') # need these for get_data_info
@@ -5610,6 +5614,7 @@ class Arai_GUI(wx.Frame):
                  'flag':'measurement_flag', \
                  'treat_temp':'treatment_temp', \
                  'description':'measurement_description', \
+                 'number':'measurement_number', \
                  'magn_moment':'measurement_magn_moment', \
                  'magn_volume':'measurement_magn_volume', \
                  'magn_mass':'measurement_magn_mass', \
@@ -5780,10 +5785,8 @@ class Arai_GUI(wx.Frame):
 
           
       #print "done sorting meas data"
-      
       self.specimens=Data.keys()
       self.specimens.sort()
-
 
 
       #------------------------------------------------
@@ -5793,9 +5796,7 @@ class Arai_GUI(wx.Frame):
 #
 # make a specimen container and dataframe for anisotropy and elsewhere specimen interpretations
 #
-          if 'specimens' in self.contribution.tables:
-              spec_container = self.contribution.tables['specimens']
-              self.spec_data = spec_container.df
+          if 'specimens' in self.contribution.tables and len(self.spec_data)>0:
               anis_data=self.spec_data[self.spec_data['method_codes'].str.contains('LP-AN')==True] # get the anisotropy records
               anis_data=anis_data[anis_data['aniso_s'].notnull()] # get the ones with anisotropy tensors that aren't blank
               anis_data=anis_data[['specimen','aniso_s','aniso_ftest','aniso_ftest12','aniso_ftest23','aniso_s','aniso_s_mean','aniso_s_n_measurements','aniso_s_sigma','aniso_s_unit','aniso_tilt_correction','aniso_type','description']]
@@ -6073,15 +6074,8 @@ class Arai_GUI(wx.Frame):
               if len(Data[s]['crblock'])<3:
                   del Data[s]['crblock']
                   continue
-
               sample=Data_hierarchy['specimens'][s]
               # in MagIC format that cooling rate is in K/My
-##              try:
-##                  ancient_cooling_rate=float(self.Data_info["er_samples"][sample]['sample_cooling_rate'])
-##                  ancient_cooling_rate=ancient_cooling_rate/(1e6*365*24*60) # change to K/minute
-##              except:
-##                  self.GUI_log.write("-W- Cant find ancient cooling rate estimation for sample %s"%sample)
-##                  continue                  
               try:
                   ancient_cooling_rate=float(self.Data_info["er_samples"][sample]['sample_cooling_rate'])
                   ancient_cooling_rate=ancient_cooling_rate/(1e6*365.*24.*60.) # change to K/minute
@@ -6586,8 +6580,11 @@ class Arai_GUI(wx.Frame):
             Data_info["er_samples"]=[]
             Data_info["er_sites"]=[]
             Data_info["er_ages"]=[]
-            if len(self.spec_data)>0:  # already have specimen stuff read in
-                pass
+            fnames = {'measurements': self.magic_file}
+            self.contribution = nb.Contribution(self.WD, custom_filenames=fnames, read_tables=['measurements', 'specimens', 'samples','sites'])
+            if 'specimens' in self.contribution.tables:
+                spec_container = self.contribution.tables['specimens']
+                self.spec_data = spec_container.df
             if 'samples' in self.contribution.tables:
                 samp_container = self.contribution.tables['samples']
                 self.samp_data = samp_container.df # only need this for saving tables
@@ -6615,8 +6612,8 @@ class Arai_GUI(wx.Frame):
             try:
                 data_er_samples=self.read_magic_file(os.path.join(self.WD, "er_samples.txt"),1,'er_sample_name')
             except:
-                self.GUI_log.write ("-W- Cant find er_sample.txt in project directory\n")
-
+                self.GUI_log.write ("-W- Cant find er_samples.txt in project directory\n")
+ 
             try:
                 data_er_sites=self.read_magic_file(os.path.join(self.WD, "er_sites.txt"),1,'er_site_name')
             except:
