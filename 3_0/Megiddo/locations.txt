@@ -1,0 +1,4 @@
+tab 	locations
+citations	lat_n	lat_s	location	location_type	lon_e	lon_w
+This study	33.0168	33.0168	Tel Hazor	Archeological Site	35.568	35.568
+This study	32.585	32.585	Tel Megiddo	Archeological Site	35.185	35.185

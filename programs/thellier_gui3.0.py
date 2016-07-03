@@ -5801,7 +5801,7 @@ class Arai_GUI(wx.Frame):
           if 'specimens' in self.contribution.tables and len(self.spec_data)>0:
               anis_data=self.spec_data[self.spec_data['method_codes'].str.contains('LP-AN')==True] # get the anisotropy records
               anis_data=anis_data[anis_data['aniso_s'].notnull()] # get the ones with anisotropy tensors that aren't blank
-              anis_data=anis_data[['specimen','aniso_s','aniso_ftest','aniso_ftest12','aniso_ftest23','aniso_s','aniso_s_mean','aniso_s_n_measurements','aniso_s_sigma','aniso_s_unit','aniso_tilt_correction','aniso_type','description']]
+              anis_data=anis_data[['specimen','aniso_s','aniso_ftest','aniso_ftest12','aniso_ftest23','aniso_s','aniso_s_n_measurements','aniso_s_sigma','aniso_type','description']]
               # rename column headers to 2.5
               anis_data=anis_data.rename(columns = { \
                     'specimen':'er_specimen_name', \
@@ -5830,6 +5830,9 @@ class Arai_GUI(wx.Frame):
                   AniSpec['anisotropy_s5']=s_data[4]
                   AniSpec['anisotropy_s6']=s_data[5]
                   Data[s]['AniSpec'][TYPE]=AniSpec
+                  if self.data_model==3: 
+                      description_key='description'
+                  else: description_key='result_description'
                   if 'result_description'  in AniSpec.keys():
                       result_description=AniSpec['result_description'].split(";")
                       for description in result_description:
@@ -6595,8 +6598,8 @@ class Arai_GUI(wx.Frame):
                 self.site_data = site_container.df
                 self.site_data = self.site_data[self.site_data['lat'].notnull()] 
                 self.site_data = self.site_data[self.site_data['lon'].notnull()] 
-                age_data=self.site_data[['site','age','age_sigma','age_unit']]
-                age_data=age_data[age_data['age'].notnull()]
+                self.site_data = self.site_data[self.site_data['age'].notnull()] 
+                age_data=self.site_data[['site','age','age_high','age_low','age_unit']]
                 age_data=age_data.rename(columns={'site':'er_site_name'})
                 er_ages=age_data.to_dict('records')  # save this in 2.5 format
                 data_er_ages={}
@@ -6651,7 +6654,7 @@ class Arai_GUI(wx.Frame):
   # read in data 
         if self.data_model==3: # data model 3.0
             if len(self.spec_data)>0:  # there are previous measurements
-              prev_specs=self.spec_data[self.spec_data['int_b'].notnull()] # get the previous intensity interpretations
+              prev_specs=self.spec_data[self.spec_data['int_abs'].notnull()] # get the previous intensity interpretations
               prev_specs=prev_specs[prev_specs['meas_step_min'].notnull()] # eliminate ones without bounds
               prev_specs=prev_specs[prev_specs['meas_step_max'].notnull()] # 
               prev_specs=prev_specs[['specimen','meas_step_min','meas_step_max','method_codes']]

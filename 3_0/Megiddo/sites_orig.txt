@@ -1,0 +1,70 @@
+tab 	sites
+age	age_unit	citations	criteria	description	dir_alpha95	dir_comp_name	dir_dec	dir_inc	dir_k	dir_n_samples	dir_n_specimens_lines	dir_n_specimens_planes	dir_r	dir_tilt_correction	geologic_classes	geologic_types	lat	lithologies	location	lon	magic_method_codes	method_codes	result_type	site	software_packages	specimens	vgp_dm	vgp_dp	vgp_lat	vgp_lon	vgp_n_samples
+		This study		Tel Hazor startum 5											Archeologic	Mixed Archeological Objects		Not Specified	Tel Hazor					hz05							
+																								hz05							
+		This study		Tel Hazor startum 6											Archeologic	Mixed Archeological Objects		Not Specified	Tel Hazor					hz06							
+																								hz06							
+		This study		Tel Hazor startum 7											Archeologic	Mixed Archeological Objects		Not Specified	Tel Hazor					hz07							
+																								hz07							
+		This study		Tel Hazor startum 9											Archeologic	Mixed Archeological Objects		Not Specified	Tel Hazor					hz09							
+																								hz09							
+		This study		Tel Hazor startum 10											Archeologic	Mixed Archeological Objects		Not Specified	Tel Hazor					hz10							
+																								hz10							
+		This study		Tel Hazor startum 11											Archeologic	Mixed Archeological Objects		Not Specified	Tel Hazor					hz11							
+																								hz11							
+		This study		Tel Hazor startum 13											Archeologic	Mixed Archeological Objects		Not Specified	Tel Hazor					hz13							
+																								hz13							
+		This study		Tel Hazor startum 15											Archeologic	Mixed Archeological Objects		Not Specified	Tel Hazor					hz15							
+																								hz15							
+		This study		Tel Hazor startum 18											Archeologic	Mixed Archeological Objects		Not Specified	Tel Hazor					hz18							
+																								hz18							
+		This study		Tel Hazor startum 20											Archeologic	Mixed Archeological Objects		Not Specified	Tel Hazor					hz20							
+																								hz20							
+		This study		Tel Megiddo stratum F-10											Archeologic	Mixed Archeological Objects		Not Specified	Tel Megiddo					mgf10							
+																								mgf10							
+		This study		Tel Megiddo stratum  F-13											Archeologic	Mixed Archeological Objects		Not Specified	Tel Megiddo					mgf13							
+																								mgf13							
+		This study		Tel Megiddo stratum  H-3											Archeologic	Mixed Archeological Objects		Not Specified	Tel Megiddo					mgh03							
+																								mgh03							
+		This study		Tel Megiddo stratum  H-5											Archeologic	Mixed Archeological Objects		Not Specified	Tel Megiddo					mgh05							
+																								mgh05							
+		This study		Tel Megiddo stratum  H-7											Archeologic	Mixed Archeological Objects		Not Specified	Tel Megiddo					mgh07							
+																								mgh07							
+		This study		Tel Megiddo stratum  H-9											Archeologic	Mixed Archeological Objects		Not Specified	Tel Megiddo					mgh09							
+																								mgh09							
+		This study		Tel Megiddo stratum  H-12											Archeologic	Mixed Archeological Objects		Not Specified	Tel Megiddo					mgh12							
+																								mgh12							
+		This study		Oven in stratum H-12											Archeologic	Oven		Not Specified	Tel Megiddo					mgh12t1							
+-1125	Years Cal AD (+/-)	This study	ACCEPT	Site direction included in results table	4.2	Fit 1	4.8	56.9	131	10	10	0	9.9313	0					Tel Megiddo		DA-DIR-GEO:DE-BFL:DE-FM:LP-DC4:LP-DIR-AF	DA-DIR-GEO:DE-BFL:DE-FM:LP-DC4:LP-DIR-AF		mgh12t1	pmagpy-3.3.2	mgh12t101:mgh12t102:mgh12t1a1:mgh12t1c1:mgh12t1d1:mgh12t1e1:mgh12t1f1:mgh12t1g1:mgh12t1h1:mgh12t1i2					
+-1125	Years Cal AD (+/-)	This study	ACCEPT	Site VGP, coord system = 0 component: Fit 1	4.2		4.8	56.9	131	10			9.9313	0			32.5850		Tel Megiddo	35.185	DA-DIR-GEO:DE-BFL:DE-FM:LP-DC4:LP-DIR-AF	DA-DIR-GEO:DE-BFL:DE-FM:LP-DC4:LP-DIR-AF	i	mgh12t1	pmagpy-3.3.2	mgh12t101:mgh12t102:mgh12t1a1:mgh12t1c1:mgh12t1d1:mgh12t1e1:mgh12t1f1:mgh12t1g1:mgh12t1h1:mgh12t1i2	6.5	3.9	83.7	72.5	10
+																								mgh12t1							
+		This study		Tel Megiddo stratum  J-4											Archeologic	Mixed Archeological Objects		Not Specified	Tel Megiddo					mgj04							
+																								mgj04							
+		This study		Tel Megiddo stratum J-6											Archeologic	Mixed Archeological Objects		Not Specified	Tel Megiddo					mgj06							
+																								mgj06							
+		This study		Tel Megiddo stratum  K-6											Archeologic	Mixed Archeological Objects		Not Specified	Tel Megiddo					mgk06							
+																								mgk06							
+		This study		Tel Megiddo stratum K-8											Archeologic	Mixed Archeological Objects		Not Specified	Tel Megiddo					mgk08							
+																								mgk08							
+		This study		Tel Megiddo stratum  K-9											Archeologic	Mixed Archeological Objects		Not Specified	Tel Megiddo					mgk09							
+																								mgk09							
+		This study		Oven in stratum K-9											Archeologic	Oven		Not Specified	Tel Megiddo					mgk09t1							
+-1350	Years Cal AD (+/-)	This study	ACCEPT	Site direction included in results table	2.8	Fit 1	351.5	53.0	395	8	8	0	7.9823	0					Tel Megiddo		DA-DIR-GEO:DE-BFL:DE-FM:LP-DC4:LP-DIR-AF	DA-DIR-GEO:DE-BFL:DE-FM:LP-DC4:LP-DIR-AF		mgk09t1	pmagpy-3.3.2	mgk09t1a1:mgk09t1a2:mgk09t1b1:mgk09t1b2:mgk09t1c1:mgk09t1c2:mgk09t1d1:mgk09t1d2					
+-1350	Years Cal AD (+/-)	This study	ACCEPT	Site VGP, coord system = 0 component: Fit 1	2.8		351.5	53.0	395	8			7.9823	0			32.5850		Tel Megiddo	35.185	DA-DIR-GEO:DE-BFL:DE-FM:LP-DC4:LP-DIR-AF	DA-DIR-GEO:DE-BFL:DE-FM:LP-DC4:LP-DIR-AF	i	mgk09t1	pmagpy-3.3.2	mgk09t1a1:mgk09t1a2:mgk09t1b1:mgk09t1b2:mgk09t1c1:mgk09t1c2:mgk09t1d1:mgk09t1d2	3.9	2.6	82.8	315.3	8
+																								mgk09t1							
+		This study		Tel Megiddo stratum Q-4											Archeologic	Mixed Archeological Objects		Not Specified	Tel Megiddo					mgq04							
+																								mgq04							
+		This study		Oven in stratum Q-4											Archeologic	Oven		Not Specified	Tel Megiddo					mgq04t1							
+-850	Years Cal AD (+/-)	This study	ACCEPT	Site direction included in results table	6.3	Fit 1	357.6	61.8	54	11	11	0	10.8159	0					Tel Megiddo		DA-DIR-GEO:DE-BFL:DE-FM:LP-DC4:LP-DIR-AF	DA-DIR-GEO:DE-BFL:DE-FM:LP-DC4:LP-DIR-AF		mgq04t1	pmagpy-3.3.2	mgq04t101:mgq04t102:mgq04t103:mgq04t105:mgq04t106:mgq04t107:mgq04t108:mgq04t109:mgq04t110:mgq04t111:mgq04t112					
+-850	Years Cal AD (+/-)	This study	ACCEPT	Site VGP, coord system = 0 component: Fit 1	6.3		357.6	61.8	54	11			10.8159	0			32.5850		Tel Megiddo	35.185	DA-DIR-GEO:DE-BFL:DE-FM:LP-DC4:LP-DIR-AF	DA-DIR-GEO:DE-BFL:DE-FM:LP-DC4:LP-DIR-AF	i	mgq04t1	pmagpy-3.3.2	mgq04t101:mgq04t102:mgq04t103:mgq04t105:mgq04t106:mgq04t107:mgq04t108:mgq04t109:mgq04t110:mgq04t111:mgq04t112	11.2	5.9	79.4	25.6	11
+																								mgq04t1							
+		This study		Tel Megiddo stratum  Q-5											Archeologic	Mixed Archeological Objects		Not Specified	Tel Megiddo					mgq05							
+																								mgq05							
+		This study		Oven in stratum Q-5											Archeologic	Oven		Not Specified	Tel Megiddo					mgq05t1							
+-900	Years Cal AD (+/-)	This study	ACCEPT	Site direction included in results table	3.9	Fit 1	18.4	66.1	139	11	11	0	10.9283	0					Tel Megiddo		DA-DIR-GEO:DE-BFL:DE-FM:LP-DC4:LP-DIR-AF	DA-DIR-GEO:DE-BFL:DE-FM:LP-DC4:LP-DIR-AF		mgq05t1	pmagpy-3.3.2	mgq05t101:mgq05t102:mgq05t103:mgq05t104:mgq05t105:mgq05t106:mgq05t107:mgq05t108:mgq05t109:mgq05t111:mgq05t112					
+-900	Years Cal AD (+/-)	This study	ACCEPT	Site VGP, coord system = 0 component: Fit 1	3.9		18.4	66.1	139	11			10.9283	0			32.5850		Tel Megiddo	35.185	DA-DIR-GEO:DE-BFL:DE-FM:LP-DC4:LP-DIR-AF	DA-DIR-GEO:DE-BFL:DE-FM:LP-DC4:LP-DIR-AF	i	mgq05t1	pmagpy-3.3.2	mgq05t101:mgq05t102:mgq05t103:mgq05t104:mgq05t105:mgq05t106:mgq05t107:mgq05t108:mgq05t109:mgq05t111:mgq05t112	8.1	3.6	69.0	70.9	11
+																								mgq05t1							
+		This study		Oven in stratum Q-5											Archeologic	Oven		Not Specified	Tel Megiddo					mgq05t2							
+-900	Years Cal AD (+/-)	This study	ACCEPT	Site direction included in results table	1.9	Fit 1	1.3	74.5	567	11	11	0	10.9824	0					Tel Megiddo		DA-DIR-GEO:DE-BFL:DE-FM:LP-DC4:LP-DIR-AF	DA-DIR-GEO:DE-BFL:DE-FM:LP-DC4:LP-DIR-AF		mgq05t2	pmagpy-3.3.2	mgq05t2a1:mgq05t2a2:mgq05t2b1:mgq05t2b2:mgq05t2c2:mgq05t2d1:mgq05t2d2:mgq05t2e1:mgq05t2e2:mgq05t2f1:mgq05t2f2					
+-900	Years Cal AD (+/-)	This study	ACCEPT	Site VGP, coord system = 0 component: Fit 1	1.9		1.3	74.5	567	11			10.9824	0			32.5850		Tel Megiddo	35.185	DA-DIR-GEO:DE-BFL:DE-FM:LP-DC4:LP-DIR-AF	DA-DIR-GEO:DE-BFL:DE-FM:LP-DC4:LP-DIR-AF	i	mgq05t2	pmagpy-3.3.2	mgq05t2a1:mgq05t2a2:mgq05t2b1:mgq05t2b2:mgq05t2c2:mgq05t2d1:mgq05t2d2:mgq05t2e1:mgq05t2e2:mgq05t2f1:mgq05t2f2	6.0	1.8	61.6	36.5	11
+																								mgq05t2							
