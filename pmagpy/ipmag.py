@@ -269,7 +269,7 @@ def do_flip(dec=None, inc=None, di_block=None):
         return dflip
 
 
-def bootstrap_fold_test(Data,num_sims=1000,min_untilt=-10,max_untilt=120, bedding_error=0, save = False, save_folder = '.',fmt = 'svg'):
+def bootstrap_fold_test(Data,num_sims=1000,min_untilt=-10,max_untilt=120, bedding_error=0, save = False, save_folder = '.',fmt = 'svg',ninety_nine=False):
     """
     Conduct a bootstrap fold test (Tauxe and Watson, 1994)
 
@@ -352,6 +352,9 @@ def bootstrap_fold_test(Data,num_sims=1000,min_untilt=-10,max_untilt=120, beddin
     plt.axvline(x=Untilt[lower],ymin=0,ymax=1,linewidth=1,linestyle='--')
     plt.axvline(x=Untilt[upper],ymin=0,ymax=1,linewidth=1,linestyle='--')
     title = '%i - %i %s'%(Untilt[lower],Untilt[upper],'percent unfolding')
+    if ninety_nine is True:
+        print 'tightest grouping of vectors obtained at (99% confidence bounds):'
+        print int(.005*num_sims), ' - ', int(.995*num_sims),'percent unfolding'
     print ""
     print 'tightest grouping of vectors obtained at (95% confidence bounds):'
     print title
@@ -818,17 +821,31 @@ def fishqq(lon=None, lat=None, di_block=None):
         print 'you need N> 10 for at least one mode'
 
 
-def lat_from_inc(inc):
+def lat_from_inc(inc,a95=None):
     """
     Calculate paleolatitude from inclination using the dipole equation
 
-    Parameter
+    Required Parameter
     ----------
     inc: (paleo)magnetic inclination in degrees
+
+    Optional Parameter
+    ----------
+    a95: 95% confidence interval from Fisher mean
+
+    Returns
+    ----------
+    if a95 is provided paleo_lat, paleo_lat_max, paleo_lat_min are returned
+    otherwise, it just returns paleo_lat
     """
     rad=np.pi/180.
-    paleo_lat=np.arctan(0.5*np.tan(inc*rad))/rad
-    return paleo_lat
+    paleo_lat = np.arctan(0.5*np.tan(inc*rad))/rad
+    if a95 is not None:
+        paleo_lat_max = np.arctan(0.5*np.tan((inc+a95)*rad))/rad
+        paleo_lat_min = np.arctan(0.5*np.tan((inc-a95)*rad))/rad
+        return paleo_lat, paleo_lat_max, paleo_lat_min
+    else:
+        return paleo_lat
 
 
 def lat_from_pole(ref_loc_lon,ref_loc_lat,pole_plon,pole_plat):
