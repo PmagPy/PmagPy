@@ -8,7 +8,7 @@ import os
 import wx
 import wx.html
 import webbrowser
-from pmagpy.controlled_vocabularies import vocab
+from pmagpy.controlled_vocabularies3 import vocab
 
 
 # library for commonly used widgets.
@@ -792,7 +792,7 @@ class MethodCodeDemystifier(wx.StaticBoxSizer):
         super(MethodCodeDemystifier, self).__init__(self.box, orient=wx.VERTICAL)
         grid_sizer = wx.GridSizer(0, 5, 3, 3)
         if not any(vocab.code_types):
-            vocab.get_stuff()
+            vocab.get_all_vocabulary()
         types = vocab.code_types.index
         types = vocab.code_types['label']
         type_ind = vocab.code_types.index

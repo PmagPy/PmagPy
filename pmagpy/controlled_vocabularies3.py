@@ -10,6 +10,7 @@ import backup_vocabulary as backup
 #'http://api.earthref.org/MagIC/vocabularies.json'
 # then, use that list to determine whether or not any given column has a controlled vocabulary list
 import check_updates
+from pmagpy import data_model3
 pmag_dir = check_updates.get_pmag_dir()
 data_model_dir = os.path.join(pmag_dir, 'pmagpy', 'data_model')
 # if using with py2app, the directory structure is flat,
@@ -120,20 +121,49 @@ class Vocabulary(object):
             ## this line means, grab every single controlled vocabulary
             vocab_types = list(possible_vocabularies)
             vocab_dict = {'type': 'geologic_types', 'class': 'geologic_classes', 'lithology': 'lithologies'}
-            # some of the names are weird
-            for vocab in vocab_types[:]:
-                if vocab in vocab_dict:
-                    vocab_name = vocab_dict[vocab]
-                    ind = vocab_types.index(vocab)
-                    vocab_types.insert(ind, vocab_name)
-                    vocab_types.remove(vocab)
-                #url = 'https://api.earthref.org/MagIC/vocabularies/{}.json'.format(vocab)
-                #data = pd.io.json.read_json(url)
-                #stripped_list = [item['item'] for item in data[vocab][0]]
-                items = data[vocab]['items']
+
+
+            def get_cv_from_list(lst):
+                """
+                Check a validations list from the data model.
+                If there is a controlled vocabulary validation,
+                return which category of controlled vocabulary it is.
+                This will generally be applied to the validations col 
+                of the data model
+                """
+                try:
+                    for i in lst:
+                        if "cv(" in i:
+                            return i[4:-2]
+                except TypeError:
+                    return None
+                else:
+                    return None
+
+            vocab_col_names = []
+            data_model = data_model3.DataModel()
+            for dm_key in data_model.dm:
+                df = data_model.dm[dm_key]
+                df['vocab_name'] = df['validations'].apply(get_cv_from_list)
+                lst = zip(df[df['vocab_name'].notnull()]['vocab_name'], df[df['vocab_name'].notnull()].index)
+                # in lst, first value is the name of the controlled vocabulary
+                # second value is the name of the dataframe column
+                vocab_col_names.extend(lst)
+
+            # vocab_col_names is now a list of tuples
+            # consisting of the vocabulary name and the column name
+            # i.e., (u'type', u'geologic_types')
+                
+            # remove duplicate col_names:
+            vocab_col_names = sorted(set(vocab_col_names))
+            # use vocabulary name to get possible values for the column name
+            for vocab in vocab_col_names[:]:
+                items = data[vocab[0]]['items']
                 stripped_list = [item['item'] for item in items]
                 controlled_vocabularies.append(stripped_list)
-            vocabularies = pd.Series(controlled_vocabularies, index=vocab_types)
+            # create series with the column name as the index, and the possible values as the values
+            vocabularies = pd.Series(controlled_vocabularies, index=[i[1] for i in vocab_col_names])
+            return vocabularies, vocabularies
         except urllib2.URLError:
             connected = False
         except httplib.BadStatusLine:

@@ -203,6 +203,7 @@ class MainFrame(wx.Frame):
         self.hbox.Fit(self)
 
         # do menu
+        print "-I- Initializing menu"
         menubar = MagICMenu(self)
         self.SetMenuBar(menubar)
 
