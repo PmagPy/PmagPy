@@ -3235,11 +3235,13 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
     if append:
         try:
             SampRecs,file_type=pmag.magic_read(samp_file)
+            SampRecs_sorted=pmag.sort_magic_data(SampRecs,'er_sample_name') # magic_data dictionary sorted by sample_name
             print 'sample data to be appended to: ', samp_file
         except:
             print 'problem with existing file: ',samp_file, ' will create new.'
         try:
             SiteRecs,file_type=pmag.magic_read(site_file)
+            SiteRecs_sorted=pmag.sort_magic_data(SiteRecs,'er_site_name') # magic_data dictionary sorted by site_name
             print 'site data to be appended to: ',site_file
         except:
             print 'problem with existing file: ',site_file,' will create new.'
@@ -3303,15 +3305,60 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
             if 'method_codes' in OrRec.keys() and OrRec['method_codes'].strip()!="":
                 methcodes=OrRec['method_codes'] # add notes
         codes=methcodes.replace(" ","").split(":")
-        MagRec={}
-        MagRec["er_location_name"]=location_name
+        
+        sample_name=OrRec["sample_name"]
+        # patch added by rshaar 7/2016
+        # if sample_name already exists in er_samples.txt:
+        # merge the new data colmuns calculated by orientation_magic with the existing data colmuns
+        # this is done to make sure no previous data in er_samples.txt and er_sites.txt is lost.
+        
+        if sample_name in SampRecs_sorted.keys():
+            Prev_MagRec=SampRecs_sorted[sample_name][-1]
+            MagRec=Prev_MagRec
+        else:
+            Prev_MagRec={}
+            MagRec={}
         MagRec["er_citation_names"]="This study"
-        MagRec['sample_orientation_flag']=sample_orientation_flag
-        MagRec['sample_igsn']=sample_igsn
-        MagRec['sample_texture']=sample_texture
-        MagRec['sample_cooling_rate']=sample_cooling_rate
-        MagRec['cooling_rate_corr']=cooling_rate_corr
-        MagRec['cooling_rate_mcd']=cooling_rate_mcd
+        
+        # the following keys were calculated or defined in the code above:
+        for key in ['sample_igsn','sample_texture','sample_cooling_rate','cooling_rate_corr','cooling_rate_mcd','participantlist']:
+            command= "var= %s"%key
+            exec command
+            if var!="":
+                MagRec[key]=var
+            elif  key  in  Prev_MagRec.keys():
+                MagRec[key]=Prev_MagRec[key]
+            else:
+                MagRec[key]=""
+
+            if location_name!="":
+                MagRec["er_location_name"]=location_name
+            elif  "er_location_name"  in  Prev_MagRec.keys():
+                MagRec["er_location_name"]=Prev_MagRec["er_location_name"]
+            else:
+                MagRec["er_location_name"]=""
+
+        # the following keys are taken directly from OrRec dictionary:
+        for key in ["sample_height","er_sample_alternatives"]:
+            if key  in OrRec.keys() and OrRec[key]!= "":
+                MagRec[key]=OrRec[key]
+            elif  key  in  Prev_MagRec.keys():
+                MagRec[key]=Prev_MagRec[key]
+            else:
+                MagRec[key]=""
+
+        # the following keys are cab be defined here as "Not Specified" :
+
+        for key in ["sample_class","sample_lithology","sample_type"]:
+            if key  in OrRec.keys() and OrRec[key]!= "" and  OrRec[key]!= "Not Specified" :
+                MagRec[key]=OrRec[key]
+            elif  key  in  Prev_MagRec.keys() and  Prev_MagRec[key]!= "" and  Prev_MagRec[key]!= "Not Specified" :
+                MagRec[key]=Prev_MagRec[key]
+            else:
+                MagRec[key]="Not Specified" 
+
+
+        # (rshaar) From here parse new information and replace previous, if exists:                                                                                                                            
     #
     # parse information common to all orientation methods
     #
@@ -3320,9 +3367,10 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
             MagRec["sample_igsn"]=OrRec["IGSN"]
         else:
             MagRec["sample_igsn"]=""
-        MagRec["sample_height"],MagRec["sample_bed_dip_direction"],MagRec["sample_bed_dip"]="","",""
-        if "er_sample_alternatives" in OrRec.keys():
-            MagRec["er_sample_alternatives"]=OrRec["sample_alternatives"]
+        #MagRec["sample_height"],MagRec["sample_bed_dip_direction"],MagRec["sample_bed_dip"]="","",""
+        MagRec["sample_bed_dip_direction"],MagRec["sample_bed_dip"]="",""
+        #if "er_sample_alternatives" in OrRec.keys():
+        #    MagRec["er_sample_alternatives"]=OrRec["sample_alternatives"]
         sample=OrRec["sample_name"]
         if OrRec['mag_azimuth']=="" and OrRec['field_dip']!="":
             OrRec['mag_azimuth']='999'
@@ -3363,27 +3411,7 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
             bed_dip=OrRec['bedding_dip']
         MagRec["sample_bed_dip"]=bed_dip
         MagRec["sample_bed_dip_direction"]=bed_dip_dir
-        if "sample_class" in OrRec.keys():
-            newclass=OrRec["sample_class"]
-        if newclass!="":
-            sclass=newclass
-        if sclass=="":
-            sclass="Not Specified"
-        MagRec["sample_class"]=sclass
-        if "sample_lithology" in OrRec.keys():
-            newlith=OrRec["sample_lithology"]
-        if newlith!="":
-            lithology=newlith
-        if lithology=="":
-            lithology="Not Specified"
-        MagRec["sample_lithology"]=lithology
-        if "sample_type" in OrRec.keys():
-            newtype=OrRec["sample_type"]
-        if newtype!="":
-            sample_type=newtype
-        if sample_type=="":
-            sample_type="Not Specified"
-        MagRec["sample_type"]=sample_type
+        #MagRec["sample_type"]=sample_type
         if labdip!="":
             MagRec["sample_dip"]='%7.1f'%labdip
         else:
@@ -3414,7 +3442,7 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
                 stratpos=OrRec["stratigraphic_height"]
             elif OrRec["stratigraphic_height"]=='-1':
                 MagRec["sample_height"]=""   # make empty
-            else:
+            elif stratpos != "" :
                 MagRec["sample_height"]=stratpos   # keep last record if blank
 #
         if dec_correction_con==1 and MagRec['sample_azimuth']!="": # get magnetic declination (corrected with igrf value)
@@ -3448,8 +3476,10 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
         MagRec['sample_description']=sample_description
     #
     # work on the site stuff too
-        if 'site_name' in OrRec.keys():
+        if 'site_name' in OrRec.keys() and OrRec['site_name']!="":
             site=OrRec['site_name']
+        elif 'site_name' in Prev_MagRec.keys() and  Prev_MagRec['site_name']!="":
+            site=Prev_MagRec['site_name']
         else:
             site=pmag.parse_site(OrRec["sample_name"],samp_con,Z) # parse out the site name
         MagRec["er_site_name"]=site
@@ -3492,18 +3522,50 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
                     ImageOuts.append(ImageRec)
         if site not in sitelist:
             sitelist.append(site) # collect unique site names
-            SiteRec={}
+            # patch added by rshaar 7/2016
+            # if sample_name already exists in er_samples.txt:
+            # merge the new data colmuns calculated by orientation_magic with the existing data colmuns
+            # this is done to make sure no previous data in er_samples.txt and er_sites.txt is lost.
+            
+            if site in SiteRecs_sorted.keys():
+                Prev_MagRec=SiteRecs_sorted[site][-1]
+                SiteRec=Prev_MagRec
+            else:
+                Prev_MagRec={}
+                SiteRec={}
+            SiteRec["er_citation_names"]="This study"
             SiteRec["er_site_name"]=site
             SiteRec["site_definition"]="s"
-            SiteRec["er_location_name"]=location_name
-            SiteRec["er_citation_names"]="This study"
-            SiteRec["site_lat"]=MagRec["sample_lat"]
-            SiteRec["site_lon"]=MagRec["sample_lon"]
-            SiteRec["site_height"]=MagRec["sample_height"]
-            SiteRec["site_class"]=MagRec["sample_class"]
-            SiteRec["site_lithology"]=MagRec["sample_lithology"]
-            SiteRec["site_type"]=MagRec["sample_type"]
-            SiteRec["site_description"]=site_description
+    
+            for key in ["er_location_name"]:
+                if key in Prev_MagRec.keys() and Prev_MagRec[key]!="":
+                    SiteRec[key]=Prev_MagRec[key]
+                else:
+                    SiteRec[key]=""
+
+            for key in ["lat","lon","height"]:
+                if "site_"+key in Prev_MagRec.keys() and Prev_MagRec["site_"+key]!="":
+                    SiteRec["site_"+key]=Prev_MagRec["site_"+key]
+                else:
+                    SiteRec["site_"+key]=MagRec["sample_"+key]
+                    
+                                                                                                                                                
+            #SiteRec["site_lat"]=MagRec["sample_lat"]
+            #SiteRec["site_lon"]=MagRec["sample_lon"]
+            #SiteRec["site_height"]=MagRec["sample_height"]
+
+            for key in ["class","lithology","type"]:
+                if "site_"+key in Prev_MagRec.keys() and Prev_MagRec["site_"+key]!="Not Specified":
+                    SiteRec["site_"+key]=Prev_MagRec["site_"+key]
+                else:
+                    SiteRec["site_"+key]=MagRec["sample_"+key]
+
+            #SiteRec["site_class"]=MagRec["sample_class"]
+            #SiteRec["site_lithology"]=MagRec["sample_lithology"]
+            #SiteRec["site_type"]=MagRec["sample_type"]
+
+            if site_description != "": # overwrite only if site_description has something
+                SiteRec["site_description"]=site_description
             SiteOuts.append(SiteRec)
         if sample not in samplelist:
             samplelist.append(sample)

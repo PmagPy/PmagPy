@@ -995,6 +995,18 @@ def magic_read(infile, data=None):
     if magictype in Types:file_type=file_type.lower()
     return magic_data,file_type
 
+def sort_magic_data(magic_data,sort_name):
+    '''
+    sort magic_data by on header (like er_specimen_name for example)
+    '''
+    magic_data_sorted={}
+    for rec in magic_data:
+       name=rec[sort_name]
+       if name not in magic_data_sorted.keys():
+           magic_data_sorted[name]=[]
+       magic_data_sorted[name].append(rec)
+    return  magic_data_sorted 
+
 def upload_read(infile,table):
     """
     reads  a table from a MagIC upload (or downloaded) txt file,

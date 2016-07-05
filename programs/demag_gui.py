@@ -2587,10 +2587,17 @@ class Demag_GUI(wx.Frame):
                  # tilt-corrected coordinates
 
                  try:
-                    sample_bed_dip_direction=float(self.Data_info["er_samples"][sample]['sample_bed_dip_direction'])
-                    sample_bed_dip=float(self.Data_info["er_samples"][sample]['sample_bed_dip'])
-                    d_tilt,i_tilt=pmag.dotilt(d_geo,i_geo,sample_bed_dip_direction,sample_bed_dip)
-                    Data[s]['zijdblock_tilt'].append([tr,d_tilt,i_tilt,intensity,ZI,rec['measurement_flag'],rec['magic_instrument_codes']])
+                    if 'sample_bed_dip_direction' in self.Data_info["er_samples"][sample].keys() and self.Data_info["er_samples"][sample]['sample_bed_dip_direction']!="":
+                        sample_bed_dip_direction=float(self.Data_info["er_samples"][sample]['sample_bed_dip_direction'])
+                    else:
+                        sample_bed_dip_direction=""
+                    if 'sample_bed_dip' in self.Data_info["er_samples"][sample].keys() and self.Data_info["er_samples"][sample]['sample_bed_dip']!="":
+                        sample_bed_dip=float(self.Data_info["er_samples"][sample]['sample_bed_dip'])
+                    else:
+                         sample_bed_dip=""
+                    if sample_bed_dip!="" and sample_bed_dip_direction!="":
+                        d_tilt,i_tilt=pmag.dotilt(d_geo,i_geo,sample_bed_dip_direction,sample_bed_dip)
+                        Data[s]['zijdblock_tilt'].append([tr,d_tilt,i_tilt,intensity,ZI,rec['measurement_flag'],rec['magic_instrument_codes']])
                  except (IOError, KeyError) as e:
                     if prev_s != s:
                         print("-W- cant find tilt-corrected data for sample %s"%sample)
