@@ -183,15 +183,23 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
 
         # add actual data!
         self.grid_builder.add_data_to_grid(self.grid, self.grid_type)
-        if self.grid_type == 'age':
-            self.grid_builder.add_age_data_to_grid()
+
+        ## this would be a way to prevent editing
+        ## some cells in age grid.
+        ## with multiple types of ages, though,
+        ## this doesn't make much sense
+        #if self.grid_type == 'ages':
+        #    attr = wx.grid.GridCellAttr()
+        #    attr.SetReadOnly(True)
+        #    self.grid.SetColAttr(1, attr)
 
         self.drop_down_menu = drop_down_menus.Menus(self.grid_type, self.contribution, self.grid)
         self.grid_box = wx.StaticBoxSizer(wx.StaticBox(self.panel, -1, name='grid container'), wx.VERTICAL)
         self.grid_box.Add(self.grid, flag=wx.ALL, border=5)
 
         # a few special touches if it is a location grid
-        if self.grid_type == 'location':
+        # **** make these work again (esp. min/max lat/lon)
+        if self.grid_type == 'locations':
             pass
             #lat_lon_dict = self.er_magic.get_min_max_lat_lon(self.er_magic.locations)
             #for loc in self.er_magic.locations:
@@ -216,22 +224,7 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
             #                    self.grid.changes.add(row_ind)
 
         # a few special touches if it is an age grid
-        if self.grid_type == 'age':
-            self.remove_row_button.Disable()
-            self.add_many_rows_button.Disable()
-            self.grid.SetColLabelValue(0, 'site')
-            toggle_box = wx.StaticBoxSizer(wx.StaticBox(self.panel, -1,
-                                                        label='Ages level',
-                                                        name='Ages level'), wx.VERTICAL)
-
-            levels = ['specimen', 'sample', 'site', 'location']
-            age_level = pw.radio_buttons(self.panel, levels, 'Choose level to assign ages')
-            level_ind = levels.index(self.er_magic.age_type)
-            age_level.radio_buttons[level_ind].SetValue(True)
-            toggle_box.Add(age_level)
-
-            self.Bind(wx.EVT_RADIOBUTTON, self.toggle_ages)
-            self.hbox.Add(toggle_box)
+        ## none of these anymore
 
         # final layout, set size
         self.main_sizer.Add(self.hbox, flag=wx.ALL, border=20)
@@ -796,28 +789,6 @@ class GridBuilder(object):
             if not grid.GetCellValue(0, 0) and grid.GetNumberRows() > 1:
                 grid.remove_row(0)
 
-    def add_age_data_to_grid(self):
-        dtype = self.er_magic.age_type
-        row_labels = [self.grid.GetCellValue(row, 0) for row in xrange(self.grid.GetNumberRows())]
-        items_list = self.er_magic.data_lists[dtype][0]
-        items = [self.er_magic.find_by_name(label, items_list) for label in row_labels if label]
-
-        col_labels = self.grid.col_labels[1:]
-        if not any(items):
-            return
-        for row_num, item in enumerate(items):
-            for col_num, label in enumerate(col_labels):
-                col_num += 1
-                if item:
-                    if not label in item.age_data.keys():
-                        item.age_data[label] = ''
-                    cell_value = item.age_data[label]
-                    if cell_value:
-                        self.grid.SetCellValue(row_num, col_num, cell_value)
-                    # if no age codes are available, make sure magic_method_codes are set to ''
-                    # otherwise non-age magic_method_codes can fill in here
-                    elif label == 'magic_method_codes':
-                        self.grid.SetCellValue(row_num, col_num, '')
 
     def save_grid_data(self):
         """
