@@ -165,6 +165,7 @@ import sys, pylab, scipy, os
 import pmagpy.pmag as pmag
 from pmagpy import check_updates
 import new_builder as nb
+from SPD.mapping import map_magic
 #import numpy as np
 try:
     import thellier_gui_preferences
@@ -5602,30 +5603,31 @@ class Arai_GUI(wx.Frame):
           intensity_types = [col_name for col_name in meas_data3_0.columns if col_name in Mkeys]
           int_key = intensity_types[0] # plot first intensity method found - normalized to initial value anyway - doesn't matter which used
           meas_data3_0 = meas_data3_0[meas_data3_0[int_key].notnull()] # get all the non-null intensity records of the same type
-# now convert back to 2.5  changing only those keys that are necessary for thellier_gui
-          meas_data2_5=meas_data3_0.rename(columns = {\
-                 'specimen':'er_specimen_name', \
-                 'sample':'er_sample_name', \
-                 'site':'er_site_name', \
-                 'location':'er_location_name', \
-                 'method_codes':'magic_method_codes', \
-                 'flag':'measurement_flag', \
-                 'treat_ac_field':'treatment_ac_field', \
-                 'treat_dc_field':'treatment_dc_field', \
-                 'treat_dc_field_phi':'treatment_dc_field_phi', \
-                 'treat_dc_field_theta':'treatment_dc_field_theta', \
-                 'flag':'measurement_flag', \
-                 'treat_temp':'treatment_temp', \
-                 'description':'measurement_description', \
-                 'number':'measurement_number', \
-                 'magn_moment':'measurement_magn_moment', \
-                 'magn_volume':'measurement_magn_volume', \
-                 'magn_mass':'measurement_magn_mass', \
-                 'dir_dec':'measurement_dec', \
-                 'dir_inc':'measurement_inc', \
-                 'dir_csd':'measurement_csd', \
-                 'instrument_codes':'magic_instrument_codes', \
-                 })
+          # now convert back to 2.5  changing only those keys that are necessary for thellier_gui
+          meas_data2_5 = meas_data3_0.rename(columns=map_magic.magic3_2_magic2_map)
+          #meas_data2_5=meas_data3_0.rename(columns = {\
+          #       'specimen':'er_specimen_name', \
+          #       'sample':'er_sample_name', \
+          #       'site':'er_site_name', \
+          #       'location':'er_location_name', \
+          #       'method_codes':'magic_method_codes', \
+          #       'flag':'measurement_flag', \
+          #       'treat_ac_field':'treatment_ac_field', \
+          #       'treat_dc_field':'treatment_dc_field', \
+          #       'treat_dc_field_phi':'treatment_dc_field_phi', \
+          #       'treat_dc_field_theta':'treatment_dc_field_theta', \
+          #       'flag':'measurement_flag', \
+          #       'treat_temp':'treatment_temp', \
+          #       'description':'measurement_description', \
+          #       'number':'measurement_number', \
+          #       'magn_moment':'measurement_magn_moment', \
+          #       'magn_volume':'measurement_magn_volume', \
+          #       'magn_mass':'measurement_magn_mass', \
+          #       'dir_dec':'measurement_dec', \
+          #       'dir_inc':'measurement_inc', \
+          #       'dir_csd':'measurement_csd', \
+          #       'instrument_codes':'magic_instrument_codes', \
+          #       })
           meas_data=meas_data2_5.to_dict("records")  # make a list of dictionaries to maintain backward compatibility
       else:
         try:
