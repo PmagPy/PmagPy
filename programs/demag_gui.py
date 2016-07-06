@@ -2868,6 +2868,8 @@ class Demag_GUI(wx.Frame):
             if 'samples' in self.contribution.tables:
                 samp_container = self.contribution.tables['samples']
                 self.samp_data = samp_container.df # only need this for saving tables
+                self.samp_data = self.samp_data.rename(columns={"azimuth":"sample_azimuth","dip":"sample_dip","orientation_flag":"sample_orientation_flag","bed_dip_direction":"sample_bed_dip_direction","bed_dip":"sample_bed_dip"})
+                data_er_samples = self.samp_data.T.to_dict()
             if 'sites' in self.contribution.tables:
                 site_container = self.contribution.tables['sites']
                 self.site_data = site_container.df
@@ -2891,6 +2893,7 @@ class Demag_GUI(wx.Frame):
             if 'locations' in self.contribution.tables:
                 location_container = self.contribution.tables["locations"]
                 self.location_data = location_container.df # only need this for saving tables
+                data_er_locations = self.samp_data.to_dict('records')
 
         else: #try 2.5 data model
 
