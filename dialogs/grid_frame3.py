@@ -7,7 +7,7 @@ import drop_down_menus3 as drop_down_menus
 import pmag_widgets as pw
 import magic_grid3 as magic_grid
 import pmagpy.builder as builder
-from pmagpy.controlled_vocabularies import vocab
+from pmagpy.controlled_vocabularies3 import vocab
 import programs.new_builder as nb
 
 
@@ -15,18 +15,16 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
     """
     make_magic
     """
-
     def __init__(self, contribution, WD=None, frame_name="grid frame",
                  panel_name="grid panel", parent=None):
         self.parent = parent
         wx.GetDisplaySize()
         title = 'Edit {} data'.format(panel_name)
         super(GridFrame, self).__init__(parent=parent, id=wx.ID_ANY, name=frame_name, title=title)
-
         # if controlled vocabularies haven't already been grabbed from earthref
         # do so now
         if not any(vocab.vocabularies):
-            vocab.get_stuff()
+            vocab.get_all_vocabulary()
 
         self.remove_cols_mode = False
         self.deleteRowButton = None
@@ -42,7 +40,6 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
         self.reqd_headers = dm[dm['str_validations'].str.contains("required\(\)").fillna(False)].index
         self.dm = dm
                 
-
         if self.parent:
             self.Bind(wx.EVT_WINDOW_DESTROY, self.parent.Parent.on_close_grid_frame)
 
@@ -83,6 +80,7 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
         self.grid_builder = GridBuilder(self.contribution, self.grid_type,
                                         self.panel, parent_type=self.parent_type,
                                         reqd_headers=self.reqd_headers)
+
         self.grid = self.grid_builder.make_grid()
         self.grid.InitUI()
 
@@ -187,12 +185,6 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
         self.grid_builder.add_data_to_grid(self.grid, self.grid_type)
         if self.grid_type == 'age':
             self.grid_builder.add_age_data_to_grid()
-        # ** need up-to-date vocab api first
-        # add drop_down menus
-        #if self.parent_type:
-        #    belongs_to = sorted(self.er_magic.data_lists[self.parent_type][0], key=lambda item: item.name)
-        #else:
-        #    belongs_to = ''
 
         self.drop_down_menu = drop_down_menus.Menus(self.grid_type, self.contribution, self.grid)
         self.grid_box = wx.StaticBoxSizer(wx.StaticBox(self.panel, -1, name='grid container'), wx.VERTICAL)
@@ -521,8 +513,14 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
         Remove specified grid row.
         If no row number is given, remove the last row.
         """
+        text = "Are you sure?  If you select delete you won't be able to retrieve these rows..."
+        dia = pw.ChooseOne(self, "Yes, delete rows", "Leave rows for now", text)
+        dia.Centre()
+        result = dia.ShowModal()
+        if result == wx.ID_NO:
+            return
+        default = (255, 255, 255, 255)
         if row_num == -1:
-            default = (255, 255, 255, 255)
             # unhighlight any selected rows:
             for row in self.selected_rows:
                 attr = wx.grid.GridCellAttr()
@@ -531,26 +529,22 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
             row_num = self.grid.GetNumberRows() - 1
             self.deleteRowButton.Disable()
             self.selected_rows = {row_num}
-
-        function_mapping = {'specimen': self.er_magic.delete_specimen,
-                            'sample': self.er_magic.delete_sample,
-                            'site': self.er_magic.delete_site,
-                            'location': self.er_magic.delete_location,
-                            'result': self.er_magic.delete_result}
-
-        names = [self.grid.GetCellValue(row, 0) for row in self.selected_rows]
-        orphans = []
-        for name in names:
-            if name:
-                try:
-                    row = self.grid.row_labels.index(name)
-                    function_mapping[self.grid_type](name)
-                    orphans.extend([name])
-                # if user entered a name, then deletes the row before saving,
-                # there will be a ValueError
-                except ValueError:
-                    pass
+        # remove row(s) from the contribution
+        df = self.contribution.tables[self.grid_type].df
+        row_nums = range(len(df))
+        df = df.iloc[[i for i in row_nums if i not in self.selected_rows]]
+        self.contribution.tables[self.grid_type].df = df
+        # now remove row(s) from grid
+        # delete rows, adjusting the row # appropriately as you delete
+        for num, row in enumerate(self.selected_rows):
+            row -= num
+            if row < 0:
+                row = 0
             self.grid.remove_row(row)
+            attr = wx.grid.GridCellAttr()
+            attr.SetBackgroundColour(default)
+            self.grid.SetRowAttr(row, attr)
+        # reset the grid
         self.selected_rows = set()
         self.deleteRowButton.Disable()
         self.grid.Refresh()
@@ -620,8 +614,7 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
             if self.remove_cols_mode:
                 self.remove_col_label(event)
             else:
-                pass  # ** no drop_down_menus working yet
-                #self.drop_down_menu.on_label_click(event)
+                self.drop_down_menu.on_label_click(event)
         else:
             if event.Col < 0  and self.grid_type != 'age':
                 self.onSelectRow(event)
@@ -765,8 +758,11 @@ class GridBuilder(object):
         # if there is no pre-existing data, do some defaults:
         else:
             # default headers
-            col_labels = list(self.data_model.get_headers(self.grid_type, 'Names'))
-            col_labels[:0] = self.reqd_headers
+            #col_labels = list(self.data_model.get_headers(self.grid_type, 'Names'))
+            #col_labels[:0] = self.reqd_headers
+            col_labels = list(self.reqd_headers)
+            if self.grid_type in ['specimens', 'samples', 'sites']:
+                col_labels.extend(['age', 'age_sigma'])
             col_labels = sorted(set(col_labels))
             # defaults are different for ages
             if self.grid_type == 'ages':

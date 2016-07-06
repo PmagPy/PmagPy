@@ -10,14 +10,8 @@ class MagicGrid(wx.grid.Grid, gridlabelrenderer.GridWithLabelRenderersMixin):
     grid class
     """
 
-    def __init__(self, parent, name, row_labels, col_labels, row_items=None, size=0):
-        # row_items is an optional list of Pmag_objects
+    def __init__(self, parent, name, row_labels, col_labels, size=0):
         self.name = name
-        self.row_items = []
-        if row_items:
-            self.row_items = row_items
-        else:
-            self.row_items = ['' for label in row_labels]
         self.changes = None
         self.row_labels = sorted(row_labels)
         self.col_labels = col_labels
@@ -26,7 +20,6 @@ class MagicGrid(wx.grid.Grid, gridlabelrenderer.GridWithLabelRenderersMixin):
         if size:
             super(MagicGrid, self).__init__(parent, -1, name=name, size=size)
         gridlabelrenderer.GridWithLabelRenderersMixin.__init__(self)
-            
         ### the next few lines may prove unnecessary
         ancestry = ['specimen', 'sample', 'site', 'location', None]
 
@@ -78,6 +71,7 @@ class MagicGrid(wx.grid.Grid, gridlabelrenderer.GridWithLabelRenderersMixin):
             for col_num, col in enumerate(columns):
                 value = row[col]
                 self.SetCellValue(row_num, col_num, str(value))
+        self.row_labels.extend(dataframe.index)
 
 
     def save_items(self, rows=None):
@@ -224,7 +218,7 @@ class MagicGrid(wx.grid.Grid, gridlabelrenderer.GridWithLabelRenderersMixin):
         wx.TheClipboard.Close()
         event.Skip()
 
-    def add_row(self, label='', item=''):
+    def add_row(self, label=""):
         """
         Add a row to the grid
         """
@@ -232,25 +226,18 @@ class MagicGrid(wx.grid.Grid, gridlabelrenderer.GridWithLabelRenderersMixin):
         last_row = self.GetNumberRows() - 1
         self.SetCellValue(last_row, 0, str(label))
         self.row_labels.append(label)
-        self.row_items.append(item)
 
     def remove_row(self, row_num=None):
         """
         Remove a row from the grid
         """
-        #DeleteRows(self, pos, numRows, updateLabel
         if not row_num and row_num != 0:
             row_num = self.GetNumberRows() - 1
         label = self.GetCellValue(row_num, 0)
         self.DeleteRows(pos=row_num, numRows=1, updateLabels=True)
 
         # remove label from row_labels
-        try:
-            self.row_labels.remove(label)
-        except ValueError:
-            # if label name hasn't been saved yet, simply truncate row_labels
-            self.row_labels = self.row_labels[:-1]
-        self.row_items.pop(row_num)
+        self.row_labels.pop(row_num)
         if not self.changes:
             self.changes = set()
         self.changes.add(-1)

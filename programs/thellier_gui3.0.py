@@ -309,6 +309,7 @@ class Arai_GUI(wx.Frame):
             else:
                 self.WD = os.getcwd()
             dialog.Destroy()
+        self.WD = os.path.realpath(self.WD)
         self.magic_file=os.path.join(self.WD,meas_file)
             #intialize GUI_log
         self.GUI_log=open(os.path.join(self.WD, "thellier_GUI.log"),'w')
