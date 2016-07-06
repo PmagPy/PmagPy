@@ -310,7 +310,7 @@ class MagicDataFrame(object):
     """
 
     def __init__(self, magic_file=None, columns=None, dtype=None,
-                 groups=None, dmodel=None):
+                 groups=None, dmodel=None, df=None):
         """
         Provide either a magic_file or a dtype.
         List of columns is optional,
@@ -319,8 +319,14 @@ class MagicDataFrame(object):
         a list of group-names, and the specific col_names
         will be filled in by the data model.
         """
+        if isinstance(df, pd.DataFrame):
+            self.df = df
+            if dtype:
+                self.dtype = dtype
+            else:
+                print '-W- Please provide data type...'
         # make sure all required arguments are present
-        if not magic_file and not dtype:
+        if not magic_file and not dtype and not isinstance(df, pd.DataFrame):
             print "-W- To make a MagicDataFrame, you must provide either a filename or a datatype"
             return
         # fetch data model if not provided
@@ -328,8 +334,11 @@ class MagicDataFrame(object):
             self.data_model = data_model.DataModel()
         else:
             self.data_model = dmodel
+
+        if isinstance(df, pd.DataFrame):
+            pass
         # if no file is provided, make an empty dataframe of the appropriate type
-        if not magic_file:
+        elif not magic_file:
             self.dtype = dtype
             if not isinstance(columns, type(None)):
                 self.df = DataFrame(columns=columns)
