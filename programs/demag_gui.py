@@ -76,6 +76,7 @@ from pmagpy.Fit import *
 import dialogs.demag_dialogs as demag_dialogs
 from copy import deepcopy,copy
 import cit_magic as cit_magic
+import new_builder as nb
 
 
 matplotlib.rc('xtick', labelsize=10)
@@ -128,8 +129,8 @@ class Demag_GUI(wx.Frame):
             if new_WD == self.currentDirectory and sys.version.split()[0] == '2.7.11':
                 new_WD = self.get_DIR()
             self.change_WD(new_WD)
-        if write_to_log_file:
-            self.init_log_file()
+#        if write_to_log_file:
+#            self.init_log_file()
 
         #init wait dialog
         disableAll = wx.WindowDisabler()
@@ -1775,6 +1776,73 @@ class Demag_GUI(wx.Frame):
         CART_rot=array(CART_rot)
         return(CART_rot)
 
+    def convert_ages_to_calendar_year(self,er_ages_rec):
+        '''
+        convert all age units to calendar year
+        '''
+
+        if "age" not in  er_ages_rec.keys():
+            return(er_ages_rec)
+        if "age_unit" not in er_ages_rec.keys():
+            return(er_ages_rec)
+        if er_ages_rec["age_unit"]=="":
+            return(er_ages_rec)
+
+        if  er_ages_rec["age"]=="":
+            if "age_range_high" in er_ages_rec.keys() and "age_range_low" in er_ages_rec.keys():
+                if er_ages_rec["age_range_high"] != "" and  er_ages_rec["age_range_low"] != "":
+                 er_ages_rec["age"]=scipy.mean([float(er_ages_rec["age_range_high"]),float(er_ages_rec["age_range_low"])])
+        if  er_ages_rec["age"]=="":
+            return(er_ages_rec)
+
+            #age_descriptier_ages_recon=er_ages_rec["age_description"] 
+        
+            
+        age_unit=er_ages_rec["age_unit"]
+        
+        # Fix 'age': 
+        mutliplier=1
+        if age_unit=="Ga":
+            mutliplier=-1e9
+        if age_unit=="Ma":
+            mutliplier=-1e6
+        if age_unit=="Ka":
+            mutliplier=-1e3
+        if age_unit=="Years AD (+/-)" or age_unit=="Years Cal AD (+/-)":
+            mutliplier=1
+        if age_unit=="Years BP" or age_unit =="Years Cal BP":
+            mutliplier=1
+        age = float(er_ages_rec["age"])*mutliplier
+        if age_unit=="Years BP" or age_unit =="Years Cal BP":
+            age=1950-age
+        er_ages_rec['age_cal_year']=age   
+
+        # Fix 'age_range_low':                        
+        age_range_low=age
+        age_range_high=age
+        age_sigma=0
+        
+        if "age_sigma" in er_ages_rec.keys() and er_ages_rec["age_sigma"] !="":
+            age_sigma=float(er_ages_rec["age_sigma"])*mutliplier
+            if age_unit=="Years BP" or age_unit =="Years Cal BP":
+                age_sigma=1950-age_sigma
+            age_range_low= age-age_sigma
+            age_range_high= age+age_sigma
+            
+        if "age_range_high" in er_ages_rec.keys() and "age_range_low" in er_ages_rec.keys():
+            if er_ages_rec["age_range_high"] != "" and  er_ages_rec["age_range_low"] != "":
+                age_range_high=float(er_ages_rec["age_range_high"])*mutliplier
+                if age_unit=="Years BP" or age_unit =="Years Cal BP":
+                    age_range_high=1950-age_range_high                              
+                age_range_low=float(er_ages_rec["age_range_low"])*mutliplier
+                if age_unit=="Years BP" or age_unit =="Years Cal BP":
+                    age_range_low=1950-age_range_low                              
+        er_ages_rec['age_cal_year_range_low']= age_range_low
+        er_ages_rec['age_cal_year_range_high']= age_range_high
+        
+        return(er_ages_rec)
+          
+
     def generate_warning_text(self):
         """
         generates warnings for the current specimen then adds them to the current warning text for the GUI which will be rendered on a call to update_warning_box.
@@ -2423,14 +2491,59 @@ class Demag_GUI(wx.Frame):
       except ValueError:
         self.magic_measurement = self.choose_meas_file()
         print("-I- Read magic file %s"%self.magic_file)
-      mag_meas_data,file_type=pmag.magic_read(self.magic_file)
+
+      if self.data_model==3:
+          if 'specimens' in self.contribution.tables:
+              self.contribution.propagate_name_down('sample', 'measurements')
+              self.contribution.propagate_name_down('sample', 'specimens') # need these for get_data_info
+          if 'samples' in self.contribution.tables:
+              self.contribution.propagate_name_down('site', 'measurements')
+              self.contribution.propagate_name_down('site', 'specimens')
+          if 'sites' in self.contribution.tables:
+              self.contribution.propagate_name_down('location','measurements')
+              self.contribution.propagate_name_down('location','specimens')
+          meas_container = self.contribution.tables['measurements']
+          meas_data3_0 = meas_container.df
+# do some filtering
+          Mkeys = ['magn_moment', 'magn_volume', 'magn_mass']
+#          meas_data3_0= meas_data3_0[meas_data3_0['method_codes'].str.contains('LP-PI-TRM|LP-TRM|LP-PI-M|LP-AN|LP-CR-TRM')==True] # fish out all the relavent data 
+          intensity_types = [col_name for col_name in meas_data3_0.columns if col_name in Mkeys]
+          int_key = intensity_types[0] # plot first intensity method found - normalized to initial value anyway - doesn't matter which used
+          meas_data3_0 = meas_data3_0[meas_data3_0[int_key].notnull()] # get all the non-null intensity records of the same type
+# now convert back to 2.5  changing only those keys that are necessary for thellier_gui
+          meas_data2_5=meas_data3_0.rename(columns = {\
+                 'specimen':'er_specimen_name', \
+                 'sample':'er_sample_name', \
+                 'site':'er_site_name', \
+                 'location':'er_location_name', \
+                 'method_codes':'magic_method_codes', \
+                 'flag':'measurement_flag', \
+                 'treat_ac_field':'treatment_ac_field', \
+                 'treat_dc_field':'treatment_dc_field', \
+                 'treat_dc_field_phi':'treatment_dc_field_phi', \
+                 'treat_dc_field_theta':'treatment_dc_field_theta', \
+                 'flag':'measurement_flag', \
+                 'treat_temp':'treatment_temp', \
+                 'description':'measurement_description', \
+                 'number':'measurement_number', \
+                 'magn_moment':'measurement_magn_moment', \
+                 'magn_volume':'measurement_magn_volume', \
+                 'magn_mass':'measurement_magn_mass', \
+                 'dir_dec':'measurement_dec', \
+                 'dir_inc':'measurement_inc', \
+                 'dir_csd':'measurement_csd', \
+                 'instrument_codes':'magic_instrument_codes', \
+                 })
+          mag_meas_data=meas_data2_5.to_dict("records")  # make a list of dictionaries to maintain backward compatibility
+
+      else:
+          mag_meas_data,file_type=pmag.magic_read(self.magic_file)
       self.mag_meas_data=deepcopy(self.merge_pmag_recs(mag_meas_data))
 
       # get list of unique specimen names
 
       CurrRec=[]
       #print "-I- get sids"
-
       sids=pmag.get_specs(self.mag_meas_data) # samples ID's
       #print "-I- done get sids"
 
@@ -2553,7 +2666,8 @@ class Demag_GUI(wx.Frame):
                  else:
                     Data[s]['zijdblock_steps'].append("%.1f%s"%(tr,measurement_step_unit))
                  #--------------
-                 Data[s]['magic_experiment_name']=rec["magic_experiment_name"]
+                 if 'magic_experiment_name' in rec.keys():
+                     Data[s]['magic_experiment_name']=rec["magic_experiment_name"]
                  if "magic_instrument_codes" in rec.keys():
                      Data[s]['magic_instrument_codes']=rec['magic_instrument_codes']
                  Data[s]["magic_method_codes"]=LPcode
@@ -2740,28 +2854,69 @@ class Demag_GUI(wx.Frame):
         data_er_locations={}
         data_er_ages={}
 
-        try:
-            data_er_samples=self.read_magic_file(os.path.join(self.WD, "er_samples.txt"),'er_sample_name')
-        except:
-            print("-W- Cant find er_sample.txt in project directory")
+        if self.data_model == 3.0:
+            print("data model: %1.1f"%(self.data_model))
+            Data_info["er_samples"]=[]
+            Data_info["er_sites"]=[]
+            Data_info["er_locations"]=[]
+            Data_info["er_ages"]=[]
+            fnames = {'measurements': self.magic_file}
+            self.contribution = nb.Contribution(self.WD, custom_filenames=fnames, read_tables=['measurements', 'specimens', 'samples','sites'])
+            if 'specimens' in self.contribution.tables:
+                spec_container = self.contribution.tables['specimens']
+                self.spec_data = spec_container.df
+            if 'samples' in self.contribution.tables:
+                samp_container = self.contribution.tables['samples']
+                self.samp_data = samp_container.df # only need this for saving tables
+            if 'sites' in self.contribution.tables:
+                site_container = self.contribution.tables['sites']
+                self.site_data = site_container.df
+                self.site_data = self.site_data[self.site_data['lat'].notnull()]
+                self.site_data = self.site_data[self.site_data['lon'].notnull()]
+                self.site_data = self.site_data[self.site_data['age'].notnull()]
+                age_ids = [col for col in self.site_data.columns if col.startswith("age") or col == "site"]
+                age_data=self.site_data[age_ids]
+                age_data=age_data.rename(columns={'site':'er_site_name'})
+                er_ages=age_data.to_dict('records')  # save this in 2.5 format
+                data_er_ages={}
+                for s in er_ages:
+                   s=self.convert_ages_to_calendar_year(s)
+                   data_er_ages[s['er_site_name']]=s
+                sites=self.site_data[['site','lat','lon']]
+                sites=sites.rename(columns={'site':'er_site_name','lat':'site_lat','lon':'site_lon'})
+                er_sites=sites.to_dict('records') # pick out what is needed by thellier_gui and put in 2.5 format
+                data_er_sites={}
+                for s in er_sites:
+                   data_er_sites[s['er_site_name']]=s
+            if 'locations' in self.contribution.tables:
+                location_container = self.contribution.tables["locations"]
+                self.location_data = location_container.df # only need this for saving tables
 
-        try:
-            data_er_sites=self.read_magic_file(os.path.join(self.WD, "er_sites.txt"),'er_site_name')
-        except:
-            print("-W- Cant find er_sites.txt in project directory")
+        else: #try 2.5 data model
 
-        try:
-            data_er_locations=self.read_magic_file(os.path.join(self.WD, "er_locations.txt"), 'er_location_name')
-        except:
-            print("-W- Cant find er_locations.txt in project directory")
-
-        try:
-            data_er_ages=self.read_magic_file(os.path.join(self.WD, "er_ages.txt"),'er_sample_name')
-        except:
+            print("data model: %1.1f"%(self.data_model))
             try:
-                data_er_ages=self.read_magic_file(os.path.join(self.WD, "er_ages.txt"),'er_site_name')
+                data_er_samples=self.read_magic_file(os.path.join(self.WD, "er_samples.txt"),'er_sample_name')
             except:
-                print("-W- Cant find er_ages in project directory")
+                print("-W- Cant find er_sample.txt in project directory")
+
+            try:
+                data_er_sites=self.read_magic_file(os.path.join(self.WD, "er_sites.txt"),'er_site_name')
+            except:
+                print("-W- Cant find er_sites.txt in project directory")
+
+            try:
+                data_er_locations=self.read_magic_file(os.path.join(self.WD, "er_locations.txt"), 'er_location_name')
+            except:
+                print("-W- Cant find er_locations.txt in project directory")
+
+            try:
+                data_er_ages=self.read_magic_file(os.path.join(self.WD, "er_ages.txt"),'er_sample_name')
+            except:
+                try:
+                    data_er_ages=self.read_magic_file(os.path.join(self.WD, "er_ages.txt"),'er_site_name')
+                except:
+                    print("-W- Cant find er_ages in project directory")
 
 
 
@@ -3002,7 +3157,12 @@ class Demag_GUI(wx.Frame):
         self.WD = new_WD
         os.chdir(self.WD)
         self.WD=os.getcwd()
-        meas_file = os.path.join(self.WD, "magic_measurements.txt")
+        if os.path.exists(os.path.join(self.WD, "magic_measurements.txt")):
+            meas_file = os.path.join(self.WD, "magic_measurements.txt")
+            self.data_model = 2.5
+        elif os.path.exists(os.path.join(self.WD, "measurements.txt")):
+            meas_file = os.path.join(self.WD, "measurements.txt")
+            self.data_model = 3.0
         if os.path.isfile(meas_file): self.magic_file=meas_file
         else: self.magic_file = self.choose_meas_file()
 
