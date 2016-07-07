@@ -229,7 +229,6 @@ class MainFrame(wx.Frame):
         wx.Yield()
         print '-I- Initializing magic data object'
         # make new contribution object, but reuse old data_model
-        print dir(self)
         self.contribution = nb.Contribution(self.WD, dmodel=self.data_model)
         self.edited = False
         print '-I- Read in any available data from working directory'
