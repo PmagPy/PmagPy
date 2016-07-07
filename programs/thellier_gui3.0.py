@@ -6601,7 +6601,11 @@ class Arai_GUI(wx.Frame):
                 self.site_data = site_container.df
                 self.site_data = self.site_data[self.site_data['lat'].notnull()] 
                 self.site_data = self.site_data[self.site_data['lon'].notnull()] 
-                self.site_data = self.site_data[self.site_data['age'].notnull()] 
+                self.site_data = self.site_data[self.site_data['age'].notnull()]
+                age_headers = ['site','age','age_high','age_low','age_unit']
+                for head in age_headers:
+                    if head not in self.site_data:
+                        self.site_data[head] = None
                 age_data=self.site_data[['site','age','age_high','age_low','age_unit']]
                 age_data=age_data.rename(columns={'site':'er_site_name'})
                 er_ages=age_data.to_dict('records')  # save this in 2.5 format
