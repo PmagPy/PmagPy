@@ -812,6 +812,9 @@ def inc_from_lat(lat):
     return inc
 
 
+
+
+
 def plot_net(fignum):
     """
     Draws circle and tick marks for equal area projection.
@@ -866,7 +869,10 @@ def plot_net(fignum):
     plt.axis((-1.05,1.05,-1.05,1.05))
 
 
-def plot_di(dec=None, inc=None, di_block=None, color='k', marker='o', markersize=20, legend='no', label=''):
+def plot_XY(X=None, Y=None,sym='ro'):
+    plt.plot(X,Y,sym)
+
+def plot_di(dec=None, inc=None, di_block=None, color='k', marker='o', markersize=20, legend='no', label='',title=''):
     """
     Plot declination, inclination data on an equal area plot.
 
@@ -931,6 +937,8 @@ def plot_di(dec=None, inc=None, di_block=None, color='k', marker='o', markersize
     if legend=='yes':
         plt.legend(loc=2)
     plt.tight_layout()
+    if title!="":
+        plt.title(title)
 
 
 def plot_di_mean(dec,inc,a95,color='k',marker='o',markersize=20,label='',legend='no'):
