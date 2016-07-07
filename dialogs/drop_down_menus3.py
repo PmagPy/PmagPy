@@ -1,14 +1,12 @@
 #!/usr/bin/env python
 
+"""
+this module will provide all the functionality for the drop-down controlled vocabulary menus
+"""
 # pylint: disable=W0612,C0111,C0301
 
 import wx
-import pandas as pd
 from pmagpy.controlled_vocabularies3 import vocab
-
-
-
-# this module will provide all the functionality for the drop-down controlled vocabulary menus
 
 
 class Menus(object):
@@ -17,8 +15,8 @@ class Menus(object):
     """
     def __init__(self, data_type, contribution, grid):
         """
-        take: data_type (string), ErMagicCheck (top level class object for ErMagic steps 1-6), 
-        grid (grid object), belongs_to (list of options for data object to belong to, i.e. locations for the site Menus)
+        take: data_type (string), MagIC contribution,
+        & grid (grid object)
         """
         # if controlled vocabularies haven't already been grabbed from earthref
         # do so now
@@ -38,15 +36,15 @@ class Menus(object):
             parent_table, self.parent_type = self.contribution.get_table_name(parent_ind+1)
 
         self.grid = grid
-        self.window = grid.Parent # parent window in which grid resides
+        self.window = grid.Parent  # parent window in which grid resides
         #self.headers = headers
         self.selected_col = None
         self.selection = [] # [(row, col), (row, col)], sequentially down a column
         self.dispersed_selection = [] # [(row, col), (row, col)], not sequential
         self.col_color = None
-        self.colon_delimited_lst = ['geologic_types', 'geologic_classes', 'lithologies',
-                                    'specimens', 'samples', 'sites',
-                                    'locations', 'method_codes']
+        self.colon_delimited_lst = ['geologic_types', 'geologic_classes',
+                                    'lithologies', 'specimens', 'samples',
+                                    'sites', 'locations', 'method_codes']
         self.InitUI()
 
     def InitUI(self):
@@ -136,7 +134,7 @@ class Menus(object):
         else:
             method_list = vocab.methods
         self.choices[col_number] = (method_list, True)
-        
+
     def on_label_click(self, event):
         col = event.GetCol()
         color = self.grid.GetCellBackgroundColour(0, col)
@@ -144,7 +142,7 @@ class Menus(object):
             self.col_color = color
         if col not in (-1, 0):
             # if a new column was chosen without de-selecting the previous column, deselect the old selected_col
-            if self.selected_col != None and self.selected_col != col:
+            if self.selected_col is not None and self.selected_col != col:
                 col_label_value = self.grid.GetColLabelValue(self.selected_col)
                 self.grid.SetColLabelValue(self.selected_col, col_label_value[:-10])
                 for row in range(self.grid.GetNumberRows()):
@@ -213,9 +211,31 @@ class Menus(object):
         if that column is in the list of choices that get a drop-down menu.
         allows user to edit the column, but only from available values
         """
+        row, col = event.GetRow(), event.GetCol()
+        if col == 0 and self.grid.name != 'ages':
+            default_val = self.grid.GetCellValue(row, col)
+            msg = "Choose a new name for {}.\nThe new value will propagate throughout the contribution.".format(default_val)
+            dia = wx.TextEntryDialog(self.grid, msg,
+                                     "Rename {}".format(self.grid.name, default_val),
+                                     default_val)
+            res = dia.ShowModal()
+            if res == wx.ID_OK:
+                new_val = dia.GetValue()
+                # update the contribution with new name
+                self.contribution.rename_item(self.grid.name,
+                                              default_val, new_val)
+                # update the current grid with new name
+                for row in range(self.grid.GetNumberRows()):
+                    cell_value = self.grid.GetCellValue(row, 0)
+                    if cell_value == default_val:
+                        self.grid.SetCellValue(row, 0, new_val)
+                    else:
+                        break
+            return
         color = self.grid.GetCellBackgroundColour(event.GetRow(), event.GetCol())
-        # allow user to cherry-pick cells for editing.  gets selection of meta key for mac, ctrl key for pc
-        if event.CmdDown(): 
+        # allow user to cherry-pick cells for editing.
+        # gets selection of meta key for mac, ctrl key for pc
+        if event.CmdDown():
             row, col = event.GetRow(), event.GetCol()
             if (row, col) not in self.dispersed_selection:
                 self.dispersed_selection.append((row, col))
