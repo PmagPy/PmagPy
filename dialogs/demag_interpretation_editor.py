@@ -161,10 +161,10 @@ class InterpretationEditorFrame(wx.Frame):
         display_window_2 = wx.GridSizer(2, 1, 10*self.GUI_RESOLUTION, 19*self.GUI_RESOLUTION)
         name_window = wx.GridSizer(2, 1, 10*self.GUI_RESOLUTION, 19*self.GUI_RESOLUTION)
         bounds_window = wx.GridSizer(2, 1, 10*self.GUI_RESOLUTION, 19*self.GUI_RESOLUTION)
-        buttons1_window = wx.GridSizer(2, 1, 10*self.GUI_RESOLUTION, 19*self.GUI_RESOLUTION)
-        buttons2_window = wx.GridSizer(2, 1, 10*self.GUI_RESOLUTION, 19*self.GUI_RESOLUTION)
-        buttons3_window = wx.GridSizer(2, 1, 10*self.GUI_RESOLUTION, 19*self.GUI_RESOLUTION)
-        buttons4_window = wx.GridSizer(2, 1, 10*self.GUI_RESOLUTION, 19*self.GUI_RESOLUTION)
+        buttons1_window = wx.GridSizer(4, 1, 5*self.GUI_RESOLUTION, 19*self.GUI_RESOLUTION)
+#        buttons2_window = wx.GridSizer(2, 1, 10*self.GUI_RESOLUTION, 19*self.GUI_RESOLUTION)
+#        buttons3_window = wx.GridSizer(2, 1, 10*self.GUI_RESOLUTION, 19*self.GUI_RESOLUTION)
+#        buttons4_window = wx.GridSizer(2, 1, 10*self.GUI_RESOLUTION, 19*self.GUI_RESOLUTION)
         display_window_0.AddMany( [(self.coordinates_box, wx.ALIGN_LEFT),
                                    (self.show_box, wx.ALIGN_LEFT)] )
         display_window_1.AddMany( [(self.level_box, wx.ALIGN_LEFT),
@@ -175,19 +175,22 @@ class InterpretationEditorFrame(wx.Frame):
                                 (self.color_box, wx.ALIGN_LEFT)] )
         bounds_window.AddMany( [(self.tmin_box, wx.ALIGN_LEFT),
                                 (self.tmax_box, wx.ALIGN_LEFT)] )
-        buttons1_window.Add(self.add_fit_button, wx.ALIGN_TOP)
-        buttons2_window.Add(self.add_all_button, wx.ALIGN_TOP)
-        buttons3_window.Add(self.delete_fit_button, wx.ALIGN_TOP)
-        buttons4_window.Add(self.apply_changes_button, wx.ALIGN_TOP)
-        self.display_sizer.Add(display_window_0, 0, wx.TOP, 8)
-        self.display_sizer.Add(display_window_1, 0, wx.TOP | wx.LEFT, 8)
-        self.display_sizer.Add(display_window_2, 0, wx.TOP | wx.LEFT, 8)
-        self.name_sizer.Add(name_window, 0, wx.TOP, 5.5)
-        self.bounds_sizer.Add(bounds_window, 0, wx.TOP, 5.5)
-        self.buttons_sizer.Add(buttons1_window, 0, wx.TOP, button_spacing)
-        self.buttons_sizer.Add(buttons2_window, 0, wx.TOP, button_spacing)
-        self.buttons_sizer.Add(buttons3_window, 0, wx.TOP, button_spacing)
-        self.buttons_sizer.Add(buttons4_window, 0, wx.TOP, button_spacing)
+        buttons1_window.AddMany( [(self.add_fit_button, wx.ALL|wx.ALIGN_CENTER|wx.SHAPED, 0),
+                                  (self.add_all_button, wx.ALL|wx.ALIGN_CENTER|wx.SHAPED, 0),
+                                  (self.delete_fit_button, wx.ALL|wx.ALIGN_CENTER|wx.SHAPED, 0),
+                                  (self.apply_changes_button, wx.ALL|wx.ALIGN_CENTER|wx.SHAPED, 0)])
+#        buttons2_window.Add(self.add_all_button, wx.ALIGN_TOP)
+#        buttons3_window.Add(self.delete_fit_button, wx.ALIGN_TOP)
+#        buttons4_window.Add(self.apply_changes_button, wx.ALIGN_TOP)
+        self.display_sizer.Add(display_window_0, 1, wx.TOP|wx.EXPAND, 8)
+        self.display_sizer.Add(display_window_1, 1, wx.TOP | wx.LEFT|wx.EXPAND, 8)
+        self.display_sizer.Add(display_window_2, 1, wx.TOP | wx.LEFT|wx.EXPAND, 8)
+        self.name_sizer.Add(name_window, 1, wx.TOP, 5.5)
+        self.bounds_sizer.Add(bounds_window, 1, wx.TOP, 5.5)
+        self.buttons_sizer.Add(buttons1_window, 1, wx.TOP, 0)
+#        self.buttons_sizer.Add(buttons2_window, 0, wx.TOP, button_spacing)
+#        self.buttons_sizer.Add(buttons3_window, 0, wx.TOP, button_spacing)
+#        self.buttons_sizer.Add(buttons4_window, 0, wx.TOP, button_spacing)
 
         #duplicate higher levels plot
         self.fig = copy(self.parent.fig4)
@@ -216,7 +219,7 @@ class InterpretationEditorFrame(wx.Frame):
                     (wx.StaticText(self.panel,label='%s',style=wx.TE_CENTER),wx.EXPAND),
                     (self.%s_window, wx.EXPAND)])"""%(parameter,parameter,parameter)
             exec COMMAND
-            COMMAND="self.stats_sizer.Add(self.%s_outer_window, 0, wx.ALIGN_LEFT, 0)"%parameter
+            COMMAND="self.stats_sizer.Add(self.%s_outer_window, 1, wx.ALIGN_LEFT|wx.EXPAND, 0)"%parameter
             exec COMMAND
 
         self.switch_stats_button = wx.SpinButton(self.panel, id=wx.ID_ANY, style=wx.SP_HORIZONTAL|wx.SP_ARROW_KEYS|wx.SP_WRAP, name="change stats")
@@ -224,8 +227,8 @@ class InterpretationEditorFrame(wx.Frame):
 
         #construct panel
         hbox0 = wx.BoxSizer(wx.HORIZONTAL)
-        hbox0.Add(self.name_sizer,flag=wx.ALIGN_TOP,border=8)
-        hbox0.Add(self.bounds_sizer,flag=wx.ALIGN_TOP,border=8)
+        hbox0.Add(self.name_sizer,flag=wx.ALIGN_TOP|wx.EXPAND,border=8)
+        hbox0.Add(self.bounds_sizer,flag=wx.ALIGN_TOP|wx.EXPAND,border=8)
 
         vbox0 = wx.BoxSizer(wx.VERTICAL)
         vbox0.Add(hbox0,flag=wx.ALIGN_TOP,border=8)
@@ -234,22 +237,22 @@ class InterpretationEditorFrame(wx.Frame):
         hbox1 = wx.BoxSizer(wx.HORIZONTAL)
         hbox1.Add(vbox0,flag=wx.ALIGN_TOP,border=8)
         hbox1.Add(self.stats_sizer,flag=wx.ALIGN_TOP,border=8)
-        hbox1.Add(self.switch_stats_button,flag=wx.ALIGN_TOP,border=8)
+        hbox1.Add(self.switch_stats_button,flag=wx.ALIGN_TOP|wx.EXPAND,border=8)
 
         vbox1 = wx.BoxSizer(wx.VERTICAL)
         vbox1.Add(self.display_sizer,flag=wx.ALIGN_TOP,border=8)
         vbox1.Add(hbox1,flag=wx.ALIGN_TOP,border=8)
-        vbox1.Add(self.canvas,flag=wx.ALIGN_TOP,border=8)
+        vbox1.Add(self.canvas,proportion=1,flag=wx.ALIGN_CENTER_HORIZONTAL | wx.ALIGN_CENTER_VERTICAL | wx.EXPAND,border=8)
 
         vbox2 = wx.BoxSizer(wx.VERTICAL)
-        vbox2.Add(self.search_bar,flag=wx.ALIGN_LEFT | wx.ALIGN_BOTTOM,border=8)
-        vbox2.Add(self.logger,flag=wx.ALIGN_LEFT,border=8)
+        vbox2.Add(self.search_bar,proportion=.5,flag=wx.ALIGN_LEFT | wx.ALIGN_BOTTOM | wx.EXPAND, border=8)
+        vbox2.Add(self.logger,proportion=1,flag=wx.ALIGN_LEFT|wx.EXPAND,border=8)
 
         hbox2 = wx.BoxSizer(wx.HORIZONTAL)
-        hbox2.Add(vbox2,flag=wx.ALIGN_LEFT,border=8)
-        hbox2.Add(vbox1,flag=wx.ALIGN_TOP,border=8)
+        hbox2.Add(vbox2,proportion=1,flag=wx.ALIGN_LEFT|wx.EXPAND)
+        hbox2.Add(vbox1,flag=wx.ALIGN_TOP|wx.EXPAND)
 
-        self.panel.SetSizer(hbox2)
+        self.panel.SetSizerAndFit(hbox2)
         hbox2.Fit(self)
 
     ################################Logger Functions##################################
@@ -291,19 +294,42 @@ class InterpretationEditorFrame(wx.Frame):
             return
         else: return
 
+        coordinate_system = self.parent.COORDINATE_SYSTEM
         fit = tup[0]
-        pars = fit.get(self.parent.COORDINATE_SYSTEM)
+        pars = fit.get(coordinate_system)
         fmin,fmax,n,ftype,dec,inc,mad = "","","","","","",""
 
         specimen = tup[1]
+        if coordinate_system=='geographic':
+            block_key = 'zijdblock_geo'
+        elif coordinate_system=='tilt-corrected':
+            block_key = 'zijdblock_tilt'
+        else:
+            block_key = 'zijdblock'
+
         name = fit.name
-        if 'measurement_step_min' in pars.keys(): fmin = str(fit.tmin)
-        if 'measurement_step_max' in pars.keys(): fmax = str(fit.tmax)
-        if 'specimen_n' in pars.keys(): n = str(pars['specimen_n'])
-        if 'calculation_type' in pars.keys(): ftype = pars['calculation_type']
-        if 'specimen_dec' in pars.keys(): dec = "%.1f"%pars['specimen_dec']
-        if 'specimen_inc' in pars.keys(): inc = "%.1f"%pars['specimen_inc']
-        if 'specimen_mad' in pars.keys(): mad = "%.1f"%pars['specimen_mad']
+        if pars == {} and self.parent.Data[specimen][block_key] != []:
+            fit.put(specimen, coordinate_system, self.parent.get_PCA_parameters(specimen,fit,fit.tmin,fit.tmax,coordinate_system,fit.PCA_type))
+            pars = fit.get(coordinate_system)
+        elif self.parent.Data[specimen][block_key]==[]:
+            spars = fit.get('specimen')
+            fmin = fit.tmin
+            fmax = fit.tmax
+            if 'specimen_n' in spars.keys(): n = str(spars['specimen_n'])
+            else: n = 'No Data'
+            if 'calculation_type' in spars.keys(): ftype = spars['calculation_type']
+            else: ftype = 'No Data'
+            dec = 'No Data'
+            inc = 'No Data'
+            mad = 'No Data'
+        else:
+            if 'measurement_step_min' in pars.keys(): fmin = str(fit.tmin)
+            if 'measurement_step_max' in pars.keys(): fmax = str(fit.tmax)
+            if 'specimen_n' in pars.keys(): n = str(pars['specimen_n'])
+            if 'calculation_type' in pars.keys(): ftype = pars['calculation_type']
+            if 'specimen_dec' in pars.keys(): dec = "%.1f"%pars['specimen_dec']
+            if 'specimen_inc' in pars.keys(): inc = "%.1f"%pars['specimen_inc']
+            if 'specimen_mad' in pars.keys(): mad = "%.1f"%pars['specimen_mad']
 
         if self.search_query != "":
             entry = (specimen+name+fmin+fmax+n+ftype+dec+inc+mad).replace(" ","").lower()
@@ -350,7 +376,7 @@ class InterpretationEditorFrame(wx.Frame):
     def change_selected(self,new_fit):
         """
         updates passed in fit or index as current fit for the editor (does not affect parent),
-        if no parameters are passed in it sets first fit as current and complains.
+        if no parameters are passed in it sets first fit as current
         @param: new_fit -> fit object to highlight as selected
         """
         if self.search_query and self.parent.current_fit not in map(lambda x: x[0], self.fit_list): return

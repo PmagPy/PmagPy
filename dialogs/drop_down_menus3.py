@@ -212,7 +212,7 @@ class Menus(object):
         allows user to edit the column, but only from available values
         """
         row, col = event.GetRow(), event.GetCol()
-        if col == 0:
+        if col == 0 and self.grid.name != 'ages':
             default_val = self.grid.GetCellValue(row, col)
             msg = "Choose a new name for {}.\nThe new value will propagate throughout the contribution.".format(default_val)
             dia = wx.TextEntryDialog(self.grid, msg,

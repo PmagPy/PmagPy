@@ -77,6 +77,7 @@ import dialogs.demag_dialogs as demag_dialogs
 from copy import deepcopy,copy
 import cit_magic as cit_magic
 import new_builder as nb
+from SPD.mapping import map_magic
 
 
 matplotlib.rc('xtick', labelsize=10)
@@ -212,7 +213,7 @@ class Demag_GUI(wx.Frame):
         self.panel.SetupScrolling()     #endable scrolling
         self.create_menu()                  # create manu bar
 
-        if self.data_model == 3.0:
+        if self.data_model == 3.0 and 'specimens' in self.contribution.tables:
             self.get_interpretations3()
 
         # get previous interpretations from pmag tables
@@ -2327,8 +2328,7 @@ class Demag_GUI(wx.Frame):
         else: tmax_index=self.tmin_box.GetSelection()
 
         max_index = len(self.Data[specimen]['zijdblock_steps'])-1
-        while (self.Data[specimen]['measurement_flag'][max_index] == 'b' and \
-               max_index-1 > 0):
+        while (self.Data[specimen]['measurement_flag'][max_index] == 'b' and max_index-1 > 0):
             max_index -= 1
 
         if tmin_index >= max_index:
@@ -2520,12 +2520,12 @@ class Demag_GUI(wx.Frame):
           if 'specimens' in self.contribution.tables:
               self.contribution.propagate_name_down('sample', 'measurements')
               self.contribution.propagate_name_down('sample', 'specimens') # need these for get_data_info
+              self.contribution.propagate_name_down('site', 'specimens')
+              self.contribution.propagate_name_down('location','specimens')
           if 'samples' in self.contribution.tables:
               self.contribution.propagate_name_down('site', 'measurements')
-              self.contribution.propagate_name_down('site', 'specimens')
           if 'sites' in self.contribution.tables:
               self.contribution.propagate_name_down('location','measurements')
-              self.contribution.propagate_name_down('location','specimens')
           meas_container = self.contribution.tables['measurements']
           meas_data3_0 = meas_container.df
 # do some filtering
@@ -2535,29 +2535,7 @@ class Demag_GUI(wx.Frame):
           int_key = intensity_types[0] # plot first intensity method found - normalized to initial value anyway - doesn't matter which used
           meas_data3_0 = meas_data3_0[meas_data3_0[int_key].notnull()] # get all the non-null intensity records of the same type
 # now convert back to 2.5  changing only those keys that are necessary for thellier_gui
-          meas_data2_5=meas_data3_0.rename(columns = {\
-                 'specimen':'er_specimen_name', \
-                 'sample':'er_sample_name', \
-                 'site':'er_site_name', \
-                 'location':'er_location_name', \
-                 'method_codes':'magic_method_codes', \
-                 'flag':'measurement_flag', \
-                 'treat_ac_field':'treatment_ac_field', \
-                 'treat_dc_field':'treatment_dc_field', \
-                 'treat_dc_field_phi':'treatment_dc_field_phi', \
-                 'treat_dc_field_theta':'treatment_dc_field_theta', \
-                 'flag':'measurement_flag', \
-                 'treat_temp':'treatment_temp', \
-                 'description':'measurement_description', \
-                 'number':'measurement_number', \
-                 'magn_moment':'measurement_magn_moment', \
-                 'magn_volume':'measurement_magn_volume', \
-                 'magn_mass':'measurement_magn_mass', \
-                 'dir_dec':'measurement_dec', \
-                 'dir_inc':'measurement_inc', \
-                 'dir_csd':'measurement_csd', \
-                 'instrument_codes':'magic_instrument_codes', \
-                 })
+          meas_data2_5=meas_data3_0.rename(columns=map_magic.magic3_2_magic2_map)
           mag_meas_data=meas_data2_5.to_dict("records")  # make a list of dictionaries to maintain backward compatibility
 
       else:
@@ -2593,9 +2571,12 @@ class Demag_GUI(wx.Frame):
       for rec in self.mag_meas_data:
           cnt+=1 #index counter
           s=rec["er_specimen_name"]
-          sample=rec["er_sample_name"]
-          site=rec["er_site_name"]
-          location=rec["er_location_name"]
+          if "er_sample_name" in rec.keys(): sample=rec["er_sample_name"]
+          else: sample = ''
+          if "er_site_name" in rec.keys(): site=rec["er_site_name"]
+          else: site = ''
+          if "er_location_name" in rec.keys(): location=rec["er_location_name"]
+          else: location = ''
           expedition_name=""
           if "er_expedition_name" in rec.keys():
               expedition_name=rec["er_expedition_name"]
@@ -2718,7 +2699,7 @@ class Demag_GUI(wx.Frame):
                     if sample_orientation_flag!='b':
                         d_geo,i_geo=pmag.dogeo(dec,inc,sample_azimuth,sample_dip)
                         Data[s]['zijdblock_geo'].append([tr,d_geo,i_geo,intensity,ZI,rec['measurement_flag'],rec['magic_instrument_codes']])
-                 except (IOError, KeyError, ValueError) as e:
+                 except (IOError, KeyError, ValueError, TypeError) as e:
                     if prev_s != s:
                         print( "-W- cant find sample_azimuth,sample_dip for sample %s"%sample)
 
@@ -2729,7 +2710,7 @@ class Demag_GUI(wx.Frame):
                     sample_bed_dip=float(self.Data_info["er_samples"][sample]['sample_bed_dip'])
                     d_tilt,i_tilt=pmag.dotilt(d_geo,i_geo,sample_bed_dip_direction,sample_bed_dip)
                     Data[s]['zijdblock_tilt'].append([tr,d_tilt,i_tilt,intensity,ZI,rec['measurement_flag'],rec['magic_instrument_codes']])
-                 except (IOError, KeyError) as e:
+                 except (IOError, KeyError, TypeError) as e:
                     if prev_s != s:
                         print("-W- cant find tilt-corrected data for sample %s"%sample)
 
@@ -2872,6 +2853,10 @@ class Demag_GUI(wx.Frame):
       return(Data,Data_hierarchy)
 
     def get_interpretations3(self):
+        if "dir_comp_name" not in self.spec_data.columns or \
+           "meas_step_min" not in self.spec_data.columns or \
+           "meas_step_max" not in self.spec_data.columns or \
+           "meas_step_unit" not in self.spec_data.columns: return
         fnames = self.spec_data["dir_comp_name"].to_dict()
         fmins = self.spec_data["meas_step_min"].to_dict()
         fmaxs = self.spec_data["meas_step_max"].to_dict()
@@ -3208,6 +3193,7 @@ class Demag_GUI(wx.Frame):
         elif os.path.exists(os.path.join(self.WD, "measurements.txt")):
             meas_file = os.path.join(self.WD, "measurements.txt")
             self.data_model = 3.0
+        else: self.user_warning("No measurement file found in chosen directory"); meas_file = ''
         if os.path.isfile(meas_file): self.magic_file=meas_file
         else: self.magic_file = self.choose_meas_file()
 
