@@ -130,8 +130,8 @@ class Demag_GUI(wx.Frame):
             if new_WD == self.currentDirectory and sys.version.split()[0] == '2.7.11':
                 new_WD = self.get_DIR()
             self.change_WD(new_WD)
-#        if write_to_log_file:
-#            self.init_log_file()
+        if write_to_log_file:
+            self.init_log_file()
 
         #init wait dialog
         disableAll = wx.WindowDisabler()
