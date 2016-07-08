@@ -4218,7 +4218,9 @@ class Demag_GUI(wx.Frame):
         if self.data_model == 3.0:
 
 #            pdb.set_trace()
-            if self.user_warning("saving to MagIC tables model 3.0 is not yet supported by Demag GUI if you continue 2.5 data tables will be written to disk instead. They may not load on lauch of GUI however as such it is recommended that for now you use .redo files to save your interpretaions, or convert your project back to the older stable 2.5 model."): pass
+            if self.user_warning("saving to MagIC tables model 3.0 is not yet supported by Demag GUI if you continue 2.5 data tables will be written to disk instead. They may not load on lauch of GUI however as such it is recommended that for now you use .redo files to save your interpretaions, or convert your project back to the older stable 2.5 model."):
+                pmag.magic_write(os.path.join(self.WD, "pmag_specimens.txt"),PmagSpecs_fixed,'pmag_specimens')
+                print( "specimen data stored in %s\n"%os.path.join(self.WD, "pmag_specimens.txt"))
             else: return
 
             #still broken
