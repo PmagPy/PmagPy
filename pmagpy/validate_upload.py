@@ -5,6 +5,7 @@ import urllib2
 import os
 import httplib
 import pandas as pd
+from pandas import DataFrame
 import pmag
 import check_updates
 from pmagpy.controlled_vocabularies import vocab
@@ -73,6 +74,21 @@ def get_data_model():
         else:
             dictionary[d['field_name_oracle']] = {'data_type': d['data_type'], 'data_status': d['data_status']}
     return complete_ref
+
+def format_data_model(d_model, dtypes=['specimen', 'sample', 'site', 'location', 'age']):
+    """
+    Takes in the raw data model as downloaded from earthref, and converts it into a dictionary of DataFrames that are convenient to access
+    """
+    output = {}
+    for dtype in dtypes:
+        if dtype:
+            dtype = dtype if dtype.endswith('s') else dtype + "s"
+            if not dtype in d_model['tables'].index:
+                print '-W- {} not in raw data model; skipping'.format(dtype)
+            data = DataFrame(d_model['tables'][dtype]['columns'])
+            data = data.transpose()
+            output[dtype] = data
+    return output
 
 
 def read_upload(up_file, data_model=None):
@@ -390,3 +406,5 @@ def validate_for_coordinates(key, value, complete_ref):
     if 'lon' in key:
         if not 0 < val < 360.:
             return key
+
+

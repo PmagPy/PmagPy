@@ -1,0 +1,17 @@
+tab 	sites
+bed_dip	bed_dip_direction	citations	conglomerate_test	description	dir_dec	dir_inc	dir_k	dir_n_samples	dir_polarity	dir_tilt_correction	geologic_classes	geologic_types	lat	lithologies	location_name	lon	method_codes	result_type	site_name	vgp_lat	vgp_lon	vgp_n_samples
+10	135	This study			293.1	34.5	517	5	n	0	Extrusive	Lava Flow		Basalt	Osler Volcanics, Nipigon Strait, Upper Normal		FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM		1			
+10	135	This study			289.8	43.6	517	5	n	100	Extrusive	Lava Flow		Basalt	Osler Volcanics, Nipigon Strait, Upper Normal		FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM		1			
+		Cox & Doell 1960:McElhinny & McFadden 2000	ND	VGP:Site 1	289.8	43.6		1		100			48.626429		Osler Volcanics, Nipigon Strait, Upper Normal	271.894142	DE-DI:FS-LOC-GOOGLE:LP-DC2	i	1	31.65155202	185.5745062	1
+12	140	This study			290.6	31.9	243	5	n	0	Extrusive	Lava Flow		Basalt	Osler Volcanics, Nipigon Strait, Upper Normal		DE-K:LP-DC2:FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM		2			
+12	140	This study			285.7	42	243	5	n	100	Extrusive	Lava Flow		Basalt	Osler Volcanics, Nipigon Strait, Upper Normal		FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM		2			
+		Cox & Doell 1960:McElhinny & McFadden 2000	ND	VGP:Site 2	285.7	42		1		100			48.637185		Osler Volcanics, Nipigon Strait, Upper Normal	271.913846	DE-DI:FS-LOC-GOOGLE:LP-DC2	i	2	28.11008553	187.514758	1
+14	146	This study			310	24.6	2485	5	n	0	Extrusive	Lava Flow		Basalt	Osler Volcanics, Nipigon Strait, Upper Normal		DE-K:LP-DC2:FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM		3			
+14	146	This study			307.4	37.9	2485	5	n	100	Extrusive	Lava Flow		Basalt	Osler Volcanics, Nipigon Strait, Upper Normal		DE-K:LP-DC2:FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM		3			
+		Cox & Doell 1960:McElhinny & McFadden 2000	ND	VGP:Site 3	307.4	37.9		1		100			48.640811		Osler Volcanics, Nipigon Strait, Upper Normal	271.928039	DE-DI:FS-LOC-GOOGLE:LP-DC2	i	3	40.26060376	167.8862917	1
+12	135	This study			303.9	18.2	331	5	n	0	Extrusive	Lava Flow		Basalt	Osler Volcanics, Nipigon Strait, Upper Normal		DE-K:LP-DC2:FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM		4			
+12	135	This study			302.8	29.9	331	5	n	100	Extrusive	Lava Flow		Basalt	Osler Volcanics, Nipigon Strait, Upper Normal		DE-K:LP-DC2:FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM		4			
+		Cox & Doell 1960:McElhinny & McFadden 2000	ND	VGP:Site 4	302.8	29.9		1		100			48.655732		Osler Volcanics, Nipigon Strait, Upper Normal	271.959099	DE-DI:FS-LOC-GOOGLE:LP-DC2	i	4	33.46021472	167.4988097	1
+10	135	This study			297.3	33.1	130	5	n	0	Extrusive	Lava Flow		Basalt	Osler Volcanics, Nipigon Strait, Upper Normal		DE-K:LP-DC2:FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM		5			
+10	135	This study			294.7	42.5	130	5	n	100	Extrusive	Lava Flow		Basalt	Osler Volcanics, Nipigon Strait, Upper Normal		DE-K:LP-DC2:FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM		5			
+		Cox & Doell 1960:McElhinny & McFadden 2000	ND	VGP:Site 5	294.7	42.5		1		100			48.661489		Osler Volcanics, Nipigon Strait, Upper Normal	271.958187	DE-DI:FS-LOC-GOOGLE:LP-DC2	i	5	34.30926268	181.2568193	1

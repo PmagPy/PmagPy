@@ -1,0 +1,8 @@
+The Data model 3.0 version in megiddo_upgraded_to_3_0.txt was done with Rupert's online tool.  It is wrong in many ways:  the aniso_s values are a single number instead of a colon delimited list.  
+There are several records for each specimen with different entries - some have 'lithology' filled in, some do not.  
+The V1, V2, V3 columns are wrong.  
+the ages are at the sample level and not the site level.  
+SOME of these things are fixed in the notebook ages_from_samples_to_sites.ipynb - but the program thellier_gui3.0.py still does not work properly. 
+	it fails to find the prior specimen interpretation properly
+ 	it fails on the anisotropy correction
+

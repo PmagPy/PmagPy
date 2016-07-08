@@ -2,6 +2,7 @@
 import sys
 import pmagpy.command_line_extractor as extractor
 import pmagpy.ipmag as ipmag
+from pmagpy import pmag
 
 def main():
     """
@@ -42,7 +43,8 @@ def main():
         checked_args = extractor.extract_and_check_args(sys.argv, dataframe)
         infile, dir_path, input_dir_path, overwrite = extractor.get_vars(['f', 'WD', 'ID', 'O'], checked_args)
 
-    ipmag.download_magic(infile, dir_path, input_dir_path, overwrite)
+    data_model = float(pmag.get_named_arg_from_sys("-DM", 2.5))
+    ipmag.download_magic(infile, dir_path, input_dir_path, overwrite, data_model)
 
 
                         

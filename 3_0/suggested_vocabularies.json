@@ -1,0 +1,4776 @@
+{
+  "terrane": {
+    "label": "Terranes",
+    "items": [{
+      "item": "Acadian Orogen"
+    }, {
+      "item": "Alice Springs Orogen"
+    }, {
+      "item": "Alleghenian Orogen"
+    }, {
+      "item": "Alpine Orogen"
+    }, {
+      "item": "Altaid Orogen"
+    }, {
+      "item": "Andean Orogen"
+    }, {
+      "item": "Antler Orogen"
+    }, {
+      "item": "Appalachian Orogen"
+    }, {
+      "item": "Arvalli-Delhi Orogen"
+    }, {
+      "item": "Baltica"
+    }, {
+      "item": "Barramundi Orogen"
+    }, {
+      "item": "Beardmore Orogen"
+    }, {
+      "item": "Big Sky Orogen"
+    }, {
+      "item": "Cadomian Orogen"
+    }, {
+      "item": "Caledonian Orogen"
+    }, {
+      "item": "Capricorn Orogen"
+    }, {
+      "item": "Cathayasian Orogen"
+    }, {
+      "item": "Chonide Orogen"
+    }, {
+      "item": "Cimmerian Orogen"
+    }, {
+      "item": "Colorado Plateau"
+    }, {
+      "item": "Dabie-Sulu Orogen"
+    }, {
+      "item": "Damaran Orogen"
+    }, {
+      "item": "Delamerian Orogen"
+    }, {
+      "item": "Early Ruker Orogen"
+    }, {
+      "item": "Edmundian Orogen"
+    }, {
+      "item": "Famatinian Orogen"
+    }, {
+      "item": "Fennoscandian Shield"
+    }, {
+      "item": "Glenburgh Orogen"
+    }, {
+      "item": "Gondwanide Orogen"
+    }, {
+      "item": "Grenville Orogen"
+    }, {
+      "item": "Grenville Province"
+    }, {
+      "item": "Guiana Shield"
+    }, {
+      "item": "Hudsonian Orogen"
+    }, {
+      "item": "Humboldt Orogen"
+    }, {
+      "item": "Hunter-Bowen Orogen"
+    }, {
+      "item": "Innuitian Orogen"
+    }, {
+      "item": "Insel Orogen"
+    }, {
+      "item": "Isan Orogen"
+    }, {
+      "item": "Ivanpah Orogen"
+    }, {
+      "item": "Kaikoura Orogen"
+    }, {
+      "item": "Kararan Orogen"
+    }, {
+      "item": "Kimban Orogen"
+    }, {
+      "item": "Lachlan Orogen"
+    }, {
+      "item": "Laramide Orogen"
+    }, {
+      "item": "Late Ruker Orogen"
+    }, {
+      "item": "Mangaroon Orogen"
+    }, {
+      "item": "Mazatzal Orogen"
+    }, {
+      "item": "Musgrave Orogen"
+    }, {
+      "item": "Napier Orogen"
+    }, {
+      "item": "Narooma Terrane"
+    }, {
+      "item": "Nevadan Orogen"
+    }, {
+      "item": "Nimrod Orogen"
+    }, {
+      "item": "Olarian Orogen"
+    }, {
+      "item": "Ouachita Orogen"
+    }, {
+      "item": "Pampean Orogen"
+    }, {
+      "item": "Pan-African Orogen"
+    }, {
+      "item": "Penokean Orogen"
+    }, {
+      "item": "Petermann Orogen"
+    }, {
+      "item": "Proto-Alps Terrane"
+    }, {
+      "item": "Rangitata Orogen"
+    }, {
+      "item": "Rayner Orogen"
+    }, {
+      "item": "Ross Orogen"
+    }, {
+      "item": "Sevier Orogen"
+    }, {
+      "item": "Sleaford Orogen"
+    }, {
+      "item": "Sonoma Orogen"
+    }, {
+      "item": "Svecofennian Orogen"
+    }, {
+      "item": "Taconic Orogen"
+    }, {
+      "item": "Teplá-Barrandian Terrane"
+    }, {
+      "item": "Timanide Orogen"
+    }, {
+      "item": "Toco Orogen"
+    }, {
+      "item": "Trans-Hudson Orogen"
+    }, {
+      "item": "Tuhua Orogen"
+    }, {
+      "item": "Ukrainian Shield"
+    }, {
+      "item": "Uralian Orogen"
+    }, {
+      "item": "Variscan Orogen"
+    }, {
+      "item": "Western Australian Shield"
+    }, {
+      "item": "Wopmay Orogen"
+    }, {
+      "item": "Yapungku Orogen"
+    }, {
+      "item": "Yavapai Orogen"
+    }]
+  },
+  "oxygen_stage": {
+    "label": "Oxygen Stages",
+    "items": [{
+      "item": "1"
+    }, {
+      "item": "10"
+    }, {
+      "item": "100"
+    }, {
+      "item": "101"
+    }, {
+      "item": "102"
+    }, {
+      "item": "103"
+    }, {
+      "item": "104"
+    }, {
+      "item": "11"
+    }, {
+      "item": "12"
+    }, {
+      "item": "13"
+    }, {
+      "item": "14"
+    }, {
+      "item": "15"
+    }, {
+      "item": "16"
+    }, {
+      "item": "17"
+    }, {
+      "item": "18"
+    }, {
+      "item": "19"
+    }, {
+      "item": "2"
+    }, {
+      "item": "20"
+    }, {
+      "item": "21"
+    }, {
+      "item": "22"
+    }, {
+      "item": "23"
+    }, {
+      "item": "24"
+    }, {
+      "item": "25"
+    }, {
+      "item": "26"
+    }, {
+      "item": "27"
+    }, {
+      "item": "28"
+    }, {
+      "item": "29"
+    }, {
+      "item": "3"
+    }, {
+      "item": "30"
+    }, {
+      "item": "31"
+    }, {
+      "item": "32"
+    }, {
+      "item": "33"
+    }, {
+      "item": "34"
+    }, {
+      "item": "35"
+    }, {
+      "item": "36"
+    }, {
+      "item": "37"
+    }, {
+      "item": "38"
+    }, {
+      "item": "39"
+    }, {
+      "item": "4"
+    }, {
+      "item": "40"
+    }, {
+      "item": "41"
+    }, {
+      "item": "42"
+    }, {
+      "item": "43"
+    }, {
+      "item": "44"
+    }, {
+      "item": "45"
+    }, {
+      "item": "46"
+    }, {
+      "item": "47"
+    }, {
+      "item": "48"
+    }, {
+      "item": "49"
+    }, {
+      "item": "5"
+    }, {
+      "item": "50"
+    }, {
+      "item": "51"
+    }, {
+      "item": "52"
+    }, {
+      "item": "53"
+    }, {
+      "item": "54"
+    }, {
+      "item": "55"
+    }, {
+      "item": "56"
+    }, {
+      "item": "57"
+    }, {
+      "item": "58"
+    }, {
+      "item": "59"
+    }, {
+      "item": "6"
+    }, {
+      "item": "60"
+    }, {
+      "item": "61"
+    }, {
+      "item": "62"
+    }, {
+      "item": "63"
+    }, {
+      "item": "64"
+    }, {
+      "item": "65"
+    }, {
+      "item": "66"
+    }, {
+      "item": "67"
+    }, {
+      "item": "68"
+    }, {
+      "item": "69"
+    }, {
+      "item": "7"
+    }, {
+      "item": "70"
+    }, {
+      "item": "71"
+    }, {
+      "item": "72"
+    }, {
+      "item": "73"
+    }, {
+      "item": "74"
+    }, {
+      "item": "75"
+    }, {
+      "item": "76"
+    }, {
+      "item": "77"
+    }, {
+      "item": "78"
+    }, {
+      "item": "79"
+    }, {
+      "item": "8"
+    }, {
+      "item": "80"
+    }, {
+      "item": "81"
+    }, {
+      "item": "82"
+    }, {
+      "item": "83"
+    }, {
+      "item": "84"
+    }, {
+      "item": "85"
+    }, {
+      "item": "86"
+    }, {
+      "item": "87"
+    }, {
+      "item": "88"
+    }, {
+      "item": "89"
+    }, {
+      "item": "9"
+    }, {
+      "item": "90"
+    }, {
+      "item": "91"
+    }, {
+      "item": "92"
+    }, {
+      "item": "93"
+    }, {
+      "item": "94"
+    }, {
+      "item": "95"
+    }, {
+      "item": "96"
+    }, {
+      "item": "97"
+    }, {
+      "item": "98"
+    }, {
+      "item": "99"
+    }, {
+      "item": "CN1"
+    }, {
+      "item": "CN2"
+    }, {
+      "item": "CN3"
+    }, {
+      "item": "CN4"
+    }, {
+      "item": "CN5"
+    }, {
+      "item": "CN6"
+    }, {
+      "item": "CN7"
+    }, {
+      "item": "CN8"
+    }, {
+      "item": "Co1"
+    }, {
+      "item": "Co2"
+    }, {
+      "item": "Co3"
+    }, {
+      "item": "Co4"
+    }, {
+      "item": "G1"
+    }, {
+      "item": "G10"
+    }, {
+      "item": "G11"
+    }, {
+      "item": "G12"
+    }, {
+      "item": "G13"
+    }, {
+      "item": "G14"
+    }, {
+      "item": "G15"
+    }, {
+      "item": "G16"
+    }, {
+      "item": "G17"
+    }, {
+      "item": "G18"
+    }, {
+      "item": "G19"
+    }, {
+      "item": "G2"
+    }, {
+      "item": "G20"
+    }, {
+      "item": "G21"
+    }, {
+      "item": "G22"
+    }, {
+      "item": "G3"
+    }, {
+      "item": "G4"
+    }, {
+      "item": "G5"
+    }, {
+      "item": "G6"
+    }, {
+      "item": "G7"
+    }, {
+      "item": "G8"
+    }, {
+      "item": "G9"
+    }, {
+      "item": "Gi1"
+    }, {
+      "item": "Gi10"
+    }, {
+      "item": "Gi11"
+    }, {
+      "item": "Gi12"
+    }, {
+      "item": "Gi13"
+    }, {
+      "item": "Gi14"
+    }, {
+      "item": "Gi15"
+    }, {
+      "item": "Gi16"
+    }, {
+      "item": "Gi17"
+    }, {
+      "item": "Gi18"
+    }, {
+      "item": "Gi19"
+    }, {
+      "item": "Gi2"
+    }, {
+      "item": "Gi20"
+    }, {
+      "item": "Gi21"
+    }, {
+      "item": "Gi22"
+    }, {
+      "item": "Gi23"
+    }, {
+      "item": "Gi24"
+    }, {
+      "item": "Gi25"
+    }, {
+      "item": "Gi26"
+    }, {
+      "item": "Gi27"
+    }, {
+      "item": "Gi28"
+    }, {
+      "item": "Gi3"
+    }, {
+      "item": "Gi4"
+    }, {
+      "item": "Gi5"
+    }, {
+      "item": "Gi6"
+    }, {
+      "item": "Gi7"
+    }, {
+      "item": "Gi8"
+    }, {
+      "item": "Gi9"
+    }, {
+      "item": "K1"
+    }, {
+      "item": "K2"
+    }, {
+      "item": "KM1"
+    }, {
+      "item": "KM2"
+    }, {
+      "item": "KM3"
+    }, {
+      "item": "KM4"
+    }, {
+      "item": "KM5"
+    }, {
+      "item": "KM6"
+    }, {
+      "item": "M1"
+    }, {
+      "item": "M2"
+    }, {
+      "item": "MG1"
+    }, {
+      "item": "MG10"
+    }, {
+      "item": "MG11"
+    }, {
+      "item": "MG12"
+    }, {
+      "item": "MG2"
+    }, {
+      "item": "MG3"
+    }, {
+      "item": "MG4"
+    }, {
+      "item": "MG5"
+    }, {
+      "item": "MG6"
+    }, {
+      "item": "MG7"
+    }, {
+      "item": "MG8"
+    }, {
+      "item": "MG9"
+    }, {
+      "item": "N1"
+    }, {
+      "item": "N10"
+    }, {
+      "item": "N2"
+    }, {
+      "item": "N3"
+    }, {
+      "item": "N4"
+    }, {
+      "item": "N5"
+    }, {
+      "item": "N6"
+    }, {
+      "item": "N7"
+    }, {
+      "item": "N8"
+    }, {
+      "item": "N9"
+    }, {
+      "item": "NS1"
+    }, {
+      "item": "NS2"
+    }, {
+      "item": "NS3"
+    }, {
+      "item": "NS4"
+    }, {
+      "item": "NS5"
+    }, {
+      "item": "NS6"
+    }, {
+      "item": "ST1"
+    }, {
+      "item": "ST2"
+    }, {
+      "item": "ST3"
+    }, {
+      "item": "ST4"
+    }, {
+      "item": "Si1"
+    }, {
+      "item": "Si2"
+    }, {
+      "item": "Si3"
+    }, {
+      "item": "Si4"
+    }, {
+      "item": "Si5"
+    }, {
+      "item": "Si6"
+    }, {
+      "item": "T1"
+    }, {
+      "item": "T2"
+    }, {
+      "item": "T3"
+    }, {
+      "item": "T4"
+    }, {
+      "item": "T5"
+    }, {
+      "item": "T6"
+    }, {
+      "item": "T7"
+    }, {
+      "item": "T8"
+    }, {
+      "item": "TG1"
+    }, {
+      "item": "TG2"
+    }, {
+      "item": "TG3"
+    }, {
+      "item": "TG4"
+    }, {
+      "item": "TG5"
+    }, {
+      "item": "TG6"
+    }]
+  },
+  "region": {
+    "label": "Regions",
+    "items": [{
+      "item": "Alps"
+    }, {
+      "item": "Gilberts Ridge"
+    }, {
+      "item": "Lord Howe Rise"
+    }, {
+      "item": "Louisville Seamount Trail"
+    }, {
+      "item": "Rocky Mountains"
+    }, {
+      "item": "Samoan Seamount Trail"
+    }, {
+      "item": "Tokelau Seamounts"
+    }, {
+      "item": "West Pacific Seamount Province"
+    }]
+  },
+  "fossil_class": {
+    "label": "Fossil Classes",
+    "items": [{
+      "item": "Acanthodii"
+    }, {
+      "item": "Amphibia"
+    }, {
+      "item": "Anthozoa"
+    }, {
+      "item": "Arachnida"
+    }, {
+      "item": "Articulata"
+    }, {
+      "item": "Asteroidea"
+    }, {
+      "item": "Aves"
+    }, {
+      "item": "Bivalvia"
+    }, {
+      "item": "Blastoidea"
+    }, {
+      "item": "Brachypoda"
+    }, {
+      "item": "Branchiopoda"
+    }, {
+      "item": "Calcarea"
+    }, {
+      "item": "Camptostromoidea"
+    }, {
+      "item": "Cephalaspidomorphi"
+    }, {
+      "item": "Cephalopoda"
+    }, {
+      "item": "Chondrichthyes"
+    }, {
+      "item": "Cirripedia"
+    }, {
+      "item": "Coeloscleritophora"
+    }, {
+      "item": "Conodonta"
+    }, {
+      "item": "Copepoda"
+    }, {
+      "item": "Coronata"
+    }, {
+      "item": "Cribricyathea"
+    }, {
+      "item": "Cricoconarida"
+    }, {
+      "item": "Crinoidea"
+    }, {
+      "item": "Cubozoa"
+    }, {
+      "item": "Demospongia"
+    }, {
+      "item": "Dinocarida"
+    }, {
+      "item": "Diploporita"
+    }, {
+      "item": "Diplorhina"
+    }, {
+      "item": "Echinoidea"
+    }, {
+      "item": "Edrioasteroidea"
+    }, {
+      "item": "Enteropneusta"
+    }, {
+      "item": "Eocrinoidea"
+    }, {
+      "item": "Gastropoda"
+    }, {
+      "item": "Graptolithina"
+    }, {
+      "item": "Gymnolaemata"
+    }, {
+      "item": "Hexactinellida"
+    }, {
+      "item": "Holothuroidea"
+    }, {
+      "item": "Homoiostelea"
+    }, {
+      "item": "Homostelea"
+    }, {
+      "item": "Hydrozoa"
+    }, {
+      "item": "Hyolithomorpha"
+    }, {
+      "item": "Inarticulata"
+    }, {
+      "item": "Incertae"
+    }, {
+      "item": "Irregulares"
+    }, {
+      "item": "Lingulata"
+    }, {
+      "item": "Machaeridia"
+    }, {
+      "item": "Malacostraca"
+    }, {
+      "item": "Mammalia"
+    }, {
+      "item": "Marrelomorpha"
+    }, {
+      "item": "Merostomata"
+    }, {
+      "item": "Merostomoidea"
+    }, {
+      "item": "Monorhina"
+    }, {
+      "item": "Multiplacophora"
+    }, {
+      "item": "Ophiuroidea"
+    }, {
+      "item": "Orthothecimorpha"
+    }, {
+      "item": "Osteichthyes"
+    }, {
+      "item": "Ostracoda"
+    }, {
+      "item": "Paracrinoidea"
+    }, {
+      "item": "Paragastropoda"
+    }, {
+      "item": "Petalonamae"
+    }, {
+      "item": "Placodermi"
+    }, {
+      "item": "Polychaeta"
+    }, {
+      "item": "Polyhymenophora"
+    }, {
+      "item": "Polyplacophora"
+    }, {
+      "item": "Pteraspidomorphi"
+    }, {
+      "item": "Pterobranchia"
+    }, {
+      "item": "Pycnogonida"
+    }, {
+      "item": "Radiolaria"
+    }, {
+      "item": "Regulares"
+    }, {
+      "item": "Remipedia"
+    }, {
+      "item": "Reptilia"
+    }, {
+      "item": "Rhabditida"
+    }, {
+      "item": "Rhombifera"
+    }, {
+      "item": "Rostroconchia"
+    }, {
+      "item": "Scaphopoda"
+    }, {
+      "item": "Scyphozoa"
+    }, {
+      "item": "Somasteroidea"
+    }, {
+      "item": "Stenolaemata"
+    }, {
+      "item": "Stylophora"
+    }, {
+      "item": "Tentaculitoidea"
+    }, {
+      "item": "Tergomya"
+    }, {
+      "item": "Thylacocephala"
+    }, {
+      "item": "Tommotiida"
+    }, {
+      "item": "Trilobita"
+    }]
+  },
+  "fossil_family": {
+    "label": "Fossil Families",
+    "items": [{
+      "item": "Aceraceae"
+    }, {
+      "item": "Canidae"
+    }, {
+      "item": "Mucoraceae"
+    }, {
+      "item": "Mycobacteriaceae"
+    }, {
+      "item": "Zygnemataceae"
+    }]
+  },
+  "fossil_genus": {
+    "label": "Fossil Genae",
+    "items": [{
+      "item": "Acer"
+    }, {
+      "item": "Canis"
+    }, {
+      "item": "Mycobacterium"
+    }, {
+      "item": "Rhizopus"
+    }, {
+      "item": "Spirogyra"
+    }]
+  },
+  "age_culture_name": {
+    "label": "Age Culture Names",
+    "items": [{
+      "item": "Halaf"
+    }]
+  },
+  "biostrat_zone": {
+    "label": "Biostratigraphical Zones",
+    "items": [{
+      "item": "NN10"
+    }, {
+      "item": "Wasatchian"
+    }]
+  },
+  "geological_province_section": {
+    "label": "Geological Province and Section Names",
+    "items": [{
+      "item": "Absaroka Range, Montana and Wyoming"
+    }, {
+      "item": "Adam Range"
+    }, {
+      "item": "Adamant Range"
+    }, {
+      "item": "Adamello-Presanella"
+    }, {
+      "item": "Adirondack Mountains, New York"
+    }, {
+      "item": "Akaishi Mountains"
+    }, {
+      "item": "Al Hajar Mountains"
+    }, {
+      "item": "Al Kalrzar Demni Fom"
+    }, {
+      "item": "Albert Mountains"
+    }, {
+      "item": "Alborz"
+    }, {
+      "item": "Albula Range"
+    }, {
+      "item": "Allardyce Range, South Georgia"
+    }, {
+      "item": "Allgäu Alps"
+    }, {
+      "item": "Alps"
+    }, {
+      "item": "Alsek Ranges"
+    }, {
+      "item": "Altai Mountains"
+    }, {
+      "item": "Amargosa Range, California"
+    }, {
+      "item": "Ankogel Group"
+    }, {
+      "item": "Annamite Range"
+    }, {
+      "item": "Anti-Lebanon"
+    }, {
+      "item": "Anvil Range, Yukon"
+    }, {
+      "item": "Apennines, Italy"
+    }, {
+      "item": "Appalachian Mountains, United States"
+    }, {
+      "item": "Arabian Mountain"
+    }, {
+      "item": "Arctic Cordillera, Canada"
+    }, {
+      "item": "Asulkan Range"
+    }, {
+      "item": "Atlas Mountains"
+    }, {
+      "item": "Badshot Range"
+    }, {
+      "item": "Baffin Mountains"
+    }, {
+      "item": "Baird Mountains, Alaska"
+    }, {
+      "item": "Balkan Mountains, Bulgaria and Serbia"
+    }, {
+      "item": "Bardzkie Mountains"
+    }, {
+      "item": "Basin and Range"
+    }, {
+      "item": "Basque Mountains"
+    }, {
+      "item": "Battle Range"
+    }, {
+      "item": "Bear River Mountains, Utah and Idaho"
+    }, {
+      "item": "Beaufort Range"
+    }, {
+      "item": "Beaverhead Mountains, Montana and Idaho"
+    }, {
+      "item": "Belasitsa, Bulgaria, Greece and Republic of Macedonia"
+    }, {
+      "item": "Belcher Mountains, Hudson Bay"
+    }, {
+      "item": "Ben Nevis"
+    }, {
+      "item": "Bendeleben Mountains, Alaska"
+    }, {
+      "item": "Berchtesgaden Alps"
+    }, {
+      "item": "Bergamo Alps"
+    }, {
+      "item": "Bernese Alps"
+    }, {
+      "item": "Bernina Range"
+    }, {
+      "item": "Beskidy Mountains"
+    }, {
+      "item": "Bieszczady Mountains"
+    }, {
+      "item": "Big Bend Ranges"
+    }, {
+      "item": "Big Salmon Range, Yukon"
+    }, {
+      "item": "Bighorn Mountains, Wyoming"
+    }, {
+      "item": "Bishops Range"
+    }, {
+      "item": "Bitterroot Range, Montana and Idaho"
+    }, {
+      "item": "Black Forest, Germany"
+    }, {
+      "item": "Black Hills, South Dakota and Wyoming"
+    }, {
+      "item": "Black Mountains, Wales"
+    }, {
+      "item": "Blackwelder Mountains"
+    }, {
+      "item": "Blue Mountains"
+    }, {
+      "item": "Bonanza Range"
+    }, {
+      "item": "Bonnet Plume Range, Yukon"
+    }, {
+      "item": "Bonnington Range"
+    }, {
+      "item": "Borborema Plateau"
+    }, {
+      "item": "Boston Mountains, Arkansas"
+    }, {
+      "item": "Boulder Mountains, Montana"
+    }, {
+      "item": "Boulder Mountains, Utah"
+    }, {
+      "item": "Brabazon Range, Alaska"
+    }, {
+      "item": "Brecon Beacons, Wales"
+    }, {
+      "item": "Bregaglia Range"
+    }, {
+      "item": "Brenta Group"
+    }, {
+      "item": "Bridger Mountains, Wyoming"
+    }, {
+      "item": "Bridger Range, Montana"
+    }, {
+      "item": "Britannia Range"
+    }, {
+      "item": "British Empire Range"
+    }, {
+      "item": "British Mountains, Yukon"
+    }, {
+      "item": "Brooks Range, Alaska"
+    }, {
+      "item": "Bruce Mountains"
+    }, {
+      "item": "Bush Mountains"
+    }, {
+      "item": "Byam Martin Mountains"
+    }, {
+      "item": "Bynar Range"
+    }, {
+      "item": "Bystrzyckie Mountains"
+    }, {
+      "item": "Cabinet Mountains, Montana"
+    }, {
+      "item": "Cadwallader Range"
+    }, {
+      "item": "Cairngorms, Scotland"
+    }, {
+      "item": "Camelsfoot Range"
+    }, {
+      "item": "Cameron Range"
+    }, {
+      "item": "Cantabrian Mountains, Spain"
+    }, {
+      "item": "Cantilever Range"
+    }, {
+      "item": "Caraballo"
+    }, {
+      "item": "Cardamom Mountains"
+    }, {
+      "item": "Cariboo Mountains"
+    }, {
+      "item": "Carnic Alps"
+    }, {
+      "item": "Carpathian Mountains"
+    }, {
+      "item": "Castle Mountains, Montana"
+    }, {
+      "item": "Caucasus"
+    }, {
+      "item": "Caucasus Mountains"
+    }, {
+      "item": "Cayoosh Range"
+    }, {
+      "item": "Cederberg"
+    }, {
+      "item": "Celestial Mountains"
+    }, {
+      "item": "Central Eastern Alps"
+    }, {
+      "item": "Central Indian Ridge"
+    }, {
+      "item": "Cerros de Escazú"
+    }, {
+      "item": "Challenger Mountains"
+    }, {
+      "item": "Chapada"
+    }, {
+      "item": "Chapada Das Mangabeiras"
+    }, {
+      "item": "Chapada do Araripe"
+    }, {
+      "item": "Chapada dos Guimarães"
+    }, {
+      "item": "Cherskiy Range"
+    }, {
+      "item": "Chichinautzin, Mexico"
+    }, {
+      "item": "Chilcotin Ranges"
+    }, {
+      "item": "Chisos Mountains, Texas"
+    }, {
+      "item": "Chittagong Hill Tracts"
+    }, {
+      "item": "Chugach Mountains"
+    }, {
+      "item": "Churia Hills, Himalaya"
+    }, {
+      "item": "Clachnacudainn Range"
+    }, {
+      "item": "Clendenning Range"
+    }, {
+      "item": "Coeur d'Alene Mountain"
+    }, {
+      "item": "Columbia Mountains, British Columbia"
+    }, {
+      "item": "Commonwealth Range"
+    }, {
+      "item": "Conger Range"
+    }, {
+      "item": "Coquitlam Range"
+    }, {
+      "item": "Cordillera Blanca"
+    }, {
+      "item": "Cordillera Central"
+    }, {
+      "item": "Cordillera Darwin"
+    }, {
+      "item": "Cordillera Domeyko"
+    }, {
+      "item": "Cordillera Huayhuash"
+    }, {
+      "item": "Cordillera Isabelia"
+    }, {
+      "item": "Cordillera Nahuelbuta"
+    }, {
+      "item": "Cordillera Negra"
+    }, {
+      "item": "Cordillera Occidental"
+    }, {
+      "item": "Cordillera Oriental"
+    }, {
+      "item": "Cordillera Pelada"
+    }, {
+      "item": "Cordillera Real"
+    }, {
+      "item": "Cordillera Riesco"
+    }, {
+      "item": "Cordillera Sarmiento"
+    }, {
+      "item": "Cordillera de Guanacaste"
+    }, {
+      "item": "Cordillera de Mahuidanchi"
+    }, {
+      "item": "Cordillera de Pirulil"
+    }, {
+      "item": "Cordillera de Piuchén"
+    }, {
+      "item": "Cordillera de Talamanca"
+    }, {
+      "item": "Cordillera de Talinay"
+    }, {
+      "item": "Cordillera de Tilarán"
+    }, {
+      "item": "Cordillera de la Costa"
+    }, {
+      "item": "Cordillera de los Andes"
+    }, {
+      "item": "Cordillera del Paine"
+    }, {
+      "item": "Cordillera los Maribios"
+    }, {
+      "item": "Coso Range, California"
+    }, {
+      "item": "Cottian Alps"
+    }, {
+      "item": "Crazy Mountains, Montana"
+    }, {
+      "item": "Crease Range"
+    }, {
+      "item": "Crystal Mountains"
+    }, {
+      "item": "Cunningham Mountains"
+    }, {
+      "item": "Dachstein"
+    }, {
+      "item": "Darby Mountains, Alaska"
+    }, {
+      "item": "Dauphiné Alps"
+    }, {
+      "item": "Davidson Mountains, Alaska"
+    }, {
+      "item": "Dawson Range"
+    }, {
+      "item": "Defereggen Mountains"
+    }, {
+      "item": "Delong Mountains, Alaska"
+    }, {
+      "item": "Dentelles de Montmirail, France"
+    }, {
+      "item": "Dickson Range"
+    }, {
+      "item": "Dientes de Navarino"
+    }, {
+      "item": "Dinaric Alps"
+    }, {
+      "item": "Dolomites"
+    }, {
+      "item": "Dominion Range"
+    }, {
+      "item": "Douglas Ranges"
+    }, {
+      "item": "Douro Range"
+    }, {
+      "item": "Dovrefjell"
+    }, {
+      "item": "Drakensberg"
+    }, {
+      "item": "Duncan Ranges"
+    }, {
+      "item": "Dzhugdzhur Mountains"
+    }, {
+      "item": "East Humboldt Range, Nevada"
+    }, {
+      "item": "East Pacific Rise"
+    }, {
+      "item": "Eastern Alps"
+    }, {
+      "item": "Eastern Ghats"
+    }, {
+      "item": "Eje Volcánico Transversal"
+    }, {
+      "item": "Elburiagan Mountains"
+    }, {
+      "item": "Elk Mountains, Colorado"
+    }, {
+      "item": "Elk River Mountains"
+    }, {
+      "item": "Elkhorn Mountains, Montana"
+    }, {
+      "item": "Emperor Seamounts"
+    }, {
+      "item": "Endicott Mountains, Alaska"
+    }, {
+      "item": "Ennstaler Alpen"
+    }, {
+      "item": "Espinhaço Mountains"
+    }, {
+      "item": "Everett Mountains"
+    }, {
+      "item": "Fairweather Range, Alaska"
+    }, {
+      "item": "Fannin Range"
+    }, {
+      "item": "Fansipan"
+    }, {
+      "item": "Flathead Range, Montana"
+    }, {
+      "item": "Franklin Mountains, Alaska"
+    }, {
+      "item": "Franklin Mountains, Texas"
+    }, {
+      "item": "Franklin Range"
+    }, {
+      "item": "Front Range of The Rockies, Colorado"
+    }, {
+      "item": "Gakkel Ridge"
+    }, {
+      "item": "Gallatin Range, Montana"
+    }, {
+      "item": "Garfield Range"
+    }, {
+      "item": "Garibaldi Ranges"
+    }, {
+      "item": "Garnet Range, Montana"
+    }, {
+      "item": "Genevieve Range"
+    }, {
+      "item": "Giant Mountains"
+    }, {
+      "item": "Gila Mountains, Arizona"
+    }, {
+      "item": "Gilbert Ridge"
+    }, {
+      "item": "Glarus Alps"
+    }, {
+      "item": "Glenyon Range, Yukon"
+    }, {
+      "item": "Glockner Group"
+    }, {
+      "item": "Goat Range"
+    }, {
+      "item": "Goldberg Group"
+    }, {
+      "item": "Golden Mountains"
+    }, {
+      "item": "Gowlland Range"
+    }, {
+      "item": "Graian Alps"
+    }, {
+      "item": "Grampian Mountains, Scotland"
+    }, {
+      "item": "Gran Paradiso"
+    }, {
+      "item": "Granatspitz Group"
+    }, {
+      "item": "Granite Mountains, Wyoming"
+    }, {
+      "item": "Granite Range, Alaska"
+    }, {
+      "item": "Great Dividing Range, Australia"
+    }, {
+      "item": "Greater Khingan"
+    }, {
+      "item": "Green Mountains, Wyoming"
+    }, {
+      "item": "Grinnell Range"
+    }, {
+      "item": "Grogan Morgan Range"
+    }, {
+      "item": "Gros Ventre Range, Wyoming"
+    }, {
+      "item": "Guiana Highlands"
+    }, {
+      "item": "Gydan Mountains"
+    }, {
+      "item": "Ha-Iltzuk Icefield"
+    }, {
+      "item": "Haddington Range"
+    }, {
+      "item": "Hafner Group"
+    }, {
+      "item": "Haihte Range"
+    }, {
+      "item": "Halifax Range"
+    }, {
+      "item": "Hankin Range"
+    }, {
+      "item": "Haraz Mountains"
+    }, {
+      "item": "Hartz Mountains"
+    }, {
+      "item": "Harz, Germany"
+    }, {
+      "item": "Hawaiian Islands"
+    }, {
+      "item": "Herbert Range"
+    }, {
+      "item": "Hermit Range"
+    }, {
+      "item": "Hess Mountains, Yukon"
+    }, {
+      "item": "Hida Mountains"
+    }, {
+      "item": "Himalaya"
+    }, {
+      "item": "Hindu Kush"
+    }, {
+      "item": "Hohe Tauern"
+    }, {
+      "item": "Homathko Icefield"
+    }, {
+      "item": "Hughes Range"
+    }, {
+      "item": "Imeon Range, Smith Island"
+    }, {
+      "item": "Inglefield Mountains"
+    }, {
+      "item": "Innuitian Mountains"
+    }, {
+      "item": "Insular Mountains, British Columbia"
+    }, {
+      "item": "Japanese Alps"
+    }, {
+      "item": "Jayawijaya Mountains"
+    }, {
+      "item": "Jeffries Range"
+    }, {
+      "item": "Jizera Mountains"
+    }, {
+      "item": "John Long Mountains, Montana"
+    }, {
+      "item": "Jotunheimen"
+    }, {
+      "item": "Joy Range"
+    }, {
+      "item": "Julian Alps"
+    }, {
+      "item": "Jura Mountains, Switzerland"
+    }, {
+      "item": "Kaczawskie Mountains"
+    }, {
+      "item": "Kamnik Alps"
+    }, {
+      "item": "Karakoram"
+    }, {
+      "item": "Karawanken"
+    }, {
+      "item": "Karelides, Finland"
+    }, {
+      "item": "Karmutzen Range"
+    }, {
+      "item": "Karwendel"
+    }, {
+      "item": "Kaumajet Mountains"
+    }, {
+      "item": "Khibinsky Mountains"
+    }, {
+      "item": "Khingan Mountains"
+    }, {
+      "item": "Kiglapait Mountains"
+    }, {
+      "item": "Kigluaik Mountains, Alaska"
+    }, {
+      "item": "Kilimanjaro"
+    }, {
+      "item": "Kirthar Mountains"
+    }, {
+      "item": "Kiso Mountains"
+    }, {
+      "item": "Kitimat Ranges"
+    }, {
+      "item": "Kitzbühel Alps"
+    }, {
+      "item": "Kjølen Mountains"
+    }, {
+      "item": "Kluane Ranges, Yukon"
+    }, {
+      "item": "Knorr Range, Yukon"
+    }, {
+      "item": "Knuckles Mountain Range"
+    }, {
+      "item": "Kokanee Range"
+    }, {
+      "item": "Kootenay Range, British Columbia"
+    }, {
+      "item": "Koryak Mountains"
+    }, {
+      "item": "Krag Mountains"
+    }, {
+      "item": "Kreuzeck Group"
+    }, {
+      "item": "Krieger Mountains"
+    }, {
+      "item": "Kunlun Mountains"
+    }, {
+      "item": "Kuray Mountains"
+    }, {
+      "item": "La Salle Mountains, Utah"
+    }, {
+      "item": "Laguna Mountains"
+    }, {
+      "item": "Lake Range, Nevada"
+    }, {
+      "item": "Laramie Mountains, Wyoming"
+    }, {
+      "item": "Lardeau Range"
+    }, {
+      "item": "Lechtal Alps"
+    }, {
+      "item": "Lemhi Range, Idaho"
+    }, {
+      "item": "Lepontine Alps"
+    }, {
+      "item": "Lesser Himalaya"
+    }, {
+      "item": "Lesser Khingan"
+    }, {
+      "item": "Lewis Range, Montana"
+    }, {
+      "item": "Ligurian Alps"
+    }, {
+      "item": "Lillooet Icecap"
+    }, {
+      "item": "Lillooet Ranges"
+    }, {
+      "item": "Livigno Range"
+    }, {
+      "item": "Livingston Range, Montana"
+    }, {
+      "item": "Lyngen Alps"
+    }, {
+      "item": "Macdonald Range, British Columbia"
+    }, {
+      "item": "Macgillycuddy'S Reeks, Ireland"
+    }, {
+      "item": "Madison Range, Montana"
+    }, {
+      "item": "Magaliesberg"
+    }, {
+      "item": "Mahabharat Range"
+    }, {
+      "item": "Mantiqueira Mountains"
+    }, {
+      "item": "Manzano Mountains, New Mexico"
+    }, {
+      "item": "Maritime Alps"
+    }, {
+      "item": "Martial Mountains"
+    }, {
+      "item": "Maya Mountains"
+    }, {
+      "item": "Mckay Range"
+    }, {
+      "item": "Meru"
+    }, {
+      "item": "Mid-Atlantic Ridge"
+    }, {
+      "item": "Mont Blanc Group"
+    }, {
+      "item": "Mosquito Range, Colorado"
+    }, {
+      "item": "Mt. Kenya"
+    }, {
+      "item": "Nadaleen Range, Yukon"
+    }, {
+      "item": "Nelson Range"
+    }, {
+      "item": "Newcastle Range"
+    }, {
+      "item": "Niedere Tauern"
+    }, {
+      "item": "Ninety East Ridge"
+    }, {
+      "item": "Niut Range"
+    }, {
+      "item": "Norns Range"
+    }, {
+      "item": "North Shore Mountains"
+    }, {
+      "item": "North-Eastern Swiss Alps"
+    }, {
+      "item": "Northern Limestone Alps"
+    }, {
+      "item": "Oas Mountains, Romania"
+    }, {
+      "item": "Oberhalbstein Range"
+    }, {
+      "item": "Olympic Mountains, Washington"
+    }, {
+      "item": "Opawskie Mountains"
+    }, {
+      "item": "Oquirrh Mountains, Utah"
+    }, {
+      "item": "Ore Mountains, Germany and Czech Republic"
+    }, {
+      "item": "Oregon Coast Range"
+    }, {
+      "item": "Organ Mountains, New Mexico"
+    }, {
+      "item": "Orlicke Mountains"
+    }, {
+      "item": "Ortiz Mountains, New Mexico"
+    }, {
+      "item": "Ortler Alps"
+    }, {
+      "item": "Osborn Range"
+    }, {
+      "item": "Osogovo, Bulgaria and Republic of Macedonia"
+    }, {
+      "item": "Outeniqua"
+    }, {
+      "item": "Owen Stanley Range"
+    }, {
+      "item": "Owl Creek Mountains, Wyoming"
+    }, {
+      "item": "Owl Mountains"
+    }, {
+      "item": "Pacific-Antarctic Ridge"
+    }, {
+      "item": "Pamir Mountains"
+    }, {
+      "item": "Panamint Range, California"
+    }, {
+      "item": "Parang Mountains, Romania"
+    }, {
+      "item": "Pelham Range"
+    }, {
+      "item": "Pelly Mountains, Yukon"
+    }, {
+      "item": "Peninsular Ranges, California"
+    }, {
+      "item": "Pennine Alps"
+    }, {
+      "item": "Pennines, United Kingdom"
+    }, {
+      "item": "Pensacola Mountains"
+    }, {
+      "item": "Phillip Smith Mountains, Alaska"
+    }, {
+      "item": "Picos de Europa"
+    }, {
+      "item": "Pierce Range"
+    }, {
+      "item": "Pinaleno Mountains, Arizona"
+    }, {
+      "item": "Pindus Mountains, Greece"
+    }, {
+      "item": "Pioneer Mountains, Idaho"
+    }, {
+      "item": "Pioneer Mountains, Montana"
+    }, {
+      "item": "Pirin, Bulgaria"
+    }, {
+      "item": "Piton Des Neiges"
+    }, {
+      "item": "Piton de la Fournaise"
+    }, {
+      "item": "Plessur Range"
+    }, {
+      "item": "Precipitous Mountains"
+    }, {
+      "item": "Premier Range"
+    }, {
+      "item": "Prince Olav Mountains"
+    }, {
+      "item": "Prince of Wales Mountains"
+    }, {
+      "item": "Prince of Wales Range"
+    }, {
+      "item": "Princess Margaret Range"
+    }, {
+      "item": "Pryor Mountains, Montana"
+    }, {
+      "item": "Purity Range"
+    }, {
+      "item": "Pyrenees"
+    }, {
+      "item": "Queen Charlotte Mountains, British Columbia"
+    }, {
+      "item": "Queen Maud Mountains"
+    }, {
+      "item": "Quesnel Highland"
+    }, {
+      "item": "Red Mountains, Wyoming"
+    }, {
+      "item": "Refugium Range"
+    }, {
+      "item": "Retezat Mountains, Romania"
+    }, {
+      "item": "Rhaetian Alps"
+    }, {
+      "item": "Rhodope Mountains, Bulgaria and Greece"
+    }, {
+      "item": "Rhön Mountains"
+    }, {
+      "item": "Richardson Mountains, Yukon"
+    }, {
+      "item": "Rieserferner Group"
+    }, {
+      "item": "Rila, Bulgaria"
+    }, {
+      "item": "Robinson Mountains, Alaska"
+    }, {
+      "item": "Rocky Mountain Foothills"
+    }, {
+      "item": "Rocky Mountains"
+    }, {
+      "item": "Romanzof Mountains, Alaska"
+    }, {
+      "item": "Rondane"
+    }, {
+      "item": "Ruby Mountains, Nevada"
+    }, {
+      "item": "Ruby Range"
+    }, {
+      "item": "Rudawy Janowickie"
+    }, {
+      "item": "Rwenzori"
+    }, {
+      "item": "Rätikon"
+    }, {
+      "item": "Sacramento Mountains, New Mexico"
+    }, {
+      "item": "Safed Koh"
+    }, {
+      "item": "Saint Elias Mountains"
+    }, {
+      "item": "Salish Mountains, Montana"
+    }, {
+      "item": "Salmon River Mountains, Idaho"
+    }, {
+      "item": "Salt Range"
+    }, {
+      "item": "Salt River Range, Wyoming"
+    }, {
+      "item": "Saltfjellet"
+    }, {
+      "item": "Salvesen Range, South Georgia"
+    }, {
+      "item": "Samnaun Alps"
+    }, {
+      "item": "San Christoval Range"
+    }, {
+      "item": "San Francisco Peaks, Arizona"
+    }, {
+      "item": "San Jacinto Mountains"
+    }, {
+      "item": "San Juan Mountains, Colorado"
+    }, {
+      "item": "Sandia Mountains, New Mexico"
+    }, {
+      "item": "Sangre de Cristo Mountains, Colorado and New Mexico"
+    }, {
+      "item": "Santa Ana Mountains"
+    }, {
+      "item": "Savoie Alps"
+    }, {
+      "item": "Sawatch Range, Colorado"
+    }, {
+      "item": "Sawtooth Range"
+    }, {
+      "item": "Sawtooth Range, Idaho"
+    }, {
+      "item": "Sayan Mountains"
+    }, {
+      "item": "Scandinavian Mountains"
+    }, {
+      "item": "Schell Creek Range, Nevada"
+    }, {
+      "item": "Schober Group"
+    }, {
+      "item": "Schwatka Mountains, Alaska"
+    }, {
+      "item": "Scoresby Hills"
+    }, {
+      "item": "Selamiut Range"
+    }, {
+      "item": "Selkirk Mountains"
+    }, {
+      "item": "Selwyn Mountains, Yukon"
+    }, {
+      "item": "Serra Gaúcha"
+    }, {
+      "item": "Serra Geral"
+    }, {
+      "item": "Serra de Ibiapaba"
+    }, {
+      "item": "Serra do Mar"
+    }, {
+      "item": "Serra do Tiracambu"
+    }, {
+      "item": "Serra dos Aimorés"
+    }, {
+      "item": "Serra dos Órgãos"
+    }, {
+      "item": "Serrania de la Macarena"
+    }, {
+      "item": "Serranía de Los Churumbelos"
+    }, {
+      "item": "Serranía de Macuira"
+    }, {
+      "item": "Serranía del Baudó"
+    }, {
+      "item": "Serranía del Perijá"
+    }, {
+      "item": "Sesvenna Range"
+    }, {
+      "item": "Setesdalsheiene"
+    }, {
+      "item": "Seward Peninsula, Alaska"
+    }, {
+      "item": "Seymour Range"
+    }, {
+      "item": "Sheep Range, Nevada"
+    }, {
+      "item": "Shoshone Range, Idaho"
+    }, {
+      "item": "Shoshone Range, Nevada"
+    }, {
+      "item": "Shubelik Mountains, Alaska"
+    }, {
+      "item": "Shulaps Range"
+    }, {
+      "item": "Shuswap Highland"
+    }, {
+      "item": "Sierra Juarez"
+    }, {
+      "item": "Sierra Madre"
+    }, {
+      "item": "Sierra Madre Occidental"
+    }, {
+      "item": "Sierra Madre Oriental"
+    }, {
+      "item": "Sierra Madre de Chiapas"
+    }, {
+      "item": "Sierra Madre del Sur"
+    }, {
+      "item": "Sierra Morena, Spain"
+    }, {
+      "item": "Sierra Nevada de Santa Marta"
+    }, {
+      "item": "Sierra Nevada, California"
+    }, {
+      "item": "Sierra Vicuña Mackenna"
+    }, {
+      "item": "Sierra de Chuacús"
+    }, {
+      "item": "Sierra de Guadarrama"
+    }, {
+      "item": "Sierra de San Pedro Mártir"
+    }, {
+      "item": "Sierra de la Giganta"
+    }, {
+      "item": "Sierra de la Laguna"
+    }, {
+      "item": "Sierra de la Ventana"
+    }, {
+      "item": "Sierra de los Cuchumatanes"
+    }, {
+      "item": "Sierra del Ajusco, Mexico"
+    }, {
+      "item": "Sierra del Lacandón"
+    }, {
+      "item": "Sierra del Merendón"
+    }, {
+      "item": "Sierras de Córdoba"
+    }, {
+      "item": "Sikhote Alin Mountains"
+    }, {
+      "item": "Silvretta"
+    }, {
+      "item": "Simien"
+    }, {
+      "item": "Sir Donald Range"
+    }, {
+      "item": "Sir Sandford Range"
+    }, {
+      "item": "Sir Winston Churchill Range, Alberta"
+    }, {
+      "item": "Siskiyou Mountains, Oregon"
+    }, {
+      "item": "Sistema Bético"
+    }, {
+      "item": "Sistema Central, Spain"
+    }, {
+      "item": "Sistema Ibérico"
+    }, {
+      "item": "Sistema Penibético"
+    }, {
+      "item": "Siwalik Range, Himalaya"
+    }, {
+      "item": "Snake Range, Nevada"
+    }, {
+      "item": "Snowdonia, Wales"
+    }, {
+      "item": "Snowy Range, Wyoming"
+    }, {
+      "item": "Somerset Range"
+    }, {
+      "item": "Sophia Range"
+    }, {
+      "item": "Southeast Indian Ridge"
+    }, {
+      "item": "Southern Alps, New Zealand"
+    }, {
+      "item": "Southern Limestone Alps"
+    }, {
+      "item": "Southwest Indian Ridge"
+    }, {
+      "item": "Spearhead Range"
+    }, {
+      "item": "Spring Mountains, Nevada"
+    }, {
+      "item": "Sredna Gora, Bulgaria"
+    }, {
+      "item": "St. Cyr Range, Yukon"
+    }, {
+      "item": "Stanovoi Range"
+    }, {
+      "item": "Stokes Range"
+    }, {
+      "item": "Stone Mountains"
+    }, {
+      "item": "Strandzha, Bulgaria and Turkey"
+    }, {
+      "item": "Ötztal Alps"
+    }, {
+      "item": null
+    }]
+  },
+  "fossil_preservation": {
+    "label": "Fossil Preservation Modes",
+    "items": [{
+      "item": "Carbonitization"
+    }, {
+      "item": "Cast"
+    }, {
+      "item": "Composite Mold"
+    }, {
+      "item": "Internal Mold"
+    }, {
+      "item": "Original Hard Part"
+    }, {
+      "item": "Original Soft Part"
+    }, {
+      "item": "Permineralization"
+    }, {
+      "item": "Phosphatization"
+    }, {
+      "item": "Pristine"
+    }, {
+      "item": "Pyritization"
+    }, {
+      "item": "Recrystallization"
+    }, {
+      "item": "Silicification"
+    }]
+  },
+  "village_city": {
+    "label": "Village and City Names",
+    "items": [{
+      "item": "Aarhus"
+    }, {
+      "item": "Aberdeen"
+    }, {
+      "item": "Abidjan"
+    }, {
+      "item": "Abu Dhabi"
+    }, {
+      "item": "Abuja"
+    }, {
+      "item": "Acapulco"
+    }, {
+      "item": "Accra"
+    }, {
+      "item": "Adana"
+    }, {
+      "item": "Addis Ababa"
+    }, {
+      "item": "Adelaide"
+    }, {
+      "item": "Agartala"
+    }, {
+      "item": "Agra"
+    }, {
+      "item": "Aguascalientes"
+    }, {
+      "item": "Ahmedabad"
+    }, {
+      "item": "Akureyri"
+    }, {
+      "item": "Alajuela"
+    }, {
+      "item": "Albuquerque"
+    }, {
+      "item": "Alert"
+    }, {
+      "item": "Alexandria"
+    }, {
+      "item": "Algiers"
+    }, {
+      "item": "Almaty"
+    }, {
+      "item": "Alor Star"
+    }, {
+      "item": "Alpine"
+    }, {
+      "item": "Ambon City"
+    }, {
+      "item": "Amman"
+    }, {
+      "item": "Amritsar"
+    }, {
+      "item": "Amsterdam"
+    }, {
+      "item": "Anchorage"
+    }, {
+      "item": "Andorra la Vella"
+    }, {
+      "item": "Ankara"
+    }, {
+      "item": "Antananarivo"
+    }, {
+      "item": "Antofagasta"
+    }, {
+      "item": "Antwerp"
+    }, {
+      "item": "Apia"
+    }, {
+      "item": "Aracaju"
+    }, {
+      "item": "Arequipa"
+    }, {
+      "item": "Arica"
+    }, {
+      "item": "Arkhangelsk"
+    }, {
+      "item": "Ashgabat"
+    }, {
+      "item": "Asmara"
+    }, {
+      "item": "Astana"
+    }, {
+      "item": "Asunción"
+    }, {
+      "item": "Athens"
+    }, {
+      "item": "Atlanta"
+    }, {
+      "item": "Auckland"
+    }, {
+      "item": "Austin"
+    }, {
+      "item": "Ayacucho"
+    }, {
+      "item": "Ayutthaya"
+    }, {
+      "item": "Baghdad"
+    }, {
+      "item": "Bahía Blanca"
+    }, {
+      "item": "Baku"
+    }, {
+      "item": "Balikpapan"
+    }, {
+      "item": "Baltimore"
+    }, {
+      "item": "Bamako"
+    }, {
+      "item": "Banda Aceh"
+    }, {
+      "item": "Bandar Seri Begawan"
+    }, {
+      "item": "Bandung"
+    }, {
+      "item": "Bangalore"
+    }, {
+      "item": "Bangkok"
+    }, {
+      "item": "Bangui"
+    }, {
+      "item": "Banjul"
+    }, {
+      "item": "Barcelona"
+    }, {
+      "item": "Barrow"
+    }, {
+      "item": "Basel"
+    }, {
+      "item": "Basseterre"
+    }, {
+      "item": "Bath"
+    }, {
+      "item": "Beijing"
+    }, {
+      "item": "Beirut"
+    }, {
+      "item": "Belfast"
+    }, {
+      "item": "Belgrade"
+    }, {
+      "item": "Belize City"
+    }, {
+      "item": "Belmopan"
+    }, {
+      "item": "Belo Horizonte"
+    }, {
+      "item": "Belém"
+    }, {
+      "item": "Benghazi"
+    }, {
+      "item": "Benin City"
+    }, {
+      "item": "Bergen"
+    }, {
+      "item": "Berlin"
+    }, {
+      "item": "Berne"
+    }, {
+      "item": "Birmingham"
+    }, {
+      "item": "Bishkek"
+    }, {
+      "item": "Bissau"
+    }, {
+      "item": "Blantyre"
+    }, {
+      "item": "Bloemfontein"
+    }, {
+      "item": "Boa Vista"
+    }, {
+      "item": "Bobo-Dioulasso"
+    }, {
+      "item": "Boden"
+    }, {
+      "item": "Bogor"
+    }, {
+      "item": "Bogotá"
+    }, {
+      "item": "Bombay (Mumbai)"
+    }, {
+      "item": "Bordeaux"
+    }, {
+      "item": "Boston"
+    }, {
+      "item": "Brasília"
+    }, {
+      "item": "Bratislava"
+    }, {
+      "item": "Bratsk"
+    }, {
+      "item": "Brazzaville"
+    }, {
+      "item": "Bremen"
+    }, {
+      "item": "Bridgetown"
+    }, {
+      "item": "Brighton and Hove"
+    }, {
+      "item": "Brisbane"
+    }, {
+      "item": "Bristol"
+    }, {
+      "item": "Brussels"
+    }, {
+      "item": "Bucharest"
+    }, {
+      "item": "Budapest"
+    }, {
+      "item": "Buenos Aires"
+    }, {
+      "item": "Buffalo"
+    }, {
+      "item": "Bujumbura"
+    }, {
+      "item": "Bulawayo"
+    }, {
+      "item": "Bursa"
+    }, {
+      "item": "Busan"
+    }, {
+      "item": "Cagliari"
+    }, {
+      "item": "Cairns"
+    }, {
+      "item": "Cairo"
+    }, {
+      "item": "Calama"
+    }, {
+      "item": "Calcutta"
+    }, {
+      "item": "Calgary"
+    }, {
+      "item": "Campinas"
+    }, {
+      "item": "Campo Grande"
+    }, {
+      "item": "Canberra"
+    }, {
+      "item": "Cancún"
+    }, {
+      "item": "Cape Town"
+    }, {
+      "item": "Caracas"
+    }, {
+      "item": "Cardiff"
+    }, {
+      "item": "Casablanca"
+    }, {
+      "item": "Castries"
+    }, {
+      "item": "Catania"
+    }, {
+      "item": "Cayenne"
+    }, {
+      "item": "Cebu City"
+    }, {
+      "item": "Charlotte"
+    }, {
+      "item": "Chengdu"
+    }, {
+      "item": "Chennai"
+    }, {
+      "item": "Chiang Mai"
+    }, {
+      "item": "Chicago"
+    }, {
+      "item": "Chihuahua Chihuahua"
+    }, {
+      "item": "Chinandega"
+    }, {
+      "item": "Chis,ina(u"
+    }, {
+      "item": "Chittagong"
+    }, {
+      "item": "Chongjin"
+    }, {
+      "item": "Chongqing"
+    }, {
+      "item": "Christchurch"
+    }, {
+      "item": "Chūō"
+    }, {
+      "item": "Cincinnati"
+    }, {
+      "item": "Ciudad Bolivar"
+    }, {
+      "item": "Ciudad Juárez"
+    }, {
+      "item": "Cleveland"
+    }, {
+      "item": "Colombo"
+    }, {
+      "item": "Comodoro Rivadavia"
+    }, {
+      "item": "Conakry"
+    }, {
+      "item": "Concepción"
+    }, {
+      "item": "Copenhagen"
+    }, {
+      "item": "Copiapó"
+    }, {
+      "item": "Cotonou"
+    }, {
+      "item": "Coventry"
+    }, {
+      "item": "Cuiabá"
+    }, {
+      "item": "Culiacán"
+    }, {
+      "item": "Curitiba"
+    }, {
+      "item": "Córdoba"
+    }, {
+      "item": "Cúcuta"
+    }, {
+      "item": "Dakar"
+    }, {
+      "item": "Dallas"
+    }, {
+      "item": "Damascus"
+    }, {
+      "item": "Dar es Salaam"
+    }, {
+      "item": "Darwin"
+    }, {
+      "item": "Davao City"
+    }, {
+      "item": "Dededo"
+    }, {
+      "item": "Denpasar"
+    }, {
+      "item": "Denver"
+    }, {
+      "item": "Detroit"
+    }, {
+      "item": "Dhaka"
+    }, {
+      "item": "Dibrugarh"
+    }, {
+      "item": "Dili"
+    }, {
+      "item": "Djibouti"
+    }, {
+      "item": "Doha"
+    }, {
+      "item": "Douala"
+    }, {
+      "item": "Dubai"
+    }, {
+      "item": "Dublin"
+    }, {
+      "item": "Dunedin"
+    }, {
+      "item": "Durban"
+    }, {
+      "item": "Dushanbe"
+    }, {
+      "item": "Edinburgh"
+    }, {
+      "item": "Edmonton"
+    }, {
+      "item": "Eilat"
+    }, {
+      "item": "El Aaiún"
+    }, {
+      "item": "El Cajon"
+    }, {
+      "item": "Enschede"
+    }, {
+      "item": "Ensenada"
+    }, {
+      "item": "Entebbe"
+    }, {
+      "item": "Espoo"
+    }, {
+      "item": "Exeter"
+    }, {
+      "item": "Fairbanks"
+    }, {
+      "item": "Florence"
+    }, {
+      "item": "Florianópolis"
+    }, {
+      "item": "Fortaleza"
+    }, {
+      "item": "Francistown"
+    }, {
+      "item": "Frankfurt am Main"
+    }, {
+      "item": "Freetown"
+    }, {
+      "item": "Fukuoka"
+    }, {
+      "item": "Funafuti"
+    }, {
+      "item": "Gaborone"
+    }, {
+      "item": "Gaza"
+    }, {
+      "item": "Gdan'sk"
+    }, {
+      "item": "Geneva"
+    }, {
+      "item": "George Town"
+    }, {
+      "item": "Georgetown"
+    }, {
+      "item": "Gibraltar"
+    }, {
+      "item": "Glasgow"
+    }, {
+      "item": "Gloucester"
+    }, {
+      "item": "Goiânia"
+    }, {
+      "item": "Gold Coast"
+    }, {
+      "item": "Gothenburg"
+    }, {
+      "item": "Grande Prairie"
+    }, {
+      "item": "Groningen"
+    }, {
+      "item": "Grytviken"
+    }, {
+      "item": "Guadalajara"
+    }, {
+      "item": "Guangzhou"
+    }, {
+      "item": "Guatemala City"
+    }, {
+      "item": "Guayaquil"
+    }, {
+      "item": "Guwahati"
+    }, {
+      "item": "Gällivare-Malmberget-Koskullskulle"
+    }, {
+      "item": "Halifax Nova Scotia"
+    }, {
+      "item": "Halkida"
+    }, {
+      "item": "Hamburg"
+    }, {
+      "item": "Hamilton"
+    }, {
+      "item": "Hammerfest"
+    }, {
+      "item": "Hanoi"
+    }, {
+      "item": "Haparanda"
+    }, {
+      "item": "Harare"
+    }, {
+      "item": "Harbin"
+    }, {
+      "item": "Hargeisa"
+    }, {
+      "item": "Hat Yai"
+    }, {
+      "item": "Havana"
+    }, {
+      "item": "Helsinki"
+    }, {
+      "item": "Hermosillo Sonora"
+    }, {
+      "item": "Hiroshima"
+    }, {
+      "item": "Ho Chi Minh City"
+    }, {
+      "item": "Hobart"
+    }, {
+      "item": "Hong Kong"
+    }, {
+      "item": "Honiara"
+    }, {
+      "item": "Honolulu"
+    }, {
+      "item": "Houston"
+    }, {
+      "item": "Huambo"
+    }, {
+      "item": "Hyderabad"
+    }, {
+      "item": "Ibadan"
+    }, {
+      "item": "Ilhéus"
+    }, {
+      "item": "Iloilo City"
+    }, {
+      "item": "Imperatriz"
+    }, {
+      "item": "Indianapolis"
+    }, {
+      "item": "Invercargill"
+    }, {
+      "item": "Inverness"
+    }, {
+      "item": "Ipoh"
+    }, {
+      "item": "Iqaluit"
+    }, {
+      "item": "Iquique"
+    }, {
+      "item": "Irkutsk"
+    }, {
+      "item": "Isfahan"
+    }, {
+      "item": "Islamabad"
+    }, {
+      "item": "Istanbul"
+    }, {
+      "item": "Jacksonville"
+    }, {
+      "item": "Jakarta"
+    }, {
+      "item": "Jeddah"
+    }, {
+      "item": "Jerusalem"
+    }, {
+      "item": "Johannesburg"
+    }, {
+      "item": "Johor Bahru"
+    }, {
+      "item": "João Pessoa"
+    }, {
+      "item": "Kabul"
+    }, {
+      "item": "Kaesong"
+    }, {
+      "item": "Kamloops"
+    }, {
+      "item": "Kampala"
+    }, {
+      "item": "Kandahar"
+    }, {
+      "item": "Kano"
+    }, {
+      "item": "Kansas City"
+    }, {
+      "item": "Kaohsiung"
+    }, {
+      "item": "Karachi"
+    }, {
+      "item": "Kathmandu"
+    }, {
+      "item": "Kawasaki"
+    }, {
+      "item": "Kemijärvi"
+    }, {
+      "item": "Key West"
+    }, {
+      "item": "Khartoum"
+    }, {
+      "item": "Khon Kaen City"
+    }, {
+      "item": "Kiel"
+    }, {
+      "item": "Kiev"
+    }, {
+      "item": "Kigali"
+    }, {
+      "item": "Kingston"
+    }, {
+      "item": "Kingstown"
+    }, {
+      "item": "Kinshasa"
+    }, {
+      "item": "Kirkuk"
+    }, {
+      "item": "Kiruna"
+    }, {
+      "item": "Kismayo"
+    }, {
+      "item": "Ko-be"
+    }, {
+      "item": "Konya"
+    }, {
+      "item": "Koror"
+    }, {
+      "item": "Kota Kinabalu"
+    }, {
+      "item": "Kraków"
+    }, {
+      "item": "Kristiansand"
+    }, {
+      "item": "Kuala Lumpur"
+    }, {
+      "item": "Kuching"
+    }, {
+      "item": "Kulpahar"
+    }, {
+      "item": "Kumasi"
+    }, {
+      "item": "Kuwait City"
+    }, {
+      "item": "Kyoto"
+    }, {
+      "item": "La Jolla"
+    }, {
+      "item": "La Paz"
+    }, {
+      "item": "La Serena"
+    }, {
+      "item": "Lagos"
+    }, {
+      "item": "Las Vegas"
+    }, {
+      "item": "Latakia"
+    }, {
+      "item": "Lausanne"
+    }, {
+      "item": "Leeds"
+    }, {
+      "item": "Leicester"
+    }, {
+      "item": "León"
+    }, {
+      "item": "Lhasa"
+    }, {
+      "item": "Liberia"
+    }, {
+      "item": "Libreville"
+    }, {
+      "item": "Lilongwe"
+    }, {
+      "item": "Lima"
+    }, {
+      "item": "Limon"
+    }, {
+      "item": "Lisbon"
+    }, {
+      "item": "Liverpool"
+    }, {
+      "item": "Livingstone"
+    }, {
+      "item": "Ljubljana"
+    }, {
+      "item": "London"
+    }, {
+      "item": "Longyearbyen"
+    }, {
+      "item": "Los Angeles"
+    }, {
+      "item": "Luanda"
+    }, {
+      "item": "Luleå"
+    }, {
+      "item": "Lusaka"
+    }, {
+      "item": "Luxembourg"
+    }, {
+      "item": "Lviv"
+    }, {
+      "item": "Lyon"
+    }, {
+      "item": "Maastricht"
+    }, {
+      "item": "Macapá"
+    }, {
+      "item": "Macau"
+    }, {
+      "item": "Maceió"
+    }, {
+      "item": "Madrid"
+    }, {
+      "item": "Majuro"
+    }, {
+      "item": "Makassar"
+    }, {
+      "item": "Makati City"
+    }, {
+      "item": "Malabo"
+    }, {
+      "item": "Malacca Town"
+    }, {
+      "item": "Malang"
+    }, {
+      "item": "Malmö"
+    }, {
+      "item": "Malé"
+    }, {
+      "item": "Mamoudzou"
+    }, {
+      "item": "Managua"
+    }, {
+      "item": "Manama"
+    }, {
+      "item": "Manaus"
+    }, {
+      "item": "Manchester"
+    }, {
+      "item": "Manila"
+    }, {
+      "item": "Maputo"
+    }, {
+      "item": "Maracaibo"
+    }, {
+      "item": "Maracay"
+    }, {
+      "item": "Marrakech"
+    }, {
+      "item": "Marseille"
+    }, {
+      "item": "Maseru"
+    }, {
+      "item": "Mashhad"
+    }, {
+      "item": "Mbabane"
+    }, {
+      "item": "Mecca"
+    }, {
+      "item": "Medan"
+    }, {
+      "item": "Medellín"
+    }, {
+      "item": "Melbourne"
+    }, {
+      "item": "Memphis"
+    }, {
+      "item": "Mendoza"
+    }, {
+      "item": "Messina"
+    }, {
+      "item": "Mexicali Baja California"
+    }, {
+      "item": "Mexico City"
+    }, {
+      "item": "Miami"
+    }, {
+      "item": "Milan"
+    }, {
+      "item": "Milwaukee"
+    }, {
+      "item": "Minneapolis"
+    }, {
+      "item": "Minsk"
+    }, {
+      "item": "Miri"
+    }, {
+      "item": "Mogadishu"
+    }, {
+      "item": "Mombasa"
+    }, {
+      "item": "Monaco"
+    }, {
+      "item": "Monrovia"
+    }, {
+      "item": "Monterrey"
+    }, {
+      "item": "Montevideo"
+    }, {
+      "item": "Montreal"
+    }, {
+      "item": "Moroni"
+    }, {
+      "item": "Moscow"
+    }, {
+      "item": "Mosul"
+    }, {
+      "item": "Moundou"
+    }, {
+      "item": "Munich"
+    }, {
+      "item": "Murmansk"
+    }, {
+      "item": "Muscat"
+    }, {
+      "item": "Mérida"
+    }, {
+      "item": "N'Djamena"
+    }, {
+      "item": "Nagoya"
+    }, {
+      "item": "Nagpur"
+    }, {
+      "item": "Nairobi"
+    }, {
+      "item": "Nakhon Ratchasima City"
+    }, {
+      "item": "Namangan"
+    }, {
+      "item": "Nanjing"
+    }, {
+      "item": "Naples"
+    }, {
+      "item": "Nashville"
+    }, {
+      "item": "Nassau"
+    }, {
+      "item": "Natal"
+    }, {
+      "item": "Naypyidaw"
+    }, {
+      "item": "Ndola"
+    }, {
+      "item": "New Delhi"
+    }, {
+      "item": "New Orleans"
+    }, {
+      "item": "New York"
+    }, {
+      "item": "Newcastle"
+    }, {
+      "item": "Newcastle Upon Tyne"
+    }, {
+      "item": "Niamey"
+    }, {
+      "item": "Nice"
+    }, {
+      "item": "Nicosia"
+    }, {
+      "item": "Norilsk"
+    }, {
+      "item": "Norrköping"
+    }, {
+      "item": "North Bay"
+    }, {
+      "item": "Norwich"
+    }, {
+      "item": "Nottingham"
+    }, {
+      "item": "Nouakchott"
+    }, {
+      "item": "Nouméa"
+    }, {
+      "item": "Novosibirsk"
+    }, {
+      "item": "Nuku'Alofa"
+    }, {
+      "item": "Nukus"
+    }, {
+      "item": "Nuuk (Godthåb)"
+    }, {
+      "item": "Nzérékoré"
+    }, {
+      "item": "Odense"
+    }, {
+      "item": "Odessa"
+    }, {
+      "item": "Okinawa"
+    }, {
+      "item": "Oklahoma City"
+    }, {
+      "item": "Omsk"
+    }, {
+      "item": "Orlando"
+    }, {
+      "item": "Osaka"
+    }, {
+      "item": "Oslo"
+    }, {
+      "item": "Ottawa"
+    }, {
+      "item": "Ouagadougou"
+    }, {
+      "item": "Oulu"
+    }, {
+      "item": "Oxford"
+    }, {
+      "item": "Padang"
+    }, {
+      "item": "Pago Pago"
+    }, {
+      "item": "Palembang"
+    }, {
+      "item": "Palermo"
+    }, {
+      "item": "Palikir"
+    }, {
+      "item": "Palm's"
+    }, {
+      "item": "Panama City"
+    }, {
+      "item": "Papeete"
+    }, {
+      "item": "Paramaribo"
+    }, {
+      "item": "Paris"
+    }, {
+      "item": "Pattaya City"
+    }, {
+      "item": "Pekanbaru"
+    }, {
+      "item": "Pelotas"
+    }, {
+      "item": "Perm"
+    }, {
+      "item": "Perth"
+    }, {
+      "item": "Peterborough"
+    }, {
+      "item": "Petropavlovsk-Kamchatsky"
+    }, {
+      "item": "Philadelphia"
+    }, {
+      "item": "Phnom Penh"
+    }, {
+      "item": "Phoenix"
+    }, {
+      "item": "Phuket City"
+    }, {
+      "item": "Piteå"
+    }, {
+      "item": "Pittsburgh"
+    }, {
+      "item": "Plymouth"
+    }, {
+      "item": "Podgorica"
+    }, {
+      "item": "Pontianak"
+    }, {
+      "item": "Port Harcourt"
+    }, {
+      "item": "Port Hedland"
+    }, {
+      "item": "Port Louis"
+    }, {
+      "item": "Port Moresby"
+    }, {
+      "item": "Port Vila"
+    }, {
+      "item": "Port of Spain"
+    }, {
+      "item": "Port-au-Prince"
+    }, {
+      "item": "Portland"
+    }, {
+      "item": "Porto"
+    }, {
+      "item": "Porto Alegre"
+    }, {
+      "item": "Porto Velho"
+    }, {
+      "item": "Porto-Novo"
+    }, {
+      "item": "Portsmouth"
+    }, {
+      "item": "Prague"
+    }, {
+      "item": "Praia"
+    }, {
+      "item": "Pretoria"
+    }, {
+      "item": "Pristina"
+    }, {
+      "item": "Providence"
+    }, {
+      "item": "Puebla"
+    }, {
+      "item": "Puerto Aisén"
+    }, {
+      "item": "Puerto Ayacucho"
+    }, {
+      "item": "Puerto Montt"
+    }, {
+      "item": "Puerto Toro"
+    }, {
+      "item": "Puerto Vallarta"
+    }, {
+      "item": "Puerto Williams"
+    }, {
+      "item": "Punta Arenas"
+    }, {
+      "item": "Puntarenas"
+    }, {
+      "item": "Pyongyang"
+    }, {
+      "item": "Qaanaaq"
+    }, {
+      "item": "Qingdao"
+    }, {
+      "item": "Quebec City"
+    }, {
+      "item": "Querétaro"
+    }, {
+      "item": "Quezon City"
+    }, {
+      "item": "Quito"
+    }, {
+      "item": "Rabat"
+    }, {
+      "item": "Recife"
+    }, {
+      "item": "Regina"
+    }, {
+      "item": "Reno"
+    }, {
+      "item": "Reykjavík"
+    }, {
+      "item": "Riga"
+    }, {
+      "item": "Rio Branco"
+    }, {
+      "item": "Rio de Janeiro"
+    }, {
+      "item": "Riverside"
+    }, {
+      "item": "Riyadh"
+    }, {
+      "item": "Rockhampton"
+    }, {
+      "item": "Rome"
+    }, {
+      "item": "Rosario"
+    }, {
+      "item": "Roseau"
+    }, {
+      "item": "Rotterdam"
+    }, {
+      "item": "Sabha"
+    }, {
+      "item": "Saint John"
+    }, {
+      "item": "Saint Petersburg"
+    }, {
+      "item": "Saint-Denis"
+    }, {
+      "item": "Saipan"
+    }, {
+      "item": "Salt Lake City"
+    }, {
+      "item": "Salvador"
+    }, {
+      "item": "San Antonio"
+    }, {
+      "item": "San Carlos de Bariloche"
+    }, {
+      "item": "San Diego"
+    }, {
+      "item": "San Fernando"
+    }, {
+      "item": "San Francisco"
+    }, {
+      "item": "San José"
+    }, {
+      "item": "San Juan"
+    }, {
+      "item": "San Luis Potosí"
+    }, {
+      "item": "San Marino"
+    }, {
+      "item": "San Miguel de Tucumán"
+    }, {
+      "item": "San Salvador"
+    }, {
+      "item": "Santa Cruz"
+    }, {
+      "item": "Santa Cruz de Tenerife"
+    }, {
+      "item": "Santiago"
+    }, {
+      "item": "Santiago de Cali"
+    }, {
+      "item": "Santiago de Cuba"
+    }, {
+      "item": "Santo Domingo"
+    }, {
+      "item": "Sapporo"
+    }, {
+      "item": "Sarajevo"
+    }, {
+      "item": "Sarpsborg"
+    }, {
+      "item": "Saskatoon"
+    }, {
+      "item": "Sault Ste. Marie"
+    }, {
+      "item": "Seattle"
+    }, {
+      "item": "Sekondi-Takoradi"
+    }, {
+      "item": "Semarang"
+    }, {
+      "item": "Seoul"
+    }, {
+      "item": "Serekunda"
+    }, {
+      "item": "Sevilla"
+    }, {
+      "item": "Sfax"
+    }, {
+      "item": "Shanghai"
+    }, {
+      "item": "Sheffield"
+    }, {
+      "item": "Shenyang"
+    }, {
+      "item": "Shenzhen"
+    }, {
+      "item": "Siliguri"
+    }, {
+      "item": "Simferopol"
+    }, {
+      "item": "Singapore"
+    }, {
+      "item": "Sinop"
+    }, {
+      "item": "Skellefteå"
+    }, {
+      "item": "Skopje"
+    }, {
+      "item": "Sochi"
+    }, {
+      "item": "Sofia"
+    }, {
+      "item": "South Tarawa"
+    }, {
+      "item": "Southampton"
+    }, {
+      "item": "Sri Jayawardenapura-Kotte"
+    }, {
+      "item": "St. George's"
+    }, {
+      "item": "St. John's"
+    }, {
+      "item": "St. Louis"
+    }, {
+      "item": "Stanley"
+    }, {
+      "item": "Stockholm"
+    }, {
+      "item": "Sucre"
+    }, {
+      "item": "Sudbury"
+    }, {
+      "item": "Suez"
+    }, {
+      "item": "Sukhumi"
+    }, {
+      "item": "Sundsvall"
+    }, {
+      "item": "Surabaya"
+    }, {
+      "item": "Surat Thani"
+    }, {
+      "item": "Suva"
+    }, {
+      "item": "Swansea"
+    }, {
+      "item": "Sydney"
+    }, {
+      "item": "São Luís"
+    }, {
+      "item": "São Paulo"
+    }, {
+      "item": "São Tomé"
+    }, {
+      "item": "Tainan City"
+    }, {
+      "item": "Taipei"
+    }, {
+      "item": "Tallinn"
+    }, {
+      "item": "Tamale"
+    }, {
+      "item": "Tampa"
+    }, {
+      "item": "Tampere"
+    }, {
+      "item": "Tampico"
+    }, {
+      "item": "Tapachula"
+    }, {
+      "item": "Tartu"
+    }, {
+      "item": "Tashkent"
+    }, {
+      "item": "Tbilisi"
+    }, {
+      "item": "Tegucigalpa"
+    }, {
+      "item": "Tehran"
+    }, {
+      "item": "Tel Aviv"
+    }, {
+      "item": "Teresina"
+    }, {
+      "item": "Tezpur"
+    }, {
+      "item": "The Hague"
+    }, {
+      "item": "Thessaloniki"
+    }, {
+      "item": "Thimphu"
+    }, {
+      "item": "Thunder Bay"
+    }, {
+      "item": "Tianjin"
+    }, {
+      "item": "Tijuana Baja California"
+    }, {
+      "item": "Timbuktu"
+    }, {
+      "item": "Tirana"
+    }, {
+      "item": "Tiraspol"
+    }, {
+      "item": "Tokyo"
+    }, {
+      "item": "Toronto"
+    }, {
+      "item": "Torreón"
+    }, {
+      "item": "Townsville"
+    }, {
+      "item": "Trelew"
+    }, {
+      "item": "Tripoli"
+    }, {
+      "item": "Tromsø"
+    }, {
+      "item": "Trondheim"
+    }, {
+      "item": "Trujillo"
+    }, {
+      "item": "Tskhinvali"
+    }, {
+      "item": "Tunis"
+    }, {
+      "item": "Turin"
+    }, {
+      "item": "Tórshavn"
+    }, {
+      "item": "Udon Thani"
+    }, {
+      "item": "Ulan Bator"
+    }, {
+      "item": "Umeå"
+    }, {
+      "item": "Ushuaia"
+    }, {
+      "item": "Utrecht"
+    }, {
+      "item": "Vaduz"
+    }, {
+      "item": "Valdivia"
+    }, {
+      "item": "Valencia"
+    }, {
+      "item": "Valetta"
+    }, {
+      "item": "Valparaiso"
+    }, {
+      "item": "Vancouver"
+    }, {
+      "item": "Vatican City"
+    }, {
+      "item": "Venice"
+    }, {
+      "item": "Veracruz"
+    }, {
+      "item": "Victoria"
+    }, {
+      "item": "Vienna"
+    }, {
+      "item": "Vientiane"
+    }, {
+      "item": "Vilnius"
+    }, {
+      "item": "Vitória"
+    }, {
+      "item": "Vladivostok"
+    }, {
+      "item": "Warsaw"
+    }, {
+      "item": "Washington"
+    }, {
+      "item": "Wellington"
+    }, {
+      "item": "Whitehorse"
+    }, {
+      "item": "Wichita"
+    }, {
+      "item": "Windhoek"
+    }, {
+      "item": "Winnipeg"
+    }, {
+      "item": "Wonsan"
+    }, {
+      "item": "Wuhan"
+    }, {
+      "item": "Yakutsk"
+    }, {
+      "item": "Yamoussoukro"
+    }, {
+      "item": "Yangon"
+    }, {
+      "item": "Yaoundé"
+    }, {
+      "item": "Yaren District"
+    }, {
+      "item": "Yarmouth Nova Scotia"
+    }, {
+      "item": "Yellowknife"
+    }, {
+      "item": "Yerevan"
+    }, {
+      "item": "Yokohama"
+    }, {
+      "item": "Zagreb"
+    }, {
+      "item": "Zanzibar City"
+    }, {
+      "item": "Zhengzhou"
+    }, {
+      "item": "Zürich"
+    }, {
+      "item": "Ísafjörður"
+    }, {
+      "item": "Örnsköldsvik"
+    }, {
+      "item": "Östersund"
+    }]
+  },
+  "magnetic_reversal_chron": {
+    "label": "Magnetic Reversal Chrons",
+    "items": [{
+      "item": "Blake"
+    }, {
+      "item": "Brunhes"
+    }, {
+      "item": "C1"
+    }, {
+      "item": "C10"
+    }, {
+      "item": "C11"
+    }, {
+      "item": "C12"
+    }, {
+      "item": "C13"
+    }, {
+      "item": "C15"
+    }, {
+      "item": "C15A"
+    }, {
+      "item": "C16"
+    }, {
+      "item": "C17"
+    }, {
+      "item": "C18"
+    }, {
+      "item": "C19"
+    }, {
+      "item": "C1n"
+    }, {
+      "item": "C1r"
+    }, {
+      "item": "C1r.1"
+    }, {
+      "item": "C1r.1n"
+    }, {
+      "item": "C1r.1r"
+    }, {
+      "item": "C1r.2r"
+    }, {
+      "item": "C2"
+    }, {
+      "item": "C20"
+    }, {
+      "item": "C21"
+    }, {
+      "item": "C22"
+    }, {
+      "item": "C23"
+    }, {
+      "item": "C23r.1"
+    }, {
+      "item": "C24"
+    }, {
+      "item": "C25"
+    }, {
+      "item": "C26"
+    }, {
+      "item": "C27"
+    }, {
+      "item": "C28"
+    }, {
+      "item": "C29"
+    }, {
+      "item": "C2A"
+    }, {
+      "item": "C2An"
+    }, {
+      "item": "C2Ar"
+    }, {
+      "item": "C2n"
+    }, {
+      "item": "C2r"
+    }, {
+      "item": "C2r.1"
+    }, {
+      "item": "C2r.1n"
+    }, {
+      "item": "C3.1"
+    }, {
+      "item": "C3.2"
+    }, {
+      "item": "C3.2r.1"
+    }, {
+      "item": "C3.3"
+    }, {
+      "item": "C30"
+    }, {
+      "item": "C31"
+    }, {
+      "item": "C32.1"
+    }, {
+      "item": "C32.2"
+    }, {
+      "item": "C32r.1"
+    }, {
+      "item": "C33"
+    }, {
+      "item": "C34"
+    }, {
+      "item": "C3A"
+    }, {
+      "item": "C3An"
+    }, {
+      "item": "C3Ar"
+    }, {
+      "item": "C3B"
+    }, {
+      "item": "C3Bn"
+    }, {
+      "item": "C3Br"
+    }, {
+      "item": "C3r"
+    }, {
+      "item": "C4"
+    }, {
+      "item": "C4A"
+    }, {
+      "item": "C4Ar.1"
+    }, {
+      "item": "C4Ar.2"
+    }, {
+      "item": "C4n"
+    }, {
+      "item": "C4n"
+    }, {
+      "item": "C5"
+    }, {
+      "item": "C5A.1"
+    }, {
+      "item": "C5A.2"
+    }, {
+      "item": "C5AA"
+    }, {
+      "item": "C5AB"
+    }, {
+      "item": "C5AC"
+    }, {
+      "item": "C5AD"
+    }, {
+      "item": "C5Ar.1"
+    }, {
+      "item": "C5Ar.2"
+    }, {
+      "item": "C5B.1"
+    }, {
+      "item": "C5B.2"
+    }, {
+      "item": "C5C"
+    }, {
+      "item": "C5D"
+    }, {
+      "item": "C5Dr.1"
+    }, {
+      "item": "C5E"
+    }, {
+      "item": "C5r.1"
+    }, {
+      "item": "C5r.2"
+    }, {
+      "item": "C6"
+    }, {
+      "item": "C6A"
+    }, {
+      "item": "C6A.1"
+    }, {
+      "item": "C6A.2"
+    }, {
+      "item": "C6AA"
+    }, {
+      "item": "C6AAr.1"
+    }, {
+      "item": "C6B"
+    }, {
+      "item": "C6C.1"
+    }, {
+      "item": "C6C.2"
+    }, {
+      "item": "C6C.3"
+    }, {
+      "item": "C7"
+    }, {
+      "item": "C7A"
+    }, {
+      "item": "C8"
+    }, {
+      "item": "C9"
+    }, {
+      "item": "CNS"
+    }, {
+      "item": "Cobb Mountain"
+    }, {
+      "item": "Cochiti"
+    }, {
+      "item": "Cretaceous Normal Superchron"
+    }, {
+      "item": "Gauss"
+    }, {
+      "item": "Gilbert"
+    }, {
+      "item": "Jaramillo"
+    }, {
+      "item": "Jurassic Quite Zone"
+    }, {
+      "item": "Kaena"
+    }, {
+      "item": "Laschamp"
+    }, {
+      "item": "M0"
+    }, {
+      "item": "M1"
+    }, {
+      "item": "M10"
+    }, {
+      "item": "M10n"
+    }, {
+      "item": "M10nn"
+    }, {
+      "item": "M10nn.1"
+    }, {
+      "item": "M10nn.2"
+    }, {
+      "item": "M11"
+    }, {
+      "item": "M11.1n"
+    }, {
+      "item": "M11An"
+    }, {
+      "item": "M11An.1"
+    }, {
+      "item": "M11n"
+    }, {
+      "item": "M12"
+    }, {
+      "item": "M12.1"
+    }, {
+      "item": "M12.2"
+    }, {
+      "item": "M12.2n"
+    }, {
+      "item": "M12A"
+    }, {
+      "item": "M12An"
+    }, {
+      "item": "M12n"
+    }, {
+      "item": "M13"
+    }, {
+      "item": "M13n"
+    }, {
+      "item": "M14"
+    }, {
+      "item": "M14n"
+    }, {
+      "item": "M15"
+    }, {
+      "item": "M15n"
+    }, {
+      "item": "M16"
+    }, {
+      "item": "M16n"
+    }, {
+      "item": "M17"
+    }, {
+      "item": "M17n"
+    }, {
+      "item": "M18"
+    }, {
+      "item": "M18n"
+    }, {
+      "item": "M19"
+    }, {
+      "item": "M19n"
+    }, {
+      "item": "M19n.1"
+    }, {
+      "item": "M1n"
+    }, {
+      "item": "M2"
+    }, {
+      "item": "M20"
+    }, {
+      "item": "M20n"
+    }, {
+      "item": "M21"
+    }, {
+      "item": "M21n"
+    }, {
+      "item": "M22"
+    }, {
+      "item": "M22A"
+    }, {
+      "item": "M22An"
+    }, {
+      "item": "M22n"
+    }, {
+      "item": "M22n.1"
+    }, {
+      "item": "M22n.2"
+    }, {
+      "item": "M23"
+    }, {
+      "item": "M23.1"
+    }, {
+      "item": "M23n"
+    }, {
+      "item": "M24"
+    }, {
+      "item": "M24.1"
+    }, {
+      "item": "M24A"
+    }, {
+      "item": "M24An"
+    }, {
+      "item": "M24B"
+    }, {
+      "item": "M24Bn"
+    }, {
+      "item": "M24n"
+    }, {
+      "item": "M25"
+    }, {
+      "item": "M25An"
+    }, {
+      "item": "M25n"
+    }, {
+      "item": "M26"
+    }, {
+      "item": "M26n"
+    }, {
+      "item": "M27"
+    }, {
+      "item": "M27n"
+    }, {
+      "item": "M28"
+    }, {
+      "item": "M29"
+    }, {
+      "item": "M29n"
+    }, {
+      "item": "M29r(o)"
+    }, {
+      "item": "M3"
+    }, {
+      "item": "M30"
+    }, {
+      "item": "M31"
+    }, {
+      "item": "M32"
+    }, {
+      "item": "M33"
+    }, {
+      "item": "M34"
+    }, {
+      "item": "M35"
+    }, {
+      "item": "M36"
+    }, {
+      "item": "M37"
+    }, {
+      "item": "M38"
+    }, {
+      "item": "M39"
+    }, {
+      "item": "M4"
+    }, {
+      "item": "M40"
+    }, {
+      "item": "M41"
+    }, {
+      "item": "M5"
+    }, {
+      "item": "M6"
+    }, {
+      "item": "M6n"
+    }, {
+      "item": "M7"
+    }, {
+      "item": "M7n"
+    }, {
+      "item": "M8"
+    }, {
+      "item": "M8n"
+    }, {
+      "item": "M9"
+    }, {
+      "item": "M9n"
+    }, {
+      "item": "Mammoth"
+    }, {
+      "item": "Matuyama"
+    }, {
+      "item": "Mono Lake"
+    }, {
+      "item": "Nunivak"
+    }, {
+      "item": "Olduvai"
+    }, {
+      "item": "Reunion"
+    }, {
+      "item": "Sidufjall"
+    }, {
+      "item": "Thvera"
+    }]
+  },
+  "fossil_phylum": {
+    "label": "Fossil Phyla",
+    "items": [{
+      "item": "Chlorophyta"
+    }, {
+      "item": "Chordata"
+    }, {
+      "item": "Firmicutes"
+    }, {
+      "item": "Magnoliophyta"
+    }, {
+      "item": "Zygomycota"
+    }]
+  },
+  "fossil_species": {
+    "label": "Fossil Species",
+    "items": [{
+      "item": "A. Saccharum"
+    }, {
+      "item": "C. Familiaris"
+    }, {
+      "item": "M. Tuberculosis"
+    }, {
+      "item": "R. Stolonifer"
+    }, {
+      "item": "S. Crassa"
+    }]
+  },
+  "conodont_zone": {
+    "label": "Conodont Zone",
+    "items": [{
+      "item": "B. Triangularis"
+    }]
+  },
+  "fossil_order": {
+    "label": "Fossil Orders",
+    "items": [{
+      "item": "Acanthochitonida"
+    }, {
+      "item": "Acanthodida"
+    }, {
+      "item": "Acanthodiformes"
+    }, {
+      "item": "Acanthomorpha"
+    }, {
+      "item": "Acanthothoraci"
+    }, {
+      "item": "Acercostraca"
+    }, {
+      "item": "Acipenseriformes"
+    }, {
+      "item": "Acrothoracica"
+    }, {
+      "item": "Acrotretida"
+    }, {
+      "item": "Actinaria"
+    }, {
+      "item": "Actiniaria"
+    }, {
+      "item": "Actinocerida"
+    }, {
+      "item": "Actinodontoida"
+    }, {
+      "item": "Actinomycetales"
+    }, {
+      "item": "Aeschronectida"
+    }, {
+      "item": "Aglaspida"
+    }, {
+      "item": "Agnostida"
+    }, {
+      "item": "Ajacicyathida"
+    }, {
+      "item": "Alcyonacea"
+    }, {
+      "item": "Alcyonida"
+    }, {
+      "item": "Alepisauriformes"
+    }, {
+      "item": "Amiiformes"
+    }, {
+      "item": "Ammonitida"
+    }, {
+      "item": "Ammonoidea"
+    }, {
+      "item": "Amphidiscosa"
+    }, {
+      "item": "Amphinomorpha"
+    }, {
+      "item": "Amphipoda"
+    }, {
+      "item": "Anarcestida"
+    }, {
+      "item": "Anaspida"
+    }, {
+      "item": "Anaspidea"
+    }, {
+      "item": "Anguilliformes"
+    }, {
+      "item": "Antiarcha"
+    }, {
+      "item": "Antipatharia"
+    }, {
+      "item": "Apodida"
+    }, {
+      "item": "Arandaspidiformes"
+    }, {
+      "item": "Archaeocopida"
+    }, {
+      "item": "Archaeocyathida"
+    }, {
+      "item": "Archaeodendrida"
+    }, {
+      "item": "Archaeogastropoda"
+    }, {
+      "item": "Archaeophyllida"
+    }, {
+      "item": "Archaeostraca"
+    }, {
+      "item": "Architaenoglossa"
+    }, {
+      "item": "Arcoida"
+    }, {
+      "item": "Aristocystitida"
+    }, {
+      "item": "Arthrochirotida"
+    }, {
+      "item": "Arthrodira"
+    }, {
+      "item": "Asaphida"
+    }, {
+      "item": "Ascocerida"
+    }, {
+      "item": "Ascocystitida"
+    }, {
+      "item": "Aspidochirotida"
+    }, {
+      "item": "Asteroblastida"
+    }, {
+      "item": "Astraspidida"
+    }, {
+      "item": "Astraspidiformes"
+    }, {
+      "item": "Astrophorida"
+    }, {
+      "item": "Atelaspidiformes"
+    }, {
+      "item": "Ateleaspidiformes"
+    }, {
+      "item": "Atheriniformes"
+    }, {
+      "item": "Atrypida"
+    }, {
+      "item": "Aulacocerida"
+    }, {
+      "item": "Aulopiformes"
+    }, {
+      "item": "Axinellida"
+    }, {
+      "item": "Barrandeocerida"
+    }, {
+      "item": "Basommatophora"
+    }, {
+      "item": "Batrachoidiformes"
+    }, {
+      "item": "Belemnitida"
+    }, {
+      "item": "Bellerophontida"
+    }, {
+      "item": "Belodiellida"
+    }, {
+      "item": "Beloniformes"
+    }, {
+      "item": "Belotelsonidea"
+    }, {
+      "item": "Beryciformes"
+    }, {
+      "item": "Birkeniiformes"
+    }, {
+      "item": "Bobasatraniformes"
+    }, {
+      "item": "Bobasatraniiformes"
+    }, {
+      "item": "Boletzkida"
+    }, {
+      "item": "Boletzkyida"
+    }, {
+      "item": "Bostrichopodida"
+    }, {
+      "item": "Bothriocidaroida"
+    }, {
+      "item": "Bothriocidaroidea"
+    }, {
+      "item": "Bourgueticrinida"
+    }, {
+      "item": "Bradyodontiformes"
+    }, {
+      "item": "Brindabellaspida"
+    }, {
+      "item": "Calanoida"
+    }, {
+      "item": "Calcaronea"
+    }, {
+      "item": "Calpionellida"
+    }, {
+      "item": "Calycina"
+    }, {
+      "item": "Calyptoblastina"
+    }, {
+      "item": "Camaroidea"
+    }, {
+      "item": "Cameroidea"
+    }, {
+      "item": "Camptostromatoida"
+    }, {
+      "item": "Canadaspidida"
+    }, {
+      "item": "Capsulocyathida"
+    }, {
+      "item": "Carcharhiniformes"
+    }, {
+      "item": "Carnivora"
+    }, {
+      "item": "Carybdeida"
+    }, {
+      "item": "Cassiduloida"
+    }, {
+      "item": "Cephalaspida"
+    }, {
+      "item": "Cephalaspidea"
+    }, {
+      "item": "Cephalaspidiformes"
+    }, {
+      "item": "Cephalaspidoformes"
+    }, {
+      "item": "Cephalodiscida"
+    }, {
+      "item": "Cephaloxeniformes"
+    }, {
+      "item": "Ceratitida"
+    }, {
+      "item": "Cetacea"
+    }, {
+      "item": "Chancelloriida"
+    }, {
+      "item": "Charadriiformes"
+    }, {
+      "item": "Chasmataspidida"
+    }, {
+      "item": "Cheilostomata"
+    }, {
+      "item": "Chelonia"
+    }, {
+      "item": "Cheloniellida"
+    }, {
+      "item": "Chileida"
+    }, {
+      "item": "Chimaeriformes"
+    }, {
+      "item": "Chintonida"
+    }, {
+      "item": "Chondrenchelyiformes"
+    }, {
+      "item": "Cidaroida"
+    }, {
+      "item": "Cincta"
+    }, {
+      "item": "Circothecida"
+    }, {
+      "item": "Cladida"
+    }, {
+      "item": "Cladoselachida"
+    }, {
+      "item": "Climatiformes"
+    }, {
+      "item": "Climatiiformes"
+    }, {
+      "item": "Clupeiformes"
+    }, {
+      "item": "Clymeniida"
+    }, {
+      "item": "Clypeasteroida"
+    }, {
+      "item": "Coelocanthiformes"
+    }, {
+      "item": "Coleolida"
+    }, {
+      "item": "Coleoloida"
+    }, {
+      "item": "Comarocystitida"
+    }, {
+      "item": "Comatulida"
+    }, {
+      "item": "Concavicarida"
+    }, {
+      "item": "Conchopeltida"
+    }, {
+      "item": "Conchyliocarida"
+    }, {
+      "item": "Conocardioida"
+    }, {
+      "item": "Conodontophorida"
+    }, {
+      "item": "Conoidocyathida"
+    }, {
+      "item": "Copodontiformes"
+    }, {
+      "item": "Cornuta"
+    }, {
+      "item": "Coronata"
+    }, {
+      "item": "Coronatida"
+    }, {
+      "item": "Coronodontida"
+    }, {
+      "item": "Corynexochida"
+    }, {
+      "item": "Cothoniida"
+    }, {
+      "item": "Craniida"
+    }, {
+      "item": "Craniopsida"
+    }, {
+      "item": "Cribricyathida"
+    }, {
+      "item": "Crocodilia"
+    }, {
+      "item": "Crossagnathiformes"
+    }, {
+      "item": "Crossognathiformes"
+    }, {
+      "item": "Crustoidea"
+    }, {
+      "item": "Cryptostomata"
+    }, {
+      "item": "Ctenostomata"
+    }, {
+      "item": "Cumacea"
+    }, {
+      "item": "Cyathaspidiformes"
+    }, {
+      "item": "Cyclina"
+    }, {
+      "item": "Cyclostomata"
+    }, {
+      "item": "Cyrtocrinida"
+    }, {
+      "item": "Cyrtonellida"
+    }, {
+      "item": "Cystoporata"
+    }, {
+      "item": "Dacryoconarida"
+    }, {
+      "item": "Dactylochirotida"
+    }, {
+      "item": "Dactylopteriformes"
+    }, {
+      "item": "Decapoda"
+    }, {
+      "item": "Dendrochirotida"
+    }, {
+      "item": "Dendroidea"
+    }, {
+      "item": "Dentalioida"
+    }, {
+      "item": "Desmiodontida"
+    }, {
+      "item": "Desmostylia"
+    }, {
+      "item": "Diabolepidida"
+    }, {
+      "item": "Diadematoida"
+    }, {
+      "item": "Dichoporita"
+    }, {
+      "item": "Dictyoceratida"
+    }, {
+      "item": "Diplobathrida"
+    }, {
+      "item": "Dipnoi"
+    }, {
+      "item": "Dipteriformes"
+    }, {
+      "item": "Disasteroida"
+    }, {
+      "item": "Discosorida"
+    }, {
+      "item": "Disparida"
+    }, {
+      "item": "Dithecoidea"
+    }, {
+      "item": "Drilomorpha"
+    }, {
+      "item": "Echinocystitoida"
+    }, {
+      "item": "Echinoida"
+    }, {
+      "item": "Echinothurioida"
+    }, {
+      "item": "Echmatocrinida"
+    }, {
+      "item": "Edrioasterida"
+    }, {
+      "item": "Elasipodida"
+    }, {
+      "item": "Ellesmerocerida"
+    }, {
+      "item": "Elopiformes"
+    }, {
+      "item": "Emeraldellida"
+    }, {
+      "item": "Enantiopoda"
+    }, {
+      "item": "Encrinida"
+    }, {
+      "item": "Endocerida"
+    }, {
+      "item": "Eocaridacea"
+    }, {
+      "item": "Eridostracoda"
+    }, {
+      "item": "Eriptychiformes"
+    }, {
+      "item": "Erniettamorpha"
+    }, {
+      "item": "Eugeneodontida"
+    }, {
+      "item": "Eunicemorpha"
+    }, {
+      "item": "Euomphalina"
+    }, {
+      "item": "Eurypterida"
+    }, {
+      "item": "Euselachii"
+    }, {
+      "item": "Exilithecida"
+    }, {
+      "item": "Fenestrata"
+    }, {
+      "item": "Fissiculata"
+    }, {
+      "item": "Fistuliporita"
+    }, {
+      "item": "Flabelligerimorpha"
+    }, {
+      "item": "Foraminiferida"
+    }, {
+      "item": "Forcipulatida"
+    }, {
+      "item": "Gadiformes"
+    }, {
+      "item": "Galeomorphii"
+    }, {
+      "item": "Gasterosteiformes"
+    }, {
+      "item": "Gemuerdinida"
+    }, {
+      "item": "Globorilida"
+    }, {
+      "item": "Glyptosphaeritida"
+    }, {
+      "item": "Gogiida"
+    }, {
+      "item": "Goniactinida"
+    }, {
+      "item": "Goniatitida"
+    }, {
+      "item": "Gonorhynchiformes"
+    }, {
+      "item": "Gorgonida"
+    }, {
+      "item": "Graptoloidea"
+    }, {
+      "item": "Guadalupiida"
+    }, {
+      "item": "Gymnosomata"
+    }, {
+      "item": "Hadromerida"
+    }, {
+      "item": "Haplosclerida"
+    }, {
+      "item": "Helioporacea"
+    }, {
+      "item": "Hemicidaroida"
+    }, {
+      "item": "Hemidiscosa"
+    }, {
+      "item": "Hemithecellitina"
+    }, {
+      "item": "Hemizonida"
+    }, {
+      "item": "Hercolepadida"
+    }, {
+      "item": "Hercollepadida"
+    }, {
+      "item": "Hesperornithiformes"
+    }, {
+      "item": "Hesperrornithiformes"
+    }, {
+      "item": "Heteractinida"
+    }, {
+      "item": "Heterocorallia"
+    }, {
+      "item": "Heterodontiformes"
+    }, {
+      "item": "Heterostrophia"
+    }, {
+      "item": "Hexactinosa"
+    }, {
+      "item": "Hexanchiformes"
+    }, {
+      "item": "Hippuritoida"
+    }, {
+      "item": "Holasteroida"
+    }, {
+      "item": "Holectypoida"
+    }, {
+      "item": "Holocephali"
+    }, {
+      "item": "Holoptychiida"
+    }, {
+      "item": "Homoctenida"
+    }, {
+      "item": "Homoscleromorpha"
+    }, {
+      "item": "Hoplostraca"
+    }, {
+      "item": "Hybocrinida"
+    }, {
+      "item": "Hydroida"
+    }, {
+      "item": "Hymenostraca"
+    }, {
+      "item": "Hyolith"
+    }, {
+      "item": "Hyolithelminthes"
+    }, {
+      "item": "Hyolithida"
+    }, {
+      "item": "Hyperstrophina"
+    }, {
+      "item": "Hypseloconida"
+    }, {
+      "item": "Hyseloconida"
+    }, {
+      "item": "Ichthornithiformes"
+    }, {
+      "item": "Ichthyornithiformes"
+    }, {
+      "item": "Ichthyosauria"
+    }, {
+      "item": "Imbricata"
+    }, {
+      "item": "Incertae"
+    }, {
+      "item": "Iniopterygia"
+    }, {
+      "item": "Intejocerida"
+    }, {
+      "item": "Ischnacanthida"
+    }, {
+      "item": "Ischnacanthiformes"
+    }, {
+      "item": "Isocrinida"
+    }, {
+      "item": "Isopoda"
+    }, {
+      "item": "Isorophida"
+    }, {
+      "item": "Jamoytiiformes"
+    }, {
+      "item": "Kazakhstanicyathida"
+    }, {
+      "item": "Kilbuchophyllida"
+    }, {
+      "item": "Kutorginida"
+    }, {
+      "item": "Lamniformes"
+    }, {
+      "item": "Lampridiformes"
+    }, {
+      "item": "Lauroidida"
+    }, {
+      "item": "Leiocopa"
+    }, {
+      "item": "Lemniscaterina"
+    }, {
+      "item": "Leperditicopida"
+    }, {
+      "item": "Lepidocoleomorpha"
+    }, {
+      "item": "Lepidopleurida"
+    }, {
+      "item": "Lepisosteiformes"
+    }, {
+      "item": "Leptostraca"
+    }, {
+      "item": "Lichida"
+    }, {
+      "item": "Limulavida"
+    }, {
+      "item": "Lingulida"
+    }, {
+      "item": "Lithistida"
+    }, {
+      "item": "Lithorhizostomatida"
+    }, {
+      "item": "Lophiiformes"
+    }, {
+      "item": "Lophogastrida"
+    }, {
+      "item": "Luganoiiformes"
+    }, {
+      "item": "Lychniscosa"
+    }, {
+      "item": "Lychniscosida"
+    }, {
+      "item": "Lyssacinosa"
+    }, {
+      "item": "Lyssacinosida"
+    }, {
+      "item": "Macluritina"
+    }, {
+      "item": "Macrosemiiformes"
+    }, {
+      "item": "Marriocarida"
+    }, {
+      "item": "Megaliformes"
+    }, {
+      "item": "Megalopiformes"
+    }, {
+      "item": "Metacopida"
+    }, {
+      "item": "Micropygoida"
+    }, {
+      "item": "Milleporina"
+    }, {
+      "item": "Millericrinida"
+    }, {
+      "item": "Mimetasterida"
+    }, {
+      "item": "Mitrata"
+    }, {
+      "item": "Mitrosagophora"
+    }, {
+      "item": "Modiomorphoida"
+    }, {
+      "item": "Molpadiida"
+    }, {
+      "item": "Monobathrida"
+    }, {
+      "item": "Monocyathida"
+    }, {
+      "item": "Monstrilloida"
+    }, {
+      "item": "Mucoralis"
+    }, {
+      "item": "Myctophiformes"
+    }, {
+      "item": "Myliobatiformes"
+    }, {
+      "item": "Myodocopida"
+    }, {
+      "item": "Myoida"
+    }, {
+      "item": "Mysidacea"
+    }, {
+      "item": "Mytiloida"
+    }, {
+      "item": "Myxiniformes"
+    }, {
+      "item": "Naraoiida"
+    }, {
+      "item": "Nassellaria"
+    }, {
+      "item": "Naukatida"
+    }, {
+      "item": "Naukatoidea"
+    }, {
+      "item": "Nautilida"
+    }, {
+      "item": "Neogastropoda"
+    }, {
+      "item": "Neolampadoida"
+    }, {
+      "item": "Neoloricata"
+    }, {
+      "item": "Neotaenioglossa"
+    }, {
+      "item": "No orders defined"
+    }, {
+      "item": "Nothosauria"
+    }, {
+      "item": "Notomyotida"
+    }, {
+      "item": "Notosauria"
+    }, {
+      "item": "Nuculoida"
+    }, {
+      "item": "Obolellida"
+    }, {
+      "item": "Octopida"
+    }, {
+      "item": "Odontopleurida"
+    }, {
+      "item": "Oegophiurida"
+    }, {
+      "item": "Olenellida"
+    }, {
+      "item": "Oligopygoida"
+    }, {
+      "item": "Oncocerida"
+    }, {
+      "item": "Onychodontida"
+    }, {
+      "item": "Ophidiiformes"
+    }, {
+      "item": "Ophiurida"
+    }, {
+      "item": "Orectolobiformes"
+    }, {
+      "item": "Orodontida"
+    }, {
+      "item": "Orstenocarida"
+    }, {
+      "item": "Orthida"
+    }, {
+      "item": "Orthocerida"
+    }, {
+      "item": "Orthonotoida"
+    }, {
+      "item": "Orthopsida"
+    }, {
+      "item": "Orthothecida"
+    }, {
+      "item": "Osmeriformes"
+    }, {
+      "item": "Osteoglossiformes"
+    }, {
+      "item": "Osteolepidida"
+    }, {
+      "item": "Ozarkodinida"
+    }, {
+      "item": "Pachycormiformes"
+    }, {
+      "item": "Pachypleurosauria"
+    }, {
+      "item": "Paiutiida"
+    }, {
+      "item": "Palaeacanthaspida"
+    }, {
+      "item": "Palaeocopida"
+    }, {
+      "item": "Palaeoisopoda"
+    }, {
+      "item": "Palaeoloricata"
+    }, {
+      "item": "Palaeonisciformes"
+    }, {
+      "item": "Palaeopantopoda"
+    }, {
+      "item": "Palaeostomatopoda"
+    }, {
+      "item": "Paleoloricata"
+    }, {
+      "item": "Panderichthyida"
+    }, {
+      "item": "Panderodontida"
+    }, {
+      "item": "Pantopoda"
+    }, {
+      "item": "Parasemionotiformes"
+    }, {
+      "item": "Patellogastropoda"
+    }, {
+      "item": "Paterinida"
+    }, {
+      "item": "Paxillosida"
+    }, {
+      "item": "Pedinoida"
+    }, {
+      "item": "Pelagiellida"
+    }, {
+      "item": "Pelecaniformes"
+    }, {
+      "item": "Peltopleuriformes"
+    }, {
+      "item": "Pennatulacea"
+    }, {
+      "item": "Pentamerida"
+    }, {
+      "item": "Perciformes"
+    }, {
+      "item": "Perleidiformes"
+    }, {
+      "item": "Permosphincta"
+    }, {
+      "item": "Petalichthida"
+    }, {
+      "item": "Petalichthyida"
+    }, {
+      "item": "Petalodontida"
+    }, {
+      "item": "Petromyzoniformes"
+    }, {
+      "item": "Phacopida"
+    }, {
+      "item": "Phaeodarea"
+    }, {
+      "item": "Pharetronida"
+    }, {
+      "item": "Phlebolepidiformes"
+    }, {
+      "item": "Pholadomyoida"
+    }, {
+      "item": "Pholidopleuriformes"
+    }, {
+      "item": "Phosphatoloricatida"
+    }, {
+      "item": "Phragmoteuthida"
+    }, {
+      "item": "Phrynophiurida"
+    }, {
+      "item": "Phyllocarida"
+    }, {
+      "item": "Phylloceratida"
+    }, {
+      "item": "Phyllocerida"
+    }, {
+      "item": "Phyllodocemorpha"
+    }, {
+      "item": "Phymosomatoida"
+    }, {
+      "item": "Placodontia"
+    }, {
+      "item": "Platyasterida"
+    }, {
+      "item": "Platycopida"
+    }, {
+      "item": "Platycystitida"
+    }, {
+      "item": "Plectonocerida"
+    }, {
+      "item": "Plesiocidaroida"
+    }, {
+      "item": "Plesiosauria"
+    }, {
+      "item": "Pleuronectiformes"
+    }, {
+      "item": "Podocopida"
+    }, {
+      "item": "Poecilosclerida"
+    }, {
+      "item": "Polymixiiformes"
+    }, {
+      "item": "Polysentoriformes"
+    }, {
+      "item": "Praecardioida"
+    }, {
+      "item": "Prioniodinida"
+    }, {
+      "item": "Prioniodontida"
+    }, {
+      "item": "Pristiophoriformes"
+    }, {
+      "item": "Procellariiformes"
+    }, {
+      "item": "Proconodontida"
+    }, {
+      "item": "Proetida"
+    }, {
+      "item": "Prolecanitida"
+    }, {
+      "item": "Protactinocerida"
+    }, {
+      "item": "Protopanderodontida"
+    }, {
+      "item": "Psammodontiformes"
+    }, {
+      "item": "Psammosteiformes"
+    }, {
+      "item": "Pseudopetalichthida"
+    }, {
+      "item": "Pteraspidiformes"
+    }, {
+      "item": "Pteraspidomorphes"
+    }, {
+      "item": "Pterioida"
+    }, {
+      "item": "Ptycholepiformes"
+    }, {
+      "item": "Ptychopariida"
+    }, {
+      "item": "Ptyctodontida"
+    }, {
+      "item": "Pustulosida"
+    }, {
+      "item": "Pycnodontiformes"
+    }, {
+      "item": "Pygasteroida"
+    }, {
+      "item": "Radiodonta"
+    }, {
+      "item": "Rajiformes"
+    }, {
+      "item": "Rangeomorpha"
+    }, {
+      "item": "Redlichiida"
+    }, {
+      "item": "Reticulosa"
+    }, {
+      "item": "Rhabdopleurida"
+    }, {
+      "item": "Rhenanida"
+    }, {
+      "item": "Rhizodontida"
+    }, {
+      "item": "Rhizostomatida"
+    }, {
+      "item": "Rhynchonellida"
+    }, {
+      "item": "Ribeirioida"
+    }, {
+      "item": "Roveacrinida"
+    }, {
+      "item": "Rugosa"
+    }, {
+      "item": "Sabelliditida"
+    }, {
+      "item": "Sachitida"
+    }, {
+      "item": "Sacoglossa"
+    }, {
+      "item": "Sagenocrinida"
+    }, {
+      "item": "Salenioida"
+    }, {
+      "item": "Salmoniformes"
+    }, {
+      "item": "Sapindales"
+    }, {
+      "item": "Saurichthyiformes"
+    }, {
+      "item": "Scleractina"
+    }, {
+      "item": "Scleractinia"
+    }, {
+      "item": "Sclerodontiformes"
+    }, {
+      "item": "Scorpaeniformes"
+    }, {
+      "item": "Scorpionida"
+    }, {
+      "item": "Semaeostomatida"
+    }, {
+      "item": "Semionotiformes"
+    }, {
+      "item": "Sepiida"
+    }, {
+      "item": "Septemchitonida"
+    }, {
+      "item": "Serpulimorpha"
+    }, {
+      "item": "Siluriformes"
+    }, {
+      "item": "Siphonodentalioida"
+    }, {
+      "item": "Siphonophorida"
+    }, {
+      "item": "Siphonostomatoida"
+    }, {
+      "item": "Sirenia"
+    }, {
+      "item": "Skaracarida"
+    }, {
+      "item": "Solemyoida"
+    }, {
+      "item": "Soluta"
+    }, {
+      "item": "Spatangoida"
+    }, {
+      "item": "Sphaeractinida"
+    }, {
+      "item": "Sphaerocoelida"
+    }, {
+      "item": "Sphaeronitida"
+    }, {
+      "item": "Sphenisciformes"
+    }, {
+      "item": "Sphenodontida"
+    }, {
+      "item": "Spheodontia"
+    }, {
+      "item": "Spinuloida"
+    }, {
+      "item": "Spinulosida"
+    }, {
+      "item": "Spiomorpha"
+    }, {
+      "item": "Spiraculata"
+    }, {
+      "item": "Spiriferida"
+    }, {
+      "item": "Spirotrichia"
+    }, {
+      "item": "Spumellaria"
+    }, {
+      "item": "Squaliformes"
+    }, {
+      "item": "Squalomorphii"
+    }, {
+      "item": "Squamata"
+    }, {
+      "item": "Squatinactida"
+    }, {
+      "item": "Squatiniformes"
+    }, {
+      "item": "Stensioellida"
+    }, {
+      "item": "Stenurida"
+    }, {
+      "item": "Stolonifera"
+    }, {
+      "item": "Stolonoidea"
+    }, {
+      "item": "Stomatopoda"
+    }, {
+      "item": "Stomiiformes"
+    }, {
+      "item": "Strobilepida"
+    }, {
+      "item": "Stromatocystitida"
+    }, {
+      "item": "Stromatoporoidea"
+    }, {
+      "item": "Strophomenida"
+    }, {
+      "item": "Stylasterina"
+    }, {
+      "item": "Sybagogoida"
+    }, {
+      "item": "Symmoriida"
+    }, {
+      "item": "Tabulacyathida"
+    }, {
+      "item": "Tabulata"
+    }, {
+      "item": "Tabulospongida"
+    }, {
+      "item": "Tanaidacea"
+    }, {
+      "item": "Tarphycerida"
+    }, {
+      "item": "Tarrasiiformes"
+    }, {
+      "item": "Taxocrinida"
+    }, {
+      "item": "Temnopleuroida"
+    }, {
+      "item": "Temnospondyli"
+    }, {
+      "item": "Tentaculitida"
+    }, {
+      "item": "Terebellomorpha"
+    }, {
+      "item": "Terebratulida"
+    }, {
+      "item": "Testudines"
+    }, {
+      "item": "Tetradontiformes"
+    }, {
+      "item": "Tetraodontiformes"
+    }, {
+      "item": "Teuthida"
+    }, {
+      "item": "Thalatiosauria"
+    }, {
+      "item": "Thalattosauria"
+    }, {
+      "item": "Thecanephra"
+    }, {
+      "item": "Thecideida"
+    }, {
+      "item": "Thecosomata"
+    }, {
+      "item": "Thelodontida"
+    }, {
+      "item": "Thelodontiformes"
+    }, {
+      "item": "Thoracica"
+    }, {
+      "item": "Thyestiiformes"
+    }, {
+      "item": "Torpedinoidea"
+    }, {
+      "item": "Toxeumorphorida"
+    }, {
+      "item": "Trachylinida"
+    }, {
+      "item": "Tremataspidiformes"
+    }, {
+      "item": "Trepostomata"
+    }, {
+      "item": "Trichasteropsida"
+    }, {
+      "item": "Trigonioida"
+    }, {
+      "item": "Trimerellida"
+    }, {
+      "item": "Tryblidiida"
+    }, {
+      "item": "Tuarangiida"
+    }, {
+      "item": "Tuboidea"
+    }, {
+      "item": "Turrilepadida"
+    }, {
+      "item": "Uintacrinida"
+    }, {
+      "item": "Umbraculomorpha"
+    }, {
+      "item": "Uncertain"
+    }, {
+      "item": "Unionoida"
+    }, {
+      "item": "Uractinida"
+    }, {
+      "item": "Valvatida"
+    }, {
+      "item": "Veneroida"
+    }, {
+      "item": "Verongiida"
+    }, {
+      "item": "Verticillitida"
+    }, {
+      "item": "Volborthellida"
+    }, {
+      "item": "Vologdinophyllida"
+    }, {
+      "item": "Waptiida"
+    }, {
+      "item": "Waterstonellidea"
+    }, {
+      "item": "Xiphosurida"
+    }, {
+      "item": "Yanhecerida"
+    }, {
+      "item": "Youngolepiformes"
+    }, {
+      "item": "Zeiformes"
+    }, {
+      "item": "Zygnematalis"
+    }, {
+      "item": "actinistia"
+    }, {
+      "item": "ctenacanthida"
+    }, {
+      "item": "ctenacanthidaB"
+    }, {
+      "item": "ctenothrissiformes"
+    }]
+  }
+}

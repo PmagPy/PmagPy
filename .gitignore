@@ -11,7 +11,7 @@ Essentials_Problem_Datafiles
 .#*
 *.log
 *.redo
-*.ipynb       
+#*.ipynb       
 .eggs*
 */*.png
 consistency_test/pmag_fixed_criteria.txt
@@ -174,3 +174,9 @@ pmagpy_cli.egg-info/entry_points.txt
 pmagpy_cli.egg-info/top_level.txt
 pmagpy_cli.egg-info/pbr.json
 pmagpy_cli.egg-info/requires.txt
+3_0/.ipynb_checkpoints/Parsing_data_model-checkpoint.ipynb
+
+3_0/McMurdo2.5
+3_0/McMurdo2.5/*
+Location_*/
+Location_*/*

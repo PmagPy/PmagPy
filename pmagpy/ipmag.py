@@ -879,6 +879,9 @@ def inc_from_lat(lat):
     return inc
 
 
+
+
+
 def plot_net(fignum):
     """
     Draws circle and tick marks for equal area projection.
@@ -933,7 +936,10 @@ def plot_net(fignum):
     plt.axis((-1.05,1.05,-1.05,1.05))
 
 
-def plot_di(dec=None, inc=None, di_block=None, color='k', marker='o', markersize=20, legend='no', label=''):
+def plot_XY(X=None, Y=None,sym='ro'):
+    plt.plot(X,Y,sym)
+
+def plot_di(dec=None, inc=None, di_block=None, color='k', marker='o', markersize=20, legend='no', label='',title=''):
     """
     Plot declination, inclination data on an equal area plot.
 
@@ -998,6 +1004,8 @@ def plot_di(dec=None, inc=None, di_block=None, color='k', marker='o', markersize
     if legend=='yes':
         plt.legend(loc=2)
     plt.tight_layout()
+    if title!="":
+        plt.title(title)
 
 
 def plot_di_mean(dec,inc,a95,color='k',marker='o',markersize=20,label='',legend='no'):
@@ -2197,7 +2205,9 @@ def core_depthplot(input_dir_path='.', meas_file='magic_measurements.txt', spc_f
     return main_plot, figname
 
 
-def download_magic(infile, dir_path='.', input_dir_path='.',overwrite=False,print_progress=True):
+def download_magic(infile, dir_path='.', input_dir_path='.',
+                   overwrite=False, print_progress=True,
+                   data_model=2.5):
     """
     takes the name of a text file downloaded from the MagIC database and
     unpacks it into magic-formatted files. by default, download_magic assumes
@@ -2205,24 +2215,28 @@ def download_magic(infile, dir_path='.', input_dir_path='.',overwrite=False,prin
     provide optional arguments dir_path (where you want the results to go) and
     input_dir_path (where the downloaded file is).
     """
+    if data_model == 2.5:
+        method_col = "magic_method_codes"
+    else:
+        method_col = "method_codes"
     f=open(os.path.join(input_dir_path, infile),'rU')
     infile=f.readlines()
-    File=[]
+    File=[] # will contain all non-blank lines from downloaded file
     for line in infile:
         line=line.replace('\n','')
-        if line[0:4]=='>>>>' or len(line.split('\t'))>1: # skip blank lines
+        if line[0:4]=='>>>>' or len(line.strip()) > 0:  # skip blank lines
             File.append(line)
-    LN=0
+    LN=0 # tracks our progress iterating through File
     type_list=[]
     filenum=0
-    while LN<len(File)-1:
+    while LN < len(File) - 1:
         line=File[LN]
         file_type=line.split('\t')[1]
         file_type=file_type.lower()
-        if file_type=='delimited':file_type=Input[skip].split('\t')[2]
-        if file_type[-1]=="\n":file_type=file_type[:-1]
+        if file_type[-1]=="\n":
+            file_type=file_type[:-1]
         if print_progress==True:
-            print 'working on: ',repr(file_type)
+            print 'working on: ', repr(file_type)
         if file_type not in type_list:
             type_list.append(file_type)
         else:
@@ -2237,6 +2251,7 @@ def download_magic(infile, dir_path='.', input_dir_path='.',overwrite=False,prin
         Recs=[]
         while LN<len(File):
             line=File[LN]
+            # finish up one file type and then break
             if ">>>>" in line and len(Recs)>0:
                 if filenum==0:
                     outfile=dir_path+"/"+file_type.strip()+'.txt'
@@ -2244,25 +2259,21 @@ def download_magic(infile, dir_path='.', input_dir_path='.',overwrite=False,prin
                     outfile=dir_path+"/"+file_type.strip()+'_'+str(filenum)+'.txt'
                 NewRecs=[]
                 for rec in Recs:
-                    if 'magic_method_codes' in rec.keys():
-                        meths=rec['magic_method_codes'].split(":")
+                    if method_col in rec.keys():
+                        meths=rec[method_col].split(":")
                         if len(meths)>0:
                             methods=""
-                            for meth in meths: methods=methods+meth.strip()+":" # get rid of nasty spaces!!!!!!
-                            rec['magic_method_codes']=methods[:-1]
+                            for meth in meths:
+                                methods=methods+meth.strip()+":" # get rid of nasty spaces!!!!!!
+                            rec[method_col]=methods[:-1]
                     NewRecs.append(rec)
                 pmag.magic_write(outfile,Recs,file_type)
                 if print_progress==True:
                     print file_type," data put in ",outfile
-                if file_type =='pmag_specimens' and 'magic_measurements.txt' in File and 'measurement_step_min' in File and 'measurement_step_max' in File: # sort out zeq_specimens and thellier_specimens
-                    os.system('mk_redo.py')
-                    os.system('zeq_magic_redo.py')
-                    os.system('thellier_magic_redo.py')
-                    type_list.append('zeq_specimens')
-                    type_list.append('thellier_specimens')
                 Recs=[]
                 LN+=1
                 break
+            # keep adding records of the same file type
             else:
                 rec=line.split('\t')
                 Rec={}
@@ -2287,24 +2298,26 @@ def download_magic(infile, dir_path='.', input_dir_path='.',overwrite=False,prin
             outfile=dir_path+"/"+file_type.strip()+'_'+str(filenum)+'.txt'
         NewRecs=[]
         for rec in Recs:
-            if 'magic_method_codes' in rec.keys():
-                meths=rec['magic_method_codes'].split(":")
+            if method_col in rec.keys():
+                meths=rec[method_col].split(":")
                 if len(meths)>0:
                     methods=""
-                    for meth in meths: methods=methods+meth.strip()+":" # get rid of nasty spaces!!!!!!
-                    rec['magic_method_codes']=methods[:-1]
+                    for meth in meths:
+                        methods=methods+meth.strip()+":" # get rid of nasty spaces!!!!!!
+                    rec[method_col]=methods[:-1]
             NewRecs.append(rec)
         pmag.magic_write(outfile,Recs,file_type)
         if print_progress==True:
             print file_type," data put in ",outfile
-# look through locations table and create separate directories for each location
+    # look through locations table and create separate directories for each location
     locs,locnum=[],1
-    if 'er_locations' in type_list:
-        locs,file_type=pmag.magic_read(dir_path+'/er_locations.txt')
+    if 'locations' in type_list:
+        locs,file_type=pmag.magic_read(os.path.join(dir_path, 'locations.txt'))
     if len(locs)>0: # at least one location
         for loc in locs:
+            loc_name = loc['location']
             if print_progress==True:
-                print 'location_'+str(locnum)+": ",loc['er_location_name']
+                print 'location_'+str(locnum)+": ", loc_name
             lpath=dir_path+'/Location_'+str(locnum)
             locnum+=1
             try:
@@ -2320,18 +2333,11 @@ def download_magic(infile, dir_path='.', input_dir_path='.',overwrite=False,prin
                 recs,file_type=pmag.magic_read(dir_path+'/'+f+'.txt')
                 if print_progress==True:
                     print len(recs),' read in'
-                if 'results' not in f:
-                    lrecs=pmag.get_dictitem(recs,'er_location_name',loc['er_location_name'],'T')
-                    if len(lrecs)>0:
-                        pmag.magic_write(lpath+'/'+f+'.txt',lrecs,file_type)
-                        if print_progress==True:
-                            print len(lrecs),' stored in ',lpath+'/'+f+'.txt'
-                else:
-                    lrecs=pmag.get_dictitem(recs,'er_location_names',loc['er_location_name'],'T')
-                    if len(lrecs)>0:
-                        pmag.magic_write(lpath+'/'+f+'.txt',lrecs,file_type)
-                        if print_progress==True:
-                            print len(lrecs),' stored in ',lpath+'/'+f+'.txt'
+                lrecs=pmag.get_dictitem(recs, 'location', loc_name, 'T')
+                if len(lrecs)>0:
+                    pmag.magic_write(lpath+'/'+f+'.txt',lrecs,file_type)
+                    if print_progress==True:
+                        print len(lrecs),' stored in ',lpath+'/'+f+'.txt'
     return True
 
 
