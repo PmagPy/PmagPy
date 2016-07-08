@@ -5604,7 +5604,7 @@ class Arai_GUI(wx.Frame):
           int_key = intensity_types[0] # plot first intensity method found - normalized to initial value anyway - doesn't matter which used
           meas_data3_0 = meas_data3_0[meas_data3_0[int_key].notnull()] # get all the non-null intensity records of the same type
           # now convert back to 2.5  changing only those keys that are necessary for thellier_gui
-          meas_data2_5 = meas_data3_0.rename(columns=map_magic.magic3_2_magic2_map)
+          meas_data2_5 = meas_data3_0.rename(columns=map_magic.meas_magic3_2_magic2_map)
           #meas_data2_5=meas_data3_0.rename(columns = {\
           #       'specimen':'er_specimen_name', \
           #       'sample':'er_sample_name', \

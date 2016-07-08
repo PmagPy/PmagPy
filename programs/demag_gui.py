@@ -1920,7 +1920,7 @@ class Demag_GUI(wx.Frame):
         elif  end_pca > beg_pca and end_pca - beg_pca > 1:
 
             try: mpars=pmag.domean(block,beg_pca,end_pca,calculation_type) #preformes regression
-            except: print(block, beg_pca, end_pca, calculation_type, specimen, fit.name, tmin, tmax, coordinate_system)
+            except: print(block, beg_pca, end_pca, calculation_type, specimen, fit.name, tmin, tmax, coordinate_system); return
 
             if 'specimen_direction_type' in mpars and mpars['specimen_direction_type']=='Error':
                 print("-E- no measurement data for specimen %s in coordinate system %s"%(specimen, coordinate_system))
@@ -2463,6 +2463,14 @@ class Demag_GUI(wx.Frame):
             self.Data[self.s]['zijdblock_tilt'][g_index][5] = 'g'
         self.mag_meas_data[meas_index]['measurement_flag'] = 'g'
 
+        if self.data_model == 3.0:
+            mdf = self.contribution.tables['measurements'].df
+            filtered_mdf = mdf[mdf['method_codes'].str.contains('LT-NO|LT-AF-Z|LT-T-Z|LT-M-Z|LT-LT-Z')==True] #remove non-directional data
+            step = float(self.Data[self.s]['zijdblock'][g_index][0])+273. #convert to kelvin to match with table convention
+            find_step = lambda x: x[1]['specimen']==self.s and float(x[1]['treat_temp'])==step #function to find the step index
+            index = filter(find_step,filtered_mdf.iterrows())[0][0] #get index in mdf
+            mdf['flag'][index] = 'g'
+
     def mark_meas_bad(self,g_index):
 
         meas_index,ind_data = 0,[]
@@ -2484,6 +2492,14 @@ class Demag_GUI(wx.Frame):
                 self.Data[self.s]['zijdblock_tilt'][g_index].append('g')
             self.Data[self.s]['zijdblock_tilt'][g_index][5] = 'b'
         self.mag_meas_data[meas_index]['measurement_flag'] = 'b'
+
+        if self.data_model == 3.0:
+            mdf = self.contribution.tables['measurements'].df
+            filtered_mdf = mdf[mdf['method_codes'].str.contains('LT-NO|LT-AF-Z|LT-T-Z|LT-M-Z|LT-LT-Z')==True] #remove non-directional data
+            step = float(self.Data[self.s]['zijdblock'][g_index][0])+273. #convert to kelvin to match with table convention
+            find_step = lambda x: x[1]['specimen']==self.s and float(x[1]['treat_temp'])==step #function to find the step index
+            index = filter(find_step,filtered_mdf.iterrows())[0][0] #get index in mdf
+            mdf['flag'][index] = 'b'
 
     #---------------------------------------------#
     #Data Read and Location Alteration Functions
@@ -2530,12 +2546,10 @@ class Demag_GUI(wx.Frame):
           meas_data3_0 = meas_container.df
 # do some filtering
           Mkeys = ['magn_moment', 'magn_volume', 'magn_mass']
-#          meas_data3_0= meas_data3_0[meas_data3_0['method_codes'].str.contains('LP-PI-TRM|LP-TRM|LP-PI-M|LP-AN|LP-CR-TRM')==True] # fish out all the relavent data 
-          intensity_types = [col_name for col_name in meas_data3_0.columns if col_name in Mkeys]
-          int_key = intensity_types[0] # plot first intensity method found - normalized to initial value anyway - doesn't matter which used
-          meas_data3_0 = meas_data3_0[meas_data3_0[int_key].notnull()] # get all the non-null intensity records of the same type
+          meas_data3_0= meas_data3_0[meas_data3_0['method_codes'].str.contains('LT-NO|LT-AF-Z|LT-T-Z|LT-M-Z|LT-LT-Z')==True] # fish out all the relavent data 
 # now convert back to 2.5  changing only those keys that are necessary for thellier_gui
-          meas_data2_5=meas_data3_0.rename(columns=map_magic.magic3_2_magic2_map)
+          meas_data2_5=meas_data3_0.rename(columns=map_magic.meas_magic3_2_magic2_map)
+          meas_data2_5.to_csv("/home/kevin/Code/Paleomag/after_edits_2_5.csv")
           mag_meas_data=meas_data2_5.to_dict("records")  # make a list of dictionaries to maintain backward compatibility
 
       else:
@@ -3187,13 +3201,13 @@ class Demag_GUI(wx.Frame):
         self.WD = new_WD
         os.chdir(self.WD)
         self.WD=os.getcwd()
-        if os.path.exists(os.path.join(self.WD, "magic_measurements.txt")):
-            meas_file = os.path.join(self.WD, "magic_measurements.txt")
-            self.data_model = 2.5
-        elif os.path.exists(os.path.join(self.WD, "measurements.txt")):
+        if os.path.exists(os.path.join(self.WD, "measurements.txt")):
             meas_file = os.path.join(self.WD, "measurements.txt")
             self.data_model = 3.0
-        else: self.user_warning("No measurement file found in chosen directory"); meas_file = ''
+        elif os.path.exists(os.path.join(self.WD, "magic_measurements.txt")):
+            meas_file = os.path.join(self.WD, "magic_measurements.txt")
+            self.data_model = 2.5
+        else: self.user_warning("No measurement file found in chosen directory"); meas_file = ''; self.data_model = 2.5
         if os.path.isfile(meas_file): self.magic_file=meas_file
         else: self.magic_file = self.choose_meas_file()
 
@@ -3222,7 +3236,7 @@ class Demag_GUI(wx.Frame):
 
         if self.data_model == 3.0:
 
-            pass #this still needs to be developed
+            pass #this still needs to be developed, though honestly not sure it has to do anything...well this is turning into a useless comment......
 
         else:
             pmag_specimens,pmag_samples,pmag_sites=[],[],[]
@@ -4052,7 +4066,7 @@ class Demag_GUI(wx.Frame):
     def on_menu_make_MagIC_results_tables(self,event):
         """
          1. read pmag_specimens.txt, pmag_samples.txt, pmag_sites.txt, and sort out lines with LP-DIR in magic_codes
-         2. saves a clean pmag_*.txt files without LP-DIR stuff as pmag_*.txt.tmp .
+         2. saves a clean pmag_*.txt files without LP-DIR stuff as pmag_*.txt.tmp
          3. write a new file pmag_specimens.txt
          4. merge pmag_specimens.txt and pmag_specimens.txt.tmp using combine_magic.py
          5. delete pmag_specimens.txt.tmp
@@ -4083,7 +4097,6 @@ class Demag_GUI(wx.Frame):
             if dia.cb_tilt_coor.GetValue()==True:
                 CoorTypes.append('DA-DIR-TILT')
         #------------------------------
-
 
         self.PmagRecsOld={}
         for FILE in ['pmag_specimens.txt']:
@@ -4134,7 +4147,8 @@ class Demag_GUI(wx.Frame):
                     if specimen in self.Data_hierarchy['expedition_name_of_specimen'].keys():
                         PmagSpecRec["er_expedition_name"]=self.Data_hierarchy['expedition_name_of_specimen'][specimen]
                     PmagSpecRec["er_citation_names"]="This study"
-                    PmagSpecRec["magic_experiment_names"]=self.Data[specimen]["magic_experiment_name"]
+                    if "magic_experiment_name" in self.Data[specimen]:
+                        PmagSpecRec["magic_experiment_names"]=self.Data[specimen]["magic_experiment_name"]
                     if 'magic_instrument_codes' in self.Data[specimen].keys():
                         PmagSpecRec["magic_instrument_codes"]= self.Data[specimen]['magic_instrument_codes']
                     PmagSpecRec['specimen_correction']='u'
@@ -4199,8 +4213,26 @@ class Demag_GUI(wx.Frame):
         for rec in self.PmagRecsOld['pmag_specimens.txt']:
             PmagSpecs.append(rec)
         PmagSpecs_fixed=self.merge_pmag_recs(PmagSpecs)
-        pmag.magic_write(os.path.join(self.WD, "pmag_specimens.txt"),PmagSpecs_fixed,'pmag_specimens')
-        print( "specimen data stored in %s\n"%os.path.join(self.WD, "pmag_specimens.txt"))
+
+
+        if self.data_model == 3.0:
+
+#            pdb.set_trace()
+            if self.user_warning("saving to MagIC tables model 3.0 is not yet supported by Demag GUI if you continue 2.5 data tables will be written to disk instead. They may not load on lauch of GUI however as such it is recommended that for now you use .redo files to save your interpretaions, or convert your project back to the older stable 2.5 model."): pass
+            else: return
+
+            #still broken
+#            if "specimens" not in self.contribution.tables:
+#                open(os.path.join(self.WD, "specimens.txt"),"w+")
+#                self.contribution.add_magic_table("specimens")
+
+#            spdf = self.contribution.tables["specimens"].df
+            #update specimens table with interpretation
+#            columns=map_magic.magic3_2_magic2_map
+
+        else:
+            pmag.magic_write(os.path.join(self.WD, "pmag_specimens.txt"),PmagSpecs_fixed,'pmag_specimens')
+            print( "specimen data stored in %s\n"%os.path.join(self.WD, "pmag_specimens.txt"))
 
         TEXT="specimens interpretations are saved in pmag_specimens.txt.\nPress OK for pmag_samples/pmag_sites/pmag_results tables."
         self.dlg = wx.MessageDialog(self, caption="Saved",message=TEXT,style=wx.OK|wx.CANCEL)
@@ -5060,7 +5092,10 @@ class Demag_GUI(wx.Frame):
         else:
             self.mark_meas_good(g_index)
 
-        pmag.magic_write(os.path.join(self.WD, "magic_measurements.txt"),self.mag_meas_data,"magic_measurements")
+        if self.data_model == 3.0:
+            self.contribution.tables['measurements'].write_magic_file(dir_path=self.WD)
+        else:
+            pmag.magic_write(os.path.join(self.WD, "magic_measurements.txt"),self.mag_meas_data,"magic_measurements")
 
         self.recalculate_current_specimen_interpreatations()
 

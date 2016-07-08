@@ -35,15 +35,27 @@ spd2magic_map = dict(zip(spd, magic))
 magic2spd_map = dict(zip(magic, spd))
 
 # mapping between magic2 and magic3
-magic2 = ['treatment_dc_field_theta', 'treatment_ac_field', 'treatment_dc_field',
-          'measurement_number', 'measurement_description', 'measurement_magn_volume',
-          'er_specimen_name', 'er_site_name', 'treatment_temp', 'er_sample_name',
-          'measurement_flag', 'measurement_inc', 'er_location_name',
-          'measurement_dec', 'magic_method_codes', 'magic_instrument_codes',
-          'treatment_dc_field_phi', 'measurement_magn_moment',
-          'measurement_magn_mass', 'measurement_csd']
+meas_magic2 = ['treatment_dc_field_theta', 'treatment_ac_field', 
+          'treatment_dc_field', 'measurement_number', 
+          'measurement_description', 'measurement_magn_volume', 
+          'er_specimen_name', 'er_site_name', 'treatment_temp', 
+          'er_sample_name', 'measurement_flag', 'measurement_inc', 
+          'er_location_name', 'measurement_dec', 'magic_method_codes', 
+          'magic_instrument_codes', 'treatment_dc_field_phi', 
+          'measurement_magn_moment', 'measurement_magn_mass', 
+          'measurement_csd']
 
-magic3 = ['treat_dc_field_theta', 'treat_ac_field', 'treat_dc_field',
+spec_magic2 = ['er_analyst_mail_names', 'er_citation_names', 
+          'magic_software_packages', 'measurement_step_max', 
+          'measurement_step_min', 'measurement_step_unit', 'specimen_alpha95', 
+          'specimen_comp_n', 'specimen_comp_name', 'specimen_correction', 
+          'specimen_dang', 'specimen_dec', 'specimen_direction_type', 
+          'specimen_flag', 'specimen_inc', 'specimen_mad', 'specimen_n', 
+          'specimen_tilt_correction', 'magic_method_codes', 
+          'magic_instrument_codes', 'er_specimen_name', 'er_site_name', 
+          'er_sample_name', 'er_location_name']
+
+meas_magic3 = ['treat_dc_field_theta', 'treat_ac_field', 'treat_dc_field',
           'number', 'description', 'magn_volume',
           'specimen', 'site', 'treat_temp', 'sample',
           'flag', 'dir_inc', 'location',
@@ -51,5 +63,14 @@ magic3 = ['treat_dc_field_theta', 'treat_ac_field', 'treat_dc_field',
           'treat_dc_field_phi', 'magn_moment',
           'magn_mass', 'dir_csd']
 
-magic3_2_magic2_map = dict(zip(magic3, magic2))
-magic2_2_magic3_map = dict(zip(magic2, magic3))
+spec_magic3 = ['analyst_names', 'citations', 'software_packages', 
+          'meas_step_max', 'meas_step_min', 'meas_step_unit', 'dir_alpha95', 
+          'dir_n_comps', 'dir_comp_name', 'aniso_tilt_correction', 'dir_dang', 
+          'dir_dec', 'dir_type', 'result_flag', 'dir_inc', 'dir_mad_free', 
+          'dir_n_measurements', 'dir_tilt_correction', 'method_codes', 
+          'instrument_codes', 'specimen', 'site', 'sample', 'location']
+
+meas_magic3_2_magic2_map = dict(zip(meas_magic3, meas_magic2))
+meas_magic2_2_magic3_map = dict(zip(meas_magic2, meas_magic3))
+spec_magic3_2_magic2_map = dict(zip(spec_magic3, spec_magic2))
+spec_magic2_2_magic3_map = dict(zip(spec_magic2, spec_magic3))
