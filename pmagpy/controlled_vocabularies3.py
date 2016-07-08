@@ -120,8 +120,6 @@ class Vocabulary(object):
             possible_vocabularies = data.columns
             ## this line means, grab every single controlled vocabulary
             vocab_types = list(possible_vocabularies)
-            vocab_dict = {'type': 'geologic_types', 'class': 'geologic_classes', 'lithology': 'lithologies'}
-
 
             def get_cv_from_list(lst):
                 """
@@ -156,6 +154,11 @@ class Vocabulary(object):
                 
             # remove duplicate col_names:
             vocab_col_names = sorted(set(vocab_col_names))
+            # add in boolean category to controlled vocabularies
+            bool_items = [{'item': True}, {'item': False}, {'item': 'true'},
+                          {'item': 'false'}, {'item': 0}, {'item': 1}]
+            series = Series({'label': 'Boolean', 'items': bool_items})
+            data['boolean'] = series
             # use vocabulary name to get possible values for the column name
             for vocab in vocab_col_names[:]:
                 items = data[vocab[0]]['items']

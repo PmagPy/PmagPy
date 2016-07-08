@@ -812,6 +812,9 @@ def inc_from_lat(lat):
     return inc
 
 
+
+
+
 def plot_net(fignum):
     """
     Draws circle and tick marks for equal area projection.
@@ -866,7 +869,10 @@ def plot_net(fignum):
     plt.axis((-1.05,1.05,-1.05,1.05))
 
 
-def plot_di(dec=None, inc=None, di_block=None, color='k', marker='o', markersize=20, legend='no', label=''):
+def plot_XY(X=None, Y=None,sym='ro'):
+    plt.plot(X,Y,sym)
+
+def plot_di(dec=None, inc=None, di_block=None, color='k', marker='o', markersize=20, legend='no', label='',title=''):
     """
     Plot declination, inclination data on an equal area plot.
 
@@ -931,6 +937,8 @@ def plot_di(dec=None, inc=None, di_block=None, color='k', marker='o', markersize
     if legend=='yes':
         plt.legend(loc=2)
     plt.tight_layout()
+    if title!="":
+        plt.title(title)
 
 
 def plot_di_mean(dec,inc,a95,color='k',marker='o',markersize=20,label='',legend='no'):
@@ -2112,7 +2120,8 @@ def core_depthplot(input_dir_path='.', meas_file='magic_measurements.txt', spc_f
 
 
 def download_magic(infile, dir_path='.', input_dir_path='.',
-                   overwrite=False, print_progress=True):
+                   overwrite=False, print_progress=True,
+                   data_model=2.5):
     """
     takes the name of a text file downloaded from the MagIC database and
     unpacks it into magic-formatted files. by default, download_magic assumes
@@ -2120,6 +2129,10 @@ def download_magic(infile, dir_path='.', input_dir_path='.',
     provide optional arguments dir_path (where you want the results to go) and
     input_dir_path (where the downloaded file is).
     """
+    if data_model == 2.5:
+        method_col = "magic_method_codes"
+    else:
+        method_col = "method_codes"
     f=open(os.path.join(input_dir_path, infile),'rU')
     infile=f.readlines()
     File=[] # will contain all non-blank lines from downloaded file
@@ -2160,13 +2173,13 @@ def download_magic(infile, dir_path='.', input_dir_path='.',
                     outfile=dir_path+"/"+file_type.strip()+'_'+str(filenum)+'.txt'
                 NewRecs=[]
                 for rec in Recs:
-                    if 'method_codes' in rec.keys():
-                        meths=rec['method_codes'].split(":")
+                    if method_col in rec.keys():
+                        meths=rec[method_col].split(":")
                         if len(meths)>0:
                             methods=""
                             for meth in meths:
                                 methods=methods+meth.strip()+":" # get rid of nasty spaces!!!!!!
-                            rec['magic_method_codes']=methods[:-1]
+                            rec[method_col]=methods[:-1]
                     NewRecs.append(rec)
                 pmag.magic_write(outfile,Recs,file_type)
                 if print_progress==True:
@@ -2199,13 +2212,13 @@ def download_magic(infile, dir_path='.', input_dir_path='.',
             outfile=dir_path+"/"+file_type.strip()+'_'+str(filenum)+'.txt'
         NewRecs=[]
         for rec in Recs:
-            if 'magic_method_codes' in rec.keys():
-                meths=rec['magic_method_codes'].split(":")
+            if method_col in rec.keys():
+                meths=rec[method_col].split(":")
                 if len(meths)>0:
                     methods=""
                     for meth in meths:
                         methods=methods+meth.strip()+":" # get rid of nasty spaces!!!!!!
-                    rec['magic_method_codes']=methods[:-1]
+                    rec[method_col]=methods[:-1]
             NewRecs.append(rec)
         pmag.magic_write(outfile,Recs,file_type)
         if print_progress==True:
