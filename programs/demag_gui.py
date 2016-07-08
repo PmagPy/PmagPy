@@ -130,8 +130,8 @@ class Demag_GUI(wx.Frame):
             if new_WD == self.currentDirectory and sys.version.split()[0] == '2.7.11':
                 new_WD = self.get_DIR()
             self.change_WD(new_WD)
-        if write_to_log_file:
-            self.init_log_file()
+#        if write_to_log_file:
+#            self.init_log_file()
 
         #init wait dialog
         disableAll = wx.WindowDisabler()
@@ -2549,7 +2549,6 @@ class Demag_GUI(wx.Frame):
           meas_data3_0= meas_data3_0[meas_data3_0['method_codes'].str.contains('LT-NO|LT-AF-Z|LT-T-Z|LT-M-Z|LT-LT-Z')==True] # fish out all the relavent data 
 # now convert back to 2.5  changing only those keys that are necessary for thellier_gui
           meas_data2_5=meas_data3_0.rename(columns=map_magic.meas_magic3_2_magic2_map)
-          meas_data2_5.to_csv("/home/kevin/Code/Paleomag/after_edits_2_5.csv")
           mag_meas_data=meas_data2_5.to_dict("records")  # make a list of dictionaries to maintain backward compatibility
 
       else:
@@ -4220,7 +4219,7 @@ class Demag_GUI(wx.Frame):
 #            pdb.set_trace()
             if self.user_warning("saving to MagIC tables model 3.0 is not yet supported by Demag GUI if you continue 2.5 data tables will be written to disk instead. They may not load on lauch of GUI however as such it is recommended that for now you use .redo files to save your interpretaions, or convert your project back to the older stable 2.5 model."):
                 pmag.magic_write(os.path.join(self.WD, "pmag_specimens.txt"),PmagSpecs_fixed,'pmag_specimens')
-                print( "specimen data stored in %s\n"%os.path.join(self.WD, "pmag_specimens.txt"))
+                print("specimen data stored in %s\n"%os.path.join(self.WD, "pmag_specimens.txt"))
             else: return
 
             #still broken
@@ -4230,11 +4229,11 @@ class Demag_GUI(wx.Frame):
 
 #            spdf = self.contribution.tables["specimens"].df
             #update specimens table with interpretation
-#            columns=map_magic.magic3_2_magic2_map
+
 
         else:
             pmag.magic_write(os.path.join(self.WD, "pmag_specimens.txt"),PmagSpecs_fixed,'pmag_specimens')
-            print( "specimen data stored in %s\n"%os.path.join(self.WD, "pmag_specimens.txt"))
+            print("specimen data stored in %s\n"%os.path.join(self.WD, "pmag_specimens.txt"))
 
         TEXT="specimens interpretations are saved in pmag_specimens.txt.\nPress OK for pmag_samples/pmag_sites/pmag_results tables."
         self.dlg = wx.MessageDialog(self, caption="Saved",message=TEXT,style=wx.OK|wx.CANCEL)
