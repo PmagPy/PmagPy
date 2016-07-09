@@ -7,7 +7,7 @@ Module for building or reading in specimen, sample, site, and location data.
 import os
 # import time
 import pmagpy.pmag as pmag
-import pmagpy.validate_upload as validate_upload
+import pmagpy.validate_upload2 as validate_upload
 
 
 class ErMagicBuilder(object):

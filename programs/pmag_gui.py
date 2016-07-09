@@ -17,12 +17,15 @@ import sys
 #import shutil
 import pmagpy.pmag as pmag
 import pmagpy.ipmag as ipmag
-import pmagpy.builder as builder
+import pmagpy.builder2 as builder
 import dialogs.pmag_basic_dialogs as pmag_basic_dialogs
 import dialogs.pmag_er_magic_dialogs as pmag_er_magic_dialogs
 import dialogs.pmag_gui_menu as pmag_gui_menu
 import dialogs.ErMagicBuilder as ErMagicBuilder
-from programs import demag_gui
+try:
+    from programs import demag_gui
+except:
+    pass
 from programs import thellier_gui
 
 # import check_updates

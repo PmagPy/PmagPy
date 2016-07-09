@@ -16,15 +16,15 @@ import sys
 import os
 import webbrowser
 import pmagpy.check_updates as check_updates
-import pmagpy.builder as builder
+import pmagpy.builder2 as builder
 import pmagpy.pmag as pmag
 import pmagpy.ipmag as ipmag
 import pmagpy.validate_upload as validate_upload
 import dialogs.drop_down_menus as drop_down_menus
 import dialogs.pmag_widgets as pw
-import dialogs.magic_grid as magic_grid
+import dialogs.magic_grid2 as magic_grid
 import dialogs.pmag_menu_dialogs as pmag_menu_dialogs
-import dialogs.grid_frame as grid_frame
+import dialogs.grid_frame2 as grid_frame
 
 
 class MainFrame(wx.Frame):
@@ -499,7 +499,7 @@ def main():
     # if redirect is true, wxpython makes its own output window for stdout/stderr
     app = wx.App(redirect=False)
     working_dir = pmag.get_named_arg_from_sys('-WD', '.')
-    app.frame = MainFrame('.')
+    app.frame = MainFrame(working_dir)
     ## this causes an error with Canopy Python
     ## (it works with brew Python)
     ## need to use these lines for Py2app
