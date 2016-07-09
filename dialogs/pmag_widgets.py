@@ -8,7 +8,9 @@ import os
 import wx
 import wx.html
 import webbrowser
-from pmagpy.controlled_vocabularies3 import vocab
+# ******
+#from pmagpy.controlled_vocabularies3 import vocab
+from pmagpy.controlled_vocabularies import vocab
 
 
 # library for commonly used widgets.
@@ -792,7 +794,8 @@ class MethodCodeDemystifier(wx.StaticBoxSizer):
         super(MethodCodeDemystifier, self).__init__(self.box, orient=wx.VERTICAL)
         grid_sizer = wx.GridSizer(0, 5, 3, 3)
         if not any(vocab.code_types):
-            vocab.get_all_vocabulary()
+            #vocab.get_all_vocabulary()
+            vocab.get_stuff()
         types = vocab.code_types.index
         types = vocab.code_types['label']
         type_ind = vocab.code_types.index
@@ -847,7 +850,7 @@ class ChooseOne(wx.Dialog):
         if self.text:
             textBox = wx.StaticText(self, wx.ID_ANY, label=self.text)
             hbox1.Add(textBox, flag=wx.ALL, border=5)
-        
+
         hbox2 = wx.BoxSizer(wx.HORIZONTAL)
         hbox2.Add(btn_yes)
         hbox2.Add(btn_no, flag=wx.LEFT, border=20)
@@ -857,13 +860,13 @@ class ChooseOne(wx.Dialog):
         vbox.Add(hbox1,
                  flag=wx.ALIGN_CENTER|wx.TOP|wx.BOTTOM, border=10)
 
-        
+
         vbox.Add(hbox2,
                  flag=wx.ALIGN_CENTER|wx.TOP|wx.BOTTOM, border=10)
-        
+
         self.SetSizer(vbox)
         vbox.Fit(self)
-        
+
     def on_yes(self, event):
         self.Destroy()
         self.EndModal(wx.ID_YES)
@@ -871,7 +874,7 @@ class ChooseOne(wx.Dialog):
     def on_no(self, event):
         self.Destroy()
         self.EndModal(wx.ID_NO)
-        
+
 
 # assorted useful methods!
 
@@ -967,7 +970,7 @@ def close_window(SELF, command, outfile):
     SELF.Parent.Raise()
 
 # menu events
-    
+
 def on_cookbook(event):
     webbrowser.open("http://earthref.org/PmagPy/cookbook/", new=2)
 
@@ -990,4 +993,3 @@ def get_output_frame():
         if win.Name == 'frame':
             return win
     return False
-

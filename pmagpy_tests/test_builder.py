@@ -9,8 +9,8 @@ Tests for new ErMagicBuilder
 import unittest
 import os
 import sys
-import pmagpy.builder as builder
-from pmagpy import validate_upload
+import pmagpy.builder2 as builder
+from pmagpy import validate_upload2 as validate_upload
 
 WD = sys.prefix
 data_dir = os.path.join(WD, 'pmagpy_data_files')
