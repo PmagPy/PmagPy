@@ -65,7 +65,7 @@ meas_magic3 = ['treat_dc_field_theta', 'treat_ac_field', 'treat_dc_field',
 
 spec_magic3 = ['analyst_names', 'citations', 'software_packages', 
           'meas_step_max', 'meas_step_min', 'meas_step_unit', 'dir_alpha95', 
-          'dir_n_comps', 'dir_comp_name', 'aniso_tilt_correction', 'dir_dang', 
+          'dir_n_comps', 'dir_comp', 'aniso_tilt_correction', 'dir_dang', 
           'dir_dec', 'dir_type', 'result_flag', 'dir_inc', 'dir_mad_free', 
           'dir_n_measurements', 'dir_tilt_correction', 'method_codes', 
           'instrument_codes', 'specimen', 'site', 'sample', 'location']
