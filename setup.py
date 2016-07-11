@@ -1,4 +1,3 @@
-
 # Always prefer setuptools over distutils
 from setuptools import setup, find_packages
 # To use a consistent encoding
@@ -18,7 +17,7 @@ packages.append('pmag_env')
 print 'packages', packages
 
 
-version_num = '1.1.1'
+version_num = '1.2.0'
 here = path.abspath(path.dirname(__file__))
 
 def do_walk(data_path):
