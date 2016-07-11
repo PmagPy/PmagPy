@@ -130,8 +130,8 @@ class Demag_GUI(wx.Frame):
             if new_WD == self.currentDirectory and sys.version.split()[0] == '2.7.11':
                 new_WD = self.get_DIR()
             self.change_WD(new_WD)
-#        if write_to_log_file:
-#            self.init_log_file()
+        if write_to_log_file:
+            self.init_log_file()
 
         #init wait dialog
         disableAll = wx.WindowDisabler()
@@ -1897,15 +1897,15 @@ class Demag_GUI(wx.Frame):
         if tmin == '' or tmax == '': return
         beg_pca,end_pca = self.get_indices(fit, tmin, tmax, specimen)
 
-        if beg_pca == None or end_pca == None: print("%s to %s are invalid bounds, to fit %s for specimen %s"%(tmin,tmax,fit.name,specimen)); return
-        check_duplicates = []
-        for s,f in zip(self.Data[specimen]['zijdblock_steps'][beg_pca:end_pca+1],self.Data[specimen]['measurement_flag'][beg_pca:end_pca+1]):
-            if f == 'g' and [s,'g'] in check_duplicates:
-                if s == tmin: print("There are multiple good %s steps. The first measurement will be used for lower bound of fit %s for specimen %s."%(tmin,fit.name,specimen))
-                if s == tmax: print("There are multiple good %s steps. The first measurement will be used for upper bound of fit %s for specimen %s."%(tmax,fit.name,specimen))
-                else: print("Within Fit %s on specimen %s, there are multiple good measurements at the %s step. Both measurements are included in the fit."%(fit.name,specimen,s))
-            else:
-                check_duplicates.append([s,f])
+#        if beg_pca == None or end_pca == None: print("%s to %s are invalid bounds, to fit %s for specimen %s"%(tmin,tmax,fit.name,specimen)); return
+#        check_duplicates = []
+#        for s,f in zip(self.Data[specimen]['zijdblock_steps'][beg_pca:end_pca+1],self.Data[specimen]['measurement_flag'][beg_pca:end_pca+1]):
+#            if f == 'g' and [s,'g'] in check_duplicates:
+#                if s == tmin: print("There are multiple good %s steps. The first measurement will be used for lower bound of fit %s for specimen %s."%(tmin,fit.name,specimen))
+#                if s == tmax: print("There are multiple good %s steps. The first measurement will be used for upper bound of fit %s for specimen %s."%(tmax,fit.name,specimen))
+#                else: print("Within Fit %s on specimen %s, there are multiple good measurements at the %s step. Both measurements are included in the fit."%(fit.name,specimen,s))
+#            else:
+#                check_duplicates.append([s,f])
 
         if coordinate_system=='geographic':
             block=self.Data[specimen]['zijdblock_geo']
@@ -2875,8 +2875,13 @@ class Demag_GUI(wx.Frame):
         elif "dir_comp_name" in self.spec_data.columns:
             fnames = 'dir_comp_name'
         else: return
-        fdict = self.spec_data[['specimen',fnames,'meas_step_min','meas_step_max','meas_step_unit']].to_dict("records")
+        if self.COORDINATE_SYSTEM=='geographic': current_tilt_correction=0
+        elif self.COORDINATE_SYSTEM=='tilt_corrected': current_tilt_correction=100
+        else: current_tilt_correction=-1
+        fdict = self.spec_data[['specimen',fnames,'meas_step_min','meas_step_max','meas_step_unit','dir_tilt_correction']].to_dict("records")
         for i in range(len(fdict)):
+            if int(fdict[i]['dir_tilt_correction'])!=current_tilt_correction: 
+                continue
             spec = fdict[i]['specimen']
             if spec not in self.specimens:
                 print("-E- specimen %s does not exist in measurement data"%(spec))
