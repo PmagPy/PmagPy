@@ -178,7 +178,7 @@ class Contribution(object):
             return table_name, name
         return "", ""
 
-    
+
     def propagate_name_down(self, col_name, df_name):
         """
         Put the data for "col_name" into dataframe with df_name
@@ -288,7 +288,7 @@ class Contribution(object):
         if not col_names:
             print "-W- Invalid or missing column names, could not propagate down"
             return
-        
+
         ###add_name = source_df_name[:-1] + "_name"
         add_name = source_df_name[:-1]
         self.propagate_name_down(add_name, target_df_name)
@@ -382,7 +382,7 @@ class MagicDataFrame(object):
                 #self.df = pd.DataFrame()
                 self.df.index = self.df['table_column']
                 return
-            if len(self.df):
+            if len(self.df) and dtype != 'age':
                 self.df.index = self.df[name]
             #del self.df[name]
             #self.dtype = dtype
@@ -567,7 +567,7 @@ class MagicDataFrame(object):
         Write self.df out to tab-delimited file.
         By default will use standard MagIC filenames (specimens.txt, etc.),
         or you can provide a custom_name to write to instead.
-        By default will write to current directory, 
+        By default will write to current directory,
         or provide dir_path to write out to instead.
         """
         # *** maybe add some logical order to the column names, here?

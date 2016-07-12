@@ -8,7 +8,7 @@ class DataModel(object):
 
     def __init__(self):
         self.dm = self.get_data_model()
-    
+
     def download_data_model(self):
         pmag_dir = check_updates.get_pmag_dir()
         model_file = os.path.join(pmag_dir, '3_0', 'data_model_July_7_2016.json')
@@ -20,7 +20,8 @@ class DataModel(object):
 
     def parse_data_model(self, full_df):
         data_model = {}
-        levels = ['specimens', 'samples', 'sites', 'locations', 'ages']
+        levels = ['specimens', 'samples', 'sites', 'locations',
+                  'ages', 'measurements', 'criteria', 'contribution']
         for level in levels:
             df = DataFrame(full_df['tables'][level]['columns'])
             data_model[level] = df.transpose()
@@ -56,5 +57,3 @@ class DataModel(object):
 if __name__ == "__main__":
     #dm = DataModel()
     pass
-
-
