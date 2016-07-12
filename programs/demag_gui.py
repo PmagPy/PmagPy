@@ -77,6 +77,7 @@ import dialogs.demag_dialogs as demag_dialogs
 from copy import deepcopy,copy
 import cit_magic as cit_magic
 import new_builder as nb
+from pandas import DataFrame,Series
 from SPD.mapping import map_magic
 
 
@@ -130,8 +131,8 @@ class Demag_GUI(wx.Frame):
             if new_WD == self.currentDirectory and sys.version.split()[0] == '2.7.11':
                 new_WD = self.get_DIR()
             self.change_WD(new_WD)
-        if write_to_log_file:
-            self.init_log_file()
+#        if write_to_log_file:
+#            self.init_log_file()
 
         #init wait dialog
         disableAll = wx.WindowDisabler()
@@ -216,7 +217,7 @@ class Demag_GUI(wx.Frame):
         # Draw figures and add text
         if self.Data:
             # get previous interpretations from pmag tables
-            if self.data_model == 3.0 and 'specimens' in self.contribution.tables:
+            if self.data_model == 3.0 and 'specimens' in self.con.tables:
                 self.get_interpretations3()
             else: self.update_pmag_tables()
             if not self.current_fit:
@@ -2389,6 +2390,41 @@ class Demag_GUI(wx.Frame):
                     rec[header]=""
         return recs
 
+    def merge_dfs(self,df1,df2):
+        """
+        Description: takes 2 pandas DataFrames and combines them by keeping every entry in df1 but adding columns from df2 and any data it can from df2 to insure that df1 and df2 have the same columns.
+
+        @param: df1 - first DataFrame whose data will preferintally be kept.
+        @param: df2 - second DataFrame whose data will only be written if df1 does not have data for that column.
+        """
+
+        c1 = list(df1.columns)
+        c2 = list(df2.columns)
+        mcs = c1 + [c for c in c2 if c not in c1]
+        if "dir_comp_name" in mcs: mcs.remove("dir_comp_name") #depricated but still in some data sets
+        mdf = DataFrame(index = df1.index, columns=mcs)
+        unique_indecies2 = df2.drop_duplicates(subset='specimen').index
+
+        for c in mcs:
+            if c in c1:
+                mdf[c] = df1[c]
+            elif c in c2:
+                mdf.append(df2[c])
+                seen_is = []
+                for i in unique_indecies2:
+                    if i not in mdf.index:
+                        mdf.append(df2.loc[i])
+                        continue
+                    elif i in seen_is: continue
+                    else:
+                        if type(df2[c][i]) == Series:
+                            mdf.loc[i,c] = df2[c][i][0]
+                        else:
+                            mdf.loc[i,c] = df2[c][i]
+                        seen_is.append(i)
+
+        return mdf
+
     #---------------------------------------------#
     #Specimen, Interpretation, & Measurement Alteration
     #---------------------------------------------#
@@ -2463,7 +2499,7 @@ class Demag_GUI(wx.Frame):
         self.mag_meas_data[meas_index]['measurement_flag'] = 'g'
 
         if self.data_model == 3.0:
-            mdf = self.contribution.tables['measurements'].df
+            mdf = self.con.tables['measurements'].df
             filtered_mdf = mdf[mdf['method_codes'].str.contains('LT-NO|LT-AF-Z|LT-T-Z|LT-M-Z|LT-LT-Z')==True] #remove non-directional data
             step = float(self.Data[self.s]['zijdblock'][g_index][0])+273. #convert to kelvin to match with table convention
             find_step = lambda x: x[1]['specimen']==self.s and float(x[1]['treat_temp'])==step #function to find the step index
@@ -2493,7 +2529,7 @@ class Demag_GUI(wx.Frame):
         self.mag_meas_data[meas_index]['measurement_flag'] = 'b'
 
         if self.data_model == 3.0:
-            mdf = self.contribution.tables['measurements'].df
+            mdf = self.con.tables['measurements'].df
             filtered_mdf = mdf[mdf['method_codes'].str.contains('LT-NO|LT-AF-Z|LT-T-Z|LT-M-Z|LT-LT-Z')==True] #remove non-directional data
             step = float(self.Data[self.s]['zijdblock'][g_index][0])+273. #convert to kelvin to match with table convention
             find_step = lambda x: x[1]['specimen']==self.s and float(x[1]['treat_temp'])==step #function to find the step index
@@ -2527,16 +2563,16 @@ class Demag_GUI(wx.Frame):
       Data_hierarchy['expedition_name_of_specimen']={}
 
       if self.data_model==3:
-          if 'specimens' in self.contribution.tables:
-              self.contribution.propagate_name_down('sample', 'measurements')
-              self.contribution.propagate_name_down('sample', 'specimens') # need these for get_data_info
-              self.contribution.propagate_name_down('site', 'specimens')
-              self.contribution.propagate_name_down('location','specimens')
-          if 'samples' in self.contribution.tables:
-              self.contribution.propagate_name_down('site', 'measurements')
-          if 'sites' in self.contribution.tables:
-              self.contribution.propagate_name_down('location','measurements')
-          meas_container = self.contribution.tables['measurements']
+          if 'specimens' in self.con.tables:
+              self.con.propagate_name_down('sample', 'measurements')
+              self.con.propagate_name_down('sample', 'specimens') # need these for get_data_info
+              self.con.propagate_name_down('site', 'specimens')
+              self.con.propagate_name_down('location','specimens')
+          if 'samples' in self.con.tables:
+              self.con.propagate_name_down('site', 'measurements')
+          if 'sites' in self.con.tables:
+              self.con.propagate_name_down('location','measurements')
+          meas_container = self.con.tables['measurements']
           meas_data3_0 = meas_container.df
 # do some filtering
           Mkeys = ['magn_moment', 'magn_volume', 'magn_mass']
@@ -2880,7 +2916,7 @@ class Demag_GUI(wx.Frame):
         else: current_tilt_correction=-1
         fdict = self.spec_data[['specimen',fnames,'meas_step_min','meas_step_max','meas_step_unit','dir_tilt_correction']].to_dict("records")
         for i in range(len(fdict)):
-            if int(fdict[i]['dir_tilt_correction'])!=current_tilt_correction: 
+            if fdict[i]['dir_tilt_correction']==None or int(fdict[i]['dir_tilt_correction'])!=current_tilt_correction: 
                 continue
             spec = fdict[i]['specimen']
             if spec not in self.specimens:
@@ -2891,8 +2927,8 @@ class Demag_GUI(wx.Frame):
                 print("-E- duplicate records or non-existant name for interpretation on specimen %s and line %d of specimens.txt"%(spec,i))
                 continue
             if fdict[i]['meas_step_unit'] == "K":
-                fmin = str(int(int(fdict[i]['meas_step_min'])-273)) + "C"
-                fmax = str(int(int(fdict[i]['meas_step_max'])-273)) + "C"
+                fmin = str(int(float(fdict[i]['meas_step_min'])-273)) + "C"
+                fmax = str(int(float(fdict[i]['meas_step_max'])-273)) + "C"
             elif fdict[i]['meas_step_unit'] == "T":
                 fmin = str(int(float(fdict[i]['meas_step_min'])*1000)) + "mT"
                 fmax = str(int(float(fdict[i]['meas_step_max'])*1000)) + "mT"
@@ -2915,17 +2951,17 @@ class Demag_GUI(wx.Frame):
             Data_info["er_locations"]=[]
             Data_info["er_ages"]=[]
             fnames = {'measurements': self.magic_file}
-            self.contribution = nb.Contribution(self.WD, custom_filenames=fnames, read_tables=['measurements', 'specimens', 'samples','sites'])
-            if 'specimens' in self.contribution.tables:
-                spec_container = self.contribution.tables['specimens']
+            self.con = nb.Contribution(self.WD, custom_filenames=fnames, read_tables=['measurements', 'specimens', 'samples','sites'])
+            if 'specimens' in self.con.tables:
+                spec_container = self.con.tables['specimens']
                 self.spec_data = spec_container.df
-            if 'samples' in self.contribution.tables:
-                samp_container = self.contribution.tables['samples']
+            if 'samples' in self.con.tables:
+                samp_container = self.con.tables['samples']
                 self.samp_data = samp_container.df # only need this for saving tables
                 self.samp_data = self.samp_data.rename(columns={"azimuth":"sample_azimuth","dip":"sample_dip","orientation_flag":"sample_orientation_flag","bed_dip_direction":"sample_bed_dip_direction","bed_dip":"sample_bed_dip"})
                 data_er_samples = self.samp_data.T.to_dict()
-            if 'sites' in self.contribution.tables:
-                site_container = self.contribution.tables['sites']
+            if 'sites' in self.con.tables:
+                site_container = self.con.tables['sites']
                 self.site_data = site_container.df
                 self.site_data = self.site_data[self.site_data['lat'].notnull()]
                 self.site_data = self.site_data[self.site_data['lon'].notnull()]
@@ -2944,8 +2980,8 @@ class Demag_GUI(wx.Frame):
                 data_er_sites={}
                 for s in er_sites:
                    data_er_sites[s['er_site_name']]=s
-            if 'locations' in self.contribution.tables:
-                location_container = self.contribution.tables["locations"]
+            if 'locations' in self.con.tables:
+                location_container = self.con.tables["locations"]
                 self.location_data = location_container.df # only need this for saving tables
                 data_er_locations = self.samp_data.to_dict('records')
 
@@ -4216,19 +4252,35 @@ class Demag_GUI(wx.Frame):
         if self.data_model == 3.0:
 
 #            pdb.set_trace()
-            if self.user_warning("saving to MagIC tables model 3.0 is not yet supported by Demag GUI if you continue 2.5 data tables will be written to disk instead. They may not load on lauch of GUI however as such it is recommended that for now you use .redo files to save your interpretaions, or convert your project back to the older stable 2.5 model."):
-                pmag.magic_write(os.path.join(self.WD, "pmag_specimens.txt"),PmagSpecs_fixed,'pmag_specimens')
-                print( "specimen data stored in %s\n"%os.path.join(self.WD, "pmag_specimens.txt"))
-            else: return
+#            if self.user_warning("saving to MagIC tables model 3.0 is not yet supported by Demag GUI if you continue 2.5 data tables will be written to disk instead. They may not load on lauch of GUI however as such it is recommended that for now you use .redo files to save your interpretaions, or convert your project back to the older stable 2.5 model."):
+#                pmag.magic_write(os.path.join(self.WD, "pmag_specimens.txt"),PmagSpecs_fixed,'pmag_specimens')
+#                print( "specimen data stored in %s\n"%os.path.join(self.WD, "pmag_specimens.txt"))
+#            else: return
 
-            #still broken
-#            if "specimens" not in self.contribution.tables:
-#                open(os.path.join(self.WD, "specimens.txt"),"w+")
-#                self.contribution.add_magic_table("specimens")
+            #translate demag_gui output to 3.0 DataFrame
+            ndf2_5 = DataFrame(PmagSpecs_fixed)
+            del ndf2_5['specimen_direction_type'] #doesn't exist in new model
+            ndf3_0 = ndf2_5.rename(columns=map_magic.spec_magic2_2_magic3_map)
+            ndf3_0 = ndf3_0.set_index("specimen")
 
-#            spdf = self.contribution.tables["specimens"].df
-            #update specimens table with interpretation
-#            columns=map_magic.magic3_2_magic2_map
+            #get current 3.0 DataFrame from contribution object
+            spmdf = self.con.tables['specimens']
+            spdf = spmdf.df
+
+            #merge previous df with new interpretaions DataFrame
+            merdf = self.merge_dfs(ndf3_0,spdf)
+
+            #sort columns so it matches previous exports
+            merdf = merdf.reindex_axis(sorted(merdf.columns), axis=1)
+
+            #replace Specimens MagicDataFrame.df with merged df
+            spmdf.df = merdf
+
+            #write to disk
+            spmdf.write_magic_file(dir_path=self.WD)
+
+            self.user_warning("saving to samples, sites, locations, criteria, and ages is not yet supported")
+            return
 
         else:
             pmag.magic_write(os.path.join(self.WD, "pmag_specimens.txt"),PmagSpecs_fixed,'pmag_specimens')
@@ -5093,7 +5145,7 @@ class Demag_GUI(wx.Frame):
             self.mark_meas_good(g_index)
 
         if self.data_model == 3.0:
-            self.contribution.tables['measurements'].write_magic_file(dir_path=self.WD)
+            self.con.tables['measurements'].write_magic_file(dir_path=self.WD)
         else:
             pmag.magic_write(os.path.join(self.WD, "magic_measurements.txt"),self.mag_meas_data,"magic_measurements")
 
