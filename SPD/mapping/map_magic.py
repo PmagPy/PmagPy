@@ -35,42 +35,16 @@ spd2magic_map = dict(zip(spd, magic))
 magic2spd_map = dict(zip(magic, spd))
 
 # mapping between magic2 and magic3
-meas_magic2 = ['treatment_dc_field_theta', 'treatment_ac_field', 
-          'treatment_dc_field', 'measurement_number', 
-          'measurement_description', 'measurement_magn_volume', 
-          'er_specimen_name', 'er_site_name', 'treatment_temp', 
-          'er_sample_name', 'measurement_flag', 'measurement_inc', 
-          'er_location_name', 'measurement_dec', 'magic_method_codes', 
-          'magic_instrument_codes', 'treatment_dc_field_phi', 
-          'measurement_magn_moment', 'measurement_magn_mass', 
-          'measurement_csd']
 
-spec_magic2 = ['er_analyst_mail_names', 'er_citation_names', 
-          'magic_software_packages', 'measurement_step_max', 
-          'measurement_step_min', 'measurement_step_unit', 'specimen_alpha95', 
-          'specimen_comp_n', 'specimen_comp_name', 'specimen_correction', 
-          'specimen_dang', 'specimen_dec', 
-          'specimen_flag', 'specimen_inc', 'specimen_mad', 'specimen_n', 
-          'specimen_tilt_correction', 'magic_method_codes', 
-          'magic_instrument_codes', 'er_specimen_name', 'er_site_name', 
-          'er_sample_name', 'er_location_name']
+meas_magic3_2_magic2_map = {'treat_dc_field_theta': 'treatment_dc_field_theta', 'sample': 'er_sample_name', 'treat_dc_field': 'treatment_dc_field', 'instrument_codes': 'magic_instrument_codes', 'description': 'measurement_description', 'magn_volume': 'measurement_magn_volume', 'specimen': 'er_specimen_name', 'treat_dc_field_phi': 'treatment_dc_field_phi', 'number': 'measurement_number', 'site': 'er_site_name', 'treat_ac_field': 'treatment_ac_field', 'flag': 'measurement_flag', 'dir_inc': 'measurement_inc', 'location': 'er_location_name', 'dir_dec': 'measurement_dec', 'method_codes': 'magic_method_codes', 'treat_temp': 'treatment_temp', 'magn_moment': 'measurement_magn_moment', 'magn_mass': 'measurement_magn_mass', 'dir_csd': 'measurement_csd'}
 
-meas_magic3 = ['treat_dc_field_theta', 'treat_ac_field', 'treat_dc_field',
-          'number', 'description', 'magn_volume',
-          'specimen', 'site', 'treat_temp', 'sample',
-          'flag', 'dir_inc', 'location',
-          'dir_dec', 'method_codes', 'instrument_codes',
-          'treat_dc_field_phi', 'magn_moment',
-          'magn_mass', 'dir_csd']
+meas_magic2_2_magic3_map = {v:k for k,v in meas_magic3_2_magic2_map.items()}
 
-spec_magic3 = ['analyst_names', 'citations', 'software_packages', 
-          'meas_step_max', 'meas_step_min', 'meas_step_unit', 'dir_alpha95', 
-          'dir_n_comps', 'dir_comp', 'int_corr', 'dir_dang', 
-          'dir_dec', 'result_quality', 'dir_inc', 'dir_mad_free', 
-          'dir_n_measurements', 'dir_tilt_correction', 'method_codes', 
-          'instrument_codes', 'specimen', 'site', 'sample', 'location']
+spec_magic3_2_magic2_map = {'site': 'er_site_name', 'sample': 'er_sample_name', 'int_corr': 'specimen_correction', 'analyst_names': 'er_analyst_mail_names', 'citations': 'er_citation_names', 'dir_mad_free': 'specimen_mad', 'location': 'er_location_name', 'dir_comp': 'specimen_comp_name', 'specimen': 'er_specimen_name', 'dir_tilt_correction': 'specimen_tilt_correction', 'meas_step_min': 'measurement_step_min', 'software_packages': 'magic_software_packages', 'instrument_codes': 'magic_instrument_codes', 'dir_dang': 'specimen_dang', 'dir_n_measurements': 'specimen_n', 'dir_inc': 'specimen_inc', 'meas_step_max': 'measurement_step_max', 'dir_alpha95': 'specimen_alpha95', 'meas_step_unit': 'measurement_step_unit', 'dir_dec': 'specimen_dec', 'method_codes': 'magic_method_codes', 'result_quality': 'specimen_flag', 'dir_n_comps': 'specimen_comp_n'}
 
-meas_magic3_2_magic2_map = dict(zip(meas_magic3, meas_magic2))
-meas_magic2_2_magic3_map = dict(zip(meas_magic2, meas_magic3))
-spec_magic3_2_magic2_map = dict(zip(spec_magic3, spec_magic2))
-spec_magic2_2_magic3_map = dict(zip(spec_magic2, spec_magic3))
+spec_magic2_2_magic3_map = {v:k for k,v in spec_magic3_2_magic2_map.items()}
+
+meas_magic2 = meas_magic3_2_magic2_map.values()
+spec_magic2 = spec_magic3_2_magic2_map.values()
+meas_magic3 = meas_magic3_2_magic2_map.keys()
+spec_magic3 = spec_magic3_2_magic2_map.keys()

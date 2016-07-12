@@ -369,7 +369,7 @@ class MagicDataFrame(object):
                 return
             # fix these:
             if dtype == 'age':
-                # find which key has _name in it, use that as index
+                # find which key has name in it, use that as index
                 # this won't work if site_name/sample_name/etc. are interspersed
                 for key in keys:
                     if 'name' in key:
@@ -560,6 +560,26 @@ class MagicDataFrame(object):
         else:
             # return a copy of records without that method code
             return df[~cond]
+
+    def merge_dfs(self,df1):
+        """
+        Description: Merges underlying df with input df (df1) with perfrence to updating data as opposed to keeping data.
+
+        @param: df1 - first DataFrame whose data will preferintally be used.
+        """
+
+        #copy df2 and remove all columns that also exist in df1 from df2
+        cdf2 = self.df.copy()
+        for c in [cx for cx in cdf2.columns if cx in df1.columns]:
+            del cdf2[c]
+
+        #add all columns in df2 not in df1 to df1 and merge to mdf
+        mdf = df1.join(cdf2, how='outer', lsuffix='__remove')
+
+        #drop any duplicate lines created in this process
+        mdf.drop_duplicates(inplace=True)
+
+        return mdf
 
 
     def write_magic_file(self, custom_name=None, dir_path="."):

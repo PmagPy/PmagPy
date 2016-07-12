@@ -2390,26 +2390,6 @@ class Demag_GUI(wx.Frame):
                     rec[header]=""
         return recs
 
-    def merge_dfs(self,df1,df2):
-        """
-        Description: takes 2 pandas DataFrames and combines them by keeping every entry in df1 but adding columns from df2 and any data it can from df2 to insure that df1 and df2 have the same columns.
-
-        @param: df1 - first DataFrame whose data will preferintally be kept.
-        @param: df2 - second DataFrame whose data will only be written if df1 does not have data for that column.
-        """
-
-        #copy df2 and remove all columns that also exist in df1 from df2
-        cdf2 = df2.copy()
-        for c in [cx for cx in df2.columns if cx in df1.columns]:
-            del cdf2[c]
-
-        #add all columns in df2 not in df1 to df1 and merge to mdf
-        mdf = df1.join(cdf2, how='outer', lsuffix='__remove')
-
-        mdf.drop_duplicates(inplace=True)
-
-        return mdf
-
     #---------------------------------------------#
     #Specimen, Interpretation, & Measurement Alteration
     #---------------------------------------------#
@@ -2936,7 +2916,7 @@ class Demag_GUI(wx.Frame):
             Data_info["er_locations"]=[]
             Data_info["er_ages"]=[]
             fnames = {'measurements': self.magic_file}
-            self.con = nb.Contribution(self.WD, custom_filenames=fnames, read_tables=['measurements', 'specimens', 'samples','sites'])
+            self.con = nb.Contribution(self.WD, custom_filenames=fnames, read_tables=['measurements', 'specimens', 'samples','sites', 'criteria', 'ages'])
             if 'specimens' in self.con.tables:
                 spec_container = self.con.tables['specimens']
                 self.spec_data = spec_container.df
@@ -3565,31 +3545,24 @@ class Demag_GUI(wx.Frame):
 
     def On_close_MagIC_dialog(self,dia):
 
-#        run_script_flags=["specimens_results_magic.py","-fsp","pmag_specimens.txt", "-xI",  "-WD", str(self.WD)]
         if dia.cb_acceptance_criteria.GetValue()==True:
-#            run_script_flags.append("-exc")
             use_criteria='existing'
         else:
-#            run_script_flags.append("-C")
             use_criteria='none'
 
         #-- coordinate system
         if dia.rb_spec_coor.GetValue()==True:
-#            run_script_flags.append("-crd");  run_script_flags.append("s")
             coord = "s"
         if dia.rb_geo_coor.GetValue()==True:
-#            run_script_flags.append("-crd");  run_script_flags.append("g")
             coord = "g"
         if dia.rb_tilt_coor.GetValue()==True:
-#            run_script_flags.append("-crd");  run_script_flags.append("t")
             coord = "t"
         if dia.rb_geo_tilt_coor.GetValue()==True:
-#            run_script_flags.append("-crd");  run_script_flags.append("b")
             coord = "b"
 
         #-- default age options
         DefaultAge= ["none"]
-#        if dia.cb_default_age.GetValue()==True:
+        default_used = False
         try:
             age_units= dia.default_age_unit.GetValue()
             min_age="%f"%float(dia.default_age_min.GetValue())
@@ -3613,19 +3586,16 @@ class Demag_GUI(wx.Frame):
             else:
                 max_age="4.56"
                 age_units="Ga"
-#        run_script_flags.append("-age"); run_script_flags.append(min_age)
-#        run_script_flags.append(max_age); run_script_flags.append(age_units)
+                default_used = True
         DefaultAge=[min_age, max_age, age_units]
 
         #-- sample mean
         avg_directions_by_sample = False
         if dia.cb_sample_mean.GetValue()==True:
-#            run_script_flags.append("-aD")
             avg_directions_by_sample = True
 
         vgps_level = 'site'
         if dia.cb_sample_mean_VGP.GetValue()==True:
-#            run_script_flags.append("-sam")
             vgps_level = 'sample'
 
         #-- site mean
@@ -3636,7 +3606,6 @@ class Demag_GUI(wx.Frame):
         #-- location mean
         avg_by_polarity=False
         if dia.cb_location_mean.GetValue()==True:
-#            run_script_flags.append("-pol")
             avg_by_polarity=True
 
         for FILE in ['pmag_samples.txt','pmag_sites.txt','pmag_results.txt']:
@@ -3655,11 +3624,16 @@ class Demag_GUI(wx.Frame):
                     if "LP-DIR" not in rec['magic_method_codes'] and "DE-" not in  rec['magic_method_codes']:
                         self.PmagRecsOld[FILE].append(rec)
 
+#        pdb.set_trace()
 
-        #print  run_script_flags
-#        outstring=" ".join(run_script_flags)
-#        print "-I- running python script:\n %s"%(outstring)
-        #os.system(outstring)
+        if self.data_model == 3.0:
+
+            #update age table
+            adf = self.con.tables['ages'].df
+            if default_used and (adf['age'].all() == None or adf['age'].all() == float('nan')):
+                pass #totally broken
+
+            #get criteria to apply on vgp and means
 
         print('coord', coord, 'vgps_level', vgps_level, 'DefaultAge', DefaultAge, 'avg_directions_by_sample', avg_directions_by_sample, 'avg_by_polarity', avg_by_polarity, 'use_criteria', use_criteria)
         ipmag.specimens_results_magic(coord=coord, vgps_level=vgps_level, DefaultAge=DefaultAge, avg_directions_by_sample=avg_directions_by_sample, avg_by_polarity=avg_by_polarity, use_criteria=use_criteria)
@@ -4252,10 +4226,9 @@ class Demag_GUI(wx.Frame):
 
             #get current 3.0 DataFrame from contribution object
             spmdf = self.con.tables['specimens']
-            spdf = spmdf.df
 
             #merge previous df with new interpretaions DataFrame
-            merdf = self.merge_dfs(ndf3_0,spdf)
+            merdf = spmdf.merge_dfs(ndf3_0)
 
             #sort columns so it matches previous exports
             merdf = merdf.reindex_axis(sorted(merdf.columns), axis=1)
