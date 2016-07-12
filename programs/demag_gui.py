@@ -131,8 +131,8 @@ class Demag_GUI(wx.Frame):
             if new_WD == self.currentDirectory and sys.version.split()[0] == '2.7.11':
                 new_WD = self.get_DIR()
             self.change_WD(new_WD)
-#        if write_to_log_file:
-#            self.init_log_file()
+        if write_to_log_file:
+            self.init_log_file()
 
         #init wait dialog
         disableAll = wx.WindowDisabler()
@@ -2398,30 +2398,15 @@ class Demag_GUI(wx.Frame):
         @param: df2 - second DataFrame whose data will only be written if df1 does not have data for that column.
         """
 
-        c1 = list(df1.columns)
-        c2 = list(df2.columns)
-        mcs = c1 + [c for c in c2 if c not in c1]
-        if "dir_comp_name" in mcs: mcs.remove("dir_comp_name") #depricated but still in some data sets
-        mdf = DataFrame(index = df1.index, columns=mcs)
-        unique_indecies2 = df2.drop_duplicates(subset='specimen').index
+        #copy df2 and remove all columns that also exist in df1 from df2
+        cdf2 = df2.copy()
+        for c in [cx for cx in df2.columns if cx in df1.columns]:
+            del cdf2[c]
 
-        for c in mcs:
-            if c in c1:
-                mdf[c] = df1[c]
-            elif c in c2:
-                mdf.append(df2[c])
-                seen_is = []
-                for i in unique_indecies2:
-                    if i not in mdf.index:
-                        mdf.append(df2.loc[i])
-                        continue
-                    elif i in seen_is: continue
-                    else:
-                        if type(df2[c][i]) == Series:
-                            mdf.loc[i,c] = df2[c][i][0]
-                        else:
-                            mdf.loc[i,c] = df2[c][i]
-                        seen_is.append(i)
+        #add all columns in df2 not in df1 to df1 and merge to mdf
+        mdf = df1.join(cdf2, how='outer', lsuffix='__remove')
+
+        mdf.drop_duplicates(inplace=True)
 
         return mdf
 
@@ -4133,7 +4118,11 @@ class Demag_GUI(wx.Frame):
         #------------------------------
 
         self.PmagRecsOld={}
-        for FILE in ['pmag_specimens.txt']:
+        if self.data_model == 3.0:
+            FILES = []
+        else:
+            FILES = ['pmag_specimens.txt']
+        for FILE in FILES:
             self.PmagRecsOld[FILE]=[]
             meas_data=[]
             try:
@@ -4244,24 +4233,22 @@ class Demag_GUI(wx.Frame):
                     i += 1
 
         # add the 'old' lines with no "LP-DIR" in
-        for rec in self.PmagRecsOld['pmag_specimens.txt']:
-            PmagSpecs.append(rec)
+        if 'pmag_specimens.txt' in self.PmagRecsOld.keys():
+            for rec in self.PmagRecsOld['pmag_specimens.txt']:
+                PmagSpecs.append(rec)
         PmagSpecs_fixed=self.merge_pmag_recs(PmagSpecs)
 
 
         if self.data_model == 3.0:
-
-#            pdb.set_trace()
-#            if self.user_warning("saving to MagIC tables model 3.0 is not yet supported by Demag GUI if you continue 2.5 data tables will be written to disk instead. They may not load on lauch of GUI however as such it is recommended that for now you use .redo files to save your interpretaions, or convert your project back to the older stable 2.5 model."):
-#                pmag.magic_write(os.path.join(self.WD, "pmag_specimens.txt"),PmagSpecs_fixed,'pmag_specimens')
-#                print( "specimen data stored in %s\n"%os.path.join(self.WD, "pmag_specimens.txt"))
-#            else: return
 
             #translate demag_gui output to 3.0 DataFrame
             ndf2_5 = DataFrame(PmagSpecs_fixed)
             del ndf2_5['specimen_direction_type'] #doesn't exist in new model
             ndf3_0 = ndf2_5.rename(columns=map_magic.spec_magic2_2_magic3_map)
             ndf3_0 = ndf3_0.set_index("specimen")
+            #prefer keeping analyst_names in txt
+            if 'analyst_names' in ndf3_0:
+                del ndf3_0['analyst_names']
 
             #get current 3.0 DataFrame from contribution object
             spmdf = self.con.tables['specimens']
@@ -4272,6 +4259,11 @@ class Demag_GUI(wx.Frame):
 
             #sort columns so it matches previous exports
             merdf = merdf.reindex_axis(sorted(merdf.columns), axis=1)
+
+            #remove translation colisions or depricated terms
+            for dc in ["dir_comp_name"]:
+                if dc in merdf.columns:
+                    del merdf[dc]
 
             #replace Specimens MagicDataFrame.df with merged df
             spmdf.df = merdf
