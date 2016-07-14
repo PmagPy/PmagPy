@@ -2527,10 +2527,13 @@ class Arai_GUI(wx.Frame):
 
 
         
-        aniso_logfile=open(os.path.join(self.WD, "rmag_anisotropy.log"),'w')
+        if self.data_model==3:
+            aniso_logfile=open(os.path.join(self.WD, "anisotropy.log"),'w')
+        else:
+            aniso_logfile=open(os.path.join(self.WD, "rmag_anisotropy.log"),'w')
 
         aniso_logfile.write("------------------------\n")
-        aniso_logfile.write( "-I- Start rmag anisotropy script\n")
+        aniso_logfile.write( "-I- Start anisotropy script\n")
         aniso_logfile.write( "------------------------\n")
 
 
@@ -2935,8 +2938,15 @@ class Arai_GUI(wx.Frame):
                 Data_anisotropy[specimen][TYPE]['er_specimen_names']=Data_anisotropy[specimen][TYPE]['er_specimen_name']
                 Data_anisotropy[specimen][TYPE]['er_sample_names']=Data_anisotropy[specimen][TYPE]['er_sample_name']
                 Data_anisotropy[specimen][TYPE]['er_site_names']=Data_anisotropy[specimen][TYPE]['er_site_name']
-                if self.data_model==3:
-                    pass # haven't implemented output to specimens.txt yet
+                if self.data_model==3: # merge new aniso data with specimen dataframe
+           # first take out any existing anisotropy data for this specimen of this TYPE from self.spec_data
+                    print self.spec_data[self.spec_data['specimen'].str.contains(specimen)==True]
+                    self.spec_data=self.spec_data.drop([self.spec_data['specimen'].str.contains(specimen)==True &  self.spec_data['aniso_type']==TYPE]).index
+#START HERE
+                    print self.spec_data[self.spec_data['specimen'].str.contains(specimen)==True]
+                    raw_input() 
+           # then replace it with these
+                    pass
                 else:
                     for i in range (len(rmag_results_header)):
                         try:
@@ -2952,7 +2962,11 @@ class Arai_GUI(wx.Frame):
         aniso_logfile.write("-I- Done anisotropy script\n")
         aniso_logfile.write( "------------------------\n")
         if self.data_model==3:
-            pass 
+            # 
+            pass  # put data in self.spec_data (replacing old if present).
+
+
+
         else:
             rmag_anisotropy_file.close()
 
