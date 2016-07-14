@@ -11,6 +11,7 @@ import time
 #import check_updates
 import scipy
 from scipy import array,sqrt,mean
+from SPD.mapping import map_magic
 
 #pylint: skip-file
 
@@ -503,7 +504,7 @@ def default_criteria(nocrit):
         Crits['site_k']='50'
     return [Crits]
 
-def grade(PmagRec,ACCEPT,type):
+def grade(PmagRec,ACCEPT,type,data_model=2.5):
     """
     Finds the 'grade' (pass/fail; A/F) of a record (specimen,sample,site) given the acceptance criteria
     """
@@ -515,16 +516,28 @@ def grade(PmagRec,ACCEPT,type):
     accept={}
     if type=='specimen_int':
         USEKEYS=['specimen_q','measurement_step_min','measurement_step_max','specimen_int_ptrm_n','specimen_fvds','specimen_frac','specimen_f','specimen_int_n','specimen_magn_moment','specimen_magn_volumn','specimen_rsc','specimen_scat','specimen_drats','specimen_int_mad','specimen_int_dang','specimen_md','specimen_b_beta','specimen_w','specimen_gmax']
+        if data_model==3.0:
+            USEKEYS=[map_magic.spec_magic2_2_magic3_map[k] for k in USEKEYS]
     elif type=='specimen_dir':
         USEKEYS=['measurement_step_min','measurement_step_max','specimen_mad','specimen_n','specimen_magn_moment','specimen_magn_volumn']
+        if data_model==3.0:
+            USEKEYS=[map_magic.spec_magic2_2_magic3_map[k] for k in USEKEYS]
     elif type=='sample_int':
         USEKEYS=['sample_int_n','sample_int_sigma','sample_int_sigma_perc']
+        if data_model==3.0:
+            USEKEYS=[map_magic.samp_magic2_2_magic3_map[k] for k in USEKEYS]
     elif type=='sample_dir':
         USEKEYS=['sample_alpha95','sample_n','sample_n_lines','sample_n_planes','sample_k','sample_r']
+        if data_model==3.0:
+            USEKEYS=[map_magic.samp_magic2_2_magic3_map[k] for k in USEKEYS]
     elif type=='site_int':
         USEKEYS=['site_int_sigma','site_int_sigma_perc','site_int_n']
+        if data_model==3.0:
+            USEKEYS=[map_magic.site_magic2_2_magic3_map[k] for k in USEKEYS]
     elif type=='site_dir':
         USEKEYS=['site_alpha95','site_k','site_n','site_n_lines','site_n_planes','site_r']
+        if data_model==3.0:
+            USEKEYS=[map_magic.site_magic2_2_magic3_map[k] for k in USEKEYS]
 
     for key in ACCEPT.keys():
         if ACCEPT[key]!="" and key in USEKEYS:
@@ -3000,10 +3013,52 @@ def fisher_by_pol(data):
             FisherByPoles[mode]=fpars
     return FisherByPoles
 
+def dolnp3_0(Data):
+    """
+    Desciption: takes a list of dicts with the controlled vocabulary of 3_0 and calls dolnp on them after reformating for compatibility.
+
+    @param: Data -> list of dicts that must contain "dir_dec","dir_inc","dir_tilt_correction",and "method_codes" in all dicts keys for this function to run
+    @return: ReturnData -> dict that is the fisher mean of the dicts passed in
+    @effects: prints to screen in case of no data
+    """
+
+    if len(Data) == 0:
+        print("This function requires input Data have at least 1 entry")
+        return {}
+    if len(Data) == 1:
+        ReturnData = {}
+        ReturnData["dec"]=Data[0]['dir_dec']
+        ReturnData["inc"]=Data[0]['dir_inc']
+        ReturnData["n"]='1'
+        if "DE-BFP" in Data[0]['method_codes']:
+            ReturnData["n_lines"]='0'
+            ReturnData["n_planes"]='1'
+        else:
+            ReturnData["n_planes"]='0'
+            ReturnData["n_lines"]='1'
+        ReturnData["alpha95"]=""
+        ReturnData["r"]=""
+        ReturnData["k"]=""
+        return ReturnData
+    else:
+        LnpData = []
+        for n,d in enumerate(Data):
+            LnpData.append({})
+            LnpData[n]['dec'] = d['dir_dec']
+            LnpData[n]['inc'] = d['dir_inc']
+            LnpData[n]['tilt_correction'] = d['dir_tilt_correction']
+            if 'method_codes' in d.keys():
+                if "DE-BFP" in d['method_codes']: LnpData[n]['dir_type'] = 'p'
+                else: LnpData[n]['dir_type'] = 'l'
+        ReturnData=pmag.dolnp(LnpData,'dir_type') # get a sample average from all specimens
+        return ReturnData
+
+
 def dolnp(data,direction_type_key):
     """
     returns fisher mean, a95 for data  using method of mcfadden and mcelhinny '88 for lines and planes
     """
+
     if "tilt_correction" in data[0].keys():
         tc=data[0]["tilt_correction"]
     else:
@@ -3016,16 +3071,47 @@ def dolnp(data,direction_type_key):
 # sort data  into lines and planes and collect cartesian coordinates
     for rec in data:
         cart=dir2cart([rec["dec"],rec["inc"]])[0]
-        if direction_type_key in rec.keys() and rec[direction_type_key]=='p': # this is a pole to a plane
-            n_planes+=1
-            L.append(cart) # this is the "EL, EM, EN" array of MM88
-        else: # this is a line
-            n_lines+=1
-            fdata.append([rec["dec"],rec["inc"],1.]) # collect data for fisher calculation
-            X.append(cart)
-            E[0]+=cart[0]
-            E[1]+=cart[1]
-            E[2]+=cart[2]
+        if direction_type_key in rec.keys():
+            if rec[direction_type_key]=='p': # this is a pole to a plane
+                n_planes+=1
+                L.append(cart) # this is the "EL, EM, EN" array of MM88
+            else: # this is a line
+                n_lines+=1
+                fdata.append([rec["dec"],rec["inc"],1.]) # collect data for fisher calculation
+                X.append(cart)
+                E[0]+=cart[0]
+                E[1]+=cart[1]
+                E[2]+=cart[2]
+        elif 'method_codes' in rec.keys():
+            if "DE-BFP" in rec['method_codes']: # this is a pole to a plane
+                n_planes+=1
+                L.append(cart) # this is the "EL, EM, EN" array of MM88
+            else: # this is a line
+                n_lines+=1
+                fdata.append([rec["dec"],rec["inc"],1.]) # collect data for fisher calculation
+                X.append(cart)
+                E[0]+=cart[0]
+                E[1]+=cart[1]
+                E[2]+=cart[2]
+        elif 'magic_method_codes' in rec.keys():
+            if "DE-BFP" in rec['magic_method_codes']: # this is a pole to a plane
+                n_planes+=1
+                L.append(cart) # this is the "EL, EM, EN" array of MM88
+            else: # this is a line
+                n_lines+=1
+                fdata.append([rec["dec"],rec["inc"],1.]) # collect data for fisher calculation
+                X.append(cart)
+                E[0]+=cart[0]
+                E[1]+=cart[1]
+                E[2]+=cart[2]
+        else:
+                #EVERYTHING IS A LINE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                n_lines+=1
+                fdata.append([rec["dec"],rec["inc"],1.]) # collect data for fisher calculation
+                X.append(cart)
+                E[0]+=cart[0]
+                E[1]+=cart[1]
+                E[2]+=cart[2]
 # set up initial points on the great circles
     V,XV=[],[]
     if n_planes !=0:
