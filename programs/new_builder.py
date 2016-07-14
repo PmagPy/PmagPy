@@ -403,7 +403,6 @@ class MagicDataFrame(object):
             self.df = self.df[columns]
 
 
-
     def update_row(self, ind, row_data):
         """
         Update a row with data.
@@ -420,7 +419,7 @@ class MagicDataFrame(object):
             for col_label in self.df.columns:
                 if col_label not in row_data.keys():
                     row_data[col_label] = None
-        self.df.iloc[ind] = row_data
+        self.df.iloc[ind] = pd.Series(row_data)
 
 
     def add_row(self, label, row_data):
@@ -438,7 +437,15 @@ class MagicDataFrame(object):
             for col_label in self.df.columns:
                 if col_label not in row_data.keys():
                     row_data[col_label] = None
-        self.df.loc[label] = row_data
+        # create a new row with suffix "new"
+        # (this ensures that you get a unique, new row,
+        #  instead of adding on to an existing row with the same label)
+        self.df.loc[label + "new"] = pd.Series(row_data)
+        # rename it to be correct
+        self.df.rename(index={label + "new": label}, inplace=True)
+        # use next line to sort index inplace
+        #self.df.sort_index(inplace=True)
+
 
     def add_blank_row(self, label):
         """
