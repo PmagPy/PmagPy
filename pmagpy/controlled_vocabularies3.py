@@ -6,9 +6,6 @@ import httplib
 import json
 import os
 import backup_vocabulary as backup
-# get list of controlled vocabularies form this part of the api:
-#'http://api.earthref.org/MagIC/vocabularies.json'
-# then, use that list to determine whether or not any given column has a controlled vocabulary list
 import check_updates
 from pmagpy import data_model3
 pmag_dir = check_updates.get_pmag_dir()
@@ -17,6 +14,7 @@ data_model_dir = os.path.join(pmag_dir, 'pmagpy', 'data_model')
 # so check to see where the resource actually is
 if not os.path.exists(data_model_dir):
     data_model_dir = os.path.join(pmag_dir, 'data_model')
+
 
 class Vocabulary(object):
 
@@ -85,7 +83,8 @@ class Vocabulary(object):
     def get_one_meth_category(self, category, all_codes, code_types):
         """
         Get all codes in one category (i.e., all age codes).
-        This can include multiple method types (i.e., 'anisotropy_estimation', 'sample_prepartion', etc.)
+        This can include multiple method types
+        (i.e., 'anisotropy_estimation', 'sample_prepartion', etc.)
         """
         categories = Series(code_types[code_types[category] == True].index)
         cond = all_codes['dtype'].isin(categories)
@@ -95,7 +94,7 @@ class Vocabulary(object):
     def get_tiered_meth_category(self, mtype, all_codes, code_types):
         """
         Get a tiered list of all er/pmag_age codes
-        i.e. pmag_codes = {'anisotropy_codes': ['code1', 'code2'], 
+        i.e. pmag_codes = {'anisotropy_codes': ['code1', 'code2'],
         'sample_preparation': [code1, code2], ...}
         """
         #cond = code_types[code_types[mtype] == True]
@@ -115,7 +114,7 @@ class Vocabulary(object):
             controlled_vocabularies = []
             print '-I- Importing controlled vocabularies from https://earthref.org'
             #url = 'https://api.earthref.org/MagIC/vocabularies.json'
-            url = os.path.join(pmag_dir, "3_0", "controlled_vocabularies.json")
+            url = os.path.join(pmag_dir, "3_0", "controlled_vocabularies_July_15_2016.json")
             data = pd.io.json.read_json(url)
             possible_vocabularies = data.columns
             ## this line means, grab every single controlled vocabulary
@@ -126,7 +125,7 @@ class Vocabulary(object):
                 Check a validations list from the data model.
                 If there is a controlled vocabulary validation,
                 return which category of controlled vocabulary it is.
-                This will generally be applied to the validations col 
+                This will generally be applied to the validations col
                 of the data model
                 """
                 try:
@@ -151,7 +150,7 @@ class Vocabulary(object):
             # vocab_col_names is now a list of tuples
             # consisting of the vocabulary name and the column name
             # i.e., (u'type', u'geologic_types')
-                
+
             # remove duplicate col_names:
             vocab_col_names = sorted(set(vocab_col_names))
             # add in boolean category to controlled vocabularies
@@ -164,8 +163,10 @@ class Vocabulary(object):
                 items = data[vocab[0]]['items']
                 stripped_list = [item['item'] for item in items]
                 controlled_vocabularies.append(stripped_list)
-            # create series with the column name as the index, and the possible values as the values
-            vocabularies = pd.Series(controlled_vocabularies, index=[i[1] for i in vocab_col_names])
+            # create series with the column name as the index,
+            # and the possible values as the values
+            ind_values = [i[1] for i in vocab_col_names]
+            vocabularies = pd.Series(controlled_vocabularies, index=ind_values)
             return vocabularies, vocabularies
         except urllib2.URLError:
             connected = False
@@ -188,10 +189,9 @@ class Vocabulary(object):
         dfile.close()
         return json_data
 
-
     def get_all_vocabulary(self):
         all_codes, code_types = self.get_meth_codes()
-        
+
         ## do it this way if you want a non-nested list of all codes
         ## i.e. er_codes = [code1, code2,...]
         ##def get_one_meth_category(category, all_codes, code_types):
@@ -223,5 +223,5 @@ class Vocabulary(object):
         self.methods = methods
         self.age_methods = age_methods
 
-    
+
 vocab = Vocabulary()

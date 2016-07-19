@@ -583,7 +583,7 @@
             "KOPA-299-6"
           ],
           "validations": [
-            "in(\"measurements.experiment_name\")"
+            "in(\"measurements.experiment\")"
           ],
           "previous_columns": [
             {
@@ -2473,7 +2473,7 @@
             "KOPA-299-6"
           ],
           "validations": [
-            "in(\"measurements.experiment_name\")"
+            "in(\"measurements.experiment\")"
           ],
           "previous_columns": [
             {
@@ -6939,7 +6939,7 @@
             "KOPA-299-6"
           ],
           "validations": [
-            "in(\"measurements.experiment_name\")"
+            "in(\"measurements.experiment\")"
           ],
           "previous_columns": [
             {

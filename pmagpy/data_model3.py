@@ -1,5 +1,6 @@
 import os
 import json
+import pandas as pd
 from pandas import DataFrame
 from pmagpy import check_updates
 
@@ -25,6 +26,8 @@ class DataModel(object):
         for level in levels:
             df = DataFrame(full_df['tables'][level]['columns'])
             data_model[level] = df.transpose()
+        # replace np.nan with None
+        data_model[level] = data_model[level].where((pd.notnull(data_model[level])), None)
         return data_model
 
 
