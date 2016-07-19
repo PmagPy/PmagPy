@@ -56,11 +56,31 @@ site_magic3_2_magic2_map = {'int_abs_sigma' : 'site_int_sigma', 'int_abs_sigma_p
 
 site_magic2_2_magic3_map = {v:k for k,v in site_magic3_2_magic2_map.items()}
 
+aniso_magic3_2_magic2_map={'specimen':'er_specimen_name', 'aniso_type':'anisotropy_type', 'description':'result_description', 'aniso_ftest':'anisotropy_ftest', 'aniso_ftest12':'anisotropy_ftest12', 'aniso_ftest23':'anisotropy_ftest23', 'aniso_s_mean':'anisotropy_mean', 'aniso_s_n_measurements':'anisotropy_n', 'aniso_s_sigma':'anisotropy_sigma', 'aniso_s_unit':'anisotropy_unit', 'aniso_tilt_correction':'anisotropy_tilt_correction'}
+
+
+
+
 meas_magic2 = meas_magic3_2_magic2_map.values()
 spec_magic2 = spec_magic3_2_magic2_map.values()
 samp_magic2 = samp_magic3_2_magic2_map.values()
 site_magic2 = site_magic3_2_magic2_map.values()
-meas_magic3 = meas_magic3_2_magic2_map.keys()
-spec_magic3 = spec_magic3_2_magic2_map.keys()
-samp_magic3 = samp_magic3_2_magic2_map.keys()
-site_magic3 = site_magic3_2_magic2_map.keys()
+
+
+
+#specimen data translation pmag_speciemns,er_specimens -> specimens.txt
+spec_magic2_2_magic3_map = {'er_citation_names': 'citations', 'specimen_int_dang': 'int_dang', 'measurement_step_unit': 'meas_step_unit', 'specimen_frac': 'int_frac', 'measurement_step_max': 'meas_step_max', 'specimen_b_beta': 'int_b_beta', 'magic_software_packages': 'software_packages', 'specimen_int_n': 'int_n_measurements', 'magic_method_codes': 'method_codes', 'specimen_md': 'int_md', 'er_location_name': 'location', 'dir_mad_free': 'specimen_mad', 'specimen_tilt_correction': 'dir_tilt_correction', 'specimen_inc': 'dir_inc', 'er_specimen_name': 'specimen', 'measurement_step_min': 'meas_step_min', 'meas_step_max': 'measurement_step_max', 'specimen_magn_moment': 'magn_moment', 'magn_volumn': 'specimen_magn_volumn', 'specimen_flag': 'result_quality', 'specimen_int_mad': 'int_mad', 'magic_instrument_codes': 'instrument_codes', 'specimen_mad': 'dir_mad_free', 'meas_step_min': 'measurement_step_min', 'specimen_dec': 'dir_dec', 'specimen_alpha95': 'dir_alpha95', 'specimen_fvds': 'int_fvds', 'er_analyst_mail_names': 'analyst_names', 'specimen_drats': 'int_drats', 'specimen_comp_name': 'dir_comp', 'specimen_correction': 'int_corr', 'specimen_gmax': 'int_gmax', 'specimen_f': 'int_f', 'specimen_int_ptrm_n': 'int_ptrm_n', 'er_site_name': 'site', 'specimen_rsc': 'int_rsc', 'dir_n_measurements': 'specimen_n', 'specimen_magn_volumn': 'magn_volumne', 'specimen_n': 'dir_n_measurements', 'specimen_q': 'int_q', 'specimen_dang': 'dir_dang', 'specimen_comp_n': 'dir_n_comps', 'specimen_w': 'int_w', 'specimen_scat': 'int_scat', 'magn_moment': 'specimen_magn_moment', 'er_sample_name': 'sample'}
+
+spec_magic2_2_magic3_map = {v:k for k,v in spec_magic3_2_magic2_map.items()}
+
+
+
+
+
+
+
+
+#meas_magic3 = meas_magic3_2_magic2_map.keys()  # why are these here?  
+spec_magic3 = spec_magic2_2_magic3_map.keys()
+#samp_magic3 = samp_magic3_2_magic2_map.keys()
+#site_magic3 = site_magic3_2_magic2_map.keys()

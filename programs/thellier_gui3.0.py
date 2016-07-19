@@ -2924,9 +2924,10 @@ class Arai_GUI(wx.Frame):
                 TYPES=['ATRM','AARM']
                 aniso_logfile.write( "-W- WARNING: both aarm and atrm data exist for specimen %s. using AARM by default. If you prefer using one of them, delete the other!\n"%specimen)
             for TYPE in TYPES:
-                if self.data_model==3:
-                    pass # haven't implemented output to specimens.txt yet
-                else:
+                Data_anisotropy[specimen][TYPE]['er_specimen_names']=Data_anisotropy[specimen][TYPE]['er_specimen_name']
+                Data_anisotropy[specimen][TYPE]['er_sample_names']=Data_anisotropy[specimen][TYPE]['er_sample_name']
+                Data_anisotropy[specimen][TYPE]['er_site_names']=Data_anisotropy[specimen][TYPE]['er_site_name']
+                if self.data_model!=3: # prepare output files for data model 2.5
                     String=""
                     for i in range (len(rmag_anisotropy_header)):
                         try:
@@ -2935,19 +2936,23 @@ class Arai_GUI(wx.Frame):
                             String=String+"%f"%(Data_anisotropy[specimen][TYPE][rmag_anisotropy_header[i]])+'\t'
                     rmag_anisotropy_file.write(String[:-1]+"\n")
                 String=""
-                Data_anisotropy[specimen][TYPE]['er_specimen_names']=Data_anisotropy[specimen][TYPE]['er_specimen_name']
-                Data_anisotropy[specimen][TYPE]['er_sample_names']=Data_anisotropy[specimen][TYPE]['er_sample_name']
-                Data_anisotropy[specimen][TYPE]['er_site_names']=Data_anisotropy[specimen][TYPE]['er_site_name']
                 if self.data_model==3: # merge new aniso data with specimen dataframe
+#
+# first reformat all the anisotropy related keys START HERE
            # first take out any existing anisotropy data for this specimen of this TYPE from self.spec_data
-                    print self.spec_data[self.spec_data['specimen'].str.contains(specimen)==True]
-                    self.spec_data=self.spec_data.drop([self.spec_data['specimen'].str.contains(specimen)==True &  self.spec_data['aniso_type']==TYPE]).index
+                    cond1=self.spec_data['specimen'].str.contains(specimen)==True
+                    cond2=self.spec_data['aniso_s'].notnull()==TRUE
+                    cond3=self.spec_data['aniso_type']==TYPE 
+                    condition=(cond1 & cond2 & cond3)
+                    print self.spec_data[condition] #  
+                    if len(self.spec_data[contition]) > 0:  we have one or more records to update
+                        inds=spec_data[cond]['num'] # list of all rows where condition is true
+                        for ind in inds:
+                            existing_data=dict(spec_data.iloc[ind])
+           # then replace it with these with the new data.   
+                            
 #START HERE
-                    print self.spec_data[self.spec_data['specimen'].str.contains(specimen)==True]
-                    raw_input() 
-           # then replace it with these
-                    pass
-                else:
+                else: # write it to 2.5 version files
                     for i in range (len(rmag_results_header)):
                         try:
                             String=String+Data_anisotropy[specimen][TYPE][rmag_results_header[i]]+'\t'
@@ -5619,29 +5624,6 @@ class Arai_GUI(wx.Frame):
           meas_data3_0 = meas_data3_0[meas_data3_0[int_key].notnull()] # get all the non-null intensity records of the same type
           # now convert back to 2.5  changing only those keys that are necessary for thellier_gui
           meas_data2_5 = meas_data3_0.rename(columns=map_magic.meas_magic3_2_magic2_map)
-          #meas_data2_5=meas_data3_0.rename(columns = {\
-          #       'specimen':'er_specimen_name', \
-          #       'sample':'er_sample_name', \
-          #       'site':'er_site_name', \
-          #       'location':'er_location_name', \
-          #       'method_codes':'magic_method_codes', \
-          #       'flag':'measurement_flag', \
-          #       'treat_ac_field':'treatment_ac_field', \
-          #       'treat_dc_field':'treatment_dc_field', \
-          #       'treat_dc_field_phi':'treatment_dc_field_phi', \
-          #       'treat_dc_field_theta':'treatment_dc_field_theta', \
-          #       'flag':'measurement_flag', \
-          #       'treat_temp':'treatment_temp', \
-          #       'description':'measurement_description', \
-          #       'number':'measurement_number', \
-          #       'magn_moment':'measurement_magn_moment', \
-          #       'magn_volume':'measurement_magn_volume', \
-          #       'magn_mass':'measurement_magn_mass', \
-          #       'dir_dec':'measurement_dec', \
-          #       'dir_inc':'measurement_inc', \
-          #       'dir_csd':'measurement_csd', \
-          #       'instrument_codes':'magic_instrument_codes', \
-          #       })
           meas_data=meas_data2_5.to_dict("records")  # make a list of dictionaries to maintain backward compatibility
       else:
         try:
@@ -5820,19 +5802,20 @@ class Arai_GUI(wx.Frame):
               anis_data=anis_data[anis_data['aniso_s'].notnull()] # get the ones with anisotropy tensors that aren't blank
               anis_data=anis_data[['specimen','aniso_s','aniso_ftest','aniso_ftest12','aniso_ftest23','aniso_s','aniso_s_n_measurements','aniso_s_sigma','aniso_type','description']]
               # rename column headers to 2.5
-              anis_data=anis_data.rename(columns = { \
-                    'specimen':'er_specimen_name', \
-                    'aniso_type':'anisotropy_type', \
-                    'description':'result_description', \
-                    'aniso_ftest':'anisotropy_ftest', \
-                    'aniso_ftest12':'anisotropy_ftest12', \
-                    'aniso_ftest23':'anisotropy_ftest23', \
-                    'aniso_s_mean':'anisotropy_mean', \
-                    'aniso_s_n_measurements':'anisotropy_n', \
-                    'aniso_s_sigma':'anisotropy_sigma', \
-                    'aniso_s_unit':'anisotropy_unit', \
-                    'aniso_tilt_correction':'anisotropy_tilt_correction', \
-                      }) #  
+              anis_data = anis_data.rename(columns=map_magic.aniso_magic3_2_magic2_map)
+              #anis_data=anis_data.rename(columns = { \
+              #      'specimen':'er_specimen_name', \
+              #      'aniso_type':'anisotropy_type', \
+              #      'description':'result_description', \
+              #      'aniso_ftest':'anisotropy_ftest', \
+              #      'aniso_ftest12':'anisotropy_ftest12', \
+              #      'aniso_ftest23':'anisotropy_ftest23', \
+              #      'aniso_s_mean':'anisotropy_mean', \
+              #      'aniso_s_n_measurements':'anisotropy_n', \
+              #      'aniso_s_sigma':'anisotropy_sigma', \
+              #      'aniso_s_unit':'anisotropy_unit', \
+              #      'aniso_tilt_correction':'anisotropy_tilt_correction', \
+              #        }) #  
               # convert to list of dictionaries
               anis_dict=anis_data.to_dict("records") 
               for AniSpec in anis_dict: 
@@ -6686,12 +6669,14 @@ class Arai_GUI(wx.Frame):
               prev_specs=prev_specs[prev_specs['meas_step_max'].notnull()] # 
               prev_specs=prev_specs[['specimen','meas_step_min','meas_step_max','method_codes']]
               # rename column headers to 2.5
-              prev_specs=prev_specs.rename(columns = { \
-                    'specimen':'er_specimen_name', \
-                    'meas_step_min':'measurement_step_min', \
-                    'meas_step_max':'measurement_step_max', \
-                    'method_codes':'magic_method_codes', \
-                      }) #  
+              prev_specs=prev_specs.rename(columns = 
+              prev_specs = prev_specs.rename(columns=map_magic.spec_magic3_2_magic2_map)
+              #prev_specs=prev_specs.rename(columns = { \
+              #      'specimen':'er_specimen_name', \
+              #      'meas_step_min':'measurement_step_min', \
+              #      'meas_step_max':'measurement_step_max', \
+              #      'method_codes':'magic_method_codes', \
+              #        }) #  
               # convert to list of dictionaries
               prev_pmag_specimen=prev_specs.to_dict("records") 
         else: 
