@@ -2298,19 +2298,17 @@ class Arai_GUI(wx.Frame):
         initialize self.acceptance_criteria
         try to guess if averaging by sample or by site.
         '''
-
         if self.data_model==3:
             contribution = nb.Contribution(self.WD, read_tables=['criteria'])
             crit_container = contribution.tables['criteria']
             crit_data = crit_container.df
-            crit_data = crit_data[crit_data['criterion'].str.contains('IE-')==True] # fish out all the relavent data 
+            #crit_data = crit_data[crit_data['criterion'].str.contains('IE-')==True] # fish out all the relavent data 
             crit_data=crit_data.to_dict('records') # convert to list of dictionaries
             for crit in crit_data:  # step through and rename every f-ing one
-               # if crit['table_column'] in magic3: 
-                    m2_name=pmag.convert_data_models('magic2',crit['table_column']) #magic2[magic3.index(crit['table_column'])] # find data model 2.5 name
-                    if m2_name!=crit['table_column']:
-                        self.acceptance_criteria[m2_name]['value']=float(crit['criterion_value'])
-                        self.acceptance_criteria[m2_name]['pmag_criteria_code']=crit['criterion']
+                m2_name=map_magic.convert_intensity_criteria('magic2',crit['table_column']) #magic2[magic3.index(crit['table_column'])] # find data model 2.5 name
+                if m2_name!=crit['table_column'] and m2_name!="":
+                    self.acceptance_criteria[m2_name]['value']=float(crit['criterion_value'])
+                    self.acceptance_criteria[m2_name]['pmag_criteria_code']=crit['criterion']
         else: #      Do it the data model 2.5 way:    
             try:
                 self.acceptance_criteria=pmag.read_criteria_from_file(criteria_file,self.acceptance_criteria)
@@ -2945,7 +2943,7 @@ class Arai_GUI(wx.Frame):
                     cond3=self.spec_data['aniso_type']==TYPE 
                     condition=(cond1 & cond2 & cond3)
                     print self.spec_data[condition] #  
-                    if len(self.spec_data[contition]) > 0:  we have one or more records to update
+                    if len(self.spec_data[contition]) > 0:  #we have one or more records to update
                         inds=spec_data[cond]['num'] # list of all rows where condition is true
                         for ind in inds:
                             existing_data=dict(spec_data.iloc[ind])
@@ -5803,42 +5801,15 @@ class Arai_GUI(wx.Frame):
               anis_data=anis_data[['specimen','aniso_s','aniso_ftest','aniso_ftest12','aniso_ftest23','aniso_s','aniso_s_n_measurements','aniso_s_sigma','aniso_type','description']]
               # rename column headers to 2.5
               anis_data = anis_data.rename(columns=map_magic.aniso_magic3_2_magic2_map)
-              #anis_data=anis_data.rename(columns = { \
-              #      'specimen':'er_specimen_name', \
-              #      'aniso_type':'anisotropy_type', \
-              #      'description':'result_description', \
-              #      'aniso_ftest':'anisotropy_ftest', \
-              #      'aniso_ftest12':'anisotropy_ftest12', \
-              #      'aniso_ftest23':'anisotropy_ftest23', \
-              #      'aniso_s_mean':'anisotropy_mean', \
-              #      'aniso_s_n_measurements':'anisotropy_n', \
-              #      'aniso_s_sigma':'anisotropy_sigma', \
-              #      'aniso_s_unit':'anisotropy_unit', \
-              #      'aniso_tilt_correction':'anisotropy_tilt_correction', \
-              #        }) #  
               # convert to list of dictionaries
               anis_dict=anis_data.to_dict("records") 
-              for AniSpec in anis_dict: 
+              anis_dict=map_magic.convert_aniso('magic2',anis_dict)
+              for AniSpec in anis_dict:  # slip aniso data into Data[s] 
                   s=AniSpec['er_specimen_name']
                   if 'AniSpec' not in Data[s].keys(): Data[s]['AniSpec']={}  # make a blank
                   TYPE=AniSpec['anisotropy_type']
-                  s_data=AniSpec['aniso_s'].split(':')
-                  AniSpec['anisotropy_s1']=s_data[0]# need to add these things
-                  AniSpec['anisotropy_s2']=s_data[1]
-                  AniSpec['anisotropy_s3']=s_data[2]
-                  AniSpec['anisotropy_s4']=s_data[3]
-                  AniSpec['anisotropy_s5']=s_data[4]
-                  AniSpec['anisotropy_s6']=s_data[5]
                   Data[s]['AniSpec'][TYPE]=AniSpec
-                  if self.data_model==3: 
-                      description_key='description'
-                  else: description_key='result_description'
-                  if 'result_description'  in AniSpec.keys():
-                      result_description=AniSpec['result_description'].split(";")
-                      for description in result_description:
-                        if "Critical F" in description:
-                           desc=description.split(":")
-                           Data[s]['AniSpec'][TYPE]['anisotropy_F_crit']=float(desc[1])
+                  if AniSpec['anisotropy_F_crit']!="": Data[s]['AniSpec'][TYPE]['anisotropy_F_crit']=AniSpec['anisotropy_F_crit']
           else:
               self.spec_data=[] # no specimen data
       else:  # do data_model=2.5 way...
@@ -6669,7 +6640,6 @@ class Arai_GUI(wx.Frame):
               prev_specs=prev_specs[prev_specs['meas_step_max'].notnull()] # 
               prev_specs=prev_specs[['specimen','meas_step_min','meas_step_max','method_codes']]
               # rename column headers to 2.5
-              prev_specs=prev_specs.rename(columns = 
               prev_specs = prev_specs.rename(columns=map_magic.spec_magic3_2_magic2_map)
               #prev_specs=prev_specs.rename(columns = { \
               #      'specimen':'er_specimen_name', \
