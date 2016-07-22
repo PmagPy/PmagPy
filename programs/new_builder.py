@@ -447,6 +447,7 @@ class MagicDataFrame(object):
         #self.df.sort_index(inplace=True)
 
 
+
     def add_blank_row(self, label):
         """
         Add a blank row with only an index value to self.df
@@ -455,6 +456,14 @@ class MagicDataFrame(object):
         blank_item = pd.Series({}, index=col_labels, name=label)
         # use .loc to add in place (append won't do that)
         self.df.loc[blank_item.name] = blank_item
+
+
+    def delete_row(self, ind):
+        """
+        remove self.df row at ind
+        """
+        self.df = pd.concat([self.df[:ind], self.df[ind+1:]])
+
 
     def get_name(self, col_name, df_slice="", index_names=""):
         """
