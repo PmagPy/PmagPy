@@ -2925,7 +2925,38 @@ class Arai_GUI(wx.Frame):
                 Data_anisotropy[specimen][TYPE]['er_specimen_names']=Data_anisotropy[specimen][TYPE]['er_specimen_name']
                 Data_anisotropy[specimen][TYPE]['er_sample_names']=Data_anisotropy[specimen][TYPE]['er_sample_name']
                 Data_anisotropy[specimen][TYPE]['er_site_names']=Data_anisotropy[specimen][TYPE]['er_site_name']
-                if self.data_model!=3: # prepare output files for data model 2.5
+                if self.data_model==3: # prepare data for 3.0
+                    new_aniso_parameters=Data_anisotropy[specimen][TYPE]
+                    new_data=map_magic.convert_aniso('magic3',new_aniso_parameters) # turn new_aniso data to 3.0
+# first reformat all the anisotropy related keys 
+                    self.spec_data['num'] = range(len(self.spec_data))
+           # first take out any existing anisotropy data for this specimen of this TYPE from self.spec_data
+                    cond1=self.spec_data['specimen'].str.contains(specimen)==True
+                    cond2=self.spec_data['aniso_s'].notnull()==True
+                    cond3=self.spec_data['aniso_type']==TYPE 
+                    condition=(cond1 & cond2 & cond3)
+                    if len(self.spec_data[condition]) > 0:  #we have one or more records to update
+                        inds=self.spec_data[condition]['num'] # list of all rows where condition is true
+                        for ind in inds:
+                            existing_data=dict(self.spec_data.iloc[ind]) # get existing_data from dataframe
+                            existing_data.update(new_data) # update existing data with new interpretations
+            # update row
+                            self.spec_container.update_row(ind, existing_data)
+                    else:
+                        print 'no record found - creating new one', spec
+        # add new row
+                        self.spec_container.add_row(spec, new_data )
+# sort so that all rows for a specimen are together
+                    self.spec_data.sort_index(inplace=True)
+# redo temporary index
+                    self.spec_data['num'] = range(len(self.spec_data))
+
+
+#
+# now need to figure out how to write to specimens.txt file! 
+
+                            
+                else: # write it to 2.5 version files
                     String=""
                     for i in range (len(rmag_anisotropy_header)):
                         try:
@@ -2933,29 +2964,6 @@ class Arai_GUI(wx.Frame):
                         except:
                             String=String+"%f"%(Data_anisotropy[specimen][TYPE][rmag_anisotropy_header[i]])+'\t'
                     rmag_anisotropy_file.write(String[:-1]+"\n")
-                String=""
-                if self.data_model==3: # merge new aniso data with specimen dataframe
-#
-# first reformat all the anisotropy related keys START HERE
-           # first take out any existing anisotropy data for this specimen of this TYPE from self.spec_data
-                    cond1=self.spec_data['specimen'].str.contains(specimen)==True
-                    cond2=self.spec_data['aniso_s'].notnull()==TRUE
-                    cond3=self.spec_data['aniso_type']==TYPE 
-                    condition=(cond1 & cond2 & cond3)
-                    print self.spec_data[condition] #  
-                    if len(self.spec_data[contition]) > 0:  #we have one or more records to update
-                        inds=spec_data[cond]['num'] # list of all rows where condition is true
-                        for ind in inds:
-                            existing_data=dict(spec_data.iloc[ind])
-           # then replace it with these with the new data.   
-                            
-#START HERE
-                else: # write it to 2.5 version files
-                    for i in range (len(rmag_results_header)):
-                        try:
-                            String=String+Data_anisotropy[specimen][TYPE][rmag_results_header[i]]+'\t'
-                        except:
-                            String=String+"%f"%(Data_anisotropy[specimen][TYPE][rmag_results_header[i]])+'\t'
                     rmag_results_file.write(String[:-1]+"\n")
                 if 'AniSpec' not in self.Data[specimen]:
                     self.Data[specimen]['AniSpec']={}
@@ -2965,11 +2973,8 @@ class Arai_GUI(wx.Frame):
         aniso_logfile.write("-I- Done anisotropy script\n")
         aniso_logfile.write( "------------------------\n")
         if self.data_model==3:
-            # 
-            pass  # put data in self.spec_data (replacing old if present).
-
-
-
+            #  write out the data
+            self.spec_container.write_magic_file(custom_name='new_specimens.txt', dir_path=self.WD)
         else:
             rmag_anisotropy_file.close()
 
@@ -5798,13 +5803,13 @@ class Arai_GUI(wx.Frame):
           if 'specimens' in self.contribution.tables and len(self.spec_data)>0:
               anis_data=self.spec_data[self.spec_data['method_codes'].str.contains('LP-AN')==True] # get the anisotropy records
               anis_data=anis_data[anis_data['aniso_s'].notnull()] # get the ones with anisotropy tensors that aren't blank
-              anis_data=anis_data[['specimen','aniso_s','aniso_ftest','aniso_ftest12','aniso_ftest23','aniso_s','aniso_s_n_measurements','aniso_s_sigma','aniso_type','description']]
+              anis_data=anis_data[['specimen','aniso_s','aniso_ftest','aniso_ftest12','aniso_ftest23','aniso_s_n_measurements','aniso_s_sigma','aniso_type','description']]
               # rename column headers to 2.5
-              anis_data = anis_data.rename(columns=map_magic.aniso_magic3_2_magic2_map)
+              #anis_data = anis_data.rename(columns=map_magic.aniso_magic3_2_magic2_map)
               # convert to list of dictionaries
               anis_dict=anis_data.to_dict("records") 
-              anis_dict=map_magic.convert_aniso('magic2',anis_dict)
               for AniSpec in anis_dict:  # slip aniso data into Data[s] 
+                  AniSpec=map_magic.convert_aniso('magic2',AniSpec) # unpack aniso_s
                   s=AniSpec['er_specimen_name']
                   if 'AniSpec' not in Data[s].keys(): Data[s]['AniSpec']={}  # make a blank
                   TYPE=AniSpec['anisotropy_type']
@@ -6559,8 +6564,8 @@ class Arai_GUI(wx.Frame):
             fnames = {'measurements': self.magic_file}
             self.contribution = nb.Contribution(self.WD, custom_filenames=fnames, read_tables=['measurements', 'specimens', 'samples','sites'])
             if 'specimens' in self.contribution.tables:
-                spec_container = self.contribution.tables['specimens']
-                self.spec_data = spec_container.df
+                self.spec_container = self.contribution.tables['specimens']
+                self.spec_data = self.spec_container.df
             if 'samples' in self.contribution.tables:
                 samp_container = self.contribution.tables['samples']
                 self.samp_data = samp_container.df # only need this for saving tables
@@ -6641,13 +6646,6 @@ class Arai_GUI(wx.Frame):
               prev_specs=prev_specs[['specimen','meas_step_min','meas_step_max','method_codes']]
               # rename column headers to 2.5
               prev_specs = prev_specs.rename(columns=map_magic.spec_magic3_2_magic2_map)
-              #prev_specs=prev_specs.rename(columns = { \
-              #      'specimen':'er_specimen_name', \
-              #      'meas_step_min':'measurement_step_min', \
-              #      'meas_step_max':'measurement_step_max', \
-              #      'method_codes':'magic_method_codes', \
-              #        }) #  
-              # convert to list of dictionaries
               prev_pmag_specimen=prev_specs.to_dict("records") 
         else: 
             prev_pmag_specimen=[]

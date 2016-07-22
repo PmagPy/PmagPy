@@ -60,7 +60,7 @@ site_magic2_2_magic3_map = {v:k for k,v in site_magic3_2_magic2_map.items()}
 
 aniso_magic3_2_magic2_map={'specimen':'er_specimen_name', 'aniso_type':'anisotropy_type', 'description':'result_description', 'aniso_ftest':'anisotropy_ftest', 'aniso_ftest12':'anisotropy_ftest12', 'aniso_ftest23':'anisotropy_ftest23', 'aniso_s_mean':'anisotropy_mean', 'aniso_s_n_measurements':'anisotropy_n', 'aniso_s_sigma':'anisotropy_sigma', 'aniso_s_unit':'anisotropy_unit', 'aniso_tilt_correction':'anisotropy_tilt_correction'}
 
-
+aniso_magic2_2_magic3_map={'anisotropy_ftest23': 'aniso_ftest23', 'anisotropy_ftest': 'aniso_ftest', 'anisotropy_sigma': 'aniso_s_sigma', 'anisotropy_type': 'aniso_type', 'anisotropy_ftest12': 'aniso_ftest12', 'anisotropy_tilt_correction': 'aniso_tilt_correction', 'er_specimen_name': 'specimen', 'anisotropy_unit': 'aniso_s_unit', 'anisotropy_mean': 'aniso_s_mean', 'result_description': 'description', 'anisotropy_n': 'aniso_s_n_measurements'}
 
 
 meas_magic2 = meas_magic3_2_magic2_map.values()
@@ -103,27 +103,51 @@ def convert_intensity_criteria(direction,crit):
         else:
             return crit
 
-def convert_aniso(direction,anis_data):
+def convert_aniso(direction,AniSpec):
     if direction=='magic2':
-        aniso2=[]
-        for AniSpec in anis_data:
-              s_data=AniSpec['aniso_s'].split(':')
-              AniSpec['anisotropy_s1']=s_data[0]# need to add these things
-              AniSpec['anisotropy_s2']=s_data[1]
-              AniSpec['anisotropy_s3']=s_data[2]
-              AniSpec['anisotropy_s4']=s_data[3]
-              AniSpec['anisotropy_s5']=s_data[4]
-              AniSpec['anisotropy_s6']=s_data[5]
-              AniSpec['anisotropy_F_crit']=""
-              if 'result_description'  in AniSpec.keys():
-                  result_description=AniSpec['result_description'].split(";")
-                  for description in result_description:
-                    if "Critical F" in description:
-                       desc=description.split(":")
-                       AniSpec['anisotropy_F_crit']=float(desc[1])
-              aniso2.append(AniSpec)
-        return aniso2
-    else: 
-        return [] #implement other direction
+        columns=aniso_magic3_2_magic2_map
+        AniRec={}
+        s_data=AniSpec['aniso_s'].split(':')
+        for key in columns: 
+            if key in AniSpec.keys():
+                AniRec[columns[key]]=AniSpec[key] # transfer info and change column name to data model 2.5  
+        AniRec['anisotropy_s1']=s_data[0]# need to add these things
+        AniRec['anisotropy_s2']=s_data[1]
+        AniRec['anisotropy_s3']=s_data[2]
+        AniRec['anisotropy_s4']=s_data[3]
+        AniRec['anisotropy_s5']=s_data[4]
+        AniRec['anisotropy_s6']=s_data[5]
+        AniRec['anisotropy_F_crit']=""
+        if 'result_description'  in AniSpec.keys():
+            result_description=AniSpec['result_description'].split(";")
+            for description in result_description:
+              if "Critical F" in description:
+                 desc=description.split(":")
+                 AniRec['anisotropy_F_crit']=float(desc[1])
+        return AniRec # converted to 2.5
+    else:  # upgrade to 3.0
+        columns=aniso_magic2_2_magic3_map
+        # first fix aniso_s
+        AniRec={}
+        for key in columns: 
+            if key in AniSpec.keys():
+                AniRec[columns[key]]=AniSpec[key] # transfer info and change column name to data model 3.0  
+        s_string=""
+        s_string=s_string+ str(AniSpec['anisotropy_s1']) +' : '
+        s_string=s_string+ str(AniSpec['anisotropy_s2']) +' : '
+        s_string=s_string+ str(AniSpec['anisotropy_s3']) +' : '
+        s_string=s_string+ str(AniSpec['anisotropy_s4']) +' : '
+        s_string=s_string+ str(AniSpec['anisotropy_s5']) +' : '
+        s_string=s_string+ str(AniSpec['anisotropy_s6'])
+        AniRec['aniso_s']=s_string
+        # do V1, etc.  here
+#V1:  Anisotropy eigenparameters for the maximum eigenvalue (T1), a colon-delimited list of tau (T1), dec, inc, confidence ellipse type, and confidence ellipse parameters
+        v_string=AniSpec['anisotropy_t1']+" : "+AniSpec['anisotropy_v1_dec']+" : "+AniSpec['anisotropy_v1_inc']
+        AniRec['aniso_v1']=v_string
+        v_string=AniSpec['anisotropy_t2']+" : "+AniSpec['anisotropy_v2_dec']+" : "+AniSpec['anisotropy_v2_inc']
+        AniRec['aniso_v2']=v_string
+        v_string=AniSpec['anisotropy_t3']+" : "+AniSpec['anisotropy_v3_dec']+" : "+AniSpec['anisotropy_v3_inc']
+        AniRec['aniso_v3']=v_string
+        return AniRec 
  
 
