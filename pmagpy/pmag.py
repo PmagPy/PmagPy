@@ -676,7 +676,7 @@ def int_pars(x,y,vds,**kwargs):
     """
      calculates York regression and Coe parameters (with Tauxe Fvds)
     """
-# first do linear regression a la York
+    # first do linear regression a la York
     if 'version' in kwargs.keys() and kwargs['version']==3: # do Data Model 3 way:
         n_key='int_n_measurements'
         b_key='int_b'
@@ -793,7 +793,7 @@ def vspec_magic(data):
     for i in range(k,len(data)):
         FDirdata,Dirdata,DataStateCurr,newstate=[],[],{},0
         for key in treats:  # check if anything changed
-	    DataStateCurr[key]=data[i][key]
+            DataStateCurr[key]=data[i][key]
             if DataStateCurr[key].strip() !=  DataState0[key].strip(): newstate=1 # something changed
         if newstate==1:
             if i==k: # sample is unique
@@ -899,7 +899,7 @@ def find_dmag_rec(s,data,**kwargs):
     """
     returns demagnetization data for specimen s from the data - excludes other kinds of experiments and "bad" measurements
     """
-    if 'version' in kwargs.keys() and kwargs['version']==3: 
+    if 'version' in kwargs.keys() and kwargs['version']==3:
         data=data.to_dict('records')  # convert dataframe to list of dictionaries
         spec_key,dec_key,inc_key='specimen','dir_dec','dir_inc'
         flag_key,temp_key,ac_key='flag','treat_temp','treat_ac_field'
@@ -988,10 +988,14 @@ def magic_read(infile, data=None, return_keys=False):
         try:
             f=open(infile,"rU")
         except:
+            if return_keys:
+                return [], 'bad_file', []
             return [],'bad_file'
 
     d = f.readline()[:-1].strip('\n')
     if not d:
+        if return_keys:
+            return [], 'empty_file', []
         return [], 'empty_file'
     if d[0]=="s" or d[1]=="s":
         delim='space'
@@ -1000,6 +1004,8 @@ def magic_read(infile, data=None, return_keys=False):
     else:
         print 'error reading ', infile
         #sys.exit()
+        if return_keys:
+            return [], 'bad_file', []
         return [], 'bad_file'
     if delim=='space':
         file_type=d.split()[1]
@@ -1017,8 +1023,10 @@ def magic_read(infile, data=None, return_keys=False):
     for key in line:
         magic_keys.append(key)
     lines=f.readlines()
-    if len(lines)<1:
-       return [],'empty_file'
+    if len(lines) < 1:
+        if return_keys:
+            return [], 'empty_file', []
+        return [],'empty_file'
     for line in lines[:-1]:
         line.replace('\n','')
         if delim=='space':rec=line[:-1].split()
@@ -1061,7 +1069,7 @@ def sort_magic_data(magic_data,sort_name):
        if name not in magic_data_sorted.keys():
            magic_data_sorted[name]=[]
        magic_data_sorted[name].append(rec)
-    return  magic_data_sorted 
+    return  magic_data_sorted
 
 def upload_read(infile,table):
     """
@@ -1672,7 +1680,7 @@ def domean(indata,start,end,calculation_type):
         MAD=numpy.arctan(numpy.sqrt(t[2]/t[1]+t[2]/t[0]))/rad
         if numpy.iscomplexobj(MAD): MAD = MAD.real
 #
-#  	get angle with  center of mass
+#   get angle with  center of mass
 #
     CMdir=cart2dir(cm)
     Dirp=[Dir[0],Dir[1],1.]
@@ -1727,7 +1735,7 @@ def PintPars(datablock,araiblock,zijdblock,start,end,accept,**kwargs):
     """
      calculate the paleointensity magic parameters  make some definitions
     """
-    if 'version' in kwargs.keys() and kwargs['version']==3:  
+    if 'version' in kwargs.keys() and kwargs['version']==3:
         meth_key='method_codes'
         beta_key='int_b_beta'
         temp_key,min_key,max_key='treat_temp','meas_step_min','meas_step_max'
@@ -4914,8 +4922,8 @@ def sortarai(datablock,s,Zdiff,**kwargs):
     """
      sorts data block in to first_Z, first_I, etc.
     """
-    if 'version' in kwargs.keys() and kwargs['version']==3:  
-        dec_key,inc_key='dir_dec','dir_inc'    
+    if 'version' in kwargs.keys() and kwargs['version']==3:
+        dec_key,inc_key='dir_dec','dir_inc'
         Mkeys=['magn_moment','magn_volume','magn_mass','magnitude']
         meth_key='method_codes'
         temp_key,dc_key='treat_temp','treat_dc_field'
@@ -4940,7 +4948,7 @@ def sortarai(datablock,s,Zdiff,**kwargs):
             break
 # first find all the steps
     for k in range(len(datablock)):
-	rec=datablock[k]
+        rec=datablock[k]
         temp=float(rec[temp_key])
         methcodes=[]
         tmp=rec[meth_key].split(":")
@@ -6118,7 +6126,7 @@ def get_samp_con():
         Sample naming convention:
             [1] XXXXY: where XXXX is an arbitrary length site designation and Y
                 is the single character sample designation.  e.g., TG001a is the
-                first sample from site TG001.  	 [default]
+                first sample from site TG001.    [default]
             [2] XXXX-YY: YY sample from site XXXX (XXX, YY of arbitary length)
             [3] XXXX.YY: YY sample from site XXXX (XXX, YY of arbitary length)
             [4-Z] XXXX[YYY]:  YYY is sample designation with Z characters from site XXX
@@ -8188,7 +8196,7 @@ def initialize_acceptance_criteria3_0 ():
         [flag1,flag2]: for flags
         '=' for boolean flags (can be 'g','b' or True/Flase or 1/0)
         [column_name.string] 'contains' if column_name (e.g., method_codes) contains string  (e.g., DE-BFP)
-        'does not contain' if column_name does not contain string 
+        'does not contain' if column_name does not contain string
    'decimal_points':
        number of decimal points in rounding
        (this is used in displaying criteria in the dialog box)
@@ -8227,7 +8235,7 @@ def initialize_acceptance_criteria3_0 ():
     for column in ['method_codes.DE-BFP','method_codes.DE-BFL','method_codes.DE-FM']:
         crit={}
         crit['table_column']=column
-        crit['criterion_operation']=['contains','does not contain'] 
+        crit['criterion_operation']=['contains','does not contain']
         crit['criterion_value']=column.split('.')[-1]
         crit['decimal_points']=0
         criteria.append(crit)
@@ -8248,7 +8256,7 @@ def initialize_acceptance_criteria3_0 ():
         if 'specimens' in column: criterion=criterion+'SPEC'
         if 'samples' in column: criterion=criterion+'SAMP'
         if 'sites' in column: criterion=criterion+'SITE'
-        if 'polarity' in column: 
+        if 'polarity' in column:
             criterion='POLE'
             crit['criterion_value']=['n','r','t','e','i']
         if 'age' in column:
@@ -8789,7 +8797,7 @@ def read_criteria_from_file(path,acceptance_criteria,**kwargs):
     acceptance_criteria_list=acceptance_criteria.keys()
     if 'data_model' in kwargs.keys() and kwargs['data_model']==3:
         crit_data=acceptance_criteria # data already read in
-        
+
     else:
         crit_data,file_type=magic_read(path)
     for rec in crit_data:
@@ -8831,7 +8839,7 @@ def read_criteria_from_file(path,acceptance_criteria,**kwargs):
                 acceptance_criteria[crit]['value']=float(rec[crit])
     return(acceptance_criteria)
 
- 
+
 
 
 def write_criteria_to_file(path,acceptance_criteria,**kwargs):
@@ -8847,7 +8855,7 @@ def write_criteria_to_file(path,acceptance_criteria,**kwargs):
         code_key='pmag_criteria_code'
         definition_key='criteria_definition'
         citation_key='er_citation_names'
-    recs=[] # data_model 3 has a list of dictionaries, data_model 2.5 has just one record   
+    recs=[] # data_model 3 has a list of dictionaries, data_model 2.5 has just one record
     rec={}
     rec[code_key]="ACCEPT"
     rec[definition_key]="acceptance criteria for study"
@@ -8912,7 +8920,7 @@ def write_criteria_to_file(path,acceptance_criteria,**kwargs):
               print "-W- WARNING: statistic %s not written to file:",crit
     if 'data_model' in kwargs.keys() and kwargs['data_model']==3: # need to make a list of these dictionaries
         magic_write(path,recs,'criteria')
-    else: 
+    else:
         magic_write(path,[rec],'pmag_criteria')
 
 
