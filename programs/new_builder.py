@@ -598,7 +598,7 @@ class MagicDataFrame(object):
         return mdf
 
 
-    def write_magic_file(self, custom_name=None, dir_path="."):
+    def write_magic_file(self, custom_name=None, dir_path=".", append=False):
         """
         Write self.df out to tab-delimited file.
         By default will use standard MagIC filenames (specimens.txt, etc.),
@@ -609,16 +609,27 @@ class MagicDataFrame(object):
         # *** maybe add some logical order to the column names, here?
         # *** i.e., alphabetical...  see grid_frame3.GridBuilder.make_grid
         df = self.df
+        # if indexing column was put in, remove it
+        if "num" in self.df.columns:
+            self.df.drop("num", axis=1, inplace=True)
         dir_path = os.path.realpath(dir_path)
         if custom_name:
             fname = os.path.join(dir_path, custom_name)
         else:
             fname = os.path.join(dir_path, self.dtype + ".txt")
-        if os.path.exists(fname):
+        # add to existing file
+        if append:
+            print '-I- appending {} data to {}'.format(self.dtype, fname)
+            mode = "a"
+        # overwrite existing file
+        elif os.path.exists(fname):
             print '-I- overwriting {}'.format(fname)
+            mode = "w"
+        # or create new file
         else:
             print '-I- writing {} data to {}'.format(self.dtype, fname)
-        f = open(fname, 'w')
+            mode = "w"
+        f = open(fname, mode)
         f.write('tab\t{}\n'.format(self.dtype))
         df.to_csv(f, sep="\t", header=True, index=False)
         f.close()

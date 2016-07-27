@@ -39,7 +39,7 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
         # these are the headers that are required no matter what for this datatype
         self.reqd_headers = dm[dm['str_validations'].str.contains("required\(\)").fillna(False)].index
         self.dm = dm
-                
+
         if self.parent:
             self.Bind(wx.EVT_WINDOW_DESTROY, self.parent.Parent.on_close_grid_frame)
 
@@ -266,7 +266,7 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
         #self.grid.ShowScrollbars(wx.SHOW_SB_NEVER, wx.SHOW_SB_NEVER)
         if event:
             event.Skip()
-        self.main_sizer.Fit(self)        
+        self.main_sizer.Fit(self)
         disp_size = wx.GetDisplaySize()
         actual_size = self.GetSize()
         rows = self.grid.GetNumberRows()
@@ -650,7 +650,7 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
             self.er_magic.init_actual_headers()
             er_headers = list(set(self.er_magic.headers[self.grid_type]['er'][0]).union(current_headers))
             self.er_magic.headers[self.grid_type]['er'][0] = er_headers
-            
+
             include_pmag = False
             if 'pmag' in filename and import_type == self.grid_type:
                 include_pmag = True
@@ -686,7 +686,7 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
             dlg1 = wx.MessageDialog(self,caption="Message:", message="Are you sure you want to exit this grid?\nYour changes will not be saved.\n ", style=wx.OK|wx.CANCEL)
             result = dlg1.ShowModal()
             if result == wx.ID_OK:
-                dlg1.Destroy()    
+                dlg1.Destroy()
                 self.Destroy()
         else:
             self.Destroy()
@@ -761,7 +761,8 @@ class GridBuilder(object):
             if self.grid_type == 'ages':
                 levels = ['specimen', 'sample', 'site', 'location']
                 for label in levels:
-                    col_labels.remove(label)
+                    if label in col_labels:
+                        col_labels.remove(label)
                 col_labels[:0] = levels
             else:
                 if self.parent_type:
