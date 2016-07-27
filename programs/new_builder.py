@@ -577,7 +577,7 @@ class MagicDataFrame(object):
             # return a copy of records without that method code
             return df[~cond]
 
-    def merge_dfs(self,df1):
+    def merge_dfs(self,df1,subset=None):
         """
         Description: Merges underlying df with input df (df1) with perfrence to updating data as opposed to keeping data.
 
@@ -593,7 +593,7 @@ class MagicDataFrame(object):
         mdf = df1.join(cdf2, how='outer', lsuffix='__remove')
 
         #drop any duplicate lines created in this process
-        mdf.drop_duplicates(inplace=True)
+        mdf.drop_duplicates(inplace=True,subset=subset)
 
         return mdf
 

@@ -30,24 +30,24 @@ def sort_diclist(undecorated,sort_on):
 
 
 def get_dictitem(In,k,v,flag):
-    """ returns a list of dictionaries from list In with key,k  = value, v . CASE INSENSITIVE # allowed keywords:"""
-    try:
-        if flag=="T":return [dictionary for dictionary in In if dictionary[k].lower()==v.lower()] # return that which is
-        if flag=="F":
-            return [dictionary for dictionary in In if dictionary[k].lower()!=v.lower()] # return that which is not
-        if flag=="has":return [dictionary for dictionary in In if v.lower() in dictionary[k].lower()] # return that which is contained
-        if flag=="not":return [dictionary for dictionary in In if v.lower() not in dictionary[k].lower()] # return that which is not contained
-        if flag=="eval":
-            A=[dictionary for dictionary in In if dictionary[k]!=''] # find records with no blank values for key
-            return [dictionary for dictionary in A if float(dictionary[k])==float(v)] # return that which is
-        if flag=="min":
-            A=[dictionary for dictionary in In if dictionary[k]!=''] # find records with no blank values for key
-            return [dictionary for dictionary in A if float(dictionary[k])>=float(v)] # return that which is greater than
-        if flag=="max":
-            A=[dictionary for dictionary in In if dictionary[k]!=''] # find records with no blank values for key
-            return [dictionary for dictionary in A if float(dictionary[k])<=float(v)] # return that which is less than
-    except Exception, err:
-        return []
+    """ returns a list of dictionaries from list In with key,k  = value, v . CASE INSENSITIVE # allowed keywords:
+        requires that the value of k in the dictionaries contained in In be castable to string and requires that v be castable to a string if flag is T,F
+        ,has or not and requires they be castable to float if flag is eval, min, or max.
+    """
+    if flag=="T":return [dictionary for dictionary in In if k in dictionary.keys() and str(dictionary[k]).lower()==str(v).lower()] # return that which is
+    if flag=="F":
+        return [dictionary for dictionary in In if k in dictionary.keys() and str(dictionary[k]).lower()!=str(v).lower()] # return that which is not
+    if flag=="has":return [dictionary for dictionary in In if k in dictionary.keys() and str(v).lower() in str(dictionary[k]).lower()] # return that which is contained
+    if flag=="not":return [dictionary for dictionary in In if k in dictionary.keys() and str(v).lower() not in str(dictionary[k]).lower()] # return that which is not contained
+    if flag=="eval":
+        A=[dictionary for dictionary in In if k in dictionary.keys() and dictionary[k]!=''] # find records with no blank values for key
+        return [dictionary for dictionary in A if k in dictionary.keys() and float(dictionary[k])==float(v)] # return that which is
+    if flag=="min":
+        A=[dictionary for dictionary in In if k in dictionary.keys() and dictionary[k]!=''] # find records with no blank values for key
+        return [dictionary for dictionary in A if k in dictionary.keys() and float(dictionary[k])>=float(v)] # return that which is greater than
+    if flag=="max":
+        A=[dictionary for dictionary in In if k in dictionary.keys() and  dictionary[k]!=''] # find records with no blank values for key
+        return [dictionary for dictionary in A if k in dictionary.keys() and float(dictionary[k])<=float(v)] # return that which is less than
 
 def get_dictkey(In,k,dtype):
     """
@@ -219,9 +219,45 @@ def convert_ages(Recs):
             print 'no age key:', rec
     return New
 
-def getsampVGP(SampRec,SiteNFO):
-    site=get_dictitem(SiteNFO,'er_site_name',SampRec['er_site_name'],'T')
-    try:
+def getsampVGP(SampRec,SiteNFO,data_model=2.5):
+    if float(data_model) == 3.0:
+        site=get_dictitem(SiteNFO,'site',SampRec['site'],'T')
+        if len(site) > 1:
+            lat,lon,i = None,None,0
+            while lat == None or lon == None:
+                if site[i]['lat']!=None:
+                    lat = float(site[i]['lat'])
+                if site[i]['lon']!=None:
+                    lon = float(site[i]['lon'])
+                i+=1
+        else:
+            lat=float(site[0]['lat'])
+            lon=float(site[0]['lon'])
+        dec = float(SampRec['dec'])
+        inc = float(SampRec['inc'])
+        if SampRec['alpha95']!="":
+            a95=float(SampRec['alpha95'])
+        else:
+            a95=0
+        plon,plat,dp,dm=dia_vgp(dec,inc,a95,lat,lon)
+        ResRec={}
+        ResRec['result_name']='VGP Sample: '+SampRec['sample']
+        ResRec['location']=SampRec['location']
+        ResRec['citations']="This study"
+        ResRec['site']=SampRec['site']
+        ResRec['dir_dec']=SampRec['dec']
+        ResRec['dir_inc']=SampRec['inc']
+        ResRec['dir_alpha95']=SampRec['alpha95']
+        ResRec['dir_tilt_correction']=SampRec['dir_tilt_correction']
+        ResRec['dir_comp_name']=SampRec['dir_comp']
+        ResRec['vgp_lat']='%7.1f'%(plat)
+        ResRec['vgp_lon']='%7.1f'%(plon)
+        ResRec['vgp_dp']='%7.1f'%(dp)
+        ResRec['vgp_dm']='%7.1f'%(dm)
+        ResRec['method_codes']=SampRec['method_codes']+":DE-DI"
+        return ResRec
+    else:
+        site=get_dictitem(SiteNFO,'er_site_name',SampRec['er_site_name'],'T')
         lat=float(site['site_lat'])
         lon=float(site['site_lon'])
         dec = float(SampRec['sample_dec'])
@@ -230,7 +266,7 @@ def getsampVGP(SampRec,SiteNFO):
             a95=float(SampRec['sample_alpha95'])
         else:
             a95=0
-        plong,plat,dp,dm=dia_vgp(dec,inc,a95,lat,lon)
+        plon,plat,dp,dm=dia_vgp(dec,inc,a95,lat,lon)
         ResRec={}
         ResRec['pmag_result_name']='VGP Sample: '+SampRec['er_sample_name']
         ResRec['er_location_names']=SampRec['er_location_name']
@@ -247,8 +283,6 @@ def getsampVGP(SampRec,SiteNFO):
         ResRec['vgp_dm']='%7.1f'%(dm)
         ResRec['magic_method_codes']=SampRec['magic_method_codes']+":DE-DI"
         return ResRec
-    except:
-        return ""
 
 def getsampVDM(SampRec,SampNFO):
     samps=get_dictitem(SampNFO,'er_sample_name',SampRec['er_sample_name'],'T')
@@ -835,11 +869,11 @@ def get_specs(data):
     """
      takes a magic format file and returns a list of unique specimen names
     """
-# sort the specimen names
-#
+    # sort the specimen names
     speclist=[]
     for rec in data:
-      spec=rec["er_specimen_name"]
+      try: spec=rec["er_specimen_name"]
+      except KeyError as e: spec=rec["specimen"]
       if spec not in speclist:
           speclist.append(spec)
     speclist.sort()
@@ -3050,7 +3084,7 @@ def dolnp3_0(Data):
             if 'method_codes' in d.keys():
                 if "DE-BFP" in d['method_codes']: LnpData[n]['dir_type'] = 'p'
                 else: LnpData[n]['dir_type'] = 'l'
-        ReturnData=pmag.dolnp(LnpData,'dir_type') # get a sample average from all specimens
+        ReturnData=dolnp(LnpData,'dir_type') # get a sample average from all specimens
         return ReturnData
 
 

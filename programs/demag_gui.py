@@ -2540,8 +2540,10 @@ class Demag_GUI(wx.Frame):
           meas_container = self.con.tables['measurements']
           meas_data3_0 = meas_container.df
 # do some filtering
+          meas_data3_0 = meas_data3_0[meas_data3_0['sample'].notnull()]
+          meas_data3_0 = meas_data3_0[meas_data3_0['specimen'].notnull()]
           Mkeys = ['magn_moment', 'magn_volume', 'magn_mass']
-          meas_data3_0= meas_data3_0[meas_data3_0['method_codes'].str.contains('LT-NO|LT-AF-Z|LT-T-Z|LT-M-Z|LT-LT-Z')==True] # fish out all the relavent data 
+          meas_data3_0=meas_data3_0[meas_data3_0['method_codes'].str.contains('LT-NO|LT-AF-Z|LT-T-Z|LT-M-Z|LT-LT-Z')==True] # fish out all the relavent data 
 # now convert back to 2.5  changing only those keys that are necessary for thellier_gui
           meas_data2_5=meas_data3_0.rename(columns=map_magic.meas_magic3_2_magic2_map)
           meas_data2_5.to_csv("/home/kevin/Code/Paleomag/after_edits_2_5.csv")
@@ -2554,6 +2556,7 @@ class Demag_GUI(wx.Frame):
             self.magic_measurement = self.choose_meas_file()
             print("-I- Read magic file %s"%self.magic_file)
           mag_meas_data,file_type=pmag.magic_read(self.magic_file)
+
       self.mag_meas_data=deepcopy(self.merge_pmag_recs(mag_meas_data))
 
       # get list of unique specimen names
@@ -2922,7 +2925,7 @@ class Demag_GUI(wx.Frame):
                 self.spec_data = spec_container.df
             if 'samples' in self.con.tables:
                 samp_container = self.con.tables['samples']
-                self.samp_data = samp_container.df # only need this for saving tables
+                self.samp_data = samp_container.df
                 self.samp_data = self.samp_data.rename(columns={"azimuth":"sample_azimuth","dip":"sample_dip","orientation_flag":"sample_orientation_flag","bed_dip_direction":"sample_bed_dip_direction","bed_dip":"sample_bed_dip"})
                 data_er_samples = self.samp_data.T.to_dict()
             if 'sites' in self.con.tables:
@@ -3654,6 +3657,7 @@ class Demag_GUI(wx.Frame):
             get_model_lat = 0 # skips VADM calculation entirely
             Dcrit,Icrit,nocrit = 0,0,0 #default criteria input
 
+            #still broken (needs translation or determination of translation necessity)
             if use_criteria == 'none':
                 Dcrit,Icrit,nocrit = 1,1,1 # no selection criteria
                 crit_data = pmag.default_criteria(nocrit)
@@ -3666,13 +3670,17 @@ class Demag_GUI(wx.Frame):
                 print("PmagPy default criteria used")
 
             spec_df = self.con.tables['specimens'].df
+            site_df = self.con.tables['sites'].df
+            SiteNFO = site_df.to_dict("records")
             Data = spec_df.to_dict("records")
 
             comment = ""
             orient = list(spec_df['dir_tilt_correction'].drop_duplicates())
             samples = sorted(list(spec_df['sample'].drop_duplicates()))
             sites = sorted(list(spec_df['site'].drop_duplicates()))
-            Comps = list(spec_df['dir_comp'].drop_duplicates())
+            Comps = sorted(list(spec_df['dir_comp'].drop_duplicates()))
+            Comps = [c for c in Comps if type(c) == str]
+            height_info=pmag.get_dictitem(SiteNFO,'height','','F') # find all the sites with height info.
 
             nocorrection=['DA-NL','DA-AC','DA-CR']
             if not skip_intensities: # don't skip intensities
@@ -3701,8 +3709,9 @@ class Demag_GUI(wx.Frame):
                         prec=[]
                         for p in priorities:
                             ThisSpecRecs=pmag.get_dictitem(SpecInts,'method_codes',p,'has') # all the records for this specimen
-                            if len(ThisSpecRecs)>0:prec.append(ThisSpecRecs[0])
-                        PrioritySpecInts.append(prec[0]) # take the best one
+                            if len(ThisSpecRecs)>0:
+                                prec.append(ThisSpecRecs[0])
+                                PrioritySpecInts.append(prec[0]) # take the best one
                 SpecInts=PrioritySpecInts # this has the first specimen record
 
             #apply criteria to directional data
@@ -3738,12 +3747,12 @@ class Demag_GUI(wx.Frame):
                                             PmagSampRec['result_quality']='g'
                                        else: PmagSampRec['result_quality']='b'
                                        if nocrit!=1:PmagSampRec['criteria']="ACCEPT"
-                                       if agefile != "": PmagSampRec= pmag.get_age(PmagSampRec,"site","sample_inferred_",AgeNFO,DefaultAge)
-                                       site_height=pmag.get_dictitem(height_nfo,'site',PmagSampRec['site'],'T')
+#                                       if agefile != "": PmagSampRec= pmag.get_age(PmagSampRec,"site","sample_inferred_",AgeNFO,DefaultAge) still broken
+                                       site_height=pmag.get_dictitem(height_info,'site',PmagSampRec['site'],'T')
                                        if len(site_height)>0:PmagSampRec["height"]=site_height[0]['height'] # add in height if available
                                        PmagSampRec['dir_comp']=comp
                                        PmagSampRec['dir_tilt_correction']=coord
-                                       PmagSampRec['specimens']= pmag.get_list(CompDir,'specimens') # get a list of the specimen names used
+                                       PmagSampRec['specimens']=reduce(lambda x,y: str(x)+':'+str(y),[d['specimen'] for d in CompDir]) # get a list of the specimen names used
                                        PmagSampRec['method_codes']= pmag.get_list(CompDir,'method_codes') # get a list of the methods used
                                        if nocrit!=1: # apply selection criteria
                                            kill=pmag.grade(PmagSampRec,accept,'sample_dir',data_model=3.0)
@@ -3752,24 +3761,27 @@ class Demag_GUI(wx.Frame):
                                        if len(kill)==0:
                                             SampDirs.append(PmagSampRec)
                                             if vgps==1: # if sample level VGP info desired, do that now
-                                                PmagResRec=pmag.getsampVGP(PmagSampRec,SiteNFO)
+                                                PmagResRec = pmag.getsampVGP(PmagSampRec,SiteNFO,data_model=self.data_model)
                                                 if PmagResRec!="":
                                                     PmagResults.append(PmagResRec)
                                        PmagSamps.append(PmagSampRec)
                                    SampDirs.append(PmagSampRec)
                                    if vgps==1:
-                                       PmagResRec=pmag.getsampVGP(PmagSampRec,SiteNFO)
+                                       PmagResRec=pmag.getsampVGP(PmagSampRec,SiteNFO,data_model=self.data_model)
                                        if PmagResRec!="":
                                            PmagResults.append(PmagResRec)
                                    PmagSamps.append(PmagSampRec)
 
             #removed average_all_components check because demag GUI never averages directional components
-            #removed intensity average portion as demag GUI has not need of this
-            pdb.set_trace()
+            #removed intensity average portion as demag GUI has no need of this
+
             if len(PmagSamps)>0:
                 samps_df = DataFrame(PmagSamps)
-                samps_df.set_index('sample')
-                self.con.tables['samples'].merge_dfs(samps_df)
+                samps_df = samps_df.set_index('sample')
+                samps_df.rename(columns={'r': 'dir_r', 'n': 'dir_n_specimens', 'alpha95': 'dir_alpha95', 'n_lines': 'dir_n_specimens_lines', 'k': 'dir_k', 'dec': 'dir_dec', 'n_planes': 'dir_n_specimens_planes', 'inc': 'dir_inc'})
+                nsdf = self.con.tables['samples'].merge_dfs(samps_df)
+                nsdf.reindex_axis(sorted(nsdf.columns), axis=1)
+                self.con.tables['samples'].df = nsdf
                 self.con.tables['samples'].write_magic_file(dir_path=self.WD)
 
             pdb.set_trace()
@@ -3896,7 +3908,7 @@ class Demag_GUI(wx.Frame):
                         PmagResRec["average_lat"]='%10.4f ' %(lat)
                         PmagResRec["average_lon"]='%10.4f ' %(lon)
                         if agefile != "": PmagResRec= pmag.get_age(PmagResRec,"er_site_names","average_",AgeNFO,DefaultAge)
-                        site_height=pmag.get_dictitem(height_nfo,'er_site_name',site,'T')
+                        site_height=pmag.get_dictitem(height_info,'er_site_name',site,'T')
                         if len(site_height)>0:PmagResRec["average_height"]=site_height[0]['site_height']
                         PmagResRec["vgp_lat"]='%7.1f ' % (plat)
                         PmagResRec["vgp_lon"]='%7.1f ' % (plong)
@@ -4015,7 +4027,7 @@ class Demag_GUI(wx.Frame):
                         PmagResRec["result_description"]="V[A]DM of site"
                         PmagResRec["pmag_criteria_codes"]="ACCEPT"
                         if agefile != "": PmagResRec= pmag.get_age(PmagResRec,"er_site_names","average_",AgeNFO,DefaultAge)
-                        site_height=pmag.get_dictitem(height_nfo,'er_site_name',site,'T')
+                        site_height=pmag.get_dictitem(height_info,'er_site_name',site,'T')
                         if len(site_height)>0:PmagResRec["average_height"]=site_height[0]['site_height']
                         PmagSites.append(PmagSiteRec)
                         PmagResults.append(PmagResRec)
@@ -4628,7 +4640,7 @@ class Demag_GUI(wx.Frame):
             spmdf = self.con.tables['specimens']
 
             #merge previous df with new interpretaions DataFrame
-            merdf = spmdf.merge_dfs(ndf3_0)
+            merdf = spmdf.merge_dfs(ndf3_0,['specimen','sample','site','dir_comp','dir_comp_name','dir_tilt_correction'])
 
             #sort columns so it matches previous exports
             merdf = merdf.reindex_axis(sorted(merdf.columns), axis=1)
