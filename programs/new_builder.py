@@ -353,7 +353,7 @@ class MagicDataFrame(object):
                 print "-W- Bad file {}".format(magic_file)
                 self.dtype = 'empty'
                 return
-            #
+
             self.dtype = dtype
             if dtype == 'measurements':
                 ###self.df['measurement_name'] = self.df['experiment_name'] + self.df['measurement_number']
@@ -577,23 +577,50 @@ class MagicDataFrame(object):
             # return a copy of records without that method code
             return df[~cond]
 
-    def merge_dfs(self,df1,subset=None):
+    def merge_dfs(self,df1,replace_dir_or_int):
         """
-        Description: Merges underlying df with input df (df1) with perfrence to updating data as opposed to keeping data.
+        Description: takes new calculated directional, intensity data, or both and replaces the corresponding data in self.df with the new input data preserving any data that is not replaced.
 
         @param: df1 - first DataFrame whose data will preferintally be used.
+        @param: replace_dir_or_int - must be string 'dir', 'int', or 'full' and acts as a flag to tell the funciton weather to replace directional, intensity data, or just everything in current table. (Note: if you are dealing with tables other than specimens.txt you should likely use full as that is the only table the other options have been tested on)
         """
 
-        #copy df2 and remove all columns that also exist in df1 from df2
+        #copy to prevent mutation
         cdf2 = self.df.copy()
-        for c in [cx for cx in cdf2.columns if cx in df1.columns]:
-            del cdf2[c]
 
-        #add all columns in df2 not in df1 to df1 and merge to mdf
-        mdf = df1.join(cdf2, how='outer', lsuffix='__remove')
+        #split data into types and decide which to replace
+        if replace_dir_or_int == 'dir':
+            cdf2 = cdf2[cdf2['method_codes'].notnull()]
+            acdf2 = cdf2[cdf2['method_codes'].str.contains('LP-PI')]
+            mcdf2 = cdf2[cdf2['method_codes'].str.contains('LP-DIR')]
+        elif replace_dir_or_int == 'int':
+            cdf2 = cdf2[cdf2['method_codes'].notnull()]
+            mcdf2 = cdf2[cdf2['method_codes'].str.contains('LP-PI')]
+            acdf2 = cdf2[cdf2['method_codes'].str.contains('LP-DIR')]
+        elif replace_dir_or_int == 'full':
+            mcdf2 = cdf2
+            acdf2 = pd.DataFrame(columns=mcdf2.columns)
+        else:
+            print("replace_dir_or_int must equal 'dir' or 'int' so that the correct data, directional or intensity, is replaced in the output")
 
-        #drop any duplicate lines created in this process
-        mdf.drop_duplicates(inplace=True,subset=subset)
+        #get rid of stupid duplicates
+        for c in [cx for cx in mcdf2.columns if cx in df1.columns]:
+            del mcdf2[c]
+
+        #join the new calculated data with the old data of same type
+        mdf = df1.join(mcdf2, how='inner', lsuffix='__remove')
+        #duplicates rows for some freaking reason
+        mdf.drop_duplicates(inplace=True)
+        #merge the data of the other type with the new data
+        mdf = mdf.merge(acdf2, how='outer')
+        if self.dtype.endswith('s'): dtype = self.dtype[:-1]
+        else: dtype = self.dtype
+        if dtype in mdf.columns:
+            #fix freaking indecies because pandas
+            mdf = mdf.set_index(dtype)
+            #really? I wanted the index changed not a column deleted?!?
+            mdf[dtype] = mdf.index
+            mdf.sort(inplace=True)
 
         return mdf
 

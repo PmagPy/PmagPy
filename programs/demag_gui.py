@@ -196,23 +196,23 @@ class Demag_GUI(wx.Frame):
         self.Data_info=self.get_data_info() # Read  er_* data
         self.Data,self.Data_hierarchy=self.get_data() # Get data from magic_measurements and rmag_anistropy if exist.
 
-        self.specimens=self.Data.keys()         # get list of specimens
+        self.specimens=self.Data.keys()# get list of specimens
         self.specimens.sort(cmp=specimens_comparator) # sort list of specimens
         if len(self.specimens)>0:
             self.s=str(self.specimens[0])
         else:
             self.s=""
-        self.samples=self.Data_hierarchy['samples'].keys()         # get list of samples
-        self.samples.sort(cmp=specimens_comparator)                   # get list of specimens
-        self.sites=self.Data_hierarchy['sites'].keys()         # get list of sites
-        self.sites.sort(cmp=specimens_comparator)                   # get list of sites
-        self.locations=self.Data_hierarchy['locations'].keys()      # get list of sites
-        self.locations.sort()                   # get list of sites
+        self.samples=self.Data_hierarchy['samples'].keys()# get list of samples
+        self.samples.sort(cmp=specimens_comparator)# get list of specimens
+        self.sites=self.Data_hierarchy['sites'].keys()# get list of sites
+        self.sites.sort(cmp=specimens_comparator)# get list of sites
+        self.locations=self.Data_hierarchy['locations'].keys()# get list of sites
+        self.locations.sort()# get list of sites
 
         self.panel = wx.lib.scrolledpanel.ScrolledPanel(self,-1) # make the Panel
-        self.init_UI()                   # build the main frame
-        self.panel.SetupScrolling()     #endable scrolling
-        self.create_menu()                  # create manu bar
+        self.init_UI()# build the main frame
+        self.panel.SetupScrolling()# endable scrolling
+        self.create_menu()# create manu bar
 
         # Draw figures and add text
         if self.Data:
@@ -1786,7 +1786,7 @@ class Demag_GUI(wx.Frame):
         CART_rot=array(CART_rot)
         return(CART_rot)
 
-    def add_fit(self,specimen,name,fmin,fmax,color=None):
+    def add_fit(self,specimen,name,fmin,fmax,PCA_type="DE-BFL", color=None):
         if specimen not in self.Data.keys():
             self.user_warning("there is no measurement data for %s and therefore no interpretation can be created for this specimen"%(specimen))
             return
@@ -1797,10 +1797,10 @@ class Demag_GUI(wx.Frame):
             name = ('Fit ' + next_fit)
             if name in map(lambda x: x.name, self.pmag_results_data['specimens'][specimen]): print('bad name'); return
         if color == None: color = self.colors[(int(next_fit)-1) % len(self.colors)]
-        new_fit = Fit(name, fmax, fmin, color, self)
+        new_fit = Fit(name, fmax, fmin, color, self, PCA_type)
         self.pmag_results_data['specimens'][specimen].append(new_fit)
         if fmin != None and fmax != None:
-            new_fit.put(specimen,self.COORDINATE_SYSTEM,self.get_PCA_parameters(specimen,new_fit,fmin,fmax,self.COORDINATE_SYSTEM,"DE-BFL"))
+            new_fit.put(specimen,self.COORDINATE_SYSTEM,self.get_PCA_parameters(specimen,new_fit,fmin,fmax,self.COORDINATE_SYSTEM,PCA_type))
 
     def convert_ages_to_calendar_year(self,er_ages_rec):
         '''
@@ -2542,6 +2542,7 @@ class Demag_GUI(wx.Frame):
 # do some filtering
           meas_data3_0 = meas_data3_0[meas_data3_0['sample'].notnull()]
           meas_data3_0 = meas_data3_0[meas_data3_0['specimen'].notnull()]
+          meas_data3_0 = meas_data3_0[meas_data3_0['site'].notnull()]
           Mkeys = ['magn_moment', 'magn_volume', 'magn_mass']
           meas_data3_0=meas_data3_0[meas_data3_0['method_codes'].str.contains('LT-NO|LT-AF-Z|LT-T-Z|LT-M-Z|LT-LT-Z')==True] # fish out all the relavent data 
 # now convert back to 2.5  changing only those keys that are necessary for thellier_gui
@@ -2560,7 +2561,6 @@ class Demag_GUI(wx.Frame):
       self.mag_meas_data=deepcopy(self.merge_pmag_recs(mag_meas_data))
 
       # get list of unique specimen names
-
       CurrRec=[]
       #print "-I- get sids"
       sids=pmag.get_specs(self.mag_meas_data) # samples ID's
@@ -2873,26 +2873,21 @@ class Demag_GUI(wx.Frame):
         if "specimen" not in self.spec_data.columns or \
            "meas_step_min" not in self.spec_data.columns or \
            "meas_step_max" not in self.spec_data.columns or \
-           "meas_step_unit" not in self.spec_data.columns: return
+           "meas_step_unit" not in self.spec_data.columns or \
+           "method_codes" not in self.spec_data.columns: return
         if "dir_comp" in self.spec_data. columns:
             fnames = 'dir_comp'
         elif "dir_comp_name" in self.spec_data.columns:
             fnames = 'dir_comp_name'
         else: return
-        if self.COORDINATE_SYSTEM=='geographic': current_tilt_correction=0
-        elif self.COORDINATE_SYSTEM=='tilt_corrected': current_tilt_correction=100
-        else: current_tilt_correction=-1
-        fdict = self.spec_data[['specimen',fnames,'meas_step_min','meas_step_max','meas_step_unit','dir_tilt_correction']].to_dict("records")
+        fdict = self.spec_data[['specimen',fnames,'meas_step_min','meas_step_max','meas_step_unit','dir_tilt_correction','method_codes']].to_dict("records")
         for i in range(len(fdict)):
-            if fdict[i]['dir_tilt_correction']==None or int(fdict[i]['dir_tilt_correction'])!=current_tilt_correction: 
-                continue
             spec = fdict[i]['specimen']
             if spec not in self.specimens:
                 print("-E- specimen %s does not exist in measurement data"%(spec))
                 continue
             fname = fdict[i][fnames]
             if fname == None or (spec in self.pmag_results_data['specimens'].keys() and fname in map(lambda x: x.name, self.pmag_results_data['specimens'][spec])):
-                print("-E- duplicate records or non-existant name for interpretation on specimen %s and line %d of specimens.txt"%(spec,i))
                 continue
             if fdict[i]['meas_step_unit'] == "K":
                 fmin = str(int(float(fdict[i]['meas_step_min'])-273)) + "C"
@@ -2903,7 +2898,13 @@ class Demag_GUI(wx.Frame):
             else:
                 fmin = fdict[i]['meas_step_min']
                 fmax = fdict[i]['meas_step_max']
-            self.add_fit(spec,fname,fmin,fmax)
+
+            PCA_types = ["DE-BFL","DE-BFL-A","DE-BFL-O","DE-FM","DE-BFP"]
+            PCA_type_list = filter(lambda x: x.strip() in PCA_types, str(fdict[i]['method_codes']).split(':'))
+            if len(PCA_type_list)>0: PCA_type=PCA_type_list[0].strip()
+            else: PCA_type="DE-BFL"
+
+            self.add_fit(spec,fname,fmin,fmax,PCA_type)
 
     def get_data_info(self):
         Data_info={}
@@ -3611,22 +3612,6 @@ class Demag_GUI(wx.Frame):
         if dia.cb_location_mean.GetValue()==True:
             avg_by_polarity=True
 
-        for FILE in ['pmag_samples.txt','pmag_sites.txt','pmag_results.txt']:
-            self.PmagRecsOld[FILE]=[]
-            try:
-                meas_data,file_type=pmag.magic_read(os.path.join(self.WD, FILE))
-                print("-I- Read old magic file  %s"%os.path.join(self.WD, FILE))
-                if FILE !='pmag_specimens.txt':
-                    os.remove(os.path.join(self.WD, FILE))
-                    print("-I- Delete old magic file  %s"%os.path.join(self.WD,FILE))
-            except:
-                continue
-
-            for rec in meas_data:
-                if "magic_method_codes" in rec.keys():
-                    if "LP-DIR" not in rec['magic_method_codes'] and "DE-" not in  rec['magic_method_codes']:
-                        self.PmagRecsOld[FILE].append(rec)
-
         if self.data_model == 3.0:
 
             #update age table
@@ -3776,11 +3761,17 @@ class Demag_GUI(wx.Frame):
             #removed intensity average portion as demag GUI has no need of this
 
             if len(PmagSamps)>0:
+                for dc in ['magic_method_codes']:
+                    if dc in self.con.tables['samples'].df:
+                        del self.con.tables['samples'].df[dc]
                 samps_df = DataFrame(PmagSamps)
                 samps_df = samps_df.set_index('sample')
-                samps_df.rename(columns={'r': 'dir_r', 'n': 'dir_n_specimens', 'alpha95': 'dir_alpha95', 'n_lines': 'dir_n_specimens_lines', 'k': 'dir_k', 'dec': 'dir_dec', 'n_planes': 'dir_n_specimens_planes', 'inc': 'dir_inc'})
-                nsdf = self.con.tables['samples'].merge_dfs(samps_df)
-                nsdf.reindex_axis(sorted(nsdf.columns), axis=1)
+                samps_df['sample'] = samps_df.index
+                samps_df.rename(columns={'R': 'dir_r', 'n': 'dir_n_specimens', 'alpha95': 'dir_alpha95', 'n_lines': 'dir_n_specimens_lines', 'K': 'dir_k', 'dec': 'dir_dec', 'n_planes': 'dir_n_specimens_planes', 'inc': 'dir_inc'},inplace=True)
+                if 'k' in samps_df.columns: del samps_df['k']
+                if 'r' in samps_df.columns: del samps_df['r']
+                nsdf = self.con.tables['samples'].merge_dfs(samps_df,'full')
+                nsdf =  nsdf.reindex_axis(sorted(nsdf.columns), axis=1)
                 self.con.tables['samples'].df = nsdf
                 self.con.tables['samples'].write_magic_file(dir_path=self.WD)
 
@@ -4044,6 +4035,22 @@ class Demag_GUI(wx.Frame):
 
 
         else:
+
+            for FILE in ['pmag_samples.txt','pmag_sites.txt','pmag_results.txt']:
+                self.PmagRecsOld[FILE]=[]
+                try:
+                    meas_data,file_type=pmag.magic_read(os.path.join(self.WD, FILE))
+                    print("-I- Read old magic file  %s"%os.path.join(self.WD, FILE))
+                    if FILE !='pmag_specimens.txt':
+                        os.remove(os.path.join(self.WD, FILE))
+                        print("-I- Delete old magic file  %s"%os.path.join(self.WD,FILE))
+                except:
+                    continue
+
+            for rec in meas_data:
+                if "magic_method_codes" in rec.keys():
+                    if "LP-DIR" not in rec['magic_method_codes'] and "DE-" not in  rec['magic_method_codes']:
+                        self.PmagRecsOld[FILE].append(rec)
 
             print('coord', coord, 'vgps_level', vgps_level, 'DefaultAge', DefaultAge, 'avg_directions_by_sample', avg_directions_by_sample, 'avg_by_polarity', avg_by_polarity, 'use_criteria', use_criteria)
             ipmag.specimens_results_magic(coord=coord, vgps_level=vgps_level, DefaultAge=DefaultAge, avg_directions_by_sample=avg_directions_by_sample, avg_by_polarity=avg_by_polarity, use_criteria=use_criteria)
@@ -4632,6 +4639,7 @@ class Demag_GUI(wx.Frame):
             del ndf2_5['specimen_direction_type'] #doesn't exist in new model
             ndf3_0 = ndf2_5.rename(columns=map_magic.spec_magic2_2_magic3_map)
             ndf3_0 = ndf3_0.set_index("specimen")
+            ndf3_0['specimen'] = ndf3_0.index #replace the removed specimen column
             #prefer keeping analyst_names in txt
             if 'analyst_names' in ndf3_0:
                 del ndf3_0['analyst_names']
@@ -4639,16 +4647,16 @@ class Demag_GUI(wx.Frame):
             #get current 3.0 DataFrame from contribution object
             spmdf = self.con.tables['specimens']
 
+            #remove translation colisions or depricated terms
+            for dc in ["dir_comp_name","magic_method_codes"]:
+                if dc in spmdf.df.columns:
+                    del spmdf.df[dc]
+
             #merge previous df with new interpretaions DataFrame
-            merdf = spmdf.merge_dfs(ndf3_0,['specimen','sample','site','dir_comp','dir_comp_name','dir_tilt_correction'])
+            merdf = spmdf.merge_dfs(ndf3_0,'dir')
 
             #sort columns so it matches previous exports
             merdf = merdf.reindex_axis(sorted(merdf.columns), axis=1)
-
-            #remove translation colisions or depricated terms
-            for dc in ["dir_comp_name"]:
-                if dc in merdf.columns:
-                    del merdf[dc]
 
             #replace Specimens MagicDataFrame.df with merged df
             spmdf.df = merdf

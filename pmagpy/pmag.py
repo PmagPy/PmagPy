@@ -1548,7 +1548,7 @@ def dir2cart(d):
         decs,incs=d[:,0]*rad,d[:,1]*rad
         if d.shape[1]==3: ints=d[:,2] # take the given lengths
     else: # single vector
-        decs,incs=numpy.array(d[0])*rad,numpy.array(d[1])*rad
+        decs,incs=numpy.array(float(d[0]))*rad,numpy.array(float(d[1]))*rad
         if len(d)==3:
             ints=numpy.array(d[2])
         else:
@@ -3109,17 +3109,17 @@ def dolnp(data,direction_type_key):
     X,L,fdata,dirV=[],[],[],[0,0,0]
     E=[0,0,0]
     fpars={}
-#
-# sort data  into lines and planes and collect cartesian coordinates
+
+    # sort data  into lines and planes and collect cartesian coordinates
     for rec in data:
-        cart=dir2cart([rec["dec"],rec["inc"]])[0]
+        cart=dir2cart([float(rec["dec"]),float(rec["inc"])])[0]
         if direction_type_key in rec.keys():
             if rec[direction_type_key]=='p': # this is a pole to a plane
                 n_planes+=1
                 L.append(cart) # this is the "EL, EM, EN" array of MM88
             else: # this is a line
                 n_lines+=1
-                fdata.append([rec["dec"],rec["inc"],1.]) # collect data for fisher calculation
+                fdata.append([float(rec["dec"]),float(rec["inc"]),1.]) # collect data for fisher calculation
                 X.append(cart)
                 E[0]+=cart[0]
                 E[1]+=cart[1]
