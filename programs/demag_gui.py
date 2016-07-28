@@ -3647,12 +3647,30 @@ class Demag_GUI(wx.Frame):
                 Dcrit,Icrit,nocrit = 1,1,1 # no selection criteria
                 crit_data = pmag.default_criteria(nocrit)
             elif use_criteria == 'existing':
-                crit_data = self.con.table['criteria'].df.to_dict("records")
+                crit_data = self.con.tables['criteria'].df.to_dict("records")
                 print("Acceptance criteria from criteria.txt used")
             else:
                 # use default criteria
                 crit_data = pmag.default_criteria(nocrit)
                 print("PmagPy default criteria used")
+
+            accept={}
+            for critrec in crit_data:
+                for key in critrec.keys():
+                    # need to migrate specimen_dang to specimen_int_dang for intensity data using old format
+                    if 'IE-SPEC' in critrec.keys() and 'specimen_dang' in critrec.keys() and 'specimen_int_dang' not in critrec.keys():
+                        critrec['specimen_int_dang']=critrec['specimen_dang']
+                        del critrec['specimen_dang']
+                    # need to get rid of ron shaars sample_int_sigma_uT
+                    if 'sample_int_sigma_uT' in critrec.keys():
+                        critrec['sample_int_sigma']='%10.3e'%(eval(critrec['sample_int_sigma_uT'])*1e-6)
+                    if key not in accept.keys() and critrec[key]!='':
+                        accept[key]=critrec[key]
+
+            if use_criteria == 'default':
+                pmag.magic_write(critout,[accept],'pmag_criteria')
+                print "\n Pmag Criteria stored in ",critout,'\n'
+
 
             spec_df = self.con.tables['specimens'].df
             site_df = self.con.tables['sites'].df
@@ -3668,13 +3686,14 @@ class Demag_GUI(wx.Frame):
             height_info=pmag.get_dictitem(SiteNFO,'height','','F') # find all the sites with height info.
 
             nocorrection=['DA-NL','DA-AC','DA-CR']
+            SpecInts=[]
             if not skip_intensities: # don't skip intensities
                 #spec_df[spec_df['method_codes'].map(lambda x: 'LP-PI' in str(x))].to_dict("records")
                 # retrieve specimens with intensity data
                 IntData=pmag.get_dictitem(Data,'int_abs','','F')
                 if nocrit==0: # use selection criteria
                     for rec in IntData: # do selection criteria
-                        kill=pmag.grade(rec,accept,'int_abs',data_model=3.0)
+                        kill=pmag.grade(rec,accept,'specimen_int',data_model=3.0)
                         if len(kill)==0: SpecInts.append(rec) # intensity record to be included in sample, site calculations
                 else:
                     # take everything - no selection criteria
@@ -3700,14 +3719,15 @@ class Demag_GUI(wx.Frame):
                 SpecInts=PrioritySpecInts # this has the first specimen record
 
             #apply criteria to directional data
-            NS=spec_df[spec_df['dir_n_measurements']!=''].to_dict("records") # retrieve specimens with directed lines and planes and some measuremnt data
+            Ns=spec_df[spec_df['dir_n_measurements']!=''].to_dict("records") # retrieve specimens with directed lines and planes and some measuremnt data
+            SpecDirs=[]
             if nocrit!=1: # use selection criteria
                 for rec in Ns: # look through everything with specimen_n for "good" data
                         kill=pmag.grade(rec,accept,'specimen_dir',data_model=3.0)
                         if len(kill)==0: # nothing killed it
                             SpecDirs.append(rec)
             else: # no criteria
-                SpecDirs=NS[:] # take them all
+                SpecDirs=Ns[:] # take them all
 
             PmagSamps,SampDirs=[],[] # list of all sample data and list of those that pass the DE-SAMP criteria
             PmagSites,PmagResults=[],[] # list of all site data and selected results
@@ -3775,11 +3795,7 @@ class Demag_GUI(wx.Frame):
                 self.con.tables['samples'].df = nsdf
                 self.con.tables['samples'].write_magic_file(dir_path=self.WD)
 
-            pdb.set_trace()
-
-#
-#create site averages from specimens or samples as specified
-#
+            #create site averages from specimens or samples as specified
             for site in sites:
                 for coord in coords:
                     if not avg_directions_by_sample: key,dirlist='specimen',SpecDirs # if specimen averages at site level desired
@@ -3814,10 +3830,6 @@ class Demag_GUI(wx.Frame):
                                     if Tnum>0:DC+=1
                                     PmagSiteRec['magic_method_codes']= pmag.get_list(siteD,'magic_method_codes')+':'+ 'LP-DC'+str(DC)
                                     PmagSiteRec['magic_method_codes'].strip(":")
-                                    if plotsites:
-                                        print PmagSiteRec['er_site_name']
-                                        pmagplotlib.plotSITE(EQ['eqarea'],PmagSiteRec,siteD,key) # plot and list the data
-                                        pmagplotlib.drawFIGS(EQ)
                                     PmagSites.append(PmagSiteRec)
                         else: # last component only
                             siteD=tmp1[:] # get the last orientation system specified
@@ -3838,9 +3850,6 @@ class Demag_GUI(wx.Frame):
                                 PmagSiteRec['magic_method_codes']= pmag.get_list(siteD,'magic_method_codes')+':'+ 'LP-DC'+str(DC)
                                 PmagSiteRec['magic_method_codes'].strip(":")
                                 if not avg_directions_by_sample:PmagSiteRec['site_comp_name']= pmag.get_list(siteD,key+'_comp_name')
-                                if plotsites:
-                                    pmagplotlib.plotSITE(EQ['eqarea'],PmagSiteRec,siteD,key)
-                                    pmagplotlib.drawFIGS(EQ)
                                 PmagSites.append(PmagSiteRec)
                     else:
                         print 'site information not found in er_sites for site, ',site,' site will be skipped'
@@ -3943,19 +3952,11 @@ class Demag_GUI(wx.Frame):
 
             if not skip_intensities and nositeints!=1:
               for site in sites: # now do intensities for each site
-                if plotsites:print site
-                if not avg_intensities_by_sample: key,intlist='specimen',SpecInts # if using specimen level data
-                if avg_intensities_by_sample: key,intlist='sample',PmagSamps # if using sample level data
+                key,intlist='specimen',SpecInts # if using specimen level data
                 Ints=pmag.get_dictitem(intlist,'er_site_name',site,'T') # get all the intensities  for this site
                 if len(Ints)>0: # there are some
                     PmagSiteRec=pmag.average_int(Ints,key,'site') # get average intensity stuff for site table
                     PmagResRec=pmag.average_int(Ints,key,'average') # get average intensity stuff for results table
-                    if plotsites: # if site by site examination requested - print this site out to the screen
-                        for rec in Ints:print rec['er_'+key+'_name'],' %7.1f'%(1e6*float(rec[key+'_int']))
-                        if len(Ints)>1:
-                            print 'Average: ','%7.1f'%(1e6*float(PmagResRec['average_int'])),'N: ',len(Ints)
-                            print 'Sigma: ','%7.1f'%(1e6*float(PmagResRec['average_int_sigma'])),'Sigma %: ',PmagResRec['average_int_sigma_perc']
-                        raw_input('Press any key to continue\n')
                     er_location_name=Ints[0]["er_location_name"]
                     PmagSiteRec["er_location_name"]=er_location_name # decorate the records
                     PmagSiteRec["er_citation_names"]="This study"
@@ -3964,9 +3965,6 @@ class Demag_GUI(wx.Frame):
                     PmagSiteRec["er_analyst_mail_names"]=user
                     PmagResRec["er_analyst_mail_names"]=user
                     PmagResRec["data_type"]='i'
-                    if not avg_intensities_by_sample:
-                        PmagSiteRec['er_specimen_names']= pmag.get_list(Ints,'er_specimen_name') # list of all specimens used
-                        PmagResRec['er_specimen_names']= pmag.get_list(Ints,'er_specimen_name')
                     PmagSiteRec['er_sample_names']= pmag.get_list(Ints,'er_sample_name') # list of all samples used
                     PmagResRec['er_sample_names']= pmag.get_list(Ints,'er_sample_name')
                     PmagSiteRec['er_site_name']= site
