@@ -1,12 +1,14 @@
 #!/usr/bin/env python
 
-## low-level validation functions
+
 
 # replace this with something more sensible and less redundant ...
 import pmagpy.controlled_vocabularies3 as cv
 reload(cv)
 vocab = cv.Vocabulary()
 vocabulary, possible_vocabulary = vocab.get_controlled_vocabularies()
+
+## LOW-LEVEL VALIDATION FUNCTIONS
 
 def requiredUnless(col_name, arg, dm, df, *args):
     """
@@ -86,6 +88,8 @@ def isIn(row, col_name, arg, dm, df, con=None):
     x = 0
     cell_value = row[col_name]
     if not cell_value:
+        return None
+    elif not con:
         return None
     # if it's in another table
     cell_values = [v.strip(" ") for v in cell_value.split(":")]
@@ -176,15 +180,6 @@ presence_operations = {"required": required, "requiredUnless": requiredUnless,
 # validate values
 value_operations = {"max": checkMax, "min": checkMin, "cv": cv, "in": isIn}
 
-def split_func(string):
-    """
-    Take a string like 'requiredIf("arg_name")'
-    return the function name and the argument:
-    (requiredIf, arg_name)
-    """
-    ind = string.index("(")
-    return string[:ind], string[ind+1:-1].strip('"')
-
 
 def test_type(value, value_type):
     if not value:
@@ -214,3 +209,62 @@ def test_type(value, value_type):
     else:
         return None
     #String, Number, Integer, List, Matrix, Dictionary, Text
+
+
+## Table-level validation functions
+
+
+def validate_df(df, dm, con=None):
+    # check column validity
+    cols = df.columns
+    invalid_cols = [col for col in cols if col not in dm.index]
+    for validation_name, validation in dm.iterrows():
+        value_type = validation['type']
+        if validation_name in df.columns:
+            output = df[validation_name].apply(test_type, args=(value_type,))
+            df["type_pass" + "_" + validation_name + "_" + value_type] = output
+        #
+        val_list = validation['validations']
+        if not val_list or isinstance(val_list, float):
+            continue
+        for num, val in enumerate(val_list):
+            func_name, arg = split_func(val)
+            if arg == "magic_table_column":
+                continue
+            # first validate for presence
+            if func_name in presence_operations:
+                func = presence_operations[func_name]
+                #grade = func(validation_name, df, arg, dm)
+                grade = func(validation_name, arg, dm, df, con)
+                pass_col_name = "presence_pass_" + validation_name + "_" + func.__name__
+                df[pass_col_name] = grade
+            # then validate for correct values
+            elif func_name in value_operations:
+                func = value_operations[func_name]
+                if validation_name in df.columns:
+                    grade = df.apply(func, args=(validation_name, arg, dm, df, con), axis=1)
+                    col_name = "value_pass_" + validation_name + "_" + func.__name__
+                    if col_name in df.columns:
+                        num_range = range(1, 10)
+                        for num in num_range:
+                            if (col_name + str(num)) in df.columns:
+                                continue
+                            else:
+                                col_name = col_name + str(num)
+                                break
+                    df[col_name] = grade.astype(object)
+    return df
+
+
+
+## Utilities
+
+
+def split_func(string):
+    """
+    Take a string like 'requiredIf("arg_name")'
+    return the function name and the argument:
+    (requiredIf, arg_name)
+    """
+    ind = string.index("(")
+    return string[:ind], string[ind+1:-1].strip('"')
