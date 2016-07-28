@@ -268,3 +268,17 @@ def split_func(string):
     """
     ind = string.index("(")
     return string[:ind], string[ind+1:-1].strip('"')
+
+
+def get_degree_cols(df):
+    """
+    Take in a pandas DataFrame, and return a list of columns
+    that are in that DataFrame AND should be between 0 - 360 degrees.
+    """
+    vals = ['lon_w', 'lon_e', 'lat_lon_precision', 'pole_lon',
+            'paleolon', 'paleolon_sigma',
+            'lon', 'lon_sigma', 'vgp_lon', 'paleo_lon', 'paleo_lon_sigma',
+            'azimuth', 'azimuth_dec_correction', 'dir_dec',
+            'geographic_precision', 'bed_dip_direction']
+    relevant_cols = list(set(vals).intersection(df.columns))
+    return relevant_cols

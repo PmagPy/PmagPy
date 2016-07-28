@@ -9023,6 +9023,21 @@ def get_attr(obj, attr='name'):
         name = str(obj)
     return name
 
+
+def adjust_val_to_360(val):
+    """
+    Take in a single numeric (or null) argument.
+    Return argument adjusted to be between
+    0 and 360 degrees.
+    """
+    if not val:
+        return None
+    else:
+        try:
+            return float(val) % 360
+        except ValueError:
+            return val
+
 def adjust_to_360(val, key):
     """
     Take in a value and a key.  If the key is of the type:
