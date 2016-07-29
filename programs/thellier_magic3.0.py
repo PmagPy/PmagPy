@@ -15,19 +15,19 @@ from pmag_env import set_env
 if not set_env.isServer:
     import pmagpy.nlt as nlt
 
-import new_builder as nb
+import pmagpy.new_builder as nb
 
 
 def main():
     """
     NAME
         thellier_magic.py
-    
+
     DESCRIPTION
         plots Thellier-Thellier data in version 3.0 format
         Reads saved interpretations from a specimen formatted table, default: specimens.txt
 
-    SYNTAX 
+    SYNTAX
         thellier_magic.py [command line options]
 
     OPTIONS
@@ -43,8 +43,8 @@ def main():
            BEG: starting step number for slope calculation
            END: ending step number for slope calculation
         -z use only z component difference for pTRM calculation
-  
-    OUTPUT 
+
+    OUTPUT
         figures:
             ALL:  numbers refer to temperature steps in command line window
             1) Arai plot:  closed circles are zero-field first/infield
@@ -59,21 +59,21 @@ def main():
                            circles are NRM remaining
                            squares are pTRM gained
             4) equal area projections:
- 			   green triangles are pTRM gained direction
-                           red (purple) circles are lower(upper) hemisphere of ZI step directions 
-                           blue (cyan) squares are lower(upper) hemisphere IZ step directions 
+               green triangles are pTRM gained direction
+                           red (purple) circles are lower(upper) hemisphere of ZI step directions
+                           blue (cyan) squares are lower(upper) hemisphere IZ step directions
             5) Optional:  TRM acquisition
             6) Optional: TDS normalization
         command line window:
             list is: temperature step numbers, temperatures (C), Dec, Inc, Int (units of measuements)
                      list of possible commands: type letter followed by return to select option
                      saving of plots creates image files with specimen, plot type as name
-    """ 
+    """
 #
 #   initializations
 #
     version_num=pmag.get_version()
-    verbose=pmagplotlib.verbose 
+    verbose=pmagplotlib.verbose
 #
 # default acceptance criteria
 #
@@ -148,7 +148,7 @@ def main():
         k = 0
     else:
         k=specimen_names.index(specimen) # just do this one
-    # define figure numbers for arai, zijderveld and 
+    # define figure numbers for arai, zijderveld and
     #   de-,re-magnetization diagrams
     AZD={}
     AZD['deremag'], AZD['zijd'],AZD['arai'],AZD['eqarea']=1,2,3,4
@@ -156,10 +156,10 @@ def main():
     pmagplotlib.plot_init(AZD['zijd'],5,5)
     pmagplotlib.plot_init(AZD['deremag'],5,5)
     pmagplotlib.plot_init(AZD['eqarea'],5,5)
-    if len(trm_data)>0: 
+    if len(trm_data)>0:
         AZD['TRM']=5
         pmagplotlib.plot_init(AZD['TRM'],5,5)
-    if len(td_data)>0: 
+    if len(td_data)>0:
         AZD['TDS']=6
         pmagplotlib.plot_init(AZD['TDS'],5,5)
     #
@@ -173,7 +173,7 @@ def main():
         trmblock= trm_data[trm_data['specimen'].str.contains(this_specimen)==True] # fish out this specimen
         tdsrecs= td_data[td_data['specimen'].str.contains(this_specimen)==True] # fish out this specimen
         anisblock= anis_data[anis_data['specimen'].str.contains(this_specimen)==True] # fish out the anisotropy data
-        prior_specimen_interpretations= prior_spec_data[prior_spec_data['specimen'].str.contains(this_specimen)==True] # fish out prior interpretation 
+        prior_specimen_interpretations= prior_spec_data[prior_spec_data['specimen'].str.contains(this_specimen)==True] # fish out prior interpretation
 #
 # sort data into types
 #
@@ -197,7 +197,7 @@ def main():
 #
 # get prior interpretation steps
 #
-                   beg_int=pd.to_numeric(prior_specimen_interpretations.meas_step_min.values).tolist()[0] 
+                   beg_int=pd.to_numeric(prior_specimen_interpretations.meas_step_min.values).tolist()[0]
                    end_int=pd.to_numeric(prior_specimen_interpretations.meas_step_max.values).tolist()[0]
                else: beg_int,end_int="",""
                recnum=0
@@ -279,10 +279,9 @@ def main():
                    ans=raw_input('Return for next specimen, q to quit:  ')
                    if ans=='q':sys.exit()
                k+=1 # moving on
- 
+
 #
 
 
 if __name__ == "__main__":
     main()
-            

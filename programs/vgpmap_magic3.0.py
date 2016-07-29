@@ -9,7 +9,7 @@ if matplotlib.get_backend() != "TKAgg":
 
 import pmagpy.pmag as pmag
 import pmagpy.pmagplotlib as pmagplotlib
-import new_builder as nb
+import pmagpy.new_builder as nb
 
 
 def main():
@@ -140,7 +140,7 @@ def main():
             else:
                 lats.append(lat)
                 lons.append(lon)
-    
+
         ppars = []
         ppars.append(lon)
         ppars.append(lat)
@@ -185,7 +185,7 @@ def main():
         Opts['sym'] = rsym
         Opts['symsize'] = rsize
         # add the lats and lons of the poles
-        pmagplotlib.plotMAP(FIG['map'], rlats, rlons, Opts) 
+        pmagplotlib.plotMAP(FIG['map'], rlats, rlons, Opts)
     if plot == 0:
         pmagplotlib.drawFIGS(FIG)
     if ell == 1:  # add ellipses if desired.

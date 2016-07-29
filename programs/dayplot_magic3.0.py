@@ -8,7 +8,7 @@ if matplotlib.get_backend() != "TKAgg":
 
 import pmagpy.pmagplotlib as pmagplotlib
 import pmagpy.pmag as pmag
-import new_builder as nb
+import pmagpy.new_builder as nb
 
 
 def main():
