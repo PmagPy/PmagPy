@@ -4,10 +4,10 @@ import numpy as np
 import os
 
 # replace this with something more sensible and less redundant ...
-import pmagpy.controlled_vocabularies3 as cv
-reload(cv)
-vocab = cv.Vocabulary()
-vocabulary, possible_vocabulary = vocab.get_controlled_vocabularies()
+#import pmagpy.controlled_vocabularies3 as cv
+#reload(cv)
+#vocab = cv.Vocabulary()
+#vocabulary, possible_vocabulary = vocab.get_controlled_vocabularies()
 
 ## LOW-LEVEL VALIDATION FUNCTIONS
 
@@ -157,10 +157,11 @@ def checkMin(row, col_name, arg, *args):
     except ValueError:
         return None
 
-def cv(row, col_name, arg, current_data_model, *args):
+def cv(row, col_name, arg, current_data_model, df, con):
     """
     row[col_name] must contain only values from the appropriate controlled vocabulary
     """
+    vocabulary = con.cv
     cell_value = row[col_name]
     if not cell_value:
         return None
