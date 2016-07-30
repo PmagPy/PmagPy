@@ -2562,6 +2562,7 @@ def upload_magic3(concat=0, dir_path='.', dmodel=None):
     last = file_names[-1]
     first_file = 1
     failing = []
+    all_failing_items = {}
     if not dmodel:
         dmodel = data_model.DataModel()
     for file_type in dtypes:
@@ -2609,7 +2610,9 @@ def upload_magic3(concat=0, dir_path='.', dmodel=None):
     # run validations
             res = val_up3.validate_table(con, file_type)#, verbose=True)
             if res:
-                failing.append(res)
+                dtype, bad_rows, bad_cols, missing_cols, failing_items = res
+                all_failing_items[dtype] = failing_items
+                failing.append(dtype)
     # write out the data
             if len(df):
                 container.write_magic_file(up, append=True)
@@ -2654,7 +2657,7 @@ def upload_magic3(concat=0, dir_path='.', dmodel=None):
                 break
     if not up:
         print "-W- Could not create an upload file"
-        return
+        return False, "Could not create an upload file", None, None
     os.rename(up, new_up)
     print "Finished preparing upload file: {} ".format(new_up)
     if failing:
@@ -2662,10 +2665,10 @@ def upload_magic3(concat=0, dir_path='.', dmodel=None):
         print "These tables have errors: {}".format(", ".join(failing))
         print "Please fix above errors and try again."
         print "You may run into problems if you try to upload this file to the MagIC database."
-        return False, "file validation has failed.  You may run into problems if you try to upload this file.", failing
+        return False, "file validation has failed.  You may run into problems if you try to upload this file.", failing, all_failing_items
     else:
         print "-I- Your file has passed validation.  You should be able to upload it to the MagIC database without trouble!"
-    return new_up, '', None
+    return new_up, '', None, None
 
 
 def specimens_results_magic(infile='pmag_specimens.txt', measfile='magic_measurements.txt', sampfile='er_samples.txt', sitefile='er_sites.txt', agefile='er_ages.txt', specout='er_specimens.txt', sampout='pmag_samples.txt', siteout='pmag_sites.txt', resout='pmag_results.txt', critout='pmag_criteria.txt', instout='magic_instruments.txt', plotsites = False, fmt='svg', dir_path='.', cors=[], priorities=['DA-AC-ARM','DA-AC-TRM'], coord='g', user='', vgps_level='site', do_site_intensity=True, DefaultAge=["none"], avg_directions_by_sample=False, avg_intensities_by_sample=False, avg_all_components=False, avg_by_polarity=False, skip_directions=False, skip_intensities=False, use_sample_latitude=False, use_paleolatitude=False, use_criteria='default'):
