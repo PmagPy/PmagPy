@@ -14,6 +14,7 @@ import sys
 import os
 import pmagpy
 import pmagpy.data_model3 as data_model3
+import pmagpy.validate_upload3 as val_up3
 import pmagpy.check_updates as check_updates
 import pmagpy.builder as builder
 import pmagpy.pmag as pmag
@@ -94,14 +95,14 @@ class MainFrame(wx.Frame):
 
         text = "1. add location data"
         self.btn1 = buttons.GenButton(self.panel, id=-1, label=text,
-                                      size=(300, 50), name='location_btn')
+                                      size=(300, 50), name='locations_btn')
         self.btn1.SetBackgroundColour("#FDC68A")
         self.btn1.InitColours()
         self.Bind(wx.EVT_BUTTON, self.make_grid_frame, self.btn1)
 
         text = "2. add site data"
         self.btn2 = buttons.GenButton(self.panel, id=-1, label=text,
-                                      size=(300, 50), name='site_btn')
+                                      size=(300, 50), name='sites_btn')
         self.btn2.SetBackgroundColour("#6ECFF6")
         self.btn2.InitColours()
         self.Bind(wx.EVT_BUTTON, self.make_grid_frame, self.btn2)
@@ -109,15 +110,15 @@ class MainFrame(wx.Frame):
 
         text = "3. add sample data"
         self.btn3 = buttons.GenButton(self.panel, id=-1, label=text,
-                                      size=(300, 50), name='sample_btn')
+                                      size=(300, 50), name='samples_btn')
         self.btn3.SetBackgroundColour("#C4DF9B")
         self.btn3.InitColours()
         self.Bind(wx.EVT_BUTTON, self.make_grid_frame, self.btn3)
 
-        
+
         text = "4. add specimen data"
         self.btn4 = buttons.GenButton(self.panel, id=-1,
-                                      label=text, size=(300, 50), name='specimen_btn')
+                                      label=text, size=(300, 50), name='specimens_btn')
         self.btn4.SetBackgroundColour("#FDC68A")
         self.btn4.InitColours()
         self.Bind(wx.EVT_BUTTON, self.make_grid_frame, self.btn4)
@@ -125,11 +126,11 @@ class MainFrame(wx.Frame):
 
         text = "5. add age data"
         self.btn5 = buttons.GenButton(self.panel, id=-1, label=text,
-                                      size=(300, 50), name='age_btn')
+                                      size=(300, 50), name='ages_btn')
         self.btn5.SetBackgroundColour("#6ECFF6")
         self.btn5.InitColours()
         self.Bind(wx.EVT_BUTTON, self.make_grid_frame, self.btn5)
-        
+
         #text = "6. add results data"
         #self.btn6 = buttons.GenButton(self.panel, id=-1, label=text,
         #                              size=(300, 50), name='result_btn')
@@ -244,8 +245,8 @@ class MainFrame(wx.Frame):
         self.grid_frame = None
         self.Show()
         if event:
-            event.Skip()    
-        
+            event.Skip()
+
     def make_grid_frame(self, event):
         """
         Create a GridFrame for data type of the button that was clicked
@@ -263,7 +264,7 @@ class MainFrame(wx.Frame):
         wx.Yield()
         # hide mainframe
         self.on_open_grid_frame()
-        grid_type += 's'
+        #grid_type += 's'
         self.grid_frame = grid_frame.GridFrame(self.contribution, self.WD, grid_type, grid_type, self.panel)
         if self.validation_mode:
             if grid_type in self.validation_mode:

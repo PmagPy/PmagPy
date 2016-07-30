@@ -248,7 +248,7 @@ class MagicGrid(wx.grid.Grid, gridlabelrenderer.GridWithLabelRenderersMixin):
         """
         Update self.changes so that row numbers for edited rows are still correct.
         I.e., if row 4 was edited and then row 2 was deleted, row 4 becomes row 3.
-        This function updates self.changes to reflect that. 
+        This function updates self.changes to reflect that.
         """
         if row_num in self.changes.copy():
             self.changes.remove(row_num)
@@ -296,7 +296,7 @@ class MagicGrid(wx.grid.Grid, gridlabelrenderer.GridWithLabelRenderersMixin):
         coords = grid.XYToCell(x, y)
         col = coords[1]
         row = coords[0]
-        
+
         # creates tooltip message for cells with long values
         # note: this works with EPD for windows, and modern wxPython, but not with Canopy Python
         msg = grid.GetCellValue(row, col)
@@ -305,7 +305,7 @@ class MagicGrid(wx.grid.Grid, gridlabelrenderer.GridWithLabelRenderersMixin):
         else:
             event.GetEventObject().SetToolTipString('')
 
-        
+
     def on_edit_grid(self, event, grid):
         sets self.changes to true when user edits the grid.
         provides down and up key functionality for exiting the editor
@@ -346,6 +346,15 @@ class MagicGrid(wx.grid.Grid, gridlabelrenderer.GridWithLabelRenderersMixin):
                 cols_with_stars.append(col)
         return cols_with_stars
 
+    def paint_invalid_cell(self, row, col, color="GOLDENROD"):
+        #col_ind = self.col_labels.index(col_name)
+        #print 'row', row
+        #print 'col', col
+        #print 'color', color
+        self.SetColLabelRenderer(col, MyColLabelRenderer('#1101e0'))
+        self.SetCellRenderer(row, col, MyCustomRenderer())#color))
+
+
     def paint_invalid_cells(self, warn_dict):
         """
         """
@@ -365,7 +374,7 @@ class MagicGrid(wx.grid.Grid, gridlabelrenderer.GridWithLabelRenderersMixin):
                 col_ind = self.col_labels.index(col_name)
                 self.SetColLabelRenderer(col_ind, MyColLabelRenderer('#1101e0'))
                 self.SetCellRenderer(row_ind, col_ind, MyCustomRenderer(cell_color))
-                
+
         def highlight_parent(item, row_ind, cell_color):
             parent_type = self.parent_type
             parent_label = 'er_' + parent_type + '_name'
@@ -450,16 +459,16 @@ class MyCustomRenderer(wx.grid.PyGridCellRenderer):
         # or do it like this for highlighting the cell:
         #dc.SetPen(wx.Pen(self.color, 5, wx.SOLID))
         dc.DrawRectangleRect(rect)
-        
-        
+
+
         dc.SetBackgroundMode(wx.TRANSPARENT)
         dc.SetFont(attr.GetFont())
-        
+
         text = grid.GetCellValue(row, col)
         #colors = ["RED", "WHITE", "SKY BLUE"]
         x = rect.x + 1
         y = rect.y + 1
-        
+
         for ch in text:
             dc.SetTextForeground("BLACK")
             dc.DrawText(ch, x, y)
@@ -468,17 +477,17 @@ class MyCustomRenderer(wx.grid.PyGridCellRenderer):
             if x > rect.right - 5:
                 break
 
-    
+
     def GetBestSize(self, grid, attr, dc, row, col):
         text = grid.GetCellValue(row, col)
         dc.SetFont(attr.GetFont())
         w, h = dc.GetTextExtent(text)
         return wx.Size(w, h)
-    
-    
+
+
     def Clone(self):
         return MyCustomRenderer()
-    
+
 
 class MyColLabelRenderer(gridlabelrenderer.GridLabelRenderer):
     def __init__(self, bgcolor):

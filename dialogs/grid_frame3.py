@@ -43,7 +43,7 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
         if self.parent:
             self.Bind(wx.EVT_WINDOW_DESTROY, self.parent.Parent.on_close_grid_frame)
 
-        if self.grid_type == 'age':
+        if self.grid_type == 'ages':
             ancestry_ind = self.contribution.ancestry.index(self.er_magic.age_type)
             self.child_type = self.contribution.ancestry[ancestry_ind-1]
             self.parent_type = self.contribution.ancestry[ancestry_ind+1]
