@@ -477,10 +477,6 @@ class MagICMenu(wx.MenuBar):
                     return
         if self.parent.grid_frame:
             self.parent.grid_frame.Destroy()
-        # if there have been edits, save all data to files
-        # before quitting
-        if self.parent.edited:
-            self.parent.er_magic.write_files()
         self.parent.Close()
         try:
             sys.exit()
