@@ -122,6 +122,9 @@ def checkMax(row, col_name, arg, *args):
     cell_value = row[col_name]
     if not cell_value:
         return None
+    elif isinstance(cell_value, float):
+        if np.isnan(cell_value):
+            return None
     try:
         arg_val = float(arg)
     except ValueError:
@@ -144,6 +147,9 @@ def checkMin(row, col_name, arg, *args):
     cell_value = row[col_name]
     if not cell_value:
         return None
+    elif isinstance(cell_value, float):
+        if np.isnan(cell_value):
+            return None
     try:
         arg_val = float(arg)
     except ValueError:
@@ -375,11 +381,12 @@ def get_bad_rows_and_cols(df, validation_names, type_col_names,
         bad_rows = []
     if verbose:
         if bad_rows:
+            formatted_rows = ["row: {}, name: {}".format(row[0], row[1]) for row in bad_rows]
             if len(bad_rows) > 20:
-                print "-W- these rows have problems:", bad_rows[:20], " ...",
+                print "-W- these rows have problems:\n", "\n".join(formatted_rows[:20]), " ..."
                 print "(for full error output see error file)"
             else:
-                print "-W- these rows have problems:", bad_rows
+                print "-W- these rows have problems:", "\n".join(formatted_rows)
         if problem_cols:
             print "-W- these columns contain bad values:", ", ".join(set(problem_cols))
         if missing_cols:
@@ -414,7 +421,7 @@ def validate_table(the_con, dtype, verbose=False):
     current_df.drop(validation_col_names, axis=1, inplace=True)
     if len(failing_items):
         print "-I- Complete list of row errors can be found in {}".format(ofile)
-        return dtype
+        return dtype, bad_rows, bad_cols, missing_cols, failing_items
     else:
         print "-I- No row errors found!"
         return False
