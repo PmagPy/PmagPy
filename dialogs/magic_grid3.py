@@ -346,96 +346,19 @@ class MagicGrid(wx.grid.Grid, gridlabelrenderer.GridWithLabelRenderersMixin):
                 cols_with_stars.append(col)
         return cols_with_stars
 
-    def paint_invalid_cell(self, row, col, color="GOLDENROD"):
+    def paint_invalid_row(self, row, color="LIGHT BLUE"):
+        self.SetRowLabelRenderer(row, MyRowLabelRenderer(color))
+
+    def paint_invalid_cell(self, row, col, color='MEDIUM VIOLET RED'):
+        """
+        Take row, column, and turn it color
+        """
         #col_ind = self.col_labels.index(col_name)
         #print 'row', row
         #print 'col', col
         #print 'color', color
         self.SetColLabelRenderer(col, MyColLabelRenderer('#1101e0'))
-        self.SetCellRenderer(row, col, MyCustomRenderer())#color))
-
-
-    def paint_invalid_cells(self, warn_dict):
-        """
-        """
-        def highlight(problem_type, item, row_ind, cell_color):
-            """
-            """
-            col_ind = None
-            for col_name in warn_dict[item][problem_type]:
-                if col_name in ('er_location_name', 'er_site_name', 'er_sample_name'):
-                    continue
-                if col_name in ('lithology', 'type', 'class'):
-                    dtype = self.GetColLabelValue(0)
-                    dtype = dtype[3:-5]
-                    col_name = dtype + "_" + col_name
-                # in result grid, magic_method_codes doesn't have ++
-                stripped_name = col_name.strip('++')
-                col_ind = self.col_labels.index(col_name)
-                self.SetColLabelRenderer(col_ind, MyColLabelRenderer('#1101e0'))
-                self.SetCellRenderer(row_ind, col_ind, MyCustomRenderer(cell_color))
-
-        def highlight_parent(item, row_ind, cell_color):
-            parent_type = self.parent_type
-            parent_label = 'er_' + parent_type + '_name'
-            col_ind = self.col_labels.index(parent_label)
-            self.SetColLabelRenderer(col_ind, MyColLabelRenderer('#1101e0'))
-            self.SetCellRenderer(row_ind, col_ind, MyCustomRenderer(cell_color))
-
-        def highlight_child(item, row_ind, cell_color):
-            ancestry = ['specimen', 'sample', 'site', 'location']
-            ind = ancestry.index(self.parent_type)
-            try:
-                child_type = ancestry[ind-2]
-            except ValueError:
-                return
-            child_label = 'er_' + child_type + '_name'
-            col_ind = self.col_labels.index(child_label)
-            self.SetColLabelRenderer(col_ind, MyColLabelRenderer('#1101e0'))
-            self.SetCellRenderer(row_ind, col_ind, MyCustomRenderer(cell_color))
-
-        def highlight_names(problem, row_ind, cell_color):
-            col_ind = self.col_labels.index('er_' + problem + '_names')
-            self.SetColLabelRenderer(col_ind, MyColLabelRenderer('#1101e0'))
-            self.SetCellRenderer(row_ind, col_ind, MyCustomRenderer(cell_color))
-
-        # begin main function
-        grid_names = self.row_labels
-        col_labels = self.col_labels
-
-        for item in warn_dict:
-            item_name = str(item)
-            try:
-                row_ind = grid_names.index(item_name)
-            except ValueError:
-                continue
-            self.SetRowLabelRenderer(row_ind, MyRowLabelRenderer('#1101e0'))
-            for problem in warn_dict[item]:
-                if problem in ('missing_data'):
-                    highlight('missing_data', item, row_ind, 'MEDIUM VIOLET RED')
-                elif problem in ('number_fail'):
-                    highlight('number_fail', item, row_ind, 'blue')
-                elif problem in ('parent'):
-                    highlight_parent(item, row_ind, 'green')
-                elif problem in ('invalid_col'):
-                    highlight('invalid_col', item, row_ind, 'LIGHT GREY')
-                elif problem in ('child'):
-                    # this will never work.....
-                    highlight_child(item, row_ind, 'GOLDENROD')
-                elif problem in ('type'):
-                    pass
-                elif problem in ('specimen', 'sample', 'site', 'location'):
-                    highlight_names(problem, row_ind, 'purple')
-                elif problem in 'coordinates':
-                    highlight('coordinates', item, row_ind, 'GOLDENROD')
-                elif problem in 'vocab_problem':
-                    highlight('vocab_problem', item, row_ind, 'WHITE')
-                else:
-                    print 'other problem', problem
-        #  looks like we can do tooltips over cells using techniques in
-        #  simple_examples/highlight_grid and simple_examples/tooltip_grid
-        #  but these only work with brew python (wxPython version)
-        #  don't know when Canopy will become more up to date : (
+        self.SetCellRenderer(row, col, MyCustomRenderer(color))#color))
 
 
 

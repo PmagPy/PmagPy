@@ -264,12 +264,23 @@ class MainFrame(wx.Frame):
         wx.Yield()
         # hide mainframe
         self.on_open_grid_frame()
-        #grid_type += 's'
+        # make grid frame
         self.grid_frame = grid_frame.GridFrame(self.contribution, self.WD, grid_type, grid_type, self.panel)
+        # paint validations if appropriate
         if self.validation_mode:
             if grid_type in self.validation_mode:
-                self.grid_frame.grid.paint_invalid_cells(self.warn_dict[grid_type])
-                #self.grid_frame.msg_boxsizer
+                all_cols = self.failing_items[grid_type].columns
+                col_nums = range(len(all_cols))
+                col_pos = dict(zip(all_cols, col_nums))
+                for row in self.failing_items[grid_type]['num']:
+                    self.grid_frame.grid.paint_invalid_row(row)
+                    cols = self.failing_items[grid_type].iloc[row].dropna().drop(["num", "issues"]).index
+                    for col in cols:
+                        pre, col_name = val_up3.extract_col_name(col)
+                        col_ind = self.grid_frame.grid.col_labels.index(col_name)
+                        self.grid_frame.grid.paint_invalid_cell(row, col_ind)
+                        #print self.failing_items[grid_type].iloc[row, list(self.failing_items[grid_type]).index(col)]
+                        #print row, col_name, col_ind
                 current_label = self.grid_frame.msg_text.GetLabel()
                 add_text = """\n\nColumns and rows with problem data have been highlighted in blue.
 Cells with problem data are highlighted with different colors according to the type of problem.
@@ -281,17 +292,48 @@ Purple: invalid result child
 Yellow: Out-of-range latitude (should be -90 - 90) or longitude (should be 0-360)
 Light gray: Unrecognized term in controlled vocabulary
 
-Note: It is possible to have a row highlighted that has no highlighted column.  
+Note: It is possible to have a row highlighted that has no highlighted column.
 This means that you are missing information higher up in the data.
 For example: a specimen could be missing a site name.
-However, you need to fix this in the sample grid, not the specimen grid.  
+However, you need to fix this in the sample grid, not the specimen grid.
 Once each item in the data has its proper parent, validations will be correct.
 """
                 self.grid_frame.msg_text.SetLabel(add_text)
         #self.on_finish_change_dir(self.change_dir_dialog)
         del wait
 
+
     def on_upload_file(self, event):
+        wait = wx.BusyInfo('Validating data, please wait...')
+        wx.Yield()
+        res, error_message, has_problems, all_failing_items = ipmag.upload_magic3(dir_path=self.WD)
+        self.failing_items = all_failing_items
+        if has_problems:
+            self.validation_mode = set(has_problems)
+            # highlighting doesn't work with Windows
+            if sys.platform in ['win32', 'win62']:
+                self.message.SetLabel('The following grid(s) have incorrect or incomplete data:\n{}'.format(', '.join(self.validation_mode)))
+            # highlighting does work with OSX
+            else:
+                for dtype in ["specimens", "samples", "sites", "locations", "ages"]:
+                    wind = self.FindWindowByName(dtype + '_btn')
+                    if dtype not in has_problems:
+                        wind.Unbind(wx.EVT_PAINT, handler=self.highlight_button)
+                    else:
+                        wind.Bind(wx.EVT_PAINT, self.highlight_button)
+                self.Refresh()
+                self.message.SetLabel('Highlighted grids have incorrect or incomplete data')
+            self.bSizer_msg.ShowItems(True)
+            self.hbox.Fit(self)
+        if not has_problems:
+            self.validation_mode = set()
+            self.message.SetLabel('')
+            self.bSizer_msg.ShowItems(False)
+            self.hbox.Fit(self)
+        del wait
+
+
+    def old_on_upload_file(self, event):
         """
         Write all data to appropriate er_* and pmag_* files.
         Then use those files to create a MagIC upload format file.
@@ -322,7 +364,7 @@ Once each item in the data has its proper parent, validations will be correct.
             text = "There were some problems with the creation of your upload file.\nError message: {}\nSee Terminal/Command Prompt for details".format(error_message)
             dlg = wx.MessageDialog(self, caption="Error", message=text, style=wx.OK)
         result = dlg.ShowModal()
-        if result == wx.ID_OK:            
+        if result == wx.ID_OK:
             dlg.Destroy()
         self.edited = False
         ## add together data & coherence errors into one dictionary
@@ -464,10 +506,10 @@ class MagICMenu(wx.MenuBar):
     #    """
     #    #for use on the command line
     #    path = check_updates.get_pmag_dir()
-    #    
+    #
     #    # for use with pyinstaller:
     #    #path = self.Parent.resource_dir
-    #    
+    #
     #    html_frame = pw.HtmlFrame(self, page=(os.path.join(path, "documentation", #"magic_gui.html")))
     #    html_frame.Center()
     #    html_frame.Show()
@@ -511,8 +553,8 @@ def main():
     #    import wx.lib.inspection
     #    wx.lib.inspection.InspectionTool().Show()
     app.MainLoop()
-            
-            
+
+
 
 if __name__ == "__main__":
     main()

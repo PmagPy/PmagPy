@@ -824,7 +824,7 @@ class GridBuilder(object):
             # update the contribution with the new dataframe
             self.contribution.tables[self.grid_type] = self.magic_dataframe
             # *** probably don't actually want to write to file, here (but maybe)
-            self.magic_dataframe.write_magic_file("_{}.txt".format(self.grid_type),
+            self.magic_dataframe.write_magic_file("{}.txt".format(self.grid_type),
                                                   self.contribution.directory)
             return
 
