@@ -226,8 +226,8 @@ class Arai_GUI(wx.Frame):
         """
         args=sys.argv
         if "-h" in args:
-       print TEXT
-       sys.exit()
+            print TEXT
+            sys.exit()
 
         global FIRST_RUN
         FIRST_RUN = True if standalone else False
@@ -2927,34 +2927,34 @@ class Arai_GUI(wx.Frame):
                 Data_anisotropy[specimen][TYPE]['er_site_names']=Data_anisotropy[specimen][TYPE]['er_site_name']
                 if self.data_model==3: # prepare data for 3.0
                     new_aniso_parameters=Data_anisotropy[specimen][TYPE]
+                    # reformat all the anisotropy related keys
                     new_data=map_magic.convert_aniso('magic3',new_aniso_parameters) # turn new_aniso data to 3.0
-# first reformat all the anisotropy related keys
+                    # add numeric index column temporarily
                     self.spec_data['num'] = range(len(self.spec_data))
-           # first take out any existing anisotropy data for this specimen of this TYPE from self.spec_data
+           # edit first of existing anisotropy data for this specimen of this TYPE from self.spec_data
                     cond1=self.spec_data['specimen'].str.contains(specimen)==True
-                    cond2=self.spec_data['aniso_s'].notnull()==True
-                    cond3=self.spec_data['aniso_type']==TYPE
-                    condition=(cond1 & cond2 & cond3)
+                    #cond3=self.spec_data['aniso_s'].notnull()==True
+                    cond2=self.spec_data['aniso_type']==TYPE
+                    #condition=(cond1 & cond2 & cond3)
+                    condition=(cond1 & cond2)
                     if len(self.spec_data[condition]) > 0:  #we have one or more records to update
                         inds=self.spec_data[condition]['num'] # list of all rows where condition is true
-                        for ind in inds:
-                            existing_data=dict(self.spec_data.iloc[ind]) # get existing_data from dataframe
-                            existing_data.update(new_data) # update existing data with new interpretations
-            # update row
-                            self.spec_container.update_row(ind, existing_data)
+                        existing_data=dict(self.spec_data.iloc[inds[0]]) # get first record of existing_data from dataframe
+                        existing_data.update(new_data) # update existing data with new interpretations
+                        # update row
+                        self.spec_container.update_row(inds[0], existing_data)
+                        # now remove all the remaining records of same condition
+                        if len(inds)>1:
+                            for ind in inds[1:]:  #START HERE
+                                self.spec_container.delete_row[ind] 
                     else:
-                        print 'no record found - creating new one', spec
-        # add new row
+                        print 'no record found - creating new one for ', spec
+                        # add new row
                         self.spec_container.add_row(spec, new_data )
-# sort so that all rows for a specimen are together
+                    # sort so that all rows for a specimen are together
                     self.spec_data.sort_index(inplace=True)
-# redo temporary index
+                    # redo temporary index
                     self.spec_data['num'] = range(len(self.spec_data))
-
-
-#
-# now need to figure out how to write to specimens.txt file!
-
 
                 else: # write it to 2.5 version files
                     String=""
@@ -2974,7 +2974,7 @@ class Arai_GUI(wx.Frame):
         aniso_logfile.write( "------------------------\n")
         if self.data_model==3:
             #  write out the data
-            self.spec_container.write_magic_file(custom_name='new_specimens.txt', dir_path=self.WD)
+            self.spec_container.write_magic_file(custom_name='new_specimens.txt', dir_path=self.WD) # change this to specimens.txt when ready
         else:
             rmag_anisotropy_file.close()
 
