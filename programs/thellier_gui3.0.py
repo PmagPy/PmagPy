@@ -2931,7 +2931,8 @@ class Arai_GUI(wx.Frame):
                     # reformat all the anisotropy related keys
                     new_data=map_magic.convert_aniso('magic3',new_aniso_parameters) # turn new_aniso data to 3.0
                     # add numeric index column temporarily
-                    self.spec_data['num'] = range(len(self.spec_data))
+                    self.spec_container.df['num'] = range(len(self.spec_container.df))
+                    self.spec_data = self.spec_container.df
            # edit first of existing anisotropy data for this specimen of this TYPE from self.spec_data
                     cond1=self.spec_data['specimen'].str.contains(specimen)==True
                     #cond3=self.spec_data['aniso_s'].notnull()==True
@@ -2946,7 +2947,7 @@ class Arai_GUI(wx.Frame):
                         self.spec_container.update_row(inds[0], existing_data)
                         # now remove all the remaining records of same condition
                         if len(inds)>1:
-                            for ind in inds[1:]:  
+                            for ind in inds[1:]:
                                 print specimen,ind
                                 self.spec_container.delete_row(ind) # START HERE - this sometimes fails - why
                     else:
