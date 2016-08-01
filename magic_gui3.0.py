@@ -274,7 +274,9 @@ class MainFrame(wx.Frame):
                 col_pos = dict(zip(all_cols, col_nums))
                 for row in self.failing_items[grid_type]['num']:
                     self.grid_frame.grid.paint_invalid_row(row)
-                    cols = self.failing_items[grid_type].iloc[row].dropna().drop(["num", "issues"]).index
+                    mask = self.failing_items[grid_type]["num"] == row
+                    items = self.failing_items[grid_type][mask]
+                    cols = items.dropna(how="all", axis=1).drop(["num", "issues"], axis=1)
                     for col in cols:
                         pre, col_name = val_up3.extract_col_name(col)
                         col_ind = self.grid_frame.grid.col_labels.index(col_name)
