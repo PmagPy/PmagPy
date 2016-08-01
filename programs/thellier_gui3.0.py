@@ -2927,6 +2927,7 @@ class Arai_GUI(wx.Frame):
                 Data_anisotropy[specimen][TYPE]['er_site_names']=Data_anisotropy[specimen][TYPE]['er_site_name']
                 if self.data_model==3: # prepare data for 3.0
                     new_aniso_parameters=Data_anisotropy[specimen][TYPE]
+                    print new_aniso_parameters
                     # reformat all the anisotropy related keys
                     new_data=map_magic.convert_aniso('magic3',new_aniso_parameters) # turn new_aniso data to 3.0
                     # add numeric index column temporarily
@@ -2945,8 +2946,9 @@ class Arai_GUI(wx.Frame):
                         self.spec_container.update_row(inds[0], existing_data)
                         # now remove all the remaining records of same condition
                         if len(inds)>1:
-                            for ind in inds[1:]:  #START HERE
-                                self.spec_container.delete_row[ind] 
+                            for ind in inds[1:]:  
+                                print specimen,ind
+                                self.spec_container.delete_row(ind) # START HERE - this sometimes fails - why
                     else:
                         print 'no record found - creating new one for ', spec
                         # add new row
