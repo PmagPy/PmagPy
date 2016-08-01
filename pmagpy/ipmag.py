@@ -2531,7 +2531,7 @@ def upload_magic(concat=0, dir_path='.', data_model=None):
         return False, "file validation has failed.  You may run into problems if you try to upload this file.", errors
     return new_up, '', None
 
-def upload_magic3(concat=0, dir_path='.', dmodel=None):
+def upload_magic3(concat=0, dir_path='.', dmodel=None, vocab=""):
     """
     Finds all magic files in a given directory,
     and compiles them into an upload.txt file
@@ -2545,7 +2545,7 @@ def upload_magic3(concat=0, dir_path='.', dmodel=None):
     dtypes = ["locations", "samples", "specimens", "sites", "ages", "measurements",
                   "criteria", "contribution", "images"]
     file_names = [os.path.join(dir_path, dtype + ".txt") for dtype in dtypes]
-    con = Contribution(dir_path)
+    con = Contribution(dir_path, vocabulary=vocab)
     # begin the upload process
     up = os.path.join(dir_path, "upload.txt")
     if os.path.exists(up):

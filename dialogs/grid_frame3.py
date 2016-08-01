@@ -8,7 +8,7 @@ import pmag_widgets as pw
 import magic_grid3 as magic_grid
 import pmagpy.builder as builder
 from pmagpy.controlled_vocabularies3 import vocab
-import programs.new_builder as nb
+import pmagpy.new_builder as nb
 
 
 class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):

@@ -24,7 +24,7 @@ import dialogs.pmag_widgets as pw
 import dialogs.magic_grid3 as magic_grid
 import dialogs.pmag_menu_dialogs as pmag_menu_dialogs
 import dialogs.grid_frame3 as grid_frame
-import programs.new_builder as nb
+import pmagpy.new_builder as nb
 
 
 class MainFrame(wx.Frame):
@@ -308,7 +308,8 @@ Once each item in the data has its proper parent, validations will be correct.
     def on_upload_file(self, event):
         wait = wx.BusyInfo('Validating data, please wait...')
         wx.Yield()
-        res, error_message, has_problems, all_failing_items = ipmag.upload_magic3(dir_path=self.WD)
+        res, error_message, has_problems, all_failing_items = ipmag.upload_magic3(dir_path=self.WD,
+                                                                                  vocab=self.contribution.cv)
         self.failing_items = all_failing_items
         if has_problems:
             self.validation_mode = set(has_problems)
