@@ -269,37 +269,27 @@ class MainFrame(wx.Frame):
         # paint validations if appropriate
         if self.validation_mode:
             if grid_type in self.validation_mode:
-                all_cols = self.failing_items[grid_type].columns
-                col_nums = range(len(all_cols))
-                col_pos = dict(zip(all_cols, col_nums))
-                for row in self.failing_items[grid_type]['num']:
+                row_problems = self.failing_items[grid_type]["rows"]
+                missing_columns = self.failing_items[grid_type]["missing_columns"]
+                #all_cols = row_problems.columns
+                #col_nums = range(len(all_cols))
+                #col_pos = dict(zip(all_cols, col_nums))
+                for row in row_problems['num']:
                     self.grid_frame.grid.paint_invalid_row(row)
-                    mask = self.failing_items[grid_type]["num"] == row
-                    items = self.failing_items[grid_type][mask]
+                    mask = row_problems["num"] == row
+                    items = row_problems[mask]
                     cols = items.dropna(how="all", axis=1).drop(["num", "issues"], axis=1)
                     for col in cols:
                         pre, col_name = val_up3.extract_col_name(col)
                         col_ind = self.grid_frame.grid.col_labels.index(col_name)
                         self.grid_frame.grid.paint_invalid_cell(row, col_ind)
-                        #print self.failing_items[grid_type].iloc[row, list(self.failing_items[grid_type]).index(col)]
-                        #print row, col_name, col_ind
                 current_label = self.grid_frame.msg_text.GetLabel()
-                add_text = """\n\nColumns and rows with problem data have been highlighted in blue.
-Cells with problem data are highlighted with different colors according to the type of problem.
-Red: missing required data
-Green: missing or invalid parent
-Blue: non-numeric data provided in a numeric field
-Gray: unrecognized column
-Purple: invalid result child
-Yellow: Out-of-range latitude (should be -90 - 90) or longitude (should be 0-360)
-Light gray: Unrecognized term in controlled vocabulary
-
-Note: It is possible to have a row highlighted that has no highlighted column.
-This means that you are missing information higher up in the data.
-For example: a specimen could be missing a site name.
-However, you need to fix this in the sample grid, not the specimen grid.
-Once each item in the data has its proper parent, validations will be correct.
-"""
+                add_text = """You are missing the following required columns: {}\n
+Columns and rows with problem data have been highlighted in blue.
+Cells with problem data are highlighted according to the type of problem.
+Red: incorrect data
+For full error messages, see {}.
+""".format(", ".join(missing_columns), grid_type + "_errors.txt")
                 self.grid_frame.msg_text.SetLabel(add_text)
         #self.on_finish_change_dir(self.change_dir_dialog)
         del wait
