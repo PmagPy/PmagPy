@@ -153,7 +153,7 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
                                           name='toggle_codes_btn')
         self.Bind(wx.EVT_BUTTON, self.toggle_codes, self.toggle_codes_btn)
         # message
-        self.code_msg_boxsizer = pw.MethodCodeDemystifier(self.panel)
+        self.code_msg_boxsizer = pw.MethodCodeDemystifier(self.panel, vocab)
         self.code_msg_boxsizer.ShowItems(False)
 
         ## Add content to sizers

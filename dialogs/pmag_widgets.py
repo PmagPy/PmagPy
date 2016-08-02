@@ -9,8 +9,8 @@ import wx
 import wx.html
 import webbrowser
 # ******
-#from pmagpy.controlled_vocabularies3 import vocab
-from pmagpy.controlled_vocabularies import vocab
+from pmagpy.controlled_vocabularies3 import vocab
+#from pmagpy.controlled_vocabularies import vocab
 
 
 # library for commonly used widgets.
@@ -789,19 +789,23 @@ class AddItem(wx.Frame):
 
 class MethodCodeDemystifier(wx.StaticBoxSizer):
 
-    def __init__(self, parent):
+    def __init__(self, parent, vocabulary=None):
         self.box = wx.StaticBox(parent, wx.ID_ANY, "")
         super(MethodCodeDemystifier, self).__init__(self.box, orient=wx.VERTICAL)
         grid_sizer = wx.GridSizer(0, 5, 3, 3)
-        if not any(vocab.code_types):
-            #vocab.get_all_vocabulary()
-            vocab.get_stuff()
-        types = vocab.code_types.index
-        types = vocab.code_types['label']
-        type_ind = vocab.code_types.index
+        if vocabulary:
+            vc = vocabulary
+        else:
+            vc = vocab
+        if not any(vc.code_types):
+            vc.get_all_vocabulary() # with 3.0
+            #vc.get_stuff() # with 2.5
+        types = vc.code_types.index
+        types = vc.code_types['label']
+        type_ind = vc.code_types.index
 
         for method_type in types:
-            name = str(vocab.code_types[vocab.code_types.label == method_type].index[0])
+            name = str(vc.code_types[vc.code_types.label == method_type].index[0])
             # make button & add to sizer
             btn = wx.Button(parent, label=method_type, name=name)
             grid_sizer.Add(btn, 0, wx.EXPAND)
