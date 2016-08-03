@@ -920,7 +920,7 @@ class Arai_GUI(wx.Frame):
 
         menu_file.AppendSeparator()
 
-        m_prepare_MagIC_results_tables= menu_file.Append(-1, "&Save MagIC pmag tables", "")
+        m_prepare_MagIC_results_tables= menu_file.Append(-1, "&Save MagIC tables", "")
         self.Bind(wx.EVT_MENU, self.on_menu__prepare_MagIC_results_tables, m_prepare_MagIC_results_tables)
 
         submenu_save_plots = wx.Menu()
@@ -1833,26 +1833,6 @@ class Arai_GUI(wx.Frame):
             return
 
 
-
-
-##    def on_save_all_plots(self,event):
-##        #search for NRM:
-##        nrm0=""
-##        for rec in self.Data[self.s]['datablock']:
-##          if "LT-NO" in rec['magic_method_codes']:
-##              nrm0= "%.2e"%float(rec['measurement_magn_moment'])
-##              break
-##
-##        self.fig1.text(0.1,0.93,'$NRM_0 = %s Am^2 $'%(nrm0),{'family':'Arial', 'fontsize':10, 'style':'normal','va':'center', 'ha':'left' })
-##        self.fig1.text(0.9,0.93,'%s'%(self.s),{'family':'Arial', 'fontsize':10, 'style':'normal','va':'center', 'ha':'right' })
-##        #self.canvas1.draw()
-##        SaveAllMyPlot(self.pars)
-##        self.fig1.clear()
-##        self.fig1.text(0.01,0.98,"Arai plot",{'family':'Arial', 'fontsize':10, 'style':'normal','va':'center', 'ha':'left' })
-##        self.araiplot = self.fig1.add_axes([0.1,0.1,0.8,0.8])
-##        self.draw_figure(self.s)
-##        self.update_selection()
-
     def on_menu_previous_interpretation(self, event):
 
         save_current_specimen=self.s
@@ -2305,9 +2285,14 @@ class Arai_GUI(wx.Frame):
             crit_data=crit_data.to_dict('records') # convert to list of dictionaries
             for crit in crit_data:  # step through and rename every f-ing one
                 m2_name=map_magic.convert_intensity_criteria('magic2',crit['table_column']) #magic2[magic3.index(crit['table_column'])] # find data model 2.5 name
-                if m2_name!=crit['table_column'] and m2_name!="":
+                if m2_name!=crit['table_column'] and 'scat' not in m2_name!="":
                     self.acceptance_criteria[m2_name]['value']=float(crit['criterion_value'])
                     self.acceptance_criteria[m2_name]['pmag_criteria_code']=crit['criterion']
+                if m2_name!=crit['table_column'] and 'scat' in m2_name!="":
+                    if crit['criterion_value']=='True': 
+                        self.acceptance_criteria[m2_name]['value']=1
+                    else:
+                        self.acceptance_criteria[m2_name]['value']=0
         else: #      Do it the data model 2.5 way:
             try:
                 self.acceptance_criteria=pmag.read_criteria_from_file(criteria_file,self.acceptance_criteria)
@@ -3171,7 +3156,6 @@ class Arai_GUI(wx.Frame):
 
         import copy
 
-
         # write a redo file
         try:
             self.on_menu_save_interpretation(None)
@@ -3282,6 +3266,7 @@ class Arai_GUI(wx.Frame):
                     MagIC_results_data['pmag_specimens'][specimen]['specimen_int_corr_cooling_rate']="%.2f"%(self.Data[specimen]['pars']['specimen_int_corr_cooling_rate'])
                 else:
                     MagIC_results_data['pmag_specimens'][specimen]['specimen_int_corr_cooling_rate']=""
+                MagIC_results_data['pmag_specimens'][specimen]['criteria']="IE-SPEC"
                 if self.data_model==3:   # convert pmag_specimen format to data model 3 and replace existing specimen record or add new
                     new_spec_data=MagIC_results_data['pmag_specimens'][specimen]
                     # reformat all the keys
@@ -3305,7 +3290,7 @@ class Arai_GUI(wx.Frame):
                             for ind in inds[1:]:
                                 self.spec_container.delete_row(ind)
                     else:
-                        print 'no record found - creating new one for ', spec
+                        print 'no record found - creating new one for ', specimen
                         # add new row
                         self.spec_container.add_row(spec, new_data )
                     # sort so that all rows for a specimen are together
@@ -3358,7 +3343,6 @@ class Arai_GUI(wx.Frame):
         if result == wx.ID_CANCEL:
             dlg.Destroy()
             return()
-### START HERE WITH PMAG SAMPLES TABLE FOR DATA MODEL 3.0
         #-------------
         # pmag_samples.txt or pmag_sites.txt
         #-------------
@@ -3436,7 +3420,6 @@ class Arai_GUI(wx.Frame):
 
                     MagIC_results_data['pmag_samples_or_sites'][sample_or_site]['er_site_name']=site_name
                     MagIC_results_data['pmag_samples_or_sites'][sample_or_site]['er_location_name']=location_name
-
                     MagIC_results_data['pmag_samples_or_sites'][sample_or_site]["pmag_criteria_codes"]=""
                     MagIC_results_data['pmag_samples_or_sites'][sample_or_site]['magic_method_codes']=magic_codes
                     MagIC_results_data['pmag_samples_or_sites'][sample_or_site]["magic_software_packages"]=version
@@ -3523,7 +3506,11 @@ class Arai_GUI(wx.Frame):
 
         for sample_or_site in pmag_samples_or_sites_list:
             MagIC_results_data['pmag_results'][sample_or_site]={}
-            MagIC_results_data['pmag_results'][sample_or_site]['pmag_criteria_codes']="ACCEPT"
+            if self.data_model==3:
+                if BY_SAMPLES:MagIC_results_data['pmag_results'][sample_or_site]['pmag_criteria_codes']="IE-SPEC:IE-SAMP"
+                if BY_SITES:MagIC_results_data['pmag_results'][sample_or_site]['pmag_criteria_codes']="IE-SPEC:IE-SITE"
+            else:
+                MagIC_results_data['pmag_results'][sample_or_site]['pmag_criteria_codes']="ACCEPT"
             MagIC_results_data['pmag_results'][sample_or_site]["er_location_names"]=MagIC_results_data['pmag_samples_or_sites'][sample_or_site]['er_location_name']
             MagIC_results_data['pmag_results'][sample_or_site]["er_site_names"]=MagIC_results_data['pmag_samples_or_sites'][sample_or_site]['er_site_name']
             MagIC_results_data['pmag_results'][sample_or_site]["er_specimen_names"]=MagIC_results_data['pmag_samples_or_sites'][sample_or_site]['er_specimen_names']
@@ -3998,14 +3985,6 @@ class Arai_GUI(wx.Frame):
                 pars['pass_or_fail']='fail'
                 pars['fail_list'].append("int_sigma")
 
-
-        #if sigma_perc_cutoff_value!=-999 or sigma_cutoff_value!=-999:
-        #    if not (pass_sigma or pass_sigma_perc):
-        #        pars['pass_or_fail']='fail'
-        #        pars['fail_list'].append("int_sigma")
-
-        #----------
-        # int_sigma ; int_sigma_perc
         pass_int_interval,pass_int_interval_perc=False,False
         if self.acceptance_criteria['average_by_sample_or_site']['value']=='sample':
             cutoff_value=self.acceptance_criteria['sample_int_interval_uT']['value']
