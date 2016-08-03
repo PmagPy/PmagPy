@@ -76,7 +76,7 @@ from pmagpy.Fit import *
 import dialogs.demag_dialogs as demag_dialogs
 from copy import deepcopy,copy
 import cit_magic as cit_magic
-import new_builder as nb
+import pmagpy.new_builder as nb
 from pandas import DataFrame,Series
 from SPD.mapping import map_magic
 

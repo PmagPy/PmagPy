@@ -7,7 +7,7 @@ import json
 import os
 import backup_vocabulary as backup
 import check_updates
-from pmagpy import data_model3
+import data_model3
 pmag_dir = check_updates.get_pmag_dir()
 data_model_dir = os.path.join(pmag_dir, 'pmagpy', 'data_model')
 # if using with py2app, the directory structure is flat,
@@ -160,6 +160,10 @@ class Vocabulary(object):
             data['boolean'] = series
             # use vocabulary name to get possible values for the column name
             for vocab in vocab_col_names[:]:
+                if vocab[0] == "magic_table_column":
+                    vocab_col_names.remove(("magic_table_column", "table_column"))
+                    continue
+
                 items = data[vocab[0]]['items']
                 stripped_list = [item['item'] for item in items]
                 controlled_vocabularies.append(stripped_list)

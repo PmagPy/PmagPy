@@ -31,7 +31,7 @@ spd = ['R_corr2', 'PCA_sigma_int_Free', 'PCA_sigma_max_Free', 'n_tail', 'delta_p
 
 magic = ['specimen_coeff_det_sq', 'specimen_PCA_sigma_int', 'specimen_PCA_sigma_max', 'specimen_int_ptrm_tail_n', 'specimen_dpal', 'specimen_tail_drat', 'specimen_md', 'specimen_ac_n', 'specimen_dac', 'specimen_cm_y', 'specimen_int_mad', 'specimen_int_ptrm_n', 'specimen_drat', 'specimen_z_md', 'specimen_frac', 'specimen_cdrat', 'specimen_dec', 'specimen_mdev', 'specimen_drats', 'specimen_z', 'specimen_maxdev', 'fail_arai_beta_box_scatter', 'specimen_gmax', 'specimen_ptrms_mad', 'specimen_ptrms_dec', 'specimen_int_mad_anc', 'fail_ptrm_beta_box_scatter', 'specimen_ptrms_angle', 'specimen_scat_bounding_line_low', 'specimen_PCA_sigma_min', 'specimen_int_uT', 'specimen_scat', 'specimen_r_sq', 'specimen_PCA_v1', 'specimen_b_beta', 'specimen_YT', 'specimen_dck', 'lab_dc_field', 'specimen_inc', 'specimen_mdrat', 'specimen_theta', 'specimen_ptrm', 'measurement_step_min', 'specimen_cm_x', 'fail_tail_beta_box_scatter', 'specimen_dtr', 'specimen_int_alpha', 'specimen_fvds', 'specimen_b_sigma', 'specimen_b', 'specimen_g', 'specimen_f', 'measurement_step_max', 'specimen_int_n', 'specimen_q', 'specimen_int_dang', 'specimen_ptrms_inc', 'specimen_k_sse', 'specimen_gamma', 'specimen_scat_bounding_line_high', 'specimen_k', 'specimen_int_crm', 'specimen_dt', 'specimen_k_prime', 'specimen_k_prime_sse']
 
-magic3 = ['specimens.int_r2_det', 'specimens.int_n_ptrm_tail', 'specimens.int_dpal', 'specimens.int_drat_tail', 'specimens.int_md', 'specimens.int_n_ac', 'specimens.int_dac', 'specimens.int_mad', 'specimens.int_n_ptrm', 'specimens.int_drat', 'specimens.int_z_md', 'specimens.int_frac', 'specimens.int_cdrat', 'specimens.dir_dec', 'specimens.int_mdev', 'specimens.int_drats', 'specimens.int_z', 'specimens.int_maxdev', 'specimens.int_gmax', 'specimens.int_mad_anc', 'specimens.int_scat', 'specimens.int_r2_corr', 'specimens.int_b_beta', 'specimens.int_dck', 'specimens.treat_dc_field', 'specimens.dir_inc', 'specimens.int_mdrat', 'specimens.int_theta', 'specimens.int_ptrm', 'specimens.meas_step_min', 'specimens.int_dtr', 'specimens.int_alpha', 'specimens.int_fvds', 'specimens.int_b_sigma', 'specimens.int_b', 'specimens.int_g', 'specimens.int_f', 'specimens.meas_step_max', 'specimens.int_n_measurements', 'specimens.int_q', 'specimens.int_dang',  'specimens.int_k_sse', 'specimens.int_gamma', 'specimens.int_k', 'specimens.int_crm', 'specimens.int_dt', 'specimens.int_k_prime', 'specimens.int_k_prime_sse','samples.int_n_specimens','samples.int_sigma_perc','samples.int_sigma','sites.int_n_specimens','sites.int_sigma_perc','sites.int_sigma','criterion']
+magic3 = ['specimens.int_r2_det', 'specimens.int_n_ptrm_tail', 'specimens.int_dpal', 'specimens.int_drat_tail', 'specimens.int_md', 'specimens.int_n_ac', 'specimens.int_dac', 'specimens.int_mad', 'specimens.int_n_ptrm', 'specimens.int_drat', 'specimens.int_z_md', 'specimens.int_frac', 'specimens.int_cdrat', 'specimens.dir_dec', 'specimens.int_mdev', 'specimens.int_drats', 'specimens.int_z', 'specimens.int_maxdev', 'specimens.int_gmax', 'specimens.int_mad_anc', 'specimens.int_scat', 'specimens.int_r2_corr', 'specimens.int_b_beta', 'specimens.int_dck', 'specimens.treat_dc_field', 'specimens.dir_inc', 'specimens.int_mdrat', 'specimens.int_theta', 'specimens.int_ptrm', 'specimens.meas_step_min', 'specimens.int_dtr', 'specimens.int_alpha', 'specimens.int_fvds', 'specimens.int_b_sigma', 'specimens.int_b', 'specimens.int_g', 'specimens.int_f', 'specimens.meas_step_max', 'specimens.int_n_measurements', 'specimens.int_q', 'specimens.int_dang',  'specimens.int_k_sse', 'specimens.int_gamma', 'specimens.int_k', 'specimens.int_crm', 'specimens.int_dt', 'specimens.int_k_prime', 'specimens.int_k_prime_sse','samples.int_n_specimens','samples.int_abs_sigma_perc','samples.int_abs_sigma','sites.int_n_specimens','sites.int_abs_sigma_perc','sites.int_abs_sigma','criterion']
 spd2magic_map = dict(zip(spd, magic))
 magic2spd_map = dict(zip(magic, spd))
 
@@ -46,14 +46,14 @@ meas_magic2_2_magic3_map = {v:k for k,v in meas_magic3_2_magic2_map.items()}
 #specimen data translation pmag_speciemns,er_specimens -> specimens.txt
 spec_magic3_2_magic2_map = {'int_drats': 'specimen_drats', 'site': 'er_site_name', 'int_mad': 'specimen_int_mad', 'sample': 'er_sample_name', 'measurement_step_max': 'meas_step_max', 'specimen_n': 'dir_n_measurements', 'int_n_measurements': 'specimen_int_n', 'int_corr': 'specimen_correction', 'int_rsc': 'specimen_rsc', 'analyst_names': 'er_analyst_mail_names', 'int_scat': 'specimen_scat', 'int_ptrm_n': 'specimen_int_ptrm_n', 'citations': 'er_citation_names', 'int_gmax': 'specimen_gmax', 'int_dang': 'specimen_int_dang', 'dir_tilt_correction': 'specimen_tilt_correction', 'location': 'er_location_name', 'dir_comp': 'specimen_comp_name', 'specimen_magn_moment': 'magn_moment', 'int_w': 'specimen_w', 'specimen': 'er_specimen_name', 'int_q': 'specimen_q', 'int_fvds': 'specimen_fvds', 'specimen_mad': 'dir_mad_free', 'int_frac': 'specimen_frac', 'meas_step_min': 'measurement_step_min', 'int_f': 'specimen_f', 'software_packages': 'magic_software_packages', 'dir_mad_free': 'specimen_mad', 'magn_moment': 'specimen_magn_moment', 'instrument_codes': 'magic_instrument_codes', 'int_b_beta': 'specimen_b_beta', 'dir_n_comps': 'specimen_comp_n', 'int_md': 'specimen_md', 'dir_n_measurements': 'specimen_n', 'dir_inc': 'specimen_inc', 'specimen_magn_volumn': 'magn_volumn', 'meas_step_max': 'measurement_step_max', 'dir_alpha95': 'specimen_alpha95', 'magn_volumne': 'specimen_magn_volumn', 'measurement_step_min': 'meas_step_min', 'meas_step_unit': 'measurement_step_unit', 'dir_dec': 'specimen_dec', 'method_codes': 'magic_method_codes', 'result_quality': 'specimen_flag', 'dir_dang': 'specimen_dang'}
 
-spec_magic2_2_magic3_map = {v:k for k,v in spec_magic3_2_magic2_map.items()}
+#spec_magic3_2_magic2_map = {v:k for k,v in spec_magic3_2_magic2_map.items()}
 
-#sample data translation pmag_samples,er_samples -> samples.txt
+#sample data translation samples.txt => pmag_samples.txt
 samp_magic3_2_magic2_map = {'int_n_specimens' : 'sample_int_n', 'int_abs_sigma' : 'sample_int_sigma', 'int_abs_sigma_perc' : 'sample_int_sigma_perc', 'dir_alpha95' : 'sample_alpha95', 'dir_n_specimens' : 'sample_n', 'dir_n_specimens_lines' : 'sample_n_lines', 'dir_n_specimens_planes' : 'sample_n_planes', 'dir_k' : 'sample_k', 'dir_r' : 'sample_r'}
 
 samp_magic2_2_magic3_map = {v:k for k,v in samp_magic3_2_magic2_map.items()}
 
-#site data translation pmag_sites,er_sites -> sites.txt
+#site data translation pmag_sites,er_sites -> sites.txt and back
 site_magic3_2_magic2_map = {'int_abs_sigma' : 'site_int_sigma', 'int_abs_sigma_perc' : 'site_int_sigma_perc', 'int_n_samples' : 'site_int_n', 'dir_alpha95' : 'site_alpha95', 'dir_k' : 'site_k', 'dir_n_samples' : 'site_n', 'dir_n_specimens_lines' : 'site_n_lines', 'dir_n_specimens_planes' : 'site_n_planes', 'dir_r' : 'site_r'}
 
 site_magic2_2_magic3_map = {v:k for k,v in site_magic3_2_magic2_map.items()}
@@ -69,14 +69,14 @@ samp_magic2 = samp_magic3_2_magic2_map.values()
 site_magic2 = site_magic3_2_magic2_map.values()
 
 
-
+#  START HERE WITH MAPPING 2 => 3
 #specimen data translation pmag_speciemns,er_specimens -> specimens.txt
-spec_magic2_2_magic3_map = {'er_citation_names': 'citations', 'specimen_int_dang': 'int_dang', 'measurement_step_unit': 'meas_step_unit', 'specimen_frac': 'int_frac', 'measurement_step_max': 'meas_step_max', 'specimen_b_beta': 'int_b_beta', 'magic_software_packages': 'software_packages', 'specimen_int_n': 'int_n_measurements', 'magic_method_codes': 'method_codes', 'specimen_md': 'int_md', 'er_location_name': 'location', 'dir_mad_free': 'specimen_mad', 'specimen_tilt_correction': 'dir_tilt_correction', 'specimen_inc': 'dir_inc', 'er_specimen_name': 'specimen', 'measurement_step_min': 'meas_step_min', 'meas_step_max': 'measurement_step_max', 'specimen_magn_moment': 'magn_moment', 'magn_volumn': 'specimen_magn_volumn', 'specimen_flag': 'result_quality', 'specimen_int_mad': 'int_mad', 'magic_instrument_codes': 'instrument_codes', 'specimen_mad': 'dir_mad_free', 'meas_step_min': 'measurement_step_min', 'specimen_dec': 'dir_dec', 'specimen_alpha95': 'dir_alpha95', 'specimen_fvds': 'int_fvds', 'er_analyst_mail_names': 'analyst_names', 'specimen_drats': 'int_drats', 'specimen_comp_name': 'dir_comp', 'specimen_correction': 'int_corr', 'specimen_gmax': 'int_gmax', 'specimen_f': 'int_f', 'specimen_int_ptrm_n': 'int_ptrm_n', 'er_site_name': 'site', 'specimen_rsc': 'int_rsc', 'dir_n_measurements': 'specimen_n', 'specimen_magn_volumn': 'magn_volumne', 'specimen_n': 'dir_n_measurements', 'specimen_q': 'int_q', 'specimen_dang': 'dir_dang', 'specimen_comp_n': 'dir_n_comps', 'specimen_w': 'int_w', 'specimen_scat': 'int_scat', 'magn_moment': 'specimen_magn_moment', 'er_sample_name': 'sample'}
+spec_magic2_2_magic3_map = {'er_citation_names': 'citations', 'specimen_int_dang': 'int_dang', 'measurement_step_unit': 'meas_step_unit', 'specimen_frac': 'int_frac', 'measurement_step_max': 'meas_step_max', 'specimen_b_beta': 'int_b_beta', 'magic_software_packages': 'software_packages', 'specimen_int_n': 'int_n_measurements', 'magic_method_codes': 'method_codes', 'specimen_md': 'int_md', 'er_location_name': 'location', 'dir_mad_free': 'specimen_mad', 'specimen_tilt_correction': 'dir_tilt_correction', 'specimen_inc': 'dir_inc', 'er_specimen_name': 'specimen', 'measurement_step_min': 'meas_step_min', 'meas_step_max': 'measurement_step_max', 'specimen_magn_moment': 'magn_moment', 'magn_volumn': 'specimen_magn_volumn', 'specimen_flag': 'result_quality', 'specimen_int_mad': 'int_mad', 'magic_instrument_codes': 'instrument_codes', 'specimen_mad': 'dir_mad_free', 'meas_step_min': 'measurement_step_min', 'specimen_dec': 'dir_dec', 'specimen_alpha95': 'dir_alpha95', 'specimen_fvds': 'int_fvds', 'er_analyst_mail_names': 'analyst_names', 'specimen_drats': 'int_drats', 'specimen_comp_name': 'dir_comp', 'specimen_correction': 'int_corr', 'specimen_gmax': 'int_gmax', 'specimen_f': 'int_f', 'specimen_int_ptrm_n': 'int_ptrm_n', 'er_site_name': 'site', 'specimen_rsc': 'int_rsc', 'dir_n_measurements': 'specimen_n', 'specimen_magn_volumn': 'magn_volumne', 'specimen_n': 'dir_n_measurements', 'specimen_q': 'int_q', 'specimen_dang': 'dir_dang', 'specimen_comp_n': 'dir_n_comps', 'specimen_w': 'int_w', 'specimen_scat': 'int_scat', 'magn_moment': 'specimen_magn_moment', 'er_sample_name': 'sample','specimen_int_corr_anisotropy':'int_corr_anisotropy','specimen_int_corr_cooling_rate':'int_corr_cooling_rate','specimen_int_corr_nlt':'int_corr_nlt','magic_experiment_names':'experiments','specimen_lab_field_dc':'int_treat_dc_field','specimen_correction':'int_corr','specimen_int':'int_abs'}
 
-spec_magic2_2_magic3_map = {v:k for k,v in spec_magic3_2_magic2_map.items()}
+#spec_magic2_2_magic3_map = {v:k for k,v in spec_magic2_2_magic3_map.items()}
 
 
-
+samp_magic2_2_magic3_map = {'sample_n_planes': 'dir_n_specimens_planes', 'sample_n_lines': 'dir_n_specimens_lines', 'sample_r': 'dir_r', 'sample_n': 'dir_n_specimens', 'sample_k': 'dir_k', 'sample_int_sigma_perc': 'int_abs_sigma_perc', 'sample_int_n': 'int_n_specimens', 'sample_alpha95': 'dir_alpha95', 'sample_int_sigma': 'int_abs_sigma'}
 
 
 
@@ -102,6 +102,40 @@ def convert_intensity_criteria(direction,crit):
             return magic3[magic2.index(crit)]
         else:
             return crit
+
+def convert_spec(direction,Rec):
+    if direction=='magic3':
+        columns=spec_magic2_2_magic3_map
+        SpecRec={}
+        for key in columns:
+            if key in Rec.keys():
+                SpecRec[columns[key]]=Rec[key] # transfer info and change column name to data model 3.0
+        return SpecRec
+    else: # haven't added this way yet
+        pass
+
+def convert_samp(direction,Rec):
+    if direction=='magic3':
+        columns=samp_magic2_2_magic3_map
+        SampRec={}
+        for key in columns:
+            if key in Rec.keys():
+                SampRec[columns[key]]=Rec[key] # transfer info and change column name to data model 3.0
+        return SampRec
+    else: # haven't added this way yet
+        pass
+
+def convert_site(direction,Rec):
+    if direction=='magic3':
+        columns=site_magic2_2_magic3_map
+        SiteRec={}
+        for key in columns:
+            if key in Rec.keys():
+                SiteRec[columns[key]]=Rec[key] # transfer info and change column name to data model 3.0
+        return SiteRec
+    else: # haven't added this way yet
+        pass
+
 
 def convert_aniso(direction,AniSpec):
     if direction=='magic2':

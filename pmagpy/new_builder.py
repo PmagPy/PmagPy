@@ -14,7 +14,9 @@ import re
 import pandas as pd
 from pandas import DataFrame
 from pmagpy import pmag
-from pmagpy import data_model3 as data_model
+#from pmagpy import data_model3 as data_model
+import data_model3 as data_model
+import pmagpy.controlled_vocabularies3 as cv
 
 
 class Contribution(object):
@@ -29,7 +31,13 @@ class Contribution(object):
 
     def __init__(self, directory, read_tables='all',
                  custom_filenames=None, single_file=None,
-                 dmodel=None):
+                 dmodel=None, vocabulary=""):
+        if len(vocabulary):
+            self.cv = vocabulary
+        else:
+            vocab = cv.Vocabulary()
+            vocabulary, possible_vocabulary = vocab.get_controlled_vocabularies()
+            self.cv = vocabulary
         self.data_model = dmodel
         self.directory = os.path.realpath(directory)
         self.table_names = ['measurements', 'specimens', 'samples',

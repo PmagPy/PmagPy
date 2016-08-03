@@ -8,7 +8,7 @@ if matplotlib.get_backend() != "TKAgg":
 
 import pmagpy.pmag as pmag
 import pmagpy.pmagplotlib as pmagplotlib
-import new_builder as nb
+import pmagpy.new_builder as nb
 
 
 def main():
@@ -146,9 +146,9 @@ def main():
                     title = 'Hysteresis: ' + s
                 if t == Temps[0]:
                     pmagplotlib.clearFIG(HDD['hyst'])
-                pmagplotlib.plotXY(HDD['hyst'],B,M,sym=c[cnum],xlab=xlab,ylab=ylab,title=title) 
-                pmagplotlib.plotXY(HDD['hyst'],[1.1*B.min(),1.1*B.max()],[0,0],sym='k-',xlab=xlab,ylab=ylab,title=title) 
-                pmagplotlib.plotXY(HDD['hyst'],[0,0],[1.1*M.min(),1.1*M.max()],sym='k-',xlab=xlab,ylab=ylab,title=title) 
+                pmagplotlib.plotXY(HDD['hyst'],B,M,sym=c[cnum],xlab=xlab,ylab=ylab,title=title)
+                pmagplotlib.plotXY(HDD['hyst'],[1.1*B.min(),1.1*B.max()],[0,0],sym='k-',xlab=xlab,ylab=ylab,title=title)
+                pmagplotlib.plotXY(HDD['hyst'],[0,0],[1.1*M.min(),1.1*M.max()],sym='k-',xlab=xlab,ylab=ylab,title=title)
                 if verbose:
                     pmagplotlib.drawFIGS(HDD)
                 cnum += 1

@@ -14,6 +14,7 @@ import sys
 import os
 import pmagpy
 import pmagpy.data_model3 as data_model3
+import pmagpy.validate_upload3 as val_up3
 import pmagpy.check_updates as check_updates
 import pmagpy.builder as builder
 import pmagpy.pmag as pmag
@@ -23,7 +24,7 @@ import dialogs.pmag_widgets as pw
 import dialogs.magic_grid3 as magic_grid
 import dialogs.pmag_menu_dialogs as pmag_menu_dialogs
 import dialogs.grid_frame3 as grid_frame
-import programs.new_builder as nb
+import pmagpy.new_builder as nb
 
 
 class MainFrame(wx.Frame):
@@ -94,14 +95,14 @@ class MainFrame(wx.Frame):
 
         text = "1. add location data"
         self.btn1 = buttons.GenButton(self.panel, id=-1, label=text,
-                                      size=(300, 50), name='location_btn')
+                                      size=(300, 50), name='locations_btn')
         self.btn1.SetBackgroundColour("#FDC68A")
         self.btn1.InitColours()
         self.Bind(wx.EVT_BUTTON, self.make_grid_frame, self.btn1)
 
         text = "2. add site data"
         self.btn2 = buttons.GenButton(self.panel, id=-1, label=text,
-                                      size=(300, 50), name='site_btn')
+                                      size=(300, 50), name='sites_btn')
         self.btn2.SetBackgroundColour("#6ECFF6")
         self.btn2.InitColours()
         self.Bind(wx.EVT_BUTTON, self.make_grid_frame, self.btn2)
@@ -109,15 +110,15 @@ class MainFrame(wx.Frame):
 
         text = "3. add sample data"
         self.btn3 = buttons.GenButton(self.panel, id=-1, label=text,
-                                      size=(300, 50), name='sample_btn')
+                                      size=(300, 50), name='samples_btn')
         self.btn3.SetBackgroundColour("#C4DF9B")
         self.btn3.InitColours()
         self.Bind(wx.EVT_BUTTON, self.make_grid_frame, self.btn3)
 
-        
+
         text = "4. add specimen data"
         self.btn4 = buttons.GenButton(self.panel, id=-1,
-                                      label=text, size=(300, 50), name='specimen_btn')
+                                      label=text, size=(300, 50), name='specimens_btn')
         self.btn4.SetBackgroundColour("#FDC68A")
         self.btn4.InitColours()
         self.Bind(wx.EVT_BUTTON, self.make_grid_frame, self.btn4)
@@ -125,11 +126,11 @@ class MainFrame(wx.Frame):
 
         text = "5. add age data"
         self.btn5 = buttons.GenButton(self.panel, id=-1, label=text,
-                                      size=(300, 50), name='age_btn')
+                                      size=(300, 50), name='ages_btn')
         self.btn5.SetBackgroundColour("#6ECFF6")
         self.btn5.InitColours()
         self.Bind(wx.EVT_BUTTON, self.make_grid_frame, self.btn5)
-        
+
         #text = "6. add results data"
         #self.btn6 = buttons.GenButton(self.panel, id=-1, label=text,
         #                              size=(300, 50), name='result_btn')
@@ -244,8 +245,8 @@ class MainFrame(wx.Frame):
         self.grid_frame = None
         self.Show()
         if event:
-            event.Skip()    
-        
+            event.Skip()
+
     def make_grid_frame(self, event):
         """
         Create a GridFrame for data type of the button that was clicked
@@ -263,34 +264,69 @@ class MainFrame(wx.Frame):
         wx.Yield()
         # hide mainframe
         self.on_open_grid_frame()
-        grid_type += 's'
+        # make grid frame
         self.grid_frame = grid_frame.GridFrame(self.contribution, self.WD, grid_type, grid_type, self.panel)
+        # paint validations if appropriate
         if self.validation_mode:
             if grid_type in self.validation_mode:
-                self.grid_frame.grid.paint_invalid_cells(self.warn_dict[grid_type])
-                #self.grid_frame.msg_boxsizer
+                row_problems = self.failing_items[grid_type]["rows"]
+                missing_columns = self.failing_items[grid_type]["missing_columns"]
+                #all_cols = row_problems.columns
+                #col_nums = range(len(all_cols))
+                #col_pos = dict(zip(all_cols, col_nums))
+                for row in row_problems['num']:
+                    self.grid_frame.grid.paint_invalid_row(row)
+                    mask = row_problems["num"] == row
+                    items = row_problems[mask]
+                    cols = items.dropna(how="all", axis=1).drop(["num", "issues"], axis=1)
+                    for col in cols:
+                        pre, col_name = val_up3.extract_col_name(col)
+                        col_ind = self.grid_frame.grid.col_labels.index(col_name)
+                        self.grid_frame.grid.paint_invalid_cell(row, col_ind)
                 current_label = self.grid_frame.msg_text.GetLabel()
-                add_text = """\n\nColumns and rows with problem data have been highlighted in blue.
-Cells with problem data are highlighted with different colors according to the type of problem.
-Red: missing required data
-Green: missing or invalid parent
-Blue: non-numeric data provided in a numeric field
-Gray: unrecognized column
-Purple: invalid result child
-Yellow: Out-of-range latitude (should be -90 - 90) or longitude (should be 0-360)
-Light gray: Unrecognized term in controlled vocabulary
-
-Note: It is possible to have a row highlighted that has no highlighted column.  
-This means that you are missing information higher up in the data.
-For example: a specimen could be missing a site name.
-However, you need to fix this in the sample grid, not the specimen grid.  
-Once each item in the data has its proper parent, validations will be correct.
-"""
+                add_text = """You are missing the following required columns: {}\n
+Columns and rows with problem data have been highlighted in blue.
+Cells with problem data are highlighted according to the type of problem.
+Red: incorrect data
+For full error messages, see {}.
+""".format(", ".join(missing_columns), grid_type + "_errors.txt")
                 self.grid_frame.msg_text.SetLabel(add_text)
         #self.on_finish_change_dir(self.change_dir_dialog)
         del wait
 
+
     def on_upload_file(self, event):
+        wait = wx.BusyInfo('Validating data, please wait...')
+        wx.Yield()
+        res, error_message, has_problems, all_failing_items = ipmag.upload_magic3(dir_path=self.WD,
+                                                                                  vocab=self.contribution.cv)
+        self.failing_items = all_failing_items
+        if has_problems:
+            self.validation_mode = set(has_problems)
+            # highlighting doesn't work with Windows
+            if sys.platform in ['win32', 'win62']:
+                self.message.SetLabel('The following grid(s) have incorrect or incomplete data:\n{}'.format(', '.join(self.validation_mode)))
+            # highlighting does work with OSX
+            else:
+                for dtype in ["specimens", "samples", "sites", "locations", "ages"]:
+                    wind = self.FindWindowByName(dtype + '_btn')
+                    if dtype not in has_problems:
+                        wind.Unbind(wx.EVT_PAINT, handler=self.highlight_button)
+                    else:
+                        wind.Bind(wx.EVT_PAINT, self.highlight_button)
+                self.Refresh()
+                self.message.SetLabel('Highlighted grids have incorrect or incomplete data')
+            self.bSizer_msg.ShowItems(True)
+            self.hbox.Fit(self)
+        if not has_problems:
+            self.validation_mode = set()
+            self.message.SetLabel('')
+            self.bSizer_msg.ShowItems(False)
+            self.hbox.Fit(self)
+        del wait
+
+
+    def old_on_upload_file(self, event):
         """
         Write all data to appropriate er_* and pmag_* files.
         Then use those files to create a MagIC upload format file.
@@ -321,7 +357,7 @@ Once each item in the data has its proper parent, validations will be correct.
             text = "There were some problems with the creation of your upload file.\nError message: {}\nSee Terminal/Command Prompt for details".format(error_message)
             dlg = wx.MessageDialog(self, caption="Error", message=text, style=wx.OK)
         result = dlg.ShowModal()
-        if result == wx.ID_OK:            
+        if result == wx.ID_OK:
             dlg.Destroy()
         self.edited = False
         ## add together data & coherence errors into one dictionary
@@ -434,10 +470,6 @@ class MagICMenu(wx.MenuBar):
                     return
         if self.parent.grid_frame:
             self.parent.grid_frame.Destroy()
-        # if there have been edits, save all data to files
-        # before quitting
-        if self.parent.edited:
-            self.parent.er_magic.write_files()
         self.parent.Close()
         try:
             sys.exit()
@@ -463,10 +495,10 @@ class MagICMenu(wx.MenuBar):
     #    """
     #    #for use on the command line
     #    path = check_updates.get_pmag_dir()
-    #    
+    #
     #    # for use with pyinstaller:
     #    #path = self.Parent.resource_dir
-    #    
+    #
     #    html_frame = pw.HtmlFrame(self, page=(os.path.join(path, "documentation", #"magic_gui.html")))
     #    html_frame.Center()
     #    html_frame.Show()
@@ -510,8 +542,8 @@ def main():
     #    import wx.lib.inspection
     #    wx.lib.inspection.InspectionTool().Show()
     app.MainLoop()
-            
-            
+
+
 
 if __name__ == "__main__":
     main()

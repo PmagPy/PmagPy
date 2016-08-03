@@ -248,7 +248,7 @@ class MagicGrid(wx.grid.Grid, gridlabelrenderer.GridWithLabelRenderersMixin):
         """
         Update self.changes so that row numbers for edited rows are still correct.
         I.e., if row 4 was edited and then row 2 was deleted, row 4 becomes row 3.
-        This function updates self.changes to reflect that. 
+        This function updates self.changes to reflect that.
         """
         if row_num in self.changes.copy():
             self.changes.remove(row_num)
@@ -296,7 +296,7 @@ class MagicGrid(wx.grid.Grid, gridlabelrenderer.GridWithLabelRenderersMixin):
         coords = grid.XYToCell(x, y)
         col = coords[1]
         row = coords[0]
-        
+
         # creates tooltip message for cells with long values
         # note: this works with EPD for windows, and modern wxPython, but not with Canopy Python
         msg = grid.GetCellValue(row, col)
@@ -305,7 +305,7 @@ class MagicGrid(wx.grid.Grid, gridlabelrenderer.GridWithLabelRenderersMixin):
         else:
             event.GetEventObject().SetToolTipString('')
 
-        
+
     def on_edit_grid(self, event, grid):
         sets self.changes to true when user edits the grid.
         provides down and up key functionality for exiting the editor
@@ -346,87 +346,19 @@ class MagicGrid(wx.grid.Grid, gridlabelrenderer.GridWithLabelRenderersMixin):
                 cols_with_stars.append(col)
         return cols_with_stars
 
-    def paint_invalid_cells(self, warn_dict):
+    def paint_invalid_row(self, row, color="LIGHT BLUE"):
+        self.SetRowLabelRenderer(row, MyRowLabelRenderer(color))
+
+    def paint_invalid_cell(self, row, col, color='MEDIUM VIOLET RED'):
         """
+        Take row, column, and turn it color
         """
-        def highlight(problem_type, item, row_ind, cell_color):
-            """
-            """
-            col_ind = None
-            for col_name in warn_dict[item][problem_type]:
-                if col_name in ('er_location_name', 'er_site_name', 'er_sample_name'):
-                    continue
-                if col_name in ('lithology', 'type', 'class'):
-                    dtype = self.GetColLabelValue(0)
-                    dtype = dtype[3:-5]
-                    col_name = dtype + "_" + col_name
-                # in result grid, magic_method_codes doesn't have ++
-                stripped_name = col_name.strip('++')
-                col_ind = self.col_labels.index(col_name)
-                self.SetColLabelRenderer(col_ind, MyColLabelRenderer('#1101e0'))
-                self.SetCellRenderer(row_ind, col_ind, MyCustomRenderer(cell_color))
-                
-        def highlight_parent(item, row_ind, cell_color):
-            parent_type = self.parent_type
-            parent_label = 'er_' + parent_type + '_name'
-            col_ind = self.col_labels.index(parent_label)
-            self.SetColLabelRenderer(col_ind, MyColLabelRenderer('#1101e0'))
-            self.SetCellRenderer(row_ind, col_ind, MyCustomRenderer(cell_color))
-
-        def highlight_child(item, row_ind, cell_color):
-            ancestry = ['specimen', 'sample', 'site', 'location']
-            ind = ancestry.index(self.parent_type)
-            try:
-                child_type = ancestry[ind-2]
-            except ValueError:
-                return
-            child_label = 'er_' + child_type + '_name'
-            col_ind = self.col_labels.index(child_label)
-            self.SetColLabelRenderer(col_ind, MyColLabelRenderer('#1101e0'))
-            self.SetCellRenderer(row_ind, col_ind, MyCustomRenderer(cell_color))
-
-        def highlight_names(problem, row_ind, cell_color):
-            col_ind = self.col_labels.index('er_' + problem + '_names')
-            self.SetColLabelRenderer(col_ind, MyColLabelRenderer('#1101e0'))
-            self.SetCellRenderer(row_ind, col_ind, MyCustomRenderer(cell_color))
-
-        # begin main function
-        grid_names = self.row_labels
-        col_labels = self.col_labels
-
-        for item in warn_dict:
-            item_name = str(item)
-            try:
-                row_ind = grid_names.index(item_name)
-            except ValueError:
-                continue
-            self.SetRowLabelRenderer(row_ind, MyRowLabelRenderer('#1101e0'))
-            for problem in warn_dict[item]:
-                if problem in ('missing_data'):
-                    highlight('missing_data', item, row_ind, 'MEDIUM VIOLET RED')
-                elif problem in ('number_fail'):
-                    highlight('number_fail', item, row_ind, 'blue')
-                elif problem in ('parent'):
-                    highlight_parent(item, row_ind, 'green')
-                elif problem in ('invalid_col'):
-                    highlight('invalid_col', item, row_ind, 'LIGHT GREY')
-                elif problem in ('child'):
-                    # this will never work.....
-                    highlight_child(item, row_ind, 'GOLDENROD')
-                elif problem in ('type'):
-                    pass
-                elif problem in ('specimen', 'sample', 'site', 'location'):
-                    highlight_names(problem, row_ind, 'purple')
-                elif problem in 'coordinates':
-                    highlight('coordinates', item, row_ind, 'GOLDENROD')
-                elif problem in 'vocab_problem':
-                    highlight('vocab_problem', item, row_ind, 'WHITE')
-                else:
-                    print 'other problem', problem
-        #  looks like we can do tooltips over cells using techniques in
-        #  simple_examples/highlight_grid and simple_examples/tooltip_grid
-        #  but these only work with brew python (wxPython version)
-        #  don't know when Canopy will become more up to date : (
+        #col_ind = self.col_labels.index(col_name)
+        #print 'row', row
+        #print 'col', col
+        #print 'color', color
+        self.SetColLabelRenderer(col, MyColLabelRenderer('#1101e0'))
+        self.SetCellRenderer(row, col, MyCustomRenderer(color))#color))
 
 
 
@@ -450,16 +382,16 @@ class MyCustomRenderer(wx.grid.PyGridCellRenderer):
         # or do it like this for highlighting the cell:
         #dc.SetPen(wx.Pen(self.color, 5, wx.SOLID))
         dc.DrawRectangleRect(rect)
-        
-        
+
+
         dc.SetBackgroundMode(wx.TRANSPARENT)
         dc.SetFont(attr.GetFont())
-        
+
         text = grid.GetCellValue(row, col)
         #colors = ["RED", "WHITE", "SKY BLUE"]
         x = rect.x + 1
         y = rect.y + 1
-        
+
         for ch in text:
             dc.SetTextForeground("BLACK")
             dc.DrawText(ch, x, y)
@@ -468,17 +400,17 @@ class MyCustomRenderer(wx.grid.PyGridCellRenderer):
             if x > rect.right - 5:
                 break
 
-    
+
     def GetBestSize(self, grid, attr, dc, row, col):
         text = grid.GetCellValue(row, col)
         dc.SetFont(attr.GetFont())
         w, h = dc.GetTextExtent(text)
         return wx.Size(w, h)
-    
-    
+
+
     def Clone(self):
         return MyCustomRenderer()
-    
+
 
 class MyColLabelRenderer(gridlabelrenderer.GridLabelRenderer):
     def __init__(self, bgcolor):

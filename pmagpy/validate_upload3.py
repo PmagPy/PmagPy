@@ -1,12 +1,13 @@
 #!/usr/bin/env python
 
-
+import numpy as np
+import os
 
 # replace this with something more sensible and less redundant ...
-import pmagpy.controlled_vocabularies3 as cv
-reload(cv)
-vocab = cv.Vocabulary()
-vocabulary, possible_vocabulary = vocab.get_controlled_vocabularies()
+#import pmagpy.controlled_vocabularies3 as cv
+#reload(cv)
+#vocab = cv.Vocabulary()
+#vocabulary, possible_vocabulary = vocab.get_controlled_vocabularies()
 
 ## LOW-LEVEL VALIDATION FUNCTIONS
 
@@ -121,6 +122,9 @@ def checkMax(row, col_name, arg, *args):
     cell_value = row[col_name]
     if not cell_value:
         return None
+    elif isinstance(cell_value, float):
+        if np.isnan(cell_value):
+            return None
     try:
         arg_val = float(arg)
     except ValueError:
@@ -143,6 +147,9 @@ def checkMin(row, col_name, arg, *args):
     cell_value = row[col_name]
     if not cell_value:
         return None
+    elif isinstance(cell_value, float):
+        if np.isnan(cell_value):
+            return None
     try:
         arg_val = float(arg)
     except ValueError:
@@ -156,10 +163,11 @@ def checkMin(row, col_name, arg, *args):
     except ValueError:
         return None
 
-def cv(row, col_name, arg, current_data_model, *args):
+def cv(row, col_name, arg, current_data_model, df, con):
     """
     row[col_name] must contain only values from the appropriate controlled vocabulary
     """
+    vocabulary = con.cv
     cell_value = row[col_name]
     if not cell_value:
         return None
@@ -256,6 +264,183 @@ def validate_df(df, dm, con=None):
     return df
 
 
+## Extracting data from a validated dataframe
+
+def get_validation_col_names(df):
+    """
+    Input: already validated pandas DataFrame.
+    Output: names of all value validation columns,
+            names of all presence validation columns,
+            names of all type validation columns,
+            names of all validation columns.
+    """
+    value_cols = df.columns.str.match("^value_pass_")
+    present_cols = df.columns.str.match("^presence_pass")
+    type_cols = df.columns.str.match("^type_pass_")
+    value_col_names = df.columns[value_cols]
+    present_col_names = df.columns[present_cols]
+    type_col_names = df.columns[type_cols]
+    validation_cols = np.where(value_cols, value_cols, present_cols)
+    validation_cols = np.where(validation_cols, validation_cols, type_cols)
+    validation_col_names = df.columns[validation_cols]
+    return value_col_names, present_col_names, type_col_names, validation_col_names
+
+
+def print_row_failures(failing_items, verbose=False, outfile_name=None):
+    """
+    Take output from get_row_failures (DataFrame), and output it to
+    stdout, an outfile, or both.
+    """
+    if outfile_name:
+        outfile = open(outfile_name, "w")
+        outfile.write("\t".join(["name", "row_number", "problem_type",
+                                 "problem_col", "error_message"]))
+        outfile.write("\n")
+    else:
+        outfile = None
+    for ind, row in failing_items.iterrows():
+        issues = row['issues']
+        string = "{:10}  |  row number: {}".format(ind, str(row["num"]))
+        first_string = "\t".join([str(ind), str(row["num"])])
+        if verbose:
+            print first_string
+        #if outfile:
+        #    ofile.write("{}\n".format(string))
+        for key, issue in issues.items():
+            issue_type, issue_col = extract_col_name(key)
+            string = "{:10}  |  {:10}  |  {}".format(issue_type, issue_col, issue)
+            string = "\t".join([issue_type, issue_col, issue])
+            if verbose:
+                print string
+            if outfile:
+                outfile.write(first_string + "\t" + string + "\n")
+    if outfile:
+        outfile.close()
+
+
+def get_row_failures(df, value_cols, type_cols, verbose=False, outfile=None):
+    """
+    Get details on each detected issue, row by row.
+    """
+    df["num"] = range(len(df))
+    # get column names for value & type validations
+    names = value_cols.union(type_cols)
+    # drop all non validation columns
+    value_problems = df[names.union(["num"])]
+    failing_items = value_problems.dropna(how="all", subset=names)
+    if not len(failing_items):
+        if verbose:
+            print "No problems"
+        return []
+    failing_items = failing_items.dropna(how="all", axis=1)
+    # get names of the failing items
+    bad_items = list(failing_items.index)
+    # get index numbers of the failing items
+    bad_indices = list(failing_items["num"])
+    failing_items['issues'] = failing_items.drop("num", axis=1).apply(make_row_dict, axis=1).values
+    print_row_failures(failing_items, verbose, outfile)
+    return failing_items
+
+
+def get_bad_rows_and_cols(df, validation_names, type_col_names,
+                          value_col_names, verbose=False):
+    """
+    Input: validated DataFrame, all validation names, names of the type columns,
+    names of the value columns, verbose (True or False).
+    Output: list of rows with bad values, list of columns with bad values,
+    list of missing (but required) columns.
+    """
+    df["num"] = range(len(df))
+    problems = df[validation_names.union(["num"])]
+    all_problems = problems.dropna(how='all', axis=0, subset=validation_names)
+    value_problems = problems.dropna(how='all', axis=0, subset=type_col_names.union(value_col_names))
+    all_problems = all_problems.dropna(how='all', axis=1)
+    value_problems = value_problems.dropna(how='all', axis=1)
+    if not len(problems):
+        return None, None, None
+    #
+    bad_cols = all_problems.columns
+    prefixes = ["value_pass_", "type_pass_"]
+    missing_prefix = "presence_pass_"
+    problem_cols = []
+    missing_cols = []
+    long_missing_cols = []
+    problem_rows = []
+    for col in bad_cols:
+        pre, stripped_col = extract_col_name(col)
+        for prefix in prefixes:
+            if col.startswith(prefix):
+                problem_cols.append(stripped_col)
+                continue
+        if col.startswith(missing_prefix):
+            missing_cols.append(stripped_col)
+            long_missing_cols.append(col)
+    if len(value_problems):
+        bad_rows = zip(list(value_problems["num"]), list(value_problems.index))
+    else:
+        bad_rows = []
+    if verbose:
+        if bad_rows:
+            formatted_rows = ["row: {}, name: {}".format(row[0], row[1]) for row in bad_rows]
+            if len(bad_rows) > 20:
+                print "-W- these rows have problems:\n", "\n".join(formatted_rows[:20]), " ..."
+                print "(for full error output see error file)"
+            else:
+                print "-W- these rows have problems:", "\n".join(formatted_rows)
+        if problem_cols:
+            print "-W- these columns contain bad values:", ", ".join(set(problem_cols))
+        if missing_cols:
+            print "-W- these required columns are missing:", ", ".join(missing_cols)
+    return bad_rows, problem_cols, missing_cols
+
+
+# Run through all validations for a single table
+
+def validate_table(the_con, dtype, verbose=False):
+    """
+    Return name of bad table, or False if no errors found
+    """
+    print "-I- Validating {}".format(dtype)
+    # grab dataframe
+    current_df = the_con.tables[dtype].df
+    # grab data model
+    current_dm = the_con.tables[dtype].data_model.dm[dtype]
+    # run all validations (will add columns to current_df)
+    current_df = validate_df(current_df, current_dm, the_con)
+    # get names of the added columns
+    value_col_names, present_col_names, type_col_names, validation_col_names = get_validation_col_names(current_df)
+    # print out failure messages
+    ofile = os.path.join(os.getcwd(), "{}_errors.txt".format(dtype))
+    failing_items = get_row_failures(current_df, value_col_names,
+                                     type_col_names, verbose, outfile=ofile)
+    #x = set(value_col_names).union(type_col_names)
+    bad_rows, bad_cols, missing_cols = get_bad_rows_and_cols(current_df, validation_col_names,
+                                                             value_col_names, type_col_names,
+                                                             verbose=True)
+    # delete all validation rows
+    current_df.drop(validation_col_names, axis=1, inplace=True)
+    if len(failing_items):
+        print "-I- Complete list of row errors can be found in {}".format(ofile)
+        return dtype, bad_rows, bad_cols, missing_cols, failing_items
+    else:
+        print "-I- No row errors found!"
+        return False
+
+
+## Run validations on an entire contribution
+
+def validate_contribution(the_con):
+    """
+    Go through a Contribution and validate each table
+    """
+    passing = True
+    for dtype in the_con.tables.keys():
+        print "validating {}".format(dtype)
+        fail = validate_table(the_con, dtype)
+        if fail:
+            passing = False
+        print '--'
+
 
 ## Utilities
 
@@ -282,3 +467,32 @@ def get_degree_cols(df):
             'geographic_precision', 'bed_dip_direction']
     relevant_cols = list(set(vals).intersection(df.columns))
     return relevant_cols
+
+
+def extract_col_name(string):
+    """
+    Take a string and split it.
+    String will be a format like "presence_pass_azimuth",
+    where "azimuth" is the MagIC column name and "presence_pass"
+    is the validation.
+    Return "presence", "azimuth".
+    """
+    prefixes = ["presence_pass_", "value_pass_", "type_pass_"]
+    end = string.rfind("_")
+    for prefix in prefixes:
+        if string.startswith(prefix):
+            return prefix[:-6], string[len(prefix):end]
+    return string, string
+
+
+def make_row_dict(row):
+    """
+    Takes in a DataFrame row (Series),
+    and return a dictionary with the row's index as key,
+    and the row's values as values.
+    {col1_name: col1_value, col2_name: col2_value}
+    """
+    ind = row[row.notnull()].index
+    values = row[row.notnull()].values
+    # to transformation with extract_col_name here???
+    return dict(zip(ind, values))

@@ -8,7 +8,7 @@ import pmag_widgets as pw
 import magic_grid3 as magic_grid
 import pmagpy.builder as builder
 from pmagpy.controlled_vocabularies3 import vocab
-import programs.new_builder as nb
+import pmagpy.new_builder as nb
 
 
 class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
@@ -43,7 +43,7 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
         if self.parent:
             self.Bind(wx.EVT_WINDOW_DESTROY, self.parent.Parent.on_close_grid_frame)
 
-        if self.grid_type == 'age':
+        if self.grid_type == 'ages':
             ancestry_ind = self.contribution.ancestry.index(self.er_magic.age_type)
             self.child_type = self.contribution.ancestry[ancestry_ind-1]
             self.parent_type = self.contribution.ancestry[ancestry_ind+1]
@@ -824,7 +824,7 @@ class GridBuilder(object):
             # update the contribution with the new dataframe
             self.contribution.tables[self.grid_type] = self.magic_dataframe
             # *** probably don't actually want to write to file, here (but maybe)
-            self.magic_dataframe.write_magic_file("_{}.txt".format(self.grid_type),
+            self.magic_dataframe.write_magic_file("{}.txt".format(self.grid_type),
                                                   self.contribution.directory)
             return
 
