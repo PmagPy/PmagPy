@@ -3800,226 +3800,204 @@ class Demag_GUI(wx.Frame):
                 for coord in coords:
                     if not avg_directions_by_sample: key,dirlist='specimen',SpecDirs # if specimen averages at site level desired
                     if avg_directions_by_sample: key,dirlist='sample',SampDirs # if sample averages at site level desired
-                    tmp=pmag.get_dictitem(dirlist,'er_site_name',site,'T') # get all the sites with  directions
-                    tmp1=pmag.get_dictitem(tmp,key+'_tilt_correction',coord,'T') # use only the last coordinate if avg_all_components==False
-                    sd=pmag.get_dictitem(SiteNFO,'er_site_name',site,'T') # fish out site information (lat/lon, etc.)
+                    tmp=pmag.get_dictitem(dirlist,'site',site,'T') # get all the sites with  directions
+                    tmp1=pmag.get_dictitem(tmp, 'dir_tilt_correction', coord, 'T')
+                    sd=pmag.get_dictitem(SiteNFO,'site',site,'T') # fish out site information (lat/lon, etc.)
                     if len(sd)>0:
                         sitedat=sd[0]
-                        if not avg_all_components: # do component wise averaging
-                            for comp in Comps:
-                                siteD=pmag.get_dictitem(tmp1,key+'_comp_name',comp,'T') # get all components comp
-                                #remove bad data from means
-                                siteD=filter(lambda x: x['specimen_flag']=='g' if 'specimen_flag' in x else True , siteD)
-                                siteD=filter(lambda x: x['sample_flag']=='g' if 'sample_flag' in x else True , siteD)
-                                if len(siteD)>0: # there are some for this site and component name
-                                    PmagSiteRec=pmag.lnpbykey(siteD,'site',key) # get an average for this site
-                                    PmagSiteRec['site_comp_name']=comp # decorate the site record
-                                    PmagSiteRec["er_location_name"]=siteD[0]['er_location_name']
-                                    PmagSiteRec["er_site_name"]=siteD[0]['er_site_name']
-                                    PmagSiteRec['site_tilt_correction']=coord
-                                    PmagSiteRec['site_comp_name']= pmag.get_list(siteD,key+'_comp_name')
-                                    if avg_directions_by_sample:
-                                        PmagSiteRec['er_sample_names']= pmag.get_list(siteD,'er_sample_name')
-                                    else:
-                                        PmagSiteRec['er_specimen_names']= pmag.get_list(siteD,'er_specimen_name')
-                                    # determine the demagnetization code (DC3,4 or 5) for this site
-                                    AFnum=len(pmag.get_dictitem(siteD,'magic_method_codes','LP-DIR-AF','has'))
-                                    Tnum=len(pmag.get_dictitem(siteD,'magic_method_codes','LP-DIR-T','has'))
-                                    DC=3
-                                    if AFnum>0:DC+=1
-                                    if Tnum>0:DC+=1
-                                    PmagSiteRec['magic_method_codes']= pmag.get_list(siteD,'magic_method_codes')+':'+ 'LP-DC'+str(DC)
-                                    PmagSiteRec['magic_method_codes'].strip(":")
-                                    PmagSites.append(PmagSiteRec)
-                        else: # last component only
-                            siteD=tmp1[:] # get the last orientation system specified
-                            if len(siteD)>0: # there are some
-                                PmagSiteRec=pmag.lnpbykey(siteD,'site',key) # get the average for this site
-                                PmagSiteRec["er_location_name"]=siteD[0]['er_location_name'] # decorate the record
-                                PmagSiteRec["er_site_name"]=siteD[0]['er_site_name']
-                                PmagSiteRec['site_comp_name']=comp
-                                PmagSiteRec['site_tilt_correction']=coord
-                                PmagSiteRec['site_comp_name']= pmag.get_list(siteD,key+'_comp_name')
-                                PmagSiteRec['er_specimen_names']= pmag.get_list(siteD,'er_specimen_name')
-                                PmagSiteRec['er_sample_names']= pmag.get_list(siteD,'er_sample_name')
-                                AFnum=len(pmag.get_dictitem(siteD,'magic_method_codes','LP-DIR-AF','has'))
-                                Tnum=len(pmag.get_dictitem(siteD,'magic_method_codes','LP-DIR-T','has'))
+                        for comp in Comps:
+                            siteD=pmag.get_dictitem(tmp1,'dir_comp',comp,'T') # get all components comp
+                            #remove bad data from means
+                            siteD=filter(lambda x: x['result_quality']=='g' if 'result_quality' in x else True , siteD)
+                            if len(siteD)>0: # there are some for this site and component name
+                                PmagSiteRec=pmag.lnpbykey(siteD,'site',key) # get an average for this site
+                                PmagSiteRec['dir_comp_name']=comp # decorate the site record
+                                PmagSiteRec["location"]=siteD[0]['location']
+                                PmagSiteRec["site"]=siteD[0]['site']
+                                PmagSiteRec['dir_tilt_correction']=coord
+                                PmagSiteRec['dir_comp_name']= pmag.get_list(siteD,'dir_comp_name')
+                                if avg_directions_by_sample:
+                                    PmagSiteRec['samples']= pmag.get_list(siteD,'samples')
+                                else:
+                                    PmagSiteRec['specimens']= pmag.get_list(siteD,'specimens')
+                                # determine the demagnetization code (DC3,4 or 5) for this site
+                                AFnum=len(pmag.get_dictitem(siteD,'method_codes','LP-DIR-AF','has'))
+                                Tnum=len(pmag.get_dictitem(siteD,'method_codes','LP-DIR-T','has'))
                                 DC=3
                                 if AFnum>0:DC+=1
                                 if Tnum>0:DC+=1
-                                PmagSiteRec['magic_method_codes']= pmag.get_list(siteD,'magic_method_codes')+':'+ 'LP-DC'+str(DC)
-                                PmagSiteRec['magic_method_codes'].strip(":")
-                                if not avg_directions_by_sample:PmagSiteRec['site_comp_name']= pmag.get_list(siteD,key+'_comp_name')
+                                PmagSiteRec['method_codes']= pmag.get_list(siteD,'method_codes')+':'+ 'LP-DC'+str(DC)
+                                PmagSiteRec['method_codes'].strip(":")
                                 PmagSites.append(PmagSiteRec)
                     else:
                         print 'site information not found in er_sites for site, ',site,' site will be skipped'
             for PmagSiteRec in PmagSites: # now decorate each dictionary some more, and calculate VGPs etc. for results table
-                PmagSiteRec["er_citation_names"]="This study"
-                PmagSiteRec["er_analyst_mail_names"]=user
-                PmagSiteRec['magic_software_packages']=version_num
-                if agefile != "": PmagSiteRec= pmag.get_age(PmagSiteRec,"er_site_name","site_inferred_",AgeNFO,DefaultAge)
-                PmagSiteRec['pmag_criteria_codes']='ACCEPT'
-                if 'site_n_lines' in PmagSiteRec.keys() and 'site_n_planes' in PmagSiteRec.keys() and PmagSiteRec['site_n_lines']!="" and PmagSiteRec['site_n_planes']!="":
-                    if int(PmagSiteRec["site_n_planes"])>0:
-                        PmagSiteRec["magic_method_codes"]=PmagSiteRec['magic_method_codes']+":DE-FM-LP"
-                    elif int(PmagSiteRec["site_n_lines"])>2:
-                        PmagSiteRec["magic_method_codes"]=PmagSiteRec['magic_method_codes']+":DE-FM"
+                PmagSiteRec["citations"]="This study"
+                PmagSiteRec["analysts"]=user
+                PmagSiteRec['software_packages']=version_num
+                if agefile != "": PmagSiteRec= pmag.get_age(PmagSiteRec,"site","site_inferred_",AgeNFO,DefaultAge)
+                PmagSiteRec['criteria']='ACCEPT'
+                if 'dir_n_lines' in PmagSiteRec.keys() and 'dir_n_planes' in PmagSiteRec.keys() and PmagSiteRec['dir_n_lines']!="" and PmagSiteRec['dir_n_planes']!="":
+                    if int(PmagSiteRec["dir_n_planes"])>0:
+                        PmagSiteRec["method_codes"]=PmagSiteRec['method_codes']+":DE-FM-LP"
+                    elif int(PmagSiteRec["dir_n_lines"])>2:
+                        PmagSiteRec["method_codes"]=PmagSiteRec['method_codes']+":DE-FM"
                     kill=pmag.grade(PmagSiteRec,accept,'site_dir')
                     if len(kill)==0:
                         PmagResRec={} # set up dictionary for the pmag_results table entry
-                        PmagResRec['data_type']='i' # decorate it a bit
-                        PmagResRec['magic_software_packages']=version_num
-                        PmagSiteRec['site_description']='Site direction included in results table'
-                        PmagResRec['pmag_criteria_codes']='ACCEPT'
-                        dec=float(PmagSiteRec["site_dec"])
-                        inc=float(PmagSiteRec["site_inc"])
-                        if 'site_alpha95' in PmagSiteRec.keys() and PmagSiteRec['site_alpha95']!="":
-                            a95=float(PmagSiteRec["site_alpha95"])
+                        PmagResRec['result_type']='i' # decorate it a bit
+                        PmagResRec['software_packages']=version_num
+                        PmagSiteRec['description']='Site direction included in results table'
+                        PmagResRec['criteria']='ACCEPT'
+                        dec=float(PmagSiteRec["dir_dec"])
+                        inc=float(PmagSiteRec["dir_inc"])
+                        if 'dir_alpha95' in PmagSiteRec.keys() and PmagSiteRec['dir_alpha95']!="":
+                            a95=float(PmagSiteRec["dir_alpha95"])
                         else:a95=180.
-                        sitedat=pmag.get_dictitem(SiteNFO,'er_site_name',PmagSiteRec['er_site_name'],'T')[0] # fish out site information (lat/lon, etc.)
-                        lat=float(sitedat['site_lat'])
-                        lon=float(sitedat['site_lon'])
+                        sitedat=pmag.get_dictitem(SiteNFO,'site',PmagSiteRec['site'],'T')[0] # fish out site information (lat/lon, etc.)
+                        lat=float(sitedat['lat'])
+                        lon=float(sitedat['lon'])
                         plong,plat,dp,dm=pmag.dia_vgp(dec,inc,a95,lat,lon) # get the VGP for this site
-                        if PmagSiteRec['site_tilt_correction']=='-1':C=' (spec coord) '
-                        if PmagSiteRec['site_tilt_correction']=='0':C=' (geog. coord) '
-                        if PmagSiteRec['site_tilt_correction']=='100':C=' (strat. coord) '
-                        PmagResRec["pmag_result_name"]="VGP Site: "+PmagSiteRec["er_site_name"] # decorate some more
-                        PmagResRec["result_description"]="Site VGP, coord system = "+str(coord)+' component: '+comp
-                        PmagResRec['er_site_names']=PmagSiteRec['er_site_name']
-                        PmagResRec['pmag_criteria_codes']='ACCEPT'
-                        PmagResRec['er_citation_names']='This study'
-                        PmagResRec['er_analyst_mail_names']=user
-                        PmagResRec["er_location_names"]=PmagSiteRec["er_location_name"]
+                        if PmagSiteRec['dir_tilt_correction']=='-1':C=' (spec coord) '
+                        if PmagSiteRec['dir_tilt_correction']=='0':C=' (geog. coord) '
+                        if PmagSiteRec['dir_tilt_correction']=='100':C=' (strat. coord) '
+                        PmagResRec["result_name"]="VGP Site: "+PmagSiteRec["site"] # decorate some more
+                        PmagResRec["description"]="Site VGP, coord system = "+str(coord)+' component: '+comp
+                        PmagResRec['sites']=PmagSiteRec['sites']
+                        PmagResRec['criteria']='ACCEPT'
+                        PmagResRec['citations']='This study'
+                        PmagResRec['analysts']=user
+                        PmagResRec["location"]=PmagSiteRec["location"]
                         if avg_directions_by_sample:
-                            PmagResRec["er_sample_names"]=PmagSiteRec["er_sample_names"]
+                            PmagResRec["samples"]=PmagSiteRec["samples"]
                         else:
-                            PmagResRec["er_specimen_names"]=PmagSiteRec["er_specimen_names"]
-                        PmagResRec["tilt_correction"]=PmagSiteRec['site_tilt_correction']
-                        PmagResRec["pole_comp_name"]=PmagSiteRec['site_comp_name']
-                        PmagResRec["average_dec"]=PmagSiteRec["site_dec"]
-                        PmagResRec["average_inc"]=PmagSiteRec["site_inc"]
-                        PmagResRec["average_alpha95"]=PmagSiteRec["site_alpha95"]
-                        PmagResRec["average_n"]=PmagSiteRec["site_n"]
-                        PmagResRec["average_n_lines"]=PmagSiteRec["site_n_lines"]
-                        PmagResRec["average_n_planes"]=PmagSiteRec["site_n_planes"]
-                        PmagResRec["vgp_n"]=PmagSiteRec["site_n"]
-                        PmagResRec["average_k"]=PmagSiteRec["site_k"]
-                        PmagResRec["average_r"]=PmagSiteRec["site_r"]
-                        PmagResRec["average_lat"]='%10.4f ' %(lat)
-                        PmagResRec["average_lon"]='%10.4f ' %(lon)
-                        if agefile != "": PmagResRec= pmag.get_age(PmagResRec,"er_site_names","average_",AgeNFO,DefaultAge)
-                        site_height=pmag.get_dictitem(height_info,'er_site_name',site,'T')
-                        if len(site_height)>0:PmagResRec["average_height"]=site_height[0]['site_height']
-                        PmagResRec["vgp_lat"]='%7.1f ' % (plat)
-                        PmagResRec["vgp_lon"]='%7.1f ' % (plong)
-                        PmagResRec["vgp_dp"]='%7.1f ' % (dp)
-                        PmagResRec["vgp_dm"]='%7.1f ' % (dm)
-                        PmagResRec["magic_method_codes"]= PmagSiteRec["magic_method_codes"]
-                        if '0' in PmagSiteRec['site_tilt_correction'] and "DA-DIR-GEO" not in PmagSiteRec['magic_method_codes']: PmagSiteRec['magic_method_codes']=PmagSiteRec['magic_method_codes']+":DA-DIR-GEO"
-                        if '100' in PmagSiteRec['site_tilt_correction'] and "DA-DIR-TILT" not in PmagSiteRec['magic_method_codes']: PmagSiteRec['magic_method_codes']=PmagSiteRec['magic_method_codes']+":DA-DIR-TILT"
-                        PmagSiteRec['site_polarity']=""
+                            PmagResRec["specimens"]=PmagSiteRec["specimens"]
+                        PmagResRec["dir_tilt_correction"]=PmagSiteRec['dir_tilt_correction']
+                        PmagResRec["pole_comp_name"]=PmagSiteRec['dir_comp_name']
+                        PmagResRec["dir_dec"]=PmagSiteRec["dir_dec"]
+                        PmagResRec["dir_inc"]=PmagSiteRec["dir_inc"]
+                        PmagResRec["dir_alpha95"]=PmagSiteRec["dir_alpha95"]
+                        PmagResRec["dir_n_sites"]=PmagSiteRec["dir_n_samples"]
+                        PmagResRec["dir_n_lines"]=PmagSiteRec["dir_n_lines"]
+                        PmagResRec["dirZ_n_planes"]=PmagSiteRec["dir_n_planes"]
+                        PmagResRec["pole_n_sites"]=PmagSiteRec["dir_n_samples"]
+                        PmagResRec["dir_k"]=PmagSiteRec["dir_k"]
+                        PmagResRec["dir_r"]=PmagSiteRec["dir_r"]
+                        PmagResRec["lat"]='%10.4f ' %(lat)
+                        PmagResRec["lon"]='%10.4f ' %(lon)
+                        if agefile != "": PmagResRec= pmag.get_age(PmagResRec,"sites","average_",AgeNFO,DefaultAge)
+                        site_height=pmag.get_dictitem(height_info,'site',site,'T')
+                        if len(site_height)>0:PmagResRec["height"]=site_height[0]['height']
+                        PmagResRec["pole_lat"]='%7.1f ' % (plat)
+                        PmagResRec["pole_lon"]='%7.1f ' % (plong)
+                        PmagResRec["pole_dp"]='%7.1f ' % (dp)
+                        PmagResRec["pole_dm"]='%7.1f ' % (dm)
+                        PmagResRec["method_codes"]= PmagSiteRec["method_codes"]
+                        if '0' in PmagSiteRec['dir_tilt_correction'] and "DA-DIR-GEO" not in PmagSiteRec['method_codes']: PmagSiteRec['method_codes']=PmagSiteRec['method_codes']+":DA-DIR-GEO"
+                        if '100' in PmagSiteRec['dir_tilt_correction'] and "DA-DIR-TILT" not in PmagSiteRec['method_codes']: PmagSiteRec['method_codes']=PmagSiteRec['method_codes']+":DA-DIR-TILT"
+                        PmagSiteRec['dir_polarity']=""
                         if avg_by_polarity: # assign polarity based on angle of pole lat to spin axis - may want to re-think this sometime
                               angle=pmag.angle([0,0],[0,(90-plat)])
-                              if angle <= 55.: PmagSiteRec["site_polarity"]='n'
-                              if angle > 55. and angle < 125.: PmagSiteRec["site_polarity"]='t'
-                              if angle >= 125.: PmagSiteRec["site_polarity"]='r'
+                              if angle <= 55.: PmagSiteRec["dir_polarity"]='n'
+                              if angle > 55. and angle < 125.: PmagSiteRec["dir_polarity"]='t'
+                              if angle >= 125.: PmagSiteRec["dir_polarity"]='r'
                         PmagResults.append(PmagResRec)
             if avg_by_polarity:
-                crecs=pmag.get_dictitem(PmagSites,'site_tilt_correction','100','T') # find the tilt corrected data
-                if len(crecs)<2:crecs=pmag.get_dictitem(PmagSites,'site_tilt_correction','0','T') # if there aren't any, find the geographic corrected data
+                crecs=pmag.get_dictitem(PmagSites,'dir_tilt_correction','100','T') # find the tilt corrected data
+                if len(crecs)<2:crecs=pmag.get_dictitem(PmagSites,'dir_tilt_correction','0','T') # if there aren't any, find the geographic corrected data
                 if len(crecs)>2: # if there are some,
                     comp=pmag.get_list(crecs,'site_comp_name').split(':')[0] # find the first component
-                    crecs=pmag.get_dictitem(crecs,'site_comp_name',comp,'T') # fish out all of the first component
+                    crecs=pmag.get_dictitem(crecs,'dir_comp_name',comp,'T') # fish out all of the first component
                     precs=[]
                     for rec in crecs:
-                        precs.append({'dec':rec['site_dec'],'inc':rec['site_inc'],'name':rec['er_site_name'],'loc':rec['er_location_name']})
+                        precs.append({'dec':rec['dir_dec'],'inc':rec['dir_inc'],'name':rec['site'],'loc':rec['location']})
                     polpars=pmag.fisher_by_pol(precs) # calculate average by polarity
                     for mode in polpars.keys(): # hunt through all the modes (normal=A, reverse=B, all=ALL)
                         PolRes={}
-                        PolRes['er_citation_names']='This study'
-                        PolRes["pmag_result_name"]="Polarity Average: Polarity "+mode #
-                        PolRes["data_type"]="a"
-                        PolRes["average_dec"]='%7.1f'%(polpars[mode]['dec'])
-                        PolRes["average_inc"]='%7.1f'%(polpars[mode]['inc'])
-                        PolRes["average_n"]='%i'%(polpars[mode]['n'])
-                        PolRes["average_r"]='%5.4f'%(polpars[mode]['r'])
-                        PolRes["average_k"]='%6.0f'%(polpars[mode]['k'])
-                        PolRes["average_alpha95"]='%7.1f'%(polpars[mode]['alpha95'])
-                        PolRes['er_site_names']= polpars[mode]['sites']
-                        PolRes['er_location_names']= polpars[mode]['locs']
-                        PolRes['magic_software_packages']=version_num
+                        PolRes['citations']='This study'
+                        PolRes["result_name"]="Polarity Average: Polarity "+mode #
+                        PolRes["result_type"]="a"
+                        PolRes["dir_dec"]='%7.1f'%(polpars[mode]['dec'])
+                        PolRes["dir_inc"]='%7.1f'%(polpars[mode]['inc'])
+                        PolRes["dir_n_sites"]='%i'%(polpars[mode]['n'])
+                        PolRes["dir_r"]='%5.4f'%(polpars[mode]['r'])
+                        PolRes["dir_k"]='%6.0f'%(polpars[mode]['k'])
+                        PolRes["dir_alpha95"]='%7.1f'%(polpars[mode]['alpha95'])
+                        PolRes['sites']= polpars[mode]['sites']
+                        PolRes['location']= polpars[mode]['locs']
+                        PolRes['software_packages']=version_num
                         PmagResults.append(PolRes)
 
-            if not skip_intensities and nositeints!=1:
-              for site in sites: # now do intensities for each site
-                key,intlist='specimen',SpecInts # if using specimen level data
-                Ints=pmag.get_dictitem(intlist,'er_site_name',site,'T') # get all the intensities  for this site
-                if len(Ints)>0: # there are some
-                    PmagSiteRec=pmag.average_int(Ints,key,'site') # get average intensity stuff for site table
-                    PmagResRec=pmag.average_int(Ints,key,'average') # get average intensity stuff for results table
-                    er_location_name=Ints[0]["er_location_name"]
-                    PmagSiteRec["er_location_name"]=er_location_name # decorate the records
-                    PmagSiteRec["er_citation_names"]="This study"
-                    PmagResRec["er_location_names"]=er_location_name
-                    PmagResRec["er_citation_names"]="This study"
-                    PmagSiteRec["er_analyst_mail_names"]=user
-                    PmagResRec["er_analyst_mail_names"]=user
-                    PmagResRec["data_type"]='i'
-                    PmagSiteRec['er_sample_names']= pmag.get_list(Ints,'er_sample_name') # list of all samples used
-                    PmagResRec['er_sample_names']= pmag.get_list(Ints,'er_sample_name')
-                    PmagSiteRec['er_site_name']= site
-                    PmagResRec['er_site_names']= site
-                    PmagSiteRec['magic_method_codes']= pmag.get_list(Ints,'magic_method_codes')
-                    PmagResRec['magic_method_codes']= pmag.get_list(Ints,'magic_method_codes')
-                    kill=pmag.grade(PmagSiteRec,accept,'site_int')
-                    if nocrit==1 or len(kill)==0:
-                        b,sig=float(PmagResRec['average_int']),""
-                        if(PmagResRec['average_int_sigma'])!="":
-                            sig=float(PmagResRec['average_int_sigma'])
-                        sdir=pmag.get_dictitem(PmagResults,'er_site_names',site,'T') # fish out site direction
-                        if len(sdir)>0 and  sdir[-1]['average_inc']!="": # get the VDM for this record using last average inclination (hope it is the right one!)
-                                inc=float(sdir[0]['average_inc']) #
-                                mlat=pmag.magnetic_lat(inc) # get magnetic latitude using dipole formula
-                                PmagResRec["vdm"]='%8.3e '% (pmag.b_vdm(b,mlat)) # get VDM with magnetic latitude
-                                PmagResRec["vdm_n"]=PmagResRec['average_int_n']
-                                if 'average_int_sigma' in PmagResRec.keys() and PmagResRec['average_int_sigma']!="":
-                                    vdm_sig=pmag.b_vdm(float(PmagResRec['average_int_sigma']),mlat)
-                                    PmagResRec["vdm_sigma"]='%8.3e '% (vdm_sig)
-                                else:
-                                    PmagResRec["vdm_sigma"]=""
-                        mlat="" # define a model latitude
-                        if get_model_lat==1: # use present site latitude
-                            mlats=pmag.get_dictitem(SiteNFO,'er_site_name',site,'T')
-                            if len(mlats)>0: mlat=mlats[0]['site_lat']
-                        elif get_model_lat==2: # use a model latitude from some plate reconstruction model (or something)
-                            mlats=pmag.get_dictitem(ModelLats,'er_site_name',site,'T')
-                            if len(mlats)>0: PmagResRec['model_lat']=mlats[0]['site_model_lat']
-                            mlat=PmagResRec['model_lat']
-                        if mlat!="":
-                            PmagResRec["vadm"]='%8.3e '% (pmag.b_vdm(b,float(mlat))) # get the VADM using the desired latitude
-                            if sig!="":
-                                vdm_sig=pmag.b_vdm(float(PmagResRec['average_int_sigma']),float(mlat))
-                                PmagResRec["vadm_sigma"]='%8.3e '% (vdm_sig)
-                                PmagResRec["vadm_n"]=PmagResRec['average_int_n']
-                            else:
-                                PmagResRec["vadm_sigma"]=""
-                        sitedat=pmag.get_dictitem(SiteNFO,'er_site_name',PmagSiteRec['er_site_name'],'T') # fish out site information (lat/lon, etc.)
-                        if len(sitedat)>0:
-                            sitedat=sitedat[0]
-                            PmagResRec['average_lat']=sitedat['site_lat']
-                            PmagResRec['average_lon']=sitedat['site_lon']
-                        else:
-                            PmagResRec['average_lon']='UNKNOWN'
-                            PmagResRec['average_lon']='UNKNOWN'
-                        PmagResRec['magic_software_packages']=version_num
-                        PmagResRec["pmag_result_name"]="V[A]DM: Site "+site
-                        PmagResRec["result_description"]="V[A]DM of site"
-                        PmagResRec["pmag_criteria_codes"]="ACCEPT"
-                        if agefile != "": PmagResRec= pmag.get_age(PmagResRec,"er_site_names","average_",AgeNFO,DefaultAge)
-                        site_height=pmag.get_dictitem(height_info,'er_site_name',site,'T')
-                        if len(site_height)>0:PmagResRec["average_height"]=site_height[0]['site_height']
-                        PmagSites.append(PmagSiteRec)
-                        PmagResults.append(PmagResRec)
+#            if not skip_intensities and nositeints!=1:
+#              for site in sites: # now do intensities for each site
+#                key,intlist='specimen',SpecInts # if using specimen level data
+#                Ints=pmag.get_dictitem(intlist,'er_site_name',site,'T') # get all the intensities  for this site
+#                if len(Ints)>0: # there are some
+#                    PmagSiteRec=pmag.average_int(Ints,key,'site') # get average intensity stuff for site table
+#                    PmagResRec=pmag.average_int(Ints,key,'average') # get average intensity stuff for results table
+#                    er_location_name=Ints[0]["er_location_name"]
+#                    PmagSiteRec["er_location_name"]=er_location_name # decorate the records
+#                    PmagSiteRec["er_citation_names"]="This study"
+#                    PmagResRec["er_location_names"]=er_location_name
+#                    PmagResRec["er_citation_names"]="This study"
+#                    PmagSiteRec["er_analyst_mail_names"]=user
+#                    PmagResRec["er_analyst_mail_names"]=user
+#                    PmagResRec["data_type"]='i'
+#                    PmagSiteRec['er_sample_names']= pmag.get_list(Ints,'er_sample_name') # list of all samples used
+#                    PmagResRec['er_sample_names']= pmag.get_list(Ints,'er_sample_name')
+#                    PmagSiteRec['er_site_name']= site
+#                    PmagResRec['er_site_names']= site
+#                    PmagSiteRec['magic_method_codes']= pmag.get_list(Ints,'magic_method_codes')
+#                    PmagResRec['magic_method_codes']= pmag.get_list(Ints,'magic_method_codes')
+#                    kill=pmag.grade(PmagSiteRec,accept,'site_int')
+#                    if nocrit==1 or len(kill)==0:
+#                        b,sig=float(PmagResRec['average_int']),""
+#                        if(PmagResRec['average_int_sigma'])!="":
+#                            sig=float(PmagResRec['average_int_sigma'])
+#                        sdir=pmag.get_dictitem(PmagResults,'er_site_names',site,'T') # fish out site direction
+#                        if len(sdir)>0 and  sdir[-1]['average_inc']!="": # get the VDM for this record using last average inclination (hope it is the right one!)
+#                                inc=float(sdir[0]['average_inc']) #
+#                                mlat=pmag.magnetic_lat(inc) # get magnetic latitude using dipole formula
+#                                PmagResRec["vdm"]='%8.3e '% (pmag.b_vdm(b,mlat)) # get VDM with magnetic latitude
+#                                PmagResRec["vdm_n"]=PmagResRec['average_int_n']
+#                                if 'average_int_sigma' in PmagResRec.keys() and PmagResRec['average_int_sigma']!="":
+#                                    vdm_sig=pmag.b_vdm(float(PmagResRec['average_int_sigma']),mlat)
+#                                    PmagResRec["vdm_sigma"]='%8.3e '% (vdm_sig)
+#                                else:
+#                                    PmagResRec["vdm_sigma"]=""
+#                        mlat="" # define a model latitude
+#                        if get_model_lat==1: # use present site latitude
+#                            mlats=pmag.get_dictitem(SiteNFO,'er_site_name',site,'T')
+#                            if len(mlats)>0: mlat=mlats[0]['site_lat']
+#                        elif get_model_lat==2: # use a model latitude from some plate reconstruction model (or something)
+#                            mlats=pmag.get_dictitem(ModelLats,'er_site_name',site,'T')
+#                            if len(mlats)>0: PmagResRec['model_lat']=mlats[0]['site_model_lat']
+#                            mlat=PmagResRec['model_lat']
+#                        if mlat!="":
+#                            PmagResRec["vadm"]='%8.3e '% (pmag.b_vdm(b,float(mlat))) # get the VADM using the desired latitude
+#                            if sig!="":
+#                                vdm_sig=pmag.b_vdm(float(PmagResRec['average_int_sigma']),float(mlat))
+#                                PmagResRec["vadm_sigma"]='%8.3e '% (vdm_sig)
+#                                PmagResRec["vadm_n"]=PmagResRec['average_int_n']
+#                            else:
+#                                PmagResRec["vadm_sigma"]=""
+#                        sitedat=pmag.get_dictitem(SiteNFO,'er_site_name',PmagSiteRec['er_site_name'],'T') # fish out site information (lat/lon, etc.)
+#                        if len(sitedat)>0:
+#                            sitedat=sitedat[0]
+#                            PmagResRec['average_lat']=sitedat['site_lat']
+#                            PmagResRec['average_lon']=sitedat['site_lon']
+#                        else:
+#                            PmagResRec['average_lon']='UNKNOWN'
+#                            PmagResRec['average_lon']='UNKNOWN'
+#                        PmagResRec['magic_software_packages']=version_num
+#                        PmagResRec["pmag_result_name"]="V[A]DM: Site "+site
+#                        PmagResRec["result_description"]="V[A]DM of site"
+#                        PmagResRec["pmag_criteria_codes"]="ACCEPT"
+#                        if agefile != "": PmagResRec= pmag.get_age(PmagResRec,"er_site_names","average_",AgeNFO,DefaultAge)
+#                        site_height=pmag.get_dictitem(height_info,'er_site_name',site,'T')
+#                        if len(site_height)>0:PmagResRec["average_height"]=site_height[0]['site_height']
+#                        PmagSites.append(PmagSiteRec)
+#                        PmagResults.append(PmagResRec)
             if len(PmagSites)>0:
                 Tmp,keylist=pmag.fillkeys(PmagSites)
                 pmag.magic_write(siteout,Tmp,'pmag_sites')
