@@ -4,7 +4,7 @@
 # LOG HEADER:
 #============================================================================================
 #
-# Thellier_GUI Version 3.0  7/1/16 (Lisa Tauxe)
+# Thellier_GUI Version 3.0  8/2/16 (Lisa Tauxe)
 # Adding in the ability to read in and write out
 # Data model 3.0 data sets
 # so far for command line option -DM 3 (program works the same as always for no -DM switch):
@@ -13,11 +13,12 @@
 #   3) previous interpretations read  in  and converted to 2.5
 #   4) saves acceptance criteria in data model 3.0
 #   5) reads in age, lat, lon into data_info - makes plots
-#   6) does the anisotropy calculation but does not save stuff in 3.0
+#   6) does the anisotropy calculation and saves to specimens.txt in 3.0
 #   7) does cooling rate calculation
+#   8) does  NLT correction 
+#   9) saves specimen data to specimens.txt in 3.0
 # TODO:
-#   check  NLT - need 3.0 file
-#   save MagIC tables in 3.0 format
+#   save samples/sites tables in 3.0 format
 #
 # Thellier_GUI Version 2.29 01/29/2015
 # 1) fix STDEV-OPT extended error bar plor display bug
@@ -919,10 +920,7 @@ class Arai_GUI(wx.Frame):
         menu_file.AppendSeparator()
 
         m_prepare_MagIC_results_tables= menu_file.Append(-1, "&Save MagIC pmag tables", "")
-        if self.data_model==3:
-            self.Bind(wx.EVT_MENU, self.on_menu_prepare_MagIC_data_model_3_tables, m_prepare_MagIC_results_tables)
-        else:
-            self.Bind(wx.EVT_MENU, self.on_menu__prepare_MagIC_results_tables, m_prepare_MagIC_results_tables)
+        self.Bind(wx.EVT_MENU, self.on_menu__prepare_MagIC_results_tables, m_prepare_MagIC_results_tables)
 
         submenu_save_plots = wx.Menu()
 
@@ -1733,7 +1731,7 @@ class Arai_GUI(wx.Frame):
 
     def on_menu_exit(self, event):
         if self.close_warning:
-            TEXT="Data is not saved to a file yet!\nTo properly save your data:\n1) Analysis --> Save current interpretations to a redo file.\nor\n1) File --> Save MagIC pmag tables.\n\n Press OK to exit without saving."
+            TEXT="Data is not saved to a file yet!\nTo properly save your data:\n1) Analysis --> Save current interpretations to a redo file.\nor\n1) File --> Save MagIC tables.\n\n Press OK to exit without saving."
             dlg1 = wx.MessageDialog(None,caption="Warning:", message=TEXT ,style=wx.OK|wx.CANCEL|wx.ICON_EXCLAMATION)
             if dlg1.ShowModal() == wx.ID_OK:
                 dlg1.Destroy()
@@ -2927,7 +2925,6 @@ class Arai_GUI(wx.Frame):
                 Data_anisotropy[specimen][TYPE]['er_site_names']=Data_anisotropy[specimen][TYPE]['er_site_name']
                 if self.data_model==3: # prepare data for 3.0
                     new_aniso_parameters=Data_anisotropy[specimen][TYPE]
-                    print new_aniso_parameters
                     # reformat all the anisotropy related keys
                     new_data=map_magic.convert_aniso('magic3',new_aniso_parameters) # turn new_aniso data to 3.0
                     # add numeric index column temporarily
@@ -2948,8 +2945,7 @@ class Arai_GUI(wx.Frame):
                         # now remove all the remaining records of same condition
                         if len(inds)>1:
                             for ind in inds[1:]:
-                                print specimen,ind
-                                self.spec_container.delete_row(ind) # START HERE - this sometimes fails - why
+                                self.spec_container.delete_row(ind)  
                     else:
                         print 'no record found - creating new one for ', spec
                         # add new row
@@ -3169,8 +3165,6 @@ class Arai_GUI(wx.Frame):
 
     #----------------------------------------------------------------------
 
-    def on_menu_prepare_MagIC_data_model_3_tables (self, m_prepare_MagIC_results_tables):
-        pass
 
     def on_menu__prepare_MagIC_results_tables (self, event):
 
@@ -3182,28 +3176,29 @@ class Arai_GUI(wx.Frame):
             self.on_menu_save_interpretation(None)
         except:
             pass
+        if self.data_model!=3: # data model 3 data already read in to contribution
         #------------------
         # read existing pmag results data and sort out the directional data.
         # The directional data will be merged to one combined pmag table.
         # this data will be merged later
         #-----------------------.
 
-        PmagRecsOld={}
-        for FILE in ['pmag_specimens.txt','pmag_samples.txt','pmag_sites.txt','pmag_results.txt']:
-            PmagRecsOld[FILE],meas_data=[],[]
-            try:
-                meas_data,file_type=pmag.magic_read(os.path.join(self.WD, FILE))
-                self.GUI_log.write("-I- Read exiting magic file  %s\n"%(os.path.join(self.WD, FILE)))
-                #if FILE !='pmag_specimens.txt':
-                os.rename(os.path.join(self.WD, FILE), os.path.join(self.WD, FILE+".backup"))
-                self.GUI_log.write("-I- rename old magic file  %s.backup\n"%(os.path.join(self.WD, FILE)))
-            except:
-                self.GUI_log.write("-I- Cant read existing magic file  %s\n"%(os.path.join(self.WD, FILE)))
-                continue
-            for rec in meas_data:
-                if "magic_method_codes" in rec.keys():
-                    if "LP-PI" not in rec['magic_method_codes'] and "IE-" not in rec['magic_method_codes'] :
-                        PmagRecsOld[FILE].append(rec)
+             PmagRecsOld={}
+             for FILE in ['pmag_specimens.txt','pmag_samples.txt','pmag_sites.txt','pmag_results.txt']:
+                 PmagRecsOld[FILE],meas_data=[],[]
+                 try:
+                     meas_data,file_type=pmag.magic_read(os.path.join(self.WD, FILE))
+                     self.GUI_log.write("-I- Read exiting magic file  %s\n"%(os.path.join(self.WD, FILE)))
+                     #if FILE !='pmag_specimens.txt':
+                     os.rename(os.path.join(self.WD, FILE), os.path.join(self.WD, FILE+".backup"))
+                     self.GUI_log.write("-I- rename old magic file  %s.backup\n"%(os.path.join(self.WD, FILE)))
+                 except:
+                     self.GUI_log.write("-I- Cant read existing magic file  %s\n"%(os.path.join(self.WD, FILE)))
+                     continue
+                 for rec in meas_data:
+                     if "magic_method_codes" in rec.keys():
+                         if "LP-PI" not in rec['magic_method_codes'] and "IE-" not in rec['magic_method_codes'] :
+                             PmagRecsOld[FILE].append(rec)
 
         pmag_specimens_header_1=["er_location_name","er_site_name","er_sample_name","er_specimen_name"]
         pmag_specimens_header_2=['measurement_step_min','measurement_step_max','specimen_int']
@@ -3235,10 +3230,7 @@ class Arai_GUI(wx.Frame):
         # write down pmag_specimens.txt
         specimens_list.sort()
         for specimen in specimens_list:
-
-
             if 'pars' in self.Data[specimen].keys() and 'saved' in self.Data[specimen]['pars'].keys() and self.Data[specimen]['pars']['saved']==True:
-
                 sample_name = self.Data_hierarchy['specimens'][specimen]
                 site_name=thellier_gui_lib.get_site_from_hierarchy(sample_name,self.Data_hierarchy)
                 location_name=thellier_gui_lib.get_location_from_hierarchy(site_name,self.Data_hierarchy)
@@ -3289,42 +3281,75 @@ class Arai_GUI(wx.Frame):
                     MagIC_results_data['pmag_specimens'][specimen]['specimen_int_corr_cooling_rate']="%.2f"%(self.Data[specimen]['pars']['specimen_int_corr_cooling_rate'])
                 else:
                     MagIC_results_data['pmag_specimens'][specimen]['specimen_int_corr_cooling_rate']=""
+                if self.data_model==3:   # convert pmag_specimen format to data model 3 and replace existing specimen record or add new
+                    new_spec_data=MagIC_results_data['pmag_specimens'][specimen]
+                    # reformat all the keys
+                    new_data=map_magic.convert_spec('magic3',new_spec_data) # turn new_specimen data to 3.0
+                    # add numeric index column temporarily 
+## should probably make this a function
+                    self.spec_container.df['num'] = range(len(self.spec_container.df))
+                    self.spec_data = self.spec_container.df
+           # edit first of existing intensity data for this specimen from self.spec_data
+                    cond1=self.spec_data['specimen'].str.contains(specimen)==True
+                    cond2=self.spec_data['int_abs'].notnull()==True
+                    condition=(cond1 & cond2)
+                    if len(self.spec_data[condition]) > 0:  #we have one or more records to update or delete
+                        inds=self.spec_data[condition]['num'] # list of all rows where condition is true
+                        existing_data=dict(self.spec_data.iloc[inds[0]]) # get first record of existing_data from dataframe
+                        existing_data.update(new_data) # update existing data with new interpretations
+                        # update row
+                        self.spec_container.update_row(inds[0], existing_data)
+                        # now remove all the remaining records of same condition
+                        if len(inds)>1:
+                            for ind in inds[1:]:
+                                self.spec_container.delete_row(ind)
+                    else:
+                        print 'no record found - creating new one for ', spec
+                        # add new row
+                        self.spec_container.add_row(spec, new_data )
+                    # sort so that all rows for a specimen are together
+                    self.spec_data.sort_index(inplace=True)
+                    # redo temporary index
+                    self.spec_data['num'] = range(len(self.spec_data))
 
-        # wrire pmag_specimens.txt
-        fout=open(os.path.join(self.WD, "pmag_specimens.txt"),'w')
-        fout.write("tab\tpmag_specimens\n")
-        headers=pmag_specimens_header_1+pmag_specimens_header_2+pmag_specimens_header_3+pmag_specimens_header_4+pmag_specimens_header_5+pmag_specimens_header_6
-        String=""
-        for key in headers:
-            String=String+key+"\t"
-        fout.write(String[:-1]+"\n")
-        for specimen in specimens_list:
+        if self.data_model!=3: # write out pmag_specimens.txt file
+            fout=open(os.path.join(self.WD, "pmag_specimens.txt"),'w')
+            fout.write("tab\tpmag_specimens\n")
+            headers=pmag_specimens_header_1+pmag_specimens_header_2+pmag_specimens_header_3+pmag_specimens_header_4+pmag_specimens_header_5+pmag_specimens_header_6
             String=""
             for key in headers:
-                String=String+MagIC_results_data['pmag_specimens'][specimen][key]+"\t"
+                String=String+key+"\t"
             fout.write(String[:-1]+"\n")
-        fout.close()
+            for specimen in specimens_list:
+                String=""
+                for key in headers:
+                    String=String+MagIC_results_data['pmag_specimens'][specimen][key]+"\t"
+                fout.write(String[:-1]+"\n")
+            fout.close()
+            # merge with non-intensity data
+            # read the new pmag_specimens.txt
+            meas_data,file_type=pmag.magic_read(os.path.join(self.WD, "pmag_specimens.txt"))
+            # add the old non-PI lines from pmag_specimens.txt
+            for rec in PmagRecsOld["pmag_specimens.txt"]:
+                meas_data.append(rec)
+            # fix headers, so all headers in all lines
+            meas_data=self.converge_pmag_rec_headers(meas_data)
+            # write the combined pmag_specimens.txt
+            pmag.magic_write(os.path.join(self.WD, "pmag_specimens.txt"),meas_data,'pmag_specimens')
+            try:
+                os.remove(os.path.join(self.WD, "pmag_specimens.txt.backup"))
+            except:
+                pass
 
-
-        # merge with non-intensity data
-        # read the new pmag_specimens.txt
-        meas_data,file_type=pmag.magic_read(os.path.join(self.WD, "pmag_specimens.txt"))
-        # add the old non-PI lines from pmag_specimens.txt
-        for rec in PmagRecsOld["pmag_specimens.txt"]:
-            meas_data.append(rec)
-        # fix headers, so all headers in all lines
-        meas_data=self.converge_pmag_rec_headers(meas_data)
-        # write the combined pmag_specimens.txt
-        pmag.magic_write(os.path.join(self.WD, "pmag_specimens.txt"),meas_data,'pmag_specimens')
-        try:
-            os.remove(os.path.join(self.WD, "pmag_specimens.txt.backup"))
-        except:
-            pass
-
-        #-------------
-        # message dialog
-        #-------------
-        TEXT="specimens interpretations are saved in pmag_specimens.txt.\nPress OK for pmag_samples/pmag_sites/pmag_results tables."
+            #-------------
+            # message dialog
+            #-------------
+            TEXT="specimens interpretations are saved in pmag_specimens.txt.\nPress OK for pmag_samples/pmag_sites/pmag_results tables."
+        else: # data model 3, so merge with spec_data  and save as specimens.txt file 
+            #  write out the data
+            self.spec_container.write_magic_file(custom_name='new_specimens.txt', dir_path=self.WD) # change this to specimens.txt when ready
+            TEXT="specimens interpretations are saved in specimens.txt.\nPress OK for samples/sites tables."
+ 
         dlg = wx.MessageDialog(self, caption="Saved",message=TEXT,style=wx.OK|wx.CANCEL )
         result = dlg.ShowModal()
         if result == wx.ID_OK:
@@ -3332,7 +3357,7 @@ class Arai_GUI(wx.Frame):
         if result == wx.ID_CANCEL:
             dlg.Destroy()
             return()
-
+### START HERE WITH PMAG SAMPLES TABLE FOR DATA MODEL 3.0
         #-------------
         # pmag_samples.txt or pmag_sites.txt
         #-------------
@@ -3386,16 +3411,6 @@ class Arai_GUI(wx.Frame):
                     B_uT=sample_or_site_pars['B_uT']
                     B_std_uT=sample_or_site_pars['B_std_uT']
                     B_std_perc=sample_or_site_pars['B_std_perc']
-                    #if len(B)>=self.acceptance_criteria['sample_int_n']:
-                    #    B_std_uT=std(B,ddof=1)
-                    #    B_std_perc=std(B,ddof=1)/scipy.mean(B)*100
-                    #    if (self.acceptance_criteria['sample_int_sigma_uT']==0 and self.acceptance_criteria['sample_int_sigma_perc']==0) or\
-                    #       ( B_std_uT <=self.acceptance_criteria['sample_int_sigma_uT'] or B_std_perc <= self.acceptance_criteria['sample_int_sigma_perc']):
-                    #        if ( (max(B)-min(B)) <= self.acceptance_criteria['sample_int_interval_uT'] or 100*((max(B)-min(B))/mean((B))) <= self.acceptance_criteria['sample_int_interval_perc']):
-                    #            sample_pass_criteria=True
-                    #if not sample_pass_criteria:
-                        #print "skipping sample" %sample
-                        #continue
                     pmag_samples_or_sites_list.append(sample_or_site)
                     MagIC_results_data['pmag_samples_or_sites'][sample_or_site]={}
                     MagIC_results_data['pmag_samples_or_sites'][sample_or_site]['er_specimen_names']=specimens_names
@@ -3421,16 +3436,6 @@ class Arai_GUI(wx.Frame):
                     MagIC_results_data['pmag_samples_or_sites'][sample_or_site]['er_site_name']=site_name
                     MagIC_results_data['pmag_samples_or_sites'][sample_or_site]['er_location_name']=location_name
 
-                    #for key in pmag_samples_header_1:
-                    #        sample_name=sample_or_site
-                    #        site_name=thellier_gui_lib.get_site_from_hierarchy(sample_name,self.Data_hierarchy)
-                    #        location_name=thellier_gui_lib.get_location_from_hierarchy(site_name,self.Data_hierarchy)
-
-
-                        #else:
-                            #MagIC_results_data['pmag_samples_or_sites'][sample_or_site][key]=self.MagIC_model["er_sites"][sample_or_site][key]
-                            #MagIC_results_data['pmag_samples_or_sites'][sample_or_site][key]=sample_or_site
-
                     MagIC_results_data['pmag_samples_or_sites'][sample_or_site]["pmag_criteria_codes"]=""
                     MagIC_results_data['pmag_samples_or_sites'][sample_or_site]['magic_method_codes']=magic_codes
                     MagIC_results_data['pmag_samples_or_sites'][sample_or_site]["magic_software_packages"]=version
@@ -3438,73 +3443,65 @@ class Arai_GUI(wx.Frame):
                     MagIC_results_data['pmag_samples_or_sites'][sample_or_site]["er_citation_names"]="This study"
 
 
-        # write pmag_samples.txt
-        if BY_SAMPLES:
-            fout=open(os.path.join(self.WD, "pmag_samples.txt"),'w')
-            fout.write("tab\tpmag_samples\n")
-        else:
-            fout=open(os.path.join(self.WD, "pmag_sites.txt"),'w')
-            fout.write("tab\tpmag_sites\n")
-
-        headers=pmag_samples_header_1+pmag_samples_header_2+pmag_samples_header_3+pmag_samples_header_4
-        String=""
-        for key in headers:
-            String=String+key+"\t"
-        fout.write(String[:-1]+"\n")
-
+        # prepare pmag_samples.txt
         pmag_samples_or_sites_list.sort()
-        for sample_or_site in pmag_samples_or_sites_list:
+        if self.data_model!=3:  # save 2.5 way
+            if BY_SAMPLES:
+                fout=open(os.path.join(self.WD, "pmag_samples.txt"),'w')
+                fout.write("tab\tpmag_samples\n")
+            else:
+                fout=open(os.path.join(self.WD, "pmag_sites.txt"),'w')
+                fout.write("tab\tpmag_sites\n")
+
+            headers=pmag_samples_header_1+pmag_samples_header_2+pmag_samples_header_3+pmag_samples_header_4
             String=""
             for key in headers:
-                String=String+MagIC_results_data['pmag_samples_or_sites'][sample_or_site][key]+"\t"
+                String=String+key+"\t"
             fout.write(String[:-1]+"\n")
-        fout.close()
+
+            for sample_or_site in pmag_samples_or_sites_list:
+                String=""
+                for key in headers:
+                    String=String+MagIC_results_data['pmag_samples_or_sites'][sample_or_site][key]+"\t"
+                fout.write(String[:-1]+"\n")
+            fout.close()
 
         # merge with non-intensity data
-        if BY_SAMPLES:
-            meas_data,file_type=pmag.magic_read(os.path.join(self.WD, "pmag_samples.txt"))
-            for rec in PmagRecsOld["pmag_samples.txt"]:
-                meas_data.append(rec)
-            meas_data=self.converge_pmag_rec_headers(meas_data)
-            pmag.magic_write(os.path.join(self.WD, "pmag_samples.txt"), meas_data,'pmag_samples')
-            try:
-                os.remove(os.path.join(self.WD, "pmag_samples.txt.backup"))
-            except:
-                pass
-            pmag.magic_write(os.path.join(self.WD, "pmag_sites.txt"), PmagRecsOld["pmag_sites.txt"],'pmag_sites')
-            try:
-                os.remove(os.path.join(self.WD, "pmag_sites.txt.backup"))
-            except:
-                pass
+            if BY_SAMPLES:
+                meas_data,file_type=pmag.magic_read(os.path.join(self.WD, "pmag_samples.txt"))
+                for rec in PmagRecsOld["pmag_samples.txt"]:
+                    meas_data.append(rec)
+                meas_data=self.converge_pmag_rec_headers(meas_data)
+                pmag.magic_write(os.path.join(self.WD, "pmag_samples.txt"), meas_data,'pmag_samples')
+                try:
+                    os.remove(os.path.join(self.WD, "pmag_samples.txt.backup"))
+                except:
+                    pass
+                pmag.magic_write(os.path.join(self.WD, "pmag_sites.txt"), PmagRecsOld["pmag_sites.txt"],'pmag_sites')
+                try:
+                    os.remove(os.path.join(self.WD, "pmag_sites.txt.backup"))
+                except:
+                    pass
 
-            #pmag.magic_write(self.WD+"/"+"pmag_samples.txt",PmagRecsOld["pmag_samples.txt"],'pmag_samples')
-            #try:
-            #    os.rename(self.WD+"/"+"pmag_sites.txt"+".backup",self.WD+"/"+"pmag_sites.txt")
-            #except:
-            #    pass
-        else:
-            meas_data,file_type=pmag.magic_read(os.path.join(self.WD, "pmag_sites.txt"))
-            for rec in PmagRecsOld["pmag_sites.txt"]:
-                meas_data.append(rec)
-            meas_data=self.converge_pmag_rec_headers(meas_data)
-            pmag.magic_write(os.path.join(self.WD, "pmag_sites.txt"),meas_data,'pmag_sites')
-            try:
-                os.remove(os.path.join(self.WD, "pmag_sites.txt.backup"))
-            except:
-                pass
-            pmag.magic_write(os.path.join(self.WD, "pmag_samples.txt"),PmagRecsOld["pmag_samples.txt"],'pmag_samples')
-            try:
-                os.remove(os.path.join(self.WD, "pmag_samples.txt.backup"))
-            except:
-                pass
+            else:
+                meas_data,file_type=pmag.magic_read(os.path.join(self.WD, "pmag_sites.txt"))
+                for rec in PmagRecsOld["pmag_sites.txt"]:
+                    meas_data.append(rec)
+                meas_data=self.converge_pmag_rec_headers(meas_data)
+                pmag.magic_write(os.path.join(self.WD, "pmag_sites.txt"),meas_data,'pmag_sites')
+                try:
+                    os.remove(os.path.join(self.WD, "pmag_sites.txt.backup"))
+                except:
+                    pass
+                pmag.magic_write(os.path.join(self.WD, "pmag_samples.txt"),PmagRecsOld["pmag_samples.txt"],'pmag_samples')
+                try:
+                    os.remove(os.path.join(self.WD, "pmag_samples.txt.backup"))
+                except:
+                    pass
 
 
-            #Ery:
-            #    os.rename(self.WD+"/"+"pmag_samples.txt"+".backup",self.WD+"/"+"pmag_samples.txt")
-            #except:
-            #    pass
-            #pmag.magic_write(self.WD+"/"+"pmag_samples.txt",PmagRecsOld["pmag_samples.txt"],'pmag_samples')
-            #pmag.magic_write(self.WD+"/"+"pmag_sites.txt",PmagRecsOld["pmag_sites.txt"],'pmag_sites')
+        else: # don't do anything yet = need vdm data START HERE WITH 3.0 CONVERSION 
+            pass
 
         #-------------
         # pmag_results.txt
@@ -3522,21 +3519,6 @@ class Arai_GUI(wx.Frame):
         else:
             pmag_results_header_4=["vadm","vadm_sigma"]
         pmag_results_header_5=[ "data_type","pmag_result_name","magic_method_codes","result_description","er_citation_names","magic_software_packages","pmag_criteria_codes"]
-
-        # for ages, check the er_ages.txt, and take whats theres
-        #age_headers=[]
-        #for site in self.MagIC_model["er_ages"].keys():
-        #    if "age" in self.MagIC_model["er_ages"][site].keys() and self.MagIC_model["er_ages"][site]["age"]!="" and "age" not in age_headers:
-        #       age_headers.append("age")
-        #    if "age_sigma" in self.MagIC_model["er_ages"][site].keys() and self.MagIC_model["er_ages"][site]["age_sigma"]!="" and "age_sigma" not in age_headers:
-        #       age_headers.append("age_sigma")
-        #    if "age_range_low" in self.MagIC_model["er_ages"][site].keys() and self.MagIC_model["er_ages"][site]["age_range_low"]!="" and "age_range_low" not in age_headers:
-        #       age_headers.append("age_range_low")
-        #    if "age_range_high" in self.MagIC_model["er_ages"][site].keys() and self.MagIC_model["er_ages"][site]["age_range_high"]!="" and "age_range_high" not in age_headers:
-        #       age_headers.append("age_range_high")
-        #    if "age_unit" in self.MagIC_model["er_ages"][site].keys() and self.MagIC_model["er_ages"][site]["age_unit"]!="" and "age_unit" not in age_headers:
-        #       age_headers.append("age_unit")
-
 
         for sample_or_site in pmag_samples_or_sites_list:
             MagIC_results_data['pmag_results'][sample_or_site]={}
@@ -3585,9 +3567,15 @@ class Arai_GUI(wx.Frame):
                     VADM_sigma=(VADM_plus-VADM_minus)/2
                     MagIC_results_data['pmag_results'][sample_or_site]["vadm"]="%.2e"%VADM
                     MagIC_results_data['pmag_results'][sample_or_site]["vadm_sigma"]="%.2e"%VADM_sigma
+                    if self.data_model==3: # stick vadm into site_or_sample record
+                        MagIC_results_data['pmag_samples_or_sites'][sample_or_site]["vadm"]="%.2e"%VADM
+                        MagIC_results_data['pmag_samples_or_sites'][sample_or_site]["vadm_sigma"]="%.2e"%VADM_sigma
                 else:
                     MagIC_results_data['pmag_results'][sample_or_site]["vadm"]=""
                     MagIC_results_data['pmag_results'][sample_or_site]["vadm_sigma"]=""
+                    if self.data_model==3: # stick vadm into site_or_sample record
+                        MagIC_results_data['pmag_samples_or_sites'][sample_or_site]["vadm"]=""
+                        MagIC_results_data['pmag_samples_or_sites'][sample_or_site]["vadm_sigma"]=""
             if   MagIC_results_data['pmag_results'][sample_or_site]["vadm"]   != "":
                 MagIC_results_data['pmag_results'][sample_or_site]["pmag_result_name"]="Paleointensity;V[A]DM;" +sample_or_site
                 MagIC_results_data['pmag_results'][sample_or_site]["result_description"]="Paleointensity; V[A]DM"
@@ -3601,145 +3589,251 @@ class Arai_GUI(wx.Frame):
 
             MagIC_results_data['pmag_results'][sample_or_site]["data_type"]="i"
             MagIC_results_data['pmag_results'][sample_or_site]["er_citation_names"]="This study"
-
+            if self.data_model!=3: # look for ages in er_ages - otherwise they are in sites.txt already
             # add ages
-            found_age=False
-            site=MagIC_results_data['pmag_results'][sample_or_site]["er_site_names"]
-            if  sample_or_site in self.Data_info["er_ages"].keys():
-                sample_or_site_with_age=sample_or_site
-                found_age=True
-            elif site in self.Data_info["er_ages"].keys():
-                sample_or_site_with_age=site
-                found_age=True
-            if found_age:
-                for header in ["age","age_unit","age_sigma","age_range_low","age_range_high"]:
-                    if  sample_or_site_with_age in self.Data_info["er_ages"].keys() and  header in self.Data_info["er_ages"][sample_or_site_with_age].keys():
-                        if self.Data_info["er_ages"][sample_or_site_with_age][header]!="":
-                            value=self.Data_info["er_ages"][sample_or_site_with_age][header]
-                            header_result="average_"+header
-                            if header_result == "average_age_range_high":
-                                header_result="average_age_high"
-                            if header_result == "average_age_range_low":
-                                header_result="average_age_low"
-                            MagIC_results_data['pmag_results'][sample_or_site][header_result]=value
-
-                            if header_result not in pmag_results_header_4:
-                               pmag_results_header_4.append(header_result)
-
-
+                found_age=False
+                site=MagIC_results_data['pmag_results'][sample_or_site]["er_site_names"]
+                if  sample_or_site in self.Data_info["er_ages"].keys():
+                    sample_or_site_with_age=sample_or_site
+                    found_age=True
+                elif site in self.Data_info["er_ages"].keys():
+                    sample_or_site_with_age=site
+                    found_age=True
+                if found_age:
+                    for header in ["age","age_unit","age_sigma","age_range_low","age_range_high"]:
+                        if  sample_or_site_with_age in self.Data_info["er_ages"].keys() and  header in self.Data_info["er_ages"][sample_or_site_with_age].keys():
+                            if self.Data_info["er_ages"][sample_or_site_with_age][header]!="":
+                                value=self.Data_info["er_ages"][sample_or_site_with_age][header]
+                                header_result="average_"+header
+                                if header_result == "average_age_range_high":
+                                    header_result="average_age_high"
+                                if header_result == "average_age_range_low":
+                                    header_result="average_age_low"
+                                MagIC_results_data['pmag_results'][sample_or_site][header_result]=value
+    
+                                if header_result not in pmag_results_header_4:
+                                   pmag_results_header_4.append(header_result)
+    
+    
         # check for ages:
 
-        for sample_or_site in pmag_samples_or_sites_list:
-            found_age=False
-            if BY_SAMPLES and sample_or_site in self.Data_info["er_ages"].keys():
-                element_with_age=sample_or_site
-                found_age=True
-            elif BY_SAMPLES and sample_or_site not in self.Data_info["er_ages"].keys():
-                site=self.Data_hierarchy['site_of_sample'][sample_or_site]
-                if site in self.Data_info["er_ages"].keys():
-                    element_with_age=site
-                    found_age=True
-            elif BY_SITES and sample_or_site in self.Data_info["er_ages"].keys():
-                element_with_age=sample_or_site
-                found_age=True
-            else:
-                continue
-            if not found_age:
-                continue
-            foundkeys=False
-            #print    "element_with_age",element_with_age
-            for key in ['age','age_sigma','age_range_low','age_range_high','age_unit']:
-                if "er_ages" in self.Data_info.keys() and element_with_age in self.Data_info["er_ages"].keys():
-                    if key in  self.Data_info["er_ages"][element_with_age].keys():
-                        if  self.Data_info["er_ages"][element_with_age][key] !="":
-                            MagIC_results_data['pmag_results'][sample_or_site][key]=self.Data_info["er_ages"][element_with_age][key]
-                            foundkeys=True
-            if foundkeys==True:
-                if "er_ages" in self.Data_info.keys() and element_with_age in self.Data_info["er_ages"].keys():
-                    if 'magic_method_codes' in self.Data_info["er_ages"][element_with_age].keys():
-                        methods= self.Data_info["er_ages"][element_with_age]['magic_method_codes'].replace(" ","").strip('\n').split(":")
-                        for meth in methods:
-                            MagIC_results_data['pmag_results'][sample_or_site]["magic_method_codes"]=MagIC_results_data['pmag_results'][sample_or_site]["magic_method_codes"] + ":"+ meth
+                for sample_or_site in pmag_samples_or_sites_list:
+                    found_age=False
+                    if BY_SAMPLES and sample_or_site in self.Data_info["er_ages"].keys():
+                        element_with_age=sample_or_site
+                        found_age=True
+                    elif BY_SAMPLES and sample_or_site not in self.Data_info["er_ages"].keys():
+                        site=self.Data_hierarchy['site_of_sample'][sample_or_site]
+                        if site in self.Data_info["er_ages"].keys():
+                            element_with_age=site
+                            found_age=True
+                    elif BY_SITES and sample_or_site in self.Data_info["er_ages"].keys():
+                        element_with_age=sample_or_site
+                        found_age=True
+                    else:
+                        continue
+                    if not found_age:
+                        continue
+                    foundkeys=False
+                #print    "element_with_age",element_with_age
+                    for key in ['age','age_sigma','age_range_low','age_range_high','age_unit']:
+                        if "er_ages" in self.Data_info.keys() and element_with_age in self.Data_info["er_ages"].keys():
+                            if key in  self.Data_info["er_ages"][element_with_age].keys():
+                                if  self.Data_info["er_ages"][element_with_age][key] !="":
+                                    MagIC_results_data['pmag_results'][sample_or_site][key]=self.Data_info["er_ages"][element_with_age][key]
+                                    foundkeys=True
+                    if foundkeys==True:
+                        if "er_ages" in self.Data_info.keys() and element_with_age in self.Data_info["er_ages"].keys():
+                            if 'magic_method_codes' in self.Data_info["er_ages"][element_with_age].keys():
+                                methods= self.Data_info["er_ages"][element_with_age]['magic_method_codes'].replace(" ","").strip('\n').split(":")
+                                for meth in methods:
+                                    MagIC_results_data['pmag_results'][sample_or_site]["magic_method_codes"]=MagIC_results_data['pmag_results'][sample_or_site]["magic_method_codes"] + ":"+ meth
+    
 
-
-        # write pmag_results.txt
-        fout=open(os.path.join(self.WD, "pmag_results.txt"),'w')
-        fout.write("tab\tpmag_results\n")
-        headers=pmag_results_header_1+pmag_results_header_2+pmag_results_header_3+pmag_results_header_4+pmag_results_header_5
-        String=""
-        for key in headers:
-            String=String+key+"\t"
-        fout.write(String[:-1]+"\n")
-
-        #pmag_samples_list.sort()
-        for sample_or_site in pmag_samples_or_sites_list:
-            String=""
-            for key in headers:
-                if key in MagIC_results_data['pmag_results'][sample_or_site].keys():
-                    String=String+MagIC_results_data['pmag_results'][sample_or_site][key]+"\t"
-                else:
-                    String=String+""+"\t"
-            fout.write(String[:-1]+"\n")
-        fout.close()
-
-        #print "self.WD",self.WD
-        # merge with non-intensity data
-        meas_data,file_type=pmag.magic_read(os.path.join(self.WD, "pmag_results.txt"))
-        for rec in PmagRecsOld["pmag_results.txt"]:
-            meas_data.append(rec)
-        meas_data=self.converge_pmag_rec_headers(meas_data)
-        pmag.magic_write(os.path.join(self.WD, "pmag_results.txt"),meas_data,'pmag_results')
-        try:
-            os.remove(os.path.join(self.WD, "pmag_results.txt.backup"))
-        except:
-            pass
+                # write pmag_results.txt
+                fout=open(os.path.join(self.WD, "pmag_results.txt"),'w')
+                fout.write("tab\tpmag_results\n")
+                headers=pmag_results_header_1+pmag_results_header_2+pmag_results_header_3+pmag_results_header_4+pmag_results_header_5
+                String=""
+                for key in headers:
+                    String=String+key+"\t"
+                fout.write(String[:-1]+"\n")
+    
+                #pmag_samples_list.sort()
+                for sample_or_site in pmag_samples_or_sites_list:
+                    String=""
+                    for key in headers:
+                        if key in MagIC_results_data['pmag_results'][sample_or_site].keys():
+                            String=String+MagIC_results_data['pmag_results'][sample_or_site][key]+"\t"
+                        else:
+                            String=String+""+"\t"
+                    fout.write(String[:-1]+"\n")
+                fout.close()
+    
+                # merge with non-intensity data
+                meas_data,file_type=pmag.magic_read(os.path.join(self.WD, "pmag_results.txt"))
+                for rec in PmagRecsOld["pmag_results.txt"]:
+                    meas_data.append(rec)
+                meas_data=self.converge_pmag_rec_headers(meas_data)
+                pmag.magic_write(os.path.join(self.WD, "pmag_results.txt"),meas_data,'pmag_results')
+                try:
+                    os.remove(os.path.join(self.WD, "pmag_results.txt.backup"))
+                except:
+                    pass
 
 
         #-------------
-        # MAgic_methods.txt
+        # MagIC_methods.txt
         #-------------
 
         # search for all magic_methods in all files:
-        magic_method_codes=[]
-        for F in ["magic_measurements.txt","rmag_anisotropy.txt","rmag_results.txt","rmag_results.txt","pmag_samples.txt","pmag_specimens.txt","pmag_sites.txt","er_ages.txt"]:
-            try:
-                fin=open(os.path.join(self.WD, F),'rU')
-            except:
-                continue
-            line=fin.readline()
-            line=fin.readline()
-            header=line.strip('\n').split('\t')
-            if  "magic_method_codes" not in header:
-                continue
-            else:
-                index=header.index("magic_method_codes")
-            for line in fin.readlines():
-                tmp=line.strip('\n').split('\t')
-                if len(tmp) >= index:
-                    codes=tmp[index].replace(" ","").split(":")
-                    for code in codes:
-                        if code !="" and code not in magic_method_codes:
-                            magic_method_codes.append(code)
-            fin.close()
-
-        magic_method_codes.sort()
-        #print magic_method_codes
-        magic_methods_header_1=["magic_method_code"]
-        fout=open(os.path.join(self.WD, "magic_methods.txt"),'w')
-        fout.write("tab\tmagic_methods\n")
-        fout.write("magic_method_code\n")
-        for code in magic_method_codes:
-            fout.write("%s\n"%code)
-        fout.close
+                magic_method_codes=[]
+                for F in ["magic_measurements.txt","rmag_anisotropy.txt","rmag_results.txt","rmag_results.txt","pmag_samples.txt","pmag_specimens.txt","pmag_sites.txt","er_ages.txt"]:
+                    try:
+                        fin=open(os.path.join(self.WD, F),'rU')
+                    except:
+                        continue
+                    line=fin.readline()
+                    line=fin.readline()
+                    header=line.strip('\n').split('\t')
+                    if  "magic_method_codes" not in header:
+                        continue
+                    else:
+                        index=header.index("magic_method_codes")
+                    for line in fin.readlines():
+                        tmp=line.strip('\n').split('\t')
+                        if len(tmp) >= index:
+                            codes=tmp[index].replace(" ","").split(":")
+                            for code in codes:
+                                if code !="" and code not in magic_method_codes:
+                                    magic_method_codes.append(code)
+                    fin.close()
+        
+                magic_method_codes.sort()
+                #print magic_method_codes
+                magic_methods_header_1=["magic_method_code"]
+                fout=open(os.path.join(self.WD, "magic_methods.txt"),'w')
+                fout.write("tab\tmagic_methods\n")
+                fout.write("magic_method_code\n")
+                for code in magic_method_codes:
+                    fout.write("%s\n"%code)
+                fout.close
 
         # make pmag_criteria.txt if it does not exist
-        if not os.path.isfile(os.path.join(self.WD, "pmag_criteria.txt")):
-            Fout=open(os.path.join(self.WD, "pmag_criteria.txt"),'w')
-            Fout.write("tab\tpmag_criteria\n")
-            Fout.write("er_citation_names\tpmag_criteria_code\n")
-            Fout.write("This study\tACCEPT\n")
+                if not os.path.isfile(os.path.join(self.WD, "pmag_criteria.txt")):
+                    Fout=open(os.path.join(self.WD, "pmag_criteria.txt"),'w')
+                    Fout.write("tab\tpmag_criteria\n")
+                    Fout.write("er_citation_names\tpmag_criteria_code\n")
+                    Fout.write("This study\tACCEPT\n")
+              
+        else: # write out samples/sites in data model 3.0 #START HERE
+            for sample_or_site in pmag_samples_or_sites_list:  
+                # convert, delete, add and save
+                new_sample_or_site_data=MagIC_results_data['pmag_samples_or_sites'][sample_or_site]
+                if BY_SAMPLES:
+                    new_data=map_magic.convert_samp('magic3',new_sample_or_site_data) # convert to 3.0
+                    # add numeric index column temporarily 
+                    self.samp_container.df['num'] = range(len(self.samp_container.df))
+                    self.samp_data = self.samp_container.df
+           # edit first of existing intensity data for this sample from self.samp_data
+                    cond1=self.samp_data['sample'].str.contains(sample_or_site)==True
+                    cond2=self.samp_data['int_abs'].notnull()==True
+                    condition=(cond1 & cond2)
+                    if len(self.samp_data[condition]) > 0:  #we have one or more records to update or delete
+                        inds=self.samp_data[condition]['num'] # list of all rows where condition is true
+                        existing_data=dict(self.samp_data.iloc[inds[0]]) # get first record of existing_data from dataframe
+                        existing_data.update(new_data) # update existing data with new interpretations
+                        # update row
+                        self.samp_container.update_row(inds[0], existing_data)
+                        # now remove all the remaining records of same condition
+                        if len(inds)>1:
+                            for ind in inds[1:]:
+                                self.samp_container.delete_row(ind)
+                    else:
+                        print 'no record found - creating new one for ', sample_or_site
+                        # add new row
+                        self.samp_container.add_row(sample_or_site, new_data )
+                    # sort so that all rows for a sample are together
+                    self.samp_data.sort_index(inplace=True)
+                    # redo temporary index
+                    self.samp_data['num'] = range(len(self.samp_data))
+                    # remove intensity data from site level.    
+                    site=self.Data_hierarchy['site_of_sample'][sample_or_site]
+                    cond1=self.site_data['site'].str.contains(site)==True
+                    cond2=self.site_data['int_abs'].notnull()==True
+                    condition=(cond1 & cond2)
+                    new_data={}
+                    site_keys=['int_abs','int_sigma','int_n_samples','int_sigma_perc'] # zero these out but keep the rest
+                    for key in site_keys:
+                        new_data[key]=""
+                    if len(self.site_data[condition]) > 0:  #we have one or more records to delete
+                        inds=self.site_data[condition]['num'] # list of all rows where condition is true
+                        existing_data=dict(self.site_data.iloc[inds[0]]) # get first record of existing_data from dataframe
+                        existing_data.update(new_data) # update existing data with new interpretations
+                        # update row
+                        self.site_container.update_row(inds[0], existing_data)
+                        # now remove all the remaining records of same condition
+                        if len(inds)>1:
+                            for ind in inds[1:]:
+                                self.site_container.delete_row(ind)
+                    # sort so that all rows for a site are together
+                    self.site_data.sort_index(inplace=True)
+                    # redo temporary index
+                    self.site_data['num'] = range(len(self.site_data))
+                else:  # do this by site and not by sample
+                    new_data=map_magic.convert_site('magic3',new_sample_or_site_data) # convert to 3.0
+                    # add numeric index column temporarily 
+                    self.site_container.df['num'] = range(len(self.site_container.df))
+                    self.site_data = self.site_container.df
+           # edit first of existing intensity data for this site from self.site_data
+                    cond1=self.site_data['site'].str.contains(sample_or_site)==True
+                    cond2=self.site_data['int_abs'].notnull()==True
+                    condition=(cond1 & cond2)
+                    if len(self.site_data[condition]) > 0:  #we have one or more records to update or delete
+                        inds=self.site_data[condition]['num'] # list of all rows where condition is true
+                        existing_data=dict(self.site_data.iloc[inds[0]]) # get first record of existing_data from dataframe
+                        existing_data.update(new_data) # update existing data with new interpretations
+                        # update row
+                        self.site_container.update_row(inds[0], existing_data)
+                        # now remove all the remaining records of same condition
+                        if len(inds)>1:
+                            for ind in inds[1:]:
+                                self.site_container.delete_row(ind)
+                    else:
+                        print 'no record found - creating new one for ', sample_or_site
+                        # add new row
+                        self.site_container.add_row(sample_or_site, new_data )
+                    # sort so that all rows for a site are together
+                    self.site_data.sort_index(inplace=True)
+                    # redo temporary index
+                    self.site_data['num'] = range(len(self.site_data))
+                    # remove intensity data from sample level.   # need to look up samples from this site
+                    cond1=self.samp_data['site'].str.contains(sample_or_site)==True
+                    cond2=self.samp_data['int_abs'].notnull()==True
+                    condition=(cond1 & cond2)
+                    new_data={} # zero these out but keep the rest
+                    samp_keys=['int_abs','int_sigma','int_n_specimens','int_sigma_perc'] # zero these out but keep the rest
+                    for key in samp_keys:
+                        new_data[key]=""
+                    if len(self.samp_data[condition]) > 0:  #we have one or more records to delete
+                        inds=self.samp_data[condition]['num'] # list of all rows where condition is true
+                        existing_data=dict(self.samp_data.iloc[inds[0]]) # get first record of existing_data from dataframe
+                        existing_data.update(new_data) # update existing data with new interpretations
+                        # update row
+                        self.samp_container.update_row(inds[0], existing_data)
+                        # now remove all the remaining records of same condition
+                        if len(inds)>1:
+                            for ind in inds[1:]:
+                                self.samp_container.delete_row(ind)
+                    # sort so that all rows for sample are together
+                    self.samp_data.sort_index(inplace=True)
+                    # redo temporary index
+                    self.samp_data['num'] = range(len(self.samp_data))
 
-        dlg1 = wx.MessageDialog(self,caption="Message:", message="MagIC pmag files are saved in MagIC project folder" ,style=wx.OK|wx.ICON_INFORMATION)
+            #  write out the data
+            self.samp_container.write_magic_file(custom_name='new_samples.txt', dir_path=self.WD) # change this to samples.txt when ready
+            self.site_container.write_magic_file(custom_name='new_sites.txt', dir_path=self.WD) # change this to sites.txt when ready
+        dlg1 = wx.MessageDialog(self,caption="Message:", message="MagIC files are saved in MagIC project folder" ,style=wx.OK|wx.ICON_INFORMATION)
         dlg1.ShowModal()
         dlg1.Destroy()
 
@@ -6570,16 +6664,16 @@ class Arai_GUI(wx.Frame):
                 self.spec_container = self.contribution.tables['specimens']
                 self.spec_data = self.spec_container.df
             if 'samples' in self.contribution.tables:
-                samp_container = self.contribution.tables['samples']
-                self.samp_data = samp_container.df # only need this for saving tables
+                self.samp_container = self.contribution.tables['samples']
+                self.samp_data = self.samp_container.df # only need this for saving tables
             if 'sites' in self.contribution.tables:
-                site_container = self.contribution.tables['sites']
-                self.site_data = site_container.df
+                self.site_container = self.contribution.tables['sites']
+                self.site_data = self.site_container.df
                 self.site_data = self.site_data[self.site_data['lat'].notnull()]
                 self.site_data = self.site_data[self.site_data['lon'].notnull()]
                 self.site_data = self.site_data[self.site_data['age'].notnull()]
-                age_headers = ['site','age','age_high','age_low','age_unit']
-                for head in age_headers:
+                site_headers = ['site','int_abs','int_abs_sigma','int_abs_sigma_perc','int_n_samples','int_n_specimens']
+                for head in site_headers:
                     if head not in self.site_data:
                         self.site_data[head] = None
                 age_headers=['site','age','age_high','age_low','age_unit']
