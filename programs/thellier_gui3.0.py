@@ -17,8 +17,9 @@
 #   7) does cooling rate calculation
 #   8) does  NLT correction 
 #   9) saves specimen data to specimens.txt in 3.0
+#   10) saves samples/sites tables in 3.0 format
 # TODO:
-#   save samples/sites tables in 3.0 format
+#    Fix method codes and acceptance criteria in output files
 #
 # Thellier_GUI Version 2.29 01/29/2015
 # 1) fix STDEV-OPT extended error bar plor display bug
