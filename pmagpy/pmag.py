@@ -233,10 +233,10 @@ def getsampVGP(SampRec,SiteNFO,data_model=2.5):
         else:
             lat=float(site[0]['lat'])
             lon=float(site[0]['lon'])
-        dec = float(SampRec['dec'])
-        inc = float(SampRec['inc'])
-        if SampRec['alpha95']!="":
-            a95=float(SampRec['alpha95'])
+        dec = float(SampRec['dir_dec'])
+        inc = float(SampRec['dir_inc'])
+        if SampRec['dir_alpha95']!="":
+            a95=float(SampRec['dir_alpha95'])
         else:
             a95=0
         plon,plat,dp,dm=dia_vgp(dec,inc,a95,lat,lon)
@@ -245,11 +245,11 @@ def getsampVGP(SampRec,SiteNFO,data_model=2.5):
         ResRec['location']=SampRec['location']
         ResRec['citations']="This study"
         ResRec['site']=SampRec['site']
-        ResRec['dir_dec']=SampRec['dec']
-        ResRec['dir_inc']=SampRec['inc']
-        ResRec['dir_alpha95']=SampRec['alpha95']
+        ResRec['dir_dec']=SampRec['dir_dec']
+        ResRec['dir_inc']=SampRec['dir_inc']
+        ResRec['dir_alpha95']=SampRec['dir_alpha95']
         ResRec['dir_tilt_correction']=SampRec['dir_tilt_correction']
-        ResRec['dir_comp_name']=SampRec['dir_comp']
+        ResRec['dir_comp_name']=SampRec['dir_comp_name']
         ResRec['vgp_lat']='%7.1f'%(plat)
         ResRec['vgp_lon']='%7.1f'%(plon)
         ResRec['vgp_dp']='%7.1f'%(dp)
@@ -3071,7 +3071,7 @@ def dolnp3_0(Data):
         ReturnData = {}
         ReturnData["dec"]=Data[0]['dir_dec']
         ReturnData["inc"]=Data[0]['dir_inc']
-        ReturnData["n"]='1'
+        ReturnData["n_total"]='1'
         if "DE-BFP" in Data[0]['method_codes']:
             ReturnData["n_lines"]='0'
             ReturnData["n_planes"]='1'
@@ -3079,8 +3079,8 @@ def dolnp3_0(Data):
             ReturnData["n_planes"]='0'
             ReturnData["n_lines"]='1'
         ReturnData["alpha95"]=""
-        ReturnData["r"]=""
-        ReturnData["k"]=""
+        ReturnData["R"]=""
+        ReturnData["K"]=""
         return ReturnData
     else:
         LnpData = []

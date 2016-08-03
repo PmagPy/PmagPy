@@ -628,7 +628,7 @@ class MagicDataFrame(object):
             mdf = mdf.set_index(dtype)
             #really? I wanted the index changed not a column deleted?!?
             mdf[dtype] = mdf.index
-            mdf.sort(inplace=True)
+            mdf.sort_index(inplace=True)
 
         return mdf
 
