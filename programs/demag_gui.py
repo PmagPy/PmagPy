@@ -79,6 +79,7 @@ import cit_magic as cit_magic
 import pmagpy.new_builder as nb
 from pandas import DataFrame,Series
 from SPD.mapping import map_magic
+from re import findall
 
 
 matplotlib.rc('xtick', labelsize=10)
@@ -131,8 +132,8 @@ class Demag_GUI(wx.Frame):
             if new_WD == self.currentDirectory and sys.version.split()[0] == '2.7.11':
                 new_WD = self.get_DIR()
             self.change_WD(new_WD)
-#        if write_to_log_file:
-#            self.init_log_file()
+        if write_to_log_file:
+            self.init_log_file()
 
         #init wait dialog
         disableAll = wx.WindowDisabler()
@@ -3510,34 +3511,65 @@ class Demag_GUI(wx.Frame):
         return inp_file_name
 
     def on_close_criteria_box (self,dia):
-
         window_list_specimens=['specimen_n','specimen_mad','specimen_dang','specimen_alpha95']
         window_list_samples=['sample_n','sample_n_lines','sample_n_planes','sample_k','sample_r','sample_alpha95']
         window_list_sites=['site_n','site_n_lines','site_n_planes','site_k','site_r','site_alpha95']
         demag_gui_supported_criteria= window_list_specimens+ window_list_samples+window_list_sites
 
-        for crit in demag_gui_supported_criteria:
-            command="new_value=dia.set_%s.GetValue()"%(crit)
-            exec command
-            # empty box
-            if new_value=="":
-                self.acceptance_criteria[crit]['value']=-999
-                continue
-            # box with no valid number
-            try:
-                float(new_value)
-            except:
-                self.show_crit_window_err_messege(crit)
-                continue
-            self.acceptance_criteria[crit]['value']=float(new_value)
+        if self.data_model==3:
+            new_crits = []
+            for crit in demag_gui_supported_criteria:
+                new_crit = {}
+                command="new_value=dia.set_%s.GetValue()"%(crit)
+                exec command
+                if new_value == None or new_value == '': continue
+                d = findall(r"[-+]?\d*\.\d+|\d+", new_value)
+                if len(d)>0: d = d[0]
+                comp = new_value.strip(str(d))
+                if comp == '': comp = '>='
+                if 'specimen' in crit: 
+                    col = "specimens."+map_magic.spec_magic2_2_magic3_map[crit]
+                elif 'sample' in crit: 
+                    col = "samples."+map_magic.samp_magic2_2_magic3_map[crit]
+                elif 'site' in crit: 
+                    col = "sites."+map_magic.site_magic2_2_magic3_map[crit]
+                else: print("no way this like is impossible"); continue
+                new_crit['criteria'] = "GUIInputCriteria"
+                new_crit['criterion_value'] = d
+                new_crit['criterion_operation'] = comp
+                new_crit['table_column'] = col
+                new_crit['citations'] = "This study"
+                new_crit['description'] = ''
+                new_crits.append(new_crit)
+            cdf = DataFrame(new_crits)
+            cdf = cdf.set_index("table_column")
+            cdf["table_column"] = cdf.index
+            cdf = cdf.reindex_axis(sorted(cdf.columns), axis=1)
+            self.con.tables['criteria'].df = cdf
+            self.con.tables['criteria'].write_magic_file(dir_path=self.WD)
+        else:
+            for crit in demag_gui_supported_criteria:
+                command="new_value=dia.set_%s.GetValue()"%(crit)
+                exec command
+                # empty box
+                if new_value=="":
+                    self.acceptance_criteria[crit]['value']=-999
+                    continue
+                # box with no valid number
+                try:
+                    float(new_value)
+                except:
+                    self.show_crit_window_err_messege(crit)
+                    continue
+                self.acceptance_criteria[crit]['value']=float(new_value)
 
-        #  message dialog
-        self.dlg = wx.MessageDialog(self,caption="Warning:", message="Canges are saved to pmag_criteria.txt\n " ,style=wx.OK)
-        result = self.dlg.ShowModal()
-        if result == wx.ID_OK:
-            self.write_acceptance_criteria_to_file()
-            self.dlg.Destroy()
-            dia.Destroy()
+            #  message dialog
+            self.dlg = wx.MessageDialog(self,caption="Saved:", message="Changes are saved to pmag_criteria.txt\n " ,style=wx.OK)
+            result = self.dlg.ShowModal()
+            if result == wx.ID_OK:
+                self.write_acceptance_criteria_to_file()
+                self.dlg.Destroy()
+                dia.Destroy()
 
     def show_crit_window_err_messege(self,crit):
         '''
@@ -3588,7 +3620,7 @@ class Demag_GUI(wx.Frame):
             else:
                 max_age="4.56"
                 age_units="Ga"
-                default_used = True
+            default_used = True
         DefaultAge=[min_age, max_age, age_units]
 
         #-- sample mean
@@ -3614,8 +3646,19 @@ class Demag_GUI(wx.Frame):
 
             #update age table
             adf = self.con.tables['ages'].df
-            if default_used and (adf['age'].all() == None or adf['age'].all() == float('nan')):
-                pass #totally broken
+            age_dat = DataFrame()
+            if default_used:
+                age_dat = adf[[adf.columns[i] for i,b in enumerate(adf.columns.str.contains('age')) if b]+['site','location']]
+                print("using age data from ages.txt")
+            else:
+                min_age = DefaultAge[0]
+                max_age = DefaultAge[1]
+                age_units = DefaultAge[2]
+                age,age_sigma = (min_age+max_age)/2, (max_age-min_age)/2
+                adf['age_high'],adf['age_low'],adf['age'],adf['age_sigma'],adf['age_unit'] = max_age,min_age,age,age_sigma,age_units
+                adf =  adf.reindex_axis(sorted(adf.columns), axis=1)
+                self.con.tables['ages'].df = adf
+                self.con.tables['ages'].write_magic_file(dir_path=self.WD)
 
             #set some variables
             priorities=['DA-AC-ARM','DA-AC-TRM']
@@ -3755,7 +3798,6 @@ class Demag_GUI(wx.Frame):
                             PmagSampRec['result_quality']='g'
                         else: PmagSampRec['result_quality']='b'
                         if nocrit!=1:PmagSampRec['criteria']="ACCEPT"
-                        #if agefile != "": PmagSampRec= pmag.get_age(PmagSampRec,"site","sample_inferred_",AgeNFO,DefaultAge) still broken
                         site_height=pmag.get_dictitem(height_info,'site',PmagSampRec['site'],'T')
                         if len(site_height)>0:PmagSampRec["height"]=site_height[0]['height'] # add in height if available
                         PmagSampRec['dir_comp_name']=comp
@@ -3779,7 +3821,7 @@ class Demag_GUI(wx.Frame):
                         PmagSamps.append(PmagSampRec)
 
             #removed average_all_components check because demag GUI never averages directional components
-            #removed intensity average portion as demag GUI has no need of this
+            #removed intensity average portion as demag GUI has no need of this also cause translating this is a bitch
 
             if len(PmagSamps)>0:
                 for dc in ['magic_method_codes']:
@@ -3839,7 +3881,21 @@ class Demag_GUI(wx.Frame):
 
                         PmagSiteRec["citations"]="This study"
                         PmagSiteRec['software_packages']=version_num
-        #                if agefile != "": PmagSiteRec= pmag.get_age(PmagSiteRec,"site","site_inferred_",AgeNFO,DefaultAge)
+                        if default_used:
+                            age_data_for_site = age_dat[age_dat['site']==site]
+                            avg = lambda l: sum(l)/len(l) if hasattr(l, '__iter__') else l
+                            for k in age_dat.columns:
+                                if 'age' in k:
+                                    if len(age_data_for_site[k])==1 or type(list(age_data_for_site[k])[0]) == str:
+                                        PmagSiteRec[k] = list(age_data_for_site[k])[0]
+                                    else:
+                                        PmagSiteRec[k] = avg(map(float,age_data_for_site[k]))
+                        else:
+                            PmagSiteRec['age_high'] = max_age
+                            PmagSiteRec['age_low'] = min_age
+                            PmagSiteRec['age'] = age
+                            PmagSiteRec['age_sigma'] = age_sigma
+                            PmagSiteRec['age_unit'] = age_units
                         PmagSiteRec['criteria']='ACCEPT'
                         if 'dir_n_specimens_lines' in PmagSiteRec.keys() and 'dir_n_specimens_planes' in PmagSiteRec.keys() and PmagSiteRec['dir_n_specimens_lines']!="" and PmagSiteRec['dir_n_specimens_planes']!="":
                             if int(PmagSiteRec["dir_n_specimens_planes"])>0:
@@ -3922,6 +3978,20 @@ class Demag_GUI(wx.Frame):
                             PolRes['location'] = polpars[mode]['locs']
                             PolRes['software_packages']=version_num
                             PolRes['dir_tilt_correction']=coord
+                            if default_used:
+                                age_data_for_loc = age_dat[age_dat['location']==location]
+                                avg = lambda l: sum(l)/len(l) if hasattr(l, '__iter__') else l
+                                for k in age_dat.columns:
+                                    if len(age_data_for_site[k])==1 or type(list(age_data_for_site[k])[0]) == str:
+                                        PolRes[k] = list(age_data_for_loc[k])[0]
+                                    else:
+                                        PolRes[k] = avg(map(float,age_data_for_loc[k]))
+                            else:
+                                PolRes['age_high'] = max_age
+                                PolRes['age_low'] = min_age
+                                PolRes['age'] = age
+                                PolRes['age_sigma'] = age_sigma
+                                PolRes['age_unit'] = age_units
                             if dia.cb_location_mean_VGP.GetValue():
                                 locs_dat = self.con.tables['locations'].df
                                 if 'lat_n' in locs_dat.columns:
@@ -4594,10 +4664,7 @@ class Demag_GUI(wx.Frame):
             #write to disk
             spmdf.write_magic_file(dir_path=self.WD)
 
-#            self.user_warning("saving to samples, sites, locations, criteria, and ages is not yet supported")
-#            return
-
-            TEXT="specimens interpretations are saved in specimens.txt.\nPress OK to save to samples/sites/locations tables."
+            TEXT="specimens interpretations are saved in specimens.txt.\nPress OK to save to samples/sites/locations/ages tables."
             self.dlg = wx.MessageDialog(self, caption="Saved",message=TEXT,style=wx.OK|wx.CANCEL)
             result = self.dlg.ShowModal()
             if result == wx.ID_OK:

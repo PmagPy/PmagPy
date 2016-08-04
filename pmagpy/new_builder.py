@@ -609,7 +609,7 @@ class MagicDataFrame(object):
             mcdf2 = cdf2
             acdf2 = pd.DataFrame(columns=mcdf2.columns)
         else:
-            print("replace_dir_or_int must equal 'dir' or 'int' so that the correct data, directional or intensity, is replaced in the output")
+            print("replace_dir_or_int must equal 'dir', 'int', or 'full' so that the correct data, directional or intensity, or all data is replaced in the output"); return
 
         #get rid of stupid duplicates
         for c in [cx for cx in mcdf2.columns if cx in df1.columns]:
