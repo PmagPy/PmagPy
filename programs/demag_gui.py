@@ -131,8 +131,8 @@ class Demag_GUI(wx.Frame):
             if new_WD == self.currentDirectory and sys.version.split()[0] == '2.7.11':
                 new_WD = self.get_DIR()
             self.change_WD(new_WD)
-        if write_to_log_file:
-            self.init_log_file()
+#        if write_to_log_file:
+#            self.init_log_file()
 
         #init wait dialog
         disableAll = wx.WindowDisabler()
@@ -1790,6 +1790,7 @@ class Demag_GUI(wx.Frame):
         if specimen not in self.Data.keys():
             self.user_warning("there is no measurement data for %s and therefore no interpretation can be created for this specimen"%(specimen))
             return
+        if fmax!=None and fmax not in self.Data[specimen]['zijdblock_steps'] or fmin!=None and fmin not in self.Data[specimen]['zijdblock_steps']: return
         if not (specimen in self.pmag_results_data['specimens'].keys()):
             self.pmag_results_data['specimens'][specimen] = []
         next_fit = str(len(self.pmag_results_data['specimens'][specimen]) + 1)
@@ -2920,7 +2921,7 @@ class Demag_GUI(wx.Frame):
             Data_info["er_locations"]=[]
             Data_info["er_ages"]=[]
             fnames = {'measurements': self.magic_file}
-            self.con = nb.Contribution(self.WD, custom_filenames=fnames, read_tables=['measurements', 'specimens', 'samples','sites', 'criteria', 'ages'])
+            self.con = nb.Contribution(self.WD, custom_filenames=fnames, read_tables=['measurements', 'specimens', 'samples','sites', 'locations', 'criteria', 'ages'])
             if 'specimens' in self.con.tables:
                 spec_container = self.con.tables['specimens']
                 self.spec_data = spec_container.df
@@ -3549,20 +3550,17 @@ class Demag_GUI(wx.Frame):
 
     def On_close_MagIC_dialog(self,dia):
 
-        if dia.cb_acceptance_criteria.GetValue()==True:
+        if dia.cb_acceptance_criteria.GetValue():
             use_criteria='existing'
         else:
             use_criteria='none'
 
         #-- coordinate system
-        if dia.rb_spec_coor.GetValue()==True:
-            coord = "s"
-        if dia.rb_geo_coor.GetValue()==True:
-            coord = "g"
-        if dia.rb_tilt_coor.GetValue()==True:
-            coord = "t"
-        if dia.rb_geo_tilt_coor.GetValue()==True:
-            coord = "b"
+        if dia.rb_spec_coor.GetValue(): coord = "s"
+        elif dia.rb_geo_coor.GetValue(): coord = "g"
+        elif dia.rb_tilt_coor.GetValue(): coord = "t"
+        elif dia.rb_geo_tilt_coor.GetValue(): coord = "b"
+        else: coord = "s"
 
         #-- default age options
         DefaultAge= ["none"]
@@ -3595,21 +3593,21 @@ class Demag_GUI(wx.Frame):
 
         #-- sample mean
         avg_directions_by_sample = False
-        if dia.cb_sample_mean.GetValue()==True:
+        if dia.cb_sample_mean.GetValue():
             avg_directions_by_sample = True
 
         vgps_level = 'site'
-        if dia.cb_sample_mean_VGP.GetValue()==True:
+        if dia.cb_sample_mean_VGP.GetValue():
             vgps_level = 'sample'
 
         #-- site mean
 
-        if dia.cb_site_mean.GetValue()==True:
+        if dia.cb_site_mean.GetValue():
             pass
 
         #-- location mean
         avg_by_polarity=False
-        if dia.cb_location_mean.GetValue()==True:
+        if dia.cb_location_mean.GetValue():
             avg_by_polarity=True
 
         if self.data_model == 3.0:
@@ -3681,6 +3679,7 @@ class Demag_GUI(wx.Frame):
             orient = list(spec_df['dir_tilt_correction'].drop_duplicates())
             samples = sorted(list(spec_df['sample'].drop_duplicates()))
             sites = sorted(list(spec_df['site'].drop_duplicates()))
+            locations = sorted(list(spec_df['location'].drop_duplicates()))
             Comps = sorted(list(spec_df['dir_comp'].drop_duplicates()))
             Comps = [c for c in Comps if type(c) == str]
             height_info=pmag.get_dictitem(SiteNFO,'height','','F') # find all the sites with height info.
@@ -3797,7 +3796,7 @@ class Demag_GUI(wx.Frame):
             #create site averages from specimens or samples as specified
             for site in sites:
                 for coord in coords:
-                    if avg_directions_by_sample:
+                    if dia.combo_site_mean.GetValue()=='samples' and avg_directions_by_sample:
                         key, comp_key, dirlist='sample', 'dir_comp_name', SampDirs # if sample averages at site level desired
                     else:
                         key, comp_key, dirlist='specimen', 'dir_comp', SpecDirs # if specimen averages at site level desired
@@ -3810,7 +3809,7 @@ class Demag_GUI(wx.Frame):
                         siteD=pmag.get_dictitem(tmp1,comp_key,comp,'T') # get all components comp
                         #remove bad data from means
                         siteD=filter(lambda x: x['result_quality']=='g' if 'result_quality' in x else True , siteD)
-                        if len(siteD)<=0: print("no data for comp %s. skipping"%comp); continue
+                        if len(siteD)<=0: continue;# print("no data for comp %s in site %s. skipping"%(comp,site))
                         PmagSiteRec=PmagSampRec=pmag.dolnp3_0(siteD) # get an average for this site
                         for k,v in renamelnp.items():
                             if k in PmagSiteRec:
@@ -3820,9 +3819,8 @@ class Demag_GUI(wx.Frame):
                         PmagSiteRec["location"]=siteD[0]['location']
                         PmagSiteRec["site"]=siteD[0]['site']
                         PmagSiteRec['dir_tilt_correction']=coord
-                        PmagSiteRec[comp_key] = pmag.get_list(siteD,comp_key)
                         PmagSiteRec['samples'] = pmag.get_list(siteD,'sample')
-                        if avg_directions_by_sample:
+                        if dia.combo_site_mean.GetValue()=='samples' and avg_directions_by_sample:
                             PmagSiteRec['specimens'] = pmag.get_list(siteD,'specimens')
                         else:
                             PmagSiteRec['specimens'] = pmag.get_list(siteD,'specimen')
@@ -3878,21 +3876,36 @@ class Demag_GUI(wx.Frame):
                         else: PmagSiteRec['result_quality'] = 'g'
                         PmagSites.append(PmagSiteRec)
 
-                if avg_by_polarity:
-                    crecs=pmag.get_dictitem(PmagSites,'dir_tilt_correction','100','T') # find the tilt corrected data
-                    if len(crecs)<2:crecs=pmag.get_dictitem(PmagSites,'dir_tilt_correction','0','T') # if there aren't any, find the geographic corrected data
-                    if len(crecs)>2: # if there are some,
-                        comp=pmag.get_list(crecs,'site_comp_name').split(':')[0] # find the first component
-                        crecs=pmag.get_dictitem(crecs,'dir_comp_name',comp,'T') # fish out all of the first component
+            if len(PmagSites)>0:
+                sites_df = DataFrame(PmagSites)
+                sites_df = sites_df.set_index('site')
+                sites_df['site'] = sites_df.index
+                nsdf = self.con.tables['sites'].merge_dfs(sites_df,'full')
+                nsdf =  nsdf.reindex_axis(sorted(nsdf.columns), axis=1)
+                self.con.tables['sites'].df = nsdf
+                self.con.tables['sites'].write_magic_file(dir_path=self.WD)
+
+            #location mean section
+            PmagLocs = []
+            for location in locations:
+                if not avg_by_polarity: break
+                locrecs=pmag.get_dictitem(PmagSites,'location',location,'T')
+                if len(locrecs)<2:print("no data for location %s"%location); continue
+                for coord in coords:
+                    coordrecs=pmag.get_dictitem(locrecs,'dir_tilt_correction',coord,'T') # find the tilt corrected data
+                    if len(coordrecs)<2:print("no %s percent tilt corrected data in all sites"%coord); continue
+                    for comp in Comps:
+                        crecs=pmag.get_dictitem(coordrecs,'dir_comp_name',comp,'T') # fish out all of the component
+                        if len(crecs)<2:print("no data for comp %s"%comp); continue
                         precs=[]
                         for rec in crecs:
                             precs.append({'dec':rec['dir_dec'],'inc':rec['dir_inc'],'name':rec['site'],'loc':rec['location']})
                         polpars=pmag.fisher_by_pol(precs) # calculate average by polarity
-                        PoleResults = []
                         for mode in polpars.keys(): # hunt through all the modes (normal=A, reverse=B, all=ALL)
                             PolRes={}
                             PolRes['citations']='This study'
-                            PolRes["result_name"]="Polarity Average: Polarity "+mode #
+                            PolRes["result_name"]="Polarity Average: Polarity "+mode
+                            PolRes["pole_comp_name"]=comp+':'+mode
                             PolRes["result_type"]="a"
                             PolRes["dir_dec"]='%7.1f'%(polpars[mode]['dec'])
                             PolRes["dir_inc"]='%7.1f'%(polpars[mode]['inc'])
@@ -3900,27 +3913,56 @@ class Demag_GUI(wx.Frame):
                             PolRes["dir_r"]='%5.4f'%(polpars[mode]['r'])
                             PolRes["dir_k"]='%6.0f'%(polpars[mode]['k'])
                             PolRes["dir_alpha95"]='%7.1f'%(polpars[mode]['alpha95'])
-                            PolRes['sites']= polpars[mode]['sites']
-                            PolRes['location']= polpars[mode]['locs']
+                            PolRes['sites'] = polpars[mode]['sites']
+                            sites_dat = self.con.tables['sites'].df
+                            for e in ['samples','specimens']:
+                                PolRes[e] = reduce(lambda x,y: x+':'+y, [sites_dat.loc[site][e][0] if type(sites_dat.loc[site][e])!=str else sites_dat.loc[site][e] for site in PolRes['sites'].split(':')])
+                            PolRes['dir_n_samples'] = len(PolRes['samples'].split(':'))
+                            PolRes['dir_n_specimens'] = len(PolRes['specimens'].split(':'))
+                            PolRes['location'] = polpars[mode]['locs']
                             PolRes['software_packages']=version_num
-                            PoleResults.append(PolRes)
+                            PolRes['dir_tilt_correction']=coord
+                            if dia.cb_location_mean_VGP.GetValue():
+                                locs_dat = self.con.tables['locations'].df
+                                if 'lat_n' in locs_dat.columns:
+                                    lat = locs_dat['lat_n'][location] if type(locs_dat['lat_n'][location])==str else locs_dat['lat_n'][location][0]
+                                elif 'lat_s' in locs_dat.columns:
+                                    lat = locs_dat['lat_s'][location] if type(locs_dat['lat_s'][location])==str else locs_dat['lat_s'][location][0]
+                                else: print("no latitude data for location %s"%PolRes['location']); break
+                                if 'lon_e' in locs_dat.columns:
+                                    lon = locs_dat['lon_e'][location] if type(locs_dat['lon_e'][location])==str else locs_dat['lon_e'][location][0]
+                                elif 'lon_w' in locs_dat.columns:
+                                    lon = locs_dat['lon_w'][location] if type(locs_dat['lon_w'][location])==str else locs_dat['lon_w'][location][0]
+                                else: print("no longitude data for location %s"%PolRes['location']); break
+                                try:
+                                    dec,inc,a95,lat,lon = float(polpars[mode]['dec']),float(polpars[mode]['inc']),float(polpars[mode]['alpha95']),float(lat),float(lon)
+                                except TypeError:
+                                    print("unable to obtain all data needed for VGP calculation, skipping"); break
+                                plong,plat,dp,dm=pmag.dia_vgp(dec,inc,a95,lat,lon) # get the VGP for this pole component
+                                PolRes["pole_lat"]='%7.1f ' % (plat)
+                                PolRes["pole_lon"]='%7.1f ' % (plong)
+                                PolRes["pole_dp"]='%7.1f ' % (dp)
+                                PolRes["pole_dm"]='%7.1f ' % (dm)
+                                PolRes["pole_alpha95"]=PolRes['dir_alpha95']
+                                PolRes["pole_r"]=PolRes['dir_r']
+                                PolRes["pole_k"]=PolRes['dir_k']
+                                angle=pmag.angle([0,0],[0,(90-plat)])
+                                if angle <= 55.:
+                                    PolRes["dir_polarity"]='n'
+                                if angle > 55. and angle < 125.:
+                                    PolRes["dir_polarity"]='t'
+                                if angle >= 125.:
+                                    PolRes["dir_polarity"]='r'
+                            PmagLocs.append(PolRes)
 
-            if len(PmagSites)>0:
-                sites_df = DataFrame(PmagSites)
-                sites_df = sites_df.set_index('site')
-                sites_df['site'] = sites_df.index
-                nsdf = self.con.tables['sites'].merge_dfs(sites_df,'full')
-                nsdf =  nsdf.reindex_axis(sorted(nsdf.columns), axis=1)
-                nsdf.drop_duplicates(subset=["dir_comp_name","site","dir_tilt_correction"],inplace=True)
-                self.con.tables['sites'].df = nsdf
-                self.con.tables['sites'].write_magic_file(dir_path=self.WD)
-
-            pdb.set_trace()
-            #location mean section
-
-            PmagLocs = []
             if len(PmagLocs)>0:
-                pass #write locations.txt
+                locs_df = DataFrame(PmagLocs)
+                locs_df = locs_df.set_index('location')
+                locs_df['location'] = locs_df.index
+                nsdf = self.con.tables['locations'].merge_dfs(locs_df,'full')
+                nsdf =  nsdf.reindex_axis(sorted(nsdf.columns), axis=1)
+                self.con.tables['locations'].df = nsdf
+                self.con.tables['locations'].write_magic_file(dir_path=self.WD)
 
         else:
 
@@ -4396,6 +4438,7 @@ class Demag_GUI(wx.Frame):
                 CoorTypes.append('DA-DIR-GEO')
             if dia.cb_tilt_coor.GetValue()==True:
                 CoorTypes.append('DA-DIR-TILT')
+        else: self.user_warning("MagIC tables not saved"); return
         #------------------------------
 
         self.PmagRecsOld={}
@@ -4519,7 +4562,6 @@ class Demag_GUI(wx.Frame):
                 PmagSpecs.append(rec)
         PmagSpecs_fixed=self.merge_pmag_recs(PmagSpecs)
 
-
         if self.data_model == 3.0:
 
             #translate demag_gui output to 3.0 DataFrame
@@ -4552,21 +4594,30 @@ class Demag_GUI(wx.Frame):
             #write to disk
             spmdf.write_magic_file(dir_path=self.WD)
 
-            self.user_warning("saving to samples, sites, locations, criteria, and ages is not yet supported")
-            return
+#            self.user_warning("saving to samples, sites, locations, criteria, and ages is not yet supported")
+#            return
+
+            TEXT="specimens interpretations are saved in specimens.txt.\nPress OK to save to samples/sites/locations tables."
+            self.dlg = wx.MessageDialog(self, caption="Saved",message=TEXT,style=wx.OK|wx.CANCEL)
+            result = self.dlg.ShowModal()
+            if result == wx.ID_OK:
+                self.dlg.Destroy()
+            if result == wx.ID_CANCEL:
+                self.dlg.Destroy()
+                return
 
         else:
             pmag.magic_write(os.path.join(self.WD, "pmag_specimens.txt"),PmagSpecs_fixed,'pmag_specimens')
             print( "specimen data stored in %s\n"%os.path.join(self.WD, "pmag_specimens.txt"))
 
-        TEXT="specimens interpretations are saved in pmag_specimens.txt.\nPress OK for pmag_samples/pmag_sites/pmag_results tables."
-        self.dlg = wx.MessageDialog(self, caption="Saved",message=TEXT,style=wx.OK|wx.CANCEL)
-        result = self.dlg.ShowModal()
-        if result == wx.ID_OK:
-            self.dlg.Destroy()
-        if result == wx.ID_CANCEL:
-            self.dlg.Destroy()
-            return
+            TEXT="specimens interpretations are saved in pmag_specimens.txt.\nPress OK for pmag_samples/pmag_sites/pmag_results tables."
+            self.dlg = wx.MessageDialog(self, caption="Saved",message=TEXT,style=wx.OK|wx.CANCEL)
+            result = self.dlg.ShowModal()
+            if result == wx.ID_OK:
+                self.dlg.Destroy()
+            if result == wx.ID_CANCEL:
+                self.dlg.Destroy()
+                return
 
         #--------------------------------
 

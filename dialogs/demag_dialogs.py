@@ -113,7 +113,6 @@ class magic_pmag_tables_dialog(wx.Dialog):
     def __init__(self,parent,WD,Data,Data_info):
         super(magic_pmag_tables_dialog, self).__init__(parent, title="MagIC results table Dialog")
         self.InitUI()
-        
 
     def InitUI(self):
 
@@ -168,6 +167,7 @@ class magic_pmag_tables_dialog(wx.Dialog):
         # sample 
         #---------------------
         self.cb_sample_mean=wx.CheckBox(pnl1, -1, 'calculate sample mean  ', (10, 30))
+        self.Bind(wx.EVT_CHECKBOX,self.on_change_cb_sample_mean,self.cb_sample_mean)
         self.cb_sample_mean.SetValue(False)  
         sample_mean_choices=['specimens']
         self.combo_sample_mean=wx.ComboBox(pnl1, -1,size=(150, -1), value = 'specimens', choices=sample_mean_choices, style=wx.CB_READONLY)
@@ -194,6 +194,7 @@ class magic_pmag_tables_dialog(wx.Dialog):
         self.cb_site_mean.SetValue(True)         
         site_mean_choices=['specimens','samples']
         self.combo_site_mean=wx.ComboBox(pnl1, -1,size=(150, -1), value = 'specimens', choices=site_mean_choices, style=wx.CB_READONLY)
+        self.Bind(wx.EVT_COMBOBOX,self.on_change_site_mean,self.combo_site_mean)
         site_mean_types=['Fisher']
         self.combo_site_type=wx.ComboBox(pnl1, -1,size=(150, -1), value = 'Fisher', choices=site_mean_types, style=wx.CB_READONLY)
         self.cb_site_mean_VGP=wx.CheckBox(pnl1, -1, 'calculate site VGP', (10, 30))
@@ -297,8 +298,8 @@ class magic_pmag_tables_dialog(wx.Dialog):
         pnl1.SetSizer(vbox1)
         vbox1.Fit(self)
 
-    
-            
+
+
     def on_change_cb_sample_mean_VGP(self,event):
         if self.cb_sample_mean_VGP.GetValue()==True:
             self.cb_site_mean_VGP.SetValue(False)
@@ -306,10 +307,18 @@ class magic_pmag_tables_dialog(wx.Dialog):
     def on_change_cb_site_mean_VGP(self,event):
         if self.cb_site_mean_VGP.GetValue()==True:
             self.cb_sample_mean_VGP.SetValue(False)
-        
+
     def on_change_cb_location_mean_VGP(self,event):
         if self.cb_location_mean_VGP.GetValue()==True:
             self.cb_location_mean_VGP.SetValue(False)
+
+    def on_change_cb_sample_mean(self,event):
+        if self.combo_site_mean.GetValue()=='samples' and not self.cb_sample_mean.GetValue():
+            self.combo_site_mean.SetValue('specimens')
+
+    def on_change_site_mean(self,event):
+        if self.combo_site_mean.GetValue()=='samples' and not self.cb_sample_mean.GetValue():
+            self.cb_sample_mean.SetValue(True)
 
 #--------------------------------------------------------------    
 # MagIc results tables dialog
