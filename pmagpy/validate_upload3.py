@@ -17,6 +17,9 @@ def requiredUnless(col_name, arg, dm, df, *args):
     Each string will be a column name.
     Col_name is required in df unless each column from arg is present.
     """
+    # if column name is present, no need to check if it is required
+    if col_name in df.columns:
+        return None
     arg_list = arg.split(",")
     arg_list = [argument.strip('"') for argument in arg_list]
     msg = ""
