@@ -495,6 +495,8 @@ def validate_table(the_con, dtype, verbose=False):
         if len(missing_groups):
             formatted_groups = [group[11:] for group in missing_groups]
             print '-I- You need at least one header from these groups: {}'.format(", ".join(formatted_groups))
+        else:
+            formatted_groups = []
         return dtype, bad_rows, bad_cols, missing_cols, formatted_groups, failing_items
     else:
         print "-I- No row errors found!"
