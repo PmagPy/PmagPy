@@ -15,7 +15,7 @@
 #   5) reads in age, lat, lon into data_info - makes plots
 #   6) does the anisotropy calculation and saves to specimens.txt in 3.0
 #   7) does cooling rate calculation
-#   8) does  NLT correction 
+#   8) does  NLT correction
 #   9) saves specimen data to specimens.txt in 3.0
 #   10) saves samples/sites tables in 3.0 format
 # TODO:
@@ -2289,7 +2289,7 @@ class Arai_GUI(wx.Frame):
                     self.acceptance_criteria[m2_name]['value']=float(crit['criterion_value'])
                     self.acceptance_criteria[m2_name]['pmag_criteria_code']=crit['criterion']
                 if m2_name!=crit['table_column'] and 'scat' in m2_name!="":
-                    if crit['criterion_value']=='True': 
+                    if crit['criterion_value']=='True':
                         self.acceptance_criteria[m2_name]['value']=1
                     else:
                         self.acceptance_criteria[m2_name]['value']=0
@@ -2931,7 +2931,7 @@ class Arai_GUI(wx.Frame):
                         # now remove all the remaining records of same condition
                         if len(inds)>1:
                             for ind in inds[1:]:
-                                self.spec_container.delete_row(ind)  
+                                self.spec_container.delete_row(ind)
                     else:
                         print 'no record found - creating new one for ', spec
                         # add new row
@@ -3153,7 +3153,9 @@ class Arai_GUI(wx.Frame):
 
 
     def on_menu__prepare_MagIC_results_tables (self, event):
-
+        """
+        File --> Save MagIC tables
+        """
         import copy
 
         # write a redo file
@@ -3267,36 +3269,15 @@ class Arai_GUI(wx.Frame):
                 else:
                     MagIC_results_data['pmag_specimens'][specimen]['specimen_int_corr_cooling_rate']=""
                 MagIC_results_data['pmag_specimens'][specimen]['criteria']="IE-SPEC"
+
                 if self.data_model==3:   # convert pmag_specimen format to data model 3 and replace existing specimen record or add new
                     new_spec_data=MagIC_results_data['pmag_specimens'][specimen]
                     # reformat all the keys
-                    new_data=map_magic.convert_spec('magic3',new_spec_data) # turn new_specimen data to 3.0
-                    # add numeric index column temporarily 
-## should probably make this a function
-                    self.spec_container.df['num'] = range(len(self.spec_container.df))
-                    self.spec_data = self.spec_container.df
-           # edit first of existing intensity data for this specimen from self.spec_data
-                    cond1=self.spec_data['specimen'].str.contains(specimen)==True
-                    cond2=self.spec_data['int_abs'].notnull()==True
-                    condition=(cond1 & cond2)
-                    if len(self.spec_data[condition]) > 0:  #we have one or more records to update or delete
-                        inds=self.spec_data[condition]['num'] # list of all rows where condition is true
-                        existing_data=dict(self.spec_data.iloc[inds[0]]) # get first record of existing_data from dataframe
-                        existing_data.update(new_data) # update existing data with new interpretations
-                        # update row
-                        self.spec_container.update_row(inds[0], existing_data)
-                        # now remove all the remaining records of same condition
-                        if len(inds)>1:
-                            for ind in inds[1:]:
-                                self.spec_container.delete_row(ind)
-                    else:
-                        print 'no record found - creating new one for ', specimen
-                        # add new row
-                        self.spec_container.add_row(spec, new_data )
-                    # sort so that all rows for a specimen are together
-                    self.spec_data.sort_index(inplace=True)
-                    # redo temporary index
-                    self.spec_data['num'] = range(len(self.spec_data))
+                    new_data = map_magic.convert_spec('magic3', new_spec_data) # turn new_specimen data to 3.0
+                    cond1 = self.spec_data['specimen'].str.contains(specimen) == True
+                    cond2 = self.spec_data['int_abs'].notnull() == True
+                    condition = (cond1 & cond2)
+                    self.spec_data = self.spec_container.update_record(specimen, new_data, condition)
 
         if self.data_model!=3: # write out pmag_specimens.txt file
             fout=open(os.path.join(self.WD, "pmag_specimens.txt"),'w')
@@ -3331,11 +3312,11 @@ class Arai_GUI(wx.Frame):
             # message dialog
             #-------------
             TEXT="specimens interpretations are saved in pmag_specimens.txt.\nPress OK for pmag_samples/pmag_sites/pmag_results tables."
-        else: # data model 3, so merge with spec_data  and save as specimens.txt file 
+        else: # data model 3, so merge with spec_data  and save as specimens.txt file
             #  write out the data
             self.spec_container.write_magic_file(custom_name='new_specimens.txt', dir_path=self.WD) # change this to specimens.txt when ready
             TEXT="specimens interpretations are saved in specimens.txt.\nPress OK for samples/sites tables."
- 
+
         dlg = wx.MessageDialog(self, caption="Saved",message=TEXT,style=wx.OK|wx.CANCEL )
         result = dlg.ShowModal()
         if result == wx.ID_OK:
@@ -3484,7 +3465,7 @@ class Arai_GUI(wx.Frame):
                     pass
 
 
-        else: # don't do anything yet = need vdm data START HERE WITH 3.0 CONVERSION 
+        else: # don't do anything yet = need vdm data START HERE WITH 3.0 CONVERSION
             pass
 
         #-------------
@@ -3598,11 +3579,11 @@ class Arai_GUI(wx.Frame):
                                 if header_result == "average_age_range_low":
                                     header_result="average_age_low"
                                 MagIC_results_data['pmag_results'][sample_or_site][header_result]=value
-    
+
                                 if header_result not in pmag_results_header_4:
                                    pmag_results_header_4.append(header_result)
-    
-    
+
+
         # check for ages:
 
                 for sample_or_site in pmag_samples_or_sites_list:
@@ -3636,7 +3617,7 @@ class Arai_GUI(wx.Frame):
                                 methods= self.Data_info["er_ages"][element_with_age]['magic_method_codes'].replace(" ","").strip('\n').split(":")
                                 for meth in methods:
                                     MagIC_results_data['pmag_results'][sample_or_site]["magic_method_codes"]=MagIC_results_data['pmag_results'][sample_or_site]["magic_method_codes"] + ":"+ meth
-    
+
 
                 # write pmag_results.txt
                 fout=open(os.path.join(self.WD, "pmag_results.txt"),'w')
@@ -3646,7 +3627,7 @@ class Arai_GUI(wx.Frame):
                 for key in headers:
                     String=String+key+"\t"
                 fout.write(String[:-1]+"\n")
-    
+
                 #pmag_samples_list.sort()
                 for sample_or_site in pmag_samples_or_sites_list:
                     String=""
@@ -3657,7 +3638,7 @@ class Arai_GUI(wx.Frame):
                             String=String+""+"\t"
                     fout.write(String[:-1]+"\n")
                 fout.close()
-    
+
                 # merge with non-intensity data
                 meas_data,file_type=pmag.magic_read(os.path.join(self.WD, "pmag_results.txt"))
                 for rec in PmagRecsOld["pmag_results.txt"]:
@@ -3696,7 +3677,7 @@ class Arai_GUI(wx.Frame):
                                 if code !="" and code not in magic_method_codes:
                                     magic_method_codes.append(code)
                     fin.close()
-        
+
                 magic_method_codes.sort()
                 #print magic_method_codes
                 magic_methods_header_1=["magic_method_code"]
@@ -3713,14 +3694,14 @@ class Arai_GUI(wx.Frame):
                     Fout.write("tab\tpmag_criteria\n")
                     Fout.write("er_citation_names\tpmag_criteria_code\n")
                     Fout.write("This study\tACCEPT\n")
-              
+
         else: # write out samples/sites in data model 3.0 #START HERE
-            for sample_or_site in pmag_samples_or_sites_list:  
+            for sample_or_site in pmag_samples_or_sites_list:
                 # convert, delete, add and save
                 new_sample_or_site_data=MagIC_results_data['pmag_samples_or_sites'][sample_or_site]
                 if BY_SAMPLES:
                     new_data=map_magic.convert_samp('magic3',new_sample_or_site_data) # convert to 3.0
-                    # add numeric index column temporarily 
+                    # add numeric index column temporarily
                     self.samp_container.df['num'] = range(len(self.samp_container.df))
                     self.samp_data = self.samp_container.df
            # edit first of existing intensity data for this sample from self.samp_data
@@ -3745,7 +3726,7 @@ class Arai_GUI(wx.Frame):
                     self.samp_data.sort_index(inplace=True)
                     # redo temporary index
                     self.samp_data['num'] = range(len(self.samp_data))
-                    # remove intensity data from site level.    
+                    # remove intensity data from site level.
                     site=self.Data_hierarchy['site_of_sample'][sample_or_site]
                     cond1=self.site_data['site'].str.contains(site)==True
                     cond2=self.site_data['int_abs'].notnull()==True
@@ -3770,7 +3751,7 @@ class Arai_GUI(wx.Frame):
                     self.site_data['num'] = range(len(self.site_data))
                 else:  # do this by site and not by sample
                     new_data=map_magic.convert_site('magic3',new_sample_or_site_data) # convert to 3.0
-                    # add numeric index column temporarily 
+                    # add numeric index column temporarily
                     self.site_container.df['num'] = range(len(self.site_container.df))
                     self.site_data = self.site_container.df
            # edit first of existing intensity data for this site from self.site_data

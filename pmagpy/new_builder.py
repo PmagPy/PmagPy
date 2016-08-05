@@ -502,6 +502,41 @@ class MagicDataFrame(object):
             return ""
         #return df_slice[col_name].dropna()[0]
 
+
+    def update_record(self, name, new_data, condition):
+        """
+        Find the first row in self.df with index == name
+        and condition == True.
+        Update that record with new_data, then delete any
+        additional records where index == name and condition == True.
+        """
+        # add numeric index column temporarily
+        self.df['num'] = range(len(self.df))
+        df_data = self.df
+        # edit first of existing data that meets condition
+        if len(df_data[condition]) > 0:  #we have one or more records to update or delete
+            print "updating specimen:", name
+            inds = df_data[condition]['num'] # list of all rows where condition is true
+            existing_data = dict(df_data.iloc[inds[0]]) # get first record of existing_data from dataframe
+            existing_data.update(new_data) # update existing data with new interpretations
+            # update row
+            self.update_row(inds[0], existing_data)
+            # now remove all the remaining records of same condition
+            if len(inds) > 1:
+                for ind in inds[1:]:
+                    print "deleting redundant records for specimen:", name
+                    self.delete_row(ind)
+        else:
+            print 'no record found - creating new one for ', name
+            # add new row
+            self.add_row(name, new_data)
+        # sort so that all rows for an item are together
+        df_data.sort_index(inplace=True)
+        # redo temporary index
+        df_data['num'] = range(len(df_data))
+        return df_data
+
+
     def get_di_block(self, df_slice=None, do_index=False,
                      item_names=None, tilt_corr='100',
                      excl=None):
