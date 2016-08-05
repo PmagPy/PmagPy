@@ -271,25 +271,36 @@ class MainFrame(wx.Frame):
             if grid_type in self.validation_mode:
                 row_problems = self.failing_items[grid_type]["rows"]
                 missing_columns = self.failing_items[grid_type]["missing_columns"]
+                missing_groups = self.failing_items[grid_type]["missing_groups"]
                 #all_cols = row_problems.columns
                 #col_nums = range(len(all_cols))
                 #col_pos = dict(zip(all_cols, col_nums))
-                for row in row_problems['num']:
-                    self.grid_frame.grid.paint_invalid_row(row)
-                    mask = row_problems["num"] == row
-                    items = row_problems[mask]
-                    cols = items.dropna(how="all", axis=1).drop(["num", "issues"], axis=1)
-                    for col in cols:
-                        pre, col_name = val_up3.extract_col_name(col)
-                        col_ind = self.grid_frame.grid.col_labels.index(col_name)
-                        self.grid_frame.grid.paint_invalid_cell(row, col_ind)
+                if len(row_problems):
+                    for row in row_problems['num']:
+                        self.grid_frame.grid.paint_invalid_row(row)
+                        mask = row_problems["num"] == row
+                        items = row_problems[mask]
+                        cols = items.dropna(how="all", axis=1).drop(["num", "issues"], axis=1)
+                        for col in cols:
+                            pre, col_name = val_up3.extract_col_name(col)
+                            col_ind = self.grid_frame.grid.col_labels.index(col_name)
+                            self.grid_frame.grid.paint_invalid_cell(row, col_ind)
                 current_label = self.grid_frame.msg_text.GetLabel()
-                add_text = """You are missing the following required columns: {}\n
+                if len(missing_columns):
+                    col_string = "You are missing the following required columns: {}\n".format(", ".join(missing_columns))
+                else:
+                    col_string = ""
+                if len(missing_groups):
+                    group_string = "You must have at least one column from each of the following groups: {}".format(", ".join(missing_groups))
+                else:
+                    group_string = ""
+                #
+                add_text = """{}{}
 Columns and rows with problem data have been highlighted in blue.
 Cells with problem data are highlighted according to the type of problem.
 Red: incorrect data
 For full error messages, see {}.
-""".format(", ".join(missing_columns), grid_type + "_errors.txt")
+""".format(col_string, group_string, grid_type + "_errors.txt")
                 self.grid_frame.msg_text.SetLabel(add_text)
         #self.on_finish_change_dir(self.change_dir_dialog)
         del wait

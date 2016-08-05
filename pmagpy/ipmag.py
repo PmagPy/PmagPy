@@ -2610,11 +2610,12 @@ def upload_magic3(concat=0, dir_path='.', dmodel=None, vocab=""):
     # run validations
             res = val_up3.validate_table(con, file_type)#, verbose=True)
             if res:
-                dtype, bad_rows, bad_cols, missing_cols, failing_items = res
+                dtype, bad_rows, bad_cols, missing_cols, missing_groups, failing_items = res
                 if dtype not in all_failing_items:
                     all_failing_items[dtype] = {}
                 all_failing_items[dtype]["rows"] = failing_items
                 all_failing_items[dtype]["missing_columns"] = missing_cols
+                all_failing_items[dtype]["missing_groups"] = missing_groups
                 failing.append(dtype)
     # write out the data
             if len(df):

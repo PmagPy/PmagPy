@@ -3,11 +3,6 @@
 import numpy as np
 import os
 
-# replace this with something more sensible and less redundant ...
-#import pmagpy.controlled_vocabularies3 as cv
-#reload(cv)
-#vocab = cv.Vocabulary()
-#vocabulary, possible_vocabulary = vocab.get_controlled_vocabularies()
 
 ## LOW-LEVEL VALIDATION FUNCTIONS
 
@@ -184,6 +179,22 @@ def cv(row, col_name, arg, current_data_model, df, con):
     return None
 
 
+def requiredOneInGroup(col_name, group, dm, df, *args):
+    """
+    If col_name is present in df, the group validation is satisfied.
+    If not, it still may be satisfied, but not by THIS col_name.
+    If col_name is missing, return col_name, else return None.
+    Later, we will validate to see if there is at least one None (non-missing)
+    value for this group.
+    """
+    if col_name in df.columns:
+        # if the column name is present, return nothing
+        return None
+    else:
+        # if the column name is missing, return column name
+        return col_name
+
+
 # validate presence
 presence_operations = {"required": required, "requiredUnless": requiredUnless,
                        "requiredIfGroup": requiredIfGroup,
@@ -191,6 +202,11 @@ presence_operations = {"required": required, "requiredUnless": requiredUnless,
 # validate values
 value_operations = {"max": checkMax, "min": checkMin, "cv": cv, "in": isIn}
 
+# validate group
+
+group_operations = {"requiredOneInGroup": requiredOneInGroup}
+
+# validate_type
 
 def test_type(value, value_type):
     if not value:
@@ -226,9 +242,22 @@ def test_type(value, value_type):
 
 
 def validate_df(df, dm, con=None):
+    """
+    Take in a DataFrame and corresponding data model.
+    Run all validations for that DataFrame.
+    Output is the original DataFrame with some new columns
+    that contain the validation output.
+    Validation columns start with:
+    presence_pass_ (checking that req'd columns are present)
+    type_pass_  (checking that the data is of the correct type)
+    value_pass_ (checking that the value is within the appropriate range)
+    group_pass_ (making sure that group validations pass)
+    """
     # check column validity
+    required_one = {}  # keep track of req'd one in group validations here
     cols = df.columns
     invalid_cols = [col for col in cols if col not in dm.index]
+    # go through and run all validations for the data type
     for validation_name, validation in dm.iterrows():
         value_type = validation['type']
         if validation_name in df.columns:
@@ -264,6 +293,25 @@ def validate_df(df, dm, con=None):
                                 col_name = col_name + str(num)
                                 break
                     df[col_name] = grade.astype(object)
+            # last, validate at the column group level
+            elif func_name in group_operations:
+                func = group_operations[func_name]
+                missing = func(validation_name, arg, dm, df)
+                if arg not in required_one:
+                    required_one[arg] = [missing]
+                else:
+                    required_one[arg].append(missing)
+        # format the group validation columns
+        for key, value in required_one.items():
+            if None in value:
+                # this means at least one value from the required group is present,
+                # so the validation passes
+                continue
+            else:
+                # otherwise, all of the values from the required group are missing,
+                # so the validation fails
+                df["group_pass_{}".format(key)] = "you must have one column from group {}: {}".format(key, ", ".join(value))
+
     return df
 
 
@@ -271,22 +319,28 @@ def validate_df(df, dm, con=None):
 
 def get_validation_col_names(df):
     """
-    Input: already validated pandas DataFrame.
+    Input: validated pandas DataFrame (using validate_df)
     Output: names of all value validation columns,
             names of all presence validation columns,
             names of all type validation columns,
-            names of all validation columns.
+            names of all missing group columns,
+            names of all validation columns (excluding groups).
     """
     value_cols = df.columns.str.match("^value_pass_")
     present_cols = df.columns.str.match("^presence_pass")
     type_cols = df.columns.str.match("^type_pass_")
+    groups_missing = df.columns.str.match("^group_pass_")
+    #
     value_col_names = df.columns[value_cols]
     present_col_names = df.columns[present_cols]
     type_col_names = df.columns[type_cols]
+    group_missing_names = df.columns[groups_missing]
+    #
+    # all validation columns
     validation_cols = np.where(value_cols, value_cols, present_cols)
     validation_cols = np.where(validation_cols, validation_cols, type_cols)
     validation_col_names = df.columns[validation_cols]
-    return value_col_names, present_col_names, type_col_names, validation_col_names
+    return value_col_names, present_col_names, type_col_names, group_missing_names, validation_col_names
 
 
 def print_row_failures(failing_items, verbose=False, outfile_name=None):
@@ -323,13 +377,20 @@ def print_row_failures(failing_items, verbose=False, outfile_name=None):
 
 def get_row_failures(df, value_cols, type_cols, verbose=False, outfile=None):
     """
+    Input: already validated DataFrame, value & type column names,
+    and output options.
     Get details on each detected issue, row by row.
+    Output: DataFrame with type & value validation columns,
+    plus an "issues" column with a dictionary of every problem
+    for that row.
     """
+    # set temporary numeric index
     df["num"] = range(len(df))
     # get column names for value & type validations
     names = value_cols.union(type_cols)
     # drop all non validation columns
     value_problems = df[names.union(["num"])]
+    # drop validation columns that contain no problems
     failing_items = value_problems.dropna(how="all", subset=names)
     if not len(failing_items):
         if verbose:
@@ -341,6 +402,7 @@ def get_row_failures(df, value_cols, type_cols, verbose=False, outfile=None):
     # get index numbers of the failing items
     bad_indices = list(failing_items["num"])
     failing_items['issues'] = failing_items.drop("num", axis=1).apply(make_row_dict, axis=1).values
+    # take output and print/write to file
     print_row_failures(failing_items, verbose, outfile)
     return failing_items
 
@@ -401,7 +463,8 @@ def get_bad_rows_and_cols(df, validation_names, type_col_names,
 
 def validate_table(the_con, dtype, verbose=False):
     """
-    Return name of bad table, or False if no errors found
+    Return name of bad table, or False if no errors found.
+    Calls validate_df then parses its output.
     """
     print "-I- Validating {}".format(dtype)
     # grab dataframe
@@ -411,20 +474,28 @@ def validate_table(the_con, dtype, verbose=False):
     # run all validations (will add columns to current_df)
     current_df = validate_df(current_df, current_dm, the_con)
     # get names of the added columns
-    value_col_names, present_col_names, type_col_names, validation_col_names = get_validation_col_names(current_df)
+    value_col_names, present_col_names, type_col_names, missing_groups, validation_col_names = get_validation_col_names(current_df)
     # print out failure messages
     ofile = os.path.join(os.getcwd(), "{}_errors.txt".format(dtype))
     failing_items = get_row_failures(current_df, value_col_names,
                                      type_col_names, verbose, outfile=ofile)
-    #x = set(value_col_names).union(type_col_names)
     bad_rows, bad_cols, missing_cols = get_bad_rows_and_cols(current_df, validation_col_names,
                                                              value_col_names, type_col_names,
                                                              verbose=True)
     # delete all validation rows
     current_df.drop(validation_col_names, axis=1, inplace=True)
+    current_df.drop(missing_groups, axis=1, inplace=True)
     if len(failing_items):
         print "-I- Complete list of row errors can be found in {}".format(ofile)
-        return dtype, bad_rows, bad_cols, missing_cols, failing_items
+        return dtype, bad_rows, bad_cols, missing_cols, missing_groups, failing_items
+    elif len(missing_cols) or len(missing_groups):
+        print "-I- You are missing some required headers"
+        if len(missing_cols):
+            print "-I- You are missing these required headers: {}".format(", ".join(missing_cols))
+        if len(missing_groups):
+            formatted_groups = [group[11:] for group in missing_groups]
+            print '-I- You need at least one header from these groups: {}'.format(", ".join(formatted_groups))
+        return dtype, bad_rows, bad_cols, missing_cols, formatted_groups, failing_items
     else:
         print "-I- No row errors found!"
         return False
