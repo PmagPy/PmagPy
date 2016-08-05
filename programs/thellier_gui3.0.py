@@ -2430,6 +2430,9 @@ class Arai_GUI(wx.Frame):
 
 
         def calculate_aniso_parameters(B,K):
+            """
+            Menubar --> Anisotropy --> Calculate anisotropy tensors
+            """
 
             aniso_parameters={}
             S_bs=dot(B,K)
@@ -2509,8 +2512,6 @@ class Arai_GUI(wx.Frame):
                 aniso_parameters['anisotropy_n']=n_pos
 
             return(aniso_parameters)
-
-
 
 
         if self.data_model==3:
@@ -2914,6 +2915,7 @@ class Arai_GUI(wx.Frame):
                 Data_anisotropy[specimen][TYPE]['er_sample_names']=Data_anisotropy[specimen][TYPE]['er_sample_name']
                 Data_anisotropy[specimen][TYPE]['er_site_names']=Data_anisotropy[specimen][TYPE]['er_site_name']
                 if self.data_model==3: # prepare data for 3.0
+
                     new_aniso_parameters=Data_anisotropy[specimen][TYPE]
                     # reformat all the anisotropy related keys
                     new_data=map_magic.convert_aniso('magic3',new_aniso_parameters) # turn new_aniso data to 3.0
@@ -2921,29 +2923,12 @@ class Arai_GUI(wx.Frame):
                     self.spec_container.df['num'] = range(len(self.spec_container.df))
                     self.spec_data = self.spec_container.df
            # edit first of existing anisotropy data for this specimen of this TYPE from self.spec_data
-                    cond1=self.spec_data['specimen'].str.contains(specimen)==True
+                    cond1 = self.spec_data['specimen'].str.contains(specimen)==True
                     #cond3=self.spec_data['aniso_s'].notnull()==True
-                    cond2=self.spec_data['aniso_type']==TYPE
+                    cond2 = self.spec_data['aniso_type']==TYPE
                     #condition=(cond1 & cond2 & cond3)
-                    condition=(cond1 & cond2)
-                    if len(self.spec_data[condition]) > 0:  #we have one or more records to update
-                        inds=self.spec_data[condition]['num'] # list of all rows where condition is true
-                        existing_data=dict(self.spec_data.iloc[inds[0]]) # get first record of existing_data from dataframe
-                        existing_data.update(new_data) # update existing data with new interpretations
-                        # update row
-                        self.spec_container.update_row(inds[0], existing_data)
-                        # now remove all the remaining records of same condition
-                        if len(inds)>1:
-                            for ind in inds[1:]:
-                                self.spec_container.delete_row(ind)
-                    else:
-                        print 'no record found - creating new one for ', spec
-                        # add new row
-                        self.spec_container.add_row(spec, new_data )
-                    # sort so that all rows for a specimen are together
-                    self.spec_data.sort_index(inplace=True)
-                    # redo temporary index
-                    self.spec_data['num'] = range(len(self.spec_data))
+                    condition = (cond1 & cond2)
+                    self.spec_data = self.spec_container.update_record(specimen, new_data, condition)
 
                 else: # write it to 2.5 version files
                     String=""
@@ -3158,7 +3143,7 @@ class Arai_GUI(wx.Frame):
 
     def on_menu__prepare_MagIC_results_tables (self, event):
         """
-        File --> Save MagIC tables
+        Menubar --> File --> Save MagIC tables
         """
         import copy
 
