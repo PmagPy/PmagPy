@@ -132,8 +132,8 @@ class Demag_GUI(wx.Frame):
             if new_WD == self.currentDirectory and sys.version.split()[0] == '2.7.11':
                 new_WD = self.get_DIR()
             self.change_WD(new_WD)
-        if write_to_log_file:
-            self.init_log_file()
+#        if write_to_log_file:
+#            self.init_log_file()
 
         #init wait dialog
         disableAll = wx.WindowDisabler()
@@ -150,11 +150,7 @@ class Demag_GUI(wx.Frame):
             print("-I- PmagPy icon file not found -- skipping")
 
         # initialize acceptence criteria with NULL values
-        self.acceptance_criteria=pmag.initialize_acceptance_criteria()
-        try:
-            self.acceptance_criteria=pmag.read_criteria_from_file(os.path.join(self.WD, "pmag_criteria.txt"), self.acceptance_criteria)
-        except IOError:
-            print("-I- Cant find/read file  pmag_criteria.txt")
+        self.acceptance_criteria=self.read_criteria_file()
 
         #initalize starting variables and structures
         self.font_type = "Arial"
@@ -1893,6 +1889,35 @@ class Demag_GUI(wx.Frame):
             if not self.Data[self.s]['zijdblock_geo']: self.warning_text += "There is no geographic data for this specimen.\n"
             if not self.Data[self.s]['zijdblock_tilt']: self.warning_text += "There is no tilt-corrected data for this specimen.\n"
 
+    def read_criteria_file(self,criteria_file_name=None):
+        acceptance_criteria=pmag.initialize_acceptance_criteria()
+        if self.data_model==3:
+            if criteria_file_name==None: criteria_file_name = "criteria.txt"
+            contribution = nb.Contribution(self.WD, read_tables=['criteria'], custom_filenames={'criteria': criteria_file_name})
+            crit_container = contribution.tables['criteria']
+            crit_data = crit_container.df
+            crit_data=crit_data.to_dict('records')
+            for crit in crit_data:
+                m2_name=map_magic.convert_direction_criteria('magic2',crit['table_column'])
+                if m2_name!="":
+                    try:
+                        if crit['criterion_value']=='True': 
+                            acceptance_criteria[m2_name]['value']=1
+                        else:
+                            acceptance_criteria[m2_name]['value']=0
+                        acceptance_criteria[m2_name]['value']=float(crit['criterion_value'])
+                    except ValueError:
+                        self.user_warning("%s is not a valid comparitor for %s, skipping this criteria"%(str(crit['criterion_value']),m2_name))
+                        continue
+                    acceptance_criteria[m2_name]['pmag_criteria_code']=crit['criterion']
+            return acceptance_criteria
+        else:
+            if criteria_file_name==None: criteria_file_name = "pmag_criteria.txt"
+            try: acceptance_criteria=pmag.read_criteria_from_file(os.path.join(self.WD, criteria_file_name), acceptance_criteria)
+            except (IOError,OSError) as e:
+                self.user_warning("File %s not found in directory %s aborting opperation"%(criteria_file_name,self.WD))
+            return acceptance_criteria
+
     def get_PCA_parameters(self,specimen,fit,tmin,tmax,coordinate_system,calculation_type):
         """
         calculate statisics
@@ -3534,7 +3559,7 @@ class Demag_GUI(wx.Frame):
                 elif 'site' in crit: 
                     col = "sites."+map_magic.site_magic2_2_magic3_map[crit]
                 else: print("no way this like is impossible"); continue
-                new_crit['criteria'] = "GUIInputCriteria"
+                new_crit['criterion'] = "ACCEPT"
                 new_crit['criterion_value'] = d
                 new_crit['criterion_operation'] = comp
                 new_crit['table_column'] = col
@@ -4384,10 +4409,11 @@ class Demag_GUI(wx.Frame):
             i = self.switch_stats_button.GetValue()
             keys = mpars.keys()
             keys.remove('calculation_type')
+            if 'color' in keys: keys.remove('color')
             keys.sort()
             name = keys[i%len(keys)]
             mpars = mpars[name]
-            if type(mpars) != dict: print("error in showing higher level mean"); return
+            if type(mpars) != dict: print("error in showing higher level mean, reseaved %s"%str(mpars)); return
             if mpars["calculation_type"]=='Fisher' and "alpha95" in mpars.keys():
                 for val in ['mean_type:calculation_type','dec:dec','inc:inc','alpha95:alpha95','K:k','R:r','n_lines:n','n_planes:n_planes']:
                     val,ind = val.split(":")
@@ -4993,11 +5019,13 @@ class Demag_GUI(wx.Frame):
         read pmag_criteria.txt file
         and open changecriteria dialog
         """
+        if self.data_model==3: default_file = "criteria.txt"
+        else: default_file = "pmag_criteria.txt"
         read_sucsess=False
         self.dlg = wx.FileDialog(
             self, message="choose pmag criteria file",
             defaultDir=self.WD,
-            defaultFile="pmag_criteria.txt",
+            defaultFile=default_file,
             style=wx.OPEN | wx.CHANGE_DIR
             )
         if self.dlg.ShowModal() == wx.ID_OK:
@@ -5016,8 +5044,7 @@ class Demag_GUI(wx.Frame):
                 return
 
             # initialize criteria
-            self.acceptance_criteria=pmag.initialize_acceptance_criteria()
-            self.acceptance_criteria=pmag.read_criteria_from_file(criteria_file,self.acceptance_criteria)
+            self.acceptance_criteria=self.read_criteria_file(criteria_file)
             read_sucsess=True
 
         self.dlg.Destroy()
