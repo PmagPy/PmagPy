@@ -5606,8 +5606,8 @@ class Arai_GUI(wx.Frame):
           if 'specimens' in self.contribution.tables:
               self.contribution.propagate_name_down('sample', 'measurements')
               self.contribution.propagate_name_down('sample', 'specimens') # need these for get_data_info
-          else:  #START HERE
-              pass
+          else:  
+              self.contribution.add_magic_table(self.contribution, fname='specimens.txt')
           if 'samples' in self.contribution.tables:
               self.contribution.propagate_name_down('site', 'measurements')
               self.contribution.propagate_name_down('site', 'specimens')
