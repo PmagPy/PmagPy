@@ -1636,20 +1636,6 @@ class Arai_GUI(wx.Frame):
                         print "-I-",short_crit, " was added to criteria list and will be displayed on screen"
 
 
-        # OLD code,
-        #try:
-        #    criteria_file=os.path.join(self.WD,"pmag_criteria.txt")
-        #    my_acceptance_criteria=pmag.read_criteria_from_file(criteria_file,self.acceptance_criteria)
-        #    #    print "-III- Read criteria",my_acceptance_criteria
-        #    for crit in my_acceptance_criteria.keys():
-        #        if 'specimen' in crit:
-        #            if my_acceptance_criteria[crit]['value']!=-999:
-        #                short_crit=crit.split('specimen_')[-1]
-        #                if short_crit not in preferences['show_statistics_on_gui']:
-        #                    preferences['show_statistics_on_gui'].append(short_crit)
-        #                    print "-I-",short_crit, " was added to criteria list and will be displayed on screen"
-        #except:
-        #    pass
         return(preferences)
 
 
