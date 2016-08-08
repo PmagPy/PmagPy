@@ -719,7 +719,7 @@ def int_pars(x,y,vds,**kwargs):
         fvds_key='int_fvds'
         g_key='int_g'
         q_key='int_q'
-        b_beta_key=='int_b_beta'
+        b_beta_key='int_b_beta'
 
     else: # version 2
         n_key='specimen_int_n'
@@ -729,7 +729,7 @@ def int_pars(x,y,vds,**kwargs):
         fvds_key='specimen_fvds'
         g_key='specimen_g'
         q_key='specimen_q'
-        b_beta_key=='specimen_b_beta'
+        b_beta_key='specimen_b_beta'
 
 
     xx,yer,xer,xyer,yy,xsum,ysum,xy=0.,0.,0.,0.,0.,0.,0.,0.
@@ -1578,15 +1578,19 @@ def findrec(s,data):
            datablock.append([rec[1],rec[2],rec[3],rec[4]])
     return datablock
 
-def domean(indata,start,end,calculation_type):
+def domean(data,start,end,calculation_type):
     """
      gets average direction using fisher or pca (line or plane) methods
     """
     mpars={}
     datablock=[]
     start0,end0=start,end
+    #indata = [rec.append('g') if len(rec)<6 else rec for rec in indata] # this statement doesn't work!
+    indata=[]
+    for rec in data:
+        if len(rec)<6:rec.append('g')
+        indata.append(rec) 
     if indata[start0][5] == 'b': print("Can't select 'bad' point as start for PCA")
-    indata = [rec.append('g') if len(rec)<6 else rec for rec in indata]
     flags = map(lambda x: x[5], indata)
     bad_before_start = flags[:start0].count('b')
     bad_in_mean = flags[start0:end0+1].count('b')
