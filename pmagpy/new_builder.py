@@ -495,10 +495,6 @@ class MagicDataFrame(object):
         self.df['num'] = range(len(self.df))
         df_data = self.df
         # edit first of existing data that meets condition
-        print "--"
-        print "len(df_data)", len(df_data)
-        print "len(self.df)", len(self.df)
-        print "len(condition)", len(condition)
         if len(df_data[condition]) > 0:  #we have one or more records to update or delete
             #print "updating:", name
             inds = df_data[condition]['num'] # list of all rows where condition is true
@@ -509,7 +505,7 @@ class MagicDataFrame(object):
             # now remove all the remaining records of same condition
             if len(inds) > 1:
                 for ind in inds[1:]:
-                    print "deleting redundant records for specimen:", name
+                    print "deleting redundant records for:", name
                     df_data = self.delete_row(ind)
         else:
             print 'no record found - creating new one for ', name
