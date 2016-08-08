@@ -72,9 +72,24 @@ class Contribution(object):
         if custom_filenames:
             self.filenames.update(custom_filenames)
 
+    def add_empty_magic_table(self, dtype, col_names=None, groups=None):
+        """
+        Add a blank MagicDataFrame to the contribution.
+        You can provide either a list of column names,
+        or a list of column group names.
+        If provided, col_names takes precedence.
+        """
+        if dtype not in self.table_names:
+            print "-W- {} is not a valid MagIC table name".format(dtype)
+            print "-I- Valid table names are: {}".format(", ".join(self.table_names))
+            return
+        data_container = MagicDataFrame(dtype=dtype, columns=col_names, groups=groups)
+        self.tables[dtype] = data_container
+
+
     def add_magic_table(self, dtype, fname=None):
         """
-        Add a table to self.tables.
+        Read in a new file to add a table to self.tables.
         """
         # if providing a filename but no data type
         if dtype == "unknown":
@@ -326,6 +341,7 @@ class MagicDataFrame(object):
         Instead of a list of columns, you can also provide
         a list of group-names, and the specific col_names
         will be filled in by the data model.
+        If provided, col_names takes precedence.
         """
         if isinstance(df, pd.DataFrame):
             self.df = df
