@@ -219,6 +219,13 @@ def convert_ages(Recs):
             print 'no age key:', rec
     return New
 
+def convert_meas_2_to_3(meas_data_2):
+    NewMeas=[]
+# step through records
+    for rec in data2: NewMeas.append(map_magic.convert_meas('magic3',rec))
+    return NewMeas
+
+
 def getsampVGP(SampRec,SiteNFO,data_model=2.5):
     if float(data_model) == 3.0:
         site=get_dictitem(SiteNFO,'site',SampRec['site'],'T')
