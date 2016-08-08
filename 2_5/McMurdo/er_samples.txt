@@ -1,0 +1,1420 @@
+tab 	er_samples
+er_citation_names	er_location_name	er_sample_name	er_site_name	magic_method_codes	sample_azimuth	sample_class	sample_declination_correction	sample_description	sample_dip	sample_lat	sample_lithology	sample_lon	sample_orientation_flag	sample_type
+This study	McMurdo	mc01a	mc01	FS-FD:SO-SIGHT	260	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-57	-77.85	Trachyte	166.64	g	Lava Flow
+This study	McMurdo	mc01b	mc01	FS-FD:SO-SIGHT	189	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-63	-77.85	Trachyte	166.64	g	Lava Flow
+This study	McMurdo	mc01c	mc01	FS-FD:SO-SIGHT	183	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-30	-77.85	Trachyte	166.64	g	Lava Flow
+This study	McMurdo	mc01d	mc01	FS-FD:SO-SIGHT	133	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-57	-77.85	Trachyte	166.64	g	Lava Flow
+This study	McMurdo	mc01e	mc01	FS-FD:SO-SIGHT	91	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-51	-77.85	Trachyte	166.64	g	Lava Flow
+This study	McMurdo	mc01f	mc01	FS-FD:SO-SIGHT	94	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-55	-77.85	Trachyte	166.64	g	Lava Flow
+This study	McMurdo	mc01h	mc01	FS-FD:SO-SIGHT	157	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-41	-77.85	Trachyte	166.64	g	Lava Flow
+This study	McMurdo	mc02a	mc02	FS-FD:SO-SIGHT	190	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-50	-77.85	Basalt	166.69	g	Lava Flow
+This study	McMurdo	mc02b	mc02	FS-FD:SO-SIGHT	231	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-59	-77.85	Basalt	166.69	g	Lava Flow
+This study	McMurdo	mc02c	mc02	FS-FD:SO-SIGHT	220	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-58	-77.85	Basalt	166.69	g	Lava Flow
+This study	McMurdo	mc02f	mc02	FS-FD:SO-SIGHT	182	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-50	-77.85	Basalt	166.69	g	Lava Flow
+This study	McMurdo	mc02g	mc02	FS-FD:SO-SIGHT	197	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-32	-77.85	Basalt	166.69	g	Lava Flow
+This study	McMurdo	mc02h	mc02	FS-FD:SO-SIGHT	298	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-48	-77.85	Basalt	166.69	g	Lava Flow
+This study	McMurdo	mc03a	mc03	FS-FD:SO-SIGHT	306	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-68	-77.84	Basalt	166.76	g	Lava Flow
+This study	McMurdo	mc03b	mc03	FS-FD:SO-SIGHT	287	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-66	-77.84	Basalt	166.76	g	Lava Flow
+This study	McMurdo	mc03c	mc03	FS-FD:SO-SIGHT	291	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-76	-77.84	Basalt	166.76	g	Lava Flow
+This study	McMurdo	mc03d	mc03	FS-FD:SO-SIGHT	250	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-58	-77.84	Basalt	166.76	g	Lava Flow
+This study	McMurdo	mc03f	mc03	FS-FD:SO-SIGHT	305	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-86	-77.84	Basalt	166.76	g	Lava Flow
+This study	McMurdo	mc03h	mc03	FS-FD:SO-SIGHT	274	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-58	-77.84	Basalt	166.76	g	Lava Flow
+This study	McMurdo	mc04a	mc04	FS-FD:SO-SIGHT	91	Igneous : Intrusive	0	Archived samples from 1965, 66 expeditions.	-43	-77.84	Basalt	166.7	g	Volcanic Dike
+This study	McMurdo	mc04b	mc04	FS-FD:SO-SIGHT	86	Igneous : Intrusive	0	Archived samples from 1965, 66 expeditions.	-50	-77.84	Basalt	166.7	g	Volcanic Dike
+This study	McMurdo	mc04e	mc04	FS-FD:SO-SIGHT	124	Igneous : Intrusive	0	Archived samples from 1965, 66 expeditions.	-68	-77.84	Basalt	166.7	g	Volcanic Dike
+This study	McMurdo	mc04f	mc04	FS-FD:SO-SIGHT	151	Igneous : Intrusive	0	Archived samples from 1965, 66 expeditions.	-39	-77.84	Basalt	166.7	g	Volcanic Dike
+This study	McMurdo	mc04g	mc04	FS-FD:SO-SIGHT	306	Igneous : Intrusive	0	Archived samples from 1965, 66 expeditions.	-29	-77.84	Basalt	166.7	g	Volcanic Dike
+This study	McMurdo	mc06a	mc06	FS-FD:SO-SIGHT	137	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-23	-77.83	Basalt	166.67	g	Lava Flow
+This study	McMurdo	mc06c	mc06	FS-FD:SO-SIGHT	209	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-26	-77.83	Basalt	166.67	g	Lava Flow
+This study	McMurdo	mc06d	mc06	FS-FD:SO-SIGHT	128	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-20	-77.83	Basalt	166.67	g	Lava Flow
+This study	McMurdo	mc06g	mc06	FS-FD:SO-SIGHT	97	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-22	-77.83	Basalt	166.67	g	Lava Flow
+This study	McMurdo	mc06h	mc06	FS-FD:SO-SIGHT	81	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-22	-77.83	Basalt	166.67	g	Lava Flow
+This study	McMurdo	mc07b	mc07	FS-FD:SO-SIGHT	314	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-47	-77.8	Basalt	166.72	g	Lava Flow
+This study	McMurdo	mc07c	mc07	FS-FD:SO-SIGHT	304	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-53	-77.8	Basalt	166.72	g	Lava Flow
+This study	McMurdo	mc07d	mc07	FS-FD:SO-SIGHT	270	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-45	-77.8	Basalt	166.72	g	Lava Flow
+This study	McMurdo	mc07e	mc07	FS-FD:SO-SIGHT	290	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-49	-77.8	Basalt	166.72	g	Lava Flow
+This study	McMurdo	mc07f	mc07	FS-FD:SO-SIGHT	299	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-50	-77.8	Basalt	166.72	g	Lava Flow
+This study	McMurdo	mc08a	mc08	FS-FD:SO-SIGHT	245	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-54	-77.8	Basalt	166.83	g	Lava Flow
+This study	McMurdo	mc08b	mc08	FS-FD:SO-SIGHT	320	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-35	-77.8	Basalt	166.83	g	Lava Flow
+This study	McMurdo	mc08c	mc08	FS-FD:SO-SIGHT	197	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-32	-77.8	Basalt	166.83	g	Lava Flow
+This study	McMurdo	mc08d	mc08	FS-FD:SO-SIGHT	74	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-28	-77.8	Basalt	166.83	g	Lava Flow
+This study	McMurdo	mc08e	mc08	FS-FD:SO-SIGHT	345	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-27	-77.8	Basalt	166.83	g	Lava Flow
+This study	McMurdo	mc08f	mc08	FS-FD:SO-SIGHT	234	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-49	-77.8	Basalt	166.83	g	Lava Flow
+This study	McMurdo	mc08g	mc08	FS-FD:SO-SIGHT	315	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-48	-77.8	Basalt	166.83	g	Lava Flow
+This study	McMurdo	mc08h	mc08	FS-FD:SO-SIGHT	292	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-32	-77.8	Basalt	166.83	g	Lava Flow
+This study	McMurdo	mc09a	mc09	FS-FD:SO-SIGHT	14	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-50	-77.55	Trachyte	166.2	g	Lava Flow
+This study	McMurdo	mc09b	mc09	FS-FD:SO-SIGHT	85	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-48	-77.55	Trachyte	166.2	g	Lava Flow
+This study	McMurdo	mc09c	mc09	FS-FD:SO-SIGHT	54	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-67	-77.55	Trachyte	166.2	g	Lava Flow
+This study	McMurdo	mc09d	mc09	FS-FD:SO-SIGHT	37	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-76	-77.55	Trachyte	166.2	g	Lava Flow
+This study	McMurdo	mc09e	mc09	FS-FD:SO-SIGHT	36	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-71	-77.55	Trachyte	166.2	g	Lava Flow
+This study	McMurdo	mc09f	mc09	FS-FD:SO-SIGHT	67	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-75	-77.55	Trachyte	166.2	g	Lava Flow
+This study	McMurdo	mc09g	mc09	FS-FD:SO-SIGHT	291	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-57	-77.55	Trachyte	166.2	g	Lava Flow
+This study	McMurdo	mc09h	mc09	FS-FD:SO-SIGHT	337	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-56	-77.55	Trachyte	166.2	g	Lava Flow
+This study	McMurdo	mc100a	mc100	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	359.9	Igneous : Extrusive	0		-65	-78.302	Basalt	162.9	g	Lava Flow
+This study	McMurdo	mc100d	mc100	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	344.5	Igneous : Extrusive	0		-47	-78.302	Basalt	162.9	g	Lava Flow
+This study	McMurdo	mc100e	mc100	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	350.7	Igneous : Extrusive	0		-47.5	-78.302	Basalt	162.9	g	Lava Flow
+This study	McMurdo	mc100f	mc100	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	333.9	Igneous : Extrusive	0		-48	-78.302	Basalt	162.9	g	Lava Flow
+This study	McMurdo	mc100g	mc100	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	205.1	Igneous : Extrusive	0		-28.5	-78.302	Basalt	162.9	g	Lava Flow
+This study	McMurdo	mc100h	mc100	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	194.9	Igneous : Extrusive	0		-31	-78.302	Basalt	162.9	g	Lava Flow
+This study	McMurdo	mc101a	mc101	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	150	Igneous : Extrusive	0		-64	-78.306	Basalt	162.928	g	Lava Flow
+This study	McMurdo	mc101b	mc101	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	129.4	Igneous : Extrusive	0		-49.5	-78.306	Basalt	162.928	g	Lava Flow
+This study	McMurdo	mc101c	mc101	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	129	Igneous : Extrusive	0		-50.5	-78.306	Basalt	162.928	g	Lava Flow
+This study	McMurdo	mc101d	mc101	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	141.8	Igneous : Extrusive	0		-68	-78.306	Basalt	162.928	g	Lava Flow
+This study	McMurdo	mc101f	mc101	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	139.2	Igneous : Extrusive	0		-73.5	-78.306	Basalt	162.928	g	Lava Flow
+This study	McMurdo	mc101h	mc101	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	131.9	Igneous : Extrusive	0		-65	-78.306	Basalt	162.928	g	Lava Flow
+This study	McMurdo	mc102a	mc102	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	241.4	Igneous : Extrusive	0		-79.5	-78.235	Basalt	163.352	g	Lava Flow
+This study	McMurdo	mc102b	mc102	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	222.8	Igneous : Extrusive	0		-82.5	-78.235	Basalt	163.352	g	Lava Flow
+This study	McMurdo	mc102e	mc102	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	302.1	Igneous : Extrusive	0		-56	-78.235	Basalt	163.352	g	Lava Flow
+This study	McMurdo	mc102f	mc102	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	240.5	Igneous : Extrusive	0		-84	-78.235	Basalt	163.352	g	Lava Flow
+This study	McMurdo	mc102g	mc102	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	244.2	Igneous : Extrusive	0		-72	-78.235	Basalt	163.352	g	Lava Flow
+This study	McMurdo	mc103a	mc103	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	147.8	Igneous : Extrusive	0		-37	-78.235	Basalt	163.36	g	Lava Flow
+This study	McMurdo	mc103b	mc103	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	141.2	Igneous : Extrusive	0		-45	-78.235	Basalt	163.36	g	Lava Flow
+This study	McMurdo	mc103c	mc103	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	151.2	Igneous : Extrusive	0		-59.5	-78.235	Basalt	163.36	g	Lava Flow
+This study	McMurdo	mc103d	mc103	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	152.5	Igneous : Extrusive	0		-71	-78.235	Basalt	163.36	g	Lava Flow
+This study	McMurdo	mc103e	mc103	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	159.7	Igneous : Extrusive	0		-57	-78.235	Basalt	163.36	g	Lava Flow
+This study	McMurdo	mc104a	mc104	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	37.5	Igneous : Extrusive	0		-70	-78.238	Basalt	163.401	g	Lava Flow
+This study	McMurdo	mc104b	mc104	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	32.8	Igneous : Extrusive	0		-85	-78.238	Basalt	163.401	g	Lava Flow
+This study	McMurdo	mc104c	mc104	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	66.1	Igneous : Extrusive	0		-82	-78.238	Basalt	163.401	g	Lava Flow
+This study	McMurdo	mc104d	mc104	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	66.8	Igneous : Extrusive	0		-94	-78.238	Basalt	163.401	g	Lava Flow
+This study	McMurdo	mc104f	mc104	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	13.8	Igneous : Extrusive	0		-59	-78.238	Basalt	163.401	g	Lava Flow
+This study	McMurdo	mc105a	mc105	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	161.3	Igneous : Extrusive	0		-38.5	-78.245	Basalt	163.231	g	Lava Flow
+This study	McMurdo	mc105c	mc105	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	266.7	Igneous : Extrusive	0		-27.5	-78.245	Basalt	163.231	g	Lava Flow
+This study	McMurdo	mc105d	mc105	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	170.7	Igneous : Extrusive	0		-27	-78.245	Basalt	163.231	g	Lava Flow
+This study	McMurdo	mc105f	mc105	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	171	Igneous : Extrusive	0		-50	-78.245	Basalt	163.231	g	Lava Flow
+This study	McMurdo	mc105g	mc105	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	139.2	Igneous : Extrusive	0		-51.5	-78.245	Basalt	163.231	g	Lava Flow
+This study	McMurdo	mc105h	mc105	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	149.2	Igneous : Extrusive	0		-46	-78.245	Basalt	163.231	g	Lava Flow
+This study	McMurdo	mc105j	mc105	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	164	Igneous : Extrusive	0		-67.5	-78.245	Basalt	163.231	g	Lava Flow
+This study	McMurdo	mc106a	mc106	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	262.9	Igneous : Extrusive	0		-29	-78.21	Basalt	163.308	g	Lava Flow
+This study	McMurdo	mc106b	mc106	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	218.6	Igneous : Extrusive	0		-34.5	-78.21	Basalt	163.308	g	Lava Flow
+This study	McMurdo	mc106c	mc106	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	177.6	Igneous : Extrusive	0		-78.5	-78.21	Basalt	163.308	g	Lava Flow
+This study	McMurdo	mc106d	mc106	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	178.9	Igneous : Extrusive	0		-65.5	-78.21	Basalt	163.308	g	Lava Flow
+This study	McMurdo	mc106e	mc106	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	198.7	Igneous : Extrusive	0		-52	-78.21	Basalt	163.308	g	Lava Flow
+This study	McMurdo	mc107c	mc107	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	168.7	Igneous : Extrusive	0		-34	-78.204	Basalt	163.347	g	Lava Flow
+This study	McMurdo	mc107d	mc107	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	175.2	Igneous : Extrusive	0		-34.5	-78.204	Basalt	163.347	g	Lava Flow
+This study	McMurdo	mc107e	mc107	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	181.1	Igneous : Extrusive	0		-37	-78.204	Basalt	163.347	g	Lava Flow
+This study	McMurdo	mc107h	mc107	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	173.3	Igneous : Extrusive	0		-53	-78.204	Basalt	163.347	g	Lava Flow
+This study	McMurdo	mc107k	mc107	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	139.3	Igneous : Extrusive	0		-30	-78.204	Basalt	163.347	g	Lava Flow
+This study	McMurdo	mc107l	mc107	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	151.1	Igneous : Extrusive	0		-30	-78.204	Basalt	163.347	g	Lava Flow
+This study	McMurdo	mc108a	mc108	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	347.3	Igneous : Extrusive	0		-63	-78.247	Basalt	163.323	g	Lava Flow
+This study	McMurdo	mc108b	mc108	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	352.8	Igneous : Extrusive	0		-61	-78.247	Basalt	163.323	g	Lava Flow
+This study	McMurdo	mc108d	mc108	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	354.8	Igneous : Extrusive	0		-66	-78.247	Basalt	163.323	g	Lava Flow
+This study	McMurdo	mc108g	mc108	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	35.1	Igneous : Extrusive	0		-28	-78.247	Basalt	163.323	g	Lava Flow
+This study	McMurdo	mc108k	mc108	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	333.8	Igneous : Extrusive	0		-43.5	-78.247	Basalt	163.323	g	Lava Flow
+This study	McMurdo	mc109a	mc109	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	356.3	Igneous : Extrusive	0		-23	-78.282	Basalt	163.544	g	Lava Flow
+This study	McMurdo	mc109c	mc109	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	91.4	Igneous : Extrusive	0		-51	-78.282	Basalt	163.544	g	Lava Flow
+This study	McMurdo	mc109d	mc109	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	61.9	Igneous : Extrusive	0		-46	-78.282	Basalt	163.544	g	Lava Flow
+This study	McMurdo	mc109e	mc109	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	71.3	Igneous : Extrusive	0		-37.5	-78.282	Basalt	163.544	g	Lava Flow
+This study	McMurdo	mc109i	mc109	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	122.4	Igneous : Extrusive	0		-46	-78.282	Basalt	163.544	g	Lava Flow
+This study	McMurdo	mc10a	mc10	FS-FD:SO-SIGHT	200	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-73	-77.57	Basalt	166.23	g	Lava Flow
+This study	McMurdo	mc10b	mc10	FS-FD:SO-SIGHT	224	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-70	-77.57	Basalt	166.23	g	Lava Flow
+This study	McMurdo	mc10c	mc10	FS-FD:SO-SIGHT	279	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-52	-77.57	Basalt	166.23	g	Lava Flow
+This study	McMurdo	mc10d	mc10	FS-FD:SO-SIGHT	155	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-37	-77.57	Basalt	166.23	g	Lava Flow
+This study	McMurdo	mc10e	mc10	FS-FD:SO-SIGHT	174	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-70	-77.57	Basalt	166.23	g	Lava Flow
+This study	McMurdo	mc10f	mc10	FS-FD:SO-SIGHT	254	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-73	-77.57	Basalt	166.23	g	Lava Flow
+This study	McMurdo	mc10g	mc10	FS-FD:SO-SIGHT	271	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-31	-77.57	Basalt	166.23	g	Lava Flow
+This study	McMurdo	mc10h	mc10	FS-FD:SO-SIGHT	289	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-70	-77.57	Basalt	166.23	g	Lava Flow
+This study	McMurdo	mc110a	mc110	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	325.6	Igneous : Extrusive	0		-49	-78.238	Basalt	163.443	g	Lava Flow
+This study	McMurdo	mc110b	mc110	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	331.6	Igneous : Extrusive	0		-47	-78.238	Basalt	163.443	g	Lava Flow
+This study	McMurdo	mc110d	mc110	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	337.1	Igneous : Extrusive	0		-40	-78.238	Basalt	163.443	g	Lava Flow
+This study	McMurdo	mc110g	mc110	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	18.1	Igneous : Extrusive	0		-80	-78.238	Basalt	163.443	g	Lava Flow
+This study	McMurdo	mc110i	mc110	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	31.1	Igneous : Extrusive	0		-84	-78.238	Basalt	163.443	g	Lava Flow
+This study	McMurdo	mc111a	mc111	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	176.5	Igneous : Extrusive	0		-51	-78.224	Basalt	162.787	g	Lava Flow
+This study	McMurdo	mc111b	mc111	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	173	Igneous : Extrusive	0		-45	-78.224	Basalt	162.787	g	Lava Flow
+This study	McMurdo	mc111d	mc111	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	164.2	Igneous : Extrusive	0		-55	-78.224	Basalt	162.787	g	Lava Flow
+This study	McMurdo	mc111e	mc111	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	174	Igneous : Extrusive	0		-54	-78.224	Basalt	162.787	g	Lava Flow
+This study	McMurdo	mc111f	mc111	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	81.7	Igneous : Extrusive	0		-91	-78.224	Basalt	162.787	g	Lava Flow
+This study	McMurdo	mc112a	mc112	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	260	Igneous : Extrusive	0		-71	-78.238	Basalt	163.441	g	Lava Flow
+This study	McMurdo	mc112d	mc112	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	4	Igneous : Extrusive	0		-74	-78.238	Basalt	163.441	g	Lava Flow
+This study	McMurdo	mc112g	mc112	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	315.5	Igneous : Extrusive	0		-51	-78.238	Basalt	163.441	g	Lava Flow
+This study	McMurdo	mc112h	mc112	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	316.5	Igneous : Extrusive	0		-54	-78.238	Basalt	163.441	g	Lava Flow
+This study	McMurdo	mc112j	mc112	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	294	Igneous : Extrusive	0		-63	-78.238	Basalt	163.441	g	Lava Flow
+This study	McMurdo	mc113a	mc113	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	165.2	Igneous : Extrusive	0		-62	-78.226	Basalt	162.735	g	Lava Flow
+This study	McMurdo	mc113b	mc113	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	177.5	Igneous : Extrusive	0		-61	-78.226	Basalt	162.735	g	Lava Flow
+This study	McMurdo	mc113c	mc113	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	157	Igneous : Extrusive	0		-52	-78.226	Basalt	162.735	g	Lava Flow
+This study	McMurdo	mc113h	mc113	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	125.1	Igneous : Extrusive	0		-52.5	-78.226	Basalt	162.735	g	Lava Flow
+This study	McMurdo	mc113j	mc113	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	105	Igneous : Extrusive	0		-52	-78.226	Basalt	162.735	g	Lava Flow
+This study	McMurdo	mc113m	mc113	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	93.2	Igneous : Extrusive	0		-62	-78.226	Basalt	162.735	g	Lava Flow
+This study	McMurdo	mc114a	mc114	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	84.9	Igneous : Extrusive	0		-46	-78.224	Basalt	162.783	g	Lava Flow
+This study	McMurdo	mc114b	mc114	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	118.4	Igneous : Extrusive	0		-59	-78.224	Basalt	162.783	g	Lava Flow
+This study	McMurdo	mc114c	mc114	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	104.9	Igneous : Extrusive	0		-79	-78.224	Basalt	162.783	g	Lava Flow
+This study	McMurdo	mc114d	mc114	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	136.6	Igneous : Extrusive	0		-87	-78.224	Basalt	162.783	g	Lava Flow
+This study	McMurdo	mc114i	mc114	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	144.5	Igneous : Extrusive	0		-77	-78.224	Basalt	162.783	g	Lava Flow
+This study	McMurdo	mc115a	mc115	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	47.2	Igneous : Extrusive	0		-73	-78.243	Basalt	162.958	g	Lava Flow
+This study	McMurdo	mc115b	mc115	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	47.1	Igneous : Extrusive	0		-62.5	-78.243	Basalt	162.958	g	Lava Flow
+This study	McMurdo	mc115e	mc115	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	34.6	Igneous : Extrusive	0		-60.5	-78.243	Basalt	162.958	g	Lava Flow
+This study	McMurdo	mc115g	mc115	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	41.9	Igneous : Extrusive	0		-38.5	-78.243	Basalt	162.958	g	Lava Flow
+This study	McMurdo	mc115h	mc115	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	69.8	Igneous : Extrusive	0		-38.5	-78.243	Basalt	162.958	g	Lava Flow
+This study	McMurdo	mc116a	mc116	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	132.8	Igneous : Extrusive	0		-55	-78.222	Basalt	162.744	g	Lava Flow
+This study	McMurdo	mc116b	mc116	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	107.1	Igneous : Extrusive	0		-36.5	-78.222	Basalt	162.744	g	Lava Flow
+This study	McMurdo	mc116c	mc116	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	95.6	Igneous : Extrusive	0		-74	-78.222	Basalt	162.744	g	Lava Flow
+This study	McMurdo	mc116i	mc116	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	160.2	Igneous : Extrusive	0		-82	-78.222	Basalt	162.744	g	Lava Flow
+This study	McMurdo	mc116j	mc116	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	160.9	Igneous : Extrusive	0		-82	-78.222	Basalt	162.744	g	Lava Flow
+This study	McMurdo	mc117a	mc117	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	181.6	Igneous : Extrusive	0		-44	-78.235	Basalt	162.973	g	Lava Flow
+This study	McMurdo	mc117b	mc117	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	183.4	Igneous : Extrusive	0		-43	-78.235	Basalt	162.973	g	Lava Flow
+This study	McMurdo	mc117d	mc117	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	182.9	Igneous : Extrusive	0		-60	-78.235	Basalt	162.973	g	Lava Flow
+This study	McMurdo	mc117e	mc117	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	189.9	Igneous : Extrusive	0		-54	-78.235	Basalt	162.973	g	Lava Flow
+This study	McMurdo	mc117h	mc117	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	163.1	Igneous : Extrusive	0		-50	-78.235	Basalt	162.973	g	Lava Flow
+This study	McMurdo	mc118a	mc118	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	301.9	Igneous : Extrusive	0		-71	-78.241	Basalt	163.141	g	Lava Flow
+This study	McMurdo	mc118c	mc118	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	306.9	Igneous : Extrusive	0		-82	-78.241	Basalt	163.141	g	Lava Flow
+This study	McMurdo	mc118d	mc118	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	315.1	Igneous : Extrusive	0		-81	-78.241	Basalt	163.141	g	Lava Flow
+This study	McMurdo	mc118e	mc118	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	299.9	Igneous : Extrusive	0		-83	-78.241	Basalt	163.141	g	Lava Flow
+This study	McMurdo	mc118f	mc118	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	302.9	Igneous : Extrusive	0		-85.5	-78.241	Basalt	163.141	g	Lava Flow
+This study	McMurdo	mc118i	mc118	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	303.9	Igneous : Extrusive	0		-78	-78.241	Basalt	163.141	g	Lava Flow
+This study	McMurdo	mc118l	mc118	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	233.4	Igneous : Extrusive	0		-88	-78.241	Basalt	163.141	g	Lava Flow
+This study	McMurdo	mc119a	mc119	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	91.4	Igneous : Extrusive	0		-70	-78.239	Basalt	162.957	g	Lava Flow
+This study	McMurdo	mc119b	mc119	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	88.1	Igneous : Extrusive	0		-71.5	-78.239	Basalt	162.957	g	Lava Flow
+This study	McMurdo	mc119d	mc119	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	90.9	Igneous : Extrusive	0		-86	-78.239	Basalt	162.957	g	Lava Flow
+This study	McMurdo	mc119e	mc119	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	106.6	Igneous : Extrusive	0		-77	-78.239	Basalt	162.957	g	Lava Flow
+This study	McMurdo	mc119f	mc119	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	113.1	Igneous : Extrusive	0		-71.5	-78.239	Basalt	162.957	g	Lava Flow
+This study	McMurdo	mc11a	mc11	FS-FD:SO-SIGHT	253	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-79	-77.57	Basalt	166.23	g	Lava Flow
+This study	McMurdo	mc11b	mc11	FS-FD:SO-SIGHT	231	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-77	-77.57	Basalt	166.23	g	Lava Flow
+This study	McMurdo	mc11c	mc11	FS-FD:SO-SIGHT	238	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-65	-77.57	Basalt	166.23	g	Lava Flow
+This study	McMurdo	mc11d	mc11	FS-FD:SO-SIGHT	203	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-45	-77.57	Basalt	166.23	g	Lava Flow
+This study	McMurdo	mc11e	mc11	FS-FD:SO-SIGHT	199	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-35	-77.57	Basalt	166.23	g	Lava Flow
+This study	McMurdo	mc11f	mc11	FS-FD:SO-SIGHT	197	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-47	-77.57	Basalt	166.23	g	Lava Flow
+This study	McMurdo	mc11g	mc11	FS-FD:SO-SIGHT	254	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-88	-77.57	Basalt	166.23	g	Lava Flow
+This study	McMurdo	mc11h	mc11	FS-FD:SO-SIGHT	195	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-34	-77.57	Basalt	166.23	g	Lava Flow
+This study	McMurdo	mc120a	mc120	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	198.8	Igneous : Extrusive	0		-35.5	-78.241	Basalt	163.092	g	Lava Flow
+This study	McMurdo	mc120b	mc120	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	223.8	Igneous : Extrusive	0		-20.5	-78.241	Basalt	163.092	g	Lava Flow
+This study	McMurdo	mc120c	mc120	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	213.8	Igneous : Extrusive	0		-42.5	-78.241	Basalt	163.092	g	Lava Flow
+This study	McMurdo	mc120f	mc120	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	159.3	Igneous : Extrusive	0		-66	-78.241	Basalt	163.092	g	Lava Flow
+This study	McMurdo	mc120j	mc120	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	138.3	Igneous : Extrusive	0		-57	-78.241	Basalt	163.092	g	Lava Flow
+This study	McMurdo	mc120l	mc120	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	113.8	Igneous : Extrusive	0		-48	-78.241	Basalt	163.092	g	Lava Flow
+This study	McMurdo	mc120m	mc120	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	127.3	Igneous : Extrusive	0		-56	-78.241	Basalt	163.092	g	Lava Flow
+This study	McMurdo	mc121a	mc121	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	198.2	Igneous : Extrusive	0		-71	-78.235	Basalt	162.954	g	Lava Flow
+This study	McMurdo	mc121c	mc121	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	181.2	Igneous : Extrusive	0		-77	-78.235	Basalt	162.954	g	Lava Flow
+This study	McMurdo	mc121d	mc121	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	187.7	Igneous : Extrusive	0		-76	-78.235	Basalt	162.954	g	Lava Flow
+This study	McMurdo	mc121e	mc121	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	156.2	Igneous : Extrusive	0		-73	-78.235	Basalt	162.954	g	Lava Flow
+This study	McMurdo	mc121f	mc121	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	162.7	Igneous : Extrusive	0		-74	-78.235	Basalt	162.954	g	Lava Flow
+This study	McMurdo	mc121g	mc121	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	195.5	Igneous : Extrusive	0		-27.5	-78.235	Basalt	162.954	g	Lava Flow
+This study	McMurdo	mc121i	mc121	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	200.2	Igneous : Extrusive	0		-25	-78.235	Basalt	162.954	g	Lava Flow
+This study	McMurdo	mc121k	mc121	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	194.7	Igneous : Extrusive	0		-35.5	-78.235	Basalt	162.954	g	Lava Flow
+This study	McMurdo	mc122a	mc122	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	22	Igneous : Extrusive	0		-13	-78.187	Basalt	163.58	g	Lava Flow
+This study	McMurdo	mc122b	mc122	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	55	Igneous : Extrusive	0		-9	-78.187	Basalt	163.58	g	Lava Flow
+This study	McMurdo	mc122c	mc122	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	146.4	Igneous : Extrusive	0		-38	-78.187	Basalt	163.58	g	Lava Flow
+This study	McMurdo	mc122d	mc122	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	165	Igneous : Extrusive	0		-39	-78.187	Basalt	163.58	g	Lava Flow
+This study	McMurdo	mc122k	mc122	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	170.5	Igneous : Extrusive	0		-22.5	-78.187	Basalt	163.58	g	Lava Flow
+This study	McMurdo	mc123a	mc123	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	35.8	Igneous : Extrusive	0		-38	-78.254	Basalt	163.729	g	Lava Flow
+This study	McMurdo	mc123b	mc123	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	18.3	Igneous : Extrusive	0		-30	-78.254	Basalt	163.729	g	Lava Flow
+This study	McMurdo	mc123c	mc123	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	44.5	Igneous : Extrusive	0		-39	-78.254	Basalt	163.729	g	Lava Flow
+This study	McMurdo	mc123f	mc123	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	164	Igneous : Extrusive	0		-39	-78.254	Basalt	163.729	g	Lava Flow
+This study	McMurdo	mc123j	mc123	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	79.3	Igneous : Extrusive	0		-29	-78.254	Basalt	163.729	g	Lava Flow
+This study	McMurdo	mc124a	mc124	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	138.1	Igneous : Extrusive	0		-16	-78.186	Basalt	163.567	g	Lava Flow
+This study	McMurdo	mc124d	mc124	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	131.1	Igneous : Extrusive	0		-9.5	-78.186	Basalt	163.567	g	Lava Flow
+This study	McMurdo	mc124f	mc124	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	145.4	Igneous : Extrusive	0		-26	-78.186	Basalt	163.567	g	Lava Flow
+This study	McMurdo	mc124g	mc124	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	83.9	Igneous : Extrusive	0		-23.5	-78.186	Basalt	163.567	g	Lava Flow
+This study	McMurdo	mc124j	mc124	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	121.3	Igneous : Extrusive	0		-24	-78.186	Basalt	163.567	g	Lava Flow
+This study	McMurdo	mc124l	mc124	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	156.3	Igneous : Extrusive	0		-47	-78.186	Basalt	163.567	g	Lava Flow
+This study	McMurdo	mc125a	mc125	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	185.5	Igneous : Intrusive	0		-38.5	-78.254	Basalt	163.73	g	Volcanic Dike
+This study	McMurdo	mc125b	mc125	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	160.2	Igneous : Intrusive	0		-52	-78.254	Basalt	163.73	g	Volcanic Dike
+This study	McMurdo	mc125c	mc125	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	167.4	Igneous : Intrusive	0		-36.5	-78.254	Basalt	163.73	g	Volcanic Dike
+This study	McMurdo	mc125d	mc125	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	154.6	Igneous : Intrusive	0		-41	-78.254	Basalt	163.73	g	Volcanic Dike
+This study	McMurdo	mc125e	mc125	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	154.4	Igneous : Intrusive	0		-34	-78.254	Basalt	163.73	g	Volcanic Dike
+This study	McMurdo	mc125g	mc125	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	110.6	Igneous : Intrusive	0		-49.5	-78.254	Basalt	163.73	g	Volcanic Dike
+This study	McMurdo	mc125i	mc125	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	316.1	Igneous : Intrusive	0		-40	-78.254	Basalt	163.73	g	Volcanic Dike
+This study	McMurdo	mc125m	mc125	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	139.3	Igneous : Intrusive	0		-42.5	-78.254	Basalt	163.73	g	Volcanic Dike
+This study	McMurdo	mc126a	mc126	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	163.1	Igneous : Extrusive	0		-20	-78.253	Basalt	163.737	g	Lava Flow
+This study	McMurdo	mc126c	mc126	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	125.8	Igneous : Extrusive	0		-2	-78.253	Basalt	163.737	g	Lava Flow
+This study	McMurdo	mc126d	mc126	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	52.1	Igneous : Extrusive	0		-16	-78.253	Basalt	163.737	g	Lava Flow
+This study	McMurdo	mc126e	mc126	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	132.3	Igneous : Extrusive	0		-10	-78.253	Basalt	163.737	g	Lava Flow
+This study	McMurdo	mc126f	mc126	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	156.4	Igneous : Extrusive	0		-12	-78.253	Basalt	163.737	g	Lava Flow
+This study	McMurdo	mc126g	mc126	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	112.6	Igneous : Extrusive	0		-22	-78.253	Basalt	163.737	g	Lava Flow
+This study	McMurdo	mc126i	mc126	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	202	Igneous : Extrusive	0		-13	-78.253	Basalt	163.737	g	Lava Flow
+This study	McMurdo	mc127a	mc127	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	175	Igneous : Extrusive	0		-33	-78.254	Basalt	163.733	g	Lava Flow
+This study	McMurdo	mc127b	mc127	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	173.8	Igneous : Extrusive	0		-34	-78.254	Basalt	163.733	g	Lava Flow
+This study	McMurdo	mc127c	mc127	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	143.8	Igneous : Extrusive	0		-29	-78.254	Basalt	163.733	g	Lava Flow
+This study	McMurdo	mc127d	mc127	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	125.5	Igneous : Extrusive	0		-36	-78.254	Basalt	163.733	g	Lava Flow
+This study	McMurdo	mc127f	mc127	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	339.5	Igneous : Extrusive	0		-54	-78.254	Basalt	163.733	g	Lava Flow
+This study	McMurdo	mc127g	mc127	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	327.2	Igneous : Extrusive	0		-52	-78.254	Basalt	163.733	g	Lava Flow
+This study	McMurdo	mc127i	mc127	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	290.2	Igneous : Extrusive	0		-49	-78.254	Basalt	163.733	g	Lava Flow
+This study	McMurdo	mc128b	mc128	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	119.7	Igneous : Extrusive	0		-61.5	-78.21	Basalt	166.571	g	Lava Flow
+This study	McMurdo	mc128c	mc128	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	115.9	Igneous : Extrusive	0		-74	-78.21	Basalt	166.571	g	Lava Flow
+This study	McMurdo	mc128d	mc128	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	124.4	Igneous : Extrusive	0		-83	-78.21	Basalt	166.571	g	Lava Flow
+This study	McMurdo	mc128e	mc128	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	94.7	Igneous : Extrusive	0		-92	-78.21	Basalt	166.571	g	Lava Flow
+This study	McMurdo	mc128f	mc128	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	98.7	Igneous : Extrusive	0		-94	-78.21	Basalt	166.571	g	Lava Flow
+This study	McMurdo	mc128h	mc128	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	124.9	Igneous : Extrusive	0		-84	-78.21	Basalt	166.571	g	Lava Flow
+This study	McMurdo	mc128j	mc128	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	102.1	Igneous : Extrusive	0		-82	-78.21	Basalt	166.571	g	Lava Flow
+This study	McMurdo	mc129a	mc129	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	281.2	Igneous : Intrusive	0		-41.5	-78.214	Basalt	166.577	g	Volcanic Dike
+This study	McMurdo	mc129b	mc129	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	289.9	Igneous : Intrusive	0		-39.5	-78.214	Basalt	166.577	g	Volcanic Dike
+This study	McMurdo	mc129c	mc129	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	272.4	Igneous : Intrusive	0		-39.5	-78.214	Basalt	166.577	g	Volcanic Dike
+This study	McMurdo	mc129f	mc129	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	267.1	Igneous : Intrusive	0		-50.5	-78.214	Basalt	166.577	g	Volcanic Dike
+This study	McMurdo	mc129h	mc129	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	208.1	Igneous : Intrusive	0		-63	-78.214	Basalt	166.577	g	Volcanic Dike
+This study	McMurdo	mc129j	mc129	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	60.6	Igneous : Intrusive	0		-37	-78.214	Basalt	166.577	g	Volcanic Dike
+This study	McMurdo	mc129l	mc129	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	54.1	Igneous : Intrusive	0		-46	-78.214	Basalt	166.577	g	Volcanic Dike
+This study	McMurdo	mc130a	mc130	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	299.2	Igneous : Extrusive	0		-25.5	-78.21	Basalt	166.579	g	Lava Flow
+This study	McMurdo	mc130b	mc130	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	308.9	Igneous : Extrusive	0		-28	-78.21	Basalt	166.579	g	Lava Flow
+This study	McMurdo	mc130d	mc130	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	313.6	Igneous : Extrusive	0		-25	-78.21	Basalt	166.579	g	Lava Flow
+This study	McMurdo	mc130e	mc130	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	68.1	Igneous : Extrusive	0		-26.5	-78.21	Basalt	166.579	g	Lava Flow
+This study	McMurdo	mc130g	mc130	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	225.9	Igneous : Extrusive	0		-7	-78.21	Basalt	166.579	g	Lava Flow
+This study	McMurdo	mc131a	mc131	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	37.2	Igneous : Extrusive	0		-33	-78.214	Basalt	166.573	g	Lava Flow
+This study	McMurdo	mc131b	mc131	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	48.2	Igneous : Extrusive	0		-29.5	-78.214	Basalt	166.573	g	Lava Flow
+This study	McMurdo	mc131c	mc131	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	25.7	Igneous : Extrusive	0		-24.5	-78.214	Basalt	166.573	g	Lava Flow
+This study	McMurdo	mc131d	mc131	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	62.7	Igneous : Extrusive	0		-22	-78.214	Basalt	166.573	g	Lava Flow
+This study	McMurdo	mc131e	mc131	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	319.2	Igneous : Extrusive	0		-33	-78.214	Basalt	166.573	g	Lava Flow
+This study	McMurdo	mc131f	mc131	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	301	Igneous : Extrusive	0		-30.5	-78.214	Basalt	166.573	g	Lava Flow
+This study	McMurdo	mc131g	mc131	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	41.2	Igneous : Extrusive	0		-47.5	-78.214	Basalt	166.573	g	Lava Flow
+This study	McMurdo	mc131k	mc131	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	35.9	Igneous : Extrusive	0		-44.5	-78.214	Basalt	166.573	g	Lava Flow
+This study	McMurdo	mc132a	mc132	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	55.9	Igneous : Extrusive	0		-19	-78.206	Basalt	166.552	g	Lava Flow
+This study	McMurdo	mc132c	mc132	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	182.2	Igneous : Extrusive	0		-18	-78.206	Basalt	166.552	g	Lava Flow
+This study	McMurdo	mc132d	mc132	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	211.4	Igneous : Extrusive	0		-19	-78.206	Basalt	166.552	g	Lava Flow
+This study	McMurdo	mc132e	mc132	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	124.8	Igneous : Extrusive	0		-20.5	-78.206	Basalt	166.552	g	Lava Flow
+This study	McMurdo	mc132g	mc132	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	50.4	Igneous : Extrusive	0		-10	-78.206	Basalt	166.552	g	Lava Flow
+This study	McMurdo	mc132l	mc132	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	319.2	Igneous : Extrusive	0		-26	-78.206	Basalt	166.552	g	Lava Flow
+This study	McMurdo	mc133b	mc133	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	299.9	Igneous : Extrusive	0		-58.5	-78.199	Trachyte	166.584	g	Lava Flow
+This study	McMurdo	mc133d	mc133	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	34	Igneous : Extrusive	0		-58.5	-78.199	Trachyte	166.584	g	Lava Flow
+This study	McMurdo	mc133f	mc133	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	20.3	Igneous : Extrusive	0		-12	-78.199	Trachyte	166.584	g	Lava Flow
+This study	McMurdo	mc133h	mc133	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	15.9	Igneous : Extrusive	0		-56	-78.199	Trachyte	166.584	g	Lava Flow
+This study	McMurdo	mc133j	mc133	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	20.5	Igneous : Extrusive	0		-60	-78.199	Trachyte	166.584	g	Lava Flow
+This study	McMurdo	mc134a	mc134	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	98.2	Igneous : Extrusive	0		-31	-78.219	Basalt	166.607	g	Lava Flow
+This study	McMurdo	mc134c	mc134	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	59	Igneous : Extrusive	0		-49	-78.219	Basalt	166.607	g	Lava Flow
+This study	McMurdo	mc134e	mc134	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	113.8	Igneous : Extrusive	0		-23	-78.219	Basalt	166.607	g	Lava Flow
+This study	McMurdo	mc134f	mc134	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	163.4	Igneous : Extrusive	0		-20	-78.219	Basalt	166.607	g	Lava Flow
+This study	McMurdo	mc134k	mc134	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	1.7	Igneous : Extrusive	0		-49	-78.219	Basalt	166.607	g	Lava Flow
+This study	McMurdo	mc135a	mc135	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	23.7	Igneous : Extrusive	0		-66.5	-78.231	Basalt	166.565	g	Lava Flow
+This study	McMurdo	mc135b	mc135	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	11.6	Igneous : Extrusive	0		-63.5	-78.231	Basalt	166.565	g	Lava Flow
+This study	McMurdo	mc135c	mc135	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	211.5	Igneous : Extrusive	0		-13	-78.231	Basalt	166.565	g	Lava Flow
+This study	McMurdo	mc135d	mc135	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	230.2	Igneous : Extrusive	0		-11	-78.231	Basalt	166.565	g	Lava Flow
+This study	McMurdo	mc135e	mc135	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	161.4	Igneous : Extrusive	0		-10	-78.231	Basalt	166.565	g	Lava Flow
+This study	McMurdo	mc135h	mc135	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	11.5	Igneous : Extrusive	0		-39.5	-78.231	Basalt	166.565	g	Lava Flow
+This study	McMurdo	mc135i	mc135	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	43.2	Igneous : Extrusive	0		-24	-78.231	Basalt	166.565	g	Lava Flow
+This study	McMurdo	mc136a	mc136	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	75.2	Igneous : Extrusive	0		-38	-78.282	Basalt	163.329	g	Lava Flow
+This study	McMurdo	mc136c	mc136	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	87.4	Igneous : Extrusive	0		-14	-78.282	Basalt	163.329	g	Lava Flow
+This study	McMurdo	mc136d	mc136	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	114.6	Igneous : Extrusive	0		-43	-78.282	Basalt	163.329	g	Lava Flow
+This study	McMurdo	mc136e	mc136	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	86.3	Igneous : Extrusive	0		-34	-78.282	Basalt	163.329	g	Lava Flow
+This study	McMurdo	mc137a	mc137	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	177.1	Igneous : Extrusive	0		-77.5	-78.261	Basalt	163.257	g	Lava Flow
+This study	McMurdo	mc137d	mc137	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	151.8	Igneous : Extrusive	0		-70	-78.261	Basalt	163.257	g	Lava Flow
+This study	McMurdo	mc137h	mc137	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	191.6	Igneous : Extrusive	0		-41	-78.261	Basalt	163.257	g	Lava Flow
+This study	McMurdo	mc137j	mc137	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	177.1	Igneous : Extrusive	0		-60.5	-78.261	Basalt	163.257	g	Lava Flow
+This study	McMurdo	mc137l	mc137	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	220	Igneous : Extrusive	0		-73	-78.261	Basalt	163.257	g	Lava Flow
+This study	McMurdo	mc138a	mc138	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	119.5	Igneous : Extrusive	0		-58	-78.26	Basalt	163.24	g	Lava Flow
+This study	McMurdo	mc138b	mc138	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	130.5	Igneous : Extrusive	0		-61	-78.26	Basalt	163.24	g	Lava Flow
+This study	McMurdo	mc138d	mc138	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	135.5	Igneous : Extrusive	0		-56	-78.26	Basalt	163.24	g	Lava Flow
+This study	McMurdo	mc138g	mc138	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	62	Igneous : Extrusive	0		-33	-78.26	Basalt	163.24	g	Lava Flow
+This study	McMurdo	mc138h	mc138	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	64	Igneous : Extrusive	0		-28	-78.26	Basalt	163.24	g	Lava Flow
+This study	McMurdo	mc139a	mc139	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	353.9	Igneous : Extrusive	0		-63	-78.26	Basalt	163.08	g	Lava Flow
+This study	McMurdo	mc139d	mc139	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	348.2	Igneous : Extrusive	0		-62.5	-78.26	Basalt	163.08	g	Lava Flow
+This study	McMurdo	mc139e	mc139	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	349.9	Igneous : Extrusive	0		-59.5	-78.26	Basalt	163.08	g	Lava Flow
+This study	McMurdo	mc139h	mc139	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	26.2	Igneous : Extrusive	0		-57	-78.26	Basalt	163.08	g	Lava Flow
+This study	McMurdo	mc139j	mc139	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	334.2	Igneous : Extrusive	0		-47.5	-78.26	Basalt	163.08	g	Lava Flow
+This study	McMurdo	mc13a	mc13	FS-FD:SO-SIGHT	1	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-58	-77.64	Trachyte	166.41	g	Lava Flow
+This study	McMurdo	mc13b	mc13	FS-FD:SO-SIGHT	10	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-71	-77.64	Trachyte	166.41	g	Lava Flow
+This study	McMurdo	mc13c	mc13	FS-FD:SO-SIGHT	345	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-81	-77.64	Trachyte	166.41	g	Lava Flow
+This study	McMurdo	mc13d	mc13	FS-FD:SO-SIGHT	353	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-42	-77.64	Trachyte	166.41	g	Lava Flow
+This study	McMurdo	mc13e	mc13	FS-FD:SO-SIGHT	9	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-59	-77.64	Trachyte	166.41	g	Lava Flow
+This study	McMurdo	mc13f	mc13	FS-FD:SO-SIGHT	341	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-76	-77.64	Trachyte	166.41	g	Lava Flow
+This study	McMurdo	mc13g	mc13	FS-FD:SO-SIGHT	26	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-70	-77.64	Trachyte	166.41	g	Lava Flow
+This study	McMurdo	mc13h	mc13	FS-FD:SO-SIGHT	24	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-54	-77.64	Trachyte	166.41	g	Lava Flow
+This study	McMurdo	mc140a	mc140	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	290.3	Igneous : Extrusive	0		-79	-78.276	Basalt	163.004	g	Lava Flow
+This study	McMurdo	mc140b	mc140	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	303.8	Igneous : Extrusive	0		-80.5	-78.276	Basalt	163.004	g	Lava Flow
+This study	McMurdo	mc140d	mc140	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	295.3	Igneous : Extrusive	0		-82	-78.276	Basalt	163.004	g	Lava Flow
+This study	McMurdo	mc140e	mc140	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	293.8	Igneous : Extrusive	0		-66	-78.276	Basalt	163.004	g	Lava Flow
+This study	McMurdo	mc140g	mc140	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	295.8	Igneous : Extrusive	0		-68.5	-78.276	Basalt	163.004	g	Lava Flow
+This study	McMurdo	mc140h	mc140	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	302.3	Igneous : Extrusive	0		-82.5	-78.276	Basalt	163.004	g	Lava Flow
+This study	McMurdo	mc140j	mc140	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	302.8	Igneous : Extrusive	0		-72	-78.276	Basalt	163.004	g	Lava Flow
+This study	McMurdo	mc141b	mc141	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	25.4	Igneous : Extrusive	0		-62	-77.58	Basalt	166.246	g	Lava Flow
+This study	McMurdo	mc141c	mc141	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	29.9	Igneous : Intrusive	0		-57	-77.58	Basalt	166.246	g	Volcanic Dike
+This study	McMurdo	mc141g	mc141	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	53.2	Igneous : Intrusive	0		-54	-77.58	Basalt	166.246	g	Volcanic Dike
+This study	McMurdo	mc141h	mc141	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	38.2	Igneous : Intrusive	0		-58	-77.58	Basalt	166.246	g	Volcanic Dike
+This study	McMurdo	mc141k	mc141	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	83.9	Igneous : Intrusive	0		-74.5	-77.58	Basalt	166.246	g	Volcanic Dike
+This study	McMurdo	mc141l	mc141	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	31.2	Igneous : Intrusive	0		-35.5	-77.58	Basalt	166.246	g	Volcanic Dike
+This study	McMurdo	mc142b	mc142	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	138.4	Igneous : Extrusive	0		-68.5	-77.851	Trachyte	166.68	g	Lava Flow
+This study	McMurdo	mc142c	mc142	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	81.9	Igneous : Extrusive	0		-32.5	-77.851	Trachyte	166.68	g	Lava Flow
+This study	McMurdo	mc142d	mc142	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	101.4	Igneous : Extrusive	0		-33	-77.851	Trachyte	166.68	g	Lava Flow
+This study	McMurdo	mc142e	mc142	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	54.1	Igneous : Extrusive	0		-33.5	-77.851	Trachyte	166.68	g	Lava Flow
+This study	McMurdo	mc142f	mc142	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	87.9	Igneous : Extrusive	0		-37	-77.851	Trachyte	166.68	g	Lava Flow
+This study	McMurdo	mc142i	mc142	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	106.8	Igneous : Extrusive	0		-66	-77.851	Trachyte	166.68	g	Lava Flow
+This study	McMurdo	mc142k	mc142	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	70.8	Igneous : Extrusive	0		-29	-77.851	Trachyte	166.68	g	Lava Flow
+This study	McMurdo	mc143a	mc143	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	89	Igneous : Extrusive	0		-78	-78.244	Basalt	162.879	g	Lava Flow
+This study	McMurdo	mc143c	mc143	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	87.4	Igneous : Extrusive	0		-71.5	-78.244	Basalt	162.879	g	Lava Flow
+This study	McMurdo	mc143d	mc143	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	81.2	Igneous : Extrusive	0		-74.5	-78.244	Basalt	162.879	g	Lava Flow
+This study	McMurdo	mc143g	mc143	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	78.4	Igneous : Extrusive	0		-70	-78.244	Basalt	162.879	g	Lava Flow
+This study	McMurdo	mc143h	mc143	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	63.8	Igneous : Extrusive	0		-73	-78.244	Basalt	162.879	g	Lava Flow
+This study	McMurdo	mc143i	mc143	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	81.3	Igneous : Extrusive	0		-68.5	-78.244	Basalt	162.879	g	Lava Flow
+This study	McMurdo	mc144a	mc144	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	165.7	Igneous : Extrusive	0		-40	-77.85	Trachyte	166.688	g	Lava Flow
+This study	McMurdo	mc144b	mc144	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	156.7	Igneous : Extrusive	0		-39	-77.85	Trachyte	166.688	g	Lava Flow
+This study	McMurdo	mc144d	mc144	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	111.6	Igneous : Extrusive	0		-51	-77.85	Trachyte	166.688	g	Lava Flow
+This study	McMurdo	mc144e	mc144	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	117.4	Igneous : Extrusive	0		-51	-77.85	Trachyte	166.688	g	Lava Flow
+This study	McMurdo	mc144f	mc144	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	108.1	Igneous : Extrusive	0		-47	-77.85	Trachyte	166.688	g	Lava Flow
+This study	McMurdo	mc144h	mc144	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	185.9	Igneous : Extrusive	0		-44	-77.85	Trachyte	166.688	g	Lava Flow
+This study	McMurdo	mc144j	mc144	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	194.7	Igneous : Extrusive	0		-35	-77.85	Trachyte	166.688	g	Lava Flow
+This study	McMurdo	mc145b	mc145	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	94.8	Igneous : Extrusive	0		-54	-78.24	Basalt	162.893	g	Lava Flow
+This study	McMurdo	mc145f	mc145	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	132	Igneous : Extrusive	0		-53.5	-78.24	Basalt	162.893	g	Lava Flow
+This study	McMurdo	mc145i	mc145	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	136.8	Igneous : Extrusive	0		-59.5	-78.24	Basalt	162.893	g	Lava Flow
+This study	McMurdo	mc145j	mc145	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	103.3	Igneous : Extrusive	0		-48	-78.24	Basalt	162.893	g	Lava Flow
+This study	McMurdo	mc145k	mc145	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	102.5	Igneous : Extrusive	0		-50	-78.24	Basalt	162.893	g	Lava Flow
+This study	McMurdo	mc145l	mc145	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	103	Igneous : Extrusive	0		-63.5	-78.24	Basalt	162.893	g	Lava Flow
+This study	McMurdo	mc146a	mc146	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	320.1	Igneous : Extrusive	0		-34	-78.22	Basalt	162.963	g	Lava Flow
+This study	McMurdo	mc146d	mc146	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	347.1	Igneous : Extrusive	0		-17	-78.22	Basalt	162.963	g	Lava Flow
+This study	McMurdo	mc146e	mc146	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	272.3	Igneous : Extrusive	0		-34.5	-78.22	Basalt	162.963	g	Lava Flow
+This study	McMurdo	mc146f	mc146	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	278.8	Igneous : Extrusive	0		-51	-78.22	Basalt	162.963	g	Lava Flow
+This study	McMurdo	mc146h	mc146	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	329	Igneous : Extrusive	0		-25	-78.22	Basalt	162.963	g	Lava Flow
+This study	McMurdo	mc146j	mc146	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	267.4	Igneous : Extrusive	0		-36	-78.22	Basalt	162.963	g	Lava Flow
+This study	McMurdo	mc146k	mc146	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	292.4	Igneous : Extrusive	0		-33	-78.22	Basalt	162.963	g	Lava Flow
+This study	McMurdo	mc147a	mc147	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	205.6	Igneous : Extrusive	0		-78.5	-78.196	Basalt	162.962	g	Lava Flow
+This study	McMurdo	mc147c	mc147	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	206.4	Igneous : Extrusive	0		-79	-78.196	Basalt	162.962	g	Lava Flow
+This study	McMurdo	mc147i	mc147	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	197.1	Igneous : Extrusive	0		-74	-78.196	Basalt	162.962	g	Lava Flow
+This study	McMurdo	mc147j	mc147	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	195.4	Igneous : Extrusive	0		-78	-78.196	Basalt	162.962	g	Lava Flow
+This study	McMurdo	mc147k	mc147	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	201.4	Igneous : Extrusive	0		-77	-78.196	Basalt	162.962	g	Lava Flow
+This study	McMurdo	mc148a	mc148	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	81.7	Igneous : Extrusive	0		-72	-77.492	Basalt	167.249	g	Lava Flow
+This study	McMurdo	mc148b	mc148	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	61.7	Igneous : Extrusive	0		-69	-77.492	Basalt	167.249	g	Lava Flow
+This study	McMurdo	mc148f	mc148	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	95.2	Igneous : Extrusive	0		-17	-77.492	Basalt	167.249	g	Lava Flow
+This study	McMurdo	mc148i	mc148	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	88.6	Igneous : Extrusive	0		-42	-77.492	Basalt	167.249	g	Lava Flow
+This study	McMurdo	mc148j	mc148	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	113.6	Igneous : Extrusive	0		-42	-77.492	Basalt	167.249	g	Lava Flow
+This study	McMurdo	mc148k	mc148	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	105.8	Igneous : Extrusive	0		-40	-77.492	Basalt	167.249	g	Lava Flow
+This study	McMurdo	mc149a	mc149	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	33.2	Igneous : Intrusive	0		-53.5	-77.486	Basalt	167.187	g	Volcanic Dike
+This study	McMurdo	mc149b	mc149	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	37.2	Igneous : Intrusive	0		-82.5	-77.486	Basalt	167.187	g	Volcanic Dike
+This study	McMurdo	mc14a	mc14	FS-FD:SO-SIGHT	318	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-43	-77.46	Basalt	169.23	g	Lava Flow
+This study	McMurdo	mc14b	mc14	FS-FD:SO-SIGHT	229	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-31	-77.46	Basalt	169.23	g	Lava Flow
+This study	McMurdo	mc14c	mc14	FS-FD:SO-SIGHT	209	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-35	-77.46	Basalt	169.23	g	Lava Flow
+This study	McMurdo	mc14d	mc14	FS-FD:SO-SIGHT	262	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-34	-77.46	Basalt	169.23	g	Lava Flow
+This study	McMurdo	mc14e	mc14	FS-FD:SO-SIGHT	286	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-50	-77.46	Basalt	169.23	g	Lava Flow
+This study	McMurdo	mc14f	mc14	FS-FD:SO-SIGHT	230	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-29	-77.46	Basalt	169.23	g	Lava Flow
+This study	McMurdo	mc14g	mc14	FS-FD:SO-SIGHT	260	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-37	-77.46	Basalt	169.23	g	Lava Flow
+This study	McMurdo	mc14h	mc14	FS-FD:SO-SIGHT	241	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-38	-77.46	Basalt	169.23	g	Lava Flow
+This study	McMurdo	mc150b	mc150	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	186.1	Igneous : Extrusive	0		-62	-77.714	Basalt	162.637	g	Lava Flow
+This study	McMurdo	mc150c	mc150	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	173	Igneous : Extrusive	0		-22	-77.714	Basalt	162.637	g	Lava Flow
+This study	McMurdo	mc150e	mc150	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	155.4	Igneous : Extrusive	0		-62	-77.714	Basalt	162.637	g	Lava Flow
+This study	McMurdo	mc150f	mc150	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	160.9	Igneous : Extrusive	0		-68	-77.714	Basalt	162.637	g	Lava Flow
+This study	McMurdo	mc150g	mc150	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	173.3	Igneous : Extrusive	0		-72	-77.714	Basalt	162.637	g	Lava Flow
+This study	McMurdo	mc152a	mc152	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	142.6	Igneous : Intrusive	0		-100	-77.716	Basalt	162.645	g	Volcanic Dike
+This study	McMurdo	mc152b	mc152	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	146.3	Igneous : Intrusive	0		-92	-77.716	Basalt	162.645	g	Volcanic Dike
+This study	McMurdo	mc152c	mc152	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	148	Igneous : Intrusive	0		-76	-77.716	Basalt	162.645	g	Volcanic Dike
+This study	McMurdo	mc152i	mc152	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	133.6	Igneous : Intrusive	0		-79	-77.716	Basalt	162.645	g	Volcanic Dike
+This study	McMurdo	mc152k	mc152	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	170.3	Igneous : Intrusive	0		-69	-77.716	Basalt	162.645	g	Volcanic Dike
+This study	McMurdo	mc153a	mc153	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	187.8	Igneous : Extrusive	0		-69.5	-77.76	Basalt	162.144	g	Lava Flow
+This study	McMurdo	mc153c	mc153	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	222	Igneous : Extrusive	0		-77	-77.76	Basalt	162.144	g	Lava Flow
+This study	McMurdo	mc153e	mc153	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	234.9	Igneous : Extrusive	0		-73	-77.76	Basalt	162.144	g	Lava Flow
+This study	McMurdo	mc153i	mc153	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	187.1	Igneous : Extrusive	0		-58	-77.76	Basalt	162.144	g	Lava Flow
+This study	McMurdo	mc153j	mc153	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	183.8	Igneous : Extrusive	0		-55	-77.76	Basalt	162.144	g	Lava Flow
+This study	McMurdo	mc153m	mc153	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	188	Igneous : Extrusive	0		-46	-77.76	Basalt	162.144	g	Lava Flow
+This study	McMurdo	mc154a	mc154	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	216.9	Igneous : Extrusive	0		-90	-77.719	Basalt	162.626	g	Lava Flow
+This study	McMurdo	mc154b	mc154	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	232.3	Igneous : Extrusive	0		-87	-77.719	Basalt	162.626	g	Lava Flow
+This study	McMurdo	mc154e	mc154	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	213.5	Igneous : Extrusive	0		-79	-77.719	Basalt	162.626	g	Lava Flow
+This study	McMurdo	mc154f	mc154	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	220.3	Igneous : Extrusive	0		-86	-77.719	Basalt	162.626	g	Lava Flow
+This study	McMurdo	mc154h	mc154	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	292.7	Igneous : Extrusive	0		-57	-77.719	Basalt	162.626	g	Lava Flow
+This study	McMurdo	mc155a	mc155	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	103.6	Igneous : Extrusive	0		-44.5	-77.699	Basalt	162.253	g	Lava Flow
+This study	McMurdo	mc155b	mc155	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	149.8	Igneous : Extrusive	0		-47.5	-77.699	Basalt	162.253	g	Lava Flow
+This study	McMurdo	mc155c	mc155	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	15.3	Igneous : Extrusive	0		-24.5	-77.699	Basalt	162.253	g	Lava Flow
+This study	McMurdo	mc155e	mc155	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	47	Igneous : Extrusive	0		-34	-77.699	Basalt	162.253	g	Lava Flow
+This study	McMurdo	mc155g	mc155	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	85.5	Igneous : Extrusive	0		-26	-77.699	Basalt	162.253	g	Lava Flow
+This study	McMurdo	mc155h	mc155	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	342.9	Igneous : Extrusive	0		-16.5	-77.699	Basalt	162.253	g	Lava Flow
+This study	McMurdo	mc155i	mc155	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	86.2	Igneous : Extrusive	0		-34	-77.699	Basalt	162.253	g	Lava Flow
+This study	McMurdo	mc155m	mc155	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	83.4	Igneous : Extrusive	0		-25	-77.699	Basalt	162.253	g	Lava Flow
+This study	McMurdo	mc156a	mc156	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	171.1	Igneous : Extrusive	0		-62	-77.705	Basalt	162.592	g	Lava Flow
+This study	McMurdo	mc156c	mc156	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	199.3	Igneous : Extrusive	0		-54	-77.705	Basalt	162.592	g	Lava Flow
+This study	McMurdo	mc156f	mc156	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	194	Igneous : Extrusive	0		-54	-77.705	Basalt	162.592	g	Lava Flow
+This study	McMurdo	mc156g	mc156	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	161.2	Igneous : Extrusive	0		-34	-77.705	Basalt	162.592	g	Lava Flow
+This study	McMurdo	mc156h	mc156	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	172.9	Igneous : Extrusive	0		-35	-77.705	Basalt	162.592	g	Lava Flow
+This study	McMurdo	mc157a	mc157	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	16.7	Igneous : Extrusive	0		-36.5	-77.703	Basalt	162.264	g	Lava Flow
+This study	McMurdo	mc157b	mc157	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	37.4	Igneous : Extrusive	0		-38.5	-77.703	Basalt	162.264	g	Lava Flow
+This study	McMurdo	mc157c	mc157	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	85.4	Igneous : Extrusive	0		-43.5	-77.703	Basalt	162.264	g	Lava Flow
+This study	McMurdo	mc157e	mc157	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	56.3	Igneous : Extrusive	0		-31	-77.703	Basalt	162.264	g	Lava Flow
+This study	McMurdo	mc157f	mc157	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	35.1	Igneous : Extrusive	0		-23	-77.703	Basalt	162.264	g	Lava Flow
+This study	McMurdo	mc157j	mc157	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	9.4	Igneous : Extrusive	0		-35	-77.703	Basalt	162.264	g	Lava Flow
+This study	McMurdo	mc157k	mc157	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	5.6	Igneous : Extrusive	0		-39	-77.703	Basalt	162.264	g	Lava Flow
+This study	McMurdo	mc158a	mc158	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	40.5	Igneous : Extrusive	0		-14	-77.688	Basalt	162.462	g	Lava Flow
+This study	McMurdo	mc158b	mc158	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	72.7	Igneous : Extrusive	0		-22.5	-77.688	Basalt	162.462	g	Lava Flow
+This study	McMurdo	mc158c	mc158	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	57.5	Igneous : Extrusive	0		-12	-77.688	Basalt	162.462	g	Lava Flow
+This study	McMurdo	mc158d	mc158	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	71.2	Igneous : Extrusive	0		-18	-77.688	Basalt	162.462	g	Lava Flow
+This study	McMurdo	mc158f	mc158	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	89	Igneous : Extrusive	0		-9	-77.688	Basalt	162.462	g	Lava Flow
+This study	McMurdo	mc158h	mc158	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	40.7	Igneous : Extrusive	0		-31	-77.688	Basalt	162.462	g	Lava Flow
+This study	McMurdo	mc15a	mc15	FS-FD:SO-SIGHT	157	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-21	-77.47	Basalt	169.23	g	Lava Flow
+This study	McMurdo	mc15b	mc15	FS-FD:SO-SIGHT	179	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-34	-77.47	Basalt	169.23	g	Lava Flow
+This study	McMurdo	mc15c	mc15	FS-FD:SO-SIGHT	131	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-47	-77.47	Basalt	169.23	g	Lava Flow
+This study	McMurdo	mc15d	mc15	FS-FD:SO-SIGHT	135	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-33	-77.47	Basalt	169.23	g	Lava Flow
+This study	McMurdo	mc15e	mc15	FS-FD:SO-SIGHT	120	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-34	-77.47	Basalt	169.23	g	Lava Flow
+This study	McMurdo	mc15f	mc15	FS-FD:SO-SIGHT	123	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-31	-77.47	Basalt	169.23	g	Lava Flow
+This study	McMurdo	mc15g	mc15	FS-FD:SO-SIGHT	111	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-59	-77.47	Basalt	169.23	g	Lava Flow
+This study	McMurdo	mc15h	mc15	FS-FD:SO-SIGHT	125	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-42	-77.47	Basalt	169.23	g	Lava Flow
+This study	McMurdo	mc160a	mc160	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	315.9	Igneous : Extrusive	0		-46.5	-77.687	Basalt	162.354	g	Lava Flow
+This study	McMurdo	mc160b	mc160	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	309.7	Igneous : Extrusive	0		-51	-77.687	Basalt	162.354	g	Lava Flow
+This study	McMurdo	mc160c	mc160	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	22.4	Igneous : Extrusive	0		-22.5	-77.687	Basalt	162.354	g	Lava Flow
+This study	McMurdo	mc160e	mc160	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	25.6	Igneous : Extrusive	0		-30	-77.687	Basalt	162.354	g	Lava Flow
+This study	McMurdo	mc160f	mc160	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	340.3	Igneous : Extrusive	0		-30.5	-77.687	Basalt	162.354	g	Lava Flow
+This study	McMurdo	mc160h	mc160	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	291.7	Igneous : Extrusive	0		-45.5	-77.687	Basalt	162.354	g	Lava Flow
+This study	McMurdo	mc160j	mc160	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	307.9	Igneous : Extrusive	0		-47.5	-77.687	Basalt	162.354	g	Lava Flow
+This study	McMurdo	mc161a	mc161	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	345.4	Igneous : Extrusive	0		-20	-77.702	Basalt	162.694	g	Lava Flow
+This study	McMurdo	mc161b	mc161	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	331.1	Igneous : Extrusive	0		-25	-77.702	Basalt	162.694	g	Lava Flow
+This study	McMurdo	mc161e	mc161	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	14.1	Igneous : Extrusive	0		-23.5	-77.702	Basalt	162.694	g	Lava Flow
+This study	McMurdo	mc161f	mc161	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	20.8	Igneous : Extrusive	0		-26	-77.702	Basalt	162.694	g	Lava Flow
+This study	McMurdo	mc161g	mc161	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	11.6	Igneous : Extrusive	0		-24	-77.702	Basalt	162.694	g	Lava Flow
+This study	McMurdo	mc161k	mc161	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	37.7	Igneous : Extrusive	0		-30	-77.702	Basalt	162.694	g	Lava Flow
+This study	McMurdo	mc162b	mc162	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	217.9	Igneous : Extrusive	0		-47	-77.701	Basalt	162.69	g	Lava Flow
+This study	McMurdo	mc162c	mc162	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	137.6	Igneous : Extrusive	0		-51	-77.701	Basalt	162.69	g	Lava Flow
+This study	McMurdo	mc162f	mc162	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	199.2	Igneous : Extrusive	0		-63.5	-77.701	Basalt	162.69	g	Lava Flow
+This study	McMurdo	mc162g	mc162	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	198.4	Igneous : Extrusive	0		-55	-77.701	Basalt	162.69	g	Lava Flow
+This study	McMurdo	mc162i	mc162	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	229.6	Igneous : Extrusive	0		-48	-77.701	Basalt	162.69	g	Lava Flow
+This study	McMurdo	mc162j	mc162	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	242.3	Igneous : Extrusive	0		-50	-77.701	Basalt	162.69	g	Lava Flow
+This study	McMurdo	mc163a	mc163	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	52.7	Igneous : Extrusive	0		-28	-77.7	Basalt	162.68	g	Lava Flow
+This study	McMurdo	mc163b	mc163	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	48.2	Igneous : Extrusive	0		-26	-77.7	Basalt	162.68	g	Lava Flow
+This study	McMurdo	mc163c	mc163	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	42.7	Igneous : Extrusive	0		-39	-77.7	Basalt	162.68	g	Lava Flow
+This study	McMurdo	mc163d	mc163	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	68.9	Igneous : Extrusive	0		-44	-77.7	Basalt	162.68	g	Lava Flow
+This study	McMurdo	mc163e	mc163	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	60.8	Igneous : Extrusive	0		-32	-77.7	Basalt	162.68	g	Lava Flow
+This study	McMurdo	mc163f	mc163	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	69.6	Igneous : Extrusive	0		-28	-77.7	Basalt	162.68	g	Lava Flow
+This study	McMurdo	mc164a	mc164	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	105	Igneous : Extrusive	0		-24	-77.514	Basalt	169.33	g	Lava Flow
+This study	McMurdo	mc164b	mc164	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	107.7	Igneous : Extrusive	0		-18	-77.514	Basalt	169.33	g	Lava Flow
+This study	McMurdo	mc164c	mc164	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	75.9	Igneous : Extrusive	0		-28	-77.514	Basalt	169.33	g	Lava Flow
+This study	McMurdo	mc164f	mc164	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	76.1	Igneous : Extrusive	0		-26	-77.514	Basalt	169.33	g	Lava Flow
+This study	McMurdo	mc164g	mc164	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	115.9	Igneous : Extrusive	0		-25	-77.514	Basalt	169.33	g	Lava Flow
+This study	McMurdo	mc164h	mc164	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	120.6	Igneous : Extrusive	0		-27	-77.514	Basalt	169.33	g	Lava Flow
+This study	McMurdo	mc164i	mc164	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	326.3	Igneous : Extrusive	0		-19	-77.514	Basalt	169.33	g	Lava Flow
+This study	McMurdo	mc164j	mc164	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	358.1	Igneous : Extrusive	0		-19.5	-77.514	Basalt	169.33	g	Lava Flow
+This study	McMurdo	mc164l	mc164	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	72.6	Igneous : Extrusive	0		-14	-77.514	Basalt	169.33	g	Lava Flow
+This study	McMurdo	mc165a	mc165	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	190.8	Igneous : Extrusive	0		-64.5	-77.513	Basalt	169.332	g	Lava Flow
+This study	McMurdo	mc165b	mc165	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	206.2	Igneous : Extrusive	0		-68	-77.513	Basalt	169.332	g	Lava Flow
+This study	McMurdo	mc165c	mc165	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	134.4	Igneous : Extrusive	0		-56	-77.513	Basalt	169.332	g	Lava Flow
+This study	McMurdo	mc165g	mc165	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	162	Igneous : Extrusive	0		-57	-77.513	Basalt	169.332	g	Lava Flow
+This study	McMurdo	mc165h	mc165	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	170.2	Igneous : Extrusive	0		-62	-77.513	Basalt	169.332	g	Lava Flow
+This study	McMurdo	mc165i	mc165	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	110.9	Igneous : Extrusive	0		-46	-77.513	Basalt	169.332	g	Lava Flow
+This study	McMurdo	mc166a	mc166	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	324.3	Igneous : Extrusive	0		-16	-77.849	Basalt	166.67	g	Lava Flow
+This study	McMurdo	mc166b	mc166	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	15.6	Igneous : Extrusive	0		-20	-77.849	Basalt	166.67	g	Lava Flow
+This study	McMurdo	mc166c	mc166	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	9.5	Igneous : Extrusive	0		-59	-77.849	Basalt	166.67	g	Lava Flow
+This study	McMurdo	mc166h	mc166	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	330.5	Igneous : Extrusive	0		-46	-77.849	Basalt	166.67	g	Lava Flow
+This study	McMurdo	mc166i	mc166	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	4.5	Igneous : Extrusive	0		-49	-77.849	Basalt	166.67	g	Lava Flow
+This study	McMurdo	mc167a	mc167	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	48.2	Igneous : Extrusive	0		-20.5	-77.487	Basalt	169.294	g	Lava Flow
+This study	McMurdo	mc167b	mc167	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	203	Igneous : Extrusive	0		-21	-77.487	Basalt	169.294	g	Lava Flow
+This study	McMurdo	mc167d	mc167	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	194.7	Igneous : Extrusive	0		-23.5	-77.487	Basalt	169.294	g	Lava Flow
+This study	McMurdo	mc167e	mc167	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	200.4	Igneous : Extrusive	0		-32	-77.487	Basalt	169.294	g	Lava Flow
+This study	McMurdo	mc167f	mc167	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	217.9	Igneous : Extrusive	0		-28	-77.487	Basalt	169.294	g	Lava Flow
+This study	McMurdo	mc167h	mc167	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	148.4	Igneous : Extrusive	0		-21	-77.487	Basalt	169.294	g	Lava Flow
+This study	McMurdo	mc167j	mc167	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	263.1	Igneous : Extrusive	0		-36	-77.487	Basalt	169.294	g	Lava Flow
+This study	McMurdo	mc167k	mc167	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	272.4	Igneous : Extrusive	0		-32.5	-77.487	Basalt	169.294	g	Lava Flow
+This study	McMurdo	mc168c	mc168	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	343.7	Igneous : Extrusive	0		-20	-77.488	Basalt	169.292	g	Lava Flow
+This study	McMurdo	mc168f	mc168	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	177.9	Igneous : Extrusive	0		-35	-77.488	Basalt	169.292	g	Lava Flow
+This study	McMurdo	mc168h	mc168	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	180.1	Igneous : Extrusive	0		-41	-77.488	Basalt	169.292	g	Lava Flow
+This study	McMurdo	mc168i	mc168	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	357.8	Igneous : Extrusive	0		-23.5	-77.488	Basalt	169.292	g	Lava Flow
+This study	McMurdo	mc168j	mc168	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	35.5	Igneous : Extrusive	0		-20	-77.488	Basalt	169.292	g	Lava Flow
+This study	McMurdo	mc168k	mc168	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	96	Igneous : Extrusive	0		-30	-77.488	Basalt	169.292	g	Lava Flow
+This study	McMurdo	mc170a	mc170	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	342.1	Igneous : Extrusive	0		-70	-77.854	Basalt	166.714	g	Lava Flow
+This study	McMurdo	mc170c	mc170	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	345.3	Igneous : Extrusive	0		-60	-77.854	Basalt	166.714	g	Lava Flow
+This study	McMurdo	mc170d	mc170	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	352.3	Igneous : Extrusive	0		-53	-77.854	Basalt	166.714	g	Lava Flow
+This study	McMurdo	mc170e	mc170	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	339.8	Igneous : Extrusive	0		-55	-77.854	Basalt	166.714	g	Lava Flow
+This study	McMurdo	mc170f	mc170	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	343.6	Igneous : Extrusive	0		-53	-77.854	Basalt	166.714	g	Lava Flow
+This study	McMurdo	mc19a	mc19	FS-FD:SO-SIGHT	325	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-43	-77.86	Basalt	165.23	g	Lava Flow
+This study	McMurdo	mc19b	mc19	FS-FD:SO-SIGHT	54	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-40	-77.86	Basalt	165.23	g	Lava Flow
+This study	McMurdo	mc19c	mc19	FS-FD:SO-SIGHT	94	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-94	-77.86	Basalt	165.23	g	Lava Flow
+This study	McMurdo	mc19d	mc19	FS-FD:SO-SIGHT	352	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-71	-77.86	Basalt	165.23	g	Lava Flow
+This study	McMurdo	mc19e	mc19	FS-FD:SO-SIGHT	327	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-66	-77.86	Basalt	165.23	g	Lava Flow
+This study	McMurdo	mc19f	mc19	FS-FD:SO-SIGHT	15	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-63	-77.86	Basalt	165.23	g	Lava Flow
+This study	McMurdo	mc19g	mc19	FS-FD:SO-SIGHT	285	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-47	-77.86	Basalt	165.23	g	Lava Flow
+This study	McMurdo	mc200a	mc200	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	8.2	Igneous : Extrusive	0		-34	-77.54995	Phonolite	166.16148	g	Lava Flow
+This study	McMurdo	mc200b	mc200	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	12.3	Igneous : Extrusive	0		-35	-77.54995	Phonolite	166.16148	g	Lava Flow
+This study	McMurdo	mc200c	mc200	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	12.8	Igneous : Extrusive	0		-35	-77.54995	Phonolite	166.16148	g	Lava Flow
+This study	McMurdo	mc200d	mc200	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	291.3	Igneous : Extrusive	0		-40	-77.54995	Phonolite	166.16148	g	Lava Flow
+This study	McMurdo	mc201a	mc201	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	41.5	Igneous : Extrusive	0		-48	-77.56284	Phonolite	166.21958	g	Lava Flow
+This study	McMurdo	mc201b	mc201	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	40.5	Igneous : Extrusive	0		-52.5	-77.56284	Phonolite	166.21958	g	Lava Flow
+This study	McMurdo	mc201c	mc201	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	48.7	Igneous : Extrusive	0		-47	-77.56284	Phonolite	166.21958	g	Lava Flow
+This study	McMurdo	mc201d	mc201	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	40	Igneous : Extrusive	0		-39	-77.56284	Phonolite	166.21958	g	Lava Flow
+This study	McMurdo	mc201e	mc201	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	34.7	Igneous : Extrusive	0		-42	-77.56284	Phonolite	166.21958	g	Lava Flow
+This study	McMurdo	mc201j	mc201	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	66.6	Igneous : Extrusive	0		-60	-77.56284	Phonolite	166.21958	g	Lava Flow
+This study	McMurdo	mc202c	mc202	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	173.5	Igneous : Extrusive	0		-72	-77.65674	Phonolite	166.36424	g	Lava Flow
+This study	McMurdo	mc202d	mc202	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	160.8	Igneous : Extrusive	0		-68	-77.65674	Phonolite	166.36424	g	Lava Flow
+This study	McMurdo	mc202f	mc202	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	172.1	Igneous : Extrusive	0		-65	-77.65674	Phonolite	166.36424	g	Lava Flow
+This study	McMurdo	mc202h	mc202	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	177.1	Igneous : Extrusive	0		-44	-77.65674	Phonolite	166.36424	g	Lava Flow
+This study	McMurdo	mc202j	mc202	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	171.5	Igneous : Extrusive	0		-25.5	-77.65674	Phonolite	166.36424	g	Lava Flow
+This study	McMurdo	mc203a	mc203	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	348.8	Igneous : Intrusive	0		-70	-77.5807	Basalt	166.25055	g	Volcanic Dike
+This study	McMurdo	mc203c	mc203	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	358.3	Igneous : Intrusive	0		-85.5	-77.5807	Basalt	166.25055	g	Volcanic Dike
+This study	McMurdo	mc203d	mc203	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	347.7	Igneous : Intrusive	0		-79	-77.5807	Basalt	166.25055	g	Volcanic Dike
+This study	McMurdo	mc203g	mc203	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	15.1	Igneous : Intrusive	0		-78.5	-77.5807	Basalt	166.25055	g	Volcanic Dike
+This study	McMurdo	mc203h	mc203	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	9.7	Igneous : Intrusive	0		-71	-77.5807	Basalt	166.25055	g	Volcanic Dike
+This study	McMurdo	mc204a	mc204	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	42.5	Igneous : Extrusive	0		-68.5	-77.6402	Phonolite	166.40836	g	Lava Flow
+This study	McMurdo	mc204c	mc204	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	31.3	Igneous : Extrusive	0		-82	-77.6402	Phonolite	166.40836	g	Lava Flow
+This study	McMurdo	mc204h	mc204	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	74.3	Igneous : Extrusive	0		-91.5	-77.6402	Phonolite	166.40836	g	Lava Flow
+This study	McMurdo	mc204k	mc204	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	79.9	Igneous : Extrusive	0		-85	-77.6402	Phonolite	166.40836	g	Lava Flow
+This study	McMurdo	mc204l	mc204	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	81	Igneous : Extrusive	0		-76	-77.6402	Phonolite	166.40836	g	Lava Flow
+This study	McMurdo	mc205a	mc205	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	45.8	Igneous : Intrusive	0		-62	-77.65666	Basalt	166.72515	g	Volcanic Dike
+This study	McMurdo	mc205b	mc205	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	44.2	Igneous : Intrusive	0		-64	-77.65666	Basalt	166.72515	g	Volcanic Dike
+This study	McMurdo	mc205c	mc205	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	43.1	Igneous : Intrusive	0		-58	-77.65666	Basalt	166.72515	g	Volcanic Dike
+This study	McMurdo	mc205d	mc205	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	47.1	Igneous : Intrusive	0		-78	-77.65666	Basalt	166.72515	g	Volcanic Dike
+This study	McMurdo	mc205e	mc205	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	48	Igneous : Intrusive	0		-80	-77.65666	Basalt	166.72515	g	Volcanic Dike
+This study	McMurdo	mc205h	mc205	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	43.1	Igneous : Intrusive	0		-81	-77.65666	Basalt	166.72515	g	Volcanic Dike
+This study	McMurdo	mc205k	mc205	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	44	Igneous : Intrusive	0		-90	-77.65666	Basalt	166.72515	g	Volcanic Dike
+This study	McMurdo	mc206a	mc206	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	37.2	Igneous : Intrusive	0		-82.5	-77.66665	Basalt	166.78033	g	Volcanic Dome
+This study	McMurdo	mc206b	mc206	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	50.7	Igneous : Intrusive	0		-87	-77.66665	Basalt	166.78033	g	Volcanic Dome
+This study	McMurdo	mc206c	mc206	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	35	Igneous : Intrusive	0		-84.5	-77.66665	Basalt	166.78033	g	Volcanic Dome
+This study	McMurdo	mc206d	mc206	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	9.9	Igneous : Intrusive	0		-85	-77.66665	Basalt	166.78033	g	Volcanic Dome
+This study	McMurdo	mc206e	mc206	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	9.9	Igneous : Intrusive	0		-88	-77.66665	Basalt	166.78033	g	Volcanic Dome
+This study	McMurdo	mc206f	mc206	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	49.2	Igneous : Intrusive	0		-51	-77.66665	Basalt	166.78033	g	Volcanic Dome
+This study	McMurdo	mc206g	mc206	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	47.9	Igneous : Intrusive	0		-54	-77.66665	Basalt	166.78033	g	Volcanic Dome
+This study	McMurdo	mc206h	mc206	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	58.4	Igneous : Intrusive	0		-56	-77.66665	Basalt	166.78033	g	Volcanic Dome
+This study	McMurdo	mc206i	mc206	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	62.4	Igneous : Intrusive	0		-63	-77.66665	Basalt	166.78033	g	Volcanic Dome
+This study	McMurdo	mc206k	mc206	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	46.8	Igneous : Intrusive	0		-77	-77.66665	Basalt	166.78033	g	Volcanic Dome
+This study	McMurdo	mc207a	mc207	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	183	Igneous : Extrusive	0		-81	-77.67871	Basalt	166.5173	g	Lava Flow
+This study	McMurdo	mc207d	mc207	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	189.1	Igneous : Extrusive	0		-78	-77.67871	Basalt	166.5173	g	Lava Flow
+This study	McMurdo	mc207g	mc207	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	175	Igneous : Extrusive	0		-35	-77.67871	Basalt	166.5173	g	Lava Flow
+This study	McMurdo	mc207h	mc207	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	127.2	Igneous : Extrusive	0		-62.5	-77.67871	Basalt	166.5173	g	Lava Flow
+This study	McMurdo	mc207k	mc207	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	127.4	Igneous : Extrusive	0		-69	-77.67871	Basalt	166.5173	g	Lava Flow
+This study	McMurdo	mc208a	mc208	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	203	Igneous : Extrusive	0		-77	-77.66786	Basalt	166.53186	g	Lava Flow
+This study	McMurdo	mc208b	mc208	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	206.6	Igneous : Extrusive	0		-83	-77.66786	Basalt	166.53186	g	Lava Flow
+This study	McMurdo	mc208c	mc208	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	205.2	Igneous : Extrusive	0		-79	-77.66786	Basalt	166.53186	g	Lava Flow
+This study	McMurdo	mc208d	mc208	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	198.4	Igneous : Extrusive	0		-70.5	-77.66786	Basalt	166.53186	g	Lava Flow
+This study	McMurdo	mc208e	mc208	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	201.9	Igneous : Extrusive	0		-69	-77.66786	Basalt	166.53186	g	Lava Flow
+This study	McMurdo	mc208f	mc208	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	181.8	Igneous : Extrusive	0		-75.5	-77.66786	Basalt	166.53186	g	Lava Flow
+This study	McMurdo	mc209a	mc209	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	81.5	Igneous : Extrusive	0		-64	-77.68544	Basalt	166.36812	g	Lava Flow
+This study	McMurdo	mc209b	mc209	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	84.5	Igneous : Extrusive	0		-63.5	-77.68544	Basalt	166.36812	g	Lava Flow
+This study	McMurdo	mc209c	mc209	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	90.3	Igneous : Extrusive	0		-63	-77.68544	Basalt	166.36812	g	Lava Flow
+This study	McMurdo	mc209e	mc209	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	98.1	Igneous : Extrusive	0		-61	-77.68544	Basalt	166.36812	g	Lava Flow
+This study	McMurdo	mc209f	mc209	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	102.1	Igneous : Extrusive	0		-61	-77.68544	Basalt	166.36812	g	Lava Flow
+This study	McMurdo	mc20a	mc20	FS-FD:SO-SIGHT	175	Igneous : Intrusive	0	Archived samples from 1965, 66 expeditions.	-82	-77.88	Basalt	165.02	g	Volcanic Dike
+This study	McMurdo	mc20b	mc20	FS-FD:SO-SIGHT	193	Igneous : Intrusive	0	Archived samples from 1965, 66 expeditions.	-71	-77.88	Basalt	165.02	g	Volcanic Dike
+This study	McMurdo	mc20c	mc20	FS-FD:SO-SIGHT	135	Igneous : Intrusive	0	Archived samples from 1965, 66 expeditions.	-89	-77.88	Basalt	165.02	g	Volcanic Dike
+This study	McMurdo	mc20d	mc20	FS-FD:SO-SIGHT	136	Igneous : Intrusive	0	Archived samples from 1965, 66 expeditions.	-55	-77.88	Basalt	165.02	g	Volcanic Dike
+This study	McMurdo	mc20e	mc20	FS-FD:SO-SIGHT	149	Igneous : Intrusive	0	Archived samples from 1965, 66 expeditions.	-42	-77.88	Basalt	165.02	g	Volcanic Dike
+This study	McMurdo	mc20f	mc20	FS-FD:SO-SIGHT	124	Igneous : Intrusive	0	Archived samples from 1965, 66 expeditions.	-54	-77.88	Basalt	165.02	g	Volcanic Dike
+This study	McMurdo	mc20h	mc20	FS-FD:SO-SIGHT	43	Igneous : Intrusive	0	Archived samples from 1965, 66 expeditions.	-42	-77.88	Basalt	165.02	g	Volcanic Dike
+This study	McMurdo	mc210a	mc210	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	79.3	Igneous : Intrusive	0		-61	-77.69125	Phonolite	166.3743	g	Volcanic Dike
+This study	McMurdo	mc210b	mc210	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	75.6	Igneous : Intrusive	0		-84	-77.69125	Phonolite	166.3743	g	Volcanic Dike
+This study	McMurdo	mc210c	mc210	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	81.6	Igneous : Intrusive	0		-77	-77.69125	Phonolite	166.3743	g	Volcanic Dike
+This study	McMurdo	mc210e	mc210	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	70.4	Igneous : Intrusive	0		-71	-77.69125	Phonolite	166.3743	g	Volcanic Dike
+This study	McMurdo	mc210i	mc210	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	64.1	Igneous : Intrusive	0		-74.5	-77.69125	Phonolite	166.3743	g	Volcanic Dike
+This study	McMurdo	mc211a	mc211	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	312.9	Igneous : Extrusive	0		-51	-77.66147	Phonolite	166.3397	g	Lava Flow
+This study	McMurdo	mc211e	mc211	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	357.2	Igneous : Extrusive	0		-48.5	-77.66147	Phonolite	166.3397	g	Lava Flow
+This study	McMurdo	mc211g	mc211	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	337.2	Igneous : Extrusive	0		-83.5	-77.66147	Phonolite	166.3397	g	Lava Flow
+This study	McMurdo	mc211h	mc211	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	345.2	Igneous : Extrusive	0		-84	-77.66147	Phonolite	166.3397	g	Lava Flow
+This study	McMurdo	mc211i	mc211	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	1.2	Igneous : Extrusive	0		-69	-77.66147	Phonolite	166.3397	g	Lava Flow
+This study	McMurdo	mc212a	mc212	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	78.6	Igneous : Extrusive	0		-62.5	-77.56505	Basalt	166.35938	g	Lava Flow
+This study	McMurdo	mc212b	mc212	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	73.5	Igneous : Extrusive	0		-57	-77.56505	Basalt	166.35938	g	Lava Flow
+This study	McMurdo	mc212c	mc212	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	64	Igneous : Extrusive	0		-42	-77.56505	Basalt	166.35938	g	Lava Flow
+This study	McMurdo	mc212d	mc212	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	63.4	Igneous : Extrusive	0		-49	-77.56505	Basalt	166.35938	g	Lava Flow
+This study	McMurdo	mc212g	mc212	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	65.4	Igneous : Extrusive	0		-79	-77.56505	Basalt	166.35938	g	Lava Flow
+This study	McMurdo	mc213e	mc213	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	74	Igneous : Extrusive	0		-74.5	-77.22331	Basalt	166.42877	g	Lava Flow
+This study	McMurdo	mc213f	mc213	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	66.5	Igneous : Extrusive	0		-96.5	-77.22331	Basalt	166.42877	g	Lava Flow
+This study	McMurdo	mc213g	mc213	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	74.6	Igneous : Extrusive	0		-98	-77.22331	Basalt	166.42877	g	Lava Flow
+This study	McMurdo	mc213h	mc213	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	78.3	Igneous : Extrusive	0		-112	-77.22331	Basalt	166.42877	g	Lava Flow
+This study	McMurdo	mc213i	mc213	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	69.2	Igneous : Extrusive	0		-89	-77.22331	Basalt	166.42877	g	Lava Flow
+This study	McMurdo	mc214a	mc214	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	182.6	Igneous : Extrusive	0		-66.5	-77.22355	Basalt	166.4294	g	Lava Flow
+This study	McMurdo	mc214b	mc214	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	180.2	Igneous : Extrusive	0		-53	-77.22355	Basalt	166.4294	g	Lava Flow
+This study	McMurdo	mc214d	mc214	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	94.9	Igneous : Extrusive	0		-90	-77.22355	Basalt	166.4294	g	Lava Flow
+This study	McMurdo	mc214g	mc214	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	111	Igneous : Extrusive	0		-96.5	-77.22355	Basalt	166.4294	g	Lava Flow
+This study	McMurdo	mc214h	mc214	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	162.7	Igneous : Extrusive	0		-87	-77.22355	Basalt	166.4294	g	Lava Flow
+This study	McMurdo	mc214j	mc214	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	149.6	Igneous : Extrusive	0		-90	-77.22355	Basalt	166.4294	g	Lava Flow
+This study	McMurdo	mc215a	mc215	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	13.7	Igneous : Extrusive	0		-8.5	-77.4773	Basalt	166.89491	g	Lava Flow
+This study	McMurdo	mc215b	mc215	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	354.6	Igneous : Extrusive	0		-11	-77.4773	Basalt	166.89491	g	Lava Flow
+This study	McMurdo	mc215c	mc215	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	18.3	Igneous : Extrusive	0		-12	-77.4773	Basalt	166.89491	g	Lava Flow
+This study	McMurdo	mc215d	mc215	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	294.4	Igneous : Extrusive	0		-48	-77.4773	Basalt	166.89491	g	Lava Flow
+This study	McMurdo	mc215h	mc215	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	270.2	Igneous : Extrusive	0		-32.5	-77.4773	Basalt	166.89491	g	Lava Flow
+This study	McMurdo	mc215i	mc215	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	241.6	Igneous : Extrusive	0		-27	-77.4773	Basalt	166.89491	g	Lava Flow
+This study	McMurdo	mc216a	mc216	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	188.6	Igneous : Extrusive	0		-47.5	-77.42391	Basalt	166.81075	g	Lava Flow
+This study	McMurdo	mc216b	mc216	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	172.9	Igneous : Extrusive	0		-37.5	-77.42391	Basalt	166.81075	g	Lava Flow
+This study	McMurdo	mc216f	mc216	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	183.2	Igneous : Extrusive	0		-39	-77.42391	Basalt	166.81075	g	Lava Flow
+This study	McMurdo	mc216g	mc216	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	165.5	Igneous : Extrusive	0		-52	-77.42391	Basalt	166.81075	g	Lava Flow
+This study	McMurdo	mc216h	mc216	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	166.9	Igneous : Extrusive	0		-46	-77.42391	Basalt	166.81075	g	Lava Flow
+This study	McMurdo	mc217a	mc217	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	252.5	Igneous : Extrusive	0		-67	-77.50885	Basalt	167.44064	g	Lava Flow
+This study	McMurdo	mc217b	mc217	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	262.5	Igneous : Extrusive	0		-68	-77.50885	Basalt	167.44064	g	Lava Flow
+This study	McMurdo	mc217c	mc217	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	261	Igneous : Extrusive	0		-69.5	-77.50885	Basalt	167.44064	g	Lava Flow
+This study	McMurdo	mc217d	mc217	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	269.9	Igneous : Extrusive	0		-73.5	-77.50885	Basalt	167.44064	g	Lava Flow
+This study	McMurdo	mc217e	mc217	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	269.9	Igneous : Extrusive	0		-69.5	-77.50885	Basalt	167.44064	g	Lava Flow
+This study	McMurdo	mc218b	mc218	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	29.9	Igneous : Extrusive	0		-86.5	-77.56218	Basalt	166.97756	g	Lava Flow
+This study	McMurdo	mc218d	mc218	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	35.4	Igneous : Extrusive	0		-87	-77.56218	Basalt	166.97756	g	Lava Flow
+This study	McMurdo	mc218i	mc218	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	54.4	Igneous : Extrusive	0		-43	-77.56218	Basalt	166.97756	g	Lava Flow
+This study	McMurdo	mc218j	mc218	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	4.5	Igneous : Extrusive	0		-43	-77.56218	Basalt	166.97756	g	Lava Flow
+This study	McMurdo	mc219a	mc219	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	345.3	Igneous : Extrusive	0		-61	-77.84783	Basalt	166.67453	g	Lava Flow
+This study	McMurdo	mc219b	mc219	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	344	Igneous : Extrusive	0		-60.5	-77.84783	Basalt	166.67453	g	Lava Flow
+This study	McMurdo	mc219c	mc219	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	277.3	Igneous : Extrusive	0		-26	-77.84783	Basalt	166.67453	g	Lava Flow
+This study	McMurdo	mc219d	mc219	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	276.9	Igneous : Extrusive	0		-23	-77.84783	Basalt	166.67453	g	Lava Flow
+This study	McMurdo	mc219e	mc219	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	300.3	Igneous : Extrusive	0		-22.5	-77.84783	Basalt	166.67453	g	Lava Flow
+This study	McMurdo	mc21a	mc21	FS-FD:SO-SIGHT	240	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-78	-78.21	Basalt	166.49	g	Lava Flow
+This study	McMurdo	mc21b	mc21	FS-FD:SO-SIGHT	192	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-65	-78.21	Basalt	166.49	g	Lava Flow
+This study	McMurdo	mc21c	mc21	FS-FD:SO-SIGHT	307	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-18	-78.21	Basalt	166.49	g	Lava Flow
+This study	McMurdo	mc21d	mc21	FS-FD:SO-SIGHT	32	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-11	-78.21	Basalt	166.49	g	Lava Flow
+This study	McMurdo	mc21e	mc21	FS-FD:SO-SIGHT	247	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-27	-78.21	Basalt	166.49	g	Lava Flow
+This study	McMurdo	mc21f	mc21	FS-FD:SO-SIGHT	347	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-24	-78.21	Basalt	166.49	g	Lava Flow
+This study	McMurdo	mc21g	mc21	FS-FD:SO-SIGHT	222	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-11	-78.21	Basalt	166.49	g	Lava Flow
+This study	McMurdo	mc21h	mc21	FS-FD:SO-SIGHT	158	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-22	-78.21	Basalt	166.49	g	Lava Flow
+This study	McMurdo	mc220a	mc220	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	297.7	Igneous : Extrusive	0		-80	-77.45702	Basalt	166.91009	g	Lava Flow
+This study	McMurdo	mc220b	mc220	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	288.9	Igneous : Extrusive	0		-84	-77.45702	Basalt	166.91009	g	Lava Flow
+This study	McMurdo	mc220c	mc220	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	291.4	Igneous : Extrusive	0		-89.5	-77.45702	Basalt	166.91009	g	Lava Flow
+This study	McMurdo	mc220d	mc220	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	288.6	Igneous : Extrusive	0		-82	-77.45702	Basalt	166.91009	g	Lava Flow
+This study	McMurdo	mc220e	mc220	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	277.8	Igneous : Extrusive	0		-94	-77.45702	Basalt	166.91009	g	Lava Flow
+This study	McMurdo	mc220f	mc220	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	238.3	Igneous : Extrusive	0		-77.5	-77.45702	Basalt	166.91009	g	Lava Flow
+This study	McMurdo	mc221b	mc221	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	227.8	Igneous : Extrusive	0		-84.5	-77.5161	Basalt	166.79804	g	Lava Flow
+This study	McMurdo	mc221c	mc221	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	228.7	Igneous : Extrusive	0		-84	-77.5161	Basalt	166.79804	g	Lava Flow
+This study	McMurdo	mc221d	mc221	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	204.4	Igneous : Extrusive	0		-93.5	-77.5161	Basalt	166.79804	g	Lava Flow
+This study	McMurdo	mc221h	mc221	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	277.1	Igneous : Extrusive	0		-50	-77.5161	Basalt	166.79804	g	Lava Flow
+This study	McMurdo	mc221i	mc221	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	281.7	Igneous : Extrusive	0		-48	-77.5161	Basalt	166.79804	g	Lava Flow
+This study	McMurdo	mc221j	mc221	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	288.2	Igneous : Extrusive	0		-46.5	-77.5161	Basalt	166.79804	g	Lava Flow
+This study	McMurdo	mc222a	mc222	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	164.6	Igneous : Extrusive	0		-61.5	-77.53893	Basalt	166.84845	g	Lava Flow
+This study	McMurdo	mc222b	mc222	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	165.1	Igneous : Extrusive	0		-50	-77.53893	Basalt	166.84845	g	Lava Flow
+This study	McMurdo	mc222c	mc222	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	165.6	Igneous : Extrusive	0		-26	-77.53893	Basalt	166.84845	g	Lava Flow
+This study	McMurdo	mc222e	mc222	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	173.1	Igneous : Extrusive	0		-19	-77.53893	Basalt	166.84845	g	Lava Flow
+This study	McMurdo	mc222h	mc222	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	158.1	Igneous : Extrusive	0		-55	-77.53893	Basalt	166.84845	g	Lava Flow
+This study	McMurdo	mc222j	mc222	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	160.2	Igneous : Extrusive	0		-53.5	-77.53893	Basalt	166.84845	g	Lava Flow
+This study	McMurdo	mc223a	mc223	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	203.3	Igneous : Extrusive	0		-78	-77.65831	Phonolite	166.7863	g	Lava Flow
+This study	McMurdo	mc223b	mc223	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	202.9	Igneous : Extrusive	0		-74	-77.65831	Phonolite	166.7863	g	Lava Flow
+This study	McMurdo	mc223c	mc223	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	201.9	Igneous : Extrusive	0		-75	-77.65831	Phonolite	166.7863	g	Lava Flow
+This study	McMurdo	mc223d	mc223	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	201.2	Igneous : Extrusive	0		-75.5	-77.65831	Phonolite	166.7863	g	Lava Flow
+This study	McMurdo	mc223e	mc223	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	204.2	Igneous : Extrusive	0		-73	-77.65831	Phonolite	166.7863	g	Lava Flow
+This study	McMurdo	mc223f	mc223	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	203.7	Igneous : Extrusive	0		-73.5	-77.65831	Phonolite	166.7863	g	Lava Flow
+This study	McMurdo	mc223g	mc223	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	164	Igneous : Extrusive	0		-58	-77.65831	Phonolite	166.7863	g	Lava Flow
+This study	McMurdo	mc223l	mc223	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	227.9	Igneous : Extrusive	0		-67.5	-77.65831	Phonolite	166.7863	g	Lava Flow
+This study	McMurdo	mc224a	mc224	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	305.2	Igneous : Extrusive	0		-23.5	-77.53046	Phonolite	166.8839	g	Lava Flow
+This study	McMurdo	mc224b	mc224	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	319.9	Igneous : Extrusive	0		-42	-77.53046	Phonolite	166.8839	g	Lava Flow
+This study	McMurdo	mc224c	mc224	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	334	Igneous : Extrusive	0		-32.5	-77.53046	Phonolite	166.8839	g	Lava Flow
+This study	McMurdo	mc224e	mc224	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	332.9	Igneous : Extrusive	0		-44.5	-77.53046	Phonolite	166.8839	g	Lava Flow
+This study	McMurdo	mc224f	mc224	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	353.4	Igneous : Extrusive	0		-54	-77.53046	Phonolite	166.8839	g	Lava Flow
+This study	McMurdo	mc225a	mc225	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	185	Igneous : Extrusive	0		-80	-77.58053	Phonolite	166.80156	g	Lava Flow
+This study	McMurdo	mc225c	mc225	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	189.6	Igneous : Extrusive	0		-88	-77.58053	Phonolite	166.80156	g	Lava Flow
+This study	McMurdo	mc225d	mc225	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	170	Igneous : Extrusive	0		-85.5	-77.58053	Phonolite	166.80156	g	Lava Flow
+This study	McMurdo	mc225f	mc225	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	226.2	Igneous : Extrusive	0		-88	-77.58053	Phonolite	166.80156	g	Lava Flow
+This study	McMurdo	mc225g	mc225	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	222.9	Igneous : Extrusive	0		-73	-77.58053	Phonolite	166.80156	g	Lava Flow
+This study	McMurdo	mc225i	mc225	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	223.3	Igneous : Extrusive	0		-83.5	-77.58053	Phonolite	166.80156	g	Lava Flow
+This study	McMurdo	mc226a	mc226	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	145.8	Igneous : Extrusive	0		-76	-77.61355	Phonolite	166.76571	g	Lava Flow
+This study	McMurdo	mc226b	mc226	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	146	Igneous : Extrusive	0		-78	-77.61355	Phonolite	166.76571	g	Lava Flow
+This study	McMurdo	mc226d	mc226	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	227.5	Igneous : Extrusive	0		-69	-77.61355	Phonolite	166.76571	g	Lava Flow
+This study	McMurdo	mc226f	mc226	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	260	Igneous : Extrusive	0		-51	-77.61355	Phonolite	166.76571	g	Lava Flow
+This study	McMurdo	mc226g	mc226	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	263.1	Igneous : Extrusive	0		-50	-77.61355	Phonolite	166.76571	g	Lava Flow
+This study	McMurdo	mc227b	mc227	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	274.9	Igneous : Extrusive	0		-12.5	-77.27064	Basalt	166.73278	g	Lava Flow
+This study	McMurdo	mc227c	mc227	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	249.7	Igneous : Extrusive	0		-19	-77.27064	Basalt	166.73278	g	Lava Flow
+This study	McMurdo	mc227d	mc227	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	251.7	Igneous : Extrusive	0		-19	-77.27064	Basalt	166.73278	g	Lava Flow
+This study	McMurdo	mc227f	mc227	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	230.7	Igneous : Extrusive	0		-26.5	-77.27064	Basalt	166.73278	g	Lava Flow
+This study	McMurdo	mc227h	mc227	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	183.4	Igneous : Extrusive	0		-12	-77.27064	Basalt	166.73278	g	Lava Flow
+This study	McMurdo	mc228a	mc228	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	130.6	Igneous : Extrusive	0		-12.5	-77.2669	Trachyte	166.37738	g	Lava Flow
+This study	McMurdo	mc228b	mc228	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	101.1	Igneous : Extrusive	0		-23	-77.2669	Trachyte	166.37738	g	Lava Flow
+This study	McMurdo	mc228d	mc228	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	223.2	Igneous : Extrusive	0		-12.5	-77.2669	Trachyte	166.37738	g	Lava Flow
+This study	McMurdo	mc228e	mc228	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	163.2	Igneous : Extrusive	0		-19.5	-77.2669	Trachyte	166.37738	g	Lava Flow
+This study	McMurdo	mc228g	mc228	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	275.7	Igneous : Extrusive	0		-29	-77.2669	Trachyte	166.37738	g	Lava Flow
+This study	McMurdo	mc229a	mc229	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	4.8	Igneous : Extrusive	0		-78	-77.48281	Basalt	167.15435	g	Lava Flow
+This study	McMurdo	mc229b	mc229	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	30	Igneous : Extrusive	0		-83	-77.48281	Basalt	167.15435	g	Lava Flow
+This study	McMurdo	mc229e	mc229	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	11.1	Igneous : Extrusive	0		-93	-77.48281	Basalt	167.15435	g	Lava Flow
+This study	McMurdo	mc229g	mc229	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	21.5	Igneous : Extrusive	0		-85.5	-77.48281	Basalt	167.15435	g	Lava Flow
+This study	McMurdo	mc229i	mc229	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	28	Igneous : Extrusive	0		-58.5	-77.48281	Basalt	167.15435	g	Lava Flow
+This study	McMurdo	mc229k	mc229	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	35	Igneous : Extrusive	0		-87	-77.48281	Basalt	167.15435	g	Lava Flow
+This study	McMurdo	mc26a	mc26	FS-FD:SO-SIGHT	255	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-37	-78.21	Basalt	166.57	g	Lava Flow
+This study	McMurdo	mc26b	mc26	FS-FD:SO-SIGHT	311	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-26	-78.21	Basalt	166.57	g	Lava Flow
+This study	McMurdo	mc26c	mc26	FS-FD:SO-SIGHT	293	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-37	-78.21	Basalt	166.57	g	Lava Flow
+This study	McMurdo	mc26d	mc26	FS-FD:SO-SIGHT	311	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-38	-78.21	Basalt	166.57	g	Lava Flow
+This study	McMurdo	mc26e	mc26	FS-FD:SO-SIGHT	347	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-37	-78.21	Basalt	166.57	g	Lava Flow
+This study	McMurdo	mc26f	mc26	FS-FD:SO-SIGHT	40	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-30	-78.21	Basalt	166.57	g	Lava Flow
+This study	McMurdo	mc26g	mc26	FS-FD:SO-SIGHT	239	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-16	-78.21	Basalt	166.57	g	Lava Flow
+This study	McMurdo	mc26h	mc26	FS-FD:SO-SIGHT	279	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-23	-78.21	Basalt	166.57	g	Lava Flow
+This study	McMurdo	mc28a	mc28	FS-FD:SO-SIGHT	75	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-18	-78.29	Basalt	164.73	g	Lava Flow
+This study	McMurdo	mc28b	mc28	FS-FD:SO-SIGHT	59	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-38	-78.29	Basalt	164.73	g	Lava Flow
+This study	McMurdo	mc28c	mc28	FS-FD:SO-SIGHT	323	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-37	-78.29	Basalt	164.73	g	Lava Flow
+This study	McMurdo	mc28d	mc28	FS-FD:SO-SIGHT	305	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-28	-78.29	Basalt	164.73	g	Lava Flow
+This study	McMurdo	mc28f	mc28	FS-FD:SO-SIGHT	75	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-25	-78.29	Basalt	164.73	g	Lava Flow
+This study	McMurdo	mc28g	mc28	FS-FD:SO-SIGHT	49	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-23	-78.29	Basalt	164.73	g	Lava Flow
+This study	McMurdo	mc28h	mc28	FS-FD:SO-SIGHT	89	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-19	-78.29	Basalt	164.73	g	Lava Flow
+This study	McMurdo	mc29a	mc29	FS-FD:SO-SIGHT	235	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-40	-78.31	Basalt	164.8	g	Volcanic Dike
+This study	McMurdo	mc29b	mc29	FS-FD:SO-SIGHT	242	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-49	-78.31	Basalt	164.8	g	Lava Flow
+This study	McMurdo	mc29c	mc29	FS-FD:SO-SIGHT	229	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-66	-78.31	Basalt	164.8	g	Lava Flow
+This study	McMurdo	mc29e	mc29	FS-FD:SO-SIGHT	96	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-20	-78.31	Basalt	164.8	g	Lava Flow
+This study	McMurdo	mc29f	mc29	FS-FD:SO-SIGHT	91	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-17	-78.31	Basalt	164.8	g	Lava Flow
+This study	McMurdo	mc29g	mc29	FS-FD:SO-SIGHT	38	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-25	-78.31	Basalt	164.8	g	Lava Flow
+This study	McMurdo	mc29h	mc29	FS-FD:SO-SIGHT	67	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-13	-78.31	Basalt	164.8	g	Lava Flow
+This study	McMurdo	mc30a	mc30	FS-FD:SO-SIGHT	346	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-61	-78.34	Basalt	164.87	g	Lava Flow
+This study	McMurdo	mc30b	mc30	FS-FD:SO-SIGHT	6	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-59	-78.34	Basalt	164.87	g	Lava Flow
+This study	McMurdo	mc30c	mc30	FS-FD:SO-SIGHT	9	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-45	-78.34	Basalt	164.87	g	Lava Flow
+This study	McMurdo	mc30d	mc30	FS-FD:SO-SIGHT	257	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-57	-78.34	Basalt	164.87	g	Lava Flow
+This study	McMurdo	mc30e	mc30	FS-FD:SO-SIGHT	224	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-47	-78.34	Basalt	164.87	g	Lava Flow
+This study	McMurdo	mc30f	mc30	FS-FD:SO-SIGHT	250	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-61	-78.34	Basalt	164.87	g	Lava Flow
+This study	McMurdo	mc30g	mc30	FS-FD:SO-SIGHT	286	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-63	-78.34	Basalt	164.87	g	Lava Flow
+This study	McMurdo	mc30h	mc30	FS-FD:SO-SIGHT	269	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-61	-78.34	Basalt	164.87	g	Lava Flow
+This study	McMurdo	mc31b	mc31	FS-FD:SO-SIGHT	236	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-37	-78.34	Basalt	164.28	g	Lava Flow
+This study	McMurdo	mc31c	mc31	FS-FD:SO-SIGHT	208	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-57	-78.34	Basalt	164.28	g	Lava Flow
+This study	McMurdo	mc31d	mc31	FS-FD:SO-SIGHT	252	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-68	-78.34	Basalt	164.28	g	Lava Flow
+This study	McMurdo	mc31f	mc31	FS-FD:SO-SIGHT	297	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-25	-78.34	Basalt	164.28	g	Lava Flow
+This study	McMurdo	mc31h	mc31	FS-FD:SO-SIGHT	303	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-54	-78.34	Basalt	164.28	g	Lava Flow
+This study	McMurdo	mc32a	mc32	FS-FD:SO-SIGHT	105	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-43	-78.36	Basalt	164.3	g	Lava Flow
+This study	McMurdo	mc32b	mc32	FS-FD:SO-SIGHT	106	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-42	-78.36	Basalt	164.3	g	Lava Flow
+This study	McMurdo	mc32d	mc32	FS-FD:SO-SIGHT	154	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-41	-78.36	Basalt	164.3	g	Lava Flow
+This study	McMurdo	mc32e	mc32	FS-FD:SO-SIGHT	265	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-37	-78.36	Basalt	164.3	g	Lava Flow
+This study	McMurdo	mc32f	mc32	FS-FD:SO-SIGHT	222	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-41	-78.36	Basalt	164.3	g	Lava Flow
+This study	McMurdo	mc32g	mc32	FS-FD:SO-SIGHT	96	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-26	-78.36	Basalt	164.3	g	Lava Flow
+This study	McMurdo	mc32h	mc32	FS-FD:SO-SIGHT	330	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-17	-78.36	Basalt	164.3	g	Lava Flow
+This study	McMurdo	mc33a	mc33	FS-FD:SO-SIGHT	161	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-75	-78.38	Basalt	164.34	g	Lava Flow
+This study	McMurdo	mc33b	mc33	FS-FD:SO-SIGHT	219	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-51	-78.38	Basalt	164.34	g	Lava Flow
+This study	McMurdo	mc33c	mc33	FS-FD:SO-SIGHT	148	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-62	-78.38	Basalt	164.34	g	Lava Flow
+This study	McMurdo	mc33d	mc33	FS-FD:SO-SIGHT	182	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-68	-78.38	Basalt	164.34	g	Lava Flow
+This study	McMurdo	mc33e	mc33	FS-FD:SO-SIGHT	228	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-65	-78.38	Basalt	164.34	g	Lava Flow
+This study	McMurdo	mc33f	mc33	FS-FD:SO-SIGHT	181	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-75	-78.38	Basalt	164.34	g	Lava Flow
+This study	McMurdo	mc33g	mc33	FS-FD:SO-SIGHT	197	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-44	-78.38	Basalt	164.34	g	Lava Flow
+This study	McMurdo	mc33h	mc33	FS-FD:SO-SIGHT	239	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-49	-78.38	Basalt	164.34	g	Lava Flow
+This study	McMurdo	mc34a	mc34	FS-FD:SO-SIGHT	275	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-36	-78.39	Basalt	164.27	g	Lava Flow
+This study	McMurdo	mc34b	mc34	FS-FD:SO-SIGHT	204	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-43	-78.39	Basalt	164.27	g	Lava Flow
+This study	McMurdo	mc34c	mc34	FS-FD:SO-SIGHT	291	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-28	-78.39	Basalt	164.27	g	Lava Flow
+This study	McMurdo	mc34d	mc34	FS-FD:SO-SIGHT	300	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-13	-78.39	Basalt	164.27	g	Lava Flow
+This study	McMurdo	mc34e	mc34	FS-FD:SO-SIGHT	314	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-12	-78.39	Basalt	164.27	g	Lava Flow
+This study	McMurdo	mc34f	mc34	FS-FD:SO-SIGHT	182	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-14	-78.39	Basalt	164.27	g	Lava Flow
+This study	McMurdo	mc34h	mc34	FS-FD:SO-SIGHT	85	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-24	-78.39	Basalt	164.27	g	Lava Flow
+This study	McMurdo	mc35a	mc35	FS-FD:SO-SIGHT	123	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-63	-78.39	Basalt	164.23	g	Lava Flow
+This study	McMurdo	mc35b	mc35	FS-FD:SO-SIGHT	163	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-55	-78.39	Basalt	164.23	g	Lava Flow
+This study	McMurdo	mc35c	mc35	FS-FD:SO-SIGHT	74	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-44	-78.39	Basalt	164.23	g	Lava Flow
+This study	McMurdo	mc35d	mc35	FS-FD:SO-SIGHT	136	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-55	-78.39	Basalt	164.23	g	Lava Flow
+This study	McMurdo	mc35e	mc35	FS-FD:SO-SIGHT	76	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-40	-78.39	Basalt	164.23	g	Lava Flow
+This study	McMurdo	mc35f	mc35	FS-FD:SO-SIGHT	27	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-38	-78.39	Basalt	164.23	g	Lava Flow
+This study	McMurdo	mc35g	mc35	FS-FD:SO-SIGHT	315	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-56	-78.39	Basalt	164.23	g	Lava Flow
+This study	McMurdo	mc35h	mc35	FS-FD:SO-SIGHT	5	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-20	-78.39	Basalt	164.23	g	Lava Flow
+This study	McMurdo	mc36a	mc36	FS-FD:SO-SIGHT	161	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-45	-78.39	Basalt	164.27	g	Lava Flow
+This study	McMurdo	mc36b	mc36	FS-FD:SO-SIGHT	171	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-85	-78.39	Basalt	164.27	g	Lava Flow
+This study	McMurdo	mc36d	mc36	FS-FD:SO-SIGHT	118	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-90	-78.39	Basalt	164.27	g	Lava Flow
+This study	McMurdo	mc36e	mc36	FS-FD:SO-SIGHT	156	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-87	-78.39	Basalt	164.27	g	Lava Flow
+This study	McMurdo	mc36f	mc36	FS-FD:SO-SIGHT	205	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-43	-78.39	Basalt	164.27	g	Lava Flow
+This study	McMurdo	mc36g	mc36	FS-FD:SO-SIGHT	206	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-73	-78.39	Basalt	164.27	g	Lava Flow
+This study	McMurdo	mc36h	mc36	FS-FD:SO-SIGHT	200	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-47	-78.39	Basalt	164.27	g	Lava Flow
+This study	McMurdo	mc37a	mc37	FS-FD:SO-SIGHT	319	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-41	-78.4	Basalt	164.27	g	Lava Flow
+This study	McMurdo	mc37b	mc37	FS-FD:SO-SIGHT	350	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-58	-78.4	Basalt	164.27	g	Lava Flow
+This study	McMurdo	mc37c	mc37	FS-FD:SO-SIGHT	323	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-58	-78.4	Basalt	164.27	g	Lava Flow
+This study	McMurdo	mc37d	mc37	FS-FD:SO-SIGHT	241	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-51	-78.4	Basalt	164.27	g	Lava Flow
+This study	McMurdo	mc37e	mc37	FS-FD:SO-SIGHT	263	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-77	-78.4	Basalt	164.27	g	Lava Flow
+This study	McMurdo	mc37f	mc37	FS-FD:SO-SIGHT	276	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-64	-78.4	Basalt	164.27	g	Lava Flow
+This study	McMurdo	mc37g	mc37	FS-FD:SO-SIGHT	280	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-72	-78.4	Basalt	164.27	g	Lava Flow
+This study	McMurdo	mc37h	mc37	FS-FD:SO-SIGHT	243	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-60	-78.4	Basalt	164.27	g	Lava Flow
+This study	McMurdo	mc38a	mc38	FS-FD:SO-SIGHT	84	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-64	-78.4	Basalt	164.21	g	Lava Flow
+This study	McMurdo	mc38b	mc38	FS-FD:SO-SIGHT	112	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-43	-78.4	Basalt	164.21	g	Lava Flow
+This study	McMurdo	mc38c	mc38	FS-FD:SO-SIGHT	74	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-47	-78.4	Basalt	164.21	g	Lava Flow
+This study	McMurdo	mc38e	mc38	FS-FD:SO-SIGHT	37	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-60	-78.4	Basalt	164.21	g	Lava Flow
+This study	McMurdo	mc38f	mc38	FS-FD:SO-SIGHT	50	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-70	-78.4	Basalt	164.21	g	Lava Flow
+This study	McMurdo	mc38g	mc38	FS-FD:SO-SIGHT	18	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-76	-78.4	Basalt	164.21	g	Lava Flow
+This study	McMurdo	mc38h	mc38	FS-FD:SO-SIGHT	18	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-39	-78.4	Basalt	164.21	g	Lava Flow
+This study	McMurdo	mc39a	mc39	FS-FD:SO-SIGHT	40	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-55	-78.39	Basalt	164.21	g	Lava Flow
+This study	McMurdo	mc39b	mc39	FS-FD:SO-SIGHT	34	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-60	-78.39	Basalt	164.21	g	Lava Flow
+This study	McMurdo	mc39c	mc39	FS-FD:SO-SIGHT	16	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-70	-78.39	Basalt	164.21	g	Lava Flow
+This study	McMurdo	mc39d	mc39	FS-FD:SO-SIGHT	102	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-73	-78.39	Basalt	164.21	g	Lava Flow
+This study	McMurdo	mc39e	mc39	FS-FD:SO-SIGHT	158	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-68	-78.39	Basalt	164.21	g	Lava Flow
+This study	McMurdo	mc39f	mc39	FS-FD:SO-SIGHT	58	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-48	-78.39	Basalt	164.21	g	Lava Flow
+This study	McMurdo	mc39g	mc39	FS-FD:SO-SIGHT	141	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-64	-78.39	Basalt	164.21	g	Lava Flow
+This study	McMurdo	mc39h	mc39	FS-FD:SO-SIGHT	119	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-49	-78.39	Basalt	164.21	g	Lava Flow
+This study	McMurdo	mc40a	mc40	FS-FD:SO-SIGHT	248	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-49	-78.39	Basalt	164.2	g	Lava Flow
+This study	McMurdo	mc40b	mc40	FS-FD:SO-SIGHT	223	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-53	-78.39	Basalt	164.2	g	Lava Flow
+This study	McMurdo	mc40c	mc40	FS-FD:SO-SIGHT	118	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-46	-78.39	Basalt	164.2	g	Lava Flow
+This study	McMurdo	mc40e	mc40	FS-FD:SO-SIGHT	178	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-40	-78.39	Basalt	164.2	g	Lava Flow
+This study	McMurdo	mc40f	mc40	FS-FD:SO-SIGHT	182	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-38	-78.39	Basalt	164.2	g	Lava Flow
+This study	McMurdo	mc40g	mc40	FS-FD:SO-SIGHT	243	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-48	-78.39	Basalt	164.2	g	Lava Flow
+This study	McMurdo	mc40h	mc40	FS-FD:SO-SIGHT	99	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-31	-78.39	Basalt	164.2	g	Lava Flow
+This study	McMurdo	mc41b	mc41	FS-FD:SO-SIGHT	98	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-21	-78.39	Basalt	164.12	g	Lava Flow
+This study	McMurdo	mc41c	mc41	FS-FD:SO-SIGHT	127	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-37	-78.39	Basalt	164.12	g	Lava Flow
+This study	McMurdo	mc41d	mc41	FS-FD:SO-SIGHT	65	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-47	-78.39	Basalt	164.12	g	Lava Flow
+This study	McMurdo	mc41e	mc41	FS-FD:SO-SIGHT	91	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-43	-78.39	Basalt	164.12	g	Lava Flow
+This study	McMurdo	mc41f	mc41	FS-FD:SO-SIGHT	156	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-53	-78.39	Basalt	164.12	g	Lava Flow
+This study	McMurdo	mc41h	mc41	FS-FD:SO-SIGHT	118	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-34	-78.39	Basalt	164.12	g	Lava Flow
+This study	McMurdo	mc42b	mc42	FS-FD:SO-SIGHT	258	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-37	-78.37	Basalt	164.12	g	Lava Flow
+This study	McMurdo	mc42h	mc42	FS-FD:SO-SIGHT	351	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-62	-78.37	Basalt	164.12	g	Lava Flow
+This study	McMurdo	mc43a	mc43	FS-FD:SO-SIGHT	334	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-79	-78.37	Basalt	164.24	g	Lava Flow
+This study	McMurdo	mc43b	mc43	FS-FD:SO-SIGHT	332	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-64	-78.37	Basalt	164.24	g	Lava Flow
+This study	McMurdo	mc43c	mc43	FS-FD:SO-SIGHT	336	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-63	-78.37	Basalt	164.24	g	Lava Flow
+This study	McMurdo	mc43e	mc43	FS-FD:SO-SIGHT	93	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-78	-78.37	Basalt	164.24	g	Lava Flow
+This study	McMurdo	mc43f	mc43	FS-FD:SO-SIGHT	112	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-46	-78.37	Basalt	164.24	g	Lava Flow
+This study	McMurdo	mc43g	mc43	FS-FD:SO-SIGHT	98	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-61	-78.37	Basalt	164.24	g	Lava Flow
+This study	McMurdo	mc44a	mc44	FS-FD:SO-SIGHT	184	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-29	-78.36	Basalt	164.26	g	Lava Flow
+This study	McMurdo	mc44b	mc44	FS-FD:SO-SIGHT	231	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-28	-78.36	Basalt	164.26	g	Lava Flow
+This study	McMurdo	mc44c	mc44	FS-FD:SO-SIGHT	102	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-25	-78.36	Basalt	164.26	g	Lava Flow
+This study	McMurdo	mc44d	mc44	FS-FD:SO-SIGHT	145	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-26	-78.36	Basalt	164.26	g	Lava Flow
+This study	McMurdo	mc44e	mc44	FS-FD:SO-SIGHT	102	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-14	-78.36	Basalt	164.26	g	Lava Flow
+This study	McMurdo	mc44f	mc44	FS-FD:SO-SIGHT	67	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-17	-78.36	Basalt	164.26	g	Lava Flow
+This study	McMurdo	mc44g	mc44	FS-FD:SO-SIGHT	179	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-17	-78.36	Basalt	164.26	g	Lava Flow
+This study	McMurdo	mc44h	mc44	FS-FD:SO-SIGHT	232	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-20	-78.36	Basalt	164.26	g	Lava Flow
+This study	McMurdo	mc48b	mc48	FS-FD:SO-SIGHT	131	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-40	-78.24	Basalt	163.36	g	Lava Flow
+This study	McMurdo	mc48c	mc48	FS-FD:SO-SIGHT	156	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-46	-78.24	Basalt	163.36	g	Lava Flow
+This study	McMurdo	mc48d	mc48	FS-FD:SO-SIGHT	228	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-49	-78.24	Basalt	163.36	g	Lava Flow
+This study	McMurdo	mc48e	mc48	FS-FD:SO-SIGHT	151	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-54	-78.24	Basalt	163.36	g	Lava Flow
+This study	McMurdo	mc48f	mc48	FS-FD:SO-SIGHT	133	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-55	-78.24	Basalt	163.36	g	Lava Flow
+This study	McMurdo	mc48g	mc48	FS-FD:SO-SIGHT	240	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-53	-78.24	Basalt	163.36	g	Lava Flow
+This study	McMurdo	mc48h	mc48	FS-FD:SO-SIGHT	175	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-53	-78.24	Basalt	163.36	g	Lava Flow
+This study	McMurdo	mc49a	mc49	FS-FD:SO-SIGHT	248	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-60	-78.24	Basalt	163.36	g	Lava Flow
+This study	McMurdo	mc49b	mc49	FS-FD:SO-SIGHT	208	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-73	-78.24	Basalt	163.36	g	Lava Flow
+This study	McMurdo	mc49d	mc49	FS-FD:SO-SIGHT	271	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-53	-78.24	Basalt	163.36	g	Lava Flow
+This study	McMurdo	mc49e	mc49	FS-FD:SO-SIGHT	311	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-19	-78.24	Basalt	163.36	g	Lava Flow
+This study	McMurdo	mc49g	mc49	FS-FD:SO-SIGHT	257	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-51	-78.24	Basalt	163.36	g	Lava Flow
+This study	McMurdo	mc49h	mc49	FS-FD:SO-SIGHT	250	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-37	-78.24	Basalt	163.36	g	Lava Flow
+This study	McMurdo	mc50a	mc50	FS-FD:SO-SIGHT	19	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-28	-78.25	Basalt	163.22	g	Lava Flow
+This study	McMurdo	mc50b	mc50	FS-FD:SO-SIGHT	48	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-16	-78.25	Basalt	163.22	g	Lava Flow
+This study	McMurdo	mc50c	mc50	FS-FD:SO-SIGHT	140	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-43	-78.25	Basalt	163.22	g	Lava Flow
+This study	McMurdo	mc50d	mc50	FS-FD:SO-SIGHT	90	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-32	-78.25	Basalt	163.22	g	Lava Flow
+This study	McMurdo	mc50e	mc50	FS-FD:SO-SIGHT	139	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-41	-78.25	Basalt	163.22	g	Lava Flow
+This study	McMurdo	mc50f	mc50	FS-FD:SO-SIGHT	148	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-46	-78.25	Basalt	163.22	g	Lava Flow
+This study	McMurdo	mc50g	mc50	FS-FD:SO-SIGHT	155	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-18	-78.25	Basalt	163.22	g	Lava Flow
+This study	McMurdo	mc50h	mc50	FS-FD:SO-SIGHT	148	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-23	-78.25	Basalt	163.22	g	Lava Flow
+This study	McMurdo	mc01g	mc01	FS-FD:SO-SIGHT	69	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-56	-77.85	Trachyte	166.64	g	Lava Flow
+This study	McMurdo	mc02d	mc02	FS-FD:SO-SIGHT	246	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-68	-77.85	Basalt	166.69	g	Lava Flow
+This study	McMurdo	mc02e	mc02	FS-FD:SO-SIGHT	235	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions ## direction deleted because: bad mark in field##.	-43	-77.85	Basalt	166.69	b	Lava Flow
+This study	McMurdo	mc03e	mc03	FS-FD:SO-SIGHT	309	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-68	-77.84	Basalt	166.76	g	Lava Flow
+This study	McMurdo	mc03g	mc03	FS-FD:SO-SIGHT	288	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-41	-77.84	Basalt	166.76	g	Lava Flow
+This study	McMurdo	mc04c	mc04	FS-FD:SO-SIGHT	121	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-33	-77.84	Basalt	166.7	g	Volcanic Dike
+This study	McMurdo	mc04d	mc04	FS-FD:SO-SIGHT	92	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-55	-77.84	Basalt	166.7	g	Volcanic Dike
+This study	McMurdo	mc04h	mc04	FS-FD:SO-SIGHT	44	Igneous : Intrusive	0	Archived samples from 1965, 66 expeditions ## direction deleted because: bad mark in field##.	-55	-77.84	Basalt	166.7	b	Volcanic Dike
+This study	McMurdo	mc06b	mc06	FS-FD:SO-SIGHT	171	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-13	-77.83	Basalt	166.67	g	Lava Flow
+This study	McMurdo	mc06e	mc06	FS-FD:SO-SIGHT	139	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-18	-77.83	Basalt	166.67	g	Lava Flow
+This study	McMurdo	mc06f	mc06	FS-FD:SO-SIGHT	131	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-17	-77.83	Basalt	166.67	g	Lava Flow
+This study	McMurdo	mc07a	mc07	FS-FD:SO-SIGHT	70	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-50	-77.8	Basalt	166.72	g	Lava Flow
+This study	McMurdo	mc07g	mc07	FS-FD:SO-SIGHT	273	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-39	-77.8	Basalt	166.72	g	Lava Flow
+This study	McMurdo	mc07h	mc07	FS-FD:SO-SIGHT	320	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-51	-77.8	Basalt	166.72	g	Lava Flow
+This study	McMurdo	mc100b	mc100	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	351.6	Igneous : Extrusive	0		-62	-78.302	Basalt	162.9	g	Lava Flow
+This study	McMurdo	mc100c	mc100	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	358.5	Igneous : Extrusive	0		-42	-78.302	Basalt	162.9	g	Lava Flow
+This study	McMurdo	mc100i	mc100	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	231.3	Igneous : Extrusive	0		-21	-78.302	Basalt	162.9	g	Lava Flow
+This study	McMurdo	mc100j	mc100	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	200.8	Igneous : Extrusive	0		-22	-78.302	Basalt	162.9	g	Lava Flow
+This study	McMurdo	mc101e	mc101	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	147.5	Igneous : Extrusive	0		-72.5	-78.306	Basalt	162.928	g	Lava Flow
+This study	McMurdo	mc101g	mc101	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	136.7	Igneous : Extrusive	0		-45.5	-78.306	Basalt	162.928	g	Lava Flow
+This study	McMurdo	mc101i	mc101	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	137.2	Igneous : Extrusive	0		-62	-78.306	Basalt	162.928	g	Lava Flow
+This study	McMurdo	mc101j	mc101	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	156.3	Igneous : Extrusive	0		-79	-78.306	Basalt	162.928	g	Lava Flow
+This study	McMurdo	mc102c	mc102	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	252.8	Igneous : Extrusive	0		-61	-78.235	Basalt	163.352	g	Lava Flow
+This study	McMurdo	mc102d	mc102	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	240.2	Igneous : Extrusive	0		-57	-78.235	Basalt	163.352	g	Lava Flow
+This study	McMurdo	mc102h	mc102	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	246.7	Igneous : Extrusive	0		-76	-78.235	Basalt	163.352	g	Lava Flow
+This study	McMurdo	mc102i	mc102	FS-FD:FS-LOC-GPS:SO-POM:SO-CMD-NORTH	119	Igneous : Extrusive	0		-72	-78.235	Basalt	163.352	b	Lava Flow
+This study	McMurdo	mc102j	mc102	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	277.9	Igneous : Extrusive	0		-75	-78.235	Basalt	163.352	g	Lava Flow
+This study	McMurdo	mc102k	mc102	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	226.9	Igneous : Extrusive	0		-51	-78.235	Basalt	163.352	g	Lava Flow
+This study	McMurdo	mc102l	mc102	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	251.3	Igneous : Extrusive	0		-82	-78.235	Basalt	163.352	g	Lava Flow
+This study	McMurdo	mc102m	mc102	FS-FD:FS-LOC-GPS:SO-POM:SO-CMD-NORTH	296.7	Igneous : Extrusive	0		-66	-78.235	Basalt	163.352	b	Lava Flow
+This study	McMurdo	mc103f	mc103	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	147	Igneous : Extrusive	0		-74.5	-78.235	Basalt	163.36	g	Lava Flow
+This study	McMurdo	mc103g	mc103	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	140.9	Igneous : Extrusive	0		-73	-78.235	Basalt	163.36	g	Lava Flow
+This study	McMurdo	mc103h	mc103	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	150.4	Igneous : Extrusive	0		-62	-78.235	Basalt	163.36	g	Lava Flow
+This study	McMurdo	mc103i	mc103	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	147.7	Igneous : Extrusive	0		-67	-78.235	Basalt	163.36	g	Lava Flow
+This study	McMurdo	mc103j	mc103	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	142.4	Igneous : Extrusive	0		-64	-78.235	Basalt	163.36	g	Lava Flow
+This study	McMurdo	mc103k	mc103	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	128.1	Igneous : Extrusive	0		-58.5	-78.235	Basalt	163.36	g	Lava Flow
+This study	McMurdo	mc103l	mc103	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	173.1	Igneous : Extrusive	0		-42.5	-78.235	Basalt	163.36	g	Lava Flow
+This study	McMurdo	mc104e	mc104	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	53.3	Igneous : Extrusive	0		-56.5	-78.238	Basalt	163.401	g	Lava Flow
+This study	McMurdo	mc104g	mc104	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	8	Igneous : Extrusive	0		-46	-78.238	Basalt	163.401	g	Lava Flow
+This study	McMurdo	mc104h	mc104	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	28.8	Igneous : Extrusive	0		-59	-78.238	Basalt	163.401	g	Lava Flow
+This study	McMurdo	mc104i	mc104	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	78.8	Igneous : Extrusive	0		-54	-78.238	Basalt	163.401	g	Lava Flow
+This study	McMurdo	mc104j	mc104	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	54	Igneous : Extrusive	0		-62	-78.238	Basalt	163.401	g	Lava Flow
+This study	McMurdo	mc104k	mc104	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	55.3	Igneous : Extrusive	0		-70.5	-78.238	Basalt	163.401	g	Lava Flow
+This study	McMurdo	mc105b	mc105	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	166.8	Igneous : Extrusive	0		-41.5	-78.245	Basalt	163.231	g	Lava Flow
+This study	McMurdo	mc105e	mc105	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	77.7	Igneous : Extrusive	0		-58.5	-78.245	Basalt	163.231	g	Lava Flow
+This study	McMurdo	mc105i	mc105	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	139.5	Igneous : Extrusive	0		-53	-78.245	Basalt	163.231	g	Lava Flow
+This study	McMurdo	mc105k	mc105	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	162	Igneous : Extrusive	0		-60.5	-78.245	Basalt	163.231	g	Lava Flow
+This study	McMurdo	mc105l	mc105	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	158.98	Igneous : Extrusive	0		-39.5	-78.245	Basalt	163.231	g	Lava Flow
+This study	McMurdo	mc105m	mc105	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	149.5	Igneous : Extrusive	0		-36.5	-78.245	Basalt	163.231	g	Lava Flow
+This study	McMurdo	mc105n	mc105	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	147.5	Igneous : Extrusive	0		-49	-78.245	Basalt	163.231	g	Lava Flow
+This study	McMurdo	mc106f	mc106	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	178.7	Igneous : Extrusive	0		-58	-78.21	Basalt	163.308	g	Lava Flow
+This study	McMurdo	mc106g	mc106	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	193.3	Igneous : Extrusive	0		-28	-78.21	Basalt	163.308	g	Lava Flow
+This study	McMurdo	mc106h	mc106	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	216.9	Igneous : Extrusive	0		-30	-78.21	Basalt	163.308	g	Lava Flow
+This study	McMurdo	mc106i	mc106	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	236.5	Igneous : Extrusive	0		-74	-78.21	Basalt	163.308	g	Lava Flow
+This study	McMurdo	mc106j	mc106	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	245.8	Igneous : Extrusive	0		-56	-78.21	Basalt	163.308	g	Lava Flow
+This study	McMurdo	mc106k	mc106	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	143.5	Igneous : Extrusive	0		-46	-78.21	Basalt	163.308	g	Lava Flow
+This study	McMurdo	mc106l	mc106	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	130.2	Igneous : Extrusive	0		-43	-78.21	Basalt	163.308	g	Lava Flow
+This study	McMurdo	mc107a	mc107	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	228	Igneous : Extrusive	0		-52.5	-78.204	Basalt	163.347	g	Lava Flow
+This study	McMurdo	mc107b	mc107	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	231.8	Igneous : Extrusive	0		-46	-78.204	Basalt	163.347	g	Lava Flow
+This study	McMurdo	mc107f	mc107	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	198.3	Igneous : Extrusive	0		-32	-78.204	Basalt	163.347	g	Lava Flow
+This study	McMurdo	mc107g	mc107	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	167.5	Igneous : Extrusive	0		-54	-78.204	Basalt	163.347	g	Lava Flow
+This study	McMurdo	mc107i	mc107	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	177	Igneous : Extrusive	0		-55	-78.204	Basalt	163.347	g	Lava Flow
+This study	McMurdo	mc107j	mc107	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	188.7	Igneous : Extrusive	0		-52	-78.204	Basalt	163.347	g	Lava Flow
+This study	McMurdo	mc108c	mc108	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	337.3	Igneous : Extrusive	0		-51	-78.247	Basalt	163.323	g	Lava Flow
+This study	McMurdo	mc108e	mc108	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	6.8	Igneous : Extrusive	0		-65	-78.247	Basalt	163.323	g	Lava Flow
+This study	McMurdo	mc108f	mc108	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	33.8	Igneous : Extrusive	0		-55	-78.247	Basalt	163.323	g	Lava Flow
+This study	McMurdo	mc108h	mc108	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	56.3	Igneous : Extrusive	0		-25.5	-78.247	Basalt	163.323	g	Lava Flow
+This study	McMurdo	mc108i	mc108	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	68.05	Igneous : Extrusive	0		-34	-78.247	Basalt	163.323	g	Lava Flow
+This study	McMurdo	mc108j	mc108	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	355.55	Igneous : Extrusive	0		-55	-78.247	Basalt	163.323	g	Lava Flow
+This study	McMurdo	mc109f	mc109	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	60.3	Igneous : Extrusive	0		-42	-78.282	Basalt	163.544	g	Lava Flow
+This study	McMurdo	mc109g	mc109	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	123.7	Igneous : Extrusive	0		-55	-78.282	Basalt	163.544	g	Lava Flow
+This study	McMurdo	mc109h	mc109	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	139.7	Igneous : Extrusive	0		-57	-78.282	Basalt	163.544	g	Lava Flow
+This study	McMurdo	mc109j	mc109	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	146.1	Igneous : Extrusive	0		-42	-78.282	Basalt	163.544	g	Lava Flow
+This study	McMurdo	mc109k	mc109	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	68.8	Igneous : Extrusive	0		-27.5	-78.282	Basalt	163.544	g	Lava Flow
+This study	McMurdo	mc109l	mc109	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	53.5	Igneous : Extrusive	0		-28	-78.282	Basalt	163.544	g	Lava Flow
+This study	McMurdo	mc109m	mc109	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	43	Igneous : Extrusive	0		-53	-78.282	Basalt	163.544	g	Lava Flow
+This study	McMurdo	mc110c	mc110	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	-31.4	Igneous : Extrusive	0		-44	-78.238	Basalt	163.443	g	Lava Flow
+This study	McMurdo	mc110f	mc110	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	16.1	Igneous : Extrusive	0		-77	-78.238	Basalt	163.443	g	Lava Flow
+This study	McMurdo	mc110h	mc110	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	37.1	Igneous : Extrusive	0		-85	-78.238	Basalt	163.443	g	Lava Flow
+This study	McMurdo	mc110j	mc110	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	-1.4	Igneous : Extrusive	0		-42	-78.238	Basalt	163.443	g	Lava Flow
+This study	McMurdo	mc110k	mc110	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	3.1	Igneous : Extrusive	0		-52	-78.238	Basalt	163.443	g	Lava Flow
+This study	McMurdo	mc111c	mc111	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	190.5	Igneous : Extrusive	0		-50	-78.224	Basalt	162.787	g	Lava Flow
+This study	McMurdo	mc111g	mc111	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	90	Igneous : Extrusive	0		-85.5	-78.224	Basalt	162.787	g	Lava Flow
+This study	McMurdo	mc111h	mc111	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	174	Igneous : Extrusive	0		-56	-78.224	Basalt	162.787	g	Lava Flow
+This study	McMurdo	mc111i	mc111	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	183	Igneous : Extrusive	0		-59	-78.224	Basalt	162.787	g	Lava Flow
+This study	McMurdo	mc111j	mc111	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	174.7	Igneous : Extrusive	0		-55	-78.224	Basalt	162.787	g	Lava Flow
+This study	McMurdo	mc111k	mc111	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	182.5	Igneous : Extrusive	0		-47	-78.224	Basalt	162.787	g	Lava Flow
+This study	McMurdo	mc111l	mc111	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	123.2	Igneous : Extrusive	0		-50	-78.224	Basalt	162.787	g	Lava Flow
+This study	McMurdo	mc111m	mc111	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	135.7	Igneous : Extrusive	0		-52	-78.224	Basalt	162.787	g	Lava Flow
+This study	McMurdo	mc112b	mc112	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	272	Igneous : Extrusive	0		-73	-78.238	Basalt	163.441	g	Lava Flow
+This study	McMurdo	mc112c	mc112	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	2	Igneous : Extrusive	0		-71	-78.238	Basalt	163.441	g	Lava Flow
+This study	McMurdo	mc112e	mc112	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	307.5	Igneous : Extrusive	0		-45	-78.238	Basalt	163.441	g	Lava Flow
+This study	McMurdo	mc112f	mc112	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	317.5	Igneous : Extrusive	0		-43	-78.238	Basalt	163.441	g	Lava Flow
+This study	McMurdo	mc112i	mc112	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	287	Igneous : Extrusive	0		-56	-78.238	Basalt	163.441	g	Lava Flow
+This study	McMurdo	mc113d	mc113	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	116.1	Igneous : Extrusive	0		-83	-78.226	Basalt	162.735	g	Lava Flow
+This study	McMurdo	mc113e	mc113	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	111.2	Igneous : Extrusive	0	## direction deleted because: displaced block##.	-85	-78.226	Basalt	162.735	b	Lava Flow
+This study	McMurdo	mc113f	mc113	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	90.1	Igneous : Extrusive	0	## direction deleted because: displaced block##.	-68	-78.226	Basalt	162.735	b	Lava Flow
+This study	McMurdo	mc113g	mc113	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	105.9	Igneous : Extrusive	0	## direction deleted because: displaced block##.	-65	-78.226	Basalt	162.735	b	Lava Flow
+This study	McMurdo	mc113i	mc113	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	119.5	Igneous : Extrusive	0		-58	-78.226	Basalt	162.735	g	Lava Flow
+This study	McMurdo	mc113k	mc113	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	147.4	Igneous : Extrusive	0		-56	-78.226	Basalt	162.735	g	Lava Flow
+This study	McMurdo	mc113l	mc113	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	141.2	Igneous : Extrusive	0		-59	-78.226	Basalt	162.735	g	Lava Flow
+This study	McMurdo	mc113n	mc113	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	90.6	Igneous : Extrusive	0		-66	-78.226	Basalt	162.735	g	Lava Flow
+This study	McMurdo	mc114e	mc114	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	88.9	Igneous : Extrusive	0	## direction deleted because: bad mark in field##.	-82	-78.224	Basalt	162.783	b	Lava Flow
+This study	McMurdo	mc114f	mc114	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	128.1	Igneous : Extrusive	0		-57	-78.224	Basalt	162.783	g	Lava Flow
+This study	McMurdo	mc114g	mc114	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	103.1	Igneous : Extrusive	0		-47	-78.224	Basalt	162.783	g	Lava Flow
+This study	McMurdo	mc114h	mc114	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	138.1	Igneous : Extrusive	0		-63	-78.224	Basalt	162.783	g	Lava Flow
+This study	McMurdo	mc114j	mc114	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	141.1	Igneous : Extrusive	0		-54	-78.224	Basalt	162.783	g	Lava Flow
+This study	McMurdo	mc115c	mc115	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	52.5	Igneous : Extrusive	0		-72.5	-78.243	Basalt	162.958	g	Lava Flow
+This study	McMurdo	mc115d	mc115	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	40	Igneous : Extrusive	0		-70	-78.243	Basalt	162.958	g	Lava Flow
+This study	McMurdo	mc115f	mc115	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	43.8	Igneous : Extrusive	0		-69	-78.243	Basalt	162.958	g	Lava Flow
+This study	McMurdo	mc115i	mc115	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	64.3	Igneous : Extrusive	0		-47	-78.243	Basalt	162.958	g	Lava Flow
+This study	McMurdo	mc115j	mc115	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	90	Igneous : Extrusive	0		-69.5	-78.243	Basalt	162.958	g	Lava Flow
+This study	McMurdo	mc115k	mc115	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	84.3	Igneous : Extrusive	0		-82	-78.243	Basalt	162.958	g	Lava Flow
+This study	McMurdo	mc115m	mc115	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	97.2	Igneous : Extrusive	0		-74.5	-78.243	Basalt	162.958	g	Lava Flow
+This study	McMurdo	mc115n	mc115	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	90.9	Igneous : Extrusive	0		-72	-78.243	Basalt	162.958	g	Lava Flow
+This study	McMurdo	mc115p	mc115	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	104.1	Igneous : Extrusive	0		-74	-78.243	Basalt	162.958	g	Lava Flow
+This study	McMurdo	mc115q	mc115	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	54.3	Igneous : Extrusive	0		-22	-78.243	Basalt	162.958	g	Lava Flow
+This study	McMurdo	mc115r	mc115	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	25.7	Igneous : Extrusive	0		-23.5	-78.243	Basalt	162.958	g	Lava Flow
+This study	McMurdo	mc116d	mc116	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	94.7	Igneous : Extrusive	0		-70	-78.222	Basalt	162.744	g	Lava Flow
+This study	McMurdo	mc116e	mc116	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	89.9	Igneous : Extrusive	0		-71	-78.222	Basalt	162.744	g	Lava Flow
+This study	McMurdo	mc116f	mc116	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	163.9	Igneous : Extrusive	0		-84	-78.222	Basalt	162.744	g	Lava Flow
+This study	McMurdo	mc116g	mc116	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	168.9	Igneous : Extrusive	0		-78	-78.222	Basalt	162.744	g	Lava Flow
+This study	McMurdo	mc116h	mc116	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	167.7	Igneous : Extrusive	0		-85	-78.222	Basalt	162.744	g	Lava Flow
+This study	McMurdo	mc116k	mc116	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	159.4	Igneous : Extrusive	0		-83	-78.222	Basalt	162.744	g	Lava Flow
+This study	McMurdo	mc117c	mc117	FS-FD:FS-LOC-GPS:SO-POM:SO-CMD-NORTH	335	Igneous : Extrusive	0		-49	-78.235	Basalt	162.973	b	Lava Flow
+This study	McMurdo	mc117f	mc117	FS-FD:FS-LOC-GPS:SO-POM:SO-CMD-NORTH	306	Igneous : Extrusive	0		-59.5	-78.235	Basalt	162.973	b	Lava Flow
+This study	McMurdo	mc117g	mc117	FS-FD:FS-LOC-GPS:SO-POM:SO-CMD-NORTH	325	Igneous : Extrusive	0		-40	-78.235	Basalt	162.973	b	Lava Flow
+This study	McMurdo	mc117i	mc117	FS-FD:FS-LOC-GPS:SO-POM:SO-CMD-NORTH	299	Igneous : Extrusive	0		-49	-78.235	Basalt	162.973	b	Lava Flow
+This study	McMurdo	mc117j	mc117	FS-FD:FS-LOC-GPS:SO-POM:SO-CMD-NORTH	309	Igneous : Extrusive	0		-51	-78.235	Basalt	162.973	b	Lava Flow
+This study	McMurdo	mc117l	mc117	FS-FD:FS-LOC-GPS:SO-POM:SO-CMD-NORTH	299	Igneous : Extrusive	0		-55	-78.235	Basalt	162.973	b	Lava Flow
+This study	McMurdo	mc118b	mc118	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	297.4	Igneous : Extrusive	0		-85.5	-78.241	Basalt	163.141	g	Lava Flow
+This study	McMurdo	mc118g	mc118	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	302.4	Igneous : Extrusive	0		-81	-78.241	Basalt	163.141	g	Lava Flow
+This study	McMurdo	mc118h	mc118	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	308.9	Igneous : Extrusive	0		-88.5	-78.241	Basalt	163.141	g	Lava Flow
+This study	McMurdo	mc118j	mc118	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	254.2	Igneous : Extrusive	0		-88.5	-78.241	Basalt	163.141	g	Lava Flow
+This study	McMurdo	mc118k	mc118	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	232.9	Igneous : Extrusive	0		-92	-78.241	Basalt	163.141	g	Lava Flow
+This study	McMurdo	mc119c	mc119	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	105.2	Igneous : Extrusive	0		-79	-78.239	Basalt	162.957	g	Lava Flow
+This study	McMurdo	mc119g	mc119	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	120.65	Igneous : Extrusive	0		-70	-78.239	Basalt	162.957	g	Lava Flow
+This study	McMurdo	mc119h	mc119	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	91.2	Igneous : Extrusive	0		-71.5	-78.239	Basalt	162.957	g	Lava Flow
+This study	McMurdo	mc119i	mc119	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	146.2	Igneous : Extrusive	0		-50	-78.239	Basalt	162.957	g	Lava Flow
+This study	McMurdo	mc119j	mc119	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	151.4	Igneous : Extrusive	0		-51	-78.239	Basalt	162.957	g	Lava Flow
+This study	McMurdo	mc119k	mc119	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	144.4	Igneous : Extrusive	0		-43	-78.239	Basalt	162.957	g	Lava Flow
+This study	McMurdo	mc119l	mc119	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	144.2	Igneous : Extrusive	0		-50	-78.239	Basalt	162.957	g	Lava Flow
+This study	McMurdo	mc120d	mc120	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	206.3	Igneous : Extrusive	0		-60	-78.241	Basalt	163.092	g	Lava Flow
+This study	McMurdo	mc120e	mc120	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	221.8	Igneous : Extrusive	0		-62	-78.241	Basalt	163.092	g	Lava Flow
+This study	McMurdo	mc120g	mc120	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	166.8	Igneous : Extrusive	0		-59	-78.241	Basalt	163.092	g	Lava Flow
+This study	McMurdo	mc120h	mc120	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	153.8	Igneous : Extrusive	0		-58.5	-78.241	Basalt	163.092	g	Lava Flow
+This study	McMurdo	mc120i	mc120	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	178.3	Igneous : Extrusive	0		-60	-78.241	Basalt	163.092	g	Lava Flow
+This study	McMurdo	mc120k	mc120	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	152.3	Igneous : Extrusive	0		-56.5	-78.241	Basalt	163.092	g	Lava Flow
+This study	McMurdo	mc121b	mc121	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	195.5	Igneous : Extrusive	0		-72	-78.235	Basalt	162.954	g	Lava Flow
+This study	McMurdo	mc121h	mc121	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	235.2	Igneous : Extrusive	0		-32	-78.235	Basalt	162.954	g	Lava Flow
+This study	McMurdo	mc121j	mc121	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	200.23	Igneous : Extrusive	0		-33	-78.235	Basalt	162.954	g	Lava Flow
+This study	McMurdo	mc122e	mc122	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	312	Igneous : Extrusive	0		-7	-78.187	Basalt	163.58	g	Lava Flow
+This study	McMurdo	mc122f	mc122	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	10.2	Igneous : Extrusive	0		-23	-78.187	Basalt	163.58	g	Lava Flow
+This study	McMurdo	mc122g	mc122	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	331.6	Igneous : Extrusive	0		-29	-78.187	Basalt	163.58	g	Lava Flow
+This study	McMurdo	mc122h	mc122	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	346.1	Igneous : Extrusive	0		-27	-78.187	Basalt	163.58	g	Lava Flow
+This study	McMurdo	mc122i	mc122	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	141.3	Igneous : Extrusive	0		-5	-78.187	Basalt	163.58	g	Lava Flow
+This study	McMurdo	mc122l	mc122	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	16.2	Igneous : Extrusive	0		-17	-78.187	Basalt	163.58	g	Lava Flow
+This study	McMurdo	mc123d	mc123	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	5	Igneous : Extrusive	0		-35	-78.254	Basalt	163.729	g	Lava Flow
+This study	McMurdo	mc123e	mc123	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	144.5	Igneous : Extrusive	0		-29.5	-78.254	Basalt	163.729	g	Lava Flow
+This study	McMurdo	mc123g	mc123	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	82.1	Igneous : Extrusive	0		-35.5	-78.254	Basalt	163.729	g	Lava Flow
+This study	McMurdo	mc123h	mc123	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	103.4	Igneous : Extrusive	0		-29.5	-78.254	Basalt	163.729	g	Lava Flow
+This study	McMurdo	mc123i	mc123	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	100.1	Igneous : Extrusive	0		-37.5	-78.254	Basalt	163.729	g	Lava Flow
+This study	McMurdo	mc123k	mc123	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	124.8	Igneous : Extrusive	0		-46	-78.254	Basalt	163.729	g	Lava Flow
+This study	McMurdo	mc123l	mc123	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	110.5	Igneous : Extrusive	0		-46	-78.254	Basalt	163.729	g	Lava Flow
+This study	McMurdo	mc124b	mc124	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	144.1	Igneous : Extrusive	0		-14	-78.186	Basalt	163.567	g	Lava Flow
+This study	McMurdo	mc124c	mc124	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	108.4	Igneous : Extrusive	0		-13	-78.186	Basalt	163.567	g	Lava Flow
+This study	McMurdo	mc124e	mc124	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	155.6	Igneous : Extrusive	0		-27	-78.186	Basalt	163.567	g	Lava Flow
+This study	McMurdo	mc124h	mc124	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	51.3	Igneous : Extrusive	0		-4.5	-78.186	Basalt	163.567	g	Lava Flow
+This study	McMurdo	mc124i	mc124	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	104.5	Igneous : Extrusive	0		-33	-78.186	Basalt	163.567	g	Lava Flow
+This study	McMurdo	mc124k	mc124	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	152	Igneous : Extrusive	0		-42	-78.186	Basalt	163.567	g	Lava Flow
+This study	McMurdo	mc125f	mc125	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	128.6	Igneous : Intrusive	0		-31	-78.254	Basalt	163.73	g	Volcanic Dike
+This study	McMurdo	mc125h	mc125	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	103.8	Igneous : Intrusive	0		-68	-78.254	Basalt	163.73	g	Volcanic Dike
+This study	McMurdo	mc125j	mc125	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	335.8	Igneous : Intrusive	0		-45	-78.254	Basalt	163.73	g	Volcanic Dike
+This study	McMurdo	mc125k	mc125	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	135.1	Igneous : Intrusive	0		-56.5	-78.254	Basalt	163.73	g	Volcanic Dike
+This study	McMurdo	mc125l	mc125	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	132.8	Igneous : Intrusive	0		-74.5	-78.254	Basalt	163.73	g	Volcanic Dike
+This study	McMurdo	mc125n	mc125	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	347.1	Igneous : Intrusive	0		-39	-78.254	Basalt	163.73	g	Volcanic Dike
+This study	McMurdo	mc125o	mc125	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	317.8	Igneous : Intrusive	0		-56	-78.254	Basalt	163.73	g	Volcanic Dike
+This study	McMurdo	mc126b	mc126	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	163.3	Igneous : Extrusive	0		-26	-78.253	Basalt	163.737	g	Lava Flow
+This study	McMurdo	mc126h	mc126	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	137.5	Igneous : Extrusive	0		-21	-78.253	Basalt	163.737	g	Lava Flow
+This study	McMurdo	mc126j	mc126	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	191.1	Igneous : Extrusive	0		-11.5	-78.253	Basalt	163.737	g	Lava Flow
+This study	McMurdo	mc127e	mc127	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	97.5	Igneous : Extrusive	0		-52	-78.254	Basalt	163.733	g	Lava Flow
+This study	McMurdo	mc127h	mc127	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	127.7	Igneous : Extrusive	0		-53	-78.254	Basalt	163.733	g	Lava Flow
+This study	McMurdo	mc127j	mc127	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	104.9	Igneous : Extrusive	0		-49.5	-78.254	Basalt	163.733	g	Lava Flow
+This study	McMurdo	mc128a	mc128	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	117.7	Igneous : Extrusive	0		-64.5	-78.21	Basalt	166.571	g	Lava Flow
+This study	McMurdo	mc128g	mc128	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	63.4	Igneous : Extrusive	0		-70	-78.21	Basalt	166.571	g	Lava Flow
+This study	McMurdo	mc128i	mc128	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	119.7	Igneous : Extrusive	0		-84	-78.21	Basalt	166.571	g	Lava Flow
+This study	McMurdo	mc128k	mc128	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	112.7	Igneous : Extrusive	0		-81	-78.21	Basalt	166.571	g	Lava Flow
+This study	McMurdo	mc129d	mc129	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	232	Igneous : Intrusive	0		-32	-78.214	Basalt	166.577	g	Volcanic Dike
+This study	McMurdo	mc129e	mc129	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	216.7	Igneous : Intrusive	0		-31.5	-78.214	Basalt	166.577	g	Volcanic Dike
+This study	McMurdo	mc129i	mc129	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	194.4	Igneous : Intrusive	0		-67	-78.214	Basalt	166.577	g	Volcanic Dike
+This study	McMurdo	mc129m	mc129	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	76.9	Igneous : Intrusive	0		-48	-78.214	Basalt	166.577	g	Volcanic Dike
+This study	McMurdo	mc12b	mc12	FS-FD:SO-SIGHT	142	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-72	-77.58	Basalt	166.23	g	Lava Flow
+This study	McMurdo	mc130c	mc130	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	326.4	Igneous : Extrusive	0		-20	-78.21	Basalt	166.579	g	Lava Flow
+This study	McMurdo	mc130f	mc130	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	199.6	Igneous : Extrusive	0		-20	-78.21	Basalt	166.579	g	Lava Flow
+This study	McMurdo	mc130h	mc130	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	301.9	Igneous : Extrusive	0	## direction deleted because: bad mark in field##.	-25	-78.21	Basalt	166.579	b	Lava Flow
+This study	McMurdo	mc130i	mc130	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	202.5	Igneous : Extrusive	0	## direction deleted because: bad mark in field##.	-26	-78.21	Basalt	166.579	b	Lava Flow
+This study	McMurdo	mc130j	mc130	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	241.7	Igneous : Extrusive	0	## direction deleted because: overprint during thellier##.	-41	-78.21	Basalt	166.579	b	Lava Flow
+This study	McMurdo	mc131h	mc131	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	22.7	Igneous : Extrusive	0		-47	-78.214	Basalt	166.573	g	Lava Flow
+This study	McMurdo	mc131i	mc131	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	45.2	Igneous : Extrusive	0		-47	-78.214	Basalt	166.573	g	Lava Flow
+This study	McMurdo	mc131j	mc131	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	89.7	Igneous : Extrusive	0		-51.5	-78.214	Basalt	166.573	g	Lava Flow
+This study	McMurdo	mc131l	mc131	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	26.9	Igneous : Extrusive	0		-51	-78.214	Basalt	166.573	g	Lava Flow
+This study	McMurdo	mc131m	mc131	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	49.1	Igneous : Extrusive	0		-56.5	-78.214	Basalt	166.573	g	Lava Flow
+This study	McMurdo	mc132b	mc132	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	48.4	Igneous : Extrusive	0		-19	-78.206	Basalt	166.552	g	Lava Flow
+This study	McMurdo	mc132f	mc132	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	169.5	Igneous : Extrusive	0		-16	-78.206	Basalt	166.552	g	Lava Flow
+This study	McMurdo	mc132h	mc132	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	51.1	Igneous : Extrusive	0	## direction deleted because: bad mark in field##.	-9	-78.206	Basalt	166.552	b	Lava Flow
+This study	McMurdo	mc132i	mc132	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	275.2	Igneous : Extrusive	0		-36	-78.206	Basalt	166.552	g	Lava Flow
+This study	McMurdo	mc132j	mc132	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	285.4	Igneous : Extrusive	0		-36	-78.206	Basalt	166.552	g	Lava Flow
+This study	McMurdo	mc132k	mc132	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	280.5	Igneous : Extrusive	0		-25	-78.206	Basalt	166.552	g	Lava Flow
+This study	McMurdo	mc133a	mc133	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	308.7	Igneous : Extrusive	0		-53.5	-78.199	Trachyte	166.584	g	Lava Flow
+This study	McMurdo	mc133c	mc133	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	43.5	Igneous : Extrusive	0		-61.5	-78.199	Trachyte	166.584	g	Lava Flow
+This study	McMurdo	mc133e	mc133	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	65	Igneous : Extrusive	0		-16.5	-78.199	Trachyte	166.584	g	Lava Flow
+This study	McMurdo	mc133g	mc133	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	39.5	Igneous : Extrusive	0	## direction deleted because: bad mark in field##.	-68	-78.199	Trachyte	166.584	b	Lava Flow
+This study	McMurdo	mc133i	mc133	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	36.6	Igneous : Extrusive	0		-56	-78.199	Trachyte	166.584	g	Lava Flow
+This study	McMurdo	mc133l	mc133	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	86.4	Igneous : Extrusive	0	## direction deleted because: bad mark in field##.	-62	-78.199	Trachyte	166.584	b	Lava Flow
+This study	McMurdo	mc133m	mc133	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	62.6	Igneous : Extrusive	0		-60.5	-78.199	Trachyte	166.584	g	Lava Flow
+This study	McMurdo	mc134b	mc134	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	140.3	Igneous : Extrusive	0		-37	-78.219	Basalt	166.607	g	Lava Flow
+This study	McMurdo	mc134d	mc134	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	64.6	Igneous : Extrusive	0		-49	-78.219	Basalt	166.607	g	Lava Flow
+This study	McMurdo	mc134g	mc134	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	128.1	Igneous : Extrusive	0		-17	-78.219	Basalt	166.607	g	Lava Flow
+This study	McMurdo	mc134h	mc134	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	131.5	Igneous : Extrusive	0		-22	-78.219	Basalt	166.607	g	Lava Flow
+This study	McMurdo	mc134i	mc134	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	67.9	Igneous : Extrusive	0		-32	-78.219	Basalt	166.607	g	Lava Flow
+This study	McMurdo	mc134j	mc134	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	80.1	Igneous : Extrusive	0		-36.5	-78.219	Basalt	166.607	g	Lava Flow
+This study	McMurdo	mc135f	mc135	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	301.9	Igneous : Extrusive	0		-16.5	-78.231	Basalt	166.565	g	Lava Flow
+This study	McMurdo	mc135g	mc135	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	30.3	Igneous : Extrusive	0		-38.5	-78.231	Basalt	166.565	g	Lava Flow
+This study	McMurdo	mc135j	mc135	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	22	Igneous : Extrusive	0		-35	-78.231	Basalt	166.565	g	Lava Flow
+This study	McMurdo	mc136b	mc136	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	94.9	Igneous : Extrusive	0		-38	-78.282	Basalt	163.329	g	Lava Flow
+This study	McMurdo	mc136f	mc136	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	95	Igneous : Extrusive	0		-35	-78.282	Basalt	163.329	g	Lava Flow
+This study	McMurdo	mc136g	mc136	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	125.5	Igneous : Extrusive	0		-44	-78.282	Basalt	163.329	g	Lava Flow
+This study	McMurdo	mc136h	mc136	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	138.7	Igneous : Extrusive	0		-59.5	-78.282	Basalt	163.329	g	Lava Flow
+This study	McMurdo	mc136i	mc136	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	139.9	Igneous : Extrusive	0		-64	-78.282	Basalt	163.329	g	Lava Flow
+This study	McMurdo	mc136j	mc136	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	103	Igneous : Extrusive	0		-43	-78.282	Basalt	163.329	g	Lava Flow
+This study	McMurdo	mc136k	mc136	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	118.4	Igneous : Extrusive	0		-49	-78.282	Basalt	163.329	g	Lava Flow
+This study	McMurdo	mc137b	mc137	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	157.9	Igneous : Extrusive	0		-76	-78.261	Basalt	163.257	g	Lava Flow
+This study	McMurdo	mc137c	mc137	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	163.4	Igneous : Extrusive	0		-74	-78.261	Basalt	163.257	g	Lava Flow
+This study	McMurdo	mc137e	mc137	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	189.3	Igneous : Extrusive	0		-56.5	-78.261	Basalt	163.257	g	Lava Flow
+This study	McMurdo	mc137f	mc137	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	173.4	Igneous : Extrusive	0		-59	-78.261	Basalt	163.257	g	Lava Flow
+This study	McMurdo	mc137g	mc137	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	197.9	Igneous : Extrusive	0		-57	-78.261	Basalt	163.257	g	Lava Flow
+This study	McMurdo	mc137i	mc137	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	179.9	Igneous : Extrusive	0		-41	-78.261	Basalt	163.257	g	Lava Flow
+This study	McMurdo	mc137k	mc137	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	168.2	Igneous : Extrusive	0		-63.5	-78.261	Basalt	163.257	g	Lava Flow
+This study	McMurdo	mc138c	mc138	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	125	Igneous : Extrusive	0		-55	-78.26	Basalt	163.24	g	Lava Flow
+This study	McMurdo	mc138e	mc138	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	81	Igneous : Extrusive	0		-77	-78.26	Basalt	163.24	g	Lava Flow
+This study	McMurdo	mc138f	mc138	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	95.5	Igneous : Extrusive	0		-74	-78.26	Basalt	163.24	g	Lava Flow
+This study	McMurdo	mc138i	mc138	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	167.5	Igneous : Extrusive	0		-20	-78.26	Basalt	163.24	g	Lava Flow
+This study	McMurdo	mc138j	mc138	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	146	Igneous : Extrusive	0		-37	-78.26	Basalt	163.24	g	Lava Flow
+This study	McMurdo	mc138k	mc138	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	155	Igneous : Extrusive	0		-39	-78.26	Basalt	163.24	g	Lava Flow
+This study	McMurdo	mc139b	mc139	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	7.7	Igneous : Extrusive	0		-53.5	-78.26	Basalt	163.08	g	Lava Flow
+This study	McMurdo	mc139c	mc139	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	342.4	Igneous : Extrusive	0		-65.5	-78.26	Basalt	163.08	g	Lava Flow
+This study	McMurdo	mc139f	mc139	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	6	Igneous : Extrusive	0		-73	-78.26	Basalt	163.08	g	Lava Flow
+This study	McMurdo	mc139g	mc139	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	336.45	Igneous : Extrusive	0		-66	-78.26	Basalt	163.08	g	Lava Flow
+This study	McMurdo	mc139i	mc139	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	34.45	Igneous : Extrusive	0		-58.5	-78.26	Basalt	163.08	g	Lava Flow
+This study	McMurdo	mc139k	mc139	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	322.7	Igneous : Extrusive	0		-62	-78.26	Basalt	163.08	g	Lava Flow
+This study	McMurdo	mc140c	mc140	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	281.8	Igneous : Extrusive	0		-85	-78.276	Basalt	163.004	g	Lava Flow
+This study	McMurdo	mc140f	mc140	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	315.3	Igneous : Extrusive	0		-60.5	-78.276	Basalt	163.004	g	Lava Flow
+This study	McMurdo	mc140i	mc140	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	307.8	Igneous : Extrusive	0		-85.5	-78.276	Basalt	163.004	g	Lava Flow
+This study	McMurdo	mc141d	mc141	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	14.9	Igneous : Intrusive	0		-72	-77.58	Basalt	166.246	g	Volcanic Dike
+This study	McMurdo	mc141e	mc141	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	2.7	Igneous : Intrusive	0		-75	-77.58	Basalt	166.246	g	Volcanic Dike
+This study	McMurdo	mc141f	mc141	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	57.9	Igneous : Intrusive	0		75	-77.58	Basalt	166.246	g	Volcanic Dike
+This study	McMurdo	mc141i	mc141	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	25.2	Igneous : Intrusive	0		-61.5	-77.58	Basalt	166.246	g	Volcanic Dike
+This study	McMurdo	mc141j	mc141	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	97.9	Igneous : Intrusive	0		-69.5	-77.58	Basalt	166.246	g	Volcanic Dike
+This study	McMurdo	mc142a	mc142	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	142.2	Igneous : Extrusive	0		-52	-77.851	Trachyte	166.68	g	Lava Flow
+This study	McMurdo	mc142g	mc142	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	106.3	Igneous : Extrusive	0		-50	-77.851	Trachyte	166.68	g	Lava Flow
+This study	McMurdo	mc142h	mc142	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	114.1	Igneous : Extrusive	0		-62	-77.851	Trachyte	166.68	g	Lava Flow
+This study	McMurdo	mc142j	mc142	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	36.3	Igneous : Extrusive	0		-26	-77.851	Trachyte	166.68	g	Lava Flow
+This study	McMurdo	mc143b	mc143	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	83.2	Igneous : Extrusive	0		-83.5	-78.244	Basalt	162.879	g	Lava Flow
+This study	McMurdo	mc143e	mc143	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	85.4	Igneous : Extrusive	0		-84	-78.244	Basalt	162.879	g	Lava Flow
+This study	McMurdo	mc143f	mc143	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	75.6	Igneous : Extrusive	0		-81	-78.244	Basalt	162.879	g	Lava Flow
+This study	McMurdo	mc143j	mc143	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	77.3	Igneous : Extrusive	0		-70	-78.244	Basalt	162.879	g	Lava Flow
+This study	McMurdo	mc143k	mc143	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	76.9	Igneous : Extrusive	0		-45	-78.244	Basalt	162.879	g	Lava Flow
+This study	McMurdo	mc144c	mc144	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	123.9	Igneous : Extrusive	0		-81	-77.85	Trachyte	166.688	g	Lava Flow
+This study	McMurdo	mc144g	mc144	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	124.6	Igneous : Extrusive	0		-46	-77.85	Trachyte	166.688	g	Lava Flow
+This study	McMurdo	mc144i	mc144	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	193.2	Igneous : Extrusive	0		-42	-77.85	Trachyte	166.688	g	Lava Flow
+This study	McMurdo	mc144k	mc144	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	206.4	Igneous : Extrusive	0		-31.5	-77.85	Trachyte	166.688	g	Lava Flow
+This study	McMurdo	mc145a	mc144	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	0	Igneous : Extrusive	0		0	-77.85	Trachyte	166.688	b	Lava Flow
+This study	McMurdo	mc145c	mc145	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	96	Igneous : Extrusive	0	## direction deleted because: bad mark in field##.	-55.5	-78.24	Basalt	162.893	b	Lava Flow
+This study	McMurdo	mc145d	mc145	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	121.3	Igneous : Extrusive	0		-64	-78.24	Basalt	162.893	g	Lava Flow
+This study	McMurdo	mc145e	mc145	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	137.3	Igneous : Extrusive	0		-54.5	-78.24	Basalt	162.893	g	Lava Flow
+This study	McMurdo	mc145g	mc145	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	122.3	Igneous : Extrusive	0		-62.5	-78.24	Basalt	162.893	g	Lava Flow
+This study	McMurdo	mc145m	mc145	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	145.5	Igneous : Extrusive	0		-46	-78.24	Basalt	162.893	g	Lava Flow
+This study	McMurdo	mc145n	mc145	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	83	Igneous : Extrusive	0		-65.5	-78.24	Basalt	162.893	g	Lava Flow
+This study	McMurdo	mc146b	mc146	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	326	Igneous : Extrusive	0		-36	-78.22	Basalt	162.963	g	Lava Flow
+This study	McMurdo	mc146c	mc146	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	353.4	Igneous : Extrusive	0		-19	-78.22	Basalt	162.963	g	Lava Flow
+This study	McMurdo	mc146g	mc146	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	286.5	Igneous : Extrusive	0		-51	-78.22	Basalt	162.963	g	Lava Flow
+This study	McMurdo	mc146i	mc146	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	328.2	Igneous : Extrusive	0	## direction deleted because: displaced block##.	-25.5	-78.22	Basalt	162.963	b	Lava Flow
+This study	McMurdo	mc147b	mc147	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	210.9	Igneous : Extrusive	0		-78	-78.196	Basalt	162.962	g	Lava Flow
+This study	McMurdo	mc147d	mc147	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	212.4	Igneous : Extrusive	0		-78	-78.196	Basalt	162.962	g	Lava Flow
+This study	McMurdo	mc147e	mc147	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	203.6	Igneous : Extrusive	0		-77	-78.196	Basalt	162.962	g	Lava Flow
+This study	McMurdo	mc147f	mc147	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	208.4	Igneous : Extrusive	0		-33.5	-78.196	Basalt	162.962	g	Lava Flow
+This study	McMurdo	mc147g	mc147	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	211.6	Igneous : Extrusive	0		-78	-78.196	Basalt	162.962	g	Lava Flow
+This study	McMurdo	mc147h	mc147	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	215.6	Igneous : Extrusive	0		-73.5	-78.196	Basalt	162.962	g	Lava Flow
+This study	McMurdo	mc147l	mc147	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	202.4	Igneous : Extrusive	0		-82	-78.196	Basalt	162.962	g	Lava Flow
+This study	McMurdo	mc147m	mc147	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	215.1	Igneous : Extrusive	0		-71.5	-78.196	Basalt	162.962	g	Lava Flow
+This study	McMurdo	mc147n	mc147	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	213.6	Igneous : Extrusive	0		-69	-78.196	Basalt	162.962	g	Lava Flow
+This study	McMurdo	mc148c	mc148	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	60.7	Igneous : Extrusive	0	## direction deleted because: bad mark in field##.	-57	-77.492	Basalt	167.249	b	Lava Flow
+This study	McMurdo	mc148d	mc148	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	53.1	Igneous : Extrusive	0	## direction deleted because: overprint during thellier##.	-50	-77.492	Basalt	167.249	b	Lava Flow
+This study	McMurdo	mc148e	mc148	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	72.5	Igneous : Extrusive	0		-23	-77.492	Basalt	167.249	g	Lava Flow
+This study	McMurdo	mc148g	mc148	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	173.5	Igneous : Extrusive	0		-22	-77.492	Basalt	167.249	g	Lava Flow
+This study	McMurdo	mc148h	mc148	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	174.7	Igneous : Extrusive	0		-32	-77.492	Basalt	167.249	g	Lava Flow
+This study	McMurdo	mc149c	mc149	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	21.5	Igneous : Intrusive	0		-79.5	-77.486	Basalt	167.187	g	Volcanic Dike
+This study	McMurdo	mc149d	mc149	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	39.2	Igneous : Intrusive	0		-55	-77.486	Basalt	167.187	g	Volcanic Dike
+This study	McMurdo	mc149e	mc149	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	29.7	Igneous : Intrusive	0		-52.5	-77.486	Basalt	167.187	g	Volcanic Dike
+This study	McMurdo	mc149f	mc149	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	45.4	Igneous : Intrusive	0		-56	-77.486	Basalt	167.187	g	Volcanic Dike
+This study	McMurdo	mc149g	mc149	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	30.2	Igneous : Intrusive	0		-58	-77.486	Basalt	167.187	g	Volcanic Dike
+This study	McMurdo	mc149h	mc149	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	30.4	Igneous : Intrusive	0		-59.5	-77.486	Basalt	167.187	g	Volcanic Dike
+This study	McMurdo	mc149i	mc149	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	8.1	Igneous : Intrusive	0		-63	-77.486	Basalt	167.187	g	Volcanic Dike
+This study	McMurdo	mc149j	mc149	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	47.4	Igneous : Intrusive	0		-64	-77.486	Basalt	167.187	g	Volcanic Dike
+This study	McMurdo	mc149k	mc149	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	21.1	Igneous : Intrusive	0		-67	-77.486	Basalt	167.187	g	Volcanic Dike
+This study	McMurdo	mc150a	mc150	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	188.3	Igneous : Extrusive	0		-70	-77.714	Basalt	162.637	g	Lava Flow
+This study	McMurdo	mc150d	mc150	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	164.5	Igneous : Extrusive	0		-72	-77.714	Basalt	162.637	g	Lava Flow
+This study	McMurdo	mc150h	mc150	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	162.8	Igneous : Extrusive	0		-52	-77.714	Basalt	162.637	g	Lava Flow
+This study	McMurdo	mc150i	mc150	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	161.3	Igneous : Extrusive	0		-50	-77.714	Basalt	162.637	g	Lava Flow
+This study	McMurdo	mc150j	mc150	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	154.7	Igneous : Extrusive	0		-60	-77.714	Basalt	162.637	g	Lava Flow
+This study	McMurdo	mc151a	mc151	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	25.9	Igneous : Extrusive	0		-86.5	-77.486	Basalt	167.187	g	Lava Flow
+This study	McMurdo	mc151b	mc151	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	30.4	Igneous : Extrusive	0		-70	-77.486	Basalt	167.187	g	Lava Flow
+This study	McMurdo	mc151c	mc151	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	29.4	Igneous : Extrusive	0		-59	-77.486	Basalt	167.187	g	Lava Flow
+This study	McMurdo	mc151d	mc151	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	46.6	Igneous : Extrusive	0		-79.5	-77.486	Basalt	167.187	g	Lava Flow
+This study	McMurdo	mc151e	mc151	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	49.9	Igneous : Extrusive	0		-52	-77.486	Basalt	167.187	g	Lava Flow
+This study	McMurdo	mc151f	mc151	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	43.3	Igneous : Extrusive	0		-47.5	-77.486	Basalt	167.187	g	Lava Flow
+This study	McMurdo	mc152d	mc152	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	157.7	Igneous : Intrusive	0		-73	-77.716	Basalt	162.645	g	Volcanic Dike
+This study	McMurdo	mc152e	mc152	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	134.2	Igneous : Intrusive	0		-78	-77.716	Basalt	162.645	g	Volcanic Dike
+This study	McMurdo	mc152f	mc152	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	146.9	Igneous : Intrusive	0		-72	-77.716	Basalt	162.645	g	Volcanic Dike
+This study	McMurdo	mc152g	mc152	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	137.6	Igneous : Intrusive	0		-56	-77.716	Basalt	162.645	g	Volcanic Dike
+This study	McMurdo	mc152h	mc152	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	148.8	Igneous : Intrusive	0		-50	-77.716	Basalt	162.645	g	Volcanic Dike
+This study	McMurdo	mc152j	mc152	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	168.3	Igneous : Intrusive	0		-70	-77.716	Basalt	162.645	g	Volcanic Dike
+This study	McMurdo	mc153d	mc153	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	222.5	Igneous : Extrusive	0		-79.5	-77.76	Basalt	162.144	g	Lava Flow
+This study	McMurdo	mc153f	mc153	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	173.9	Igneous : Extrusive	0		-65	-77.76	Basalt	162.144	g	Lava Flow
+This study	McMurdo	mc153g	mc153	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	192.7	Igneous : Extrusive	0		-62	-77.76	Basalt	162.144	g	Lava Flow
+This study	McMurdo	mc153h	mc153	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	170.4	Igneous : Extrusive	0		-59.5	-77.76	Basalt	162.144	g	Lava Flow
+This study	McMurdo	mc153k	mc153	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	194.6	Igneous : Extrusive	0		-53.5	-77.76	Basalt	162.144	g	Lava Flow
+This study	McMurdo	mc153l	mc153	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	182.3	Igneous : Extrusive	0		-46.5	-77.76	Basalt	162.144	g	Lava Flow
+This study	McMurdo	mc154c	mc154	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	230.3	Igneous : Extrusive	0		-83	-77.719	Basalt	162.626	g	Lava Flow
+This study	McMurdo	mc154d	mc154	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	235.8	Igneous : Extrusive	0		-82.5	-77.719	Basalt	162.626	g	Lava Flow
+This study	McMurdo	mc154g	mc154	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	284	Igneous : Extrusive	0		-59	-77.719	Basalt	162.626	g	Lava Flow
+This study	McMurdo	mc154i	mc154	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	251.5	Igneous : Extrusive	0		-42	-77.719	Basalt	162.626	g	Lava Flow
+This study	McMurdo	mc154j	mc154	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	252.2	Igneous : Extrusive	0		-43	-77.719	Basalt	162.626	g	Lava Flow
+This study	McMurdo	mc155d	mc155	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	75	Igneous : Extrusive	0		-24	-77.699	Basalt	162.253	g	Lava Flow
+This study	McMurdo	mc155f	mc155	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	67.7	Igneous : Extrusive	0		-25.5	-77.699	Basalt	162.253	g	Lava Flow
+This study	McMurdo	mc155j	mc155	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	100.4	Igneous : Extrusive	0		-36	-77.699	Basalt	162.253	g	Lava Flow
+This study	McMurdo	mc155k	mc155	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	78.6	Igneous : Extrusive	0		-36	-77.699	Basalt	162.253	g	Lava Flow
+This study	McMurdo	mc155l	mc155	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	51.4	Igneous : Extrusive	0		-21	-77.699	Basalt	162.253	g	Lava Flow
+This study	McMurdo	mc155n	mc155	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	51.6	Igneous : Extrusive	0		-26	-77.699	Basalt	162.253	g	Lava Flow
+This study	McMurdo	mc156b	mc156	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	188.6	Igneous : Extrusive	0	## direction deleted because: bad mark in field##.	-58	-77.705	Basalt	162.592	b	Lava Flow
+This study	McMurdo	mc156d	mc156	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	200	Igneous : Extrusive	0		-50	-77.705	Basalt	162.592	g	Lava Flow
+This study	McMurdo	mc156e	mc156	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	185.7	Igneous : Extrusive	0		-58	-77.705	Basalt	162.592	g	Lava Flow
+This study	McMurdo	mc156i	mc156	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	152.6	Igneous : Extrusive	0		-89	-77.705	Basalt	162.592	g	Lava Flow
+This study	McMurdo	mc156j	mc156	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	162.9	Igneous : Extrusive	0		-87	-77.705	Basalt	162.592	g	Lava Flow
+This study	McMurdo	mc157d	mc157	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN		Igneous : Extrusive	0			-77.703	Basalt	162.264	b	Lava Flow
+This study	McMurdo	mc157g	mc157	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	59.8	Igneous : Extrusive	0		-34	-77.703	Basalt	162.264	g	Lava Flow
+This study	McMurdo	mc157h	mc157	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	17.5	Igneous : Extrusive	0		-51	-77.703	Basalt	162.264	g	Lava Flow
+This study	McMurdo	mc157l	mc157	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	27.9	Igneous : Extrusive	0		-29	-77.703	Basalt	162.264	g	Lava Flow
+This study	McMurdo	mc157m	mc157	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	35.6	Igneous : Extrusive	0		-37	-77.703	Basalt	162.264	g	Lava Flow
+This study	McMurdo	mc157n	mc157	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	8.6	Igneous : Extrusive	0		-47	-77.703	Basalt	162.264	g	Lava Flow
+This study	McMurdo	mc158e	mc158	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	36.2	Igneous : Extrusive	0		-10	-77.688	Basalt	162.462	g	Lava Flow
+This study	McMurdo	mc158g	mc158	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	60.7	Igneous : Extrusive	0		-22	-77.688	Basalt	162.462	g	Lava Flow
+This study	McMurdo	mc158i	mc158	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	50	Igneous : Extrusive	0		-31	-77.688	Basalt	162.462	g	Lava Flow
+This study	McMurdo	mc158j	mc158	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	144.7	Igneous : Extrusive	0		-7	-77.688	Basalt	162.462	g	Lava Flow
+This study	McMurdo	mc160d	mc160	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	347.8	Igneous : Extrusive	0		-14.5	-77.687	Basalt	162.354	g	Lava Flow
+This study	McMurdo	mc160g	mc160	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	290	Igneous : Extrusive	0		-47	-77.687	Basalt	162.354	g	Lava Flow
+This study	McMurdo	mc160i	mc160	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	297.2	Igneous : Extrusive	0		-50	-77.687	Basalt	162.354	g	Lava Flow
+This study	McMurdo	mc160k	mc160	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	246.6	Igneous : Extrusive	0		-32	-77.687	Basalt	162.354	g	Lava Flow
+This study	McMurdo	mc160l	mc160	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	280.9	Igneous : Extrusive	0		-52	-77.687	Basalt	162.354	g	Lava Flow
+This study	McMurdo	mc161c	mc161	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	307.4	Igneous : Extrusive	0		-21.5	-77.702	Basalt	162.694	g	Lava Flow
+This study	McMurdo	mc161d	mc161	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	334.6	Igneous : Extrusive	0		-29	-77.702	Basalt	162.694	g	Lava Flow
+This study	McMurdo	mc161h	mc161	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	28.3	Igneous : Extrusive	0		-27.5	-77.702	Basalt	162.694	g	Lava Flow
+This study	McMurdo	mc161i	mc161	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	5.8	Igneous : Extrusive	0		-32	-77.702	Basalt	162.694	g	Lava Flow
+This study	McMurdo	mc161j	mc161	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	6.5	Igneous : Extrusive	0	## direction deleted because: bad mark in field##.	-26	-77.702	Basalt	162.694	b	Lava Flow
+This study	McMurdo	mc162a	mc162	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	209.4	Igneous : Extrusive	0		-50	-77.701	Basalt	162.69	g	Lava Flow
+This study	McMurdo	mc162d	mc162	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	142	Igneous : Extrusive	0		-42.5	-77.701	Basalt	162.69	g	Lava Flow
+This study	McMurdo	mc162e	mc162	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	193.8	Igneous : Extrusive	0		-63	-77.701	Basalt	162.69	g	Lava Flow
+This study	McMurdo	mc162h	mc162	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	205.1	Igneous : Extrusive	0		-50	-77.701	Basalt	162.69	g	Lava Flow
+This study	McMurdo	mc163g	mc163	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	21.3	Igneous : Extrusive	0		-24	-77.7	Basalt	162.68	g	Lava Flow
+This study	McMurdo	mc163h	mc163	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	46	Igneous : Extrusive	0	## direction deleted because: overprint during thellier##.	-28	-77.7	Basalt	162.68	b	Lava Flow
+This study	McMurdo	mc163i	mc163	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	191.8	Igneous : Extrusive	0		-19	-77.7	Basalt	162.68	g	Lava Flow
+This study	McMurdo	mc163j	mc163	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	181.2	Igneous : Extrusive	0		-24	-77.7	Basalt	162.68	g	Lava Flow
+This study	McMurdo	mc163k	mc163	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	39.4	Igneous : Extrusive	0		-56	-77.7	Basalt	162.68	g	Lava Flow
+This study	McMurdo	mc164d	mc164	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	89.2	Igneous : Extrusive	0		-29	-77.514	Basalt	169.33	g	Lava Flow
+This study	McMurdo	mc164e	mc164	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	75.9	Igneous : Extrusive	0		-27	-77.514	Basalt	169.33	g	Lava Flow
+This study	McMurdo	mc164k	mc164	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	22.3	Igneous : Extrusive	0		-26	-77.514	Basalt	169.33	g	Lava Flow
+This study	McMurdo	mc165d	mc165	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	141.1	Igneous : Extrusive	0		-56	-77.513	Basalt	169.332	g	Lava Flow
+This study	McMurdo	mc165e	mc165	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	139.8	Igneous : Extrusive	0		-56	-77.513	Basalt	169.332	g	Lava Flow
+This study	McMurdo	mc165f	mc165	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	154.3	Igneous : Extrusive	0		-53	-77.513	Basalt	169.332	g	Lava Flow
+This study	McMurdo	mc165j	mc165	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	117.6	Igneous : Extrusive	0		-50	-77.513	Basalt	169.332	g	Lava Flow
+This study	McMurdo	mc166d	mc166	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	10.3	Igneous : Extrusive	0		-57	-77.849	Basalt	166.67	g	Lava Flow
+This study	McMurdo	mc166e	mc166	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	340.5	Igneous : Extrusive	0		-35	-77.849	Basalt	166.67	g	Lava Flow
+This study	McMurdo	mc166f	mc166	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	39	Igneous : Extrusive	0		-26	-77.849	Basalt	166.67	g	Lava Flow
+This study	McMurdo	mc166g	mc166	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	316.5	Igneous : Extrusive	0		-51	-77.849	Basalt	166.67	g	Lava Flow
+This study	McMurdo	mc166j	mc166	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	17	Igneous : Extrusive	0		-47	-77.849	Basalt	166.67	g	Lava Flow
+This study	McMurdo	mc166l	mc166	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	10.5	Igneous : Extrusive	0		-51.5	-77.849	Basalt	166.67	g	Lava Flow
+This study	McMurdo	mc167c	mc167	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	180	Igneous : Extrusive	0		-24	-77.487	Basalt	169.294	g	Lava Flow
+This study	McMurdo	mc167g	mc167	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	156.7	Igneous : Extrusive	0		-25	-77.487	Basalt	169.294	g	Lava Flow
+This study	McMurdo	mc167i	mc167	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	171.2	Igneous : Extrusive	0		-23	-77.487	Basalt	169.294	g	Lava Flow
+This study	McMurdo	mc168a	mc168	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	5.5	Igneous : Extrusive	0		-29.5	-77.488	Basalt	169.292	g	Lava Flow
+This study	McMurdo	mc168b	mc168	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	20	Igneous : Extrusive	0		-34	-77.488	Basalt	169.292	g	Lava Flow
+This study	McMurdo	mc168d	mc168	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	11.5	Igneous : Extrusive	0		-16.5	-77.488	Basalt	169.292	g	Lava Flow
+This study	McMurdo	mc168e	mc168	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	171.2	Igneous : Extrusive	0		-39	-77.488	Basalt	169.292	g	Lava Flow
+This study	McMurdo	mc168g	mc168	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	158.6	Igneous : Extrusive	0		-38	-77.488	Basalt	169.292	g	Lava Flow
+This study	McMurdo	mc168l	mc168	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	119.7	Igneous : Extrusive	0		-33	-77.488	Basalt	169.292	g	Lava Flow
+This study	McMurdo	mc169a	mc169	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	310.6	Igneous : Extrusive	0		-12	-77.491	Basalt	169.28	g	Lava Flow
+This study	McMurdo	mc169b	mc169	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	32.8	Igneous : Extrusive	0		-12	-77.491	Basalt	169.28	g	Lava Flow
+This study	McMurdo	mc169c	mc169	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	75.7	Igneous : Extrusive	0		-27	-77.491	Basalt	169.28	g	Lava Flow
+This study	McMurdo	mc169d	mc169	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	355.3	Igneous : Extrusive	0		-23	-77.491	Basalt	169.28	g	Lava Flow
+This study	McMurdo	mc169e	mc169	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	57.7	Igneous : Extrusive	0		-21	-77.491	Basalt	169.28	g	Lava Flow
+This study	McMurdo	mc169f	mc169	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	0.2	Igneous : Extrusive	0		-25	-77.491	Basalt	169.28	g	Lava Flow
+This study	McMurdo	mc169g	mc169	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	15.1	Igneous : Extrusive	0		-19.5	-77.491	Basalt	169.28	g	Lava Flow
+This study	McMurdo	mc169h	mc169	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	5.6	Igneous : Extrusive	0		-28	-77.491	Basalt	169.28	g	Lava Flow
+This study	McMurdo	mc169i	mc169	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	108	Igneous : Extrusive	0		-30	-77.491	Basalt	169.28	g	Lava Flow
+This study	McMurdo	mc169j	mc169	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	338.5	Igneous : Extrusive	0		-21	-77.491	Basalt	169.28	g	Lava Flow
+This study	McMurdo	mc16d	mc16	FS-FD:SO-SIGHT	54	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-32	-77.51	Basalt	169.38	g	Lava Flow
+This study	McMurdo	mc170b	mc170	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	356.8	Igneous : Extrusive	0		-54	-77.854	Basalt	166.714	g	Lava Flow
+This study	McMurdo	mc170g	mc170	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	337.3	Igneous : Extrusive	0		-60	-77.854	Basalt	166.714	g	Lava Flow
+This study	McMurdo	mc170h	mc170	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	353	Igneous : Extrusive	0		-56	-77.854	Basalt	166.714	g	Lava Flow
+This study	McMurdo	mc170i	mc170	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	3.8	Igneous : Extrusive	0		-31	-77.854	Basalt	166.714	g	Lava Flow
+This study	McMurdo	mc170j	mc170	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	30.5	Igneous : Extrusive	0		-29	-77.854	Basalt	166.714	g	Lava Flow
+This study	McMurdo	mc170k	mc170	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	350	Igneous : Extrusive	0		-42	-77.854	Basalt	166.714	g	Lava Flow
+This study	McMurdo	mc19h	mc19	FS-FD:SO-SIGHT	281	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-28	-77.86	Basalt	165.23	g	Lava Flow
+This study	McMurdo	mc200e	mc200	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	234.5	Igneous : Extrusive	0		-62	-77.54995	Phonolite	166.16148	g	Lava Flow
+This study	McMurdo	mc200f	mc200	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	221.2	Igneous : Extrusive	0		-51	-77.54995	Phonolite	166.16148	g	Lava Flow
+This study	McMurdo	mc200g	mc200	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	228.3	Igneous : Extrusive	0		-59	-77.54995	Phonolite	166.16148	g	Lava Flow
+This study	McMurdo	mc200h	mc200	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	225.2	Igneous : Extrusive	0		-54.5	-77.54995	Phonolite	166.16148	g	Lava Flow
+This study	McMurdo	mc200i	mc200	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	131.9	Igneous : Extrusive	0		-36	-77.54995	Phonolite	166.16148	g	Lava Flow
+This study	McMurdo	mc200j	mc200	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	128.1	Igneous : Extrusive	0		-38	-77.54995	Phonolite	166.16148	g	Lava Flow
+This study	McMurdo	mc200k	mc200	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	128.8	Igneous : Extrusive	0		-34	-77.54995	Phonolite	166.16148	g	Lava Flow
+This study	McMurdo	mc201f	mc201	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	34.5	Igneous : Extrusive	0		-40	-77.56284	Phonolite	166.21958	g	Lava Flow
+This study	McMurdo	mc201g	mc201	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	68.7	Igneous : Extrusive	0		-44	-77.56284	Phonolite	166.21958	g	Lava Flow
+This study	McMurdo	mc201h	mc201	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	63.6	Igneous : Extrusive	0		-53.5	-77.56284	Phonolite	166.21958	g	Lava Flow
+This study	McMurdo	mc201i	mc201	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	70.9	Igneous : Extrusive	0		-49	-77.56284	Phonolite	166.21958	g	Lava Flow
+This study	McMurdo	mc202a	mc202	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	173	Igneous : Extrusive	0		-70	-77.65674	Phonolite	166.36424	g	Lava Flow
+This study	McMurdo	mc202b	mc202	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	173.3	Igneous : Extrusive	0		-72	-77.65674	Phonolite	166.36424	g	Lava Flow
+This study	McMurdo	mc202e	mc202	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	159.6	Igneous : Extrusive	0		-65.5	-77.65674	Phonolite	166.36424	g	Lava Flow
+This study	McMurdo	mc202g	mc202	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	165.6	Igneous : Extrusive	0		-55	-77.65674	Phonolite	166.36424	g	Lava Flow
+This study	McMurdo	mc202i	mc202	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	192.6	Igneous : Extrusive	0		-46	-77.65674	Phonolite	166.36424	g	Lava Flow
+This study	McMurdo	mc203b	mc203	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	349.1	Igneous : Intrusive	0		-82	-77.5807	Basalt	166.25055	g	Volcanic Dike
+This study	McMurdo	mc203e	mc203	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	351.1	Igneous : Intrusive	0		-70.5	-77.5807	Basalt	166.25055	g	Volcanic Dike
+This study	McMurdo	mc203f	mc203	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	16	Igneous : Intrusive	0		-77	-77.5807	Basalt	166.25055	g	Volcanic Dike
+This study	McMurdo	mc203i	mc203	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	355.9	Igneous : Intrusive	0		-86	-77.5807	Basalt	166.25055	g	Volcanic Dike
+This study	McMurdo	mc203j	mc203	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	1.1	Igneous : Intrusive	0		-89	-77.5807	Basalt	166.25055	g	Volcanic Dike
+This study	McMurdo	mc204b	mc204	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	40.3	Igneous : Extrusive	0		-82	-77.6402	Phonolite	166.40836	g	Lava Flow
+This study	McMurdo	mc204d	mc204	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	34.3	Igneous : Extrusive	0		-89	-77.6402	Phonolite	166.40836	g	Lava Flow
+This study	McMurdo	mc204e	mc204	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	32.3	Igneous : Extrusive	0		-83	-77.6402	Phonolite	166.40836	g	Lava Flow
+This study	McMurdo	mc204f	mc204	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	37.8	Igneous : Extrusive	0		-71	-77.6402	Phonolite	166.40836	g	Lava Flow
+This study	McMurdo	mc204g	mc204	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	39.8	Igneous : Extrusive	0		-79	-77.6402	Phonolite	166.40836	g	Lava Flow
+This study	McMurdo	mc204i	mc204	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	73.8	Igneous : Extrusive	0		-90.5	-77.6402	Phonolite	166.40836	g	Lava Flow
+This study	McMurdo	mc204j	mc204	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	77.4	Igneous : Extrusive	0		-92	-77.6402	Phonolite	166.40836	g	Lava Flow
+This study	McMurdo	mc205f	mc205	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	87.4	Igneous : Intrusive	0		-60	-77.65666	Basalt	166.72515	g	Volcanic Dike
+This study	McMurdo	mc205g	mc205	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	86.9	Igneous : Intrusive	0		-61.5	-77.65666	Basalt	166.72515	g	Volcanic Dike
+This study	McMurdo	mc205i	mc205	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	41.6	Igneous : Intrusive	0		-87	-77.65666	Basalt	166.72515	g	Volcanic Dike
+This study	McMurdo	mc205j	mc205	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	43.5	Igneous : Intrusive	0		-78	-77.65666	Basalt	166.72515	g	Volcanic Dike
+This study	McMurdo	mc206j	mc206	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	335.6	Igneous : Intrusive	0		-36	-77.66665	Basalt	166.78033	g	Volcanic Dome
+This study	McMurdo	mc207b	mc207	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	187.3	Igneous : Extrusive	0	## direction deleted because: overprint during thellier##.	-82	-77.67871	Basalt	166.5173	b	Lava Flow
+This study	McMurdo	mc207c	mc207	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	186.5	Igneous : Extrusive	0		-84	-77.67871	Basalt	166.5173	g	Lava Flow
+This study	McMurdo	mc207e	mc207	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	173.8	Igneous : Extrusive	0		-36.5	-77.67871	Basalt	166.5173	g	Lava Flow
+This study	McMurdo	mc207f	mc207	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	170.5	Igneous : Extrusive	0		-35	-77.67871	Basalt	166.5173	g	Lava Flow
+This study	McMurdo	mc207i	mc207	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	123.7	Igneous : Extrusive	0		-70	-77.67871	Basalt	166.5173	g	Lava Flow
+This study	McMurdo	mc207j	mc207	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	124.4	Igneous : Extrusive	0		-64	-77.67871	Basalt	166.5173	g	Lava Flow
+This study	McMurdo	mc208g	mc208	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	170	Igneous : Extrusive	0		-77	-77.66786	Basalt	166.53186	g	Lava Flow
+This study	McMurdo	mc208h	mc208	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	167.7	Igneous : Extrusive	0		-80	-77.66786	Basalt	166.53186	g	Lava Flow
+This study	McMurdo	mc208i	mc208	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	141.1	Igneous : Extrusive	0		-100	-77.66786	Basalt	166.53186	g	Lava Flow
+This study	McMurdo	mc208j	mc208	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	140.6	Igneous : Extrusive	0		-98	-77.66786	Basalt	166.53186	g	Lava Flow
+This study	McMurdo	mc209d	mc209	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	94.6	Igneous : Extrusive	0		-63.5	-77.68544	Basalt	166.36812	g	Lava Flow
+This study	McMurdo	mc209g	mc209	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	108.4	Igneous : Extrusive	0		-89	-77.68544	Basalt	166.36812	g	Lava Flow
+This study	McMurdo	mc209h	mc209	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	78.1	Igneous : Extrusive	0		-92	-77.68544	Basalt	166.36812	g	Lava Flow
+This study	McMurdo	mc209i	mc209	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	113.1	Igneous : Extrusive	0		-85	-77.68544	Basalt	166.36812	g	Lava Flow
+This study	McMurdo	mc209j	mc209	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	95.9	Igneous : Extrusive	0		-89.5	-77.68544	Basalt	166.36812	g	Lava Flow
+This study	McMurdo	mc20g	mc20	FS-FD:SO-SIGHT	101	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-45	-77.88	Basalt	165.02	g	Volcanic Dike
+This study	McMurdo	mc210d	mc210	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	78.1	Igneous : Intrusive	0		-72.5	-77.69125	Phonolite	166.3743	g	Volcanic Dike
+This study	McMurdo	mc210f	mc210	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	78.1	Igneous : Intrusive	0		-80	-77.69125	Phonolite	166.3743	g	Volcanic Dike
+This study	McMurdo	mc210g	mc210	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	86.4	Igneous : Intrusive	0		-78.5	-77.69125	Phonolite	166.3743	g	Volcanic Dike
+This study	McMurdo	mc210h	mc210	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	60.8	Igneous : Intrusive	0		-80	-77.69125	Phonolite	166.3743	g	Volcanic Dike
+This study	McMurdo	mc210j	mc210	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	61.1	Igneous : Intrusive	0		-72	-77.69125	Phonolite	166.3743	g	Volcanic Dike
+This study	McMurdo	mc211b	mc211	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	310.7	Igneous : Extrusive	0	## direction deleted because: bad mark in field##.	-57	-77.66147	Phonolite	166.3397	b	Lava Flow
+This study	McMurdo	mc211c	mc211	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	303.7	Igneous : Extrusive	0		-52.5	-77.66147	Phonolite	166.3397	g	Lava Flow
+This study	McMurdo	mc211d	mc211	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	17.2	Igneous : Extrusive	0		-80.5	-77.66147	Phonolite	166.3397	g	Lava Flow
+This study	McMurdo	mc211f	mc211	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	358.4	Igneous : Extrusive	0		-48.5	-77.66147	Phonolite	166.3397	g	Lava Flow
+This study	McMurdo	mc211j	mc211	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	357.7	Igneous : Extrusive	0		-60.5	-77.66147	Phonolite	166.3397	g	Lava Flow
+This study	McMurdo	mc212e	mc212	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	78.3	Igneous : Extrusive	0		-82.5	-77.56505	Basalt	166.35938	g	Lava Flow
+This study	McMurdo	mc212f	mc212	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	74.5	Igneous : Extrusive	0		-70	-77.56505	Basalt	166.35938	g	Lava Flow
+This study	McMurdo	mc212h	mc212	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	59.4	Igneous : Extrusive	0		-46.5	-77.56505	Basalt	166.35938	g	Lava Flow
+This study	McMurdo	mc212i	mc212	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	68.1	Igneous : Extrusive	0		-54.5	-77.56505	Basalt	166.35938	g	Lava Flow
+This study	McMurdo	mc212j	mc212	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	78	Igneous : Extrusive	0		-54	-77.56505	Basalt	166.35938	g	Lava Flow
+This study	McMurdo	mc212k	mc212	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	77.4	Igneous : Extrusive	0		-51	-77.56505	Basalt	166.35938	g	Lava Flow
+This study	McMurdo	mc212l	mc212	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	70.5	Igneous : Extrusive	0		-53	-77.56505	Basalt	166.35938	g	Lava Flow
+This study	McMurdo	mc213a	mc213	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	77.9	Igneous : Extrusive	0		-71	-77.22331	Basalt	166.42877	g	Lava Flow
+This study	McMurdo	mc213b	mc213	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	78.3	Igneous : Extrusive	0		-69	-77.22331	Basalt	166.42877	g	Lava Flow
+This study	McMurdo	mc213c	mc213	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	91.5	Igneous : Extrusive	0		-67	-77.22331	Basalt	166.42877	g	Lava Flow
+This study	McMurdo	mc213d	mc213	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	76.9	Igneous : Extrusive	0		-67	-77.22331	Basalt	166.42877	g	Lava Flow
+This study	McMurdo	mc213j	mc213	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	81.1	Igneous : Extrusive	0		-82	-77.22331	Basalt	166.42877	g	Lava Flow
+This study	McMurdo	mc213k	mc213	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	67.3	Igneous : Extrusive	0		-57	-77.22331	Basalt	166.42877	g	Lava Flow
+This study	McMurdo	mc214c	mc214	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	184.9	Igneous : Extrusive	0		-47	-77.22355	Basalt	166.4294	g	Lava Flow
+This study	McMurdo	mc214e	mc214	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	107.1	Igneous : Extrusive	0		-98	-77.22355	Basalt	166.4294	g	Lava Flow
+This study	McMurdo	mc214f	mc214	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	104.5	Igneous : Extrusive	0		-81	-77.22355	Basalt	166.4294	g	Lava Flow
+This study	McMurdo	mc214i	mc214	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	161.2	Igneous : Extrusive	0		-90	-77.22355	Basalt	166.4294	g	Lava Flow
+This study	McMurdo	mc215e	mc215	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	263.3	Igneous : Extrusive	0		-24	-77.4773	Basalt	166.89491	g	Lava Flow
+This study	McMurdo	mc215f	mc215	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	302.9	Igneous : Extrusive	0		-15	-77.4773	Basalt	166.89491	g	Lava Flow
+This study	McMurdo	mc215g	mc215	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	312.5	Igneous : Extrusive	0		-14	-77.4773	Basalt	166.89491	g	Lava Flow
+This study	McMurdo	mc215j	mc215	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	244.4	Igneous : Extrusive	0		-38.5	-77.4773	Basalt	166.89491	g	Lava Flow
+This study	McMurdo	mc216c	mc216	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	181.1	Igneous : Extrusive	0		-50	-77.42391	Basalt	166.81075	g	Lava Flow
+This study	McMurdo	mc216d	mc216	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	181.5	Igneous : Extrusive	0		-36	-77.42391	Basalt	166.81075	g	Lava Flow
+This study	McMurdo	mc216e	mc216	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	176.6	Igneous : Extrusive	0		-41	-77.42391	Basalt	166.81075	g	Lava Flow
+This study	McMurdo	mc216i	mc216	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	173.5	Igneous : Extrusive	0		-75	-77.42391	Basalt	166.81075	g	Lava Flow
+This study	McMurdo	mc216j	mc216	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	191.4	Igneous : Extrusive	0		-90	-77.42391	Basalt	166.81075	g	Lava Flow
+This study	McMurdo	mc217f	mc217	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	266.6	Igneous : Extrusive	0		-78	-77.50885	Basalt	167.44064	g	Lava Flow
+This study	McMurdo	mc217g	mc217	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	265.6	Igneous : Extrusive	0		-76	-77.50885	Basalt	167.44064	g	Lava Flow
+This study	McMurdo	mc217h	mc217	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	275	Igneous : Extrusive	0		-63	-77.50885	Basalt	167.44064	g	Lava Flow
+This study	McMurdo	mc217i	mc217	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	285.2	Igneous : Extrusive	0		-74	-77.50885	Basalt	167.44064	g	Lava Flow
+This study	McMurdo	mc217j	mc217	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	265.4	Igneous : Extrusive	0		-61.5	-77.50885	Basalt	167.44064	g	Lava Flow
+This study	McMurdo	mc217k	mc217	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	267.9	Igneous : Extrusive	0		-60	-77.50885	Basalt	167.44064	g	Lava Flow
+This study	McMurdo	mc218a	mc218	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	32.7	Igneous : Extrusive	0	## direction deleted because: bad mark in field##.	-83	-77.56218	Basalt	166.97756	b	Lava Flow
+This study	McMurdo	mc218c	mc218	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	36.7	Igneous : Extrusive	0		-92	-77.56218	Basalt	166.97756	g	Lava Flow
+This study	McMurdo	mc218e	mc218	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	75.3	Igneous : Extrusive	0		-59.5	-77.56218	Basalt	166.97756	g	Lava Flow
+This study	McMurdo	mc218f	mc218	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	77.8	Igneous : Extrusive	0		-61.5	-77.56218	Basalt	166.97756	g	Lava Flow
+This study	McMurdo	mc218g	mc218	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	40.9	Igneous : Extrusive	0		-41	-77.56218	Basalt	166.97756	g	Lava Flow
+This study	McMurdo	mc218h	mc218	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	53.5	Igneous : Extrusive	0		-37	-77.56218	Basalt	166.97756	g	Lava Flow
+This study	McMurdo	mc218k	mc218	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	12.6	Igneous : Extrusive	0		-41	-77.56218	Basalt	166.97756	g	Lava Flow
+This study	McMurdo	mc218l	mc218	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	1.2	Igneous : Extrusive	0		-80	-77.56218	Basalt	166.97756	g	Lava Flow
+This study	McMurdo	mc219f	mc219	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	285.9	Igneous : Extrusive	0		-19.5	-77.84783	Basalt	166.67453	g	Lava Flow
+This study	McMurdo	mc219g	mc219	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	279.5	Igneous : Extrusive	0		-20.5	-77.84783	Basalt	166.67453	g	Lava Flow
+This study	McMurdo	mc219h	mc219	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	222	Igneous : Extrusive	0		-17.5	-77.84783	Basalt	166.67453	g	Lava Flow
+This study	McMurdo	mc219i	mc219	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	236.3	Igneous : Extrusive	0		-15.5	-77.84783	Basalt	166.67453	g	Lava Flow
+This study	McMurdo	mc219j	mc219	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	179.9	Igneous : Extrusive	0		-70	-77.84783	Basalt	166.67453	g	Lava Flow
+This study	McMurdo	mc219k	mc219	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	172.5	Igneous : Extrusive	0		-66	-77.84783	Basalt	166.67453	g	Lava Flow
+This study	McMurdo	mc219l	mc219	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	180.1	Igneous : Extrusive	0		-58	-77.84783	Basalt	166.67453	g	Lava Flow
+This study	McMurdo	mc220g	mc220	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	246.7	Igneous : Extrusive	0		-66.5	-77.45702	Basalt	166.91009	g	Lava Flow
+This study	McMurdo	mc220h	mc220	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	239	Igneous : Extrusive	0		-73.5	-77.45702	Basalt	166.91009	g	Lava Flow
+This study	McMurdo	mc220i	mc220	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	243.4	Igneous : Extrusive	0		-82	-77.45702	Basalt	166.91009	g	Lava Flow
+This study	McMurdo	mc220j	mc220	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	223.4	Igneous : Extrusive	0		-74	-77.45702	Basalt	166.91009	g	Lava Flow
+This study	McMurdo	mc221a	mc221	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	218.6	Igneous : Extrusive	0		-81	-77.5161	Basalt	166.79804	g	Lava Flow
+This study	McMurdo	mc221e	mc221	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	210.3	Igneous : Extrusive	0		-92	-77.5161	Basalt	166.79804	g	Lava Flow
+This study	McMurdo	mc221f	mc221	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	214.7	Igneous : Extrusive	0		-91	-77.5161	Basalt	166.79804	g	Lava Flow
+This study	McMurdo	mc221g	mc221	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	212.7	Igneous : Extrusive	0		-89	-77.5161	Basalt	166.79804	g	Lava Flow
+This study	McMurdo	mc222d	mc222	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	162.6	Igneous : Extrusive	0		-33	-77.53893	Basalt	166.84845	g	Lava Flow
+This study	McMurdo	mc222f	mc222	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	145.2	Igneous : Extrusive	0		-12	-77.53893	Basalt	166.84845	g	Lava Flow
+This study	McMurdo	mc222g	mc222	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	159.6	Igneous : Extrusive	0		-17.5	-77.53893	Basalt	166.84845	g	Lava Flow
+This study	McMurdo	mc222i	mc222	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	158.1	Igneous : Extrusive	0		-42	-77.53893	Basalt	166.84845	g	Lava Flow
+This study	McMurdo	mc223h	mc223	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	148.8	Igneous : Extrusive	0		-48	-77.65831	Phonolite	166.7863	g	Lava Flow
+This study	McMurdo	mc223i	mc223	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	291.2	Igneous : Extrusive	0		-42	-77.65831	Phonolite	166.7863	g	Lava Flow
+This study	McMurdo	mc223j	mc223	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	300.4	Igneous : Extrusive	0		-32.5	-77.65831	Phonolite	166.7863	g	Lava Flow
+This study	McMurdo	mc223k	mc223	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	230.9	Igneous : Extrusive	0		-75.5	-77.65831	Phonolite	166.7863	g	Lava Flow
+This study	McMurdo	mc224d	mc224	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	331.2	Igneous : Extrusive	0		-42.5	-77.53046	Phonolite	166.8839	g	Lava Flow
+This study	McMurdo	mc224g	mc224	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	357.8	Igneous : Extrusive	0		-57.5	-77.53046	Phonolite	166.8839	g	Lava Flow
+This study	McMurdo	mc224h	mc224	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	339.3	Igneous : Extrusive	0		-66	-77.53046	Phonolite	166.8839	g	Lava Flow
+This study	McMurdo	mc224i	mc224	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	274.2	Igneous : Extrusive	0		-57	-77.53046	Phonolite	166.8839	g	Lava Flow
+This study	McMurdo	mc224j	mc224	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	251.4	Igneous : Extrusive	0		-21.5	-77.53046	Phonolite	166.8839	g	Lava Flow
+This study	McMurdo	mc224k	mc224	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	241.3	Igneous : Extrusive	0		-22	-77.53046	Phonolite	166.8839	g	Lava Flow
+This study	McMurdo	mc224l	mc224	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	249.7	Igneous : Extrusive	0		-27	-77.53046	Phonolite	166.8839	g	Lava Flow
+This study	McMurdo	mc224m	mc224	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	320.7	Igneous : Extrusive	0		-59.5	-77.53046	Phonolite	166.8839	g	Lava Flow
+This study	McMurdo	mc225b	mc225	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	189.1	Igneous : Extrusive	0		-79	-77.58053	Phonolite	166.80156	g	Lava Flow
+This study	McMurdo	mc225e	mc225	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	220.2	Igneous : Extrusive	0		-87	-77.58053	Phonolite	166.80156	g	Lava Flow
+This study	McMurdo	mc225h	mc225	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	231.8	Igneous : Extrusive	0		-86.5	-77.58053	Phonolite	166.80156	g	Lava Flow
+This study	McMurdo	mc225j	mc225	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	250	Igneous : Extrusive	0		-98.5	-77.58053	Phonolite	166.80156	g	Lava Flow
+This study	McMurdo	mc225k	mc225	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	253.9	Igneous : Extrusive	0		-77	-77.58053	Phonolite	166.80156	g	Lava Flow
+This study	McMurdo	mc226c	mc226	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	150.4	Igneous : Extrusive	0		-79	-77.61355	Phonolite	166.76571	g	Lava Flow
+This study	McMurdo	mc226e	mc226	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	238.1	Igneous : Extrusive	0		-67	-77.61355	Phonolite	166.76571	g	Lava Flow
+This study	McMurdo	mc226h	mc226	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	151.7	Igneous : Extrusive	0		-69	-77.61355	Phonolite	166.76571	g	Lava Flow
+This study	McMurdo	mc226i	mc226	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	159.8	Igneous : Extrusive	0		-52	-77.61355	Phonolite	166.76571	g	Lava Flow
+This study	McMurdo	mc226j	mc226	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	164.4	Igneous : Extrusive	0		-48.5	-77.61355	Phonolite	166.76571	g	Lava Flow
+This study	McMurdo	mc226k	mc226	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	167.8	Igneous : Extrusive	0		-42	-77.61355	Phonolite	166.76571	g	Lava Flow
+This study	McMurdo	mc227a	mc227	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	288.3	Igneous : Extrusive	0		-12	-77.27064	Basalt	166.73278	g	Lava Flow
+This study	McMurdo	mc227e	mc227	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	313.9	Igneous : Extrusive	0		-20	-77.27064	Basalt	166.73278	g	Lava Flow
+This study	McMurdo	mc227g	mc227	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	218.9	Igneous : Extrusive	0		-34.5	-77.27064	Basalt	166.73278	g	Lava Flow
+This study	McMurdo	mc227i	mc227	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	213.4	Igneous : Extrusive	0		-29	-77.27064	Basalt	166.73278	g	Lava Flow
+This study	McMurdo	mc227j	mc227	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	139.9	Igneous : Extrusive	0		-29	-77.27064	Basalt	166.73278	g	Lava Flow
+This study	McMurdo	mc228c	mc228	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	194.7	Igneous : Extrusive	0		-18	-77.2669	Trachyte	166.37738	g	Lava Flow
+This study	McMurdo	mc228f	mc228	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	258.7	Igneous : Extrusive	0		-37.5	-77.2669	Trachyte	166.37738	g	Lava Flow
+This study	McMurdo	mc228h	mc228	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	326.2	Igneous : Extrusive	0		-21	-77.2669	Trachyte	166.37738	g	Lava Flow
+This study	McMurdo	mc228i	mc228	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	90.7	Igneous : Extrusive	0		-14	-77.2669	Trachyte	166.37738	g	Lava Flow
+This study	McMurdo	mc228j	mc228	FS-FD:FS-LOC-GPS:SO-POM:SO-GPS-DIFF	5.2	Igneous : Extrusive	0		-24.5	-77.2669	Trachyte	166.37738	g	Lava Flow
+This study	McMurdo	mc229c	mc229	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	40.3	Igneous : Extrusive	0		-90.5	-77.48281	Basalt	167.15435	g	Lava Flow
+This study	McMurdo	mc229d	mc229	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	49.7	Igneous : Extrusive	0		-84	-77.48281	Basalt	167.15435	g	Lava Flow
+This study	McMurdo	mc229f	mc229	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	2.6	Igneous : Extrusive	0		-90.5	-77.48281	Basalt	167.15435	g	Lava Flow
+This study	McMurdo	mc229h	mc229	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	45	Igneous : Extrusive	0	## direction deleted because: bad mark in field##.	-75.5	-77.48281	Basalt	167.15435	b	Lava Flow
+This study	McMurdo	mc229j	mc229	FS-FD:FS-LOC-GPS:SO-POM:SO-SUN	52.2	Igneous : Extrusive	0		-89	-77.48281	Basalt	167.15435	g	Lava Flow
+This study	McMurdo	mc22a	mc22	FS-FD:SO-SIGHT	310	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-57	-78.2	Basalt	166.54	g	Lava Flow
+This study	McMurdo	mc22b	mc22	FS-FD:SO-SIGHT	320	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-45	-78.2	Basalt	166.54	g	Lava Flow
+This study	McMurdo	mc28e	mc28	FS-FD:SO-SIGHT	349	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions ## direction deleted because: overprint during thellier##.	-34	-78.29	Basalt	164.73	b	Lava Flow
+This study	McMurdo	mc29d	mc29	FS-FD:SO-SIGHT	264	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-32	-78.31	Basalt	164.8	g	Lava Flow
+This study	McMurdo	mc31a	mc31	FS-FD:SO-SIGHT	290	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-55	-78.34	Basalt	164.28	g	Lava Flow
+This study	McMurdo	mc31e	mc31	FS-FD:SO-SIGHT	300	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-39	-78.34	Basalt	164.28	g	Lava Flow
+This study	McMurdo	mc31g	mc31	FS-FD:SO-SIGHT	219	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-50	-78.34	Basalt	164.28	g	Lava Flow
+This study	McMurdo	mc32c	mc32	FS-FD:SO-SIGHT	102	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-35	-78.36	Basalt	164.3	g	Lava Flow
+This study	McMurdo	mc34g	mc34	FS-FD:SO-SIGHT	238	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-48	-78.39	Basalt	164.27	g	Lava Flow
+This study	McMurdo	mc36c	mc36	FS-FD:SO-SIGHT	82	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-40	-78.39	Basalt	164.27	g	Lava Flow
+This study	McMurdo	mc38d	mc38	FS-FD:SO-SIGHT	65	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-63	-78.4	Basalt	164.21	g	Lava Flow
+This study	McMurdo	mc40d	mc40	FS-FD:SO-SIGHT	179	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-47	-78.39	Basalt	164.2	g	Lava Flow
+This study	McMurdo	mc41a	mc41	FS-FD:SO-SIGHT	131	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-16	-78.39	Basalt	164.2	g	Lava Flow
+This study	McMurdo	mc41g	mc41	FS-FD:SO-SIGHT	163	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-43	-78.39	Basalt	164.12	g	Lava Flow
+This study	McMurdo	mc42a	mc42	FS-FD:SO-SIGHT	291	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-72	-78.37	Basalt	164.12	g	Lava Flow
+This study	McMurdo	mc42c	mc42	FS-FD:SO-SIGHT	278	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-64	-78.37	Basalt	164.12	g	Lava Flow
+This study	McMurdo	mc42d	mc42	FS-FD:SO-SIGHT	288	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-57	-78.37	Basalt	164.12	g	Lava Flow
+This study	McMurdo	mc42e	mc42	FS-FD:SO-SIGHT	318	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-27	-78.37	Basalt	164.12	g	Lava Flow
+This study	McMurdo	mc42f	mc42	FS-FD:SO-SIGHT	1	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-39	-78.37	Basalt	164.12	g	Lava Flow
+This study	McMurdo	mc42g	mc42	FS-FD:SO-SIGHT	298	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-40	-78.37	Basalt	164.12	g	Lava Flow
+This study	McMurdo	mc43d	mc43	FS-FD:SO-SIGHT	275	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-51	-78.37	Basalt	164.24	g	Lava Flow
+This study	McMurdo	mc43h	mc43	FS-FD:SO-SIGHT	104	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-100	-78.37	Basalt	164.24	g	Lava Flow
+This study	McMurdo	mc48a	mc48	FS-FD:SO-SIGHT	138	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-53	-78.24	Basalt	163.36	g	Lava Flow
+This study	McMurdo	mc49c	mc49	FS-FD:SO-SIGHT	206	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-31	-78.24	Basalt	163.36	g	Lava Flow
+This study	McMurdo	mc49f	mc49	FS-FD:SO-SIGHT	206	Igneous : Extrusive	0	Archived samples from 1965, 66 expeditions.	-34	-78.24	Basalt	163.36	g	Lava Flow

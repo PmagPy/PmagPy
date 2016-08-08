@@ -1,0 +1,142 @@
+tab 	er_sites
+er_citation_names	er_location_name	er_site_name	site_class	site_definition	site_description	site_lat	site_lithology	site_lon	site_type
+This study	McMurdo	mc01	Igneous : Extrusive	s	Trachyte flow, N flank Observation hill, Hut Point Peninsula.	-77.85	Trachyte	166.64	Lava Flow
+This study	McMurdo	mc02	Igneous : Extrusive	s	Upper basalt flow, S. flank Crater Hill, Hut Point Peninsula.	-77.85	Basalt	166.69	Lava Flow
+This study	McMurdo	mc03	Igneous : Extrusive	s	10-m thick basalt flow, NE of Scott Base, Hut Point Peninsula.	-77.84	Basalt	166.76	Lava Flow
+This study	McMurdo	mc04	Igneous : Intrusive	s	Basalt volcanic dike at Fortress Rock, Hut Point Peninsula.	-77.84	Basalt	166.7	Volcanic Dike
+This study	McMurdo	mc06	Igneous : Extrusive	s		-77.83	Basalt	166.67	Lava Flow
+This study	McMurdo	mc07	Igneous : Extrusive	s		-77.8	Basalt	166.72	Lava Flow
+This study	McMurdo	mc08	Igneous : Extrusive	s	Basalt flow at Breached Cone, Hut Point Peninsula.	-77.8	Basalt	166.83	Lava Flow
+This study	McMurdo	mc09	Igneous : Extrusive	s	Kenyte (trachyte) flow, Backdoor Bay, Cape Royds - near MT Erubus.	-77.55	Trachyte	166.2	Lava Flow
+This study	McMurdo	mc100	Igneous : Extrusive	s		-78.302	Basalt	162.9	Lava Flow
+This study	McMurdo	mc101	Igneous : Extrusive	s		-78.306	Basalt	162.928	Lava Flow
+This study	McMurdo	mc102	Igneous : Extrusive	s		-78.235	Basalt	163.352	Lava Flow
+This study	McMurdo	mc103	Igneous : Extrusive	s		-78.235	Basalt	163.36	Lava Flow
+This study	McMurdo	mc104	Igneous : Extrusive	s		-78.238	Basalt	163.401	Lava Flow
+This study	McMurdo	mc105	Igneous : Extrusive	s		-78.245	Basalt	163.231	Lava Flow
+This study	McMurdo	mc106	Igneous : Extrusive	s		-78.21	Basalt	163.308	Lava Flow
+This study	McMurdo	mc107	Igneous : Extrusive	s		-78.204	Basalt	163.347	Lava Flow
+This study	McMurdo	mc108	Igneous : Extrusive	s		-78.247	Basalt	163.323	Lava Flow
+This study	McMurdo	mc109	Igneous : Extrusive	s		-78.282	Basalt	163.544	Lava Flow
+This study	McMurdo	mc10	Igneous : Extrusive	s		-77.57	Basalt	166.23	Lava Flow
+This study	McMurdo	mc110	Igneous : Extrusive	s		-78.238	Basalt	163.443	Lava Flow
+This study	McMurdo	mc111	Igneous : Extrusive	s		-78.224	Basalt	162.787	Lava Flow
+This study	McMurdo	mc112	Igneous : Extrusive	s		-78.238	Basalt	163.441	Lava Flow
+This study	McMurdo	mc113	Igneous : Extrusive	s		-78.226	Basalt	162.735	Lava Flow
+This study	McMurdo	mc114	Igneous : Extrusive	s		-78.224	Basalt	162.783	Lava Flow
+This study	McMurdo	mc115	Igneous : Extrusive	s		-78.243	Basalt	162.958	Lava Flow
+This study	McMurdo	mc116	Igneous : Extrusive	s		-78.222	Basalt	162.744	Lava Flow
+This study	McMurdo	mc117	Igneous : Extrusive	s		-78.235	Basalt	162.973	Lava Flow
+This study	McMurdo	mc118	Igneous : Extrusive	s		-78.241	Basalt	163.141	Lava Flow
+This study	McMurdo	mc119	Igneous : Extrusive	s		-78.239	Basalt	162.957	Lava Flow
+This study	McMurdo	mc11	Igneous : Extrusive	s		-77.57	Basalt	166.23	Lava Flow
+This study	McMurdo	mc120	Igneous : Extrusive	s		-78.241	Basalt	163.092	Lava Flow
+This study	McMurdo	mc121	Igneous : Extrusive	s		-78.235	Basalt	162.954	Lava Flow
+This study	McMurdo	mc122	Igneous : Extrusive	s		-78.187	Basalt	163.58	Lava Flow
+This study	McMurdo	mc123	Igneous : Extrusive	s		-78.254	Basalt	163.729	Lava Flow
+This study	McMurdo	mc124	Igneous : Extrusive	s		-78.186	Basalt	163.567	Lava Flow
+This study	McMurdo	mc125	Igneous : Intrusive	s		-78.254	Basalt	163.73	Volcanic Dike
+This study	McMurdo	mc126	Igneous : Extrusive	s		-78.253	Basalt	163.737	Lava Flow
+This study	McMurdo	mc127	Igneous : Extrusive	s		-78.254	Basalt	163.733	Lava Flow
+This study	McMurdo	mc128	Igneous : Extrusive	s		-78.21	Basalt	166.571	Lava Flow
+This study	McMurdo	mc129	Igneous : Intrusive	s		-78.214	Basalt	166.577	Volcanic Dike
+This study	McMurdo	mc12	Igneous : Extrusive	s		-77.58	Basalt	166.23	Lava Flow
+This study	McMurdo	mc130	Igneous : Extrusive	s		-78.21	Basalt	166.579	Lava Flow
+This study	McMurdo	mc131	Igneous : Extrusive	s		-78.214	Basalt	166.573	Lava Flow
+This study	McMurdo	mc132	Igneous : Extrusive	s		-78.206	Basalt	166.552	Lava Flow
+This study	McMurdo	mc133	Igneous : Extrusive	s		-78.199	Trachyte	166.584	Lava Flow
+This study	McMurdo	mc134	Igneous : Extrusive	s		-78.219	Basalt	166.607	Lava Flow
+This study	McMurdo	mc135	Igneous : Extrusive	s		-78.231	Basalt	166.565	Lava Flow
+This study	McMurdo	mc136	Igneous : Extrusive	s		-78.282	Basalt	163.329	Lava Flow
+This study	McMurdo	mc137	Igneous : Extrusive	s		-78.261	Basalt	163.257	Lava Flow
+This study	McMurdo	mc138	Igneous : Extrusive	s		-78.26	Basalt	163.24	Lava Flow
+This study	McMurdo	mc139	Igneous : Extrusive	s		-78.26	Basalt	163.08	Lava Flow
+This study	McMurdo	mc13	Igneous : Extrusive	s	12-m-thick Kenyte flow, tip of Cape Evans - near Mt Erubus.	-77.64	Trachyte	166.41	Lava Flow
+This study	McMurdo	mc140	Igneous : Extrusive	s		-78.276	Basalt	163.004	Lava Flow
+This study	McMurdo	mc141	Igneous : Extrusive	s		-77.58	Basalt	166.246	Lava Flow
+This study	McMurdo	mc142	Igneous : Extrusive	s		-77.851	Trachyte	166.68	Lava Flow
+This study	McMurdo	mc143	Igneous : Extrusive	s		-78.244	Basalt	162.879	Lava Flow
+This study	McMurdo	mc144	Igneous : Extrusive	s		-77.85	Trachyte	166.688	Lava Flow
+This study	McMurdo	mc145	Igneous : Extrusive	s		-78.24	Basalt	162.893	Lava Flow
+This study	McMurdo	mc146	Igneous : Extrusive	s		-78.22	Basalt	162.963	Lava Flow
+This study	McMurdo	mc147	Igneous : Extrusive	s		-78.196	Basalt	162.962	Lava Flow
+This study	McMurdo	mc148	Igneous : Extrusive	s		-77.492	Basalt	167.249	Lava Flow
+This study	McMurdo	mc149	Igneous : Intrusive	s		-77.486	Basalt	167.187	Volcanic Dike
+This study	McMurdo	mc14	Igneous : Extrusive	s		-77.46	Basalt	169.23	Lava Flow
+This study	McMurdo	mc150	Igneous : Extrusive	s		-77.714	Basalt	162.637	Lava Flow
+This study	McMurdo	mc151	Igneous : Extrusive	s		-77.486	Basalt	167.187	Lava Flow
+This study	McMurdo	mc152	Igneous : Intrusive	s		-77.716	Basalt	162.645	Volcanic Dike
+This study	McMurdo	mc153	Igneous : Extrusive	s		-77.76	Basalt	162.144	Lava Flow
+This study	McMurdo	mc154	Igneous : Extrusive	s		-77.719	Basalt	162.626	Lava Flow
+This study	McMurdo	mc155	Igneous : Extrusive	s		-77.699	Basalt	162.253	Lava Flow
+This study	McMurdo	mc156	Igneous : Extrusive	s		-77.705	Basalt	162.592	Lava Flow
+This study	McMurdo	mc157	Igneous : Extrusive	s		-77.703	Basalt	162.264	Lava Flow
+This study	McMurdo	mc158	Igneous : Extrusive	s		-77.688	Basalt	162.462	Lava Flow
+This study	McMurdo	mc15	Igneous : Extrusive	s	Hornblende trachyte capping Post Office Hill, Cape Crozier.	-77.47	Basalt	169.23	Lava Flow
+This study	McMurdo	mc160	Igneous : Extrusive	s		-77.687	Basalt	162.354	Lava Flow
+This study	McMurdo	mc161	Igneous : Extrusive	s		-77.702	Basalt	162.694	Lava Flow
+This study	McMurdo	mc162	Igneous : Extrusive	s		-77.701	Basalt	162.69	Lava Flow
+This study	McMurdo	mc163	Igneous : Extrusive	s		-77.7	Basalt	162.68	Lava Flow
+This study	McMurdo	mc164	Igneous : Extrusive	s		-77.514	Basalt	169.33	Lava Flow
+This study	McMurdo	mc165	Igneous : Extrusive	s		-77.513	Basalt	169.332	Lava Flow
+This study	McMurdo	mc166	Igneous : Extrusive	s		-77.849	Basalt	166.67	Lava Flow
+This study	McMurdo	mc167	Igneous : Extrusive	s		-77.487	Basalt	169.294	Lava Flow
+This study	McMurdo	mc168	Igneous : Extrusive	s		-77.488	Basalt	169.292	Lava Flow
+This study	McMurdo	mc169	Igneous : Extrusive	s		-77.491	Basalt	169.28	Lava Flow
+This study	McMurdo	mc16	Igneous : Extrusive	s		-77.51	Basalt	169.38	Lava Flow
+This study	McMurdo	mc170	Igneous : Extrusive	s		-77.854	Basalt	166.714	Lava Flow
+This study	McMurdo	mc19	Igneous : Extrusive	s		-77.86	Basalt	165.23	Lava Flow
+This study	McMurdo	mc200	Igneous : Extrusive	s		-77.54995	Phonolite	166.16148	Lava Flow
+This study	McMurdo	mc201	Igneous : Extrusive	s		-77.56284	Phonolite	166.21958	Lava Flow
+This study	McMurdo	mc202	Igneous : Extrusive	s		-77.65674	Phonolite	166.36424	Lava Flow
+This study	McMurdo	mc203	Igneous : Intrusive	s		-77.5807	Basalt	166.25055	Volcanic Dike
+This study	McMurdo	mc204	Igneous : Extrusive	s		-77.6402	Phonolite	166.40836	Lava Flow
+This study	McMurdo	mc205	Igneous : Intrusive	s		-77.65666	Basalt	166.72515	Volcanic Dike
+This study	McMurdo	mc206	Igneous : Intrusive	s		-77.66665	Basalt	166.78033	Volcanic Dome
+This study	McMurdo	mc207	Igneous : Extrusive	s		-77.67871	Basalt	166.5173	Lava Flow
+This study	McMurdo	mc208	Igneous : Extrusive	s		-77.66786	Basalt	166.53186	Lava Flow
+This study	McMurdo	mc209	Igneous : Extrusive	s		-77.68544	Basalt	166.36812	Lava Flow
+This study	McMurdo	mc20	Igneous : Intrusive	s	Basalt volcanic dike cutting eroded cone, Dailey Island. .	-77.88	Basalt	165.02	Volcanic Dike
+This study	McMurdo	mc210	Igneous : Intrusive	s		-77.69125	Phonolite	166.3743	Volcanic Dike
+This study	McMurdo	mc211	Igneous : Extrusive	s		-77.66147	Phonolite	166.3397	Lava Flow
+This study	McMurdo	mc212	Igneous : Extrusive	s		-77.56505	Basalt	166.35938	Lava Flow
+This study	McMurdo	mc213	Igneous : Extrusive	s		-77.22331	Basalt	166.42877	Lava Flow
+This study	McMurdo	mc214	Igneous : Extrusive	s		-77.22355	Basalt	166.4294	Lava Flow
+This study	McMurdo	mc215	Igneous : Extrusive	s		-77.4773	Basalt	166.89491	Lava Flow
+This study	McMurdo	mc216	Igneous : Extrusive	s		-77.42391	Basalt	166.81075	Lava Flow
+This study	McMurdo	mc217	Igneous : Extrusive	s		-77.50885	Basalt	167.44064	Lava Flow
+This study	McMurdo	mc218	Igneous : Extrusive	s		-77.56218	Basalt	166.97756	Lava Flow
+This study	McMurdo	mc219	Igneous : Extrusive	s		-77.84783	Basalt	166.67453	Lava Flow
+This study	McMurdo	mc21	Igneous : Extrusive	s		-78.21	Basalt	166.49	Lava Flow
+This study	McMurdo	mc220	Igneous : Extrusive	s		-77.45702	Basalt	166.91009	Lava Flow
+This study	McMurdo	mc221	Igneous : Extrusive	s		-77.5161	Basalt	166.79804	Lava Flow
+This study	McMurdo	mc222	Igneous : Extrusive	s		-77.53893	Basalt	166.84845	Lava Flow
+This study	McMurdo	mc223	Igneous : Extrusive	s		-77.65831	Phonolite	166.7863	Lava Flow
+This study	McMurdo	mc224	Igneous : Extrusive	s		-77.53046	Phonolite	166.8839	Lava Flow
+This study	McMurdo	mc225	Igneous : Extrusive	s		-77.58053	Phonolite	166.80156	Lava Flow
+This study	McMurdo	mc226	Igneous : Extrusive	s		-77.61355	Phonolite	166.76571	Lava Flow
+This study	McMurdo	mc227	Igneous : Extrusive	s		-77.27064	Basalt	166.73278	Lava Flow
+This study	McMurdo	mc228	Igneous : Extrusive	s		-77.2669	Trachyte	166.37738	Lava Flow
+This study	McMurdo	mc229	Igneous : Extrusive	s		-77.48281	Basalt	167.15435	Lava Flow
+This study	McMurdo	mc22	Igneous : Extrusive	s		-78.2	Basalt	166.54	Lava Flow
+This study	McMurdo	mc26	Igneous : Extrusive	s		-78.21	Basalt	166.57	Lava Flow
+This study	McMurdo	mc28	Igneous : Extrusive	s	Young looking basalt flow on NW flank of Mount Discovery.	-78.29	Basalt	164.73	Lava Flow
+This study	McMurdo	mc29	Igneous : Extrusive	s	Basalt volcanic dike cutting youthful cone, NW flank of Mount Discovery. .	-78.31	Basalt	164.8	Volcanic Dike
+This study	McMurdo	mc30	Igneous : Extrusive	s		-78.34	Basalt	164.87	Lava Flow
+This study	McMurdo	mc31	Igneous : Extrusive	s		-78.34	Basalt	164.28	Lava Flow
+This study	McMurdo	mc32	Igneous : Extrusive	s		-78.36	Basalt	164.3	Lava Flow
+This study	McMurdo	mc33	Igneous : Extrusive	s		-78.38	Basalt	164.34	Lava Flow
+This study	McMurdo	mc34	Igneous : Extrusive	s		-78.39	Basalt	164.27	Lava Flow
+This study	McMurdo	mc35	Igneous : Extrusive	s	Basalt flow on rim of crater, Mount Morning volcanic field. .	-78.39	Basalt	164.23	Lava Flow
+This study	McMurdo	mc36	Igneous : Extrusive	s	Olivine basalt - Mount Morning volcanic field.	-78.39	Basalt	164.27	Lava Flow
+This study	McMurdo	mc37	Igneous : Extrusive	s	Basalt from dissected cone, eastern part of Mount Morning volcanic field. .	-78.4	Basalt	164.27	Lava Flow
+This study	McMurdo	mc38	Igneous : Extrusive	s		-78.4	Basalt	164.21	Lava Flow
+This study	McMurdo	mc39	Igneous : Extrusive	s	Olivine basalt with large feldspars, Mount Morning volcanic field. .	-78.39	Basalt	164.21	Lava Flow
+This study	McMurdo	mc40	Igneous : Extrusive	s		-78.39	Basalt	164.2	Lava Flow
+This study	McMurdo	mc41	Igneous : Extrusive	s	Olivine basalt - Mount Morning volcanic field.	-78.39	Basalt	164.2	Lava Flow
+This study	McMurdo	mc42	Igneous : Extrusive	s		-78.37	Basalt	164.12	Lava Flow
+This study	McMurdo	mc43	Igneous : Extrusive	s		-78.37	Basalt	164.24	Lava Flow
+This study	McMurdo	mc44	Igneous : Extrusive	s		-78.36	Basalt	164.26	Lava Flow
+This study	McMurdo	mc48	Igneous : Extrusive	s		-78.24	Basalt	163.36	Lava Flow
+This study	McMurdo	mc49	Igneous : Extrusive	s	Olivine basalt @ terminus of Walcott Glacier.	-78.24	Basalt	163.36	Lava Flow
+This study	McMurdo	mc50	Igneous : Extrusive	s	Olivine basalt @ Roaring Valley.	-78.25	Basalt	163.22	Lava Flow

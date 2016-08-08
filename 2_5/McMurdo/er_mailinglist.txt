@@ -1,0 +1,6 @@
+tab 	er_mailinglist
+country	email	er_mail_name	organization
+U.S.A.	jlsteindorf@ucsd.edu	Jason Steindorf	Scripps Institution of Oceanography
+U.S.A.	klawrence@ucsd.edu	Kristin Lawrence	Scripps Institution of Oceanography
+U.S.A.	hstaudigel@ucsd.edu	Hubert Staudigel	Scripps Institution of Oceanography
+U.S.A.	ltauxe@ucsd.edu	Lisa Tauxe	Scripps Institution of Oceanography
