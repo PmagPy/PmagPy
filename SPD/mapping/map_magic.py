@@ -38,10 +38,14 @@ magic2spd_map = dict(zip(magic, spd))
 
 # mapping between magic2 and magic3
 
-#measurement data translation magic_measurements.txt -> measurements.txt
-meas_magic3_2_magic2_map = {'treat_dc_field_theta': 'treatment_dc_field_theta', 'sample': 'er_sample_name', 'treat_dc_field': 'treatment_dc_field', 'instrument_codes': 'magic_instrument_codes', 'description': 'measurement_description', 'magn_volume': 'measurement_magn_volume', 'specimen': 'er_specimen_name', 'treat_dc_field_phi': 'treatment_dc_field_phi', 'number': 'measurement_number', 'site': 'er_site_name', 'treat_ac_field': 'treatment_ac_field', 'flag': 'measurement_flag', 'dir_inc': 'measurement_inc', 'location': 'er_location_name', 'dir_dec': 'measurement_dec', 'method_codes': 'magic_method_codes', 'treat_temp': 'treatment_temp', 'magn_moment': 'measurement_magn_moment', 'magn_mass': 'measurement_magn_mass', 'dir_csd': 'measurement_csd'}
+#measurement data translation measurements.txt -> magic_measurements.txt
+meas_magic3_2_magic2_map = {'treat_dc_field_theta': 'treatment_dc_field_theta', 'sample': 'er_sample_name', 'treat_dc_field': 'treatment_dc_field', 'instrument_codes': 'magic_instrument_codes', 'description': 'measurement_description', 'magn_volume': 'measurement_magn_volume', 'specimen': 'er_specimen_name', 'treat_dc_field_phi': 'treatment_dc_field_phi', 'number': 'measurement_number', 'site': 'er_site_name', 'treat_ac_field': 'treatment_ac_field', 'flag': 'measurement_flag', 'dir_inc': 'measurement_inc', 'location': 'er_location_name', 'dir_dec': 'measurement_dec', 'method_codes': 'magic_method_codes', 'treat_temp': 'treatment_temp', 'magn_moment': 'measurement_magn_moment', 'magn_mass': 'measurement_magn_mass', 'dir_csd': 'measurement_csd','experiment':'magic_experiment_name'}
 
-meas_magic2_2_magic3_map = {v:k for k,v in meas_magic3_2_magic2_map.items()}
+#meas_magic2_2_magic3_map = {v:k for k,v in meas_magic3_2_magic2_map.items()}
+
+#measurement data translation magic_measurements.txt -> measurements.txt
+meas_magic2_2_magic3_map = {'treatment_ac_field': 'treat_ac_field', 'measurement_number': 'number', 'treatment_dc_field_theta': 'treat_dc_field_theta', 'er_site_name': 'site', 'er_sample_name': 'sample', 'treatment_dc_field_phi': 'treat_dc_field_phi', 'measurement_magn_volume': 'magn_volume', 'magic_instrument_codes': 'instrument_codes', 'measurement_description': 'description', 'er_location_name': 'location', 'measurement_dec': 'dir_dec', 'measurement_flag': 'flag', 'measurement_magn_moment': 'magn_moment', 'measurement_inc': 'dir_inc', 'treatment_temp': 'treat_temp', 'er_specimen_name': 'specimen', 'measurement_csd': 'dir_csd', 'treatment_dc_field': 'treat_dc_field', 'measurement_magn_mass': 'magn_mass', 'magic_method_codes': 'method_codes','magic_experiment_name':'experiment'} 
+
 
 #specimen data translation pmag_speciemns,er_specimens -> specimens.txt
 spec_magic3_2_magic2_map = {'int_drats': 'specimen_drats', 'site': 'er_site_name', 'int_mad': 'specimen_int_mad', 'sample': 'er_sample_name', 'int_n_measurements': 'specimen_int_n', 'int_corr': 'specimen_correction', 'int_rsc': 'specimen_rsc', 'analyst_names': 'er_analyst_mail_names', 'int_scat': 'specimen_scat', 'int_ptrm_n': 'specimen_int_ptrm_n', 'citations': 'er_citation_names', 'int_gmax': 'specimen_gmax', 'int_dang': 'specimen_int_dang', 'dir_tilt_correction': 'specimen_tilt_correction', 'location': 'er_location_name', 'dir_comp': 'specimen_comp_name', 'specimen_magn_moment': 'magn_moment', 'int_w': 'specimen_w', 'specimen': 'er_specimen_name', 'int_q': 'specimen_q', 'int_fvds': 'specimen_fvds', 'specimen_mad': 'dir_mad_free', 'int_frac': 'specimen_frac', 'meas_step_min': 'measurement_step_min', 'int_f': 'specimen_f', 'software_packages': 'magic_software_packages', 'dir_mad_free': 'specimen_mad', 'magn_moment': 'specimen_magn_moment', 'instrument_codes': 'magic_instrument_codes', 'int_b_beta': 'specimen_b_beta', 'dir_n_comps': 'specimen_comp_n', 'int_md': 'specimen_md', 'dir_n_measurements': 'specimen_n', 'dir_inc': 'specimen_inc', 'specimen_magn_volumn': 'magn_volumn', 'meas_step_max': 'measurement_step_max', 'dir_alpha95': 'specimen_alpha95', 'magn_volumne': 'specimen_magn_volumn', 'measurement_step_min': 'meas_step_min', 'meas_step_unit': 'measurement_step_unit', 'dir_dec': 'specimen_dec', 'method_codes': 'magic_method_codes', 'result_quality': 'specimen_flag', 'dir_dang': 'specimen_dang'}
@@ -121,6 +125,17 @@ def convert_direction_criteria(direction,crit):
             return 'sites.' + site_magic2_2_magic3_map[crit]
         else:
             return ""
+
+def convert_meas(direction,Rec):
+    if direction=='magic3':
+        columns=meas_magic2_2_magic3_map
+        MeasRec={}
+        for key in columns:
+            if key in Rec.keys():
+                MeasRec[columns[key]]=Rec[key] # transfer info and change column name to data model 3.0
+        return MeasRec
+    else: # haven't added this way yet
+        pass
 
 def convert_spec(direction,Rec):
     if direction=='magic3':

@@ -2279,20 +2279,24 @@ class Arai_GUI(wx.Frame):
         '''
         if self.data_model==3:
             contribution = nb.Contribution(self.WD, read_tables=['criteria'])
-            crit_container = contribution.tables['criteria']
-            crit_data = crit_container.df
+            if 'criteria' in contribution.tables:
+                crit_container = contribution.tables['criteria']
+                crit_data = crit_container.df
             #crit_data = crit_data[crit_data['criterion'].str.contains('IE-')==True] # fish out all the relavent data
-            crit_data=crit_data.to_dict('records') # convert to list of dictionaries
-            for crit in crit_data:  # step through and rename every f-ing one
-                m2_name=map_magic.convert_intensity_criteria('magic2',crit['table_column']) #magic2[magic3.index(crit['table_column'])] # find data model 2.5 name
-                if m2_name!=crit['table_column'] and 'scat' not in m2_name!="":
-                    self.acceptance_criteria[m2_name]['value']=float(crit['criterion_value'])
-                    self.acceptance_criteria[m2_name]['pmag_criteria_code']=crit['criterion']
-                if m2_name!=crit['table_column'] and 'scat' in m2_name!="":
-                    if crit['criterion_value']=='True':
-                        self.acceptance_criteria[m2_name]['value']=1
-                    else:
-                        self.acceptance_criteria[m2_name]['value']=0
+                crit_data=crit_data.to_dict('records') # convert to list of dictionaries
+                for crit in crit_data:  # step through and rename every f-ing one
+                    m2_name=map_magic.convert_intensity_criteria('magic2',crit['table_column']) #magic2[magic3.index(crit['table_column'])] # find data model 2.5 name
+                    if m2_name!=crit['table_column'] and 'scat' not in m2_name!="":
+                        self.acceptance_criteria[m2_name]['value']=float(crit['criterion_value'])
+                        self.acceptance_criteria[m2_name]['pmag_criteria_code']=crit['criterion']
+                    if m2_name!=crit['table_column'] and 'scat' in m2_name!="":
+                        if crit['criterion_value']=='True':
+                            self.acceptance_criteria[m2_name]['value']=1
+                        else:
+                            self.acceptance_criteria[m2_name]['value']=0
+            else:
+                print "-E- Cant read criteria file"
+
         else: #      Do it the data model 2.5 way:
             try:
                 self.acceptance_criteria=pmag.read_criteria_from_file(criteria_file,self.acceptance_criteria)
@@ -6696,6 +6700,7 @@ class Arai_GUI(wx.Frame):
         self.Data_samples={}
         self.Data_sites={}
   # read in data
+        prev_pmag_specimen=[]
         if self.data_model==3: # data model 3.0
             if len(self.spec_data)>0:  # there are previous measurements
               prev_specs=self.spec_data[self.spec_data['int_abs'].notnull()] # get the previous intensity interpretations
@@ -6706,7 +6711,6 @@ class Arai_GUI(wx.Frame):
               prev_specs = prev_specs.rename(columns=map_magic.spec_magic3_2_magic2_map)
               prev_pmag_specimen=prev_specs.to_dict("records")
         else:
-            prev_pmag_specimen=[]
             try:
                 prev_pmag_specimen,file_type=pmag.magic_read(os.path.join(self.WD, "pmag_specimens.txt"))
                 self.GUI_log.write ("-I- Read pmag_specimens.txt for previous interpretation")
