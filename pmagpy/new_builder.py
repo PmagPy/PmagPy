@@ -283,7 +283,7 @@ class Contribution(object):
             return
         # make sure source table is read in
         if source_df_name not in self.tables:
-            self.add_magic_table(source_table_name)
+            self.add_magic_table(source_df_name)
             print "-W- Couldn't read in {} table".format(source_df_name)
             return
         # make sure col_names are all available in source table
@@ -514,7 +514,6 @@ class MagicDataFrame(object):
         else:
             print 'no record found - creating new one for ', name
             # add new row
-            self.add_row(name, new_data)
             df_data = self.add_row(name, new_data)
         # sort so that all rows for an item are together
         df_data.sort_index(inplace=True)

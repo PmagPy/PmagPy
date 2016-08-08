@@ -3700,6 +3700,7 @@ class Arai_GUI(wx.Frame):
                     # update record
                     self.samp_data = self.samp_container.update_record(sample_or_site, new_data, condition)
                     # give temporary index to site_data
+                    self.site_data = self.site_container.df
                     self.site_data['num'] = range(len(self.site_data))
                     # remove intensity data from site level.
                     site=self.Data_hierarchy['site_of_sample'][sample_or_site]
@@ -3710,74 +3711,31 @@ class Arai_GUI(wx.Frame):
                     site_keys=['int_abs','int_sigma','int_n_samples','int_sigma_perc'] # zero these out but keep the rest
                     for key in site_keys:
                         new_data[key] = ""
-                    if len(self.site_data[condition]) > 0:  #we have one or more records to delete
-                        inds = self.site_data[condition]['num'] # list of all rows where condition is true
-                        existing_data = dict(self.site_data.iloc[inds[0]]) # get first record of existing_data from dataframe
-                        existing_data.update(new_data) # update existing data with new interpretations
-                        # update row
-                        self.site_container.update_row(inds[0], existing_data)
-                        # now remove all the remaining records of same condition
-                        if len(inds)>1:
-                            for ind in inds[1:]:
-                                self.site_container.delete_row(ind)
-                    # sort so that all rows for a site are together
-                    self.site_data.sort_index(inplace=True)
-                    # redo temporary index
-                    self.site_data['num'] = range(len(self.site_data))
+                    self.site_data = self.site_container.update_record(site, new_data, condition)
                 else:  # do this by site and not by sample
                     new_data = map_magic.convert_site('magic3',new_sample_or_site_data) # convert to 3.0
                     # add numeric index column temporarily
                     self.site_container.df['num'] = range(len(self.site_container.df))
-                    self.site_data = self.site_container.df
            # edit first of existing intensity data for this site from self.site_data
                     cond1 = self.site_data['site'].str.contains(sample_or_site)==True
                     if 'int_abs' not in self.site_data.columns:
                         self.site_data['int_abs'] = None
                     cond2 = self.site_data['int_abs'].notnull()==True
                     condition = (cond1 & cond2)
-                    if len(self.site_data[condition]) > 0:  #we have one or more records to update or delete
-                        inds = self.site_data[condition]['num'] # list of all rows where condition is true
-                        existing_data = dict(self.site_data.iloc[inds[0]]) # get first record of existing_data from dataframe
-                        existing_data.update(new_data) # update existing data with new interpretations
-                        # update row
-                        self.site_container.update_row(inds[0], existing_data)
-                        # now remove all the remaining records of same condition
-                        if len(inds)>1:
-                            for ind in inds[1:]:
-                                self.site_container.delete_row(ind)
-                    else:
-                        print 'no record found - creating new one for ', sample_or_site
-                        # add new row
-                        self.site_container.add_row(sample_or_site, new_data)
-                    # sort so that all rows for a site are together
-                    self.site_data.sort_index(inplace=True)
-                    # redo temporary index
-                    self.site_data['num'] = range(len(self.site_data))
+                    self.site_data = self.site_container.update_record(sample_or_site, new_data, condition)
                     # remove intensity data from sample level.   # need to look up samples from this site
-                    cond1=self.samp_data['site'].str.contains(sample_or_site)==True
+                    cond1 = self.samp_data['site'].str.contains(sample_or_site)==True
                     if 'int_abs' not in self.samp_data.columns:
                         self.samp_data['int_abs'] = None
-                    cond2=self.samp_data['int_abs'].notnull()==True
-                    condition=(cond1 & cond2)
-                    new_data={} # zero these out but keep the rest
-                    samp_keys=['int_abs','int_sigma','int_n_specimens','int_sigma_perc'] # zero these out but keep the rest
+                    cond2 = self.samp_data['int_abs'].notnull()==True
+                    condition = (cond1 & cond2)
+                    new_data = {} # zero these out but keep the rest
+                    samp_keys = ['int_abs','int_sigma','int_n_specimens','int_sigma_perc'] # zero these out but keep the rest
                     for key in samp_keys:
                         new_data[key]=""
-                    if len(self.samp_data[condition]) > 0:  #we have one or more records to delete
-                        inds=self.samp_data[condition]['num'] # list of all rows where condition is true
-                        existing_data=dict(self.samp_data.iloc[inds[0]]) # get first record of existing_data from dataframe
-                        existing_data.update(new_data) # update existing data with new interpretations
-                        # update row
-                        self.samp_container.update_row(inds[0], existing_data)
-                        # now remove all the remaining records of same condition
-                        if len(inds)>1:
-                            for ind in inds[1:]:
-                                self.samp_container.delete_row(ind)
-                    # sort so that all rows for sample are together
-                    self.samp_data.sort_index(inplace=True)
-                    # redo temporary index
-                    self.samp_data['num'] = range(len(self.samp_data))
-
+                    samples = self.samp_data[condition].index.unique()
+                    for samp_name in samples:
+                        self.samp_container.update_record(samp_name, new_data, cond2)
             #  write out the data
             self.samp_container.write_magic_file(custom_name='new_samples.txt', dir_path=self.WD) # change this to samples.txt when ready
             self.site_container.write_magic_file(custom_name='new_sites.txt', dir_path=self.WD) # change this to sites.txt when ready
@@ -6612,6 +6570,8 @@ class Arai_GUI(wx.Frame):
                 self.site_data = self.site_data[self.site_data['lat'].notnull()]
                 self.site_data = self.site_data[self.site_data['lon'].notnull()]
                 self.site_data = self.site_data[self.site_data['age'].notnull()]
+                self.site_container.df = self.site_data
+                # update container df to ignore above null values
                 site_headers = ['site','int_abs','int_abs_sigma','int_abs_sigma_perc','int_n_samples','int_n_specimens']
                 for head in site_headers:
                     if head not in self.site_data:
