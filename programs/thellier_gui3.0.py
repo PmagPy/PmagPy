@@ -3453,7 +3453,7 @@ class Arai_GUI(wx.Frame):
                     pass
 
 
-        else: # don't do anything yet = need vdm data START HERE WITH 3.0 CONVERSION
+        else: # don't do anything yet = need vdm data 
             pass
 
         #-------------
@@ -5606,8 +5606,6 @@ class Arai_GUI(wx.Frame):
           if 'specimens' in self.contribution.tables:
               self.contribution.propagate_name_down('sample', 'measurements')
               self.contribution.propagate_name_down('sample', 'specimens') # need these for get_data_info
-          else:  
-              self.contribution.add_magic_table(self.contribution, fname='specimens.txt')
           if 'samples' in self.contribution.tables:
               self.contribution.propagate_name_down('site', 'measurements')
               self.contribution.propagate_name_down('site', 'specimens')
@@ -6562,10 +6560,14 @@ class Arai_GUI(wx.Frame):
             self.contribution = nb.Contribution(self.WD, custom_filenames=fnames, read_tables=['measurements', 'specimens', 'samples','sites'])
             if 'specimens' in self.contribution.tables:
                 self.spec_container = self.contribution.tables['specimens']
-                self.spec_data = self.spec_container.df
+            else:  
+                self.spec_container = nb.MagicDataFrame(dtype='specimens',columns=['specimen','aniso_type'])
+            self.spec_data = self.spec_container.df
             if 'samples' in self.contribution.tables:
                 self.samp_container = self.contribution.tables['samples']
-                self.samp_data = self.samp_container.df # only need this for saving tables
+            else:  
+                self.samp_container = nb.MagicDataFrame(dtype='samples',columns=['sample'])
+            self.samp_data = self.samp_container.df # only need this for saving tables
             if 'sites' in self.contribution.tables:
                 self.site_container = self.contribution.tables['sites']
                 self.site_data = self.site_container.df
@@ -6597,6 +6599,9 @@ class Arai_GUI(wx.Frame):
                 data_er_sites={}
                 for s in er_sites:
                    data_er_sites[s['er_site_name']]=s
+            else:  
+                self.site_container = nb.MagicDataFrame(dtype='sites',columns=['site'])
+            self.site_data = self.site_container.df # only need this for saving tables
 
         else:  # read from 2.5 formatted files
             try:

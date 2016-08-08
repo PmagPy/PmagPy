@@ -8842,7 +8842,6 @@ def read_criteria_from_file(path,acceptance_criteria,**kwargs):
     acceptance_criteria_list=acceptance_criteria.keys()
     if 'data_model' in kwargs.keys() and kwargs['data_model']==3:
         crit_data=acceptance_criteria # data already read in
-
     else:
         crit_data,file_type=magic_read(path)
     for rec in crit_data:
