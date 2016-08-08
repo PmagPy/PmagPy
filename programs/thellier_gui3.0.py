@@ -3,6 +3,12 @@
 #============================================================================================
 # LOG HEADER:
 #============================================================================================
+# Version 3.1 (8/8/16: Lisa Tauxe)
+# TODO:  
+#    1) need to fix code for importing criteria file in data model 3.0
+#    2) need to thoroughly test and finalize output format (esp.  vdms/vadms)
+#    3) need to make data_model recognition automatic (as in demag_gui)
+#    4) rename code thellier_gui.py
 #
 # Thellier_GUI Version 3.0  8/2/16 (Lisa Tauxe)
 # Adding in the ability to read in and write out
@@ -18,8 +24,6 @@
 #   8) does  NLT correction
 #   9) saves specimen data to specimens.txt in 3.0
 #   10) saves samples/sites tables in 3.0 format
-# TODO:
-#    Fix method codes and acceptance criteria in output files
 #
 # Thellier_GUI Version 2.29 01/29/2015
 # 1) fix STDEV-OPT extended error bar plor display bug
