@@ -411,12 +411,16 @@ class MagicDataFrame(object):
             self.df = self.df[columns]
 
 
+
+    ## Methods to change self.df inplace
+
     def update_row(self, ind, row_data):
         """
         Update a row with data.
         Must provide the specific numeric index (not row label).
         If any new keys are present in row_data dictionary,
-        that column will be added to the dataframe
+        that column will be added to the dataframe.
+        This is done inplace.
         """
         if sorted(row_data.keys()) != sorted(self.df.columns):
             # add any new column names
@@ -428,13 +432,15 @@ class MagicDataFrame(object):
                 if col_label not in row_data.keys():
                     row_data[col_label] = None
         self.df.iloc[ind] = pd.Series(row_data)
+        return self.df
 
 
     def add_row(self, label, row_data):
         """
         Add a row with data.
         If any new keys are present in row_data dictionary,
-        that column will be added to the dataframe
+        that column will be added to the dataframe.
+        This is done inplace
         """
         if sorted(row_data.keys()) != sorted(self.df.columns):
             # add any new column names
@@ -453,32 +459,80 @@ class MagicDataFrame(object):
         self.df.rename(index={label + "new": label}, inplace=True)
         # use next line to sort index inplace
         #self.df.sort_index(inplace=True)
-
+        return self.df
 
 
     def add_blank_row(self, label):
         """
-        Add a blank row with only an index value to self.df
+        Add a blank row with only an index value to self.df.
+        This is done inplace.
         """
         col_labels = self.df.columns
         blank_item = pd.Series({}, index=col_labels, name=label)
         # use .loc to add in place (append won't do that)
         self.df.loc[blank_item.name] = blank_item
+        return self.df
 
 
     def delete_row(self, ind):
         """
         remove self.df row at ind
+        inplace
         """
         self.df = pd.concat([self.df[:ind], self.df[ind+1:]])
         return self.df
 
+
+    def update_record(self, name, new_data, condition):
+        """
+        Find the first row in self.df with index == name
+        and condition == True.
+        Update that record with new_data, then delete any
+        additional records where index == name and condition == True.
+        Change is inplace
+        """
+        # add numeric index column temporarily
+        self.df['num'] = range(len(self.df))
+        df_data = self.df
+        # edit first of existing data that meets condition
+        print "--"
+        print "len(df_data)", len(df_data)
+        print "len(self.df)", len(self.df)
+        print "len(condition)", len(condition)
+        if len(df_data[condition]) > 0:  #we have one or more records to update or delete
+            #print "updating:", name
+            inds = df_data[condition]['num'] # list of all rows where condition is true
+            existing_data = dict(df_data.iloc[inds[0]]) # get first record of existing_data from dataframe
+            existing_data.update(new_data) # update existing data with new interpretations
+            # update row
+            self.update_row(inds[0], existing_data)
+            # now remove all the remaining records of same condition
+            if len(inds) > 1:
+                for ind in inds[1:]:
+                    print "deleting redundant records for specimen:", name
+                    df_data = self.delete_row(ind)
+        else:
+            print 'no record found - creating new one for ', name
+            # add new row
+            self.add_row(name, new_data)
+            df_data = self.add_row(name, new_data)
+        # sort so that all rows for an item are together
+        df_data.sort_index(inplace=True)
+        # redo temporary index
+        df_data['num'] = range(len(df_data))
+        self.df = df_data
+        return df_data
+
+
+    ## Methods that take self.df and extract some information from it
 
     def get_name(self, col_name, df_slice="", index_names=""):
         """
         Takes in a column name, and either a DataFrame slice or
         a list of index_names to slice self.df using fancy indexing.
         Then return the value for that column in the relevant slice.
+        (Assumes that all values for column will be the same in the
+         chosen slice, so return the first one.)
         """
         # if slice is provided, use it
         if any(df_slice):
@@ -504,40 +558,6 @@ class MagicDataFrame(object):
         #return df_slice[col_name].dropna()[0]
 
 
-    def update_record(self, name, new_data, condition):
-        """
-        Find the first row in self.df with index == name
-        and condition == True.
-        Update that record with new_data, then delete any
-        additional records where index == name and condition == True.
-        """
-        # add numeric index column temporarily
-        self.df['num'] = range(len(self.df))
-        df_data = self.df
-        # edit first of existing data that meets condition
-        if len(df_data[condition]) > 0:  #we have one or more records to update or delete
-            #print "updating:", name
-            inds = df_data[condition]['num'] # list of all rows where condition is true
-            existing_data = dict(df_data.iloc[inds[0]]) # get first record of existing_data from dataframe
-            existing_data.update(new_data) # update existing data with new interpretations
-            # update row
-            self.update_row(inds[0], existing_data)
-            # now remove all the remaining records of same condition
-            if len(inds) > 1:
-                for ind in inds[1:]:
-                    print "deleting redundant records for specimen:", name
-                    df_data = self.delete_row(ind)
-        else:
-            print 'no record found - creating new one for ', name
-            # add new row
-            self.add_row(name, new_data)
-        # sort so that all rows for an item are together
-        df_data.sort_index(inplace=True)
-        # redo temporary index
-        df_data['num'] = range(len(df_data))
-        return df_data
-
-
     def get_di_block(self, df_slice=None, do_index=False,
                      item_names=None, tilt_corr='100',
                      excl=None):
@@ -546,7 +566,8 @@ class MagicDataFrame(object):
         or
         do_index=True and a list of index_names.
         Output dec/inc from the slice in this format:
-        [[dec1, inc1], [dec2, inc2], ...]
+        [[dec1, inc1], [dec2, inc2], ...].
+        Not inplace
         """
         if isinstance(df_slice, str):
             if df_slice.lower() == "all":
@@ -596,7 +617,8 @@ class MagicDataFrame(object):
         If incl == False, return all records WITHOUT meth_code.
         If strict_match == True, return only records with the exact meth_code.
         If strict_match == False, return records that contain the meth_code partial string,
-        (i.e., "DE-")
+        (i.e., "DE-").
+        Not inplace
         """
         # (must use fillna to replace np.nan with False for indexing)
         if use_slice:
@@ -621,11 +643,14 @@ class MagicDataFrame(object):
             # return a copy of records without that method code
             return df[~cond]
 
-    def merge_dfs(self,df1,replace_dir_or_int):
+
+    ## Combining multiple DataFrames
+
+    def merge_dfs(self, df1, replace_dir_or_int):
         """
         Description: takes new calculated directional, intensity data, or both and replaces the corresponding data in self.df with the new input data preserving any data that is not replaced.
 
-        @param: df1 - first DataFrame whose data will preferintally be used.
+        @param: df1 - first DataFrame whose data will preferentially be used.
         @param: replace_dir_or_int - must be string 'dir', 'int', or 'full' and acts as a flag to tell the funciton weather to replace directional, intensity data, or just everything in current table. (Note: if you are dealing with tables other than specimens.txt you should likely use full as that is the only table the other options have been tested on)
         """
 
@@ -668,6 +693,8 @@ class MagicDataFrame(object):
 
         return mdf
 
+
+    ## Methods for writing self.df out to tab-delimited file
 
     def write_magic_file(self, custom_name=None, dir_path=".", append=False):
         """
