@@ -471,6 +471,7 @@ class MagicDataFrame(object):
         remove self.df row at ind
         """
         self.df = pd.concat([self.df[:ind], self.df[ind+1:]])
+        return self.df
 
 
     def get_name(self, col_name, df_slice="", index_names=""):
@@ -525,7 +526,7 @@ class MagicDataFrame(object):
             if len(inds) > 1:
                 for ind in inds[1:]:
                     print "deleting redundant records for specimen:", name
-                    self.delete_row(ind)
+                    df_data = self.delete_row(ind)
         else:
             print 'no record found - creating new one for ', name
             # add new row
