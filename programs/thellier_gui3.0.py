@@ -172,6 +172,7 @@ import pmagpy.pmag as pmag
 from pmagpy import check_updates
 import pmagpy.new_builder as nb
 from SPD.mapping import map_magic
+import pmagpy.controlled_vocabularies3 as cv
 #import numpy as np
 try:
     import thellier_gui_preferences
@@ -246,6 +247,11 @@ class Arai_GUI(wx.Frame):
         else:
             self.get_DIR()        # choose directory dialog
 
+
+        # get controlled vocabulary
+        vocab = cv.Vocabulary()
+        vocabulary, possible_vocabulary = vocab.get_controlled_vocabularies()
+        self.vocabulary = vocabulary
 
         # inialize selecting criteria
         self.acceptance_criteria=pmag.initialize_acceptance_criteria()
@@ -2269,6 +2275,7 @@ class Arai_GUI(wx.Frame):
         '''
         if self.data_model==3:
             contribution = nb.Contribution(self.WD, read_tables=['criteria'])
+            contribution = nb.Contribution(self.WD, read_tables=['criteria'], vocabulary=self.vocabulary)
             if 'criteria' in contribution.tables:
                 crit_container = contribution.tables['criteria']
                 crit_data = crit_container.df
@@ -6548,6 +6555,9 @@ class Arai_GUI(wx.Frame):
             Data_info["er_ages"]=[]
             fnames = {'measurements': self.magic_file}
             self.contribution = nb.Contribution(self.WD, custom_filenames=fnames, read_tables=['measurements', 'specimens', 'samples','sites'])
+            self.contribution = nb.Contribution(self.WD, custom_filenames=fnames,
+                                                read_tables=['measurements', 'specimens', 'samples','sites'],
+                                                vocabulary=self.vocabulary)
             if 'specimens' in self.contribution.tables:
                 self.spec_container = self.contribution.tables['specimens']
             else:  
