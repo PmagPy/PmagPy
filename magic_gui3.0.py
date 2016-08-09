@@ -269,6 +269,7 @@ class MainFrame(wx.Frame):
         # paint validations if appropriate
         if self.validation_mode:
             if grid_type in self.validation_mode:
+                self.grid_frame.toggle_help(None, "open")
                 row_problems = self.failing_items[grid_type]["rows"]
                 missing_columns = self.failing_items[grid_type]["missing_columns"]
                 missing_groups = self.failing_items[grid_type]["missing_groups"]
@@ -303,6 +304,7 @@ For full error messages, see {}.
 """.format(col_string, group_string, grid_type + "_errors.txt")
                 self.grid_frame.msg_text.SetLabel(add_text)
         #self.on_finish_change_dir(self.change_dir_dialog)
+        self.grid_frame.do_fit(None)
         del wait
 
 
