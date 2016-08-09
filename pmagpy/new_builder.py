@@ -63,6 +63,8 @@ class Contribution(object):
             for name in read_tables:
                 self.add_magic_table(name)
 
+    ## Methods for building up the contribution
+
     def add_custom_filenames(self, custom_filenames):
         """
         Update/overwrite self.filenames with custom names.
@@ -114,6 +116,10 @@ class Contribution(object):
         else:
             print "-W- No such file: {}".format(filename)
             return False
+
+
+    ## Methods for making changes to a Contribution
+    ## that need to propagate to multiple tables
 
     def rename_item(self, table_name, item_old_name, item_new_name):
         """
