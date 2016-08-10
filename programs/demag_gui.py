@@ -1784,23 +1784,24 @@ class Demag_GUI(wx.Frame):
         if self.data_model==3:
             if criteria_file_name==None: criteria_file_name = "criteria.txt"
             contribution = nb.Contribution(self.WD, read_tables=['criteria'], custom_filenames={'criteria': criteria_file_name})
-            crit_container = contribution.tables['criteria']
-            crit_data = crit_container.df
-            crit_data=crit_data.to_dict('records')
-            for crit in crit_data:
-                m2_name=map_magic.convert_direction_criteria('magic2',crit['table_column'])
-                if m2_name!="":
-                    try:
-                        if crit['criterion_value']=='True': 
-                            acceptance_criteria[m2_name]['value']=1
-                        else:
-                            acceptance_criteria[m2_name]['value']=0
-                        acceptance_criteria[m2_name]['value']=float(crit['criterion_value'])
-                    except ValueError:
-                        self.user_warning("%s is not a valid comparitor for %s, skipping this criteria"%(str(crit['criterion_value']),m2_name))
-                        continue
-                    acceptance_criteria[m2_name]['pmag_criteria_code']=crit['criterion']
-            return acceptance_criteria
+            if 'criteria' in contribution.tables:
+                crit_container = contribution.tables['criteria']
+                crit_data = crit_container.df
+                crit_data=crit_data.to_dict('records')
+                for crit in crit_data:
+                    m2_name=map_magic.convert_direction_criteria('magic2',crit['table_column'])
+                    if m2_name!="":
+                        try:
+                            if crit['criterion_value']=='True': 
+                                acceptance_criteria[m2_name]['value']=1
+                            else:
+                                acceptance_criteria[m2_name]['value']=0
+                            acceptance_criteria[m2_name]['value']=float(crit['criterion_value'])
+                        except ValueError:
+                            self.user_warning("%s is not a valid comparitor for %s, skipping this criteria"%(str(crit['criterion_value']),m2_name))
+                            continue
+                        acceptance_criteria[m2_name]['pmag_criteria_code']=crit['criterion']
+                return acceptance_criteria
         else:
             if criteria_file_name==None: criteria_file_name = "pmag_criteria.txt"
             try: acceptance_criteria=pmag.read_criteria_from_file(os.path.join(self.WD, criteria_file_name), acceptance_criteria)

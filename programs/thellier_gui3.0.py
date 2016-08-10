@@ -3,6 +3,12 @@
 #============================================================================================
 # LOG HEADER:
 #============================================================================================
+# Version 3.1 (8/8/16: Lisa Tauxe)
+# TODO:  
+#    1) need to fix code for importing criteria file in data model 3.0
+#    2) need to thoroughly test and finalize output format (esp.  vdms/vadms)
+#    3) need to make data_model recognition automatic (as in demag_gui)
+#    4) rename code thellier_gui.py
 #
 # Thellier_GUI Version 3.0  8/2/16 (Lisa Tauxe)
 # Adding in the ability to read in and write out
@@ -15,11 +21,9 @@
 #   5) reads in age, lat, lon into data_info - makes plots
 #   6) does the anisotropy calculation and saves to specimens.txt in 3.0
 #   7) does cooling rate calculation
-#   8) does  NLT correction 
+#   8) does  NLT correction
 #   9) saves specimen data to specimens.txt in 3.0
 #   10) saves samples/sites tables in 3.0 format
-# TODO:
-#    Fix method codes and acceptance criteria in output files
 #
 # Thellier_GUI Version 2.29 01/29/2015
 # 1) fix STDEV-OPT extended error bar plor display bug
@@ -168,6 +172,7 @@ import pmagpy.pmag as pmag
 from pmagpy import check_updates
 import pmagpy.new_builder as nb
 from SPD.mapping import map_magic
+import pmagpy.controlled_vocabularies3 as cv
 #import numpy as np
 try:
     import thellier_gui_preferences
@@ -242,6 +247,11 @@ class Arai_GUI(wx.Frame):
         else:
             self.get_DIR()        # choose directory dialog
 
+
+        # get controlled vocabulary
+        vocab = cv.Vocabulary()
+        vocabulary, possible_vocabulary = vocab.get_controlled_vocabularies()
+        self.vocabulary = vocabulary
 
         # inialize selecting criteria
         self.acceptance_criteria=pmag.initialize_acceptance_criteria()
@@ -1636,20 +1646,6 @@ class Arai_GUI(wx.Frame):
                         print "-I-",short_crit, " was added to criteria list and will be displayed on screen"
 
 
-        # OLD code,
-        #try:
-        #    criteria_file=os.path.join(self.WD,"pmag_criteria.txt")
-        #    my_acceptance_criteria=pmag.read_criteria_from_file(criteria_file,self.acceptance_criteria)
-        #    #    print "-III- Read criteria",my_acceptance_criteria
-        #    for crit in my_acceptance_criteria.keys():
-        #        if 'specimen' in crit:
-        #            if my_acceptance_criteria[crit]['value']!=-999:
-        #                short_crit=crit.split('specimen_')[-1]
-        #                if short_crit not in preferences['show_statistics_on_gui']:
-        #                    preferences['show_statistics_on_gui'].append(short_crit)
-        #                    print "-I-",short_crit, " was added to criteria list and will be displayed on screen"
-        #except:
-        #    pass
         return(preferences)
 
 
@@ -2279,20 +2275,25 @@ class Arai_GUI(wx.Frame):
         '''
         if self.data_model==3:
             contribution = nb.Contribution(self.WD, read_tables=['criteria'])
-            crit_container = contribution.tables['criteria']
-            crit_data = crit_container.df
+            contribution = nb.Contribution(self.WD, read_tables=['criteria'], vocabulary=self.vocabulary)
+            if 'criteria' in contribution.tables:
+                crit_container = contribution.tables['criteria']
+                crit_data = crit_container.df
             #crit_data = crit_data[crit_data['criterion'].str.contains('IE-')==True] # fish out all the relavent data
-            crit_data=crit_data.to_dict('records') # convert to list of dictionaries
-            for crit in crit_data:  # step through and rename every f-ing one
-                m2_name=map_magic.convert_intensity_criteria('magic2',crit['table_column']) #magic2[magic3.index(crit['table_column'])] # find data model 2.5 name
-                if m2_name!=crit['table_column'] and 'scat' not in m2_name!="":
-                    self.acceptance_criteria[m2_name]['value']=float(crit['criterion_value'])
-                    self.acceptance_criteria[m2_name]['pmag_criteria_code']=crit['criterion']
-                if m2_name!=crit['table_column'] and 'scat' in m2_name!="":
-                    if crit['criterion_value']=='True': 
-                        self.acceptance_criteria[m2_name]['value']=1
-                    else:
-                        self.acceptance_criteria[m2_name]['value']=0
+                crit_data=crit_data.to_dict('records') # convert to list of dictionaries
+                for crit in crit_data:  # step through and rename every f-ing one
+                    m2_name=map_magic.convert_intensity_criteria('magic2',crit['table_column']) #magic2[magic3.index(crit['table_column'])] # find data model 2.5 name
+                    if m2_name!=crit['table_column'] and 'scat' not in m2_name!="":
+                        self.acceptance_criteria[m2_name]['value']=float(crit['criterion_value'])
+                        self.acceptance_criteria[m2_name]['pmag_criteria_code']=crit['criterion']
+                    if m2_name!=crit['table_column'] and 'scat' in m2_name!="":
+                        if crit['criterion_value']=='True':
+                            self.acceptance_criteria[m2_name]['value']=1
+                        else:
+                            self.acceptance_criteria[m2_name]['value']=0
+            else:
+                print "-E- Cant read criteria file"
+
         else: #      Do it the data model 2.5 way:
             try:
                 self.acceptance_criteria=pmag.read_criteria_from_file(criteria_file,self.acceptance_criteria)
@@ -2426,6 +2427,9 @@ class Arai_GUI(wx.Frame):
 
 
         def calculate_aniso_parameters(B,K):
+            """
+            Menubar --> Anisotropy --> Calculate anisotropy tensors
+            """
 
             aniso_parameters={}
             S_bs=dot(B,K)
@@ -2505,8 +2509,6 @@ class Arai_GUI(wx.Frame):
                 aniso_parameters['anisotropy_n']=n_pos
 
             return(aniso_parameters)
-
-
 
 
         if self.data_model==3:
@@ -2910,36 +2912,18 @@ class Arai_GUI(wx.Frame):
                 Data_anisotropy[specimen][TYPE]['er_sample_names']=Data_anisotropy[specimen][TYPE]['er_sample_name']
                 Data_anisotropy[specimen][TYPE]['er_site_names']=Data_anisotropy[specimen][TYPE]['er_site_name']
                 if self.data_model==3: # prepare data for 3.0
+
                     new_aniso_parameters=Data_anisotropy[specimen][TYPE]
                     # reformat all the anisotropy related keys
                     new_data=map_magic.convert_aniso('magic3',new_aniso_parameters) # turn new_aniso data to 3.0
-                    # add numeric index column temporarily
-                    self.spec_container.df['num'] = range(len(self.spec_container.df))
                     self.spec_data = self.spec_container.df
            # edit first of existing anisotropy data for this specimen of this TYPE from self.spec_data
-                    cond1=self.spec_data['specimen'].str.contains(specimen)==True
+                    cond1 = self.spec_data['specimen'].str.contains(specimen)==True
                     #cond3=self.spec_data['aniso_s'].notnull()==True
-                    cond2=self.spec_data['aniso_type']==TYPE
+                    cond2 = self.spec_data['aniso_type']==TYPE
                     #condition=(cond1 & cond2 & cond3)
-                    condition=(cond1 & cond2)
-                    if len(self.spec_data[condition]) > 0:  #we have one or more records to update
-                        inds=self.spec_data[condition]['num'] # list of all rows where condition is true
-                        existing_data=dict(self.spec_data.iloc[inds[0]]) # get first record of existing_data from dataframe
-                        existing_data.update(new_data) # update existing data with new interpretations
-                        # update row
-                        self.spec_container.update_row(inds[0], existing_data)
-                        # now remove all the remaining records of same condition
-                        if len(inds)>1:
-                            for ind in inds[1:]:
-                                self.spec_container.delete_row(ind)  
-                    else:
-                        print 'no record found - creating new one for ', spec
-                        # add new row
-                        self.spec_container.add_row(spec, new_data )
-                    # sort so that all rows for a specimen are together
-                    self.spec_data.sort_index(inplace=True)
-                    # redo temporary index
-                    self.spec_data['num'] = range(len(self.spec_data))
+                    condition = (cond1 & cond2)
+                    self.spec_data = self.spec_container.update_record(specimen, new_data, condition)
 
                 else: # write it to 2.5 version files
                     String=""
@@ -3153,9 +3137,10 @@ class Arai_GUI(wx.Frame):
 
 
     def on_menu__prepare_MagIC_results_tables (self, event):
-
+        """
+        Menubar --> File --> Save MagIC tables
+        """
         import copy
-
         # write a redo file
         try:
             self.on_menu_save_interpretation(None)
@@ -3267,36 +3252,17 @@ class Arai_GUI(wx.Frame):
                 else:
                     MagIC_results_data['pmag_specimens'][specimen]['specimen_int_corr_cooling_rate']=""
                 MagIC_results_data['pmag_specimens'][specimen]['criteria']="IE-SPEC"
+
                 if self.data_model==3:   # convert pmag_specimen format to data model 3 and replace existing specimen record or add new
                     new_spec_data=MagIC_results_data['pmag_specimens'][specimen]
                     # reformat all the keys
-                    new_data=map_magic.convert_spec('magic3',new_spec_data) # turn new_specimen data to 3.0
-                    # add numeric index column temporarily 
-## should probably make this a function
-                    self.spec_container.df['num'] = range(len(self.spec_container.df))
-                    self.spec_data = self.spec_container.df
-           # edit first of existing intensity data for this specimen from self.spec_data
-                    cond1=self.spec_data['specimen'].str.contains(specimen)==True
-                    cond2=self.spec_data['int_abs'].notnull()==True
-                    condition=(cond1 & cond2)
-                    if len(self.spec_data[condition]) > 0:  #we have one or more records to update or delete
-                        inds=self.spec_data[condition]['num'] # list of all rows where condition is true
-                        existing_data=dict(self.spec_data.iloc[inds[0]]) # get first record of existing_data from dataframe
-                        existing_data.update(new_data) # update existing data with new interpretations
-                        # update row
-                        self.spec_container.update_row(inds[0], existing_data)
-                        # now remove all the remaining records of same condition
-                        if len(inds)>1:
-                            for ind in inds[1:]:
-                                self.spec_container.delete_row(ind)
-                    else:
-                        print 'no record found - creating new one for ', specimen
-                        # add new row
-                        self.spec_container.add_row(spec, new_data )
-                    # sort so that all rows for a specimen are together
-                    self.spec_data.sort_index(inplace=True)
-                    # redo temporary index
-                    self.spec_data['num'] = range(len(self.spec_data))
+                    new_data = map_magic.convert_spec('magic3', new_spec_data) # turn new_specimen data to 3.0
+                    cond1 = self.spec_data['specimen'].str.contains(specimen) == True
+                    if 'int_abs' not in self.spec_data.columns:
+                        self.spec_data['int_abs'] = None
+                    cond2 = self.spec_data['int_abs'].notnull() == True
+                    condition = (cond1 & cond2)
+                    self.spec_data = self.spec_container.update_record(specimen, new_data, condition)
 
         if self.data_model!=3: # write out pmag_specimens.txt file
             fout=open(os.path.join(self.WD, "pmag_specimens.txt"),'w')
@@ -3331,11 +3297,11 @@ class Arai_GUI(wx.Frame):
             # message dialog
             #-------------
             TEXT="specimens interpretations are saved in pmag_specimens.txt.\nPress OK for pmag_samples/pmag_sites/pmag_results tables."
-        else: # data model 3, so merge with spec_data  and save as specimens.txt file 
+        else: # data model 3, so merge with spec_data  and save as specimens.txt file
             #  write out the data
             self.spec_container.write_magic_file(custom_name='new_specimens.txt', dir_path=self.WD) # change this to specimens.txt when ready
             TEXT="specimens interpretations are saved in specimens.txt.\nPress OK for samples/sites tables."
- 
+
         dlg = wx.MessageDialog(self, caption="Saved",message=TEXT,style=wx.OK|wx.CANCEL )
         result = dlg.ShowModal()
         if result == wx.ID_OK:
@@ -3484,7 +3450,7 @@ class Arai_GUI(wx.Frame):
                     pass
 
 
-        else: # don't do anything yet = need vdm data START HERE WITH 3.0 CONVERSION 
+        else: # don't do anything yet = need vdm data 
             pass
 
         #-------------
@@ -3598,11 +3564,11 @@ class Arai_GUI(wx.Frame):
                                 if header_result == "average_age_range_low":
                                     header_result="average_age_low"
                                 MagIC_results_data['pmag_results'][sample_or_site][header_result]=value
-    
+
                                 if header_result not in pmag_results_header_4:
                                    pmag_results_header_4.append(header_result)
-    
-    
+
+
         # check for ages:
 
                 for sample_or_site in pmag_samples_or_sites_list:
@@ -3636,7 +3602,7 @@ class Arai_GUI(wx.Frame):
                                 methods= self.Data_info["er_ages"][element_with_age]['magic_method_codes'].replace(" ","").strip('\n').split(":")
                                 for meth in methods:
                                     MagIC_results_data['pmag_results'][sample_or_site]["magic_method_codes"]=MagIC_results_data['pmag_results'][sample_or_site]["magic_method_codes"] + ":"+ meth
-    
+
 
                 # write pmag_results.txt
                 fout=open(os.path.join(self.WD, "pmag_results.txt"),'w')
@@ -3646,7 +3612,7 @@ class Arai_GUI(wx.Frame):
                 for key in headers:
                     String=String+key+"\t"
                 fout.write(String[:-1]+"\n")
-    
+
                 #pmag_samples_list.sort()
                 for sample_or_site in pmag_samples_or_sites_list:
                     String=""
@@ -3657,7 +3623,7 @@ class Arai_GUI(wx.Frame):
                             String=String+""+"\t"
                     fout.write(String[:-1]+"\n")
                 fout.close()
-    
+
                 # merge with non-intensity data
                 meas_data,file_type=pmag.magic_read(os.path.join(self.WD, "pmag_results.txt"))
                 for rec in PmagRecsOld["pmag_results.txt"]:
@@ -3696,7 +3662,7 @@ class Arai_GUI(wx.Frame):
                                 if code !="" and code not in magic_method_codes:
                                     magic_method_codes.append(code)
                     fin.close()
-        
+
                 magic_method_codes.sort()
                 #print magic_method_codes
                 magic_methods_header_1=["magic_method_code"]
@@ -3713,39 +3679,27 @@ class Arai_GUI(wx.Frame):
                     Fout.write("tab\tpmag_criteria\n")
                     Fout.write("er_citation_names\tpmag_criteria_code\n")
                     Fout.write("This study\tACCEPT\n")
-              
-        else: # write out samples/sites in data model 3.0 #START HERE
-            for sample_or_site in pmag_samples_or_sites_list:  
+
+        else: # write out samples/sites in data model 3.0
+            for sample_or_site in pmag_samples_or_sites_list:
                 # convert, delete, add and save
-                new_sample_or_site_data=MagIC_results_data['pmag_samples_or_sites'][sample_or_site]
+                new_sample_or_site_data = MagIC_results_data['pmag_samples_or_sites'][sample_or_site]
                 if BY_SAMPLES:
-                    new_data=map_magic.convert_samp('magic3',new_sample_or_site_data) # convert to 3.0
-                    # add numeric index column temporarily 
-                    self.samp_container.df['num'] = range(len(self.samp_container.df))
+                    new_data = map_magic.convert_samp('magic3',new_sample_or_site_data) # convert to 3.0
+                    # add numeric index column temporarily
                     self.samp_data = self.samp_container.df
            # edit first of existing intensity data for this sample from self.samp_data
-                    cond1=self.samp_data['sample'].str.contains(sample_or_site)==True
-                    cond2=self.samp_data['int_abs'].notnull()==True
-                    condition=(cond1 & cond2)
-                    if len(self.samp_data[condition]) > 0:  #we have one or more records to update or delete
-                        inds=self.samp_data[condition]['num'] # list of all rows where condition is true
-                        existing_data=dict(self.samp_data.iloc[inds[0]]) # get first record of existing_data from dataframe
-                        existing_data.update(new_data) # update existing data with new interpretations
-                        # update row
-                        self.samp_container.update_row(inds[0], existing_data)
-                        # now remove all the remaining records of same condition
-                        if len(inds)>1:
-                            for ind in inds[1:]:
-                                self.samp_container.delete_row(ind)
-                    else:
-                        print 'no record found - creating new one for ', sample_or_site
-                        # add new row
-                        self.samp_container.add_row(sample_or_site, new_data )
-                    # sort so that all rows for a sample are together
-                    self.samp_data.sort_index(inplace=True)
-                    # redo temporary index
-                    self.samp_data['num'] = range(len(self.samp_data))
-                    # remove intensity data from site level.    
+                    cond1 = self.samp_data['sample'].str.contains(sample_or_site)==True
+                    if 'int_abs' not in self.samp_data.columns:
+                        self.samp_data['int_abs'] = None
+                    cond2 = self.samp_data['int_abs'].notnull()==True
+                    condition = (cond1 & cond2)
+                    # update record
+                    self.samp_data = self.samp_container.update_record(sample_or_site, new_data, condition)
+                    # give temporary index to site_data
+                    self.site_data = self.site_container.df
+                    self.site_data['num'] = range(len(self.site_data))
+                    # remove intensity data from site level.
                     site=self.Data_hierarchy['site_of_sample'][sample_or_site]
                     cond1=self.site_data['site'].str.contains(site)==True
                     cond2=self.site_data['int_abs'].notnull()==True
@@ -3753,71 +3707,32 @@ class Arai_GUI(wx.Frame):
                     new_data={}
                     site_keys=['int_abs','int_sigma','int_n_samples','int_sigma_perc'] # zero these out but keep the rest
                     for key in site_keys:
-                        new_data[key]=""
-                    if len(self.site_data[condition]) > 0:  #we have one or more records to delete
-                        inds=self.site_data[condition]['num'] # list of all rows where condition is true
-                        existing_data=dict(self.site_data.iloc[inds[0]]) # get first record of existing_data from dataframe
-                        existing_data.update(new_data) # update existing data with new interpretations
-                        # update row
-                        self.site_container.update_row(inds[0], existing_data)
-                        # now remove all the remaining records of same condition
-                        if len(inds)>1:
-                            for ind in inds[1:]:
-                                self.site_container.delete_row(ind)
-                    # sort so that all rows for a site are together
-                    self.site_data.sort_index(inplace=True)
-                    # redo temporary index
-                    self.site_data['num'] = range(len(self.site_data))
+                        new_data[key] = ""
+                    self.site_data = self.site_container.update_record(site, new_data, condition)
                 else:  # do this by site and not by sample
-                    new_data=map_magic.convert_site('magic3',new_sample_or_site_data) # convert to 3.0
-                    # add numeric index column temporarily 
+                    new_data = map_magic.convert_site('magic3',new_sample_or_site_data) # convert to 3.0
+                    # add numeric index column temporarily
                     self.site_container.df['num'] = range(len(self.site_container.df))
-                    self.site_data = self.site_container.df
            # edit first of existing intensity data for this site from self.site_data
-                    cond1=self.site_data['site'].str.contains(sample_or_site)==True
-                    cond2=self.site_data['int_abs'].notnull()==True
-                    condition=(cond1 & cond2)
-                    if len(self.site_data[condition]) > 0:  #we have one or more records to update or delete
-                        inds=self.site_data[condition]['num'] # list of all rows where condition is true
-                        existing_data=dict(self.site_data.iloc[inds[0]]) # get first record of existing_data from dataframe
-                        existing_data.update(new_data) # update existing data with new interpretations
-                        # update row
-                        self.site_container.update_row(inds[0], existing_data)
-                        # now remove all the remaining records of same condition
-                        if len(inds)>1:
-                            for ind in inds[1:]:
-                                self.site_container.delete_row(ind)
-                    else:
-                        print 'no record found - creating new one for ', sample_or_site
-                        # add new row
-                        self.site_container.add_row(sample_or_site, new_data )
-                    # sort so that all rows for a site are together
-                    self.site_data.sort_index(inplace=True)
-                    # redo temporary index
-                    self.site_data['num'] = range(len(self.site_data))
+                    cond1 = self.site_data['site'].str.contains(sample_or_site)==True
+                    if 'int_abs' not in self.site_data.columns:
+                        self.site_data['int_abs'] = None
+                    cond2 = self.site_data['int_abs'].notnull()==True
+                    condition = (cond1 & cond2)
+                    self.site_data = self.site_container.update_record(sample_or_site, new_data, condition)
                     # remove intensity data from sample level.   # need to look up samples from this site
-                    cond1=self.samp_data['site'].str.contains(sample_or_site)==True
-                    cond2=self.samp_data['int_abs'].notnull()==True
-                    condition=(cond1 & cond2)
-                    new_data={} # zero these out but keep the rest
-                    samp_keys=['int_abs','int_sigma','int_n_specimens','int_sigma_perc'] # zero these out but keep the rest
+                    cond1 = self.samp_data['site'].str.contains(sample_or_site)==True
+                    if 'int_abs' not in self.samp_data.columns:
+                        self.samp_data['int_abs'] = None
+                    cond2 = self.samp_data['int_abs'].notnull()==True
+                    condition = (cond1 & cond2)
+                    new_data = {} # zero these out but keep the rest
+                    samp_keys = ['int_abs','int_sigma','int_n_specimens','int_sigma_perc'] # zero these out but keep the rest
                     for key in samp_keys:
                         new_data[key]=""
-                    if len(self.samp_data[condition]) > 0:  #we have one or more records to delete
-                        inds=self.samp_data[condition]['num'] # list of all rows where condition is true
-                        existing_data=dict(self.samp_data.iloc[inds[0]]) # get first record of existing_data from dataframe
-                        existing_data.update(new_data) # update existing data with new interpretations
-                        # update row
-                        self.samp_container.update_row(inds[0], existing_data)
-                        # now remove all the remaining records of same condition
-                        if len(inds)>1:
-                            for ind in inds[1:]:
-                                self.samp_container.delete_row(ind)
-                    # sort so that all rows for sample are together
-                    self.samp_data.sort_index(inplace=True)
-                    # redo temporary index
-                    self.samp_data['num'] = range(len(self.samp_data))
-
+                    samples = self.samp_data[condition].index.unique()
+                    for samp_name in samples:
+                        self.samp_container.update_record(samp_name, new_data, cond2)
             #  write out the data
             self.samp_container.write_magic_file(custom_name='new_samples.txt', dir_path=self.WD) # change this to samples.txt when ready
             self.site_container.write_magic_file(custom_name='new_sites.txt', dir_path=self.WD) # change this to sites.txt when ready
@@ -6640,18 +6555,27 @@ class Arai_GUI(wx.Frame):
             Data_info["er_ages"]=[]
             fnames = {'measurements': self.magic_file}
             self.contribution = nb.Contribution(self.WD, custom_filenames=fnames, read_tables=['measurements', 'specimens', 'samples','sites'])
+            self.contribution = nb.Contribution(self.WD, custom_filenames=fnames,
+                                                read_tables=['measurements', 'specimens', 'samples','sites'],
+                                                vocabulary=self.vocabulary)
             if 'specimens' in self.contribution.tables:
                 self.spec_container = self.contribution.tables['specimens']
-                self.spec_data = self.spec_container.df
+            else:  
+                self.spec_container = nb.MagicDataFrame(dtype='specimens',columns=['specimen','aniso_type'])
+            self.spec_data = self.spec_container.df
             if 'samples' in self.contribution.tables:
                 self.samp_container = self.contribution.tables['samples']
-                self.samp_data = self.samp_container.df # only need this for saving tables
+            else:  
+                self.samp_container = nb.MagicDataFrame(dtype='samples',columns=['sample'])
+            self.samp_data = self.samp_container.df # only need this for saving tables
             if 'sites' in self.contribution.tables:
                 self.site_container = self.contribution.tables['sites']
                 self.site_data = self.site_container.df
                 self.site_data = self.site_data[self.site_data['lat'].notnull()]
                 self.site_data = self.site_data[self.site_data['lon'].notnull()]
                 self.site_data = self.site_data[self.site_data['age'].notnull()]
+                self.site_container.df = self.site_data
+                # update container df to ignore above null values
                 site_headers = ['site','int_abs','int_abs_sigma','int_abs_sigma_perc','int_n_samples','int_n_specimens']
                 for head in site_headers:
                     if head not in self.site_data:
@@ -6675,6 +6599,9 @@ class Arai_GUI(wx.Frame):
                 data_er_sites={}
                 for s in er_sites:
                    data_er_sites[s['er_site_name']]=s
+            else:  
+                self.site_container = nb.MagicDataFrame(dtype='sites',columns=['site'])
+            self.site_data = self.site_container.df # only need this for saving tables
 
         else:  # read from 2.5 formatted files
             try:
@@ -6715,6 +6642,7 @@ class Arai_GUI(wx.Frame):
         self.Data_samples={}
         self.Data_sites={}
   # read in data
+        prev_pmag_specimen=[]
         if self.data_model==3: # data model 3.0
             if len(self.spec_data)>0:  # there are previous measurements
               prev_specs=self.spec_data[self.spec_data['int_abs'].notnull()] # get the previous intensity interpretations
@@ -6725,7 +6653,6 @@ class Arai_GUI(wx.Frame):
               prev_specs = prev_specs.rename(columns=map_magic.spec_magic3_2_magic2_map)
               prev_pmag_specimen=prev_specs.to_dict("records")
         else:
-            prev_pmag_specimen=[]
             try:
                 prev_pmag_specimen,file_type=pmag.magic_read(os.path.join(self.WD, "pmag_specimens.txt"))
                 self.GUI_log.write ("-I- Read pmag_specimens.txt for previous interpretation")

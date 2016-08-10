@@ -1,0 +1,33 @@
+tab 	er_citations
+book_editors	book_title	citation_type	city	doi	er_citation_name	journal	long_authors	pages	publisher	title	volume	year
+		Electronic Journal		10.1029/2008GC002072	This study	Geochemistry, Geophysics, Geosystems	Lawrence, K.P., Tauxe, L., Staudigel, H., Constable, C.G., Koppers, A., McIntosh, W. and Johnson, C.L.			Paleomagnetic Field Properties Near the Southern Hemisphere Tangent Cylinder	10, Q01005	2009
+		Journal			Armstrong 1978	New Zealand Journal of Geology and Geophysics	Armstrong, R.L.	685-698		K-Ar dating: Late Cenozoic McMurdo Volcanic Group and dry valley glacial history, Victoria Land, Antarctica	21	1978
+		Journal			As & Zijderveld 1958	Geophysical Journal International	As, J.A. and Zijderveld, J.D.A.	308-319		Magnetic cleaning of rocks in paleomagnetic research	1	1958
+		Journal			Coe 1967	Journal of Geomagnetism and Geoelectricity	Coe, R.S.	157-178		The determination of paleo-intensities of the Earth's magnetic field with emphasis on mechanisms which could cause non-ideal behavior in Thellier's method	19	1967
+	Methods in rock magnetism and Paleomagnetism: Techniques and instrumentation	Book	London		Collinson 1983		Collinson, D.W.	503	Chapman and Hall			1983
+		Journal			Cox & Doell 1960	Geological Society of America, Bulletin	Cox, A. and Doell, R.R.	645		Review of paleomagnetism	71	1960
+		Journal			Esser et al. 2004	Bulletin of Volcanology	Esser, R.P., Kyle, P.R. and McIntosh, W.C.	671-68		40Ar/39Ar dating of the eruptive history of Mount Erebus, Antarctica: Volcano evolution	66	2004
+		Journal			Fisher 1953	Proceedings of the Royal Society of London	Fisher, R.A.	295-305		Dispersion on a sphere	A217	1953
+		Journal			Fleck et al. 1972	Antarctic Journal of the United States	Fleck, R.J., Jones, L.M. and Behling, R.E.	244-246		K-Ar dates of the McMurdo volcanics and their relation to the glacial history of Wright Valley	7	1972
+		Journal			Hext 1963	Biometrika	Hext, G.R.	353-373		The estimation of second-order tensors, with related tests and designs	50	1963
+		Journal			Jackson et al. 1990	Physics of the Earth and Planetary Interiors	Jackson, M.J., Worm, H.-U. and Banerjee, S.K.	78-87		Fourier analysis of digital hysteresis data: rock magnetic applications	65	1990
+		Journal			Kirschvink 1980	Geophysical Journal of the Royal Astronomical Society	Kirschvink, J.L.	699-718		The least squares line and plane and the analysis of palaeomagnetic data	62	1980
+		Journal			Koenigsberger 1938a	Terrestrial Magnetism and Atmospheric Electricity	Koenigsberger, J.G.	119-127		Natural residual magnetism of eruptive rocks, Part I	43	1938
+		Journal			Koenigsberger 1938b	Terrestrial Magnetism and Atmospheric Electricity	Koenigsberger, J.G.	299-320		Natural residual magnetism of eruptive rocks, Part II	43	1938
+		Journal			Levi & Banerjee 1976	Earth and Planetary Science Letters	Levi, L. and Banerjee, S.K.	219-226		On the possibility of obtaining relative paleointensities from lake sediments	29	1976
+		Journal			Mankinen & Cox 1988	Journal of Geophysical Research	Mankinen, E.A. and Cox, A.	11,599-11,612		Paleomagnetic investigation of some volcanic rocks from the McMurdo volcanic province, Antarctica	93	1988
+		Journal			McCabe et al. 1985	Geophysical Research Letters	McCabe, C., Jackson, M.J. and Ellwood, B.B.	333-336		Magnetic anisotropy in the Trenton limestone: results of a new technique, anisotropy of anhysteretic susceptibility	12	1985
+Dmowska, R., Holton, J.R. and Rossby, H.T.	Paleomagnetism: continents and oceans	Serial Book	San Diego		McElhinny & McFadden 2000	International Geophysics Series	McElhinny, M.W. and McFadden, P.L.	1-1	Academic Press		73	2000
+		Journal			McFadden & McElhinny 1988	Earth and Planetary Science Letters	McFadden, P.L. and McElhinny, M.W.	163-189		The combined analysis of remagnetization circles and direct observations in palaeomagnetism	87	1988
+		Journal			McFadden & McElhinny 1990	Geophysical Journal International	McFadden, P.L. and McElhinny, M.W.	725-729		Classification of the reversal test in palaeomagnetism	103	1990
+		Journal			Riisager & Riisager 2001	Physics of the Earth and Planetary Interiors	Riisager, P. and Riisager, J.	111-117		Detecting multidomain magnetic grains in Thellier palaeointensity experiments	125	2001
+		Journal			Scherbakov et al. 1993	Journal of Geophysical Research	Scherbakov, V.P., McClelland, E. and Scherbakova, V.V.	6,201-6,216		A model of multidomain thermoremanent magnetization incorporating temperature-variable domain structure	98	1993
+		Journal			Selkin et al. 2000	Earth and Planetary Science Letters	Selkin, P.A., Gee, J.S., Tauxe, L., Meurer, W.P. and Newell, A.J.	403-416		The effect of remanence anisotropy on paleointensity estimates: a case study from the Archean Stillwater Complex	183	2000
+		Journal			Stoner & Wohlfarth 1948	Philosophical Transactions of the Royal Society of London, Series A	Stoner, E.C. and Wohlfarth, W.P.	599-642		A mechanism of magnetic hysteresis in heterogeneous alloys	240	1948
+		Journal			Tauxe et al. 1995	Geophysical Research Letters	Tauxe, L., Pick, T. and Kok, Y.S.	2,885-2,888		Relative paleointensity in sediments: a pseudo-Thellier approach	22	1995
+		Electronic Journal		10.129/2003GC000656	Tauxe et al. 2004	Geochemistry, Geophysics, Geosystems	Tauxe, L., Gans, P. and Mankinen, E.A.			Paleomagnetism and 40Ar/39Ar ages from McMurdo Sound, Antarctica	5, Q06H12	2004
+		Journal			Thellier & Thellier 1959	Annales de Geophysique	Thellier, E. and Thellier, O.	285-378		Sur l'intensite du champ magnetique terrestre dans le passe historique et geologique	15	1959
+		Journal			Thellier 1938	Annales Institut Physique du Globe de Paris	Thellier, E.	157-302		Sur l'aimantationdes terres cuites et ses applications geophysique	16	1938
+	The surficial geology and geochronology of Taylor Valley Antarctica: Implications for Plio-Pleistocene Antarctic glacial history	M.Sc. Thesis	Orono		Wilch 1991	Not Specified	Wilch, T.I.	1	The University of Maine	The surficial geology and geochronology of middle Taylor Valley Antarctica: Implications for Plio-Pleistocene Antarctic glacial history		1991
+		Journal			Wilch et al. 1993	Geology	Wilch, T.I., Lux, D.R., Denton, G.H. and McIntosh, W.C.	841-844		Minimal Pliocene-Pleistocene uplift of the dry valleys sector of the Transantarctic Mountains: A key parameter in ice-sheet reconstructions	21	1993
+		Journal			Wilson 1961	Geophysical Journal of the Royal Astronomical Society	Wilson, R.L.	45-58		Palaeomagnetism in Northern Ireland, Part I. The thermal demagnetization of natural magnetic moments in rocks	5	1961

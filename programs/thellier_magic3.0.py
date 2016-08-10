@@ -232,13 +232,15 @@ def main():
                     pars["er_specimen_name"]=this_specimen
                     #pars,kill=pmag.scoreit(pars,this_specimen_interpretation,accept,'',verbose) # deal with this later
                     pars["specimen_grade"]='None'
+                    pars['measurement_step_min']=pars['meas_step_min']
+                    pars['measurement_step_max']=pars['meas_step_max']
                     if pars['measurement_step_unit']=='K':
                         outstr= "specimen     Tmin  Tmax  N  lab_field  B_anc  b  q  f(coe)  Fvds  beta  MAD  Dang  Drats  Nptrm  Grade  R  MD%  sigma  Gamma_max \n"
-                        pars_out= (this_specimen,(pars["measurement_step_min"]-273),(pars["measurement_step_max"]-273),(pars["specimen_int_n"]),1e6*(pars["specimen_lab_field_dc"]),1e6*(pars["specimen_int"]),pars["specimen_b"],pars["specimen_q"],pars["specimen_f"],pars["specimen_fvds"],pars["specimen_b_beta"],pars["specimen_int_mad"],pars["specimen_int_dang"],pars["specimen_drats"],pars["specimen_int_ptrm_n"],pars["specimen_grade"],np.sqrt(pars["specimen_rsc"]),int(pars["specimen_md"]), pars["specimen_b_sigma"],pars['specimen_gamma'])
+                        pars_out= (this_specimen,(pars["meas_step_min"]-273),(pars["meas_step_max"]-273),(pars["specimen_int_n"]),1e6*(pars["specimen_lab_field_dc"]),1e6*(pars["specimen_int"]),pars["specimen_b"],pars["specimen_q"],pars["specimen_f"],pars["specimen_fvds"],pars["specimen_b_beta"],pars["int_mad_free"],pars["int_dang"],pars["int_drats"],pars["int_n_ptrm"],pars["specimen_grade"],np.sqrt(pars["specimen_rsc"]),int(pars["int_md"]), pars["specimen_b_sigma"],pars['specimen_gamma'])
                         outstring= '%s %4.0f %4.0f %i %4.1f %4.1f %5.3f %5.1f %5.3f %5.3f %5.3f  %7.1f %7.1f %7.1f %s %s %6.3f %i %5.3f %7.1f' % pars_out +'\n'
                     elif pars['measurement_step_unit']=='J':
                         outstr= "specimen     Wmin  Wmax  N  lab_field  B_anc  b  q  f(coe)  Fvds  beta  MAD  Dang  Drats  Nptrm  Grade  R  MD%  sigma  ThetaMax DeltaMax GammaMax\n"
-                        pars_out= (this_specimen,(pars["measurement_step_min"]),(pars["measurement_step_max"]),(pars["specimen_int_n"]),1e6*(pars["specimen_lab_field_dc"]),1e6*(pars["specimen_int"]),pars["specimen_b"],pars["specimen_q"],pars["specimen_f"],pars["specimen_fvds"],pars["specimen_b_beta"],pars["specimen_int_mad"],pars["specimen_int_dang"],pars["specimen_drats"],pars["specimen_int_ptrm_n"],pars["specimen_grade"],np.sqrt(pars["specimen_rsc"]),int(pars["specimen_md"]), pars["specimen_b_sigma"],pars["specimen_theta"],pars["specimen_delta"],pars["specimen_gamma"])
+                        pars_out= (this_specimen,(pars["meas_step_min"]),(pars["meas_step_max"]),(pars["specimen_int_n"]),1e6*(pars["specimen_lab_field_dc"]),1e6*(pars["specimen_int"]),pars["specimen_b"],pars["specimen_q"],pars["specimen_f"],pars["specimen_fvds"],pars["specimen_b_beta"],pars["specimen_int_mad"],pars["specimen_int_dang"],pars["specimen_drats"],pars["specimen_int_ptrm_n"],pars["specimen_grade"],np.sqrt(pars["specimen_rsc"]),int(pars["specimen_md"]), pars["specimen_b_sigma"],pars["specimen_theta"],pars["specimen_delta"],pars["specimen_gamma"])
                         outstring= '%s %4.0f %4.0f %i %4.1f %4.1f %5.3f %5.1f %5.3f %5.3f %5.3f  %7.1f %7.1f %7.1f %s %s %6.3f %i %5.3f %7.1f %7.1f %7.1f' % pars_out +'\n'
                     print outstr
                     print outstring
