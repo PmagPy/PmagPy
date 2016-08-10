@@ -4,6 +4,7 @@ from copy import copy
 from numpy import vstack,sqrt
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigCanvas
 from matplotlib.backends.backend_wxagg import NavigationToolbar2WxAgg as NavigationToolbar
+from pylab import Figure
 from pmagpy.demag_gui_utilities import *
 from pmagpy.Fit import *
 
@@ -162,9 +163,6 @@ class InterpretationEditorFrame(wx.Frame):
         name_window = wx.GridSizer(2, 1, 10*self.GUI_RESOLUTION, 19*self.GUI_RESOLUTION)
         bounds_window = wx.GridSizer(2, 1, 10*self.GUI_RESOLUTION, 19*self.GUI_RESOLUTION)
         buttons1_window = wx.GridSizer(4, 1, 5*self.GUI_RESOLUTION, 19*self.GUI_RESOLUTION)
-#        buttons2_window = wx.GridSizer(2, 1, 10*self.GUI_RESOLUTION, 19*self.GUI_RESOLUTION)
-#        buttons3_window = wx.GridSizer(2, 1, 10*self.GUI_RESOLUTION, 19*self.GUI_RESOLUTION)
-#        buttons4_window = wx.GridSizer(2, 1, 10*self.GUI_RESOLUTION, 19*self.GUI_RESOLUTION)
         display_window_0.AddMany( [(self.coordinates_box, wx.ALIGN_LEFT),
                                    (self.show_box, wx.ALIGN_LEFT)] )
         display_window_1.AddMany( [(self.level_box, wx.ALIGN_LEFT),
@@ -179,29 +177,26 @@ class InterpretationEditorFrame(wx.Frame):
                                   (self.add_all_button, wx.ALL|wx.ALIGN_CENTER|wx.SHAPED, 0),
                                   (self.delete_fit_button, wx.ALL|wx.ALIGN_CENTER|wx.SHAPED, 0),
                                   (self.apply_changes_button, wx.ALL|wx.ALIGN_CENTER|wx.SHAPED, 0)])
-#        buttons2_window.Add(self.add_all_button, wx.ALIGN_TOP)
-#        buttons3_window.Add(self.delete_fit_button, wx.ALIGN_TOP)
-#        buttons4_window.Add(self.apply_changes_button, wx.ALIGN_TOP)
         self.display_sizer.Add(display_window_0, 1, wx.TOP|wx.EXPAND, 8)
         self.display_sizer.Add(display_window_1, 1, wx.TOP | wx.LEFT|wx.EXPAND, 8)
         self.display_sizer.Add(display_window_2, 1, wx.TOP | wx.LEFT|wx.EXPAND, 8)
         self.name_sizer.Add(name_window, 1, wx.TOP, 5.5)
         self.bounds_sizer.Add(bounds_window, 1, wx.TOP, 5.5)
         self.buttons_sizer.Add(buttons1_window, 1, wx.TOP, 0)
-#        self.buttons_sizer.Add(buttons2_window, 0, wx.TOP, button_spacing)
-#        self.buttons_sizer.Add(buttons3_window, 0, wx.TOP, button_spacing)
-#        self.buttons_sizer.Add(buttons4_window, 0, wx.TOP, button_spacing)
 
         #duplicate higher levels plot
-        self.fig = copy(self.parent.fig4)
-        self.canvas = FigCanvas(self.panel, -1, self.fig)
+        self.fig = Figure((2.5*self.GUI_RESOLUTION, 2.5*self.GUI_RESOLUTION), dpi=100)
+        self.canvas = FigCanvas(self.panel, -1, self.fig, )
         self.toolbar = NavigationToolbar(self.canvas)
         self.toolbar.Hide()
         self.toolbar.zoom()
         self.higher_EA_setting = "Zoom"
-        self.canvas.Bind(wx.EVT_LEFT_DCLICK,self.parent.on_equalarea_higher_select)
+        self.canvas.Bind(wx.EVT_LEFT_DCLICK,self.on_equalarea_higher_select)
         self.canvas.Bind(wx.EVT_MOTION,self.on_change_higher_mouse_cursor)
         self.canvas.Bind(wx.EVT_MIDDLE_DOWN,self.home_higher_equalarea)
+
+        self.eqarea = self.fig.add_subplot(111)
+        draw_net(self.eqarea)
 
         #Higher Level Statistics Box
         self.stats_sizer = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY,"mean statistics"  ), wx.VERTICAL)
@@ -257,30 +252,24 @@ class InterpretationEditorFrame(wx.Frame):
 
     ################################Logger Functions##################################
 
-    def update_editor(self,changed_interpretation_parameters=True):
+    def update_editor(self):
         """
         updates the logger and plot on the interpretation editor window
         @param: changed_interpretation_parameters -> if the logger should be whipped and completely recalculated from scratch or not (default = True)
         """
 
-        if changed_interpretation_parameters:
-            self.fit_list = []
-            self.search_choices = []
-            for specimen in self.specimens_list:
-                if specimen not in self.parent.pmag_results_data['specimens']: continue
-                self.fit_list += [(fit,specimen) for fit in self.parent.pmag_results_data['specimens'][specimen]]
+        self.fit_list = []
+        self.search_choices = []
+        for specimen in self.specimens_list:
+            if specimen not in self.parent.pmag_results_data['specimens']: continue
+            self.fit_list += [(fit,specimen) for fit in self.parent.pmag_results_data['specimens'][specimen]]
 
-            self.logger.DeleteAllItems()
-            offset = 0
-            for i in range(len(self.fit_list)):
-                i -= offset
-                v = self.update_logger_entry(i)
-                if v == "s": offset += 1
-
-        #use copy so that the fig doesn't close when the editor closes
-        self.toolbar.home()
-        self.fig = copy(self.parent.fig4)
-        self.canvas.draw()
+        self.logger.DeleteAllItems()
+        offset = 0
+        for i in range(len(self.fit_list)):
+            i -= offset
+            v = self.update_logger_entry(i)
+            if v == "s": offset += 1
 
     def update_logger_entry(self,i):
         """
@@ -735,6 +724,30 @@ class InterpretationEditorFrame(wx.Frame):
 
     ###################################Canvas Functions##################################
 
+    def scatter(self,*args,**kwargs):
+#        args_corrected = self.eqarea.transAxes.transform(vstack(args).T)
+#        x,y = args_corrected.T
+        self.eqarea.scatter(*args,**kwargs)
+
+    def plot(self,*args,**kwargs):
+#        args_corrected = self.eqarea.transAxes.transform(vstack(args).T)
+#        x,y = args_corrected.T
+        self.eqarea.plot(*args,**kwargs)
+
+    def write(self,text):
+        self.eqarea.text(-1.2,1.15,text,{'family':self.font_type, 'fontsize':10*self.GUI_RESOLUTION, 'style':'normal','va':'center', 'ha':'left' })
+
+    def draw_net(self):
+        draw_net(self.eqarea)
+
+    def draw(self):
+        self.toolbar.home()
+        self.eqarea.set_xlim(-1., 1.)
+        self.eqarea.set_ylim(-1., 1.)
+        self.eqarea.axes.set_aspect('equal')
+        self.eqarea.axis('off')
+        self.canvas.draw()
+
     def home_higher_equalarea(self,event):
         """
         returns higher equal area to it's original position
@@ -749,13 +762,14 @@ class InterpretationEditorFrame(wx.Frame):
         @param: event -> the wx Mouseevent for that click
         """
         if self.show_box.GetValue() != "specimens": return
+        if not self.parent.higher_EA_xdata or not self.parent.higher_EA_ydata: return
         pos=event.GetPosition()
         width, height = self.canvas.get_width_height()
         pos[1] = height - pos[1]
         xpick_data,ypick_data = pos
         xdata_org = self.parent.higher_EA_xdata
         ydata_org = self.parent.higher_EA_ydata
-        data_corrected = self.parent.high_level_eqarea.transData.transform(vstack([xdata_org,ydata_org]).T)
+        data_corrected = self.eqarea.transData.transform(vstack([xdata_org,ydata_org]).T)
         xdata,ydata = data_corrected.T
         xdata = map(float,xdata)
         ydata = map(float,ydata)
@@ -767,11 +781,13 @@ class InterpretationEditorFrame(wx.Frame):
             self.canvas.SetCursor(wx.StockCursor(wx.CURSOR_WATCH))
         else:
             self.canvas.SetCursor(wx.StockCursor(wx.CURSOR_ARROW))
-        if not self.parent.higher_EA_xdata or not self.parent.higher_EA_ydata: return
         for i,(x,y) in enumerate(zip(xdata,ydata)):
             if 0 < sqrt((x-xpick_data)**2. + (y-ypick_data)**2.) < e:
                 self.canvas.SetCursor(wx.StockCursor(wx.CURSOR_HAND))
                 break
+
+    def on_equalarea_higher_select(self,event):
+        self.parent.on_equalarea_higher_select(event,fig = self.eqarea, canvas = self.canvas)
 
     ###############################Window Functions######################################
 
@@ -781,5 +797,5 @@ class InterpretationEditorFrame(wx.Frame):
         @param: event -> wx.WindowEvent that triggered this function
         """
 
-        self.parent.interpretation_editor_open = False
+        self.parent.ie_open = False
         self.Destroy()

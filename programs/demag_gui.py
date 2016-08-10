@@ -109,19 +109,12 @@ class Demag_GUI(wx.Frame):
     For tutorial on usage see the PmagPy cookbook at http://earthref.org/PmagPy/cookbook/
         """
 
-        args=sys.argv
-        if "-h" in args:
-            help(self)
-            sys.exit()
-
         default_style = wx.MINIMIZE_BOX | wx.MAXIMIZE_BOX | wx.RESIZE_BORDER | wx.SYSTEM_MENU | wx.CAPTION | wx.CLOSE_BOX | wx.CLIP_CHILDREN | wx.NO_FULL_REPAINT_ON_RESIZE
         wx.Frame.__init__(self, parent, wx.ID_ANY, self.title, style = default_style, name='demag gui')
         self.parent = parent
 
         self.currentDirectory = os.getcwd() # get the current working directory
-        if "-WD" in sys.argv:
-            ind=sys.argv.index('-WD')
-            WD = sys.argv[ind+1]
+
         if WD != None:
             if not os.path.isdir(WD):
                 print("There is no directory %s using current directory"%(WD))
@@ -132,8 +125,8 @@ class Demag_GUI(wx.Frame):
             if new_WD == self.currentDirectory and sys.version.split()[0] == '2.7.11':
                 new_WD = self.get_DIR()
             self.change_WD(new_WD)
-#        if write_to_log_file:
-#            self.init_log_file()
+        if write_to_log_file:
+            self.init_log_file()
 
         #init wait dialog
         disableAll = wx.WindowDisabler()
@@ -170,7 +163,7 @@ class Demag_GUI(wx.Frame):
             if high_level not in self.high_level_means.keys():
                 self.high_level_means[high_level]={}
 
-        self.interpretation_editor_open = False
+        self.ie_open = False
         self.color_dict = {}
         self.colors = ['#008000','#FFFF00','#800000','#00FFFF']
         for name, hexval in matplotlib.colors.cnames.iteritems():
@@ -279,14 +272,8 @@ class Demag_GUI(wx.Frame):
         self.canvas1.Bind(wx.EVT_RIGHT_DCLICK,self.on_zijd_mark)
 
         self.fig2 = Figure((2.5*self.GUI_RESOLUTION, 2.5*self.GUI_RESOLUTION), dpi=self.dpi)
-        self.specimen_eqarea_net = self.fig2.add_subplot(111)
-        self.draw_net(self.specimen_eqarea_net)
-        self.specimen_eqarea = self.fig2.add_axes(self.specimen_eqarea_net.get_position(), frameon=False,axisbg='None')
-        self.specimen_eqarea.axes.set_aspect('equal')
-        self.specimen_eqarea.axis('off')
-        self.specimen_eqarea_interpretation = self.fig2.add_axes(self.specimen_eqarea_net.get_position(), frameon=False,axisbg='None')
-        self.specimen_eqarea_interpretation.axes.set_aspect('equal')
-        self.specimen_eqarea_interpretation.axis('off')
+        self.specimen_eqarea = self.fig2.add_subplot(111)
+        draw_net(self.specimen_eqarea)
         self.canvas2 = FigCanvas(self.panel, -1, self.fig2)
         self.toolbar2 = NavigationToolbar(self.canvas2)
         self.toolbar2.Hide()
@@ -322,15 +309,11 @@ class Demag_GUI(wx.Frame):
         self.higher_EA_xdata = []
         self.higher_EA_ydata = []
 
-        self.high_level_eqarea_net = self.fig4.add_subplot(111)
-        self.draw_net(self.high_level_eqarea_net)
-        self.high_level_eqarea = self.fig4.add_axes(self.high_level_eqarea_net.get_position(), frameon=False,axisbg='None')
-        self.high_level_eqarea_interpretation = self.fig4.add_axes(self.high_level_eqarea_net.get_position(), frameon=False,axisbg='None')
-        self.high_level_eqarea_interpretation.axis('equal')
-        self.high_level_eqarea_interpretation.axis('off')
+        self.high_level_eqarea = self.fig4.add_subplot(111)
+        draw_net(self.high_level_eqarea)
 
 
-    #----------------------------------------------------------------------
+#----------------------------------------------------------------------
         #  set font size and style
     #----------------------------------------------------------------------
 
@@ -342,7 +325,8 @@ class Demag_GUI(wx.Frame):
         font = wx.SystemSettings_GetFont(wx.SYS_SYSTEM_FONT)
         font.SetPointSize(10+FONT_RATIO)
 
-    #----------------------------------------------------------------------
+
+#----------------------------------------------------------------------
         # Create text_box for presenting the measurements
     #----------------------------------------------------------------------
 
@@ -964,8 +948,7 @@ class Demag_GUI(wx.Frame):
         # specimen equal area
         #-----------------------------------------------------------
 
-        self.specimen_eqarea.clear()
-        self.specimen_eqarea_interpretation.clear()
+        draw_net(self.specimen_eqarea)
         self.specimen_eqarea.text(-1.2,1.15,"specimen: %s"%self.s,{'family':self.font_type, 'fontsize':10*self.GUI_RESOLUTION, 'style':'normal','va':'center', 'ha':'left' })
 
         x_eq=array([row[0] for row in self.zij_norm])
@@ -1044,16 +1027,6 @@ class Demag_GUI(wx.Frame):
                     XY=pmag.dimap(dec_zij,0)
             if XY!=[]:
                 self.specimen_eqarea.plot([0,XY[0]],[0,XY[1]],ls='-',c='gray',lw=0.5)#,zorder=0)
-
-        self.specimen_eqarea.set_xlim(-1., 1.)
-        self.specimen_eqarea.set_ylim(-1., 1.)
-        self.specimen_eqarea.axes.set_aspect('equal')
-        self.specimen_eqarea.axis('off')
-
-        self.specimen_eqarea_interpretation.set_xlim(-1., 1.)
-        self.specimen_eqarea_interpretation.set_ylim(-1., 1.)
-        self.specimen_eqarea_interpretation.axes.set_aspect('equal')
-        self.specimen_eqarea_interpretation.axis('off')
 
         self.canvas2.draw()
 
@@ -1178,83 +1151,6 @@ class Demag_GUI(wx.Frame):
             self.plot_higher_levels_data()
         self.canvas4.draw()
 
-    def draw_net_new(self,ax):
-        FIG.clear()
-        eq=FIG
-        host = fig.add_subplot(111)
-        eq.axis((-1,1,-1,1))
-        eq.axis('off')
-        theta=arange(0.,2*pi,2*pi/1000)
-        eq.plot(cos(theta),sin(theta),'k',clip_on=False,lw=1)
-        #eq.vlines((0,0),(0.9,-0.9),(1.0,-1.0),'k')
-        #eq.hlines((0,0),(0.9,-0.9),(1.0,-1.0),'k')
-        #eq.plot([0.0],[0.0],'+k')
-
-        Xsym,Ysym=[],[]
-        for I in range(10,100,10):
-            XY=pmag.dimap(0.,I)
-            Xsym.append(XY[0])
-            Ysym.append(XY[1])
-        for I in range(10,90,10):
-            XY=pmag.dimap(90.,I)
-            Xsym.append(XY[0])
-            Ysym.append(XY[1])
-        for I in range(10,90,10):
-            XY=pmag.dimap(180.,I)
-            Xsym.append(XY[0])
-            Ysym.append(XY[1])
-        for I in range(10,90,10):
-            XY=pmag.dimap(270.,I)
-            Xsym.append(XY[0])
-            Ysym.append(XY[1])
-        eq.plot(Xsym,Ysym,'k+',clip_on=False,mew=0.5)
-        for D in range(0,360,10):
-            Xtick,Ytick=[],[]
-            for I in range(4):
-                XY=pmag.dimap(D,I)
-                Xtick.append(XY[0])
-                Ytick.append(XY[1])
-            eq.plot(Xtick,Ytick,'k',clip_on=False,lw=0.5)
-        eq.axes.set_aspect('equal')
-
-    def draw_net(self,FIG):
-        FIG.clear()
-        eq=FIG
-        eq.axis((-1,1,-1,1))
-        eq.axis('off')
-        theta=arange(0.,2*pi,2*pi/1000)
-        eq.plot(cos(theta),sin(theta),'k',clip_on=False,lw=1)
-        #eq.vlines((0,0),(0.9,-0.9),(1.0,-1.0),'k')
-        #eq.hlines((0,0),(0.9,-0.9),(1.0,-1.0),'k')
-        #eq.plot([0.0],[0.0],'+k')
-
-        Xsym,Ysym=[],[]
-        for I in range(10,100,10):
-            XY=pmag.dimap(0.,I)
-            Xsym.append(XY[0])
-            Ysym.append(XY[1])
-        for I in range(10,90,10):
-            XY=pmag.dimap(90.,I)
-            Xsym.append(XY[0])
-            Ysym.append(XY[1])
-        for I in range(10,90,10):
-            XY=pmag.dimap(180.,I)
-            Xsym.append(XY[0])
-            Ysym.append(XY[1])
-        for I in range(10,90,10):
-            XY=pmag.dimap(270.,I)
-            Xsym.append(XY[0])
-            Ysym.append(XY[1])
-        eq.plot(Xsym,Ysym,'k+',clip_on=False,mew=0.5)
-        for D in range(0,360,10):
-            Xtick,Ytick=[],[]
-            for I in range(4):
-                XY=pmag.dimap(D,I)
-                Xtick.append(XY[0])
-                Ytick.append(XY[1])
-            eq.plot(Xtick,Ytick,'k',clip_on=False,lw=0.5)
-        eq.axes.set_aspect('equal')
-
     def draw_interpretation(self):
         """
         draw the specimen interpretations on the zijderveld and the specimen equal area
@@ -1266,7 +1162,7 @@ class Demag_GUI(wx.Frame):
         if self.s in self.pmag_results_data['specimens'] and \
             self.pmag_results_data['specimens'][self.s] != []:
             self.zijplot.collections=[] # delete fit points
-            self.specimen_eqarea_interpretation.clear() #clear equal area
+#            draw_net(self.specimen_eqarea) #clear equal area
             self.mplot_interpretation.clear() #clear Mplot
             self.specimen_EA_xdata = [] #clear saved x positions on specimen equal area
             self.specimen_EA_ydata = [] #clear saved y positions on specimen equal area
@@ -1393,10 +1289,10 @@ class Demag_GUI(wx.Frame):
 
                 if self.plane_display_box.GetValue() == "show u. hemisphere" or \
                    self.plane_display_box.GetValue() == "show whole plane":
-                    self.specimen_eqarea_interpretation.plot(X_c_d,Y_c_d,'b')
+                    self.specimen_eqarea.plot(X_c_d,Y_c_d,'b')
                 if self.plane_display_box.GetValue() == "show l. hemisphere" or \
                    self.plane_display_box.GetValue() == "show whole plane":
-                    self.specimen_eqarea_interpretation.plot(X_c_up,Y_c_up,'c')
+                    self.specimen_eqarea.plot(X_c_up,Y_c_up,'c')
 
             else:
                 CART=pmag.dir2cart([pars['specimen_dec'],pars['specimen_inc'],1])
@@ -1413,16 +1309,7 @@ class Demag_GUI(wx.Frame):
                     FC=fit.color;EC='0.1'
                 else:
                     FC=fit.color;EC='green'
-                self.specimen_eqarea_interpretation.scatter([eqarea_x],[eqarea_y],marker=marker_shape,edgecolor=EC, facecolor=FC,s=SIZE,lw=1,clip_on=False)
-
-            self.specimen_eqarea.set_xlim(-1., 1.)
-            self.specimen_eqarea.set_ylim(-1., 1.)
-            self.specimen_eqarea.axes.set_aspect('equal')
-            self.specimen_eqarea.axis('off')
-            self.specimen_eqarea_interpretation.set_xlim(-1., 1.)
-            self.specimen_eqarea_interpretation.set_ylim(-1., 1.)
-            self.specimen_eqarea_interpretation.axes.set_aspect('equal')
-            self.specimen_eqarea_interpretation.axis('off')
+                self.specimen_eqarea.scatter([eqarea_x],[eqarea_y],marker=marker_shape,edgecolor=EC, facecolor=FC,s=SIZE,lw=1,clip_on=False)
 
             # M/M0 plot (only if C or mT - not both)
             if self.Data[self.s]['measurement_step_unit'] !="mT:C" and self.Data[self.s]['measurement_step_unit'] !="C:mT":
@@ -1466,9 +1353,10 @@ class Demag_GUI(wx.Frame):
        self.UPPER_LEVEL_NAME=self.level_names.GetValue()
        self.UPPER_LEVEL_MEAN=self.mean_type_box.GetValue()
 
-       self.high_level_eqarea.clear()
+       draw_net(self.high_level_eqarea)
        what_is_it=self.level_box.GetValue()+": "+self.level_names.GetValue()
        self.high_level_eqarea.text(-1.2,1.15,what_is_it,{'family':self.font_type, 'fontsize':10*self.GUI_RESOLUTION, 'style':'normal','va':'center', 'ha':'left' })
+       if self.ie_open: self.ie.draw_net(); self.ie.write(what_is_it)
 
        if self.COORDINATE_SYSTEM=="geographic": dirtype='DA-DIR-GEO'
        elif self.COORDINATE_SYSTEM=="tilt-corrected": dirtype='DA-DIR-TILT'
@@ -1522,19 +1410,14 @@ class Demag_GUI(wx.Frame):
                         self.plot_eqarea_mean(self.high_level_means[high_level_type][high_level_name][self.mean_fit][dirtype],self.high_level_eqarea)
 
 
-       self.high_level_eqarea.set_xlim(-1., 1.)
-       self.high_level_eqarea.set_ylim(-1., 1.)
-       self.high_level_eqarea.axes.set_aspect('equal')
-       self.high_level_eqarea.axis('off')
        self.canvas4.draw()
 
-       if self.interpretation_editor_open:
-           self.update_higher_level_stats()
-           self.interpretation_editor.update_editor(False)
+       if self.ie_open:
+           self.ie.draw()
 
     def plot_higher_level_equalarea(self,element):
-        if self.interpretation_editor_open:
-            higher_level = self.interpretation_editor.show_box.GetValue()
+        if self.ie_open:
+            higher_level = self.ie.show_box.GetValue()
         else: higher_level = self.UPPER_LEVEL_SHOW
         fits = []
         if higher_level not in self.pmag_results_data: print("no level: " + str(higher_level)); return
@@ -1566,7 +1449,6 @@ class Demag_GUI(wx.Frame):
                 else:
                     FC='white';SIZE=15*self.GUI_RESOLUTION
                 marker_shape = 'o'
-                SIZE = 30
                 if fit == self.current_fit:
                     marker_shape = 'D'
                 if pars['calculation_type'] == "DE-BFP":
@@ -1599,15 +1481,12 @@ class Demag_GUI(wx.Frame):
                     if self.plane_display_box.GetValue() == "show l. hemisphere" or \
                        self.plane_display_box.GetValue() == "show whole plane":
                         fig.plot(X_c_up,Y_c_up,'c')
-                    fig.set_xlim(-1., 1.)
-                    fig.set_ylim(-1., 1.)
-                    fig.axes.set_aspect('equal')
-                    fig.axis('off')
-                    continue
 
                 self.higher_EA_xdata.append(XY[0])
                 self.higher_EA_ydata.append(XY[1])
                 fig.scatter([XY[0]],[XY[1]],marker=marker_shape,edgecolor=fit.color, facecolor=FC,s=SIZE,lw=1,clip_on=False)
+                if self.ie_open:
+                    self.ie.scatter([XY[0]],[XY[1]],marker=marker_shape,edgecolor=fit.color,facecolor=FC,s=SIZE,lw=1,clip_on=False)
 
     def plot_eqarea_pars(self,pars,fig):
         # plot best-fit plane
@@ -1631,6 +1510,9 @@ class Demag_GUI(wx.Frame):
                     Y_c_d.append(XY[1])
             fig.plot(X_c_d,Y_c_d,'b',lw=0.5)
             fig.plot(X_c_up,Y_c_up,'c',lw=0.5)
+            if self.ie_open:
+                self.ie.plot(X_c_d,Y_c_d,'b',lw=0.5)
+                self.ie.plot(X_c_up,Y_c_up,'c',lw=0.5)
 
             fig.set_xlim(xmin, xmax)
             fig.set_ylim(ymin, ymax)
@@ -1648,6 +1530,8 @@ class Demag_GUI(wx.Frame):
                 if 'color' in pars.keys(): FC='white';EC=pars['color'];SIZE=15*self.GUI_RESOLUTION
                 else: FC='white';EC='grey';SIZE=15*self.GUI_RESOLUTION
             fig.scatter([XY[0]],[XY[1]],marker='o',edgecolor=EC, facecolor=FC,s=SIZE,lw=1,clip_on=False)
+            if self.ie_open:
+                self.ie.scatter([XY[0]],[XY[1]],marker='o',edgecolor=EC, facecolor=FC,s=SIZE,lw=1,clip_on=False)
 
     def plot_eqarea_mean(self,meanpars,fig):
         #fig.clear()
@@ -1680,6 +1564,12 @@ class Demag_GUI(wx.Frame):
                     Xcirc.append(XY[0])
                     Ycirc.append(XY[1])
                 fig.plot(Xcirc,Ycirc,'black')
+
+            if self.ie_open:
+                self.ie.scatter([XY[0]],[XY[1]],marker='o',edgecolor=EC, facecolor=FC,s=30,lw=1,clip_on=False)
+                self.ie.plot(Xcirc,Ycirc,'black')
+                self.ie.eqarea.set_xlim(xmin, xmax)
+                self.ie.eqarea.set_ylim(ymin, ymax)
 
         fig.set_xlim(xmin, xmax)
         fig.set_ylim(ymin, ymax)
@@ -2151,14 +2041,14 @@ class Demag_GUI(wx.Frame):
         elif calculation_type=='Fisher':
             mpars=pmag.dolnp(pars_for_mean,'direction_type')
             self.switch_stats_button.SetRange(0,0)
-            if self.interpretation_editor_open:
-                self.interpretation_editor.switch_stats_button.SetRange(0,0)
+            if self.ie_open:
+                self.ie.switch_stats_button.SetRange(0,0)
 
         elif calculation_type=='Fisher by polarity':
             mpars=pmag.fisher_by_pol(pars_for_mean)
             self.switch_stats_button.SetRange(0,len(mpars.keys())-1)
-            if self.interpretation_editor_open:
-                self.interpretation_editor.switch_stats_button.SetRange(0,len(mpars.keys())-1)
+            if self.ie_open:
+                self.ie.switch_stats_button.SetRange(0,len(mpars.keys())-1)
             for key in mpars.keys():
                 mpars[key]['n_planes'] = 0
                 mpars[key]['calculation_type'] = 'Fisher'
@@ -2176,8 +2066,8 @@ class Demag_GUI(wx.Frame):
         high_level_name=str(self.level_names.GetValue())
         calculation_type=str(self.mean_type_box.GetValue())
         elements_type=self.UPPER_LEVEL_SHOW
-        if self.interpretation_editor_open:
-             self.interpretation_editor.mean_type_box.SetStringSelection(calculation_type)
+        if self.ie_open:
+             self.ie.mean_type_box.SetStringSelection(calculation_type)
         self.calculate_high_level_mean(high_level_type,high_level_name,calculation_type,elements_type,self.mean_fit)
 
     def quiet_reset_backend(self,reset_interps=True):
@@ -2229,8 +2119,8 @@ class Demag_GUI(wx.Frame):
         if self.Data and reset_interps:
             self.update_pmag_tables()
 
-        if self.interpretation_editor_open:
-            self.interpretation_editor.specimens_list = self.specimens
+        if self.ie_open:
+            self.ie.specimens_list = self.specimens
 
 
 
@@ -2249,8 +2139,8 @@ class Demag_GUI(wx.Frame):
                 self.Add_text()
                 self.update_fit_boxes()
 
-        if self.interpretation_editor_open:
-            self.interpretation_editor.update_editor(True)
+        if self.ie_open:
+            self.ie.update_editor(True)
 
     def recalculate_current_specimen_interpreatations(self):
         self.initialize_CART_rot(self.s)
@@ -2438,8 +2328,8 @@ class Demag_GUI(wx.Frame):
         fit = self.pmag_results_data['specimens'][self.s][-1]
         self.current_fit = fit #update current fit to new fit
 
-        if self.interpretation_editor_open:
-            self.interpretation_editor.update_editor(True)
+        if self.ie_open:
+            self.ie.update_editor(True)
 
         self.update_fit_boxes(True)
 
@@ -2464,8 +2354,8 @@ class Demag_GUI(wx.Frame):
             ##later on when higher level means are fixed remove the bellow loop and loop over pmag_results_data
             for high_level_type in ['samples','sites','locations','study']:
                 self.high_level_means[high_level_type]={}
-        if self.interpretation_editor_open:
-            self.interpretation_editor.update_editor(True)
+        if self.ie_open:
+            self.ie.update_editor(True)
         return True
 
     def mark_meas_good(self,g_index):
@@ -2574,7 +2464,6 @@ class Demag_GUI(wx.Frame):
           meas_data3_0=meas_data3_0[meas_data3_0['method_codes'].str.contains('LT-NO|LT-AF-Z|LT-T-Z|LT-M-Z|LT-LT-Z')==True] # fish out all the relavent data 
 # now convert back to 2.5  changing only those keys that are necessary for thellier_gui
           meas_data2_5=meas_data3_0.rename(columns=map_magic.meas_magic3_2_magic2_map)
-          meas_data2_5.to_csv("/home/kevin/Code/Paleomag/after_edits_2_5.csv")
           mag_meas_data=meas_data2_5.to_dict("records")  # make a list of dictionaries to maintain backward compatibility
 
       else:
@@ -3145,8 +3034,8 @@ class Demag_GUI(wx.Frame):
         else:
             self.current_fit = self.pmag_results_data['specimens'][self.s][-1]
         self.calculate_higher_levels_data()
-        if self.interpretation_editor_open:
-            self.interpretation_editor.update_editor()
+        if self.ie_open:
+            self.ie.update_editor()
         self.update_selection()
 
     def read_inp(self,inp_file_name,magic_files):
@@ -3712,7 +3601,7 @@ class Demag_GUI(wx.Frame):
                 Dcrit,Icrit,nocrit = 1,1,1 # no selection criteria
                 crit_data = pmag.default_criteria(nocrit)
             elif use_criteria == 'existing':
-                crit_data = self.con.tables['criteria'].df.to_dict("records")
+                crit_data = self.read_criteria_file()
                 print("Acceptance criteria from criteria.txt used")
             else:
                 # use default criteria
@@ -3721,6 +3610,7 @@ class Demag_GUI(wx.Frame):
 
             accept={}
             for critrec in crit_data:
+                if type(critrec) != dict: continue
                 for key in critrec.keys():
                     # need to migrate specimen_dang to specimen_int_dang for intensity data using old format
                     if 'IE-SPEC' in critrec.keys() and 'specimen_dang' in critrec.keys() and 'specimen_int_dang' not in critrec.keys():
@@ -3911,10 +3801,11 @@ class Demag_GUI(wx.Frame):
                             avg = lambda l: sum(l)/len(l) if hasattr(l, '__iter__') else l
                             for k in age_dat.columns:
                                 if 'age' in k:
-                                    if len(age_data_for_site[k])==1 or type(list(age_data_for_site[k])[0]) == str:
+                                    if len(age_data_for_site[k]) == 1 and type(list(age_data_for_site[k])[0]) == str:
                                         PmagSiteRec[k] = list(age_data_for_site[k])[0]
-                                    else:
+                                    elif len(age_data_for_site[k])>0:
                                         PmagSiteRec[k] = avg(map(float,age_data_for_site[k]))
+                                    else: PmagSiteRec[k] = ''
                         else:
                             PmagSiteRec['age_high'] = max_age
                             PmagSiteRec['age_low'] = min_age
@@ -3929,21 +3820,25 @@ class Demag_GUI(wx.Frame):
                                 PmagSiteRec["method_codes"]=PmagSiteRec['method_codes']+":DE-FM"
 
                         PmagSiteRec['result_type']='i' # decorate it a bit
-                        dec=float(PmagSiteRec["dir_dec"])
-                        inc=float(PmagSiteRec["dir_inc"])
-                        if 'dir_alpha95' in PmagSiteRec.keys() and PmagSiteRec['dir_alpha95']!="":
-                            a95=float(PmagSiteRec["dir_alpha95"])
-                        else:a95=180.
-                        sitedat=pmag.get_dictitem(SiteNFO,'site',PmagSiteRec['site'],'T')[0] # fish out site information (lat/lon, etc.)
-                        lat=float(sitedat['lat'])
-                        lon=float(sitedat['lon'])
-                        plong,plat,dp,dm=pmag.dia_vgp(dec,inc,a95,lat,lon) # get the VGP for this site
-                        site_height=pmag.get_dictitem(height_info,'site',site,'T')
-                        if len(site_height)>0:PmagResRec["height"]=site_height[0]['height']
-                        PmagSiteRec["vgp_lat"]='%7.1f ' % (plat)
-                        PmagSiteRec["vgp_lon"]='%7.1f ' % (plong)
-                        PmagSiteRec["vgp_dp"]='%7.1f ' % (dp)
-                        PmagSiteRec["vgp_dm"]='%7.1f ' % (dm)
+                        if dia.cb_site_mean_VGP.GetValue():
+                            dec=float(PmagSiteRec["dir_dec"])
+                            inc=float(PmagSiteRec["dir_inc"])
+                            if 'dir_alpha95' in PmagSiteRec.keys() and PmagSiteRec['dir_alpha95']!="":
+                                a95=float(PmagSiteRec["dir_alpha95"])
+                            else:a95=180.
+                            sitedat=pmag.get_dictitem(SiteNFO,'site',PmagSiteRec['site'],'T')[0] # fish out site information (lat/lon, etc.)
+                            try:
+                                lat=float(sitedat['lat'])
+                                lon=float(sitedat['lon'])
+                            except (ValueError,TypeError) as e:
+                                print("latitude %s and longitude %s are not valid values for site %s vgp calculation, skipping"%(str(sitedat['lat']),str(sitedat['lon']),site)); break
+                            plong,plat,dp,dm=pmag.dia_vgp(dec,inc,a95,lat,lon) # get the VGP for this site
+                            site_height=pmag.get_dictitem(height_info,'site',site,'T')
+                            if len(site_height)>0:PmagResRec["height"]=site_height[0]['height']
+                            PmagSiteRec["vgp_lat"]='%7.1f ' % (plat)
+                            PmagSiteRec["vgp_lon"]='%7.1f ' % (plong)
+                            PmagSiteRec["vgp_dp"]='%7.1f ' % (dp)
+                            PmagSiteRec["vgp_dm"]='%7.1f ' % (dm)
                         if '0' in PmagSiteRec['dir_tilt_correction'] and "DA-DIR-GEO" not in PmagSiteRec['method_codes']: PmagSiteRec['method_codes']=PmagSiteRec['method_codes']+":DA-DIR-GEO"
                         if '100' in PmagSiteRec['dir_tilt_correction'] and "DA-DIR-TILT" not in PmagSiteRec['method_codes']: PmagSiteRec['method_codes']=PmagSiteRec['method_codes']+":DA-DIR-TILT"
                         PmagSiteRec['dir_polarity']=""
@@ -4007,10 +3902,11 @@ class Demag_GUI(wx.Frame):
                                 age_data_for_loc = age_dat[age_dat['location']==location]
                                 avg = lambda l: sum(l)/len(l) if hasattr(l, '__iter__') else l
                                 for k in age_dat.columns:
-                                    if len(age_data_for_site[k])==1 or type(list(age_data_for_site[k])[0]) == str:
+                                    if len(age_data_for_site[k])==1 and type(list(age_data_for_site[k])[0]) == str:
                                         PolRes[k] = list(age_data_for_loc[k])[0]
-                                    else:
+                                    elif len(age_data_for_site[k])>0:
                                         PolRes[k] = avg(map(float,age_data_for_loc[k]))
+                                    else: PolRes[k] = ''
                             else:
                                 PolRes['age_high'] = max_age
                                 PolRes['age_low'] = min_age
@@ -4141,9 +4037,9 @@ class Demag_GUI(wx.Frame):
         elif coordinate_system=='geographic' and \
              len(self.Data[self.s]['zijdblock_geo'])==0:
             self.coordinates_box.SetStringSelection("specimen")
-        if coordinate_system != self.coordinates_box.GetValue() and self.interpretation_editor_open:
-            self.interpretation_editor.coordinates_box.SetStringSelection(self.coordinates_box.GetValue())
-            self.interpretation_editor.update_editor(False)
+        if coordinate_system != self.coordinates_box.GetValue() and self.ie_open:
+            self.ie.coordinates_box.SetStringSelection(self.coordinates_box.GetValue())
+            self.ie.update_editor(False)
         coordinate_system=self.coordinates_box.GetValue()
         self.COORDINATE_SYSTEM=coordinate_system
 
@@ -4167,9 +4063,9 @@ class Demag_GUI(wx.Frame):
         if higher_level=='location':
             new_string=self.Data_hierarchy['location_of_specimen'][self.s]
         self.level_names.SetValue(new_string)
-        if self.interpretation_editor_open and new_string!=old_string:
-            self.interpretation_editor.level_names.SetValue(new_string)
-            self.interpretation_editor.on_select_level_name(-1,True)
+        if self.ie_open and new_string!=old_string:
+            self.ie.level_names.SetValue(new_string)
+            self.ie.on_select_level_name(-1,True)
 
         self.update_PCA_box()
 
@@ -4377,11 +4273,11 @@ class Demag_GUI(wx.Frame):
         #select defaults
         if fit_index: self.mean_fit_box.SetSelection(fit_index+2)
         if self.mean_fit_box.GetValue() == 'None': self.mean_type_box.SetStringSelection('None')
-        if self.interpretation_editor_open:
-            self.interpretation_editor.mean_fit_box.Clear()
-            self.interpretation_editor.mean_fit_box.SetItems(['None','All'] + self.all_fits_list)
-            if fit_index: self.interpretation_editor.mean_fit_box.SetSelection(fit_index+2)
-            if self.mean_fit_box.GetValue() == 'None': self.interpretation_editor.mean_type_box.SetStringSelection('None')
+        if self.ie_open:
+            self.ie.mean_fit_box.Clear()
+            self.ie.mean_fit_box.SetItems(['None','All'] + self.all_fits_list)
+            if fit_index: self.ie.mean_fit_box.SetSelection(fit_index+2)
+            if self.mean_fit_box.GetValue() == 'None': self.ie.mean_type_box.SetStringSelection('None')
 
     def show_higher_levels_pars(self,mpars):
 
@@ -4397,8 +4293,8 @@ class Demag_GUI(wx.Frame):
                     COMMAND = """self.%s_window.SetValue(str(mpars['%s']))"""%(val,ind)
                     exec COMMAND
 
-            if self.interpretation_editor_open:
-                ie = self.interpretation_editor
+            if self.ie_open:
+                ie = self.ie
                 if mpars["calculation_type"]=='Fisher' and "alpha95" in mpars.keys():
                     for val in ['mean_type:calculation_type','dec:dec','inc:inc','alpha95:alpha95','K:K','R:R','n_lines:n_lines','n_planes:n_planes']:
                         val,ind = val.split(":")
@@ -4423,8 +4319,8 @@ class Demag_GUI(wx.Frame):
                         COMMAND = """self.%s_window.SetValue(str(mpars['%s']))"""%(val,ind)
                     exec COMMAND
 
-            if self.interpretation_editor_open:
-                ie = self.interpretation_editor
+            if self.ie_open:
+                ie = self.ie
                 if mpars["calculation_type"]=='Fisher' and "alpha95" in mpars.keys():
                     for val in ['mean_type:calculation_type','dec:dec','inc:inc','alpha95:alpha95','K:k','R:r','n_lines:n','n_planes:n_planes']:
                         val,ind = val.split(":")
@@ -4465,8 +4361,8 @@ class Demag_GUI(wx.Frame):
         for val in ['mean_type','dec','inc','alpha95','K','R','n_lines','n_planes']:
             COMMAND = """self.%s_window.SetValue("")"""%(val)
             exec COMMAND
-        if self.interpretation_editor_open:
-            ie = self.interpretation_editor
+        if self.ie_open:
+            ie = self.ie
             for val in ['mean_type','dec','inc','alpha95','K','R','n_lines','n_planes']:
                 COMMAND = """ie.%s_window.SetValue("")"""%(val)
                 exec COMMAND
@@ -4842,12 +4738,12 @@ class Demag_GUI(wx.Frame):
             self.dlg = wx.MessageDialog(self,caption="Warning:", message=TEXT ,style=wx.OK|wx.CANCEL|wx.ICON_EXCLAMATION)
             if self.dlg.ShowModal() == wx.ID_OK:
                 self.dlg.Destroy()
-                if self.interpretation_editor_open:
-                    self.interpretation_editor.on_close_edit_window(event)
+                if self.ie_open:
+                    self.ie.on_close_edit_window(event)
                 self.Destroy()
         else:
-            if self.interpretation_editor_open:
-                self.interpretation_editor.on_close_edit_window(event)
+            if self.ie_open:
+                self.ie.on_close_edit_window(event)
             self.close_log_file()
             self.Destroy()
         self.running = False
@@ -4907,8 +4803,8 @@ class Demag_GUI(wx.Frame):
 
         self.recalculate_current_specimen_interpreatations()
 
-        if self.interpretation_editor_open:
-            self.interpretation_editor.update_current_fit_data()
+        if self.ie_open:
+            self.ie.update_current_fit_data()
         self.calculate_higher_levels_data()
         self.update_selection()
 
@@ -4922,8 +4818,8 @@ class Demag_GUI(wx.Frame):
 
         self.recalculate_current_specimen_interpreatations()
 
-        if self.interpretation_editor_open:
-            self.interpretation_editor.update_current_fit_data()
+        if self.ie_open:
+            self.ie.update_current_fit_data()
         self.calculate_higher_levels_data()
         self.update_selection()
 
@@ -5056,20 +4952,22 @@ class Demag_GUI(wx.Frame):
     #---------------------------------------------#
 
     def on_menu_edit_interpretations(self,event):
-        if not self.interpretation_editor_open:
-            self.interpretation_editor = InterpretationEditorFrame(self)
-            self.interpretation_editor_open = True
+        if not self.ie_open:
+            self.ie = InterpretationEditorFrame(self)
+            self.ie_open = True
             self.update_higher_level_stats()
-            self.interpretation_editor.Center()
-            self.interpretation_editor.Show(True)
+            self.ie.Center()
+            self.ie.Show(True)
             if self.parent==None and sys.platform.startswith('darwin'):
                 TEXT="This is a refresher window for mac os to insure that wx opens the new window"
                 self.dlg = wx.MessageDialog(self, caption="Open",message=TEXT,style=wx.OK | wx.ICON_INFORMATION | wx.STAY_ON_TOP )
                 self.dlg.ShowModal()
                 self.dlg.Destroy()
+            if self.mean_fit!=None and self.mean_fit!='None':
+                self.plot_higher_levels_data(event)
         else:
-            self.interpretation_editor.ToggleWindowStyle(wx.STAY_ON_TOP)
-            self.interpretation_editor.ToggleWindowStyle(wx.STAY_ON_TOP)
+            self.ie.ToggleWindowStyle(wx.STAY_ON_TOP)
+            self.ie.ToggleWindowStyle(wx.STAY_ON_TOP)
 
     #---------------------------------------------#
     #Help Menu Functions
@@ -5210,8 +5108,8 @@ class Demag_GUI(wx.Frame):
 
             self.recalculate_current_specimen_interpreatations()
 
-            if self.interpretation_editor_open:
-                self.interpretation_editor.update_current_fit_data()
+            if self.ie_open:
+                self.ie.update_current_fit_data()
             self.calculate_higher_levels_data()
             self.update_selection()
 
@@ -5252,7 +5150,7 @@ class Demag_GUI(wx.Frame):
         xpick_data,ypick_data = pos
         xdata_org = self.specimen_EA_xdata
         ydata_org = self.specimen_EA_ydata
-        data_corrected = self.specimen_eqarea_interpretation.transData.transform(vstack([xdata_org,ydata_org]).T)
+        data_corrected = self.specimen_eqarea.transData.transform(vstack([xdata_org,ydata_org]).T)
         xdata,ydata = data_corrected.T
         xdata = map(float,xdata)
         ydata = map(float,ydata)
@@ -5281,7 +5179,7 @@ class Demag_GUI(wx.Frame):
         xpick_data,ypick_data = pos
         xdata_org = self.specimen_EA_xdata
         ydata_org = self.specimen_EA_ydata
-        data_corrected = self.specimen_eqarea_interpretation.transData.transform(vstack([xdata_org,ydata_org]).T)
+        data_corrected = self.specimen_eqarea.transData.transform(vstack([xdata_org,ydata_org]).T)
         xdata,ydata = data_corrected.T
         xdata = map(float,xdata)
         ydata = map(float,ydata)
@@ -5326,7 +5224,7 @@ class Demag_GUI(wx.Frame):
         If mouse is over data point making it selectable change the shape of the cursor
         @param: event -> the wx Mouseevent for that click
         """
-        if self.interpretation_editor_open and self.interpretation_editor.show_box.GetValue() != "specimens": return
+        if self.ie_open and self.ie.show_box.GetValue() != "specimens": return
         pos=event.GetPosition()
         width, height = self.canvas4.get_width_height()
         pos[1] = height - pos[1]
@@ -5349,22 +5247,24 @@ class Demag_GUI(wx.Frame):
                 self.canvas4.SetCursor(wx.StockCursor(wx.CURSOR_HAND))
                 break
 
-    def on_equalarea_higher_select(self,event):
+    def on_equalarea_higher_select(self,event,fig=None,canvas=None):
         """
         Get mouse position on double click find the nearest interpretation to the mouse
         position then select that interpretation
         @param: event -> the wx Mouseevent for that click
         @alters: current_fit, s, mean_fit, fit_box selection, mean_fit_box selection, specimens_box selection, tmin_box selection, tmax_box selection,
         """
-        if self.interpretation_editor_open and self.interpretation_editor.show_box.GetValue() != "specimens": return
+        if self.ie_open and self.ie.show_box.GetValue() != "specimens": return
         if not self.higher_EA_xdata or not self.higher_EA_ydata: return
+        if fig==None: fig = self.high_level_eqarea
+        if canvas==None: canvas = self.canvas4
         pos=event.GetPosition()
-        width, height = self.canvas4.get_width_height()
+        width, height = canvas.get_width_height()
         pos[1] = height - pos[1]
         xpick_data,ypick_data = pos
         xdata_org = self.higher_EA_xdata
         ydata_org = self.higher_EA_ydata
-        data_corrected = self.high_level_eqarea.transData.transform(vstack([xdata_org,ydata_org]).T)
+        data_corrected = fig.transData.transform(vstack([xdata_org,ydata_org]).T)
         xdata,ydata = data_corrected.T
         xdata = map(float,xdata)
         ydata = map(float,ydata)
@@ -5427,8 +5327,8 @@ class Demag_GUI(wx.Frame):
                 self.update_selection()
             else:
                 self.Add_text()
-            if self.interpretation_editor_open:
-                self.interpretation_editor.change_selected(self.current_fit)
+            if self.ie_open:
+                self.ie.change_selected(self.current_fit)
 
     def right_click_MM0(self,event):
         if self.MM0_setting == "Zoom":
@@ -5569,8 +5469,8 @@ class Demag_GUI(wx.Frame):
 
         self.recalculate_current_specimen_interpreatations()
 
-        if self.interpretation_editor_open:
-            self.interpretation_editor.update_current_fit_data()
+        if self.ie_open:
+            self.ie.update_current_fit_data()
         self.calculate_higher_levels_data()
         self.update_selection()
 
@@ -5583,8 +5483,8 @@ class Demag_GUI(wx.Frame):
         update figures and text when a new specimen is selected
         """
         self.select_specimen(str(self.specimens_box.GetValue()))
-        if self.interpretation_editor_open:
-            self.interpretation_editor.change_selected(self.current_fit)
+        if self.ie_open:
+            self.ie.change_selected(self.current_fit)
         self.update_selection()
 
     def onSelect_coordinates(self, event):
@@ -5603,9 +5503,9 @@ class Demag_GUI(wx.Frame):
             for fit in self.pmag_results_data['specimens'][specimen]:
                 fit.put(specimen,self.COORDINATE_SYSTEM,self.get_PCA_parameters(specimen,fit,fit.tmin,fit.tmax,self.COORDINATE_SYSTEM,fit.PCA_type))
 
-        if self.interpretation_editor_open:
-            self.interpretation_editor.coordinates_box.SetStringSelection(new)
-            self.interpretation_editor.update_editor(True)
+        if self.ie_open:
+            self.ie.coordinates_box.SetStringSelection(new)
+            self.ie.update_editor(True)
         self.update_selection()
 
     def onSelect_orthogonal_box(self, event):
@@ -5619,8 +5519,8 @@ class Demag_GUI(wx.Frame):
 
     def on_select_specimen_mean_type_box(self,event):
         self.get_new_PCA_parameters(event)
-        if self.interpretation_editor_open:
-            self.interpretation_editor.update_logger_entry(self.interpretation_editor.current_fit_index)
+        if self.ie_open:
+            self.ie.update_logger_entry(self.ie.current_fit_index)
 
     def get_new_PCA_parameters(self,event):
         """
@@ -5646,8 +5546,8 @@ class Demag_GUI(wx.Frame):
         coordinate_system=self.COORDINATE_SYSTEM
         if self.current_fit:
             self.current_fit.put(self.s,coordinate_system,self.get_PCA_parameters(self.s,self.current_fit,tmin,tmax,coordinate_system,calculation_type))
-        if self.interpretation_editor_open:
-            self.interpretation_editor.update_current_fit_data()
+        if self.ie_open:
+            self.ie.update_current_fit_data()
         self.update_GUI_with_new_interpretation()
 
     def onSelect_mean_type_box(self,event):
@@ -5659,8 +5559,8 @@ class Demag_GUI(wx.Frame):
         #get new fit to display
         new_fit = self.mean_fit_box.GetValue()
         self.mean_fit = new_fit
-        if self.interpretation_editor_open:
-            self.interpretation_editor.mean_fit_box.SetStringSelection(new_fit)
+        if self.ie_open:
+            self.ie.mean_fit_box.SetStringSelection(new_fit)
         # calculate higher level data
         self.calculate_higher_levels_data()
         self.update_higher_level_stats()
@@ -5669,42 +5569,42 @@ class Demag_GUI(wx.Frame):
     def onSelect_higher_level(self,event,called_by_interp_editor=False):
        self.UPPER_LEVEL=self.level_box.GetValue()
        if self.UPPER_LEVEL=='sample':
-           if self.interpretation_editor_open:
-               self.interpretation_editor.show_box.SetItems(['specimens'])
-               self.interpretation_editor.show_box.SetStringSelection('specimens')
+           if self.ie_open:
+               self.ie.show_box.SetItems(['specimens'])
+               self.ie.show_box.SetStringSelection('specimens')
            if self.UPPER_LEVEL_SHOW not in ['specimens']: self.UPPER_LEVEL_SHOW = u'specimens'
            self.level_names.SetItems(self.samples)
            self.level_names.SetStringSelection(self.Data_hierarchy['sample_of_specimen'][self.s])
 
        elif self.UPPER_LEVEL=='site':
-           if self.interpretation_editor_open:
-               self.interpretation_editor.show_box.SetItems(['specimens','samples'])
-               if self.interpretation_editor.show_box.GetValue() not in ['specimens','samples']:
-                   self.interpretation_editor.show_box.SetStringSelection('samples')
+           if self.ie_open:
+               self.ie.show_box.SetItems(['specimens','samples'])
+               if self.ie.show_box.GetValue() not in ['specimens','samples']:
+                   self.ie.show_box.SetStringSelection('samples')
            if self.UPPER_LEVEL_SHOW not in ['specimens','samples']: self.UPPER_LEVEL_SHOW = u'specimens'
            self.level_names.SetItems(self.sites)
            self.level_names.SetStringSelection(self.Data_hierarchy['site_of_specimen'][self.s])
 
        elif self.UPPER_LEVEL=='location':
-           if self.interpretation_editor_open:
-               self.interpretation_editor.show_box.SetItems(['specimens','samples','sites'])#,'sites VGP'])
-               if self.interpretation_editor.show_box.GetValue() not in ['specimens','samples','sites']:#,'sites VGP']:
-                   self.interpretation_editor.show_box.SetStringSelection('sites')
+           if self.ie_open:
+               self.ie.show_box.SetItems(['specimens','samples','sites'])#,'sites VGP'])
+               if self.ie.show_box.GetValue() not in ['specimens','samples','sites']:#,'sites VGP']:
+                   self.ie.show_box.SetStringSelection('sites')
            self.level_names.SetItems(self.locations)
            self.level_names.SetStringSelection(self.Data_hierarchy['location_of_specimen'][self.s])
 
        elif self.UPPER_LEVEL=='study':
-           if self.interpretation_editor_open:
-               self.interpretation_editor.show_box.SetItems(['specimens','samples','sites'])#,'sites VGP'])
-               if self.interpretation_editor.show_box.GetValue() not in ['specimens','samples','sites']:#,'sites VGP']:
-                   self.interpretation_editor.show_box.SetStringSelection('sites')
+           if self.ie_open:
+               self.ie.show_box.SetItems(['specimens','samples','sites'])#,'sites VGP'])
+               if self.ie.show_box.GetValue() not in ['specimens','samples','sites']:#,'sites VGP']:
+                   self.ie.show_box.SetStringSelection('sites')
            self.level_names.SetItems(['this study'])
            self.level_names.SetStringSelection('this study')
 
        if not called_by_interp_editor:
-           if self.interpretation_editor_open:
-               self.interpretation_editor.level_box.SetStringSelection(self.UPPER_LEVEL)
-               self.interpretation_editor.on_select_higher_level(event,True)
+           if self.ie_open:
+               self.ie.level_box.SetStringSelection(self.UPPER_LEVEL)
+               self.ie.on_select_higher_level(event,True)
            else:
                self.update_selection()
 
@@ -5725,9 +5625,9 @@ class Demag_GUI(wx.Frame):
            self.s=str(specimen_list[0])
            self.specimens_box.SetStringSelection(str(self.s))
 
-       if self.interpretation_editor_open and not called_by_interp_editor:
-           self.interpretation_editor.level_names.SetStringSelection(high_level_name)
-           self.interpretation_editor.on_select_level_name(event,True)
+       if self.ie_open and not called_by_interp_editor:
+           self.ie.level_names.SetStringSelection(high_level_name)
+           self.ie.on_select_level_name(event,True)
 
        self.update_selection()
 
@@ -5754,8 +5654,8 @@ class Demag_GUI(wx.Frame):
             except ValueError:
                 fit_num = -1
             self.pmag_results_data['specimens'][self.s][fit_num].select()
-        if self.interpretation_editor_open:
-            self.interpretation_editor.change_selected(self.current_fit)
+        if self.ie_open:
+            self.ie.change_selected(self.current_fit)
 
     def on_enter_fit_name(self,event):
         """
@@ -5830,8 +5730,8 @@ class Demag_GUI(wx.Frame):
             self.current_fit = None
         self.close_warning = True
         self.calculate_higher_levels_data()
-        if self.interpretation_editor_open:
-            self.interpretation_editor.update_editor()
+        if self.ie_open:
+            self.ie.update_editor()
         self.update_selection()
 
     def on_next_button(self,event):
@@ -5852,8 +5752,8 @@ class Demag_GUI(wx.Frame):
         try: self.current_fit = self.pmag_results_data['specimens'][self.s][fit_index]
         except IndexError: self.current_fit = None
       else: self.current_fit = None
-      if self.interpretation_editor_open:
-        self.interpretation_editor.change_selected(self.current_fit)
+      if self.ie_open:
+        self.ie.change_selected(self.current_fit)
       self.update_selection()
 
     def on_prev_button(self,event):
@@ -5872,8 +5772,8 @@ class Demag_GUI(wx.Frame):
         try: self.current_fit = self.pmag_results_data['specimens'][self.s][fit_index]
         except IndexError: self.current_fit = None
       else: self.current_fit = None
-      if self.interpretation_editor_open:
-        self.interpretation_editor.change_selected(self.current_fit)
+      if self.ie_open:
+        self.ie.change_selected(self.current_fit)
       self.update_selection()
 
     def on_select_stats_button(self,events):
@@ -5955,11 +5855,11 @@ def alignToTop(win):
 
     win.SetPosition(((dw-w)/2.,0 ))
 
-def main(WD=None, standalone_app=True, parent=None):
+def main(WD=None, standalone_app=True, parent=None, write_to_log_file=True):
     # to run as module:
     if not standalone_app:
         disableAll = wx.WindowDisabler()
-        frame = Demag_GUI(WD, parent)
+        frame = Demag_GUI(WD, parent, write_to_log_file=write_to_log_file)
         frame.Center()
         frame.Show()
         frame.Raise()
@@ -5967,10 +5867,20 @@ def main(WD=None, standalone_app=True, parent=None):
     # to run as command_line:
     else:
         app = wx.App()
-        app.frame = Demag_GUI(WD)
+        app.frame = Demag_GUI(WD, write_to_log_file=write_to_log_file)
         app.frame.Center()
         app.frame.Show()
         app.MainLoop()
 
 if __name__ == '__main__':
-    main()
+    if "-h" in sys.argv:
+        help(Demag_GUI)
+        sys.exit()
+    write_to_log_file = True
+    if '-v' in sys.argv or '--verbose' in sys.argv:
+        write_to_log_file = False
+    WD = None
+    if "-WD" in sys.argv:
+        ind=sys.argv.index('-WD')
+        WD = sys.argv[ind+1]
+    main(WD=WD,write_to_log_file=write_to_log_file)

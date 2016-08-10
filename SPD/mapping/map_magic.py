@@ -104,23 +104,27 @@ def convert_intensity_criteria(direction,crit):
 
 def convert_direction_criteria(direction,crit):
     if direction=='magic2':
-        if 'specimens.' in crit:
-            return spec_magic3_2_magic2_map[crit.lstrip('specimens.')]
-        elif 'samples.' in crit:
-            return samp_magic3_2_magic2_map[crit.lstrip('samples.')]
-        elif 'sites.' in crit:
-            return site_magic3_2_magic2_map[crit.lstrip('sites.')]
-        else:
-            return ""
+        try:
+            if 'specimens.' in crit:
+                return spec_magic3_2_magic2_map[crit.lstrip('specimens.')]
+            elif 'samples.' in crit:
+                return samp_magic3_2_magic2_map[crit.lstrip('samples.')]
+            elif 'sites.' in crit:
+                return site_magic3_2_magic2_map[crit.lstrip('sites.')]
+            else:
+                return ""
+        except KeyError as e: return ""
     else:
-        if 'specimen' in crit:
-            return 'specimens.' + spec_magic2_2_magic3_map[crit]
-        elif 'sample' in crit:
-            return 'samples.' + samp_magic2_2_magic3_map[crit]
-        elif 'site' in crit:
-            return 'sites.' + site_magic2_2_magic3_map[crit]
-        else:
-            return ""
+        try:
+            if 'specimen' in crit:
+                return 'specimens.' + spec_magic2_2_magic3_map[crit]
+            elif 'sample' in crit:
+                return 'samples.' + samp_magic2_2_magic3_map[crit]
+            elif 'site' in crit:
+                return 'sites.' + site_magic2_2_magic3_map[crit]
+            else:
+                return ""
+        except KeyError as e: return ""
 
 def convert_spec(direction,Rec):
     if direction=='magic3':
