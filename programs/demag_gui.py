@@ -2446,21 +2446,76 @@ class Demag_GUI(wx.Frame):
       Data_hierarchy['expedition_name_of_specimen']={}
 
       if self.data_model==3:
+
+          if 'sample' not in self.spec_data.columns or 'sample' not in self.samp_data.columns:
+            if 'specimen' not in self.spec_data.columns:
+                self.spec_data['specimen'] = self.con.tables['measurements'].df['specimen']
+                self.spec_data.set_index('specimen',inplace=True)
+                self.spec_data['specimen'] = self.spec_data.index
+
+            ui_dialog = demag_dialogs.user_input(self,["# of characters to remove"], heading="Sample data could not be found attempting to generate sample names by removing characters from specimen names")
+            ui_dialog.ShowModal()
+            ui_data = ui_dialog.get_values()
+            try: samp_ncr = int(ui_data[1]["# of characters to remove"])
+            except ValueError:
+                self.user_warning("Invalid input specimen names will be used for sample names instead")
+                samp_ncr = 0
+            self.spec_data['sample'] = map(lambda x: x[:-samp_ncr], self.spec_data['specimen'])
+
+            self.samp_data['sample'] = self.spec_data['sample']
+            self.samp_data.set_index('sample',inplace=True)
+            self.samp_data['sample'] = self.samp_data.index
+
+          if 'site' not in self.samp_data.columns or 'site' not in self.site_data.columns:
+            ui_dialog = demag_dialogs.user_input(self,["# of characters to remove","site delimiter"], heading="No Site Data found attempting to create site names from specimen names")
+            ui_dialog.ShowModal()
+            ui_data = ui_dialog.get_values()
+            try:
+                site_ncr = int(ui_data[1]["# of characters to remove"])
+                self.samp_data['site'] = map(lambda x: x[:-site_ncr], self.spec_data['specimen'])
+            except ValueError:
+                sd = ui_data[1]["site delimiter"]
+                self.samp_data['site'] = map(lambda x: x.split(sd)[0], self.spec_data['specimen'])
+
+            self.site_data['site'] = self.samp_data['site']
+            self.site_data.drop_duplicates(inplace=True)
+            self.site_data.set_index('site',inplace=True)
+            self.site_data['site'] = self.site_data.index
+
+          if 'location' not in self.site_data.columns or 'location' not in self.loc_data.columns:
+            ui_dialog = demag_dialogs.user_input(self,["location name for all sites"], heading="No Location found")
+            ui_dialog.ShowModal()
+            ui_data = ui_dialog.get_values()
+            self.site_data['location'] = ui_data[1]["location name for all sites"]
+
+            self.loc_data['location'] = self.site_data['location']
+            self.loc_data.drop_duplicates(inplace=True)
+            self.loc_data.set_index('location',inplace=True)
+            self.loc_data['location'] = self.loc_data.index
+
+
+          #add data to other dataframes
           if 'specimens' in self.con.tables:
               self.con.propagate_name_down('sample', 'measurements')
-              self.con.propagate_name_down('sample', 'specimens') # need these for get_data_info
-              self.con.propagate_name_down('site', 'specimens')
-              self.con.propagate_name_down('location','specimens')
+              self.con.propagate_name_down('sample', 'specimens')
           if 'samples' in self.con.tables:
               self.con.propagate_name_down('site', 'measurements')
+              self.con.propagate_name_down('site', 'specimens')
           if 'sites' in self.con.tables:
               self.con.propagate_name_down('location','measurements')
+              self.con.propagate_name_down('location','specimens')
+
+          #get measurement data from contribution object
           meas_container = self.con.tables['measurements']
           meas_data3_0 = meas_container.df
-# do some filtering
-          meas_data3_0 = meas_data3_0[meas_data3_0['sample'].notnull()]
-          meas_data3_0 = meas_data3_0[meas_data3_0['specimen'].notnull()]
-          meas_data3_0 = meas_data3_0[meas_data3_0['site'].notnull()]
+
+          # do some filtering
+          if 'site' in meas_data3_0.columns:
+              meas_data3_0 = meas_data3_0[meas_data3_0['site'].notnull()]
+          if 'sample' in meas_data3_0.columns:
+              meas_data3_0 = meas_data3_0[meas_data3_0['sample'].notnull()]
+          if 'specimen' in meas_data3_0.columns:
+              meas_data3_0 = meas_data3_0[meas_data3_0['specimen'].notnull()]
           Mkeys = ['magn_moment', 'magn_volume', 'magn_mass']
           meas_data3_0=meas_data3_0[meas_data3_0['method_codes'].str.contains('LT-NO|LT-AF-Z|LT-T-Z|LT-M-Z|LT-LT-Z')==True] # fish out all the relavent data 
 # now convert back to 2.5  changing only those keys that are necessary for thellier_gui
@@ -2580,7 +2635,7 @@ class Demag_GUI(wx.Frame):
                             Data[s]['measurement_step_unit']=Data[s]['measurement_step_unit']+":"+measurement_step_unit
                     else:
                         Data[s]['measurement_step_unit']=measurement_step_unit
-                 dec,inc,int = "","",""
+                 dec,inc,inten = "","",""
                  if "measurement_dec" in rec.keys() and rec["measurement_dec"] != "":
                      dec=float(rec["measurement_dec"])
                  else:
@@ -2634,8 +2689,9 @@ class Demag_GUI(wx.Frame):
                         d_geo,i_geo=pmag.dogeo(dec,inc,sample_azimuth,sample_dip)
                         Data[s]['zijdblock_geo'].append([tr,d_geo,i_geo,intensity,ZI,rec['measurement_flag'],rec['magic_instrument_codes']])
                  except (IOError, KeyError, ValueError, TypeError) as e:
-                    if prev_s != s:
-                        print( "-W- cant find sample_azimuth,sample_dip for sample %s"%sample)
+                    pass
+#                    if prev_s != s:
+#                        print( "-W- cant find sample_azimuth,sample_dip for sample %s"%sample)
 
                  # tilt-corrected coordinates
 
@@ -2645,8 +2701,9 @@ class Demag_GUI(wx.Frame):
                     d_tilt,i_tilt=pmag.dotilt(d_geo,i_geo,sample_bed_dip_direction,sample_bed_dip)
                     Data[s]['zijdblock_tilt'].append([tr,d_tilt,i_tilt,intensity,ZI,rec['measurement_flag'],rec['magic_instrument_codes']])
                  except (IOError, KeyError, TypeError) as e:
-                    if prev_s != s:
-                        print("-W- cant find tilt-corrected data for sample %s"%sample)
+                    pass
+#                    if prev_s != s:
+#                        print("-W- cant find tilt-corrected data for sample %s"%sample)
 
           #---------------------
           # hierarchy is determined from magic_measurements.txt
@@ -2841,35 +2898,44 @@ class Demag_GUI(wx.Frame):
             if 'specimens' in self.con.tables:
                 spec_container = self.con.tables['specimens']
                 self.spec_data = spec_container.df
+            else:
+                self.con.add_empty_magic_table('specimens')
+                self.spec_data = self.con.tables['specimens'].df
             if 'samples' in self.con.tables:
                 samp_container = self.con.tables['samples']
                 self.samp_data = samp_container.df
                 self.samp_data = self.samp_data.rename(columns={"azimuth":"sample_azimuth","dip":"sample_dip","orientation_flag":"sample_orientation_flag","bed_dip_direction":"sample_bed_dip_direction","bed_dip":"sample_bed_dip"})
                 data_er_samples = self.samp_data.T.to_dict()
+            else:
+                self.con.add_empty_magic_table('samples')
+                self.samp_data = self.con.tables['samples'].df
             if 'sites' in self.con.tables:
                 site_container = self.con.tables['sites']
                 self.site_data = site_container.df
-                self.site_data = self.site_data[self.site_data['lat'].notnull()]
-                self.site_data = self.site_data[self.site_data['lon'].notnull()]
-                self.site_data = self.site_data[self.site_data['age'].notnull()]
-                age_ids = [col for col in self.site_data.columns if col.startswith("age") or col == "site"]
-                age_data=self.site_data[age_ids]
-                age_data=age_data.rename(columns={'site':'er_site_name'})
-                er_ages=age_data.to_dict('records')  # save this in 2.5 format
-                data_er_ages={}
-                for s in er_ages:
-                   s=self.convert_ages_to_calendar_year(s)
-                   data_er_ages[s['er_site_name']]=s
-                sites=self.site_data[['site','lat','lon']]
-                sites=sites.rename(columns={'site':'er_site_name','lat':'site_lat','lon':'site_lon'})
+                if 'age' in self.site_data.columns:
+                    self.site_data = self.site_data[self.site_data['age'].notnull()]
+                    age_ids = [col for col in self.site_data.columns if col.startswith("age") or col == "site"]
+                    age_data=self.site_data[age_ids].rename(columns=map_magic.site_magic3_2_magic2_map)
+                    er_ages=age_data.to_dict('records')  # save this in 2.5 format
+                    data_er_ages={}
+                    for s in er_ages:
+                       s=self.convert_ages_to_calendar_year(s)
+                       data_er_ages[s['er_site_name']]=s
+                sites=self.site_data.rename(columns=map_magic.site_magic3_2_magic2_map)
                 er_sites=sites.to_dict('records') # pick out what is needed by thellier_gui and put in 2.5 format
                 data_er_sites={}
                 for s in er_sites:
                    data_er_sites[s['er_site_name']]=s
+            else:
+                self.con.add_empty_magic_table('sites')
+                self.site_data = self.con.tables['sites'].df
             if 'locations' in self.con.tables:
                 location_container = self.con.tables["locations"]
-                self.location_data = location_container.df # only need this for saving tables
+                self.loc_data = location_container.df # only need this for saving tables
                 data_er_locations = self.samp_data.to_dict('records')
+            else:
+                self.con.add_empty_magic_table('locations')
+                self.loc_data = self.con.tables['locations'].df
 
         else: #try 2.5 data model
 
@@ -3460,6 +3526,9 @@ class Demag_GUI(wx.Frame):
             cdf = cdf.set_index("table_column")
             cdf["table_column"] = cdf.index
             cdf = cdf.reindex_axis(sorted(cdf.columns), axis=1)
+            if 'criteria' not in self.con.tables:
+                cols = ['criterion','criterion_value','criterion_operation','table_column','citations','description']
+                self.con.add_empty_magic_table('criteria',col_names=cols)
             self.con.tables['criteria'].df = cdf
             self.con.tables['criteria'].write_magic_file(dir_path=self.WD)
         else:
@@ -3560,20 +3629,24 @@ class Demag_GUI(wx.Frame):
         if self.data_model == 3.0:
 
             #update age table
-            adf = self.con.tables['ages'].df
             age_dat = DataFrame()
-            if default_used:
+            if default_used and 'ages' in self.con.tables and not self.con.tables['ages'].df.empty:
+                adf = self.con.tables['ages'].df
                 age_dat = adf[[adf.columns[i] for i,b in enumerate(adf.columns.str.contains('age')) if b]+['site','location']]
                 print("using age data from ages.txt")
             else:
-                min_age = DefaultAge[0]
-                max_age = DefaultAge[1]
+                min_age = float(DefaultAge[0])
+                max_age = float(DefaultAge[1])
                 age_units = DefaultAge[2]
                 age,age_sigma = (min_age+max_age)/2, (max_age-min_age)/2
+                if 'ages' not in self.con.tables:
+                    self.con.add_empty_magic_table('ages')
+                adf = self.con.tables['ages'].df
                 adf['age_high'],adf['age_low'],adf['age'],adf['age_sigma'],adf['age_unit'] = max_age,min_age,age,age_sigma,age_units
                 adf =  adf.reindex_axis(sorted(adf.columns), axis=1)
                 self.con.tables['ages'].df = adf
                 self.con.tables['ages'].write_magic_file(dir_path=self.WD)
+                default_used = False
 
             #set some variables
             priorities=['DA-AC-ARM','DA-AC-TRM']
@@ -3603,7 +3676,11 @@ class Demag_GUI(wx.Frame):
                 crit_data = pmag.default_criteria(nocrit)
             elif use_criteria == 'existing':
                 crit_data = self.read_criteria_file()
-                print("Acceptance criteria from criteria.txt used")
+                if crit_data==None:
+                    crit_data = pmag.default_criteria(nocrit)
+                    print("No acceptance criteria found in criteria.txt defualt PmagPy criteria used instead")
+                else:
+                    print("Acceptance criteria from criteria.txt used")
             else:
                 # use default criteria
                 crit_data = pmag.default_criteria(nocrit)
@@ -3627,10 +3704,12 @@ class Demag_GUI(wx.Frame):
                 pmag.magic_write(critout,[accept],'pmag_criteria')
                 print "\n Pmag Criteria stored in ",critout,'\n'
 
-
+            if 'specimens' not in self.con.tables:
+                self.user_warning("No specimen interpretations found in the current contribution samples, sites, and locations cannot be exported, aborting"); return
             spec_df = self.con.tables['specimens'].df
-            if 'sites' in self.con.tables:
-                site_df = self.con.tables['sites'].df
+            if 'sites' not in self.con.tables:
+                self.con.add_empty_magic_table('sites')
+            site_df = self.con.tables['sites'].df
             SiteNFO = site_df.to_dict("records")
             Data = spec_df.to_dict("records")
 
@@ -3730,7 +3809,9 @@ class Demag_GUI(wx.Frame):
                         if len(kill)>0: PmagSampRec['result_quality']='b'
                         else: SampDirs.append(PmagSampRec)
                         if vgps==1: # if sample level VGP info desired, do that now
-                            PmagResRec = pmag.getsampVGP(PmagSampRec,SiteNFO,data_model=self.data_model)
+                            try: PmagResRec = pmag.getsampVGP(PmagSampRec,SiteNFO,data_model=self.data_model)
+                            except KeyError:
+                                print("no lat lon data for sample %s skipping VGP calculation"%samp); PmagResRec=""
                             if PmagResRec!="":
                                 for k in ['vgp_dp', 'vgp_dm', 'vgp_lat', 'vgp_lon']:
                                     PmagSampRec[k] = PmagResRec[k]
@@ -3740,6 +3821,8 @@ class Demag_GUI(wx.Frame):
             #removed intensity average portion as demag GUI has no need of this also cause translating this is a bitch
 
             if len(PmagSamps)>0:
+                if 'samples' not in self.con.tables:
+                    self.con.add_empty_magic_table('samples')
                 for dc in ['magic_method_codes']:
                     if dc in self.con.tables['samples'].df:
                         del self.con.tables['samples'].df[dc]
@@ -3821,6 +3904,13 @@ class Demag_GUI(wx.Frame):
                                 PmagSiteRec["method_codes"]=PmagSiteRec['method_codes']+":DE-FM"
 
                         PmagSiteRec['result_type']='i' # decorate it a bit
+                        site_height=pmag.get_dictitem(height_info,'site',site,'T')
+                        if len(site_height)>0:PmagSiteRec["height"]=site_height[0]['height']
+                        if '0' in PmagSiteRec['dir_tilt_correction'] and "DA-DIR-GEO" not in PmagSiteRec['method_codes']: PmagSiteRec['method_codes']=PmagSiteRec['method_codes']+":DA-DIR-GEO"
+                        if '100' in PmagSiteRec['dir_tilt_correction'] and "DA-DIR-TILT" not in PmagSiteRec['method_codes']: PmagSiteRec['method_codes']=PmagSiteRec['method_codes']+":DA-DIR-TILT"
+                        PmagSiteRec['dir_polarity']=""
+# assign polarity based on angle of pole lat to spin axis - may want to re-think this sometime
+
                         if dia.cb_site_mean_VGP.GetValue():
                             dec=float(PmagSiteRec["dir_dec"])
                             inc=float(PmagSiteRec["dir_inc"])
@@ -3831,29 +3921,40 @@ class Demag_GUI(wx.Frame):
                             try:
                                 lat=float(sitedat['lat'])
                                 lon=float(sitedat['lon'])
-                            except (ValueError,TypeError) as e:
-                                print("latitude %s and longitude %s are not valid values for site %s vgp calculation, skipping"%(str(sitedat['lat']),str(sitedat['lon']),site)); break
-                            plong,plat,dp,dm=pmag.dia_vgp(dec,inc,a95,lat,lon) # get the VGP for this site
-                            site_height=pmag.get_dictitem(height_info,'site',site,'T')
-                            if len(site_height)>0:PmagResRec["height"]=site_height[0]['height']
-                            PmagSiteRec["vgp_lat"]='%7.1f ' % (plat)
-                            PmagSiteRec["vgp_lon"]='%7.1f ' % (plong)
-                            PmagSiteRec["vgp_dp"]='%7.1f ' % (dp)
-                            PmagSiteRec["vgp_dm"]='%7.1f ' % (dm)
-                        if '0' in PmagSiteRec['dir_tilt_correction'] and "DA-DIR-GEO" not in PmagSiteRec['method_codes']: PmagSiteRec['method_codes']=PmagSiteRec['method_codes']+":DA-DIR-GEO"
-                        if '100' in PmagSiteRec['dir_tilt_correction'] and "DA-DIR-TILT" not in PmagSiteRec['method_codes']: PmagSiteRec['method_codes']=PmagSiteRec['method_codes']+":DA-DIR-TILT"
-                        PmagSiteRec['dir_polarity']=""
-# assign polarity based on angle of pole lat to spin axis - may want to re-think this sometime
-                        angle=pmag.angle([0,0],[0,(90-plat)])
-                        if angle <= 55.: PmagSiteRec["dir_polarity"]='n'
-                        if angle > 55. and angle < 125.: PmagSiteRec["dir_polarity"]='t'
-                        if angle >= 125.: PmagSiteRec["dir_polarity"]='r'
+                                calculate=True
+                            except (KeyError,ValueError,TypeError) as e:
+                                calculate=False
+                                ui_dialog = demag_dialogs.user_input(self,['Latitude','Longitude'],parse_funcs=[float,float], heading="Missing Latitude or Longitude data for site: %s"%site)
+                                ui_dialog.ShowModal()
+                                ui_data = ui_dialog.get_values()
+                                if ui_data[0]:
+                                    PmagSiteRec['lat']=ui_data[1]['Latitude']
+                                    PmagSiteRec['lon']=ui_data[1]['Longitude']
+                                    lat,lon=PmagSiteRec['lat'],PmagSiteRec['lon']
+                                    calculate=True
+                                else:
+                                    self.user_warning("insuffecent data provided skipping VGP calculation for site %s"%site)
+                            if calculate:
+                                plong,plat,dp,dm=pmag.dia_vgp(dec,inc,a95,lat,lon) # get the VGP for this site
+                                PmagSiteRec["vgp_lat"]='%7.1f ' % (plat)
+                                PmagSiteRec["vgp_lon"]='%7.1f ' % (plong)
+                                PmagSiteRec["vgp_dp"]='%7.1f ' % (dp)
+                                PmagSiteRec["vgp_dm"]='%7.1f ' % (dm)
+
+                                angle=pmag.angle([0,0],[0,(90-plat)])
+                                if angle <= 55.: PmagSiteRec["dir_polarity"]='n'
+                                if angle > 55. and angle < 125.: PmagSiteRec["dir_polarity"]='t'
+                                if angle >= 125.: PmagSiteRec["dir_polarity"]='r'
+
                         kill=pmag.grade(PmagSiteRec,accept,'site_dir')
                         if len(kill)>0: PmagSiteRec['result_quality'] = 'b'
                         else: PmagSiteRec['result_quality'] = 'g'
+
                         PmagSites.append(PmagSiteRec)
 
             if len(PmagSites)>0:
+                if 'sites' not in self.con.tables:
+                    self.con.tables.add_empty_magic_table('sites')
                 sites_df = DataFrame(PmagSites)
                 sites_df = sites_df.set_index('site')
                 sites_df['site'] = sites_df.index
@@ -3915,36 +4016,51 @@ class Demag_GUI(wx.Frame):
                                 PolRes['age_sigma'] = age_sigma
                                 PolRes['age_unit'] = age_units
                             if dia.cb_location_mean_VGP.GetValue():
-                                locs_dat = self.con.tables['locations'].df
-                                if 'lat_n' in locs_dat.columns:
-                                    lat = locs_dat['lat_n'][location] if type(locs_dat['lat_n'][location])==str else locs_dat['lat_n'][location][0]
-                                elif 'lat_s' in locs_dat.columns:
-                                    lat = locs_dat['lat_s'][location] if type(locs_dat['lat_s'][location])==str else locs_dat['lat_s'][location][0]
-                                else: print("no latitude data for location %s"%PolRes['location']); break
-                                if 'lon_e' in locs_dat.columns:
-                                    lon = locs_dat['lon_e'][location] if type(locs_dat['lon_e'][location])==str else locs_dat['lon_e'][location][0]
-                                elif 'lon_w' in locs_dat.columns:
-                                    lon = locs_dat['lon_w'][location] if type(locs_dat['lon_w'][location])==str else locs_dat['lon_w'][location][0]
-                                else: print("no longitude data for location %s"%PolRes['location']); break
+                                sucess_lat_lon_info = True
+                                if 'locations' in self.con.tables:
+                                    locs_dat = self.con.tables['locations'].df
+                                    if 'lat_n' in locs_dat.columns:
+                                        lat = locs_dat['lat_n'][location] if type(locs_dat['lat_n'][location])==str else locs_dat['lat_n'][location][0]
+                                    elif 'lat_s' in locs_dat.columns:
+                                        lat = locs_dat['lat_s'][location] if type(locs_dat['lat_s'][location])==str else locs_dat['lat_s'][location][0]
+                                    else: sucess_lat_lon_info=False
+                                    if 'lon_e' in locs_dat.columns:
+                                        lon = locs_dat['lon_e'][location] if type(locs_dat['lon_e'][location])==str else locs_dat['lon_e'][location][0]
+                                    elif 'lon_w' in locs_dat.columns:
+                                        lon = locs_dat['lon_w'][location] if type(locs_dat['lon_w'][location])==str else locs_dat['lon_w'][location][0]
+                                    else: sucess_lat_lon_info=False
+                                if not sucess_lat_lon_info:
+                                    ui_dialog = demag_dialogs.user_input(self,['North Boundary Latitude', 'South Boundary Latitude', 'East Boundary Longitude', 'West Boundary Longitude'],parse_funcs=[float,float,float,float], heading="Missing Latitude or Longitude data for location %s please define the boundary of this region so VGP calculations can be preformed"%location)
+                                    ui_data = ui_dialog.get_values()
+                                    if ui_data[0]:
+                                        PolRes['lat_n']=ui_data[1]['North Boundary Latitude']
+                                        PolRes['lat_s']=ui_data[1]['South Boundary Latitude']
+                                        PolRes['lon_e']=ui_data[1]['East Boundary Longitude']
+                                        PolRes['lon_w']=ui_data[1]['West Boundary Longitude']
+                                        lat,lon=PolRes['lat_n'],PolRes['lon_e']
+                                        sucess_lat_lon_info=True
+                                    else:
+                                        self.user_warning("insuffecent data provided skipping VGP calculation for location %s"%location)
                                 try:
                                     dec,inc,a95,lat,lon = float(polpars[mode]['dec']),float(polpars[mode]['inc']),float(polpars[mode]['alpha95']),float(lat),float(lon)
-                                except TypeError:
-                                    print("unable to obtain all data needed for VGP calculation, skipping"); break
-                                plong,plat,dp,dm=pmag.dia_vgp(dec,inc,a95,lat,lon) # get the VGP for this pole component
-                                PolRes["pole_lat"]='%7.1f ' % (plat)
-                                PolRes["pole_lon"]='%7.1f ' % (plong)
-                                PolRes["pole_dp"]='%7.1f ' % (dp)
-                                PolRes["pole_dm"]='%7.1f ' % (dm)
-                                PolRes["pole_alpha95"]=PolRes['dir_alpha95']
-                                PolRes["pole_r"]=PolRes['dir_r']
-                                PolRes["pole_k"]=PolRes['dir_k']
-                                angle=pmag.angle([0,0],[0,(90-plat)])
-                                if angle <= 55.:
-                                    PolRes["dir_polarity"]='n'
-                                if angle > 55. and angle < 125.:
-                                    PolRes["dir_polarity"]='t'
-                                if angle >= 125.:
-                                    PolRes["dir_polarity"]='r'
+                                except (UnboundLocalError,TypeError):
+                                    print("unable to obtain all data needed for VGP calculation, skipping"); sucess_lat_lon_info=False
+                                if sucess_lat_lon_info:
+                                    plong,plat,dp,dm=pmag.dia_vgp(dec,inc,a95,lat,lon) # get the VGP for this pole component
+                                    PolRes["pole_lat"]='%7.1f ' % (plat)
+                                    PolRes["pole_lon"]='%7.1f ' % (plong)
+                                    PolRes["pole_dp"]='%7.1f ' % (dp)
+                                    PolRes["pole_dm"]='%7.1f ' % (dm)
+                                    PolRes["pole_alpha95"]=PolRes['dir_alpha95']
+                                    PolRes["pole_r"]=PolRes['dir_r']
+                                    PolRes["pole_k"]=PolRes['dir_k']
+                                    angle=pmag.angle([0,0],[0,(90-plat)])
+                                    if angle <= 55.:
+                                        PolRes["dir_polarity"]='n'
+                                    if angle > 55. and angle < 125.:
+                                        PolRes["dir_polarity"]='t'
+                                    if angle >= 125.:
+                                        PolRes["dir_polarity"]='r'
                             PmagLocs.append(PolRes)
 
             if len(PmagLocs)>0:
@@ -4555,19 +4671,27 @@ class Demag_GUI(wx.Frame):
                 PmagSpecs.append(rec)
         PmagSpecs_fixed=self.merge_pmag_recs(PmagSpecs)
 
+        if len(PmagSpecs_fixed)==0:
+            self.user_warning("No data to save to MagIC tables please create some interpretations before saving"); return
+
         if self.data_model == 3.0:
 
             #translate demag_gui output to 3.0 DataFrame
             ndf2_5 = DataFrame(PmagSpecs_fixed)
-            del ndf2_5['specimen_direction_type'] #doesn't exist in new model
+            if 'specimen_direction_type' in ndf2_5.columns:
+                del ndf2_5['specimen_direction_type'] #doesn't exist in new model
             ndf3_0 = ndf2_5.rename(columns=map_magic.spec_magic2_2_magic3_map)
-            ndf3_0 = ndf3_0.set_index("specimen")
-            ndf3_0['specimen'] = ndf3_0.index #replace the removed specimen column
+            if 'specimen' in ndf3_0.columns:
+                ndf3_0 = ndf3_0.set_index("specimen")
+                ndf3_0['specimen'] = ndf3_0.index #replace the removed specimen column
             #prefer keeping analyst_names in txt
             if 'analyst_names' in ndf3_0:
                 del ndf3_0['analyst_names']
 
             #get current 3.0 DataFrame from contribution object
+            if 'specimens' not in self.con.tables:
+                cols = ndf3_0.columns
+                self.con.add_empty_magic_table('specimens',col_names=cols)
             spmdf = self.con.tables['specimens']
 
             #remove translation colisions or depricated terms

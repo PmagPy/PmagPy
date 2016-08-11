@@ -58,7 +58,7 @@ samp_magic3_2_magic2_map = {'int_n_specimens' : 'sample_int_n', 'int_abs_sigma' 
 #samp_magic2_2_magic3_map = {v:k for k,v in samp_magic3_2_magic2_map.items()}
 
 #site data translation pmag_sites,er_sites -> sites.txt and back
-site_magic3_2_magic2_map = {'int_abs_sigma' : 'site_int_sigma', 'int_abs_sigma_perc' : 'site_int_sigma_perc', 'int_n_samples' : 'site_int_n', 'dir_alpha95' : 'site_alpha95', 'dir_k' : 'site_k', 'dir_n_samples' : 'site_n', 'dir_n_specimens_lines' : 'site_n_lines', 'dir_n_specimens_planes' : 'site_n_planes', 'dir_r' : 'site_r','criteria':'pmag_criteria_codes','method_codes':'magic_method_codes'}
+site_magic3_2_magic2_map = {'int_abs_sigma' : 'site_int_sigma', 'int_abs_sigma_perc' : 'site_int_sigma_perc', 'int_n_samples' : 'site_int_n', 'dir_alpha95' : 'site_alpha95', 'dir_k' : 'site_k', 'dir_n_samples' : 'site_n', 'dir_n_specimens_lines' : 'site_n_lines', 'dir_n_specimens_planes' : 'site_n_planes', 'dir_r' : 'site_r','criteria':'pmag_criteria_codes','method_codes':'magic_method_codes', 'site':'er_site_name'}
 
 site_magic2_2_magic3_map = {v:k for k,v in site_magic3_2_magic2_map.items()}
 

@@ -668,26 +668,27 @@ class MagicDataFrame(object):
         Description: takes new calculated directional, intensity data, or both and replaces the corresponding data in self.df with the new input data preserving any data that is not replaced.
 
         @param: df1 - first DataFrame whose data will preferentially be used.
-        @param: replace_dir_or_int - must be string 'dir', 'int', or 'full' and acts as a flag to tell the funciton weather to replace directional, intensity data, or just everything in current table. (Note: if you are dealing with tables other than specimens.txt you should likely use full as that is the only table the other options have been tested on)
+        @param: replace_dir_or_int - must be string 'dir', 'int', or 'full' and acts as a flag to tell the funciton weather to replace directional, intensity data, or just everything in current table. If there is not enough data in the current table to split by dir or int the two dfs will be fully merged (Note: if you are dealing with tables other than specimens.txt you should likely use full as that is the only table the other options have been tested on)
         """
+
+        if self.df.empty: return df1
+        elif df1.empty: return self.df
 
         #copy to prevent mutation
         cdf2 = self.df.copy()
 
         #split data into types and decide which to replace
-        if replace_dir_or_int == 'dir':
+        if replace_dir_or_int == 'dir' and 'method_codes' in cdf2.columns:
             cdf2 = cdf2[cdf2['method_codes'].notnull()]
             acdf2 = cdf2[cdf2['method_codes'].str.contains('LP-PI')]
             mcdf2 = cdf2[cdf2['method_codes'].str.contains('LP-DIR')]
-        elif replace_dir_or_int == 'int':
+        elif replace_dir_or_int == 'int' and 'method_codes' in cdf2.columns:
             cdf2 = cdf2[cdf2['method_codes'].notnull()]
             mcdf2 = cdf2[cdf2['method_codes'].str.contains('LP-PI')]
             acdf2 = cdf2[cdf2['method_codes'].str.contains('LP-DIR')]
-        elif replace_dir_or_int == 'full':
+        else:
             mcdf2 = cdf2
             acdf2 = pd.DataFrame(columns=mcdf2.columns)
-        else:
-            print("replace_dir_or_int must equal 'dir', 'int', or 'full' so that the correct data, directional or intensity, or all data is replaced in the output"); return
 
         #get rid of stupid duplicates
         for c in [cx for cx in mcdf2.columns if cx in df1.columns]:

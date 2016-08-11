@@ -103,10 +103,78 @@ class magic_pmag_specimens_table_dialog(wx.Dialog):
         pnl1.SetSizer(vbox1)
         vbox1.Fit(self)
 
+#--------------------------------------------------------------    
+# No Lat, Lon for VGP dialog
+#--------------------------------------------------------------
 
+class user_input(wx.Dialog):
+    """
+    Generic user input dialog that asks for input any set of inputs into a series of TextCtrls
+    """
+
+    def __init__(self,parent,inputs,parse_funcs=[],heading=None,title="User Input Required"):
+        """
+        @param: parent - the wx.Frame calling the dialog
+        @param: inputs - a list of strings giving the names of the inputs wanted
+        @param: parse_funcs - a list of the functions to apply to inputs, None for any entry will result in return of raw input.
+        @param: heading - string giving the heading for the dialog if None a default heading will be constructed
+        """
+        super(user_input, self).__init__(parent, title=title)
+        self.inputs = inputs
+        self.parse_funcs = parse_funcs
+        self.InitUI(heading)
+
+    def InitUI(self,heading):
+
+        #make header and panel
+        pnl1 = wx.Panel(self)
+        if heading == None:
+            heading = "User Input required for values: " + reduce(lambda x,y: x+','+y, self.inputs)
+        vbox = wx.StaticBoxSizer(wx.StaticBox(pnl1, wx.ID_ANY,heading), wx.VERTICAL)
+
+        #make inputs
+        list_ctrls_for_window=[]
+        self.list_ctrls=[]
+        for inp in self.inputs:
+            list_ctrls_for_window.append((wx.StaticText(pnl1,label=inp,style=wx.TE_CENTER), wx.EXPAND))
+            self.list_ctrls.append(wx.TextCtrl(pnl1,style=wx.TE_CENTER,size=(200,20)))
+            list_ctrls_for_window.append(self.list_ctrls[-1])
+
+        ctrl_window = wx.GridSizer(2, len(self.list_ctrls), 6, 6)
+
+        ctrl_window.AddMany(list_ctrls_for_window)
+
+        #make okay and cancel buttons
+        hboxok = wx.BoxSizer(wx.HORIZONTAL)
+        self.okButton = wx.Button(pnl1, wx.ID_OK, "&OK")
+        self.cancelButton = wx.Button(pnl1, wx.ID_CANCEL, '&Cancel')
+        hboxok.Add(self.okButton)
+        hboxok.AddSpacer(20)
+        hboxok.Add(self.cancelButton)
+
+        vbox.Add(wx.StaticLine(pnl1), 0, wx.ALL|wx.EXPAND, 5)
+        vbox.Add(ctrl_window, 0, wx.ALL|wx.EXPAND, 5)
+        vbox.AddSpacer(10)
+        vbox.Add(hboxok, 0, wx.ALL|wx.EXPAND, 5)
+
+        pnl1.SetSizer(vbox)
+        vbox.Fit(self)
+
+    def get_values(self):
+        """
+        Applies parsing functions to each input as specified in init before returning a tuple with first entry being a boolean which specifies if the user entered all values and a second entry which is a dictionary of input names to parsed values.
+        """
+        return_dict = {}
+        for i,ctrl in enumerate(self.list_ctrls):
+            if hasattr(self.parse_funcs,'__getitem__') and len(self.parse_funcs)>i and hasattr(self.parse_funcs[i],'__call__'):
+                try: return_dict[self.inputs[i]] = self.parse_funcs[i](ctrl.GetValue())
+                except: return_dict[self.inputs[i]] = ctrl.GetValue()
+            else:
+                return_dict[self.inputs[i]] = ctrl.GetValue()
+        return ('' not in return_dict.values(), return_dict)
 
 #--------------------------------------------------------------    
-# MagIc results tables dialog
+# MagIC results tables dialog
 #--------------------------------------------------------------
 
 class magic_pmag_tables_dialog(wx.Dialog):
@@ -117,7 +185,7 @@ class magic_pmag_tables_dialog(wx.Dialog):
     def InitUI(self):
 
         pnl1 = wx.Panel(self)
-        vbox = wx.StaticBoxSizer(wx.StaticBox( pnl1, wx.ID_ANY, "MagIC result tables options" ), wx.VERTICAL)        
+        vbox = wx.StaticBoxSizer(wx.StaticBox( pnl1, wx.ID_ANY, "MagIC result tables options" ), wx.VERTICAL)
 
         #---------------------
         # Acceptance criteria
@@ -136,7 +204,7 @@ class magic_pmag_tables_dialog(wx.Dialog):
         
         self.rb_geo_coor.SetValue(True)
         coordinates_window = wx.GridSizer(1, 4, 6, 6)
-        coordinates_window.AddMany( [(self.rb_spec_coor),            
+        coordinates_window.AddMany( [(self.rb_spec_coor),
             (self.rb_geo_coor),
             (self.rb_tilt_coor),
             (self.rb_geo_tilt_coor)])
@@ -153,7 +221,7 @@ class magic_pmag_tables_dialog(wx.Dialog):
         self.default_age_unit=wx.ComboBox(pnl1, -1,size=(150, -1), value = '', choices=age_unit_choices, style=wx.CB_READONLY)
         
         default_age_window = wx.GridSizer(2, 4, 6, 6)
-        default_age_window.AddMany( [(wx.StaticText(pnl1,label="",style=wx.TE_CENTER), wx.EXPAND),            
+        default_age_window.AddMany( [(wx.StaticText(pnl1,label="",style=wx.TE_CENTER), wx.EXPAND),
             (wx.StaticText(pnl1,label="younger bound",style=wx.TE_CENTER), wx.EXPAND),
             (wx.StaticText(pnl1,label="older bound",style=wx.TE_CENTER), wx.EXPAND),
             (wx.StaticText(pnl1,label="units",style=wx.TE_CENTER), wx.EXPAND),
@@ -161,8 +229,7 @@ class magic_pmag_tables_dialog(wx.Dialog):
             (self.default_age_min,wx.EXPAND),
             (self.default_age_max,wx.EXPAND),
             (self.default_age_unit,wx.EXPAND)])
-            
-        
+
         #---------------------
         # sample 
         #---------------------
@@ -176,13 +243,13 @@ class magic_pmag_tables_dialog(wx.Dialog):
         self.cb_sample_mean_VGP=wx.CheckBox(pnl1, -1, 'calculate sample VGP', (10, 30))
         self.cb_sample_mean_VGP.SetValue(False)  
         self.Bind(wx.EVT_CHECKBOX,self.on_change_cb_sample_mean_VGP,self.cb_sample_mean_VGP)
-   
+
         sample_mean_window = wx.GridSizer(2, 4, 6, 6)
         sample_mean_window.AddMany( [(wx.StaticText(pnl1,label="",style=wx.TE_CENTER), wx.EXPAND),
-            (wx.StaticText(pnl1,label="average sample by:",style=wx.TE_CENTER), wx.EXPAND),            
+            (wx.StaticText(pnl1,label="average sample by:",style=wx.TE_CENTER), wx.EXPAND),
             (wx.StaticText(pnl1,label="calculation type",style=wx.TE_CENTER), wx.EXPAND),
             (wx.StaticText(pnl1,label="",style=wx.TE_CENTER), wx.EXPAND),
-            (self.cb_sample_mean,wx.EXPAND),            
+            (self.cb_sample_mean,wx.EXPAND),
             (self.combo_sample_mean,wx.EXPAND),
             (self.combo_sample_type,wx.EXPAND),
             (self.cb_sample_mean_VGP,wx.EXPAND)])
@@ -244,7 +311,7 @@ class magic_pmag_tables_dialog(wx.Dialog):
         self.cancelButton = wx.Button(pnl1, wx.ID_CANCEL, '&Cancel')
         hboxok.Add(self.okButton)
         hboxok.AddSpacer(20)
-        hboxok.Add(self.cancelButton )
+        hboxok.Add(self.cancelButton)
                 
         #---------------------
 
