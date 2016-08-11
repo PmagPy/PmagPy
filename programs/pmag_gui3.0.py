@@ -45,7 +45,7 @@ class MagMainFrame(wx.Frame):
     def __init__(self, WD=None):
 
 
-        self.data_model_num = pmag.get_named_arg_from_sys("-DM", 2.5)
+        self.data_model_num = int(pmag.get_named_arg_from_sys("-DM", 2.5))
         self.FIRST_RUN = True
         wx.Frame.__init__(self, None, wx.ID_ANY, self.title, name='pmag_gui mainframe')
         self.panel = wx.Panel(self, name='pmag_gui main panel')
@@ -120,11 +120,22 @@ class MagMainFrame(wx.Frame):
         #---sizer 1 ----
         bSizer1 = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.ID_ANY, "Import data to working directory"), wx.HORIZONTAL)
 
-        TEXT="1. convert magnetometer files to MagIC format"
-        self.btn1 = buttons.GenButton(self.panel, id=-1, label=TEXT, size=(450, 50), name='step 1')
+        text = "1. convert magnetometer files to MagIC format"
+        self.btn1 = buttons.GenButton(self.panel, id=-1, label=text,
+                                      size=(450, 50), name='step 1')
         self.btn1.SetBackgroundColour("#FDC68A")
         self.btn1.InitColours()
         self.Bind(wx.EVT_BUTTON, self.on_convert_file, self.btn1)
+
+        if self.data_model_num == 3:
+            text = "1a. convert to 3.0. format"
+            self.btn1a = buttons.GenButton(self.panel, id=-1, label=text,
+                                           size=(450, 50), name='step 1')
+            self.btn1a.SetBackgroundColour("#FDC68A")
+            self.btn1a.InitColours()
+            self.Bind(wx.EVT_BUTTON, self.on_convert_3, self.btn1a)
+
+
         text = "2. (optional) calculate geographic/tilt-corrected directions"
         self.btn2 = buttons.GenButton(self.panel, id=-1, label=text, size=(450, 50), name='step 2')
         self.btn2.SetBackgroundColour("#FDC68A")
@@ -153,6 +164,9 @@ class MagMainFrame(wx.Frame):
         bSizer1_1.AddSpacer(20)
         bSizer1_1.Add(self.btn1, wx.ALIGN_TOP)
         bSizer1_1.AddSpacer(20)
+        if self.data_model_num == 3:
+            bSizer1_1.Add(self.btn1a, wx.ALIGN_TOP)
+            bSizer1_1.AddSpacer(20)
         bSizer1_1.Add(self.btn2, wx.ALIGN_TOP)
         bSizer1_1.AddSpacer(20)
         bSizer1_1.Add(self.btn3, wx.ALIGN_TOP)
@@ -348,6 +362,9 @@ class MagMainFrame(wx.Frame):
         pmag_dialogs_dia.Show()
         pmag_dialogs_dia.Center()
         self.Hide()
+
+    def on_convert_3(self, event):
+        print "convert to 3.0"
 
     def on_er_data(self, event):
         if not os.path.isfile(os.path.join(self.WD, 'magic_measurements.txt')):
