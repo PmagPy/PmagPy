@@ -420,7 +420,8 @@ class MagicDataFrame(object):
             # can always switch back with DataFrame.fillna('')
             self.df[self.df == ''] = None
             # drop any completely blank columns
-            self.df.dropna(axis=1, how='all', inplace=True)
+            # this is not necessarily a good idea....
+            #self.df.dropna(axis=1, how='all', inplace=True)
 
         # add col_names by group
         if groups and not columns:

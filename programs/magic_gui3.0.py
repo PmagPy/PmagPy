@@ -266,6 +266,7 @@ class MainFrame(wx.Frame):
         self.on_open_grid_frame()
         # make grid frame
         self.grid_frame = grid_frame.GridFrame(self.contribution, self.WD, grid_type, grid_type, self.panel)
+        row_string = ""
         # paint validations if appropriate
         if self.validation_mode:
             if grid_type in self.validation_mode:
@@ -277,6 +278,10 @@ class MainFrame(wx.Frame):
                 #col_nums = range(len(all_cols))
                 #col_pos = dict(zip(all_cols, col_nums))
                 if len(row_problems):
+                    row_string = """Columns and rows with problem data have been highlighted in blue.
+Cells with problem data are highlighted according to the type of problem.
+Red: incorrect data
+For full error messages, see {}.""".format(grid_type + "_errors.txt")
                     for row in row_problems['num']:
                         self.grid_frame.grid.paint_invalid_row(row)
                         mask = row_problems["num"] == row
@@ -288,20 +293,15 @@ class MainFrame(wx.Frame):
                             self.grid_frame.grid.paint_invalid_cell(row, col_ind)
                 current_label = self.grid_frame.msg_text.GetLabel()
                 if len(missing_columns):
-                    col_string = "You are missing the following required columns: {}\n".format(", ".join(missing_columns))
+                    col_string = "You are missing the following required columns: {}\n\n".format(", ".join(missing_columns))
                 else:
                     col_string = ""
                 if len(missing_groups):
-                    group_string = "You must have at least one column from each of the following groups: {}".format(", ".join(missing_groups))
+                    group_string = "You must have at least one column from each of the following groups: {}\n\n".format(", ".join(missing_groups))
                 else:
                     group_string = ""
                 #
-                add_text = """{}{}
-Columns and rows with problem data have been highlighted in blue.
-Cells with problem data are highlighted according to the type of problem.
-Red: incorrect data
-For full error messages, see {}.
-""".format(col_string, group_string, grid_type + "_errors.txt")
+                add_text = """{}{}{}""".format(col_string, group_string, row_string)
                 self.grid_frame.msg_text.SetLabel(add_text)
         #self.on_finish_change_dir(self.change_dir_dialog)
         self.grid_frame.do_fit(None)
