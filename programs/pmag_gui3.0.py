@@ -21,7 +21,7 @@ import pmagpy.builder2 as builder
 from pmagpy import new_builder as nb
 import dialogs.pmag_basic_dialogs as pmag_basic_dialogs
 import dialogs.pmag_er_magic_dialogs as pmag_er_magic_dialogs
-import dialogs.pmag_gui_menu as pmag_gui_menu
+import dialogs.pmag_gui_menu3 as pmag_gui_menu
 import dialogs.ErMagicBuilder as ErMagicBuilder
 try:
     from programs import demag_gui
@@ -45,7 +45,7 @@ class MagMainFrame(wx.Frame):
     def __init__(self, WD=None):
 
 
-        self.data_model = pmag.get_named_arg_from_sys("-DM", 2.5)
+        self.data_model_num = pmag.get_named_arg_from_sys("-DM", 2.5)
         self.FIRST_RUN = True
         wx.Frame.__init__(self, None, wx.ID_ANY, self.title, name='pmag_gui mainframe')
         self.panel = wx.Panel(self, name='pmag_gui main panel')
@@ -60,9 +60,9 @@ class MagMainFrame(wx.Frame):
             self.WD = WD
         self.HtmlIsOpen = False
         self.Bind(wx.EVT_CLOSE, self.on_menu_exit)
-        if self.data_model == 2.5:
+        if self.data_model_num == 2.5:
             self.er_magic = builder.ErMagicBuilder(self.WD)
-        elif self.data_model == 3:
+        elif self.data_model_num == 3:
             self.contribution = nb.Contribution(self.WD)
         #self.er_magic.init_default_headers()
         #self.er_magic.init_actual_headers()
@@ -70,7 +70,7 @@ class MagMainFrame(wx.Frame):
 
     def InitUI(self):
 
-        menubar = pmag_gui_menu.MagICMenu(self)
+        menubar = pmag_gui_menu.MagICMenu(self, data_model_num=self.data_model_num)
         self.SetMenuBar(menubar)
 
         #pnl = self.panel
@@ -333,11 +333,10 @@ class MagMainFrame(wx.Frame):
 
         outstring = "thellier_gui.py -WD %s"%self.WD
         print "-I- running python script:\n %s"%(outstring)
-        if self.data_model == 2.5:
+        if self.data_model_num == 2.5:
             thellier_gui.main(self.WD, standalone_app=False, parent=self)
         else:
-            print "self.data_model about to call thellier gui", self.data_model
-            thellier_gui3.main(self.WD, standalone_app=False, parent=self, DM=self.data_model)
+            thellier_gui3.main(self.WD, standalone_app=False, parent=self, DM=self.data_model_num)
 
     def on_run_demag_gui(self, event):
         outstring = "demag_gui.py -WD %s"%self.WD

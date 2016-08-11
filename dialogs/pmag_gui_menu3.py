@@ -8,6 +8,7 @@ import wx
 import pmag_widgets as pw
 import pmag_menu_dialogs
 import pmagpy.builder2 as builder
+from pmagpy import new_builder as nb
 
 
 class MagICMenu(wx.MenuBar):
@@ -19,8 +20,9 @@ class MagICMenu(wx.MenuBar):
     #pylint: disable=R0904
     #pylint: disable=R0914
 
-    def __init__(self, parent):
+    def __init__(self, parent, data_model_num):
         self.parent = parent
+        self.data_model_num = data_model_num
         super(MagICMenu, self).__init__()
 
         ## File
@@ -163,7 +165,12 @@ class MagICMenu(wx.MenuBar):
         clear = dia.do_clear()
         if clear:
             # clear directory, but use previously acquired data_model
-            self.parent.er_magic = builder.ErMagicBuilder(self.parent.WD, self.parent.er_magic.data_model)
+            if self.data_model_num == 2.5:
+                self.parent.er_magic = builder.ErMagicBuilder(self.parent.WD, self.parent.er_magic.data_model)
+            elif self.data_model_num == 3:
+                self.parent.contribution = nb.Contribution(self.WD,
+                                                           dmodel=self.parent.contribution.data_model)
+
 
     def on_import1(self, event):
         """
