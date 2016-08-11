@@ -452,7 +452,7 @@ class InterpretationEditorFrame(wx.Frame):
 
     def on_enter_search_bar(self,event):
         self.search_query = self.search_bar.GetValue().replace(" ","").lower()
-        self.update_editor(True)
+        self.update_editor()
 
 #    def on_complete_search_bar(self,event):
 #        self.search_bar.AutoComplete(self.search_choices)
@@ -591,14 +591,14 @@ class InterpretationEditorFrame(wx.Frame):
         for specimen in specimens:
             self.add_fit_to_specimen(specimen)
 
-        self.update_editor(True)
+        self.update_editor()
         self.parent.update_selection()
 
     def add_fit_to_all(self,event):
         for specimen in self.parent.specimens:
             self.add_fit_to_specimen(specimen)
 
-        self.update_editor(True)
+        self.update_editor()
         self.parent.update_selection()
 
     def add_fit_to_specimen(self,specimen):
