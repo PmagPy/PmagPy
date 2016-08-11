@@ -4,7 +4,7 @@
 # LOG HEADER:
 #============================================================================================
 # Version 3.1 (8/8/16: Lisa Tauxe)
-# TODO:  
+# TODO:
 #    1) need to fix code for importing criteria file in data model 3.0
 #    2) need to thoroughly test and finalize output format (esp.  vdms/vadms)
 #    3) need to make data_model recognition automatic (as in demag_gui)
@@ -221,7 +221,7 @@ class Arai_GUI(wx.Frame):
     """
     title = "PmagPy Thellier GUI %s"%CURRENT_VERSION
 
-    def __init__(self, WD=None, parent=None, standalone=True):
+    def __init__(self, WD=None, parent=None, standalone=True, DM=2.5):
 
         TEXT="""
         NAME
@@ -231,6 +231,7 @@ class Arai_GUI(wx.Frame):
     GUI for interpreting thellier-type paleointensity data.
     For tutorial chcek PmagPy cookbook in http://earthref.org/PmagPy/cookbook/
         """
+        self.data_model = int(DM)
         args=sys.argv
         if "-h" in args:
             print TEXT
@@ -306,10 +307,11 @@ class Arai_GUI(wx.Frame):
         """
         if "-DM" in sys.argv and FIRST_RUN: # set data model version number - default is Data Model 2.5
             ind=sys.argv.index('-DM') # set
-            self.data_model=int(sys.argv[ind+1])
+            self.data_model = sys.argv[ind+1]
+        self.data_model = int(self.data_model)
+        if self.data_model == 3:
             meas_file='measurements.txt'
-        else:
-            self.data_model=2.5
+        elif self.data_model == 2:
             meas_file='magic_measurements.txt'
         if "-WD" in sys.argv and FIRST_RUN:
             ind=sys.argv.index('-WD')
@@ -330,6 +332,7 @@ class Arai_GUI(wx.Frame):
         self.GUI_log=open(os.path.join(self.WD, "thellier_GUI.log"),'a')
         os.chdir(self.WD)
         self.WD=os.getcwd()
+
 
     def Main_Frame(self):
         """
@@ -3450,7 +3453,7 @@ class Arai_GUI(wx.Frame):
                     pass
 
 
-        else: # don't do anything yet = need vdm data 
+        else: # don't do anything yet = need vdm data
             pass
 
         #-------------
@@ -6560,12 +6563,12 @@ class Arai_GUI(wx.Frame):
                                                 vocabulary=self.vocabulary)
             if 'specimens' in self.contribution.tables:
                 self.spec_container = self.contribution.tables['specimens']
-            else:  
+            else:
                 self.spec_container = nb.MagicDataFrame(dtype='specimens',columns=['specimen','aniso_type'])
             self.spec_data = self.spec_container.df
             if 'samples' in self.contribution.tables:
                 self.samp_container = self.contribution.tables['samples']
-            else:  
+            else:
                 self.samp_container = nb.MagicDataFrame(dtype='samples',columns=['sample'])
             self.samp_data = self.samp_container.df # only need this for saving tables
             if 'sites' in self.contribution.tables:
@@ -6599,7 +6602,7 @@ class Arai_GUI(wx.Frame):
                 data_er_sites={}
                 for s in er_sites:
                    data_er_sites[s['er_site_name']]=s
-            else:  
+            else:
                 self.site_container = nb.MagicDataFrame(dtype='sites',columns=['site'])
             self.site_data = self.site_container.df # only need this for saving tables
 
@@ -7090,12 +7093,12 @@ class Arai_GUI(wx.Frame):
 
 
 
-def main(WD=None, standalone_app=True, parent=None):
+def main(WD=None, standalone_app=True, parent=None, DM=2.5):
     # to run as module, i.e. with Pmag GUI:
     if not standalone_app:
         wait = wx.BusyInfo('Compiling required data, please wait...')
         wx.Yield()
-        frame = Arai_GUI(WD, parent, standalone=False)
+        frame = Arai_GUI(WD, parent, standalone=False, DM=DM)
         frame.Centre()
         frame.Show()
         del wait
