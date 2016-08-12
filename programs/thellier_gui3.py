@@ -3,12 +3,13 @@
 #============================================================================================
 # LOG HEADER:
 #============================================================================================
-# Version 3.1 (8/8/16: Lisa Tauxe)
+# Version 3.1 (8/10/16: Lisa Tauxe)
+#    Fixed code for importing criteria file in data model 3.0
+#    BUT this version erases all non-intensity related criteria....  need to fix this
 # TODO:
-#    1) need to fix code for importing criteria file in data model 3.0
-#    2) need to thoroughly test and finalize output format (esp.  vdms/vadms)
-#    3) need to make data_model recognition automatic (as in demag_gui)
-#    4) rename code thellier_gui.py
+#    1) need to thoroughly test and finalize output format (esp.  vdms/vadms)
+#    2) need to make data_model recognition automatic (as in demag_gui)
+#    3) rename code thellier_gui.py
 #
 # Thellier_GUI Version 3.0  8/2/16 (Lisa Tauxe)
 # Adding in the ability to read in and write out
@@ -255,7 +256,7 @@ class Arai_GUI(wx.Frame):
         self.vocabulary = vocabulary
 
         # inialize selecting criteria
-        self.acceptance_criteria=pmag.initialize_acceptance_criteria()
+        self.acceptance_criteria=pmag.initialize_acceptance_criteria(data_model=self.data_model)
         self.add_thellier_gui_criteria()
         if self.data_model==3:
             self.crit_file='criteria.txt'
@@ -1864,7 +1865,7 @@ class Arai_GUI(wx.Frame):
         self.currentDirectory = os.getcwd() # get the current working directory
         self.get_DIR()                      # choose directory dialog
         #acceptance_criteria_default,acceptance_criteria_null=self.get_default_criteria()    # inialize Null selecting criteria
-        acceptance_criteria_default,acceptance_criteria_null=pmag.initialize_acceptance_criteria(),pmag.initialize_acceptance_criteria()    # inialize Null selecting criteria
+        acceptance_criteria_default,acceptance_criteria_null=pmag.initialize_acceptance_criteria(data_model=self.data_model),pmag.initialize_acceptance_criteria(data_model=self.data_model)    # inialize Null selecting criteria
 
         self.acceptance_criteria_null=acceptance_criteria_null
         self.acceptance_criteria_default=acceptance_criteria_default
@@ -2111,7 +2112,6 @@ class Arai_GUI(wx.Frame):
         and save it to the criteria file (data_model=2: pmag_criteria.txt; data_model=3: criteria.txt)
         """
 
-
         dia = thellier_gui_dialogs.Criteria_Dialog(None, self.acceptance_criteria,self.preferences,title='Set Acceptance Criteria')
         dia.Center()
         result = dia.ShowModal()
@@ -2279,6 +2279,8 @@ class Arai_GUI(wx.Frame):
         try to guess if averaging by sample or by site.
         '''
         if self.data_model==3:
+            self.acceptance_criteria=pmag.initialize_acceptance_criteria(data_model=self.data_model)
+            self.add_thellier_gui_criteria()
             fnames = {'criteria': criteria_file}
             contribution = nb.Contribution(self.WD, custom_filenames=fnames, read_tables=['criteria'])
             contribution = nb.Contribution(self.WD, custom_filenames=fnames, read_tables=['criteria'],

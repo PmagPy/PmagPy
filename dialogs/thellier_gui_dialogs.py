@@ -311,46 +311,13 @@ class Criteria_Dialog(wx.Dialog):
 
                 
                                                 
-        #criteria_specimen_window = wx.GridSizer(2, 14, 6, 6)
-        #criteria_specimen_window.AddMany( [(wx.StaticText(pnl1,label="int_n",style=wx.TE_CENTER), wx.EXPAND),
-        #    (wx.StaticText(pnl1,label="int_ptrm_n",style=wx.TE_CENTER), wx.EXPAND),
-        #    (wx.StaticText(pnl1,label="FRAC",style=wx.TE_CENTER), wx.EXPAND),
-        #    (wx.StaticText(pnl1,label="SCAT",style=wx.TE_CENTER), wx.EXPAND),
-        #    (wx.StaticText(pnl1,label="gap_max",style=wx.TE_CENTER), wx.EXPAND),
-        #    (wx.StaticText(pnl1,label="f",style=wx.TE_CENTER), wx.EXPAND),
-        #    (wx.StaticText(pnl1,label="fvds",style=wx.TE_CENTER), wx.EXPAND),
-        #    (wx.StaticText(pnl1,label="beta",style=wx.TE_CENTER), wx.EXPAND),
-        #    (wx.StaticText(pnl1,label="g",style=wx.TE_CENTER), wx.EXPAND),
-        #    (wx.StaticText(pnl1,label="q",style=wx.TE_CENTER), wx.EXPAND),
-        #    (wx.StaticText(pnl1,label="MAD",style=wx.TE_CENTER), wx.EXPAND),
-        #    (wx.StaticText(pnl1,label="DANG",style=wx.TE_CENTER), wx.EXPAND),
-        #    (wx.StaticText(pnl1,label="DRATS",style=wx.TE_CENTER), wx.EXPAND),
-        #    (wx.StaticText(pnl1,label="MD tail",style=wx.TE_CENTER), wx.EXPAND),
-        #    (self.set_specimen_int_n),
-        #    (self.set_specimen_int_ptrm_n),
-        #    (self.set_specimen_frac),
-        #    (self.set_specimen_scat),                        
-        #    (self.set_specimen_gmax),
-        #    (self.set_specimen_f),
-        #    (self.set_specimen_fvds),
-        #    (self.set_specimen_b_beta),
-        #    (self.set_specimen_g),
-        #    (self.set_specimen_q),
-        #    (self.set_specimen_int_mad),
-        #    (self.set_specimen_int_dang),
-        #    (self.set_specimen_drats),                                
-        #    (self.set_specimen_md)])
-                                           
-
-        # bSizer1.Add( criteria_specimen_window, 0, wx.ALIGN_LEFT|wx.ALL, 5 )
 
         #---------------------------
-        # anistropy criteria
+        # anisotropy criteria
         #---------------------------
 
         bSizer1a = wx.StaticBoxSizer( wx.StaticBox( pnl1, wx.ID_ANY, "anisotropy criteria" ), wx.HORIZONTAL )
         self.set_anisotropy_alt=wx.TextCtrl(pnl1,style=wx.TE_CENTER,size=(50,20))
-        #self.set_anisotropy_ftest=wx.ComboBox(self.panel, -1, value='None', choices=["None","pass 95%"],style=wx.CB_DROPDOWN,name="aniso-ftest")
         self.set_anisotropy_ftest_flag= wx.CheckBox(pnl1, -1, '', (10, 10))
         criteria_aniso_window = wx.GridSizer(2, 2, 6, 6)
         criteria_aniso_window.AddMany( [(wx.StaticText(pnl1,label="use F test as acceptance criteria",style=wx.TE_CENTER), wx.EXPAND),
