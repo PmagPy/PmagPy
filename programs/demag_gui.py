@@ -75,7 +75,7 @@ from pmagpy.demag_gui_utilities import *
 from pmagpy.Fit import *
 import dialogs.demag_dialogs as demag_dialogs
 from copy import deepcopy,copy
-import cit_magic as cit_magic
+import programs.cit_magic as cit_magic
 import pmagpy.new_builder as nb
 from pandas import DataFrame,Series
 from SPD.mapping import map_magic
@@ -1214,12 +1214,15 @@ class Demag_GUI(wx.Frame):
             if pars['calculation_type'] in ['DE-BFL','DE-BFL-A','DE-BFL-O']:
 
                 #rotated zijderveld
-                if self.COORDINATE_SYSTEM=='geographic':
+                if self.COORDINATE_SYSTEM=='geographic' and len(self.Data[self.s]['zdata_geo']) > 0:
                     first_data=self.Data[self.s]['zdata_geo'][0]
-                elif self.COORDINATE_SYSTEM=='tilt-corrected':
+                elif self.COORDINATE_SYSTEM=='tilt-corrected' and len(self.Data[self.s]['zdata_tilt']) > 0:
                     first_data=self.Data[self.s]['zdata_tilt'][0]
                 else:
                     first_data=self.Data[self.s]['zdata'][0]
+                    if self.COORDINATE_SYSTEM!='specimen':
+                        self.on_menu_change_speci_coord(-1)
+                        pars = fit.get(self.COORDINATE_SYSTEM)
 
                 if self.ORTHO_PLOT_TYPE=='N-S':
                     rotation_declination=0.
@@ -2135,13 +2138,14 @@ class Demag_GUI(wx.Frame):
 
         if self.Data:
             if not self.current_fit:
+                self.draw_figure(self.s)
                 self.update_selection()
             else:
                 self.Add_text()
                 self.update_fit_boxes()
 
         if self.ie_open:
-            self.ie.update_editor(True)
+            self.ie.update_editor()
 
     def recalculate_current_specimen_interpreatations(self):
         self.initialize_CART_rot(self.s)
@@ -2330,7 +2334,7 @@ class Demag_GUI(wx.Frame):
         self.current_fit = fit #update current fit to new fit
 
         if self.ie_open:
-            self.ie.update_editor(True)
+            self.ie.update_editor()
 
         self.update_fit_boxes(True)
 
@@ -2356,7 +2360,7 @@ class Demag_GUI(wx.Frame):
             for high_level_type in ['samples','sites','locations','study']:
                 self.high_level_means[high_level_type]={}
         if self.ie_open:
-            self.ie.update_editor(True)
+            self.ie.update_editor()
         return True
 
     def mark_meas_good(self,g_index):
@@ -3105,98 +3109,6 @@ class Demag_GUI(wx.Frame):
             self.ie.update_editor()
         self.update_selection()
 
-    def read_inp(self,inp_file_name,magic_files):
-        inp_file = open(inp_file_name, "r")
-        new_inp_file = ""
-
-        lines = inp_file.read().split("\n")
-        if len(lines) < 3: print(".inp file improperly formated"); return
-        new_inp_file = lines[0] + "\n" + lines[1] + "\n"
-        [lines.remove('') for i in range(lines.count(''))]
-        format = lines[0].strip()
-        header = lines[1].split('\t')
-        update_files = lines[2:]
-        update_data = False
-        for i,update_file in enumerate(update_files):
-            update_lines = update_file.split('\t')
-            if not os.path.isfile(update_lines[0]):
-                print("%s not found searching for location of file"%(update_lines[0]))
-                sam_file_name = os.path.split(update_lines[0])[-1]
-                new_file_path = find_file(sam_file_name, self.WD)
-                if new_file_path == None or not os.path.isfile(new_file_path):
-                    print("%s does not exist in any subdirectory of %s and will be skipped"%(update_lines[0], self.WD))
-                    new_inp_file += update_file+"\n"
-                    continue
-                else:
-                    print("new location for file found at %s"%(new_file_path))
-                    update_lines[0] = new_file_path
-            d = reduce(lambda x,y: x+"/"+y, update_lines[0].split("/")[:-1])+"/"
-            f = update_lines[0].split("/")[-1].split(".")[0] + ".magic"
-            if (d+f) in magic_files:
-                new_inp_file += update_file+"\n"
-                continue
-            if float(update_lines[-1]) >= os.path.getctime(update_lines[0]):
-                if os.path.isfile(d+f):
-                    magic_files.append(d+f)
-                    new_inp_file += update_file+"\n"
-                    continue
-            if len(header) != len(update_lines):
-                print("length of header and length of enteries for the file %s are different and will be skipped"%(update_lines[0]))
-                new_inp_file += update_file+"\n"
-                continue
-            update_dict = {}
-            for head,entry in zip(header,update_lines):
-                update_dict[head] = entry
-            if format == "CIT":
-                CIT_kwargs = {}
-                CIT_name = update_dict["sam_path"].split("/")[-1].split(".")[0]
-
-                CIT_kwargs["dir_path"] = self.WD + "/"#reduce(lambda x,y: x+"/"+y, update_dict["sam_path"].split("/")[:-1])
-                CIT_kwargs["user"] = ""
-                CIT_kwargs["meas_file"] = CIT_name + ".magic"
-                CIT_kwargs["spec_file"] = CIT_name + "_er_specimens.txt"
-                CIT_kwargs["samp_file"] = CIT_name + "_er_samples.txt"
-                CIT_kwargs["site_file"] = CIT_name + "_er_sites.txt"
-                CIT_kwargs["locname"] = update_dict["location"]
-                CIT_kwargs["methods"] = update_dict["field_magic_codes"]
-                CIT_kwargs["specnum"] = update_dict["num_terminal_char"]
-                CIT_kwargs["avg"] = update_dict["dont_average_replicate_measurements"]
-                CIT_kwargs["samp_con"] = update_dict["naming_convention"]
-                CIT_kwargs["peak_AF"] = update_dict["peak_AF"]
-                CIT_kwargs["magfile"] = update_dict["sam_path"].split("/")[-1]
-                CIT_kwargs["input_dir_path"] = reduce(lambda x,y: x+"/"+y, update_dict["sam_path"].split("/")[:-1])
-
-                program_ran, error_message = cit_magic.main(command_line=False, **CIT_kwargs)
-
-                if program_ran:
-                    update_data = True
-                    update_lines[-1] = time()
-                    new_inp_file += reduce(lambda x,y: str(x)+"\t"+str(y), update_lines)+"\n"
-                    magic_files.append(CIT_kwargs["dir_path"]+CIT_kwargs["meas_file"])
-                else:
-                    new_inp_file += update_file
-                    if os.path.isfile(CIT_kwargs["dir_path"]+CIT_kwargs["meas_file"]):
-                        magic_files.append(CIT_kwargs["dir_path"]+CIT_kwargs["meas_file"])
-
-        inp_file.close()
-        out_file = open(inp_file_name, "w")
-        out_file.write(new_inp_file)
-        return update_data
-
-    def get_all_inp_files(self,WD=None):
-        if WD == None: WD = self.WD
-        try:
-            all_inp_files = []
-            for root, dirs, files in os.walk(WD):
-                for d in dirs:
-                    all_inp_files += self.get_all_inp_files(d)
-                for f in files:
-                    if f.endswith(".inp"):
-                         all_inp_files.append(os.path.join(root, f))
-            return all_inp_files
-        except RuntimeError:
-            print("Recursion depth exceded, please use different working directory there are too many sub-directeries to walk")
-
     def change_WD(self,new_WD):
         if not os.path.isdir(new_WD): return
         self.WD = new_WD
@@ -3267,12 +3179,8 @@ class Demag_GUI(wx.Frame):
                 continue
 
             #initialize list of interpretations
-            if specimen in self.pmag_results_data['specimens'].keys():
-                pass
-            else:
+            if specimen not in self.pmag_results_data['specimens'].keys():
                 self.pmag_results_data['specimens'][specimen] = []
-
-            self.s = specimen
 
             methods=rec['magic_method_codes'].strip("\n").replace(" ","").split(":")
             LPDIR=False;calculation_type=""
@@ -3284,14 +3192,6 @@ class Demag_GUI(wx.Frame):
                     calculation_type=method
 
             #if interpretation doesn't exsist create it.
-            if 'specimen_comp_name' in rec.keys() and rec['specimen_tilt_correction'].isdigit() and int(float(rec['specimen_tilt_correction'])) == current_tilt_correction:
-                self.add_fit(self.s,rec['specimen_comp_name'], None, None)
-                fit = self.pmag_results_data['specimens'][specimen][-1]
-            else:
-                fit = None
-
-            if 'specimen_flag' in rec and rec['specimen_flag'] == 'b':
-                self.bad_fits.append(fit)
 
             if float(rec['measurement_step_min'])==0 or float(rec['measurement_step_min'])==273.:
                 tmin="0"
@@ -3307,20 +3207,30 @@ class Demag_GUI(wx.Frame):
             else: # AF
                 tmax="%.1fmT"%(float(rec['measurement_step_max'])*1000.)
 
-            if calculation_type != "":
+            if 'specimen_comp_name' in rec.keys() and rec['specimen_comp_name'] not in map(lambda x: x.name, self.pmag_results_data['specimens'][specimen]):
+                if calculation_type=="": calculation_type="DE-BFL"
+                self.add_fit(specimen,rec['specimen_comp_name'], tmin, tmax, calculation_type)
+                fit = self.pmag_results_data['specimens'][specimen][-1]
+            else:
+                fit = None
 
-                if specimen in self.Data.keys() and 'zijdblock_steps' in self.Data[specimen]\
+            if 'specimen_flag' in rec and rec['specimen_flag'] == 'b':
+                self.bad_fits.append(fit)
+
+            if fit != None:
+
+                if specimen in self.Data.keys() \
+                and 'zijdblock_steps' in self.Data[specimen]\
                 and tmin in self.Data[specimen]['zijdblock_steps']\
                 and tmax in self.Data[specimen]['zijdblock_steps']:
 
-                    if fit:
-                        fit.put(specimen,'specimen',self.get_PCA_parameters(specimen,fit,tmin,tmax,'specimen',calculation_type))
+                    fit.put(specimen,'specimen',self.get_PCA_parameters(specimen,fit,fit.tmin,fit.tmax,'specimen',calculation_type))
 
-                        if len(self.Data[specimen]['zijdblock_geo'])>0:
-                            fit.put(specimen,'geographic',self.get_PCA_parameters(specimen,fit,tmin,tmax,'geographic',calculation_type))
+                    if len(self.Data[specimen]['zijdblock_geo'])>0:
+                        fit.put(specimen,'geographic',self.get_PCA_parameters(specimen,fit,fit.tmin,fit.tmax,'geographic',calculation_type))
 
-                        if len(self.Data[specimen]['zijdblock_tilt'])>0:
-                            fit.put(specimen,'tilt-corrected',self.get_PCA_parameters(specimen,fit,tmin,tmax,'tilt-corrected',calculation_type))
+                    if len(self.Data[specimen]['zijdblock_tilt'])>0:
+                        fit.put(specimen,'tilt-corrected',self.get_PCA_parameters(specimen,fit,fit.tmin,fit.tmax,'tilt-corrected',calculation_type))
 
                 else:
                     print( "-W- WARNING: Cant find specimen and steps of specimen %s tmin=%s, tmax=%s"%(specimen,tmin,tmax))
@@ -3417,11 +3327,6 @@ class Demag_GUI(wx.Frame):
                     rec[crit]="%e"%(self.acceptance_criteria[crit]['value'])
         pmag.magic_write(os.path.join(self.WD, "pmag_criteria.txt"),[rec],"pmag_criteria")
 
-    def combine_magic_files(self,magic_files):
-        if ipmag.combine_magic(magic_files, self.WD+"/magic_measurements.txt"):
-            print("recalculated magic files have been recombine to %s"%(self.WD+"/magic_measurements.txt"))
-        else: print("trouble combining magic files to %s"%(self.WD+"/magic_measurements.txt"))
-
 #==========================================================================================#
 #============================Interal Dialog Functions======================================#
 #==========================================================================================#
@@ -3475,21 +3380,6 @@ class Demag_GUI(wx.Frame):
             continue_bool = False
         self.dlg.Destroy()
         return continue_bool
-
-    def pick_inp(self):
-        self.dlg = wx.FileDialog(
-            self, message="choose .inp file",
-            defaultDir=self.WD,
-            defaultFile="magic.inp",
-            wildcard="*.inp",
-            style=wx.OPEN
-            )
-        if self.dlg.ShowModal() == wx.ID_OK:
-            inp_file_name = self.dlg.GetPath()
-        else:
-            inp_file_name = None
-        self.dlg.Destroy()
-        return inp_file_name
 
     def on_close_criteria_box (self,dia):
         window_list_specimens=['specimen_n','specimen_mad','specimen_dang','specimen_alpha95']
@@ -4156,7 +4046,7 @@ class Demag_GUI(wx.Frame):
             self.coordinates_box.SetStringSelection("specimen")
         if coordinate_system != self.coordinates_box.GetValue() and self.ie_open:
             self.ie.coordinates_box.SetStringSelection(self.coordinates_box.GetValue())
-            self.ie.update_editor(False)
+            self.ie.update_editor()
         coordinate_system=self.coordinates_box.GetValue()
         self.COORDINATE_SYSTEM=coordinate_system
 
@@ -4497,21 +4387,21 @@ class Demag_GUI(wx.Frame):
     #---------------------------------------------#
 
     def on_menu_pick_read_inp(self, event):
-        inp_file_name = self.pick_inp()
+        inp_file_name = pick_inp(self,self.WD)
         if inp_file_name == None: return
-        magic_files = []
-        self.read_inp(inp_file_name,magic_files)
-        self.combine_magic_files(magic_files)
+        magic_files = {}
+        read_inp(self.WD,inp_file_name,magic_files)
+        combine_magic_files(self.WD,magic_files)
         self.reset_backend()
 
     def on_menu_read_all_inp(self, event):
-        inp_file_names = self.get_all_inp_files()
+        inp_file_names = get_all_inp_files(self.WD)
         if inp_file_names == []: return
 
-        magic_files = []
+        magic_files = {}
         for inp_file_name in inp_file_names:
-            self.read_inp(inp_file_name,magic_files)
-        self.combine_magic_files(magic_files)
+            read_inp(self.WD,inp_file_name,magic_files)
+        combine_magic_files(self.WD,magic_files)
         self.reset_backend()
 
     def on_menu_make_MagIC_results_tables(self,event):
@@ -5089,7 +4979,7 @@ class Demag_GUI(wx.Frame):
                 self.dlg.ShowModal()
                 self.dlg.Destroy()
             if self.mean_fit!=None and self.mean_fit!='None':
-                self.plot_higher_levels_data(event)
+                self.plot_higher_levels_data()
         else:
             self.ie.ToggleWindowStyle(wx.STAY_ON_TOP)
             self.ie.ToggleWindowStyle(wx.STAY_ON_TOP)
@@ -5630,7 +5520,7 @@ class Demag_GUI(wx.Frame):
 
         if self.ie_open:
             self.ie.coordinates_box.SetStringSelection(new)
-            self.ie.update_editor(True)
+            self.ie.update_editor()
         self.update_selection()
 
     def onSelect_orthogonal_box(self, event):
