@@ -2030,7 +2030,6 @@ class Arai_GUI(wx.Frame):
                 self, message="choose a file in MagIC Data Model 3.0  format",
                 defaultDir=self.WD,
                 defaultFile="criteria.txt",
-                #wildcard=wildcard,
                 style=wx.OPEN | wx.CHANGE_DIR
                 )
         else:
@@ -2046,18 +2045,21 @@ class Arai_GUI(wx.Frame):
             criteria_file = dlg.GetPath()
             self.GUI_log.write ("-I- Read new criteria file: %s\n"%criteria_file)
         dlg.Destroy()
-
+        replace_acceptance_criteria=pmag.initialize_acceptance_criteria(data_model=self.data_model)
         try:
-            replace_acceptance_criteria=pmag.initialize_acceptance_criteria(data_model=self.data_model)
-            replace_acceptance_criteria=pmag.read_criteria_from_file(criteria_file,replace_acceptance_criteria,data_model=self.data_model) # just to see if file exists
+            if self.data_model==3:
+                self.read_criteria_file(criteria_file)
+                replace_acceptance_criteria=self.acceptance_criteria
+                ##replace_acceptance_criteria=pmag.read_criteria_from_file(criteria_file,replace_acceptance_criteria,data_model=self.data_model) # just to see if file exists
+                print replace_acceptance_criteria
+            else:
+                replace_acceptance_criteria=pmag.read_criteria_from_file(criteria_file,replace_acceptance_criteria,data_model=self.data_model) # just to see if file exists
         except:
             dlg1 = wx.MessageDialog(self,caption="Error:",message="error in reading file" ,style=wx.OK)
             result = dlg1.ShowModal()
             if result == wx.ID_OK:
                 dlg1.Destroy()
                 return
-
-        self.acceptance_criteria=pmag.initialize_acceptance_criteria(data_model=self.data_model)
         self.add_thellier_gui_criteria()
         self.read_criteria_file(criteria_file)
         # check if some statistics are in the new criteria but not in old. If yes, add to  self.preferences['show_statistics_on_gui']
@@ -2274,12 +2276,13 @@ class Arai_GUI(wx.Frame):
         try to guess if averaging by sample or by site.
         '''
         if self.data_model==3:
-            contribution = nb.Contribution(self.WD, read_tables=['criteria'])
-            contribution = nb.Contribution(self.WD, read_tables=['criteria'], vocabulary=self.vocabulary)
+            fnames = {'criteria': criteria_file}
+            contribution = nb.Contribution(self.WD, custom_filenames=fnames, read_tables=['criteria'])
+            contribution = nb.Contribution(self.WD, custom_filenames=fnames, read_tables=['criteria'],
+                                                vocabulary=self.vocabulary)
             if 'criteria' in contribution.tables:
                 crit_container = contribution.tables['criteria']
                 crit_data = crit_container.df
-            #crit_data = crit_data[crit_data['criterion'].str.contains('IE-')==True] # fish out all the relavent data
                 crit_data=crit_data.to_dict('records') # convert to list of dictionaries
                 for crit in crit_data:  # step through and rename every f-ing one
                     m2_name=map_magic.convert_intensity_criteria('magic2',crit['table_column']) #magic2[magic3.index(crit['table_column'])] # find data model 2.5 name

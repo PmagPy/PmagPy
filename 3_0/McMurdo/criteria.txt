@@ -1,11 +1,13 @@
 tab 	criteria
 citations	criterion	criterion_operation	criterion_value	definition	table_column
 This study	IE-SAMP	>=	1.0	acceptance criteria for study	samples.int_n_specimens
-This study	IE-SPEC	<=	0.14	acceptance criteria for study	specimens.int_b_beta
+This study	IE-SPEC	<=	0.1	acceptance criteria for study	specimens.int_b_beta
 This study	IE-SPEC	<=	17.0	acceptance criteria for study	specimens.int_drats
-This study	IE-SPEC	>=	0.7	acceptance criteria for study	specimens.int_f
+This study	IE-SPEC	>=	0.78	acceptance criteria for study	specimens.int_frac
 This study	IE-SPEC	>=	0.3	acceptance criteria for study	specimens.int_fvds
-This study	IE-SPEC	<=	13.0	acceptance criteria for study	specimens.int_dang
+This study	IE-SPEC	<=	10.0	acceptance criteria for study	specimens.int_dang
+This study	IE-SPEC	<=	5.0	acceptance criteria for study	specimens.int_mad
 This study	IE-SPEC	>=	2.0	acceptance criteria for study	specimens.int_n_ptrm
 This study	IE-SPEC	<=	15.0	acceptance criteria for study	specimens.int_md
 This study	IE-SPEC	>=	1.0	acceptance criteria for study	specimens.int_q
+This study	IE-SPEC	=	True	acceptance criteria for study	specimens.int_scat
