@@ -1,6 +1,6 @@
 #!/usr/bin/env pythonw
 
-# pylint: disable=W0612,C0111,C0103,W0201
+# pylint: disable=W0612,C0111,C0103,W0201,E402
 
 print "-I- Importing Pmag GUI dependencies"
 #from pmag_env import set_env
@@ -364,7 +364,9 @@ class MagMainFrame(wx.Frame):
         self.Hide()
 
     def on_convert_3(self, event):
-        print "convert to 3.0"
+        fname = "magic_measurements.txt"
+        new_meas = pmag.convert2_3(fname, self.WD, self.WD)
+
 
     def on_er_data(self, event):
         if not os.path.isfile(os.path.join(self.WD, 'magic_measurements.txt')):
