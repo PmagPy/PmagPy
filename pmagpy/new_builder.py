@@ -126,11 +126,18 @@ class Contribution(object):
         the index.
         """
         meas_df = self.tables['measurements'].df
-        for name in ['specimen', 'sample', 'site', 'location']:
+        names_list = ['specimen', 'sample', 'site', 'location']
+        # add in any tables that you can
+        for num, name in enumerate(names_list):
             if name in meas_df.columns:
                 items = meas_df[name].unique()
                 df = pd.DataFrame(columns=[name], index=items)
                 df[name] = df.index
+                # add in parent name
+                # (i.e., sample name to specimens table)
+                if num < (len(names_list) - 1):
+                    parent = names_list[num+1]
+                    df[parent] = meas_df.drop_duplicates(subset=[name])[parent].values
                 self.tables[name + "s"] = MagicDataFrame(dtype=name + "s", df=df)
 
 
