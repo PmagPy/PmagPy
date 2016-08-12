@@ -118,6 +118,22 @@ class Contribution(object):
             return False
 
 
+    def propagate_measurement_info(self):
+        """
+        Take a contribution with a measurement table.
+        Create specimen, sample, site, and location tables
+        using the unique names in the measurement table to fill in
+        the index.
+        """
+        meas_df = self.tables['measurements'].df
+        for name in ['specimen', 'sample', 'site', 'location']:
+            if name in meas_df.columns:
+                items = meas_df[name].unique()
+                df = pd.DataFrame(columns=[name], index=items)
+                df[name] = df.index
+                self.tables[name + "s"] = MagicDataFrame(dtype=name + "s", df=df)
+
+
     ## Methods for making changes to a Contribution
     ## that need to propagate to multiple tables
 
