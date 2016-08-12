@@ -366,6 +366,10 @@ class MagMainFrame(wx.Frame):
     def on_convert_3(self, event):
         fname = "magic_measurements.txt"
         new_meas = pmag.convert2_3(fname, self.WD, self.WD)
+        self.contribution = nb.Contribution(self.WD)
+        self.contribution.propagate_measurement_info()
+        for table in self.contribution.tables:
+            self.contribution.tables[table].write_magic_file(dir_path=self.WD)
 
 
     def on_er_data(self, event):
