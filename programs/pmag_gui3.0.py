@@ -60,7 +60,7 @@ class MagMainFrame(wx.Frame):
             self.WD = WD
         self.HtmlIsOpen = False
         self.Bind(wx.EVT_CLOSE, self.on_menu_exit)
-        if self.data_model_num == 2.5:
+        if self.data_model_num == 2:
             self.er_magic = builder.ErMagicBuilder(self.WD)
         elif self.data_model_num == 3:
             self.contribution = nb.Contribution(self.WD)
@@ -395,7 +395,13 @@ class MagMainFrame(wx.Frame):
         #dw, dh = wx.DisplaySize()
         size = wx.DisplaySize()
         size = (size[0]-0.1 * size[0], size[1]-0.1 * size[1])
-        frame = pmag_basic_dialogs.OrientFrameGrid(self, -1, 'demag_orient.txt', self.WD, self.er_magic, size)
+        if self.data_model_num == 3:
+            frame = pmag_basic_dialogs.OrientFrameGrid3(self, -1, 'demag_orient.txt',
+                                                        self.WD, self.contribution,
+                                                        size)
+        else:
+            frame = pmag_basic_dialogs.OrientFrameGrid(self, -1, 'demag_orient.txt',
+                                                        self.WD, self.er_magic, size)
         frame.Show(True)
         frame.Centre()
         self.Hide()
