@@ -7,7 +7,8 @@
 #    Fixed code for importing criteria file in data model 3.0
 # TODO:
 #    1) need to thoroughly test and finalize output format (esp.  vdms/vadms)
-#    2) rename code thellier_gui.py
+#    2) add result_quality flag to specimens, samples, sites tables based on criteria
+#    3) rename code thellier_gui.py
 #
 # Thellier_GUI Version 3.0  8/2/16 (Lisa Tauxe)
 # Adding in the ability to read in and write out
@@ -3707,21 +3708,24 @@ class Arai_GUI(wx.Frame):
                     self.samp_data = self.samp_container.update_record(sample_or_site, new_data, condition)
                     # give temporary index to site_data
                     self.site_data = self.site_container.df
-                    self.site_data['num'] = range(len(self.site_data))
                     # remove intensity data from site level.
                     site=self.Data_hierarchy['site_of_sample'][sample_or_site]
                     cond1=self.site_data['site'].str.contains(site)==True
                     cond2=self.site_data['int_abs'].notnull()==True
                     condition=(cond1 & cond2)
-                    new_data={}
-                    site_keys=['int_abs','int_sigma','int_n_samples','int_sigma_perc'] # zero these out but keep the rest
+                    site_keys=['int_abs','int_sigma','int_n_samples','int_sigma_perc','specimens'] # zero these out but keep the rest
+                    blank_data={}
                     for key in site_keys:
-                        new_data[key] = ""
-                    self.site_data = self.site_container.update_record(site, new_data, condition)
+                        blank_data[key] = ""
+                    self.site_data = self.site_container.update_record(site, blank_data, condition)
+                    # add record for sample in the site table
+             #       new_data['site']=sample_or_site
+             #       new_data['samples']=sample_or_site
+                    cond1=self.site_data['site'].str.contains(sample_or_site)==True
+                    cond2=self.site_data['int_abs'].notnull()==True
+                    condition=(cond1 & cond2)
+                    self.site_data = self.site_container.update_record(sample_or_site, new_data, condition)
                 else:  # do this by site and not by sample
-                    new_data = map_magic.convert_site('magic3',new_sample_or_site_data) # convert to 3.0
-                    # add numeric index column temporarily
-                    self.site_container.df['num'] = range(len(self.site_container.df))
            # edit first of existing intensity data for this site from self.site_data
                     cond1 = self.site_data['site'].str.contains(sample_or_site)==True
                     if 'int_abs' not in self.site_data.columns:
