@@ -1,6 +1,6 @@
 #!/usr/bin/env pythonw
 
-# pylint: disable=W0612,C0111,C0103,W0201
+# pylint: disable=W0612,C0111,C0103,W0201,E402
 
 print "-I- Importing Pmag GUI dependencies"
 #from pmag_env import set_env
@@ -45,7 +45,7 @@ class MagMainFrame(wx.Frame):
     def __init__(self, WD=None):
 
 
-        self.data_model_num = pmag.get_named_arg_from_sys("-DM", 2.5)
+        self.data_model_num = int(pmag.get_named_arg_from_sys("-DM", 2.5))
         self.FIRST_RUN = True
         wx.Frame.__init__(self, None, wx.ID_ANY, self.title, name='pmag_gui mainframe')
         self.panel = wx.Panel(self, name='pmag_gui main panel')
@@ -60,7 +60,7 @@ class MagMainFrame(wx.Frame):
             self.WD = WD
         self.HtmlIsOpen = False
         self.Bind(wx.EVT_CLOSE, self.on_menu_exit)
-        if self.data_model_num == 2.5:
+        if self.data_model_num == 2:
             self.er_magic = builder.ErMagicBuilder(self.WD)
         elif self.data_model_num == 3:
             self.contribution = nb.Contribution(self.WD)
@@ -120,11 +120,22 @@ class MagMainFrame(wx.Frame):
         #---sizer 1 ----
         bSizer1 = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.ID_ANY, "Import data to working directory"), wx.HORIZONTAL)
 
-        TEXT="1. convert magnetometer files to MagIC format"
-        self.btn1 = buttons.GenButton(self.panel, id=-1, label=TEXT, size=(450, 50), name='step 1')
+        text = "1. convert magnetometer files to MagIC format"
+        self.btn1 = buttons.GenButton(self.panel, id=-1, label=text,
+                                      size=(450, 50), name='step 1')
         self.btn1.SetBackgroundColour("#FDC68A")
         self.btn1.InitColours()
         self.Bind(wx.EVT_BUTTON, self.on_convert_file, self.btn1)
+
+        if self.data_model_num == 3:
+            text = "1a. convert to 3.0. format"
+            self.btn1a = buttons.GenButton(self.panel, id=-1, label=text,
+                                           size=(450, 50), name='step 1')
+            self.btn1a.SetBackgroundColour("#FDC68A")
+            self.btn1a.InitColours()
+            self.Bind(wx.EVT_BUTTON, self.on_convert_3, self.btn1a)
+
+
         text = "2. (optional) calculate geographic/tilt-corrected directions"
         self.btn2 = buttons.GenButton(self.panel, id=-1, label=text, size=(450, 50), name='step 2')
         self.btn2.SetBackgroundColour("#FDC68A")
@@ -153,6 +164,9 @@ class MagMainFrame(wx.Frame):
         bSizer1_1.AddSpacer(20)
         bSizer1_1.Add(self.btn1, wx.ALIGN_TOP)
         bSizer1_1.AddSpacer(20)
+        if self.data_model_num == 3:
+            bSizer1_1.Add(self.btn1a, wx.ALIGN_TOP)
+            bSizer1_1.AddSpacer(20)
         bSizer1_1.Add(self.btn2, wx.ALIGN_TOP)
         bSizer1_1.AddSpacer(20)
         bSizer1_1.Add(self.btn3, wx.ALIGN_TOP)
@@ -349,6 +363,15 @@ class MagMainFrame(wx.Frame):
         pmag_dialogs_dia.Center()
         self.Hide()
 
+    def on_convert_3(self, event):
+        fname = "magic_measurements.txt"
+        new_meas = pmag.convert2_3(fname, self.WD, self.WD)
+        self.contribution = nb.Contribution(self.WD)
+        self.contribution.propagate_measurement_info()
+        for table in self.contribution.tables:
+            self.contribution.tables[table].write_magic_file(dir_path=self.WD)
+
+
     def on_er_data(self, event):
         if not os.path.isfile(os.path.join(self.WD, 'magic_measurements.txt')):
             import dialogs.pmag_widgets as pw
@@ -376,7 +399,13 @@ class MagMainFrame(wx.Frame):
         #dw, dh = wx.DisplaySize()
         size = wx.DisplaySize()
         size = (size[0]-0.1 * size[0], size[1]-0.1 * size[1])
-        frame = pmag_basic_dialogs.OrientFrameGrid(self, -1, 'demag_orient.txt', self.WD, self.er_magic, size)
+        if self.data_model_num == 3:
+            frame = pmag_basic_dialogs.OrientFrameGrid3(self, -1, 'demag_orient.txt',
+                                                        self.WD, self.contribution,
+                                                        size)
+        else:
+            frame = pmag_basic_dialogs.OrientFrameGrid(self, -1, 'demag_orient.txt',
+                                                        self.WD, self.er_magic, size)
         frame.Show(True)
         frame.Centre()
         self.Hide()

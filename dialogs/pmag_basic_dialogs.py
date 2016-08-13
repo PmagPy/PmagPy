@@ -2240,6 +2240,25 @@ class something(wx.Frame):
 # calculate sample orientation
 #=================================================================
 
+
+class OrientFrameGrid3(wx.Frame):
+    def __init__(self, parent, id, title, WD, contribution, size):
+        wx.Frame.__init__(self, parent, -1, title, size=size, name='calculate geographic directions')
+
+        #--------------------
+        # initialize stuff
+        #--------------------
+        if sys.platform in ['win32', 'win64']:
+            self.panel = wx.ScrolledWindow(self, style=wx.SIMPLE_BORDER|wx.ALWAYS_SHOW_SB)
+        else:
+            self.panel = wx.Panel(self, style=wx.SIMPLE_BORDER)
+
+        self.WD = WD
+        #self.Data_hierarchy = Data_hierarchy
+        self.contribution = contribution
+
+
+
 class OrientFrameGrid(wx.Frame):
 
     def __init__(self, parent, id, title, WD, ErMagic, size):
