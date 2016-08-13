@@ -3,13 +3,11 @@
 #============================================================================================
 # LOG HEADER:
 #============================================================================================
-# Version 3.1 (8/10/16: Lisa Tauxe)
+# Version 3.1 8/11/16 (Lisa Tauxe)
 #    Fixed code for importing criteria file in data model 3.0
-#    BUT this version erases all non-intensity related criteria....  need to fix this
 # TODO:
 #    1) need to thoroughly test and finalize output format (esp.  vdms/vadms)
-#    2) need to make data_model recognition automatic (as in demag_gui)
-#    3) rename code thellier_gui.py
+#    2) rename code thellier_gui.py
 #
 # Thellier_GUI Version 3.0  8/2/16 (Lisa Tauxe)
 # Adding in the ability to read in and write out
@@ -306,14 +304,9 @@ class Arai_GUI(wx.Frame):
         """
         open dialog box for choosing a working directory
         """
-        if "-DM" in sys.argv and FIRST_RUN: # set data model version number - default is Data Model 2.5
-            ind=sys.argv.index('-DM') # set
-            self.data_model = sys.argv[ind+1]
-        self.data_model = int(self.data_model)
-        if self.data_model == 3:
-            meas_file='measurements.txt'
-        elif self.data_model == 2:
-            meas_file='magic_measurements.txt'
+#        if "-DM" in sys.argv and FIRST_RUN: # set data model version number - default is Data Model 2.5
+#            ind=sys.argv.index('-DM') # set
+#            self.data_model = sys.argv[ind+1]
         if "-WD" in sys.argv and FIRST_RUN:
             ind=sys.argv.index('-WD')
             self.WD=sys.argv[ind+1]
@@ -326,6 +319,12 @@ class Arai_GUI(wx.Frame):
                 self.WD = os.getcwd()
             dialog.Destroy()
         self.WD = os.path.realpath(self.WD)
+        #self.data_model=2
+        meas_file='magic_measurements.txt' 
+        if os.path.exists(os.path.join(self.WD, "measurements.txt")):
+            meas_file = os.path.join(self.WD, "measurements.txt")
+            self.data_model = 3
+            print 'Data model set to 3.0'
         self.magic_file=os.path.join(self.WD,meas_file)
             #intialize GUI_log
         self.GUI_log=open(os.path.join(self.WD, "thellier_GUI.log"),'w')
@@ -2224,9 +2223,10 @@ class Arai_GUI(wx.Frame):
                 pass
             if self.data_model==3:
                 crit_file='criteria.txt'
+                #START HERE  - ADD back in old crieria
             else:
                 crit_file='pmag_criteria.txt'
-            pmag.write_criteria_to_file(os.path.join(self.WD, crit_file),self.acceptance_criteria,data_model=self.data_model)
+            pmag.write_criteria_to_file(os.path.join(self.WD, crit_file),self.acceptance_criteria,data_model=self.data_model,prior_crits=self.crit_data)
             dlg1.Destroy()
             dia.Destroy()
         self.recalculate_satistics()
@@ -2288,8 +2288,9 @@ class Arai_GUI(wx.Frame):
             if 'criteria' in contribution.tables:
                 crit_container = contribution.tables['criteria']
                 crit_data = crit_container.df
-                crit_data=crit_data.to_dict('records') # convert to list of dictionaries
-                for crit in crit_data:  # step through and rename every f-ing one
+                crit_data['definition']='acceptance criteria for study'
+                self.crit_data=crit_data.to_dict('records') # convert to list of dictionaries
+                for crit in self.crit_data:  # step through and rename every f-ing one
                     m2_name=map_magic.convert_intensity_criteria('magic2',crit['table_column']) #magic2[magic3.index(crit['table_column'])] # find data model 2.5 name
                     if m2_name!=crit['table_column'] and 'scat' not in m2_name!="":
                         self.acceptance_criteria[m2_name]['value']=float(crit['criterion_value'])

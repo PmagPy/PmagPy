@@ -8781,12 +8781,10 @@ def write_criteria_to_file(path,acceptance_criteria,**kwargs):
     crit_list=acceptance_criteria.keys()
     crit_list.sort()
     if 'data_model' in kwargs.keys() and kwargs['data_model']==3:
-        criteria_file='criteria.txt'
         code_key='criterion'
         definition_key='definition'
         citation_key='citations'
     else:
-        criteria_file='pmag_criteria.txt'
         code_key='pmag_criteria_code'
         definition_key='criteria_definition'
         citation_key='er_citation_names'
@@ -8854,6 +8852,10 @@ def write_criteria_to_file(path,acceptance_criteria,**kwargs):
           else:
               print "-W- WARNING: statistic %s not written to file:",crit
     if 'data_model' in kwargs.keys() and kwargs['data_model']==3: # need to make a list of these dictionaries
+        if 'prior_crits' in kwargs.keys():
+             prior_crits=kwargs['prior_crits']
+             for rec in prior_crits:
+                 if 'criterion' in rec.keys() and 'IE-' not in rec['criterion']:recs.append(rec) # preserve non-intensity related criteria
         magic_write(path,recs,'criteria')
     else:
         magic_write(path,[rec],'pmag_criteria')
