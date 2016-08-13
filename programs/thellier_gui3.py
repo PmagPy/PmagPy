@@ -3724,6 +3724,7 @@ class Arai_GUI(wx.Frame):
                     cond1=self.site_data['site'].str.contains(sample_or_site)==True
                     cond2=self.site_data['int_abs'].notnull()==True
                     condition=(cond1 & cond2)
+# LORI:  HERE IS WHERE I"M ADDING NEW RECORD
                     self.site_data = self.site_container.update_record(sample_or_site, new_data, condition)
                 else:  # do this by site and not by sample
            # edit first of existing intensity data for this site from self.site_data
@@ -3747,6 +3748,7 @@ class Arai_GUI(wx.Frame):
                     for samp_name in samples:
                         self.samp_container.update_record(samp_name, new_data, cond2)
             #  write out the data
+# LORI:  AND HERE IS WHERE I"M WRITING STUFF OUT
             self.samp_container.write_magic_file(custom_name='new_samples.txt', dir_path=self.WD) # change this to samples.txt when ready
             self.site_container.write_magic_file(custom_name='new_sites.txt', dir_path=self.WD) # change this to sites.txt when ready
         dlg1 = wx.MessageDialog(self,caption="Message:", message="MagIC files are saved in MagIC project folder" ,style=wx.OK|wx.ICON_INFORMATION)
