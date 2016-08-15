@@ -129,15 +129,20 @@ class Contribution(object):
         names_list = ['specimen', 'sample', 'site', 'location']
         # add in any tables that you can
         for num, name in enumerate(names_list):
-            if name in meas_df.columns:
+            # don't replace tables that already exist
+            if (name + "s") in self.tables:
+                continue
+            elif name in meas_df.columns:
+                print "making new {} file".format(name)
                 items = meas_df[name].unique()
                 df = pd.DataFrame(columns=[name], index=items)
                 df[name] = df.index
-                # add in parent name
+                # add in parent name if possible
                 # (i.e., sample name to specimens table)
                 if num < (len(names_list) - 1):
                     parent = names_list[num+1]
-                    df[parent] = meas_df.drop_duplicates(subset=[name])[parent].values
+                    if parent in meas_df.columns:
+                        df[parent] = meas_df.drop_duplicates(subset=[name])[parent].values
                 self.tables[name + "s"] = MagicDataFrame(dtype=name + "s", df=df)
 
 
