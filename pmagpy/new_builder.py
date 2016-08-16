@@ -572,6 +572,25 @@ class MagicDataFrame(object):
 
     ## Methods that take self.df and extract some information from it
 
+    def convert_to_pmag_data_list(self, lst_or_dict="lst", df=None):
+        """
+        Take MagicDataFrame and turn it into a list of dictionaries.
+        This will have the same format as reading in a 2.5 file
+        with pmag.magic_read(), i.e.:
+        if "lst":
+          [{"sample": "samp_name", "azimuth": 12, ...}, {...}]
+        if "dict":
+          {"samp_name": {"azimuth": 12, ...}, "samp_name2": {...}, ...}
+        """
+        if isinstance(df, type(None)):
+            df = self.df
+        dictionary = dict(df.T)
+        if lst_or_dict == "lst":
+            return [dict(dictionary[key]) for key in dictionary]
+        else:
+            return {key: dict(dictionary[key]) for key in dictionary}
+
+
     def get_name(self, col_name, df_slice="", index_names=""):
         """
         Takes in a column name, and either a DataFrame slice or
