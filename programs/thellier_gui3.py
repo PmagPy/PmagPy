@@ -3717,7 +3717,9 @@ class Arai_GUI(wx.Frame):
                     blank_data={}
                     for key in site_keys:
                         blank_data[key] = ""
-                    self.site_data = self.site_container.update_record(site, blank_data, condition)
+                    #print "removing intensity data from site:", site
+                    self.site_data = self.site_container.update_record(site, blank_data, condition,
+                                                                       update_only=True)
                     # add record for sample in the site table
              #       new_data['site']=sample_or_site
              #       new_data['samples']=sample_or_site

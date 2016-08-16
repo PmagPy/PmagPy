@@ -559,9 +559,12 @@ class MagicDataFrame(object):
                     print "deleting redundant records for:", name
                     df_data = self.delete_row(ind)
         else:
-            print 'no record found - creating new one for ', name
-            # add new row
-            df_data = self.add_row(name, new_data)
+            if update_only:
+                print "no record found for that condition, not updating ", name
+            else:
+                print 'no record found - creating new one for ', name
+                # add new row
+                df_data = self.add_row(name, new_data)
         # sort so that all rows for an item are together
         df_data.sort_index(inplace=True)
         # redo temporary index
