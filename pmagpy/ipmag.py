@@ -3383,7 +3383,7 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
         raise Exception("If using magnetic declination convention 2, you must also provide a declincation correction in degrees")
 
     SampRecs,SiteRecs,ImageRecs=[],[],[]
-
+    SampRecs_sorted,SiteRecs_sorted={},{}
     if append:
         try:
             SampRecs,file_type=pmag.magic_read(samp_file)

@@ -881,6 +881,10 @@ class convert_SIO_files_to_MagIC(convert_files_to_MagIC):
         cooling_rates = self.bSizer10.return_value()
         options_dict['cooling_rates'] = cooling_rates
 
+        # Force -A option on cooling rate correction experiment
+        if cooling_rates !=""  and experiment_type =="-LP CR":
+            replicate = '-A';options_dict['noave'] = 1
+
         COMMAND = "sio_magic.py -F {0} -f {1} {2} {3} {4} {5} -spc {6} -ncn {7} {8} {9} {10} {11} {12}".format(outfile, SIO_file, user, experiment_type, cooling_rates, loc_name,spc, ncn, lab_field, peak_AF, coil_number, instrument, replicate)
         print "COMMAND", COMMAND
         # to run as module:
