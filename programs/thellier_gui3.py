@@ -3713,7 +3713,7 @@ class Arai_GUI(wx.Frame):
                     cond1=self.site_data['site'].str.contains(site)==True
                     cond2=self.site_data['int_abs'].notnull()==True
                     condition=(cond1 & cond2)
-                    site_keys=['int_abs','int_sigma','int_n_samples','int_sigma_perc','specimens'] # zero these out but keep the rest
+                    site_keys=['int_abs','int_sigma','int_n_samples','int_sigma_perc','specimens','int_abs_sigma','int_abs_sigma_perc'] # zero these out but keep the rest
                     blank_data={}
                     for key in site_keys:
                         blank_data[key] = ""
@@ -3727,7 +3727,12 @@ class Arai_GUI(wx.Frame):
                     cond2=self.site_data['int_abs'].notnull()==True
                     condition=(cond1 & cond2)
 # LORI:  HERE IS WHERE I"M ADDING NEW RECORD
-                    self.site_data = self.site_container.update_record(sample_or_site, new_data, condition)
+                    # change 'site' column to reflect sample name,
+                    # since we are putting this sample at the site level
+                    new_data['site'] = sample_or_site
+                    self.site_data = self.site_container.update_record(sample_or_site,
+                                                                       new_data, condition,
+                                                                       debug=True)
                 else:  # do this by site and not by sample
            # edit first of existing intensity data for this site from self.site_data
                     cond1 = self.site_data['site'].str.contains(sample_or_site)==True

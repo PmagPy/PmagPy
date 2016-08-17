@@ -534,7 +534,8 @@ class MagicDataFrame(object):
         return self.df
 
 
-    def update_record(self, name, new_data, condition):
+    def update_record(self, name, new_data, condition, update_only=False,
+                      debug=False):
         """
         Find the first row in self.df with index == name
         and condition == True.
