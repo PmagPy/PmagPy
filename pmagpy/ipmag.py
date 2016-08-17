@@ -3263,7 +3263,10 @@ def specimens_results_magic(infile='pmag_specimens.txt', measfile='magic_measure
     else: print "No Results level table"
 
 
-def orientation_magic(or_con=1, dec_correction_con=1, dec_correction=0, bed_correction=True, samp_con='1', hours_from_gmt=0, method_codes='', average_bedding=False, orient_file='orient.txt', samp_file='er_samples.txt', site_file='er_sites.txt', output_dir_path='.', input_dir_path='.', append=False):
+def orientation_magic(or_con=1, dec_correction_con=1, dec_correction=0, bed_correction=True,
+                      samp_con='1', hours_from_gmt=0, method_codes='', average_bedding=False,
+                      orient_file='orient.txt', samp_file='er_samples.txt', site_file='er_sites.txt',
+                      output_dir_path='.', input_dir_path='.', append=False, data_model=2):
     """
     use this function to convert tab delimited field notebook information to MagIC formatted tables (er_samples and er_sites)
 

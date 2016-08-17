@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 # map_MagIC.py: -*- Python -*-  DESCRIPTIVE TEXT.
-# 
+#
 #  Copyright (c) 2014 Lori Jonestrask
 #  Author: Lori Jonestrask (mintblue87@gmail.com) .
 
@@ -44,7 +44,7 @@ meas_magic3_2_magic2_map = {'treat_dc_field_theta': 'treatment_dc_field_theta', 
 #meas_magic2_2_magic3_map = {v:k for k,v in meas_magic3_2_magic2_map.items()}
 
 #measurement data translation magic_measurements.txt -> measurements.txt
-meas_magic2_2_magic3_map = {'treatment_ac_field': 'treat_ac_field', 'measurement_number': 'number', 'treatment_dc_field_theta': 'treat_dc_field_theta', 'er_site_name': 'site', 'er_sample_name': 'sample', 'treatment_dc_field_phi': 'treat_dc_field_phi', 'measurement_magn_volume': 'magn_volume', 'magic_instrument_codes': 'instrument_codes', 'measurement_description': 'description', 'er_location_name': 'location', 'measurement_dec': 'dir_dec', 'measurement_flag': 'flag', 'measurement_magn_moment': 'magn_moment', 'measurement_inc': 'dir_inc', 'treatment_temp': 'treat_temp', 'er_specimen_name': 'specimen', 'measurement_csd': 'dir_csd', 'treatment_dc_field': 'treat_dc_field', 'measurement_magn_mass': 'magn_mass', 'magic_method_codes': 'method_codes','magic_experiment_name':'experiment'} 
+meas_magic2_2_magic3_map = {'treatment_ac_field': 'treat_ac_field', 'measurement_number': 'number', 'treatment_dc_field_theta': 'treat_dc_field_theta', 'er_site_name': 'site', 'er_sample_name': 'sample', 'treatment_dc_field_phi': 'treat_dc_field_phi', 'measurement_magn_volume': 'magn_volume', 'magic_instrument_codes': 'instrument_codes', 'measurement_description': 'description', 'er_location_name': 'location', 'measurement_dec': 'dir_dec', 'measurement_flag': 'flag', 'measurement_magn_moment': 'magn_moment', 'measurement_inc': 'dir_inc', 'treatment_temp': 'treat_temp', 'er_specimen_name': 'specimen', 'measurement_csd': 'dir_csd', 'treatment_dc_field': 'treat_dc_field', 'measurement_magn_mass': 'magn_mass', 'magic_method_codes': 'method_codes','magic_experiment_name':'experiment'}
 
 
 #specimen data translation pmag_speciemns,er_specimens -> specimens.txt
@@ -52,8 +52,6 @@ spec_magic3_2_magic2_map = {'int_drats': 'specimen_drats', 'site': 'er_site_name
 
 #spec_magic2_2_magic3_map = {v:k for k,v in spec_magic3_2_magic2_map.items()}
 
-#sample data translation samples.txt => pmag_samples.txt
-samp_magic3_2_magic2_map = {'int_n_specimens' : 'sample_int_n', 'int_abs_sigma' : 'sample_int_sigma', 'int_abs_sigma_perc' : 'sample_int_sigma_perc', 'dir_alpha95' : 'sample_alpha95', 'dir_n_specimens' : 'sample_n', 'dir_n_specimens_lines' : 'sample_n_lines', 'dir_n_specimens_planes' : 'sample_n_planes', 'dir_k' : 'sample_k', 'dir_r' : 'sample_r','software_packages':'magic_software_packages'}
 
 #samp_magic2_2_magic3_map = {v:k for k,v in samp_magic3_2_magic2_map.items()}
 
@@ -65,6 +63,59 @@ site_magic2_2_magic3_map = {v:k for k,v in site_magic3_2_magic2_map.items()}
 aniso_magic3_2_magic2_map={'specimen':'er_specimen_name', 'aniso_type':'anisotropy_type', 'description':'result_description', 'aniso_ftest':'anisotropy_ftest', 'aniso_ftest12':'anisotropy_ftest12', 'aniso_ftest23':'anisotropy_ftest23', 'aniso_s_mean':'anisotropy_mean', 'aniso_s_n_measurements':'anisotropy_n', 'aniso_s_sigma':'anisotropy_sigma', 'aniso_s_unit':'anisotropy_unit', 'aniso_tilt_correction':'anisotropy_tilt_correction'}
 
 aniso_magic2_2_magic3_map={'anisotropy_ftest23': 'aniso_ftest23', 'anisotropy_ftest': 'aniso_ftest', 'anisotropy_sigma': 'aniso_s_sigma', 'anisotropy_type': 'aniso_type', 'anisotropy_ftest12': 'aniso_ftest12', 'anisotropy_tilt_correction': 'aniso_tilt_correction', 'er_specimen_name': 'specimen', 'anisotropy_unit': 'aniso_s_unit', 'anisotropy_mean': 'aniso_s_mean', 'result_description': 'description', 'anisotropy_n': 'aniso_s_n_measurements','pmag_criteria_codes':'criteria'}
+
+
+# sample data translation pmag_samples.txt => samples.txt
+samp_magic2_2_magic3_map = {'sample_n_planes': 'dir_n_specimens_planes', 'sample_n_lines': 'dir_n_specimens_lines',
+                            'sample_r': 'dir_r', 'sample_n': 'dir_n_specimens', 'sample_k': 'dir_k',
+                            'sample_int_sigma_perc': 'int_abs_sigma_perc', 'sample_int_n': 'int_n_specimens',
+                            'sample_alpha95': 'dir_alpha95', 'sample_int_sigma': 'int_abs_sigma',
+                            'pmag_criteria_codes': 'criteria', 'magic_method_codes':'method_codes',
+                            'magic_software_packages': 'software_packages', # LJ started adding here
+                            'sample_class': 'geologic_classes',
+                            'sample_lon': 'lon', 'sample_height': 'height', "er_sample_name": "sample",
+                            "er_site_name": "site", "sample_description": "description",
+                            "sample_bed_dip": "bed_dip", "er_scientist_mail_names": "scientists",
+                            "er_citation_names": "citations", "sample_texture": "texture",
+                            "sample_declination_correction": "azimuth_dec_correction",
+                            "sample_lithology": "lithologies", "sample_lat": "lat", "sample_lon": "lon",
+                            "sample_type": "geologic_types", "sample_igsn": "igsn",
+                            "er_sample_alternatives": "sample_alternatives", "sample_azimuth": "azimuth",
+                            "sample_cooling_rate": "cooling_rate"}
+
+#sample data translation samples.txt => pmag_samples.txt
+samp_magic3_2_magic2_map = {'dir_n_specimens_planes': 'sample_n_planes', 'dir_n_specimens_lines': 'sample_n_lines',
+                            'dir_r': 'sample_r', 'dir_n_specimens': 'sample_n', 'dir_k': 'sample_k',
+                            'int_abs_sigma_perc' : 'sample_int_sigma_perc', 'int_n_specimens': 'sample_int_n',
+                            'dir_alpha95': 'sample_alpha95', 'int_abs_sigma': 'sample_int_sigma',
+                            'criteria': 'pmag_criteria_codes', "method_codes": "magic_method_codes",
+                            'software_packages':'magic_software_packages', # LJ started adding here
+                            "geologic_classes": "sample_class",
+                            "lon": "sample_lon", "height": "sample_height", "sample": "er_sample_name",
+                            "site": "er_site_name", "description": "sample_description",
+                            "bed_dip": "sample_bed_dip", "scientists": "er_scientist_mail_names",
+                            "citations": "er_citation_names", "texture": "sample_texture",
+                            "azimuth_dec_correction": "sample_declination_correction",
+                            "lithologies": "sample_lithology", "lat": "sample_lat", "lon": "sample_lon",
+                            "geologic_types": "sample_type", "igsn": "sample_igsn",
+                            "sample_alternatives": "er_sample_alternatives", "azimuth": "sample_azimuth",
+                            "cooling_rate": "sample_cooling_rate"}
+
+
+
+## orientation format --> 3.0.
+
+# orientation headers: not all have a 3.0 sample equivalent (like mag_azimuth, for instance)
+#site_name sample_name mag_azimuth field_dip date lat long sample_lithology sample_type sample_class shadow_angle hhmm stratigraphic_height bedding_dip_direction bedding_dip GPS_baseline image_name image_look image_photographer participants method_codes site_description sample_description GPS_Az, sample_igsn, sample_texture, sample_cooling_rate, cooling_rate_corr, cooling_rate_mcd
+
+orient_magic_2_magic3_map = {"sample_name": "sample", "site_name": "site", "long": "lon",
+                             "sample_lithology": "lithologies", "sample_type": "geologic_types",
+                             "sample_class": "geologic_classes"}
+
+magic3_2_orient_magic_map = {"sample": "sample_name", "site": "site_name", "lon": "long",
+                             "lithologies": "sample_lithology", "geologic_types": "sample_type",
+                             "geologic_classes": "sample_class"}
+
 
 
 meas_magic2 = meas_magic3_2_magic2_map.values()
@@ -79,13 +130,18 @@ spec_magic2_2_magic3_map = {'er_citation_names': 'citations', 'specimen_int_dang
 #spec_magic2_2_magic3_map = {v:k for k,v in spec_magic2_2_magic3_map.items()}
 
 
-samp_magic2_2_magic3_map = {'sample_n_planes': 'dir_n_specimens_planes', 'sample_n_lines': 'dir_n_specimens_lines', 'sample_r': 'dir_r', 'sample_n': 'dir_n_specimens', 'sample_k': 'dir_k', 'sample_int_sigma_perc': 'int_abs_sigma_perc', 'sample_int_n': 'int_n_specimens', 'sample_alpha95': 'dir_alpha95', 'sample_int_sigma': 'int_abs_sigma','pmag_criteria_codes':'criteria','magic_method_codes':'method_codes','magic_software_packages':'software_packages'}
+
+
+#samp_magic2 = ['sample_n_planes', 'sample_n_lines', 'sample_r', 'sample_n', 'sample_k', 'sample_int_sigma_perc', 'sample_int_n': 'sample_alpha95', 'sample_int_sigma': 'int_abs_sigma','pmag_criteria_codes':'criteria','magic_method_codes':'method_codes','magic_software_packages':'software_packages'}
+
+#samp_magic3
 
 
 
 
 
-#meas_magic3 = meas_magic3_2_magic2_map.keys()  # why are these here?  
+
+#meas_magic3 = meas_magic3_2_magic2_map.keys()  # why are these here?
 spec_magic3 = spec_magic2_2_magic3_map.keys()
 #samp_magic3 = samp_magic3_2_magic2_map.keys()
 site_magic3 = site_magic3_2_magic2_map.keys()
@@ -180,9 +236,9 @@ def convert_aniso(direction,AniSpec):
         columns=aniso_magic3_2_magic2_map
         AniRec={}
         s_data=AniSpec['aniso_s'].split(':')
-        for key in columns: 
+        for key in columns:
             if key in AniSpec.keys():
-                AniRec[columns[key]]=AniSpec[key] # transfer info and change column name to data model 2.5  
+                AniRec[columns[key]]=AniSpec[key] # transfer info and change column name to data model 2.5
         AniRec['anisotropy_s1']=s_data[0]# need to add these things
         AniRec['anisotropy_s2']=s_data[1]
         AniRec['anisotropy_s3']=s_data[2]
@@ -201,9 +257,9 @@ def convert_aniso(direction,AniSpec):
         columns=aniso_magic2_2_magic3_map
         # first fix aniso_s
         AniRec={}
-        for key in columns: 
+        for key in columns:
             if key in AniSpec.keys():
-                AniRec[columns[key]]=AniSpec[key] # transfer info and change column name to data model 3.0  
+                AniRec[columns[key]]=AniSpec[key] # transfer info and change column name to data model 3.0
         s_string=""
         s_string=s_string+ str(AniSpec['anisotropy_s1']) +' : '
         s_string=s_string+ str(AniSpec['anisotropy_s2']) +' : '
@@ -220,6 +276,4 @@ def convert_aniso(direction,AniSpec):
         AniRec['aniso_v2']=v_string
         v_string=AniSpec['anisotropy_t3']+" : "+AniSpec['anisotropy_v3_dec']+" : "+AniSpec['anisotropy_v3_inc']
         AniRec['aniso_v3']=v_string
-        return AniRec 
- 
-
+        return AniRec

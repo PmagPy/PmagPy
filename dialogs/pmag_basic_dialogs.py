@@ -30,6 +30,7 @@ from programs import jr6_txt_magic
 from programs import jr6_jr6_magic
 from programs import iodp_jr6_magic
 from programs import bgc_magic
+import SPD.mapping.map_magic as map_magic
 
 
 class import_magnetometer_data(wx.Dialog):
@@ -2291,14 +2292,19 @@ class OrientFrameGrid3(wx.Frame):
 
 
         self.orient_data = {}  ## get rid of this line eventually
+
+        # get sample table and convert relevant headers to orient.txt format
         if (not self.orient_data) and ('samples' in self.contribution.tables):
             samp_container = self.contribution.tables['samples']
             keys = [k for k in self.header_names if k in samp_container.df.columns]
             col_names = ["sample", "site"]
             col_names.extend(keys)
-            self.orient_data = samp_container.df.loc[:, col_names]
-            self.orient_data = samp_container.convert_to_pmag_data_list("dict")
-
+            #self.orient_data = samp_container.df.loc[:, col_names]
+            raw_orient_data = samp_container.convert_to_pmag_data_list("dict")
+            # convert from 3.0. headers to orient.txt headers
+            self.orient_data = {}
+            for key, rec in raw_orient_data.items():
+                self.orient_data[key] = map_magic.mapping(rec, map_magic.magic3_2_orient_magic_map)
 
 
         self.create_sheet()
@@ -2359,7 +2365,6 @@ class OrientFrameGrid3(wx.Frame):
         # create the grid
         #--------------------------------
 
-        #print "self.orient_data", self.orient_data
         samples_list = self.orient_data.keys()
         samples_list.sort()
         self.samples_list = [ sample for sample in samples_list if sample is not "" ]
