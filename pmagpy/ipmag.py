@@ -2499,7 +2499,7 @@ def upload_magic(concat=0, dir_path='.', data_model=None):
 
 
     if os.path.isfile(up):
-        import validate_upload
+        import validate_upload2 as validate_upload
         validated = False
         validated, errors = validate_upload.read_upload(up, data_model)
 

@@ -19,7 +19,7 @@ import pmagpy.check_updates as check_updates
 import pmagpy.builder2 as builder
 import pmagpy.pmag as pmag
 import pmagpy.ipmag as ipmag
-import pmagpy.validate_upload as validate_upload
+import pmagpy.validate_upload2 as validate_upload
 import dialogs.drop_down_menus as drop_down_menus
 import dialogs.pmag_widgets as pw
 import dialogs.magic_grid2 as magic_grid
@@ -58,7 +58,7 @@ class MainFrame(wx.Frame):
         # attempt to read magic_measurements.txt, and all er_* and pmag_* files
         print '-I- Read in any available data from working directory'
         self.er_magic.get_all_magic_info()
-        
+
         # POSSIBLY RELOCATE THIS EVENTUALLY:
         print '-I- Initializing headers'
         self.er_magic.init_default_headers()
@@ -90,7 +90,7 @@ class MainFrame(wx.Frame):
         self.bSizer_msg = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.ID_ANY, "Message", name='bsizer_msg'), wx.HORIZONTAL)
         self.message = wx.StaticText(self.panel, -1, label="Some text will be here", name='messages')
         self.bSizer_msg.Add(self.message)
-        
+
         #---sizer 1 ----
         bSizer1 = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.ID_ANY, "Add information to the data model", name='bSizer1'), wx.HORIZONTAL)
 
@@ -116,7 +116,7 @@ class MainFrame(wx.Frame):
         self.btn3.InitColours()
         self.Bind(wx.EVT_BUTTON, self.make_grid_frame, self.btn3)
 
-        
+
         text = "4. add specimen data"
         self.btn4 = buttons.GenButton(self.panel, id=-1,
                                       label=text, size=(300, 50), name='specimen_btn')
@@ -131,7 +131,7 @@ class MainFrame(wx.Frame):
         self.btn5.SetBackgroundColour("#6ECFF6")
         self.btn5.InitColours()
         self.Bind(wx.EVT_BUTTON, self.make_grid_frame, self.btn5)
-        
+
         text = "6. add results data"
         self.btn6 = buttons.GenButton(self.panel, id=-1, label=text,
                                       size=(300, 50), name='result_btn')
@@ -248,8 +248,8 @@ class MainFrame(wx.Frame):
         self.grid_frame = None
         self.Show()
         if event:
-            event.Skip()    
-        
+            event.Skip()
+
     def make_grid_frame(self, event):
         """
         Create a GridFrame for data type of the button that was clicked
@@ -283,10 +283,10 @@ Purple: invalid result child
 Yellow: Out-of-range latitude (should be -90 - 90) or longitude (should be 0-360)
 Light gray: Unrecognized term in controlled vocabulary
 
-Note: It is possible to have a row highlighted that has no highlighted column.  
+Note: It is possible to have a row highlighted that has no highlighted column.
 This means that you are missing information higher up in the data.
 For example: a specimen could be missing a site name.
-However, you need to fix this in the sample grid, not the specimen grid.  
+However, you need to fix this in the sample grid, not the specimen grid.
 Once each item in the data has its proper parent, validations will be correct.
 """
                 self.grid_frame.msg_text.SetLabel(add_text)
@@ -324,7 +324,7 @@ Once each item in the data has its proper parent, validations will be correct.
             text = "There were some problems with the creation of your upload file.\nError message: {}\nSee Terminal/Command Prompt for details".format(error_message)
             dlg = wx.MessageDialog(self, caption="Error", message=text, style=wx.OK)
         result = dlg.ShowModal()
-        if result == wx.ID_OK:            
+        if result == wx.ID_OK:
             dlg.Destroy()
         self.edited = False
         ## add together data & coherence errors into one dictionary
@@ -467,10 +467,10 @@ class MagICMenu(wx.MenuBar):
     #    """
     #    #for use on the command line
     #    path = check_updates.get_pmag_dir()
-    #    
+    #
     #    # for use with pyinstaller:
     #    #path = self.Parent.resource_dir
-    #    
+    #
     #    html_frame = pw.HtmlFrame(self, page=(os.path.join(path, "documentation", #"magic_gui.html")))
     #    html_frame.Center()
     #    html_frame.Show()
@@ -513,8 +513,8 @@ def main():
     #    import wx.lib.inspection
     #    wx.lib.inspection.InspectionTool().Show()
     app.MainLoop()
-            
-            
+
+
 
 if __name__ == "__main__":
     main()

@@ -8,7 +8,7 @@ import unittest
 import os
 import re
 import sys
-import pmagpy.validate_upload as validate_upload
+import pmagpy.validate_upload2 as validate_upload
 import pmagpy.pmag as pmag
 
 WD = sys.prefix
@@ -68,5 +68,3 @@ class TestValidation(unittest.TestCase):
         self.assertIn('site1', errors['site'])
         self.assertIn('missing_data', errors['site']['site1'])
         self.assertIn('site_type', errors['site']['site1']['missing_data'])
-
-
