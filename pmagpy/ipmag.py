@@ -16,6 +16,7 @@ import math
 #from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigureCanvas
 #from matplotlib.backends.backend_wx import NavigationToolbar2Wx
 from matplotlib.figure import Figure
+import SPD.mapping.map_magic as map_magic
 
 
 def igrf(input_list):
@@ -3363,7 +3364,13 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
     newclass,newlith,newtype='','',''
     BPs=[]# bedding pole declinations, bedding pole inclinations
     #
-    #
+    # use 3.0. default filenames when in 3.0.
+    # but, still allow for custom names
+    if data_model == 3:
+        if samp_file == "er_samples.txt":
+            samp_file = "samples.txt"
+        if site_file == "er_sites.txt":
+            site_file = "sites.txt"
     orient_file = os.path.join(input_dir_path,orient_file)
     samp_file = os.path.join(output_dir_path,samp_file)
     site_file = os.path.join(output_dir_path, site_file)
@@ -3386,19 +3393,35 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
         raise Exception("If using magnetic declination convention 2, you must also provide a declincation correction in degrees")
 
     SampRecs,SiteRecs,ImageRecs=[],[],[]
-    SampRecs_sorted,SiteRecs_sorted={},{}
+    SampRecs_sorted, SiteRecs_sorted = {}, {}
+
     if append:
         try:
             SampRecs,file_type=pmag.magic_read(samp_file)
+            # convert 3.0. sample file to 2.5 format
+            if data_model == 3:
+                SampRecs3 = SampRecs
+                SampRecs = []
+                for samp_rec in SampRecs3:
+                    rec = map_magic.mapping(samp_rec, map_magic.samp_magic3_2_magic2_map)
+                    SampRecs.append(rec)
             SampRecs_sorted=pmag.sort_magic_data(SampRecs,'er_sample_name') # magic_data dictionary sorted by sample_name
             print 'sample data to be appended to: ', samp_file
-        except:
+        except Exception as ex:
+            print ex
             print 'problem with existing file: ',samp_file, ' will create new.'
         try:
             SiteRecs,file_type=pmag.magic_read(site_file)
+            # convert 3.0. site file to 2.5 format
+            if data_model == 3:
+                SiteRecs3 = SiteRecs
+                SiteRecs = []
+                for site_rec in SiteRecs3:
+                    SiteRecs.append(map_magic.mapping(site_rec, map_magic.site_magic3_2_magic2_map))
             SiteRecs_sorted=pmag.sort_magic_data(SiteRecs,'er_site_name') # magic_data dictionary sorted by site_name
             print 'site data to be appended to: ',site_file
-        except:
+        except Exception as ex:
+            print ex
             print 'problem with existing file: ',site_file,' will create new.'
         try:
             ImageRecs,file_type=pmag.magic_read(image_file)
@@ -3414,6 +3437,8 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
     #
     # step through the data sample by sample
     #
+    # use map_magic in here...
+
     for OrRec in OrData:
         if 'mag_azimuth' not in OrRec.keys():
             OrRec['mag_azimuth']=""
@@ -3460,7 +3485,6 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
             if 'method_codes' in OrRec.keys() and OrRec['method_codes'].strip()!="":
                 methcodes=OrRec['method_codes'] # add notes
         codes=methcodes.replace(" ","").split(":")
-
         sample_name=OrRec["sample_name"]
         # patch added by rshaar 7/2016
         # if sample_name already exists in er_samples.txt:
@@ -3836,8 +3860,18 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
     print 'saving data...'
     SampsOut,keys=pmag.fillkeys(Samps)
     Sites,keys=pmag.fillkeys(SiteOuts)
-    wrote_samps = pmag.magic_write(samp_file,SampsOut,"er_samples")
-    wrote_sites = pmag.magic_write(site_file,Sites,"er_sites")
+    if data_model == 3:
+        SampsOut3 = []
+        Sites3 = []
+        for samp_rec in SampsOut:
+            SampsOut3.append(map_magic.mapping(samp_rec, map_magic.samp_magic2_2_magic3_map))
+        for site_rec in Sites:
+            Sites3.append(map_magic.mapping(site_rec, map_magic.site_magic2_2_magic3_map))
+        wrote_samps = pmag.magic_write(samp_file,SampsOut3,"samples")
+        wrote_sites = pmag.magic_write(site_file,Sites3,"sites")
+    else:
+        wrote_samps = pmag.magic_write(samp_file,SampsOut,"er_samples")
+        wrote_sites = pmag.magic_write(site_file,Sites,"er_sites")
     if wrote_samps:
         print "Data saved in ", samp_file,' and ',site_file
     else:

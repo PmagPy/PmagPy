@@ -2280,11 +2280,11 @@ class OrientFrameGrid3(wx.Frame):
         # self.headers is a list of two-item tuples.
         #the first is the proper column name as understood by orientation_magic.py
         # the second is the name for display in the GUI
-        self.header_display_names = ["sample", "sample_orientation_flag", "mag_azimuth",
+        self.header_display_names = ["sample_name", "sample_orientation_flag", "mag_azimuth",
                                      "field_dip", "bedding_dip_direction", "bedding_dip",
                                      "shadow_angle", "latitude", "longitude", "mm/dd/yy",
                                      "hh:mm", "GPS_baseline", "GPS_Az", "magic_method_codes"]
-        self.header_names = ["sample", "sample_orientation_flag", "mag_azimuth",
+        self.header_names = ["sample_name", "sample_orientation_flag", "mag_azimuth",
                              "field_dip", "bedding_dip_direction", "bedding_dip",
                              "shadow_angle", "lat", "long", "date",
                              "hhmm", "GPS_baseline", "GPS_Az", "magic_method_codes"]
@@ -2296,10 +2296,6 @@ class OrientFrameGrid3(wx.Frame):
         # get sample table and convert relevant headers to orient.txt format
         if (not self.orient_data) and ('samples' in self.contribution.tables):
             samp_container = self.contribution.tables['samples']
-            keys = [k for k in self.header_names if k in samp_container.df.columns]
-            col_names = ["sample", "site"]
-            col_names.extend(keys)
-            #self.orient_data = samp_container.df.loc[:, col_names]
             raw_orient_data = samp_container.convert_to_pmag_data_list("dict")
             # convert from 3.0. headers to orient.txt headers
             self.orient_data = {}
