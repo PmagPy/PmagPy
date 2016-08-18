@@ -1177,6 +1177,68 @@ def magic_read(infile, data=None, return_keys=False):
         return magic_data, file_type, magic_keys
     return magic_data,file_type
 
+
+def magic_read_dict(path, data=None, sort_by_this_name=None, return_keys=False):
+    """
+    read a magic-formatted tab-delimited file.
+    return a dictionary of dictionaries, with this format:
+    {'Z35.5a': {'specimen_weight': '1.000e-03', 'er_citation_names': 'This study', 'specimen_volume': '', 'er_location_name': '', 'er_site_name': 'Z35.', 'er_sample_name': 'Z35.5', 'specimen_class': '', 'er_specimen_name': 'Z35.5a', 'specimen_lithology': '', 'specimen_type': ''}, ....}
+    return data, file_type, and keys (if return_keys is true)
+    """
+    DATA = {}
+    fin = open(path, 'rU')
+    first_line = fin.readline()
+    if not first_line:
+        if return_keys:
+            return False, 'empty_file', None
+        else:
+            return False, 'empty_file'
+    if first_line[0] == "s" or first_line[1] == "s":
+        delim = ' '
+    elif first_line[0] == "t" or first_line[1] == "t":
+        delim = '\t'
+    else:
+        print '-W- error reading ', path
+        if return_keys:
+            return False, 'bad_file', None
+        else:
+            return False, 'bad_file'
+
+
+    file_type = first_line.strip('\n').split(delim)[1]
+
+    item_type = file_type
+    #item_type = file_type.split('_')[1][:-1]
+    if sort_by_this_name:
+        pass
+    elif item_type == 'age':
+        sort_by_this_name = "by_line_number"
+    else:
+        sort_by_this_name = item_type
+    line = fin.readline()
+    header = line.strip('\n').split(delim)
+    counter = 0
+    for line in fin.readlines():
+        tmp_data = {}
+        tmp_line = line.strip('\n').split(delim)
+        for i in xrange(len(header)):
+            if i < len(tmp_line):
+                tmp_data[header[i]] = tmp_line[i]
+            else:
+                tmp_data[header[i]] = ""
+        if sort_by_this_name == "by_line_number":
+            DATA[counter] = tmp_data
+            counter += 1
+        else:
+            if tmp_data[sort_by_this_name] != "":
+                DATA[tmp_data[sort_by_this_name]] = tmp_data
+    fin.close()
+    if return_keys:
+        return DATA, file_type, header
+    else:
+        return DATA, file_type
+
+
 def sort_magic_data(magic_data,sort_name):
     '''
     sort magic_data by on header (like er_specimen_name for example)
