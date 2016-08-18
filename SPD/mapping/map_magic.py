@@ -101,7 +101,18 @@ samp_magic3_2_magic2_map = {'dir_n_specimens_planes': 'sample_n_planes', 'dir_n_
                             "sample_alternatives": "er_sample_alternatives", "azimuth": "sample_azimuth",
                             "cooling_rate": "sample_cooling_rate"}
 
+image_magic2_2_magic3_map = {"er_location_name": "location", "er_site_name": "site", "er_sample_name": "sample",
+                             "er_specimen_name": "specimen", "er_image_name": "file", "image_type": "type",
+                             "image_title": "title", "image_keywords": "keywords",
+                             "er_image_description": "description", "image_date": "timestamp",
+                             "er_analyst_mail_names": "analysts", "er_photographer_mail_names": "photographers",
+                             "er_citation_names": "citations"}
 
+image_magic3_2_magic_2_map = {"location": "er_location_name", "site": "er_site_name", "sample": "er_sample_name",
+                              "specimen": "er_specimen_name", "file": "er_image_name", "type": "image_type",
+                              "description": "er_image_description", "timestamp": "image_date",
+                              "analysts": "er_analyst_mail_names", "photographers": "er_photographer_mail_names",
+                              "citations": "er_citation_names"}
 
 ## orientation format --> 3.0.
 
@@ -115,6 +126,8 @@ orient_magic_2_magic3_map = {"sample_name": "sample", "site_name": "site", "long
 magic3_2_orient_magic_map = {"sample": "sample_name", "site": "site_name", "lon": "long",
                              "lithologies": "sample_lithology", "geologic_types": "sample_type",
                              "geologic_classes": "sample_class"}
+
+
 
 
 
