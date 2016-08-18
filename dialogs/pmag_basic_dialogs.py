@@ -2269,13 +2269,12 @@ class OrientFrameGrid3(wx.Frame):
         self.orient_data = {}
         try:
             fname = os.path.join(self.WD, "demag_orient.txt")
-            #self.orient_data =  self.er_magic_data.read_magic_file(fname, "sample_name")[0]
-            self.orient_data, dtype, keys = pmag.magic_read(fname, return_keys=True)
+            self.orient_data, dtype, keys = pmag.magic_read_dict(fname, sort_by_this_name="sample_name",
+                                                                 return_keys=True)
 
         except Exception as ex:
             print "-W-", ex
             #pass
-
 
         # self.headers is a list of two-item tuples.
         #the first is the proper column name as understood by orientation_magic.py
@@ -2290,11 +2289,9 @@ class OrientFrameGrid3(wx.Frame):
                              "hhmm", "GPS_baseline", "GPS_Az", "magic_method_codes"]
         self.headers = zip(self.header_names, self.header_display_names)
 
-
-        self.orient_data = {}  ## get rid of this line eventually
-
         # get sample table and convert relevant headers to orient.txt format
         if (not self.orient_data) and ('samples' in self.contribution.tables):
+            print "-I- Couldn't find demag_orient.txt, trying to extract information from samples table"
             samp_container = self.contribution.tables['samples']
             raw_orient_data = samp_container.convert_to_pmag_data_list("dict")
             # convert from 3.0. headers to orient.txt headers
