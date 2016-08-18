@@ -2560,7 +2560,10 @@ class OrientFrameGrid3(wx.Frame):
         if dlg.ShowModal() == wx.ID_OK:
             orient_file = dlg.GetPath()
             dlg.Destroy()
-            new_data = self.er_magic_data.read_magic_file(orient_file, "sample_name")[0]
+            new_data, dtype, keys = pmag.magic_read_dict(orient_file,
+                                                         sort_by_this_name="sample_name",
+                                                         return_keys=True)
+
             if len(new_data) > 0:
                 self.orient_data={}
                 self.orient_data=new_data
