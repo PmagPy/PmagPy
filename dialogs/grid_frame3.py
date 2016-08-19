@@ -613,6 +613,30 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
 
     def onImport(self, event):
         print "this functionality has not been converted to 3.0"
+        openFileDialog = wx.FileDialog(self, "Open MagIC-format file", self.WD, "",
+                                       "MagIC file|*.*", wx.FD_OPEN | wx.FD_FILE_MUST_EXIST)
+        result = openFileDialog.ShowModal()
+        print result
+        if result == wx.ID_OK:
+            filename = openFileDialog.GetPath()
+            # read in file and update contribution
+            df_container = nb.MagicDataFrame(filename, dmodel=self.dm)
+            self.contribution.tables[df_container.dtype] = df_container
+            self.grid_builder = GridBuilder(self.contribution, self.grid_type,
+                                            self.panel, parent_type=self.parent_type,
+                                            reqd_headers=self.reqd_headers)
+            # delete old grid
+            self.grid_box.Hide(0)
+            self.grid_box.Remove(0)
+            # create new grid
+            self.grid = self.grid_builder.make_grid()
+            self.grid.InitUI()
+            # add data to grid
+            self.grid_builder.add_data_to_grid(self.grid, self.grid_type)
+            # add grid to sizer and fit everything
+            self.grid_box.Add(self.grid, flag=wx.ALL, border=5)
+            self.main_sizer.Fit(self)
+            self.Centre()
         return
         """
         openFileDialog = wx.FileDialog(self, "Open MagIC-format file", self.WD, "",
@@ -717,6 +741,7 @@ class GridBuilder(object):
         """
         return grid
         """
+        # if there is a MagicDataFrame, extract data from it
         if isinstance(self.magic_dataframe, nb.MagicDataFrame) and len(self.magic_dataframe.df):
             # get columns and reorder slightly
             col_labels = list(self.magic_dataframe.df.columns)
@@ -736,7 +761,12 @@ class GridBuilder(object):
                 col_labels[:0] = [self.magic_dataframe.df.index.name]
             self.magic_dataframe.df = self.magic_dataframe.df[col_labels]
             row_labels = self.magic_dataframe.df.index
-        # if there is no pre-existing data, do some defaults:
+            # make sure minimum defaults are present
+            for header in self.reqd_headers:
+                if header not in col_labels:
+                    col_labels.append(header)
+        # if there is no pre-existing MagicDataFrame,
+        # make a blank grid with do some defaults:
         else:
             # default headers
             #col_labels = list(self.data_model.get_headers(self.grid_type, 'Names'))

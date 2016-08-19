@@ -19,7 +19,7 @@ import pmagpy.check_updates as check_updates
 import pmagpy.builder as builder
 import pmagpy.pmag as pmag
 import pmagpy.ipmag as ipmag
-import pmagpy.validate_upload as validate_upload
+import pmagpy.validate_upload2 as validate_upload
 import dialogs.pmag_widgets as pw
 import dialogs.magic_grid3 as magic_grid
 import dialogs.pmag_menu_dialogs as pmag_menu_dialogs
