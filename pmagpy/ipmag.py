@@ -3363,18 +3363,21 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
     sclass,lithology,sample_type="","",""
     newclass,newlith,newtype='','',''
     BPs=[]# bedding pole declinations, bedding pole inclinations
+    image_file = "er_images.txt"
     #
     # use 3.0. default filenames when in 3.0.
     # but, still allow for custom names
+    data_model = int(data_model)
     if data_model == 3:
         if samp_file == "er_samples.txt":
             samp_file = "samples.txt"
         if site_file == "er_sites.txt":
             site_file = "sites.txt"
+        image_file = "images.txt"
     orient_file = os.path.join(input_dir_path,orient_file)
     samp_file = os.path.join(output_dir_path,samp_file)
     site_file = os.path.join(output_dir_path, site_file)
-    image_file= os.path.join(output_dir_path, "er_images.txt")
+    image_file= os.path.join(output_dir_path, image_file)
 
     # validate input
     if '4' in samp_con[0]:
@@ -3425,6 +3428,12 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
             print 'problem with existing file: ',site_file,' will create new.'
         try:
             ImageRecs,file_type=pmag.magic_read(image_file)
+            # convert from 3.0. --> 2.5
+            if data_model == 3:
+                ImageRecs3 = ImageRecs
+                ImageRecs = []
+                for image_rec in ImageRecs3:
+                    ImageRecs.append(map_magic.mapping(image_rec, map_magic.image_magic3_2_magic2_map))
             print 'image data to be appended to: ',image_file
         except:
             print 'problem with existing file: ',image_file,' will create new.'
@@ -3877,9 +3886,18 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
     else:
         print "No data found"
     if len(ImageOuts)>0:
+        # need to do conversion here 3.0. --> 2.5
         Images,keys=pmag.fillkeys(ImageOuts)
-        pmag.magic_write(image_file,Images,"er_images")
-        print "Image info saved in ",image_file
+        image_type = "er_images"
+        if data_model == 3:
+            # convert 2.5 --> 3.0.
+            image_type = "images"
+            Images2 = Images
+            Images = []
+            for image_rec in Images2:
+                Images.append(map_magic.mapping(image_rec, map_magic.image_magic2_2_magic3_map))
+        pmag.magic_write(image_file, Images, image_type)
+        print "Image info saved in ", image_file
     return True, None
 
 

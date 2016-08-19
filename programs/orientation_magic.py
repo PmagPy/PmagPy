@@ -10,22 +10,22 @@ def main():
     """
     NAME
         orientation_magic.py
-   
+
     DESCRIPTION
         takes tab delimited field notebook information and converts to MagIC formatted tables
- 
+
     SYNTAX
         orientation_magic.py [command line options]
 
     OPTIONS
         -f FILE: specify input file, default is: orient.txt
-        -Fsa FILE: specify output file, default is: er_samples.txt 
-        -Fsi FILE: specify output site location file, default is: er_sites.txt 
+        -Fsa FILE: specify output file, default is: er_samples.txt
+        -Fsi FILE: specify output site location file, default is: er_sites.txt
         -app  append/update these data in existing er_samples.txt, er_sites.txt files
         -ocn OCON:  specify orientation convention, default is #1 below
         -dcn DCON [DEC]: specify declination convention, default is #1 below
-            if DCON = 2, you must supply the declination correction 
-        -BCN don't correct bedding_dip_dir for magnetic declination -already corrected 
+            if DCON = 2, you must supply the declination correction
+        -BCN don't correct bedding_dip_dir for magnetic declination -already corrected
         -ncn NCON:  specify naming convention: default is #1 below
         -a: averages all bedding poles and uses average for all samples: default is NO
         -gmt HRS:  specify hours to subtract from local time to get GMT: default is 0
@@ -36,35 +36,36 @@ def main():
              FS-LOC-MAP  field location done with map
              SO-POM   a Pomeroy orientation device was used
              SO-ASC   an ASC orientation device was used
+        -DM: specify data model (2 or 3).  Will output to the appropriate format.
 
-    
+
         Orientation convention:
-            Samples are oriented in the field with a "field arrow" and measured in the laboratory with a "lab arrow". The lab arrow is the positive X direction of the right handed coordinate system of the specimen measurements. The lab and field arrows may  not be the same. In the MagIC database, we require the orientation (azimuth and plunge) of the X direction of the measurements (lab arrow). Here are some popular conventions that convert the field arrow azimuth (mag_azimuth in the orient.txt file) and dip (field_dip in orient.txt) to the azimuth and plunge  of the laboratory arrow (sample_azimuth and sample_dip in er_samples.txt). The two angles, mag_azimuth and field_dip are explained below. 
+            Samples are oriented in the field with a "field arrow" and measured in the laboratory with a "lab arrow". The lab arrow is the positive X direction of the right handed coordinate system of the specimen measurements. The lab and field arrows may  not be the same. In the MagIC database, we require the orientation (azimuth and plunge) of the X direction of the measurements (lab arrow). Here are some popular conventions that convert the field arrow azimuth (mag_azimuth in the orient.txt file) and dip (field_dip in orient.txt) to the azimuth and plunge  of the laboratory arrow (sample_azimuth and sample_dip in er_samples.txt). The two angles, mag_azimuth and field_dip are explained below.
 
-            [1] Standard Pomeroy convention of azimuth and hade (degrees from vertical down) 
-                 of the drill direction (field arrow).  lab arrow azimuth= sample_azimuth = mag_azimuth; 
+            [1] Standard Pomeroy convention of azimuth and hade (degrees from vertical down)
+                 of the drill direction (field arrow).  lab arrow azimuth= sample_azimuth = mag_azimuth;
                  lab arrow dip = sample_dip =-field_dip. i.e. the lab arrow dip is minus the hade.
             [2] Field arrow is the strike  of the plane orthogonal to the drill direction,
-                 Field dip is the hade of the drill direction.  Lab arrow azimuth = mag_azimuth-90 
-                 Lab arrow dip = -field_dip 
-            [3] Lab arrow is the same as the drill direction; 
-                 hade was measured in the field.  
+                 Field dip is the hade of the drill direction.  Lab arrow azimuth = mag_azimuth-90
+                 Lab arrow dip = -field_dip
+            [3] Lab arrow is the same as the drill direction;
+                 hade was measured in the field.
                  Lab arrow azimuth = mag_azimuth; Lab arrow dip = 90-field_dip
             [4] lab azimuth and dip are same as mag_azimuth, field_dip : use this for unoriented samples too
-            [5] Same as AZDIP convention explained below - 
-                azimuth and inclination of the drill direction are mag_azimuth and field_dip; 
-                lab arrow is as in [1] above. 
+            [5] Same as AZDIP convention explained below -
+                azimuth and inclination of the drill direction are mag_azimuth and field_dip;
+                lab arrow is as in [1] above.
                 lab azimuth is same as mag_azimuth,lab arrow dip=field_dip-90
             [6] Lab arrow azimuth = mag_azimuth-90; Lab arrow dip = 90-field_dip
-            [7] all others you will have to either customize your 
-                self or e-mail ltauxe@ucsd.edu for help.  
-       
+            [7] all others you will have to either customize your
+                self or e-mail ltauxe@ucsd.edu for help.
+
          Magnetic declination convention:
             [1] Use the IGRF value at the lat/long and date supplied [default]
             [2] Will supply declination correction
-            [3] mag_az is already corrected in file 
+            [3] mag_az is already corrected in file
             [4] Correct mag_az but not bedding_dip_dir
-    
+
          Sample naming convention:
             [1] XXXXY: where XXXX is an arbitrary length site designation and Y
                 is the single character sample designation.  e.g., TG001a is the
@@ -73,25 +74,29 @@ def main():
             [3] XXXX.YY: YY sample from site XXXX (XXX, YY of arbitary length)
             [4-Z] XXXX[YYY]:  YYY is sample designation with Z characters from site XXX
             [5] site name = sample name
-            [6] site name entered in site_name column in the orient.txt format input file  
+            [6] site name entered in site_name column in the orient.txt format input file
             [7-Z] [XXX]YYY:  XXX is site designation with Z characters from samples  XXXYYY
-            NB: all others you will have to either customize your 
-                self or e-mail ltauxe@ucsd.edu for help.  
+            NB: all others you will have to either customize your
+                self or e-mail ltauxe@ucsd.edu for help.
     OUTPUT
-            output saved in er_samples.txt and er_sites.txt - will overwrite any existing files 
+            output saved in er_samples.txt and er_sites.txt (or samples.txt and sites.txt if using data model 3.0)
+            - this will overwrite any existing files
     """
     args = sys.argv
     if "-h" in args:
         print main.__doc__
         sys.exit()
     else:
-        info = [['WD', False, '.'], ['ID', False, '.'], ['f', False, 'orient.txt'], ['app', False, False], ['ocn', False, 1], ['dcn', False, 1], ['BCN', False, True], ['ncn', False, '1'], ['gmt', False, 0], ['mcd', False, ''], ['a', False, False]]
+        info = [['WD', False, '.'], ['ID', False, '.'], ['f', False, 'orient.txt'],
+                ['app', False, False], ['ocn', False, 1], ['dcn', False, 1],
+                ['BCN', False, True], ['ncn', False, '1'], ['gmt', False, 0],
+                ['mcd', False, ''], ['a', False, False], ['DM', False, 2.5]]
 
         #output_dir_path, input_dir_path, orient_file, append, or_con, dec_correction_con, samp_con, hours_from_gmt, method_codes, average_bedding
         # leave off -Fsa, -Fsi b/c defaults in command_line_extractor
         dataframe = extractor.command_line_dataframe(info)
         checked_args = extractor.extract_and_check_args(args, dataframe)
-        output_dir_path, input_dir_path, orient_file, append, or_con, dec_correction_con, bed_correction, samp_con, hours_from_gmt, method_codes, average_bedding, samp_file, site_file = extractor.get_vars(['WD', 'ID', 'f', 'app', 'ocn', 'dcn', 'BCN', 'ncn', 'gmt', 'mcd', 'a', 'Fsa', 'Fsi'], checked_args)
+        output_dir_path, input_dir_path, orient_file, append, or_con, dec_correction_con, bed_correction, samp_con, hours_from_gmt, method_codes, average_bedding, samp_file, site_file, data_model = extractor.get_vars(['WD', 'ID', 'f', 'app', 'ocn', 'dcn', 'BCN', 'ncn', 'gmt', 'mcd', 'a', 'Fsa', 'Fsi', 'DM'], checked_args)
 
         if not isinstance(dec_correction_con, int):
             if len(dec_correction_con) > 1:
@@ -102,10 +107,10 @@ def main():
         else:
             dec_correction = 0
 
-        ipmag.orientation_magic(or_con, dec_correction_con, dec_correction, bed_correction, samp_con, hours_from_gmt, method_codes, average_bedding, orient_file, samp_file, site_file, output_dir_path, input_dir_path, append)
+        ipmag.orientation_magic(or_con, dec_correction_con, dec_correction, bed_correction, samp_con, hours_from_gmt, method_codes, average_bedding, orient_file, samp_file, site_file, output_dir_path, input_dir_path, append, data_model)
 
     #def orientation_magic(or_con=1, dec_correction_con=1, dec_correction=0, bed_correction=True, samp_con='1', hours_from_gmt=0, method_codes='', average_bedding=False, orient_file='orient.txt', samp_file='er_samples.txt', site_file='er_sites.txt', output_dir_path='.', input_dir_path='.', append=False):
-    
+
 
 ##example use:
 ##make a pandas dataframe with three columns:
@@ -121,8 +126,8 @@ def main():
 #fmt, size, plot = get_vars(['fmt', 's', 'sav'], checked_args)
 #print "fmt:", fmt, "size:", size, "plot:", plot
 
-            
-    
+
+
     ignore="""
     #
     # initialize variables
@@ -193,7 +198,7 @@ def main():
         or_con=sys.argv[ind+1]
     if "-dcn" in args:
         ind=args.index("-dcn")
-        corr=sys.argv[ind+1] 
+        corr=sys.argv[ind+1]
         if corr=="2":
             DecCorr=float(sys.argv[ind+2])
         elif corr=="3":
@@ -265,13 +270,13 @@ def main():
             cooling_rate_mcd=""
         sample_orientation_flag='g'
         if 'sample_orientation_flag' in OrRec.keys():
-            if OrRec['sample_orientation_flag']=='b' or OrRec["mag_azimuth"]=="": 
+            if OrRec['sample_orientation_flag']=='b' or OrRec["mag_azimuth"]=="":
                 sample_orientation_flag='b'
         methcodes=meths  # initialize method codes
         if meths!='':
-            if 'method_codes' in OrRec.keys() and OrRec['method_codes'].strip()!="":methcodes=methcodes+":"+OrRec['method_codes'] # add notes 
+            if 'method_codes' in OrRec.keys() and OrRec['method_codes'].strip()!="":methcodes=methcodes+":"+OrRec['method_codes'] # add notes
         else:
-            if 'method_codes' in OrRec.keys() and OrRec['method_codes'].strip()!="":methcodes=OrRec['method_codes'] # add notes 
+            if 'method_codes' in OrRec.keys() and OrRec['method_codes'].strip()!="":methcodes=OrRec['method_codes'] # add notes
         codes=methcodes.replace(" ","").split(":")
         MagRec={}
         MagRec["er_location_name"]=location_name
@@ -303,7 +308,7 @@ def main():
         if  OrRec['mag_azimuth']=='999':labaz=""
         if "GPS_baseline" in OrRec.keys() and OrRec['GPS_baseline']!="":newbaseline=OrRec["GPS_baseline"]
         if newbaseline!="":baseline=float(newbaseline)
-        if 'participants' in OrRec.keys() and OrRec['participants']!="" and OrRec['participants']!=participantlist: 
+        if 'participants' in OrRec.keys() and OrRec['participants']!="" and OrRec['participants']!=participantlist:
             participantlist=OrRec['participants']
         MagRec['er_scientist_mail_names']=participantlist
         newlat=OrRec["lat"]
@@ -345,7 +350,7 @@ def main():
             if newdate!="":date=newdate
             mmddyy=date.split('/')
             yy=int(mmddyy[2])
-            if yy>50: 
+            if yy>50:
                 yy=1900+yy
             else:
                 yy=2000+yy
@@ -357,7 +362,7 @@ def main():
         else:
             MagRec["sample_azimuth"]=""
         if "stratigraphic_height" in OrRec.keys():
-            if OrRec["stratigraphic_height"]!="": 
+            if OrRec["stratigraphic_height"]!="":
                 MagRec["sample_height"]=OrRec["stratigraphic_height"]
                 stratpos=OrRec["stratigraphic_height"]
             elif OrRec["stratigraphic_height"]=='-1':
@@ -367,9 +372,9 @@ def main():
 #
         if corr=="1" and MagRec['sample_azimuth']!="": # get magnetic declination (corrected with igrf value)
             x,y,z,f=pmag.doigrf(lon,lat,0,decimal_year)
-            Dir=pmag.cart2dir( (x,y,z)) 
+            Dir=pmag.cart2dir( (x,y,z))
             DecCorr=Dir[0]
-        if "bedding_dip" in OrRec.keys(): 
+        if "bedding_dip" in OrRec.keys():
             if OrRec["bedding_dip"]!="":
                 MagRec["sample_bed_dip"]=OrRec["bedding_dip"]
                 bed_dip=OrRec["bedding_dip"]
@@ -377,12 +382,12 @@ def main():
                 MagRec["sample_bed_dip"]=bed_dip
         else: MagRec["sample_bed_dip"]='0'
         if "bedding_dip_direction" in OrRec.keys():
-            if OrRec["bedding_dip_direction"]!="" and BedCorr==1: 
+            if OrRec["bedding_dip_direction"]!="" and BedCorr==1:
                 dd=float(OrRec["bedding_dip_direction"])+DecCorr
                 if dd>360.:dd=dd-360.
                 MagRec["sample_bed_dip_direction"]='%7.1f'%(dd)
                 dip_dir=MagRec["sample_bed_dip_direction"]
-            else: 
+            else:
                 MagRec["sample_bed_dip_direction"]=OrRec['bedding_dip_direction']
         else: MagRec["sample_bed_dip_direction"]='0'
         if average_bedding!="0": BPs.append([float(MagRec["sample_bed_dip_direction"]),float(MagRec["sample_bed_dip"])-90.,1.])
@@ -436,12 +441,12 @@ def main():
                         ImageRec['er_photographer_mail_names']="unknown"
                     ImageOuts.append(ImageRec)
         if site not in sitelist:
-    	    sitelist.append(site) # collect unique site names
-    	    SiteRec={}
-    	    SiteRec["er_site_name"]=site 
+            sitelist.append(site) # collect unique site names
+            SiteRec={}
+            SiteRec["er_site_name"]=site
             SiteRec["site_definition"]="s"
-    	    SiteRec["er_location_name"]=location_name
-    	    SiteRec["er_citation_names"]="This study"
+            SiteRec["er_location_name"]=location_name
+            SiteRec["er_citation_names"]="This study"
             SiteRec["site_lat"]=MagRec["sample_lat"]
             SiteRec["site_lon"]=MagRec["sample_lon"]
             SiteRec["site_height"]=MagRec["sample_height"]
@@ -498,13 +503,13 @@ def main():
 #                else:
 #                    MagRec["sample_time_zone"]='GMT+'+delta_u+' hours'
                 sundata["delta_u"]=delta_u
-                sundata["lon"]='%7.1f'%(lon)   
-                sundata["lat"]='%7.1f'%(lat)  
+                sundata["lon"]='%7.1f'%(lon)
+                sundata["lat"]='%7.1f'%(lat)
                 sundata["shadow_angle"]=OrRec["shadow_angle"]
                 sundec=pmag.dosundec(sundata)
                 for key in MagRec.keys():
                     SunRec[key]=MagRec[key]  # make a copy of MagRec
-                SunRec["sample_azimuth"]='%7.1f'%(sundec) 
+                SunRec["sample_azimuth"]='%7.1f'%(sundec)
                 SunRec["sample_declination_correction"]=''
                 SunRec["magic_method_codes"]=methcodes+':SO-SUN'
                 SunRec["magic_method_codes"]=SunRec['magic_method_codes'].strip(':')
@@ -512,7 +517,7 @@ def main():
     #
     # check for differential GPS data
     #
-            if "prism_angle" in OrRec.keys() and OrRec["prism_angle"]!="":  # there are diff GPS data   
+            if "prism_angle" in OrRec.keys() and OrRec["prism_angle"]!="":  # there are diff GPS data
                 GPSRec={}
                 for key in MagRec.keys():
                     GPSRec[key]=MagRec[key]  # make a copy of MagRec
@@ -523,22 +528,22 @@ def main():
                 while gps_dec>360.:
                     gps_dec=gps_dec-360.
                 while gps_dec<0:
-                    gps_dec=gps_dec+360. 
+                    gps_dec=gps_dec+360.
                 for key in MagRec.keys():
                     GPSRec[key]=MagRec[key]  # make a copy of MagRec
-                GPSRec["sample_azimuth"]='%7.1f'%(gps_dec) 
+                GPSRec["sample_azimuth"]='%7.1f'%(gps_dec)
                 GPSRec["sample_declination_correction"]=''
                 GPSRec["magic_method_codes"]=methcodes+':SO-GPS-DIFF'
                 SampOuts.append(GPSRec)
-            if "GPS_Az" in OrRec.keys() and OrRec["GPS_Az"]!="":  # there are differential GPS Azimuth data   
+            if "GPS_Az" in OrRec.keys() and OrRec["GPS_Az"]!="":  # there are differential GPS Azimuth data
                 GPSRec={}
                 for key in MagRec.keys():
                     GPSRec[key]=MagRec[key]  # make a copy of MagRec
-                GPSRec["sample_azimuth"]='%7.1f'%(float(OrRec["GPS_Az"])) 
+                GPSRec["sample_azimuth"]='%7.1f'%(float(OrRec["GPS_Az"]))
                 GPSRec["sample_declination_correction"]=''
                 GPSRec["magic_method_codes"]=methcodes+':SO-GPS-DIFF'
                 SampOuts.append(GPSRec)
-        if average_bedding!="0":  
+        if average_bedding!="0":
             fpars=pmag.fisher_mean(BPs)
             print 'over-writing all bedding with average '
     Samps=[]
@@ -550,7 +555,7 @@ def main():
         else:
             Samps.append(rec)
     for rec in SampRecs:
-        if rec['er_sample_name'] not in samplelist: # overwrite prior for this sample 
+        if rec['er_sample_name'] not in samplelist: # overwrite prior for this sample
             Samps.append(rec)
     for rec in SiteRecs:
         if rec['er_site_name'] not in sitelist: # overwrite prior for this sample
@@ -570,4 +575,3 @@ def main():
         print "Image info saved in ",image_file
 """
 main()
-

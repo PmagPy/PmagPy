@@ -2329,10 +2329,7 @@ class Arai_GUI(wx.Frame):
         save interpretations to a redo file
         '''
 
-        #thellier_gui_specimen_criteria_list=['specimen_int_n','specimen_int_ptrm_n','specimen_f','specimen_fvds','specimen_frac','specimen_gmax','specimen_b_beta','specimen_scat','specimen_drats','specimen_md','specimen_int_mad','specimen_dang','specimen_q','specimen_g']
         thellier_gui_redo_file=open(os.path.join(self.WD, "thellier_GUI.redo"),'w')
-        #thellier_gui_specimen_file=open("%s/thellier_GUI.specimens.txt"%(self.WD),'w')
-        #thellier_gui_sample_file=open("%s/thellier_GUI.samples.txt"%(self.WD),'w')
 
 
         #--------------------------------------------------
@@ -2516,7 +2513,7 @@ class Arai_GUI(wx.Frame):
                 aniso_parameters['anisotropy_ftest23']="%f"%hpars["F23"]
                 aniso_parameters['result_description']="Critical F: %s"%(hpars['F_crit'])
                 aniso_parameters['anisotropy_F_crit']="%f"%float(hpars['F_crit'])
-                aniso_parameters['anisotropy_n']=n_pos
+                aniso_parameters['anisotropy_n']='%i'%(n_pos)
 
             return(aniso_parameters)
 
