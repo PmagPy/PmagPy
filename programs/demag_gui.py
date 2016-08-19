@@ -200,8 +200,9 @@ class Demag_GUI(wx.Frame):
         self.locations.sort()# get list of sites
 
         self.panel = wx.lib.scrolledpanel.ScrolledPanel(self,-1) # make the Panel
-        self.init_UI()# build the main frame
+        self.panel.SetAutoLayout(1)
         self.panel.SetupScrolling()# endable scrolling
+        self.init_UI()# build the main frame
         self.create_menu()# create manu bar
 
         # Draw figures and add text
@@ -571,10 +572,6 @@ class Demag_GUI(wx.Frame):
         # Design the panel
     #----------------------------------------------------------------------
 
-#        outer_sizer = wx.BoxSizer(wx.HORIZONTAL)
-#        outer_sizer.Add(self.panel)
-#        self.SetSizerAndFit(outer_sizer)
-
         vbox1 = wx.BoxSizer(wx.VERTICAL)
         hbox1 = wx.BoxSizer(wx.HORIZONTAL)
         vbox1.AddSpacer(10)
@@ -625,11 +622,9 @@ class Demag_GUI(wx.Frame):
         vbox1.Add(hbox1,proportion=.75, flag=wx.ALIGN_LEFT|wx.EXPAND)
         vbox1.Add(hbox2,proportion=1, flag=wx.LEFT|wx.EXPAND)
 
-        self.panel.SetSizerAndFit(vbox1)
+        self.panel.SetSizer(vbox1)
         vbox1.Fit(self)
-
         self.GUI_SIZE = self.GetSize()
-        self.panel.SetSizeHints(self.GUI_SIZE[0],self.GUI_SIZE[1])
 
     def create_menu(self):
         """
@@ -1551,12 +1546,12 @@ class Demag_GUI(wx.Frame):
         xmin, xmax = fig.get_xlim()
         # put on the mean direction
         for mpars in mpars_to_plot:
-            XY=pmag.dimap(float(mpars["dec"]),float(mpars["inc"]))
+            XYM=pmag.dimap(float(mpars["dec"]),float(mpars["inc"]))
             if float(mpars["inc"])>0:
                 FC='black';EC='0.1'
             else:
                 FC='white';EC='black'
-            fig.scatter([XY[0]],[XY[1]],marker='o',edgecolor=EC, facecolor=FC,s=30,lw=1,clip_on=False)
+            fig.scatter([XYM[0]],[XYM[1]],marker='o',edgecolor=EC, facecolor=FC,s=30,lw=1,clip_on=False)
 
             if "alpha95" in mpars.keys():
             # get the alpha95
@@ -1568,8 +1563,8 @@ class Demag_GUI(wx.Frame):
                     Ycirc.append(XY[1])
                 fig.plot(Xcirc,Ycirc,'black')
 
-            if self.ie_open:
-                self.ie.scatter([XY[0]],[XY[1]],marker='o',edgecolor=EC, facecolor=FC,s=30,lw=1,clip_on=False)
+            if self.ie_open: #BROKEN
+                self.ie.scatter([XYM[0]],[XYM[1]],marker='o',edgecolor=EC, facecolor=FC,s=30,lw=1,clip_on=False)
                 self.ie.plot(Xcirc,Ycirc,'black')
                 self.ie.eqarea.set_xlim(xmin, xmax)
                 self.ie.eqarea.set_ylim(ymin, ymax)

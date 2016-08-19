@@ -319,6 +319,9 @@ class InterpretationEditorFrame(wx.Frame):
             if 'specimen_dec' in pars.keys(): dec = "%.1f"%pars['specimen_dec']
             if 'specimen_inc' in pars.keys(): inc = "%.1f"%pars['specimen_inc']
             if 'specimen_mad' in pars.keys(): mad = "%.1f"%pars['specimen_mad']
+            if 'specimen_alpha95' in pars.keys(): a95 = "%.1f"%pars['specimen_alpha95']
+            if 'specimen_k' in pars.keys(): sk = "%.1f"%pars['specimen_k']
+            if 'specimen_r' in pars.keys(): sr2 = "%.1f"%pars['specimen_r_sq']
 
         if self.search_query != "":
             entry = (specimen+name+fmin+fmax+n+ftype+dec+inc+mad).replace(" ","").lower()
