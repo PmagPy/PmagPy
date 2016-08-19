@@ -3873,9 +3873,11 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
         SampsOut3 = []
         Sites3 = []
         for samp_rec in SampsOut:
-            SampsOut3.append(map_magic.mapping(samp_rec, map_magic.samp_magic2_2_magic3_map))
+            new_rec = map_magic.mapping(samp_rec, map_magic.samp_magic2_2_magic3_map)
+            SampsOut3.append(new_rec)
         for site_rec in Sites:
-            Sites3.append(map_magic.mapping(site_rec, map_magic.site_magic2_2_magic3_map))
+            new_rec = map_magic.mapping(site_rec, map_magic.site_magic2_2_magic3_map)
+            Sites3.append(new_rec)
         wrote_samps = pmag.magic_write(samp_file,SampsOut3,"samples")
         wrote_sites = pmag.magic_write(site_file,Sites3,"sites")
     else:

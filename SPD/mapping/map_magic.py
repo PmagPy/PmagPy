@@ -56,9 +56,17 @@ spec_magic3_2_magic2_map = {'int_drats': 'specimen_drats', 'site': 'er_site_name
 #samp_magic2_2_magic3_map = {v:k for k,v in samp_magic3_2_magic2_map.items()}
 
 #site data translation pmag_sites,er_sites -> sites.txt and back
-site_magic3_2_magic2_map = {'int_abs_sigma' : 'site_int_sigma', 'int_abs_sigma_perc' : 'site_int_sigma_perc', 'int_n_samples' : 'site_int_n', 'dir_alpha95' : 'site_alpha95', 'dir_k' : 'site_k', 'dir_n_samples' : 'site_n', 'dir_n_specimens_lines' : 'site_n_lines', 'dir_n_specimens_planes' : 'site_n_planes', 'dir_r' : 'site_r','criteria':'pmag_criteria_codes','method_codes':'magic_method_codes', 'site':'er_site_name','software_packages':'magic_software_packages'}
+site_magic3_2_magic2_map = {'int_abs_sigma': 'site_int_sigma', 'int_abs_sigma_perc': 'site_int_sigma_perc',
+                            'int_n_samples': 'site_int_n', 'dir_alpha95': 'site_alpha95', 'dir_k': 'site_k',
+                            'dir_n_samples': 'site_n', 'dir_n_specimens_lines': 'site_n_lines',
+                            'dir_n_specimens_planes': 'site_n_planes', 'dir_r': 'site_r',
+                            'criteria': 'pmag_criteria_codes', 'method_codes': 'magic_method_codes',
+                            'site': 'er_site_name', 'software_packages': 'magic_software_packages',
+                            'location': 'er_location_name', 'citations': 'er_citation_names',
+                            'geologic_classes': 'site_class', 'height': 'site_height', 'lat': 'site_lat',
+                            'lon': 'site_lon', 'geologic_types': 'site_type', 'lithologies': 'site_lithology'}
 
-site_magic2_2_magic3_map = {v:k for k,v in site_magic3_2_magic2_map.items()}
+site_magic2_2_magic3_map = {v: k for k, v in site_magic3_2_magic2_map.items()}
 
 aniso_magic3_2_magic2_map={'specimen':'er_specimen_name', 'aniso_type':'anisotropy_type', 'description':'result_description', 'aniso_ftest':'anisotropy_ftest', 'aniso_ftest12':'anisotropy_ftest12', 'aniso_ftest23':'anisotropy_ftest23', 'aniso_s_mean':'anisotropy_mean', 'aniso_s_n_measurements':'anisotropy_n', 'aniso_s_sigma':'anisotropy_sigma', 'aniso_s_unit':'anisotropy_unit', 'aniso_tilt_correction':'anisotropy_tilt_correction'}
 
@@ -81,7 +89,9 @@ samp_magic2_2_magic3_map = {'sample_n_planes': 'dir_n_specimens_planes', 'sample
                             "sample_lithology": "lithologies", "sample_lat": "lat", "sample_lon": "lon",
                             "sample_type": "geologic_types", "sample_igsn": "igsn",
                             "er_sample_alternatives": "sample_alternatives", "sample_azimuth": "azimuth",
-                            "sample_cooling_rate": "cooling_rate"}
+                            "sample_cooling_rate": "cooling_rate", "er_location_name": "location",
+                            "sample_dip": "dip", "sample_date": "timestamp",
+                            "sample_bed_dip_direction": "bed_dip_direction"}
 
 #sample data translation samples.txt => pmag_samples.txt
 samp_magic3_2_magic2_map = {'dir_n_specimens_planes': 'sample_n_planes', 'dir_n_specimens_lines': 'sample_n_lines',
@@ -99,7 +109,9 @@ samp_magic3_2_magic2_map = {'dir_n_specimens_planes': 'sample_n_planes', 'dir_n_
                             "lithologies": "sample_lithology", "lat": "sample_lat", "lon": "sample_lon",
                             "geologic_types": "sample_type", "igsn": "sample_igsn",
                             "sample_alternatives": "er_sample_alternatives", "azimuth": "sample_azimuth",
-                            "cooling_rate": "sample_cooling_rate"}
+                            "cooling_rate": "sample_cooling_rate", "location": "er_location_name",
+                            "dip": "sample_dip", "timestamp": "sample_date",
+                            "bed_dip_direction": "sample_bed_dip_direction"}
 
 image_magic2_2_magic3_map = {"er_location_name": "location", "er_site_name": "site", "er_sample_name": "sample",
                              "er_specimen_name": "specimen", "er_image_name": "file", "image_type": "type",
