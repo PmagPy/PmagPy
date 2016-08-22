@@ -388,7 +388,7 @@ class MagicDataFrame(object):
             print "-W- To make a MagicDataFrame, you must provide either a filename or a datatype"
             return
         # fetch data model if not provided
-        if not dmodel:
+        if not isinstance(dmodel, type(None)):
             self.data_model = data_model.DataModel()
         else:
             self.data_model = dmodel
@@ -450,6 +450,12 @@ class MagicDataFrame(object):
             # drop any completely blank columns
             # this is not necessarily a good idea....
             #self.df.dropna(axis=1, how='all', inplace=True)
+            #
+            # add df columns that were passed in but weren't in the file
+            if columns:
+                for col in columns:
+                    if col not in self.df.columns:
+                        self.df[col] = None
 
         # add col_names by group
         if groups and not columns:
@@ -502,6 +508,7 @@ class MagicDataFrame(object):
             for col_label in self.df.columns:
                 if col_label not in row_data.keys():
                     row_data[col_label] = None
+
         # create a new row with suffix "new"
         # (this ensures that you get a unique, new row,
         #  instead of adding on to an existing row with the same label)

@@ -4,6 +4,7 @@ GridBuilder -- data methods for GridFrame (add data to frame, save it, etc.)
 """
 import wx
 import drop_down_menus3 as drop_down_menus
+import pandas as pd
 import pmag_widgets as pw
 import magic_grid3 as magic_grid
 import pmagpy.builder as builder
@@ -33,7 +34,7 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
         self.contribution = contribution
 
         self.panel = wx.Panel(self, name=panel_name, size=wx.GetDisplaySize())
-        self.grid_type = panel_name
+        self.grid_type = str(panel_name)
         dm = self.contribution.data_model.dm[self.grid_type]
         dm['str_validations'] = dm['validations'].str.join(", ")
         # these are the headers that are required no matter what for this datatype
@@ -307,6 +308,7 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
             btn.SetLabel('Show method codes')
         self.do_fit(None)
 
+    # this function is deprecated
     def toggle_ages(self, event):
         """
         Switch the type of grid between site/sample
@@ -612,15 +614,53 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
     ## Meta buttons -- cancel & save functions
 
     def onImport(self, event):
-        print "this functionality has not been converted to 3.0"
+        """
+        Import a MagIC-format file
+        """
+        if self.grid.changes:
+            print "-W- Your changes will be overwritten..."
+            wind = pw.ChooseOne(self, "Import file anyway", "Save grid first",
+                                "-W- Your grid has unsaved changes which will be overwritten if you import a file now...")
+            wind.Centre()
+            res = wind.ShowModal()
+            # save grid first:
+            if res == wx.ID_NO:
+                self.onSave(None, alert=True, destroy=False)
+                # reset self.changes
+                self.grid.changes = set()
+
         openFileDialog = wx.FileDialog(self, "Open MagIC-format file", self.WD, "",
                                        "MagIC file|*.*", wx.FD_OPEN | wx.FD_FILE_MUST_EXIST)
         result = openFileDialog.ShowModal()
-        print result
         if result == wx.ID_OK:
+            # get filename
             filename = openFileDialog.GetPath()
-            # read in file and update contribution
-            df_container = nb.MagicDataFrame(filename, dmodel=self.dm)
+            # make sure the dtype is correct
+            f = open(filename)
+            line = f.readline()
+            if line.startswith("tab"):
+                delim, dtype = line.split("\t")
+            else:
+                delim, dtype = line.split("")
+            f.close()
+            dtype = dtype.strip()
+            if (dtype != self.grid_type) and (dtype + "s" != self.grid_type):
+                text = "You are currently editing the {} grid, but you are trying to import a {} file.\nPlease open the {} grid and then re-try this import.".format(self.grid_type, dtype, dtype)
+                pw.simple_warning(text)
+                return
+            # grab old data for concatenation
+            if self.grid_type in self.contribution.tables:
+                old_df_container = self.contribution.tables[self.grid_type]
+            else:
+                old_df_container = None
+            old_col_names = self.grid.col_labels
+            # read in new file and update contribution
+            df_container = nb.MagicDataFrame(filename, dmodel=self.dm,
+                                             columns=old_col_names)
+            # concatenate if possible
+            if not isinstance(old_df_container, type(None)):
+                df_container.df = pd.concat([old_df_container.df, df_container.df],
+                                            axis=0)
             self.contribution.tables[df_container.dtype] = df_container
             self.grid_builder = GridBuilder(self.contribution, self.grid_type,
                                             self.panel, parent_type=self.parent_type,
@@ -628,70 +668,21 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
             # delete old grid
             self.grid_box.Hide(0)
             self.grid_box.Remove(0)
-            # create new grid
+            # create new, updated grid
             self.grid = self.grid_builder.make_grid()
             self.grid.InitUI()
-            # add data to grid
+            # add data to new grid
             self.grid_builder.add_data_to_grid(self.grid, self.grid_type)
-            # add grid to sizer and fit everything
+            # add new grid to sizer and fit everything
             self.grid_box.Add(self.grid, flag=wx.ALL, border=5)
             self.main_sizer.Fit(self)
             self.Centre()
+            # add any needed drop-down-menus
+            self.drop_down_menu = drop_down_menus.Menus(self.grid_type,
+                                                        self.contribution,
+                                                        self.grid)
+            # done!
         return
-        """
-        openFileDialog = wx.FileDialog(self, "Open MagIC-format file", self.WD, "",
-                                       "MagIC file|*.*", wx.FD_OPEN | wx.FD_FILE_MUST_EXIST)
-        result = openFileDialog.ShowModal()
-
-        if result == wx.ID_OK:
-            if self.grid_type == 'age':
-                import_type = 'age'
-                parent_type = None
-                filename = openFileDialog.GetPath()
-            else:
-                parent_ind = self.er_magic.ancestry.index(self.grid_type)
-                parent_type = self.er_magic.ancestry[parent_ind+1]
-
-                # get filename and file data
-                filename = openFileDialog.GetPath()
-                import_type = self.er_magic.get_magic_info(self.grid_type, parent_type,
-                                                           filename=filename, sort_by_file_type=True)
-            # add any additional headers to the grid, while preserving all old headers
-            current_headers = self.grid_headers[self.grid_type]['er'][0]
-            self.er_magic.init_actual_headers()
-            er_headers = list(set(self.er_magic.headers[self.grid_type]['er'][0]).union(current_headers))
-            self.er_magic.headers[self.grid_type]['er'][0] = er_headers
-
-            include_pmag = False
-            if 'pmag' in filename and import_type == self.grid_type:
-                include_pmag = True
-            elif 'pmag' in filename and import_type != self.grid_type:
-                self.er_magic.incl_pmag_data.add(import_type)
-            #
-            if include_pmag:
-                pmag_headers = self.er_magic.headers[self.grid_type]['pmag'][0]
-                headers = set(er_headers).union(pmag_headers)
-            else:
-                headers = er_headers
-            for head in sorted(list(headers)):
-                if head not in self.grid.col_labels:
-                    col_num = self.grid.add_col(head)
-                    if head in vocab.possible_vocabularies:
-                        self.drop_down_menu.add_drop_down(col_num, head)
-            # add age data
-            if import_type == 'age' and self.grid_type == 'age':
-                self.grid_builder.add_age_data_to_grid()
-                self.grid.size_grid()
-                self.main_sizer.Fit(self)
-            elif import_type == self.grid_type:
-                self.grid_builder.add_data_to_grid(self.grid, import_type)
-                self.grid.size_grid()
-                self.main_sizer.Fit(self)
-            # if imported data will not show up in current grid,
-            # warn user
-            else:
-                pw.simple_warning('You have imported a {} type file.\nYou\'ll need to open up your {} grid to see the added data'.format(import_type, import_type))
-        """
 
     def onCancelButton(self, event):
         if self.grid.changes:
@@ -703,18 +694,19 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
         else:
             self.Destroy()
 
-    def onSave(self, event):#, age_data_type='site'):
+    def onSave(self, event, alert=False, destroy=True):
         # tidy up drop_down menu
         if self.drop_down_menu:
             self.drop_down_menu.clean_up()
         # then save actual data
         self.grid_builder.save_grid_data()
-        if not event:
+        if not event and not alert:
             return
         # then alert user
         wx.MessageBox('Saved!', 'Info',
                       style=wx.OK | wx.ICON_INFORMATION)
-        self.Destroy()
+        if destroy:
+            self.Destroy()
 
 
 class GridBuilder(object):

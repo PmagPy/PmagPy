@@ -132,7 +132,7 @@ class ErMagicBuilder(object):
         self.headers['site']['er'][1], self.headers['site']['er'][2] = self.get_headers('er_sites')
         self.headers['location']['er'][1], self.headers['location']['er'][2] = self.get_headers('er_locations')
         self.headers['age']['er'][1], self.headers['age']['er'][2] = self.get_headers('er_ages')
-        
+
         self.headers['result']['pmag'][1], self.headers['result']['pmag'][2] = self.get_headers('pmag_results')
         self.headers['specimen']['pmag'][1], self.headers['specimen']['pmag'][2] = self.get_headers('pmag_specimens')
         self.headers['sample']['pmag'][1], self.headers['sample']['pmag'][2] = self.get_headers('pmag_samples')
@@ -167,7 +167,7 @@ class ErMagicBuilder(object):
             return list(er_header), list(pmag_header)
 
         self.headers['measurement']['er'][0], self.headers['measurement']['pmag'][0] = headers(self.measurements, self.headers['measurement']['er'][1], self.headers['measurement']['pmag'][1])
-        
+
         self.headers['specimen']['er'][0], self.headers['specimen']['pmag'][0] = headers(self.specimens, self.headers['specimen']['er'][1], self.headers['specimen']['pmag'][1])
 
         self.headers['sample']['er'][0], self.headers['sample']['pmag'][0] = headers(self.samples, self.headers['sample']['er'][1], self.headers['sample']['pmag'][1])
@@ -202,7 +202,7 @@ class ErMagicBuilder(object):
         measurement = Measurement(exp_name, meas_num, specimen, er_data)
         self.measurements.append(measurement)
         return measurement
-        
+
     def change_specimen(self, old_spec_name, new_spec_name,
                         new_sample_name=None, new_er_data=None, new_pmag_data=None,
                         replace_data=False):
@@ -294,7 +294,7 @@ Adding site named: {}""".format(new_site_name, new_site_name)#sample.site or '*e
 Creating a new site named: {} """.format(site_name, site_name)
                 site = self.add_site(site_name)
         else:
-            site = None    
+            site = None
         sample = Sample(samp_name, site, self.data_model, er_data, pmag_data)
         self.samples.append(sample)
         if site:
@@ -319,7 +319,7 @@ Creating a new site named: {} """.format(site_name, site_name)
             spec.sample = ""
         return specimens
 
-    
+
     def change_age(self, old_name, new_age_data=None, item_type='site', replace_data=False):
         item = self.find_by_name(old_name, self.data_lists[item_type][0])
         if replace_data:
@@ -328,7 +328,7 @@ Creating a new site named: {} """.format(site_name, site_name)
         else:
             item.age_data = combine_dicts(new_age_data, item.age_data)
         return item
-            
+
     def change_site(self, old_site_name, new_site_name, new_location_name=None,
                     new_er_data=None, new_pmag_data=None, replace_data=False):
         """
@@ -369,7 +369,7 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
                 location = self.add_location(location_name)
         else:
             location = None
-            
+
         ## check all declinations/azimuths/longitudes in range 0=>360.
         #for key, value in er_data.items():
         #    er_data[key] = pmag.adjust_to_360(value, key)
@@ -448,7 +448,7 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
             required = {key: '' for key in self.headers['age']['er'][1]}
             item.age_data = combine_dicts(age_data, required)
             self.write_ages = True
-        
+
     def delete_age(self, item_name):
         pass
 
@@ -465,13 +465,13 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
         result = Result(result_name, specimens, samples, sites, locations, pmag_data, self.data_model)
         self.results.append(result)
         return result
-        
+
     def delete_result(self, result_name):
         result = self.find_by_name(result_name, self.results)
         if result:
             self.results.remove(result)
             del result
-            
+
     def change_result(self, old_result_name, new_result_name, new_er_data=None,
                       new_pmag_data=None, spec_names=None, samp_names=None,
                       site_names=None, loc_names=None, replace_data=False):
@@ -522,7 +522,7 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
         meas_name_list = [measurement.name for measurement in self.measurements]
 
         for rec in meas_data:
-            # get citation information 
+            # get citation information
             citation = rec.get('er_citation_names', 'This study')
             if 'This study' not in citation:
                 citation = citation.strip() + ':This study'
@@ -587,7 +587,7 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
                 self.incl_pmag_data.add(child)
         self.get_age_info()
         self.get_results_info()
-                
+
     def get_magic_info(self, child_type, parent_type=None, attr='er',
                        filename=None, sort_by_file_type=False):
         """
@@ -615,13 +615,13 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
             print '-W- Could not find {}'.format(magic_file)
             return False
         # get the data from the appropriate .txt file
-        
+
         data_dict, header, file_type = self.read_magic_file(magic_file, magic_name,
                                                             sort_by_file_type=sort_by_file_type)
         if not data_dict:
             print '-W- Could not read in file: {}.\n    Make sure it is a MagIC-format file'.format(magic_file)
             return False
-        
+
         item_type = file_type.split('_')[1][:-1]
         if item_type != expected_item_type:
             print '-W- Expected data of type: {} but instead got: {}'.format(expected_item_type,
@@ -745,7 +745,7 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
             if not item:
                 ## the following code creates any item in er_ages that does not exist already
                 ## however, we may not WANT that behavior
-                print """-I- A {} named {} in your age file was not found in the data object: 
+                print """-I- A {} named {} in your age file was not found in the data object:
     Now initializing {} {}""".format(item_type, item_name, item_type, item_name)
                 ind = self.ancestry.index(item_type)
                 parent_type = self.ancestry[ind+1]
@@ -757,7 +757,7 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
                 parent = self.find_by_name(parent_name, parent_list)
                 # if the parent item doesn't exist, and should, create it
                 if parent_name and not parent:
-                    print """-I- A {} named {} in your age file was not found in the data object: 
+                    print """-I- A {} named {} in your age file was not found in the data object:
     Now initializing {} {}""".format(parent_type, parent_name, parent_type, parent_name)
                     parent = parent_constructor(parent_name, None)
                 item_constructor = self.data_lists[item_type][2]
@@ -796,7 +796,7 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
                 if item:
                     items.append(item)
             return items
-        
+
         for num, result in data_dict.items():
             name, specimens, samples, sites, locations = None, None, None, None, None
             for key, value in result.items():
@@ -835,12 +835,12 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
         fin = open(path, 'rU')
         first_line = fin.readline()
         if not first_line:
-            return False, None, 'empty_file' 
+            return False, None, 'empty_file'
         if first_line[0] == "s" or first_line[1] == "s":
             delim = ' '
         elif first_line[0] == "t" or first_line[1] == "t":
             delim = '\t'
-        else: 
+        else:
             print '-W- error reading ', path
             return False, None, 'bad_file'
 
@@ -886,7 +886,7 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
             # do not record any measurements for that specimen
             if not meas.specimen.name in specimen_names or not meas.specimen.name:
                 continue
-                
+
             for header in measurement_headers:
                 if header == 'er_specimen_name':
                     val = self.get_name(meas, 'specimen', 'name')
@@ -938,7 +938,7 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
             self.write_magic_file('location', do_er=True, do_pmag=False)
 
         self.write_age_file()
-        
+
         if self.results:
             self.write_result_file()
 
@@ -948,7 +948,7 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
 
         return True, None
 
-    
+
     def write_magic_file(self, dtype, do_er=True, do_pmag=True):
         if dtype == 'location':
             do_pmag = False
@@ -968,7 +968,7 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
         er_full_headers.extend(er_actual_headers)
         pmag_full_headers = add_headers[:]
         pmag_full_headers.extend(pmag_actual_headers)
-        
+
         er_start = 'er_' + dtype + 's'
         pmag_start = 'pmag_' + dtype + 's'
         er_strings = []
@@ -979,7 +979,7 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
         if dtype == 'location':
             d = self.get_min_max_lat_lon(items_list)
             for item in items_list[:]:
-                for header in ['location_begin_lat', 'location_begin_lon', 
+                for header in ['location_begin_lat', 'location_begin_lon',
                                'location_end_lat', 'location_end_lon']:
                     if not item.er_data[header]:
                         item.er_data[header] = d[item.name][header]
@@ -1184,7 +1184,7 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
         return outfile
 
     ## Validations  ##
-    
+
     def validate_data(self):
         """
         Validate specimen, sample, site, and location data.
@@ -1201,7 +1201,7 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
             loc_warnings = self.validate_items(self.locations, 'location')
         return spec_warnings, samp_warnings, site_warnings, loc_warnings
 
-            
+
     def validate_items(self, item_list, item_type):
         """
         Go through a list Pmag_objects and check for:
@@ -1232,7 +1232,7 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
                 dictionary[name][warning_type] = []
             for v in value:
                 dictionary[name][warning_type].append(v)
-            
+
         def check_item_type(item, item_type):#, warnings=None):
             """
             Make sure that item has appropriate type, and is in the data object.
@@ -1281,7 +1281,7 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
                 if not child in child_list:
                     warnings.append(PmagException('child not in data object', child))
             return warnings
-                                
+
         warnings = {}
         type_ind = self.ancestry.index(item_type)
         parent_type = self.ancestry[type_ind+1]
@@ -1310,7 +1310,7 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
                         item_name = str(item)
                     missing.append(item_name)
             return missing
-        
+
         def add_result_dict_item(dictionary, key, value):
             if not value:
                 return
@@ -1343,9 +1343,9 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
             if warnings:
                 meas_warnings[meas] = {}
                 meas_warnings[meas]['parent'] = warnings
-                            
+
         return meas_warnings
-    
+
     # helper methods
     def get_ancestors(self, pmag_object):
         ancestors = []
@@ -1387,11 +1387,11 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
         """
         Take a list of locations and return a dictionary with:
         location1:
-        'location_begin_lat', 'location_begin_lon', 
+        'location_begin_lat', 'location_begin_lon',
         'location_end_lat', 'location_end_lon'.
         and so on.
         """
-        d = {} 
+        d = {}
         for location in locations:
             sites = location.sites
             max_lat, min_lat = '', ''
@@ -1427,8 +1427,8 @@ class PmagException(Exception):
     def __init__(self, message, obj=None):
         super(PmagException, self).__init__(message)
         self.obj = obj
-        
-    
+
+
 # measurements can be uniquely identified by experiment name + measurement #
 # location, site, sample, and specimen names are ALL required headers for each measurement
 
@@ -1602,7 +1602,7 @@ class Sample(Pmag_object):
         self.site = new_site
         self.propagate_data()
         return new_site
-        
+
     def change_sample(self, new_name, new_site=None, er_data=None, pmag_data=None, replace_data=False):
         self.name = new_name
         if new_site:
@@ -1612,7 +1612,7 @@ class Sample(Pmag_object):
             self.site.samples.append(self)
         self.update_data(er_data, pmag_data, replace_data)
         self.propagate_data()
-        
+
     def propagate_data(self):
         if not self.site:
             return
@@ -1633,7 +1633,7 @@ class Sample(Pmag_object):
                 if not self.er_data[samp_key]:
                     if site_key in self.site.er_data.keys():
                         self.er_data[samp_key] = self.site.er_data[site_key]
-        
+
 
 class Site(Pmag_object):
 
@@ -1657,7 +1657,7 @@ class Site(Pmag_object):
                 raise Exception
         self.location = new_loc
         return new_loc
-        
+
     def change_site(self, new_name, new_location=None, new_er_data=None,
                     new_pmag_data=None, replace_data=False):
         """
@@ -1689,7 +1689,7 @@ class Location(Pmag_object):
 
     def set_parent(self, parent=None):
         return False
-        
+
     def change_location(self, new_name, new_er_data=None, new_pmag_data=None, replace_data=False):
         self.name = new_name
         #if new_er_data:
@@ -1714,7 +1714,7 @@ class Result(object):
         pmag_name = 'pmag_results'
         self.pmag_reqd_headers, self.pmag_optional_headers = self.get_headers(pmag_name)
         #self.results_reqd_headers, self.results_optional_headers = self.get_headers('pmag_results')
-        
+
         pmag_reqd_data = {key: '' for key in self.pmag_reqd_headers}
         #results_reqd_data = {key: '' for key in self.results_reqd_headers}
 
