@@ -766,7 +766,8 @@ class GridBuilder(object):
             col_labels = list(self.reqd_headers)
             if self.grid_type in ['specimens', 'samples', 'sites']:
                 col_labels.extend(['age', 'age_sigma'])
-            col_labels = sorted(set(col_labels))
+            ## use the following line if you want sorted column labels:
+            #col_labels = sorted(set(col_labels))
             # defaults are different for ages
             if self.grid_type == 'ages':
                 levels = ['specimen', 'sample', 'site', 'location']
@@ -819,14 +820,15 @@ class GridBuilder(object):
                 data = new_data[key]
                 # update the row if it exists already,
                 # otherwise create a new row
-                try:
-                    self.magic_dataframe.update_row(key, data)
-                except IndexError:
+
+                updated = self.magic_dataframe.update_row(key, data)
+                if not isinstance(updated, pd.DataFrame):
                     if self.grid_type == 'ages':
                         label = key
                     else:
                         label = self.grid_type[:-1]
-                    self.magic_dataframe.add_row(label, data)
+                    self.magic_dataframe.add_row(label, data,
+                                                 self.grid.col_labels)
             # update the contribution with the new dataframe
             self.contribution.tables[self.grid_type] = self.magic_dataframe
             # *** probably don't actually want to write to file, here (but maybe)

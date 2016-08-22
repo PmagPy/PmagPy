@@ -406,7 +406,8 @@ class MagicDataFrame(object):
         # if there is a file provided, read in the data and ascertain dtype
         else:
             data, dtype, keys = pmag.magic_read(magic_file, return_keys=True)
-            self.df = DataFrame(data)
+            # create dataframe, maintaining column order:
+            self.df = DataFrame(data, columns=keys)
             if dtype == 'bad_file':
                 print "-W- Bad file {}".format(magic_file)
                 self.dtype = 'empty'
@@ -488,17 +489,32 @@ class MagicDataFrame(object):
             for col_label in self.df.columns:
                 if col_label not in row_data.keys():
                     row_data[col_label] = None
-        self.df.iloc[ind] = pd.Series(row_data)
+        try:
+            self.df.iloc[ind] = pd.Series(row_data)
+        except IndexError:
+            return False
         return self.df
 
 
-    def add_row(self, label, row_data):
+    def add_row(self, label, row_data, columns=""):
         """
         Add a row with data.
         If any new keys are present in row_data dictionary,
         that column will be added to the dataframe.
         This is done inplace
         """
+        # use provided column order, making sure you don't lose any values
+        # from self.df.columns
+        if len(columns):
+            if sorted(self.df.columns) == sorted(columns):
+                self.df.columns = columns
+            else:
+                new_columns = []
+                new_columns.extend(columns)
+                for col in self.df.columns:
+                    if col not in new_columns:
+                        new_columns.append(col)
+        # makes sure all columns have data or None
         if sorted(row_data.keys()) != sorted(self.df.columns):
             # add any new column names
             for key in row_data:
