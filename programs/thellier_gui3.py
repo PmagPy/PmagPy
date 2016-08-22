@@ -3305,7 +3305,10 @@ class Arai_GUI(wx.Frame):
             #-------------
             TEXT="specimens interpretations are saved in pmag_specimens.txt.\nPress OK for pmag_samples/pmag_sites/pmag_results tables."
         else: # data model 3, so merge with spec_data  and save as specimens.txt file
+            # remove unwanted columns (site, location).  
+            #  START HERE!    
             #  write out the data
+            
             self.spec_container.write_magic_file(custom_name='new_specimens.txt', dir_path=self.WD) # change this to specimens.txt when ready
             TEXT="specimens interpretations are saved in specimens.txt.\nPress OK for samples/sites tables."
 
