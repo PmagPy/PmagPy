@@ -2224,7 +2224,6 @@ class Arai_GUI(wx.Frame):
                 pass
             if self.data_model==3:
                 crit_file='criteria.txt'
-                #START HERE  - ADD back in old crieria
             else:
                 crit_file='pmag_criteria.txt'
             pmag.write_criteria_to_file(os.path.join(self.WD, crit_file),self.acceptance_criteria,data_model=self.data_model,prior_crits=self.crit_data)
@@ -3306,9 +3305,9 @@ class Arai_GUI(wx.Frame):
             TEXT="specimens interpretations are saved in pmag_specimens.txt.\nPress OK for pmag_samples/pmag_sites/pmag_results tables."
         else: # data model 3, so merge with spec_data  and save as specimens.txt file
             # remove unwanted columns (site, location).  
-            #  START HERE!    
+            for col in ['site','location']:
+                del self.spec_data[col]
             #  write out the data
-            
             self.spec_container.write_magic_file(custom_name='new_specimens.txt', dir_path=self.WD) # change this to specimens.txt when ready
             TEXT="specimens interpretations are saved in specimens.txt.\nPress OK for samples/sites tables."
 
@@ -3754,8 +3753,16 @@ class Arai_GUI(wx.Frame):
                     samples = self.samp_data[condition].index.unique()
                     for samp_name in samples:
                         self.samp_container.update_record(samp_name, new_data, cond2)
+            for col in ['location']:
+                del self.samp_data[col]
+            if BY_SAMPLES: # replace 'site' with 'sample'  
+                self.samp_data['site']=self.samp_data['sample']
+                condition= self.samp_data['specimens'].notnull()==False # find all the blank specimens rows
+                inds = self.samp_data[condition]['num'] # list of all rows where condition is true
+                for ind in inds:
+                    self.samp_container.delete_row(ind)
+                    
             #  write out the data
-# LORI:  AND HERE IS WHERE I"M WRITING STUFF OUT
             self.samp_container.write_magic_file(custom_name='new_samples.txt', dir_path=self.WD) # change this to samples.txt when ready
             self.site_container.write_magic_file(custom_name='new_sites.txt', dir_path=self.WD) # change this to sites.txt when ready
         dlg1 = wx.MessageDialog(self,caption="Message:", message="MagIC files are saved in MagIC project folder" ,style=wx.OK|wx.ICON_INFORMATION)
