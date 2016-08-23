@@ -373,15 +373,21 @@ class MagMainFrame(wx.Frame):
 
 
     def on_er_data(self, event):
-        if not os.path.isfile(os.path.join(self.WD, 'magic_measurements.txt')):
-            import dialogs.pmag_widgets as pw
-            pw.simple_warning("Your working directory must have a magic_measurements.txt file to run this step.  Make sure you have fully completed step 1 (import magnetometer file), by combining all imported magnetometer files into one magic_measurements file.")
-            return False
+        if self.data_model_num == 2:
+            if not os.path.isfile(os.path.join(self.WD, 'magic_measurements.txt')):
+                import dialogs.pmag_widgets as pw
+                pw.simple_warning("Your working directory must have a magic_measurements.txt file to run this step.  Make sure you have fully completed step 1 (import magnetometer file), by combining all imported magnetometer files into one magic_measurements file.")
+                return False
 
-        #self.ErMagic_frame = ErMagicBuilder.MagIC_model_builder(self.WD, self, self.ErMagic_data)#,self.Data,self.Data_hierarchy)
-        wait = wx.BusyInfo('Compiling required data, please wait...')
-        wx.Yield()
-        self.ErMagic_frame = ErMagicBuilder.MagIC_model_builder(self.WD, self, self.er_magic)#,self.Data,self.Data_hierarchy)
+            #self.ErMagic_frame = ErMagicBuilder.MagIC_model_builder(self.WD, self, self.ErMagic_data)#,self.Data,self.Data_hierarchy)
+            wait = wx.BusyInfo('Compiling required data, please wait...')
+            wx.Yield()
+            self.ErMagic_frame = ErMagicBuilder.MagIC_model_builder(self.WD, self, self.er_magic)#,self.Data,self.Data_hierarchy)
+        elif self.data_model_num == 3:
+            wait = wx.BusyInfo('Compiling required data, please wait...')
+            wx.Yield()
+            self.ErMagic_frame = ErMagicBuilder.MagIC_model_builder3(self.WD, self, self.contribution)
+
         self.ErMagic_frame.Show()
         self.ErMagic_frame.Center()
 

@@ -44,7 +44,7 @@ class DataModel(object):
         return list(df['group'].unique())
 
 
-    def get_headers(self, table_name, group_name):
+    def get_group_headers(self, table_name, group_name):
         """
         Return a list of all headers for a given group
         """
@@ -53,6 +53,13 @@ class DataModel(object):
         cond = df['group'] == group_name
         return df[cond].index
 
+    def get_reqd_headers(self, table_name):
+        """
+        Return a list of all required headers for a particular table
+        """
+        df = self.dm[table_name]
+        cond = df['validations'].map(lambda x: 'required()' in str(x))
+        return df[cond].index
 
 
 
