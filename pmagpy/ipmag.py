@@ -3575,6 +3575,7 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
         if 'participants' in OrRec.keys() and OrRec['participants']!="" and OrRec['participants']!=participantlist:
             participantlist=OrRec['participants']
         MagRec['er_scientist_mail_names']=participantlist
+        MagRec.pop("participantlist")
         newlat=OrRec["lat"]
         if newlat!="":
             lat=float(newlat)
