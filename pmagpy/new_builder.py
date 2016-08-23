@@ -556,6 +556,31 @@ class MagicDataFrame(object):
         self.df = pd.concat([self.df[:ind], self.df[ind+1:]])
         return self.df
 
+    def delete_rows(self,condition):
+        """
+        delete all rows with  condition==True 
+        inplace
+        """
+        self.df['num'] = range(len(self.df))
+        df_data = self.df
+        # delete all records that meet condition
+        if len(df_data[condition]) > 0:  #we have one or more records to delete
+            inds = df_data[condition]['num'] # list of all rows where condition is true
+            for ind in inds:
+                df_data = self.delete_row(ind)
+                print 'deleting row where: ',condition
+        # sort so that all rows for an item are together
+        df_data.sort_index(inplace=True)
+        # redo temporary index
+        df_data['num'] = range(len(df_data))
+        self.df = df_data
+        return df_data
+
+
+
+
+
+
 
     def update_record(self, name, new_data, condition, update_only=False,
                       debug=False):

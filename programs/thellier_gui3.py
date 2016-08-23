@@ -200,6 +200,7 @@ from copy import deepcopy
 
 import dialogs.thellier_gui_dialogs as thellier_gui_dialogs
 import dialogs.thellier_gui_lib as thellier_gui_lib
+import dialogs.thellier_interpreter as thellier_interpreter
 
 matplotlib.rc('xtick', labelsize=10)
 matplotlib.rc('ytick', labelsize=10)
@@ -208,6 +209,11 @@ matplotlib.rcParams['savefig.dpi'] = 300.
 
 #pylab.rcParams.update({"svg.embed_char_paths":False})
 pylab.rcParams.update({"svg.fonttype":'none'})
+try:
+    version= pmag.get_version()
+except:
+    version=""
+version=version+": thellier_gui."+CURRENT_VERSION
 
 
 
@@ -1864,7 +1870,6 @@ class Arai_GUI(wx.Frame):
         self.redo_specimens={}
         self.currentDirectory = os.getcwd() # get the current working directory
         self.get_DIR()                      # choose directory dialog
-        #acceptance_criteria_default,acceptance_criteria_null=self.get_default_criteria()    # inialize Null selecting criteria
         acceptance_criteria_default,acceptance_criteria_null=pmag.initialize_acceptance_criteria(data_model=self.data_model),pmag.initialize_acceptance_criteria(data_model=self.data_model)    # inialize Null selecting criteria
 
         self.acceptance_criteria_null=acceptance_criteria_null
@@ -2513,7 +2518,10 @@ class Arai_GUI(wx.Frame):
                 aniso_parameters['result_description']="Critical F: %s"%(hpars['F_crit'])
                 aniso_parameters['anisotropy_F_crit']="%f"%float(hpars['F_crit'])
                 aniso_parameters['anisotropy_n']='%i'%(n_pos)
-
+                if float(hpars["F"])>float(hpars['F_crit']):
+                    aniso_parameters['result_quality'] ='g'
+                else:
+                    aniso_parameters['result_quality'] ='b'
             return(aniso_parameters)
 
 
@@ -2920,7 +2928,7 @@ class Arai_GUI(wx.Frame):
                 if self.data_model==3: # prepare data for 3.0
 
                     new_aniso_parameters=Data_anisotropy[specimen][TYPE]
-                    # reformat all the anisotropy related keys
+                    # reformat all the anisotropy related keys # START HERE
                     new_data=map_magic.convert_aniso('magic3',new_aniso_parameters) # turn new_aniso data to 3.0
                     self.spec_data = self.spec_container.df
            # edit first of existing anisotropy data for this specimen of this TYPE from self.spec_data
@@ -2930,6 +2938,9 @@ class Arai_GUI(wx.Frame):
                     #condition=(cond1 & cond2 & cond3)
                     condition = (cond1 & cond2)
                     self.spec_data = self.spec_container.update_record(specimen, new_data, condition)
+                    for col in ['site','location']: # remove unwanted columns
+                        if col in self.spec_data.keys():del self.spec_data[col]
+                    self.spec_data['software_packages']=version
 
                 else: # write it to 2.5 version files
                     String=""
@@ -2970,7 +2981,6 @@ class Arai_GUI(wx.Frame):
 #    #==================================================
 
     def on_menu_run_interpreter(self, event):
-        import dialogs.thellier_interpreter as thellier_interpreter
         busy_frame=wx.BusyInfo("Running Thellier auto interpreter\n It may take several minutes depending on the number of specimens ...", self)
         wx.Yield()
         thellier_auto_interpreter=thellier_interpreter.thellier_auto_interpreter(self.Data,self.Data_hierarchy,self.WD,self.acceptance_criteria,self.preferences,self.GUI_log,THERMAL,MICROWAVE)
@@ -3185,11 +3195,6 @@ class Arai_GUI(wx.Frame):
             pmag_specimens_header_4.append(stat)
         pmag_specimens_header_5=["magic_experiment_names","magic_method_codes","measurement_step_unit","specimen_lab_field_dc"]
         pmag_specimens_header_6=["er_citation_names"]
-        try:
-            version= pmag.get_version()
-        except:
-            version=""
-        version=version+": thellier_gui."+CURRENT_VERSION
 
         specimens_list=[]
         for specimen in self.Data.keys():
@@ -3259,16 +3264,25 @@ class Arai_GUI(wx.Frame):
                     MagIC_results_data['pmag_specimens'][specimen]['specimen_int_corr_cooling_rate']=""
                 MagIC_results_data['pmag_specimens'][specimen]['criteria']="IE-SPEC"
 
-                if self.data_model==3:   # convert pmag_specimen format to data model 3 and replace existing specimen record or add new
+                if self.data_model==3:   # convert pmag_specimen format to data model 3 and replace existing specimen record or add new & delete blank records
                     new_spec_data=MagIC_results_data['pmag_specimens'][specimen]
-                    # reformat all the keys
                     new_data = map_magic.convert_spec('magic3', new_spec_data) # turn new_specimen data to 3.0
+                    # check if interpretation passes criteria and set flag
+                    spec_pars=thellier_gui_lib.check_specimen_PI_criteria(self.Data[specimen]['pars'],self.acceptance_criteria)
+                    if len(spec_pars['specimen_fail_criteria'])>0:
+                        new_data['result_quality']='b'
+                    else:
+                        new_data['result_quality']='g'
+                    # reformat all the keys
                     cond1 = self.spec_data['specimen'].str.contains(specimen) == True
                     if 'int_abs' not in self.spec_data.columns:
                         self.spec_data['int_abs'] = None
                     cond2 = self.spec_data['int_abs'].notnull() == True
                     condition = (cond1 & cond2)
-                    self.spec_data = self.spec_container.update_record(specimen, new_data, condition)
+                    self.spec_data = self.spec_container.update_record(specimen, new_data, condition) 
+                    self.spec_data['method_codes'].replace('',np.nan, inplace=True)
+                    condition=self.spec_data['method_codes'].str.match('') == True # find the blank records
+                    self.spec_data = self.spec_container.delete_rows(condition)
 
         if self.data_model!=3: # write out pmag_specimens.txt file
             fout=open(os.path.join(self.WD, "pmag_specimens.txt"),'w')
@@ -3695,9 +3709,8 @@ class Arai_GUI(wx.Frame):
                 new_sample_or_site_data = MagIC_results_data['pmag_samples_or_sites'][sample_or_site]
                 if BY_SAMPLES:
                     new_data = map_magic.convert_samp('magic3',new_sample_or_site_data) # convert to 3.0
-                    # add numeric index column temporarily
+                    new_data['criteria']='IE-SPEC:IE-SAMP'
                     self.samp_data = self.samp_container.df
-           # edit first of existing intensity data for this sample from self.samp_data
                     cond1 = self.samp_data['sample'].str.contains(sample_or_site)==True
                     if 'int_abs' not in self.samp_data.columns:
                         self.samp_data['int_abs'] = None
@@ -3705,35 +3718,29 @@ class Arai_GUI(wx.Frame):
                     condition = (cond1 & cond2)
                     # update record
                     self.samp_data = self.samp_container.update_record(sample_or_site, new_data, condition)
-                    # give temporary index to site_data
                     self.site_data = self.site_container.df
                     # remove intensity data from site level.
                     site=self.Data_hierarchy['site_of_sample'][sample_or_site]
                     cond1=self.site_data['site'].str.contains(site)==True
                     cond2=self.site_data['int_abs'].notnull()==True
                     condition=(cond1 & cond2)
-                    site_keys=['int_abs','int_sigma','int_n_samples','int_sigma_perc','specimens','int_abs_sigma','int_abs_sigma_perc'] # zero these out but keep the rest
+                    site_keys=['samples','int_abs','int_sigma','int_n_samples','int_sigma_perc','specimens','int_abs_sigma','int_abs_sigma_perc'] # zero these out but keep the rest
                     blank_data={}
                     for key in site_keys:
                         blank_data[key] = ""
-                    #print "removing intensity data from site:", site
-                    self.site_data = self.site_container.update_record(site, blank_data, condition,
-                                                                       update_only=True)
+                    self.site_data = self.site_container.update_record(site, blank_data, condition, update_only=True)
                     # add record for sample in the site table
-             #       new_data['site']=sample_or_site
-             #       new_data['samples']=sample_or_site
                     cond1=self.site_data['site'].str.contains(sample_or_site)==True
                     cond2=self.site_data['int_abs'].notnull()==True
                     condition=(cond1 & cond2)
-# LORI:  HERE IS WHERE I"M ADDING NEW RECORD
                     # change 'site' column to reflect sample name,
                     # since we are putting this sample at the site level
                     new_data['site'] = sample_or_site
-                    self.site_data = self.site_container.update_record(sample_or_site,
-                                                                       new_data, condition,
-                                                                       debug=True)
-                else:  # do this by site and not by sample
-           # edit first of existing intensity data for this site from self.site_data
+                    new_data['samples'] = sample_or_site
+                    new_data['int_n_samples'] = '1' 
+                    del new_data['sample'] # get rid of this key for site table
+                    self.site_data = self.site_container.update_record(sample_or_site, new_data, condition, debug=True)
+                else:  # do this by site and not by sample START HERE
                     cond1 = self.site_data['site'].str.contains(sample_or_site)==True
                     if 'int_abs' not in self.site_data.columns:
                         self.site_data['int_abs'] = None
@@ -3757,10 +3764,8 @@ class Arai_GUI(wx.Frame):
                 del self.samp_data[col]
             if BY_SAMPLES: # replace 'site' with 'sample'  
                 self.samp_data['site']=self.samp_data['sample']
-                condition= self.samp_data['specimens'].notnull()==False # find all the blank specimens rows
-                inds = self.samp_data[condition]['num'] # list of all rows where condition is true
-                for ind in inds:
-                    self.samp_container.delete_row(ind)
+                condition= self.samp_container.df['specimens'].notnull()==True  # find all the blank specimens rows
+                self.samp_container.df = self.samp_container.df.loc[condition]
                     
             #  write out the data
             self.samp_container.write_magic_file(custom_name='new_samples.txt', dir_path=self.WD) # change this to samples.txt when ready
@@ -6052,7 +6057,7 @@ class Arai_GUI(wx.Frame):
                       self.GUI_log.write("-W- WARNING: 2 NLT measurement for specimen %s. [max(M/B)]/ [min(M/B)] is %.2f  (   > 1.05 and  < 1.1 ). More NLT mrasurements may be required.\n" %(s,max(slopes)/min(slopes)))
                       #print "-I- NLT meaurements specime %s: B,M="%s,B_NLT,M_NLT
                   else:
-                      self.GUI_log.write("-E- ERROR: 2 NLT measurement for specimen %s. [max(M/B)]/ [min(M/B)] is %.2f  ( > 1.1 ). More NLT mrasurements may be required  !\n" %(s,max(slopes)/min(slopes)))
+                      self.GUI_log.write("-E- ERROR: 2 NLT measurement for specimen %s. [max(M/B)]/ [min(M/B)] is %.2f  ( > 1.1 ). More NLT measurements may be required  !\n" %(s,max(slopes)/min(slopes)))
                       #print "-I- NLT meaurements specime %s: B,M="%s,B_NLT,M_NLT
 
       #print "done searching NLT data"
