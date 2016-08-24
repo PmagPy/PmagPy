@@ -3764,7 +3764,7 @@ class Arai_GUI(wx.Frame):
                     for samp_name in samples:
                         self.samp_container.update_record(samp_name, new_data, cond2)
             for col in ['location']:
-                del self.samp_data[col]
+                if col in self.samp_data.keys():del self.samp_data[col]
             if BY_SAMPLES: # replace 'site' with 'sample'  
                 self.samp_data['site']=self.samp_data['sample']
                 condition= self.samp_container.df['specimens'].notnull()==True  # find all the blank specimens rows
