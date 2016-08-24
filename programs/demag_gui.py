@@ -3517,7 +3517,7 @@ class Demag_GUI(wx.Frame):
             age_dat = DataFrame()
             if default_used and 'ages' in self.con.tables and not self.con.tables['ages'].df.empty:
                 adf = self.con.tables['ages'].df
-                age_dat = adf[[adf.columns[i] for i,b in enumerate(adf.columns.str.contains('age')) if b]+['site','location']]
+                age_dat = adf[[col for col in adf.columns if type(col)==str and col.startswith('age')]+['site','location']]
                 print("using age data from ages.txt")
             else:
                 min_age = float(DefaultAge[0])
@@ -3715,6 +3715,8 @@ class Demag_GUI(wx.Frame):
                 samps_df = samps_df.set_index('sample')
                 samps_df['sample'] = samps_df.index
                 nsdf = self.con.tables['samples'].merge_dfs(samps_df,'full')
+                if not vgps==1:
+                    nsdf.drop([col for col in nsdf.columns if type(col) == str and col.startswith('vgp')], axis=1, inplace=True)
                 nsdf =  nsdf.reindex_axis(sorted(nsdf.columns), axis=1)
                 self.con.tables['samples'].df = nsdf
                 self.con.tables['samples'].write_magic_file(dir_path=self.WD)
@@ -3818,7 +3820,7 @@ class Demag_GUI(wx.Frame):
                                     lat,lon=PmagSiteRec['lat'],PmagSiteRec['lon']
                                     calculate=True
                                 else:
-                                    self.user_warning("insuffecent data provided skipping VGP calculation for site %s"%site)
+                                    self.user_warning("insuffecent data provided skipping VGP calculation for site %s and comp %s"%(site,comp))
                             if calculate:
                                 plong,plat,dp,dm=pmag.dia_vgp(dec,inc,a95,lat,lon) # get the VGP for this site
                                 PmagSiteRec["vgp_lat"]='%7.1f ' % (plat)
@@ -3841,9 +3843,13 @@ class Demag_GUI(wx.Frame):
                 if 'sites' not in self.con.tables:
                     self.con.tables.add_empty_magic_table('sites')
                 sites_df = DataFrame(PmagSites)
+                if 'tilt_correction' in sites_df.columns:
+                    sites_df.drop('tilt_correction', axis=1, inplace=True)
                 sites_df = sites_df.set_index('site')
                 sites_df['site'] = sites_df.index
                 nsdf = self.con.tables['sites'].merge_dfs(sites_df,'full')
+                if not dia.cb_site_mean_VGP.GetValue():
+                    nsdf.drop([col for col in nsdf.columns if type(col) == str and col.startswith('vgp')], axis=1, inplace=True)
                 nsdf =  nsdf.reindex_axis(sorted(nsdf.columns), axis=1)
                 self.con.tables['sites'].df = nsdf
                 self.con.tables['sites'].write_magic_file(dir_path=self.WD)
@@ -3953,6 +3959,8 @@ class Demag_GUI(wx.Frame):
                 locs_df = locs_df.set_index('location')
                 locs_df['location'] = locs_df.index
                 nsdf = self.con.tables['locations'].merge_dfs(locs_df,'full')
+                if not dia.cb_location_mean_VGP.GetValue():
+                    nsdf.drop([col for col in nsdf.columns if type(col) == str and col.startswith('pole') and col != 'pol_comp_name'], axis=1, inplace=True)
                 nsdf =  nsdf.reindex_axis(sorted(nsdf.columns), axis=1)
                 self.con.tables['locations'].df = nsdf
                 self.con.tables['locations'].write_magic_file(dir_path=self.WD)

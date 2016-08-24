@@ -798,7 +798,7 @@ class MagicDataFrame(object):
         #join the new calculated data with the old data of same type
         mdf = df1.join(mcdf2, how='inner', lsuffix='__remove')
         #duplicates rows for some freaking reason
-        mdf.drop_duplicates(inplace=True)
+        mdf.drop_duplicates(inplace=True,subset=[col for col in mdf.columns if col != 'description'])
         #merge the data of the other type with the new data
         mdf = mdf.merge(acdf2, how='outer')
         if self.dtype.endswith('s'): dtype = self.dtype[:-1]
