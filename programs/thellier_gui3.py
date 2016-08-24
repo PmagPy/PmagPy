@@ -3707,6 +3707,7 @@ class Arai_GUI(wx.Frame):
             for sample_or_site in pmag_samples_or_sites_list:
                 # convert, delete, add and save
                 new_sample_or_site_data = MagIC_results_data['pmag_samples_or_sites'][sample_or_site]
+
                 if BY_SAMPLES:
                     new_data = map_magic.convert_samp('magic3',new_sample_or_site_data) # convert to 3.0
                     new_data['criteria']='IE-SPEC:IE-SAMP'
@@ -3724,7 +3725,7 @@ class Arai_GUI(wx.Frame):
                     cond1=self.site_data['site'].str.contains(site)==True
                     cond2=self.site_data['int_abs'].notnull()==True
                     condition=(cond1 & cond2)
-                    site_keys=['samples','int_abs','int_sigma','int_n_samples','int_sigma_perc','specimens','int_abs_sigma','int_abs_sigma_perc'] # zero these out but keep the rest
+                    site_keys=['samples','int_abs','int_sigma','int_n_samples','int_sigma_perc','specimens','int_abs_sigma','int_abs_sigma_perc','vadm'] # zero these out but keep the rest
                     blank_data={}
                     for key in site_keys:
                         blank_data[key] = ""
@@ -3739,6 +3740,8 @@ class Arai_GUI(wx.Frame):
                     new_data['samples'] = sample_or_site
                     new_data['int_n_samples'] = '1' 
                     del new_data['sample'] # get rid of this key for site table
+                    new_data['vadm']=MagIC_results_data['pmag_results'][sample_or_site]["vadm"]
+                    new_data['vadm_sigma']=MagIC_results_data['pmag_results'][sample_or_site]["vadm_sigma"]
                     self.site_data = self.site_container.update_record(sample_or_site, new_data, condition, debug=True)
                 else:  # do this by site and not by sample START HERE
                     cond1 = self.site_data['site'].str.contains(sample_or_site)==True

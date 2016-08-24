@@ -625,6 +625,7 @@ class MagicDataFrame(object):
     ## Methods that take self.df and extract some information from it
 
     def convert_to_pmag_data_list(self, lst_or_dict="lst", df=None):
+
         """
         Take MagicDataFrame and turn it into a list of dictionaries.
         This will have the same format as reading in a 2.5 file
