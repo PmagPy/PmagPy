@@ -207,19 +207,28 @@ class MagIC_model_builder3(wx.Frame):
         table = event.GetEventObject().Name
         text_control = self.text_controls[table]
         info_option = self.info_options[table]
-        #header = self.er_magic.headers[table]['er'][0]
-        #  we should probs make sure that all the tables have already been added to the contibution
-        # do that in the init stage
         headers = list(self.contribution.tables[table].df.columns)
-
         selName = info_option.GetStringSelection()
 
         if selName not in headers:
+            self.contribution.tables[table].df[selName] = None
             headers.append(selName)
         self.update_text_box(headers, text_control)
 
     def on_remove_button(self, event):
-        pass
+        table = event.GetEventObject().Name
+        info_option = self.info_options[table]
+        text_control = self.text_controls[table]
+        #header = self.er_magic.headers[table]['er'][0]
+        #reqd_header = self.er_magic.headers[table]['er'][1]
+        headers = list(self.contribution.tables[table].df.columns)
+
+        selName = str(info_option.GetStringSelection())
+        if selName in headers: # and selName not in reqd_header:
+            del self.contribution.tables[table].df[selName]
+            headers.remove(selName)
+        self.update_text_box(headers, text_control)
+
 
     def on_okButton(self, event):
         pass
