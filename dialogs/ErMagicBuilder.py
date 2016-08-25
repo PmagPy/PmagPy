@@ -68,9 +68,6 @@ class MagIC_model_builder3(wx.Frame):
 
     def InitUI(self):
         pnl1 = self.panel
-
-
-
         box_sizers = []
         self.text_controls = {}
         self.info_options = {}
@@ -219,10 +216,7 @@ class MagIC_model_builder3(wx.Frame):
         table = event.GetEventObject().Name
         info_option = self.info_options[table]
         text_control = self.text_controls[table]
-        #header = self.er_magic.headers[table]['er'][0]
-        #reqd_header = self.er_magic.headers[table]['er'][1]
         headers = list(self.contribution.tables[table].df.columns)
-
         selName = str(info_option.GetStringSelection())
         if selName in headers: # and selName not in reqd_header:
             del self.contribution.tables[table].df[selName]
@@ -237,7 +231,19 @@ class MagIC_model_builder3(wx.Frame):
         self.Destroy()
 
     def on_helpButton(self, event):
-        pass
+        #for use on the command line
+        path = check_updates.get_pmag_dir()
+        # for use with pyinstaller:
+        #path = self.Parent.resource_dir
+        help_page = os.path.join(path, 'dialogs', 'help_files', 'ErMagicBuilderHelp3.html')
+        # if using with py2app, the directory structure is flat,
+        # so check to see where the resource actually is
+        if not os.path.exists(help_page):
+            help_page = os.path.join(path, 'help_files', 'ErMagicBuilderHelp3.html')
+        html_frame = pw.HtmlFrame(self, page=help_page)
+        html_frame.Center()
+        html_frame.Show()
+
 
 
 class MagIC_model_builder(wx.Frame):
