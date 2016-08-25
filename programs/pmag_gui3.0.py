@@ -399,6 +399,10 @@ class MagMainFrame(wx.Frame):
     def init_check_window(self):
         self.check_dia = pmag_er_magic_dialogs.ErMagicCheckFrame(self, 'Check Data', self.WD, self.er_magic)# initiates the object that will control steps 1-6 of checking headers, filling in cell values, etc.
 
+    def init_check_window3(self):
+        self.check_dia = pmag_er_magic_dialogs.ErMagicCheckFrame3(self, 'Check Data', self.WD, self.contribution)
+
+
     def on_orientation_button(self, event):
         wait = wx.BusyInfo('Compiling required data, please wait...')
         wx.Yield()

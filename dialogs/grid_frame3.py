@@ -749,8 +749,8 @@ class GridBuilder(object):
                 if self.parent_type:
                     col_labels.remove(self.parent_type[:-1])
                     col_labels[:0] = [self.parent_type[:-1]]
-                col_labels.remove(self.magic_dataframe.df.index.name)
-                col_labels[:0] = [self.magic_dataframe.df.index.name]
+                col_labels.remove(self.grid_type[:-1])
+                col_labels[:0] = (self.grid_type[:-1],)
             self.magic_dataframe.df = self.magic_dataframe.df[col_labels]
             row_labels = self.magic_dataframe.df.index
             # make sure minimum defaults are present
@@ -788,7 +788,7 @@ class GridBuilder(object):
         self.grid = grid
         return grid
 
-    def add_data_to_grid(self, grid, grid_type=None, incl_pmag=True):
+    def add_data_to_grid(self, grid, grid_type=None):#, incl_pmag=True):
         if isinstance(self.magic_dataframe, nb.MagicDataFrame):
             grid.add_items(self.magic_dataframe.df)
         grid.size_grid()

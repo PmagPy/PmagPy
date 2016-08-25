@@ -225,7 +225,18 @@ class MagIC_model_builder3(wx.Frame):
 
 
     def on_okButton(self, event):
-        pass
+        os.chdir(self.WD)
+        # update headers properly
+        for table in ['specimens', 'samples', 'sites', 'locations', 'ages']:
+            headers = self.text_controls[table].GetValue().split('\n')
+            for header in headers:
+                if header not in self.contribution.tables[table].df.columns:
+                    #print "adding", header, "to", table
+                    self.contribution.tables[table].df[header] = None
+            # take out  unnecessary headers
+
+        self.main_frame.init_check_window3()
+        self.Destroy()
 
     def on_cancelButton(self, event):
         self.Destroy()
