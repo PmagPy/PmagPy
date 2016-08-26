@@ -31,6 +31,7 @@ class ErMagicCheckFrame3(wx.Frame):
         self.selected_rows = set()
         self.InitSpecCheck()
 
+
     def InitSpecCheck(self):
         """make an interactive grid in which users can edit specimen names
         as well as which sample a specimen belongs to"""
@@ -52,7 +53,7 @@ class ErMagicCheckFrame3(wx.Frame):
         self.grid = self.spec_grid
         self.spec_grid.InitUI()
         self.grid_builder.add_data_to_grid(self.spec_grid, 'specimen')#, incl_pmag=False)
-        samples = spec_df['sample'].unique()
+        samples = sorted(spec_df['sample'].unique())
         self.drop_down_menu = drop_down_menus.Menus("specimen", self,
                                                     self.spec_grid, samples)
 
@@ -107,6 +108,402 @@ class ErMagicCheckFrame3(wx.Frame):
         self.Show()
         del wait
 
+    def InitSampCheck(self):
+        """make an interactive grid in which users can edit sample names
+        as well as which site a sample belongs to"""
+        self.sample_window += 1
+        samp_df = self.contribution.tables['samples'].df
+        self.panel = wx.Panel(self, style=wx.SIMPLE_BORDER)
+
+        if self.sample_window == 1:
+            text = """Step 2:
+Check that all samples are correctly named,
+and that they belong to the correct site
+(if site name is simply wrong, that will be fixed in step 3)"""
+            step_label = wx.StaticText(self.panel, label=text)#, size=(900, 100))
+        else:
+            text = """Step 4:
+Some of the data from the er_sites table has propogated into er_samples.
+Check that these data are correct, and fill in missing cells using controlled vocabularies.
+The columns for class, lithology, and type can take multiple values in the form of a colon-delimited list.
+You may use the drop-down menus to add as many values as needed in these columns.
+(see Help button for more details)\n\n** Denotes controlled vocabulary"""
+            step_label = wx.StaticText(self.panel, label=text)#, size=(900, 100))
+
+        if self.sample_window == 1:
+            headers = ['sample', 'site']
+        else:
+            headers = self.contribution.data_model.get_reqd_headers('samples')
+        self.grid_builder = grid_frame3.GridBuilder(self.contribution, 'samples',
+                                                    self.panel, 'sites', ['sample', 'site'])
+
+        self.samp_grid = self.grid_builder.make_grid()
+        self.samp_grid.InitUI()
+        self.grid_builder.add_data_to_grid(self.samp_grid, 'sample')
+        self.grid = self.samp_grid
+
+        sites = sorted(self.contribution.tables['sites'].df.index.unique())
+        self.drop_down_menu = drop_down_menus.Menus("sample", self,
+                                                    self.samp_grid, sites) # initialize all needed drop-down menus
+
+        ### Create Buttons ###
+        hbox_one = wx.BoxSizer(wx.HORIZONTAL)
+        self.addSiteButton = wx.Button(self.panel, label="Add a new site")
+        self.Bind(wx.EVT_BUTTON, self.on_addSiteButton, self.addSiteButton)
+        hbox_one.Add(self.addSiteButton, flag=wx.RIGHT, border=10)
+        if self.sample_window == 1:
+            html_help = "ErMagicSampleHelp1.html"
+        if self.sample_window > 1:
+            html_help = "ErMagicSampleHelp.html"
+        self.helpButton = wx.Button(self.panel, label="Help")
+        self.Bind(wx.EVT_BUTTON, lambda event: self.on_helpButton(event, html_help), self.helpButton)
+        hbox_one.Add(self.helpButton)
+
+        hboxok = wx.BoxSizer(wx.HORIZONTAL)
+        self.saveButton = wx.Button(self.panel, id=-1, label='Save')
+        self.Bind(wx.EVT_BUTTON, lambda event: self.on_saveButton(event, self.samp_grid), self.saveButton)
+        self.cancelButton = wx.Button(self.panel, wx.ID_CANCEL, '&Cancel')
+        self.Bind(wx.EVT_BUTTON, self.on_cancelButton, self.cancelButton)
+        self.continueButton = wx.Button(self.panel, id=-1, label='Save and continue')
+        next_dia = self.InitSiteCheck if self.sample_window < 2 else self.InitLocCheck
+        self.Bind(wx.EVT_BUTTON, lambda event: self.on_continueButton(event, self.samp_grid, next_dia=next_dia), self.continueButton)
+        self.backButton = wx.Button(self.panel, wx.ID_ANY, "&Back")
+        previous_dia = self.InitSpecCheck if self.sample_window < 2 else self.InitSiteCheck
+        self.Bind(wx.EVT_BUTTON, lambda event: self.on_backButton(event, previous_dia=previous_dia), self.backButton)
+
+        hboxok.Add(self.saveButton, flag=wx.RIGHT, border=10)
+        hboxok.Add(self.cancelButton, flag=wx.RIGHT, border=10)
+        hboxok.Add(self.continueButton, flag=wx.RIGHT, border=10)
+        hboxok.Add(self.backButton)
+
+        hboxgrid = pw.hbox_grid(self.panel, self.onDeleteRow, 'sample', self.grid)
+        self.deleteRowButton = hboxgrid.deleteRowButton
+
+        self.Bind(wx.grid.EVT_GRID_LABEL_LEFT_CLICK, self.onLeftClickLabel, self.grid)
+
+        ### Make Containers ###
+        vbox = wx.BoxSizer(wx.VERTICAL)
+        vbox.Add(step_label, flag=wx.ALIGN_LEFT|wx.TOP|wx.BOTTOM, border=20)
+
+        vbox.Add(hbox_one, flag=wx.BOTTOM|wx.LEFT, border=10)
+        vbox.Add(hboxok, flag=wx.BOTTOM|wx.LEFT, border=10)
+        vbox.Add(hboxgrid, flag=wx.BOTTOM|wx.LEFT, border=10)
+        vbox.Add(self.samp_grid, flag=wx.ALL, border=10) # using wx.EXPAND or not does not affect re-size problem
+        vbox.AddSpacer(20)
+
+        hbox_all = wx.BoxSizer(wx.HORIZONTAL)
+        hbox_all.AddSpacer(20)
+        hbox_all.AddSpacer(vbox)
+        hbox_all.AddSpacer(20)
+
+        self.panel.SetSizer(hbox_all)
+        #if sys.platform in ['win32', 'win64']:
+        #    self.panel.SetScrollbars(20, 20, 50, 50)
+        hbox_all.Fit(self)
+
+        self.Centre()
+        self.Show()
+
+        ## this combination may prevent a display error that (without the fix) only resolves on manually resizing the window
+        self.panel.Refresh()
+        self.samp_grid.ForceRefresh()
+        self.panel.Refresh()
+        self.Refresh()
+
+        # this prevents display errors
+        self.Hide()
+        self.Show()
+
+        #self.Fit() # this make it worse!
+        #self.Layout() # doesn't fix display resize error
+
+        #self.panel.Layout() # doesn't fix display resize error
+        #self.main_frame.Layout()# doesn't fix display resize error
+
+
+    def InitSiteCheck(self):
+        """make an interactive grid in which users can edit site names
+        as well as which location a site belongs to"""
+        self.panel = wx.Panel(self, style=wx.SIMPLE_BORDER)
+        site_df = self.contribution.tables['sites'].df
+
+        text = """Step 3:
+Check that all sites are correctly named, and that they belong to the correct location.
+Fill in the additional columns with controlled vocabularies.
+The columns for class, lithology, and type can take multiple values in the form of a colon-delimited list.
+You may use the drop-down menus to add as many values as needed in these columns.
+(see the help button for more details)
+note: Changes to site_class, site_lithology, or site_type will overwrite er_samples.txt
+However, you will be able to edit sample_class, sample_lithology, and sample_type in step 4
+
+**Denotes controlled vocabulary"""
+        label = wx.StaticText(self.panel, label=text)
+        #self.Data_hierarchy = self.ErMagic.Data_hierarchy
+        self.sites = sorted(site_df.index.unique())
+
+        reqd_headers = self.contribution.data_model.get_reqd_headers('sites')
+        self.grid_builder = grid_frame3.GridBuilder(self.contribution, 'sites',
+                                                   self.panel, 'locations', reqd_headers)
+
+
+        self.site_grid = self.grid_builder.make_grid()
+        self.site_grid.InitUI()
+        self.grid_builder.add_data_to_grid(self.site_grid, 'site')
+        self.grid = self.site_grid
+
+        # populate site_definition as 's' by default if no value is provided (indicates that site is single, not composite)
+        rows = self.site_grid.GetNumberRows()
+        col = 6
+        for row in range(rows):
+            cell = self.site_grid.GetCellValue(row, col)
+            if not cell:
+                self.site_grid.SetCellValue(row, col, 's')
+
+        # initialize all needed drop-down menus
+        locations = sorted(self.contribution.tables['locations'].df.index.unique())
+        self.drop_down_menu = drop_down_menus.Menus("site", self, self.site_grid, locations)
+
+        ### Create Buttons ###
+        hbox_one = wx.BoxSizer(wx.HORIZONTAL)
+        self.addLocButton = wx.Button(self.panel, label="Add a new location")
+
+        self.Bind(wx.EVT_BUTTON, self.on_addLocButton, self.addLocButton)
+        hbox_one.Add(self.addLocButton, flag=wx.RIGHT, border=10)
+
+        self.helpButton = wx.Button(self.panel, label="Help")
+        self.Bind(wx.EVT_BUTTON, lambda event: self.on_helpButton(event, "ErMagicSiteHelp.html"), self.helpButton)
+        hbox_one.Add(self.helpButton)
+
+        hboxok = wx.BoxSizer(wx.HORIZONTAL)
+        self.saveButton = wx.Button(self.panel, id=-1, label='Save')
+        self.Bind(wx.EVT_BUTTON, lambda event: self.on_saveButton(event, self.site_grid), self.saveButton)
+        self.cancelButton = wx.Button(self.panel, wx.ID_CANCEL, '&Cancel')
+        self.Bind(wx.EVT_BUTTON, self.on_cancelButton, self.cancelButton)
+        self.continueButton = wx.Button(self.panel, id=-1, label='Save and continue')
+        self.Bind(wx.EVT_BUTTON, lambda event: self.on_continueButton(event, self.site_grid, next_dia=self.InitSampCheck), self.continueButton)
+        self.backButton = wx.Button(self.panel, wx.ID_ANY, "&Back")
+        previous_dia = self.InitSampCheck
+        self.Bind(wx.EVT_BUTTON, lambda event: self.on_backButton(event, previous_dia=previous_dia), self.backButton)
+
+        hboxok.Add(self.saveButton, flag=wx.RIGHT, border=10)
+        hboxok.Add(self.cancelButton, flag=wx.RIGHT, border=10)
+        hboxok.Add(self.continueButton, flag=wx.RIGHT, border=10)
+        hboxok.Add(self.backButton)
+
+        #
+        hboxgrid = pw.hbox_grid(self.panel, self.onDeleteRow, 'site', self.grid)
+        self.deleteRowButton = hboxgrid.deleteRowButton
+
+        self.Bind(wx.grid.EVT_GRID_LABEL_LEFT_CLICK, self.onLeftClickLabel, self.grid)
+
+
+        ### Make Containers ###
+        vbox = wx.BoxSizer(wx.VERTICAL)
+        vbox.Add(label, flag=wx.ALIGN_CENTER|wx.BOTTOM|wx.TOP, border=20)
+        vbox.Add(hbox_one, flag=wx.BOTTOM|wx.LEFT, border=10)
+        vbox.Add(hboxok, flag=wx.BOTTOM|wx.LEFT, border=10)
+        vbox.Add(hboxgrid, flag=wx.BOTTOM|wx.LEFT, border=10)
+        vbox.Add(self.site_grid, flag=wx.ALL|wx.EXPAND, border=10) # EXPAND ??
+        vbox.AddSpacer(20)
+
+        hbox_all = wx.BoxSizer(wx.HORIZONTAL)
+        hbox_all.AddSpacer(20)
+        hbox_all.AddSpacer(vbox)
+        hbox_all.AddSpacer(20)
+
+        self.panel.SetSizer(hbox_all)
+        #if sys.platform in ['win32', 'win64']:
+        #    self.panel.SetScrollbars(20, 20, 50, 50)
+        hbox_all.Fit(self)
+        self.Centre()
+        self.Show()
+        # this combination prevents a display error that (without the fix) only resolves on manually resizing the window
+        self.site_grid.ForceRefresh()
+        self.panel.Refresh()
+        self.Hide()
+        self.Show()
+
+
+    def InitLocCheck(self):
+        """make an interactive grid in which users can edit specimen names
+        as well as which sample a specimen belongs to"""
+        self.panel = wx.Panel(self, style=wx.SIMPLE_BORDER)
+
+        text = """Step 5:
+Check that locations are correctly named.
+Fill in any blank cells using controlled vocabularies.
+(See Help button for details)
+
+** Denotes controlled vocabulary"""
+        label = wx.StaticText(self.panel, label=text)
+        #self.Data_hierarchy = self.ErMagic.Data_hierarchy
+        self.locations = self.er_magic_data.locations
+        #
+        if not self.er_magic_data.locations:
+            msg = "You have no data in er_locations, so we are skipping step 5.\n Note that location names must be entered at the measurements level,so you may need to re-import your data, or you can add a location in step 3"
+            dlg = wx.MessageDialog(None, caption="Message:", message=msg, style=wx.OK|wx.ICON_INFORMATION)
+            dlg.ShowModal()
+            dlg.Destroy()
+            self.panel.Destroy()
+            self.InitAgeCheck()
+            return
+
+        self.grid_builder = grid_frame.GridBuilder(self.er_magic_data, 'location',
+                                                   self.er_magic_data.headers, self.panel)
+        self.loc_grid = self.grid_builder.make_grid(incl_pmag=False)
+        self.loc_grid.InitUI()
+        self.grid_builder.add_data_to_grid(self.loc_grid, 'location', incl_pmag=False)
+        self.grid = self.loc_grid
+        # initialize all needed drop-down menus
+        self.drop_down_menu = drop_down_menus.Menus("location", self, self.loc_grid, None)
+
+        # need to find max/min lat/lon here IF they were added in the previous grid
+        sites = self.er_magic_data.sites
+        location_lat_lon = self.er_magic_data.get_min_max_lat_lon(self.er_magic_data.locations)
+
+        col_names = ('location_begin_lat', 'location_end_lat', 'location_begin_lon', 'location_end_lon')
+        col_inds = [self.grid.col_labels.index(name) for name in col_names]
+        col_info = zip(col_names, col_inds)
+        for loc in self.er_magic_data.locations:
+            row_ind = self.grid.row_labels.index(loc.name)
+            for col_name, col_ind in col_info:
+                info = location_lat_lon[loc.name][col_name]
+                self.grid.SetCellValue(row_ind, col_ind, str(info))
+
+        ### Create Buttons ###
+        hbox_one = wx.BoxSizer(wx.HORIZONTAL)
+        self.helpButton = wx.Button(self.panel, label="Help")
+        self.Bind(wx.EVT_BUTTON, lambda event: self.on_helpButton(event, "ErMagicLocationHelp.html"), self.helpButton)
+        hbox_one.Add(self.helpButton)
+
+        hboxok = wx.BoxSizer(wx.HORIZONTAL)
+        self.saveButton = wx.Button(self.panel, id=-1, label='Save')
+        self.Bind(wx.EVT_BUTTON, lambda event: self.on_saveButton(event, self.loc_grid), self.saveButton)
+        self.cancelButton = wx.Button(self.panel, wx.ID_CANCEL, '&Cancel')
+        self.Bind(wx.EVT_BUTTON, self.on_cancelButton, self.cancelButton)
+        self.continueButton = wx.Button(self.panel, id=-1, label='Save and continue')
+        self.Bind(wx.EVT_BUTTON, lambda event: self.on_continueButton(event, self.loc_grid, next_dia=self.InitAgeCheck), self.continueButton)
+        self.backButton = wx.Button(self.panel, wx.ID_ANY, "&Back")
+        previous_dia = self.InitSampCheck
+        self.Bind(wx.EVT_BUTTON, lambda event: self.on_backButton(event, previous_dia, current_dia=self.InitLocCheck), self.backButton)
+
+        hboxok.Add(self.saveButton, flag=wx.RIGHT, border=10)
+        hboxok.Add(self.cancelButton, flag=wx.RIGHT, border=10)
+        hboxok.Add(self.continueButton, flag=wx.RIGHT, border=10)
+        hboxok.Add(self.backButton)
+
+        #
+        hboxgrid = pw.hbox_grid(self.panel, self.onDeleteRow, 'location', self.grid)
+        self.deleteRowButton = hboxgrid.deleteRowButton
+
+        self.Bind(wx.grid.EVT_GRID_LABEL_LEFT_CLICK, self.onLeftClickLabel, self.grid)
+
+
+        ### Make Containers ###
+        vbox = wx.BoxSizer(wx.VERTICAL)
+        vbox.Add(label, flag=wx.ALIGN_CENTER|wx.TOP|wx.BOTTOM, border=20)
+        vbox.Add(hbox_one, flag=wx.BOTTOM|wx.ALIGN_LEFT, border=10)
+        vbox.Add(hboxok, flag=wx.BOTTOM|wx.ALIGN_LEFT, border=10)
+        vbox.Add(hboxgrid, flag=wx.BOTTOM|wx.ALIGN_LEFT, border=10)
+        vbox.Add(self.loc_grid, flag=wx.TOP|wx.BOTTOM, border=10)
+        vbox.AddSpacer(20)
+
+        hbox_all = wx.BoxSizer(wx.HORIZONTAL)
+        hbox_all.AddSpacer(20)
+        hbox_all.AddSpacer(vbox)
+        hbox_all.AddSpacer(20)
+
+        self.panel.SetSizer(hbox_all)
+        #if sys.platform in ['win32', 'win64']:
+        #    self.panel.SetScrollbars(20, 20, 50, 50)
+        hbox_all.Fit(self)
+        self.Centre()
+        self.Show()
+        self.Hide()
+        self.Show()
+
+    def InitAgeCheck(self):
+        """make an interactive grid in which users can edit ages"""
+        self.panel = wx.Panel(self, style=wx.SIMPLE_BORDER)
+
+        text = """Step 6:
+Fill in or correct any cells with information about ages.
+The column for magic_method_codes can take multiple values in the form of a colon-delimited list.
+You may use the drop-down menus to add as many values as needed in these columns.
+(See Help button for details)
+
+**Denotes controlled vocabulary """
+        label = wx.StaticText(self.panel, label=text)
+
+        self.items = self.er_magic_data.data_lists[self.er_magic_data.age_type][0]
+
+        self.grid_builder = grid_frame.GridBuilder(self.er_magic_data, 'age',
+                                                   self.er_magic_data.headers, self.panel, 'location')
+        self.age_grid = self.grid_builder.make_grid(incl_pmag=False)
+        self.age_grid.InitUI()
+        self.grid_builder.add_data_to_grid(self.age_grid, 'age', incl_pmag=False)
+        self.grid_builder.add_age_data_to_grid()
+
+        self.grid = self.age_grid
+        #
+        # make it impossible to edit the 1st and 3rd columns
+        for row in range(self.age_grid.GetNumberRows()):
+            for col in (0, 2):
+                self.age_grid.SetReadOnly(row, col, True)
+
+        # initialize all needed drop-down menus
+        self.drop_down_menu = drop_down_menus.Menus("age", self, self.age_grid, None)
+
+        # re-set first column name
+        self.age_grid.SetColLabelValue(0, 'er_site_name')
+
+        ### Create Buttons ###
+        hbox_one = wx.BoxSizer(wx.HORIZONTAL)
+        self.helpButton = wx.Button(self.panel, label="Help")
+        self.Bind(wx.EVT_BUTTON, lambda event: self.on_helpButton(event, "ErMagicAgeHelp.html"), self.helpButton)
+        hbox_one.Add(self.helpButton)
+
+        hboxok = wx.BoxSizer(wx.HORIZONTAL)
+        self.saveButton = wx.Button(self.panel, id=-1, label='Save')
+        self.Bind(wx.EVT_BUTTON, lambda event: self.on_saveButton(event, self.age_grid), self.saveButton)
+        self.cancelButton = wx.Button(self.panel, wx.ID_CANCEL, '&Cancel')
+        self.Bind(wx.EVT_BUTTON, self.on_cancelButton, self.cancelButton)
+        self.continueButton = wx.Button(self.panel, id=-1, label='Save and continue')
+        self.Bind(wx.EVT_BUTTON, lambda event: self.on_continueButton(event, self.age_grid, next_dia=None), self.continueButton)
+        self.backButton = wx.Button(self.panel, wx.ID_ANY, "&Back")
+        previous_dia = self.InitLocCheck
+        self.Bind(wx.EVT_BUTTON, lambda event: self.on_backButton(event, previous_dia), self.backButton)
+
+        self.panel.Bind(wx.grid.EVT_GRID_LABEL_LEFT_CLICK, self.onLeftClickLabel, self.grid)
+
+        hboxok.Add(self.saveButton, flag=wx.RIGHT, border=10)
+        hboxok.Add(self.cancelButton, flag=wx.RIGHT, border=10)
+        hboxok.Add(self.continueButton, flag=wx.RIGHT, border=10)
+        hboxok.Add(self.backButton)
+
+        ### Make Containers ###
+        vbox = wx.BoxSizer(wx.VERTICAL)
+        vbox.Add(label, flag=wx.ALIGN_CENTER|wx.TOP|wx.BOTTOM, border=20)#, flag=wx.ALIGN_LEFT|wx.BOTTOM, border=20)
+        vbox.Add(hbox_one, flag=wx.BOTTOM, border=10)
+        vbox.Add(hboxok, flag=wx.BOTTOM, border=10)
+        vbox.Add(self.age_grid, flag=wx.TOP|wx.BOTTOM, border=10) # EXPAND ??
+        vbox.AddSpacer(20)
+
+        hbox_all = wx.BoxSizer(wx.HORIZONTAL)
+        hbox_all.AddSpacer(20)
+        hbox_all.AddSpacer(vbox)
+        hbox_all.AddSpacer(20)
+
+        self.panel.SetSizer(hbox_all)
+        #if sys.platform in ['win32', 'win64']:
+        #    self.panel.SetScrollbars(20, 20, 50, 50)
+        hbox_all.Fit(self)
+        self.Centre()
+        self.Show()
+        self.Hide()
+        self.Show()
+
+
     #### Create Buttons ####
     ## fix all these
     def on_addSampleButton(self, event):
@@ -129,6 +526,42 @@ class ErMagicCheckFrame3(wx.Frame):
             choices = self.drop_down_menu.choices
             choices[1] = (samples, False)
             self.drop_down_menu.update_drop_down_menu(self.spec_grid, choices)
+
+    def on_addSiteButton(self, event):
+
+        def add_site(site, location):
+            add_site_data(site, location)
+
+        locations = self.contribution.tables['locations'].index.unique()
+        pw.AddItem(self, 'Site', add_site, locations, 'location')
+
+        def add_site_data(site, location):
+            # add site
+            row_data = {'site': site, 'location': location}
+            self.contribution.tables['sites'].add_row(site, row_data)
+            # re-Bind so that the updated sites list shows up on a left click
+            sites = sorted(self.contribution.tables['sites'].df.unique())
+            self.drop_down_menu.update_drop_down_menu(self.samp_grid, {1: (sites, False)})
+
+    def on_addLocButton(self, event):
+
+        def add_loc(loc):
+            add_loc_data(loc)
+
+        #def __init__(self, parent, title, data_items, data_method):
+
+        pw.AddItem(self, 'Location', add_loc, owner_items=None, belongs_to=None) # makes window for adding new data
+
+        def add_loc_data(loc):
+            # add location
+            row_data = {"location": loc}
+            self.contribution.tables['locations'].add_row(location, row_data)
+            # re-Bind so that the updated locations list shows up on a left click
+            locations = sorted(self.contribution.tables['locations'].index.unique())
+            choices = self.drop_down_menu.choices
+            choices[1] = (locations, False)
+            self.drop_down_menu.update_drop_down_menu(self.site_grid, choices)
+
 
     def on_helpButton(self, event, page=None):
         """shows html help page"""
@@ -197,6 +630,9 @@ class ErMagicCheckFrame3(wx.Frame):
             self.Destroy()
             del wait
 
+    def validate(self, grid):
+        print "validating!!!"
+        return []
 
     def on_saveButton(self, event, grid):
         """saves any editing of the grid but does not continue to the next window"""
@@ -316,6 +752,27 @@ class ErMagicCheckFrame3(wx.Frame):
             self.deleteRowButton.Disable()
         grid.SetRowAttr(row, attr)
         grid.Refresh()
+
+    ### Manage data methods ###
+
+    def onSave(self, grid):#, age_data_type='site'):
+        """
+        Save grid data in the data object
+        """
+        # deselect column, including remove 'EDIT ALL' label
+        if self.drop_down_menu:
+            self.drop_down_menu.clean_up()
+
+        # save all changes to er_magic data object
+        self.grid_builder.save_grid_data()
+
+        # don't actually write data in this step (time-consuming)
+        # instead, write to files when user is done editing
+        #self.er_magic_data.write_files()
+
+        wx.MessageBox('Saved!', 'Info',
+                      style=wx.OK | wx.ICON_INFORMATION)
+
 
 
 class ErMagicCheckFrame(wx.Frame):
