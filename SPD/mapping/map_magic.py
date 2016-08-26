@@ -44,7 +44,7 @@ meas_magic3_2_magic2_map = {'treat_dc_field_theta': 'treatment_dc_field_theta', 
 #meas_magic2_2_magic3_map = {v:k for k,v in meas_magic3_2_magic2_map.items()}
 
 #measurement data translation magic_measurements.txt -> measurements.txt
-meas_magic2_2_magic3_map = {'treatment_ac_field': 'treat_ac_field', 'measurement_number': 'number', 'treatment_dc_field_theta': 'treat_dc_field_theta', 'er_site_name': 'site', 'er_sample_name': 'sample', 'treatment_dc_field_phi': 'treat_dc_field_phi', 'measurement_magn_volume': 'magn_volume', 'magic_instrument_codes': 'instrument_codes', 'measurement_description': 'description', 'er_location_name': 'location', 'measurement_dec': 'dir_dec', 'measurement_flag': 'flag', 'measurement_magn_moment': 'magn_moment', 'measurement_inc': 'dir_inc', 'treatment_temp': 'treat_temp', 'er_specimen_name': 'specimen', 'measurement_csd': 'dir_csd', 'treatment_dc_field': 'treat_dc_field', 'measurement_magn_mass': 'magn_mass', 'magic_method_codes': 'method_codes','magic_experiment_name':'experiment'}
+meas_magic2_2_magic3_map = {'treatment_ac_field': 'treat_ac_field', 'measurement_number': 'number', 'treatment_dc_field_theta': 'treat_dc_field_theta', 'er_site_name': 'site', 'er_sample_name': 'sample', 'treatment_dc_field_phi': 'treat_dc_field_phi', 'measurement_magn_volume': 'magn_volume', 'magic_instrument_codes': 'instrument_codes', 'measurement_description': 'description', 'er_location_name': 'location', 'measurement_dec': 'dir_dec', 'measurement_flag': 'flag', 'measurement_magn_moment': 'magn_moment', 'measurement_inc': 'dir_inc', 'treatment_temp': 'treat_temp', 'er_specimen_name': 'specimen', 'measurement_csd': 'dir_csd', 'treatment_dc_field': 'treat_dc_field', 'measurement_magn_mass': 'magn_mass', 'magic_method_codes': 'method_codes','magic_experiment_name' : 'experiment', 'measurement_temp' : 'meas_temp', 'measurement_standard' : 'standard', 'measurement_positions' : 'meas_n_orient', 'measurement_sd_x' : 'magn_x_sigma', 'measurement_sd_y' : 'magn_y_sigma', 'measurement_sd_z' : 'magn_z_sigma', 'magic_software_packages' : 'software_packages', 'er_citation_names': 'citations'}
 
 
 #specimen data translation pmag_speciemns,er_specimens -> specimens.txt
@@ -67,6 +67,10 @@ site_magic3_2_magic2_map = {'int_abs_sigma': 'site_int_sigma', 'int_abs_sigma_pe
                             'lon': 'site_lon', 'geologic_types': 'site_type', 'lithologies': 'site_lithology'}
 
 site_magic2_2_magic3_map = {v: k for k, v in site_magic3_2_magic2_map.items()}
+
+loc_magic3_2_magic2_map = {'location': 'er_location_name', 'sites': 'er_site_names', 'citations': 'er_citation_names', 'lat_s':'location_begin_lat', 'lon_w': 'location_begin_lon', 'lat_n': 'location_end_lat', 'lon_e': 'location_end_lon'}
+
+loc_magic2_2_magic3_map = {v: k for k, v in list(loc_magic3_2_magic2_map.items())}
 
 aniso_magic3_2_magic2_map={'specimen':'er_specimen_name', 'aniso_type':'anisotropy_type', 'description':'result_description', 'aniso_ftest':'anisotropy_ftest', 'aniso_ftest12':'anisotropy_ftest12', 'aniso_ftest23':'anisotropy_ftest23', 'aniso_s_mean':'anisotropy_mean', 'aniso_s_n_measurements':'anisotropy_n', 'aniso_s_sigma':'anisotropy_sigma', 'aniso_s_unit':'anisotropy_unit', 'aniso_tilt_correction':'anisotropy_tilt_correction'}
 

@@ -2863,11 +2863,19 @@ class Demag_GUI(wx.Frame):
             if fname == None or (spec in self.pmag_results_data['specimens'].keys() and fname in map(lambda x: x.name, self.pmag_results_data['specimens'][spec])):
                 continue
             if fdict[i]['meas_step_unit'] == "K":
-                fmin = str(int(float(fdict[i]['meas_step_min'])-273)) + "C"
-                fmax = str(int(float(fdict[i]['meas_step_max'])-273)) + "C"
+                fmin = int(float(fdict[i]['meas_step_min'])-273)
+                fmax = int(float(fdict[i]['meas_step_max'])-273)
+                if fmin == 0: fmin = str(fmin)
+                else: fmin = str(fmin)+"C"
+                if fmax == 0: fmax = str(fmax)
+                else: fmax = str(fmax)+"C"
             elif fdict[i]['meas_step_unit'] == "T":
-                fmin = str(int(float(fdict[i]['meas_step_min'])*1000)) + "mT"
-                fmax = str(int(float(fdict[i]['meas_step_max'])*1000)) + "mT"
+                fmin = int(float(fdict[i]['meas_step_min'])*1000)
+                fmax = int(float(fdict[i]['meas_step_max'])*1000)
+                if fmin == 0: fmin = str(fmin)
+                else: fmin = str(fmin)+"mT"
+                if fmax == 0: fmax = str(fmax)
+                else: fmax = str(fmax)+"mT"
             else:
                 fmin = fdict[i]['meas_step_min']
                 fmax = fdict[i]['meas_step_max']
@@ -4508,23 +4516,31 @@ class Demag_GUI(wx.Frame):
                     if fit in self.bad_fits:
                         PmagSpecRec['specimen_flag'] = "b"
 
-                    if  fit.tmin =="0":
-                         PmagSpecRec['measurement_step_min'] ="0"
-                    elif "C" in fit.tmin:
-                        PmagSpecRec['measurement_step_min'] = "%.0f"%(mpars["measurement_step_min"]+273.)
-                    else:
-                        PmagSpecRec['measurement_step_min'] = "%8.3e"%(mpars["measurement_step_min"]*1e-3)
-
-                    if  fit.tmax =="0":
-                         PmagSpecRec['measurement_step_max'] ="0"
-                    elif "C" in fit.tmax:
-                        PmagSpecRec['measurement_step_max'] = "%.0f"%(mpars["measurement_step_max"]+273.)
-                    else:
-                        PmagSpecRec['measurement_step_max'] = "%8.3e"%(mpars["measurement_step_max"]*1e-3)
-                    if "C" in   fit.tmin  or "C" in fit.tmax:
+                    if "C" in fit.tmin or "C" in fit.tmax:
                         PmagSpecRec['measurement_step_unit']="K"
                     else:
                         PmagSpecRec['measurement_step_unit']="T"
+
+                    if "C" in fit.tmin:
+                        PmagSpecRec['measurement_step_min'] = "%.0f"%(mpars["measurement_step_min"]+273.)
+                    elif "mT" in fit.tmin:
+                        PmagSpecRec['measurement_step_min'] = "%8.3e"%(mpars["measurement_step_min"]*1e-3)
+                    else:
+                        if PmagSpecRec['measurement_step_unit']=="K":
+                            PmagSpecRec['measurement_step_min'] = "%.0f"%(mpars["measurement_step_min"]+273.)
+                        else:
+                            PmagSpecRec['measurement_step_min'] = "%8.3e"%(mpars["measurement_step_min"]*1e-3)
+
+                    if "C" in fit.tmax:
+                        PmagSpecRec['measurement_step_max'] = "%.0f"%(mpars["measurement_step_max"]+273.)
+                    elif "mT" in fit.tmax:
+                        PmagSpecRec['measurement_step_max'] = "%8.3e"%(mpars["measurement_step_max"]*1e-3)
+                    else:
+                        if PmagSpecRec['measurement_step_unit']=="K":
+                            PmagSpecRec['measurement_step_min'] = "%.0f"%(mpars["measurement_step_min"]+273.)
+                        else:
+                            PmagSpecRec['measurement_step_min'] = "%8.3e"%(mpars["measurement_step_min"]*1e-3)
+
                     PmagSpecRec['specimen_n'] = "%.0f"%mpars["specimen_n"]
                     calculation_type=mpars['calculation_type']
                     PmagSpecRec["magic_method_codes"]=self.Data[specimen]['magic_method_codes']+":"+calculation_type+":"+dirtype
