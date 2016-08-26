@@ -145,6 +145,8 @@ class Contribution(object):
                         df[parent] = meas_df.drop_duplicates(subset=[name])[parent].values
                 self.tables[name + "s"] = MagicDataFrame(dtype=name + "s", df=df)
 
+    def add_item(self, table_name, data, label):
+        self.tables[table_name].add_row(label, data)
 
     ## Methods for making changes to a Contribution
     ## that need to propagate to multiple tables
@@ -388,7 +390,7 @@ class MagicDataFrame(object):
             print "-W- To make a MagicDataFrame, you must provide either a filename or a datatype"
             return
         # fetch data model if not provided
-        if not isinstance(dmodel, type(None)):
+        if isinstance(dmodel, type(None)):
             self.data_model = data_model.DataModel()
         else:
             self.data_model = dmodel
@@ -462,7 +464,7 @@ class MagicDataFrame(object):
         if groups and not columns:
             columns = []
             for group_name in groups:
-                columns.extend(list(self.data_model.get_headers(self.dtype, group_name)))
+                columns.extend(list(self.data_model.get_group_headers(self.dtype, group_name)))
             for col in columns:
                 if col not in self.df.columns:
                     self.df[col] = None
@@ -558,7 +560,7 @@ class MagicDataFrame(object):
 
     def delete_rows(self,condition):
         """
-        delete all rows with  condition==True 
+        delete all rows with  condition==True
         inplace
         """
         self.df['num'] = range(len(self.df))
