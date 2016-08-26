@@ -129,7 +129,7 @@ def main(command_line=True, **kwargs):
             input_dir_path = dir_path
         output_dir_path = dir_path
         if '-dm' in args:
-            dmi = args.index('-dm'):
+            dmi = args.index('-dm')
             data_model = args[dmi+1]
 
     # if you are running as a module:
