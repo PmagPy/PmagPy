@@ -35,6 +35,7 @@ class ErMagicCheckFrame3(wx.Frame):
         """make an interactive grid in which users can edit specimen names
         as well as which sample a specimen belongs to"""
         wait = wx.BusyInfo("Please wait, working...")
+        wx.Yield()
         spec_df = self.contribution.tables['specimens'].df
         self.panel = wx.Panel(self, style=wx.SIMPLE_BORDER)
         #import wx.lib.scrolledpanel as libpanel # does not work well
@@ -110,17 +111,21 @@ class ErMagicCheckFrame3(wx.Frame):
     ## fix all these
     def on_addSampleButton(self, event):
 
-        def add_sample(sample, site):
+        def add_sample(sample, site=None):
             add_sample_data(sample, site)
 
-        sites = self.er_magic_data.make_name_list(self.er_magic_data.sites)
-        pw.AddItem(self, 'Sample', add_sample, owner_items=sites, belongs_to='site') # makes window for adding new data
+        sites = self.contribution.tables['sites'].df.index.unique()
+        # makes window for adding new data
+        pw.AddItem(self, 'Sample', add_sample,
+                   owner_items=sites, belongs_to='site')
 
         def add_sample_data(sample, site):
             # add sample
-            self.er_magic_data.add_sample(sample, site)
+            #self.er_magic_data.add_sample(sample, site)
+            row_data = {'sample': sample, 'site': site}
+            self.contribution.tables['samples'].add_row(sample, row_data)
             # re-Bind so that the updated samples list shows up on a left click
-            samples = sorted(self.er_magic_data.make_name_list(self.er_magic_data.samples))
+            samples = sorted(self.contribution.tables['samples'].df.index.unique())
             choices = self.drop_down_menu.choices
             choices[1] = (samples, False)
             self.drop_down_menu.update_drop_down_menu(self.spec_grid, choices)
