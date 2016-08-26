@@ -53,18 +53,23 @@ class MagIC_model_builder3(wx.Frame):
         else:
             self.contribution = contribution
 
-        #print '-I- Read in any available data from working directory'
-        #self.er_magic.get_all_magic_info()
-        #print '-I- Initializing headers'
-        #self.er_magic.init_default_headers()
-        #self.er_magic.init_actual_headers()
-        self.SetTitle("Earth-Ref Magic Builder" )
+        # first propagate from measurements
+        self.contribution.propagate_measurement_info()
+        # then add in blank tables if any are missing
+        self.table_list = ["specimens", "samples", "sites", "locations", "ages"]
+        for table in self.table_list:
+            if table not in self.contribution.tables:
+                new_table = nb.MagicDataFrame(dtype=table,
+                                              dmodel=self.contribution.data_model)
+                self.contribution.tables[table] = new_table
+
+        self.SetTitle("Earth-Ref Magic Builder")
         self.InitUI()
 
     def InitUI(self):
         pnl1 = self.panel
 
-        table_list = ["specimens", "samples", "sites", "locations", "ages"]
+
 
         box_sizers = []
         self.text_controls = {}
@@ -75,17 +80,23 @@ class MagIC_model_builder3(wx.Frame):
             self.contribution.data_model = data_model.DataModel()
         dmodel = self.contribution.data_model
 
-        for table in table_list:
-            N = table_list.index(table)
+        for table in self.table_list:
+            N = self.table_list.index(table)
             label = table
 
+            # make sure all tables have any actual headers (read from file)
+            # plus any required headers
+            reqd_headers = dmodel.get_reqd_headers(table)
             if table in self.contribution.tables:
                 df_container = self.contribution.tables[table]
-                actual_headers = df_container.df.columns
+                actual_headers = df_container.df.columns.union(reqd_headers)
             else:
-                actual_headers = dmodel.dm[table].get_required_headers()
+                actual_headers = reqd_headers
             optional_headers = dmodel.dm[table].index.difference(actual_headers)
-
+            # add any extra headers (i.e., reqd but not present), into the table
+            add_headers = actual_headers.difference(df_container.df.columns)
+            for head in add_headers:
+                df_container.df[head] = None
 
             box_sizer = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.ID_ANY,
                                                         table), wx.VERTICAL)
@@ -163,7 +174,7 @@ class MagIC_model_builder3(wx.Frame):
         # if they are not already present
         # add some strongly-recommended categories to age text_box
         if 'ages' in self.contribution.tables:
-            actual_age_headers = self.contribution.tables['ages'].df.columns
+            actual_age_headers = list(self.contribution.tables['ages'].df.columns)
         else:
             actual_age_headers = dmodel.get_reqd_headers('ages')
         for extra_header in ['age', 'age_unit']:
@@ -182,8 +193,6 @@ class MagIC_model_builder3(wx.Frame):
 
     def update_text_box(self, headers_list, text_control):
         text = ""
-        #command="keys=self.%s_header"%table
-        #exec command
         for key in sorted(headers_list):
             text = text + key + "\n"
         text = text[:-1]
@@ -191,13 +200,35 @@ class MagIC_model_builder3(wx.Frame):
         text_control.SetValue(text)
         self.Refresh()
 
+
     ### Button methods ###
 
     def on_add_button(self, event):
-        pass
+        table = event.GetEventObject().Name
+        text_control = self.text_controls[table]
+        info_option = self.info_options[table]
+        headers = list(self.contribution.tables[table].df.columns)
+        selName = info_option.GetStringSelection()
+
+        if selName not in headers:
+            self.contribution.tables[table].df[selName] = None
+            headers.append(selName)
+        self.update_text_box(headers, text_control)
 
     def on_remove_button(self, event):
-        pass
+        table = event.GetEventObject().Name
+        info_option = self.info_options[table]
+        text_control = self.text_controls[table]
+        #header = self.er_magic.headers[table]['er'][0]
+        #reqd_header = self.er_magic.headers[table]['er'][1]
+        headers = list(self.contribution.tables[table].df.columns)
+
+        selName = str(info_option.GetStringSelection())
+        if selName in headers: # and selName not in reqd_header:
+            del self.contribution.tables[table].df[selName]
+            headers.remove(selName)
+        self.update_text_box(headers, text_control)
+
 
     def on_okButton(self, event):
         pass

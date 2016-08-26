@@ -3279,9 +3279,10 @@ class Arai_GUI(wx.Frame):
                         self.spec_data['int_abs'] = None
                     cond2 = self.spec_data['int_abs'].notnull() == True
                     condition = (cond1 & cond2)
-                    self.spec_data = self.spec_container.update_record(specimen, new_data, condition) 
-                    self.spec_data['method_codes'].replace('',np.nan, inplace=True)
-                    condition=self.spec_data['method_codes'].str.match('') == True # find the blank records
+                     # update intensity records
+                    self.spec_data=self.spec_container.update_record(specimen, new_data, condition) 
+                     # delete essentially blank records
+                    condition=self.spec_data['method_codes'].notnull()==False  # find the blank records
                     self.spec_data = self.spec_container.delete_rows(condition)
 
         if self.data_model!=3: # write out pmag_specimens.txt file
