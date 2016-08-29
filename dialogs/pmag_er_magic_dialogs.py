@@ -6,6 +6,7 @@ import wx
 import wx.grid
 #import sys
 import os
+import pandas as pd
 import drop_down_menus
 import drop_down_menus3
 import pmag_widgets as pw
@@ -329,12 +330,11 @@ However, you will be able to edit sample_class, sample_lithology, and sample_typ
         self.Hide()
         self.Show()
 
-
     def InitLocCheck(self):
         """make an interactive grid in which users can edit specimen names
         as well as which sample a specimen belongs to"""
         self.panel = wx.Panel(self, style=wx.SIMPLE_BORDER)
-
+        loc_df = self.contribution.tables['locations'].df
         text = """Step 5:
 Check that locations are correctly named.
 Fill in any blank cells using controlled vocabularies.
@@ -343,10 +343,10 @@ Fill in any blank cells using controlled vocabularies.
 ** Denotes controlled vocabulary"""
         label = wx.StaticText(self.panel, label=text)
         #self.Data_hierarchy = self.ErMagic.Data_hierarchy
-        self.locations = self.er_magic_data.locations
+        self.locations = loc_df.index.unique()
         #
-        if not self.er_magic_data.locations:
-            msg = "You have no data in er_locations, so we are skipping step 5.\n Note that location names must be entered at the measurements level,so you may need to re-import your data, or you can add a location in step 3"
+        if not len(self.locations):
+            msg = "You have no location data.  You can go back and add a location at step 3, or re-import your measurement file with location data."
             dlg = wx.MessageDialog(None, caption="Message:", message=msg, style=wx.OK|wx.ICON_INFORMATION)
             dlg.ShowModal()
             dlg.Destroy()
@@ -354,28 +354,50 @@ Fill in any blank cells using controlled vocabularies.
             self.InitAgeCheck()
             return
 
-        self.grid_builder = grid_frame.GridBuilder(self.er_magic_data, 'location',
-                                                   self.er_magic_data.headers, self.panel)
-        self.loc_grid = self.grid_builder.make_grid(incl_pmag=False)
+        reqd_headers = self.contribution.data_model.get_reqd_headers('locations')
+        self.grid_builder = grid_frame3.GridBuilder(self.contribution, 'locations',
+                                                    self.panel, None, reqd_headers)
+        self.loc_grid = self.grid_builder.make_grid()
         self.loc_grid.InitUI()
-        self.grid_builder.add_data_to_grid(self.loc_grid, 'location', incl_pmag=False)
+        self.grid_builder.add_data_to_grid(self.loc_grid, 'location')
         self.grid = self.loc_grid
         # initialize all needed drop-down menus
         self.drop_down_menu = drop_down_menus3.Menus("locations", self.contribution,
-                                                     self.loc_grid) #, None)
+                                                     self.loc_grid)
 
         # need to find max/min lat/lon here IF they were added in the previous grid
-        sites = self.er_magic_data.sites
-        location_lat_lon = self.er_magic_data.get_min_max_lat_lon(self.er_magic_data.locations)
 
-        col_names = ('location_begin_lat', 'location_end_lat', 'location_begin_lon', 'location_end_lon')
+        # get min/max lat/lon from sites table
+        site_container = self.contribution.tables['sites']
+        # get minimum latitude by location
+        lat_s = site_container.df['lat'].groupby(site_container.df['location']).min()
+        # get maximum latitude by location
+        lat_n = site_container.df['lat'].groupby(site_container.df['location']).max()
+        # get minimum longitude by location
+        lon_w = site_container.df['lon'].groupby(site_container.df['location']).min() # ???
+        # get maximum longitude by location
+        lon_e = site_container.df['lon'].groupby(site_container.df['location']).max() # ???
+        # find latitude & longitude columns
+        col_names = ['lat_s', 'lat_n', 'lon_e', 'lon_w']
         col_inds = [self.grid.col_labels.index(name) for name in col_names]
-        col_info = zip(col_names, col_inds)
-        for loc in self.er_magic_data.locations:
-            row_ind = self.grid.row_labels.index(loc.name)
-            for col_name, col_ind in col_info:
-                info = location_lat_lon[loc.name][col_name]
-                self.grid.SetCellValue(row_ind, col_ind, str(info))
+        col_info = dict(zip(col_names, col_inds))
+        # for each location row, fill in site maximum/minimum lat/lon
+        for loc in lat_s.index:
+            coords = {}
+            coords['lat_s'] = lat_s[loc]
+            coords['lat_n'] = lat_n[loc]
+            coords['lon_e'] = lon_e[loc]
+            coords['lon_w'] = lon_w[loc]
+            # find all rows for a given location name
+            row_labels_series = pd.Series(self.grid.row_labels)
+            row_inds = row_labels_series[row_labels_series.values == loc].index
+            # set cell values for latitude/longitude
+            for row_ind in row_inds:
+                for coord in coords:
+                    col_ind = col_info[coord]
+                    val = coords[coord]
+                    if not self.grid.GetCellValue(row_ind, col_ind):
+                        self.grid.SetCellValue(row_ind, col_ind, str(val))
 
         ### Create Buttons ###
         hbox_one = wx.BoxSizer(wx.HORIZONTAL)
@@ -428,6 +450,7 @@ Fill in any blank cells using controlled vocabularies.
         self.Show()
         self.Hide()
         self.Show()
+
 
     def InitAgeCheck(self):
         """make an interactive grid in which users can edit ages"""
@@ -518,7 +541,7 @@ You may use the drop-down menus to add as many values as needed in these columns
         def add_sample(sample, site=None):
             add_sample_data(sample, site)
 
-        sites = self.contribution.tables['sites'].df.index.unique()
+        sites = sorted(self.contribution.tables['sites'].df.index.unique())
         # makes window for adding new data
         pw.AddItem(self, 'Sample', add_sample,
                    owner_items=sites, belongs_to='site')
@@ -539,7 +562,7 @@ You may use the drop-down menus to add as many values as needed in these columns
         def add_site(site, location):
             add_site_data(site, location)
 
-        locations = self.contribution.tables['locations'].df.index.unique()
+        locations = sorted(self.contribution.tables['locations'].df.index.unique())
         pw.AddItem(self, 'Site', add_site, locations, 'location')
 
         def add_site_data(site, location):
@@ -1104,7 +1127,6 @@ However, you will be able to edit sample_class, sample_lithology, and sample_typ
         self.Show()
 
 
-
     def InitLocCheck(self):
         """make an interactive grid in which users can edit specimen names
         as well as which sample a specimen belongs to"""
@@ -1136,7 +1158,8 @@ Fill in any blank cells using controlled vocabularies.
         self.grid_builder.add_data_to_grid(self.loc_grid, 'location', incl_pmag=False)
         self.grid = self.loc_grid
         # initialize all needed drop-down menus
-        self.drop_down_menu = drop_down_menus.Menus("location", self, self.loc_grid, None)
+        self.drop_down_menu = drop_down_menus3.Menus("locations", self.contribution,
+                                                     self.loc_grid) #, None)
 
         # need to find max/min lat/lon here IF they were added in the previous grid
         sites = self.er_magic_data.sites

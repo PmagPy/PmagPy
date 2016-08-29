@@ -29,7 +29,7 @@ class Contribution(object):
     for example, renaming a site.
     """
 
-    def __init__(self, directory, read_tables='all',
+    def __init__(self, directory=".", read_tables='all',
                  custom_filenames=None, single_file=None,
                  dmodel=None, vocabulary=""):
         if len(vocabulary):
