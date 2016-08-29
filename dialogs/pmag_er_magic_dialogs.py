@@ -7,6 +7,7 @@ import wx.grid
 #import sys
 import os
 import drop_down_menus
+import drop_down_menus3
 import pmag_widgets as pw
 import magic_grid
 import grid_frame
@@ -54,8 +55,8 @@ class ErMagicCheckFrame3(wx.Frame):
         self.spec_grid.InitUI()
         self.grid_builder.add_data_to_grid(self.spec_grid, 'specimen')#, incl_pmag=False)
         samples = sorted(spec_df['sample'].unique())
-        self.drop_down_menu = drop_down_menus.Menus("specimen", self,
-                                                    self.spec_grid, samples)
+        self.drop_down_menu = drop_down_menus3.Menus("specimens", self.contribution,
+                                                     self.spec_grid)#, samples)
 
         #### Create Buttons ####
         hbox_one = wx.BoxSizer(wx.HORIZONTAL)
@@ -134,6 +135,10 @@ You may use the drop-down menus to add as many values as needed in these columns
             headers = ['sample', 'site']
         else:
             headers = self.contribution.data_model.get_reqd_headers('samples')
+            # make sure that samples get propagated with
+            # any default site info
+            cols = ['lithologies', 'geologic_classes', 'geologic_types']
+            self.contribution.propagate_cols_down(cols, 'samples', 'sites')
         self.grid_builder = grid_frame3.GridBuilder(self.contribution, 'samples',
                                                     self.panel, 'sites', ['sample', 'site'])
 
@@ -143,8 +148,8 @@ You may use the drop-down menus to add as many values as needed in these columns
         self.grid = self.samp_grid
 
         sites = sorted(self.contribution.tables['sites'].df.index.unique())
-        self.drop_down_menu = drop_down_menus.Menus("sample", self,
-                                                    self.samp_grid, sites) # initialize all needed drop-down menus
+        self.drop_down_menu = drop_down_menus3.Menus("samples", self.contribution,
+                                                    self.samp_grid) #, sites) # initialize all needed drop-down menus
 
         ### Create Buttons ###
         hbox_one = wx.BoxSizer(wx.HORIZONTAL)
@@ -261,7 +266,8 @@ However, you will be able to edit sample_class, sample_lithology, and sample_typ
 
         # initialize all needed drop-down menus
         locations = sorted(self.contribution.tables['locations'].df.index.unique())
-        self.drop_down_menu = drop_down_menus.Menus("site", self, self.site_grid, locations)
+        self.drop_down_menu = drop_down_menus3.Menus("sites", self.contribution,
+                                                     self.site_grid) #, locations)
 
         ### Create Buttons ###
         hbox_one = wx.BoxSizer(wx.HORIZONTAL)
@@ -355,7 +361,8 @@ Fill in any blank cells using controlled vocabularies.
         self.grid_builder.add_data_to_grid(self.loc_grid, 'location', incl_pmag=False)
         self.grid = self.loc_grid
         # initialize all needed drop-down menus
-        self.drop_down_menu = drop_down_menus.Menus("location", self, self.loc_grid, None)
+        self.drop_down_menu = drop_down_menus3.Menus("locations", self.contribution,
+                                                     self.loc_grid) #, None)
 
         # need to find max/min lat/lon here IF they were added in the previous grid
         sites = self.er_magic_data.sites
@@ -532,7 +539,7 @@ You may use the drop-down menus to add as many values as needed in these columns
         def add_site(site, location):
             add_site_data(site, location)
 
-        locations = self.contribution.tables['locations'].index.unique()
+        locations = self.contribution.tables['locations'].df.index.unique()
         pw.AddItem(self, 'Site', add_site, locations, 'location')
 
         def add_site_data(site, location):
@@ -540,12 +547,12 @@ You may use the drop-down menus to add as many values as needed in these columns
             row_data = {'site': site, 'location': location}
             self.contribution.tables['sites'].add_row(site, row_data)
             # re-Bind so that the updated sites list shows up on a left click
-            sites = sorted(self.contribution.tables['sites'].df.unique())
+            sites = sorted(self.contribution.tables['sites'].df.index.unique())
             self.drop_down_menu.update_drop_down_menu(self.samp_grid, {1: (sites, False)})
 
     def on_addLocButton(self, event):
 
-        def add_loc(loc):
+        def add_loc(loc, parent=None):
             add_loc_data(loc)
 
         #def __init__(self, parent, title, data_items, data_method):
@@ -555,9 +562,9 @@ You may use the drop-down menus to add as many values as needed in these columns
         def add_loc_data(loc):
             # add location
             row_data = {"location": loc}
-            self.contribution.tables['locations'].add_row(location, row_data)
+            self.contribution.tables['locations'].add_row(loc, row_data)
             # re-Bind so that the updated locations list shows up on a left click
-            locations = sorted(self.contribution.tables['locations'].index.unique())
+            locations = sorted(self.contribution.tables['locations'].df.index.unique())
             choices = self.drop_down_menu.choices
             choices[1] = (locations, False)
             self.drop_down_menu.update_drop_down_menu(self.site_grid, choices)
@@ -613,10 +620,9 @@ You may use the drop-down menus to add as many values as needed in these columns
         # make sure that specimens get propagated with
         # any default sample info
         if next_dia == self.InitLocCheck:
-            if self.er_magic_data.specimens:
-                for spec in self.er_magic_data.specimens:
-                    spec.propagate_data()
-
+            if len(self.contribution.tables['specimens'].df.index):
+                cols = ['lithologies', 'geologic_classes', 'geologic_types']
+                self.contribution.propagate_cols_down(cols, 'specimens', 'samples')
         if next_dia:
             wait = wx.BusyInfo("Please wait, working...")
             wx.Yield()
@@ -1376,7 +1382,7 @@ You may use the drop-down menus to add as many values as needed in these columns
 
     def on_addLocButton(self, event):
 
-        def add_loc(loc):
+        def add_loc(loc, parent=None):
             add_loc_data(loc)
 
         #def __init__(self, parent, title, data_items, data_method):

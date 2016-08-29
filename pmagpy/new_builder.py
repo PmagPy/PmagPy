@@ -322,7 +322,6 @@ class Contribution(object):
         Put the data for "col_name" from source_df into target_df
         Used to get "azimuth" from sample table into measurements table
         (for example).
-        ###Note: if getting data from the sample table, don't include "sample_name"
         Note: if getting data from the sample table, don't include "sample"
         in the col_names list.  It is included automatically.
         """

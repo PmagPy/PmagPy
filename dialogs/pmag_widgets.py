@@ -783,7 +783,7 @@ class AddItem(wx.Frame):
             owner = str(self.owner_name.GetValue())
             self.onAdd(item, owner)
         else:
-            self.onAdd(item)
+            self.onAdd(item, None)
         self.Destroy()
 
 
