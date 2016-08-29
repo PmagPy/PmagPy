@@ -6598,16 +6598,19 @@ class Arai_GUI(wx.Frame):
                                                 vocabulary=self.vocabulary)
             if 'specimens' in self.contribution.tables:
                 self.spec_container = self.contribution.tables['specimens']
+                self.spec_container.write_magic_file(custom_name='specimens.bak', dir_path=self.WD) # create backup file with original
             else:
                 self.spec_container = nb.MagicDataFrame(dtype='specimens',columns=['specimen','aniso_type'])
             self.spec_data = self.spec_container.df
             if 'samples' in self.contribution.tables:
                 self.samp_container = self.contribution.tables['samples']
+                self.samp_container.write_magic_file(custom_name='samples.bak', dir_path=self.WD) # create backup file with original
             else:
                 self.samp_container = nb.MagicDataFrame(dtype='samples',columns=['sample'])
             self.samp_data = self.samp_container.df # only need this for saving tables
             if 'sites' in self.contribution.tables:
                 self.site_container = self.contribution.tables['sites']
+                self.site_container.write_magic_file(custom_name='sites.bak', dir_path=self.WD) # create backup file with original
                 self.site_data = self.site_container.df
                 self.site_data = self.site_data[self.site_data['lat'].notnull()]
                 self.site_data = self.site_data[self.site_data['lon'].notnull()]
