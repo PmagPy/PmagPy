@@ -734,7 +734,7 @@ class GridBuilder(object):
         return grid
         """
         # if there is a MagicDataFrame, extract data from it
-        if isinstance(self.magic_dataframe, nb.MagicDataFrame) and len(self.magic_dataframe.df):
+        if isinstance(self.magic_dataframe, nb.MagicDataFrame):# and len(self.magic_dataframe.df):
             # get columns and reorder slightly
             col_labels = list(self.magic_dataframe.df.columns)
             if self.grid_type == 'ages':

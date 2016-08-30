@@ -174,9 +174,10 @@ class MagIC_model_builder3(wx.Frame):
             actual_age_headers = list(self.contribution.tables['ages'].df.columns)
         else:
             actual_age_headers = dmodel.get_reqd_headers('ages')
-        for extra_header in ['age', 'age_unit']:
+        for extra_header in ['age', 'age_unit', 'site']:
             if extra_header not in actual_age_headers:
                 actual_age_headers.append(extra_header)
+                self.contribution.tables['ages'].df[extra_header] = None
         add_age_headers = list(set(actual_age_headers))
         self.update_text_box(add_age_headers, self.text_controls['ages'])
 
