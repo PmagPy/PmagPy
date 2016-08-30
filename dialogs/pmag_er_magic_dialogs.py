@@ -45,7 +45,7 @@ class ErMagicCheckFrame3(wx.Frame):
 
         text = """Step 1:
         Check that all specimens belong to the correct sample
-        (if sample name is simply wrong, that will be fixed in step 2)"""
+        (if sample name itself is incorrect , that will be fixed in step 2)"""
         label = wx.StaticText(self.panel, label=text)
         reqd_headers = self.contribution.data_model.get_reqd_headers('specimens')
         self.grid_builder = grid_frame3.GridBuilder(self.contribution, 'specimens',
@@ -64,7 +64,7 @@ class ErMagicCheckFrame3(wx.Frame):
         self.samples = samples #[name for name in self.er_magic_data.samples]
         self.Bind(wx.EVT_BUTTON, self.on_addSampleButton, self.addSampleButton)
         self.helpButton = wx.Button(self.panel, label="Help")
-        self.Bind(wx.EVT_BUTTON, lambda event: self.on_helpButton(event, "ErMagicSpecimenHelp.html"), self.helpButton)
+        self.Bind(wx.EVT_BUTTON, lambda event: self.on_helpButton(event, "ErMagicSpecimenHelp3.html"), self.helpButton)
         hbox_one.Add(self.addSampleButton, flag=wx.ALIGN_LEFT|wx.RIGHT, border=10)
         hbox_one.Add(self.helpButton)
         #
@@ -120,11 +120,13 @@ class ErMagicCheckFrame3(wx.Frame):
             text = """Step 2:
 Check that all samples are correctly named,
 and that they belong to the correct site
-(if site name is simply wrong, that will be fixed in step 3)"""
+(if site name itself is incorrect, that will be fixed in step 3).
+Geologic_class, geologic_type, and lithologies will be
+filled in automatically from site data, so you need not enter them here."""
             step_label = wx.StaticText(self.panel, label=text)#, size=(900, 100))
         else:
             text = """Step 4:
-Some of the data from the er_sites table has propogated into er_samples.
+Some of the data from the sites table has propogated into the samples table.
 Check that these data are correct, and fill in missing cells using controlled vocabularies.
 The columns for class, lithology, and type can take multiple values in the form of a colon-delimited list.
 You may use the drop-down menus to add as many values as needed in these columns.
@@ -159,7 +161,7 @@ You may use the drop-down menus to add as many values as needed in these columns
         if self.sample_window == 1:
             html_help = "ErMagicSampleHelp1.html"
         if self.sample_window > 1:
-            html_help = "ErMagicSampleHelp.html"
+            html_help = "ErMagicSampleHelp3.html"
         self.helpButton = wx.Button(self.panel, label="Help")
         self.Bind(wx.EVT_BUTTON, lambda event: self.on_helpButton(event, html_help), self.helpButton)
         hbox_one.Add(self.helpButton)
@@ -235,11 +237,12 @@ You may use the drop-down menus to add as many values as needed in these columns
         text = """Step 3:
 Check that all sites are correctly named, and that they belong to the correct location.
 Fill in the additional columns with controlled vocabularies.
-The columns for class, lithology, and type can take multiple values in the form of a colon-delimited list.
+The columns for geologic_class, lithologies, and geologic_type can
+take multiple values in the form of a colon-delimited list.
 You may use the drop-down menus to add as many values as needed in these columns.
 (see the help button for more details)
-note: Changes to site_class, site_lithology, or site_type will overwrite er_samples.txt
-However, you will be able to edit sample_class, sample_lithology, and sample_type in step 4
+note: Changes to geologic_class, lithologies, or geologic_types will overwrite data in the samples table.
+However, you will be able to edit samples again in step 4.
 
 **Denotes controlled vocabulary"""
         label = wx.StaticText(self.panel, label=text)
@@ -269,7 +272,7 @@ However, you will be able to edit sample_class, sample_lithology, and sample_typ
         hbox_one.Add(self.addLocButton, flag=wx.RIGHT, border=10)
 
         self.helpButton = wx.Button(self.panel, label="Help")
-        self.Bind(wx.EVT_BUTTON, lambda event: self.on_helpButton(event, "ErMagicSiteHelp.html"), self.helpButton)
+        self.Bind(wx.EVT_BUTTON, lambda event: self.on_helpButton(event, "ErMagicSiteHelp3.html"), self.helpButton)
         hbox_one.Add(self.helpButton)
 
         hboxok = wx.BoxSizer(wx.HORIZONTAL)
@@ -328,7 +331,7 @@ However, you will be able to edit sample_class, sample_lithology, and sample_typ
         loc_df = self.contribution.tables['locations'].df
         text = """Step 5:
 Check that locations are correctly named.
-Fill in any blank cells using controlled vocabularies.
+Fill in blank cells using controlled vocabularies.
 (See Help button for details)
 
 ** Denotes controlled vocabulary"""
@@ -393,7 +396,7 @@ Fill in any blank cells using controlled vocabularies.
         ### Create Buttons ###
         hbox_one = wx.BoxSizer(wx.HORIZONTAL)
         self.helpButton = wx.Button(self.panel, label="Help")
-        self.Bind(wx.EVT_BUTTON, lambda event: self.on_helpButton(event, "ErMagicLocationHelp.html"), self.helpButton)
+        self.Bind(wx.EVT_BUTTON, lambda event: self.on_helpButton(event, "ErMagicLocationHelp3.html"), self.helpButton)
         hbox_one.Add(self.helpButton)
 
         hboxok = wx.BoxSizer(wx.HORIZONTAL)
@@ -451,6 +454,9 @@ Fill in any blank cells using controlled vocabularies.
 Fill in or correct any cells with information about ages.
 The column for method_codes can take multiple values in the form of a colon-delimited list.
 You may use the drop-down menus to add as many values as needed in these columns.
+Ages may be added for any level from specimen - location.
+The data in a row will be associated with the lowest level that is filled in,
+(i.e., if you fill in both 'specimen' and 'sample', the age data will be associated with that specimen).
 (See Help button for details)
 
 **Denotes controlled vocabulary """
@@ -470,7 +476,7 @@ You may use the drop-down menus to add as many values as needed in these columns
         ### Create Buttons ###
         hbox_one = wx.BoxSizer(wx.HORIZONTAL)
         self.helpButton = wx.Button(self.panel, label="Help")
-        self.Bind(wx.EVT_BUTTON, lambda event: self.on_helpButton(event, "ErMagicAgeHelp.html"), self.helpButton)
+        self.Bind(wx.EVT_BUTTON, lambda event: self.on_helpButton(event, "ErMagicAgeHelp3.html"), self.helpButton)
         hbox_one.Add(self.helpButton)
 
         hboxok = wx.BoxSizer(wx.HORIZONTAL)

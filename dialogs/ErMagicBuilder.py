@@ -160,7 +160,7 @@ class MagIC_model_builder3(wx.Frame):
             hbox.AddSpacer(5)
         hbox.AddSpacer(5)
 
-        text = wx.StaticText(self.panel, label="Step 0:\nChoose the headers for your er_specimens, er_samples, er_sites, er_locations and er_ages text files.\nOnce you have selected all necessary headers, click the OK button to move on to step 1.\nFor more information, click the help button below.")
+        text = wx.StaticText(self.panel, label="Step 0:\nChoose the headers for your specimens, samples, sites, locations and ages text files.\nOnce you have selected all necessary headers, click the OK button to move on to step 1.\nFor more information, click the help button below.")
         vbox.Add(text, flag=wx.ALIGN_LEFT|wx.ALL, border=20)
         #vbox.AddSpacer(20)
         vbox.Add(hbox)
@@ -377,7 +377,7 @@ class MagIC_model_builder(wx.Frame):
             hbox.AddSpacer(5)
         hbox.AddSpacer(5)
 
-        text = wx.StaticText(self.panel, label="Step 0:\nChoose the headers for your er_specimens, er_samples, er_sites, er_locations and er_ages text files.\nOnce you have selected all necessary headers, click the OK button to move on to step 1.\nFor more information, click the help button below.")
+        text = wx.StaticText(self.panel, label="Step 0:\nChoose the headers for your specimens, samples, sites, locations and ages tables.\nOnce you have selected all necessary headers, click the OK button to move on to step 1.\nFor more information, click the help button below.")
         vbox.Add(text, flag=wx.ALIGN_LEFT|wx.ALL, border=20)
         #vbox.AddSpacer(20)
         vbox.Add(hbox)
