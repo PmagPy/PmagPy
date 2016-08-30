@@ -5528,7 +5528,7 @@ def unpack(gh):
 def magsyn(gh,sv,b,date,itype,alt,colat,elong):
     """
 # Computes x, y, z, and f for a given date and position, from the
-# spherical harmonic coeifficients of the International Geomagnetic
+# spherical harmonic coefficients of the International Geomagnetic
 # Reference Field (IGRF).
 # From Malin and Barraclough (1981), Computers and Geosciences, V.7, 401-405.
 #
