@@ -222,7 +222,7 @@ def convert_ages(Recs):
 def convert_meas_2_to_3(meas_data_2):
     NewMeas=[]
 # step through records
-    for rec in data2: NewMeas.append(map_magic.convert_meas('magic3',rec))
+    for rec in meas_data_2: NewMeas.append(map_magic.convert_meas('magic3',rec))
     return NewMeas
 
 
