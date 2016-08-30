@@ -257,14 +257,6 @@ However, you will be able to edit sample_class, sample_lithology, and sample_typ
         self.grid_builder.add_data_to_grid(self.site_grid, 'site')
         self.grid = self.site_grid
 
-        # populate site_definition as 's' by default if no value is provided (indicates that site is single, not composite)
-        rows = self.site_grid.GetNumberRows()
-        col = 6
-        for row in range(rows):
-            cell = self.site_grid.GetCellValue(row, col)
-            if not cell:
-                self.site_grid.SetCellValue(row, col, 's')
-
         # initialize all needed drop-down menus
         locations = sorted(self.contribution.tables['locations'].df.index.unique())
         self.drop_down_menu = drop_down_menus3.Menus("sites", self.contribution,
