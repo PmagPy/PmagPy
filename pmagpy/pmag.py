@@ -226,80 +226,25 @@ def convert_meas_2_to_3(meas_data_2):
     return NewMeas
 
 
-def convert2_3(fname, input_dir=".", output_dir="."):
+def convert_measfile_2_to_3(fname, input_dir=".", output_dir="."):
+    """
+    Convert 2.0 measurements file into 3.0 measurements file.
+    """
     full_name = os.path.join(input_dir, fname)
     if not os.path.exists(full_name):
         print "-W- {} is not a file".format(full_name)
         return
     # read in data model 2.5 measurements file
     data2, filetype = magic_read(full_name)
-    # utility function for converting a dictionary
-    def flip_dict(dictionary):
-        newdict = {}
-        for key in dictionary:
-            val = dictionary[key]
-            newdict[val] = key
-        return newdict
-    # conversion dicts
-    spec3_spec2={'int_drats': 'specimen_drats', 'site': 'er_site_name', 'int_mad': 'specimen_int_mad',
-             'sample': 'er_sample_name', 'measurement_step_max': 'meas_step_max',
-             'specimen_n': 'dir_n_measurements', 'int_n_measurements': 'specimen_int_n',
-             'int_corr': 'specimen_correction', 'int_rsc': 'specimen_rsc',
-             'analyst_names': 'er_analyst_mail_names', 'int_scat': 'specimen_scat',
-             'int_ptrm_n': 'specimen_int_ptrm_n', 'citations': 'er_citation_names',
-             'int_gmax': 'specimen_gmax', 'int_dang': 'specimen_int_dang',
-             'dir_tilt_correction': 'specimen_tilt_correction', 'location': 'er_location_name',
-             'dir_comp': 'specimen_comp_name', 'specimen_magn_moment': 'magn_moment',
-             'int_w': 'specimen_w', 'specimen': 'er_specimen_name', 'int_q': 'specimen_q',
-             'int_fvds': 'specimen_fvds', 'specimen_mad': 'dir_mad_free',
-             'int_frac': 'specimen_frac', 'meas_step_min': 'measurement_step_min',
-             'int_f': 'specimen_f', 'software_packages': 'magic_software_packages',
-             'dir_mad_free': 'specimen_mad', 'magn_moment': 'specimen_magn_moment',
-             'instrument_codes': 'magic_instrument_codes', 'int_b_beta': 'specimen_b_beta',
-             'dir_n_comps': 'specimen_comp_n', 'int_md': 'specimen_md',
-             'dir_n_measurements': 'specimen_n', 'dir_inc': 'specimen_inc',
-             'specimen_magn_volumn': 'magn_volumn', 'meas_step_max': 'measurement_step_max',
-             'dir_alpha95': 'specimen_alpha95', 'magn_volumne': 'specimen_magn_volumn',
-             'measurement_step_min': 'meas_step_min', 'meas_step_unit': 'measurement_step_unit',
-             'dir_dec': 'specimen_dec', 'method_codes': 'magic_method_codes',
-             'result_quality': 'specimen_flag', 'dir_dang': 'specimen_dang'}
-    site3_site2 = {'int_abs_sigma' : 'site_int_sigma', 'int_abs_sigma_perc' : 'site_int_sigma_perc',
-                   'int_n_samples' : 'site_int_n', 'dir_alpha95' : 'site_alpha95', 'dir_k' : 'site_k',
-                   'dir_n_samples' : 'site_n', 'dir_n_specimens_lines' : 'site_n_lines',
-                   'dir_n_specimens_planes' : 'site_n_planes', 'dir_r' : 'site_r'}
-    aniso3_aniso2 = {'specimen':'er_specimen_name', 'aniso_type':'anisotropy_type',
-                     'description':'result_description', 'aniso_ftest':'anisotropy_ftest',
-                     'aniso_ftest12':'anisotropy_ftest12', 'aniso_ftest23':'anisotropy_ftest23',
-                     'aniso_s_mean':'anisotropy_mean', 'aniso_s_n_measurements':'anisotropy_n',
-                     'aniso_s_sigma':'anisotropy_sigma', 'aniso_s_unit':'anisotropy_unit',
-                     'aniso_tilt_correction':'anisotropy_tilt_correction'}
-    samp3_samp2 = {'int_n_specimens' : 'sample_int_n', 'int_abs_sigma' : 'sample_int_sigma',
-                   'int_abs_sigma_perc' : 'sample_int_sigma_perc', 'dir_alpha95' : 'sample_alpha95',
-                   'dir_n_specimens' : 'sample_n', 'dir_n_specimens_lines' : 'sample_n_lines',
-                   'dir_n_specimens_planes' : 'sample_n_planes', 'dir_k' : 'sample_k',
-                   'dir_r' : 'sample_r'}
-    meas3_meas2 = {'treat_dc_field_theta': 'treatment_dc_field_theta', 'sample': 'er_sample_name',
-                   'treat_dc_field': 'treatment_dc_field',
-                   'instrument_codes': 'magic_instrument_codes',
-                   'description': 'measurement_description', 'magn_volume': 'measurement_magn_volume',
-                   'specimen': 'er_specimen_name', 'treat_dc_field_phi': 'treatment_dc_field_phi',
-                   'number': 'measurement_number', 'site': 'er_site_name',
-                   'treat_ac_field': 'treatment_ac_field', 'flag': 'measurement_flag',
-                   'dir_inc': 'measurement_inc', 'location': 'er_location_name',
-                   'dir_dec': 'measurement_dec', 'method_codes': 'magic_method_codes',
-                   'treat_temp': 'treatment_temp', 'magn_moment': 'measurement_magn_moment',
-                   'magn_mass': 'measurement_magn_mass', 'dir_csd': 'measurement_csd'}
-    NewMeas = []
-    # step through records
-    for rec in data2:
-        NewMeas.append(map_magic.convert_meas('magic3', rec))
-    # write 3.0. output to file
+    # convert list of dicts to 3.0
+    NewMeas = convert_meas_2_to_3(data2)
+    # write 3.0 output to file
     ofile = os.path.join(output_dir, 'measurements.txt')
     magic_write(ofile, NewMeas,'measurements')
     if os.path.exists(ofile):
-        print "-I- 3.0. format measurements file was successfully created: {}".format(ofile)
+        print "-I- 3.0 format measurements file was successfully created: {}".format(ofile)
     else:
-        print "-W- 3.0. format measurements file could not be created"
+        print "-W- 3.0 format measurements file could not be created"
     return NewMeas
 
 
