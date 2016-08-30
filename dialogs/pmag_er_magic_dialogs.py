@@ -447,37 +447,26 @@ Fill in any blank cells using controlled vocabularies.
     def InitAgeCheck(self):
         """make an interactive grid in which users can edit ages"""
         self.panel = wx.Panel(self, style=wx.SIMPLE_BORDER)
-
+        age_df = self.contribution.tables['locations'].df
         text = """Step 6:
 Fill in or correct any cells with information about ages.
-The column for magic_method_codes can take multiple values in the form of a colon-delimited list.
+The column for method_codes can take multiple values in the form of a colon-delimited list.
 You may use the drop-down menus to add as many values as needed in these columns.
 (See Help button for details)
 
 **Denotes controlled vocabulary """
         label = wx.StaticText(self.panel, label=text)
-
-        self.items = self.er_magic_data.data_lists[self.er_magic_data.age_type][0]
-
-        self.grid_builder = grid_frame.GridBuilder(self.er_magic_data, 'age',
-                                                   self.er_magic_data.headers, self.panel, 'location')
-        self.age_grid = self.grid_builder.make_grid(incl_pmag=False)
+        reqd_headers = self.contribution.data_model.get_reqd_headers('ages')
+        self.grid_builder = grid_frame3.GridBuilder(self.contribution, 'ages',
+                                                   self.panel, None, reqd_headers)
+        self.age_grid = self.grid_builder.make_grid()
         self.age_grid.InitUI()
-        self.grid_builder.add_data_to_grid(self.age_grid, 'age', incl_pmag=False)
-        self.grid_builder.add_age_data_to_grid()
-
+        self.grid_builder.add_data_to_grid(self.age_grid, 'age')
         self.grid = self.age_grid
         #
-        # make it impossible to edit the 1st and 3rd columns
-        for row in range(self.age_grid.GetNumberRows()):
-            for col in (0, 2):
-                self.age_grid.SetReadOnly(row, col, True)
-
         # initialize all needed drop-down menus
-        self.drop_down_menu = drop_down_menus.Menus("age", self, self.age_grid, None)
-
-        # re-set first column name
-        self.age_grid.SetColLabelValue(0, 'er_site_name')
+        self.drop_down_menu = drop_down_menus3.Menus("ages", self.contribution,
+                                                     self.age_grid)#, None)
 
         ### Create Buttons ###
         hbox_one = wx.BoxSizer(wx.HORIZONTAL)

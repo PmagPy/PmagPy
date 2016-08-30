@@ -444,6 +444,8 @@ class MagicDataFrame(object):
                 return
             if len(self.df) and dtype != 'age':
                 self.df.index = self.df[name]
+            elif dtype == 'age':
+                self.df.index = self.df.index.astype(str)
             #del self.df[name]
             #self.dtype = dtype
             # replace '' with None, so you can use isnull(), notnull(), etc.
@@ -526,6 +528,10 @@ class MagicDataFrame(object):
                 if col_label not in row_data.keys():
                     row_data[col_label] = None
 
+        # (make sure you are working with strings)
+        self.df.index = self.df.index.astype(str)
+        label = str(label)
+
         # create a new row with suffix "new"
         # (this ensures that you get a unique, new row,
         #  instead of adding on to an existing row with the same label)
@@ -576,11 +582,6 @@ class MagicDataFrame(object):
         df_data['num'] = range(len(df_data))
         self.df = df_data
         return df_data
-
-
-
-
-
 
 
     def update_record(self, name, new_data, condition, update_only=False,
