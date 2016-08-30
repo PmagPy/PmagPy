@@ -2,10 +2,10 @@
 dialogs for ErMagicBuilder
 """
 # pylint: disable=W0612,C0111,C0103,W0201,C0301
+import os
 import wx
 import wx.grid
 #import sys
-import os
 import pandas as pd
 import drop_down_menus
 import drop_down_menus3
@@ -14,7 +14,6 @@ import magic_grid
 import grid_frame
 import grid_frame3
 import pmagpy.check_updates as check_updates
-
 
 
 class ErMagicCheckFrame3(wx.Frame):
@@ -633,12 +632,11 @@ You may use the drop-down menus to add as many values as needed in these columns
             next_dia()
             del wait
         else:
-            wait = wx.BusyInfo("Please wait, writing data to files...")
-            wx.Yield()
-            # actually write data:
-            self.er_magic_data.write_files()
             self.Destroy()
-            del wait
+            wx.MessageBox('Step 3 completed!', 'Info',
+                          wx.OK | wx.ICON_INFORMATION)
+
+
 
     def validate(self, grid):
         print "validating!!!"
