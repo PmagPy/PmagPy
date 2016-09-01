@@ -253,7 +253,7 @@ def getsampVGP(SampRec,SiteNFO,data_model=2.5):
         site=get_dictitem(SiteNFO,'site',SampRec['site'],'T')
         if len(site) > 1:
             lat,lon,i = None,None,0
-            while lat == None or lon == None:
+            while lat == None or lon == None or i >= len(site):
                 if site[i]['lat']!=None:
                     lat = float(site[i]['lat'])
                 if site[i]['lon']!=None:
@@ -287,8 +287,17 @@ def getsampVGP(SampRec,SiteNFO,data_model=2.5):
         return ResRec
     else:
         site=get_dictitem(SiteNFO,'er_site_name',SampRec['er_site_name'],'T')
-        lat=float(site['site_lat'])
-        lon=float(site['site_lon'])
+        if len(site) > 1:
+            lat,lon,i = None,None,0
+            while lat == None or lon == None or i >= len(site):
+                if site[i]['site_lat']!=None:
+                    lat = float(site[i]['site_lat'])
+                if site[i]['site_lon']!=None:
+                    lon = float(site[i]['site_lon'])
+                i+=1
+        else:
+            lat=float(site[0]['site_lat'])
+            lon=float(site[0]['site_lon'])
         dec = float(SampRec['sample_dec'])
         inc = float(SampRec['sample_inc'])
         if SampRec['sample_alpha95']!="":
