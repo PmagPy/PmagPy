@@ -716,6 +716,9 @@ class Demag_GUI(wx.Frame):
         m_edit_interpretations = menu_Tools.Append(-1, "&Interpretation editor\tCtrl-E", "")
         self.Bind(wx.EVT_MENU, self.on_menu_edit_interpretations, m_edit_interpretations)
 
+        m_view_VGP = menu_Tools.Append(-1, "&View VGPs\tCtrl-Shift-V", "")
+        self.Bind(wx.EVT_MENU, self.on_menu_view_vgps, m_view_VGP)
+
         #-----------------
         # Help Menu
         #-----------------
@@ -1687,6 +1690,174 @@ class Demag_GUI(wx.Frame):
         self.pmag_results_data['specimens'][specimen].append(new_fit)
         if fmin != None and fmax != None:
             new_fit.put(specimen,self.COORDINATE_SYSTEM,self.get_PCA_parameters(specimen,new_fit,fmin,fmax,self.COORDINATE_SYSTEM,PCA_type))
+
+    def calculate_vgp_data(self):
+        #get criteria if it exists else use default
+        crit_data = self.read_criteria_file()
+        if crit_data==None:
+            crit_data = pmag.default_criteria(0)
+        accept={}
+        for critrec in crit_data:
+            if type(critrec) != dict: continue
+            for key in critrec.keys():
+                # need to migrate specimen_dang to specimen_int_dang
+                if 'IE-SPEC' in critrec.keys() and 'specimen_dang' in critrec.keys() and 'specimen_int_dang' not in critrec.keys():
+                    critrec['specimen_int_dang']=critrec['specimen_dang']
+                    del critrec['specimen_dang']
+                # need to get rid of ron shaars sample_int_sigma_uT
+                if 'sample_int_sigma_uT' in critrec.keys():
+                    critrec['sample_int_sigma']='%10.3e'%(eval(critrec['sample_int_sigma_uT'])*1e-6)
+                if key not in accept.keys() and critrec[key]!='':
+                    accept[key]=critrec[key]
+
+        #retrieve specimen data to calculate VGPS with
+        Ns = [e.get(self.COORDINATE_SYSTEM) for sl in self.pmag_results_data['specimens'].values() for e in sl if e not in self.bad_fits]
+        SpecDirs=[]
+        if crit_data!=None: # use selection criteria
+            for rec in Ns: # look through everything with specimen_n for "good" data
+                kill=pmag.grade(rec,accept,'specimen_dir',data_model=2.5)
+                if len(kill)==0: # nothing killed it
+                    SpecDirs.append(rec)
+        else: # no criteria
+            SpecDirs=Ns[:] # take them all
+
+        for i in range(len(SpecDirs)):
+            specimen = SpecDirs[i]['er_specimen_name']
+            SpecDirs[i]['er_sample_name'] = self.Data_hierarchy['sample_of_specimen'][specimen]
+            SpecDirs[i]['er_site_name'] = self.Data_hierarchy['site_of_specimen'][specimen]
+            SpecDirs[i]['er_location_name'] = self.Data_hierarchy['location_of_specimen'][specimen]
+
+        #init VGP data
+        VGP_Data = {'samples':[],'sites':[],'locations':[]}
+
+        #obtain lat lon data
+        SiteNFO = self.Data_info['er_sites'].values()
+        for val in SiteNFO:
+            not_found = []
+            if 'site_lat' not in val:
+                not_found.append('lattitude')
+            if 'site_lon' not in val:
+                not_found.append('longitude')
+            if not_found == []: continue
+            TEXT="%s not found for site %s would you like to enter the values now or skip this site and all samples contained in it?"%(str(not_found),val['er_site_name'])
+            self.dlg = wx.MessageDialog(self, caption="Missing Data",message=TEXT,style=wx.YES_NO|wx.ICON_QUESTION)
+            result = self.dlg.ShowModal()
+            self.dlg.Destroy()
+            if result == wx.ID_OK:
+                ui_dialog = demag_dialogs.user_input(self,['Latitude','Longitude'],parse_funcs=[float,float], heading="Missing Latitude or Longitude data for site: %s"%val['er_site_name'])
+                ui_dialog.ShowModal()
+                ui_data = ui_dialog.get_values()
+                if ui_data[0]:
+                    val['site_lat']=ui_data[1]['Latitude']
+                    val['site_lon']=ui_data[1]['Longitude']
+
+        #calculate sample vgps
+        for samp in self.samples:
+            SampDir=pmag.get_dictitem(SpecDirs,'er_sample_name',samp,'T')
+            if len(SampDir)<=0: continue
+            for comp in self.all_fits_list:
+                CompDir=pmag.get_dictitem(SampDir,'specimen_comp_name',comp,'T')
+                if len(CompDir)<=0: continue # no data for comp
+                samp_mean = pmag.lnpbykey(CompDir,'sample','specimen')
+                site=pmag.get_dictitem(SiteNFO,'er_site_name',CompDir[0]['er_site_name'],'T')
+                dec = float(samp_mean['sample_dec'])
+                inc = float(samp_mean['sample_inc'])
+                if 'sample_alpha95' in samp_mean and samp_mean['sample_alpha95']!="":
+                    a95 = float(samp_mean['sample_alpha95'])
+                else: a95=180.
+                try:
+                    lat = float(site[0]['site_lat'])
+                    lon = float(site[0]['site_lon'])
+                except KeyError,IndexError: continue
+                plong,plat,dp,dm = pmag.dia_vgp(dec,inc,a95,lat,lon)
+                PmagResRec = {}
+                PmagResRec['name']=samp
+                PmagResRec['comp_name']=comp
+                PmagResRec['n']=len(CompDir)
+                PmagResRec['color']=[e.color for sl in self.pmag_results_data['specimens'].values() for e in sl if e not in self.bad_fits and e.name==comp][0]
+                PmagResRec['vgp_lon']=plong
+                PmagResRec['vgp_lat']=plat
+                PmagResRec['vgp_dp']=dp
+                PmagResRec['vgp_dm']=dm
+                VGP_Data['samples'].append(PmagResRec)
+
+        for site in self.sites:
+            SiteDir=pmag.get_dictitem(SpecDirs,'er_site_name',site,'T')
+            erSite = pmag.get_dictitem(SiteNFO,'er_site_name',site,'T')
+            for comp in self.all_fits_list:
+                siteD=pmag.get_dictitem(SiteDir,'specimen_comp_name',comp,'T')
+                if len(siteD)<0: print("no data for site %s"%site); continue
+                SiteData = pmag.lnpbykey(siteD,'site','specimen')
+                dec = float(SiteData['site_dec'])
+                inc = float(SiteData['site_inc'])
+                if 'site_alpha95' in SiteData and SiteData['site_alpha95']!="":
+                    a95 = float(SiteData['site_alpha95'])
+                else: a95=180.
+                try:
+                    lat = float(erSite[0]['site_lat'])
+                    lon = float(erSite[0]['site_lon'])
+                except KeyError,IndexError: continue
+                plong,plat,dp,dm = pmag.dia_vgp(dec,inc,a95,lat,lon)
+                SiteData['name']=site
+                SiteData['comp_name']=comp
+                SiteData['n']=len(siteD)
+                SiteData['vgp_lon']=plong
+                SiteData['vgp_lat']=plat
+                SiteData['vgp_dp']=dp
+                SiteData['vgp_dm']=dm
+                SiteData['color']=[e.color for sl in self.pmag_results_data['specimens'].values() for e in sl if e not in self.bad_fits and e.name==comp][0]
+                VGP_Data['sites'].append(SiteData)
+
+        for loc in self.locations:
+            LocDir=pmag.get_dictitem(SpecDirs,'er_location_name',loc,'T')
+            for comp in self.all_fits_list:
+                LocCompData = pmag.get_dictitem(LocDir,'specimen_comp_name',comp,'T')
+                if len(LocCompData)<2: print(("no data for comp %s"%comp)); continue
+                precs=[]
+                for rec in LocCompData:
+                    precs.append({'dec':rec['specimen_dec'],'inc':rec['specimen_inc'],'name':rec['er_site_name'],'loc':rec['er_location_name']})
+                polpars=pmag.fisher_by_pol(precs)
+                for mode in list(polpars.keys()): # hunt through all the modes (normal=A, reverse=B, all=ALL)
+                    PolRes={}
+                    PolRes['name'] = polpars[mode]['locs']
+                    PolRes["comp_name"]=comp+':'+mode
+                    PolRes["dec"]='%7.1f'%(polpars[mode]['dec'])
+                    PolRes["inc"]='%7.1f'%(polpars[mode]['inc'])
+                    PolRes["n"]='%i'%(polpars[mode]['n'])
+                    PolRes["r"]='%5.4f'%(polpars[mode]['r'])
+                    PolRes["k"]='%6.0f'%(polpars[mode]['k'])
+                    PolRes['a95']='%7.1f'%(polpars[mode]['alpha95'])
+                    dec,inc,a95 = PolRes["dec"],PolRes["inc"],PolRes["a95"]
+                    lat,lon,loc_data = "","",self.Data_info['er_locations']
+                    if loc in loc_data and 'location_begin_lat' in loc_data[loc]:
+                        lat = loc_data[loc]['location_begin_lat']
+                    elif loc in loc_data and 'location_end_lat' in loc_data[loc]:
+                        lat = loc_data[loc]['location_end_lat']
+                    if loc in loc_data and 'location_begin_lon' in loc_data[loc]:
+                        lon = loc_data[loc]['location_begin_lon']
+                    elif loc in loc_data and 'location_end_lon' in loc_data[loc]:
+                        lon = loc_data[loc]['location_end_lon']
+                    if lat=="" and lon=="":
+                        ui_dialog = demag_dialogs.user_input(self,['Latitude','Longitude'],parse_funcs=[float,float], heading="Missing Latitude or Longitude data for location: %s"%loc)
+                        ui_dialog.ShowModal()
+                        ui_data = ui_dialog.get_values()
+                        if ui_data[0]:
+                            lat=ui_data[1]['Latitude']
+                            lon=ui_data[1]['Longitude']
+                            if loc not in loc_data: loc_data[loc] = {}
+                            if len(loc_data)>0:
+                                loc_data[loc]['location_begin_lat'] = lat
+                                loc_data[loc]['location_begin_lon'] = lon
+                        else: continue
+                    plong,plat,dp,dm = pmag.dia_vgp(*map(float,[dec,inc,a95,lat,lon]))
+                    PolRes['vgp_lon']=plong
+                    PolRes['vgp_lat']=plat
+                    PolRes['vgp_dp']=dp
+                    PolRes['vgp_dm']=dm
+                    PolRes['color']=[e.color for sl in self.pmag_results_data['specimens'].values() for e in sl if e not in self.bad_fits and e.name==comp][0]
+                    VGP_Data['locations'].append(PolRes)
+
+        return VGP_Data
 
     def convert_ages_to_calendar_year(self,er_ages_rec):
         '''
@@ -5002,6 +5173,12 @@ class Demag_GUI(wx.Frame):
         else:
             self.ie.ToggleWindowStyle(wx.STAY_ON_TOP)
             self.ie.ToggleWindowStyle(wx.STAY_ON_TOP)
+
+    def on_menu_view_vgps(self,event):
+        VGP_Data = self.calculate_vgp_data()
+        vgpdia = demag_dialogs.VGP_Dialog(self,VGP_Data)
+        vgpdia.Center()
+        vgpdia.ShowModal()
 
     #---------------------------------------------#
     #Help Menu Functions

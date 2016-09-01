@@ -194,6 +194,7 @@ class InterpretationEditorFrame(wx.Frame):
         self.canvas.Bind(wx.EVT_LEFT_DCLICK,self.on_equalarea_higher_select)
         self.canvas.Bind(wx.EVT_MOTION,self.on_change_higher_mouse_cursor)
         self.canvas.Bind(wx.EVT_MIDDLE_DOWN,self.home_higher_equalarea)
+        self.canvas.Bind(wx.EVT_RIGHT_DOWN,self.pan_zoom_higher_equalarea)
 
         self.eqarea = self.fig.add_subplot(111)
         draw_net(self.eqarea)
@@ -750,6 +751,26 @@ class InterpretationEditorFrame(wx.Frame):
         self.eqarea.axes.set_aspect('equal')
         self.eqarea.axis('off')
         self.canvas.draw()
+
+    def pan_zoom_higher_equalarea(self,event):
+        """
+        Uses the toolbar for the canvas to change the function from zoom to pan or pan to zoom
+        @param: event -> the wx.MouseEvent that triggered this funciton
+        """
+        if event.LeftIsDown() or event.ButtonDClick():
+            return
+        elif self.higher_EA_setting == "Zoom":
+            self.higher_EA_setting = "Pan"
+            try: self.toolbar.pan('off')
+            except TypeError: pass
+        elif self.higher_EA_setting == "Pan":
+            self.higher_EA_setting = "Zoom"
+            try: self.toolbar.zoom()
+            except TypeError: pass
+        else:
+            self.higher_EA_setting = "Zoom"
+            try: self.toolbar.zoom()
+            except TypeError: pass
 
     def home_higher_equalarea(self,event):
         """

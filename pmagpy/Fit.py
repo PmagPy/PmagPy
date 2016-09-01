@@ -89,6 +89,8 @@ class Fit():
         """
 
         if specimen != None:
+            if 'er_specimen_name' not in new_pars.keys(): new_pars['er_specimen_name'] = specimen
+            if 'specimen_comp_name' not in new_pars.keys(): new_pars['specimen_comp_name'] = self.name
             if type(new_pars) != dict or 'measurement_step_min' not in new_pars.keys() or 'measurement_step_max' not in new_pars.keys() or 'calculation_type' not in new_pars.keys():
                 print("-E- invalid parameters cannot assign to fit %s for specimen %s - was given:\n%s"%(self.name,specimen,str(new_pars)))
                 return self.get(coordinate_system)
