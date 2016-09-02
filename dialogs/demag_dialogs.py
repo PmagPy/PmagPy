@@ -10,6 +10,7 @@ from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigCanvas
 from matplotlib.backends.backend_wxagg import NavigationToolbar2WxAgg as NavigationToolbar
 from pylab import Figure
 from pmagpy.demag_gui_utilities import *
+from numpy import vstack,sqrt
 
 #============================================================================================
 # LOG HEADER:
@@ -35,9 +36,9 @@ class VGP_Dialog(wx.Dialog):
     def __init__(self,parent,VGP_Data):
         super(VGP_Dialog, self).__init__(parent, title="VGP Viewer")
         if not isinstance(VGP_Data,dict): VGP_Data={}
-        if 'samples' not in VGP_Data.keys(): VGP_Data['samples']=[]
-        if 'sites' not in VGP_Data.keys(): VGP_Data['sites']=[]
-        if 'locations' not in VGP_Data.keys(): VGP_Data['locations']=[]
+        if len(VGP_Data.keys()) < 0:
+            parent.user_warning("No VGP Data for VGP viewer to display")
+            self.Destroy(); return
         self.selected_pole = None
         self.selected_pole_index = 0
         self.dp_list = []
@@ -63,11 +64,10 @@ class VGP_Dialog(wx.Dialog):
         self.canvas.Bind(wx.EVT_MIDDLE_DOWN,self.on_home_plot)
         self.canvas.Bind(wx.EVT_RIGHT_DOWN,self.on_pan_zoom_plot)
         self.eqarea = self.fig.add_subplot(111)
-        draw_net(self.eqarea)
 
         #build combobox with VGP level options
-        self.VGP_level = 'sites'
-        self.combo_box = wx.ComboBox(self.panel, -1, size=(340*self.GUI_RESOLUTION,25), value=self.VGP_level, choices=['samples','sites','locations'], style=wx.CB_DROPDOWN, name="vgp_level")
+        self.VGP_level = self.VGP_Data.keys()[0]
+        self.combo_box = wx.ComboBox(self.panel, -1, size=(340*self.GUI_RESOLUTION,25), value=self.VGP_level, choices=sorted(self.VGP_Data.keys()), style=wx.CB_DROPDOWN, name="vgp_level")
         self.Bind(wx.EVT_COMBOBOX, self.on_level_box, self.combo_box)
 
         #build logger
@@ -93,23 +93,90 @@ class VGP_Dialog(wx.Dialog):
         self.panel.SetSizer(hbox0)
         hbox0.Fit(self)
 
+        #set hotkeys
+        randomId = wx.NewId()
+        self.Bind(wx.EVT_MENU, self.on_exit_hk, id=randomId)
+        accel_tbl = wx.AcceleratorTable([(wx.ACCEL_CTRL,  ord('Q'), randomId )])
+        self.SetAcceleratorTable(accel_tbl)
+
+    def on_exit_hk(self,event):
+        self.Close()
+
     def on_plot_select(self,event):
-        pass
+        """
+        Select data point if cursor is in range of a data point
+        @param: event -> the wx Mouseevent for that click
+        """
+        if not self.xdata or not self.ydata: return
+        pos=event.GetPosition()
+        width, height = self.canvas.get_width_height()
+        pos[1] = height - pos[1]
+        xpick_data,ypick_data = pos
+        xdata_org = self.xdata
+        ydata_org = self.ydata
+        data_corrected = self.eqarea.transData.transform(vstack([xdata_org,ydata_org]).T)
+        xdata,ydata = data_corrected.T
+        xdata = map(float,xdata)
+        ydata = map(float,ydata)
+        e = 4e0
+
+        for i,(x,y) in enumerate(zip(xdata,ydata)):
+            if 0 < sqrt((x-xpick_data)**2. + (y-ypick_data)**2.) < e:
+                index = i
+                break
+
+        self.change_selected(index)
 
     def on_change_plot_cursor(self,event):
-        pass
+        """
+        If mouse is over data point making it selectable change the shape of the cursor
+        @param: event -> the wx Mouseevent for that click
+        """
+        if not self.xdata or not self.ydata: return
+        pos=event.GetPosition()
+        width, height = self.canvas.get_width_height()
+        pos[1] = height - pos[1]
+        xpick_data,ypick_data = pos
+        xdata_org = self.xdata
+        ydata_org = self.ydata
+        data_corrected = self.eqarea.transData.transform(vstack([xdata_org,ydata_org]).T)
+        xdata,ydata = data_corrected.T
+        xdata = map(float,xdata)
+        ydata = map(float,ydata)
+        e = 4e0
+
+        if self.plot_setting == "Zoom":
+            self.canvas.SetCursor(wx.StockCursor(wx.CURSOR_CROSS))
+        elif self.plot_setting == "Pan":
+            self.canvas.SetCursor(wx.StockCursor(wx.CURSOR_CHAR))
+        else:
+            self.canvas.SetCursor(wx.StockCursor(wx.CURSOR_ARROW))
+        for i,(x,y) in enumerate(zip(xdata,ydata)):
+            if 0 < sqrt((x-xpick_data)**2. + (y-ypick_data)**2.) < e:
+                self.canvas.SetCursor(wx.StockCursor(wx.CURSOR_HAND))
+                break
 
     def on_home_plot(self,event):
-        pass
+        self.toolbar.home()
 
     def on_pan_zoom_plot(self,event):
-        pass
+        if event.LeftIsDown():
+            return
+        elif self.plot_setting == "Zoom":
+            self.plot_setting = "Pan"
+            try: self.toolbar.pan('off')
+            except TypeError: print('error in changing plot function to pan')
+        elif self.plot_setting == "Pan":
+            self.plot_setting = "Zoom"
+            try: self.toolbar.zoom()
+            except TypeError: print('error in changing plot function to zoom')
 
     def on_level_box(self,event):
         self.VGP_level=self.combo_box.GetValue()
         self.fill_logger(); self.plot()
 
     def plot(self):
+        self.xdata,self.ydata = [],[]
         draw_net(self.eqarea)
         data = self.VGP_Data[self.VGP_level]
         ymin, ymax = self.eqarea.get_ylim()
@@ -122,9 +189,10 @@ class VGP_Dialog(wx.Dialog):
                 FC=dp['color'];EC=dp['color']
             else:
                 FC='white';EC=dp['color']
-            if self.selected_pole==dp['name']+dp['comp_name']: marker='s'
+            if self.selected_pole==dp['name']+dp['comp_name']: marker='D'
             else: marker='o'
             self.eqarea.scatter([XYM[0]],[XYM[1]],marker=marker,edgecolor=EC, facecolor=FC,s=30,lw=1,clip_on=False)
+            self.xdata.append(XYM[0]);self.ydata.append(XYM[1])
 
         #consider adding ellipse for uncertinties
 
@@ -158,13 +226,16 @@ class VGP_Dialog(wx.Dialog):
             self.selected_pole=pars['name']+pars['comp_name']
             self.logger.SetItemBackgroundColour(i,"LIGHT BLUE")
 
-    def on_click_listctrl(self,event):
+    def change_selected(self,i):
         old_pole_index = self.selected_pole_index
-        self.selected_pole_index = event.GetIndex()
+        self.selected_pole_index = i
         self.logger.SetItemBackgroundColour(old_pole_index,"WHITE")
         self.logger.SetItemBackgroundColour(self.selected_pole_index,"LIGHT BLUE")
         self.selected_pole = self.dp_list[self.selected_pole_index]
         self.plot()
+
+    def on_click_listctrl(self,event):
+        self.change_selected(event.GetIndex())
 
 #--------------------------------------------------------------    
 # MagIc results tables dialog

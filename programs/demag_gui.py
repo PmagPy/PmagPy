@@ -1786,7 +1786,7 @@ class Demag_GUI(wx.Frame):
             erSite = pmag.get_dictitem(SiteNFO,'er_site_name',site,'T')
             for comp in self.all_fits_list:
                 siteD=pmag.get_dictitem(SiteDir,'specimen_comp_name',comp,'T')
-                if len(siteD)<0: print("no data for site %s"%site); continue
+                if len(siteD)<=0: print("no data for comp %s and site %s"%(comp,site)); continue
                 SiteData = pmag.lnpbykey(siteD,'site','specimen')
                 dec = float(SiteData['site_dec'])
                 inc = float(SiteData['site_inc'])
@@ -3110,7 +3110,8 @@ class Demag_GUI(wx.Frame):
             if 'locations' in self.con.tables:
                 location_container = self.con.tables["locations"]
                 self.loc_data = location_container.df # only need this for saving tables
-                data_er_locations = self.samp_data.to_dict('records')
+                loc2_data = self.loc_data.rename(columns=map_magic.loc_magic3_2_magic2_map)
+                data_er_locations = loc2_data.to_dict('index')
             else:
                 self.con.add_empty_magic_table('locations')
                 self.loc_data = self.con.tables['locations'].df

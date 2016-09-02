@@ -641,10 +641,10 @@ def grade(PmagRec,ACCEPT,type,data_model=2.5):
                 if PmagRec[key]!='1':
                     kill.append(key)
             if key in GREATERTHAN:
-                if eval(PmagRec[key])<eval(accept[key]):
+                if eval(str(PmagRec[key]))<eval(str(accept[key])):
                     kill.append(key)
             else:
-                if eval(PmagRec[key])>eval(accept[key]):
+                if eval(str(PmagRec[key]))>eval(str(accept[key])):
                     kill.append(key)
     return kill
 
