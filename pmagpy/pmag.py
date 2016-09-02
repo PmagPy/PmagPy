@@ -5402,33 +5402,40 @@ def sortmwarai(datablock,exp_type):
     #
 def doigrf(long,lat,alt,date,**kwargs):
     """
-    called with doigrf(long,lat,alt,date,**kwargs)
-#       calculates the interpolated (<2010) or extrapolated (>2010) main field and
-#       secular variation coefficients and passes these to the Malin and Barraclough
-#       routine to calculate the IGRF field. dgrf coefficients for 1945 to 2005, igrf for pre 1945 and post 2010
-#       from http://www.ngdc.noaa.gov/IAGA/vmod/igrf.html
-#
-#      for dates prior to between 1900 and 1600, this program uses coefficients from the GUFM1 model of Jackson et al. 2000
-#      prior to that, it uses either arch3k or one of the cals models
-#
-#
-#       input:
-#       long  = east longitude in degrees (0 to 360 or -180 to 180)
-#       lat   = latitude in degrees (-90 to 90)
-#       alt   = height above mean sea level in km (itype = 1 assumed)
-#       date  = Required date in years and decimals of a year (A.D.)
-# Output:
-#       x     = north component of the magnetic force in nT
-#       y     = east component of the magnetic force in nT
-#       z     = downward component of the magnetic force in nT
-#       f     = total magnetic force in nT
-#
-#       To check the results you can run the interactive program at the NGDC
-#        http://www.ngdc.noaa.gov/geomagmodels/IGRFWMM.jsp
+    Calculates the interpolated (<2015) or extrapolated (>2015) main field and
+    secular variation coefficients and passes them to the Malin and Barraclough
+    routine (function pmag.magsyn) to calculate the IGRF field.
+
+    Parameters:
+    -----------
+    long  = east longitude in degrees (0 to 360 or -180 to 180)
+    lat   = latitude in degrees (-90 to 90)
+    alt   = height above mean sea level in km (itype = 1 assumed)
+    date  = Required date in years and decimals of a year (A.D.)
+
+    Optional Parameters:
+    -----------
+    mod  = model to use ('arch3k','cals3k','pfm9k','cals10k')
+
+    Output:
+    -----------
+    x     = north component of the magnetic force in nT
+    y     = east component of the magnetic force in nT
+    z     = downward component of the magnetic force in nT
+    f     = total magnetic force in nT
+
+    dgrf coefficients are used for 1945 to 2005
+    igrf coefficients are used for pre-1945 and post-2010
+    from http://www.ngdc.noaa.gov/IAGA/vmod/igrf.html
+
+        for dates prior to between 1900 and 1600, this program uses coefficients
+        from the GUFM1 model of Jackson et al. 2000
+        prior to that, it uses either arch3k or one of the cals models
+
+    To check the results you can run the interactive program at the NGDC
+    www.ngdc.noaa.gov/geomag-web
     """
 
-#
-#
     gh,sv=[],[]
     colat = 90.-lat
 #! convert to colatitude for MB routine
