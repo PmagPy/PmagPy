@@ -48,9 +48,9 @@ meas_magic2_2_magic3_map = {'treatment_ac_field': 'treat_ac_field', 'measurement
 
 
 #specimen data translation pmag_speciemns,er_specimens -> specimens.txt
-spec_magic3_2_magic2_map = {'int_drats': 'specimen_drats', 'site': 'er_site_name', 'int_mad': 'specimen_int_mad', 'sample': 'er_sample_name', 'int_n_measurements': 'specimen_int_n', 'int_corr': 'specimen_correction', 'int_rsc': 'specimen_rsc', 'analyst_names': 'er_analyst_mail_names', 'int_scat': 'specimen_scat', 'int_ptrm_n': 'specimen_int_ptrm_n', 'citations': 'er_citation_names', 'int_gmax': 'specimen_gmax', 'int_dang': 'specimen_int_dang', 'dir_tilt_correction': 'specimen_tilt_correction', 'location': 'er_location_name', 'dir_comp': 'specimen_comp_name', 'specimen_magn_moment': 'magn_moment', 'int_w': 'specimen_w', 'specimen': 'er_specimen_name', 'int_q': 'specimen_q', 'int_fvds': 'specimen_fvds', 'specimen_mad': 'dir_mad_free', 'int_frac': 'specimen_frac', 'meas_step_min': 'measurement_step_min', 'int_f': 'specimen_f', 'software_packages': 'magic_software_packages', 'dir_mad_free': 'specimen_mad', 'magn_moment': 'specimen_magn_moment', 'instrument_codes': 'magic_instrument_codes', 'int_b_beta': 'specimen_b_beta', 'dir_n_comps': 'specimen_comp_n', 'int_md': 'specimen_md', 'dir_n_measurements': 'specimen_n', 'dir_inc': 'specimen_inc', 'specimen_magn_volumn': 'magn_volumn', 'meas_step_max': 'measurement_step_max', 'dir_alpha95': 'specimen_alpha95', 'magn_volumne': 'specimen_magn_volumn', 'measurement_step_min': 'meas_step_min', 'meas_step_unit': 'measurement_step_unit', 'dir_dec': 'specimen_dec', 'method_codes': 'magic_method_codes', 'result_quality': 'specimen_flag', 'dir_dang': 'specimen_dang'}
+spec_magic3_2_magic2_map = {'int_drats': 'specimen_drats', 'site': 'er_site_name', 'int_mad': 'specimen_int_mad', 'sample': 'er_sample_name', 'int_n_measurements': 'specimen_int_n', 'int_corr': 'specimen_correction', 'int_rsc': 'specimen_rsc', 'analyst_names': 'er_analyst_mail_names', 'int_scat': 'specimen_scat', 'int_ptrm_n': 'specimen_int_ptrm_n', 'citations': 'er_citation_names', 'int_gmax': 'specimen_gmax', 'int_dang': 'specimen_int_dang', 'dir_tilt_correction': 'specimen_tilt_correction', 'location': 'er_location_name', 'dir_comp': 'specimen_comp_name', 'specimen_magn_moment': 'magn_moment', 'int_w': 'specimen_w', 'specimen': 'er_specimen_name', 'int_q': 'specimen_q', 'int_fvds': 'specimen_fvds', 'specimen_mad': 'dir_mad_free', 'int_frac': 'specimen_frac', 'meas_step_min': 'measurement_step_min', 'int_f': 'specimen_f', 'software_packages': 'magic_software_packages', 'dir_mad_free': 'specimen_mad', 'magn_moment': 'specimen_magn_moment', 'instrument_codes': 'magic_instrument_codes', 'int_b_beta': 'specimen_b_beta', 'dir_n_comps': 'specimen_comp_n', 'int_md': 'specimen_md', 'dir_n_measurements': 'specimen_n', 'dir_inc': 'specimen_inc', 'specimen_magn_volumn': 'magn_volumn', 'meas_step_max': 'measurement_step_max', 'dir_alpha95': 'specimen_alpha95', 'magn_volumne': 'specimen_magn_volumn', 'measurement_step_min': 'meas_step_min', 'meas_step_unit': 'measurement_step_unit', 'dir_dec': 'specimen_dec', 'method_codes': 'magic_method_codes', 'result_quality': 'specimen_flag', 'dir_dang': 'specimen_dang', 'geologic_classes': 'specimen_class', 'experiments': 'magic_experiment_names', 'int_b': 'specimen_b', 'int_b_sigma': 'specimen_b_sigma', 'int_abs': 'specimen_int', 'int_treat_dc_field': 'specimen_lab_field_dc', 'lithologies': 'specimen_lithology', 'geologic_types': 'specimen_type', 'int_gamma': 'specimen_gamma'}
 
-#spec_magic2_2_magic3_map = {v:k for k,v in spec_magic3_2_magic2_map.items()}
+spec_magic2_2_magic3_map = {v:k for k,v in spec_magic3_2_magic2_map.items()}
 
 
 #samp_magic2_2_magic3_map = {v:k for k,v in samp_magic3_2_magic2_map.items()}
@@ -64,11 +64,19 @@ site_magic3_2_magic2_map = {'int_abs_sigma': 'site_int_sigma', 'int_abs_sigma_pe
                             'site': 'er_site_name', 'software_packages': 'magic_software_packages',
                             'location': 'er_location_name', 'citations': 'er_citation_names',
                             'geologic_classes': 'site_class', 'height': 'site_height', 'lat': 'site_lat',
-                            'lon': 'site_lon', 'geologic_types': 'site_type', 'lithologies': 'site_lithology'}
+                            'lon': 'site_lon', 'geologic_types': 'site_type', 'lithologies': 'site_lithology',
+                            'samples': 'er_sample_names', 'specimens': 'er_specimen_names',
+                            'analysts': 'er_analyst_mail_names', 'dir_comp_name': 'site_comp_name',
+                            'dir_dec': 'site_dec', 'description': 'site_description', 'dir_inc': 'site_inc',
+                            'age': 'site_inferred_age', 'age_sigma': 'site_inferred_age_sigma',
+                            'age_unit': 'site_inferred_age_unit', 'int_abs': 'site_int',
+                            'dir_polarity': 'site_polarity', 'dir_tilt_correction': 'site_tilt_correction'}
 
 site_magic2_2_magic3_map = {v: k for k, v in site_magic3_2_magic2_map.items()}
 
-loc_magic3_2_magic2_map = {'location': 'er_location_name', 'sites': 'er_site_names', 'citations': 'er_citation_names', 'lat_s':'location_begin_lat', 'lon_w': 'location_begin_lon', 'lat_n': 'location_end_lat', 'lon_e': 'location_end_lon'}
+loc_magic3_2_magic2_map = {'location': 'er_location_name', 'sites': 'er_site_names', 'citations': 'er_citation_names',
+                           'lat_s': 'location_begin_lat', 'lon_w': 'location_begin_lon', 'lat_n': 'location_end_lat',
+                           'lon_e': 'location_end_lon', 'location_alternatives': 'er_location_alternatives'}
 
 loc_magic2_2_magic3_map = {v: k for k, v in list(loc_magic3_2_magic2_map.items())}
 
@@ -154,11 +162,6 @@ site_magic2 = site_magic3_2_magic2_map.values()
 
 
 #specimen data translation pmag_speciemns,er_specimens -> specimens.txt
-spec_magic2_2_magic3_map = {'er_citation_names': 'citations', 'specimen_int_dang': 'int_dang', 'measurement_step_unit': 'meas_step_unit', 'specimen_frac': 'int_frac', 'measurement_step_max': 'meas_step_max', 'specimen_b_beta': 'int_b_beta', 'magic_software_packages': 'software_packages', 'specimen_int_n': 'int_n_measurements', 'magic_method_codes': 'method_codes', 'specimen_md': 'int_md', 'er_location_name': 'location', 'dir_mad_free': 'specimen_mad', 'specimen_tilt_correction': 'dir_tilt_correction', 'specimen_inc': 'dir_inc', 'er_specimen_name': 'specimen', 'measurement_step_min': 'meas_step_min', 'meas_step_max': 'measurement_step_max', 'specimen_magn_moment': 'magn_moment', 'magn_volumn': 'specimen_magn_volumn', 'specimen_flag': 'result_quality', 'specimen_int_mad': 'int_mad', 'magic_instrument_codes': 'instrument_codes', 'specimen_mad': 'dir_mad_free', 'meas_step_min': 'measurement_step_min', 'specimen_dec': 'dir_dec', 'specimen_alpha95': 'dir_alpha95', 'specimen_fvds': 'int_fvds', 'er_analyst_mail_names': 'analyst_names', 'specimen_drats': 'int_drats', 'specimen_comp_name': 'dir_comp', 'specimen_correction': 'int_corr', 'specimen_gmax': 'int_gmax', 'specimen_f': 'int_f', 'specimen_int_ptrm_n': 'int_ptrm_n', 'er_site_name': 'site', 'specimen_rsc': 'int_rsc', 'specimen_magn_volumn': 'magn_volumne', 'specimen_n': 'dir_n_measurements', 'specimen_q': 'int_q', 'specimen_dang': 'dir_dang', 'specimen_comp_n': 'dir_n_comps', 'specimen_w': 'int_w', 'specimen_scat': 'int_scat', 'magn_moment': 'specimen_magn_moment', 'er_sample_name': 'sample','specimen_int_corr_anisotropy':'int_corr_anisotropy','specimen_int_corr_cooling_rate':'int_corr_cooling_rate','specimen_int_corr_nlt':'int_corr_nlt','magic_experiment_names':'experiments','specimen_lab_field_dc':'int_treat_dc_field','specimen_correction':'int_corr','specimen_int':'int_abs','pmag_criteria_codes':'criteria', 'specimen_lithology': 'lithologies', 'specimen_type': 'geologic_types'}
-
-#spec_magic2_2_magic3_map = {v:k for k,v in spec_magic2_2_magic3_map.items()}
-
-
 
 
 #samp_magic2 = ['sample_n_planes', 'sample_n_lines', 'sample_r', 'sample_n', 'sample_k', 'sample_int_sigma_perc', 'sample_int_n': 'sample_alpha95', 'sample_int_sigma': 'int_abs_sigma','pmag_criteria_codes':'criteria','magic_method_codes':'method_codes','magic_software_packages':'software_packages'}
