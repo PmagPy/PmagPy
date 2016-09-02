@@ -383,7 +383,7 @@ def main(command_line=True, **kwargs):
             #----------------------------------------
             
             if demag=="AF":
-                
+                treatment_type=this_line_data['treatment_type']
                 # demag in zero field
                 if LPcode != "LP-AN-ARM":
                     MagRec["treatment_ac_field"]='%8.3e' %(float(this_line_data['treatment'][0])*1e-3) # peak field in tesla
