@@ -5381,6 +5381,7 @@ class Arai_GUI(wx.Frame):
 
         self.zijplot.set_xlim(xmin, xmax)
         self.zijplot.set_ylim(ymin, ymax)
+        self.zijplot.axis("equal")
 
         self.canvas2.draw()
 
