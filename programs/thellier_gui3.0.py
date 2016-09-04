@@ -4588,12 +4588,12 @@ class Arai_GUI(wx.Frame):
         #-----------------------------------------------------------
 
         self.zijplot.clear()
-        self.MS=6*self.GUI_RESOLUTION;self.dec_MEC='k';self.dec_MFC='b'; self.inc_MEC='k';self.inc_MFC='r'
+        self.MS=5*self.GUI_RESOLUTION;self.dec_MEC='k';self.dec_MFC='r'; self.inc_MEC='k';self.inc_MFC='b'
         self.CART_rot=self.Data[self.s]['zij_rotated']
         self.z_temperatures=self.Data[self.s]['z_temp']
         self.vds=self.Data[self.s]['vds']
-        self.zijplot.plot(self.CART_rot[:,0],-1* self.CART_rot[:,1],'bo-',mfc=self.dec_MFC,mec=self.dec_MEC,markersize=self.MS,clip_on=False)  #x,y or N,E
-        self.zijplot.plot(self.CART_rot[:,0],-1 * self.CART_rot[:,2],'rs-',mfc=self.inc_MFC,mec=self.inc_MEC,markersize=self.MS,clip_on=False)   #x-z or N,D
+        self.zijplot.plot(self.CART_rot[:,0],-1* self.CART_rot[:,1],'ro-',mfc=self.dec_MFC,mec=self.dec_MEC,markersize=self.MS,clip_on=False)  #x,y or N,E
+        self.zijplot.plot(self.CART_rot[:,0],-1 * self.CART_rot[:,2],'bs-',mfc=self.inc_MFC,mec=self.inc_MEC,markersize=self.MS,clip_on=False)   #x-z or N,D
         #self.zijplot.axhline(0,c='k')
         #self.zijplot.axvline(0,c='k')
         self.zijplot.axis('off')
@@ -4619,13 +4619,15 @@ class Arai_GUI(wx.Frame):
         xmin, xmax = self.zijplot.get_xlim()
         if xmax <0:
             xmax=0
+        else:
+            xmax=max(xmax,0.21)
         if xmin>0:
             xmin=0
+        else:
+            xmin=min(xmin,-0.21)
         props = dict(color='black', linewidth=0.5, markeredgewidth=0.5)
 
-        #xlocs = [loc for loc in self.zijplot.xaxis.get_majorticklocs()
-        #        if loc>=xmin and loc<=xmax]
-        xlocs = scipy.arange(xmin,xmax,0.2)
+        xlocs = list(scipy.arange(0,xmin,-0.2))+list(scipy.arange(0,xmax,0.2))
         xtickline, = self.zijplot.plot(xlocs, [0]*len(xlocs),linestyle='',
                 marker='+', **props)
 
@@ -4639,12 +4641,16 @@ class Arai_GUI(wx.Frame):
         ymin, ymax = self.zijplot.get_ylim()
         if ymax <0:
             ymax=0
+        else:
+            ymax=max(ymax,0.21)
         if ymin>0:
             ymin=0
+        else:
+            ymin=min(ymin,-0.21)
         
-        ylocs = [loc for loc in self.zijplot.yaxis.get_majorticklocs()
-                if loc>=ymin and loc<=ymax]
-        ylocs = scipy.arange(ymin,ymax,0.2)
+        #ylocs = [loc for loc in self.zijplot.yaxis.get_majorticklocs()
+        #        if loc>=ymin and loc<=ymax]
+        ylocs = list(scipy.arange(0,ymin,-0.2))+list(scipy.arange(0,ymax,0.2))
 
         ytickline, = self.zijplot.plot([0]*len(ylocs),ylocs,linestyle='',
                 marker='+', **props)
@@ -4652,7 +4658,12 @@ class Arai_GUI(wx.Frame):
         axyline, = self.zijplot.plot([0, 0],[ymin, ymax], **props)
         ytickline.set_clip_on(False)
         axyline.set_clip_on(False)
-        self.zijplot.text(0,ymin,' y,z',fontsize=10,verticalalignment='top',clip_on=False)
+        #self.zijplot.text(0,ymin,' y,z',fontsize=10,verticalalignment='top',clip_on=False)
+        TEXT1,TEXT2="y","   z"
+        self.zijplot.text(-0.02,ymin-0.02,TEXT1,fontsize=10,color='r',verticalalignment='top')
+        self.zijplot.text(-0.02,ymin-0.02,'  ,',fontsize=10,color='k',verticalalignment='top')
+        self.zijplot.text(-0.02,ymin-0.02,TEXT2,fontsize=10,color='b',verticalalignment='top')
+
 
         #----
 
