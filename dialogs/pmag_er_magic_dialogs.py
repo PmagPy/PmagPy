@@ -686,7 +686,6 @@ The data in a row will be associated with the lowest level that is filled in,
         dlg.Destroy()
         if res == wx.ID_YES:
             self.onSave(self.grid)
-            self.er_magic_data.write_files()
             self.Destroy()
         if res == wx.ID_NO:
             self.Destroy()
