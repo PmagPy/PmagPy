@@ -7,6 +7,7 @@ import wx
 import wx.grid
 #import sys
 import pandas as pd
+import numpy as np
 import drop_down_menus
 import drop_down_menus3
 import pmag_widgets as pw
@@ -360,17 +361,23 @@ Fill in blank cells using controlled vocabularies.
                                                      self.loc_grid)
 
         # need to find max/min lat/lon here IF they were added in the previous grid
-
         # get min/max lat/lon from sites table
         site_container = self.contribution.tables['sites']
-        # get minimum latitude by location
-        lat_s = site_container.df['lat'].groupby(site_container.df['location']).min()
-        # get maximum latitude by location
-        lat_n = site_container.df['lat'].groupby(site_container.df['location']).max()
-        # get minimum longitude by location
-        lon_w = site_container.df['lon'].groupby(site_container.df['location']).min() # ???
-        # get maximum longitude by location
-        lon_e = site_container.df['lon'].groupby(site_container.df['location']).max() # ???
+        # replace empty strings with np.nan
+        site_container.df['lat'] = np.where(site_container.df['lat'].str.len(), site_container.df['lat'], np.nan)
+        site_container.df['lon'] = np.where(site_container.df['lon'].str.len(), site_container.df['lon'], np.nan)
+        # convert lat/lon values to float (they make be string from grid)
+        site_container.df['lat'] = site_container.df['lat'].astype(float)
+        site_container.df['lon'] = site_container.df['lon'].astype(float)
+        # group lat/lon by location
+        grouped_lon = site_container.df['lon'].groupby(site_container.df['location'])
+        grouped_lat = site_container.df['lat'].groupby(site_container.df['location'])
+        # get min/max longitude by location
+        lon_w = grouped_lon.min()
+        lon_e = grouped_lon.max()
+        # get min/max latitude by location
+        lat_s = grouped_lat.min()
+        lat_n = grouped_lat.max()
         # find latitude & longitude columns
         col_names = ['lat_s', 'lat_n', 'lon_e', 'lon_w']
         col_inds = [self.grid.col_labels.index(name) for name in col_names]
@@ -389,8 +396,10 @@ Fill in blank cells using controlled vocabularies.
             for row_ind in row_inds:
                 for coord in coords:
                     col_ind = col_info[coord]
-                    val = coords[coord]
-                    if not self.grid.GetCellValue(row_ind, col_ind):
+                    val = str(coords[coord])
+                    if val == 'nan':
+                        continue
+                    elif not self.grid.GetCellValue(row_ind, col_ind):
                         self.grid.SetCellValue(row_ind, col_ind, str(val))
 
         ### Create Buttons ###
@@ -1143,8 +1152,8 @@ Fill in any blank cells using controlled vocabularies.
         self.grid_builder.add_data_to_grid(self.loc_grid, 'location', incl_pmag=False)
         self.grid = self.loc_grid
         # initialize all needed drop-down menus
-        self.drop_down_menu = drop_down_menus3.Menus("locations", self.contribution,
-                                                     self.loc_grid) #, None)
+        self.drop_down_menu = drop_down_menus.Menus("locations", self,
+                                                     self.loc_grid, None)
 
         # need to find max/min lat/lon here IF they were added in the previous grid
         sites = self.er_magic_data.sites
