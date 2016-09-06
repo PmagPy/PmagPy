@@ -81,7 +81,7 @@ class ErMagicCheckFrame3(wx.Frame):
         hboxok.Add(self.cancelButton, flag=wx.ALIGN_LEFT|wx.RIGHT, border=10)
         hboxok.Add(self.continueButton, flag=wx.ALIGN_LEFT)
         #
-        hboxgrid = pw.hbox_grid(self.panel, self.onDeleteRow, 'specimen', self.grid)
+        hboxgrid = pw.hbox_grid(self.panel, self.onDeleteRow, 'specimens', self.grid)
         self.deleteRowButton = hboxgrid.deleteRowButton
         self.panel.Bind(wx.grid.EVT_GRID_LABEL_LEFT_CLICK, self.onLeftClickLabel, self.grid)
 
@@ -184,7 +184,7 @@ You may use the drop-down menus to add as many values as needed in these columns
         hboxok.Add(self.continueButton, flag=wx.RIGHT, border=10)
         hboxok.Add(self.backButton)
 
-        hboxgrid = pw.hbox_grid(self.panel, self.onDeleteRow, 'sample', self.grid)
+        hboxgrid = pw.hbox_grid(self.panel, self.onDeleteRow, 'samples', self.grid)
         self.deleteRowButton = hboxgrid.deleteRowButton
 
         self.Bind(wx.grid.EVT_GRID_LABEL_LEFT_CLICK, self.onLeftClickLabel, self.grid)
@@ -293,7 +293,7 @@ However, you will be able to edit samples again in step 4.
         hboxok.Add(self.backButton)
 
         #
-        hboxgrid = pw.hbox_grid(self.panel, self.onDeleteRow, 'site', self.grid)
+        hboxgrid = pw.hbox_grid(self.panel, self.onDeleteRow, 'sites', self.grid)
         self.deleteRowButton = hboxgrid.deleteRowButton
 
         self.Bind(wx.grid.EVT_GRID_LABEL_LEFT_CLICK, self.onLeftClickLabel, self.grid)
@@ -425,7 +425,7 @@ Fill in blank cells using controlled vocabularies.
         hboxok.Add(self.backButton)
 
         #
-        hboxgrid = pw.hbox_grid(self.panel, self.onDeleteRow, 'location', self.grid)
+        hboxgrid = pw.hbox_grid(self.panel, self.onDeleteRow, 'locations', self.grid)
         self.deleteRowButton = hboxgrid.deleteRowButton
 
         self.Bind(wx.grid.EVT_GRID_LABEL_LEFT_CLICK, self.onLeftClickLabel, self.grid)
@@ -708,30 +708,36 @@ The data in a row will be associated with the lowest level that is filled in,
         """
         On button click, remove relevant object from both the data model and the grid.
         """
-        ancestry = self.er_magic_data.ancestry
+        ancestry = self.contribution.ancestry
         child_type = ancestry[ancestry.index(data_type) - 1]
+        if child_type in self.contribution.tables:
+            child_df = self.contribution.tables[child_type].df
+        else:
+            child_df = None
         names = [self.grid.GetCellValue(row, 0) for row in self.selected_rows]
         if data_type == 'site':
             how_to_fix = 'Make sure to select a new site for each orphaned sample in the next step'
         else:
-            how_to_fix = 'Go back a step and select a new {} for each orphaned {}'.format(data_type, child_type)
-
+            how_to_fix = 'Go back a step and select a new {} for each orphaned {}'.format(data_type[:-1],
+                                                                                          child_type[:-1])
         orphans = []
-        for name in names:
-            row = self.grid.row_labels.index(name)
-            orphan = self.er_magic_data.delete_methods[data_type](name)
-            if orphan:
-                orphans.extend(orphan)
+
+        # iterate through rows backwards so the index stays correct as we delete
+        for row in sorted(self.selected_rows)[::-1]:
+            # remove from DataFrame
+            self.contribution.tables[data_type].delete_row(row)
+            # remove from wxPython grid
             self.grid.remove_row(row)
+        if child_df is not None:
+            for name in names:
+                orphaned = list(child_df[child_df[data_type[:-1]] == name].index)
+                child_df.loc[orphaned, data_type[:-1]] = None
+                orphans.extend(orphaned)
+
         if orphans:
-            orphan_names = self.er_magic_data.make_name_list(orphans)
-            pw.simple_warning('You have deleted:\n\n  {}\n\nthe parent(s) of {}(s):\n\n  {}\n\n{}'.format(', '.join(names), child_type, ', '.join(orphan_names), how_to_fix))
+            pw.simple_warning('You have deleted:\n\n  {}\n\nthe parent(s) of {}(s):\n\n  {}\n\n{}'.format(', '.join(names), child_type, ', '.join(orphans), how_to_fix))
 
         self.selected_rows = set()
-
-        # update grid and data model
-        self.update_grid(self.grid)#, grids[grid_name])
-
         self.grid.Refresh()
 
 
