@@ -362,7 +362,7 @@ class Contribution(object):
             # if there has been a previous merge, consolidate and delete data
             if col + "_target" in target_df.columns:
                 # prioritize values from target df
-                new_arr = np.where(target_df[col + "_target"].notnull(),
+                new_arr = np.where(target_df[col + "_target"],
                                    target_df[col + "_target"],
                                    target_df[col + "_source"])
                 target_df.rename(columns={col + "_target": col}, inplace=True)

@@ -74,7 +74,7 @@ class MagicGrid(wx.grid.Grid, gridlabelrenderer.GridWithLabelRenderersMixin):
         self.row_labels.extend(dataframe.index)
 
 
-    def save_items(self, rows=None):
+    def save_items(self, rows=None, verbose=False):
         """
         Return a dictionary of row data for selected rows:
         {1: {col1: val1, col2: val2}, ...}
@@ -90,7 +90,8 @@ class MagicGrid(wx.grid.Grid, gridlabelrenderer.GridWithLabelRenderersMixin):
             data[row] = {}
             for col in cols:
                 col_name = self.GetColLabelValue(col)
-                print col_name, ":", self.GetCellValue(row, col)
+                if verbose:
+                    print col_name, ":", self.GetCellValue(row, col)
                 data[row][col_name] = self.GetCellValue(row, col)
         return data
 
