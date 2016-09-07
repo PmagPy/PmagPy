@@ -133,7 +133,7 @@ class InterpretationEditorFrame(wx.Frame):
         self.Bind(wx.EVT_TEXT_ENTER, self.add_new_color, self.color_box)
 
         #name box
-        self.name_box = wx.TextCtrl(self.panel, -1, size=(80*self.GUI_RESOLUTION, 25), style=wx.HSCROLL, name="name")
+        self.name_box = wx.TextCtrl(self.panel, -1, size=(80*self.GUI_RESOLUTION, 25), name="name")
 
         #more mac stuff
         h_size_buttons,button_spacing = 25,5.5

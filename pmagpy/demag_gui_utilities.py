@@ -77,14 +77,14 @@ def read_inp(WD,inp_file_name,magic_files):
         if os.path.join(d,f) in magic_files:
             new_inp_file += update_file+"\n"
             continue
-        if float(update_lines[-1]) >= os.path.getctime(update_lines[0]):
+        if float(update_lines[-1]) >= os.path.getmtime(update_lines[0]):
             no_changes = True
             #check specimen files for changes
             sam_file = open(update_lines[0])
             sam_file_lines = sam_file.readlines()
             spec_file_paths = map(lambda x: os.path.join(d,x.strip('\r \n')), sam_file_lines[2:])
             for spec_file_path in spec_file_paths:
-                if float(update_lines[-1]) < os.path.getctime(spec_file_path):
+                if float(update_lines[-1]) < os.path.getmtime(spec_file_path):
                     no_changes=False; break
             if no_changes and os.path.isfile(os.path.join(WD,f)) \
                           and os.path.isfile(os.path.join(WD,erspecf)) \
@@ -107,7 +107,7 @@ def read_inp(WD,inp_file_name,magic_files):
             CIT_kwargs = {}
             CIT_name = os.path.basename(os.path.splitext(update_dict["sam_path"])[0])
 
-            CIT_kwargs["dir_path"] = WD + "/"#reduce(lambda x,y: x+"/"+y, update_dict["sam_path"].split("/")[:-1])
+            CIT_kwargs["dir_path"] = WD #reduce(lambda x,y: x+"/"+y, update_dict["sam_path"].split("/")[:-1])
             CIT_kwargs["user"] = ""
             CIT_kwargs["meas_file"] = CIT_name + ".magic"
             CIT_kwargs["spec_file"] = CIT_name + "_er_specimens.txt"
