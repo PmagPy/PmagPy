@@ -363,6 +363,10 @@ Fill in blank cells using controlled vocabularies.
         # need to find max/min lat/lon here IF they were added in the previous grid
         # get min/max lat/lon from sites table
         site_container = self.contribution.tables['sites']
+        # convert lat/lon columns to string type
+        # (this is necessary for consistency because they MAY be string type already)
+        site_container.df['lat'] = site_container.df['lat'].fillna('').astype(str)
+        site_container.df['lon'] = site_container.df['lon'].fillna('').astype(str)
         # replace empty strings with np.nan
         site_container.df['lat'] = np.where(site_container.df['lat'].str.len(), site_container.df['lat'], np.nan)
         site_container.df['lon'] = np.where(site_container.df['lon'].str.len(), site_container.df['lon'], np.nan)

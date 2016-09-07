@@ -11,6 +11,7 @@ for instance, you can build a DIblock for plotting.
 
 import os
 import re
+import numpy as np
 import pandas as pd
 from pandas import DataFrame
 # from pmagpy import pmag
@@ -347,14 +348,29 @@ class Contribution(object):
             print "-W- Invalid or missing column names, could not propagate down"
             return
 
-        ###add_name = source_df_name[:-1] + "_name"
         add_name = source_df_name[:-1]
         self.propagate_name_down(add_name, target_df_name)
         #
         target_df = self.tables[target_df_name].df
         source_df = self.tables[source_df_name].df
         #
-        target_df = target_df.merge(source_df[col_names], how='left', left_on=add_name, right_index=True)
+        target_df = target_df.merge(source_df[col_names], how='left',
+                                    left_on=add_name, right_index=True,
+                                    suffixes=["_target", "_source"])
+        # mess with target_df to remove unneded merge columns
+        for col in col_names:
+            # if there has been a previous merge, consolidate and delete data
+            if col + "_target" in target_df.columns:
+                # prioritize values from target df
+                new_arr = np.where(target_df[col + "_target"].notnull(),
+                                   target_df[col + "_target"],
+                                   target_df[col + "_source"])
+                target_df.rename(columns={col + "_target": col}, inplace=True)
+                target_df[col] = new_arr
+            if col + "_source" in target_df.columns:
+                # delete extra merge column
+                del target_df[col + "_source"]
+        #
         self.tables[target_df_name].df = target_df
         return target_df
 
