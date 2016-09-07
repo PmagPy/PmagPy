@@ -11,6 +11,9 @@ from matplotlib.backends.backend_wxagg import NavigationToolbar2WxAgg as Navigat
 from pylab import Figure
 from pmagpy.demag_gui_utilities import *
 from numpy import vstack,sqrt
+has_basemap=True
+try: from mpl_toolkits.basemap import Basemap
+except ImportError: has_basemap=False
 
 #============================================================================================
 # LOG HEADER:
@@ -34,6 +37,7 @@ class VGP_Dialog(wx.Dialog):
     """
 
     def __init__(self,parent,VGP_Data):
+        if not has_basemap: parent.user_warning("This feature requires the matplotlib toolkit basemaps to function. If you are running a binary complain to a dev they forgot to bundle all dependencies"); return
         super(VGP_Dialog, self).__init__(parent, title="VGP Viewer")
         if not isinstance(VGP_Data,dict): VGP_Data={}
         if len(VGP_Data.keys()) < 0:
@@ -53,7 +57,7 @@ class VGP_Dialog(wx.Dialog):
         self.panel = wx.Panel(self,-1)
 
         #build Plot
-        self.fig = Figure((2.5*self.GUI_RESOLUTION, 2.5*self.GUI_RESOLUTION), dpi=100)
+        self.fig = Figure((6*self.GUI_RESOLUTION, 3*self.GUI_RESOLUTION), dpi=100)
         self.canvas = FigCanvas(self.panel, -1, self.fig)
         self.toolbar = NavigationToolbar(self.canvas)
         self.toolbar.Hide()
@@ -64,6 +68,9 @@ class VGP_Dialog(wx.Dialog):
         self.canvas.Bind(wx.EVT_MIDDLE_DOWN,self.on_home_plot)
         self.canvas.Bind(wx.EVT_RIGHT_DOWN,self.on_pan_zoom_plot)
         self.eqarea = self.fig.add_subplot(111)
+        #set map parameters
+        vgp_lons = [dp['vgp_lon'] for dp in self.VGP_Data['sites'] if 'vgp_lon' in dp]
+        self.mean_lon = sum(vgp_lons)/len(vgp_lons)
 
         #build combobox with VGP level options
         self.VGP_level = self.VGP_Data.keys()[0]
@@ -84,11 +91,11 @@ class VGP_Dialog(wx.Dialog):
         hbox0 = wx.BoxSizer(wx.HORIZONTAL)
         vbox0 = wx.BoxSizer(wx.VERTICAL)
 
-        vbox0.Add(self.combo_box,proportion=0,flag=wx.ALIGN_TOP,border=8)
-        vbox0.Add(self.logger,proportion=1,flag=wx.ALIGN_TOP,border=8)
+        vbox0.Add(self.combo_box,proportion=0,flag=wx.ALIGN_TOP|wx.ALL,border=8)
+        vbox0.Add(self.logger,proportion=1,flag=wx.ALIGN_TOP|wx.ALL,border=8)
 
-        hbox0.Add(vbox0,proportion=1,flag=wx.ALIGN_TOP,border=8)
-        hbox0.Add(self.canvas,proportion=1,flag=wx.ALIGN_TOP,border=8)
+        hbox0.Add(vbox0,proportion=0,flag=wx.ALIGN_TOP|wx.ALL,border=8)
+        hbox0.Add(self.canvas,proportion=1,flag=wx.ALIGN_TOP|wx.ALL,border=8)
 
         self.panel.SetSizer(hbox0)
         hbox0.Fit(self)
@@ -175,27 +182,33 @@ class VGP_Dialog(wx.Dialog):
         self.VGP_level=self.combo_box.GetValue()
         self.fill_logger(); self.plot()
 
+    def draw_map(self):
+        #set basemap
+        self.map = Basemap(projection='moll',lon_0=self.mean_lon,resolution='c',ax=self.eqarea)
+        self.map.drawcoastlines(linewidth=.25)
+        self.map.fillcontinents(color='bisque',lake_color='white',zorder=1)
+        self.map.drawmapboundary(fill_color='white')
+        self.map.drawmeridians(range(0,390,30))
+        self.map.drawparallels(range(-90,120,30))
+
     def plot(self):
+        self.eqarea.clear()
         self.xdata,self.ydata = [],[]
-        draw_net(self.eqarea)
         data = self.VGP_Data[self.VGP_level]
+        self.draw_map()
         ymin, ymax = self.eqarea.get_ylim()
         xmin, xmax = self.eqarea.get_xlim()
 
         for dp in data:
             lat,lon = dp['vgp_lat'],dp['vgp_lon']
-            XYM=pmag.dimap(float(lon),float(lat))
-            if float(lat)>0:
-                FC=dp['color'];EC=dp['color']
-            else:
-                FC='white';EC=dp['color']
+            XYM=self.map(float(lon),float(lat))
+            FC=dp['color'];EC=dp['color']
             if self.selected_pole==dp['name']+dp['comp_name']: marker='D'
             else: marker='o'
             self.eqarea.scatter([XYM[0]],[XYM[1]],marker=marker,edgecolor=EC, facecolor=FC,s=30,lw=1,clip_on=False)
             self.xdata.append(XYM[0]);self.ydata.append(XYM[1])
 
         #consider adding ellipse for uncertinties
-
         self.eqarea.set_xlim(xmin, xmax)
         self.eqarea.set_ylim(ymin, ymax)
 
