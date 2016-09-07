@@ -13,8 +13,8 @@ import os
 import re
 import pandas as pd
 from pandas import DataFrame
-from pmagpy import pmag
-#from pmagpy import data_model3 as data_model
+# from pmagpy import pmag
+# from pmagpy import data_model3 as data_model
 import data_model3 as data_model
 import pmagpy.controlled_vocabularies3 as cv
 
@@ -406,51 +406,51 @@ class MagicDataFrame(object):
                 self.df.index.name = dtype[:-1] if dtype.endswith("s") else dtype
         # if there is a file provided, read in the data and ascertain dtype
         else:
-            data, dtype, keys = pmag.magic_read(magic_file, return_keys=True)
-            # create dataframe, maintaining column order:
-            self.df = DataFrame(data, columns=keys)
-            if dtype == 'bad_file':
-                print "-W- Bad file {}".format(magic_file)
-                self.dtype = 'empty'
-                return
+            ## old way of reading in data using pmag.magic_read
+            #data, dtype, keys = pmag.magic_read(magic_file, return_keys=True)
+            ## create dataframe, maintaining column order:
+            #self.df = DataFrame(data, columns=keys)
+            #if dtype == 'bad_file':
+            #    print "-W- Bad file {}".format(magic_file)
+            #    self.dtype = 'empty'
+            #    return
 
-            self.dtype = dtype
-            if dtype == 'measurements':
+            ## new way of reading in data using pd.read_table
+            with open(magic_file) as f:
+                delim, dtype = f.readline().split('\t')[:2]
+            self.df = pd.read_table(magic_file, skiprows=[0])
+            self.dtype = dtype.strip()
+            if self.dtype == 'measurements':
                 ###self.df['measurement_name'] = self.df['experiment_name'] + self.df['measurement_number']
-                self.df['measurement'] = self.df['experiment'] + self.df['number']
+                self.df['measurement'] = self.df['experiment'] + self.df['number'].astype(str)
                 name = 'measurement'
-            elif dtype.endswith('s'):
-                dtype = dtype[:-1]
-                ###name = '{}_name'.format(dtype)
-                name = '{}'.format(dtype)
-            elif dtype == 'contribution':
+            elif self.dtype.endswith('s'):
+                #dtype = dtype[:-1]
+                name = '{}'.format(self.dtype[:-1])
+            elif self.dtype == 'contribution':
                 name = 'doi'
                 # **** this is broken at the moment, fix it!
                 return
+            else:
+                name = self.dtype
             # fix these:
-            if dtype == 'age':
-                # find which key has name in it, use that as index
-                # this won't work if site_name/sample_name/etc. are interspersed
-                for key in keys:
-                    if 'name' in key:
-                        name = key
-                        break
-            if dtype == 'image':
+            if self.dtype == 'images':
                 self.df = pd.DataFrame()
                 return
-            if dtype == 'criteria':
+            if self.dtype == 'criteria':
                 #self.df = pd.DataFrame()
                 self.df.index = self.df['table_column']
                 return
-            if len(self.df) and dtype != 'age':
-                self.df.index = self.df[name]
-            elif dtype == 'age':
+            if len(self.df) and self.dtype != 'ages':
+                self.df.index = self.df[name].astype(str)
+            elif self.dtype == 'ages':
                 self.df.index = self.df.index.astype(str)
             #del self.df[name]
             #self.dtype = dtype
             # replace '' with None, so you can use isnull(), notnull(), etc.
             # can always switch back with DataFrame.fillna('')
-            self.df[self.df == ''] = None
+            self.df = self.df.where(self.df.notnull(), None)
+
             # drop any completely blank columns
             # this is not necessarily a good idea....
             #self.df.dropna(axis=1, how='all', inplace=True)
@@ -689,6 +689,7 @@ class MagicDataFrame(object):
         [[dec1, inc1], [dec2, inc2], ...].
         Not inplace
         """
+        tilt_corr = int(tilt_corr)
         if isinstance(df_slice, str):
             if df_slice.lower() == "all":
                 # use entire DataFrame
@@ -702,7 +703,7 @@ class MagicDataFrame(object):
 
         # once you have the slice, fix up the data
         # tilt correction must match
-        if tilt_corr != "0":
+        if tilt_corr != 0:
             df_slice = df_slice[df_slice['dir_tilt_correction'] == tilt_corr]
         else:
             # if geographic ("0"),

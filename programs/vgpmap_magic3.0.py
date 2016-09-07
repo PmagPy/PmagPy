@@ -87,7 +87,7 @@ def main():
     else:
         lat_0, lon_0 = 90., 0.
     crd = pmag.get_named_arg_from_sys("-crd", "")
-    coord_dict = {'g': '0', 't': '100'}
+    coord_dict = {'g': 0, 't': 100}
     coord = coord_dict[crd] if crd else ""
     results_file = pmag.get_named_arg_from_sys("-f", "sites.txt")
 

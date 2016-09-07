@@ -78,7 +78,7 @@ def main():
     #outfile = pmag.get_named_arg_from_sys("-F", "rmag_results.txt")
     fmt = pmag.get_named_arg_from_sys("-fmt", "pdf")
     hpars, bpars = [], []
-    CS, crd = '-1', 's'
+    CS, crd = -1, 's'
     ResRecs = []
     comp, Dir, PDir = 0, [], []
     if '-B' in args:
@@ -87,9 +87,9 @@ def main():
         ind = sys.argv.index('-crd')
         crd = sys.argv[ind+1]
         if crd == 'g':
-            CS = '0'
+            CS = 0
         if crd == 't':
-            CS = '100'
+            CS = 100
     if '-sav' in args:
         plots = 1
         verbose = 0
@@ -141,12 +141,12 @@ def main():
         if len(orlist) > 0:
             CS = orlist[0]
         else:
-            CS = '-1'
-        if CS == '-1':
+            CS = -1
+        if CS == -1:
             crd = 's'
-        if CS == '0':
+        if CS == 0:
             crd = 'g'
-        if CS == '100':
+        if CS == 100:
             crd = 't'
         if verbose:
             print "desired coordinate system not available, using available: ", crd
@@ -349,29 +349,29 @@ def main():
                         pmagplotlib.drawFIGS(ANIS)
                 if ans == "c":
                     print "Current Coordinate system is: "
-                    if CS == '-1':
+                    if CS == -1:
                         print " Specimen"
-                    if CS == '0':
+                    if CS == 0:
                         print " Geographic"
-                    if CS == '100':
+                    if CS == 100:
                         print " Tilt corrected"
                     key = raw_input(" Enter desired coordinate system: [s]pecimen, [g]eographic, [t]ilt corrected ")
                     if key == 's':
-                        CS = '-1'
+                        CS = -1
                     if key == 'g':
-                        CS = '0'
+                        CS = 0
                     if key == 't':
-                        CS = '100'
+                        CS = 100
                     if CS not in orlist:
                         if len(orlist) > 0:
                             CS = orlist[0]
                         else:
-                            CS = '-1'
-                        if CS == '-1':
+                            CS = -1
+                        if CS == -1:
                             crd = 's'
-                        if CS == '0':
+                        if CS == 0:
                             crd = 'g'
-                        if CS == '100':
+                        if CS == 100:
                             crd = 't'
                         print "desired coordinate system not available, using available: ", crd
                     k -= 1

@@ -43,8 +43,6 @@ class MagMainFrame(wx.Frame):
         title += "   Powered by Enthought Canopy"
 
     def __init__(self, WD=None):
-
-
         self.data_model_num = int(pmag.get_named_arg_from_sys("-DM", 2.5))
         self.FIRST_RUN = True
         wx.Frame.__init__(self, None, wx.ID_ANY, self.title, name='pmag_gui mainframe')
@@ -364,12 +362,10 @@ class MagMainFrame(wx.Frame):
         self.Hide()
 
     def on_convert_3(self, event):
-        fname = "magic_measurements.txt"
-        new_meas = pmag.convert_measfile_2_to_3(fname, self.WD, self.WD)
+        pmag.convert_directory_2_to_3('magic_measurements.txt',
+                                      input_dir=self.WD, output_dir=self.WD)
         self.contribution = nb.Contribution(self.WD)
         self.contribution.propagate_measurement_info()
-        for table in self.contribution.tables:
-            self.contribution.tables[table].write_magic_file(dir_path=self.WD)
 
 
     def on_er_data(self, event):

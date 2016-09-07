@@ -52,8 +52,11 @@ def main():
         #        filenames.append(os.path.join(dir_path, sys.argv[k]))
         #else:
         #    raise pmag.MissingCommandLineArgException("-f")
-                
-    ipmag.combine_magic(filenames.split(), outfile)
+    files=[]
+    for f in filenames.split():
+        files.append(os.path.join(dir_path,f)) 
+    outfile=(os.path.join(dir_path,outfile))
+    ipmag.combine_magic(files, outfile)
 
 if __name__ == "__main__":    
     main()

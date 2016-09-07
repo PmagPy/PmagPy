@@ -8,10 +8,12 @@ import numpy.linalg
 import exceptions
 import os
 import time
+import pandas as pd
 #import check_updates
 import scipy
 from scipy import array,sqrt,mean
 from SPD.mapping import map_magic
+from pmagpy import new_builder as nb
 
 #pylint: skip-file
 
@@ -219,25 +221,47 @@ def convert_ages(Recs):
             print 'no age key:', rec
     return New
 
+
+## Converting from 2.5 --> 3.0
+
 def convert_meas_2_to_3(meas_data_2):
     NewMeas=[]
 # step through records
     for rec in meas_data_2: NewMeas.append(map_magic.convert_meas('magic3',rec))
     return NewMeas
 
+def convert_items(data, mapping):
+    """
+    Input: list of dicts (each dict a record for one item),
+    mapping with column names to swap into the records.
+    Output: updated list of dicts.
+    """
+    new_recs = []
+    for rec in data:
+        new_rec = map_magic.mapping(rec, mapping)
+        new_recs.append(new_rec)
+    return new_recs
 
-def convert_measfile_2_to_3(fname, input_dir=".", output_dir="."):
+
+def convert_directory_2_to_3(meas_fname, input_dir=".", output_dir=".",
+                             meas_only=False):
     """
     Convert 2.0 measurements file into 3.0 measurements file.
+    Merge and convert specimen, sample, site, and location data.
+    Note: does not yet handle criteria or other MagIC files.
     """
-    full_name = os.path.join(input_dir, fname)
+    convert = {'specimens': map_magic.spec_magic2_2_magic3_map,
+               'samples': map_magic.samp_magic2_2_magic3_map,
+               'sites': map_magic.site_magic2_2_magic3_map,
+               'locations': map_magic.loc_magic2_2_magic3_map}
+    full_name = os.path.join(input_dir, meas_fname)
     if not os.path.exists(full_name):
         print "-W- {} is not a file".format(full_name)
         return
     # read in data model 2.5 measurements file
     data2, filetype = magic_read(full_name)
     # convert list of dicts to 3.0
-    NewMeas = convert_meas_2_to_3(data2)
+    NewMeas = convert_items(data2, map_magic.meas_magic2_2_magic3_map)
     # write 3.0 output to file
     ofile = os.path.join(output_dir, 'measurements.txt')
     magic_write(ofile, NewMeas,'measurements')
@@ -245,7 +269,50 @@ def convert_measfile_2_to_3(fname, input_dir=".", output_dir="."):
         print "-I- 3.0 format measurements file was successfully created: {}".format(ofile)
     else:
         print "-W- 3.0 format measurements file could not be created"
+    #
+    if not meas_only:
+        # try to convert specimens, samples, sites, & locations
+        for dtype in ['specimens', 'samples', 'sites', 'locations']:
+            mapping = convert[dtype]
+            convert_and_combine_2_to_3(dtype, mapping, input_dir, output_dir)
     return NewMeas
+
+
+def convert_and_combine_2_to_3(dtype, map_dict, input_dir=".", output_dir="."):
+    """
+    Read in er_*.txt file and pmag_*.txt file in working directory.
+    Combine the data, then translate headers from 2.5 --> 3.0.
+    Last, write out the data in 3.0.
+    """
+    # read in er_ data & make DataFrame
+    er_file = os.path.join(input_dir, 'er_{}.txt'.format(dtype))
+    er_data, er_dtype = magic_read(er_file)
+    if len(er_data):
+        er_df = pd.DataFrame(er_data)
+        er_df.index = er_df['er_{}_name'.format(dtype[:-1])]
+    else:
+        er_df = pd.DataFrame()
+    # read in pmag_ data & make DataFrame
+    pmag_file = os.path.join(input_dir, 'pmag_{}.txt'.format(dtype))
+    pmag_data, pmag_dtype = magic_read(pmag_file)
+    if len(pmag_data):
+        pmag_df = pd.DataFrame(pmag_data)
+        pmag_df.index = pmag_df['er_{}_name'.format(dtype[:-1])]
+    else:
+        pmag_df = pd.DataFrame()
+    # combine the two Dataframes
+    full_df = pd.concat([er_df, pmag_df])
+    # sort the DataFrame so that all records from one item are together
+    full_df.sort_index(inplace=True)
+    # fix the column names to be 3.0
+    full_df.rename(columns=map_dict, inplace=True)
+    # create a MagicDataFrame object, providing the dataframe and the data type
+    new_df = nb.MagicDataFrame(dtype=dtype, df=full_df)
+    # write out the data to file
+    if len(new_df.df):
+        new_df.write_magic_file(dir_path=output_dir)
+    else:
+        print "-I- No {} data found.".format(dtype)
 
 
 def getsampVGP(SampRec,SiteNFO,data_model=2.5):
@@ -1354,7 +1421,7 @@ def magic_write(ofile,Recs,file_type):
               if 'er_specimen_name' in Rec.keys():
                   print Rec['er_specimen_name']
               elif 'er_specimen_names' in Rec.keys():
-                  print Rec['er_specimen_names']
+                  print 'specimen names:', Rec['er_specimen_names']
               print("No data for %s"%key)
               #raw_input()
         outstring=outstring+'\n'
