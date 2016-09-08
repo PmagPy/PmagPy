@@ -688,7 +688,6 @@ The data in a row will be associated with the lowest level that is filled in,
         del wait
 
     def on_cancelButton(self, event):
-
         dlg = pw.YesNoCancelDialog(self, "Your changes so far have not been written to file.\nSave changes?", "Not so fast")
         res = dlg.ShowModal()
         dlg.Destroy()
@@ -701,6 +700,12 @@ The data in a row will be associated with the lowest level that is filled in,
             pass
 
     def on_backButton(self, event, previous_dia, current_dia=None):
+        # save first?
+        if self.grid.changes:
+            result = pw.warning_with_override("You have unsaved data which will be lost. Are you sure you want to go back?")
+            if result == wx.ID_NO:
+                return
+        # go back to previous grid
         wait = wx.BusyInfo("Please wait, working...")
         wx.Yield()
         if current_dia == self.InitLocCheck:
