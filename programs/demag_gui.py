@@ -67,7 +67,6 @@ from scipy.optimize import curve_fit
 from scipy.signal import find_peaks_cwt
 from webbrowser import open as webopen
 from pkg_resources import resource_filename
-
 import pmagpy.pmag as pmag
 import pmagpy.ipmag as ipmag
 from dialogs.demag_interpretation_editor import InterpretationEditorFrame
@@ -318,13 +317,14 @@ class Demag_GUI(wx.Frame):
         #  set font size and style
     #----------------------------------------------------------------------
 
-        FONT_RATIO=1
-        font1 = wx.Font(9+FONT_RATIO, wx.SWISS, wx.NORMAL, wx.NORMAL, False, self.font_type)
+        FONT_WEIGHT=1
+        if sys.platform.startswith('win'): FONT_WEIGHT=-1
+        font1 = wx.Font(9+FONT_WEIGHT, wx.SWISS, wx.NORMAL, wx.NORMAL, False, self.font_type)
         # GUI headers
-        font2 = wx.Font(12+min(1,FONT_RATIO), wx.SWISS, wx.NORMAL, wx.NORMAL, False, self.font_type)
-        font3 = wx.Font(11+FONT_RATIO, wx.SWISS, wx.NORMAL, wx.NORMAL, False, self.font_type)
+        font2 = wx.Font(12+min(1,FONT_WEIGHT), wx.SWISS, wx.NORMAL, wx.NORMAL, False, self.font_type)
+        font3 = wx.Font(11+FONT_WEIGHT, wx.SWISS, wx.NORMAL, wx.NORMAL, False, self.font_type)
         font = wx.SystemSettings_GetFont(wx.SYS_SYSTEM_FONT)
-        font.SetPointSize(10+FONT_RATIO)
+        font.SetPointSize(10+FONT_WEIGHT)
 
 
 #----------------------------------------------------------------------
@@ -523,7 +523,7 @@ class Demag_GUI(wx.Frame):
         self.mean_type_box = wx.ComboBox(self.panel, -1, size=(120*self.GUI_RESOLUTION, 25), value='None', choices=['Fisher','Fisher by polarity','None'], style=wx.CB_DROPDOWN,name="high_type")
         self.Bind(wx.EVT_COMBOBOX, self.onSelect_mean_type_box,self.mean_type_box)
 
-        self.mean_fit_box = wx.ComboBox(self.panel, -1, size=(120*self.GUI_RESOLUTION, 25), value='None', choices=['All'] + list_fits, style=wx.CB_DROPDOWN,name="high_type")
+        self.mean_fit_box = wx.ComboBox(self.panel, -1, size=(120*self.GUI_RESOLUTION, 25), value='None', choices=['None','All'] + list_fits, style=wx.CB_DROPDOWN,name="high_type")
         self.Bind(wx.EVT_COMBOBOX, self.onSelect_mean_fit_box,self.mean_fit_box)
         self.mean_fit = 'None'
 
@@ -1710,8 +1710,20 @@ class Demag_GUI(wx.Frame):
                 if key not in accept.keys() and critrec[key]!='':
                     accept[key]=critrec[key]
 
+        Ns = []
         #retrieve specimen data to calculate VGPS with
-        Ns = [e.get(self.COORDINATE_SYSTEM) for sl in self.pmag_results_data['specimens'].values() for e in sl if e not in self.bad_fits]
+        for s in self.pmag_results_data['specimens'].keys():
+            for fit in self.pmag_results_data['specimens'][s]:
+                if fit in self.bad_fits: continue
+                pars = fit.get(self.COORDINATE_SYSTEM)
+                #check for interpretation data for fit
+                if not pars:
+                    pars = self.get_PCA_parameters(s,fit,fit.tmin,fit.tmax,self.COORDINATE_SYSTEM,fit.PCA_type)
+                    if not pars or 'specimen_dec' not in pars.keys() or 'specimen_inc' not in pars.keys(): print("Could not calculate interpretation for specimen %s and fit %s while calculating VGP data, skipping this component"%(s,fit.name));continue
+                    pars['er_specimen_name'] = s
+                    pars['specimen_comp_name'] = fit.name
+                Ns.append(pars)
+
         SpecDirs=[]
         if crit_data!=None: # use selection criteria
             for rec in Ns: # look through everything with specimen_n for "good" data
@@ -1722,6 +1734,7 @@ class Demag_GUI(wx.Frame):
             SpecDirs=Ns[:] # take them all
 
         for i in range(len(SpecDirs)):
+            if SpecDirs[i]=={}: continue
             specimen = SpecDirs[i]['er_specimen_name']
             SpecDirs[i]['er_sample_name'] = self.Data_hierarchy['sample_of_specimen'][specimen]
             SpecDirs[i]['er_site_name'] = self.Data_hierarchy['site_of_specimen'][specimen]
@@ -1745,6 +1758,7 @@ class Demag_GUI(wx.Frame):
             self.dlg.Destroy()
             if result == wx.ID_OK:
                 ui_dialog = demag_dialogs.user_input(self,['Latitude','Longitude'],parse_funcs=[float,float], heading="Missing Latitude or Longitude data for site: %s"%val['er_site_name'])
+                ui_dialog.Center()
                 ui_dialog.ShowModal()
                 ui_data = ui_dialog.get_values()
                 if ui_data[0]:
@@ -1839,6 +1853,7 @@ class Demag_GUI(wx.Frame):
                         lon = loc_data[loc]['location_end_lon']
                     if lat=="" and lon=="":
                         ui_dialog = demag_dialogs.user_input(self,['Latitude','Longitude'],parse_funcs=[float,float], heading="Missing Latitude or Longitude data for location: %s"%loc)
+                        ui_dialog.Center()
                         ui_dialog.ShowModal()
                         ui_data = ui_dialog.get_values()
                         if ui_data[0]:
@@ -2624,6 +2639,7 @@ class Demag_GUI(wx.Frame):
                 self.spec_data['specimen'] = self.spec_data.index
 
             ui_dialog = demag_dialogs.user_input(self,["# of characters to remove"], heading="Sample data could not be found attempting to generate sample names by removing characters from specimen names")
+            ui_dialog.Center()
             ui_dialog.ShowModal()
             ui_data = ui_dialog.get_values()
             try: samp_ncr = int(ui_data[1]["# of characters to remove"])
@@ -2638,6 +2654,7 @@ class Demag_GUI(wx.Frame):
 
           if 'site' not in self.samp_data.columns or 'site' not in self.site_data.columns:
             ui_dialog = demag_dialogs.user_input(self,["# of characters to remove","site delimiter"], heading="No Site Data found attempting to create site names from specimen names")
+            ui_dialog.Center()
             ui_dialog.ShowModal()
             ui_data = ui_dialog.get_values()
             try:
@@ -2654,6 +2671,7 @@ class Demag_GUI(wx.Frame):
 
           if 'location' not in self.site_data.columns or 'location' not in self.loc_data.columns:
             ui_dialog = demag_dialogs.user_input(self,["location name for all sites"], heading="No Location found")
+            ui_dialog.Center()
             ui_dialog.ShowModal()
             ui_data = ui_dialog.get_values()
             self.site_data['location'] = ui_data[1]["location name for all sites"]
@@ -3529,6 +3547,7 @@ class Demag_GUI(wx.Frame):
             wildcard="*.magic|*.txt",
             style=wx.OPEN | wx.CHANGE_DIR
             )
+        self.dlg.Center()
         if self.dlg.ShowModal() == wx.ID_OK:
             meas_file = self.dlg.GetPath()
             self.dlg.Destroy()
@@ -3992,6 +4011,7 @@ class Demag_GUI(wx.Frame):
                             except (KeyError,ValueError,TypeError) as e:
                                 calculate=False
                                 ui_dialog = demag_dialogs.user_input(self,['Latitude','Longitude'],parse_funcs=[float,float], heading="Missing Latitude or Longitude data for site: %s"%site)
+                                ui_dialog.Center()
                                 ui_dialog.ShowModal()
                                 ui_data = ui_dialog.get_values()
                                 if ui_data[0]:
@@ -4269,6 +4289,7 @@ class Demag_GUI(wx.Frame):
         self.update_warning_box()
         #update choices in the fit box
         self.update_fit_boxes()
+        self.update_mean_fit_box()
         # measurements text box
         self.Add_text()
         #update higher level stats
@@ -4356,6 +4377,7 @@ class Demag_GUI(wx.Frame):
         self.plot_higher_levels_data()
 
     def update_higher_level_stats(self):
+        self.clear_higher_level_pars()
         dirtype=str(self.coordinates_box.GetValue())
         if dirtype=='specimen':dirtype='DA-DIR'
         elif dirtype=='geographic':dirtype='DA-DIR-GEO'
@@ -4446,10 +4468,6 @@ class Demag_GUI(wx.Frame):
         alters mean_fit_box list to match with changes in specimen or new/removed interpretations
         @alters: mean_fit_box selection and choices, mean_types_box string selection
         """
-        #get new fit data
-        #if self.s in self.pmag_results_data['specimens'].keys(): self.fit_list=list(map(lambda x: x.name, self.pmag_results_data['specimens'][self.s]))
-        #else: self.fit_list = []
-        #clear old box
         self.mean_fit_box.Clear()
         #update higher level mean fit box
         self.all_fits_list = []
@@ -4461,18 +4479,31 @@ class Demag_GUI(wx.Frame):
                     if name not in self.all_fits_list: self.all_fits_list.append(name)
         self.mean_fit_box.SetItems(['None','All'] + self.all_fits_list)
         #select defaults
-        if fit_index: self.mean_fit_box.SetSelection(fit_index+2)
-        if self.mean_fit_box.GetValue() == 'None': self.mean_type_box.SetStringSelection('None')
+        if fit_index:
+            self.mean_fit_box.SetValue(self.all_fits_list[fit_index])
+        elif self.mean_fit == 'All':
+            self.mean_fit_box.SetValue('All')
+        else:
+            self.mean_fit_box.SetValue('None')
+            self.mean_type_box.SetValue('None')
+            self.clear_higher_level_pars()
         if self.ie_open:
             self.ie.mean_fit_box.Clear()
             self.ie.mean_fit_box.SetItems(['None','All'] + self.all_fits_list)
-            if fit_index: self.ie.mean_fit_box.SetSelection(fit_index+2)
-            if self.mean_fit_box.GetValue() == 'None': self.ie.mean_type_box.SetStringSelection('None')
+            if fit_index:
+                self.ie.mean_fit_box.SetValue(self.all_fits_list[fit_index])
+            elif self.mean_fit == 'All':
+                self.ie.mean_fit_box.SetValue('All')
+            else:
+                self.ie.mean_fit_box.SetValue('None')
+                self.ie.mean_type_box.SetValue('None')
 
     def show_higher_levels_pars(self,mpars):
 
-        FONT_RATIO=self.GUI_RESOLUTION+(self.GUI_RESOLUTION-1)*5
-        font2 = wx.Font(12+min(1,FONT_RATIO), wx.SWISS, wx.NORMAL, wx.NORMAL, False, self.font_type)
+        FONT_WEIGHT=self.GUI_RESOLUTION+(self.GUI_RESOLUTION-1)*5
+        font2 = wx.Font(12+min(1,FONT_WEIGHT), wx.SWISS, wx.NORMAL, wx.NORMAL, False, self.font_type)
+
+        if self.mean_type_box.GetValue() == "None" or self.mean_fit_box.GetValue() == "None": return
 
         if not mpars or len(mpars)==1: print("No parameters to display for higher level mean"); return
 
@@ -4552,9 +4583,8 @@ class Demag_GUI(wx.Frame):
             COMMAND = """self.%s_window.SetValue("")"""%(val)
             exec COMMAND
         if self.ie_open:
-            ie = self.ie
             for val in ['mean_type','dec','inc','alpha95','K','R','n_lines','n_planes']:
-                COMMAND = """ie.%s_window.SetValue("")"""%(val)
+                COMMAND = """self.ie.%s_window.SetValue("")"""%(val)
                 exec COMMAND
 
     def MacReopenApp(self):
@@ -5049,6 +5079,7 @@ class Demag_GUI(wx.Frame):
             wildcard="*.redo",
             style=wx.OPEN | wx.CHANGE_DIR
             )
+        self.dlg.Center()
         if self.dlg.ShowModal() == wx.ID_OK:
             redo_file = self.dlg.GetPath()
         else:
@@ -5065,6 +5096,7 @@ class Demag_GUI(wx.Frame):
             wildcard="*.LSQ",
             style=wx.OPEN
             )
+        self.dlg.Center()
         if self.dlg.ShowModal() == wx.ID_OK:
             LSQ_file = self.dlg.GetPath()
         else:
@@ -5130,6 +5162,7 @@ class Demag_GUI(wx.Frame):
             defaultFile=default_file,
             style=wx.OPEN | wx.CHANGE_DIR
             )
+        self.dlg.Center()
         if self.dlg.ShowModal() == wx.ID_OK:
             criteria_file = self.dlg.GetPath()
             print("-I- Read new criteria file: %s"%criteria_file)
@@ -5178,6 +5211,7 @@ class Demag_GUI(wx.Frame):
     def on_menu_view_vgps(self,event):
         VGP_Data = self.calculate_vgp_data()
         vgpdia = demag_dialogs.VGP_Dialog(self,VGP_Data)
+        if vgpdia.failed_init: return
         vgpdia.Center()
         vgpdia.ShowModal()
 
@@ -5404,6 +5438,7 @@ class Demag_GUI(wx.Frame):
                 break
         if index != None:
             self.fit_box.SetSelection(index)
+            self.draw_figure(self.s,True)
             self.on_select_fit(event)
 
     def right_click_higher_equalarea(self,event):
@@ -5764,10 +5799,17 @@ class Demag_GUI(wx.Frame):
 
     def onSelect_mean_type_box(self,event):
         # calculate higher level data
+        if self.UPPER_LEVEL_SHOW != "specimens" or self.mean_fit_box.GetValue() == 'None':
+            self.clear_higher_level_pars()
+            self.mean_type_box.SetValue("None"); return
         self.calculate_higher_levels_data()
-        self.update_selection()
+        self.update_higher_level_stats()
+        draw_net(self.high_level_eqarea)
+        self.plot_higher_levels_data()
 
     def onSelect_mean_fit_box(self,event):
+        if self.mean_fit_box.GetValue() == 'None' and self.mean_type_box.GetValue() != 'None':
+            self.mean_type_box.SetValue('None')
         #get new fit to display
         new_fit = self.mean_fit_box.GetValue()
         self.mean_fit = new_fit
@@ -5783,7 +5825,7 @@ class Demag_GUI(wx.Frame):
        if self.UPPER_LEVEL=='sample':
            if self.ie_open:
                self.ie.show_box.SetItems(['specimens'])
-               self.ie.show_box.SetStringSelection('specimens')
+               self.ie.show_box.SetValue('specimens')
            if self.UPPER_LEVEL_SHOW not in ['specimens']: self.UPPER_LEVEL_SHOW = u'specimens'
            self.level_names.SetItems(self.samples)
            self.level_names.SetStringSelection(self.Data_hierarchy['sample_of_specimen'][self.s])
@@ -5792,7 +5834,7 @@ class Demag_GUI(wx.Frame):
            if self.ie_open:
                self.ie.show_box.SetItems(['specimens','samples'])
                if self.ie.show_box.GetValue() not in ['specimens','samples']:
-                   self.ie.show_box.SetStringSelection('samples')
+                   self.ie.show_box.SetValue('specimens')
            if self.UPPER_LEVEL_SHOW not in ['specimens','samples']: self.UPPER_LEVEL_SHOW = u'specimens'
            self.level_names.SetItems(self.sites)
            self.level_names.SetStringSelection(self.Data_hierarchy['site_of_specimen'][self.s])
@@ -5801,7 +5843,7 @@ class Demag_GUI(wx.Frame):
            if self.ie_open:
                self.ie.show_box.SetItems(['specimens','samples','sites'])#,'sites VGP'])
                if self.ie.show_box.GetValue() not in ['specimens','samples','sites']:#,'sites VGP']:
-                   self.ie.show_box.SetStringSelection('sites')
+                   self.ie.show_box.SetValue(self.UPPER_LEVEL_SHOW)
            self.level_names.SetItems(self.locations)
            self.level_names.SetStringSelection(self.Data_hierarchy['location_of_specimen'][self.s])
 
@@ -5809,7 +5851,7 @@ class Demag_GUI(wx.Frame):
            if self.ie_open:
                self.ie.show_box.SetItems(['specimens','samples','sites'])#,'sites VGP'])
                if self.ie.show_box.GetValue() not in ['specimens','samples','sites']:#,'sites VGP']:
-                   self.ie.show_box.SetStringSelection('sites')
+                   self.ie.show_box.SetValue(self.UPPER_LEVEL_SHOW)
            self.level_names.SetItems(['this study'])
            self.level_names.SetStringSelection('this study')
 
@@ -5844,6 +5886,7 @@ class Demag_GUI(wx.Frame):
        self.update_selection()
 
     def on_select_plane_display_box(self,event):
+        self.draw_figure(self.s,True)
         self.draw_interpretation()
         self.plot_higher_levels_data()
 
@@ -6042,7 +6085,7 @@ class SaveMyPlot(wx.Frame):
             defaultFile=default_fig_name,
             wildcard=file_choices,
             style=wx.SAVE)
-
+        dlg.Center()
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
         else:

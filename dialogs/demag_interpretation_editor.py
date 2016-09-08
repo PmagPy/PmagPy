@@ -49,8 +49,10 @@ class InterpretationEditorFrame(wx.Frame):
         """
 
         #set fonts
-        font1 = wx.Font(10, wx.SWISS, wx.NORMAL, wx.NORMAL, False, self.font_type)
-        font2 = wx.Font(13, wx.SWISS, wx.NORMAL, wx.NORMAL, False, self.font_type)
+        FONT_WEIGHT=1
+        if sys.platform.startswith('win'): FONT_WEIGHT=-1
+        font1 = wx.Font(9+FONT_WEIGHT, wx.SWISS, wx.NORMAL, wx.NORMAL, False, self.font_type)
+        font2 = wx.Font(12+FONT_WEIGHT, wx.SWISS, wx.NORMAL, wx.NORMAL, False, self.font_type)
 
         #if you're on mac do some funny stuff to make it look okay
         is_mac = False

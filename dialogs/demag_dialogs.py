@@ -37,12 +37,13 @@ class VGP_Dialog(wx.Dialog):
     """
 
     def __init__(self,parent,VGP_Data):
-        if not has_basemap: parent.user_warning("This feature requires the matplotlib toolkit basemaps to function. If you are running a binary complain to a dev they forgot to bundle all dependencies"); return
+        self.failed_init = False
+        if not has_basemap: parent.user_warning("This feature requires the matplotlib toolkit basemaps to function. If you are running a binary complain to a dev they forgot to bundle all dependencies"); self.failed_init=True; return 
         super(VGP_Dialog, self).__init__(parent, title="VGP Viewer")
         if not isinstance(VGP_Data,dict): VGP_Data={}
-        if len(VGP_Data.keys()) < 0:
+        if VGP_Data!={} and not all([len(VGP_Data[k]) for k in VGP_Data.keys()]):
             parent.user_warning("No VGP Data for VGP viewer to display")
-            self.Destroy(); return
+            self.Destroy(); self.failed_init=True; return
         self.selected_pole = None
         self.selected_pole_index = 0
         self.dp_list = []
