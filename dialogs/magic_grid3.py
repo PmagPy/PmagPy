@@ -55,12 +55,16 @@ class MagicGrid(wx.grid.Grid, gridlabelrenderer.GridWithLabelRenderersMixin):
             pass
         return data
 
-    def add_items(self, dataframe):  #items_list, incl_pmag=True, incl_parents=True):
+    def add_items(self, dataframe, hide_cols=()):
         """
         Add items and/or update existing items in grid
         """
         # replace "None" values with ""
         dataframe = dataframe.fillna("")
+        # remove any columns that shouldn't be shown
+        for col in hide_cols:
+            if col in dataframe.columns:
+                del dataframe[col]
         # add more rows
         self.AppendRows(len(dataframe))
         columns = dataframe.columns

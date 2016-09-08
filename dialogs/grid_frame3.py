@@ -17,11 +17,12 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
     make_magic
     """
     def __init__(self, contribution, WD=None, frame_name="grid frame",
-                 panel_name="grid panel", parent=None):
+                 panel_name="grid panel", parent=None, exclude_cols=()):
         self.parent = parent
         wx.GetDisplaySize()
         title = 'Edit {} data'.format(panel_name)
-        super(GridFrame, self).__init__(parent=parent, id=wx.ID_ANY, name=frame_name, title=title)
+        super(GridFrame, self).__init__(parent=parent, id=wx.ID_ANY,
+                                        name=frame_name, title=title)
         # if controlled vocabularies haven't already been grabbed from earthref
         # do so now
         if not any(vocab.vocabularies):
@@ -32,6 +33,7 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
         self.selected_rows = set()
 
         self.contribution = contribution
+        self.exclude_cols = exclude_cols
 
         self.panel = wx.Panel(self, name=panel_name, size=wx.GetDisplaySize())
         self.grid_type = str(panel_name)
@@ -79,7 +81,8 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
             dataframe = None
         self.grid_builder = GridBuilder(self.contribution, self.grid_type,
                                         self.panel, parent_type=self.parent_type,
-                                        reqd_headers=self.reqd_headers)
+                                        reqd_headers=self.reqd_headers,
+                                        exclude_cols=self.exclude_cols)
 
         self.grid = self.grid_builder.make_grid()
         self.grid.InitUI()
@@ -183,6 +186,7 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
 
         # add actual data!
         self.grid_builder.add_data_to_grid(self.grid, self.grid_type)
+
 
         ## this would be a way to prevent editing
         ## some cells in age grid.
@@ -715,8 +719,10 @@ class GridBuilder(object):
     """
 
     def __init__(self, contribution, grid_type, panel,
-                 parent_type=None, reqd_headers=None):
+                 parent_type=None, reqd_headers=None,
+                 exclude_cols=()):
         self.contribution = contribution
+        self.exclude_cols = exclude_cols
         if grid_type in contribution.tables:
             self.magic_dataframe = contribution.tables[grid_type]
         else:
@@ -734,9 +740,9 @@ class GridBuilder(object):
         return grid
         """
         # if there is a MagicDataFrame, extract data from it
-        if isinstance(self.magic_dataframe, nb.MagicDataFrame):# and len(self.magic_dataframe.df):
+        if isinstance(self.magic_dataframe, nb.MagicDataFrame):
             # get columns and reorder slightly
-            col_labels = list(self.magic_dataframe.df.columns)
+            col_labels = list(self.magic_dataframe.df.columns.difference(self.exclude_cols))
             if self.grid_type == 'ages':
                 levels = ['specimen', 'sample', 'site', 'location']
                 for label in levels[:]:
@@ -788,9 +794,9 @@ class GridBuilder(object):
         self.grid = grid
         return grid
 
-    def add_data_to_grid(self, grid, grid_type=None):#, incl_pmag=True):
+    def add_data_to_grid(self, grid, grid_type=None):
         if isinstance(self.magic_dataframe, nb.MagicDataFrame):
-            grid.add_items(self.magic_dataframe.df)
+            grid.add_items(self.magic_dataframe.df, self.exclude_cols)
         grid.size_grid()
 
         # always start with at least one row:
