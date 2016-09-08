@@ -50,11 +50,12 @@ class ErMagicCheckFrame3(wx.Frame):
         label = wx.StaticText(self.panel, label=text)
         reqd_headers = self.contribution.data_model.get_reqd_headers('specimens')
         self.grid_builder = grid_frame3.GridBuilder(self.contribution, 'specimens',
-                                                    self.panel, 'samples', reqd_headers)
+                                                    self.panel, 'samples', reqd_headers,
+                                                    exclude_cols=('site', 'location'))
         self.spec_grid = self.grid_builder.make_grid()
         self.grid = self.spec_grid
         self.spec_grid.InitUI()
-        self.grid_builder.add_data_to_grid(self.spec_grid, 'specimen')#, incl_pmag=False)
+        self.grid_builder.add_data_to_grid(self.spec_grid, 'specimen')
         samples = sorted(spec_df['sample'].unique())
         self.drop_down_menu = drop_down_menus3.Menus("specimens", self.contribution,
                                                      self.spec_grid)#, samples)
@@ -143,7 +144,9 @@ You may use the drop-down menus to add as many values as needed in these columns
             cols = ['lithologies', 'geologic_classes', 'geologic_types']
             self.contribution.propagate_cols_down(cols, 'samples', 'sites')
         self.grid_builder = grid_frame3.GridBuilder(self.contribution, 'samples',
-                                                    self.panel, 'sites', ['sample', 'site'])
+                                                    self.panel, parent_type='sites',
+                                                    reqd_headers=['sample', 'site'],
+                                                    exclude_cols=('location',))
 
         self.samp_grid = self.grid_builder.make_grid()
         self.samp_grid.InitUI()
@@ -252,7 +255,8 @@ However, you will be able to edit samples again in step 4.
 
         reqd_headers = self.contribution.data_model.get_reqd_headers('sites')
         self.grid_builder = grid_frame3.GridBuilder(self.contribution, 'sites',
-                                                   self.panel, 'locations', reqd_headers)
+                                                    self.panel, parent_type='locations',
+                                                    reqd_headers=reqd_headers)
 
 
         self.site_grid = self.grid_builder.make_grid()
@@ -476,7 +480,7 @@ The data in a row will be associated with the lowest level that is filled in,
         label = wx.StaticText(self.panel, label=text)
         reqd_headers = self.contribution.data_model.get_reqd_headers('ages')
         self.grid_builder = grid_frame3.GridBuilder(self.contribution, 'ages',
-                                                   self.panel, None, reqd_headers)
+                                                    self.panel, None, reqd_headers)
         self.age_grid = self.grid_builder.make_grid()
         self.age_grid.InitUI()
         self.grid_builder.add_data_to_grid(self.age_grid, 'age')
@@ -684,7 +688,6 @@ The data in a row will be associated with the lowest level that is filled in,
         del wait
 
     def on_cancelButton(self, event):
-
         dlg = pw.YesNoCancelDialog(self, "Your changes so far have not been written to file.\nSave changes?", "Not so fast")
         res = dlg.ShowModal()
         dlg.Destroy()
@@ -697,6 +700,12 @@ The data in a row will be associated with the lowest level that is filled in,
             pass
 
     def on_backButton(self, event, previous_dia, current_dia=None):
+        # save first?
+        if self.grid.changes:
+            result = pw.warning_with_override("You have unsaved data which will be lost. Are you sure you want to go back?")
+            if result == wx.ID_NO:
+                return
+        # go back to previous grid
         wait = wx.BusyInfo("Please wait, working...")
         wx.Yield()
         if current_dia == self.InitLocCheck:

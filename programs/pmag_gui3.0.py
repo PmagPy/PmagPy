@@ -23,6 +23,8 @@ import dialogs.pmag_basic_dialogs as pmag_basic_dialogs
 import dialogs.pmag_er_magic_dialogs as pmag_er_magic_dialogs
 import dialogs.pmag_gui_menu3 as pmag_gui_menu
 import dialogs.ErMagicBuilder as ErMagicBuilder
+import dialogs.pmag_widgets as pw
+
 try:
     from programs import demag_gui
 except:
@@ -371,7 +373,7 @@ class MagMainFrame(wx.Frame):
     def on_er_data(self, event):
         if self.data_model_num == 2:
             if not os.path.isfile(os.path.join(self.WD, 'magic_measurements.txt')):
-                import dialogs.pmag_widgets as pw
+
                 pw.simple_warning("Your working directory must have a magic_measurements.txt file to run this step.  Make sure you have fully completed step 1 (import magnetometer file), by combining all imported magnetometer files into one magic_measurements file.")
                 return False
 
@@ -380,6 +382,10 @@ class MagMainFrame(wx.Frame):
             wx.Yield()
             self.ErMagic_frame = ErMagicBuilder.MagIC_model_builder(self.WD, self, self.er_magic)#,self.Data,self.Data_hierarchy)
         elif self.data_model_num == 3:
+            if not os.path.isfile(os.path.join(self.WD, 'measurements.txt')):
+                pw.simple_warning("Your working directory must have a 3.0. format measurements.txt file to run this step.  Make sure you have fully completed step 1 (import magnetometer file) and step 1a (convert to 3.0., if necessary) and try again.")
+                return False
+
             wait = wx.BusyInfo('Compiling required data, please wait...')
             wx.Yield()
             self.ErMagic_frame = ErMagicBuilder.MagIC_model_builder3(self.WD, self, self.contribution)
