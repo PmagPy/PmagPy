@@ -36,7 +36,7 @@ def igrf(input_list):
 def igrf_print(igrf_array):
     print "Declination: %0.3f"%(igrf_array[0])
     print "Inclination: %0.3f"%(igrf_array[1])
-    print "Intensity: %0.3f nT"%(igrf_array[0])
+    print "Intensity: %0.3f nT"%(igrf_array[2])
 
 
 def fisher_mean(dec=None, inc=None, di_block=None):

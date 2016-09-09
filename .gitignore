@@ -180,3 +180,4 @@ pmagpy_cli.egg-info/requires.txt
 3_0/McMurdo2.5/*
 Location_*/
 Location_*/*
+pmagpy/ipmag_LF8-30.py
