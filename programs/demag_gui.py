@@ -78,6 +78,7 @@ import programs.cit_magic as cit_magic
 import pmagpy.new_builder as nb
 from pandas import DataFrame,Series
 from SPD.mapping import map_magic
+import help_files.demag_gui_help as dgh
 from re import findall
 
 
@@ -108,9 +109,15 @@ class Demag_GUI(wx.Frame):
     For tutorial on usage see the PmagPy cookbook at http://earthref.org/PmagPy/cookbook/
         """
 
-        default_style = wx.MINIMIZE_BOX | wx.MAXIMIZE_BOX | wx.RESIZE_BORDER | wx.SYSTEM_MENU | wx.CAPTION | wx.CLOSE_BOX | wx.CLIP_CHILDREN | wx.NO_FULL_REPAINT_ON_RESIZE
+        default_style = wx.MINIMIZE_BOX | wx.MAXIMIZE_BOX | wx.RESIZE_BORDER | wx.SYSTEM_MENU | wx.CAPTION | wx.CLOSE_BOX | wx.CLIP_CHILDREN | wx.NO_FULL_REPAINT_ON_RESIZE | wx.WS_EX_CONTEXTHELP
         wx.Frame.__init__(self, parent, wx.ID_ANY, self.title, style = default_style, name='demag gui')
+        self.SetExtraStyle(wx.FRAME_EX_CONTEXTHELP)
         self.parent = parent
+
+        #setup wx help provider class to give help messages
+        provider = wx.SimpleHelpProvider()
+        wx.HelpProvider_Set(provider)
+        self.helper = wx.ContextHelp(doNow=False)
 
         self.currentDirectory = os.getcwd() # get the current working directory
 
@@ -170,8 +177,6 @@ class Demag_GUI(wx.Frame):
             elif name == 'green' or name == 'yellow' or name == 'maroon' or name == 'cyan':
                 self.color_dict[name] = hexval
             else: self.color_dict[name] = hexval; self.colors.append(hexval)
-#        self.color_dict = {'green':'g','yellow':'y','maroon':'m','cyan':'c','blue':'b','red':'r','brown':(139./255.,69./255.,19./255.),'orange':(255./255.,127./255.,0./255.),'pink':(255./255.,20./255.,147./255.),'violet':(153./255.,50./255.,204./255.),'grey':(84./255.,84./255.,84./255.),'goldenrod':'goldenrod'}
-#        self.colors = ['g','y','m','c','b','r',(139./255.,69./255.,19./255.),(255./255.,127./255.,0./255.),(255./255.,20./255.,147./255.),(153./255.,50./255.,204./255.),(84./255.,84./255.,84./255.), 'goldenrod']
         self.all_fits_list = []
         self.current_fit = None
         self.dirtypes = ['DA-DIR','DA-DIR-GEO','DA-DIR-TILT']
@@ -216,9 +221,6 @@ class Demag_GUI(wx.Frame):
                 self.Add_text()
                 self.update_fit_boxes()
         else: pass
-#            self.user_warning("No magic_measuremnts.txt was found")
-#            print("---------------------------no magic_measurements.txt found----------------------------------")
-#            self.Destroy()
 
         self.running = True
 
@@ -270,6 +272,7 @@ class Demag_GUI(wx.Frame):
         self.canvas1.Bind(wx.EVT_MIDDLE_DOWN,self.home_zijderveld)
         self.canvas1.Bind(wx.EVT_LEFT_DCLICK,self.on_zijd_select)
         self.canvas1.Bind(wx.EVT_RIGHT_DCLICK,self.on_zijd_mark)
+        self.canvas1.SetHelpText(dgh.zij_help)
 
         self.fig2 = Figure((2.5*self.GUI_RESOLUTION, 2.5*self.GUI_RESOLUTION), dpi=self.dpi)
         self.specimen_eqarea = self.fig2.add_subplot(111)
@@ -283,6 +286,7 @@ class Demag_GUI(wx.Frame):
         self.canvas2.Bind(wx.EVT_RIGHT_DOWN,self.right_click_specimen_equalarea)
         self.canvas2.Bind(wx.EVT_MOTION,self.on_change_specimen_mouse_cursor)
         self.canvas2.Bind(wx.EVT_MIDDLE_DOWN,self.home_specimen_equalarea)
+        self.canvas2.SetHelpText(dgh.spec_eqarea_help)
         self.specimen_EA_xdata = []
         self.specimen_EA_ydata = []
 
@@ -294,6 +298,7 @@ class Demag_GUI(wx.Frame):
         self.MM0_setting = "Zoom"
         self.canvas3.Bind(wx.EVT_RIGHT_DOWN, self.right_click_MM0)
         self.canvas3.Bind(wx.EVT_MIDDLE_DOWN, self.home_MM0)
+        self.canvas3.SetHelpText(dgh.MM0_help)
 
         self.fig4 = Figure((2.5*self.GUI_RESOLUTION, 2.5*self.GUI_RESOLUTION), dpi=self.dpi)
         self.canvas4 = FigCanvas(self.panel, -1, self.fig4)
@@ -305,6 +310,7 @@ class Demag_GUI(wx.Frame):
         self.canvas4.Bind(wx.EVT_RIGHT_DOWN,self.right_click_higher_equalarea)
         self.canvas4.Bind(wx.EVT_MOTION,self.on_change_higher_mouse_cursor)
         self.canvas4.Bind(wx.EVT_MIDDLE_DOWN,self.home_higher_equalarea)
+        self.canvas4.SetHelpText(dgh.high_level_eqarea_help)
         self.old_pos = None
         self.higher_EA_xdata = []
         self.higher_EA_ydata = []
@@ -313,7 +319,7 @@ class Demag_GUI(wx.Frame):
         draw_net(self.high_level_eqarea)
 
 
-#----------------------------------------------------------------------
+    #----------------------------------------------------------------------
         #  set font size and style
     #----------------------------------------------------------------------
 
@@ -327,7 +333,7 @@ class Demag_GUI(wx.Frame):
         font.SetPointSize(10+FONT_WEIGHT)
 
 
-#----------------------------------------------------------------------
+    #----------------------------------------------------------------------
         # Create text_box for presenting the measurements
     #----------------------------------------------------------------------
 
@@ -341,6 +347,7 @@ class Demag_GUI(wx.Frame):
         self.logger.InsertColumn(5, 'M',width=45*self.GUI_RESOLUTION)
         self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnClick_listctrl, self.logger)
         self.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK,self.OnRightClickListctrl,self.logger)
+        self.logger.SetHelpText(dgh.logger_help)
 
     #----------------------------------------------------------------------
         #  select specimen box
@@ -351,15 +358,18 @@ class Demag_GUI(wx.Frame):
         # Combo-box with a list of specimen
         self.specimens_box = wx.ComboBox(self.panel, -1, value=self.s, size=(150*self.GUI_RESOLUTION,25), choices=self.specimens, style=wx.CB_DROPDOWN,name="specimen")
         self.Bind(wx.EVT_COMBOBOX, self.onSelect_specimen,self.specimens_box)
+        self.specimens_box.SetHelpText(dgh.specimens_box_help)
 
         # buttons to move forward and backwards from specimens
         self.nextbutton = wx.Button(self.panel, id=-1, label='next',size=(75*self.GUI_RESOLUTION, 25))#,style=wx.BU_EXACTFIT)#, size=(175, 28))
         self.Bind(wx.EVT_BUTTON, self.on_next_button, self.nextbutton)
         self.nextbutton.SetFont(font2)
+        self.nextbutton.SetHelpText(dgh.nextbutton_help)
 
         self.prevbutton = wx.Button(self.panel, id=-1, label='previous',size=(75*self.GUI_RESOLUTION, 25))#,style=wx.BU_EXACTFIT)#, size=(175, 28))
         self.prevbutton.SetFont(font2)
         self.Bind(wx.EVT_BUTTON, self.on_prev_button, self.prevbutton)
+        self.prevbutton.SetHelpText(dgh.prevbutton_help)
 
         select_specimen_window = wx.GridSizer(1, 2, 5, 10)
         select_specimen_window.AddMany( [(self.prevbutton, 1, wx.ALIGN_LEFT|wx.EXPAND),
@@ -383,12 +393,14 @@ class Demag_GUI(wx.Frame):
         self.COORDINATE_SYSTEM = intial_coordinate
         self.coordinates_box = wx.ComboBox(self.panel, -1, size=(150*self.GUI_RESOLUTION,25), choices=self.coordinate_list, value=intial_coordinate,style=wx.CB_DROPDOWN,name="coordinates")
         self.Bind(wx.EVT_COMBOBOX, self.onSelect_coordinates,self.coordinates_box)
+        self.coordinates_box.SetHelpText(dgh.coordinates_box_help)
 
         self.box_sizer_select_zijd_options = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, label="Zijderveld plot options:"), wx.VERTICAL )
 
         self.orthogonal_box = wx.ComboBox(self.panel, -1, value='X=East', size=(150*self.GUI_RESOLUTION,25), choices=['X=NRM dec','X=East','X=North'], style=wx.CB_DROPDOWN,name="orthogonal_plot")
         #remove 'X=best fit line dec' as option given that is isn't implemented for multiple components
         self.Bind(wx.EVT_COMBOBOX, self.onSelect_orthogonal_box,self.orthogonal_box)
+        self.orthogonal_box.SetHelpText(dgh.orthogonal_box_help)
 
         self.box_sizer_select_specimen.Add(self.specimens_box, 1, wx.TOP|wx.EXPAND, 0 )
         self.box_sizer_select_specimen.Add(select_specimen_window, 1, wx.TOP|wx.EXPAND, 4 )
@@ -398,7 +410,7 @@ class Demag_GUI(wx.Frame):
         self.box_sizer_select_zijd_options.Add(self.orthogonal_box, 1, wx.TOP|wx.EXPAND, 4 )
 
     #----------------------------------------------------------------------
-        #  fit box
+        #  Specimens interpretations Management box
     #----------------------------------------------------------------------
 
         list_fits = []
@@ -408,14 +420,30 @@ class Demag_GUI(wx.Frame):
         self.fit_box = wx.ComboBox(self.panel, -1 ,size=(100*self.GUI_RESOLUTION, 25),choices=list_fits, style=wx.TE_PROCESS_ENTER)
         self.Bind(wx.EVT_COMBOBOX, self.on_select_fit,self.fit_box)
         self.Bind(wx.EVT_TEXT_ENTER, self.on_enter_fit_name, self.fit_box)
+        self.fit_box.SetHelpText(dgh.fit_box_help)
 
         self.add_fit_button = wx.Button(self.panel, id=-1, label='add fit',size=(100*self.GUI_RESOLUTION,25))
         self.add_fit_button.SetFont(font2)
         self.Bind(wx.EVT_BUTTON, self.on_btn_add_fit, self.add_fit_button)
+        self.add_fit_button.SetHelpText(dgh.add_fit_button_help)
 
-        fit_window = wx.GridSizer(2, 1, 10*self.GUI_RESOLUTION, 19*self.GUI_RESOLUTION)
+        # save/delete interpretation buttons
+        self.save_fit_button = wx.Button(self.panel, id=-1, label='save',size=(75*self.GUI_RESOLUTION,25))#,style=wx.BU_EXACTFIT)#, size=(175, 28))
+        self.save_fit_button.SetFont(font2)
+        self.save_fit_button.SetHelpText(dgh.save_fit_btn_help)
+
+        self.delete_fit_button = wx.Button(self.panel, id=-1, label='delete',size=(75*self.GUI_RESOLUTION,25))#,style=wx.BU_EXACTFIT)#, size=(175, 28))
+        self.delete_fit_button.SetFont(font2)
+        self.delete_fit_button.SetHelpText(dgh.delete_fit_btn_help)
+
+        self.Bind(wx.EVT_BUTTON, self.on_save_interpretation_button, self.save_fit_button)
+        self.Bind(wx.EVT_BUTTON, self.delete_fit, self.delete_fit_button)
+
+        fit_window = wx.GridSizer(2, 2, 10*self.GUI_RESOLUTION, 19*self.GUI_RESOLUTION)
         fit_window.AddMany( [(self.add_fit_button, 1, wx.ALIGN_LEFT|wx.EXPAND),
-            (self.fit_box, 1, wx.ALIGN_LEFT|wx.EXPAND)])
+            (self.save_fit_button, 1, wx.ALIGN_LEFT|wx.EXPAND),
+            (self.fit_box, 1, wx.ALIGN_LEFT|wx.EXPAND),
+            (self.delete_fit_button, 1, wx.ALIGN_LEFT|wx.EXPAND)])
         self.box_sizer_fit.Add(fit_window, 1, wx.TOP|wx.EXPAND, 5.5 )
 
     #----------------------------------------------------------------------
@@ -425,35 +453,19 @@ class Demag_GUI(wx.Frame):
         self.T_list=[]
 
         self.box_sizer_select_bounds = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY,"bounds" ), wx.VERTICAL )
+
         self.tmin_box = wx.ComboBox(self.panel, -1 ,size=(100*self.GUI_RESOLUTION, 25),choices=self.T_list, style=wx.CB_DROPDOWN)
         self.Bind(wx.EVT_COMBOBOX, self.get_new_PCA_parameters,self.tmin_box)
+        self.tmin_box.SetHelpText(dgh.tmin_box_help)
 
         self.tmax_box = wx.ComboBox(self.panel, -1 ,size=(100*self.GUI_RESOLUTION, 25),choices=self.T_list, style=wx.CB_DROPDOWN)
         self.Bind(wx.EVT_COMBOBOX, self.get_new_PCA_parameters,self.tmax_box)
+        self.tmax_box.SetHelpText(dgh.tmax_box_help)
 
         select_temp_window = wx.GridSizer(2, 1, 10*self.GUI_RESOLUTION, 0)
         select_temp_window.AddMany( [(self.tmin_box, 1, wx.ALIGN_LEFT|wx.EXPAND),
             (self.tmax_box, 1, wx.ALIGN_LEFT)])
         self.box_sizer_select_bounds.Add(select_temp_window, 1, wx.ALIGN_LEFT|wx.EXPAND, 3.5 )
-
-    #----------------------------------------------------------------------
-        #  save/delete box
-    #----------------------------------------------------------------------
-
-        self.box_sizer_save = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY,"" ), wx.HORIZONTAL )
-
-        # save/delete interpretation buttons
-        self.save_interpretation_button = wx.Button(self.panel, id=-1, label='save',size=(75*self.GUI_RESOLUTION,25))#,style=wx.BU_EXACTFIT)#, size=(175, 28))
-        self.save_interpretation_button.SetFont(font2)
-        self.delete_interpretation_button = wx.Button(self.panel, id=-1, label='delete',size=(75*self.GUI_RESOLUTION,25))#,style=wx.BU_EXACTFIT)#, size=(175, 28))
-        self.delete_interpretation_button.SetFont(font2)
-        self.Bind(wx.EVT_BUTTON, self.on_save_interpretation_button, self.save_interpretation_button)
-        self.Bind(wx.EVT_BUTTON, self.delete_fit, self.delete_interpretation_button)
-
-        save_delete_window = wx.GridSizer(2, 1, 10*self.GUI_RESOLUTION, 19*self.GUI_RESOLUTION)
-        save_delete_window.AddMany( [(self.save_interpretation_button, 1, wx.ALIGN_LEFT|wx.EXPAND),
-            (self.delete_interpretation_button, 1, wx.ALIGN_LEFT|wx.EXPAND)])
-        self.box_sizer_save.Add(save_delete_window, 1, wx.TOP|wx.EXPAND, 5.5 )
 
     #----------------------------------------------------------------------
         # Specimen interpretation window
@@ -463,9 +475,11 @@ class Demag_GUI(wx.Frame):
 
         self.PCA_type_box = wx.ComboBox(self.panel, -1, size=(100*self.GUI_RESOLUTION, 25), value='line',choices=['line','line-anchored','line-with-origin','plane','Fisher'], style=wx.CB_DROPDOWN,name="coordinates")
         self.Bind(wx.EVT_COMBOBOX, self.on_select_specimen_mean_type_box,self.PCA_type_box)
+        self.PCA_type_box.SetHelpText(dgh.PCA_type_help)
 
         self.plane_display_box = wx.ComboBox(self.panel, -1, size=(100*self.GUI_RESOLUTION, 25), value='show whole plane',choices=['show whole plane','show u. hemisphere', 'show l. hemisphere','show poles'], style=wx.CB_DROPDOWN,name="PlaneType")
         self.Bind(wx.EVT_COMBOBOX, self.on_select_plane_display_box, self.plane_display_box)
+        self.plane_display_box.SetHelpText(dgh.plane_display_help)
 
         specimen_stat_type_window = wx.GridSizer(2, 1, 10*self.GUI_RESOLUTION, 19*self.GUI_RESOLUTION)
         specimen_stat_type_window.AddMany([(self.PCA_type_box, 1, wx.ALIGN_LEFT|wx.EXPAND),
@@ -505,9 +519,11 @@ class Demag_GUI(wx.Frame):
 
         self.level_box = wx.ComboBox(self.panel, -1, size=(100*self.GUI_RESOLUTION, 25),value='site',  choices=['sample','site','location','study'], style=wx.CB_DROPDOWN,name="high_level")
         self.Bind(wx.EVT_COMBOBOX, self.onSelect_higher_level,self.level_box)
+        self.level_box.SetHelpText(dgh.level_box_help)
 
         self.level_names = wx.ComboBox(self.panel, -1,size=(100*self.GUI_RESOLUTION, 25), value=self.site,choices=self.sites, style=wx.CB_DROPDOWN,name="high_level_names")
         self.Bind(wx.EVT_COMBOBOX, self.onSelect_level_name,self.level_names)
+        self.level_names.SetHelpText(dgh.level_names_help)
 
         high_level_window = wx.GridSizer(2, 1, 10*self.GUI_RESOLUTION, 19*self.GUI_RESOLUTION)
         high_level_window.AddMany( [(self.level_box, 1, wx.ALIGN_LEFT|wx.EXPAND),
@@ -522,9 +538,11 @@ class Demag_GUI(wx.Frame):
 
         self.mean_type_box = wx.ComboBox(self.panel, -1, size=(120*self.GUI_RESOLUTION, 25), value='None', choices=['Fisher','Fisher by polarity','None'], style=wx.CB_DROPDOWN,name="high_type")
         self.Bind(wx.EVT_COMBOBOX, self.onSelect_mean_type_box,self.mean_type_box)
+        self.mean_type_box.SetHelpText(dgh.mean_type_help)
 
         self.mean_fit_box = wx.ComboBox(self.panel, -1, size=(120*self.GUI_RESOLUTION, 25), value='None', choices=['None','All'] + list_fits, style=wx.CB_DROPDOWN,name="high_type")
         self.Bind(wx.EVT_COMBOBOX, self.onSelect_mean_fit_box,self.mean_fit_box)
+        self.mean_fit_box.SetHelpText(dgh.mean_fit_help)
         self.mean_fit = 'None'
 
         mean_types_window = wx.GridSizer(2, 1, 10*self.GUI_RESOLUTION, 19*self.GUI_RESOLUTION)
@@ -539,8 +557,9 @@ class Demag_GUI(wx.Frame):
         self.box_sizer_warning = wx.StaticBoxSizer( wx.StaticBox(self.panel, wx.ID_ANY, "current data warnings"), wx.VERTICAL)
 
         self.warning_box = wx.TextCtrl(self.panel, -1, size=(120*self.GUI_RESOLUTION, 65), value="No Problems", style=wx.TE_MULTILINE|wx.TE_READONLY|wx.HSCROLL, name="warning_box")
+        self.warning_box.SetHelpText(dgh.warning_help)
 
-        warning_window = wx.GridSizer(1, 1, 10*self.GUI_RESOLUTION, 19*self.GUI_RESOLUTION)
+        warning_window = wx.GridSizer(2, 1, 10*self.GUI_RESOLUTION, 19*self.GUI_RESOLUTION)
         warning_window.Add(self.warning_box,1,wx.ALIGN_LEFT|wx.EXPAND)
         self.box_sizer_warning.Add(warning_window, 1, wx.TOP|wx.EXPAND, 5.5)
 
@@ -567,6 +586,7 @@ class Demag_GUI(wx.Frame):
 
         self.switch_stats_button = wx.SpinButton(self.panel, id=wx.ID_ANY, style=wx.SP_HORIZONTAL|wx.SP_ARROW_KEYS|wx.SP_WRAP, name="change stats")
         self.Bind(wx.EVT_SPIN, self.on_select_stats_button,self.switch_stats_button)
+        self.switch_stats_button.SetHelpText(dgh.switch_stats_btn_help)
 
     #----------------------------------------------------------------------
         # Design the panel
@@ -581,7 +601,7 @@ class Demag_GUI(wx.Frame):
         hbox1.AddSpacer(2)
         hbox1.Add(self.box_sizer_fit,proportion=.5,flag=wx.ALIGN_LEFT|wx.ALIGN_TOP|wx.EXPAND)
         hbox1.AddSpacer(2)
-        hbox1.Add(self.box_sizer_save,proportion=.5,flag=wx.ALIGN_LEFT|wx.ALIGN_TOP|wx.EXPAND)
+#        hbox1.Add(self.box_sizer_save,proportion=.5,flag=wx.ALIGN_LEFT|wx.ALIGN_TOP|wx.EXPAND)
         hbox1.AddSpacer(2)
         hbox1.Add(self.box_sizer_specimen,proportion=.5, flag=wx.ALIGN_LEFT|wx.ALIGN_TOP|wx.EXPAND)
         hbox1.AddSpacer(2)
@@ -632,7 +652,7 @@ class Demag_GUI(wx.Frame):
         """
         self.menubar = wx.MenuBar()
 
-        #------------------------------------------------------------------------------
+        #--------------------------------------------------------------------
 
         menu_file = wx.Menu()
 
@@ -665,7 +685,7 @@ class Demag_GUI(wx.Frame):
         m_exit = menu_file.Append(-1, "E&xit\tCtrl-Q", "Exit")
         self.Bind(wx.EVT_MENU, self.on_menu_exit, m_exit)
 
-        #-------------------------------------------------------------------------------
+        #--------------------------------------------------------------------
 
         menu_Analysis = wx.Menu()
 
@@ -725,10 +745,13 @@ class Demag_GUI(wx.Frame):
 
         menu_Help = wx.Menu()
 
-        m_cookbook = menu_Help.Append(-1, "&PmagPy Cookbook\tCtrl-Shift-H", "")
+        m_help = menu_Help.Append(-1, "&Usage and Tips\tCtrl-H", "")
+        self.Bind(wx.EVT_MENU, self.on_menu_help, m_help)
+
+        m_cookbook = menu_Help.Append(-1, "&PmagPy Cookbook\tCtrl-Shift-W", "")
         self.Bind(wx.EVT_MENU, self.on_menu_cookbook, m_cookbook)
 
-        m_docs = menu_Help.Append(-1, "&Usage and Tips\tCtrl-H", "")
+        m_docs = menu_Help.Append(-1, "&Open Docs\tCtrl-Shift-H", "")
         self.Bind(wx.EVT_MENU, self.on_menu_docs, m_docs)
 
         m_git = menu_Help.Append(-1, "&Github Page\tCtrl-Shift-G", "")
@@ -5218,6 +5241,13 @@ class Demag_GUI(wx.Frame):
     #---------------------------------------------#
     #Help Menu Functions
     #---------------------------------------------#
+
+    def on_menu_help(self,event):
+        """
+        Toggles the GUI's help mode which allows user to click on any part of the dialog and get help
+        @param: event -> wx.MenuEvent that triggers this function
+        """
+        self.helper.BeginContextHelp(None)
 
     def on_menu_docs(self,event):
         """
