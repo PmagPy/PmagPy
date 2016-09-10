@@ -16,14 +16,14 @@ class Menus(object):
     """
     def __init__(self, data_type, ErMagicCheck, grid, belongs_to):
         """
-        take: data_type (string), ErMagicCheck (top level class object for ErMagic steps 1-6), 
+        take: data_type (string), ErMagicCheck (top level class object for ErMagic steps 1-6),
         grid (grid object), belongs_to (list of options for data object to belong to, i.e. locations for the site Menus)
         """
         # if controlled vocabularies haven't already been grabbed from earthref
         # do so now
         if not any(vocab.vocabularies):
             vocab.get_stuff()
-        
+
         self.data_type = data_type
         self.check = ErMagicCheck # check is top level class object for entire ErMagic steps 1-6
         self.grid = grid
@@ -50,6 +50,7 @@ class Menus(object):
 
     def InitUI(self):
         belongs_to = self.belongs_to
+        self.choices = {}
         if self.data_type == 'specimen':
             self.choices = {1: (belongs_to, False), 3: (vocab.vocabularies['class'], False), 4: (vocab.vocabularies['lithology'], True), 5: (vocab.vocabularies['type'], False)}
         if self.data_type == 'sample' or self.data_type == 'site':
@@ -85,7 +86,7 @@ class Menus(object):
         for col_number, label in enumerate(col_labels):
             self.add_drop_down(col_number, label)
 
-            
+
     def add_drop_down(self, col_number, col_label):
         """
         Add a correctly formatted drop-down-menu for given col_label, if required.
@@ -135,7 +136,7 @@ class Menus(object):
         else:
             method_list = vocab.er_methods
         self.choices[col_number] = (method_list, True)
-        
+
     def on_label_click(self, event):
         col = event.GetCol()
         color = self.grid.GetCellBackgroundColour(0, col)
@@ -214,7 +215,7 @@ class Menus(object):
         """
         color = self.grid.GetCellBackgroundColour(event.GetRow(), event.GetCol())
         # allow user to cherry-pick cells for editing.  gets selection of meta key for mac, ctrl key for pc
-        if event.CmdDown(): 
+        if event.CmdDown():
             row, col = event.GetRow(), event.GetCol()
             if (row, col) not in self.dispersed_selection:
                 self.dispersed_selection.append((row, col))

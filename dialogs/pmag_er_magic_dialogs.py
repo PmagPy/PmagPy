@@ -1170,7 +1170,7 @@ Fill in any blank cells using controlled vocabularies.
         self.grid_builder.add_data_to_grid(self.loc_grid, 'location', incl_pmag=False)
         self.grid = self.loc_grid
         # initialize all needed drop-down menus
-        self.drop_down_menu = drop_down_menus.Menus("locations", self,
+        self.drop_down_menu = drop_down_menus.Menus("location", self,
                                                      self.loc_grid, None)
 
         # need to find max/min lat/lon here IF they were added in the previous grid
