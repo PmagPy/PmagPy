@@ -230,7 +230,7 @@ class Menus(object):
                     if cell_value == default_val:
                         self.grid.SetCellValue(row, 0, new_val)
                     else:
-                        break
+                        continue
             return
         color = self.grid.GetCellBackgroundColour(event.GetRow(), event.GetCol())
         # allow user to cherry-pick cells for editing.

@@ -160,15 +160,6 @@ class Contribution(object):
         the samples table, and possibly in the locations/ages tables.
         """
         # define some helper methods:
-        def split_if_str(item):
-            """
-            String splitting function
-            that doesn't break with None/np.nan
-            """
-            if isinstance(item, str):
-                return item.split(':')
-            else:
-                return item
 
         def put_together_if_list(item):
             """
@@ -179,7 +170,7 @@ class Contribution(object):
                 res = ":".join(item)
                 return ":".join(item)
             except TypeError as ex:
-                print ex
+                #print ex
                 return item
 
         def replace_colon_delimited_value(df, col_name, old_value, new_value):
@@ -199,7 +190,6 @@ class Contribution(object):
                 df.ix[count, col_name] = names_list
                 count += 1
 
-
         # initialize some things
         item_type = table_name
         ###col_name = item_type[:-1] + "_name"
@@ -217,7 +207,7 @@ class Contribution(object):
                 df[col_name].where(df[col_name] != item_old_name, item_new_name, inplace=True)
                 # change anywhere col_name (plural, i.e. sites) is found
             if col_name_plural in col_names:
-                df[col_name_plural + "_list"] = df[col_name_plural].apply(split_if_str)
+                df[col_name_plural + "_list"] = df[col_name_plural].str.split(":")
                 replace_colon_delimited_value(df, col_name_plural + "_list", item_old_name, item_new_name)
                 df[col_name_plural] = df[col_name_plural + "_list"].apply(put_together_if_list)
             self.tables[table_name].df = df
