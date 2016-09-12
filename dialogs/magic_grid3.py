@@ -46,14 +46,25 @@ class MagicGrid(wx.grid.Grid, gridlabelrenderer.GridWithLabelRenderersMixin):
         # set column labels
         for n, col in enumerate(self.col_labels):
             self.SetColLabelValue(n, str(col))
-        # prevent horizontal scrollbar from showing up
-        # this doesn't work with all versions of wx
-        # so skip it if it's an older version
+        # set scrollbars
+        self.set_scrollbars()
+
+    def set_scrollbars(self):
+        """
+        Set to always have vertical scrollbar.
+        Have horizontal scrollbar unless grid has very few rows.
+        Older versions of wxPython will choke on this,
+        in which case nothing happens.
+        """
+        if len(self.row_labels) < 5:
+            show_horizontal = wx.SHOW_SB_NEVER
+        else:
+            show_horizontal = wx.SHOW_SB_DEFAULT
+        #
         try:
-            self.ShowScrollbars(wx.SHOW_SB_NEVER, wx.SHOW_SB_DEFAULT)
+            self.ShowScrollbars(show_horizontal, wx.SHOW_SB_DEFAULT)
         except AttributeError:
             pass
-        return data
 
     def add_items(self, dataframe, hide_cols=()):
         """

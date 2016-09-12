@@ -183,10 +183,10 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
         self.panel.Bind(wx.grid.EVT_GRID_LABEL_LEFT_CLICK, self.onLeftClickLabel, self.grid)
         self.Bind(wx.EVT_KEY_DOWN, self.on_key_down)
         self.panel.Bind(wx.EVT_TEXT_PASTE, self.do_fit)
-
         # add actual data!
         self.grid_builder.add_data_to_grid(self.grid, self.grid_type)
-
+        # set scrollbars
+        self.grid.set_scrollbars()
 
         ## this would be a way to prevent editing
         ## some cells in age grid.
@@ -806,6 +806,8 @@ class GridBuilder(object):
         else:
             if not grid.GetCellValue(0, 0) and grid.GetNumberRows() > 1:
                 grid.remove_row(0)
+        # include horizontal scrollbar unless grid has less than 5 rows
+        grid.set_scrollbars()
 
 
     def save_grid_data(self):
