@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 #from builtins import range
-import pdb
 import os,sys
 import pmagpy.pmag as pmag
 import pmagpy.new_builder as nb
@@ -198,8 +197,7 @@ def main(command_line=True, **kwargs):
         LocRec["location_end_lat"]=site_lat
         LocRec["location_end_lon"]=site_lon
         Locs.append(LocRec)
-        try: Cdec=float(line[2])
-        except ValueError: pdb.set_trace()
+        Cdec=float(line[2])
         for k in range(ln+1,len(File)):
             line=File[k]
             rec=line.split()

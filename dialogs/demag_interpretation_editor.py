@@ -45,8 +45,9 @@ class InterpretationEditorFrame(wx.Frame):
         self.current_fit_index = None
         self.search_query = ""
         self.font_type = self.parent.font_type
-        #build UI
+        #build UI and menu
         self.init_UI()
+        self.create_menu()
         #update with stuff
         self.on_select_level_name(None)
 
@@ -88,7 +89,7 @@ class InterpretationEditorFrame(wx.Frame):
         self.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK,self.OnRightClickListctrl,self.logger)
         self.logger.SetHelpText(dieh.logger_help)
 
-        #set fit attributes box
+        #set fit attributes boxsizers
         self.display_sizer = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.ID_ANY, "display options"), wx.HORIZONTAL)
         self.name_sizer = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.ID_ANY, "fit name/color"), wx.VERTICAL)
         self.bounds_sizer = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.ID_ANY, "fit bounds"), wx.VERTICAL)
@@ -107,16 +108,20 @@ class InterpretationEditorFrame(wx.Frame):
 
         self.level_box = wx.ComboBox(self.panel, -1, size=(100*self.GUI_RESOLUTION, 25), value=UPPER_LEVEL, choices=['sample','site','location','study'], style=wx.CB_DROPDOWN)
         self.Bind(wx.EVT_COMBOBOX, self.on_select_higher_level,self.level_box)
+        self.level_box.SetHelpText(dieh.level_box_help)
 
         self.level_names = wx.ComboBox(self.panel, -1, size=(100*self.GUI_RESOLUTION, 25), value=self.parent.level_names.GetValue(), choices=name_choices, style=wx.CB_DROPDOWN)
         self.Bind(wx.EVT_COMBOBOX, self.on_select_level_name,self.level_names)
+        self.level_names.SetHelpText(dieh.level_names_help)
 
         #mean type and plot display boxes
         self.mean_type_box = wx.ComboBox(self.panel, -1, size=(100*self.GUI_RESOLUTION, 25), value=self.parent.mean_type_box.GetValue(), choices=['Fisher','Fisher by polarity','None'], style=wx.CB_DROPDOWN,name="high_type")
         self.Bind(wx.EVT_COMBOBOX, self.on_select_mean_type_box,self.mean_type_box)
+        self.mean_type_box.SetHelpText(dieh.mean_type_help)
 
         self.mean_fit_box = wx.ComboBox(self.panel, -1, size=(100*self.GUI_RESOLUTION, 25), value=self.parent.mean_fit, choices=(['None','All'] + self.parent.fit_list), style=wx.CB_DROPDOWN,name="high_type")
         self.Bind(wx.EVT_COMBOBOX, self.on_select_mean_fit_box,self.mean_fit_box)
+        self.mean_fit_box.SetHelpText(dieh.mean_fit_help)
 
         #show box
         if UPPER_LEVEL == "study" or UPPER_LEVEL == "location":
@@ -128,23 +133,29 @@ class InterpretationEditorFrame(wx.Frame):
 
         self.show_box = wx.ComboBox(self.panel, -1, size=(100*self.GUI_RESOLUTION, 25), value='specimens', choices=show_box_choices, style=wx.CB_DROPDOWN,name="high_elements")
         self.Bind(wx.EVT_COMBOBOX, self.on_select_show_box,self.show_box)
+        self.show_box.SetHelpText(dieh.show_help)
 
         #coordinates box
         self.coordinates_box = wx.ComboBox(self.panel, -1, size=(100*self.GUI_RESOLUTION, 25), choices=self.parent.coordinate_list, value=self.parent.coordinates_box.GetValue(), style=wx.CB_DROPDOWN, name="coordinates")
         self.Bind(wx.EVT_COMBOBOX, self.on_select_coordinates,self.coordinates_box)
+        self.coordinates_box.SetHelpText(dieh.coordinates_box_help)
 
         #bounds select boxes
         self.tmin_box = wx.ComboBox(self.panel, -1, size=(80*self.GUI_RESOLUTION, 25), choices=[''] + self.parent.T_list, style=wx.CB_DROPDOWN, name="lower bound")
+        self.tmin_box.SetHelpText(dieh.tmin_box_help)
 
         self.tmax_box = wx.ComboBox(self.panel, -1, size=(80*self.GUI_RESOLUTION, 25), choices=[''] + self.parent.T_list, style=wx.CB_DROPDOWN, name="upper bound")
+        self.tmax_box.SetHelpText(dieh.tmax_box_help)
 
         #color box
         self.color_dict = self.parent.color_dict
         self.color_box = wx.ComboBox(self.panel, -1, size=(80*self.GUI_RESOLUTION, 25), choices=[''] + self.color_dict.keys(), style=wx.TE_PROCESS_ENTER, name="color")
         self.Bind(wx.EVT_TEXT_ENTER, self.add_new_color, self.color_box)
+        self.color_box.SetHelpText(dieh.color_box_help)
 
         #name box
         self.name_box = wx.TextCtrl(self.panel, -1, size=(80*self.GUI_RESOLUTION, 25), name="name")
+        self.name_box.SetHelpText(dieh.name_box_help)
 
         #more mac stuff
         h_size_buttons,button_spacing = 25,5.5
@@ -154,18 +165,22 @@ class InterpretationEditorFrame(wx.Frame):
         self.add_all_button = wx.Button(self.panel, id=-1, label='add new fit to all specimens',size=(160*self.GUI_RESOLUTION,h_size_buttons))
         self.add_all_button.SetFont(font1)
         self.Bind(wx.EVT_BUTTON, self.add_fit_to_all, self.add_all_button)
+        self.add_all_button.SetHelpText(dieh.add_all_help)
 
         self.add_fit_button = wx.Button(self.panel, id=-1, label='add fit to highlighted specimens',size=(160*self.GUI_RESOLUTION,h_size_buttons))
         self.add_fit_button.SetFont(font1)
         self.Bind(wx.EVT_BUTTON, self.add_highlighted_fits, self.add_fit_button)
+        self.add_fit_button.SetHelpText(dieh.add_fit_btn_help)
 
         self.delete_fit_button = wx.Button(self.panel, id=-1, label='delete highlighted fits',size=(160*self.GUI_RESOLUTION,h_size_buttons))
         self.delete_fit_button.SetFont(font1)
         self.Bind(wx.EVT_BUTTON, self.delete_highlighted_fits, self.delete_fit_button)
+        self.delete_fit_button.SetHelpText(dieh.delete_fit_btn_help)
 
         self.apply_changes_button = wx.Button(self.panel, id=-1, label='apply changes to highlighted fits',size=(160*self.GUI_RESOLUTION,h_size_buttons))
         self.apply_changes_button.SetFont(font1)
         self.Bind(wx.EVT_BUTTON, self.apply_changes, self.apply_changes_button)
+        self.apply_changes_button.SetHelpText(dieh.apply_changes_help)
 
         #windows
         display_window_0 = wx.GridSizer(2, 1, 10*self.GUI_RESOLUTION, 19*self.GUI_RESOLUTION)
@@ -206,6 +221,7 @@ class InterpretationEditorFrame(wx.Frame):
         self.canvas.Bind(wx.EVT_MOTION,self.on_change_higher_mouse_cursor)
         self.canvas.Bind(wx.EVT_MIDDLE_DOWN,self.home_higher_equalarea)
         self.canvas.Bind(wx.EVT_RIGHT_DOWN,self.pan_zoom_higher_equalarea)
+        self.canvas.SetHelpText(dieh.eqarea_help)
 
         self.eqarea = self.fig.add_subplot(111)
         draw_net(self.eqarea)
@@ -231,6 +247,7 @@ class InterpretationEditorFrame(wx.Frame):
 
         self.switch_stats_button = wx.SpinButton(self.panel, id=wx.ID_ANY, style=wx.SP_HORIZONTAL|wx.SP_ARROW_KEYS|wx.SP_WRAP, name="change stats")
         self.Bind(wx.EVT_SPIN, self.on_select_stats_button,self.switch_stats_button)
+        self.switch_stats_button.SetHelpText(dieh.switch_stats_btn_help)
 
         #construct panel
         hbox0 = wx.BoxSizer(wx.HORIZONTAL)
@@ -261,6 +278,125 @@ class InterpretationEditorFrame(wx.Frame):
 
         self.panel.SetSizerAndFit(hbox2)
         hbox2.Fit(self)
+
+    def create_menu(self):
+
+        menubar = wx.MenuBar()
+
+        #--------------------------------------------------------------------
+
+        menu_file = wx.Menu()
+
+        m_change_WD = menu_file.Append(-1, "Change Working Directory\tCtrl-W","")
+        self.Bind(wx.EVT_MENU, self.parent.on_menu_change_working_directory, m_change_WD)
+
+        m_make_MagIC_results_tables = menu_file.Append(-1, "&Save MagIC pmag tables\tCtrl-Shift-S", "")
+        self.Bind(wx.EVT_MENU, self.parent.on_menu_make_MagIC_results_tables, m_make_MagIC_results_tables)
+
+        submenu_save_plots = wx.Menu()
+
+        m_save_high_level = submenu_save_plots.Append(-1, "&Save high level plot", "")
+        self.Bind(wx.EVT_MENU, self.parent.on_save_high_level, m_save_high_level,"Eq")
+
+        m_new_sub_plots = menu_file.AppendMenu(-1, "&Save plot", submenu_save_plots)
+
+        menu_file.AppendSeparator()
+        m_exit = menu_file.Append(-1, "E&xit\tCtrl-Q", "Exit")
+        self.Bind(wx.EVT_MENU, self.on_close_edit_window, m_exit)
+
+        #--------------------------------------------------------------------
+
+        menu_Analysis = wx.Menu()
+
+        submenu_criteria = wx.Menu()
+
+        m_change_criteria_file = submenu_criteria.Append(-1, "&Change acceptance criteria", "")
+        self.Bind(wx.EVT_MENU, self.parent.on_menu_change_criteria, m_change_criteria_file)
+
+        m_import_criteria_file =  submenu_criteria.Append(-1, "&Import criteria file", "")
+        self.Bind(wx.EVT_MENU, self.parent.on_menu_criteria_file, m_import_criteria_file)
+
+        m_new_sub = menu_Analysis.AppendMenu(-1, "Acceptance criteria", submenu_criteria)
+
+        m_import_LSQ = menu_Analysis.Append(-1, "&Import Interpretations from LSQ file\tCtrl-L", "")
+        self.Bind(wx.EVT_MENU, self.parent.on_menu_read_from_LSQ, m_import_LSQ)
+
+        m_previous_interpretation = menu_Analysis.Append(-1, "&Import previous interpretations from a redo file\tCtrl-R", "")
+        self.Bind(wx.EVT_MENU, self.parent.on_menu_previous_interpretation, m_previous_interpretation)
+
+        m_save_interpretation = menu_Analysis.Append(-1, "&Save current interpretations to a redo file\tCtrl-S", "")
+        self.Bind(wx.EVT_MENU, self.parent.on_menu_save_interpretation, m_save_interpretation)
+
+        #--------------------------------------------------------------------
+
+        menu_Tools = wx.Menu()
+
+        m_view_VGP = menu_Tools.Append(-1, "&View VGPs\tCtrl-Shift-V", "")
+        self.Bind(wx.EVT_MENU, self.parent.on_menu_view_vgps, m_view_VGP)
+
+        #--------------------------------------------------------------------
+
+        menu_Help = wx.Menu()
+
+        m_help = menu_Help.Append(-1, "&Usage and Tips\tCtrl-H", "")
+        self.Bind(wx.EVT_MENU, self.on_menu_help, m_help)
+
+        m_cookbook = menu_Help.Append(-1, "&PmagPy Cookbook\tCtrl-Shift-W", "")
+        self.Bind(wx.EVT_MENU, self.parent.on_menu_cookbook, m_cookbook)
+
+        m_docs = menu_Help.Append(-1, "&Open Docs\tCtrl-Shift-H", "")
+        self.Bind(wx.EVT_MENU, self.parent.on_menu_docs, m_docs)
+
+        m_git = menu_Help.Append(-1, "&Github Page\tCtrl-Shift-G", "")
+        self.Bind(wx.EVT_MENU, self.parent.on_menu_git, m_git)
+
+        m_debug = menu_Help.Append(-1, "&Open Debugger\tCtrl-Shift-D", "")
+        self.Bind(wx.EVT_MENU, self.parent.on_menu_debug, m_debug)
+
+        #--------------------------------------------------------------------
+
+        menu_edit = wx.Menu()
+
+        m_new = menu_edit.Append(-1, "&New interpretation\tCtrl-N", "")
+        self.Bind(wx.EVT_MENU, self.parent.on_btn_add_fit, m_new)
+
+        m_delete = menu_edit.Append(-1, "&Delete interpretation\tCtrl-D", "")
+        self.Bind(wx.EVT_MENU, self.parent.delete_fit, m_delete)
+
+        m_next_interp = menu_edit.Append(-1, "&Next interpretation\tCtrl-Up", "")
+        self.Bind(wx.EVT_MENU, self.parent.on_menu_next_interp, m_next_interp)
+
+        m_previous_interp = menu_edit.Append(-1, "&Previous interpretation\tCtrl-Down", "")
+        self.Bind(wx.EVT_MENU, self.parent.on_menu_prev_interp, m_previous_interp)
+
+        m_next_specimen = menu_edit.Append(-1, "&Next Specimen\tCtrl-Right", "")
+        self.Bind(wx.EVT_MENU, self.parent.on_next_button, m_next_specimen)
+
+        m_previous_specimen = menu_edit.Append(-1, "&Previous Specimen\tCtrl-Left", "")
+        self.Bind(wx.EVT_MENU, self.parent.on_prev_button, m_previous_specimen)
+
+        menu_coordinates = wx.Menu()
+
+        m_speci = menu_coordinates.Append(-1, "&Specimen Coordinates\tCtrl-P", "")
+        self.Bind(wx.EVT_MENU, self.parent.on_menu_change_speci_coord, m_speci)
+        if "geographic" in self.parent.coordinate_list:
+            m_geo = menu_coordinates.Append(-1, "&Geographic Coordinates\tCtrl-G", "")
+            self.Bind(wx.EVT_MENU, self.parent.on_menu_change_geo_coord, m_geo)
+        if "tilt-corrected" in self.parent.coordinate_list:
+            m_tilt = menu_coordinates.Append(-1, "&Tilt-Corrected Coordinates\tCtrl-T", "")
+            self.Bind(wx.EVT_MENU, self.parent.on_menu_change_tilt_coord, m_tilt)
+
+        m_coords = menu_edit.AppendMenu(-1, "&Coordinate Systems", menu_coordinates)
+
+        #--------------------------------------------------------------------
+
+        #self.menubar.Append(menu_preferences, "& Preferences")
+        menubar.Append(menu_file, "&File")
+        menubar.Append(menu_edit, "&Edit")
+        menubar.Append(menu_Analysis, "&Analysis")
+        menubar.Append(menu_Tools, "&Tools")
+        menubar.Append(menu_Help, "&Help")
+        self.SetMenuBar(menubar)
 
     ################################Logger Functions##################################
 
@@ -823,6 +959,15 @@ class InterpretationEditorFrame(wx.Frame):
 
     def on_equalarea_higher_select(self,event):
         self.parent.on_equalarea_higher_select(event,fig = self.eqarea, canvas = self.canvas)
+
+    ###############################Menu Functions######################################
+
+    def on_menu_help(self,event):
+        """
+        Toggles the GUI's help mode which allows user to click on any part of the dialog and get help
+        @param: event -> wx.MenuEvent that triggers this function
+        """
+        self.helper.BeginContextHelp(None)
 
     ###############################Window Functions######################################
 

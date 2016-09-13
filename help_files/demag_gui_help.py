@@ -62,12 +62,14 @@ plot interactions:
   - double click to view
     selected fit
 
-fit symbols:
+fit symbols and colors:
   - diamond = selected
     fit
   - small diamond =
     bad fit
-  - circle = good fit"""
+  - circle = good fit
+  - black = fisher mean
+    of displayed data"""
 
 logger_help = """ List of all measurement entries for current specimen
 column labels:
@@ -86,6 +88,7 @@ colored entries:
     current fit
   - red: bad measurement
   - dark blue: highlighted
+    (grey on mac)
 interaction:
   - right click to toggle
     measurement bad
