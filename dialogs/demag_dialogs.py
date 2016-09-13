@@ -251,7 +251,7 @@ class VGP_Dialog(wx.Dialog):
     def on_click_listctrl(self,event):
         self.change_selected(event.GetIndex())
 
-#--------------------------------------------------------------    
+#--------------------------------------------------------------
 # MagIc results tables dialog
 #--------------------------------------------------------------
 

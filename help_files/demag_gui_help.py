@@ -51,7 +51,7 @@ fit symbols:
     bad fit
   - circle = good fit"""
 
-high_level_eqarea_help = """High Level Mean Eqarea plot shows all fits of name set in the mean options box in the current level which can be altered in higher level mean box and optionally displays current fisher mean chosen in mean options.
+high_level_eqarea_help = """High Level Mean Eqarea plot
 plot interactions:
   - click and drag to
     zoom or pan
@@ -61,7 +61,6 @@ plot interactions:
   - middle click to home
   - double click to view
     selected fit
-
 fit symbols and colors:
   - diamond = selected
     fit
@@ -69,7 +68,17 @@ fit symbols and colors:
     bad fit
   - circle = good fit
   - black = fisher mean
-    of displayed data"""
+    of displayed data
+check sample orient symbols:
+  - triangle = wrong
+    drill direction
+  - delta = wrong
+    compass direction
+  - dotted plane = rotated
+    sample direction
+    during measurement
+    (lighter points are
+    lower hemisphere)"""
 
 logger_help = """ List of all measurement entries for current specimen
 column labels:

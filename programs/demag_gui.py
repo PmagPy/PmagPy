@@ -170,6 +170,7 @@ class Demag_GUI(wx.Frame):
                 self.high_level_means[high_level]={}
 
         self.ie_open = False
+        self.check_orient_on = False
         self.color_dict = {}
         self.colors = ['#008000','#FFFF00','#800000','#00FFFF']
         for name, hexval in matplotlib.colors.cnames.iteritems():
@@ -699,13 +700,15 @@ class Demag_GUI(wx.Frame):
 
         m_new_sub = menu_Analysis.AppendMenu(-1, "Acceptance criteria", submenu_criteria)
 
-        m_read = wx.Menu()
+        submenu_sample_check = wx.Menu()
 
-        m_choose_inp = m_read.Append(-1, "&Read in Data Using Single .inp File\tCtrl-O", "")
-        self.Bind(wx.EVT_MENU, self.on_menu_pick_read_inp, m_choose_inp)
+        m_check_orient = submenu_sample_check.Append(-1, "&Check Sample Orientations\tCtrl-O", "")
+        self.Bind(wx.EVT_MENU, self.on_menu_check_orient, m_check_orient)
 
-        m_read_all_inp = m_read.Append(-1, "&Read in all .inp files from sub-directories\tCtrl-Shift-O", "")
-        self.Bind(wx.EVT_MENU, self.on_menu_read_all_inp, m_read_all_inp)
+        m_mark_samp_bad = submenu_sample_check.Append(-1, "&Mark Sample Bad\tCtrl-B", "")
+        self.Bind(wx.EVT_MENU, self.on_menu_mark_samp_bad, m_mark_samp_bad)
+
+        m_submenu = menu_Analysis.AppendMenu(-1, "Sample Orientation", submenu_sample_check)
 
 #        menu_Analysis.AppendMenu(-1, "&Convert and Combine MagFiles", m_read)
 
@@ -1433,11 +1436,54 @@ class Demag_GUI(wx.Frame):
                     if dirtype in self.high_level_means[high_level_type][high_level_name][self.mean_fit].keys():
                         self.plot_eqarea_mean(self.high_level_means[high_level_type][high_level_name][self.mean_fit][dirtype],self.high_level_eqarea)
 
+       #check sample orietation
+       if self.check_orient_on:
+           self.calc_and_plot_sample_orient_check()
 
        self.canvas4.draw()
 
        if self.ie_open:
            self.ie.draw()
+
+    def calc_and_plot_sample_orient_check(self):
+        fit = self.current_fit
+        if fit == None: return
+        pars = fit.get(self.COORDINATE_SYSTEM)
+        dec,inc = pars['specimen_dec'],pars['specimen_inc']
+        sample = self.Data_hierarchy['sample_of_specimen'][self.s]
+        azimuth=float(self.Data_info["er_samples"][sample]['sample_azimuth'])
+        dip=float(self.Data_info["er_samples"][sample]['sample_dip'])
+        # first test wrong direction of drill arrows (flip drill direction in opposite direction and re-calculate d,i
+        d,i=pmag.dogeo(dec,inc,azimuth-180.,-dip)
+        XY=pmag.dimap(d,i)
+        if i>0: FC=fit.color;SIZE=15*self.GUI_RESOLUTION
+        else: FC='white';SIZE=15*self.GUI_RESOLUTION
+        self.high_level_eqarea.scatter([XY[0]],[XY[1]], marker='^', edgecolor=fit.color, facecolor=FC, s=SIZE, lw=1, clip_on=False)
+        if self.ie_open: self.ie.scatter([XY[0]],[XY[1]], marker='^', edgecolor=fit.color, facecolor=FC, s=SIZE, lw=1, clip_on=False)
+        # first test wrong end of compass (take az-180.)
+        d,i=pmag.dogeo(dec,inc,azimuth-180.,dip)
+        XY=pmag.dimap(d,i)
+        if i>0: FC=fit.color;SIZE=15*self.GUI_RESOLUTION
+        else: FC='white';SIZE=15*self.GUI_RESOLUTION
+        self.high_level_eqarea.scatter([XY[0]],[XY[1]], marker='v', edgecolor=fit.color, facecolor=FC, s=SIZE, lw=1, clip_on=False)
+        if self.ie_open: self.ie.scatter([XY[0]],[XY[1]], marker='v', edgecolor=fit.color, facecolor=FC, s=SIZE, lw=1, clip_on=False)
+        # did the sample spin in the hole?
+        # now spin around specimen's z
+        X_up,Y_up,X_d,Y_d=[],[],[],[]
+        for incr in range(0,360,5):
+            d,i=pmag.dogeo(dec+incr,inc,azimuth,dip)
+            XY=pmag.dimap(d,i)
+            if i>=0:
+                X_d.append(XY[0])
+                Y_d.append(XY[1])
+            else:
+                X_up.append(XY[0])
+                Y_up.append(XY[1])
+        self.high_level_eqarea.scatter(X_d,Y_d, marker='.', color=fit.color, alpha=.5, s=SIZE/2, lw=1, clip_on=False)
+        self.high_level_eqarea.scatter(X_up,Y_up, marker='.', color=fit.color, s=SIZE/2, lw=1, clip_on=False)
+        if self.ie_open:
+            self.ie.scatter(X_d,Y_d, marker='.', color=fit.color, alpha=.5, s=SIZE/2, lw=1, clip_on=False)
+            self.ie.scatter(X_up,Y_up, marker='.', color=fit.color, s=SIZE/2, lw=1, clip_on=False)
 
     def plot_higher_level_equalarea(self,element):
         if self.ie_open:
@@ -5208,6 +5254,55 @@ class Demag_GUI(wx.Frame):
         self.dlg.Destroy()
         if read_sucsess:
             self.on_menu_change_criteria(None)
+
+    def on_menu_check_orient(self,event):
+        if self.check_orient_on:
+            self.check_orient_on = False
+            self.plot_higher_levels_data()
+            return
+        else: self.check_orient_on = True
+
+        if self.level_box.GetValue()!="site":
+            self.level_box.SetValue("site")
+            self.onSelect_higher_level(event)
+        sites_with_data = []
+        for site in self.sites:
+            specs = self.Data_hierarchy['sites'][site]['specimens']
+            if any([spec in self.pmag_results_data['specimens'] for spec in specs]): sites_with_data.append(site)
+        if len(sites_with_data)==0: self.user_warning("can not check sample orientation without any interpretations, please fit data before using this function"); return
+        self.level_names.SetValue(sites_with_data[0])
+        self.onSelect_level_name(event)
+
+        if self.mean_fit_box.GetValue()=="None" or self.mean_fit_box.GetValue()==None:
+            self.mean_fit_box.SetValue("All")
+            self.onSelect_mean_fit_box(event)
+        self.mean_type_box.SetValue("Fisher")
+        self.onSelect_mean_type_box(event)
+
+    def on_menu_mark_samp_bad(self, event):
+        if not self.user_warning("This will mark all specimen interpretations in the sample of the current specimen as bad as well as setting the sample orietation flag to bad, do you want to continue?"): return
+        samp = self.Data_hierarchy['sample_of_specimen'][self.s]
+        specs = self.Data_hierarchy['samples'][samp]['specimens']
+        for spec in specs:
+            if spec not in self.pmag_results_data['specimens']: continue
+            for comp in self.pmag_results_data['specimens'][spec]:
+                if comp not in self.bad_fits:
+                    self.bad_fits.append(comp)
+        if self.data_model == 3.0:
+            if 'orientation_flag' not in self.con.tables['samples'].df.columns:
+                self.con.tables['samples'].df['orientation_flag'] = 'g'
+            self.con.tables['samples'].df.loc[samp]['orientation_flag'] = 'b'
+            self.con.tables['samples'].write_magic_file(dir_path=self.WD)
+        else:
+            orecs = []
+            for k,val in self.Data_info['er_samples'].items():
+                if 'samples_orientation_flag' not in val:
+                    val['samples_orientation_flag'] = 'g'
+                if k == samp:
+                    val['samples_orientation_flag'] = 'b'
+                orecs.append(val)
+            pmag.magic_write('er_samples.txt',orecs,'er_samples')
+        self.update_selection()
 
     #---------------------------------------------#
     #Tools Menu  Functions

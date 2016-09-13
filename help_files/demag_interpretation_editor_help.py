@@ -11,7 +11,6 @@ plot interactions:
   - middle click to home
   - double click to view
     selected fit
-
 fit symbols and colors:
   - diamond = selected
     fit
@@ -19,7 +18,17 @@ fit symbols and colors:
     bad fit
   - circle = good fit
   - black = fisher mean
-    of displayed data"""
+    of displayed data
+check sample orient symbols:
+  - triangle = wrong
+    drill direction
+  - delta = wrong
+    compass direction
+  - dotted plane = rotated
+    sample direction
+    during measurement
+    (lighter points are
+    lower hemisphere)"""
 
 logger_help = """List of all interpretations currently displayed on the high level mean plot to the right. The interpretations displayed both on the plot and list can be changed using the level box and the level name box which display the level at which interpretations are being displayed (ie. site, sample, study, location) and the name of the corrisponding site, sample, study, or location they are being displayed for.
 colored entries:
