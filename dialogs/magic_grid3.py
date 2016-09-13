@@ -1,5 +1,6 @@
 #import matplotlib
 #matplotlib.use('WXAgg')
+import numpy as np
 import wx
 import wx.grid
 import wx.lib.mixins.gridlabelrenderer as gridlabelrenderer
@@ -86,6 +87,19 @@ class MagicGrid(wx.grid.Grid, gridlabelrenderer.GridWithLabelRenderersMixin):
             for col_num, col in enumerate(columns):
                 value = row[col]
                 self.SetCellValue(row_num, col_num, str(value))
+                # set citation default value
+                if col == 'citations':
+                    citation = row['citations']
+                    if (citation is None) or (citation is np.nan):
+                            self.SetCellValue(row_num, col_num, 'This study')
+                    else:
+                        if 'This study' not in citation:
+                            if len(citation):
+                                citation += ':'
+                            citation += 'This study'
+                            self.SetCellValue(row_num, col_num, citation)
+
+
         self.row_labels.extend(dataframe.index)
 
 
