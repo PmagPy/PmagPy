@@ -5,6 +5,7 @@ from numpy import vstack,sqrt
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigCanvas
 from matplotlib.backends.backend_wxagg import NavigationToolbar2WxAgg as NavigationToolbar
 from pylab import Figure
+import help_files.demag_interpretation_editor_help as dieh
 from pmagpy.demag_gui_utilities import *
 from pmagpy.Fit import *
 
@@ -24,8 +25,14 @@ class InterpretationEditorFrame(wx.Frame):
         self.parent = parent
         self.GUI_RESOLUTION=self.parent.GUI_RESOLUTION
         #call init of super class
-        wx.Frame.__init__(self, self.parent, title="Interpretation Editor",size=(675*self.GUI_RESOLUTION,425*self.GUI_RESOLUTION))
+        default_style = wx.MINIMIZE_BOX | wx.MAXIMIZE_BOX | wx.RESIZE_BORDER | wx.SYSTEM_MENU | wx.CAPTION | wx.CLOSE_BOX | wx.CLIP_CHILDREN | wx.NO_FULL_REPAINT_ON_RESIZE | wx.WS_EX_CONTEXTHELP
+        wx.Frame.__init__(self, self.parent, title="Interpretation Editor",style=default_style, size=(675*self.GUI_RESOLUTION,425*self.GUI_RESOLUTION))
+        self.SetExtraStyle(wx.FRAME_EX_CONTEXTHELP)
         self.Bind(wx.EVT_CLOSE, self.on_close_edit_window)
+        #setup wx help provider class to give help messages
+        provider = wx.SimpleHelpProvider()
+        wx.HelpProvider_Set(provider)
+        self.helper = wx.ContextHelp(doNow=False)
         #make the Panel
         self.panel = wx.Panel(self,-1,size=(700*self.GUI_RESOLUTION,450*self.GUI_RESOLUTION))
         #set icon
@@ -62,6 +69,7 @@ class InterpretationEditorFrame(wx.Frame):
         self.search_bar = wx.SearchCtrl(self.panel, size=(350*self.GUI_RESOLUTION,25) ,style=wx.TE_PROCESS_ENTER | wx.TE_PROCESS_TAB | wx.TE_NOHIDESEL)
         self.Bind(wx.EVT_TEXT_ENTER, self.on_enter_search_bar,self.search_bar)
         self.Bind(wx.EVT_SEARCHCTRL_SEARCH_BTN, self.on_enter_search_bar,self.search_bar)
+        self.search_bar.SetHelpText(dieh.search_help)
 #        self.Bind(wx.EVT_TEXT, self.on_complete_search_bar,self.search_bar)
 
         #build logger
@@ -78,6 +86,7 @@ class InterpretationEditorFrame(wx.Frame):
         self.logger.InsertColumn(8, 'mad',width=35*self.GUI_RESOLUTION)
         self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnClick_listctrl, self.logger)
         self.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK,self.OnRightClickListctrl,self.logger)
+        self.logger.SetHelpText(dieh.logger_help)
 
         #set fit attributes box
         self.display_sizer = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.ID_ANY, "display options"), wx.HORIZONTAL)

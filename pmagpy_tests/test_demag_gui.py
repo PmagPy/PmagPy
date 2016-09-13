@@ -230,10 +230,10 @@ class TestMainFrame(unittest.TestCase):
         self.frame.s = old_s
         self.frame.update_selection()
 
-        self.assertFalse(self.frame.interpretation_editor_open)
+        self.assertFalse(self.frame.get_ie_open())
         self.frame.on_menu_edit_interpretations(-1)
-        self.assertTrue(self.frame.interpretation_editor_open)
-        ie = self.frame.interpretation_editor
+        self.assertTrue(self.frame.get_ie_open())
+        ie = self.frame.ie
 
         addall_evt = wx.PyCommandEvent(wx.EVT_BUTTON.typeId, ie.add_all_button.GetId())
 
@@ -279,10 +279,10 @@ class TestMainFrame(unittest.TestCase):
 #        self.frame.s = old_s
 #        self.frame.update_selection()
 
-#        self.assertFalse(self.frame.interpretation_editor_open)
+#        self.assertFalse(self.frame.get_ie_open())
 #        self.frame.on_menu_edit_interpretations(-1)
-#        self.assertTrue(self.frame.interpretation_editor_open)
-#        ie = self.frame.interpretation_editor
+#        self.assertTrue(self.frame.get_ie_open())
+#        ie = self.frame.ie
 
 #        addall_evt = wx.PyCommandEvent(wx.EVT_BUTTON.typeId, ie.add_all_button.GetId())
 
@@ -322,10 +322,10 @@ class TestMainFrame(unittest.TestCase):
 
 #    def test_ie_buttons(self):
 #        #test initialization of ie
-#        self.assertFalse(self.frame.interpretation_editor_open)
+#        self.assertFalse(self.frame.get_ie_open())
 #        self.frame.on_menu_edit_interpretations(-1)
-#        self.assertTrue(self.frame.interpretation_editor_open)
-#        ie = self.frame.interpretation_editor
+#        self.assertTrue(self.frame.get_ie_open())
+#        ie = self.frame.ie
 #        tmin=self.frame.Data[self.frame.s]['zijdblock_steps'][0]
 #        tmax=self.frame.Data[self.frame.s]['zijdblock_steps'][-1]
 #        tmin_index,tmax_index = self.frame.get_indices(None,tmin,tmax,self.frame.s)

@@ -6088,6 +6088,9 @@ class Demag_GUI(wx.Frame):
 
         return out_str
 
+    def get_ie_open(self):
+        return self.ie_open
+
     def total_num_of_interpertations(self):
         num_interp = 0
         for specimen in self.specimens:
