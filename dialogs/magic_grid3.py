@@ -1,6 +1,7 @@
 #import matplotlib
 #matplotlib.use('WXAgg')
 import numpy as np
+import pandas as pd
 import wx
 import wx.grid
 import wx.lib.mixins.gridlabelrenderer as gridlabelrenderer
@@ -191,61 +192,44 @@ class MagicGrid(wx.grid.Grid, gridlabelrenderer.GridWithLabelRenderersMixin):
         self.do_paste(event)
 
     def do_paste(self, event):
-        data_obj = wx.TextDataObject()
-        col = self.GetGridCursorCol()
-        row = self.GetGridCursorRow()
-        num_cols = self.GetNumberCols()
-
-        if wx.TheClipboard.Open():
-            wx.TheClipboard.GetData(data_obj)
-            text = data_obj.GetText()
-            # if text ends with a newline, strip that away
-            if text.endswith('\n'):
-                text = text[:-1]
-            if text.endswith('\r'):
-                text = text[:-1]
-            # find newline character delimiter
-            if '\r\n' in text:
-                newline_char = '\r\n'
-            elif '\r' in text:
-                newline_char = '\r'
-            elif '\n' in text:
-                newline_char = '\n'
+        """
+        Read clipboard into dataframe
+        Paste data into grid, adding extra rows if needed
+        and ignoring extra columns.
+        """
+        # find where the user has clicked
+        col_ind = self.GetGridCursorCol()
+        row_ind = self.GetGridCursorRow()
+        # read in clipboard text
+        text_df = pd.read_clipboard(header=None, sep='\t').fillna('')
+        # add extra rows if need to accomadate clipboard text
+        row_length_diff = len(text_df) - (len(self.row_labels) - row_ind)
+        if row_length_diff > 0:
+            for n in range(row_length_diff):
+                self.add_row()
+        # ignore excess columns if present
+        col_length_diff = len(text_df.columns) - (len(self.col_labels) - col_ind)
+        #print "len(text_df.columns) -  (len(self.col_labels) - col_ind)"
+        #print len(text_df.columns), " - ", "(", len(self.col_labels), "-", col_ind, ")"
+        #print 'col_length_diff', col_length_diff
+        if col_length_diff > 0:
+            text_df = text_df.iloc[:, :-col_length_diff].copy()
+        # go through copied text and parse it into the grid rows
+        for label, row_data in text_df.iterrows():
+            col_range = range(col_ind, col_ind + len(row_data))
+            if len(row_data) > 1:
+                cols = zip(col_range, row_data.index)
+                for column in cols:
+                    value = row_data[column[1]]
+                    this_col = column[0]
+                    self.SetCellValue(row_ind, this_col, value)
             else:
-                newline_char = '\n'
-            # split text and write it to the appropriate cells
-            if newline_char in text or '\t' in text:
-                # split text into a list of row data
-                text_list = text.split(newline_char)
-                num_rows = self.GetNumberRows()
-                for text_row in text_list:
-                    # add an extra row if needed
-                    if row > num_rows - 1:
-                        self.add_row()
-                        num_rows += 1
-                    # split row data into cols
-                    if text_row.endswith('\t'):
-                        text_row = text_row[:-1]
-                    if '\t' in text_row:
-                        text_items = text_row.split('\t')
-                        for num, item in enumerate(text_items):
-                            if (col + num) < num_cols:
-                                self.SetCellValue(row, col + num, item)
-                    # unless there is only one column
-                    else:
-                        self.SetCellValue(row, col, text_row)
-                    # note changes
-                    if not self.changes:
-                        self.changes = set()
-                    self.changes.add(row)
-                    row += 1
-
-            else:
-                # simple pasting
-                self.SetCellValue(row, col, text)
-                self.ForceRefresh()
+                value = row_data[0]
+                self.SetCellValue(row_ind, col_ind, value)
+            row_ind += 1
+        # could instead use wxPython clipboard here
+        # see old git history for that
         self.size_grid()
-        wx.TheClipboard.Close()
         event.Skip()
 
     def add_row(self, label=""):
