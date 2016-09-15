@@ -2248,7 +2248,8 @@ class something(wx.Frame):
 
 class OrientFrameGrid3(wx.Frame):
     def __init__(self, parent, id, title, WD, contribution, size):
-        wx.Frame.__init__(self, parent, -1, title, size=size, name='calculate geographic directions')
+        wx.Frame.__init__(self, parent, -1, title, size=size,
+                          name='calculate geographic directions')
 
         #--------------------
         # initialize stuff
@@ -2678,6 +2679,7 @@ class OrientFrameGrid3(wx.Frame):
             self.Parent.Show()
             self.Parent.Raise()
             self.Destroy()
+            self.contribution.add_magic_table('samples')
             return
 
 
@@ -2695,9 +2697,6 @@ class OrientFrameGrid3(wx.Frame):
             self.Parent.Show()
             self.Parent.Raise()
             self.Destroy()
-
-
-
 
 
 

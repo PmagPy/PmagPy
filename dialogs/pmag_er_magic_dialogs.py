@@ -85,6 +85,7 @@ class ErMagicCheckFrame3(wx.Frame):
         hboxgrid = pw.hbox_grid(self.panel, self.onDeleteRow, 'specimens', self.grid)
         self.deleteRowButton = hboxgrid.deleteRowButton
         self.panel.Bind(wx.grid.EVT_GRID_LABEL_LEFT_CLICK, self.onLeftClickLabel, self.grid)
+        self.Bind(wx.EVT_TEXT_PASTE, self.on_paste)
 
         ### Create Containers ###
         vbox = wx.BoxSizer(wx.VERTICAL)
@@ -97,19 +98,20 @@ class ErMagicCheckFrame3(wx.Frame):
         vbox.Add(self.spec_grid, flag=wx.ALL, border=10)#|wx.EXPAND, border=30)
         vbox.AddSpacer(20)
 
-        hbox_all = wx.BoxSizer(wx.HORIZONTAL)
-        hbox_all.AddSpacer(20)
-        hbox_all.AddSpacer(vbox)
-        hbox_all.AddSpacer(20)
+        self.hbox_all = wx.BoxSizer(wx.HORIZONTAL)
+        self.hbox_all.AddSpacer(20)
+        self.hbox_all.AddSpacer(vbox)
+        self.hbox_all.AddSpacer(20)
 
-        self.panel.SetSizer(hbox_all)
+        self.panel.SetSizer(self.hbox_all)
         #self.panel.SetScrollbars(20, 20, 50, 50)
-        hbox_all.Fit(self)
+        self.hbox_all.Fit(self)
         self.Centre()
         self.Show()
         self.Hide()
         self.Show()
         del wait
+
 
     def InitSampCheck(self):
         """make an interactive grid in which users can edit sample names
@@ -202,15 +204,15 @@ You may use the drop-down menus to add as many values as needed in these columns
         vbox.Add(self.samp_grid, flag=wx.ALL, border=10) # using wx.EXPAND or not does not affect re-size problem
         vbox.AddSpacer(20)
 
-        hbox_all = wx.BoxSizer(wx.HORIZONTAL)
-        hbox_all.AddSpacer(20)
-        hbox_all.AddSpacer(vbox)
-        hbox_all.AddSpacer(20)
+        self.hbox_all = wx.BoxSizer(wx.HORIZONTAL)
+        self.hbox_all.AddSpacer(20)
+        self.hbox_all.AddSpacer(vbox)
+        self.hbox_all.AddSpacer(20)
 
-        self.panel.SetSizer(hbox_all)
+        self.panel.SetSizer(self.hbox_all)
         #if sys.platform in ['win32', 'win64']:
         #    self.panel.SetScrollbars(20, 20, 50, 50)
-        hbox_all.Fit(self)
+        self.hbox_all.Fit(self)
 
         self.Centre()
         self.Show()
@@ -312,15 +314,15 @@ However, you will be able to edit samples again in step 4.
         vbox.Add(self.site_grid, flag=wx.ALL|wx.EXPAND, border=10) # EXPAND ??
         vbox.AddSpacer(20)
 
-        hbox_all = wx.BoxSizer(wx.HORIZONTAL)
-        hbox_all.AddSpacer(20)
-        hbox_all.AddSpacer(vbox)
-        hbox_all.AddSpacer(20)
+        self.hbox_all = wx.BoxSizer(wx.HORIZONTAL)
+        self.hbox_all.AddSpacer(20)
+        self.hbox_all.AddSpacer(vbox)
+        self.hbox_all.AddSpacer(20)
 
-        self.panel.SetSizer(hbox_all)
+        self.panel.SetSizer(self.hbox_all)
         #if sys.platform in ['win32', 'win64']:
         #    self.panel.SetScrollbars(20, 20, 50, 50)
-        hbox_all.Fit(self)
+        self.hbox_all.Fit(self)
         self.Centre()
         self.Show()
         # this combination prevents a display error that (without the fix) only resolves on manually resizing the window
@@ -448,15 +450,15 @@ Fill in blank cells using controlled vocabularies.
         vbox.Add(self.loc_grid, flag=wx.TOP|wx.BOTTOM, border=10)
         vbox.AddSpacer(20)
 
-        hbox_all = wx.BoxSizer(wx.HORIZONTAL)
-        hbox_all.AddSpacer(20)
-        hbox_all.AddSpacer(vbox)
-        hbox_all.AddSpacer(20)
+        self.hbox_all = wx.BoxSizer(wx.HORIZONTAL)
+        self.hbox_all.AddSpacer(20)
+        self.hbox_all.AddSpacer(vbox)
+        self.hbox_all.AddSpacer(20)
 
-        self.panel.SetSizer(hbox_all)
+        self.panel.SetSizer(self.hbox_all)
         #if sys.platform in ['win32', 'win64']:
         #    self.panel.SetScrollbars(20, 20, 50, 50)
-        hbox_all.Fit(self)
+        self.hbox_all.Fit(self)
         self.Centre()
         self.Show()
         self.Hide()
@@ -522,15 +524,15 @@ The data in a row will be associated with the lowest level that is filled in,
         vbox.Add(self.age_grid, flag=wx.TOP|wx.BOTTOM, border=10) # EXPAND ??
         vbox.AddSpacer(20)
 
-        hbox_all = wx.BoxSizer(wx.HORIZONTAL)
-        hbox_all.AddSpacer(20)
-        hbox_all.AddSpacer(vbox)
-        hbox_all.AddSpacer(20)
+        self.hbox_all = wx.BoxSizer(wx.HORIZONTAL)
+        self.hbox_all.AddSpacer(20)
+        self.hbox_all.AddSpacer(vbox)
+        self.hbox_all.AddSpacer(20)
 
-        self.panel.SetSizer(hbox_all)
+        self.panel.SetSizer(self.hbox_all)
         #if sys.platform in ['win32', 'win64']:
         #    self.panel.SetScrollbars(20, 20, 50, 50)
-        hbox_all.Fit(self)
+        self.hbox_all.Fit(self)
         self.Centre()
         self.Show()
         self.Hide()
@@ -659,7 +661,8 @@ The data in a row will be associated with the lowest level that is filled in,
             wx.MessageBox('Step 3 completed!', 'Info',
                           wx.OK | wx.ICON_INFORMATION)
 
-
+    def on_paste(self, event):
+        self.hbox_all.Fit(self)
 
     def validate(self, grid):
         print "validating!!!"
@@ -901,14 +904,14 @@ Check that all specimens belong to the correct sample
         vbox.Add(self.spec_grid, flag=wx.ALL, border=10)#|wx.EXPAND, border=30)
         vbox.AddSpacer(20)
 
-        hbox_all = wx.BoxSizer(wx.HORIZONTAL)
-        hbox_all.AddSpacer(20)
-        hbox_all.AddSpacer(vbox)
-        hbox_all.AddSpacer(20)
+        self.hbox_all = wx.BoxSizer(wx.HORIZONTAL)
+        self.hbox_all.AddSpacer(20)
+        self.hbox_all.AddSpacer(vbox)
+        self.hbox_all.AddSpacer(20)
 
-        self.panel.SetSizer(hbox_all)
+        self.panel.SetSizer(self.hbox_all)
         #self.panel.SetScrollbars(20, 20, 50, 50)
-        hbox_all.Fit(self)
+        self.hbox_all.Fit(self)
         self.Centre()
         self.Show()
         self.Hide()
@@ -1002,15 +1005,15 @@ You may use the drop-down menus to add as many values as needed in these columns
         vbox.Add(self.samp_grid, flag=wx.ALL, border=10) # using wx.EXPAND or not does not affect re-size problem
         vbox.AddSpacer(20)
 
-        hbox_all = wx.BoxSizer(wx.HORIZONTAL)
-        hbox_all.AddSpacer(20)
-        hbox_all.AddSpacer(vbox)
-        hbox_all.AddSpacer(20)
+        self.hbox_all = wx.BoxSizer(wx.HORIZONTAL)
+        self.hbox_all.AddSpacer(20)
+        self.hbox_all.AddSpacer(vbox)
+        self.hbox_all.AddSpacer(20)
 
-        self.panel.SetSizer(hbox_all)
+        self.panel.SetSizer(self.hbox_all)
         #if sys.platform in ['win32', 'win64']:
         #    self.panel.SetScrollbars(20, 20, 50, 50)
-        hbox_all.Fit(self)
+        self.hbox_all.Fit(self)
 
         self.Centre()
         self.Show()
@@ -1121,15 +1124,15 @@ However, you will be able to edit sample_class, sample_lithology, and sample_typ
         vbox.Add(self.site_grid, flag=wx.ALL|wx.EXPAND, border=10) # EXPAND ??
         vbox.AddSpacer(20)
 
-        hbox_all = wx.BoxSizer(wx.HORIZONTAL)
-        hbox_all.AddSpacer(20)
-        hbox_all.AddSpacer(vbox)
-        hbox_all.AddSpacer(20)
+        self.hbox_all = wx.BoxSizer(wx.HORIZONTAL)
+        self.hbox_all.AddSpacer(20)
+        self.hbox_all.AddSpacer(vbox)
+        self.hbox_all.AddSpacer(20)
 
-        self.panel.SetSizer(hbox_all)
+        self.panel.SetSizer(self.hbox_all)
         #if sys.platform in ['win32', 'win64']:
         #    self.panel.SetScrollbars(20, 20, 50, 50)
-        hbox_all.Fit(self)
+        self.hbox_all.Fit(self)
         self.Centre()
         self.Show()
         # this combination prevents a display error that (without the fix) only resolves on manually resizing the window
@@ -1224,15 +1227,15 @@ Fill in any blank cells using controlled vocabularies.
         vbox.Add(self.loc_grid, flag=wx.TOP|wx.BOTTOM, border=10)
         vbox.AddSpacer(20)
 
-        hbox_all = wx.BoxSizer(wx.HORIZONTAL)
-        hbox_all.AddSpacer(20)
-        hbox_all.AddSpacer(vbox)
-        hbox_all.AddSpacer(20)
+        self.hbox_all = wx.BoxSizer(wx.HORIZONTAL)
+        self.hbox_all.AddSpacer(20)
+        self.hbox_all.AddSpacer(vbox)
+        self.hbox_all.AddSpacer(20)
 
-        self.panel.SetSizer(hbox_all)
+        self.panel.SetSizer(self.hbox_all)
         #if sys.platform in ['win32', 'win64']:
         #    self.panel.SetScrollbars(20, 20, 50, 50)
-        hbox_all.Fit(self)
+        self.hbox_all.Fit(self)
         self.Centre()
         self.Show()
         self.Hide()
@@ -1306,15 +1309,15 @@ You may use the drop-down menus to add as many values as needed in these columns
         vbox.Add(self.age_grid, flag=wx.TOP|wx.BOTTOM, border=10) # EXPAND ??
         vbox.AddSpacer(20)
 
-        hbox_all = wx.BoxSizer(wx.HORIZONTAL)
-        hbox_all.AddSpacer(20)
-        hbox_all.AddSpacer(vbox)
-        hbox_all.AddSpacer(20)
+        self.hbox_all = wx.BoxSizer(wx.HORIZONTAL)
+        self.hbox_all.AddSpacer(20)
+        self.hbox_all.AddSpacer(vbox)
+        self.hbox_all.AddSpacer(20)
 
-        self.panel.SetSizer(hbox_all)
+        self.panel.SetSizer(self.hbox_all)
         #if sys.platform in ['win32', 'win64']:
         #    self.panel.SetScrollbars(20, 20, 50, 50)
-        hbox_all.Fit(self)
+        self.hbox_all.Fit(self)
         self.Centre()
         self.Show()
         self.Hide()

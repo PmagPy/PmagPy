@@ -423,7 +423,12 @@ class MagicDataFrame(object):
 
             ## new way of reading in data using pd.read_table
             with open(magic_file) as f:
-                delim, dtype = f.readline().split('\t')[:2]
+                try:
+                    delim, dtype = f.readline().split('\t')[:2]
+                except ValueError:
+                    print "-W- Empty file {}".format(magic_file)
+                    self.df = DataFrame()
+                    return
             self.df = pd.read_table(magic_file, skiprows=[0])
             self.dtype = dtype.strip()
             if self.dtype == 'measurements':

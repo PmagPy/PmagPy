@@ -364,10 +364,22 @@ class MagMainFrame(wx.Frame):
         self.Hide()
 
     def on_convert_3(self, event):
-        pmag.convert_directory_2_to_3('magic_measurements.txt',
-                                      input_dir=self.WD, output_dir=self.WD)
+        # turn files from 2.5 --> 3.0 (rough translation)
+        res = pmag.convert_directory_2_to_3('magic_measurements.txt',
+                                            input_dir=self.WD, output_dir=self.WD)
+        if not res:
+            wx.MessageBox('2.5 --> 3.0 failed. Do you have a magic_measurements.txt file in your working directory?',
+                          'Info', wx.OK | wx.ICON_INFORMATION)
+            return
+
+        # create a contribution
         self.contribution = nb.Contribution(self.WD)
+        # make skeleton files with specimen, sample, site, location data
         self.contribution.propagate_measurement_info()
+        # pop up
+        wx.MessageBox('2.5 --> 3.0 translation completed!', 'Info',
+                      wx.OK | wx.ICON_INFORMATION)
+
 
 
     def on_er_data(self, event):
