@@ -61,8 +61,9 @@ from time import time
 from datetime import datetime
 import wx
 import wx.lib.scrolledpanel
-from numpy import vstack,sqrt,arange,array
-from pylab import rcParams,Figure,arange,pi,cos,sin,array,mean
+from numpy import vstack,sqrt,arange,array,pi,cos,sin,mean
+from matplotlib import rcParams
+from matplotlib.figure import Figure
 from scipy.optimize import curve_fit
 from scipy.signal import find_peaks_cwt
 from webbrowser import open as webopen
@@ -204,7 +205,7 @@ class Demag_GUI(wx.Frame):
         self.locations=self.Data_hierarchy['locations'].keys()# get list of sites
         self.locations.sort()# get list of sites
 
-        self.panel = wx.lib.scrolledpanel.ScrolledPanel(self,-1) # make the Panel
+        self.panel = wx.lib.scrolledpanel.ScrolledPanel(self,-1,size=(10,10)) # make the Panel
         self.init_UI()# build the main frame
         self.create_menu()# create manu bar
         self.panel.SetAutoLayout(1)
@@ -242,7 +243,7 @@ class Demag_GUI(wx.Frame):
         r1=dw/1210.
         r2=dw/640.
 
-        self.GUI_RESOLUTION=min(r1,r2,1.3)
+        self.GUI_RESOLUTION=min(r1,r2,1)
         top_bar_2v_space = 5
         top_bar_h_space = 10
         spec_button_space = 10
