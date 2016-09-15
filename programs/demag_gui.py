@@ -205,11 +205,13 @@ class Demag_GUI(wx.Frame):
         self.locations=self.Data_hierarchy['locations'].keys()# get list of sites
         self.locations.sort()# get list of sites
 
-        self.panel = wx.lib.scrolledpanel.ScrolledPanel(self,-1,size=(10,10)) # make the Panel
+        self.scrolled_panel = wx.lib.scrolledpanel.ScrolledPanel(self,wx.ID_ANY) # make the Panel
+        self.panel = wx.Panel(self,wx.ID_ANY)
+        self.side_panel = wx.Panel(self,wx.ID_ANY)
         self.init_UI()# build the main frame
         self.create_menu()# create manu bar
-        self.panel.SetAutoLayout(1)
-        self.panel.SetupScrolling()# endable scrolling
+        self.scrolled_panel.SetAutoLayout(1)
+        self.scrolled_panel.SetupScrolling()# endable scrolling
 
         # Draw figures and add text
         if self.Data:
@@ -270,7 +272,7 @@ class Demag_GUI(wx.Frame):
     #----------------------------------------------------------------------
 
         self.fig1 = Figure((5.*self.GUI_RESOLUTION, 5.*self.GUI_RESOLUTION), dpi=self.dpi)
-        self.canvas1 = FigCanvas(self.panel, -1, self.fig1)
+        self.canvas1 = FigCanvas(self.scrolled_panel, -1, self.fig1)
         self.toolbar1 = NavigationToolbar(self.canvas1)
         self.toolbar1.Hide()
         self.zijderveld_setting = "Zoom"
@@ -284,7 +286,7 @@ class Demag_GUI(wx.Frame):
         self.fig2 = Figure((2.5*self.GUI_RESOLUTION, 2.5*self.GUI_RESOLUTION), dpi=self.dpi)
         self.specimen_eqarea = self.fig2.add_subplot(111)
         draw_net(self.specimen_eqarea)
-        self.canvas2 = FigCanvas(self.panel, -1, self.fig2)
+        self.canvas2 = FigCanvas(self.scrolled_panel, -1, self.fig2)
         self.toolbar2 = NavigationToolbar(self.canvas2)
         self.toolbar2.Hide()
         self.toolbar2.zoom()
@@ -298,7 +300,7 @@ class Demag_GUI(wx.Frame):
         self.specimen_EA_ydata = []
 
         self.fig3 = Figure((2.5*self.GUI_RESOLUTION, 2.5*self.GUI_RESOLUTION), dpi=self.dpi)
-        self.canvas3 = FigCanvas(self.panel, -1, self.fig3)
+        self.canvas3 = FigCanvas(self.scrolled_panel, -1, self.fig3)
         self.toolbar3 = NavigationToolbar(self.canvas3)
         self.toolbar3.Hide()
         self.toolbar3.zoom()
@@ -308,7 +310,7 @@ class Demag_GUI(wx.Frame):
         self.canvas3.SetHelpText(dgh.MM0_help)
 
         self.fig4 = Figure((2.5*self.GUI_RESOLUTION, 2.5*self.GUI_RESOLUTION), dpi=self.dpi)
-        self.canvas4 = FigCanvas(self.panel, -1, self.fig4)
+        self.canvas4 = FigCanvas(self.scrolled_panel, -1, self.fig4)
         self.toolbar4 = NavigationToolbar(self.canvas4)
         self.toolbar4.Hide()
         self.toolbar4.zoom()
@@ -345,7 +347,7 @@ class Demag_GUI(wx.Frame):
         # Create text_box for presenting the measurements
     #----------------------------------------------------------------------
 
-        self.logger = wx.ListCtrl(self.panel, -1, size=(100*self.GUI_RESOLUTION,100*self.GUI_RESOLUTION),style=wx.LC_REPORT)
+        self.logger = wx.ListCtrl(self.side_panel, -1, size=(100*self.GUI_RESOLUTION,100*self.GUI_RESOLUTION),style=wx.LC_REPORT)
         self.logger.SetFont(font1)
         self.logger.InsertColumn(0, 'i',width=25*self.GUI_RESOLUTION)
         self.logger.InsertColumn(1, 'Step',width=25*self.GUI_RESOLUTION)
@@ -362,17 +364,17 @@ class Demag_GUI(wx.Frame):
     #----------------------------------------------------------------------
 
         # Combo-box with a list of specimen
-        self.specimens_box = wx.ComboBox(self.panel, -1, value=self.s, size=(200*self.GUI_RESOLUTION,25), choices=self.specimens, style=wx.CB_DROPDOWN,name="specimen")
+        self.specimens_box = wx.ComboBox(self.side_panel, -1, value=self.s, size=(200*self.GUI_RESOLUTION,25), choices=self.specimens, style=wx.CB_DROPDOWN,name="specimen")
         self.Bind(wx.EVT_COMBOBOX, self.onSelect_specimen,self.specimens_box)
         self.specimens_box.SetHelpText(dgh.specimens_box_help)
 
         # buttons to move forward and backwards from specimens
-        self.nextbutton = wx.Button(self.panel, id=-1, label='next',size=(100*self.GUI_RESOLUTION, 25))
+        self.nextbutton = wx.Button(self.side_panel, id=-1, label='next',size=(100*self.GUI_RESOLUTION, 25))
         self.Bind(wx.EVT_BUTTON, self.on_next_button, self.nextbutton)
         self.nextbutton.SetFont(font2)
         self.nextbutton.SetHelpText(dgh.nextbutton_help)
 
-        self.prevbutton = wx.Button(self.panel, id=-1, label='previous',size=(100*self.GUI_RESOLUTION, 25))
+        self.prevbutton = wx.Button(self.side_panel, id=-1, label='previous',size=(100*self.GUI_RESOLUTION, 25))
         self.prevbutton.SetFont(font2)
         self.Bind(wx.EVT_BUTTON, self.on_prev_button, self.prevbutton)
         self.prevbutton.SetHelpText(dgh.prevbutton_help)
@@ -391,7 +393,7 @@ class Demag_GUI(wx.Frame):
                 self.coordinate_list.append('tilt-corrected')
 
         self.COORDINATE_SYSTEM = intial_coordinate
-        self.coordinates_box = wx.ComboBox(self.panel, -1, size=(200*self.GUI_RESOLUTION,25), choices=self.coordinate_list, value=intial_coordinate,style=wx.CB_DROPDOWN,name="coordinates")
+        self.coordinates_box = wx.ComboBox(self.side_panel, -1, size=(200*self.GUI_RESOLUTION,25), choices=self.coordinate_list, value=intial_coordinate,style=wx.CB_DROPDOWN,name="coordinates")
         self.Bind(wx.EVT_COMBOBOX, self.onSelect_coordinates,self.coordinates_box)
         self.coordinates_box.SetHelpText(dgh.coordinates_box_help)
 
@@ -399,7 +401,7 @@ class Demag_GUI(wx.Frame):
         #  Orthogonal Zijderveld Options box
     #----------------------------------------------------------------------
 
-        self.orthogonal_box = wx.ComboBox(self.panel, -1, value='X=East', size=(200*self.GUI_RESOLUTION,25), choices=['X=NRM dec','X=East','X=North'], style=wx.CB_DROPDOWN,name="orthogonal_plot")
+        self.orthogonal_box = wx.ComboBox(self.side_panel, -1, value='X=East', size=(200*self.GUI_RESOLUTION,25), choices=['X=NRM dec','X=East','X=North'], style=wx.CB_DROPDOWN,name="orthogonal_plot")
         #remove 'X=best fit line dec' as option given that is isn't implemented for multiple components
         self.Bind(wx.EVT_COMBOBOX, self.onSelect_orthogonal_box,self.orthogonal_box)
         self.orthogonal_box.SetHelpText(dgh.orthogonal_box_help)
@@ -533,7 +535,7 @@ class Demag_GUI(wx.Frame):
         self.stats_sizer = wx.StaticBoxSizer( wx.StaticBox(self.panel, wx.ID_ANY,"mean statistics"), wx.VERTICAL)
 
         for parameter in ['mean_type','dec','inc','alpha95','K','R','n_lines','n_planes']:
-            COMMAND="self.%s_window=wx.TextCtrl(self.panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50*self.GUI_RESOLUTION,25))"%parameter
+            COMMAND="self.%s_window=wx.TextCtrl(self.scrolled_panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50*self.GUI_RESOLUTION,25))"%parameter
             exec(COMMAND)
             COMMAND="self.%s_window.SetBackgroundColour(wx.WHITE)"%parameter
             exec(COMMAND)
@@ -542,13 +544,13 @@ class Demag_GUI(wx.Frame):
             COMMAND="self.%s_outer_window = wx.GridSizer(1,2,5*self.GUI_RESOLUTION,15*self.GUI_RESOLUTION)"%parameter
             exec(COMMAND)
             COMMAND="""self.%s_outer_window.AddMany([
-                    (wx.StaticText(self.panel,label='%s',style=wx.TE_CENTER),1,wx.EXPAND),
+                    (wx.StaticText(self.scrolled_panel,label='%s',style=wx.TE_CENTER),1,wx.EXPAND),
                     (self.%s_window, 1, wx.EXPAND)])"""%(parameter,parameter,parameter)
             exec(COMMAND)
             COMMAND="self.stats_sizer.Add(self.%s_outer_window, 1, wx.ALIGN_LEFT|wx.EXPAND)"%parameter
             exec(COMMAND)
 
-        self.switch_stats_button = wx.SpinButton(self.panel, id=wx.ID_ANY, style=wx.SP_HORIZONTAL|wx.SP_ARROW_KEYS|wx.SP_WRAP, name="change stats")
+        self.switch_stats_button = wx.SpinButton(self.scrolled_panel, id=wx.ID_ANY, style=wx.SP_HORIZONTAL|wx.SP_ARROW_KEYS|wx.SP_WRAP, name="change stats")
         self.Bind(wx.EVT_SPIN, self.on_select_stats_button,self.switch_stats_button)
         self.switch_stats_button.SetHelpText(dgh.switch_stats_btn_help)
 
@@ -595,21 +597,21 @@ class Demag_GUI(wx.Frame):
         #Side Bar------------------------------------------------------------
         side_bar_sizer = wx.BoxSizer(wx.VERTICAL)
 
-        spec_sizer = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.ID_ANY, "Specimen"), wx.VERTICAL)
+        spec_sizer = wx.StaticBoxSizer(wx.StaticBox(self.side_panel, wx.ID_ANY, "Specimen"), wx.VERTICAL)
         spec_buttons_sizer = wx.GridSizer(1, 2, 0, spec_button_space)
         spec_buttons_sizer.AddMany([(self.prevbutton, 1, wx.ALIGN_LEFT|wx.EXPAND),
                                     (self.nextbutton, 1, wx.ALIGN_RIGHT|wx.EXPAND)])
         spec_sizer.AddMany([(self.specimens_box, 1, wx.ALIGN_TOP|wx.EXPAND|wx.BOTTOM, side_bar_v_space/2),
                             (spec_buttons_sizer, 1, wx.ALIGN_BOTTOM|wx.EXPAND|wx.TOP, side_bar_v_space/2)])
         side_bar_sizer.Add(spec_sizer, .5, wx.ALIGN_TOP|wx.EXPAND)
-        side_bar_sizer.Add(wx.StaticLine(self.panel), .5, wx.ALL|wx.EXPAND, side_bar_v_space)
+        side_bar_sizer.Add(wx.StaticLine(self.side_panel), .5, wx.ALL|wx.EXPAND, side_bar_v_space)
 
-        coordinate_sizer = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.ID_ANY, "Coordinate System"), wx.VERTICAL)
+        coordinate_sizer = wx.StaticBoxSizer(wx.StaticBox(self.side_panel, wx.ID_ANY, "Coordinate System"), wx.VERTICAL)
         coordinate_sizer.Add(self.coordinates_box, .5, wx.EXPAND)
         side_bar_sizer.Add(coordinate_sizer, .5, wx.ALIGN_TOP|wx.EXPAND)
-        side_bar_sizer.Add(wx.StaticLine(self.panel), .5, wx.ALL|wx.EXPAND, side_bar_v_space)
+        side_bar_sizer.Add(wx.StaticLine(self.side_panel), .5, wx.ALL|wx.EXPAND, side_bar_v_space)
 
-        zijderveld_option_sizer = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.ID_ANY, "Zijderveld Plot Options"), wx.VERTICAL)
+        zijderveld_option_sizer = wx.StaticBoxSizer(wx.StaticBox(self.side_panel, wx.ID_ANY, "Zijderveld Plot Options"), wx.VERTICAL)
         zijderveld_option_sizer.Add(self.orthogonal_box, 1, wx.EXPAND)
         side_bar_sizer.Add(zijderveld_option_sizer, .5, wx.ALIGN_TOP|wx.EXPAND)
 
@@ -632,17 +634,22 @@ class Demag_GUI(wx.Frame):
         full_plots_sizer.Add(self.canvas1, 1, wx.ALIGN_LEFT|wx.EXPAND)
         full_plots_sizer.Add(eqarea_MM0_stats_sizer, 1.5, wx.ALIGN_RIGHT|wx.EXPAND)
 
+        self.panel.SetSizerAndFit(top_bar_sizer)
+        self.side_panel.SetSizerAndFit(side_bar_sizer)
+        self.scrolled_panel.SetSizer(full_plots_sizer)
+
         #Outer Sizer---------------------------------------------------------
         add_side_bar_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        add_side_bar_sizer.Add(side_bar_sizer, 1, wx.ALIGN_LEFT|wx.EXPAND)
-        add_side_bar_sizer.Add(full_plots_sizer, 5, wx.ALIGN_RIGHT|wx.EXPAND)
+        add_side_bar_sizer.Add(self.side_panel, 1, wx.ALIGN_LEFT|wx.EXPAND)
+        add_side_bar_sizer.Add(self.scrolled_panel, 5, wx.ALIGN_RIGHT|wx.EXPAND)
 
         outersizer = wx.BoxSizer(wx.VERTICAL)
-        outersizer.Add(top_bar_sizer, .2, wx.ALIGN_TOP|wx.EXPAND)
+        outersizer.Add(self.panel, .2, wx.ALIGN_TOP|wx.EXPAND)
         outersizer.Add(add_side_bar_sizer, 1, wx.ALIGN_BOTTOM|wx.EXPAND)
 
-        self.panel.SetSizer(outersizer)
+        self.SetSizer(outersizer)
         outersizer.Fit(self)
+
         self.GUI_SIZE = self.GetSize()
 
     def create_menu(self):
