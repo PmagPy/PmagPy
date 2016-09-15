@@ -1,0 +1,6 @@
+tab 	er_samples
+er_location_name	er_sample_name	er_site_name
+Snake River	sr01a	sr01
+Snake River	sr01c	sr01
+Snake River	sr01d	sr01
+Snake River	sr01i	sr01

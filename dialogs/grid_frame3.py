@@ -753,10 +753,15 @@ class GridBuilder(object):
                 col_labels[:0] = levels
             else:
                 if self.parent_type:
-                    col_labels.remove(self.parent_type[:-1])
+                    if self.parent_type[:-1] in col_labels:
+                        col_labels.remove(self.parent_type[:-1])
                     col_labels[:0] = [self.parent_type[:-1]]
-                col_labels.remove(self.grid_type[:-1])
+                if self.grid_type[:-1] in col_labels:
+                    col_labels.remove(self.grid_type[:-1])
                 col_labels[:0] = (self.grid_type[:-1],)
+            for col in col_labels:
+                if col not in self.magic_dataframe.df.columns:
+                    self.magic_dataframe.df[col] = None
             self.magic_dataframe.df = self.magic_dataframe.df[col_labels]
             row_labels = self.magic_dataframe.df.index
             # make sure minimum defaults are present

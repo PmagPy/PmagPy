@@ -1,0 +1,10 @@
+tab	specimens
+specimen	sample	citations	method_codes	result_quality	result_type
+sr01e2	sr01e	a different study			
+sr01g2	sr01g	This study			
+sr01a1	sr01a	This study			
+sr01a2	sr01a	This study			
+sr01c2	sr01c	This study			
+sr01d1	sr01d	This study			
+sr01i1	sr01i	This study			
+sr01f2	sr01f	This study			
