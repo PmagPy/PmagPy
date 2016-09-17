@@ -181,7 +181,7 @@ def pick_inp(parent,WD):
 
 def read_LSQ(filepath):
     fin = open(filepath, 'r')
-    interps = fin.readlines()
+    interps = fin.read().splitlines()
     interps_out = []
     parse_LSQ_bound = lambda x: ord(x)-ord("A") if ord(x)-ord("A") < 25 else ord(x)-ord("A")-6
     for i,interp in enumerate(interps):
