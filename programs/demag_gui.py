@@ -388,6 +388,7 @@ class Demag_GUI(wx.Frame):
         self.logger.InsertColumn(3, 'Dec',width=35*self.GUI_RESOLUTION)
         self.logger.InsertColumn(4, 'Inc',width=35*self.GUI_RESOLUTION)
         self.logger.InsertColumn(5, 'M',width=45*self.GUI_RESOLUTION)
+        self.logger.InsertColumn(6, 'csd',width=45*self.GUI_RESOLUTION)
         self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnClick_listctrl, self.logger)
         self.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK,self.OnRightClickListctrl,self.logger)
         self.logger.SetHelpText(dgh.logger_help)
@@ -2819,6 +2820,7 @@ class Demag_GUI(wx.Frame):
               Data[s]['zijdblock_tilt']=[]
               Data[s]['zijdblock_lab_treatments']=[]
               Data[s]['pars']={}
+              Data[s]['csds']=[]
               Data[s]['zijdblock_steps']=[]
               Data[s]['measurement_flag']=[]# a list of points 'g' or 'b'
               Data[s]['mag_meas_data_index']=[]  # index in original magic_measurements.txt
@@ -2920,7 +2922,11 @@ class Demag_GUI(wx.Frame):
                      continue
                  if 'magic_instrument_codes' not in rec.keys():
                      rec['magic_instrument_codes']=''
+                 if 'measurement_csd' in rec.keys():
+                    csd = str(rec['measurement_csd'])
+                 else: csd = ''
                  Data[s]['zijdblock'].append([tr,dec,inc,intensity,ZI,rec['measurement_flag'],rec['magic_instrument_codes']])
+                 Data[s]['csds'].append(csd)
                  if 'magic_experiment_name' in Data[s].keys() and Data[s]['magic_experiment_name']!=rec["magic_experiment_name"]:
                       print("-E- ERROR: specimen %s has more than one demagnetization experiment name. You need to merge them to one experiment-name?\n"%(s))
                  if float(tr)==0 or float(tr)==273:
@@ -2973,7 +2979,7 @@ class Demag_GUI(wx.Frame):
                  except (IOError, KeyError, TypeError, ValueError) as e:
                     pass
 #                    if prev_s != s:
-#                        print("-W- cant find tilt-corrected data for sample %s"%sample)
+#                        printd("-W- cant find tilt-corrected data for sample %s"%sample)
 
           #---------------------
           # hierarchy is determined from magic_measurements.txt
@@ -5759,12 +5765,14 @@ class Demag_GUI(wx.Frame):
           Dec=zijdblock[i][1]
           Inc=zijdblock[i][2]
           Int=zijdblock[i][3]
+          csd=self.Data[self.s]['csds'][i]
           self.logger.InsertStringItem(i, "%i"%i)
           self.logger.SetStringItem(i, 1, Step)
           self.logger.SetStringItem(i, 2, "%.1f"%Tr)
           self.logger.SetStringItem(i, 3, "%.1f"%Dec)
           self.logger.SetStringItem(i, 4, "%.1f"%Inc)
           self.logger.SetStringItem(i, 5, "%.2e"%Int)
+          self.logger.SetStringItem(i, 6, csd)
           self.logger.SetItemBackgroundColour(i,"WHITE")
           if i >= tmin_index and i <= tmax_index:
             self.logger.SetItemBackgroundColour(i,"LIGHT BLUE")
