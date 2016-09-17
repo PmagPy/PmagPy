@@ -238,8 +238,12 @@ class Demag_GUI(wx.Frame):
         Build main frame of panel: buttons, etc.
         choose the first specimen and display data
         """
+#--------------------------------------------------------------------------
+    #Setup ScrolledPanel Ctrls---------------------------------------------
+#--------------------------------------------------------------------------
+
     #----------------------------------------------------------------------
-        # initialize panel design characters
+        #  set ctrl size and style variables
     #----------------------------------------------------------------------
         dw, dh = wx.DisplaySize()
         r1=dw/1210.
@@ -250,6 +254,17 @@ class Demag_GUI(wx.Frame):
         top_bar_h_space = 10
         spec_button_space = 10
         side_bar_v_space = 10
+
+    #----------------------------------------------------------------------
+        #  set font size and style
+    #----------------------------------------------------------------------
+
+        FONT_WEIGHT=1
+        if sys.platform.startswith('win'): FONT_WEIGHT=-1
+        font1 = wx.Font(9+FONT_WEIGHT, wx.SWISS, wx.NORMAL, wx.NORMAL, False, self.font_type)
+        font2 = wx.Font(12+FONT_WEIGHT, wx.SWISS, wx.NORMAL, wx.NORMAL, False, self.font_type)
+        font = wx.SystemSettings.GetFont(wx.SYS_SYSTEM_FONT)
+        font.SetPointSize(10+FONT_WEIGHT)
 
     #----------------------------------------------------------------------
         # initialize first specimen in list as current specimen
@@ -266,6 +281,10 @@ class Demag_GUI(wx.Frame):
             self.site=self.Data_hierarchy['site_of_specimen'][self.s]
         except:
             self.site=""
+
+#--------------------------------------------------------------------------
+    #Setup ScrolledPanel Ctrls---------------------------------------------
+#--------------------------------------------------------------------------
 
     #----------------------------------------------------------------------
         # Create Figures and FigCanvas objects.
@@ -327,17 +346,31 @@ class Demag_GUI(wx.Frame):
         self.high_level_eqarea = self.fig4.add_subplot(111)
         draw_net(self.high_level_eqarea)
 
-
     #----------------------------------------------------------------------
-        #  set font size and style
+        # High level Stats Sizer and Switch Stats Button
     #----------------------------------------------------------------------
 
-        FONT_WEIGHT=1
-        if sys.platform.startswith('win'): FONT_WEIGHT=-1
-        font1 = wx.Font(9+FONT_WEIGHT, wx.SWISS, wx.NORMAL, wx.NORMAL, False, self.font_type)
-        font2 = wx.Font(12+FONT_WEIGHT, wx.SWISS, wx.NORMAL, wx.NORMAL, False, self.font_type)
-        font = wx.SystemSettings.GetFont(wx.SYS_SYSTEM_FONT)
-        font.SetPointSize(10+FONT_WEIGHT)
+        self.stats_sizer = wx.StaticBoxSizer( wx.StaticBox(self.panel, wx.ID_ANY,"mean statistics"), wx.VERTICAL)
+
+        for parameter in ['mean_type','dec','inc','alpha95','K','R','n_lines','n_planes']:
+            COMMAND="self.%s_window=wx.TextCtrl(self.scrolled_panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50*self.GUI_RESOLUTION,25))"%parameter
+            exec(COMMAND)
+            COMMAND="self.%s_window.SetBackgroundColour(wx.WHITE)"%parameter
+            exec(COMMAND)
+            COMMAND="self.%s_window.SetFont(font2)"%parameter
+            exec(COMMAND)
+            COMMAND="self.%s_outer_window = wx.GridSizer(1,2,5*self.GUI_RESOLUTION,15*self.GUI_RESOLUTION)"%parameter
+            exec(COMMAND)
+            COMMAND="""self.%s_outer_window.AddMany([
+                    (wx.StaticText(self.scrolled_panel,label='%s',style=wx.TE_CENTER),1,wx.EXPAND),
+                    (self.%s_window, 1, wx.EXPAND)])"""%(parameter,parameter,parameter)
+            exec(COMMAND)
+            COMMAND="self.stats_sizer.Add(self.%s_outer_window, 1, wx.ALIGN_LEFT|wx.EXPAND)"%parameter
+            exec(COMMAND)
+
+        self.switch_stats_button = wx.SpinButton(self.scrolled_panel, id=wx.ID_ANY, style=wx.SP_HORIZONTAL|wx.SP_ARROW_KEYS|wx.SP_WRAP, name="change stats")
+        self.Bind(wx.EVT_SPIN, self.on_select_stats_button,self.switch_stats_button)
+        self.switch_stats_button.SetHelpText(dgh.switch_stats_btn_help)
 
 #--------------------------------------------------------------------------
     #  Side Bar Options and Logger-----------------------------------------
@@ -411,6 +444,20 @@ class Demag_GUI(wx.Frame):
 #--------------------------------------------------------------------------
 
     #----------------------------------------------------------------------
+        #  select bounds box
+    #----------------------------------------------------------------------
+
+        self.T_list=[]
+
+        self.tmin_box = wx.ComboBox(self.panel, -1 ,size=(50*self.GUI_RESOLUTION, 25),choices=self.T_list, style=wx.CB_DROPDOWN)
+        self.Bind(wx.EVT_COMBOBOX, self.get_new_PCA_parameters,self.tmin_box)
+        self.tmin_box.SetHelpText(dgh.tmin_box_help)
+
+        self.tmax_box = wx.ComboBox(self.panel, -1 ,size=(50*self.GUI_RESOLUTION, 25),choices=self.T_list, style=wx.CB_DROPDOWN)
+        self.Bind(wx.EVT_COMBOBOX, self.get_new_PCA_parameters,self.tmax_box)
+        self.tmax_box.SetHelpText(dgh.tmax_box_help)
+
+    #----------------------------------------------------------------------
         #  Specimens interpretations Management box
     #----------------------------------------------------------------------
 
@@ -437,20 +484,6 @@ class Demag_GUI(wx.Frame):
 
         self.Bind(wx.EVT_BUTTON, self.on_save_interpretation_button, self.save_fit_button)
         self.Bind(wx.EVT_BUTTON, self.delete_fit, self.delete_fit_button)
-
-    #----------------------------------------------------------------------
-        #  select bounds box
-    #----------------------------------------------------------------------
-
-        self.T_list=[]
-
-        self.tmin_box = wx.ComboBox(self.panel, -1 ,size=(50*self.GUI_RESOLUTION, 25),choices=self.T_list, style=wx.CB_DROPDOWN)
-        self.Bind(wx.EVT_COMBOBOX, self.get_new_PCA_parameters,self.tmin_box)
-        self.tmin_box.SetHelpText(dgh.tmin_box_help)
-
-        self.tmax_box = wx.ComboBox(self.panel, -1 ,size=(50*self.GUI_RESOLUTION, 25),choices=self.T_list, style=wx.CB_DROPDOWN)
-        self.Bind(wx.EVT_COMBOBOX, self.get_new_PCA_parameters,self.tmax_box)
-        self.tmax_box.SetHelpText(dgh.tmax_box_help)
 
     #----------------------------------------------------------------------
         # Interpretation Type and Display window
@@ -527,32 +560,6 @@ class Demag_GUI(wx.Frame):
         self.warning_box.SetHelpText(dgh.warning_help)
 
         warning_sizer.Add(self.warning_box, 1, wx.TOP|wx.EXPAND)
-
-    #----------------------------------------------------------------------
-        # High level Stats Sizer and Switch Stats Button
-    #----------------------------------------------------------------------
-
-        self.stats_sizer = wx.StaticBoxSizer( wx.StaticBox(self.panel, wx.ID_ANY,"mean statistics"), wx.VERTICAL)
-
-        for parameter in ['mean_type','dec','inc','alpha95','K','R','n_lines','n_planes']:
-            COMMAND="self.%s_window=wx.TextCtrl(self.scrolled_panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50*self.GUI_RESOLUTION,25))"%parameter
-            exec(COMMAND)
-            COMMAND="self.%s_window.SetBackgroundColour(wx.WHITE)"%parameter
-            exec(COMMAND)
-            COMMAND="self.%s_window.SetFont(font2)"%parameter
-            exec(COMMAND)
-            COMMAND="self.%s_outer_window = wx.GridSizer(1,2,5*self.GUI_RESOLUTION,15*self.GUI_RESOLUTION)"%parameter
-            exec(COMMAND)
-            COMMAND="""self.%s_outer_window.AddMany([
-                    (wx.StaticText(self.scrolled_panel,label='%s',style=wx.TE_CENTER),1,wx.EXPAND),
-                    (self.%s_window, 1, wx.EXPAND)])"""%(parameter,parameter,parameter)
-            exec(COMMAND)
-            COMMAND="self.stats_sizer.Add(self.%s_outer_window, 1, wx.ALIGN_LEFT|wx.EXPAND)"%parameter
-            exec(COMMAND)
-
-        self.switch_stats_button = wx.SpinButton(self.scrolled_panel, id=wx.ID_ANY, style=wx.SP_HORIZONTAL|wx.SP_ARROW_KEYS|wx.SP_WRAP, name="change stats")
-        self.Bind(wx.EVT_SPIN, self.on_select_stats_button,self.switch_stats_button)
-        self.switch_stats_button.SetHelpText(dgh.switch_stats_btn_help)
 
     #----------------------------------------------------------------------
         # Design the panel
@@ -2914,7 +2921,7 @@ class Demag_GUI(wx.Frame):
                      rec['magic_instrument_codes']=''
                  Data[s]['zijdblock'].append([tr,dec,inc,intensity,ZI,rec['measurement_flag'],rec['magic_instrument_codes']])
                  if 'magic_experiment_name' in Data[s].keys() and Data[s]['magic_experiment_name']!=rec["magic_experiment_name"]:
-                      print("-E- ERROR: specimen %s has more than one demagnetization experiment name. You need to merge them to one experiment-name?\n")
+                      print("-E- ERROR: specimen %s has more than one demagnetization experiment name. You need to merge them to one experiment-name?\n"%(s))
                  if float(tr)==0 or float(tr)==273:
                     Data[s]['zijdblock_steps'].append("0")
                  elif measurement_step_unit=="C":
@@ -3278,28 +3285,22 @@ class Demag_GUI(wx.Frame):
         return(DATA)
 
     def read_from_LSQ(self,LSQ_file):
-        cont = self.user_warning("LSQ import only works if magic_measurements file all measurements are present and not averaged during import from magnetometer files. Do you wish to continue reading interpretations?")
+        cont = self.user_warning("LSQ import only works if all measurements are present and not averaged during import from magnetometer files to magic format. Do you wish to continue reading interpretations?")
         if not cont: return
         print("Reading LSQ file")
         interps = read_LSQ(LSQ_file)
         for interp in interps:
             specimen = interp['er_specimen_name']
-            if specimen not in self.specimens: continue
+            if specimen not in self.specimens: print("specimen %s has no registered measuremtn data, skipping interpretation import"%specimen);continue
             PCA_type = interp['magic_method_codes'].split(':')[0]
             tmin = self.Data[specimen]['zijdblock_steps'][interp['measurement_min_index']]
             tmax = self.Data[specimen]['zijdblock_steps'][interp['measurement_max_index']]
-            if specimen not in self.pmag_results_data['specimens'].keys():
-                self.pmag_results_data['specimens'][specimen] = []
-            next_fit = str(len(self.pmag_results_data['specimens'][specimen]) + 1)
-            while ('Fit ' + next_fit) in map(lambda x: x.name, self.pmag_results_data['specimens'][specimen]):
-                next_fit = str(int(next_fit)+1)
-            if 'specimen_comp_name' in interp.keys() and interp['specimen_comp_name'] not in map(lambda x: x.name, self.pmag_results_data['specimens'][specimen]):
+            if 'specimen_comp_name' in interp.keys():
                 name = interp['specimen_comp_name']
-            else: name = 'Fit ' + next_fit
-            if name == None: name = 'Fit ' + next_fit
-            new_fit = Fit(name, tmin, tmax, self.colors[(int(next_fit)-1) % len(self.colors)], self, PCA_type)
-            self.pmag_results_data['specimens'][specimen].append(new_fit)
-            new_fit.put(specimen,self.COORDINATE_SYSTEM,self.get_PCA_parameters(specimen,new_fit,tmin,tmax,self.COORDINATE_SYSTEM,PCA_type))
+            else:
+                name = None
+            print("making new fit")
+            new_fit = self.add_fit(specimen,name,tmin,tmax,PCA_type)
             if 'bad_measurement_index' in interp.keys():
                 old_s = self.s
                 self.s = specimen
