@@ -2603,14 +2603,15 @@ class Demag_GUI(wx.Frame):
         #Draw figures and add  text
         self.get_new_PCA_parameters(1)
 
-    def clear_interpretations(self):
+    def clear_interpretations(self,message=None):
 
         if self.total_num_of_interpertations() == 0:
             print("There are no interpretations")
             return True
 
-        TEXT="All interpretations will be deleted all unsaved data will be irretrievable"
-        self.dlg = wx.MessageDialog(self, caption="Delete?",message=TEXT,style=wx.OK|wx.CANCEL)
+        if message == None:
+            message="All interpretations will be deleted all unsaved data will be irretrievable, continue?"
+        self.dlg = wx.MessageDialog(self, caption="Delete?",message=message,style=wx.OK|wx.CANCEL)
         result = self.dlg.ShowModal()
         self.dlg.Destroy()
         if result != wx.ID_OK:
@@ -3287,11 +3288,12 @@ class Demag_GUI(wx.Frame):
     def read_from_LSQ(self,LSQ_file):
         cont = self.user_warning("LSQ import only works if all measurements are present and not averaged during import from magnetometer files to magic format. Do you wish to continue reading interpretations?")
         if not cont: return
+        self.clear_interpretations(message="""Do you wish to clear all previous interpretations on import?""")
         print("Reading LSQ file")
         interps = read_LSQ(LSQ_file)
         for interp in interps:
             specimen = interp['er_specimen_name']
-            if specimen not in self.specimens: print("specimen %s has no registered measuremtn data, skipping interpretation import"%specimen);continue
+            if specimen not in self.specimens: print("specimen %s has no registered measuremtn data, skipping interpretation import"%specimen); continue
             PCA_type = interp['magic_method_codes'].split(':')[0]
             tmin = self.Data[specimen]['zijdblock_steps'][interp['measurement_min_index']]
             tmax = self.Data[specimen]['zijdblock_steps'][interp['measurement_max_index']]
@@ -3299,7 +3301,6 @@ class Demag_GUI(wx.Frame):
                 name = interp['specimen_comp_name']
             else:
                 name = None
-            print("making new fit")
             new_fit = self.add_fit(specimen,name,tmin,tmax,PCA_type)
             if 'bad_measurement_index' in interp.keys():
                 old_s = self.s
@@ -3308,6 +3309,7 @@ class Demag_GUI(wx.Frame):
                     try: self.mark_meas_bad(bmi)
                     except IndexError: print("Magic Measurments length does not match that recorded in LSQ file")
                 self.s = old_s
+        if self.ie_open: self.ie.update_editor()
         self.update_selection()
 
     def read_redo_file(self,redo_file):
