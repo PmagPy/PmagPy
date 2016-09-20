@@ -5471,7 +5471,7 @@ def doigrf(long,lat,alt,date,**kwargs):
     """
     Calculates the interpolated (<2015) or extrapolated (>2015) main field and
     secular variation coefficients and passes them to the Malin and Barraclough
-    routine (function pmag.magsyn) to calculate the IGRF field.
+    routine (function pmag.magsyn) to calculate the field from the coefficients.
 
     Parameters:
     -----------
@@ -5491,13 +5491,16 @@ def doigrf(long,lat,alt,date,**kwargs):
     z     = downward component of the magnetic force in nT
     f     = total magnetic force in nT
 
-    dgrf coefficients are used for 1945 to 2005
-    igrf coefficients are used for pre-1945 and post-2010
-    from http://www.ngdc.noaa.gov/IAGA/vmod/igrf.html
+    By default, igrf12 coefficients are used between 1900 and 2020
+    from http://www.ngdc.noaa.gov/IAGA/vmod/igrf.html.
 
-        for dates prior to between 1900 and 1600, this program uses coefficients
-        from the GUFM1 model of Jackson et al. 2000
-        prior to that, it uses either arch3k or one of the cals models
+    Otherwise, the following paleosecular variation models can be used:
+    arch3k (Korte et al., 2009)
+    cals3k (Korte and Constable, 2011)
+    pfm9k  (Nilsson et al., 2014)
+    cals10k (Korte et al., 2011)
+    all of these models, with the exception of pfm9k, are constrained to agree
+    with gufm1 (Jackson et al., 2000) for the past four centuries
 
     To check the results you can run the interactive program at the NGDC
     www.ngdc.noaa.gov/geomag-web
