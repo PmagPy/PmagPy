@@ -42,6 +42,7 @@ class Fit():
             self.lines = [None,None]
             self.points = [None,None]
             self.eqarea_data = [None,None]
+            self.mm0_data = [None,None]
         self.GUI = GUI
         self.pars = {}
         self.geopars = {}

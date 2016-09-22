@@ -182,6 +182,7 @@ class Demag_GUI(wx.Frame):
         self.all_fits_list = []
         self.current_fit = None
         self.selected_meas = []
+        self.selected_meas_artists = []
         self.selected_meas_called = False
         self.dirtypes = ['DA-DIR','DA-DIR-GEO','DA-DIR-TILT']
         self.bad_fits = []
@@ -321,6 +322,7 @@ class Demag_GUI(wx.Frame):
         self.specimen_EA_ydata = []
 
         self.fig3 = Figure((2.5*self.GUI_RESOLUTION, 2.5*self.GUI_RESOLUTION), dpi=self.dpi)
+        self.mplot = self.fig3.add_axes([0.2,0.15,0.7,0.7],frameon=True,axisbg='None')
         self.canvas3 = FigCanvas(self.scrolled_panel, -1, self.fig3)
         self.toolbar3 = NavigationToolbar(self.canvas3)
         self.toolbar3.Hide()
@@ -868,6 +870,12 @@ class Demag_GUI(wx.Frame):
         self.draw_MM0()
 
         #-----------------------------------------------------------
+        # If measurements are selected redisplay selected data
+        #-----------------------------------------------------------
+        if len(self.selected_meas)>0:
+            self.plot_selected_meas()
+
+        #-----------------------------------------------------------
         # high level equal area
         #-----------------------------------------------------------
         if update_higher_plots:
@@ -883,23 +891,16 @@ class Demag_GUI(wx.Frame):
         self.zijplot.xaxis.set_visible(False)
         self.zijplot.yaxis.set_visible(False)
 
-        self.MS=50;self.dec_MEC='k';self.dec_MFC='r'; self.inc_MEC='k';self.inc_MFC='b';self.MS_bad = 6*self.GUI_RESOLUTION
+        self.MS=6*self.GUI_RESOLUTION;self.dec_MEC='k';self.dec_MFC='r'; self.inc_MEC='k';self.inc_MFC='b';self.MS = 6*self.GUI_RESOLUTION
         self.zijdblock_steps=self.Data[self.s]['zijdblock_steps']
         self.vds=self.Data[self.s]['vds']
 
-        meas_flags = self.Data[self.s]['measurement_flag']
-        zijd_selected = [i - meas_flags[:i].count('b') for i in self.selected_meas if meas_flags[i] != 'b']
-        xy_colors = ['#440000' if i in zijd_selected else '#FF0000' for i in range(len(self.CART_rot_good[:,0]))]
-        xz_colors = ['#000044' if i in zijd_selected else '#0000FF' for i in range(len(self.CART_rot_good[:,0]))]
-
-        self.zijplot.plot(self.CART_rot_good[:,0], -1*self.CART_rot_good[:,1], 'r-', clip_on=False, picker=True, zorder=1) #x,y or N,E
-        self.zijplot.scatter(self.CART_rot_good[:,0], -1*self.CART_rot_good[:,1], c=xy_colors, marker='o', s=self.MS, zorder=2)
-        self.zijplot.plot(self.CART_rot_good[:,0], -1*self.CART_rot_good[:,2], 'b-', clip_on=False, picker=True, zorder=1) #x-z or N,D
-        self.zijplot.scatter(self.CART_rot_good[:,0], -1*self.CART_rot_good[:,2], c=xz_colors, marker='s', s=self.MS, zorder=2)
+        self.zijplot.plot(self.CART_rot_good[:,0], -1*self.CART_rot_good[:,1], 'ro-', markersize=self.MS, clip_on=False, picker=True, zorder=1) #x,y or N,E
+        self.zijplot.plot(self.CART_rot_good[:,0], -1*self.CART_rot_good[:,2], 'bs-', markersize=self.MS, clip_on=False, picker=True, zorder=1) #x-z or N,D
 
         for i in range(len( self.CART_rot_bad)):
-            self.zijplot.plot(self.CART_rot_bad[:,0][i],-1* self.CART_rot_bad[:,1][i],'o',mfc='None',mec=self.dec_MEC,markersize=self.MS_bad,clip_on=False,picker=False) #x,y or N,E
-            self.zijplot.plot(self.CART_rot_bad[:,0][i],-1 * self.CART_rot_bad[:,2][i],'s',mfc='None',mec=self.inc_MEC,markersize=self.MS_bad,clip_on=False,picker=False) #x-z or N,D
+            self.zijplot.plot(self.CART_rot_bad[:,0][i],-1* self.CART_rot_bad[:,1][i],'o',mfc='None',mec=self.dec_MEC,markersize=self.MS,clip_on=False,picker=False) #x,y or N,E
+            self.zijplot.plot(self.CART_rot_bad[:,0][i],-1 * self.CART_rot_bad[:,2][i],'s',mfc='None',mec=self.inc_MEC,markersize=self.MS,clip_on=False,picker=False) #x-z or N,D
 
         if self.preferences['show_Zij_treatments'] :
             for i in range(len(self.zijdblock_steps)):
@@ -1005,6 +1006,58 @@ class Demag_GUI(wx.Frame):
 
         self.canvas1.draw()
 
+    def plot_selected_meas(self):
+        MS_selected = 40
+        for a in self.selected_meas_artists:
+            if a in self.zijplot.collections:
+                self.zijplot.collections.remove(a)
+            if a in self.specimen_eqarea.collections:
+                self.specimen_eqarea.collections.remove(a)
+            if a in self.mplot.collections:
+                self.mplot.collections.remove(a)
+            if a in self.mplot_af.collections:
+                self.mplot_af.collections.remove(a)
+
+        self.selected_meas_artists = []
+        x,y,z = self.CART_rot[self.selected_meas,0],self.CART_rot[self.selected_meas,1], self.CART_rot[self.selected_meas,2]
+        self.selected_meas_artists.append(self.zijplot.scatter(x, -1*y, c="#440000", marker='o', s=MS_selected, zorder=2))
+        self.selected_meas_artists.append(self.zijplot.scatter(x, -1*z, c="#000044", marker='s', s=MS_selected, zorder=2))
+
+        x_eq=array([row[0] for i,row in enumerate(self.zij_norm) if i in self.selected_meas])
+        y_eq=array([row[1] for i,row in enumerate(self.zij_norm) if i in self.selected_meas])
+        z_eq=abs(array([row[2] for i,row in enumerate(self.zij_norm) if i in self.selected_meas]))
+        if len(x_eq)>0:
+            R=array(sqrt(1-z_eq)/sqrt(x_eq**2+y_eq**2)) # from Collinson 1983
+            eqarea_data_x=y_eq*R
+            eqarea_data_y=x_eq*R
+            self.selected_meas_artists.append(self.specimen_eqarea.scatter([eqarea_data_x],[eqarea_data_y],marker='o',edgecolor='black', facecolor="#000000",s=15*self.GUI_RESOLUTION,lw=1,clip_on=False))
+
+        steps = self.Data[self.s]['zijdblock_steps']
+        flags = self.Data[self.s]['measurement_flag']
+        selected_af_meas = filter(lambda i: "T" in steps[i] or steps[i] == "0" and flags[i]!="b", self.selected_meas)
+        selected_T_meas = filter(lambda i: "C" in steps[i] or steps[i] == "0" and flags[i]!="b", self.selected_meas)
+        data = array(self.Data[self.s]['zijdblock'])
+        af_x = data[selected_af_meas,0]
+        af_y = array(map(float,data[selected_af_meas,3]))/float(data[0,3])
+        T_x = data[selected_T_meas,0]
+        T_y = array(map(float,data[selected_T_meas,3]))/float(data[0,3])
+
+        xmin,xmax = self.mplot.get_xlim()
+        ymin,ymax = self.mplot.get_ylim()
+        self.selected_meas_artists.append(self.mplot.scatter(T_x, T_y, facecolor="#440000", edgecolor="#000000", marker='o', s=30, lw=1, clip_on=False,zorder=3))
+        self.mplot.set_xlim(xmin,xmax)
+        self.mplot.set_ylim(ymin,ymax)
+
+        xmin,xmax = self.mplot_af.get_xlim()
+        ymin,ymax = self.mplot_af.get_ylim()
+        self.selected_meas_artists.append(self.mplot_af.scatter(af_x, af_y, facecolor="#000044", edgecolor="#000000", marker='o', s=30, lw=1, clip_on=False, zorder=3))
+        self.mplot_af.set_xlim(xmin,xmax)
+        self.mplot_af.set_ylim(ymin,ymax)
+
+        self.canvas1.draw()
+        self.canvas2.draw()
+        self.canvas3.draw()
+
     def draw_spec_eqarea(self):
         draw_net(self.specimen_eqarea)
         self.specimen_eqarea.text(-1.2,1.15,"specimen: %s"%self.s,{'family':self.font_type, 'fontsize':10*self.GUI_RESOLUTION, 'style':'normal','va':'center', 'ha':'left' })
@@ -1044,17 +1097,6 @@ class Demag_GUI(wx.Frame):
         # scatter plot
         #--------------------
 
-        #calculate colors
-        fcs_up = []
-        fcs_dn = []
-        for i in range(len(self.zij_norm)):
-            if self.zij_norm[i][2]>0:
-                if i in self.selected_meas: fcs_dn.append("#000000")
-                else: fcs_dn.append("#808080")
-            else:
-                if i in self.selected_meas: fcs_up.append("#000000")
-                else: fcs_up.append("#FFFFFF")
-
         x_eq_dn,y_eq_dn,z_eq_dn,eq_dn_temperatures=[],[],[],[]
         x_eq_dn=array([row[0] for row in self.zij_norm if row[2]>0])
         y_eq_dn=array([row[1] for row in self.zij_norm if row[2]>0])
@@ -1064,7 +1106,7 @@ class Demag_GUI(wx.Frame):
             R=array(sqrt(1-z_eq_dn)/sqrt(x_eq_dn**2+y_eq_dn**2)) # from Collinson 1983
             eqarea_data_x_dn=y_eq_dn*R
             eqarea_data_y_dn=x_eq_dn*R
-            self.specimen_eqarea.scatter([eqarea_data_x_dn],[eqarea_data_y_dn],marker='o',edgecolor='black', facecolor=fcs_dn,s=15*self.GUI_RESOLUTION,lw=1,clip_on=False)
+            self.specimen_eqarea.scatter([eqarea_data_x_dn],[eqarea_data_y_dn],marker='o',edgecolor='black', facecolor="#808080",s=15*self.GUI_RESOLUTION,lw=1,clip_on=False)
 
 
         x_eq_up,y_eq_up,z_eq_up=[],[],[]
@@ -1075,7 +1117,7 @@ class Demag_GUI(wx.Frame):
             R=array(sqrt(1-z_eq_up)/sqrt(x_eq_up**2+y_eq_up**2)) # from Collinson 1983
             eqarea_data_x_up=y_eq_up*R
             eqarea_data_y_up=x_eq_up*R
-            self.specimen_eqarea.scatter([eqarea_data_x_up],[eqarea_data_y_up],marker='o',edgecolor='black', facecolor=fcs_up,s=15*self.GUI_RESOLUTION,lw=1,clip_on=False)
+            self.specimen_eqarea.scatter([eqarea_data_x_up],[eqarea_data_y_up],marker='o',edgecolor='black', facecolor="#FFFFFF",s=15*self.GUI_RESOLUTION,lw=1,clip_on=False)
 
         #self.preferences['show_eqarea_treatments']=True
         if self.preferences['show_eqarea_treatments']:
@@ -1102,105 +1144,70 @@ class Demag_GUI(wx.Frame):
         self.fig3.clf()
         self.fig3.text(0.02,0.96,'M/M0',{'family':self.font_type, 'fontsize':10*self.GUI_RESOLUTION, 'style':'normal','va':'center', 'ha':'left' })
         self.mplot = self.fig3.add_axes([0.2,0.15,0.7,0.7],frameon=True,axisbg='None')
-        self.mplot_interpretation = self.fig3.add_axes(self.mplot.get_position(), frameon=False,axisbg='None')
-        self.mplot_interpretation.xaxis.set_visible(False)
-        self.mplot_interpretation.yaxis.set_visible(False)
 
-        #fig, ax1 = plt.subplots()
-        #print "measurement_step_unit",self.Data[self.s]['measurement_step_unit']
-        if self.Data[self.s]['measurement_step_unit'] =="mT:C" or self.Data[self.s]['measurement_step_unit'] =="C:mT":
-            thermal_x,thermal_y=[],[]
-            thermal_x_bad,thermal_y_bad=[],[]
-            af_x,af_y=[],[]
-            af_x_bad,af_y_bad=[],[]
-            for i in range(len(self.Data[self.s]['zijdblock'])):
-                # bad point
-                if self.Data[self.s]['measurement_flag'][i]=='b':
-
-                    if step=="0":
-                        thermal_x_bad.append(self.Data[self.s]['zijdblock'][i][0])
-                        af_x_bad.append(self.Data[self.s]['zijdblock'][i][0])
-                        thermal_y_bad.append(self.Data[self.s]['zijdblock'][i][3]/self.Data[self.s]['zijdblock'][0][3])
-                        af_y_bad.append(self.Data[self.s]['zijdblock'][i][3]/self.Data[self.s]['zijdblock'][0][3])
-                    elif "C" in step:
-                        thermal_x_bad.append(self.Data[self.s]['zijdblock'][i][0])
-                        thermal_y_bad.append(self.Data[self.s]['zijdblock'][i][3]/self.Data[self.s]['zijdblock'][0][3])
-                    elif "T" in step:
-                        af_x_bad.append(self.Data[self.s]['zijdblock'][i][0])
-                        af_y_bad.append(self.Data[self.s]['zijdblock'][i][3]/self.Data[self.s]['zijdblock'][0][3])
-                    else:
-                        continue
-
+        thermal_x,thermal_y=[],[]
+        thermal_x_bad,thermal_y_bad=[],[]
+        af_x,af_y=[],[]
+        af_x_bad,af_y_bad=[],[]
+        for i in range(len(self.Data[self.s]['zijdblock'])):
+            step=self.Data[self.s]['zijdblock_steps'][i]
+            # bad point
+            if self.Data[self.s]['measurement_flag'][i]=='b':
+                if step=="0":
+                    thermal_x_bad.append(self.Data[self.s]['zijdblock'][i][0])
+                    af_x_bad.append(self.Data[self.s]['zijdblock'][i][0])
+                    thermal_y_bad.append(self.Data[self.s]['zijdblock'][i][3]/self.Data[self.s]['zijdblock'][0][3])
+                    af_y_bad.append(self.Data[self.s]['zijdblock'][i][3]/self.Data[self.s]['zijdblock'][0][3])
+                elif "C" in step:
+                    thermal_x_bad.append(self.Data[self.s]['zijdblock'][i][0])
+                    thermal_y_bad.append(self.Data[self.s]['zijdblock'][i][3]/self.Data[self.s]['zijdblock'][0][3])
+                elif "T" in step:
+                    af_x_bad.append(self.Data[self.s]['zijdblock'][i][0])
+                    af_y_bad.append(self.Data[self.s]['zijdblock'][i][3]/self.Data[self.s]['zijdblock'][0][3])
                 else:
-                    step=self.Data[self.s]['zijdblock_steps'][i]
-                    if step=="0":
-                        thermal_x.append(self.Data[self.s]['zijdblock'][i][0])
-                        af_x.append(self.Data[self.s]['zijdblock'][i][0])
-                        thermal_y.append(self.Data[self.s]['zijdblock'][i][3]/self.Data[self.s]['zijdblock'][0][3])
-                        af_y.append(self.Data[self.s]['zijdblock'][i][3]/self.Data[self.s]['zijdblock'][0][3])
-                    elif "C" in step:
-                        thermal_x.append(self.Data[self.s]['zijdblock'][i][0])
-                        thermal_y.append(self.Data[self.s]['zijdblock'][i][3]/self.Data[self.s]['zijdblock'][0][3])
-                    elif "T" in step:
-                        af_x.append(self.Data[self.s]['zijdblock'][i][0])
-                        af_y.append(self.Data[self.s]['zijdblock'][i][3]/self.Data[self.s]['zijdblock'][0][3])
-                    else:
-                        continue
+                    continue
 
-            self.mplot.plot(thermal_x, thermal_y, 'ro-',markersize=5*self.GUI_RESOLUTION,lw=1,clip_on=False)
+            else:
+                if step=="0":
+                    thermal_x.append(self.Data[self.s]['zijdblock'][i][0])
+                    af_x.append(self.Data[self.s]['zijdblock'][i][0])
+                    thermal_y.append(self.Data[self.s]['zijdblock'][i][3]/self.Data[self.s]['zijdblock'][0][3])
+                    af_y.append(self.Data[self.s]['zijdblock'][i][3]/self.Data[self.s]['zijdblock'][0][3])
+                elif "C" in step:
+                    thermal_x.append(self.Data[self.s]['zijdblock'][i][0])
+                    thermal_y.append(self.Data[self.s]['zijdblock'][i][3]/self.Data[self.s]['zijdblock'][0][3])
+                elif "T" in step:
+                    af_x.append(self.Data[self.s]['zijdblock'][i][0])
+                    af_y.append(self.Data[self.s]['zijdblock'][i][3]/self.Data[self.s]['zijdblock'][0][3])
+                else:
+                    continue
+
+        if len(thermal_x)+len(thermal_x_bad)>self.Data[self.s]['zijdblock_steps'].count('0'):
+            self.mplot.plot(thermal_x, thermal_y, 'ro-',markersize=self.MS,lw=1,clip_on=False,zorder=1)
             for i in range(len(thermal_x_bad)):
-                self.mplot.plot([thermal_x_bad[i]], [thermal_y_bad[i]],'o',mfc='None',mec='k',markersize=self.MS_bad,clip_on=False)
+                self.mplot.plot([thermal_x_bad[i]], [thermal_y_bad[i]],'o',mfc='None',mec='k',markersize=self.MS,clip_on=False,zorder=1)
 
-            self.mplot.set_xlabel('Thermal (C)',color='r')
-            for tl in self.mplot.get_xticklabels():
-                tl.set_color('r')
+        self.mplot.set_xlabel('Thermal (C)',color='r')
+        for tl in self.mplot.get_xticklabels():
+            tl.set_color('r')
 
-            ax2 = self.mplot.twiny()
-            ax2.plot(af_x, af_y, 'bo-',markersize=5*self.GUI_RESOLUTION,lw=1,clip_on=False)
+        self.mplot_af = self.mplot.twiny()
+        if len(af_x)+len(af_x_bad)>self.Data[self.s]['zijdblock_steps'].count('0'):
+            self.mplot_af.plot(af_x, af_y, 'bo-',markersize=self.MS,lw=1,clip_on=False,zorder=1)
             for i in range(len(af_x_bad)):
-                ax2.plot([af_x_bad[i]], [af_y_bad[i]],'o',mfc='None',mec='k',markersize=self.MS_bad,clip_on=False)
+                self.mplot_af.plot([af_x_bad[i]], [af_y_bad[i]],'o',mfc='None',mec='k',markersize=self.MS,clip_on=False,zorder=1)
 
-            ax2.set_xlabel('AF (mT)',color='b')
-            for tl in ax2.get_xticklabels():
-                tl.set_color('b')
+        self.mplot_af.set_xlabel('AF (mT)',color='b')
+        for tl in self.mplot_af.get_xticklabels():
+            tl.set_color('b')
 
-            self.mplot.tick_params(axis='both', which='major', labelsize=7)
-            ax2.tick_params(axis='both', which='major', labelsize=7)
-            self.mplot.spines["right"].set_visible(False)
-            ax2.spines["right"].set_visible(False)
-            self.mplot.get_xaxis().tick_bottom()
-            self.mplot.get_yaxis().tick_left()
-            self.mplot.set_ylabel("M / NRM0",fontsize=8*self.GUI_RESOLUTION)
-
-        else:
-            self.mplot.clear()
-            x_data,y_data=[],[]
-            x_data_bad,y_data_bad=[],[]
-            for i in range(len(self.Data[self.s]['zijdblock'])):
-                # bad point
-                if self.Data[self.s]['measurement_flag'][i]=='b':
-                    x_data_bad.append(self.Data[self.s]['zijdblock'][i][0])
-                    y_data_bad.append(self.Data[self.s]['zijdblock'][i][3]/self.Data[self.s]['zijdblock'][0][3])
-                else:
-                    x_data.append(self.Data[self.s]['zijdblock'][i][0])
-                    y_data.append(self.Data[self.s]['zijdblock'][i][3]/self.Data[self.s]['zijdblock'][0][3])
-
-            self.mplot = self.fig3.add_axes([0.2,0.15,0.7,0.7],frameon=True,axisbg='None')
-            self.mplot.clear()
-            self.mplot.plot(x_data,y_data,'bo-',mec='0.2',markersize=5*self.GUI_RESOLUTION,lw=1,clip_on=False)
-            for i in range(len(x_data_bad)):
-                self.mplot.plot([x_data_bad[i]], [y_data_bad[i]],'o',mfc='None',mec='k',markersize=self.MS_bad,clip_on=False)
-            self.mplot.set_xlabel("Treatment",fontsize=8*self.GUI_RESOLUTION)
-            self.mplot.set_ylabel("M / NRM_0",fontsize=8*self.GUI_RESOLUTION)
-            try:
-                self.mplot.tick_params(axis='both', which='major', labelsize=7)
-            except:
-                pass
-            #self.mplot.tick_params(axis='x', which='major', labelsize=8)
-            self.mplot.spines["right"].set_visible(False)
-            self.mplot.spines["top"].set_visible(False)
-            self.mplot.get_xaxis().tick_bottom()
-            self.mplot.get_yaxis().tick_left()
+        self.mplot.tick_params(axis='both', which='major', labelsize=7)
+        self.mplot_af.tick_params(axis='both', which='major', labelsize=7)
+        self.mplot.spines["right"].set_visible(False)
+        self.mplot_af.spines["right"].set_visible(False)
+        self.mplot.get_xaxis().tick_bottom()
+        self.mplot.get_yaxis().tick_left()
+        self.mplot.set_ylabel("M / NRM0",fontsize=8*self.GUI_RESOLUTION)
 
         self.canvas3.draw()
 
@@ -1215,8 +1222,6 @@ class Demag_GUI(wx.Frame):
         if self.s in self.pmag_results_data['specimens'] and \
             self.pmag_results_data['specimens'][self.s] != []:
 #            self.zijplot.collections=[] # delete fit points
-#            draw_net(self.specimen_eqarea) #clear equal area
-            self.mplot_interpretation.clear() #clear Mplot
             self.specimen_EA_xdata = [] #clear saved x positions on specimen equal area
             self.specimen_EA_ydata = [] #clear saved y positions on specimen equal area
 
@@ -1382,13 +1387,25 @@ class Demag_GUI(wx.Frame):
                 fit.eqarea_data[0] = self.specimen_eqarea.collections[-1]
 
             # M/M0 plot (only if C or mT - not both)
-            if self.Data[self.s]['measurement_step_unit'] !="mT:C" and self.Data[self.s]['measurement_step_unit'] !="C:mT":
-                ymin, ymax = self.mplot.get_ylim()
-                xmin, xmax = self.mplot.get_xlim()
-                self.mplot_interpretation.scatter([self.Data[self.s]['zijdblock'][tmin_index][0]],[self.Data[self.s]['zijdblock'][tmin_index][3]/self.Data[self.s]['zijdblock'][0][3]],marker=marker_shape,s=30,facecolor=fit.color,edgecolor ='k',zorder=100,clip_on=False)
-                self.mplot_interpretation.scatter([self.Data[self.s]['zijdblock'][tmax_index][0]],[self.Data[self.s]['zijdblock'][tmax_index][3]/self.Data[self.s]['zijdblock'][0][3]],marker=marker_shape,s=30,facecolor=fit.color,edgecolor ='k',zorder=100,clip_on=False)
-                self.mplot_interpretation.set_xlim(xmin, xmax)
-                self.mplot_interpretation.set_ylim(ymin, ymax)
+            for d in fit.mm0_data:
+                if d in self.mplot.collections:
+                    self.mplot.collections.remove(d)
+                elif d in self.mplot_af.collections:
+                    self.mplot_af.collections.remove(d)
+            if "C" in fit.tmin: tmin_ax = self.mplot
+            else: tmin_ax = self.mplot_af
+            if "C" in fit.tmax: tmax_ax = self.mplot
+            else: tmax_ax = self.mplot_af
+            tmin_ymin, tmin_ymax = tmin_ax.get_ylim()
+            tmin_xmin, tmin_xmax = tmin_ax.get_xlim()
+            tmax_ymin, tmax_ymax = tmax_ax.get_ylim()
+            tmax_xmin, tmax_xmax = tmax_ax.get_xlim()
+            fit.mm0_data[0] = tmin_ax.scatter([self.Data[self.s]['zijdblock'][tmin_index][0]],[self.Data[self.s]['zijdblock'][tmin_index][3]/self.Data[self.s]['zijdblock'][0][3]],marker=marker_shape,s=30,facecolor=fit.color,edgecolor ='k',zorder=10000,clip_on=False)
+            fit.mm0_data[1] = tmax_ax.scatter([self.Data[self.s]['zijdblock'][tmax_index][0]],[self.Data[self.s]['zijdblock'][tmax_index][3]/self.Data[self.s]['zijdblock'][0][3]],marker=marker_shape,s=30,facecolor=fit.color,edgecolor ='k',zorder=10000,clip_on=False)
+            tmin_ax.set_xlim(tmin_xmin, tmin_xmax)
+            tmin_ax.set_ylim(tmin_ymin, tmin_ymax)
+            tmax_ax.set_xlim(tmax_xmin, tmax_xmax)
+            tmax_ax.set_ylim(tmax_ymin, tmax_ymax)
 
             # logger
             if fit == self.current_fit:
@@ -5896,9 +5913,10 @@ class Demag_GUI(wx.Frame):
             next_i = self.logger.GetNextSelected(next_i)
         if self.selected_meas_called: return
         self.selected_meas_called = True
-        wx.CallAfter(self.draw_zijderveld)
-        wx.CallAfter(self.draw_spec_eqarea)
-        wx.CallAfter(self.draw_interpretations)
+#        wx.CallAfter(self.draw_zijderveld)
+#        wx.CallAfter(self.draw_spec_eqarea)
+#        wx.CallAfter(self.draw_interpretations)
+        wx.CallAfter(self.plot_selected_meas)
         wx.CallAfter(self.turn_off_repeat_variables)
 
     def turn_off_repeat_variables(self):
@@ -6175,6 +6193,7 @@ class Demag_GUI(wx.Frame):
       """
       update figures and text when a next button is selected
       """
+      self.selected_meas = []
       index=self.specimens.index(self.s)
       try: fit_index = self.pmag_results_data['specimens'][self.s].index(self.current_fit)
       except KeyError: fit_index = None
@@ -6197,6 +6216,7 @@ class Demag_GUI(wx.Frame):
       """
       update figures and text when a next button is selected
       """
+      self.selected_meas = []
       index=self.specimens.index(self.s)
       try: fit_index = self.pmag_results_data['specimens'][self.s].index(self.current_fit)
       except KeyError: fit_index = None
