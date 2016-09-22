@@ -849,7 +849,6 @@ class Demag_GUI(wx.Frame):
 #==========================================================================================#
 
     def draw_figure(self,s,update_higher_plots=True):
-
         step = ""
         self.initialize_CART_rot(s)
 
@@ -5942,7 +5941,6 @@ class Demag_GUI(wx.Frame):
     def onSelect_orthogonal_box(self, event):
         self.clear_boxes()
         self.Add_text()
-        self.draw_figure(self.s)
         self.update_selection()
         if self.current_fit:
             if self.current_fit.get(self.COORDINATE_SYSTEM):

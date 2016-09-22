@@ -21,6 +21,7 @@ except ImportError: has_basemap=False
 # Dialogs boxes for demag_gui.py
 #
 #============================================================================================
+# 9/22/2016 Version 0.2 (beta) by Kevin Gaastra
 #
 # 3/10/2014 Version 0.1 (beta) by Ron Shaar
 #
@@ -206,7 +207,7 @@ class VGP_Dialog(wx.Dialog):
             FC=dp['color'];EC=dp['color']
             if self.selected_pole==dp['name']+dp['comp_name']: marker='D'
             else: marker='o'
-            self.eqarea.scatter([XYM[0]],[XYM[1]],marker=marker,edgecolor=EC, facecolor=FC,s=30,lw=1,clip_on=False)
+            self.map.scatter([XYM[0]],[XYM[1]],marker=marker,edgecolor=EC, facecolor=FC,s=30,lw=1,clip_on=False,zorder=2)
             self.xdata.append(XYM[0]);self.ydata.append(XYM[1])
 
         #consider adding ellipse for uncertinties

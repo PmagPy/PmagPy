@@ -636,7 +636,7 @@ class InterpretationEditorFrame(wx.Frame):
         """
         self.parent.UPPER_LEVEL_SHOW=self.show_box.GetValue()
         self.parent.calculate_higher_levels_data()
-        self.parent.update_selection()
+        self.parent.plot_higher_levels_data()
 
 
     def on_select_higher_level(self,event,called_by_parent=False):
