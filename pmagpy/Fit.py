@@ -40,6 +40,8 @@ class Fit():
         self.PCA_type = PCA_type
         if GUI!=None:
             self.lines = [None,None]
+            self.points = [None,None]
+            self.eqarea_data = [None,None]
         self.GUI = GUI
         self.pars = {}
         self.geopars = {}

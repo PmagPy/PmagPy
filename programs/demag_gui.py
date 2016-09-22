@@ -1237,6 +1237,9 @@ class Demag_GUI(wx.Frame):
             for line in fit.lines:
                 if line in self.zijplot.lines:
                     self.zijplot.lines.remove(line)
+            for point in fit.points:
+                if point in self.zijplot.collections:
+                    self.zijplot.collections.remove(point)
 
             PCA_type=fit.PCA_type
 
@@ -1264,6 +1267,8 @@ class Demag_GUI(wx.Frame):
 
             self.zijplot.scatter([self.CART_rot[:,0][tmin_index],self.CART_rot[:,0][tmax_index]],[-1* self.CART_rot[:,1][tmin_index],-1* self.CART_rot[:,1][tmax_index]],marker=marker_shape,s=40,facecolor=fit.color,edgecolor ='k',zorder=100,clip_on=False)
             self.zijplot.scatter([self.CART_rot[:,0][tmin_index],self.CART_rot[:,0][tmax_index]],[-1* self.CART_rot[:,2][tmin_index],-1* self.CART_rot[:,2][tmax_index]],marker=marker_shape,s=40,facecolor=fit.color,edgecolor ='k',zorder=100,clip_on=False)
+            fit.points[0] = self.zijplot.collections[-1]
+            fit.points[1] = self.zijplot.collections[-2]
 
             if pars['calculation_type'] in ['DE-BFL','DE-BFL-A','DE-BFL-O']:
 
@@ -1324,11 +1329,17 @@ class Demag_GUI(wx.Frame):
             # Equal Area plot
             self.toolbar2.home()
 
-            # draw a best-fit plane
+            #delete old interpretation data
+            for d in fit.eqarea_data:
+                if d in self.specimen_eqarea.lines:
+                    self.specimen_eqarea.lines.remove(d)
+                if d in self.specimen_eqarea.collections:
+                    self.specimen_eqarea.collections.remove(d)
 
             if pars['calculation_type']=='DE-BFP' and \
                self.plane_display_box.GetValue() != "show poles":
 
+                # draw a best-fit plane
                 ymin, ymax = self.specimen_eqarea.get_ylim()
                 xmin, xmax = self.specimen_eqarea.get_xlim()
 
@@ -1350,6 +1361,8 @@ class Demag_GUI(wx.Frame):
                 if self.plane_display_box.GetValue() == "show l. hemisphere" or \
                    self.plane_display_box.GetValue() == "show whole plane":
                     self.specimen_eqarea.plot(X_c_up,Y_c_up,'c')
+                fit.eqarea_data[0] = self.specimen_eqarea.lines[-1]
+                fit.eqarea_data[1] = self.specimen_eqarea.lines[-2]
 
             else:
                 CART=pmag.dir2cart([pars['specimen_dec'],pars['specimen_inc'],1])
@@ -1367,6 +1380,7 @@ class Demag_GUI(wx.Frame):
                 else:
                     FC=fit.color;EC='green'
                 self.specimen_eqarea.scatter([eqarea_x],[eqarea_y],marker=marker_shape,edgecolor=EC, facecolor=FC,s=SIZE,lw=1,clip_on=False)
+                fit.eqarea_data[0] = self.specimen_eqarea.collections[-1]
 
             # M/M0 plot (only if C or mT - not both)
             if self.Data[self.s]['measurement_step_unit'] !="mT:C" and self.Data[self.s]['measurement_step_unit'] !="C:mT":
