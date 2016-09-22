@@ -32,7 +32,7 @@ def main():
        -plt; make a plot of the time series
        -sav, saves plot and quits
        -fmt [pdf,jpg,eps,svg]  specify format for output figure  (default is svg)
-       -mod [arch3k,cals3k,pfm9k] specify model for 3ka to 1900 AD, default is cals3k.4b
+       -mod [arch3k,cals3k,pfm9k,cals10k] specify model for 3ka to 1900 AD, default is cals10k
              NB:  program uses IGRF12 for dates 1900 to 2015.
     
     INPUT FORMAT 
@@ -57,7 +57,7 @@ def main():
     if '-mod' in sys.argv:
         ind=sys.argv.index('-mod')
         mod=sys.argv[ind+1]
-    else: mod='cals3k'
+    else: mod='cals10k'
     if '-f' in sys.argv:
         ind=sys.argv.index('-f')
         file=sys.argv[ind+1]
@@ -118,10 +118,11 @@ def main():
         pylab.ion()
         Ages,Decs,Incs,Ints,VADMs=[],[],[],[],[]
     for line in input:
-        if mod=='':
-            x,y,z,f=pmag.doigrf(line[3]%360.,line[2],line[1],line[0])
-        else:
-            x,y,z,f=pmag.doigrf(line[3]%360.,line[2],line[1],line[0],mod=mod)
+        #if mod=='':
+        #    x,y,z,f=pmag.doigrf(line[3]%360.,line[2],line[1],line[0])
+        #else:
+        #    x,y,z,f=pmag.doigrf(line[3]%360.,line[2],line[1],line[0],mod=mod)
+        x,y,z,f=pmag.doigrf(line[3]%360.,line[2],line[1],line[0],mod=mod)
         Dir=pmag.cart2dir((x,y,z))
         if outfile!="":
             out.write('%8.2f %8.2f %8.0f %7.1f %7.1f %7.1f %7.1f\n'%(Dir[0],Dir[1],f,line[0],line[1],line[2],line[3]))           
