@@ -730,14 +730,13 @@ class InterpretationEditorFrame(wx.Frame):
         specimens = []
         next_i = self.logger.GetNextSelected(-1)
         if next_i == -1: return
-        else:
-            while next_i != -1:
-                fit,specimen = self.fit_list[next_i]
-                if specimen in specimens:
-                    next_i = self.logger.GetNextSelected(next_i)
-                    continue
-                else: specimens.append(specimen)
+        while next_i != -1:
+            fit,specimen = self.fit_list[next_i]
+            if specimen in specimens:
                 next_i = self.logger.GetNextSelected(next_i)
+                continue
+            else: specimens.append(specimen)
+            next_i = self.logger.GetNextSelected(next_i)
 
         for specimen in specimens:
             self.add_fit_to_specimen(specimen)

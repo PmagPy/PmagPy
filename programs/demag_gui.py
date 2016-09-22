@@ -181,6 +181,8 @@ class Demag_GUI(wx.Frame):
             else: self.color_dict[name] = hexval; self.colors.append(hexval)
         self.all_fits_list = []
         self.current_fit = None
+        self.selected_meas = []
+        self.selected_meas_called = False
         self.dirtypes = ['DA-DIR','DA-DIR-GEO','DA-DIR-TILT']
         self.bad_fits = []
 
@@ -391,6 +393,7 @@ class Demag_GUI(wx.Frame):
         self.logger.InsertColumn(6, 'csd',width=45*self.GUI_RESOLUTION)
         self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnClick_listctrl, self.logger)
         self.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK,self.OnRightClickListctrl,self.logger)
+        self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.on_select_measurement, self.logger)
         self.logger.SetHelpText(dgh.logger_help)
 
     #----------------------------------------------------------------------
@@ -853,6 +856,26 @@ class Demag_GUI(wx.Frame):
         #-----------------------------------------------------------
         # Draw Zij plot
         #-----------------------------------------------------------
+        self.draw_zijderveld()
+
+        #-----------------------------------------------------------
+        # specimen equal area
+        #-----------------------------------------------------------
+        self.draw_spec_eqarea()
+
+        #-----------------------------------------------------------
+        # Draw M/M0 plot ( or NLT data on the same area in the GUI)
+        #-----------------------------------------------------------
+        self.draw_MM0()
+
+        #-----------------------------------------------------------
+        # high level equal area
+        #-----------------------------------------------------------
+        if update_higher_plots:
+            self.plot_higher_levels_data()
+        self.canvas4.draw()
+
+    def draw_zijderveld(self):
         self.fig1.clf()
         axis_bounds = [0,.1,1,.85]
         self.zijplot = self.fig1.add_axes(axis_bounds,frameon=False, axisbg='None',label='zig_orig',zorder=0)
@@ -860,22 +883,24 @@ class Demag_GUI(wx.Frame):
         self.zijplot.axis('equal')
         self.zijplot.xaxis.set_visible(False)
         self.zijplot.yaxis.set_visible(False)
-        #self.zijplot_interpretation = self.fig1.add_axes(self.zijplot.get_position(), frameon=False,axisbg='None',label='zij_interpretation',zorder=1)
-        #self.zijplot_interpretation.clear()
-        #self.zijplot_interpretation.axis('equal')
-        #self.zijplot_interpretation.xaxis.set_visible(False)
-        #self.zijplot_interpretation.yaxis.set_visible(False)
 
-        self.MS=6*self.GUI_RESOLUTION;self.dec_MEC='k';self.dec_MFC='r'; self.inc_MEC='k';self.inc_MFC='b'
+        self.MS=50;self.dec_MEC='k';self.dec_MFC='r'; self.inc_MEC='k';self.inc_MFC='b';self.MS_bad = 6*self.GUI_RESOLUTION
         self.zijdblock_steps=self.Data[self.s]['zijdblock_steps']
         self.vds=self.Data[self.s]['vds']
 
-        self.zij_xy_points, = self.zijplot.plot(self.CART_rot_good[:,0], -1*self.CART_rot_good[:,1], 'ro-', mfc=self.dec_MFC, mec=self.dec_MEC, markersize=self.MS, clip_on=False, picker=True) #x,y or N,E
-        self.zij_xz_points, = self.zijplot.plot(self.CART_rot_good[:,0], -1*self.CART_rot_good[:,2], 'bs-', mfc=self.inc_MFC, mec=self.inc_MEC, markersize=self.MS, clip_on=False, picker=True) #x-z or N,D
+        meas_flags = self.Data[self.s]['measurement_flag']
+        zijd_selected = [i - meas_flags[:i].count('b') for i in self.selected_meas if meas_flags[i] != 'b']
+        xy_colors = ['#440000' if i in zijd_selected else '#FF0000' for i in range(len(self.CART_rot_good[:,0]))]
+        xz_colors = ['#000044' if i in zijd_selected else '#0000FF' for i in range(len(self.CART_rot_good[:,0]))]
+
+        self.zijplot.plot(self.CART_rot_good[:,0], -1*self.CART_rot_good[:,1], 'r-', clip_on=False, picker=True, zorder=1) #x,y or N,E
+        self.zijplot.scatter(self.CART_rot_good[:,0], -1*self.CART_rot_good[:,1], c=xy_colors, marker='o', s=self.MS, zorder=2)
+        self.zijplot.plot(self.CART_rot_good[:,0], -1*self.CART_rot_good[:,2], 'b-', clip_on=False, picker=True, zorder=1) #x-z or N,D
+        self.zijplot.scatter(self.CART_rot_good[:,0], -1*self.CART_rot_good[:,2], c=xz_colors, marker='s', s=self.MS, zorder=2)
 
         for i in range(len( self.CART_rot_bad)):
-            self.zijplot.plot(self.CART_rot_bad[:,0][i],-1* self.CART_rot_bad[:,1][i],'o',mfc='None',mec=self.dec_MEC,markersize=self.MS,clip_on=False,picker=False) #x,y or N,E
-            self.zijplot.plot(self.CART_rot_bad[:,0][i],-1 * self.CART_rot_bad[:,2][i],'s',mfc='None',mec=self.inc_MEC,markersize=self.MS,clip_on=False,picker=False) #x-z or N,D
+            self.zijplot.plot(self.CART_rot_bad[:,0][i],-1* self.CART_rot_bad[:,1][i],'o',mfc='None',mec=self.dec_MEC,markersize=self.MS_bad,clip_on=False,picker=False) #x,y or N,E
+            self.zijplot.plot(self.CART_rot_bad[:,0][i],-1 * self.CART_rot_bad[:,2][i],'s',mfc='None',mec=self.inc_MEC,markersize=self.MS_bad,clip_on=False,picker=False) #x-z or N,D
 
         if self.preferences['show_Zij_treatments'] :
             for i in range(len(self.zijdblock_steps)):
@@ -981,10 +1006,7 @@ class Demag_GUI(wx.Frame):
 
         self.canvas1.draw()
 
-        #-----------------------------------------------------------
-        # specimen equal area
-        #-----------------------------------------------------------
-
+    def draw_spec_eqarea(self):
         draw_net(self.specimen_eqarea)
         self.specimen_eqarea.text(-1.2,1.15,"specimen: %s"%self.s,{'family':self.font_type, 'fontsize':10*self.GUI_RESOLUTION, 'style':'normal','va':'center', 'ha':'left' })
 
@@ -1023,17 +1045,27 @@ class Demag_GUI(wx.Frame):
         # scatter plot
         #--------------------
 
+        #calculate colors
+        fcs_up = []
+        fcs_dn = []
+        for i in range(len(self.zij_norm)):
+            if self.zij_norm[i][2]>0:
+                if i in self.selected_meas: fcs_dn.append("#000000")
+                else: fcs_dn.append("#808080")
+            else:
+                if i in self.selected_meas: fcs_up.append("#000000")
+                else: fcs_up.append("#FFFFFF")
+
         x_eq_dn,y_eq_dn,z_eq_dn,eq_dn_temperatures=[],[],[],[]
         x_eq_dn=array([row[0] for row in self.zij_norm if row[2]>0])
         y_eq_dn=array([row[1] for row in self.zij_norm if row[2]>0])
         z_eq_dn=abs(array([row[2] for row in self.zij_norm if row[2]>0]))
 
-
         if len(x_eq_dn)>0:
             R=array(sqrt(1-z_eq_dn)/sqrt(x_eq_dn**2+y_eq_dn**2)) # from Collinson 1983
             eqarea_data_x_dn=y_eq_dn*R
             eqarea_data_y_dn=x_eq_dn*R
-            self.specimen_eqarea.scatter([eqarea_data_x_dn],[eqarea_data_y_dn],marker='o',edgecolor='black', facecolor='gray',s=15*self.GUI_RESOLUTION,lw=1,clip_on=False)
+            self.specimen_eqarea.scatter([eqarea_data_x_dn],[eqarea_data_y_dn],marker='o',edgecolor='black', facecolor=fcs_dn,s=15*self.GUI_RESOLUTION,lw=1,clip_on=False)
 
 
         x_eq_up,y_eq_up,z_eq_up=[],[],[]
@@ -1044,7 +1076,7 @@ class Demag_GUI(wx.Frame):
             R=array(sqrt(1-z_eq_up)/sqrt(x_eq_up**2+y_eq_up**2)) # from Collinson 1983
             eqarea_data_x_up=y_eq_up*R
             eqarea_data_y_up=x_eq_up*R
-            self.specimen_eqarea.scatter([eqarea_data_x_up],[eqarea_data_y_up],marker='o',edgecolor='black', facecolor='white',s=15*self.GUI_RESOLUTION,lw=1,clip_on=False)
+            self.specimen_eqarea.scatter([eqarea_data_x_up],[eqarea_data_y_up],marker='o',edgecolor='black', facecolor=fcs_up,s=15*self.GUI_RESOLUTION,lw=1,clip_on=False)
 
         #self.preferences['show_eqarea_treatments']=True
         if self.preferences['show_eqarea_treatments']:
@@ -1067,10 +1099,7 @@ class Demag_GUI(wx.Frame):
 
         self.canvas2.draw()
 
-        #-----------------------------------------------------------
-        # Draw M/M0 plot ( or NLT data on the same area in the GUI)
-        #-----------------------------------------------------------
-
+    def draw_MM0(self):
         self.fig3.clf()
         self.fig3.text(0.02,0.96,'M/M0',{'family':self.font_type, 'fontsize':10*self.GUI_RESOLUTION, 'style':'normal','va':'center', 'ha':'left' })
         self.mplot = self.fig3.add_axes([0.2,0.15,0.7,0.7],frameon=True,axisbg='None')
@@ -1121,7 +1150,7 @@ class Demag_GUI(wx.Frame):
 
             self.mplot.plot(thermal_x, thermal_y, 'ro-',markersize=5*self.GUI_RESOLUTION,lw=1,clip_on=False)
             for i in range(len(thermal_x_bad)):
-                self.mplot.plot([thermal_x_bad[i]], [thermal_y_bad[i]],'o',mfc='None',mec='k',markersize=self.MS,clip_on=False)
+                self.mplot.plot([thermal_x_bad[i]], [thermal_y_bad[i]],'o',mfc='None',mec='k',markersize=self.MS_bad,clip_on=False)
 
             self.mplot.set_xlabel('Thermal (C)',color='r')
             for tl in self.mplot.get_xticklabels():
@@ -1130,7 +1159,7 @@ class Demag_GUI(wx.Frame):
             ax2 = self.mplot.twiny()
             ax2.plot(af_x, af_y, 'bo-',markersize=5*self.GUI_RESOLUTION,lw=1,clip_on=False)
             for i in range(len(af_x_bad)):
-                ax2.plot([af_x_bad[i]], [af_y_bad[i]],'o',mfc='None',mec='k',markersize=self.MS,clip_on=False)
+                ax2.plot([af_x_bad[i]], [af_y_bad[i]],'o',mfc='None',mec='k',markersize=self.MS_bad,clip_on=False)
 
             ax2.set_xlabel('AF (mT)',color='b')
             for tl in ax2.get_xticklabels():
@@ -1161,7 +1190,7 @@ class Demag_GUI(wx.Frame):
             self.mplot.clear()
             self.mplot.plot(x_data,y_data,'bo-',mec='0.2',markersize=5*self.GUI_RESOLUTION,lw=1,clip_on=False)
             for i in range(len(x_data_bad)):
-                self.mplot.plot([x_data_bad[i]], [y_data_bad[i]],'o',mfc='None',mec='k',markersize=self.MS,clip_on=False)
+                self.mplot.plot([x_data_bad[i]], [y_data_bad[i]],'o',mfc='None',mec='k',markersize=self.MS_bad,clip_on=False)
             self.mplot.set_xlabel("Treatment",fontsize=8*self.GUI_RESOLUTION)
             self.mplot.set_ylabel("M / NRM_0",fontsize=8*self.GUI_RESOLUTION)
             try:
@@ -1174,21 +1203,9 @@ class Demag_GUI(wx.Frame):
             self.mplot.get_xaxis().tick_bottom()
             self.mplot.get_yaxis().tick_left()
 
-        #xt=xticks()
-
         self.canvas3.draw()
-        #start_time_3=time()
-        #runtime_sec3 = start_time_3 - start_time_2
-        #print "-I- draw M_M0 figures is", runtime_sec3,"seconds"
 
-        #-----------------------------------------------------------
-        # high level equal area
-        #-----------------------------------------------------------
-        if update_higher_plots:
-            self.plot_higher_levels_data()
-        self.canvas4.draw()
-
-    def draw_interpretation(self):
+    def draw_interpretations(self):
         """
         draw the specimen interpretations on the zijderveld and the specimen equal area
         @alters: fit.lines, zijplot, specimen_eqarea_interpretation, mplot_interpretation
@@ -1198,7 +1215,7 @@ class Demag_GUI(wx.Frame):
 
         if self.s in self.pmag_results_data['specimens'] and \
             self.pmag_results_data['specimens'][self.s] != []:
-            self.zijplot.collections=[] # delete fit points
+#            self.zijplot.collections=[] # delete fit points
 #            draw_net(self.specimen_eqarea) #clear equal area
             self.mplot_interpretation.clear() #clear Mplot
             self.specimen_EA_xdata = [] #clear saved x positions on specimen equal area
@@ -1246,7 +1263,7 @@ class Demag_GUI(wx.Frame):
                     self.Add_text()
 
             self.zijplot.scatter([self.CART_rot[:,0][tmin_index],self.CART_rot[:,0][tmax_index]],[-1* self.CART_rot[:,1][tmin_index],-1* self.CART_rot[:,1][tmax_index]],marker=marker_shape,s=40,facecolor=fit.color,edgecolor ='k',zorder=100,clip_on=False)
-            self.zijplot.scatter([self.CART_rot[:,0][tmin_index],self.CART_rot[:,0][tmax_index]],[-1* self.CART_rot[:,2][tmin_index],-1* self.CART_rot[:,2][tmax_index]],marker=marker_shape,s=50,facecolor=fit.color,edgecolor ='k',zorder=100,clip_on=False)
+            self.zijplot.scatter([self.CART_rot[:,0][tmin_index],self.CART_rot[:,0][tmax_index]],[-1* self.CART_rot[:,2][tmin_index],-1* self.CART_rot[:,2][tmax_index]],marker=marker_shape,s=40,facecolor=fit.color,edgecolor ='k',zorder=100,clip_on=False)
 
             if pars['calculation_type'] in ['DE-BFL','DE-BFL-A','DE-BFL-O']:
 
@@ -2651,11 +2668,8 @@ class Demag_GUI(wx.Frame):
 
         if self.data_model == 3.0:
             mdf = self.con.tables['measurements'].df
-            filtered_mdf = mdf[mdf['method_codes'].str.contains('LT-NO|LT-AF-Z|LT-T-Z|LT-M-Z|LT-LT-Z')==True] #remove non-directional data
-            step = float(self.Data[self.s]['zijdblock'][g_index][0])+273. #convert to kelvin to match with table convention
-            find_step = lambda x: x[1]['specimen']==self.s and float(x[1]['treat_temp'])==step #function to find the step index
-            index = filter(find_step,filtered_mdf.iterrows())[0][0] #get index in mdf
-            mdf['flag'][index] = 'g'
+            index = self.Data[self.s]['magic_experiment_name'] + str(g_index+1)
+            mdf.set_value(index,'quality','g')
 
     def mark_meas_bad(self,g_index):
 
@@ -2681,11 +2695,8 @@ class Demag_GUI(wx.Frame):
 
         if self.data_model == 3.0:
             mdf = self.con.tables['measurements'].df
-            filtered_mdf = mdf[mdf['method_codes'].str.contains('LT-NO|LT-AF-Z|LT-T-Z|LT-M-Z|LT-LT-Z')==True] #remove non-directional data
-            step = float(self.Data[self.s]['zijdblock'][g_index][0])+273. #convert to kelvin to match with table convention
-            find_step = lambda x: x[1]['specimen']==self.s and float(x[1]['treat_temp'])==step #function to find the step index
-            index = filter(find_step,filtered_mdf.iterrows())[0][0] #get index in mdf
-            mdf['flag'][index] = 'b'
+            index = self.Data[self.s]['magic_experiment_name'] + str(g_index+1)
+            mdf.set_value(index,'quality','b')
 
     #---------------------------------------------#
     #Data Read and Location Alteration Functions
@@ -4455,7 +4466,7 @@ class Demag_GUI(wx.Frame):
             if mpars and 'specimen_dec' in mpars.keys():
                 self.draw_figure(self.s)
 
-        self.draw_interpretation()
+        self.draw_interpretations()
         self.calculate_higher_levels_data()
         self.plot_higher_levels_data()
 
@@ -4937,7 +4948,7 @@ class Demag_GUI(wx.Frame):
 
     def on_save_Zij_plot(self, event):
         self.current_fit = None
-        self.draw_interpretation()
+        self.draw_interpretations()
         self.plot_higher_levels_data()
         self.fig1.text(0.9,0.98,'%s'%(self.s),{'family':self.font_type, 'fontsize':10, 'style':'normal','va':'center', 'ha':'right' })
         SaveMyPlot(self.fig1,self.s,"Zij",self.WD)
@@ -4947,7 +4958,7 @@ class Demag_GUI(wx.Frame):
 
     def on_save_Eq_plot(self, event):
         self.current_fit = None
-        self.draw_interpretation()
+        self.draw_interpretations()
         self.plot_higher_levels_data()
         #self.fig2.text(0.9,0.96,'%s'%(self.s),{'family':self.font_type, 'fontsize':10, 'style':'normal','va':'center', 'ha':'right' })
         #self.canvas4.print_figure("./tmp.pdf")#, dpi=self.dpi)
@@ -4958,7 +4969,7 @@ class Demag_GUI(wx.Frame):
 
     def on_save_M_t_plot(self, event):
         self.current_fit = None
-        self.draw_interpretation()
+        self.draw_interpretations()
         self.plot_higher_levels_data()
         self.fig3.text(0.9,0.96,'%s'%(self.s),{'family':self.font_type, 'fontsize':10, 'style':'normal','va':'center', 'ha':'right' })
         SaveMyPlot(self.fig3,self.s,"M_M0",self.WD)
@@ -4968,7 +4979,7 @@ class Demag_GUI(wx.Frame):
 
     def on_save_high_level(self, event):
         self.current_fit = None
-        self.draw_interpretation()
+        self.draw_interpretations()
         self.plot_higher_levels_data()
         SaveMyPlot(self.fig4,str(self.level_names.GetValue()),str(self.level_box.GetValue()), self.WD )
 #        self.fig4.clear()
@@ -4979,7 +4990,7 @@ class Demag_GUI(wx.Frame):
     def on_save_all_figures(self, event):
         temp_fit = self.current_fit
         self.current_fit = None
-        self.draw_interpretation()
+        self.draw_interpretations()
         self.plot_higher_levels_data()
         self.dlg = wx.DirDialog(self, "choose a folder:",defaultPath = self.WD ,style=wx.DD_DEFAULT_STYLE | wx.DD_NEW_DIR_BUTTON | wx.DD_CHANGE_DIR)
         if self.dlg.ShowModal() == wx.ID_OK:
@@ -5736,6 +5747,7 @@ class Demag_GUI(wx.Frame):
       Add measurement data lines to the text window.
       """
 
+      self.selected_meas = []
       if self.COORDINATE_SYSTEM=='geographic':
           zijdblock=self.Data[self.s]['zijdblock_geo']
       elif self.COORDINATE_SYSTEM=='tilt-corrected':
@@ -5861,6 +5873,23 @@ class Demag_GUI(wx.Frame):
             self.ie.update_current_fit_data()
         self.calculate_higher_levels_data()
         self.update_selection()
+
+    def on_select_measurement(self, event):
+        self.selected_meas=[]
+        next_i = self.logger.GetNextSelected(-1)
+        if next_i == -1: return
+        while next_i != -1:
+            self.selected_meas.append(next_i)
+            next_i = self.logger.GetNextSelected(next_i)
+        if self.selected_meas_called: return
+        self.selected_meas_called = True
+        wx.CallAfter(self.draw_zijderveld)
+        wx.CallAfter(self.draw_spec_eqarea)
+        wx.CallAfter(self.draw_interpretations)
+        wx.CallAfter(self.turn_off_repeat_variables)
+
+    def turn_off_repeat_variables(self):
+        self.selected_meas_called = False
 
     #---------------------------------------------#
     #ComboBox Functions
@@ -6028,7 +6057,7 @@ class Demag_GUI(wx.Frame):
 
     def on_select_plane_display_box(self,event):
         self.draw_figure(self.s,True)
-        self.draw_interpretation()
+        self.draw_interpretations()
         self.plot_higher_levels_data()
 
     def on_select_fit(self,event):
