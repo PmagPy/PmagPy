@@ -107,7 +107,7 @@ class InterpretationEditorFrame(wx.Frame):
             name_choices = ['this study']
 
         self.level_box = wx.ComboBox(self.panel, -1, size=(100*self.GUI_RESOLUTION, 25), value=UPPER_LEVEL, choices=['sample','site','location','study'], style=wx.CB_DROPDOWN)
-        self.Bind(wx.EVT_COMBOBOX, self.on_select_higher_level,self.level_box)
+        self.Bind(wx.EVT_COMBOBOX, self.on_select_high_level,self.level_box)
         self.level_box.SetHelpText(dieh.level_box_help)
 
         self.level_names = wx.ComboBox(self.panel, -1, size=(100*self.GUI_RESOLUTION, 25), value=self.parent.level_names.GetValue(), choices=name_choices, style=wx.CB_DROPDOWN)
@@ -210,17 +210,17 @@ class InterpretationEditorFrame(wx.Frame):
         self.bounds_sizer.Add(bounds_window, 1, wx.TOP, 5.5)
         self.buttons_sizer.Add(buttons1_window, 1, wx.TOP, 0)
 
-        #duplicate higher levels plot
+        #duplicate high levels plot
         self.fig = Figure((2.5*self.GUI_RESOLUTION, 2.5*self.GUI_RESOLUTION), dpi=100)
         self.canvas = FigCanvas(self.panel, -1, self.fig, )
         self.toolbar = NavigationToolbar(self.canvas)
         self.toolbar.Hide()
         self.toolbar.zoom()
-        self.higher_EA_setting = "Zoom"
-        self.canvas.Bind(wx.EVT_LEFT_DCLICK,self.on_equalarea_higher_select)
-        self.canvas.Bind(wx.EVT_MOTION,self.on_change_higher_mouse_cursor)
-        self.canvas.Bind(wx.EVT_MIDDLE_DOWN,self.home_higher_equalarea)
-        self.canvas.Bind(wx.EVT_RIGHT_DOWN,self.pan_zoom_higher_equalarea)
+        self.high_EA_setting = "Zoom"
+        self.canvas.Bind(wx.EVT_LEFT_DCLICK,self.on_equalarea_high_select)
+        self.canvas.Bind(wx.EVT_MOTION,self.on_change_high_mouse_cursor)
+        self.canvas.Bind(wx.EVT_MIDDLE_DOWN,self.home_high_equalarea)
+        self.canvas.Bind(wx.EVT_RIGHT_DOWN,self.pan_zoom_high_equalarea)
         self.canvas.SetHelpText(dieh.eqarea_help)
 
         self.eqarea = self.fig.add_subplot(111)
@@ -595,8 +595,8 @@ class InterpretationEditorFrame(wx.Frame):
                 self.logger.SetItemBackgroundColour(i,"red")
             else:
                 self.logger.SetItemBackgroundColour(i,"red")
-        self.parent.calculate_higher_levels_data()
-        self.parent.plot_higher_levels_data()
+        self.parent.calculate_high_levels_data()
+        self.parent.plot_high_levels_data()
         self.logger_focus(i)
 
     ##################################Search Bar Functions###############################
@@ -635,11 +635,11 @@ class InterpretationEditorFrame(wx.Frame):
 
         """
         self.parent.UPPER_LEVEL_SHOW=self.show_box.GetValue()
-        self.parent.calculate_higher_levels_data()
-        self.parent.plot_higher_levels_data()
+        self.parent.calculate_high_levels_data()
+        self.parent.plot_high_levels_data()
 
 
-    def on_select_higher_level(self,event,called_by_parent=False):
+    def on_select_high_level(self,event,called_by_parent=False):
         """
         alters the possible entries in level_names combobox to give the user selections for which specimen interpretations to display in the logger
         @param: event -> the wx.COMBOBOXEVENT that triggered this function
@@ -664,7 +664,7 @@ class InterpretationEditorFrame(wx.Frame):
 
         if not called_by_parent:
             self.parent.level_box.SetStringSelection(UPPER_LEVEL)
-            self.parent.onSelect_higher_level(event,True)
+            self.parent.onSelect_high_level(event,True)
 
         self.on_select_level_name(event)
 
@@ -698,7 +698,7 @@ class InterpretationEditorFrame(wx.Frame):
         """
         new_mean_type = self.mean_type_box.GetValue()
         if new_mean_type == "None":
-            self.parent.clear_higher_level_pars()
+            self.parent.clear_high_level_pars()
         self.parent.mean_type_box.SetStringSelection(new_mean_type)
         self.parent.onSelect_mean_type_box(event)
 
@@ -719,7 +719,7 @@ class InterpretationEditorFrame(wx.Frame):
         """
         i = self.switch_stats_button.GetValue()
         self.parent.switch_stats_button.SetValue(i)
-        self.parent.update_higher_level_stats()
+        self.parent.update_high_level_stats()
 
     def add_highlighted_fits(self, evnet):
         """
@@ -898,56 +898,56 @@ class InterpretationEditorFrame(wx.Frame):
         self.eqarea.axis('off')
         self.canvas.draw()
 
-    def pan_zoom_higher_equalarea(self,event):
+    def pan_zoom_high_equalarea(self,event):
         """
         Uses the toolbar for the canvas to change the function from zoom to pan or pan to zoom
         @param: event -> the wx.MouseEvent that triggered this funciton
         """
         if event.LeftIsDown() or event.ButtonDClick():
             return
-        elif self.higher_EA_setting == "Zoom":
-            self.higher_EA_setting = "Pan"
+        elif self.high_EA_setting == "Zoom":
+            self.high_EA_setting = "Pan"
             try: self.toolbar.pan('off')
             except TypeError: pass
-        elif self.higher_EA_setting == "Pan":
-            self.higher_EA_setting = "Zoom"
+        elif self.high_EA_setting == "Pan":
+            self.high_EA_setting = "Zoom"
             try: self.toolbar.zoom()
             except TypeError: pass
         else:
-            self.higher_EA_setting = "Zoom"
+            self.high_EA_setting = "Zoom"
             try: self.toolbar.zoom()
             except TypeError: pass
 
-    def home_higher_equalarea(self,event):
+    def home_high_equalarea(self,event):
         """
-        returns higher equal area to it's original position
+        returns high equal area to it's original position
         @param: event -> the wx.MouseEvent that triggered the call of this function
         @alters: toolbar setting
         """
         self.toolbar.home()
 
-    def on_change_higher_mouse_cursor(self,event):
+    def on_change_high_mouse_cursor(self,event):
         """
         If mouse is over data point making it selectable change the shape of the cursor
         @param: event -> the wx Mouseevent for that click
         """
         if self.show_box.GetValue() != "specimens": return
-        if not self.parent.higher_EA_xdata or not self.parent.higher_EA_ydata: return
+        if not self.parent.high_EA_xdata or not self.parent.high_EA_ydata: return
         pos=event.GetPosition()
         width, height = self.canvas.get_width_height()
         pos[1] = height - pos[1]
         xpick_data,ypick_data = pos
-        xdata_org = self.parent.higher_EA_xdata
-        ydata_org = self.parent.higher_EA_ydata
+        xdata_org = self.parent.high_EA_xdata
+        ydata_org = self.parent.high_EA_ydata
         data_corrected = self.eqarea.transData.transform(vstack([xdata_org,ydata_org]).T)
         xdata,ydata = data_corrected.T
         xdata = map(float,xdata)
         ydata = map(float,ydata)
         e = 4e0
 
-        if self.higher_EA_setting == "Zoom":
+        if self.high_EA_setting == "Zoom":
             self.canvas.SetCursor(wx.StockCursor(wx.CURSOR_CROSS))
-        elif self.higher_EA_setting == "Pan":
+        elif self.high_EA_setting == "Pan":
             self.canvas.SetCursor(wx.StockCursor(wx.CURSOR_WATCH))
         else:
             self.canvas.SetCursor(wx.StockCursor(wx.CURSOR_ARROW))
@@ -956,8 +956,8 @@ class InterpretationEditorFrame(wx.Frame):
                 self.canvas.SetCursor(wx.StockCursor(wx.CURSOR_HAND))
                 break
 
-    def on_equalarea_higher_select(self,event):
-        self.parent.on_equalarea_higher_select(event,fig = self.eqarea, canvas = self.canvas)
+    def on_equalarea_high_select(self,event):
+        self.parent.on_equalarea_high_select(event,fig = self.eqarea, canvas = self.canvas)
 
     ###############################Menu Functions######################################
 

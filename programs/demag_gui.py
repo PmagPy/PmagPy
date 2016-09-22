@@ -337,15 +337,15 @@ class Demag_GUI(wx.Frame):
         self.toolbar4 = NavigationToolbar(self.canvas4)
         self.toolbar4.Hide()
         self.toolbar4.zoom()
-        self.higher_EA_setting = "Zoom"
-        self.canvas4.Bind(wx.EVT_LEFT_DCLICK,self.on_equalarea_higher_select)
-        self.canvas4.Bind(wx.EVT_RIGHT_DOWN,self.right_click_higher_equalarea)
-        self.canvas4.Bind(wx.EVT_MOTION,self.on_change_higher_mouse_cursor)
-        self.canvas4.Bind(wx.EVT_MIDDLE_DOWN,self.home_higher_equalarea)
+        self.high_EA_setting = "Zoom"
+        self.canvas4.Bind(wx.EVT_LEFT_DCLICK,self.on_equalarea_high_select)
+        self.canvas4.Bind(wx.EVT_RIGHT_DOWN,self.right_click_high_equalarea)
+        self.canvas4.Bind(wx.EVT_MOTION,self.on_change_high_mouse_cursor)
+        self.canvas4.Bind(wx.EVT_MIDDLE_DOWN,self.home_high_equalarea)
         self.canvas4.SetHelpText(dgh.high_level_eqarea_help)
         self.old_pos = None
-        self.higher_EA_xdata = []
-        self.higher_EA_ydata = []
+        self.high_EA_xdata = []
+        self.high_EA_ydata = []
 
         self.high_level_eqarea = self.fig4.add_subplot(111)
         draw_net(self.high_level_eqarea)
@@ -537,7 +537,7 @@ class Demag_GUI(wx.Frame):
     #----------------------------------------------------------------------
 
         self.level_box = wx.ComboBox(self.panel, -1, size=(50*self.GUI_RESOLUTION, 25),value='site',  choices=['sample','site','location','study'], style=wx.CB_DROPDOWN,name="high_level")
-        self.Bind(wx.EVT_COMBOBOX, self.onSelect_higher_level,self.level_box)
+        self.Bind(wx.EVT_COMBOBOX, self.onSelect_high_level,self.level_box)
         self.level_box.SetHelpText(dgh.level_box_help)
 
         self.level_names = wx.ComboBox(self.panel, -1,size=(50*self.GUI_RESOLUTION, 25), value=self.site,choices=self.sites, style=wx.CB_DROPDOWN,name="high_level_names")
@@ -850,7 +850,7 @@ class Demag_GUI(wx.Frame):
 #===========================Figure Plotting Functions======================================#
 #==========================================================================================#
 
-    def draw_figure(self,s,update_higher_plots=True):
+    def draw_figure(self,s,update_high_plots=True):
         step = ""
         self.initialize_CART_rot(s)
 
@@ -878,8 +878,8 @@ class Demag_GUI(wx.Frame):
         #-----------------------------------------------------------
         # high level equal area
         #-----------------------------------------------------------
-        if update_higher_plots:
-            self.plot_higher_levels_data()
+        if update_high_plots:
+            self.plot_high_levels_data()
         self.canvas4.draw()
 
     def draw_zijderveld(self):
@@ -1432,7 +1432,7 @@ class Demag_GUI(wx.Frame):
         self.canvas2.draw()
         self.canvas3.draw()
 
-    def plot_higher_levels_data(self):
+    def plot_high_levels_data(self):
 
        self.toolbar4.home()
 
@@ -1460,15 +1460,15 @@ class Demag_GUI(wx.Frame):
 
        elements_list=self.Data_hierarchy[high_level_type][high_level_name][elements_type]
 
-       self.higher_EA_xdata = [] #clear saved x positions on higher equal area
-       self.higher_EA_ydata = [] #clear saved y positions on higher equal area
+       self.high_EA_xdata = [] #clear saved x positions on high equal area
+       self.high_EA_ydata = [] #clear saved y positions on high equal area
 
        # plot elements directions
        for element in elements_list:
             if element not in self.pmag_results_data[elements_type].keys() and self.UPPER_LEVEL_SHOW == 'specimens':
                 self.calculate_high_level_mean(elements_type,element,"Fisher","specimens",self.mean_fit)
             if element in self.pmag_results_data[elements_type].keys():
-                self.plot_higher_level_equalarea(element)
+                self.plot_high_level_equalarea(element)
 
             else:
                 if element not in self.high_level_means[elements_type].keys():
@@ -1545,17 +1545,17 @@ class Demag_GUI(wx.Frame):
             self.ie.scatter(X_d,Y_d, marker='.', color=fit.color, alpha=.5, s=SIZE/2, lw=1, clip_on=False)
             self.ie.scatter(X_up,Y_up, marker='.', color=fit.color, s=SIZE/2, lw=1, clip_on=False)
 
-    def plot_higher_level_equalarea(self,element):
+    def plot_high_level_equalarea(self,element):
         if self.ie_open:
-            higher_level = self.ie.show_box.GetValue()
-        else: higher_level = self.UPPER_LEVEL_SHOW
+            high_level = self.ie.show_box.GetValue()
+        else: high_level = self.UPPER_LEVEL_SHOW
         fits = []
-        if higher_level not in self.pmag_results_data: print("no level: " + str(higher_level)); return
-        if element not in self.pmag_results_data[higher_level]: print("no element: " + str(element)); return
+        if high_level not in self.pmag_results_data: print("no level: " + str(high_level)); return
+        if element not in self.pmag_results_data[high_level]: print("no element: " + str(element)); return
         if self.mean_fit == 'All':
-            fits = self.pmag_results_data[higher_level][element]
+            fits = self.pmag_results_data[high_level][element]
         elif self.mean_fit != 'None' and self.mean_fit != None:
-            fits = [fit for fit in self.pmag_results_data[higher_level][element] if fit.name == self.mean_fit]
+            fits = [fit for fit in self.pmag_results_data[high_level][element] if fit.name == self.mean_fit]
         else:
             fits = []
         fig = self.high_level_eqarea
@@ -1608,12 +1608,16 @@ class Demag_GUI(wx.Frame):
                     if self.plane_display_box.GetValue() == "show u. hemisphere" or \
                        self.plane_display_box.GetValue() == "show whole plane":
                         fig.plot(X_c_d,Y_c_d,'b')
+                        if self.ie_open:
+                            self.ie.plot(X_c_d,Y_c_d,'b')
                     if self.plane_display_box.GetValue() == "show l. hemisphere" or \
                        self.plane_display_box.GetValue() == "show whole plane":
                         fig.plot(X_c_up,Y_c_up,'c')
+                        if self.ie_open:
+                            self.ie.plot(X_c_up,Y_c_up,'c')
 
-                self.higher_EA_xdata.append(XY[0])
-                self.higher_EA_ydata.append(XY[1])
+                self.high_EA_xdata.append(XY[0])
+                self.high_EA_ydata.append(XY[1])
                 fig.scatter([XY[0]],[XY[1]],marker=marker_shape,edgecolor=fit.color, facecolor=FC,s=SIZE,lw=1,clip_on=False)
                 if self.ie_open:
                     self.ie.scatter([XY[0]],[XY[1]],marker=marker_shape,edgecolor=fit.color,facecolor=FC,s=SIZE,lw=1,clip_on=False)
@@ -2371,7 +2375,7 @@ class Demag_GUI(wx.Frame):
 
         return mpars
 
-    def calculate_higher_levels_data(self):
+    def calculate_high_levels_data(self):
 
         high_level_type=str(self.level_box.GetValue())
         if high_level_type=='sample': high_level_type='samples'
@@ -2667,7 +2671,7 @@ class Demag_GUI(wx.Frame):
 
         for specimen in self.pmag_results_data['specimens'].keys():
             self.pmag_results_data['specimens'][specimen] = []
-            ##later on when higher level means are fixed remove the bellow loop and loop over pmag_results_data
+            ##later on when high level means are fixed remove the bellow loop and loop over pmag_results_data
             for high_level_type in ['samples','sites','locations','study']:
                 self.high_level_means[high_level_type]={}
         if self.ie_open:
@@ -3421,7 +3425,7 @@ class Demag_GUI(wx.Frame):
             self.current_fit = None
         else:
             self.current_fit = self.pmag_results_data['specimens'][self.s][-1]
-        self.calculate_higher_levels_data()
+        self.calculate_high_levels_data()
         if self.ie_open:
             self.ie.update_editor()
         self.update_selection()
@@ -4355,7 +4359,7 @@ class Demag_GUI(wx.Frame):
         """
 
         self.clear_boxes()
-        self.clear_higher_level_pars()
+        self.clear_high_level_pars()
 
         if self.UPPER_LEVEL_SHOW != "specimens":
             self.mean_type_box.SetValue("None")
@@ -4387,14 +4391,14 @@ class Demag_GUI(wx.Frame):
         # update high level boxes
         #--------------------------
 
-        higher_level=self.level_box.GetValue()
+        high_level=self.level_box.GetValue()
         old_string=self.level_names.GetValue()
         new_string=old_string
-        if higher_level=='sample':
+        if high_level=='sample':
             new_string=self.Data_hierarchy['sample_of_specimen'][self.s]
-        if higher_level=='site':
+        if high_level=='site':
             new_string=self.Data_hierarchy['site_of_specimen'][self.s]
-        if higher_level=='location':
+        if high_level=='location':
             new_string=self.Data_hierarchy['location_of_specimen'][self.s]
         self.level_names.SetValue(new_string)
         if self.ie_open and new_string!=old_string:
@@ -4416,8 +4420,8 @@ class Demag_GUI(wx.Frame):
         self.update_mean_fit_box()
         # measurements text box
         self.Add_text()
-        #update higher level stats
-        self.update_higher_level_stats()
+        #update high level stats
+        self.update_high_level_stats()
         #redraw interpretations
         self.update_GUI_with_new_interpretation()
 
@@ -4497,11 +4501,11 @@ class Demag_GUI(wx.Frame):
                 self.draw_figure(self.s)
 
         self.draw_interpretations()
-        self.calculate_higher_levels_data()
-        self.plot_higher_levels_data()
+        self.calculate_high_levels_data()
+        self.plot_high_levels_data()
 
-    def update_higher_level_stats(self):
-        self.clear_higher_level_pars()
+    def update_high_level_stats(self):
+        self.clear_high_level_pars()
         dirtype=str(self.coordinates_box.GetValue())
         if dirtype=='specimen':dirtype='DA-DIR'
         elif dirtype=='geographic':dirtype='DA-DIR-GEO'
@@ -4516,7 +4520,7 @@ class Demag_GUI(wx.Frame):
             if self.mean_fit in self.high_level_means[high_level_type][high_level_name].keys():
                 if dirtype in self.high_level_means[high_level_type][high_level_name][self.mean_fit].keys():
                     mpars=self.high_level_means[high_level_type][high_level_name][self.mean_fit][dirtype]
-                    self.show_higher_levels_pars(mpars)
+                    self.show_high_levels_pars(mpars)
 
     def update_temp_boxes(self):
         if self.s not in self.Data.keys():
@@ -4558,7 +4562,7 @@ class Demag_GUI(wx.Frame):
         self.update_fit_box(new_fit)
         #select new fit
         self.on_select_fit(None)
-        #update the higher level fits box
+        #update the high level fits box
         self.update_mean_fit_box()
 
     def update_fit_box(self, new_fit = False):
@@ -4593,7 +4597,7 @@ class Demag_GUI(wx.Frame):
         @alters: mean_fit_box selection and choices, mean_types_box string selection
         """
         self.mean_fit_box.Clear()
-        #update higher level mean fit box
+        #update high level mean fit box
         self.all_fits_list = []
         fit_index = None
         if self.mean_fit in self.all_fits_list: fit_index = self.all_fits_list.index(self.mean_fit)
@@ -4610,7 +4614,7 @@ class Demag_GUI(wx.Frame):
         else:
             self.mean_fit_box.SetValue('None')
             self.mean_type_box.SetValue('None')
-            self.clear_higher_level_pars()
+            self.clear_high_level_pars()
         if self.ie_open:
             self.ie.mean_fit_box.Clear()
             self.ie.mean_fit_box.SetItems(['None','All'] + self.all_fits_list)
@@ -4622,14 +4626,14 @@ class Demag_GUI(wx.Frame):
                 self.ie.mean_fit_box.SetValue('None')
                 self.ie.mean_type_box.SetValue('None')
 
-    def show_higher_levels_pars(self,mpars):
+    def show_high_levels_pars(self,mpars):
 
         FONT_WEIGHT=self.GUI_RESOLUTION+(self.GUI_RESOLUTION-1)*5
         font2 = wx.Font(12+min(1,FONT_WEIGHT), wx.SWISS, wx.NORMAL, wx.NORMAL, False, self.font_type)
 
         if self.mean_type_box.GetValue() == "None" or self.mean_fit_box.GetValue() == "None": return
 
-        if not mpars or len(mpars)==1: print("No parameters to display for higher level mean"); return
+        if not mpars or len(mpars)==1: print("No parameters to display for high level mean"); return
 
         if mpars["calculation_type"]=='Fisher':
             if mpars["calculation_type"]=='Fisher' and "alpha95" in mpars.keys():
@@ -4654,7 +4658,7 @@ class Demag_GUI(wx.Frame):
             keys.sort()
             name = keys[i%len(keys)]
             mpars = mpars[name]
-            if type(mpars) != dict: print("error in showing higher level mean, reseaved %s"%str(mpars)); return
+            if type(mpars) != dict: print("error in showing high level mean, reseaved %s"%str(mpars)); return
             if mpars["calculation_type"]=='Fisher' and "alpha95" in mpars.keys():
                 for val in ['mean_type:calculation_type','dec:dec','inc:inc','alpha95:alpha95','K:k','R:r','n_lines:n','n_planes:n_planes']:
                     val,ind = val.split(":")
@@ -4702,7 +4706,7 @@ class Demag_GUI(wx.Frame):
             COMMAND="self.s%s_window.SetBackgroundColour(wx.NullColour)"%parameter
             exec COMMAND
 
-    def clear_higher_level_pars(self):
+    def clear_high_level_pars(self):
         for val in ['mean_type','dec','inc','alpha95','K','R','n_lines','n_planes']:
             COMMAND = """self.%s_window.SetValue("")"""%(val)
             exec COMMAND
@@ -4979,7 +4983,7 @@ class Demag_GUI(wx.Frame):
     def on_save_Zij_plot(self, event):
         self.current_fit = None
         self.draw_interpretations()
-        self.plot_higher_levels_data()
+        self.plot_high_levels_data()
         self.fig1.text(0.9,0.98,'%s'%(self.s),{'family':self.font_type, 'fontsize':10, 'style':'normal','va':'center', 'ha':'right' })
         SaveMyPlot(self.fig1,self.s,"Zij",self.WD)
 #        self.fig1.clear()
@@ -4989,7 +4993,7 @@ class Demag_GUI(wx.Frame):
     def on_save_Eq_plot(self, event):
         self.current_fit = None
         self.draw_interpretations()
-        self.plot_higher_levels_data()
+        self.plot_high_levels_data()
         #self.fig2.text(0.9,0.96,'%s'%(self.s),{'family':self.font_type, 'fontsize':10, 'style':'normal','va':'center', 'ha':'right' })
         #self.canvas4.print_figure("./tmp.pdf")#, dpi=self.dpi)
         SaveMyPlot(self.fig2,self.s,"EqArea",self.WD)
@@ -5000,7 +5004,7 @@ class Demag_GUI(wx.Frame):
     def on_save_M_t_plot(self, event):
         self.current_fit = None
         self.draw_interpretations()
-        self.plot_higher_levels_data()
+        self.plot_high_levels_data()
         self.fig3.text(0.9,0.96,'%s'%(self.s),{'family':self.font_type, 'fontsize':10, 'style':'normal','va':'center', 'ha':'right' })
         SaveMyPlot(self.fig3,self.s,"M_M0",self.WD)
 #        self.fig3.clear()
@@ -5010,18 +5014,18 @@ class Demag_GUI(wx.Frame):
     def on_save_high_level(self, event):
         self.current_fit = None
         self.draw_interpretations()
-        self.plot_higher_levels_data()
+        self.plot_high_levels_data()
         SaveMyPlot(self.fig4,str(self.level_names.GetValue()),str(self.level_box.GetValue()), self.WD )
 #        self.fig4.clear()
         self.draw_figure(self.s)
         self.update_selection()
-        self.plot_higher_levels_data()
+        self.plot_high_levels_data()
 
     def on_save_all_figures(self, event):
         temp_fit = self.current_fit
         self.current_fit = None
         self.draw_interpretations()
-        self.plot_higher_levels_data()
+        self.plot_high_levels_data()
         self.dlg = wx.DirDialog(self, "choose a folder:",defaultPath = self.WD ,style=wx.DD_DEFAULT_STYLE | wx.DD_NEW_DIR_BUTTON | wx.DD_CHANGE_DIR)
         if self.dlg.ShowModal() == wx.ID_OK:
               dir_path=self.dlg.GetPath()
@@ -5165,7 +5169,7 @@ class Demag_GUI(wx.Frame):
 
         if self.ie_open:
             self.ie.update_current_fit_data()
-        self.calculate_higher_levels_data()
+        self.calculate_high_levels_data()
         self.update_selection()
 
     def on_menu_flag_meas_bad(self, event):
@@ -5180,7 +5184,7 @@ class Demag_GUI(wx.Frame):
 
         if self.ie_open:
             self.ie.update_current_fit_data()
-        self.calculate_higher_levels_data()
+        self.calculate_high_levels_data()
         self.update_selection()
 
     #---------------------------------------------#
@@ -5313,13 +5317,13 @@ class Demag_GUI(wx.Frame):
     def on_menu_check_orient(self,event):
         if self.check_orient_on:
             self.check_orient_on = False
-            self.plot_higher_levels_data()
+            self.plot_high_levels_data()
             return
         else: self.check_orient_on = True
 
         if self.level_box.GetValue()!="site":
             self.level_box.SetValue("site")
-            self.onSelect_higher_level(event)
+            self.onSelect_high_level(event)
         sites_with_data = []
         for site in self.sites:
             specs = self.Data_hierarchy['sites'][site]['specimens']
@@ -5367,7 +5371,7 @@ class Demag_GUI(wx.Frame):
         if not self.ie_open:
             self.ie = InterpretationEditorFrame(self)
             self.ie_open = True
-            self.update_higher_level_stats()
+            self.update_high_level_stats()
             self.ie.Center()
             self.ie.Show(True)
             if self.parent==None and sys.platform.startswith('darwin'):
@@ -5376,7 +5380,7 @@ class Demag_GUI(wx.Frame):
                 self.dlg.ShowModal()
                 self.dlg.Destroy()
             if self.mean_fit!=None and self.mean_fit!='None':
-                self.plot_higher_levels_data()
+                self.plot_high_levels_data()
         else:
             self.ie.ToggleWindowStyle(wx.STAY_ON_TOP)
             self.ie.ToggleWindowStyle(wx.STAY_ON_TOP)
@@ -5536,7 +5540,7 @@ class Demag_GUI(wx.Frame):
 
             if self.ie_open:
                 self.ie.update_current_fit_data()
-            self.calculate_higher_levels_data()
+            self.calculate_high_levels_data()
             self.update_selection()
 
     def right_click_specimen_equalarea(self,event):
@@ -5621,32 +5625,32 @@ class Demag_GUI(wx.Frame):
             self.draw_figure(self.s,True)
             self.on_select_fit(event)
 
-    def right_click_higher_equalarea(self,event):
+    def right_click_high_equalarea(self,event):
         """
-        toggles between zoom and pan effects for the higher equal area on right click
+        toggles between zoom and pan effects for the high equal area on right click
         @param: event -> the wx.MouseEvent that triggered the call of this function
-        @alters: higher_EA_setting, toolbar4 setting
+        @alters: high_EA_setting, toolbar4 setting
         """
         if event.LeftIsDown():
             return
-        elif self.higher_EA_setting == "Zoom":
-            self.higher_EA_setting = "Pan"
+        elif self.high_EA_setting == "Zoom":
+            self.high_EA_setting = "Pan"
             try: self.toolbar4.pan('off')
             except TypeError: pass
-        elif self.higher_EA_setting == "Pan":
-            self.higher_EA_setting = "Zoom"
+        elif self.high_EA_setting == "Pan":
+            self.high_EA_setting = "Zoom"
             try: self.toolbar4.zoom()
             except TypeError: pass
 
-    def home_higher_equalarea(self,event):
+    def home_high_equalarea(self,event):
         """
-        returns higher equal area to it's original position
+        returns high equal area to it's original position
         @param: event -> the wx.MouseEvent that triggered the call of this function
         @alters: toolbar4 setting
         """
         self.toolbar4.home()
 
-    def on_change_higher_mouse_cursor(self,event):
+    def on_change_high_mouse_cursor(self,event):
         """
         If mouse is over data point making it selectable change the shape of the cursor
         @param: event -> the wx Mouseevent for that click
@@ -5656,25 +5660,25 @@ class Demag_GUI(wx.Frame):
         width, height = self.canvas4.get_width_height()
         pos[1] = height - pos[1]
         xpick_data,ypick_data = pos
-        xdata_org = self.higher_EA_xdata
-        ydata_org = self.higher_EA_ydata
+        xdata_org = self.high_EA_xdata
+        ydata_org = self.high_EA_ydata
         data_corrected = self.high_level_eqarea.transData.transform(vstack([xdata_org,ydata_org]).T)
         xdata,ydata = data_corrected.T
         xdata = map(float,xdata)
         ydata = map(float,ydata)
         e = 4e0
 
-        if self.higher_EA_setting == "Zoom":
+        if self.high_EA_setting == "Zoom":
             self.canvas4.SetCursor(wx.StockCursor(wx.CURSOR_CROSS))
         else:
             self.canvas4.SetCursor(wx.StockCursor(wx.CURSOR_ARROW))
-        if not self.higher_EA_xdata or not self.higher_EA_ydata: return
+        if not self.high_EA_xdata or not self.high_EA_ydata: return
         for i,(x,y) in enumerate(zip(xdata,ydata)):
             if 0 < sqrt((x-xpick_data)**2. + (y-ypick_data)**2.) < e:
                 self.canvas4.SetCursor(wx.StockCursor(wx.CURSOR_HAND))
                 break
 
-    def on_equalarea_higher_select(self,event,fig=None,canvas=None):
+    def on_equalarea_high_select(self,event,fig=None,canvas=None):
         """
         Get mouse position on double click find the nearest interpretation to the mouse
         position then select that interpretation
@@ -5682,15 +5686,15 @@ class Demag_GUI(wx.Frame):
         @alters: current_fit, s, mean_fit, fit_box selection, mean_fit_box selection, specimens_box selection, tmin_box selection, tmax_box selection,
         """
         if self.ie_open and self.ie.show_box.GetValue() != "specimens": return
-        if not self.higher_EA_xdata or not self.higher_EA_ydata: return
+        if not self.high_EA_xdata or not self.high_EA_ydata: return
         if fig==None: fig = self.high_level_eqarea
         if canvas==None: canvas = self.canvas4
         pos=event.GetPosition()
         width, height = canvas.get_width_height()
         pos[1] = height - pos[1]
         xpick_data,ypick_data = pos
-        xdata_org = self.higher_EA_xdata
-        ydata_org = self.higher_EA_ydata
+        xdata_org = self.high_EA_xdata
+        ydata_org = self.high_EA_ydata
         data_corrected = fig.transData.transform(vstack([xdata_org,ydata_org]).T)
         xdata,ydata = data_corrected.T
         xdata = map(float,xdata)
@@ -5901,7 +5905,7 @@ class Demag_GUI(wx.Frame):
 
         if self.ie_open:
             self.ie.update_current_fit_data()
-        self.calculate_higher_levels_data()
+        self.calculate_high_levels_data()
         self.update_selection()
 
     def on_select_measurement(self, event):
@@ -5998,14 +6002,14 @@ class Demag_GUI(wx.Frame):
         self.update_GUI_with_new_interpretation()
 
     def onSelect_mean_type_box(self,event):
-        # calculate higher level data
+        # calculate high level data
         if self.UPPER_LEVEL_SHOW != "specimens" or self.mean_fit_box.GetValue() == 'None':
-            self.clear_higher_level_pars()
+            self.clear_high_level_pars()
             self.mean_type_box.SetValue("None"); return
-        self.calculate_higher_levels_data()
-        self.update_higher_level_stats()
+        self.calculate_high_levels_data()
+        self.update_high_level_stats()
         draw_net(self.high_level_eqarea)
-        self.plot_higher_levels_data()
+        self.plot_high_levels_data()
 
     def onSelect_mean_fit_box(self,event):
         if self.mean_fit_box.GetValue() == 'None' and self.mean_type_box.GetValue() != 'None':
@@ -6015,12 +6019,12 @@ class Demag_GUI(wx.Frame):
         self.mean_fit = new_fit
         if self.ie_open:
             self.ie.mean_fit_box.SetStringSelection(new_fit)
-        # calculate higher level data
-        self.calculate_higher_levels_data()
-        self.update_higher_level_stats()
-        self.plot_higher_levels_data()
+        # calculate high level data
+        self.calculate_high_levels_data()
+        self.update_high_level_stats()
+        self.plot_high_levels_data()
 
-    def onSelect_higher_level(self,event,called_by_interp_editor=False):
+    def onSelect_high_level(self,event,called_by_interp_editor=False):
        self.UPPER_LEVEL=self.level_box.GetValue()
        if self.UPPER_LEVEL=='sample':
            if self.ie_open:
@@ -6058,7 +6062,7 @@ class Demag_GUI(wx.Frame):
        if not called_by_interp_editor:
            if self.ie_open:
                self.ie.level_box.SetStringSelection(self.UPPER_LEVEL)
-               self.ie.on_select_higher_level(event,True)
+               self.ie.on_select_high_level(event,True)
            else:
                self.update_selection()
 
@@ -6088,7 +6092,7 @@ class Demag_GUI(wx.Frame):
     def on_select_plane_display_box(self,event):
         self.draw_figure(self.s,True)
         self.draw_interpretations()
-        self.plot_higher_levels_data()
+        self.plot_high_levels_data()
 
     def on_select_fit(self,event):
         """
@@ -6127,7 +6131,7 @@ class Demag_GUI(wx.Frame):
         self.current_fit.name = name
         if color in self.color_dict.keys(): self.current_fit.color = self.color_dict[color]
         self.update_fit_boxes()
-        self.plot_higher_levels_data()
+        self.plot_high_levels_data()
 
     #---------------------------------------------#
     #Button Functions
@@ -6152,9 +6156,9 @@ class Demag_GUI(wx.Frame):
             if len(self.Data[self.s]['zijdblock_tilt'])>0:
                 self.current_fit.put(self.s,'tilt-corrected',self.get_PCA_parameters(self.s,self.current_fit,tmin,tmax,'tilt-corrected',calculation_type))
 
-        # calculate higher level data
-        self.calculate_higher_levels_data()
-        self.plot_higher_levels_data()
+        # calculate high level data
+        self.calculate_high_levels_data()
+        self.plot_high_levels_data()
         self.on_menu_save_interpretation(-1)
         self.update_selection()
         self.close_warning=True
@@ -6184,7 +6188,7 @@ class Demag_GUI(wx.Frame):
         else:
             self.current_fit = None
         self.close_warning = True
-        self.calculate_higher_levels_data()
+        self.calculate_high_levels_data()
         if self.ie_open:
             self.ie.update_editor()
         self.update_selection()
@@ -6235,7 +6239,7 @@ class Demag_GUI(wx.Frame):
 
     def on_select_stats_button(self,events):
         i = self.switch_stats_button.GetValue()
-        self.update_higher_level_stats()
+        self.update_high_level_stats()
 
 #==========================================================================================#
 #==============================GUI Status Functions========================================#
