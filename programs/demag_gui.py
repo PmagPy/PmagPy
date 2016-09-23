@@ -75,7 +75,6 @@ from pmagpy.demag_gui_utilities import *
 from pmagpy.Fit import *
 import dialogs.demag_dialogs as demag_dialogs
 from copy import deepcopy,copy
-import programs.cit_magic as cit_magic
 import pmagpy.new_builder as nb
 from pandas import DataFrame,Series
 from SPD.mapping import map_magic
@@ -1392,10 +1391,14 @@ class Demag_GUI(wx.Frame):
                     self.mplot.collections.remove(d)
                 elif d in self.mplot_af.collections:
                     self.mplot_af.collections.remove(d)
-            if "C" in fit.tmin: tmin_ax = self.mplot
-            else: tmin_ax = self.mplot_af
-            if "C" in fit.tmax: tmax_ax = self.mplot
-            else: tmax_ax = self.mplot_af
+            temp_data_exists = any(['C' in step for step in self.Data[self.s]['zijdblock_steps']])
+            af_data_exists = any(['T' in step for step in self.Data[self.s]['zijdblock_steps']])
+            if "C" in fit.tmin and temp_data_exists: tmin_ax = self.mplot
+            elif af_data_exists: tmin_ax = self.mplot_af
+            else: tmin_ax = self.mplot
+            if "C" in fit.tmax and temp_data_exists: tmax_ax = self.mplot
+            elif af_data_exists: tmax_ax = self.mplot_af
+            else: tmax_ax = self.mplot
             tmin_ymin, tmin_ymax = tmin_ax.get_ylim()
             tmin_xmin, tmin_xmax = tmin_ax.get_xlim()
             tmax_ymin, tmax_ymax = tmax_ax.get_ylim()
@@ -1823,6 +1826,7 @@ class Demag_GUI(wx.Frame):
         self.pmag_results_data['specimens'][specimen].append(new_fit)
         if fmin != None and fmax != None:
             new_fit.put(specimen,self.COORDINATE_SYSTEM,self.get_PCA_parameters(specimen,new_fit,fmin,fmax,self.COORDINATE_SYSTEM,PCA_type))
+        return new_fit
 
     def calculate_vgp_data(self):
         #get criteria if it exists else use default
@@ -1962,7 +1966,9 @@ class Demag_GUI(wx.Frame):
                 if len(LocCompData)<2: print(("no data for comp %s"%comp)); continue
                 precs=[]
                 for rec in LocCompData:
-                    precs.append({'dec':rec['specimen_dec'],'inc':rec['specimen_inc'],'name':rec['er_site_name'],'loc':rec['er_location_name']})
+                    prec = {'dec':rec['specimen_dec'],'inc':rec['specimen_inc'],'name':rec['er_site_name'],'loc':rec['er_location_name']}
+                    prec = {k : v if v!=None else '' for k,v in prec.items()}
+                    precs.append(prec)
                 polpars=pmag.fisher_by_pol(precs)
                 for mode in list(polpars.keys()): # hunt through all the modes (normal=A, reverse=B, all=ALL)
                     PolRes={}
@@ -2306,22 +2312,6 @@ class Demag_GUI(wx.Frame):
                         continue
 
             for key in pars_for_mean.keys():
-#                if len(pars_for_mean[key]) > 0 and key != "All":
-#                    if high_level_name not in self.pmag_results_data[high_level_type].keys():
-#                        self.pmag_results_data[high_level_type][high_level_name] = []
-#                    if key not in map(lambda x: x.name, self.pmag_results_data[high_level_type][high_level_name]):
-#                        self.pmag_results_data[high_level_type][high_level_name].append(Fit(key, None, None, colors_for_means[key], self))
-#                        key_index = -1
-#                    else:
-#                        key_index = map(lambda x: x.name, self.pmag_results_data[high_level_type][high_level_name]).index(key)
-#                    new_pars = self.calculate_mean(pars_for_mean[key],calculation_type)
-#                    map_keys = new_pars.keys()
-#                    map_keys.remove("calculation_type")
-#                    if calculation_type == "Fisher":
-#                        for mkey in map_keys:
-#                            new_pars[mkey] = float(new_pars[mkey])
-#                    print(high_level_type,high_level_name,key_index)
-#                    self.pmag_results_data[high_level_type][high_level_name][key_index].put(None, dirtype,new_pars)
                 if len(pars_for_mean[key]) > 0:# and key == "All":
                     if mean_fit not in self.high_level_means[high_level_type][high_level_name].keys():
                         self.high_level_means[high_level_type][high_level_name][mean_fit] = {}
@@ -3261,6 +3251,10 @@ class Demag_GUI(wx.Frame):
             if 'locations' in self.con.tables:
                 location_container = self.con.tables["locations"]
                 self.loc_data = location_container.df # only need this for saving tables
+                if self.loc_data['location'].isnull().any():
+                    self.loc_data.replace({'location':{None:'unknown'}},inplace=True)
+                    self.loc_data.set_index('location',inplace=True)
+                    self.loc_data['location'] = self.loc_data.index
                 loc2_data = self.loc_data.rename(columns=map_magic.loc_magic3_2_magic2_map)
                 data_er_locations = loc2_data.to_dict('index')
             else:
@@ -3372,55 +3366,22 @@ class Demag_GUI(wx.Frame):
         print("-I- read redo file and processing new bounds")
         fin=open(redo_file,'rU')
 
-        for Line in fin.readlines():
-            line=Line.strip('\n').split('\t')
+        for Line in fin.read().splitlines():
+            line=Line.split('\t')
             specimen=line[0]
+
+            if len(line) < 6: print("insuffecent data for specimen %s and fit %s"%(line[0],line[4])); continue
+            if len(line) == 6: line.append('g')
             if specimen not in self.specimens:
-                print("specimen %s not found in this data set and will be ignored"%(specimen))
-                continue
-            self.s = specimen
-            if not (self.s in self.pmag_results_data['specimens'].keys()):
-                self.pmag_results_data['specimens'][self.s] = []
+                print("specimen %s not found in this data set and will be ignored"%(specimen)); continue
 
-            tmin,tmax="",""
-
-            calculation_type=line[1]
             tmin,tmax = self.parse_bound_data(line[2],line[3],specimen)
-            if tmin == None or tmax == None:
-                continue
-            if tmin not in self.Data[specimen]['zijdblock_steps'] or  tmax not in self.Data[specimen]['zijdblock_steps']:
-                print("-E- ERROR in redo file specimen %s. Cant find treatment steps"%specimen)
+            new_fit = self.add_fit(specimen, line[4], tmin, tmax, line[1], line[5])
 
-            if len(line) >= 6:
-                fit_index = -1
-                if specimen in self.pmag_results_data['specimens']:
-                    bool_list = map(lambda x: x.has_values(line[4], tmin, tmax), self.pmag_results_data['specimens'][specimen])
-                else:
-                    bool_list = [False]
-                if any(bool_list):
-                    fit_index = bool_list.index(True)
-                else:
-                    next_fit = str(len(self.pmag_results_data['specimens'][self.s]) + 1)
-                    try: color = line[5]
-                    except IndexError: color = self.colors[(int(next_fit)-1) % len(self.colors)]
-                    if ',' in color:
-                        color = map(float,color.strip('( ) [ ]').split(','))
-                    self.pmag_results_data['specimens'][self.s].append(Fit('Fit ' + next_fit, tmax, tmin, color, self))
-                fit = self.pmag_results_data['specimens'][specimen][fit_index];
-                fit.name = line[4]
-                try:
-                    if line[6] == "b":
-                        self.bad_fits.append(fit)
-                except IndexError: pass
-            else:
-                next_fit = str(len(self.pmag_results_data['specimens'][self.s]) + 1)
-                self.pmag_results_data['specimens'][self.s].append(Fit('Fit ' + next_fit, tmax, tmin, self.colors[(int(next_fit)-1) % len(self.colors)], self))
-                fit = self.pmag_results_data['specimens'][specimen][-1]
-
-            fit.put(specimen,self.COORDINATE_SYSTEM,self.get_PCA_parameters(specimen,fit,tmin,tmax,self.COORDINATE_SYSTEM,calculation_type))
+            if line[6] == 'b' and new_fit != None:
+                self.bad_fits.append(new_fit)
 
         fin.close()
-        self.s=str(self.specimens_box.GetValue())
         if (self.s not in self.pmag_results_data['specimens']) or (not self.pmag_results_data['specimens'][self.s]):
             self.current_fit = None
         else:
@@ -4196,7 +4157,9 @@ class Demag_GUI(wx.Frame):
                         if len(crecs)<2:print("no data for comp %s"%comp); continue
                         precs=[]
                         for rec in crecs:
-                            precs.append({'dec':rec['dir_dec'],'inc':rec['dir_inc'],'name':rec['site'],'loc':rec['location']})
+                            prec = {'dec':rec['dir_dec'],'inc':rec['dir_inc'],'name':rec['site'],'loc':rec['location']}
+                            prec = {k : v if v!=None else 'None' for k,v in prec.items()}
+                            precs.append(prec)
                         polpars=pmag.fisher_by_pol(precs) # calculate average by polarity
                         for mode in polpars.keys(): # hunt through all the modes (normal=A, reverse=B, all=ALL)
                             PolRes={}

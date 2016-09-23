@@ -776,10 +776,7 @@ class InterpretationEditorFrame(wx.Frame):
             print('-E- interpretation called ' + new_name + ' already exsists for specimen ' + specimen)
             return
 
-        new_fit = Fit(new_name, new_tmax, new_tmin, new_color, self.parent)
-        new_fit.put(specimen,self.parent.COORDINATE_SYSTEM,self.parent.get_PCA_parameters(specimen,new_fit,new_tmin,new_tmax,self.parent.COORDINATE_SYSTEM,"DE-BFL"))
-
-        self.parent.pmag_results_data['specimens'][specimen].append(new_fit)
+        self.parent.add_fit(specimen, new_name, new_tmin, new_tmax, color=new_color)
 
     def delete_highlighted_fits(self, event):
         """
