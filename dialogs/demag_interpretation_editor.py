@@ -519,6 +519,7 @@ class InterpretationEditorFrame(wx.Frame):
         if no parameters are passed in it sets first fit as current
         @param: new_fit -> fit object to highlight as selected
         """
+        if len(self.fit_list)==0: return
         if self.search_query and self.parent.current_fit not in map(lambda x: x[0], self.fit_list): return
         if self.current_fit_index == None:
             if not self.parent.current_fit: return
@@ -609,6 +610,10 @@ class InterpretationEditorFrame(wx.Frame):
 #        self.search_bar.AutoComplete(self.search_choices)
 
     ###################################ComboBox Functions################################
+
+    def update_bounds_boxes(self,B_list):
+        self.tmin_box.SetItems(B_list)
+        self.tmax_box.SetItems(B_list)
 
     def add_new_color(self,event):
         new_color = self.color_box.GetValue()

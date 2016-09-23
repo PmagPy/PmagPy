@@ -4348,7 +4348,7 @@ class Demag_GUI(wx.Frame):
         # update treatment list
         #--------------------------
 
-        self.update_temp_boxes()
+        self.update_bounds_boxes()
 
         #--------------------------
         # update high level boxes
@@ -4485,7 +4485,7 @@ class Demag_GUI(wx.Frame):
                     mpars=self.high_level_means[high_level_type][high_level_name][self.mean_fit][dirtype]
                     self.show_high_levels_pars(mpars)
 
-    def update_temp_boxes(self):
+    def update_bounds_boxes(self):
         if self.s not in self.Data.keys():
             self.s = self.Data.keys()[0]
         self.T_list=self.Data[self.s]['zijdblock_steps']
@@ -4495,6 +4495,8 @@ class Demag_GUI(wx.Frame):
             if type(self.current_fit.tmin)==str and type(self.current_fit.tmax)==str:
                 self.tmin_box.SetStringSelection(self.current_fit.tmin)
                 self.tmax_box.SetStringSelection(self.current_fit.tmax)
+        if self.ie_open:
+            self.ie.update_bounds_boxes(self.T_list)
 
     def update_PCA_box(self):
         if self.s in self.pmag_results_data['specimens'].keys():
@@ -5897,6 +5899,7 @@ class Demag_GUI(wx.Frame):
         """
         update figures and text when a new specimen is selected
         """
+        self.selected_meas = []
         self.select_specimen(str(self.specimens_box.GetValue()))
         if self.ie_open:
             self.ie.change_selected(self.current_fit)

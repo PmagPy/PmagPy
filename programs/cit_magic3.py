@@ -143,6 +143,7 @@ def main(command_line=True, **kwargs):
         loc_file = kwargs.get('loc_file', 'locations.txt') # location outfile
         data_model = kwargs.get('data_model', 2.5) # data_model to output as
         locname = kwargs.get('locname', 'unknown')
+        if locname=='' or locname==None: locname = 'unknown'
         methods = kwargs.get('methods', ['SO-MAG'])
         specnum = -int(kwargs.get('specnum', 0))
         norm = kwargs.get('norm', 'cc')

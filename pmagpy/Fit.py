@@ -56,7 +56,7 @@ class Fit():
         if self.GUI==None: return
         self.GUI.current_fit = self
         if self.tmax != None and self.tmin != None:
-            self.GUI.update_temp_boxes()
+            self.GUI.update_bounds_boxes()
         if self.PCA_type != None:
             self.GUI.update_PCA_box()
         try: self.GUI.zijplot
