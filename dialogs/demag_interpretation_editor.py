@@ -437,7 +437,7 @@ class InterpretationEditorFrame(wx.Frame):
         coordinate_system = self.parent.COORDINATE_SYSTEM
         fit = tup[0]
         pars = fit.get(coordinate_system)
-        fmin,fmax,n,ftype,dec,inc,mad = "","","","","","",""
+        fmin,fmax,n,ftype,dec,inc,mad,dang,a95,sk,sr2 = "","","","","","","","","","",""
 
         specimen = tup[1]
         if coordinate_system=='geographic':
@@ -451,7 +451,7 @@ class InterpretationEditorFrame(wx.Frame):
         if pars == {} and self.parent.Data[specimen][block_key] != []:
             fit.put(specimen, coordinate_system, self.parent.get_PCA_parameters(specimen,fit,fit.tmin,fit.tmax,coordinate_system,fit.PCA_type))
             pars = fit.get(coordinate_system)
-        elif self.parent.Data[specimen][block_key]==[]:
+        if self.parent.Data[specimen][block_key]==[]:
             spars = fit.get('specimen')
             fmin = fit.tmin
             fmax = fit.tmax

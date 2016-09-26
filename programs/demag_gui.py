@@ -55,7 +55,7 @@ from matplotlib.backends.backend_wxagg import NavigationToolbar2WxAgg as Navigat
 
 try:
     import zeq_gui_preferences
-except:
+except ImportError:
     pass
 from time import time
 from datetime import datetime
@@ -91,7 +91,7 @@ rcParams.update({"svg.fonttype":'svgfont'})
 
 class Demag_GUI(wx.Frame):
     """
-    The main frame of the application
+    GUI for interpreting demagnetization data (AF and/or thermal)
     """
     title = "PmagPy Demag GUI %s (beta)"%CURRENT_VERSION
 
@@ -101,12 +101,11 @@ class Demag_GUI(wx.Frame):
 
     def __init__(self, WD=None, parent=None, write_to_log_file=True, test_mode_on=False):
         """
-        NAME:
-    demag_gui.py
-
-        DESCRIPTION:
-    GUI for interpreting demagnetization data (AF and/or thermal).
-    For tutorial on usage see the PmagPy cookbook at http://earthref.org/PmagPy/cookbook/
+        Initializes the GUI by creating necessary variables, importing data, setting icon, and initializing the UI and menu
+        @param - WD: Working directory where data files will be written to and read from if None will prompt user for location (default: None)
+        @param - parent: wx.Frame object that is already running in a wx.App or NoneType object if this is the top level window (default: None)
+        @param - write_to_log_file: verbal or non-verbal GUI modes True will redirect stdout to a .log file False will print to stdout as normal (default: True)
+        @param - test_mode_on: used for unit testing if True all dialogs will return with AffermativeID (default: False)
         """
 
         default_style = wx.MINIMIZE_BOX | wx.MAXIMIZE_BOX | wx.RESIZE_BORDER | wx.SYSTEM_MENU | wx.CAPTION | wx.CLOSE_BOX | wx.CLIP_CHILDREN | wx.NO_FULL_REPAINT_ON_RESIZE | wx.WS_EX_CONTEXTHELP
@@ -238,8 +237,7 @@ class Demag_GUI(wx.Frame):
 
     def init_UI(self):
         """
-        Build main frame of panel: buttons, etc.
-        choose the first specimen and display data
+        Set display variables (font, resolution of GUI, sizer proportions) then builds the Side bar panel, Top bar panel, and Plots scrolleing panel which are then placed placed together in a sizer and fit to the GUI wx.Frame
         """
 #--------------------------------------------------------------------------
     #Setup ScrolledPanel Ctrls---------------------------------------------
@@ -274,15 +272,15 @@ class Demag_GUI(wx.Frame):
     #----------------------------------------------------------------------
         try:
             self.s=str(self.specimens[0])
-        except:
+        except (ValueError,IndexError):
             self.s=""
         try:
             self.sample=self.Data_hierarchy['sample_of_specimen'][self.s]
-        except:
+        except KeyError:
             self.sample=""
         try:
             self.site=self.Data_hierarchy['site_of_specimen'][self.s]
-        except:
+        except KeyError:
             self.site=""
 
 #--------------------------------------------------------------------------
@@ -346,7 +344,6 @@ class Demag_GUI(wx.Frame):
         self.old_pos = None
         self.high_EA_xdata = []
         self.high_EA_ydata = []
-
         self.high_level_eqarea = self.fig4.add_subplot(111)
         draw_net(self.high_level_eqarea)
 
@@ -384,7 +381,7 @@ class Demag_GUI(wx.Frame):
         # Create text_box for presenting the measurements
     #----------------------------------------------------------------------
 
-        self.logger = wx.ListCtrl(self.side_panel, -1, size=(100*self.GUI_RESOLUTION,100*self.GUI_RESOLUTION),style=wx.LC_REPORT)
+        self.logger = wx.ListCtrl(self.side_panel, id=wx.ID_ANY, size=(100*self.GUI_RESOLUTION,100*self.GUI_RESOLUTION),style=wx.LC_REPORT)
         self.logger.SetFont(font1)
         self.logger.InsertColumn(0, 'i',width=25*self.GUI_RESOLUTION)
         self.logger.InsertColumn(1, 'Step',width=25*self.GUI_RESOLUTION)
@@ -403,17 +400,17 @@ class Demag_GUI(wx.Frame):
     #----------------------------------------------------------------------
 
         # Combo-box with a list of specimen
-        self.specimens_box = wx.ComboBox(self.side_panel, -1, value=self.s, size=(200*self.GUI_RESOLUTION,25), choices=self.specimens, style=wx.CB_DROPDOWN,name="specimen")
+        self.specimens_box = wx.ComboBox(self.side_panel, id=wx.ID_ANY, value=self.s, size=(200*self.GUI_RESOLUTION,25), choices=self.specimens, style=wx.CB_DROPDOWN,name="specimen")
         self.Bind(wx.EVT_COMBOBOX, self.onSelect_specimen,self.specimens_box)
         self.specimens_box.SetHelpText(dgh.specimens_box_help)
 
         # buttons to move forward and backwards from specimens
-        self.nextbutton = wx.Button(self.side_panel, id=-1, label='next',size=(100*self.GUI_RESOLUTION, 25))
+        self.nextbutton = wx.Button(self.side_panel, id=wx.ID_ANY, label='next',size=(100*self.GUI_RESOLUTION, 25))
         self.Bind(wx.EVT_BUTTON, self.on_next_button, self.nextbutton)
         self.nextbutton.SetFont(font2)
         self.nextbutton.SetHelpText(dgh.nextbutton_help)
 
-        self.prevbutton = wx.Button(self.side_panel, id=-1, label='previous',size=(100*self.GUI_RESOLUTION, 25))
+        self.prevbutton = wx.Button(self.side_panel, id=wx.ID_ANY, label='previous',size=(100*self.GUI_RESOLUTION, 25))
         self.prevbutton.SetFont(font2)
         self.Bind(wx.EVT_BUTTON, self.on_prev_button, self.prevbutton)
         self.prevbutton.SetHelpText(dgh.prevbutton_help)
@@ -432,7 +429,7 @@ class Demag_GUI(wx.Frame):
                 self.coordinate_list.append('tilt-corrected')
 
         self.COORDINATE_SYSTEM = intial_coordinate
-        self.coordinates_box = wx.ComboBox(self.side_panel, -1, size=(200*self.GUI_RESOLUTION,25), choices=self.coordinate_list, value=intial_coordinate,style=wx.CB_DROPDOWN,name="coordinates")
+        self.coordinates_box = wx.ComboBox(self.side_panel, id=wx.ID_ANY, size=(200*self.GUI_RESOLUTION,25), choices=self.coordinate_list, value=intial_coordinate,style=wx.CB_DROPDOWN,name="coordinates")
         self.Bind(wx.EVT_COMBOBOX, self.onSelect_coordinates,self.coordinates_box)
         self.coordinates_box.SetHelpText(dgh.coordinates_box_help)
 
@@ -440,7 +437,7 @@ class Demag_GUI(wx.Frame):
         #  Orthogonal Zijderveld Options box
     #----------------------------------------------------------------------
 
-        self.orthogonal_box = wx.ComboBox(self.side_panel, -1, value='X=East', size=(200*self.GUI_RESOLUTION,25), choices=['X=NRM dec','X=East','X=North'], style=wx.CB_DROPDOWN,name="orthogonal_plot")
+        self.orthogonal_box = wx.ComboBox(self.side_panel, id=wx.ID_ANY, value='X=East', size=(200*self.GUI_RESOLUTION,25), choices=['X=NRM dec','X=East','X=North'], style=wx.CB_DROPDOWN,name="orthogonal_plot")
         #remove 'X=best fit line dec' as option given that is isn't implemented for multiple components
         self.Bind(wx.EVT_COMBOBOX, self.onSelect_orthogonal_box,self.orthogonal_box)
         self.orthogonal_box.SetHelpText(dgh.orthogonal_box_help)
@@ -455,11 +452,11 @@ class Demag_GUI(wx.Frame):
 
         self.T_list=[]
 
-        self.tmin_box = wx.ComboBox(self.panel, -1 ,size=(50*self.GUI_RESOLUTION, 25),choices=self.T_list, style=wx.CB_DROPDOWN)
+        self.tmin_box = wx.ComboBox(self.panel, id=wx.ID_ANY,size=(50*self.GUI_RESOLUTION, 25),choices=self.T_list, style=wx.CB_DROPDOWN)
         self.Bind(wx.EVT_COMBOBOX, self.get_new_PCA_parameters,self.tmin_box)
         self.tmin_box.SetHelpText(dgh.tmin_box_help)
 
-        self.tmax_box = wx.ComboBox(self.panel, -1 ,size=(50*self.GUI_RESOLUTION, 25),choices=self.T_list, style=wx.CB_DROPDOWN)
+        self.tmax_box = wx.ComboBox(self.panel, id=wx.ID_ANY,size=(50*self.GUI_RESOLUTION, 25),choices=self.T_list, style=wx.CB_DROPDOWN)
         self.Bind(wx.EVT_COMBOBOX, self.get_new_PCA_parameters,self.tmax_box)
         self.tmax_box.SetHelpText(dgh.tmax_box_help)
 
@@ -469,22 +466,22 @@ class Demag_GUI(wx.Frame):
 
         list_fits = []
 
-        self.fit_box = wx.ComboBox(self.panel, -1 ,size=(50*self.GUI_RESOLUTION, 25),choices=list_fits, style=wx.TE_PROCESS_ENTER)
+        self.fit_box = wx.ComboBox(self.panel, id=wx.ID_ANY,size=(50*self.GUI_RESOLUTION, 25),choices=list_fits, style=wx.TE_PROCESS_ENTER)
         self.Bind(wx.EVT_COMBOBOX, self.on_select_fit,self.fit_box)
         self.Bind(wx.EVT_TEXT_ENTER, self.on_enter_fit_name, self.fit_box)
         self.fit_box.SetHelpText(dgh.fit_box_help)
 
-        self.add_fit_button = wx.Button(self.panel, id=-1, label='add fit',size=(50*self.GUI_RESOLUTION,25))
+        self.add_fit_button = wx.Button(self.panel, id=wx.ID_ANY, label='add fit',size=(50*self.GUI_RESOLUTION,25))
         self.add_fit_button.SetFont(font2)
         self.Bind(wx.EVT_BUTTON, self.on_btn_add_fit, self.add_fit_button)
         self.add_fit_button.SetHelpText(dgh.add_fit_button_help)
 
         # save/delete interpretation buttons
-        self.save_fit_button = wx.Button(self.panel, id=-1, label='save',size=(50*self.GUI_RESOLUTION,25))#,style=wx.BU_EXACTFIT)#, size=(175, 28))
+        self.save_fit_button = wx.Button(self.panel, id=wx.ID_ANY, label='save',size=(50*self.GUI_RESOLUTION,25))#,style=wx.BU_EXACTFIT)#, size=(175, 28))
         self.save_fit_button.SetFont(font2)
         self.save_fit_button.SetHelpText(dgh.save_fit_btn_help)
 
-        self.delete_fit_button = wx.Button(self.panel, id=-1, label='delete',size=(50*self.GUI_RESOLUTION,25))#,style=wx.BU_EXACTFIT)#, size=(175, 28))
+        self.delete_fit_button = wx.Button(self.panel, id=wx.ID_ANY, label='delete',size=(50*self.GUI_RESOLUTION,25))#,style=wx.BU_EXACTFIT)#, size=(175, 28))
         self.delete_fit_button.SetFont(font2)
         self.delete_fit_button.SetHelpText(dgh.delete_fit_btn_help)
 
@@ -495,11 +492,11 @@ class Demag_GUI(wx.Frame):
         # Interpretation Type and Display window
     #----------------------------------------------------------------------
 
-        self.PCA_type_box = wx.ComboBox(self.panel, -1, size=(50*self.GUI_RESOLUTION, 25), value='line',choices=['line','line-anchored','line-with-origin','plane','Fisher'], style=wx.CB_DROPDOWN,name="coordinates")
+        self.PCA_type_box = wx.ComboBox(self.panel, id=wx.ID_ANY, size=(50*self.GUI_RESOLUTION, 25), value='line',choices=['line','line-anchored','line-with-origin','plane','Fisher'], style=wx.CB_DROPDOWN,name="coordinates")
         self.Bind(wx.EVT_COMBOBOX, self.on_select_specimen_mean_type_box,self.PCA_type_box)
         self.PCA_type_box.SetHelpText(dgh.PCA_type_help)
 
-        self.plane_display_box = wx.ComboBox(self.panel, -1, size=(50*self.GUI_RESOLUTION, 25), value='show whole plane',choices=['show whole plane','show u. hemisphere', 'show l. hemisphere','show poles'], style=wx.CB_DROPDOWN,name="PlaneType")
+        self.plane_display_box = wx.ComboBox(self.panel, id=wx.ID_ANY, size=(50*self.GUI_RESOLUTION, 25), value='show whole plane',choices=['show whole plane','show u. hemisphere', 'show l. hemisphere','show poles'], style=wx.CB_DROPDOWN,name="PlaneType")
         self.Bind(wx.EVT_COMBOBOX, self.on_select_plane_display_box, self.plane_display_box)
         self.plane_display_box.SetHelpText(dgh.plane_display_help)
 
@@ -536,11 +533,11 @@ class Demag_GUI(wx.Frame):
         # High level mean window
     #----------------------------------------------------------------------
 
-        self.level_box = wx.ComboBox(self.panel, -1, size=(50*self.GUI_RESOLUTION, 25),value='site',  choices=['sample','site','location','study'], style=wx.CB_DROPDOWN,name="high_level")
+        self.level_box = wx.ComboBox(self.panel, id=wx.ID_ANY, size=(50*self.GUI_RESOLUTION, 25),value='site',  choices=['sample','site','location','study'], style=wx.CB_DROPDOWN,name="high_level")
         self.Bind(wx.EVT_COMBOBOX, self.onSelect_high_level,self.level_box)
         self.level_box.SetHelpText(dgh.level_box_help)
 
-        self.level_names = wx.ComboBox(self.panel, -1,size=(50*self.GUI_RESOLUTION, 25), value=self.site,choices=self.sites, style=wx.CB_DROPDOWN,name="high_level_names")
+        self.level_names = wx.ComboBox(self.panel, id=wx.ID_ANY,size=(50*self.GUI_RESOLUTION, 25), value=self.site,choices=self.sites, style=wx.CB_DROPDOWN,name="high_level_names")
         self.Bind(wx.EVT_COMBOBOX, self.onSelect_level_name,self.level_names)
         self.level_names.SetHelpText(dgh.level_names_help)
 
@@ -548,11 +545,11 @@ class Demag_GUI(wx.Frame):
         # mean types box
     #----------------------------------------------------------------------
 
-        self.mean_type_box = wx.ComboBox(self.panel, -1, size=(50*self.GUI_RESOLUTION, 25), value='None', choices=['Fisher','Fisher by polarity','None'], style=wx.CB_DROPDOWN,name="high_type")
+        self.mean_type_box = wx.ComboBox(self.panel, id=wx.ID_ANY, size=(50*self.GUI_RESOLUTION, 25), value='None', choices=['Fisher','Fisher by polarity','None'], style=wx.CB_DROPDOWN,name="high_type")
         self.Bind(wx.EVT_COMBOBOX, self.onSelect_mean_type_box,self.mean_type_box)
         self.mean_type_box.SetHelpText(dgh.mean_type_help)
 
-        self.mean_fit_box = wx.ComboBox(self.panel, -1, size=(50*self.GUI_RESOLUTION, 25), value='None', choices=['None','All'] + list_fits, style=wx.CB_DROPDOWN,name="high_type")
+        self.mean_fit_box = wx.ComboBox(self.panel, id=wx.ID_ANY, size=(50*self.GUI_RESOLUTION, 25), value='None', choices=['None','All'] + list_fits, style=wx.CB_DROPDOWN,name="high_type")
         self.Bind(wx.EVT_COMBOBOX, self.onSelect_mean_fit_box,self.mean_fit_box)
         self.mean_fit_box.SetHelpText(dgh.mean_fit_help)
         self.mean_fit = 'None'
@@ -562,7 +559,7 @@ class Demag_GUI(wx.Frame):
     #----------------------------------------------------------------------
         warning_sizer = wx.StaticBoxSizer( wx.StaticBox(self.panel, wx.ID_ANY, "Current Data Warnings"), wx.VERTICAL)
 
-        self.warning_box = wx.TextCtrl(self.panel, -1, size=(50*self.GUI_RESOLUTION, 50 + 2*top_bar_2v_space), value="No Problems", style=wx.TE_MULTILINE|wx.TE_READONLY|wx.HSCROLL, name="warning_box")
+        self.warning_box = wx.TextCtrl(self.panel, id=wx.ID_ANY, size=(50*self.GUI_RESOLUTION, 50 + 2*top_bar_2v_space), value="No Problems", style=wx.TE_MULTILINE|wx.TE_READONLY|wx.HSCROLL, name="warning_box")
         self.warning_box.SetHelpText(dgh.warning_help)
 
         warning_sizer.Add(self.warning_box, 1, wx.TOP|wx.EXPAND)
@@ -667,16 +664,32 @@ class Demag_GUI(wx.Frame):
 
     def create_menu(self):
         """
-        Create menu
+        Create the MenuBar for the GUI current structure is:
+        File - Change Working Directory, Import Interpretations from LSQ file, Import interpretations from a redo file, Save interpretations to a redo file, Save Save MagIC pmag tables, Save Plots
+        Edit - New Interpretation, Delete Interpretation, Next Interpretation, Previous Interpretation, Next Specimen, Previous Speciemen, Flag Measurement Data, Coordinate Systems
+        Analysis - Acceptance Criteria, Sample Orientation, Flag Interpretaions
+        Tools - Interpretation Editor, VGP Viewer
+        Help - Usage and Tips, PmagPy Cookbook, Open Docs, Github Page, Open Debugger
         """
         self.menubar = wx.MenuBar()
 
-        #--------------------------------------------------------------------
+        #-----------------
+        # File Menu
+        #-----------------
 
         menu_file = wx.Menu()
 
         m_change_WD = menu_file.Append(-1, "Change Working Directory\tCtrl-W","")
         self.Bind(wx.EVT_MENU, self.on_menu_change_working_directory, m_change_WD)
+
+        m_import_LSQ = menu_file.Append(-1, "&Import Interpretations from LSQ file\tCtrl-L", "")
+        self.Bind(wx.EVT_MENU, self.on_menu_read_from_LSQ, m_import_LSQ)
+
+        m_previous_interpretation = menu_file.Append(-1, "&Import interpretations from a redo file\tCtrl-R", "")
+        self.Bind(wx.EVT_MENU, self.on_menu_previous_interpretation, m_previous_interpretation)
+
+        m_save_interpretation = menu_file.Append(-1, "&Save interpretations to a redo file\tCtrl-S", "")
+        self.Bind(wx.EVT_MENU, self.on_menu_save_interpretation, m_save_interpretation)
 
         m_make_MagIC_results_tables = menu_file.Append(-1, "&Save MagIC pmag tables\tCtrl-Shift-S", "")
         self.Bind(wx.EVT_MENU, self.on_menu_make_MagIC_results_tables, m_make_MagIC_results_tables)
@@ -704,7 +717,55 @@ class Demag_GUI(wx.Frame):
         m_exit = menu_file.Append(-1, "E&xit\tCtrl-Q", "Exit")
         self.Bind(wx.EVT_MENU, self.on_menu_exit, m_exit)
 
-        #--------------------------------------------------------------------
+        #-----------------
+        # Edit Menu
+        #-----------------
+
+        menu_edit = wx.Menu()
+
+        m_new = menu_edit.Append(-1, "&New interpretation\tCtrl-N", "")
+        self.Bind(wx.EVT_MENU, self.on_btn_add_fit, m_new)
+
+        m_delete = menu_edit.Append(-1, "&Delete interpretation\tCtrl-D", "")
+        self.Bind(wx.EVT_MENU, self.delete_fit, m_delete)
+
+        m_next_interp = menu_edit.Append(-1, "&Next interpretation\tCtrl-Up", "")
+        self.Bind(wx.EVT_MENU, self.on_menu_next_interp, m_next_interp)
+
+        m_previous_interp = menu_edit.Append(-1, "&Previous interpretation\tCtrl-Down", "")
+        self.Bind(wx.EVT_MENU, self.on_menu_prev_interp, m_previous_interp)
+
+        m_next_specimen = menu_edit.Append(-1, "&Next Specimen\tCtrl-Right", "")
+        self.Bind(wx.EVT_MENU, self.on_next_button, m_next_specimen)
+
+        m_previous_specimen = menu_edit.Append(-1, "&Previous Specimen\tCtrl-Left", "")
+        self.Bind(wx.EVT_MENU, self.on_prev_button, m_previous_specimen)
+
+        menu_flag_meas = wx.Menu()
+
+        m_good = menu_flag_meas.Append(-1, "&Good Measurement\tCtrl-Alt-G", "")
+        self.Bind(wx.EVT_MENU, self.on_menu_flag_meas_good, m_good)
+        m_bad = menu_flag_meas.Append(-1, "&Bad Measurement\tCtrl-Alt-B", "")
+        self.Bind(wx.EVT_MENU, self.on_menu_flag_meas_bad, m_bad)
+
+        m_flag_meas = menu_edit.AppendMenu(-1, "&Flag Measurement Data", menu_flag_meas)
+
+        menu_coordinates = wx.Menu()
+
+        m_speci = menu_coordinates.Append(-1, "&Specimen Coordinates\tCtrl-P", "")
+        self.Bind(wx.EVT_MENU, self.on_menu_change_speci_coord, m_speci)
+        if "geographic" in self.coordinate_list:
+            m_geo = menu_coordinates.Append(-1, "&Geographic Coordinates\tCtrl-G", "")
+            self.Bind(wx.EVT_MENU, self.on_menu_change_geo_coord, m_geo)
+        if "tilt-corrected" in self.coordinate_list:
+            m_tilt = menu_coordinates.Append(-1, "&Tilt-Corrected Coordinates\tCtrl-T", "")
+            self.Bind(wx.EVT_MENU, self.on_menu_change_tilt_coord, m_tilt)
+
+        m_coords = menu_edit.AppendMenu(-1, "&Coordinate Systems", menu_coordinates)
+
+        #-----------------
+        # Analysis Menu
+        #-----------------
 
         menu_Analysis = wx.Menu()
 
@@ -717,6 +778,15 @@ class Demag_GUI(wx.Frame):
         self.Bind(wx.EVT_MENU, self.on_menu_criteria_file, m_import_criteria_file)
 
         m_new_sub = menu_Analysis.AppendMenu(-1, "Acceptance criteria", submenu_criteria)
+
+        menu_flag_fit = wx.Menu()
+
+        m_good_fit = menu_flag_fit.Append(-1, "&Good Interpretation\tCtrl-Shift-G", "")
+        self.Bind(wx.EVT_MENU, self.on_menu_flag_fit_good, m_good_fit)
+        m_bad_fit = menu_flag_fit.Append(-1, "&Bad Interpretation\tCtrl-Shift-B", "")
+        self.Bind(wx.EVT_MENU, self.on_menu_flag_fit_bad, m_bad_fit)
+
+        m_flag_fit = menu_Analysis.AppendMenu(-1, "&Flag Interpretations", menu_flag_fit)
 
         submenu_sample_check = wx.Menu()
 
@@ -731,37 +801,11 @@ class Demag_GUI(wx.Frame):
 
         m_submenu = menu_Analysis.AppendMenu(-1, "Sample Orientation", submenu_sample_check)
 
-        menu_flag_fit = wx.Menu()
-
-        m_good_fit = menu_flag_fit.Append(-1, "&Good Interpretation\tCtrl-Shift-G", "")
-        self.Bind(wx.EVT_MENU, self.on_menu_flag_fit_good, m_good_fit)
-        m_bad_fit = menu_flag_fit.Append(-1, "&Bad Interpretation\tCtrl-Shift-B", "")
-        self.Bind(wx.EVT_MENU, self.on_menu_flag_fit_bad, m_bad_fit)
-
-        m_flag_fit = menu_Analysis.AppendMenu(-1, "&Flag Interpretations", menu_flag_fit)
-
-#        menu_Analysis.AppendMenu(-1, "&Convert and Combine MagFiles", m_read)
-
-        m_import_LSQ = menu_Analysis.Append(-1, "&Import Interpretations from LSQ file\tCtrl-L", "")
-        self.Bind(wx.EVT_MENU, self.on_menu_read_from_LSQ, m_import_LSQ)
-
-        m_previous_interpretation = menu_Analysis.Append(-1, "&Import previous interpretations from a redo file\tCtrl-R", "")
-        self.Bind(wx.EVT_MENU, self.on_menu_previous_interpretation, m_previous_interpretation)
-
-        m_save_interpretation = menu_Analysis.Append(-1, "&Save current interpretations to a redo file\tCtrl-S", "")
-        self.Bind(wx.EVT_MENU, self.on_menu_save_interpretation, m_save_interpretation)
-
-        #m_delete_interpretation = menu_Analysis.Append(-1, "&Clear all current interpretations\tCtrl-Shift-D", "")
-        #self.Bind(wx.EVT_MENU, self.on_menu_clear_interpretation, m_delete_interpretation)
-
         #-----------------
         # Tools Menu
         #-----------------
 
         menu_Tools = wx.Menu()
-
-        #m_bulk_demagnetization = menu_Tools.Append(-1, "&Bulk demagnetization\tCtrl-B", "")
-        #self.Bind(wx.EVT_MENU, self.on_menu_bulk_demagnetization, m_bulk_demagnetization)
 
 #        m_auto_interpret = menu_Tools.Append(-1, "&Auto interpret (alpha version)\tCtrl-A", "")
 #        self.Bind(wx.EVT_MENU, self.autointerpret, m_auto_interpret)
@@ -794,58 +838,6 @@ class Demag_GUI(wx.Frame):
         self.Bind(wx.EVT_MENU, self.on_menu_debug, m_debug)
 
         #-----------------
-        # Edit Menu
-        #-----------------
-
-        menu_edit = wx.Menu()
-
-        m_new = menu_edit.Append(-1, "&New interpretation\tCtrl-N", "")
-        self.Bind(wx.EVT_MENU, self.on_btn_add_fit, m_new)
-
-        m_delete = menu_edit.Append(-1, "&Delete interpretation\tCtrl-D", "")
-        self.Bind(wx.EVT_MENU, self.delete_fit, m_delete)
-
-        m_next_interp = menu_edit.Append(-1, "&Next interpretation\tCtrl-Up", "")
-        self.Bind(wx.EVT_MENU, self.on_menu_next_interp, m_next_interp)
-
-        m_previous_interp = menu_edit.Append(-1, "&Previous interpretation\tCtrl-Down", "")
-        self.Bind(wx.EVT_MENU, self.on_menu_prev_interp, m_previous_interp)
-
-        m_next_specimen = menu_edit.Append(-1, "&Next Specimen\tCtrl-Right", "")
-        self.Bind(wx.EVT_MENU, self.on_next_button, m_next_specimen)
-
-        m_previous_specimen = menu_edit.Append(-1, "&Previous Specimen\tCtrl-Left", "")
-        self.Bind(wx.EVT_MENU, self.on_prev_button, m_previous_specimen)
-
-#        m_next_sample = menu_edit.Append(-1, "&Next Sample\tCtrl-PageUp", "")
-#        self.Bind(wx.EVT_MENU, self.on_menu_next_sample, m_next_sample)
-
-#        m_previous_sample = menu_edit.Append(-1, "&Previous Sample\tCtrl-PageDown", "")
-#        self.Bind(wx.EVT_MENU, self.on_menu_prev_sample, m_previous_sample)
-
-        menu_flag_meas = wx.Menu()
-
-        m_good = menu_flag_meas.Append(-1, "&Good Measurement\tCtrl-Alt-G", "")
-        self.Bind(wx.EVT_MENU, self.on_menu_flag_meas_good, m_good)
-        m_bad = menu_flag_meas.Append(-1, "&Bad Measurement\tCtrl-Alt-B", "")
-        self.Bind(wx.EVT_MENU, self.on_menu_flag_meas_bad, m_bad)
-
-        m_flag_meas = menu_edit.AppendMenu(-1, "&Flag Measurement Data", menu_flag_meas)
-
-        menu_coordinates = wx.Menu()
-
-        m_speci = menu_coordinates.Append(-1, "&Specimen Coordinates\tCtrl-P", "")
-        self.Bind(wx.EVT_MENU, self.on_menu_change_speci_coord, m_speci)
-        if "geographic" in self.coordinate_list:
-            m_geo = menu_coordinates.Append(-1, "&Geographic Coordinates\tCtrl-G", "")
-            self.Bind(wx.EVT_MENU, self.on_menu_change_geo_coord, m_geo)
-        if "tilt-corrected" in self.coordinate_list:
-            m_tilt = menu_coordinates.Append(-1, "&Tilt-Corrected Coordinates\tCtrl-T", "")
-            self.Bind(wx.EVT_MENU, self.on_menu_change_tilt_coord, m_tilt)
-
-        m_coords = menu_edit.AppendMenu(-1, "&Coordinate Systems", menu_coordinates)
-
-        #-----------------
 
         #self.menubar.Append(menu_preferences, "& Preferences")
         self.menubar.Append(menu_file, "&File")
@@ -863,7 +855,11 @@ class Demag_GUI(wx.Frame):
 #==========================================================================================#
 
     def draw_figure(self,s,update_high_plots=True):
-        step = ""
+        """
+        Convenience function that sets current specimen to s and calculates data for that specimen then redraws all plots.
+        @param - s: specimen to set current specimen too
+        @param - update_high_plots: bool which decides if high level mean plot updates (default: False)
+        """
         self.initialize_CART_rot(s)
 
         #-----------------------------------------------------------
@@ -895,6 +891,9 @@ class Demag_GUI(wx.Frame):
         self.canvas4.draw()
 
     def draw_zijderveld(self):
+        """
+        Draws the zijderveld plot in the GUI on canvas1
+        """
         self.fig1.clf()
         axis_bounds = [0,.1,1,.85]
         self.zijplot = self.fig1.add_axes(axis_bounds,frameon=False, axisbg='None',label='zig_orig',zorder=0)
@@ -1018,59 +1017,10 @@ class Demag_GUI(wx.Frame):
 
         self.canvas1.draw()
 
-    def plot_selected_meas(self):
-        MS_selected = 40
-        for a in self.selected_meas_artists:
-            if a in self.zijplot.collections:
-                self.zijplot.collections.remove(a)
-            if a in self.specimen_eqarea.collections:
-                self.specimen_eqarea.collections.remove(a)
-            if a in self.mplot.collections:
-                self.mplot.collections.remove(a)
-            if a in self.mplot_af.collections:
-                self.mplot_af.collections.remove(a)
-
-        self.selected_meas_artists = []
-        x,y,z = self.CART_rot[self.selected_meas,0],self.CART_rot[self.selected_meas,1], self.CART_rot[self.selected_meas,2]
-        self.selected_meas_artists.append(self.zijplot.scatter(x, -1*y, c="#440000", marker='o', s=MS_selected, zorder=2))
-        self.selected_meas_artists.append(self.zijplot.scatter(x, -1*z, c="#000044", marker='s', s=MS_selected, zorder=2))
-
-        x_eq=array([row[0] for i,row in enumerate(self.zij_norm) if i in self.selected_meas])
-        y_eq=array([row[1] for i,row in enumerate(self.zij_norm) if i in self.selected_meas])
-        z_eq=abs(array([row[2] for i,row in enumerate(self.zij_norm) if i in self.selected_meas]))
-        if len(x_eq)>0:
-            R=array(sqrt(1-z_eq)/sqrt(x_eq**2+y_eq**2)) # from Collinson 1983
-            eqarea_data_x=y_eq*R
-            eqarea_data_y=x_eq*R
-            self.selected_meas_artists.append(self.specimen_eqarea.scatter([eqarea_data_x],[eqarea_data_y],marker='o',edgecolor='black', facecolor="#000000",s=15*self.GUI_RESOLUTION,lw=1,clip_on=False))
-
-        steps = self.Data[self.s]['zijdblock_steps']
-        flags = self.Data[self.s]['measurement_flag']
-        selected_af_meas = filter(lambda i: "T" in steps[i] or steps[i] == "0" and flags[i]!="b", self.selected_meas)
-        selected_T_meas = filter(lambda i: "C" in steps[i] or steps[i] == "0" and flags[i]!="b", self.selected_meas)
-        data = array(self.Data[self.s]['zijdblock'])
-        af_x = data[selected_af_meas,0]
-        af_y = array(map(float,data[selected_af_meas,3]))/float(data[0,3])
-        T_x = data[selected_T_meas,0]
-        T_y = array(map(float,data[selected_T_meas,3]))/float(data[0,3])
-
-        xmin,xmax = self.mplot.get_xlim()
-        ymin,ymax = self.mplot.get_ylim()
-        self.selected_meas_artists.append(self.mplot.scatter(T_x, T_y, facecolor="#440000", edgecolor="#000000", marker='o', s=30, lw=1, clip_on=False,zorder=3))
-        self.mplot.set_xlim(xmin,xmax)
-        self.mplot.set_ylim(ymin,ymax)
-
-        xmin,xmax = self.mplot_af.get_xlim()
-        ymin,ymax = self.mplot_af.get_ylim()
-        self.selected_meas_artists.append(self.mplot_af.scatter(af_x, af_y, facecolor="#000044", edgecolor="#000000", marker='o', s=30, lw=1, clip_on=False, zorder=3))
-        self.mplot_af.set_xlim(xmin,xmax)
-        self.mplot_af.set_ylim(ymin,ymax)
-
-        self.canvas1.draw()
-        self.canvas2.draw()
-        self.canvas3.draw()
-
     def draw_spec_eqarea(self):
+        """
+        Calculates point positions and draws the Specimen eqarea plot on canvas2
+        """
         draw_net(self.specimen_eqarea)
         self.specimen_eqarea.text(-1.2,1.15,"specimen: %s"%self.s,{'family':self.font_type, 'fontsize':10*self.GUI_RESOLUTION, 'style':'normal','va':'center', 'ha':'left' })
 
@@ -1153,6 +1103,9 @@ class Demag_GUI(wx.Frame):
         self.canvas2.draw()
 
     def draw_MM0(self):
+        """
+        Draws the M/M0 plot in the GUI on canvas3
+        """
         self.fig3.clf()
         self.fig3.text(0.02,0.96,'M/M0',{'family':self.font_type, 'fontsize':10*self.GUI_RESOLUTION, 'style':'normal','va':'center', 'ha':'left' })
         self.mplot = self.fig3.add_axes([0.2,0.15,0.7,0.7],frameon=True,axisbg='None')
@@ -1223,10 +1176,66 @@ class Demag_GUI(wx.Frame):
 
         self.canvas3.draw()
 
+    def plot_selected_meas(self):
+        """
+        Goes through all measurements selected in logger and draws darker marker over all specimen plots to display which measurements have been selected
+        """
+        MS_selected = 40
+        for a in self.selected_meas_artists:
+            if a in self.zijplot.collections:
+                self.zijplot.collections.remove(a)
+            if a in self.specimen_eqarea.collections:
+                self.specimen_eqarea.collections.remove(a)
+            if a in self.mplot.collections:
+                self.mplot.collections.remove(a)
+            if a in self.mplot_af.collections:
+                self.mplot_af.collections.remove(a)
+
+        self.selected_meas_artists = []
+        x,y,z = self.CART_rot[self.selected_meas,0],self.CART_rot[self.selected_meas,1], self.CART_rot[self.selected_meas,2]
+        self.selected_meas_artists.append(self.zijplot.scatter(x, -1*y, c="#440000", marker='o', s=MS_selected, zorder=2))
+        self.selected_meas_artists.append(self.zijplot.scatter(x, -1*z, c="#000044", marker='s', s=MS_selected, zorder=2))
+
+        x_eq=array([row[0] for i,row in enumerate(self.zij_norm) if i in self.selected_meas])
+        y_eq=array([row[1] for i,row in enumerate(self.zij_norm) if i in self.selected_meas])
+        z_eq=abs(array([row[2] for i,row in enumerate(self.zij_norm) if i in self.selected_meas]))
+        if len(x_eq)>0:
+            R=array(sqrt(1-z_eq)/sqrt(x_eq**2+y_eq**2)) # from Collinson 1983
+            eqarea_data_x=y_eq*R
+            eqarea_data_y=x_eq*R
+            self.selected_meas_artists.append(self.specimen_eqarea.scatter([eqarea_data_x],[eqarea_data_y],marker='o',edgecolor='black', facecolor="#000000",s=15*self.GUI_RESOLUTION,lw=1,clip_on=False))
+
+        steps = self.Data[self.s]['zijdblock_steps']
+        flags = self.Data[self.s]['measurement_flag']
+        selected_af_meas = filter(lambda i: "T" in steps[i] or steps[i] == "0" and flags[i]!="b", self.selected_meas)
+        selected_T_meas = filter(lambda i: "C" in steps[i] or steps[i] == "0" and flags[i]!="b", self.selected_meas)
+        data = array(self.Data[self.s]['zijdblock'])
+        af_x = data[selected_af_meas,0]
+        af_y = array(map(float,data[selected_af_meas,3]))/float(data[0,3])
+        T_x = data[selected_T_meas,0]
+        T_y = array(map(float,data[selected_T_meas,3]))/float(data[0,3])
+
+        xmin,xmax = self.mplot.get_xlim()
+        ymin,ymax = self.mplot.get_ylim()
+        self.selected_meas_artists.append(self.mplot.scatter(T_x, T_y, facecolor="#440000", edgecolor="#000000", marker='o', s=30, lw=1, clip_on=False,zorder=3))
+        self.mplot.set_xlim(xmin,xmax)
+        self.mplot.set_ylim(ymin,ymax)
+
+        xmin,xmax = self.mplot_af.get_xlim()
+        ymin,ymax = self.mplot_af.get_ylim()
+        self.selected_meas_artists.append(self.mplot_af.scatter(af_x, af_y, facecolor="#000044", edgecolor="#000000", marker='o', s=30, lw=1, clip_on=False, zorder=3))
+        self.mplot_af.set_xlim(xmin,xmax)
+        self.mplot_af.set_ylim(ymin,ymax)
+
+        self.canvas1.draw()
+        self.canvas2.draw()
+        self.canvas3.draw()
+
+
     def draw_interpretations(self):
         """
-        draw the specimen interpretations on the zijderveld and the specimen equal area
-        @alters: fit.lines, zijplot, specimen_eqarea_interpretation, mplot_interpretation
+        draw the specimen interpretations on the zijderveld, the specimen equal area, and the M/M0 plots
+        @alters: fit.lines, fit.points, fit.eqarea_data, fit.mm0_data, zijplot, specimen_eqarea_interpretation, mplot_interpretation
         """
 
         problems = {}
@@ -1449,38 +1458,39 @@ class Demag_GUI(wx.Frame):
         self.canvas3.draw()
 
     def plot_high_levels_data(self):
+        """
+        Complicated function that draws the high level mean plot on canvas4, draws all specimen, sample, or site interpretations according to the UPPER_LEVEL_SHOW variable, draws the fisher mean or fisher mean by polarity of all interpretations displayed, draws sample orientation check if on, and if interpretation editor is open it calls the interpretation editor to have it draw the same things.
+        """
+        self.toolbar4.home()
+        high_level=self.level_box.GetValue()
+        self.UPPER_LEVEL_NAME=self.level_names.GetValue()
+        self.UPPER_LEVEL_MEAN=self.mean_type_box.GetValue()
 
-       self.toolbar4.home()
+        draw_net(self.high_level_eqarea)
+        what_is_it=self.level_box.GetValue()+": "+self.level_names.GetValue()
+        self.high_level_eqarea.text(-1.2,1.15,what_is_it,{'family':self.font_type, 'fontsize':10*self.GUI_RESOLUTION, 'style':'normal','va':'center', 'ha':'left' })
+        if self.ie_open: self.ie.draw_net(); self.ie.write(what_is_it)
 
-       high_level=self.level_box.GetValue()
-       self.UPPER_LEVEL_NAME=self.level_names.GetValue()
-       self.UPPER_LEVEL_MEAN=self.mean_type_box.GetValue()
+        if self.COORDINATE_SYSTEM=="geographic": dirtype='DA-DIR-GEO'
+        elif self.COORDINATE_SYSTEM=="tilt-corrected": dirtype='DA-DIR-TILT'
+        else: dirtype='DA-DIR'
 
-       draw_net(self.high_level_eqarea)
-       what_is_it=self.level_box.GetValue()+": "+self.level_names.GetValue()
-       self.high_level_eqarea.text(-1.2,1.15,what_is_it,{'family':self.font_type, 'fontsize':10*self.GUI_RESOLUTION, 'style':'normal','va':'center', 'ha':'left' })
-       if self.ie_open: self.ie.draw_net(); self.ie.write(what_is_it)
+        if self.level_box.GetValue()=='sample': high_level_type='samples'
+        if self.level_box.GetValue()=='site': high_level_type='sites'
+        if self.level_box.GetValue()=='location': high_level_type='locations'
+        if self.level_box.GetValue()=='study': high_level_type='study'
 
-       if self.COORDINATE_SYSTEM=="geographic": dirtype='DA-DIR-GEO'
-       elif self.COORDINATE_SYSTEM=="tilt-corrected": dirtype='DA-DIR-TILT'
-       else: dirtype='DA-DIR'
+        high_level_name=str(self.level_names.GetValue())
+        calculation_type=str(self.mean_type_box.GetValue())
+        elements_type=self.UPPER_LEVEL_SHOW
 
-       if self.level_box.GetValue()=='sample': high_level_type='samples'
-       if self.level_box.GetValue()=='site': high_level_type='sites'
-       if self.level_box.GetValue()=='location': high_level_type='locations'
-       if self.level_box.GetValue()=='study': high_level_type='study'
+        elements_list=self.Data_hierarchy[high_level_type][high_level_name][elements_type]
 
-       high_level_name=str(self.level_names.GetValue())
-       calculation_type=str(self.mean_type_box.GetValue())
-       elements_type=self.UPPER_LEVEL_SHOW
+        self.high_EA_xdata = [] #clear saved x positions on high equal area
+        self.high_EA_ydata = [] #clear saved y positions on high equal area
 
-       elements_list=self.Data_hierarchy[high_level_type][high_level_name][elements_type]
-
-       self.high_EA_xdata = [] #clear saved x positions on high equal area
-       self.high_EA_ydata = [] #clear saved y positions on high equal area
-
-       # plot elements directions
-       for element in elements_list:
+        # plot elements directions
+        for element in elements_list:
             if element not in self.pmag_results_data[elements_type].keys() and self.UPPER_LEVEL_SHOW == 'specimens':
                 self.calculate_high_level_mean(elements_type,element,"Fisher","specimens",self.mean_fit)
             if element in self.pmag_results_data[elements_type].keys():
@@ -1505,23 +1515,26 @@ class Demag_GUI(wx.Frame):
                                     mpars=self.high_level_means[elements_type][element][mf][dirtype]
                                     self.plot_eqarea_pars(mpars,self.high_level_eqarea)
 
-       # plot elements means
-       if calculation_type!="None":
+        # plot elements means
+        if calculation_type!="None":
            if high_level_name in self.high_level_means[high_level_type].keys():
                 if self.mean_fit in self.high_level_means[high_level_type][high_level_name].keys():
                     if dirtype in self.high_level_means[high_level_type][high_level_name][self.mean_fit].keys():
                         self.plot_eqarea_mean(self.high_level_means[high_level_type][high_level_name][self.mean_fit][dirtype],self.high_level_eqarea)
 
-       #check sample orietation
-       if self.check_orient_on:
+        #check sample orietation
+        if self.check_orient_on:
            self.calc_and_plot_sample_orient_check()
 
-       self.canvas4.draw()
+        self.canvas4.draw()
 
-       if self.ie_open:
+        if self.ie_open:
            self.ie.draw()
 
     def calc_and_plot_sample_orient_check(self):
+        """
+        If sample orientation is on plots the wrong arrow, wrong compass, and rotated sample error directions for the current specimen interpretation on the high level mean plot so that you can check sample orientation good/bad.
+        """
         fit = self.current_fit
         if fit == None: return
         pars = fit.get(self.COORDINATE_SYSTEM)
@@ -1562,6 +1575,9 @@ class Demag_GUI(wx.Frame):
             self.ie.scatter(X_up,Y_up, marker='.', color=fit.color, s=SIZE/2, lw=1, clip_on=False)
 
     def plot_high_level_equalarea(self,element):
+        """
+        Given a GUI element such as a sample or specimen tries to plot to high level mean plot
+        """
         if self.ie_open:
             high_level = self.ie.show_box.GetValue()
         else: high_level = self.UPPER_LEVEL_SHOW
@@ -1639,8 +1655,9 @@ class Demag_GUI(wx.Frame):
                     self.ie.scatter([XY[0]],[XY[1]],marker=marker_shape,edgecolor=fit.color,facecolor=FC,s=SIZE,lw=1,clip_on=False)
 
     def plot_eqarea_pars(self,pars,fig):
-        # plot best-fit plane
-        #fig.clear()
+        """
+        Given a dictionary of parameters (pars) that is returned from pmag.domean plots those pars to the given fig
+        """
         if pars=={}:
             pass
         elif 'calculation_type' in pars.keys() and pars['calculation_type']=='DE-BFP':
@@ -1684,7 +1701,9 @@ class Demag_GUI(wx.Frame):
                 self.ie.scatter([XY[0]],[XY[1]],marker='o',edgecolor=EC, facecolor=FC,s=SIZE,lw=1,clip_on=False)
 
     def plot_eqarea_mean(self,meanpars,fig):
-        #fig.clear()
+        """
+        Given a dictionary of parameters from pmag.dofisher, pmag.dolnp, or pmag.dobingham (meanpars) plots parameters to fig
+        """
         mpars_to_plot=[]
         if meanpars=={}:
             return
@@ -1733,9 +1752,11 @@ class Demag_GUI(wx.Frame):
     #---------------------------------------------#
 
     def initialize_CART_rot(self,s):
-
+        """
+        Sets current specimen to s and calculates the data necessary to plot the specimen plots (zijderveld, specimen eqarea, M/M0)
+        @param - s: specimen to set as the GUI's current specimen
+        """
         self.s = s
-
         if self.orthogonal_box.GetValue()=="X=East":
             self.ORTHO_PLOT_TYPE='E-W'
         elif self.orthogonal_box.GetValue()=="X=North":
@@ -1759,48 +1780,46 @@ class Demag_GUI(wx.Frame):
 
         if self.COORDINATE_SYSTEM=='geographic':
             if self.ORTHO_PLOT_TYPE=='N-S':
-                self.CART_rot=self.Rotate_zijderveld(self.Data[self.s]['zdata_geo'],0.)
+                self.CART_rot=Rotate_zijderveld(self.Data[self.s]['zdata_geo'],0.)
             elif self.ORTHO_PLOT_TYPE=='E-W':
-                self.CART_rot=self.Rotate_zijderveld(self.Data[self.s]['zdata_geo'],90.)
+                self.CART_rot=Rotate_zijderveld(self.Data[self.s]['zdata_geo'],90.)
             elif self.ORTHO_PLOT_TYPE=='PCA_dec':
                 if 'specimen_dec' in self.current_fit.pars.keys() and type(self.current_fit.pars['specimen_dec'])!=str:
-                    self.CART_rot=self.Rotate_zijderveld(self.Data[self.s]['zdata_geo'],self.current_fit.pars['specimen_dec'])
+                    self.CART_rot=Rotate_zijderveld(self.Data[self.s]['zdata_geo'],self.current_fit.pars['specimen_dec'])
                 else:
-                    self.CART_rot=self.Rotate_zijderveld(self.Data[self.s]['zdata_geo'],pmag.cart2dir(self.Data[self.s]['zdata_geo'][0])[0])
+                    self.CART_rot=Rotate_zijderveld(self.Data[self.s]['zdata_geo'],pmag.cart2dir(self.Data[self.s]['zdata_geo'][0])[0])
             else:
-                self.CART_rot=self.Rotate_zijderveld(self.Data[self.s]['zdata_geo'],pmag.cart2dir(self.Data[self.s]['zdata_geo'][0])[0])
+                self.CART_rot=Rotate_zijderveld(self.Data[self.s]['zdata_geo'],pmag.cart2dir(self.Data[self.s]['zdata_geo'][0])[0])
 
         elif self.COORDINATE_SYSTEM=='tilt-corrected':
             if self.ORTHO_PLOT_TYPE=='N-S':
-                self.CART_rot=self.Rotate_zijderveld(self.Data[self.s]['zdata_tilt'],0.)
+                self.CART_rot=Rotate_zijderveld(self.Data[self.s]['zdata_tilt'],0.)
             elif self.ORTHO_PLOT_TYPE=='E-W':
-                self.CART_rot=self.Rotate_zijderveld(self.Data[self.s]['zdata_tilt'],90)
+                self.CART_rot=Rotate_zijderveld(self.Data[self.s]['zdata_tilt'],90)
             elif self.ORTHO_PLOT_TYPE=='PCA_dec':
                 if 'specimen_dec' in self.current_fit.pars.keys() and type(self.current_fit.pars['specimen_dec'])!=str:
-                    self.CART_rot=self.Rotate_zijderveld(self.Data[self.s]['zdata_tilt'],self.current_fit.pars['specimen_dec'])
+                    self.CART_rot=Rotate_zijderveld(self.Data[self.s]['zdata_tilt'],self.current_fit.pars['specimen_dec'])
                 else:
-                    self.CART_rot=self.Rotate_zijderveld(self.Data[self.s]['zdata_tilt'],pmag.cart2dir(self.Data[self.s]['zdata_tilt'][0])[0])
+                    self.CART_rot=Rotate_zijderveld(self.Data[self.s]['zdata_tilt'],pmag.cart2dir(self.Data[self.s]['zdata_tilt'][0])[0])
             else:
-                self.CART_rot=self.Rotate_zijderveld(self.Data[self.s]['zdata_tilt'],pmag.cart2dir(self.Data[self.s]['zdata_tilt'][0])[0])
+                self.CART_rot=Rotate_zijderveld(self.Data[self.s]['zdata_tilt'],pmag.cart2dir(self.Data[self.s]['zdata_tilt'][0])[0])
         else:
             if self.ORTHO_PLOT_TYPE=='N-S':
-                self.CART_rot=self.Rotate_zijderveld(self.Data[self.s]['zdata'],0.)
+                self.CART_rot=Rotate_zijderveld(self.Data[self.s]['zdata'],0.)
             elif self.ORTHO_PLOT_TYPE=='E-W':
-                self.CART_rot=self.Rotate_zijderveld(self.Data[self.s]['zdata'],90)
+                self.CART_rot=Rotate_zijderveld(self.Data[self.s]['zdata'],90)
             elif self.ORTHO_PLOT_TYPE=='PCA_dec':
                 if 'specimen_dec' in self.current_fit.pars.keys() and type(self.current_fit.pars['specimen_dec'])!=str:
-                    self.CART_rot=self.Rotate_zijderveld(self.Data[self.s]['zdata'],self.current_fit.pars['specimen_dec'])
+                    self.CART_rot=Rotate_zijderveld(self.Data[self.s]['zdata'],self.current_fit.pars['specimen_dec'])
                 else:#Zijderveld
-                    self.CART_rot=self.Rotate_zijderveld(self.Data[self.s]['zdata'],pmag.cart2dir(self.Data[self.s]['zdata'][0])[0])
+                    self.CART_rot=Rotate_zijderveld(self.Data[self.s]['zdata'],pmag.cart2dir(self.Data[self.s]['zdata'][0])[0])
 
             else:#Zijderveld
-                self.CART_rot=self.Rotate_zijderveld(self.Data[self.s]['zdata'],pmag.cart2dir(self.Data[self.s]['zdata'][0])[0])
-
+                self.CART_rot=Rotate_zijderveld(self.Data[self.s]['zdata'],pmag.cart2dir(self.Data[self.s]['zdata'][0])[0])
 
         self.zij_norm=array([row/sqrt(sum(row**2)) for row in self.zij])
 
         # remove bad data from plotting:
-
         self.CART_rot_good=[]
         self.CART_rot_bad=[]
         for i in range(len(self.CART_rot)):
@@ -1812,18 +1831,16 @@ class Demag_GUI(wx.Frame):
         self.CART_rot_good=array(self.CART_rot_good)
         self.CART_rot_bad=array(self.CART_rot_bad)
 
-    def Rotate_zijderveld(self,Zdata,rot_declination):
-        if len(Zdata)==0:
-            return([])
-        CART_rot=[]
-        for i in range(0,len(Zdata)):
-            DIR=pmag.cart2dir(Zdata[i])
-            DIR[0]=(DIR[0]-rot_declination)%360.
-            CART_rot.append(array(pmag.dir2cart(DIR)))
-        CART_rot=array(CART_rot)
-        return(CART_rot)
-
     def add_fit(self,specimen,name,fmin,fmax,PCA_type="DE-BFL", color=None):
+        """
+        Goes through the data checks required to add an interpretation to the param specimen with the name param name, the bounds param fmin and param fmax, and calculation type param PCA_type.
+        @param - specimen: specimen with measurement data to add the interpretation to
+        @param - name: name of the new interpretation
+        @param - fmin: lower bound of new interpretation
+        @param - fmax: upper bound of new interpretation
+        @param - PCA_type: type of regression or mean for new interpretaion (default: DE-BFL or line)
+        @prarm - color: color to plot the new interpretation in
+        """
         if specimen not in self.Data.keys():
             self.user_warning("there is no measurement data for %s and therefore no interpretation can be created for this specimen"%(specimen))
             return
@@ -1847,6 +1864,10 @@ class Demag_GUI(wx.Frame):
         return new_fit
 
     def calculate_vgp_data(self):
+        """
+        Calculates VGPS for all samples, sites, and locations
+        @return - VGP_Data: dictionary of structure {sample: {comp: data}, site: {comp: data}, location: {comp: data}}
+        """
         #get criteria if it exists else use default
         crit_data = self.read_criteria_file()
         if crit_data==None:
@@ -1936,7 +1957,7 @@ class Demag_GUI(wx.Frame):
                 try:
                     lat = float(site[0]['site_lat'])
                     lon = float(site[0]['site_lon'])
-                except KeyError,IndexError: continue
+                except (KeyError,IndexError,ValueError) as e: continue
                 plong,plat,dp,dm = pmag.dia_vgp(dec,inc,a95,lat,lon)
                 PmagResRec = {}
                 PmagResRec['name']=samp
@@ -1964,7 +1985,7 @@ class Demag_GUI(wx.Frame):
                 try:
                     lat = float(erSite[0]['site_lat'])
                     lon = float(erSite[0]['site_lon'])
-                except KeyError,IndexError: continue
+                except (KeyError,IndexError): continue
                 plong,plat,dp,dm = pmag.dia_vgp(dec,inc,a95,lat,lon)
                 SiteData['name']=site
                 SiteData['comp_name']=comp
@@ -2007,7 +2028,7 @@ class Demag_GUI(wx.Frame):
                         lon = loc_data[loc]['location_begin_lon']
                     elif loc in loc_data and 'location_end_lon' in loc_data[loc]:
                         lon = loc_data[loc]['location_end_lon']
-                    if lat=="" and lon=="":
+                    if lat=="" or lon=="" or lat==None or lon==None:
                         ui_dialog = demag_dialogs.user_input(self,['Latitude','Longitude'],parse_funcs=[float,float], heading="Missing Latitude or Longitude data for location: %s"%loc)
                         self.show_dlg(ui_dialog)
                         ui_data = ui_dialog.get_values()
@@ -2019,7 +2040,8 @@ class Demag_GUI(wx.Frame):
                                 loc_data[loc]['location_begin_lat'] = lat
                                 loc_data[loc]['location_begin_lon'] = lon
                         else: continue
-                    plong,plat,dp,dm = pmag.dia_vgp(*map(float,[dec,inc,a95,lat,lon]))
+                    try: plong,plat,dp,dm = pmag.dia_vgp(*map(float,[dec,inc,a95,lat,lon]))
+                    except TypeError: print("Not valid parameters for vgp calculation on location: %s"%loc,dec,inc,a95,lat,lon);continue
                     PolRes['vgp_lon']=plong
                     PolRes['vgp_lat']=plat
                     PolRes['vgp_dp']=dp
@@ -2030,10 +2052,9 @@ class Demag_GUI(wx.Frame):
         return VGP_Data
 
     def convert_ages_to_calendar_year(self,er_ages_rec):
-        '''
+        """
         convert all age units to calendar year
-        '''
-
+        """
         if "age" not in  er_ages_rec.keys():
             return(er_ages_rec)
         if "age_unit" not in er_ages_rec.keys():
@@ -2047,9 +2068,6 @@ class Demag_GUI(wx.Frame):
                  er_ages_rec["age"]=scipy.mean([float(er_ages_rec["age_range_high"]),float(er_ages_rec["age_range_low"])])
         if  er_ages_rec["age"]=="":
             return(er_ages_rec)
-
-            #age_descriptier_ages_recon=er_ages_rec["age_description"] 
-
 
         age_unit=er_ages_rec["age_unit"]
 
@@ -2119,6 +2137,7 @@ class Demag_GUI(wx.Frame):
             if not self.Data[self.s]['zijdblock_tilt']: self.warning_text += "There is no tilt-corrected data for this specimen.\n"
 
     def read_criteria_file(self,criteria_file_name=None):
+        """"""
         acceptance_criteria=pmag.initialize_acceptance_criteria()
         if self.data_model==3:
             if criteria_file_name==None: criteria_file_name = "criteria.txt"
@@ -2687,9 +2706,6 @@ class Demag_GUI(wx.Frame):
     def set_test_mode(self,on_off):
         if type(on_off) != bool: print("test mode must be a bool"); return
         self.test_mode = on_off
-
-    def get_test_mode(self):
-        return self.test_mode
 
     def mark_meas_good(self,g_index):
 
@@ -6147,13 +6163,11 @@ class Demag_GUI(wx.Frame):
     #---------------------------------------------#
 
     def on_save_interpretation_button(self,event):
-
         """
         on the save button
         the interpretation is saved to pmag_results_table data
         in all coordinate systems
         """
-
         if self.current_fit:
             calculation_type=self.current_fit.get(self.COORDINATE_SYSTEM)['calculation_type']
             tmin=str(self.tmin_box.GetValue())
@@ -6256,7 +6270,6 @@ class Demag_GUI(wx.Frame):
 
     def __str__(self):
         out_str=""
-
         out_str += "Demag_GUI instance: %s\n"%(hex(id(self)))
         out_str += "Global Variables\n"
         out_str += "\tcoordinate system: %s\n"%(self.COORDINATE_SYSTEM)
@@ -6270,11 +6283,13 @@ class Demag_GUI(wx.Frame):
             out_str += str(pars)
         else:
             out_str += "\tcurrent fit is: %s for specimen %s\n"%("None",self.s)
-
         return out_str
 
     def get_ie_open(self):
         return self.ie_open
+
+    def get_test_mode(self):
+        return self.test_mode
 
     def total_num_of_interpertations(self):
         num_interp = 0
@@ -6319,14 +6334,6 @@ class SaveMyPlot(wx.Frame):
 #--------------------------------------------------------------
 # Run the GUI
 #--------------------------------------------------------------
-
-def alignToTop(win):
-    dw, dh = wx.DisplaySize()
-    w, h = win.GetSize()
-    #x = dw - w
-    #y = dh - h
-
-    win.SetPosition(((dw-w)/2.,0 ))
 
 def main(WD=None, standalone_app=True, parent=None, write_to_log_file=True):
     # to run as module:

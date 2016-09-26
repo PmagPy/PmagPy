@@ -1,7 +1,7 @@
 import os
 from re import findall,split
-from pylab import arange,pi,cos,sin
-from pmag import dimap
+from numpy import array,arange,pi,cos,sin
+from pmag import dimap,cart2dir,dir2cart
 import programs.cit_magic3 as cit_magic
 from ipmag import combine_magic
 from time import time
@@ -237,6 +237,17 @@ def find_file(name, path):
     for root, dirs, files in os.walk(path):
         if name in files:
             return os.path.join(root, name)
+
+def Rotate_zijderveld(Zdata,rot_declination):
+    if len(Zdata)==0:
+        return([])
+    CART_rot=[]
+    for i in range(0,len(Zdata)):
+        DIR=cart2dir(Zdata[i])
+        DIR[0]=(DIR[0]-rot_declination)%360.
+        CART_rot.append(array(dir2cart(DIR)))
+    CART_rot=array(CART_rot)
+    return(CART_rot)
 
 def draw_net(FIG):
     FIG.clear()

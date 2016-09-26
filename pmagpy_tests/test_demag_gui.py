@@ -242,11 +242,11 @@ class TestMainFrame(unittest.TestCase):
         ie.ProcessEvent(addall_evt)
 
         menu_bar = self.frame.GetMenuBar()
-        analysis_menu = menu_bar.GetMenu(2)
-        analysis_menu_items = analysis_menu.GetMenuItems()
+        file_menu = menu_bar.GetMenu(0)
+        file_menu_items = file_menu.GetMenuItems()
 
-        importredo_menu_evt = wx.PyCommandEvent(wx.EVT_MENU.typeId,analysis_menu_items[2].GetId())
-        writeredo_menu_evt = wx.PyCommandEvent(wx.EVT_MENU.typeId,analysis_menu_items[3].GetId())
+        importredo_menu_evt = wx.PyCommandEvent(wx.EVT_MENU.typeId,file_menu_items[2].GetId())
+        writeredo_menu_evt = wx.PyCommandEvent(wx.EVT_MENU.typeId,file_menu_items[3].GetId())
 
         def press_ok_btn():
             self.frame.dlg.SetReturnCode(self.frame.dlg.GetAffirmativeId())
