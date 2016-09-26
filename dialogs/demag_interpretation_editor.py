@@ -583,15 +583,15 @@ class InterpretationEditorFrame(wx.Frame):
         @param: event -> wx.ListCtrlEvent that triggered this function
         """
         i = event.GetIndex()
-        fit = self.fit_list[i][0]
+        fit,spec = self.fit_list[i][0],self.fit_list[i][1]
         if fit in self.parent.bad_fits:
-            self.parent.bad_fits.remove(fit)
+            if not self.parent.mark_fit_good(fit,spec=spec): return
             if i == self.current_fit_index:
                 self.logger.SetItemBackgroundColour(i,"LIGHT BLUE")
             else:
                 self.logger.SetItemBackgroundColour(i,"WHITE")
         else:
-            self.parent.bad_fits.append(fit)
+            if not self.parent.mark_fit_bad(fit): return
             if i == self.current_fit_index:
                 self.logger.SetItemBackgroundColour(i,"red")
             else:

@@ -99,7 +99,7 @@ class Demag_GUI(wx.Frame):
 #============================Initalization Functions=======================================#
 #==========================================================================================#
 
-    def __init__(self, WD=None, parent=None, write_to_log_file=True):
+    def __init__(self, WD=None, parent=None, write_to_log_file=True, test_mode_on=False):
         """
         NAME:
     demag_gui.py
@@ -113,6 +113,7 @@ class Demag_GUI(wx.Frame):
         wx.Frame.__init__(self, parent, wx.ID_ANY, self.title, style = default_style, name='demag gui')
         self.SetExtraStyle(wx.FRAME_EX_CONTEXTHELP)
         self.parent = parent
+        self.set_test_mode(test_mode_on)
 
         #setup wx help provider class to give help messages
         provider = wx.SimpleHelpProvider()
@@ -722,10 +723,22 @@ class Demag_GUI(wx.Frame):
         m_check_orient = submenu_sample_check.Append(-1, "&Check Sample Orientations\tCtrl-O", "")
         self.Bind(wx.EVT_MENU, self.on_menu_check_orient, m_check_orient)
 
-        m_mark_samp_bad = submenu_sample_check.Append(-1, "&Mark Sample Bad\tCtrl-B", "")
+        m_mark_samp_bad = submenu_sample_check.Append(-1, "&Mark Sample Bad\tCtrl-.", "")
         self.Bind(wx.EVT_MENU, self.on_menu_mark_samp_bad, m_mark_samp_bad)
 
+        m_mark_samp_good = submenu_sample_check.Append(-1, "&Mark Sample Good\tCtrl-,", "")
+        self.Bind(wx.EVT_MENU, self.on_menu_mark_samp_good, m_mark_samp_good)
+
         m_submenu = menu_Analysis.AppendMenu(-1, "Sample Orientation", submenu_sample_check)
+
+        menu_flag_fit = wx.Menu()
+
+        m_good_fit = menu_flag_fit.Append(-1, "&Good Interpretation\tCtrl-Shift-G", "")
+        self.Bind(wx.EVT_MENU, self.on_menu_flag_fit_good, m_good_fit)
+        m_bad_fit = menu_flag_fit.Append(-1, "&Bad Interpretation\tCtrl-Shift-B", "")
+        self.Bind(wx.EVT_MENU, self.on_menu_flag_fit_bad, m_bad_fit)
+
+        m_flag_fit = menu_Analysis.AppendMenu(-1, "&Flag Interpretations", menu_flag_fit)
 
 #        menu_Analysis.AppendMenu(-1, "&Convert and Combine MagFiles", m_read)
 
@@ -1826,6 +1839,11 @@ class Demag_GUI(wx.Frame):
         self.pmag_results_data['specimens'][specimen].append(new_fit)
         if fmin != None and fmax != None:
             new_fit.put(specimen,self.COORDINATE_SYSTEM,self.get_PCA_parameters(specimen,new_fit,fmin,fmax,self.COORDINATE_SYSTEM,PCA_type))
+        samp = self.Data_hierarchy['sample_of_specimen'][specimen]
+        if 'sample_orientation_flag' not in self.Data_info['er_samples'][samp]:
+            self.Data_info['er_samples'][samp]['sample_orientation_flag'] = 'g'
+        samp_flag = self.Data_info['er_samples'][samp]['sample_orientation_flag']
+        if samp_flag=='b': self.mark_fit_bad(new_fit)
         return new_fit
 
     def calculate_vgp_data(self):
@@ -1890,13 +1908,12 @@ class Demag_GUI(wx.Frame):
                 not_found.append('longitude')
             if not_found == []: continue
             TEXT="%s not found for site %s would you like to enter the values now or skip this site and all samples contained in it?"%(str(not_found),val['er_site_name'])
-            self.dlg = wx.MessageDialog(self, caption="Missing Data",message=TEXT,style=wx.YES_NO|wx.ICON_QUESTION)
-            result = self.dlg.ShowModal()
-            self.dlg.Destroy()
+            dlg = wx.MessageDialog(self, caption="Missing Data",message=TEXT,style=wx.YES_NO|wx.ICON_QUESTION)
+            result = self.show_dlg(dlg)
+            dlg.Destroy()
             if result == wx.ID_OK:
                 ui_dialog = demag_dialogs.user_input(self,['Latitude','Longitude'],parse_funcs=[float,float], heading="Missing Latitude or Longitude data for site: %s"%val['er_site_name'])
-                ui_dialog.Center()
-                ui_dialog.ShowModal()
+                self.show_dlg(ui_dialog)
                 ui_data = ui_dialog.get_values()
                 if ui_data[0]:
                     val['site_lat']=ui_data[1]['Latitude']
@@ -1992,8 +2009,7 @@ class Demag_GUI(wx.Frame):
                         lon = loc_data[loc]['location_end_lon']
                     if lat=="" and lon=="":
                         ui_dialog = demag_dialogs.user_input(self,['Latitude','Longitude'],parse_funcs=[float,float], heading="Missing Latitude or Longitude data for location: %s"%loc)
-                        ui_dialog.Center()
-                        ui_dialog.ShowModal()
+                        self.show_dlg(ui_dialog)
                         ui_data = ui_dialog.get_values()
                         if ui_data[0]:
                             lat=ui_data[1]['Latitude']
@@ -2653,9 +2669,9 @@ class Demag_GUI(wx.Frame):
 
         if message == None:
             message="All interpretations will be deleted all unsaved data will be irretrievable, continue?"
-        self.dlg = wx.MessageDialog(self, caption="Delete?",message=message,style=wx.OK|wx.CANCEL)
-        result = self.dlg.ShowModal()
-        self.dlg.Destroy()
+        dlg = wx.MessageDialog(self, caption="Delete?",message=message,style=wx.OK|wx.CANCEL)
+        result = self.show_dlg(dlg)
+        dlg.Destroy()
         if result != wx.ID_OK:
             return False
 
@@ -2667,6 +2683,13 @@ class Demag_GUI(wx.Frame):
         if self.ie_open:
             self.ie.update_editor()
         return True
+
+    def set_test_mode(self,on_off):
+        if type(on_off) != bool: print("test mode must be a bool"); return
+        self.test_mode = on_off
+
+    def get_test_mode(self):
+        return self.test_mode
 
     def mark_meas_good(self,g_index):
 
@@ -2722,6 +2745,22 @@ class Demag_GUI(wx.Frame):
             index = self.Data[self.s]['magic_experiment_name'] + str(g_index+1)
             mdf.set_value(index,'quality','b')
 
+    def mark_fit_good(self,fit,spec=None):
+        if spec==None:
+            for spec,fits in self.pmag_results_data['specimens'].items():
+                if fit in fits: break
+        samp = self.Data_hierarchy['sample_of_specimen'][spec]
+        if 'sample_orientation_flag' not in self.Data_info['er_samples'][samp]:
+            self.Data_info['er_samples'][samp]['sample_orientation_flag'] = 'g'
+        samp_flag = self.Data_info['er_samples'][samp]['sample_orientation_flag']
+        if samp_flag=='g':
+            self.bad_fits.remove(fit)
+            return True
+        else: self.user_warning("Cannot mark this interpretation good its sample orientation has been marked bad"); return False
+
+    def mark_fit_bad(self,fit):
+        self.bad_fits.append(fit); return True
+
     #---------------------------------------------#
     #Data Read and Location Alteration Functions
     #---------------------------------------------#
@@ -2757,8 +2796,7 @@ class Demag_GUI(wx.Frame):
                 self.spec_data['specimen'] = self.spec_data.index
 
             ui_dialog = demag_dialogs.user_input(self,["# of characters to remove"], heading="Sample data could not be found attempting to generate sample names by removing characters from specimen names")
-            ui_dialog.Center()
-            ui_dialog.ShowModal()
+            self.show_dlg(ui_dialog)
             ui_data = ui_dialog.get_values()
             try: samp_ncr = int(ui_data[1]["# of characters to remove"])
             except ValueError:
@@ -2772,8 +2810,7 @@ class Demag_GUI(wx.Frame):
 
           if 'site' not in self.samp_data.columns or 'site' not in self.site_data.columns:
             ui_dialog = demag_dialogs.user_input(self,["# of characters to remove","site delimiter"], heading="No Site Data found attempting to create site names from specimen names")
-            ui_dialog.Center()
-            ui_dialog.ShowModal()
+            self.show_dlg(ui_dialog)
             ui_data = ui_dialog.get_values()
             try:
                 site_ncr = int(ui_data[1]["# of characters to remove"])
@@ -2789,8 +2826,7 @@ class Demag_GUI(wx.Frame):
 
           if 'location' not in self.site_data.columns or 'location' not in self.loc_data.columns:
             ui_dialog = demag_dialogs.user_input(self,["location name for all sites"], heading="No Location found")
-            ui_dialog.Center()
-            ui_dialog.ShowModal()
+            self.show_dlg(ui_dialog)
             ui_data = ui_dialog.get_values()
             self.site_data['location'] = ui_data[1]["location name for all sites"]
 
@@ -2838,16 +2874,11 @@ class Demag_GUI(wx.Frame):
 
       self.mag_meas_data=deepcopy(self.merge_pmag_recs(mag_meas_data))
 
-      # get list of unique specimen names
+      # get list of unique specimen names with measurement data
       CurrRec=[]
-      #print "-I- get sids"
       sids=pmag.get_specs(self.mag_meas_data) # samples ID's
-      #print "-I- done get sids"
-
-      #print "initialize blocks"
 
       for s in sids:
-
           if s not in Data.keys():
               Data[s]={}
               Data[s]['zijdblock']=[]
@@ -2859,9 +2890,7 @@ class Demag_GUI(wx.Frame):
               Data[s]['zijdblock_steps']=[]
               Data[s]['measurement_flag']=[]# a list of points 'g' or 'b'
               Data[s]['mag_meas_data_index']=[]  # index in original magic_measurements.txt
-              #print "done initialize blocks"
 
-      #print "sorting meas data"
       prev_s = None
       cnt=-1
       for rec in self.mag_meas_data:
@@ -2992,13 +3021,8 @@ class Demag_GUI(wx.Frame):
                  try:
                     sample_azimuth=float(self.Data_info["er_samples"][sample]['sample_azimuth'])
                     sample_dip=float(self.Data_info["er_samples"][sample]['sample_dip'])
-                    sample_orientation_flag='g'
-                    if 'sample_orientation_flag' in  self.Data_info["er_samples"][sample].keys():
-                        if str(self.Data_info["er_samples"][sample]['sample_orientation_flag'])=='b':
-                            sample_orientation_flag='b'
-                    if sample_orientation_flag!='b':
-                        d_geo,i_geo=pmag.dogeo(dec,inc,sample_azimuth,sample_dip)
-                        Data[s]['zijdblock_geo'].append([tr,d_geo,i_geo,intensity,ZI,rec['measurement_flag'],rec['magic_instrument_codes']])
+                    d_geo,i_geo=pmag.dogeo(dec,inc,sample_azimuth,sample_dip)
+                    Data[s]['zijdblock_geo'].append([tr,d_geo,i_geo,intensity,ZI,rec['measurement_flag'],rec['magic_instrument_codes']])
                  except (IOError, KeyError, ValueError, TypeError) as e:
                     pass
 #                    if prev_s != s:
@@ -3613,41 +3637,51 @@ class Demag_GUI(wx.Frame):
 #============================Interal Dialog Functions======================================#
 #==========================================================================================#
 
+    def show_dlg(self,dlg):
+        if not self.test_mode:
+            dlg.Center()
+            return dlg.ShowModal()
+        else: return dlg.GetAffirmativeId()
+
     def get_DIR(self):
         """
         Choose a working directory dialog
         """
 
-        self.dlg = wx.DirDialog(self, "Choose a directory:",defaultPath = self.currentDirectory ,style=wx.DD_DEFAULT_STYLE | wx.DD_NEW_DIR_BUTTON | wx.DD_CHANGE_DIR)
-        ok = self.dlg.ShowModal()
+        dlg = wx.DirDialog(self, "Choose a directory:",defaultPath = self.currentDirectory ,style=wx.DD_DEFAULT_STYLE | wx.DD_NEW_DIR_BUTTON | wx.DD_CHANGE_DIR)
+        ok = self.show_dlg(dlg)
         if ok == wx.ID_OK:
-            new_WD=self.dlg.GetPath()
-            self.dlg.Destroy()
+            new_WD=dlg.GetPath()
+            dlg.Destroy()
         else:
             new_WD = os.getcwd()
-            self.dlg.Destroy()
+            dlg.Destroy()
         return new_WD
 
     def choose_meas_file(self):
-        self.dlg = wx.FileDialog(
+        dlg = wx.FileDialog(
             self, message="No magic_measurements.txt found. Please choose a magic measurement file",
             defaultDir=self.WD,
             defaultFile="magic_measurements.txt",
             wildcard="*.magic|*.txt",
             style=wx.OPEN | wx.CHANGE_DIR
             )
-        self.dlg.Center()
-        if self.dlg.ShowModal() == wx.ID_OK:
-            meas_file = self.dlg.GetPath()
-            self.dlg.Destroy()
+        if self.show_dlg(dlg) == wx.ID_OK:
+            meas_file = dlg.GetPath()
+            dlg.Destroy()
         else:
             meas_file = None
-            self.dlg.Destroy()
+            dlg.Destroy()
         return meas_file
+
+    def saved_dlg(self, message, caption = 'Saved:'):
+        dlg = wx.MessageDialog(self, caption=caption,message=message,style=wx.OK)
+        result = self.show_dlg(dlg)
+        dlg.Destroy()
 
     def user_warning(self, message, caption = 'Warning!'):
         dlg = wx.MessageDialog(self, message, caption, wx.OK | wx.CANCEL | wx.ICON_WARNING)
-        if dlg.ShowModal() == wx.ID_OK:
+        if self.show_dlg(dlg) == wx.ID_OK:
             continue_bool = True
         else:
             continue_bool = False
@@ -3656,13 +3690,7 @@ class Demag_GUI(wx.Frame):
 
     def data_loss_warning(self):
         TEXT="This action could result in a loss of all unsaved data. Would you like to continue"
-        self.dlg = wx.MessageDialog(self,caption="Warning:", message=TEXT ,style=wx.OK|wx.CANCEL|wx.ICON_EXCLAMATION)
-        if self.dlg.ShowModal() == wx.ID_OK:
-            continue_bool = True
-        else:
-            continue_bool = False
-        self.dlg.Destroy()
-        return continue_bool
+        return self.user_warning(TEXT)
 
     def on_close_criteria_box (self,dia):
         window_list_specimens=['specimen_n','specimen_mad','specimen_dang','specimen_alpha95']
@@ -3721,21 +3749,18 @@ class Demag_GUI(wx.Frame):
                 self.acceptance_criteria[crit]['value']=float(new_value)
 
             #  message dialog
-            self.dlg = wx.MessageDialog(self,caption="Saved:", message="Changes are saved to pmag_criteria.txt\n " ,style=wx.OK)
-            result = self.dlg.ShowModal()
-            if result == wx.ID_OK:
-                self.write_acceptance_criteria_to_file()
-                self.dlg.Destroy()
-                dia.Destroy()
+            self.saved_dlg(message="changes saved to pmag_criteria.txt")
+            self.write_acceptance_criteria_to_file()
+            dia.Destroy()
 
     def show_crit_window_err_messege(self,crit):
         '''
         error message if a valid naumber is not entered to criteria dialog boxes
         '''
-        self.dlg = wx.MessageDialog(self,caption="Error:",message="not a vaild value for statistic %s\n ignoring value"%crit ,style=wx.OK)
-        result = self.dlg.ShowModal()
+        dlg = wx.MessageDialog(self,caption="Error:",message="not a vaild value for statistic %s\n ignoring value"%crit ,style=wx.OK)
+        result = self.show_dlg(dlg)
         if result == wx.ID_OK:
-            self.dlg.Destroy()
+            dlg.Destroy()
 
     def On_close_MagIC_dialog(self,dia):
 
@@ -4100,8 +4125,7 @@ class Demag_GUI(wx.Frame):
                             except (KeyError,ValueError,TypeError) as e:
                                 calculate=False
                                 ui_dialog = demag_dialogs.user_input(self,['Latitude','Longitude'],parse_funcs=[float,float], heading="Missing Latitude or Longitude data for site: %s"%site)
-                                ui_dialog.Center()
-                                ui_dialog.ShowModal()
+                                self.show_dlg(ui_dialog)
                                 ui_data = ui_dialog.get_values()
                                 if ui_data[0]:
                                     PmagSiteRec['lat']=ui_data[1]['Latitude']
@@ -4304,12 +4328,8 @@ class Demag_GUI(wx.Frame):
             self.update_selection()
 
 
-        TEXT="interpretations are saved in pmag tables.\n"
-        self.dlg = wx.MessageDialog(self, caption="Saved",message=TEXT,style=wx.OK)
-        result = self.dlg.ShowModal()
-        if result == wx.ID_OK:
-            self.dlg.Destroy()
-
+        TEXT="interpretations saved in pmag tables"
+        self.saved_dlg(TEXT)
         self.close_warning=False
 
 #==========================================================================================#
@@ -4732,10 +4752,10 @@ class Demag_GUI(wx.Frame):
         # dialog box to choose coordinate systems for pmag_specimens.txt
         #---------------------------------------
         dia = demag_dialogs.magic_pmag_specimens_table_dialog(None)
-        dia.Center()
-
         CoorTypes=['DA-DIR','DA-DIR-GEO','DA-DIR-TILT']
-        if dia.ShowModal() == wx.ID_OK: # Until the user clicks OK, show the message
+        if self.test_mode:
+            pass
+        elif dia.ShowModal() == wx.ID_OK: # Until the user clicks OK, show the message
             CoorTypes=[]
             if dia.cb_spec_coor.GetValue()==True:
                 CoorTypes.append('DA-DIR')
@@ -4916,8 +4936,8 @@ class Demag_GUI(wx.Frame):
             spmdf.write_magic_file(dir_path=self.WD)
 
             TEXT="specimens interpretations are saved in specimens.txt.\nPress OK to save to samples/sites/locations/ages tables."
-            self.dlg = wx.MessageDialog(self, caption="Saved",message=TEXT,style=wx.OK|wx.CANCEL)
-            result = self.dlg.ShowModal()
+            self.dlg = wx.MessageDialog(self, caption="Other Pmag Tables",message=TEXT,style=wx.OK|wx.CANCEL)
+            result = self.show_dlg(self.dlg)
             if result == wx.ID_OK:
                 self.dlg.Destroy()
             if result == wx.ID_CANCEL:
@@ -4929,20 +4949,19 @@ class Demag_GUI(wx.Frame):
             print( "specimen data stored in %s\n"%os.path.join(self.WD, "pmag_specimens.txt"))
 
             TEXT="specimens interpretations are saved in pmag_specimens.txt.\nPress OK for pmag_samples/pmag_sites/pmag_results tables."
-            self.dlg = wx.MessageDialog(self, caption="Saved",message=TEXT,style=wx.OK|wx.CANCEL)
-            result = self.dlg.ShowModal()
+            dlg = wx.MessageDialog(self, caption="Other Pmag Tables",message=TEXT,style=wx.OK|wx.CANCEL)
+            result = self.show_dlg(dlg)
             if result == wx.ID_OK:
-                self.dlg.Destroy()
+                dlg.Destroy()
             if result == wx.ID_CANCEL:
-                self.dlg.Destroy()
+                dlg.Destroy()
                 return
 
         #--------------------------------
 
         dia = demag_dialogs.magic_pmag_tables_dialog(None,self.WD,self.Data,self.Data_info)
-        dia.Center()
 
-        if dia.ShowModal() == wx.ID_OK: # Until the user clicks OK, show the message
+        if self.show_dlg(dia) == wx.ID_OK: # Until the user clicks OK, show the message
             self.On_close_MagIC_dialog(dia)
 
     def on_save_Zij_plot(self, event):
@@ -4991,10 +5010,10 @@ class Demag_GUI(wx.Frame):
         self.current_fit = None
         self.draw_interpretations()
         self.plot_high_levels_data()
-        self.dlg = wx.DirDialog(self, "choose a folder:",defaultPath = self.WD ,style=wx.DD_DEFAULT_STYLE | wx.DD_NEW_DIR_BUTTON | wx.DD_CHANGE_DIR)
-        if self.dlg.ShowModal() == wx.ID_OK:
-              dir_path=self.dlg.GetPath()
-              self.dlg.Destroy()
+        dlg = wx.DirDialog(self, "choose a folder:",defaultPath = self.WD ,style=wx.DD_DEFAULT_STYLE | wx.DD_NEW_DIR_BUTTON | wx.DD_CHANGE_DIR)
+        if self.show_dlg(dlg) == wx.ID_OK:
+              dir_path=dlg.GetPath()
+              dlg.Destroy()
 
         #figs=[self.fig1,self.fig2,self.fig3,self.fig4]
         plot_types=["Zij","EqArea","M_M0",str(self.level_box.GetValue())]
@@ -5064,9 +5083,9 @@ class Demag_GUI(wx.Frame):
             TEXT="Data is not saved to a file yet!\nTo properly save your data:\n1) Analysis --> Save current interpretations to a redo file.\nor\n1) File --> Save MagIC pmag tables.\n\n Press OK to exit without saving."
 
             #Save all interpretation to a 'redo' file or to MagIC specimens result table\n\nPress OK to exit"
-            self.dlg = wx.MessageDialog(self,caption="Warning:", message=TEXT ,style=wx.OK|wx.CANCEL|wx.ICON_EXCLAMATION)
-            if self.dlg.ShowModal() == wx.ID_OK:
-                self.dlg.Destroy()
+            dlg = wx.MessageDialog(self,caption="Warning:", message=TEXT ,style=wx.OK|wx.CANCEL|wx.ICON_EXCLAMATION)
+            if self.show_dlg(dlg) == wx.ID_OK:
+                dlg.Destroy()
                 if self.ie_open:
                     self.ie.on_close_edit_window(event)
                 self.Destroy()
@@ -5165,36 +5184,34 @@ class Demag_GUI(wx.Frame):
         [specimen name] [tmin(Tesla)] [tmax(Tesla)]
         There is a problem with experiment that combines AF and thermal
         """
-        self.dlg = wx.FileDialog(
+        dlg = wx.FileDialog(
             self, message="choose a file in a pmagpy redo format",
             defaultDir=self.WD,
             defaultFile="demag_gui.redo",
             wildcard="*.redo",
             style=wx.OPEN | wx.CHANGE_DIR
             )
-        self.dlg.Center()
-        if self.dlg.ShowModal() == wx.ID_OK:
-            redo_file = self.dlg.GetPath()
+        if self.show_dlg(dlg) == wx.ID_OK:
+            redo_file = dlg.GetPath()
         else:
             redo_file = None
-        self.dlg.Destroy()
+        dlg.Destroy()
 
         if redo_file:
             self.read_redo_file(redo_file)
 
     def on_menu_read_from_LSQ(self,event):
-        self.dlg = wx.FileDialog(
+        dlg = wx.FileDialog(
             self, message="choose a LSQ file",
             defaultDir=self.WD,
             wildcard="*.LSQ",
             style=wx.OPEN
             )
-        self.dlg.Center()
-        if self.dlg.ShowModal() == wx.ID_OK:
-            LSQ_file = self.dlg.GetPath()
+        if self.show_dlg(dlg) == wx.ID_OK:
+            LSQ_file = dlg.GetPath()
         else:
             LSQ_file = None
-        self.dlg.Destroy()
+        dlg.Destroy()
 
         self.read_from_LSQ(LSQ_file)
 
@@ -5229,16 +5246,12 @@ class Demag_GUI(wx.Frame):
                 STRING=STRING+tmin+"\t"+tmax+"\t"+fit.name+"\t"+str(fit.color)+"\t"+fit_flag+"\n"
                 fout.write(STRING)
         fout.close()
-        TEXT="specimens interpretations are saved in " + redo_file_name
-        self.dlg = wx.MessageDialog(self, caption="Saved",message=TEXT,style=wx.OK|wx.CANCEL )
-        result = self.dlg.ShowModal()
-        if result == wx.ID_OK:
-            self.dlg.Destroy()
+        TEXT="specimen interpretations are saved in %s"%redo_file_name
+        self.saved_dlg(TEXT)
 
     def on_menu_change_criteria(self, event):
         dia=demag_dialogs.demag_criteria_dialog(None,self.acceptance_criteria,title='PmagPy Demag Gui Acceptance Criteria')
-        dia.Center()
-        if dia.ShowModal() == wx.ID_OK: # Until the user clicks OK, show the message
+        if self.show_dlg(dia) == wx.ID_OK: # Until the user clicks OK, show the message
             self.on_close_criteria_box(dia)
 
     def on_menu_criteria_file (self, event):
@@ -5249,26 +5262,25 @@ class Demag_GUI(wx.Frame):
         if self.data_model==3: default_file = "criteria.txt"
         else: default_file = "pmag_criteria.txt"
         read_sucsess=False
-        self.dlg = wx.FileDialog(
+        dlg = wx.FileDialog(
             self, message="choose pmag criteria file",
             defaultDir=self.WD,
             defaultFile=default_file,
             style=wx.OPEN | wx.CHANGE_DIR
             )
-        self.dlg.Center()
-        if self.dlg.ShowModal() == wx.ID_OK:
-            criteria_file = self.dlg.GetPath()
+        if self.show_dlg(dlg) == wx.ID_OK:
+            criteria_file = dlg.GetPath()
             print("-I- Read new criteria file: %s"%criteria_file)
 
             # check if this is a valid pmag_criteria file
             try:
                 mag_meas_data,file_type=pmag.magic_read(criteria_file)
             except:
-                self.dlg = wx.MessageDialog(self, caption="Error",message="not a valid pmag_criteria file",style=wx.OK)
-                result = self.dlg.ShowModal()
+                dlg = wx.MessageDialog(self, caption="Error",message="not a valid pmag_criteria file",style=wx.OK)
+                result = self.show_dlg(dlg)
                 if result == wx.ID_OK:
-                    self.dlg.Destroy()
-                self.dlg.Destroy()
+                    dlg.Destroy()
+                dlg.Destroy()
                 return
 
             # initialize criteria
@@ -5304,7 +5316,7 @@ class Demag_GUI(wx.Frame):
         self.onSelect_mean_type_box(event)
 
     def on_menu_mark_samp_bad(self, event):
-        if not self.user_warning("This will mark all specimen interpretations in the sample of the current specimen as bad as well as setting the sample orietation flag to bad, do you want to continue?"): return
+        if not self.user_warning("This will mark the sample orietation flag for this sample to bad which will prevent you marking the specimen interpretations for this sample as good, do you want to continue?"): return
         samp = self.Data_hierarchy['sample_of_specimen'][self.s]
         specs = self.Data_hierarchy['samples'][samp]['specimens']
         for spec in specs:
@@ -5316,17 +5328,52 @@ class Demag_GUI(wx.Frame):
             if 'orientation_flag' not in self.con.tables['samples'].df.columns:
                 self.con.tables['samples'].df['orientation_flag'] = 'g'
             self.con.tables['samples'].df.loc[samp]['orientation_flag'] = 'b'
+            self.Data_info['er_samples'][samp]['sample_orientation_flag'] = 'b'
             self.con.tables['samples'].write_magic_file(dir_path=self.WD)
         else:
             orecs = []
             for k,val in self.Data_info['er_samples'].items():
-                if 'samples_orientation_flag' not in val:
-                    val['samples_orientation_flag'] = 'g'
+                if 'sample_orientation_flag' not in val:
+                    val['sample_orientation_flag'] = 'g'
                 if k == samp:
-                    val['samples_orientation_flag'] = 'b'
+                    val['sample_orientation_flag'] = 'b'
                 orecs.append(val)
             pmag.magic_write('er_samples.txt',orecs,'er_samples')
         self.update_selection()
+
+    def on_menu_mark_samp_good(self, event):
+        if not self.user_warning("This will mark all specimen interpretations in the sample of the current specimen as good as well as setting the sample orietation flag to good, do you want to continue?"): return
+        samp = self.Data_hierarchy['sample_of_specimen'][self.s]
+        specs = self.Data_hierarchy['samples'][samp]['specimens']
+        for spec in specs:
+            if spec not in self.pmag_results_data['specimens']: continue
+            for comp in self.pmag_results_data['specimens'][spec]:
+                if comp in self.bad_fits:
+                    self.bad_fits.remove(comp)
+        if self.data_model == 3.0:
+            if 'orientation_flag' not in self.con.tables['samples'].df.columns:
+                self.con.tables['samples'].df['orientation_flag'] = 'g'
+            self.con.tables['samples'].df.loc[samp]['orientation_flag'] = 'g'
+            self.Data_info['er_samples'][samp]['sample_orientation_flag'] = 'g'
+            self.con.tables['samples'].write_magic_file(dir_path=self.WD)
+        else:
+            orecs = []
+            for k,val in self.Data_info['er_samples'].items():
+                if 'sample_orientation_flag' not in val:
+                    val['sample_orientation_flag'] = 'g'
+                if k == samp:
+                    val['sample_orientation_flag'] = 'g'
+                orecs.append(val)
+            pmag.magic_write('er_samples.txt',orecs,'er_samples')
+        self.update_selection()
+
+    def on_menu_flag_fit_bad(self,event):
+        if self.current_fit not in self.bad_fits:
+            self.bad_fits.append(self.current_fit)
+
+    def on_menu_flag_fit_good(self,event):
+        if self.current_fit in self.bad_fits:
+            self.bad_fits.remove(self.current_fit)
 
     #---------------------------------------------#
     #Tools Menu  Functions
@@ -5338,12 +5385,12 @@ class Demag_GUI(wx.Frame):
             self.ie_open = True
             self.update_high_level_stats()
             self.ie.Center()
-            self.ie.Show(True)
+            if not self.test_mode: self.ie.Show(True)
             if self.parent==None and sys.platform.startswith('darwin'):
                 TEXT="This is a refresher window for mac os to insure that wx opens the new window"
-                self.dlg = wx.MessageDialog(self, caption="Open",message=TEXT,style=wx.OK | wx.ICON_INFORMATION | wx.STAY_ON_TOP )
-                self.dlg.ShowModal()
-                self.dlg.Destroy()
+                dlg = wx.MessageDialog(self, caption="Open",message=TEXT,style=wx.OK | wx.ICON_INFORMATION | wx.STAY_ON_TOP )
+                self.show_dlg(dlg)
+                dlg.Destroy()
             if self.mean_fit!=None and self.mean_fit!='None':
                 self.plot_high_levels_data()
         else:
@@ -5354,8 +5401,7 @@ class Demag_GUI(wx.Frame):
         VGP_Data = self.calculate_vgp_data()
         vgpdia = demag_dialogs.VGP_Dialog(self,VGP_Data)
         if vgpdia.failed_init: return
-        vgpdia.Center()
-        vgpdia.ShowModal()
+        self.show_dlg(vgpdia)
 
     #---------------------------------------------#
     #Help Menu Functions
@@ -5882,9 +5928,6 @@ class Demag_GUI(wx.Frame):
             next_i = self.logger.GetNextSelected(next_i)
         if self.selected_meas_called: return
         self.selected_meas_called = True
-#        wx.CallAfter(self.draw_zijderveld)
-#        wx.CallAfter(self.draw_spec_eqarea)
-#        wx.CallAfter(self.draw_interpretations)
         wx.CallAfter(self.plot_selected_meas)
         wx.CallAfter(self.turn_off_repeat_variables)
 
