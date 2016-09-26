@@ -74,17 +74,21 @@ class InterpretationEditorFrame(wx.Frame):
 #        self.Bind(wx.EVT_TEXT, self.on_complete_search_bar,self.search_bar)
 
         #build logger
-        self.logger = wx.ListCtrl(self.panel, -1, size=(350*self.GUI_RESOLUTION,475*self.GUI_RESOLUTION),style=wx.LC_REPORT)
+        self.logger = wx.ListCtrl(self.panel, -1, size=(100*self.GUI_RESOLUTION,475*self.GUI_RESOLUTION),style=wx.LC_REPORT)
         self.logger.SetFont(font1)
-        self.logger.InsertColumn(0, 'specimen',width=55*self.GUI_RESOLUTION)
-        self.logger.InsertColumn(1, 'fit name',width=45*self.GUI_RESOLUTION)
-        self.logger.InsertColumn(2, 'max',width=35*self.GUI_RESOLUTION)
-        self.logger.InsertColumn(3, 'min',width=35*self.GUI_RESOLUTION)
+        self.logger.InsertColumn(0, 'specimen',width=75*self.GUI_RESOLUTION)
+        self.logger.InsertColumn(1, 'fit name',width=65*self.GUI_RESOLUTION)
+        self.logger.InsertColumn(2, 'max',width=55*self.GUI_RESOLUTION)
+        self.logger.InsertColumn(3, 'min',width=55*self.GUI_RESOLUTION)
         self.logger.InsertColumn(4, 'n',width=25*self.GUI_RESOLUTION)
         self.logger.InsertColumn(5, 'fit type',width=60*self.GUI_RESOLUTION)
-        self.logger.InsertColumn(6, 'dec',width=35*self.GUI_RESOLUTION)
-        self.logger.InsertColumn(7, 'inc',width=35*self.GUI_RESOLUTION)
-        self.logger.InsertColumn(8, 'mad',width=35*self.GUI_RESOLUTION)
+        self.logger.InsertColumn(6, 'dec',width=45*self.GUI_RESOLUTION)
+        self.logger.InsertColumn(7, 'inc',width=45*self.GUI_RESOLUTION)
+        self.logger.InsertColumn(8, 'mad',width=45*self.GUI_RESOLUTION)
+        self.logger.InsertColumn(9, 'dang',width=45*self.GUI_RESOLUTION)
+        self.logger.InsertColumn(10, 'a95',width=45*self.GUI_RESOLUTION)
+        self.logger.InsertColumn(11, 'K',width=45*self.GUI_RESOLUTION)
+        self.logger.InsertColumn(12, 'R',width=45*self.GUI_RESOLUTION)
         self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnClick_listctrl, self.logger)
         self.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK,self.OnRightClickListctrl,self.logger)
         self.logger.SetHelpText(dieh.logger_help)
@@ -403,7 +407,6 @@ class InterpretationEditorFrame(wx.Frame):
     def update_editor(self):
         """
         updates the logger and plot on the interpretation editor window
-        @param: changed_interpretation_parameters -> if the logger should be whipped and completely recalculated from scratch or not (default = True)
         """
 
         self.fit_list = []
@@ -459,26 +462,42 @@ class InterpretationEditorFrame(wx.Frame):
             dec = 'No Data'
             inc = 'No Data'
             mad = 'No Data'
+            dang = 'No Data'
+            a95 = 'No Data'
+            sk = 'No Data'
+            sr2 = 'No Data'
         else:
             if 'measurement_step_min' in pars.keys(): fmin = str(fit.tmin)
+            else: fmin = "N/A"
             if 'measurement_step_max' in pars.keys(): fmax = str(fit.tmax)
+            else: fmax = "N/A"
             if 'specimen_n' in pars.keys(): n = str(pars['specimen_n'])
+            else: n = "N/A"
             if 'calculation_type' in pars.keys(): ftype = pars['calculation_type']
+            else: ftype = "N/A"
             if 'specimen_dec' in pars.keys(): dec = "%.1f"%pars['specimen_dec']
+            else: dec = "N/A"
             if 'specimen_inc' in pars.keys(): inc = "%.1f"%pars['specimen_inc']
+            else: inc = "N/A"
             if 'specimen_mad' in pars.keys(): mad = "%.1f"%pars['specimen_mad']
+            else: mad = "N/A"
+            if 'specimen_dang' in pars.keys(): dang = "%.1f"%pars['specimen_dang']
+            else: dang = "N/A"
             if 'specimen_alpha95' in pars.keys(): a95 = "%.1f"%pars['specimen_alpha95']
+            else: a95 = "N/A"
             if 'specimen_k' in pars.keys(): sk = "%.1f"%pars['specimen_k']
-            if 'specimen_r' in pars.keys(): sr2 = "%.1f"%pars['specimen_r_sq']
+            else: sk = "N/A"
+            if 'specimen_r' in pars.keys(): sr2 = "%.1f"%pars['specimen_r']
+            else: sr2 = "N/A"
 
         if self.search_query != "":
-            entry = (specimen+name+fmin+fmax+n+ftype+dec+inc+mad).replace(" ","").lower()
+            entry = (specimen+name+fmin+fmax+n+ftype+dec+inc+mad+dang+a95+sk+sr2).replace(" ","").lower()
             if self.search_query not in entry:
                 self.fit_list.pop(i)
                 if i < self.logger.GetItemCount():
                     self.logger.DeleteItem(i)
                 return "s"
-        for e in (specimen,name,fmin,fmax,n,ftype,dec,inc,mad):
+        for e in (specimen,name,fmin,fmax,n,ftype,dec,inc,mad,dang,a95,sk,sr2):
             if e not in self.search_choices:
                 self.search_choices.append(e)
 
@@ -493,6 +512,10 @@ class InterpretationEditorFrame(wx.Frame):
         self.logger.SetStringItem(i, 6, dec)
         self.logger.SetStringItem(i, 7, inc)
         self.logger.SetStringItem(i, 8, mad)
+        self.logger.SetStringItem(i, 9, dang)
+        self.logger.SetStringItem(i, 10, a95)
+        self.logger.SetStringItem(i, 11, sk)
+        self.logger.SetStringItem(i, 12, sr2)
         self.logger.SetItemBackgroundColour(i,"WHITE")
         a,b = False,False
         if fit in self.parent.bad_fits:
