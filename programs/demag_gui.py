@@ -2137,7 +2137,11 @@ class Demag_GUI(wx.Frame):
             if not self.Data[self.s]['zijdblock_tilt']: self.warning_text += "There is no tilt-corrected data for this specimen.\n"
 
     def read_criteria_file(self,criteria_file_name=None):
-        """"""
+        """
+        reads 2.5 or 3.0 formatted PmagPy criteria file and returns a set of nested dictionary 2.5 formated criteria data that can be passed into pmag.grade to filter data.
+        @param: criteria_file - name of criteria file to read in
+        @return: nested dictionary 2.5 formated criteria data
+        """
         acceptance_criteria=pmag.initialize_acceptance_criteria()
         if self.data_model==3:
             if criteria_file_name==None: criteria_file_name = "criteria.txt"
@@ -2169,20 +2173,17 @@ class Demag_GUI(wx.Frame):
 
     def get_PCA_parameters(self,specimen,fit,tmin,tmax,coordinate_system,calculation_type):
         """
-        calculate statisics
+        Uses pmag.domean to preform a line, line-with-origin, line-anchored, or plane least squared regression or a fisher mean on the measurement data of specimen in coordinate system between bounds tmin to tmax
+        @param: specimen - specimen with measurement data in self.Data
+        @param: fit - fit for which the regression or mean is being applied (used for calculating measurement index of tmin and tmax)
+        @param: tmin - lower bound of measurement data
+        @param: tmax - upper bound of measurement data
+        @param: coordinate_system - which coordinate system the measurement data should be in
+        @param: calculation_type - type of regression or mean to preform (options - DE-BFL:line,DE-BFL-A:line-anchored,DE-BFL-O:line-with-origin,DE-FM:fisher,DE-BFP:plane)
+        @return: a 2.5 data model dictionary of the dec, inc, etc of the regression and mean
         """
         if tmin == '' or tmax == '': return
         beg_pca,end_pca = self.get_indices(fit, tmin, tmax, specimen)
-
-#        if beg_pca == None or end_pca == None: print("%s to %s are invalid bounds, to fit %s for specimen %s"%(tmin,tmax,fit.name,specimen)); return
-#        check_duplicates = []
-#        for s,f in zip(self.Data[specimen]['zijdblock_steps'][beg_pca:end_pca+1],self.Data[specimen]['measurement_flag'][beg_pca:end_pca+1]):
-#            if f == 'g' and [s,'g'] in check_duplicates:
-#                if s == tmin: print("There are multiple good %s steps. The first measurement will be used for lower bound of fit %s for specimen %s."%(tmin,fit.name,specimen))
-#                if s == tmax: print("There are multiple good %s steps. The first measurement will be used for upper bound of fit %s for specimen %s."%(tmax,fit.name,specimen))
-#                else: print("Within Fit %s on specimen %s, there are multiple good measurements at the %s step. Both measurements are included in the fit."%(fit.name,specimen,s))
-#            else:
-#                check_duplicates.append([s,f])
 
         if coordinate_system=='geographic':
             block=self.Data[specimen]['zijdblock_geo']
@@ -2215,7 +2216,11 @@ class Demag_GUI(wx.Frame):
         return(mpars)
 
     def autointerpret(self,event,step_size=None,calculation_type="DE-BFL"):
-
+        """
+        Clears current interpretations and adds interpretations to every specimen of type = calculation_type by attempting fits of size = step size and type = calculation_type and testing the mad or a95 then finding peaks in these to note areas of maximum error then fits between these peaks excluding them.
+        @param: step_size - int that is the size of fits to make while stepping through data if None then step size = len(meas data for specimen)/10 rounded up if that value is greater than 3 else it is 3 (default: None)
+        @param: calculation_type - type of fit to make (default: DE-BFL or line)
+        """
         sucess = self.clear_interpretations()
 
         if not sucess: return
@@ -2277,9 +2282,11 @@ class Demag_GUI(wx.Frame):
 
     def calculate_high_level_mean (self,high_level_type,high_level_name,calculation_type,elements_type,mean_fit):
         """
-        high_level_type:'samples','sites','locations','study'
-        calculation_type: 'Bingham','Fisher','Fisher by polarity'
-        elements_type (what to average):'specimens','samples','sites' (Ron. ToDo alos VGP and maybe locations?)
+        @param: high_level_type - 'samples','sites','locations','study'
+        @param: high_level_name - sample, site, location, or study whose data to which to apply the mean
+        @param: calculation_type - 'Bingham','Fisher','Fisher by polarity'
+        @param: elements_type - what to average: 'specimens', 'samples', 'sites' (Ron. ToDo allow VGP and maybe locations?)
+        @param: mean_fit - name of interpretation to average if All uses all
         figure out what level to average,and what elements to average (specimen, samples, sites, vgp)
         """
 
@@ -2358,11 +2365,13 @@ class Demag_GUI(wx.Frame):
                     self.high_level_means[high_level_type][high_level_name][mean_fit][dirtype]['color'] = color
 
     def calculate_mean(self,pars_for_mean,calculation_type):
-        '''
-        calculates:
-            Fisher mean (lines/planes)
-            or Fisher by polarity
-        '''
+        """
+        Uses pmag.dolnp or pmag.fisher_by_pol to do a fisher mean or fisher mean by polarity on the list of dictionaries in pars for mean
+        @param: pars_for_mean - list of dictionaries with all data to average
+        @param: calculation_type - type of mean to take (options: Fisher, Fisher by polarity)
+        @return: dictionary with information of mean or empty dictionary
+        @TODO: put Bingham statistics back in once a method for displaying them is figured out
+        """
 
         if len(pars_for_mean)==0:
             return({})
@@ -2401,7 +2410,9 @@ class Demag_GUI(wx.Frame):
         return mpars
 
     def calculate_high_levels_data(self):
-
+        """
+        calculates high level mean data for the high level mean plot using information in level_box, level_names, mean_type_box, and mean_fit_box also updates the information in the ie to match high level mean data in main GUI.
+        """
         high_level_type=str(self.level_box.GetValue())
         if high_level_type=='sample': high_level_type='samples'
         if high_level_type=='site': high_level_type='sites'
@@ -2414,7 +2425,10 @@ class Demag_GUI(wx.Frame):
         self.calculate_high_level_mean(high_level_type,high_level_name,calculation_type,elements_type,self.mean_fit)
 
     def quiet_reset_backend(self,reset_interps=True):
-
+        """
+        Doesn't update plots or logger or any visable data but resets all measurement data, hierarchy data, and optionally resets intepretations.
+        @param: reset_interps - bool to tell the function to reset fits or not.
+        """
         new_Data_info=self.get_data_info()
         new_Data,new_Data_hierarchy=self.get_data()
 
@@ -2465,9 +2479,12 @@ class Demag_GUI(wx.Frame):
         if self.ie_open:
             self.ie.specimens_list = self.specimens
 
-
-
     def reset_backend(self,warn_user=True,reset_interps=True):
+        """
+        Resets GUI data and updates GUI displays such as plots, boxes, and logger
+        @param: warn_user - bool which decides if a warning dialog is displayed to the user to ask about reseting data
+        @param: reset_interps - bool which decides if interpretations are read in for pmag tables or left alone
+        """
         if warn_user and not self.data_loss_warning(): return False
 
         self.quiet_reset_backend(reset_interps=reset_interps)
@@ -2487,6 +2504,9 @@ class Demag_GUI(wx.Frame):
             self.ie.update_editor()
 
     def recalculate_current_specimen_interpreatations(self):
+        """
+        recalculates all interpretations on all specimens for all coordinate systems. Does not display recalcuated data.
+        """
         self.initialize_CART_rot(self.s)
         if str(self.s) in self.pmag_results_data['specimens']:
             for fit in self.pmag_results_data['specimens'][self.s]:
@@ -2498,15 +2518,13 @@ class Demag_GUI(wx.Frame):
                     fit.put(self.s,'tilt-corrected',self.get_PCA_parameters(self.s,fit,fit.tmin,fit.tmax,'tilt-corrected',fit.get('tilt-corrected')['calculation_type']))
 
     def parse_bound_data(self,tmin0,tmax0,specimen):
-        """converts Kelvin/Tesla temperature/AF data from the MagIC/Redo format to that
-           of Celsius/milliTesla which is used by the GUI as it is often more intuitive
-           @param tmin0 -> the input temperature/AF lower bound value to convert
-           @param tmax0 -> the input temperature/AF upper bound value to convert
-           @param specimen -> the specimen these bounds are for
-           @return tmin -> the converted lower bound temperature/AF or None if input
-                           format was wrong
-           @return tmax -> the converted upper bound temperature/AF or None if the input
-                           format was wrong
+        """
+        converts Kelvin/Tesla temperature/AF data from the MagIC/Redo format to that of Celsius/milliTesla which is used by the GUI as it is often more intuitive
+        @param tmin0 -> the input temperature/AF lower bound value to convert
+        @param tmax0 -> the input temperature/AF upper bound value to convert
+        @param specimen -> the specimen these bounds are for
+        @return tmin -> the converted lower bound temperature/AF or None if input format was wrong
+        @return tmax -> the converted upper bound temperature/AF or None if the input format was wrong
         """
         if specimen not in self.Data:
             print("no measurement data found loaded for specimen %s and will be ignored"%(specimen))
@@ -2634,8 +2652,11 @@ class Demag_GUI(wx.Frame):
         return (tmin_index,tmax_index)
 
     def merge_pmag_recs(self,old_recs):
-        # fix the headers of pmag recs
-        # make sure that all headers appear in all recs
+        """
+        Takes in a list of dictionaries old_recs and returns a list of dictionaries where every dictionary in the returned list has the same keys as all the others.
+        @param: old_recs - list of dictionaries to fix
+        @return: list of dictionaries with same keys
+        """
         recs={}
         recs=deepcopy(old_recs)
         headers=[]
@@ -2646,8 +2667,6 @@ class Demag_GUI(wx.Frame):
         for rec in recs:
             for header in headers:
                 if header not in rec.keys():
-                    #print "found a problmem in rec: ",rec
-                    #print "missing: ", header
                     rec[header]=""
         return recs
 
@@ -2656,6 +2675,9 @@ class Demag_GUI(wx.Frame):
     #---------------------------------------------#
 
     def select_specimen(self, specimen):
+        """
+        Goes through the calculations necessary to plot measurement data for specimen and sets specimen as current GUI specimen, also attempts to handle changing current fit.
+        """
         try: fit_index = self.pmag_results_data['specimens'][self.s].index(self.current_fit)
         except KeyError: fit_index = None
         except ValueError: fit_index = None
@@ -2681,7 +2703,10 @@ class Demag_GUI(wx.Frame):
         self.get_new_PCA_parameters(1)
 
     def clear_interpretations(self,message=None):
-
+        """
+        Clears all specimen interpretations
+        @param: message - message to display when warning the user that all fits will be deleted. If None default message is used (None is default)
+        """
         if self.total_num_of_interpertations() == 0:
             print("There are no interpretations")
             return True
@@ -2704,11 +2729,18 @@ class Demag_GUI(wx.Frame):
         return True
 
     def set_test_mode(self,on_off):
+        """
+        Sets GUI test mode on or off
+        @param: on_off - bool value to set test mode to
+        """
         if type(on_off) != bool: print("test mode must be a bool"); return
         self.test_mode = on_off
 
     def mark_meas_good(self,g_index):
-
+        """
+        Marks the g_index'th measuremnt of current specimen good
+        @param: g_index - int that gives the index of the measurement to mark good, indexed from 0
+        """
         meas_index,ind_data = 0,[]
         for i,meas_data in enumerate(self.mag_meas_data):
             if meas_data['er_specimen_name'] == self.s:
@@ -2735,7 +2767,10 @@ class Demag_GUI(wx.Frame):
             mdf.set_value(index,'quality','g')
 
     def mark_meas_bad(self,g_index):
-
+        """
+        Marks the g_index'th measuremnt of current specimen bad
+        @param: g_index - int that gives the index of the measurement to mark bad, indexed from 0
+        """
         meas_index,ind_data = 0,[]
         for i,meas_data in enumerate(self.mag_meas_data):
             if meas_data['er_specimen_name'] == self.s:
@@ -2762,6 +2797,11 @@ class Demag_GUI(wx.Frame):
             mdf.set_value(index,'quality','b')
 
     def mark_fit_good(self,fit,spec=None):
+        """
+        Marks fit good so it is used in high level means
+        @param: fit - fit to mark good
+        @param: spec - specimen of fit to mark good (optional though runtime will increase if not provided) 
+        """
         if spec==None:
             for spec,fits in self.pmag_results_data['specimens'].items():
                 if fit in fits: break
@@ -2775,6 +2815,10 @@ class Demag_GUI(wx.Frame):
         else: self.user_warning("Cannot mark this interpretation good its sample orientation has been marked bad"); return False
 
     def mark_fit_bad(self,fit):
+        """
+        Marks fit bad so it is excluded from high level means
+        @param: fit - fit to mark bad
+        """
         self.bad_fits.append(fit); return True
 
     #---------------------------------------------#
@@ -2782,7 +2826,37 @@ class Demag_GUI(wx.Frame):
     #---------------------------------------------#
 
     def get_data(self):
-
+        """
+        reads data from current WD measurement.txt or magic_measurements.txt depending on data model and sorts it into main measurements data structures given bellow:
+        Data - {specimen: {
+                zijdblock:[[treatment temp-str,dec-float, inc-float, mag_moment-float, ZI-float, meas_flag-str ('b','g'), method_codes-str]],
+                zijdblock_geo:[[treatment temp-str,dec-float, inc-float, mag_moment-float, ZI-float, meas_flag-str ('b','g'), method_codes-str]],
+                zijdblock_tilt:[[treatment temp-str,dec-float, inc-float, mag_moment-float, ZI-float, meas_flag-str ('b','g'), method_codes-str]],
+                zijdblock_lab_treatments: [str],
+                zijdblock_steps: [str],
+                measurement_flag: [str ('b','g')],
+                mag_meas_data_index: [int],
+                csds: [float],
+                pars: {},
+                zdata: array.shape = 2x2 (float),
+                zdata_geo: array.shape = 2x2 (float),
+                zdata_tilt: array.shape = 2x2 (float),
+                vector_diffs: [float],
+                vds: float }}
+        Data_hierarchy - {specimen: {
+                            study: {}
+                            locations: {}
+                            sites: {}
+                            samples: {}
+                            specimens: {}
+                            sample_of_specimen: {}
+                            site_of_specimen: {}
+                            site_of_sample: {}
+                            location_of_site: {}
+                            location_of_specimen: {}
+                            study_of_specimen: {}
+                            expedition_name_of_specimen: {} }}
+        """
         #------------------------------------------------
         # Read magic measurement file and sort to blocks
         #------------------------------------------------
@@ -3148,6 +3222,9 @@ class Demag_GUI(wx.Frame):
         return(Data,Data_hierarchy)
 
     def get_interpretations3(self):
+        """
+        Used instead of update_pmag_tables in data model 3.0 to fetch interpretations from contribution objects
+        """
         if "specimen" not in self.spec_data.columns or \
            "meas_step_min" not in self.spec_data.columns or \
            "meas_step_max" not in self.spec_data.columns or \
@@ -3193,6 +3270,13 @@ class Demag_GUI(wx.Frame):
             self.add_fit(spec,fname,fmin,fmax,PCA_type)
 
     def get_data_info(self):
+        """
+        imports er tables and places data into Data_info data structure outlined bellow:
+        Data_info - {er_samples: {er_samples.txt info}
+                     er_sites: {er_sites.txt info}
+                     er_locations: {er_locations.txt info}
+                     er_ages: {er_ages.txt info}}
+        """
         Data_info={}
         data_er_samples={}
         data_er_sites={}
@@ -3290,6 +3374,9 @@ class Demag_GUI(wx.Frame):
         return(Data_info)
 
     def get_preferences(self):
+        """
+        Gets preferences for certain display variables from zeq_gui_preferences.
+        """
         #default
         preferences={}
         preferences['gui_resolution']=100.
@@ -3307,6 +3394,11 @@ class Demag_GUI(wx.Frame):
         return(preferences)
 
     def read_magic_file(self,path,sort_by_this_name):
+        """
+        reads a magic formated data file from path and sorts the keys according to sort_by_this_name
+        @param: path - path to file to read
+        @param: sort_by_this_name - variable to sort data by
+        """
         DATA={}
         fin=open(path,'rU')
         fin.readline()
@@ -3324,6 +3416,10 @@ class Demag_GUI(wx.Frame):
         return(DATA)
 
     def read_from_LSQ(self,LSQ_file):
+        """
+        Clears all current interpretations and replaces them with interpretations read from LSQ file.
+        @param: LSQ_file - path to LSQ file to read in
+        """
         cont = self.user_warning("LSQ import only works if all measurements are present and not averaged during import from magnetometer files to magic format. Do you wish to continue reading interpretations?")
         if not cont: return
         self.clear_interpretations(message="""Do you wish to clear all previous interpretations on import?""")
@@ -3352,8 +3448,8 @@ class Demag_GUI(wx.Frame):
 
     def read_redo_file(self,redo_file):
         """
-        Read previous interpretation from a redo file
-        and update gui with the new interpretation
+        Reads a .redo formated file and replaces all current interpretations with interpretations taken from the .redo file
+        @param: redo_file - path to .redo file to read
         """
         if not self.clear_interpretations(): return
         print("-I- read redo file and processing new bounds")
@@ -3385,6 +3481,10 @@ class Demag_GUI(wx.Frame):
         self.update_selection()
 
     def change_WD(self,new_WD):
+        """
+        Changes Demag GUI's current WD to new_WD if possible
+        @param: new_WD - WD to change to current GUI's WD
+        """
         if not os.path.isdir(new_WD): return
         self.WD = new_WD
         os.chdir(self.WD)
@@ -3421,7 +3521,9 @@ class Demag_GUI(wx.Frame):
             print("Log file was never openned it cannot be closed")
 
     def update_pmag_tables(self):
-
+        """
+        Reads pmag tables from data model 2.5 and updates them with updates their data
+        """
         pmag_specimens,pmag_samples,pmag_sites=[],[],[]
         try:
             pmag_specimens,file_type=pmag.magic_read(os.path.join(self.WD, "pmag_specimens.txt"))
@@ -3575,6 +3677,9 @@ class Demag_GUI(wx.Frame):
                 self.calculate_high_level_mean('sites',site,calculation_type,elements_type,self.mean_fit)
 
     def write_acceptance_criteria_to_file(self):
+        """
+        Writes current GUI acceptance criteria to criteria.txt or pmag_criteria.txt depending on data model
+        """
         crit_list=self.acceptance_criteria.keys()
         crit_list.sort()
         rec={}
@@ -3606,6 +3711,10 @@ class Demag_GUI(wx.Frame):
 #==========================================================================================#
 
     def show_dlg(self,dlg):
+        """
+        Abstraction function that is to be used instead of dlg.ShowModal
+        @param: dlg - dialog to ShowModal if possible
+        """
         if not self.test_mode:
             dlg.Center()
             return dlg.ShowModal()
@@ -3613,7 +3722,7 @@ class Demag_GUI(wx.Frame):
 
     def get_DIR(self):
         """
-        Choose a working directory dialog
+        Dialog that allows user to choose a working directory
         """
 
         dlg = wx.DirDialog(self, "Choose a directory:",defaultPath = self.currentDirectory ,style=wx.DD_DEFAULT_STYLE | wx.DD_NEW_DIR_BUTTON | wx.DD_CHANGE_DIR)
@@ -3627,6 +3736,9 @@ class Demag_GUI(wx.Frame):
         return new_WD
 
     def choose_meas_file(self):
+        """
+        Opens a dialog allowing the user to pick a measurement file
+        """
         dlg = wx.FileDialog(
             self, message="No magic_measurements.txt found. Please choose a magic measurement file",
             defaultDir=self.WD,
@@ -3643,11 +3755,22 @@ class Demag_GUI(wx.Frame):
         return meas_file
 
     def saved_dlg(self, message, caption = 'Saved:'):
+        """
+        Shows a dialog that tells the user that a file has been saved
+        @param: message - message to display to user
+        @param: caption - title for dialog (default: "Saved:")
+        """
         dlg = wx.MessageDialog(self, caption=caption,message=message,style=wx.OK)
         result = self.show_dlg(dlg)
         dlg.Destroy()
 
     def user_warning(self, message, caption = 'Warning!'):
+        """
+        Shows a dialog that warns the user about some action
+        @param: message - message to display to user
+        @param: caption - title for dialog (default: "Warning!")
+        @return: True or False
+        """
         dlg = wx.MessageDialog(self, message, caption, wx.OK | wx.CANCEL | wx.ICON_WARNING)
         if self.show_dlg(dlg) == wx.ID_OK:
             continue_bool = True
@@ -3657,10 +3780,17 @@ class Demag_GUI(wx.Frame):
         return continue_bool
 
     def data_loss_warning(self):
+        """
+        Convenience function that displays a generic data loss warning dialog
+        """
         TEXT="This action could result in a loss of all unsaved data. Would you like to continue"
         return self.user_warning(TEXT)
 
     def on_close_criteria_box (self,dia):
+        """
+        Function called on close of change acceptance criteria dialog that writes new criteria to the hardrive and sets new criteria as GUI's current criteria.
+        @param: dia - closed change criteria dialog
+        """
         window_list_specimens=['specimen_n','specimen_mad','specimen_dang','specimen_alpha95']
         window_list_samples=['sample_n','sample_n_lines','sample_n_planes','sample_k','sample_r','sample_alpha95']
         window_list_sites=['site_n','site_n_lines','site_n_planes','site_k','site_r','site_alpha95']
@@ -3722,16 +3852,19 @@ class Demag_GUI(wx.Frame):
             dia.Destroy()
 
     def show_crit_window_err_messege(self,crit):
-        '''
+        """
         error message if a valid naumber is not entered to criteria dialog boxes
-        '''
+        """
         dlg = wx.MessageDialog(self,caption="Error:",message="not a vaild value for statistic %s\n ignoring value"%crit ,style=wx.OK)
         result = self.show_dlg(dlg)
         if result == wx.ID_OK:
             dlg.Destroy()
 
     def On_close_MagIC_dialog(self,dia):
-
+        """
+        Function called after save high level pmag table dialog. It calculates VGPs, high level means, and saves them the hard drive.
+        @param: dia - save higher level pmag tables
+        """
         if dia.cb_acceptance_criteria.GetValue():
             use_criteria='existing'
         else:
@@ -4306,7 +4439,7 @@ class Demag_GUI(wx.Frame):
 
     def update_selection(self):
         """
-        update display (figures, text boxes and statistics windows) with a new selection of specimen
+        Convenience function update display (figures, text boxes and statistics windows) with a new selection of specimen
         """
 
         self.clear_boxes()
@@ -4388,8 +4521,7 @@ class Demag_GUI(wx.Frame):
 
     def update_GUI_with_new_interpretation(self):
         """
-        update statistics boxes and figures with a new interpretatiom
-        when selecting new temperature bound
+        update statistics boxes and figures with a new interpretatiom when selecting new temperature bound
         """
 
         if self.current_fit:
@@ -6236,9 +6368,6 @@ class Demag_GUI(wx.Frame):
         else:
             out_str += "\tcurrent fit is: %s for specimen %s\n"%("None",self.s)
         return out_str
-
-    def get_ie_open(self):
-        return self.ie_open
 
     def get_test_mode(self):
         return self.test_mode
