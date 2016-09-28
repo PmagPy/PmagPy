@@ -24,7 +24,7 @@ def specimens_comparator(s1,s2):
     return 0
 
 def get_all_inp_files(WD=None):
-    if not os.path.isdir(WD): print("%s is does not exist, aborting"%WD)
+    if not os.path.isdir(WD): print("directory %s does not exist, aborting"%WD)
     try:
         all_inp_files = []
         for root, dirs, files in os.walk(WD):
@@ -92,7 +92,7 @@ def read_inp(WD,inp_file_name,magic_files,data_model=2.5):
                           and os.path.isfile(os.path.join(WD,erspecf)) \
                           and os.path.isfile(os.path.join(WD,ersampf)) \
                           and os.path.isfile(os.path.join(WD,ersitef)) \
-                          and os.path.isfile(os.path.join(WD,erlocf)):
+                          and data_model != 3.0 or os.path.isfile(os.path.join(WD,erlocf)):
                 magic_files['measurements'].append(os.path.join(WD,f))
                 magic_files['specimens'].append(os.path.join(WD,erspecf))
                 magic_files['samples'].append(os.path.join(WD,ersampf))

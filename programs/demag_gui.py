@@ -159,7 +159,7 @@ class Demag_GUI(wx.Frame):
         self.dpi = 100
 
         self.all_fits_list = []
-        
+
         self.pmag_results_data={}
         for level in ['specimens','samples','sites','locations','study']:
             self.pmag_results_data[level]={}
@@ -229,7 +229,6 @@ class Demag_GUI(wx.Frame):
         else: pass
 
         self.running = True
-
         self.arrow_keys()
         self.Bind(wx.EVT_CLOSE, self.on_menu_exit)
         self.close_warning=False
@@ -919,7 +918,7 @@ class Demag_GUI(wx.Frame):
                     if i!=0  and (i+1)%int(self.preferences['show_Zij_treatments_steps'])==0:
                         self.zijplot.text(self.CART_rot[i][0], -1*self.CART_rot[i][2], "  %s"%(self.zijdblock_steps[i]), fontsize=8*self.GUI_RESOLUTION, color='gray', ha='left', va='center')   #inc
                 else:
-                  self.zijplot.text(self.CART_rot[i][0], -1*self.CART_rot[i][2], "  %s"%(self.zijdblock_steps[i]), fontsize=10*self.GUI_RESOLUTION, color='gray', ha='left', va='center')   #inc
+                    self.zijplot.text(self.CART_rot[i][0], -1*self.CART_rot[i][2], "  %s"%(self.zijdblock_steps[i]), fontsize=10*self.GUI_RESOLUTION, color='gray', ha='left', va='center')   #inc
 
         #-----
 
@@ -971,7 +970,7 @@ class Demag_GUI(wx.Frame):
 
         TEXT1,TEXT2="",""
         if self.COORDINATE_SYSTEM=='specimen':
-                TEXT1,TEXT2=" y","      z"
+            TEXT1,TEXT2=" y","      z"
         else:
             if self.ORTHO_PLOT_TYPE=='N-S':
                 TEXT1,TEXT2=" E","     D"
@@ -1517,19 +1516,19 @@ class Demag_GUI(wx.Frame):
 
         # plot elements means
         if calculation_type!="None":
-           if high_level_name in self.high_level_means[high_level_type].keys():
+            if high_level_name in self.high_level_means[high_level_type].keys():
                 if self.mean_fit in self.high_level_means[high_level_type][high_level_name].keys():
                     if dirtype in self.high_level_means[high_level_type][high_level_name][self.mean_fit].keys():
                         self.plot_eqarea_mean(self.high_level_means[high_level_type][high_level_name][self.mean_fit][dirtype],self.high_level_eqarea)
 
         #check sample orietation
         if self.check_orient_on:
-           self.calc_and_plot_sample_orient_check()
+            self.calc_and_plot_sample_orient_check()
 
         self.canvas4.draw()
 
         if self.ie_open:
-           self.ie.draw()
+            self.ie.draw()
 
     def calc_and_plot_sample_orient_check(self):
         """
@@ -1712,7 +1711,7 @@ class Demag_GUI(wx.Frame):
                 if type(meanpars[mode])==dict and meanpars[mode]!={}:
                     mpars_to_plot.append(meanpars[mode])
         else:
-           mpars_to_plot.append(meanpars)
+            mpars_to_plot.append(meanpars)
         ymin, ymax = fig.get_ylim()
         xmin, xmax = fig.get_xlim()
         # put on the mean direction
@@ -1840,6 +1839,7 @@ class Demag_GUI(wx.Frame):
         @param - fmax: upper bound of new interpretation
         @param - PCA_type: type of regression or mean for new interpretaion (default: DE-BFL or line)
         @prarm - color: color to plot the new interpretation in
+        @return - returns new fit object or None if fit could not be added
         """
         if specimen not in self.Data.keys():
             self.user_warning("there is no measurement data for %s and therefore no interpretation can be created for this specimen"%(specimen))
@@ -2065,13 +2065,13 @@ class Demag_GUI(wx.Frame):
         if  er_ages_rec["age"]=="":
             if "age_range_high" in er_ages_rec.keys() and "age_range_low" in er_ages_rec.keys():
                 if er_ages_rec["age_range_high"] != "" and  er_ages_rec["age_range_low"] != "":
-                 er_ages_rec["age"]=scipy.mean([float(er_ages_rec["age_range_high"]),float(er_ages_rec["age_range_low"])])
+                    er_ages_rec["age"]=scipy.mean([float(er_ages_rec["age_range_high"]),float(er_ages_rec["age_range_low"])])
         if  er_ages_rec["age"]=="":
             return(er_ages_rec)
 
         age_unit=er_ages_rec["age_unit"]
 
-        # Fix 'age': 
+        # Fix 'age':
         mutliplier=1
         if age_unit=="Ga":
             mutliplier=-1e9
@@ -2092,14 +2092,14 @@ class Demag_GUI(wx.Frame):
         age_range_low=age
         age_range_high=age
         age_sigma=0
-        
+
         if "age_sigma" in er_ages_rec.keys() and er_ages_rec["age_sigma"] !="":
             age_sigma=float(er_ages_rec["age_sigma"])*mutliplier
             if age_unit=="Years BP" or age_unit =="Years Cal BP":
                 age_sigma=1950-age_sigma
             age_range_low= age-age_sigma
             age_range_high= age+age_sigma
-            
+
         if "age_range_high" in er_ages_rec.keys() and "age_range_low" in er_ages_rec.keys():
             if er_ages_rec["age_range_high"] != "" and  er_ages_rec["age_range_low"] != "":
                 age_range_high=float(er_ages_rec["age_range_high"])*mutliplier
@@ -2150,7 +2150,7 @@ class Demag_GUI(wx.Frame):
                     m2_name=map_magic.convert_direction_criteria('magic2',crit['table_column'])
                     if m2_name!="":
                         try:
-                            if crit['criterion_value']=='True': 
+                            if crit['criterion_value']=='True':
                                 acceptance_criteria[m2_name]['value']=1
                             else:
                                 acceptance_criteria[m2_name]['value']=0
@@ -2210,7 +2210,7 @@ class Demag_GUI(wx.Frame):
             except:
                 pass
         if "DE-BFL" in calculation_type and 'specimen_dang' not in mpars.keys():
-             mpars['specimen_dang']=0
+            mpars['specimen_dang']=0
 
         return(mpars)
 
@@ -2410,7 +2410,7 @@ class Demag_GUI(wx.Frame):
         calculation_type=str(self.mean_type_box.GetValue())
         elements_type=self.UPPER_LEVEL_SHOW
         if self.ie_open:
-             self.ie.mean_type_box.SetStringSelection(calculation_type)
+            self.ie.mean_type_box.SetStringSelection(calculation_type)
         self.calculate_high_level_mean(high_level_type,high_level_name,calculation_type,elements_type,self.mean_fit)
 
     def quiet_reset_backend(self,reset_interps=True):
@@ -2661,8 +2661,8 @@ class Demag_GUI(wx.Frame):
         except ValueError: fit_index = None
         self.initialize_CART_rot(specimen) #sets self.s to specimen calculates params etc.
         if fit_index != None and self.s in self.pmag_results_data['specimens']:
-          try: self.current_fit = self.pmag_results_data['specimens'][self.s][fit_index]
-          except IndexError: self.current_fit = None
+            try: self.current_fit = self.pmag_results_data['specimens'][self.s][fit_index]
+            except IndexError: self.current_fit = None
         else: self.current_fit = None
 
     def new_fit(self):
@@ -2783,416 +2783,369 @@ class Demag_GUI(wx.Frame):
 
     def get_data(self):
 
-      #------------------------------------------------
-      # Read magic measurement file and sort to blocks
-      #------------------------------------------------
+        #------------------------------------------------
+        # Read magic measurement file and sort to blocks
+        #------------------------------------------------
 
-      # All data information is stored in Data[secimen]={}
-      Data={}
-      Data_hierarchy={}
-      Data_hierarchy['study']={}
-      Data_hierarchy['locations']={}
-      Data_hierarchy['sites']={}
-      Data_hierarchy['samples']={}
-      Data_hierarchy['specimens']={}
-      Data_hierarchy['sample_of_specimen']={}
-      Data_hierarchy['site_of_specimen']={}
-      Data_hierarchy['site_of_sample']={}
-      Data_hierarchy['location_of_site']={}
-      Data_hierarchy['location_of_specimen']={}
-      Data_hierarchy['study_of_specimen']={}
-      Data_hierarchy['expedition_name_of_specimen']={}
+        # All meas data information is stored in Data[secimen]={}
+        Data={}
+        Data_hierarchy={}
+        Data_hierarchy['study']={}
+        Data_hierarchy['locations']={}
+        Data_hierarchy['sites']={}
+        Data_hierarchy['samples']={}
+        Data_hierarchy['specimens']={}
+        Data_hierarchy['sample_of_specimen']={}
+        Data_hierarchy['site_of_specimen']={}
+        Data_hierarchy['site_of_sample']={}
+        Data_hierarchy['location_of_site']={}
+        Data_hierarchy['location_of_specimen']={}
+        Data_hierarchy['study_of_specimen']={}
+        Data_hierarchy['expedition_name_of_specimen']={}
 
-      if self.data_model==3:
+        if self.data_model==3:
 
-          if 'sample' not in self.spec_data.columns or 'sample' not in self.samp_data.columns:
-            if 'specimen' not in self.spec_data.columns:
-                self.spec_data['specimen'] = self.con.tables['measurements'].df['specimen']
-                self.spec_data.set_index('specimen',inplace=True)
-                self.spec_data['specimen'] = self.spec_data.index
+            if 'sample' not in self.spec_data.columns or 'sample' not in self.samp_data.columns:
+                if 'specimen' not in self.spec_data.columns:
+                    self.spec_data['specimen'] = self.con.tables['measurements'].df['specimen']
+                    self.spec_data.set_index('specimen',inplace=True)
+                    self.spec_data['specimen'] = self.spec_data.index
 
-            ui_dialog = demag_dialogs.user_input(self,["# of characters to remove"], heading="Sample data could not be found attempting to generate sample names by removing characters from specimen names")
-            self.show_dlg(ui_dialog)
-            ui_data = ui_dialog.get_values()
-            try: samp_ncr = int(ui_data[1]["# of characters to remove"])
-            except ValueError:
-                self.user_warning("Invalid input specimen names will be used for sample names instead")
-                samp_ncr = 0
-            self.spec_data['sample'] = map(lambda x: x[:-samp_ncr], self.spec_data['specimen'])
+                ui_dialog = demag_dialogs.user_input(self,["# of characters to remove"], heading="Sample data could not be found attempting to generate sample names by removing characters from specimen names")
+                self.show_dlg(ui_dialog)
+                ui_data = ui_dialog.get_values()
+                try: samp_ncr = int(ui_data[1]["# of characters to remove"])
+                except ValueError:
+                    self.user_warning("Invalid input specimen names will be used for sample names instead")
+                    samp_ncr = 0
+                self.spec_data['sample'] = map(lambda x: x[:-samp_ncr], self.spec_data['specimen'])
 
-            self.samp_data['sample'] = self.spec_data['sample']
-            self.samp_data.set_index('sample',inplace=True)
-            self.samp_data['sample'] = self.samp_data.index
+                self.samp_data['sample'] = self.spec_data['sample']
+                self.samp_data.set_index('sample',inplace=True)
+                self.samp_data['sample'] = self.samp_data.index
 
-          if 'site' not in self.samp_data.columns or 'site' not in self.site_data.columns:
-            ui_dialog = demag_dialogs.user_input(self,["# of characters to remove","site delimiter"], heading="No Site Data found attempting to create site names from specimen names")
-            self.show_dlg(ui_dialog)
-            ui_data = ui_dialog.get_values()
-            try:
-                site_ncr = int(ui_data[1]["# of characters to remove"])
-                self.samp_data['site'] = map(lambda x: x[:-site_ncr], self.spec_data['specimen'])
-            except ValueError:
-                sd = ui_data[1]["site delimiter"]
-                self.samp_data['site'] = map(lambda x: x.split(sd)[0], self.spec_data['specimen'])
+            if 'site' not in self.samp_data.columns or 'site' not in self.site_data.columns:
+                ui_dialog = demag_dialogs.user_input(self,["# of characters to remove","site delimiter"], heading="No Site Data found attempting to create site names from specimen names")
+                self.show_dlg(ui_dialog)
+                ui_data = ui_dialog.get_values()
+                try:
+                    site_ncr = int(ui_data[1]["# of characters to remove"])
+                    self.samp_data['site'] = map(lambda x: x[:-site_ncr], self.spec_data['specimen'])
+                except ValueError:
+                    sd = ui_data[1]["site delimiter"]
+                    self.samp_data['site'] = map(lambda x: x.split(sd)[0], self.spec_data['specimen'])
 
-            self.site_data['site'] = self.samp_data['site']
-            self.site_data.drop_duplicates(inplace=True)
-            self.site_data.set_index('site',inplace=True)
-            self.site_data['site'] = self.site_data.index
+                self.site_data['site'] = self.samp_data['site']
+                self.site_data.drop_duplicates(inplace=True)
+                self.site_data.set_index('site',inplace=True)
+                self.site_data['site'] = self.site_data.index
 
-          if 'location' not in self.site_data.columns or 'location' not in self.loc_data.columns:
-            ui_dialog = demag_dialogs.user_input(self,["location name for all sites"], heading="No Location found")
-            self.show_dlg(ui_dialog)
-            ui_data = ui_dialog.get_values()
-            self.site_data['location'] = ui_data[1]["location name for all sites"]
+            if 'location' not in self.site_data.columns or 'location' not in self.loc_data.columns:
+                ui_dialog = demag_dialogs.user_input(self,["location name for all sites"], heading="No Location found")
+                self.show_dlg(ui_dialog)
+                ui_data = ui_dialog.get_values()
+                self.site_data['location'] = ui_data[1]["location name for all sites"]
 
-            self.loc_data['location'] = self.site_data['location']
-            self.loc_data.drop_duplicates(inplace=True)
-            self.loc_data.set_index('location',inplace=True)
-            self.loc_data['location'] = self.loc_data.index
+                self.loc_data['location'] = self.site_data['location']
+                self.loc_data.drop_duplicates(inplace=True)
+                self.loc_data.set_index('location',inplace=True)
+                self.loc_data['location'] = self.loc_data.index
 
 
-          #add data to other dataframes
-          if 'specimens' in self.con.tables:
-              self.con.propagate_name_down('sample', 'measurements')
-              self.con.propagate_name_down('sample', 'specimens')
-          if 'samples' in self.con.tables:
-              self.con.propagate_name_down('site', 'measurements')
-              self.con.propagate_name_down('site', 'specimens')
-          if 'sites' in self.con.tables:
-              self.con.propagate_name_down('location','measurements')
-              self.con.propagate_name_down('location','specimens')
+            #add data to other dataframes
+            if 'specimens' in self.con.tables:
+                self.con.propagate_name_down('sample', 'measurements')
+                self.con.propagate_name_down('sample', 'specimens')
+            if 'samples' in self.con.tables:
+                self.con.propagate_name_down('site', 'measurements')
+                self.con.propagate_name_down('site', 'specimens')
+            if 'sites' in self.con.tables:
+                self.con.propagate_name_down('location','measurements')
+                self.con.propagate_name_down('location','specimens')
 
-          #get measurement data from contribution object
-          meas_container = self.con.tables['measurements']
-          meas_data3_0 = meas_container.df
+            #get measurement data from contribution object
+            meas_container = self.con.tables['measurements']
+            meas_data3_0 = meas_container.df
 
-          # do some filtering
-          if 'site' in meas_data3_0.columns:
-              meas_data3_0 = meas_data3_0[meas_data3_0['site'].notnull()]
-          if 'sample' in meas_data3_0.columns:
-              meas_data3_0 = meas_data3_0[meas_data3_0['sample'].notnull()]
-          if 'specimen' in meas_data3_0.columns:
-              meas_data3_0 = meas_data3_0[meas_data3_0['specimen'].notnull()]
-          Mkeys = ['magn_moment', 'magn_volume', 'magn_mass']
-          meas_data3_0=meas_data3_0[meas_data3_0['method_codes'].str.contains('LT-NO|LT-AF-Z|LT-T-Z|LT-M-Z|LT-LT-Z')==True] # fish out all the relavent data 
+            # do some filtering
+            if 'site' in meas_data3_0.columns:
+                meas_data3_0 = meas_data3_0[meas_data3_0['site'].notnull()]
+            if 'sample' in meas_data3_0.columns:
+                meas_data3_0 = meas_data3_0[meas_data3_0['sample'].notnull()]
+            if 'specimen' in meas_data3_0.columns:
+                meas_data3_0 = meas_data3_0[meas_data3_0['specimen'].notnull()]
+            Mkeys = ['magn_moment', 'magn_volume', 'magn_mass']
+            meas_data3_0=meas_data3_0[meas_data3_0['method_codes'].str.contains('LT-NO|LT-AF-Z|LT-T-Z|LT-M-Z|LT-LT-Z')==True] # fish out all the relavent data
 # now convert back to 2.5  changing only those keys that are necessary for thellier_gui
-          meas_data2_5=meas_data3_0.rename(columns=map_magic.meas_magic3_2_magic2_map)
-          mag_meas_data=meas_data2_5.to_dict("records")  # make a list of dictionaries to maintain backward compatibility
+            meas_data2_5=meas_data3_0.rename(columns=map_magic.meas_magic3_2_magic2_map)
+            mag_meas_data=meas_data2_5.to_dict("records")  # make a list of dictionaries to maintain backward compatibility
 
-      else:
-          try:
-            print("-I- Read magic file %s"%self.magic_file)
-          except ValueError:
-            self.magic_measurement = self.choose_meas_file()
-            print("-I- Read magic file %s"%self.magic_file)
-          mag_meas_data,file_type=pmag.magic_read(self.magic_file)
+        else:
+            try:
+                print("-I- Read magic file %s"%self.magic_file)
+            except ValueError:
+                self.magic_measurement = self.choose_meas_file()
+                print("-I- Read magic file %s"%self.magic_file)
+            mag_meas_data,file_type=pmag.magic_read(self.magic_file)
 
-      self.mag_meas_data=deepcopy(self.merge_pmag_recs(mag_meas_data))
+        self.mag_meas_data=self.merge_pmag_recs(mag_meas_data)
 
-      # get list of unique specimen names with measurement data
-      CurrRec=[]
-      sids=pmag.get_specs(self.mag_meas_data) # samples ID's
+        # get list of unique specimen names with measurement data
+        CurrRec=[]
+        sids=pmag.get_specs(self.mag_meas_data) # specimen ID's
+        for s in sids:
+            if s not in Data.keys():
+                Data[s]={}
+                Data[s]['zijdblock']=[]
+                Data[s]['zijdblock_geo']=[]
+                Data[s]['zijdblock_tilt']=[]
+                Data[s]['zijdblock_lab_treatments']=[]
+                Data[s]['pars']={}
+                Data[s]['csds']=[]
+                Data[s]['zijdblock_steps']=[]
+                Data[s]['measurement_flag']=[]# a list of points 'g' or 'b'
+                Data[s]['mag_meas_data_index']=[] # index in original magic_measurements.txt
 
-      for s in sids:
-          if s not in Data.keys():
-              Data[s]={}
-              Data[s]['zijdblock']=[]
-              Data[s]['zijdblock_geo']=[]
-              Data[s]['zijdblock_tilt']=[]
-              Data[s]['zijdblock_lab_treatments']=[]
-              Data[s]['pars']={}
-              Data[s]['csds']=[]
-              Data[s]['zijdblock_steps']=[]
-              Data[s]['measurement_flag']=[]# a list of points 'g' or 'b'
-              Data[s]['mag_meas_data_index']=[]  # index in original magic_measurements.txt
+        prev_s = None
+        cnt=-1
+        for rec in self.mag_meas_data:
+            cnt+=1 #index counter
+            s=rec["er_specimen_name"]
+            if "er_sample_name" in rec.keys(): sample=rec["er_sample_name"]
+            else: sample = ''
+            if "er_site_name" in rec.keys(): site=rec["er_site_name"]
+            else: site = ''
+            if "er_location_name" in rec.keys(): location=rec["er_location_name"]
+            else: location = ''
+            expedition_name=""
+            if "er_expedition_name" in rec.keys():
+                expedition_name=rec["er_expedition_name"]
 
-      prev_s = None
-      cnt=-1
-      for rec in self.mag_meas_data:
-          cnt+=1 #index counter
-          s=rec["er_specimen_name"]
-          if "er_sample_name" in rec.keys(): sample=rec["er_sample_name"]
-          else: sample = ''
-          if "er_site_name" in rec.keys(): site=rec["er_site_name"]
-          else: site = ''
-          if "er_location_name" in rec.keys(): location=rec["er_location_name"]
-          else: location = ''
-          expedition_name=""
-          if "er_expedition_name" in rec.keys():
-              expedition_name=rec["er_expedition_name"]
+            #---------------------
+            # sort data to Zijderveld block"
+            # [tr,dec,inc,int,ZI,rec['measurement_flag'],rec['magic_instrument_codes']\
+            # (ZI=0)
+            #---------------------
 
-          #---------------------
-          # sort data to Zijderveld block"
-          # [tr,dec,inc,int,ZI,rec['measurement_flag'],rec['magic_instrument_codes']\
-          # (ZI=0)
-          #---------------------
+            # list of excluded lab protocols. copied from pmag.find_dmag_rec(s,data)
+            EX=["LP-AN-ARM","LP-AN-TRM","LP-ARM-AFD","LP-ARM2-AFD","LP-TRM-AFD","LP-TRM","LP-TRM-TD","LP-X"]
+            INC=["LT-NO","LT-AF-Z","LT-T-Z", "LT-M-Z","LT-LT-Z"]
 
-          # list of excluded lab protocols. copied from pmag.find_dmag_rec(s,data)
-          EX=["LP-AN-ARM","LP-AN-TRM","LP-ARM-AFD","LP-ARM2-AFD","LP-TRM-AFD","LP-TRM","LP-TRM-TD","LP-X"]
-          INC=["LT-NO","LT-AF-Z","LT-T-Z", "LT-M-Z","LT-LT-Z"]
+            methods=rec["magic_method_codes"].replace(" ","").strip("\n").split(":")
+            LP_methods=[]
+            LT_methods=[]
 
-          methods=rec["magic_method_codes"].replace(" ","").strip("\n").split(":")
-          LP_methods=[]
-          LT_methods=[]
+            for k in ['zdata','zdata_geo','zdata_tilt','vector_diffs']:
+                if k not in Data[s]: Data[s][k]=[]
 
-          for i in range (len(methods)):
-               methods[i]=methods[i].strip()
-          if 'measurement_flag' not in rec.keys():
-              rec['measurement_flag']='g'
-          SKIP=True;lab_treatment=""
-          for meth in methods:
-               if meth in ["LT-NO","LT-AF-Z","LT-T-Z", "LT-M-Z","LT-LT-Z"]:
-                   lab_treatment=meth
-                   SKIP=False
-               if "LP" in meth:
-                   LP_methods.append(meth)
-          for meth in EX:
-               if meth in methods:
-                   SKIP=True
-          if not SKIP:
-             tr=""
-             if "LT-NO" in methods:
-                 tr=0
-                 measurement_step_unit=""
-                 LPcode=""
-                 for method in methods:
-                     if "AF" in method:
-                         LPcode="LP-DIR-AF"
-                         measurement_step_unit="mT"
-                     if "TRM" in method:
-                         LPcode="LP-DIR-T"
-                         measurement_step_unit="C"
-             elif "LT-AF-Z" in  methods:
-                 tr = float(rec["treatment_ac_field"])*1e3 #(mT)
-                 measurement_step_unit="mT" # in magic its T in GUI its mT
-                 LPcode="LP-DIR-AF"
-             elif  "LT-T-Z" in  methods or "LT-LT-Z" in methods:
-                 tr = float(rec["treatment_temp"])-273. # celsius
-                 measurement_step_unit="C" # in magic its K in GUI its C
-                 LPcode="LP-DIR-T"
-             elif  "LT-M-Z" in  methods:
-                 tr = float(rec["measurement_number"]) # temporary for microwave
-             else:
-                 tr = float(rec["measurement_number"])
+            for i in range (len(methods)):
+                methods[i]=methods[i].strip()
+            if 'measurement_flag' not in rec.keys():
+                rec['measurement_flag']='g'
+            SKIP=True;lab_treatment=""
+            for meth in methods:
+                if meth in ["LT-NO","LT-AF-Z","LT-T-Z", "LT-M-Z","LT-LT-Z"]:
+                    lab_treatment=meth
+                    SKIP=False
+                if "LP" in meth:
+                    LP_methods.append(meth)
+            for meth in EX:
+                if meth in methods:
+                    SKIP=True
+            if SKIP: continue
+            tr=""
+            if "LT-NO" in methods:
+                tr=0
+                measurement_step_unit=""
+                LPcode=""
+                if prev_s!=s and "measurement_magn_moment" in rec:
+                    NRM = float(rec["measurement_magn_moment"])
+                for method in methods:
+                    if "AF" in method:
+                        LPcode="LP-DIR-AF"
+                        measurement_step_unit="mT"
+                    if "TRM" in method:
+                        LPcode="LP-DIR-T"
+                        measurement_step_unit="C"
+            elif "LT-AF-Z" in  methods:
+                tr = float(rec["treatment_ac_field"])*1e3 #(mT)
+                measurement_step_unit="mT" # in magic its T in GUI its mT
+                LPcode="LP-DIR-AF"
+            elif  "LT-T-Z" in  methods or "LT-LT-Z" in methods:
+                tr = float(rec["treatment_temp"])-273. # celsius
+                measurement_step_unit="C" # in magic its K in GUI its C
+                LPcode="LP-DIR-T"
+            elif  "LT-M-Z" in  methods:
+                tr = float(rec["measurement_number"]) # temporary for microwave
+            else:
+                tr = float(rec["measurement_number"])
+            if prev_s!=s and len(Data[s]['zijdblock'])>0:
+                NRM=Data[s]['zijdblock'][0][3]
 
-             ZI=0
-
-             if tr !="":
-                 Data[s]['mag_meas_data_index'].append(cnt) # magic_measurement file intex
-                 Data[s]['zijdblock_lab_treatments'].append(lab_treatment)
-                 if measurement_step_unit!="":
-                    if  'measurement_step_unit' in Data[s].keys():
+            ZI=0
+            if tr !="":
+                Data[s]['mag_meas_data_index'].append(cnt) # magic_measurement file intex
+                Data[s]['zijdblock_lab_treatments'].append(lab_treatment)
+                if measurement_step_unit!="":
+                    if 'measurement_step_unit' in Data[s].keys():
                         if measurement_step_unit not in Data[s]['measurement_step_unit'].split(":"):
                             Data[s]['measurement_step_unit']=Data[s]['measurement_step_unit']+":"+measurement_step_unit
                     else:
                         Data[s]['measurement_step_unit']=measurement_step_unit
-                 dec,inc,inten = "","",""
-                 if "measurement_dec" in rec.keys() and rec["measurement_dec"] != "":
-                     dec=float(rec["measurement_dec"])
-                 else:
-                     continue
-                 if "measurement_inc" in rec.keys() and rec["measurement_inc"] != "":
-                     inc=float(rec["measurement_inc"])
-                 else:
-                     continue
-                 if "measurement_magn_moment" in rec.keys() and rec["measurement_magn_moment"] != "":
-                     intensity=float(rec["measurement_magn_moment"])
-                 else:
-                     continue
-                 if 'magic_instrument_codes' not in rec.keys():
-                     rec['magic_instrument_codes']=''
-                 if 'measurement_csd' in rec.keys():
+                dec,inc,inten = "","",""
+                if "measurement_dec" in rec.keys() and rec["measurement_dec"] != "":
+                    dec=float(rec["measurement_dec"])
+                else:
+                    continue
+                if "measurement_inc" in rec.keys() and rec["measurement_inc"] != "":
+                    inc=float(rec["measurement_inc"])
+                else:
+                    continue
+                if "measurement_magn_moment" in rec.keys() and rec["measurement_magn_moment"] != "":
+                    intensity=float(rec["measurement_magn_moment"])
+                else:
+                    continue
+                if 'magic_instrument_codes' not in rec.keys():
+                    rec['magic_instrument_codes']=''
+                if 'measurement_csd' in rec.keys():
                     csd = str(rec['measurement_csd'])
-                 else: csd = ''
-                 Data[s]['zijdblock'].append([tr,dec,inc,intensity,ZI,rec['measurement_flag'],rec['magic_instrument_codes']])
-                 Data[s]['csds'].append(csd)
-                 if 'magic_experiment_name' in Data[s].keys() and Data[s]['magic_experiment_name']!=rec["magic_experiment_name"]:
-                      print("-E- ERROR: specimen %s has more than one demagnetization experiment name. You need to merge them to one experiment-name?\n"%(s))
-                 if float(tr)==0 or float(tr)==273:
+                else: csd = ''
+                Data[s]['zijdblock'].append([tr,dec,inc,intensity,ZI,rec['measurement_flag'],rec['magic_instrument_codes']])
+                Data[s]['csds'].append(csd)
+                DIR=[dec,inc,intensity/NRM]
+                cart=pmag.dir2cart(DIR)
+                Data[s]['zdata'].append(array([cart[0],cart[1],cart[2]]))
+
+                if 'magic_experiment_name' in Data[s].keys() and Data[s]['magic_experiment_name']!=rec["magic_experiment_name"]:
+                    print("-E- ERROR: specimen %s has more than one demagnetization experiment name. You need to merge them to one experiment-name?\n"%(s))
+                if float(tr)==0 or float(tr)==273:
                     Data[s]['zijdblock_steps'].append("0")
-                 elif measurement_step_unit=="C":
+                elif measurement_step_unit=="C":
                     Data[s]['zijdblock_steps'].append("%.0f%s"%(tr,measurement_step_unit))
-                 else:
+                else:
                     Data[s]['zijdblock_steps'].append("%.1f%s"%(tr,measurement_step_unit))
-                 #--------------
-                 if 'magic_experiment_name' in rec.keys():
-                     Data[s]['magic_experiment_name']=rec["magic_experiment_name"]
-                 if "magic_instrument_codes" in rec.keys():
-                     Data[s]['magic_instrument_codes']=rec['magic_instrument_codes']
-                 Data[s]["magic_method_codes"]=LPcode
+                #--------------
+                if 'magic_experiment_name' in rec.keys():
+                    Data[s]['magic_experiment_name']=rec["magic_experiment_name"]
+                if "magic_instrument_codes" in rec.keys():
+                    Data[s]['magic_instrument_codes']=rec['magic_instrument_codes']
+                Data[s]["magic_method_codes"]=LPcode
 
-                 #--------------
-                 # ""good" or "bad" data
-                 #--------------
+                #--------------
+                # ""good" or "bad" data
+                #--------------
 
-                 flag='g'
-                 if 'measurement_flag' in rec.keys():
-                     if str(rec["measurement_flag"])=='b':
-                         flag='b'
-                 Data[s]['measurement_flag'].append(flag)
+                flag='g'
+                if 'measurement_flag' in rec.keys():
+                    if str(rec["measurement_flag"])=='b':
+                        flag='b'
+                Data[s]['measurement_flag'].append(flag)
 
-                 # gegraphic coordinates
-
-                 try:
+                # gegraphic coordinates
+                try:
                     sample_azimuth=float(self.Data_info["er_samples"][sample]['sample_azimuth'])
                     sample_dip=float(self.Data_info["er_samples"][sample]['sample_dip'])
                     d_geo,i_geo=pmag.dogeo(dec,inc,sample_azimuth,sample_dip)
                     Data[s]['zijdblock_geo'].append([tr,d_geo,i_geo,intensity,ZI,rec['measurement_flag'],rec['magic_instrument_codes']])
-                 except (IOError, KeyError, ValueError, TypeError) as e:
+                    DIR=[d_geo,i_geo,intensity/NRM]
+                    cart=pmag.dir2cart(DIR)
+                    Data[s]['zdata_geo'].append([cart[0],cart[1],cart[2]])
+                except (IOError, KeyError, ValueError, TypeError) as e:
                     pass
-#                    if prev_s != s:
-#                        print( "-W- cant find sample_azimuth,sample_dip for sample %s"%sample)
+                #                    if prev_s != s:
+                #                        print( "-W- cant find sample_azimuth,sample_dip for sample %s"%sample)
 
-                 # tilt-corrected coordinates
-
-                 try:
+                # tilt-corrected coordinates
+                try:
                     sample_bed_dip_direction=float(self.Data_info["er_samples"][sample]['sample_bed_dip_direction'])
                     sample_bed_dip=float(self.Data_info["er_samples"][sample]['sample_bed_dip'])
                     d_tilt,i_tilt=pmag.dotilt(d_geo,i_geo,sample_bed_dip_direction,sample_bed_dip)
                     Data[s]['zijdblock_tilt'].append([tr,d_tilt,i_tilt,intensity,ZI,rec['measurement_flag'],rec['magic_instrument_codes']])
-                 except (IOError, KeyError, TypeError, ValueError) as e:
+                    DIR=[d_tilt,i_tilt,intensity/NRM]
+                    cart=pmag.dir2cart(DIR)
+                    Data[s]['zdata_tilt'].append([cart[0],cart[1],cart[2]])
+                except (IOError, KeyError, TypeError, ValueError) as e:
                     pass
-#                    if prev_s != s:
-#                        printd("-W- cant find tilt-corrected data for sample %s"%sample)
+                #                    if prev_s != s:
+                #                        printd("-W- cant find tilt-corrected data for sample %s"%sample)
 
-          #---------------------
-          # hierarchy is determined from magic_measurements.txt
-          #---------------------
+                if len(Data[s]['zdata'])>1:
+                    Data[s]['vector_diffs'].append(sqrt(sum((array(Data[s]['zdata'][-2])-array(Data[s]['zdata'][-1]))**2)))
 
-          if sample not in Data_hierarchy['samples'].keys():
-              Data_hierarchy['samples'][sample]={}
-              Data_hierarchy['samples'][sample]['specimens']=[]
+            #---------------------
+            # hierarchy is determined from magic_measurements.txt
+            #---------------------
 
-          if site not in Data_hierarchy['sites'].keys():
-              Data_hierarchy['sites'][site]={}
-              Data_hierarchy['sites'][site]['samples']=[]
-              Data_hierarchy['sites'][site]['specimens']=[]
+            if sample not in Data_hierarchy['samples'].keys():
+                Data_hierarchy['samples'][sample]={}
+                Data_hierarchy['samples'][sample]['specimens']=[]
 
-          if location not in Data_hierarchy['locations'].keys():
-              Data_hierarchy['locations'][location]={}
-              Data_hierarchy['locations'][location]['sites']=[]
-              Data_hierarchy['locations'][location]['samples']=[]
-              Data_hierarchy['locations'][location]['specimens']=[]
+            if site not in Data_hierarchy['sites'].keys():
+                Data_hierarchy['sites'][site]={}
+                Data_hierarchy['sites'][site]['samples']=[]
+                Data_hierarchy['sites'][site]['specimens']=[]
 
-          if 'this study' not in Data_hierarchy['study'].keys():
-            Data_hierarchy['study']['this study']={}
-            Data_hierarchy['study']['this study']['sites']=[]
-            Data_hierarchy['study']['this study']['samples']=[]
-            Data_hierarchy['study']['this study']['specimens']=[]
+            if location not in Data_hierarchy['locations'].keys():
+                Data_hierarchy['locations'][location]={}
+                Data_hierarchy['locations'][location]['sites']=[]
+                Data_hierarchy['locations'][location]['samples']=[]
+                Data_hierarchy['locations'][location]['specimens']=[]
 
-          if s not in Data_hierarchy['samples'][sample]['specimens']:
-              Data_hierarchy['samples'][sample]['specimens'].append(s)
+            if 'this study' not in Data_hierarchy['study'].keys():
+                Data_hierarchy['study']['this study']={}
+                Data_hierarchy['study']['this study']['sites']=[]
+                Data_hierarchy['study']['this study']['samples']=[]
+                Data_hierarchy['study']['this study']['specimens']=[]
 
-          if s not in Data_hierarchy['sites'][site]['specimens']:
-              Data_hierarchy['sites'][site]['specimens'].append(s)
+            if s not in Data_hierarchy['samples'][sample]['specimens']:
+                Data_hierarchy['samples'][sample]['specimens'].append(s)
 
-          if s not in Data_hierarchy['locations'][location]['specimens']:
-              Data_hierarchy['locations'][location]['specimens'].append(s)
+            if s not in Data_hierarchy['sites'][site]['specimens']:
+                Data_hierarchy['sites'][site]['specimens'].append(s)
 
-          if s not in Data_hierarchy['study']['this study']['specimens']:
-              Data_hierarchy['study']['this study']['specimens'].append(s)
+            if s not in Data_hierarchy['locations'][location]['specimens']:
+                Data_hierarchy['locations'][location]['specimens'].append(s)
 
-          if sample not in Data_hierarchy['sites'][site]['samples']:
-              Data_hierarchy['sites'][site]['samples'].append(sample)
+            if s not in Data_hierarchy['study']['this study']['specimens']:
+                Data_hierarchy['study']['this study']['specimens'].append(s)
 
-          if sample not in Data_hierarchy['locations'][location]['samples']:
-              Data_hierarchy['locations'][location]['samples'].append(sample)
+            if sample not in Data_hierarchy['sites'][site]['samples']:
+                Data_hierarchy['sites'][site]['samples'].append(sample)
 
-          if sample not in Data_hierarchy['study']['this study']['samples']:
-              Data_hierarchy['study']['this study']['samples'].append(sample)
+            if sample not in Data_hierarchy['locations'][location]['samples']:
+                Data_hierarchy['locations'][location]['samples'].append(sample)
 
-          if site not in Data_hierarchy['locations'][location]['sites']:
-              Data_hierarchy['locations'][location]['sites'].append(site)
+            if sample not in Data_hierarchy['study']['this study']['samples']:
+                Data_hierarchy['study']['this study']['samples'].append(sample)
 
-          if site not in Data_hierarchy['study']['this study']['sites']:
-              Data_hierarchy['study']['this study']['sites'].append(site)
+            if site not in Data_hierarchy['locations'][location]['sites']:
+                Data_hierarchy['locations'][location]['sites'].append(site)
 
-          #Data_hierarchy['specimens'][s]=sample
-          Data_hierarchy['sample_of_specimen'][s]=sample
-          Data_hierarchy['site_of_specimen'][s]=site
-          Data_hierarchy['site_of_sample'][sample]=site
-          Data_hierarchy['location_of_site'][site]=location
-          Data_hierarchy['location_of_specimen'][s]=location
-          if expedition_name!="":
-            Data_hierarchy['expedition_name_of_specimen'][s]=expedition_name
+            if site not in Data_hierarchy['study']['this study']['sites']:
+                Data_hierarchy['study']['this study']['sites'].append(site)
 
-          prev_s = s
+            #Data_hierarchy['specimens'][s]=sample
+            Data_hierarchy['sample_of_specimen'][s]=sample
+            Data_hierarchy['site_of_specimen'][s]=site
+            Data_hierarchy['site_of_sample'][sample]=site
+            Data_hierarchy['location_of_site'][site]=location
+            Data_hierarchy['location_of_specimen'][s]=location
+            if expedition_name!="":
+                Data_hierarchy['expedition_name_of_specimen'][s]=expedition_name
+            prev_s = s
 
-      print("-I- done sorting meas data")
+        print("-I- done sorting meas data")
+        self.specimens=Data.keys()
 
-      self.specimens=Data.keys()
-
-      #------------------------------------------------
-      # analyze Zij block and save in dictionaries:
-      # cartesian coordinates of the different datablocks:
-      # Data[s]['zdata'] ;Data[s]['zdata_geo'];Data[s]['zijdblock_tilt']
-      # cartesian datablocks Rotated to zijederveld block:
-      # Data[s]['zij_rotated'] ;Data[s]['zij_rotated_geo'];Data[s]['zij_rotated_tilt']
-      # VDS calculations:
-      # Data[s]['vector_diffs']=array(vector_diffs)
-      # Data[s]['vds']=vds
-      #------------------------------------------------
-
-      for s in self.specimens:
-        # collected the data
-        zijdblock=Data[s]['zijdblock']
-        zijdblock_geo=Data[s]['zijdblock_geo']
-        zijdblock_tilt=Data[s]['zijdblock_tilt']
-        if len(zijdblock)<3:
-            del Data[s]
-            continue
-
-        #--------------------------------------------------------------
-        # collect all zijderveld data to array and calculate VDS
-        #--------------------------------------------------------------
-
-        zdata=[]
-        zdata_geo=[]
-        zdata_tilt=[]
-        vector_diffs=[]
-        NRM=zijdblock[0][3]
-        if NRM == 0: self.user_warning("-E- NRM is 0 cannot normalize magnetic vector magnitude by NRM.")
-        for k in range(len(zijdblock)):
-            # specimen coordinates
-            if len(zijdblock[k]) < 4:
-                print("-E- Speciemen measurement data incomplete on entry #%d. Skipping data point"%(k))
-                self.user_warning("Speciemen measurement data incomplete on entry #%d. Skipping data point"%(k))
-                continue
-            DIR=[zijdblock[k][1],zijdblock[k][2],zijdblock[k][3]/NRM]
-            cart=pmag.dir2cart(DIR)
-            zdata.append(array([cart[0],cart[1],cart[2]]))
-            # geographic coordinates
-            if len(zijdblock_geo)!=0:
-                if len(zijdblock_geo[k]) < 4:
-                    print("-E- Geographic measurement data incomplete on entry #%d. Skipping data point"%(k))
-                    self.user_warning("Geographic measurement data incomplete on entry #%d. Skipping data point"%(k))
-                    continue
-                DIR=[zijdblock_geo[k][1],zijdblock_geo[k][2],zijdblock_geo[k][3]/NRM]
-                cart=pmag.dir2cart(DIR)
-                zdata_geo.append(array([cart[0],cart[1],cart[2]]))
-            # tilt-corrected coordinates
-            if len(zijdblock_tilt)!=0:
-                if len(zijdblock_tilt[k]) < 4:
-                    print("-E- Tilt-Corrected measurement data incomplete on entry #%d. Skipping data point"%(k))
-                    self.user_warning("Til-Corrected measurement data incomplete on entry #%d. Skipping data point"%(k))
-                    continue
-                DIR=[zijdblock_tilt[k][1],zijdblock_tilt[k][2],zijdblock_tilt[k][3]/NRM]
-                cart=pmag.dir2cart(DIR)
-                zdata_tilt.append(array([cart[0],cart[1],cart[2]]))
-            if k>0:
-                vector_diffs.append(sqrt(sum((array(zdata[-2])-array(zdata[-1]))**2)))
-
-        vector_diffs.append(sqrt(sum(array(zdata[-1])**2))) # last vector of the vds
-        vds=sum(vector_diffs)  # vds calculation
-
-        Data[s]['vector_diffs']=array(vector_diffs)
-        Data[s]['vds']=vds
-        Data[s]['zdata']=array(zdata)
-        Data[s]['zdata_geo']=array(zdata_geo)
-        Data[s]['zdata_tilt']=array(zdata_tilt)
-
-      return(Data,Data_hierarchy)
+        for s in self.specimens:
+            Data[s]['vector_diffs'].append(sqrt(sum(array(Data[s]['zdata'][-1])**2))) # last vector of the vds
+            vds=sum(Data[s]['vector_diffs']) # vds calculation
+            Data[s]['vector_diffs']=array(Data[s]['vector_diffs'])
+            Data[s]['vds']=vds
+            Data[s]['zdata']=array(Data[s]['zdata'])
+            Data[s]['zdata_geo']=array(Data[s]['zdata_geo'])
+            Data[s]['zdata_tilt']=array(Data[s]['zdata_tilt'])
+        return(Data,Data_hierarchy)
 
     def get_interpretations3(self):
         if "specimen" not in self.spec_data.columns or \
@@ -3278,13 +3231,13 @@ class Demag_GUI(wx.Frame):
                     er_ages=age_data.to_dict('records')  # save this in 2.5 format
                     data_er_ages={}
                     for s in er_ages:
-                       s=self.convert_ages_to_calendar_year(s)
-                       data_er_ages[s['er_site_name']]=s
+                        s=self.convert_ages_to_calendar_year(s)
+                        data_er_ages[s['er_site_name']]=s
                 sites=self.site_data.rename(columns=map_magic.site_magic3_2_magic2_map)
                 er_sites=sites.to_dict('records') # pick out what is needed by thellier_gui and put in 2.5 format
                 data_er_sites={}
                 for s in er_sites:
-                   data_er_sites[s['er_site_name']]=s
+                    data_er_sites[s['er_site_name']]=s
             else:
                 self.con.add_empty_magic_table('sites')
                 self.site_data = self.con.tables['sites'].df
@@ -3531,8 +3484,7 @@ class Demag_GUI(wx.Frame):
 
             if 'specimen_comp_name' in rec.keys() and rec['specimen_comp_name'] not in map(lambda x: x.name, self.pmag_results_data['specimens'][specimen]):
                 if calculation_type=="": calculation_type="DE-BFL"
-                self.add_fit(specimen,rec['specimen_comp_name'], tmin, tmax, calculation_type)
-                fit = self.pmag_results_data['specimens'][specimen][-1]
+                fit = self.add_fit(specimen,rec['specimen_comp_name'], tmin, tmax, calculation_type)
             else:
                 fit = None
 
@@ -3725,11 +3677,11 @@ class Demag_GUI(wx.Frame):
                 if len(d)>0: d = d[0]
                 comp = new_value.strip(str(d))
                 if comp == '': comp = '>='
-                if 'specimen' in crit: 
+                if 'specimen' in crit:
                     col = "specimens."+map_magic.spec_magic2_2_magic3_map[crit]
-                elif 'sample' in crit: 
+                elif 'sample' in crit:
                     col = "samples."+map_magic.samp_magic2_2_magic3_map[crit]
-                elif 'site' in crit: 
+                elif 'site' in crit:
                     col = "sites."+map_magic.site_magic2_2_magic3_map[crit]
                 else: print("no way this like is impossible"); continue
                 new_crit['criterion'] = "ACCEPT"
@@ -3972,9 +3924,9 @@ class Demag_GUI(wx.Frame):
             SpecDirs=[]
             if nocrit!=1: # use selection criteria
                 for rec in Ns: # look through everything with specimen_n for "good" data
-                        kill=pmag.grade(rec,accept,'specimen_dir',data_model=3.0)
-                        if len(kill)==0: # nothing killed it
-                            SpecDirs.append(rec)
+                    kill=pmag.grade(rec,accept,'specimen_dir',data_model=3.0)
+                    if len(kill)==0: # nothing killed it
+                        SpecDirs.append(rec)
             else: # no criteria
                 SpecDirs=Ns[:] # take them all
 
@@ -3987,9 +3939,9 @@ class Demag_GUI(wx.Frame):
                 SampDir=pmag.get_dictitem(SpecDirs,'sample',samp,'T') # get all the directional data for this sample
                 if len(SampDir)<=0: continue # if no directions
                 for coord in coords: # step through desired coordinate systems
-                   CoordDir=pmag.get_dictitem(SampDir,'dir_tilt_correction',coord,'T') # get all the directions for this sample
-                   if len(CoordDir)<=0: continue # no data for this coordinate system
-                   for comp in Comps:
+                    CoordDir=pmag.get_dictitem(SampDir,'dir_tilt_correction',coord,'T') # get all the directions for this sample
+                    if len(CoordDir)<=0: continue # no data for this coordinate system
+                    for comp in Comps:
                         CompDir=pmag.get_dictitem(CoordDir,'dir_comp',comp,'T') # get all directions from this component
                         CompDir=filter(lambda x: x['result_quality']=='g' if 'result_quality' in x else True , CompDir)
                         if len(CompDir)<=0: continue # no data for comp
@@ -4017,9 +3969,9 @@ class Demag_GUI(wx.Frame):
                         PmagSampRec['specimens']=reduce(lambda x,y: str(x)+':'+str(y),specs) # get a list of the specimen names used
                         PmagSampRec['method_codes']= pmag.get_list(CompDir,'method_codes') # get a list of the methods used
                         if nocrit!=1: # apply selection criteria
-                           kill=pmag.grade(PmagSampRec,accept,'sample_dir',data_model=3.0)
+                            kill=pmag.grade(PmagSampRec,accept,'sample_dir',data_model=3.0)
                         else:
-                           kill=[]
+                            kill=[]
                         if len(kill)>0: PmagSampRec['result_quality']='b'
                         else: SampDirs.append(PmagSampRec)
                         if vgps==1: # if sample level VGP info desired, do that now
@@ -5028,8 +4980,8 @@ class Demag_GUI(wx.Frame):
         self.plot_high_levels_data()
         dlg = wx.DirDialog(self, "choose a folder:",defaultPath = self.WD ,style=wx.DD_DEFAULT_STYLE | wx.DD_NEW_DIR_BUTTON | wx.DD_CHANGE_DIR)
         if self.show_dlg(dlg) == wx.ID_OK:
-              dir_path=dlg.GetPath()
-              dlg.Destroy()
+            dir_path=dlg.GetPath()
+            dlg.Destroy()
 
         #figs=[self.fig1,self.fig2,self.fig3,self.fig4]
         plot_types=["Zij","EqArea","M_M0",str(self.level_box.GetValue())]
@@ -5143,7 +5095,7 @@ class Demag_GUI(wx.Frame):
     def on_menu_prev_interp(self, event):
         f_index = self.fit_box.GetSelection()
         if f_index >= len(self.pmag_results_data['specimens'][self.s])-1:
-             f_index = 0
+            f_index = 0
         else:
             f_index += 1
         self.fit_box.SetSelection(f_index)
@@ -5804,53 +5756,53 @@ class Demag_GUI(wx.Frame):
     #---------------------------------------------#
 
     def Add_text(self):
-      """
-      Add measurement data lines to the text window.
-      """
+        """
+        Add measurement data lines to the text window.
+        """
 
-      self.selected_meas = []
-      if self.COORDINATE_SYSTEM=='geographic':
-          zijdblock=self.Data[self.s]['zijdblock_geo']
-      elif self.COORDINATE_SYSTEM=='tilt-corrected':
-          zijdblock=self.Data[self.s]['zijdblock_tilt']
-      else:
-          zijdblock=self.Data[self.s]['zijdblock']
+        self.selected_meas = []
+        if self.COORDINATE_SYSTEM=='geographic':
+            zijdblock=self.Data[self.s]['zijdblock_geo']
+        elif self.COORDINATE_SYSTEM=='tilt-corrected':
+            zijdblock=self.Data[self.s]['zijdblock_tilt']
+        else:
+            zijdblock=self.Data[self.s]['zijdblock']
 
-      tmin_index,tmax_index = -1,-1
-      if self.current_fit and self.current_fit.tmin and self.current_fit.tmax:
-        tmin_index,tmax_index = self.get_indices(self.current_fit)
+        tmin_index,tmax_index = -1,-1
+        if self.current_fit and self.current_fit.tmin and self.current_fit.tmax:
+            tmin_index,tmax_index = self.get_indices(self.current_fit)
 
-      TEXT=""
-      self.logger.DeleteAllItems()
-      for i in range(len(zijdblock)):
-          lab_treatment=self.Data[self.s]['zijdblock_lab_treatments'][i]
-          Step=""
-          methods=lab_treatment.split('-')
-          if "NO" in methods:
-              Step="N"
-          elif "AF" in  methods:
-              Step="AF"
-          elif "ARM" in methods:
-              Step="ARM"
-          elif "T" in  methods or "LT" in methods:
-              Step="T"
-          Tr=zijdblock[i][0]
-          Dec=zijdblock[i][1]
-          Inc=zijdblock[i][2]
-          Int=zijdblock[i][3]
-          csd=self.Data[self.s]['csds'][i]
-          self.logger.InsertStringItem(i, "%i"%i)
-          self.logger.SetStringItem(i, 1, Step)
-          self.logger.SetStringItem(i, 2, "%.1f"%Tr)
-          self.logger.SetStringItem(i, 3, "%.1f"%Dec)
-          self.logger.SetStringItem(i, 4, "%.1f"%Inc)
-          self.logger.SetStringItem(i, 5, "%.2e"%Int)
-          self.logger.SetStringItem(i, 6, csd)
-          self.logger.SetItemBackgroundColour(i,"WHITE")
-          if i >= tmin_index and i <= tmax_index:
-            self.logger.SetItemBackgroundColour(i,"LIGHT BLUE")
-          if self.Data[self.s]['measurement_flag'][i]=='b':
-            self.logger.SetItemBackgroundColour(i,"red")
+        TEXT=""
+        self.logger.DeleteAllItems()
+        for i in range(len(zijdblock)):
+            lab_treatment=self.Data[self.s]['zijdblock_lab_treatments'][i]
+            Step=""
+            methods=lab_treatment.split('-')
+            if "NO" in methods:
+                Step="N"
+            elif "AF" in  methods:
+                Step="AF"
+            elif "ARM" in methods:
+                Step="ARM"
+            elif "T" in  methods or "LT" in methods:
+                Step="T"
+            Tr=zijdblock[i][0]
+            Dec=zijdblock[i][1]
+            Inc=zijdblock[i][2]
+            Int=zijdblock[i][3]
+            csd=self.Data[self.s]['csds'][i]
+            self.logger.InsertStringItem(i, "%i"%i)
+            self.logger.SetStringItem(i, 1, Step)
+            self.logger.SetStringItem(i, 2, "%.1f"%Tr)
+            self.logger.SetStringItem(i, 3, "%.1f"%Dec)
+            self.logger.SetStringItem(i, 4, "%.1f"%Inc)
+            self.logger.SetStringItem(i, 5, "%.2e"%Int)
+            self.logger.SetStringItem(i, 6, csd)
+            self.logger.SetItemBackgroundColour(i,"WHITE")
+            if i >= tmin_index and i <= tmax_index:
+                self.logger.SetItemBackgroundColour(i,"LIGHT BLUE")
+            if self.Data[self.s]['measurement_flag'][i]=='b':
+                self.logger.SetItemBackgroundColour(i,"red")
 
     def OnClick_listctrl(self,event):
 
@@ -6050,69 +6002,69 @@ class Demag_GUI(wx.Frame):
         self.plot_high_levels_data()
 
     def onSelect_high_level(self,event,called_by_interp_editor=False):
-       self.UPPER_LEVEL=self.level_box.GetValue()
-       if self.UPPER_LEVEL=='sample':
-           if self.ie_open:
-               self.ie.show_box.SetItems(['specimens'])
-               self.ie.show_box.SetValue('specimens')
-           if self.UPPER_LEVEL_SHOW not in ['specimens']: self.UPPER_LEVEL_SHOW = u'specimens'
-           self.level_names.SetItems(self.samples)
-           self.level_names.SetStringSelection(self.Data_hierarchy['sample_of_specimen'][self.s])
+        self.UPPER_LEVEL=self.level_box.GetValue()
+        if self.UPPER_LEVEL=='sample':
+            if self.ie_open:
+                self.ie.show_box.SetItems(['specimens'])
+                self.ie.show_box.SetValue('specimens')
+            if self.UPPER_LEVEL_SHOW not in ['specimens']: self.UPPER_LEVEL_SHOW = u'specimens'
+            self.level_names.SetItems(self.samples)
+            self.level_names.SetStringSelection(self.Data_hierarchy['sample_of_specimen'][self.s])
 
-       elif self.UPPER_LEVEL=='site':
-           if self.ie_open:
-               self.ie.show_box.SetItems(['specimens','samples'])
-               if self.ie.show_box.GetValue() not in ['specimens','samples']:
-                   self.ie.show_box.SetValue('specimens')
-           if self.UPPER_LEVEL_SHOW not in ['specimens','samples']: self.UPPER_LEVEL_SHOW = u'specimens'
-           self.level_names.SetItems(self.sites)
-           self.level_names.SetStringSelection(self.Data_hierarchy['site_of_specimen'][self.s])
+        elif self.UPPER_LEVEL=='site':
+            if self.ie_open:
+                self.ie.show_box.SetItems(['specimens','samples'])
+                if self.ie.show_box.GetValue() not in ['specimens','samples']:
+                    self.ie.show_box.SetValue('specimens')
+            if self.UPPER_LEVEL_SHOW not in ['specimens','samples']: self.UPPER_LEVEL_SHOW = u'specimens'
+            self.level_names.SetItems(self.sites)
+            self.level_names.SetStringSelection(self.Data_hierarchy['site_of_specimen'][self.s])
 
-       elif self.UPPER_LEVEL=='location':
-           if self.ie_open:
-               self.ie.show_box.SetItems(['specimens','samples','sites'])#,'sites VGP'])
-               if self.ie.show_box.GetValue() not in ['specimens','samples','sites']:#,'sites VGP']:
-                   self.ie.show_box.SetValue(self.UPPER_LEVEL_SHOW)
-           self.level_names.SetItems(self.locations)
-           self.level_names.SetStringSelection(self.Data_hierarchy['location_of_specimen'][self.s])
+        elif self.UPPER_LEVEL=='location':
+            if self.ie_open:
+                self.ie.show_box.SetItems(['specimens','samples','sites'])#,'sites VGP'])
+                if self.ie.show_box.GetValue() not in ['specimens','samples','sites']:#,'sites VGP']:
+                    self.ie.show_box.SetValue(self.UPPER_LEVEL_SHOW)
+            self.level_names.SetItems(self.locations)
+            self.level_names.SetStringSelection(self.Data_hierarchy['location_of_specimen'][self.s])
 
-       elif self.UPPER_LEVEL=='study':
-           if self.ie_open:
-               self.ie.show_box.SetItems(['specimens','samples','sites'])#,'sites VGP'])
-               if self.ie.show_box.GetValue() not in ['specimens','samples','sites']:#,'sites VGP']:
-                   self.ie.show_box.SetValue(self.UPPER_LEVEL_SHOW)
-           self.level_names.SetItems(['this study'])
-           self.level_names.SetStringSelection('this study')
+        elif self.UPPER_LEVEL=='study':
+            if self.ie_open:
+                self.ie.show_box.SetItems(['specimens','samples','sites'])#,'sites VGP'])
+                if self.ie.show_box.GetValue() not in ['specimens','samples','sites']:#,'sites VGP']:
+                    self.ie.show_box.SetValue(self.UPPER_LEVEL_SHOW)
+            self.level_names.SetItems(['this study'])
+            self.level_names.SetStringSelection('this study')
 
-       if not called_by_interp_editor:
-           if self.ie_open:
-               self.ie.level_box.SetStringSelection(self.UPPER_LEVEL)
-               self.ie.on_select_high_level(event,True)
-           else:
-               self.update_selection()
+        if not called_by_interp_editor:
+            if self.ie_open:
+                self.ie.level_box.SetStringSelection(self.UPPER_LEVEL)
+                self.ie.on_select_high_level(event,True)
+            else:
+                self.update_selection()
 
     def onSelect_level_name(self,event,called_by_interp_editor=False):
-       high_level_name=str(self.level_names.GetValue())
+        high_level_name=str(self.level_names.GetValue())
 
-       if self.level_box.GetValue()=='sample':
-           specimen_list=self.Data_hierarchy['samples'][high_level_name]['specimens']
-       if self.level_box.GetValue()=='site':
-           specimen_list=self.Data_hierarchy['sites'][high_level_name]['specimens']
-       if self.level_box.GetValue()=='location':
-           specimen_list=self.Data_hierarchy['locations'][high_level_name]['specimens']
-       if self.level_box.GetValue()=='study':
-           specimen_list=self.Data_hierarchy['study']['this study']['specimens']
+        if self.level_box.GetValue()=='sample':
+            specimen_list=self.Data_hierarchy['samples'][high_level_name]['specimens']
+        if self.level_box.GetValue()=='site':
+            specimen_list=self.Data_hierarchy['sites'][high_level_name]['specimens']
+        if self.level_box.GetValue()=='location':
+            specimen_list=self.Data_hierarchy['locations'][high_level_name]['specimens']
+        if self.level_box.GetValue()=='study':
+            specimen_list=self.Data_hierarchy['study']['this study']['specimens']
 
-       if  self.s not in specimen_list:
-           specimen_list.sort(cmp=specimens_comparator)
-           self.s=str(specimen_list[0])
-           self.specimens_box.SetStringSelection(str(self.s))
+        if  self.s not in specimen_list:
+            specimen_list.sort(cmp=specimens_comparator)
+            self.s=str(specimen_list[0])
+            self.specimens_box.SetStringSelection(str(self.s))
 
-       if self.ie_open and not called_by_interp_editor:
-           self.ie.level_names.SetStringSelection(high_level_name)
-           self.ie.on_select_level_name(event,True)
+        if self.ie_open and not called_by_interp_editor:
+            self.ie.level_names.SetStringSelection(high_level_name)
+            self.ie.on_select_level_name(event,True)
 
-       self.update_selection()
+        self.update_selection()
 
     def on_select_plane_display_box(self,event):
         self.draw_figure(self.s,True)
@@ -6217,48 +6169,48 @@ class Demag_GUI(wx.Frame):
         self.update_selection()
 
     def on_next_button(self,event):
-      """
-      update figures and text when a next button is selected
-      """
-      self.selected_meas = []
-      index=self.specimens.index(self.s)
-      try: fit_index = self.pmag_results_data['specimens'][self.s].index(self.current_fit)
-      except KeyError: fit_index = None
-      except ValueError: fit_index = None
-      if index==len(self.specimens)-1:
-        index=0
-      else:
-        index+=1
-      self.initialize_CART_rot(str(self.specimens[index])) #sets self.s calculates params etc.
-      self.specimens_box.SetStringSelection(str(self.s))
-      if fit_index != None and self.s in self.pmag_results_data['specimens']:
-        try: self.current_fit = self.pmag_results_data['specimens'][self.s][fit_index]
-        except IndexError: self.current_fit = None
-      else: self.current_fit = None
-      if self.ie_open:
-        self.ie.change_selected(self.current_fit)
-      self.update_selection()
+        """
+        update figures and text when a next button is selected
+        """
+        self.selected_meas = []
+        index=self.specimens.index(self.s)
+        try: fit_index = self.pmag_results_data['specimens'][self.s].index(self.current_fit)
+        except KeyError: fit_index = None
+        except ValueError: fit_index = None
+        if index==len(self.specimens)-1:
+            index=0
+        else:
+            index+=1
+        self.initialize_CART_rot(str(self.specimens[index])) #sets self.s calculates params etc.
+        self.specimens_box.SetStringSelection(str(self.s))
+        if fit_index != None and self.s in self.pmag_results_data['specimens']:
+            try: self.current_fit = self.pmag_results_data['specimens'][self.s][fit_index]
+            except IndexError: self.current_fit = None
+        else: self.current_fit = None
+        if self.ie_open:
+            self.ie.change_selected(self.current_fit)
+        self.update_selection()
 
     def on_prev_button(self,event):
-      """
-      update figures and text when a next button is selected
-      """
-      self.selected_meas = []
-      index=self.specimens.index(self.s)
-      try: fit_index = self.pmag_results_data['specimens'][self.s].index(self.current_fit)
-      except KeyError: fit_index = None
-      except ValueError: fit_index = None
-      if index==0: index=len(self.specimens)
-      index-=1
-      self.initialize_CART_rot(str(self.specimens[index])) #sets self.s calculates params etc.
-      self.specimens_box.SetStringSelection(str(self.s))
-      if fit_index != None and self.s in self.pmag_results_data['specimens']:
-        try: self.current_fit = self.pmag_results_data['specimens'][self.s][fit_index]
-        except IndexError: self.current_fit = None
-      else: self.current_fit = None
-      if self.ie_open:
-        self.ie.change_selected(self.current_fit)
-      self.update_selection()
+        """
+        update figures and text when a next button is selected
+        """
+        self.selected_meas = []
+        index=self.specimens.index(self.s)
+        try: fit_index = self.pmag_results_data['specimens'][self.s].index(self.current_fit)
+        except KeyError: fit_index = None
+        except ValueError: fit_index = None
+        if index==0: index=len(self.specimens)
+        index-=1
+        self.initialize_CART_rot(str(self.specimens[index])) #sets self.s calculates params etc.
+        self.specimens_box.SetStringSelection(str(self.s))
+        if fit_index != None and self.s in self.pmag_results_data['specimens']:
+            try: self.current_fit = self.pmag_results_data['specimens'][self.s][fit_index]
+            except IndexError: self.current_fit = None
+        else: self.current_fit = None
+        if self.ie_open:
+            self.ie.change_selected(self.current_fit)
+        self.update_selection()
 
     def on_select_stats_button(self,events):
         i = self.switch_stats_button.GetValue()
