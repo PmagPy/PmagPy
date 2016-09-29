@@ -100,3 +100,35 @@ class TestMainFrame(unittest.TestCase):
             if wind.GetName() == window_name:
                 return wind
         return None
+
+
+class TestMagICGUIMenu(unittest.TestCase):
+
+
+    def setUp(self):
+        self.app = wx.App()
+        self.frame = magic_gui.MainFrame(WD, name="best frame ever")
+        self.pnl = self.frame.GetChildren()[0]
+
+    def tearDown(self):
+        #self.frame.Destroy() # this does not work and causes strange errors
+        for wind in wx.GetTopLevelWindows():
+            res = wind.Destroy()
+        self.app.Destroy()
+        os.chdir(WD)
+
+    def test_that_all_menus_exist(self):
+        """
+        check that all expected menus were created
+        and that each menu item is enabled
+        """
+        menu_names = ['File', 'Help ']
+        menus = self.frame.MenuBar.Menus
+        found_menus = []
+        for menu, menu_name in menus:
+            self.assertIsInstance(menu, wx.Menu)
+            for item in menu.GetMenuItems():
+                self.assertTrue(item.IsEnabled())
+            self.assertIn(menu_name, menu_names)
+            found_menus.append(menu_name)
+        self.assertEqual(set(menu_names), set(found_menus))
