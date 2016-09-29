@@ -143,11 +143,11 @@ class Fit():
         elif self.name != other.name: return False
         elif self.tmin != other.tmin: return False
         elif self.tmax != other.tmax: return False
-        elif self.color != other.color: print("color difference between fits")
         elif self.PCA_type != other.PCA_type: return False
 #        elif 'specimen_dec' in self.pars.keys() and 'specimen_dec' in other.pars.keys() and self.pars!=other.pars: return False
 #        elif 'specimen_dec' in self.geopars.keys() and 'specimen_dec' in other.geopars.keys() and self.geopars!=other.geopars: return False
 #        elif 'specimen_dec' in self.tiltpars.keys() and 'specimen_dec' in other.tiltpars.keys() and self.tiltpars!=other.tiltpars: return False
+        elif self.color != other.color: print("color difference between fits"); return True
         else: return True
 
     def has_values(self, name, tmin, tmax):

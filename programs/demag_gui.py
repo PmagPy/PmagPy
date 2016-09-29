@@ -2724,6 +2724,7 @@ class Demag_GUI(wx.Frame):
             ##later on when high level means are fixed remove the bellow loop and loop over pmag_results_data
             for high_level_type in ['samples','sites','locations','study']:
                 self.high_level_means[high_level_type]={}
+        self.current_fit=None
         if self.ie_open:
             self.ie.update_editor()
         return True
@@ -2764,7 +2765,12 @@ class Demag_GUI(wx.Frame):
         if self.data_model == 3.0:
             mdf = self.con.tables['measurements'].df
             index = self.Data[self.s]['magic_experiment_name'] + str(g_index+1)
-            mdf.set_value(index,'quality','g')
+            try: mdf.set_value(index,'quality','g')
+            except ValueError: 
+                mdf_tmp = mdf[mdf['specimen']==self.s]
+                valid_data = [i for i in mdf_tmp.index if any(m in self.included_methods and m not in self.excluded_methods for m in mdf_tmp.loc[i]['method_codes'].split(':'))]
+                if len(valid_data)<g_index+1: print("no valid measurement data for index %d"%g_index)
+                mdf.set_value(valid_data[g_index],'quality','g')
 
     def mark_meas_bad(self,g_index):
         """
@@ -2794,7 +2800,12 @@ class Demag_GUI(wx.Frame):
         if self.data_model == 3.0:
             mdf = self.con.tables['measurements'].df
             index = self.Data[self.s]['magic_experiment_name'] + str(g_index+1)
-            mdf.set_value(index,'quality','b')
+            try: mdf.set_value(index,'quality','b')
+            except ValueError: 
+                mdf_tmp = mdf[mdf['specimen']==self.s]
+                valid_data = [i for i in mdf_tmp.index if any(m in self.included_methods and m not in self.excluded_methods for m in mdf_tmp.loc[i]['method_codes'].split(':'))]
+                if len(valid_data)<g_index+1: print("no valid measurement data for index %d"%g_index)
+                mdf.set_value(valid_data[g_index],'quality','b')
 
     def mark_fit_good(self,fit,spec=None):
         """
@@ -2985,6 +2996,9 @@ class Demag_GUI(wx.Frame):
 
         prev_s = None
         cnt=-1
+        # list of excluded lab protocols. copied from pmag.find_dmag_rec(s,data)
+        self.excluded_methods=["LP-AN-ARM","LP-AN-TRM","LP-ARM-AFD","LP-ARM2-AFD","LP-TRM-AFD","LP-TRM","LP-TRM-TD","LP-X"]
+        self.included_methods=["LT-NO", "LT-AF-Z", "LT-T-Z", "LT-M-Z","LT-LT-Z"]
         for rec in self.mag_meas_data:
             cnt+=1 #index counter
             s=rec["er_specimen_name"]
@@ -3004,10 +3018,6 @@ class Demag_GUI(wx.Frame):
             # (ZI=0)
             #---------------------
 
-            # list of excluded lab protocols. copied from pmag.find_dmag_rec(s,data)
-            EX=["LP-AN-ARM","LP-AN-TRM","LP-ARM-AFD","LP-ARM2-AFD","LP-TRM-AFD","LP-TRM","LP-TRM-TD","LP-X"]
-            INC=["LT-NO","LT-AF-Z","LT-T-Z", "LT-M-Z","LT-LT-Z"]
-
             methods=rec["magic_method_codes"].replace(" ","").strip("\n").split(":")
             LP_methods=[]
             LT_methods=[]
@@ -3021,12 +3031,12 @@ class Demag_GUI(wx.Frame):
                 rec['measurement_flag']='g'
             SKIP=True;lab_treatment=""
             for meth in methods:
-                if meth in ["LT-NO","LT-AF-Z","LT-T-Z", "LT-M-Z","LT-LT-Z"]:
+                if meth in self.included_methods:
                     lab_treatment=meth
                     SKIP=False
                 if "LP" in meth:
                     LP_methods.append(meth)
-            for meth in EX:
+            for meth in self.excluded_methods:
                 if meth in methods:
                     SKIP=True
             if SKIP: continue
@@ -4881,7 +4891,7 @@ class Demag_GUI(wx.Frame):
                 CoorTypes.append('DA-DIR-GEO')
             if dia.cb_tilt_coor.GetValue()==True:
                 CoorTypes.append('DA-DIR-TILT')
-        else: self.user_warning("MagIC tables not saved"); return
+        else: self.user_warning("MagIC tables not saved");print("MagIC tables not saved"); return
         #------------------------------
 
         self.PmagRecsOld={}
@@ -5014,7 +5024,7 @@ class Demag_GUI(wx.Frame):
         PmagSpecs_fixed=self.merge_pmag_recs(PmagSpecs)
 
         if len(PmagSpecs_fixed)==0:
-            self.user_warning("No data to save to MagIC tables please create some interpretations before saving"); return
+            self.user_warning("No data to save to MagIC tables please create some interpretations before saving"); print("No data to save, MagIC tables not written"); return
 
         if self.data_model == 3.0:
 
@@ -5410,7 +5420,7 @@ class Demag_GUI(wx.Frame):
             self.on_menu_change_criteria(None)
 
     def on_menu_check_orient(self,event):
-        if self.current_fit==None: return
+        if not isinstance(self.current_fit,Fit): self.check_orient_on=False; return
         if self.check_orient_on:
             self.check_orient_on = False
             self.plot_high_levels_data()

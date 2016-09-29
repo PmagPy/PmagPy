@@ -1,9 +1,7 @@
 #!/usr/bin/env python
 
 import unittest
-import os
-import wx
-import sys
+import os,wx,sys,shutil
 import wx.lib.inspection
 import random as rn
 from pmagpy.demag_gui_utilities import *
@@ -27,7 +25,7 @@ class TestMainFrame(unittest.TestCase):
         self.frame.clear_interpretations()
 
     def test_check_empty_dir(self):
-        self.empty_frame = demag_gui.Demag_GUI(empty_WD,test_mode_on=True)
+        self.empty_frame = demag_gui.Demag_GUI(empty_WD,write_to_log_file=False,test_mode_on=True)
 
     def test_to_str(self):
         str(self.frame)
@@ -224,12 +222,7 @@ class TestMainFrame(unittest.TestCase):
 
     def test_read_write_redo(self):
         self.frame.COORDINATE_SYSTEM = 'specimen'
-        old_s = self.frame.s
-        for specimen in self.frame.specimens:
-            self.frame.s = specimen
-            for i in range(len(self.frame.Data[specimen]['zijdblock'])):
-                self.frame.mark_meas_good(i)
-        self.frame.s = old_s
+        self.mark_all_meas_good(self.frame)
         self.frame.update_selection()
 
         self.assertFalse(self.frame.ie_open)
@@ -259,7 +252,7 @@ class TestMainFrame(unittest.TestCase):
         old_frame = str(self.frame)
         old_interpretations = []
         for speci in self.frame.pmag_results_data['specimens'].keys():
-            old_interpretations += self.frame.pmag_results_data['specimens'][speci]
+            old_interpretations += sorted(self.frame.pmag_results_data['specimens'][speci],cmp=fit_cmp)
 
         self.frame.clear_interpretations()
 
@@ -267,60 +260,53 @@ class TestMainFrame(unittest.TestCase):
         imported_frame = str(self.frame)
         imported_interpretations = []
         for speci in self.frame.pmag_results_data['specimens'].keys():
-            imported_interpretations += self.frame.pmag_results_data['specimens'][speci]
+            imported_interpretations += sorted(self.frame.pmag_results_data['specimens'][speci],cmp=fit_cmp)
 
         for ofit,ifit in zip(old_interpretations,imported_interpretations):
             self.assertTrue(ofit.equal(ifit))
 
     def test_read_write_pmag_tables(self):
-        old_s = self.frame.s
-        for specimen in self.frame.specimens:
-            self.frame.s = specimen
-            for i in range(len(self.frame.Data[specimen]['zijdblock'])):
-                self.frame.mark_meas_good(i)
-        self.frame.s = old_s
+        self.mark_all_meas_good(self.frame)
         self.frame.update_selection()
 
-        self.assertFalse(self.frame.ie_open)
-        self.frame.on_menu_edit_interpretations(-1)
-        self.assertTrue(self.frame.ie_open)
-        ie = self.frame.ie
-
-        addall_evt = wx.PyCommandEvent(wx.EVT_BUTTON.typeId, ie.add_all_button.GetId())
-
-        ie.ProcessEvent(addall_evt)
-        ie.ProcessEvent(addall_evt)
-        ie.ProcessEvent(addall_evt)
+        self.ie_add_all_2_fits()
 
         menu_bar = self.frame.GetMenuBar()
         file_menu = menu_bar.GetMenu(0)
         file_menu_items = file_menu.GetMenuItems()
 
-        writepmag_menu_evt = wx.PyCommandEvent(wx.EVT_MENU.typeId,file_menu_items[2].GetId())
-
+        writepmag_menu_evt = wx.PyCommandEvent(wx.EVT_MENU.typeId,file_menu_items[4].GetId())
+        print("-------------------------------------------------------------")
         self.frame.ProcessEvent(writepmag_menu_evt)
+        print("-------------------------------------------------------------")
         old_frame = str(self.frame)
-        old_interpretations = []
+        speci_with_fits = []
+        old_interpretations = {}
         for speci in self.frame.pmag_results_data['specimens'].keys():
-            old_interpretations += self.frame.pmag_results_data['specimens'][speci]
+            if speci not in speci_with_fits and \
+               self.frame.pmag_results_data['specimens'][speci]!=[]:
+                speci_with_fits.append(speci)
+            old_interpretations[speci] = sorted(self.frame.pmag_results_data['specimens'][speci],cmp=fit_cmp)
 
-        frame2 = demag_gui.Demag_GUI(project_WD)
+        frame2 = demag_gui.Demag_GUI(project_WD,write_to_log_file=False,test_mode_on=True)
 
-        old_s = frame2.s
-        for specimen in frame2.specimens:
-            frame2.s = specimen
-            for i in range(len(frame2.Data[specimen]['zijdblock'])):
-                frame2.mark_meas_good(i)
-        frame2.s = old_s
+        self.mark_all_meas_good(frame2)
         frame2.update_selection()
 
         imported_frame = str(frame2)
-        imported_interpretations = []
+        imported_interpretations = {}
         for speci in frame2.pmag_results_data['specimens'].keys():
-            imported_interpretations += frame2.pmag_results_data['specimens'][speci]
+            if speci not in speci_with_fits and \
+               frame2.pmag_results_data['specimens'][speci]!=[]:
+                speci_with_fits.append(speci)
+            imported_interpretations[speci] = sorted(frame2.pmag_results_data['specimens'][speci],cmp=fit_cmp)
 
-        for ofit,ifit in zip(old_interpretations,imported_interpretations):
-            self.assertTrue(ofit.equal(ifit))
+        for speci in speci_with_fits:
+            if speci not in old_interpretations.keys() or speci not in imported_interpretations.keys(): import pdb;pdb.set_trace()
+            self.assertTrue(speci in old_interpretations.keys())
+            self.assertTrue(speci in imported_interpretations.keys())
+            for ofit,ifit in zip(old_interpretations[speci],imported_interpretations[speci]):
+                self.assertTrue(ofit.equal(ifit))
 
     def test_ie_buttons(self):
         #test initialization of ie
@@ -646,7 +632,17 @@ class TestMainFrame(unittest.TestCase):
         ie = self.frame.ie
         addall_evt = wx.PyCommandEvent(wx.EVT_BUTTON.typeId, ie.add_all_button.GetId())
 
-        #test no interpretations VGP error message
+        steps = self.frame.Data[self.frame.s]['zijdblock_steps']
+        tmin=steps[rn.randint(0,len(steps)-3)]
+        tmax=steps[rn.randint(steps.index(tmin)+2,len(steps)-1)]
+        ie.tmin_box.SetValue(tmin)
+        ie.tmax_box.SetValue(tmax)
+        ie.name_box.Clear()
+        ie.name_box.WriteText("test1")
+        self.assertEqual(ie.tmin_box.GetValue(),tmin)
+        self.assertEqual(ie.tmax_box.GetValue(),tmax)
+        self.assertEqual(ie.name_box.GetValue(),"test1")
+
         ie.ProcessEvent(addall_evt)
 
         steps = self.frame.Data[self.frame.s]['zijdblock_steps']
@@ -654,12 +650,21 @@ class TestMainFrame(unittest.TestCase):
         tmax=steps[rn.randint(steps.index(tmin)+2,len(steps)-1)]
         ie.tmin_box.SetValue(tmin)
         ie.tmax_box.SetValue(tmax)
-        ie.name_box.WriteText("Test")
+        ie.name_box.Clear()
+        ie.name_box.WriteText("test2")
         self.assertEqual(ie.tmin_box.GetValue(),tmin)
         self.assertEqual(ie.tmax_box.GetValue(),tmax)
-        self.assertEqual(ie.name_box.GetValue(),"Test")
+        self.assertEqual(ie.name_box.GetValue(),"test2")
 
         ie.ProcessEvent(addall_evt)
+
+    def mark_all_meas_good(self,frame):
+        old_s = frame.s
+        for specimen in frame.specimens:
+            frame.s = specimen
+            for i in range(len(frame.Data[specimen]['zijdblock'])):
+                frame.mark_meas_good(i)
+        frame.s = old_s
 
     def tearDown(self):
         wx.CallAfter(self.app.Exit)
@@ -677,5 +682,37 @@ class TestMainFrame(unittest.TestCase):
     def test_main_frame(self):
         self.assertTrue(self.frame)
 
+def fit_cmp(f1,f2):
+    for c1,c2 in zip(f1.name,f2.name):
+        if ord(c1)==ord(c2): continue
+        else: return ord(c1)-ord(c2)
+    return 0
+
+def backup(WD):
+    #make backup directory
+    backup_dir = os.path.join(WD,'Backup')
+    if not os.path.exists(backup_dir):
+        os.makedirs(backup_dir)
+    #copy test files to backup
+    src_files = os.listdir(WD)
+    for file_name in src_files:
+        full_file_name = os.path.join(WD, file_name)
+        if (os.path.isfile(full_file_name)):
+            shutil.copy(full_file_name, os.path.join(backup_dir,file_name))
+
+def revert_from_backup(WD):
+    backup_dir = os.path.join(WD,'Backup')
+    #copy test files to backup
+    src_files = os.listdir(backup_dir)
+    for file_name in src_files:
+        full_file_name = os.path.join(backup_dir, file_name)
+        if (os.path.isfile(full_file_name)):
+            shutil.copy(full_file_name, os.path.join(WD,file_name))
+            os.remove(file_file_name)
+    if os.path.exists(backup_dir):
+        os.rmdir(backup_dir)
+
 if __name__ == '__main__':
+    backup(project_WD)
     unittest.main()
+    revert_from_backup(project_WD)

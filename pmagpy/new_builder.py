@@ -806,17 +806,18 @@ class MagicDataFrame(object):
             acdf2 = pd.DataFrame(columns=mcdf2.columns)
 
         #get rid of stupid duplicates
-        for c in [cx for cx in mcdf2.columns if cx in df1.columns]:
-            del mcdf2[c]
+        [mcdf2.drop(cx,inplace=True,axis=1) for cx in mcdf2.columns if cx in df1.columns]
 
         #join the new calculated data with the old data of same type
-        mdf = df1.join(mcdf2, how='inner', lsuffix='__remove')
+        if self.dtype.endswith('s'): dtype = self.dtype[:-1]
+        else: dtype = self.dtype
+        mdf = df1.join(mcdf2, how='left', rsuffix='_remove', on=dtype)
+        #drop duplicate columns if they are created
+        [mdf.drop(col,inplace=True,axis=1) for col in mdf.columns if col.endswith("_remove")]
         #duplicates rows for some freaking reason
         mdf.drop_duplicates(inplace=True,subset=[col for col in mdf.columns if col != 'description'])
         #merge the data of the other type with the new data
         mdf = mdf.merge(acdf2, how='outer')
-        if self.dtype.endswith('s'): dtype = self.dtype[:-1]
-        else: dtype = self.dtype
         if dtype in mdf.columns:
             #fix freaking indecies because pandas
             mdf = mdf.set_index(dtype)
