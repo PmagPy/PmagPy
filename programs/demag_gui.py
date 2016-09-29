@@ -2819,7 +2819,10 @@ class Demag_GUI(wx.Frame):
         Marks fit bad so it is excluded from high level means
         @param: fit - fit to mark bad
         """
-        self.bad_fits.append(fit); return True
+        if fit not in self.bad_fits:
+            self.bad_fits.append(fit); return True
+        else:
+            return False
 
     #---------------------------------------------#
     #Data Read and Location Alteration Functions
@@ -3212,7 +3215,8 @@ class Demag_GUI(wx.Frame):
         self.specimens=Data.keys()
 
         for s in self.specimens:
-            Data[s]['vector_diffs'].append(sqrt(sum(array(Data[s]['zdata'][-1])**2))) # last vector of the vds
+            if len(Data[s]['zdata'])>0: 
+                Data[s]['vector_diffs'].append(sqrt(sum(array(Data[s]['zdata'][-1])**2))) # last vector of the vds
             vds=sum(Data[s]['vector_diffs']) # vds calculation
             Data[s]['vector_diffs']=array(Data[s]['vector_diffs'])
             Data[s]['vds']=vds
@@ -4588,6 +4592,9 @@ class Demag_GUI(wx.Frame):
         self.plot_high_levels_data()
 
     def update_high_level_stats(self):
+        """
+        updates high level statistics in bottom left of GUI.
+        """
         self.clear_high_level_pars()
         dirtype=str(self.coordinates_box.GetValue())
         if dirtype=='specimen':dirtype='DA-DIR'
@@ -4606,6 +4613,9 @@ class Demag_GUI(wx.Frame):
                     self.show_high_levels_pars(mpars)
 
     def update_bounds_boxes(self):
+        """
+        updates bounds boxes with bounds of current specimen and fit
+        """
         if self.s not in self.Data.keys():
             self.s = self.Data.keys()[0]
         self.T_list=self.Data[self.s]['zijdblock_steps']
@@ -4619,6 +4629,9 @@ class Demag_GUI(wx.Frame):
             self.ie.update_bounds_boxes(self.T_list)
 
     def update_PCA_box(self):
+        """
+        updates PCA box with current fit's PCA type
+        """
         if self.s in self.pmag_results_data['specimens'].keys():
 
             if self.current_fit:
@@ -4712,7 +4725,9 @@ class Demag_GUI(wx.Frame):
                 self.ie.mean_type_box.SetValue('None')
 
     def show_high_levels_pars(self,mpars):
-
+        """
+        shows in the high level mean display area in the bottom left of the GUI the data in mpars.
+        """
         FONT_WEIGHT=self.GUI_RESOLUTION+(self.GUI_RESOLUTION-1)*5
         font2 = wx.Font(12+min(1,FONT_WEIGHT), wx.SWISS, wx.NORMAL, wx.NORMAL, False, self.font_type)
 
@@ -4792,6 +4807,9 @@ class Demag_GUI(wx.Frame):
             exec COMMAND
 
     def clear_high_level_pars(self):
+        """
+        clears all high level pars display boxes
+        """
         for val in ['mean_type','dec','inc','alpha95','K','R','n_lines','n_planes']:
             COMMAND = """self.%s_window.SetValue("")"""%(val)
             exec COMMAND
@@ -5392,6 +5410,7 @@ class Demag_GUI(wx.Frame):
             self.on_menu_change_criteria(None)
 
     def on_menu_check_orient(self,event):
+        if self.current_fit==None: return
         if self.check_orient_on:
             self.check_orient_on = False
             self.plot_high_levels_data()

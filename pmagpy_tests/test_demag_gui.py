@@ -11,6 +11,8 @@ from programs import demag_gui
 
 WD = sys.prefix
 project_WD = os.path.join(os.getcwd(), 'pmagpy_tests', 'examples', 'demag_test_data')
+#project_WD = os.path.join(os.getcwd(), 'pmagpy_tests', 'examples', 'demag_test_data', '2Magic')
+#project_WD = os.path.join(os.getcwd(), 'pmagpy_tests', 'examples', 'demag_test_data', '3Magic')
 #project_WD = os.path.join(os.getcwd(), 'tests', 'examples', 'my_project')
 core_depthplot_WD = os.path.join(WD, 'pmagpy_data_files', 'core_depthplot')
 empty_WD = os.path.join(os.getcwd(), 'pmagpy_tests', 'examples', 'empty_dir')
@@ -230,9 +232,9 @@ class TestMainFrame(unittest.TestCase):
         self.frame.s = old_s
         self.frame.update_selection()
 
-        self.assertFalse(self.frame.get_ie_open())
+        self.assertFalse(self.frame.ie_open)
         self.frame.on_menu_edit_interpretations(-1)
-        self.assertTrue(self.frame.get_ie_open())
+        self.assertTrue(self.frame.ie_open)
         ie = self.frame.ie
 
         addall_evt = wx.PyCommandEvent(wx.EVT_BUTTON.typeId, ie.add_all_button.GetId())
@@ -279,9 +281,9 @@ class TestMainFrame(unittest.TestCase):
         self.frame.s = old_s
         self.frame.update_selection()
 
-        self.assertFalse(self.frame.get_ie_open())
+        self.assertFalse(self.frame.ie_open)
         self.frame.on_menu_edit_interpretations(-1)
-        self.assertTrue(self.frame.get_ie_open())
+        self.assertTrue(self.frame.ie_open)
         ie = self.frame.ie
 
         addall_evt = wx.PyCommandEvent(wx.EVT_BUTTON.typeId, ie.add_all_button.GetId())
@@ -322,9 +324,9 @@ class TestMainFrame(unittest.TestCase):
 
     def test_ie_buttons(self):
         #test initialization of ie
-        self.assertFalse(self.frame.get_ie_open())
+        self.assertFalse(self.frame.ie_open)
         self.frame.on_menu_edit_interpretations(-1)
-        self.assertTrue(self.frame.get_ie_open())
+        self.assertTrue(self.frame.ie_open)
         ie = self.frame.ie
         tmin=self.frame.Data[self.frame.s]['zijdblock_steps'][0]
         tmax=self.frame.Data[self.frame.s]['zijdblock_steps'][-1]
@@ -404,7 +406,7 @@ class TestMainFrame(unittest.TestCase):
 
         #check the 2 fits that now should exist and check to make sure right number made
         self.assertEqual(self.frame.total_num_of_interpertations(),valid_specs+2)
-        k0,k1 = self.frame.specimens[0],self.frame.specimens[1]
+        k0,k1 = ie.fit_list[0][1],ie.fit_list[1][1]
         new_fits = [[self.frame.pmag_results_data['specimens'][k0][1],k0]]
         new_fits.append([self.frame.pmag_results_data['specimens'][k1][1],k1])
 
@@ -565,7 +567,6 @@ class TestMainFrame(unittest.TestCase):
             self.assertEqual(fit.name,"OtherTest")
 
     def test_interpretation_accuracy(self):
-
         try:
             interps = read_LSQ(os.path.join(project_WD, 'SI4(80.2 to 100.7).LSQ'))
             self.frame.COORDINATE_SYSTEM = 'geographic'
@@ -585,6 +586,80 @@ class TestMainFrame(unittest.TestCase):
                         print(round(float(pars[value]),1),float(interp[value]))
                         similar_fit_present = False
             self.assertTrue(similar_fit_present)
+
+    def test_VGP_viewer(self):
+        menu_bar = self.frame.GetMenuBar()
+        tools_menu = menu_bar.GetMenu(3)
+        tools_menu_items = tools_menu.GetMenuItems()
+
+        viewVGPs_menu_evt = wx.PyCommandEvent(wx.EVT_MENU.typeId, tools_menu_items[1].GetId())
+        self.frame.ProcessEvent(viewVGPs_menu_evt)
+
+        self.ie_add_all_2_fits()
+
+        #test actual VGP calculation and display
+        self.frame.ProcessEvent(viewVGPs_menu_evt)
+
+    def test_check_sample_orientation_bad_good(self):
+        menu_bar = self.frame.GetMenuBar()
+        analysis_menu = menu_bar.GetMenu(2)
+        analysis_menu_items = analysis_menu.GetMenuItems()
+        check_sample_menu = analysis_menu_items[2].GetSubMenu()
+        check_sample_menu_items = check_sample_menu.GetMenuItems()
+
+        check_orient_menu_evt = wx.PyCommandEvent(wx.EVT_MENU.typeId, check_sample_menu_items[0].GetId())
+        mark_sample_bad_menu_evt = wx.PyCommandEvent(wx.EVT_MENU.typeId, check_sample_menu_items[1].GetId())
+        mark_sample_good_menu_evt = wx.PyCommandEvent(wx.EVT_MENU.typeId, check_sample_menu_items[2].GetId())
+
+        self.assertFalse(self.frame.check_orient_on)
+        self.frame.ProcessEvent(check_orient_menu_evt)
+        self.assertFalse(self.frame.check_orient_on)
+
+        self.ie_add_all_2_fits()
+
+        self.assertFalse(self.frame.check_orient_on)
+        self.frame.ProcessEvent(check_orient_menu_evt)
+        self.assertTrue(self.frame.check_orient_on)
+
+        self.frame.ProcessEvent(mark_sample_bad_menu_evt)
+        samp = self.frame.Data_hierarchy['sample_of_specimen'][self.frame.s]
+        specs = self.frame.Data_hierarchy['samples'][samp]['specimens']
+        for s in specs:
+            for comp in self.frame.pmag_results_data['specimens'][s]:
+                self.assertTrue(comp in self.frame.bad_fits)
+
+        self.frame.mark_fit_good(comp,spec=s)
+        self.assertTrue(comp in self.frame.bad_fits)
+
+        self.frame.ProcessEvent(mark_sample_good_menu_evt)
+        samp = self.frame.Data_hierarchy['sample_of_specimen'][self.frame.s]
+        specs = self.frame.Data_hierarchy['samples'][samp]['specimens']
+        for s in specs:
+            for comp in self.frame.pmag_results_data['specimens'][s]:
+                self.assertTrue(comp not in self.frame.bad_fits)
+
+    def ie_add_all_2_fits(self):
+        #test initialization of ie
+        self.assertFalse(self.frame.ie_open)
+        self.frame.on_menu_edit_interpretations(-1)
+        self.assertTrue(self.frame.ie_open)
+        ie = self.frame.ie
+        addall_evt = wx.PyCommandEvent(wx.EVT_BUTTON.typeId, ie.add_all_button.GetId())
+
+        #test no interpretations VGP error message
+        ie.ProcessEvent(addall_evt)
+
+        steps = self.frame.Data[self.frame.s]['zijdblock_steps']
+        tmin=steps[rn.randint(0,len(steps)-3)]
+        tmax=steps[rn.randint(steps.index(tmin)+2,len(steps)-1)]
+        ie.tmin_box.SetValue(tmin)
+        ie.tmax_box.SetValue(tmax)
+        ie.name_box.WriteText("Test")
+        self.assertEqual(ie.tmin_box.GetValue(),tmin)
+        self.assertEqual(ie.tmax_box.GetValue(),tmax)
+        self.assertEqual(ie.name_box.GetValue(),"Test")
+
+        ie.ProcessEvent(addall_evt)
 
     def tearDown(self):
         wx.CallAfter(self.app.Exit)
