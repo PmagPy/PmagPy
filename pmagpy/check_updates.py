@@ -25,21 +25,28 @@ def get_pmag_dir():
     # this works for everything else
     except KeyError:
         # new way:
-        lib_file = resource_filename('pmagpy', 'pmag.py')
-        lib_dir = os.path.split(lib_file)[0]
-        # horrible, hack-y fix
-        # (prevents namespace issue between
-        # local github PmagPy and installed PmagPy)
-        temp = os.getcwd()
-        os.chdir('..')
-        lib_dir = os.path.realpath(lib_dir)
-        os.chdir(temp)
-        # end fix
-        # old way:
-        #lib_dir = os.path.dirname(os.path.realpath(__file__))
-        if not os.path.exists(lib_dir):
+        # if we're in the local PmagPy directory:
+        if os.path.isfile(os.path.join(os.getcwd(), 'pmagpy', 'pmag.py')):
+            lib_dir = os.path.join(os.getcwd(), 'pmagpy')
+        # if we're anywhere else:
+        else:
+            # horrible, hack-y fix
+            # (prevents namespace issue between
+            # local github PmagPy and installed PmagPy)
+            temp = os.getcwd()
+            os.chdir('..')
+            import pmagpy
+            reload(pmagpy)
+            lib_file = resource_filename('pmagpy', 'pmag.py')
+            lib_dir = os.path.split(lib_file)[0]
+            lib_dir = os.path.realpath(lib_dir)
+            os.chdir(temp)
+            # end fix
+            # old way:
+            #lib_dir = os.path.dirname(os.path.realpath(__file__))
+        if not os.path.isfile(os.path.join(lib_dir, 'pmag.py')):
             lib_dir = os.getcwd()
-        if not os.path.exists(lib_dir):
+        if not os.path.isfile(os.path.join(lib_dir, 'pmag.py')):
             print '-W- Can\'t find the data model!  Make sure you have installed pmagpy using pip: "pip install pmagpy --upgrade"'
             return
         lib_dir = lib_dir.strip(os.pathsep)
@@ -50,7 +57,7 @@ def get_pmag_dir():
         if not os.path.exists(pmag_dir):
             print '-W- Can\'t find the data model!  Make sure you have installed pmagpy using pip: "pip install pmagpy --upgrade"'
             return
-        return pmag_dir # os.path.dirname(os.path.realpath(__file__))
+        return pmag_dir  # os.path.dirname(os.path.realpath(__file__))
 
     ##except KeyError:
     ##    return os.path.dirname(os.path.realpath(__file__))
@@ -72,7 +79,7 @@ def get_version():
     return version.version
 
 
-"""    
+"""
 def main():
     global pmagpy_path
     local_version=get_version()
@@ -90,7 +97,7 @@ def main():
             fh_last = open(last_path, 'w') # open it and overwrite previous value
             pickle.dump(time.time(), fh_last)
             fh_last.write('\nThe above is a "pickled" representation of the last time you checked for updates.  Please leave this file alone; it will be updated automatically!')
-            
+
     except IOError as io:
         #print "IOError", io
         fh_last = open(last_path, 'w')
@@ -119,14 +126,14 @@ def main():
        uh_remote = urllib2.urlopen('https://raw.github.com/ltauxe/PmagPy/master/version.py')
        remote_version = uh_remote.readlines()[0][1:-2] # strips out extra quotation marks
     except Exception as ex:
-       return                # if an error occured (e.g. not online), 
+       return                # if an error occured (e.g. not online),
                               # give up trying to check for an update
     finally:
         try:
             uh_remote.close() # always close the URL handle
         except:
             pass              # ignore any problems trying to close the file handle
-    
+
     # Warn the user if their local PmagPy installation is out of date
     if local_version != remote_version:
         root=Tk()
