@@ -14,6 +14,7 @@ import dialogs.pmag_widgets as pmag_widgets
 WD = os.path.join(sys.prefix, "pmagpy_data_files", "magic_gui", "3_0")
 
 
+
 class TestMainFrame(unittest.TestCase):
 
     def setUp(self):

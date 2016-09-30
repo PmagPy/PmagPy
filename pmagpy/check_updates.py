@@ -27,7 +27,14 @@ def get_pmag_dir():
         # new way:
         lib_file = resource_filename('pmagpy', 'pmag.py')
         lib_dir = os.path.split(lib_file)[0]
+        # horrible, hack-y fix
+        # (prevents namespace issue between
+        # local github PmagPy and installed PmagPy)
+        temp = os.getcwd()
+        os.chdir('..')
         lib_dir = os.path.realpath(lib_dir)
+        os.chdir(temp)
+        # end fix
         # old way:
         #lib_dir = os.path.dirname(os.path.realpath(__file__))
         if not os.path.exists(lib_dir):
