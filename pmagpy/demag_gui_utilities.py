@@ -231,8 +231,8 @@ def read_LSQ(filepath):
         interps_out[i]['measurement_max_index'] = parse_LSQ_bound(upper)
         bad_meas = [bounds[k] for k in range(len(bounds)) if len(bounds[k]) > 1]
         for bad_m in bad_meas:
-            if bad_m==bounds[-1]: bad_m = bad_m[:-1]
-            elif bad_m==bounds[0]: bad_m = bad_m[1:]
+            if bad_m==bounds[-1] and len(bad_m)>2: bad_m = bad_m[:-1]
+            elif bad_m==bounds[0] and len(bad_m)>2: bad_m = bad_m[1:]
             fc = parse_LSQ_bound(bad_m[0])
             lc = parse_LSQ_bound(bad_m[-1])
             interps_out[i]['bad_measurement_index'] = []

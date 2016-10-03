@@ -557,8 +557,8 @@ class TestMainFrame(unittest.TestCase):
             interps = read_LSQ(os.path.join(project_WD, 'SI4(80.2 to 100.7).LSQ'))
             self.frame.COORDINATE_SYSTEM = 'geographic'
             self.frame.read_from_LSQ(os.path.join(project_WD, 'SI4(80.2 to 100.7).LSQ'))
-        except OSError: print("Could not read in LSQ file"); return
-        except IOError: print("No LSQ file"); return
+        except OSError as e: print("Could not read in LSQ file"); raise e
+        except IOError as e: print("No LSQ file"); raise e
 
         for interp in interps:
             specimen = interp['er_specimen_name']

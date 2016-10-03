@@ -1078,7 +1078,7 @@ class Demag_GUI(wx.Frame):
             R=array(sqrt(1-z_eq_up)/sqrt(x_eq_up**2+y_eq_up**2)) # from Collinson 1983
             eqarea_data_x_up=y_eq_up*R
             eqarea_data_y_up=x_eq_up*R
-            self.specimen_eqarea.scatter([eqarea_data_x_up],[eqarea_data_y_up],marker='o',edgecolor='black', facecolor="#FFFFFF",s=15*self.GUI_RESOLUTION,lw=1,clip_on=False)
+            self.specimen_eqarea.scatter([eqarea_data_x_up],[eqarea_data_y_up],marker='o',edgecolor='black', facecolor="#000000",s=15*self.GUI_RESOLUTION,lw=1,clip_on=False)
 
         #self.preferences['show_eqarea_treatments']=True
         if self.preferences['show_eqarea_treatments']:
@@ -1179,6 +1179,10 @@ class Demag_GUI(wx.Frame):
         """
         Goes through all measurements selected in logger and draws darker marker over all specimen plots to display which measurements have been selected
         """
+        blue_cover="#9999FF"
+        red_cover="#FF9999"
+        eqarea_cover="#FFFFFF"
+
         MS_selected = 40
         for a in self.selected_meas_artists:
             if a in self.zijplot.collections:
@@ -1192,8 +1196,8 @@ class Demag_GUI(wx.Frame):
 
         self.selected_meas_artists = []
         x,y,z = self.CART_rot[self.selected_meas,0],self.CART_rot[self.selected_meas,1], self.CART_rot[self.selected_meas,2]
-        self.selected_meas_artists.append(self.zijplot.scatter(x, -1*y, c="#440000", marker='o', s=MS_selected, zorder=2))
-        self.selected_meas_artists.append(self.zijplot.scatter(x, -1*z, c="#000044", marker='s', s=MS_selected, zorder=2))
+        self.selected_meas_artists.append(self.zijplot.scatter(x, -1*y, c=red_cover, marker='o', s=MS_selected, zorder=2))
+        self.selected_meas_artists.append(self.zijplot.scatter(x, -1*z, c=blue_cover, marker='s', s=MS_selected, zorder=2))
 
         x_eq=array([row[0] for i,row in enumerate(self.zij_norm) if i in self.selected_meas])
         y_eq=array([row[1] for i,row in enumerate(self.zij_norm) if i in self.selected_meas])
@@ -1202,7 +1206,7 @@ class Demag_GUI(wx.Frame):
             R=array(sqrt(1-z_eq)/sqrt(x_eq**2+y_eq**2)) # from Collinson 1983
             eqarea_data_x=y_eq*R
             eqarea_data_y=x_eq*R
-            self.selected_meas_artists.append(self.specimen_eqarea.scatter([eqarea_data_x],[eqarea_data_y],marker='o',edgecolor='black', facecolor="#000000",s=15*self.GUI_RESOLUTION,lw=1,clip_on=False))
+            self.selected_meas_artists.append(self.specimen_eqarea.scatter([eqarea_data_x],[eqarea_data_y],marker='o',edgecolor='black', facecolor=eqarea_cover,s=15*self.GUI_RESOLUTION,lw=1,clip_on=False))
 
         steps = self.Data[self.s]['zijdblock_steps']
         flags = self.Data[self.s]['measurement_flag']
@@ -1216,13 +1220,13 @@ class Demag_GUI(wx.Frame):
 
         xmin,xmax = self.mplot.get_xlim()
         ymin,ymax = self.mplot.get_ylim()
-        self.selected_meas_artists.append(self.mplot.scatter(T_x, T_y, facecolor="#440000", edgecolor="#000000", marker='o', s=30, lw=1, clip_on=False,zorder=3))
+        self.selected_meas_artists.append(self.mplot.scatter(T_x, T_y, facecolor=red_cover, edgecolor="#000000", marker='o', s=30, lw=1, clip_on=False,zorder=3))
         self.mplot.set_xlim(xmin,xmax)
         self.mplot.set_ylim(ymin,ymax)
 
         xmin,xmax = self.mplot_af.get_xlim()
         ymin,ymax = self.mplot_af.get_ylim()
-        self.selected_meas_artists.append(self.mplot_af.scatter(af_x, af_y, facecolor="#000044", edgecolor="#000000", marker='o', s=30, lw=1, clip_on=False, zorder=3))
+        self.selected_meas_artists.append(self.mplot_af.scatter(af_x, af_y, facecolor=blue_cover, edgecolor="#000000", marker='o', s=30, lw=1, clip_on=False, zorder=3))
         self.mplot_af.set_xlim(xmin,xmax)
         self.mplot_af.set_ylim(ymin,ymax)
 
