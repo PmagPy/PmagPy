@@ -7,17 +7,8 @@ import random as rn
 from pmagpy.demag_gui_utilities import *
 from programs import demag_gui
 
-WD = sys.prefix
-project_WD = os.path.join(os.getcwd(), 'pmagpy_tests', 'examples', 'demag_test_data')
-#project_WD = os.path.join(os.getcwd(), 'pmagpy_tests', 'examples', 'demag_test_data', '2Magic')
-#project_WD = os.path.join(os.getcwd(), 'pmagpy_tests', 'examples', 'demag_test_data', '3Magic')
-#project_WD = os.path.join(os.getcwd(), 'tests', 'examples', 'my_project')
-core_depthplot_WD = os.path.join(WD, 'pmagpy_data_files', 'core_depthplot')
-empty_WD = os.path.join(os.getcwd(), 'pmagpy_tests', 'examples', 'empty_dir')
-allowable_float_error = 0.1
-
 #@unittest.skip("requires interaction")
-class TestMainFrame(unittest.TestCase):
+class TestDemagGUI(unittest.TestCase):
 
     def setUp(self):
         self.app = wx.App()
@@ -217,7 +208,9 @@ class TestMainFrame(unittest.TestCase):
         for i,b in enumerate(meas_data_before):
             if b == 'g': self.frame.logger.Select(i)
         self.frame.ProcessEvent(markgood_menu_evt)
-        if self.frame.Data[self.frame.s]['measurement_flag'][0]=='b': total_num_of_good_meas_data+=1
+        if self.frame.Data[self.frame.s]['measurement_flag'][0]=='b': total_num_of_good_meas_data-=1
+        elif self.frame.Data[self.frame.s]['measurement_flag'][-1]=='b': total_num_of_good_meas_data-=1
+        if fit.get(self.frame.COORDINATE_SYSTEM)['specimen_n']!=total_num_of_good_meas_data: self.frame.Show(); import pdb; pdb.set_trace()
         self.assertEqual(fit.get(self.frame.COORDINATE_SYSTEM)['specimen_n'],total_num_of_good_meas_data)
 
     def test_read_write_redo(self):
@@ -243,11 +236,6 @@ class TestMainFrame(unittest.TestCase):
         importredo_menu_evt = wx.PyCommandEvent(wx.EVT_MENU.typeId,file_menu_items[2].GetId())
         writeredo_menu_evt = wx.PyCommandEvent(wx.EVT_MENU.typeId,file_menu_items[3].GetId())
 
-        def press_ok_btn():
-            self.frame.dlg.SetReturnCode(self.frame.dlg.GetAffirmativeId())
-            self.frame.dlg.EndModal()
-
-        wx.CallAfter(press_ok_btn) ##
         self.frame.ProcessEvent(writeredo_menu_evt)
         old_frame = str(self.frame)
         old_interpretations = []
@@ -269,7 +257,7 @@ class TestMainFrame(unittest.TestCase):
         self.mark_all_meas_good(self.frame)
         self.frame.update_selection()
 
-        self.ie_add_all_2_fits()
+        self.ie_add_n_fits_to_all(n_fits)
 
         menu_bar = self.frame.GetMenuBar()
         file_menu = menu_bar.GetMenu(0)
@@ -302,7 +290,6 @@ class TestMainFrame(unittest.TestCase):
             imported_interpretations[speci] = sorted(frame2.pmag_results_data['specimens'][speci],cmp=fit_cmp)
 
         for speci in speci_with_fits:
-            if speci not in old_interpretations.keys() or speci not in imported_interpretations.keys(): import pdb;pdb.set_trace()
             self.assertTrue(speci in old_interpretations.keys())
             self.assertTrue(speci in imported_interpretations.keys())
             for ofit,ifit in zip(old_interpretations[speci],imported_interpretations[speci]):
@@ -552,26 +539,29 @@ class TestMainFrame(unittest.TestCase):
                 self.assertEqual(gui_fit.tmax,self.frame.Data[speci]['zijdblock_steps'][tmax_index])
             self.assertEqual(fit.name,"OtherTest")
 
-    def test_interpretation_accuracy(self):
-        try:
-            interps = read_LSQ(os.path.join(project_WD, 'SI4(80.2 to 100.7).LSQ'))
-            self.frame.COORDINATE_SYSTEM = 'geographic'
-            self.frame.read_from_LSQ(os.path.join(project_WD, 'SI4(80.2 to 100.7).LSQ'))
-        except OSError as e: print("Could not read in LSQ file"); raise e
-        except IOError as e: print("No LSQ file"); raise e
+    def test_interpretation_accuracy_with_lsq(self):
+        g = os.walk(project_WD)
+        lsq_filenames = list(map(lambda x: os.path.join(project_WD,x),filter(lambda x: x.lower().endswith('.lsq'), g.next()[2])))
+        for lsq_filename in lsq_filenames:
+            try:
+                interps = read_LSQ(lsq_filename)
+                self.frame.COORDINATE_SYSTEM = 'geographic'
+                self.frame.read_from_LSQ(lsq_filename)
+            except OSError as e: print("Could not read in LSQ file: %s"%lsq_filename); raise e
+            except IOError as e: print("No LSQ file: %s"%lsq_filename); raise e
 
-        for interp in interps:
-            specimen = interp['er_specimen_name']
-            gui_interps = self.frame.pmag_results_data['specimens'][specimen]
-            similar_fit_present = True
-            for gui_interp in gui_interps:
-                pars = gui_interp.get('geographic')
-                if int(pars['specimen_n']) != int(interp['specimen_n']): continue
-                for value in ['specimen_dec','specimen_inc','specimen_mad','specimen_n']:
-                    if round(float(pars[value]),1)-allowable_float_error > float(interp[value]) and float(interp[value]) > round(float(pars[value]),1)+allowable_float_error:
-                        print(round(float(pars[value]),1),float(interp[value]))
-                        similar_fit_present = False
-            self.assertTrue(similar_fit_present)
+            for interp in interps:
+                specimen = interp['er_specimen_name']
+                gui_interps = self.frame.pmag_results_data['specimens'][specimen]
+                similar_fit_present = True
+                for gui_interp in gui_interps:
+                    pars = gui_interp.get('geographic')
+                    if int(pars['specimen_n']) != int(interp['specimen_n']): continue
+                    for value in ['specimen_dec','specimen_inc','specimen_mad','specimen_n']:
+                        if round(float(pars[value]),1)-allowable_float_error > float(interp[value]) and float(interp[value]) > round(float(pars[value]),1)+allowable_float_error:
+                            print(round(float(pars[value]),1),float(interp[value]))
+                            similar_fit_present = False
+                self.assertTrue(similar_fit_present)
 
     def test_VGP_viewer(self):
         menu_bar = self.frame.GetMenuBar()
@@ -581,7 +571,7 @@ class TestMainFrame(unittest.TestCase):
         viewVGPs_menu_evt = wx.PyCommandEvent(wx.EVT_MENU.typeId, tools_menu_items[1].GetId())
         self.frame.ProcessEvent(viewVGPs_menu_evt)
 
-        self.ie_add_all_2_fits()
+        self.ie_add_n_fits_to_all(n_fits)
 
         #test actual VGP calculation and display
         self.frame.ProcessEvent(viewVGPs_menu_evt)
@@ -601,7 +591,7 @@ class TestMainFrame(unittest.TestCase):
         self.frame.ProcessEvent(check_orient_menu_evt)
         self.assertFalse(self.frame.check_orient_on)
 
-        self.ie_add_all_2_fits()
+        self.ie_add_n_fits_to_all(n_fits)
 
         self.assertFalse(self.frame.check_orient_on)
         self.frame.ProcessEvent(check_orient_menu_evt)
@@ -624,7 +614,7 @@ class TestMainFrame(unittest.TestCase):
             for comp in self.frame.pmag_results_data['specimens'][s]:
                 self.assertTrue(comp not in self.frame.bad_fits)
 
-    def ie_add_all_2_fits(self):
+    def ie_add_n_fits_to_all(self,n):
         #test initialization of ie
         self.assertFalse(self.frame.ie_open)
         self.frame.on_menu_edit_interpretations(-1)
@@ -632,31 +622,18 @@ class TestMainFrame(unittest.TestCase):
         ie = self.frame.ie
         addall_evt = wx.PyCommandEvent(wx.EVT_BUTTON.typeId, ie.add_all_button.GetId())
 
-        steps = self.frame.Data[self.frame.s]['zijdblock_steps']
-        tmin=steps[rn.randint(0,len(steps)-3)]
-        tmax=steps[rn.randint(steps.index(tmin)+2,len(steps)-1)]
-        ie.tmin_box.SetValue(tmin)
-        ie.tmax_box.SetValue(tmax)
-        ie.name_box.Clear()
-        ie.name_box.WriteText("test1")
-        self.assertEqual(ie.tmin_box.GetValue(),tmin)
-        self.assertEqual(ie.tmax_box.GetValue(),tmax)
-        self.assertEqual(ie.name_box.GetValue(),"test1")
-
-        ie.ProcessEvent(addall_evt)
-
-        steps = self.frame.Data[self.frame.s]['zijdblock_steps']
-        tmin=steps[rn.randint(0,len(steps)-3)]
-        tmax=steps[rn.randint(steps.index(tmin)+2,len(steps)-1)]
-        ie.tmin_box.SetValue(tmin)
-        ie.tmax_box.SetValue(tmax)
-        ie.name_box.Clear()
-        ie.name_box.WriteText("test2")
-        self.assertEqual(ie.tmin_box.GetValue(),tmin)
-        self.assertEqual(ie.tmax_box.GetValue(),tmax)
-        self.assertEqual(ie.name_box.GetValue(),"test2")
-
-        ie.ProcessEvent(addall_evt)
+        for i in range(n):
+            steps = self.frame.Data[self.frame.s]['zijdblock_steps']
+            tmin=steps[rn.randint(0,len(steps)-3)]
+            tmax=steps[rn.randint(steps.index(tmin)+2,len(steps)-1)]
+            ie.tmin_box.SetValue(tmin)
+            ie.tmax_box.SetValue(tmax)
+            ie.name_box.Clear()
+            ie.name_box.WriteText("test%d"%i)
+            self.assertEqual(ie.tmin_box.GetValue(),tmin)
+            self.assertEqual(ie.tmax_box.GetValue(),tmax)
+            self.assertEqual(ie.name_box.GetValue(),"test%d"%i)
+            ie.ProcessEvent(addall_evt)
 
     def mark_all_meas_good(self,frame):
         old_s = frame.s
@@ -689,6 +666,7 @@ def fit_cmp(f1,f2):
     return 0
 
 def backup(WD):
+    print("backing up")
     #make backup directory
     backup_dir = os.path.join(WD,'Backup')
     if not os.path.exists(backup_dir):
@@ -701,6 +679,7 @@ def backup(WD):
             shutil.copy(full_file_name, os.path.join(backup_dir,file_name))
 
 def revert_from_backup(WD):
+    print("reverting")
     backup_dir = os.path.join(WD,'Backup')
     #copy test files to backup
     src_files = os.listdir(backup_dir)
@@ -708,11 +687,37 @@ def revert_from_backup(WD):
         full_file_name = os.path.join(backup_dir, file_name)
         if (os.path.isfile(full_file_name)):
             shutil.copy(full_file_name, os.path.join(WD,file_name))
-            os.remove(file_file_name)
+            os.remove(full_file_name)
     if os.path.exists(backup_dir):
         os.rmdir(backup_dir)
 
 if __name__ == '__main__':
+
+    WD = sys.prefix
+    if '-d' in sys.argv:
+        d_index = sys.argv.index('-d')
+        project_WD = os.path.join(os.getcwd(),sys.argv[d_index+1])
+    elif '--dir' in sys.argv:
+        d_index = sys.argv.index('--dir')
+        project_WD = os.path.join(os.getcwd(),sys.argv[d_index+1])
+    else:
+        project_WD = os.path.join(os.getcwd(), 'pmagpy_tests', 'examples', 'demag_test_data')
+    #project_WD = os.path.join(os.getcwd(), 'tests', 'examples', 'my_project')
+    core_depthplot_WD = os.path.join(WD, 'pmagpy_data_files', 'core_depthplot')
+    empty_WD = os.path.join(os.getcwd(), 'pmagpy_tests', 'examples', 'empty_dir')
+    if '-e' in sys.argv:
+        e_index = sys.argv.index('-e')
+        allowable_float_error = float(sys.argv[e_index])
+    elif '--error' in sys.argv:
+        e_index = sys.argv.index('--error')
+        allowable_float_error = float(sys.argv[e_index])
+    else:
+        allowable_float_error = 0.1
+    n_fits = 3
+    if '-n' in sys.argv:
+        n_index = sys.argv.index('-n')
+        n_fits = int(sys.argv[n_index+1])
+
     backup(project_WD)
-    unittest.main()
+    unittest.TextTestRunner().run(unittest.TestLoader().loadTestsFromTestCase(TestDemagGUI))
     revert_from_backup(project_WD)

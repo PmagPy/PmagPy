@@ -1857,9 +1857,14 @@ class Demag_GUI(wx.Frame):
             if name in map(lambda x: x.name, self.pmag_results_data['specimens'][specimen]): print('bad name'); return
         if color == None: color = self.colors[(int(next_fit)-1) % len(self.colors)]
         new_fit = Fit(name, fmax, fmin, color, self, PCA_type)
-        self.pmag_results_data['specimens'][specimen].append(new_fit)
         if fmin != None and fmax != None:
             new_fit.put(specimen,self.COORDINATE_SYSTEM,self.get_PCA_parameters(specimen,new_fit,fmin,fmax,self.COORDINATE_SYSTEM,PCA_type))
+            if 'specimen_dec' not in new_fit.get(self.COORDINATE_SYSTEM).keys()\
+            or 'specimen_inc' not in new_fit.get(self.COORDINATE_SYSTEM).keys():
+                TEXT = "Could not calculate dec or inc for specimen %s component %s with bounds %s and %s in coordinate_system %s, component not added"%(specimen,name,fmin,fmax,self.COORDINATE_SYSTEM)
+                self.user_warning(TEXT)
+                print(TEXT); return
+        self.pmag_results_data['specimens'][specimen].append(new_fit)
         samp = self.Data_hierarchy['sample_of_specimen'][specimen]
         if 'sample_orientation_flag' not in self.Data_info['er_samples'][samp]:
             self.Data_info['er_samples'][samp]['sample_orientation_flag'] = 'g'
@@ -4943,7 +4948,7 @@ class Demag_GUI(wx.Frame):
 
                     mpars = fit.get(dirtype)
                     if not mpars:
-                        mpars = self.get_PCA_parameters(specimen,fit,fit.tmin,fit.tmax,dirtype,fit.PCA_type)
+                        mpars = self.get_PCA_parameters(specimen,fit,fit.tmin,fit.tmax,dirtype,fit.PCA_type) #blarge
                         if not mpars or 'specimen_dec' not in mpars.keys(): print("Could not calculate interpretation for specimen %s and fit %s while exporting pmag tables, skipping"%(specimen,fit.name));continue
 
                     PmagSpecRec={}
