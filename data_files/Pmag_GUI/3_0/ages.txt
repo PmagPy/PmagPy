@@ -1,0 +1,31 @@
+tab 	ages
+age	age_high	age_low	age_unit	citations	description	location	method_codes	site
+-740	-732	-800	Years Cal AD (+/-)	This study	"Tel-Hazor chronology. 2015 revision. Amnon Ben-Tor and Sharon Zuckerman, personal communication"	Tel Hazor	GM-C14:GM-CC-ARCH	hz05
+-740	-732	-800	Years Cal AD (+/-)	This study	"Tel-Hazor chronology. 2015 revision. Amnon Ben-Tor and Sharon Zuckerman, personal communication"	Tel Hazor	GM-C14:GM-CC-ARCH	hz06
+-850	-800	-900	Years Cal AD (+/-)	This study	"Tel-Hazor chronology. 2015 revision. Amnon Ben-Tor and Sharon Zuckerman, personal communication"	Tel Hazor	GM-C14:GM-CC-ARCH	hz07
+-950	-900	-1000	Years Cal AD (+/-)	This study	"Tel-Hazor chronology. 2015 revision. Amnon Ben-Tor and Sharon Zuckerman, personal communication"	Tel Hazor	GM-C14:GM-CC-ARCH	hz09
+-950	-900	-1000	Years Cal AD (+/-)	This study	"Tel-Hazor chronology. 2015 revision. Amnon Ben-Tor and Sharon Zuckerman, personal communication"	Tel Hazor	GM-C14:GM-CC-ARCH	hz10
+-1050	-1000	-1100	Years Cal AD (+/-)	This study	"Tel-Hazor chronology. 2015 revision. Amnon Ben-Tor and Sharon Zuckerman, personal communication"	Tel Hazor	GM-C14:GM-CC-ARCH	hz11
+-1250	-1250	-1350	Years Cal AD (+/-)	This study	"Tel-Hazor chronology. 2015 revision. Amnon Ben-Tor and Sharon Zuckerman, personal communication"	Tel Hazor	GM-C14:GM-CC-ARCH	hz13
+-1550	-1450	-1650	Years Cal AD (+/-)	This study	"Tel-Hazor chronology. 2015 revision. Amnon Ben-Tor and Sharon Zuckerman, personal communication"	Tel Hazor	GM-C14:GM-CC-ARCH	hz15
+-2150	-2000	-2300	Years Cal AD (+/-)	This study	"Tel-Hazor chronology. 2015 revision. Amnon Ben-Tor and Sharon Zuckerman, personal communication"	Tel Hazor	GM-C14:GM-CC-ARCH	hz18
+-2700	-2500	-2800	Years Cal AD (+/-)	This study	"Tel-Hazor chronology. 2015 revision. Amnon Ben-Tor and Sharon Zuckerman, personal communication"	Tel Hazor	GM-C14:GM-CC-ARCH	hz20
+-1450	-1400	-1500	Years Cal AD (+/-)	This study	Tel-Magiddo chronology. Megido VI published report	Tel Megiddo	GM-C14:GM-CC-ARCH	mgf10
+-1800	-1700	-1900	Years Cal AD (+/-)	This study	Tel-Magiddo chronology. Megido VI published report	Tel Megiddo	GM-C14:GM-CC-ARCH	mgf13
+-740	-732	-800	Years Cal AD (+/-)	This study	Tel-Magiddo chronology. Megido VI published report	Tel Megiddo	GM-C14:GM-CC-ARCH	mgh03
+-850	-800	-900	Years Cal AD (+/-)	This study	Tel-Magiddo chronology. Megido VI published report	Tel Megiddo	GM-C14:GM-CC-ARCH	mgh05
+-900	-850	-950	Years Cal AD (+/-)	This study	Tel-Magiddo chronology. Megido VI published report	Tel Megiddo	GM-C14:GM-CC-ARCH	mgh07
+-1000	-950	-1050	Years Cal AD (+/-)	This study	Tel-Magiddo chronology. Megido VI published report	Tel Megiddo	GM-C14:GM-CC-ARCH	mgh09
+-1125	-1100	-1150	Years Cal AD (+/-)	This study	Tel-Magiddo chronology. Megido VI published report	Tel Megiddo	GM-C14:GM-CC-ARCH	mgh12
+-1125	-1100	-1150	Years Cal AD (+/-)	This study	Tel-Magiddo chronology. Megido VI published report	Tel Megiddo	GM-C14:GM-CC-ARCH	mgh12t1
+-3000	-2900	-3100	Years Cal AD (+/-)	This study	Tel-Magiddo chronology. Megido VI published report	Tel Megiddo	GM-C14:GM-CC-ARCH	mgj04
+-2700	-2800	-2600	Years Cal AD (+/-)	This study	Tel-Magiddo chronology. Megido VI published report	Tel Megiddo	GM-C14:GM-CC-ARCH	mgj06
+-1130	-1180	-1130	Years Cal AD (+/-)	This study	Tel-Magiddo chronology. Megido VI published report	Tel Megiddo	GM-C14:GM-CC-ARCH	mgk06
+-1250	-1200	-1300	Years Cal AD (+/-)	This study	Tel-Magiddo chronology. Megido VI published report	Tel Megiddo	GM-C14:GM-CC-ARCH	mgk08
+-1350	-1300	-1400	Years Cal AD (+/-)	This study	Tel-Magiddo chronology. Megido VI published report	Tel Megiddo	GM-C14:GM-CC-ARCH	mgk09
+-1350	-1300	-1400	Years Cal AD (+/-)	This study	Tel-Magiddo chronology. Megido VI published report	Tel Megiddo	GM-C14:GM-CC-ARCH	mgk09t1
+-850	-800	-900	Years Cal AD (+/-)	This study	Tel-Magiddo chronology. Megido VI published report	Tel Megiddo	GM-C14:GM-CC-ARCH	mgq04
+-850	-800	-900	Years Cal AD (+/-)	This study	Tel-Magiddo chronology. Megido VI published report	Tel Megiddo	GM-C14:GM-CC-ARCH	mgq04t1
+-900	-850	-950	Years Cal AD (+/-)	This study	Tel-Magiddo chronology. Megido VI published report	Tel Megiddo	GM-C14:GM-CC-ARCH	mgq05
+-900	-850	-950	Years Cal AD (+/-)	This study	Tel-Magiddo chronology. Megido VI published report	Tel Megiddo	GM-C14:GM-CC-ARCH	mgq05t1
+-900	-850	-950	Years Cal AD (+/-)	This study	Tel-Magiddo chronology. Megido VI published report	Tel Megiddo	GM-C14:GM-CC-ARCH	mgq05t2
