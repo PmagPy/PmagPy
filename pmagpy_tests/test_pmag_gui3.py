@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import pmagpy
 import unittest
 import os
 import sys
