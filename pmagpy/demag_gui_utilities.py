@@ -205,13 +205,17 @@ def read_LSQ(filepath):
     fin = open(filepath, 'r')
     interps = fin.read().splitlines()
     interps_out = []
-    parse_LSQ_bound = lambda x: ord(x)-ord("A") if ord(x)-ord("A") < 25 else ord(x)-ord("A")-6
+    parse_LSQ_bound = lambda x: ord(x)-ord("A") if ord(x)-ord("A") < 26 else ord(x)-ord("A")-6
     for i,interp in enumerate(interps):
         interps_out.append({})
         enteries = interp.split()
         interps_out[i]['er_specimen_name'] = enteries[0]
         if enteries[1] == 'L':
             interps_out[i]['magic_method_codes'] = 'DE-BFL:DA-DIR-GEO'
+        if enteries[1] == 'P':
+            interps_out[i]['magic_method_codes'] = 'DE-BFP:DA-DIR-GEO'
+        if enteries[1] == 'C':
+            interps_out[i]['magic_method_codes'] = 'DE-FM:DA-DIR-GEO'
         j = 2
         if len(enteries) > 9: interps_out[i]['specimen_comp_name'] = enteries[j]; j += 1;
         else: interps_out[i]['specimen_comp_name'] = None
@@ -219,15 +223,21 @@ def read_LSQ(filepath):
         interps_out[i]['specimen_inc'] = enteries[j+1]
         j += 4
         bounds = enteries[j].split('-')
-        interps_out[i]['measurement_min_index'] = parse_LSQ_bound(bounds[0])
-        interps_out[i]['measurement_max_index'] = parse_LSQ_bound(bounds[-1])
+        lower = bounds[0]
+        upper = bounds[-1]
+        if len(bounds[0]) > 1: lower = lower[0]
+        if len(bounds[-1]) > 1: upper = upper[-1]
+        interps_out[i]['measurement_min_index'] = parse_LSQ_bound(lower)
+        interps_out[i]['measurement_max_index'] = parse_LSQ_bound(upper)
         bad_meas = [bounds[k] for k in range(len(bounds)) if len(bounds[k]) > 1]
         for bad_m in bad_meas:
-             fc = parse_LSQ_bound(bad_m[0])
-             lc = parse_LSQ_bound(bad_m[-1])
-             interps_out[i]['bad_measurement_index'] = []
-             for k in range(1,lc-fc+1):
-                     interps_out[i]['bad_measurement_index'].append(fc+k)
+            if bad_m==bounds[-1]: bad_m = bad_m[:-1]
+            elif bad_m==bounds[0]: bad_m = bad_m[1:]
+            fc = parse_LSQ_bound(bad_m[0])
+            lc = parse_LSQ_bound(bad_m[-1])
+            interps_out[i]['bad_measurement_index'] = []
+            for k in range(1,lc-fc):
+                interps_out[i]['bad_measurement_index'].append(fc+k)
         interps_out[i]['specimen_n'] = enteries[j+1]
         interps_out[i]['specimen_mad'] = enteries[j+2]
     fin.close()

@@ -3437,6 +3437,12 @@ class Demag_GUI(wx.Frame):
         cont = self.user_warning("LSQ import only works if all measurements are present and not averaged during import from magnetometer files to magic format. Do you wish to continue reading interpretations?")
         if not cont: return
         self.clear_interpretations(message="""Do you wish to clear all previous interpretations on import?""")
+        old_s = self.s
+        for specimen in self.specimens:
+            self.s = specimen
+            for i in range(len(self.Data[specimen]['zijdblock'])):
+                self.mark_meas_good(i)
+        self.s = old_s
         print("Reading LSQ file")
         interps = read_LSQ(LSQ_file)
         for interp in interps:
