@@ -614,6 +614,17 @@ class TestDemagGUI(unittest.TestCase):
             for comp in self.frame.pmag_results_data['specimens'][s]:
                 self.assertTrue(comp not in self.frame.bad_fits)
 
+    def test_export_images(self):
+        menu_bar = self.frame.GetMenuBar()
+        file_menu = menu_bar.GetMenu(0)
+        file_menu_items = file_menu.GetMenuItems()
+        export_images_menu = file_menu_items[5].GetSubMenu()
+        export_images_menu_items = export_images_menu.GetMenuItems()
+
+        export_all_images_menu_evt = wx.PyCommandEvent(wx.EVT_MENU.typeId, export_images_menu_items[4].GetId())
+
+        self.frame.ProcessEvent(export_all_images_menu_evt)
+
     def ie_add_n_fits_to_all(self,n):
         #test initialization of ie
         self.assertFalse(self.frame.ie_open)
@@ -702,7 +713,6 @@ if __name__ == '__main__':
         project_WD = os.path.join(os.getcwd(),sys.argv[d_index+1])
     else:
         project_WD = os.path.join(os.getcwd(), 'pmagpy_tests', 'examples', 'demag_test_data')
-    #project_WD = os.path.join(os.getcwd(), 'tests', 'examples', 'my_project')
     core_depthplot_WD = os.path.join(WD, 'pmagpy_data_files', 'core_depthplot')
     empty_WD = os.path.join(os.getcwd(), 'pmagpy_tests', 'examples', 'empty_dir')
     if '-e' in sys.argv:

@@ -861,30 +861,20 @@ class Demag_GUI(wx.Frame):
         """
         self.initialize_CART_rot(s)
 
-        #-----------------------------------------------------------
         # Draw Zij plot
-        #-----------------------------------------------------------
         self.draw_zijderveld()
 
-        #-----------------------------------------------------------
-        # specimen equal area
-        #-----------------------------------------------------------
+        # Draw specimen equal area
         self.draw_spec_eqarea()
 
-        #-----------------------------------------------------------
         # Draw M/M0 plot ( or NLT data on the same area in the GUI)
-        #-----------------------------------------------------------
         self.draw_MM0()
 
-        #-----------------------------------------------------------
         # If measurements are selected redisplay selected data
-        #-----------------------------------------------------------
         if len(self.selected_meas)>0:
             self.plot_selected_meas()
 
-        #-----------------------------------------------------------
-        # high level equal area
-        #-----------------------------------------------------------
+        # Draw high level equal area
         if update_high_plots:
             self.plot_high_levels_data()
         self.canvas4.draw()
@@ -5112,7 +5102,7 @@ class Demag_GUI(wx.Frame):
         self.draw_interpretations()
         self.plot_high_levels_data()
         self.fig1.text(0.9,0.98,'%s'%(self.s),{'family':self.font_type, 'fontsize':10, 'style':'normal','va':'center', 'ha':'right' })
-        SaveMyPlot(self.fig1,self.s,"Zij",self.WD)
+        SaveMyPlot(self.fig1,self.s,"Zij",self.WD,test_mode=self.test_mode)
 #        self.fig1.clear()
         self.draw_figure(self.s)
         self.update_selection()
@@ -5123,7 +5113,7 @@ class Demag_GUI(wx.Frame):
         self.plot_high_levels_data()
         #self.fig2.text(0.9,0.96,'%s'%(self.s),{'family':self.font_type, 'fontsize':10, 'style':'normal','va':'center', 'ha':'right' })
         #self.canvas4.print_figure("./tmp.pdf")#, dpi=self.dpi)
-        SaveMyPlot(self.fig2,self.s,"EqArea",self.WD)
+        SaveMyPlot(self.fig2,self.s,"EqArea",self.WD,test_mode=self.test_mode)
 #        self.fig2.clear()
         self.draw_figure(self.s)
         self.update_selection()
@@ -5133,7 +5123,7 @@ class Demag_GUI(wx.Frame):
         self.draw_interpretations()
         self.plot_high_levels_data()
         self.fig3.text(0.9,0.96,'%s'%(self.s),{'family':self.font_type, 'fontsize':10, 'style':'normal','va':'center', 'ha':'right' })
-        SaveMyPlot(self.fig3,self.s,"M_M0",self.WD)
+        SaveMyPlot(self.fig3,self.s,"M_M0",self.WD,test_mode=self.test_mode)
 #        self.fig3.clear()
         self.draw_figure(self.s)
         self.update_selection()
@@ -5142,7 +5132,7 @@ class Demag_GUI(wx.Frame):
         self.current_fit = None
         self.draw_interpretations()
         self.plot_high_levels_data()
-        SaveMyPlot(self.fig4,str(self.level_names.GetValue()),str(self.level_box.GetValue()), self.WD )
+        SaveMyPlot(self.fig4,str(self.level_names.GetValue()),str(self.level_box.GetValue()), self.WD ,test_mode=self.test_mode)
 #        self.fig4.clear()
         self.draw_figure(self.s)
         self.update_selection()
@@ -5165,14 +5155,14 @@ class Demag_GUI(wx.Frame):
             try:
                 if plot_types[i]=="Zij":
                     self.fig1.text(0.9,0.98,'%s'%(self.s),{'family':self.font_type, 'fontsize':10, 'style':'normal','va':'center', 'ha':'right' })
-                    SaveMyPlot(self.fig1,self.s,"Zij",dir_path)
+                    SaveMyPlot(self.fig1,self.s,"Zij",dir_path,test_mode=self.test_mode)
                 if plot_types[i]=="EqArea":
-                    SaveMyPlot(self.fig2,self.s,"EqArea",dir_path)
+                    SaveMyPlot(self.fig2,self.s,"EqArea",dir_path,test_mode=self.test_mode)
                 if plot_types[i]=="M_M0":
                     self.fig3.text(0.9,0.96,'%s'%(self.s),{'family':self.font_type, 'fontsize':10, 'style':'normal','va':'center', 'ha':'right' })
-                    SaveMyPlot(self.fig3,self.s,"M_M0",dir_path)
+                    SaveMyPlot(self.fig3,self.s,"M_M0",dir_path,test_mode=self.test_mode)
                 if plot_types[i]==str(self.level_box.GetValue()):
-                    SaveMyPlot(self.fig4,str(self.level_names.GetValue()),str(self.level_box.GetValue()),dir_path )
+                    SaveMyPlot(self.fig4,str(self.level_names.GetValue()),str(self.level_box.GetValue()),dir_path ,test_mode=self.test_mode)
             except:
                 pass
 
@@ -6430,7 +6420,7 @@ class Demag_GUI(wx.Frame):
 
 class SaveMyPlot(wx.Frame):
     """"""
-    def __init__(self,fig,name,plot_type,dir_path):
+    def __init__(self,fig,name,plot_type,dir_path,test_mode=False):
         """Constructor"""
         wx.Frame.__init__(self, parent=None, title="")
 
@@ -6444,7 +6434,9 @@ class SaveMyPlot(wx.Frame):
             wildcard=file_choices,
             style=wx.SAVE)
         dlg.Center()
-        if dlg.ShowModal() == wx.ID_OK:
+        if test_mode: result=dlg.GetAffirmativeId()
+        else: result=dlg.ShowModal()
+        if result == wx.ID_OK:
             path = dlg.GetPath()
         else:
             return
