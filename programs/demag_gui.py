@@ -1511,9 +1511,18 @@ class Demag_GUI(wx.Frame):
         # plot elements means
         if calculation_type!="None":
             if high_level_name in self.high_level_means[high_level_type].keys():
-                if self.mean_fit in self.high_level_means[high_level_type][high_level_name].keys():
+                if self.mean_fit != "All" and self.mean_fit in self.high_level_means[high_level_type][high_level_name].keys():
                     if dirtype in self.high_level_means[high_level_type][high_level_name][self.mean_fit].keys():
                         self.plot_eqarea_mean(self.high_level_means[high_level_type][high_level_name][self.mean_fit][dirtype],self.high_level_eqarea)
+                else:
+                    for mf in self.all_fits_list+['All']:
+                        if mf not in self.high_level_means[high_level_type][high_level_name].keys() or (dirtype in self.high_level_means[high_level_type][high_level_name][mf] and 'calculation_type' in self.high_level_means[high_level_type][high_level_name][mf][dirtype] and self.high_level_means[high_level_type][high_level_name][mf][dirtype]['calculation_type'] != calculation_type):
+                            self.calculate_high_level_mean(high_level_type,high_level_name,calculation_type,self.UPPER_LEVEL_SHOW,mf)
+                        if mf in self.high_level_means[high_level_type][high_level_name].keys() and dirtype in self.high_level_means[high_level_type][high_level_name][mf].keys():
+                            self.plot_eqarea_mean(self.high_level_means[high_level_type][high_level_name][mf][dirtype],self.high_level_eqarea)
+
+        #update high level stats after plotting in case of change
+        self.update_high_level_stats()
 
         #check sample orietation
         if self.check_orient_on:
@@ -1708,14 +1717,17 @@ class Demag_GUI(wx.Frame):
             mpars_to_plot.append(meanpars)
         ymin, ymax = fig.get_ylim()
         xmin, xmax = fig.get_xlim()
+        if 'color' in meanpars: color = meanpars['color']
+        else: color = 'black'
+        size,alpha=30,.7
         # put on the mean direction
         for mpars in mpars_to_plot:
             XYM=pmag.dimap(float(mpars["dec"]),float(mpars["inc"]))
             if float(mpars["inc"])>0:
-                FC='black';EC='0.1'
+                FC=color;EC='0.1'
             else:
-                FC='white';EC='black'
-            fig.scatter([XYM[0]],[XYM[1]],marker='o',edgecolor=EC, facecolor=FC,s=30,lw=1,clip_on=False)
+                FC='white';EC=color
+            fig.scatter([XYM[0]],[XYM[1]],marker='o',edgecolor=EC, facecolor=FC,s=size,lw=1,clip_on=False,alpha=alpha)
 
             if "alpha95" in mpars.keys():
             # get the alpha95
@@ -1725,11 +1737,11 @@ class Demag_GUI(wx.Frame):
                     XY=pmag.dimap(Da95[k],Ia95[k])
                     Xcirc.append(XY[0])
                     Ycirc.append(XY[1])
-                fig.plot(Xcirc,Ycirc,'black')
+                fig.plot(Xcirc,Ycirc,color,alpha=alpha)
 
             if self.ie_open: #BROKEN
-                self.ie.scatter([XYM[0]],[XYM[1]],marker='o',edgecolor=EC, facecolor=FC,s=30,lw=1,clip_on=False)
-                self.ie.plot(Xcirc,Ycirc,'black')
+                self.ie.scatter([XYM[0]],[XYM[1]],marker='o',edgecolor=EC, facecolor=FC,s=size,lw=1,clip_on=False,alpha=alpha)
+                self.ie.plot(Xcirc,Ycirc,color,alpha=alpha)
                 self.ie.eqarea.set_xlim(xmin, xmax)
                 self.ie.eqarea.set_ylim(ymin, ymax)
 
@@ -2291,8 +2303,10 @@ class Demag_GUI(wx.Frame):
 
         if calculation_type == "None": return
 
-        if high_level_type not in self.high_level_means: self.high_level_means[high_level_type] = {}
-        self.high_level_means[high_level_type][high_level_name]={}
+        if high_level_type not in self.high_level_means:
+            self.high_level_means[high_level_type] = {}
+        if high_level_name not in self.high_level_means[high_level_type]:
+                self.high_level_means[high_level_type][high_level_name]={}
         for dirtype in ["DA-DIR","DA-DIR-GEO","DA-DIR-TILT"]:
             if high_level_name not in self.Data_hierarchy[high_level_type].keys():
                 continue
@@ -2387,19 +2401,12 @@ class Demag_GUI(wx.Frame):
 #                else:
 #                    data.append([pars['dec'],pars['inc']])
 #            mpars=pmag.dobingham(data)
-#            self.switch_stats_button.SetRange(0,0)
 
         elif calculation_type=='Fisher':
             mpars=pmag.dolnp(pars_for_mean,'direction_type')
-            self.switch_stats_button.SetRange(0,0)
-            if self.ie_open:
-                self.ie.switch_stats_button.SetRange(0,0)
 
         elif calculation_type=='Fisher by polarity':
             mpars=pmag.fisher_by_pol(pars_for_mean)
-            self.switch_stats_button.SetRange(0,len(mpars.keys())-1)
-            if self.ie_open:
-                self.ie.switch_stats_button.SetRange(0,len(mpars.keys())-1)
             for key in mpars.keys():
                 mpars[key]['n_planes'] = 0
                 mpars[key]['calculation_type'] = 'Fisher'
@@ -4622,10 +4629,44 @@ class Demag_GUI(wx.Frame):
         high_level_name=str(self.level_names.GetValue())
         elements_type=self.UPPER_LEVEL_SHOW
         if high_level_name in self.high_level_means[high_level_type].keys():
-            if self.mean_fit in self.high_level_means[high_level_type][high_level_name].keys():
-                if dirtype in self.high_level_means[high_level_type][high_level_name][self.mean_fit].keys():
-                    mpars=self.high_level_means[high_level_type][high_level_name][self.mean_fit][dirtype]
-                    self.show_high_levels_pars(mpars)
+            if self.mean_fit=='All':
+                mpars = []
+                for mf in self.high_level_means[high_level_type][high_level_name].keys():
+                    if mf in self.high_level_means[high_level_type][high_level_name].keys():
+                        if dirtype in self.high_level_means[high_level_type][high_level_name][mf].keys():
+                            mpar = deepcopy(self.high_level_means[high_level_type][high_level_name][mf][dirtype])
+                            if mpar['calculation_type']=='Fisher by polarity':
+                                for k in mpar.keys():
+                                    if k=='color' or k=='calculation_type': continue
+                                    mpar[k]['calculation_type']+=':'+k+':'+mf
+                                    mpar[k]['color'] = mpar['color']
+                                    if 'K' not in mpar[k] and 'k' in mpar[k]:
+                                        mpar[k]['K'] = mpar[k]['k']
+                                    if 'R' not in mpar[k] and 'r' in mpar[k]:
+                                        mpar[k]['R'] = mpar[k]['r']
+                                    if 'n_lines' not in mpar[k] and 'n' in mpar[k]:
+                                        mpar[k]['n_lines'] = mpar[k]['n']
+                                    mpars.append(mpar[k])
+                            else:
+                                mpar['calculation_type']+=":"+mf
+                                mpars.append(mpar)
+                self.show_high_levels_pars(mpars)
+                self.switch_stats_button.SetRange(0,len(mpars)-1)
+                if self.ie_open:
+                    self.ie.switch_stats_button.SetRange(0,len(mpars)-1)
+            else:
+                if self.mean_fit in self.high_level_means[high_level_type][high_level_name].keys():
+                    if dirtype in self.high_level_means[high_level_type][high_level_name][self.mean_fit].keys():
+                        mpars=self.high_level_means[high_level_type][high_level_name][self.mean_fit][dirtype]
+                        if 'calculation_type' in mpars and mpars['calculation_type']=='Fisher':
+                            self.switch_stats_button.SetRange(0,0)
+                            if self.ie_open:
+                                self.ie.switch_stats_button.SetRange(0,0)
+                        else:
+                            self.switch_stats_button.SetRange(0,len(mpars.keys())-1)
+                            if self.ie_open:
+                                self.ie.switch_stats_button.SetRange(0,len(mpars.keys())-1)
+                        self.show_high_levels_pars(mpars)
 
     def update_bounds_boxes(self):
         """
@@ -4750,8 +4791,11 @@ class Demag_GUI(wx.Frame):
 
         if not mpars or len(mpars)==1: print("No parameters to display for high level mean"); return
 
-        if mpars["calculation_type"]=='Fisher':
-            if mpars["calculation_type"]=='Fisher' and "alpha95" in mpars.keys():
+        if isinstance(mpars,list):
+            i = self.switch_stats_button.GetValue()
+            self.show_high_levels_pars(mpars[i])
+        elif mpars["calculation_type"].startswith('Fisher'):
+            if "alpha95" in mpars.keys():
                 for val in ['mean_type:calculation_type','dec:dec','inc:inc','alpha95:alpha95','K:K','R:R','n_lines:n_lines','n_planes:n_planes']:
                     val,ind = val.split(":")
                     COMMAND = """self.%s_window.SetValue(str(mpars['%s']))"""%(val,ind)
@@ -4765,7 +4809,7 @@ class Demag_GUI(wx.Frame):
                         COMMAND = """ie.%s_window.SetValue(str(mpars['%s']))"""%(val,ind)
                         exec COMMAND
 
-        if mpars["calculation_type"]=='Fisher by polarity':
+        elif mpars["calculation_type"].startswith('Fisher by polarity'):
             i = self.switch_stats_button.GetValue()
             keys = mpars.keys()
             keys.remove('calculation_type')
@@ -6150,7 +6194,6 @@ class Demag_GUI(wx.Frame):
             self.clear_high_level_pars()
             self.mean_type_box.SetValue("None"); return
         self.calculate_high_levels_data()
-        self.update_high_level_stats()
         draw_net(self.high_level_eqarea)
         self.plot_high_levels_data()
 
@@ -6164,7 +6207,6 @@ class Demag_GUI(wx.Frame):
             self.ie.mean_fit_box.SetStringSelection(new_fit)
         # calculate high level data
         self.calculate_high_levels_data()
-        self.update_high_level_stats()
         self.plot_high_levels_data()
 
     def onSelect_high_level(self,event,called_by_interp_editor=False):
