@@ -329,7 +329,9 @@ class TestDemagGUI(unittest.TestCase):
         valid_specs = 0
         for speci in self.frame.specimens:
             if tmin not in self.frame.Data[speci]['zijdblock_steps'] or \
-               tmax not in self.frame.Data[speci]['zijdblock_steps']:
+               tmax not in self.frame.Data[speci]['zijdblock_steps'] or \
+               speci not in self.frame.pmag_results_data['specimens'] or \
+               len(self.frame.pmag_results_data['specimens'][speci])<1:
                 continue
             fit = self.frame.pmag_results_data['specimens'][speci][0]
             tmin_index,tmax_index = self.frame.get_indices(fit,tmin,tmax,speci)
@@ -463,7 +465,9 @@ class TestDemagGUI(unittest.TestCase):
         #make sure nothing changed
         for speci in self.frame.specimens:
             if tmin not in self.frame.Data[speci]['zijdblock_steps'] or \
-               tmax not in self.frame.Data[speci]['zijdblock_steps']:
+               tmax not in self.frame.Data[speci]['zijdblock_steps'] or \
+               speci not in self.frame.pmag_results_data['specimens'] or \
+               len(self.frame.pmag_results_data['specimens'][speci])<1:
                 continue
             fit = self.frame.pmag_results_data['specimens'][speci][0]
             tmin_index,tmax_index = self.frame.get_indices(fit,tmin,tmax,speci)
@@ -627,8 +631,11 @@ class TestDemagGUI(unittest.TestCase):
 
     def ie_add_n_fits_to_all(self,n):
         #test initialization of ie
-        self.assertFalse(self.frame.ie_open)
-        self.frame.on_menu_edit_interpretations(-1)
+        menu_bar = self.frame.GetMenuBar()
+        tool_menu = menu_bar.GetMenu(3)
+        tool_menu_items = tool_menu.GetMenuItems()
+        open_ie_evt = wx.PyCommandEvent(wx.EVT_MENU.typeId, tool_menu_items[1].GetId())
+        self.frame.ProcessEvent(open_ie_evt)
         self.assertTrue(self.frame.ie_open)
         ie = self.frame.ie
         addall_evt = wx.PyCommandEvent(wx.EVT_BUTTON.typeId, ie.add_all_button.GetId())
