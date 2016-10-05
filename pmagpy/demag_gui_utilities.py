@@ -1,4 +1,5 @@
 import os
+from wx import FileDialog
 from re import findall,split
 from pylab import arange,pi,cos,sin
 from pmag import dimap
@@ -92,7 +93,7 @@ def read_inp(WD,inp_file_name,magic_files,data_model=2.5):
                           and os.path.isfile(os.path.join(WD,erspecf)) \
                           and os.path.isfile(os.path.join(WD,ersampf)) \
                           and os.path.isfile(os.path.join(WD,ersitef)) \
-                          and os.path.isfile(os.path.join(WD,erlocf)):
+                          and (data_model==2.5 or os.path.isfile(os.path.join(WD,erlocf))):
                 magic_files['measurements'].append(os.path.join(WD,f))
                 magic_files['specimens'].append(os.path.join(WD,erspecf))
                 magic_files['samples'].append(os.path.join(WD,ersampf))
