@@ -56,7 +56,7 @@ class Fit():
         if self.GUI==None: return
         self.GUI.current_fit = self
         if self.tmax != None and self.tmin != None:
-            self.GUI.update_temp_boxes()
+            self.GUI.update_bounds_boxes()
         if self.PCA_type != None:
             self.GUI.update_PCA_box()
         try: self.GUI.zijplot
@@ -92,8 +92,9 @@ class Fit():
         """
 
         if specimen != None:
-            if 'er_specimen_name' not in new_pars.keys(): new_pars['er_specimen_name'] = specimen
-            if 'specimen_comp_name' not in new_pars.keys(): new_pars['specimen_comp_name'] = self.name
+            if type(new_pars)==dict:
+                if 'er_specimen_name' not in new_pars.keys(): new_pars['er_specimen_name'] = specimen
+                if 'specimen_comp_name' not in new_pars.keys(): new_pars['specimen_comp_name'] = self.name
             if type(new_pars) != dict or 'measurement_step_min' not in new_pars.keys() or 'measurement_step_max' not in new_pars.keys() or 'calculation_type' not in new_pars.keys():
                 print("-E- invalid parameters cannot assign to fit %s for specimen %s - was given:\n%s"%(self.name,specimen,str(new_pars)))
                 return self.get(coordinate_system)
@@ -142,11 +143,11 @@ class Fit():
         elif self.name != other.name: return False
         elif self.tmin != other.tmin: return False
         elif self.tmax != other.tmax: return False
-        elif self.color != other.color: print("color difference between fits")
         elif self.PCA_type != other.PCA_type: return False
 #        elif 'specimen_dec' in self.pars.keys() and 'specimen_dec' in other.pars.keys() and self.pars!=other.pars: return False
 #        elif 'specimen_dec' in self.geopars.keys() and 'specimen_dec' in other.geopars.keys() and self.geopars!=other.geopars: return False
 #        elif 'specimen_dec' in self.tiltpars.keys() and 'specimen_dec' in other.tiltpars.keys() and self.tiltpars!=other.tiltpars: return False
+        elif self.color != other.color: print("color difference between fits"); return True
         else: return True
 
     def has_values(self, name, tmin, tmax):

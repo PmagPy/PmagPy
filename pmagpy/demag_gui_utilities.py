@@ -1,8 +1,8 @@
 import os
 from wx import FileDialog
 from re import findall,split
-from pylab import arange,pi,cos,sin
-from pmag import dimap
+from numpy import array,arange,pi,cos,sin
+from pmag import dimap,cart2dir,dir2cart
 import programs.cit_magic3 as cit_magic
 from ipmag import combine_magic
 from time import time
@@ -25,7 +25,7 @@ def specimens_comparator(s1,s2):
     return 0
 
 def get_all_inp_files(WD=None):
-    if not os.path.isdir(WD): print("%s is does not exist, aborting"%WD)
+    if not os.path.isdir(WD): print("directory %s does not exist, aborting"%WD)
     try:
         all_inp_files = []
         for root, dirs, files in os.walk(WD):
@@ -93,7 +93,7 @@ def read_inp(WD,inp_file_name,magic_files,data_model=2.5):
                           and os.path.isfile(os.path.join(WD,erspecf)) \
                           and os.path.isfile(os.path.join(WD,ersampf)) \
                           and os.path.isfile(os.path.join(WD,ersitef)) \
-                          and (data_model==2.5 or os.path.isfile(os.path.join(WD,erlocf))):
+                          and (data_model != 3.0 or os.path.isfile(os.path.join(WD,erlocf))):
                 magic_files['measurements'].append(os.path.join(WD,f))
                 magic_files['specimens'].append(os.path.join(WD,erspecf))
                 magic_files['samples'].append(os.path.join(WD,ersampf))
@@ -206,13 +206,17 @@ def read_LSQ(filepath):
     fin = open(filepath, 'r')
     interps = fin.read().splitlines()
     interps_out = []
-    parse_LSQ_bound = lambda x: ord(x)-ord("A") if ord(x)-ord("A") < 25 else ord(x)-ord("A")-6
+    parse_LSQ_bound = lambda x: ord(x)-ord("A") if ord(x)-ord("A") < 26 else ord(x)-ord("A")-6
     for i,interp in enumerate(interps):
         interps_out.append({})
         enteries = interp.split()
         interps_out[i]['er_specimen_name'] = enteries[0]
         if enteries[1] == 'L':
             interps_out[i]['magic_method_codes'] = 'DE-BFL:DA-DIR-GEO'
+        if enteries[1] == 'P':
+            interps_out[i]['magic_method_codes'] = 'DE-BFP:DA-DIR-GEO'
+        if enteries[1] == 'C':
+            interps_out[i]['magic_method_codes'] = 'DE-FM:DA-DIR-GEO'
         j = 2
         if len(enteries) > 9: interps_out[i]['specimen_comp_name'] = enteries[j]; j += 1;
         else: interps_out[i]['specimen_comp_name'] = None
@@ -220,15 +224,21 @@ def read_LSQ(filepath):
         interps_out[i]['specimen_inc'] = enteries[j+1]
         j += 4
         bounds = enteries[j].split('-')
-        interps_out[i]['measurement_min_index'] = parse_LSQ_bound(bounds[0])
-        interps_out[i]['measurement_max_index'] = parse_LSQ_bound(bounds[-1])
+        lower = bounds[0]
+        upper = bounds[-1]
+        if len(bounds[0]) > 1: lower = lower[0]
+        if len(bounds[-1]) > 1: upper = upper[-1]
+        interps_out[i]['measurement_min_index'] = parse_LSQ_bound(lower)
+        interps_out[i]['measurement_max_index'] = parse_LSQ_bound(upper)
         bad_meas = [bounds[k] for k in range(len(bounds)) if len(bounds[k]) > 1]
         for bad_m in bad_meas:
-             fc = parse_LSQ_bound(bad_m[0])
-             lc = parse_LSQ_bound(bad_m[-1])
-             interps_out[i]['bad_measurement_index'] = []
-             for k in range(1,lc-fc+1):
-                     interps_out[i]['bad_measurement_index'].append(fc+k)
+            if bad_m==bounds[-1] and len(bad_m)>2: bad_m = bad_m[:-1]
+            elif bad_m==bounds[0] and len(bad_m)>2: bad_m = bad_m[1:]
+            fc = parse_LSQ_bound(bad_m[0])
+            lc = parse_LSQ_bound(bad_m[-1])
+            interps_out[i]['bad_measurement_index'] = []
+            for k in range(1,lc-fc):
+                interps_out[i]['bad_measurement_index'].append(fc+k)
         interps_out[i]['specimen_n'] = enteries[j+1]
         interps_out[i]['specimen_mad'] = enteries[j+2]
     fin.close()
@@ -238,6 +248,17 @@ def find_file(name, path):
     for root, dirs, files in os.walk(path):
         if name in files:
             return os.path.join(root, name)
+
+def Rotate_zijderveld(Zdata,rot_declination):
+    if len(Zdata)==0:
+        return([])
+    CART_rot=[]
+    for i in range(0,len(Zdata)):
+        DIR=cart2dir(Zdata[i])
+        DIR[0]=(DIR[0]-rot_declination)%360.
+        CART_rot.append(array(dir2cart(DIR)))
+    CART_rot=array(CART_rot)
+    return(CART_rot)
 
 def draw_net(FIG):
     FIG.clear()

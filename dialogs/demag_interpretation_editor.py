@@ -25,9 +25,8 @@ class InterpretationEditorFrame(wx.Frame):
         self.parent = parent
         self.GUI_RESOLUTION=self.parent.GUI_RESOLUTION
         #call init of super class
-        default_style = wx.MINIMIZE_BOX | wx.MAXIMIZE_BOX | wx.RESIZE_BORDER | wx.SYSTEM_MENU | wx.CAPTION | wx.CLOSE_BOX | wx.CLIP_CHILDREN | wx.NO_FULL_REPAINT_ON_RESIZE | wx.WS_EX_CONTEXTHELP
+        default_style = wx.MINIMIZE_BOX | wx.MAXIMIZE_BOX | wx.RESIZE_BORDER | wx.SYSTEM_MENU | wx.CAPTION | wx.CLOSE_BOX | wx.CLIP_CHILDREN | wx.NO_FULL_REPAINT_ON_RESIZE | wx.WS_EX_CONTEXTHELP | wx.FRAME_EX_CONTEXTHELP
         wx.Frame.__init__(self, self.parent, title="Interpretation Editor",style=default_style, size=(675*self.GUI_RESOLUTION,425*self.GUI_RESOLUTION))
-        self.SetExtraStyle(wx.FRAME_EX_CONTEXTHELP)
         self.Bind(wx.EVT_CLOSE, self.on_close_edit_window)
         #setup wx help provider class to give help messages
         provider = wx.SimpleHelpProvider()
@@ -74,17 +73,21 @@ class InterpretationEditorFrame(wx.Frame):
 #        self.Bind(wx.EVT_TEXT, self.on_complete_search_bar,self.search_bar)
 
         #build logger
-        self.logger = wx.ListCtrl(self.panel, -1, size=(350*self.GUI_RESOLUTION,475*self.GUI_RESOLUTION),style=wx.LC_REPORT)
+        self.logger = wx.ListCtrl(self.panel, -1, size=(100*self.GUI_RESOLUTION,475*self.GUI_RESOLUTION),style=wx.LC_REPORT)
         self.logger.SetFont(font1)
-        self.logger.InsertColumn(0, 'specimen',width=55*self.GUI_RESOLUTION)
-        self.logger.InsertColumn(1, 'fit name',width=45*self.GUI_RESOLUTION)
-        self.logger.InsertColumn(2, 'max',width=35*self.GUI_RESOLUTION)
-        self.logger.InsertColumn(3, 'min',width=35*self.GUI_RESOLUTION)
+        self.logger.InsertColumn(0, 'specimen',width=75*self.GUI_RESOLUTION)
+        self.logger.InsertColumn(1, 'fit name',width=65*self.GUI_RESOLUTION)
+        self.logger.InsertColumn(2, 'max',width=55*self.GUI_RESOLUTION)
+        self.logger.InsertColumn(3, 'min',width=55*self.GUI_RESOLUTION)
         self.logger.InsertColumn(4, 'n',width=25*self.GUI_RESOLUTION)
         self.logger.InsertColumn(5, 'fit type',width=60*self.GUI_RESOLUTION)
-        self.logger.InsertColumn(6, 'dec',width=35*self.GUI_RESOLUTION)
-        self.logger.InsertColumn(7, 'inc',width=35*self.GUI_RESOLUTION)
-        self.logger.InsertColumn(8, 'mad',width=35*self.GUI_RESOLUTION)
+        self.logger.InsertColumn(6, 'dec',width=45*self.GUI_RESOLUTION)
+        self.logger.InsertColumn(7, 'inc',width=45*self.GUI_RESOLUTION)
+        self.logger.InsertColumn(8, 'mad',width=45*self.GUI_RESOLUTION)
+        self.logger.InsertColumn(9, 'dang',width=45*self.GUI_RESOLUTION)
+        self.logger.InsertColumn(10, 'a95',width=45*self.GUI_RESOLUTION)
+        self.logger.InsertColumn(11, 'K',width=45*self.GUI_RESOLUTION)
+        self.logger.InsertColumn(12, 'R',width=45*self.GUI_RESOLUTION)
         self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnClick_listctrl, self.logger)
         self.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK,self.OnRightClickListctrl,self.logger)
         self.logger.SetHelpText(dieh.logger_help)
@@ -106,20 +109,20 @@ class InterpretationEditorFrame(wx.Frame):
         if UPPER_LEVEL=='study':
             name_choices = ['this study']
 
-        self.level_box = wx.ComboBox(self.panel, -1, size=(100*self.GUI_RESOLUTION, 25), value=UPPER_LEVEL, choices=['sample','site','location','study'], style=wx.CB_DROPDOWN)
+        self.level_box = wx.ComboBox(self.panel, -1, size=(110*self.GUI_RESOLUTION, 25), value=UPPER_LEVEL, choices=['sample','site','location','study'], style=wx.CB_DROPDOWN)
         self.Bind(wx.EVT_COMBOBOX, self.on_select_high_level,self.level_box)
         self.level_box.SetHelpText(dieh.level_box_help)
 
-        self.level_names = wx.ComboBox(self.panel, -1, size=(100*self.GUI_RESOLUTION, 25), value=self.parent.level_names.GetValue(), choices=name_choices, style=wx.CB_DROPDOWN)
+        self.level_names = wx.ComboBox(self.panel, -1, size=(110*self.GUI_RESOLUTION, 25), value=self.parent.level_names.GetValue(), choices=name_choices, style=wx.CB_DROPDOWN)
         self.Bind(wx.EVT_COMBOBOX, self.on_select_level_name,self.level_names)
         self.level_names.SetHelpText(dieh.level_names_help)
 
         #mean type and plot display boxes
-        self.mean_type_box = wx.ComboBox(self.panel, -1, size=(100*self.GUI_RESOLUTION, 25), value=self.parent.mean_type_box.GetValue(), choices=['Fisher','Fisher by polarity','None'], style=wx.CB_DROPDOWN,name="high_type")
+        self.mean_type_box = wx.ComboBox(self.panel, -1, size=(110*self.GUI_RESOLUTION, 25), value=self.parent.mean_type_box.GetValue(), choices=['Fisher','Fisher by polarity','None'], style=wx.CB_DROPDOWN,name="high_type")
         self.Bind(wx.EVT_COMBOBOX, self.on_select_mean_type_box,self.mean_type_box)
         self.mean_type_box.SetHelpText(dieh.mean_type_help)
 
-        self.mean_fit_box = wx.ComboBox(self.panel, -1, size=(100*self.GUI_RESOLUTION, 25), value=self.parent.mean_fit, choices=(['None','All'] + self.parent.fit_list), style=wx.CB_DROPDOWN,name="high_type")
+        self.mean_fit_box = wx.ComboBox(self.panel, -1, size=(110*self.GUI_RESOLUTION, 25), value=self.parent.mean_fit, choices=(['None','All'] + self.parent.fit_list), style=wx.CB_DROPDOWN,name="high_type")
         self.Bind(wx.EVT_COMBOBOX, self.on_select_mean_fit_box,self.mean_fit_box)
         self.mean_fit_box.SetHelpText(dieh.mean_fit_help)
 
@@ -131,12 +134,12 @@ class InterpretationEditorFrame(wx.Frame):
         if UPPER_LEVEL == "sample":
             show_box_choices = ['specimens']
 
-        self.show_box = wx.ComboBox(self.panel, -1, size=(100*self.GUI_RESOLUTION, 25), value='specimens', choices=show_box_choices, style=wx.CB_DROPDOWN,name="high_elements")
+        self.show_box = wx.ComboBox(self.panel, -1, size=(110*self.GUI_RESOLUTION, 25), value='specimens', choices=show_box_choices, style=wx.CB_DROPDOWN,name="high_elements")
         self.Bind(wx.EVT_COMBOBOX, self.on_select_show_box,self.show_box)
         self.show_box.SetHelpText(dieh.show_help)
 
         #coordinates box
-        self.coordinates_box = wx.ComboBox(self.panel, -1, size=(100*self.GUI_RESOLUTION, 25), choices=self.parent.coordinate_list, value=self.parent.coordinates_box.GetValue(), style=wx.CB_DROPDOWN, name="coordinates")
+        self.coordinates_box = wx.ComboBox(self.panel, -1, size=(110*self.GUI_RESOLUTION, 25), choices=self.parent.coordinate_list, value=self.parent.coordinates_box.GetValue(), style=wx.CB_DROPDOWN, name="coordinates")
         self.Bind(wx.EVT_COMBOBOX, self.on_select_coordinates,self.coordinates_box)
         self.coordinates_box.SetHelpText(dieh.coordinates_box_help)
 
@@ -230,7 +233,7 @@ class InterpretationEditorFrame(wx.Frame):
         self.stats_sizer = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY,"mean statistics"  ), wx.VERTICAL)
 
         for parameter in ['mean_type','dec','inc','alpha95','K','R','n_lines','n_planes']:
-            COMMAND="self.%s_window=wx.TextCtrl(self.panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(75*self.GUI_RESOLUTION,25))"%parameter
+            COMMAND="self.%s_window=wx.TextCtrl(self.panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(100*self.GUI_RESOLUTION,25))"%parameter
             exec COMMAND
             COMMAND="self.%s_window.SetBackgroundColour(wx.WHITE)"%parameter
             exec COMMAND
@@ -403,7 +406,6 @@ class InterpretationEditorFrame(wx.Frame):
     def update_editor(self):
         """
         updates the logger and plot on the interpretation editor window
-        @param: changed_interpretation_parameters -> if the logger should be whipped and completely recalculated from scratch or not (default = True)
         """
 
         self.fit_list = []
@@ -434,7 +436,7 @@ class InterpretationEditorFrame(wx.Frame):
         coordinate_system = self.parent.COORDINATE_SYSTEM
         fit = tup[0]
         pars = fit.get(coordinate_system)
-        fmin,fmax,n,ftype,dec,inc,mad = "","","","","","",""
+        fmin,fmax,n,ftype,dec,inc,mad,dang,a95,sk,sr2 = "","","","","","","","","","",""
 
         specimen = tup[1]
         if coordinate_system=='geographic':
@@ -448,7 +450,7 @@ class InterpretationEditorFrame(wx.Frame):
         if pars == {} and self.parent.Data[specimen][block_key] != []:
             fit.put(specimen, coordinate_system, self.parent.get_PCA_parameters(specimen,fit,fit.tmin,fit.tmax,coordinate_system,fit.PCA_type))
             pars = fit.get(coordinate_system)
-        elif self.parent.Data[specimen][block_key]==[]:
+        if self.parent.Data[specimen][block_key]==[]:
             spars = fit.get('specimen')
             fmin = fit.tmin
             fmax = fit.tmax
@@ -459,26 +461,42 @@ class InterpretationEditorFrame(wx.Frame):
             dec = 'No Data'
             inc = 'No Data'
             mad = 'No Data'
+            dang = 'No Data'
+            a95 = 'No Data'
+            sk = 'No Data'
+            sr2 = 'No Data'
         else:
             if 'measurement_step_min' in pars.keys(): fmin = str(fit.tmin)
+            else: fmin = "N/A"
             if 'measurement_step_max' in pars.keys(): fmax = str(fit.tmax)
+            else: fmax = "N/A"
             if 'specimen_n' in pars.keys(): n = str(pars['specimen_n'])
+            else: n = "N/A"
             if 'calculation_type' in pars.keys(): ftype = pars['calculation_type']
+            else: ftype = "N/A"
             if 'specimen_dec' in pars.keys(): dec = "%.1f"%pars['specimen_dec']
+            else: dec = "N/A"
             if 'specimen_inc' in pars.keys(): inc = "%.1f"%pars['specimen_inc']
+            else: inc = "N/A"
             if 'specimen_mad' in pars.keys(): mad = "%.1f"%pars['specimen_mad']
+            else: mad = "N/A"
+            if 'specimen_dang' in pars.keys(): dang = "%.1f"%pars['specimen_dang']
+            else: dang = "N/A"
             if 'specimen_alpha95' in pars.keys(): a95 = "%.1f"%pars['specimen_alpha95']
+            else: a95 = "N/A"
             if 'specimen_k' in pars.keys(): sk = "%.1f"%pars['specimen_k']
-            if 'specimen_r' in pars.keys(): sr2 = "%.1f"%pars['specimen_r_sq']
+            else: sk = "N/A"
+            if 'specimen_r' in pars.keys(): sr2 = "%.1f"%pars['specimen_r']
+            else: sr2 = "N/A"
 
         if self.search_query != "":
-            entry = (specimen+name+fmin+fmax+n+ftype+dec+inc+mad).replace(" ","").lower()
+            entry = (specimen+name+fmin+fmax+n+ftype+dec+inc+mad+dang+a95+sk+sr2).replace(" ","").lower()
             if self.search_query not in entry:
                 self.fit_list.pop(i)
                 if i < self.logger.GetItemCount():
                     self.logger.DeleteItem(i)
                 return "s"
-        for e in (specimen,name,fmin,fmax,n,ftype,dec,inc,mad):
+        for e in (specimen,name,fmin,fmax,n,ftype,dec,inc,mad,dang,a95,sk,sr2):
             if e not in self.search_choices:
                 self.search_choices.append(e)
 
@@ -493,6 +511,10 @@ class InterpretationEditorFrame(wx.Frame):
         self.logger.SetStringItem(i, 6, dec)
         self.logger.SetStringItem(i, 7, inc)
         self.logger.SetStringItem(i, 8, mad)
+        self.logger.SetStringItem(i, 9, dang)
+        self.logger.SetStringItem(i, 10, a95)
+        self.logger.SetStringItem(i, 11, sk)
+        self.logger.SetStringItem(i, 12, sr2)
         self.logger.SetItemBackgroundColour(i,"WHITE")
         a,b = False,False
         if fit in self.parent.bad_fits:
@@ -583,15 +605,15 @@ class InterpretationEditorFrame(wx.Frame):
         @param: event -> wx.ListCtrlEvent that triggered this function
         """
         i = event.GetIndex()
-        fit = self.fit_list[i][0]
+        fit,spec = self.fit_list[i][0],self.fit_list[i][1]
         if fit in self.parent.bad_fits:
-            self.parent.bad_fits.remove(fit)
+            if not self.parent.mark_fit_good(fit,spec=spec): return
             if i == self.current_fit_index:
                 self.logger.SetItemBackgroundColour(i,"LIGHT BLUE")
             else:
                 self.logger.SetItemBackgroundColour(i,"WHITE")
         else:
-            self.parent.bad_fits.append(fit)
+            if not self.parent.mark_fit_bad(fit): return
             if i == self.current_fit_index:
                 self.logger.SetItemBackgroundColour(i,"red")
             else:
@@ -610,6 +632,10 @@ class InterpretationEditorFrame(wx.Frame):
 #        self.search_bar.AutoComplete(self.search_choices)
 
     ###################################ComboBox Functions################################
+
+    def update_bounds_boxes(self,B_list):
+        self.tmin_box.SetItems(B_list)
+        self.tmax_box.SetItems(B_list)
 
     def add_new_color(self,event):
         new_color = self.color_box.GetValue()

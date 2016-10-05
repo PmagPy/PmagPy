@@ -1,238 +1,226 @@
 #!/usr/bin/env python
 
 import unittest
-import os
-import wx
-import sys
+import os,wx,sys,shutil
 import wx.lib.inspection
 import random as rn
 from pmagpy.demag_gui_utilities import *
 from programs import demag_gui
 
-WD = sys.prefix
-project_WD = os.path.join(os.getcwd(), 'pmagpy_tests', 'examples', 'demag_test_data')
-#project_WD = os.path.join(os.getcwd(), 'tests', 'examples', 'my_project')
-core_depthplot_WD = os.path.join(WD, 'pmagpy_data_files', 'core_depthplot')
-empty_WD = os.path.join(os.getcwd(), 'pmagpy_tests', 'examples', 'empty_dir')
-allowable_float_error = 0.1
-
 #@unittest.skip("requires interaction")
-class TestMainFrame(unittest.TestCase):
+class TestDemagGUI(unittest.TestCase):
 
     def setUp(self):
         self.app = wx.App()
-        self.frame = demag_gui.Demag_GUI(project_WD,write_to_log_file=False)
+        self.frame = demag_gui.Demag_GUI(project_WD,write_to_log_file=False,test_mode_on=True)
         self.frame.clear_interpretations()
 
-#    def test_check_empty_dir(self):
-#        self.empty_frame = demag_gui.Demag_GUI(empty_WD)
+    def test_check_empty_dir(self):
+        self.empty_frame = demag_gui.Demag_GUI(empty_WD,write_to_log_file=False,test_mode_on=True)
 
-#    def test_to_str(self):
-#        str(self.frame)
+    def test_to_str(self):
+        str(self.frame)
 
-#    def test_add_delete_fit(self):
-#        add_fit_evt = wx.PyCommandEvent(wx.EVT_BUTTON.typeId,self.frame.add_fit_button.GetId())
-#        delete_fit_evt = wx.PyCommandEvent(wx.EVT_BUTTON.typeId,self.frame.delete_interpretation_button.GetId())
+    def test_add_delete_fit(self):
+        add_fit_evt = wx.PyCommandEvent(wx.EVT_BUTTON.typeId,self.frame.add_fit_button.GetId())
+        delete_fit_evt = wx.PyCommandEvent(wx.EVT_BUTTON.typeId,self.frame.delete_fit_button.GetId())
 
-#        menu_bar = self.frame.GetMenuBar()
-#        edit_menu = menu_bar.GetMenu(1)
-#        edit_menu_items = edit_menu.GetMenuItems()
+        menu_bar = self.frame.GetMenuBar()
+        edit_menu = menu_bar.GetMenu(1)
+        edit_menu_items = edit_menu.GetMenuItems()
 
-#        add_fit_menu_evt = wx.PyCommandEvent(wx.EVT_MENU.typeId,edit_menu_items[0].GetId())
-#        delete_fit_menu_evt = wx.PyCommandEvent(wx.EVT_MENU.typeId,edit_menu_items[1].GetId())
+        add_fit_menu_evt = wx.PyCommandEvent(wx.EVT_MENU.typeId,edit_menu_items[0].GetId())
+        delete_fit_menu_evt = wx.PyCommandEvent(wx.EVT_MENU.typeId,edit_menu_items[1].GetId())
 
-#        #add fit with no bounds using menu
-#        self.frame.ProcessEvent(add_fit_menu_evt)
-#        self.assertEqual(len(self.frame.pmag_results_data['specimens'][self.frame.s]),1)
-#        #add fit with bounds using button
-#        tmin=self.frame.Data[self.frame.s]['zijdblock_steps'][0]
-#        tmax=self.frame.Data[self.frame.s]['zijdblock_steps'][-1]
-#        self.frame.tmin_box.SetValue(tmin)
-#        self.frame.tmax_box.SetValue(tmax)
-#        self.frame.ProcessEvent(add_fit_evt)
-#        self.assertEqual(len(self.frame.pmag_results_data['specimens'][self.frame.s]),2)
-#        self.assertEqual(self.frame.tmin_box.GetStringSelection(),tmin)
-#        self.assertEqual(self.frame.tmax_box.GetStringSelection(),tmax)
-#        self.assertEqual(self.frame.current_fit.tmin,tmin)
-#        self.assertEqual(self.frame.current_fit.tmax,tmax)
+        #add fit with no bounds using menu
+        self.frame.ProcessEvent(add_fit_menu_evt)
+        self.assertEqual(len(self.frame.pmag_results_data['specimens'][self.frame.s]),1)
+        #add fit with bounds using button
+        tmin=self.frame.Data[self.frame.s]['zijdblock_steps'][0]
+        tmax=self.frame.Data[self.frame.s]['zijdblock_steps'][-1]
+        self.frame.tmin_box.SetValue(tmin)
+        self.frame.tmax_box.SetValue(tmax)
+        self.frame.ProcessEvent(add_fit_evt)
+        self.assertEqual(len(self.frame.pmag_results_data['specimens'][self.frame.s]),2)
+        self.assertEqual(self.frame.tmin_box.GetValue(),tmin)
+        self.assertEqual(self.frame.tmax_box.GetValue(),tmax)
+        self.assertEqual(self.frame.current_fit.tmin,tmin)
+        self.assertEqual(self.frame.current_fit.tmax,tmax)
 
-#        self.frame.ProcessEvent(delete_fit_menu_evt)
-#        self.assertEqual(len(self.frame.pmag_results_data['specimens'][self.frame.s]),1)
-#        self.frame.ProcessEvent(delete_fit_evt)
-#        self.assertEqual(len(self.frame.pmag_results_data['specimens'][self.frame.s]),0)
+        self.frame.ProcessEvent(delete_fit_menu_evt)
+        self.assertEqual(len(self.frame.pmag_results_data['specimens'][self.frame.s]),1)
+        self.frame.ProcessEvent(delete_fit_evt)
+        self.assertEqual(len(self.frame.pmag_results_data['specimens'][self.frame.s]),0)
 
-#    def test_next_prev_specimen(self):
+    def test_next_prev_specimen(self):
 
-#        next_evt = wx.PyCommandEvent(wx.EVT_BUTTON.typeId,self.frame.nextbutton.GetId())
-#        prev_evt = wx.PyCommandEvent(wx.EVT_BUTTON.typeId,self.frame.prevbutton.GetId())
+        next_evt = wx.PyCommandEvent(wx.EVT_BUTTON.typeId,self.frame.nextbutton.GetId())
+        prev_evt = wx.PyCommandEvent(wx.EVT_BUTTON.typeId,self.frame.prevbutton.GetId())
 
-#        #switch specimens using buttons
-#        s_old = self.frame.s
-#        self.frame.ProcessEvent(next_evt)
-#        self.assertNotEqual(self.frame.s,s_old)
-#        self.frame.ProcessEvent(prev_evt)
-#        self.assertEqual(self.frame.s,s_old)
+        #switch specimens using buttons
+        s_old = self.frame.s
+        self.frame.ProcessEvent(next_evt)
+        self.assertNotEqual(self.frame.s,s_old)
+        self.frame.ProcessEvent(prev_evt)
+        self.assertEqual(self.frame.s,s_old)
 
-#        menu_bar = self.frame.GetMenuBar()
-#        edit_menu = menu_bar.GetMenu(1)
-#        edit_menu_items = edit_menu.GetMenuItems()
+        menu_bar = self.frame.GetMenuBar()
+        edit_menu = menu_bar.GetMenu(1)
+        edit_menu_items = edit_menu.GetMenuItems()
 
-#        next_menu_evt = wx.PyCommandEvent(wx.EVT_MENU.typeId,edit_menu_items[4].GetId())
-#        prev_menu_evt = wx.PyCommandEvent(wx.EVT_MENU.typeId,edit_menu_items[5].GetId())
+        next_menu_evt = wx.PyCommandEvent(wx.EVT_MENU.typeId,edit_menu_items[4].GetId())
+        prev_menu_evt = wx.PyCommandEvent(wx.EVT_MENU.typeId,edit_menu_items[5].GetId())
 
-#        #switch specimens using menu option
-#        s_old = self.frame.s
-#        self.frame.ProcessEvent(next_menu_evt)
-#        self.assertNotEqual(self.frame.s,s_old)
-#        self.frame.ProcessEvent(prev_menu_evt)
-#        self.assertEqual(self.frame.s,s_old)
+        #switch specimens using menu option
+        s_old = self.frame.s
+        self.frame.ProcessEvent(next_menu_evt)
+        self.assertNotEqual(self.frame.s,s_old)
+        self.frame.ProcessEvent(prev_menu_evt)
+        self.assertEqual(self.frame.s,s_old)
 
-#        #check edge case
-#        self.frame.ProcessEvent(prev_evt)
-#        self.assertEqual(self.frame.s,self.frame.specimens[-1])
-#        self.frame.ProcessEvent(next_evt)
-#        self.assertEqual(self.frame.s,self.frame.specimens[0])
+        #check edge case
+        self.frame.ProcessEvent(prev_evt)
+        self.assertEqual(self.frame.s,self.frame.specimens[-1])
+        self.frame.ProcessEvent(next_evt)
+        self.assertEqual(self.frame.s,self.frame.specimens[0])
 
-#    def test_fit_next_prev(self):
-#        menu_bar = self.frame.GetMenuBar()
-#        edit_menu = menu_bar.GetMenu(1)
-#        edit_menu_items = edit_menu.GetMenuItems()
+    def test_fit_next_prev(self):
+        menu_bar = self.frame.GetMenuBar()
+        edit_menu = menu_bar.GetMenu(1)
+        edit_menu_items = edit_menu.GetMenuItems()
 
-#        nextfit_menu_evt = wx.PyCommandEvent(wx.EVT_MENU.typeId,edit_menu_items[2].GetId())
-#        prevfit_menu_evt = wx.PyCommandEvent(wx.EVT_MENU.typeId,edit_menu_items[3].GetId())
-#        add_fit_evt = wx.PyCommandEvent(wx.EVT_BUTTON.typeId,self.frame.add_fit_button.GetId())
+        nextfit_menu_evt = wx.PyCommandEvent(wx.EVT_MENU.typeId,edit_menu_items[2].GetId())
+        prevfit_menu_evt = wx.PyCommandEvent(wx.EVT_MENU.typeId,edit_menu_items[3].GetId())
+        add_fit_evt = wx.PyCommandEvent(wx.EVT_BUTTON.typeId,self.frame.add_fit_button.GetId())
 
-#        self.frame.ProcessEvent(add_fit_evt)
-#        self.frame.ProcessEvent(add_fit_evt)
-#        self.frame.ProcessEvent(add_fit_evt)
-#        self.frame.ProcessEvent(add_fit_evt)
-#        fits = self.frame.pmag_results_data['specimens'][self.frame.s]
-#        ci = fits.index(self.frame.current_fit)
+        self.frame.ProcessEvent(add_fit_evt)
+        self.frame.ProcessEvent(add_fit_evt)
+        self.frame.ProcessEvent(add_fit_evt)
+        self.frame.ProcessEvent(add_fit_evt)
+        fits = self.frame.pmag_results_data['specimens'][self.frame.s]
+        ci = fits.index(self.frame.current_fit)
 
-#        for i in range(len(fits)+ci, ci, -1):
-#            self.assertEqual(fits[i%len(fits)], self.frame.current_fit)
-#            self.frame.ProcessEvent(nextfit_menu_evt)
+        for i in range(len(fits)+ci, ci, -1):
+            self.assertEqual(fits[i%len(fits)], self.frame.current_fit)
+            self.frame.ProcessEvent(nextfit_menu_evt)
 
-#        ci = fits.index(self.frame.current_fit)
-#        for i in range(ci, len(fits)+ci):
-#            self.assertEqual(fits[i%len(fits)], self.frame.current_fit)
-#            self.frame.ProcessEvent(prevfit_menu_evt)
+        ci = fits.index(self.frame.current_fit)
+        for i in range(ci, len(fits)+ci):
+            self.assertEqual(fits[i%len(fits)], self.frame.current_fit)
+            self.frame.ProcessEvent(prevfit_menu_evt)
 
-#    def test_mark_good_bad_meas(self):
-#        add_fit_evt = wx.PyCommandEvent(wx.EVT_BUTTON.typeId,self.frame.add_fit_button.GetId())
-#        delete_fit_evt = wx.PyCommandEvent(wx.EVT_BUTTON.typeId,self.frame.delete_interpretation_button.GetId())
+    def test_mark_good_bad_meas(self):
+        add_fit_evt = wx.PyCommandEvent(wx.EVT_BUTTON.typeId,self.frame.add_fit_button.GetId())
+        delete_fit_evt = wx.PyCommandEvent(wx.EVT_BUTTON.typeId,self.frame.delete_fit_button.GetId())
 
-#        menu_bar = self.frame.GetMenuBar()
-#        edit_menu = menu_bar.GetMenu(1)
-#        edit_menu_items = edit_menu.GetMenuItems()
-#        mark_meas_data_menu = edit_menu_items[6].GetSubMenu()
-#        mark_meas_data_menu_items = mark_meas_data_menu.GetMenuItems()
+        menu_bar = self.frame.GetMenuBar()
+        edit_menu = menu_bar.GetMenu(1)
+        edit_menu_items = edit_menu.GetMenuItems()
+        mark_meas_data_menu = edit_menu_items[6].GetSubMenu()
+        mark_meas_data_menu_items = mark_meas_data_menu.GetMenuItems()
 
-#        markgood_menu_evt = wx.PyCommandEvent(wx.EVT_MENU.typeId,mark_meas_data_menu_items[0].GetId())
-#        markbad_menu_evt = wx.PyCommandEvent(wx.EVT_MENU.typeId,mark_meas_data_menu_items[1].GetId())
+        markgood_menu_evt = wx.PyCommandEvent(wx.EVT_MENU.typeId,mark_meas_data_menu_items[0].GetId())
+        markbad_menu_evt = wx.PyCommandEvent(wx.EVT_MENU.typeId,mark_meas_data_menu_items[1].GetId())
 
-#        tmin_box_evt = wx.PyCommandEvent(wx.EVT_COMBOBOX.typeId,self.frame.tmin_box.GetId())
-#        tmax_box_evt = wx.PyCommandEvent(wx.EVT_COMBOBOX.typeId,self.frame.tmax_box.GetId())
+        tmin_box_evt = wx.PyCommandEvent(wx.EVT_COMBOBOX.typeId,self.frame.tmin_box.GetId())
+        tmax_box_evt = wx.PyCommandEvent(wx.EVT_COMBOBOX.typeId,self.frame.tmax_box.GetId())
 
-#        #add fit with bounds using button
-#        tmin=self.frame.Data[self.frame.s]['zijdblock_steps'][0]
-#        tmax=self.frame.Data[self.frame.s]['zijdblock_steps'][-1]
-#        self.frame.tmin_box.SetValue(tmin)
-#        self.frame.tmax_box.SetValue(tmax)
-#        self.frame.ProcessEvent(add_fit_evt)
+        #add fit with bounds using button
+        tmin=self.frame.Data[self.frame.s]['zijdblock_steps'][0]
+        tmax=self.frame.Data[self.frame.s]['zijdblock_steps'][-1]
+        self.frame.tmin_box.SetValue(tmin)
+        self.frame.tmax_box.SetValue(tmax)
+        self.frame.ProcessEvent(add_fit_evt)
 
-#        #check that the there is one fit and initialize basic variables for testing
-#        self.assertEqual(len(self.frame.pmag_results_data['specimens'][self.frame.s]),1)
-#        fit = self.frame.pmag_results_data['specimens'][self.frame.s][0]
-#        meas_data_before = self.frame.Data[self.frame.s]['measurement_flag']
-#        #mark first step good for the initial test
-#        self.frame.logger.Select(0)
-#        self.frame.ProcessEvent(markgood_menu_evt)
-#        total_num_of_good_meas_data =  len(filter(lambda x: x=='g', self.frame.Data[self.frame.s]['measurement_flag']))
-#        total_n = len(self.frame.Data[self.frame.s]['measurement_flag'])
+        #check that the there is one fit and initialize basic variables for testing
+        self.assertEqual(len(self.frame.pmag_results_data['specimens'][self.frame.s]),1)
+        fit = self.frame.pmag_results_data['specimens'][self.frame.s][0]
+        meas_data_before = self.frame.Data[self.frame.s]['measurement_flag']
+        #mark first step good for the initial test
+        self.frame.logger.Select(0)
+        self.frame.ProcessEvent(markgood_menu_evt)
+        total_num_of_good_meas_data =  len(filter(lambda x: x=='g', self.frame.Data[self.frame.s]['measurement_flag']))
+        total_n = len(self.frame.Data[self.frame.s]['measurement_flag'])
 
-#        #insure that the fit spans all good meas data
-#        self.assertEqual(fit.get(self.frame.COORDINATE_SYSTEM)['specimen_n'],total_num_of_good_meas_data)
-#        #mark first step bad
-#        self.frame.logger.Select(0)
-#        self.frame.ProcessEvent(markbad_menu_evt)
-#        #check that first meas step is now bad
-#        self.assertEqual(fit.get(self.frame.COORDINATE_SYSTEM)['specimen_n'],total_num_of_good_meas_data-1)
-#        #mark first step good
-#        self.frame.logger.Select(0)
-#        self.frame.ProcessEvent(markgood_menu_evt)
-#        #reset value of fit used for interpretation
-#        self.frame.tmin_box.SetValue(tmin)
-#        self.frame.ProcessEvent(tmin_box_evt)
-#        #check that first step is good again
-#        self.assertEqual(fit.get(self.frame.COORDINATE_SYSTEM)['specimen_n'],total_num_of_good_meas_data)
+        #insure that the fit spans all good meas data
+        self.assertEqual(fit.get(self.frame.COORDINATE_SYSTEM)['specimen_n'],total_num_of_good_meas_data)
+        #mark first step bad
+        self.frame.logger.Select(0)
+        self.frame.ProcessEvent(markbad_menu_evt)
+        #check that first meas step is now bad
+        self.assertEqual(fit.get(self.frame.COORDINATE_SYSTEM)['specimen_n'],total_num_of_good_meas_data-1)
+        #mark first step good
+        self.frame.logger.Select(0)
+        self.frame.ProcessEvent(markgood_menu_evt)
+        #reset value of fit used for interpretation
+        self.frame.tmin_box.SetValue(tmin)
+        self.frame.ProcessEvent(tmin_box_evt)
+        #check that first step is good again
+        self.assertEqual(fit.get(self.frame.COORDINATE_SYSTEM)['specimen_n'],total_num_of_good_meas_data)
 
-#        #mark a quarter of the meas data that is currently good bad to check iteration feature
-#        while self.frame.logger.GetSelectedItemCount() < int(total_num_of_good_meas_data/4):
-#            n = rn.randint(0,total_n-1)
-#            if not self.frame.logger.IsSelected(n) and \
-#               self.frame.Data[self.frame.s]['measurement_flag'][n] != 'b':
-#                self.frame.logger.Select(n)
-#        self.frame.ProcessEvent(markbad_menu_evt)
-#        self.assertEqual(fit.get(self.frame.COORDINATE_SYSTEM)['specimen_n'],total_num_of_good_meas_data-int(total_num_of_good_meas_data/4))
+        #mark a quarter of the meas data that is currently good bad to check iteration feature
+        while self.frame.logger.GetSelectedItemCount() < int(total_num_of_good_meas_data/4):
+            n = rn.randint(0,total_n-1)
+            if not self.frame.logger.IsSelected(n) and \
+               self.frame.Data[self.frame.s]['measurement_flag'][n] != 'b':
+                self.frame.logger.Select(n)
+        self.frame.ProcessEvent(markbad_menu_evt)
+        self.assertEqual(fit.get(self.frame.COORDINATE_SYSTEM)['specimen_n'],total_num_of_good_meas_data-int(total_num_of_good_meas_data/4))
 
-#        #mark all meas data good to check good iteration filter and lack of change for good measurements already marked good
-#        for i in range(len(self.frame.Data[self.frame.s]['measurement_flag'])):
-#            self.frame.logger.Select(i)
-#        self.frame.ProcessEvent(markgood_menu_evt)
-#        #check all meas flags to insure all data is good
-#        for b in self.frame.Data[self.frame.s]['measurement_flag']:
-#            self.assertEqual(b, 'g')
+        #mark all meas data good to check good iteration filter and lack of change for good measurements already marked good
+        for i in range(len(self.frame.Data[self.frame.s]['measurement_flag'])):
+            self.frame.logger.Select(i)
+        self.frame.ProcessEvent(markgood_menu_evt)
+        #check all meas flags to insure all data is good
+        for b in self.frame.Data[self.frame.s]['measurement_flag']:
+            self.assertEqual(b, 'g')
 
-#        #reset bounds for fit
-#        self.frame.tmin_box.SetValue(tmin)
-#        self.frame.ProcessEvent(tmin_box_evt)
-#        self.frame.tmax_box.SetValue(tmax)
-#        self.frame.ProcessEvent(tmax_box_evt)
+        #reset bounds for fit
+        self.frame.tmin_box.SetValue(tmin)
+        self.frame.ProcessEvent(tmin_box_evt)
+        self.frame.tmax_box.SetValue(tmax)
+        self.frame.ProcessEvent(tmax_box_evt)
 
-#        self.assertEqual(fit.get(self.frame.COORDINATE_SYSTEM)['specimen_n'], total_n)
+        self.assertEqual(fit.get(self.frame.COORDINATE_SYSTEM)['specimen_n'], total_n)
 
 
-#        #check edge cases by marking first and last meas step bad
-#        self.frame.logger.Select(0)
-#        self.frame.logger.Select(self.frame.logger.GetItemCount()-1)
-#        self.frame.ProcessEvent(markbad_menu_evt)
-#        self.assertEqual(fit.get(self.frame.COORDINATE_SYSTEM)['specimen_n'], total_n-2)
-#        #mark them good again
-#        self.frame.logger.Select(0)
-#        self.frame.logger.Select(self.frame.logger.GetItemCount()-1)
-#        self.frame.ProcessEvent(markgood_menu_evt)
-#        #reset bounds for fit
-#        self.frame.tmin_box.SetValue(tmin)
-#        self.frame.ProcessEvent(tmin_box_evt)
-#        self.frame.tmax_box.SetValue(tmax)
-#        self.frame.ProcessEvent(tmax_box_evt)
-#        #check that all data is usable again
-#        self.assertEqual(fit.get(self.frame.COORDINATE_SYSTEM)['specimen_n'], total_n)
+        #check edge cases by marking first and last meas step bad
+        self.frame.logger.Select(0)
+        self.frame.logger.Select(self.frame.logger.GetItemCount()-1)
+        self.frame.ProcessEvent(markbad_menu_evt)
+        self.assertEqual(fit.get(self.frame.COORDINATE_SYSTEM)['specimen_n'], total_n-2)
+        #mark them good again
+        self.frame.logger.Select(0)
+        self.frame.logger.Select(self.frame.logger.GetItemCount()-1)
+        self.frame.ProcessEvent(markgood_menu_evt)
+        #reset bounds for fit
+        self.frame.tmin_box.SetValue(tmin)
+        self.frame.ProcessEvent(tmin_box_evt)
+        self.frame.tmax_box.SetValue(tmax)
+        self.frame.ProcessEvent(tmax_box_evt)
+        #check that all data is usable again
+        self.assertEqual(fit.get(self.frame.COORDINATE_SYSTEM)['specimen_n'], total_n)
 
-#        #restore measurement data good/bad labels
-#        for i,b in enumerate(meas_data_before):
-#            if b == 'b': self.frame.logger.Select(i)
-#        self.frame.ProcessEvent(markbad_menu_evt)
-#        for i,b in enumerate(meas_data_before):
-#            if b == 'g': self.frame.logger.Select(i)
-#        self.frame.ProcessEvent(markgood_menu_evt)
-#        if self.frame.Data[self.frame.s]['measurement_flag'][0]=='b': total_num_of_good_meas_data+=1
-#        self.assertEqual(fit.get(self.frame.COORDINATE_SYSTEM)['specimen_n'],total_num_of_good_meas_data)
+        #restore measurement data good/bad labels
+        for i,b in enumerate(meas_data_before):
+            if b == 'b': self.frame.logger.Select(i)
+        self.frame.ProcessEvent(markbad_menu_evt)
+        for i,b in enumerate(meas_data_before):
+            if b == 'g': self.frame.logger.Select(i)
+        self.frame.ProcessEvent(markgood_menu_evt)
+        if self.frame.Data[self.frame.s]['measurement_flag'][0]=='b': total_num_of_good_meas_data-=1
+        elif self.frame.Data[self.frame.s]['measurement_flag'][-1]=='b': total_num_of_good_meas_data-=1
+        if fit.get(self.frame.COORDINATE_SYSTEM)['specimen_n']!=total_num_of_good_meas_data: self.frame.Show(); import pdb; pdb.set_trace()
+        self.assertEqual(fit.get(self.frame.COORDINATE_SYSTEM)['specimen_n'],total_num_of_good_meas_data)
 
     def test_read_write_redo(self):
         self.frame.COORDINATE_SYSTEM = 'specimen'
-        old_s = self.frame.s
-        for specimen in self.frame.specimens:
-            self.frame.s = specimen
-            for i in range(len(self.frame.Data[specimen]['zijdblock'])):
-                self.frame.mark_meas_good(i)
-        self.frame.s = old_s
+        self.mark_all_meas_good(self.frame)
         self.frame.update_selection()
 
-        self.assertFalse(self.frame.get_ie_open())
+        self.assertFalse(self.frame.ie_open)
         self.frame.on_menu_edit_interpretations(-1)
-        self.assertTrue(self.frame.get_ie_open())
+        self.assertTrue(self.frame.ie_open)
         ie = self.frame.ie
 
         addall_evt = wx.PyCommandEvent(wx.EVT_BUTTON.typeId, ie.add_all_button.GetId())
@@ -242,22 +230,17 @@ class TestMainFrame(unittest.TestCase):
         ie.ProcessEvent(addall_evt)
 
         menu_bar = self.frame.GetMenuBar()
-        analysis_menu = menu_bar.GetMenu(2)
-        analysis_menu_items = analysis_menu.GetMenuItems()
+        file_menu = menu_bar.GetMenu(0)
+        file_menu_items = file_menu.GetMenuItems()
 
-        importredo_menu_evt = wx.PyCommandEvent(wx.EVT_MENU.typeId,analysis_menu_items[2].GetId())
-        writeredo_menu_evt = wx.PyCommandEvent(wx.EVT_MENU.typeId,analysis_menu_items[3].GetId())
+        importredo_menu_evt = wx.PyCommandEvent(wx.EVT_MENU.typeId,file_menu_items[2].GetId())
+        writeredo_menu_evt = wx.PyCommandEvent(wx.EVT_MENU.typeId,file_menu_items[3].GetId())
 
-        def press_ok_btn():
-            self.frame.dlg.SetReturnCode(self.frame.dlg.GetAffirmativeId())
-            self.frame.dlg.EndModal()
-
-        wx.CallAfter(press_ok_btn) ###
         self.frame.ProcessEvent(writeredo_menu_evt)
         old_frame = str(self.frame)
         old_interpretations = []
         for speci in self.frame.pmag_results_data['specimens'].keys():
-            old_interpretations += self.frame.pmag_results_data['specimens'][speci]
+            old_interpretations += sorted(self.frame.pmag_results_data['specimens'][speci],cmp=fit_cmp)
 
         self.frame.clear_interpretations()
 
@@ -265,317 +248,411 @@ class TestMainFrame(unittest.TestCase):
         imported_frame = str(self.frame)
         imported_interpretations = []
         for speci in self.frame.pmag_results_data['specimens'].keys():
-            imported_interpretations += self.frame.pmag_results_data['specimens'][speci]
+            imported_interpretations += sorted(self.frame.pmag_results_data['specimens'][speci],cmp=fit_cmp)
 
         for ofit,ifit in zip(old_interpretations,imported_interpretations):
             self.assertTrue(ofit.equal(ifit))
 
-#    def test_read_write_pmag_tables(self):
-#        old_s = self.frame.s
-#        for specimen in self.frame.specimens:
-#            self.frame.s = specimen
-#            for i in range(len(self.frame.Data[specimen]['zijdblock'])):
-#                self.frame.mark_meas_good(i)
-#        self.frame.s = old_s
-#        self.frame.update_selection()
+    def test_read_write_pmag_tables(self):
+        self.mark_all_meas_good(self.frame)
+        self.frame.update_selection()
 
-#        self.assertFalse(self.frame.get_ie_open())
-#        self.frame.on_menu_edit_interpretations(-1)
-#        self.assertTrue(self.frame.get_ie_open())
-#        ie = self.frame.ie
+        self.ie_add_n_fits_to_all(n_fits)
 
-#        addall_evt = wx.PyCommandEvent(wx.EVT_BUTTON.typeId, ie.add_all_button.GetId())
+        menu_bar = self.frame.GetMenuBar()
+        file_menu = menu_bar.GetMenu(0)
+        file_menu_items = file_menu.GetMenuItems()
 
-#        ie.ProcessEvent(addall_evt)
-#        ie.ProcessEvent(addall_evt)
-#        ie.ProcessEvent(addall_evt)
+        writepmag_menu_evt = wx.PyCommandEvent(wx.EVT_MENU.typeId,file_menu_items[4].GetId())
+        print("-------------------------------------------------------------")
+        self.frame.ProcessEvent(writepmag_menu_evt)
+        print("-------------------------------------------------------------")
+        old_frame = str(self.frame)
+        speci_with_fits = []
+        old_interpretations = {}
+        for speci in self.frame.pmag_results_data['specimens'].keys():
+            if speci not in speci_with_fits and \
+               self.frame.pmag_results_data['specimens'][speci]!=[]:
+                speci_with_fits.append(speci)
+            old_interpretations[speci] = sorted(self.frame.pmag_results_data['specimens'][speci],cmp=fit_cmp)
 
-#        menu_bar = self.frame.GetMenuBar()
-#        file_menu = menu_bar.GetMenu(0)
-#        file_menu_items = file_menu.GetMenuItems()
+        frame2 = demag_gui.Demag_GUI(project_WD,write_to_log_file=False,test_mode_on=True)
 
-#        writepmag_menu_evt = wx.PyCommandEvent(wx.EVT_MENU.typeId,file_menu_items[2].GetId())
+        self.mark_all_meas_good(frame2)
+        frame2.update_selection()
 
-#        self.frame.ProcessEvent(writepmag_menu_evt)
-#        old_frame = str(self.frame)
-#        old_interpretations = []
-#        for speci in self.frame.pmag_results_data['specimens'].keys():
-#            old_interpretations += self.frame.pmag_results_data['specimens'][speci]
+        imported_frame = str(frame2)
+        imported_interpretations = {}
+        for speci in frame2.pmag_results_data['specimens'].keys():
+            if speci not in speci_with_fits and \
+               frame2.pmag_results_data['specimens'][speci]!=[]:
+                speci_with_fits.append(speci)
+            imported_interpretations[speci] = sorted(frame2.pmag_results_data['specimens'][speci],cmp=fit_cmp)
 
-#        frame2 = demag_gui.Demag_GUI(project_WD)
+        for speci in speci_with_fits:
+            self.assertTrue(speci in old_interpretations.keys())
+            self.assertTrue(speci in imported_interpretations.keys())
+            for ofit,ifit in zip(old_interpretations[speci],imported_interpretations[speci]):
+                self.assertTrue(ofit.equal(ifit))
 
-#        old_s = frame2.s
-#        for specimen in frame2.specimens:
-#            frame2.s = specimen
-#            for i in range(len(frame2.Data[specimen]['zijdblock'])):
-#                frame2.mark_meas_good(i)
-#        frame2.s = old_s
-#        frame2.update_selection()
+    def test_ie_buttons(self):
+        #test initialization of ie
+        self.assertFalse(self.frame.ie_open)
+        self.frame.on_menu_edit_interpretations(-1)
+        self.assertTrue(self.frame.ie_open)
+        ie = self.frame.ie
+        tmin=self.frame.Data[self.frame.s]['zijdblock_steps'][0]
+        tmax=self.frame.Data[self.frame.s]['zijdblock_steps'][-1]
+        tmin_index,tmax_index = self.frame.get_indices(None,tmin,tmax,self.frame.s)
 
-#        imported_frame = str(frame2)
-#        imported_interpretations = []
-#        for speci in frame2.pmag_results_data['specimens'].keys():
-#            imported_interpretations += frame2.pmag_results_data['specimens'][speci]
+        #set ie values for fit and create fits for all interpretations
+        ie.tmin_box.SetValue(tmin)
+        ie.tmax_box.SetValue(tmax)
+        ie.name_box.WriteText("Test")
+        if "goldenrod" in ie.color_dict.keys():
+            ie.color_box.SetValue("goldenrod")
+        self.assertEqual(ie.tmin_box.GetValue(),tmin)
+        self.assertEqual(ie.tmax_box.GetValue(),tmax)
+        self.assertEqual(ie.name_box.GetValue(),"Test")
 
-#        for ofit,ifit in zip(old_interpretations,imported_interpretations):
-#            self.assertTrue(ofit.equal(ifit))
+        #create events to test ie
+        addall_evt = wx.PyCommandEvent(wx.EVT_BUTTON.typeId, ie.add_all_button.GetId())
+        addhighlight_evt = wx.PyCommandEvent(wx.EVT_BUTTON.typeId, ie.add_fit_button.GetId())
+        delete_evt = wx.PyCommandEvent(wx.EVT_BUTTON.typeId, ie.delete_fit_button.GetId())
+        apply_change_evt = wx.PyCommandEvent(wx.EVT_BUTTON.typeId, ie.apply_changes_button.GetId())
 
-#    def test_ie_buttons(self):
-#        #test initialization of ie
-#        self.assertFalse(self.frame.get_ie_open())
-#        self.frame.on_menu_edit_interpretations(-1)
-#        self.assertTrue(self.frame.get_ie_open())
-#        ie = self.frame.ie
-#        tmin=self.frame.Data[self.frame.s]['zijdblock_steps'][0]
-#        tmax=self.frame.Data[self.frame.s]['zijdblock_steps'][-1]
-#        tmin_index,tmax_index = self.frame.get_indices(None,tmin,tmax,self.frame.s)
+        #test add fit to all button
+        ie.ProcessEvent(addall_evt)
+        self.assertEqual(self.frame.current_fit,self.frame.pmag_results_data['specimens'][self.frame.s][0])
 
-#        #set ie values for fit and create fits for all interpretations
-#        ie.tmin_box.SetValue(tmin)
-#        ie.tmax_box.SetValue(tmax)
-#        ie.name_box.WriteText("Test")
-#        if "goldenrod" in ie.color_dict.keys():
-#            ie.color_box.SetValue("goldenrod")
-#        self.assertEqual(ie.tmin_box.GetValue(),tmin)
-#        self.assertEqual(ie.tmax_box.GetValue(),tmax)
-#        self.assertEqual(ie.name_box.GetValue(),"Test")
+        #check fit parameters
+        valid_specs = 0
+        for speci in self.frame.specimens:
+            if tmin not in self.frame.Data[speci]['zijdblock_steps'] or \
+               tmax not in self.frame.Data[speci]['zijdblock_steps']:
+                continue
+            fit = self.frame.pmag_results_data['specimens'][speci][0]
+            tmin_index,tmax_index = self.frame.get_indices(fit,tmin,tmax,speci)
+            if tmin_index < 0:
+                self.assertEqual(fit.tmin,self.frame.Data[speci]['zijdblock_steps'][0])
+            elif tmin in self.frame.Data[speci]['zijdblock_steps']:
+                self.assertEqual(fit.tmin,tmin)
+            else:
+                self.assertEqual(fit.tmin,self.frame.Data[speci]['zijdblock_steps'][tmin_index])
+            if tmax_index > len(self.frame.Data[speci]['zijdblock_steps'])-1:
+                self.assertEqual(fit.tmax,self.frame.Data[speci]['zijdblock_steps'][-1])
+            elif tmax in self.frame.Data[speci]['zijdblock_steps']:
+                self.assertEqual(fit.tmax,tmax)
+            else:
+                self.assertEqual(fit.tmax,self.frame.Data[speci]['zijdblock_steps'][tmax_index])
+            self.assertEqual(fit.name,"Test")
+            valid_specs+=1
+        for fit,speci in ie.fit_list:
+            tmin_index,tmax_index = self.frame.get_indices(fit,tmin,tmax,speci)
+            if tmin_index < 0:
+                self.assertEqual(fit.tmin,self.frame.Data[speci]['zijdblock_steps'][0])
+            elif tmin in self.frame.Data[speci]['zijdblock_steps']:
+                self.assertEqual(fit.tmin,tmin)
+            else:
+                self.assertEqual(fit.tmin,self.frame.Data[speci]['zijdblock_steps'][tmin_index])
+            if tmax_index > len(self.frame.Data[speci]['zijdblock_steps'])-1:
+                self.assertEqual(fit.tmax,self.frame.Data[speci]['zijdblock_steps'][-1])
+            elif tmax in self.frame.Data[speci]['zijdblock_steps']:
+                self.assertEqual(fit.tmax,tmax)
+            else:
+                self.assertEqual(fit.tmax,self.frame.Data[speci]['zijdblock_steps'][tmax_index])
+            self.assertEqual(fit.name,"Test")
 
-#        #create events to test ie
-#        addall_evt = wx.PyCommandEvent(wx.EVT_BUTTON.typeId, ie.add_all_button.GetId())
-#        addhighlight_evt = wx.PyCommandEvent(wx.EVT_BUTTON.typeId, ie.add_fit_button.GetId())
-#        delete_evt = wx.PyCommandEvent(wx.EVT_BUTTON.typeId, ie.delete_fit_button.GetId())
-#        apply_change_evt = wx.PyCommandEvent(wx.EVT_BUTTON.typeId, ie.apply_changes_button.GetId())
+        #test no highlighted items
+        ie.ProcessEvent(addhighlight_evt)
+        self.assertEqual(self.frame.total_num_of_interpertations(),valid_specs)
 
-#        #test add fit to all button
-#        ie.ProcessEvent(addall_evt)
-#        self.assertEqual(self.frame.current_fit,self.frame.pmag_results_data['specimens'][self.frame.s][0])
+        #alter parameters
+        ie.name_box.SetValue("HighlightedTest")
+        if "green" in ie.color_dict.keys():
+            ie.color_box.SetValue("green")
 
-#        #check fit parameters
-#        for speci in self.frame.specimens:
-#            fit = self.frame.pmag_results_data['specimens'][speci][0]
-#            tmin_index,tmax_index = self.frame.get_indices(fit,tmin,tmax,speci)
-#            if tmin_index < 0:
-#                self.assertEqual(fit.tmin,self.frame.Data[speci]['zijdblock_steps'][0])
-#            elif tmin in self.frame.Data[speci]['zijdblock_steps']:
-#                self.assertEqual(fit.tmin,tmin)
-#            else:
-#                self.assertEqual(fit.tmin,self.frame.Data[speci]['zijdblock_steps'][tmin_index])
-#            if tmax_index > len(self.frame.Data[speci]['zijdblock_steps'])-1:
-#                self.assertEqual(fit.tmax,self.frame.Data[speci]['zijdblock_steps'][-1])
-#            elif tmax in self.frame.Data[speci]['zijdblock_steps']:
-#                self.assertEqual(fit.tmax,tmax)
-#            else:
-#                self.assertEqual(fit.tmax,self.frame.Data[speci]['zijdblock_steps'][tmax_index])
-#            self.assertEqual(fit.name,"Test")
-#        for fit,speci in ie.fit_list:
-#            tmin_index,tmax_index = self.frame.get_indices(fit,tmin,tmax,speci)
-#            if tmin_index < 0:
-#                self.assertEqual(fit.tmin,self.frame.Data[speci]['zijdblock_steps'][0])
-#            elif tmin in self.frame.Data[speci]['zijdblock_steps']:
-#                self.assertEqual(fit.tmin,tmin)
-#            else:
-#                self.assertEqual(fit.tmin,self.frame.Data[speci]['zijdblock_steps'][tmin_index])
-#            if tmax_index > len(self.frame.Data[speci]['zijdblock_steps'])-1:
-#                self.assertEqual(fit.tmax,self.frame.Data[speci]['zijdblock_steps'][-1])
-#            elif tmax in self.frame.Data[speci]['zijdblock_steps']:
-#                self.assertEqual(fit.tmax,tmax)
-#            else:
-#                self.assertEqual(fit.tmax,self.frame.Data[speci]['zijdblock_steps'][tmax_index])
-#            self.assertEqual(fit.name,"Test")
+        #highlight the first 2 specimens
+        ie.logger.SetItemState(0, wx.LIST_STATE_SELECTED, wx.LIST_STATE_SELECTED)
+        ie.logger.SetItemState(1, wx.LIST_STATE_SELECTED, wx.LIST_STATE_SELECTED)
+        ie.ProcessEvent(addhighlight_evt)
 
-#        #test no highlighted items
-#        ie.ProcessEvent(addhighlight_evt)
-#        self.assertEqual(self.frame.total_num_of_interpertations(),len(self.frame.specimens))
+        #check the 2 fits that now should exist and check to make sure right number made
+        self.assertEqual(self.frame.total_num_of_interpertations(),valid_specs+2)
+        k0,k1 = ie.fit_list[0][1],ie.fit_list[1][1]
+        new_fits = [[self.frame.pmag_results_data['specimens'][k0][1],k0]]
+        new_fits.append([self.frame.pmag_results_data['specimens'][k1][1],k1])
 
-#        #alter parameters
-#        ie.name_box.SetValue("HighlightedTest")
-#        if "green" in ie.color_dict.keys():
-#            ie.color_box.SetValue("green")
+        for fit,speci in new_fits:
+            tmin_index,tmax_index = self.frame.get_indices(fit,tmin,tmax,speci)
+            if tmin_index < 0:
+                self.assertEqual(fit.tmin,self.frame.Data[speci]['zijdblock_steps'][0])
+            elif tmin in self.frame.Data[speci]['zijdblock_steps']:
+                self.assertEqual(fit.tmin,tmin)
+            else:
+                self.assertEqual(fit.tmin,self.frame.Data[speci]['zijdblock_steps'][tmin_index])
+            if tmax_index > len(self.frame.Data[speci]['zijdblock_steps'])-1:
+                self.assertEqual(fit.tmax,self.frame.Data[speci]['zijdblock_steps'][-1])
+            elif tmax in self.frame.Data[speci]['zijdblock_steps']:
+                self.assertEqual(fit.tmax,tmax)
+            else:
+                self.assertEqual(fit.tmax,self.frame.Data[speci]['zijdblock_steps'][tmax_index])
+            self.assertEqual(fit.name,"HighlightedTest")
 
-#        #highlight the first 2 specimens
-#        ie.logger.SetItemState(0, wx.LIST_STATE_SELECTED, wx.LIST_STATE_SELECTED)
-#        ie.logger.SetItemState(1, wx.LIST_STATE_SELECTED, wx.LIST_STATE_SELECTED)
-#        ie.ProcessEvent(addhighlight_evt)
+        #process delete event now that nothing is selected to ensure that nothing happens
+        ie.ProcessEvent(delete_evt)
 
-#        #check the 2 fits that now should exist and check to make sure right number made
-#        self.assertEqual(self.frame.total_num_of_interpertations(),len(self.frame.specimens)+2)
-#        k0,k1 = self.frame.specimens[0],self.frame.specimens[1]
-#        new_fits = [[self.frame.pmag_results_data['specimens'][k0][1],k0]]
-#        new_fits.append([self.frame.pmag_results_data['specimens'][k1][1],k1])
+        #highlight and delete the 2 fits made during the highlight check
+        ie.logger.SetItemState(1, wx.LIST_STATE_SELECTED, wx.LIST_STATE_SELECTED)
+        ie.logger.SetItemState(3, wx.LIST_STATE_SELECTED, wx.LIST_STATE_SELECTED)
+        ie.ProcessEvent(delete_evt)
+        self.assertEqual(self.frame.total_num_of_interpertations(),valid_specs)
 
-#        for fit,speci in new_fits:
-#            tmin_index,tmax_index = self.frame.get_indices(fit,tmin,tmax,speci)
-#            if tmin_index < 0:
-#                self.assertEqual(fit.tmin,self.frame.Data[speci]['zijdblock_steps'][0])
-#            elif tmin in self.frame.Data[speci]['zijdblock_steps']:
-#                self.assertEqual(fit.tmin,tmin)
-#            else:
-#                self.assertEqual(fit.tmin,self.frame.Data[speci]['zijdblock_steps'][tmin_index])
-#            if tmax_index > len(self.frame.Data[speci]['zijdblock_steps'])-1:
-#                self.assertEqual(fit.tmax,self.frame.Data[speci]['zijdblock_steps'][-1])
-#            elif tmax in self.frame.Data[speci]['zijdblock_steps']:
-#                self.assertEqual(fit.tmax,tmax)
-#            else:
-#                self.assertEqual(fit.tmax,self.frame.Data[speci]['zijdblock_steps'][tmax_index])
-#            self.assertEqual(fit.name,"HighlightedTest")
+        #apply changes with nothing selected so nothing happens
+        ie.ProcessEvent(apply_change_evt)
 
-#        #process delete event now that nothing is selected to ensure that nothing happens
-#        ie.ProcessEvent(delete_evt)
+        #make sure all parameters are the same
+        for speci in self.frame.specimens:
+            if len(self.frame.pmag_results_data['specimens'][speci])==0: continue
+            fit = self.frame.pmag_results_data['specimens'][speci][0]
+            tmin_index,tmax_index = self.frame.get_indices(fit,tmin,tmax,speci)
+            if tmin_index < 0:
+                self.assertEqual(fit.tmin,self.frame.Data[speci]['zijdblock_steps'][0])
+            elif tmin in self.frame.Data[speci]['zijdblock_steps']:
+                self.assertEqual(fit.tmin,tmin)
+            else:
+                self.assertEqual(fit.tmin,self.frame.Data[speci]['zijdblock_steps'][tmin_index])
+            if tmax_index > len(self.frame.Data[speci]['zijdblock_steps'])-1:
+                self.assertEqual(fit.tmax,self.frame.Data[speci]['zijdblock_steps'][-1])
+            elif tmax in self.frame.Data[speci]['zijdblock_steps']:
+                self.assertEqual(fit.tmax,tmax)
+            else:
+                self.assertEqual(fit.tmax,self.frame.Data[speci]['zijdblock_steps'][tmax_index])
+            self.assertEqual(fit.name,"Test")
+        for fit,speci in ie.fit_list:
+            tmin_index,tmax_index = self.frame.get_indices(fit,tmin,tmax,speci)
+            if tmin_index < 0:
+                self.assertEqual(fit.tmin,self.frame.Data[speci]['zijdblock_steps'][0])
+            elif tmin in self.frame.Data[speci]['zijdblock_steps']:
+                self.assertEqual(fit.tmin,tmin)
+            else:
+                self.assertEqual(fit.tmin,self.frame.Data[speci]['zijdblock_steps'][tmin_index])
+            if tmax_index > len(self.frame.Data[speci]['zijdblock_steps'])-1:
+                self.assertEqual(fit.tmax,self.frame.Data[speci]['zijdblock_steps'][-1])
+            elif tmax in self.frame.Data[speci]['zijdblock_steps']:
+                self.assertEqual(fit.tmax,tmax)
+            else:
+                self.assertEqual(fit.tmax,self.frame.Data[speci]['zijdblock_steps'][tmax_index])
+            self.assertEqual(fit.name,"Test")
 
-#        #highlight and delete the 2 fits made during the highlight check
-#        ie.logger.SetItemState(1, wx.LIST_STATE_SELECTED, wx.LIST_STATE_SELECTED)
-#        ie.logger.SetItemState(3, wx.LIST_STATE_SELECTED, wx.LIST_STATE_SELECTED)
-#        ie.ProcessEvent(delete_evt)
-#        self.assertEqual(self.frame.total_num_of_interpertations(),len(self.frame.specimens))
+        #revert so there is no difference between current fits and settings
+        ie.tmin_box.SetValue(tmin)
+        ie.tmax_box.SetValue(tmax)
+        ie.name_box.SetValue("Test")
+        if "goldenrod" in ie.color_dict.keys():
+            ie.color_box.SetValue("goldenrod")
+        self.assertEqual(ie.tmin_box.GetValue(),tmin)
+        self.assertEqual(ie.tmax_box.GetValue(),tmax)
+        self.assertEqual(ie.name_box.GetValue(),"Test")
 
-#        #apply changes with nothing selected so nothing happens
-#        ie.ProcessEvent(apply_change_evt)
+        #highlight all of the listctrl
+        for i in range(ie.logger.GetItemCount()):
+            ie.logger.SetItemState(i, wx.LIST_STATE_SELECTED, wx.LIST_STATE_SELECTED)
+        ie.ProcessEvent(apply_change_evt)
 
-#        #make sure all parameters are the same
-#        for speci in self.frame.specimens:
-#            fit = self.frame.pmag_results_data['specimens'][speci][0]
-#            tmin_index,tmax_index = self.frame.get_indices(fit,tmin,tmax,speci)
-#            if tmin_index < 0:
-#                self.assertEqual(fit.tmin,self.frame.Data[speci]['zijdblock_steps'][0])
-#            elif tmin in self.frame.Data[speci]['zijdblock_steps']:
-#                self.assertEqual(fit.tmin,tmin)
-#            else:
-#                self.assertEqual(fit.tmin,self.frame.Data[speci]['zijdblock_steps'][tmin_index])
-#            if tmax_index > len(self.frame.Data[speci]['zijdblock_steps'])-1:
-#                self.assertEqual(fit.tmax,self.frame.Data[speci]['zijdblock_steps'][-1])
-#            elif tmax in self.frame.Data[speci]['zijdblock_steps']:
-#                self.assertEqual(fit.tmax,tmax)
-#            else:
-#                self.assertEqual(fit.tmax,self.frame.Data[speci]['zijdblock_steps'][tmax_index])
-#            self.assertEqual(fit.name,"Test")
-#        for fit,speci in ie.fit_list:
-#            tmin_index,tmax_index = self.frame.get_indices(fit,tmin,tmax,speci)
-#            if tmin_index < 0:
-#                self.assertEqual(fit.tmin,self.frame.Data[speci]['zijdblock_steps'][0])
-#            elif tmin in self.frame.Data[speci]['zijdblock_steps']:
-#                self.assertEqual(fit.tmin,tmin)
-#            else:
-#                self.assertEqual(fit.tmin,self.frame.Data[speci]['zijdblock_steps'][tmin_index])
-#            if tmax_index > len(self.frame.Data[speci]['zijdblock_steps'])-1:
-#                self.assertEqual(fit.tmax,self.frame.Data[speci]['zijdblock_steps'][-1])
-#            elif tmax in self.frame.Data[speci]['zijdblock_steps']:
-#                self.assertEqual(fit.tmax,tmax)
-#            else:
-#                self.assertEqual(fit.tmax,self.frame.Data[speci]['zijdblock_steps'][tmax_index])
-#            self.assertEqual(fit.name,"Test")
+        #make sure nothing changed
+        for speci in self.frame.specimens:
+            if tmin not in self.frame.Data[speci]['zijdblock_steps'] or \
+               tmax not in self.frame.Data[speci]['zijdblock_steps']:
+                continue
+            fit = self.frame.pmag_results_data['specimens'][speci][0]
+            tmin_index,tmax_index = self.frame.get_indices(fit,tmin,tmax,speci)
+            if tmin_index < 0:
+                self.assertEqual(fit.tmin,self.frame.Data[speci]['zijdblock_steps'][0])
+            elif tmin in self.frame.Data[speci]['zijdblock_steps']:
+                self.assertEqual(fit.tmin,tmin)
+            else:
+                self.assertEqual(fit.tmin,self.frame.Data[speci]['zijdblock_steps'][tmin_index])
+            if tmax_index > len(self.frame.Data[speci]['zijdblock_steps'])-1:
+                self.assertEqual(fit.tmax,self.frame.Data[speci]['zijdblock_steps'][-1])
+            elif tmax in self.frame.Data[speci]['zijdblock_steps']:
+                self.assertEqual(fit.tmax,tmax)
+            else:
+                self.assertEqual(fit.tmax,self.frame.Data[speci]['zijdblock_steps'][tmax_index])
+            self.assertEqual(fit.name,"Test")
+        for fit,speci in ie.fit_list:
+            tmin_index,tmax_index = self.frame.get_indices(fit,tmin,tmax,speci)
+            if tmin_index < 0:
+                self.assertEqual(fit.tmin,self.frame.Data[speci]['zijdblock_steps'][0])
+            elif tmin in self.frame.Data[speci]['zijdblock_steps']:
+                self.assertEqual(fit.tmin,tmin)
+            else:
+                self.assertEqual(fit.tmin,self.frame.Data[speci]['zijdblock_steps'][tmin_index])
+            if tmax_index > len(self.frame.Data[speci]['zijdblock_steps'])-1:
+                self.assertEqual(fit.tmax,self.frame.Data[speci]['zijdblock_steps'][-1])
+            elif tmax in self.frame.Data[speci]['zijdblock_steps']:
+                self.assertEqual(fit.tmax,tmax)
+            else:
+                self.assertEqual(fit.tmax,self.frame.Data[speci]['zijdblock_steps'][tmax_index])
+            self.assertEqual(fit.name,"Test")
 
-#        #revert so there is no difference between current fits and settings
-#        ie.tmin_box.SetValue(tmin)
-#        ie.tmax_box.SetValue(tmax)
-#        ie.name_box.SetValue("Test")
-#        if "goldenrod" in ie.color_dict.keys():
-#            ie.color_box.SetValue("goldenrod")
-#        self.assertEqual(ie.tmin_box.GetValue(),tmin)
-#        self.assertEqual(ie.tmax_box.GetValue(),tmax)
-#        self.assertEqual(ie.name_box.GetValue(),"Test")
+        #make changes to values so that interpretations are different
+        tmin=self.frame.Data[self.frame.s]['zijdblock_steps'][1]
+        tmax=self.frame.Data[self.frame.s]['zijdblock_steps'][-2]
+        tmin_index,tmax_index = self.frame.get_indices(None,tmin,tmax,self.frame.s)
 
-#        #highlight all of the listctrl
-#        for i in range(ie.logger.GetItemCount()):
-#            ie.logger.SetItemState(i, wx.LIST_STATE_SELECTED, wx.LIST_STATE_SELECTED)
-#        ie.ProcessEvent(apply_change_evt)
+        ie.tmin_box.SetValue(tmin)
+        ie.tmax_box.SetValue(tmax)
+        ie.name_box.SetValue("OtherTest")
+        if "pink" in ie.color_dict.keys():
+            ie.color_box.SetValue("pink")
+        self.assertEqual(ie.tmin_box.GetValue(),tmin)
+        self.assertEqual(ie.tmax_box.GetValue(),tmax)
+        self.assertEqual(ie.name_box.GetValue(),"OtherTest")
 
-#        #make sure nothing changed
-#        for speci in self.frame.specimens:
-#            fit = self.frame.pmag_results_data['specimens'][speci][0]
-#            tmin_index,tmax_index = self.frame.get_indices(fit,tmin,tmax,speci)
-#            if tmin_index < 0:
-#                self.assertEqual(fit.tmin,self.frame.Data[speci]['zijdblock_steps'][0])
-#            elif tmin in self.frame.Data[speci]['zijdblock_steps']:
-#                self.assertEqual(fit.tmin,tmin)
-#            else:
-#                self.assertEqual(fit.tmin,self.frame.Data[speci]['zijdblock_steps'][tmin_index])
-#            if tmax_index > len(self.frame.Data[speci]['zijdblock_steps'])-1:
-#                self.assertEqual(fit.tmax,self.frame.Data[speci]['zijdblock_steps'][-1])
-#            elif tmax in self.frame.Data[speci]['zijdblock_steps']:
-#                self.assertEqual(fit.tmax,tmax)
-#            else:
-#                self.assertEqual(fit.tmax,self.frame.Data[speci]['zijdblock_steps'][tmax_index])
-#            self.assertEqual(fit.name,"Test")
-#        for fit,speci in ie.fit_list:
-#            tmin_index,tmax_index = self.frame.get_indices(fit,tmin,tmax,speci)
-#            if tmin_index < 0:
-#                self.assertEqual(fit.tmin,self.frame.Data[speci]['zijdblock_steps'][0])
-#            elif tmin in self.frame.Data[speci]['zijdblock_steps']:
-#                self.assertEqual(fit.tmin,tmin)
-#            else:
-#                self.assertEqual(fit.tmin,self.frame.Data[speci]['zijdblock_steps'][tmin_index])
-#            if tmax_index > len(self.frame.Data[speci]['zijdblock_steps'])-1:
-#                self.assertEqual(fit.tmax,self.frame.Data[speci]['zijdblock_steps'][-1])
-#            elif tmax in self.frame.Data[speci]['zijdblock_steps']:
-#                self.assertEqual(fit.tmax,tmax)
-#            else:
-#                self.assertEqual(fit.tmax,self.frame.Data[speci]['zijdblock_steps'][tmax_index])
-#            self.assertEqual(fit.name,"Test")
+        #highlight all of the listctrl and apply changes
+        for i in range(ie.logger.GetItemCount()):
+            ie.logger.SetItemState(i, wx.LIST_STATE_SELECTED, wx.LIST_STATE_SELECTED)
+        ie.ProcessEvent(apply_change_evt)
 
-#        #make changes to values so that interpretations are different
-#        tmin=self.frame.Data[self.frame.s]['zijdblock_steps'][1]
-#        tmax=self.frame.Data[self.frame.s]['zijdblock_steps'][-2]
-#        tmin_index,tmax_index = self.frame.get_indices(None,tmin,tmax,self.frame.s)
+        #make sure changes are right
+        for fit,speci in ie.fit_list:
+            tmin_index,tmax_index = self.frame.get_indices(fit,tmin,tmax,speci)
+            gui_fit = self.frame.pmag_results_data['specimens'][speci][0]
+            if tmin_index < 0:
+                self.assertEqual(fit.tmin,self.frame.Data[speci]['zijdblock_steps'][0])
+                self.assertEqual(gui_fit.tmin,self.frame.Data[speci]['zijdblock_steps'][0])
+            elif tmin in self.frame.Data[speci]['zijdblock_steps']:
+                self.assertEqual(fit.tmin,tmin)
+                self.assertEqual(gui_fit.tmin,tmin)
+            else:
+                self.assertEqual(fit.tmin,self.frame.Data[speci]['zijdblock_steps'][tmin_index])
+                self.assertEqual(gui_fit.tmin,self.frame.Data[speci]['zijdblock_steps'][tmin_index])
+            if tmax_index > len(self.frame.Data[speci]['zijdblock_steps'])-1:
+                self.assertEqual(fit.tmax,self.frame.Data[speci]['zijdblock_steps'][-1])
+                self.assertEqual(gui_fit.tmax,self.frame.Data[speci]['zijdblock_steps'][-1])
+            elif tmax in self.frame.Data[speci]['zijdblock_steps']:
+                self.assertEqual(fit.tmax,tmax)
+                self.assertEqual(gui_fit.tmax,tmax)
+            else:
+                self.assertEqual(fit.tmax,self.frame.Data[speci]['zijdblock_steps'][tmax_index])
+                self.assertEqual(gui_fit.tmax,self.frame.Data[speci]['zijdblock_steps'][tmax_index])
+            self.assertEqual(fit.name,"OtherTest")
 
-#        ie.tmin_box.SetValue(tmin)
-#        ie.tmax_box.SetValue(tmax)
-#        ie.name_box.SetValue("OtherTest")
-#        if "pink" in ie.color_dict.keys():
-#            ie.color_box.SetValue("pink")
-#        self.assertEqual(ie.tmin_box.GetValue(),tmin)
-#        self.assertEqual(ie.tmax_box.GetValue(),tmax)
-#        self.assertEqual(ie.name_box.GetValue(),"OtherTest")
+    def test_interpretation_accuracy_with_lsq(self):
+        g = os.walk(project_WD)
+        lsq_filenames = list(map(lambda x: os.path.join(project_WD,x),filter(lambda x: x.lower().endswith('.lsq'), g.next()[2])))
+        for lsq_filename in lsq_filenames:
+            try:
+                interps = read_LSQ(lsq_filename)
+                self.frame.COORDINATE_SYSTEM = 'geographic'
+                self.frame.read_from_LSQ(lsq_filename)
+            except OSError as e: print("Could not read in LSQ file: %s"%lsq_filename); raise e
+            except IOError as e: print("No LSQ file: %s"%lsq_filename); raise e
 
-#        #highlight all of the listctrl and apply changes
-#        for i in range(ie.logger.GetItemCount()):
-#            ie.logger.SetItemState(i, wx.LIST_STATE_SELECTED, wx.LIST_STATE_SELECTED)
-#        ie.ProcessEvent(apply_change_evt)
+            for interp in interps:
+                specimen = interp['er_specimen_name']
+                gui_interps = self.frame.pmag_results_data['specimens'][specimen]
+                similar_fit_present = True
+                for gui_interp in gui_interps:
+                    pars = gui_interp.get('geographic')
+                    if int(pars['specimen_n']) != int(interp['specimen_n']): continue
+                    for value in ['specimen_dec','specimen_inc','specimen_mad','specimen_n']:
+                        if round(float(pars[value]),1)-allowable_float_error > float(interp[value]) and float(interp[value]) > round(float(pars[value]),1)+allowable_float_error:
+                            print(round(float(pars[value]),1),float(interp[value]))
+                            similar_fit_present = False
+                self.assertTrue(similar_fit_present)
 
-#        #make sure changes are right
-#        for fit,speci in ie.fit_list:
-#            tmin_index,tmax_index = self.frame.get_indices(fit,tmin,tmax,speci)
-#            gui_fit = self.frame.pmag_results_data['specimens'][speci][0]
-#            if tmin_index < 0:
-#                self.assertEqual(fit.tmin,self.frame.Data[speci]['zijdblock_steps'][0])
-#                self.assertEqual(gui_fit.tmin,self.frame.Data[speci]['zijdblock_steps'][0])
-#            elif tmin in self.frame.Data[speci]['zijdblock_steps']:
-#                self.assertEqual(fit.tmin,tmin)
-#                self.assertEqual(gui_fit.tmin,tmin)
-#            else:
-#                self.assertEqual(fit.tmin,self.frame.Data[speci]['zijdblock_steps'][tmin_index])
-#                self.assertEqual(gui_fit.tmin,self.frame.Data[speci]['zijdblock_steps'][tmin_index])
-#            if tmax_index > len(self.frame.Data[speci]['zijdblock_steps'])-1:
-#                self.assertEqual(fit.tmax,self.frame.Data[speci]['zijdblock_steps'][-1])
-#                self.assertEqual(gui_fit.tmax,self.frame.Data[speci]['zijdblock_steps'][-1])
-#            elif tmax in self.frame.Data[speci]['zijdblock_steps']:
-#                self.assertEqual(fit.tmax,tmax)
-#                self.assertEqual(gui_fit.tmax,tmax)
-#            else:
-#                self.assertEqual(fit.tmax,self.frame.Data[speci]['zijdblock_steps'][tmax_index])
-#                self.assertEqual(gui_fit.tmax,self.frame.Data[speci]['zijdblock_steps'][tmax_index])
-#            self.assertEqual(fit.name,"OtherTest")
+    def test_VGP_viewer(self):
+        menu_bar = self.frame.GetMenuBar()
+        tools_menu = menu_bar.GetMenu(3)
+        tools_menu_items = tools_menu.GetMenuItems()
 
-#    def test_interpretation_accuracy(self):
+        viewVGPs_menu_evt = wx.PyCommandEvent(wx.EVT_MENU.typeId, tools_menu_items[1].GetId())
+        self.frame.ProcessEvent(viewVGPs_menu_evt)
 
-#        try:
-#            interps = read_LSQ(os.path.join(project_WD, 'SI4(80.2 to 100.7).LSQ'))
-#            self.frame.COORDINATE_SYSTEM = 'geographic'
-#            self.frame.read_from_LSQ(os.path.join(project_WD, 'SI4(80.2 to 100.7).LSQ'))
-#        except OSError: print("Could not read in LSQ file"); return
-#        except IOError: print("No LSQ file"); return
+        self.ie_add_n_fits_to_all(n_fits)
 
-#        for interp in interps:
-#            specimen = interp['er_specimen_name']
-#            gui_interps = self.frame.pmag_results_data['specimens'][specimen]
-#            similar_fit_present = True
-#            for gui_interp in gui_interps:
-#                pars = gui_interp.get('geographic')
-#                if int(pars['specimen_n']) != int(interp['specimen_n']): continue
-#                for value in ['specimen_dec','specimen_inc','specimen_mad','specimen_n']:
-#                    if round(float(pars[value]),1)-allowable_float_error > float(interp[value]) and float(interp[value]) > round(float(pars[value]),1)+allowable_float_error:
-#                        print(round(float(pars[value]),1),float(interp[value]))
-#                        similar_fit_present = False
-#            self.assertTrue(similar_fit_present)
+        #test actual VGP calculation and display
+        self.frame.ProcessEvent(viewVGPs_menu_evt)
+
+    def test_check_sample_orientation_bad_good(self):
+        menu_bar = self.frame.GetMenuBar()
+        analysis_menu = menu_bar.GetMenu(2)
+        analysis_menu_items = analysis_menu.GetMenuItems()
+        check_sample_menu = analysis_menu_items[2].GetSubMenu()
+        check_sample_menu_items = check_sample_menu.GetMenuItems()
+
+        check_orient_menu_evt = wx.PyCommandEvent(wx.EVT_MENU.typeId, check_sample_menu_items[0].GetId())
+        mark_sample_bad_menu_evt = wx.PyCommandEvent(wx.EVT_MENU.typeId, check_sample_menu_items[1].GetId())
+        mark_sample_good_menu_evt = wx.PyCommandEvent(wx.EVT_MENU.typeId, check_sample_menu_items[2].GetId())
+
+        self.assertFalse(self.frame.check_orient_on)
+        self.frame.ProcessEvent(check_orient_menu_evt)
+        self.assertFalse(self.frame.check_orient_on)
+
+        self.ie_add_n_fits_to_all(n_fits)
+
+        self.assertFalse(self.frame.check_orient_on)
+        self.frame.ProcessEvent(check_orient_menu_evt)
+        self.assertTrue(self.frame.check_orient_on)
+
+        self.frame.ProcessEvent(mark_sample_bad_menu_evt)
+        samp = self.frame.Data_hierarchy['sample_of_specimen'][self.frame.s]
+        specs = self.frame.Data_hierarchy['samples'][samp]['specimens']
+        for s in specs:
+            for comp in self.frame.pmag_results_data['specimens'][s]:
+                self.assertTrue(comp in self.frame.bad_fits)
+
+        self.frame.mark_fit_good(comp,spec=s)
+        self.assertTrue(comp in self.frame.bad_fits)
+
+        self.frame.ProcessEvent(mark_sample_good_menu_evt)
+        samp = self.frame.Data_hierarchy['sample_of_specimen'][self.frame.s]
+        specs = self.frame.Data_hierarchy['samples'][samp]['specimens']
+        for s in specs:
+            for comp in self.frame.pmag_results_data['specimens'][s]:
+                self.assertTrue(comp not in self.frame.bad_fits)
+
+    def test_export_images(self):
+        menu_bar = self.frame.GetMenuBar()
+        file_menu = menu_bar.GetMenu(0)
+        file_menu_items = file_menu.GetMenuItems()
+        export_images_menu = file_menu_items[5].GetSubMenu()
+        export_images_menu_items = export_images_menu.GetMenuItems()
+
+        export_all_images_menu_evt = wx.PyCommandEvent(wx.EVT_MENU.typeId, export_images_menu_items[4].GetId())
+
+        self.frame.ProcessEvent(export_all_images_menu_evt)
+
+    def ie_add_n_fits_to_all(self,n):
+        #test initialization of ie
+        self.assertFalse(self.frame.ie_open)
+        self.frame.on_menu_edit_interpretations(-1)
+        self.assertTrue(self.frame.ie_open)
+        ie = self.frame.ie
+        addall_evt = wx.PyCommandEvent(wx.EVT_BUTTON.typeId, ie.add_all_button.GetId())
+
+        for i in range(n):
+            steps = self.frame.Data[self.frame.s]['zijdblock_steps']
+            tmin=steps[rn.randint(0,len(steps)-3)]
+            tmax=steps[rn.randint(steps.index(tmin)+2,len(steps)-1)]
+            ie.tmin_box.SetValue(tmin)
+            ie.tmax_box.SetValue(tmax)
+            ie.name_box.Clear()
+            ie.name_box.WriteText("test%d"%i)
+            self.assertEqual(ie.tmin_box.GetValue(),tmin)
+            self.assertEqual(ie.tmax_box.GetValue(),tmax)
+            self.assertEqual(ie.name_box.GetValue(),"test%d"%i)
+            ie.ProcessEvent(addall_evt)
+
+    def mark_all_meas_good(self,frame):
+        old_s = frame.s
+        for specimen in frame.specimens:
+            frame.s = specimen
+            for i in range(len(frame.Data[specimen]['zijdblock'])):
+                frame.mark_meas_good(i)
+        frame.s = old_s
 
     def tearDown(self):
         wx.CallAfter(self.app.Exit)
@@ -593,5 +670,64 @@ class TestMainFrame(unittest.TestCase):
     def test_main_frame(self):
         self.assertTrue(self.frame)
 
+def fit_cmp(f1,f2):
+    for c1,c2 in zip(f1.name,f2.name):
+        if ord(c1)==ord(c2): continue
+        else: return ord(c1)-ord(c2)
+    return 0
+
+def backup(WD):
+    print("backing up")
+    #make backup directory
+    backup_dir = os.path.join(WD,'Backup')
+    if not os.path.exists(backup_dir):
+        os.makedirs(backup_dir)
+    #copy test files to backup
+    src_files = os.listdir(WD)
+    for file_name in src_files:
+        full_file_name = os.path.join(WD, file_name)
+        if (os.path.isfile(full_file_name)):
+            shutil.copy(full_file_name, os.path.join(backup_dir,file_name))
+
+def revert_from_backup(WD):
+    print("reverting")
+    backup_dir = os.path.join(WD,'Backup')
+    #copy test files to backup
+    src_files = os.listdir(backup_dir)
+    for file_name in src_files:
+        full_file_name = os.path.join(backup_dir, file_name)
+        if (os.path.isfile(full_file_name)):
+            shutil.copy(full_file_name, os.path.join(WD,file_name))
+            os.remove(full_file_name)
+    if os.path.exists(backup_dir):
+        os.rmdir(backup_dir)
+
 if __name__ == '__main__':
-    unittest.main()
+
+    WD = sys.prefix
+    if '-d' in sys.argv:
+        d_index = sys.argv.index('-d')
+        project_WD = os.path.join(os.getcwd(),sys.argv[d_index+1])
+    elif '--dir' in sys.argv:
+        d_index = sys.argv.index('--dir')
+        project_WD = os.path.join(os.getcwd(),sys.argv[d_index+1])
+    else:
+        project_WD = os.path.join(os.getcwd(), 'pmagpy_tests', 'examples', 'demag_test_data')
+    core_depthplot_WD = os.path.join(WD, 'pmagpy_data_files', 'core_depthplot')
+    empty_WD = os.path.join(os.getcwd(), 'pmagpy_tests', 'examples', 'empty_dir')
+    if '-e' in sys.argv:
+        e_index = sys.argv.index('-e')
+        allowable_float_error = float(sys.argv[e_index])
+    elif '--error' in sys.argv:
+        e_index = sys.argv.index('--error')
+        allowable_float_error = float(sys.argv[e_index])
+    else:
+        allowable_float_error = 0.1
+    n_fits = 3
+    if '-n' in sys.argv:
+        n_index = sys.argv.index('-n')
+        n_fits = int(sys.argv[n_index+1])
+
+    backup(project_WD)
+    unittest.TextTestRunner().run(unittest.TestLoader().loadTestsFromTestCase(TestDemagGUI))
+    revert_from_backup(project_WD)
