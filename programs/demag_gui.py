@@ -61,7 +61,7 @@ from time import time
 from datetime import datetime
 import wx
 import wx.lib.scrolledpanel
-from numpy import vstack,sqrt,arange,array,pi,cos,sin,mean
+from numpy import vstack,sqrt,arange,array,pi,cos,sin,mean,exp,linspace,convolve
 from matplotlib import rcParams
 from matplotlib.figure import Figure
 from scipy.optimize import curve_fit
@@ -806,8 +806,8 @@ class Demag_GUI(wx.Frame):
 
         menu_Tools = wx.Menu()
 
-#        m_auto_interpret = menu_Tools.Append(-1, "&Auto interpret (alpha version)\tCtrl-A", "")
-#        self.Bind(wx.EVT_MENU, self.autointerpret, m_auto_interpret)
+        m_auto_interpret = menu_Tools.Append(-1, "&Auto interpret (alpha version)\tCtrl-A", "")
+        self.Bind(wx.EVT_MENU, self.autointerpret, m_auto_interpret)
 
         m_edit_interpretations = menu_Tools.Append(-1, "&Interpretation editor\tCtrl-E", "")
         self.Bind(wx.EVT_MENU, self.on_menu_edit_interpretations, m_edit_interpretations)
@@ -1741,7 +1741,8 @@ class Demag_GUI(wx.Frame):
 
             if self.ie_open: #BROKEN
                 self.ie.scatter([XYM[0]],[XYM[1]],marker='o',edgecolor=EC, facecolor=FC,s=size,lw=1,clip_on=False,alpha=alpha)
-                self.ie.plot(Xcirc,Ycirc,color,alpha=alpha)
+                if "alpha95" in mpars.keys():
+                    self.ie.plot(Xcirc,Ycirc,color,alpha=alpha)
                 self.ie.eqarea.set_xlim(xmin, xmax)
                 self.ie.eqarea.set_ylim(ymin, ymax)
 
@@ -2232,64 +2233,56 @@ class Demag_GUI(wx.Frame):
         @param: step_size - int that is the size of fits to make while stepping through data if None then step size = len(meas data for specimen)/10 rounded up if that value is greater than 3 else it is 3 (default: None)
         @param: calculation_type - type of fit to make (default: DE-BFL or line)
         """
-        sucess = self.clear_interpretations()
-
-        if not sucess: return
+        if not self.user_warning("This feature is in ALPHA and still in development and testing. It is subject to bugs and will often create a LOT of new interpretations. This feature should only be used to get a general idea of the trend of the data before actually mannuely interpreting the data and the output of this function should certainly not be trusted as 100% accurate and useable for publication. Would you like to continue?"): return
+        if not self.clear_interpretations(): return
 
         print("Autointerpretation Start")
 
-        prev_speci = self.s
-
+        self.set_test_mode(True)
         for specimen in self.specimens:
+            self.autointerpret_specimen(specimen,step_size,calculation_type)
+        self.set_test_mode(False)
 
-            self.s = specimen
-
-            if self.COORDINATE_SYSTEM=='geographic':
-                block=self.Data[specimen]['zijdblock_geo']
-            elif self.COORDINATE_SYSTEM=='tilt-corrected':
-                block=self.Data[specimen]['zijdblock_tilt']
-            else:
-                block=self.Data[specimen]['zijdblock']
-            if step_size==None:
-                step_size = int(len(block)/10 + .5)
-                if step_size < 3: step_size = 3
-            temps = []
-            mads = []
-            for i in range(len(block)-step_size):
-                if block[i][5] == 'b': continue
-                try: mpars = pmag.domean(block,i,i+step_size,calculation_type)
-                except TypeError: continue
-                except IndexError: continue
-                if 'specimen_mad' in mpars.keys():
-                    temps.append(block[i][0])
-                    mads.append(mpars['specimen_mad'])
-
-            peaks = find_peaks_cwt(array(mads),arange(5,10))
-            len_temps = len(self.Data[specimen]['zijdblock_steps'])
-            peaks = [0] + peaks + [len(temps)]
-
-            prev_peak = peaks[0]
-            for peak in peaks[1:]:
-                if peak - prev_peak < 3: prev_peak = peak; continue
-                tmin = self.Data[specimen]['zijdblock_steps'][prev_peak]
-                tmax = self.Data[specimen]['zijdblock_steps'][peak]
-                if calculation_type=="DE-BFL": PCA_type="line"
-                elif calculation_type=="DE-BFL-A": PCA_type="line-anchored"
-                elif calculation_type=="DE-BFL-O": PCA_type="line-with-origin"
-                elif calculation_type=="DE-FM": PCA_type="Fisher"
-                elif calculation_type=="DE-BFP": PCA_type="plane"
-                self.PCA_type_box.SetValue(PCA_type)
-                self.on_btn_add_fit(event,plot_new_fit=False)
-                new_fit = self.pmag_results_data['specimens'][specimen][-1]
-                new_fit.put(specimen,self.COORDINATE_SYSTEM,self.get_PCA_parameters(specimen,new_fit,tmin,tmax,self.COORDINATE_SYSTEM,calculation_type))
-                prev_peak = peak
-
-        self.s = prev_speci
         if self.pmag_results_data['specimens'][self.s] != []:
             self.current_fit = self.pmag_results_data['specimens'][self.s][-1]
         else: self.current_fit = None
         print("Autointerpretation Complete")
         self.update_selection()
+        if self.ie_open: self.ie.update_editor()
+
+    def autointerpret_specimen(self,specimen,step_size,calculation_type):
+        """ """
+        if self.COORDINATE_SYSTEM=='geographic':
+            block=self.Data[specimen]['zijdblock_geo']
+        elif self.COORDINATE_SYSTEM=='tilt-corrected':
+            block=self.Data[specimen]['zijdblock_tilt']
+        else:
+            block=self.Data[specimen]['zijdblock']
+        if step_size==None:
+            step_size = int(len(block)/10 + .5)
+            if step_size < 3: step_size = 3
+        temps = []
+        mads = []
+        for i in range(len(block)-step_size):
+            if block[i][5] == 'b': return
+            try: mpars = pmag.domean(block,i,i+step_size,calculation_type)
+            except (IndexError, TypeError) as e: return
+            if 'specimen_mad' in mpars.keys():
+                temps.append(block[i][0])
+                mads.append(mpars['specimen_mad'])
+        if mads==[]: return
+
+        peaks = find_peaks_cwt(array(mads),arange(5,10))
+        len_temps = len(self.Data[specimen]['zijdblock_steps'])
+        peaks = [0] + peaks + [len(temps)]
+
+        prev_peak = peaks[0]
+        for peak in peaks[1:]:
+            if peak - prev_peak < 3: prev_peak = peak; continue
+            tmin = self.Data[specimen]['zijdblock_steps'][prev_peak]
+            tmax = self.Data[specimen]['zijdblock_steps'][peak]
+            self.add_fit(specimen, None, tmin, tmax, calculation_type)
+            prev_peak = peak+1
 
     def calculate_high_level_mean (self,high_level_type,high_level_name,calculation_type,elements_type,mean_fit):
         """
@@ -4635,7 +4628,10 @@ class Demag_GUI(wx.Frame):
                     if mf in self.high_level_means[high_level_type][high_level_name].keys():
                         if dirtype in self.high_level_means[high_level_type][high_level_name][mf].keys():
                             mpar = deepcopy(self.high_level_means[high_level_type][high_level_name][mf][dirtype])
-                            if mpar['calculation_type']=='Fisher by polarity':
+                            if 'n' in mpar and mpar['n']==1:
+                                mpar['calculation_type']="Fisher:"+mf
+                                mpars.append(mpar)
+                            elif mpar['calculation_type']=='Fisher by polarity':
                                 for k in mpar.keys():
                                     if k=='color' or k=='calculation_type': continue
                                     mpar[k]['calculation_type']+=':'+k+':'+mf
@@ -4803,7 +4799,7 @@ class Demag_GUI(wx.Frame):
 
             if self.ie_open:
                 ie = self.ie
-                if mpars["calculation_type"]=='Fisher' and "alpha95" in mpars.keys():
+                if "alpha95" in mpars.keys():
                     for val in ['mean_type:calculation_type','dec:dec','inc:inc','alpha95:alpha95','K:K','R:R','n_lines:n_lines','n_planes:n_planes']:
                         val,ind = val.split(":")
                         COMMAND = """ie.%s_window.SetValue(str(mpars['%s']))"""%(val,ind)
