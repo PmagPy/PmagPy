@@ -12,7 +12,9 @@ class DataModel(object):
 
     def download_data_model(self):
         pmag_dir = check_updates.get_pmag_dir()
-        model_file = os.path.join(pmag_dir, '3_0', 'data_model_August_4_2016.json')
+        model_file = os.path.join(pmag_dir, 'pmagpy', 'data_model', 'data_model.json')
+        #if not os.path.exists(model_file):
+        #    model_file = os.path.join(pmag_dir, 'data_model_August_4_2016.json')
         f = open(model_file, 'r')
         string = '\n'.join(f.readlines())
         raw = json.loads(unicode(string, errors='ignore'))

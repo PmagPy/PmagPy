@@ -25,9 +25,8 @@ class InterpretationEditorFrame(wx.Frame):
         self.parent = parent
         self.GUI_RESOLUTION=self.parent.GUI_RESOLUTION
         #call init of super class
-        default_style = wx.MINIMIZE_BOX | wx.MAXIMIZE_BOX | wx.RESIZE_BORDER | wx.SYSTEM_MENU | wx.CAPTION | wx.CLOSE_BOX | wx.CLIP_CHILDREN | wx.NO_FULL_REPAINT_ON_RESIZE | wx.WS_EX_CONTEXTHELP
+        default_style = wx.MINIMIZE_BOX | wx.MAXIMIZE_BOX | wx.RESIZE_BORDER | wx.SYSTEM_MENU | wx.CAPTION | wx.CLOSE_BOX | wx.CLIP_CHILDREN | wx.NO_FULL_REPAINT_ON_RESIZE | wx.WS_EX_CONTEXTHELP | wx.FRAME_EX_CONTEXTHELP
         wx.Frame.__init__(self, self.parent, title="Interpretation Editor",style=default_style, size=(675*self.GUI_RESOLUTION,425*self.GUI_RESOLUTION))
-        self.SetExtraStyle(wx.FRAME_EX_CONTEXTHELP)
         self.Bind(wx.EVT_CLOSE, self.on_close_edit_window)
         #setup wx help provider class to give help messages
         provider = wx.SimpleHelpProvider()
@@ -110,20 +109,20 @@ class InterpretationEditorFrame(wx.Frame):
         if UPPER_LEVEL=='study':
             name_choices = ['this study']
 
-        self.level_box = wx.ComboBox(self.panel, -1, size=(100*self.GUI_RESOLUTION, 25), value=UPPER_LEVEL, choices=['sample','site','location','study'], style=wx.CB_DROPDOWN)
+        self.level_box = wx.ComboBox(self.panel, -1, size=(110*self.GUI_RESOLUTION, 25), value=UPPER_LEVEL, choices=['sample','site','location','study'], style=wx.CB_DROPDOWN|wx.TE_READONLY)
         self.Bind(wx.EVT_COMBOBOX, self.on_select_high_level,self.level_box)
         self.level_box.SetHelpText(dieh.level_box_help)
 
-        self.level_names = wx.ComboBox(self.panel, -1, size=(100*self.GUI_RESOLUTION, 25), value=self.parent.level_names.GetValue(), choices=name_choices, style=wx.CB_DROPDOWN)
+        self.level_names = wx.ComboBox(self.panel, -1, size=(110*self.GUI_RESOLUTION, 25), value=self.parent.level_names.GetValue(), choices=name_choices, style=wx.CB_DROPDOWN|wx.TE_READONLY)
         self.Bind(wx.EVT_COMBOBOX, self.on_select_level_name,self.level_names)
         self.level_names.SetHelpText(dieh.level_names_help)
 
         #mean type and plot display boxes
-        self.mean_type_box = wx.ComboBox(self.panel, -1, size=(100*self.GUI_RESOLUTION, 25), value=self.parent.mean_type_box.GetValue(), choices=['Fisher','Fisher by polarity','None'], style=wx.CB_DROPDOWN,name="high_type")
+        self.mean_type_box = wx.ComboBox(self.panel, -1, size=(110*self.GUI_RESOLUTION, 25), value=self.parent.mean_type_box.GetValue(), choices=['Fisher','Fisher by polarity','None'], style=wx.CB_DROPDOWN|wx.TE_READONLY,name="high_type")
         self.Bind(wx.EVT_COMBOBOX, self.on_select_mean_type_box,self.mean_type_box)
         self.mean_type_box.SetHelpText(dieh.mean_type_help)
 
-        self.mean_fit_box = wx.ComboBox(self.panel, -1, size=(100*self.GUI_RESOLUTION, 25), value=self.parent.mean_fit, choices=(['None','All'] + self.parent.fit_list), style=wx.CB_DROPDOWN,name="high_type")
+        self.mean_fit_box = wx.ComboBox(self.panel, -1, size=(110*self.GUI_RESOLUTION, 25), value=self.parent.mean_fit, choices=(['None','All'] + self.parent.fit_list), style=wx.CB_DROPDOWN|wx.TE_READONLY,name="high_type")
         self.Bind(wx.EVT_COMBOBOX, self.on_select_mean_fit_box,self.mean_fit_box)
         self.mean_fit_box.SetHelpText(dieh.mean_fit_help)
 
@@ -135,20 +134,20 @@ class InterpretationEditorFrame(wx.Frame):
         if UPPER_LEVEL == "sample":
             show_box_choices = ['specimens']
 
-        self.show_box = wx.ComboBox(self.panel, -1, size=(100*self.GUI_RESOLUTION, 25), value='specimens', choices=show_box_choices, style=wx.CB_DROPDOWN,name="high_elements")
+        self.show_box = wx.ComboBox(self.panel, -1, size=(110*self.GUI_RESOLUTION, 25), value='specimens', choices=show_box_choices, style=wx.CB_DROPDOWN|wx.TE_READONLY,name="high_elements")
         self.Bind(wx.EVT_COMBOBOX, self.on_select_show_box,self.show_box)
         self.show_box.SetHelpText(dieh.show_help)
 
         #coordinates box
-        self.coordinates_box = wx.ComboBox(self.panel, -1, size=(100*self.GUI_RESOLUTION, 25), choices=self.parent.coordinate_list, value=self.parent.coordinates_box.GetValue(), style=wx.CB_DROPDOWN, name="coordinates")
+        self.coordinates_box = wx.ComboBox(self.panel, -1, size=(110*self.GUI_RESOLUTION, 25), choices=self.parent.coordinate_list, value=self.parent.coordinates_box.GetValue(), style=wx.CB_DROPDOWN|wx.TE_READONLY, name="coordinates")
         self.Bind(wx.EVT_COMBOBOX, self.on_select_coordinates,self.coordinates_box)
         self.coordinates_box.SetHelpText(dieh.coordinates_box_help)
 
         #bounds select boxes
-        self.tmin_box = wx.ComboBox(self.panel, -1, size=(80*self.GUI_RESOLUTION, 25), choices=[''] + self.parent.T_list, style=wx.CB_DROPDOWN, name="lower bound")
+        self.tmin_box = wx.ComboBox(self.panel, -1, size=(80*self.GUI_RESOLUTION, 25), choices=[''] + self.parent.T_list, style=wx.CB_DROPDOWN|wx.TE_READONLY, name="lower bound")
         self.tmin_box.SetHelpText(dieh.tmin_box_help)
 
-        self.tmax_box = wx.ComboBox(self.panel, -1, size=(80*self.GUI_RESOLUTION, 25), choices=[''] + self.parent.T_list, style=wx.CB_DROPDOWN, name="upper bound")
+        self.tmax_box = wx.ComboBox(self.panel, -1, size=(80*self.GUI_RESOLUTION, 25), choices=[''] + self.parent.T_list, style=wx.CB_DROPDOWN|wx.TE_READONLY, name="upper bound")
         self.tmax_box.SetHelpText(dieh.tmax_box_help)
 
         #color box
@@ -234,7 +233,7 @@ class InterpretationEditorFrame(wx.Frame):
         self.stats_sizer = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY,"mean statistics"  ), wx.VERTICAL)
 
         for parameter in ['mean_type','dec','inc','alpha95','K','R','n_lines','n_planes']:
-            COMMAND="self.%s_window=wx.TextCtrl(self.panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(75*self.GUI_RESOLUTION,25))"%parameter
+            COMMAND="self.%s_window=wx.TextCtrl(self.panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(100*self.GUI_RESOLUTION,25))"%parameter
             exec COMMAND
             COMMAND="self.%s_window.SetBackgroundColour(wx.WHITE)"%parameter
             exec COMMAND

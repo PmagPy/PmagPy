@@ -8,7 +8,6 @@ or you can read in one or more MagIC-format files.
 You can also extract specific data from a table --
 for instance, you can build a DIblock for plotting.
 """
-
 import os
 import re
 import numpy as np
@@ -17,7 +16,7 @@ from pandas import DataFrame
 # from pmagpy import pmag
 # from pmagpy import data_model3 as data_model
 import data_model3 as data_model
-import pmagpy.controlled_vocabularies3 as cv
+import controlled_vocabularies3 as cv
 
 
 class Contribution(object):

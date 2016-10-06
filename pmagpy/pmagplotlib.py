@@ -18,6 +18,7 @@ globals = 0
 graphmenu = 0
 global version_num
 version_num=pmag.get_version()
+import check_updates
 #matplotlib.ticker_Formatter.xaxis.set_powerlimits((-3,4))
 #matplotlib.ticker_Formatter.yaxis.set_powerlimits((-3,4))
 
@@ -629,7 +630,7 @@ def plotMT(fignum,datablock,s,num,units,norm):
         if recnum>0 and len(rec)>0 and len(recbak)>0:
             v=[]
             if recbak[0]!=rec[0]:
-	        V0=pmag.dir2cart([recbak[1],recbak[2],recbak[3]])
+                V0=pmag.dir2cart([recbak[1],recbak[2],recbak[3]])
                 V1=pmag.dir2cart([rec[1],rec[2],rec[3]])
                 for el in range(3):v.append(abs(V1[el]-V0[el]))
                 vdir=pmag.cart2dir(v)
@@ -967,8 +968,8 @@ def plotNP(fignum,indata,s,units):
         if units=="J":X.append(rec[0])
         Y.append(rec[3]/first_Z[0][3])
     if globals !=0:
-		globals.DIlist = X
-		globals.DIlisty= Y
+        globals.DIlist = X
+        globals.DIlisty= Y
     pylab.plot(X,Y)
     pylab.scatter(X,Y,marker='s',color='r')
     pylab.ylabel("Circles: NRM; Squares: pTRM")
@@ -1665,7 +1666,7 @@ def plotHDD(HDD,B,M,s):
             pylab.axvline(0,color='k')
             plotDDM(HDD['DdeltaM'],Bdm,DdeltaM,s)
     except:
-	hpars['hysteresis_bcr']='0'
+        hpars['hysteresis_bcr']='0'
         hpars['magic_method_codes']=""
     return hpars
 #
@@ -1960,9 +1961,9 @@ def plotltc(LTC_CM,LTC_CT,LTC_WM,LTC_WT,e):
         pylab.title(e)
 
 def plot_close(plot):
-	#pylab.ion()
-	pylab.close(plot)
-	#pylab.ioff()
+    #pylab.ion()
+    pylab.close(plot)
+    #pylab.ioff()
 
 #
 def plotANIS(ANIS,Ss,iboot,ihext,ivec,ipar,title,plt,comp,vec,Dir,nb):
@@ -2435,7 +2436,7 @@ def plotMAP(fignum,lats,lons,Opts):
     if 'symsize' in Opts.keys():symsize=Opts['symsize']
     if Opts['sym'][-1]!='-': # just plot points
         X,Y=m(lons,lats)
-       	if prn_name==1:
+        if prn_name==1:
             for pt in range(len(lats)):
                 T.append(pylab.text(X[pt]+5000,Y[pt]-5000,names[pt]))
         m.plot(X,Y,Opts['sym'],markersize=symsize)
@@ -2446,7 +2447,7 @@ def plotMAP(fignum,lats,lons,Opts):
                 x,y=m(lons[k],lats[k])
                 if x<1e20:X.append(x)
                 if y<1e20:Y.append(y) # exclude off the map points
-       	        if prn_name==1: T.append(pylab.text(x+5000,y-5000,names[k]))
+                if prn_name==1: T.append(pylab.text(x+5000,y-5000,names[k]))
                 k+=1
             else: # need to skip 100.0s and move to next chunk
                 m.plot(X,Y,Opts['sym'],markersize=symsize) # plot previous chunk
@@ -2463,10 +2464,10 @@ def plotEQcont(fignum,DIblock):
     centres=[]
     counter=0
     for rec in DIblock:
-    		counter=counter+1
-    		X=pmag.dir2cart([rec[0],rec[1],1.])
-    		R=numpy.sqrt( 1.-X[2])/(numpy.sqrt(X[0]**2+X[1]**2)) # from Collinson 1983
-    		XY.append([X[0]*R,X[1]*R])
+            counter=counter+1
+            X=pmag.dir2cart([rec[0],rec[1],1.])
+            R=numpy.sqrt( 1.-X[2])/(numpy.sqrt(X[0]**2+X[1]**2)) # from Collinson 1983
+            XY.append([X[0]*R,X[1]*R])
     radius=(3./(numpy.sqrt(numpy.pi*(9.+float(counter)))))+0.01 #radius of the circle
     num=2.*(1./radius) # number of circles
     #a,b are the extent of the grids over which the circles are equispaced
@@ -2480,56 +2481,55 @@ def plotEQcont(fignum,DIblock):
     Z= X*Y*0.
     # keeping the centres of the circles as a separate list instead of in array helps later
     for j in range(len(ylist)):
-    	for i in range (len(xlist)):
-    			centres.append([xlist[i],ylist[j]])
+        for i in range (len(xlist)):
+            centres.append([xlist[i],ylist[j]])
     # the following lines are to figure out what happens at the edges where part of a circle might lie outside
     # a thousand random numbers are generated within the x,y limit of the circles and tested whether it is contained in
     # the eq area net space....their ratio gives the fraction of circle contained in the net
     fraction=[]
     beta,alpha=0.001,0.001 # to avoid those 'division by float' thingy
     for i in range(0,int(pylab.ceil(num))**2):
-    	if numpy.sqrt(((centres[i][0])**2) + ((centres[i][1])**2)) -1.<radius:
-    		for j in range (1,1000):
-    				rnd1=random.uniform(centres[i][0]-radius,centres[i][0]+radius)
-    				rnd2=random.uniform(centres[i][1]-radius,centres[i][1]+radius)
-    				if ((centres[i][0]-rnd1)**2+(centres[i][1]-rnd2)**2)<=radius**2:
-    					if (rnd1**2)+(rnd2**2)<1.:
-    							alpha=alpha+1.
-    							beta=beta+1.
-    					else:
-    						alpha=alpha+1.
-    		fraction.append(alpha/beta)
-    		alpha,beta=0.001,0.001
-    	else:
-    		fraction.append(1.) # if the whole circle lies in the net
+        if numpy.sqrt(((centres[i][0])**2) + ((centres[i][1])**2)) -1.<radius:
+            for j in range (1,1000):
+                rnd1=random.uniform(centres[i][0]-radius,centres[i][0]+radius)
+                rnd2=random.uniform(centres[i][1]-radius,centres[i][1]+radius)
+                if ((centres[i][0]-rnd1)**2+(centres[i][1]-rnd2)**2)<=radius**2:
+                    if (rnd1**2)+(rnd2**2)<1.:
+                        alpha=alpha+1.
+                        beta=beta+1.
+                    else:
+                        alpha=alpha+1.
+            fraction.append(alpha/beta)
+            alpha,beta=0.001,0.001
+        else:
+            fraction.append(1.) # if the whole circle lies in the net
 
     # for every circle count the number of points lying in it
     count=0
     dotspercircle=0.
     for j in range(0,int(pylab.ceil(num))):
-    		for i in range(0,int(pylab.ceil(num))):
-
-    					for k in range(0,counter):
-    							if (XY[k][0]-centres[count][0])**2 + (XY[k][1]-centres[count][1])**2<=radius**2:
-    								dotspercircle+=1.
-    					Z[i][j]=Z[i][j]+(dotspercircle*fraction[count])
-    					count+=1
-    					dotspercircle=0.
+        for i in range(0,int(pylab.ceil(num))):
+            for k in range(0,counter):
+                if (XY[k][0]-centres[count][0])**2 + (XY[k][1]-centres[count][1])**2<=radius**2:
+                    dotspercircle+=1.
+            Z[i][j]=Z[i][j]+(dotspercircle*fraction[count])
+            count+=1
+            dotspercircle=0.
     im = pylab.imshow(Z, interpolation='bilinear', origin='lower', cmap=pylab.cm.hot,extent=(-1.,1.,-1.,1.))
     pylab.colorbar()
     x,y=[],[]
     # Draws the border
     for i in range(0,360):
-    		x.append(numpy.sin((numpy.pi/180.)*float(i)))
-    		y.append(numpy.cos((numpy.pi/180.)*float(i)))
+        x.append(numpy.sin((numpy.pi/180.)*float(i)))
+        y.append(numpy.cos((numpy.pi/180.)*float(i)))
     pylab.plot(x,y,'w-')
     x,y=[],[]
     # the map will be a square of 1X1..this is how I erase the redundant area
     for j in range(1,4):
-    	for i in range(0,360):
-    		x.append(numpy.sin((numpy.pi/180.)*float(i))*(1.+(float(j)/10.)))
-    		y.append(numpy.cos((numpy.pi/180.)*float(i))*(1.+(float(j)/10.)))
-    	pylab.plot(x,y,'w-',linewidth=26)
-    	x,y=[],[]
+        for i in range(0,360):
+            x.append(numpy.sin((numpy.pi/180.)*float(i))*(1.+(float(j)/10.)))
+            y.append(numpy.cos((numpy.pi/180.)*float(i))*(1.+(float(j)/10.)))
+        pylab.plot(x,y,'w-',linewidth=26)
+        x,y=[],[]
     # the axes
     pylab.axis("equal")

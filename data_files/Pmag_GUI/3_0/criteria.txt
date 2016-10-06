@@ -1,0 +1,10 @@
+tab 	criteria
+citations	criterion	criterion_operation	criterion_value	definition	table_column
+This study	IE-SPEC	<=	0.1	acceptance criteria for study	specimens.int_b_beta
+This study	IE-SPEC	>=	0.7	acceptance criteria for study	specimens.int_frac
+This study	IE-SPEC	<=	0.6	acceptance criteria for study	specimens.int_gmax
+This study	IE-SPEC	<=	10.0	acceptance criteria for study	specimens.int_dang
+This study	IE-SPEC	<=	10.0	acceptance criteria for study	specimens.int_mad
+This study	IE-SPEC	>=	4.0	acceptance criteria for study	specimens.int_n_measurements
+This study	IE-SPEC	>=	2.0	acceptance criteria for study	specimens.int_n_ptrm
+This study	IE-SPEC	=	True	acceptance criteria for study	specimens.int_scat

@@ -47,13 +47,14 @@ class Menus(object):
                                     'sites', 'locations', 'method_codes']
         self.InitUI()
 
+
     def InitUI(self):
         if self.data_type in ['orient', 'ages']:
             belongs_to = []
         else:
             parent_table_name = self.parent_type + "s"
             if parent_table_name in self.contribution.tables:
-                belongs_to = sorted(self.contribution.tables[parent_table_name].df[self.parent_type].unique())
+                belongs_to = sorted(self.contribution.tables[parent_table_name].df.index.unique())
             else:
                 belongs_to = []
 

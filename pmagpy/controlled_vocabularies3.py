@@ -32,7 +32,7 @@ class Vocabulary(object):
         """
         try:
             #old_raw_codes = pd.io.json.read_json('https://api.earthref.org/MagIC/method_codes.json')
-            raw_codes = pd.io.json.read_json(os.path.join(pmag_dir, "3_0", "method_codes.json"))
+            raw_codes = pd.io.json.read_json(os.path.join(data_model_dir, "method_codes.json"))
         except urllib2.URLError:
             return [], []
         except httplib.BadStatusLine:
@@ -114,7 +114,7 @@ class Vocabulary(object):
             controlled_vocabularies = []
             print '-I- Importing controlled vocabularies from https://earthref.org'
             #url = 'https://api.earthref.org/MagIC/vocabularies.json'
-            url = os.path.join(pmag_dir, "3_0", "controlled_vocabularies_July_15_2016.json")
+            url = os.path.join(data_model_dir, "controlled_vocabularies_July_15_2016.json")
             data = pd.io.json.read_json(url)
             possible_vocabularies = data.columns
             ## this line means, grab every single controlled vocabulary

@@ -1,0 +1,25 @@
+tab 	magic_measurements
+er_analyst_mail_names	er_citation_names	er_location_name	er_sample_name	er_site_name	er_specimen_name	magic_experiment_name	magic_instrument_codes	magic_method_codes	measurement_dec	measurement_flag	measurement_inc	measurement_magn_moment	measurement_number	measurement_temp	treatment_ac_field	treatment_dc_field	treatment_dc_field_phi	treatment_dc_field_theta	treatment_temp
+	This study	Snake River	sr01e	sr01	sr01e2	sr01e2:LP-DIR-AF		LT-NO:LP-DIR-AF	200.6	g	27.9	2.930e-05	0	273.	0.000e+00				273.
+	This study	Snake River	sr01e	sr01	sr01e2	sr01e2:LP-DIR-AF		LT-AF-Z:LP-DIR-AF	201	g	27.7	2.830e-05	1	273.	1.000e-02				273.
+	This study	Snake River	sr01e	sr01	sr01e2	sr01e2:LP-DIR-AF		LT-AF-Z:LP-DIR-AF	200.5	g	27.4	2.610e-05	2	273.	2.000e-02				273.
+	This study	Snake River	sr01e	sr01	sr01e2	sr01e2:LP-DIR-AF		LT-AF-Z:LP-DIR-AF	199.9	g	27.7	2.370e-05	3	273.	3.000e-02				273.
+	This study	Snake River	sr01e	sr01	sr01e2	sr01e2:LP-DIR-AF		LT-AF-Z:LP-DIR-AF	202.5	g	27.9	1.850e-05	4	273.	6.000e-02				273.
+	This study	Snake River	sr01e	sr01	sr01e2	sr01e2:LP-DIR-AF		LT-AF-Z:LP-DIR-AF	199.4	g	27.4	1.540e-05	5	273.	8.000e-02				273.
+	This study	Snake River	sr01e	sr01	sr01e2	sr01e2:LP-DIR-AF		LT-AF-Z:LP-DIR-AF	200.3	g	27.9	1.260e-05	6	273.	1.000e-01				273.
+	This study	Snake River	sr01e	sr01	sr01e2	sr01e2:LP-DIR-AF		LT-AF-Z:LP-DIR-AF	198.9	g	27.6	1.050e-05	7	273.	1.200e-01				273.
+	This study	Snake River	sr01e	sr01	sr01e2	sr01e2:LP-DIR-AF		LT-AF-Z:LP-DIR-AF	201.6	g	27.9	8.730e-06	8	273.	1.400e-01				273.
+	This study	Snake River	sr01e	sr01	sr01e2	sr01e2:LP-DIR-AF		LT-AF-Z:LP-DIR-AF	200.5	g	27.2	7.630e-06	9	273.	1.600e-01				273.
+	This study	Snake River	sr01e	sr01	sr01e2	sr01e2:LP-DIR-AF		LT-AF-Z:LP-DIR-AF	202.3	g	27.7	6.550e-06	10	273.	1.800e-01				273.
+	This study	Snake River	sr01g	sr01	sr01g2	sr01g2:LP-DIR-AF		LT-NO:LP-DIR-AF	178.7	g	39.1	2.280e-05	0	273.	0.000e+00				273.
+	This study	Snake River	sr01g	sr01	sr01g2	sr01g2:LP-DIR-AF		LT-AF-Z:LP-DIR-AF	180.6	g	38.3	2.180e-05	1	273.	1.000e-02				273.
+	This study	Snake River	sr01g	sr01	sr01g2	sr01g2:LP-DIR-AF		LT-AF-Z:LP-DIR-AF	177.9	g	38.2	1.920e-05	2	273.	2.000e-02				273.
+	This study	Snake River	sr01g	sr01	sr01g2	sr01g2:LP-DIR-AF		LT-AF-Z:LP-DIR-AF	180	g	38.2	1.640e-05	3	273.	3.000e-02				273.
+	This study	Snake River	sr01g	sr01	sr01g2	sr01g2:LP-DIR-AF		LT-AF-Z:LP-DIR-AF	179.8	g	38.5	1.420e-05	4	273.	4.000e-02				273.
+	This study	Snake River	sr01g	sr01	sr01g2	sr01g2:LP-DIR-AF		LT-AF-Z:LP-DIR-AF	182.9	g	38.3	1.140e-05	5	273.	6.000e-02				273.
+	This study	Snake River	sr01g	sr01	sr01g2	sr01g2:LP-DIR-AF		LT-AF-Z:LP-DIR-AF	183.1	g	38.2	9.460e-06	6	273.	8.000e-02				273.
+	This study	Snake River	sr01g	sr01	sr01g2	sr01g2:LP-DIR-AF		LT-AF-Z:LP-DIR-AF	179.5	g	38.2	7.970e-06	7	273.	1.000e-01				273.
+	This study	Snake River	sr01g	sr01	sr01g2	sr01g2:LP-DIR-AF		LT-AF-Z:LP-DIR-AF	181.5	g	38.3	6.690e-06	8	273.	1.200e-01				273.
+	This study	Snake River	sr01g	sr01	sr01g2	sr01g2:LP-DIR-AF		LT-AF-Z:LP-DIR-AF	179.1	g	38.2	5.670e-06	9	273.	1.400e-01				273.
+	This study	Snake River	sr01g	sr01	sr01g2	sr01g2:LP-DIR-AF		LT-AF-Z:LP-DIR-AF	180.1	g	38.5	4.720e-06	10	273.	1.600e-01				273.
+	This study	Snake River	sr01g	sr01	sr01g2	sr01g2:LP-DIR-AF		LT-AF-Z:LP-DIR-AF	179.9	g	38.3	4.200e-06	11	273.	1.800e-01				273.

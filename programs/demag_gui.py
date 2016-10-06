@@ -61,7 +61,7 @@ from time import time
 from datetime import datetime
 import wx
 import wx.lib.scrolledpanel
-from numpy import vstack,sqrt,arange,array,pi,cos,sin,mean
+from numpy import vstack,sqrt,arange,array,pi,cos,sin,mean,exp,linspace,convolve
 from matplotlib import rcParams
 from matplotlib.figure import Figure
 from scipy.optimize import curve_fit
@@ -108,9 +108,8 @@ class Demag_GUI(wx.Frame):
         @param - test_mode_on: used for unit testing if True all dialogs will return with AffermativeID (default: False)
         """
 
-        default_style = wx.MINIMIZE_BOX | wx.MAXIMIZE_BOX | wx.RESIZE_BORDER | wx.SYSTEM_MENU | wx.CAPTION | wx.CLOSE_BOX | wx.CLIP_CHILDREN | wx.NO_FULL_REPAINT_ON_RESIZE | wx.WS_EX_CONTEXTHELP
+        default_style = wx.MINIMIZE_BOX | wx.MAXIMIZE_BOX | wx.RESIZE_BORDER | wx.SYSTEM_MENU | wx.CAPTION | wx.CLOSE_BOX | wx.CLIP_CHILDREN | wx.NO_FULL_REPAINT_ON_RESIZE | wx.WS_EX_CONTEXTHELP | wx.FRAME_EX_CONTEXTHELP
         wx.Frame.__init__(self, parent, wx.ID_ANY, self.title, style = default_style, name='demag gui')
-        self.SetExtraStyle(wx.FRAME_EX_CONTEXTHELP)
         self.parent = parent
         self.set_test_mode(test_mode_on)
 
@@ -399,7 +398,7 @@ class Demag_GUI(wx.Frame):
     #----------------------------------------------------------------------
 
         # Combo-box with a list of specimen
-        self.specimens_box = wx.ComboBox(self.side_panel, id=wx.ID_ANY, value=self.s, size=(200*self.GUI_RESOLUTION,25), choices=self.specimens, style=wx.CB_DROPDOWN,name="specimen")
+        self.specimens_box = wx.ComboBox(self.side_panel, id=wx.ID_ANY, value=self.s, size=(200*self.GUI_RESOLUTION,25), choices=self.specimens, style=wx.CB_DROPDOWN|wx.TE_READONLY,name="specimen")
         self.Bind(wx.EVT_COMBOBOX, self.onSelect_specimen,self.specimens_box)
         self.specimens_box.SetHelpText(dgh.specimens_box_help)
 
@@ -428,7 +427,7 @@ class Demag_GUI(wx.Frame):
                 self.coordinate_list.append('tilt-corrected')
 
         self.COORDINATE_SYSTEM = intial_coordinate
-        self.coordinates_box = wx.ComboBox(self.side_panel, id=wx.ID_ANY, size=(200*self.GUI_RESOLUTION,25), choices=self.coordinate_list, value=intial_coordinate,style=wx.CB_DROPDOWN,name="coordinates")
+        self.coordinates_box = wx.ComboBox(self.side_panel, id=wx.ID_ANY, size=(200*self.GUI_RESOLUTION,25), choices=self.coordinate_list, value=intial_coordinate,style=wx.CB_DROPDOWN|wx.TE_READONLY,name="coordinates")
         self.Bind(wx.EVT_COMBOBOX, self.onSelect_coordinates,self.coordinates_box)
         self.coordinates_box.SetHelpText(dgh.coordinates_box_help)
 
@@ -436,7 +435,7 @@ class Demag_GUI(wx.Frame):
         #  Orthogonal Zijderveld Options box
     #----------------------------------------------------------------------
 
-        self.orthogonal_box = wx.ComboBox(self.side_panel, id=wx.ID_ANY, value='X=East', size=(200*self.GUI_RESOLUTION,25), choices=['X=NRM dec','X=East','X=North'], style=wx.CB_DROPDOWN,name="orthogonal_plot")
+        self.orthogonal_box = wx.ComboBox(self.side_panel, id=wx.ID_ANY, value='X=East', size=(200*self.GUI_RESOLUTION,25), choices=['X=NRM dec','X=East','X=North'], style=wx.CB_DROPDOWN|wx.TE_READONLY,name="orthogonal_plot")
         #remove 'X=best fit line dec' as option given that is isn't implemented for multiple components
         self.Bind(wx.EVT_COMBOBOX, self.onSelect_orthogonal_box,self.orthogonal_box)
         self.orthogonal_box.SetHelpText(dgh.orthogonal_box_help)
@@ -451,11 +450,11 @@ class Demag_GUI(wx.Frame):
 
         self.T_list=[]
 
-        self.tmin_box = wx.ComboBox(self.panel, id=wx.ID_ANY,size=(50*self.GUI_RESOLUTION, 25),choices=self.T_list, style=wx.CB_DROPDOWN)
+        self.tmin_box = wx.ComboBox(self.panel, id=wx.ID_ANY,size=(50*self.GUI_RESOLUTION, 25),choices=self.T_list, style=wx.CB_DROPDOWN|wx.TE_READONLY)
         self.Bind(wx.EVT_COMBOBOX, self.get_new_PCA_parameters,self.tmin_box)
         self.tmin_box.SetHelpText(dgh.tmin_box_help)
 
-        self.tmax_box = wx.ComboBox(self.panel, id=wx.ID_ANY,size=(50*self.GUI_RESOLUTION, 25),choices=self.T_list, style=wx.CB_DROPDOWN)
+        self.tmax_box = wx.ComboBox(self.panel, id=wx.ID_ANY,size=(50*self.GUI_RESOLUTION, 25),choices=self.T_list, style=wx.CB_DROPDOWN|wx.TE_READONLY)
         self.Bind(wx.EVT_COMBOBOX, self.get_new_PCA_parameters,self.tmax_box)
         self.tmax_box.SetHelpText(dgh.tmax_box_help)
 
@@ -491,11 +490,11 @@ class Demag_GUI(wx.Frame):
         # Interpretation Type and Display window
     #----------------------------------------------------------------------
 
-        self.PCA_type_box = wx.ComboBox(self.panel, id=wx.ID_ANY, size=(50*self.GUI_RESOLUTION, 25), value='line',choices=['line','line-anchored','line-with-origin','plane','Fisher'], style=wx.CB_DROPDOWN,name="coordinates")
+        self.PCA_type_box = wx.ComboBox(self.panel, id=wx.ID_ANY, size=(50*self.GUI_RESOLUTION, 25), value='line',choices=['line','line-anchored','line-with-origin','plane','Fisher'], style=wx.CB_DROPDOWN|wx.TE_READONLY,name="coordinates")
         self.Bind(wx.EVT_COMBOBOX, self.on_select_specimen_mean_type_box,self.PCA_type_box)
         self.PCA_type_box.SetHelpText(dgh.PCA_type_help)
 
-        self.plane_display_box = wx.ComboBox(self.panel, id=wx.ID_ANY, size=(50*self.GUI_RESOLUTION, 25), value='show whole plane',choices=['show whole plane','show u. hemisphere', 'show l. hemisphere','show poles'], style=wx.CB_DROPDOWN,name="PlaneType")
+        self.plane_display_box = wx.ComboBox(self.panel, id=wx.ID_ANY, size=(50*self.GUI_RESOLUTION, 25), value='show whole plane',choices=['show whole plane','show u. hemisphere', 'show l. hemisphere','show poles'], style=wx.CB_DROPDOWN|wx.TE_READONLY,name="PlaneType")
         self.Bind(wx.EVT_COMBOBOX, self.on_select_plane_display_box, self.plane_display_box)
         self.plane_display_box.SetHelpText(dgh.plane_display_help)
 
@@ -532,11 +531,11 @@ class Demag_GUI(wx.Frame):
         # High level mean window
     #----------------------------------------------------------------------
 
-        self.level_box = wx.ComboBox(self.panel, id=wx.ID_ANY, size=(50*self.GUI_RESOLUTION, 25),value='site',  choices=['sample','site','location','study'], style=wx.CB_DROPDOWN,name="high_level")
+        self.level_box = wx.ComboBox(self.panel, id=wx.ID_ANY, size=(50*self.GUI_RESOLUTION, 25),value='site',  choices=['sample','site','location','study'], style=wx.CB_DROPDOWN|wx.TE_READONLY,name="high_level")
         self.Bind(wx.EVT_COMBOBOX, self.onSelect_high_level,self.level_box)
         self.level_box.SetHelpText(dgh.level_box_help)
 
-        self.level_names = wx.ComboBox(self.panel, id=wx.ID_ANY,size=(50*self.GUI_RESOLUTION, 25), value=self.site,choices=self.sites, style=wx.CB_DROPDOWN,name="high_level_names")
+        self.level_names = wx.ComboBox(self.panel, id=wx.ID_ANY,size=(50*self.GUI_RESOLUTION, 25), value=self.site,choices=self.sites, style=wx.CB_DROPDOWN|wx.TE_READONLY,name="high_level_names")
         self.Bind(wx.EVT_COMBOBOX, self.onSelect_level_name,self.level_names)
         self.level_names.SetHelpText(dgh.level_names_help)
 
@@ -544,11 +543,11 @@ class Demag_GUI(wx.Frame):
         # mean types box
     #----------------------------------------------------------------------
 
-        self.mean_type_box = wx.ComboBox(self.panel, id=wx.ID_ANY, size=(50*self.GUI_RESOLUTION, 25), value='None', choices=['Fisher','Fisher by polarity','None'], style=wx.CB_DROPDOWN,name="high_type")
+        self.mean_type_box = wx.ComboBox(self.panel, id=wx.ID_ANY, size=(50*self.GUI_RESOLUTION, 25), value='None', choices=['Fisher','Fisher by polarity','None'], style=wx.CB_DROPDOWN|wx.TE_READONLY,name="high_type")
         self.Bind(wx.EVT_COMBOBOX, self.onSelect_mean_type_box,self.mean_type_box)
         self.mean_type_box.SetHelpText(dgh.mean_type_help)
 
-        self.mean_fit_box = wx.ComboBox(self.panel, id=wx.ID_ANY, size=(50*self.GUI_RESOLUTION, 25), value='None', choices=['None','All'] + list_fits, style=wx.CB_DROPDOWN,name="high_type")
+        self.mean_fit_box = wx.ComboBox(self.panel, id=wx.ID_ANY, size=(50*self.GUI_RESOLUTION, 25), value='None', choices=['None','All'] + list_fits, style=wx.CB_DROPDOWN|wx.TE_READONLY,name="high_type")
         self.Bind(wx.EVT_COMBOBOX, self.onSelect_mean_fit_box,self.mean_fit_box)
         self.mean_fit_box.SetHelpText(dgh.mean_fit_help)
         self.mean_fit = 'None'
@@ -806,8 +805,8 @@ class Demag_GUI(wx.Frame):
 
         menu_Tools = wx.Menu()
 
-#        m_auto_interpret = menu_Tools.Append(-1, "&Auto interpret (alpha version)\tCtrl-A", "")
-#        self.Bind(wx.EVT_MENU, self.autointerpret, m_auto_interpret)
+        m_auto_interpret = menu_Tools.Append(-1, "&Auto interpret (alpha version)\tCtrl-A", "")
+        self.Bind(wx.EVT_MENU, self.autointerpret, m_auto_interpret)
 
         m_edit_interpretations = menu_Tools.Append(-1, "&Interpretation editor\tCtrl-E", "")
         self.Bind(wx.EVT_MENU, self.on_menu_edit_interpretations, m_edit_interpretations)
@@ -1741,7 +1740,8 @@ class Demag_GUI(wx.Frame):
 
             if self.ie_open: #BROKEN
                 self.ie.scatter([XYM[0]],[XYM[1]],marker='o',edgecolor=EC, facecolor=FC,s=size,lw=1,clip_on=False,alpha=alpha)
-                self.ie.plot(Xcirc,Ycirc,color,alpha=alpha)
+                if "alpha95" in mpars.keys():
+                    self.ie.plot(Xcirc,Ycirc,color,alpha=alpha)
                 self.ie.eqarea.set_xlim(xmin, xmax)
                 self.ie.eqarea.set_ylim(ymin, ymax)
 
@@ -2232,64 +2232,56 @@ class Demag_GUI(wx.Frame):
         @param: step_size - int that is the size of fits to make while stepping through data if None then step size = len(meas data for specimen)/10 rounded up if that value is greater than 3 else it is 3 (default: None)
         @param: calculation_type - type of fit to make (default: DE-BFL or line)
         """
-        sucess = self.clear_interpretations()
-
-        if not sucess: return
+        if not self.user_warning("This feature is in ALPHA and still in development and testing. It is subject to bugs and will often create a LOT of new interpretations. This feature should only be used to get a general idea of the trend of the data before actually mannuely interpreting the data and the output of this function should certainly not be trusted as 100% accurate and useable for publication. Would you like to continue?"): return
+        if not self.clear_interpretations(): return
 
         print("Autointerpretation Start")
 
-        prev_speci = self.s
-
+        self.set_test_mode(True)
         for specimen in self.specimens:
+            self.autointerpret_specimen(specimen,step_size,calculation_type)
+        self.set_test_mode(False)
 
-            self.s = specimen
-
-            if self.COORDINATE_SYSTEM=='geographic':
-                block=self.Data[specimen]['zijdblock_geo']
-            elif self.COORDINATE_SYSTEM=='tilt-corrected':
-                block=self.Data[specimen]['zijdblock_tilt']
-            else:
-                block=self.Data[specimen]['zijdblock']
-            if step_size==None:
-                step_size = int(len(block)/10 + .5)
-                if step_size < 3: step_size = 3
-            temps = []
-            mads = []
-            for i in range(len(block)-step_size):
-                if block[i][5] == 'b': continue
-                try: mpars = pmag.domean(block,i,i+step_size,calculation_type)
-                except TypeError: continue
-                except IndexError: continue
-                if 'specimen_mad' in mpars.keys():
-                    temps.append(block[i][0])
-                    mads.append(mpars['specimen_mad'])
-
-            peaks = find_peaks_cwt(array(mads),arange(5,10))
-            len_temps = len(self.Data[specimen]['zijdblock_steps'])
-            peaks = [0] + peaks + [len(temps)]
-
-            prev_peak = peaks[0]
-            for peak in peaks[1:]:
-                if peak - prev_peak < 3: prev_peak = peak; continue
-                tmin = self.Data[specimen]['zijdblock_steps'][prev_peak]
-                tmax = self.Data[specimen]['zijdblock_steps'][peak]
-                if calculation_type=="DE-BFL": PCA_type="line"
-                elif calculation_type=="DE-BFL-A": PCA_type="line-anchored"
-                elif calculation_type=="DE-BFL-O": PCA_type="line-with-origin"
-                elif calculation_type=="DE-FM": PCA_type="Fisher"
-                elif calculation_type=="DE-BFP": PCA_type="plane"
-                self.PCA_type_box.SetValue(PCA_type)
-                self.on_btn_add_fit(event,plot_new_fit=False)
-                new_fit = self.pmag_results_data['specimens'][specimen][-1]
-                new_fit.put(specimen,self.COORDINATE_SYSTEM,self.get_PCA_parameters(specimen,new_fit,tmin,tmax,self.COORDINATE_SYSTEM,calculation_type))
-                prev_peak = peak
-
-        self.s = prev_speci
         if self.pmag_results_data['specimens'][self.s] != []:
             self.current_fit = self.pmag_results_data['specimens'][self.s][-1]
         else: self.current_fit = None
         print("Autointerpretation Complete")
         self.update_selection()
+        if self.ie_open: self.ie.update_editor()
+
+    def autointerpret_specimen(self,specimen,step_size,calculation_type):
+        """ """
+        if self.COORDINATE_SYSTEM=='geographic':
+            block=self.Data[specimen]['zijdblock_geo']
+        elif self.COORDINATE_SYSTEM=='tilt-corrected':
+            block=self.Data[specimen]['zijdblock_tilt']
+        else:
+            block=self.Data[specimen]['zijdblock']
+        if step_size==None:
+            step_size = int(len(block)/10 + .5)
+            if step_size < 3: step_size = 3
+        temps = []
+        mads = []
+        for i in range(len(block)-step_size):
+            if block[i][5] == 'b': return
+            try: mpars = pmag.domean(block,i,i+step_size,calculation_type)
+            except (IndexError, TypeError) as e: return
+            if 'specimen_mad' in mpars.keys():
+                temps.append(block[i][0])
+                mads.append(mpars['specimen_mad'])
+        if mads==[]: return
+
+        peaks = find_peaks_cwt(array(mads),arange(5,10))
+        len_temps = len(self.Data[specimen]['zijdblock_steps'])
+        peaks = [0] + peaks + [len(temps)]
+
+        prev_peak = peaks[0]
+        for peak in peaks[1:]:
+            if peak - prev_peak < 3: prev_peak = peak; continue
+            tmin = self.Data[specimen]['zijdblock_steps'][prev_peak]
+            tmax = self.Data[specimen]['zijdblock_steps'][peak]
+            self.add_fit(specimen, None, tmin, tmax, calculation_type)
+            prev_peak = peak+1
 
     def calculate_high_level_mean (self,high_level_type,high_level_name,calculation_type,elements_type,mean_fit):
         """
@@ -4635,7 +4627,10 @@ class Demag_GUI(wx.Frame):
                     if mf in self.high_level_means[high_level_type][high_level_name].keys():
                         if dirtype in self.high_level_means[high_level_type][high_level_name][mf].keys():
                             mpar = deepcopy(self.high_level_means[high_level_type][high_level_name][mf][dirtype])
-                            if mpar['calculation_type']=='Fisher by polarity':
+                            if 'n' in mpar and mpar['n']==1:
+                                mpar['calculation_type']="Fisher:"+mf
+                                mpars.append(mpar)
+                            elif mpar['calculation_type']=='Fisher by polarity':
                                 for k in mpar.keys():
                                     if k=='color' or k=='calculation_type': continue
                                     mpar[k]['calculation_type']+=':'+k+':'+mf
@@ -4803,7 +4798,7 @@ class Demag_GUI(wx.Frame):
 
             if self.ie_open:
                 ie = self.ie
-                if mpars["calculation_type"]=='Fisher' and "alpha95" in mpars.keys():
+                if "alpha95" in mpars.keys():
                     for val in ['mean_type:calculation_type','dec:dec','inc:inc','alpha95:alpha95','K:K','R:R','n_lines:n_lines','n_planes:n_planes']:
                         val,ind = val.split(":")
                         COMMAND = """ie.%s_window.SetValue(str(mpars['%s']))"""%(val,ind)
