@@ -116,6 +116,10 @@ def main():
     if '-fmt' in sys.argv:
         ind=sys.argv.index('-fmt')
         fmt='.'+sys.argv[ind+1]
+    if '-dpi' in sys.argv:
+        ind=sys.argv.index('-dpi')
+        dpi='.'+sys.argv[ind+1]
+    else: dpi=100
     if '-sav' in sys.argv: 
         plots=1
         verbose=0
@@ -412,7 +416,7 @@ def main():
                    files={}
                    for key in AZD.keys():
                        files[key]=s+'_'+key+fmt 
-                   pmagplotlib.saveP(AZD,files)
+                   pmagplotlib.saveP(AZD,files,dpi=dpi)
                    sys.exit()
                if verbose:
                    ans='b'
@@ -565,7 +569,7 @@ def main():
                            titles['zijd']='Zijderveld Plot'
                            titles['arai']='Arai Plot'
                            AZD = pmagplotlib.addBorders(AZD,titles,black,purple)
-                       pmagplotlib.saveP(AZD,files)
+                       pmagplotlib.saveP(AZD,files,dpi=dpi)
     #                   pmagplotlib.combineFigs(s,files,3)
                    else:  # save in pmag format 
                        script="grep "+s+" output.mag | thellier -mfsi"
@@ -587,7 +591,7 @@ def main():
                 files={}
                 for key in AZD.keys():
                     files[key]=s+'_'+key+fmt
-                pmagplotlib.saveP(AZD,files)
+                pmagplotlib.saveP(AZD,files,dpi=dpi)
         else:
             print "\n Good bye\n"
             sys.exit()
