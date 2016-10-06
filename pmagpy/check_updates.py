@@ -11,9 +11,6 @@ def get_pmag_dir():
     """
     Returns directory in which PmagPy is installed
     """
-    # need to update this so that it works with compiled version
-    # this is correct for use with PmagPy:
-    #return os.path.dirname(os.path.realpath(__file__))
     # this is correct for py2exe (DEPRECATED)
     #win_frozen = is_frozen()
     #if win_frozen:
@@ -50,18 +47,22 @@ def get_pmag_dir():
             #lib_dir = os.path.dirname(os.path.realpath(__file__))
         if not os.path.isfile(os.path.join(lib_dir, 'pmag.py')):
             lib_dir = os.getcwd()
-        if not os.path.isfile(os.path.join(lib_dir, 'pmag.py')):
+        fname = os.path.join(lib_dir, 'pmag.py')
+        if not os.path.isfile(fname):
             print '-W- Can\'t find the data model!  Make sure you have installed pmagpy using pip: "pip install pmagpy --upgrade"'
             return
-        lib_dir = lib_dir.strip(os.sep)
+        # strip "/" or "\" and "pmagpy" to return proper PmagPy directory
+        if lib_dir.endswith(os.sep):
+            lib_dir = lib_dir[:-1]
         if lib_dir.endswith('pmagpy'):
             pmag_dir = lib_dir[:-6]
         else:
             pmag_dir = lib_dir
-        if not os.path.isfile(os.path.join(pmag_dir, 'pmagpy', 'pmag.py')):
-            print '-W- Can\'t find the data model!  Make sure you have installed pmagpy using pip: "pip install pmagpy --upgrade"'
-            return
-        return pmag_dir  # os.path.dirname(os.path.realpath(__file__))
+        return pmag_dir
+        #if not os.path.isfile(os.path.join(pmag_dir, 'pmagpy', 'pmag.py')):
+        #    print '-W- Can\'t find the data model!  Make sure you have installed pmagpy using pip: "pip install pmagpy --upgrade"#'
+        #return
+        #return pmag_dir  # os.path.dirname(os.path.realpath(__file__))
 
     ##except KeyError:
     ##    return os.path.dirname(os.path.realpath(__file__))
