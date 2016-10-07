@@ -6860,7 +6860,7 @@ def find_ei(data, nb=1000, save = False, save_folder = '.', fmt='svg',
 
     # plot corrected directional data
 
-    di_lists = unpack_di_block(di_block)
+    di_lists = unpack_di_block(data)
     if len(di_lists) == 3:
         decs, incs, intensity = di_lists
     if len(di_lists) == 2:
