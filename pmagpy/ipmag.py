@@ -977,7 +977,11 @@ def plot_di(dec=None, inc=None, di_block=None, color='k', marker='o', markersize
     Y_up = []
 
     if di_block is not None:
-        dec, inc = unpack_di_block(di_block)
+        di_lists = unpack_di_block(di_block)
+        if len(di_lists) == 3:
+            dec, inc, intensity = di_lists
+        if len(di_lists) == 2:
+            dec, inc = di_lists
 
     try:
         length = len(dec)
@@ -1161,7 +1165,11 @@ def plot_vgp(mapname,vgp_lon=None,vgp_lat=None,di_block=None,label='',color='k',
     legend : the default is no legend ('no'). Putting 'yes' will plot a legend.
     """
     if di_block!=None:
-        vgp_lon,vgp_lat = unpack_di_block(di_block)
+        di_lists = unpack_di_block(di_block)
+        if len(di_lists) == 3:
+            vgp_lon,vgp_lat, intensity = di_lists
+        if len(di_lists) == 2:
+            vgp_lon,vgp_lat = di_lists
     centerlon, centerlat = mapname(vgp_lon,vgp_lat)
     mapname.scatter(centerlon,centerlat,20,marker=marker,color=color,label=label,zorder=100)
     if legend=='yes':
@@ -6851,7 +6859,12 @@ def find_ei(data, nb=1000, save = False, save_folder = '.', fmt='svg',
     pmagplotlib.plotVs(cdf_fig_num,[Io],'k','-')
 
     # plot corrected directional data
-    decs, incs = unpack_di_block(data)
+
+    di_lists = unpack_di_block(di_block)
+    if len(di_lists) == 3:
+        decs, incs, intensity = di_lists
+    if len(di_lists) == 2:
+        decs, incs = di_lists
     unsquished_incs = unsquish(incs, flat_f)
     plt.figure(num=4,figsize=(4,4))
     plot_net(4)
