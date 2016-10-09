@@ -80,7 +80,6 @@ class TestMainFrame(unittest.TestCase):
         self.assertTrue(window.IsShown())
 
 
-
     def does_top_window_exist(self, parent, btn_name, window_name):
         """
         produces a click event on the button called btn_name,
@@ -110,6 +109,7 @@ class TestMagICGUIMenu(unittest.TestCase):
         self.app = wx.App()
         self.frame = magic_gui.MainFrame(WD, name="best frame ever")
         self.pnl = self.frame.GetChildren()[0]
+        self.contribution = self.frame.contribution
 
     def tearDown(self):
         #self.frame.Destroy() # this does not work and causes strange errors
@@ -133,3 +133,32 @@ class TestMagICGUIMenu(unittest.TestCase):
             self.assertIn(menu_name, menu_names)
             found_menus.append(menu_name)
         self.assertEqual(set(menu_names), set(found_menus))
+
+
+    def test_show_mainframe(self):
+        menus = self.frame.MenuBar.Menus
+        fmenu, fmenu_name = menus[0]
+
+        # once you have the correct menu
+        show_id = fmenu.FindItem('Show main window')
+        show_item = fmenu.FindItemById(show_id)
+
+        self.frame.Hide()
+        self.assertFalse(self.frame.IsShown())
+
+        event = wx.CommandEvent(wx.EVT_MENU.evtType[0], show_id)
+        self.frame.GetEventHandler().ProcessEvent(event)
+        self.assertTrue(self.frame.IsShown())
+
+    def test_close_grid(self):
+        self.frame.grid_frame = grid_frame.GridFrame(self.contribution, WD,
+                                                     "specimens", "specimens")
+        self.assertTrue(self.frame.grid_frame.IsShown())
+        menus = self.frame.MenuBar.Menus
+        fmenu, fmenu_name = menus[0]
+        # once you have the correct menu
+        close_id = fmenu.FindItem('Close current grid')
+        close_item = fmenu.FindItemById(close_id)
+
+        event = wx.CommandEvent(wx.EVT_MENU.evtType[0], close_id)
+        self.frame.GetEventHandler().ProcessEvent(event)
