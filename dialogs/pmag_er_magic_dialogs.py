@@ -380,8 +380,8 @@ Fill in blank cells using controlled vocabularies.
         site_container.df['lat'] = site_container.df['lat'].astype(float)
         site_container.df['lon'] = site_container.df['lon'].astype(float)
         # group lat/lon by location
-        grouped_lon = site_container.df['lon'].groupby(site_container.df['location'])
-        grouped_lat = site_container.df['lat'].groupby(site_container.df['location'])
+        grouped_lon = site_container.df[['lon', 'location']].groupby('location')
+        grouped_lat = site_container.df[['lat', 'location']].groupby('location')
         # get min/max longitude by location
         lon_w = grouped_lon.min()
         lon_e = grouped_lon.max()
