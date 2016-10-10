@@ -94,6 +94,38 @@ class TestMainFrame(unittest.TestCase):
 
 
 
+    def test_click_change_dir(self):
+        """
+        test that the change_directory button produces the expected results
+        """
+        def do_test():
+            new_WD = self.frame.WD
+            self.assertNotEqual(old_WD, new_WD)
+
+        old_WD = self.frame.WD
+        self.click_change_dir()
+        wx.CallLater(2000, do_test)
+
+
+    def click_change_dir(self):
+        def cancel_dia():
+            new_path = os.path.split(self.frame.WD)[0]
+            self.frame.change_dir_dialog.SetPath(new_path)
+            self.frame.on_finish_change_dir(self.frame.change_dir_dialog, False)
+            #self.frame.change_dir_dialog.EndModal(wx.ID_CANCEL)
+        btn = self.frame.change_dir_button
+        event = wx.CommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, btn.GetId())
+
+        #btn.GetEventHandler().ProcessEvent(event)
+        self.frame.on_change_dir_button(None, show=False)
+        wx.CallLater(1, cancel_dia)
+        # works if i just leave out this bloody line:
+        # meaning, everything happens as in real operation, just without actually showing the modal dialog
+        # hmph
+        #self.frame.change_dir_dialog.ShowModal()
+
+
+
     def does_top_window_exist(self, parent, btn_name, window_name):
         """
         produces a click event on the button called btn_name,
@@ -114,3 +146,131 @@ class TestMainFrame(unittest.TestCase):
             if wind.GetName() == window_name:
                 return wind
         return None
+
+
+class TestMenus(unittest.TestCase):
+
+    def setUp(self):
+        self.app = wx.App()
+        self.frame = pmag_gui.MagMainFrame(project_WD)
+        self.pnl = self.frame.GetChildren()[0]
+
+        #wx.lib.inspection.InspectionTool().Show()
+
+    def tearDown(self):
+        #self.frame.Destroy() # this does not work and causes strange errors
+        self.app.Destroy()
+        os.chdir(WD)
+
+
+    def test_that_all_menus_exist(self):
+        """
+        check that all expected menus were created
+        and that each menu item is enabled
+        """
+        menu_names = ['File', 'Help ', 'Import', 'Export', 'Analysis and Plots']
+        menus = self.frame.MenuBar.Menus
+        for menu, menu_name in menus:
+            self.assertIsInstance(menu, wx.Menu)
+            for item in menu.GetMenuItems():
+                self.assertTrue(item.IsEnabled())
+            self.assertIn(menu_name, menu_names)
+
+    def test_click_any_file(self):
+        window = self.does_window_exist('Import', "Import any file into your working directory", 'any file')
+        self.assertTrue(window, 'Import any file window was not created')
+        self.assertTrue(window.IsEnabled())
+        self.assertTrue(window.IsShown())
+
+
+    def test_click_Azdip_format(self):
+        window = self.does_window_exist('Import', 'AzDip format', 'azdip_window', submenu='orientation/location/stratigraphic files')
+        self.assertTrue(window, 'Azdip import window was not created')
+        self.assertTrue(window.IsEnabled())
+        self.assertTrue(window.IsShown())
+
+
+    def test_click_IODP_sample_format(self):
+        window = self.does_window_exist('Import', 'IODP Sample Summary csv file', 'IODP_samples', submenu='orientation/location/stratigraphic files')
+        self.assertTrue(window, 'IODP samples import window was not created')
+        self.assertTrue(window.IsEnabled())
+        self.assertTrue(window.IsShown())
+
+
+    def test_click_Kly4s_format(self):
+        window = self.does_window_exist('Import', 'kly4s format', 'kly4s', 'Anisotropy files')
+        self.assertTrue(window, 'Kly4s import window was not created')
+        self.assertTrue(window.IsEnabled())
+        self.assertTrue(window.IsShown())
+
+
+    def test_click_SUFAR_asc_format(self):
+        window = self.does_window_exist('Import', 'Sufar 4.0 ascii format', 'Sufar', 'Anisotropy files')
+        self.assertTrue(window, 'SUFAR 4 ascii window was not created')
+        self.assertTrue(window.IsEnabled())
+        self.assertTrue(window.IsShown())
+
+
+    def test_click_agm_file_format(self):
+        window = self.does_window_exist('Import', 'Import single agm file', 'agm_file', 'Hysteresis files')
+        self.assertTrue(window, 'Import agm file window was not created')
+        self.assertTrue(window.IsEnabled())
+        self.assertTrue(window.IsShown())
+
+
+    def test_click_agm_folder_format(self):
+        window = self.does_window_exist('Import', 'Import entire directory', 'agm_directory', 'Hysteresis files')
+        self.assertTrue(window, 'Import agm folder window was not created')
+        self.assertTrue(window.IsEnabled())
+        self.assertTrue(window.IsShown())
+
+
+    def test_click_ani_depthplot(self):
+        window = self.does_window_exist('Analysis and Plots', "Anisotropy data vs. depth/height/age", 'aniso_depthplot')
+        self.assertTrue(window, 'Aniso_depthplot window was not created')
+        self.assertTrue(window.IsEnabled())
+        self.assertTrue(window.IsShown())
+
+
+    def test_click_core_depthplot(self):
+        window = self.does_window_exist('Analysis and Plots', "Remanence data vs. depth/height/age", 'core_depthplot')
+        self.assertTrue(window, 'Core_depthplot window was not created')
+        self.assertTrue(window.IsEnabled())
+        self.assertTrue(window.IsShown())
+
+
+    def does_window_exist(self, menu_name, menuitem_name, window_name, submenu=None):
+        item = None
+        menus = self.frame.MenuBar.Menus
+        if submenu:
+            for m, name in menus:
+                if name == menu_name:
+                    for m_item in m.MenuItems:
+                        if m_item.Label == submenu:
+                            menu = m_item.SubMenu
+                            break
+        else: # no submenu
+            for m, name in menus:
+                if name == menu_name:
+                    menu = m
+                    break
+        # once you have the correct menu
+        item_id = menu.FindItem(menuitem_name)
+        item = menu.FindItemById(item_id)
+
+        if not item:
+            return None
+        # generate command event with the relevant menuitem id
+        event = wx.CommandEvent(wx.EVT_MENU.evtType[0], item_id)
+        self.frame.GetEventHandler().ProcessEvent(event)
+        window = None
+        # verify that the appropriate window was created
+        for w in self.frame.Children:
+            if w.GetName() == window_name:
+                window = w
+                break
+        if not window:
+            return None
+        self.assertTrue(window.IsEnabled())
+        self.assertTrue(window.IsShown())
+        return window
