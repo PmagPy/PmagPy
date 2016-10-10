@@ -8,7 +8,8 @@ from pmagpy import new_builder as nb
 from pmagpy import check_updates
 from pmagpy import data_model3 as data_model
 from pmagpy import controlled_vocabularies3 as cv
-WD = os.path.join(check_updates.get_pmag_dir(), '3_0', 'Osler')
+pmag_dir = check_updates.get_pmag_dir()
+WD = os.path.join(pmag_dir, '3_0', 'Osler')
 vocab = cv.Vocabulary()
 vocabulary, possible_vocabulary = vocab.get_controlled_vocabularies()
 dmodel = data_model.DataModel()
@@ -17,11 +18,11 @@ dmodel = data_model.DataModel()
 class TestMagicDataFrame(unittest.TestCase):
 
     def setUp(self):
-
         pass
 
     def tearDown(self):
-        pass
+        os.chdir(pmag_dir)
+
 
     def test_init_blank(self):
         magic_df = nb.MagicDataFrame()
@@ -55,10 +56,10 @@ class TestContribution(unittest.TestCase):
                                    dmodel=dmodel)
 
     def tearDown(self):
-        pass
+        os.chdir(pmag_dir)
 
     def test_init_empty(self):
-        con = nb.Contribution(os.getcwd(), dmodel=dmodel)
+        con = nb.Contribution(pmag_dir, dmodel=dmodel)
         self.assertEqual(0, len(con.tables))
 
     def test_init(self):
