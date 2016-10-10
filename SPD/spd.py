@@ -5,13 +5,13 @@
 #============================================================================================
 #
 #
-#  
+#
 #
 #-------------------------
 #
 # Author: Lori Jonestrask / Ron Shaar
 #
-# Initial revision: September 2013: 
+# Initial revision: September 2013:
 #
 #============================================================================================
 
@@ -20,7 +20,7 @@ import numpy
 import os
 #import pylab
 #import scipy
-#from scipy import * 
+#from scipy import *
 #import os
 import SPD.lib.lib_arai_plot_statistics as lib_arai
 #import SPD.lib.lib_curvature as lib_k
@@ -29,7 +29,7 @@ import SPD.lib.lib_directional_statistics as lib_direct
 import SPD.lib.lib_ptrm_statistics as lib_ptrm
 import SPD.lib.lib_tail_check_statistics as lib_tail
 import SPD.lib.lib_additivity_check_statistics as lib_add
-import SPD.mapping.map_magic as map_magic
+from pmagpy.mapping import map_magic
 
 
 # Data{} is a dictionary sorted by specimen name
@@ -37,7 +37,7 @@ import SPD.mapping.map_magic as map_magic
 # Each specimen data is sorted to the following "blocks":
 
 # Arai plot:
-# Data[s]['x_Arai']=[] # a list of x_i 
+# Data[s]['x_Arai']=[] # a list of x_i
 # Data[s]['y_Arai']=[] # a list of y_i
 # Data[s]['t_Arai']=[] # a list of temperatures (C? K?)
 # Data[s]'steps_Arai']=[] a list of the "ZI/IZ" steps (IZ= blue ZI=red). i.e. ['ZI','IZ','ZI']
@@ -49,11 +49,11 @@ import SPD.mapping.map_magic as map_magic
 
 # pTRM checks ("triangles")
 #         Data[s]['x_ptrm_check']=[] # a list of x coordinates of pTRM checks
-#         Data[s]['y_ptrm_check']=[] # a list of y coordinates of pTRM checks      
-#         Data[s]['ptrm_checks_temperatures']=[] # a list of pTRM checks temperature 
+#         Data[s]['y_ptrm_check']=[] # a list of y coordinates of pTRM checks
+#         Data[s]['ptrm_checks_temperatures']=[] # a list of pTRM checks temperature
 #         Data[s]['x_ptrm_check_starting_point'] # a list of x coordinates of the point ehere the pTRM checks started from
-#         Data[s]['y_ptrm_check_starting_point'] # a list of y coordinates of the point ehere the pTRM checks started from            
-#         Data[s]['ptrm_checks_starting_temperatures']=[] # a list of temperatures from which the pTRM checks started from 
+#         Data[s]['y_ptrm_check_starting_point'] # a list of y coordinates of the point ehere the pTRM checks started from
+#         Data[s]['ptrm_checks_starting_temperatures']=[] # a list of temperatures from which the pTRM checks started from
 
 
 # pTRM tail checks ("squares")
@@ -112,11 +112,11 @@ class PintPars(object):
 
 # pTRM checks ("triangles")
         self.x_ptrm_check = self.specimen_Data['x_ptrm_check'] # a list of x coordinates of pTRM checks
-        self.y_ptrm_check = self.specimen_Data['y_ptrm_check'] # a list of y coordinates of pTRM checks      
-        self.ptrm_checks_temperatures= self.specimen_Data['ptrm_checks_temperatures'] # a list of pTRM checks temperature 
+        self.y_ptrm_check = self.specimen_Data['y_ptrm_check'] # a list of y coordinates of pTRM checks
+        self.ptrm_checks_temperatures= self.specimen_Data['ptrm_checks_temperatures'] # a list of pTRM checks temperature
 #        Data[s]['x_ptrm_check_starting_point'] # a list of x coordinates of the point ehere the pTRM checks started from
-#         Data[s]['y_ptrm_check_starting_point'] # a list of y coordinates of the point ehere the pTRM checks started from     
-        self.ptrm_checks_starting_temperatures = self.specimen_Data['ptrm_checks_starting_temperatures'] # a list of temperatures from which the pTRM checks started from 
+#         Data[s]['y_ptrm_check_starting_point'] # a list of y coordinates of the point ehere the pTRM checks started from
+        self.ptrm_checks_starting_temperatures = self.specimen_Data['ptrm_checks_starting_temperatures'] # a list of temperatures from which the pTRM checks started from
 
         # AC checks
         self.x_add_check = self.specimen_Data['x_additivity_check']
@@ -125,7 +125,7 @@ class PintPars(object):
         self.add_checks_starting_temperatures = self.specimen_Data['additivity_check_starting_temperatures']
         self.x_add_check_starting_point = self.specimen_Data['x_additivity_check_starting_point']
         self.y_add_check_starting_point = self.specimen_Data['y_additivity_check_starting_point']
-        
+
         # Data in Temp/Dec/Inc/Int format
         self.PTRMS = self.specimen_Data['PTRMS']
         self.NRMS = self.specimen_Data['NRMS']
@@ -135,7 +135,7 @@ class PintPars(object):
         self.AC_Diffs = self.specimen_Data['AC']
 #        self.ADD_Checks = self.specimen_Data['ADD_Checks'] # removed this from new_lj_thellier_gui
 
-        self.zijdblock=self.specimen_Data['zijdblock']        
+        self.zijdblock=self.specimen_Data['zijdblock']
         self.z_temperatures=self.specimen_Data['z_temp']
 
         self.start=self.t_Arai.index(tmin)
@@ -145,24 +145,24 @@ class PintPars(object):
 
         self.pars['specimen_lab_dc_field'] = self.specimen_Data['pars']['lab_dc_field']
  #       self.pars['specimen_lab_ac_field'] = self.specimen_Data['pars']['lab_ac_field']
-        self.B_lab_dir = [self.specimen_Data['Thellier_dc_field_phi'], self.specimen_Data['Thellier_dc_field_theta'], 
-                          self.specimen_Data['Thellier_dc_field_uT']]  # 
+        self.B_lab_dir = [self.specimen_Data['Thellier_dc_field_phi'], self.specimen_Data['Thellier_dc_field_theta'],
+                          self.specimen_Data['Thellier_dc_field_uT']]  #
         self.B_lab_cart = lib_direct.dir2cart(self.B_lab_dir)
 
   #      self.pars['magic_method_codes']=Data[self.s]['pars']['magic_method_codes']
         self.pars['specimen_int_n']=int(self.end-self.start+1)
         self.pars['specimen_n_total']=len(self.x_Arai)
 
- 
+
         #LJ ADDING stats:
         self.steps_Arai = self.specimen_Data['steps_Arai']
         self.n = int(self.end-self.start+1)
         self.n_max = len(self.t_Arai)
-        self.tmin = tmin 
+        self.tmin = tmin
         self.tmax = tmax
-        self.tmin_K = tmin - 273. 
+        self.tmin_K = tmin - 273.
         self.tmax_K = tmax - 273
-        self.x_Arai_segment = self.x_Arai[self.start:self.end+1] 
+        self.x_Arai_segment = self.x_Arai[self.start:self.end+1]
         self.y_Arai_segment = self.y_Arai[self.start:self.end+1]
         self.x_Arai_mean = numpy.mean(self.x_Arai_segment)
         self.y_Arai_mean = numpy.mean(self.y_Arai_segment)
@@ -181,8 +181,8 @@ class PintPars(object):
         return "PintPars object, specimen: {}, tmin_K: {}, tmax_K: {}, temperature index: {} ".format(self.s, self.tmin_K, self.tmax_K, index)
 
     def get_segments_and_means(self):
-        pass # consider making this a real deal thing.  
-        
+        pass # consider making this a real deal thing.
+
     def York_Regression(self):
         if self.n < 3:
             print "-W- Cannot run statistics with only {} points".format(self.n)
@@ -232,8 +232,8 @@ class PintPars(object):
         self.pars['vector_diffs_segment'] = data['vector_diffs_segment']
         self.pars['partial_vds'] = data['partial_vds']
         self.pars['GAP-MAX'] = data['GAP-MAX']
-        return {'max_diff': data['max_diff'], 'vector_diffs': data['vector_diffs'], 'specimen_vds': data['specimen_vds'], 
-                'specimen_fvds': data['specimen_fvds'], 'vector_diffs_segment': data['vector_diffs_segment'], 
+        return {'max_diff': data['max_diff'], 'vector_diffs': data['vector_diffs'], 'specimen_vds': data['specimen_vds'],
+                'specimen_fvds': data['specimen_fvds'], 'vector_diffs_segment': data['vector_diffs_segment'],
                 'partial_vds': data['partial_vds'], 'GAP-MAX': data['GAP-MAX']}
 
     def get_FRAC(self):
@@ -268,7 +268,7 @@ class PintPars(object):
             self.pars['scat_bounding_line_high'] = 0# float('nan')
             self.pars['scat_bounding_line_low'] = 0#float('nan')
             return 0
-        slope = self.pars['specimen_b'] 
+        slope = self.pars['specimen_b']
         x_mean, y_mean = self.x_Arai_mean, self.y_Arai_mean
         x_Arai_segment, y_Arai_segment = self.x_Arai_segment, self.y_Arai_segment
         box = lib_arai.get_SCAT_box(slope, x_mean, y_mean)
@@ -280,9 +280,9 @@ class PintPars(object):
         x_ptrm_check, y_ptrm_check =  self.x_ptrm_check, self.y_ptrm_check
         tail_checks_temps, tail_checks_starting_temps =  self.tail_checks_temperatures, self.tail_checks_starting_temperatures
         x_tail_check, y_tail_check = self.x_tail_check, self.y_tail_check
-        points, fancy_points = lib_arai.get_SCAT_points(x_Arai_segment, y_Arai_segment, tmin, tmax, 
-                                          ptrm_checks_temps, ptrm_checks_starting_temps, 
-                                          x_ptrm_check, y_ptrm_check, tail_checks_temps, 
+        points, fancy_points = lib_arai.get_SCAT_points(x_Arai_segment, y_Arai_segment, tmin, tmax,
+                                          ptrm_checks_temps, ptrm_checks_starting_temps,
+                                          x_ptrm_check, y_ptrm_check, tail_checks_temps,
                                           tail_checks_starting_temps, x_tail_check, y_tail_check)
         # checking each point
         SCAT = lib_arai.get_SCAT(points, low_bound, high_bound, x_max, y_max)
@@ -295,7 +295,7 @@ class PintPars(object):
         self.pars['scat_bounding_line_high'] = high_line # [y_int, slope]
         self.pars['scat_bounding_line_low'] = low_line # [y_int, slope]
         return fancy_SCAT
-        
+
     def get_R_corr2(self):
         x_avg = self.x_Arai_mean
         y_avg = self.y_Arai_mean
@@ -327,7 +327,7 @@ class PintPars(object):
         Zstar = lib_arai.get_Zstar(x_segment, y_segment, x_int, y_int, slope, n)
         self.pars['Zstar'] = Zstar
         return Zstar
-                             
+
     def get_IZZI_MD(self):
         import lib.lib_IZZI_MD as lib_izzi
         if ('IZ' in self.steps_Arai):
@@ -339,13 +339,13 @@ class PintPars(object):
             self.pars['IZZI_MD'] = IZZI_MD
             return IZZI_MD
 
-        
+
     # directional statistics begin here:
 
     def get_dec_and_inc(self):
         Dec_Anc, Inc_Anc, best_fit_Anc, tau_Anc, V_Anc, mass_center, PCA_sigma_Anc = lib_direct.get_dec_and_inc(self.zdata,
                 self.t_Arai, self.tmin, self.tmax, anchored=True)
-        Dec_Free, Inc_Free, best_fit_Free, tau_Free, V_Free, mass_center, PCA_sigma_Free = lib_direct.get_dec_and_inc(self.zdata, 
+        Dec_Free, Inc_Free, best_fit_Free, tau_Free, V_Free, mass_center, PCA_sigma_Free = lib_direct.get_dec_and_inc(self.zdata,
                 self.t_Arai, self.tmin, self.tmax, anchored=False)
         self.pars['Dec_Anc'], self.pars['Dec_Free'] = Dec_Anc, Dec_Free
         self.pars['Inc_Anc'], self.pars['Inc_Free'] = Inc_Anc, Inc_Free
@@ -357,7 +357,7 @@ class PintPars(object):
         self.pars['PCA_sigma_max_Free'] = PCA_sigma_Free[0]
         self.pars['PCA_sigma_int_Free'] = PCA_sigma_Free[1]
         self.pars['PCA_sigma_min_Free'] = PCA_sigma_Free[2]
-        
+
 
     def get_ptrm_dec_and_inc(self):
         """not included in spd."""
@@ -370,7 +370,7 @@ class PintPars(object):
         self.pars['ptrms_dec_Free'], self.pars['ptrms_inc_Free'] = ptrms_dec_Free, ptrms_inc_Free
         self.pars['ptrms_tau_Free'] = ptrm_tau_Free
         self.pars['ptrms_angle_Free'] = ptrms_angle
-        
+
 
 
     def get_MAD(self):
@@ -383,8 +383,8 @@ class PintPars(object):
         pTRM_MAD_Free = lib_direct.get_MAD(self.pars['ptrms_tau_Free'])
         self.pars['pTRM_MAD_Free'] = pTRM_MAD_Free
         return pTRM_MAD_Free
-                                           
-   
+
+
     def get_alpha(self): # need Int_Free and Int_Anc
         free = self.pars['best_fit_vector_Free']
         anc = self.pars['best_fit_vector_Anc']
@@ -410,9 +410,9 @@ class PintPars(object):
         return theta
 
     def get_gamma(self):
-        B_lab_dir = [self.B_lab_dir[0], self.B_lab_dir[1], 1.] 
+        B_lab_dir = [self.B_lab_dir[0], self.B_lab_dir[1], 1.]
         ind = self.t_Arai.index(self.tmax)
-        ptrm_dir = [self.PTRMS[ind][1], self.PTRMS[ind][2], self.PTRMS[ind][3] / self.specimen_Data['NRM']] 
+        ptrm_dir = [self.PTRMS[ind][1], self.PTRMS[ind][2], self.PTRMS[ind][3] / self.specimen_Data['NRM']]
         ptrm_cart = lib_direct.dir2cart(ptrm_dir)
         gamma = lib_direct.get_gamma(B_lab_dir, ptrm_dir)
         self.pars['ptrm_dir'] = ptrm_dir
@@ -422,20 +422,20 @@ class PintPars(object):
 
 
 # ptrm statistics begin here
-    
+
     def get_n_ptrm(self):
         tmin, tmax = self.tmin, self.tmax
         ptrm_temps, ptrm_starting_temps = self.ptrm_checks_temperatures, self.ptrm_checks_starting_temperatures
         n, steps = lib_ptrm.get_n_ptrm(tmin, tmax, ptrm_temps, ptrm_starting_temps)
         self.pars['n_ptrm'] = n
         self.pars['ptrm_checks_included_temps'] = steps
-        
+
     def get_max_ptrm_check(self):
         ptrm_checks_included_temps = self.pars['ptrm_checks_included_temps']
         ptrm_checks = self.ptrm_checks_temperatures
         ptrm_x = self.x_ptrm_check
         x_Arai, t_Arai = self.x_Arai, self.t_Arai
-        ptrm_checks, max_ptrm_check, sum_ptrm_checks, check_percent, sum_abs_ptrm_checks = lib_ptrm.get_max_ptrm_check(ptrm_checks_included_temps, 
+        ptrm_checks, max_ptrm_check, sum_ptrm_checks, check_percent, sum_abs_ptrm_checks = lib_ptrm.get_max_ptrm_check(ptrm_checks_included_temps,
             ptrm_checks, ptrm_x, t_Arai, x_Arai)
         self.pars['ptrm_checks'] = ptrm_checks
         self.pars['max_ptrm_check_percent'] = check_percent
@@ -468,7 +468,7 @@ class PintPars(object):
         return max_DEV
 
     def get_CDRAT(self):
-        CDRAT, CDRAT_prime = lib_ptrm.get_CDRAT(self.pars['length_best_fit_line'], self.pars['sum_ptrm_checks'], 
+        CDRAT, CDRAT_prime = lib_ptrm.get_CDRAT(self.pars['length_best_fit_line'], self.pars['sum_ptrm_checks'],
                                                 self.pars['sum_abs_ptrm_checks'])
         self.pars['CDRAT'], self.pars['CDRAT_prime'] = CDRAT, CDRAT_prime
         return CDRAT, CDRAT_prime
@@ -480,24 +480,24 @@ class PintPars(object):
         return DRATS
 
     def get_mean_DRAT(self):
-        mean_DRAT, mean_DRAT_prime = lib_ptrm.get_mean_DRAT(self.pars['sum_ptrm_checks'], self.pars['sum_abs_ptrm_checks'], 
+        mean_DRAT, mean_DRAT_prime = lib_ptrm.get_mean_DRAT(self.pars['sum_ptrm_checks'], self.pars['sum_abs_ptrm_checks'],
                                                             self.pars['n_ptrm'], self.pars['length_best_fit_line'])
         self.pars['mean_DRAT'] = mean_DRAT
         self.pars['mean_DRAT_prime'] = mean_DRAT_prime
         return mean_DRAT, mean_DRAT_prime
 
     def get_mean_DEV(self):
-        mean_DEV, mean_DEV_prime = lib_ptrm.get_mean_DEV(self.pars['sum_ptrm_checks'], self.pars['sum_abs_ptrm_checks'], 
+        mean_DEV, mean_DEV_prime = lib_ptrm.get_mean_DEV(self.pars['sum_ptrm_checks'], self.pars['sum_abs_ptrm_checks'],
                                                          self.pars['n_ptrm'], self.pars['delta_x_prime'])
         self.pars['mean_DEV'] = mean_DEV
         self.pars['mean_DEV_prime'] = mean_DEV_prime
 
-    def get_delta_pal(self): 
+    def get_delta_pal(self):
         if self.pars['n_ptrm'] == 0: # otherwise will error if no ptrm checks
             self.pars['delta_pal'] = 0
             return 0
         ptrms_segment, checks_segment = lib_ptrm.get_segments(self.PTRMS, self.PTRM_Checks, self.tmax)
-        delta_pal = lib_ptrm.get_full_delta_pal(self.PTRMS, self.PTRM_Checks, self.NRM, self.pars['y_err'], 
+        delta_pal = lib_ptrm.get_full_delta_pal(self.PTRMS, self.PTRM_Checks, self.NRM, self.pars['y_err'],
                                                 self.y_Arai_mean, self.pars['specimen_b'], self.start, self.end,
                                                 self.y_Arai_segment)
         self.pars['delta_pal'] = delta_pal
@@ -515,7 +515,7 @@ class PintPars(object):
 
     def get_max_tail_check(self):
         if len(self.y_tail_check) > 0:
-            tail_check_max, tail_check_diffs = lib_tail.get_max_tail_check(self.y_Arai, self.y_tail_check, self.t_Arai, 
+            tail_check_max, tail_check_diffs = lib_tail.get_max_tail_check(self.y_Arai, self.y_tail_check, self.t_Arai,
                                                                            self.tail_checks_temperatures, self.pars['n_tail'])
         else:
             tail_check_max, tail_check_diffs = 0, [0]
@@ -590,7 +590,7 @@ class PintPars(object):
         self.get_alpha()
         self.get_DANG()
         self.get_NRM_dev()
-        self.get_theta() 
+        self.get_theta()
         self.get_gamma()
         # ptrm check statistics
         self.get_n_ptrm()
@@ -629,64 +629,64 @@ class PintPars(object):
         'alpha': get_alpha,
         'alpha_prime': get_alpha_prime,
         'R_corr2': get_R_corr2,
-        'PCA_sigma_int_Free': get_dec_and_inc, 
+        'PCA_sigma_int_Free': get_dec_and_inc,
         'PCA_sigma_max_Free': get_dec_and_inc,
-        'n_tail': get_n_tail, 
-        'delta_pal': get_delta_pal, 
+        'n_tail': get_n_tail,
+        'delta_pal': get_delta_pal,
         'DRAT_tail': get_DRAT_tail,
-        'MD_VDS': get_MD_VDS, 
-        'n_add': get_n_add, 
-        'delta_AC': get_delta_AC, 
-        'y_Arai_mean': None, 
-        'MAD_Free': get_MAD, 
-        'n_ptrm': get_n_ptrm, 
-        'DRAT': get_DRAT, 
-        'IZZI_MD': get_IZZI_MD, 
-        'FRAC': get_FRAC, 
-        'CDRAT': get_CDRAT, 
-        'Dec_Free': get_dec_and_inc, 
-        'mean_DEV': get_mean_DEV, 
-        'DRATS': get_DRATS, 
-        'Z': get_Z, 
-        'max_DEV': get_max_DEV, 
-        'fail_arai_beta_box_scatter': get_SCAT, 
-        'GAP-MAX': get_vds, 
-        'pTRM_MAD_Free': get_ptrm_MAD, 
-        'ptrms_dec_Free': get_ptrm_dec_and_inc, 
-        'MAD_Anc': get_MAD, 
-        'fail_ptrm_beta_box_scatter': get_SCAT, 
-        'ptrms_angle_Free': get_ptrm_dec_and_inc, 
-        'scat_bounding_line_low': get_SCAT, 
-        'PCA_sigma_min_Free': get_dec_and_inc, 
-        'B_anc': York_Regression, 
-        'SCAT': get_SCAT, 
-        'R_det2': get_R_det2, 
-        'best_fit_vector_Free': get_dec_and_inc, 
-        'specimen_b_beta': York_Regression, 
-        'specimen_YT': York_Regression, 
-        'delta_CK': get_delta_CK, 
-        'lab_dc_field': None, 
-        'Inc_Free': get_dec_and_inc, 
-        'mean_DRAT': get_mean_DRAT, 
-        'theta': get_theta, 
-        'max_ptrm_check': get_max_ptrm_check, 
-        'tmin': None, 
-        'x_Arai_mean': None, 
-        'fail_tail_beta_box_scatter': get_SCAT, 
-        'delta_TR': get_delta_TR, 
-        'alpha': get_alpha, 
-        'specimen_fvds': get_vds, 
-        'specimen_b_sigma': York_Regression, 
-        'specimen_b': York_Regression, 
-        'specimen_g': York_Regression, 
-        'specimen_f': York_Regression, 
-        'tmax': None, 
-        'specimen_int_n': None, 
-        'specimen_q': York_Regression, 
-        'DANG': get_DANG, 
-        'ptrms_inc_Free': get_ptrm_dec_and_inc, 
-        'SSE': get_curve, 
-        'gamma': get_gamma, 
+        'MD_VDS': get_MD_VDS,
+        'n_add': get_n_add,
+        'delta_AC': get_delta_AC,
+        'y_Arai_mean': None,
+        'MAD_Free': get_MAD,
+        'n_ptrm': get_n_ptrm,
+        'DRAT': get_DRAT,
+        'IZZI_MD': get_IZZI_MD,
+        'FRAC': get_FRAC,
+        'CDRAT': get_CDRAT,
+        'Dec_Free': get_dec_and_inc,
+        'mean_DEV': get_mean_DEV,
+        'DRATS': get_DRATS,
+        'Z': get_Z,
+        'max_DEV': get_max_DEV,
+        'fail_arai_beta_box_scatter': get_SCAT,
+        'GAP-MAX': get_vds,
+        'pTRM_MAD_Free': get_ptrm_MAD,
+        'ptrms_dec_Free': get_ptrm_dec_and_inc,
+        'MAD_Anc': get_MAD,
+        'fail_ptrm_beta_box_scatter': get_SCAT,
+        'ptrms_angle_Free': get_ptrm_dec_and_inc,
+        'scat_bounding_line_low': get_SCAT,
+        'PCA_sigma_min_Free': get_dec_and_inc,
+        'B_anc': York_Regression,
+        'SCAT': get_SCAT,
+        'R_det2': get_R_det2,
+        'best_fit_vector_Free': get_dec_and_inc,
+        'specimen_b_beta': York_Regression,
+        'specimen_YT': York_Regression,
+        'delta_CK': get_delta_CK,
+        'lab_dc_field': None,
+        'Inc_Free': get_dec_and_inc,
+        'mean_DRAT': get_mean_DRAT,
+        'theta': get_theta,
+        'max_ptrm_check': get_max_ptrm_check,
+        'tmin': None,
+        'x_Arai_mean': None,
+        'fail_tail_beta_box_scatter': get_SCAT,
+        'delta_TR': get_delta_TR,
+        'alpha': get_alpha,
+        'specimen_fvds': get_vds,
+        'specimen_b_sigma': York_Regression,
+        'specimen_b': York_Regression,
+        'specimen_g': York_Regression,
+        'specimen_f': York_Regression,
+        'tmax': None,
+        'specimen_int_n': None,
+        'specimen_q': York_Regression,
+        'DANG': get_DANG,
+        'ptrms_inc_Free': get_ptrm_dec_and_inc,
+        'SSE': get_curve,
+        'gamma': get_gamma,
         'scat_bounding_line_high': get_SCAT,
         'specimen_k': get_curve,
         'specimen_int_crm': get_CRM_percent,
@@ -743,7 +743,7 @@ class PintPars(object):
                     if 'York_Regression' not in stats_run:
                         func(self)
                         stats_run.append(func.__name__)
-                elif func.__name__ in self.dependencies: 
+                elif func.__name__ in self.dependencies:
                     for d in self.dependencies[func.__name__]:
                         if d == None: continue
                         #print 'd: ', d,
@@ -786,7 +786,7 @@ def make_thing():
     except Exception as ex:
         print 'could not make standard specimen objects'
         print ex
-    
+
 
 #thing2 = PintPars(gui.Data, specimens[0], 473., 623.)
 #thing2.calculate_all_statistics()
@@ -808,6 +808,3 @@ def make_thing():
 #gui7 = tgs.Arai_GUI('consistency_tests/Paterson_etal_2010_magic_measurements.txt')
 #gui8 = tgs.Arai_GUI('consistency_tests/Selkin_etal_2000_magic_measurements.txt')
 #gui10 = tgs.Arai_GUI('consistency_tests/Yamamoto_etal_2003_magic_measurements.txt')
-
-
-

@@ -4,7 +4,7 @@ import os,sys
 import pmagpy.pmag as pmag
 import pmagpy.new_builder as nb
 from pandas import DataFrame
-from SPD.mapping import map_magic as mapm
+from pmagpy.mapping import map_magic as mapm
 
 
 def main(command_line=True, **kwargs):

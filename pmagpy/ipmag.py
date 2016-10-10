@@ -16,7 +16,7 @@ import math
 #from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigureCanvas
 #from matplotlib.backends.backend_wx import NavigationToolbar2Wx
 from matplotlib.figure import Figure
-import SPD.mapping.map_magic as map_magic
+from mapping import map_magic
 
 
 def igrf(input_list):
