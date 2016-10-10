@@ -28,9 +28,10 @@ if __name__ == "__main__":
     #suite10 = unittest.TestLoader().loadTestsFromModule(pt.test_programs)
     suite11 = unittest.TestLoader().loadTestsFromModule(pt.test_pmag_gui3)
     suite12 = unittest.TestLoader().loadTestsFromModule(pt.test_magic_gui3)
+    suite13 = unittest.TestLoader().loadTestsFromModule(pt.test_new_builder)
     full = unittest.TestSuite([suite1, suite2, suite3, suite4,
                                suite5, suite7, suite8,
-                               suite9, suite11, suite12])
+                               suite9, suite11, suite12, suite13])
     #print 'full', full
     #print 'type(full)', type(full)
     #runner = unittest.TextTestRunner(verbosity=3)

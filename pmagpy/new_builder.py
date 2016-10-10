@@ -392,6 +392,7 @@ class MagicDataFrame(object):
         # make sure all required arguments are present
         if not magic_file and not dtype and not isinstance(df, pd.DataFrame):
             print "-W- To make a MagicDataFrame, you must provide either a filename or a datatype"
+            self.df = None
             return
         # fetch data model if not provided
         if isinstance(dmodel, type(None)):
