@@ -47,6 +47,39 @@ class TestMagicDataFrame(unittest.TestCase):
         self.assertIn('new_col', magic_df.df.columns)
         self.assertEqual('new_val', magic_df.df.iloc[3]['new_col'])
 
+
+    def test_add_row(self):
+        magic_df = nb.MagicDataFrame(os.path.join(WD, 'sites.txt'), dmodel=dmodel)
+        old_len = len(magic_df.df)
+        magic_df.add_row('new_site', {'new_col': 'new_val'})
+        self.assertEqual('new_val', magic_df.df.iloc[-1]['new_col'])
+        self.assertEqual(old_len + 1, len(magic_df.df))
+
+
+    def test_add_blank_row(self):
+        magic_df = nb.MagicDataFrame(os.path.join(WD, 'sites.txt'), dmodel=dmodel)
+        old_len = len(magic_df.df)
+        magic_df.add_blank_row('blank_site')
+        self.assertIn('blank_site', magic_df.df.index)
+        self.assertEqual(old_len + 1, len(magic_df.df))
+
+
+    def test_delete_row(self):
+        magic_df = nb.MagicDataFrame(os.path.join(WD, 'sites.txt'), dmodel=dmodel)
+        old_len = len(magic_df.df)
+        magic_df.delete_row(5)
+        self.assertEqual(old_len - 1, len(magic_df.df))
+        self.assertEqual('3', magic_df.df.iloc[5].name)
+
+
+    def test_delete_rows(self):
+        magic_df = nb.MagicDataFrame(os.path.join(WD, 'sites.txt'), dmodel=dmodel)
+        cond = magic_df.df['description'].str.contains('VGP').astype(bool)
+        # delete all rows that aren't described as VGPs
+        magic_df.delete_rows(cond)
+        for descr in magic_df.df['description'].values:
+            self.assertTrue('VGP' in descr)
+
 class TestContribution(unittest.TestCase):
 
     def setUp(self):
