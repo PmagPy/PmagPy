@@ -5,6 +5,7 @@ import os,wx,sys,shutil
 import wx.lib.inspection
 import random as rn
 from pmagpy.demag_gui_utilities import *
+import pmagpy.check_updates as check_updates
 from programs import demag_gui
 
 class TestDemagGUI(unittest.TestCase):
@@ -710,16 +711,16 @@ def revert_from_backup(WD):
 
 if __name__ == '__main__':
 
-    WD = sys.prefix
+    WD = check_updates.get_pmag_dir()
     if '-d' in sys.argv:
         d_index = sys.argv.index('-d')
-        project_WD = os.path.join(os.getcwd(),sys.argv[d_index+1])
+        project_WD = os.path.join(WD,sys.argv[d_index+1])
     elif '--dir' in sys.argv:
         d_index = sys.argv.index('--dir')
-        project_WD = os.path.join(os.getcwd(),sys.argv[d_index+1])
+        project_WD = os.path.join(WD,sys.argv[d_index+1])
     else:
-        project_WD = os.path.join(os.getcwd(), 'pmagpy_tests', 'examples', 'demag_test_data')
-    core_depthplot_WD = os.path.join(WD, 'pmagpy_data_files', 'core_depthplot')
+        project_WD = os.path.join(WD, 'pmagpy_tests', 'examples', 'demag_test_data')
+    core_depthplot_WD = os.path.join(WD, 'data_files', 'core_depthplot')
     empty_WD = os.path.join(os.getcwd(), 'pmagpy_tests', 'examples', 'empty_dir')
     if '-e' in sys.argv:
         e_index = sys.argv.index('-e')
@@ -737,3 +738,10 @@ if __name__ == '__main__':
     backup(project_WD)
     unittest.TextTestRunner().run(unittest.TestLoader().loadTestsFromTestCase(TestDemagGUI))
     revert_from_backup(project_WD)
+else:
+    WD = check_updates.get_pmag_dir()
+    project_WD = os.path.join(WD, 'pmagpy_tests', 'examples', 'demag_test_data')
+    core_depthplot_WD = os.path.join(WD, 'data_files', 'core_depthplot')
+    empty_WD = os.path.join(os.getcwd(), 'pmagpy_tests', 'examples', 'empty_dir')
+    allowable_float_error = 0.1
+    n_fits = 3

@@ -11,14 +11,14 @@ import os
 import sys
 import pmagpy.builder2 as builder
 from pmagpy import validate_upload2 as validate_upload
+import pmagpy.check_updates as check_updates
 
-WD = sys.prefix
+WD = check_updates.get_pmag_dir()
 data_dir = os.path.join(WD, 'pmagpy_data_files')
 if not os.path.exists(data_dir):
-    data_dir = os.path.join(os.getcwd(), 'data_files')
+    data_dir = os.path.join(WD, 'data_files')
 data_model = validate_upload.get_data_model()
 
-    
 class TestBuilder(unittest.TestCase):
     """
     Test ErMagicBuilder data structure

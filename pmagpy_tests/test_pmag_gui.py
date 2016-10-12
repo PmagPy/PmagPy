@@ -7,11 +7,12 @@ import wx
 #import wx.lib.inspection
 import programs.pmag_gui as pmag_gui
 import dialogs.pmag_menu_dialogs as pmag_menu_dialogs
+import pmagpy.check_updates as check_updates
 
 # get WD before all the Pmag GUI stuff starts to happen
-WD = sys.prefix
-project_WD = os.path.join(WD, 'pmagpy_data_files', 'testing', 'my_project')
-core_depthplot_WD = os.path.join(WD, 'pmagpy_data_files',
+WD = check_updates.get_pmag_dir()
+project_WD = os.path.join(WD, 'data_files', 'testing', 'my_project')
+core_depthplot_WD = os.path.join(WD, 'data_files',
                                  'testing', 'core_depthplot')
 
 

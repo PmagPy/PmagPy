@@ -11,8 +11,8 @@ import programs.iodp_dscr_magic as iodp_dscr_magic
 import programs.iodp_jr6_magic as iodp_jr6_magic
 import programs._2g_bin_magic as _2g_bin_magic
 import programs.bgc_magic as bgc_magic
-WD = sys.prefix
-
+import pmagpy.check_updates as check_updates
+WD = check_updates.get_pmag_dir()
 
 class Test_sio_magic(unittest.TestCase):
 
@@ -21,7 +21,7 @@ class Test_sio_magic(unittest.TestCase):
 
     def tearDown(self):
         filelist = ['sio_af_example.magic']
-        directory = os.path.join(WD, 'pmagpy_data_files', 'Measurement_Import',
+        directory = os.path.join(WD, 'data_files', 'Measurement_Import',
                                  'sio_magic')
         pmag.remove_files(filelist, directory)
 
@@ -32,10 +32,10 @@ class Test_sio_magic(unittest.TestCase):
 
     def test_sio_magic_success(self):
         options = {}
-        options['mag_file'] = os.path.join(WD, 'pmagpy_data_files',
+        options['mag_file'] = os.path.join(WD, 'data_files',
                                            'Measurement_Import', 'sio_magic',
                                            'sio_af_example.dat')
-        meas_file = os.path.join(WD, 'pmagpy_data_files', 'Measurement_Import',
+        meas_file = os.path.join(WD, 'data_files', 'Measurement_Import',
                                  'sio_magic', 'sio_af_example.magic')
         options['meas_file'] = meas_file
         program_ran, file_name = sio_magic.main(False, **options)
@@ -44,10 +44,10 @@ class Test_sio_magic(unittest.TestCase):
 
     def test_sio_magic_fail_option4(self):
         options = {}
-        options['mag_file'] = os.path.join(WD, 'pmagpy_data_files',
+        options['mag_file'] = os.path.join(WD, 'data_files',
                                            'Measurement_Import', 'sio_magic',
                                            'sio_af_example.dat')
-        meas_file = os.path.join(WD, 'pmagpy_data_files', 'Measurement_Import',
+        meas_file = os.path.join(WD, 'data_files', 'Measurement_Import',
                                  'sio_magic', 'sio_af_example.magic')
         options['meas_file'] = meas_file
         options['samp_con'] = '4'
@@ -57,10 +57,10 @@ class Test_sio_magic(unittest.TestCase):
 
     def test_sio_magic_succeed_option4(self):
         options = {}
-        options['mag_file'] = os.path.join(WD, 'pmagpy_data_files',
+        options['mag_file'] = os.path.join(WD, 'data_files',
                                            'Measurement_Import', 'sio_magic',
                                            'sio_af_example.dat')
-        meas_file = os.path.join(WD, 'pmagpy_data_files', 'Measurement_Import',
+        meas_file = os.path.join(WD, 'data_files', 'Measurement_Import',
                                  'sio_magic', 'sio_af_example.magic')
         options['meas_file'] = meas_file
         options['samp_con'] = '4-2'
@@ -71,10 +71,10 @@ class Test_sio_magic(unittest.TestCase):
 
     def test_sio_magic_fail_with_coil(self):
         options = {}
-        options['mag_file'] = os.path.join(WD, 'pmagpy_data_files',
+        options['mag_file'] = os.path.join(WD, 'data_files',
                                            'Measurement_Import', 'sio_magic',
                                            'sio_af_example.dat')
-        meas_file = os.path.join(WD, 'pmagpy_data_files', 'Measurement_Import',
+        meas_file = os.path.join(WD, 'data_files', 'Measurement_Import',
                                  'sio_magic', 'sio_af_example.magic')
         options['meas_file'] = meas_file
         options['coil'] = 4
@@ -84,10 +84,10 @@ class Test_sio_magic(unittest.TestCase):
 
     def test_sio_magic_succeed_with_coil(self):
         options = {}
-        options['mag_file'] = os.path.join(WD, 'pmagpy_data_files',
+        options['mag_file'] = os.path.join(WD, 'data_files',
                                            'Measurement_Import', 'sio_magic',
                                            'sio_af_example.dat')
-        meas_file = os.path.join(WD, 'pmagpy_data_files', 'Measurement_Import',
+        meas_file = os.path.join(WD, 'data_files', 'Measurement_Import',
                                  'sio_magic', 'sio_af_example.magic')
         options['meas_file'] = meas_file
         options['coil'] = '1'
@@ -112,7 +112,7 @@ class Test_cit_magic(unittest.TestCase):
 
     def test_cit_magic_with_file(self):
         options = {}
-        options['input_dir_path'] = os.path.join(WD, 'pmagpy_data_files',
+        options['input_dir_path'] = os.path.join(WD, 'data_files',
                                                  'Measurement_Import',
                                                  'cit_magic', 'MP18')
         options['magfile'] = 'bMP.sam'
@@ -123,7 +123,7 @@ class Test_cit_magic(unittest.TestCase):
 
     def test_cit_magic_fail_option4(self):
         options = {}
-        options['input_dir_path'] = os.path.join(WD, 'pmagpy_data_files',
+        options['input_dir_path'] = os.path.join(WD, 'data_files',
                                                  'Measurement_Import',
                                                  'cit_magic', 'MP18')
         options['magfile'] = 'bMP.sam'
@@ -134,7 +134,7 @@ class Test_cit_magic(unittest.TestCase):
 
     def test_cit_magic_succeed_option4(self):
         options = {}
-        options['input_dir_path'] = os.path.join(WD, 'pmagpy_data_files',
+        options['input_dir_path'] = os.path.join(WD, 'data_files',
                                                  'Measurement_Import',
                                                  'cit_magic', 'MP18')
         options['magfile'] = 'bMP.sam'
@@ -146,7 +146,7 @@ class Test_cit_magic(unittest.TestCase):
 
     def test_cit_magic_with_options(self):
         options = {}
-        options['input_dir_path'] = os.path.join(WD, 'pmagpy_data_files',
+        options['input_dir_path'] = os.path.join(WD, 'data_files',
                                                  'Measurement_Import',
                                                  'cit_magic', 'MP18')
         options['magfile'] = 'bMP.sam'
@@ -162,7 +162,7 @@ class Test_cit_magic(unittest.TestCase):
 
     def test_cit_magic_with_other_data(self):
         options = {}
-        options['input_dir_path'] = os.path.join(WD, 'pmagpy_data_files',
+        options['input_dir_path'] = os.path.join(WD, 'data_files',
                                                  'Measurement_Import',
                                                  'cit_magic', 'Z35')
         options['magfile'] = 'Z35.sam'
@@ -195,7 +195,7 @@ class Test_iodp_srm_magic(unittest.TestCase):
     @unittest.skip("iodp_srm_magic is missing an example datafile")
     def test_iodp_with_files(self):
         options = {}
-        dir_path = os.path.join(WD, 'pmagpy_data_files', 'Measurement_Import',
+        dir_path = os.path.join(WD, 'data_files', 'Measurement_Import',
                                 'iodp_srm_magic')
         options['dir_path'] = dir_path
         program_ran, outfile = iodp_srm_magic.main(False, **options)
@@ -204,9 +204,9 @@ class Test_iodp_srm_magic(unittest.TestCase):
     #@unittest.skip("iodp_srm_magic is missing an example datafile")
     def test_iodp_with_one_file(self):
         options = {}
-        #dir_path = os.path.join(WD, 'pmagpy_data_files', 'Measurement_Import',
+        #dir_path = os.path.join(WD, 'data_files', 'Measurement_Import',
         # 'iodp_srm_magic')
-        dir_path = os.path.join(WD, 'pmagpy_data_files', 'UTESTA', 'SRM_data')
+        dir_path = os.path.join(WD, 'data_files', 'UTESTA', 'SRM_data')
         options['input_dir_path'] = dir_path
         options['csv_file'] = 'srmsection-XXX-UTEST-A.csv'
         program_ran, outfile = iodp_srm_magic.main(False, **options)
@@ -232,9 +232,9 @@ class Test_iodp_dscr_magic(unittest.TestCase):
     #@unittest.skip("iodp_srm_magic is missing an example datafile")
     def test_iodp_with_one_file(self):
         options = {}
-        #dir_path = os.path.join(WD, 'pmagpy_data_files', 'Measurement_Import',
+        #dir_path = os.path.join(WD, 'data_files', 'Measurement_Import',
         #'iodp_srm_magic')
-        dir_path = os.path.join(WD, 'pmagpy_data_files', 'UTESTA', 'SRM_data')
+        dir_path = os.path.join(WD, 'data_files', 'UTESTA', 'SRM_data')
         options['input_dir_path'] = dir_path
         options['csv_file'] = 'srmdiscrete-XXX-UTEST-A.csv'
         program_ran, outfile = iodp_dscr_magic.main(False, **options)
@@ -251,7 +251,7 @@ class Test_iodp_jr6_magic(unittest.TestCase):
         files = ['test.magic', 'other_er_samples.txt']
         pmag.remove_files(files, WD)
         # then, make sure that hidden_er_samples.txt has been successfully renamed to er_samples.txt
-        input_dir = os.path.join(WD, 'pmagpy_data_files', 'Measurement_Import',
+        input_dir = os.path.join(WD, 'data_files', 'Measurement_Import',
                                  'iodp_jr6_magic')
         hidden_sampfile = os.path.join(input_dir, 'hidden_er_samples.txt')
         sampfile = os.path.join(input_dir, 'er_samples.txt')
@@ -267,7 +267,7 @@ class Test_iodp_jr6_magic(unittest.TestCase):
     #@unittest.skipIf('win32' in sys.platform or 'win62' in sys.platform, "Requires up to date version of pandas")
     def test_iodp_jr6_with_magfile(self):
         options = {}
-        input_dir = os.path.join(WD, 'pmagpy_data_files', 'Measurement_Import',
+        input_dir = os.path.join(WD, 'data_files', 'Measurement_Import',
                                  'iodp_jr6_magic')
         options['input_dir_path'] = input_dir
         mag_file = 'test.jr6'
@@ -281,7 +281,7 @@ class Test_iodp_jr6_magic(unittest.TestCase):
     #@unittest.skipIf('win32' in sys.platform or 'win62' in sys.platform, "Requires up to date version of pandas")
     def test_iodp_jr6_with_options(self):
         options = {}
-        input_dir = os.path.join(WD, 'pmagpy_data_files', 'Measurement_Import',
+        input_dir = os.path.join(WD, 'data_files', 'Measurement_Import',
                                  'iodp_jr6_magic')
         options['input_dir_path'] = input_dir
         mag_file = 'test.jr6'
@@ -296,7 +296,7 @@ class Test_iodp_jr6_magic(unittest.TestCase):
     #@unittest.skipIf('win32' in sys.platform or 'win62' in sys.platform, "Requires up to date version of pandas")
     def test_iodp_jr6_with_magfile_but_hidden_sampfile(self):
         options = {}
-        input_dir = os.path.join(WD, 'pmagpy_data_files', 'Measurement_Import',
+        input_dir = os.path.join(WD, 'data_files', 'Measurement_Import',
                                  'iodp_jr6_magic')
         samp_file = os.path.join(input_dir, 'er_samples.txt')
         hidden_samp_file = os.path.join(input_dir, 'hidden_er_samples.txt')
@@ -317,7 +317,7 @@ class Test2g_bin_magic(unittest.TestCase):
         os.chdir(WD)
 
     def tearDown(self):
-        #input_dir = os.path.join(WD, 'pmagpy_data_files', 'Measurement_Import',
+        #input_dir = os.path.join(WD, 'data_files', 'Measurement_Import',
         #'iodp_jr6_magic')
         #files = ['test.magic', 'other_er_samples.txt']
         files = ['mn001-1a.magic', 'er_samples.txt', 'er_sites.txt',
@@ -332,7 +332,7 @@ class Test2g_bin_magic(unittest.TestCase):
 
     def test_2g_with_files(self):
         options = {}
-        options['ID'] = os.path.join(WD, 'pmagpy_data_files', 'Measurement_Import',
+        options['ID'] = os.path.join(WD, 'data_files', 'Measurement_Import',
                                      '2g_bin_magic', 'mn1')
         options['mag_file'] = 'mn001-1a.dat'
         program_ran, outfile = _2g_bin_magic.main(False, **options)
@@ -343,7 +343,7 @@ class Test2g_bin_magic(unittest.TestCase):
 
     def test_2g_fail_option4(self):
         options = {}
-        options['input_dir_path'] = os.path.join(WD, 'pmagpy_data_files',
+        options['input_dir_path'] = os.path.join(WD, 'data_files',
                                                  'Measurement_Import',
                                                  '2g_bin_magic', 'mn1')
         options['magfile'] =  'mn001-1a.dat'
@@ -354,7 +354,7 @@ class Test2g_bin_magic(unittest.TestCase):
 
     def test_2g_succeed_option4(self):
         options = {}
-        options['ID'] = os.path.join(WD, 'pmagpy_data_files', 'Measurement_Import',
+        options['ID'] = os.path.join(WD, 'data_files', 'Measurement_Import',
                                      '2g_bin_magic', 'mn1')
         options['mag_file'] =  'mn001-1a.dat'
         options['samp_con'] = '4-3'
@@ -364,7 +364,7 @@ class Test2g_bin_magic(unittest.TestCase):
 
     def test_2g_fail_option7(self):
         options = {}
-        options['ID'] = os.path.join(WD, 'pmagpy_data_files', 'Measurement_Import',
+        options['ID'] = os.path.join(WD, 'data_files', 'Measurement_Import',
                                      '2g_bin_magic', 'mn1')
         options['mag_file'] = 'mn001-1a.dat'
         options['samp_con'] = '7'
@@ -374,7 +374,7 @@ class Test2g_bin_magic(unittest.TestCase):
 
     def test_2g_succeed_option7(self):
         options = {}
-        options['ID'] = os.path.join(WD, 'pmagpy_data_files', 'Measurement_Import',
+        options['ID'] = os.path.join(WD, 'data_files', 'Measurement_Import',
                                      '2g_bin_magic', 'mn1')
         options['mag_file'] = 'mn001-1a.dat'
         options['samp_con'] = '7-3'
@@ -384,7 +384,7 @@ class Test2g_bin_magic(unittest.TestCase):
 
     def test_2g_fail_option6(self):
         options = {}
-        options['ID'] = os.path.join(WD, 'pmagpy_data_files', 'Measurement_Import',
+        options['ID'] = os.path.join(WD, 'data_files', 'Measurement_Import',
                                      '2g_bin_magic', 'mn1')
         options['mag_file'] =  'mn001-1a.dat'
         options['samp_con'] = '6'
@@ -394,7 +394,7 @@ class Test2g_bin_magic(unittest.TestCase):
 
     def test_2g_with_bad_file(self):
         options = {}
-        options['ID'] = os.path.join(WD, 'pmagpy_data_files', 'Measurement_Import',
+        options['ID'] = os.path.join(WD, 'data_files', 'Measurement_Import',
                                      '2g_bin_magic', 'mn1')
         options['mag_file'] =  'mn001-1ax.dat'
         program_ran, error_message = _2g_bin_magic.main(False, **options)
@@ -403,7 +403,7 @@ class Test2g_bin_magic(unittest.TestCase):
 
     def test_2g_with_options(self):
         options = {}
-        options['ID'] = os.path.join(WD, 'pmagpy_data_files', 'Measurement_Import',
+        options['ID'] = os.path.join(WD, 'data_files', 'Measurement_Import',
                                      '2g_bin_magic', 'mn1')
         options['mag_file'] = 'mn001-1a.dat'
         options['meas_file'] = 'mn001-1a.magic'
@@ -421,7 +421,7 @@ class Test2g_bin_magic(unittest.TestCase):
 class Test_bgc_magic(unittest.TestCase):
 
     def setUp(self):
-        self.input_dir = os.path.join(WD, 'pmagpy_data_files',
+        self.input_dir = os.path.join(WD, 'data_files',
                                       'Measurement_Import', 'bgc_magic')
         os.chdir(WD)
 

@@ -12,10 +12,11 @@ import wx
 #import pmag_menu_dialogs
 from programs import thellier_gui
 import dialogs.thellier_interpreter as thellier_interpreter
+import pmagpy.check_updates as check_updates
 
 # get WD before all the Pmag GUI stuff starts to happen
-WD = sys.prefix
-project_WD = os.path.join(WD, 'pmagpy_data_files', 'testing', 'my_project')
+WD = check_updates.get_pmag_dir()
+project_WD = os.path.join(WD, 'data_files', 'testing', 'my_project')
 
 
 class TestMainFrame(unittest.TestCase):

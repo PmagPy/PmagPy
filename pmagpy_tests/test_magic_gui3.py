@@ -10,10 +10,9 @@ import programs.magic_gui3 as magic_gui
 import pmagpy.new_builder as nb
 import dialogs.grid_frame3 as grid_frame
 import dialogs.pmag_widgets as pmag_widgets
+import pmagpy.check_updates as check_updates
 
-WD = os.path.join(sys.prefix, "pmagpy_data_files", "magic_gui", "3_0")
-
-
+WD = os.path.join(check_updates.get_pmag_dir(), "data_files", "magic_gui", "3_0")
 
 class TestMainFrame(unittest.TestCase):
 

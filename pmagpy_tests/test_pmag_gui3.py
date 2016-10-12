@@ -8,11 +8,12 @@ import wx
 #import wx.lib.inspection
 import programs.pmag_gui3 as pmag_gui
 from pmagpy import new_builder as nb
+import pmagpy.check_updates as check_updates
 #import dialogs.pmag_menu_dialogs as pmag_menu_dialogs
 
 # get WD before all the Pmag GUI stuff starts to happen
-WD = sys.prefix
-project_WD = os.path.join(WD, "pmagpy_data_files", "Pmag_GUI", "3_0")
+WD = check_updates.get_pmag_dir()
+project_WD = os.path.join(WD, "data_files", "Pmag_GUI", "3_0")
 test_dir = os.getcwd()
 
 class TestMainFrame(unittest.TestCase):

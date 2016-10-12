@@ -4,15 +4,15 @@ import unittest
 import sys
 import os
 import wx
-
+import pmagpy.check_updates as check_updates
 import dialogs.magic_grid as magic_grid
 
 #import wx.lib.inspection
 #import numpy as np
 #import ipmag
 
-WD = sys.prefix
-project_WD = os.path.join(WD, 'pmagpy_data_files', 'testing', 'my_project')
+WD = check_updates.get_pmag_dir()
+project_WD = os.path.join(WD, 'data_files', 'testing', 'my_project')
 
 class TestMagicGrid(unittest.TestCase):
     """
