@@ -30,7 +30,7 @@ from programs import jr6_txt_magic
 from programs import jr6_jr6_magic
 from programs import iodp_jr6_magic
 from programs import bgc_magic
-import SPD.mapping.map_magic as map_magic
+from pmagpy.mapping import map_magic
 
 
 class import_magnetometer_data(wx.Dialog):

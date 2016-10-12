@@ -12,7 +12,7 @@ import pandas as pd
 #import check_updates
 import scipy
 from scipy import array,sqrt,mean
-from SPD.mapping import map_magic
+from mapping import map_magic
 from pmagpy import new_builder as nb
 
 #pylint: skip-file

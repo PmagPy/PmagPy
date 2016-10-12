@@ -16,24 +16,33 @@ import math
 #from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigureCanvas
 #from matplotlib.backends.backend_wx import NavigationToolbar2Wx
 from matplotlib.figure import Figure
-import SPD.mapping.map_magic as map_magic
+from mapping import map_magic
 
 
 def igrf(input_list):
     """
-    Prints out Declination, Inclination, Intensity from the IGRF model.
+    Determine Declination, Inclination, Intensity from the IGRF model.
 
     Parameters
     ----------
     input_list : list with format [Date, Altitude, Latitude, Longitude]
     Date must be in format XXXX.XXXX with years and decimals of a year (A.D.)
+
+    Returns
+    ----------
+    igrf_array : array of IGRF values (0: dec; 1: inc; 2: intensity)
     """
-    x,y,z,f=pmag.doigrf(input_list[3]%360.,input_list[2],input_list[1],input_list[0])
-    Dir=pmag.cart2dir((x,y,z))
-    return Dir
+    x,y,z,f = pmag.doigrf(input_list[3]%360.,input_list[2],input_list[1],input_list[0])
+    igrf_array = pmag.cart2dir((x,y,z))
+    return igrf_array
 
 
 def igrf_print(igrf_array):
+    """
+    Print out Declination, Inclination, Intensity from an array returned from
+    the igrf function.
+    """
+
     print "Declination: %0.3f"%(igrf_array[0])
     print "Inclination: %0.3f"%(igrf_array[1])
     print "Intensity: %0.3f nT"%(igrf_array[2])

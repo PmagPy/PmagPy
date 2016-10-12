@@ -6,7 +6,9 @@ import version
 import controlled_vocabularies
 import data_model3
 import new_builder
+import mapping
 #import set_env
 
 __all__ = [pmag, ipmag, pmagplotlib, check_updates, version,
-           controlled_vocabularies, data_model3, new_builder]
+           controlled_vocabularies, data_model3, new_builder,
+           mapping]

@@ -77,7 +77,7 @@ import dialogs.demag_dialogs as demag_dialogs
 from copy import deepcopy,copy
 import pmagpy.new_builder as nb
 from pandas import DataFrame,Series
-from SPD.mapping import map_magic
+from pmagpy.mapping import map_magic
 import help_files.demag_gui_help as dgh
 from re import findall
 
@@ -2781,7 +2781,7 @@ class Demag_GUI(wx.Frame):
             mdf = self.con.tables['measurements'].df
             index = self.Data[self.s]['magic_experiment_name'] + str(g_index+1)
             try: mdf.set_value(index,'quality','g')
-            except ValueError: 
+            except ValueError:
                 mdf_tmp = mdf[mdf['specimen']==self.s]
                 valid_data = [i for i in mdf_tmp.index if any(m in self.included_methods and m not in self.excluded_methods for m in mdf_tmp.loc[i]['method_codes'].split(':'))]
                 if len(valid_data)<g_index+1: print("no valid measurement data for index %d"%g_index)
@@ -2816,7 +2816,7 @@ class Demag_GUI(wx.Frame):
             mdf = self.con.tables['measurements'].df
             index = self.Data[self.s]['magic_experiment_name'] + str(g_index+1)
             try: mdf.set_value(index,'quality','b')
-            except ValueError: 
+            except ValueError:
                 mdf_tmp = mdf[mdf['specimen']==self.s]
                 valid_data = [i for i in mdf_tmp.index if any(m in self.included_methods and m not in self.excluded_methods for m in mdf_tmp.loc[i]['method_codes'].split(':'))]
                 if len(valid_data)<g_index+1: print("no valid measurement data for index %d"%g_index)
@@ -2826,7 +2826,7 @@ class Demag_GUI(wx.Frame):
         """
         Marks fit good so it is used in high level means
         @param: fit - fit to mark good
-        @param: spec - specimen of fit to mark good (optional though runtime will increase if not provided) 
+        @param: spec - specimen of fit to mark good (optional though runtime will increase if not provided)
         """
         if spec==None:
             for spec,fits in self.pmag_results_data['specimens'].items():
@@ -3240,7 +3240,7 @@ class Demag_GUI(wx.Frame):
         self.specimens=Data.keys()
 
         for s in self.specimens:
-            if len(Data[s]['zdata'])>0: 
+            if len(Data[s]['zdata'])>0:
                 Data[s]['vector_diffs'].append(sqrt(sum(array(Data[s]['zdata'][-1])**2))) # last vector of the vds
             vds=sum(Data[s]['vector_diffs']) # vds calculation
             Data[s]['vector_diffs']=array(Data[s]['vector_diffs'])

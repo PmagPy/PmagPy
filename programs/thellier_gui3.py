@@ -171,7 +171,7 @@ import sys, pylab, scipy, os
 import pmagpy.pmag as pmag
 from pmagpy import check_updates
 import pmagpy.new_builder as nb
-from SPD.mapping import map_magic
+from pmagpy.mapping import map_magic
 import pmagpy.controlled_vocabularies3 as cv
 #import numpy as np
 try:
@@ -327,7 +327,7 @@ class Arai_GUI(wx.Frame):
             dialog.Destroy()
         self.WD = os.path.realpath(self.WD)
         #self.data_model=2
-        meas_file='magic_measurements.txt' 
+        meas_file='magic_measurements.txt'
         if os.path.exists(os.path.join(self.WD, "measurements.txt")):
             meas_file = os.path.join(self.WD, "measurements.txt")
             self.data_model = 3
@@ -3280,10 +3280,10 @@ class Arai_GUI(wx.Frame):
                     cond2 = self.spec_data['int_abs'].notnull() == True
                     condition = (cond1 & cond2)
                      # update intensity records
-                    self.spec_data=self.spec_container.update_record(specimen, new_data, condition) 
+                    self.spec_data=self.spec_container.update_record(specimen, new_data, condition)
                      # delete essentially blank records
-                    condition=self.spec_data['method_codes'].notnull()==False  # find the blank records
-                    self.spec_data = self.spec_container.delete_rows(condition)
+                    condition=self.spec_data['method_codes'].isnull().astype(bool)  # find the blank records
+                    self.spec_data = self.spec_container.delete_rows(condition) # delete them
 
         if self.data_model!=3: # write out pmag_specimens.txt file
             fout=open(os.path.join(self.WD, "pmag_specimens.txt"),'w')
@@ -3319,7 +3319,7 @@ class Arai_GUI(wx.Frame):
             #-------------
             TEXT="specimens interpretations are saved in pmag_specimens.txt.\nPress OK for pmag_samples/pmag_sites/pmag_results tables."
         else: # data model 3, so merge with spec_data  and save as specimens.txt file
-            # remove unwanted columns (site, location).  
+            # remove unwanted columns (site, location).
             for col in ['site','location']:
                 del self.spec_data[col]
             #  write out the data
@@ -3739,7 +3739,7 @@ class Arai_GUI(wx.Frame):
                     # since we are putting this sample at the site level
                     new_data['site'] = sample_or_site
                     new_data['samples'] = sample_or_site
-                    new_data['int_n_samples'] = '1' 
+                    new_data['int_n_samples'] = '1'
                     del new_data['sample'] # get rid of this key for site table
                     new_data['vadm']=MagIC_results_data['pmag_results'][sample_or_site]["vadm"]
                     new_data['vadm_sigma']=MagIC_results_data['pmag_results'][sample_or_site]["vadm_sigma"]
@@ -3766,11 +3766,11 @@ class Arai_GUI(wx.Frame):
                         self.samp_container.update_record(samp_name, new_data, cond2)
             for col in ['location']:
                 if col in self.samp_data.keys():del self.samp_data[col]
-            if BY_SAMPLES: # replace 'site' with 'sample'  
+            if BY_SAMPLES: # replace 'site' with 'sample'
                 self.samp_data['site']=self.samp_data['sample']
                 condition= self.samp_container.df['specimens'].notnull()==True  # find all the blank specimens rows
                 self.samp_container.df = self.samp_container.df.loc[condition]
-                    
+
             #  write out the data
             self.samp_container.write_magic_file(custom_name='new_samples.txt', dir_path=self.WD) # change this to samples.txt when ready
             self.site_container.write_magic_file(custom_name='new_sites.txt', dir_path=self.WD) # change this to sites.txt when ready

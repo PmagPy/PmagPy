@@ -166,7 +166,7 @@ def cv(row, col_name, arg, current_data_model, df, con):
     row[col_name] must contain only values from the appropriate controlled vocabulary
     """
     vocabulary = con.cv
-    cell_value = row[col_name]
+    cell_value = str(row[col_name])
     if not cell_value:
         return None
     cell_values = cell_value.split(":")
