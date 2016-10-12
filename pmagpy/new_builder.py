@@ -609,8 +609,10 @@ class MagicDataFrame(object):
         df_data = self.df
         # edit first of existing data that meets condition
         if len(df_data[condition]) > 0:  #we have one or more records to update or delete
-            #print "updating:", name
-            inds = df_data[condition]['num'] # list of all rows where condition is true
+            condition2 = df_data.index == name
+            # list of all rows where condition is true and index == name
+            inds = df_data[condition & condition2]['num']
+            #inds = df_data[condition]['num'] # list of all rows where condition is true
             existing_data = dict(df_data.iloc[inds[0]]) # get first record of existing_data from dataframe
             existing_data.update(new_data) # update existing data with new interpretations
             # update row

@@ -80,6 +80,17 @@ class TestMagicDataFrame(unittest.TestCase):
         for descr in magic_df.df['description'].values:
             self.assertTrue('VGP' in descr)
 
+    def test_update_record(self):
+        magic_df = nb.MagicDataFrame(os.path.join(WD, 'sites.txt'), dmodel=dmodel)
+        print magic_df.df.index
+        cond = magic_df.df['lithologies'] == 'Basalt'
+        print magic_df.df.loc['2'][['lithologies', 'description']]
+        magic_df.update_record('2', new_data={'description': 'updated'}, condition=cond)
+        print magic_df.df.loc['2'][['lithologies', 'description']]
+        self.assertIn('updated', magic_df.df.loc['2', 'description'].values)
+
+
+
 class TestContribution(unittest.TestCase):
 
     def setUp(self):
