@@ -33,7 +33,7 @@ class MainFrame(wx.Frame):
     """
 
 
-    def __init__(self, WD=None, name='Main Frame'):
+    def __init__(self, WD=None, name='Main Frame', dmodel=None):
         try:
             version= pmag.get_version()
         except:
@@ -49,7 +49,9 @@ class MainFrame(wx.Frame):
         self.WD = os.path.realpath(WD) or os.getcwd()
 
         print '-I- Initializing magic data object'
-        self.data_model = validate_upload.get_data_model()
+        if dmodel is None:
+            dmodel = validate_upload.get_data_model()
+        self.data_model = dmodel
         self.er_magic = builder.ErMagicBuilder(self.WD, self.data_model)
         self.edited = False
         self.validation_mode = False

@@ -8,6 +8,8 @@ import wx
 import programs.pmag_gui as pmag_gui
 import dialogs.pmag_menu_dialogs as pmag_menu_dialogs
 import pmagpy.check_updates as check_updates
+from pmagpy import validate_upload2 as validate_upload
+dmodel = validate_upload.get_data_model()
 
 # get WD before all the Pmag GUI stuff starts to happen
 WD = check_updates.get_pmag_dir()
@@ -20,7 +22,7 @@ class TestMainFrame(unittest.TestCase):
 
     def setUp(self):
         self.app = wx.App()
-        self.frame = pmag_gui.MagMainFrame(project_WD)
+        self.frame = pmag_gui.MagMainFrame(project_WD, dmodel)
         self.pnl = self.frame.GetChildren()[0]
         #wx.lib.inspection.InspectionTool().Show()
 

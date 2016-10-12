@@ -40,7 +40,7 @@ class MagMainFrame(wx.Frame):
     if sys.platform in ['win32', 'win64']:
         title += "   Powered by Enthought Canopy"
 
-    def __init__(self, WD=None):
+    def __init__(self, WD=None, dmodel=None):
 
         self.FIRST_RUN = True
         wx.Frame.__init__(self, None, wx.ID_ANY, self.title, name='pmag_gui mainframe')
@@ -56,7 +56,7 @@ class MagMainFrame(wx.Frame):
             self.WD = WD
         self.HtmlIsOpen = False
         self.Bind(wx.EVT_CLOSE, self.on_menu_exit)
-        self.er_magic = builder.ErMagicBuilder(self.WD)
+        self.er_magic = builder.ErMagicBuilder(self.WD, dmodel)
         #self.er_magic.init_default_headers()
         #self.er_magic.init_actual_headers()
 
@@ -467,7 +467,7 @@ def main():
     #    import wx.lib.inspection
     #    wx.lib.inspection.InspectionTool().Show()
     app.MainLoop()
-            
+
 
 if __name__ == "__main__":
     main()

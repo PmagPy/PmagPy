@@ -12,7 +12,8 @@ import pmagpy.builder2 as builder
 import dialogs.grid_frame2 as grid_frame
 import dialogs.pmag_widgets as pmag_widgets
 import pmagpy.check_updates as check_updates
-
+from pmagpy import validate_upload2 as validate_upload
+DMODEL = validate_upload.get_data_model()
 WD = check_updates.get_pmag_dir()
 
 #@unittest.skip('seg fault')
@@ -20,7 +21,7 @@ class TestMainFrame(unittest.TestCase):
 
     def setUp(self):
         self.app = wx.App()
-        self.frame = magic_gui.MainFrame(WD, "zebra")
+        self.frame = magic_gui.MainFrame(WD, "zebra", DMODEL)
         self.pnl = self.frame.GetChildren()[0]
 
     def tearDown(self):
@@ -161,8 +162,9 @@ class TestMainFrameWithData(unittest.TestCase):
 
     def setUp(self):
         self.app = wx.App()
-        self.frame = magic_gui.MainFrame(os.path.join(WD, 'data_files',
-                                                      'copy_ErMagicBuilder'))
+        self.frame = magic_gui.MainFrame(os.path.join(WD, 'pmagpy_data_files',
+                                                      'copy_ErMagicBuilder'),
+                                         dmodel=DMODEL)
         self.pnl = self.frame.GetChildren()[0]
 
     def tearDown(self):
@@ -225,7 +227,7 @@ class TestMagICGuiGridFrame(unittest.TestCase):
     def setUp(self):
         self.app = wx.App()
         #self.grid = GridFrame(self.ErMagic, self.WD, grid_type, grid_type, self.panel)
-        ErMagic = builder.ErMagicBuilder(WD)
+        ErMagic = builder.ErMagicBuilder(WD, DMODEL)
         ErMagic.init_default_headers()
         ErMagic.init_actual_headers()
         self.frame = grid_frame.GridFrame(ErMagic, WD, "specimen", "specimen")
@@ -259,7 +261,7 @@ class TestMagICGUIMenu(unittest.TestCase):
     def setUp(self):
         self.app = wx.App()
         #self.grid = GridFrame(self.ErMagic, self.WD, grid_type, grid_type, self.panel)
-        self.ErMagic = builder.ErMagicBuilder(WD)
+        self.ErMagic = builder.ErMagicBuilder(WD, DMODEL)
         self.ErMagic.init_default_headers()
         self.ErMagic.init_actual_headers()
         self.frame = magic_gui.MainFrame(WD)
@@ -358,7 +360,7 @@ class TestMethodCodes(unittest.TestCase):
         #self.grid = GridFrame(self.ErMagic, self.WD, grid_type, grid_type, self.panel)
         self.method_WD = os.path.join(WD, 'data_files',
                                       'testing', 'methods')
-        self.ErMagic = builder.ErMagicBuilder(self.method_WD)
+        self.ErMagic = builder.ErMagicBuilder(self.method_WD, DMODEL)
         self.ErMagic.get_all_magic_info()
         self.ErMagic.init_default_headers()
         self.ErMagic.init_actual_headers()
