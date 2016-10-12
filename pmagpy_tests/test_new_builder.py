@@ -101,8 +101,30 @@ class TestMagicDataFrame(unittest.TestCase):
         self.assertEqual(dict, type(dct[dct.keys()[0]]))
         self.assertEqual('1', str(dct['1']['site']))
 
+    def test_get_name(self):
+        magic_df = nb.MagicDataFrame(os.path.join(WD, 'sites.txt'), dmodel=dmodel)
+        val = magic_df.get_name('description')
+        self.assertEqual('VGP:Site 1', val)
+        df_slice = magic_df.df.iloc[10:20]
+        val = magic_df.get_name('description', df_slice)
+        self.assertEqual('VGP:Site 4', val)
+        index_names = ['21', '22']
+        val = magic_df.get_name('description', index_names=index_names)
+        self.assertEqual('VGP:Site 21', val)
 
 
+    def test_get_di_block(self):
+        magic_df = nb.MagicDataFrame(os.path.join(WD, 'sites.txt'), dmodel=dmodel)
+        di_block = magic_df.get_di_block(df_slice='all')
+        self.assertEqual([289.8, 43.6], di_block[0])
+        di_block = magic_df.get_di_block(do_index=True, item_names=['1', '2'])
+        self.assertEqual([289.8, 43.6], di_block[0])
+        self.assertEqual(2, len(di_block))
+        print di_block
+        magic_df.df.loc['2', 'method_codes'] = 'fake_code'
+        di_block = magic_df.get_di_block(do_index=True, item_names=['1', '2'], excl=['fake_code'])
+        self.assertEqual(1, len(di_block))
+        # do a test with exclude codes or different tilt_corr
 
 
 

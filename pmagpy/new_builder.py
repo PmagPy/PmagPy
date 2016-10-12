@@ -698,6 +698,9 @@ class MagicDataFrame(object):
         Input either a DataFrame slice
         or
         do_index=True and a list of index_names.
+        Optional arguments:
+        Provide tilt_corr (default 100).
+        Excl is a list of method codes to exclude.
         Output dec/inc from the slice in this format:
         [[dec1, inc1], [dec2, inc2], ...].
         Not inplace
