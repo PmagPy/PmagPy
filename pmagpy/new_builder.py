@@ -649,15 +649,15 @@ class MagicDataFrame(object):
           [{"sample": "samp_name", "azimuth": 12, ...}, {...}]
         if "dict":
           {"samp_name": {"azimuth": 12, ...}, "samp_name2": {...}, ...}
+        NOTE: "dict" not recommended with 3.0, as one sample can have
+        many rows, which means that dictionary items can be overwritten
         """
         if isinstance(df, type(None)):
             df = self.df
-        dictionary = dict(df.T)
         if lst_or_dict == "lst":
-            return [dict(dictionary[key]) for key in dictionary]
+            return list(df.T.apply(dict))
         else:
-            return {key: dict(dictionary[key]) for key in dictionary}
-
+            return {str(i[df.index.name]): dict(i) for i in list(df.T.apply(dict))}
 
     def get_name(self, col_name, df_slice="", index_names=""):
         """

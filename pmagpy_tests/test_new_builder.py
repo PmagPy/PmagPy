@@ -89,6 +89,21 @@ class TestMagicDataFrame(unittest.TestCase):
         print magic_df.df.loc['2'][['lithologies', 'description']]
         self.assertIn('updated', magic_df.df.loc['2', 'description'].values)
 
+    def test_convert_to_pmag_data_list(self):
+        magic_df = nb.MagicDataFrame(os.path.join(WD, 'sites.txt'), dmodel=dmodel)
+        lst = magic_df.convert_to_pmag_data_list('lst')
+        self.assertEqual(list, type(lst))
+        self.assertEqual(dict, type(lst[0]))
+        self.assertEqual('1', str(lst[0]['site']))
+        #
+        dct = magic_df.convert_to_pmag_data_list("dict")
+        self.assertEqual(dict, type(dct))
+        self.assertEqual(dict, type(dct[dct.keys()[0]]))
+        self.assertEqual('1', str(dct['1']['site']))
+
+
+
+
 
 
 class TestContribution(unittest.TestCase):
