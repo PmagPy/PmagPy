@@ -44,7 +44,11 @@ class MagMainFrame(wx.Frame):
     if sys.platform in ['win32', 'win64']:
         title += "   Powered by Enthought Canopy"
 
-    def __init__(self, WD=None, DM=None):
+    def __init__(self, WD=None, DM=None, dmodel=None):
+        """
+        Input working directory, data model number (2.5 or 3),
+        and data model (optional).
+        """
         if not DM:
             self.data_model_num = int(pmag.get_named_arg_from_sys("-DM", 2.5))
         else:
@@ -64,9 +68,9 @@ class MagMainFrame(wx.Frame):
         self.HtmlIsOpen = False
         self.Bind(wx.EVT_CLOSE, self.on_menu_exit)
         if self.data_model_num == 2:
-            self.er_magic = builder.ErMagicBuilder(self.WD)
+            self.er_magic = builder.ErMagicBuilder(self.WD, data_model=dmodel)
         elif self.data_model_num == 3:
-            self.contribution = nb.Contribution(self.WD)
+            self.contribution = nb.Contribution(self.WD, dmodel=dmodel)
         #self.er_magic.init_default_headers()
         #self.er_magic.init_actual_headers()
 

@@ -9,16 +9,19 @@ import sys
 import programs.magic_gui3 as magic_gui
 import pmagpy.new_builder as nb
 import dialogs.grid_frame3 as grid_frame
-import dialogs.pmag_widgets as pmag_widgets
 import pmagpy.check_updates as check_updates
+#import dialogs.pmag_widgets as pmag_widgets
+from pmagpy import data_model3 as data_model
+DMODEL = data_model.DataModel()
+#WD = os.path.join(check_updates.get_pmag_dir(), "data_files", "magic_gui", "3_0")
+WD = os.path.join(sys.prefix, "pmagpy_data_files", "magic_gui", "3_0")
 
-WD = os.path.join(check_updates.get_pmag_dir(), "data_files", "magic_gui", "3_0")
 
 class TestMainFrame(unittest.TestCase):
 
     def setUp(self):
         self.app = wx.App()
-        self.frame = magic_gui.MainFrame(WD, name="best frame ever")
+        self.frame = magic_gui.MainFrame(WD, name="best frame ever", dmodel=DMODEL)
         self.pnl = self.frame.GetChildren()[0]
 
     def tearDown(self):
@@ -106,7 +109,8 @@ class TestMagICGUIMenu(unittest.TestCase):
 
     def setUp(self):
         self.app = wx.App()
-        self.frame = magic_gui.MainFrame(WD, name="best frame ever")
+        self.frame = magic_gui.MainFrame(WD, name="best frame ever",
+                                         dmodel=DMODEL)
         self.pnl = self.frame.GetChildren()[0]
         self.contribution = self.frame.contribution
 

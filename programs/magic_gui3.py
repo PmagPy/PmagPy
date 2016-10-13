@@ -32,7 +32,7 @@ class MainFrame(wx.Frame):
     MagIC GUI
     """
 
-    def __init__(self, WD=None, name='Main Frame'):
+    def __init__(self, WD=None, name='Main Frame', dmodel=None):
         try:
             version = pmag.get_version()
         except:
@@ -49,7 +49,9 @@ class MainFrame(wx.Frame):
 
         print '-I- Initializing magic data model'
         #self.data_model = validate_upload.get_data_model()
-        self.data_model = data_model3.DataModel()
+        if dmodel is None:
+            dmodel = data_model3.DataModel()
+        self.data_model = dmodel
 
         print '-I- Read in any available data from working directory'
         self.contribution = nb.Contribution(self.WD, dmodel=self.data_model)

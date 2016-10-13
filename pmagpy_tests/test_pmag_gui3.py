@@ -9,9 +9,10 @@ import wx
 import programs.pmag_gui3 as pmag_gui
 from pmagpy import new_builder as nb
 import pmagpy.check_updates as check_updates
+from pmagpy import data_model3 as data_model
 #import dialogs.pmag_menu_dialogs as pmag_menu_dialogs
-
-# get WD before all the Pmag GUI stuff starts to happen
+# get WD etc. before all the Pmag GUI stuff starts to happen
+DMODEL = data_model.DataModel()
 WD = check_updates.get_pmag_dir()
 project_WD = os.path.join(WD, "data_files", "Pmag_GUI", "3_0")
 test_dir = os.getcwd()
@@ -21,7 +22,8 @@ class TestMainFrame(unittest.TestCase):
     def setUp(self):
         os.chdir(test_dir)
         self.app = wx.App()
-        self.frame = pmag_gui.MagMainFrame(project_WD, DM=3)
+        self.frame = pmag_gui.MagMainFrame(project_WD, DM=3,
+                                           dmodel=DMODEL)
         self.pnl = self.frame.GetChildren()[0]
 
     def tearDown(self):
@@ -153,7 +155,7 @@ class TestMenus(unittest.TestCase):
 
     def setUp(self):
         self.app = wx.App()
-        self.frame = pmag_gui.MagMainFrame(project_WD)
+        self.frame = pmag_gui.MagMainFrame(project_WD, DM=3, dmodel=DMODEL)
         self.pnl = self.frame.GetChildren()[0]
 
         #wx.lib.inspection.InspectionTool().Show()
