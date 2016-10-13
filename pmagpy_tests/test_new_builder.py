@@ -73,20 +73,18 @@ class TestMagicDataFrame(unittest.TestCase):
 
 
     def test_delete_rows(self):
-        magic_df = nb.MagicDataFrame(os.path.join(WD, 'sites.txt'), dmodel=dmodel)
+        magic_df = nb.MagicDataFrame(os.path.join(WD, 'sites.txt'),
+                                     dmodel=dmodel)
         cond = magic_df.df['description'].str.contains('VGP').astype(bool)
         # delete all rows that aren't described as VGPs
-        magic_df.delete_rows(cond)
+        magic_df.delete_rows(-cond)
         for descr in magic_df.df['description'].values:
             self.assertTrue('VGP' in descr)
 
     def test_update_record(self):
         magic_df = nb.MagicDataFrame(os.path.join(WD, 'sites.txt'), dmodel=dmodel)
-        print magic_df.df.index
         cond = magic_df.df['lithologies'] == 'Basalt'
-        print magic_df.df.loc['2'][['lithologies', 'description']]
         magic_df.update_record('2', new_data={'description': 'updated'}, condition=cond)
-        print magic_df.df.loc['2'][['lithologies', 'description']]
         self.assertIn('updated', magic_df.df.loc['2', 'description'].values)
 
     def test_convert_to_pmag_data_list(self):
@@ -120,11 +118,9 @@ class TestMagicDataFrame(unittest.TestCase):
         di_block = magic_df.get_di_block(do_index=True, item_names=['1', '2'])
         self.assertEqual([289.8, 43.6], di_block[0])
         self.assertEqual(2, len(di_block))
-        print di_block
         magic_df.df.loc['2', 'method_codes'] = 'fake_code'
         di_block = magic_df.get_di_block(do_index=True, item_names=['1', '2'], excl=['fake_code'])
         self.assertEqual(1, len(di_block))
-        # do a test with exclude codes or different tilt_corr
 
 
 
