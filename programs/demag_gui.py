@@ -3014,7 +3014,10 @@ class Demag_GUI(wx.Frame):
         # list of excluded lab protocols. copied from pmag.find_dmag_rec(s,data)
         self.excluded_methods=["LP-AN-ARM","LP-AN-TRM","LP-ARM-AFD","LP-ARM2-AFD","LP-TRM-AFD","LP-TRM","LP-TRM-TD","LP-X"]
         self.included_methods=["LT-NO", "LT-AF-Z", "LT-T-Z", "LT-M-Z","LT-LT-Z"]
+        self.mag_meas_data.sort(cmp=meas_cmp)
         for rec in self.mag_meas_data:
+            if "measurement_number" in rec.keys() and int(rec['measurement_number']) == 1 and "magic_method_codes" in rec.keys() and "LT-NO" not in rec["magic_method_codes"].split(':'):
+                NRM = 1 #not really sure how to handle this case but assume that data is already normalized
             cnt+=1 #index counter
             s=rec["er_specimen_name"]
             if "er_sample_name" in rec.keys(): sample=rec["er_sample_name"]
@@ -5981,7 +5984,6 @@ class Demag_GUI(wx.Frame):
         """
         Add measurement data lines to the text window.
         """
-
         self.selected_meas = []
         if self.COORDINATE_SYSTEM=='geographic':
             zijdblock=self.Data[self.s]['zijdblock_geo']
@@ -6027,9 +6029,8 @@ class Demag_GUI(wx.Frame):
                 self.logger.SetItemBackgroundColour(i,"red")
 
     def OnClick_listctrl(self,event):
-
         if not self.current_fit:
-            self.on_btn_add_fit(1)
+            self.on_btn_add_fit(event)
 
         for item in range(self.logger.GetItemCount()):
             if self.Data[self.s]['measurement_flag'][item] == 'b':

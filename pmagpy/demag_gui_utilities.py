@@ -24,6 +24,22 @@ def specimens_comparator(s1,s2):
                 return i1-i2
     return 0
 
+def meas_cmp(m1,m2):
+    if not isinstance(m1,dict) and not isinstance(m2,dict): return 0
+    elif not isinstance(m1,dict): return -1
+    elif not isinstance(m2,dict): return 1
+    spec_key,num_key,meth_key = 'er_specimen_name','measurement_number','magic_method_codes'
+    if spec_key in m1.keys() and spec_key in m2.keys():
+        if m1[spec_key] > m2[spec_key]: return 1
+        elif m1[spec_key] < m2[spec_key]: return -1
+    if num_key in m1.keys() and num_key in m2.keys():
+        return int(m1[num_key]) - int(m2[num_key])
+    if meth_key in m1.keys() and meth_key in m2.keys():
+        m1_meths,m2_meths = m1[meth_key].split(':'),m2[meth_key].split(':')
+        if 'LT-NO' in m1_meths and 'LT-NO' in m2_meths: return 0
+        elif 'LT-NO' in m1_meths: return -1
+        elif 'LT-NO' in m2_meths: return 1
+
 def get_all_inp_files(WD=None):
     if not os.path.isdir(WD): print("directory %s does not exist, aborting"%WD)
     try:
