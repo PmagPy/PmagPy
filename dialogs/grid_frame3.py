@@ -127,6 +127,16 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
                                       name='cancel_btn')
         self.Bind(wx.EVT_BUTTON, self.onCancelButton, self.cancelButton)
 
+        ## Input/output buttons
+        self.copyButton = wx.Button(self.panel, id=-1,
+                                     label="Copy mode",
+                                     name="copy_mode_btn")
+        self.Bind(wx.EVT_BUTTON, self.onCopyMode, self.copyButton)
+        self.selectAllButton = wx.Button(self.panel, id=-1,
+                                         label="Select all cells",
+                                         name="select_all_btn")
+        self.Bind(wx.EVT_BUTTON, self.onSelectAll, self.selectAllButton)
+
         ## Help message and button
         # button
         self.toggle_help_btn = wx.Button(self.panel, id=-1, label="Show help",
@@ -168,6 +178,8 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
                                                       name='manage rows'), wx.VERTICAL)
         main_btn_vbox = wx.StaticBoxSizer(wx.StaticBox(self.panel, -1, label='Manage data',
                                                        name='manage data'), wx.VERTICAL)
+        input_output_vbox = wx.StaticBoxSizer(wx.StaticBox(self.panel, -1, label='In/Out',
+                                                           name='manage in out'), wx.VERTICAL)
         col_btn_vbox.Add(self.add_cols_button, flag=wx.ALL, border=5)
         col_btn_vbox.Add(self.remove_cols_button, flag=wx.ALL, border=5)
         row_btn_vbox.Add(many_rows_box, flag=wx.ALL, border=5)
@@ -176,9 +188,12 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
         main_btn_vbox.Add(self.importButton, flag=wx.ALL, border=5)
         main_btn_vbox.Add(self.exitButton, flag=wx.ALL, border=5)
         main_btn_vbox.Add(self.cancelButton, flag=wx.ALL, border=5)
+        input_output_vbox.Add(self.copyButton, flag=wx.ALL, border=5)
+        input_output_vbox.Add(self.selectAllButton, flag=wx.ALL, border=5)
         self.hbox.Add(col_btn_vbox)
         self.hbox.Add(row_btn_vbox)
         self.hbox.Add(main_btn_vbox)
+        self.hbox.Add(input_output_vbox)
 
         self.panel.Bind(wx.grid.EVT_GRID_LABEL_LEFT_CLICK, self.onLeftClickLabel, self.grid)
         self.Bind(wx.EVT_KEY_DOWN, self.on_key_down)
@@ -712,6 +727,11 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
         if destroy:
             self.Destroy()
 
+    def onCopyMode(self, event):
+        print 'copy mode on!!!!!'
+
+    def onSelectAll(self, event):
+        print 'Select all cells'
 
 class GridBuilder(object):
     """

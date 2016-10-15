@@ -180,3 +180,7 @@ pmagpy_cli.egg-info/requires.txt
 3_0/McMurdo2.5/*
 Location_*/
 Location_*/*
+
+*.bak
+*/*.bak
+*new_*.txt
