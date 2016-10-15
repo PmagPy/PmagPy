@@ -33,12 +33,14 @@ def meas_cmp(m1,m2):
         if m1[spec_key] > m2[spec_key]: return 1
         elif m1[spec_key] < m2[spec_key]: return -1
     if num_key in m1.keys() and num_key in m2.keys():
-        return int(m1[num_key]) - int(m2[num_key])
+        try: return int(m1[num_key]) - int(m2[num_key])
+        except ValueError: print("measurement number sorting impossible as some measurement indecies are not numbers")
     if meth_key in m1.keys() and meth_key in m2.keys():
         m1_meths,m2_meths = m1[meth_key].split(':'),m2[meth_key].split(':')
         if 'LT-NO' in m1_meths and 'LT-NO' in m2_meths: return 0
         elif 'LT-NO' in m1_meths: return -1
         elif 'LT-NO' in m2_meths: return 1
+    return 0
 
 def get_all_inp_files(WD=None):
     if not os.path.isdir(WD): print("directory %s does not exist, aborting"%WD)
