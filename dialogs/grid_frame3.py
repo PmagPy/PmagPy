@@ -132,6 +132,11 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
                                      label="Copy mode",
                                      name="copy_mode_btn")
         self.Bind(wx.EVT_BUTTON, self.onCopyMode, self.copyButton)
+        self.endCopyButton = wx.Button(self.panel, id=-1,
+                                     label="End copy mode",
+                                     name="end_copy_mode_btn")
+        self.Bind(wx.EVT_BUTTON, self.onEndCopyMode, self.endCopyButton)
+        self.endCopyButton.Disable()
         self.selectAllButton = wx.Button(self.panel, id=-1,
                                          label="Select all cells",
                                          name="select_all_btn")
@@ -189,13 +194,16 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
         main_btn_vbox.Add(self.exitButton, flag=wx.ALL, border=5)
         main_btn_vbox.Add(self.cancelButton, flag=wx.ALL, border=5)
         input_output_vbox.Add(self.copyButton, flag=wx.ALL, border=5)
+        input_output_vbox.Add(self.endCopyButton, flag=wx.ALL, border=5)
         input_output_vbox.Add(self.selectAllButton, flag=wx.ALL, border=5)
         self.hbox.Add(col_btn_vbox)
         self.hbox.Add(row_btn_vbox)
         self.hbox.Add(main_btn_vbox)
         self.hbox.Add(input_output_vbox)
 
-        self.panel.Bind(wx.grid.EVT_GRID_LABEL_LEFT_CLICK, self.onLeftClickLabel, self.grid)
+        #self.panel.Bind(wx.grid.EVT_GRID_LABEL_LEFT_CLICK, self.onLeftClickLabel, self.grid)
+        self.grid.Bind(wx.grid.EVT_GRID_LABEL_LEFT_CLICK, self.onLeftClickLabel, self.grid)
+        #
         self.Bind(wx.EVT_KEY_DOWN, self.on_key_down)
         self.panel.Bind(wx.EVT_TEXT_PASTE, self.do_fit)
         # add actual data!
@@ -346,7 +354,7 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
         self.parent.Parent.Hide()
         self.grid = self.grid_builder.make_grid()
         self.grid.InitUI()
-        self.panel.Bind(wx.grid.EVT_GRID_LABEL_LEFT_CLICK, self.onLeftClickLabel, self.grid)
+        self.grid.Bind(wx.grid.EVT_GRID_LABEL_LEFT_CLICK, self.onLeftClickLabel, self.grid)
         self.grid_builder.add_data_to_grid(self.grid, self.grid_type)
         self.grid_builder.add_age_data_to_grid()
         self.drop_down_menu = drop_down_menus.Menus(self.grid_type, self, self.grid, None)
@@ -574,7 +582,7 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
             btn.Enable()
 
         # unbind grid click for deletion
-        self.Unbind(wx.grid.EVT_GRID_LABEL_LEFT_CLICK)
+        self.grid.Unbind(wx.grid.EVT_GRID_LABEL_LEFT_CLICK)
         # undo visual cues
         self.grid.SetWindowStyle(wx.DEFAULT)
         self.grid_box.GetStaticBox().SetWindowStyle(wx.DEFAULT)
@@ -728,7 +736,59 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
             self.Destroy()
 
     def onCopyMode(self, event):
+        # first save all grid data
+        self.grid_builder.save_grid_data()
+        # enable and un-grey the exit copy mode button
+        self.endCopyButton.Enable()
+        # disable and grey out other buttons
+        btn_list = [self.add_cols_button, self.remove_cols_button, self.remove_row_button,
+                    self.add_many_rows_button, self.importButton, self.copyButton,
+                    self.selectAllButton, self.cancelButton, self.exitButton]
+        for btn in btn_list:
+            btn.Disable()
+        # next, undo useless bindings (mostly for drop-down-menus)
+        # this one works:
+        self.drop_down_menu.EndUI()
+        # these ones don't work: (it doesn't matter which one you bind to)
+        #self.grid.Unbind(wx.grid.EVT_GRID_LABEL_LEFT_CLICK)
+        #self.Unbind(wx.grid.EVT_GRID_LABEL_LEFT_CLICK)
+        #self.panel.Unbind(wx.grid.EVT_GRID_LABEL_LEFT_CLICK)
+        # this works hack-like:
+        self.grid.Bind(wx.grid.EVT_GRID_LABEL_LEFT_CLICK, self.do_nothing)
+        # this one is irrelevant (it just deals with resizing)
+        #self.Unbind(wx.EVT_KEY_DOWN)
+        #
+        # make grid uneditable
+        self.grid.EnableEditing(False)
+        self.Refresh()
+        # then bind for selecting cells in multiple columns
+        # change text/binding of copy button to either 'Do copy' or 'exit copy mode'
+        # actually copy -- with Ctrl C or with a button?
+        # write that dataframe slice to the clipboard
+        # done!
         print 'copy mode on!!!!!'
+
+
+    def do_nothing(self, event):
+        pass
+        #print 'doing nothing'
+        #event.Skip()
+
+    def onEndCopyMode(self, event):
+        btn_list = [self.add_cols_button, self.remove_cols_button, self.remove_row_button,
+                    self.add_many_rows_button, self.importButton, self.copyButton,
+                    self.selectAllButton, self.cancelButton, self.exitButton]
+        for btn in btn_list:
+            btn.Enable()
+        self.endCopyButton.Disable()
+
+        self.drop_down_menu.InitUI()
+        #self.window.Bind(wx.grid.EVT_GRID_CELL_LEFT_CLICK, lambda event: self.on_left_click(event, grid, choices), grid)
+        self.grid.Bind(wx.grid.EVT_GRID_LABEL_LEFT_CLICK, self.onLeftClickLabel, self.grid)
+        # this one is irrelevant:
+        #self.Bind(wx.EVT_KEY_DOWN, self.on_key_down)
+        self.grid.EnableEditing(True)
+
 
     def onSelectAll(self, event):
         # save all grid data
