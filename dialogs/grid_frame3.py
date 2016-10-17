@@ -33,6 +33,7 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
         self.selected_rows = set()
 
         self.contribution = contribution
+        self.df_slice = None
         self.exclude_cols = exclude_cols
 
         self.panel = wx.Panel(self, name=panel_name, size=wx.GetDisplaySize())
@@ -129,18 +130,18 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
 
         ## Input/output buttons
         self.copyButton = wx.Button(self.panel, id=-1,
-                                     label="Copy mode",
+                                     label="Start copy mode",
                                      name="copy_mode_btn")
         self.Bind(wx.EVT_BUTTON, self.onCopyMode, self.copyButton)
-        self.endCopyButton = wx.Button(self.panel, id=-1,
-                                     label="End copy mode",
-                                     name="end_copy_mode_btn")
-        self.Bind(wx.EVT_BUTTON, self.onEndCopyMode, self.endCopyButton)
-        self.endCopyButton.Disable()
         self.selectAllButton = wx.Button(self.panel, id=-1,
-                                         label="Select all cells",
+                                         label="Copy all cells",
                                          name="select_all_btn")
         self.Bind(wx.EVT_BUTTON, self.onSelectAll, self.selectAllButton)
+        self.copySelectionButton = wx.Button(self.panel, id=-1,
+                                         label="Copy selected cells",
+                                         name="copy_selection_btn")
+        self.Bind(wx.EVT_BUTTON, self.onCopySelection, self.copySelectionButton)
+        self.copySelectionButton.Disable()
 
         ## Help message and button
         # button
@@ -194,8 +195,8 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
         main_btn_vbox.Add(self.exitButton, flag=wx.ALL, border=5)
         main_btn_vbox.Add(self.cancelButton, flag=wx.ALL, border=5)
         input_output_vbox.Add(self.copyButton, flag=wx.ALL, border=5)
-        input_output_vbox.Add(self.endCopyButton, flag=wx.ALL, border=5)
         input_output_vbox.Add(self.selectAllButton, flag=wx.ALL, border=5)
+        input_output_vbox.Add(self.copySelectionButton, flag=wx.ALL, border=5)
         self.hbox.Add(col_btn_vbox)
         self.hbox.Add(row_btn_vbox)
         self.hbox.Add(main_btn_vbox)
@@ -738,14 +739,18 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
     def onCopyMode(self, event):
         # first save all grid data
         self.grid_builder.save_grid_data()
+        self.drop_down_menu.clean_up()
         # enable and un-grey the exit copy mode button
-        self.endCopyButton.Enable()
+
+        self.copyButton.SetLabel('End copy mode')
+        self.Bind(wx.EVT_BUTTON, self.onEndCopyMode, self.copyButton)
         # disable and grey out other buttons
-        btn_list = [self.add_cols_button, self.remove_cols_button, self.remove_row_button,
-                    self.add_many_rows_button, self.importButton, self.copyButton,
-                    self.selectAllButton, self.cancelButton, self.exitButton]
+        btn_list = [self.add_cols_button, self.remove_cols_button,
+                    self.remove_row_button, self.add_many_rows_button,
+                    self.importButton, self.cancelButton, self.exitButton]
         for btn in btn_list:
             btn.Disable()
+        self.copySelectionButton.Enable()
         # next, undo useless bindings (mostly for drop-down-menus)
         # this one works:
         self.drop_down_menu.EndUI()
@@ -761,12 +766,28 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
         # make grid uneditable
         self.grid.EnableEditing(False)
         self.Refresh()
+        # change and show help message
         # then bind for selecting cells in multiple columns
         # change text/binding of copy button to either 'Do copy' or 'exit copy mode'
         # actually copy -- with Ctrl C or with a button?
         # write that dataframe slice to the clipboard
         # done!
+        self.grid.Bind(wx.grid.EVT_GRID_RANGE_SELECT, self.onDragSelection)
         print 'copy mode on!!!!!'
+
+
+    def onDragSelection(self, event):
+        if self.grid.GetSelectionBlockTopLeft():
+            top_left = self.grid.GetSelectionBlockTopLeft()[0]
+            bottom_right = self.grid.GetSelectionBlockBottomRight()[0]
+        else:
+            return
+        # GetSelectionBlock returns (row, col)
+        min_col = top_left[1]
+        max_col = bottom_right[1]
+        min_row = top_left[0]
+        max_row = bottom_right[0]
+        self.df_slice = self.contribution.tables[self.grid_type].df.iloc[min_row:max_row+1, min_col:max_col+1]
 
 
     def do_nothing(self, event):
@@ -775,19 +796,22 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
         #event.Skip()
 
     def onEndCopyMode(self, event):
-        btn_list = [self.add_cols_button, self.remove_cols_button, self.remove_row_button,
-                    self.add_many_rows_button, self.importButton, self.copyButton,
-                    self.selectAllButton, self.cancelButton, self.exitButton]
+        # enable/disable buttons as needed
+        btn_list = [self.add_cols_button, self.remove_cols_button,
+                    self.remove_row_button, self.add_many_rows_button,
+                    self.importButton, self.cancelButton, self.exitButton]
         for btn in btn_list:
             btn.Enable()
-        self.endCopyButton.Disable()
-
+        self.copySelectionButton.Disable()
+        self.copyButton.SetLabel('Start copy mode')
+        self.Bind(wx.EVT_BUTTON, self.onCopyMode, self.copyButton)
+        # re-init normal grid UI
         self.drop_down_menu.InitUI()
-        #self.window.Bind(wx.grid.EVT_GRID_CELL_LEFT_CLICK, lambda event: self.on_left_click(event, grid, choices), grid)
         self.grid.Bind(wx.grid.EVT_GRID_LABEL_LEFT_CLICK, self.onLeftClickLabel, self.grid)
-        # this one is irrelevant:
-        #self.Bind(wx.EVT_KEY_DOWN, self.on_key_down)
         self.grid.EnableEditing(True)
+        # deselect any cells selected during copy mode
+        self.grid.ClearSelection()
+        self.df_slice = None
 
 
     def onSelectAll(self, event):
@@ -798,7 +822,15 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
         # header arg determines whether columns are taken
         # index arg determines whether index is taken
         pd.DataFrame.to_clipboard(df, header=False, index=False)
+        print '-I- You have copied all cells! You may paste them into a text document or spreadsheet using Command v.'
         # done!
+
+    def onCopySelection(self, event):
+        if self.df_slice is not None:
+            pd.DataFrame.to_clipboard(self.df_slice, header=False, index=False)
+            print '-I- You have copied the selected cells.  You may paste them into a text document or spreadsheet using Command v.'
+        else:
+            print '-W- No cells were copied! You must highlight a selection cells before hitting the copy button.  You can do this by clicking and dragging, or by using the Shift key and click.'
 
 
 class GridBuilder(object):
