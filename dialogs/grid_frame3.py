@@ -731,7 +731,15 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
         print 'copy mode on!!!!!'
 
     def onSelectAll(self, event):
-        print 'Select all cells'
+        # save all grid data
+        self.grid_builder.save_grid_data()
+        df = self.contribution.tables[self.grid_type].df
+        # write df to clipboard for pasting
+        # header arg determines whether columns are taken
+        # index arg determines whether index is taken
+        pd.DataFrame.to_clipboard(df, header=False, index=False)
+        # done!
+
 
 class GridBuilder(object):
     """
