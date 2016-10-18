@@ -57,8 +57,8 @@ def fisher_mean(dec=None, inc=None, di_block=None):
 
     Parameters
     ----------
-    dec: list of declinations
-    inc: list of inclinations
+    dec: list of declinations (or longitudes)
+    inc: list of inclinations (or latitudes)
 
     or
 
