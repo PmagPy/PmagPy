@@ -741,7 +741,6 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
         self.grid_builder.save_grid_data()
         self.drop_down_menu.clean_up()
         # enable and un-grey the exit copy mode button
-
         self.copyButton.SetLabel('End copy mode')
         self.Bind(wx.EVT_BUTTON, self.onEndCopyMode, self.copyButton)
         # disable and grey out other buttons
@@ -767,16 +766,26 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
         self.grid.EnableEditing(False)
         self.Refresh()
         # change and show help message
+        copy_text = """You are now in 'copy' mode.  To return to 'editing' mode, click 'End copy mode'.
+To copy the entire grid, click the 'Copy all cells' button.
+To copy a selection of the grid, you must first make a selection by either clicking and dragging, or using Shift click.
+Once you have your selection, click the 'Copy selected cells' button.
+You may then paste into a text document or spreadsheet!
+"""
+        self.toggle_help_btn.SetLabel('Hide help')
+        self.msg_text.SetLabel(copy_text)
+        self.help_msg_boxsizer.Fit(self.help_msg_boxsizer.GetStaticBox())
+        self.main_sizer.Fit(self)
+        self.help_msg_boxsizer.ShowItems(True)
+        self.do_fit(None)
         # then bind for selecting cells in multiple columns
-        # change text/binding of copy button to either 'Do copy' or 'exit copy mode'
-        # actually copy -- with Ctrl C or with a button?
-        # write that dataframe slice to the clipboard
-        # done!
         self.grid.Bind(wx.grid.EVT_GRID_RANGE_SELECT, self.onDragSelection)
-        print 'copy mode on!!!!!'
-
+        # done!
 
     def onDragSelection(self, event):
+        """
+        Set self.df_slice based on user's selection
+        """
         if self.grid.GetSelectionBlockTopLeft():
             top_left = self.grid.GetSelectionBlockTopLeft()[0]
             bottom_right = self.grid.GetSelectionBlockBottomRight()[0]
@@ -805,6 +814,14 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
         self.copySelectionButton.Disable()
         self.copyButton.SetLabel('Start copy mode')
         self.Bind(wx.EVT_BUTTON, self.onCopyMode, self.copyButton)
+        # get rid of special help message
+        self.toggle_help_btn.SetLabel('Show help')
+        self.msg_text.SetLabel(self.default_msg_text)
+        self.help_msg_boxsizer.Fit(self.help_msg_boxsizer.GetStaticBox())
+        self.main_sizer.Fit(self)
+        self.help_msg_boxsizer.ShowItems(False)
+        self.do_fit(None)
+
         # re-init normal grid UI
         self.drop_down_menu.InitUI()
         self.grid.Bind(wx.grid.EVT_GRID_LABEL_LEFT_CLICK, self.onLeftClickLabel, self.grid)
@@ -815,6 +832,9 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
 
 
     def onSelectAll(self, event):
+        """
+        Selects full grid and copies it to the Clipboard
+        """
         # save all grid data
         self.grid_builder.save_grid_data()
         df = self.contribution.tables[self.grid_type].df
@@ -826,6 +846,9 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
         # done!
 
     def onCopySelection(self, event):
+        """
+        Copies self.df_slice to the Clipboard if slice exists
+        """
         if self.df_slice is not None:
             pd.DataFrame.to_clipboard(self.df_slice, header=False, index=False)
             print '-I- You have copied the selected cells.  You may paste them into a text document or spreadsheet using Command v.'
