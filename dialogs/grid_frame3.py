@@ -736,6 +736,8 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
         if destroy:
             self.Destroy()
 
+    ### Custom copy/paste functionality
+
     def onCopyMode(self, event):
         # first save all grid data
         self.grid_builder.save_grid_data()
@@ -769,7 +771,7 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
         copy_text = """You are now in 'copy' mode.  To return to 'editing' mode, click 'End copy mode'.
 To copy the entire grid, click the 'Copy all cells' button.
 To copy a selection of the grid, you must first make a selection by either clicking and dragging, or using Shift click.
-Once you have your selection, click the 'Copy selected cells' button.
+Once you have your selection, click the 'Copy selected cells' button, or hit 'Ctrl c'.
 You may then paste into a text document or spreadsheet!
 """
         self.toggle_help_btn.SetLabel('Hide help')
@@ -780,6 +782,8 @@ You may then paste into a text document or spreadsheet!
         self.do_fit(None)
         # then bind for selecting cells in multiple columns
         self.grid.Bind(wx.grid.EVT_GRID_RANGE_SELECT, self.onDragSelection)
+        # bind Cmd c for copy
+        self.grid.Bind(wx.EVT_KEY_DOWN, self.onKey)
         # done!
 
     def onDragSelection(self, event):
@@ -800,9 +804,48 @@ You may then paste into a text document or spreadsheet!
 
 
     def do_nothing(self, event):
+        """
+        Dummy method to prevent default header-click behavior
+        while in copy mode
+        """
         pass
-        #print 'doing nothing'
-        #event.Skip()
+
+    def onKey(self, event):
+        """
+        Copy selection if control down and 'c'
+        """
+        if event.CmdDown() or event.ControlDown():
+            if event.GetKeyCode() == 67:
+                self.onCopySelection(None)
+
+    def onSelectAll(self, event):
+        """
+        Selects full grid and copies it to the Clipboard
+        """
+        # do clean up here!!!
+        if self.drop_down_menu:
+            self.drop_down_menu.clean_up()
+        # save all grid data
+        self.grid_builder.save_grid_data()
+        df = self.contribution.tables[self.grid_type].df
+        # write df to clipboard for pasting
+        # header arg determines whether columns are taken
+        # index arg determines whether index is taken
+        pd.DataFrame.to_clipboard(df, header=False, index=False)
+        print '-I- You have copied all cells! You may paste them into a text document or spreadsheet using Command v.'
+        # done!
+
+    def onCopySelection(self, event):
+        """
+        Copies self.df_slice to the Clipboard if slice exists
+        """
+        if self.df_slice is not None:
+            pd.DataFrame.to_clipboard(self.df_slice, header=False, index=False)
+            self.grid.ClearSelection()
+            self.df_slice = None
+            print '-I- You have copied the selected cells.  You may paste them into a text document or spreadsheet using Command v.'
+        else:
+            print '-W- No cells were copied! You must highlight a selection cells before hitting the copy button.  You can do this by clicking and dragging, or by using the Shift key and click.'
 
     def onEndCopyMode(self, event):
         # enable/disable buttons as needed
@@ -829,31 +872,8 @@ You may then paste into a text document or spreadsheet!
         # deselect any cells selected during copy mode
         self.grid.ClearSelection()
         self.df_slice = None
-
-
-    def onSelectAll(self, event):
-        """
-        Selects full grid and copies it to the Clipboard
-        """
-        # save all grid data
-        self.grid_builder.save_grid_data()
-        df = self.contribution.tables[self.grid_type].df
-        # write df to clipboard for pasting
-        # header arg determines whether columns are taken
-        # index arg determines whether index is taken
-        pd.DataFrame.to_clipboard(df, header=False, index=False)
-        print '-I- You have copied all cells! You may paste them into a text document or spreadsheet using Command v.'
-        # done!
-
-    def onCopySelection(self, event):
-        """
-        Copies self.df_slice to the Clipboard if slice exists
-        """
-        if self.df_slice is not None:
-            pd.DataFrame.to_clipboard(self.df_slice, header=False, index=False)
-            print '-I- You have copied the selected cells.  You may paste them into a text document or spreadsheet using Command v.'
-        else:
-            print '-W- No cells were copied! You must highlight a selection cells before hitting the copy button.  You can do this by clicking and dragging, or by using the Shift key and click.'
+        # get rid of special copy binding
+        self.grid.Unbind(wx.EVT_KEY_DOWN)#, self.onKey)
 
 
 class GridBuilder(object):
