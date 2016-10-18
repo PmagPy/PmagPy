@@ -218,6 +218,7 @@ class Menus(object):
             self.grid.SetColLabelValue(self.selected_col, col_label_value)
             for row in range(self.grid.GetNumberRows()):
                 self.grid.SetCellBackgroundColour(row, self.selected_col, 'white')
+        self.selected_col = None
         self.grid.ForceRefresh()
 
     def on_left_click(self, event, grid, choices):
