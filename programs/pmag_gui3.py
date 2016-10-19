@@ -10,20 +10,17 @@ if not matplotlib.get_backend() == 'WXAgg':
     matplotlib.use('WXAgg')
 import wx
 import wx.lib.buttons as buttons
-#import thellier_gui_dialogs
 import os
 import sys
-#import datetime
-#import shutil
-import pmagpy.pmag as pmag
-import pmagpy.ipmag as ipmag
-import pmagpy.builder2 as builder
+from pmagpy import pmag
+from pmagpy import ipmag
+from pmagpy import builder2 as builder
 from pmagpy import new_builder as nb
-import dialogs.pmag_basic_dialogs as pmag_basic_dialogs
-import dialogs.pmag_er_magic_dialogs as pmag_er_magic_dialogs
-import dialogs.pmag_gui_menu3 as pmag_gui_menu
-import dialogs.ErMagicBuilder as ErMagicBuilder
-import dialogs.pmag_widgets as pw
+from dialogs import pmag_basic_dialogs
+from dialogs import pmag_er_magic_dialogs
+from dialogs import pmag_gui_menu3 as pmag_gui_menu
+from dialogs import ErMagicBuilder
+from dialogs import pmag_widgets as pw
 
 try:
     from programs import demag_gui

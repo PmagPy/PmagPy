@@ -7,7 +7,6 @@ import drop_down_menus3 as drop_down_menus
 import pandas as pd
 import pmag_widgets as pw
 import magic_grid3 as magic_grid
-import pmagpy.builder as builder
 from pmagpy.controlled_vocabularies3 import vocab
 import pmagpy.new_builder as nb
 

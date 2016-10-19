@@ -7,8 +7,8 @@ import wx
 import drop_down_menus2 as drop_down_menus
 import pmag_widgets as pw
 import magic_grid2 as magic_grid
-import pmagpy.builder as builder
-import pmagpy.pmag as pmag
+from pmagpy import builder2 as builder
+from pmagpy import pmag
 from pmagpy.controlled_vocabularies2 import vocab
 
 

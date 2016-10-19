@@ -8,10 +8,9 @@ Tests for new ErMagicBuilder
 
 import unittest
 import os
-import sys
-import pmagpy.builder2 as builder
+from pmagpy import builder2 as builder
 from pmagpy import validate_upload2 as validate_upload
-import pmagpy.check_updates as check_updates
+from pmagpy import check_updates as check_updates
 
 WD = check_updates.get_pmag_dir()
 data_dir = os.path.join(WD, 'pmagpy_data_files')
@@ -527,7 +526,7 @@ class TestSample(unittest.TestCase):
         sample.propagate_data()
         self.assertNotEqual(sample.er_data['sample_lithology'], site.er_data['site_lithology'])
 
-        
+
     def test_get_parent(self):
         samp_name = 'Z35.6'
         site_name = 'Z35.'

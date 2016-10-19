@@ -5,13 +5,11 @@ tests for magic_gui
 import wx
 import unittest
 import os
-import sys
-#import ErMagicBuilder
-import programs.magic_gui as magic_gui
-import pmagpy.builder2 as builder
-import dialogs.grid_frame2 as grid_frame
-import dialogs.pmag_widgets as pmag_widgets
-import pmagpy.check_updates as check_updates
+from programs import magic_gui
+from pmagpy import builder2 as builder
+from dialogs import grid_frame2 as grid_frame
+from dialogs import pmag_widgets
+from pmagpy import check_updates
 from pmagpy import validate_upload2 as validate_upload
 DMODEL = validate_upload.get_data_model()
 WD = check_updates.get_pmag_dir() # sys.prefix
