@@ -3016,7 +3016,7 @@ class Demag_GUI(wx.Frame):
         self.included_methods=["LT-NO", "LT-AF-Z", "LT-T-Z", "LT-M-Z","LT-LT-Z"]
         self.mag_meas_data.sort(cmp=meas_cmp)
         for rec in self.mag_meas_data:
-            if "measurement_number" in rec.keys() and rec['measurement_number'] == '1' and "magic_method_codes" in rec.keys() and "LT-NO" not in rec["magic_method_codes"].split(':'):
+            if "measurement_number" in rec.keys() and str(rec['measurement_number']) == '1' and "magic_method_codes" in rec.keys() and "LT-NO" not in rec["magic_method_codes"].split(':'):
                 NRM = 1 #not really sure how to handle this case but assume that data is already normalized
             cnt+=1 #index counter
             s=rec["er_specimen_name"]
@@ -6046,40 +6046,24 @@ class Demag_GUI(wx.Frame):
         sets index as the upper or lower bound of a fit based on what the other bound is and selects it in the logger. Requires 2 calls to completely update a interpretation. NOTE: Requires an interpretation to exist before it is called.
         @param: index - index of the step to select in the logger
         """
-
         tmin_index,tmax_index="",""
-
         if str(self.tmin_box.GetValue())!="":
             tmin_index=self.tmin_box.GetSelection()
         if str(self.tmax_box.GetValue())!="":
             tmax_index=self.tmax_box.GetSelection()
 
-        if tmin_index !="" and tmax_index =="":
-            if index<tmin_index:
-                self.tmin_box.SetSelection(index)
+        if tmin_index=="" or index<tmin_index:
+            if tmax_index=="" and tmin_index!="":
                 self.tmax_box.SetSelection(tmin_index)
-            else:
-                self.tmax_box.SetSelection(index)
-            self.logger.Select(index, on=0)
-            self.get_new_PCA_parameters(-1)
-
-        elif tmin_index =="" and tmax_index !="":
-            if index>tmax_index:
-                self.tmin_box.SetSelection(tmax_index)
-                self.tmax_box.SetSelection(index)
-            else:
-                self.tmin_box.SetSelection(index)
-            self.logger.Select(index, on=0)
-            self.get_new_PCA_parameters(-1)
-
+            self.tmin_box.SetSelection(index)
+        elif tmax_index=="" or index>tmax_index:
+            self.tmax_box.SetSelection(index)
         else:
-            if index > (self.logger.GetItemCount())/2.:
-                self.tmin_box.SetValue("")
-                self.tmax_box.SetSelection(index)
-            else:
-                self.tmin_box.SetSelection(index)
-                self.tmax_box.SetValue("")
-            return
+            self.tmin_box.SetSelection(index)
+            self.tmax_box.SetValue("")
+
+        self.logger.Select(index, on=0)
+        self.get_new_PCA_parameters(-1)
 
     def OnRightClickListctrl(self,event):
         '''
