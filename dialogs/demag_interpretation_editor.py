@@ -364,7 +364,7 @@ class InterpretationEditorFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.parent.on_btn_add_fit, m_new)
 
         m_delete = menu_edit.Append(-1, "&Delete interpretation\tCtrl-D", "")
-        self.Bind(wx.EVT_MENU, self.parent.delete_fit, m_delete)
+        self.Bind(wx.EVT_MENU, self.parent.on_btn_delete_fit, m_delete)
 
         m_next_interp = menu_edit.Append(-1, "&Next interpretation\tCtrl-Up", "")
         self.Bind(wx.EVT_MENU, self.parent.on_menu_next_interp, m_next_interp)

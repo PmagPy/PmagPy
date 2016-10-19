@@ -485,7 +485,7 @@ class Demag_GUI(wx.Frame):
         self.delete_fit_button.SetHelpText(dgh.delete_fit_btn_help)
 
         self.Bind(wx.EVT_BUTTON, self.on_save_interpretation_button, self.save_fit_button)
-        self.Bind(wx.EVT_BUTTON, self.delete_fit, self.delete_fit_button)
+        self.Bind(wx.EVT_BUTTON, self.on_btn_delete_fit, self.delete_fit_button)
 
     #----------------------------------------------------------------------
         # Interpretation Type and Display window
@@ -726,7 +726,7 @@ class Demag_GUI(wx.Frame):
         self.Bind(wx.EVT_MENU, self.on_btn_add_fit, m_new)
 
         m_delete = menu_edit.Append(-1, "&Delete interpretation\tCtrl-D", "")
-        self.Bind(wx.EVT_MENU, self.delete_fit, m_delete)
+        self.Bind(wx.EVT_MENU, self.on_btn_delete_fit, m_delete)
 
         m_next_interp = menu_edit.Append(-1, "&Next interpretation\tCtrl-Up", "")
         self.Bind(wx.EVT_MENU, self.on_menu_next_interp, m_next_interp)
@@ -1892,6 +1892,30 @@ class Demag_GUI(wx.Frame):
         if samp_flag=='b': self.mark_fit_bad(new_fit)
         return new_fit
 
+    def delete_fit(self,fit,specimen=None):
+        """
+        removes fit from GUI results data
+        @param: fit - fit to remove
+        @param: specimen - specimen of fit to remove, if not provided and set to None then the function will find the specimen itself
+        """
+        if specimen==None:
+            for spec in self.pmag_results_data['specimens']:
+                if fit in self.pmag_results_data['specimens'][spec]:
+                    specimen=spec; break
+        if specimen not in self.pmag_results_data['specimens']: return
+        if fit in self.pmag_results_data['specimens'][specimen]:
+            self.pmag_results_data['specimens'][specimen].remove(fit)
+        if fit==self.current_fit:
+            if self.pmag_results_data['specimens'][specimen]:
+                self.pmag_results_data['specimens'][specimen][-1].select()
+            else:
+                self.current_fit = None
+        self.close_warning = True
+        self.calculate_high_levels_data()
+        if self.ie_open:
+            self.ie.update_editor()
+        self.update_selection()
+
     def calculate_vgp_data(self):
         """
         Calculates VGPS for all samples, sites, and locations
@@ -2703,21 +2727,6 @@ class Demag_GUI(wx.Frame):
             try: self.current_fit = self.pmag_results_data['specimens'][self.s][fit_index]
             except IndexError: self.current_fit = None
         else: self.current_fit = None
-
-    def new_fit(self):
-        """
-        finds the bounds of a new fit and calls update_fit_box adding it to the fit comboboxes
-        """
-        fit = self.pmag_results_data['specimens'][self.s][-1]
-        self.current_fit = fit #update current fit to new fit
-
-        if self.ie_open:
-            self.ie.update_editor()
-
-        self.update_fit_boxes(True)
-
-        #Draw figures and add  text
-        self.get_new_PCA_parameters(1)
 
     def clear_interpretations(self,message=None):
         """
@@ -4531,11 +4540,6 @@ class Demag_GUI(wx.Frame):
 
         self.update_PCA_box()
 
-        if self.current_fit:
-            self.draw_figure(self.s,False)
-        else:
-            self.draw_figure(self.s,True)
-
         #update warning
         self.generate_warning_text()
         self.update_warning_box()
@@ -4544,6 +4548,11 @@ class Demag_GUI(wx.Frame):
         self.update_mean_fit_box()
         # measurements text box
         self.Add_text()
+        #draw figures
+        if self.current_fit:
+            self.draw_figure(self.s,False)
+        else:
+            self.draw_figure(self.s,True)
         #update high level stats
         self.update_high_level_stats()
         #redraw interpretations
@@ -6034,14 +6043,10 @@ class Demag_GUI(wx.Frame):
         if not self.current_fit:
             self.on_btn_add_fit(event)
 
-        for item in range(self.logger.GetItemCount()):
-            if self.Data[self.s]['measurement_flag'][item] == 'b':
-                self.logger.SetItemBackgroundColour(item,"red")
-            else:
-                self.logger.SetItemBackgroundColour(item,"WHITE")
-
         index=int(event.GetText())
         self.select_bounds_in_logger(index)
+        self.selected_meas = []
+        self.plot_selected_meas()
 
     def select_bounds_in_logger(self, index):
         """
@@ -6363,35 +6368,29 @@ class Demag_GUI(wx.Frame):
         self.update_selection()
         self.close_warning=True
 
-    def on_btn_add_fit(self,event,plot_new_fit=True):
+    def on_btn_add_fit(self,event):
         """
         add a new interpretation to the current specimen
         @param: event -> the wx.ButtonEvent that triggered this function
         @alters: pmag_results_data
         """
-        self.add_fit(self.s,None,None,None)
+        self.current_fit = self.add_fit(self.s,None,None,None)
         self.generate_warning_text()
         self.update_warning_box()
-        if plot_new_fit:
-            self.new_fit()
 
-    def delete_fit(self,event):
+        if self.ie_open:
+            self.ie.update_editor()
+
+        self.update_fit_boxes(True)
+        #Draw figures and add  text
+        self.get_new_PCA_parameters(event)
+
+    def on_btn_delete_fit(self,event):
         """
         removes the current interpretation
         @param: event -> the wx.ButtonEvent that triggered this function
         """
-        if not self.s in self.pmag_results_data['specimens']: return
-        if self.current_fit in self.pmag_results_data['specimens'][self.s]:
-            self.pmag_results_data['specimens'][self.s].remove(self.current_fit)
-        if self.pmag_results_data['specimens'][self.s]:
-            self.pmag_results_data['specimens'][self.s][-1].select()
-        else:
-            self.current_fit = None
-        self.close_warning = True
-        self.calculate_high_levels_data()
-        if self.ie_open:
-            self.ie.update_editor()
-        self.update_selection()
+        self.delete_fit(self.current_fit,specimen=self.s)
 
     def on_next_button(self,event):
         """
