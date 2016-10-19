@@ -1891,7 +1891,7 @@ class Demag_GUI(wx.Frame):
             if 'sample_orientation_flag' not in self.Data_info['er_samples'][samp]:
                 self.Data_info['er_samples'][samp]['sample_orientation_flag'] = 'g'
             samp_flag = self.Data_info['er_samples'][samp]['sample_orientation_flag']
-        if samp_flag=='b': self.mark_fit_bad(new_fit)
+            if samp_flag=='b': self.mark_fit_bad(new_fit)
         return new_fit
 
     def delete_fit(self,fit,specimen=None):
