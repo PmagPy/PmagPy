@@ -8,11 +8,11 @@ import wx.grid
 import os
 import subprocess
 import sys
-import pmagpy.pmag as pmag
+from pmagpy import pmag
 from pmagpy import ipmag
 from pmagpy import check_updates
 from dialogs import pmag_widgets as pw
-from dialogs import drop_down_menus
+from dialogs import drop_down_menus2 as drop_down_menus
 from dialogs import magic_grid2 as magic_grid
 sys.path.append("../programs") #later fix imports further down in code to "from programs import ...." also imports should be moved to top of file unless import is so large it slows down the program
 from programs import tdt_magic

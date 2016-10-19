@@ -8,13 +8,13 @@ import wx.grid
 #import sys
 import pandas as pd
 import numpy as np
-import drop_down_menus
+import drop_down_menus2 as drop_down_menus
 import drop_down_menus3
 import pmag_widgets as pw
 import magic_grid2 as magic_grid
 import grid_frame2
 import grid_frame3
-import pmagpy.check_updates as check_updates
+from pmagpy import check_updates
 
 
 class ErMagicCheckFrame3(wx.Frame):

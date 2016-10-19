@@ -4,7 +4,7 @@ GridBuilder -- data methods for GridFrame (add data to frame, save it, etc.)
 """
 #import pdb
 import wx
-import drop_down_menus
+import drop_down_menus2 as drop_down_menus
 import pmag_widgets as pw
 import magic_grid2 as magic_grid
 import pmagpy.builder as builder
