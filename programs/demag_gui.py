@@ -170,6 +170,7 @@ class Demag_GUI(wx.Frame):
 
         self.ie_open = False
         self.check_orient_on = False
+        self.list_bound_loc = 0
         self.color_dict = {}
         self.colors = ['#008000','#FFFF00','#800000','#00FFFF']
         for name, hexval in matplotlib.colors.cnames.iteritems():
@@ -1778,7 +1779,7 @@ class Demag_GUI(wx.Frame):
         Sets current specimen to s and calculates the data necessary to plot the specimen plots (zijderveld, specimen eqarea, M/M0)
         @param - s: specimen to set as the GUI's current specimen
         """
-        self.s = s
+        self.s = s #only place in code where self.s is to be set directly
         if self.orthogonal_box.GetValue()=="X=East":
             self.ORTHO_PLOT_TYPE='E-W'
         elif self.orthogonal_box.GetValue()=="X=North":
@@ -2697,6 +2698,7 @@ class Demag_GUI(wx.Frame):
         except KeyError: fit_index = None
         except ValueError: fit_index = None
         self.initialize_CART_rot(specimen) #sets self.s to specimen calculates params etc.
+        self.list_bound_loc = 0
         if fit_index != None and self.s in self.pmag_results_data['specimens']:
             try: self.current_fit = self.pmag_results_data['specimens'][self.s][fit_index]
             except IndexError: self.current_fit = None
@@ -3457,10 +3459,10 @@ class Demag_GUI(wx.Frame):
         self.clear_interpretations(message="""Do you wish to clear all previous interpretations on import?""")
         old_s = self.s
         for specimen in self.specimens:
-            self.s = specimen
+            self.select_specimen(specimen)
             for i in range(len(self.Data[specimen]['zijdblock'])):
                 self.mark_meas_good(i)
-        self.s = old_s
+        self.select_specimen(old_s)
         print("Reading LSQ file")
         interps = read_LSQ(LSQ_file)
         for interp in interps:
@@ -3476,11 +3478,11 @@ class Demag_GUI(wx.Frame):
             new_fit = self.add_fit(specimen,name,tmin,tmax,PCA_type)
             if 'bad_measurement_index' in interp.keys():
                 old_s = self.s
-                self.s = specimen
+                self.select_specimen(specimen)
                 for bmi in interp["bad_measurement_index"]:
                     try: self.mark_meas_bad(bmi)
                     except IndexError: print("Magic Measurments length does not match that recorded in LSQ file")
-                self.s = old_s
+                self.select_specimen(old_s)
         if self.ie_open: self.ie.update_editor()
         self.update_selection()
 
@@ -3651,7 +3653,7 @@ class Demag_GUI(wx.Frame):
 
         #BUG FIX-almost replaced first sample with last due to above assignment to self.s
         if self.specimens:
-            self.s = self.specimens[0]
+            self.select_specimen(self.specimens[0])
             self.specimens_box.SetSelection(0)
         if self.s in self.pmag_results_data['specimens'] and self.pmag_results_data['specimens'][self.s]:
             self.initialize_CART_rot(self.specimens[0])
@@ -4688,7 +4690,7 @@ class Demag_GUI(wx.Frame):
         updates bounds boxes with bounds of current specimen and fit
         """
         if self.s not in self.Data.keys():
-            self.s = self.Data.keys()[0]
+            self.select_specimen(self.Data.keys()[0])
         self.T_list=self.Data[self.s]['zijdblock_steps']
         if self.current_fit:
             self.tmin_box.SetItems(self.T_list)
@@ -6052,27 +6054,45 @@ class Demag_GUI(wx.Frame):
         if str(self.tmax_box.GetValue())!="":
             tmax_index=self.tmax_box.GetSelection()
 
-        if tmin_index=="" or index<tmin_index:
-            if tmax_index=="" and tmin_index!="":
-                self.tmax_box.SetSelection(tmin_index)
-            self.tmin_box.SetSelection(index)
-        elif tmax_index=="" or index>tmax_index:
-            self.tmax_box.SetSelection(index)
+        if self.list_bound_loc!=0:
+            if self.list_bound_loc==1:
+                if index<tmin_index:
+                    self.tmin_box.SetSelection(index)
+                    self.tmax_box.SetSelection(tmin_index)
+                elif index==tmin_index: pass
+                else: self.tmax_box.SetSelection(index)
+            else:
+                if index>tmax_index:
+                    self.tmin_box.SetSelection(tmax_index)
+                    self.tmax_box.SetSelection(index)
+                elif index==tmax_index: pass
+                else: self.tmin_box.SetSelection(index)
+            self.list_bound_loc=0
         else:
-            self.tmin_box.SetSelection(index)
-            self.tmax_box.SetValue("")
+            if index<tmax_index:
+                self.tmin_box.SetSelection(index)
+                self.list_bound_loc=1
+            else:
+                self.tmax_box.SetSelection(index)
+                self.list_bound_loc=2
+
+#        if tmin_index=="" or index<tmin_index:
+#            if tmax_index=="" and tmin_index!="":
+#                self.tmax_box.SetSelection(tmin_index)
+#            self.tmin_box.SetSelection(index)
+#        elif tmax_index=="" or index>tmax_index:
+#            self.tmax_box.SetSelection(index)
+#        else:
+#            self.tmin_box.SetSelection(index)
+#            self.tmax_box.SetValue("")
 
         self.logger.Select(index, on=0)
         self.get_new_PCA_parameters(-1)
 
     def OnRightClickListctrl(self,event):
-        '''
-        right click on the listctrl opens a popup menu for
-        changing the measurement line from "g" to "b"
-
-        If there is  change, the program rewrirte magic_measurements.txt a
-        and reads it again.
-        '''
+        """
+        right click on the listctrl toggles measurement bad
+        """
         position=event.GetPosition()
         position[1]=position[1]+300*self.GUI_RESOLUTION
         g_index=event.GetIndex()
