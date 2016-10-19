@@ -1708,6 +1708,7 @@ class Demag_GUI(wx.Frame):
                 dec=pars["specimen_dec"];inc=pars["specimen_inc"]
             elif "dec" in pars.keys() and "inc" in pars.keys():
                 dec=pars["dec"];inc=pars["inc"]
+            else: print("either dec or inc missing from values recived for high level plot, was given %s, aborting"%(str(pars))); return
             XY=pmag.dimap(float(dec),float(inc))
             if inc>0:
                 if 'color' in pars.keys(): FC=pars['color'];EC=pars['color'];SIZE=15*self.GUI_RESOLUTION
@@ -1886,9 +1887,10 @@ class Demag_GUI(wx.Frame):
                 print(TEXT); return
         self.pmag_results_data['specimens'][specimen].append(new_fit)
         samp = self.Data_hierarchy['sample_of_specimen'][specimen]
-        if 'sample_orientation_flag' not in self.Data_info['er_samples'][samp]:
-            self.Data_info['er_samples'][samp]['sample_orientation_flag'] = 'g'
-        samp_flag = self.Data_info['er_samples'][samp]['sample_orientation_flag']
+        if samp in self.Data_info['er_samples'].keys():
+            if 'sample_orientation_flag' not in self.Data_info['er_samples'][samp]:
+                self.Data_info['er_samples'][samp]['sample_orientation_flag'] = 'g'
+            samp_flag = self.Data_info['er_samples'][samp]['sample_orientation_flag']
         if samp_flag=='b': self.mark_fit_bad(new_fit)
         return new_fit
 
