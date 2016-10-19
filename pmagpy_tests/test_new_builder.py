@@ -123,13 +123,28 @@ class TestMagicDataFrame(unittest.TestCase):
         self.assertEqual(1, len(di_block))
 
 
+    def test_get_records_for_code(self):
+        magic_df = nb.MagicDataFrame(os.path.join(WD, 'sites.txt'), dmodel=dmodel)
+        results = magic_df.get_records_for_code('LP-DC2')
+        self.assertEqual(87, len(results))
+        #
+        magic_df.df.loc['1', 'method_codes'] = 'LP-NEW'
+        results = magic_df.get_records_for_code('LP', strict_match=False)
+        self.assertEqual(89, len(results))
+        #
+        df_slice = magic_df.df.head()
+        results = magic_df.get_records_for_code('LP-DC2', use_slice=True,
+                                                sli=df_slice)
+        self.assertEqual(1, len(results))
+
+
 
 class TestContribution(unittest.TestCase):
 
     def setUp(self):
-        directory = os.path.join(check_updates.get_pmag_dir(),
-                                 '3_0', 'Megiddo')
-        self.con = nb.Contribution(directory, vocabulary=vocabulary,
+        self.directory = os.path.join(check_updates.get_pmag_dir(),
+                                      '3_0', 'Megiddo')
+        self.con = nb.Contribution(self.directory, vocabulary=vocabulary,
                                    dmodel=dmodel)
 
     def tearDown(self):
@@ -145,6 +160,33 @@ class TestContribution(unittest.TestCase):
                          set(['measurements', 'specimens', 'samples',
                               'sites', 'locations', 'ages', 'criteria',
                               'contribution']))
+
+    def test_add_custom_filenames(self):
+        self.con.add_custom_filenames({'specimens': 'custom_specimens.txt'})
+        self.assertEqual('custom_specimens.txt', self.con.filenames['specimens'])
+
+    def test_add_empty_magic_table(self):
+        con = nb.Contribution(self.directory, read_tables=['specimens'],
+                              vocabulary=vocabulary, dmodel=dmodel)
+        self.assertEqual(set(['specimens']), set(con.tables.keys()))
+        con.add_empty_magic_table('samples')
+        self.assertEqual(set(['specimens', 'samples']), set(con.tables.keys()))
+        self.assertEqual(0, len(con.tables['samples'].df))
+
+    def test_add_magic_table(self):
+        con = nb.Contribution(self.directory, read_tables=['specimens'],
+                              vocabulary=vocabulary, dmodel=dmodel)
+        self.assertEqual(set(['specimens']), set(con.tables.keys()))
+        con.add_magic_table('samples')
+        self.assertEqual(set(['specimens', 'samples']), set(con.tables.keys()))
+        print "len(con.tables['samples'].df)", len(con.tables['samples'].df)
+        self.assertGreater(len(con.tables['samples'].df), 0)
+        con.add_magic_table('unknown', 'sites.txt')
+        self.assertEqual(set(['specimens', 'samples', 'sites']),
+                         set(con.tables.keys()))
+        self.assertGreater(len(con.tables['sites'].df), 0)
+
+
 
 
 if __name__ == '__main__':

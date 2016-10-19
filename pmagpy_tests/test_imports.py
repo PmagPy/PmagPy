@@ -102,7 +102,8 @@ class Test_cit_magic(unittest.TestCase):
         os.chdir(WD)
 
     def tearDown(self):
-        filelist= ['magic_measurements.txt', 'er_specimens.txt', 'er_samples.txt', 'er_sites.txt']
+        filelist = ['magic_measurements.txt', 'er_specimens.txt',
+                    'er_samples.txt', 'er_sites.txt']
         pmag.remove_files(filelist, WD)
 
     def test_cit_with_no_files(self):
@@ -114,8 +115,8 @@ class Test_cit_magic(unittest.TestCase):
         options = {}
         options['input_dir_path'] = os.path.join(WD, 'data_files',
                                                  'Measurement_Import',
-                                                 'cit_magic', 'MP18')
-        options['magfile'] = 'bMP.sam'
+                                                 'cit_magic', 'PI47')
+        options['magfile'] = 'PI47-.sam'
         program_ran, outfile = cit_magic.main(False, **options)
         self.assertTrue(program_ran)
         expected_file = os.path.join('.', 'magic_measurements.txt')
@@ -125,8 +126,8 @@ class Test_cit_magic(unittest.TestCase):
         options = {}
         options['input_dir_path'] = os.path.join(WD, 'data_files',
                                                  'Measurement_Import',
-                                                 'cit_magic', 'MP18')
-        options['magfile'] = 'bMP.sam'
+                                                 'cit_magic', 'PI47')
+        options['magfile'] = 'PI47-.sam'
         options['samp_con'] = '4'
         program_ran, error_message = cit_magic.main(False, **options)
         self.assertFalse(program_ran)
@@ -136,8 +137,8 @@ class Test_cit_magic(unittest.TestCase):
         options = {}
         options['input_dir_path'] = os.path.join(WD, 'data_files',
                                                  'Measurement_Import',
-                                                 'cit_magic', 'MP18')
-        options['magfile'] = 'bMP.sam'
+                                                 'cit_magic', 'PI47')
+        options['magfile'] = 'PI47-.sam'
         options['samp_con'] = '4-3'
         program_ran, outfile = cit_magic.main(False, **options)
         self.assertTrue(program_ran)
@@ -148,8 +149,8 @@ class Test_cit_magic(unittest.TestCase):
         options = {}
         options['input_dir_path'] = os.path.join(WD, 'data_files',
                                                  'Measurement_Import',
-                                                 'cit_magic', 'MP18')
-        options['magfile'] = 'bMP.sam'
+                                                 'cit_magic', 'PI47')
+        options['magfile'] = 'PI47-.sam'
         options['samp_con'] = '2'
         options['methods'] = ['SO-SM:SO-MAG']
         options['locname'] = 'location'
@@ -164,8 +165,8 @@ class Test_cit_magic(unittest.TestCase):
         options = {}
         options['input_dir_path'] = os.path.join(WD, 'data_files',
                                                  'Measurement_Import',
-                                                 'cit_magic', 'Z35')
-        options['magfile'] = 'Z35.sam'
+                                                 'cit_magic', 'PI47')
+        options['magfile'] = 'PI47-.sam'
         options['samp_con'] = '1'
         options['methods'] = ['SO-SM:SO-MAG']
         options['locname'] = 'location'

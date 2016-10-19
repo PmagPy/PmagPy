@@ -14,7 +14,7 @@ import dialogs.pmag_widgets as pmag_widgets
 import pmagpy.check_updates as check_updates
 from pmagpy import validate_upload2 as validate_upload
 DMODEL = validate_upload.get_data_model()
-WD = check_updates.get_pmag_dir()
+WD = check_updates.get_pmag_dir() # sys.prefix
 
 #@unittest.skip('seg fault')
 class TestMainFrame(unittest.TestCase):
@@ -162,7 +162,7 @@ class TestMainFrameWithData(unittest.TestCase):
 
     def setUp(self):
         self.app = wx.App()
-        self.frame = magic_gui.MainFrame(os.path.join(WD, 'pmagpy_data_files',
+        self.frame = magic_gui.MainFrame(os.path.join(WD, 'data_files',
                                                       'copy_ErMagicBuilder'),
                                          dmodel=DMODEL)
         self.pnl = self.frame.GetChildren()[0]

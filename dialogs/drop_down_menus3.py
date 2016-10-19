@@ -71,10 +71,15 @@ class Menus(object):
                         level_names = list(self.contribution.tables[level+"s"].df.index.unique())
                     num = self.grid.col_labels.index(level)
                     self.choices[num] = (level_names, False)
-        self.window.Bind(wx.grid.EVT_GRID_CELL_LEFT_CLICK,
-                         lambda event: self.on_left_click(event, self.grid, self.choices),
-                         self.grid)
-        #
+        # Bind left click to drop-down menu popping out
+        # replacing this:
+        #self.window.Bind(wx.grid.EVT_GRID_CELL_LEFT_CLICK,
+        #lambda event: self.on_left_click(event, self.grid, self.choices),
+        #                 self.grid)
+        # with this:
+        self.grid.Bind(wx.grid.EVT_GRID_CELL_LEFT_CLICK,
+                       lambda event: self.on_left_click(event, self.grid, self.choices))
+
         cols = self.grid.GetNumberCols()
         col_labels = [self.grid.GetColLabelValue(col) for col in range(cols)]
 
@@ -83,12 +88,21 @@ class Menus(object):
         for col_number, label in enumerate(col_labels):
             self.add_drop_down(col_number, label)
 
+    def EndUI(self):
+        """
+        prevent drop-down menu from popping up
+        """
+        self.grid.Unbind(wx.grid.EVT_GRID_CELL_LEFT_CLICK)
+
+
     def add_drop_down(self, col_number, col_label):
         """
         Add a correctly formatted drop-down-menu for given col_label,
         if required.
         Otherwise do nothing.
         """
+        if col_label.endswith('**'):
+            col_label = col_label[:-2]
         if col_label == 'method_codes':
             self.add_method_drop_down(col_number, col_label)
         elif col_label in ['specimens', 'samples', 'sites', 'locations']:
@@ -204,6 +218,7 @@ class Menus(object):
             self.grid.SetColLabelValue(self.selected_col, col_label_value)
             for row in range(self.grid.GetNumberRows()):
                 self.grid.SetCellBackgroundColour(row, self.selected_col, 'white')
+        self.selected_col = None
         self.grid.ForceRefresh()
 
     def on_left_click(self, event, grid, choices):
