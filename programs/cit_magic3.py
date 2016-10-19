@@ -36,7 +36,7 @@ def main(command_line=True, **kwargs):
         -dc B PHI THETA: dc lab field (in micro tesla) and phi,theta, default is none
               NB: use PHI, THETA = -1 -1 to signal that it changes, i.e. in anisotropy experiment
         -ac B : peak AF field (in mT) for ARM acquisition, default is none
-        -dm: specify which magic data model you want your output in 3.0 or 2.5 default is 2.5
+        -dm: specify which magic data model you want your output in 3.0 or 2.5 default is 3.0
 
     INPUT
         Best to put separate experiments (all AF, thermal, thellier, trm aquisition, Shaw, etc.)
@@ -63,6 +63,7 @@ def main(command_line=True, **kwargs):
     spec_file='specimens.txt'
     samp_file='samples.txt'
     site_file='sites.txt'
+    loc_file='locations.txt'
     Specs,Samps,Sites,Locs=[],[],[],[]
     MeasRecs=[]
     specnum,units,locname=0,"1","unknown"
@@ -141,9 +142,8 @@ def main(command_line=True, **kwargs):
         samp_file = kwargs.get('samp_file', 'samples.txt') # sample outfile
         site_file = kwargs.get('site_file', 'sites.txt') # site outfile
         loc_file = kwargs.get('loc_file', 'locations.txt') # location outfile
-        data_model = kwargs.get('data_model', 2.5) # data_model to output as
+        data_model = kwargs.get('data_model', 3.0) # data_model to output as
         locname = kwargs.get('locname', 'unknown')
-        if locname=='' or locname==None: locname = 'unknown'
         methods = kwargs.get('methods', ['SO-MAG'])
         specnum = -int(kwargs.get('specnum', 0))
         norm = kwargs.get('norm', 'cc')
@@ -155,6 +155,7 @@ def main(command_line=True, **kwargs):
     # done with module-specific stuff
 
     # formatting and checking variables
+    if locname=='' or locname==None: locname = 'unknown'
     if "4" in samp_con:
         if "-" not in samp_con:
             print("option [4] must be in form 4-Z where Z is an integer")

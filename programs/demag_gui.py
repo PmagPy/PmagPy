@@ -1281,14 +1281,14 @@ class Demag_GUI(wx.Frame):
             tmin_index,tmax_index = self.get_indices(fit);
 
             marker_shape = 'o'
-            SIZE = 30
+            SIZE = 25
             if fit == self.current_fit:
                 marker_shape = 'D'
             if pars['calculation_type'] == "DE-BFP":
                 marker_shape = 's'
             if fit in self.bad_fits:
                 marker_shape = (4,1,0)
-                SIZE=25*self.GUI_RESOLUTION
+                SIZE=30*self.GUI_RESOLUTION
 
             # Zijderveld plot
 
@@ -1403,8 +1403,8 @@ class Demag_GUI(wx.Frame):
                 CART=pmag.dir2cart([pars['specimen_dec'],pars['specimen_inc'],1])
                 x=CART[0]
                 y=CART[1]
-                z=abs(CART[2])
-                R=array(sqrt(1-z)/sqrt(x**2+y**2))
+                z=CART[2]
+                R=array(sqrt(1-abs(z))/sqrt(x**2+y**2))
                 eqarea_x=y*R
                 eqarea_y=x*R
                 self.specimen_EA_xdata.append(eqarea_x)
@@ -1413,7 +1413,7 @@ class Demag_GUI(wx.Frame):
                 if z>0:
                     FC=fit.color;EC='0.1'
                 else:
-                    FC=fit.color;EC='green'
+                    FC=(1,1,1);EC=fit.color
                 self.specimen_eqarea.scatter([eqarea_x],[eqarea_y],marker=marker_shape,edgecolor=EC, facecolor=FC,s=SIZE,lw=1,clip_on=False)
                 fit.eqarea_data[0] = self.specimen_eqarea.collections[-1]
 
