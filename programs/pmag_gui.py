@@ -28,7 +28,6 @@ except:
     pass
 from programs import thellier_gui
 
-# import check_updates
 
 class MagMainFrame(wx.Frame):
     """"""

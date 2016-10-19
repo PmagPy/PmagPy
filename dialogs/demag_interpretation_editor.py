@@ -1,5 +1,5 @@
 import wx, os, sys
-import pmagpy.check_updates as check_updates
+import pmagpy.find_pmag_dir as find_pmag_dir
 from copy import copy
 from numpy import vstack,sqrt
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigCanvas
@@ -11,7 +11,7 @@ from pmagpy.Fit import *
 
 global CURRENT_VERSION, PMAGPY_DIRECTORY
 CURRENT_VERSION = "v.0.33"
-PMAGPY_DIRECTORY = check_updates.get_pmag_dir()
+PMAGPY_DIRECTORY = find_pmag_dir.get_pmag_dir()
 IMG_DIRECTORY = os.path.join(PMAGPY_DIRECTORY, 'dialogs', 'images')
 
 

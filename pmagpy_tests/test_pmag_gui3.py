@@ -6,14 +6,14 @@ import os
 import sys
 import wx
 #import wx.lib.inspection
-import programs.pmag_gui3 as pmag_gui
+from programs import pmag_gui3 as pmag_gui
 from pmagpy import new_builder as nb
-import pmagpy.check_updates as check_updates
+from pmagpy import find_pmag_dir
 from pmagpy import data_model3 as data_model
 #import dialogs.pmag_menu_dialogs as pmag_menu_dialogs
 # get WD etc. before all the Pmag GUI stuff starts to happen
 DMODEL = data_model.DataModel()
-WD = check_updates.get_pmag_dir()
+WD = find_pmag_dir.get_pmag_dir()
 project_WD = os.path.join(WD, "data_files", "Pmag_GUI", "3_0")
 test_dir = os.getcwd()
 

@@ -6,9 +6,9 @@ import httplib
 import json
 import os
 import backup_vocabulary as backup
-import check_updates
+import find_pmag_dir
 import data_model3
-pmag_dir = check_updates.get_pmag_dir()
+pmag_dir = find_pmag_dir.get_pmag_dir()
 data_model_dir = os.path.join(pmag_dir, 'pmagpy', 'data_model')
 # if using with py2app, the directory structure is flat,
 # so check to see where the resource actually is

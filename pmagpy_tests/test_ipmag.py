@@ -2,15 +2,13 @@
 
 import unittest
 import os
-import sys
 import matplotlib
-import pkg_resources
-import pmagpy.pmag as pmag
-import pmagpy.ipmag as ipmag
-import pmagpy.check_updates as check_updates
+from pmagpy import pmag
+from pmagpy import ipmag
+from pmagpy import find_pmag_dir
 
 #WD = os.getcwd()
-WD = check_updates.get_pmag_dir()
+WD = find_pmag_dir.get_pmag_dir()
 
 class TestIGRF(unittest.TestCase):
 
@@ -449,8 +447,8 @@ class TestPmagResultsExtract(unittest.TestCase):
         for f in files:
             self.assertTrue(os.path.exists(f))
 
-    
-        
+
+
 
 
 if __name__ == '__main__':

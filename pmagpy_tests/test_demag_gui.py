@@ -5,7 +5,7 @@ import os,wx,sys,shutil
 import wx.lib.inspection
 import random as rn
 from pmagpy.demag_gui_utilities import *
-import pmagpy.check_updates as check_updates
+import pmagpy.find_pmag_dir as find_pmag_dir
 from programs import demag_gui
 
 class TestDemagGUI(unittest.TestCase):
@@ -711,7 +711,7 @@ def revert_from_backup(WD):
 
 if __name__ == '__main__':
 
-    WD = check_updates.get_pmag_dir()
+    WD = find_pmag_dir.get_pmag_dir()
     if '-d' in sys.argv:
         d_index = sys.argv.index('-d')
         project_WD = os.path.join(WD,sys.argv[d_index+1])
@@ -739,7 +739,7 @@ if __name__ == '__main__':
     unittest.TextTestRunner().run(unittest.TestLoader().loadTestsFromTestCase(TestDemagGUI))
     revert_from_backup(project_WD)
 else:
-    WD = check_updates.get_pmag_dir()
+    WD = find_pmag_dir.get_pmag_dir()
     project_WD = os.path.join(WD, 'pmagpy_tests', 'examples', 'demag_test_data')
     core_depthplot_WD = os.path.join(WD, 'data_files', 'core_depthplot')
     empty_WD = os.path.join(os.getcwd(), 'pmagpy_tests', 'examples', 'empty_dir')

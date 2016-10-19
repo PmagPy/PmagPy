@@ -9,10 +9,10 @@ from programs import magic_gui
 from pmagpy import builder2 as builder
 from dialogs import grid_frame2 as grid_frame
 from dialogs import pmag_widgets
-from pmagpy import check_updates
+from pmagpy import find_pmag_dir
 from pmagpy import validate_upload2 as validate_upload
 DMODEL = validate_upload.get_data_model()
-WD = check_updates.get_pmag_dir() # sys.prefix
+WD = find_pmag_dir.get_pmag_dir() # sys.prefix
 
 #@unittest.skip('seg fault')
 class TestMainFrame(unittest.TestCase):

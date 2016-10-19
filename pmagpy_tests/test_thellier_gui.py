@@ -12,10 +12,10 @@ import wx
 #import pmag_menu_dialogs
 from programs import thellier_gui
 import dialogs.thellier_interpreter as thellier_interpreter
-import pmagpy.check_updates as check_updates
+import pmagpy.find_pmag_dir as find_pmag_dir
 
 # get WD before all the Pmag GUI stuff starts to happen
-WD = check_updates.get_pmag_dir()
+WD = find_pmag_dir.get_pmag_dir()
 project_WD = os.path.join(WD, 'data_files', 'testing', 'my_project')
 
 
@@ -53,7 +53,7 @@ class TestMainFrame(unittest.TestCase):
         event = wx.CommandEvent(wx.EVT_MENU.evtType[0], item_id)
         self.frame.GetEventHandler().ProcessEvent(event)
 
-        
+
     def test_interpreter(self):
         THERMAL = True
         MICROWAVE = False
@@ -73,4 +73,3 @@ class TestMainFrame(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
-            

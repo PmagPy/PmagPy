@@ -2,7 +2,7 @@ import os
 import json
 import pandas as pd
 from pandas import DataFrame
-from pmagpy import check_updates
+from pmagpy import find_pmag_dir
 
 
 class DataModel(object):
@@ -11,7 +11,7 @@ class DataModel(object):
         self.dm = self.get_data_model()
 
     def download_data_model(self):
-        pmag_dir = check_updates.get_pmag_dir()
+        pmag_dir = find_pmag_dir.get_pmag_dir()
         model_file = os.path.join(pmag_dir, 'pmagpy', 'data_model', 'data_model.json')
         # for py2app:
         if not os.path.isfile(model_file):

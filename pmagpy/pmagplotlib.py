@@ -18,7 +18,6 @@ globals = 0
 graphmenu = 0
 global version_num
 version_num=pmag.get_version()
-import check_updates
 #matplotlib.ticker_Formatter.xaxis.set_powerlimits((-3,4))
 #matplotlib.ticker_Formatter.yaxis.set_powerlimits((-3,4))
 

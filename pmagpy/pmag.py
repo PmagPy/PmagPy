@@ -9,7 +9,7 @@ import exceptions
 import os
 import time
 import pandas as pd
-#import check_updates
+#import find_pmag_dir
 import scipy
 from scipy import array,sqrt,mean
 from mapping import map_magic
@@ -17,11 +17,11 @@ from pmagpy import new_builder as nb
 
 #pylint: skip-file
 
-#check_updates.main() # check for updates
+#find_pmag_dir.main() # check for updates
 
 def get_version():
-    import check_updates
-    version=check_updates.get_version()
+    import find_pmag_dir
+    version=find_pmag_dir.get_version()
     return version
 
 

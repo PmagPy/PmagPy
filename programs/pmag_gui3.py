@@ -29,7 +29,6 @@ except:
 from programs import thellier_gui
 from programs import thellier_gui3
 
-# import check_updates
 
 class MagMainFrame(wx.Frame):
     """"""
