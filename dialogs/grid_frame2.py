@@ -4,12 +4,12 @@ GridBuilder -- data methods for GridFrame (add data to frame, save it, etc.)
 """
 #import pdb
 import wx
-import drop_down_menus
+import drop_down_menus2 as drop_down_menus
 import pmag_widgets as pw
-import magic_grid
-import pmagpy.builder as builder
-import pmagpy.pmag as pmag
-from pmagpy.controlled_vocabularies import vocab
+import magic_grid2 as magic_grid
+from pmagpy import builder2 as builder
+from pmagpy import pmag
+from pmagpy.controlled_vocabularies2 import vocab
 
 
 class GridFrame(wx.Frame):
@@ -30,7 +30,7 @@ class GridFrame(wx.Frame):
         # if controlled vocabularies haven't already been grabbed from earthref
         # do so now
         if not any(vocab.vocabularies):
-            vocab.get_stuff()
+            vocab.get_meth_codes()
 
         self.remove_cols_mode = False
         self.deleteRowButton = None
@@ -176,7 +176,7 @@ class GridFrame(wx.Frame):
         else:
             belongs_to = ''
         self.drop_down_menu = drop_down_menus.Menus(self.grid_type, self, self.grid, belongs_to)
-        
+
         self.grid_box = wx.StaticBoxSizer(wx.StaticBox(self.panel, -1, name='grid container'), wx.VERTICAL)
         self.grid_box.Add(self.grid, flag=wx.ALL, border=5)
 
@@ -215,7 +215,7 @@ class GridFrame(wx.Frame):
             age_level = pw.radio_buttons(self.panel, levels, 'Choose level to assign ages')
             level_ind = levels.index(self.er_magic.age_type)
             age_level.radio_buttons[level_ind].SetValue(True)
-            
+
             toggle_box.Add(age_level)
 
             self.Bind(wx.EVT_RADIOBUTTON, self.toggle_ages)
@@ -273,7 +273,7 @@ class GridFrame(wx.Frame):
         #self.grid.ShowScrollbars(wx.SHOW_SB_NEVER, wx.SHOW_SB_NEVER)
         if event:
             event.Skip()
-        self.main_sizer.Fit(self)        
+        self.main_sizer.Fit(self)
         disp_size = wx.GetDisplaySize()
         actual_size = self.GetSize()
         rows = self.grid.GetNumberRows()
@@ -396,7 +396,7 @@ class GridFrame(wx.Frame):
                 pass
         # causes resize on each column header delete
         # can leave this out if we want.....
-        self.main_sizer.Fit(self)    
+        self.main_sizer.Fit(self)
 
     def on_add_cols(self, event):
         """
@@ -547,13 +547,13 @@ class GridFrame(wx.Frame):
             row_num = self.grid.GetNumberRows() - 1
             self.deleteRowButton.Disable()
             self.selected_rows = {row_num}
-            
+
         function_mapping = {'specimen': self.er_magic.delete_specimen,
                             'sample': self.er_magic.delete_sample,
                             'site': self.er_magic.delete_site,
                             'location': self.er_magic.delete_location,
                             'result': self.er_magic.delete_result}
-        
+
         names = [self.grid.GetCellValue(row, 0) for row in self.selected_rows]
         orphans = []
         for name in names:
@@ -677,7 +677,7 @@ class GridFrame(wx.Frame):
             self.er_magic.init_actual_headers()
             er_headers = list(set(self.er_magic.headers[self.grid_type]['er'][0]).union(current_headers))
             self.er_magic.headers[self.grid_type]['er'][0] = er_headers
-            
+
             include_pmag = False
             if 'pmag' in filename and import_type == self.grid_type:
                 include_pmag = True
@@ -713,7 +713,7 @@ class GridFrame(wx.Frame):
             dlg1 = wx.MessageDialog(self,caption="Message:", message="Are you sure you want to exit this grid?\nYour changes will not be saved.\n ", style=wx.OK|wx.CANCEL)
             result = dlg1.ShowModal()
             if result == wx.ID_OK:
-                dlg1.Destroy()    
+                dlg1.Destroy()
                 self.Destroy()
         else:
             self.Destroy()
@@ -753,7 +753,7 @@ class GridBuilder(object):
     """
     Takes ErMagicBuilder data and put them into a MagicGrid
     """
-    
+
     def __init__(self, er_magic, grid_type, grid_headers, panel, parent_type=None):
         self.er_magic = er_magic
         self.grid_type = grid_type
@@ -761,7 +761,7 @@ class GridBuilder(object):
         self.panel = panel
         self.parent_type = parent_type
         self.grid = None
-    
+
     def make_grid(self, incl_pmag=True):
         """
         return grid
@@ -802,7 +802,7 @@ class GridBuilder(object):
             for head in header[:]:
                 if string in head:
                     header.remove(head)
-            
+
         # do headers for results type grid
         if self.grid_type == 'result':
             #header.remove('pmag_result_name')
@@ -827,7 +827,7 @@ class GridBuilder(object):
             lst = ['er_' + self.grid_type + '_name', 'er_' + self.parent_type + '_name']
             lst.extend(first_headers)
             header[:0] = lst
-        
+
         grid = magic_grid.MagicGrid(parent=self.panel, name=self.grid_type,
                                     row_labels=[], col_labels=header,
                                     double=self.er_magic.double)
@@ -902,7 +902,7 @@ class GridBuilder(object):
         starred_cols = self.grid.remove_starred_labels()
 
         self.grid.SaveEditControlValue() # locks in value in cell currently edited
-        
+
         if self.grid.changes:
             num_cols = self.grid.GetNumberCols()
 
@@ -937,7 +937,7 @@ class GridBuilder(object):
                             new_pmag_data[col_label] = 'This study'
                             new_er_data[col_label] = value
                             continue
-                            
+
                         if er_header and (col_label in er_header):
                             new_er_data[col_label] = value
 
@@ -993,7 +993,7 @@ class GridBuilder(object):
                             item_type = age_data_type
                             item = self.er_magic.update_methods['age'](old_item_name, new_er_data,
                                                                        item_type, replace_data=True)
-                            
+
                         else:
                             item = self.er_magic.update_methods[self.grid_type](old_item_name, new_item_name,
                                                                                 new_parent_name, new_er_data,

@@ -15,13 +15,13 @@ import os
 import sys
 #import datetime
 #import shutil
-import pmagpy.pmag as pmag
-import pmagpy.ipmag as ipmag
-import pmagpy.builder2 as builder
-import dialogs.pmag_basic_dialogs as pmag_basic_dialogs
-import dialogs.pmag_er_magic_dialogs as pmag_er_magic_dialogs
-import dialogs.pmag_gui_menu as pmag_gui_menu
-import dialogs.ErMagicBuilder as ErMagicBuilder
+from pmagpy import pmag
+from pmagpy import ipmag
+from pmagpy import builder2 as builder
+from dialogs import pmag_basic_dialogs
+from dialogs import pmag_er_magic_dialogs
+from dialogs import pmag_gui_menu2 as pmag_gui_menu
+from dialogs import ErMagicBuilder
 try:
     from programs import demag_gui
 except:

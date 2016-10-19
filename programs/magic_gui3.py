@@ -13,18 +13,17 @@ import wx.lib.buttons as buttons
 import sys
 import os
 import pmagpy
-import pmagpy.data_model3 as data_model3
-import pmagpy.validate_upload3 as val_up3
-import pmagpy.check_updates as check_updates
-import pmagpy.builder as builder
-import pmagpy.pmag as pmag
-import pmagpy.ipmag as ipmag
-import pmagpy.validate_upload2 as validate_upload
-import dialogs.pmag_widgets as pw
-import dialogs.magic_grid3 as magic_grid
-import dialogs.pmag_menu_dialogs as pmag_menu_dialogs
-import dialogs.grid_frame3 as grid_frame
-import pmagpy.new_builder as nb
+from pmagpy import data_model3
+from pmagpy import validate_upload3 as val_up3
+from pmagpy import check_updates
+from pmagpy import pmag
+from pmagpy import ipmag
+
+from dialogs import pmag_widgets as pw
+from dialogs import magic_grid3 as magic_grid
+from dialogs import pmag_menu_dialogs
+from dialogs import grid_frame3 as grid_frame
+from pmagpy import new_builder as nb
 
 
 class MainFrame(wx.Frame):
@@ -48,7 +47,6 @@ class MainFrame(wx.Frame):
         self.WD = os.path.realpath(WD) or os.getcwd()
 
         print '-I- Initializing magic data model'
-        #self.data_model = validate_upload.get_data_model()
         if dmodel is None:
             dmodel = data_model3.DataModel()
         self.data_model = dmodel
@@ -56,7 +54,6 @@ class MainFrame(wx.Frame):
         print '-I- Read in any available data from working directory'
         self.contribution = nb.Contribution(self.WD, dmodel=self.data_model)
 
-        #self.er_magic = builder.ErMagicBuilder(self.WD, self.data_model)
         self.edited = False
         self.validation_mode = False
 

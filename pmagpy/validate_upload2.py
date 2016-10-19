@@ -7,7 +7,7 @@ import httplib
 import pandas as pd
 import pmag
 import check_updates
-from pmagpy.controlled_vocabularies import vocab
+from pmagpy.controlled_vocabularies2 import vocab
 
 def get_data_offline():
     try:
@@ -30,13 +30,13 @@ def get_data_model():
     if that fails, try to get the data model document from the PmagPy directory on the user's computer.
     if that fails, return False.
     data_model is a set of nested dictionaries that looks like this:
-    {'magic_contributions': 
-        {'group_userid': {'data_status': 'Optional', 'data_type': 'String(10)'}, 'activate': {'data_status': 'Optional', 'data_type': 'String(1)'}, ....}, 
+    {'magic_contributions':
+        {'group_userid': {'data_status': 'Optional', 'data_type': 'String(10)'}, 'activate': {'data_status': 'Optional', 'data_type': 'String(1)'}, ....},
     'er_synthetics':
         {'synthetic_type': {'data_status': 'Required', 'data_type': 'String(50)'}, 'er_citation_names': {'data_status': 'Required', 'data_type': 'List(500)'}, ...},
     ....
     }
-    the top level keys are the file types.  
+    the top level keys are the file types.
     the second level keys are the possible headers for that file type.
     the third level keys are data_type and data_status for that header.
     """
@@ -155,7 +155,7 @@ def read_upload(up_file, data_model=None):
                     invalid_data[item_type][item_name][problem_type].append(validation)
 
             ## Validate for each problem type
-            
+
             # check if column header is in the data model
             invalid_col_name = validate_for_recognized_column(k, v, specific_data_model)
             if invalid_col_name:
@@ -171,7 +171,7 @@ def read_upload(up_file, data_model=None):
                 # skip to next item, as additional validations won't work
                 # (key is not in the data model)
                 continue
-            
+
             # make a list of missing, required data
             missing_item = validate_for_presence(k, v, specific_data_model)
             #print 'k, v', k, v
@@ -218,7 +218,7 @@ def read_upload(up_file, data_model=None):
                                     number_fail, 'number_fail')
 
     ## Print out all issues
-                
+
     for file_type, invalid_names in invalid_col_names.items():
         print "-W- In your {} file, you are using the following unrecognized columns: {}".format(file_type, ', '.join(invalid_names))
 
@@ -245,7 +245,7 @@ def read_upload(up_file, data_model=None):
     else:
         print "-I- validation was successful"
         return True, None
-    
+
 
 def split_lines(lines):
     """
@@ -262,11 +262,11 @@ def split_lines(lines):
             new_list.append(line)
     container.append(new_list)
     return container
-    
-    
+
+
 def get_dicts(data):
     """
-    data must be a list of lists, from a tab delimited file.  
+    data must be a list of lists, from a tab delimited file.
     in each list:
     the first list item will be the type of data.
     the second list item will be a tab delimited list of headers.
@@ -280,10 +280,10 @@ def get_dicts(data):
         file_type = chunk[0].split('\t')[1].strip('\n').strip('\r')
         keys = chunk[1].split('\t')
         clean_keys = []
-        
+
         # remove new-line characters, and any empty string keys
         for key in keys:
-            clean_key = key.strip('\n').strip('\r') 
+            clean_key = key.strip('\n').strip('\r')
             if clean_key:
                 clean_keys.append(clean_key)
         for line in chunk[2:]:
@@ -296,7 +296,7 @@ def get_dicts(data):
             data_dict['file_type'] = file_type
             data_dictionaries.append(data_dict)
     return data_dictionaries
-        
+
 
 
 def validate_for_recognized_column(key, value, complete_ref):
@@ -304,7 +304,7 @@ def validate_for_recognized_column(key, value, complete_ref):
         return key
     return
 
-        
+
 def validate_for_presence(key, value, complete_ref):
     reqd = complete_ref[key]['data_status']
     if reqd == 'Required':
@@ -347,13 +347,13 @@ def validate_for_controlled_vocab(key, value, complete_ref):
 
     #if there is a controlled vocabulary for the given header,
     # check and see if all values provided are legitimate
-    if cv: 
+    if cv:
         # make sure colon-delimited lists are split
         values = value.split(':')
         values = [v.strip() for v in values]
         #print 'key', key
         #print 'values', values
-        
+
         # if we don't have the options for the needed controlled vocabulary,
         # fetch them from earthref
         if key not in vocab.vocabularies:

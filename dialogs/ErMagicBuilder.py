@@ -13,8 +13,8 @@ import wx.grid
 import wx.html
 #import pdb
 import pmag_widgets as pw
-import pmagpy.check_updates as check_updates
-import pmagpy.builder as builder
+from pmagpy import check_updates
+from pmagpy import builder2 as builder
 from pmagpy import new_builder as nb
 from pmagpy import data_model3 as data_model
 

@@ -26,13 +26,50 @@ class Vocabulary(object):
         self.methods = []
         self.age_methods = []
 
+
     def get_meth_codes(self):
+        # will update this to get codes either online or offline
+        # as appropriate
+        return self.get_meth_codes_offline()
+
+
+    def get_meth_codes_offline(self):
+        raw_codes = pd.io.json.read_json(os.path.join(data_model_dir, "method_codes.json"))
+        code_types = raw_codes.ix['label']
+        all_codes = []
+        for code_name in code_types.index:
+            df = pd.DataFrame(raw_codes[code_name]['codes'])
+            # remake the dataframe with the code (i.e., 'SM_VAR') as the index
+            df.index = df['code']
+            del df['code']
+            # add a column with the code type (i.e., 'anisotropy_estimation')
+            df['dtype'] = code_name
+            little_series = df['definition']
+            big_series = Series()
+            if any(all_codes):
+                all_codes = pd.concat([all_codes, df])
+                big_series = pd.concat([big_series, little_series])
+            else:
+                all_codes = df
+                big_series = little_series
+
+        # format code_types and age column
+        code_types = raw_codes.T
+        code_types['age'] = False
+        age = ['geochronology_method']
+        code_types.ix[age, 'age'] = True
+        code_types['other'] = ~code_types['age']
+        return all_codes, code_types
+
+
+    def get_meth_codes_online(self):
         """
         Get method codes from the MagIC API
         """
+        # this doesn't work currently
         try:
-            #old_raw_codes = pd.io.json.read_json('https://api.earthref.org/MagIC/method_codes.json')
-            raw_codes = pd.io.json.read_json(os.path.join(data_model_dir, "method_codes.json"))
+            raw_codes = pd.io.json.read_json('https://api.earthref.org/MagIC/method_codes.json')
+            ##raw_codes = pd.io.json.read_json(os.path.join(data_model_dir, "method_codes.json"))##
         except urllib2.URLError:
             return [], []
         except httplib.BadStatusLine:
@@ -40,10 +77,13 @@ class Vocabulary(object):
         code_types = raw_codes.ix['label']
         all_codes = []
         for code_name in code_types.index:
-            #code_url = 'https://api.earthref.org/MagIC/method_codes/{}.json'.format(code_name)
+            code_url = 'https://api.earthref.org/MagIC/method_codes/{}.json'.format(code_name)
             # if internet fails in the middle, cut out
             try:
-                #raw_df = pd.io.json.read_json(raw_codes[code_name]['codes'])
+                #raw_df =
+                raw_df = pd.io.json.read_json(code_url)
+                #print "raw_df.index", raw_df.index
+                #print "raw_df.columns", raw_df.columns
                 df = pd.DataFrame(raw_codes[code_name]['codes'])
             except urllib2.URLError:
                 return [], []

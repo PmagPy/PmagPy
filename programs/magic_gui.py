@@ -14,17 +14,13 @@ import wx
 import wx.lib.buttons as buttons
 import sys
 import os
-import webbrowser
-import pmagpy.check_updates as check_updates
-import pmagpy.builder2 as builder
-import pmagpy.pmag as pmag
-import pmagpy.ipmag as ipmag
-import pmagpy.validate_upload2 as validate_upload
-import dialogs.drop_down_menus as drop_down_menus
-import dialogs.pmag_widgets as pw
-import dialogs.magic_grid2 as magic_grid
-import dialogs.pmag_menu_dialogs as pmag_menu_dialogs
-import dialogs.grid_frame2 as grid_frame
+from pmagpy import builder2 as builder
+from pmagpy import pmag
+from pmagpy import ipmag
+from pmagpy import validate_upload2 as validate_upload
+from dialogs import pmag_widgets as pw
+from dialogs import pmag_menu_dialogs
+from dialogs import grid_frame2 as grid_frame
 
 
 class MainFrame(wx.Frame):

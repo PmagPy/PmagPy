@@ -8,13 +8,13 @@ import wx.grid
 #import sys
 import pandas as pd
 import numpy as np
-import drop_down_menus
+import drop_down_menus2 as drop_down_menus
 import drop_down_menus3
 import pmag_widgets as pw
-import magic_grid
-import grid_frame
+import magic_grid2 as magic_grid
+import grid_frame2
 import grid_frame3
-import pmagpy.check_updates as check_updates
+from pmagpy import check_updates
 
 
 class ErMagicCheckFrame3(wx.Frame):
@@ -850,7 +850,7 @@ class ErMagicCheckFrame(wx.Frame):
 Check that all specimens belong to the correct sample
 (if sample name is simply wrong, that will be fixed in step 2)"""
         label = wx.StaticText(self.panel, label=text)
-        self.grid_builder = grid_frame.GridBuilder(self.er_magic_data, 'specimen',
+        self.grid_builder = grid_frame2.GridBuilder(self.er_magic_data, 'specimen',
                                                    self.er_magic_data.headers, self.panel,
                                                    'sample')
         self.spec_grid = self.grid_builder.make_grid(incl_pmag=False)
@@ -943,12 +943,12 @@ You may use the drop-down menus to add as many values as needed in these columns
             # provide no extra headers
             headers = {'sample': {'er': [[], [], []],
                                   'pmag': [[], [], []]}}
-            self.grid_builder = grid_frame.GridBuilder(self.er_magic_data, 'sample',
+            self.grid_builder = grid_frame2.GridBuilder(self.er_magic_data, 'sample',
                                                        headers, self.panel,
                                                        'site')
 
         if self.sample_window > 1:
-            self.grid_builder = grid_frame.GridBuilder(self.er_magic_data, 'sample',
+            self.grid_builder = grid_frame2.GridBuilder(self.er_magic_data, 'sample',
                                            self.er_magic_data.headers, self.panel,
                                            'site')
 
@@ -1060,7 +1060,7 @@ However, you will be able to edit sample_class, sample_lithology, and sample_typ
         #    except ValueError:
         #        pass
 
-        self.grid_builder = grid_frame.GridBuilder(self.er_magic_data, 'site',
+        self.grid_builder = grid_frame2.GridBuilder(self.er_magic_data, 'site',
                                self.er_magic_data.headers, self.panel,
                                'location')
 
@@ -1166,7 +1166,7 @@ Fill in any blank cells using controlled vocabularies.
             self.InitAgeCheck()
             return
 
-        self.grid_builder = grid_frame.GridBuilder(self.er_magic_data, 'location',
+        self.grid_builder = grid_frame2.GridBuilder(self.er_magic_data, 'location',
                                                    self.er_magic_data.headers, self.panel)
         self.loc_grid = self.grid_builder.make_grid(incl_pmag=False)
         self.loc_grid.InitUI()
@@ -1257,7 +1257,7 @@ You may use the drop-down menus to add as many values as needed in these columns
 
         self.items = self.er_magic_data.data_lists[self.er_magic_data.age_type][0]
 
-        self.grid_builder = grid_frame.GridBuilder(self.er_magic_data, 'age',
+        self.grid_builder = grid_frame2.GridBuilder(self.er_magic_data, 'age',
                                                    self.er_magic_data.headers, self.panel, 'location')
         self.age_grid = self.grid_builder.make_grid(incl_pmag=False)
         self.age_grid.InitUI()
