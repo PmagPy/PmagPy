@@ -3,7 +3,7 @@ import ipmag
 import pmagplotlib
 import check_updates
 import version
-import controlled_vocabularies
+import controlled_vocabularies2 as controlled_vocabularies
 import data_model3
 import new_builder
 import mapping
