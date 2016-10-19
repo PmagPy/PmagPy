@@ -3,5 +3,6 @@
 # 
 #  Copyright (c) 2014 Lori Jonestrask
 #  Author: Lori Jonestrask (mintblue87@gmail.com) .
+import map_magic
 
-from . import *
+__all__ = [map_magic]
