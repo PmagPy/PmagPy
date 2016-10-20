@@ -10,8 +10,9 @@ import re
 import sys
 import pmagpy.validate_upload2 as validate_upload
 import pmagpy.pmag as pmag
+from pmagpy import find_pmag_dir
 
-WD = sys.prefix
+WD = find_pmag_dir.get_pmag_dir() #sys.prefix
 
 class TestValidation(unittest.TestCase):
 

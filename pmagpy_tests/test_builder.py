@@ -10,9 +10,9 @@ import unittest
 import os
 from pmagpy import builder2 as builder
 from pmagpy import validate_upload2 as validate_upload
-from pmagpy import check_updates as check_updates
+from pmagpy import find_pmag_dir as find_pmag_dir
 
-WD = check_updates.get_pmag_dir()
+WD = find_pmag_dir.get_pmag_dir()
 data_dir = os.path.join(WD, 'pmagpy_data_files')
 if not os.path.exists(data_dir):
     data_dir = os.path.join(WD, 'data_files')

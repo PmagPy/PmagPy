@@ -464,7 +464,7 @@ class MagICMenu(wx.MenuBar):
     #    point user to Cookbook help
     #    """
     #    #for use on the command line
-    #    path = check_updates.get_pmag_dir()
+    #    path = find_pmag_dir.get_pmag_dir()
     #
     #    # for use with pyinstaller:
     #    #path = self.Parent.resource_dir

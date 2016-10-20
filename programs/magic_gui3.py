@@ -15,7 +15,6 @@ import os
 import pmagpy
 from pmagpy import data_model3
 from pmagpy import validate_upload3 as val_up3
-from pmagpy import check_updates
 from pmagpy import pmag
 from pmagpy import ipmag
 
@@ -506,7 +505,7 @@ class MagICMenu(wx.MenuBar):
     #    point user to Cookbook help
     #    """
     #    #for use on the command line
-    #    path = check_updates.get_pmag_dir()
+    #    path = find_pmag_dir.get_pmag_dir()
     #
     #    # for use with pyinstaller:
     #    #path = self.Parent.resource_dir

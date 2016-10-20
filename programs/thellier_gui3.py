@@ -169,7 +169,7 @@ from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigCanvas
 import sys, pylab, scipy, os
 #import pdb
 import pmagpy.pmag as pmag
-from pmagpy import check_updates
+from pmagpy import find_pmag_dir
 import pmagpy.new_builder as nb
 from pmagpy.mapping import map_magic
 import pmagpy.controlled_vocabularies3 as cv
@@ -1572,7 +1572,7 @@ class Arai_GUI(wx.Frame):
             dlg1.Destroy()
             PATH="~/PmagPy"
             try:
-                PATH = check_updates.get_pmag_dir()
+                PATH = find_pmag_dir.get_pmag_dir()
             except:
                 pass
             dlg2 = wx.FileDialog(

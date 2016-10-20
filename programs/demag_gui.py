@@ -47,8 +47,8 @@ global CURRENT_VERSION, PMAGPY_DIRECTORY
 CURRENT_VERSION = "v.0.33"
 # get directory in a way that works whether being used
 # on the command line or in a frozen binary
-import pmagpy.check_updates as check_updates
-PMAGPY_DIRECTORY = os.path.split(check_updates.get_pmag_dir())[0]
+import pmagpy.find_pmag_dir as find_pmag_dir
+PMAGPY_DIRECTORY = os.path.split(find_pmag_dir.get_pmag_dir())[0]
 
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigCanvas
 from matplotlib.backends.backend_wxagg import NavigationToolbar2WxAgg as NavigationToolbar

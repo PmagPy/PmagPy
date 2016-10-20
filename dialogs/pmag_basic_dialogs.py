@@ -10,7 +10,6 @@ import subprocess
 import sys
 from pmagpy import pmag
 from pmagpy import ipmag
-from pmagpy import check_updates
 from dialogs import pmag_widgets as pw
 from dialogs import drop_down_menus2 as drop_down_menus
 from dialogs import magic_grid2 as magic_grid

@@ -6,14 +6,14 @@ import wx
 import unittest
 import os
 import sys
-import programs.magic_gui3 as magic_gui
-import pmagpy.new_builder as nb
-import dialogs.grid_frame3 as grid_frame
-import pmagpy.check_updates as check_updates
+from programs import magic_gui3 as magic_gui
+from pmagpy import new_builder as nb
+from dialogs import grid_frame3 as grid_frame
+from pmagpy import find_pmag_dir
 #import dialogs.pmag_widgets as pmag_widgets
 from pmagpy import data_model3 as data_model
 DMODEL = data_model.DataModel()
-#WD = os.path.join(check_updates.get_pmag_dir(), "data_files", "magic_gui", "3_0")
+#WD = os.path.join(find_pmag_dir.get_pmag_dir(), "data_files", "magic_gui", "3_0")
 WD = os.path.join(sys.prefix, "pmagpy_data_files", "magic_gui", "3_0")
 
 

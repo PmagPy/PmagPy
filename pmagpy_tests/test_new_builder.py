@@ -5,10 +5,10 @@ import os
 import wx
 import sys
 from pmagpy import new_builder as nb
-from pmagpy import check_updates
+from pmagpy import find_pmag_dir
 from pmagpy import data_model3 as data_model
 from pmagpy import controlled_vocabularies3 as cv
-pmag_dir = check_updates.get_pmag_dir()
+pmag_dir = find_pmag_dir.get_pmag_dir()
 WD = os.path.join(pmag_dir, '3_0', 'Osler')
 vocab = cv.Vocabulary()
 vocabulary, possible_vocabulary = vocab.get_controlled_vocabularies()
@@ -142,7 +142,7 @@ class TestMagicDataFrame(unittest.TestCase):
 class TestContribution(unittest.TestCase):
 
     def setUp(self):
-        self.directory = os.path.join(check_updates.get_pmag_dir(),
+        self.directory = os.path.join(find_pmag_dir.get_pmag_dir(),
                                       '3_0', 'Megiddo')
         self.con = nb.Contribution(self.directory, vocabulary=vocabulary,
                                    dmodel=dmodel)

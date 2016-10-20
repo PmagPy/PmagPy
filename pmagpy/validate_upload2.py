@@ -6,12 +6,12 @@ import os
 import httplib
 import pandas as pd
 import pmag
-import check_updates
+import find_pmag_dir
 from pmagpy.controlled_vocabularies2 import vocab
 
 def get_data_offline():
     try:
-        pmag_dir = check_updates.get_pmag_dir()
+        pmag_dir = find_pmag_dir.get_pmag_dir()
         the_file = os.path.join(pmag_dir, 'pmagpy', 'data_model', "MagIC-data-model.txt")
         # if using with py2app, the directory structure is flat,
         # so check to see where the resource actually is

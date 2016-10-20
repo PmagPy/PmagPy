@@ -13,7 +13,7 @@ import wx.grid
 import wx.html
 #import pdb
 import pmag_widgets as pw
-from pmagpy import check_updates
+from pmagpy import find_pmag_dir
 from pmagpy import builder2 as builder
 from pmagpy import new_builder as nb
 from pmagpy import data_model3 as data_model
@@ -244,7 +244,7 @@ class MagIC_model_builder3(wx.Frame):
 
     def on_helpButton(self, event):
         #for use on the command line
-        path = check_updates.get_pmag_dir()
+        path = find_pmag_dir.get_pmag_dir()
         # for use with pyinstaller:
         #path = self.Parent.resource_dir
         help_page = os.path.join(path, 'dialogs', 'help_files', 'ErMagicBuilderHelp3.html')
@@ -458,7 +458,7 @@ class MagIC_model_builder(wx.Frame):
 
     def on_helpButton(self, event):
         #for use on the command line
-        path = check_updates.get_pmag_dir()
+        path = find_pmag_dir.get_pmag_dir()
 
         # for use with pyinstaller:
         #path = self.Parent.resource_dir

@@ -14,7 +14,7 @@ import pmag_widgets as pw
 import magic_grid2 as magic_grid
 import grid_frame2
 import grid_frame3
-from pmagpy import check_updates
+from pmagpy import find_pmag_dir
 
 
 class ErMagicCheckFrame3(wx.Frame):
@@ -601,7 +601,7 @@ The data in a row will be associated with the lowest level that is filled in,
     def on_helpButton(self, event, page=None):
         """shows html help page"""
         # for use on the command line:
-        path = check_updates.get_pmag_dir()
+        path = find_pmag_dir.get_pmag_dir()
         # for use with pyinstaller
         #path = self.main_frame.resource_dir
         help_page = os.path.join(path, 'dialogs', 'help_files', page)
@@ -1442,7 +1442,7 @@ You may use the drop-down menus to add as many values as needed in these columns
     def on_helpButton(self, event, page=None):
         """shows html help page"""
         # for use on the command line:
-        path = check_updates.get_pmag_dir()
+        path = find_pmag_dir.get_pmag_dir()
         # for use with pyinstaller
         #path = self.main_frame.resource_dir
         help_page = os.path.join(path, 'dialogs', 'help_files', page)

@@ -9,8 +9,8 @@ import backup_vocabulary as backup
 # get list of controlled vocabularies form this part of the api:
 #'http://api.earthref.org/MagIC/vocabularies.json'
 # then, use that list to determine whether or not any given column has a controlled vocabulary list
-import check_updates
-pmag_dir = check_updates.get_pmag_dir()
+import find_pmag_dir
+pmag_dir = find_pmag_dir.get_pmag_dir()
 data_model_dir = os.path.join(pmag_dir, 'pmagpy', 'data_model')
 # if using with py2app, the directory structure is flat,
 # so check to see where the resource actually is
@@ -105,7 +105,7 @@ class Vocabulary(object):
     def get_tiered_meth_category(self, mtype, all_codes, code_types):
         """
         Get a tiered list of all er/pmag_age codes
-        i.e. pmag_codes = {'anisotropy_codes': ['code1', 'code2'], 
+        i.e. pmag_codes = {'anisotropy_codes': ['code1', 'code2'],
         'sample_preparation': [code1, code2], ...}
         """
         #cond = code_types[code_types[mtype] == True]
@@ -218,5 +218,5 @@ class Vocabulary(object):
 
 
 vocab = Vocabulary()
-        
+
 # vocabularies, possible_vocabularies, all_codes, code_types, er_methods, pmag_methods, age_methods = get_stuff()
