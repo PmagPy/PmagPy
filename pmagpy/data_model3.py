@@ -12,6 +12,7 @@ class DataModel(object):
 
     def download_data_model(self):
         pmag_dir = find_pmag_dir.get_pmag_dir()
+        if pmag_dir==None: pmag_dir='.'
         model_file = os.path.join(pmag_dir, 'pmagpy', 'data_model', 'data_model.json')
         # for py2app:
         if not os.path.isfile(model_file):

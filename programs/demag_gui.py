@@ -3044,12 +3044,6 @@ class Demag_GUI(wx.Frame):
             if "er_expedition_name" in rec.keys():
                 expedition_name=rec["er_expedition_name"]
 
-            #---------------------
-            # sort data to Zijderveld block"
-            # [tr,dec,inc,int,ZI,rec['measurement_flag'],rec['magic_instrument_codes']\
-            # (ZI=0)
-            #---------------------
-
             methods=rec["magic_method_codes"].replace(" ","").strip("\n").split(":")
             LP_methods=[]
             LT_methods=[]

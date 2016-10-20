@@ -106,7 +106,7 @@ interaction:
     new bounds of current
     fit"""
 
-specimens_box_help = """Displays current specimen and has dropdown of all specimens for which there is valid measurement data"""
+specimens_box_help = """Displays current specimen and has dropdown of all specimens for which there is valid measurement data. You can also enter another specimen name into the box and when you hit enter the GUI will try to switch to that specimen if it exists."""
 
 nextbutton_help = """Switches current specimen to next specimen. Hotkey: ctrl-left"""
 

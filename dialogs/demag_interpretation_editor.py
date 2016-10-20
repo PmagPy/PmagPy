@@ -118,11 +118,11 @@ class InterpretationEditorFrame(wx.Frame):
         self.level_names.SetHelpText(dieh.level_names_help)
 
         #mean type and plot display boxes
-        self.mean_type_box = wx.ComboBox(self.panel, -1, size=(110*self.GUI_RESOLUTION, 25), value=self.parent.mean_type_box.GetValue(), choices=['Fisher','Fisher by polarity','None'], style=wx.CB_DROPDOWN|wx.TE_READONLY,name="high_type")
+        self.mean_type_box = wx.ComboBox(self.panel, -1, size=(110*self.GUI_RESOLUTION, 25), value=self.parent.mean_type_box.GetValue(), choices=['Fisher','Fisher by polarity','None'], style=wx.CB_DROPDOWN|wx.TE_READONLY, name="high_type")
         self.Bind(wx.EVT_COMBOBOX, self.on_select_mean_type_box,self.mean_type_box)
         self.mean_type_box.SetHelpText(dieh.mean_type_help)
 
-        self.mean_fit_box = wx.ComboBox(self.panel, -1, size=(110*self.GUI_RESOLUTION, 25), value=self.parent.mean_fit, choices=(['None','All'] + self.parent.fit_list), style=wx.CB_DROPDOWN|wx.TE_READONLY,name="high_type")
+        self.mean_fit_box = wx.ComboBox(self.panel, -1, size=(110*self.GUI_RESOLUTION, 25), value=self.parent.mean_fit, choices=(['None','All'] + self.parent.fit_list), style=wx.CB_DROPDOWN|wx.TE_READONLY, name="high_type")
         self.Bind(wx.EVT_COMBOBOX, self.on_select_mean_fit_box,self.mean_fit_box)
         self.mean_fit_box.SetHelpText(dieh.mean_fit_help)
 
@@ -195,8 +195,8 @@ class InterpretationEditorFrame(wx.Frame):
         display_window_0.AddMany( [(self.coordinates_box, wx.ALIGN_LEFT),
                                    (self.show_box, wx.ALIGN_LEFT)] )
         display_window_1.AddMany( [(self.level_box, wx.ALIGN_LEFT),
-                                   (self.mean_type_box, wx.ALIGN_LEFT)] )
-        display_window_2.AddMany( [(self.level_names, wx.ALIGN_LEFT),
+                                   (self.level_names, wx.ALIGN_LEFT)] )
+        display_window_2.AddMany( [(self.mean_type_box, wx.ALIGN_LEFT),
                                    (self.mean_fit_box, wx.ALIGN_LEFT)] )
         name_window.AddMany( [(self.name_box, wx.ALIGN_LEFT),
                                 (self.color_box, wx.ALIGN_LEFT)] )
