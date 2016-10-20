@@ -399,8 +399,9 @@ class Demag_GUI(wx.Frame):
     #----------------------------------------------------------------------
 
         # Combo-box with a list of specimen
-        self.specimens_box = wx.ComboBox(self.side_panel, id=wx.ID_ANY, value=self.s, size=(200*self.GUI_RESOLUTION,25), choices=self.specimens, style=wx.CB_DROPDOWN|wx.TE_READONLY,name="specimen")
+        self.specimens_box = wx.ComboBox(self.side_panel, id=wx.ID_ANY, value=self.s, size=(200*self.GUI_RESOLUTION,25), choices=self.specimens, style=wx.CB_DROPDOWN|wx.TE_PROCESS_ENTER,name="specimen")
         self.Bind(wx.EVT_COMBOBOX, self.onSelect_specimen,self.specimens_box)
+        self.Bind(wx.EVT_TEXT_ENTER, self.on_enter_specimen, self.specimens_box)
         self.specimens_box.SetHelpText(dgh.specimens_box_help)
 
         # buttons to move forward and backwards from specimens
@@ -3027,7 +3028,7 @@ class Demag_GUI(wx.Frame):
         # list of excluded lab protocols. copied from pmag.find_dmag_rec(s,data)
         self.excluded_methods=["LP-AN-ARM","LP-AN-TRM","LP-ARM-AFD","LP-ARM2-AFD","LP-TRM-AFD","LP-TRM","LP-TRM-TD","LP-X"]
         self.included_methods=["LT-NO", "LT-AF-Z", "LT-T-Z", "LT-M-Z","LT-LT-Z"]
-        self.mag_meas_data.sort(cmp=meas_cmp)
+#        self.mag_meas_data.sort(cmp=meas_cmp)
         for rec in self.mag_meas_data:
             if "measurement_number" in rec.keys() and str(rec['measurement_number']) == '1' and "magic_method_codes" in rec.keys() and "LT-NO" not in rec["magic_method_codes"].split(':'):
                 NRM = 1 #not really sure how to handle this case but assume that data is already normalized
@@ -4677,8 +4678,8 @@ class Demag_GUI(wx.Frame):
                         else:
                             mpar['calculation_type']+=":"+mf
                             mpars.append(mpar)
-            self.show_high_levels_pars(mpars)
             self.switch_stats_button.SetRange(0,len(mpars)-1)
+            self.show_high_levels_pars(mpars)
             if self.ie_open:
                 self.ie.switch_stats_button.SetRange(0,len(mpars)-1)
 
@@ -6134,6 +6135,17 @@ class Demag_GUI(wx.Frame):
         self.select_specimen(str(self.specimens_box.GetValue()))
         if self.ie_open:
             self.ie.change_selected(self.current_fit)
+        self.update_selection()
+
+    def on_enter_specimen(self, event):
+        """
+        upon enter on the specimen box it makes that specimen the current specimen
+        """
+        new_specimen = self.specimens_box.GetValue()
+        if new_specimen not in self.specimens:
+            self.user_warning("%s is not a valid specimen with measurement data, aborting"%(new_specimen)); self.specimens_box.SetValue(self.s); return
+        self.select_specimen(new_specimen)
+        if self.ie_open: self.ie.change_selected(self.current_fit)
         self.update_selection()
 
     def onSelect_coordinates(self, event):
