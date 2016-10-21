@@ -2960,7 +2960,7 @@ class Arai_GUI(wx.Frame):
         aniso_logfile.write( "------------------------\n")
         if self.data_model==3:
             #  write out the data
-            self.spec_container.write_magic_file(custom_name='new_specimens.txt', dir_path=self.WD) # change this to specimens.txt when ready
+            self.spec_container.write_magic_file(dir_path=self.WD)
         else:
             rmag_anisotropy_file.close()
 
@@ -3323,7 +3323,7 @@ class Arai_GUI(wx.Frame):
             for col in ['site','location']:
                 del self.spec_data[col]
             #  write out the data
-            self.spec_container.write_magic_file(custom_name='new_specimens.txt', dir_path=self.WD) # change this to specimens.txt when ready
+            self.spec_container.write_magic_file(dir_path=self.WD)
             TEXT="specimens interpretations are saved in specimens.txt.\nPress OK for samples/sites tables."
 
         dlg = wx.MessageDialog(self, caption="Saved",message=TEXT,style=wx.OK|wx.CANCEL )
@@ -3772,8 +3772,8 @@ class Arai_GUI(wx.Frame):
                 self.samp_container.df = self.samp_container.df.loc[condition]
 
             #  write out the data
-            self.samp_container.write_magic_file(custom_name='new_samples.txt', dir_path=self.WD) # change this to samples.txt when ready
-            self.site_container.write_magic_file(custom_name='new_sites.txt', dir_path=self.WD) # change this to sites.txt when ready
+            self.samp_container.write_magic_file(dir_path=self.WD)
+            self.site_container.write_magic_file(dir_path=self.WD)
         dlg1 = wx.MessageDialog(self,caption="Message:", message="MagIC files are saved in MagIC project folder" ,style=wx.OK|wx.ICON_INFORMATION)
         dlg1.ShowModal()
         dlg1.Destroy()
