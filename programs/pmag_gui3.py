@@ -27,7 +27,7 @@ try:
 except:
     pass
 from programs import thellier_gui
-from programs import thellier_gui3
+#from programs import thellier_gui3
 
 
 class MagMainFrame(wx.Frame):
@@ -353,7 +353,7 @@ class MagMainFrame(wx.Frame):
         if self.data_model_num == 2.5:
             thellier_gui.main(self.WD, standalone_app=False, parent=self)
         else:
-            thellier_gui3.main(self.WD, standalone_app=False, parent=self, DM=self.data_model_num)
+            thellier_gui.main(self.WD, standalone_app=False, parent=self, DM=self.data_model_num)
 
     def on_run_demag_gui(self, event):
         outstring = "demag_gui.py -WD %s"%self.WD
