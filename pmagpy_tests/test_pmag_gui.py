@@ -11,17 +11,21 @@ from pmagpy import find_pmag_dir
 from pmagpy import validate_upload2 as validate_upload
 from pmagpy import data_model3 as data_model
 from pmagpy import new_builder as nb
-# constants for 2.5
-dmodel2 = validate_upload.get_data_model()
-WD = find_pmag_dir.get_pmag_dir()
-project2_WD = os.path.join(WD, 'data_files', 'testing', 'my_project')
-core_depthplot_WD = os.path.join(WD, 'data_files',
-                                 'testing', 'core_depthplot')
-#constants for 3.0
-DMODEL = data_model.DataModel()
-WD = find_pmag_dir.get_pmag_dir()
-project_WD = os.path.join(WD, "data_files", "Pmag_GUI", "3_0")
-test_dir = os.getcwd()
+
+def set_consts(dmodel):
+    TEST_DIR = os.getcwd()
+    global TEST_DIR, dmodel2, project2_WD, core_depthplot_WD
+    global DMODEL, project_WD
+    if dmodel==2.5:
+        # constants for 2.5
+        dmodel2 = validate_upload.get_data_model()
+        project2_WD = os.path.join(TEST_DIR, 'data_files', 'testing', 'my_project')
+        core_depthplot_WD = os.path.join(TEST_DIR, 'data_files',
+                                         'testing', 'core_depthplot')
+    else:
+        #constants for 3.0
+        DMODEL = data_model.DataModel()
+        project_WD = os.path.join(TEST_DIR, "data_files", "Pmag_GUI", "3_0")
 
 
 # get WD before all the Pmag GUI stuff starts to happen
@@ -30,6 +34,7 @@ test_dir = os.getcwd()
 class TestMainFrame2(unittest.TestCase):
 
     def setUp(self):
+        set_consts(2.5)
         self.app = wx.App()
         self.frame = pmag_gui.MagMainFrame(project2_WD, dmodel=dmodel2, DM=2.5)
         self.pnl = self.frame.GetChildren()[0]
@@ -38,7 +43,7 @@ class TestMainFrame2(unittest.TestCase):
     def tearDown(self):
         #self.frame.Destroy() # this does not work and causes strange errors
         self.app.Destroy()
-        os.chdir(WD)
+        os.chdir(TEST_DIR)
 
     def test_main_panel_is_created(self):
         """
@@ -52,7 +57,6 @@ class TestMainFrame2(unittest.TestCase):
         """
         make sure import window is created when user clicks btn 1
         """
-        print 'about to do test_click_button_one'
         window = self.does_window_exist('step 1', 'import_magnetometer_data')
         self.assertTrue(window)
         self.assertTrue(window.IsEnabled())
@@ -139,7 +143,6 @@ class TestMainFrame2(unittest.TestCase):
         """
         produces a click event on the button called btn_name, see if it produces the window called window_name
         """
-        print 'calling does_window_exist'
         btn, window = None, None
         pnl_children = self.pnl.GetChildren()
         for child in pnl_children:
@@ -165,6 +168,7 @@ class TestMainFrame2(unittest.TestCase):
 class TestMenus2(unittest.TestCase):
 
     def setUp(self):
+        set_consts(2.5)
         self.app = wx.App()
         self.frame = pmag_gui.MagMainFrame(project2_WD, DM=2.5, dmodel=dmodel2)
         self.pnl = self.frame.GetChildren()[0]
@@ -174,7 +178,7 @@ class TestMenus2(unittest.TestCase):
     def tearDown(self):
         #self.frame.Destroy() # this does not work and causes strange errors
         self.app.Destroy()
-        os.chdir(WD)
+        os.chdir(TEST_DIR)
 
 
     def test_that_all_menus_exist(self):
@@ -302,7 +306,7 @@ class TestCoreDepthplot(unittest.TestCase):
     def tearDown(self):
         #self.frame.Destroy() # this does not work and causes strange errors
         self.app.Destroy()
-        os.chdir(WD)
+        os.chdir(TEST_DIR)
 
     def test_core_depthplot_window_initializes(self):
         self.assertTrue(self.core_window.IsEnabled())
@@ -359,13 +363,15 @@ class TestCoreDepthplot(unittest.TestCase):
 class TestMainFrame3(unittest.TestCase):
 
     def setUp(self):
-        os.chdir(test_dir)
+        set_consts(3)
+        os.chdir(TEST_DIR)
         self.app = wx.App()
         self.frame = pmag_gui.MagMainFrame(project_WD, DM=3,
                                            dmodel=DMODEL)
         self.pnl = self.frame.GetChildren()[0]
 
     def tearDown(self):
+        os.chdir(TEST_DIR)
         return
 
     def test_data_object_is_created(self):
@@ -493,6 +499,7 @@ class TestMainFrame3(unittest.TestCase):
 class TestMenus3(unittest.TestCase):
 
     def setUp(self):
+        set_consts(3)
         self.app = wx.App()
         self.frame = pmag_gui.MagMainFrame(project_WD, DM=3, dmodel=DMODEL)
         self.pnl = self.frame.GetChildren()[0]
@@ -502,7 +509,7 @@ class TestMenus3(unittest.TestCase):
     def tearDown(self):
         #self.frame.Destroy() # this does not work and causes strange errors
         self.app.Destroy()
-        os.chdir(WD)
+        os.chdir(TEST_DIR)
 
 
     def test_that_all_menus_exist(self):

@@ -1,7 +1,12 @@
 #/usr/bin/env python
 
+
+import os
+import sys
 import unittest
 import pmagpy_tests as pt
+os.chdir(sys.prefix)
+
 
 if __name__ == "__main__":
     #if '-gui' in sys.argv:
@@ -16,6 +21,7 @@ if __name__ == "__main__":
     #    #suite2 = module2.TheTestSuite()
     #    #alltests = unittest.TestSuite([suite1, suite2])
     #    print dir(pt.test_ipmag)
+    #os.chdir(sys.prefix)
     suite1 = unittest.TestLoader().loadTestsFromModule(pt.test_pmag_gui)
     suite2 = unittest.TestLoader().loadTestsFromModule(pt.test_pmag)
     suite3 = unittest.TestLoader().loadTestsFromModule(pt.test_imports)
@@ -31,9 +37,7 @@ if __name__ == "__main__":
     full = unittest.TestSuite([suite1, suite2, suite3, suite4,
                                suite5, suite7, suite8,
                                suite9, suite12, suite13])
-    #print 'full', full
-    #print 'type(full)', type(full)
-    #runner = unittest.TextTestRunner(verbosity=3)
-    #print 'runner', runner
-    #print 'type(runner)', type(runner)
+
     unittest.TextTestRunner(verbosity=3).run(full)
+    #one_test = unittest.TestSuite([suite1])
+    #unittest.TextTestRunner(verbosity=3).run(one_test)
