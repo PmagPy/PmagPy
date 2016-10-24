@@ -6,20 +6,18 @@ from pmagpy import new_builder as nb
 from pmagpy import data_model3 as data_model
 from pmagpy import controlled_vocabularies3 as cv
 
-
-def set_consts():
-    global WD, PROJECT_WD, VOCABULARY, DMODEL
-    WD = os.getcwd()
-    PROJECT_WD = os.path.join(WD, 'data_files', '3_0', 'Osler')
-    vocab = cv.Vocabulary()
-    VOCABULARY, possible_vocabulary = vocab.get_controlled_vocabularies()
-    DMODEL = data_model.DataModel()
+# set constants
+WD = os.getcwd()
+PROJECT_WD = os.path.join(WD, 'data_files', '3_0', 'Osler')
+vocab = cv.Vocabulary()
+VOCABULARY, possible_vocabulary = vocab.get_controlled_vocabularies()
+DMODEL = data_model.DataModel()
 
 
 class TestMagicDataFrame(unittest.TestCase):
 
     def setUp(self):
-        set_consts()
+        pass
 
     def tearDown(self):
         os.chdir(WD)
@@ -151,7 +149,6 @@ class TestMagicDataFrame(unittest.TestCase):
 class TestContribution(unittest.TestCase):
 
     def setUp(self):
-        set_consts()
         self.directory = os.path.join(WD, 'data_files', '3_0', 'Megiddo')
         self.con = nb.Contribution(self.directory, vocabulary=VOCABULARY,
                                    dmodel=DMODEL)

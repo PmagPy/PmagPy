@@ -5,26 +5,21 @@ tests for magic_gui
 import wx
 import unittest
 import os
-import sys
 from programs import magic_gui3 as magic_gui
 from pmagpy import new_builder as nb
 from dialogs import grid_frame3 as grid_frame
-from pmagpy import find_pmag_dir
 #import dialogs.pmag_widgets as pmag_widgets
 from pmagpy import data_model3 as data_model
 
-def set_consts():
-    global DMODEL, WD, PROJECT_WD
-    DMODEL = data_model.DataModel()
-    #WD = os.path.join(find_pmag_dir.get_pmag_dir(), "data_files", "magic_gui", "3_0")
-    WD = os.getcwd()
-    PROJECT_WD = os.path.join(WD, "data_files", "magic_gui", "3_0")
+# set constants
+DMODEL = data_model.DataModel()
+WD = os.getcwd()
+PROJECT_WD = os.path.join(WD, "data_files", "magic_gui", "3_0")
 
 
 class TestMainFrame(unittest.TestCase):
 
     def setUp(self):
-        set_consts()
         self.app = wx.App()
         self.frame = magic_gui.MainFrame(PROJECT_WD,
                                          name="best frame ever",
@@ -116,7 +111,6 @@ class TestMagICGUIMenu(unittest.TestCase):
 
 
     def setUp(self):
-        set_consts()
         self.app = wx.App()
         self.frame = magic_gui.MainFrame(PROJECT_WD, name="best frame ever",
                                          dmodel=DMODEL)

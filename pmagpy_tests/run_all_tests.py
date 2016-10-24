@@ -4,8 +4,9 @@
 import os
 import sys
 import unittest
-import pmagpy_tests as pt
 os.chdir(sys.prefix)
+import pmagpy_tests as pt
+
 
 
 if __name__ == "__main__":

@@ -4,16 +4,13 @@ import unittest
 import sys
 import os
 import wx
-from pmagpy import find_pmag_dir
 from dialogs import magic_grid2 as magic_grid
 
 #import wx.lib.inspection
 #import numpy as np
 #import ipmag
 
-def set_consts():
-    global WD, PROJECT_WD
-    WD = os.getcwd()
+WD = os.getcwd()
 
 class TestMagicGrid(unittest.TestCase):
     """
@@ -21,7 +18,6 @@ class TestMagicGrid(unittest.TestCase):
     """
 
     def setUp(self):
-        set_consts()
         self.app = wx.App()
         self.frame = wx.Frame(None, wx.ID_ANY, 'Title', size=(600, 600))
         self.frame.pnl = wx.Panel(self.frame, name='a panel')

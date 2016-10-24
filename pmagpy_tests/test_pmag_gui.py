@@ -12,29 +12,37 @@ from pmagpy import validate_upload2 as validate_upload
 from pmagpy import data_model3 as data_model
 from pmagpy import new_builder as nb
 
-def set_consts(dmodel):
-    global TEST_DIR, dmodel2, project2_WD, core_depthplot_WD
-    global DMODEL, PROJECT_WD
-    TEST_DIR = os.getcwd()
-    if dmodel==2.5:
-        # constants for 2.5
-        dmodel2 = validate_upload.get_data_model()
-        project2_WD = os.path.join(TEST_DIR, 'data_files', 'testing', 'my_project')
-        core_depthplot_WD = os.path.join(TEST_DIR, 'data_files',
-                                         'testing', 'core_depthplot')
-    else:
-        #constants for 3.0
-        DMODEL = data_model.DataModel()
-        PROJECT_WD = os.path.join(TEST_DIR, "data_files", "Pmag_GUI", "3_0")
+#def set_consts(dmodel):
+#    global TEST_DIR, dmodel2, project2_WD, core_depthplot_WD
+#    global DMODEL, PROJECT_WD
+#    TEST_DIR = os.getcwd()
+#    if dmodel==2.5:
+#        # constants for 2.5
+#        dmodel2 = validate_upload.get_data_model()
+#        project2_WD = os.path.join(TEST_DIR, 'data_files', 'testing', 'my_project')
+#        core_depthplot_WD = os.path.join(TEST_DIR, 'data_files',
+#                                         'testing', 'core_depthplot')
+#    else:
+#        #constants for 3.0
+#        DMODEL = data_model.DataModel()
+#        PROJECT_WD = os.path.join(TEST_DIR, "data_files", "Pmag_GUI", "3_0")
 
 
 # get WD before all the Pmag GUI stuff starts to happen
+TEST_DIR = os.getcwd()
+# constants for 2.5
+dmodel2 = validate_upload.get_data_model()
+project2_WD = os.path.join(TEST_DIR, 'data_files', 'testing', 'my_project')
+core_depthplot_WD = os.path.join(TEST_DIR, 'data_files',
+                                 'testing', 'core_depthplot')
+# constants for 3.0
+DMODEL = data_model.DataModel()
+PROJECT_WD = os.path.join(TEST_DIR, "data_files", "Pmag_GUI", "3_0")
 
 
 class TestMainFrame2(unittest.TestCase):
 
     def setUp(self):
-        set_consts(2.5)
         self.app = wx.App()
         self.frame = pmag_gui.MagMainFrame(project2_WD, dmodel=dmodel2, DM=2.5)
         self.pnl = self.frame.GetChildren()[0]
@@ -166,7 +174,6 @@ class TestMainFrame2(unittest.TestCase):
 class TestMenus2(unittest.TestCase):
 
     def setUp(self):
-        set_consts(2.5)
         self.app = wx.App()
         self.frame = pmag_gui.MagMainFrame(project2_WD, DM=2.5, dmodel=dmodel2)
         self.pnl = self.frame.GetChildren()[0]
@@ -361,7 +368,6 @@ class TestCoreDepthplot(unittest.TestCase):
 class TestMainFrame3(unittest.TestCase):
 
     def setUp(self):
-        set_consts(3)
         os.chdir(TEST_DIR)
         self.app = wx.App()
         self.frame = pmag_gui.MagMainFrame(PROJECT_WD, DM=3,
@@ -497,7 +503,6 @@ class TestMainFrame3(unittest.TestCase):
 class TestMenus3(unittest.TestCase):
 
     def setUp(self):
-        set_consts(3)
         self.app = wx.App()
         self.frame = pmag_gui.MagMainFrame(PROJECT_WD, DM=3, dmodel=DMODEL)
         self.pnl = self.frame.GetChildren()[0]

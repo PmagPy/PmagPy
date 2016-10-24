@@ -2,9 +2,7 @@
 
 import unittest
 import pmagpy.pmag as pmag
-#import os
-#import sys
-#WD = sys.prefix
+
 
 class TestLonAdjust(unittest.TestCase):
 

@@ -7,6 +7,8 @@ import shutil
 import sys
 from pkg_resources import resource_filename
 import programs
+
+# set constants
 fname = resource_filename(programs.__name__, 'angle.py')
 programs_WD = os.path.split(fname)[0]
 #env = TestFileEnvironment('./new-test-output')

@@ -12,18 +12,14 @@ import wx
 from programs import thellier_gui
 import dialogs.thellier_interpreter as thellier_interpreter
 
-
-def set_consts():
-    # get WD before all the Pmag GUI stuff starts to happen
-    global WD, PROJECT_WD
-    WD = os.getcwd()
-    PROJECT_WD = os.path.join(WD, 'data_files', 'testing', 'my_project')
+# set constants
+WD = os.getcwd()
+PROJECT_WD = os.path.join(WD, 'data_files', 'testing', 'my_project')
 
 
 class TestMainFrame(unittest.TestCase):
 
     def setUp(self):
-        set_consts()
         self.app = wx.App()
         self.frame = thellier_gui.Arai_GUI(PROJECT_WD)
         self.pnl = self.frame.GetChildren()[0]

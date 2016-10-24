@@ -13,14 +13,11 @@ from pmagpy import builder2 as builder
 from pmagpy import validate_upload2 as validate_upload
 from pmagpy import find_pmag_dir as find_pmag_dir
 
-def set_consts():
-    global WD, DATA_DIR, DATA_MODEL
-    #WD = find_pmag_dir.get_pmag_dir()
-    WD = os.getcwd()
-    DATA_DIR = os.path.join(WD, 'data_files')
-    DATA_MODEL = validate_upload.get_data_model()
-    print DATA_DIR
-    #print DATA_MODEL
+# set constants
+WD = os.getcwd()
+DATA_DIR = os.path.join(WD, 'data_files')
+DATA_MODEL = validate_upload.get_data_model()
+
 
 class TestBuilder(unittest.TestCase):
     """
@@ -28,7 +25,6 @@ class TestBuilder(unittest.TestCase):
     """
 
     def setUp(self):
-        set_consts()
         dir_path = os.path.join(DATA_DIR, 'copy_ErMagicBuilder')
         self.data1 = builder.ErMagicBuilder(dir_path, DATA_MODEL)
         self.data1.get_data()
@@ -138,7 +134,6 @@ class TestBuilder(unittest.TestCase):
 class TestMeasurement(unittest.TestCase):
 
     def setUp(self):
-        set_consts()
         self.dir_path = os.path.join(DATA_DIR,
                                      'copy_ErMagicBuilder')
         self.data1 = builder.ErMagicBuilder(self.dir_path, DATA_MODEL)
@@ -198,7 +193,6 @@ class TestMeasurement(unittest.TestCase):
 class TestSpecimen(unittest.TestCase):
 
     def setUp(self):
-        set_consts()
         dir_path = os.path.join(DATA_DIR, 'copy_ErMagicBuilder')
         self.data1 = builder.ErMagicBuilder(dir_path, DATA_MODEL)
         self.data1.get_data()
@@ -508,7 +502,6 @@ class TestSpecimen(unittest.TestCase):
 class TestSample(unittest.TestCase):
 
     def setUp(self):
-        set_consts()
         self.dir_path = os.path.join(DATA_DIR, 'copy_ErMagicBuilder')
         self.data1 = builder.ErMagicBuilder(self.dir_path)
         self.data1.get_data()
@@ -817,7 +810,6 @@ class TestSample(unittest.TestCase):
 class TestSite(unittest.TestCase):
 
     def setUp(self):
-        set_consts()
         self.dir_path = os.path.join(DATA_DIR, 'copy_ErMagicBuilder')
         self.data1 = builder.ErMagicBuilder(self.dir_path, DATA_MODEL)
         self.data1.get_data()
@@ -1103,7 +1095,6 @@ class TestSite(unittest.TestCase):
 class TestLocation(unittest.TestCase):
 
     def setUp(self):
-        set_consts()
         dir_path = os.path.join(DATA_DIR, 'copy_ErMagicBuilder')
         self.data1 = builder.ErMagicBuilder(dir_path, DATA_MODEL)
         self.data1.get_data()
@@ -1237,7 +1228,6 @@ class TestLocation(unittest.TestCase):
 class TestAge(unittest.TestCase):
 
     def setUp(self):
-        set_consts()
         self.dir_path = os.path.join(DATA_DIR, 'copy_ErMagicBuilder')
         self.data1 = builder.ErMagicBuilder(self.dir_path, DATA_MODEL)
         self.data1.get_data()
@@ -1342,7 +1332,6 @@ class TestAge(unittest.TestCase):
 class TestResult(unittest.TestCase):
 
     def setUp(self):
-        set_consts()
         dir_path = os.path.join(DATA_DIR, 'mk_redo')
         self.data1 = builder.ErMagicBuilder(dir_path, DATA_MODEL)
         #self.data1.get_data()
@@ -1431,7 +1420,6 @@ class TestValidation(unittest.TestCase):
 
 
     def setUp(self):
-        set_consts()
         dir_path = os.path.join(DATA_DIR, 'copy_ErMagicBuilder')
         result_dir_path = os.path.join(DATA_DIR, 'mk_redo')
         self.data1 = builder.ErMagicBuilder(dir_path, DATA_MODEL)
@@ -1561,7 +1549,6 @@ class TestValidation(unittest.TestCase):
 class TestOddImport(unittest.TestCase):
 
     def setUp(self):
-        set_consts()
         result_dir_path = os.path.join(DATA_DIR, 'mk_redo')
         self.data2 = builder.ErMagicBuilder(result_dir_path, DATA_MODEL)
         self.data2.get_all_magic_info()
@@ -1614,13 +1601,7 @@ class TestPmagObject(unittest.TestCase):
     Make sure automatic Pmag object stuff happens
     """
 
-    #def __init__(self):
-        #super(TestPmagObject, self).__init__()
-        #unittest.TestCase.__init__()
-        #set_consts()
-
     def setUp(self):
-        set_consts()
         self.data3 = builder.ErMagicBuilder(WD, DATA_MODEL)
 
 

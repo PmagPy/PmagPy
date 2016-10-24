@@ -10,9 +10,9 @@ import re
 import sys
 import pmagpy.validate_upload2 as validate_upload
 import pmagpy.pmag as pmag
-from pmagpy import find_pmag_dir
 
-WD = find_pmag_dir.get_pmag_dir() #sys.prefix
+WD = os.getcwd()
+
 
 class TestValidation(unittest.TestCase):
 
@@ -30,6 +30,7 @@ class TestValidation(unittest.TestCase):
                 if pattern.match(f):
                     files.append(f)
         pmag.remove_files(files, directory)
+        os.chdir(WD)
 
     def test_controlled_vocab(self):
         upfile = os.path.join(WD, 'data_files', 'testing',

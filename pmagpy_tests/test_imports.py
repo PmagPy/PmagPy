@@ -11,17 +11,14 @@ import programs.iodp_dscr_magic as iodp_dscr_magic
 import programs.iodp_jr6_magic as iodp_jr6_magic
 import programs._2g_bin_magic as _2g_bin_magic
 import programs.bgc_magic as bgc_magic
-#import pmagpy.find_pmag_dir as find_pmag_dir
 
+WD = os.getcwd()
 
-def set_consts():
-    global WD
-    WD = os.getcwd() #find_pmag_dir.get_pmag_dir()
 
 class Test_sio_magic(unittest.TestCase):
 
     def setUp(self):
-        set_consts()
+        pass
 
     def tearDown(self):
         filelist = ['sio_af_example.magic']
@@ -104,7 +101,7 @@ class Test_sio_magic(unittest.TestCase):
 class Test_cit_magic(unittest.TestCase):
 
     def setUp(self):
-        set_consts()
+        pass
 
     def tearDown(self):
         filelist = ['magic_measurements.txt', 'er_specimens.txt',
@@ -187,7 +184,7 @@ class Test_cit_magic(unittest.TestCase):
 class Test_iodp_srm_magic(unittest.TestCase):
 
     def setUp(self):
-        set_consts()
+        pass
 
     def tearDown(self):
         filelist = ['magic_measurements.txt', 'er_specimens.txt', 'er_samples.txt', 'er_sites.txt', 'er_locations.txt']
@@ -225,7 +222,7 @@ class Test_iodp_srm_magic(unittest.TestCase):
 class Test_iodp_dscr_magic(unittest.TestCase):
 
     def setUp(self):
-        set_consts()
+        pass
 
     def tearDown(self):
         filelist = ['magic_measurements.txt', 'er_specimens.txt', 'er_samples.txt', 'er_sites.txt', 'er_locations.txt']
@@ -254,7 +251,7 @@ class Test_iodp_dscr_magic(unittest.TestCase):
 class Test_iodp_jr6_magic(unittest.TestCase):
 
     def setUp(self):
-        set_consts()
+        pass
 
     def tearDown(self):
         files = ['test.magic', 'other_er_samples.txt']
@@ -324,7 +321,7 @@ class Test_iodp_jr6_magic(unittest.TestCase):
 class Test2g_bin_magic(unittest.TestCase):
 
     def setUp(self):
-        set_consts()
+        pass
 
     def tearDown(self):
         #input_dir = os.path.join(WD, 'data_files', 'Measurement_Import',
@@ -432,7 +429,6 @@ class Test2g_bin_magic(unittest.TestCase):
 class Test_bgc_magic(unittest.TestCase):
 
     def setUp(self):
-        set_consts()
         self.input_dir = os.path.join(WD, 'data_files',
                                       'Measurement_Import', 'bgc_magic')
 
