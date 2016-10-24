@@ -1,0 +1,3 @@
+tab	er_locations
+er_location_name	continent_ocean	er_citation_names	er_location_alternatives	location_begin_lat	location_begin_lon	location_end_lat	location_end_lon	location_type	plate_block	region	tectonic_setting
+McMurdo	Antarctica	Mankinen & Cox 1988 : Tauxe et al. 2004 : This study	Mt Erebus Volcanic Province : McMurdo Sound	-77	160.0	-79	170.0	Outcrop	Antarctic Plate	Antarctic Plate	Continental Volcanics

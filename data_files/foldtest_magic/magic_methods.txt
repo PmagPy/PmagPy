@@ -1,0 +1,11 @@
+tab 	magic_methods
+magic_method_code
+FS-FD
+FS-H
+FS-LOC-GOOGLE
+SO-SM
+DE-K
+LP-DC2
+DE-DI
+DE-FM
+DE-VGP

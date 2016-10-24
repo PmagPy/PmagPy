@@ -388,7 +388,7 @@ class MagMainFrame(wx.Frame):
     def on_er_data(self, event):
         if self.data_model_num == 2:
             if not os.path.isfile(os.path.join(self.WD, 'magic_measurements.txt')):
-
+                print '-W- {} is missing'.format(os.path.join(self.WD, 'magic_measurements.txt'))
                 pw.simple_warning("Your working directory must have a magic_measurements.txt file to run this step.  Make sure you have fully completed step 1 (import magnetometer file), by combining all imported magnetometer files into one magic_measurements file.")
                 return False
 

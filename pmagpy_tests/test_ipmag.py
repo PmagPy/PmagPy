@@ -8,12 +8,17 @@ from pmagpy import ipmag
 from pmagpy import find_pmag_dir
 
 #WD = os.getcwd()
-WD = find_pmag_dir.get_pmag_dir()
+def set_consts():
+    global WD
+    WD = os.getcwd()
 
 class TestIGRF(unittest.TestCase):
 
     def setUp(self):
-        pass
+        set_consts()
+
+    def tearDown(self):
+        os.chdir(WD)
 
     def test_igrf_output(self):
         result = ipmag.igrf([1999.1, 30, 20, 50])
@@ -24,7 +29,11 @@ class TestIGRF(unittest.TestCase):
 class TestUploadMagic(unittest.TestCase):
 
     def setUp(self):
+        set_consts()
         self.dir_path = os.path.join(WD, 'data_files', 'testing')
+
+    def tearDown(self):
+        os.chdir(WD)
 
     def test_empty_dir(self):
         directory = os.path.join(self.dir_path, 'empty_dir')
@@ -65,6 +74,7 @@ class TestUploadMagic(unittest.TestCase):
 class Test_iodp_samples_magic(unittest.TestCase):
 
     def setUp(self):
+        set_consts()
         self.input_dir = os.path.join(WD, 'data_files', 'Measurement_Import',
                                       'iodp_srm_magic')
 
@@ -104,11 +114,12 @@ class Test_iodp_samples_magic(unittest.TestCase):
 class TestKly4s_magic(unittest.TestCase):
 
     def setUp(self):
-        pass
+        set_consts()
 
     def tearDown(self):
         filelist= ['magic_measurements.txt', 'my_magic_measurements.txt', 'er_specimens.txt', 'er_samples.txt', 'er_sites.txt', 'rmag_anisotropy.txt', 'my_rmag_anisotropy.txt']
         pmag.remove_files(filelist, WD)
+        os.chdir(WD)
 
     def test_kly4s_without_infile(self):
         with self.assertRaises(TypeError):
@@ -150,7 +161,7 @@ class TestKly4s_magic(unittest.TestCase):
 class TestK15_magic(unittest.TestCase):
 
     def setUp(self):
-        os.chdir(WD)
+        set_consts()
 
     def tearDown(self):
         filelist = ['magic_measurements.txt', 'my_magic_measurements.txt',
@@ -159,6 +170,7 @@ class TestK15_magic(unittest.TestCase):
                     'my_rmag_anisotropy.txt', 'rmag_results.txt',
                     'my_rmag_results.txt']
         pmag.remove_files(filelist, WD)
+        os.chdir(WD)
 
     def test_k15_with_no_files(self):
         with self.assertRaises(TypeError):
@@ -205,11 +217,13 @@ class TestK15_magic(unittest.TestCase):
 class TestSUFAR_asc_magic(unittest.TestCase):
 
     def setUp(self):
-        os.chdir(WD)
+        set_consts()
 
     def tearDown(self):
         filelist = ['magic_measurements.txt', 'my_magic_measurements.txt', 'er_specimens.txt', 'er_samples.txt', 'my_er_samples.txt', 'er_sites.txt', 'rmag_anisotropy.txt', 'my_rmag_anisotropy.txt', 'rmag_results.txt', 'my_rmag_results.txt']
         pmag.remove_files(filelist, WD)
+        os.chdir(WD)
+
 
     def test_SUFAR4_with_no_files(self):
         with self.assertRaises(TypeError):
@@ -269,12 +283,14 @@ class TestSUFAR_asc_magic(unittest.TestCase):
         self.assertEqual(outfile, os.path.join('.', 'my_magic_measurements.txt'))
 
 class TestAgmMagic(unittest.TestCase):
+
     def setUp(self):
-        os.chdir(WD)
+        set_consts()
 
     def tearDown(self):
         filelist = ['magic_measurements.txt', 'my_magic_measurements.txt', 'er_specimens.txt', 'er_samples.txt', 'my_er_samples.txt', 'er_sites.txt', 'rmag_anisotropy.txt', 'my_rmag_anisotropy.txt', 'rmag_results.txt', 'my_rmag_results.txt', 'agm_magic_example.magic']
         pmag.remove_files(filelist, WD)
+        os.chdir(WD)
 
     def test_agm_with_no_files(self):
         with self.assertRaises(TypeError):
@@ -299,11 +315,12 @@ class TestAgmMagic(unittest.TestCase):
 class TestCoreDepthplot(unittest.TestCase):
 
     def setUp(self):
-        os.chdir(WD)
+        set_consts()
 
     def tearDown(self):
         filelist = ['magic_measurements.txt', 'my_magic_measurements.txt', 'er_specimens.txt', 'er_samples.txt', 'my_er_samples.txt', 'er_sites.txt', 'rmag_anisotropy.txt', 'my_rmag_anisotropy.txt', 'rmag_results.txt', 'my_rmag_results.txt']
         pmag.remove_files(filelist, WD)
+        os.chdir(WD)
 
     def test_core_depthplot_with_no_files(self):
         program_ran, error_message = ipmag.core_depthplot()
@@ -361,12 +378,13 @@ class TestCoreDepthplot(unittest.TestCase):
 class TestAnisoDepthplot(unittest.TestCase):
 
     def setUp(self):
-        os.chdir(WD)
+        set_consts()
         self.aniso_WD = os.path.join(WD, 'data_files', 'ani_depthplot')
 
     def tearDown(self):
         filelist = ['magic_measurements.txt', 'my_magic_measurements.txt', 'er_specimens.txt', 'er_samples.txt', 'my_er_samples.txt', 'er_sites.txt', 'rmag_anisotropy.txt', 'my_rmag_anisotropy.txt', 'rmag_results.txt', 'my_rmag_results.txt', 'my_samples.txt']
         pmag.remove_files(filelist, WD)
+        os.chdir(WD)
 
     def test_aniso_depthplot_with_no_files(self):
         program_ran, error_message = ipmag.aniso_depthplot()
@@ -400,7 +418,9 @@ class TestAnisoDepthplot(unittest.TestCase):
 
 
 class TestPmagResultsExtract(unittest.TestCase):
+
     def setUp(self):
+        set_consts()
         self.result_WD = os.path.join(WD, 'data_files', 'download_magic')
         os.chdir(self.result_WD)
 
@@ -414,6 +434,7 @@ class TestPmagResultsExtract(unittest.TestCase):
                     'SiteNfo.txt', 'SiteNfo.tex', 'Specimens.txt',
                     'Specimens.tex', 'Criteria.txt', 'Criteria.tex']
         pmag.remove_files(filelist, self.result_WD)
+        os.chdir(WD)
 
     def test_extract(self):
         direction_file = os.path.join(self.result_WD, 'Directions.txt')

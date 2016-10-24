@@ -1,0 +1,21 @@
+tab 	criteria
+citations	criterion	criterion_operation	criterion_value	definition	table_column
+This study	IE-SITE	>=	3.0	acceptance criteria for study	sites.int_n_specimens
+This study	IE-SITE	<=	6e-06	acceptance criteria for study	sites.int_sigma
+This study	IE-SITE	<=	15.0	acceptance criteria for study	sites.int_sigma_perc
+This study	IE-SPEC	<=	0.1	acceptance criteria for study	specimens.int_b_beta
+This study	IE-SPEC	>=	0.78	acceptance criteria for study	specimens.int_frac
+This study	IE-SPEC	<=	10.0	acceptance criteria for study	specimens.int_dang
+This study	IE-SPEC	<=	5.0	acceptance criteria for study	specimens.int_mad
+This study	IE-SPEC	>=	2.0	acceptance criteria for study	specimens.int_n_ptrm
+This study	IE-SPEC	=	True	acceptance criteria for study	specimens.int_scat
+This study	DE-SPEC	<=	5	acceptance criteria for study	specimens.dir_mad_free
+This study	DE-SPEC	<=	180	acceptance criteria for study	specimens.dir_alpha95
+This study	DE-SPEC	>=	4	acceptance criteria for study	specimens.dir_n_measurements
+This study	DE-SAMP	<=	180	acceptance criteria for study	samples.dir_alpha95
+This study	DE-SITE	<=	180	acceptance criteria for study	sites.dir_alpha95
+This study	DE-SITE	>=	5	acceptance criteria for study	sites.dir_n_samples
+This study	DE-SITE	>=	4	acceptance criteria for study	sites.dir_n_specimens_lines
+This study	DE-SITE	>=	50	acceptance criteria for study	sites.dir_k
+This study	NPOLE	=	n	acceptance criteria for study	sites.dir_polarity
+This study	RPOLE	=	r	acceptance criteria for study	sites.dir_polarity

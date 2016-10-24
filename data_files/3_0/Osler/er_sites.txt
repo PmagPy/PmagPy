@@ -1,0 +1,32 @@
+tab 	er_sites
+er_citation_names	er_location_name	er_site_name	magic_method_codes	site_bed_dip	site_bed_dip_direction	site_class	site_definition	site_lithology	site_type
+This study	Osler Volcanics, Nipigon Strait, Upper Normal	1	FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM	10	135.0	Extrusive	s	Basalt	Lava Flow
+This study	Osler Volcanics, Nipigon Strait, Upper Normal	2	FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM	12	140.0	Extrusive	s	Basalt	Lava Flow
+This study	Osler Volcanics, Nipigon Strait, Upper Normal	3	FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM	14	146.0	Extrusive	s	Basalt	Lava Flow
+This study	Osler Volcanics, Nipigon Strait, Upper Normal	4	FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM	12	135.0	Extrusive	s	Basalt	Lava Flow
+This study	Osler Volcanics, Nipigon Strait, Upper Normal	5	FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM	10	135.0	Extrusive	s	Basalt	Lava Flow
+This study	Osler Volcanics, Nipigon Strait, Lower Reversed	6	FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM	28	131.0	Extrusive	s	Basalt	Lava Flow
+This study	Osler Volcanics, Nipigon Strait, Lower Reversed	7	FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM	20	149.0	Extrusive	s	Basalt	Lava Flow
+This study	Osler Volcanics, Nipigon Strait, Lower Reversed	8	FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM	18	150.0	Extrusive	s	Basalt	Lava Flow
+This study	Osler Volcanics, Nipigon Strait, Lower Reversed	9	FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM	20	145.0	Extrusive	s	Basalt	Lava Flow
+This study	Osler Volcanics, Nipigon Strait, Lower Reversed	10	FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM	30	134.0	Extrusive	s	Basalt	Lava Flow
+This study	Osler Volcanics, Nipigon Strait, Lower Reversed	11	FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM	30	132.0	Extrusive	s	Basalt	Lava Flow
+This study	Osler Volcanics, Nipigon Strait, Lower Reversed	12	FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM	40	132.0	Extrusive	s	Basalt	Lava Flow
+This study	Osler Volcanics, Nipigon Strait, Lower Reversed	13	FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM	35	120.0	Extrusive	s	Basalt	Lava Flow
+This study	Osler Volcanics, Nipigon Strait, Lower Reversed	14	FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM	20	120.0	Extrusive	s	Basalt	Lava Flow
+This study	Osler Volcanics, Nipigon Strait, Lower Reversed	15	FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM	30	115.0	Extrusive	s	Basalt	Lava Flow
+This study	Osler Volcanics, Nipigon Strait, Lower Reversed	16	FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM	45	110.0	Extrusive	s	Basalt	Lava Flow
+This study	Osler Volcanics, Nipigon Strait, Lower Reversed	17	FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM	25	110.0	Extrusive	s	Basalt	Lava Flow
+This study	Osler Volcanics, Nipigon Strait, Lower Reversed	18	FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM	12	155.0	Extrusive	s	Basalt	Lava Flow
+This study	Osler Volcanics, Nipigon Strait, Lower Reversed	19	FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM	12	133.0	Extrusive	s	Basalt	Lava Flow
+This study	Osler Volcanics, Nipigon Strait, Lower Reversed	20	FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM	10	132.0	Extrusive	s	Basalt	Lava Flow
+This study	Osler Volcanics, Nipigon Strait, Lower Reversed	21	FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM	20	110.0	Extrusive	s	Basalt	Lava Flow
+This study	Osler Volcanics, Nipigon Strait, Lower Reversed	22	FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM	20	110.0	Extrusive	s	Basalt	Lava Flow
+This study	Osler Volcanics, Nipigon Strait, Lower Reversed	23	FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM	10	145.0	Extrusive	s	Basalt	Lava Flow
+This study	Osler Volcanics, Nipigon Strait, Lower Reversed	24	FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM	20	145.0	Extrusive	s	Basalt	Lava Flow
+This study	Osler Volcanics, Nipigon Strait, Lower Reversed	25	FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM	20	140.0	Extrusive	s	Basalt	Lava Flow
+This study	Osler Volcanics, Nipigon Strait, Lower Reversed	26	FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM	20	140.0	Extrusive	s	Basalt	Lava Flow
+This study	Osler Volcanics, Nipigon Strait, Lower Reversed	27	FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM	10	130.0	Extrusive	s	Basalt	Lava Flow
+This study	Osler Volcanics, Nipigon Strait, Lower Reversed	28	FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM	7	130.0	Extrusive	s	Basalt	Lava Flow
+This study	Osler Volcanics, Nipigon Strait, Lower Reversed	29	FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM	7	130.0	Extrusive	s	Basalt	Lava Flow
+This study	Osler Volcanics, Nipigon Strait, Lower Reversed	30	FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM	6	129.0	Extrusive	s	Basalt	Lava Flow

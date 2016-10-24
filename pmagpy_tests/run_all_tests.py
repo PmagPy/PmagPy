@@ -34,10 +34,9 @@ if __name__ == "__main__":
     #suite10 = unittest.TestLoader().loadTestsFromModule(pt.test_programs)
     suite12 = unittest.TestLoader().loadTestsFromModule(pt.test_magic_gui3)
     suite13 = unittest.TestLoader().loadTestsFromModule(pt.test_new_builder)
+    suite14 = unittest.TestLoader().loadTestsFromModule(pt.test_er_magic_dialogs)
     full = unittest.TestSuite([suite1, suite2, suite3, suite4,
                                suite5, suite7, suite8,
-                               suite9, suite12, suite13])
+                               suite9, suite12, suite13, suite14])
 
     unittest.TextTestRunner(verbosity=3).run(full)
-    #one_test = unittest.TestSuite([suite1])
-    #unittest.TextTestRunner(verbosity=3).run(one_test)

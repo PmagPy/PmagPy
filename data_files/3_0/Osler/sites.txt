@@ -1,0 +1,92 @@
+tab 	sites
+bed_dip	bed_dip_direction	citations	conglomerate_test	description	dir_dec	dir_inc	dir_k	dir_n_samples	dir_polarity	dir_tilt_correction	geologic_classes	geologic_types	lat	lithologies	location	lon	method_codes	result_type	site	vgp_lat	vgp_lon	vgp_n_samples
+10	135	This study			293.1	34.5	517	5	n	0	Extrusive	Lava Flow		Basalt	Osler Volcanics, Nipigon Strait, Upper Normal		FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM		1			
+10	135	This study			289.8	43.6	517	5	n	100	Extrusive	Lava Flow		Basalt	Osler Volcanics, Nipigon Strait, Upper Normal		FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM		1			
+		Cox & Doell 1960:McElhinny & McFadden 2000	ND	VGP:Site 1	289.8	43.6		1		100			48.626429		Osler Volcanics, Nipigon Strait, Upper Normal	271.894142	DE-DI:FS-LOC-GOOGLE:LP-DC2	i	1	31.65155202	185.5745062	1
+12	140	This study			290.6	31.9	243	5	n	0	Extrusive	Lava Flow		Basalt	Osler Volcanics, Nipigon Strait, Upper Normal		DE-K:LP-DC2:FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM		2			
+12	140	This study			285.7	42	243	5	n	100	Extrusive	Lava Flow		Basalt	Osler Volcanics, Nipigon Strait, Upper Normal		FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM		2			
+		Cox & Doell 1960:McElhinny & McFadden 2000	ND	VGP:Site 2	285.7	42		1		100			48.637185		Osler Volcanics, Nipigon Strait, Upper Normal	271.913846	DE-DI:FS-LOC-GOOGLE:LP-DC2	i	2	28.11008553	187.514758	1
+14	146	This study			310	24.6	2485	5	n	0	Extrusive	Lava Flow		Basalt	Osler Volcanics, Nipigon Strait, Upper Normal		DE-K:LP-DC2:FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM		3			
+14	146	This study			307.4	37.9	2485	5	n	100	Extrusive	Lava Flow		Basalt	Osler Volcanics, Nipigon Strait, Upper Normal		DE-K:LP-DC2:FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM		3			
+		Cox & Doell 1960:McElhinny & McFadden 2000	ND	VGP:Site 3	307.4	37.9		1		100			48.640811		Osler Volcanics, Nipigon Strait, Upper Normal	271.928039	DE-DI:FS-LOC-GOOGLE:LP-DC2	i	3	40.26060376	167.8862917	1
+12	135	This study			303.9	18.2	331	5	n	0	Extrusive	Lava Flow		Basalt	Osler Volcanics, Nipigon Strait, Upper Normal		DE-K:LP-DC2:FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM		4			
+12	135	This study			302.8	29.9	331	5	n	100	Extrusive	Lava Flow		Basalt	Osler Volcanics, Nipigon Strait, Upper Normal		DE-K:LP-DC2:FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM		4			
+		Cox & Doell 1960:McElhinny & McFadden 2000	ND	VGP:Site 4	302.8	29.9		1		100			48.655732		Osler Volcanics, Nipigon Strait, Upper Normal	271.959099	DE-DI:FS-LOC-GOOGLE:LP-DC2	i	4	33.46021472	167.4988097	1
+10	135	This study			297.3	33.1	130	5	n	0	Extrusive	Lava Flow		Basalt	Osler Volcanics, Nipigon Strait, Upper Normal		DE-K:LP-DC2:FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM		5			
+10	135	This study			294.7	42.5	130	5	n	100	Extrusive	Lava Flow		Basalt	Osler Volcanics, Nipigon Strait, Upper Normal		DE-K:LP-DC2:FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM		5			
+		Cox & Doell 1960:McElhinny & McFadden 2000	ND	VGP:Site 5	294.7	42.5		1		100			48.661489		Osler Volcanics, Nipigon Strait, Upper Normal	271.958187	DE-DI:FS-LOC-GOOGLE:LP-DC2	i	5	34.30926268	181.2568193	1
+28	131	This study			112.6	-18.1	70	5	r	0	Extrusive	Lava Flow		Basalt	Osler Volcanics, Nipigon Strait, Lower Reversed		DE-K:LP-DC2:FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM		6			
+28	131	This study			106.1	-44.2	70	5	r	100	Extrusive	Lava Flow		Basalt	Osler Volcanics, Nipigon Strait, Lower Reversed		DE-K:LP-DC2:FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM		6			
+		Cox & Doell 1960:McElhinny & McFadden 2000	ND	VGP:Site 6	106.1	-44.2		1		100			48.661051		Osler Volcanics, Nipigon Strait, Lower Reversed	271.948459	DE-DI:FS-LOC-GOOGLE:LP-DC2	i	6	29.54088872	188.6533022	1
+20	149	This study			124.5	-45.3	351	6	r	0	Extrusive	Lava Flow		Basalt	Osler Volcanics, Nipigon Strait, Lower Reversed		DE-K:LP-DC2:FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM		7			
+20	149	This study			109.8	-62.4	351	6	r	100	Extrusive	Lava Flow		Basalt	Osler Volcanics, Nipigon Strait, Lower Reversed		DE-K:LP-DC2:FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM		7			
+		Cox & Doell 1960:McElhinny & McFadden 2000	ND	VGP:Site 7	109.8	-62.4		1		100			48.678061		Osler Volcanics, Nipigon Strait, Lower Reversed	271.97532	DE-DI:FS-LOC-GOOGLE:LP-DC2	i	7	42.90020395	203.8166221	1
+18	150	This study			144.3	-47	679	5	r	0	Extrusive	Lava Flow		Basalt	Osler Volcanics, Nipigon Strait, Lower Reversed		DE-K:LP-DC2:FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM		8			
+18	150	This study			140.7	-64.8	679	5	r	100	Extrusive	Lava Flow		Basalt	Osler Volcanics, Nipigon Strait, Lower Reversed		DE-K:LP-DC2:FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM		8			
+		Cox & Doell 1960:McElhinny & McFadden 2000	ND	VGP:Site 8	140.7	-64.8		1		100			48.680014		Osler Volcanics, Nipigon Strait, Lower Reversed	271.973994	DE-DI:FS-LOC-GOOGLE:LP-DC2	i	8	63.77760756	192.7357421	1
+20	145	This study			121	-39.1	321	3	r	0	Extrusive	Lava Flow		Basalt	Osler Volcanics, Nipigon Strait, Lower Reversed		DE-K:LP-DC2:FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM		9			
+20	145	This study			110	-56.6	321	3	r	100	Extrusive	Lava Flow		Basalt	Osler Volcanics, Nipigon Strait, Lower Reversed		DE-K:LP-DC2:FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM		9			
+		Cox & Doell 1960:McElhinny & McFadden 2000	ND	VGP:Site 9	110	-56.6		1		100			48.676652		Osler Volcanics, Nipigon Strait, Lower Reversed	271.940536	DE-DI:FS-LOC-GOOGLE:LP-DC2	i	9	39.32495688	196.4878545	1
+30	134	This study			129.7	-12.1	59	5	r	0	Extrusive	Lava Flow		Basalt	Osler Volcanics, Nipigon Strait, Lower Reversed		DE-K:LP-DC2:FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM		10			
+30	134	This study			128.2	-42	59	5	r	100	Extrusive	Lava Flow		Basalt	Osler Volcanics, Nipigon Strait, Lower Reversed		DE-K:LP-DC2:FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM		10			
+		Cox & Doell 1960:McElhinny & McFadden 2000	ND	VGP:Site 10	128.2	-42		1		100			48.664307		Osler Volcanics, Nipigon Strait, Lower Reversed	271.930409	DE-DI:FS-LOC-GOOGLE:LP-DC2	i	10	42.89645001	169.9339018	1
+30	132	This study			106.7	-33.9	456	3	r	0	Extrusive	Lava Flow		Basalt	Osler Volcanics, Nipigon Strait, Lower Reversed		DE-K:LP-DC2:FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM		11			
+30	132	This study			88.3	-59.1	456	3	r	100	Extrusive	Lava Flow		Basalt	Osler Volcanics, Nipigon Strait, Lower Reversed		DE-K:LP-DC2:FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM		11			
+		Cox & Doell 1960:McElhinny & McFadden 2000	ND	VGP:Site 11	88.3	-59.1		1		100			48.657548		Osler Volcanics, Nipigon Strait, Lower Reversed	271.928069	DE-DI:FS-LOC-GOOGLE:LP-DC2	i	11	27.79512405	211.8003348	1
+40	132	This study			123.2	-9.6	240	5	r	0	Extrusive	Lava Flow		Basalt	Osler Volcanics, Nipigon Strait, Lower Reversed		DE-K:LP-DC2:FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM		12			
+40	132	This study			118.6	-48.9	240	5	r	100	Extrusive	Lava Flow		Basalt	Osler Volcanics, Nipigon Strait, Lower Reversed		DE-K:LP-DC2:FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM		12			
+		Cox & Doell 1960:McElhinny & McFadden 2000	ND	VGP:Site 12	118.6	-48.9		1		100			48.65743		Osler Volcanics, Nipigon Strait, Lower Reversed	271.921876	DE-DI:FS-LOC-GOOGLE:LP-DC2	i	12	40.36658915	183.175792	1
+35	120	This study			126.4	-3.3	886	3	r	0	Extrusive	Lava Flow		Basalt	Osler Volcanics, Nipigon Strait, Lower Reversed		DE-K:LP-DC2:FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM		13			
+35	120	This study			128.1	-38	886	3	r	100	Extrusive	Lava Flow		Basalt	Osler Volcanics, Nipigon Strait, Lower Reversed		DE-K:LP-DC2:FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM		13			
+		Cox & Doell 1960:McElhinny & McFadden 2000	ND	VGP:Site 13	128.1	-38		1		100			48.651106		Osler Volcanics, Nipigon Strait, Lower Reversed	271.914755	DE-DI:FS-LOC-GOOGLE:LP-DC2	i	13	40.75688206	167.3043405	1
+20	120	This study			111.9	-36.2	121	6	r	0	Extrusive	Lava Flow		Basalt	Osler Volcanics, Nipigon Strait, Lower Reversed		DE-K:LP-DC2:FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM		14			
+20	120	This study			108.2	-55.8	121	6	r	100	Extrusive	Lava Flow		Basalt	Osler Volcanics, Nipigon Strait, Lower Reversed		DE-K:LP-DC2:FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM		14			
+		Cox & Doell 1960:McElhinny & McFadden 2000	ND	VGP:Site 14	108.2	-55.8		1		100			48.648101		Osler Volcanics, Nipigon Strait, Lower Reversed	271.917061	DE-DI:FS-LOC-GOOGLE:LP-DC2	i	14	37.66708688	196.7525337	1
+30	115	This study			117.6	-16.1	402	6	r	0	Extrusive	Lava Flow		Basalt	Osler Volcanics, Nipigon Strait, Lower Reversed		DE-K:LP-DC2:FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM		15			
+30	115	This study			118.5	-46	402	6	r	100	Extrusive	Lava Flow		Basalt	Osler Volcanics, Nipigon Strait, Lower Reversed		DE-K:LP-DC2:FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM		15			
+		Cox & Doell 1960:McElhinny & McFadden 2000	ND	VGP:Site 15	118.5	-46		1		100			48.646972		Osler Volcanics, Nipigon Strait, Lower Reversed	271.90239	DE-DI:FS-LOC-GOOGLE:LP-DC2	i	15	38.68951021	180.8531755	1
+45	110	This study			107.7	-9.3	125	6	r	0	Extrusive	Lava Flow		Basalt	Osler Volcanics, Nipigon Strait, Lower Reversed		DE-K:LP-DC2:FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM		16			
+45	110	This study			106	-54.2	125	6	r	100	Extrusive	Lava Flow		Basalt	Osler Volcanics, Nipigon Strait, Lower Reversed		DE-K:LP-DC2:FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM		16			
+		Cox & Doell 1960:McElhinny & McFadden 2000	ND	VGP:Site 16	106	-54.2		1		100			48.639491		Osler Volcanics, Nipigon Strait, Lower Reversed	271.89768	DE-DI:FS-LOC-GOOGLE:LP-DC2	i	16	35.26202829	196.5441708	1
+25	110	This study			99.1	-29.8	362	4	r	0	Extrusive	Lava Flow		Basalt	Osler Volcanics, Nipigon Strait, Lower Reversed		DE-K:LP-DC2:FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM		17			
+25	110	This study			93.7	-54.1	362	4	r	100	Extrusive	Lava Flow		Basalt	Osler Volcanics, Nipigon Strait, Lower Reversed		DE-K:LP-DC2:FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM		17			
+		Cox & Doell 1960:McElhinny & McFadden 2000	ND	VGP:Site 17	93.7	-54.1		1		100			48.634582		Osler Volcanics, Nipigon Strait, Lower Reversed	271.887024	DE-DI:FS-LOC-GOOGLE:LP-DC2	i	17	27.49207105	204.1262149	1
+12	155	This study			123.8	-43.2	224	4	r	0	Extrusive	Lava Flow		Basalt	Osler Volcanics, Nipigon Strait, Lower Reversed		DE-K:LP-DC2:FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM		18			
+12	155	This study			116	-53	224	4	r	100	Extrusive	Lava Flow		Basalt	Osler Volcanics, Nipigon Strait, Lower Reversed		DE-K:LP-DC2:FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM		18			
+		Cox & Doell 1960:McElhinny & McFadden 2000	ND	VGP:Site 18	116	-53		1		100			48.605248		Osler Volcanics, Nipigon Strait, Lower Reversed	271.835216	DE-DI:FS-LOC-GOOGLE:LP-DC2	i	18	41.01791527	188.8062015	1
+12	133	This study			132.1	-53	871	4	r	0	Extrusive	Lava Flow		Basalt	Osler Volcanics, Nipigon Strait, Lower Reversed		DE-K:LP-DC2:FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM		19			
+12	133	This study			131.7	-64.9	871	4	r	100	Extrusive	Lava Flow		Basalt	Osler Volcanics, Nipigon Strait, Lower Reversed		DE-K:LP-DC2:FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM		19			
+		Cox & Doell 1960:McElhinny & McFadden 2000	ND	VGP:Site 19	131.7	-64.9		1		100			48.607343		Osler Volcanics, Nipigon Strait, Lower Reversed	271.825585	DE-DI:FS-LOC-GOOGLE:LP-DC2	i	19	58.01634188	197.3012183	1
+10	132	This study			122.3	-46	108	4	r	0	Extrusive	Lava Flow		Basalt	Osler Volcanics, Nipigon Strait, Lower Reversed		DE-K:LP-DC2:FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM		20			
+10	132	This study			119.9	-55.8	108	4	r	100	Extrusive	Lava Flow		Basalt	Osler Volcanics, Nipigon Strait, Lower Reversed		DE-K:LP-DC2:FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM		20			
+		Cox & Doell 1960:McElhinny & McFadden 2000	ND	VGP:Site 20	119.9	-55.8		1		100			48.590795		Osler Volcanics, Nipigon Strait, Lower Reversed	271.807852	DE-DI:FS-LOC-GOOGLE:LP-DC2	i	20	45.23871334	189.2192685	1
+20	110	This study			100.8	-45.9	84	5	r	0	Extrusive	Lava Flow		Basalt	Osler Volcanics, Nipigon Strait, Lower Reversed		DE-K:LP-DC2:FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM		21			
+20	110	This study			94.3	-65.5	84	5	r	100	Extrusive	Lava Flow		Basalt	Osler Volcanics, Nipigon Strait, Lower Reversed		DE-K:LP-DC2:FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM		21			
+		Cox & Doell 1960:McElhinny & McFadden 2000	ND	VGP:Site 21	94.3	-65.5		1		100			48.636336		Osler Volcanics, Nipigon Strait, Lower Reversed	271.88093	DE-DI:FS-LOC-GOOGLE:LP-DC2	i	21	36.02033293	215.7287168	1
+20	110	This study			97.9	-38.9	94	5	r	0	Extrusive	Lava Flow		Basalt	Osler Volcanics, Nipigon Strait, Lower Reversed		DE-K:LP-DC2:FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM		22			
+20	110	This study			91.8	-58.2	94	5	r	100	Extrusive	Lava Flow		Basalt	Osler Volcanics, Nipigon Strait, Lower Reversed		DE-K:LP-DC2:FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM		22			
+		Cox & Doell 1960:McElhinny & McFadden 2000	ND	VGP:Site 22	91.8	-58.2		1		100			48.643347		Osler Volcanics, Nipigon Strait, Lower Reversed	271.880385	DE-DI:FS-LOC-GOOGLE:LP-DC2	i	22	29.16601039	208.8796723	1
+10	145	This study			122.1	-55.1	69	4	r	0	Extrusive	Lava Flow		Basalt	Osler Volcanics, Nipigon Strait, Lower Reversed		DE-K:LP-DC2:FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM		23			
+10	145	This study			114.3	-64	69	4	r	100	Extrusive	Lava Flow		Basalt	Osler Volcanics, Nipigon Strait, Lower Reversed		DE-K:LP-DC2:FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM		23			
+		Cox & Doell 1960:McElhinny & McFadden 2000	ND	VGP:Site 23	114.3	-64		1		100			48.615971		Osler Volcanics, Nipigon Strait, Lower Reversed	271.842478	DE-DI:FS-LOC-GOOGLE:LP-DC2	i	23	46.63994935	203.8825996	1
+20	145	This study			122.2	-22.3	77	3	r	0	Extrusive	Lava Flow		Basalt	Osler Volcanics, Nipigon Strait, Lower Reversed		DE-K:LP-DC2:FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM		24			
+20	145	This study			116.8	-40.4	77	3	r	100	Extrusive	Lava Flow		Basalt	Osler Volcanics, Nipigon Strait, Lower Reversed		DE-K:LP-DC2:FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM		24			
+		Cox & Doell 1960:McElhinny & McFadden 2000	ND	VGP:Site 24	116.8	-40.4		1		100			48.678789		Osler Volcanics, Nipigon Strait, Lower Reversed	271.942681	DE-DI:FS-LOC-GOOGLE:LP-DC2	i	24	34.61096611	178.2474147	1
+20	140	This study			130.9	-39.2	166	3	r	0	Extrusive	Lava Flow		Basalt	Osler Volcanics, Nipigon Strait, Lower Reversed		DE-K:LP-DC2:FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM		25			
+20	140	This study			126.3	-58.7	166	3	r	100	Extrusive	Lava Flow		Basalt	Osler Volcanics, Nipigon Strait, Lower Reversed		DE-K:LP-DC2:FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM		25			
+		Cox & Doell 1960:McElhinny & McFadden 2000	ND	VGP:Site 25	126.3	-58.7		1		100			48.692757		Osler Volcanics, Nipigon Strait, Lower Reversed	271.951564	DE-DI:FS-LOC-GOOGLE:LP-DC2	i	25	51.16529829	188.8934048	1
+20	140	This study			127.6	-56.2	3634	3	r	0	Extrusive	Lava Flow		Basalt	Osler Volcanics, Nipigon Strait, Lower Reversed		DE-K:LP-DC2:FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM		26			
+20	140	This study			112	-75.1	3634	3	r	100	Extrusive	Lava Flow		Basalt	Osler Volcanics, Nipigon Strait, Lower Reversed		DE-K:LP-DC2:FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM		26			
+		Cox & Doell 1960:McElhinny & McFadden 2000	ND	VGP:Site 26	112	-75.1		1		100			48.711501		Osler Volcanics, Nipigon Strait, Lower Reversed	271.93353	DE-DI:FS-LOC-GOOGLE:LP-DC2	i	26	51.20958127	227.8841587	1
+10	130	This study			122.3	-60.5	729	3	r	0	Extrusive	Lava Flow		Basalt	Osler Volcanics, Nipigon Strait, Lower Reversed		DE-K:LP-DC2:FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM		27			
+10	130	This study			118.6	-70.3	729	3	r	100	Extrusive	Lava Flow		Basalt	Osler Volcanics, Nipigon Strait, Lower Reversed		DE-K:LP-DC2:FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM		27			
+		Cox & Doell 1960:McElhinny & McFadden 2000	ND	VGP:Site 27	118.6	-70.3		1		100			48.674874		Osler Volcanics, Nipigon Strait, Lower Reversed	271.903443	DE-DI:FS-LOC-GOOGLE:LP-DC2	i	27	52.61782468	214.5560998	1
+7	130	This study			132.3	-47.2	1039	3	r	0	Extrusive	Lava Flow		Basalt	Osler Volcanics, Nipigon Strait, Lower Reversed		DE-K:LP-DC2:FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM		28			
+7	130	This study			132.6	-54.1	1039	3	r	100	Extrusive	Lava Flow		Basalt	Osler Volcanics, Nipigon Strait, Lower Reversed		DE-K:LP-DC2:FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM		28			
+		Cox & Doell 1960:McElhinny & McFadden 2000	ND	VGP:Site 28	132.6	-54.1		1		100			48.677416		Osler Volcanics, Nipigon Strait, Lower Reversed	271.898722	DE-DI:FS-LOC-GOOGLE:LP-DC2	i	28	52.61367224	177.8382459	1
+7	130	This study			129.3	-47.5	1149	3	r	0	Extrusive	Lava Flow		Basalt	Osler Volcanics, Nipigon Strait, Lower Reversed		DE-K:LP-DC2:FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM		29			
+7	130	This study			129.1	-54.5	1149	3	r	100	Extrusive	Lava Flow		Basalt	Osler Volcanics, Nipigon Strait, Lower Reversed		DE-K:LP-DC2:FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM		29			
+		Cox & Doell 1960:McElhinny & McFadden 2000	ND	VGP:Site 29	129.1	-54.5		1		100			48.679736		Osler Volcanics, Nipigon Strait, Lower Reversed	271.897319	DE-DI:FS-LOC-GOOGLE:LP-DC2	i	29	50.54048276	181.0980435	1
+6	129	This study			98.7	-75.8	267	5	r	0	Extrusive	Lava Flow		Basalt	Osler Volcanics, Nipigon Strait, Lower Reversed		DE-K:LP-DC2:FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM		30			
+6	129	This study			80.5	-80.4	267	5	r	100	Extrusive	Lava Flow		Basalt	Osler Volcanics, Nipigon Strait, Lower Reversed		DE-K:LP-DC2:FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM		30			
+		Cox & Doell 1960:McElhinny & McFadden 2000	ND	VGP:Site 30	80.5	-80.4		1		100			48.593955		Osler Volcanics, Nipigon Strait, Lower Reversed	271.782033	DE-DI:FS-LOC-GOOGLE:LP-DC2	i	30	42.49393304	246.4019953	1

@@ -1,3 +1,0 @@
-tab 	contribution
-doi	magic_version
-10.1139/e74-113	3.0

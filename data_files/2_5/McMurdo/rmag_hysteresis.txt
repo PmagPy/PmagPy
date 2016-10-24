@@ -1,0 +1,12 @@
+tab 	rmag_hysteresis
+er_analyst_mail_names	er_citation_names	er_location_name	er_sample_name	er_site_name	er_specimen_name	hysteresis_bc	hysteresis_bcr	hysteresis_mr_moment	hysteresis_ms_moment	magic_experiment_names	magic_method_codes
+Jason Steindorf	This study	McMurdo	mc04c	mc04	mc04c-1	0.006121	0.015	0.0000005804	0.000001951	mc04c-1 : LP-HYS	LT-AF-I:LP-AN-ARM:LP-BCR-HDM
+Jason Steindorf	This study	McMurdo	mc113a	mc113	mc113a1-1	0.01286	0.035	0.000006705	0.00004104	mc113a1-1 : LP-HYS	LT-AF-I:LP-AN-ARM:LP-BCR-HDM
+Jason Steindorf	This study	McMurdo	mc117a	mc117	mc117a2-1	0.01727	0.045	0.0000009224	0.00000485	mc117a2-1 : LP-HYS	LT-AF-I:LP-AN-ARM:LP-BCR-HDM
+Jason Steindorf	This study	McMurdo	mc120a	mc120	mc120a2-1	0.04297	0.065	0.000001708	0.000003911	mc120a2-1 : LP-HYS	LT-AF-I:LP-AN-ARM:LP-BCR-HDM
+Jason Steindorf	This study	McMurdo	mc120a	mc120	mc120a2-1	0.04297	0.065	0.000001708	0.000003911	mc120a2-1 : LP-HYS	LT-AF-I:LP-AN-ARM:LP-BCR-HDM
+Jason Steindorf	This study	McMurdo	mc129a	mc129	mc129a1-1	0.04523	0.145	0.0000001905	0.0000003244	mc129a1-1 : LP-HYS	LT-AF-I:LP-AN-ARM:LP-BCR-HDM
+Jason Steindorf	This study	McMurdo	mc164a	mc164	mc164a2-1	0.03579	0.445	0.00000008186	0.0000003584	mc164a2-1 : LP-HYS	LT-AF-I:LP-AN-ARM:LP-BCR-HDM
+Jason Steindorf	This study	McMurdo	mc205a	mc205	mc205a1-1	0.03774	0.075	0.000003456	0.00001001	mc205a1-1 : LP-HYS	LT-AF-I:LP-AN-ARM:LP-BCR-HDM
+Jason Steindorf	This study	McMurdo	mc205a	mc205	mc205a1-1	0.03774	0.075	0.000003456	0.00001001	mc205a1-1 : LP-HYS	LT-AF-I:LP-AN-ARM:LP-BCR-HDM
+Jason Steindorf	This study	McMurdo	mc217a	mc217	mc217a2-1	0.03034	0.055	0.0000008964	0.000002581	mc217a2-1 : LP-HYS	LT-AF-I:LP-AN-ARM:LP-BCR-HDM

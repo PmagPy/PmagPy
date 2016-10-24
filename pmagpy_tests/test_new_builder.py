@@ -2,27 +2,27 @@
 
 import unittest
 import os
-import wx
-import sys
 from pmagpy import new_builder as nb
-from pmagpy import find_pmag_dir
 from pmagpy import data_model3 as data_model
 from pmagpy import controlled_vocabularies3 as cv
-pmag_dir = find_pmag_dir.get_pmag_dir()
-WD = os.path.join(pmag_dir, '3_0', 'Osler')
-vocab = cv.Vocabulary()
-vocabulary, possible_vocabulary = vocab.get_controlled_vocabularies()
-dmodel = data_model.DataModel()
+
+
+def set_consts():
+    global WD, PROJECT_WD, VOCABULARY, DMODEL
+    WD = os.getcwd()
+    PROJECT_WD = os.path.join(WD, 'data_files', '3_0', 'Osler')
+    vocab = cv.Vocabulary()
+    VOCABULARY, possible_vocabulary = vocab.get_controlled_vocabularies()
+    DMODEL = data_model.DataModel()
 
 
 class TestMagicDataFrame(unittest.TestCase):
 
     def setUp(self):
-        pass
+        set_consts()
 
     def tearDown(self):
-        os.chdir(pmag_dir)
-
+        os.chdir(WD)
 
     def test_init_blank(self):
         magic_df = nb.MagicDataFrame()
@@ -30,26 +30,29 @@ class TestMagicDataFrame(unittest.TestCase):
 
     def test_init_with_dtype(self):
         magic_df = nb.MagicDataFrame(dtype='specimens',
-                                     dmodel=dmodel)
+                                     dmodel=DMODEL)
         self.assertEqual('specimens', magic_df.dtype)
 
     def test_init_with_file(self):
-        magic_df = nb.MagicDataFrame(os.path.join(WD, 'sites.txt'),
-                                     dmodel=dmodel)
+        magic_df = nb.MagicDataFrame(os.path.join(PROJECT_WD, 'sites.txt'),
+                                     dmodel=DMODEL)
         self.assertEqual('sites', magic_df.dtype)
         self.assertEqual('1', magic_df.df.index[1])
 
     def test_update_row(self):
-        magic_df = nb.MagicDataFrame(os.path.join(WD, 'sites.txt'), dmodel=dmodel)
+        magic_df = nb.MagicDataFrame(os.path.join(PROJECT_WD, 'sites.txt'),
+                                     dmodel=DMODEL)
         self.assertEqual('Lava Flow', magic_df.df.iloc[3]['geologic_types'])
-        magic_df.update_row(3, {'geologic_types': 'other type', 'new_col': 'new_val'})
+        magic_df.update_row(3, {'geologic_types': 'other type',
+                                'new_col': 'new_val'})
         self.assertEqual('other type', magic_df.df.iloc[3]['geologic_types'])
         self.assertIn('new_col', magic_df.df.columns)
         self.assertEqual('new_val', magic_df.df.iloc[3]['new_col'])
 
 
     def test_add_row(self):
-        magic_df = nb.MagicDataFrame(os.path.join(WD, 'sites.txt'), dmodel=dmodel)
+        magic_df = nb.MagicDataFrame(os.path.join(PROJECT_WD, 'sites.txt'),
+                                     dmodel=DMODEL)
         old_len = len(magic_df.df)
         magic_df.add_row('new_site', {'new_col': 'new_val'})
         self.assertEqual('new_val', magic_df.df.iloc[-1]['new_col'])
@@ -57,7 +60,8 @@ class TestMagicDataFrame(unittest.TestCase):
 
 
     def test_add_blank_row(self):
-        magic_df = nb.MagicDataFrame(os.path.join(WD, 'sites.txt'), dmodel=dmodel)
+        magic_df = nb.MagicDataFrame(os.path.join(PROJECT_WD, 'sites.txt'),
+                                     dmodel=DMODEL)
         old_len = len(magic_df.df)
         magic_df.add_blank_row('blank_site')
         self.assertIn('blank_site', magic_df.df.index)
@@ -65,7 +69,8 @@ class TestMagicDataFrame(unittest.TestCase):
 
 
     def test_delete_row(self):
-        magic_df = nb.MagicDataFrame(os.path.join(WD, 'sites.txt'), dmodel=dmodel)
+        magic_df = nb.MagicDataFrame(os.path.join(PROJECT_WD, 'sites.txt'),
+                                     dmodel=DMODEL)
         old_len = len(magic_df.df)
         magic_df.delete_row(5)
         self.assertEqual(old_len - 1, len(magic_df.df))
@@ -73,8 +78,8 @@ class TestMagicDataFrame(unittest.TestCase):
 
 
     def test_delete_rows(self):
-        magic_df = nb.MagicDataFrame(os.path.join(WD, 'sites.txt'),
-                                     dmodel=dmodel)
+        magic_df = nb.MagicDataFrame(os.path.join(PROJECT_WD, 'sites.txt'),
+                                     dmodel=DMODEL)
         cond = magic_df.df['description'].str.contains('VGP').astype(bool)
         # delete all rows that aren't described as VGPs
         magic_df.delete_rows(-cond)
@@ -82,13 +87,16 @@ class TestMagicDataFrame(unittest.TestCase):
             self.assertTrue('VGP' in descr)
 
     def test_update_record(self):
-        magic_df = nb.MagicDataFrame(os.path.join(WD, 'sites.txt'), dmodel=dmodel)
+        magic_df = nb.MagicDataFrame(os.path.join(PROJECT_WD, 'sites.txt'),
+                                     dmodel=DMODEL)
         cond = magic_df.df['lithologies'] == 'Basalt'
-        magic_df.update_record('2', new_data={'description': 'updated'}, condition=cond)
+        magic_df.update_record('2', new_data={'description': 'updated'},
+                               condition=cond)
         self.assertIn('updated', magic_df.df.loc['2', 'description'].values)
 
     def test_convert_to_pmag_data_list(self):
-        magic_df = nb.MagicDataFrame(os.path.join(WD, 'sites.txt'), dmodel=dmodel)
+        magic_df = nb.MagicDataFrame(os.path.join(PROJECT_WD, 'sites.txt'),
+                                     dmodel=DMODEL)
         lst = magic_df.convert_to_pmag_data_list('lst')
         self.assertEqual(list, type(lst))
         self.assertEqual(dict, type(lst[0]))
@@ -100,7 +108,8 @@ class TestMagicDataFrame(unittest.TestCase):
         self.assertEqual('1', str(dct['1']['site']))
 
     def test_get_name(self):
-        magic_df = nb.MagicDataFrame(os.path.join(WD, 'sites.txt'), dmodel=dmodel)
+        magic_df = nb.MagicDataFrame(os.path.join(PROJECT_WD, 'sites.txt'),
+                                     dmodel=DMODEL)
         val = magic_df.get_name('description')
         self.assertEqual('VGP:Site 1', val)
         df_slice = magic_df.df.iloc[10:20]
@@ -110,21 +119,22 @@ class TestMagicDataFrame(unittest.TestCase):
         val = magic_df.get_name('description', index_names=index_names)
         self.assertEqual('VGP:Site 21', val)
 
-
     def test_get_di_block(self):
-        magic_df = nb.MagicDataFrame(os.path.join(WD, 'sites.txt'), dmodel=dmodel)
+        magic_df = nb.MagicDataFrame(os.path.join(PROJECT_WD, 'sites.txt'),
+                                     dmodel=DMODEL)
         di_block = magic_df.get_di_block(df_slice='all')
         self.assertEqual([289.8, 43.6], di_block[0])
         di_block = magic_df.get_di_block(do_index=True, item_names=['1', '2'])
         self.assertEqual([289.8, 43.6], di_block[0])
         self.assertEqual(2, len(di_block))
         magic_df.df.loc['2', 'method_codes'] = 'fake_code'
-        di_block = magic_df.get_di_block(do_index=True, item_names=['1', '2'], excl=['fake_code'])
+        di_block = magic_df.get_di_block(do_index=True, item_names=['1', '2'],
+                                         excl=['fake_code'])
         self.assertEqual(1, len(di_block))
 
-
     def test_get_records_for_code(self):
-        magic_df = nb.MagicDataFrame(os.path.join(WD, 'sites.txt'), dmodel=dmodel)
+        magic_df = nb.MagicDataFrame(os.path.join(PROJECT_WD, 'sites.txt'),
+                                     dmodel=DMODEL)
         results = magic_df.get_records_for_code('LP-DC2')
         self.assertEqual(87, len(results))
         #
@@ -138,20 +148,19 @@ class TestMagicDataFrame(unittest.TestCase):
         self.assertEqual(1, len(results))
 
 
-
 class TestContribution(unittest.TestCase):
 
     def setUp(self):
-        self.directory = os.path.join(find_pmag_dir.get_pmag_dir(),
-                                      '3_0', 'Megiddo')
-        self.con = nb.Contribution(self.directory, vocabulary=vocabulary,
-                                   dmodel=dmodel)
+        set_consts()
+        self.directory = os.path.join(WD, 'data_files', '3_0', 'Megiddo')
+        self.con = nb.Contribution(self.directory, vocabulary=VOCABULARY,
+                                   dmodel=DMODEL)
 
     def tearDown(self):
-        os.chdir(pmag_dir)
+        os.chdir(WD)
 
     def test_init_empty(self):
-        con = nb.Contribution(pmag_dir, dmodel=dmodel)
+        con = nb.Contribution(WD, dmodel=DMODEL)
         self.assertEqual(0, len(con.tables))
 
     def test_init(self):
@@ -167,7 +176,7 @@ class TestContribution(unittest.TestCase):
 
     def test_add_empty_magic_table(self):
         con = nb.Contribution(self.directory, read_tables=['specimens'],
-                              vocabulary=vocabulary, dmodel=dmodel)
+                              vocabulary=VOCABULARY, dmodel=DMODEL)
         self.assertEqual(set(['specimens']), set(con.tables.keys()))
         con.add_empty_magic_table('samples')
         self.assertEqual(set(['specimens', 'samples']), set(con.tables.keys()))
@@ -175,7 +184,7 @@ class TestContribution(unittest.TestCase):
 
     def test_add_magic_table(self):
         con = nb.Contribution(self.directory, read_tables=['specimens'],
-                              vocabulary=vocabulary, dmodel=dmodel)
+                              vocabulary=VOCABULARY, dmodel=DMODEL)
         self.assertEqual(set(['specimens']), set(con.tables.keys()))
         con.add_magic_table('samples')
         self.assertEqual(set(['specimens', 'samples']), set(con.tables.keys()))
@@ -185,8 +194,6 @@ class TestContribution(unittest.TestCase):
         self.assertEqual(set(['specimens', 'samples', 'sites']),
                          set(con.tables.keys()))
         self.assertGreater(len(con.tables['sites'].df), 0)
-
-
 
 
 if __name__ == '__main__':

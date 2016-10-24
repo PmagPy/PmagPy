@@ -12,19 +12,27 @@ from dialogs import grid_frame3 as grid_frame
 from pmagpy import find_pmag_dir
 #import dialogs.pmag_widgets as pmag_widgets
 from pmagpy import data_model3 as data_model
-DMODEL = data_model.DataModel()
-#WD = os.path.join(find_pmag_dir.get_pmag_dir(), "data_files", "magic_gui", "3_0")
-WD = os.path.join(sys.prefix, "pmagpy_data_files", "magic_gui", "3_0")
+
+def set_consts():
+    global DMODEL, WD, PROJECT_WD
+    DMODEL = data_model.DataModel()
+    #WD = os.path.join(find_pmag_dir.get_pmag_dir(), "data_files", "magic_gui", "3_0")
+    WD = os.getcwd()
+    PROJECT_WD = os.path.join(WD, "data_files", "magic_gui", "3_0")
 
 
 class TestMainFrame(unittest.TestCase):
 
     def setUp(self):
+        set_consts()
         self.app = wx.App()
-        self.frame = magic_gui.MainFrame(WD, name="best frame ever", dmodel=DMODEL)
+        self.frame = magic_gui.MainFrame(PROJECT_WD,
+                                         name="best frame ever",
+                                         dmodel=DMODEL)
         self.pnl = self.frame.GetChildren()[0]
 
     def tearDown(self):
+        os.chdir(WD)
         return
 
     def test_main_panel_is_created(self):
@@ -108,8 +116,9 @@ class TestMagICGUIMenu(unittest.TestCase):
 
 
     def setUp(self):
+        set_consts()
         self.app = wx.App()
-        self.frame = magic_gui.MainFrame(WD, name="best frame ever",
+        self.frame = magic_gui.MainFrame(PROJECT_WD, name="best frame ever",
                                          dmodel=DMODEL)
         self.pnl = self.frame.GetChildren()[0]
         self.contribution = self.frame.contribution
@@ -154,7 +163,7 @@ class TestMagICGUIMenu(unittest.TestCase):
         self.assertTrue(self.frame.IsShown())
 
     def test_close_grid(self):
-        self.frame.grid_frame = grid_frame.GridFrame(self.contribution, WD,
+        self.frame.grid_frame = grid_frame.GridFrame(self.contribution, PROJECT_WD,
                                                      "specimens", "specimens")
         self.assertTrue(self.frame.grid_frame.IsShown())
         menus = self.frame.MenuBar.Menus

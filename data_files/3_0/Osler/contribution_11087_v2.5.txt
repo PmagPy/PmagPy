@@ -1,0 +1,155 @@
+tab 	er_locations
+plate_block	location_type	er_citation_names	location_lithology	continent_ocean	country	region	location_class	location_begin_lon	er_location_name	tectonic_setting	location_end_lat	location_begin_lat	location_end_lon
+North American Plate	Region	This study	Basalt	North America	Canada	Lake Superior	Extrusive	271.93353	Osler Volcanics, Nipigon Strait, Lower Reversed	Continental Rift	48.66	48.711501	271.95
+North American Plate	Region	This study	Basalt	North America	Canada	Lake Superior	Extrusive	271.91	Osler Volcanics, Nipigon Strait, Upper Normal	Continental Rift	48.66	48.64	271.96
+>>>>>>>>>>
+tab 	er_sites
+er_citation_names	site_lithology	site_class	site_definition	er_site_name	magic_method_codes	site_bed_dip_direction	site_bed_dip	er_location_name	site_type
+This study	Basalt	Extrusive	s	1	FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM	135.0	10	Osler Volcanics, Nipigon Strait, Upper Normal	Lava Flow
+This study	Basalt	Extrusive	s	2	FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM	140.0	12	Osler Volcanics, Nipigon Strait, Upper Normal	Lava Flow
+This study	Basalt	Extrusive	s	3	FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM	146.0	14	Osler Volcanics, Nipigon Strait, Upper Normal	Lava Flow
+This study	Basalt	Extrusive	s	4	FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM	135.0	12	Osler Volcanics, Nipigon Strait, Upper Normal	Lava Flow
+This study	Basalt	Extrusive	s	5	FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM	135.0	10	Osler Volcanics, Nipigon Strait, Upper Normal	Lava Flow
+This study	Basalt	Extrusive	s	6	FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM	131.0	28	Osler Volcanics, Nipigon Strait, Lower Reversed	Lava Flow
+This study	Basalt	Extrusive	s	7	FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM	149.0	20	Osler Volcanics, Nipigon Strait, Lower Reversed	Lava Flow
+This study	Basalt	Extrusive	s	8	FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM	150.0	18	Osler Volcanics, Nipigon Strait, Lower Reversed	Lava Flow
+This study	Basalt	Extrusive	s	9	FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM	145.0	20	Osler Volcanics, Nipigon Strait, Lower Reversed	Lava Flow
+This study	Basalt	Extrusive	s	10	FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM	134.0	30	Osler Volcanics, Nipigon Strait, Lower Reversed	Lava Flow
+This study	Basalt	Extrusive	s	11	FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM	132.0	30	Osler Volcanics, Nipigon Strait, Lower Reversed	Lava Flow
+This study	Basalt	Extrusive	s	12	FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM	132.0	40	Osler Volcanics, Nipigon Strait, Lower Reversed	Lava Flow
+This study	Basalt	Extrusive	s	13	FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM	120.0	35	Osler Volcanics, Nipigon Strait, Lower Reversed	Lava Flow
+This study	Basalt	Extrusive	s	14	FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM	120.0	20	Osler Volcanics, Nipigon Strait, Lower Reversed	Lava Flow
+This study	Basalt	Extrusive	s	15	FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM	115.0	30	Osler Volcanics, Nipigon Strait, Lower Reversed	Lava Flow
+This study	Basalt	Extrusive	s	16	FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM	110.0	45	Osler Volcanics, Nipigon Strait, Lower Reversed	Lava Flow
+This study	Basalt	Extrusive	s	17	FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM	110.0	25	Osler Volcanics, Nipigon Strait, Lower Reversed	Lava Flow
+This study	Basalt	Extrusive	s	18	FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM	155.0	12	Osler Volcanics, Nipigon Strait, Lower Reversed	Lava Flow
+This study	Basalt	Extrusive	s	19	FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM	133.0	12	Osler Volcanics, Nipigon Strait, Lower Reversed	Lava Flow
+This study	Basalt	Extrusive	s	20	FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM	132.0	10	Osler Volcanics, Nipigon Strait, Lower Reversed	Lava Flow
+This study	Basalt	Extrusive	s	21	FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM	110.0	20	Osler Volcanics, Nipigon Strait, Lower Reversed	Lava Flow
+This study	Basalt	Extrusive	s	22	FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM	110.0	20	Osler Volcanics, Nipigon Strait, Lower Reversed	Lava Flow
+This study	Basalt	Extrusive	s	23	FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM	145.0	10	Osler Volcanics, Nipigon Strait, Lower Reversed	Lava Flow
+This study	Basalt	Extrusive	s	24	FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM	145.0	20	Osler Volcanics, Nipigon Strait, Lower Reversed	Lava Flow
+This study	Basalt	Extrusive	s	25	FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM	140.0	20	Osler Volcanics, Nipigon Strait, Lower Reversed	Lava Flow
+This study	Basalt	Extrusive	s	26	FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM	140.0	20	Osler Volcanics, Nipigon Strait, Lower Reversed	Lava Flow
+This study	Basalt	Extrusive	s	27	FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM	130.0	10	Osler Volcanics, Nipigon Strait, Lower Reversed	Lava Flow
+This study	Basalt	Extrusive	s	28	FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM	130.0	7	Osler Volcanics, Nipigon Strait, Lower Reversed	Lava Flow
+This study	Basalt	Extrusive	s	29	FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM	130.0	7	Osler Volcanics, Nipigon Strait, Lower Reversed	Lava Flow
+This study	Basalt	Extrusive	s	30	FS-FD:FS-H:FS-LOC-GOOGLE:SO-SM	129.0	6	Osler Volcanics, Nipigon Strait, Lower Reversed	Lava Flow
+>>>>>>>>>>
+tab 	er_citations
+volume	city	book_title	long_authors	publisher	journal	citation_type	book_editors	year	title	er_citation_name	pages
+11			Halls, H.		Canadian Journal of Earth Sciences	Journal		1974	A paleomagnetic reversal in the Osler Volcanic Group, northern Lake Superior	This study	1,200-1,207
+	London	Methods in rock magnetism and Paleomagnetism: Techniques and instrumentation	Collinson, D.W.	Chapman and Hall		Book		1983		Collinson 1983	503
+71			Cox, A. and Doell, R.R.		Geological Society of America, Bulletin	Journal		1960	Review of paleomagnetism	Cox & Doell 1960	645
+A217			Fisher, R.A.		Proceedings of the Royal Society of London	Journal		1953	Dispersion on a sphere	Fisher 1953	295-305
+73	San Diego	Paleomagnetism: continents and oceans	McElhinny, M.W. and McFadden, P.L.	Academic Press	International Geophysics Series	Serial Book	Dmowska, R., Holton, J.R. and Rossby, H.T.	2000		McElhinny & McFadden 2000	1-1
+>>>>>>>>>>
+tab 	pmag_sites
+site_tilt_correction	site_k	er_citation_names	site_n	site_inc	er_site_name	magic_method_codes	er_location_name	site_polarity	site_dec
+100	517	This study	5	43.6	1	DE-K:FS-FD:FS-H:LP-DC2:SO-SM	Osler Volcanics, Nipigon Strait, Upper Normal	n	289.8
+0	517	This study	5	34.5	1	DE-K:FS-FD:FS-H:LP-DC2:SO-SM	Osler Volcanics, Nipigon Strait, Upper Normal	n	293.1
+100	243	This study	5	42	2	DE-K:FS-FD:FS-H:LP-DC2:SO-SM	Osler Volcanics, Nipigon Strait, Upper Normal	n	285.7
+0	243	This study	5	31.9	2	DE-K:FS-FD:FS-H:LP-DC2:SO-SM	Osler Volcanics, Nipigon Strait, Upper Normal	n	290.6
+100	2485	This study	5	37.9	3	DE-K:FS-FD:FS-H:LP-DC2:SO-SM	Osler Volcanics, Nipigon Strait, Upper Normal	n	307.4
+0	2485	This study	5	24.6	3	DE-K:FS-FD:FS-H:LP-DC2:SO-SM	Osler Volcanics, Nipigon Strait, Upper Normal	n	310.0
+100	331	This study	5	29.9	4	DE-K:FS-FD:FS-H:LP-DC2:SO-SM	Osler Volcanics, Nipigon Strait, Upper Normal	n	302.8
+0	331	This study	5	18.2	4	DE-K:FS-FD:FS-H:LP-DC2:SO-SM	Osler Volcanics, Nipigon Strait, Upper Normal	n	303.9
+100	130	This study	5	42.5	5	DE-K:FS-FD:FS-H:LP-DC2:SO-SM	Osler Volcanics, Nipigon Strait, Upper Normal	n	294.7
+0	130	This study	5	33.1	5	DE-K:FS-FD:FS-H:LP-DC2:SO-SM	Osler Volcanics, Nipigon Strait, Upper Normal	n	297.3
+100	70	This study	5	-44.2	6	DE-K:FS-FD:FS-H:LP-DC2:SO-SM	Osler Volcanics, Nipigon Strait, Lower Reversed	r	106.1
+0	70	This study	5	-18.1	6	DE-K:FS-FD:FS-H:LP-DC2:SO-SM	Osler Volcanics, Nipigon Strait, Lower Reversed	r	112.6
+100	351	This study	6	-62.4	7	DE-K:FS-FD:FS-H:LP-DC2:SO-SM	Osler Volcanics, Nipigon Strait, Lower Reversed	r	109.8
+0	351	This study	6	-45.3	7	DE-K:FS-FD:FS-H:LP-DC2:SO-SM	Osler Volcanics, Nipigon Strait, Lower Reversed	r	124.5
+100	679	This study	5	-64.8	8	DE-K:FS-FD:FS-H:LP-DC2:SO-SM	Osler Volcanics, Nipigon Strait, Lower Reversed	r	140.7
+0	679	This study	5	-47	8	DE-K:FS-FD:FS-H:LP-DC2:SO-SM	Osler Volcanics, Nipigon Strait, Lower Reversed	r	144.3
+100	321	This study	3	-56.6	9	DE-K:FS-FD:FS-H:LP-DC2:SO-SM	Osler Volcanics, Nipigon Strait, Lower Reversed	r	110.0
+0	321	This study	3	-39.1	9	DE-K:FS-FD:FS-H:LP-DC2:SO-SM	Osler Volcanics, Nipigon Strait, Lower Reversed	r	121.0
+100	59	This study	5	-42	10	DE-K:FS-FD:FS-H:LP-DC2:SO-SM	Osler Volcanics, Nipigon Strait, Lower Reversed	r	128.2
+0	59	This study	5	-12.1	10	DE-K:FS-FD:FS-H:LP-DC2:SO-SM	Osler Volcanics, Nipigon Strait, Lower Reversed	r	129.7
+100	456	This study	3	-59.1	11	DE-K:FS-FD:FS-H:LP-DC2:SO-SM	Osler Volcanics, Nipigon Strait, Lower Reversed	r	88.3
+0	456	This study	3	-33.9	11	DE-K:FS-FD:FS-H:LP-DC2:SO-SM	Osler Volcanics, Nipigon Strait, Lower Reversed	r	106.7
+100	240	This study	5	-48.9	12	DE-K:FS-FD:FS-H:LP-DC2:SO-SM	Osler Volcanics, Nipigon Strait, Lower Reversed	r	118.6
+0	240	This study	5	-9.6	12	DE-K:FS-FD:FS-H:LP-DC2:SO-SM	Osler Volcanics, Nipigon Strait, Lower Reversed	r	123.2
+100	886	This study	3	-38	13	DE-K:FS-FD:FS-H:LP-DC2:SO-SM	Osler Volcanics, Nipigon Strait, Lower Reversed	r	128.1
+0	886	This study	3	-3.3	13	DE-K:FS-FD:FS-H:LP-DC2:SO-SM	Osler Volcanics, Nipigon Strait, Lower Reversed	r	126.4
+100	121	This study	6	-55.8	14	DE-K:FS-FD:FS-H:LP-DC2:SO-SM	Osler Volcanics, Nipigon Strait, Lower Reversed	r	108.2
+0	121	This study	6	-36.2	14	DE-K:FS-FD:FS-H:LP-DC2:SO-SM	Osler Volcanics, Nipigon Strait, Lower Reversed	r	111.9
+100	402	This study	6	-46	15	DE-K:FS-FD:FS-H:LP-DC2:SO-SM	Osler Volcanics, Nipigon Strait, Lower Reversed	r	118.5
+0	402	This study	6	-16.1	15	DE-K:FS-FD:FS-H:LP-DC2:SO-SM	Osler Volcanics, Nipigon Strait, Lower Reversed	r	117.6
+100	125	This study	6	-54.2	16	DE-K:FS-FD:FS-H:LP-DC2:SO-SM	Osler Volcanics, Nipigon Strait, Lower Reversed	r	106.0
+0	125	This study	6	-9.3	16	DE-K:FS-FD:FS-H:LP-DC2:SO-SM	Osler Volcanics, Nipigon Strait, Lower Reversed	r	107.7
+100	362	This study	4	-54.1	17	DE-K:FS-FD:FS-H:LP-DC2:SO-SM	Osler Volcanics, Nipigon Strait, Lower Reversed	r	93.7
+0	362	This study	4	-29.8	17	DE-K:FS-FD:FS-H:LP-DC2:SO-SM	Osler Volcanics, Nipigon Strait, Lower Reversed	r	99.1
+100	224	This study	4	-53	18	DE-K:FS-FD:FS-H:LP-DC2:SO-SM	Osler Volcanics, Nipigon Strait, Lower Reversed	r	116.0
+0	224	This study	4	-43.2	18	DE-K:FS-FD:FS-H:LP-DC2:SO-SM	Osler Volcanics, Nipigon Strait, Lower Reversed	r	123.8
+100	871	This study	4	-64.9	19	DE-K:FS-FD:FS-H:LP-DC2:SO-SM	Osler Volcanics, Nipigon Strait, Lower Reversed	r	131.7
+0	871	This study	4	-53	19	DE-K:FS-FD:FS-H:LP-DC2:SO-SM	Osler Volcanics, Nipigon Strait, Lower Reversed	r	132.1
+100	108	This study	4	-55.8	20	DE-K:FS-FD:FS-H:LP-DC2:SO-SM	Osler Volcanics, Nipigon Strait, Lower Reversed	r	119.9
+0	108	This study	4	-46	20	DE-K:FS-FD:FS-H:LP-DC2:SO-SM	Osler Volcanics, Nipigon Strait, Lower Reversed	r	122.3
+100	84	This study	5	-65.5	21	DE-K:FS-FD:FS-H:LP-DC2:SO-SM	Osler Volcanics, Nipigon Strait, Lower Reversed	r	94.3
+0	84	This study	5	-45.9	21	DE-K:FS-FD:FS-H:LP-DC2:SO-SM	Osler Volcanics, Nipigon Strait, Lower Reversed	r	100.8
+100	94	This study	5	-58.2	22	DE-K:FS-FD:FS-H:LP-DC2:SO-SM	Osler Volcanics, Nipigon Strait, Lower Reversed	r	91.8
+0	94	This study	5	-38.9	22	DE-K:FS-FD:FS-H:LP-DC2:SO-SM	Osler Volcanics, Nipigon Strait, Lower Reversed	r	97.9
+100	69	This study	4	-64	23	DE-K:FS-FD:FS-H:LP-DC2:SO-SM	Osler Volcanics, Nipigon Strait, Lower Reversed	r	114.3
+0	69	This study	4	-55.1	23	DE-K:FS-FD:FS-H:LP-DC2:SO-SM	Osler Volcanics, Nipigon Strait, Lower Reversed	r	122.1
+100	77	This study	3	-40.4	24	DE-K:FS-FD:FS-H:LP-DC2:SO-SM	Osler Volcanics, Nipigon Strait, Lower Reversed	r	116.8
+0	77	This study	3	-22.3	24	DE-K:FS-FD:FS-H:LP-DC2:SO-SM	Osler Volcanics, Nipigon Strait, Lower Reversed	r	122.2
+100	166	This study	3	-58.7	25	DE-K:FS-FD:FS-H:LP-DC2:SO-SM	Osler Volcanics, Nipigon Strait, Lower Reversed	r	126.3
+0	166	This study	3	-39.2	25	DE-K:FS-FD:FS-H:LP-DC2:SO-SM	Osler Volcanics, Nipigon Strait, Lower Reversed	r	130.9
+100	3634	This study	3	-75.1	26	DE-K:FS-FD:FS-H:LP-DC2:SO-SM	Osler Volcanics, Nipigon Strait, Lower Reversed	r	112.0
+0	3634	This study	3	-56.2	26	DE-K:FS-FD:FS-H:LP-DC2:SO-SM	Osler Volcanics, Nipigon Strait, Lower Reversed	r	127.6
+100	729	This study	3	-70.3	27	DE-K:FS-FD:FS-H:LP-DC2:SO-SM	Osler Volcanics, Nipigon Strait, Lower Reversed	r	118.6
+0	729	This study	3	-60.5	27	DE-K:FS-FD:FS-H:LP-DC2:SO-SM	Osler Volcanics, Nipigon Strait, Lower Reversed	r	122.3
+100	1039	This study	3	-54.1	28	DE-K:FS-FD:FS-H:LP-DC2:SO-SM	Osler Volcanics, Nipigon Strait, Lower Reversed	r	132.6
+0	1039	This study	3	-47.2	28	DE-K:FS-FD:FS-H:LP-DC2:SO-SM	Osler Volcanics, Nipigon Strait, Lower Reversed	r	132.3
+100	1149	This study	3	-54.5	29	DE-K:FS-FD:FS-H:LP-DC2:SO-SM	Osler Volcanics, Nipigon Strait, Lower Reversed	r	129.1
+0	1149	This study	3	-47.5	29	DE-K:FS-FD:FS-H:LP-DC2:SO-SM	Osler Volcanics, Nipigon Strait, Lower Reversed	r	129.3
+100	267	This study	5	-80.4	30	DE-K:FS-FD:FS-H:LP-DC2:SO-SM	Osler Volcanics, Nipigon Strait, Lower Reversed	r	80.5
+0	267	This study	5	-75.8	30	DE-K:FS-FD:FS-H:LP-DC2:SO-SM	Osler Volcanics, Nipigon Strait, Lower Reversed	r	98.7
+>>>>>>>>>>
+tab 	pmag_results
+average_lat_sigma	er_citation_names	vgp_n	average_inc	er_site_names	reversal_test	tilt_correction	average_alpha95	magic_method_codes	average_lon_sigma	average_r	pole_comp_name	er_location_names	vgp_alpha95	data_type	average_dec	vgp_lat	conglomerate_test	fold_test	average_lat	average_k	average_lon	average_n	rock_magnetic_test	pmag_result_name	contact_test	vgp_lon
+	Cox & Doell 1960 : McElhinny & McFadden 2000	1	43.6	1	ND	100		DE-DI:FS-LOC-GOOGLE:LP-DC2			Characteristic	Osler Volcanics, Nipigon Strait, Upper Normal		i	289.8	31.6515520179076	ND	ND	48.626429		271.894142	1	ND	VGP : Site 1	ND	185.574506201
+	Cox & Doell 1960 : McElhinny & McFadden 2000	1	42	2	ND	100		DE-DI:FS-LOC-GOOGLE:LP-DC2			Characteristic	Osler Volcanics, Nipigon Strait, Upper Normal		i	285.7	28.1100855266739	ND	ND	48.637185		271.913846	1	ND	VGP : Site 2	ND	187.514757952
+	Cox & Doell 1960 : McElhinny & McFadden 2000	1	37.9	3	ND	100		DE-DI:FS-LOC-GOOGLE:LP-DC2			Characteristic	Osler Volcanics, Nipigon Strait, Upper Normal		i	307.4	40.260603763627	ND	ND	48.640811		271.928039	1	ND	VGP : Site 3	ND	167.886291664
+	Cox & Doell 1960 : McElhinny & McFadden 2000	1	29.9	4	ND	100		DE-DI:FS-LOC-GOOGLE:LP-DC2			Characteristic	Osler Volcanics, Nipigon Strait, Upper Normal		i	302.8	33.4602147175894	ND	ND	48.655732		271.959099	1	ND	VGP : Site 4	ND	167.498809673
+	Cox & Doell 1960 : McElhinny & McFadden 2000	1	42.5	5	ND	100		DE-DI:FS-LOC-GOOGLE:LP-DC2			Characteristic	Osler Volcanics, Nipigon Strait, Upper Normal		i	294.7	34.309262680684	ND	ND	48.661489		271.958187	1	ND	VGP : Site 5	ND	181.256819264
+	Cox & Doell 1960 : McElhinny & McFadden 2000	1	-44.2	6	ND	100		DE-DI:FS-LOC-GOOGLE:LP-DC2			Characteristic	Osler Volcanics, Nipigon Strait, Lower Reversed		i	106.1	29.540888724665	ND	ND	48.661051		271.948459	1	ND	VGP : Site 6	ND	188.653302234
+	Cox & Doell 1960 : McElhinny & McFadden 2000	1	-62.4	7	ND	100		DE-DI:FS-LOC-GOOGLE:LP-DC2			Characteristic	Osler Volcanics, Nipigon Strait, Lower Reversed		i	109.8	42.9002039545851	ND	ND	48.678061		271.97532	1	ND	VGP : Site 7	ND	203.816622098
+	Cox & Doell 1960 : McElhinny & McFadden 2000	1	-64.8	8	ND	100		DE-DI:FS-LOC-GOOGLE:LP-DC2			Characteristic	Osler Volcanics, Nipigon Strait, Lower Reversed		i	140.7	63.7776075599249	ND	ND	48.680014		271.973994	1	ND	VGP : Site 8	ND	192.735742121
+	Cox & Doell 1960 : McElhinny & McFadden 2000	1	-56.6	9	ND	100		DE-DI:FS-LOC-GOOGLE:LP-DC2			Characteristic	Osler Volcanics, Nipigon Strait, Lower Reversed		i	110.0	39.3249568770275	ND	ND	48.676652		271.940536	1	ND	VGP : Site 9	ND	196.487854549
+	Cox & Doell 1960 : McElhinny & McFadden 2000	1	-42	10	ND	100		DE-DI:FS-LOC-GOOGLE:LP-DC2			Characteristic	Osler Volcanics, Nipigon Strait, Lower Reversed		i	128.2	42.8964500089465	ND	ND	48.664307		271.930409	1	ND	VGP : Site 10	ND	169.93390175
+	Cox & Doell 1960 : McElhinny & McFadden 2000	1	-59.1	11	ND	100		DE-DI:FS-LOC-GOOGLE:LP-DC2			Characteristic	Osler Volcanics, Nipigon Strait, Lower Reversed		i	88.3	27.7951240482415	ND	ND	48.657548		271.928069	1	ND	VGP : Site 11	ND	211.800334777
+	Cox & Doell 1960 : McElhinny & McFadden 2000	1	-48.9	12	ND	100		DE-DI:FS-LOC-GOOGLE:LP-DC2			Characteristic	Osler Volcanics, Nipigon Strait, Lower Reversed		i	118.6	40.3665891534885	ND	ND	48.65743		271.921876	1	ND	VGP : Site 12	ND	183.175792001
+	Cox & Doell 1960 : McElhinny & McFadden 2000	1	-38	13	ND	100		DE-DI:FS-LOC-GOOGLE:LP-DC2			Characteristic	Osler Volcanics, Nipigon Strait, Lower Reversed		i	128.1	40.7568820623877	ND	ND	48.651106		271.914755	1	ND	VGP : Site 13	ND	167.304340503
+	Cox & Doell 1960 : McElhinny & McFadden 2000	1	-55.8	14	ND	100		DE-DI:FS-LOC-GOOGLE:LP-DC2			Characteristic	Osler Volcanics, Nipigon Strait, Lower Reversed		i	108.2	37.6670868845014	ND	ND	48.648101		271.917061	1	ND	VGP : Site 14	ND	196.752533703
+	Cox & Doell 1960 : McElhinny & McFadden 2000	1	-46	15	ND	100		DE-DI:FS-LOC-GOOGLE:LP-DC2			Characteristic	Osler Volcanics, Nipigon Strait, Lower Reversed		i	118.5	38.6895102061663	ND	ND	48.646972		271.90239	1	ND	VGP : Site 15	ND	180.853175484
+	Cox & Doell 1960 : McElhinny & McFadden 2000	1	-54.2	16	ND	100		DE-DI:FS-LOC-GOOGLE:LP-DC2			Characteristic	Osler Volcanics, Nipigon Strait, Lower Reversed		i	106.0	35.2620282856413	ND	ND	48.639491		271.89768	1	ND	VGP : Site 16	ND	196.544170834
+	Cox & Doell 1960 : McElhinny & McFadden 2000	1	-54.1	17	ND	100		DE-DI:FS-LOC-GOOGLE:LP-DC2			Characteristic	Osler Volcanics, Nipigon Strait, Lower Reversed		i	93.7	27.4920710502451	ND	ND	48.634582		271.887024	1	ND	VGP : Site 17	ND	204.126214855
+	Cox & Doell 1960 : McElhinny & McFadden 2000	1	-53	18	ND	100		DE-DI:FS-LOC-GOOGLE:LP-DC2			Characteristic	Osler Volcanics, Nipigon Strait, Lower Reversed		i	116.0	41.0179152727302	ND	ND	48.605248		271.835216	1	ND	VGP : Site 18	ND	188.806201512
+	Cox & Doell 1960 : McElhinny & McFadden 2000	1	-64.9	19	ND	100		DE-DI:FS-LOC-GOOGLE:LP-DC2			Characteristic	Osler Volcanics, Nipigon Strait, Lower Reversed		i	131.7	58.0163418751781	ND	ND	48.607343		271.825585	1	ND	VGP : Site 19	ND	197.301218345
+	Cox & Doell 1960 : McElhinny & McFadden 2000	1	-55.8	20	ND	100		DE-DI:FS-LOC-GOOGLE:LP-DC2			Characteristic	Osler Volcanics, Nipigon Strait, Lower Reversed		i	119.9	45.238713342676	ND	ND	48.590795		271.807852	1	ND	VGP : Site 20	ND	189.219268487
+	Cox & Doell 1960 : McElhinny & McFadden 2000	1	-65.5	21	ND	100		DE-DI:FS-LOC-GOOGLE:LP-DC2			Characteristic	Osler Volcanics, Nipigon Strait, Lower Reversed		i	94.3	36.0203329339761	ND	ND	48.636336		271.88093	1	ND	VGP : Site 21	ND	215.728716807
+	Cox & Doell 1960 : McElhinny & McFadden 2000	1	-58.2	22	ND	100		DE-DI:FS-LOC-GOOGLE:LP-DC2			Characteristic	Osler Volcanics, Nipigon Strait, Lower Reversed		i	91.8	29.166010387561	ND	ND	48.643347		271.880385	1	ND	VGP : Site 22	ND	208.879672262
+	Cox & Doell 1960 : McElhinny & McFadden 2000	1	-64	23	ND	100		DE-DI:FS-LOC-GOOGLE:LP-DC2			Characteristic	Osler Volcanics, Nipigon Strait, Lower Reversed		i	114.3	46.6399493497422	ND	ND	48.615971		271.842478	1	ND	VGP : Site 23	ND	203.882599644
+	Cox & Doell 1960 : McElhinny & McFadden 2000	1	-40.4	24	ND	100		DE-DI:FS-LOC-GOOGLE:LP-DC2			Characteristic	Osler Volcanics, Nipigon Strait, Lower Reversed		i	116.8	34.6109661071803	ND	ND	48.678789		271.942681	1	ND	VGP : Site 24	ND	178.247414689
+	Cox & Doell 1960 : McElhinny & McFadden 2000	1	-58.7	25	ND	100		DE-DI:FS-LOC-GOOGLE:LP-DC2			Characteristic	Osler Volcanics, Nipigon Strait, Lower Reversed		i	126.3	51.1652982890989	ND	ND	48.692757		271.951564	1	ND	VGP : Site 25	ND	188.893404789
+	Cox & Doell 1960 : McElhinny & McFadden 2000	1	-75.1	26	ND	100		DE-DI:FS-LOC-GOOGLE:LP-DC2			Characteristic	Osler Volcanics, Nipigon Strait, Lower Reversed		i	112.0	51.2095812727701	ND	ND	48.711501		271.93353	1	ND	VGP : Site 26	ND	227.88415866
+	Cox & Doell 1960 : McElhinny & McFadden 2000	1	-70.3	27	ND	100		DE-DI:FS-LOC-GOOGLE:LP-DC2			Characteristic	Osler Volcanics, Nipigon Strait, Lower Reversed		i	118.6	52.6178246762389	ND	ND	48.674874		271.903443	1	ND	VGP : Site 27	ND	214.556099791
+	Cox & Doell 1960 : McElhinny & McFadden 2000	1	-54.1	28	ND	100		DE-DI:FS-LOC-GOOGLE:LP-DC2			Characteristic	Osler Volcanics, Nipigon Strait, Lower Reversed		i	132.6	52.6136722373039	ND	ND	48.677416		271.898722	1	ND	VGP : Site 28	ND	177.838245917
+	Cox & Doell 1960 : McElhinny & McFadden 2000	1	-54.5	29	ND	100		DE-DI:FS-LOC-GOOGLE:LP-DC2			Characteristic	Osler Volcanics, Nipigon Strait, Lower Reversed		i	129.1	50.5404827564829	ND	ND	48.679736		271.897319	1	ND	VGP : Site 29	ND	181.098043519
+	Cox & Doell 1960 : McElhinny & McFadden 2000	1	-80.4	30	ND	100		DE-DI:FS-LOC-GOOGLE:LP-DC2			Characteristic	Osler Volcanics, Nipigon Strait, Lower Reversed		i	80.5	42.493933036856	ND	ND	48.593955		271.782033	1	ND	VGP : Site 30	ND	246.401995312
+0.03	Cox & Doell 1960 : Fisher 1953 : McElhinny & McFadden 2000	5	-57.5729562138628	6 : 7 : 8 : 9 : 10 : 11 : 12 : 13 : 14 : 15 : 16 : 17 : 18 : 19 : 20 : 21 : 22 : 23 : 24 : 25 : 26 : 27 : 28 : 29 : 30	ND	100	4.62447936768995	DE-FM:DE-VGP:FS-LOC-GOOGLE:LP-DC2	0.05	24.4024562030281	Characteristic	Osler Volcanics, Nipigon Strait, Lower Reversed	8.67816489449372	a	114.967445018	33.8557365351543	ND	ND	48.6517638333333	40.1644199498365	271.8987855	25	ND	All Reversed Flows	ND	178.26325137
+1.16589824992012E-02	Cox & Doell 1960 : Fisher 1953 : McElhinny & McFadden 2000	25	39.4640951426586	1 : 2 : 3 : 4 : 5	ND	100	8.47928537024579	DE-FM:DE-VGP:FS-LOC-GOOGLE:LP-DC2	2.25274957681298E-02	4.9514478908401	Characteristic	Osler Volcanics, Nipigon Strait, Upper Normal	5.85320736686893	a	296.461643682	43.6574194041308	ND	ND	48.64880425	82.3857103061456	271.93979275	5	ND	All Normal Flows	ND	196.338463507
+>>>>>>>>>>
+tab 	magic_methods
+magic_method_code
+FS-FD
+FS-H
+FS-LOC-GOOGLE
+SO-SM
+DE-K
+LP-DC2
+DE-DI
+DE-FM
+DE-VGP

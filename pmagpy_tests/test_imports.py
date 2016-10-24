@@ -2,7 +2,7 @@
 
 import unittest
 import os
-import sys
+#import sys
 import pmagpy.pmag as pmag
 import programs.sio_magic as sio_magic
 import programs.cit_magic as cit_magic
@@ -11,19 +11,24 @@ import programs.iodp_dscr_magic as iodp_dscr_magic
 import programs.iodp_jr6_magic as iodp_jr6_magic
 import programs._2g_bin_magic as _2g_bin_magic
 import programs.bgc_magic as bgc_magic
-import pmagpy.find_pmag_dir as find_pmag_dir
-WD = find_pmag_dir.get_pmag_dir()
+#import pmagpy.find_pmag_dir as find_pmag_dir
+
+
+def set_consts():
+    global WD
+    WD = os.getcwd() #find_pmag_dir.get_pmag_dir()
 
 class Test_sio_magic(unittest.TestCase):
 
     def setUp(self):
-        os.chdir(WD)
+        set_consts()
 
     def tearDown(self):
         filelist = ['sio_af_example.magic']
         directory = os.path.join(WD, 'data_files', 'Measurement_Import',
                                  'sio_magic')
         pmag.remove_files(filelist, directory)
+        os.chdir(WD)
 
     def test_sio_magic_no_files(self):
         program_ran, error_message = sio_magic.main(False)
@@ -99,12 +104,13 @@ class Test_sio_magic(unittest.TestCase):
 class Test_cit_magic(unittest.TestCase):
 
     def setUp(self):
-        os.chdir(WD)
+        set_consts()
 
     def tearDown(self):
         filelist = ['magic_measurements.txt', 'er_specimens.txt',
                     'er_samples.txt', 'er_sites.txt']
         pmag.remove_files(filelist, WD)
+        os.chdir(WD)
 
     def test_cit_with_no_files(self):
         program_ran, error_message = cit_magic.main(False)
@@ -181,12 +187,13 @@ class Test_cit_magic(unittest.TestCase):
 class Test_iodp_srm_magic(unittest.TestCase):
 
     def setUp(self):
-        os.chdir(WD)
+        set_consts()
 
     def tearDown(self):
         filelist = ['magic_measurements.txt', 'er_specimens.txt', 'er_samples.txt', 'er_sites.txt', 'er_locations.txt']
         #directory = os.path.join(WD)
         pmag.remove_files(filelist, WD)
+        os.chdir(WD)
 
     def test_iodp_with_no_files(self):
         program_ran, error_message = iodp_srm_magic.main(False)
@@ -218,12 +225,13 @@ class Test_iodp_srm_magic(unittest.TestCase):
 class Test_iodp_dscr_magic(unittest.TestCase):
 
     def setUp(self):
-        os.chdir(WD)
+        set_consts()
 
     def tearDown(self):
         filelist = ['magic_measurements.txt', 'er_specimens.txt', 'er_samples.txt', 'er_sites.txt', 'er_locations.txt']
         #directory = os.path.join(WD)
         pmag.remove_files(filelist, WD)
+        os.chdir(WD)
 
     def test_iodp_with_no_files(self):
         program_ran, error_message = iodp_dscr_magic.main(False)
@@ -246,7 +254,7 @@ class Test_iodp_dscr_magic(unittest.TestCase):
 class Test_iodp_jr6_magic(unittest.TestCase):
 
     def setUp(self):
-        os.chdir(WD)
+        set_consts()
 
     def tearDown(self):
         files = ['test.magic', 'other_er_samples.txt']
@@ -258,6 +266,7 @@ class Test_iodp_jr6_magic(unittest.TestCase):
         sampfile = os.path.join(input_dir, 'er_samples.txt')
         if os.path.exists(hidden_sampfile):
             os.rename(hidden_sampfile, sampfile)
+        os.chdir(WD)
 
     def test_iodp_jr6_with_no_files(self):
         options = {}
@@ -315,7 +324,7 @@ class Test_iodp_jr6_magic(unittest.TestCase):
 class Test2g_bin_magic(unittest.TestCase):
 
     def setUp(self):
-        os.chdir(WD)
+        set_consts()
 
     def tearDown(self):
         #input_dir = os.path.join(WD, 'data_files', 'Measurement_Import',
@@ -324,6 +333,7 @@ class Test2g_bin_magic(unittest.TestCase):
         files = ['mn001-1a.magic', 'er_samples.txt', 'er_sites.txt',
                  'magic_measurements.txt']
         pmag.remove_files(files, WD)
+        os.chdir(WD)
 
     def test_2g_with_no_files(self):
         options = {}
@@ -422,15 +432,16 @@ class Test2g_bin_magic(unittest.TestCase):
 class Test_bgc_magic(unittest.TestCase):
 
     def setUp(self):
+        set_consts()
         self.input_dir = os.path.join(WD, 'data_files',
                                       'Measurement_Import', 'bgc_magic')
-        os.chdir(WD)
 
     def tearDown(self):
         filelist = ['96MT.05.01.magic', 'BC0-3A.magic',
                     'magic_measurements.txt', 'er_specimens.txt',
                     'er_samples.txt', 'er_sites.txt']
         pmag.remove_files(filelist, self.input_dir)
+        os.chdir(WD)
 
     def test_bgc_with_no_files(self):
         program_ran, error_message = bgc_magic.main(False)

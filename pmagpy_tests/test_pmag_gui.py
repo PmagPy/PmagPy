@@ -13,9 +13,9 @@ from pmagpy import data_model3 as data_model
 from pmagpy import new_builder as nb
 
 def set_consts(dmodel):
-    TEST_DIR = os.getcwd()
     global TEST_DIR, dmodel2, project2_WD, core_depthplot_WD
-    global DMODEL, project_WD
+    global DMODEL, PROJECT_WD
+    TEST_DIR = os.getcwd()
     if dmodel==2.5:
         # constants for 2.5
         dmodel2 = validate_upload.get_data_model()
@@ -25,7 +25,7 @@ def set_consts(dmodel):
     else:
         #constants for 3.0
         DMODEL = data_model.DataModel()
-        project_WD = os.path.join(TEST_DIR, "data_files", "Pmag_GUI", "3_0")
+        PROJECT_WD = os.path.join(TEST_DIR, "data_files", "Pmag_GUI", "3_0")
 
 
 # get WD before all the Pmag GUI stuff starts to happen
@@ -96,12 +96,10 @@ class TestMainFrame2(unittest.TestCase):
         """
         make sure thellier_gui window is created when users clicks btn
         """
-
         window = self.does_window_exist('thellier gui', 'thellier gui')
         self.assertTrue(window)
         self.assertTrue(window.IsEnabled())
         self.assertTrue(window.IsShown())
-
 
     def test_click_download_magic(self):
         pass
@@ -366,7 +364,7 @@ class TestMainFrame3(unittest.TestCase):
         set_consts(3)
         os.chdir(TEST_DIR)
         self.app = wx.App()
-        self.frame = pmag_gui.MagMainFrame(project_WD, DM=3,
+        self.frame = pmag_gui.MagMainFrame(PROJECT_WD, DM=3,
                                            dmodel=DMODEL)
         self.pnl = self.frame.GetChildren()[0]
 
@@ -501,7 +499,7 @@ class TestMenus3(unittest.TestCase):
     def setUp(self):
         set_consts(3)
         self.app = wx.App()
-        self.frame = pmag_gui.MagMainFrame(project_WD, DM=3, dmodel=DMODEL)
+        self.frame = pmag_gui.MagMainFrame(PROJECT_WD, DM=3, dmodel=DMODEL)
         self.pnl = self.frame.GetChildren()[0]
 
         #wx.lib.inspection.InspectionTool().Show()

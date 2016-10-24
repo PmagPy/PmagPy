@@ -11,18 +11,23 @@ from dialogs import grid_frame2 as grid_frame
 from dialogs import pmag_widgets
 from pmagpy import find_pmag_dir
 from pmagpy import validate_upload2 as validate_upload
-DMODEL = validate_upload.get_data_model()
-WD = find_pmag_dir.get_pmag_dir() # sys.prefix
+
+def set_consts():
+    global DMODEL, WD
+    DMODEL = validate_upload.get_data_model()
+    WD = os.getcwd() #find_pmag_dir.get_pmag_dir() # sys.prefix
 
 #@unittest.skip('seg fault')
 class TestMainFrame(unittest.TestCase):
 
     def setUp(self):
+        set_consts()
         self.app = wx.App()
         self.frame = magic_gui.MainFrame(WD, "zebra", DMODEL)
         self.pnl = self.frame.GetChildren()[0]
 
     def tearDown(self):
+        os.chdir(WD)
         return
         print 'self.app.IsMainLoopRunning()', self.app.IsMainLoopRunning()
         print 'wx.GetTopLevelWindows()', wx.GetTopLevelWindows()
@@ -159,6 +164,7 @@ class TestMainFrame(unittest.TestCase):
 class TestMainFrameWithData(unittest.TestCase):
 
     def setUp(self):
+        set_consts()
         self.app = wx.App()
         self.frame = magic_gui.MainFrame(os.path.join(WD, 'data_files',
                                                       'copy_ErMagicBuilder'),
@@ -223,6 +229,7 @@ class TestMainFrameWithData(unittest.TestCase):
 class TestMagICGuiGridFrame(unittest.TestCase):
 
     def setUp(self):
+        set_consts()
         self.app = wx.App()
         #self.grid = GridFrame(self.ErMagic, self.WD, grid_type, grid_type, self.panel)
         ErMagic = builder.ErMagicBuilder(WD, DMODEL)
@@ -257,6 +264,7 @@ class TestMagICGUIMenu(unittest.TestCase):
 
 
     def setUp(self):
+        set_consts()
         self.app = wx.App()
         #self.grid = GridFrame(self.ErMagic, self.WD, grid_type, grid_type, self.panel)
         self.ErMagic = builder.ErMagicBuilder(WD, DMODEL)
@@ -354,6 +362,7 @@ class TestMethodCodes(unittest.TestCase):
 
 
     def setUp(self):
+        set_consts()
         self.app = wx.App()
         #self.grid = GridFrame(self.ErMagic, self.WD, grid_type, grid_type, self.panel)
         self.method_WD = os.path.join(WD, 'data_files',

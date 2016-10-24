@@ -1,0 +1,101 @@
+tab 	ages
+age	age_sigma	age_unit	citations	description	location	magic_method_codes	method_codes	site
+1.18	0.005	Ma	Tauxe et al. 2004	Excellent flat spectrum.	McMurdo	GM-ARAR-AP	GM-ARAR-AP	mc01
+0.33	0.01	Ma	Tauxe et al. 2004	Reasonably flat, some recoil, climbs ar high T, but decent data. .	McMurdo	GM-ARAR-AP	GM-ARAR-AP	mc02
+0.348	0.004	Ma	Tauxe et al. 2004	Excellent flat spectrum for 70%, then climbs abruptly at high T as K/Ca drops. .	McMurdo	GM-ARAR-AP	GM-ARAR-AP	mc03
+0.34	0.003	Ma	Tauxe et al. 2004	Excellent flat spectrum with concordant WMPA and IA.	McMurdo	GM-ARAR-AP	GM-ARAR-AP	mc04
+0.65	0.025	Ma	Tauxe et al. 2004	Somewhat U-shaped spectrum with OK plateau in middle.	McMurdo	GM-ARAR-AP	GM-ARAR-AP	mc08
+0.074	0.0075	Ma	Tauxe et al. 2004	2 good plateaus - 1@ low T and 1@ hi T. Assign average age.	McMurdo	GM-ARAR-AP	GM-ARAR-AP	mc09
+0.86	0.115	Ma	This study		McMurdo	GM-ARAR-AP	GM-ARAR-AP	mc100
+1.065	0.004	Ma	Wilch 1991		McMurdo	GM-ARAR-AP	GM-ARAR-AP	mc101
+0.264	0.01	Ma	Wilch 1991		McMurdo	GM-ARAR-AP	GM-ARAR-AP	mc102
+1.421	0.015	Ma	Wilch 1991		McMurdo	GM-ARAR-AP	GM-ARAR-AP	mc103
+0.29	0.01	Ma	This study		McMurdo	GM-ARAR-AP	GM-ARAR-AP	mc104
+0.86	0.035	Ma	Armstrong 1978		McMurdo	GM-KAR	GM-KAR	mc105
+13.42	0.09	Ma	This study		McMurdo	GM-ARAR-AP	GM-ARAR-AP	mc106
+2.57	0.19	Ma	Wilch 1991		McMurdo	GM-ARAR-AP	GM-ARAR-AP	mc107
+0.41	0.07	Ma	This study		McMurdo	GM-ARAR-AP	GM-ARAR-AP	mc108
+1.261	0.02	Ma	Wilch 1991		McMurdo	GM-ARAR-AP	GM-ARAR-AP	mc109
+7.94	0.12	Ma	Wilch 1991		McMurdo	GM-ARAR-AP	GM-ARAR-AP	mc110
+1.99	0.02	Ma	This study		McMurdo	GM-ARAR-AP	GM-ARAR-AP	mc111
+7.63	0.16	Ma	Wilch 1991		McMurdo	GM-ARAR-AP	GM-ARAR-AP	mc112
+6.73	0.085	Ma	Wilch 1991		McMurdo	GM-ARAR-AP	GM-ARAR-AP	mc113
+1.62	0.14	Ma	Wilch 1991		McMurdo	GM-ARAR-AP	GM-ARAR-AP	mc114
+2.46	0.155	Ma	This study		McMurdo	GM-ARAR-AP	GM-ARAR-AP	mc115
+1.14	0.055	Ma	Wilch 1991		McMurdo	GM-ARAR-AP	GM-ARAR-AP	mc116
+2.28	0.12	Ma	Wilch 1991		McMurdo	GM-ARAR-AP	GM-ARAR-AP	mc117
+0.31	0.02	Ma	This study		McMurdo	GM-ARAR-AP	GM-ARAR-AP	mc118
+1.08	0.11	Ma	Wilch 1991		McMurdo	GM-ARAR-AP	GM-ARAR-AP	mc119
+1.756	0.025	Ma	Wilch 1991		McMurdo	GM-ARAR-AP	GM-ARAR-AP	mc120
+2.505	0.03	Ma	Wilch 1991		McMurdo	GM-ARAR-AP	GM-ARAR-AP	mc121
+12.699	0.045	Ma	This study		McMurdo	GM-ARAR-AP	GM-ARAR-AP	mc122
+1.93	0.025	Ma	This study		McMurdo	GM-ARAR-AP	GM-ARAR-AP	mc123
+12.61	0.055	Ma	This study		McMurdo	GM-ARAR-AP	GM-ARAR-AP	mc124
+4.26	0.09	Ma	Wilch 1991		McMurdo	GM-ARAR-AP	GM-ARAR-AP	mc125
+1.942	0.034	Ma	Wilch 1991		McMurdo	GM-ARAR-AP	GM-ARAR-AP	mc127
+0.055	0.005	Ma	Tauxe et al. 2004	Reasonably flat spectrum w/ small high T plateau.	McMurdo	GM-ARAR-AP	GM-ARAR-AP	mc13
+7.251	0.035	Ma	This study		McMurdo	GM-ARAR-AP	GM-ARAR-AP	mc130
+9.02	0.025	Ma	This study		McMurdo	GM-ARAR-AP	GM-ARAR-AP	mc134
+1.99	0.3	Ma	Wilch 1991		McMurdo	GM-ARAR-AP	GM-ARAR-AP	mc136
+1.21	0.09	Ma	Wilch 1991		McMurdo	GM-ARAR-AP	GM-ARAR-AP	mc138
+0.882	0.04	Ma	This study		McMurdo	GM-ARAR-AP	GM-ARAR-AP	mc139
+2.043	0.045	Ma	This study		McMurdo	GM-ARAR-AP	GM-ARAR-AP	mc140
+1.31	0.01	Ma	Wilch 1991		McMurdo	GM-ARAR-AP	GM-ARAR-AP	mc141
+1.225	0.01	Ma	This study		McMurdo	GM-ARAR-AP	GM-ARAR-AP	mc142
+2.08	0.329	Ma	This study		McMurdo	GM-ARAR-AP	GM-ARAR-AP	mc143
+1.25	0.5	Ma	This study	educated guess based on location.	McMurdo	GM-NO	GM-NO	mc144
+1.9	0.06	Ma	Wilch 1991		McMurdo	GM-ARAR-AP	GM-ARAR-AP	mc145
+1.37	0.21	Ma	Wilch 1991		McMurdo	GM-ARAR-AP	GM-ARAR-AP	mc146
+1.63	0.16	Ma	Wilch 1991		McMurdo	GM-ARAR-AP	GM-ARAR-AP	mc147
+0.718	0.33	Ma	Wilch 1991		McMurdo	GM-ARAR-AP	GM-ARAR-AP	mc148
+1.33	0.01	Ma	Tauxe et al. 2004	Excellent flat spectrum w/ concordant WMPA and IA.	McMurdo	GM-ARAR-AP	GM-ARAR-AP	mc15
+3.57	0.07	Ma	Wilch et al. 1993		McMurdo	GM-ARAR-AP	GM-ARAR-AP	mc150
+3.87	0.075	Ma	Wilch et al. 1993		McMurdo	GM-ARAR-AP	GM-ARAR-AP	mc152
+2.53	0.065	Ma	Wilch et al. 1993		McMurdo	GM-ARAR-AP	GM-ARAR-AP	mc153
+2.19	0.04	Ma	Wilch et al. 1993		McMurdo	GM-ARAR-AP	GM-ARAR-AP	mc154
+1.5	0.025	Ma	Wilch et al. 1993		McMurdo	GM-ARAR-AP	GM-ARAR-AP	mc155
+1.89	0.065	Ma	Wilch et al. 1993		McMurdo	GM-ARAR-AP	GM-ARAR-AP	mc156
+3.74	0.125	Ma	Wilch et al. 1993		McMurdo	GM-ARAR-AP	GM-ARAR-AP	mc158
+3.47	0.025	Ma	Wilch et al. 1993		McMurdo	GM-ARAR-AP	GM-ARAR-AP	mc160
+2.56	0.065	Ma	Wilch et al. 1993		McMurdo	GM-ARAR-AP	GM-ARAR-AP	mc162
+1.5	0.75	Ma	This study	educated guess based on location.	McMurdo	GM-NO	GM-NO	mc163
+1.364	0.05	Ma	This study		McMurdo	GM-ARAR-AP	GM-ARAR-AP	mc164
+1.451	0.03	Ma	This study		McMurdo	GM-ARAR-AP	GM-ARAR-AP	mc165
+1.334	0.06	Ma	This study		McMurdo	GM-ARAR-AP	GM-ARAR-AP	mc166
+1.5	0.75	Ma	This study	educated guess based on location.	McMurdo	GM-NO	GM-NO	mc167
+1.38	0.025	Ma	This study		McMurdo	GM-ARAR-AP	GM-ARAR-AP	mc168
+1.03	0.05	Ma	This study		McMurdo	GM-ARAR-AP	GM-ARAR-AP	mc170
+0.77	0.016	Ma	Tauxe et al. 2004	Somewhat U-shaped spectrum with well defined plateau in middle.	McMurdo	GM-ARAR-AP	GM-ARAR-AP	mc20
+0.073	0.005	Ma	Esser et al. 2004		McMurdo	GM-ARAR-AP	GM-ARAR-AP	mc200
+0.089	0.005	Ma	Esser et al. 2004		McMurdo	GM-ARAR-AP	GM-ARAR-AP	mc201
+0.539	0.006	Ma	Esser et al. 2004		McMurdo	GM-ARAR-AP	GM-ARAR-AP	mc202
+0.04	0.05	Ma	Esser et al. 2004		McMurdo	GM-ARAR-AP	GM-ARAR-AP	mc204
+0.368	0.01	Ma	Esser et al. 2004		McMurdo	GM-ARAR-AP	GM-ARAR-AP	mc205
+0.5	0.5	Ma	This study	educated guess based on location.	McMurdo	GM-NO	GM-NO	mc206
+2.6	0.15	Ma	Fleck et al. 1972		McMurdo	GM-ARAR-AP	GM-ARAR-AP	mc212
+2.5	2.5	Ma	This study	educated guess based on location.	McMurdo	GM-NO	GM-NO	mc213
+2.5	2.5	Ma	This study	educated guess based on location.	McMurdo	GM-NO	GM-NO	mc214
+0.342	0.01	Ma	Esser et al. 2004		McMurdo	GM-ARAR-AP	GM-ARAR-AP	mc215
+0.508	0.01	Ma	Esser et al. 2004		McMurdo	GM-ARAR-AP	GM-ARAR-AP	mc216
+0.157	0.005	Ma	Esser et al. 2004		McMurdo	GM-ARAR-AP	GM-ARAR-AP	mc217
+0.026	0.005	Ma	Esser et al. 2004		McMurdo	GM-ARAR-AP	GM-ARAR-AP	mc218
+1.334	0.122	Ma	This study	educated guess based on location.	McMurdo	GM-NO	GM-NO	mc219
+0.531	0.02	Ma	Esser et al. 2004		McMurdo	GM-ARAR-AP	GM-ARAR-AP	mc220
+0.121	0.005	Ma	Esser et al. 2004		McMurdo	GM-ARAR-AP	GM-ARAR-AP	mc221
+0.11	0.006	Ma	Esser et al. 2004		McMurdo	GM-ARAR-AP	GM-ARAR-AP	mc222
+0.378	0.014	Ma	Esser et al. 2004		McMurdo	GM-ARAR-AP	GM-ARAR-AP	mc223
+0.033	0.006	Ma	Esser et al. 2004		McMurdo	GM-ARAR-AP	GM-ARAR-AP	mc224
+0.057	0.005	Ma	Esser et al. 2004		McMurdo	GM-ARAR-AP	GM-ARAR-AP	mc225
+0.243	0.001	Ma	Esser et al. 2004		McMurdo	GM-ARAR-AP	GM-ARAR-AP	mc226
+4.5	0.3	Ma	Armstrong 1978		McMurdo	GM-ARAR-AP	GM-ARAR-AP	mc227
+2.5	2.5	Ma	This study	educated guess based on location.	McMurdo	GM-NO	GM-NO	mc228
+1.07	0.09	Ma	Esser et al. 2004		McMurdo	GM-ARAR-AP	GM-ARAR-AP	mc229
+0.06	0.003	Ma	Tauxe et al. 2004	Nice flat spectrum for 1st 75%, then drops. Good WMPA. .	McMurdo	GM-ARAR-AP	GM-ARAR-AP	mc28
+0.18	0.04	Ma	Tauxe et al. 2004	Irreg U-shaped w/very low %rad, large uncertainties. .	McMurdo	GM-ARAR-AP	GM-ARAR-AP	mc29
+0.12	0.01	Ma	Tauxe et al. 2004	Reasonably flat (slight recoil) for 1st 80%, then climbs. Low K/Ca, %rad. .	McMurdo	GM-ARAR-AP	GM-ARAR-AP	mc35
+0.12	0.01	Ma	Tauxe et al. 2004	Some recoil w/ decent flat, climbs steeply at high T. .	McMurdo	GM-ARAR-AP	GM-ARAR-AP	mc36
+4.47	0.02	Ma	Tauxe et al. 2004	Excellent flat spectrum, ages drop at high T. .	McMurdo	GM-ARAR-AP	GM-ARAR-AP	mc37
+0.084	0.004	Ma	Tauxe et al. 2004	Excellent flat spectrum for 1st 80%, then climbs. .	McMurdo	GM-ARAR-AP	GM-ARAR-AP	mc39
+0.28	0.01	Ma	Tauxe et al. 2004	Reasonably flat with OK low T plateau, climbs abruptly at high T. .	McMurdo	GM-ARAR-AP	GM-ARAR-AP	mc41
+1.14	0.01	Ma	Tauxe et al. 2004	Fairly flat spectrum, climbs slightly. .	McMurdo	GM-ARAR-AP	GM-ARAR-AP	mc49
+1.9	0.05	Ma	Tauxe et al. 2004	Fairly flat at low T, but drops at high T. Overall, low K/Ca and % rad. .	McMurdo	GM-ARAR-AP	GM-ARAR-AP	mc50
