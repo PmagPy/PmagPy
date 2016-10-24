@@ -1557,12 +1557,12 @@ class Demag_GUI(wx.Frame):
         """
         fit = self.current_fit
         if fit == None: return
-        pars = fit.get(self.COORDINATE_SYSTEM)
+        pars = fit.get('specimen')
         dec,inc = pars['specimen_dec'],pars['specimen_inc']
         sample = self.Data_hierarchy['sample_of_specimen'][self.s]
         azimuth=float(self.Data_info["er_samples"][sample]['sample_azimuth'])
         dip=float(self.Data_info["er_samples"][sample]['sample_dip'])
-        # first test wrong direction of drill arrows (flip drill direction in opposite direction and re-calculate d,i
+        # first test wrong direction of drill arrows (flip drill direction in opposite direction and re-calculate d,i)
         d,i=pmag.dogeo(dec,inc,azimuth-180.,-dip)
         XY=pmag.dimap(d,i)
         if i>0: FC=fit.color;SIZE=15*self.GUI_RESOLUTION
