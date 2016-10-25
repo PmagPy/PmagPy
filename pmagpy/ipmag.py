@@ -124,7 +124,7 @@ def print_pole_mean(mean_dictionary):
     ----------
     mean_dictionary: output dictionary of pmag.fisher_mean
     """
-    print 'Plong: ' + str(round(mean_dictionary['dec'],1)) + '  Plat: ' + str(round(mean_dictionary['inc'],1))
+    print 'Plon: ' + str(round(mean_dictionary['dec'],1)) + '  Plat: ' + str(round(mean_dictionary['inc'],1))
     print 'Number of directions in mean (n): ' + str(mean_dictionary['n'])
     print 'Angular radius of 95% confidence (A_95): ' + str(round(mean_dictionary['alpha95'],1))
     print 'Precision parameter (k) estimate: ' + str(round(mean_dictionary['k'],1))
@@ -1100,7 +1100,7 @@ def plot_di_mean_bingham(bingham_dictionary,fignum=1,color='k',marker='o',marker
         marker=marker,s=markersize,label=label)
     pmagplotlib.plotELL(fignum,pars,color,0,1)
 
-def plot_pole(mapname,plong,plat,A95,label='',color='k',marker='o',markersize=20,legend='no'):
+def plot_pole(mapname,plon,plat,A95,label='',color='k',marker='o',markersize=20,legend='no'):
     """
     This function plots a paleomagnetic pole and A95 error ellipse on whatever
     current map projection has been set using the basemap plotting library.
@@ -1119,7 +1119,7 @@ def plot_pole(mapname,plong,plat,A95,label='',color='k',marker='o',markersize=20
     Required Parameters
     -----------
     mapname : the name of the current map that has been developed using basemap
-    plong : the longitude of the paleomagnetic pole being plotted (in degrees E)
+    plon : the longitude of the paleomagnetic pole being plotted (in degrees E)
     plat : the latitude of the paleomagnetic pole being plotted (in degrees)
     A95 : the A_95 confidence ellipse of the paleomagnetic pole (in degrees)
 
@@ -1131,15 +1131,15 @@ def plot_pole(mapname,plong,plat,A95,label='',color='k',marker='o',markersize=20
     label : the default is no label. Labels can be assigned.
     legend : the default is no legend ('no'). Putting 'yes' will plot a legend.
     """
-    centerlon, centerlat = mapname(plong,plat)
+    centerlon, centerlat = mapname(plon,plat)
     A95_km=A95*111.32
     mapname.scatter(centerlon,centerlat,marker=marker,color=color,s=markersize,label=label,zorder=101)
-    equi(mapname, plong, plat, A95_km,color)
+    equi(mapname, plon, plat, A95_km,color)
     if legend=='yes':
         plt.legend(loc=2)
 
 
-def plot_pole_colorbar(mapname,plong,plat,A95,cmap,vmin,vmax,label='',color='k',marker='o',markersize='20',alpha='1.0',legend='no'):
+def plot_pole_colorbar(mapname,plon,plat,A95,cmap,vmin,vmax,label='',color='k',marker='o',markersize='20',alpha='1.0',legend='no'):
     """
     This function plots a paleomagnetic pole and A95 error ellipse on whatever
     current map projection has been set using the basemap plotting library.
@@ -1147,7 +1147,7 @@ def plot_pole_colorbar(mapname,plong,plat,A95,cmap,vmin,vmax,label='',color='k',
     Required Parameters
     -----------
     mapname : the name of the current map that has been developed using basemap
-    plong : the longitude of the paleomagnetic pole being plotted (in degrees E)
+    plon : the longitude of the paleomagnetic pole being plotted (in degrees E)
     plat : the latitude of the paleomagnetic pole being plotted (in degrees)
     A95 : the A_95 confidence ellipse of the paleomagnetic pole (in degrees)
 
@@ -1158,10 +1158,10 @@ def plot_pole_colorbar(mapname,plong,plat,A95,cmap,vmin,vmax,label='',color='k',
     marker : the marker shape desired for the pole mean symbol (default is 'o' aka a circle)
     legend : the default is no legend ('no'). Putting 'yes' will plot a legend.
     """
-    centerlon, centerlat = mapname(plong,plat)
+    centerlon, centerlat = mapname(plon,plat)
     A95_km=A95*111.32
     mapname.scatter(centerlon,centerlat,c=cmap,vmin=vmin,vmax=vmax,s=markersize,marker=marker,color=color,alpha=alpha,label=label,zorder=101)
-    equi_colormap(mapname, plong, plat, A95_km, color, alpha)
+    equi_colormap(mapname, plon, plat, A95_km, color, alpha)
     if legend=='yes':
         plt.legend(loc=2)
 
@@ -1185,7 +1185,7 @@ def plot_vgp(mapname,vgp_lon=None,vgp_lat=None,di_block=None,label='',color='k',
     Required Parameters
     -----------
     mapname : the name of the current map that has been developed using basemap
-    plong : the longitude of the paleomagnetic pole being plotted (in degrees E)
+    plon : the longitude of the paleomagnetic pole being plotted (in degrees E)
     plat : the latitude of the paleomagnetic pole being plotted (in degrees)
 
     Optional Parameters (defaults are used if not specified)
@@ -3168,7 +3168,7 @@ def specimens_results_magic(infile='pmag_specimens.txt', measfile='magic_measure
                 sitedat=pmag.get_dictitem(SiteNFO,'er_site_name',PmagSiteRec['er_site_name'],'T')[0] # fish out site information (lat/lon, etc.)
                 lat=float(sitedat['site_lat'])
                 lon=float(sitedat['site_lon'])
-                plong,plat,dp,dm=pmag.dia_vgp(dec,inc,a95,lat,lon) # get the VGP for this site
+                plon,plat,dp,dm=pmag.dia_vgp(dec,inc,a95,lat,lon) # get the VGP for this site
                 if PmagSiteRec['site_tilt_correction']=='-1':C=' (spec coord) '
                 if PmagSiteRec['site_tilt_correction']=='0':C=' (geog. coord) '
                 if PmagSiteRec['site_tilt_correction']=='100':C=' (strat. coord) '
@@ -3200,7 +3200,7 @@ def specimens_results_magic(infile='pmag_specimens.txt', measfile='magic_measure
                 site_height=pmag.get_dictitem(height_nfo,'er_site_name',site,'T')
                 if len(site_height)>0:PmagResRec["average_height"]=site_height[0]['site_height']
                 PmagResRec["vgp_lat"]='%7.1f ' % (plat)
-                PmagResRec["vgp_lon"]='%7.1f ' % (plong)
+                PmagResRec["vgp_lon"]='%7.1f ' % (plon)
                 PmagResRec["vgp_dp"]='%7.1f ' % (dp)
                 PmagResRec["vgp_dm"]='%7.1f ' % (dm)
                 PmagResRec["magic_method_codes"]= PmagSiteRec["magic_method_codes"]
@@ -6908,3 +6908,176 @@ def find_ei(data, nb=1000, save = False, save_folder = '.', fmt='svg',
     print "and elongation parameter of: " + str(Elong)
     if return_new_dirs is True:
         return make_di_block(decs, unsquished_incs)
+
+def plate_rate_mc(pole1_plon,pole1_plat,pole1_kappa,pole1_N,pole1_age,pole1_age_error,
+                  pole2_plon,pole2_plat,pole2_kappa,pole2_N,pole2_age,pole2_age_error,
+                  ref_loc_lon,ref_loc_lat,samplesize=10000, plot=True,
+                  savefig=True, save_directory='./', figure_name=''):
+    """
+    Determine the latitudinal motion implied by a pair of poles and utilize
+    the Monte Carlo sampling method of Swanson-Hysell (2014) to determine the
+    associated uncertainty.
+
+    These values are required for pole1 and pole2:
+    ----------------------------
+    plon : longitude of pole
+    plat : latitude of pole
+    kappa : Fisher precision parameter for VPGs in pole
+    N : number of VGPs in pole
+    age : age assigned to pole in Ma
+    age_error : 1 sigma age uncertainty in million years
+
+    Additional required parameters:
+    ----------------------------
+    ref_loc_lon : longitude of reference location
+    ref_loc_lat : latitude of reference location
+    samplesize : number of draws from pole and age distributions (default set to 10000)
+
+    Optional parameters for plotting and saving figures (3 are generated):
+    ----------------------------
+    plot : whether to make figures (default is True)
+    savefig : whether to save figures (default is True)
+    save_directory = default is local directory
+    figure_name = prefix for file names
+
+    Returns
+    ----------------------------
+    rate, 2.5 percentile rate, 97.5 percentile rate
+    """
+    from mpl_toolkits.basemap import Basemap
+    from scipy import stats
+
+    ref_loc = [ref_loc_lon,ref_loc_lat]
+    pole1 = (pole1_plon, pole1_plat)
+    pole1_paleolat = 90-pmag.angle(pole1,ref_loc)
+    pole2=(pole2_plon, pole2_plat)
+    pole2_paleolat = 90-pmag.angle(pole2,ref_loc)
+    print "The paleolatitude for ref_loc resulting from pole 1 is:" + str(pole1_paleolat)
+    print "The paleolatitude for ref_loc resulting from pole 2 is:" + str(pole2_paleolat)
+    rate=((pole1_paleolat-pole2_paleolat)*111*100000)/((pole1_age-pole2_age)*1000000)
+    print "The rate of paleolatitudinal change implied by the poles pairs in cm/yr is:" + str(rate)
+
+    pole1_MCages = np.random.normal(pole1_age,pole1_age_error,samplesize)
+    pole2_MCages = np.random.normal(pole2_age,pole2_age_error,samplesize)
+
+    plt.hist(pole1_MCages,100,histtype='stepfilled',color='darkred',label='Pole 1 ages')
+    plt.hist(pole2_MCages,100,histtype='stepfilled',color='darkblue',label='Pole 2 ages')
+    plt.xlabel('Age (Ma)')
+    plt.ylabel('n')
+    plt.legend(loc=3)
+    if savefig == True:
+        plot_extension = '_1.svg'
+        plt.savefig(save_directory + figure_name + plot_extension)
+    plt.show()
+
+    pole1_MCpoles = []
+    pole1_MCpole_lat = []
+    pole1_MCpole_long = []
+    pole1_MCpaleolat = []
+    for n in range(samplesize):
+        vgp_samples = []
+        for vgp in range(pole1_N):
+            #pmag.dev returns a direction from a fisher distribution with specified kappa
+            direction_atN = pmag.fshdev(pole1_kappa)
+            #this direction is centered at latitude of 90 degrees and needs to be rotated
+            #to be centered on the mean pole position
+            tilt_direction = pole1_plon
+            tilt_amount = 90-pole1_plat
+            direction = pmag.dotilt(direction_atN[0],direction_atN[1],tilt_direction,tilt_amount)
+            vgp_samples.append([direction[0],direction[1],1.])
+        mean = pmag.fisher_mean(vgp_samples)
+        mean_pole_position = (mean['dec'],mean['inc'])
+        pole1_MCpoles.append([mean['dec'],mean['inc'],1.])
+        pole1_MCpole_lat.append(mean['inc'])
+        pole1_MCpole_long.append(mean['dec'])
+        paleolat = 90-pmag.angle(mean_pole_position,ref_loc)
+        pole1_MCpaleolat.append(paleolat[0])
+
+    pole2_MCpoles=[]
+    pole2_MCpole_lat=[]
+    pole2_MCpole_long=[]
+    pole2_MCpaleolat=[]
+    for n in range(samplesize):
+        vgp_samples=[]
+        for vgp in range(pole2_N):
+            #pmag.dev returns a direction from a fisher distribution with specified kappa
+            direction_atN=pmag.fshdev(pole2_kappa)
+            #this direction is centered at latitude of 90 degrees and needs to be rotated
+            #to be centered on the mean pole position
+            tilt_direction=pole2_plon
+            tilt_amount=90-pole2_plat
+            direction=pmag.dotilt(direction_atN[0],direction_atN[1],tilt_direction,tilt_amount)
+            vgp_samples.append([direction[0],direction[1],1.])
+        mean=pmag.fisher_mean(vgp_samples)
+        mean_pole_position=(mean['dec'],mean['inc'])
+        pole2_MCpoles.append([mean['dec'],mean['inc'],1.])
+        pole2_MCpole_lat.append(mean['inc'])
+        pole2_MCpole_long.append(mean['dec'])
+        paleolat=90-pmag.angle(mean_pole_position,ref_loc)
+        pole2_MCpaleolat.append(paleolat[0])
+
+    if plot is True:
+        plt.figure(figsize=(5, 5))
+        m = Basemap(projection='ortho',lat_0=35,lon_0=200,resolution='c',area_thresh=50000)
+        m.drawcoastlines(linewidth=0.25)
+        m.fillcontinents(color='bisque',lake_color='white',zorder=1)
+        m.drawmapboundary(fill_color='white')
+        m.drawmeridians(np.arange(0,360,30))
+        m.drawparallels(np.arange(-90,90,30))
+
+        plot_vgp(m,pole1_MCpole_long,pole1_MCpole_lat,color='b')
+        plot_vgp(m,pole2_MCpole_long,pole2_MCpole_lat,color='g')
+        if savefig == True:
+            plot_extension = '_2.svg'
+            plt.savefig(save_directory + figure_name + plot_extension)
+        plt.show()
+
+    #calculating the change in paleolatitude between the Monte Carlo pairs
+    pole1_pole2_Delta_degrees=[]
+    pole1_pole2_Delta_kilometers=[]
+    pole1_pole2_Delta_myr=[]
+    pole1_pole2_degrees_per_myr=[]
+    pole1_pole2_cm_per_yr=[]
+
+    for n in range(samplesize):
+        Delta_degrees=pole1_MCpaleolat[n]-pole2_MCpaleolat[n]
+        Delta_Myr=pole1_MCages[n]-pole2_MCages[n]
+        pole1_pole2_Delta_degrees.append(Delta_degrees)
+        degrees_per_myr=Delta_degrees/Delta_Myr
+        cm_per_yr=((Delta_degrees*111)*100000)/(Delta_Myr*1000000)
+        pole1_pole2_degrees_per_myr.append(degrees_per_myr)
+        pole1_pole2_cm_per_yr.append(cm_per_yr)
+
+    if plot is True:
+        plotnumber=100
+        plt.figure(num=None, figsize=(10, 4))
+        plt.subplot(1, 2, 1)
+        for n in range(plotnumber):
+            plt.plot([pole1_MCpaleolat[n],pole2_MCpaleolat[n]],
+                     [pole1_MCages[n],pole2_MCages[n]],'k-',linewidth=0.1,alpha=0.3)
+        plt.scatter(pole1_MCpaleolat[:plotnumber],pole1_MCages[:plotnumber],color='b',s=3)
+        plt.scatter(pole1_paleolat,pole1_age,color='lightblue',s=100, edgecolor='w', zorder=10000)
+        plt.scatter(pole2_MCpaleolat[:plotnumber],pole2_MCages[:plotnumber],color='g',s=3)
+        plt.scatter(pole2_paleolat,pole2_age,color='lightgreen',s=100, edgecolor='w', zorder=10000)
+        plt.plot([pole1_paleolat,pole2_paleolat],[pole1_age,pole2_age],'w-',linewidth=2)
+        plt.gca().invert_yaxis()
+        plt.xlabel('paleolatitude at Duluth, MN (degrees)',size=14)
+        plt.ylabel('time (Ma)',size=14)
+
+        plt.subplot(1, 2, 2)
+        plt.hist(pole1_pole2_cm_per_yr,bins=600)
+        plt.ylabel('n',size=14)
+        plt.xlabel('latitudinal drift rate (cm/yr)',size=14)
+        #plt.xlim([0,90])
+        if savefig == True:
+            plot_extension = '_3.svg'
+            plt.savefig(save_directory + figure_name + plot_extension)
+        plt.show()
+
+    twopointfive_percentile=stats.scoreatpercentile(pole1_pole2_cm_per_yr,2.5)
+    fifty_percentile=stats.scoreatpercentile(pole1_pole2_cm_per_yr,50)
+    ninetysevenpointfive_percentile=stats.scoreatpercentile(pole1_pole2_cm_per_yr,97.5)
+    print "2.5th percentile is: " + str(twopointfive_percentile)
+    print "50th percentile is: " + str(fifty_percentile)
+    print "97.5th percentile is: " + str(ninetysevenpointfive_percentile)
+    return rate[0], twopointfive_percentile, ninetysevenpointfive_percentile
