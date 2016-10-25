@@ -21,6 +21,7 @@ extra_out_full_output.txt
 random_full_output.txt
 rename_me_full_output.txt
 data_files/*/*checkpoint.ipynb
+notebooks/*/*checkpoint.ipynb
 demag_orient.txt
 pmagpy/*.png
 
