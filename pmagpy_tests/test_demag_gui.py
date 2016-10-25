@@ -636,7 +636,6 @@ class TestDemagGUI(unittest.TestCase):
         tools_menu_items = tools_menu.GetMenuItems()
         open_ie_evt = wx.PyCommandEvent(wx.EVT_MENU.typeId, tools_menu_items[0].GetId())
         self.frame.ProcessEvent(open_ie_evt)
-        if not self.frame.ie_open: import pdb; pdb.set_trace()
         self.assertTrue(self.frame.ie_open)
         ie = self.frame.ie
         addall_evt = wx.PyCommandEvent(wx.EVT_BUTTON.typeId, ie.add_all_button.GetId())

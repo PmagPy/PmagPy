@@ -182,6 +182,7 @@ class Demag_GUI(wx.Frame):
         self.current_fit = None
         self.selected_meas = []
         self.selected_meas_artists = []
+        self.displayed_means = []
         self.selected_meas_called = False
         self.dirtypes = ['DA-DIR','DA-DIR-GEO','DA-DIR-TILT']
         self.bad_fits = []
@@ -1482,62 +1483,11 @@ class Demag_GUI(wx.Frame):
         self.high_level_eqarea.text(-1.2,1.15,what_is_it,{'family':self.font_type, 'fontsize':10*self.GUI_RESOLUTION, 'style':'normal','va':'center', 'ha':'left' })
         if self.ie_open: self.ie.draw_net(); self.ie.write(what_is_it)
 
-        if self.COORDINATE_SYSTEM=="geographic": dirtype='DA-DIR-GEO'
-        elif self.COORDINATE_SYSTEM=="tilt-corrected": dirtype='DA-DIR-TILT'
-        else: dirtype='DA-DIR'
-
-        if self.level_box.GetValue()=='sample': high_level_type='samples'
-        if self.level_box.GetValue()=='site': high_level_type='sites'
-        if self.level_box.GetValue()=='location': high_level_type='locations'
-        if self.level_box.GetValue()=='study': high_level_type='study'
-
-        high_level_name=str(self.level_names.GetValue())
-        calculation_type=str(self.mean_type_box.GetValue())
-        elements_type=self.UPPER_LEVEL_SHOW
-
-        elements_list=self.Data_hierarchy[high_level_type][high_level_name][elements_type]
-
-        self.high_EA_xdata = [] #clear saved x positions on high equal area
-        self.high_EA_ydata = [] #clear saved y positions on high equal area
-
         # plot elements directions
-        for element in elements_list:
-            if element not in self.pmag_results_data[elements_type].keys() and self.UPPER_LEVEL_SHOW == 'specimens':
-                self.calculate_high_level_mean(elements_type,element,"Fisher","specimens",self.mean_fit)
-            if element in self.pmag_results_data[elements_type].keys():
-                self.plot_high_level_equalarea(element)
-
-            else:
-                if element not in self.high_level_means[elements_type].keys():
-                    self.calculate_high_level_mean(elements_type,element,"Fisher",'specimens',self.mean_fit)
-                if self.mean_fit not in self.high_level_means[elements_type][element].keys():
-                    self.calculate_high_level_mean(elements_type,element,"Fisher",'specimens',self.mean_fit)
-                if element in self.high_level_means[elements_type].keys():
-                    if self.mean_fit != "All" and self.mean_fit in self.high_level_means[elements_type][element].keys():
-                        if dirtype in self.high_level_means[elements_type][element][self.mean_fit].keys():
-                            mpars=self.high_level_means[elements_type][element][self.mean_fit][dirtype]
-                            self.plot_eqarea_pars(mpars,self.high_level_eqarea)
-                    else:
-                        for mf in self.all_fits_list:
-                            if mf not in self.high_level_means[elements_type][element].keys():
-                                self.calculate_high_level_mean(elements_type,element,"Fisher",'specimens',mf)
-                            if mf in self.high_level_means[elements_type][element].keys():
-                                if dirtype in self.high_level_means[elements_type][element][mf].keys():
-                                    mpars=self.high_level_means[elements_type][element][mf][dirtype]
-                                    self.plot_eqarea_pars(mpars,self.high_level_eqarea)
+        self.plot_high_level_elements()
 
         # plot elements means
-        if calculation_type!="None":
-            if high_level_name in self.high_level_means[high_level_type].keys():
-                if self.mean_fit != "All":
-                    if self.mean_fit in self.high_level_means[high_level_type][high_level_name].keys() and dirtype in self.high_level_means[high_level_type][high_level_name][self.mean_fit].keys():
-                        self.plot_eqarea_mean(self.high_level_means[high_level_type][high_level_name][self.mean_fit][dirtype],self.high_level_eqarea)
-                else:
-                    for mf in self.all_fits_list+['All']:
-                        if mf not in self.high_level_means[high_level_type][high_level_name].keys() or (dirtype in self.high_level_means[high_level_type][high_level_name][mf] and 'calculation_type' in self.high_level_means[high_level_type][high_level_name][mf][dirtype] and self.high_level_means[high_level_type][high_level_name][mf][dirtype]['calculation_type'] != calculation_type):
-                            self.calculate_high_level_mean(high_level_type,high_level_name,calculation_type,self.UPPER_LEVEL_SHOW,mf)
-                        if mf in self.high_level_means[high_level_type][high_level_name].keys() and dirtype in self.high_level_means[high_level_type][high_level_name][mf].keys():
-                            self.plot_eqarea_mean(self.high_level_means[high_level_type][high_level_name][mf][dirtype],self.high_level_eqarea)
+        self.plot_high_level_means()
 
         #update high level stats after plotting in case of change
         self.update_high_level_stats()
@@ -1550,6 +1500,84 @@ class Demag_GUI(wx.Frame):
 
         if self.ie_open:
             self.ie.draw()
+
+    def get_levels_and_coordinates_names(self):
+        """
+        Get the current level of the high level mean plot and the name of the corrisponding site, study, etc. As well as the code for the current coordinate system.
+        @return: tup -> (high_level_type,high_level_name,coordinate_system)
+        """
+        if self.COORDINATE_SYSTEM=="geographic": dirtype='DA-DIR-GEO'
+        elif self.COORDINATE_SYSTEM=="tilt-corrected": dirtype='DA-DIR-TILT'
+        else: dirtype='DA-DIR'
+
+        if self.level_box.GetValue()=='sample': high_level_type='samples'
+        if self.level_box.GetValue()=='site': high_level_type='sites'
+        if self.level_box.GetValue()=='location': high_level_type='locations'
+        if self.level_box.GetValue()=='study': high_level_type='study'
+        high_level_name=str(self.level_names.GetValue())
+        return (high_level_type,high_level_name,dirtype)
+
+    def plot_high_level_elements(self):
+        elements_type=self.UPPER_LEVEL_SHOW
+        (high_level_type, high_level_name, dirtype), mean_fit = self.get_levels_and_coordinates_names(),self.mean_fit
+        elements_list=self.Data_hierarchy[high_level_type][high_level_name][elements_type]
+
+        self.high_EA_xdata = [] #clear saved x positions on high equal area
+        self.high_EA_ydata = [] #clear saved y positions on high equal area
+
+        for element in elements_list:
+            if element not in self.pmag_results_data[elements_type].keys() and elements_type == 'specimens':
+                self.calculate_high_level_mean(elements_type,element,"Fisher","specimens",mean_fit)
+            if element in self.pmag_results_data[elements_type].keys():
+                self.plot_high_level_equalarea(element)
+            else:
+                if element not in self.high_level_means[elements_type].keys():
+                    self.calculate_high_level_mean(elements_type,element,"Fisher",'specimens',mean_fit)
+                if mean_fit not in self.high_level_means[elements_type][element].keys():
+                    self.calculate_high_level_mean(elements_type,element,"Fisher",'specimens',mean_fit)
+                if element in self.high_level_means[elements_type].keys():
+                    if mean_fit != "All" and mean_fit in self.high_level_means[elements_type][element].keys():
+                        if dirtype in self.high_level_means[elements_type][element][mean_fit].keys():
+                            mpars=self.high_level_means[elements_type][element][mean_fit][dirtype]
+                            self.plot_eqarea_pars(mpars,self.high_level_eqarea)
+                    else:
+                        for mf in self.all_fits_list:
+                            if mf not in self.high_level_means[elements_type][element].keys():  
+                                self.calculate_high_level_mean(elements_type,element,"Fisher",'specimens',mf)
+                            if mf in self.high_level_means[elements_type][element].keys():
+                                if dirtype in self.high_level_means[elements_type][element][mf].keys():
+                                    mpars=self.high_level_means[elements_type][element][mf][dirtype]
+                                    self.plot_eqarea_pars(mpars,self.high_level_eqarea)
+
+    def remove_previously_displayed_means(self):
+        for dm in self.displayed_means:
+            if not hasattr(dm,'__iter__'): dm = [dm]
+            for d in dm:
+                if d in self.high_level_eqarea.lines:
+                    self.high_level_eqarea.lines.remove(d)
+                elif self.ie_open and d in self.ie.eqarea.lines:
+                    self.ie.eqarea.lines.remove(d)
+                elif d in self.high_level_eqarea.collections:
+                    self.high_level_eqarea.collections.remove(d)
+                elif self.ie_open and d in self.ie.eqarea.collections:
+                    self.ie.eqarea.collections.remove(d)
+        self.displayed_means = []
+
+    def plot_high_level_means(self):
+        self.remove_previously_displayed_means()
+        calculation_type=str(self.mean_type_box.GetValue())
+        (high_level_type, high_level_name, dirtype), mean_fit = self.get_levels_and_coordinates_names(),self.mean_fit
+        if calculation_type=="None": return
+        elif high_level_name not in self.high_level_means[high_level_type].keys(): return
+        if mean_fit != "All":
+            if mean_fit in self.high_level_means[high_level_type][high_level_name].keys() and dirtype in self.high_level_means[high_level_type][high_level_name][mean_fit].keys():
+                self.plot_eqarea_mean(self.high_level_means[high_level_type][high_level_name][mean_fit][dirtype],self.high_level_eqarea)
+        else:
+            for mf in self.all_fits_list+['All']:
+                if mf not in self.high_level_means[high_level_type][high_level_name].keys() or (dirtype in self.high_level_means[high_level_type][high_level_name][mf] and 'calculation_type' in self.high_level_means[high_level_type][high_level_name][mf][dirtype] and self.high_level_means[high_level_type][high_level_name][mf][dirtype]['calculation_type'] != calculation_type):
+                    self.calculate_high_level_mean(high_level_type,high_level_name,calculation_type,self.UPPER_LEVEL_SHOW,mf)
+                if mf in self.high_level_means[high_level_type][high_level_name].keys() and dirtype in self.high_level_means[high_level_type][high_level_name][mf].keys():
+                    self.plot_eqarea_mean(self.high_level_means[high_level_type][high_level_name][mf][dirtype],self.high_level_eqarea)
 
     def calc_and_plot_sample_orient_check(self):
         """
@@ -1746,7 +1774,7 @@ class Demag_GUI(wx.Frame):
                 FC=color;EC='black'
             else:
                 FC='white';EC=color
-            fig.scatter([XYM[0]],[XYM[1]],marker='o',edgecolor=EC, facecolor=FC,s=size,lw=1,clip_on=False,alpha=alpha)
+            self.displayed_means.append(fig.scatter([XYM[0]],[XYM[1]],marker='o',edgecolor=EC, facecolor=FC,s=size,lw=1,clip_on=False,alpha=alpha))
 
             if "alpha95" in mpars.keys():
             # get the alpha95
@@ -1756,12 +1784,12 @@ class Demag_GUI(wx.Frame):
                     XY=pmag.dimap(Da95[k],Ia95[k])
                     Xcirc.append(XY[0])
                     Ycirc.append(XY[1])
-                fig.plot(Xcirc,Ycirc,color,alpha=alpha)
+                self.displayed_means.append(fig.plot(Xcirc,Ycirc,color,alpha=alpha))
 
             if self.ie_open:
-                self.ie.scatter([XYM[0]],[XYM[1]],marker='o',edgecolor=EC, facecolor=FC,s=size,lw=1,clip_on=False,alpha=alpha)
+                self.displayed_means.append(self.ie.scatter([XYM[0]],[XYM[1]],marker='o',edgecolor=EC, facecolor=FC,s=size,lw=1,clip_on=False,alpha=alpha))
                 if "alpha95" in mpars.keys():
-                    self.ie.plot(Xcirc,Ycirc,color,alpha=alpha)
+                    self.displayed_means.append(self.ie.plot(Xcirc,Ycirc,color,alpha=alpha))
                 self.ie.eqarea.set_xlim(xmin, xmax)
                 self.ie.eqarea.set_ylim(ymin, ymax)
 
@@ -6210,8 +6238,11 @@ class Demag_GUI(wx.Frame):
             self.clear_high_level_pars()
             self.mean_type_box.SetValue("None"); return
         self.calculate_high_levels_data()
-        draw_net(self.high_level_eqarea)
-        self.plot_high_levels_data()
+        self.update_high_level_stats()
+        self.plot_high_level_means()
+        self.canvas4.draw()
+        if self.ie_open:
+            self.ie.draw()
 
     def onSelect_mean_fit_box(self,event):
         if self.mean_fit_box.GetValue() == 'None' and self.mean_type_box.GetValue() != 'None':

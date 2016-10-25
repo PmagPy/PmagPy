@@ -258,7 +258,7 @@ class Test_iodp_jr6_magic(unittest.TestCase):
         pmag.remove_files(files, WD)
         # then, make sure that hidden_er_samples.txt has been successfully renamed to er_samples.txt
         input_dir = os.path.join(WD, 'data_files', 'Measurement_Import',
-                                 'iodp_jr6_magic')
+                                 'IODP_jr6_magic')
         hidden_sampfile = os.path.join(input_dir, 'hidden_er_samples.txt')
         sampfile = os.path.join(input_dir, 'er_samples.txt')
         if os.path.exists(hidden_sampfile):
@@ -275,7 +275,7 @@ class Test_iodp_jr6_magic(unittest.TestCase):
     def test_iodp_jr6_with_magfile(self):
         options = {}
         input_dir = os.path.join(WD, 'data_files', 'Measurement_Import',
-                                 'iodp_jr6_magic')
+                                 'IODP_jr6_magic')
         options['input_dir_path'] = input_dir
         mag_file = 'test.jr6'
         options['mag_file'] = 'test.jr6'
@@ -289,7 +289,7 @@ class Test_iodp_jr6_magic(unittest.TestCase):
     def test_iodp_jr6_with_options(self):
         options = {}
         input_dir = os.path.join(WD, 'data_files', 'Measurement_Import',
-                                 'iodp_jr6_magic')
+                                 'IODP_jr6_magic')
         options['input_dir_path'] = input_dir
         mag_file = 'test.jr6'
         options['mag_file'] = 'test.jr6'
@@ -304,7 +304,7 @@ class Test_iodp_jr6_magic(unittest.TestCase):
     def test_iodp_jr6_with_magfile_but_hidden_sampfile(self):
         options = {}
         input_dir = os.path.join(WD, 'data_files', 'Measurement_Import',
-                                 'iodp_jr6_magic')
+                                 'IODP_jr6_magic')
         samp_file = os.path.join(input_dir, 'er_samples.txt')
         hidden_samp_file = os.path.join(input_dir, 'hidden_er_samples.txt')
         os.rename(samp_file, hidden_samp_file)
@@ -325,7 +325,7 @@ class Test2g_bin_magic(unittest.TestCase):
 
     def tearDown(self):
         #input_dir = os.path.join(WD, 'data_files', 'Measurement_Import',
-        #'iodp_jr6_magic')
+        #'IODP_jr6_magic')
         #files = ['test.magic', 'other_er_samples.txt']
         files = ['mn001-1a.magic', 'er_samples.txt', 'er_sites.txt',
                  'magic_measurements.txt']
@@ -430,7 +430,7 @@ class Test_bgc_magic(unittest.TestCase):
 
     def setUp(self):
         self.input_dir = os.path.join(WD, 'data_files',
-                                      'Measurement_Import', 'bgc_magic')
+                                      'Measurement_Import', 'BGC_magic')
 
     def tearDown(self):
         filelist = ['96MT.05.01.magic', 'BC0-3A.magic',

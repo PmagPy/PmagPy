@@ -71,7 +71,7 @@ class Test_iodp_samples_magic(unittest.TestCase):
 
     def setUp(self):
         self.input_dir = os.path.join(WD, 'data_files', 'Measurement_Import',
-                                      'iodp_srm_magic')
+                                      'IODP_srm_magic')
 
     def tearDown(self):
         os.chdir(WD)

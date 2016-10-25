@@ -4,7 +4,7 @@ from copy import copy
 from numpy import vstack,sqrt
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigCanvas
 from matplotlib.backends.backend_wxagg import NavigationToolbar2WxAgg as NavigationToolbar
-from pylab import Figure
+from matplotlib.figure import Figure
 import help_files.demag_interpretation_editor_help as dieh
 from pmagpy.demag_gui_utilities import *
 from pmagpy.Fit import *
@@ -901,15 +901,15 @@ class InterpretationEditorFrame(wx.Frame):
     def scatter(self,*args,**kwargs):
 #        args_corrected = self.eqarea.transAxes.transform(vstack(args).T)
 #        x,y = args_corrected.T
-        self.eqarea.scatter(*args,**kwargs)
+        return self.eqarea.scatter(*args,**kwargs)
 
     def plot(self,*args,**kwargs):
 #        args_corrected = self.eqarea.transAxes.transform(vstack(args).T)
 #        x,y = args_corrected.T
-        self.eqarea.plot(*args,**kwargs)
+        return self.eqarea.plot(*args,**kwargs)
 
     def write(self,text):
-        self.eqarea.text(-1.2,1.15,text,{'family':self.font_type, 'fontsize':10*self.GUI_RESOLUTION, 'style':'normal','va':'center', 'ha':'left' })
+        return self.eqarea.text(-1.2,1.15,text,{'family':self.font_type, 'fontsize':10*self.GUI_RESOLUTION, 'style':'normal','va':'center', 'ha':'left' })
 
     def draw_net(self):
         draw_net(self.eqarea)
