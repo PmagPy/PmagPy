@@ -1,3 +1,8 @@
+import sys
+import os
+if "-pip" in sys.argv:
+    os.chdir(sys.prefix)
+
 import test_builder
 import test_er_magic_dialogs
 import test_imports
@@ -11,8 +16,9 @@ import test_programs
 import test_demag_gui
 import test_magic_gui3
 import test_new_builder
+import test_find_pmag_dir
 
 __all__ = [test_builder, test_er_magic_dialogs, test_imports, test_ipmag,
            test_magic_gui, test_pmag, test_pmag_gui, test_thellier_gui,
            test_validations, test_programs, test_demag_gui,
-           test_magic_gui3, test_new_builder]
+           test_magic_gui3, test_new_builder, test_find_pmag_dir]

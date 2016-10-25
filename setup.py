@@ -17,7 +17,7 @@ packages.append('pmag_env')
 print 'packages', packages
 
 
-version_num = '3.6.0'
+version_num = '3.6.12'
 here = path.abspath(path.dirname(__file__))
 
 def do_walk(data_path):
@@ -55,7 +55,8 @@ def parse_dict(dictionary):
         formatted_files = [path.join(key, f) for f in files]
         ind = key.index('/data_files') + len('/data_files/')
         new_key = key[ind:]
-        new_key = os.path.join('pmagpy_data_files', new_key)
+        #new_key = os.path.join('pmagpy_data_files', new_key)
+        new_key = os.path.join('data_files', new_key)
         formatted.append((new_key, formatted_files))
         formatted_dict[new_key] = formatted_files
     return formatted, formatted_dict

@@ -39,7 +39,7 @@ def get_pmag_dir():
             lib_file = resource_filename('locator', 'resource.py')
             full_dir = os.path.split(lib_file)[0]
             ind = full_dir.rfind(os.sep)
-            lib_dir = full_dir[:ind]
+            lib_dir = full_dir[:ind+1]
             lib_dir = os.path.realpath(os.path.join(lib_dir, 'pmagpy'))
             os.chdir(temp)
             # end fix
