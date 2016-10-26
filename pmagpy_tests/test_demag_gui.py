@@ -149,7 +149,6 @@ class TestDemagGUI(unittest.TestCase):
         total_n-=tmin_i #this is the total n that can be selected between these bounds if you couldn't chose the top and bottom measurement you have to adjust
 
         #insure that the fit spans all good meas data
-        if 'specimen_n' not in fit.get(self.frame.COORDINATE_SYSTEM): import pdb; pdb.set_trace()
         self.assertEqual(fit.get(self.frame.COORDINATE_SYSTEM)['specimen_n'],total_num_of_good_meas_data)
         #mark first step bad
         self.frame.logger.Select(0)
@@ -217,7 +216,6 @@ class TestDemagGUI(unittest.TestCase):
         self.frame.ProcessEvent(markgood_menu_evt)
         if self.frame.Data[self.frame.s]['measurement_flag'][0]=='b': total_num_of_good_meas_data-=1
         elif self.frame.Data[self.frame.s]['measurement_flag'][-tmin_i]=='b': total_num_of_good_meas_data-=1
-        if fit.get(self.frame.COORDINATE_SYSTEM)['specimen_n']!=total_num_of_good_meas_data: self.frame.Show(); import pdb; pdb.set_trace()
         self.assertEqual(fit.get(self.frame.COORDINATE_SYSTEM)['specimen_n'],total_num_of_good_meas_data)
 
     def test_read_write_redo(self):
@@ -297,7 +295,6 @@ class TestDemagGUI(unittest.TestCase):
             self.assertTrue(speci in old_interpretations.keys())
             self.assertTrue(speci in imported_interpretations.keys())
             for ofit,ifit in zip(old_interpretations[speci],imported_interpretations[speci]):
-                if not ofit.equal(ifit): import pdb; pdb.set_trace()
                 self.assertTrue(ofit.equal(ifit))
 
     def test_ie_buttons(self):
