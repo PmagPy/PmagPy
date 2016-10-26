@@ -22,7 +22,7 @@ class Menus(object):
         # if controlled vocabularies haven't already been grabbed from earthref
         # do so now
         if not any(vocab.vocabularies):
-            vocab.get_stuff()
+            vocab.get_all_vocabulary()
 
         self.data_type = data_type
         self.check = ErMagicCheck # check is top level class object for entire ErMagic steps 1-6

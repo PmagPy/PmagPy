@@ -327,7 +327,7 @@ def validate_for_numericality(key, value, complete_ref):
 def validate_for_controlled_vocab(key, value, complete_ref):
 
     if not any(vocab.vocabularies):
-        vocab.get_stuff()
+        vocab.get_all_vocabulary()
     #
     cv = False
     stripped_key = ''
