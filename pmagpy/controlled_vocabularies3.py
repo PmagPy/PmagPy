@@ -27,14 +27,16 @@ class Vocabulary(object):
         self.age_methods = []
 
 
+    ## Get method codes
+
     def get_meth_codes(self):
-        # will update this to get codes either online or offline
-        # as appropriate
-        return self.get_meth_codes_offline()
-
-
-    def get_meth_codes_offline(self):
-        raw_codes = pd.io.json.read_json(os.path.join(data_model_dir, "method_codes.json"))
+        try:
+            raw_codes = pd.io.json.read_json('https://beta.earthref.org/MagIC/method-codes.json')
+            print '-I- Getting method codes from earthref.org'
+        except Exception as ex:
+            print ex, type(ex)
+            raw_codes = pd.io.json.read_json(os.path.join(data_model_dir, "method_codes.json"))
+            print "-I- Couldn't connect to earthref.org, using cached method codes"
         code_types = raw_codes.ix['label']
         all_codes = []
         for code_name in code_types.index:
@@ -44,57 +46,6 @@ class Vocabulary(object):
             del df['code']
             # add a column with the code type (i.e., 'anisotropy_estimation')
             df['dtype'] = code_name
-            little_series = df['definition']
-            big_series = Series()
-            if any(all_codes):
-                all_codes = pd.concat([all_codes, df])
-                big_series = pd.concat([big_series, little_series])
-            else:
-                all_codes = df
-                big_series = little_series
-
-        # format code_types and age column
-        code_types = raw_codes.T
-        code_types['age'] = False
-        age = ['geochronology_method']
-        code_types.ix[age, 'age'] = True
-        code_types['other'] = ~code_types['age']
-        return all_codes, code_types
-
-
-    def get_meth_codes_online(self):
-        """
-        Get method codes from the MagIC API
-        """
-        # this doesn't work currently
-        try:
-            raw_codes = pd.io.json.read_json('https://api.earthref.org/MagIC/method_codes.json')
-            ##raw_codes = pd.io.json.read_json(os.path.join(data_model_dir, "method_codes.json"))##
-        except urllib2.URLError:
-            return [], []
-        except httplib.BadStatusLine:
-            return [], []
-        code_types = raw_codes.ix['label']
-        all_codes = []
-        for code_name in code_types.index:
-            code_url = 'https://api.earthref.org/MagIC/method_codes/{}.json'.format(code_name)
-            # if internet fails in the middle, cut out
-            try:
-                #raw_df =
-                raw_df = pd.io.json.read_json(code_url)
-                #print "raw_df.index", raw_df.index
-                #print "raw_df.columns", raw_df.columns
-                df = pd.DataFrame(raw_codes[code_name]['codes'])
-            except urllib2.URLError:
-                return [], []
-            except httplib.BadStatusLine:
-                return [], []
-            # remake the dataframe with the code (i.e., 'SM_VAR') as the index
-            df.index = df['code']
-            del df['code']
-            # add a column with the code type (i.e., 'anisotropy_estimation')
-            df['dtype'] = code_name
-
             little_series = df['definition']
             big_series = Series()
             if any(all_codes):
@@ -137,10 +88,19 @@ class Vocabulary(object):
         i.e. pmag_codes = {'anisotropy_codes': ['code1', 'code2'],
         'sample_preparation': [code1, code2], ...}
         """
-        #cond = code_types[code_types[mtype] == True]
         categories = Series(code_types[code_types[mtype] == True].index)
         codes = {cat: list(self.get_one_meth_type(cat, all_codes).index) for cat in categories}
         return codes
+
+    def get_tiered_meth_category_offline(self):
+        path = os.path.join(data_model_dir, 'er_methods.txt')
+        dfile = open(path)
+        json_data = json.load(dfile)
+        dfile.close()
+        return json_data
+
+
+    ## Get non-method-code controlled vocabularies
 
     default_vocab_types = ('lithologies', 'geologic_classes', 'geologic_types', 'location_types',
                            'age_unit')
@@ -154,8 +114,14 @@ class Vocabulary(object):
             controlled_vocabularies = []
             print '-I- Importing controlled vocabularies from https://earthref.org'
             #url = 'https://api.earthref.org/MagIC/vocabularies.json'
-            url = os.path.join(data_model_dir, "controlled_vocabularies_July_15_2016.json")
-            data = pd.io.json.read_json(url)
+            #url = os.path.join(data_model_dir, "controlled_vocabularies_July_15_2016.json")
+            url = 'https://beta.earthref.org/vocabularies/controlled.json'
+            try:
+                data = pd.io.json.read_json(url)
+            except:
+                print '-I- Could not connect to earthref.org, using cached vocabularies instead'
+                fname = os.path.join(data_model_dir, "controlled_vocabularies_July_15_2016.json")
+                data = pd.io.json.read_json(fname)
             possible_vocabularies = data.columns
             ## this line means, grab every single controlled vocabulary
             vocab_types = list(possible_vocabularies)
@@ -224,14 +190,7 @@ class Vocabulary(object):
         return vocabularies, possible_vocabularies
 
 
-    #def get_all_possible_vocabularies(possible_list):
-
-    def get_tiered_meth_category_offline(self):
-        path = os.path.join(data_model_dir, 'er_methods.txt')
-        dfile = open(path)
-        json_data = json.load(dfile)
-        dfile.close()
-        return json_data
+    ## Get method codes and controlled vocabularies
 
     def get_all_vocabulary(self):
         all_codes, code_types = self.get_meth_codes()
