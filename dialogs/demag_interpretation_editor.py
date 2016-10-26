@@ -152,7 +152,7 @@ class InterpretationEditorFrame(wx.Frame):
 
         #color box
         self.color_dict = self.parent.color_dict
-        self.color_box = wx.ComboBox(self.panel, -1, size=(80*self.GUI_RESOLUTION, 25), choices=[''] + self.color_dict.keys(), style=wx.TE_PROCESS_ENTER, name="color")
+        self.color_box = wx.ComboBox(self.panel, -1, size=(80*self.GUI_RESOLUTION, 25), choices=[''] + sorted(self.color_dict.keys()), style=wx.CB_DROPDOWN|wx.TE_PROCESS_ENTER, name="color")
         self.Bind(wx.EVT_TEXT_ENTER, self.add_new_color, self.color_box)
         self.color_box.SetHelpText(dieh.color_box_help)
 
@@ -642,16 +642,23 @@ class InterpretationEditorFrame(wx.Frame):
         if ':' in new_color:
             color_list = new_color.split(':')
             color_name = color_list[0]
-            color_val = map(eval, tuple(color_list[1].strip('( )').split(',')))
-            for val in color_val:
-                if val > 1 or val < 0: print("invalid RGB sequence"); return
+            if len(color_list[1])==7 and color_list[1].startswith('#'):
+                for c in color_list[1][1:]:
+                    if ord(c) < 48 or ord(c) > 70:
+                        self.parent.user_warning('invalid hex color must be of form #0F0F0F');return
+                color_val = color_list[1]
+            elif '(' in color_list[1] and ')' in color_list[1]:
+                color_val = map(eval, tuple(color_list[1].strip('( )').split(',')))
+                for val in color_val:
+                    if val > 1 or val < 0: self.parent.user_warning("invalid RGB sequence"); return
+            else: self.parent.user_warning("colors must be given as a valid hex color or rgb tuple"); return
         else:
-            return
+            self.parent.user_warning("New colors must be passed in as $colorname:$colorval where $colorval is a valid hex color or rgb tuple"); return
         self.color_dict[color_name] = color_val
         #clear old box
         self.color_box.Clear()
         #update fit box
-        self.color_box.SetItems([''] + self.color_dict.keys())
+        self.color_box.SetItems([''] + sorted(self.color_dict.keys()))
 
     def on_select_coordinates(self,event):
         self.parent.coordinates_box.SetStringSelection(self.coordinates_box.GetStringSelection())
@@ -659,7 +666,8 @@ class InterpretationEditorFrame(wx.Frame):
 
     def on_select_show_box(self,event):
         """
-
+        Changes the type of mean shown on the high levels mean plot so that single dots represent one of whatever the value of this box is.
+        @param: event -> the wx.COMBOBOXEVENT that triggered this function
         """
         self.parent.UPPER_LEVEL_SHOW=self.show_box.GetValue()
         self.parent.calculate_high_levels_data()

@@ -197,16 +197,26 @@ class Demag_GUI(wx.Frame):
 
         self.specimens=self.Data.keys()# get list of specimens
         self.specimens.sort(cmp=specimens_comparator) # sort list of specimens
-        if len(self.specimens)>0:
-            self.s=str(self.specimens[0])
-        else:
-            self.s=""
         self.samples=self.Data_hierarchy['samples'].keys()# get list of samples
         self.samples.sort(cmp=specimens_comparator)# get list of specimens
         self.sites=self.Data_hierarchy['sites'].keys()# get list of sites
         self.sites.sort(cmp=specimens_comparator)# get list of sites
         self.locations=self.Data_hierarchy['locations'].keys()# get list of sites
         self.locations.sort()# get list of sites
+
+        #first initialization of self.s only place besides init_cart_rot where it can be set without calling select_specimen
+        if len(self.specimens)>0:
+            self.s=str(self.specimens[0])
+        else:
+            self.s=""
+        try:
+            self.sample=self.Data_hierarchy['sample_of_specimen'][self.s]
+        except KeyError:
+            self.sample=""
+        try:
+            self.site=self.Data_hierarchy['site_of_specimen'][self.s]
+        except KeyError:
+            self.site=""
 
         self.scrolled_panel = wx.lib.scrolledpanel.ScrolledPanel(self,wx.ID_ANY) # make the Panel
         self.panel = wx.Panel(self,wx.ID_ANY)
@@ -266,22 +276,6 @@ class Demag_GUI(wx.Frame):
         font2 = wx.Font(12+FONT_WEIGHT, wx.SWISS, wx.NORMAL, wx.NORMAL, False, self.font_type)
         font = wx.SystemSettings.GetFont(wx.SYS_SYSTEM_FONT)
         font.SetPointSize(10+FONT_WEIGHT)
-
-    #----------------------------------------------------------------------
-        # initialize first specimen in list as current specimen
-    #----------------------------------------------------------------------
-        try:
-            self.s=str(self.specimens[0])
-        except (ValueError,IndexError):
-            self.s=""
-        try:
-            self.sample=self.Data_hierarchy['sample_of_specimen'][self.s]
-        except KeyError:
-            self.sample=""
-        try:
-            self.site=self.Data_hierarchy['site_of_specimen'][self.s]
-        except KeyError:
-            self.site=""
 
 #--------------------------------------------------------------------------
     #Setup ScrolledPanel Ctrls---------------------------------------------
@@ -2533,8 +2527,8 @@ class Demag_GUI(wx.Frame):
         # initialize first specimen in list as current specimen
         #----------------------------------------------------------------------
         if self.s in self.specimens: pass
-        elif len(self.specimens)>0: self.s=str(self.specimens[0])
-        else: self.s=""
+        elif len(self.specimens)>0: self.select_specimen(str(self.specimens[0]))
+        else: self.select_specimen("")
         try:
             self.sample=self.Data_hierarchy['sample_of_specimen'][self.s]
         except KeyError:
@@ -3561,8 +3555,6 @@ class Demag_GUI(wx.Frame):
         """
         if not os.path.isdir(new_WD): return
         self.WD = new_WD
-        os.chdir(self.WD)
-        self.WD=os.getcwd()
         if os.path.exists(os.path.join(self.WD, "measurements.txt")):
             meas_file = os.path.join(self.WD, "measurements.txt")
             self.data_model = 3.0
@@ -6310,9 +6302,9 @@ class Demag_GUI(wx.Frame):
         if self.level_box.GetValue()=='study':
             specimen_list=self.Data_hierarchy['study']['this study']['specimens']
 
-        if  self.s not in specimen_list:
+        if self.s not in specimen_list:
             specimen_list.sort(cmp=specimens_comparator)
-            self.s=str(specimen_list[0])
+            self.select_specimen(str(specimen_list[0]))
             self.specimens_box.SetStringSelection(str(self.s))
 
         if self.ie_open and not called_by_interp_editor:
