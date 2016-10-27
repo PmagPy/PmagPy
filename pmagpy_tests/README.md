@@ -10,13 +10,21 @@ This runs through every PmagPy test using the data files that were automatically
 ## Testing locally (for developers)
 
 You can run tests from your local PmagPy directory.  To run find and run all tests, use:
+
 `python -m unittest discover`
+
 To run tests at the most granular level, the syntax looks like this:
-`python -m pmagpy\_tests.test\_ipmag.TestIGRF.test\_igrf\_output`
+
+`python -m pmagpy_tests.test_ipmag.TestIGRF.test_igrf_output`
+
 This runs a single test from the pmagpy\_tests module, from the test\_ipmag submodule (the file named test\_ipmag.py), from the TestIGRF class.  The single test is called test\_igrf\_output.  You can also run the entire test\_ipmag submodule:
-`python -m pmagpy\_tests.test\_ipmag`
+
+`python -m pmagpy_tests.test_ipmag`
+
 or all tests in the TestIGRF class:
-`python -m pmagpy\_tests.test\_ipmag.TestIGRF`.
+
+`python -m pmagpy_tests.test_ipmag.TestIGRF`.
+
 Here is the code that makes the IGRF test run, with comments.
 
     import unittest
@@ -37,11 +45,11 @@ Here is the code that makes the IGRF test run, with comments.
         def tearDown(self):  # the tearDown function will run at the end of each test in your class
             os.chdir(WD)   # in this case, I want to make sure we always end up back in our start directory
 
-        def test_igrf_output(self):  # any function in the TestIGRF class that starts with test_ will be treated as a unittest
+        def test_igrf_output(self):  # any function in the TestIGRF class that starts with "test_" will be treated as a unittest
             result = ipmag.igrf([1999.1, 30, 20, 50])
             for num, item in enumerate(result):
                 self.assertAlmostEqual(item, self.reference[num])   # unittest.TestCase has many helpful assert methods (see linked documentation below)
 
 
 
-More documentation about creating and running unittests can be found [here](https://docs.python.org/2/library/unittest.html)
+More documentation about creating and running unittests can be found [here](https://docs.python.org/2/library/unittest.html).
