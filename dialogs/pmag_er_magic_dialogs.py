@@ -395,10 +395,10 @@ Fill in blank cells using controlled vocabularies.
         # for each location row, fill in site maximum/minimum lat/lon
         for loc in lat_s.index:
             coords = {}
-            coords['lat_s'] = lat_s[loc]
-            coords['lat_n'] = lat_n[loc]
-            coords['lon_e'] = lon_e[loc]
-            coords['lon_w'] = lon_w[loc]
+            coords['lat_s'] = lat_s.loc[loc]['lat']
+            coords['lat_n'] = lat_n.loc[loc]['lat']
+            coords['lon_e'] = lon_e.loc[loc]['lon']
+            coords['lon_w'] = lon_w.loc[loc]['lon']
             # find all rows for a given location name
             row_labels_series = pd.Series(self.grid.row_labels)
             row_inds = row_labels_series[row_labels_series.values == loc].index
