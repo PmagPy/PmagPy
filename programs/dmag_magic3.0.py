@@ -94,9 +94,15 @@ def main():
     # get intensity key and make sure intensity data is not blank
     intlist = ['magn_moment', 'magn_volume', 'magn_mass']
     IntMeths = [col_name for col_name in data.columns if col_name in intlist]
+    # get rid of any entirely blank intensity columns
+    for col_name in IntMeths:
+        if not data[col_name].any():
+            data.drop(col_name, axis=1, inplace=True)
+    IntMeths = [col_name for col_name in data.columns if col_name in intlist]
     if len(IntMeths) == 0:
         print 'No intensity headers found'
         sys.exit()
+
     int_key = IntMeths[0] # plot first intensity method found - normalized to initial value anyway - doesn't matter which used
     data = data[data[int_key].notnull()]
     # make list of individual plots
