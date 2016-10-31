@@ -87,7 +87,8 @@ def main():
     data_slice = data_container.get_records_for_code(LT)
     # and don't have the offending code
     data = data_container.get_records_for_code(XLP, incl=False, use_slice=True,
-                                               sli=data_slice)
+                                               sli=data_slice, strict_match=False)
+
     # make sure quality is in the dataframe
     if 'quality' not in data.columns:
         data['quality'] = 'g'
