@@ -143,7 +143,7 @@ def main():
                 if ans == "a":
                     files = {}
                     for key in FIG.keys():
-                        files[key] = title + '_' + LT + '.svg'
+                        files[key] = title + '_' + LT + '.' + fmt
                     pmagplotlib.saveP(FIG, files)
             pmagplotlib.clearFIG(FIG['demag'])
 

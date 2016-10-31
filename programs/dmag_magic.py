@@ -131,11 +131,11 @@ def main():
                 pmagplotlib.drawFIGS(FIG)
                 ans=raw_input(" S[a]ve to save plot, [q]uit,  Return to continue:  ")
                 if ans=='q':sys.exit()
-                if ans=="a": 
+                if ans=="a":
                     files={}
                     for key in FIG.keys():
-                        files[key]=title+'_'+LT+'.svg' 
-                    pmagplotlib.saveP(FIG,files) 
+                        files[key]=title+'_'+LT+'.'+fmt
+                    pmagplotlib.saveP(FIG,files)
             pmagplotlib.clearFIG(FIG['demag'])
 
 if __name__ == "__main__":
