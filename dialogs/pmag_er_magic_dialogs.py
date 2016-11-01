@@ -1484,7 +1484,7 @@ You may use the drop-down menus to add as many values as needed in these columns
             self.onSave(grid)
 
         self.deleteRowButton = None
-        self.panel.Destroy()
+        #self.panel.Destroy()  # calling Destroy here breaks with Anaconda Python (segfault)
 
         # make sure that specimens get propagated with
         # any default sample info
@@ -1496,7 +1496,11 @@ You may use the drop-down menus to add as many values as needed in these columns
         if next_dia:
             wait = wx.BusyInfo("Please wait, working...")
             wx.Yield()
+            wx.CallAfter(self.panel.Destroy) # no segfault here!
             next_dia()
+            # need to wait to process the resize:
+            event = wx.PyCommandEvent(wx.EVT_SIZE.typeId, self.GetId())
+            wx.CallAfter(self.GetEventHandler().ProcessEvent, event)
             del wait
         else:
             wait = wx.BusyInfo("Please wait, writing data to files...")
