@@ -5,7 +5,7 @@ from codecs import open
 import os
 from os import path
 
-
+version_num = '3.7.0'
 packages = find_packages(exclude=['programs', 'pmagpy_tests',
                                   #'dialogs',
                                   'pmagpy_tests.examples', 'pmag_env',
@@ -17,7 +17,7 @@ packages.append('pmag_env')
 print 'packages', packages
 
 
-version_num = '3.6.12'
+
 here = path.abspath(path.dirname(__file__))
 
 def do_walk(data_path):
