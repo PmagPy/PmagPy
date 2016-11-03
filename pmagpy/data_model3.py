@@ -17,6 +17,10 @@ class DataModel(object):
         # for py2app:
         if not os.path.isfile(model_file):
             model_file = os.path.join(pmag_dir, 'data_model', 'data_model.json')
+        if not os.path.isfile(model_file):
+            model_file = os.path.join(os.path.split(os.path.dirname(__file__))[0],'pmagpy', 'data_model','data_model.json')
+        if not os.path.isfile(model_file):
+            model_file = os.path.join(os.path.split(os.path.dirname(__file__))[0], 'data_model','data_model.json')
         f = open(model_file, 'r')
         string = '\n'.join(f.readlines())
         raw = json.loads(unicode(string, errors='ignore'))
