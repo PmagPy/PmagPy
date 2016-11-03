@@ -156,14 +156,13 @@ class VGP_Dialog(wx.Dialog):
 
         if self.plot_setting == "Zoom":
             self.canvas.SetCursor(wx.StockCursor(wx.CURSOR_CROSS))
-        elif self.plot_setting == "Pan":
-            self.canvas.SetCursor(wx.StockCursor(wx.CURSOR_CHAR))
         else:
             self.canvas.SetCursor(wx.StockCursor(wx.CURSOR_ARROW))
         for i,(x,y) in enumerate(zip(xdata,ydata)):
             if 0 < sqrt((x-xpick_data)**2. + (y-ypick_data)**2.) < e:
                 self.canvas.SetCursor(wx.StockCursor(wx.CURSOR_HAND))
                 break
+        event.Skip()
 
     def on_home_plot(self,event):
         self.toolbar.home()

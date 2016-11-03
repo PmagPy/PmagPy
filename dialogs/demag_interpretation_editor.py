@@ -979,14 +979,13 @@ class InterpretationEditorFrame(wx.Frame):
 
         if self.high_EA_setting == "Zoom":
             self.canvas.SetCursor(wx.StockCursor(wx.CURSOR_CROSS))
-        elif self.high_EA_setting == "Pan":
-            self.canvas.SetCursor(wx.StockCursor(wx.CURSOR_WATCH))
         else:
             self.canvas.SetCursor(wx.StockCursor(wx.CURSOR_ARROW))
         for i,(x,y) in enumerate(zip(xdata,ydata)):
             if 0 < sqrt((x-xpick_data)**2. + (y-ypick_data)**2.) < e:
                 self.canvas.SetCursor(wx.StockCursor(wx.CURSOR_HAND))
                 break
+        event.Skip()
 
     def on_equalarea_high_select(self,event):
         self.parent.on_equalarea_high_select(event,fig = self.eqarea, canvas = self.canvas)

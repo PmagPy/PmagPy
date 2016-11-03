@@ -5812,6 +5812,7 @@ class Demag_GUI(wx.Frame):
             if 0 < sqrt((x-xpick_data)**2. + (y-ypick_data)**2.) < e:
                 self.canvas2.SetCursor(wx.StockCursor(wx.CURSOR_HAND))
                 break
+        event.Skip()
 
     def on_equalarea_specimen_select(self,event):
         """
@@ -5895,6 +5896,7 @@ class Demag_GUI(wx.Frame):
             if 0 < sqrt((x-xpick_data)**2. + (y-ypick_data)**2.) < e:
                 self.canvas4.SetCursor(wx.StockCursor(wx.CURSOR_HAND))
                 break
+        event.Skip()
 
     def on_equalarea_high_select(self,event,fig=None,canvas=None):
         """
