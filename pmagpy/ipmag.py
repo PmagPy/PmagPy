@@ -22,6 +22,7 @@ from mapping import map_magic
 def igrf(input_list):
     """
     Determine Declination, Inclination, Intensity from the IGRF model.
+    (http://www.ngdc.noaa.gov/IAGA/vmod/igrf.html)
 
     Parameters
     ----------
@@ -98,6 +99,32 @@ def bingham_mean(dec=None, inc=None, di_block=None):
         return pmag.dobingham(di_block)
     else:
         return pmag.dobingham(di_block)
+
+
+def kent_mean(dec=None, inc=None, di_block=None):
+    """
+    Calculates the Kent mean and associated parameters from either a list of
+    declination values and a separate list of inclination values or from a
+    di_block (a nested list a nested list of [dec,inc,1.0]). Returns a
+    dictionary with the Kent mean and statistical parameters.
+
+    Parameters
+    ----------
+    dec: list of declinations
+    inc: list of inclinations
+
+    or
+
+    di_block: a nested list of [dec,inc,1.0]
+
+    A di_block can be provided instead of dec, inc lists in which case it will
+    be used. Either dec, inc lists or a di_block need to passed to the function.
+    """
+    if di_block is None:
+        di_block = make_di_block(dec,inc)
+        return pmag.dokent(di_block,len(di_block))
+    else:
+        return pmag.dokent(di_block,len(di_block))
 
 
 def print_direction_mean(mean_dictionary):

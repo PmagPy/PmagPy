@@ -87,16 +87,23 @@ def main():
     data_slice = data_container.get_records_for_code(LT)
     # and don't have the offending code
     data = data_container.get_records_for_code(XLP, incl=False, use_slice=True,
-                                               sli=data_slice)
+                                               sli=data_slice, strict_match=False)
+
     # make sure quality is in the dataframe
     if 'quality' not in data.columns:
         data['quality'] = 'g'
     # get intensity key and make sure intensity data is not blank
     intlist = ['magn_moment', 'magn_volume', 'magn_mass']
     IntMeths = [col_name for col_name in data.columns if col_name in intlist]
+    # get rid of any entirely blank intensity columns
+    for col_name in IntMeths:
+        if not data[col_name].any():
+            data.drop(col_name, axis=1, inplace=True)
+    IntMeths = [col_name for col_name in data.columns if col_name in intlist]
     if len(IntMeths) == 0:
         print 'No intensity headers found'
         sys.exit()
+
     int_key = IntMeths[0] # plot first intensity method found - normalized to initial value anyway - doesn't matter which used
     data = data[data[int_key].notnull()]
     # make list of individual plots
@@ -137,7 +144,7 @@ def main():
                 if ans == "a":
                     files = {}
                     for key in FIG.keys():
-                        files[key] = title + '_' + LT + '.svg'
+                        files[key] = title + '_' + LT + '.' + fmt
                     pmagplotlib.saveP(FIG, files)
             pmagplotlib.clearFIG(FIG['demag'])
 

@@ -30,7 +30,7 @@ class GridFrame(wx.Frame):
         # if controlled vocabularies haven't already been grabbed from earthref
         # do so now
         if not any(vocab.vocabularies):
-            vocab.get_meth_codes()
+            vocab.get_all_vocabulary()
 
         self.remove_cols_mode = False
         self.deleteRowButton = None
@@ -138,7 +138,7 @@ class GridFrame(wx.Frame):
                                           name='toggle_codes_btn')
         self.Bind(wx.EVT_BUTTON, self.toggle_codes, self.toggle_codes_btn)
         # message
-        self.code_msg_boxsizer = pw.MethodCodeDemystifier(self.panel)
+        self.code_msg_boxsizer = pw.MethodCodeDemystifier(self.panel, vocab)
         self.code_msg_boxsizer.ShowItems(False)
 
         ## Add content to sizers

@@ -18,7 +18,7 @@ def main():
     SYNTAX
         dmag_magic -h [command line options]
 
-    INPUT 
+    INPUT
        takes magic formatted magic_measurements.txt files
 
     OPTIONS
@@ -47,7 +47,7 @@ def main():
             print main.__doc__
             sys.exit()
         if '-N' in sys.argv: norm=0
-        if '-sav' in sys.argv: 
+        if '-sav' in sys.argv:
             plot=1
         if '-f' in sys.argv:
             ind=sys.argv.index("-f")
@@ -125,17 +125,17 @@ def main():
                 files={}
                 for key in FIG.keys():
                     files[key]=title+'_'+LT+'.'+fmt
-                pmagplotlib.saveP(FIG,files) 
+                pmagplotlib.saveP(FIG,files)
                 sys.exit()
             else:
                 pmagplotlib.drawFIGS(FIG)
                 ans=raw_input(" S[a]ve to save plot, [q]uit,  Return to continue:  ")
                 if ans=='q':sys.exit()
-                if ans=="a": 
+                if ans=="a":
                     files={}
                     for key in FIG.keys():
-                        files[key]=title+'_'+LT+'.svg' 
-                    pmagplotlib.saveP(FIG,files) 
+                        files[key]=title+'_'+LT+'.'+fmt
+                    pmagplotlib.saveP(FIG,files)
             pmagplotlib.clearFIG(FIG['demag'])
 
 if __name__ == "__main__":

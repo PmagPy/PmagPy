@@ -168,7 +168,7 @@ class MagICMenu(wx.MenuBar):
             if self.data_model_num == 2.5:
                 self.parent.er_magic = builder.ErMagicBuilder(self.parent.WD, self.parent.er_magic.data_model)
             elif self.data_model_num == 3:
-                self.parent.contribution = nb.Contribution(self.WD,
+                self.parent.contribution = nb.Contribution(self.parent.WD,
                                                            dmodel=self.parent.contribution.data_model)
 
 

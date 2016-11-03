@@ -797,9 +797,9 @@ class MethodCodeDemystifier(wx.StaticBoxSizer):
             vc = vocabulary
         else:
             vc = vocab
+        self.vc = vc
         if not any(vc.code_types):
-            vc.get_all_vocabulary() # with 3.0
-            #vc.get_stuff() # with 2.5
+            vc.get_all_vocabulary()
         types = vc.code_types.index
         types = vc.code_types['label']
         type_ind = vc.code_types.index
@@ -825,7 +825,7 @@ class MethodCodeDemystifier(wx.StaticBoxSizer):
         else:
             btn = event.EventObject
             code_name = btn.Name
-        meth_type = vocab.get_one_meth_type(code_name, vocab.all_codes)['definition']
+        meth_type = self.vc.get_one_meth_type(code_name, self.vc.all_codes)['definition']
         str_meths = [ind + " :  " + (meth_type[ind] or 'No description available') for ind in meth_type.index]
         res = '\n'.join(str_meths)
         self.descriptions.SetValue(res)
