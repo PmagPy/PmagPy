@@ -158,6 +158,7 @@ class Demag_GUI(wx.Frame):
         self.dpi = 100
 
         self.all_fits_list = []
+        self.means_to_plot = None
 
         self.pmag_results_data={}
         for level in ['specimens','samples','sites','locations','study']:
@@ -769,7 +770,7 @@ class Demag_GUI(wx.Frame):
         m_change_criteria_file = submenu_criteria.Append(-1, "&Change acceptance criteria", "")
         self.Bind(wx.EVT_MENU, self.on_menu_change_criteria, m_change_criteria_file)
 
-        m_import_criteria_file =  submenu_criteria.Append(-1, "&Import criteria file", "")
+        m_import_criteria_file = submenu_criteria.Append(-1, "&Import criteria file", "")
         self.Bind(wx.EVT_MENU, self.on_menu_criteria_file, m_import_criteria_file)
 
         m_new_sub = menu_Analysis.AppendMenu(-1, "Acceptance criteria", submenu_criteria)
@@ -795,6 +796,14 @@ class Demag_GUI(wx.Frame):
         self.Bind(wx.EVT_MENU, self.on_menu_mark_samp_good, m_mark_samp_good)
 
         m_submenu = menu_Analysis.AppendMenu(-1, "Sample Orientation", submenu_sample_check)
+
+        submenu_toggle_mean_display = wx.Menu()
+
+        lines = ["m_%s_toggle_mean = submenu_toggle_mean_display.AppendCheckItem(-1, '&%s', ''); self.Bind(wx.EVT_MENU, self.on_menu_toggle_mean, m_%s_toggle_mean)"%(f,f) for f in self.all_fits_list]
+
+        for line in lines: exec(line)
+
+        menu_Analysis.AppendMenu(-1, "Toggle Mean Display", submenu_toggle_mean_display)
 
         #-----------------
         # Tools Menu
@@ -1567,7 +1576,7 @@ class Demag_GUI(wx.Frame):
             if mean_fit in self.high_level_means[high_level_type][high_level_name].keys() and dirtype in self.high_level_means[high_level_type][high_level_name][mean_fit].keys():
                 self.plot_eqarea_mean(self.high_level_means[high_level_type][high_level_name][mean_fit][dirtype],self.high_level_eqarea)
         else:
-            for mf in self.all_fits_list+['All']:
+            for mf in self.means_to_plot+['All']:
                 if mf not in self.high_level_means[high_level_type][high_level_name].keys() or (dirtype in self.high_level_means[high_level_type][high_level_name][mf] and 'calculation_type' in self.high_level_means[high_level_type][high_level_name][mf][dirtype] and self.high_level_means[high_level_type][high_level_name][mf][dirtype]['calculation_type'] != calculation_type):
                     self.calculate_high_level_mean(high_level_type,high_level_name,calculation_type,self.UPPER_LEVEL_SHOW,mf)
                 if mf in self.high_level_means[high_level_type][high_level_name].keys() and dirtype in self.high_level_means[high_level_type][high_level_name][mf].keys():
@@ -4788,6 +4797,7 @@ class Demag_GUI(wx.Frame):
             if specimen in self.pmag_results_data['specimens']:
                 for name in map(lambda x: x.name, self.pmag_results_data['specimens'][specimen]):
                     if name not in self.all_fits_list: self.all_fits_list.append(name)
+        if self.means_to_plot == None: self.means_to_plot = self.all_fits_list
         self.mean_fit_box.SetItems(['None','All'] + self.all_fits_list)
         #select defaults
         if fit_index:
@@ -4798,6 +4808,7 @@ class Demag_GUI(wx.Frame):
             self.mean_fit_box.SetValue('None')
             self.mean_type_box.SetValue('None')
             self.clear_high_level_pars()
+        self.update_toggleable_means_menu()
         if self.ie_open:
             self.ie.mean_fit_box.Clear()
             self.ie.mean_fit_box.SetItems(['None','All'] + self.all_fits_list)
@@ -5581,6 +5592,29 @@ class Demag_GUI(wx.Frame):
     def on_menu_flag_fit_good(self,event):
         if self.current_fit in self.bad_fits:
             self.bad_fits.remove(self.current_fit)
+
+    def on_menu_toggle_mean(self,event):
+        mb = self.GetMenuBar()
+        am = mb.GetMenu(2)
+        toggleable_means = am.GetMenuItems()[3].SubMenu.GetMenuItems()
+        self.means_to_plot = []
+        for tm in toggleable_means:
+            if not tm.IsChecked(): self.means_to_plot.append(tm.GetLabel())
+        self.plot_high_level_means()
+        self.canvas4.draw()
+        if self.ie_open: self.ie.draw()
+
+    def update_toggleable_means_menu(self):
+        mb = self.GetMenuBar()
+        am = mb.GetMenu(2)
+        submenu_toggle_mean_display = wx.Menu()
+        lines = ["m_%s_toggle_mean = submenu_toggle_mean_display.AppendCheckItem(-1, '&%s', '%s'); self.Bind(wx.EVT_MENU, self.on_menu_toggle_mean, m_%s_toggle_mean)"%(f.replace(' ',''),f.replace(' ',''),f.replace(' ',''),f.replace(' ','')) for f in self.all_fits_list]
+
+        for line in lines: exec(line)
+
+        am.DeleteItem(am.GetMenuItems()[3])
+        am.AppendMenu(-1, "Toggle Mean Display", submenu_toggle_mean_display)
+
 
     #---------------------------------------------#
     #Tools Menu  Functions
