@@ -5,7 +5,7 @@ import urllib2
 import httplib
 import json
 import os
-import backup_vocabulary as backup
+#import backup_vocabulary as backup
 import find_pmag_dir
 import data_model3
 pmag_dir = find_pmag_dir.get_pmag_dir()
@@ -109,85 +109,73 @@ class Vocabulary(object):
         """
         Get all non-method controlled vocabularies
         """
-        connected = True
+        controlled_vocabularies = []
+        print '-I- Importing controlled vocabularies from https://earthref.org'
+        #url = 'https://api.earthref.org/MagIC/vocabularies.json'
+        #url = os.path.join(data_model_dir, "controlled_vocabularies_July_15_2016.json")
+        url = 'https://beta.earthref.org/vocabularies/controlled.json'
         try:
-            controlled_vocabularies = []
-            print '-I- Importing controlled vocabularies from https://earthref.org'
-            #url = 'https://api.earthref.org/MagIC/vocabularies.json'
-            #url = os.path.join(data_model_dir, "controlled_vocabularies_July_15_2016.json")
-            url = 'https://beta.earthref.org/vocabularies/controlled.json'
+            data = pd.io.json.read_json(url)
+        except:
+            print '-I- Could not connect to earthref.org, using cached vocabularies instead'
+            fname = os.path.join(data_model_dir, "controlled_vocabularies_July_15_2016.json")
+            data = pd.io.json.read_json(fname)
+        possible_vocabularies = data.columns
+        ## this line means, grab every single controlled vocabulary
+        vocab_types = list(possible_vocabularies)
+
+        def get_cv_from_list(lst):
+            """
+            Check a validations list from the data model.
+            If there is a controlled vocabulary validation,
+            return which category of controlled vocabulary it is.
+            This will generally be applied to the validations col
+            of the data model
+            """
             try:
-                data = pd.io.json.read_json(url)
-            except:
-                print '-I- Could not connect to earthref.org, using cached vocabularies instead'
-                fname = os.path.join(data_model_dir, "controlled_vocabularies_July_15_2016.json")
-                data = pd.io.json.read_json(fname)
-            possible_vocabularies = data.columns
-            ## this line means, grab every single controlled vocabulary
-            vocab_types = list(possible_vocabularies)
+                for i in lst:
+                    if "cv(" in i:
+                        return i[4:-2]
+            except TypeError:
+                return None
+            else:
+                return None
 
-            def get_cv_from_list(lst):
-                """
-                Check a validations list from the data model.
-                If there is a controlled vocabulary validation,
-                return which category of controlled vocabulary it is.
-                This will generally be applied to the validations col
-                of the data model
-                """
-                try:
-                    for i in lst:
-                        if "cv(" in i:
-                            return i[4:-2]
-                except TypeError:
-                    return None
-                else:
-                    return None
+        vocab_col_names = []
+        data_model = data_model3.DataModel()
+        for dm_key in data_model.dm:
+            df = data_model.dm[dm_key]
+            df['vocab_name'] = df['validations'].apply(get_cv_from_list)
+            lst = zip(df[df['vocab_name'].notnull()]['vocab_name'], df[df['vocab_name'].notnull()].index)
+            # in lst, first value is the name of the controlled vocabulary
+            # second value is the name of the dataframe column
+            vocab_col_names.extend(lst)
 
-            vocab_col_names = []
-            data_model = data_model3.DataModel()
-            for dm_key in data_model.dm:
-                df = data_model.dm[dm_key]
-                df['vocab_name'] = df['validations'].apply(get_cv_from_list)
-                lst = zip(df[df['vocab_name'].notnull()]['vocab_name'], df[df['vocab_name'].notnull()].index)
-                # in lst, first value is the name of the controlled vocabulary
-                # second value is the name of the dataframe column
-                vocab_col_names.extend(lst)
+        # vocab_col_names is now a list of tuples
+        # consisting of the vocabulary name and the column name
+        # i.e., (u'type', u'geologic_types')
 
-            # vocab_col_names is now a list of tuples
-            # consisting of the vocabulary name and the column name
-            # i.e., (u'type', u'geologic_types')
+        # remove duplicate col_names:
+        vocab_col_names = sorted(set(vocab_col_names))
+        # add in boolean category to controlled vocabularies
+        bool_items = [{'item': True}, {'item': False}, {'item': 'true'},
+                      {'item': 'false'}, {'item': 0}, {'item': 1}]
+        series = Series({'label': 'Boolean', 'items': bool_items})
+        data['boolean'] = series
+        # use vocabulary name to get possible values for the column name
+        for vocab in vocab_col_names[:]:
+            if vocab[0] == "magic_table_column":
+                vocab_col_names.remove(("magic_table_column", "table_column"))
+                continue
 
-            # remove duplicate col_names:
-            vocab_col_names = sorted(set(vocab_col_names))
-            # add in boolean category to controlled vocabularies
-            bool_items = [{'item': True}, {'item': False}, {'item': 'true'},
-                          {'item': 'false'}, {'item': 0}, {'item': 1}]
-            series = Series({'label': 'Boolean', 'items': bool_items})
-            data['boolean'] = series
-            # use vocabulary name to get possible values for the column name
-            for vocab in vocab_col_names[:]:
-                if vocab[0] == "magic_table_column":
-                    vocab_col_names.remove(("magic_table_column", "table_column"))
-                    continue
-
-                items = data[vocab[0]]['items']
-                stripped_list = [item['item'] for item in items]
-                controlled_vocabularies.append(stripped_list)
-            # create series with the column name as the index,
-            # and the possible values as the values
-            ind_values = [i[1] for i in vocab_col_names]
-            vocabularies = pd.Series(controlled_vocabularies, index=ind_values)
-            return vocabularies, vocabularies
-        except urllib2.URLError:
-            connected = False
-        except httplib.BadStatusLine:
-            connected = False
-        if not connected:
-            print "-W- Could not connect to internet -- will not be able to provide all controlled vocabularies"
-            vocabularies = pd.Series([backup.site_lithology, backup.site_class, backup.site_type,
-                                      backup.location_type, backup.age_unit, backup.site_definition], index=vocab_types)
-            possible_vocabularies = []
-        return vocabularies, possible_vocabularies
+            items = data[vocab[0]]['items']
+            stripped_list = [item['item'] for item in items]
+            controlled_vocabularies.append(stripped_list)
+        # create series with the column name as the index,
+        # and the possible values as the values
+        ind_values = [i[1] for i in vocab_col_names]
+        vocabularies = pd.Series(controlled_vocabularies, index=ind_values)
+        return vocabularies, vocabularies
 
 
     ## Get method codes and controlled vocabularies

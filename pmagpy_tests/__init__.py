@@ -1,3 +1,5 @@
+import matplotlib
+matplotlib.use('WXAgg')
 import sys
 import os
 if "-pip" in sys.argv:
