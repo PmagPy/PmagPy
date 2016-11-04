@@ -7,7 +7,7 @@ from pmagpy import pmag
 
 
 def copy_directory(src, dest):
-    dest = path.join(dest, 'pmagpy_data_files')
+    dest = path.join(dest, 'data_files')
     print '-I- Copying {} to {}'.format(src, dest)
     try:
         shutil.copytree(src, dest)
@@ -26,7 +26,7 @@ def main():
         print "Alternatively, you may use the full path to the directory of your choice from anywhere in the file system: 'move_data_files.py -d /Users/***/Desktop' where *** is your username"
         sys.exit()
     dest = pmag.get_named_arg_from_sys('-d', None, True)
-    data_files = path.join(sys.prefix, 'pmagpy_data_files')
+    data_files = path.join(sys.prefix, 'data_files')
     copy_directory(data_files, dest)
 
 
