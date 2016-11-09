@@ -73,7 +73,7 @@ class import_magnetometer_data(wx.Dialog):
         self.Bind(wx.EVT_BUTTON, self.on_okButton, self.okButton)
         self.cancelButton = wx.Button(self.panel, wx.ID_CANCEL, '&Cancel')
         self.Bind(wx.EVT_BUTTON, self.on_cancelButton, self.cancelButton)
-        self.nextButton = wx.Button(self.panel, id=-1, label='Skip to next step')
+        self.nextButton = wx.Button(self.panel, id=-1, label='Go to next step')
         self.Bind(wx.EVT_BUTTON, self.on_nextButton, self.nextButton)
         hboxok.Add(self.okButton)
         hboxok.AddSpacer(20)
@@ -182,7 +182,7 @@ class combine_magic_dialog(wx.Frame):
         self.cancelButton = wx.Button(self.panel, wx.ID_CANCEL, '&Cancel')
         self.Bind(wx.EVT_BUTTON, self.on_cancelButton, self.cancelButton)
 
-        self.nextButton = wx.Button(self.panel, id=-1, label='Skip to last step')
+        self.nextButton = wx.Button(self.panel, id=-1, label='Go to last step')
         self.Bind(wx.EVT_BUTTON, self.on_nextButton, self.nextButton)
 
         hboxok = wx.BoxSizer(wx.HORIZONTAL)

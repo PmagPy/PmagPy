@@ -2,25 +2,40 @@
 from setuptools import setup, find_packages
 # To use a consistent encoding
 from codecs import open
-import os
+import sys
 from os import path
+
+from setuptools.command.install import install
+
+import setuptools.command.install as install_lib
+
+
 #import glob
 # Get list of programs to alias
 from programs_list import programs_list
 
-version_num = '3.7.0'
+version_num = '3.7.17'
 here = path.abspath(path.dirname(__file__))
 
-packages=find_packages(exclude=['pmagpy', 'pmagpy_tests.examples'
-                                'SPD', 'pmag_env'])
+packages = find_packages(exclude=['pmagpy', 'pmagpy_tests.examples'
+                                  'SPD', 'pmag_env'])
 print 'packages', packages
 
 
 # Get the long description from the README file
 with open(path.join(here, 'README.md'), encoding='utf-8') as f:
-        long_description = f.read()
+    long_description = f.read()
+
+
+class CustomInstall(install):
+
+    def run(self):
+        install.run(self)
+        # custom stuff here
 
 setup(
+    #cmdclass={'install': CustomInstall},
+
     name='pmagpy-cli',
 
     # Versions should comply with PEP440.  For a discussion on single-sourcing
@@ -115,6 +130,9 @@ setup(
     #            #            ],
     #            'console_scripts': programs_list
     #        },
+    scripts=['bin/pmag_gui_a', 'bin/magic_gui_a',
+             'bin/magic_gui3_a', 'bin/thellier_gui_a',
+             'bin/demag_gui_a'],
     entry_points={
             'console_scripts': programs_list,
             'gui_scripts': [
@@ -125,9 +143,7 @@ setup(
                     'pmag_gui = programs.pmag_gui:main',
                     'magic_gui3.py = programs.magic_gui3:main',
                     'magic_gui3 = programs.magic_gui3:main',
-                    'pmag_gui3.py = programs.pmag_gui3:main',
-                    'pmag_gui3 = programs.pmag_gui3:main'
             ]
-    }
 
+    }
 )

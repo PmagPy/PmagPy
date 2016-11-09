@@ -123,7 +123,7 @@ class MagMainFrame(wx.Frame):
         #---sizer 1 ----
         bSizer1 = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.ID_ANY, "Import data to working directory"), wx.HORIZONTAL)
 
-        text = "1. convert magnetometer files to MagIC format"
+        text = "1. Convert magnetometer files to MagIC format"
         self.btn1 = buttons.GenButton(self.panel, id=-1, label=text,
                                       size=(450, 50), name='step 1')
         self.btn1.SetBackgroundColour("#FDC68A")
@@ -131,7 +131,7 @@ class MagMainFrame(wx.Frame):
         self.Bind(wx.EVT_BUTTON, self.on_convert_file, self.btn1)
 
         if self.data_model_num == 3:
-            text = "1a. convert to 3.0. format"
+            text = "1a. Convert to 3.0. format"
             self.btn1a = buttons.GenButton(self.panel, id=-1, label=text,
                                            size=(450, 50), name='step 1a')
             self.btn1a.SetBackgroundColour("#FDC68A")
@@ -139,18 +139,18 @@ class MagMainFrame(wx.Frame):
             self.Bind(wx.EVT_BUTTON, self.on_convert_3, self.btn1a)
 
 
-        text = "2. (optional) calculate geographic/tilt-corrected directions"
+        text = "2. (optional) Calculate geographic/tilt-corrected directions"
         self.btn2 = buttons.GenButton(self.panel, id=-1, label=text, size=(450, 50), name='step 2')
         self.btn2.SetBackgroundColour("#FDC68A")
         self.btn2.InitColours()
         self.Bind(wx.EVT_BUTTON, self.on_orientation_button, self.btn2)
-        text = "3. complete EarthRef data using EarthRef MagIC Builder "
+        text = "3. (optional) Add MagIC metadata for uploading data to MagIC "
         self.btn3 = buttons.GenButton(self.panel, id=-1, label=text, size=(450, 50), name='step 3')
         self.btn3.SetBackgroundColour("#FDC68A")
         self.btn3.InitColours()
         self.Bind(wx.EVT_BUTTON, self.on_er_data, self.btn3)
 
-        text = "unpack txt file downloaded from MagIC"
+        text = "Unpack txt file downloaded from MagIC"
         self.btn4 = buttons.GenButton(self.panel, id=-1, label=text, size=(300, 50))
         self.btn4.SetBackgroundColour("#FDC68A")
         self.btn4.InitColours()
@@ -207,7 +207,7 @@ class MagMainFrame(wx.Frame):
         #---sizer 3 ----
         bSizer3 = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.ID_ANY, "Upload to MagIC database"), wx.HORIZONTAL)
 
-        text = "prepare txt file for upload"
+        text = "Create MagIC txt file for upload"
         self.btn_upload = buttons.GenButton(self.panel, id=-1, label=text, size=(300, 50))
         self.btn_upload.SetBackgroundColour("#C4DF9B")
         self.btn_upload.InitColours()
