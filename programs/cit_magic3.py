@@ -64,6 +64,7 @@ def main(command_line=True, **kwargs):
     samp_file='samples.txt'
     site_file='sites.txt'
     loc_file='locations.txt'
+    data_model=3.0
     Specs,Samps,Sites,Locs=[],[],[],[]
     MeasRecs=[]
     specnum,units,locname=0,"1","unknown"

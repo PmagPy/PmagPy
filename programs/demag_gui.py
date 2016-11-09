@@ -4820,6 +4820,17 @@ class Demag_GUI(wx.Frame):
                 self.ie.mean_fit_box.SetValue('None')
                 self.ie.mean_type_box.SetValue('None')
 
+    def update_toggleable_means_menu(self):
+        mb = self.GetMenuBar()
+        am = mb.GetMenu(2)
+        submenu_toggle_mean_display = wx.Menu()
+        lines = ["m_%s_toggle_mean = submenu_toggle_mean_display.AppendCheckItem(-1, '&%s', '%s'); self.Bind(wx.EVT_MENU, self.on_menu_toggle_mean, m_%s_toggle_mean)"%(f.replace(' ',''),f.replace(' ',''),f.replace(' ',''),f.replace(' ','')) for f in self.all_fits_list]
+
+        for line in lines: exec(line)
+
+        am.DeleteItem(am.GetMenuItems()[3])
+        am.AppendMenu(-1, "Toggle Mean Display", submenu_toggle_mean_display)
+
     def show_high_levels_pars(self,mpars):
         """
         shows in the high level mean display area in the bottom left of the GUI the data in mpars.
@@ -5603,18 +5614,6 @@ class Demag_GUI(wx.Frame):
         self.plot_high_level_means()
         self.canvas4.draw()
         if self.ie_open: self.ie.draw()
-
-    def update_toggleable_means_menu(self):
-        mb = self.GetMenuBar()
-        am = mb.GetMenu(2)
-        submenu_toggle_mean_display = wx.Menu()
-        lines = ["m_%s_toggle_mean = submenu_toggle_mean_display.AppendCheckItem(-1, '&%s', '%s'); self.Bind(wx.EVT_MENU, self.on_menu_toggle_mean, m_%s_toggle_mean)"%(f.replace(' ',''),f.replace(' ',''),f.replace(' ',''),f.replace(' ','')) for f in self.all_fits_list]
-
-        for line in lines: exec(line)
-
-        am.DeleteItem(am.GetMenuItems()[3])
-        am.AppendMenu(-1, "Toggle Mean Display", submenu_toggle_mean_display)
-
 
     #---------------------------------------------#
     #Tools Menu  Functions
