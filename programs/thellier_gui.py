@@ -311,9 +311,10 @@ class Arai_GUI(wx.Frame):
         """
         open dialog box for choosing a working directory
         """
-#        if "-DM" in sys.argv and FIRST_RUN: # set data model version number - default is Data Model 2.5
-#            ind=sys.argv.index('-DM') # set
-#            self.data_model = sys.argv[ind+1]
+        #if "-DM" in sys.argv and FIRST_RUN: # set data model version number - default is Data Model 2.5
+        #    ind=sys.argv.index('-DM') # set
+        #    self.data_model = sys.argv[ind+1]
+
         if "-WD" in sys.argv and FIRST_RUN:
             ind=sys.argv.index('-WD')
             self.WD=sys.argv[ind+1]
@@ -326,12 +327,22 @@ class Arai_GUI(wx.Frame):
                 self.WD = os.getcwd()
             dialog.Destroy()
         self.WD = os.path.realpath(self.WD)
-        #self.data_model=2
-        meas_file='magic_measurements.txt'
-        if os.path.exists(os.path.join(self.WD, "measurements.txt")):
-            meas_file = os.path.join(self.WD, "measurements.txt")
+
+
+        if "-DM" in sys.argv:
+            self.data_model = float(pmag.get_named_arg_from_sys('-DM', 2))
+            self.data_model = int(self.data_model)
+            print 'Data model set to {}'.format(str(self.data_model))
+        elif os.path.exists(os.path.join(self.WD, "measurements.txt")):
             self.data_model = 3
             print 'Data model set to 3.0'
+        else:
+            self.data_model=2
+            print 'Data model set to 2.5'
+        if self.data_model == 3:
+            meas_file = 'measurements.txt'
+        else:
+            meas_file='magic_measurements.txt'
         self.magic_file=os.path.join(self.WD,meas_file)
             #intialize GUI_log
         self.GUI_log=open(os.path.join(self.WD, "thellier_GUI.log"),'w')
