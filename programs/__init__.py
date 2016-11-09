@@ -6,7 +6,13 @@ import pkg_resources
 command = path.split(sys.argv[0])[-1]
 
 from program_envs import prog_env
-mpl_env = prog_env.get(command[:-3])
+if command.endswith(".py"):
+    mpl_env = prog_env.get(command[:-3])
+elif command.endswith("_a"):
+    mpl_env = prog_env.get(command[:-2])
+else:
+    mpl_env = prog_env.get(command)
+
 import matplotlib
 if mpl_env:
     matplotlib.use(mpl_env)

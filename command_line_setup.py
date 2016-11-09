@@ -14,7 +14,7 @@ import setuptools.command.install as install_lib
 # Get list of programs to alias
 from programs_list import programs_list
 
-version_num = '3.7.17'
+version_num = '3.7.29'
 here = path.abspath(path.dirname(__file__))
 
 packages = find_packages(exclude=['pmagpy', 'pmagpy_tests.examples'
@@ -89,7 +89,6 @@ setup(
     # requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
     install_requires=['numpy', 'matplotlib', 'scripttest'],
-
     # List additional groups of dependencies here (e.g. development
     # dependencies). You can install these using the following syntax,
     # for example:

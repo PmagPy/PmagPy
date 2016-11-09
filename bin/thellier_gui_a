@@ -4,6 +4,10 @@
 import re
 import sys
 
+# this is handled in programs/__init__.py instead:
+#import matplotlib
+#matplotlib.use('WXAgg')
+
 from programs.thellier_gui import main
 
 if __name__ == '__main__':
