@@ -3564,7 +3564,20 @@ class Demag_GUI(wx.Frame):
         """
         if not os.path.isdir(new_WD): return
         self.WD = new_WD
-        if os.path.exists(os.path.join(self.WD, "measurements.txt")):
+        if '-DM' in sys.argv:
+            dm_index = sys.argv.index('-DM')
+            self.data_model = ''
+            try:
+                if len(sys.argv)>=dm_index+2:
+                    self.data_model = float(sys.argv[dm_index+1])
+                if int(self.data_model) == 3:
+                    meas_file = os.path.join(self.WD, "measurements.txt")
+                elif int(self.data_model) == 2:
+                    meas_file = os.path.join(self.WD, "magic_measurements.txt")
+                else: raise ValueError
+            except ValueError as e:
+                self.user_warning("Command line provided data model is unrecognized or invalid, please rerun with valid data model input or without -dm flag"); sys.exit()
+        elif os.path.exists(os.path.join(self.WD, "measurements.txt")):
             meas_file = os.path.join(self.WD, "measurements.txt")
             self.data_model = 3.0
         elif os.path.exists(os.path.join(self.WD, "magic_measurements.txt")):
