@@ -99,7 +99,7 @@ class Demag_GUI(wx.Frame):
 #============================Initalization Functions=======================================#
 #==========================================================================================#
 
-    def __init__(self, WD=None, parent=None, write_to_log_file=True, test_mode_on=False):
+    def __init__(self, WD=None, parent=None, write_to_log_file=True, test_mode_on=False, data_model=None):
         """
         Initializes the GUI by creating necessary variables, importing data, setting icon, and initializing the UI and menu
         @param - WD: Working directory where data files will be written to and read from if None will prompt user for location (default: None)
@@ -112,6 +112,7 @@ class Demag_GUI(wx.Frame):
         wx.Frame.__init__(self, parent, wx.ID_ANY, self.title, style = default_style, name='demag gui')
         self.parent = parent
         self.set_test_mode(test_mode_on)
+        self.data_model = data_model
 
         #setup wx help provider class to give help messages
         provider = wx.SimpleHelpProvider()
@@ -3562,28 +3563,33 @@ class Demag_GUI(wx.Frame):
         Changes Demag GUI's current WD to new_WD if possible
         @param: new_WD - WD to change to current GUI's WD
         """
+        print(self.data_model)
         if not os.path.isdir(new_WD): return
         self.WD = new_WD
-        if '-DM' in sys.argv:
-            dm_index = sys.argv.index('-DM')
-            self.data_model = ''
-            try:
-                if len(sys.argv)>=dm_index+2:
-                    self.data_model = float(sys.argv[dm_index+1])
-                if int(self.data_model) == 3:
-                    meas_file = os.path.join(self.WD, "measurements.txt")
-                elif int(self.data_model) == 2:
-                    meas_file = os.path.join(self.WD, "magic_measurements.txt")
-                else: raise ValueError
-            except ValueError as e:
-                self.user_warning("Command line provided data model is unrecognized or invalid, please rerun with valid data model input or without -dm flag"); sys.exit()
-        elif os.path.exists(os.path.join(self.WD, "measurements.txt")):
-            meas_file = os.path.join(self.WD, "measurements.txt")
-            self.data_model = 3.0
-        elif os.path.exists(os.path.join(self.WD, "magic_measurements.txt")):
-            meas_file = os.path.join(self.WD, "magic_measurements.txt")
-            self.data_model = 2.5
-        else: self.user_warning("No measurement file found in chosen directory"); meas_file = ''; self.data_model = 2.5
+        if self.data_model==None:
+            if os.path.isfile(os.path.join(self.WD, "measurements.txt")) and os.path.isfile(os.path.join(self.WD, "magic_measurements.txt")):
+                ui_dialog = demag_dialogs.user_input(self,['data_model'],parse_funcs=[float], heading="More than one measurement file found in CWD with different data models please input prefered data model (2.5,3.0)")
+                self.show_dlg(ui_dialog)
+                ui_data = ui_dialog.get_values()
+                self.data_model = ui_data[1]['data_model']
+            elif os.path.isfile(os.path.join(self.WD, "measurements.txt")):
+                self.data_model = 3.0
+            elif os.path.isfile(os.path.join(self.WD, "magic_measurements.txt")):
+                self.data_model = 2.5
+            else:
+                self.user_warning("No measurement file found in chosen directory")
+        try:
+            self.data_model = float(self.data_model)
+            if int(self.data_model) == 3:
+                meas_file = os.path.join(self.WD, "measurements.txt")
+            elif int(self.data_model) == 2:
+                meas_file = os.path.join(self.WD, "magic_measurements.txt")
+            else: meas_file = ''; self.data_model = 2.5
+        except (ValueError, TypeError) as e:
+            self.user_warning("Provided data model is unrecognized or invalid, please rerun with valid data model input (2.x or 3) or without -dm flag"); sys.exit()
+
+        print(self.data_model, meas_file)
+
         if os.path.isfile(meas_file): self.magic_file=meas_file
         else: self.magic_file = self.choose_meas_file()
 
@@ -3838,7 +3844,8 @@ class Demag_GUI(wx.Frame):
             meas_file = dlg.GetPath()
             dlg.Destroy()
         else:
-            meas_file = None
+            meas_file = ''
+            self.data_model = 2.5
             dlg.Destroy()
         return meas_file
 
@@ -6575,11 +6582,11 @@ class SaveMyPlot(wx.Frame):
 # Run the GUI
 #--------------------------------------------------------------
 
-def main(WD=None, standalone_app=True, parent=None, write_to_log_file=True):
+def main(WD=None, standalone_app=True, parent=None, write_to_log_file=True, DM=None):
     # to run as module:
     if not standalone_app:
         disableAll = wx.WindowDisabler()
-        frame = Demag_GUI(WD, parent, write_to_log_file=write_to_log_file)
+        frame = Demag_GUI(WD, parent, write_to_log_file=write_to_log_file, data_model=DM)
         frame.Center()
         frame.Show()
         frame.Raise()
@@ -6587,7 +6594,7 @@ def main(WD=None, standalone_app=True, parent=None, write_to_log_file=True):
     # to run as command_line:
     else:
         app = wx.App()
-        app.frame = Demag_GUI(WD, write_to_log_file=write_to_log_file)
+        app.frame = Demag_GUI(WD, write_to_log_file=write_to_log_file, data_model=DM)
         app.frame.Center()
         app.frame.Show()
         app.MainLoop()
@@ -6603,4 +6610,9 @@ if __name__ == '__main__':
     if "-WD" in sys.argv:
         ind=sys.argv.index('-WD')
         WD = sys.argv[ind+1]
-    main(WD=WD,write_to_log_file=write_to_log_file)
+    data_model = None
+    if '-DM' in sys.argv:
+        dm_index = sys.argv.index('-DM')
+        if len(sys.argv)>=dm_index+2:
+            data_model = sys.argv[dm_index+1]
+    main(WD=WD,write_to_log_file=write_to_log_file,DM=data_model)
