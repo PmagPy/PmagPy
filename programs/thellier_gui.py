@@ -393,24 +393,26 @@ class Arai_GUI(wx.Frame):
         # adjust font size
         #----------------------------------------------------------------------
 
+        self.font_type = "Arial"
+        if sys.platform.startswith("linux"): self.font_type = "Liberation Serif"
 
         if self.GUI_RESOLUTION >= 1.1 and self.GUI_RESOLUTION <= 1.3:
-            font2 = wx.Font(13, wx.SWISS, wx.NORMAL, wx.NORMAL, False, u'Arial')
+            font2 = wx.Font(13, wx.SWISS, wx.NORMAL, wx.NORMAL, False, self.font_type)
         elif self.GUI_RESOLUTION <= 0.9 and self.GUI_RESOLUTION < 1.0 :
-            font2 = wx.Font(11, wx.SWISS, wx.NORMAL, wx.NORMAL, False, u'Arial')
+            font2 = wx.Font(11, wx.SWISS, wx.NORMAL, wx.NORMAL, False, self.font_type)
         elif self.GUI_RESOLUTION <= 0.9 :
-            font2 = wx.Font(10, wx.SWISS, wx.NORMAL, wx.NORMAL, False, u'Arial')
+            font2 = wx.Font(10, wx.SWISS, wx.NORMAL, wx.NORMAL, False, self.font_type)
         else:
-            font2 = wx.Font(12, wx.SWISS, wx.NORMAL, wx.NORMAL, False, u'Arial')
+            font2 = wx.Font(12, wx.SWISS, wx.NORMAL, wx.NORMAL, False, self.font_type)
         print "    self.GUI_RESOLUTION",self.GUI_RESOLUTION
 
         # set font size and style
         #font1 = wx.Font(10, wx.SWISS, wx.NORMAL, wx.NORMAL, False, u'Comic Sans MS')
         FONT_RATIO=self.GUI_RESOLUTION+(self.GUI_RESOLUTION-1)*5
-        font1 = wx.Font(9+FONT_RATIO, wx.SWISS, wx.NORMAL, wx.NORMAL, False, u'Arial')
+        font1 = wx.Font(9+FONT_RATIO, wx.SWISS, wx.NORMAL, wx.NORMAL, False, self.font_type)
         # GUI headers
 
-        font3 = wx.Font(11+FONT_RATIO, wx.SWISS, wx.NORMAL, wx.NORMAL, False, u'Arial')
+        font3 = wx.Font(11+FONT_RATIO, wx.SWISS, wx.NORMAL, wx.NORMAL, False, self.font_type)
         font = wx.SystemSettings_GetFont(wx.SYS_SYSTEM_FONT)
         font.SetPointSize(10+FONT_RATIO)
 
@@ -420,15 +422,15 @@ class Arai_GUI(wx.Frame):
 
         self.fig1 = pylab.Figure((5.*self.GUI_RESOLUTION, 5.*self.GUI_RESOLUTION), dpi=self.dpi)
         self.canvas1 = FigCanvas(self.panel, -1, self.fig1)
-        self.fig1.text(0.01,0.98,"Arai plot",{'family':'Arial', 'fontsize':10, 'style':'normal','va':'center', 'ha':'left' })
+        self.fig1.text(0.01,0.98,"Arai plot",{'family':self.font_type, 'fontsize':10, 'style':'normal','va':'center', 'ha':'left' })
 
         self.fig2 = pylab.Figure((2.5*self.GUI_RESOLUTION, 2.5*self.GUI_RESOLUTION), dpi=self.dpi)
         self.canvas2 = FigCanvas(self.panel, -1, self.fig2)
-        self.fig2.text(0.02,0.96,"Zijderveld",{'family':'Arial', 'fontsize':10, 'style':'normal','va':'center', 'ha':'left' })
+        self.fig2.text(0.02,0.96,"Zijderveld",{'family':self.font_type, 'fontsize':10, 'style':'normal','va':'center', 'ha':'left' })
 
         self.fig3 = pylab.Figure((2.5*self.GUI_RESOLUTION, 2.5*self.GUI_RESOLUTION), dpi=self.dpi)
         self.canvas3 = FigCanvas(self.panel, -1, self.fig3)
-        #self.fig3.text(0.02,0.96,"Equal area",{'family':'Arial', 'fontsize':10*self.GUI_RESOLUTION, 'style':'normal','va':'center', 'ha':'left' })
+        #self.fig3.text(0.02,0.96,"Equal area",{'family':self.font_type, 'fontsize':10*self.GUI_RESOLUTION, 'style':'normal','va':'center', 'ha':'left' })
 
         self.fig4 = pylab.Figure((2.5*self.GUI_RESOLUTION, 2.5*self.GUI_RESOLUTION), dpi=self.dpi)
         self.canvas4 = FigCanvas(self.panel, -1, self.fig4)
@@ -436,11 +438,11 @@ class Arai_GUI(wx.Frame):
             TEXT="Site data"
         else:
             TEXT="Sample data"
-        self.fig4.text(0.02,0.96,TEXT,{'family':'Arial', 'fontsize':10, 'style':'normal','va':'center', 'ha':'left' })
+        self.fig4.text(0.02,0.96,TEXT,{'family':self.font_type, 'fontsize':10, 'style':'normal','va':'center', 'ha':'left' })
 
         self.fig5 = pylab.Figure((2.5*self.GUI_RESOLUTION, 2.5*self.GUI_RESOLUTION), dpi=self.dpi)
         self.canvas5 = FigCanvas(self.panel, -1, self.fig5)
-        #self.fig5.text(0.02,0.96,"M/M0",{'family':'Arial', 'fontsize':10, 'style':'normal','va':'center', 'ha':'left' })
+        #self.fig5.text(0.02,0.96,"M/M0",{'family':self.font_type, 'fontsize':10, 'style':'normal','va':'center', 'ha':'left' })
 
         # make axes of the figures
         self.araiplot = self.fig1.add_axes([0.1,0.1,0.8,0.8])
@@ -639,6 +641,8 @@ class Arai_GUI(wx.Frame):
         for statistic in self.preferences['show_statistics_on_gui']:
             command="self.%s_window=wx.TextCtrl(self.panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50*self.GUI_RESOLUTION,25))"%statistic
             exec command
+            command="self.%s_window.SetBackgroundColour(wx.WHITE)"%statistic
+            exec(command)
             command="self.%s_window.SetFont(font2)"%statistic
             exec command
             command="self.%s_threshold_window=wx.TextCtrl(self.panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50*self.GUI_RESOLUTION,25))"%statistic
@@ -859,11 +863,11 @@ class Arai_GUI(wx.Frame):
       self.logger.Clear()
       FONT_RATIO=self.GUI_RESOLUTION+(self.GUI_RESOLUTION-1)*5
       if self.GUI_RESOLUTION >1.1:
-          font1 = wx.Font(11, wx.SWISS, wx.NORMAL, wx.NORMAL, False, u'Arial')
+          font1 = wx.Font(11, wx.SWISS, wx.NORMAL, wx.NORMAL, False, self.font_type)
       elif self.GUI_RESOLUTION <=0.9:
-          font1 = wx.Font(8, wx.SWISS, wx.NORMAL, wx.NORMAL, False, u'Arial')
+          font1 = wx.Font(8, wx.SWISS, wx.NORMAL, wx.NORMAL, False, self.font_type)
       else:
-          font1 = wx.Font(10, wx.SWISS, wx.NORMAL, wx.NORMAL, False, u'Arial')
+          font1 = wx.Font(10, wx.SWISS, wx.NORMAL, wx.NORMAL, False, self.font_type)
 
       #String="Step | Temp |  Dec  |  Inc  | M [Am^2]\n"
       String="  Step\tTemp\t Dec\t Inc\tM [Am^2]\n"
@@ -1772,42 +1776,42 @@ class Arai_GUI(wx.Frame):
               nrm0= "%.2e"%float(rec['measurement_magn_moment'])
               break
 
-        self.fig1.text(0.1,0.93,'$NRM_0 = %s Am^2 $'%(nrm0),{'family':'Arial', 'fontsize':10, 'style':'normal','va':'center', 'ha':'left' })
-        self.fig1.text(0.9,0.93,'%s'%(self.s),{'family':'Arial', 'fontsize':10, 'style':'normal','va':'center', 'ha':'right' })
+        self.fig1.text(0.1,0.93,'$NRM_0 = %s Am^2 $'%(nrm0),{'family':self.font_type, 'fontsize':10, 'style':'normal','va':'center', 'ha':'left' })
+        self.fig1.text(0.9,0.93,'%s'%(self.s),{'family':self.font_type, 'fontsize':10, 'style':'normal','va':'center', 'ha':'right' })
         #self.canvas1.draw()
         thellier_gui_dialogs.SaveMyPlot(self.fig1,self.pars,"Arai")
         self.fig1.clear()
-        self.fig1.text(0.01,0.98,"Arai plot",{'family':'Arial', 'fontsize':10, 'style':'normal','va':'center', 'ha':'left' })
+        self.fig1.text(0.01,0.98,"Arai plot",{'family':self.font_type, 'fontsize':10, 'style':'normal','va':'center', 'ha':'left' })
         self.araiplot = self.fig1.add_axes([0.1,0.1,0.8,0.8])
         self.draw_figure(self.s)
         self.update_selection()
 
     def on_save_Zij_plot(self, event):
-        self.fig2.text(0.9,0.96,'%s'%(self.s),{'family':'Arial', 'fontsize':10, 'style':'normal','va':'center', 'ha':'right' })
+        self.fig2.text(0.9,0.96,'%s'%(self.s),{'family':self.font_type, 'fontsize':10, 'style':'normal','va':'center', 'ha':'right' })
         #self.canvas1.draw()
         thellier_gui_dialogs.SaveMyPlot(self.fig2,self.pars,"Zij")
         self.fig2.clear()
-        self.fig2.text(0.02,0.96,"Zijderveld",{'family':'Arial', 'fontsize':10, 'style':'normal','va':'center', 'ha':'left' })
+        self.fig2.text(0.02,0.96,"Zijderveld",{'family':self.font_type, 'fontsize':10, 'style':'normal','va':'center', 'ha':'left' })
         self.zijplot = self.fig2.add_subplot(111)
         self.draw_figure(self.s)
         self.update_selection()
 
     def on_save_Eq_plot(self, event):
-        self.fig3.text(0.9,0.96,'%s'%(self.s),{'family':'Arial', 'fontsize':10, 'style':'normal','va':'center', 'ha':'right' })
+        self.fig3.text(0.9,0.96,'%s'%(self.s),{'family':self.font_type, 'fontsize':10, 'style':'normal','va':'center', 'ha':'right' })
         thellier_gui_dialogs.SaveMyPlot(self.fig3,self.pars,"Eqarea")
         self.fig3.clear()
-        self.fig3.text(0.02,0.96,"Equal area",{'family':'Arial', 'fontsize':10, 'style':'normal','va':'center', 'ha':'left' })
+        self.fig3.text(0.02,0.96,"Equal area",{'family':self.font_type, 'fontsize':10, 'style':'normal','va':'center', 'ha':'left' })
         self.eqplot = self.fig3.add_subplot(111)
         self.draw_figure(self.s)
         self.update_selection()
 
     def on_save_M_t_plot(self,event):
         if self.preferences['show_NLT_plot'] ==False or 'NLT_parameters' not in self.Data[self.s].keys():
-            self.fig5.text(0.9,0.96,'%s'%(self.s),{'family':'Arial', 'fontsize':10, 'style':'normal','va':'center', 'ha':'right' })
+            self.fig5.text(0.9,0.96,'%s'%(self.s),{'family':self.font_type, 'fontsize':10, 'style':'normal','va':'center', 'ha':'right' })
             thellier_gui_dialogs.SaveMyPlot(self.fig5,self.pars,"M_T")
             self.fig5.clear()
             self.mplot = self.fig5.add_axes([0.2,0.15,0.7,0.7],frameon=True,axisbg='None')
-            self.fig5.text(0.02,0.96,"M/T",{'family':'Arial', 'fontsize':10, 'style':'normal','va':'center', 'ha':'left' })
+            self.fig5.text(0.02,0.96,"M/T",{'family':self.font_type, 'fontsize':10, 'style':'normal','va':'center', 'ha':'left' })
             self.draw_figure(self.s)
             self.update_selection()
         else:
@@ -1815,10 +1819,10 @@ class Arai_GUI(wx.Frame):
 
 
     def on_save_sample_plot(self,event):
-        self.fig4.text(0.9,0.96,'%s'%(self.Data_hierarchy['specimens'][self.s]),{'family':'Arial', 'fontsize':10, 'style':'normal','va':'center', 'ha':'right' })
+        self.fig4.text(0.9,0.96,'%s'%(self.Data_hierarchy['specimens'][self.s]),{'family':self.font_type, 'fontsize':10, 'style':'normal','va':'center', 'ha':'right' })
         thellier_gui_dialogs.SaveMyPlot(self.fig4,self.pars,"Sample")
         self.fig4.clear()
-        self.fig4.text(0.02,0.96,"Sample data",{'family':'Arial', 'fontsize':10, 'style':'normal','va':'center', 'ha':'left' })
+        self.fig4.text(0.02,0.96,"Sample data",{'family':self.font_type, 'fontsize':10, 'style':'normal','va':'center', 'ha':'left' })
         self.sampleplot = self.fig4.add_axes([0.2,0.3,0.7,0.6],frameon=True,axisbg='None')
         self.draw_figure(self.s)
         self.update_selection()
@@ -1827,11 +1831,11 @@ class Arai_GUI(wx.Frame):
 
     def on_save_NLT_plot(self,event):
         if self.preferences['show_NLT_plot'] ==True and 'NLT_parameters' in self.Data[self.s].keys():
-            self.fig5.text(0.9,0.96,'%s'%(self.s),{'family':'Arial', 'fontsize':10, 'style':'normal','va':'center', 'ha':'right' })
+            self.fig5.text(0.9,0.96,'%s'%(self.s),{'family':self.font_type, 'fontsize':10, 'style':'normal','va':'center', 'ha':'right' })
             thellier_gui_dialogs.SaveMyPlot(self.fig5,self.pars,"NLT")
             self.fig5.clear()
             self.mplot = self.fig5.add_axes([0.2,0.15,0.7,0.7],frameon=True,axisbg='None')
-            self.fig5.text(0.02,0.96,"Non-linear TRM check",{'family':'Arial', 'fontsize':10, 'style':'normal','va':'center', 'ha':'left' })
+            self.fig5.text(0.02,0.96,"Non-linear TRM check",{'family':self.font_type, 'fontsize':10, 'style':'normal','va':'center', 'ha':'left' })
             self.draw_figure(self.s)
             self.update_selection()
         else:
@@ -1839,11 +1843,11 @@ class Arai_GUI(wx.Frame):
 
     def on_save_CR_plot(self,event):
         if self.preferences['show_CR_plot'] ==True and 'cooling_rate_data' in self.Data[self.s].keys():
-            self.fig3.text(0.9,0.96,'%s'%(self.s),{'family':'Arial', 'fontsize':10, 'style':'normal','va':'center', 'ha':'right' })
+            self.fig3.text(0.9,0.96,'%s'%(self.s),{'family':self.font_type, 'fontsize':10, 'style':'normal','va':'center', 'ha':'right' })
             thellier_gui_dialogs.SaveMyPlot(self.fig3,self.pars,"CR")
             self.fig3.clear()
             self.eqplot = self.fig3.add_axes([0.2,0.15,0.7,0.7],frameon=True,axisbg='None')
-            self.fig3.text(0.02,0.96,"Cooling rate correction",{'family':'Arial', 'fontsize':10, 'style':'normal','va':'center', 'ha':'left' })
+            self.fig3.text(0.02,0.96,"Cooling rate correction",{'family':self.font_type, 'fontsize':10, 'style':'normal','va':'center', 'ha':'left' })
             self.draw_figure(self.s)
             self.update_selection()
         else:
@@ -4635,7 +4639,7 @@ class Arai_GUI(wx.Frame):
               break
 
 
-        #self.fig1.text(0.05,0.93,r'$NRM0 = %s Am^2 $'%(nrm0),{'family':'Arial', 'fontsize':10, 'style':'normal','va':'center', 'ha':'left' })
+        #self.fig1.text(0.05,0.93,r'$NRM0 = %s Am^2 $'%(nrm0),{'family':self.font_type, 'fontsize':10, 'style':'normal','va':'center', 'ha':'left' })
 
         #draw()
         self.canvas1.draw()
@@ -4736,7 +4740,7 @@ class Arai_GUI(wx.Frame):
         if self.preferences['show_CR_plot'] ==False or 'crblock' not in self.Data[self.s].keys():
 
             self.fig3.clf()
-            self.fig3.text(0.02,0.96,"Equal area",{'family':'Arial', 'fontsize':FONTSIZE, 'style':'normal','va':'center', 'ha':'left' })
+            self.fig3.text(0.02,0.96,"Equal area",{'family':self.font_type, 'fontsize':FONTSIZE, 'style':'normal','va':'center', 'ha':'left' })
             self.eqplot = self.fig3.add_subplot(111)
 
 
@@ -4824,7 +4828,7 @@ class Arai_GUI(wx.Frame):
         else:
 
             self.fig3.clf()
-            self.fig3.text(0.02,0.96,"Cooling rate experiment",{'family':'Arial', 'fontsize':FONTSIZE, 'style':'normal','va':'center', 'ha':'left' })
+            self.fig3.text(0.02,0.96,"Cooling rate experiment",{'family':self.font_type, 'fontsize':FONTSIZE, 'style':'normal','va':'center', 'ha':'left' })
             self.eqplot = self.fig3.add_axes([0.2,0.15,0.7,0.7],frameon=True,axisbg='None')
 
             if 'cooling_rate_data' in self.Data[self.s].keys() and\
@@ -4878,7 +4882,7 @@ class Arai_GUI(wx.Frame):
 
         if self.preferences['show_NLT_plot'] ==False or 'NLT_parameters' not in self.Data[self.s].keys():
             self.fig5.clf()
-            self.fig5.text(0.02,0.96,"M/T",{'family':'Arial', 'fontsize':FONTSIZE, 'style':'normal','va':'center', 'ha':'left' })
+            self.fig5.text(0.02,0.96,"M/T",{'family':self.font_type, 'fontsize':FONTSIZE, 'style':'normal','va':'center', 'ha':'left' })
             self.mplot = self.fig5.add_axes([0.2,0.15,0.7,0.7],frameon=True,axisbg='None')
 
             self.mplot.clear()
@@ -4936,7 +4940,7 @@ class Arai_GUI(wx.Frame):
 
         else:
             self.fig5.clf()
-            self.fig5.text(0.02,0.96,"Non-linear TRM check",{'family':'Arial', 'fontsize':10, 'style':'normal','va':'center', 'ha':'left' })
+            self.fig5.text(0.02,0.96,"Non-linear TRM check",{'family':self.font_type, 'fontsize':10, 'style':'normal','va':'center', 'ha':'left' })
             self.mplot = self.fig5.add_axes([0.2,0.15,0.7,0.7],frameon=True,axisbg='None')
             #self.mplot.clear()
             self.mplot.scatter(scipy.array(self.Data[self.s]['NLT_parameters']['B_NLT'])*1e6,self.Data[self.s]['NLT_parameters']['M_NLT_norm'],marker='o',facecolor='b',edgecolor ='k',s=15,clip_on=False)
