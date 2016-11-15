@@ -339,7 +339,7 @@ class user_input(wx.Dialog):
     Generic user input dialog that asks for input any set of inputs into a series of TextCtrls
     """
 
-    def __init__(self,parent,inputs,parse_funcs=[],heading=None,title="User Input Required"):
+    def __init__(self,parent,inputs,parse_funcs=[],heading=None,title="User Input Required",values=[]):
         """
         @param: parent - the wx.Frame calling the dialog
         @param: inputs - a list of strings giving the names of the inputs wanted
@@ -349,9 +349,9 @@ class user_input(wx.Dialog):
         super(user_input, self).__init__(parent, title=title)
         self.inputs = inputs
         self.parse_funcs = parse_funcs
-        self.InitUI(heading)
+        self.InitUI(heading,values=values)
 
-    def InitUI(self,heading):
+    def InitUI(self,heading,values=[]):
 
         #make header and panel
         pnl1 = wx.Panel(self)
@@ -362,9 +362,10 @@ class user_input(wx.Dialog):
         #make inputs
         list_ctrls_for_window=[]
         self.list_ctrls=[]
-        for inp in self.inputs:
+        if len(values) != len(self.inputs): values = ['' for _ in range(len(self.inputs))]
+        for inp,val in zip(self.inputs,values):
             list_ctrls_for_window.append((wx.StaticText(pnl1,label=inp,style=wx.TE_CENTER), wx.EXPAND))
-            self.list_ctrls.append(wx.TextCtrl(pnl1,style=wx.TE_CENTER,size=(200,20)))
+            self.list_ctrls.append(wx.TextCtrl(pnl1,value=str(val),style=wx.TE_CENTER,size=(200,20)))
             list_ctrls_for_window.append(self.list_ctrls[-1])
 
         ctrl_window = wx.GridSizer(2, len(self.list_ctrls), 6, 6)

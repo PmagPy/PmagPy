@@ -128,9 +128,9 @@ class TestDemagGUI(unittest.TestCase):
         #add fit with bounds using button
         tmin=self.frame.Data[self.frame.s]['zijdblock_steps'][0]
         tmax=self.frame.Data[self.frame.s]['zijdblock_steps'][-1]
-        for tmin_i in range(2,len(self.frame.Data[self.frame.s]['zijdblock_steps'])):
-            if tmin!=tmax: tmin_i-=2; break
-            else: tmax=self.frame.Data[self.frame.s]['zijdblock_steps'][-tmin_i]
+        for tmax_i in range(2,len(self.frame.Data[self.frame.s]['zijdblock_steps'])):
+            if tmin!=tmax: tmax_i-=2; break
+            else: tmax=self.frame.Data[self.frame.s]['zijdblock_steps'][-tmax_i]
         self.frame.ProcessEvent(add_fit_evt)
         self.frame.tmin_box.SetValue(tmin)
         self.frame.tmax_box.SetValue(tmax)
@@ -144,9 +144,9 @@ class TestDemagGUI(unittest.TestCase):
         self.frame.logger.Select(0)
         self.frame.ProcessEvent(markgood_menu_evt)
         total_num_of_good_meas_data =  len(filter(lambda x: x=='g', self.frame.Data[self.frame.s]['measurement_flag']))
-        total_num_of_good_meas_data-=tmin_i #account for the fact you might not be able to select all measurements if the last and first step are equal
+        total_num_of_good_meas_data-=tmax_i #account for the fact you might not be able to select all measurements if the last and first step are equal
         total_n = len(self.frame.Data[self.frame.s]['measurement_flag'])
-        total_n-=tmin_i #this is the total n that can be selected between these bounds if you couldn't chose the top and bottom measurement you have to adjust
+        total_n-=tmax_i #this is the total n that can be selected between these bounds if you couldn't chose the top and bottom measurement you have to adjust
 
         #insure that the fit spans all good meas data
         self.assertEqual(fit.get(self.frame.COORDINATE_SYSTEM)['specimen_n'],total_num_of_good_meas_data)
@@ -192,12 +192,12 @@ class TestDemagGUI(unittest.TestCase):
 
         #check edge cases by marking first and last meas step bad
         self.frame.logger.Select(0)
-        self.frame.logger.Select(self.frame.logger.GetItemCount()-1-tmin_i)
+        self.frame.logger.Select(self.frame.logger.GetItemCount()-1-tmax_i)
         self.frame.ProcessEvent(markbad_menu_evt)
         self.assertEqual(fit.get(self.frame.COORDINATE_SYSTEM)['specimen_n'], total_n-2)
         #mark them good again
         self.frame.logger.Select(0)
-        self.frame.logger.Select(self.frame.logger.GetItemCount()-1-tmin_i)
+        self.frame.logger.Select(self.frame.logger.GetItemCount()-1-tmax_i)
         self.frame.ProcessEvent(markgood_menu_evt)
         #reset bounds for fit
         self.frame.tmin_box.SetValue(tmin)
@@ -215,7 +215,7 @@ class TestDemagGUI(unittest.TestCase):
             if b == 'g': self.frame.logger.Select(i)
         self.frame.ProcessEvent(markgood_menu_evt)
         if self.frame.Data[self.frame.s]['measurement_flag'][0]=='b': total_num_of_good_meas_data-=1
-        elif self.frame.Data[self.frame.s]['measurement_flag'][-tmin_i]=='b': total_num_of_good_meas_data-=1
+        elif self.frame.Data[self.frame.s]['measurement_flag'][-tmax_i]=='b': total_num_of_good_meas_data-=1
         self.assertEqual(fit.get(self.frame.COORDINATE_SYSTEM)['specimen_n'],total_num_of_good_meas_data)
 
     def test_read_write_redo(self):
@@ -298,6 +298,8 @@ class TestDemagGUI(unittest.TestCase):
                 self.assertTrue(ofit.equal(ifit))
 
     def test_ie_buttons(self):
+        #mark all measurements good in RAM only so that there are no bad measurements causing endpoint changes (That's another test)
+        self.mark_all_meas_good(self.frame)
         #test initialization of ie
         self.assertFalse(self.frame.ie_open)
         self.frame.on_menu_edit_interpretations(-1)
@@ -349,6 +351,7 @@ class TestDemagGUI(unittest.TestCase):
             if tmax_index > len(self.frame.Data[speci]['zijdblock_steps'])-1:
                 self.assertEqual(fit.tmax,self.frame.Data[speci]['zijdblock_steps'][-1])
             elif tmax in self.frame.Data[speci]['zijdblock_steps']:
+                if fit.tmax!=tmax: import pdb; pdb.set_trace()
                 self.assertEqual(fit.tmax,tmax)
             else:
                 self.assertEqual(fit.tmax,self.frame.Data[speci]['zijdblock_steps'][tmax_index])
@@ -691,7 +694,7 @@ def fit_cmp(f1,f2):
 def backup(WD):
     print("backing up")
     #make backup directory
-    backup_dir = os.path.join(WD,'Backup')
+    backup_dir = os.path.join(WD,'.backup')
     if not os.path.exists(backup_dir):
         os.makedirs(backup_dir)
     #copy test files to backup
@@ -703,7 +706,7 @@ def backup(WD):
 
 def revert_from_backup(WD):
     print("reverting")
-    backup_dir = os.path.join(WD,'Backup')
+    backup_dir = os.path.join(WD,'.backup')
     #copy test files to backup
     src_files = os.listdir(backup_dir)
     for file_name in src_files:

@@ -3162,7 +3162,7 @@ class Demag_GUI(wx.Frame):
                 Data[s]['zdata'].append(array([cart[0],cart[1],cart[2]]))
 
                 if 'magic_experiment_name' in Data[s].keys() and Data[s]['magic_experiment_name']!=rec["magic_experiment_name"]:
-                    print("-E- ERROR: specimen %s has more than one demagnetization experiment name. You need to merge them to one experiment-name?\n"%(s))
+                    print("-E- ERROR: specimen %s has more than one demagnetization experiment name. You need to merge them to one experiment-name?"%(s))
                 if float(tr)==0 or float(tr)==273:
                     Data[s]['zijdblock_steps'].append("0")
                 elif measurement_step_unit=="C":
@@ -3563,12 +3563,11 @@ class Demag_GUI(wx.Frame):
         Changes Demag GUI's current WD to new_WD if possible
         @param: new_WD - WD to change to current GUI's WD
         """
-        print(self.data_model)
         if not os.path.isdir(new_WD): return
         self.WD = new_WD
         if self.data_model==None:
             if os.path.isfile(os.path.join(self.WD, "measurements.txt")) and os.path.isfile(os.path.join(self.WD, "magic_measurements.txt")):
-                ui_dialog = demag_dialogs.user_input(self,['data_model'],parse_funcs=[float], heading="More than one measurement file found in CWD with different data models please input prefered data model (2.5,3.0)")
+                ui_dialog = demag_dialogs.user_input(self,['data_model'],parse_funcs=[float], heading="More than one measurement file found in CWD with different data models please input prefered data model (2.5,3.0)",values=[3])
                 self.show_dlg(ui_dialog)
                 ui_data = ui_dialog.get_values()
                 self.data_model = ui_data[1]['data_model']
@@ -3578,6 +3577,7 @@ class Demag_GUI(wx.Frame):
                 self.data_model = 2.5
             else:
                 self.user_warning("No measurement file found in chosen directory")
+                self.data_model = 0
         try:
             self.data_model = float(self.data_model)
             if int(self.data_model) == 3:
@@ -3587,8 +3587,6 @@ class Demag_GUI(wx.Frame):
             else: meas_file = ''; self.data_model = 2.5
         except (ValueError, TypeError) as e:
             self.user_warning("Provided data model is unrecognized or invalid, please rerun with valid data model input (2.x or 3) or without -dm flag"); sys.exit()
-
-        print(self.data_model, meas_file)
 
         if os.path.isfile(meas_file): self.magic_file=meas_file
         else: self.magic_file = self.choose_meas_file()
@@ -4313,10 +4311,13 @@ class Demag_GUI(wx.Frame):
                             if 'dir_alpha95' in PmagSiteRec.keys() and PmagSiteRec['dir_alpha95']!="":
                                 a95=float(PmagSiteRec["dir_alpha95"])
                             else:a95=180.
-                            sitedat=pmag.get_dictitem(SiteNFO,'site',PmagSiteRec['site'],'T')[0] # fish out site information (lat/lon, etc.)
+                            sitedat=filter(lambda x: x['lat']!=None and x['lon']!=None, pmag.get_dictitem(SiteNFO,'site',PmagSiteRec['site'],'T')) # fish out site information (lat/lon, etc.)
+                            if len(sitedat)!=0:sitedat=sitedat[0]
+                            else: sitedat = {}
                             try:
-                                lat=float(sitedat['lat'])
-                                lon=float(sitedat['lon'])
+                                PmagSiteRec['lat']=float(sitedat['lat'])
+                                PmagSiteRec['lon']=float(sitedat['lon'])
+                                lat,lon = PmagSiteRec['lat'],PmagSiteRec['lon']
                                 calculate=True
                             except (KeyError,ValueError,TypeError) as e:
                                 calculate=False
@@ -4345,6 +4346,13 @@ class Demag_GUI(wx.Frame):
                         kill=pmag.grade(PmagSiteRec,accept,'site_dir')
                         if len(kill)>0: PmagSiteRec['result_quality'] = 'b'
                         else: PmagSiteRec['result_quality'] = 'g'
+
+                        #fix not duplicating data
+                        for ndd in ['geologic_classes', 'geologic_types', 'lithologies']:
+                            sitedat=filter(lambda x: x[ndd]!=None, pmag.get_dictitem(SiteNFO,'site',PmagSiteRec['site'],'T')) # fish out site information (lat/lon, etc.)
+                            if len(sitedat)!=0:sitedat=sitedat[0]
+                            else: continue
+                            PmagSiteRec[ndd] = sitedat[ndd]
 
                         PmagSites.append(PmagSiteRec)
 
@@ -4406,6 +4414,7 @@ class Demag_GUI(wx.Frame):
                                 age_data_for_loc = age_dat[age_dat['location']==location]
                                 avg = lambda l: sum(l)/len(l) if hasattr(l, '__iter__') else l
                                 for k in age_dat.columns:
+                                    if k=='site' or k=='location': continue
                                     if len(age_data_for_site[k])==1 and type(list(age_data_for_site[k])[0]) == str:
                                         PolRes[k] = list(age_data_for_loc[k])[0]
                                     elif len(age_data_for_site[k])>0:
@@ -4477,7 +4486,6 @@ class Demag_GUI(wx.Frame):
                 self.con.tables['locations'].write_magic_file(dir_path=self.WD)
 
         else:
-
             for FILE in ['pmag_samples.txt','pmag_sites.txt','pmag_results.txt']:
                 self.PmagRecsOld[FILE]=[]
                 try:
