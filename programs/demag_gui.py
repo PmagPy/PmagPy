@@ -4180,7 +4180,7 @@ class Demag_GUI(wx.Frame):
                         PmagSampRec["site"]=CompDir[0]['site']
                         PmagSampRec["sample"]=samp
                         PmagSampRec["citation"]="This study"
-                        PmagSampRec['software_packages']=version_num
+                        PmagSampRec['software_packages']=version_num + ': demag_gui.v.3.0'
                         if CompDir[0]['result_quality']=='g':
                             PmagSampRec['result_quality']='g'
                         else: PmagSampRec['result_quality']='b'
@@ -4273,7 +4273,7 @@ class Demag_GUI(wx.Frame):
                         PmagSiteRec['method_codes'].strip(":")
 
                         PmagSiteRec["citations"]="This study"
-                        PmagSiteRec['software_packages']=version_num
+                        PmagSiteRec['software_packages']=version_num + ': demag_gui.v.3.0'
                         if default_used:
                             age_data_for_site = age_dat[age_dat['site']==site]
                             avg = lambda l: sum(l)/len(l) if hasattr(l, '__iter__') else l
@@ -4348,11 +4348,13 @@ class Demag_GUI(wx.Frame):
                         else: PmagSiteRec['result_quality'] = 'g'
 
                         #fix not duplicating data
-                        for ndd in ['geologic_classes', 'geologic_types', 'lithologies']:
-                            sitedat=filter(lambda x: x[ndd]!=None, pmag.get_dictitem(SiteNFO,'site',PmagSiteRec['site'],'T')) # fish out site information (lat/lon, etc.)
-                            if len(sitedat)!=0:sitedat=sitedat[0]
-                            else: continue
-                            PmagSiteRec[ndd] = sitedat[ndd]
+                        prev_dat = pmag.get_dictitem(SiteNFO,'site',PmagSiteRec['site'],'T')
+                        if len(prev_dat)!=0:
+                            for ndd in set(PmagSiteRec.keys()).symmetric_difference(set(prev_dat[0].keys())):
+                                sitedat=filter(lambda x: x[ndd]!=None if ndd in x else False, prev_dat)
+                                if len(sitedat)!=0:sitedat=sitedat[0]
+                                else: continue
+                                PmagSiteRec[ndd] = sitedat[ndd]
 
                         PmagSites.append(PmagSiteRec)
 
@@ -4408,7 +4410,7 @@ class Demag_GUI(wx.Frame):
                             PolRes['dir_n_samples'] = len(PolRes['samples'].split(':'))
                             PolRes['dir_n_specimens'] = len(PolRes['specimens'].split(':'))
                             PolRes['location'] = polpars[mode]['locs']
-                            PolRes['software_packages']=version_num
+                            PolRes['software_packages']=version_num + ': demag_gui.v.3.0'
                             PolRes['dir_tilt_correction']=coord
                             if default_used:
                                 age_data_for_loc = age_dat[age_dat['location']==location]
@@ -4472,6 +4474,24 @@ class Demag_GUI(wx.Frame):
                                         PolRes["dir_polarity"]='t'
                                     if angle >= 125.:
                                         PolRes["dir_polarity"]='r'
+
+                            #fix not duplicating data
+                            prev_dat = pmag.get_dictitem(locs_dat.to_dict('records'),'location',location,'T')
+                            #merge method codes
+                            methods = []
+                            for prd in prev_dat:
+                                if 'method_codes' not in prd.keys() or prd['method_codes']==None: continue
+                                for mc in prd['method_codes'].split(':'):
+                                    if mc not in methods:
+                                        methods.append(mc)
+                            PolRes['method_codes']=reduce(lambda x,y: x+':'+y, methods)
+                            if len(prev_dat)!=0:
+                                for ndd in set(PolRes.keys()).symmetric_difference(set(prev_dat[0].keys())):
+                                    dat=filter(lambda x: x[ndd]!=None if ndd in x else False, prev_dat)
+                                    if len(dat)!=0:dat=dat[0]
+                                    else: continue
+                                    PolRes[ndd] = dat[ndd]
+
                             PmagLocs.append(PolRes)
 
             if len(PmagLocs)>0:
@@ -4481,7 +4501,7 @@ class Demag_GUI(wx.Frame):
                 nsdf = self.con.tables['locations'].merge_dfs(locs_df,'full')
                 if not dia.cb_location_mean_VGP.GetValue():
                     nsdf.drop([col for col in nsdf.columns if type(col) == str and col.startswith('pole') and col != 'pol_comp_name'], axis=1, inplace=True)
-                nsdf =  nsdf.reindex_axis(sorted(nsdf.columns), axis=1)
+                nsdf = nsdf.reindex_axis(sorted(nsdf.columns), axis=1)
                 self.con.tables['locations'].df = nsdf
                 self.con.tables['locations'].write_magic_file(dir_path=self.WD)
 
@@ -5067,7 +5087,7 @@ class Demag_GUI(wx.Frame):
                     PmagSpecRec={}
                     user="" # Todo
                     PmagSpecRec["er_analyst_mail_names"]=user
-                    PmagSpecRec["magic_software_packages"]=pmag.get_version()
+                    PmagSpecRec["magic_software_packages"]=pmag.get_version() + ': demag_gui.v.3.0'
                     PmagSpecRec["er_specimen_name"]=specimen
                     PmagSpecRec["er_sample_name"]=self.Data_hierarchy['sample_of_specimen'][specimen]
                     PmagSpecRec["er_site_name"]=self.Data_hierarchy['site_of_specimen'][specimen]
