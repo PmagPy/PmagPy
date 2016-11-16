@@ -192,11 +192,10 @@ try:
 except:
     pass
 
-from matplotlib.backends.backend_wx import NavigationToolbar2Wx
+from matplotlib.backends.backend_wxagg import NavigationToolbar2WxAgg as NavigationToolbar
 
 import dialogs.thellier_consistency_test as thellier_consistency_test
 import copy
-from copy import deepcopy
 
 import dialogs.thellier_gui_dialogs as thellier_gui_dialogs
 import dialogs.thellier_gui_lib as thellier_gui_lib
@@ -423,14 +422,32 @@ class Arai_GUI(wx.Frame):
         self.fig1 = pylab.Figure((5.*self.GUI_RESOLUTION, 5.*self.GUI_RESOLUTION), dpi=self.dpi)
         self.canvas1 = FigCanvas(self.panel, -1, self.fig1)
         self.fig1.text(0.01,0.98,"Arai plot",{'family':self.font_type, 'fontsize':10, 'style':'normal','va':'center', 'ha':'left' })
+        self.toolbar1 = NavigationToolbar(self.canvas1)
+        self.toolbar1.Hide()
+        self.fig1_setting = "Zoom"
+        self.toolbar1.zoom()
+        self.canvas1.Bind(wx.EVT_RIGHT_DOWN,self.on_right_click_fig)
+        self.canvas1.Bind(wx.EVT_MIDDLE_DOWN,self.on_home_fig)
 
         self.fig2 = pylab.Figure((2.5*self.GUI_RESOLUTION, 2.5*self.GUI_RESOLUTION), dpi=self.dpi)
         self.canvas2 = FigCanvas(self.panel, -1, self.fig2)
         self.fig2.text(0.02,0.96,"Zijderveld",{'family':self.font_type, 'fontsize':10, 'style':'normal','va':'center', 'ha':'left' })
+        self.toolbar2 = NavigationToolbar(self.canvas2)
+        self.toolbar2.Hide()
+        self.fig2_setting = "Zoom"
+        self.toolbar2.zoom()
+        self.canvas2.Bind(wx.EVT_RIGHT_DOWN,self.on_right_click_fig)
+        self.canvas2.Bind(wx.EVT_MIDDLE_DOWN,self.on_home_fig)
 
         self.fig3 = pylab.Figure((2.5*self.GUI_RESOLUTION, 2.5*self.GUI_RESOLUTION), dpi=self.dpi)
         self.canvas3 = FigCanvas(self.panel, -1, self.fig3)
         #self.fig3.text(0.02,0.96,"Equal area",{'family':self.font_type, 'fontsize':10*self.GUI_RESOLUTION, 'style':'normal','va':'center', 'ha':'left' })
+        self.toolbar3 = NavigationToolbar(self.canvas3)
+        self.toolbar3.Hide()
+        self.fig3_setting = "Zoom"
+        self.toolbar3.zoom()
+        self.canvas3.Bind(wx.EVT_RIGHT_DOWN,self.on_right_click_fig)
+        self.canvas3.Bind(wx.EVT_MIDDLE_DOWN,self.on_home_fig)
 
         self.fig4 = pylab.Figure((2.5*self.GUI_RESOLUTION, 2.5*self.GUI_RESOLUTION), dpi=self.dpi)
         self.canvas4 = FigCanvas(self.panel, -1, self.fig4)
@@ -439,10 +456,22 @@ class Arai_GUI(wx.Frame):
         else:
             TEXT="Sample data"
         self.fig4.text(0.02,0.96,TEXT,{'family':self.font_type, 'fontsize':10, 'style':'normal','va':'center', 'ha':'left' })
+        self.toolbar4 = NavigationToolbar(self.canvas4)
+        self.toolbar4.Hide()
+        self.fig4_setting = "Zoom"
+        self.toolbar4.zoom()
+        self.canvas4.Bind(wx.EVT_RIGHT_DOWN,self.on_right_click_fig)
+        self.canvas4.Bind(wx.EVT_MIDDLE_DOWN,self.on_home_fig)
 
         self.fig5 = pylab.Figure((2.5*self.GUI_RESOLUTION, 2.5*self.GUI_RESOLUTION), dpi=self.dpi)
         self.canvas5 = FigCanvas(self.panel, -1, self.fig5)
         #self.fig5.text(0.02,0.96,"M/M0",{'family':self.font_type, 'fontsize':10, 'style':'normal','va':'center', 'ha':'left' })
+        self.toolbar5 = NavigationToolbar(self.canvas5)
+        self.toolbar5.Hide()
+        self.fig5_setting = "Zoom"
+        self.toolbar5.zoom()
+        self.canvas5.Bind(wx.EVT_RIGHT_DOWN,self.on_right_click_fig)
+        self.canvas5.Bind(wx.EVT_MIDDLE_DOWN,self.on_home_fig)
 
         # make axes of the figures
         self.araiplot = self.fig1.add_axes([0.1,0.1,0.8,0.8])
@@ -809,7 +838,51 @@ class Arai_GUI(wx.Frame):
         self.close_warning=True
 
     #----------------------------------------------------------------------
+    # Plot and Figure interaction functions
+    #----------------------------------------------------------------------
 
+    def on_right_click_fig(self,event):
+        if event.LeftIsDown() or event.ButtonDClick():
+            return
+        event_canvas = event.EventObject
+        canvas_num = self.get_canvas_number_from_event(event)
+
+        COMMAND = """
+if self.fig%d_setting == "Zoom":
+    self.fig%d_setting = "Pan"
+    try: event_canvas.toolbar.pan('off')
+    except TypeError: pass
+else:
+    self.fig%d_setting = "Zoom"
+    try: event_canvas.toolbar.zoom()
+    except TypeError: pass
+"""%(canvas_num,canvas_num,canvas_num)
+        exec(COMMAND)
+        event.Skip()
+
+    def on_home_fig(self,event):
+        if event.LeftIsDown() or event.ButtonDClick():
+            return
+        event_canvas = event.EventObject
+        try: event_canvas.toolbar.home()
+        except TypeError: pass
+
+    def get_canvas_number_from_event(self,event):
+        event_canvas = event.EventObject
+        if event_canvas==self.canvas1:
+            return 1
+        elif event_canvas==self.canvas2:
+            return 2
+        elif event_canvas==self.canvas3:
+            return 3
+        elif event_canvas==self.canvas4:
+            return 4
+        elif event_canvas==self.canvas5:
+            return 5
+        else:
+            raise TypeError("Honestly not sure how you got here...WELL there's a big bug in on_right_click_fig good luck")
+
+    #----------------------------------------------------------------------
 
     def  write_acceptance_criteria_to_boxes(self):
         """
@@ -4556,7 +4629,7 @@ class Arai_GUI(wx.Frame):
         # pTRM checks
         if 'x_ptrm_check' in self.Data[self.s]:
             if len(self.Data[self.s]['x_ptrm_check'])>0:
-                self.araiplot.scatter (self.Data[self.s]['x_ptrm_check'],self.Data[self.s]['y_ptrm_check'],marker='^',edgecolor='0.1',alpha=1.0, facecolor='None',s=80*self.GUI_RESOLUTION,lw=1)
+                self.araiplot.scatter(self.Data[self.s]['x_ptrm_check'],self.Data[self.s]['y_ptrm_check'],marker='^',edgecolor='0.1',alpha=1.0, facecolor='None',s=80*self.GUI_RESOLUTION,lw=1)
                 if self.preferences['show_Arai_pTRM_arrows']:
                     for i in range(len(self.Data[self.s]['x_ptrm_check'])):
                         xx1,yy1=self.Data[s]['x_ptrm_check_starting_point'][i],self.Data[s]['y_ptrm_check_starting_point'][i]
@@ -4971,7 +5044,6 @@ class Arai_GUI(wx.Frame):
 
         #Data[s]['NLT_parameters']v
 
-
     def draw_net(self):
         self.eqplot.clear()
         eq=self.eqplot
@@ -4983,86 +5055,6 @@ class Arai_GUI(wx.Frame):
         eq.hlines((0,0),(0.9,-0.9),(1.0,-1.0),'k')
         eq.plot([0.0],[0.0],'+k',clip_on=False)
         return()
-
-
-    #===========================================================
-    # Zoom properties
-    #===========================================================
-
-    def Arai_zoom(self):
-        cursur_entry_arai=self.canvas1.mpl_connect('axes_enter_event', self.on_enter_arai_fig)
-        cursur_leave_arai=self.canvas1.mpl_connect('axes_leave_event', self.on_leave_arai_fig)
-
-    def on_leave_arai_fig(self,event):
-        self.canvas1.mpl_disconnect(self.cid1)
-        self.canvas1.mpl_disconnect(self.cid2)
-        self.canvas1.SetCursor(wx.StockCursor(wx.CURSOR_ARROW))
-        self.curser_in_arai_figure=False
-
-    def on_enter_arai_fig(self,event):
-        self.curser_in_arai_figure=True
-        self.canvas1.SetCursor(wx.StockCursor(wx.CURSOR_CROSS))
-        cid1=self.canvas1.mpl_connect('button_press_event', self.onclick)
-        cid2=self.canvas1.mpl_connect('button_release_event', self.onclick_2)
-
-    def onclick(self,event):
-        if self.curser_in_arai_figure:
-            self.tmp1_x=event.xdata
-            self.tmp1_y=event.ydata
-
-    def onclick_2(self,event):
-        self.canvas1.mpl_connect('axes_leave_event', self.on_leave_arai_fig)
-        if self.curser_in_arai_figure:
-            try:
-                self.tmp2_x=event.xdata
-                self.tmp2_y=event.ydata
-                if self.tmp1_x < self.tmp2_x and self.tmp1_y > self.tmp2_y:
-                    self.araiplot.set_xlim(xmin=self.tmp1_x,xmax=self.tmp2_x)
-                    self.araiplot.set_ylim(ymin=self.tmp2_y,ymax=self.tmp1_y)
-                else:
-                    self.araiplot.set_xlim(xmin=self.arai_xlim_initial[0],xmax=self.arai_xlim_initial[1])
-                    self.araiplot.set_ylim(ymin=self.arai_ylim_initial[0],ymax=self.arai_ylim_initial[1])
-                self.canvas1.draw()
-            except:
-                pass
-        else:
-            return
-
-    def Zij_zoom(self):
-        cursur_entry_arai=self.canvas1.mpl_connect('axes_enter_event', self.on_enter_zij_fig)
-        cursur_leave_arai=self.canvas2.mpl_connect('axes_leave_event', self.on_leave_zij_fig)
-
-    def on_leave_zij_fig (self,event):
-        self.canvas2.mpl_disconnect(self.cid3)
-        self.canvas2.mpl_disconnect(self.cid4)
-        self.canvas2.SetCursor(wx.StockCursor(wx.CURSOR_ARROW))
-        self.curser_in_zij_figure=False
-
-    def on_enter_zij_fig(self,event):
-        self.curser_in_zij_figure=True
-        self.canvas2.SetCursor(wx.StockCursor(wx.CURSOR_CROSS))
-        cid3=self.canvas2.mpl_connect('button_press_event', self.onclick_z_1)
-        cid4=self.canvas2.mpl_connect('button_release_event', self.onclick_z_2)
-
-    def onclick_z_1(self,event):
-        if self.curser_in_zij_figure:
-            self.tmp3_x=event.xdata
-            self.tmp3_y=event.ydata
-
-    def onclick_z_2(self,event):
-        self.canvas2.mpl_connect('axes_leave_event', self.on_leave_arai_fig)
-        if self.curser_in_zij_figure:
-            self.tmp4_x=event.xdata
-            self.tmp4_y=event.ydata
-            if self.tmp3_x < self.tmp4_x and self.tmp3_y > self.tmp4_y:
-                self.zijplot.set_xlim(xmin=self.tmp3_x,xmax=self.tmp4_x)
-                self.zijplot.set_ylim(ymin=self.tmp4_y,ymax=self.tmp3_y)
-            else:
-                self.zijplot.set_xlim(xmin=self.zij_xlim_initial[0],xmax=self.zij_xlim_initial[1])
-                self.zijplot.set_ylim(ymin=self.zij_ylim_initial[0],ymax=self.zij_ylim_initial[1])
-            self.canvas2.draw()
-        else:
-            return
 
     def arrow_keys(self):
         self.panel.Bind(wx.EVT_CHAR, self.onCharEvent)
