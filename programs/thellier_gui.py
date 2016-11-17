@@ -166,7 +166,7 @@ if not matplotlib.get_backend() == 'WXAgg':
     matplotlib.use('WXAgg')
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigCanvas
 
-import sys, pylab, scipy, os
+import sys, scipy, os
 #import pdb
 import pmagpy.pmag as pmag
 from pmagpy import find_pmag_dir
@@ -184,7 +184,8 @@ import time
 import wx
 import wx.grid
 import random
-from pylab import * # keep this line for now, but I've tried to add pylab to any pylab functions for better namespacing
+from numpy import sqrt,append
+#from pylab import * # keep this line for now, but I've tried to add pylab to any pylab functions for better namespacing
 from scipy.optimize import curve_fit
 import wx.lib.agw.floatspin as FS
 try:
@@ -192,6 +193,7 @@ try:
 except:
     pass
 
+from matplotlib.figure import Figure
 from matplotlib.backends.backend_wxagg import NavigationToolbar2WxAgg as NavigationToolbar
 
 import dialogs.thellier_consistency_test as thellier_consistency_test
@@ -206,23 +208,19 @@ matplotlib.rc('ytick', labelsize=10)
 matplotlib.rc('axes', labelsize=8)
 matplotlib.rcParams['savefig.dpi'] = 300.
 
-#pylab.rcParams.update({"svg.embed_char_paths":False})
-pylab.rcParams.update({"svg.fonttype":'none'})
+#matplotlib.rcParams.update({"svg.embed_char_paths":False})
+matplotlib.rcParams.update({"svg.fonttype":'none'})
 try:
     version= pmag.get_version()
 except:
     version=""
 version=version+": thellier_gui."+CURRENT_VERSION
 
-
-
 #============================================================================================
 
-
-
-
 class Arai_GUI(wx.Frame):
-    """ The main frame of the application
+    """
+    The main frame of the application
     """
     title = "PmagPy Thellier GUI %s"%CURRENT_VERSION
 
@@ -252,7 +250,6 @@ class Arai_GUI(wx.Frame):
             self.get_DIR(self.WD)
         else:
             self.get_DIR()        # choose directory dialog
-
 
         # get controlled vocabulary
         vocab = cv.Vocabulary()
@@ -419,7 +416,7 @@ class Arai_GUI(wx.Frame):
         # Create Figures and FigCanvas objects.
         #----------------------------------------------------------------------
 
-        self.fig1 = pylab.Figure((5.*self.GUI_RESOLUTION, 5.*self.GUI_RESOLUTION), dpi=self.dpi)
+        self.fig1 = Figure((5.*self.GUI_RESOLUTION, 5.*self.GUI_RESOLUTION), dpi=self.dpi)
         self.canvas1 = FigCanvas(self.panel, -1, self.fig1)
         self.fig1.text(0.01,0.98,"Arai plot",{'family':self.font_type, 'fontsize':10, 'style':'normal','va':'center', 'ha':'left' })
         self.toolbar1 = NavigationToolbar(self.canvas1)
@@ -429,7 +426,7 @@ class Arai_GUI(wx.Frame):
         self.canvas1.Bind(wx.EVT_RIGHT_DOWN,self.on_right_click_fig)
         self.canvas1.Bind(wx.EVT_MIDDLE_DOWN,self.on_home_fig)
 
-        self.fig2 = pylab.Figure((2.5*self.GUI_RESOLUTION, 2.5*self.GUI_RESOLUTION), dpi=self.dpi)
+        self.fig2 = Figure((2.5*self.GUI_RESOLUTION, 2.5*self.GUI_RESOLUTION), dpi=self.dpi)
         self.canvas2 = FigCanvas(self.panel, -1, self.fig2)
         self.fig2.text(0.02,0.96,"Zijderveld",{'family':self.font_type, 'fontsize':10, 'style':'normal','va':'center', 'ha':'left' })
         self.toolbar2 = NavigationToolbar(self.canvas2)
@@ -439,7 +436,7 @@ class Arai_GUI(wx.Frame):
         self.canvas2.Bind(wx.EVT_RIGHT_DOWN,self.on_right_click_fig)
         self.canvas2.Bind(wx.EVT_MIDDLE_DOWN,self.on_home_fig)
 
-        self.fig3 = pylab.Figure((2.5*self.GUI_RESOLUTION, 2.5*self.GUI_RESOLUTION), dpi=self.dpi)
+        self.fig3 = Figure((2.5*self.GUI_RESOLUTION, 2.5*self.GUI_RESOLUTION), dpi=self.dpi)
         self.canvas3 = FigCanvas(self.panel, -1, self.fig3)
         #self.fig3.text(0.02,0.96,"Equal area",{'family':self.font_type, 'fontsize':10*self.GUI_RESOLUTION, 'style':'normal','va':'center', 'ha':'left' })
         self.toolbar3 = NavigationToolbar(self.canvas3)
@@ -449,7 +446,7 @@ class Arai_GUI(wx.Frame):
         self.canvas3.Bind(wx.EVT_RIGHT_DOWN,self.on_right_click_fig)
         self.canvas3.Bind(wx.EVT_MIDDLE_DOWN,self.on_home_fig)
 
-        self.fig4 = pylab.Figure((2.5*self.GUI_RESOLUTION, 2.5*self.GUI_RESOLUTION), dpi=self.dpi)
+        self.fig4 = Figure((2.5*self.GUI_RESOLUTION, 2.5*self.GUI_RESOLUTION), dpi=self.dpi)
         self.canvas4 = FigCanvas(self.panel, -1, self.fig4)
         if self.acceptance_criteria['average_by_sample_or_site']['value']=='site':
             TEXT="Site data"
@@ -463,7 +460,7 @@ class Arai_GUI(wx.Frame):
         self.canvas4.Bind(wx.EVT_RIGHT_DOWN,self.on_right_click_fig)
         self.canvas4.Bind(wx.EVT_MIDDLE_DOWN,self.on_home_fig)
 
-        self.fig5 = pylab.Figure((2.5*self.GUI_RESOLUTION, 2.5*self.GUI_RESOLUTION), dpi=self.dpi)
+        self.fig5 = Figure((2.5*self.GUI_RESOLUTION, 2.5*self.GUI_RESOLUTION), dpi=self.dpi)
         self.canvas5 = FigCanvas(self.panel, -1, self.fig5)
         #self.fig5.text(0.02,0.96,"M/M0",{'family':self.font_type, 'fontsize':10, 'style':'normal','va':'center', 'ha':'left' })
         self.toolbar5 = NavigationToolbar(self.canvas5)
@@ -2596,7 +2593,7 @@ else:
                     S+=d*d
                 nf=float(n_pos*3-6) # number of degrees of freedom
                 if S >0:
-                    sigma=pylab.math.sqrt(S/nf)
+                    sigma=sqrt(S/nf)
                 hpars=pmag.dohext(nf,sigma,[s1,s2,s3,s4,s5,s6])
 
                 aniso_parameters['anisotropy_sigma']="%f"%sigma
@@ -5318,7 +5315,7 @@ else:
         self.araiplot.set_xlim(xmin=0)
         self.araiplot.set_ylim(ymin=0)
 
-        pylab.draw()
+#        pylab.draw()
         self.canvas1.draw()
 
         # plot best fit direction on Equal Area plot
@@ -5373,7 +5370,7 @@ else:
         intercept_xy_PCA=-1*CM_y - slop_xy_PCA*CM_x
         intercept_xz_PCA=-1*CM_z - slop_xz_PCA*CM_x
 
-        xmin_zij, xmax_zij = pylab.xlim()
+        xmin_zij, xmax_zij = self.zijplot.xlim()
         xx=scipy.array([0,self.CART_rot[:,0][tmin_index]])
         yy=slop_xy_PCA*xx+intercept_xy_PCA
         self.zijplot.plot(xx,yy,'-',color='g',lw=1.5,alpha=0.5)
@@ -5401,7 +5398,7 @@ else:
            self.mplot.scatter([Banc],[alpha*(scipy.tanh(beta*Banc*1e-6))],marker='o',s=30,facecolor='g',edgecolor ='k')
 
         self.canvas5.draw()
-        pylab.draw()
+#        pylab.draw()
 
         #------
         # Drow sample mean
@@ -6034,8 +6031,8 @@ else:
 
           if len(trmblock)>2 and not red_flag:
 
-              B_NLT = pylab.append([0.],B_NLT)
-              M_NLT = pylab.append([0.],M_NLT)
+              B_NLT = append([0.],B_NLT)
+              M_NLT = append([0.],M_NLT)
 
               try:
                   #print s,B_NLT, M_NLT

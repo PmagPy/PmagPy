@@ -297,6 +297,7 @@ class Demag_GUI(wx.Frame):
         self.canvas1.Bind(wx.EVT_MIDDLE_DOWN,self.home_zijderveld)
         self.canvas1.Bind(wx.EVT_LEFT_DCLICK,self.on_zijd_select)
         self.canvas1.Bind(wx.EVT_RIGHT_DCLICK,self.on_zijd_mark)
+        self.canvas1.Bind(wx.EVT_MOTION,self.on_change_zijd_mouse_cursor)
         self.canvas1.SetHelpText(dgh.zij_help)
 
         self.fig2 = Figure((2.5*self.GUI_RESOLUTION, 2.5*self.GUI_RESOLUTION), dpi=self.dpi)
@@ -5769,6 +5770,34 @@ class Demag_GUI(wx.Frame):
         try: self.toolbar1.home()
         except TypeError: pass
 
+    def on_change_zijd_mouse_cursor(self,event):
+        """
+        If mouse is over data point making it selectable change the shape of the cursor
+        @param: event -> the wx Mouseevent for that click
+        """
+        if not self.CART_rot.any(): return
+        pos=event.GetPosition()
+        width, height = self.canvas1.get_width_height()
+        pos[1] = height - pos[1]
+        xpick_data,ypick_data = pos
+        xdata_org = list(self.CART_rot[:,0]) + list(self.CART_rot[:,0])
+        ydata_org = list(-1*self.CART_rot[:,1]) + list(-1*self.CART_rot[:,2])
+        data_corrected = self.zijplot.transData.transform(vstack([xdata_org,ydata_org]).T)
+        xdata,ydata = data_corrected.T
+        xdata = map(float,xdata)
+        ydata = map(float,ydata)
+        e = 4e0
+
+        if self.zijderveld_setting == "Zoom":
+            self.canvas1.SetCursor(wx.StockCursor(wx.CURSOR_CROSS))
+        else:
+            self.canvas1.SetCursor(wx.StockCursor(wx.CURSOR_ARROW))
+        for i,(x,y) in enumerate(zip(xdata,ydata)):
+            if 0 < sqrt((x-xpick_data)**2. + (y-ypick_data)**2.) < e:
+                self.canvas1.SetCursor(wx.StockCursor(wx.CURSOR_HAND))
+                break
+        event.Skip()
+
     def on_zijd_select(self,event):
         """
         Get mouse position on double click find the nearest interpretation to the mouse
@@ -5809,7 +5838,7 @@ class Demag_GUI(wx.Frame):
         @param: event -> the wx Mouseevent for that click
         @alters: current_fit
         """
-        if not self.CART_rot_good.any(): return
+        if not self.CART_rot.any(): return
         pos=event.GetPosition()
         width, height = self.canvas1.get_width_height()
         pos[1] = height - pos[1]
