@@ -983,8 +983,8 @@ else:
                 self.logger.InsertStringItem(i, "%i"%i)
                 self.logger.SetStringItem(i, 1, step)
                 self.logger.SetStringItem(i, 2, "%1.0f"%(float(rec['treatment_temp'])-273.))
-                self.logger.SetStringItem(i, 3, "%5.1f"%float(rec['measurement_dec']))
-                self.logger.SetStringItem(i, 4, "%5.1f"%float(rec['measurement_inc']))
+                self.logger.SetStringItem(i, 3, "%.1f"%float(rec['measurement_dec']))
+                self.logger.SetStringItem(i, 4, "%.1f"%float(rec['measurement_inc']))
                 self.logger.SetStringItem(i, 5, "%.2e"%float(rec['measurement_magn_moment']))
             elif MICROWAVE: # mcrowave
                 if "measurement_description" in rec.keys():
@@ -996,8 +996,8 @@ else:
                         self.logger.InsertStringItem(i, "%i"%i)
                         self.logger.SetStringItem(i, 1, step)
                         self.logger.SetStringItem(i, 2, "%1.0f"%temp)
-                        self.logger.SetStringItem(i, 3, "%5.1f"%float(rec['measurement_dec']))
-                        self.logger.SetStringItem(i, 4, "%5.1f"%float(rec['measurement_inc']))
+                        self.logger.SetStringItem(i, 3, "%.1f"%float(rec['measurement_dec']))
+                        self.logger.SetStringItem(i, 4, "%.1f"%float(rec['measurement_inc']))
                         self.logger.SetStringItem(i, 5, "%.2e"%float(rec['measurement_magn_moment']))
             self.logger.SetItemBackgroundColour(i,"WHITE")
             if i >= tmin_index and i <= tmax_index:

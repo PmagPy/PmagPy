@@ -3277,7 +3277,7 @@ def dolnp(data,direction_type_key):
     else:
         tc='-1'
     n_lines,n_planes=0,0
-    X,L,fdata,dirV=[],[],[],[0,0,0]
+    L,fdata,dirV=[],[],[0,0,0]
     E=[0,0,0]
     fpars={}
 
@@ -3291,7 +3291,6 @@ def dolnp(data,direction_type_key):
             else: # this is a line
                 n_lines+=1
                 fdata.append([float(rec["dec"]),float(rec["inc"]),1.]) # collect data for fisher calculation
-                X.append(cart)
                 E[0]+=cart[0]
                 E[1]+=cart[1]
                 E[2]+=cart[2]
@@ -3302,7 +3301,6 @@ def dolnp(data,direction_type_key):
             else: # this is a line
                 n_lines+=1
                 fdata.append([rec["dec"],rec["inc"],1.]) # collect data for fisher calculation
-                X.append(cart)
                 E[0]+=cart[0]
                 E[1]+=cart[1]
                 E[2]+=cart[2]
@@ -3313,7 +3311,6 @@ def dolnp(data,direction_type_key):
             else: # this is a line
                 n_lines+=1
                 fdata.append([rec["dec"],rec["inc"],1.]) # collect data for fisher calculation
-                X.append(cart)
                 E[0]+=cart[0]
                 E[1]+=cart[1]
                 E[2]+=cart[2]
@@ -3321,7 +3318,6 @@ def dolnp(data,direction_type_key):
                 #EVERYTHING IS A LINE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                 n_lines+=1
                 fdata.append([rec["dec"],rec["inc"],1.]) # collect data for fisher calculation
-                X.append(cart)
                 E[0]+=cart[0]
                 E[1]+=cart[1]
                 E[2]+=cart[2]
@@ -3334,29 +3330,7 @@ def dolnp(data,direction_type_key):
            R=numpy.sqrt(E[0]**2+E[1]**2+E[2]**2)
            for c in E:
                V.append(c/R) # set initial direction as mean of lines
-        U=E[:]   # make a copy of E
-        for pole in L:
-            XV.append(vclose(pole,V)) # get some points on the great circle
-            for c in range(3):
-               U[c]=U[c]+XV[-1][c]
-# iterate to find best agreement
-        angle_tol=1.
-        while angle_tol > 0.1:
-            angles=[]
-            for k in range(n_planes):
-               for c in range(3): U[c]=U[c]-XV[k][c]
-               R=numpy.sqrt(U[0]**2+U[1]**2+U[2]**2)
-               for c in range(3):V[c]=U[c]/R
-               XX=vclose(L[k],V)
-               ang=XX[0]*XV[k][0]+XX[1]*XV[k][1]+XX[2]*XV[k][2]
-               angles.append(numpy.arccos(ang)*180./numpy.pi)
-               for c in range(3):
-                   XV[k][c]=XX[c]
-                   U[c]=U[c]+XX[c]
-               amax =-1
-               for ang in angles:
-                   if ang > amax:amax=ang
-               angle_tol=amax
+        XV = get_best_fits_for_planes(L,E,V,n_planes)
 # calculating overall mean direction and R
         U=E[:]
         for dir in XV:
@@ -3382,9 +3356,9 @@ def dolnp(data,direction_type_key):
             a95=0.
             K='inf'
     else:
-        dir=fisher_mean(fdata)
-        n_total,R,K,a95=dir["n"],dir["r"],dir["k"],dir["alpha95"]
-        dirV[0],dirV[1]=dir["dec"],dir["inc"]
+        fdir=fisher_mean(fdata)
+        n_total,R,K,a95=fdir["n"],fdir["r"],fdir["k"],fdir["alpha95"]
+        dirV[0],dirV[1]=fdir["dec"],fdir["inc"]
     fpars["tilt_correction"]=tc
     fpars["n_total"]='%i '% (n_total)
     fpars["n_lines"]='%i '% (n_lines)
@@ -3410,6 +3384,41 @@ def vclose(L,V):
     for k in range(3):
         X.append( ((V[k]-lam*L[k])/beta))
     return X
+
+def get_best_fits_for_planes(L,E,V,n_planes):
+    """
+    Calculates the best fit vectors for a set of plane interpretations used in fisher mean calculations
+    @param: L - a list of the "EL, EM, EN" array of MM88 or the cartisian form of dec and inc of the plane interpretation
+    @param: E - the sum of the cartisian coordinates of all the line fits to be used in the mean
+    @param: V - inital direction to start iterating from to get plane best fits
+    @returns: nested list of n_plane by 3 dimension where the 3 are the cartisian dimension of the best fit vector
+    """
+
+    U,XV=E[:],[] # make a copy of E to prevent mutation
+    for pole in L:
+        XV.append(vclose(pole,V)) # get some points on the great circle
+        for c in range(3):
+           U[c]=U[c]+XV[-1][c]
+# iterate to find best agreement
+    angle_tol=1.
+    while angle_tol > 0.1:
+        angles=[]
+        for k in range(n_planes):
+           for c in range(3): U[c]=U[c]-XV[k][c]
+           R=numpy.sqrt(U[0]**2+U[1]**2+U[2]**2)
+           for c in range(3):V[c]=U[c]/R
+           XX=vclose(L[k],V)
+           ang=XX[0]*XV[k][0]+XX[1]*XV[k][1]+XX[2]*XV[k][2]
+           angles.append(numpy.arccos(ang)*180./numpy.pi)
+           for c in range(3):
+               XV[k][c]=XX[c]
+               U[c]=U[c]+XX[c]
+           amax =-1
+           for ang in angles:
+               if ang > amax:amax=ang
+           angle_tol=amax
+
+    return XV
 
 def scoreit(pars,PmagSpecRec,accept,text,verbose):
     """
