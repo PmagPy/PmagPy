@@ -6130,11 +6130,11 @@ class Demag_GUI(wx.Frame):
             methods=lab_treatment.split('-')
             if "NO" in methods:
                 Step="N"
-            elif "AF" in  methods:
+            elif "AF" in methods:
                 Step="AF"
             elif "ARM" in methods:
                 Step="ARM"
-            elif "T" in  methods or "LT" in methods:
+            elif "T" in methods or "LT" in methods:
                 Step="T"
             Tr=zijdblock[i][0]
             Dec=zijdblock[i][1]

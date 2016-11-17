@@ -299,6 +299,7 @@ class Arai_GUI(wx.Frame):
         FIRST_RUN=False
 
         self.get_previous_interpretation() # get interpretations from specimens file
+        self.Add_text(self.s) # write measurement data to text box
         FIRST_RUN=False
         self.Bind(wx.EVT_CLOSE, self.on_menu_exit)
         self.close_warning=False
@@ -361,7 +362,7 @@ class Arai_GUI(wx.Frame):
         try:
             self.s=self.specimens[0]
         except:
-            self.s=""
+            self.s="";print("No specimens during UI build")
 
         #----------------------------------------------------------------------
         # create main panel in the right size
@@ -482,8 +483,14 @@ class Arai_GUI(wx.Frame):
         # text box displaying measurement data
         #----------------------------------------------------------------------
 
-        self.logger = wx.TextCtrl(self.panel, id=-1, size=(200*self.GUI_RESOLUTION,500*self.GUI_RESOLUTION), style=wx.TE_MULTILINE | wx.TE_READONLY | wx.HSCROLL)
+        self.logger = wx.ListCtrl(self.panel, id=-1, size=(200*self.GUI_RESOLUTION,500*self.GUI_RESOLUTION), style=wx.LC_REPORT)
         self.logger.SetFont(font1)
+        self.logger.InsertColumn(0, 'i',width=25*self.GUI_RESOLUTION)
+        self.logger.InsertColumn(1, 'Step',width=25*self.GUI_RESOLUTION)
+        self.logger.InsertColumn(2, 'Tr',width=35*self.GUI_RESOLUTION)
+        self.logger.InsertColumn(3, 'Dec',width=35*self.GUI_RESOLUTION)
+        self.logger.InsertColumn(4, 'Inc',width=35*self.GUI_RESOLUTION)
+        self.logger.InsertColumn(5, 'M',width=45*self.GUI_RESOLUTION)
 
         #----------------------------------------------------------------------
         # select a specimen box
@@ -761,13 +768,9 @@ class Arai_GUI(wx.Frame):
         #----------------------------------------------------------------------
         # Draw figures and add  text
         #----------------------------------------------------------------------
-        try:
-            self.draw_figure(self.s)        # draw the figures
-            self.Add_text(self.s)           # write measurement data to text box
-        except:
-            pass
+        self.draw_figure(self.s)        # draw the figures
 
-    #----------------------------------------------------------------------
+#----------------------------------------------------------------------
 
 
     def on_save_interpretation_button(self,event):
@@ -929,31 +932,37 @@ else:
       """
       Add text to measurement data window.
       """
-
-      self.logger.Clear()
+      self.logger.DeleteAllItems()
       FONT_RATIO=self.GUI_RESOLUTION+(self.GUI_RESOLUTION-1)*5
-      if self.GUI_RESOLUTION >1.1:
+      if self.GUI_RESOLUTION > 1.1:
           font1 = wx.Font(11, wx.SWISS, wx.NORMAL, wx.NORMAL, False, self.font_type)
-      elif self.GUI_RESOLUTION <=0.9:
+      elif self.GUI_RESOLUTION <= 0.9:
           font1 = wx.Font(8, wx.SWISS, wx.NORMAL, wx.NORMAL, False, self.font_type)
       else:
           font1 = wx.Font(10, wx.SWISS, wx.NORMAL, wx.NORMAL, False, self.font_type)
 
-      #String="Step | Temp |  Dec  |  Inc  | M [Am^2]\n"
-      String="  Step\tTemp\t Dec\t Inc\tM [Am^2]\n"
-      # microwave
-      if "LP-PI-M" in self.Data[self.s]['datablock'][0]['magic_method_codes']:
+      #get temperature indecies to display current interp steps in logger
+      t1=self.tmin_box.GetValue()
+      t2=self.tmax_box.GetValue()
+
+      if (t1 == "" or t2 == ""):
+        return
+      if float(t2) < float(t1):
+        return
+
+      # microwave or thermal
+      if "LP-PI-M" in self.Data[s]['datablock'][0]['magic_method_codes']:
           MICROWAVE=True; THERMAL=False
-          String="  Step\tNumber\t Dec\t Inc\tMoment\n"
+          steps_tr = [float(STEP.split("-")[-1]) for d in self.Data[s]['datablock']]
       else:
           MICROWAVE=False; THERMAL=True
+          steps_tr = [d['treatment_temp']-273 for d in self.Data[s]['datablock']]
 
-      self.logger.AppendText(String)
+      tmin_index=steps_tr.index(int(t1))
+      tmax_index=steps_tr.index(int(t2))
 
       self.logger.SetFont(font1)
-      TEXT=""
-      for rec in self.Data[self.s]['datablock']:
-          #print rec.keys()
+      for i,rec in enumerate(self.Data[s]['datablock']):
           if "LT-NO" in rec['magic_method_codes']:
               step="N"
           elif "LT-AF-Z" in rec['magic_method_codes']:
@@ -969,21 +978,30 @@ else:
           elif "LT-PTRM-AC" in rec['magic_method_codes'] or "LT-PMRM-AC" in rec['magic_method_codes']:
               step="A"
           else:
-              print "unrecognized step in specimen",self.s,"  Method codes: ", rec['magic_method_codes']
+              print "unrecognized step in specimen",s,"  Method codes: ", rec['magic_method_codes']
           if THERMAL:
-               TEXT=TEXT+"   %s\t%3.0f\t%5.1f\t%5.1f\t%.2e\n"%(step,float(rec['treatment_temp'])-273.,float(rec['measurement_dec']),float(rec['measurement_inc']),float(rec['measurement_magn_moment']))
-
-#              TEXT=TEXT+"  %s      %3.0f      %5.1f    %5.1f   %.2e\n"%(step,float(rec['treatment_temp'])-273.,float(rec['measurement_dec']),float(rec['measurement_inc']),float(rec['measurement_magn_moment']))
+               self.logger.InsertStringItem(i, "%i"%i)
+               self.logger.SetStringItem(i, 1, step)
+               self.logger.SetStringItem(i, 2, "%1.0f"%(float(rec['treatment_temp'])-273.))
+               self.logger.SetStringItem(i, 3, "%5.1f"%float(rec['measurement_dec']))
+               self.logger.SetStringItem(i, 4, "%5.1f"%float(rec['measurement_inc']))
+               self.logger.SetStringItem(i, 5, "%.2e"%float(rec['measurement_magn_moment']))
           elif MICROWAVE: # mcrowave
                 if "measurement_description" in rec.keys():
                     MW_step=rec["measurement_description"].strip('\n').split(":")
                     for STEP in MW_step:
-                        if "Number" in STEP:
-                            temp=float(STEP.split("-")[-1])
+                        if "Number" not in STEP: continue
+                        temp=float(STEP.split("-")[-1])
 
-                            TEXT=TEXT+"   %s\t%1.0f\t%5.1f\t%5.1f\t%.2e\n"%(step,temp,float(rec['measurement_dec']),float(rec['measurement_inc']),float(rec['measurement_magn_moment']))
-
-      self.logger.AppendText( TEXT)
+                        self.logger.InsertStringItem(i, "%i"%i)
+                        self.logger.SetStringItem(i, 1, step)
+                        self.logger.SetStringItem(i, 2, "%1.0f"%temp)
+                        self.logger.SetStringItem(i, 3, "%5.1f"%float(rec['measurement_dec']))
+                        self.logger.SetStringItem(i, 4, "%5.1f"%float(rec['measurement_inc']))
+                        self.logger.SetStringItem(i, 5, "%.2e"%float(rec['measurement_magn_moment']))
+          self.logger.SetItemBackgroundColour(i,"WHITE")
+          if i >= tmin_index and i <= tmax_index:
+              self.logger.SetItemBackgroundColour(i,"LIGHT BLUE")
 
     #----------------------------------------------------------------------
 
@@ -1166,7 +1184,6 @@ else:
 
         # clear all boxes
         self.clear_boxes()
-        self.Add_text(self.s)
         self.draw_figure(self.s)
 
         # update temperature list
@@ -1184,6 +1201,7 @@ else:
         if "saved" in self.Data[self.s]['pars']:
             self.pars=self.Data[self.s]['pars']
             self.update_GUI_with_new_interpretation()
+        self.Add_text(self.s)
         self.write_sample_box()
 
 
@@ -4515,7 +4533,7 @@ else:
         legend(handles=handles_list,loc='center left', bbox_to_anchor=[0, 0, 1, 1],bbox_transform=Fig.transFigure,numpoints=1,prop=legend_font_props)
 
         #Fig.legend(h,l,loc='center left',fancybox="True",numpoints=1,prop=legend_font_props)
-        y_min,y_max=ylim()
+        y_min,y_max=ax.get_ylim()
         if y_min<0:
             ax.set_ylim(ymin=0)
 
@@ -4565,7 +4583,7 @@ else:
                 for i in  range(len(plot_by_locations[location]['samples_names'])):
                     Fig.text(plot_by_locations[location]['X_data'][i],plot_by_locations[location]['Y_data'][i],"  "+ plot_by_locations[location]['samples_names'][i],fontsize=10,color="0.5")
 
-        xmin,xmax=xlim()
+        xmin,xmax=ax.get_xlim()
         #print "xmin,xmax",xmin,xmax
         if max ([abs(xmin), abs(xmax) ]) > 10000 and set_age_unit=="Automatic":
             gca().ticklabel_format(style='scientific', axis='x',scilimits=(0,0))
@@ -5247,13 +5265,13 @@ else:
                 for key in self.pars.keys():
                     self.last_saved_pars[key]=self.pars[key]
         self.pars['saved']=False
-        t1=self.tmin_box.GetStringSelection()
-        t2=self.tmax_box.GetStringSelection()
+        t1=self.tmin_box.GetValue()
+        t2=self.tmax_box.GetValue()
 
         if (t1 == "" or t2==""):
-          return()
-        if float(t2) < float(t1)  :
-          return()
+          return
+        if float(t2) < float(t1):
+          return
 
 
         index_1=self.T_list.index(t1)
@@ -5370,7 +5388,7 @@ else:
         intercept_xy_PCA=-1*CM_y - slop_xy_PCA*CM_x
         intercept_xz_PCA=-1*CM_z - slop_xz_PCA*CM_x
 
-        xmin_zij, xmax_zij = self.zijplot.xlim()
+        xmin_zij, xmax_zij = self.zijplot.get_xlim()
         xx=scipy.array([0,self.CART_rot[:,0][tmin_index]])
         yy=slop_xy_PCA*xx+intercept_xy_PCA
         self.zijplot.plot(xx,yy,'-',color='g',lw=1.5,alpha=0.5)
@@ -5792,7 +5810,9 @@ else:
                  # AFD
                  if "LT-AF-Z" in methods and "LP-AN-ARM" not in rec['magic_method_codes'] and "LP-DIR-AF" not in rec['magic_method_codes']:
                      if Data[s]['T_or_MW']=="T":
-                         tr=tr-float(rec['treatment_ac_field'])*1e3 # AFD is amrked with negative
+                         try: tr=tr-float(rec['treatment_ac_field'])*1e3 # AFD is amrked with negative
+                         except ValueError:
+                            print("could not convert ac treatment field intensity to a floating point number, was given %s, this entry for specimen %s will be skipped"%(str(rec['treatment_ac_field']),s)); continue
 
                  Data[s]['zijdblock'].append([tr,dec,inc,int,ZI,rec['measurement_flag'],rec['magic_instrument_codes']])
                  #print methods
@@ -6216,12 +6236,14 @@ else:
         # collected the data
         datablock = Data[s]['datablock']
 
-        if len(datablock) <4:
+        if len(datablock) < 4:
            self.GUI_log.write("-E- ERROR: skipping specimen %s, not enough measurements - moving forward \n"%s)
            del Data[s]
-           sample=Data_hierarchy['specimens'][s]
-           del Data_hierarchy['specimens'][s]
-           Data_hierarchy['samples'][sample].remove(s)
+           try:
+               sample=Data_hierarchy['specimens'][s]
+               del Data_hierarchy['specimens'][s]
+               Data_hierarchy['samples'][sample].remove(s)
+           except KeyError: pass
            continue
 
         araiblock,field=self.sortarai(datablock,s,0)
