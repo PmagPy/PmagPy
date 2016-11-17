@@ -929,64 +929,64 @@ else:
 
 
     def Add_text(self,s):
-      """
-      Add text to measurement data window.
-      """
-      self.logger.DeleteAllItems()
-      FONT_RATIO=self.GUI_RESOLUTION+(self.GUI_RESOLUTION-1)*5
-      if self.GUI_RESOLUTION > 1.1:
-          font1 = wx.Font(11, wx.SWISS, wx.NORMAL, wx.NORMAL, False, self.font_type)
-      elif self.GUI_RESOLUTION <= 0.9:
-          font1 = wx.Font(8, wx.SWISS, wx.NORMAL, wx.NORMAL, False, self.font_type)
-      else:
-          font1 = wx.Font(10, wx.SWISS, wx.NORMAL, wx.NORMAL, False, self.font_type)
+        """
+        Add text to measurement data window.
+        """
+        self.logger.DeleteAllItems()
+        FONT_RATIO=self.GUI_RESOLUTION+(self.GUI_RESOLUTION-1)*5
+        if self.GUI_RESOLUTION > 1.1:
+            font1 = wx.Font(11, wx.SWISS, wx.NORMAL, wx.NORMAL, False, self.font_type)
+        elif self.GUI_RESOLUTION <= 0.9:
+            font1 = wx.Font(8, wx.SWISS, wx.NORMAL, wx.NORMAL, False, self.font_type)
+        else:
+            font1 = wx.Font(10, wx.SWISS, wx.NORMAL, wx.NORMAL, False, self.font_type)
 
-      #get temperature indecies to display current interp steps in logger
-      t1=self.tmin_box.GetValue()
-      t2=self.tmax_box.GetValue()
+        #get temperature indecies to display current interp steps in logger
+        t1=self.tmin_box.GetValue()
+        t2=self.tmax_box.GetValue()
 
-      if (t1 == "" or t2 == ""):
-        return
-      if float(t2) < float(t1):
-        return
+        if (t1 == "" or t2 == ""):
+            return
+        if float(t2) < float(t1):
+            return
 
-      # microwave or thermal
-      if "LP-PI-M" in self.Data[s]['datablock'][0]['magic_method_codes']:
-          MICROWAVE=True; THERMAL=False
-          steps_tr = [float(STEP.split("-")[-1]) for d in self.Data[s]['datablock']]
-      else:
-          MICROWAVE=False; THERMAL=True
-          steps_tr = [d['treatment_temp']-273 for d in self.Data[s]['datablock']]
+        # microwave or thermal
+        if "LP-PI-M" in self.Data[s]['datablock'][0]['magic_method_codes']:
+            MICROWAVE=True; THERMAL=False
+            steps_tr = [float(STEP.split("-")[-1]) for d in self.Data[s]['datablock']]
+        else:
+            MICROWAVE=False; THERMAL=True
+            steps_tr = [d['treatment_temp']-273 for d in self.Data[s]['datablock']]
 
-      tmin_index=steps_tr.index(int(t1))
-      tmax_index=steps_tr.index(int(t2))
+        tmin_index=steps_tr.index(int(t1))
+        tmax_index=steps_tr.index(int(t2))
 
-      self.logger.SetFont(font1)
-      for i,rec in enumerate(self.Data[s]['datablock']):
-          if "LT-NO" in rec['magic_method_codes']:
-              step="N"
-          elif "LT-AF-Z" in rec['magic_method_codes']:
-              step="AFD"
-          elif "LT-T-Z" in rec['magic_method_codes'] or 'LT-M-Z' in rec['magic_method_codes']:
-              step="Z"
-          elif "LT-T-I" in rec['magic_method_codes'] or 'LT-M-I' in rec['magic_method_codes']:
-              step="I"
-          elif "LT-PTRM-I" in rec['magic_method_codes'] or "LT-PMRM-I" in rec['magic_method_codes']:
-              step="P"
-          elif "LT-PTRM-MD" in rec['magic_method_codes'] or "LT-PMRM-MD" in rec['magic_method_codes']:
-              step="T"
-          elif "LT-PTRM-AC" in rec['magic_method_codes'] or "LT-PMRM-AC" in rec['magic_method_codes']:
-              step="A"
-          else:
-              print "unrecognized step in specimen",s,"  Method codes: ", rec['magic_method_codes']
-          if THERMAL:
-               self.logger.InsertStringItem(i, "%i"%i)
-               self.logger.SetStringItem(i, 1, step)
-               self.logger.SetStringItem(i, 2, "%1.0f"%(float(rec['treatment_temp'])-273.))
-               self.logger.SetStringItem(i, 3, "%5.1f"%float(rec['measurement_dec']))
-               self.logger.SetStringItem(i, 4, "%5.1f"%float(rec['measurement_inc']))
-               self.logger.SetStringItem(i, 5, "%.2e"%float(rec['measurement_magn_moment']))
-          elif MICROWAVE: # mcrowave
+        self.logger.SetFont(font1)
+        for i,rec in enumerate(self.Data[s]['datablock']):
+            if "LT-NO" in rec['magic_method_codes']:
+                step="N"
+            elif "LT-AF-Z" in rec['magic_method_codes']:
+                step="AFD"
+            elif "LT-T-Z" in rec['magic_method_codes'] or 'LT-M-Z' in rec['magic_method_codes']:
+                step="Z"
+            elif "LT-T-I" in rec['magic_method_codes'] or 'LT-M-I' in rec['magic_method_codes']:
+                step="I"
+            elif "LT-PTRM-I" in rec['magic_method_codes'] or "LT-PMRM-I" in rec['magic_method_codes']:
+                step="P"
+            elif "LT-PTRM-MD" in rec['magic_method_codes'] or "LT-PMRM-MD" in rec['magic_method_codes']:
+                step="T"
+            elif "LT-PTRM-AC" in rec['magic_method_codes'] or "LT-PMRM-AC" in rec['magic_method_codes']:
+                step="A"
+            else:
+                print "unrecognized step in specimen",s,"  Method codes: ", rec['magic_method_codes']
+            if THERMAL:
+                self.logger.InsertStringItem(i, "%i"%i)
+                self.logger.SetStringItem(i, 1, step)
+                self.logger.SetStringItem(i, 2, "%1.0f"%(float(rec['treatment_temp'])-273.))
+                self.logger.SetStringItem(i, 3, "%5.1f"%float(rec['measurement_dec']))
+                self.logger.SetStringItem(i, 4, "%5.1f"%float(rec['measurement_inc']))
+                self.logger.SetStringItem(i, 5, "%.2e"%float(rec['measurement_magn_moment']))
+            elif MICROWAVE: # mcrowave
                 if "measurement_description" in rec.keys():
                     MW_step=rec["measurement_description"].strip('\n').split(":")
                     for STEP in MW_step:
@@ -999,9 +999,9 @@ else:
                         self.logger.SetStringItem(i, 3, "%5.1f"%float(rec['measurement_dec']))
                         self.logger.SetStringItem(i, 4, "%5.1f"%float(rec['measurement_inc']))
                         self.logger.SetStringItem(i, 5, "%.2e"%float(rec['measurement_magn_moment']))
-          self.logger.SetItemBackgroundColour(i,"WHITE")
-          if i >= tmin_index and i <= tmax_index:
-              self.logger.SetItemBackgroundColour(i,"LIGHT BLUE")
+            self.logger.SetItemBackgroundColour(i,"WHITE")
+            if i >= tmin_index and i <= tmax_index:
+                self.logger.SetItemBackgroundColour(i,"LIGHT BLUE")
 
     #----------------------------------------------------------------------
 
@@ -1217,10 +1217,10 @@ else:
     #----------------------------------------------------------------------
 
     def on_next_button(self,event):
-      """
-      update figures and text when a next button is selected
-      """
-      if 'saved' not in self.Data[self.s]['pars'] or self.Data[self.s]['pars']['saved']!= True:
+        """
+        update figures and text when a next button is selected
+        """
+        if 'saved' not in self.Data[self.s]['pars'] or self.Data[self.s]['pars']['saved']!= True:
             del self.Data[self.s]['pars']
             self.Data[self.s]['pars']={}
             self.Data[self.s]['pars']['lab_dc_field']=self.Data[self.s]['lab_dc_field']
@@ -1232,22 +1232,22 @@ else:
                     self.Data[self.s]['pars'][key]=self.last_saved_pars[key]
                 self.last_saved_pars={}
 
-      index=self.specimens.index(self.s)
-      if index==len(self.specimens)-1:
-        index=0
-      else:
-        index+=1
-      self.s=self.specimens[index]
-      self.specimens_box.SetStringSelection(self.s)
-      self.update_selection()
+        index=self.specimens.index(self.s)
+        if index==len(self.specimens)-1:
+            index=0
+        else:
+            index+=1
+        self.s=self.specimens[index]
+        self.specimens_box.SetStringSelection(self.s)
+        self.update_selection()
 
     #----------------------------------------------------------------------
 
     def on_prev_button(self,event):
-      """
-      update figures and text when a previous button is selected
-      """
-      if 'saved' not in self.Data[self.s]['pars'] or self.Data[self.s]['pars']['saved']!= True:
+        """
+        update figures and text when a previous button is selected
+        """
+        if 'saved' not in self.Data[self.s]['pars'] or self.Data[self.s]['pars']['saved']!= True:
             del self.Data[self.s]['pars']
             self.Data[self.s]['pars']={}
             self.Data[self.s]['pars']['lab_dc_field']=self.Data[self.s]['lab_dc_field']
@@ -1260,12 +1260,12 @@ else:
                 self.last_saved_pars={}
 
 
-      index=self.specimens.index(self.s)
-      if index==0: index=len(self.specimens)
-      index-=1
-      self.s=self.specimens[index]
-      self.specimens_box.SetStringSelection(self.s)
-      self.update_selection()
+        index=self.specimens.index(self.s)
+        if index==0: index=len(self.specimens)
+        index-=1
+        self.s=self.specimens[index]
+        self.specimens_box.SetStringSelection(self.s)
+        self.update_selection()
 
     #----------------------------------------------------------------------
 
@@ -1643,7 +1643,7 @@ else:
             #try:
             change_resolution=False
             if float(dia.gui_resolution.GetValue()) != self.preferences['gui_resolution']:
-                     change_resolution=True
+                change_resolution=True
 
             self.preferences['gui_resolution']=float(dia.gui_resolution.GetValue())
 
@@ -1670,53 +1670,53 @@ else:
 
     def write_preferences_to_file(self,need_to_close_frame):
 
-            dlg1 = wx.MessageDialog(self,caption="Message:", message="save the thellier_gui.preferences in PmagPy directory!" ,style=wx.OK|wx.ICON_INFORMATION)
-            dlg1.ShowModal()
-            dlg1.Destroy()
-            PATH="~/PmagPy"
-            try:
-                PATH = find_pmag_dir.get_pmag_dir()
-            except:
-                pass
-            dlg2 = wx.FileDialog(
-                self, message="save the thellier_gui_preference.txt in PmagPy directory!",
-                defaultDir=PATH,
-                defaultFile="thellier_gui_preferences.py",
-                style=wx.FD_SAVE | wx.CHANGE_DIR
-                )
-            if dlg2.ShowModal() == wx.ID_OK:
-                preference_file = dlg2.GetPath()
-                fout=open(preference_file,'w')
-                String=""
+        dlg1 = wx.MessageDialog(self,caption="Message:", message="save the thellier_gui.preferences in PmagPy directory!" ,style=wx.OK|wx.ICON_INFORMATION)
+        dlg1.ShowModal()
+        dlg1.Destroy()
+        PATH="~/PmagPy"
+        try:
+            PATH = find_pmag_dir.get_pmag_dir()
+        except:
+            pass
+        dlg2 = wx.FileDialog(
+            self, message="save the thellier_gui_preference.txt in PmagPy directory!",
+            defaultDir=PATH,
+            defaultFile="thellier_gui_preferences.py",
+            style=wx.FD_SAVE | wx.CHANGE_DIR
+            )
+        if dlg2.ShowModal() == wx.ID_OK:
+            preference_file = dlg2.GetPath()
+            fout=open(preference_file,'w')
+            String=""
 
-                fout.write("preferences={}\n")
+            fout.write("preferences={}\n")
 
-                for key in  self.preferences.keys():
-                    if key in ['BOOTSTRAP_N','gui_resolution','show_Zij_temperatures_steps','show_Arai_temperatures_steps']:
-                        String="preferences['%s']=%f\n"%(key,self.preferences[key])
-                    elif key in ["VDM_or_VADM"]:
-                        String="preferences['%s']='%s'\n"%(key,self.preferences[key])
-                    elif key in ["show_statistics_on_gui"]:
-                        TEXT=""
-                        for stat in self.preferences[key]:
-                            TEXT=TEXT+"'"+stat+"',"
-                        String="preferences['%s']=[%s]\n"%(key,TEXT[:-1])
-                    else:
-                        String="preferences['%s']=%f\n"%(key,self.preferences[key])
+            for key in  self.preferences.keys():
+                if key in ['BOOTSTRAP_N','gui_resolution','show_Zij_temperatures_steps','show_Arai_temperatures_steps']:
+                    String="preferences['%s']=%f\n"%(key,self.preferences[key])
+                elif key in ["VDM_or_VADM"]:
+                    String="preferences['%s']='%s'\n"%(key,self.preferences[key])
+                elif key in ["show_statistics_on_gui"]:
+                    TEXT=""
+                    for stat in self.preferences[key]:
+                        TEXT=TEXT+"'"+stat+"',"
+                    String="preferences['%s']=[%s]\n"%(key,TEXT[:-1])
+                else:
+                    String="preferences['%s']=%f\n"%(key,self.preferences[key])
 
-                    fout.write(String)
-                fout.close()
-                os.chmod(preference_file,0777)
+                fout.write(String)
+            fout.close()
+            os.chmod(preference_file,0777)
 
-            dlg2.Destroy()
+        dlg2.Destroy()
 
-            if need_to_close_frame:
-                dlg3 = wx.MessageDialog(self, "You need to restart the program.\n","Confirm Exit", wx.OK|wx.ICON_QUESTION)
-                result = dlg3.ShowModal()
-                dlg3.Destroy()
-                if result == wx.ID_OK:
-                    #self.Destroy()
-                    sys.exit()
+        if need_to_close_frame:
+            dlg3 = wx.MessageDialog(self, "You need to restart the program.\n","Confirm Exit", wx.OK|wx.ICON_QUESTION)
+            result = dlg3.ShowModal()
+            dlg3.Destroy()
+            if result == wx.ID_OK:
+                #self.Destroy()
+                sys.exit()
 
 
 
@@ -1860,9 +1860,9 @@ else:
         #search for NRM:
         nrm0=""
         for rec in self.Data[self.s]['datablock']:
-          if "LT-NO" in rec['magic_method_codes']:
-              nrm0= "%.2e"%float(rec['measurement_magn_moment'])
-              break
+            if "LT-NO" in rec['magic_method_codes']:
+                nrm0= "%.2e"%float(rec['measurement_magn_moment'])
+                break
 
         self.fig1.text(0.1,0.93,'$NRM_0 = %s Am^2 $'%(nrm0),{'family':self.font_type, 'fontsize':10, 'style':'normal','va':'center', 'ha':'left' })
         self.fig1.text(0.9,0.93,'%s'%(self.s),{'family':self.font_type, 'fontsize':10, 'style':'normal','va':'center', 'ha':'right' })
@@ -2002,7 +2002,7 @@ else:
         self.currentDirectory = os.getcwd() # get the current working directory
         dialog = wx.DirDialog(None, "Choose a magic project directory:",defaultPath = self.currentDirectory ,style=wx.DD_DEFAULT_STYLE | wx.DD_NEW_DIR_BUTTON | wx.DD_CHANGE_DIR)
         if dialog.ShowModal() == wx.ID_OK:
-          new_magic_dir=dialog.GetPath()
+            new_magic_dir=dialog.GetPath()
         dialog.Destroy()
 
 
@@ -2049,7 +2049,7 @@ else:
             dialog = wx.DirDialog(None, "Choose a path. All magic directories in the path will be imported:",defaultPath = self.currentDirectory ,style=wx.DD_DEFAULT_STYLE | wx.DD_NEW_DIR_BUTTON | wx.DD_CHANGE_DIR)
             ok = dialog.ShowModal()
             if ok == wx.ID_OK:
-              new_dir=dialog.GetPath()
+                new_dir=dialog.GetPath()
             dialog.Destroy()
 
         #os.chdir(new_dir)
@@ -2060,32 +2060,32 @@ else:
         for FILE in os.listdir(new_dir):
             path=new_dir+"/"+FILE
             if os.path.isdir(path):
-                    print "importing from path %s"%path
+                print "importing from path %s"%path
                 #try:
-                    self.WD=path
-                    self.magic_file = os.path.join(path, meas_file)
-                    new_Data_info=self.get_data_info()
-                    self.Data_info["er_samples"].update(new_Data_info["er_samples"])
-                    self.Data_info["er_sites"].update(new_Data_info["er_sites"])
-                    self.Data_info["er_ages"].update(new_Data_info["er_ages"])
-                    new_Data,new_Data_hierarchy=self.get_data(self.data_model)
-                    if new_Data=={}:
-                        print "-E- ERROR importing MagIC data from path."
-                        continue
-                    #for s in new_Data.keys():
-                    #    if 'crblock' in new_Data[s].keys():
-                    #        print s,': found crblock in new data'
-                    #    if 'cooling_rate_data' in new_Data[s].keys():
-                    #        print s,': cooling_rate_data in new data'
+                self.WD=path
+                self.magic_file = os.path.join(path, meas_file)
+                new_Data_info=self.get_data_info()
+                self.Data_info["er_samples"].update(new_Data_info["er_samples"])
+                self.Data_info["er_sites"].update(new_Data_info["er_sites"])
+                self.Data_info["er_ages"].update(new_Data_info["er_ages"])
+                new_Data,new_Data_hierarchy=self.get_data(self.data_model)
+                if new_Data=={}:
+                    print "-E- ERROR importing MagIC data from path."
+                    continue
+                #for s in new_Data.keys():
+                #    if 'crblock' in new_Data[s].keys():
+                #        print s,': found crblock in new data'
+                #    if 'cooling_rate_data' in new_Data[s].keys():
+                #        print s,': cooling_rate_data in new data'
 
-                    self.Data_hierarchy['samples'].update(new_Data_hierarchy['samples'])
-                    self.Data_hierarchy['sites'].update(new_Data_hierarchy['sites'])
-                    self.Data_hierarchy['specimens'].update(new_Data_hierarchy['specimens'])
-                    self.Data_hierarchy['sample_of_specimen'].update(new_Data_hierarchy['sample_of_specimen'])
-                    self.Data_hierarchy['site_of_specimen'].update(new_Data_hierarchy['site_of_specimen'])
-                    self.Data_hierarchy['site_of_sample'].update(new_Data_hierarchy['site_of_sample'])
+                self.Data_hierarchy['samples'].update(new_Data_hierarchy['samples'])
+                self.Data_hierarchy['sites'].update(new_Data_hierarchy['sites'])
+                self.Data_hierarchy['specimens'].update(new_Data_hierarchy['specimens'])
+                self.Data_hierarchy['sample_of_specimen'].update(new_Data_hierarchy['sample_of_specimen'])
+                self.Data_hierarchy['site_of_specimen'].update(new_Data_hierarchy['site_of_specimen'])
+                self.Data_hierarchy['site_of_sample'].update(new_Data_hierarchy['site_of_sample'])
 
-                    self.Data.update(new_Data)
+                self.Data.update(new_Data)
                 #except:
         self.specimens=self.Data.keys()         # get list of specimens
         self.specimens.sort()                   # get list of specimens
@@ -2208,8 +2208,8 @@ else:
 
         if result == wx.ID_CANCEL: # Until the user clicks OK, show the message
             for crit in crit_list_not_in_pref:
-               short_crit=crit.split('specimen_')[-1]
-               self.preferences['show_statistics_on_gui'].remove(short_crit)
+                short_crit=crit.split('specimen_')[-1]
+                self.preferences['show_statistics_on_gui'].remove(short_crit)
 
     #----------------------------------------------------------------------
 
@@ -2299,7 +2299,7 @@ else:
                 except:
                     self.show_message(crit)
             elif type(value)==float or type(value)==int:
-                    self.acceptance_criteria[crit]['value']=float(value)
+                self.acceptance_criteria[crit]['value']=float(value)
             else:
                 self.show_message(crit)
             if ( crit=='sample_int_sigma' or crit=='site_int_sigma' ) and str(value)!="":
@@ -3171,43 +3171,43 @@ else:
 
         fin=open(redo_file,'rU')
         for Line in fin.readlines():
-          line=Line.strip('\n').split()
-          specimen=line[0]
-          tmin_kelvin=float(line[1])
-          tmax_kelvin=float(line[2])
-          if specimen not in self.redo_specimens.keys():
-            self.redo_specimens[specimen]={}
-          self.redo_specimens[specimen]['t_min']=float(tmin_kelvin)
-          self.redo_specimens[specimen]['t_max']=float(tmax_kelvin)
-          if specimen in self.Data.keys():
-              if tmin_kelvin not in self.Data[specimen]['t_Arai'] or tmax_kelvin not in self.Data[specimen]['t_Arai'] :
-                  self.GUI_log.write ("-W- WARNING: cant fit temperature bounds in the redo file to the actual measurement. specimen %s\n"%specimen)
-              else:
-                  self.Data[specimen]['pars']=thellier_gui_lib.get_PI_parameters(self.Data,self.acceptance_criteria,self.preferences,specimen,float(tmin_kelvin),float(tmax_kelvin),self.GUI_log,THERMAL,MICROWAVE)
-                  try:
-                      self.Data[specimen]['pars']=thellier_gui_lib.get_PI_parameters(self.Data,self.acceptance_criteria,self.preferences,specimen,float(tmin_kelvin),float(tmax_kelvin),self.GUI_log,THERMAL,MICROWAVE)
-                      self.Data[specimen]['pars']['saved']=True
-                      # write intrepretation into sample data
-                      sample=self.Data_hierarchy['specimens'][specimen]
-                      if sample not in self.Data_samples.keys():
-                          self.Data_samples[sample]={}
-                      if specimen not in self.Data_samples[sample].keys():
-                          self.Data_samples[sample][specimen]={}
-                      self.Data_samples[sample][specimen]['B']=self.Data[specimen]['pars']['specimen_int_uT']
-                      site=thellier_gui_lib.get_site_from_hierarchy(sample,self.Data_hierarchy)
-                      if site not in self.Data_sites.keys():
-                          self.Data_sites[site]={}
-                      if specimen not in self.Data_sites[site].keys():
-                          self.Data_sites[site][specimen]={}
-                      self.Data_sites[site][specimen]['B']=self.Data[specimen]['pars']['specimen_int_uT']
+            line=Line.strip('\n').split()
+            specimen=line[0]
+            tmin_kelvin=float(line[1])
+            tmax_kelvin=float(line[2])
+            if specimen not in self.redo_specimens.keys():
+                self.redo_specimens[specimen]={}
+            self.redo_specimens[specimen]['t_min']=float(tmin_kelvin)
+            self.redo_specimens[specimen]['t_max']=float(tmax_kelvin)
+            if specimen in self.Data.keys():
+                if tmin_kelvin not in self.Data[specimen]['t_Arai'] or tmax_kelvin not in self.Data[specimen]['t_Arai'] :
+                    self.GUI_log.write ("-W- WARNING: cant fit temperature bounds in the redo file to the actual measurement. specimen %s\n"%specimen)
+                else:
+                    self.Data[specimen]['pars']=thellier_gui_lib.get_PI_parameters(self.Data,self.acceptance_criteria,self.preferences,specimen,float(tmin_kelvin),float(tmax_kelvin),self.GUI_log,THERMAL,MICROWAVE)
+                    try:
+                        self.Data[specimen]['pars']=thellier_gui_lib.get_PI_parameters(self.Data,self.acceptance_criteria,self.preferences,specimen,float(tmin_kelvin),float(tmax_kelvin),self.GUI_log,THERMAL,MICROWAVE)
+                        self.Data[specimen]['pars']['saved']=True
+                        # write intrepretation into sample data
+                        sample=self.Data_hierarchy['specimens'][specimen]
+                        if sample not in self.Data_samples.keys():
+                            self.Data_samples[sample]={}
+                        if specimen not in self.Data_samples[sample].keys():
+                            self.Data_samples[sample][specimen]={}
+                        self.Data_samples[sample][specimen]['B']=self.Data[specimen]['pars']['specimen_int_uT']
+                        site=thellier_gui_lib.get_site_from_hierarchy(sample,self.Data_hierarchy)
+                        if site not in self.Data_sites.keys():
+                            self.Data_sites[site]={}
+                        if specimen not in self.Data_sites[site].keys():
+                            self.Data_sites[site][specimen]={}
+                        self.Data_sites[site][specimen]['B']=self.Data[specimen]['pars']['specimen_int_uT']
 
 
-                  except:
-                      print "-E- ERROR 1"
-                      self.GUI_log.write ("-E- ERROR. Cant calculate PI paremeters for specimen %s using redo file. Check!\n"%(specimen))
-          else:
-              self.GUI_log.write ("-W- WARNING: Cant find specimen %s from redo file in measurement file!\n"%specimen)
-              print "-W- WARNING: Cant find specimen %s from redo file in measurement file!\n"%specimen
+                    except:
+                        print "-E- ERROR 1"
+                        self.GUI_log.write ("-E- ERROR. Cant calculate PI paremeters for specimen %s using redo file. Check!\n"%(specimen))
+            else:
+                self.GUI_log.write ("-W- WARNING: Cant find specimen %s from redo file in measurement file!\n"%specimen)
+                print "-W- WARNING: Cant find specimen %s from redo file in measurement file!\n"%specimen
         fin.close()
         self.pars=self.Data[self.s]['pars']
         self.clear_boxes()
@@ -3272,22 +3272,22 @@ else:
         # this data will be merged later
         #-----------------------.
 
-             PmagRecsOld={}
-             for FILE in ['pmag_specimens.txt','pmag_samples.txt','pmag_sites.txt','pmag_results.txt']:
-                 PmagRecsOld[FILE],meas_data=[],[]
-                 try:
-                     meas_data,file_type=pmag.magic_read(os.path.join(self.WD, FILE))
-                     self.GUI_log.write("-I- Read exiting magic file  %s\n"%(os.path.join(self.WD, FILE)))
-                     #if FILE !='pmag_specimens.txt':
-                     os.rename(os.path.join(self.WD, FILE), os.path.join(self.WD, FILE+".backup"))
-                     self.GUI_log.write("-I- rename old magic file  %s.backup\n"%(os.path.join(self.WD, FILE)))
-                 except:
-                     self.GUI_log.write("-I- Cant read existing magic file  %s\n"%(os.path.join(self.WD, FILE)))
-                     continue
-                 for rec in meas_data:
-                     if "magic_method_codes" in rec.keys():
-                         if "LP-PI" not in rec['magic_method_codes'] and "IE-" not in rec['magic_method_codes'] :
-                             PmagRecsOld[FILE].append(rec)
+            PmagRecsOld={}
+            for FILE in ['pmag_specimens.txt','pmag_samples.txt','pmag_sites.txt','pmag_results.txt']:
+                PmagRecsOld[FILE],meas_data=[],[]
+                try:
+                    meas_data,file_type=pmag.magic_read(os.path.join(self.WD, FILE))
+                    self.GUI_log.write("-I- Read exiting magic file  %s\n"%(os.path.join(self.WD, FILE)))
+                    #if FILE !='pmag_specimens.txt':
+                    os.rename(os.path.join(self.WD, FILE), os.path.join(self.WD, FILE+".backup"))
+                    self.GUI_log.write("-I- rename old magic file  %s.backup\n"%(os.path.join(self.WD, FILE)))
+                except:
+                    self.GUI_log.write("-I- Cant read existing magic file  %s\n"%(os.path.join(self.WD, FILE)))
+                    continue
+                for rec in meas_data:
+                    if "magic_method_codes" in rec.keys():
+                        if "LP-PI" not in rec['magic_method_codes'] and "IE-" not in rec['magic_method_codes'] :
+                            PmagRecsOld[FILE].append(rec)
 
         pmag_specimens_header_1=["er_location_name","er_site_name","er_sample_name","er_specimen_name"]
         pmag_specimens_header_2=['measurement_step_min','measurement_step_max','specimen_int']
@@ -3382,9 +3382,9 @@ else:
                         self.spec_data['int_abs'] = None
                     cond2 = self.spec_data['int_abs'].notnull() == True
                     condition = (cond1 & cond2)
-                     # update intensity records
+                    # update intensity records
                     self.spec_data=self.spec_container.update_record(specimen, new_data, condition)
-                     # delete essentially blank records
+                    # delete essentially blank records
                     condition=self.spec_data['method_codes'].isnull().astype(bool)  # find the blank records
                     self.spec_data = self.spec_container.delete_rows(condition) # delete them
 
@@ -3446,7 +3446,7 @@ else:
 
         pmag_samples_header_1=["er_location_name","er_site_name"]
         if BY_SAMPLES:
-           pmag_samples_header_1.append("er_sample_name")
+            pmag_samples_header_1.append("er_sample_name")
         if BY_SAMPLES:
             pmag_samples_header_2=["er_specimen_names","sample_int","sample_int_n","sample_int_sigma","sample_int_sigma_perc","sample_description"]
         else:
@@ -3693,7 +3693,7 @@ else:
                                 MagIC_results_data['pmag_results'][sample_or_site][header_result]=value
 
                                 if header_result not in pmag_results_header_4:
-                                   pmag_results_header_4.append(header_result)
+                                    pmag_results_header_4.append(header_result)
 
 
         # check for ages:
@@ -4090,7 +4090,7 @@ else:
         if  er_ages_rec["age"]=="":
             if "age_range_high" in er_ages_rec.keys() and "age_range_low" in er_ages_rec.keys():
                 if er_ages_rec["age_range_high"] != "" and  er_ages_rec["age_range_low"] != "":
-                 er_ages_rec["age"]=scipy.mean([float(er_ages_rec["age_range_high"]),float(er_ages_rec["age_range_low"])])
+                    er_ages_rec["age"]=scipy.mean([float(er_ages_rec["age_range_high"]),float(er_ages_rec["age_range_low"])])
         if  er_ages_rec["age"]=="":
             return(er_ages_rec)
 
@@ -4330,9 +4330,9 @@ else:
             #-----
 
             if sample_or_site in self.Data_info["er_sites"].keys():
-                    location=self.Data_info["er_sites"][sample_or_site]["er_location_name"]
+                location=self.Data_info["er_sites"][sample_or_site]["er_location_name"]
             elif sample_or_site in self.Data_info["er_samples"].keys():
-                    location=self.Data_info["er_samples"][sample_or_site]["er_location_name"]
+                location=self.Data_info["er_samples"][sample_or_site]["er_location_name"]
             else:
                 location="unknown"
 
@@ -4628,14 +4628,14 @@ else:
         self.araiplot.plot(self.Data[self.s]['x_Arai'],self.Data[self.s]['y_Arai'],'0.2',lw=0.75,clip_on=False)
 
         for i in range(len(self.Data[self.s]['steps_Arai'])):
-          if self.Data[self.s]['steps_Arai'][i]=="ZI":
-            self.x_Arai_ZI.append(self.Data[self.s]['x_Arai'][i])
-            self.y_Arai_ZI.append(self.Data[self.s]['y_Arai'][i])
-          elif self.Data[self.s]['steps_Arai'][i]=="IZ":
-            self.x_Arai_IZ.append(self.Data[self.s]['x_Arai'][i])
-            self.y_Arai_IZ.append(self.Data[self.s]['y_Arai'][i])
-          else:
-             self.GUI_log.write("-E- Cant plot Arai plot. check the data for specimen %s\n"%s)
+            if self.Data[self.s]['steps_Arai'][i]=="ZI":
+                self.x_Arai_ZI.append(self.Data[self.s]['x_Arai'][i])
+                self.y_Arai_ZI.append(self.Data[self.s]['y_Arai'][i])
+            elif self.Data[self.s]['steps_Arai'][i]=="IZ":
+                self.x_Arai_IZ.append(self.Data[self.s]['x_Arai'][i])
+                self.y_Arai_IZ.append(self.Data[self.s]['y_Arai'][i])
+            else:
+                self.GUI_log.write("-E- Cant plot Arai plot. check the data for specimen %s\n"%s)
         if len(self.x_Arai_ZI)>0:
             self.araiplot.scatter (self.x_Arai_ZI,self.y_Arai_ZI,marker='o',facecolor='r',edgecolor ='k',s=25*self.GUI_RESOLUTION,clip_on=False)
         if len(self.x_Arai_IZ)>0:
@@ -4654,7 +4654,7 @@ else:
 
         # Tail checks
         if len(self.x_tail_check >0):
-          self.araiplot.scatter (self.x_tail_check,self.y_tail_check,marker='s',edgecolor='0.1',alpha=1.0, facecolor='None',s=80*self.GUI_RESOLUTION,lw=1,clip_on=False)
+            self.araiplot.scatter (self.x_tail_check,self.y_tail_check,marker='s',edgecolor='0.1',alpha=1.0, facecolor='None',s=80*self.GUI_RESOLUTION,lw=1,clip_on=False)
 
 
         # Additivity checks
@@ -4674,20 +4674,20 @@ else:
 
 
         for i in range(len(self.Data[self.s]['t_Arai'])):
-          if self.Data[self.s]['t_Arai'][i]!=0:
-            if self.Data[self.s]['T_or_MW']!="MW":
-                self.tmp_c=self.Data[self.s]['t_Arai'][i]-273.
+            if self.Data[self.s]['t_Arai'][i]!=0:
+                if self.Data[self.s]['T_or_MW']!="MW":
+                    self.tmp_c=self.Data[self.s]['t_Arai'][i]-273.
+                else:
+                    self.tmp_c=self.Data[self.s]['t_Arai'][i]
             else:
-                self.tmp_c=self.Data[self.s]['t_Arai'][i]
-          else:
-            self.tmp_c=0.
-          if self.preferences['show_Arai_temperatures'] and int(self.preferences['show_Arai_temperatures_steps'])!=1:
-              if (i+1)%int(self.preferences['show_Arai_temperatures_steps']) ==0 and i!=0:
-                  self.araiplot.text(self.x_Arai[i],self.y_Arai[i],"  %.0f"%self.tmp_c,fontsize=10,color='gray',ha='left',va='center',clip_on=False)
-          elif not self.preferences['show_Arai_temperatures']:
-              continue
-          else:
-              self.araiplot.text(self.x_Arai[i],self.y_Arai[i],"  %.0f"%self.tmp_c,fontsize=10,color='gray',ha='left',va='center',clip_on=False)
+                self.tmp_c=0.
+            if self.preferences['show_Arai_temperatures'] and int(self.preferences['show_Arai_temperatures_steps'])!=1:
+                if (i+1)%int(self.preferences['show_Arai_temperatures_steps']) ==0 and i!=0:
+                    self.araiplot.text(self.x_Arai[i],self.y_Arai[i],"  %.0f"%self.tmp_c,fontsize=10,color='gray',ha='left',va='center',clip_on=False)
+            elif not self.preferences['show_Arai_temperatures']:
+                continue
+            else:
+                self.araiplot.text(self.x_Arai[i],self.y_Arai[i],"  %.0f"%self.tmp_c,fontsize=10,color='gray',ha='left',va='center',clip_on=False)
 
 
 
@@ -4722,9 +4722,9 @@ else:
         #search for NRM:
         nrm0=""
         for rec in self.Data[self.s]['datablock']:
-          if "LT-NO" in rec['magic_method_codes']:
-              nrm0= "%.2e"%float(rec['measurement_magn_moment'])
-              break
+            if "LT-NO" in rec['magic_method_codes']:
+                nrm0= "%.2e"%float(rec['measurement_magn_moment'])
+                break
 
 
         #self.fig1.text(0.05,0.93,r'$NRM0 = %s Am^2 $'%(nrm0),{'family':self.font_type, 'fontsize':10, 'style':'normal','va':'center', 'ha':'left' })
@@ -4768,7 +4768,7 @@ else:
                     if i!=0  and (i+1)%int(self.preferences['show_Zij_temperatures_steps'])==0:
                         self.zijplot.text(self.CART_rot[i][0],-1*self.CART_rot[i][2]," %.0f"%(self.z_temperatures[i]-K_diff),fontsize=FONTSIZE,color='gray',ha='left',va='center',clip_on=False)   #inc
                 else:
-                  self.zijplot.text(self.CART_rot[i][0],-1*self.CART_rot[i][2]," %.0f"%(self.z_temperatures[i]-K_diff),fontsize=FONTSIZE,color='gray',ha='left',va='center',clip_on=False)   #inc
+                    self.zijplot.text(self.CART_rot[i][0],-1*self.CART_rot[i][2]," %.0f"%(self.z_temperatures[i]-K_diff),fontsize=FONTSIZE,color='gray',ha='left',va='center',clip_on=False)   #inc
 
         #-----
         xmin, xmax = self.zijplot.get_xlim()
@@ -4987,31 +4987,31 @@ else:
                 temperatures_PTRMS=scipy.array([row[0] for row in PTRMS])
 
             if len(temperatures_NRMS)!=len(temperatures_PTRMS):
-              self.GUI_log.write("-E- ERROR: NRMS and pTRMS are not equal in specimen %s. Check\n."%self.s)
+                self.GUI_log.write("-E- ERROR: NRMS and pTRMS are not equal in specimen %s. Check\n."%self.s)
             else:
-              M_NRMS=scipy.array([row[3] for row in NRMS])/NRMS[0][3]
-              M_pTRMS=scipy.array([row[3] for row in PTRMS])/NRMS[0][3]
+                M_NRMS=scipy.array([row[3] for row in NRMS])/NRMS[0][3]
+                M_pTRMS=scipy.array([row[3] for row in PTRMS])/NRMS[0][3]
 
-              self.mplot.clear()
-              self.mplot.plot(temperatures_NRMS,M_NRMS,'bo-',mec='0.2',markersize=5*self.GUI_RESOLUTION,lw=1,clip_on=False)
-              self.mplot.plot(temperatures_NRMS,M_pTRMS,'ro-',mec='0.2',markersize=5*self.GUI_RESOLUTION,lw=1,clip_on=False)
-              if self.Data[self.s]['T_or_MW']!="MW":
-                  self.mplot.set_xlabel("C",fontsize=FONTSIZE_1)
-              else:
-                  self.mplot.set_xlabel("Treatment",fontsize=FONTSIZE_1)
-              self.mplot.set_ylabel("M / NRM0",fontsize=FONTSIZE_1)
-              #self.mplot.set_xtick(labelsize=2)
-              try:
-                  self.mplot.tick_params(axis='both', which='major', labelsize=8)
-              except:
-                  pass
-              #self.mplot.tick_params(axis='x', which='major', labelsize=8)
-              self.mplot.spines["right"].set_visible(False)
-              self.mplot.spines["top"].set_visible(False)
-              self.mplot.get_xaxis().tick_bottom()
-              self.mplot.get_yaxis().tick_left()
+                self.mplot.clear()
+                self.mplot.plot(temperatures_NRMS,M_NRMS,'bo-',mec='0.2',markersize=5*self.GUI_RESOLUTION,lw=1,clip_on=False)
+                self.mplot.plot(temperatures_NRMS,M_pTRMS,'ro-',mec='0.2',markersize=5*self.GUI_RESOLUTION,lw=1,clip_on=False)
+                if self.Data[self.s]['T_or_MW']!="MW":
+                    self.mplot.set_xlabel("C",fontsize=FONTSIZE_1)
+                else:
+                    self.mplot.set_xlabel("Treatment",fontsize=FONTSIZE_1)
+                self.mplot.set_ylabel("M / NRM0",fontsize=FONTSIZE_1)
+                #self.mplot.set_xtick(labelsize=2)
+                try:
+                    self.mplot.tick_params(axis='both', which='major', labelsize=8)
+                except:
+                    pass
+                #self.mplot.tick_params(axis='x', which='major', labelsize=8)
+                self.mplot.spines["right"].set_visible(False)
+                self.mplot.spines["top"].set_visible(False)
+                self.mplot.get_xaxis().tick_bottom()
+                self.mplot.get_yaxis().tick_left()
 
-              #xt=xticks()
+                #xt=xticks()
 
             #start_time_6=time.time()
             #runtime_sec6 = start_time_6 - start_time_5
@@ -5196,46 +5196,46 @@ else:
 
         self.Banc_window.SetValue("%.1f"%(self.pars['specimen_int_uT']))
         if flag_Fail:
-          self.Banc_window.SetBackgroundColour(wx.RED)
+            self.Banc_window.SetBackgroundColour(wx.RED)
         else:
-          self.Banc_window.SetBackgroundColour(wx.GREEN)
+            self.Banc_window.SetBackgroundColour(wx.GREEN)
 
         if "AniSpec" in self.Data[self.s]:
-          self.Aniso_factor_window.SetValue("%.2f"%(self.pars['Anisotropy_correction_factor']))
-          if self.pars["AC_WARNING"]!="" and\
-              ("TRM" in self.pars["AC_WARNING"] and  self.pars["AC_anisotropy_type"]== "ATRM" and "alteration" in self.pars["AC_WARNING"]) :
+            self.Aniso_factor_window.SetValue("%.2f"%(self.pars['Anisotropy_correction_factor']))
+            if self.pars["AC_WARNING"]!="" and\
+                ("TRM" in self.pars["AC_WARNING"] and  self.pars["AC_anisotropy_type"]== "ATRM" and "alteration" in self.pars["AC_WARNING"]) :
                 self.Aniso_factor_window.SetBackgroundColour(wx.RED)
-          elif self.pars["AC_WARNING"]!="" and\
-             ( ("TRM" in self.pars["AC_WARNING"] and  self.pars["AC_anisotropy_type"]== "ATRM" and "F-test" in self.pars["AC_WARNING"] and "alteration" not in self.pars["AC_WARNING"] ) \
-               or\
-               ("ARM" in self.pars["AC_WARNING"] and  self.pars["AC_anisotropy_type"]== "AARM" and "F-test" in self.pars["AC_WARNING"])):
+            elif self.pars["AC_WARNING"]!="" and\
+               ( ("TRM" in self.pars["AC_WARNING"] and  self.pars["AC_anisotropy_type"]== "ATRM" and "F-test" in self.pars["AC_WARNING"] and "alteration" not in self.pars["AC_WARNING"] ) \
+                 or\
+                 ("ARM" in self.pars["AC_WARNING"] and  self.pars["AC_anisotropy_type"]== "AARM" and "F-test" in self.pars["AC_WARNING"])):
                 self.Aniso_factor_window.SetBackgroundColour('#FFFACD')
-          else:
-            self.Aniso_factor_window.SetBackgroundColour(wx.GREEN)
+            else:
+                self.Aniso_factor_window.SetBackgroundColour(wx.GREEN)
 
         else:
-          self.Aniso_factor_window.SetValue("None")
-          self.Aniso_factor_window.SetBackgroundColour(wx.NullColour)
+            self.Aniso_factor_window.SetValue("None")
+            self.Aniso_factor_window.SetBackgroundColour(wx.NullColour)
 
 
 
         if self.pars['NLT_specimen_correction_factor']!=-1:
-          self.NLT_factor_window.SetValue("%.2f"%(self.pars['NLT_specimen_correction_factor']))
+            self.NLT_factor_window.SetValue("%.2f"%(self.pars['NLT_specimen_correction_factor']))
         else:
-          self.NLT_factor_window.SetValue("None")
+            self.NLT_factor_window.SetValue("None")
 
         if self.pars['specimen_int_corr_cooling_rate']!=-1 and self.pars['specimen_int_corr_cooling_rate']!=-999:
-          self.CR_factor_window.SetValue("%.2f"%(self.pars['specimen_int_corr_cooling_rate']))
-          if 'CR_flag' in self.pars.keys() and self.pars['CR_flag']=="calculated":
-            self.CR_factor_window.SetBackgroundColour(wx.GREEN)
-          elif  'CR_WARNING' in self.pars.keys() and 'inferred' in self.pars['CR_WARNING']:
-            self.CR_factor_window.SetBackgroundColour('#FFFACD')
-          else:
-            self.CR_factor_window.SetBackgroundColour(wx.NullColour)
+            self.CR_factor_window.SetValue("%.2f"%(self.pars['specimen_int_corr_cooling_rate']))
+            if 'CR_flag' in self.pars.keys() and self.pars['CR_flag']=="calculated":
+                self.CR_factor_window.SetBackgroundColour(wx.GREEN)
+            elif  'CR_WARNING' in self.pars.keys() and 'inferred' in self.pars['CR_WARNING']:
+                self.CR_factor_window.SetBackgroundColour('#FFFACD')
+            else:
+                self.CR_factor_window.SetBackgroundColour(wx.NullColour)
 
         else:
-          self.CR_factor_window.SetValue("None")
-          self.CR_factor_window.SetBackgroundColour(wx.NullColour)
+            self.CR_factor_window.SetValue("None")
+            self.CR_factor_window.SetBackgroundColour(wx.NullColour)
 
         # sample
         self.write_sample_box()
@@ -5269,9 +5269,9 @@ else:
         t2=self.tmax_box.GetValue()
 
         if (t1 == "" or t2==""):
-          return
+            return
         if float(t2) < float(t1):
-          return
+            return
 
 
         index_1=self.T_list.index(t1)
@@ -5347,9 +5347,9 @@ else:
 
         if self.preferences['show_CR_plot'] ==False or 'crblock' not in self.Data[self.s].keys():
             if z>0:
-              FC='green';EC='0.1'
+                FC='green';EC='0.1'
             else:
-              FC='yellow';EC='green'
+                FC='yellow';EC='green'
             self.eqplot.scatter([eqarea_x],[eqarea_y],marker='o',edgecolor=EC, facecolor=FC,s=30,lw=1)
 
             self.canvas3.draw()
@@ -5409,11 +5409,11 @@ else:
 
         # NLT plot
         if self.preferences['show_NLT_plot'] ==True and 'NLT_parameters' in self.Data[self.s].keys():
-           alpha=self.Data[self.s]['NLT_parameters']['tanh_parameters'][0][0]
-           beta=self.Data[self.s]['NLT_parameters']['tanh_parameters'][0][1]
-           #labfiled=self.Data[self.s]['lab_dc_field']
-           Banc=self.pars["specimen_int_uT"]
-           self.mplot.scatter([Banc],[alpha*(scipy.tanh(beta*Banc*1e-6))],marker='o',s=30,facecolor='g',edgecolor ='k')
+            alpha=self.Data[self.s]['NLT_parameters']['tanh_parameters'][0][0]
+            beta=self.Data[self.s]['NLT_parameters']['tanh_parameters'][0][1]
+            #labfiled=self.Data[self.s]['lab_dc_field']
+            Banc=self.pars["specimen_int_uT"]
+            self.mplot.scatter([Banc],[alpha*(scipy.tanh(beta*Banc*1e-6))],marker='o',s=30,facecolor='g',edgecolor ='k')
 
         self.canvas5.draw()
 #        pylab.draw()
@@ -5596,10 +5596,10 @@ else:
 
     def get_data(self):
 
-      def tan_h(x, a, b):
+        def tan_h(x, a, b):
             return a*scipy.tanh(b*x)
 
-      def cart2dir(cart): # OLD ONE
+        def cart2dir(cart): # OLD ONE
             """
             converts a direction to cartesian coordinates
             """
@@ -5607,9 +5607,9 @@ else:
             rad=pi/180. # constant to convert degrees to radians
             R=scipy.sqrt(cart[0]**2+cart[1]**2+cart[2]**2) # calculate resultant vector length
             if R==0:
-               #print 'trouble in cart2dir'
-               #print cart
-               return [0.0,0.0,0.0]
+                #print 'trouble in cart2dir'
+                #print cart
+                return [0.0,0.0,0.0]
             D=arctan2(cart[1],cart[0])/rad  # calculate declination taking care of correct quadrants (arctan2)
             if D<0:D=D+360. # put declination between 0 and 360.
             if D>360.:D=D-360.
@@ -5620,605 +5620,605 @@ else:
             return Dir # return the directions list
 
 
-      def dir2cart(d):
+        def dir2cart(d):
        # converts list or array of vector directions, in degrees, to array of cartesian coordinates, in x,y,z
-        ints=ones(len(d)).transpose() # get an array of ones to plug into dec,inc pairs
-        d=scipy.array(d)
-        rad=pi/180.
-        if len(d.shape)>1: # array of vectors
-            decs,incs=d[:,0]*rad,d[:,1]*rad
-            if d.shape[1]==3: ints=d[:,2] # take the given lengths
-        else: # single vector
-            decs,incs=scipy.array(d[0])*rad,scipy.array(d[1])*rad
-            if len(d)==3:
-                ints=scipy.array(d[2])
-            else:
-                ints=scipy.array([1.])
-        cart= scipy.array([ints*scipy.cos(decs)*scipy.cos(incs),ints*scipy.sin(decs)*scipy.cos(incs),ints*scipy.sin(incs)]).transpose()
-        return cart
+            ints=ones(len(d)).transpose() # get an array of ones to plug into dec,inc pairs
+            d=scipy.array(d)
+            rad=pi/180.
+            if len(d.shape)>1: # array of vectors
+                decs,incs=d[:,0]*rad,d[:,1]*rad
+                if d.shape[1]==3: ints=d[:,2] # take the given lengths
+            else: # single vector
+                decs,incs=scipy.array(d[0])*rad,scipy.array(d[1])*rad
+                if len(d)==3:
+                    ints=scipy.array(d[2])
+                else:
+                    ints=scipy.array([1.])
+            cart= scipy.array([ints*scipy.cos(decs)*scipy.cos(incs),ints*scipy.sin(decs)*scipy.cos(incs),ints*scipy.sin(incs)]).transpose()
+            return cart
 
-      #self.dir_pathes=self.WD
+        #self.dir_pathes=self.WD
 
 
-      #------------------------------------------------
-      # Read measurement file and sort to blocks
-      #------------------------------------------------
+        #------------------------------------------------
+        # Read measurement file and sort to blocks
+        #------------------------------------------------
 
-      # All data information is stored in Data[secimen]={}
-      Data={}
-      Data_hierarchy={}
-      Data_hierarchy['locations']={}
-      Data_hierarchy['sites']={}
-      Data_hierarchy['samples']={}
-      Data_hierarchy['specimens']={}
-      Data_hierarchy['sample_of_specimen']={}
-      Data_hierarchy['site_of_specimen']={}
-      Data_hierarchy['site_of_sample']={}
+        # All data information is stored in Data[secimen]={}
+        Data={}
+        Data_hierarchy={}
+        Data_hierarchy['locations']={}
+        Data_hierarchy['sites']={}
+        Data_hierarchy['samples']={}
+        Data_hierarchy['specimens']={}
+        Data_hierarchy['sample_of_specimen']={}
+        Data_hierarchy['site_of_specimen']={}
+        Data_hierarchy['site_of_sample']={}
 
-      # add dir to dir pathes for interpterer:
-      if self.WD not in self.MagIC_directories_list:
-          self.MagIC_directories_list.append(self.WD)
-      #for dir_path in self.dir_pathes:
-      #print "start Magic read %s " %self.magic_file
-      if self.data_model==3:
-          if 'specimens' in self.contribution.tables:
-              self.contribution.propagate_name_down('sample', 'measurements')
-              self.contribution.propagate_name_down('sample', 'specimens') # need these for get_data_info
-          if 'samples' in self.contribution.tables:
-              self.contribution.propagate_name_down('site', 'measurements')
-              self.contribution.propagate_name_down('site', 'specimens')
-          if 'sites' in self.contribution.tables:
-              self.contribution.propagate_name_down('location','measurements')
-              self.contribution.propagate_name_down('location','specimens')
-          meas_container = self.contribution.tables['measurements']
-          meas_data3_0 = meas_container.df
+        # add dir to dir pathes for interpterer:
+        if self.WD not in self.MagIC_directories_list:
+            self.MagIC_directories_list.append(self.WD)
+        #for dir_path in self.dir_pathes:
+        #print "start Magic read %s " %self.magic_file
+        if self.data_model==3:
+            if 'specimens' in self.contribution.tables:
+                self.contribution.propagate_name_down('sample', 'measurements')
+                self.contribution.propagate_name_down('sample', 'specimens') # need these for get_data_info
+            if 'samples' in self.contribution.tables:
+                self.contribution.propagate_name_down('site', 'measurements')
+                self.contribution.propagate_name_down('site', 'specimens')
+            if 'sites' in self.contribution.tables:
+                self.contribution.propagate_name_down('location','measurements')
+                self.contribution.propagate_name_down('location','specimens')
+            meas_container = self.contribution.tables['measurements']
+            meas_data3_0 = meas_container.df
 # do some filtering
-          Mkeys = ['magn_moment', 'magn_volume', 'magn_mass']
-          meas_data3_0= meas_data3_0[meas_data3_0['method_codes'].str.contains('LP-PI-TRM|LP-TRM|LP-PI-M|LP-AN|LP-CR-TRM')==True] # fish out all the relavent data
-          intensity_types = [col_name for col_name in meas_data3_0.columns if col_name in Mkeys]
-          int_key = intensity_types[0] # plot first intensity method found - normalized to initial value anyway - doesn't matter which used
-          meas_data3_0 = meas_data3_0[meas_data3_0[int_key].notnull()] # get all the non-null intensity records of the same type
-          # now convert back to 2.5  changing only those keys that are necessary for thellier_gui
-          meas_data2_5 = meas_data3_0.rename(columns=map_magic.meas_magic3_2_magic2_map)
-          meas_data=meas_data2_5.to_dict("records")  # make a list of dictionaries to maintain backward compatibility
-      else:
-        try:
-          meas_data,file_type=pmag.magic_read(self.magic_file)
-        except:
-          print "-E- ERROR: Cant read measurement file. "
-          return {},{}
+            Mkeys = ['magn_moment', 'magn_volume', 'magn_mass']
+            meas_data3_0= meas_data3_0[meas_data3_0['method_codes'].str.contains('LP-PI-TRM|LP-TRM|LP-PI-M|LP-AN|LP-CR-TRM')==True] # fish out all the relavent data
+            intensity_types = [col_name for col_name in meas_data3_0.columns if col_name in Mkeys]
+            int_key = intensity_types[0] # plot first intensity method found - normalized to initial value anyway - doesn't matter which used
+            meas_data3_0 = meas_data3_0[meas_data3_0[int_key].notnull()] # get all the non-null intensity records of the same type
+            # now convert back to 2.5  changing only those keys that are necessary for thellier_gui
+            meas_data2_5 = meas_data3_0.rename(columns=map_magic.meas_magic3_2_magic2_map)
+            meas_data=meas_data2_5.to_dict("records")  # make a list of dictionaries to maintain backward compatibility
+        else:
+            try:
+                meas_data,file_type=pmag.magic_read(self.magic_file)
+            except:
+                print "-E- ERROR: Cant read measurement file. "
+                return {},{}
 
-      #print "done Magic read %s " %self.magic_file
+        #print "done Magic read %s " %self.magic_file
 
-      self.GUI_log.write("-I- Read magic file  %s\n"%self.magic_file)
+        self.GUI_log.write("-I- Read magic file  %s\n"%self.magic_file)
 
-      # get list of unique specimen names
+        # get list of unique specimen names
 
-      CurrRec=[]
-      #print "get sids"
-      sids=pmag.get_specs(meas_data) # samples ID's
-      #print "done get sids"
+        CurrRec=[]
+        #print "get sids"
+        sids=pmag.get_specs(meas_data) # samples ID's
+        #print "done get sids"
 
-      #print "initialize blocks"
+        #print "initialize blocks"
 
-      for s in sids:
-          if s not in Data.keys():
-              Data[s]={}
-              Data[s]['datablock']=[]
-              Data[s]['trmblock']=[]
-              Data[s]['zijdblock']=[]
-          #zijdblock,units=pmag.find_dmag_rec(s,meas_data)
-          #Data[s]['zijdblock']=zijdblock
+        for s in sids:
+            if s not in Data.keys():
+                Data[s]={}
+                Data[s]['datablock']=[]
+                Data[s]['trmblock']=[]
+                Data[s]['zijdblock']=[]
+            #zijdblock,units=pmag.find_dmag_rec(s,meas_data)
+            #Data[s]['zijdblock']=zijdblock
 
 
-      #print "done initialize blocks"
+        #print "done initialize blocks"
 
-      #print "sorting meas data"
+        #print "sorting meas data"
 
-      for rec in meas_data:
-          s=rec["er_specimen_name"]
-          Data[s]['T_or_MW']="T"
-          sample=rec["er_sample_name"]
-          site=rec["er_site_name"]
-          # if "er_site_name" in an empty string: use er_sample_name tp assign site to sample.
-          if rec["er_site_name"]=="":
+        for rec in meas_data:
+            s=rec["er_specimen_name"]
+            Data[s]['T_or_MW']="T"
+            sample=rec["er_sample_name"]
+            site=rec["er_site_name"]
+            # if "er_site_name" in an empty string: use er_sample_name tp assign site to sample.
+            if rec["er_site_name"]=="":
                 site=sample
-          location=""
-          if "er_location_name" in rec.keys():
-            location=rec["er_location_name"]
+            location=""
+            if "er_location_name" in rec.keys():
+                location=rec["er_location_name"]
 
-          if  "LP-PI-M" in rec["magic_method_codes"]:
-             Data[s]['T_or_MW']="MW"
-          else:
-             Data[s]['T_or_MW']="T"
+            if  "LP-PI-M" in rec["magic_method_codes"]:
+                Data[s]['T_or_MW']="MW"
+            else:
+                Data[s]['T_or_MW']="T"
 
-          if "magic_method_codes" not in rec.keys():
-              rec["magic_method_codes"]=""
-          #methods=rec["magic_method_codes"].split(":")
-          if "LP-PI-TRM" in rec["magic_method_codes"] or "LP-PI-M" in rec["magic_method_codes"]:
-              Data[s]['datablock'].append(rec)
-              # identify the lab DC field
-              if (("LT-PTRM-I" in rec["magic_method_codes"] or "LT-T-I" in rec["magic_method_codes"]) and 'LP-TRM' not in rec["magic_method_codes"] )\
-                 or "LT-PMRM-I" in rec["magic_method_codes"]:
-                  Data[s]['Thellier_dc_field_uT']=float(rec["treatment_dc_field"])
-                  Data[s]['Thellier_dc_field_phi']=float(rec['treatment_dc_field_phi'])
-                  Data[s]['Thellier_dc_field_theta']=float(rec['treatment_dc_field_theta'])
-
-
-          if "LP-TRM" in rec["magic_method_codes"]:
-              Data[s]['trmblock'].append(rec)
-
-          if "LP-AN-TRM" in rec["magic_method_codes"]:
-              if 'atrmblock' not in Data[s].keys():
-                Data[s]['atrmblock']=[]
-              Data[s]['atrmblock'].append(rec)
+            if "magic_method_codes" not in rec.keys():
+                rec["magic_method_codes"]=""
+            #methods=rec["magic_method_codes"].split(":")
+            if "LP-PI-TRM" in rec["magic_method_codes"] or "LP-PI-M" in rec["magic_method_codes"]:
+                Data[s]['datablock'].append(rec)
+                # identify the lab DC field
+                if (("LT-PTRM-I" in rec["magic_method_codes"] or "LT-T-I" in rec["magic_method_codes"]) and 'LP-TRM' not in rec["magic_method_codes"] )\
+                   or "LT-PMRM-I" in rec["magic_method_codes"]:
+                    Data[s]['Thellier_dc_field_uT']=float(rec["treatment_dc_field"])
+                    Data[s]['Thellier_dc_field_phi']=float(rec['treatment_dc_field_phi'])
+                    Data[s]['Thellier_dc_field_theta']=float(rec['treatment_dc_field_theta'])
 
 
-          if "LP-AN-ARM" in rec["magic_method_codes"]:
-              if 'aarmblock' not in Data[s].keys():
-                Data[s]['aarmblock']=[]
-              Data[s]['aarmblock'].append(rec)
+            if "LP-TRM" in rec["magic_method_codes"]:
+                Data[s]['trmblock'].append(rec)
 
-          if "LP-CR-TRM" in rec["magic_method_codes"]:
-              if 'crblock' not in Data[s].keys():
-                Data[s]['crblock']=[]
-              Data[s]['crblock'].append(rec)
+            if "LP-AN-TRM" in rec["magic_method_codes"]:
+                if 'atrmblock' not in Data[s].keys():
+                    Data[s]['atrmblock']=[]
+                Data[s]['atrmblock'].append(rec)
 
-          #---- Zijderveld block
 
-          EX=["LP-AN-ARM","LP-AN-TRM","LP-ARM-AFD","LP-ARM2-AFD","LP-TRM-AFD","LP-TRM","LP-TRM-TD","LP-X","LP-CR-TRM"] # list of excluded lab protocols
-          #INC=["LT-NO","LT-AF-Z","LT-T-Z", "LT-M-Z", "LP-PI-TRM-IZ", "LP-PI-M-IZ"]
-          INC=["LT-NO","LT-T-Z","LT-M-Z","LT-AF-Z"]
-          methods=rec["magic_method_codes"].strip('\n').split(":")
-          for i in range (len(methods)):
-               methods[i]=methods[i].strip()
-          if 'measurement_flag' not in rec.keys(): rec['measurement_flag']='g'
-          skip=1
-          for meth in methods:
-               if meth in INC:
-                   skip=0
-          for meth in EX:
-               if meth in methods:
-                   skip=1
-          if skip==0:
-             if  Data[s]['T_or_MW']=="T" and  'treatment_temp' in rec.keys():
-                 tr = float(rec["treatment_temp"])
-             elif Data[s]['T_or_MW']=="MW" and "measurement_description" in rec.keys():
+            if "LP-AN-ARM" in rec["magic_method_codes"]:
+                if 'aarmblock' not in Data[s].keys():
+                    Data[s]['aarmblock']=[]
+                Data[s]['aarmblock'].append(rec)
+
+            if "LP-CR-TRM" in rec["magic_method_codes"]:
+                if 'crblock' not in Data[s].keys():
+                    Data[s]['crblock']=[]
+                Data[s]['crblock'].append(rec)
+
+            #---- Zijderveld block
+
+            EX=["LP-AN-ARM","LP-AN-TRM","LP-ARM-AFD","LP-ARM2-AFD","LP-TRM-AFD","LP-TRM","LP-TRM-TD","LP-X","LP-CR-TRM"] # list of excluded lab protocols
+            #INC=["LT-NO","LT-AF-Z","LT-T-Z", "LT-M-Z", "LP-PI-TRM-IZ", "LP-PI-M-IZ"]
+            INC=["LT-NO","LT-T-Z","LT-M-Z","LT-AF-Z"]
+            methods=rec["magic_method_codes"].strip('\n').split(":")
+            for i in range (len(methods)):
+                methods[i]=methods[i].strip()
+            if 'measurement_flag' not in rec.keys(): rec['measurement_flag']='g'
+            skip=1
+            for meth in methods:
+                if meth in INC:
+                    skip=0
+            for meth in EX:
+                if meth in methods:
+                    skip=1
+            if skip==0:
+                if  Data[s]['T_or_MW']=="T" and  'treatment_temp' in rec.keys():
+                    tr = float(rec["treatment_temp"])
+                elif Data[s]['T_or_MW']=="MW" and "measurement_description" in rec.keys():
                     MW_step=rec["measurement_description"].strip('\n').split(":")
                     for STEP in MW_step:
                         if "Number" in STEP:
                             tr=float(STEP.split("-")[-1])
 
-             if "LP-PI-TRM-IZ" in methods or "LP-PI-M-IZ" in methods:  # looking for in-field first thellier or microwave data - otherwise, just ignore this
-                 ZI=0
-             else:
-                 ZI=1
+                if "LP-PI-TRM-IZ" in methods or "LP-PI-M-IZ" in methods:  # looking for in-field first thellier or microwave data - otherwise, just ignore this
+                    ZI=0
+                else:
+                    ZI=1
 
-             Mkeys=['measurement_magnitude','measurement_magn_moment','measurement_magn_volume','measurement_magn_mass']
-             if tr !="":
-                 dec,inc,int = "","",""
-                 if "measurement_dec" in rec.keys() and rec["measurement_dec"] != "":
-                     dec=float(rec["measurement_dec"])
-                 if "measurement_inc" in rec.keys() and rec["measurement_inc"] != "":
-                     inc=float(rec["measurement_inc"])
-                 for key in Mkeys:
-                     if key in rec.keys() and rec[key]!="":int=float(rec[key])
-                 if 'magic_instrument_codes' not in rec.keys():rec['magic_instrument_codes']=''
-                 #datablock.append([tr,dec,inc,int,ZI,rec['measurement_flag'],rec['magic_instrument_codes']])
-                 if Data[s]['T_or_MW']=="T":
-                     if tr==0.: tr=273.
-                 # AFD
-                 if "LT-AF-Z" in methods and "LP-AN-ARM" not in rec['magic_method_codes'] and "LP-DIR-AF" not in rec['magic_method_codes']:
-                     if Data[s]['T_or_MW']=="T":
-                         try: tr=tr-float(rec['treatment_ac_field'])*1e3 # AFD is amrked with negative
-                         except ValueError:
-                            print("could not convert ac treatment field intensity to a floating point number, was given %s, this entry for specimen %s will be skipped"%(str(rec['treatment_ac_field']),s)); continue
+                Mkeys=['measurement_magnitude','measurement_magn_moment','measurement_magn_volume','measurement_magn_mass']
+                if tr !="":
+                    dec,inc,int = "","",""
+                    if "measurement_dec" in rec.keys() and rec["measurement_dec"] != "":
+                        dec=float(rec["measurement_dec"])
+                    if "measurement_inc" in rec.keys() and rec["measurement_inc"] != "":
+                        inc=float(rec["measurement_inc"])
+                    for key in Mkeys:
+                        if key in rec.keys() and rec[key]!="":int=float(rec[key])
+                    if 'magic_instrument_codes' not in rec.keys():rec['magic_instrument_codes']=''
+                    #datablock.append([tr,dec,inc,int,ZI,rec['measurement_flag'],rec['magic_instrument_codes']])
+                    if Data[s]['T_or_MW']=="T":
+                        if tr==0.: tr=273.
+                    # AFD
+                    if "LT-AF-Z" in methods and "LP-AN-ARM" not in rec['magic_method_codes'] and "LP-DIR-AF" not in rec['magic_method_codes']:
+                        if Data[s]['T_or_MW']=="T":
+                            try: tr=tr-float(rec['treatment_ac_field'])*1e3 # AFD is amrked with negative
+                            except ValueError:
+                                print("could not convert ac treatment field intensity to a floating point number, was given %s, this entry for specimen %s will be skipped"%(str(rec['treatment_ac_field']),s)); continue
 
-                 Data[s]['zijdblock'].append([tr,dec,inc,int,ZI,rec['measurement_flag'],rec['magic_instrument_codes']])
-                 #print methods
-
-
-          if sample not in Data_hierarchy['samples'].keys():
-              Data_hierarchy['samples'][sample]=[]
-
-          if site not in Data_hierarchy['sites'].keys():
-              Data_hierarchy['sites'][site]=[]
-
-          if location not in Data_hierarchy['locations'].keys():
-              Data_hierarchy['locations'][location]=[]
-
-          if s not in Data_hierarchy['samples'][sample]:
-              Data_hierarchy['samples'][sample].append(s)
-
-          if sample not in Data_hierarchy['sites'][site]:
-              Data_hierarchy['sites'][site].append(sample)
-
-          if site not in Data_hierarchy['locations'][location]:
-              Data_hierarchy['locations'][location].append(site)
-
-          Data_hierarchy['specimens'][s]=sample
-          Data_hierarchy['sample_of_specimen'][s]=sample
-          Data_hierarchy['site_of_specimen'][s]=site
-          Data_hierarchy['site_of_sample'][sample]=site
-      #print Data_hierarchy['site_of_sample']
+                    Data[s]['zijdblock'].append([tr,dec,inc,int,ZI,rec['measurement_flag'],rec['magic_instrument_codes']])
+                    #print methods
 
 
-      #print "done sorting meas data"
-      self.specimens=Data.keys()
-      self.specimens.sort()
+            if sample not in Data_hierarchy['samples'].keys():
+                Data_hierarchy['samples'][sample]=[]
+
+            if site not in Data_hierarchy['sites'].keys():
+                Data_hierarchy['sites'][site]=[]
+
+            if location not in Data_hierarchy['locations'].keys():
+                Data_hierarchy['locations'][location]=[]
+
+            if s not in Data_hierarchy['samples'][sample]:
+                Data_hierarchy['samples'][sample].append(s)
+
+            if sample not in Data_hierarchy['sites'][site]:
+                Data_hierarchy['sites'][site].append(sample)
+
+            if site not in Data_hierarchy['locations'][location]:
+                Data_hierarchy['locations'][location].append(site)
+
+            Data_hierarchy['specimens'][s]=sample
+            Data_hierarchy['sample_of_specimen'][s]=sample
+            Data_hierarchy['site_of_specimen'][s]=site
+            Data_hierarchy['site_of_sample'][sample]=site
+        #print Data_hierarchy['site_of_sample']
 
 
-      #------------------------------------------------
-      # Read anisotropy file from rmag_anisotropy.txt (only data model 2.5) -data_model 3.0 reads from specimen table
-      #------------------------------------------------
-      if self.data_model==3:
+        #print "done sorting meas data"
+        self.specimens=Data.keys()
+        self.specimens.sort()
+
+
+        #------------------------------------------------
+        # Read anisotropy file from rmag_anisotropy.txt (only data model 2.5) -data_model 3.0 reads from specimen table
+        #------------------------------------------------
+        if self.data_model==3:
 #
 # make a specimen container and dataframe for anisotropy and elsewhere specimen interpretations
 #
-          if 'specimens' in self.contribution.tables and len(self.spec_data)>0:
-              anis_data=self.spec_data[self.spec_data['method_codes'].str.contains('LP-AN')==True] # get the anisotropy records
-              anis_data=anis_data[anis_data['aniso_s'].notnull()] # get the ones with anisotropy tensors that aren't blank
-              anis_data=anis_data[['specimen','aniso_s','aniso_ftest','aniso_ftest12','aniso_ftest23','aniso_s_n_measurements','aniso_s_sigma','aniso_type','description']]
-              # rename column headers to 2.5
-              #anis_data = anis_data.rename(columns=map_magic.aniso_magic3_2_magic2_map)
-              # convert to list of dictionaries
-              anis_dict=anis_data.to_dict("records")
-              for AniSpec in anis_dict:  # slip aniso data into Data[s]
-                  AniSpec=map_magic.convert_aniso('magic2',AniSpec) # unpack aniso_s
-                  s=AniSpec['er_specimen_name']
-                  if 'AniSpec' not in Data[s].keys(): Data[s]['AniSpec']={}  # make a blank
-                  TYPE=AniSpec['anisotropy_type']
-                  Data[s]['AniSpec'][TYPE]=AniSpec
-                  if AniSpec['anisotropy_F_crit']!="": Data[s]['AniSpec'][TYPE]['anisotropy_F_crit']=AniSpec['anisotropy_F_crit']
-          else:
-              self.spec_data=[] # no specimen data
-      else:  # do data_model=2.5 way...
-          rmag_anis_data=[]
-          results_anis_data=[]
-          try:
-              rmag_anis_data,file_type=pmag.magic_read(os.path.join(self.WD, 'rmag_anisotropy.txt'))
-              self.GUI_log.write( "-I- Anisotropy data read  %s/from rmag_anisotropy.txt\n"%self.WD)
-          except:
-              self.GUI_log.write("-W- WARNING cant find rmag_anisotropy in working directory\n")
+            if 'specimens' in self.contribution.tables and len(self.spec_data)>0:
+                anis_data=self.spec_data[self.spec_data['method_codes'].str.contains('LP-AN')==True] # get the anisotropy records
+                anis_data=anis_data[anis_data['aniso_s'].notnull()] # get the ones with anisotropy tensors that aren't blank
+                anis_data=anis_data[['specimen','aniso_s','aniso_ftest','aniso_ftest12','aniso_ftest23','aniso_s_n_measurements','aniso_s_sigma','aniso_type','description']]
+                # rename column headers to 2.5
+                #anis_data = anis_data.rename(columns=map_magic.aniso_magic3_2_magic2_map)
+                # convert to list of dictionaries
+                anis_dict=anis_data.to_dict("records")
+                for AniSpec in anis_dict:  # slip aniso data into Data[s]
+                    AniSpec=map_magic.convert_aniso('magic2',AniSpec) # unpack aniso_s
+                    s=AniSpec['er_specimen_name']
+                    if 'AniSpec' not in Data[s].keys(): Data[s]['AniSpec']={}  # make a blank
+                    TYPE=AniSpec['anisotropy_type']
+                    Data[s]['AniSpec'][TYPE]=AniSpec
+                    if AniSpec['anisotropy_F_crit']!="": Data[s]['AniSpec'][TYPE]['anisotropy_F_crit']=AniSpec['anisotropy_F_crit']
+            else:
+                self.spec_data=[] # no specimen data
+        else:  # do data_model=2.5 way...
+            rmag_anis_data=[]
+            results_anis_data=[]
+            try:
+                rmag_anis_data,file_type=pmag.magic_read(os.path.join(self.WD, 'rmag_anisotropy.txt'))
+                self.GUI_log.write( "-I- Anisotropy data read  %s/from rmag_anisotropy.txt\n"%self.WD)
+            except:
+                self.GUI_log.write("-W- WARNING cant find rmag_anisotropy in working directory\n")
 
-          try:
-              results_anis_data,file_type=pmag.magic_read(os.path.join(self.WD, 'rmag_results.txt'))
-              self.GUI_log.write( "-I- Anisotropy data read  %s/from rmag_anisotropy.txt\n"%self.WD)
+            try:
+                results_anis_data,file_type=pmag.magic_read(os.path.join(self.WD, 'rmag_results.txt'))
+                self.GUI_log.write( "-I- Anisotropy data read  %s/from rmag_anisotropy.txt\n"%self.WD)
 
-          except:
-              self.GUI_log.write("-W- WARNING cant find rmag_anisotropy in working directory\n")
-
-
-          for AniSpec in rmag_anis_data:
-              s=AniSpec['er_specimen_name']
-              if s not in Data.keys():
-                  self.GUI_log.write("-W- WARNING: specimen %s in rmag_anisotropy.txt but not in magic_measurement.txt. Check it !\n"%s)
-                  continue
-              if 'AniSpec' in Data[s].keys():
-                  self.GUI_log.write("-W- WARNING: more than one anisotropy data for specimen %s !\n"%s)
-              TYPE=AniSpec['anisotropy_type']
-              if 'AniSpec' not in Data[s].keys():
-                  Data[s]['AniSpec']={}
-              Data[s]['AniSpec'][TYPE]=AniSpec
-
-          for AniSpec in results_anis_data:
-              s=AniSpec['er_specimen_names']
-              if s not in Data.keys():
-                  self.GUI_log.write("-W- WARNING: specimen %s in rmag_results.txt but not in magic_measurement.txt. Check it !\n"%s)
-                  continue
-              TYPE=AniSpec['anisotropy_type']
-              if 'AniSpec' in Data[s].keys() and TYPE in  Data[s]['AniSpec'].keys():
-                  Data[s]['AniSpec'][TYPE].update(AniSpec)
-                  if 'result_description' in AniSpec.keys():
-                    result_description=AniSpec['result_description'].split(";")
-                    for description in result_description:
-                        if "Critical F" in description:
-                           desc=description.split(":")
-                           Data[s]['AniSpec'][TYPE]['anisotropy_F_crit']=float(desc[1])
+            except:
+                self.GUI_log.write("-W- WARNING cant find rmag_anisotropy in working directory\n")
 
 
-      #------------------------------------------------
-      # Calculate Non Linear TRM parameters
-      # Following Shaar et al. (2010):
-      #
-      # Procedure:
-      #
-      # A) If there are only 2 NLT measurement: C
-      #
-      #   Cant do NLT correctio procedure (few data points).
-      #   Instead, check the different in the ratio (M/B) in the two measurements.
-      #   slop_diff = max(first slope, second slope)/min(first slope, second slope)
-      #   if: 1.1 > slop_diff > 1.05 : WARNING
-      #   if: > slop_diff > 1s.1 : WARNING
-      #
-      # B) If there are at least 3 NLT measurement:
-      #
-      # 1) Read the NLT measurement file
-      #   If there is no baseline measurement in the NLT experiment:
-      #    then take the baseline from the zero-field step of the IZZI experiment.
-      #
-      # 2) Fit tanh function of the NLT measurement normalized by M[oven field]
-      #   M/M[oven field] = alpha * tanh (beta*B)
-      #   alpha and beta are used for the Banc calculation using equation (3) in Shaar et al. (2010):
-      #   Banc= tanh^-1[(b*Fa)/alpha]/beta where Fa  is anisotropy correction factor and 'b' is the Arai plot slope.
-      #
-      # 3) If best fit function algorithm does not converge, check NLT data using option (A) above.
-      #    If
-      #
-      #------------------------------------------------
+            for AniSpec in rmag_anis_data:
+                s=AniSpec['er_specimen_name']
+                if s not in Data.keys():
+                    self.GUI_log.write("-W- WARNING: specimen %s in rmag_anisotropy.txt but not in magic_measurement.txt. Check it !\n"%s)
+                    continue
+                if 'AniSpec' in Data[s].keys():
+                    self.GUI_log.write("-W- WARNING: more than one anisotropy data for specimen %s !\n"%s)
+                TYPE=AniSpec['anisotropy_type']
+                if 'AniSpec' not in Data[s].keys():
+                    Data[s]['AniSpec']={}
+                Data[s]['AniSpec'][TYPE]=AniSpec
+
+            for AniSpec in results_anis_data:
+                s=AniSpec['er_specimen_names']
+                if s not in Data.keys():
+                    self.GUI_log.write("-W- WARNING: specimen %s in rmag_results.txt but not in magic_measurement.txt. Check it !\n"%s)
+                    continue
+                TYPE=AniSpec['anisotropy_type']
+                if 'AniSpec' in Data[s].keys() and TYPE in  Data[s]['AniSpec'].keys():
+                    Data[s]['AniSpec'][TYPE].update(AniSpec)
+                    if 'result_description' in AniSpec.keys():
+                        result_description=AniSpec['result_description'].split(";")
+                        for description in result_description:
+                            if "Critical F" in description:
+                                desc=description.split(":")
+                                Data[s]['AniSpec'][TYPE]['anisotropy_F_crit']=float(desc[1])
 
 
-
-      # Searching and sorting NLT Data
-
-      for s in sids:
-          datablock = Data[s]['datablock']
-          trmblock = Data[s]['trmblock']
-
-          if len(trmblock)<2:
-              continue
-
-          B_NLT,M_NLT=[],[]
-
-          # find temperature of NLT acquisition
-          NLT_temperature=float(trmblock[0]['treatment_temp'])
-
-
-          # search for Blab used in the IZZI experiment (need it for the following calculation)
-          found_labfield=False
-          for rec in datablock:
-              if float(rec['treatment_dc_field'])!=0:
-                  labfield=float(rec['treatment_dc_field'])
-                  found_labfield=True
-                  break
-          if not found_labfield:
-              continue
-
-          # collect the data from trmblock
-          M_baseline=0.
-          for rec in trmblock:
-
-              # if there is a baseline in TRM block, then use it
-              if float(rec['treatment_dc_field'])==0:
-                  M_baseline=float(rec['measurement_magn_moment'])
-              B_NLT.append(float(rec['treatment_dc_field']))
-              M_NLT.append(float(rec['measurement_magn_moment']))
-
-          # collect more data from araiblock
-
-          '''
-          for rec in datablock:
-              if float(rec['treatment_temp'])==NLT_temperature and float(rec['treatment_dc_field']) !=0:
-                  B_NLT.append(float(rec['treatment_dc_field']))
-                  M_NLT.append(float(rec['measurement_magn_moment']))'''
-
-
-          # If cnat find baseline in trm block
-          #  search for baseline in the Data block.
-          if M_baseline==0:
-              m_tmp=[]
-              for rec in datablock:
-                  if float(rec['treatment_temp'])==NLT_temperature and float(rec['treatment_dc_field'])==0:
-                     m_tmp.append(float(rec['measurement_magn_moment']))
-                     self.GUI_log.write("-I- Found basleine for NLT measurements in datablock, specimen %s\n"%s)
-              if len(m_tmp)>0:
-                  M_baseline = scipy.mean(m_tmp)
-
-
-          ####  Ron dont delete it ### print "-I- Found %i NLT datapoints for specimen %s: B="%(len(B_NLT),s),array(B_NLT)*1e6
-
-          #substitute baseline
-          M_NLT=scipy.array(M_NLT)-M_baseline
-          B_NLT=scipy.array(B_NLT)
-          # calculate M/B ratio for each step, and compare them
-          # If cant do NLT correction: check a difference in M/B ratio
-          # > 5% : WARNING
-          # > 10%: ERROR
-
-          slopes=M_NLT/B_NLT
-
-          if len(trmblock)==2:
-              if max(slopes)/min(slopes)<1.05:
-                  self.GUI_log.write("-I- 2 NLT measurement for specimen %s. [max(M/B)/ [min(M/B)] < 1.05.\n"%s)
-              elif max(slopes)/min(slopes)<1.1:
-                  self.GUI_log.write("-W- WARNING: 2 NLT measurement for specimen %s. [max(M/B)]/ [min(M/B)] is %.2f  (   > 1.05 and  < 1.1 ). More NLT mrasurements may be required.\n" %(s,max(slopes)/min(slopes)))
-                  #self.GUI_log.write("-I- NLT meaurements specime %s: B,M="%s,B_NLT,M_NLT)
-              else:
-                  self.GUI_log.write("-E- ERROR: 2 NLT measurement for specimen %s. [max(M/B)]/ [min(M/B)] is %.2f  ( > 1.1 ). More NLT mrasurements may be required  !\n" %(s,max(slopes)/min(slopes)))
-                  #self.GUI_log.write("-I- NLT meaurements specime %s: B,M="%s,B_NLT,M_NLT)
-
-          # NLT procedure following Shaar et al (2010)
-
-          if len(trmblock)>2:
-              red_flag=False
-
-              # check alteration
-              B_alterations=[]
-              for i in range(len(B_NLT)):
-                  if list(B_NLT).count(B_NLT[i])>1:
-                      if B_NLT[i] not in B_alterations:
-                        B_alterations.append(B_NLT[i])
-              for B in B_alterations:
-                  M=[]
-                  for i in range(len(B_NLT)):
-                      if B_NLT[i]==B:
-                          M.append(M_NLT[i])
-                  if (max(M)-min(M))/scipy.mean(M) > 0.05:
-                    self.GUI_log.write("-E- ERROR: NLT for specimen %s does not pass 5 perc alteration check: %.3f \n" %(s,(max(M)-min(M))/scipy.mean(M)))
-                    red_flag=True
+        #------------------------------------------------
+        # Calculate Non Linear TRM parameters
+        # Following Shaar et al. (2010):
+        #
+        # Procedure:
+        #
+        # A) If there are only 2 NLT measurement: C
+        #
+        #   Cant do NLT correctio procedure (few data points).
+        #   Instead, check the different in the ratio (M/B) in the two measurements.
+        #   slop_diff = max(first slope, second slope)/min(first slope, second slope)
+        #   if: 1.1 > slop_diff > 1.05 : WARNING
+        #   if: > slop_diff > 1s.1 : WARNING
+        #
+        # B) If there are at least 3 NLT measurement:
+        #
+        # 1) Read the NLT measurement file
+        #   If there is no baseline measurement in the NLT experiment:
+        #    then take the baseline from the zero-field step of the IZZI experiment.
+        #
+        # 2) Fit tanh function of the NLT measurement normalized by M[oven field]
+        #   M/M[oven field] = alpha * tanh (beta*B)
+        #   alpha and beta are used for the Banc calculation using equation (3) in Shaar et al. (2010):
+        #   Banc= tanh^-1[(b*Fa)/alpha]/beta where Fa  is anisotropy correction factor and 'b' is the Arai plot slope.
+        #
+        # 3) If best fit function algorithm does not converge, check NLT data using option (A) above.
+        #    If
+        #
+        #------------------------------------------------
 
 
 
-          if len(trmblock)>2 and not red_flag:
+        # Searching and sorting NLT Data
 
-              B_NLT = append([0.],B_NLT)
-              M_NLT = append([0.],M_NLT)
+        for s in sids:
+            datablock = Data[s]['datablock']
+            trmblock = Data[s]['trmblock']
 
-              try:
-                  #print s,B_NLT, M_NLT
-                  # First try to fit tanh function (add point 0,0 in the begining)
-                  alpha_0=max(M_NLT)
-                  beta_0=2e4
-                  popt, pcov = curve_fit(tan_h, B_NLT, M_NLT,p0=(alpha_0,beta_0))
-                  M_lab=popt[0]*scipy.math.tanh(labfield*popt[1])
+            if len(trmblock)<2:
+                continue
 
-                  # Now  fit tanh function to the normalized curve
-                  M_NLT_norm=M_NLT/M_lab
-                  popt, pcov = curve_fit(tan_h, B_NLT, M_NLT_norm,p0=(popt[0]/M_lab,popt[1]))
-                  Data[s]['NLT_parameters']={}
-                  Data[s]['NLT_parameters']['tanh_parameters']=(popt, pcov)
-                  Data[s]['NLT_parameters']['B_NLT']=B_NLT
-                  Data[s]['NLT_parameters']['M_NLT_norm']=M_NLT_norm
+            B_NLT,M_NLT=[],[]
 
-                  self.GUI_log.write("-I-  tanh parameters for specimen %s were calculated sucsessfuly\n"%s)
-
-              except RuntimeError:
-                  self.GUI_log.write( "-W- WARNING: Cant fit tanh function to NLT data specimen %s. Ignore NLT data for specimen %s. Instead check [max(M/B)]/ [min(M/B)] \n"%(s,s))
-                  #print "-I- NLT meaurements specime %s: B,M="%s,B_NLT,M_NLT
-
-                  # Cant do NLT correction. Instead, check a difference in M/B ratio
-                  # The maximum difference allowd is 5%
-                  # if difference is larger than 5%: WARNING
-
-                  if max(slopes)/min(slopes)<1.05:
-                      self.GUI_log.write("-I- 2 NLT measurement for specimen %s. [max(M/B)/ [min(M/B)] < 1.05.\n"%s)
-                  elif max(slopes)/min(slopes)<1.1:
-                      self.GUI_log.write("-W- WARNING: 2 NLT measurement for specimen %s. [max(M/B)]/ [min(M/B)] is %.2f  (   > 1.05 and  < 1.1 ). More NLT mrasurements may be required.\n" %(s,max(slopes)/min(slopes)))
-                      #print "-I- NLT meaurements specime %s: B,M="%s,B_NLT,M_NLT
-                  else:
-                      self.GUI_log.write("-E- ERROR: 2 NLT measurement for specimen %s. [max(M/B)]/ [min(M/B)] is %.2f  ( > 1.1 ). More NLT measurements may be required  !\n" %(s,max(slopes)/min(slopes)))
-                      #print "-I- NLT meaurements specime %s: B,M="%s,B_NLT,M_NLT
-
-      #print "done searching NLT data"
-
-      self.GUI_log.write("-I- Done calculating non linear TRM parameters for all specimens\n")
+            # find temperature of NLT acquisition
+            NLT_temperature=float(trmblock[0]['treatment_temp'])
 
 
-      #------------------------------------------------
-      # Calculate cooling rate experiments
-      #
-      #
-      #
-      #
-      #
-      #------------------------------------------------
+            # search for Blab used in the IZZI experiment (need it for the following calculation)
+            found_labfield=False
+            for rec in datablock:
+                if float(rec['treatment_dc_field'])!=0:
+                    labfield=float(rec['treatment_dc_field'])
+                    found_labfield=True
+                    break
+            if not found_labfield:
+                continue
 
-      for s in sids:
-          datablock = Data[s]['datablock']
-          trmblock = Data[s]['trmblock']
-          if 'crblock' in Data[s].keys():
-              if len(Data[s]['crblock'])<3:
-                  del Data[s]['crblock']
-                  continue
-              sample=Data_hierarchy['specimens'][s]
-              # in MagIC format that cooling rate is in K/My
-              try:
-                  ancient_cooling_rate=float(self.Data_info["er_samples"][sample]['sample_cooling_rate'])
-                  ancient_cooling_rate=ancient_cooling_rate/(1e6*365.*24.*60.) # change to K/minute
-              except:
-                  self.GUI_log.write("-W- Cant find ancient cooling rate estimation for sample %s\n"%sample)
-                  continue
-              #self.Data_info["er_samples"]
-              cooling_rate_data={}
-              cooling_rate_data['pairs']=[]
-              cooling_rates_list=[]
-              cooling_rate_data['alteration_check']=[]
-              for rec in Data[s]['crblock']:
-                  magic_method_codes=rec['magic_method_codes'].strip(' ').strip('\n').split(":")
-                  measurement_description=rec['measurement_description'].strip(' ').strip('\n').split(":")
-                  if "LT-T-Z" in magic_method_codes:
-                      cooling_rate_data['baseline']=float(rec['measurement_magn_moment'])
-                      continue
+            # collect the data from trmblock
+            M_baseline=0.
+            for rec in trmblock:
 
-                  index=measurement_description.index("K/min")
-                  cooling_rate=float(measurement_description[index-1])
-                  cooling_rates_list.append(cooling_rate)
-                  moment=float(rec['measurement_magn_moment'])
-                  if "LT-T-I" in magic_method_codes:
-                      cooling_rate_data['pairs'].append([cooling_rate,moment])
-                  if "LT-PTRM-I" in magic_method_codes:
-                      cooling_rate_data['alteration_check']=[cooling_rate,moment]
-              lab_cooling_rate=max(cooling_rates_list)
-              cooling_rate_data['lab_cooling_rate']= lab_cooling_rate
+                # if there is a baseline in TRM block, then use it
+                if float(rec['treatment_dc_field'])==0:
+                    M_baseline=float(rec['measurement_magn_moment'])
+                B_NLT.append(float(rec['treatment_dc_field']))
+                M_NLT.append(float(rec['measurement_magn_moment']))
 
-              #lab_cooling_rate = self.Data[self.s]['cooling_rate_data']['lab_cooling_rate']
-              moments=[]
-              lab_fast_cr_moments=[]
-              lan_cooling_rates=[]
-              for pair in cooling_rate_data['pairs']:
+            # collect more data from araiblock
+
+            '''
+            for rec in datablock:
+                if float(rec['treatment_temp'])==NLT_temperature and float(rec['treatment_dc_field']) !=0:
+                    B_NLT.append(float(rec['treatment_dc_field']))
+                    M_NLT.append(float(rec['measurement_magn_moment']))'''
+
+
+            # If cnat find baseline in trm block
+            #  search for baseline in the Data block.
+            if M_baseline==0:
+                m_tmp=[]
+                for rec in datablock:
+                    if float(rec['treatment_temp'])==NLT_temperature and float(rec['treatment_dc_field'])==0:
+                        m_tmp.append(float(rec['measurement_magn_moment']))
+                        self.GUI_log.write("-I- Found basleine for NLT measurements in datablock, specimen %s\n"%s)
+                if len(m_tmp)>0:
+                    M_baseline = scipy.mean(m_tmp)
+
+
+            ####  Ron dont delete it ### print "-I- Found %i NLT datapoints for specimen %s: B="%(len(B_NLT),s),array(B_NLT)*1e6
+
+            #substitute baseline
+            M_NLT=scipy.array(M_NLT)-M_baseline
+            B_NLT=scipy.array(B_NLT)
+            # calculate M/B ratio for each step, and compare them
+            # If cant do NLT correction: check a difference in M/B ratio
+            # > 5% : WARNING
+            # > 10%: ERROR
+
+            slopes=M_NLT/B_NLT
+
+            if len(trmblock)==2:
+                if max(slopes)/min(slopes)<1.05:
+                    self.GUI_log.write("-I- 2 NLT measurement for specimen %s. [max(M/B)/ [min(M/B)] < 1.05.\n"%s)
+                elif max(slopes)/min(slopes)<1.1:
+                    self.GUI_log.write("-W- WARNING: 2 NLT measurement for specimen %s. [max(M/B)]/ [min(M/B)] is %.2f  (   > 1.05 and  < 1.1 ). More NLT mrasurements may be required.\n" %(s,max(slopes)/min(slopes)))
+                    #self.GUI_log.write("-I- NLT meaurements specime %s: B,M="%s,B_NLT,M_NLT)
+                else:
+                    self.GUI_log.write("-E- ERROR: 2 NLT measurement for specimen %s. [max(M/B)]/ [min(M/B)] is %.2f  ( > 1.1 ). More NLT mrasurements may be required  !\n" %(s,max(slopes)/min(slopes)))
+                    #self.GUI_log.write("-I- NLT meaurements specime %s: B,M="%s,B_NLT,M_NLT)
+
+            # NLT procedure following Shaar et al (2010)
+
+            if len(trmblock)>2:
+                red_flag=False
+
+                # check alteration
+                B_alterations=[]
+                for i in range(len(B_NLT)):
+                    if list(B_NLT).count(B_NLT[i])>1:
+                        if B_NLT[i] not in B_alterations:
+                            B_alterations.append(B_NLT[i])
+                for B in B_alterations:
+                    M=[]
+                    for i in range(len(B_NLT)):
+                        if B_NLT[i]==B:
+                            M.append(M_NLT[i])
+                    if (max(M)-min(M))/scipy.mean(M) > 0.05:
+                        self.GUI_log.write("-E- ERROR: NLT for specimen %s does not pass 5 perc alteration check: %.3f \n" %(s,(max(M)-min(M))/scipy.mean(M)))
+                        red_flag=True
+
+
+
+            if len(trmblock)>2 and not red_flag:
+
+                B_NLT = append([0.],B_NLT)
+                M_NLT = append([0.],M_NLT)
+
+                try:
+                    #print s,B_NLT, M_NLT
+                    # First try to fit tanh function (add point 0,0 in the begining)
+                    alpha_0=max(M_NLT)
+                    beta_0=2e4
+                    popt, pcov = curve_fit(tan_h, B_NLT, M_NLT,p0=(alpha_0,beta_0))
+                    M_lab=popt[0]*scipy.math.tanh(labfield*popt[1])
+
+                    # Now  fit tanh function to the normalized curve
+                    M_NLT_norm=M_NLT/M_lab
+                    popt, pcov = curve_fit(tan_h, B_NLT, M_NLT_norm,p0=(popt[0]/M_lab,popt[1]))
+                    Data[s]['NLT_parameters']={}
+                    Data[s]['NLT_parameters']['tanh_parameters']=(popt, pcov)
+                    Data[s]['NLT_parameters']['B_NLT']=B_NLT
+                    Data[s]['NLT_parameters']['M_NLT_norm']=M_NLT_norm
+
+                    self.GUI_log.write("-I-  tanh parameters for specimen %s were calculated sucsessfuly\n"%s)
+
+                except RuntimeError:
+                    self.GUI_log.write( "-W- WARNING: Cant fit tanh function to NLT data specimen %s. Ignore NLT data for specimen %s. Instead check [max(M/B)]/ [min(M/B)] \n"%(s,s))
+                    #print "-I- NLT meaurements specime %s: B,M="%s,B_NLT,M_NLT
+
+                    # Cant do NLT correction. Instead, check a difference in M/B ratio
+                    # The maximum difference allowd is 5%
+                    # if difference is larger than 5%: WARNING
+
+                    if max(slopes)/min(slopes)<1.05:
+                        self.GUI_log.write("-I- 2 NLT measurement for specimen %s. [max(M/B)/ [min(M/B)] < 1.05.\n"%s)
+                    elif max(slopes)/min(slopes)<1.1:
+                        self.GUI_log.write("-W- WARNING: 2 NLT measurement for specimen %s. [max(M/B)]/ [min(M/B)] is %.2f  (   > 1.05 and  < 1.1 ). More NLT mrasurements may be required.\n" %(s,max(slopes)/min(slopes)))
+                        #print "-I- NLT meaurements specime %s: B,M="%s,B_NLT,M_NLT
+                    else:
+                        self.GUI_log.write("-E- ERROR: 2 NLT measurement for specimen %s. [max(M/B)]/ [min(M/B)] is %.2f  ( > 1.1 ). More NLT measurements may be required  !\n" %(s,max(slopes)/min(slopes)))
+                        #print "-I- NLT meaurements specime %s: B,M="%s,B_NLT,M_NLT
+
+        #print "done searching NLT data"
+
+        self.GUI_log.write("-I- Done calculating non linear TRM parameters for all specimens\n")
+
+
+        #------------------------------------------------
+        # Calculate cooling rate experiments
+        #
+        #
+        #
+        #
+        #
+        #------------------------------------------------
+
+        for s in sids:
+            datablock = Data[s]['datablock']
+            trmblock = Data[s]['trmblock']
+            if 'crblock' in Data[s].keys():
+                if len(Data[s]['crblock'])<3:
+                    del Data[s]['crblock']
+                    continue
+                sample=Data_hierarchy['specimens'][s]
+                # in MagIC format that cooling rate is in K/My
+                try:
+                    ancient_cooling_rate=float(self.Data_info["er_samples"][sample]['sample_cooling_rate'])
+                    ancient_cooling_rate=ancient_cooling_rate/(1e6*365.*24.*60.) # change to K/minute
+                except:
+                    self.GUI_log.write("-W- Cant find ancient cooling rate estimation for sample %s\n"%sample)
+                    continue
+                #self.Data_info["er_samples"]
+                cooling_rate_data={}
+                cooling_rate_data['pairs']=[]
+                cooling_rates_list=[]
+                cooling_rate_data['alteration_check']=[]
+                for rec in Data[s]['crblock']:
+                    magic_method_codes=rec['magic_method_codes'].strip(' ').strip('\n').split(":")
+                    measurement_description=rec['measurement_description'].strip(' ').strip('\n').split(":")
+                    if "LT-T-Z" in magic_method_codes:
+                        cooling_rate_data['baseline']=float(rec['measurement_magn_moment'])
+                        continue
+
+                    index=measurement_description.index("K/min")
+                    cooling_rate=float(measurement_description[index-1])
+                    cooling_rates_list.append(cooling_rate)
+                    moment=float(rec['measurement_magn_moment'])
+                    if "LT-T-I" in magic_method_codes:
+                        cooling_rate_data['pairs'].append([cooling_rate,moment])
+                    if "LT-PTRM-I" in magic_method_codes:
+                        cooling_rate_data['alteration_check']=[cooling_rate,moment]
+                lab_cooling_rate=max(cooling_rates_list)
+                cooling_rate_data['lab_cooling_rate']= lab_cooling_rate
+
+                #lab_cooling_rate = self.Data[self.s]['cooling_rate_data']['lab_cooling_rate']
+                moments=[]
+                lab_fast_cr_moments=[]
+                lan_cooling_rates=[]
+                for pair in cooling_rate_data['pairs']:
                     lan_cooling_rates.append(scipy.math.log(cooling_rate_data['lab_cooling_rate']/pair[0]))
                     moments.append(pair[1])
                     if pair[0]==cooling_rate_data['lab_cooling_rate']:
                         lab_fast_cr_moments.append(pair[1])
-              #print s, cooling_rate_data['alteration_check']
-              lan_cooling_rates.append(scipy.math.log(cooling_rate_data['lab_cooling_rate']/cooling_rate_data['alteration_check'][0]))
-              lab_fast_cr_moments.append(cooling_rate_data['alteration_check'][1])
-              moments.append(cooling_rate_data['alteration_check'][1])
+                #print s, cooling_rate_data['alteration_check']
+                lan_cooling_rates.append(scipy.math.log(cooling_rate_data['lab_cooling_rate']/cooling_rate_data['alteration_check'][0]))
+                lab_fast_cr_moments.append(cooling_rate_data['alteration_check'][1])
+                moments.append(cooling_rate_data['alteration_check'][1])
 
-              lab_fast_cr_moment=scipy.mean(lab_fast_cr_moments)
-              moment_norm=scipy.array(moments)/lab_fast_cr_moment
-              (a,b)=polyfit(lan_cooling_rates, moment_norm, 1)
-              #ancient_cooling_rate=0.41
-              x0=scipy.math.log(cooling_rate_data['lab_cooling_rate']/ancient_cooling_rate)
-              y0=a*x0+b
-              MAX=max(lab_fast_cr_moments)
-              MIN=min(lab_fast_cr_moments)
+                lab_fast_cr_moment=scipy.mean(lab_fast_cr_moments)
+                moment_norm=scipy.array(moments)/lab_fast_cr_moment
+                (a,b)=polyfit(lan_cooling_rates, moment_norm, 1)
+                #ancient_cooling_rate=0.41
+                x0=scipy.math.log(cooling_rate_data['lab_cooling_rate']/ancient_cooling_rate)
+                y0=a*x0+b
+                MAX=max(lab_fast_cr_moments)
+                MIN=min(lab_fast_cr_moments)
 
-              #print MAX,MIN
-              #print (MAX-MIN)/scipy.mean(MAX,MIN)
-              #print abs((MAX-MIN)/scipy.mean(MAX,MIN))
-              if  scipy.mean([MAX,MIN])==0:
-                  alteration_check_perc=0
-              else:
-                  alteration_check_perc=100*abs((MAX-MIN)/scipy.mean([MAX,MIN]))
-              #print s,alteration_check_perc
-              #print "--"
-              cooling_rate_data['ancient_cooling_rate']=ancient_cooling_rate
-              cooling_rate_data['CR_correction_factor']=-999
-              cooling_rate_data['lan_cooling_rates']=lan_cooling_rates
-              cooling_rate_data['moment_norm']=moment_norm
-              cooling_rate_data['polyfit']=[a,b]
-              cooling_rate_data['CR_correction_factor_flag']=""
-              cooling_rate_data['x0']=x0
+                #print MAX,MIN
+                #print (MAX-MIN)/scipy.mean(MAX,MIN)
+                #print abs((MAX-MIN)/scipy.mean(MAX,MIN))
+                if  scipy.mean([MAX,MIN])==0:
+                    alteration_check_perc=0
+                else:
+                    alteration_check_perc=100*abs((MAX-MIN)/scipy.mean([MAX,MIN]))
+                #print s,alteration_check_perc
+                #print "--"
+                cooling_rate_data['ancient_cooling_rate']=ancient_cooling_rate
+                cooling_rate_data['CR_correction_factor']=-999
+                cooling_rate_data['lan_cooling_rates']=lan_cooling_rates
+                cooling_rate_data['moment_norm']=moment_norm
+                cooling_rate_data['polyfit']=[a,b]
+                cooling_rate_data['CR_correction_factor_flag']=""
+                cooling_rate_data['x0']=x0
 
-              #if y0<=1:
-              #    cooling_rate_data['CR_correction_factor_flag']=cooling_rate_data['CR_correction_factor_flag']+"bad CR measurement data "
-              #    cooling_rate_data['CR_correction_factor']=-999
+                #if y0<=1:
+                #    cooling_rate_data['CR_correction_factor_flag']=cooling_rate_data['CR_correction_factor_flag']+"bad CR measurement data "
+                #    cooling_rate_data['CR_correction_factor']=-999
 
-              if alteration_check_perc>5:
-                  cooling_rate_data['CR_correction_factor_flag']=cooling_rate_data['CR_correction_factor_flag']+"alteration > 5% "
-                  cooling_rate_data['CR_correction_factor']=-999
-              #if y0>1 and alteration_check_perc<=5:
-              if alteration_check_perc<=5:
-                  cooling_rate_data['CR_correction_factor_flag']="calculated"
-                  cooling_rate_data['CR_correction_factor']=1./(y0)
+                if alteration_check_perc>5:
+                    cooling_rate_data['CR_correction_factor_flag']=cooling_rate_data['CR_correction_factor_flag']+"alteration > 5% "
+                    cooling_rate_data['CR_correction_factor']=-999
+                #if y0>1 and alteration_check_perc<=5:
+                if alteration_check_perc<=5:
+                    cooling_rate_data['CR_correction_factor_flag']="calculated"
+                    cooling_rate_data['CR_correction_factor']=1./(y0)
 
-              Data[s]['cooling_rate_data']= cooling_rate_data
+                Data[s]['cooling_rate_data']= cooling_rate_data
 
 
 
-      # go over all specimens. if there is a specimen with no cooling rate data
-      # use the mean cooling rate corretion of the other specimens from the same sample
-      # this cooling rate correction is flagges as "inferred"
+        # go over all specimens. if there is a specimen with no cooling rate data
+        # use the mean cooling rate corretion of the other specimens from the same sample
+        # this cooling rate correction is flagges as "inferred"
 
-      for sample in Data_hierarchy['samples'].keys():
-          CR_corrections=[]
-          for s in Data_hierarchy['samples'][sample]:
-              if 'cooling_rate_data' in Data[s].keys():
-                  if 'CR_correction_factor' in Data[s]['cooling_rate_data'].keys():
-                      if 'CR_correction_factor_flag' in Data[s]['cooling_rate_data'].keys():
-                          if Data[s]['cooling_rate_data']['CR_correction_factor_flag']=='calculated':
-                              CR_corrections.append(Data[s]['cooling_rate_data']['CR_correction_factor'])
-          if len(CR_corrections) > 0:
-              mean_CR_correction=scipy.mean(CR_corrections)
-          else:
-              mean_CR_correction=-1
-          if mean_CR_correction != -1:
-              for s in Data_hierarchy['samples'][sample]:
-                  if 'cooling_rate_data' not in Data[s].keys():
-                      Data[s]['cooling_rate_data']={}
-                  if 'CR_correction_factor' not in Data[s]['cooling_rate_data'].keys() or\
-                     Data[s]['cooling_rate_data']['CR_correction_factor_flag']!="calculated":
+        for sample in Data_hierarchy['samples'].keys():
+            CR_corrections=[]
+            for s in Data_hierarchy['samples'][sample]:
+                if 'cooling_rate_data' in Data[s].keys():
+                    if 'CR_correction_factor' in Data[s]['cooling_rate_data'].keys():
+                        if 'CR_correction_factor_flag' in Data[s]['cooling_rate_data'].keys():
+                            if Data[s]['cooling_rate_data']['CR_correction_factor_flag']=='calculated':
+                                CR_corrections.append(Data[s]['cooling_rate_data']['CR_correction_factor'])
+            if len(CR_corrections) > 0:
+                mean_CR_correction=scipy.mean(CR_corrections)
+            else:
+                mean_CR_correction=-1
+            if mean_CR_correction != -1:
+                for s in Data_hierarchy['samples'][sample]:
+                    if 'cooling_rate_data' not in Data[s].keys():
+                        Data[s]['cooling_rate_data']={}
+                    if 'CR_correction_factor' not in Data[s]['cooling_rate_data'].keys() or\
+                       Data[s]['cooling_rate_data']['CR_correction_factor_flag']!="calculated":
                         Data[s]['cooling_rate_data']['CR_correction_factor']=mean_CR_correction
                         if 'CR_correction_factor_flag' in Data[s]['cooling_rate_data'].keys():
                             Data[s]['cooling_rate_data']['CR_correction_factor_flag']=Data[s]['cooling_rate_data']['CR_correction_factor_flag']+":"+"inferred"
@@ -6226,383 +6226,383 @@ else:
                             Data[s]['cooling_rate_data']['CR_correction_factor_flag']="inferred"
 
 
-      #------------------------------------------------
-      # sort Arai block
-      #------------------------------------------------
+        #------------------------------------------------
+        # sort Arai block
+        #------------------------------------------------
 
-      #print "sort blocks to arai, zij. etc."
+        #print "sort blocks to arai, zij. etc."
 
-      for s in self.specimens:
-        # collected the data
-        datablock = Data[s]['datablock']
+        for s in self.specimens:
+            # collected the data
+            datablock = Data[s]['datablock']
 
-        if len(datablock) < 4:
-           self.GUI_log.write("-E- ERROR: skipping specimen %s, not enough measurements - moving forward \n"%s)
-           del Data[s]
-           try:
-               sample=Data_hierarchy['specimens'][s]
-               del Data_hierarchy['specimens'][s]
-               Data_hierarchy['samples'][sample].remove(s)
-           except KeyError: pass
-           continue
+            if len(datablock) < 4:
+                self.GUI_log.write("-E- ERROR: skipping specimen %s, not enough measurements - moving forward \n"%s)
+                del Data[s]
+                try:
+                    sample=Data_hierarchy['specimens'][s]
+                    del Data_hierarchy['specimens'][s]
+                    Data_hierarchy['samples'][sample].remove(s)
+                except KeyError: pass
+                continue
 
-        araiblock,field=self.sortarai(datablock,s,0)
+            araiblock,field=self.sortarai(datablock,s,0)
 
-        # thermal or microwave
-        rec=datablock[0]
-        if "treatment_temp" in rec.keys() and rec["treatment_temp"]!="":
-            temp=float(rec["treatment_temp"])
-            THERMAL=True; MICROWAVE=False
-        elif "treatment_mw_power" in rec.keys() and rec["treatment_mw_power"]!="":
-            THERMAL=False; MICROWAVE=True
+            # thermal or microwave
+            rec=datablock[0]
+            if "treatment_temp" in rec.keys() and rec["treatment_temp"]!="":
+                temp=float(rec["treatment_temp"])
+                THERMAL=True; MICROWAVE=False
+            elif "treatment_mw_power" in rec.keys() and rec["treatment_mw_power"]!="":
+                THERMAL=False; MICROWAVE=True
 
 
+
+            # Fix zijderveld block for Thellier-Thellier protocol (II)
+            # (take the vector subtruction instead of the zerofield steps)
+
+            if "LP-PI-II" in Data[s]['datablock'][0]["magic_method_codes"] or "LP-PI-M-II" in Data[s]['datablock'][0]["magic_method_codes"] or "LP-PI-T-II" in Data[s]['datablock'][0]["magic_method_codes"]:
+                Data[s]['zijdblock']=[]
+                for zerofield in araiblock[0]:
+                    Data[s]['zijdblock'].append([zerofield[0],zerofield[1],zerofield[2],zerofield[3],0,'g',""])
+
+            zijdblock=Data[s]['zijdblock']
+
+
+
+            Data[s]['araiblock']=araiblock
+            Data[s]['pars']={}
+            Data[s]['pars']['lab_dc_field']=field
+            Data[s]['pars']['er_specimen_name']=s
+            Data[s]['pars']['er_sample_name']=Data_hierarchy['specimens'][s]
+
+            Data[s]['lab_dc_field']=field
+            Data[s]['er_specimen_name']=s
+            Data[s]['er_sample_name']=Data_hierarchy['specimens'][s]
+
+            first_Z=araiblock[0]
+            #if len(first_Z)<3:
+                #continue
+
+            if len(araiblock[0])!= len(araiblock[1]):
+                self.GUI_log.write( "-E- ERROR: unequal length of Z steps and I steps. Check specimen %s"% s)
+                #continue
 
         # Fix zijderveld block for Thellier-Thellier protocol (II)
-        # (take the vector subtruction instead of the zerofield steps)
-
-        if "LP-PI-II" in Data[s]['datablock'][0]["magic_method_codes"] or "LP-PI-M-II" in Data[s]['datablock'][0]["magic_method_codes"] or "LP-PI-T-II" in Data[s]['datablock'][0]["magic_method_codes"]:
-          Data[s]['zijdblock']=[]
-          for zerofield in araiblock[0]:
-              Data[s]['zijdblock'].append([zerofield[0],zerofield[1],zerofield[2],zerofield[3],0,'g',""])
-
-        zijdblock=Data[s]['zijdblock']
-
-
-
-        Data[s]['araiblock']=araiblock
-        Data[s]['pars']={}
-        Data[s]['pars']['lab_dc_field']=field
-        Data[s]['pars']['er_specimen_name']=s
-        Data[s]['pars']['er_sample_name']=Data_hierarchy['specimens'][s]
-
-        Data[s]['lab_dc_field']=field
-        Data[s]['er_specimen_name']=s
-        Data[s]['er_sample_name']=Data_hierarchy['specimens'][s]
-
-        first_Z=araiblock[0]
-        #if len(first_Z)<3:
-            #continue
-
-        if len(araiblock[0])!= len(araiblock[1]):
-           self.GUI_log.write( "-E- ERROR: unequal length of Z steps and I steps. Check specimen %s"% s)
-           #continue
-
-      # Fix zijderveld block for Thellier-Thellier protocol (II)
-      # (take the vector subtruiction instead of the zerofield steps)
-      #araiblock,field=self.sortarai(Data[s]['datablock'],s,0)
-      #if "LP-PI-II" in Data[s]['datablock'][0]["magic_method_codes"] or "LP-PI-M-II" in Data[s]['datablock'][0]["magic_method_codes"] or "LP-PI-T-II" in Data[s]['datablock'][0]["magic_method_codes"]:
-      #    for zerofield in araiblock[0]:
-      #        Data[s]['zijdblock'].append([zerofield[0],zerofield[1],zerofield[2],zerofield[3],0,'g',""])
+        # (take the vector subtruiction instead of the zerofield steps)
+        #araiblock,field=self.sortarai(Data[s]['datablock'],s,0)
+        #if "LP-PI-II" in Data[s]['datablock'][0]["magic_method_codes"] or "LP-PI-M-II" in Data[s]['datablock'][0]["magic_method_codes"] or "LP-PI-T-II" in Data[s]['datablock'][0]["magic_method_codes"]:
+        #    for zerofield in araiblock[0]:
+        #        Data[s]['zijdblock'].append([zerofield[0],zerofield[1],zerofield[2],zerofield[3],0,'g',""])
 ##        if "LP-PI-II" in datablock[0]["magic_method_codes"] or "LP-PI-M-II" in datablock[0]["magic_method_codes"] or "LP-PI-T-II" in datablock[0]["magic_method_codes"]:
 ##          for zerofield in araiblock[0]:
 ##              Data[s]['zijdblock'].append([zerofield[0],zerofield[1],zerofield[2],zerofield[3],0,'g',""])
 
 
-        #--------------------------------------------------------------
-        # collect all zijderveld data to array and calculate VDS
-        #--------------------------------------------------------------
+            #--------------------------------------------------------------
+            # collect all zijderveld data to array and calculate VDS
+            #--------------------------------------------------------------
 
-        z_temperatures=[row[0] for row in zijdblock]
-        zdata=[]
-        vector_diffs=[]
+            z_temperatures=[row[0] for row in zijdblock]
+            zdata=[]
+            vector_diffs=[]
 
-        # if AFD before the Thellier Experiment: ignore the AF steps in NRM calculation
-        #for i in range(len(zijdblock)):
-            #if "AFD" not in str(zijdblock[i][0]):
-        NRM=zijdblock[0][3]
-        for k in range(len(zijdblock)):
-            DIR = [zijdblock[k][1],zijdblock[k][2],zijdblock[k][3]/NRM]
-            cart = pmag.dir2cart(DIR)
-            zdata.append(scipy.array([cart[0],cart[1],cart[2]]))
-            if k>0:
-                vector_diffs.append(scipy.sqrt(sum((scipy.array(zdata[-2])-scipy.array(zdata[-1]))**2)))
-        vector_diffs.append(scipy.sqrt(sum(scipy.array(zdata[-1])**2))) # last vector of the vds
-        vds = sum(vector_diffs)  # vds calculation
-        zdata = scipy.array(zdata)
+            # if AFD before the Thellier Experiment: ignore the AF steps in NRM calculation
+            #for i in range(len(zijdblock)):
+                #if "AFD" not in str(zijdblock[i][0]):
+            NRM=zijdblock[0][3]
+            for k in range(len(zijdblock)):
+                DIR = [zijdblock[k][1],zijdblock[k][2],zijdblock[k][3]/NRM]
+                cart = pmag.dir2cart(DIR)
+                zdata.append(scipy.array([cart[0],cart[1],cart[2]]))
+                if k>0:
+                    vector_diffs.append(scipy.sqrt(sum((scipy.array(zdata[-2])-scipy.array(zdata[-1]))**2)))
+            vector_diffs.append(scipy.sqrt(sum(scipy.array(zdata[-1])**2))) # last vector of the vds
+            vds = sum(vector_diffs)  # vds calculation
+            zdata = scipy.array(zdata)
 
-        Data[s]['vector_diffs']=scipy.array(vector_diffs)
-        Data[s]['vds']=vds
-        Data[s]['zdata']=zdata
-        Data[s]['z_temp']=z_temperatures
-        Data[s]['NRM']=NRM
-
-      #--------------------------------------------------------------
-      # Rotate zijderveld plot
-      #--------------------------------------------------------------
-
-        DIR_rot=[]
-        CART_rot=[]
-        # rotate to be as NRM
-        NRM_dir=pmag.cart2dir(Data[s]['zdata'][0])
-
-        NRM_dec=NRM_dir[0]
-        NRM_dir[0]=0
-        CART_rot.append(pmag.dir2cart(NRM_dir))
-
-
-        for i in range(1,len(Data[s]['zdata'])):
-          DIR=pmag.cart2dir(Data[s]['zdata'][i])
-          DIR[0]=DIR[0]-NRM_dec
-          CART_rot.append(scipy.array(pmag.dir2cart(DIR)))
-          #print array(dir2cart(DIR))
-
-        CART_rot=scipy.array(CART_rot)
-        Data[s]['zij_rotated']=CART_rot
-        #--------------------------------------------------------------
-        # collect all Arai plot data points to array
-        #--------------------------------------------------------------
-
-        # collect Arai data points
-        zerofields,infields=araiblock[0],araiblock[1]
-
-        Data[s]['NRMS']=zerofields
-        Data[s]['PTRMS']=infields
-
-        x_Arai,y_Arai=[],[] # all the data points
-        t_Arai=[]
-        steps_Arai=[]
-
-        #NRM=zerofields[0][3]
-        infield_temperatures=[row[0] for row in infields]
-
-        for k in range(len(zerofields)):
-          index_infield=infield_temperatures.index(zerofields[k][0])
-          x_Arai.append(infields[index_infield][3]/NRM)
-          y_Arai.append(zerofields[k][3]/NRM)
-          t_Arai.append(zerofields[k][0])
-          if zerofields[k][4]==1:
-            steps_Arai.append('ZI')
-          else:
-            steps_Arai.append('IZ')
-        x_Arai=scipy.array(x_Arai)
-        y_Arai=scipy.array(y_Arai)
-        #else:
-        #    Data[s]['pars']['magic_method_codes']=""
-        Data[s]['x_Arai']=x_Arai
-        Data[s]['y_Arai']=y_Arai
-        Data[s]['t_Arai']=t_Arai
-        Data[s]['steps_Arai']=steps_Arai
-
+            Data[s]['vector_diffs']=scipy.array(vector_diffs)
+            Data[s]['vds']=vds
+            Data[s]['zdata']=zdata
+            Data[s]['z_temp']=z_temperatures
+            Data[s]['NRM']=NRM
 
         #--------------------------------------------------------------
-        # collect all pTRM check to array
+        # Rotate zijderveld plot
         #--------------------------------------------------------------
 
-        ptrm_checks = araiblock[2]
-        zerofield_temperatures=[row[0] for row in zerofields]
+            DIR_rot=[]
+            CART_rot=[]
+            # rotate to be as NRM
+            NRM_dir=pmag.cart2dir(Data[s]['zdata'][0])
 
-        x_ptrm_check,y_ptrm_check,ptrm_checks_temperatures,=[],[],[]
-        x_ptrm_check_starting_point,y_ptrm_check_starting_point,ptrm_checks_starting_temperatures=[],[],[]
-        for k in range(len(ptrm_checks)):
-          if ptrm_checks[k][0] in zerofield_temperatures:
-              zero_field_index=ptrm_checks[k][4]
-              #print Data[s]['datablock']
-
-              # find the starting point of the pTRM check:
-              rec=Data[s]['datablock'][zero_field_index]
-              if THERMAL:
-                    starting_temperature=(float(rec['treatment_temp']))
-                    #found_start_temp=True
-              elif MICROWAVE:
-                    MW_step=rec["measurement_description"].strip('\n').split(":")
-                    for STEP in MW_step:
-                        if "Number" in STEP:
-                            starting_temperature=float(STEP.split("-")[-1])
-                            #found_start_temp=True
+            NRM_dec=NRM_dir[0]
+            NRM_dir[0]=0
+            CART_rot.append(pmag.dir2cart(NRM_dir))
 
 
-                  #if MICROWAVE:
-                  #  if "measurement_description" in rec.keys():
-                  #      MW_step=rec["measurement_description"].strip('\n').split(":")
-                  #      for STEP in MW_step:
-                  #          if "Number" in STEP:
-                  #              this_temp=float(STEP.split("-")[-1])
-              #if found_start_temp==False:
-              #      continue
-              try:
-              #if True:
-                index=t_Arai.index(starting_temperature)
-                x_ptrm_check_starting_point.append(x_Arai[index])
-                y_ptrm_check_starting_point.append(y_Arai[index])
-                ptrm_checks_starting_temperatures.append(starting_temperature)
+            for i in range(1,len(Data[s]['zdata'])):
+                DIR=pmag.cart2dir(Data[s]['zdata'][i])
+                DIR[0]=DIR[0]-NRM_dec
+                CART_rot.append(scipy.array(pmag.dir2cart(DIR)))
+                #print array(dir2cart(DIR))
 
-                #print ptrm_checks[k]
-                #print ' ptrm_checks[k][4]', ptrm_checks[k][4]
-                if ptrm_checks[k][5]==0:
-                    index_zerofield=zerofield_temperatures.index(ptrm_checks[k][0])
-                    index_infield=infield_temperatures.index(ptrm_checks[k][0])
-                    infield_cart=dir2cart([infields[index_infield][1],infields[index_infield][2],infields[index_infield][3]])
-                    ptrm_check_cart=dir2cart([ptrm_checks[k][1],ptrm_checks[k][2],ptrm_checks[k][3]])
-                    ptrm_check=cart2dir(scipy.array(infield_cart)-scipy.array(ptrm_check_cart))
-                    x_ptrm_check.append(ptrm_check[2]/NRM)
-                    y_ptrm_check.append(zerofields[index_zerofield][3]/NRM)
-                    ptrm_checks_temperatures.append(ptrm_checks[k][0])
+            CART_rot=scipy.array(CART_rot)
+            Data[s]['zij_rotated']=CART_rot
+            #--------------------------------------------------------------
+            # collect all Arai plot data points to array
+            #--------------------------------------------------------------
+
+            # collect Arai data points
+            zerofields,infields=araiblock[0],araiblock[1]
+
+            Data[s]['NRMS']=zerofields
+            Data[s]['PTRMS']=infields
+
+            x_Arai,y_Arai=[],[] # all the data points
+            t_Arai=[]
+            steps_Arai=[]
+
+            #NRM=zerofields[0][3]
+            infield_temperatures=[row[0] for row in infields]
+
+            for k in range(len(zerofields)):
+                index_infield=infield_temperatures.index(zerofields[k][0])
+                x_Arai.append(infields[index_infield][3]/NRM)
+                y_Arai.append(zerofields[k][3]/NRM)
+                t_Arai.append(zerofields[k][0])
+                if zerofields[k][4]==1:
+                    steps_Arai.append('ZI')
                 else:
-                    index_zerofield=zerofield_temperatures.index(ptrm_checks[k][0])
-                    x_ptrm_check.append(ptrm_checks[k][3]/NRM)
-                    y_ptrm_check.append(zerofields[index_zerofield][3]/NRM)
-                    ptrm_checks_temperatures.append(ptrm_checks[k][0])
-              #else:
-              except:
-                pass
+                    steps_Arai.append('IZ')
+            x_Arai=scipy.array(x_Arai)
+            y_Arai=scipy.array(y_Arai)
+            #else:
+            #    Data[s]['pars']['magic_method_codes']=""
+            Data[s]['x_Arai']=x_Arai
+            Data[s]['y_Arai']=y_Arai
+            Data[s]['t_Arai']=t_Arai
+            Data[s]['steps_Arai']=steps_Arai
 
 
-        x_ptrm_check=scipy.array(x_ptrm_check)
-        ptrm_check=scipy.array(y_ptrm_check)
-        ptrm_checks_temperatures=scipy.array(ptrm_checks_temperatures)
-        Data[s]['PTRM_Checks']=ptrm_checks
-        Data[s]['x_ptrm_check']=x_ptrm_check
-        Data[s]['y_ptrm_check']=y_ptrm_check
-        Data[s]['ptrm_checks_temperatures']=ptrm_checks_temperatures
-        Data[s]['x_ptrm_check_starting_point']=scipy.array(x_ptrm_check_starting_point)
-        Data[s]['y_ptrm_check_starting_point']=scipy.array(y_ptrm_check_starting_point)
-        Data[s]['ptrm_checks_starting_temperatures']=scipy.array(ptrm_checks_starting_temperatures)
+            #--------------------------------------------------------------
+            # collect all pTRM check to array
+            #--------------------------------------------------------------
+
+            ptrm_checks = araiblock[2]
+            zerofield_temperatures=[row[0] for row in zerofields]
+
+            x_ptrm_check,y_ptrm_check,ptrm_checks_temperatures,=[],[],[]
+            x_ptrm_check_starting_point,y_ptrm_check_starting_point,ptrm_checks_starting_temperatures=[],[],[]
+            for k in range(len(ptrm_checks)):
+                if ptrm_checks[k][0] in zerofield_temperatures:
+                    zero_field_index=ptrm_checks[k][4]
+                    #print Data[s]['datablock']
+
+                    # find the starting point of the pTRM check:
+                    rec=Data[s]['datablock'][zero_field_index]
+                    if THERMAL:
+                        starting_temperature=(float(rec['treatment_temp']))
+                        #found_start_temp=True
+                    elif MICROWAVE:
+                        MW_step=rec["measurement_description"].strip('\n').split(":")
+                        for STEP in MW_step:
+                            if "Number" in STEP:
+                                starting_temperature=float(STEP.split("-")[-1])
+                                #found_start_temp=True
+
+
+                    #if MICROWAVE:
+                    #  if "measurement_description" in rec.keys():
+                    #      MW_step=rec["measurement_description"].strip('\n').split(":")
+                    #      for STEP in MW_step:
+                    #          if "Number" in STEP:
+                    #              this_temp=float(STEP.split("-")[-1])
+                    #if found_start_temp==False:
+                    #      continue
+                    try:
+                    #if True:
+                        index=t_Arai.index(starting_temperature)
+                        x_ptrm_check_starting_point.append(x_Arai[index])
+                        y_ptrm_check_starting_point.append(y_Arai[index])
+                        ptrm_checks_starting_temperatures.append(starting_temperature)
+
+                        #print ptrm_checks[k]
+                        #print ' ptrm_checks[k][4]', ptrm_checks[k][4]
+                        if ptrm_checks[k][5]==0:
+                            index_zerofield=zerofield_temperatures.index(ptrm_checks[k][0])
+                            index_infield=infield_temperatures.index(ptrm_checks[k][0])
+                            infield_cart=dir2cart([infields[index_infield][1],infields[index_infield][2],infields[index_infield][3]])
+                            ptrm_check_cart=dir2cart([ptrm_checks[k][1],ptrm_checks[k][2],ptrm_checks[k][3]])
+                            ptrm_check=cart2dir(scipy.array(infield_cart)-scipy.array(ptrm_check_cart))
+                            x_ptrm_check.append(ptrm_check[2]/NRM)
+                            y_ptrm_check.append(zerofields[index_zerofield][3]/NRM)
+                            ptrm_checks_temperatures.append(ptrm_checks[k][0])
+                        else:
+                            index_zerofield=zerofield_temperatures.index(ptrm_checks[k][0])
+                            x_ptrm_check.append(ptrm_checks[k][3]/NRM)
+                            y_ptrm_check.append(zerofields[index_zerofield][3]/NRM)
+                            ptrm_checks_temperatures.append(ptrm_checks[k][0])
+                    #else:
+                    except:
+                        pass
+
+
+            x_ptrm_check=scipy.array(x_ptrm_check)
+            ptrm_check=scipy.array(y_ptrm_check)
+            ptrm_checks_temperatures=scipy.array(ptrm_checks_temperatures)
+            Data[s]['PTRM_Checks']=ptrm_checks
+            Data[s]['x_ptrm_check']=x_ptrm_check
+            Data[s]['y_ptrm_check']=y_ptrm_check
+            Data[s]['ptrm_checks_temperatures']=ptrm_checks_temperatures
+            Data[s]['x_ptrm_check_starting_point']=scipy.array(x_ptrm_check_starting_point)
+            Data[s]['y_ptrm_check_starting_point']=scipy.array(y_ptrm_check_starting_point)
+            Data[s]['ptrm_checks_starting_temperatures']=scipy.array(ptrm_checks_starting_temperatures)
 ##        if len(ptrm_checks_starting_temperatures) != len(ptrm_checks_temperatures):
 ##            print s
 ##            print Data[s]['ptrm_checks_temperatures']
 ##            print Data[s]['ptrm_checks_starting_temperatures']
 ##            print "help"
 
-        #--------------------------------------------------------------
-        # collect tail checks
-        #--------------------------------------------------------------
+            #--------------------------------------------------------------
+            # collect tail checks
+            #--------------------------------------------------------------
 
 
-        ptrm_tail = araiblock[3]
-        #print s
-        #print ptrm_tail
-        #print "-----"
-        x_tail_check,y_tail_check,tail_check_temperatures=[],[],[]
-        x_tail_check_starting_point,y_tail_check_starting_point,tail_checks_starting_temperatures=[],[],[]
+            ptrm_tail = araiblock[3]
+            #print s
+            #print ptrm_tail
+            #print "-----"
+            x_tail_check,y_tail_check,tail_check_temperatures=[],[],[]
+            x_tail_check_starting_point,y_tail_check_starting_point,tail_checks_starting_temperatures=[],[],[]
 
-        for k in range(len(ptrm_tail)):
-          #if float(ptrm_tail[k][0]) in zerofield_temperatures:
+            for k in range(len(ptrm_tail)):
+                #if float(ptrm_tail[k][0]) in zerofield_temperatures:
 
-            # find the starting point of the pTRM check:
-            for i in range(len(datablock)):
-                rec=datablock[i]
-                if (THERMAL and "LT-PTRM-MD" in rec['magic_method_codes'] and float(rec['treatment_temp'])==ptrm_tail[k][0])\
-                   or\
-                   (MICROWAVE and "LT-PMRM-MD" in rec['magic_method_codes'] and "measurement_description" in rec.keys() and "Step Number-%.0f"%float(ptrm_tail[k][0]) in rec["measurement_description"]):
-                    if THERMAL:
-                        starting_temperature=(float(datablock[i-1]['treatment_temp']))
-                    elif MICROWAVE:
-                        MW_step=datablock[i-1]["measurement_description"].strip('\n').split(":")
-                        for STEP in MW_step:
-                            if "Number" in STEP:
-                                starting_temperature=float(STEP.split("-")[-1])
+                    # find the starting point of the pTRM check:
+                for i in range(len(datablock)):
+                    rec=datablock[i]
+                    if (THERMAL and "LT-PTRM-MD" in rec['magic_method_codes'] and float(rec['treatment_temp'])==ptrm_tail[k][0])\
+                       or\
+                       (MICROWAVE and "LT-PMRM-MD" in rec['magic_method_codes'] and "measurement_description" in rec.keys() and "Step Number-%.0f"%float(ptrm_tail[k][0]) in rec["measurement_description"]):
+                        if THERMAL:
+                            starting_temperature=(float(datablock[i-1]['treatment_temp']))
+                        elif MICROWAVE:
+                            MW_step=datablock[i-1]["measurement_description"].strip('\n').split(":")
+                            for STEP in MW_step:
+                                if "Number" in STEP:
+                                    starting_temperature=float(STEP.split("-")[-1])
 
-                    try:
+                        try:
 
-                        index=t_Arai.index(starting_temperature)
-                        x_tail_check_starting_point.append(x_Arai[index])
-                        y_tail_check_starting_point.append(y_Arai[index])
-                        tail_checks_starting_temperatures.append(starting_temperature)
+                            index=t_Arai.index(starting_temperature)
+                            x_tail_check_starting_point.append(x_Arai[index])
+                            y_tail_check_starting_point.append(y_Arai[index])
+                            tail_checks_starting_temperatures.append(starting_temperature)
 
-                        index_infield=infield_temperatures.index(ptrm_tail[k][0])
-                        x_tail_check.append(infields[index_infield][3]/NRM)
-                        y_tail_check.append(ptrm_tail[k][3]/NRM + zerofields[index_infield][3]/NRM)
-                        tail_check_temperatures.append(ptrm_tail[k][0])
+                            index_infield=infield_temperatures.index(ptrm_tail[k][0])
+                            x_tail_check.append(infields[index_infield][3]/NRM)
+                            y_tail_check.append(ptrm_tail[k][3]/NRM + zerofields[index_infield][3]/NRM)
+                            tail_check_temperatures.append(ptrm_tail[k][0])
 
-                        break
-                    except:
-                        pass
-
-
-        x_tail_check=scipy.array(x_tail_check)
-        y_tail_check=scipy.array(y_tail_check)
-        tail_check_temperatures=scipy.array(tail_check_temperatures)
-        x_tail_check_starting_point=scipy.array(x_tail_check_starting_point)
-        y_tail_check_starting_point=scipy.array(y_tail_check_starting_point)
-        tail_checks_starting_temperatures=scipy.array(tail_checks_starting_temperatures)
-
-        Data[s]['TAIL_Checks']=ptrm_tail
-        Data[s]['x_tail_check']=x_tail_check
-        Data[s]['y_tail_check']=y_tail_check
-        Data[s]['tail_check_temperatures']=tail_check_temperatures
-        Data[s]['x_tail_check_starting_point']=x_tail_check_starting_point
-        Data[s]['y_tail_check_starting_point']=y_tail_check_starting_point
-        Data[s]['tail_checks_starting_temperatures']=tail_checks_starting_temperatures
+                            break
+                        except:
+                            pass
 
 
-        #--------------------------------------------------------------
-        # collect additivity checks
-        #--------------------------------------------------------------
+            x_tail_check=scipy.array(x_tail_check)
+            y_tail_check=scipy.array(y_tail_check)
+            tail_check_temperatures=scipy.array(tail_check_temperatures)
+            x_tail_check_starting_point=scipy.array(x_tail_check_starting_point)
+            y_tail_check_starting_point=scipy.array(y_tail_check_starting_point)
+            tail_checks_starting_temperatures=scipy.array(tail_checks_starting_temperatures)
+
+            Data[s]['TAIL_Checks']=ptrm_tail
+            Data[s]['x_tail_check']=x_tail_check
+            Data[s]['y_tail_check']=y_tail_check
+            Data[s]['tail_check_temperatures']=tail_check_temperatures
+            Data[s]['x_tail_check_starting_point']=x_tail_check_starting_point
+            Data[s]['y_tail_check_starting_point']=y_tail_check_starting_point
+            Data[s]['tail_checks_starting_temperatures']=tail_checks_starting_temperatures
 
 
-        additivity_checks = araiblock[6]
-        x_AC,y_AC,AC_temperatures,AC=[],[],[],[]
-        x_AC_starting_point,y_AC_starting_point,AC_starting_temperatures=[],[],[]
-
-        tmp_data_block=list(copy.copy(datablock))
-        #print "specimen:",s
-        for k in range(len(additivity_checks)):
-          if additivity_checks[k][0] in zerofield_temperatures:
-            for i in range(len(tmp_data_block)):
-                rec=tmp_data_block[i]
-                if "LT-PTRM-AC" in rec['magic_method_codes'] and float(rec['treatment_temp'])==additivity_checks[k][0]:
-                    del(tmp_data_block[i])
-                    break
-
-            # find the infield step that comes before the additivity check
-            foundit=False
-            for j in range(i-1,1,-1):
-                if "LT-T-I" in tmp_data_block[j]['magic_method_codes']:
-                  found_starting_temperature=True
-                  starting_temperature=float(tmp_data_block[j]['treatment_temp']);
-                  break
-            #for j in range(len(Data[s]['t_Arai'])):
-            #    print Data[s]['t_Arai'][j]
-            #    if float(Data[s]['t_Arai'][j])==additivity_checks[k][0]:
-            #      found_zerofield_step=True
-            #      pTRM=Data[s]['x_Arai'][j]
-            #      AC=Data[s]['x_Arai'][j]-additivity_checks[k][3]/NRM
-            #      break
-            if found_starting_temperature:
-                    try:
-                        index=t_Arai.index(starting_temperature)
-                        x_AC_starting_point.append(x_Arai[index])
-                        y_AC_starting_point.append(y_Arai[index])
-                        AC_starting_temperatures.append(starting_temperature)
-
-                        index_zerofield=zerofield_temperatures.index(additivity_checks[k][0])
-                        x_AC.append(additivity_checks[k][3]/NRM)
-                        y_AC.append(zerofields[index_zerofield][3]/NRM)
-                        AC_temperatures.append(additivity_checks[k][0])
-                        index_pTRMs=t_Arai.index(additivity_checks[k][0])
-                        AC.append(additivity_checks[k][3]/NRM - x_Arai[index_pTRMs])
-                    except:
-                        pass
+            #--------------------------------------------------------------
+            # collect additivity checks
+            #--------------------------------------------------------------
 
 
+            additivity_checks = araiblock[6]
+            x_AC,y_AC,AC_temperatures,AC=[],[],[],[]
+            x_AC_starting_point,y_AC_starting_point,AC_starting_temperatures=[],[],[]
 
+            tmp_data_block=list(copy.copy(datablock))
+            #print "specimen:",s
+            for k in range(len(additivity_checks)):
+                if additivity_checks[k][0] in zerofield_temperatures:
+                    for i in range(len(tmp_data_block)):
+                        rec=tmp_data_block[i]
+                        if "LT-PTRM-AC" in rec['magic_method_codes'] and float(rec['treatment_temp'])==additivity_checks[k][0]:
+                            del(tmp_data_block[i])
+                            break
 
-        x_AC=scipy.array(x_AC)
-        y_AC=scipy.array(y_AC)
-        AC_temperatures=scipy.array(AC_temperatures)
-        x_AC_starting_point=scipy.array(x_AC_starting_point)
-        y_AC_starting_point=scipy.array(y_AC_starting_point)
-        AC_starting_temperatures=scipy.array(AC_starting_temperatures)
-        AC=scipy.array(AC)
+                    # find the infield step that comes before the additivity check
+                    foundit=False
+                    for j in range(i-1,1,-1):
+                        if "LT-T-I" in tmp_data_block[j]['magic_method_codes']:
+                            found_starting_temperature=True
+                            starting_temperature=float(tmp_data_block[j]['treatment_temp']);
+                            break
+                    #for j in range(len(Data[s]['t_Arai'])):
+                    #    print Data[s]['t_Arai'][j]
+                    #    if float(Data[s]['t_Arai'][j])==additivity_checks[k][0]:
+                    #      found_zerofield_step=True
+                    #      pTRM=Data[s]['x_Arai'][j]
+                    #      AC=Data[s]['x_Arai'][j]-additivity_checks[k][3]/NRM
+                    #      break
+                    if found_starting_temperature:
+                        try:
+                            index=t_Arai.index(starting_temperature)
+                            x_AC_starting_point.append(x_Arai[index])
+                            y_AC_starting_point.append(y_Arai[index])
+                            AC_starting_temperatures.append(starting_temperature)
 
-        Data[s]['AC']=AC
-
-        Data[s]['x_additivity_check']=x_AC
-        Data[s]['y_additivity_check']=y_AC
-        Data[s]['additivity_check_temperatures']=AC_temperatures
-        Data[s]['x_additivity_check_starting_point']=x_AC_starting_point
-        Data[s]['y_additivity_check_starting_point']=y_AC_starting_point
-        Data[s]['additivity_check_starting_temperatures']=AC_starting_temperatures
+                            index_zerofield=zerofield_temperatures.index(additivity_checks[k][0])
+                            x_AC.append(additivity_checks[k][3]/NRM)
+                            y_AC.append(zerofields[index_zerofield][3]/NRM)
+                            AC_temperatures.append(additivity_checks[k][0])
+                            index_pTRMs=t_Arai.index(additivity_checks[k][0])
+                            AC.append(additivity_checks[k][3]/NRM - x_Arai[index_pTRMs])
+                        except:
+                            pass
 
 
 
 
-      self.GUI_log.write("-I- number of specimens in this project directory: %i\n"%len(self.specimens))
-      self.GUI_log.write("-I- number of samples in this project directory: %i\n"%len(Data_hierarchy['samples'].keys()))
+            x_AC=scipy.array(x_AC)
+            y_AC=scipy.array(y_AC)
+            AC_temperatures=scipy.array(AC_temperatures)
+            x_AC_starting_point=scipy.array(x_AC_starting_point)
+            y_AC_starting_point=scipy.array(y_AC_starting_point)
+            AC_starting_temperatures=scipy.array(AC_starting_temperatures)
+            AC=scipy.array(AC)
 
-      print "done sort blocks to arai, zij. etc."
-      return(Data,Data_hierarchy)
+            Data[s]['AC']=AC
+
+            Data[s]['x_additivity_check']=x_AC
+            Data[s]['y_additivity_check']=y_AC
+            Data[s]['additivity_check_temperatures']=AC_temperatures
+            Data[s]['x_additivity_check_starting_point']=x_AC_starting_point
+            Data[s]['y_additivity_check_starting_point']=y_AC_starting_point
+            Data[s]['additivity_check_starting_temperatures']=AC_starting_temperatures
+
+
+
+
+        self.GUI_log.write("-I- number of specimens in this project directory: %i\n"%len(self.specimens))
+        self.GUI_log.write("-I- number of samples in this project directory: %i\n"%len(Data_hierarchy['samples'].keys()))
+
+        print "done sort blocks to arai, zij. etc."
+        return(Data,Data_hierarchy)
 
 
 
@@ -6659,14 +6659,14 @@ else:
                 er_ages=age_data.to_dict('records')  # save this in 2.5 format
                 data_er_ages={}
                 for s in er_ages:
-                   s=self.convert_ages_to_calendar_year(s)
-                   data_er_ages[s['er_site_name']]=s
+                    s=self.convert_ages_to_calendar_year(s)
+                    data_er_ages[s['er_site_name']]=s
                 sites=self.site_data[['site','lat','lon']]
                 sites=sites.rename(columns={'site':'er_site_name','lat':'site_lat','lon':'site_lon'})
                 er_sites=sites.to_dict('records') # pick out what is needed by thellier_gui and put in 2.5 format
                 data_er_sites={}
                 for s in er_sites:
-                   data_er_sites[s['er_site_name']]=s
+                    data_er_sites[s['er_site_name']]=s
             else:
                 self.site_container = nb.MagicDataFrame(dtype='sites',columns=['site'])
             self.site_data = self.site_container.df # only need this for saving tables
@@ -6713,13 +6713,13 @@ else:
         prev_pmag_specimen=[]
         if self.data_model==3: # data model 3.0
             if len(self.spec_data)>0:  # there are previous measurements
-              prev_specs=self.spec_data[self.spec_data['int_abs'].notnull()] # get the previous intensity interpretations
-              prev_specs=prev_specs[prev_specs['meas_step_min'].notnull()] # eliminate ones without bounds
-              prev_specs=prev_specs[prev_specs['meas_step_max'].notnull()] #
-              prev_specs=prev_specs[['specimen','meas_step_min','meas_step_max','method_codes']]
-              # rename column headers to 2.5
-              prev_specs = prev_specs.rename(columns=map_magic.spec_magic3_2_magic2_map)
-              prev_pmag_specimen=prev_specs.to_dict("records")
+                prev_specs=self.spec_data[self.spec_data['int_abs'].notnull()] # get the previous intensity interpretations
+                prev_specs=prev_specs[prev_specs['meas_step_min'].notnull()] # eliminate ones without bounds
+                prev_specs=prev_specs[prev_specs['meas_step_max'].notnull()] #
+                prev_specs=prev_specs[['specimen','meas_step_min','meas_step_max','method_codes']]
+                # rename column headers to 2.5
+                prev_specs = prev_specs.rename(columns=map_magic.spec_magic3_2_magic2_map)
+                prev_pmag_specimen=prev_specs.to_dict("records")
         else:
             try:
                 prev_pmag_specimen,file_type=pmag.magic_read(os.path.join(self.WD, "pmag_specimens.txt"))
@@ -7019,21 +7019,21 @@ else:
 
             foundit=False
             if 'LP-PI-II' not in methcodes:
-                 # Important: suport several pTRM checks in a row, but
-                 # does not support pTRM checks after infield step
-                 for j in range(k,1,-1):
-                     if "LT-M-I" in datablock[j]['magic_method_codes'] or "LT-T-I" in datablock[j]['magic_method_codes']:
-                         after_zerofield=0.
-                         foundit=True
-                         prev_rec=datablock[j]
-                         zerofield_index=j
-                         break
-                     if float(datablock[j]['treatment_dc_field'])==0:
-                         after_zerofield=1.
-                         foundit=True
-                         prev_rec=datablock[j]
-                         zerofield_index=j
-                         break
+                    # Important: suport several pTRM checks in a row, but
+                    # does not support pTRM checks after infield step
+                for j in range(k,1,-1):
+                    if "LT-M-I" in datablock[j]['magic_method_codes'] or "LT-T-I" in datablock[j]['magic_method_codes']:
+                        after_zerofield=0.
+                        foundit=True
+                        prev_rec=datablock[j]
+                        zerofield_index=j
+                        break
+                    if float(datablock[j]['treatment_dc_field'])==0:
+                        after_zerofield=1.
+                        foundit=True
+                        prev_rec=datablock[j]
+                        zerofield_index=j
+                        break
             else: # Thellier-Thellier protocol
                 foundit=True
                 prev_rec=datablock[k-1]
@@ -7093,16 +7093,16 @@ else:
                         break
 
             if foundit:
-                    ptrm_tail.append([temp,0,0,moment-prev_moment])
+                ptrm_tail.append([temp,0,0,moment-prev_moment])
 
         #print ptrm_tail
     #
     # final check
     #
         if len(first_Z)!=len(first_I):
-                   print len(first_Z),len(first_I)
-                   print " Something wrong with this specimen! Better fix it or delete it "
-                   raw_input(" press return to acknowledge message")
+            print len(first_Z),len(first_I)
+            print " Something wrong with this specimen! Better fix it or delete it "
+            raw_input(" press return to acknowledge message")
 
 
         #---------------------
@@ -7121,7 +7121,7 @@ else:
             foundit=False
             for j in range(step_0,1,-1):
                 if "LT-T-I" in datablock[j]['magic_method_codes']:
-                  foundit=True ; break
+                    foundit=True ; break
             if foundit:
                 dec1=float(datablock[j]["measurement_dec"])
                 inc1=float(datablock[j]["measurement_inc"])
