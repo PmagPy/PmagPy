@@ -15,8 +15,8 @@ def main():
         This program calculates igrf field values 
     using the routine of Malin and  Barraclough (1981) 
     based on d/igrfs from 1900 to 2010.
-    between 1900 and 1000BCE, it uses CALS3K.4, ARCH3K.1 , or PFM9K
-    Prior to 1000BCE, it uses CALS10k-4b
+    between 1900 and 1000BCE, it uses CALS3K.4, ARCH3K.1 
+    Prior to 1000BCE, it uses PFM9k or CALS10k-4b
     Calculates reference field vector at  specified location and time.
   
     SYNTAX
@@ -32,7 +32,7 @@ def main():
        -plt; make a plot of the time series
        -sav, saves plot and quits
        -fmt [pdf,jpg,eps,svg]  specify format for output figure  (default is svg)
-       -mod [arch3k,cals3k,pfm9k,cals10k] specify model for 3ka to 1900 AD, default is cals10k
+       -mod [arch3k,cals3k,pfm9k,hfm10k,cals10k] specify model for 3ka to 1900 AD, default is cals10k
              NB:  program uses IGRF12 for dates 1900 to 2015.
     
     INPUT FORMAT 
