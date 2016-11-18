@@ -6933,6 +6933,7 @@ def find_ei(data, nb=1000, save = False, save_folder = '.', fmt='svg',
     print "The corrected inclination is: " + str(Inc)
     print "with bootstrapped confidence bounds of: " +  str(I[lower]) + ' to ' + str(I[upper])
     print "and elongation parameter of: " + str(Elong)
+    print "The flattening factor is: " + str(flat_f)
     if return_new_dirs is True:
         return make_di_block(decs, unsquished_incs)
 
