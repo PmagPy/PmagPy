@@ -6933,6 +6933,8 @@ def find_ei(data, nb=1000, save = False, save_folder = '.', fmt='svg',
         plot_net(4)
         plot_di(decs,incs)
 
+    if (Inc, Elong, flat_f) == (0, 0, 0):
+        print "PATHOLOGICAL DISTRIBUTION"
     print "The original inclination was: " + str(Io)
     print ""
     print "The corrected inclination is: " + str(Inc)
