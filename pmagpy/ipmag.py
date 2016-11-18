@@ -234,15 +234,15 @@ def unsquish(incs,f):
         length = len(incs)
         incs_unsquished = []
         for n in range(0,length):
-            inc_rad = incs[n]*np.pi/180. # convert to radians
+            inc_rad = np.deg2rad(incs[n]) # convert to radians
             inc_new_rad = (1./f)*np.tan(inc_rad)
-            inc_new = np.arctan(inc_new_rad)*180./np.pi # convert back to degrees
+            inc_new = np.rad2deg(np.arctan(inc_new_rad)) # convert back to degrees
             incs_unsquished.append(inc_new)
         return incs_unsquished
     except:
-        inc_rad = incs*np.pi/180. # convert to radians
+        inc_rad = np.deg2rad(incs) # convert to radians
         inc_new_rad = (1./f)*np.tan(inc_rad)
-        inc_new = np.arctan(inc_new_rad)*180./np.pi # convert back to degrees
+        inc_new = np.rad2deg(np.arctan(inc_new_rad)) # convert back to degrees
         return inc_new
 
 
@@ -6923,10 +6923,15 @@ def find_ei(data, nb=1000, save = False, save_folder = '.', fmt='svg',
         decs, incs, intensity = di_lists
     if len(di_lists) == 2:
         decs, incs = di_lists
-    unsquished_incs = unsquish(incs, flat_f)
-    plt.figure(num=4,figsize=(4,4))
-    plot_net(4)
-    plot_di(decs,unsquished_incs)
+    if flat_f:
+        unsquished_incs = unsquish(incs, flat_f)
+        plt.figure(num=4,figsize=(4,4))
+        plot_net(4)
+        plot_di(decs,unsquished_incs)
+    else:
+        plt.figure(num=4,figsize=(4,4))
+        plot_net(4)
+        plot_di(decs,incs)
 
     print "The original inclination was: " + str(Io)
     print ""
