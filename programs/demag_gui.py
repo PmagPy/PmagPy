@@ -42,7 +42,7 @@ import matplotlib
 if not matplotlib.get_backend() == 'WXAgg':
     matplotlib.use('WXAgg')
 
-import os,sys,pdb
+import os, sys, pdb, shutil
 global CURRENT_VERSION, PMAGPY_DIRECTORY
 CURRENT_VERSION = "v.0.33"
 # get directory in a way that works whether being used
@@ -1547,7 +1547,7 @@ class Demag_GUI(wx.Frame):
                             self.plot_eqarea_pars(mpars,self.high_level_eqarea)
                     else:
                         for mf in self.all_fits_list:
-                            if mf not in self.high_level_means[elements_type][element].keys():  
+                            if mf not in self.high_level_means[elements_type][element].keys():
                                 self.calculate_high_level_mean(elements_type,element,"Fisher",'specimens',mf)
                             if mf in self.high_level_means[elements_type][element].keys():
                                 if dirtype in self.high_level_means[elements_type][element][mf].keys():
@@ -3417,7 +3417,19 @@ class Demag_GUI(wx.Frame):
             Data_info["er_sites"]=[]
             Data_info["er_locations"]=[]
             Data_info["er_ages"]=[]
-            fnames = {'measurements': self.magic_file}
+
+            # self.magic_file may have a full path, but this breaks nb.Contribution
+            # determine if magic_file exists in WD, and if it doesn't, copy it in
+
+            magic_file_real = os.path.realpath(self.magic_file)
+            magic_file_short = os.path.split(self.magic_file)[1]
+            WD_file_real = os.path.realpath(os.path.join(self.WD, magic_file_short))
+            if magic_file_real == WD_file_real:
+                fnames = {'measurements': magic_file_short}
+            else:
+                # copy measurements file to WD, keeping original name
+                shutil.copy(magic_file_real, WD_file_real)
+                fnames = {'measurements': magic_file_short}
             self.con = nb.Contribution(self.WD, custom_filenames=fnames, read_tables=['measurements', 'specimens', 'samples','sites', 'locations', 'criteria', 'ages'])
             if 'specimens' in self.con.tables:
                 spec_container = self.con.tables['specimens']
