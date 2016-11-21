@@ -494,7 +494,7 @@ class Demag_GUI(wx.Frame):
         self.Bind(wx.EVT_COMBOBOX, self.on_select_specimen_mean_type_box,self.PCA_type_box)
         self.PCA_type_box.SetHelpText(dgh.PCA_type_help)
 
-        self.plane_display_box = wx.ComboBox(self.panel, id=wx.ID_ANY, size=(50*self.GUI_RESOLUTION, 25), value='show whole plane',choices=['show whole plane','show u. hemisphere', 'show l. hemisphere','show poles'], style=wx.CB_DROPDOWN|wx.TE_READONLY,name="PlaneType")
+        self.plane_display_box = wx.ComboBox(self.panel, id=wx.ID_ANY, size=(50*self.GUI_RESOLUTION, 25), value='show whole plane',choices=['show whole plane','show u. hemisphere', 'show l. hemisphere','show poles','best fit vector', 'whole plane + best fit vector'], style=wx.CB_DROPDOWN|wx.TE_READONLY,name="PlaneType")
         self.Bind(wx.EVT_COMBOBOX, self.on_select_plane_display_box, self.plane_display_box)
         self.plane_display_box.SetHelpText(dgh.plane_display_help)
 
@@ -1664,10 +1664,13 @@ class Demag_GUI(wx.Frame):
                 else:
                     FC='white';SIZE=15*self.GUI_RESOLUTION
                 marker_shape = 'o'
-                if fit == self.current_fit:
-                    marker_shape = 'D'
                 if pars['calculation_type'] == "DE-BFP":
                     marker_shape = 's'
+                    if 'best fit vector' in self.plane_display_box.GetValue():
+                        marker_shape = '>'
+                        SIZE=25*self.GUI_RESOLUTION
+                if fit == self.current_fit:
+                    marker_shape = 'D'
                 if fit in self.bad_fits:
                     marker_shape = (4,1,0)
                     SIZE=25*self.GUI_RESOLUTION
@@ -1675,31 +1678,48 @@ class Demag_GUI(wx.Frame):
                 # draw a best-fit plane
                 if pars['calculation_type']=='DE-BFP' and \
                    self.plane_display_box.GetValue() != "show poles":
-                    ymin, ymax = self.specimen_eqarea.get_ylim()
-                    xmin, xmax = self.specimen_eqarea.get_xlim()
 
-                    D_c,I_c=pmag.circ(pars["specimen_dec"],pars["specimen_inc"],90)
-                    X_c_up,Y_c_up=[],[]
-                    X_c_d,Y_c_d=[],[]
-                    for k in range(len(D_c)):
-                        XY=pmag.dimap(D_c[k],I_c[k])
-                        if I_c[k]<0:
-                            X_c_up.append(XY[0])
-                            Y_c_up.append(XY[1])
-                        if I_c[k]>0:
-                            X_c_d.append(XY[0])
-                            Y_c_d.append(XY[1])
+                    if "plane" in self.plane_display_box.GetValue() or "hemisphere" in self.plane_display_box.GetValue():
 
-                    if self.plane_display_box.GetValue() == "show u. hemisphere" or \
-                       self.plane_display_box.GetValue() == "show whole plane":
-                        fig.plot(X_c_d,Y_c_d,'b')
-                        if self.ie_open:
-                            self.ie.plot(X_c_d,Y_c_d,'b')
-                    if self.plane_display_box.GetValue() == "show l. hemisphere" or \
-                       self.plane_display_box.GetValue() == "show whole plane":
-                        fig.plot(X_c_up,Y_c_up,'c')
-                        if self.ie_open:
-                            self.ie.plot(X_c_up,Y_c_up,'c')
+                        ymin, ymax = self.specimen_eqarea.get_ylim()
+                        xmin, xmax = self.specimen_eqarea.get_xlim()
+
+                        D_c,I_c=pmag.circ(pars["specimen_dec"],pars["specimen_inc"],90)
+                        X_c_up,Y_c_up=[],[]
+                        X_c_d,Y_c_d=[],[]
+                        for k in range(len(D_c)):
+                            XY=pmag.dimap(D_c[k],I_c[k])
+                            if I_c[k]<0:
+                                X_c_up.append(XY[0])
+                                Y_c_up.append(XY[1])
+                            if I_c[k]>0:
+                                X_c_d.append(XY[0])
+                                Y_c_d.append(XY[1])
+
+                        if self.plane_display_box.GetValue() == "show u. hemisphere" or \
+                           self.plane_display_box.GetValue() == "show whole plane" or \
+                           self.plane_display_box.GetValue() == "whole plane + best fit vector":
+                            fig.plot(X_c_d,Y_c_d,'b')
+                            if self.ie_open:
+                                self.ie.plot(X_c_d,Y_c_d,'b')
+                        if self.plane_display_box.GetValue() == "show l. hemisphere" or \
+                           self.plane_display_box.GetValue() == "show whole plane" or \
+                           self.plane_display_box.GetValue() == "whole plane + best fit vector":
+                            fig.plot(X_c_up,Y_c_up,'c')
+                            if self.ie_open:
+                                self.ie.plot(X_c_up,Y_c_up,'c')
+
+                    if "best fit vector" in self.plane_display_box.GetValue():
+                        if 'bfv_dec' not in pars.keys() or 'bfv_inc' not in pars.keys():
+                            self.calculate_best_fit_vectors()
+                            pars = fit.get(self.COORDINATE_SYSTEM)
+                        try: XY=pmag.dimap(pars['bfv_dec'],pars['bfv_inc'])
+                        except KeyError:
+                            self.user_warning("There was an error calculating bfv for %s of %s, please raise an issue on github and/or contact a dev about this problem and restart the GUI"%(fit.name,element))
+                        if inc>0:
+                            FC=fit.color
+                        else:
+                            FC='white'
 
                 self.high_EA_xdata.append(XY[0])
                 self.high_EA_ydata.append(XY[1])
@@ -2302,6 +2322,9 @@ class Demag_GUI(wx.Frame):
         if "DE-BFL" in calculation_type and 'specimen_dang' not in mpars.keys():
             mpars['specimen_dang']=0
 
+        if 'best fit vector' in self.plane_display_box.GetValue():
+            self.calculate_best_fit_vectors()
+
         return(mpars)
 
     def autointerpret(self,event,step_size=None,calculation_type="DE-BFL"):
@@ -2361,7 +2384,7 @@ class Demag_GUI(wx.Frame):
             self.add_fit(specimen, None, tmin, tmax, calculation_type)
             prev_peak = peak+1
 
-    def calculate_high_level_mean (self,high_level_type,high_level_name,calculation_type,elements_type,mean_fit):
+    def get_high_level_mean_pars (self,high_level_type,high_level_name,calculation_type,elements_type,mean_fit,dirtype):
         """
         @param: high_level_type - 'samples','sites','locations','study'
         @param: high_level_name - sample, site, location, or study whose data to which to apply the mean
@@ -2371,6 +2394,61 @@ class Demag_GUI(wx.Frame):
         figure out what level to average,and what elements to average (specimen, samples, sites, vgp)
         """
 
+        elements_list=self.Data_hierarchy[high_level_type][high_level_name][elements_type]
+        pars_for_mean={}
+        pars_for_mean["All"] = []
+
+        for element in elements_list:
+            if elements_type=='specimens' and element in self.pmag_results_data['specimens']:
+                for fit in self.pmag_results_data['specimens'][element]:
+                    if fit in self.bad_fits:
+                        continue
+                    if fit.name not in pars_for_mean.keys():
+                        pars_for_mean[fit.name] = []
+                    try:
+                        #is this fit to be included in mean
+                        if mean_fit == 'All' or mean_fit == fit.name:
+                            pars = fit.get(dirtype)
+                            if pars == {} or pars == None:
+                                pars = self.get_PCA_parameters(element,fit,fit.tmin,fit.tmax,dirtype,fit.PCA_type)
+                                if pars == {} or pars == None:
+                                    print("cannot calculate parameters for element %s and fit %s in calculate_high_level_mean leaving out of fisher mean, please check this value."%(element,fit.name))
+                                    continue
+                                fit.put(element,dirtype,pars)
+                        else:
+                            continue
+                        if "calculation_type" in pars.keys() and pars["calculation_type"] == 'DE-BFP':
+                            dec,inc,direction_type=pars["specimen_dec"],pars["specimen_inc"],'p'
+                        elif "specimen_dec" in pars.keys() and "specimen_inc" in pars.keys():
+                            dec,inc,direction_type=pars["specimen_dec"],pars["specimen_inc"],'l'
+                        elif "dec" in pars.keys() and "inc" in pars.keys():
+                            dec,inc,direction_type=pars["dec"],pars["inc"],'l'
+                        else:
+                            print("-E- ERROR: cant find mean for specimen interpertation: %s , %s"%(element,fit.name))
+                            print(dec,inc,direction_type)
+                            print(pars)
+                            continue
+                        #add for calculation
+                        pars_for_mean[fit.name].append({'dec':float(dec),'inc':float(inc),'direction_type':direction_type,'element_name':element})
+                        pars_for_mean["All"].append({'dec':float(dec),'inc':float(inc),'direction_type':direction_type,'element_name':element})
+                    except KeyError:
+                        print("KeyError in calculate_high_level_mean for element: " + str(element))
+                        continue
+            else:
+                try:
+                    pars=self.high_level_means[elements_type][element][mean_fit][dirtype]
+                    if "dec" in pars.keys() and "inc" in pars.keys():
+                        dec,inc,direction_type=pars["dec"],pars["inc"],'l'
+                    else:
+#                            print "-E- ERROR: cant find mean for element %s"%element
+                        continue
+                except KeyError:
+#                        print("KeyError in calculate_high_level_mean for element: " + str(element) + " please report to a dev")
+                    continue
+
+        return pars_for_mean
+
+    def calculate_high_level_mean(self,high_level_type,high_level_name,calculation_type,elements_type,mean_fit):
         if calculation_type == "None": return
 
         if high_level_type not in self.high_level_means:
@@ -2381,60 +2459,7 @@ class Demag_GUI(wx.Frame):
             if high_level_name not in self.Data_hierarchy[high_level_type].keys():
                 continue
 
-
-            elements_list=self.Data_hierarchy[high_level_type][high_level_name][elements_type]
-            pars_for_mean={}
-            pars_for_mean["All"] = []
-            colors_for_means={}
-
-            for element in elements_list:
-                if elements_type=='specimens' and element in self.pmag_results_data['specimens']:
-                    for fit in self.pmag_results_data['specimens'][element]:
-                        if fit in self.bad_fits:
-                            continue
-                        if fit.name not in pars_for_mean.keys():
-                            pars_for_mean[fit.name] = []
-                            colors_for_means[fit.name] = fit.color
-                        try:
-                            #is this fit to be included in mean
-                            if mean_fit == 'All' or mean_fit == fit.name:
-                                pars = fit.get(dirtype)
-                                if pars == {} or pars == None:
-                                    pars = self.get_PCA_parameters(element,fit,fit.tmin,fit.tmax,dirtype,fit.PCA_type)
-                                    if pars == {} or pars == None:
-                                        print("cannot calculate parameters for element %s and fit %s in calculate_high_level_mean leaving out of fisher mean, please check this value."%(element,fit.name))
-                                        continue
-                                    fit.put(element,dirtype,pars)
-                            else:
-                                continue
-                            if "calculation_type" in pars.keys() and pars["calculation_type"] == 'DE-BFP':
-                                dec,inc,direction_type=pars["specimen_dec"],pars["specimen_inc"],'p'
-                            elif "specimen_dec" in pars.keys() and "specimen_inc" in pars.keys():
-                                dec,inc,direction_type=pars["specimen_dec"],pars["specimen_inc"],'l'
-                            elif "dec" in pars.keys() and "inc" in pars.keys():
-                                dec,inc,direction_type=pars["dec"],pars["inc"],'l'
-                            else:
-                                print("-E- ERROR: cant find mean for specimen interpertation: %s , %s"%(element,fit.name))
-                                print(dec,inc,direction_type)
-                                print(pars)
-                                continue
-                            #add for calculation
-                            pars_for_mean[fit.name].append({'dec':float(dec),'inc':float(inc),'direction_type':direction_type,'element_name':element})
-                            pars_for_mean["All"].append({'dec':float(dec),'inc':float(inc),'direction_type':direction_type,'element_name':element})
-                        except KeyError:
-                            print("KeyError in calculate_high_level_mean for element: " + str(element))
-                            continue
-                else:
-                    try:
-                        pars=self.high_level_means[elements_type][element][mean_fit][dirtype]
-                        if "dec" in pars.keys() and "inc" in pars.keys():
-                            dec,inc,direction_type=pars["dec"],pars["inc"],'l'
-                        else:
-#                            print "-E- ERROR: cant find mean for element %s"%element
-                            continue
-                    except KeyError:
-#                        print("KeyError in calculate_high_level_mean for element: " + str(element) + " please report to a dev")
-                        continue
+            pars_for_mean = self.get_high_level_mean_pars(high_level_type, high_level_name, calculation_type, elements_type, mean_fit, dirtype)
 
             for key in pars_for_mean.keys():
                 if len(pars_for_mean[key]) > 0:# and key == "All":
@@ -2446,6 +2471,8 @@ class Demag_GUI(wx.Frame):
                         colors = [f.color for f in self.pmag_results_data['specimens'][specimen] if f.name == mean_fit]
                         if colors != []: color = colors[0]
                     self.high_level_means[high_level_type][high_level_name][mean_fit][dirtype]['color'] = color
+            if 'best fit vector' in self.plane_display_box.GetValue():
+                self.calculate_best_fit_vectors(high_level_type,high_level_name)
 
     def calculate_mean(self,pars_for_mean,calculation_type):
         """
@@ -2484,6 +2511,34 @@ class Demag_GUI(wx.Frame):
         mpars['calculation_type']=calculation_type
 
         return mpars
+
+    def calculate_best_fit_vectors(self,high_level_type=None,high_level_name=None):
+        cur_high_level_type, cur_high_level_name, dirtype = self.get_levels_and_coordinates_names()
+        if high_level_name==None: high_level_name=cur_high_level_name
+        if high_level_type==None: high_level_type=cur_high_level_type
+        pars_for_mean = self.get_high_level_mean_pars(high_level_type,high_level_name,'Fisher','specimens','All',dirtype)
+        for fname in self.all_fits_list:
+            if fname not in pars_for_mean.keys(): print("No fits %s in level %s"%(fname,high_level_name)); continue
+            fdata,n_lines,L,n_planes,E = pmag.process_data_for_mean(pars_for_mean[fname],'direction_type')
+            if n_planes==0: continue
+            if n_lines==0:
+                V=dir2cart([180.,-45.,1.]) # set the initial direction arbitrarily
+            else:
+               R=sqrt(E[0]**2+E[1]**2+E[2]**2)
+               V = [c/R for c in E] # set initial direction as mean of lines
+            bfvs_cart = pmag.calculate_best_fit_vectors(L,E,V,n_planes)
+            bfvs = [pmag.cart2dir(bfv) for bfv in bfvs_cart]
+            plane_fits=[]
+            for par in pars_for_mean[fname]:
+                spec = par['element_name']
+                for fit in self.pmag_results_data['specimens'][spec]:
+                    if fit.PCA_type!="DE-BFP": continue
+                    if fit.name==fname: plane_fits.append((spec,fit))
+            for (spec,fit),bfv in zip(plane_fits,bfvs):
+                fpars = fit.get(dirtype)
+                fpars['bfv_dec'] = bfv[0]
+                fpars['bfv_inc'] = bfv[1]
+                fit.put(spec,dirtype,fpars)
 
     def calculate_high_levels_data(self):
         """
@@ -4648,6 +4703,12 @@ class Demag_GUI(wx.Frame):
         update statistics boxes and figures with a new interpretatiom when selecting new temperature bound
         """
 
+        self.update_fit_bounds_and_statistics()
+        self.draw_interpretations()
+        self.calculate_high_levels_data()
+        self.plot_high_levels_data()
+
+    def update_fit_bounds_and_statistics(self):
         if self.current_fit:
             mpars = self.current_fit.get(self.COORDINATE_SYSTEM)
             if self.current_fit.tmin and self.current_fit.tmax:
@@ -4662,14 +4723,26 @@ class Demag_GUI(wx.Frame):
             self.tmax_box.SetStringSelection('None')
 
         if mpars and 'specimen_dec' in mpars.keys():
-            self.sdec_window.SetValue("%.1f"%mpars['specimen_dec'])
+            dec_key = 'specimen_dec'
+            if 'best fit' in self.plane_display_box.GetValue() and \
+               mpars['calculation_type'] == 'DE-BFP':
+                dec_key = 'bfv_dec'
+                if 'bfv_dec' not in mpars.keys():
+                    self.calculate_best_fit_vectors()
+            self.sdec_window.SetValue("%.1f"%mpars[dec_key])
             self.sdec_window.SetBackgroundColour(wx.WHITE)
         else:
             self.sdec_window.SetValue("")
             self.sdec_window.SetBackgroundColour(wx.NullColour)
 
         if mpars and 'specimen_inc' in mpars.keys():
-            self.sinc_window.SetValue("%.1f"%mpars['specimen_inc'])
+            inc_key = 'specimen_inc'
+            if 'best fit' in self.plane_display_box.GetValue() and \
+               mpars['calculation_type'] == 'DE-BFP':
+                inc_key = 'bfv_inc'
+                if 'bfv_inc' not in mpars.keys():
+                    self.calculate_best_fit_vectors()
+            self.sinc_window.SetValue("%.1f"%mpars[inc_key])
             self.sinc_window.SetBackgroundColour(wx.WHITE)
         else:
             self.sinc_window.SetValue("")
@@ -4706,10 +4779,6 @@ class Demag_GUI(wx.Frame):
         if self.orthogonal_box.GetValue()=="X=best fit line dec":
             if mpars and 'specimen_dec' in mpars.keys():
                 self.draw_figure(self.s)
-
-        self.draw_interpretations()
-        self.calculate_high_levels_data()
-        self.plot_high_levels_data()
 
     def update_high_level_stats(self):
         """
@@ -4893,6 +4962,7 @@ class Demag_GUI(wx.Frame):
 
         if isinstance(mpars,list):
             i = self.switch_stats_button.GetValue()
+            if i >= len(mpars): print("Cannot display statistics as mpars does not have index %d. Was given mpars %s, aborting."%(i,str(mpars))); return
             self.show_high_levels_pars(mpars[i])
         elif mpars["calculation_type"].startswith('Fisher'):
             if "alpha95" in mpars.keys():
@@ -6426,6 +6496,9 @@ class Demag_GUI(wx.Frame):
         self.update_selection()
 
     def on_select_plane_display_box(self,event):
+        if "best fit vector" in self.plane_display_box.GetValue():
+            self.calculate_best_fit_vectors()
+        self.update_fit_bounds_and_statistics()
         self.draw_figure(self.s,True)
         self.draw_interpretations()
         self.plot_high_levels_data()
