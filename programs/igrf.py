@@ -32,7 +32,7 @@ def main():
        -plt; make a plot of the time series
        -sav, saves plot and quits
        -fmt [pdf,jpg,eps,svg]  specify format for output figure  (default is svg)
-       -mod [arch3k,cals3k,pfm9k,hfm10k,cals10k] specify model for 3ka to 1900 AD, default is cals10k
+       -mod [arch3k,cals3k,pfm9k,hfm10k,cals10k_2,cals10k] specify model for 3ka to 1900 AD, default is cals10k
              NB:  program uses IGRF12 for dates 1900 to 2015.
     
     INPUT FORMAT 
@@ -45,6 +45,7 @@ def main():
            space delimited string: date  alt   lat long
     OUTPUT  FORMAT
         Declination Inclination Intensity (nT) date alt lat long
+    MODELS:  ARCH3K: (Korte et al., 2009);CALS3K (Korte & Contable, 2011); CALS10k (is .1b of Korte et al., 2011); PFM9K (Nilsson et al., 2014); HFM10k (is KFM.OL1.A1 of Constable et al., 2016); CALS10k_2 (is cals10k.2 of Constable et al., 2016)
     """
     plot,fmt=0,'svg'
     plt=0
