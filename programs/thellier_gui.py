@@ -174,24 +174,23 @@ import pmagpy.new_builder as nb
 from pmagpy.mapping import map_magic
 import pmagpy.controlled_vocabularies3 as cv
 #import numpy as np
-try:
-    import thellier_gui_preferences
-except:
-    pass
+try: import thellier_gui_preferences
+except ImportError: pass
 import stat
 import shutil
 import time
 import wx
+import wx.lib.scrolledpanel
 import wx.grid
 import random
 from numpy import sqrt,append
 #from pylab import * # keep this line for now, but I've tried to add pylab to any pylab functions for better namespacing
 from scipy.optimize import curve_fit
 import wx.lib.agw.floatspin as FS
-try:
-    from mpl_toolkits.basemap import Basemap, shiftgrid
-except:
-    pass
+try: import thellier_gui_preferences
+except ImportError: pass
+try: from mpl_toolkits.basemap import Basemap, shiftgrid
+except ImportError: pass
 
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_wxagg import NavigationToolbar2WxAgg as NavigationToolbar
@@ -210,10 +209,8 @@ matplotlib.rcParams['savefig.dpi'] = 300.
 
 #matplotlib.rcParams.update({"svg.embed_char_paths":False})
 matplotlib.rcParams.update({"svg.fonttype":'none'})
-try:
-    version= pmag.get_version()
-except:
-    version=""
+try: version=pmag.get_version()
+except ImportError: version=""
 version=version+": thellier_gui."+CURRENT_VERSION
 
 #============================================================================================
@@ -285,10 +282,16 @@ class Arai_GUI(wx.Frame):
         #self.Data_samples_or_sites={}   # interpretations of sites are kept here
 
         self.last_saved_pars={}
-        self.specimens=self.Data.keys()         # get list of specimens
-        self.specimens.sort()                   # get list of specimens
-        self.panel = wx.Panel(self)          # make the Panel
-        self.Main_Frame()                   # build the main frame
+        self.specimens=self.Data.keys() # get list of specimens
+        self.specimens.sort() # get list of specimens
+        # make Panels
+        self.plot_panel = wx.lib.scrolledpanel.ScrolledPanel(self,wx.ID_ANY)
+        self.top_panel = wx.Panel(self,wx.ID_ANY)
+        self.side_panel = wx.Panel(self,wx.ID_ANY)
+        self.bottom_panel = wx.Panel(self,wx.ID_ANY)
+        self.Main_Frame() # build the main frame
+        self.plot_panel.SetAutoLayout(1)
+        self.plot_panel.SetupScrolling()# endable scrolling
         self.create_menu()
         try:
             self.Arai_zoom()
@@ -308,9 +311,6 @@ class Arai_GUI(wx.Frame):
         """
         open dialog box for choosing a working directory
         """
-        #if "-DM" in sys.argv and FIRST_RUN: # set data model version number - default is Data Model 2.5
-        #    ind=sys.argv.index('-DM') # set
-        #    self.data_model = sys.argv[ind+1]
 
         if "-WD" in sys.argv and FIRST_RUN:
             ind=sys.argv.index('-WD')
@@ -355,40 +355,36 @@ class Arai_GUI(wx.Frame):
         choose the first specimen and display data
         """
 
-        #----------------------------------------------------------------------
+        #--------------------------------------------------------------------
         # initialize first specimen in list as current specimen
-        #----------------------------------------------------------------------
+        #--------------------------------------------------------------------
 
         try:
             self.s=self.specimens[0]
         except:
             self.s="";print("No specimens during UI build")
 
-        #----------------------------------------------------------------------
+        #--------------------------------------------------------------------
         # create main panel in the right size
-        #----------------------------------------------------------------------
+        #--------------------------------------------------------------------
 
         dw, dh = wx.DisplaySize()
         w, h = self.GetSize()
-        #print 'diplay', dw, dh
-        #print "gui", w, h
         r1=dw/1250.
         r2=dw/750.
 
-        #if  dw>w:
         GUI_RESOLUTION=min(r1,r2,1.3)
         if 'gui_resolution' in self.preferences.keys():
             if float(self.preferences['gui_resolution'])!=1:
-        #self.GUI_RESOLUTION=0.75
                 self.GUI_RESOLUTION=float(self.preferences['gui_resolution'])/100
             else:
                 self.GUI_RESOLUTION=min(r1,r2,1.3)
         else:
             self.GUI_RESOLUTION=min(r1,r2,1.3)
 
-        #----------------------------------------------------------------------
+        #--------------------------------------------------------------------
         # adjust font size
-        #----------------------------------------------------------------------
+        #--------------------------------------------------------------------
 
         self.font_type = "Arial"
         if sys.platform.startswith("linux"): self.font_type = "Liberation Serif"
@@ -403,6 +399,9 @@ class Arai_GUI(wx.Frame):
             font2 = wx.Font(12, wx.SWISS, wx.NORMAL, wx.NORMAL, False, self.font_type)
         print "    self.GUI_RESOLUTION",self.GUI_RESOLUTION
 
+        h_space = 4
+        v_space = 4
+
         # set font size and style
         #font1 = wx.Font(10, wx.SWISS, wx.NORMAL, wx.NORMAL, False, u'Comic Sans MS')
         FONT_RATIO=self.GUI_RESOLUTION+(self.GUI_RESOLUTION-1)*5
@@ -413,12 +412,12 @@ class Arai_GUI(wx.Frame):
         font = wx.SystemSettings_GetFont(wx.SYS_SYSTEM_FONT)
         font.SetPointSize(10+FONT_RATIO)
 
-        #----------------------------------------------------------------------
+        #--------------------------------------------------------------------
         # Create Figures and FigCanvas objects.
-        #----------------------------------------------------------------------
+        #--------------------------------------------------------------------
 
         self.fig1 = Figure((5.*self.GUI_RESOLUTION, 5.*self.GUI_RESOLUTION), dpi=self.dpi)
-        self.canvas1 = FigCanvas(self.panel, -1, self.fig1)
+        self.canvas1 = FigCanvas(self.plot_panel, wx.ID_ANY, self.fig1)
         self.fig1.text(0.01,0.98,"Arai plot",{'family':self.font_type, 'fontsize':10, 'style':'normal','va':'center', 'ha':'left' })
         self.toolbar1 = NavigationToolbar(self.canvas1)
         self.toolbar1.Hide()
@@ -428,7 +427,7 @@ class Arai_GUI(wx.Frame):
         self.canvas1.Bind(wx.EVT_MIDDLE_DOWN,self.on_home_fig)
 
         self.fig2 = Figure((2.5*self.GUI_RESOLUTION, 2.5*self.GUI_RESOLUTION), dpi=self.dpi)
-        self.canvas2 = FigCanvas(self.panel, -1, self.fig2)
+        self.canvas2 = FigCanvas(self.plot_panel, wx.ID_ANY, self.fig2)
         self.fig2.text(0.02,0.96,"Zijderveld",{'family':self.font_type, 'fontsize':10, 'style':'normal','va':'center', 'ha':'left' })
         self.toolbar2 = NavigationToolbar(self.canvas2)
         self.toolbar2.Hide()
@@ -438,7 +437,7 @@ class Arai_GUI(wx.Frame):
         self.canvas2.Bind(wx.EVT_MIDDLE_DOWN,self.on_home_fig)
 
         self.fig3 = Figure((2.5*self.GUI_RESOLUTION, 2.5*self.GUI_RESOLUTION), dpi=self.dpi)
-        self.canvas3 = FigCanvas(self.panel, -1, self.fig3)
+        self.canvas3 = FigCanvas(self.plot_panel, wx.ID_ANY, self.fig3)
         #self.fig3.text(0.02,0.96,"Equal area",{'family':self.font_type, 'fontsize':10*self.GUI_RESOLUTION, 'style':'normal','va':'center', 'ha':'left' })
         self.toolbar3 = NavigationToolbar(self.canvas3)
         self.toolbar3.Hide()
@@ -448,7 +447,7 @@ class Arai_GUI(wx.Frame):
         self.canvas3.Bind(wx.EVT_MIDDLE_DOWN,self.on_home_fig)
 
         self.fig4 = Figure((2.5*self.GUI_RESOLUTION, 2.5*self.GUI_RESOLUTION), dpi=self.dpi)
-        self.canvas4 = FigCanvas(self.panel, -1, self.fig4)
+        self.canvas4 = FigCanvas(self.plot_panel, wx.ID_ANY, self.fig4)
         if self.acceptance_criteria['average_by_sample_or_site']['value']=='site':
             TEXT="Site data"
         else:
@@ -462,7 +461,7 @@ class Arai_GUI(wx.Frame):
         self.canvas4.Bind(wx.EVT_MIDDLE_DOWN,self.on_home_fig)
 
         self.fig5 = Figure((2.5*self.GUI_RESOLUTION, 2.5*self.GUI_RESOLUTION), dpi=self.dpi)
-        self.canvas5 = FigCanvas(self.panel, -1, self.fig5)
+        self.canvas5 = FigCanvas(self.plot_panel, wx.ID_ANY, self.fig5)
         #self.fig5.text(0.02,0.96,"M/M0",{'family':self.font_type, 'fontsize':10, 'style':'normal','va':'center', 'ha':'left' })
         self.toolbar5 = NavigationToolbar(self.canvas5)
         self.toolbar5.Hide()
@@ -479,299 +478,266 @@ class Arai_GUI(wx.Frame):
         self.mplot = self.fig5.add_axes([0.2,0.15,0.7,0.7],frameon=True,axisbg='None')
 
 
-        #----------------------------------------------------------------------
+        #--------------------------------------------------------------------
         # text box displaying measurement data
-        #----------------------------------------------------------------------
+        #--------------------------------------------------------------------
 
-        self.logger = wx.ListCtrl(self.panel, id=-1, size=(200*self.GUI_RESOLUTION,500*self.GUI_RESOLUTION), style=wx.LC_REPORT)
+        self.logger = wx.ListCtrl(self.side_panel, id=wx.ID_ANY, size=(100*self.GUI_RESOLUTION,100*self.GUI_RESOLUTION), style=wx.LC_REPORT)
         self.logger.SetFont(font1)
-        self.logger.InsertColumn(0, 'i',width=25*self.GUI_RESOLUTION)
-        self.logger.InsertColumn(1, 'Step',width=25*self.GUI_RESOLUTION)
-        self.logger.InsertColumn(2, 'Tr',width=35*self.GUI_RESOLUTION)
-        self.logger.InsertColumn(3, 'Dec',width=35*self.GUI_RESOLUTION)
-        self.logger.InsertColumn(4, 'Inc',width=35*self.GUI_RESOLUTION)
-        self.logger.InsertColumn(5, 'M',width=45*self.GUI_RESOLUTION)
+        self.logger.InsertColumn(0, 'i',width=45*self.GUI_RESOLUTION)
+        self.logger.InsertColumn(1, 'Step',width=45*self.GUI_RESOLUTION)
+        self.logger.InsertColumn(2, 'Tr',width=65*self.GUI_RESOLUTION)
+        self.logger.InsertColumn(3, 'Dec',width=65*self.GUI_RESOLUTION)
+        self.logger.InsertColumn(4, 'Inc',width=65*self.GUI_RESOLUTION)
+        self.logger.InsertColumn(5, 'M',width=75*self.GUI_RESOLUTION)
 
-        #----------------------------------------------------------------------
+        #--------------------------------------------------------------------
         # select a specimen box
-        #----------------------------------------------------------------------
-
-        box_sizer_select_specimen = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY,"specimen" ), wx.VERTICAL )
+        #--------------------------------------------------------------------
 
         # Combo-box with a list of specimen
-        self.specimens_box = wx.ComboBox(self.panel, -1, self.s, (250*self.GUI_RESOLUTION, 25), wx.DefaultSize,self.specimens, wx.CB_DROPDOWN,name="specimen")
+        self.specimens_box = wx.ComboBox(self.top_panel, wx.ID_ANY, self.s, (250*self.GUI_RESOLUTION, 25), wx.DefaultSize,self.specimens, wx.CB_DROPDOWN,name="specimen")
         self.specimens_box.SetFont(font2)
         self.Bind(wx.EVT_COMBOBOX, self.onSelect_specimen,self.specimens_box)
 
         # buttons to move forward and backwards from specimens
-        self.nextbutton = wx.Button(self.panel, id=-1, label='next',size=(75*self.GUI_RESOLUTION, 25))#,style=wx.BU_EXACTFIT)#, size=(175, 28))
-        self.Bind(wx.EVT_BUTTON, self.on_next_button, self.nextbutton)
-        self.nextbutton.SetFont(font2)
+        nextbutton = wx.Button(self.top_panel, id=wx.ID_ANY, label='next',size=(75*self.GUI_RESOLUTION, 25))#,style=wx.BU_EXACTFIT)#, size=(175, 28))
+        self.Bind(wx.EVT_BUTTON, self.on_next_button, nextbutton)
+        nextbutton.SetFont(font2)
 
-        self.prevbutton = wx.Button(self.panel, id=-1, label='previous',size=(75*self.GUI_RESOLUTION, 25))#,style=wx.BU_EXACTFIT)#, size=(175, 28))
-        self.prevbutton.SetFont(font2)
-        self.Bind(wx.EVT_BUTTON, self.on_prev_button, self.prevbutton)
+        prevbutton = wx.Button(self.top_panel, id=wx.ID_ANY, label='previous',size=(75*self.GUI_RESOLUTION, 25))#,style=wx.BU_EXACTFIT)#, size=(175, 28))
+        prevbutton.SetFont(font2)
+        self.Bind(wx.EVT_BUTTON, self.on_prev_button, prevbutton)
 
-        select_specimen_window = wx.GridSizer(1, 2, 0, 10*self.GUI_RESOLUTION)
-        select_specimen_window.AddMany( [(self.prevbutton, wx.ALIGN_LEFT),
-            (self.nextbutton, wx.ALIGN_LEFT)])
-
-        select_specimen_window_2 = wx.GridSizer(2, 1, 6, 10*self.GUI_RESOLUTION)
-        select_specimen_window_2.AddMany( [(self.specimens_box, wx.ALIGN_LEFT),
-            (select_specimen_window, wx.ALIGN_LEFT)])
-
-        box_sizer_select_specimen.Add(select_specimen_window_2, 0, wx.TOP, 0 )
-
-        #----------------------------------------------------------------------
+        #--------------------------------------------------------------------
         # select temperature bounds
-        #----------------------------------------------------------------------
-
-        if  self.s in self.Data.keys() and self.Data[self.s]['T_or_MW']=="T":
-            box_sizer_select_temp = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY,"temperatures" ), wx.HORIZONTAL )
-        else:
-            box_sizer_select_temp = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY,"MW power" ), wx.HORIZONTAL )
+        #--------------------------------------------------------------------
 
         try:
-            if  self.Data[self.s]['T_or_MW']=="T":
+            if self.Data[self.s]['T_or_MW']=="T":
                 self.temperatures=scipy.array(self.Data[self.s]['t_Arai'])-273.
                 self.T_list=["%.0f"%T for T in self.temperatures]
-            elif  self.Data[self.s]['T_or_MW']=="MW":
+            elif self.Data[self.s]['T_or_MW']=="MW":
                 self.temperatures=scipy.array(self.Data[self.s]['t_Arai'])
                 self.T_list=["%.0f"%T for T in self.temperatures]
-        except:
+        except (ValueError,TypeError,KeyError) as e:
             self.T_list=[]
 
-        self.tmin_box = wx.ComboBox(self.panel, -1 ,size=(100*self.GUI_RESOLUTION, 25),choices=self.T_list, style=wx.CB_DROPDOWN)
+        self.tmin_box = wx.ComboBox(self.top_panel, wx.ID_ANY,size=(100*self.GUI_RESOLUTION, 25),choices=self.T_list, style=wx.CB_DROPDOWN)
         self.Bind(wx.EVT_COMBOBOX, self.get_new_T_PI_parameters,self.tmin_box)
 
-        self.tmax_box = wx.ComboBox(self.panel, -1 ,size=(100*self.GUI_RESOLUTION, 25),choices=self.T_list, style=wx.CB_DROPDOWN)
+        self.tmax_box = wx.ComboBox(self.top_panel, -1 ,size=(100*self.GUI_RESOLUTION, 25),choices=self.T_list, style=wx.CB_DROPDOWN)
         self.Bind(wx.EVT_COMBOBOX, self.get_new_T_PI_parameters,self.tmax_box)
 
-        select_temp_window = wx.GridSizer(2, 1, 12, 10*self.GUI_RESOLUTION)
-        select_temp_window.AddMany( [(self.tmin_box, wx.ALIGN_LEFT),
-            (self.tmax_box, wx.ALIGN_LEFT)])
-        box_sizer_select_temp.Add(select_temp_window, 0, wx.TOP, 0 )
-
-
-        #----------------------------------------------------------------------
+        #--------------------------------------------------------------------
         # save/delete buttons
-        #----------------------------------------------------------------------
-
-        box_sizer_save = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY,"" ), wx.HORIZONTAL )
+        #--------------------------------------------------------------------
 
         # save/delete interpretation buttons
-        self.save_interpretation_button = wx.Button(self.panel, id=-1, label='save',size=(75*self.GUI_RESOLUTION,25))#,style=wx.BU_EXACTFIT)#, size=(175, 28))
+        self.save_interpretation_button = wx.Button(self.top_panel, id=-1, label='save',size=(75*self.GUI_RESOLUTION,25))#,style=wx.BU_EXACTFIT)#, size=(175, 28))
         self.save_interpretation_button.SetFont(font2)
-        self.delete_interpretation_button = wx.Button(self.panel, id=-1, label='delete',size=(75*self.GUI_RESOLUTION,25))#,style=wx.BU_EXACTFIT)#, size=(175, 28))
+        self.delete_interpretation_button = wx.Button(self.top_panel, id=-1, label='delete',size=(75*self.GUI_RESOLUTION,25))#,style=wx.BU_EXACTFIT)#, size=(175, 28))
         self.delete_interpretation_button.SetFont(font2)
         self.Bind(wx.EVT_BUTTON, self.on_save_interpretation_button, self.save_interpretation_button)
         self.Bind(wx.EVT_BUTTON, self.on_delete_interpretation_button, self.delete_interpretation_button)
 
-        save_delete_window = wx.GridSizer(2, 1, 14, 20*self.GUI_RESOLUTION)
-        save_delete_window.AddMany( [(self.save_interpretation_button, wx.ALIGN_LEFT),
-            (self.delete_interpretation_button, wx.ALIGN_LEFT)])
-        box_sizer_save.Add(save_delete_window, 0, wx.TOP, 0 )
-
-        #----------------------------------------------------------------------
+        #--------------------------------------------------------------------
         # specimen interpretation and statistics window (Blab; Banc, Dec, Inc, correction factors etc.)
-        #----------------------------------------------------------------------
+        #--------------------------------------------------------------------
 
-        self.Blab_window=wx.TextCtrl(self.panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50*self.GUI_RESOLUTION,25))
-        #self.Blab_window.SetFont(font2)
-        self.Banc_window=wx.TextCtrl(self.panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50*self.GUI_RESOLUTION,25))
-        #self.Banc_window.SetFont(font2)
-        self.Aniso_factor_window=wx.TextCtrl(self.panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50*self.GUI_RESOLUTION,25))
-        #self.Aniso_factor_window.SetFont(font2)
-        self.NLT_factor_window=wx.TextCtrl(self.panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50*self.GUI_RESOLUTION,25))
-        #self.NLT_factor_window.SetFont(font2)
-        self.CR_factor_window=wx.TextCtrl(self.panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50*self.GUI_RESOLUTION,25))
-        #self.CR_factor_window.SetFont(font2)
-        self.declination_window=wx.TextCtrl(self.panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50*self.GUI_RESOLUTION,25))
-        #self.declination_window.SetFont(font2)
-        self.inclination_window=wx.TextCtrl(self.panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50*self.GUI_RESOLUTION,25))
-        #self.inclination_window.SetFont(font2)
+        self.Blab_window=wx.TextCtrl(self.top_panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50*self.GUI_RESOLUTION,25))
+        self.Banc_window=wx.TextCtrl(self.top_panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50*self.GUI_RESOLUTION,25))
+        self.Aniso_factor_window=wx.TextCtrl(self.top_panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50*self.GUI_RESOLUTION,25))
+        self.NLT_factor_window=wx.TextCtrl(self.top_panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50*self.GUI_RESOLUTION,25))
+        self.CR_factor_window=wx.TextCtrl(self.top_panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50*self.GUI_RESOLUTION,25))
+        self.declination_window=wx.TextCtrl(self.top_panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50*self.GUI_RESOLUTION,25))
+        self.inclination_window=wx.TextCtrl(self.top_panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50*self.GUI_RESOLUTION,25))
 
-        self.Blab_label=wx.StaticText(self.panel,label="\nB_lab",style=wx.ALIGN_CENTRE)
+        self.Blab_label=wx.StaticText(self.top_panel,label="\nB_lab",style=wx.ALIGN_CENTRE)
         self.Blab_label.SetFont(font2)
-        self.Banc_label=wx.StaticText(self.panel,label="\nB_anc",style=wx.ALIGN_CENTRE)
+        self.Banc_label=wx.StaticText(self.top_panel,label="\nB_anc",style=wx.ALIGN_CENTRE)
         self.Banc_label.SetFont(font2)
-        self.aniso_corr_label=wx.StaticText(self.panel,label="Aniso\ncorr",style=wx.ALIGN_CENTRE)
+        self.aniso_corr_label=wx.StaticText(self.top_panel,label="Aniso\ncorr",style=wx.ALIGN_CENTRE)
         self.aniso_corr_label.SetFont(font2)
-        self.nlt_corr_label=wx.StaticText(self.panel,label="NLT\ncorr",style=wx.ALIGN_CENTRE)
+        self.nlt_corr_label=wx.StaticText(self.top_panel,label="NLT\ncorr",style=wx.ALIGN_CENTRE)
         self.nlt_corr_label.SetFont(font2)
-        self.cr_corr_label=wx.StaticText(self.panel,label="CR\ncorr",style=wx.ALIGN_CENTRE)
+        self.cr_corr_label=wx.StaticText(self.top_panel,label="CR\ncorr",style=wx.ALIGN_CENTRE)
         self.cr_corr_label.SetFont(font2)
-        self.dec_label=wx.StaticText(self.panel,label="\nDec",style=wx.ALIGN_CENTRE)
+        self.dec_label=wx.StaticText(self.top_panel,label="\nDec",style=wx.ALIGN_CENTRE)
         self.dec_label.SetFont(font2)
-        self.inc_label=wx.StaticText(self.panel,label="\nInc",style=wx.ALIGN_CENTRE)
+        self.inc_label=wx.StaticText(self.top_panel,label="\nInc",style=wx.ALIGN_CENTRE)
         self.inc_label.SetFont(font2)
 
+        #handle Specimen Results Sizer
+        sizer_specimen_results = wx.StaticBoxSizer(wx.StaticBox(self.top_panel, wx.ID_ANY,"specimen results"), wx.HORIZONTAL)
+        specimen_stat_window = wx.GridSizer(2, 7, h_space, v_space)
+        specimen_stat_window.AddMany( [(self.Blab_label, 1, wx.EXPAND),
+            ((self.Banc_label), 1, wx.EXPAND),
+            ((self.aniso_corr_label), 1, wx.EXPAND),
+            ((self.nlt_corr_label), 1, wx.EXPAND),
+            ((self.cr_corr_label), 1, wx.EXPAND),
+            ((self.dec_label), 1, wx.TE_CENTER),
+            ((self.inc_label), 1, wx.EXPAND),
+            (self.Blab_window, 1, wx.EXPAND),
+            (self.Banc_window, 1, wx.EXPAND) ,
+            (self.Aniso_factor_window, 1, wx.EXPAND) ,
+            (self.NLT_factor_window, 1, wx.EXPAND),
+            (self.CR_factor_window, 1, wx.EXPAND),
+            (self.declination_window, 1, wx.EXPAND) ,
+            (self.inclination_window, 1, wx.EXPAND)])
+        sizer_specimen_results.Add(specimen_stat_window, 1, wx.EXPAND|wx.ALIGN_LEFT, 0)
 
-        specimen_stat_window = wx.GridSizer(2, 7, 0, 20*self.GUI_RESOLUTION)
-        box_sizer_specimen = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY,"specimen results"  ), wx.HORIZONTAL )
-        specimen_stat_window.AddMany( [(self.Blab_label, wx.EXPAND),
-            ((self.Banc_label), wx.EXPAND),
-            ((self.aniso_corr_label), wx.EXPAND),
-            ((self.nlt_corr_label),wx.EXPAND),
-            ((self.cr_corr_label),wx.EXPAND),
-            ((self.dec_label),wx.TE_CENTER),
-            ((self.inc_label),wx.EXPAND),
-            (self.Blab_window, wx.EXPAND),
-            (self.Banc_window, wx.EXPAND) ,
-            (self.Aniso_factor_window, wx.EXPAND) ,
-            (self.NLT_factor_window, wx.EXPAND),
-            (self.CR_factor_window, wx.EXPAND),
-            (self.declination_window, wx.EXPAND) ,
-            (self.inclination_window, wx.EXPAND)])
-        box_sizer_specimen.Add( specimen_stat_window, 0, wx.ALIGN_LEFT, 0 )
 
-
-        #----------------------------------------------------------------------
+        #--------------------------------------------------------------------
         # Sample interpretation window
-        #----------------------------------------------------------------------
+        #--------------------------------------------------------------------
 
         for key in ["sample_int_n","sample_int_uT","sample_int_sigma","sample_int_sigma_perc"]:
-            command="self.%s_window=wx.TextCtrl(self.panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50*self.GUI_RESOLUTION,25))"%key
+            command="self.%s_window=wx.TextCtrl(self.top_panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50*self.GUI_RESOLUTION,25))"%key
             exec command
 
-        sample_mean_label=wx.StaticText(self.panel,label="\nmean",style=wx.TE_CENTER)
+        sample_mean_label=wx.StaticText(self.top_panel,label="\nmean",style=wx.TE_CENTER)
         sample_mean_label.SetFont(font2)
-        sample_N_label=wx.StaticText(self.panel,label="\nN ",style=wx.TE_CENTER)
+        sample_N_label=wx.StaticText(self.top_panel,label="\nN ",style=wx.TE_CENTER)
         sample_N_label.SetFont(font2)
-        sample_std_label=wx.StaticText(self.panel,label="\n std uT",style=wx.TE_CENTER)
+        sample_std_label=wx.StaticText(self.top_panel,label="\nstd uT",style=wx.TE_CENTER)
         sample_std_label.SetFont(font2)
-        sample_std_per_label=wx.StaticText(self.panel,label="\n std %",style=wx.TE_CENTER)
+        sample_std_per_label=wx.StaticText(self.top_panel,label="\nstd %",style=wx.TE_CENTER)
         sample_std_per_label.SetFont(font2)
 
+        #handle samples/sites results sizers
+        sizer_sample_results = wx.StaticBoxSizer(wx.StaticBox(self.top_panel, wx.ID_ANY,"sample/site results"), wx.HORIZONTAL)
+        sample_stat_window = wx.GridSizer(2, 4, h_space, v_space)
+        sample_stat_window.AddMany( [(sample_mean_label, 1, wx.EXPAND),
+            (sample_N_label, 1, wx.EXPAND),
+            (sample_std_label, 1, wx.EXPAND),
+            (sample_std_per_label, 1, wx.EXPAND),
+            (self.sample_int_uT_window, 1, wx.EXPAND),
+            (self.sample_int_n_window, 1, wx.EXPAND) ,
+            (self.sample_int_sigma_window, 1, wx.EXPAND) ,
+            (self.sample_int_sigma_perc_window, 1, wx.EXPAND)])
+        sizer_sample_results.Add(sample_stat_window, 1, wx.EXPAND|wx.ALIGN_LEFT, 0)
 
-        sample_stat_window = wx.GridSizer(2, 4, 0, 20*self.GUI_RESOLUTION)
+        #--------------------------------------------------------------------
 
-
-        box_sizer_sample = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY,"sample/site results" ), wx.HORIZONTAL )
-        sample_stat_window.AddMany( [(sample_mean_label, wx.EXPAND),
-            (sample_N_label, wx.EXPAND),
-            (sample_std_label, wx.EXPAND),
-            (sample_std_per_label ,wx.EXPAND),
-            (self.sample_int_uT_window, wx.EXPAND),
-            (self.sample_int_n_window, wx.EXPAND) ,
-            (self.sample_int_sigma_window, wx.EXPAND) ,
-            (self.sample_int_sigma_perc_window, wx.EXPAND)])
-        box_sizer_sample.Add(sample_stat_window, 0, wx.ALIGN_LEFT, 0 )
-
-
-
-        hbox_criteria = wx.BoxSizer(wx.HORIZONTAL)
-        TEXT=[" ","Acceptance criteria:","Specimen statistics:"]
+        TEXT=["                    ","Acceptance criteria:","Specimen statistics:"]
         for i in range(len(TEXT)):
-            command="self.label_%i=wx.StaticText(self.panel,label='%s',style=wx.ALIGN_CENTER,size=(180,25))"%(i,TEXT[i])
+            command="label_%i=wx.StaticText(self.bottom_panel,label='%s',style=wx.ALIGN_CENTER,size=(180,25))"%(i,TEXT[i])
             exec command
-        gs1 = wx.GridSizer(3, 1,5*self.GUI_RESOLUTION,5*self.GUI_RESOLUTION)
-
-        gs1.AddMany( [(self.label_0,wx.EXPAND),(self.label_1,wx.EXPAND),(self.label_2,wx.EXPAND)])
-
-        hbox_criteria.Add(gs1,flag=wx.ALIGN_LEFT)
 
         for statistic in self.preferences['show_statistics_on_gui']:
-            command="self.%s_window=wx.TextCtrl(self.panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50*self.GUI_RESOLUTION,25))"%statistic
+            command="self.%s_window=wx.TextCtrl(self.bottom_panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50*self.GUI_RESOLUTION,25))"%statistic
             exec command
             command="self.%s_window.SetBackgroundColour(wx.WHITE)"%statistic
             exec(command)
             command="self.%s_window.SetFont(font2)"%statistic
             exec command
-            command="self.%s_threshold_window=wx.TextCtrl(self.panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50*self.GUI_RESOLUTION,25))"%statistic
+            command="self.%s_threshold_window=wx.TextCtrl(self.bottom_panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50*self.GUI_RESOLUTION,25))"%statistic
             exec command
             command="self.%s_threshold_window.SetFont(font2)"%statistic
             exec command
             command="self.%s_threshold_window.SetBackgroundColour(wx.NullColour)"%statistic
             exec command
-            command="self.%s_label=wx.StaticText(self.panel,label='%s',style=wx.ALIGN_CENTRE)"%(statistic,statistic.replace("specimen_","").replace("int_",""))
+            command="%s_label=wx.StaticText(self.bottom_panel,label='%s',style=wx.ALIGN_CENTRE)"%(statistic,statistic.replace("specimen_","").replace("int_",""))
             exec command
-            command="self.%s_label.SetFont(font2)"%statistic
+            command="%s_label.SetFont(font2)"%statistic
             exec command
 
+        #-------------------------------------------------------------------
+        # Design the panels
+        #-------------------------------------------------------------------
+
+        #Plots Panel--------------------------------------------------------
+        sizer_grid_plots = wx.GridSizer(2, 2, 0, 0)
+        sizer_grid_plots.AddMany([(self.canvas2, 1, wx.EXPAND),
+                                  (self.canvas4, 1, wx.EXPAND),
+                                  (self.canvas3, 1, wx.EXPAND),
+                                  (self.canvas5, 1, wx.EXPAND)])
+
+        sizer_plots_outer = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_plots_outer.Add(self.canvas1, 1, wx.EXPAND)
+        sizer_plots_outer.Add(sizer_grid_plots, 1, wx.EXPAND)
+
+        #Top Bar Sizer-------------------------------------------------------
+        #-------------Specimens Sizer----------------------------------------
+        sizer_prev_next_btns = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_prev_next_btns.Add(prevbutton, 1, wx.EXPAND|wx.RIGHT, h_space)
+        sizer_prev_next_btns.Add(nextbutton, 1, wx.EXPAND|wx.LEFT, h_space)
+
+        sizer_select_specimen = wx.StaticBoxSizer(wx.StaticBox(self.top_panel, wx.ID_ANY,"specimen"), wx.VERTICAL)
+        sizer_select_specimen.Add(self.specimens_box, 1, wx.EXPAND|wx.BOTTOM, v_space)
+        sizer_select_specimen.Add(sizer_prev_next_btns, 1, wx.EXPAND|wx.TOP, v_space)
+
+        #-------------Bounds Sizer----------------------------------------
+        sizer_grid_bounds_btns = wx.GridSizer(2, 2, 2*h_space, 2*v_space)
+        sizer_grid_bounds_btns.AddMany([(self.tmin_box, 1, wx.EXPAND),
+                                          (self.save_interpretation_button, 1, wx.EXPAND),
+                                          (self.tmax_box, 1, wx.EXPAND),
+                                          (self.delete_interpretation_button, 1, wx.EXPAND)])
+
+        if  self.s in self.Data.keys() and self.Data[self.s]['T_or_MW']=="T":
+            sizer_select_temp = wx.StaticBoxSizer(wx.StaticBox(self.top_panel, wx.ID_ANY,"temperatures"), wx.HORIZONTAL)
+        else:
+            sizer_select_temp = wx.StaticBoxSizer(wx.StaticBox(self.top_panel, wx.ID_ANY,"MW power"), wx.HORIZONTAL)
+        sizer_select_temp.Add(sizer_grid_bounds_btns, 1, wx.EXPAND)
+
+        #-------------Top Bar Outer Sizer------------------------------------
+        sizer_top_bar = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_top_bar.AddMany([(sizer_select_specimen, 1, wx.EXPAND|wx.ALIGN_LEFT|wx.RIGHT, 2*h_space),
+                               (sizer_select_temp, 1, wx.EXPAND|wx.ALIGN_LEFT|wx.RIGHT, 2*h_space),
+                               (sizer_specimen_results, 2, wx.EXPAND|wx.ALIGN_LEFT|wx.RIGHT, 2*h_space),
+                               (sizer_sample_results, 1, wx.EXPAND|wx.ALIGN_LEFT|wx.RIGHT, 0)])
+
+        #Bottom Bar Sizer----------------------------------------------------
+        #----------------Criteria Labels Sizer-------------------------------
+        sizer_criteria_labels = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_criteria_labels.Add(label_0, 3, wx.EXPAND|wx.LEFT|wx.ALIGN_BOTTOM, 2*h_space)
+        sizer_criteria_boxes = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_criteria_boxes.Add(label_1, 3, wx.EXPAND|wx.LEFT, 2*h_space)
+        sizer_stats_boxes = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_stats_boxes.Add(label_2, 3, wx.EXPAND|wx.LEFT, 2*h_space)
         for statistic in self.preferences['show_statistics_on_gui']:
-            command="gs_%s = wx.GridSizer(3, 1,5*self.GUI_RESOLUTION,5*self.GUI_RESOLUTION)"%statistic
-            exec command
-            command="gs_%s.AddMany( [(self.%s_label,wx.EXPAND),(self.%s_threshold_window,wx.EXPAND),(self.%s_window,wx.EXPAND)])"%(statistic,statistic,statistic,statistic)
-            exec command
-            command="hbox_criteria.Add(gs_%s,flag=wx.ALIGN_LEFT)"%statistic
-            exec command
-            hbox_criteria.AddSpacer(12)
+            exec("sizer_criteria_labels.Add(%s_label, 1, wx.EXPAND|wx.ALIGN_BOTTOM|wx.LEFT, h_space)"%statistic)
 
+        #----------------Acceptance Criteria Boxes---------------------------
+            exec("sizer_criteria_boxes.Add(self.%s_threshold_window, 1, wx.EXPAND|wx.LEFT, h_space)"%statistic)
 
-        # ---------------------------
-        # write acceptance criteria to boxes
-        # ---------------------------
+        #----------------Specimen Statistics Boxes---------------------------
+            exec("sizer_stats_boxes.Add(self.%s_window, 1, wx.EXPAND|wx.LEFT, h_space)"%statistic)
 
-        self.write_acceptance_criteria_to_boxes()  # write threshold values to boxes
+        #----------------Bottom Outer Sizer----------------------------------
+        sizer_bottom_bar = wx.BoxSizer(wx.VERTICAL)
+        sizer_bottom_bar.AddMany([(sizer_criteria_labels, 1, wx.EXPAND|wx.ALIGN_TOP),
+                                  (sizer_criteria_boxes, 1, wx.EXPAND|wx.BOTTOM|wx.ALIGN_TOP, v_space),
+                                  (sizer_stats_boxes, 1, wx.EXPAND|wx.ALIGN_TOP)])
 
+        #Logger Sizer--------------------------------------------------------
+        sizer_logger = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_logger.Add(self.logger, 1, wx.EXPAND)
 
-        #----------------------------------------------------------------------
-        # Design the panel
-        #----------------------------------------------------------------------
+        #Set Panel Sizers----------------------------------------------------
+        self.plot_panel.SetSizer(sizer_plots_outer)
+        self.side_panel.SetSizerAndFit(sizer_logger)
+        self.top_panel.SetSizerAndFit(sizer_top_bar)
+        self.bottom_panel.SetSizerAndFit(sizer_bottom_bar)
 
+        #Outer Sizer for Frame-----------------------------------------------
+        sizer_logger_plots = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_logger_plots.Add(self.side_panel, 1, wx.EXPAND|wx.ALIGN_LEFT)
+        sizer_logger_plots.Add(self.plot_panel, 3, wx.EXPAND|wx.ALIGN_LEFT)
 
-        vbox1 = wx.BoxSizer(wx.VERTICAL)
-        hbox1 = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_outer = wx.BoxSizer(wx.VERTICAL)
+        sizer_outer.AddMany([(self.top_panel, 1, wx.EXPAND|wx.ALIGN_TOP|wx.BOTTOM, v_space/2),
+                             (sizer_logger_plots, 4, wx.EXPAND|wx.ALIGN_TOP|wx.BOTTOM, v_space/2),
+                             (self.bottom_panel, 1, wx.EXPAND|wx.ALIGN_TOP)])
 
+        self.SetSizer(sizer_outer)
+        sizer_outer.Fit(self)
 
-        vbox1.AddSpacer(10)
-        hbox1.AddSpacer(2)
+        #--------------------------------------------------------------------
 
-        hbox1.Add(box_sizer_select_specimen,flag=wx.ALIGN_LEFT|wx.ALIGN_BOTTOM)
-        hbox1.AddSpacer(2)
-
-        hbox1.Add(box_sizer_select_temp, flag=wx.ALIGN_LEFT|wx.ALIGN_BOTTOM)
-        hbox1.AddSpacer(2)
-
-        hbox1.Add(box_sizer_save, flag=wx.ALIGN_LEFT|wx.ALIGN_BOTTOM)
-        hbox1.AddSpacer(2)
-
-        hbox1.Add(box_sizer_specimen, flag=wx.ALIGN_LEFT|wx.ALIGN_BOTTOM)
-        hbox1.AddSpacer(2)
-        hbox1.Add(box_sizer_sample, flag=wx.ALIGN_LEFT|wx.ALIGN_BOTTOM)
-        hbox1.AddSpacer(2)
-
-        vbox1.Add(hbox1, flag=wx.ALIGN_LEFT, border=8)
-        self.panel.SetSizer(vbox1)
-
-        vbox2a=wx.BoxSizer(wx.VERTICAL)
-        #vbox2a.Add(self.toolbar1,flag=wx.ALIGN_TOP,border=8)
-        vbox2a.Add(self.logger,flag=wx.ALIGN_TOP,border=8)
-
-        hbox2 = wx.BoxSizer(wx.HORIZONTAL)
-        hbox2.Add(vbox2a,flag=wx.ALIGN_CENTER_HORIZONTAL)#,border=8)
-        hbox2.Add(self.canvas1,flag=wx.ALIGN_CENTER_HORIZONTAL)#,border=8)
-
-        vbox2 = wx.BoxSizer(wx.VERTICAL)
-        vbox2.Add(self.canvas2,flag=wx.ALIGN_LEFT)#,border=8)
-        vbox2.Add(self.canvas3,flag=wx.ALIGN_LEFT)#,border=8)
-
-        vbox3 = wx.BoxSizer(wx.VERTICAL)
-        vbox3.Add(self.canvas4,flag=wx.ALIGN_LEFT|wx.ALIGN_TOP)#,border=8)
-        vbox3.Add(self.canvas5,flag=wx.ALIGN_LEFT|wx.ALIGN_TOP)#,border=8)
-
-        hbox2.Add(vbox2,flag=wx.ALIGN_CENTER_HORIZONTAL)#,border=8)
-        hbox2.Add(vbox3,flag=wx.ALIGN_CENTER_HORIZONTAL)#,border=8)
-
-        vbox1.Add(hbox2, flag=wx.LEFT, border=8)
-
-        hbox_test = wx.BoxSizer(wx.HORIZONTAL)
-
-        vbox1.AddSpacer(5)
-        vbox1.Add(hbox_criteria,flag=wx.LEFT)
-        vbox1.AddSpacer(20)
-
-        self.panel.SetSizer(vbox1)
-        vbox1.Fit(self)
-
-        #----------------------------------------------------------------------
-        # Draw figures and add  text
-        #----------------------------------------------------------------------
-        self.draw_figure(self.s)        # draw the figures
-
-#----------------------------------------------------------------------
-
+        self.write_acceptance_criteria_to_boxes() # write threshold values to boxes
+        self.draw_figure(self.s) # draw the figures
 
     def on_save_interpretation_button(self,event):
         """
@@ -782,7 +748,6 @@ class Arai_GUI(wx.Frame):
         self.Data[self.s]['pars']['saved']=True
 
         # collect all interpretation by sample
-
         sample=self.Data_hierarchy['specimens'][self.s]
         if sample not in self.Data_samples.keys():
             self.Data_samples[sample]={}
@@ -791,7 +756,6 @@ class Arai_GUI(wx.Frame):
         self.Data_samples[sample][self.s]['B']=self.Data[self.s]['pars']["specimen_int_uT"]
 
         # collect all interpretation by site
-
         #site=thellier_gui_lib.get_site_from_hierarchy(sample,self.Data_hierarchy)
         site=thellier_gui_lib.get_site_from_hierarchy(sample,self.Data_hierarchy)
         if site not in self.Data_sites.keys():
@@ -1741,10 +1705,9 @@ else:
         preferences['show_statistics_on_gui']=["int_n","int_ptrm_n","frac","scat","gmax","b_beta","int_mad","int_dang","f","fvds","g","q","drats"]#,'ptrms_dec','ptrms_inc','ptrms_mad','ptrms_angle']
         #try to read preferences file:
         try:
-            import thellier_gui_preferences
             self.GUI_log.write( "-I- thellier_gui.preferences imported\n")
             preferences.update(thellier_gui_preferences.preferences)
-        except:
+        except (IOError,OSError):
             self.GUI_log.write( " -I- cant find thellier_gui_preferences file, using defualt default \n")
 
         # check criteria file
@@ -3259,7 +3222,6 @@ else:
         """
         Menubar --> File --> Save MagIC tables
         """
-        import copy
         # write a redo file
         try:
             self.on_menu_save_interpretation(None)
@@ -4146,7 +4108,6 @@ else:
     #----------------------------------------------------------------------
 
     def On_close_plot_dialog(self,dia):
-        import copy
 
         COLORS=['b','g','r','c','m','y','orange','gray','purple','brown','indigo','darkolivegreen','gold','mediumorchid','b','g','r','c','m','y','orange','gray','purple','brown','indigo','darkolivegreen','gold','mediumorchid']
         SYMBOLS=['o','d','h','p','s','*','v','<','>','^','o','d','h','p','s','*','v','<','>','^','o','d','h','p','s','*','v','<','>','^',]
@@ -5072,7 +5033,7 @@ else:
         return()
 
     def arrow_keys(self):
-        self.panel.Bind(wx.EVT_CHAR, self.onCharEvent)
+        self.Bind(wx.EVT_CHAR, self.onCharEvent)
 
     def onCharEvent(self, event):
         keycode = event.GetKeyCode()
