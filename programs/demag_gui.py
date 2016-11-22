@@ -53,10 +53,8 @@ PMAGPY_DIRECTORY = os.path.split(find_pmag_dir.get_pmag_dir())[0]
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigCanvas
 from matplotlib.backends.backend_wxagg import NavigationToolbar2WxAgg as NavigationToolbar
 
-try:
-    import zeq_gui_preferences
-except ImportError:
-    pass
+try: import zeq_gui_preferences
+except ImportError: pass
 from time import time
 from datetime import datetime
 import wx
@@ -229,7 +227,7 @@ class Demag_GUI(wx.Frame):
         self.scrolled_panel.SetupScrolling()# endable scrolling
 
         # Draw figures and add text
-        if self.Data:
+        if self.Data and any(self.Data[s][k] for s in self.Data for k in self.Data[s]):
             # get previous interpretations from pmag tables
             if self.data_model == 3.0 and 'specimens' in self.con.tables:
                 self.get_interpretations3()
@@ -3170,11 +3168,13 @@ class Demag_GUI(wx.Frame):
                         LPcode="LP-DIR-T"
                         measurement_step_unit="C"
             elif "LT-AF-Z" in methods:
-                tr = float(rec["treatment_ac_field"])*1e3 #(mT)
+                try: tr = float(rec["treatment_ac_field"])*1e3 #(mT)
+                except ValueError: print("Could not convert ac field for measurement, was given %s, skipping"%rec["treatment_ac_field"]); continue
                 measurement_step_unit="mT" # in magic its T in GUI its mT
                 LPcode="LP-DIR-AF"
             elif "LT-T-Z" in methods or "LT-LT-Z" in methods:
-                tr = float(rec["treatment_temp"])-273. # celsius
+                try: tr = float(rec["treatment_temp"])-273. # celsius
+                except ValueError: print("Could not convert temperature for measurement, was given %s, skipping"%rec["treatment_temp"]); continue
                 measurement_step_unit="C" # in magic its K in GUI its C
                 LPcode="LP-DIR-T"
             elif "LT-M-Z" in methods:

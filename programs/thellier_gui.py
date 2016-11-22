@@ -565,13 +565,13 @@ class Arai_GUI(wx.Frame):
         #handle Specimen Results Sizer
         sizer_specimen_results = wx.StaticBoxSizer(wx.StaticBox(self.top_panel, wx.ID_ANY,"specimen results"), wx.HORIZONTAL)
         specimen_stat_window = wx.GridSizer(2, 7, h_space, v_space)
-        specimen_stat_window.AddMany( [(self.Blab_label, 1, wx.EXPAND),
-            ((self.Banc_label), 1, wx.EXPAND),
-            ((self.aniso_corr_label), 1, wx.EXPAND),
-            ((self.nlt_corr_label), 1, wx.EXPAND),
-            ((self.cr_corr_label), 1, wx.EXPAND),
-            ((self.dec_label), 1, wx.TE_CENTER),
-            ((self.inc_label), 1, wx.EXPAND),
+        specimen_stat_window.AddMany( [(self.Blab_label, 1, wx.ALIGN_BOTTOM),
+            ((self.Banc_label), 1, wx.ALIGN_BOTTOM),
+            ((self.aniso_corr_label), 1, wx.ALIGN_BOTTOM),
+            ((self.nlt_corr_label), 1, wx.ALIGN_BOTTOM),
+            ((self.cr_corr_label), 1, wx.ALIGN_BOTTOM),
+            ((self.dec_label), 1, wx.TE_CENTER|wx.ALIGN_BOTTOM),
+            ((self.inc_label), 1, wx.ALIGN_BOTTOM),
             (self.Blab_window, 1, wx.EXPAND),
             (self.Banc_window, 1, wx.EXPAND) ,
             (self.Aniso_factor_window, 1, wx.EXPAND) ,
@@ -603,10 +603,10 @@ class Arai_GUI(wx.Frame):
         #handle samples/sites results sizers
         sizer_sample_results = wx.StaticBoxSizer(wx.StaticBox(self.top_panel, wx.ID_ANY,"sample/site results"), wx.HORIZONTAL)
         sample_stat_window = wx.GridSizer(2, 4, h_space, v_space)
-        sample_stat_window.AddMany( [(sample_mean_label, 1, wx.EXPAND),
-            (sample_N_label, 1, wx.EXPAND),
-            (sample_std_label, 1, wx.EXPAND),
-            (sample_std_per_label, 1, wx.EXPAND),
+        sample_stat_window.AddMany( [(sample_mean_label, 1, wx.ALIGN_BOTTOM),
+            (sample_N_label, 1, wx.ALIGN_BOTTOM),
+            (sample_std_label, 1, wx.ALIGN_BOTTOM),
+            (sample_std_per_label, 1, wx.ALIGN_BOTTOM),
             (self.sample_int_uT_window, 1, wx.EXPAND),
             (self.sample_int_n_window, 1, wx.EXPAND) ,
             (self.sample_int_sigma_window, 1, wx.EXPAND) ,
@@ -633,7 +633,7 @@ class Arai_GUI(wx.Frame):
             exec command
             command="self.%s_threshold_window.SetBackgroundColour(wx.WHITE)"%statistic
             exec command
-            command="%s_label=wx.StaticText(self.bottom_panel,label='%s',style=wx.ALIGN_CENTRE)"%(statistic,statistic.replace("specimen_","").replace("int_",""))
+            command="%s_label=wx.StaticText(self.bottom_panel,label='%s',style=wx.ALIGN_CENTRE_HORIZONTAL|wx.ALIGN_BOTTOM)"%(statistic,statistic.replace("specimen_","").replace("int_",""))
             exec command
             command="%s_label.SetFont(font2)"%statistic
             exec command
@@ -686,13 +686,13 @@ class Arai_GUI(wx.Frame):
         #Bottom Bar Sizer----------------------------------------------------
         #----------------Criteria Labels Sizer-------------------------------
         sizer_criteria_labels = wx.BoxSizer(wx.HORIZONTAL)
-        sizer_criteria_labels.Add(label_0, 3, wx.EXPAND|wx.LEFT|wx.ALIGN_BOTTOM, 2*h_space)
+        sizer_criteria_labels.Add(label_0, 3, wx.EXPAND|wx.LEFT, 2*h_space)
         sizer_criteria_boxes = wx.BoxSizer(wx.HORIZONTAL)
         sizer_criteria_boxes.Add(label_1, 3, wx.EXPAND|wx.LEFT, 2*h_space)
         sizer_stats_boxes = wx.BoxSizer(wx.HORIZONTAL)
         sizer_stats_boxes.Add(label_2, 3, wx.EXPAND|wx.LEFT, 2*h_space)
         for statistic in self.preferences['show_statistics_on_gui']:
-            exec("sizer_criteria_labels.Add(%s_label, 1, wx.EXPAND|wx.ALIGN_BOTTOM|wx.LEFT, h_space)"%statistic)
+            exec("sizer_criteria_labels.Add(%s_label, 1, wx.ALIGN_BOTTOM, 0)"%statistic)
 
         #----------------Acceptance Criteria Boxes---------------------------
             exec("sizer_criteria_boxes.Add(self.%s_threshold_window, 1, wx.EXPAND|wx.LEFT, h_space)"%statistic)
@@ -702,7 +702,7 @@ class Arai_GUI(wx.Frame):
 
         #----------------Bottom Outer Sizer----------------------------------
         sizer_bottom_bar = wx.BoxSizer(wx.VERTICAL)
-        sizer_bottom_bar.AddMany([(sizer_criteria_labels, 1, wx.EXPAND|wx.ALIGN_TOP),
+        sizer_bottom_bar.AddMany([(sizer_criteria_labels, 1, wx.EXPAND|wx.ALIGN_BOTTOM|wx.BOTTOM, v_space),
                                   (sizer_criteria_boxes, 1, wx.EXPAND|wx.BOTTOM|wx.ALIGN_TOP, v_space),
                                   (sizer_stats_boxes, 1, wx.EXPAND|wx.ALIGN_TOP)])
 
@@ -728,6 +728,7 @@ class Arai_GUI(wx.Frame):
 
         self.SetSizer(sizer_outer)
         sizer_outer.Fit(self)
+        self.Layout()
 
     def on_save_interpretation_button(self,event):
         """
@@ -757,7 +758,6 @@ class Arai_GUI(wx.Frame):
         self.draw_sample_mean()
         self.write_sample_box()
         self.close_warning=True
-
 
     def on_delete_interpretation_button(self,event):
         """
@@ -1900,6 +1900,9 @@ else:
             #print "You chose the following file(s):"
             #for path in paths:
             #print "-I- Read redo file:",redo_file
+        else:
+            dlg.Destroy()
+            return
         dlg.Destroy()
 
         print "redo_file",redo_file
