@@ -3140,12 +3140,13 @@ class Demag_GUI(wx.Frame):
             for k in ['zdata','zdata_geo','zdata_tilt','vector_diffs']:
                 if k not in Data[s]: Data[s][k]=[]
 
-            for i in range (len(methods)):
+            for i in range(len(methods)):
                 methods[i]=methods[i].strip()
             if 'measurement_flag' not in rec.keys():
                 rec['measurement_flag']='g'
             SKIP=True;lab_treatment=""
             for meth in methods:
+                if 'DIR' in meth: SKIP=False
                 if meth in self.included_methods:
                     lab_treatment=meth
                     SKIP=False
@@ -3155,13 +3156,12 @@ class Demag_GUI(wx.Frame):
                 if meth in methods:
                     SKIP=True
             if SKIP: continue
-            tr=""
+            tr,LPcode,measurement_step_unit="","",""
             if "LT-NO" in methods:
                 tr=0
-                measurement_step_unit=""
-                LPcode=""
                 if prev_s!=s and "measurement_magn_moment" in rec:
-                    NRM = float(rec["measurement_magn_moment"])
+                    try: NRM = float(rec["measurement_magn_moment"])
+                    except ValueError: NRM = 1
                 for method in methods:
                     if "AF" in method:
                         LPcode="LP-DIR-AF"
@@ -3169,23 +3169,46 @@ class Demag_GUI(wx.Frame):
                     if "TRM" in method:
                         LPcode="LP-DIR-T"
                         measurement_step_unit="C"
-            elif "LT-AF-Z" in  methods:
+            elif "LT-AF-Z" in methods:
                 tr = float(rec["treatment_ac_field"])*1e3 #(mT)
                 measurement_step_unit="mT" # in magic its T in GUI its mT
                 LPcode="LP-DIR-AF"
-            elif  "LT-T-Z" in  methods or "LT-LT-Z" in methods:
+            elif "LT-T-Z" in methods or "LT-LT-Z" in methods:
                 tr = float(rec["treatment_temp"])-273. # celsius
                 measurement_step_unit="C" # in magic its K in GUI its C
                 LPcode="LP-DIR-T"
-            elif  "LT-M-Z" in  methods:
+            elif "LT-M-Z" in methods:
                 tr = float(rec["measurement_number"]) # temporary for microwave
             else:
-                tr = float(rec["measurement_number"])
+                #attempt to determine from treatment data
+                if all(im not in methods for im in self.included_methods):
+                    if 'treatment_temp' in rec.keys() and not str(rec['treatment_temp']).isalpha() and rec['treatment_temp']!='' and float(rec['treatment_temp'])>0:
+                        tr = float(rec["treatment_temp"])-273. # celsius
+                        measurement_step_unit="C" # in magic its K in GUI its C
+                        LPcode="LP-DIR-T"
+                    elif 'treatment_ac_field' in rec.keys() and not str(rec['treatment_ac_field']).isalpha() and rec['treatment_ac_field']!='' and float(rec['treatment_ac_field'])>0:
+                        tr = float(rec["treatment_ac_field"])*1e3 #(mT)
+                        measurement_step_unit="mT" # in magic its T in GUI its mT
+                        LPcode="LP-DIR-AF"
+                    else:
+                        tr=0
+                        if prev_s!=s and "measurement_magn_moment" in rec:
+                            try: NRM = float(rec["measurement_magn_moment"])
+                            except ValueError: NRM = 1
+                        for method in methods:
+                            if "AF" in method:
+                                LPcode="LP-DIR-AF"
+                                measurement_step_unit="mT"
+                            if "TRM" in method:
+                                LPcode="LP-DIR-T"
+                                measurement_step_unit="C"
+                else:
+                    tr = float(rec["measurement_number"])
             if prev_s!=s and len(Data[s]['zijdblock'])>0:
                 NRM=Data[s]['zijdblock'][0][3]
 
             ZI=0
-            if tr !="":
+            if tr != "":
                 Data[s]['mag_meas_data_index'].append(cnt) # magic_measurement file intex
                 Data[s]['zijdblock_lab_treatments'].append(lab_treatment)
                 if measurement_step_unit!="":
@@ -3206,7 +3229,7 @@ class Demag_GUI(wx.Frame):
                 if "measurement_magn_moment" in rec.keys() and rec["measurement_magn_moment"] != "":
                     intensity=float(rec["measurement_magn_moment"])
                 else:
-                    continue
+                    intensity=1. #just assume a normal vector
                 if 'magic_instrument_codes' not in rec.keys():
                     rec['magic_instrument_codes']=''
                 if 'measurement_csd' in rec.keys():
@@ -3266,7 +3289,7 @@ class Demag_GUI(wx.Frame):
                     DIR=[d_tilt,i_tilt,intensity/NRM]
                     cart=pmag.dir2cart(DIR)
                     Data[s]['zdata_tilt'].append([cart[0],cart[1],cart[2]])
-                except (IOError, KeyError, TypeError, ValueError) as e:
+                except (IOError, KeyError, TypeError, ValueError, UnboundLocalError) as e:
                     pass
                 #                    if prev_s != s:
                 #                        printd("-W- cant find tilt-corrected data for sample %s"%sample)
@@ -3686,6 +3709,7 @@ class Demag_GUI(wx.Frame):
         Reads pmag tables from data model 2.5 and updates them with updates their data
         """
         pmag_specimens,pmag_samples,pmag_sites=[],[],[]
+        print("-I- Reading previous interpretations from pmag* tables")
         try:
             pmag_specimens,file_type=pmag.magic_read(os.path.join(self.WD, "pmag_specimens.txt"))
         except:
@@ -3698,7 +3722,6 @@ class Demag_GUI(wx.Frame):
             pmag_sites,file_type=pmag.magic_read(os.path.join(self.WD, "pmag_sites.txt"))
         except:
             print("-I- Cant read pmag_sites.txt")
-        print("-I- Reading previous interpretations from pmag* tables")
         #--------------------------
         # reads pmag_specimens.txt and
         # update pmag_results_data['specimens'][specimen]
@@ -3709,12 +3732,11 @@ class Demag_GUI(wx.Frame):
         elif self.COORDINATE_SYSTEM == 'tilt-corrected': current_tilt_correction = 100
         else: current_tilt_correction = -1
 
-        self.pmag_results_data['specimens'] = {}
+        if 'specimens' not in self.pmag_results_data.keys():
+            self.pmag_results_data['specimens'] = {}
         for rec in pmag_specimens:
-            if 'er_specimen_name' in rec:
-                specimen=rec['er_specimen_name']
-            else:
-                continue
+            if 'er_specimen_name' in rec: specimen=rec['er_specimen_name']
+            else: continue
 
             #initialize list of interpretations
             if specimen not in self.pmag_results_data['specimens'].keys():
@@ -3729,48 +3751,36 @@ class Demag_GUI(wx.Frame):
                 if "DE-" in method:
                     calculation_type=method
 
-            #if interpretation doesn't exsist create it.
+            msu = ''
+            if 'measurement_step_unit' in rec.keys():
+                msu = rec['measurement_step_unit']
 
-            if float(rec['measurement_step_min'])==0 or float(rec['measurement_step_min'])==273.:
+            #if interpretation doesn't exsist create it.
+            if float(rec['measurement_step_min'])==0. or float(rec['measurement_step_min'])==273.:
                 tmin="0"
-            elif float(rec['measurement_step_min'])>2: # thermal
+            elif msu=='K' or float(rec['measurement_step_min'])>3.: # thermal
                 tmin="%.0fC"%(float(rec['measurement_step_min'])-273.)
             else: # AF
                 tmin="%.1fmT"%(float(rec['measurement_step_min'])*1000.)
 
-            if float(rec['measurement_step_max'])==0 or float(rec['measurement_step_max'])==273.:
+            if float(rec['measurement_step_max'])==0. or float(rec['measurement_step_max'])==273.:
                 tmax="0"
-            elif float(rec['measurement_step_max'])>2: # thermal
+            elif msu=='K' or float(rec['measurement_step_max'])>3.: # thermal
                 tmax="%.0fC"%(float(rec['measurement_step_max'])-273.)
             else: # AF
                 tmax="%.1fmT"%(float(rec['measurement_step_max'])*1000.)
 
-            if 'specimen_comp_name' in rec.keys() and rec['specimen_comp_name'] not in map(lambda x: x.name, self.pmag_results_data['specimens'][specimen]):
-                if calculation_type=="": calculation_type="DE-BFL"
-                fit = self.add_fit(specimen,rec['specimen_comp_name'], tmin, tmax, calculation_type)
-            else:
+            if 'specimen_comp_name' in rec.keys(): fname = rec['specimen_comp_name']
+            else: fname = None
+            if calculation_type=="": calculation_type="DE-BFL"
+
+            if (tmin,tmax) in [(f.tmin,f.tmax) for f in self.pmag_results_data['specimens'][specimen]] and calculation_type in [f.PCA_type for f in self.pmag_results_data['specimens'][specimen]]:
                 fit = None
+            else:
+                fit = self.add_fit(specimen,fname, tmin, tmax, calculation_type)
 
             if 'specimen_flag' in rec and rec['specimen_flag'] == 'b':
                 self.bad_fits.append(fit)
-
-            if fit != None:
-
-                if specimen in self.Data.keys() \
-                and 'zijdblock_steps' in self.Data[specimen]\
-                and tmin in self.Data[specimen]['zijdblock_steps']\
-                and tmax in self.Data[specimen]['zijdblock_steps']:
-
-                    fit.put(specimen,'specimen',self.get_PCA_parameters(specimen,fit,fit.tmin,fit.tmax,'specimen',calculation_type))
-
-                    if len(self.Data[specimen]['zijdblock_geo'])>0:
-                        fit.put(specimen,'geographic',self.get_PCA_parameters(specimen,fit,fit.tmin,fit.tmax,'geographic',calculation_type))
-
-                    if len(self.Data[specimen]['zijdblock_tilt'])>0:
-                        fit.put(specimen,'tilt-corrected',self.get_PCA_parameters(specimen,fit,fit.tmin,fit.tmax,'tilt-corrected',calculation_type))
-
-                else:
-                    print( "-W- WARNING: Cant find specimen and steps of specimen %s tmin=%s, tmax=%s"%(specimen,tmin,tmax))
 
         #BUG FIX-almost replaced first sample with last due to above assignment to self.s
         if self.specimens:
@@ -3779,8 +3789,6 @@ class Demag_GUI(wx.Frame):
         if self.s in self.pmag_results_data['specimens'] and self.pmag_results_data['specimens'][self.s]:
             self.initialize_CART_rot(self.specimens[0])
             self.pmag_results_data['specimens'][self.s][-1].select()
-
-
 
         #--------------------------
         # reads pmag_sample.txt and
@@ -4671,11 +4679,17 @@ class Demag_GUI(wx.Frame):
         old_string=self.level_names.GetValue()
         new_string=old_string
         if high_level=='sample':
-            new_string=self.Data_hierarchy['sample_of_specimen'][self.s]
+            if self.s in self.Data_hierarchy['sample_of_specimen']:
+                new_string=self.Data_hierarchy['sample_of_specimen'][self.s]
+            else: new_string = ''
         if high_level=='site':
-            new_string=self.Data_hierarchy['site_of_specimen'][self.s]
+            if self.s in self.Data_hierarchy['site_of_specimen']:
+                new_string=self.Data_hierarchy['site_of_specimen'][self.s]
+            else: new_string = ''
         if high_level=='location':
-            new_string=self.Data_hierarchy['location_of_specimen'][self.s]
+            if self.s in self.Data_hierarchy['location_of_specimen']:
+                new_string=self.Data_hierarchy['location_of_specimen'][self.s]
+            else: new_string = ''
         self.level_names.SetValue(new_string)
         if self.ie_open and new_string!=old_string:
             self.ie.level_names.SetValue(new_string)
