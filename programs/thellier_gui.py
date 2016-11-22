@@ -171,32 +171,30 @@ try: from mpl_toolkits.basemap import Basemap, shiftgrid, basemap_datadir
 except ImportError: pass
 import matplotlib.pyplot as plt
 
-import sys, scipy, os
-#import pdb
+import sys, os, copy
 import pmagpy.pmag as pmag
 from pmagpy import find_pmag_dir
 import pmagpy.new_builder as nb
 from pmagpy.mapping import map_magic
 import pmagpy.controlled_vocabularies3 as cv
-#import numpy as np
+import numpy as np
+from numpy.linalg import inv, eig
+from numpy import sqrt, append
+from scipy.optimize import curve_fit
 try: import thellier_gui_preferences
 except ImportError: pass
 import stat
 import shutil
+import random
 import time
 import wx
 import wx.lib.scrolledpanel
 import wx.grid
-import random
-from numpy import sqrt,append
-#from pylab import * # keep this line for now, but I've tried to add pylab to any pylab functions for better namespacing
-from scipy.optimize import curve_fit
 import wx.lib.agw.floatspin as FS
 try: import thellier_gui_preferences
 except ImportError: pass
 
 import dialogs.thellier_consistency_test as thellier_consistency_test
-import copy
 import dialogs.thellier_gui_dialogs as thellier_gui_dialogs
 import dialogs.thellier_gui_lib as thellier_gui_lib
 import dialogs.thellier_interpreter as thellier_interpreter
@@ -273,7 +271,7 @@ class Arai_GUI(wx.Frame):
             self.open_magic_tree()
 
         self.Data_samples={} # interpretations of samples are kept here
-        self.Data_sites={}   # interpretations of sites are kept here
+        self.Data_sites={} # interpretations of sites are kept here
         #self.Data_samples_or_sites={}   # interpretations of sites are kept here
 
         self.last_saved_pars={}
@@ -288,16 +286,14 @@ class Arai_GUI(wx.Frame):
         self.plot_panel.SetAutoLayout(1)
         self.plot_panel.SetupScrolling()# endable scrolling
         self.create_menu()
-        try:
-            self.Arai_zoom()
-            self.Zij_zoom()
-        except:
-            pass
         self.arrow_keys()
         FIRST_RUN=False
 
-        self.get_previous_interpretation() # get interpretations from specimens file
-        self.Add_text(self.s) # write measurement data to text box
+        if self.Data:
+            self.write_acceptance_criteria_to_boxes() # write threshold values to boxes
+            self.draw_figure(self.s) # draw the figures
+            self.get_previous_interpretation() # get interpretations from specimens file
+            self.Add_text(self.s) # write measurement data to text box
         FIRST_RUN=False
         self.Bind(wx.EVT_CLOSE, self.on_menu_exit)
         self.close_warning=False
@@ -510,10 +506,10 @@ class Arai_GUI(wx.Frame):
 
         try:
             if self.Data[self.s]['T_or_MW']=="T":
-                self.temperatures=scipy.array(self.Data[self.s]['t_Arai'])-273.
+                self.temperatures=np.array(self.Data[self.s]['t_Arai'])-273.
                 self.T_list=["%.0f"%T for T in self.temperatures]
             elif self.Data[self.s]['T_or_MW']=="MW":
-                self.temperatures=scipy.array(self.Data[self.s]['t_Arai'])
+                self.temperatures=np.array(self.Data[self.s]['t_Arai'])
                 self.T_list=["%.0f"%T for T in self.temperatures]
         except (ValueError,TypeError,KeyError) as e:
             self.T_list=[]
@@ -733,11 +729,6 @@ class Arai_GUI(wx.Frame):
         self.SetSizer(sizer_outer)
         sizer_outer.Fit(self)
 
-        #--------------------------------------------------------------------
-
-        self.write_acceptance_criteria_to_boxes() # write threshold values to boxes
-        self.draw_figure(self.s) # draw the figures
-
     def on_save_interpretation_button(self,event):
         """
         save the current interpretation temporarily (not to a file)
@@ -908,21 +899,19 @@ else:
         t1=self.tmin_box.GetValue()
         t2=self.tmax_box.GetValue()
 
-        if (t1 == "" or t2 == ""):
-            return
-        if float(t2) < float(t1):
-            return
-
         # microwave or thermal
         if "LP-PI-M" in self.Data[s]['datablock'][0]['magic_method_codes']:
             MICROWAVE=True; THERMAL=False
             steps_tr = [float(STEP.split("-")[-1]) for d in self.Data[s]['datablock']]
         else:
             MICROWAVE=False; THERMAL=True
-            steps_tr = [d['treatment_temp']-273 for d in self.Data[s]['datablock']]
+            steps_tr = [float(d['treatment_temp'])-273 for d in self.Data[s]['datablock']]
 
-        tmin_index=steps_tr.index(int(t1))
-        tmax_index=steps_tr.index(int(t2))
+        if (t1 == "" or t2 == "") or float(t2) < float(t1):
+            tmin_index,tmax_index = -1,-1
+        else:
+            tmin_index=steps_tr.index(int(t1))
+            tmax_index=steps_tr.index(int(t2))
 
         self.logger.SetFont(font1)
         for i,rec in enumerate(self.Data[s]['datablock']):
@@ -1151,9 +1140,9 @@ else:
 
         # update temperature list
         if self.Data[self.s]['T_or_MW']=="T":
-            self.temperatures=scipy.array(self.Data[self.s]['t_Arai'])-273.
+            self.temperatures=np.array(self.Data[self.s]['t_Arai'])-273.
         else:
-            self.temperatures=scipy.array(self.Data[self.s]['t_Arai'])
+            self.temperatures=np.array(self.Data[self.s]['t_Arai'])
 
         self.T_list=["%.0f"%T for T in self.temperatures]
         self.tmin_box.SetItems(self.T_list)
@@ -1333,8 +1322,8 @@ else:
 
         #print "B is this:", B # shows that the problem happens when B array contains 1 or 2
         N=len(B)
-        B_mean=scipy.mean(B)
-        B_std=scipy.std(B,ddof=1)
+        B_mean=np.mean(B)
+        B_std=np.std(B,ddof=1)
         B_std_perc=100*(B_std/B_mean)
 
         self.sample_int_n_window.SetValue("%i"%(N))
@@ -2458,7 +2447,7 @@ else:
             """
             t,V,tr=[],[],0.
             ind1,ind2,ind3=0,1,2
-            evalues,evectmps=linalg.eig(T)
+            evalues,evectmps=eig(T)
             evectors=transpose(evectmps)  # to make compatible with Numeric convention
             for tau in evalues:
                 tr+=tau
@@ -2494,7 +2483,7 @@ else:
             """
 
             aniso_parameters={}
-            S_bs=dot(B,K)
+            S_bs=np.dot(B,K)
 
             # normalize by trace
             trace=S_bs[0]+S_bs[1]+S_bs[2]
@@ -2548,7 +2537,7 @@ else:
                 tmpH = Matrices[n_pos]['tmpH']
                 a=s_matrix
                 S=0.
-                comp=zeros((n_pos*3),'f')
+                comp=np.zeros((n_pos*3),'f')
                 for i in range(n_pos):
                     for j in range(3):
                         index=i*3+j
@@ -2559,7 +2548,7 @@ else:
                     S+=d*d
                 nf=float(n_pos*3-6) # number of degrees of freedom
                 if S >0:
-                    sigma=sqrt(S/nf)
+                    sigma=np.sqrt(S/nf)
                 hpars=pmag.dohext(nf,sigma,[s1,s2,s3,s4,s5,s6])
 
                 aniso_parameters['anisotropy_sigma']="%f"%sigma
@@ -2618,7 +2607,7 @@ else:
         #-----------------------------------
         # Matrices definitions:
         # A design matrix
-        # B dot(inv(dot(A.transpose(),A)),A.transpose())
+        # B np.dot(inv(np.dot(A.transpose(),A)),A.transpose())
         # tmpH is used for sigma calculation (9,15 measurements only)
         #
         #  Anisotropy tensor:
@@ -2644,7 +2633,7 @@ else:
 
             Matrices[n_pos]={}
 
-            A=zeros((n_pos*3,6),'f')
+            A=np.zeros((n_pos*3,6),'f')
 
             if n_pos==6:
                 positions=[[0.,0.,1.],[90.,0.,1.],[0.,90.,1.],\
@@ -2660,7 +2649,7 @@ else:
                      [180.,45.,1.],[180.,-45.,1.],[0.,-90.,1.]]
 
 
-            tmpH=zeros((n_pos,3),'f') # define tmpH
+            tmpH=np.zeros((n_pos,3),'f') # define tmpH
             for i in range(len(positions)):
                 CART=pmag.dir2cart(positions[i])
                 a=CART[0];b=CART[1];c=CART[2]
@@ -2680,13 +2669,13 @@ else:
                 tmpH[i][1]=CART[1]
                 tmpH[i][2]=CART[2]
 
-            B=dot(inv(dot(A.transpose(),A)),A.transpose())
+            B=np.dot(inv(np.dot(A.transpose(),A)),A.transpose())
 
             Matrices[n_pos]['A']=A
             Matrices[n_pos]['B']=B
             Matrices[n_pos]['tmpH']=tmpH
 
-        #==================================================================================
+        #====================================================================
 
         Data_anisotropy={}
         specimens=self.Data.keys()
@@ -2736,7 +2725,7 @@ else:
                         atrm_temperature=float(rec['treatment_temp'])
                     # find baseline
                     if float(rec['treatment_dc_field'])==0 and float(rec['treatment_temp'])!=273:
-                        baselines.append(scipy.array(pmag.dir2cart([dec,inc,moment])))
+                        baselines.append(np.array(pmag.dir2cart([dec,inc,moment])))
                     # Find alteration check
                     #print rec['measurement_number']
 
@@ -2752,14 +2741,14 @@ else:
                                 dec=float(rec[1])
                                 inc=float(rec[2])
                                 moment=float(rec[3])
-                                baselines.append(scipy.array(pmag.dir2cart([dec,inc,moment])))
+                                baselines.append(np.array(pmag.dir2cart([dec,inc,moment])))
                                 aniso_logfile.write( "-I- Found %i ATRM baselines for specimen %s in Zijderveld block. Averaging measurements\n"%(len(baselines),specimen))
                 if  len(baselines)==0:
                     baseline=zeros(3,'f')
                     aniso_logfile.write( "-I- No aTRM baseline for specimen %s\n"%specimen)
                 else:
-                    baselines=scipy.array(baselines)
-                    baseline=scipy.array([scipy.mean(baselines[:,0]),scipy.mean(baselines[:,1]),scipy.mean(baselines[:,2])])
+                    baselines=np.array(baselines)
+                    baseline=np.array([np.mean(baselines[:,0]),np.mean(baselines[:,1]),np.mean(baselines[:,2])])
 
                 # sort measurements
 
@@ -2770,7 +2759,7 @@ else:
                     dec=float(rec['measurement_dec'])
                     inc=float(rec['measurement_inc'])
                     moment=float(rec['measurement_magn_moment'])
-                    CART=scipy.array(pmag.dir2cart([dec,inc,moment]))-baseline
+                    CART=np.array(pmag.dir2cart([dec,inc,moment]))-baseline
 
                     if float(rec['treatment_dc_field'])==0: # Ignore zero field steps
                         continue
@@ -2828,14 +2817,14 @@ else:
                 if Alteration_check!="":
                     for i in range(len(M)):
                         if Alteration_check_index==i:
-                            M_1=scipy.sqrt(sum((scipy.array(M[i])**2)))
-                            M_2=scipy.sqrt(sum(Alteration_check**2))
+                            M_1=np.sqrt(sum((np.array(M[i])**2)))
+                            M_2=np.sqrt(sum(Alteration_check**2))
                             #print specimen
                             #print "M_1,M_2",M_1,M_2
                             diff=abs(M_1-M_2)
                             #print "diff",diff
-                            #print "scipy.mean([M_1,M_2])",scipy.mean([M_1,M_2])
-                            diff_ratio=diff/scipy.mean([M_1,M_2])
+                            #print "np.mean([M_1,M_2])",np.mean([M_1,M_2])
+                            diff_ratio=diff/np.mean([M_1,M_2])
                             diff_ratio_perc=100*diff_ratio
                             if diff_ratio_perc > anisotropy_alt:
                                 anisotropy_alt=diff_ratio_perc
@@ -2849,11 +2838,11 @@ else:
                 # i.e. +x versus -x, +y versus -y, etc.s
 
                 for i in range(3):
-                    M_1=scipy.sqrt(sum(scipy.array(M[i])**2))
-                    M_2=scipy.sqrt(sum(scipy.array(M[i+3])**2))
+                    M_1=np.sqrt(sum(np.array(M[i])**2))
+                    M_2=np.sqrt(sum(np.array(M[i+3])**2))
 
                     diff=abs(M_1-M_2)
-                    diff_ratio=diff/scipy.mean([M_1,M_2])
+                    diff_ratio=diff/np.mean([M_1,M_2])
                     diff_ratio_perc=100*diff_ratio
 
                     if diff_ratio_perc>anisotropy_alt:
@@ -2900,16 +2889,16 @@ else:
                 elif len(aarmblock)==12:
                     n_pos=6
                     B=Matrices[6]['B']
-                    M=zeros([6,3],'f')
+                    M=np.zeros([6,3],'f')
                 elif len(aarmblock)==18:
                     n_pos=9
                     B=Matrices[9]['B']
-                    M=zeros([9,3],'f')
+                    M=np.zeros([9,3],'f')
                 # 15 positions
                 elif len(aarmblock)==30:
                     n_pos=15
                     B=Matrices[15]['B']
-                    M=zeros([15,3],'f')
+                    M=np.zeros([15,3],'f')
                 else:
                     aniso_logfile.write( "-E- ERROR: number of measurements in aarm block is incorrect sample %s\n"%specimen)
                     continue
@@ -2922,17 +2911,17 @@ else:
                             dec=float(rec['measurement_dec'])
                             inc=float(rec['measurement_inc'])
                             moment=float(rec['measurement_magn_moment'])
-                            M_baseline=scipy.array(pmag.dir2cart([dec,inc,moment]))
+                            M_baseline=np.array(pmag.dir2cart([dec,inc,moment]))
 
                         if float(rec['measurement_number'])==i*2+2:
                             dec=float(rec['measurement_dec'])
                             inc=float(rec['measurement_inc'])
                             moment=float(rec['measurement_magn_moment'])
-                            M_arm=scipy.array(pmag.dir2cart([dec,inc,moment]))
+                            M_arm=np.array(pmag.dir2cart([dec,inc,moment]))
                     M[i]=M_arm-M_baseline
 
 
-                K=zeros(3*n_pos,'f')
+                K=np.zeros(3*n_pos,'f')
                 for i in range(n_pos):
                     K[i*3]=M[i][0]
                     K[i*3+1]=M[i][1]
@@ -2995,7 +2984,7 @@ else:
 
                 else: # write it to 2.5 version files
                     String=""
-                    for i in range (len(rmag_anisotropy_header)):
+                    for i in range(len(rmag_anisotropy_header)):
                         try:
                             String=String+Data_anisotropy[specimen][TYPE][rmag_anisotropy_header[i]]+'\t'
                         except:
@@ -3017,15 +3006,13 @@ else:
 
     #==================================================
 
-
     def on_show_anisotropy_errors(self,event):
-
-
-        dia = thellier_gui_dialogs.MyLogFileErrors( "Anisotropy calculation errors",os.path.join(self.WD, "rmag_anisotropy.log"))
-        dia.Show()
-        dia.Center()
-
-
+        try:
+            dia = thellier_gui_dialogs.MyLogFileErrors("Anisotropy calculation errors",os.path.join(self.WD, "rmag_anisotropy.log"))
+            dia.Show()
+            dia.Center()
+        except IOError:
+            self.user_warning("There is no rmag_anisotropy.log in the current WD and therefore this function cannot work")
 
 #    #==================================================
 #    # Thellier Auto Interpreter Tool
@@ -3075,6 +3062,7 @@ else:
         if dlg.ShowModal() == wx.ID_OK:
             filename = dlg.GetFilename()
             path=dlg.GetPath()
+        else: return
         #print  filename
         #print filename
         if "samples" in filename or "bounds" in filename or "site" in filename:
@@ -3933,12 +3921,12 @@ else:
             pars['pass_or_fail']='fail'
             return pars
 
-        tmp_B=scipy.array(tmp_B)
+        tmp_B=np.array(tmp_B)
         pars['pass_or_fail']='pass'
         pars['N']=len(tmp_B)
-        pars['B_uT']=scipy.mean(tmp_B)
+        pars['B_uT']=np.mean(tmp_B)
         if len(tmp_B)>1:
-            pars['B_std_uT'] = scipy.std(tmp_B,ddof=1)
+            pars['B_std_uT'] = np.std(tmp_B,ddof=1)
             pars['B_std_perc']=100*(pars['B_std_uT']/pars['B_uT'])
         else:
             pars['B_std_uT']=0
@@ -4036,7 +4024,7 @@ else:
         if  er_ages_rec["age"]=="":
             if "age_range_high" in er_ages_rec.keys() and "age_range_low" in er_ages_rec.keys():
                 if er_ages_rec["age_range_high"] != "" and  er_ages_rec["age_range_low"] != "":
-                    er_ages_rec["age"]=scipy.mean([float(er_ages_rec["age_range_high"]),float(er_ages_rec["age_range_low"])])
+                    er_ages_rec["age"]=np.mean([float(er_ages_rec["age_range_high"]),float(er_ages_rec["age_range_low"])])
         if  er_ages_rec["age"]=="":
             return(er_ages_rec)
 
@@ -4213,7 +4201,7 @@ else:
 
             #elif "age_range_low" in er_ages_rec.keys() and er_ages_rec["age_range_low"]!="" and "age_range_high" in er_ages_rec.keys() and er_ages_rec["age_range_high"]!="":
             #    found_age=True
-            #    er_ages_rec["age"]=scipy.mean([float(er_ages_rec["age_range_low"]),float(er_ages_rec["age_range_high"])])
+            #    er_ages_rec["age"]=np.mean([float(er_ages_rec["age_range_low"]),float(er_ages_rec["age_range_high"])])
             if "age_description" in er_ages_rec.keys():
                 age_description=er_ages_rec["age_description"]
             else:
@@ -4446,7 +4434,7 @@ else:
             if not show_x_error_bar:
                 Xerr=None
             else:
-                Xerr=[scipy.array(X_data_minus),scipy.array(X_data_plus)]
+                Xerr=[np.array(X_data_minus),np.array(X_data_plus)]
 
             if not show_y_error_bar:
                 Yerr=None
@@ -4688,8 +4676,8 @@ else:
         self.zijplot.axis('equal')
 
         #title(Data[s]['pars']['er_specimen_name']+"\nrotated Zijderveld plot",fontsize=12)
-        last_cart_1=scipy.array([self.CART_rot[0][0],self.CART_rot[0][1]])
-        last_cart_2=scipy.array([self.CART_rot[0][0],self.CART_rot[0][2]])
+        last_cart_1=np.array([self.CART_rot[0][0],self.CART_rot[0][1]])
+        last_cart_2=np.array([self.CART_rot[0][0],self.CART_rot[0][2]])
         if self.Data[self.s]['T_or_MW']!="T":
             K_diff=0
         else:
@@ -4713,7 +4701,7 @@ else:
 
         #xlocs = [loc for loc in self.zijplot.xaxis.get_majorticklocs()
         #        if loc>=xmin and loc<=xmax]
-        xlocs = scipy.arange(xmin,xmax,0.2)
+        xlocs = np.arange(xmin,xmax,0.2)
         xtickline, = self.zijplot.plot(xlocs, [0]*len(xlocs),linestyle='',
                 marker='+', **props)
 
@@ -4732,7 +4720,7 @@ else:
 
         ylocs = [loc for loc in self.zijplot.yaxis.get_majorticklocs()
                 if loc>=ymin and loc<=ymax]
-        ylocs = scipy.arange(ymin,ymax,0.2)
+        ylocs = np.arange(ymin,ymax,0.2)
 
         ytickline, = self.zijplot.plot([0]*len(ylocs),ylocs,linestyle='',
                 marker='+', **props)
@@ -4767,14 +4755,14 @@ else:
 
             self.draw_net()
 
-            self.zij=scipy.array(self.Data[self.s]['zdata'])
-            self.zij_norm=scipy.array([row/scipy.sqrt(sum(row**2)) for row in self.zij])
+            self.zij=np.array(self.Data[self.s]['zdata'])
+            self.zij_norm=np.array([row/np.sqrt(sum(row**2)) for row in self.zij])
 
-            x_eq=scipy.array([row[0] for row in self.zij_norm])
-            y_eq=scipy.array([row[1] for row in self.zij_norm])
-            z_eq=abs(scipy.array([row[2] for row in self.zij_norm]))
+            x_eq=np.array([row[0] for row in self.zij_norm])
+            y_eq=np.array([row[1] for row in self.zij_norm])
+            z_eq=abs(np.array([row[2] for row in self.zij_norm]))
 
-            R=scipy.array(scipy.sqrt(1-z_eq)/scipy.sqrt(x_eq**2+y_eq**2)) # from Collinson 1983
+            R=np.array(np.sqrt(1-z_eq)/np.sqrt(x_eq**2+y_eq**2)) # from Collinson 1983
             eqarea_data_x=y_eq*R
             eqarea_data_y=x_eq*R
             self.eqplot.plot(eqarea_data_x,eqarea_data_y,lw=0.5,color='gray',clip_on=False)
@@ -4782,12 +4770,12 @@ else:
 
 
             x_eq_dn,y_eq_dn,z_eq_dn,eq_dn_temperatures=[],[],[],[]
-            x_eq_dn=scipy.array([row[0] for row in self.zij_norm if row[2]>0])
-            y_eq_dn=scipy.array([row[1] for row in self.zij_norm if row[2]>0])
-            z_eq_dn=abs(scipy.array([row[2] for row in self.zij_norm if row[2]>0]))
+            x_eq_dn=np.array([row[0] for row in self.zij_norm if row[2]>0])
+            y_eq_dn=np.array([row[1] for row in self.zij_norm if row[2]>0])
+            z_eq_dn=abs(np.array([row[2] for row in self.zij_norm if row[2]>0]))
 
             if len(x_eq_dn)>0:
-                R=scipy.array(scipy.sqrt(1-z_eq_dn)/scipy.sqrt(x_eq_dn**2+y_eq_dn**2)) # from Collinson 1983
+                R=np.array(np.sqrt(1-z_eq_dn)/np.sqrt(x_eq_dn**2+y_eq_dn**2)) # from Collinson 1983
                 eqarea_data_x_dn=y_eq_dn*R
                 eqarea_data_y_dn=x_eq_dn*R
                 self.eqplot.scatter([eqarea_data_x_dn],[eqarea_data_y_dn],marker='o',edgecolor='gray', facecolor='black',s=15*self.GUI_RESOLUTION,lw=1,clip_on=False)
@@ -4795,11 +4783,11 @@ else:
 
 
             x_eq_up,y_eq_up,z_eq_up=[],[],[]
-            x_eq_up=scipy.array([row[0] for row in self.zij_norm if row[2]<=0])
-            y_eq_up=scipy.array([row[1] for row in self.zij_norm if row[2]<=0])
-            z_eq_up=abs(scipy.array([row[2] for row in self.zij_norm if row[2]<=0]))
+            x_eq_up=np.array([row[0] for row in self.zij_norm if row[2]<=0])
+            y_eq_up=np.array([row[1] for row in self.zij_norm if row[2]<=0])
+            z_eq_up=abs(np.array([row[2] for row in self.zij_norm if row[2]<=0]))
             if len(x_eq_up)>0:
-                R=scipy.array(scipy.sqrt(1-z_eq_up)/scipy.sqrt(x_eq_up**2+y_eq_up**2)) # from Collinson 1983
+                R=np.array(np.sqrt(1-z_eq_up)/np.sqrt(x_eq_up**2+y_eq_up**2)) # from Collinson 1983
                 eqarea_data_x_up=y_eq_up*R
                 eqarea_data_y_up=x_eq_up*R
                 self.eqplot.scatter([eqarea_data_x_up],[eqarea_data_y_up],marker='o',edgecolor='black', facecolor='white',s=15*self.GUI_RESOLUTION,lw=1,clip_on=False)
@@ -4828,16 +4816,16 @@ else:
                 eqarea_data_x_up,eqarea_data_y_up=[],[]
                 eqarea_data_x_dn,eqarea_data_y_dn=[],[]
                 PTRMS=self.Data[self.s]['PTRMS'][1:]
-                CART_pTRMS_orig=scipy.array([pmag.dir2cart(row[1:4]) for row in PTRMS])
-                CART_pTRMS=[row/scipy.sqrt(sum((scipy.array(row)**2))) for row in CART_pTRMS_orig]
+                CART_pTRMS_orig=np.array([pmag.dir2cart(row[1:4]) for row in PTRMS])
+                CART_pTRMS=[row/np.sqrt(sum((np.array(row)**2))) for row in CART_pTRMS_orig]
 
                 for i in range(1,len(CART_pTRMS)):
                     if CART_pTRMS[i][2]<=0:
-                        R=scipy.sqrt(1.-abs(CART_pTRMS[i][2]))/scipy.sqrt(CART_pTRMS[i][0]**2+CART_pTRMS[i][1]**2)
+                        R=np.sqrt(1.-abs(CART_pTRMS[i][2]))/np.sqrt(CART_pTRMS[i][0]**2+CART_pTRMS[i][1]**2)
                         eqarea_data_x_up.append(CART_pTRMS[i][1]*R)
                         eqarea_data_y_up.append(CART_pTRMS[i][0]*R)
                     else:
-                        R=scipy.sqrt(1.-abs(CART_pTRMS[i][2]))/scipy.sqrt(CART_pTRMS[i][0]**2+CART_pTRMS[i][1]**2)
+                        R=np.sqrt(1.-abs(CART_pTRMS[i][2]))/np.sqrt(CART_pTRMS[i][0]**2+CART_pTRMS[i][1]**2)
                         eqarea_data_x_dn.append(CART_pTRMS[i][1]*R)
                         eqarea_data_y_dn.append(CART_pTRMS[i][0]*R)
                 if len(eqarea_data_x_up)>0:
@@ -4857,7 +4845,7 @@ else:
             'lab_cooling_rate' in self.Data[self.s]['cooling_rate_data'].keys():
                 ancient_cooling_rate=self.Data[self.s]['cooling_rate_data']['ancient_cooling_rate']
                 lab_cooling_rate=self.Data[self.s]['cooling_rate_data']['lab_cooling_rate']
-                x0=scipy.math.log(lab_cooling_rate/ancient_cooling_rate)
+                x0=np.math.log(lab_cooling_rate/ancient_cooling_rate)
                 y0=1./self.Data[self.s]['cooling_rate_data']['CR_correction_factor']
                 lan_cooling_rates=self.Data[self.s]['cooling_rate_data']['lan_cooling_rates']
                 moment_norm=self.Data[self.s]['cooling_rate_data']['moment_norm']
@@ -4911,19 +4899,19 @@ else:
             PTRMS=self.Data[self.s]['PTRMS']
 
             if self.Data[self.s]['T_or_MW']!="MW":
-                temperatures_NRMS=scipy.array([row[0]-273. for row in NRMS])
-                temperatures_PTRMS=scipy.array([row[0]-273. for row in PTRMS])
+                temperatures_NRMS=np.array([row[0]-273. for row in NRMS])
+                temperatures_PTRMS=np.array([row[0]-273. for row in PTRMS])
                 temperatures_NRMS[0]=21
                 temperatures_PTRMS[0]=21
             else:
-                temperatures_NRMS=scipy.array([row[0] for row in NRMS])
-                temperatures_PTRMS=scipy.array([row[0] for row in PTRMS])
+                temperatures_NRMS=np.array([row[0] for row in NRMS])
+                temperatures_PTRMS=np.array([row[0] for row in PTRMS])
 
             if len(temperatures_NRMS)!=len(temperatures_PTRMS):
                 self.GUI_log.write("-E- ERROR: NRMS and pTRMS are not equal in specimen %s. Check\n."%self.s)
             else:
-                M_NRMS=scipy.array([row[3] for row in NRMS])/NRMS[0][3]
-                M_pTRMS=scipy.array([row[3] for row in PTRMS])/NRMS[0][3]
+                M_NRMS=np.array([row[3] for row in NRMS])/NRMS[0][3]
+                M_pTRMS=np.array([row[3] for row in PTRMS])/NRMS[0][3]
 
                 self.mplot.clear()
                 self.mplot.plot(temperatures_NRMS,M_NRMS,'bo-',mec='0.2',markersize=5*self.GUI_RESOLUTION,lw=1,clip_on=False)
@@ -4964,7 +4952,7 @@ else:
             self.fig5.text(0.02,0.96,"Non-linear TRM check",{'family':self.font_type, 'fontsize':10, 'style':'normal','va':'center', 'ha':'left' })
             self.mplot = self.fig5.add_axes([0.2,0.15,0.7,0.7],frameon=True,axisbg='None')
             #self.mplot.clear()
-            self.mplot.scatter(scipy.array(self.Data[self.s]['NLT_parameters']['B_NLT'])*1e6,self.Data[self.s]['NLT_parameters']['M_NLT_norm'],marker='o',facecolor='b',edgecolor ='k',s=15,clip_on=False)
+            self.mplot.scatter(np.array(self.Data[self.s]['NLT_parameters']['B_NLT'])*1e6,self.Data[self.s]['NLT_parameters']['M_NLT_norm'],marker='o',facecolor='b',edgecolor ='k',s=15,clip_on=False)
             self.mplot.set_xlabel("$\mu$ T",fontsize=8)
             self.mplot.set_ylabel("M / M[%.0f]"%(self.Data[self.s]['lab_dc_field']*1e6),fontsize=8)
             try:
@@ -4978,9 +4966,9 @@ else:
             x=linspace(xmin+0.1,xmax,100)
             alpha=self.Data[self.s]['NLT_parameters']['tanh_parameters'][0][0]
             beta=self.Data[self.s]['NLT_parameters']['tanh_parameters'][0][1]
-            y=alpha*(scipy.tanh(x*1e-6*beta))
+            y=alpha*(np.tanh(x*1e-6*beta))
             labfiled=self.Data[self.s]['lab_dc_field']
-            self.mplot.plot(x,x*1e-6*(alpha*(scipy.tanh(labfiled*beta))/labfiled),'--',color='black',linewidth=0.7,clip_on=False)
+            self.mplot.plot(x,x*1e-6*(alpha*(np.tanh(labfiled*beta))/labfiled),'--',color='black',linewidth=0.7,clip_on=False)
             self.mplot.plot(x,y,'-',color='green',linewidth=1)
 
             #self.mplot.spines["right"].set_visible(False)
@@ -4997,8 +4985,8 @@ else:
         eq=self.eqplot
         eq.axis((-1,1,-1,1))
         eq.axis('off')
-        theta = scipy.arange(0.,2 * scipy.pi, 2 * scipy.pi/1000)
-        eq.plot(scipy.cos(theta),scipy.sin(theta),'k',clip_on=False)
+        theta = np.arange(0.,2 * np.pi, 2 * np.pi/1000)
+        eq.plot(np.cos(theta),np.sin(theta),'k',clip_on=False)
         eq.vlines((0,0),(0.9,-0.9),(1.0,-1.0),'k')
         eq.hlines((0,0),(0.9,-0.9),(1.0,-1.0),'k')
         eq.plot([0.0],[0.0],'+k',clip_on=False)
@@ -5262,8 +5250,8 @@ else:
 
         self.araiplot.scatter([x_Arai_segment[0],x_Arai_segment[-1]],[y_Arai_segment[0],y_Arai_segment[-1]],marker='o',facecolor='g',edgecolor ='k',s=30)
         b=pars["specimen_b"]
-        a=scipy.mean(y_Arai_segment) - b* scipy.mean(x_Arai_segment)
-        xx=scipy.array([x_Arai_segment[0],x_Arai_segment[-1]])
+        a=np.mean(y_Arai_segment) - b* np.mean(x_Arai_segment)
+        xx=np.array([x_Arai_segment[0],x_Arai_segment[-1]])
         yy=b*xx+a
         self.araiplot.plot(xx,yy,'g-',lw=2,alpha=0.5)
         if self.acceptance_criteria['specimen_scat']['value'] in [True,"True","TRUE",'1','g']:
@@ -5281,11 +5269,11 @@ else:
         self.canvas1.draw()
 
         # plot best fit direction on Equal Area plot
-        CART=scipy.array(pars["specimen_PCA_v1"])/scipy.sqrt(sum(scipy.array(pars["specimen_PCA_v1"])**2))
+        CART=np.array(pars["specimen_PCA_v1"])/np.sqrt(sum(np.array(pars["specimen_PCA_v1"])**2))
         x=CART[0]
         y=CART[1]
         z=abs(CART[2])
-        R=scipy.array(scipy.sqrt(1-z)/scipy.sqrt(x**2+y**2))
+        R=np.array(np.sqrt(1-z)/np.sqrt(x**2+y**2))
         eqarea_x=y*R
         eqarea_y=x*R
 
@@ -5324,16 +5312,16 @@ else:
 
         # Center of mass rotated
 
-        CM_x=scipy.mean(self.CART_rot[:,0][tmin_index:tmax_index+1])
-        CM_y=scipy.mean(self.CART_rot[:,1][tmin_index:tmax_index+1])
-        CM_z=scipy.mean(self.CART_rot[:,2][tmin_index:tmax_index+1])
+        CM_x=np.mean(self.CART_rot[:,0][tmin_index:tmax_index+1])
+        CM_y=np.mean(self.CART_rot[:,1][tmin_index:tmax_index+1])
+        CM_z=np.mean(self.CART_rot[:,2][tmin_index:tmax_index+1])
 
         # intercpet from the center of mass
         intercept_xy_PCA=-1*CM_y - slop_xy_PCA*CM_x
         intercept_xz_PCA=-1*CM_z - slop_xz_PCA*CM_x
 
         xmin_zij, xmax_zij = self.zijplot.get_xlim()
-        xx=scipy.array([0,self.CART_rot[:,0][tmin_index]])
+        xx=np.array([0,self.CART_rot[:,0][tmin_index]])
         yy=slop_xy_PCA*xx+intercept_xy_PCA
         self.zijplot.plot(xx,yy,'-',color='g',lw=1.5,alpha=0.5)
         zz=slop_xz_PCA*xx+intercept_xz_PCA
@@ -5357,7 +5345,7 @@ else:
             beta=self.Data[self.s]['NLT_parameters']['tanh_parameters'][0][1]
             #labfiled=self.Data[self.s]['lab_dc_field']
             Banc=self.pars["specimen_int_uT"]
-            self.mplot.scatter([Banc],[alpha*(scipy.tanh(beta*Banc*1e-6))],marker='o',s=30,facecolor='g',edgecolor ='k')
+            self.mplot.scatter([Banc],[alpha*(np.tanh(beta*Banc*1e-6))],marker='o',s=30,facecolor='g',edgecolor ='k')
 
         self.canvas5.draw()
 #        pylab.draw()
@@ -5419,36 +5407,36 @@ else:
                     specimens_B=[self.pars['specimen_int_uT']]
 
         if len(specimens_id)>=1:
-            self.sampleplot.scatter(scipy.arange(len(specimens_id)),specimens_B ,marker='s',edgecolor='0.2', facecolor='b',s=40*self.GUI_RESOLUTION,lw=1)
-            self.sampleplot.axhline(y=scipy.mean(specimens_B)+scipy.std(specimens_B,ddof=1),color='0.2',ls="--",lw=0.75)
-            self.sampleplot.axhline(y=scipy.mean(specimens_B)-scipy.std(specimens_B,ddof=1),color='0.2',ls="--",lw=0.75)
-            self.sampleplot.axhline(y=scipy.mean(specimens_B),color='0.2',ls="-",lw=0.75,alpha=0.5)
+            self.sampleplot.scatter(np.arange(len(specimens_id)),specimens_B ,marker='s',edgecolor='0.2', facecolor='b',s=40*self.GUI_RESOLUTION,lw=1)
+            self.sampleplot.axhline(y=np.mean(specimens_B)+np.std(specimens_B,ddof=1),color='0.2',ls="--",lw=0.75)
+            self.sampleplot.axhline(y=np.mean(specimens_B)-np.std(specimens_B,ddof=1),color='0.2',ls="--",lw=0.75)
+            self.sampleplot.axhline(y=np.mean(specimens_B),color='0.2',ls="-",lw=0.75,alpha=0.5)
 
             if self.s in specimens_id:
                 self.sampleplot.scatter([specimens_id.index(self.s)],[specimens_B[specimens_id.index(self.s)]] ,marker='s',edgecolor='0.2', facecolor='g',s=40*self.GUI_RESOLUTION,lw=1)
 
-            self.sampleplot.set_xticks(scipy.arange(len(specimens_id)))
+            self.sampleplot.set_xticks(np.arange(len(specimens_id)))
             self.sampleplot.set_xlim(-0.5,len(specimens_id)-0.5)
             self.sampleplot.set_xticklabels(specimens_id,rotation=90,fontsize=8)
             #ymin,ymax=self.sampleplot.ylim()
 
             #if "sample_int_sigma" in self.acceptance_criteria.keys() and "sample_int_sigma_perc" in self.acceptance_criteria.keys():
             sigma_threshold_for_plot_1,sigma_threshold_for_plot_2=0,0
-            #    sigma_threshold_for_plot=max(self.acceptance_criteria["sample_int_sigma"]*,0.01*self.acceptance_criteria["sample_int_sigma_perc"]*scipy.mean(specimens_B))
+            #    sigma_threshold_for_plot=max(self.acceptance_criteria["sample_int_sigma"]*,0.01*self.acceptance_criteria["sample_int_sigma_perc"]*np.mean(specimens_B))
             if self.acceptance_criteria["sample_int_sigma"]["value"]!=-999 and type(self.acceptance_criteria["sample_int_sigma"]["value"])==float:
                 sigma_threshold_for_plot_1=self.acceptance_criteria["sample_int_sigma"]["value"]*1e6
             if self.acceptance_criteria["sample_int_sigma_perc"]["value"]!=-999 and type(self.acceptance_criteria["sample_int_sigma_perc"]["value"])==float:
-                sigma_threshold_for_plot_2=scipy.mean(specimens_B)*0.01*self.acceptance_criteria["sample_int_sigma_perc"]['value']
+                sigma_threshold_for_plot_2=np.mean(specimens_B)*0.01*self.acceptance_criteria["sample_int_sigma_perc"]['value']
             #sigma_threshold_for_plot 100000
             sigma_threshold_for_plot=max(sigma_threshold_for_plot_1,sigma_threshold_for_plot_2)
             if sigma_threshold_for_plot < 20 and sigma_threshold_for_plot!=0:
-                self.sampleplot.axhline(y=scipy.mean(specimens_B)+sigma_threshold_for_plot,color='r',ls="--",lw=0.75)
-                self.sampleplot.axhline(y=scipy.mean(specimens_B)-sigma_threshold_for_plot,color='r',ls="--",lw=0.75)
-                y_axis_limit=max(sigma_threshold_for_plot,scipy.std(specimens_B,ddof=1),abs(max(specimens_B)-scipy.mean(specimens_B)),abs((min(specimens_B)-scipy.mean(specimens_B))))
+                self.sampleplot.axhline(y=np.mean(specimens_B)+sigma_threshold_for_plot,color='r',ls="--",lw=0.75)
+                self.sampleplot.axhline(y=np.mean(specimens_B)-sigma_threshold_for_plot,color='r',ls="--",lw=0.75)
+                y_axis_limit=max(sigma_threshold_for_plot,np.std(specimens_B,ddof=1),abs(max(specimens_B)-np.mean(specimens_B)),abs((min(specimens_B)-np.mean(specimens_B))))
             else:
-                y_axis_limit=max(scipy.std(specimens_B,ddof=1),abs(max(specimens_B)-scipy.mean(specimens_B)),abs((min(specimens_B)-scipy.mean(specimens_B))))
+                y_axis_limit=max(np.std(specimens_B,ddof=1),abs(max(specimens_B)-np.mean(specimens_B)),abs((min(specimens_B)-np.mean(specimens_B))))
 
-            self.sampleplot.set_ylim(scipy.mean(specimens_B)-y_axis_limit-1,scipy.mean(specimens_B)+y_axis_limit+1)
+            self.sampleplot.set_ylim(np.mean(specimens_B)-y_axis_limit-1,np.mean(specimens_B)+y_axis_limit+1)
             self.sampleplot.set_ylabel('uT',fontsize=8)
             try:
                 self.sampleplot.tick_params(axis='both', which='major', labelsize=8)
@@ -5541,7 +5529,7 @@ else:
     def get_data(self):
 
         def tan_h(x, a, b):
-            return a*scipy.tanh(b*x)
+            return a*np.tanh(b*x)
 
         def cart2dir(cart): # OLD ONE
             """
@@ -5549,7 +5537,7 @@ else:
             """
             Dir=[] # establish a list to put directions in
             rad=pi/180. # constant to convert degrees to radians
-            R=scipy.sqrt(cart[0]**2+cart[1]**2+cart[2]**2) # calculate resultant vector length
+            R=np.sqrt(cart[0]**2+cart[1]**2+cart[2]**2) # calculate resultant vector length
             if R==0:
                 #print 'trouble in cart2dir'
                 #print cart
@@ -5558,7 +5546,7 @@ else:
             if D<0:D=D+360. # put declination between 0 and 360.
             if D>360.:D=D-360.
             Dir.append(D)  # append declination to Dir list
-            I=scipy.arcsin(cart[2]/R)/rad # calculate inclination (converting to degrees)
+            I=np.arcsin(cart[2]/R)/rad # calculate inclination (converting to degrees)
             Dir.append(I) # append inclination to Dir list
             Dir.append(R) # append vector length to Dir list
             return Dir # return the directions list
@@ -5567,18 +5555,18 @@ else:
         def dir2cart(d):
        # converts list or array of vector directions, in degrees, to array of cartesian coordinates, in x,y,z
             ints=ones(len(d)).transpose() # get an array of ones to plug into dec,inc pairs
-            d=scipy.array(d)
+            d=np.array(d)
             rad=pi/180.
             if len(d.shape)>1: # array of vectors
                 decs,incs=d[:,0]*rad,d[:,1]*rad
                 if d.shape[1]==3: ints=d[:,2] # take the given lengths
             else: # single vector
-                decs,incs=scipy.array(d[0])*rad,scipy.array(d[1])*rad
+                decs,incs=np.array(d[0])*rad,np.array(d[1])*rad
                 if len(d)==3:
-                    ints=scipy.array(d[2])
+                    ints=np.array(d[2])
                 else:
-                    ints=scipy.array([1.])
-            cart= scipy.array([ints*scipy.cos(decs)*scipy.cos(incs),ints*scipy.sin(decs)*scipy.cos(incs),ints*scipy.sin(incs)]).transpose()
+                    ints=np.array([1.])
+            cart= np.array([ints*np.cos(decs)*np.cos(incs),ints*np.sin(decs)*np.cos(incs),ints*np.sin(incs)]).transpose()
             return cart
 
         #self.dir_pathes=self.WD
@@ -5946,14 +5934,14 @@ else:
                         m_tmp.append(float(rec['measurement_magn_moment']))
                         self.GUI_log.write("-I- Found basleine for NLT measurements in datablock, specimen %s\n"%s)
                 if len(m_tmp)>0:
-                    M_baseline = scipy.mean(m_tmp)
+                    M_baseline = np.mean(m_tmp)
 
 
             ####  Ron dont delete it ### print "-I- Found %i NLT datapoints for specimen %s: B="%(len(B_NLT),s),array(B_NLT)*1e6
 
             #substitute baseline
-            M_NLT=scipy.array(M_NLT)-M_baseline
-            B_NLT=scipy.array(B_NLT)
+            M_NLT=np.array(M_NLT)-M_baseline
+            B_NLT=np.array(B_NLT)
             # calculate M/B ratio for each step, and compare them
             # If cant do NLT correction: check a difference in M/B ratio
             # > 5% : WARNING
@@ -5987,8 +5975,8 @@ else:
                     for i in range(len(B_NLT)):
                         if B_NLT[i]==B:
                             M.append(M_NLT[i])
-                    if (max(M)-min(M))/scipy.mean(M) > 0.05:
-                        self.GUI_log.write("-E- ERROR: NLT for specimen %s does not pass 5 perc alteration check: %.3f \n" %(s,(max(M)-min(M))/scipy.mean(M)))
+                    if (max(M)-min(M))/np.mean(M) > 0.05:
+                        self.GUI_log.write("-E- ERROR: NLT for specimen %s does not pass 5 perc alteration check: %.3f \n" %(s,(max(M)-min(M))/np.mean(M)))
                         red_flag=True
 
 
@@ -6004,7 +5992,7 @@ else:
                     alpha_0=max(M_NLT)
                     beta_0=2e4
                     popt, pcov = curve_fit(tan_h, B_NLT, M_NLT,p0=(alpha_0,beta_0))
-                    M_lab=popt[0]*scipy.math.tanh(labfield*popt[1])
+                    M_lab=popt[0]*np.math.tanh(labfield*popt[1])
 
                     # Now  fit tanh function to the normalized curve
                     M_NLT_norm=M_NLT/M_lab
@@ -6090,31 +6078,31 @@ else:
                 lab_fast_cr_moments=[]
                 lan_cooling_rates=[]
                 for pair in cooling_rate_data['pairs']:
-                    lan_cooling_rates.append(scipy.math.log(cooling_rate_data['lab_cooling_rate']/pair[0]))
+                    lan_cooling_rates.append(np.math.log(cooling_rate_data['lab_cooling_rate']/pair[0]))
                     moments.append(pair[1])
                     if pair[0]==cooling_rate_data['lab_cooling_rate']:
                         lab_fast_cr_moments.append(pair[1])
                 #print s, cooling_rate_data['alteration_check']
-                lan_cooling_rates.append(scipy.math.log(cooling_rate_data['lab_cooling_rate']/cooling_rate_data['alteration_check'][0]))
+                lan_cooling_rates.append(np.math.log(cooling_rate_data['lab_cooling_rate']/cooling_rate_data['alteration_check'][0]))
                 lab_fast_cr_moments.append(cooling_rate_data['alteration_check'][1])
                 moments.append(cooling_rate_data['alteration_check'][1])
 
-                lab_fast_cr_moment=scipy.mean(lab_fast_cr_moments)
-                moment_norm=scipy.array(moments)/lab_fast_cr_moment
+                lab_fast_cr_moment=np.mean(lab_fast_cr_moments)
+                moment_norm=np.array(moments)/lab_fast_cr_moment
                 (a,b)=polyfit(lan_cooling_rates, moment_norm, 1)
                 #ancient_cooling_rate=0.41
-                x0=scipy.math.log(cooling_rate_data['lab_cooling_rate']/ancient_cooling_rate)
+                x0=np.math.log(cooling_rate_data['lab_cooling_rate']/ancient_cooling_rate)
                 y0=a*x0+b
                 MAX=max(lab_fast_cr_moments)
                 MIN=min(lab_fast_cr_moments)
 
                 #print MAX,MIN
-                #print (MAX-MIN)/scipy.mean(MAX,MIN)
-                #print abs((MAX-MIN)/scipy.mean(MAX,MIN))
-                if  scipy.mean([MAX,MIN])==0:
+                #print (MAX-MIN)/np.mean(MAX,MIN)
+                #print abs((MAX-MIN)/np.mean(MAX,MIN))
+                if  np.mean([MAX,MIN])==0:
                     alteration_check_perc=0
                 else:
-                    alteration_check_perc=100*abs((MAX-MIN)/scipy.mean([MAX,MIN]))
+                    alteration_check_perc=100*abs((MAX-MIN)/np.mean([MAX,MIN]))
                 #print s,alteration_check_perc
                 #print "--"
                 cooling_rate_data['ancient_cooling_rate']=ancient_cooling_rate
@@ -6154,7 +6142,7 @@ else:
                             if Data[s]['cooling_rate_data']['CR_correction_factor_flag']=='calculated':
                                 CR_corrections.append(Data[s]['cooling_rate_data']['CR_correction_factor'])
             if len(CR_corrections) > 0:
-                mean_CR_correction=scipy.mean(CR_corrections)
+                mean_CR_correction=np.mean(CR_corrections)
             else:
                 mean_CR_correction=-1
             if mean_CR_correction != -1:
@@ -6258,14 +6246,14 @@ else:
             for k in range(len(zijdblock)):
                 DIR = [zijdblock[k][1],zijdblock[k][2],zijdblock[k][3]/NRM]
                 cart = pmag.dir2cart(DIR)
-                zdata.append(scipy.array([cart[0],cart[1],cart[2]]))
+                zdata.append(np.array([cart[0],cart[1],cart[2]]))
                 if k>0:
-                    vector_diffs.append(scipy.sqrt(sum((scipy.array(zdata[-2])-scipy.array(zdata[-1]))**2)))
-            vector_diffs.append(scipy.sqrt(sum(scipy.array(zdata[-1])**2))) # last vector of the vds
+                    vector_diffs.append(np.sqrt(sum((np.array(zdata[-2])-np.array(zdata[-1]))**2)))
+            vector_diffs.append(np.sqrt(sum(np.array(zdata[-1])**2))) # last vector of the vds
             vds = sum(vector_diffs)  # vds calculation
-            zdata = scipy.array(zdata)
+            zdata = np.array(zdata)
 
-            Data[s]['vector_diffs']=scipy.array(vector_diffs)
+            Data[s]['vector_diffs']=np.array(vector_diffs)
             Data[s]['vds']=vds
             Data[s]['zdata']=zdata
             Data[s]['z_temp']=z_temperatures
@@ -6288,10 +6276,10 @@ else:
             for i in range(1,len(Data[s]['zdata'])):
                 DIR=pmag.cart2dir(Data[s]['zdata'][i])
                 DIR[0]=DIR[0]-NRM_dec
-                CART_rot.append(scipy.array(pmag.dir2cart(DIR)))
+                CART_rot.append(np.array(pmag.dir2cart(DIR)))
                 #print array(dir2cart(DIR))
 
-            CART_rot=scipy.array(CART_rot)
+            CART_rot=np.array(CART_rot)
             Data[s]['zij_rotated']=CART_rot
             #--------------------------------------------------------------
             # collect all Arai plot data points to array
@@ -6319,8 +6307,8 @@ else:
                     steps_Arai.append('ZI')
                 else:
                     steps_Arai.append('IZ')
-            x_Arai=scipy.array(x_Arai)
-            y_Arai=scipy.array(y_Arai)
+            x_Arai=np.array(x_Arai)
+            y_Arai=np.array(y_Arai)
             #else:
             #    Data[s]['pars']['magic_method_codes']=""
             Data[s]['x_Arai']=x_Arai
@@ -6378,7 +6366,7 @@ else:
                             index_infield=infield_temperatures.index(ptrm_checks[k][0])
                             infield_cart=dir2cart([infields[index_infield][1],infields[index_infield][2],infields[index_infield][3]])
                             ptrm_check_cart=dir2cart([ptrm_checks[k][1],ptrm_checks[k][2],ptrm_checks[k][3]])
-                            ptrm_check=cart2dir(scipy.array(infield_cart)-scipy.array(ptrm_check_cart))
+                            ptrm_check=cart2dir(np.array(infield_cart)-np.array(ptrm_check_cart))
                             x_ptrm_check.append(ptrm_check[2]/NRM)
                             y_ptrm_check.append(zerofields[index_zerofield][3]/NRM)
                             ptrm_checks_temperatures.append(ptrm_checks[k][0])
@@ -6392,16 +6380,16 @@ else:
                         pass
 
 
-            x_ptrm_check=scipy.array(x_ptrm_check)
-            ptrm_check=scipy.array(y_ptrm_check)
-            ptrm_checks_temperatures=scipy.array(ptrm_checks_temperatures)
+            x_ptrm_check=np.array(x_ptrm_check)
+            ptrm_check=np.array(y_ptrm_check)
+            ptrm_checks_temperatures=np.array(ptrm_checks_temperatures)
             Data[s]['PTRM_Checks']=ptrm_checks
             Data[s]['x_ptrm_check']=x_ptrm_check
             Data[s]['y_ptrm_check']=y_ptrm_check
             Data[s]['ptrm_checks_temperatures']=ptrm_checks_temperatures
-            Data[s]['x_ptrm_check_starting_point']=scipy.array(x_ptrm_check_starting_point)
-            Data[s]['y_ptrm_check_starting_point']=scipy.array(y_ptrm_check_starting_point)
-            Data[s]['ptrm_checks_starting_temperatures']=scipy.array(ptrm_checks_starting_temperatures)
+            Data[s]['x_ptrm_check_starting_point']=np.array(x_ptrm_check_starting_point)
+            Data[s]['y_ptrm_check_starting_point']=np.array(y_ptrm_check_starting_point)
+            Data[s]['ptrm_checks_starting_temperatures']=np.array(ptrm_checks_starting_temperatures)
 ##        if len(ptrm_checks_starting_temperatures) != len(ptrm_checks_temperatures):
 ##            print s
 ##            print Data[s]['ptrm_checks_temperatures']
@@ -6454,12 +6442,12 @@ else:
                             pass
 
 
-            x_tail_check=scipy.array(x_tail_check)
-            y_tail_check=scipy.array(y_tail_check)
-            tail_check_temperatures=scipy.array(tail_check_temperatures)
-            x_tail_check_starting_point=scipy.array(x_tail_check_starting_point)
-            y_tail_check_starting_point=scipy.array(y_tail_check_starting_point)
-            tail_checks_starting_temperatures=scipy.array(tail_checks_starting_temperatures)
+            x_tail_check=np.array(x_tail_check)
+            y_tail_check=np.array(y_tail_check)
+            tail_check_temperatures=np.array(tail_check_temperatures)
+            x_tail_check_starting_point=np.array(x_tail_check_starting_point)
+            y_tail_check_starting_point=np.array(y_tail_check_starting_point)
+            tail_checks_starting_temperatures=np.array(tail_checks_starting_temperatures)
 
             Data[s]['TAIL_Checks']=ptrm_tail
             Data[s]['x_tail_check']=x_tail_check
@@ -6522,13 +6510,13 @@ else:
 
 
 
-            x_AC=scipy.array(x_AC)
-            y_AC=scipy.array(y_AC)
-            AC_temperatures=scipy.array(AC_temperatures)
-            x_AC_starting_point=scipy.array(x_AC_starting_point)
-            y_AC_starting_point=scipy.array(y_AC_starting_point)
-            AC_starting_temperatures=scipy.array(AC_starting_temperatures)
-            AC=scipy.array(AC)
+            x_AC=np.array(x_AC)
+            y_AC=np.array(y_AC)
+            AC_temperatures=np.array(AC_temperatures)
+            x_AC_starting_point=np.array(x_AC_starting_point)
+            y_AC_starting_point=np.array(y_AC_starting_point)
+            AC_starting_temperatures=np.array(AC_starting_temperatures)
+            AC=np.array(AC)
 
             Data[s]['AC']=AC
 
@@ -6922,12 +6910,12 @@ else:
                     moment1=float(irec1["measurement_magn_moment"])
                     if len(first_I)<2:
                         dec_initial=dec1;inc_initial=inc1
-                    cart1=scipy.array(pmag.dir2cart([dec1,inc1,moment1]))
+                    cart1=np.array(pmag.dir2cart([dec1,inc1,moment1]))
                     irec2=datablock[ISteps[i]]
                     dec2=float(irec2["measurement_dec"])
                     inc2=float(irec2["measurement_inc"])
                     moment2=float(irec2["measurement_magn_moment"])
-                    cart2=scipy.array(pmag.dir2cart([dec2,inc2,moment2]))
+                    cart2=np.array(pmag.dir2cart([dec2,inc2,moment2]))
 
                     # check if its in the same treatment
                     if Treat_I[i] == Treat_I[i-2] and dec2!=dec_initial and inc2!=inc_initial:
@@ -6957,7 +6945,7 @@ else:
             moment=float(rec["measurement_magn_moment"])
             phi=float(rec["treatment_dc_field_phi"])
             theta=float(rec["treatment_dc_field_theta"])
-            M=scipy.array(pmag.dir2cart([dec,inc,moment]))
+            M=np.array(pmag.dir2cart([dec,inc,moment]))
 
             foundit=False
             if 'LP-PI-II' not in methcodes:
@@ -6987,7 +6975,7 @@ else:
                 prev_moment=float(prev_rec["measurement_magn_moment"])
                 prev_phi=float(prev_rec["treatment_dc_field_phi"])
                 prev_theta=float(prev_rec["treatment_dc_field_theta"])
-                prev_M=scipy.array(pmag.dir2cart([prev_dec,prev_inc,prev_moment]))
+                prev_M=np.array(pmag.dir2cart([prev_dec,prev_inc,prev_moment]))
 
                 if  'LP-PI-II' not in methcodes:
                     diff_cart=M-prev_M
@@ -7082,22 +7070,32 @@ else:
                 for c in range(3): I.append(V1[c]-V0[c])
                 dir1=pmag.cart2dir(I)
                 additivity_check.append([temp,dir1[0],dir1[1],dir1[2]])
-                #print "I",scipy.array(I)/float(datablock[0]["measurement_magn_moment"]),dir1,"(dir1 unnormalized)"
-                X=scipy.array(I)/float(datablock[0]["measurement_magn_moment"])
-                #print "I",scipy.sqrt(sum(X**2))
+                #print "I",np.array(I)/float(datablock[0]["measurement_magn_moment"]),dir1,"(dir1 unnormalized)"
+                X=np.array(I)/float(datablock[0]["measurement_magn_moment"])
+                #print "I",np.sqrt(sum(X**2))
         araiblock=(first_Z,first_I,ptrm_check,ptrm_tail,zptrm_check,GammaChecks,additivity_check)
 
         return araiblock,field
 
-
-
+    def user_warning(self, message, caption = 'Warning!'):
+        """
+        Shows a dialog that warns the user about some action
+        @param: message - message to display to user
+        @param: caption - title for dialog (default: "Warning!")
+        @return: True or False
+        """
+        dlg = wx.MessageDialog(self, message, caption, wx.OK | wx.CANCEL | wx.ICON_WARNING)
+        if dlg.ShowModal() == wx.ID_OK:
+            continue_bool = True
+        else:
+            continue_bool = False
+        dlg.Destroy()
+        return continue_bool
 
 
 #--------------------------------------------------------------
 # Run the GUI
 #--------------------------------------------------------------
-
-
 
 
 def main(WD=None, standalone_app=True, parent=None, DM=2.5):

@@ -3742,6 +3742,9 @@ class Demag_GUI(wx.Frame):
             if specimen not in self.pmag_results_data['specimens'].keys():
                 self.pmag_results_data['specimens'][specimen] = []
 
+            if any(k not in rec.keys() for k in ['measurement_step_min', 'measurement_step_max']):
+                continue
+
             methods=rec['magic_method_codes'].strip("\n").replace(" ","").split(":")
             LPDIR=False;calculation_type=""
 
@@ -3779,7 +3782,7 @@ class Demag_GUI(wx.Frame):
             else:
                 fit = self.add_fit(specimen,fname, tmin, tmax, calculation_type)
 
-            if 'specimen_flag' in rec and rec['specimen_flag'] == 'b':
+            if 'specimen_flag' in rec.keys() and rec['specimen_flag'] == 'b':
                 self.bad_fits.append(fit)
 
         #BUG FIX-almost replaced first sample with last due to above assignment to self.s
