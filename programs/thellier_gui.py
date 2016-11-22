@@ -165,6 +165,11 @@ import matplotlib
 if not matplotlib.get_backend() == 'WXAgg':
     matplotlib.use('WXAgg')
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigCanvas
+from matplotlib.figure import Figure
+from matplotlib.backends.backend_wxagg import NavigationToolbar2WxAgg as NavigationToolbar
+try: from mpl_toolkits.basemap import Basemap, shiftgrid, basemap_datadir
+except ImportError: pass
+import matplotlib.pyplot as plt
 
 import sys, scipy, os
 #import pdb
@@ -189,18 +194,13 @@ from scipy.optimize import curve_fit
 import wx.lib.agw.floatspin as FS
 try: import thellier_gui_preferences
 except ImportError: pass
-try: from mpl_toolkits.basemap import Basemap, shiftgrid
-except ImportError: pass
-
-from matplotlib.figure import Figure
-from matplotlib.backends.backend_wxagg import NavigationToolbar2WxAgg as NavigationToolbar
 
 import dialogs.thellier_consistency_test as thellier_consistency_test
 import copy
-
 import dialogs.thellier_gui_dialogs as thellier_gui_dialogs
 import dialogs.thellier_gui_lib as thellier_gui_lib
 import dialogs.thellier_interpreter as thellier_interpreter
+import dialogs.thellier_consistency_test as thellier_consistency_test
 
 matplotlib.rc('xtick', labelsize=10)
 matplotlib.rc('ytick', labelsize=10)
@@ -246,12 +246,7 @@ class Arai_GUI(wx.Frame):
             self.WD = WD
             self.get_DIR(self.WD)
         else:
-            self.get_DIR()        # choose directory dialog
-
-        # get controlled vocabulary
-        vocab = cv.Vocabulary()
-        vocabulary, possible_vocabulary = vocab.get_controlled_vocabularies()
-        self.vocabulary = vocabulary
+            self.get_DIR() # choose directory dialog
 
         # inialize selecting criteria
         self.acceptance_criteria=pmag.initialize_acceptance_criteria(data_model=self.data_model)
@@ -261,8 +256,8 @@ class Arai_GUI(wx.Frame):
         else:
             self.crit_file='pmag_criteria.txt'
         self.read_criteria_file(os.path.join(self.WD,self.crit_file))
-        # preferences
 
+        # preferences
         preferences=self.get_preferences()
         self.dpi = 100
 
@@ -496,7 +491,7 @@ class Arai_GUI(wx.Frame):
         #--------------------------------------------------------------------
 
         # Combo-box with a list of specimen
-        self.specimens_box = wx.ComboBox(self.top_panel, wx.ID_ANY, self.s, (250*self.GUI_RESOLUTION, 25), wx.DefaultSize,self.specimens, wx.CB_DROPDOWN,name="specimen")
+        self.specimens_box = wx.ComboBox(self.top_panel, wx.ID_ANY, self.s, (250*self.GUI_RESOLUTION, 25), wx.DefaultSize,self.specimens, wx.CB_DROPDOWN|wx.TE_READONLY,name="specimen")
         self.specimens_box.SetFont(font2)
         self.Bind(wx.EVT_COMBOBOX, self.onSelect_specimen,self.specimens_box)
 
@@ -523,10 +518,10 @@ class Arai_GUI(wx.Frame):
         except (ValueError,TypeError,KeyError) as e:
             self.T_list=[]
 
-        self.tmin_box = wx.ComboBox(self.top_panel, wx.ID_ANY,size=(100*self.GUI_RESOLUTION, 25),choices=self.T_list, style=wx.CB_DROPDOWN)
+        self.tmin_box = wx.ComboBox(self.top_panel, wx.ID_ANY,size=(100*self.GUI_RESOLUTION, 25),choices=self.T_list, style=wx.CB_DROPDOWN|wx.TE_READONLY)
         self.Bind(wx.EVT_COMBOBOX, self.get_new_T_PI_parameters,self.tmin_box)
 
-        self.tmax_box = wx.ComboBox(self.top_panel, -1 ,size=(100*self.GUI_RESOLUTION, 25),choices=self.T_list, style=wx.CB_DROPDOWN)
+        self.tmax_box = wx.ComboBox(self.top_panel, -1 ,size=(100*self.GUI_RESOLUTION, 25),choices=self.T_list, style=wx.CB_DROPDOWN|wx.TE_READONLY)
         self.Bind(wx.EVT_COMBOBOX, self.get_new_T_PI_parameters,self.tmax_box)
 
         #--------------------------------------------------------------------
@@ -552,6 +547,9 @@ class Arai_GUI(wx.Frame):
         self.CR_factor_window=wx.TextCtrl(self.top_panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50*self.GUI_RESOLUTION,25))
         self.declination_window=wx.TextCtrl(self.top_panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50*self.GUI_RESOLUTION,25))
         self.inclination_window=wx.TextCtrl(self.top_panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50*self.GUI_RESOLUTION,25))
+
+        for stat in ['Blab', 'Banc', 'Aniso_factor', 'NLT_factor', 'CR_factor', 'declination', 'inclination']:
+            exec("self.%s_window.SetBackgroundColour(wx.WHITE)"%stat)
 
         self.Blab_label=wx.StaticText(self.top_panel,label="\nB_lab",style=wx.ALIGN_CENTRE)
         self.Blab_label.SetFont(font2)
@@ -595,6 +593,7 @@ class Arai_GUI(wx.Frame):
         for key in ["sample_int_n","sample_int_uT","sample_int_sigma","sample_int_sigma_perc"]:
             command="self.%s_window=wx.TextCtrl(self.top_panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50*self.GUI_RESOLUTION,25))"%key
             exec command
+            exec("self.%s_window.SetBackgroundColour(wx.WHITE)"%key)
 
         sample_mean_label=wx.StaticText(self.top_panel,label="\nmean",style=wx.TE_CENTER)
         sample_mean_label.SetFont(font2)
@@ -636,7 +635,7 @@ class Arai_GUI(wx.Frame):
             exec command
             command="self.%s_threshold_window.SetFont(font2)"%statistic
             exec command
-            command="self.%s_threshold_window.SetBackgroundColour(wx.NullColour)"%statistic
+            command="self.%s_threshold_window.SetBackgroundColour(wx.WHITE)"%statistic
             exec command
             command="%s_label=wx.StaticText(self.bottom_panel,label='%s',style=wx.ALIGN_CENTRE)"%(statistic,statistic.replace("specimen_","").replace("int_",""))
             exec command
@@ -844,7 +843,7 @@ else:
         elif event_canvas==self.canvas5:
             return 5
         else:
-            raise TypeError("Honestly not sure how you got here...WELL there's a big bug in on_right_click_fig good luck")
+            raise TypeError("Honestly not sure how you got here...WELL there's a big bug in get_canvas_number_from_event, good luck")
 
     #----------------------------------------------------------------------
 
@@ -1247,23 +1246,23 @@ else:
 
         self.Blab_window.SetValue("")
         self.Banc_window.SetValue("")
-        self.Banc_window.SetBackgroundColour(wx.NullColour)
+        self.Banc_window.SetBackgroundColour(wx.NamedColour('grey'))
         self.Aniso_factor_window.SetValue("")
-        self.Aniso_factor_window.SetBackgroundColour(wx.NullColour)
+        self.Aniso_factor_window.SetBackgroundColour(wx.NamedColour('grey'))
         self.NLT_factor_window.SetValue("")
-        self.NLT_factor_window.SetBackgroundColour(wx.NullColour)
+        self.NLT_factor_window.SetBackgroundColour(wx.NamedColour('grey'))
         self.CR_factor_window.SetValue("")
-        self.CR_factor_window.SetBackgroundColour(wx.NullColour)
+        self.CR_factor_window.SetBackgroundColour(wx.NamedColour('grey'))
         self.declination_window.SetValue("")
-        self.declination_window.SetBackgroundColour(wx.NullColour)
+        self.declination_window.SetBackgroundColour(wx.NamedColour('grey'))
         self.inclination_window.SetValue("")
-        self.inclination_window.SetBackgroundColour(wx.NullColour)
+        self.inclination_window.SetBackgroundColour(wx.NamedColour('grey'))
 
         window_list=['sample_int_n','sample_int_uT','sample_int_sigma','sample_int_sigma_perc']
         for key in window_list:
             command="self.%s_window.SetValue(\"\")"%key
             exec command
-            command="self.%s_window.SetBackgroundColour(wx.NullColour)"%key
+            command="self.%s_window.SetBackgroundColour(wx.NamedColour('grey'))"%key
             exec command
 
         #window_list=['int_n','int_ptrm_n','frac','scat','gmax','f','fvds','b_beta','g','q','int_mad','int_dang','drats','md','ptrms_dec','ptrms_inc','ptrms_mad','ptrms_angle']
@@ -1271,7 +1270,7 @@ else:
         for key in self.preferences['show_statistics_on_gui']:
             command="self.%s_window.SetValue(\"\")"%key
             exec command
-            command="self.%s_window.SetBackgroundColour(wx.NullColour)"%key
+            command="self.%s_window.SetBackgroundColour(wx.NamedColour('grey'))"%key
             exec command
 
     def write_sample_box(self):
@@ -1324,10 +1323,10 @@ else:
             self.sample_int_uT_window.SetValue("")
             self.sample_int_sigma_window.SetValue("")
             self.sample_int_sigma_perc_window.SetValue("")
-            self.sample_int_uT_window.SetBackgroundColour(wx.NullColour)
-            self.sample_int_n_window.SetBackgroundColour(wx.NullColour)
-            self.sample_int_sigma_window.SetBackgroundColour(wx.NullColour)
-            self.sample_int_sigma_perc_window.SetBackgroundColour(wx.NullColour)
+            self.sample_int_uT_window.SetBackgroundColour(wx.NamedColour('grey'))
+            self.sample_int_n_window.SetBackgroundColour(wx.NamedColour('grey'))
+            self.sample_int_sigma_window.SetBackgroundColour(wx.NamedColour('grey'))
+            self.sample_int_sigma_perc_window.SetBackgroundColour(wx.NamedColour('grey'))
 
 
             return()
@@ -1342,9 +1341,10 @@ else:
         self.sample_int_uT_window.SetValue("%.1f"%(B_mean))
         self.sample_int_sigma_window.SetValue("%.1f"%(B_std))
         self.sample_int_sigma_perc_window.SetValue("%.1f"%(B_std_perc))
-        self.sample_int_n_window.SetBackgroundColour(wx.NullColour)
-        self.sample_int_sigma_window.SetBackgroundColour(wx.NullColour)
-        self.sample_int_sigma_perc_window.SetBackgroundColour(wx.NullColour)
+        self.sample_int_n_window.SetBackgroundColour(wx.WHITE)
+        self.sample_int_uT_window.SetBackgroundColour(wx.WHITE)
+        self.sample_int_sigma_window.SetBackgroundColour(wx.WHITE)
+        self.sample_int_sigma_perc_window.SetBackgroundColour(wx.WHITE)
 
         fail_flag=False
         fail_int_n=False
@@ -1360,7 +1360,7 @@ else:
             else:
                 self.sample_int_n_window.SetBackgroundColour(wx.GREEN)
         else:
-            self.sample_int_n_window.SetBackgroundColour(wx.NullColour)
+            self.sample_int_n_window.SetBackgroundColour(wx.WHITE)
 
 
         if self.acceptance_criteria['sample_int_sigma']['value'] != -999:
@@ -1370,7 +1370,7 @@ else:
             else:
                 self.sample_int_sigma_window.SetBackgroundColour(wx.GREEN)
         else:
-            self.sample_int_sigma_window.SetBackgroundColour(wx.NullColour)
+            self.sample_int_sigma_window.SetBackgroundColour(wx.WHITE)
 
         if self.acceptance_criteria['sample_int_sigma_perc']['value'] != -999:
             if  B_std_perc > self.acceptance_criteria['sample_int_sigma_perc']:
@@ -1379,8 +1379,7 @@ else:
             else:
                 self.sample_int_sigma_perc_window.SetBackgroundColour(wx.GREEN)
         else:
-            self.sample_int_sigma_perc_window.SetBackgroundColour(wx.NullColour)
-
+            self.sample_int_sigma_perc_window.SetBackgroundColour(wx.WHITE)
 
         if self.acceptance_criteria['sample_int_sigma']['value']==-999 and fail_int_sigma_perc:
             sample_failed=True
@@ -1394,19 +1393,6 @@ else:
             self.sample_int_uT_window.SetBackgroundColour(wx.RED)
         else:
             self.sample_int_uT_window.SetBackgroundColour(wx.GREEN)
-
-            #if self.acceptance_criteria['sample_int_sigma']['value'] != -999  or self.acceptance_criteria['sample_int_sigma_perc']['value'] != -999:
-            #    if   fail_int_sigma and fail_int_sigma_perc:
-            #       self.sample_int_uT_window.SetBackgroundColour(wx.RED)
-            #else:
-            #    self.sample_int_uT_window.SetBackgroundColour(wx.GREEN)
-
-
-
-        #else:
-        #    self.sample_int_uT_window.SetBackgroundColour(wx.GREEN)
-        #
-
 
     #----------------------------------------------------------------------
     # menu bar options:
@@ -2354,8 +2340,7 @@ else:
             self.add_thellier_gui_criteria()
             fnames = {'criteria': criteria_file}
             contribution = nb.Contribution(self.WD, custom_filenames=fnames, read_tables=['criteria'])
-            contribution = nb.Contribution(self.WD, custom_filenames=fnames, read_tables=['criteria'],
-                                                vocabulary=self.vocabulary)
+            contribution = nb.Contribution(self.WD, custom_filenames=fnames, read_tables=['criteria'])
             if 'criteria' in contribution.tables:
                 crit_container = contribution.tables['criteria']
                 crit_data = crit_container.df
@@ -3188,7 +3173,6 @@ else:
         #    return
 
         self.GUI_log.write ("-I- running thellier consistency test\n")
-        import dialogs.thellier_consistency_test as thellier_consistency_test
 
         #thellier_gui_dialogs.Consistency_Test(self.Data,self.Data_hierarchy,self.WD,self.acceptance_criteria_default)
         thellier_gui_dialogs.Consistency_Test(self.Data,self.Data_hierarchy,self.WD,self.acceptance_criteria,self.preferences,THERMAL,MICROWAVE)
@@ -4395,12 +4379,10 @@ else:
         Plot_map=show_map
         if Plot_map:
             if True:
-                from mpl_toolkits.basemap import Basemap
-                from mpl_toolkits.basemap import basemap_datadir
-                ion()
+                plt.ion()
                 fig2=figure(2)
-                clf()
-                ioff()
+                plt.clf()
+                plt.ioff()
 
                 SiteLat_min=lat_min-5
                 SiteLat_max=lat_max+5
@@ -4447,14 +4429,14 @@ else:
 
         # fix ages
 
-        Fig=figure(1,(15,6))
-        clf()
-        ax = axes([0.3,0.1,0.6,0.8])
-        locations =plot_by_locations.keys()
+        Fig=plt.figure(1,(15,6))
+        plt.clf()
+        ax = plt.axes([0.3,0.1,0.6,0.8])
+        locations = plot_by_locations.keys()
         locations.sort()
         handles_list=[]
         for location in locations:
-            figure(1)
+            plt.figure(1)
             X_data,X_data_minus,X_data_plus=plot_by_locations[location]['X_data'],plot_by_locations[location]['X_data_minus'],plot_by_locations[location]['X_data_plus']
             Y_data,Y_data_minus,Y_data_plus=plot_by_locations[location]['Y_data'],plot_by_locations[location]['Y_data_minus'],plot_by_locations[location]['Y_data_plus']
             if show_STDEVOPT:
@@ -4471,14 +4453,14 @@ else:
             else:
                 Yerr=[Y_data_minus,Y_data_plus]
 
-            erplot=errorbar(X_data,Y_data,xerr=Xerr,yerr=Yerr,fmt=SYMBOLS[cnt%len(SYMBOLS)],color=COLORS[cnt%len(COLORS)],label=location)
+            erplot=plt.errorbar(X_data,Y_data,xerr=Xerr,yerr=Yerr,fmt=SYMBOLS[cnt%len(SYMBOLS)],color=COLORS[cnt%len(COLORS)],label=location)
             handles_list.append(erplot)
             if show_STDEVOPT:
-                errorbar(X_data,Y_data,xerr=None,yerr=[Y_data_minus_extended,Y_data_plus_extended],fmt='.',ms=0,ecolor='red',label="extended error-bar",zorder=0)
+                plt.errorbar(X_data,Y_data,xerr=None,yerr=[Y_data_minus_extended,Y_data_plus_extended],fmt='.',ms=0,ecolor='red',label="extended error-bar",zorder=0)
 
 
             if Plot_map:
-                figure(2)
+                plt.figure(2)
                 lat=plot_by_locations[location]['site_lat']
                 lon=plot_by_locations[location]['site_lon']
                 x1,y1=m([lon],[lat])
@@ -4491,7 +4473,7 @@ else:
         legend_font_props.set_size(12)
 
         #h,l = ax.get_legend_handles_labels()
-        legend(handles=handles_list,loc='center left', bbox_to_anchor=[0, 0, 1, 1],bbox_transform=Fig.transFigure,numpoints=1,prop=legend_font_props)
+        plt.legend(handles=handles_list,loc='center left', bbox_to_anchor=[0, 0, 1, 1],bbox_transform=Fig.transFigure,numpoints=1,prop=legend_font_props)
 
         #Fig.legend(h,l,loc='center left',fancybox="True",numpoints=1,prop=legend_font_props)
         y_min,y_max=ax.get_ylim()
@@ -4538,27 +4520,17 @@ else:
                 pass
 
 
-        #Fig.legend(legend_labels,locations,'upper right',numpoints=1,title="Locations")
         if  show_sample_labels:
             for location in locations:
                 for i in  range(len(plot_by_locations[location]['samples_names'])):
                     Fig.text(plot_by_locations[location]['X_data'][i],plot_by_locations[location]['Y_data'][i],"  "+ plot_by_locations[location]['samples_names'][i],fontsize=10,color="0.5")
 
         xmin,xmax=ax.get_xlim()
-        #print "xmin,xmax",xmin,xmax
         if max ([abs(xmin), abs(xmax) ]) > 10000 and set_age_unit=="Automatic":
-            gca().ticklabel_format(style='scientific', axis='x',scilimits=(0,0))
-       # matplotlib.pyplot.ticklabel_format(style='scientific', axis='x')
+            plt.gca().ticklabel_format(style='scientific', axis='x',scilimits=(0,0))
 
-        #fr=thellier_gui_dialogs.ShowPlot(None,fig1)
-        #panel = CanvasPanel(fr)
-        #panel.draw()
-        #fr.Show()
-        #PI_Fig.Show()
-        #Fig.show()
         thellier_gui_dialogs.ShowFigure(Fig)
         dia.Destroy()
-        #Fig.show()
 
 #===========================================================
 # Draw plots
@@ -5089,8 +5061,18 @@ else:
 
 
         # declination/inclination
-        self.declination_window.SetValue("%.1f"%(self.pars['specimen_dec']))
-        self.inclination_window.SetValue("%.1f"%(self.pars['specimen_inc']))
+        if 'specimen_dec' in self.pars.keys():
+            self.declination_window.SetValue("%.1f"%(self.pars['specimen_dec']))
+            self.declination_window.SetBackgroundColour(wx.WHITE)
+        else:
+            self.declination_window.SetValue("")
+            self.declination_window.SetBackgroundColour(wx.NamedColour('grey'))
+        if 'specimen_inc' in self.pars.keys():
+            self.inclination_window.SetValue("%.1f"%(self.pars['specimen_inc']))
+            self.inclination_window.SetBackgroundColour(wx.WHITE)
+        else:
+            self.inclination_window.SetValue("")
+            self.inclination_window.SetBackgroundColour(wx.NamedColour('grey'))
 
 
 
@@ -5121,7 +5103,7 @@ else:
             # set backgound color
             cutoff_value=self.acceptance_criteria[stat]['value']
             if cutoff_value==-999:
-                command="self.%s_window.SetBackgroundColour(wx.NullColour)"%stat.split('specimen_')[-1]  # set text color
+                command="self.%s_window.SetBackgroundColour(wx.WHITE)"%stat.split('specimen_')[-1]  # set text color
             elif stat=="specimen_k" or stat=="specimen_k_prime":
                 if abs(self.pars[stat])>cutoff_value:
                     command="self.%s_window.SetBackgroundColour(wx.RED)"%stat.split('specimen_')[-1]  # set text color
@@ -5137,7 +5119,7 @@ else:
             exec command
 
         # specimen_scat
-        if 'scat' in     self.preferences['show_statistics_on_gui']:
+        if 'scat' in self.preferences['show_statistics_on_gui']:
             if self.acceptance_criteria['specimen_scat']['value'] in ['True','TRUE','1',1,True,'g']:
                 if self.pars["specimen_scat"]=='Pass':
                     self.scat_window.SetValue("Pass")
@@ -5148,7 +5130,7 @@ else:
 
             else:
                 self.scat_window.SetValue("")
-                self.scat_window.SetBackgroundColour(wx.NullColour) # set text color
+                self.scat_window.SetBackgroundColour(wx.NamedColour('grey')) # set text color
 
 
         # Blab, Banc, correction factors
@@ -5175,15 +5157,16 @@ else:
                 self.Aniso_factor_window.SetBackgroundColour(wx.GREEN)
 
         else:
-            self.Aniso_factor_window.SetValue("None")
-            self.Aniso_factor_window.SetBackgroundColour(wx.NullColour)
+            self.Aniso_factor_window.SetValue("")
+            self.Aniso_factor_window.SetBackgroundColour(wx.NamedColour('grey'))
 
 
 
         if self.pars['NLT_specimen_correction_factor']!=-1:
             self.NLT_factor_window.SetValue("%.2f"%(self.pars['NLT_specimen_correction_factor']))
         else:
-            self.NLT_factor_window.SetValue("None")
+            self.NLT_factor_window.SetValue("")
+            self.NLT_factor_window.SetBackgroundColour(wx.NamedColour("grey"))
 
         if self.pars['specimen_int_corr_cooling_rate']!=-1 and self.pars['specimen_int_corr_cooling_rate']!=-999:
             self.CR_factor_window.SetValue("%.2f"%(self.pars['specimen_int_corr_cooling_rate']))
@@ -5192,11 +5175,11 @@ else:
             elif  'CR_WARNING' in self.pars.keys() and 'inferred' in self.pars['CR_WARNING']:
                 self.CR_factor_window.SetBackgroundColour('#FFFACD')
             else:
-                self.CR_factor_window.SetBackgroundColour(wx.NullColour)
+                self.CR_factor_window.SetBackgroundColour(wx.WHITE)
 
         else:
-            self.CR_factor_window.SetValue("None")
-            self.CR_factor_window.SetBackgroundColour(wx.NullColour)
+            self.CR_factor_window.SetValue("")
+            self.CR_factor_window.SetBackgroundColour(wx.NamedColour('grey'))
 
         # sample
         self.write_sample_box()
@@ -6581,9 +6564,7 @@ else:
             Data_info["er_ages"]=[]
             fnames = {'measurements': self.magic_file}
             self.contribution = nb.Contribution(self.WD, custom_filenames=fnames, read_tables=['measurements', 'specimens', 'samples','sites'])
-            self.contribution = nb.Contribution(self.WD, custom_filenames=fnames,
-                                                read_tables=['measurements', 'specimens', 'samples','sites'],
-                                                vocabulary=self.vocabulary)
+            self.contribution = nb.Contribution(self.WD, custom_filenames=fnames,read_tables=['measurements', 'specimens', 'samples','sites'])
             if 'specimens' in self.contribution.tables:
                 self.spec_container = self.contribution.tables['specimens']
                 self.spec_container.write_magic_file(custom_name='specimens.bak', dir_path=self.WD) # create backup file with original
@@ -7136,11 +7117,6 @@ def main(WD=None, standalone_app=True, parent=None, DM=2.5):
         app.frame.Show()
         app.frame.Center()
         app.MainLoop()
-
-    ## use for debugging:
-    #if '-i' in sys.argv:
-    #    import wx.lib.inspection
-    #    wx.lib.inspection.InspectionTool().Show()
 
 
 if __name__ == '__main__':

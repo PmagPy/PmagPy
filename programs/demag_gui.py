@@ -239,6 +239,7 @@ class Demag_GUI(wx.Frame):
             else:
                 self.Add_text()
                 self.update_fit_boxes()
+                self.update_high_level_stats()
         else: pass
 
         self.running = True
@@ -4733,7 +4734,7 @@ class Demag_GUI(wx.Frame):
             self.sdec_window.SetBackgroundColour(wx.WHITE)
         else:
             self.sdec_window.SetValue("")
-            self.sdec_window.SetBackgroundColour(wx.NullColour)
+            self.sdec_window.SetBackgroundColour(wx.NamedColour('grey'))
 
         if mpars and 'specimen_inc' in mpars.keys():
             inc_key = 'specimen_inc'
@@ -4746,35 +4747,35 @@ class Demag_GUI(wx.Frame):
             self.sinc_window.SetBackgroundColour(wx.WHITE)
         else:
             self.sinc_window.SetValue("")
-            self.sinc_window.SetBackgroundColour(wx.NullColour)
+            self.sinc_window.SetBackgroundColour(wx.NamedColour('grey'))
 
         if mpars and 'specimen_n' in mpars.keys():
             self.sn_window.SetValue("%i"%mpars['specimen_n'])
             self.sn_window.SetBackgroundColour(wx.WHITE)
         else:
             self.sn_window.SetValue("")
-            self.sn_window.SetBackgroundColour(wx.NullColour)
+            self.sn_window.SetBackgroundColour(wx.NamedColour('grey'))
 
         if mpars and 'specimen_mad' in mpars.keys():
             self.smad_window.SetValue("%.1f"%mpars['specimen_mad'])
             self.smad_window.SetBackgroundColour(wx.WHITE)
         else:
             self.smad_window.SetValue("")
-            self.smad_window.SetBackgroundColour(wx.NullColour)
+            self.smad_window.SetBackgroundColour(wx.NamedColour('grey'))
 
         if mpars and 'specimen_dang' in mpars.keys() and float(mpars['specimen_dang'])!=-1:
             self.sdang_window.SetValue("%.1f"%mpars['specimen_dang'])
             self.sdang_window.SetBackgroundColour(wx.WHITE)
         else:
             self.sdang_window.SetValue("")
-            self.sdang_window.SetBackgroundColour(wx.NullColour)
+            self.sdang_window.SetBackgroundColour(wx.NamedColour('grey'))
 
         if mpars and 'specimen_alpha95' in mpars.keys() and float(mpars['specimen_alpha95'])!=-1:
             self.salpha95_window.SetValue("%.1f"%mpars['specimen_alpha95'])
             self.salpha95_window.SetBackgroundColour(wx.WHITE)
         else:
             self.salpha95_window.SetValue("")
-            self.salpha95_window.SetBackgroundColour(wx.NullColour)
+            self.salpha95_window.SetBackgroundColour(wx.NamedColour('grey'))
 
         if self.orthogonal_box.GetValue()=="X=best fit line dec":
             if mpars and 'specimen_dec' in mpars.keys():
@@ -4956,57 +4957,72 @@ class Demag_GUI(wx.Frame):
         FONT_WEIGHT=self.GUI_RESOLUTION+(self.GUI_RESOLUTION-1)*5
         font2 = wx.Font(12+min(1,FONT_WEIGHT), wx.SWISS, wx.NORMAL, wx.NORMAL, False, self.font_type)
 
-        if self.mean_type_box.GetValue() == "None" or self.mean_fit_box.GetValue() == "None": return
+        if self.mean_type_box.GetValue() != "None" and self.mean_fit_box.GetValue() != "None" and mpars:
 
-        if not mpars or len(mpars)<1: print("No parameters to display for high level mean"); return
-
-        if isinstance(mpars,list):
-            i = self.switch_stats_button.GetValue()
-            if i >= len(mpars): print("Cannot display statistics as mpars does not have index %d. Was given mpars %s, aborting."%(i,str(mpars))); return
-            self.show_high_levels_pars(mpars[i])
-        elif mpars["calculation_type"].startswith('Fisher'):
-            if "alpha95" in mpars.keys():
-                for val in ['mean_type:calculation_type','dec:dec','inc:inc','alpha95:alpha95','K:K','R:R','n_lines:n_lines','n_planes:n_planes']:
-                    val,ind = val.split(":")
-                    COMMAND = """self.%s_window.SetValue(str(mpars['%s']))"""%(val,ind)
-                    exec COMMAND
-
-            if self.ie_open:
-                ie = self.ie
+            if isinstance(mpars,list):
+                i = self.switch_stats_button.GetValue()
+                if i >= len(mpars): print("Cannot display statistics as mpars does not have index %d. Was given mpars %s, aborting."%(i,str(mpars))); return
+                self.show_high_levels_pars(mpars[i])
+            elif mpars["calculation_type"].startswith('Fisher'):
                 if "alpha95" in mpars.keys():
                     for val in ['mean_type:calculation_type','dec:dec','inc:inc','alpha95:alpha95','K:K','R:R','n_lines:n_lines','n_planes:n_planes']:
                         val,ind = val.split(":")
-                        COMMAND = """ie.%s_window.SetValue(str(mpars['%s']))"""%(val,ind)
+                        COMMAND = """self.%s_window.SetValue(str(mpars['%s']))"""%(val,ind)
                         exec COMMAND
 
-        elif mpars["calculation_type"].startswith('Fisher by polarity'):
-            i = self.switch_stats_button.GetValue()
-            keys = mpars.keys()
-            keys.remove('calculation_type')
-            if 'color' in keys: keys.remove('color')
-            keys.sort()
-            name = keys[i%len(keys)]
-            mpars = mpars[name]
-            if type(mpars) != dict: print("error in showing high level mean, reseaved %s"%str(mpars)); return
-            if mpars["calculation_type"]=='Fisher' and "alpha95" in mpars.keys():
-                for val in ['mean_type:calculation_type','dec:dec','inc:inc','alpha95:alpha95','K:k','R:r','n_lines:n','n_planes:n_planes']:
-                    val,ind = val.split(":")
-                    if val == 'mean_type':
-                        COMMAND = """self.%s_window.SetValue('%s')"""%(val,mpars[ind] + ":" + name)
-                    else:
-                        COMMAND = """self.%s_window.SetValue(str(mpars['%s']))"""%(val,ind)
-                    exec COMMAND
+                if self.ie_open:
+                    ie = self.ie
+                    if "alpha95" in mpars.keys():
+                        for val in ['mean_type:calculation_type','dec:dec','inc:inc','alpha95:alpha95','K:K','R:R','n_lines:n_lines','n_planes:n_planes']:
+                            val,ind = val.split(":")
+                            COMMAND = """ie.%s_window.SetValue(str(mpars['%s']))"""%(val,ind)
+                            exec COMMAND
 
-            if self.ie_open:
-                ie = self.ie
+            elif mpars["calculation_type"].startswith('Fisher by polarity'):
+                i = self.switch_stats_button.GetValue()
+                keys = mpars.keys()
+                keys.remove('calculation_type')
+                if 'color' in keys: keys.remove('color')
+                keys.sort()
+                name = keys[i%len(keys)]
+                mpars = mpars[name]
+                if type(mpars) != dict: print("error in showing high level mean, reseaved %s"%str(mpars)); return
                 if mpars["calculation_type"]=='Fisher' and "alpha95" in mpars.keys():
                     for val in ['mean_type:calculation_type','dec:dec','inc:inc','alpha95:alpha95','K:k','R:r','n_lines:n','n_planes:n_planes']:
                         val,ind = val.split(":")
                         if val == 'mean_type':
-                            COMMAND = """ie.%s_window.SetValue('%s')"""%(val,mpars[ind] + ":" + name)
+                            COMMAND = """self.%s_window.SetValue('%s')"""%(val,mpars[ind] + ":" + name)
                         else:
-                            COMMAND = """ie.%s_window.SetValue(str(mpars['%s']))"""%(val,ind)
+                            COMMAND = """self.%s_window.SetValue(str(mpars['%s']))"""%(val,ind)
                         exec COMMAND
+
+                if self.ie_open:
+                    ie = self.ie
+                    if mpars["calculation_type"]=='Fisher' and "alpha95" in mpars.keys():
+                        for val in ['mean_type:calculation_type','dec:dec','inc:inc','alpha95:alpha95','K:k','R:r','n_lines:n','n_planes:n_planes']:
+                            val,ind = val.split(":")
+                            if val == 'mean_type':
+                                COMMAND = """ie.%s_window.SetValue('%s')"""%(val,mpars[ind] + ":" + name)
+                            else:
+                                COMMAND = """ie.%s_window.SetValue(str(mpars['%s']))"""%(val,ind)
+                            exec COMMAND
+
+        self.set_mean_stats_color()
+
+    def set_mean_stats_color(self):
+        for val in ['mean_type', 'dec', 'inc', 'alpha95', 'K', 'R', 'n_lines', 'n_planes']:
+            command = """
+if self.%s_window.GetValue()=="": self.%s_window.SetBackgroundColour(wx.NamedColour('grey'))
+else: self.%s_window.SetBackgroundColour(wx.WHITE)
+            """%(val,val,val)
+            exec(command)
+        if self.ie_open:
+            for val in ['mean_type', 'dec', 'inc', 'alpha95', 'K', 'R', 'n_lines', 'n_planes']:
+                command = """
+if self.ie.%s_window.GetValue()=="": self.ie.%s_window.SetBackgroundColour(wx.NamedColour('grey'))
+else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
+                """%(val,val,val)
+                exec(command)
 
     def clear_boxes(self):
         """
@@ -5032,7 +5048,7 @@ class Demag_GUI(wx.Frame):
         for parameter in ['dec','inc','n','mad','dang','alpha95']:
             COMMAND="self.s%s_window.SetValue('')"%parameter
             exec COMMAND
-            COMMAND="self.s%s_window.SetBackgroundColour(wx.NullColour)"%parameter
+            COMMAND="self.s%s_window.SetBackgroundColour(wx.NamedColour('grey'))"%parameter
             exec COMMAND
 
     def clear_high_level_pars(self):
@@ -5046,6 +5062,7 @@ class Demag_GUI(wx.Frame):
             for val in ['mean_type','dec','inc','alpha95','K','R','n_lines','n_planes']:
                 COMMAND = """self.ie.%s_window.SetValue("")"""%(val)
                 exec COMMAND
+        self.set_mean_stats_color()
 
     def MacReopenApp(self):
         """Called when the doc icon is clicked"""
