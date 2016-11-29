@@ -195,14 +195,16 @@ class Demag_GUI(wx.Frame):
         self.Data_info=self.get_data_info() # Read  er_* data
         self.Data,self.Data_hierarchy=self.get_data() # Get data from magic_measurements and rmag_anistropy if exist.
 
-        self.specimens=self.Data.keys()# get list of specimens
-        self.specimens.sort(cmp=specimens_comparator) # sort list of specimens
-        self.samples=self.Data_hierarchy['samples'].keys()# get list of samples
-        self.samples.sort(cmp=specimens_comparator)# get list of specimens
-        self.sites=self.Data_hierarchy['sites'].keys()# get list of sites
-        self.sites.sort(cmp=specimens_comparator)# get list of sites
         self.locations=self.Data_hierarchy['locations'].keys()# get list of sites
         self.locations.sort()# get list of sites
+        self.sites=self.Data_hierarchy['sites'].keys()# get list of sites
+        self.sites.sort(cmp=specimens_comparator)# get list of sites
+        self.samples=[] #sort the samples within each site
+        for site in self.sites:
+            self.samples.extend(sorted(self.Data_hierarchy['sites'][site]['samples'], cmp=specimens_comparator))
+        self.specimens=[] #sort the specimens within each sample
+        for samp in self.samples:
+            self.specimens.extend(sorted(self.Data_hierarchy['samples'][samp]['specimens'], cmp=specimens_comparator))
 
         #first initialization of self.s only place besides init_cart_rot where it can be set without calling select_specimen
         if len(self.specimens)>0:
@@ -2579,18 +2581,20 @@ class Demag_GUI(wx.Frame):
                 if high_level not in self.high_level_means.keys():
                     self.high_level_means[high_level]={}
 
-        self.specimens=self.Data.keys()         # get list of specimens
-        self.specimens.sort(cmp=specimens_comparator) # sort list of specimens
-        self.samples=self.Data_hierarchy['samples'].keys()         # get list of samples
-        self.samples.sort(cmp=specimens_comparator)                   # get list of specimens
-        self.sites=self.Data_hierarchy['sites'].keys()         # get list of sites
-        self.sites.sort(cmp=specimens_comparator)                   # get list of sites
-        self.locations=self.Data_hierarchy['locations'].keys()         # get list of sites
-        self.locations.sort()                   # get list of sites
+        self.locations=self.Data_hierarchy['locations'].keys()# get list of sites
+        self.locations.sort()# get list of sites
+        self.sites=self.Data_hierarchy['sites'].keys()# get list of sites
+        self.sites.sort(cmp=specimens_comparator)# get list of sites
+        self.samples=[] #sort the samples within each site
+        for site in self.sites:
+            self.samples.extend(sorted(self.Data_hierarchy['sites'][site]['samples'], cmp=specimens_comparator))
+        self.specimens=[] #sort the specimens within each sample
+        for samp in self.samples:
+            self.specimens.extend(sorted(self.Data_hierarchy['samples'][samp]['specimens'], cmp=specimens_comparator))
 
-        #----------------------------------------------------------------------
+        #--------------------------------------------------------------------
         # initialize first specimen in list as current specimen
-        #----------------------------------------------------------------------
+        #--------------------------------------------------------------------
         if self.s in self.specimens: pass
         elif len(self.specimens)>0: self.select_specimen(str(self.specimens[0]))
         else: self.select_specimen("")
