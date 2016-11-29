@@ -25,12 +25,10 @@ class TestDemagGUI(unittest.TestCase):
         add_fit_evt = wx.PyCommandEvent(wx.EVT_BUTTON.typeId,self.frame.add_fit_button.GetId())
         delete_fit_evt = wx.PyCommandEvent(wx.EVT_BUTTON.typeId,self.frame.delete_fit_button.GetId())
 
-        menu_bar = self.frame.GetMenuBar()
-        edit_menu = menu_bar.GetMenu(1)
-        edit_menu_items = edit_menu.GetMenuItems()
+        edit_menu = self.get_menu_from_frame(self.frame, "Edit")
 
-        add_fit_menu_evt = wx.PyCommandEvent(wx.EVT_MENU.typeId,edit_menu_items[0].GetId())
-        delete_fit_menu_evt = wx.PyCommandEvent(wx.EVT_MENU.typeId,edit_menu_items[1].GetId())
+        add_fit_menu_evt = wx.PyCommandEvent(wx.EVT_MENU.typeId,edit_menu.FindItem("&New interpretation\tCtrl-N"))
+        delete_fit_menu_evt = wx.PyCommandEvent(wx.EVT_MENU.typeId,edit_menu.FindItem("&Delete interpretation\tCtrl-D"))
 
         #add fit with no bounds using menu
         self.frame.ProcessEvent(add_fit_menu_evt)
@@ -64,12 +62,10 @@ class TestDemagGUI(unittest.TestCase):
         self.frame.ProcessEvent(prev_evt)
         self.assertEqual(self.frame.s,s_old)
 
-        menu_bar = self.frame.GetMenuBar()
-        edit_menu = menu_bar.GetMenu(1)
-        edit_menu_items = edit_menu.GetMenuItems()
+        edit_menu = self.get_menu_from_frame(self.frame, "Edit")
 
-        next_menu_evt = wx.PyCommandEvent(wx.EVT_MENU.typeId,edit_menu_items[4].GetId())
-        prev_menu_evt = wx.PyCommandEvent(wx.EVT_MENU.typeId,edit_menu_items[5].GetId())
+        next_menu_evt = wx.PyCommandEvent(wx.EVT_MENU.typeId,edit_menu.FindItem("&Next Specimen\tCtrl-Right"))
+        prev_menu_evt = wx.PyCommandEvent(wx.EVT_MENU.typeId,edit_menu.FindItem("&Previous Specimen\tCtrl-Left"))
 
         #switch specimens using menu option
         s_old = self.frame.s
@@ -85,12 +81,10 @@ class TestDemagGUI(unittest.TestCase):
         self.assertEqual(self.frame.s,self.frame.specimens[0])
 
     def test_fit_next_prev(self):
-        menu_bar = self.frame.GetMenuBar()
-        edit_menu = menu_bar.GetMenu(1)
-        edit_menu_items = edit_menu.GetMenuItems()
+        edit_menu = self.get_menu_from_frame(self.frame, "Edit")
 
-        nextfit_menu_evt = wx.PyCommandEvent(wx.EVT_MENU.typeId,edit_menu_items[2].GetId())
-        prevfit_menu_evt = wx.PyCommandEvent(wx.EVT_MENU.typeId,edit_menu_items[3].GetId())
+        nextfit_menu_evt = wx.PyCommandEvent(wx.EVT_MENU.typeId,edit_menu.FindItem("&Next interpretation\tCtrl-Up"))
+        prevfit_menu_evt = wx.PyCommandEvent(wx.EVT_MENU.typeId,edit_menu.FindItem("&Previous interpretation\tCtrl-Down"))
         add_fit_evt = wx.PyCommandEvent(wx.EVT_BUTTON.typeId,self.frame.add_fit_button.GetId())
 
         self.frame.ProcessEvent(add_fit_evt)
@@ -113,14 +107,11 @@ class TestDemagGUI(unittest.TestCase):
         add_fit_evt = wx.PyCommandEvent(wx.EVT_BUTTON.typeId,self.frame.add_fit_button.GetId())
         delete_fit_evt = wx.PyCommandEvent(wx.EVT_BUTTON.typeId,self.frame.delete_fit_button.GetId())
 
-        menu_bar = self.frame.GetMenuBar()
-        edit_menu = menu_bar.GetMenu(1)
-        edit_menu_items = edit_menu.GetMenuItems()
-        mark_meas_data_menu = edit_menu_items[6].GetSubMenu()
-        mark_meas_data_menu_items = mark_meas_data_menu.GetMenuItems()
+        edit_menu = self.get_menu_from_frame(self.frame, "Edit")
+        mark_meas_data_menu = edit_menu.FindItemById(edit_menu.FindItem("&Flag Measurement Data")).GetSubMenu()
 
-        markgood_menu_evt = wx.PyCommandEvent(wx.EVT_MENU.typeId,mark_meas_data_menu_items[0].GetId())
-        markbad_menu_evt = wx.PyCommandEvent(wx.EVT_MENU.typeId,mark_meas_data_menu_items[1].GetId())
+        markgood_menu_evt = wx.PyCommandEvent(wx.EVT_MENU.typeId,mark_meas_data_menu.FindItem("&Good Measurement\tCtrl-Alt-G"))
+        markbad_menu_evt = wx.PyCommandEvent(wx.EVT_MENU.typeId,mark_meas_data_menu.FindItem("&Bad Measurement\tCtrl-Alt-B"))
 
         tmin_box_evt = wx.PyCommandEvent(wx.EVT_COMBOBOX.typeId,self.frame.tmin_box.GetId())
         tmax_box_evt = wx.PyCommandEvent(wx.EVT_COMBOBOX.typeId,self.frame.tmax_box.GetId())
@@ -234,12 +225,10 @@ class TestDemagGUI(unittest.TestCase):
         ie.ProcessEvent(addall_evt)
         ie.ProcessEvent(addall_evt)
 
-        menu_bar = self.frame.GetMenuBar()
-        file_menu = menu_bar.GetMenu(0)
-        file_menu_items = file_menu.GetMenuItems()
+        file_menu = self.get_menu_from_frame(self.frame, "File")
 
-        importredo_menu_evt = wx.PyCommandEvent(wx.EVT_MENU.typeId,file_menu_items[2].GetId())
-        writeredo_menu_evt = wx.PyCommandEvent(wx.EVT_MENU.typeId,file_menu_items[3].GetId())
+        importredo_menu_evt = wx.PyCommandEvent(wx.EVT_MENU.typeId,file_menu.FindItem("&Import interpretations from a redo file\tCtrl-R"))
+        writeredo_menu_evt = wx.PyCommandEvent(wx.EVT_MENU.typeId,file_menu.FindItem("&Save interpretations to a redo file\tCtrl-S"))
 
         self.frame.ProcessEvent(writeredo_menu_evt)
         old_frame = str(self.frame)
@@ -262,11 +251,9 @@ class TestDemagGUI(unittest.TestCase):
 
         self.ie_add_n_fits_to_all(n_fits)
 
-        menu_bar = self.frame.GetMenuBar()
-        file_menu = menu_bar.GetMenu(0)
-        file_menu_items = file_menu.GetMenuItems()
+        file_menu = self.get_menu_from_frame(self.frame, "File")
 
-        writepmag_menu_evt = wx.PyCommandEvent(wx.EVT_MENU.typeId,file_menu_items[4].GetId())
+        writepmag_menu_evt = wx.PyCommandEvent(wx.EVT_MENU.typeId,file_menu.FindItem("&Save MagIC pmag tables\tCtrl-Shift-S"))
         print("-------------------------------------------------------------")
         self.frame.ProcessEvent(writepmag_menu_evt)
         print("-------------------------------------------------------------")
@@ -576,11 +563,9 @@ class TestDemagGUI(unittest.TestCase):
                 self.assertTrue(similar_fit_present)
 
     def test_VGP_viewer(self):
-        menu_bar = self.frame.GetMenuBar()
-        tools_menu = menu_bar.GetMenu(3)
-        tools_menu_items = tools_menu.GetMenuItems()
+        tools_menu = self.get_menu_from_frame(self.frame, "Tools")
 
-        viewVGPs_menu_evt = wx.PyCommandEvent(wx.EVT_MENU.typeId, tools_menu_items[1].GetId())
+        viewVGPs_menu_evt = wx.PyCommandEvent(wx.EVT_MENU.typeId, tools_menu.FindItem("&View VGPs\tCtrl-Shift-V"))
         self.frame.ProcessEvent(viewVGPs_menu_evt)
 
         self.ie_add_n_fits_to_all(n_fits)
@@ -589,15 +574,12 @@ class TestDemagGUI(unittest.TestCase):
         self.frame.ProcessEvent(viewVGPs_menu_evt)
 
     def test_check_sample_orientation_bad_good(self):
-        menu_bar = self.frame.GetMenuBar()
-        analysis_menu = menu_bar.GetMenu(2)
-        analysis_menu_items = analysis_menu.GetMenuItems()
-        check_sample_menu = analysis_menu_items[2].GetSubMenu()
-        check_sample_menu_items = check_sample_menu.GetMenuItems()
+        analysis_menu = self.get_menu_from_frame(self.frame, "Analysis")
+        check_sample_menu = analysis_menu.FindItemById(analysis_menu.FindItem("Sample Orientation")).GetSubMenu()
 
-        check_orient_menu_evt = wx.PyCommandEvent(wx.EVT_MENU.typeId, check_sample_menu_items[0].GetId())
-        mark_sample_bad_menu_evt = wx.PyCommandEvent(wx.EVT_MENU.typeId, check_sample_menu_items[1].GetId())
-        mark_sample_good_menu_evt = wx.PyCommandEvent(wx.EVT_MENU.typeId, check_sample_menu_items[2].GetId())
+        check_orient_menu_evt = wx.PyCommandEvent(wx.EVT_MENU.typeId, check_sample_menu.FindItem("&Check Sample Orientations\tCtrl-O"))
+        mark_sample_bad_menu_evt = wx.PyCommandEvent(wx.EVT_MENU.typeId, check_sample_menu.FindItem("&Mark Sample Bad\tCtrl-."))
+        mark_sample_good_menu_evt = wx.PyCommandEvent(wx.EVT_MENU.typeId, check_sample_menu.FindItem("&Mark Sample Good\tCtrl-,"))
 
         self.assertFalse(self.frame.check_orient_on)
         self.frame.ProcessEvent(check_orient_menu_evt)
@@ -627,22 +609,17 @@ class TestDemagGUI(unittest.TestCase):
                 self.assertTrue(comp not in self.frame.bad_fits)
 
     def test_export_images(self):
-        menu_bar = self.frame.GetMenuBar()
-        file_menu = menu_bar.GetMenu(0)
-        file_menu_items = file_menu.GetMenuItems()
-        export_images_menu = file_menu_items[5].GetSubMenu()
-        export_images_menu_items = export_images_menu.GetMenuItems()
+        file_menu = self.get_menu_from_frame(self.frame, "File")
+        export_images_menu = file_menu.FindItemById(file_menu.FindItem("&Save plot")).GetSubMenu()
 
-        export_all_images_menu_evt = wx.PyCommandEvent(wx.EVT_MENU.typeId, export_images_menu_items[4].GetId())
+        export_all_images_menu_evt = wx.PyCommandEvent(wx.EVT_MENU.typeId, export_images_menu.FindItem("&Save all plots"))
 
         self.frame.ProcessEvent(export_all_images_menu_evt)
 
     def ie_add_n_fits_to_all(self,n):
         #test initialization of ie
-        menu_bar = self.frame.GetMenuBar()
-        tools_menu = menu_bar.GetMenu(3)
-        tools_menu_items = tools_menu.GetMenuItems()
-        open_ie_evt = wx.PyCommandEvent(wx.EVT_MENU.typeId, tools_menu_items[0].GetId())
+        tools_menu = self.get_menu_from_frame(self.frame, "Tools")
+        open_ie_evt = wx.PyCommandEvent(wx.EVT_MENU.typeId, tools_menu.FindItem("&Interpretation editor\tCtrl-E"))
         self.frame.ProcessEvent(open_ie_evt)
         self.assertTrue(self.frame.ie_open)
         ie = self.frame.ie
@@ -660,6 +637,11 @@ class TestDemagGUI(unittest.TestCase):
             self.assertEqual(ie.tmax_box.GetValue(),tmax)
             self.assertEqual(ie.name_box.GetValue(),"test%d"%i)
             ie.ProcessEvent(addall_evt)
+
+    def get_menu_from_frame(self,frame,menu_name):
+        mb = frame.GetMenuBar()
+        for m, n in mb.Menus:
+            if n == menu_name: return m
 
     def mark_all_meas_good(self,frame):
         old_s = frame.s
