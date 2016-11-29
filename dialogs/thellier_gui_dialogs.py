@@ -25,14 +25,14 @@
 import matplotlib
 #matplotlib.use('WXAgg')
 import wx
+import wx.lib.scrolledpanel
 import copy
 import os
 import scipy
 from scipy import arange
 # only this one is nessesary.
 import wx
-from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigCanvas \
-
+from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigCanvas
 import pmagpy.pmag as pmag
 #--------------------------------------------------------------    
 # paleointensity statistics list (SPD.v.1.0)
@@ -707,35 +707,36 @@ class Consistency_Test(wx.Frame):
         wx.Frame.__init__(self, parent=None)
         """
         """
-        import thellier_consistency_test        
+        import thellier_consistency_test
         self.WD=WD
         self.Data=Data
         self.Data_hierarchy=Data_hierarchy
         self.acceptance_criteria=acceptance_criteria
         self.preferences=preferences
-        self.panel = wx.Panel(self)
+        self.panel = wx.lib.scrolledpanel.ScrolledPanel(self,wx.ID_ANY)
         self.make_fixed_criteria()
-        self.init_optimizer_frame()  
+        self.init_optimizer_frame()
+        self.panel.SetAutoLayout(1)
+        self.panel.SetupScrolling()# endable scrolling
         global THERMAL
         global MICROWAVE
         THERMAL = Thermal
-        MICROWAVE =  Microwave           
+        MICROWAVE =  Microwave
 
     def make_fixed_criteria(self):
 
         Text="Choose fixed acceptance criteria"
-        
+
         dlg = wx.MessageDialog(self, Text, caption="First step", style=wx.OK )
         dlg.ShowModal(); dlg.Destroy()
         #self.fixed_criteria['specimen_frac']=0
         #self.fixed_criteria['specimen_b_beta']=10000000
-        
         dia = Criteria_Dialog(None, self.acceptance_criteria,self.preferences,title='Set fixed_criteria_file')
         dia.Center()
 
-        if dia.ShowModal() == wx.ID_OK: # Until the user clicks OK, show the message            
+        if dia.ShowModal() == wx.ID_OK: # Until the user clicks OK, show the message
             self.On_close_fixed_criteria_box(dia)
-        
+
 
     def On_close_fixed_criteria_box(self,dia):
         
@@ -860,8 +861,6 @@ class Consistency_Test(wx.Frame):
         if result == wx.ID_OK:
             dlg1.Destroy()
 
-
-        
     def init_optimizer_frame(self):
 
         Text="Set Consistency Test function parameters"
@@ -1071,7 +1070,7 @@ class Consistency_Test(wx.Frame):
             self.optimizer_group_file_path=dlg.GetPath()
         ignore_n=1
         self.optimizer_group_file_window.SetValue(self.optimizer_group_file_path)
-            
+
     def on_run_optimizer_button( self,event):
         if self.optimizer_group_file_window.GetValue() != "" and self.check_status.GetValue()=="PASS":
             stat1=str("specimen_"+str(self.stat_1.GetValue()))

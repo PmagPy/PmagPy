@@ -219,7 +219,7 @@ class Arai_GUI(wx.Frame):
     """
     title = "PmagPy Thellier GUI %s"%CURRENT_VERSION
 
-    def __init__(self, WD=None, parent=None, standalone=True, DM=2.5):
+    def __init__(self, WD=None, parent=None, standalone=True, DM=2.5, test_mode=False):
 
         TEXT="""
         NAME
@@ -238,6 +238,7 @@ class Arai_GUI(wx.Frame):
         global FIRST_RUN
         FIRST_RUN = True if standalone else False
         wx.Frame.__init__(self, parent, wx.ID_ANY, self.title, name='thellier gui')
+        self.set_test_mode(test_mode)
         self.redo_specimens={}
         self.currentDirectory = os.getcwd() # get the current working directory
         if WD:
@@ -308,7 +309,7 @@ class Arai_GUI(wx.Frame):
             self.WD=sys.argv[ind+1]
         elif not WD: # if no arg was passed in for WD, make a dialog to choose one
             dialog = wx.DirDialog(None, "Choose a directory:",defaultPath = self.currentDirectory ,style=wx.DD_DEFAULT_STYLE | wx.DD_NEW_DIR_BUTTON | wx.DD_CHANGE_DIR)
-            ok = dialog.ShowModal()
+            ok = self.show_dlg(dialog)
             if ok == wx.ID_OK:
                 self.WD=dialog.GetPath()
             else:
@@ -1156,8 +1157,25 @@ else:
         self.Add_text(self.s)
         self.write_sample_box()
 
-
     #----------------------------------------------------------------------
+
+    def show_dlg(self,dlg):
+        """
+        Abstraction function that is to be used instead of dlg.ShowModal
+        @param: dlg - dialog to ShowModal if possible
+        """
+        if not self.test_mode:
+            dlg.Center()
+            return dlg.ShowModal()
+        else: return dlg.GetAffirmativeId()
+
+    def set_test_mode(self,on_off):
+        """
+        Sets GUI test mode on or off
+        @param: on_off - bool value to set test mode to
+        """
+        if type(on_off) != bool: print("test mode must be a bool"); return
+        self.test_mode = on_off
 
     def onSelect_specimen(self, event):
         """
@@ -1165,8 +1183,6 @@ else:
         """
         self.s=self.specimens_box.GetStringSelection()
         self.update_selection()
-
-    #----------------------------------------------------------------------
 
     def on_next_button(self,event):
         """
@@ -1578,7 +1594,7 @@ else:
 
         dia = preferences_appearance_dialog(None,"Thellier_gui appearance preferences",self.preferences)
         dia.Center()
-        if dia.ShowModal() == wx.ID_OK: # Until the user clicks OK, show the message
+        if self.show_dlg(dia) == wx.ID_OK: # Until the user clicks OK, show the message
             #try:
             change_resolution=False
             if float(dia.gui_resolution.GetValue()) != self.preferences['gui_resolution']:
@@ -1610,7 +1626,7 @@ else:
     def write_preferences_to_file(self,need_to_close_frame):
 
         dlg1 = wx.MessageDialog(self,caption="Message:", message="save the thellier_gui.preferences in PmagPy directory!" ,style=wx.OK|wx.ICON_INFORMATION)
-        dlg1.ShowModal()
+        self.show_dlg(dlg1)
         dlg1.Destroy()
         PATH="~/PmagPy"
         try:
@@ -1623,7 +1639,7 @@ else:
             defaultFile="thellier_gui_preferences.py",
             style=wx.FD_SAVE | wx.CHANGE_DIR
             )
-        if dlg2.ShowModal() == wx.ID_OK:
+        if self.show_dlg(dlg2) == wx.ID_OK:
             preference_file = dlg2.GetPath()
             fout=open(preference_file,'w')
             String=""
@@ -1651,7 +1667,7 @@ else:
 
         if need_to_close_frame:
             dlg3 = wx.MessageDialog(self, "You need to restart the program.\n","Confirm Exit", wx.OK|wx.ICON_QUESTION)
-            result = dlg3.ShowModal()
+            result = self.show_dlg(dlg3)
             dlg3.Destroy()
             if result == wx.ID_OK:
                 #self.Destroy()
@@ -1707,7 +1723,7 @@ else:
 
         dia = thellier_gui_dialogs.preferences_stats_dialog(None,"Thellier_gui statistical preferences",self.preferences)
         dia.Center()
-        if dia.ShowModal() == wx.ID_OK: # Until the user clicks OK, show the message
+        if self.show_dlg(dia) == wx.ID_OK: # Until the user clicks OK, show the message
             try:
                 self.preferences['BOOTSTRAP_N']=float(dia.bootstrap_N.GetValue())
             except:
@@ -1716,7 +1732,7 @@ else:
             self.preferences['VDM_or_VADM']=str(dia.v_adm_box.GetValue())
 
             dlg1 = wx.MessageDialog(self,caption="Message:", message="save the thellier_gui.preferences in PmagPy directory!" ,style=wx.OK|wx.ICON_INFORMATION)
-            dlg1.ShowModal()
+            self.show_dlg(dlg1)
             dlg1.Destroy()
 
 
@@ -1726,7 +1742,7 @@ else:
                 defaultFile="thellier_gui_preferences.py",
                 style=wx.FD_SAVE | wx.CHANGE_DIR
                 )
-            if dlg2.ShowModal() == wx.ID_OK:
+            if self.show_dlg(dlg2) == wx.ID_OK:
                 preference_file = dlg2.GetPath()
                 fout=open(preference_file,'w')
                 String=""
@@ -1761,7 +1777,7 @@ else:
 
         dia = thellier_gui_dialogs.PI_Statistics_Dialog(None, self.preferences["show_statistics_on_gui"],title='SPD list')
         dia.Center()
-        if dia.ShowModal() == wx.ID_OK: # Until the user clicks OK, show the message
+        if self.show_dlg(dia) == wx.ID_OK: # Until the user clicks OK, show the message
             self.On_close_spd_box(dia)
 
     def On_close_spd_box(self, dia):
@@ -1781,7 +1797,7 @@ else:
         if self.close_warning:
             TEXT="Data is not saved to a file yet!\nTo properly save your data:\n1) Analysis --> Save current interpretations to a redo file.\nor\n1) File --> Save MagIC tables.\n\n Press OK to exit without saving."
             dlg1 = wx.MessageDialog(None,caption="Warning:", message=TEXT ,style=wx.OK|wx.CANCEL|wx.ICON_EXCLAMATION)
-            if dlg1.ShowModal() == wx.ID_OK:
+            if self.show_dlg(dlg1) == wx.ID_OK:
                 dlg1.Destroy()
                 self.Destroy()
                 #sys.exit()
@@ -1895,7 +1911,7 @@ else:
             #wildcard=wildcard,
             style=wx.OPEN | wx.CHANGE_DIR
             )
-        if dlg.ShowModal() == wx.ID_OK:
+        if self.show_dlg(dlg) == wx.ID_OK:
             redo_file = dlg.GetPath()
             #print "You chose the following file(s):"
             #for path in paths:
@@ -1942,7 +1958,7 @@ else:
         #self.redo_specimens={}
         self.currentDirectory = os.getcwd() # get the current working directory
         dialog = wx.DirDialog(None, "Choose a magic project directory:",defaultPath = self.currentDirectory ,style=wx.DD_DEFAULT_STYLE | wx.DD_NEW_DIR_BUTTON | wx.DD_CHANGE_DIR)
-        if dialog.ShowModal() == wx.ID_OK:
+        if self.show_dlg(dialog) == wx.ID_OK:
             new_magic_dir=dialog.GetPath()
         dialog.Destroy()
 
@@ -1988,7 +2004,7 @@ else:
             new_dir=self.WD
         else:
             dialog = wx.DirDialog(None, "Choose a path. All magic directories in the path will be imported:",defaultPath = self.currentDirectory ,style=wx.DD_DEFAULT_STYLE | wx.DD_NEW_DIR_BUTTON | wx.DD_CHANGE_DIR)
-            ok = dialog.ShowModal()
+            ok = self.show_dlg(dialog)
             if ok == wx.ID_OK:
                 new_dir=dialog.GetPath()
             dialog.Destroy()
@@ -2050,7 +2066,7 @@ else:
             #wildcard=wildcard,
             style=wx.OPEN | wx.CHANGE_DIR
             )
-        if dlg.ShowModal() == wx.ID_OK:
+        if self.show_dlg(dlg) == wx.ID_OK:
             new_magic_file = dlg.GetPath()
             #print "You chose the following file(s):"
         dlg.Destroy()
@@ -2094,7 +2110,7 @@ else:
                 style=wx.OPEN | wx.CHANGE_DIR
                 )
 
-        if dlg.ShowModal() == wx.ID_OK:
+        if self.show_dlg(dlg) == wx.ID_OK:
             criteria_file = dlg.GetPath()
             self.GUI_log.write ("-I- Read new criteria file: %s\n"%criteria_file)
         dlg.Destroy()
@@ -2109,7 +2125,7 @@ else:
                 replace_acceptance_criteria=pmag.read_criteria_from_file(criteria_file,replace_acceptance_criteria,data_model=self.data_model) # just to see if file exists
         except:
             dlg1 = wx.MessageDialog(self,caption="Error:",message="error in reading file" ,style=wx.OK)
-            result = dlg1.ShowModal()
+            result = self.show_dlg(dlg1)
             if result == wx.ID_OK:
                 dlg1.Destroy()
                 return
@@ -2130,19 +2146,19 @@ else:
             dlg1 = wx.MessageDialog(self,caption="WARNING:",
             message="statistics '%s' is in the imported criteria file but not in your appearence preferences.\nThis statistic will not appear on the gui panel.\n The program will exit after saving new acceptance criteria, and it will be added automatically the next time you open it "%stat_list ,
             style=wx.OK|wx.ICON_INFORMATION)
-            dlg1.ShowModal()
+            self.show_dlg(dlg1)
             dlg1.Destroy()
 
         dia = thellier_gui_dialogs.Criteria_Dialog(None, self.acceptance_criteria,self.preferences,title='Acceptance Criteria')
         dia.Center()
-        result = dia.ShowModal()
+        result = self.show_dlg(dia)
         if result == wx.ID_OK: # Until the user clicks OK, show the message
             self.On_close_criteria_box(dia)
             if len(crit_list_not_in_pref)>0:
                 dlg1 = wx.MessageDialog(self,caption="WARNING:",
                 message="Exiting now! When you restart the gui all the new statistics will be added." ,
                 style=wx.OK|wx.ICON_INFORMATION)
-                dlg1.ShowModal()
+                self.show_dlg(dlg1)
                 dlg1.Destroy()
                 #self.Destroy()
                 sys.exit()
@@ -2163,7 +2179,7 @@ else:
 
         dia = thellier_gui_dialogs.Criteria_Dialog(None, self.acceptance_criteria,self.preferences,title='Set Acceptance Criteria')
         dia.Center()
-        result = dia.ShowModal()
+        result = self.show_dlg(dia)
 
         if result == wx.ID_OK: # Until the user clicks OK, show the message
             self.On_close_criteria_box(dia)
@@ -2261,7 +2277,7 @@ else:
 
         #  message dialog
         dlg1 = wx.MessageDialog(self,caption="Warning:", message="changes are saved to the criteria file\n " ,style=wx.OK)
-        result = dlg1.ShowModal()
+        result = self.show_dlg(dlg1)
         if result == wx.ID_OK:
             try:
                 self.clear_boxes()
@@ -2290,7 +2306,7 @@ else:
     def show_message(self,key):
         dlg1 = wx.MessageDialog(self,caption="Error:",
             message="non-vaild value for box %s"%key ,style=wx.OK)
-        result = dlg1.ShowModal()
+        result = self.show_dlg(dlg1)
         if result == wx.ID_OK:
             dlg1.Destroy()
 
@@ -2394,7 +2410,7 @@ else:
 
             thellier_gui_redo_file.write("%s %.0f %.0f\n"%(sp,self.Data[sp]['pars']['measurement_step_min'],self.Data[sp]['pars']['measurement_step_max']))
         dlg1 = wx.MessageDialog(self,caption="Saved:",message="File thellier_GUI.redo is saved in MagIC working folder" ,style=wx.OK)
-        result = dlg1.ShowModal()
+        result = self.show_dlg(dlg1)
         if result == wx.ID_OK:
             dlg1.Destroy()
             return
@@ -2433,7 +2449,7 @@ else:
             text1="Anisotropy tensors elements are saved in rmag_anisotropy.txt\n"
             text2="Other anisotropy statistics are saved in rmag_results.txt\n"
         dlg1 = wx.MessageDialog(self,caption="Message:", message=text1+text2 ,style=wx.OK|wx.ICON_INFORMATION)
-        dlg1.ShowModal()
+        self.show_dlg(dlg1)
         dlg1.Destroy()
 
 
@@ -3040,7 +3056,7 @@ else:
         #print "just drew figure"
         self.update_GUI_with_new_interpretation()
         del busy_frame
-        dlg1.ShowModal()
+        self.show_dlg(dlg1)
         dlg1.Destroy()
         return()
         #self.Data=copy.deepcopy
@@ -3062,7 +3078,7 @@ else:
             )
 
         #dlg = wx.FileDialog(self, "Choose an auto-interpreter output file", defaultDir=dirname, "", "*.*", wx.OPEN)
-        if dlg.ShowModal() == wx.ID_OK:
+        if self.show_dlg(dlg) == wx.ID_OK:
             filename = dlg.GetFilename()
             path=dlg.GetPath()
         else: return
@@ -3157,20 +3173,14 @@ else:
 
 
     def on_menu_run_consistency_test(self, event):
-        #dlg1 = wx.MessageDialog(self,caption="Message:",message="Consistency test is no longer supported in this version" ,style=wx.OK)
-        #result = dlg1.ShowModal()
-        #if result == wx.ID_OK:
-        #    dlg1.Destroy()
-        #    return
 
         self.GUI_log.write ("-I- running thellier consistency test\n")
-
         #thellier_gui_dialogs.Consistency_Test(self.Data,self.Data_hierarchy,self.WD,self.acceptance_criteria_default)
         thellier_gui_dialogs.Consistency_Test(self.Data,self.Data_hierarchy,self.WD,self.acceptance_criteria,self.preferences,THERMAL,MICROWAVE)
 
     def on_menu_run_consistency_test_b(self, event):
         dlg1 = wx.MessageDialog(self,caption="Message:",message="Consistency test is no longer supported in this version" ,style=wx.OK)
-        result = dlg1.ShowModal()
+        result = self.show_dlg(dlg1)
         if result == wx.ID_OK:
             dlg1.Destroy()
             return
@@ -3182,12 +3192,12 @@ else:
 
         dia = thellier_gui_dialogs.Plot_Dialog(None,self.WD,self.Data,self.Data_info)
         dia.Center()
-        #result = dia.ShowModal()
+        #result = self.show_dlg(dia)
 
         #if result == wx.ID_OK: # Until the user clicks OK, show the message
         #    self.On_close_criteria_box(dia)
 
-        if dia.ShowModal() == wx.ID_OK: # Until the user clicks OK, show the message
+        if self.show_dlg(dia) == wx.ID_OK: # Until the user clicks OK, show the message
             self.On_close_plot_dialog(dia)
 
     #----------------------------------------------------------------------
@@ -3367,7 +3377,7 @@ else:
             TEXT="specimens interpretations are saved in specimens.txt.\nPress OK for samples/sites tables."
 
         dlg = wx.MessageDialog(self, caption="Saved",message=TEXT,style=wx.OK|wx.CANCEL )
-        result = dlg.ShowModal()
+        result = self.show_dlg(dlg)
         if result == wx.ID_OK:
             dlg.Destroy()
         if result == wx.ID_CANCEL:
@@ -3815,7 +3825,7 @@ else:
             self.samp_container.write_magic_file(dir_path=self.WD)
             self.site_container.write_magic_file(dir_path=self.WD)
         dlg1 = wx.MessageDialog(self,caption="Message:", message="MagIC files are saved in MagIC project folder" ,style=wx.OK|wx.ICON_INFORMATION)
-        dlg1.ShowModal()
+        self.show_dlg(dlg1)
         dlg1.Destroy()
 
         self.close_warning=False
@@ -5470,7 +5480,7 @@ else:
             "Click!",
             wx.OK | wx.ICON_INFORMATION)
 
-        dlg.ShowModal()
+        self.show_dlg(dlg)
         dlg.Destroy()
 
 
@@ -7088,7 +7098,7 @@ else:
         @return: True or False
         """
         dlg = wx.MessageDialog(self, message, caption, wx.OK | wx.CANCEL | wx.ICON_WARNING)
-        if dlg.ShowModal() == wx.ID_OK:
+        if self.show_dlg(dlg) == wx.ID_OK:
             continue_bool = True
         else:
             continue_bool = False
