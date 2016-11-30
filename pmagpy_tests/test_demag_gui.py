@@ -654,13 +654,13 @@ class TestDemagGUI(unittest.TestCase):
     def tearDown(self):
         wx.CallAfter(self.app.Exit)
         self.app.MainLoop()
-        try: os.remove(project_WD + "/demag_gui.redo")
+        try: os.remove(os.path.join(project_WD, "demag_gui.redo"))
         except OSError: pass
-        try: os.remove(project_WD + "/pmag_specimens.txt")
+        try: os.remove(os.path.join(project_WD, "pmag_specimens.txt"))
         except OSError: pass
-        try: os.remove(project_WD + "/pmag_sites.txt")
+        try: os.remove(os.path.join(project_WD, "pmag_sites.txt"))
         except OSError: pass
-        try: os.remove(project_WD + "/pmag_results.txt")
+        try: os.remove(os.path.join(project_WD, "pmag_results.txt"))
         except OSError: pass
         os.chdir(WD)
 

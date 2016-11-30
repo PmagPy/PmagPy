@@ -247,6 +247,11 @@ class Arai_GUI(wx.Frame):
         else:
             self.get_DIR() # choose directory dialog
 
+        #init wait dialog
+        disableAll = wx.WindowDisabler()
+        wait = wx.BusyInfo('Compiling required data, please wait...')
+        wx.Yield()
+
         # inialize selecting criteria
         self.acceptance_criteria=pmag.initialize_acceptance_criteria(data_model=self.data_model)
         self.add_thellier_gui_criteria()
@@ -298,6 +303,7 @@ class Arai_GUI(wx.Frame):
         FIRST_RUN=False
         self.Bind(wx.EVT_CLOSE, self.on_menu_exit)
         self.close_warning=False
+        wait.Destroy()
 
     def get_DIR(self, WD=None):
         """
@@ -1897,40 +1903,37 @@ else:
 
 
     def on_menu_previous_interpretation(self, event):
-
-        save_current_specimen=self.s
         """
         Create and show the Open FileDialog for upload previous interpretation
         input should be a valid "redo file":
         [specimen name] [tmin(kelvin)] [tmax(kelvin)]
         """
+        save_current_specimen=self.s
         dlg = wx.FileDialog(
             self, message="choose a file in a pmagpy redo format",
             defaultDir=self.WD,
-            defaultFile="",
-            #wildcard=wildcard,
+            defaultFile="thellier_GUI.redo",
+            wildcard="*.redo",
             style=wx.OPEN | wx.CHANGE_DIR
             )
         if self.show_dlg(dlg) == wx.ID_OK:
             redo_file = dlg.GetPath()
-            #print "You chose the following file(s):"
-            #for path in paths:
-            #print "-I- Read redo file:",redo_file
+            if self.test_mode: redo_file="thellier_GUI.redo"
         else:
-            dlg.Destroy()
-            return
+            redo_file=None
         dlg.Destroy()
 
         print "redo_file",redo_file
-        self.read_redo_file(redo_file)
+        if redo_file:
+            self.read_redo_file(redo_file)
     #----------------------------------------------------------------------
 
     def on_menu_change_working_directory(self, event):
 
         self.redo_specimens={}
         self.currentDirectory = os.getcwd() # get the current working directory
-        self.get_DIR()                      # choose directory dialog
-        acceptance_criteria_default,acceptance_criteria_null=pmag.initialize_acceptance_criteria(data_model=self.data_model),pmag.initialize_acceptance_criteria(data_model=self.data_model)    # inialize Null selecting criteria
+        self.get_DIR() # choose directory dialog
+        acceptance_criteria_default,acceptance_criteria_null=pmag.initialize_acceptance_criteria(data_model=self.data_model),pmag.initialize_acceptance_criteria(data_model=self.data_model) # inialize Null selecting criteria
 
         self.acceptance_criteria_null=acceptance_criteria_null
         self.acceptance_criteria_default=acceptance_criteria_default
@@ -1997,7 +2000,6 @@ else:
         self.open_magic_tree()
 
     def open_magic_tree(self):
-
         busy_frame=wx.BusyInfo("Loading data\n It may take few seconds, depending on the number of specimens ...", self)
         #busy_frame.Center()
         if FIRST_RUN and "-tree" in sys.argv:
@@ -2089,7 +2091,6 @@ else:
     #----------------------------------------------------------------------
 
     def on_menu_criteria_file(self, event):
-
         """
         read pmag_criteria.txt file
         and open change criteria dialog
@@ -2281,23 +2282,25 @@ else:
         if result == wx.ID_OK:
             try:
                 self.clear_boxes()
-            except:
+            except IndexError:
                 pass
             try:
                 self.write_acceptance_criteria_to_boxes()
-            except:
+            except IOError:
                 pass
             if self.data_model==3:
                 crit_file='criteria.txt'
             else:
                 crit_file='pmag_criteria.txt'
-            pmag.write_criteria_to_file(os.path.join(self.WD, crit_file),self.acceptance_criteria,data_model=self.data_model,prior_crits=self.crit_data)
+            try: pmag.write_criteria_to_file(os.path.join(self.WD, crit_file),self.acceptance_criteria,data_model=self.data_model,prior_crits=self.crit_data)
+            except AttributeError:
+                print("no criteria given to save")
             dlg1.Destroy()
             dia.Destroy()
         self.recalculate_satistics()
         try:
             self.update_GUI_with_new_interpretation()
-        except:
+        except KeyError:
             pass
 
     # only a valid number can be entered to boxes
@@ -5198,7 +5201,6 @@ else:
 
 
     def get_new_T_PI_parameters(self,event):
-
         """
         calcualte statisics when temperatures are selected
         """
@@ -5218,7 +5220,6 @@ else:
         if float(t2) < float(t1):
             return
 
-
         index_1=self.T_list.index(t1)
         index_2=self.T_list.index(t2)
 
@@ -5232,9 +5233,7 @@ else:
                 self.Data[self.s]['pars'] = self.pars
             self.update_GUI_with_new_interpretation()
 
-
-
-    def  draw_interpretation(self):
+    def draw_interpretation(self):
 
         if "measurement_step_min" not in self.pars.keys() or "measurement_step_max" not in self.pars.keys():
             return()

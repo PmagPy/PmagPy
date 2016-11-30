@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import unittest
-import wx,os,shutil
+import wx,os,shutil,sys
 #import SPD
 #import wx.lib.inspection
 #import numpy as np
@@ -10,6 +10,7 @@ import wx,os,shutil
 #import pmag_menu_dialogs
 from programs import thellier_gui
 import dialogs.thellier_interpreter as thellier_interpreter
+from numpy import array,isnan
 
 class TestThellierGUI(unittest.TestCase):
 
@@ -22,6 +23,9 @@ class TestThellierGUI(unittest.TestCase):
         self.app.Destroy()
         os.chdir(WD)
 
+    def test_empty_dir(self):
+        thellier_gui.Arai_GUI(empty_WD)
+
     def test_main_panel_is_created(self):
         """
         test for existence of main panel
@@ -30,10 +34,14 @@ class TestThellierGUI(unittest.TestCase):
         self.assertTrue(self.pnl.IsShown())
 
     def test_auto_interpreter(self):
-        menu = self.get_menu_from_frame(self.frame,'Auto Interpreter')
-        item_id = menu.FindItem('&Run Thellier auto interpreter')
-        event = wx.CommandEvent(wx.EVT_MENU.evtType[0], item_id)
-        self.frame.ProcessEvent(event)
+        self.run_ai_on_frame(self.frame)
+        ai_menu = self.get_menu_from_frame(self.frame,'Auto Interpreter')
+        ai_output_item_id = ai_menu.FindItem("&Open auto-interpreter output files")
+        ai_output_event = wx.CommandEvent(wx.EVT_MENU.typeId, ai_output_item_id)
+        ai_warn_item_id = ai_menu.FindItem("&Open auto-interpreter Warnings/Errors")
+        ai_warn_event = wx.CommandEvent(wx.EVT_MENU.typeId, ai_warn_item_id)
+        self.frame.ProcessEvent(ai_output_event)
+        self.frame.ProcessEvent(ai_warn_event)
 
     def test_interpreter(self):
         THERMAL = True
@@ -41,12 +49,79 @@ class TestThellierGUI(unittest.TestCase):
         interpreter = thellier_interpreter.thellier_auto_interpreter(self.frame.Data, self.frame.Data_hierarchy, self.frame.WD, self.frame.acceptance_criteria, self.frame.preferences, self.frame.GUI_log, THERMAL, MICROWAVE)
         program_ran, num_specs = interpreter.run_interpreter()
         self.assertTrue(program_ran)
-        self.assertEqual(5, num_specs)
+        if self.frame.WD == os.path.join(WD, 'data_files', 'testing', 'my_project'):
+            self.assertEqual(5, num_specs)
+
+    def test_anisotropy_calc_and_warns(self):
+        aniso_menu = self.get_menu_from_frame(self.frame,"Anisotropy")
+        calc_aniso = wx.PyCommandEvent(wx.EVT_MENU.typeId, aniso_menu.FindItem("&Calculate anisotropy tensors"))
+        warn_aniso = wx.PyCommandEvent(wx.EVT_MENU.typeId, aniso_menu.FindItem("&Show anisotropy calculation Warnings/Errors"))
+
+        try: os.remove(os.path.join(project_WD, "rmag_anisotropy.txt"))
+        except OSError: pass
+        try: os.remove(os.path.join(project_WD, "rmag_anisotropy.log"))
+        except OSError: pass
+        try: os.remove(os.path.join(project_WD, "rmag_results.txt"))
+        except OSError: pass
+
+        self.assertFalse(os.path.isfile(os.path.join(self.frame.WD, "rmag_anisotropy.txt")))
+        self.assertFalse(os.path.isfile(os.path.join(self.frame.WD, "rmag_anisotropy.log")))
+        self.assertFalse(os.path.isfile(os.path.join(self.frame.WD, "rmag_results.txt")))
+
+        self.frame.ProcessEvent(calc_aniso)
+
+        self.assertTrue(os.path.isfile(os.path.join(self.frame.WD, "rmag_anisotropy.txt")))
+        self.assertTrue(os.path.isfile(os.path.join(self.frame.WD, "rmag_anisotropy.log")))
+        self.assertTrue(os.path.isfile(os.path.join(self.frame.WD, "rmag_results.txt")))
+
+        self.frame.ProcessEvent(warn_aniso)
+
+    def test_read_write_redo(self):
+        analysis_menu = self.get_menu_from_frame(self.frame,"Analysis")
+        write_redo_event = wx.PyCommandEvent(wx.EVT_MENU.typeId, analysis_menu.FindItem("&Save current interpretations to a 'redo' file"))
+        read_redo_event = wx.PyCommandEvent(wx.EVT_MENU.typeId, analysis_menu.FindItem("&Import previous interpretation from a 'redo' file"))
+        clear_interps_event = wx.PyCommandEvent(wx.EVT_MENU.typeId, analysis_menu.FindItem("&Clear all current interpretations"))
+
+        self.run_ai_on_frame(self.frame)
+
+        self.frame.ProcessEvent(write_redo_event)
+        self.assertTrue(os.path.isfile(os.path.join(self.frame.WD, "thellier_GUI.redo")))
+
+        old_interps = {sp : self.frame.Data[sp]['pars'] for sp in self.frame.Data.keys()}
+
+        self.frame.ProcessEvent(clear_interps_event)
+        cleared_vals = []
+        [cleared_vals.extend(self.frame.Data[sp]['pars'].keys()) for sp in self.frame.Data.keys()]
+        self.assertEqual(cleared_vals.count('lab_dc_field'), len(cleared_vals)/3)
+        self.assertEqual(cleared_vals.count('er_specimen_name'), len(cleared_vals)/3)
+        self.assertEqual(cleared_vals.count('er_sample_name'), len(cleared_vals)/3)
+
+        self.frame.ProcessEvent(read_redo_event)
+        new_interps = {sp : self.frame.Data[sp]['pars'] for sp in self.frame.Data.keys()}
+        self.assertTrue(all([array(old_interps[k][k2]).all()==array(new_interps[k][k2]).all() if hasattr(old_interps[k][k2],'__iter__') else old_interps[k][k2]==new_interps[k][k2] for k in new_interps.keys() for k2 in new_interps[k].keys() if isinstance(old_interps[k][k2],float) and isinstance(new_interps[k][k2],float) and not isnan(old_interps[k][k2]) and not isnan(new_interps[k][k2])]))
+
+        self.assertTrue(os.path.isfile(os.path.join(self.frame.WD, "thellier_GUI.redo")))
+        try: os.remove(os.path.join(self.frame.WD, "thellier_GUI.redo"))
+        except OSError: pass
+        self.assertFalse(os.path.isfile(os.path.join(self.frame.WD, "thellier_GUI.redo")))
+
+    def test_plot_paleoint_curve(self):
+        plot_menu = self.get_menu_from_frame(self.frame,'Plot')
+        plot_paleoint_event = wx.PyCommandEvent(wx.EVT_MENU.typeId, plot_menu.FindItem("&Plot paleointensity curve"))
+        self.frame.ProcessEvent(plot_paleoint_event)
+        self.run_ai_on_frame(self.frame)
+        self.frame.ProcessEvent(plot_paleoint_event)
 
     def get_menu_from_frame(self,frame,menu_name):
         mb = frame.GetMenuBar()
         for m, n in mb.Menus:
             if n == menu_name: return m
+
+    def run_ai_on_frame(self,frame):
+        ai_menu = self.get_menu_from_frame(frame,'Auto Interpreter')
+        run_ai_item_id = ai_menu.FindItem('&Run Thellier auto interpreter')
+        run_ai_event = wx.CommandEvent(wx.EVT_MENU.typeId, run_ai_item_id)
+        frame.ProcessEvent(run_ai_event)
 
 def backup(WD):
     print("backing up")
@@ -78,6 +153,14 @@ if __name__ == '__main__':
     # set constants
     WD = os.getcwd()
     project_WD = os.path.join(WD, 'data_files', 'testing', 'my_project')
+    empty_WD = os.path.join(os.getcwd(), 'pmagpy_tests', 'examples', 'empty_dir')
+
+    if '-d' in sys.argv:
+        d_index = sys.argv.index('-d')
+        project_WD = os.path.join(WD,sys.argv[d_index+1])
+    elif '--dir' in sys.argv:
+        d_index = sys.argv.index('--dir')
+        project_WD = os.path.join(WD,sys.argv[d_index+1])
 
     backup(project_WD)
     unittest.TextTestRunner().run(unittest.TestLoader().loadTestsFromTestCase(TestThellierGUI))

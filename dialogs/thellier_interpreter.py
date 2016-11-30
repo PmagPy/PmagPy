@@ -15,7 +15,7 @@
 #---------------------------------------------------------------------------
 import matplotlib
 import pylab,scipy,os,time
-from pylab import * 
+from pylab import *
 from scipy import *
 import wx
 #import  scipy.interpolate
@@ -23,8 +23,8 @@ import gzip
 #import pmag
 import copy
 #from scipy.optimize import curve_fit
-import thellier_gui_lib    
-    
+import thellier_gui_lib
+
 class thellier_auto_interpreter():
 
     def __init__(self,Data,Data_hierarchy,interpreter_path,acceptance_criteria,preferences, GUI_log,thermal,microwave):
@@ -54,8 +54,6 @@ class thellier_auto_interpreter():
 
         import random
         import copy
-        
-
 
         start_time=time.time()
         #------------------------------------------------
@@ -72,7 +70,6 @@ class thellier_auto_interpreter():
             os.mkdir(os.path.join(self.WD, "thellier_interpreter"))
         except:
             pass
-
 
         #------------------------------------------------
         # Intialize interpreter output files:
@@ -280,11 +277,11 @@ class thellier_auto_interpreter():
                         self.thellier_interpreter_log.write(message_string+"\n")
                         continue
                     pars=thellier_gui_lib.check_specimen_PI_criteria(pars,self.acceptance_criteria)
-                    #-------------------------------------------------            
+                    #-------------------------------------------------
                     # check if pass the criteria
                     #-------------------------------------------------
 
-                    if  'specimen_fail_criteria' in pars.keys() and len(pars['specimen_fail_criteria'])>0:
+                    if 'specimen_fail_criteria' in pars.keys() and len(pars['specimen_fail_criteria'])>0:
                         # Fail:
                         message_string= "-I- specimen %s (%.0f-%.0f) FAIL on: "%(s,float(pars["measurement_step_min"])-273, float(pars["measurement_step_max"])-273)
                         for parameter in pars['specimen_fail_criteria']:
@@ -292,17 +289,17 @@ class thellier_auto_interpreter():
                                 message_string=message_string+parameter + "= %f,  "%pars[parameter]
                             else:
                                 message_string=message_string+parameter + "= %s,  "%str(pars[parameter])
-                                
-                        self.thellier_interpreter_log.write(message_string+"\n")        
+
+                        self.thellier_interpreter_log.write(message_string+"\n")
                     elif 'specimen_fail_criteria' in pars.keys() and len(pars['specimen_fail_criteria'])==0:
 
                         # PASS:
                         message_string = "-I- specimen %s (%.0f-%.0f) PASS"%(s,float(pars["measurement_step_min"])-273, float(pars["measurement_step_max"])-273)
                         self.thellier_interpreter_log.write(message_string+"\n")
-                        
-                        #--------------------------------------------------------------
+
+                        #----------------------------------------------------
                         # Save all the grade A interpretation in thellier_interpreter_all.txt
-                        #--------------------------------------------------------------
+                        #----------------------------------------------------
 
                         String=s+"\t"
                         String=String+"%.0f\t"%(float(pars["measurement_step_min"])-273.)
@@ -325,20 +322,20 @@ class thellier_auto_interpreter():
                         String=String+"%.1f\t"%(Bancient)
                         for key in self.specimen_criteria:# + ["specimen_b"] + ["specimen_cm_x"] + ["specimen_cm_y"]:
                            if type(pars[key])==str:
-                            String=String+pars[key]+"\t"                               
-                           else: 
+                            String=String+pars[key]+"\t"
+                           else:
                             String=String+"%.3e"%(float(pars[key]))+"\t"
                         String=String[:-1]+"\n"
 
                         thellier_interpreter_all.write(String)
 
 
-                        #-------------------------------------------------                    
+                        #-------------------------------------------------
                         # save 'acceptable' (grade A) specimen interpretaion
                         # All_grade_A_Recs={}
                         # All_grade_A_Recs[specimen_name]["tmin,tmax"]={PI pars sorted in dictionary}
                         #-------------------------------------------------
-                        
+
                         if s not in All_grade_A_Recs.keys():
                            All_grade_A_Recs[s]={}
                         new_pars={}
@@ -353,7 +350,7 @@ class thellier_auto_interpreter():
         Grade_A_samples={}
         Grade_A_sites={}
         Redo_data_specimens={}
-        
+
         #--------------------------------------------------------------
         # specimens bound file
         #--------------------------------------------------------------
@@ -379,9 +376,9 @@ class thellier_auto_interpreter():
                     AC_correction_factor=1.
                     AC_correction_type="-"
                     WARNING="WARNING: No anisotropy correction"
-                
+
                 B_anc=pars['specimen_int_uT']
-                    
+
                 if B_anc< B_min:
                     B_min=B_anc
                 if B_anc > B_max:
@@ -391,35 +388,35 @@ class thellier_auto_interpreter():
                     if NLT_f< NLT_factor_min:
                         NLT_factor_min=NLT_f
                     if NLT_f > NLT_factor_max:
-                        NLT_factor_max=NLT_f                
+                        NLT_factor_max=NLT_f
 
                 # sort by samples
-                #--------------------------------------------------------------
-                
+                #------------------------------------------------------------
+
                 if sample not in Grade_A_samples.keys():
                     Grade_A_samples[sample]={}
                 if s not in Grade_A_samples[sample].keys() and len(All_grade_A_Recs[s])>0:
                     Grade_A_samples[sample][s]=[]
 
-                Grade_A_samples[sample][s].append(B_anc)                
+                Grade_A_samples[sample][s].append(B_anc)
 
                 # sort by sites
-                #--------------------------------------------------------------
-                
+                #------------------------------------------------------------
+
                 if site not in Grade_A_sites.keys():
                     Grade_A_sites[site]={}
                 if s not in Grade_A_sites[site].keys() and len(All_grade_A_Recs[s])>0:
                     Grade_A_sites[site][s]=[]
-                Grade_A_sites[site][s].append(B_anc)                
+                Grade_A_sites[site][s].append(B_anc)
 
                 # ? check
-                #--------------------------------------------------------------
+                #------------------------------------------------------------
 
                 if s not in Redo_data_specimens.keys():
                     Redo_data_specimens[s]={}
 
             # write to specimen_bounds
-            #--------------------------------------------------------------
+            #----------------------------------------------------------------
 
             if pars["NLT_specimen_correction_factor"] != -1:
                 NLT_factor="%.2f"%(NLT_factor_max)
@@ -444,7 +441,7 @@ class thellier_auto_interpreter():
                 AC_correction_factor_to_print="-"
             else:
                 AC_correction_factor_to_print="%.2f"%AC_correction_factor
-            
+
             String="%s\t%s\t%s\t%s\t%s\t%s\t%.1f\t%.1f\t%.1f\t%s\n"\
                     %(sample,s,AC_correction_factor_to_print,AC_correction_type,NLT_factor,CR_factor,B_lab,B_min,B_max,WARNING)
             Fout_specimens_bounds.write(String)
@@ -466,18 +463,16 @@ class thellier_auto_interpreter():
         sites=Grade_A_sites.keys()
         sites.sort()
 
-        #--------------------------------------------------------------        
+        #--------------------------------------------------------------
         # thellier-interpreter can work by averaging specimens by sample (default)
         # or by averaging specimens by site
         #--------------------------------------------------------------
 
-                
         if self.acceptance_criteria['average_by_sample_or_site']['value']=='sample':
             self.Grade_A_sorted=copy.deepcopy(Grade_A_samples)
              
         else:
             self.Grade_A_sorted=copy.deepcopy(Grade_A_sites)
-
 
         self.clean_workspace()
 
@@ -493,21 +488,19 @@ class thellier_auto_interpreter():
                 self.update_data_with_interpreter_pars(self.Grade_A_sorted,All_grade_A_Recs,sample_or_site,self.thellier_interpreter_pars)
                 self.update_files_with_intrepretation(self.Grade_A_sorted,All_grade_A_Recs,sample_or_site,self.thellier_interpreter_pars)
 
-                                                  
-        
-        self.thellier_interpreter_log.write( "-I- Statistics:\n")
-        self.thellier_interpreter_log.write( "-I- number of specimens analzyed = %i\n" % len(specimens_list)  )
-        self.thellier_interpreter_log.write( "-I- number of sucsessful 'acceptable' specimens = %i\n" % len(All_grade_A_Recs.keys()))   
+        self.thellier_interpreter_log.write("-I- Statistics:\n")
+        self.thellier_interpreter_log.write("-I- number of specimens analzyed = %i\n" % len(specimens_list))
+        self.thellier_interpreter_log.write("-I- number of sucsessful 'acceptable' specimens = %i\n" % len(All_grade_A_Recs.keys()))
 
         runtime_sec = time.time() - start_time
         m, s = divmod(runtime_sec, 60)
         h, m = divmod(m, 60)
-        self.thellier_interpreter_log.write( "-I- runtime hh:mm:ss is " + "%d:%02d:%02d\n" % (h, m, s))
+        self.thellier_interpreter_log.write("-I- runtime hh:mm:ss is " + "%d:%02d:%02d\n" % (h, m, s))
         if len(specimens_list)!=0:
-            self.thellier_interpreter_log.write( "-I- runtime per specimen: %.1f seconds"%(float(runtime_sec)/len(specimens_list)))
+            self.thellier_interpreter_log.write("-I- runtime per specimen: %.1f seconds"%(float(runtime_sec)/len(specimens_list)))
         
-        self.thellier_interpreter_log.write( "-I- Finished sucsessfuly.\n")
-        self.thellier_interpreter_log.write( "-I- DONE\n")
+        self.thellier_interpreter_log.write("-I- Finished sucsessfuly.\n")
+        self.thellier_interpreter_log.write("-I- DONE\n")
 
 
         # close all files
