@@ -186,6 +186,7 @@ class Demag_GUI(wx.Frame):
         self.selected_meas_called = False
         self.dirtypes = ['DA-DIR','DA-DIR-GEO','DA-DIR-TILT']
         self.bad_fits = []
+        self.CART_rot,self.CART_rot_good,self.CART_rot_bad = [],[],[]
 
         # initialize selecting criteria
         self.COORDINATE_SYSTEM='geographic'
@@ -225,7 +226,7 @@ class Demag_GUI(wx.Frame):
         self.side_panel = wx.Panel(self,wx.ID_ANY)
         self.init_UI()# build the main frame
         self.create_menu()# create manu bar
-        self.scrolled_panel.SetAutoLayout(1)
+        self.scrolled_panel.SetAutoLayout(True)
         self.scrolled_panel.SetupScrolling()# endable scrolling
 
         # Draw figures and add text

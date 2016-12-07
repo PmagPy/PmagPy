@@ -323,7 +323,6 @@ class Arai_GUI(wx.Frame):
             dialog.Destroy()
         self.WD = os.path.realpath(self.WD)
 
-
         if "-DM" in sys.argv:
             self.data_model = float(pmag.get_named_arg_from_sys('-DM', 2))
             self.data_model = int(self.data_model)
@@ -1718,10 +1717,7 @@ else:
                         preferences['show_statistics_on_gui'].append(short_crit)
                         print "-I-",short_crit, " was added to criteria list and will be displayed on screen"
 
-
         return(preferences)
-
-
 
     #----------------------------------
 
@@ -1775,9 +1771,7 @@ else:
 
             dlg2.Destroy()
 
-
             return()
-
 
     def on_menu_m_preferences_spd(self, event):
 
@@ -1792,10 +1786,6 @@ else:
             self.write_preferences_to_file(True)
         else:
             pass
-
-
-
-
 
     #-----------------------------------
 
@@ -1900,7 +1890,6 @@ else:
             self.update_selection()
         else:
             return
-
 
     def on_menu_previous_interpretation(self, event):
         """

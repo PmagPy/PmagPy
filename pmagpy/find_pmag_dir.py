@@ -49,13 +49,17 @@ def get_pmag_dir():
             lib_dir = os.getcwd()
         fname = os.path.join(lib_dir, 'pmag.py')
         if not os.path.isfile(fname):
-            print '-W- Can\'t find the data model!  Make sure you have installed pmagpy using pip: "pip install pmagpy --upgrade"'
-            return
+            pmag_dir = os.path.split(os.path.split(__file__)[0])[0]
+            if os.path.isfile(os.path.join(pmag_dir,'pmagpy','pmag.py')):
+                return pmag_dir
+            else:
+                print '-W- Can\'t find the data model!  Make sure you have installed pmagpy using pip: "pip install pmagpy --upgrade"'
+                return '.'
         # strip "/" or "\" and "pmagpy" to return proper PmagPy directory
         if lib_dir.endswith(os.sep):
             lib_dir = lib_dir[:-1]
         if lib_dir.endswith('pmagpy'):
-            pmag_dir = lib_dir[:-6]
+            pmag_dir = os.path.split(lib_dir)[0]
         else:
             pmag_dir = lib_dir
         return pmag_dir
@@ -66,7 +70,6 @@ def get_pmag_dir():
 
     ##except KeyError:
     ##    return os.path.dirname(os.path.realpath(__file__))
-
 
 def is_frozen():
     """

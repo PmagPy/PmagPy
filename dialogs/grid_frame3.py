@@ -254,7 +254,7 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
         ## none of these anymore
 
         # final layout, set size
-        self.main_sizer.Add(self.hbox, flag=wx.ALL, border=20)
+        self.main_sizer.Add(self.hbox, flag=wx.ALL|wx.ALIGN_CENTER , border=20)
         self.main_sizer.Add(self.toggle_help_btn,
                             flag=wx.BOTTOM|wx.ALIGN_CENTRE,
                             border=5)

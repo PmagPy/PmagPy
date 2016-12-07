@@ -2,12 +2,6 @@
 
 import unittest
 import wx,os,shutil,sys
-#import SPD
-#import wx.lib.inspection
-#import numpy as np
-#import ipmag
-#import pmag_gui
-#import pmag_menu_dialogs
 from programs import thellier_gui
 import dialogs.thellier_interpreter as thellier_interpreter
 from numpy import array,isnan
