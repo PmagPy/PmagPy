@@ -15,6 +15,12 @@ class TestThellierGUI(unittest.TestCase):
 
     def tearDown(self):
         self.app.Destroy()
+        try: os.remove(os.path.join(project_WD, "rmag_anisotropy.txt"))
+        except OSError: pass
+        try: os.remove(os.path.join(project_WD, "rmag_anisotropy.log"))
+        except OSError: pass
+        try: os.remove(os.path.join(project_WD, "rmag_results.txt"))
+        except OSError: pass
         os.chdir(WD)
 
     def test_empty_dir(self):
@@ -50,13 +56,6 @@ class TestThellierGUI(unittest.TestCase):
         aniso_menu = self.get_menu_from_frame(self.frame,"Anisotropy")
         calc_aniso = wx.PyCommandEvent(wx.EVT_MENU.typeId, aniso_menu.FindItem("&Calculate anisotropy tensors"))
         warn_aniso = wx.PyCommandEvent(wx.EVT_MENU.typeId, aniso_menu.FindItem("&Show anisotropy calculation Warnings/Errors"))
-
-        try: os.remove(os.path.join(project_WD, "rmag_anisotropy.txt"))
-        except OSError: pass
-        try: os.remove(os.path.join(project_WD, "rmag_anisotropy.log"))
-        except OSError: pass
-        try: os.remove(os.path.join(project_WD, "rmag_results.txt"))
-        except OSError: pass
 
         self.assertFalse(os.path.isfile(os.path.join(self.frame.WD, "rmag_anisotropy.txt")))
         self.assertFalse(os.path.isfile(os.path.join(self.frame.WD, "rmag_anisotropy.log")))
