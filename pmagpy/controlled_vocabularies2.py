@@ -82,7 +82,9 @@ class Vocabulary(object):
 
         # controlled vocabularies
         path = os.path.join(data_model_dir, 'controlled_vocabularies2.json')
-        vocabularies = pd.io.json.read_json(path, typ='series')
+        with open(path, 'r') as code_file:
+            raw_vocabularies = json.load(code_file)
+        vocabularies = pd.DataFrame(dict([(k,pd.Series(v)) for k,v in raw_vocabularies.iteritems()]))
         self.vocabularies = vocabularies
         self.possible_vocabularies = vocabularies
 

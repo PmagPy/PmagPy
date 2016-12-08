@@ -6,7 +6,6 @@ import wx
 import wx.grid
 import wx.lib.mixins.gridlabelrenderer as gridlabelrenderer
 
-
 class MagicGrid(wx.grid.Grid, gridlabelrenderer.GridWithLabelRenderersMixin):
     """
     grid class
@@ -58,12 +57,11 @@ class MagicGrid(wx.grid.Grid, gridlabelrenderer.GridWithLabelRenderersMixin):
         Older versions of wxPython will choke on this,
         in which case nothing happens.
         """
-        if len(self.row_labels) < 5:
-            show_horizontal = wx.SHOW_SB_NEVER
-        else:
-            show_horizontal = wx.SHOW_SB_DEFAULT
-        #
         try:
+            if len(self.row_labels) < 5:
+                show_horizontal = wx.SHOW_SB_NEVER
+            else:
+                show_horizontal = wx.SHOW_SB_DEFAULT
             self.ShowScrollbars(show_horizontal, wx.SHOW_SB_DEFAULT)
         except AttributeError:
             pass
@@ -99,8 +97,6 @@ class MagicGrid(wx.grid.Grid, gridlabelrenderer.GridWithLabelRenderersMixin):
                                 citation += ':'
                             citation += 'This study'
                             self.SetCellValue(row_num, col_num, citation)
-
-
         self.row_labels.extend(dataframe.index)
 
 

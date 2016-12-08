@@ -111,6 +111,12 @@ def main(command_line=True, **kwargs):
             avg=1
         else:
             avg=0
+        if '-dc' in args:
+            ind=args.index('-dc')
+            DC_FIELD,DC_PHI,DC_THETA=map(float,tuple(args[ind+1]))
+            yn=''
+            GET_DC_PARAMS=False
+        else: GET_DC_PARAMS,DC_FIELD,DC_PHI,DC_THETA=True,0,0,-90
         if "-ncn" in args:
             ind=args.index("-ncn")
             samp_con=sys.argv[ind+1]
@@ -153,6 +159,7 @@ def main(command_line=True, **kwargs):
         magfile = kwargs.get('magfile', '')
         input_dir_path = kwargs.get('input_dir_path', dir_path)
         output_dir_path = dir_path
+        DC_FIELD,DC_PHI,DC_THETA = kwargs.get('dc_params', (0,0,-90))
     # done with module-specific stuff
 
     # formatting and checking variables
@@ -275,11 +282,9 @@ def main(command_line=True, **kwargs):
         for line in Lines[2:len(Lines)]:
             #print 'line:', line
             MeasRec=SpecRec.copy()
-
 #           Remove specimen_volume and specimen_weight as they do not exits in the magic_measurement table
             del MeasRec["specimen_volume"]
             del MeasRec["specimen_weight"]
-
             treat_type=line[0:3]
             treat=line[2:6]
             try: float(treat)
@@ -324,6 +329,32 @@ def main(command_line=True, **kwargs):
                 MeasRec['treatment_temp']='77'
                 MeasRec['treatment_dc_field']='0'
                 MeasRec['treatment_ac_field']='0'
+            elif line[4] == '0': #assume decimal IZZI format 0 field thus can hardcode the dc fields
+                MeasRec['magic_method_codes']='LT-T-Z'
+                MeasRec['measurement_temp']='273'
+                MeasRec['treatment_temp']=str(int(treat_type) + 273)
+                MeasRec['treatment_dc_field']='0'
+                MeasRec['treatment_ac_field']='0'
+                MeasRec['treatment_dc_field_phi'] = '0'
+                MeasRec['treatment_dc_field_theta'] = '0'
+            elif line[4] == '1': #assume decimal IZZI format in constant field
+                GET_DC_PARAMS,yn,DC_FIELD,DC_PHI,DC_THETA = get_dc_params(GET_DC_PARAMS,specimen,treat_type,yn)
+                MeasRec['magic_method_codes']='LT-T-I'
+                MeasRec['measurement_temp']='273'
+                MeasRec['treatment_temp']=str(int(treat_type) + 273)
+                MeasRec['treatment_dc_field']='%1.2e'%DC_FIELD
+                MeasRec['treatment_ac_field']='0'
+                MeasRec['treatment_dc_field_phi'] = '%1.2f'%DC_PHI
+                MeasRec['treatment_dc_field_theta'] = '%1.2f'%DC_THETA
+            elif line[4] == '2': #assume decimal IZZI format PTRM step
+                GET_DC_PARAMS,yn,DC_FIELD,DC_PHI,DC_THETA = get_dc_params(GET_DC_PARAMS,specimen,treat_type,yn)
+                MeasRec['magic_method_codes']='LT-PTRM-I'
+                MeasRec['measurement_temp']='273'
+                MeasRec['treatment_temp']=str(int(treat_type) + 273)
+                MeasRec['treatment_dc_field']='%1.2e'%DC_FIELD
+                MeasRec['treatment_ac_field']='0'
+                MeasRec['treatment_dc_field_phi'] = '%1.2f'%DC_PHI
+                MeasRec['treatment_dc_field_theta'] = '%1.2f'%DC_THETA
             else:
                 print("trouble with your treatment steps")
             MeasRec['measurement_dec']=line[46:51]
@@ -387,6 +418,14 @@ def main(command_line=True, **kwargs):
         return True, meas_file
 
     return True, meas_file
+
+def get_dc_params(GET_DC_PARAMS, specimen, treat_type, yn):
+    if GET_DC_PARAMS:
+        yn = input("Is the DC field used in this IZZI study constant or does it varry between specimen or step? [y/N]")
+        GET_DC_PARAMS = False
+    if "y" == yn: DC_FIELD,DC_PHI,DC_THETA = float(input("What DC field was used for all steps? (float, value in microTesla,float,float)")); yn = ""
+    else: DC_FIELD,DC_PHI,DC_THETA = map(float,input("What DC field, Phi, and Theta was used for specimen %s and step %s? (float, in microTesla,float,float)"%(str(specimen),str(treat_type))))
+    return GET_DC_PARAMS,yn,DC_FIELD,DC_PHI,DC_THETA
 
 def do_help():
     return main.__doc__

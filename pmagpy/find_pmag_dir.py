@@ -1,5 +1,4 @@
-import os
-import sys
+import os, sys
 from pkg_resources import resource_filename
 import locator
 #import time
@@ -21,52 +20,54 @@ def get_pmag_dir():
     try:
         return os.environ['RESOURCEPATH']
     # this works for everything else
-    except KeyError:
-        # new way:
-        # if we're in the local PmagPy directory:
-        if os.path.isfile(os.path.join(os.getcwd(), 'pmagpy', 'pmag.py')):
-            lib_dir = os.path.join(os.getcwd(), 'pmagpy')
-        # if we're anywhere else:
+    except KeyError: pass
+    # new way:
+    # if we're in the local PmagPy directory:
+    if os.path.isfile(os.path.join(os.getcwd(), 'pmagpy', 'pmag.py')):
+        lib_dir = os.path.join(os.getcwd(), 'pmagpy')
+    # if we're anywhere else:
+    elif getattr(sys, 'frozen', False): #pyinstaller datafile directory
+        return sys._MEIPASS
+    else:
+        # horrible, hack-y fix
+        # (prevents namespace issue between
+        # local github PmagPy and pip-installed PmagPy).
+        # must reload because we may have
+        # changed directories since importing
+        temp = os.getcwd()
+        os.chdir('..')
+        reload(locator)
+        lib_file = resource_filename('locator', 'resource.py')
+        full_dir = os.path.split(lib_file)[0]
+        ind = full_dir.rfind(os.sep)
+        lib_dir = full_dir[:ind+1]
+        lib_dir = os.path.realpath(os.path.join(lib_dir, 'pmagpy'))
+        os.chdir(temp)
+        # end fix
+        # old way:
+        #lib_dir = os.path.dirname(os.path.realpath(__file__))
+    if not os.path.isfile(os.path.join(lib_dir, 'pmag.py')):
+        lib_dir = os.getcwd()
+    fname = os.path.join(lib_dir, 'pmag.py')
+    if not os.path.isfile(fname):
+        pmag_dir = os.path.split(os.path.split(__file__)[0])[0]
+        if os.path.isfile(os.path.join(pmag_dir,'pmagpy','pmag.py')):
+            return pmag_dir
         else:
-            # horrible, hack-y fix
-            # (prevents namespace issue between
-            # local github PmagPy and pip-installed PmagPy).
-            # must reload because we may have
-            # changed directories since importing
-            temp = os.getcwd()
-            os.chdir('..')
-            reload(locator)
-            lib_file = resource_filename('locator', 'resource.py')
-            full_dir = os.path.split(lib_file)[0]
-            ind = full_dir.rfind(os.sep)
-            lib_dir = full_dir[:ind+1]
-            lib_dir = os.path.realpath(os.path.join(lib_dir, 'pmagpy'))
-            os.chdir(temp)
-            # end fix
-            # old way:
-            #lib_dir = os.path.dirname(os.path.realpath(__file__))
-        if not os.path.isfile(os.path.join(lib_dir, 'pmag.py')):
-            lib_dir = os.getcwd()
-        fname = os.path.join(lib_dir, 'pmag.py')
-        if not os.path.isfile(fname):
-            pmag_dir = os.path.split(os.path.split(__file__)[0])[0]
-            if os.path.isfile(os.path.join(pmag_dir,'pmagpy','pmag.py')):
-                return pmag_dir
-            else:
-                print '-W- Can\'t find the data model!  Make sure you have installed pmagpy using pip: "pip install pmagpy --upgrade"'
-                return '.'
-        # strip "/" or "\" and "pmagpy" to return proper PmagPy directory
-        if lib_dir.endswith(os.sep):
-            lib_dir = lib_dir[:-1]
-        if lib_dir.endswith('pmagpy'):
-            pmag_dir = os.path.split(lib_dir)[0]
-        else:
-            pmag_dir = lib_dir
-        return pmag_dir
-        #if not os.path.isfile(os.path.join(pmag_dir, 'pmagpy', 'pmag.py')):
-        #    print '-W- Can\'t find the data model!  Make sure you have installed pmagpy using pip: "pip install pmagpy --upgrade"#'
-        #return
-        #return pmag_dir  # os.path.dirname(os.path.realpath(__file__))
+            print '-W- Can\'t find the data model!  Make sure you have installed pmagpy using pip: "pip install pmagpy --upgrade"'
+            return '.'
+    # strip "/" or "\" and "pmagpy" to return proper PmagPy directory
+    if lib_dir.endswith(os.sep):
+        lib_dir = lib_dir[:-1]
+    if lib_dir.endswith('pmagpy'):
+        pmag_dir = os.path.split(lib_dir)[0]
+    else:
+        pmag_dir = lib_dir
+    return pmag_dir
+    #if not os.path.isfile(os.path.join(pmag_dir, 'pmagpy', 'pmag.py')):
+    #    print '-W- Can\'t find the data model!  Make sure you have installed pmagpy using pip: "pip install pmagpy --upgrade"#'
+    #return
+    #return pmag_dir  # os.path.dirname(os.path.realpath(__file__))
 
     ##except KeyError:
     ##    return os.path.dirname(os.path.realpath(__file__))

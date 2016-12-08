@@ -493,9 +493,10 @@ class Arai_GUI(wx.Frame):
         #--------------------------------------------------------------------
 
         # Combo-box with a list of specimen
-        self.specimens_box = wx.ComboBox(self.top_panel, wx.ID_ANY, self.s, (250*self.GUI_RESOLUTION, 25), wx.DefaultSize,self.specimens, wx.CB_DROPDOWN|wx.TE_READONLY,name="specimen")
+        self.specimens_box = wx.ComboBox(self.top_panel, wx.ID_ANY, self.s, (250*self.GUI_RESOLUTION, 25), wx.DefaultSize,self.specimens, wx.CB_DROPDOWN|wx.TE_PROCESS_ENTER,name="specimen")
         self.specimens_box.SetFont(font2)
         self.Bind(wx.EVT_COMBOBOX, self.onSelect_specimen,self.specimens_box)
+        self.Bind(wx.EVT_TEXT_ENTER, self.onSelect_specimen, self.specimens_box)
 
         # buttons to move forward and backwards from specimens
         nextbutton = wx.Button(self.top_panel, id=wx.ID_ANY, label='next',size=(75*self.GUI_RESOLUTION, 25))#,style=wx.BU_EXACTFIT)#, size=(175, 28))
@@ -1186,8 +1187,33 @@ else:
         """
         update figures and text when a new specimen is selected
         """
-        self.s=self.specimens_box.GetStringSelection()
-        self.update_selection()
+        new_s = self.specimens_box.GetValue()
+        if self.select_specimen(new_s):
+            self.update_selection()
+        else:
+            self.specimens_box.SetValue(self.s)
+            self.user_warning("no specimen %s reverting to old specimen %s"%(new_s,self.s))
+
+    def select_specimen(self, s):
+        if s in self.specimens:
+            self.s=s
+            return True
+        else: return False
+
+    def user_warning(self, message, caption = 'Warning!'):
+        """
+        Shows a dialog that warns the user about some action
+        @param: message - message to display to user
+        @param: caption - title for dialog (default: "Warning!")
+        @return: True or False
+        """
+        dlg = wx.MessageDialog(self, message, caption, wx.OK | wx.CANCEL | wx.ICON_WARNING)
+        if self.show_dlg(dlg) == wx.ID_OK:
+            continue_bool = True
+        else:
+            continue_bool = False
+        dlg.Destroy()
+        return continue_bool
 
     def on_next_button(self,event):
         """

@@ -185,21 +185,21 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
                                                        name='manage data'), wx.VERTICAL)
         input_output_vbox = wx.StaticBoxSizer(wx.StaticBox(self.panel, -1, label='In/Out',
                                                            name='manage in out'), wx.VERTICAL)
-        col_btn_vbox.Add(self.add_cols_button, flag=wx.ALL, border=5)
-        col_btn_vbox.Add(self.remove_cols_button, flag=wx.ALL, border=5)
-        row_btn_vbox.Add(many_rows_box, flag=wx.ALL, border=5)
-        row_btn_vbox.Add(self.remove_row_button, flag=wx.ALL, border=5)
-        row_btn_vbox.Add(self.deleteRowButton, flag=wx.ALL, border=5)
-        main_btn_vbox.Add(self.importButton, flag=wx.ALL, border=5)
-        main_btn_vbox.Add(self.exitButton, flag=wx.ALL, border=5)
-        main_btn_vbox.Add(self.cancelButton, flag=wx.ALL, border=5)
-        input_output_vbox.Add(self.copyButton, flag=wx.ALL, border=5)
-        input_output_vbox.Add(self.selectAllButton, flag=wx.ALL, border=5)
-        input_output_vbox.Add(self.copySelectionButton, flag=wx.ALL, border=5)
-        self.hbox.Add(col_btn_vbox)
-        self.hbox.Add(row_btn_vbox)
-        self.hbox.Add(main_btn_vbox)
-        self.hbox.Add(input_output_vbox)
+        col_btn_vbox.Add(self.add_cols_button, 1, flag=wx.ALL, border=5)
+        col_btn_vbox.Add(self.remove_cols_button, 1, flag=wx.ALL, border=5)
+        row_btn_vbox.Add(many_rows_box, 1, flag=wx.ALL, border=5)
+        row_btn_vbox.Add(self.remove_row_button, 1, flag=wx.ALL, border=5)
+        row_btn_vbox.Add(self.deleteRowButton, 1, flag=wx.ALL, border=5)
+        main_btn_vbox.Add(self.importButton, 1, flag=wx.ALL, border=5)
+        main_btn_vbox.Add(self.exitButton, 1, flag=wx.ALL, border=5)
+        main_btn_vbox.Add(self.cancelButton, 1, flag=wx.ALL, border=5)
+        input_output_vbox.Add(self.copyButton, 1, flag=wx.ALL, border=5)
+        input_output_vbox.Add(self.selectAllButton, 1, flag=wx.ALL, border=5)
+        input_output_vbox.Add(self.copySelectionButton, 1, flag=wx.ALL, border=5)
+        self.hbox.Add(col_btn_vbox, 1)
+        self.hbox.Add(row_btn_vbox, 1)
+        self.hbox.Add(main_btn_vbox, 1)
+        self.hbox.Add(input_output_vbox, 1)
 
         #self.panel.Bind(wx.grid.EVT_GRID_LABEL_LEFT_CLICK, self.onLeftClickLabel, self.grid)
         self.grid.Bind(wx.grid.EVT_GRID_LABEL_LEFT_CLICK, self.onLeftClickLabel, self.grid)
@@ -222,7 +222,7 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
 
         self.drop_down_menu = drop_down_menus.Menus(self.grid_type, self.contribution, self.grid)
         self.grid_box = wx.StaticBoxSizer(wx.StaticBox(self.panel, -1, name='grid container'), wx.VERTICAL)
-        self.grid_box.Add(self.grid, flag=wx.ALL, border=5)
+        self.grid_box.Add(self.grid, 1, flag=wx.ALL|wx.EXPAND, border=5)
 
         # a few special touches if it is a location grid
         # **** make these work again (esp. min/max lat/lon)
@@ -254,22 +254,26 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
         ## none of these anymore
 
         # final layout, set size
-        self.main_sizer.Add(self.hbox, flag=wx.ALL|wx.ALIGN_CENTER , border=20)
-        self.main_sizer.Add(self.toggle_help_btn,
-                            flag=wx.BOTTOM|wx.ALIGN_CENTRE,
+        self.main_sizer.Add(self.hbox, 1, flag=wx.ALL|wx.ALIGN_CENTER|wx.SHAPED , border=20)
+        self.main_sizer.Add(self.toggle_help_btn, .5,
+                            flag=wx.BOTTOM|wx.ALIGN_CENTRE|wx.SHAPED,
                             border=5)
-        self.main_sizer.Add(self.help_msg_boxsizer,
-                            flag=wx.BOTTOM|wx.ALIGN_CENTRE,
+        self.main_sizer.Add(self.help_msg_boxsizer, .5,
+                            flag=wx.BOTTOM|wx.ALIGN_CENTRE|wx.SHAPED,
                             border=10)
-        self.main_sizer.Add(self.toggle_codes_btn,
-                            flag=wx.BOTTOM|wx.ALIGN_CENTRE,
+        self.main_sizer.Add(self.toggle_codes_btn, .5,
+                            flag=wx.BOTTOM|wx.ALIGN_CENTRE|wx.SHAPED,
                             border=5)
-        self.main_sizer.Add(self.code_msg_boxsizer,
-                            flag=wx.BOTTOM|wx.ALIGN_CENTRE,
+        self.main_sizer.Add(self.code_msg_boxsizer, .5,
+                            flag=wx.BOTTOM|wx.ALIGN_CENTRE|wx.SHAPED,
                             border=5)
-        self.main_sizer.Add(self.grid_box, flag=wx.ALL, border=10)
+        self.main_sizer.Add(self.grid_box, 2, flag=wx.ALL|wx.ALIGN_CENTER|wx.EXPAND, border=10)
         self.panel.SetSizer(self.main_sizer)
-        self.main_sizer.Fit(self)
+#        self.main_sizer.Fit(self)
+        panel_sizer = wx.BoxSizer(wx.VERTICAL)
+        panel_sizer.Add(self.panel, 1, wx.EXPAND)
+        self.SetSizer(panel_sizer)
+        panel_sizer.Fit(self)
         ## this keeps sizing correct if the user resizes the window manually
         #self.Bind(wx.EVT_SIZE, self.do_fit)
         self.Centre()
