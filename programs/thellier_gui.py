@@ -4883,8 +4883,8 @@ else:
                 (a,b)=self.Data[self.s]['cooling_rate_data']['polyfit']
                 y0=a*x0+b
 
-                x=linspace(0,x0,10)
-                y=polyval([a,b],x)
+                x=np.linspace(0,x0,10)
+                y=np.polyval([a,b],x)
                 self.eqplot.plot(x,y,"--",color='k')
 
                 self.eqplot.scatter(lan_cooling_rates,moment_norm,marker='o',facecolor='b',edgecolor ='k',s=25,clip_on=False)
@@ -6116,7 +6116,7 @@ else:
 
                 lab_fast_cr_moment=np.mean(lab_fast_cr_moments)
                 moment_norm=np.array(moments)/lab_fast_cr_moment
-                (a,b)=polyfit(lan_cooling_rates, moment_norm, 1)
+                (a,b)=np.polyfit(lan_cooling_rates, moment_norm, 1)
                 #ancient_cooling_rate=0.41
                 x0=np.math.log(cooling_rate_data['lab_cooling_rate']/ancient_cooling_rate)
                 y0=a*x0+b
