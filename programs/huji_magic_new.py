@@ -232,7 +232,7 @@ def main(command_line=True, **kwargs):
             print "missing lab field option"
             return False, "missing lab field option"
 
-        LPcode="LP-TRM-CR" # TRM in different cooling rates
+        LPcode="LP-CR-TRM" # TRM in different cooling rates
         if command_line:
             ind=args.index("-LP")
             CR_cooling_times=args[ind+2].split(",")
@@ -396,6 +396,7 @@ def main(command_line=True, **kwargs):
                         methcode="LP-DIR-AF:LT-AF-Z"
                     else:
                         print "ERROR in treatment field line %i... exiting until you fix the problem" %line_no
+                        print this_line_data
                         return False, "ERROR in treatment field line %i... exiting until you fix the problem" %line_no
                                             
                 # AARM experiment    
@@ -601,24 +602,27 @@ def main(command_line=True, **kwargs):
                 # Cooling rate experiments
                 #----------------------------------------
                 
-                if  LPcode =="LP-TRM-CR":
+                if  LPcode =="LP-CR-TRM":
                     index=int(treatment[1][0])
                     #print index,"index"
                     #print CR_cooling_times,"CR_cooling_times"
                     #print CR_cooling_times[index-1]
                     #print CR_cooling_times[0:index-1]
-                    CR_cooling_time=CR_cooling_times[index-1]
-                    if CR_cooling_time in CR_cooling_times[0:index-1]:
-                        MagRec["magic_method_codes"]="LP-TRM-CR"+":" +"LT-PTRM-I"
-                    else:    
-                        MagRec["magic_method_codes"]="LP-TRM-CR"
+                    if index==7 or index==70: # alteration check as final measurement
+                            meas_type="LT-PTRM-I:LP-CR-TRM"
+                            CR_cooling_time=CR_cooling_times[-1]
+                    else: 
+                            meas_type="LT-T-I:LP-CR-TRM"
+                            CR_cooling_time=CR_cooling_times[index-1]
+                    MagRec["magic_method_codes"]=meas_type        
                     MagRec["magic_experiment_name"]=specimen+ ":" + LPcode
                     MagRec["treatment_temp"]='%8.3e' % (float(treatment[0])+273.) # temp in kelvin                
                     MagRec["treatment_dc_field"]='%8.3e' % (labfield) # labfield in tesla (convert from microT)
                     MagRec["treatment_dc_field_phi"]='%7.1f' % (phi) # labfield phi
                     MagRec["treatment_dc_field_theta"]='%7.1f' % (theta) # labfield theta
                     MagRec["measurement_number"]="%i"%index
-                    MagRec["measurement_description"]="%i minutes cooling time"%int(CR_cooling_time)
+                    MagRec["measurement_description"]="cooling_rate"+":"+CR_cooling_time+":"+"K/min"
+                    #MagRec["measurement_description"]="%.1f minutes per cooling time"%int(CR_cooling_time)
                     MagRecs.append(MagRec)
                     #continue
 

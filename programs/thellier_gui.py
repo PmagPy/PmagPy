@@ -2851,7 +2851,7 @@ else:
                 # alteration check
 
                 anisotropy_alt=0
-                if Alteration_check!="":
+                if str(Alteration_check)!="":
                     for i in range(len(M)):
                         if Alteration_check_index==i:
                             M_1=np.sqrt(sum((np.array(M[i])**2)))
