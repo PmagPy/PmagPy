@@ -6,7 +6,7 @@ this module will provide all the functionality for the drop-down controlled voca
 # pylint: disable=W0612,C0111,C0301
 
 import wx
-from pmagpy.controlled_vocabularies3 import vocab
+from pmagpy.controlled_vocabularies3 import Vocabulary
 
 
 class Menus(object):
@@ -21,8 +21,8 @@ class Menus(object):
         # if controlled vocabularies haven't already been grabbed from earthref
         # do so now
         self.contribution = contribution
-        if not any(vocab.vocabularies):
-            vocab.get_all_vocabulary()
+        #if not any(vocab.vocabularies):
+        #    vocab.get_all_vocabulary()
 
         self.data_type = data_type
         if self.data_type in self.contribution.tables:
@@ -110,14 +110,14 @@ class Menus(object):
                 item_df = self.contribution.tables[col_label].df
                 item_names = item_df[col_label[:-1]].unique()
                 self.choices[col_number] = (sorted(item_names), False)
-        if col_label in vocab.vocabularies:
+        if col_label in self.contribution.vocab.vocabularies:
             # if not already assigned above
             if col_number not in self.choices.keys():
                 # mark it as using a controlled vocabulary
                 self.grid.SetColLabelValue(col_number, col_label + "**")
                 #url = 'https://api.earthref.org/MagIC/vocabularies/{}.json'.format(col_label)
                 #controlled_vocabulary = pd.io.json.read_json(url)
-                controlled_vocabulary = vocab.vocabularies[col_label]
+                controlled_vocabulary = self.contribution.vocab.vocabularies[col_label]
                 stripped_list = []
                 for item in controlled_vocabulary:
                     try:
@@ -145,9 +145,9 @@ class Menus(object):
         Add drop-down-menu options for magic_method_codes columns
         """
         if self.data_type == 'ages':
-            method_list = vocab.age_methods
+            method_list = self.contribution.vocab.age_methods
         else:
-            method_list = vocab.methods
+            method_list = self.contribution.vocab.methods
         self.choices[col_number] = (method_list, True)
 
     def on_label_click(self, event):

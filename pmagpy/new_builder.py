@@ -29,17 +29,22 @@ class Contribution(object):
     for example, renaming a site.
     """
 
+    #vocab = cv.Vocabulary()
+    #cv, possible_vocabulary = vocab.get_controlled_vocabularies()
+
     def __init__(self, directory=".", read_tables='all',
                  custom_filenames=None, single_file=None,
                  dmodel=None, vocabulary=""):
         if len(vocabulary):
-            self.cv = vocabulary
+            self.vocab = vocabulary
         else:
-            try: self.cv = Contribution.cv
+            try: self.vocab = Contribution.vocab
             except AttributeError:
-                vocab = cv.Vocabulary()
-                Contribution.cv, _ = vocab.get_controlled_vocabularies()
-                self.cv = Contribution.cv
+                Contribution.vocab = cv.Vocabulary()
+                Contribution.vocab.get_all_vocabulary()
+                #Contribution.cv = vocab.get_controlled_vocabularies()
+                #self.cv = Contribution.cv
+                self.vocab = Contribution.vocab
         self.data_model = dmodel
         self.directory = os.path.realpath(directory)
         self.table_names = ['measurements', 'specimens', 'samples',

@@ -9,7 +9,7 @@ import wx
 import wx.html
 import webbrowser
 # ******
-from pmagpy.controlled_vocabularies3 import vocab
+from pmagpy.controlled_vocabularies3 import Vocabulary
 #from pmagpy.controlled_vocabularies import vocab
 
 
@@ -796,7 +796,8 @@ class MethodCodeDemystifier(wx.StaticBoxSizer):
         if vocabulary:
             vc = vocabulary
         else:
-            vc = vocab
+            vc = Vocabulary()
+            vc.get_all_vocabulary()
         self.vc = vc
         if not any(vc.code_types):
             vc.get_all_vocabulary()

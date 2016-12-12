@@ -7,7 +7,7 @@ import drop_down_menus3 as drop_down_menus
 import pandas as pd
 import pmag_widgets as pw
 import magic_grid3 as magic_grid
-from pmagpy.controlled_vocabularies3 import vocab
+#from pmagpy.controlled_vocabularies3 import vocab
 import pmagpy.new_builder as nb
 
 
@@ -24,8 +24,8 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
                                         name=frame_name, title=title)
         # if controlled vocabularies haven't already been grabbed from earthref
         # do so now
-        if not any(vocab.vocabularies):
-            vocab.get_all_vocabulary()
+        #if not any(vocab.vocabularies):
+        #    vocab.get_all_vocabulary()
 
         self.remove_cols_mode = False
         self.deleteRowButton = None
@@ -172,7 +172,7 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
                                           name='toggle_codes_btn')
         self.Bind(wx.EVT_BUTTON, self.toggle_codes, self.toggle_codes_btn)
         # message
-        self.code_msg_boxsizer = pw.MethodCodeDemystifier(self.panel, vocab)
+        self.code_msg_boxsizer = pw.MethodCodeDemystifier(self.panel, self.contribution.vocab)
         self.code_msg_boxsizer.ShowItems(False)
 
         ## Add content to sizers
@@ -461,7 +461,7 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
                     col_number = self.grid.add_col(col)
                     # add to appropriate headers list
                     # add drop down menus for user-added column
-                    if col in vocab.possible_vocabularies:
+                    if col in self.contribution.vocab.vocabularies:
                         self.drop_down_menu.add_drop_down(col_number, col)
                     if col == "method_codes":
                         self.drop_down_menu.add_method_drop_down(col_number, col)
@@ -482,7 +482,7 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
                     col_number = self.grid.add_col(name)
                     # add to appropriate headers list
                     # add drop down menus for user-added column
-                    if name in vocab.possible_vocabularies:
+                    if name in self.contribution.vocab.vocabularies:
                         self.drop_down_menu.add_drop_down(col_number, name)
                     if name == "method_codes":
                         self.drop_down_menu.add_method_drop_down(col_number, name)

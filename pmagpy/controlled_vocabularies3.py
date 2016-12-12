@@ -175,7 +175,7 @@ class Vocabulary(object):
         # and the possible values as the values
         ind_values = [i[1] for i in vocab_col_names]
         vocabularies = pd.Series(controlled_vocabularies, index=ind_values)
-        return vocabularies, vocabularies
+        return vocabularies
 
 
     ## Get method codes and controlled vocabularies
@@ -206,13 +206,13 @@ class Vocabulary(object):
                 raw_all_codes = json.load(code_file)
             all_codes = pd.read_json(raw_all_codes)
 
-        vocabularies, possible_vocabularies = self.get_controlled_vocabularies()
+        vocabularies = self.get_controlled_vocabularies()
         self.vocabularies = vocabularies
-        self.possible_vocabularies = possible_vocabularies
+        #self.possible_vocabularies = possible_vocabularies
         self.all_codes = all_codes
         self.code_types = code_types
         self.methods = methods
         self.age_methods = age_methods
 
 
-vocab = Vocabulary()
+#vocab = Vocabulary()

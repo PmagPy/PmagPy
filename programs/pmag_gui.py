@@ -49,6 +49,7 @@ class MagMainFrame(wx.Frame):
             self.data_model_num = int(pmag.get_named_arg_from_sys("-DM", 2.5))
         else:
             self.data_model_num = int(DM)
+        self.data_model = dmodel
         self.FIRST_RUN = True
         wx.Frame.__init__(self, None, wx.ID_ANY, self.title, name='pmag_gui mainframe')
         self.panel = wx.Panel(self, name='pmag_gui main panel')
@@ -64,11 +65,19 @@ class MagMainFrame(wx.Frame):
         self.HtmlIsOpen = False
         self.Bind(wx.EVT_CLOSE, self.on_menu_exit)
         if self.data_model_num == 2:
-            self.er_magic = builder.ErMagicBuilder(self.WD, data_model=dmodel)
+            self.er_magic = builder.ErMagicBuilder(self.WD, data_model=self.data_model)
         elif self.data_model_num == 3:
-            self.contribution = nb.Contribution(self.WD, dmodel=dmodel)
+            wx.CallAfter(self.get_wd_data)
+            #self.contribution = nb.Contribution(self.WD, dmodel=dmodel)
         #self.er_magic.init_default_headers()
         #self.er_magic.init_actual_headers()
+
+    def get_wd_data(self):
+        wait = wx.BusyInfo('Reading in data from current working directory, please wait...')
+        wx.Yield()
+        print '-I- Read in any available data from working directory'
+        self.contribution = nb.Contribution(self.WD, dmodel=self.data_model)
+        del wait
 
 
     def InitUI(self):

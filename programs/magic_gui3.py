@@ -50,14 +50,22 @@ class MainFrame(wx.Frame):
             dmodel = data_model3.DataModel()
         self.data_model = dmodel
 
-        print '-I- Read in any available data from working directory'
-        self.contribution = nb.Contribution(self.WD, dmodel=self.data_model)
-
         self.edited = False
         self.validation_mode = False
 
         print '-I- Initializing interface'
         self.InitUI()
+
+        print '-I- Completed interface'
+        wx.CallAfter(self.get_wd_data)
+
+    def get_wd_data(self):
+        wait = wx.BusyInfo('Reading in data from current working directory, please wait...')
+        wx.Yield()
+        print '-I- Read in any available data from working directory'
+        self.contribution = nb.Contribution(self.WD, dmodel=self.data_model)
+        del wait
+
 
     def InitUI(self):
         """
@@ -205,7 +213,6 @@ class MainFrame(wx.Frame):
         print "-I- Initializing menu"
         menubar = MagICMenu(self)
         self.SetMenuBar(menubar)
-
 
 
     def on_change_dir_button(self, event):
