@@ -24,6 +24,7 @@ class TestMainFrame(unittest.TestCase):
         self.frame = magic_gui.MainFrame(PROJECT_WD,
                                          name="best frame ever",
                                          dmodel=DMODEL)
+        self.frame.get_wd_data()
         self.pnl = self.frame.GetChildren()[0]
 
     def tearDown(self):
@@ -114,6 +115,7 @@ class TestMagICGUIMenu(unittest.TestCase):
         self.app = wx.App()
         self.frame = magic_gui.MainFrame(PROJECT_WD, name="best frame ever",
                                          dmodel=DMODEL)
+        self.frame.get_wd_data()
         self.pnl = self.frame.GetChildren()[0]
         self.contribution = self.frame.contribution
 

@@ -372,6 +372,7 @@ class TestMainFrame3(unittest.TestCase):
         self.app = wx.App()
         self.frame = pmag_gui.MagMainFrame(PROJECT_WD, DM=3,
                                            dmodel=DMODEL)
+        self.frame.get_wd_data()
         self.pnl = self.frame.GetChildren()[0]
 
     def tearDown(self):
@@ -506,6 +507,7 @@ class TestMenus3(unittest.TestCase):
     def setUp(self):
         self.app = wx.App()
         self.frame = pmag_gui.MagMainFrame(PROJECT_WD, DM=3, dmodel=DMODEL)
+        self.frame.get_wd_data()
         self.pnl = self.frame.GetChildren()[0]
 
         #wx.lib.inspection.InspectionTool().Show()
