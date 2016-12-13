@@ -158,3 +158,7 @@ if __name__ == '__main__':
     backup(project_WD)
     unittest.TextTestRunner().run(unittest.TestLoader().loadTestsFromTestCase(TestThellierGUI))
     revert_from_backup(project_WD)
+else:
+    WD = os.getcwd()
+    project_WD = os.path.join(WD, 'data_files', 'testing', 'my_project')
+    empty_WD = os.path.join(os.getcwd(), 'pmagpy_tests', 'examples', 'empty_dir')
