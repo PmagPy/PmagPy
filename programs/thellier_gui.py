@@ -2289,8 +2289,6 @@ else:
         elif  dia.set_bs_par.GetValue()==True:
             self.acceptance_criteria['interpreter_method']['value']='bs_par'
 
-
-
         #  message dialog
         dlg1 = wx.MessageDialog(self,caption="Warning:", message="changes are saved to the criteria file\n " ,style=wx.OK)
         result = self.show_dlg(dlg1)
@@ -2307,7 +2305,7 @@ else:
                 crit_file='criteria.txt'
             else:
                 crit_file='pmag_criteria.txt'
-            try: pmag.write_criteria_to_file(os.path.join(self.WD, crit_file),self.acceptance_criteria,data_model=self.data_model,prior_crits=self.crit_data)
+            try: pmag.write_criteria_to_file(os.path.join(self.WD, crit_file), self.acceptance_criteria, data_model=self.data_model, prior_crits=self.crit_data)
             except AttributeError:
                 print("no criteria given to save")
             dlg1.Destroy()
@@ -2386,6 +2384,7 @@ else:
                 print "-E- Cant read criteria file"
 
         else: #      Do it the data model 2.5 way:
+            self.crit_data={}
             try:
                 self.acceptance_criteria=pmag.read_criteria_from_file(criteria_file,self.acceptance_criteria)
             except:
@@ -7022,13 +7021,9 @@ else:
 
 
 
-
-
-
         #---------------------
         # find Tail checks
         #---------------------
-
 
         for temp in Treat_M:
             #print temp
@@ -7119,11 +7114,9 @@ else:
         dlg.Destroy()
         return continue_bool
 
-
 #--------------------------------------------------------------
 # Run the GUI
 #--------------------------------------------------------------
-
 
 def main(WD=None, standalone_app=True, parent=None, DM=2.5):
     # to run as module, i.e. with Pmag GUI:
@@ -7142,7 +7135,6 @@ def main(WD=None, standalone_app=True, parent=None, DM=2.5):
         app.frame.Show()
         app.frame.Center()
         app.MainLoop()
-
 
 if __name__ == '__main__':
     main()
