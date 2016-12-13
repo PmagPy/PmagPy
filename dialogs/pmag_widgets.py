@@ -790,6 +790,9 @@ class AddItem(wx.Frame):
 class MethodCodeDemystifier(wx.StaticBoxSizer):
 
     def __init__(self, parent, vocabulary=None):
+        """
+        Takes a wx Parent window, and optionally a Vocabulary object
+        """
         self.box = wx.StaticBox(parent, wx.ID_ANY, "")
         super(MethodCodeDemystifier, self).__init__(self.box, orient=wx.VERTICAL)
         grid_sizer = wx.GridSizer(0, 5, 3, 3)

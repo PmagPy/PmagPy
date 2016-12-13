@@ -317,7 +317,7 @@ For full error messages, see {}.""".format(grid_type + "_errors.txt")
         wait = wx.BusyInfo('Validating data, please wait...')
         wx.Yield()
         res, error_message, has_problems, all_failing_items = ipmag.upload_magic3(dir_path=self.WD,
-                                                                                  vocab=self.contribution.cv)
+                                                                                  vocab=self.contribution.vocab)
         self.failing_items = all_failing_items
         if has_problems:
             self.validation_mode = set(has_problems)

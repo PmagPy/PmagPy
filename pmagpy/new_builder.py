@@ -35,7 +35,7 @@ class Contribution(object):
     def __init__(self, directory=".", read_tables='all',
                  custom_filenames=None, single_file=None,
                  dmodel=None, vocabulary=""):
-        if len(vocabulary):
+        if isinstance(vocabulary, cv.Vocabulary):
             self.vocab = vocabulary
         else:
             try: self.vocab = Contribution.vocab
