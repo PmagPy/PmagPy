@@ -2306,8 +2306,7 @@ else:
             else:
                 crit_file='pmag_criteria.txt'
             try: pmag.write_criteria_to_file(os.path.join(self.WD, crit_file), self.acceptance_criteria, data_model=self.data_model, prior_crits=self.crit_data)
-            except AttributeError:
-                print("no criteria given to save")
+            except AttributeError: print("no criteria given to save")
             dlg1.Destroy()
             dia.Destroy()
         self.recalculate_satistics()
@@ -5632,6 +5631,9 @@ else:
             meas_data3_0 = meas_container.df
 # do some filtering
             Mkeys = ['magn_moment', 'magn_volume', 'magn_mass']
+            if meas_data3_0.empty: self.user_warning("Measurement data is empty and GUI cannot start, aborting"); return ({},{})
+            elif 'method_codes' not in meas_data3_0.columns: 
+                self.user_warning("Method codes are required to sort directional and intensity data in measurements file, but no method codes were found, aborting"); return ({},{})
             meas_data3_0= meas_data3_0[meas_data3_0['method_codes'].str.contains('LP-PI-TRM|LP-TRM|LP-PI-M|LP-AN|LP-CR-TRM')==True] # fish out all the relavent data
             intensity_types = [col_name for col_name in meas_data3_0.columns if col_name in Mkeys]
             int_key = intensity_types[0] # plot first intensity method found - normalized to initial value anyway - doesn't matter which used

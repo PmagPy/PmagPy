@@ -3014,6 +3014,8 @@ class Demag_GUI(wx.Frame):
 
         if self.data_model==3:
 
+            if self.con.tables['measurements'].df.empty: self.user_warning("Measurement data file is empty and the GUI cannot start, aborting"); return Data,Data_hierarchy
+
             if 'sample' not in self.spec_data.columns or 'sample' not in self.samp_data.columns:
                 if 'specimen' not in self.spec_data.columns:
                     self.spec_data['specimen'] = self.con.tables['measurements'].df['specimen']
