@@ -181,8 +181,6 @@ import numpy as np
 from numpy.linalg import inv, eig
 from numpy import sqrt, append
 from scipy.optimize import curve_fit
-try: import thellier_gui_preferences
-except ImportError: pass
 import stat
 import shutil
 import random
@@ -1729,7 +1727,7 @@ else:
         try:
             self.GUI_log.write( "-I- thellier_gui.preferences imported\n")
             preferences.update(thellier_gui_preferences.preferences)
-        except (IOError,OSError):
+        except (IOError,OSError,NameError):
             self.GUI_log.write( " -I- cant find thellier_gui_preferences file, using defualt default \n")
 
         # check criteria file
@@ -5632,7 +5630,7 @@ else:
 # do some filtering
             Mkeys = ['magn_moment', 'magn_volume', 'magn_mass']
             if meas_data3_0.empty: self.user_warning("Measurement data is empty and GUI cannot start, aborting"); return ({},{})
-            elif 'method_codes' not in meas_data3_0.columns: 
+            elif 'method_codes' not in meas_data3_0.columns:
                 self.user_warning("Method codes are required to sort directional and intensity data in measurements file, but no method codes were found, aborting"); return ({},{})
             meas_data3_0= meas_data3_0[meas_data3_0['method_codes'].str.contains('LP-PI-TRM|LP-TRM|LP-PI-M|LP-AN|LP-CR-TRM')==True] # fish out all the relavent data
             intensity_types = [col_name for col_name in meas_data3_0.columns if col_name in Mkeys]
