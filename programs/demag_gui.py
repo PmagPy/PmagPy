@@ -2822,6 +2822,8 @@ class Demag_GUI(wx.Frame):
             try: self.current_fit = self.pmag_results_data['specimens'][self.s][fit_index]
             except IndexError: self.current_fit = None
         else: self.current_fit = None
+        if self.s!=self.specimens_box.GetValue():
+            self.specimens_box.SetValue(self.s)
 
     def clear_interpretations(self,message=None):
         """
@@ -3632,9 +3634,14 @@ class Demag_GUI(wx.Frame):
         print("-I- read redo file and processing new bounds")
         fin=open(redo_file,'rU')
 
+        new_s = ""
         for Line in fin.read().splitlines():
             line=Line.split('\t')
             specimen=line[0]
+            if specimen.startswith("current_"):
+                specimen = specimen.lstrip("current_")
+                new_s = specimen
+                if len(line) < 6: continue
 
             if len(line) < 6: print("insuffecent data for specimen %s and fit %s"%(line[0],line[4])); continue
             if len(line) == 6: line.append('g')
@@ -3648,6 +3655,9 @@ class Demag_GUI(wx.Frame):
                 self.bad_fits.append(new_fit)
 
         fin.close()
+
+        if new_s!="":
+            self.select_specimen(new_s)
         if (self.s not in self.pmag_results_data['specimens']) or (not self.pmag_results_data['specimens'][self.s]):
             self.current_fit = None
         else:
@@ -5619,13 +5629,15 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
         fout=open(redo_file_name,'w')
         specimens_list=self.pmag_results_data['specimens'].keys()
         specimens_list.sort(cmp=specimens_comparator)
+        if self.s not in specimens_list: fout.write("current_"+self.s+"\n")
         for specimen in specimens_list:
             for fit in self.pmag_results_data['specimens'][specimen]:
                 if fit.tmin==None or fit.tmax==None:
                     continue
                 if type(fit.tmin)!=str or type(fit.tmax)!=str:
-                    print(type(fit.tmin),fit.tmin,type(fit.tmax),fit.tmax)
-                STRING=specimen+"\t"
+                    print("-E- in on_menu_save_interpretation", type(fit.tmin), fit.tmin, type(fit.tmax), fit.tmax)
+                if specimen == self.s: STRING="current_"+specimen+"\t"
+                else: STRING=specimen+"\t"
                 STRING=STRING+fit.PCA_type+"\t"
                 fit_flag = "g"
                 if "C" in fit.tmin:
@@ -6619,7 +6631,7 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
         # calculate high level data
         self.calculate_high_levels_data()
         self.plot_high_levels_data()
-        self.on_menu_save_interpretation(-1)
+        self.on_menu_save_interpretation(event)
         self.update_selection()
         self.close_warning=True
 

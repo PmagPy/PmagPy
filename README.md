@@ -30,13 +30,13 @@ https://github.com/PmagPy/PmagPy-Standalone-OSX/releases/latest
 
 ####  Windows Standalone download
 
-Get started by downloading the zip file (see links below) and putting the resulting folder on your desktop. You’ll need to “extract all” files. Inside the PmagPy-Standalone folder you will find icons for installing Pmag GUI and MagIC GUI. Double click the program you wish to use and you will be guided the the install process.
+Get started by downloading the zip file (see links below) and putting the resulting folder wherever you wish. You’ll need to “extract all” files. Inside the PmagPy-Standalone folder you will find icons for installing Pmag GUI and MagIC GUI. Double click the program you wish to use and you will be guided the the install process.
 You’ll find the latest stable release at:
 https://github.com/PmagPy/PmagPy-Standalone-Windows/releases/latest
 
 ####  Linux Standalone download
 
-This binary has only been tested on a Ubuntu 14.04 (Trusty) distribution and might experience problems on other distributions. You can simply clone the standalone repository or download and unzip. It should run when double clicked but will take time to start up (anywhere from 5 to 30 seconds) please be patient.
+This binary has only been tested on a Ubuntu 14.04 (Trusty) distribution and might experience problems on other distributions. You can simply clone the standalone repository or download and unzip. The GUIs should run when you double click the executable, but will take time to start up (anywhere from 5 to 30 seconds) please be patient.
 You’ll find the latest stable release at:
 https://github.com/PmagPy/PmagPy-Standalone-Linux
 
