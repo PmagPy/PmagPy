@@ -243,7 +243,7 @@ class GridFrame(wx.Frame):
                     self.drop_down_menu.choices[5] = [sorted([loc.name for loc in self.er_magic.locations if loc]), False]
 
         # final layout, set size
-        self.main_sizer.Add(self.hbox, 1, flag=wx.ALL|wx.ALIGN_CENTER|wx.SHAPED, border=20)
+        self.main_sizer.Add(self.hbox, flag=wx.ALL|wx.ALIGN_CENTER|wx.SHAPED, border=20)
         self.main_sizer.Add(self.toggle_help_btn, .5, flag=wx.BOTTOM|wx.ALIGN_CENTRE|wx.SHAPED, border=5)
         self.main_sizer.Add(self.help_msg_boxsizer, .5, flag=wx.BOTTOM|wx.ALIGN_CENTRE|wx.SHAPED, border=10)
         self.main_sizer.Add(self.toggle_codes_btn, .5, flag=wx.BOTTOM|wx.ALIGN_CENTRE|wx.SHAPED, border=5)
