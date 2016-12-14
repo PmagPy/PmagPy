@@ -35,7 +35,7 @@ class TestThellierGUI(unittest.TestCase):
 
     def test_auto_interpreter(self):
         self.run_ai_on_frame(self.frame)
-        ai_menu = self.get_menu_from_frame(self.frame,'&Auto Interpreter')
+        ai_menu = self.get_menu_from_frame(self.frame,'Auto Interpreter')
         ai_output_item_id = ai_menu.FindItem("&Open auto-interpreter output files")
         ai_output_event = wx.CommandEvent(wx.EVT_MENU.typeId, ai_output_item_id)
         ai_warn_item_id = ai_menu.FindItem("&Open auto-interpreter Warnings/Errors")
@@ -53,7 +53,7 @@ class TestThellierGUI(unittest.TestCase):
             self.assertEqual(5, num_specs)
 
     def test_anisotropy_calc_and_warns(self):
-        aniso_menu = self.get_menu_from_frame(self.frame,"&Anisotropy")
+        aniso_menu = self.get_menu_from_frame(self.frame,"Anisotropy")
         calc_aniso = wx.PyCommandEvent(wx.EVT_MENU.typeId, aniso_menu.FindItem("&Calculate anisotropy tensors"))
         warn_aniso = wx.PyCommandEvent(wx.EVT_MENU.typeId, aniso_menu.FindItem("&Show anisotropy calculation Warnings/Errors"))
 
@@ -70,7 +70,7 @@ class TestThellierGUI(unittest.TestCase):
         self.frame.ProcessEvent(warn_aniso)
 
     def test_read_write_redo(self):
-        analysis_menu = self.get_menu_from_frame(self.frame,"&Analysis")
+        analysis_menu = self.get_menu_from_frame(self.frame,"Analysis")
         write_redo_event = wx.PyCommandEvent(wx.EVT_MENU.typeId, analysis_menu.FindItem("&Save current interpretations to a 'redo' file"))
         read_redo_event = wx.PyCommandEvent(wx.EVT_MENU.typeId, analysis_menu.FindItem("&Import previous interpretation from a 'redo' file"))
         clear_interps_event = wx.PyCommandEvent(wx.EVT_MENU.typeId, analysis_menu.FindItem("&Clear all current interpretations"))
@@ -99,7 +99,7 @@ class TestThellierGUI(unittest.TestCase):
         self.assertFalse(os.path.isfile(os.path.join(self.frame.WD, "thellier_GUI.redo")))
 
     def test_plot_paleoint_curve(self):
-        plot_menu = self.get_menu_from_frame(self.frame,'&Plot')
+        plot_menu = self.get_menu_from_frame(self.frame,'Plot')
         plot_paleoint_event = wx.PyCommandEvent(wx.EVT_MENU.typeId, plot_menu.FindItem("&Plot paleointensity curve"))
         self.frame.ProcessEvent(plot_paleoint_event)
         self.run_ai_on_frame(self.frame)
@@ -108,10 +108,10 @@ class TestThellierGUI(unittest.TestCase):
     def get_menu_from_frame(self,frame,menu_name):
         mb = frame.GetMenuBar()
         for m, n in mb.Menus:
-            if n == menu_name: return m
+            if n == menu_name or n == "&"+menu_name: return m
 
     def run_ai_on_frame(self,frame):
-        ai_menu = self.get_menu_from_frame(frame,'&Auto Interpreter')
+        ai_menu = self.get_menu_from_frame(frame,'Auto Interpreter')
         run_ai_item_id = ai_menu.FindItem('&Run Thellier auto interpreter')
         run_ai_event = wx.CommandEvent(wx.EVT_MENU.typeId, run_ai_item_id)
         frame.ProcessEvent(run_ai_event)

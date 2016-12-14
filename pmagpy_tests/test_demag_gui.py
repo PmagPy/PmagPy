@@ -641,7 +641,7 @@ class TestDemagGUI(unittest.TestCase):
     def get_menu_from_frame(self,frame,menu_name):
         mb = frame.GetMenuBar()
         for m, n in mb.Menus:
-            if n == menu_name: return m
+            if n == menu_name or n == "&"+menu_name: return m
 
     def mark_all_meas_good(self,frame):
         old_s = frame.s
