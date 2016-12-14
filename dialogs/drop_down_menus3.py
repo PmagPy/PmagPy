@@ -31,6 +31,8 @@ class Menus(object):
             self.magic_dataframe = None
         if self.data_type == 'ages':
             parent_ind, parent_table, self.parent_type = None, None, None
+        elif self.data_type == 'orient':
+            pass
         else:
             parent_ind = self.contribution.ancestry.index(self.data_type)
             parent_table, self.parent_type = self.contribution.get_table_name(parent_ind+1)
@@ -105,6 +107,8 @@ class Menus(object):
             col_label = col_label[:-2]
         if col_label == 'method_codes':
             self.add_method_drop_down(col_number, col_label)
+        elif col_label == 'magic_method_codes':
+            self.add_method_drop_down(col_number, 'method_codes')
         elif col_label in ['specimens', 'samples', 'sites', 'locations']:
             if col_label in self.contribution.tables:
                 item_df = self.contribution.tables[col_label].df

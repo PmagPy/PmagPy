@@ -12,6 +12,7 @@ from pmagpy import pmag
 from pmagpy import ipmag
 from dialogs import pmag_widgets as pw
 from dialogs import drop_down_menus2 as drop_down_menus
+from dialogs import drop_down_menus3
 from dialogs import magic_grid2 as magic_grid
 sys.path.append("../programs") #later fix imports further down in code to "from programs import ...." also imports should be moved to top of file unless import is so large it slows down the program
 from programs import tdt_magic
@@ -2422,102 +2423,9 @@ class OrientFrameGrid3(wx.Frame):
         self.grid.changes = {'a'}
 
         self.grid.AutoSize()
-        self.drop_down_menu = drop_down_menus.Menus("orient", self, self.grid, '')
+        #self.drop_down_menu = drop_down_menus.Menus("orient", self, self.grid, '')
+        self.drop_down_menu = drop_down_menus3.Menus("orient", self.contribution, self.grid)
         self.Bind(wx.grid.EVT_GRID_LABEL_LEFT_CLICK, self.onLeftClickLabel, self.grid)
-
-
-    # tried to do this one using dataframes
-    # it works, but you have to leave orient_data as:
-    # self.orient_data = samp_container.df.loc[:, col_names]
-    # and not convert it to pmag_data_list
-
-    def create_sheet3(self):
-        '''
-        create an editable grid showing demag_orient.txt
-        '''
-        #--------------------------------
-        # orient.txt supports many other headers
-        # but we will only initialize with
-        # the essential headers for
-        # sample orientation and headers present
-        # in existing demag_orient.txt file
-        #--------------------------------
-
-
-        #--------------------------------
-        # create the grid
-        #--------------------------------
-
-        self.samples_list = sorted(self.orient_data.index)
-
-        display_headers = [header[1] for header in self.headers]
-        self.grid = magic_grid.MagicGrid(self.panel, 'orient grid',
-                                         self.samples_list, display_headers)
-        self.grid.InitUI()
-
-        #--------------------------------
-        # color the columns by groups
-        #--------------------------------
-
-        for i in range(len(self.samples_list)):
-            self.grid.SetCellBackgroundColour(i, 0, "LIGHT GREY")
-            self.grid.SetCellBackgroundColour(i, 1, "LIGHT STEEL BLUE")
-            self.grid.SetCellBackgroundColour(i, 2, "YELLOW")
-            self.grid.SetCellBackgroundColour(i, 3, "YELLOW")
-            self.grid.SetCellBackgroundColour(i, 4, "PALE GREEN")
-            self.grid.SetCellBackgroundColour(i, 5, "PALE GREEN")
-            self.grid.SetCellBackgroundColour(i, 6, "KHAKI")
-            self.grid.SetCellBackgroundColour(i, 7, "KHAKI")
-            self.grid.SetCellBackgroundColour(i, 8, "KHAKI")
-            self.grid.SetCellBackgroundColour(i, 9, "KHAKI")
-            self.grid.SetCellBackgroundColour(i, 10, "KHAKI")
-            self.grid.SetCellBackgroundColour(i, 11, "LIGHT MAGENTA")
-            self.grid.SetCellBackgroundColour(i, 12, "LIGHT MAGENTA")
-
-
-        #--------------------------------
-        # fill data from self.orient_data
-        #--------------------------------
-        headers = [header[0] for header in self.headers]
-
-        for sample in self.samples_list:
-            sample_index = self.samples_list.index(sample)
-            samp_data = self.orient_data.loc[sample]
-            for num, col in enumerate(samp_data.index):
-                val = samp_data[col]
-                self.grid.SetCellValue(sample_index, num, val)
-            #for col_name in self.orient_data.loc[sample].columns:
-            #    if key in headers:
-            #        sample_index = self.samples_list.index(sample)
-            #        i = headers.index(key)
-            #        val = str(self.orient_data[sample][key])
-            #        # if it's a pmag_object, use its name
-            #        try:
-            #            val = val.name
-            #        except AttributeError:
-            #            pass
-            #        self.grid.SetCellValue(sample_index, i, val)
-
-        #--------------------------------
-
-        #--------------------------------
-        # fill in some default values
-        #--------------------------------
-        for row in range(self.grid.GetNumberRows()):
-            col = 1
-            if not self.grid.GetCellValue(row, col):
-                self.grid.SetCellValue(row, col, 'g')
-
-        #--------------------------------
-
-        # temporary trick to get drop-down-menus to work
-        self.grid.changes = {'a'}
-
-        self.grid.AutoSize()
-        self.drop_down_menu = drop_down_menus.Menus("orient", self, self.grid, '')
-        ## add this back in
-        self.Bind(wx.grid.EVT_GRID_LABEL_LEFT_CLICK, self.onLeftClickLabel, self.grid)
-
 
     def update_sheet(self):
         self.grid.Destroy()
