@@ -54,7 +54,7 @@ To get the full use of PmagPy functionality, you will first have to have a Pytho
 If you want access to the master branch rather than the latest release you can:
 - either clone the repository or download the latest release and then add the directory of the main repository folder (and the program directory for access to the command line programs) to their path. On a Mac or other Unix machine, this can be done by adding these lines to the bash_profile (edited as necessary for where the PmagPy directory is on your local machine): ```export PATH=~/PmagPy:./:$PATH```; ```export PATH=~/PmagPy/programs:./:$PATH```
 
-Alternatively if you want simply to install the latest under development version without pip you can download or clone the repository and run ```python setup.py install``` and it will use setup tools to install PmagPy somewhere where it is accessible to python and in your path.
+- Alternatively if you want simply to install the latest under development version without pip you can download or clone the repository and run ```python setup.py install``` and it will use setup tools to install PmagPy somewhere where it is accessible to python and in your path.
 
 ## Background and support
 
