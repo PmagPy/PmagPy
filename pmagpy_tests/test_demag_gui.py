@@ -8,6 +8,8 @@ from pmagpy.demag_gui_utilities import *
 import pmagpy.find_pmag_dir as find_pmag_dir
 from programs import demag_gui
 
+
+@unittest.skipIf(sys.platform == 'darwin', 'these tests cause a seg fault on mac')
 class TestDemagGUI(unittest.TestCase):
 
     def setUp(self):

@@ -734,7 +734,7 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
                 if header_name in item_dict.keys():
                     if item_dict[header_name]:
                         item_type = dtype
-                        item_name = item_dict[header_name]
+                        item_name = item_dict[header_name].strip()
                         break
             if not item_type:
                 print '-W- You must provide a name for your age'
@@ -859,7 +859,7 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
             tmp_line = line.strip('\n').split(delim)
             for i in xrange(len(header)):
                 if i < len(tmp_line):
-                    tmp_data[header[i]] = tmp_line[i]
+                    tmp_data[header[i]] = tmp_line[i].strip()
                 else:
                     tmp_data[header[i]] = ""
             if sort_by_this_name == "by_line_number":
