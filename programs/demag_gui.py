@@ -1593,6 +1593,10 @@ class Demag_GUI(wx.Frame):
         fit = self.current_fit
         if fit == None: return
         pars = fit.get('specimen')
+        if 'specimen_dec' not in pars.keys() or 'specimen_inc' not in pars.keys():
+            fit.put(self.s, 'specimen', self.get_PCA_parameters(self.s, fit, fit.tmin, fit.tmax, 'specimen', fit.PCA_type))
+            pars = fit.get('specimen')
+            if not pars: self.user_warning("could not calculate fit %s for specimen %s in specimen coordinate system while checking sample orientation please check data"%(fit.name,self.s))
         dec,inc = pars['specimen_dec'],pars['specimen_inc']
         sample = self.Data_hierarchy['sample_of_specimen'][self.s]
         azimuth=float(self.Data_info["er_samples"][sample]['sample_azimuth'])
@@ -1604,7 +1608,7 @@ class Demag_GUI(wx.Frame):
         else: FC='white';SIZE=15*self.GUI_RESOLUTION
         self.high_level_eqarea.scatter([XY[0]],[XY[1]], marker='^', edgecolor=fit.color, facecolor=FC, s=SIZE, lw=1, clip_on=False)
         if self.ie_open: self.ie.scatter([XY[0]],[XY[1]], marker='^', edgecolor=fit.color, facecolor=FC, s=SIZE, lw=1, clip_on=False)
-        # first test wrong end of compass (take az-180.)
+        # Then test wrong end of compass (take az-180.)
         d,i=pmag.dogeo(dec,inc,azimuth-180.,dip)
         XY=pmag.dimap(d,i)
         if i>0: FC=fit.color;SIZE=15*self.GUI_RESOLUTION
@@ -1717,7 +1721,8 @@ class Demag_GUI(wx.Frame):
                             pars = fit.get(self.COORDINATE_SYSTEM)
                         try: XY=pmag.dimap(pars['bfv_dec'],pars['bfv_inc'])
                         except KeyError:
-                            self.user_warning("There was an error calculating bfv for %s of %s, please raise an issue on github and/or contact a dev about this problem and restart the GUI"%(fit.name,element))
+                             print("specimen %s fit %s is marked bad or there was an error calculating bfv pole will be displayed instead"%(element,fit.name))
+#                            self.user_warning("There was an error calculating bfv for %s of %s, please raise an issue on github and/or contact a dev about this problem and restart the GUI"%(fit.name,element))
                         if inc>0:
                             FC=fit.color
                         else:
@@ -4772,7 +4777,8 @@ class Demag_GUI(wx.Frame):
         if mpars and 'specimen_dec' in mpars.keys():
             dec_key = 'specimen_dec'
             if 'best fit' in self.plane_display_box.GetValue() and \
-               mpars['calculation_type'] == 'DE-BFP':
+               mpars['calculation_type'] == 'DE-BFP' and \
+               self.current_fit not in self.bad_fits:
                 dec_key = 'bfv_dec'
                 if 'bfv_dec' not in mpars.keys():
                     self.calculate_best_fit_vectors()
@@ -4785,7 +4791,8 @@ class Demag_GUI(wx.Frame):
         if mpars and 'specimen_inc' in mpars.keys():
             inc_key = 'specimen_inc'
             if 'best fit' in self.plane_display_box.GetValue() and \
-               mpars['calculation_type'] == 'DE-BFP':
+               mpars['calculation_type'] == 'DE-BFP' and \
+               self.current_fit not in self.bad_fits:
                 inc_key = 'bfv_inc'
                 if 'bfv_inc' not in mpars.keys():
                     self.calculate_best_fit_vectors()
