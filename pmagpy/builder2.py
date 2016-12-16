@@ -623,6 +623,7 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
             return False
 
         item_type = file_type.split('_')[1][:-1]
+        # if a file was named wrong, use the type of data that is actually in that file
         if item_type != expected_item_type:
             print '-W- Expected data of type: {} but instead got: {}'.format(expected_item_type,
                                                                              item_type)
