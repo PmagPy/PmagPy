@@ -7112,7 +7112,7 @@ def plate_rate_mc(pole1_plon,pole1_plat,pole1_kappa,pole1_N,pole1_age,pole1_age_
     twopointfive_percentile=stats.scoreatpercentile(pole1_pole2_cm_per_yr,2.5)
     fifty_percentile=stats.scoreatpercentile(pole1_pole2_cm_per_yr,50)
     ninetysevenpointfive_percentile=stats.scoreatpercentile(pole1_pole2_cm_per_yr,97.5)
-    print "2.5th percentile is: " + str(twopointfive_percentile)
-    print "50th percentile is: " + str(fifty_percentile)
-    print "97.5th percentile is: " + str(ninetysevenpointfive_percentile)
+    print "2.5th percentile is: " + str(round(twopointfive_percentile,2)) + " cm/yr"
+    print "50th percentile is: " + str(round(fifty_percentile,2)) + " cm/yr"
+    print "97.5th percentile is: " + str(round(ninetysevenpointfive_percentile,2)) + " cm/yr"
     return rate[0], twopointfive_percentile, ninetysevenpointfive_percentile
