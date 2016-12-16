@@ -7096,7 +7096,7 @@ def plate_rate_mc(pole1_plon,pole1_plat,pole1_kappa,pole1_N,pole1_age,pole1_age_
         plt.scatter(pole2_paleolat,pole2_age,color='lightgreen',s=100, edgecolor='w', zorder=10000)
         plt.plot([pole1_paleolat,pole2_paleolat],[pole1_age,pole2_age],'w-',linewidth=2)
         plt.gca().invert_yaxis()
-        plt.xlabel('paleolatitude at Duluth, MN (degrees)',size=14)
+        plt.xlabel('paleolatitude (degrees)',size=14)
         plt.ylabel('time (Ma)',size=14)
 
         plt.subplot(1, 2, 2)
