@@ -491,15 +491,20 @@ class MagMainFrame(wx.Frame):
         print "-I- running python script:\n %s"%(outstring)
         wait = wx.BusyInfo("Please wait, working...")
         wx.Yield()
+        if self.data_model_num == 3:
+            res, error_message, has_problems, all_failing_items = ipmag.upload_magic3(dir_path=self.WD,
+                                                                                      vocab=self.contribution.vocab)
+        if self.data_model_num == 2:
+            res, error_message, errors = ipmag.upload_magic(dir_path=self.WD, data_model=self.er_magic.data_model)
+            del wait
 
-        upfile, error_message, errors = ipmag.upload_magic(dir_path=self.WD, data_model=self.er_magic.data_model)
-        del wait
-        if upfile:
-            text = "You are ready to upload.\n Your file: {}  was generated in MagIC Project Directory.\nDrag and drop this file in the MagIC database.".format(os.path.split(upfile)[1])
+        if res:
+            text = "You are ready to upload.\n Your file: {}  was generated in MagIC Project Directory.\nDrag and drop this file in the MagIC database.".format(os.path.split(res)[1])
             dlg = wx.MessageDialog(self, caption="Saved", message=text, style=wx.OK)
         else:
             text = "There were some problems with the creation of your upload file.\nError message: {}\nSee Terminal/Command Prompt for details".format(error_message)
             dlg = wx.MessageDialog(self, caption="Error", message=text, style=wx.OK)
+
         result = dlg.ShowModal()
         if result == wx.ID_OK:
             dlg.Destroy()
