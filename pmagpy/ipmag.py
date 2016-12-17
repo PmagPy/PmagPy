@@ -805,8 +805,10 @@ def fishqq(lon=None, lat=None, di_block=None):
                 I1.append(irot)
                 Dtit='Mode 1 Declinations'
                 Itit='Mode 1 Inclinations'
-        Mu_n,Mu_ncr=pmagplotlib.plotQQunf(QQ['unf1'],D1,Dtit) # make plot
-        Me_n,Me_ncr=pmagplotlib.plotQQexp(QQ['exp1'],I1,Itit) # make plot
+        plt.figure(figsize=(6,3))
+        Mu_n,Mu_ncr=pmagplotlib.plotQQunf(QQ['unf1'],D1,Dtit,subplot=True) # make plot
+        Me_n,Me_ncr=pmagplotlib.plotQQexp(QQ['exp1'],I1,Itit,subplot=True) # make plot
+        plt.tight_layout()
         if Mu_n<=Mu_ncr and Me_n<=Me_ncr:
            F_n = 'consistent with Fisherian model'
         else:
@@ -836,8 +838,10 @@ def fishqq(lon=None, lat=None, di_block=None):
             I2.append(irot)
             Dtit='Mode 2 Declinations'
             Itit='Mode 2 Inclinations'
-        Mu_r,Mu_rcr=pmagplotlib.plotQQunf(QQ['unf2'],D2,Dtit) # make plot
-        Me_r,Me_rcr=pmagplotlib.plotQQexp(QQ['exp2'],I2,Itit) # make plot
+        plt.figure(figsize=(6,3))
+        Mu_r,Mu_rcr=pmagplotlib.plotQQunf(QQ['unf2'],D2,Dtit,subplot=True) # make plot
+        Me_r,Me_rcr=pmagplotlib.plotQQexp(QQ['exp2'],I2,Itit,subplot=True) # make plot
+        plt.tight_layout()
 
         if Mu_r<=Mu_rcr and Me_r<=Me_rcr:
            F_r = 'consistent with Fisherian model'
