@@ -25,7 +25,7 @@ def get_PI_parameters(Data,acceptance_criteria,preferences,s,tmin,tmax,GUI_log,T
     #pars['jmethod_codes']="LP-PI-TRM" # thellier Method
     import SPD
     import SPD.spd3_0 as spd
-    Pint_pars = spd.PintPars(Data, str(s), tmin, tmax, 'magic', preferences['show_statistics_on_gui'])
+    Pint_pars = spd.PintPars(Data, str(s), tmin, tmax, 'magic', preferences['show_statistics_on_gui'],acceptance_criteria)
     Pint_pars.reqd_stats() # calculate only statistics indicated in preferences
     #print 'LIB1: ',Pint_pars
     if not Pint_pars.pars:

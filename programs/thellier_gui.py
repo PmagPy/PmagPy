@@ -2777,7 +2777,7 @@ else:
                                 baselines.append(np.array(pmag.dir2cart([dec,inc,moment])))
                                 aniso_logfile.write( "-I- Found %i ATRM baselines for specimen %s in Zijderveld block. Averaging measurements\n"%(len(baselines),specimen))
                 if  len(baselines)==0:
-                    baseline=zeros(3,'f')
+                    baseline=np.zeros(3,'f')
                     aniso_logfile.write( "-I- No aTRM baseline for specimen %s\n"%specimen)
                 else:
                     baselines=np.array(baselines)
@@ -2785,7 +2785,7 @@ else:
 
                 # sort measurements
 
-                M=zeros([6,3],'f')
+                M=np.zeros([6,3],'f')
 
                 for rec in atrmblock:
 
@@ -2884,7 +2884,7 @@ else:
                 if not Reject_specimen:
 
                     # K vector (18 elements, M1[x], M1[y], M1[z], ... etc.)
-                    K=zeros(18,'f')
+                    K=np.zeros(18,'f')
                     K[0],K[1],K[2]=M[0][0],M[0][1],M[0][2]
                     K[3],K[4],K[5]=M[1][0],M[1][1],M[1][2]
                     K[6],K[7],K[8]=M[2][0],M[2][1],M[2][2]
@@ -3656,117 +3656,76 @@ else:
                                 if header_result not in pmag_results_header_4:
                                     pmag_results_header_4.append(header_result)
 
-
-        # check for ages:
-
-                for sample_or_site in pmag_samples_or_sites_list:
-                    found_age=False
-                    if BY_SAMPLES and sample_or_site in self.Data_info["er_ages"].keys():
-                        element_with_age=sample_or_site
+            else:
+                
+                found_age=False
+                if BY_SAMPLES and sample_or_site in self.Data_info["er_ages"].keys():
+                    element_with_age=sample_or_site
+                    found_age=True
+                elif BY_SAMPLES and sample_or_site not in self.Data_info["er_ages"].keys():
+                    site=self.Data_hierarchy['site_of_sample'][sample_or_site]
+                    if site in self.Data_info["er_ages"].keys():
+                        element_with_age=site
                         found_age=True
-                    elif BY_SAMPLES and sample_or_site not in self.Data_info["er_ages"].keys():
-                        site=self.Data_hierarchy['site_of_sample'][sample_or_site]
-                        if site in self.Data_info["er_ages"].keys():
-                            element_with_age=site
-                            found_age=True
-                    elif BY_SITES and sample_or_site in self.Data_info["er_ages"].keys():
-                        element_with_age=sample_or_site
-                        found_age=True
-                    else:
-                        continue
-                    if not found_age:
-                        continue
-                    foundkeys=False
-                #print    "element_with_age",element_with_age
-                    for key in ['age','age_sigma','age_range_low','age_range_high','age_unit']:
-                        if "er_ages" in self.Data_info.keys() and element_with_age in self.Data_info["er_ages"].keys():
-                            if key in  self.Data_info["er_ages"][element_with_age].keys():
-                                if  self.Data_info["er_ages"][element_with_age][key] !="":
-                                    MagIC_results_data['pmag_results'][sample_or_site][key]=self.Data_info["er_ages"][element_with_age][key]
-                                    foundkeys=True
-                    if foundkeys==True:
-                        if "er_ages" in self.Data_info.keys() and element_with_age in self.Data_info["er_ages"].keys():
-                            if 'magic_method_codes' in self.Data_info["er_ages"][element_with_age].keys():
-                                methods= self.Data_info["er_ages"][element_with_age]['magic_method_codes'].replace(" ","").strip('\n').split(":")
-                                for meth in methods:
-                                    MagIC_results_data['pmag_results'][sample_or_site]["magic_method_codes"]=MagIC_results_data['pmag_results'][sample_or_site]["magic_method_codes"] + ":"+ meth
+                elif BY_SITES and sample_or_site in self.Data_info["er_ages"].keys():
+                    element_with_age=sample_or_site
+                    found_age=True
+                else:
+                    continue
+                if not found_age:
+                    continue
+                foundkeys=False
+            #print    "element_with_age",element_with_age
+                for key in ['age','age_sigma','age_range_low','age_range_high','age_unit']:
+                    print "Ron debug"
+                    print element_with_age
+                    print sample_or_site
+                    if "er_ages" in self.Data_info.keys() and element_with_age in self.Data_info["er_ages"].keys():
+                        if key in  self.Data_info["er_ages"][element_with_age].keys():
+                            if  self.Data_info["er_ages"][element_with_age][key] !="":
+                                print self.Data_info["er_ages"][element_with_age]
+                                print  self.Data_info["er_ages"][element_with_age][key]
+                                print MagIC_results_data['pmag_results'][sample_or_site]
+                                MagIC_results_data['pmag_results'][sample_or_site][key]=self.Data_info["er_ages"][element_with_age][key]
+                                foundkeys=True
+                if foundkeys==True:
+                    if "er_ages" in self.Data_info.keys() and element_with_age in self.Data_info["er_ages"].keys():
+                        if 'magic_method_codes' in self.Data_info["er_ages"][element_with_age].keys():
+                            methods= self.Data_info["er_ages"][element_with_age]['magic_method_codes'].replace(" ","").strip('\n').split(":")
+                            for meth in methods:
+                                MagIC_results_data['pmag_results'][sample_or_site]["magic_method_codes"]=MagIC_results_data['pmag_results'][sample_or_site]["magic_method_codes"] + ":"+ meth
 
-
-                # write pmag_results.txt
-                fout=open(os.path.join(self.WD, "pmag_results.txt"),'w')
-                fout.write("tab\tpmag_results\n")
-                headers=pmag_results_header_1+pmag_results_header_2+pmag_results_header_3+pmag_results_header_4+pmag_results_header_5
+        if self.data_model!=3: 
+        # write pmag_results.txt
+            fout=open(os.path.join(self.WD, "pmag_results.txt"),'w')
+            fout.write("tab\tpmag_results\n")
+            headers=pmag_results_header_1+pmag_results_header_2+pmag_results_header_3+pmag_results_header_4+pmag_results_header_5
+            String=""
+            for key in headers:
+                String=String+key+"\t"
+            fout.write(String[:-1]+"\n")
+    
+            #pmag_samples_list.sort()
+            for sample_or_site in pmag_samples_or_sites_list:
                 String=""
                 for key in headers:
-                    String=String+key+"\t"
-                fout.write(String[:-1]+"\n")
-
-                #pmag_samples_list.sort()
-                for sample_or_site in pmag_samples_or_sites_list:
-                    String=""
-                    for key in headers:
-                        if key in MagIC_results_data['pmag_results'][sample_or_site].keys():
-                            String=String+MagIC_results_data['pmag_results'][sample_or_site][key]+"\t"
-                        else:
-                            String=String+""+"\t"
-                    fout.write(String[:-1]+"\n")
-                fout.close()
-
-                # merge with non-intensity data
-                meas_data,file_type=pmag.magic_read(os.path.join(self.WD, "pmag_results.txt"))
-                for rec in PmagRecsOld["pmag_results.txt"]:
-                    meas_data.append(rec)
-                meas_data=self.converge_pmag_rec_headers(meas_data)
-                pmag.magic_write(os.path.join(self.WD, "pmag_results.txt"),meas_data,'pmag_results')
-                try:
-                    os.remove(os.path.join(self.WD, "pmag_results.txt.backup"))
-                except:
-                    pass
-
-
-        #-------------
-        # MagIC_methods.txt
-        #-------------
-
-        # search for all magic_methods in all files:
-                magic_method_codes=[]
-                for F in ["magic_measurements.txt","rmag_anisotropy.txt","rmag_results.txt","rmag_results.txt","pmag_samples.txt","pmag_specimens.txt","pmag_sites.txt","er_ages.txt"]:
-                    try:
-                        fin=open(os.path.join(self.WD, F),'rU')
-                    except:
-                        continue
-                    line=fin.readline()
-                    line=fin.readline()
-                    header=line.strip('\n').split('\t')
-                    if  "magic_method_codes" not in header:
-                        continue
+                    if key in MagIC_results_data['pmag_results'][sample_or_site].keys():
+                        String=String+MagIC_results_data['pmag_results'][sample_or_site][key]+"\t"
                     else:
-                        index=header.index("magic_method_codes")
-                    for line in fin.readlines():
-                        tmp=line.strip('\n').split('\t')
-                        if len(tmp) >= index:
-                            codes=tmp[index].replace(" ","").split(":")
-                            for code in codes:
-                                if code !="" and code not in magic_method_codes:
-                                    magic_method_codes.append(code)
-                    fin.close()
-
-                magic_method_codes.sort()
-                #print magic_method_codes
-                magic_methods_header_1=["magic_method_code"]
-                fout=open(os.path.join(self.WD, "magic_methods.txt"),'w')
-                fout.write("tab\tmagic_methods\n")
-                fout.write("magic_method_code\n")
-                for code in magic_method_codes:
-                    fout.write("%s\n"%code)
-                fout.close
-
-        # make pmag_criteria.txt if it does not exist
-                if not os.path.isfile(os.path.join(self.WD, "pmag_criteria.txt")):
-                    Fout=open(os.path.join(self.WD, "pmag_criteria.txt"),'w')
-                    Fout.write("tab\tpmag_criteria\n")
-                    Fout.write("er_citation_names\tpmag_criteria_code\n")
-                    Fout.write("This study\tACCEPT\n")
+                        String=String+""+"\t"
+                fout.write(String[:-1]+"\n")
+            fout.close()
+    
+            # merge with non-intensity data
+            meas_data,file_type=pmag.magic_read(os.path.join(self.WD, "pmag_results.txt"))
+            for rec in PmagRecsOld["pmag_results.txt"]:
+                meas_data.append(rec)
+            meas_data=self.converge_pmag_rec_headers(meas_data)
+            pmag.magic_write(os.path.join(self.WD, "pmag_results.txt"),meas_data,'pmag_results')
+            try:
+                os.remove(os.path.join(self.WD, "pmag_results.txt.backup"))
+            except:
+                pass
 
         else: # write out samples/sites in data model 3.0
             for sample_or_site in pmag_samples_or_sites_list:
@@ -3838,6 +3797,55 @@ else:
             #  write out the data
             self.samp_container.write_magic_file(dir_path=self.WD)
             self.site_container.write_magic_file(dir_path=self.WD)
+
+
+
+
+
+        #-------------
+        # MagIC_methods.txt
+        #-------------
+
+        # search for all magic_methods in all files:
+        magic_method_codes=[]
+        for F in ["magic_measurements.txt","rmag_anisotropy.txt","rmag_results.txt","rmag_results.txt","pmag_samples.txt","pmag_specimens.txt","pmag_sites.txt","er_ages.txt"]:
+            try:
+                fin=open(os.path.join(self.WD, F),'rU')
+            except:
+                continue
+            line=fin.readline()
+            line=fin.readline()
+            header=line.strip('\n').split('\t')
+            if  "magic_method_codes" not in header:
+                continue
+            else:
+                index=header.index("magic_method_codes")
+            for line in fin.readlines():
+                tmp=line.strip('\n').split('\t')
+                if len(tmp) >= index:
+                    codes=tmp[index].replace(" ","").split(":")
+                    for code in codes:
+                        if code !="" and code not in magic_method_codes:
+                            magic_method_codes.append(code)
+            fin.close()
+
+        magic_method_codes.sort()
+        #print magic_method_codes
+        magic_methods_header_1=["magic_method_code"]
+        fout=open(os.path.join(self.WD, "magic_methods.txt"),'w')
+        fout.write("tab\tmagic_methods\n")
+        fout.write("magic_method_code\n")
+        for code in magic_method_codes:
+            fout.write("%s\n"%code)
+        fout.close
+
+        # make pmag_criteria.txt if it does not exist
+        if not os.path.isfile(os.path.join(self.WD, "pmag_criteria.txt")):
+            Fout=open(os.path.join(self.WD, "pmag_criteria.txt"),'w')
+            Fout.write("tab\tpmag_criteria\n")
+            Fout.write("er_citation_names\tpmag_criteria_code\n")
+            Fout.write("This study\tACCEPT\n")
+
         dlg1 = wx.MessageDialog(self,caption="Message:", message="MagIC files are saved in MagIC project folder" ,style=wx.OK|wx.ICON_INFORMATION)
         self.show_dlg(dlg1)
         dlg1.Destroy()
