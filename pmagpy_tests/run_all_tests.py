@@ -27,7 +27,7 @@ if __name__ == "__main__":
     suite2 = unittest.TestLoader().loadTestsFromModule(pt.test_pmag)
     suite3 = unittest.TestLoader().loadTestsFromModule(pt.test_imports)
     suite4 = unittest.TestLoader().loadTestsFromModule(pt.test_ipmag)
-    suite5 = unittest.TestLoader().loadTestsFromModule(pt.test_thellier_gui)
+    #suite5 = unittest.TestLoader().loadTestsFromModule(pt.test_thellier_gui)
     #suite6 = unittest.TestLoader().loadTestsFromModule(pt.test_demag_gui)
     suite7 = unittest.TestLoader().loadTestsFromModule(pt.test_magic_gui)
     suite8 = unittest.TestLoader().loadTestsFromModule(pt.test_builder)
@@ -38,7 +38,7 @@ if __name__ == "__main__":
     suite14 = unittest.TestLoader().loadTestsFromModule(pt.test_er_magic_dialogs)
     suite15 = unittest.TestLoader().loadTestsFromModule(pt.test_find_pmag_dir)
     full = unittest.TestSuite([suite1, suite2, suite3, suite4,
-                               suite5, suite7, suite8, suite9,
+                               suite7, suite8, suite9,
                                suite12, suite13, suite14, suite15])
 
     unittest.TextTestRunner(verbosity=3).run(full)
