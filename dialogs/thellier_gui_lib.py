@@ -25,7 +25,7 @@ def get_PI_parameters(Data,acceptance_criteria,preferences,s,tmin,tmax,GUI_log,T
     #pars['magic_method_codes']="LP-PI-TRM" # thellier Method
     import SPD
     import SPD.spd as spd
-    Pint_pars = spd.PintPars(Data, str(s), tmin, tmax, 'magic', preferences['show_statistics_on_gui'])
+    Pint_pars = spd.PintPars(Data, str(s), tmin, tmax, 'magic', preferences['show_statistics_on_gui'],acceptance_criteria)
     Pint_pars.reqd_stats() # calculate only statistics indicated in preferences
     if not Pint_pars.pars:
         print "Could not get any parameters for {}".format(Pint_pars)

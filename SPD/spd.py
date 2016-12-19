@@ -79,7 +79,8 @@ from pmagpy.mapping import map_magic
 
 class PintPars(object):
     """ __init__(self, Data,specimen_name,tmin,tmax,mapping=None, calculate=None)"""
-    def __init__(self, Data, specimen_name, tmin, tmax, mapping=None, calculate=None):
+    def __init__(self, Data, specimen_name, tmin, tmax, mapping=None, calculate=None,acceptance_criteria={}):
+        self.acceptance_criteria=acceptance_criteria
         self.s = specimen_name
         self.mapping = mapping
         ####
@@ -271,7 +272,7 @@ class PintPars(object):
         slope = self.pars['specimen_b']
         x_mean, y_mean = self.x_Arai_mean, self.y_Arai_mean
         x_Arai_segment, y_Arai_segment = self.x_Arai_segment, self.y_Arai_segment
-        box = lib_arai.get_SCAT_box(slope, x_mean, y_mean)
+        box = lib_arai.get_SCAT_box(slope, x_mean, y_mean,beta_threshold=self.acceptance_criteria['specimen_b_beta']['value'])
         low_bound, high_bound, x_max, y_max, low_line, high_line = box[0], box[1], box[2], box[3], box[4], box[5]
         # getting SCAT points
         x_Arai_segment, y_Arai_segment = self.x_Arai_segment, self.y_Arai_segment

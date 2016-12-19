@@ -267,13 +267,16 @@ def plotQQnorm(fignum,Y,title):
     notestr='Dc: '+'%8.3e'%(dc)
     pylab.text(-.9*bounds[1],.5*bounds[3],notestr)
 
-#
-def plotQQunf(fignum,D,title):
+
+def plotQQunf(fignum,D,title,subplot=False):
     """
     plots data against a uniform distribution in 0=>360.
     called with plotQQunf(fignum,D,title).
     """
-    pylab.figure(num=fignum)
+    if subplot == True:
+        pylab.subplot(1,2,fignum)
+    else:
+        pylab.figure(num=fignum)
     X,Y,dpos,dneg=[],[],0.,0.
     for d in D:
         if d<0:d=d+360.
@@ -295,25 +298,28 @@ def plotQQunf(fignum,D,title):
     notestr='N: '+'%i'%(n)
     pylab.text(.1*bounds[1],.9*bounds[3],notestr)
     notestr='Mu: '+'%7.3f'%(Mu)
-    pylab.text(.1*bounds[1],.85*bounds[3],notestr)
+    pylab.text(.1*bounds[1],.8*bounds[3],notestr)
     if Mu > 1.347:
         notestr="Non-uniform (99%)"
     elif Mu < 1.207:
         notestr="Uniform (95%)"
     elif Mu > 1.207:
         notestr="Uniform (99%)"
-    pylab.text(.1*bounds[1],.8*bounds[3],notestr)
-    pylab.text(.1*bounds[1],.8*bounds[3],notestr)
+    pylab.text(.1*bounds[1],.7*bounds[3],notestr)
+    pylab.text(.1*bounds[1],.7*bounds[3],notestr)
     pylab.title(title)
     pylab.xlabel('Uniform Quantile')
     pylab.ylabel('Data Quantile')
     return Mu, 1.207
 
-def plotQQexp(fignum,I,title):
+def plotQQexp(fignum,I,title,subplot=False):
     """
     plots data against an exponential distribution in 0=>90.
     """
-    pylab.figure(num=fignum)
+    if subplot == True:
+        pylab.subplot(1,2,fignum)
+    else:
+        pylab.figure(num=fignum)
     X,Y,dpos,dneg=[],[],0.,0.
     rad=numpy.pi/180.
     xsum=0
