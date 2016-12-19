@@ -3130,6 +3130,9 @@ class Demag_GUI(wx.Frame):
         self.excluded_methods=["LP-AN-ARM","LP-AN-TRM","LP-ARM-AFD","LP-ARM2-AFD","LP-TRM-AFD","LP-TRM","LP-TRM-TD","LP-X"]
         self.included_methods=["LT-NO", "LT-AF-Z", "LT-T-Z", "LT-M-Z","LT-LT-Z"]
 #        self.mag_meas_data.sort(cmp=meas_cmp)
+        # asiigned default values for NRM
+        if len(self.mag_meas_data) > 0 and "measurement_magn_moment" in self.mag_meas_data[0].keys():
+            NRM=float(self.mag_meas_data[0]["measurement_magn_moment"])
         for rec in self.mag_meas_data:
             if "measurement_number" in rec.keys() and str(rec['measurement_number']) == '1' and "magic_method_codes" in rec.keys() and "LT-NO" not in rec["magic_method_codes"].split(':'):
                 NRM = 1 #not really sure how to handle this case but assume that data is already normalized
