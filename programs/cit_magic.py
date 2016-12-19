@@ -386,7 +386,7 @@ def get_dc_params(GET_DC_PARAMS, specimen, treat_type, yn):
     if GET_DC_PARAMS:
         yn = input("Is the DC field used in this IZZI study constant or does it varry between specimen or step? [y/N]")
         GET_DC_PARAMS = False
-    if "y" == yn: DC_FIELD,DC_PHI,DC_THETA = float(input("What DC field was used for all steps? (float, value in microTesla,float,float)")); yn = ""
+    if "y" == yn: DC_FIELD,DC_PHI,DC_THETA = float(input("What DC field, Phi, and Theta was used for all steps? (float, value in microTesla,float,float)")); yn = ""
     else: DC_FIELD,DC_PHI,DC_THETA = map(float,input("What DC field, Phi, and Theta was used for specimen %s and step %s? (float, in microTesla,float,float)"%(str(specimen),str(treat_type))))
     return GET_DC_PARAMS,yn,DC_FIELD,DC_PHI,DC_THETA
 

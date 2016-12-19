@@ -389,8 +389,8 @@ class Demag_GUI(wx.Frame):
         self.logger.InsertColumn(4, 'Inc',width=35*self.GUI_RESOLUTION)
         self.logger.InsertColumn(5, 'M',width=45*self.GUI_RESOLUTION)
         self.logger.InsertColumn(6, 'csd',width=45*self.GUI_RESOLUTION)
-        self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnClick_listctrl, self.logger)
-        self.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK,self.OnRightClickListctrl,self.logger)
+        self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.on_click_listctrl, self.logger)
+        self.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK,self.on_right_click_listctrl,self.logger)
         self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.on_select_measurement, self.logger)
         self.logger.SetHelpText(dgh.logger_help)
 
@@ -6296,7 +6296,7 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
             if self.Data[self.s]['measurement_flag'][i]=='b':
                 self.logger.SetItemBackgroundColour(i,"red")
 
-    def OnClick_listctrl(self,event):
+    def on_click_listctrl(self,event):
         if not self.current_fit:
             self.on_btn_add_fit(event)
 
@@ -6351,7 +6351,7 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
         self.logger.Select(index, on=0)
         self.get_new_PCA_parameters(-1)
 
-    def OnRightClickListctrl(self,event):
+    def on_right_click_listctrl(self,event):
         """
         right click on the listctrl toggles measurement bad
         """

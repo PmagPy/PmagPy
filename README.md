@@ -8,7 +8,7 @@ PmagPy is comprised of:
   - GUI programs for getting data into MagIC database format (pmag_gui), analyzing demagnetization data (demag_gui) and analyzing paleointensity data (thellier_gui). These GUIs are also availible for download as executable programs outside of this repository: 
     - [Mac PmagPy Executable Application](https://github.com/PmagPy/PmagPy-Standalone-OSX/releases/latest)
     - [Windows PmagPy Executable Application](https://github.com/PmagPy/PmagPy-Standalone-Windows/releases/latest)
-    - [Linux PmagPy Executable Application](https://github.com/PmagPy/PmagPy-Standalone-Linux)
+    - [Linux PmagPy Executable Application](https://github.com/PmagPy/PmagPy-Standalone-Linux/releases)
   - Command line programs for all sorts of paleomagnetic data analysis and wrangling (contained within the programs folder of the repository and pip installed as pmagpy-cli).
   - The pmagpy function module for paleomagnetic data analysis (pmagpy.pmag) and plotting (pmagpy.pmagplotlib) as well as a function module that further enables paleomagnetic data analysis within interactive computing environments such as the Jupyter notebook (pmagpy.ipmag). The functions within these modules are at the heart of the GUI and command line programs. With pmagpy in the python path (which is accomplished using pip, see below), these modules are can be imported (e.g. ```import pmagpy.ipmag as ipmag```).
   - Example data files that are used in the examples provided in the PmagPy cookbook http://earthref.org/PmagPy/cookbook
@@ -38,7 +38,7 @@ https://github.com/PmagPy/PmagPy-Standalone-Windows/releases/latest
 
 This binary has only been tested on a Ubuntu 14.04 (Trusty) distribution and might experience problems on other distributions. You can simply clone the standalone repository or download and unzip. The GUIs should run when you double click the executable, but will take time to start up (anywhere from 5 to 30 seconds) please be patient.
 You’ll find the latest stable release at:
-https://github.com/PmagPy/PmagPy-Standalone-Linux
+https://github.com/PmagPy/PmagPy-Standalone-Linux/releases
 
 ### Full PmagPy install
 
