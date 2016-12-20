@@ -5,7 +5,7 @@ from codecs import open
 import os
 from os import path
 
-version_num = '3.7.0'
+version_num = '3.8.0'
 packages = find_packages(exclude=['programs', 'pmagpy_tests',
                                   #'dialogs',
                                   'pmagpy_tests.examples', 'pmag_env',
