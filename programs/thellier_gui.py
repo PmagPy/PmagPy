@@ -4049,11 +4049,9 @@ else:
         convert all age units to calendar year
         '''
 
-        if "age" not in  er_ages_rec.keys():
+        if "age" not in er_ages_rec.keys() or er_ages_rec['age']==None:
             return(er_ages_rec)
-        if "age_unit" not in er_ages_rec.keys():
-            return(er_ages_rec)
-        if er_ages_rec["age_unit"]=="":
+        if "age_unit" not in er_ages_rec.keys() or er_ages_rec['age_unit']==None or er_ages_rec["age_unit"]=="":
             return(er_ages_rec)
 
         if  er_ages_rec["age"]=="":
@@ -5821,7 +5819,7 @@ else:
 #
 # make a specimen container and dataframe for anisotropy and elsewhere specimen interpretations
 #
-            if 'specimens' in self.contribution.tables and len(self.spec_data)>0:
+            if 'specimens' in self.contribution.tables and len(self.spec_data)>0 and 'method_codes' in self.spec_data.columns and 'aniso_s' in self.spec_data.columns:
                 anis_data=self.spec_data[self.spec_data['method_codes'].str.contains('LP-AN')==True] # get the anisotropy records
                 anis_data=anis_data[anis_data['aniso_s'].notnull()] # get the ones with anisotropy tensors that aren't blank
                 anis_data=anis_data[['specimen','aniso_s','aniso_ftest','aniso_ftest12','aniso_ftest23','aniso_s_n_measurements','aniso_s_sigma','aniso_type','description']]
@@ -6605,7 +6603,8 @@ else:
                 self.site_data = self.site_container.df
                 self.site_data = self.site_data[self.site_data['lat'].notnull()]
                 self.site_data = self.site_data[self.site_data['lon'].notnull()]
-                self.site_data = self.site_data[self.site_data['age'].notnull()]
+                if 'age' in self.site_data.columns:
+                    self.site_data = self.site_data[self.site_data['age'].notnull()]
                 self.site_container.df = self.site_data
                 # update container df to ignore above null values
                 site_headers = ['site','int_abs','int_abs_sigma','int_abs_sigma_perc','int_n_samples','int_n_specimens']

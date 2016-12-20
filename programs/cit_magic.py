@@ -285,7 +285,6 @@ def main(command_line=True, **kwargs):
             treat=line[2:6]
             try: float(treat)
             except ValueError: treat = line[3:6]
-            print(treat_type,treat)
             if treat_type.startswith('NRM'):
                 MeasRec['magic_method_codes']='LT-NO'
                 MeasRec['measurement_temp']='273'
