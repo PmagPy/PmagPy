@@ -9,15 +9,13 @@
 #---------------------------------------------------------------------------
 import matplotlib
 import pylab,scipy
-from pylab import * 
+from pylab import *
 from scipy import *
 #import pmag
 import copy
 import pmagpy.pmag as pmag
-    
 
-def get_PI_parameters(Data,acceptance_criteria,preferences,s,tmin,tmax,GUI_log,THERMAL,MICROWAVE):
-        
+def get_PI_parameters(Data, acceptance_criteria, preferences, s, tmin, tmax, GUI_log, THERMAL,MICROWAVE):
     datablock = Data[s]['datablock']
     pars=copy.deepcopy(Data[s]['pars']) # assignments to pars are assiging to Data[s]['pars']
     # get MagIC mothod codes:
@@ -33,7 +31,7 @@ def get_PI_parameters(Data,acceptance_criteria,preferences,s,tmin,tmax,GUI_log,T
     #Pint_pars.calculate_all_statistics() # calculate every statistic available
     #print "-D- Debag"
     #print Pint_pars.keys()
-    pars.update(Pint_pars.pars) # 
+    pars.update(Pint_pars.pars)
 
     t_Arai=Data[s]['t_Arai']
     x_Arai=Data[s]['x_Arai']
@@ -41,14 +39,14 @@ def get_PI_parameters(Data,acceptance_criteria,preferences,s,tmin,tmax,GUI_log,T
     x_tail_check=Data[s]['x_tail_check']
     y_tail_check=Data[s]['y_tail_check']
 
-    zijdblock=Data[s]['zijdblock']        
+    zijdblock=Data[s]['zijdblock']
     z_temperatures=Data[s]['z_temp']
 
     #print tmin,tmax,z_temperatures
     # check tmin
     if tmin not in t_Arai or tmin not in z_temperatures:
         return(pars)
-    
+
     # check tmax
     if tmax not in t_Arai or tmin not in z_temperatures:
         return(pars)
@@ -61,50 +59,42 @@ def get_PI_parameters(Data,acceptance_criteria,preferences,s,tmin,tmax,GUI_log,T
 
     zdata_segment=Data[s]['zdata'][zstart:zend+1]
 
-
     # replacing PCA for zdata and for ptrms here
-    
 
-## removed a bunch of Ron's commented out old code        
+## removed a bunch of Ron's commented out old code
 
-#lj
     #-------------------------------------------------
     # York regresssion (York, 1967) following Coe (1978)
     # calculate f,fvds,
     # modified from pmag.py
-    #-------------------------------------------------               
+    #-------------------------------------------------
 
-    x_Arai_segment= x_Arai[start:end+1]
-    y_Arai_segment= y_Arai[start:end+1]
+    x_Arai_segment = x_Arai[start:end+1]
+    y_Arai_segment = y_Arai[start:end+1]
     # replace thellier_gui code for york regression here
 
     pars["specimen_int"]=-1*pars['lab_dc_field']*pars["specimen_b"]
 
-
     # replace thellier_gui code for ptrm checks, DRAT etc. here
     # also tail checks and SCAT
 
-
-
-
-    #-------------------------------------------------                     
+    #-------------------------------------------------
     # Add missing parts of code from old get_PI
-    #-------------------------------------------------                     
+    #-------------------------------------------------
 
     if MICROWAVE==True:
         LP_code="LP-PI-M"
     else:
         LP_code="LP-PI-TRM"
-                
-        
-    count_IZ= Data[s]['steps_Arai'].count('IZ')
-    count_ZI= Data[s]['steps_Arai'].count('ZI')
-    if count_IZ >1 and count_ZI >1:
+
+    count_IZ = Data[s]['steps_Arai'].count('IZ')
+    count_ZI = Data[s]['steps_Arai'].count('ZI')
+    if count_IZ > 1 and count_ZI > 1:
         pars['magic_method_codes']=LP_code+":"+"LP-PI-BT-IZZI"
-    elif count_IZ <1 and count_ZI >1:
+    elif count_IZ < 1 and count_ZI > 1:
         pars['magic_method_codes']=LP_code+":"+"LP-PI-ZI"
-    elif count_IZ >1 and count_ZI <1:
-        pars['magic_method_codes']=LP_code+":"+"LP-PI-IZ"            
+    elif count_IZ > 1 and count_ZI < 1:
+        pars['magic_method_codes']=LP_code+":"+"LP-PI-IZ"
     else:
         pars['magic_method_codes']=LP_code
 
@@ -113,16 +103,16 @@ def get_PI_parameters(Data,acceptance_criteria,preferences,s,tmin,tmax,GUI_log,T
             pars['magic_method_codes']+=":LP-PI-ALT-PMRM"
         else:
             pars['magic_method_codes']+=":LP-PI-ALT-PTRM"
-            
+
     if 'tail_check_temperatures' in Data[s].keys() and len(Data[s]['tail_check_temperatures'])>0:
         pars['magic_method_codes']+=":LP-PI-BT-MD"
 
     if 'additivity_check_temperatures' in Data[s].keys() and len(Data[s]['additivity_check_temperatures'])>0:
         pars['magic_method_codes']+=":LP-PI-BT"
-                    
-    #-------------------------------------------------            
+
+    #-------------------------------------------------
     # Calculate anistropy correction factor
-    #-------------------------------------------------            
+    #-------------------------------------------------
 
     if "AniSpec" in Data[s].keys():
         pars["AC_WARNING"]=""
@@ -148,7 +138,6 @@ def get_PI_parameters(Data,acceptance_criteria,preferences,s,tmin,tmax,GUI_log,T
             Data[s]['AniSpec'][TYPE]['anisotropy_n']=int(float(Data[s]['AniSpec'][TYPE]['anisotropy_n']))
 
             this_specimen_f_type=Data[s]['AniSpec'][TYPE]['anisotropy_type']+"_"+"%i"%(int(Data[s]['AniSpec'][TYPE]['anisotropy_n']))
-            
             Ftest_crit={} 
             Ftest_crit['ATRM_6']=  3.1059
             Ftest_crit['AARM_6']=  3.1059
@@ -156,12 +145,12 @@ def get_PI_parameters(Data,acceptance_criteria,preferences,s,tmin,tmax,GUI_log,T
             Ftest_crit['AARM_15']= 2.4558
 
             # threshold value for Ftest:
-            
+
             if 'AniSpec' in Data[s].keys() and TYPE in Data[s]['AniSpec'].keys()\
                 and 'anisotropy_sigma' in  Data[s]['AniSpec'][TYPE].keys() \
                 and Data[s]['AniSpec'][TYPE]['anisotropy_sigma']!="":
                 # Calculate Ftest. If Ftest exceeds threshold value: set anistropy tensor to identity matrix
-                sigma=float(Data[s]['AniSpec'][TYPE]['anisotropy_sigma'])             
+                sigma=float(Data[s]['AniSpec'][TYPE]['anisotropy_sigma'])
                 nf = 3*int(Data[s]['AniSpec'][TYPE]['anisotropy_n'])-6
                 F=calculate_ftest(S_matrix,sigma,nf)
                 #print s,"F",F
@@ -174,12 +163,10 @@ def get_PI_parameters(Data,acceptance_criteria,preferences,s,tmin,tmax,GUI_log,T
                         S_matrix=identity(3,'f')
                         pars["AC_WARNING"]=pars["AC_WARNING"]+"%s tensor fails F-test; "%(TYPE)
                         red_flag=True
-                        
             else:
                 Data[s]['AniSpec'][TYPE]['anisotropy_sigma']=""
                 Data[s]['AniSpec'][TYPE]['ftest']=99999
-    
-            
+
             if 'anisotropy_alt' in Data[s]['AniSpec'][TYPE].keys() and Data[s]['AniSpec'][TYPE]['anisotropy_alt']!="":
                 if acceptance_criteria['anisotropy_alt']['value'] != -999 and \
                 (float(Data[s]['AniSpec'][TYPE]['anisotropy_alt']) > float(acceptance_criteria['anisotropy_alt']['value'])):
@@ -190,10 +177,12 @@ def get_PI_parameters(Data,acceptance_criteria,preferences,s,tmin,tmax,GUI_log,T
                 Data[s]['AniSpec'][TYPE]['anisotropy_alt']=""
 
             Data[s]['AniSpec'][TYPE]['S_matrix']=S_matrix 
-        #--------------------------  
+        #--------------------------
         # if AARM passes all, use the AARM.
         # if ATRM fail alteration use the AARM
         # if both fail F-test: use AARM
+        #--------------------------
+
         if len(TYPES)>1:
             if "ATRM tensor fails alteration check" in pars["AC_WARNING"]:
                 TYPE='AARM'
@@ -202,7 +191,9 @@ def get_PI_parameters(Data,acceptance_criteria,preferences,s,tmin,tmax,GUI_log,T
             else: 
                 TYPE=='AARM'
         S_matrix= Data[s]['AniSpec'][TYPE]['S_matrix']
-        #---------------------------        
+
+        #---------------------------
+
         TRM_anc_unit=array(pars['specimen_PCA_v1'])/sqrt(pars['specimen_PCA_v1'][0]**2+pars['specimen_PCA_v1'][1]**2+pars['specimen_PCA_v1'][2]**2)
         B_lab_unit=pmag.dir2cart([ Data[s]['Thellier_dc_field_phi'], Data[s]['Thellier_dc_field_theta'],1])
         #B_lab_unit=array([0,0,-1])
@@ -230,8 +221,8 @@ def get_PI_parameters(Data,acceptance_criteria,preferences,s,tmin,tmax,GUI_log,T
         pars["AC_WARNING"]="No anistropy correction"
         pars['specimen_correction']='u' 
 
-    pars["specimen_int_corr_anisotropy"]=pars["Anisotropy_correction_factor"]   
-    #-------------------------------------------------                    
+    pars["specimen_int_corr_anisotropy"]=pars["Anisotropy_correction_factor"]
+    #-------------------------------------------------
     # NLT and anisotropy correction together in one equation
     # See Shaar et al (2010), Equation (3)
     #-------------------------------------------------
@@ -244,17 +235,17 @@ def get_PI_parameters(Data,acceptance_criteria,preferences,s,tmin,tmax,GUI_log,T
         Fa=pars["Anisotropy_correction_factor"]
 
         if ((abs(b)*Fa)/alpha) <1.0:
-            Banc_NLT=math.atanh( ((abs(b)*Fa)/alpha) ) / beta
+            Banc_NLT=math.atanh(((abs(b)*Fa)/alpha))/beta
             pars["NLTC_specimen_int"]=Banc_NLT
             pars["specimen_int_uT"]=Banc_NLT*1e6
 
             if "AC_specimen_int" in pars.keys():
                 pars["NLT_specimen_correction_factor"]=Banc_NLT/float(pars["AC_specimen_int"])
-            else:                       
+            else:
                 pars["NLT_specimen_correction_factor"]=Banc_NLT/float(pars["specimen_int"])
             if ":LP-TRM" not in pars['magic_method_codes']:
                 pars['magic_method_codes']+=":LP-TRM:DA-NL"
-            pars['specimen_correction']='c' 
+            pars['specimen_correction']='c'
 
         else:
             GUI_log.write ("-W- WARNING: problematic NLT mesurements for specimens %s. Cant do NLT calculation. check data\n"%s)
@@ -262,7 +253,7 @@ def get_PI_parameters(Data,acceptance_criteria,preferences,s,tmin,tmax,GUI_log,T
     else:
         pars["NLT_specimen_correction_factor"]=-1
 
-    #-------------------------------------------------                    
+    #-------------------------------------------------
     # Calculate the final result with cooling rate correction
     #-------------------------------------------------
 
@@ -283,13 +274,8 @@ def get_PI_parameters(Data,acceptance_criteria,preferences,s,tmin,tmax,GUI_log,T
                 if 'CR_correction_factor_flag' in Data[s]['cooling_rate_data'].keys() \
                     and Data[s]['cooling_rate_data']['CR_correction_factor_flag']!="calculated":
                     pars["CR_WARNING"]="inferred cooling rate correction"
-                
-            
     else:
         pars["CR_WARNING"]="no cooling rate correction"
-        
-
-
 
     def combine_dictionaries(d1, d2):
         """
@@ -301,19 +287,16 @@ def get_PI_parameters(Data,acceptance_criteria,preferences,s,tmin,tmax,GUI_log,T
                 d1[key] = value
         return d1
 
-    
     Data[s]['pars'] = pars
     #print pars.keys()
 
     return(pars)
-    
+
 def calculate_ftest(s,sigma,nf):
     chibar=(s[0][0]+s[1][1]+s[2][2])/3.
     t=array(linalg.eigvals(s))
     F=0.4*(t[0]**2+t[1]**2+t[2]**2 - 3*chibar**2)/(float(sigma)**2)
-
     return(F)
-
 
 def check_specimen_PI_criteria(pars,acceptance_criteria):
     '''
@@ -344,8 +327,7 @@ def check_specimen_PI_criteria(pars,acceptance_criteria):
         elif acceptance_criteria[crit]['threshold_type']=="low":
             if pars[crit]<cutoff_value:
                 pars['specimen_fail_criteria'].append(crit)
-    return pars                                                                                     
-
+    return pars
 
 def get_site_from_hierarchy(sample,Data_hierarchy):
     site=""

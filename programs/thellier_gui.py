@@ -250,6 +250,9 @@ class Arai_GUI(wx.Frame):
         wait = wx.BusyInfo('Compiling required data, please wait...')
         wx.Yield()
 
+        #initalize necessary variables
+        self.list_bound_loc = 0
+
         # inialize selecting criteria
         self.acceptance_criteria=pmag.initialize_acceptance_criteria(data_model=self.data_model)
         self.add_thellier_gui_criteria()
@@ -485,6 +488,8 @@ class Arai_GUI(wx.Frame):
         self.logger.InsertColumn(3, 'Dec',width=65*self.GUI_RESOLUTION)
         self.logger.InsertColumn(4, 'Inc',width=65*self.GUI_RESOLUTION)
         self.logger.InsertColumn(5, 'M',width=75*self.GUI_RESOLUTION)
+        self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.on_click_listctrl, self.logger)
+        self.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.on_right_click_listctrl, self.logger)
 
         #--------------------------------------------------------------------
         # select a specimen box
@@ -907,7 +912,7 @@ else:
         # microwave or thermal
         if "LP-PI-M" in self.Data[s]['datablock'][0]['magic_method_codes']:
             MICROWAVE=True; THERMAL=False
-            steps_tr = [float(STEP.split("-")[-1]) for d in self.Data[s]['datablock']]
+            steps_tr = [float(d['treatment_mw_power'].split("-")[-1]) for d in self.Data[s]['datablock']]
         else:
             MICROWAVE=False; THERMAL=True
             steps_tr = [float(d['treatment_temp'])-273 for d in self.Data[s]['datablock']]
@@ -959,6 +964,54 @@ else:
             self.logger.SetItemBackgroundColour(i,"WHITE")
             if i >= tmin_index and i <= tmax_index:
                 self.logger.SetItemBackgroundColour(i,"LIGHT BLUE")
+
+    def on_click_listctrl(self, event):
+        meas_i=int(event.GetText())
+        step_key = 'treatment_temp'
+        if MICROWAVE: step_key = 'treatment_mw_power'
+        m_step=self.Data[self.s]['datablock'][meas_i][step_key]
+        index=self.Data[self.s]['t_Arai'].index(float(m_step))
+        self.select_bounds_in_logger(index)
+
+    def select_bounds_in_logger(self, index):
+        """
+        sets index as the upper or lower bound of a fit based on what the other bound is and selects it in the logger. Requires 2 calls to completely update a interpretation. NOTE: Requires an interpretation to exist before it is called.
+        @param: index - index of the step to select in the logger
+        """
+        tmin_index,tmax_index="",""
+        if str(self.tmin_box.GetValue())!="":
+            tmin_index=self.tmin_box.GetSelection()
+        if str(self.tmax_box.GetValue())!="":
+            tmax_index=self.tmax_box.GetSelection()
+
+        if self.list_bound_loc!=0:
+            if self.list_bound_loc==1:
+                if index<tmin_index:
+                    self.tmin_box.SetSelection(index)
+                    self.tmax_box.SetSelection(tmin_index)
+                elif index==tmin_index: pass
+                else: self.tmax_box.SetSelection(index)
+            else:
+                if index>tmax_index:
+                    self.tmin_box.SetSelection(tmax_index)
+                    self.tmax_box.SetSelection(index)
+                elif index==tmax_index: pass
+                else: self.tmin_box.SetSelection(index)
+            self.list_bound_loc=0
+        else:
+            if index<tmax_index:
+                self.tmin_box.SetSelection(index)
+                self.list_bound_loc=1
+            else:
+                self.tmax_box.SetSelection(index)
+                self.list_bound_loc=2
+
+        self.logger.Select(index, on=0)
+        self.get_new_T_PI_parameters(-1)
+
+    def on_right_click_listctrl(self, event):
+        self.user_warning("Thellier GUI cannot handle data marked bad yet so this function does not work. This feature is in development and can be expected in future versions of the GUI.")
+#        import pdb; pdb.set_trace()
 
     #----------------------------------------------------------------------
 
@@ -5181,8 +5234,6 @@ else:
             self.Aniso_factor_window.SetValue("")
             self.Aniso_factor_window.SetBackgroundColour(wx.NamedColour('grey'))
 
-
-
         if self.pars['NLT_specimen_correction_factor']!=-1:
             self.NLT_factor_window.SetValue("%.2f"%(self.pars['NLT_specimen_correction_factor']))
         else:
@@ -5206,16 +5257,9 @@ else:
         self.write_sample_box()
 
 
-
-
-
-
-
 #===========================================================
 # calculate PI statistics
 #===========================================================
-
-
 
     def get_new_T_PI_parameters(self,event):
         """
@@ -5249,6 +5293,7 @@ else:
                 self.pars=thellier_gui_lib.get_PI_parameters(self.Data,self.acceptance_criteria, self.preferences,self.s,float(t1),float(t2),self.GUI_log,THERMAL,MICROWAVE)
                 self.Data[self.s]['pars'] = self.pars
             self.update_GUI_with_new_interpretation()
+            self.Add_text(self.s)
 
     def draw_interpretation(self):
 
@@ -5268,8 +5313,6 @@ else:
 
         zijdblock=self.Data[s]['zijdblock']
         z_temperatures=self.Data[s]['z_temp']
-
-
 
         start=t_Arai.index(self.pars["measurement_step_min"])
         end=t_Arai.index(self.pars["measurement_step_max"])
