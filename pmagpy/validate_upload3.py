@@ -169,10 +169,14 @@ def cv(row, col_name, arg, current_data_model, df, con):
     cell_value = str(row[col_name])
     if not cell_value:
         return None
+    elif cell_value == "None":
+        return None
     cell_values = cell_value.split(":")
     cell_values = [c.strip() for c in cell_values]
     for value in cell_values:
         if value.lower() in [v.lower() for v in vocabulary[col_name]]:
+            continue
+        elif value.lower() == "none":
             continue
         else:
             return '"{}" is not in controlled vocabulary for {}'.format(value, arg)
