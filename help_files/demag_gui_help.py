@@ -137,7 +137,9 @@ delete_fit_btn_help = """Deletes current fit and reverts your current fit to the
 
 PCA_type_help = """Shows the current fit's regression or mean type."""
 
-plane_display_help = """How to display plane fits on eqarea plots"""
+plane_display_help = """How to display plane fits on eqarea plots:
+bfv = Best Fit Vector
+wp = Whole plane"""
 
 level_box_help = """Shows the current level at which interpretations will be displayed on the high level mean eqarea plot in the far right of the GUI."""
 

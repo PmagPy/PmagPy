@@ -18,6 +18,7 @@ def main(command_line=True, **kwargs):
         -h: prints the help message and quits.
         -usr USER:   identify user, default is ""
         -f FILE: specify .sam format input file, required
+        -WD Working Directory: output directory where files are going to go
         -fsi SITEFILE : specify file with site names and locations [tab delimited magic file]
         -F FILE: specify output  measurements file, default is magic_measurements.txt
         -Fsp FILE: specify output er_specimens.txt file, default is er_specimens.txt
@@ -29,7 +30,7 @@ def main(command_line=True, **kwargs):
         -ncn NCON: specify naming convention
         -loc LOCNAME : specify location/study name, must have either LOCNAME or SITEFILE or be a synthetic
         -mcd [FS-FD:SO-MAG,.....] colon delimited list for method codes applied to all specimens in .sam file
-        -dc B PHI THETA: dc lab field (in micro tesla) and phi,theta, must be input as a tuple "(DC,PHI,THETA)". If not input user will be asked for values, this is advantagious if there are differing dc fields between steps or specimens. Note: this currently only works with the decimal IZZI naming convetion (XXX.0,1,2 where XXX is the treatment temperature and 0 is a zero field step, 1 is in field, and 2 is a PTRM check). For some reason all other steps are hardcoded dc_field = 0.
+        -dc B PHI THETA: dc lab field (in microTesla), phi,and theta must be input as a tuple "(DC,PHI,THETA)". If not input user will be asked for values, this is advantagious if there are differing dc fields between steps or specimens. Note: this currently only works with the decimal IZZI naming convetion (XXX.0,1,2 where XXX is the treatment temperature and 0 is a zero field step, 1 is in field, and 2 is a PTRM check). For some reason all other steps are hardcoded dc_field = 0.
 
     INPUT
         Best to put separate experiments (all AF, thermal, thellier, trm aquisition, Shaw, etc.)
@@ -108,10 +109,10 @@ def main(command_line=True, **kwargs):
             avg=0
         if '-dc' in args:
             ind=args.index('-dc')
-            DC_FIELD,DC_PHI,DC_THETA=map(float,tuple(args[ind+1]))
+            DC_FIELD,DC_PHI,DC_THETA=map(lambda x: float(x)*1e-6,args[ind+1].strip('( )').split(','))
             yn=''
             GET_DC_PARAMS=False
-        else: GET_DC_PARAMS,DC_FIELD,DC_PHI,DC_THETA=True,0,0,-90
+        else: GET_DC_PARAMS,DC_FIELD,DC_PHI,DC_THETA,yn=True,0,0,-90,''
         if "-ncn" in args:
             ind=args.index("-ncn")
             samp_con=sys.argv[ind+1]
@@ -129,7 +130,7 @@ def main(command_line=True, **kwargs):
             ind = args.index('-ID')
             input_dir_path = args[ind+1]
         else:
-            input_dir_path = dir_path
+            input_dir_path = os.path.split(magfile)[0]
         output_dir_path = dir_path
         # LJ
 
@@ -148,9 +149,11 @@ def main(command_line=True, **kwargs):
         avg = kwargs.get('avg', 0)  # 0 means do average, 1 means don't
         samp_con = kwargs.get('samp_con', '3')
         magfile = kwargs.get('magfile', '')
-        input_dir_path = kwargs.get('input_dir_path', dir_path)
+        input_dir_path = kwargs.get('input_dir_path', os.path.split(magfile)[0])
         output_dir_path = dir_path
-        DC_FIELD,DC_PHI,DC_THETA = kwargs.get('dc_params', (0,0,-90))
+        DC_FIELD,DC_PHI,DC_THETA = map(lambda x: float(x)*1e-6, kwargs.get('dc_params', (0,0,-90)))
+        if DC_FIELD==0 and DC_PHI==0 and DC_THETA==-90: GET_DC_PARAMS=True
+        else: GET_DC_PARAMS=False
     # done with module-specific stuff
 
     # formatting and checking variables
@@ -162,11 +165,12 @@ def main(command_line=True, **kwargs):
             Z=samp_con.split("-")[1]
             samp_con="4"
 
-    magfile = os.path.join(input_dir_path, magfile)
+    magfile = os.path.join(magfile)
     spec_file = os.path.join(output_dir_path, spec_file)
     samp_file = os.path.join(output_dir_path, samp_file)
     site_file = os.path.join(output_dir_path, site_file)
     meas_file= os.path.join(output_dir_path, meas_file)
+    FIRST_GET_DC=True
     try:
         file_input=open(magfile,'r')
     except Exception as ex:
@@ -287,12 +291,16 @@ def main(command_line=True, **kwargs):
                 MeasRec['measurement_temp']='273'
                 MeasRec['treatment_temp']='273'
                 MeasRec['treatment_dc_field']='0'
+                MeasRec['treatment_dc_field_phi'] = '0'
+                MeasRec['treatment_dc_field_theta'] = '0'
                 MeasRec['treatment_ac_field']='0'
             elif treat_type.startswith('AF'):
                 MeasRec['magic_method_codes']='LT-AF-Z'
                 MeasRec['measurement_temp']='273'
                 MeasRec['treatment_temp']='273'
                 MeasRec['treatment_dc_field']='0'
+                MeasRec['treatment_dc_field_phi'] = '0'
+                MeasRec['treatment_dc_field_theta'] = '0'
                 if treat.strip() == '':
                     MeasRec['treatment_ac_field']='0'
                 else:
@@ -302,6 +310,8 @@ def main(command_line=True, **kwargs):
                 MeasRec['measurement_temp']='273'
                 MeasRec['treatment_temp']='273'
                 MeasRec['treatment_dc_field']='0'
+                MeasRec['treatment_dc_field_phi'] = '0'
+                MeasRec['treatment_dc_field_theta'] = '0'
                 if treat.strip() == '':
                     MeasRec['treatment_ac_field']='0'
                 else:
@@ -321,33 +331,35 @@ def main(command_line=True, **kwargs):
                 MeasRec['measurement_temp']='273'
                 MeasRec['treatment_temp']='77'
                 MeasRec['treatment_dc_field']='0'
+                MeasRec['treatment_dc_field_phi'] = '0'
+                MeasRec['treatment_dc_field_theta'] = '0'
                 MeasRec['treatment_ac_field']='0'
             elif line[4] == '0': #assume decimal IZZI format 0 field thus can hardcode the dc fields
                 MeasRec['magic_method_codes']='LT-T-Z'
                 MeasRec['measurement_temp']='273'
                 MeasRec['treatment_temp']=str(int(treat_type) + 273)
                 MeasRec['treatment_dc_field']='0'
-                MeasRec['treatment_ac_field']='0'
                 MeasRec['treatment_dc_field_phi'] = '0'
                 MeasRec['treatment_dc_field_theta'] = '0'
+                MeasRec['treatment_ac_field']='0'
             elif line[4] == '1': #assume decimal IZZI format in constant field
-                GET_DC_PARAMS,yn,DC_FIELD,DC_PHI,DC_THETA = get_dc_params(GET_DC_PARAMS,specimen,treat_type,yn)
+                if GET_DC_PARAMS: GET_DC_PARAMS, FIRST_GET_DC, yn, DC_FIELD, DC_PHI, DC_THETA = get_dc_params(FIRST_GET_DC,specimen,treat_type,yn)
                 MeasRec['magic_method_codes']='LT-T-I'
                 MeasRec['measurement_temp']='273'
                 MeasRec['treatment_temp']=str(int(treat_type) + 273)
                 MeasRec['treatment_dc_field']='%1.2e'%DC_FIELD
-                MeasRec['treatment_ac_field']='0'
                 MeasRec['treatment_dc_field_phi'] = '%1.2f'%DC_PHI
                 MeasRec['treatment_dc_field_theta'] = '%1.2f'%DC_THETA
+                MeasRec['treatment_ac_field']='0'
             elif line[4] == '2': #assume decimal IZZI format PTRM step
-                GET_DC_PARAMS,yn,DC_FIELD,DC_PHI,DC_THETA = get_dc_params(GET_DC_PARAMS,specimen,treat_type,yn)
+                if GET_DC_PARAMS: GET_DC_PARAMS, FIRST_GET_DC, yn, DC_FIELD, DC_PHI, DC_THETA = get_dc_params(FIRST_GET_DC,specimen,treat_type,yn)
                 MeasRec['magic_method_codes']='LT-PTRM-I'
                 MeasRec['measurement_temp']='273'
                 MeasRec['treatment_temp']=str(int(treat_type) + 273)
                 MeasRec['treatment_dc_field']='%1.2e'%DC_FIELD
-                MeasRec['treatment_ac_field']='0'
                 MeasRec['treatment_dc_field_phi'] = '%1.2f'%DC_PHI
                 MeasRec['treatment_dc_field_theta'] = '%1.2f'%DC_THETA
+                MeasRec['treatment_ac_field']='0'
             else:
                 print "trouble with your treatment steps"
             MeasRec['measurement_dec']=line[46:51]
@@ -382,13 +394,13 @@ def main(command_line=True, **kwargs):
     print 'data stored in ',meas_file
     return True, meas_file
 
-def get_dc_params(GET_DC_PARAMS, specimen, treat_type, yn):
-    if GET_DC_PARAMS:
-        yn = input("Is the DC field used in this IZZI study constant or does it varry between specimen or step? [y/N]")
-        GET_DC_PARAMS = False
-    if "y" == yn: DC_FIELD,DC_PHI,DC_THETA = float(input("What DC field, Phi, and Theta was used for all steps? (float, value in microTesla,float,float)")); yn = ""
-    else: DC_FIELD,DC_PHI,DC_THETA = map(float,input("What DC field, Phi, and Theta was used for specimen %s and step %s? (float, in microTesla,float,float)"%(str(specimen),str(treat_type))))
-    return GET_DC_PARAMS,yn,DC_FIELD,DC_PHI,DC_THETA
+def get_dc_params(FIRST_GET_DC, specimen, treat_type, yn):
+    if FIRST_GET_DC:
+        yn = raw_input("Is the DC field used in this IZZI study constant or does it varry between specimen or step? (y=const) [y/N]: ")
+        FIRST_GET_DC = False
+    if "y" == yn: DC_FIELD,DC_PHI,DC_THETA = map(lambda x: float(x)*1e-6, input("What DC field, Phi, and Theta was used for all steps? (float (in microTesla),float,float): ")); GET_DC_PARAMS=False
+    else: DC_FIELD,DC_PHI,DC_THETA = map(lambda x: float(x)*1e-6,input("What DC field, Phi, and Theta was used for specimen %s and step %s? (float (in microTesla),float,float): "%(str(specimen),str(treat_type))))
+    return GET_DC_PARAMS,FIRST_GET_DC,yn,DC_FIELD,DC_PHI,DC_THETA
 
 def do_help():
     return main.__doc__

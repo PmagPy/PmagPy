@@ -496,7 +496,7 @@ class Demag_GUI(wx.Frame):
         self.Bind(wx.EVT_COMBOBOX, self.on_select_specimen_mean_type_box,self.PCA_type_box)
         self.PCA_type_box.SetHelpText(dgh.PCA_type_help)
 
-        self.plane_display_box = wx.ComboBox(self.panel, id=wx.ID_ANY, size=(50*self.GUI_RESOLUTION, 25), value='show whole plane',choices=['show whole plane','show u. hemisphere', 'show l. hemisphere','show poles','best fit vector', 'whole plane + best fit vector'], style=wx.CB_DROPDOWN|wx.TE_READONLY,name="PlaneType")
+        self.plane_display_box = wx.ComboBox(self.panel, id=wx.ID_ANY, size=(50*self.GUI_RESOLUTION, 25), value='whole plane',choices=['whole plane','u. hemisphere', 'l. hemisphere','poles','bfv', 'wp + bfv'], style=wx.CB_DROPDOWN|wx.TE_READONLY,name="PlaneType")
         self.Bind(wx.EVT_COMBOBOX, self.on_select_plane_display_box, self.plane_display_box)
         self.plane_display_box.SetHelpText(dgh.plane_display_help)
 
@@ -5843,7 +5843,7 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
         Toggles the GUI's help mode which allows user to click on any part of the dialog and get help
         @param: event -> wx.MenuEvent that triggers this function
         """
-        self.helper.BeginContextHelp(None)
+        self.helper.BeginContextHelp(self)
 
     def on_menu_docs(self,event):
         """
