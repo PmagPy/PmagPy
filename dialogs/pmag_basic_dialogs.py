@@ -919,7 +919,7 @@ class convert_CIT_files_to_MagIC(convert_files_to_MagIC):
         self.bSizer2 = pw.sampling_particulars(pnl)
 
         #---sizer 3 ----
-        #self.bSizer3 = pw.lab_field(pnl)
+        self.bSizer3 = pw.lab_field(pnl)
 
         #---sizer 4 ----
         self.bSizer4 = pw.select_ncn(pnl)
@@ -949,7 +949,7 @@ class convert_CIT_files_to_MagIC(convert_files_to_MagIC):
         vbox.Add(self.bSizer0, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer1, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer2, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
-        #vbox.Add(self.bSizer3, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(self.bSizer3, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer4, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer5, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer6, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
@@ -997,6 +997,11 @@ class convert_CIT_files_to_MagIC(convert_files_to_MagIC):
         options_dict['site_file'] = site_outfile
         user = self.bSizer1.return_value()
         options_dict['user'] = user
+        dc_flag,dc_params = '',''
+        if self.bSizer3.return_value() != '':
+            dc_params = map(float,self.bSizer3.return_value().split())
+            options_dict['dc_params'] = dc_params
+            dc_flag = '-dc'
         if user:
             user = "-usr " + user
         spec_num = self.bSizer5.return_value()
@@ -1028,7 +1033,7 @@ class convert_CIT_files_to_MagIC(convert_files_to_MagIC):
             options_dict['avg'] = 1
             replicate = '-A'
 
-        COMMAND = "cit_magic.py -WD {} -f {} -F {} {} {} {} {} -ncn {} {} {} -Fsp {} -Fsi {} -Fsa {} {}".format(wd, CIT_file, outfile, particulars, spec_num, loc_name, user, ncn, peak_AF, ID, spec_outfile, site_outfile, samp_outfile, replicate)
+        COMMAND = "cit_magic.py -WD {} -f {} -F {} {} {} {} {} -ncn {} {} {} -Fsp {} -Fsi {} -Fsa {} {} {} {}".format(wd, CIT_file, outfile, particulars, spec_num, loc_name, user, ncn, peak_AF, ID, spec_outfile, site_outfile, samp_outfile, replicate,dc_flag,dc_params)
         # to run as module:
         program_ran, error_message = cit_magic.main(command_line=False, **options_dict)
         if program_ran:
