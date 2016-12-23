@@ -149,7 +149,7 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
         self.Bind(wx.EVT_BUTTON, self.toggle_help, self.toggle_help_btn)
         # message
         self.help_msg_boxsizer = wx.StaticBoxSizer(wx.StaticBox(self.panel, -1, name='help_msg_boxsizer'), wx.VERTICAL)
-        self.default_msg_text = 'Edit {} here.\nYou can add or remove both rows and columns, however required columns may not be deleted.\nControlled vocabularies are indicated by **, and will have drop-down-menus.\nTo edit all values in a column, click the column header.\nYou can cut and paste a block of cells from an Excel-like file.\nJust click the top left cell and use command "v".'.format(self.grid_type)
+        self.default_msg_text = 'Edit {} here.\nYou can add or remove both rows and columns, however required columns may not be deleted.\nControlled vocabularies are indicated by **, and will have drop-down-menus.\nSuggested vocabularies are indicated by ^^, and also have drop-down-menus.\nTo edit all values in a column, click the column header.\nYou can cut and paste a block of cells from an Excel-like file.\nJust click the top left cell and use command "v".'.format(self.grid_type)
         txt = ''
         if self.grid_type == 'locations':
             txt = '\n\nNote: you can fill in location start/end latitude/longitude here.\nHowever, if you add sites in step 2, the program will calculate those values automatically,\nbased on site latitudes/logitudes.\nThese values will be written to your upload file.'
@@ -391,6 +391,8 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
         label = self.grid.GetColLabelValue(col)
         if '**' in label:
             label = label.strip('**')
+        elif '^^' in label:
+            label = label.strip('^^')
         if label in self.reqd_headers:
             pw.simple_warning("That header is required, and cannot be removed")
             return False

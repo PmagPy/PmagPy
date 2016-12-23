@@ -290,7 +290,9 @@ class Vocabulary(object):
             all_codes = pd.read_json(raw_all_codes)
 
         vocabularies = self.get_controlled_vocabularies()
+        suggested = self.get_suggested_vocabularies()
         self.vocabularies = vocabularies
+        self.suggested = suggested
         #self.possible_vocabularies = possible_vocabularies
         self.all_codes = all_codes
         self.code_types = code_types
