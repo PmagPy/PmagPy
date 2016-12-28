@@ -48,6 +48,24 @@ def igrf_print(igrf_array):
     print "Inclination: %0.3f"%(igrf_array[1])
     print "Intensity: %0.3f nT"%(igrf_array[2])
 
+def dms2dd(degrees, minutes, seconds):
+    """
+    Convert latitude/longitude in degrees, minutes, seconds to decimal degrees
+
+    Parameters
+    ----------
+    degrees: degrees of latitude/longitude
+    minutes: minutes of latitude/longitude
+    seconds: seconds of latitude/longitude
+
+    Returns
+    ----------
+    decimal degrees of location
+
+    """
+    dd = float(degrees) + float(minutes)/60 + float(seconds)/(60*60);
+    return dd
+
 
 def fisher_mean(dec=None, inc=None, di_block=None):
     """
@@ -1175,6 +1193,17 @@ def plot_pole_colorbar(mapname,plon,plat,A95,cmap,vmin,vmax,label='',color='k',m
     This function plots a paleomagnetic pole and A95 error ellipse on whatever
     current map projection has been set using the basemap plotting library.
 
+    Before this function is called, a plot needs to be initialized with code
+    that looks something like:
+    >from mpl_toolkits.basemap import Basemap
+    >mapname = Basemap(projection='ortho',lat_0=35,lon_0=200)
+    >plt.figure(figsize=(6, 6))
+    >mapname.drawcoastlines(linewidth=0.25)
+    >mapname.fillcontinents(color='bisque',lake_color='white',zorder=1)
+    >mapname.drawmapboundary(fill_color='white')
+    >mapname.drawmeridians(np.arange(0,360,30))
+    >mapname.drawparallels(np.arange(-90,90,30))
+
     Required Parameters
     -----------
     mapname : the name of the current map that has been developed using basemap
@@ -1191,7 +1220,7 @@ def plot_pole_colorbar(mapname,plon,plat,A95,cmap,vmin,vmax,label='',color='k',m
     """
     centerlon, centerlat = mapname(plon,plat)
     A95_km=A95*111.32
-    mapname.scatter(centerlon,centerlat,c=cmap,vmin=vmin,vmax=vmax,s=markersize,marker=marker,color=color,alpha=alpha,label=label,zorder=101)
+    mapname.scatter(centerlon,centerlat,c=cmap,vmin=vmin,vmax=vmax,s=markersize,marker=marker,alpha=alpha,label=label,zorder=101)
     equi_colormap(mapname, plon, plat, A95_km, color, alpha)
     if legend=='yes':
         plt.legend(loc=2)
