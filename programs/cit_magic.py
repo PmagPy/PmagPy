@@ -30,10 +30,10 @@ def main(command_line=True, **kwargs):
         -ncn NCON: specify naming convention
         -loc LOCNAME : specify location/study name, must have either LOCNAME or SITEFILE or be a synthetic
         -mcd [FS-FD:SO-MAG,.....] colon delimited list for method codes applied to all specimens in .sam file
-        -dc B PHI THETA: dc lab field (in microTesla), phi,and theta must be input as a tuple "(DC,PHI,THETA)". If not input user will be asked for values, this is advantagious if there are differing dc fields between steps or specimens. Note: this currently only works with the decimal IZZI naming convetion (XXX.0,1,2 where XXX is the treatment temperature and 0 is a zero field step, 1 is in field, and 2 is a PTRM check). For some reason all other steps are hardcoded dc_field = 0.
+        -dc B PHI THETA: dc lab field (in microTesla), phi,and theta must be input as a tuple "(DC,PHI,THETA)". If not input user will be asked for values, this is advantagious if there are differing dc fields between steps or specimens. Note: this currently only works with the decimal IZZI naming convetion (XXX.0,1,2 where XXX is the treatment temperature and 0 is a zero field step, 1 is in field, and 2 is a pTRM check). All other steps are hardcoded dc_field = 0.
 
     INPUT
-        Best to put separate experiments (all AF, thermal, thellier, trm aquisition, Shaw, etc.)
+        Best to put separate experiments in separate files (all AF, thermal, thellier, trm aquisition, Shaw, etc.)
 
     NOTES:
          Sample naming convention:
@@ -47,10 +47,10 @@ def main(command_line=True, **kwargs):
         [6] site name entered in site_name column in the orient.txt format input file  -- NOT CURRENTLY SUPPORTED
         [7-Z] [XXX]YYY:  XXX is site designation with Z characters from samples  XXXYYY
         NB: all others you will have to either customize your
-            self or e-mail ltauxe@ucsd.edu for help.
+            self or e-mail ltauxe@ucsd.edu or swanson-hysell@berkeley.edu for help.
     """
 
-#        
+#
 #              NB: use PHI, THETA = -1 -1 to signal that it changes, i.e. in anisotropy experiment
 #        -ac B : peak AF field (in mT) for ARM acquisition, default is none
     #

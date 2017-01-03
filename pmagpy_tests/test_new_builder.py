@@ -2,6 +2,7 @@
 
 import unittest
 import os
+import pandas as pd
 from pmagpy import new_builder as nb
 from pmagpy import data_model3 as data_model
 from pmagpy import controlled_vocabularies3 as cv
@@ -165,6 +166,17 @@ class TestContribution(unittest.TestCase):
                          set(['measurements', 'specimens', 'samples',
                               'sites', 'locations', 'ages', 'criteria',
                               'contribution']))
+
+    def test_vocabulary_is_created(self):
+        """
+        Make sure all expected components of vocabulary are initialized
+        """
+        self.assertEqual(type(self.con.vocab), cv.Vocabulary)
+        for item in [self.con.vocab.vocabularies, self.con.vocab.suggested,
+                     self.con.vocab.all_codes, self.con.vocab.code_types,
+                     self.con.vocab.methods, self.con.vocab.age_methods]:
+            self.assertTrue(len(item))
+
 
     def test_add_custom_filenames(self):
         self.con.add_custom_filenames({'specimens': 'custom_specimens.txt'})

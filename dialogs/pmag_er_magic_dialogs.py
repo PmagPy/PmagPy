@@ -134,7 +134,7 @@ Some of the data from the sites table has propogated into the samples table.
 Check that these data are correct, and fill in missing cells using controlled vocabularies.
 The columns for class, lithology, and type can take multiple values in the form of a colon-delimited list.
 You may use the drop-down menus to add as many values as needed in these columns.
-(see Help button for more details)\n\n** Denotes controlled vocabulary"""
+(see Help button for more details)\n\n** Denotes controlled vocabulary.\n^^ Denotes suggested vocabulary"""
             step_label = wx.StaticText(self.panel, label=text)#, size=(900, 100))
 
         if self.sample_window == 1:
@@ -250,7 +250,8 @@ You may use the drop-down menus to add as many values as needed in these columns
 note: Changes to geologic_class, lithologies, or geologic_types will overwrite data in the samples table.
 However, you will be able to edit samples again in step 4.
 
-**Denotes controlled vocabulary"""
+** Denotes controlled vocabulary.
+^^ Denotes suggested vocabulary"""
         label = wx.StaticText(self.panel, label=text)
         #self.Data_hierarchy = self.ErMagic.Data_hierarchy
         self.sites = sorted(site_df.index.unique())
@@ -341,7 +342,8 @@ Check that locations are correctly named.
 Fill in blank cells using controlled vocabularies.
 (See Help button for details)
 
-** Denotes controlled vocabulary"""
+** Denotes controlled vocabulary
+^^ Denotes suggested vocabulary"""
         label = wx.StaticText(self.panel, label=text)
         #self.Data_hierarchy = self.ErMagic.Data_hierarchy
         self.locations = loc_df.index.unique()
@@ -478,7 +480,8 @@ The data in a row will be associated with the lowest level that is filled in,
 (i.e., if you fill in both 'specimen' and 'sample', the age data will be associated with that specimen).
 (See Help button for details)
 
-**Denotes controlled vocabulary """
+** Denotes controlled vocabulary
+^^ Denotes suggested vocabulary"""
         label = wx.StaticText(self.panel, label=text)
         reqd_headers = self.contribution.data_model.get_reqd_headers('ages')
         self.grid_builder = grid_frame3.GridBuilder(self.contribution, 'ages',
@@ -676,8 +679,8 @@ The data in a row will be associated with the lowest level that is filled in,
         if self.drop_down_menu:  # unhighlight selected columns, etc.
             self.drop_down_menu.clean_up()
 
-        # remove '**' from col labels
-        starred_cols = grid.remove_starred_labels()
+        # remove '**' and '^^' from col labels
+        starred_cols, hatted_cols = grid.remove_starred_labels()
 
         grid.SaveEditControlValue() # locks in value in cell currently edited
         grid.HideCellEditControl() # removes focus from cell that was being edited
@@ -688,6 +691,9 @@ The data in a row will be associated with the lowest level that is filled in,
         for col in starred_cols:
             label = grid.GetColLabelValue(col)
             grid.SetColLabelValue(col, label + '**')
+        for col in hatted_cols:
+            label = grid.GetColLabelValue(col)
+            grid.SetColLabelValue(col, label + '^^')
         del wait
 
     def on_cancelButton(self, event):

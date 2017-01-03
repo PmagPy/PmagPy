@@ -1421,8 +1421,13 @@ else:
         #print "B is this:", B # shows that the problem happens when B array contains 1 or 2
         N=len(B)
         B_mean=np.mean(B)
-        B_std=np.std(B,ddof=1)
-        B_std_perc=100*(B_std/B_mean)
+        #B_std=np.std(B,ddof=1)
+        #B_std_perc=100*(B_std/B_mean)
+        if N > 1:
+            B_std=np.std(B,ddof=1)
+            B_std_perc=100*(B_std/B_mean)
+        else:
+            B_std, B_std_perc = np.nan, np.nan
 
         self.sample_int_n_window.SetValue("%i"%(N))
         self.sample_int_uT_window.SetValue("%.1f"%(B_mean))
@@ -3710,7 +3715,7 @@ else:
                                     pmag_results_header_4.append(header_result)
 
             else:
-                
+
                 found_age=False
                 if BY_SAMPLES and sample_or_site in self.Data_info["er_ages"].keys():
                     element_with_age=sample_or_site
@@ -3748,7 +3753,7 @@ else:
                             for meth in methods:
                                 MagIC_results_data['pmag_results'][sample_or_site]["magic_method_codes"]=MagIC_results_data['pmag_results'][sample_or_site]["magic_method_codes"] + ":"+ meth
 
-        if self.data_model!=3: 
+        if self.data_model!=3:
         # write pmag_results.txt
             fout=open(os.path.join(self.WD, "pmag_results.txt"),'w')
             fout.write("tab\tpmag_results\n")
@@ -3757,7 +3762,7 @@ else:
             for key in headers:
                 String=String+key+"\t"
             fout.write(String[:-1]+"\n")
-    
+
             #pmag_samples_list.sort()
             for sample_or_site in pmag_samples_or_sites_list:
                 String=""
@@ -3768,7 +3773,7 @@ else:
                         String=String+""+"\t"
                 fout.write(String[:-1]+"\n")
             fout.close()
-    
+
             # merge with non-intensity data
             meas_data,file_type=pmag.magic_read(os.path.join(self.WD, "pmag_results.txt"))
             for rec in PmagRecsOld["pmag_results.txt"]:
@@ -5478,7 +5483,7 @@ else:
                     specimens_id=[self.s]
                     specimens_B=[self.pars['specimen_int_uT']]
 
-        if len(specimens_id)>=1:
+        if len(specimens_id)>1:
             self.sampleplot.scatter(np.arange(len(specimens_id)),specimens_B ,marker='s',edgecolor='0.2', facecolor='b',s=40*self.GUI_RESOLUTION,lw=1)
             self.sampleplot.axhline(y=np.mean(specimens_B)+np.std(specimens_B,ddof=1),color='0.2',ls="--",lw=0.75)
             self.sampleplot.axhline(y=np.mean(specimens_B)-np.std(specimens_B,ddof=1),color='0.2',ls="--",lw=0.75)

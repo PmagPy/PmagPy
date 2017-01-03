@@ -100,10 +100,10 @@ class Menus(object):
     def add_drop_down(self, col_number, col_label):
         """
         Add a correctly formatted drop-down-menu for given col_label,
-        if required.
+        if required or suggested.
         Otherwise do nothing.
         """
-        if col_label.endswith('**'):
+        if col_label.endswith('**') or col_label.endswith('^^'):
             col_label = col_label[:-2]
         if col_label == 'method_codes':
             self.add_method_drop_down(col_number, col_label)
@@ -114,35 +114,45 @@ class Menus(object):
                 item_df = self.contribution.tables[col_label].df
                 item_names = item_df[col_label[:-1]].unique()
                 self.choices[col_number] = (sorted(item_names), False)
-        if col_label in self.contribution.vocab.vocabularies:
-            # if not already assigned above
-            if col_number not in self.choices.keys():
-                # mark it as using a controlled vocabulary
+
+        # add vocabularies
+        if col_label in self.contribution.vocab.suggested:
+            typ = 'suggested'
+        elif col_label in self.contribution.vocab.vocabularies:
+            typ = 'controlled'
+        else:
+            return
+
+        # add menu, if not already set
+        if col_number not in self.choices.keys():
+            if typ == 'suggested':
+                self.grid.SetColLabelValue(col_number, col_label + "^^")
+                controlled_vocabulary = self.contribution.vocab.suggested[col_label]
+            else:
                 self.grid.SetColLabelValue(col_number, col_label + "**")
-                #url = 'https://api.earthref.org/MagIC/vocabularies/{}.json'.format(col_label)
-                #controlled_vocabulary = pd.io.json.read_json(url)
                 controlled_vocabulary = self.contribution.vocab.vocabularies[col_label]
-                stripped_list = []
-                for item in controlled_vocabulary:
-                    try:
-                        stripped_list.append(str(item))
-                    except UnicodeEncodeError:
-                        # skips items with non ASCII characters
-                        pass
+            #
+            stripped_list = []
+            for item in controlled_vocabulary:
+                try:
+                    stripped_list.append(str(item))
+                except UnicodeEncodeError:
+                    # skips items with non ASCII characters
+                    pass
 
-                if len(stripped_list) > 100:
-                # split out the list alphabetically, into a dict of lists {'A': ['alpha', 'artist'], 'B': ['beta', 'beggar']...}
-                    dictionary = {}
-                    for item in stripped_list:
-                        letter = item[0].upper()
-                        if letter not in dictionary.keys():
-                            dictionary[letter] = []
-                        dictionary[letter].append(item)
-                    stripped_list = dictionary
+            if len(stripped_list) > 100:
+            # split out the list alphabetically, into a dict of lists {'A': ['alpha', 'artist'], 'B': ['beta', 'beggar']...}
+                dictionary = {}
+                for item in stripped_list:
+                    letter = item[0].upper()
+                    if letter not in dictionary.keys():
+                        dictionary[letter] = []
+                    dictionary[letter].append(item)
+                stripped_list = dictionary
 
-                two_tiered = True if isinstance(stripped_list, dict) else False
-                self.choices[col_number] = (stripped_list, two_tiered)
-
+            two_tiered = True if isinstance(stripped_list, dict) else False
+            self.choices[col_number] = (stripped_list, two_tiered)
+        return
 
     def add_method_drop_down(self, col_number, col_label):
         """
@@ -364,7 +374,7 @@ class Menus(object):
         if str(label) == "CLEAR cell of all values":
             label = ""
 
-        col_label = grid.GetColLabelValue(col).strip('\nEDIT ALL').strip('**')
+        col_label = grid.GetColLabelValue(col).strip('\nEDIT ALL').strip('**').strip('^^')
         if col_label in self.colon_delimited_lst and label:
             if not label.lower() in cell_value.lower():
                 label += (":" + cell_value).rstrip(':')

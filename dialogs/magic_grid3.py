@@ -289,7 +289,7 @@ class MagicGrid(wx.grid.Grid, gridlabelrenderer.GridWithLabelRenderersMixin):
         Remove a column from the grid.
         Resize grid to display correctly.
         """
-        label_value = self.GetColLabelValue(col_num).strip('**')
+        label_value = self.GetColLabelValue(col_num).strip('**').strip('^^')
         self.col_labels.remove(label_value)
         result = self.DeleteCols(pos=col_num, numCols=1, updateLabels=True)
         self.size_grid()
@@ -349,12 +349,16 @@ class MagicGrid(wx.grid.Grid, gridlabelrenderer.GridWithLabelRenderersMixin):
 
     def remove_starred_labels(self):#, grid):
         cols_with_stars = []
+        cols_with_hats = []
         for col in xrange(self.GetNumberCols()):
             label = self.GetColLabelValue(col)
             if '**' in label:
                 self.SetColLabelValue(col, label.strip('**'))
                 cols_with_stars.append(col)
-        return cols_with_stars
+            if '^^' in label:
+                self.SetColLabelValue(col, label.strip('^^'))
+                cols_with_hats.append(col)
+        return cols_with_stars, cols_with_hats
 
     def paint_invalid_row(self, row, color="LIGHT BLUE"):
         self.SetRowLabelRenderer(row, MyRowLabelRenderer(color))
