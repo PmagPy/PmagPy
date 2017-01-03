@@ -1672,7 +1672,7 @@ class Demag_GUI(wx.Frame):
                 marker_shape = 'o'
                 if pars['calculation_type'] == "DE-BFP":
                     marker_shape = 's'
-                    if 'best fit vector' in self.plane_display_box.GetValue():
+                    if 'bfv' in self.plane_display_box.GetValue():
                         marker_shape = '>'
                         SIZE=25*self.GUI_RESOLUTION
                 if fit == self.current_fit:
@@ -1685,7 +1685,7 @@ class Demag_GUI(wx.Frame):
                 if pars['calculation_type']=='DE-BFP' and \
                    self.plane_display_box.GetValue() != "show poles":
 
-                    if "plane" in self.plane_display_box.GetValue() or "hemisphere" in self.plane_display_box.GetValue():
+                    if "plane" in self.plane_display_box.GetValue() or "hemisphere" in self.plane_display_box.GetValue() or "wp" in self.plane_display_box.GetValue():
 
                         ymin, ymax = self.specimen_eqarea.get_ylim()
                         xmin, xmax = self.specimen_eqarea.get_xlim()
@@ -1702,20 +1702,20 @@ class Demag_GUI(wx.Frame):
                                 X_c_d.append(XY[0])
                                 Y_c_d.append(XY[1])
 
-                        if self.plane_display_box.GetValue() == "show u. hemisphere" or \
-                           self.plane_display_box.GetValue() == "show whole plane" or \
-                           self.plane_display_box.GetValue() == "whole plane + best fit vector":
+                        if self.plane_display_box.GetValue() == "u. hemisphere" or \
+                           self.plane_display_box.GetValue() == "whole plane" or \
+                           self.plane_display_box.GetValue() == "wp + bfv":
                             fig.plot(X_c_d,Y_c_d,'b')
                             if self.ie_open:
                                 self.ie.plot(X_c_d,Y_c_d,'b')
-                        if self.plane_display_box.GetValue() == "show l. hemisphere" or \
-                           self.plane_display_box.GetValue() == "show whole plane" or \
-                           self.plane_display_box.GetValue() == "whole plane + best fit vector":
+                        if self.plane_display_box.GetValue() == "l. hemisphere" or \
+                           self.plane_display_box.GetValue() == "whole plane" or \
+                           self.plane_display_box.GetValue() == "wp + bfv":
                             fig.plot(X_c_up,Y_c_up,'c')
                             if self.ie_open:
                                 self.ie.plot(X_c_up,Y_c_up,'c')
 
-                    if "best fit vector" in self.plane_display_box.GetValue():
+                    if "bfv" in self.plane_display_box.GetValue():
                         if 'bfv_dec' not in pars.keys() or 'bfv_inc' not in pars.keys():
                             self.calculate_best_fit_vectors()
                             pars = fit.get(self.COORDINATE_SYSTEM)
