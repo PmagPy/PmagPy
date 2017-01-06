@@ -126,7 +126,7 @@ class Demag_GUI(wx.Frame):
             self.change_WD(WD)
         else:
             new_WD = self.get_DIR() # choose directory dialog, then initialize directory variables
-            if new_WD == self.currentDirectory and sys.version.split()[0] == '2.7.11':
+            if new_WD == self.currentDirectory and 'Anaconda' in sys.platform.split()[1]:
                 new_WD = self.get_DIR()
             self.change_WD(new_WD)
         if write_to_log_file:
@@ -3904,7 +3904,7 @@ class Demag_GUI(wx.Frame):
         pmag.magic_write(os.path.join(self.WD, "pmag_criteria.txt"),[rec],"pmag_criteria")
 
 #==========================================================================================#
-#============================Interal Dialog Functions======================================#
+#============================Internal Dialog Functions======================================#
 #==========================================================================================#
 
     def show_dlg(self,dlg):
@@ -3921,8 +3921,8 @@ class Demag_GUI(wx.Frame):
         """
         Dialog that allows user to choose a working directory
         """
-
-        dlg = wx.DirDialog(self, "Choose a directory:",defaultPath = self.currentDirectory ,style=wx.DD_DEFAULT_STYLE | wx.DD_NEW_DIR_BUTTON | wx.DD_CHANGE_DIR)
+        dlg = wx.DirDialog(self, "Choose a directory:", defaultPath=self.currentDirectory,
+                           style=wx.DD_DEFAULT_STYLE | wx.DD_NEW_DIR_BUTTON | wx.DD_CHANGE_DIR)
         ok = self.show_dlg(dlg)
         if ok == wx.ID_OK:
             new_WD=dlg.GetPath()
@@ -3941,7 +3941,7 @@ class Demag_GUI(wx.Frame):
             defaultDir=self.WD,
             defaultFile="magic_measurements.txt",
             wildcard="*.magic|*.txt",
-            style=wx.OPEN | wx.CHANGE_DIR
+            style=wx.FD_OPEN | wx.CHANGE_DIR
             )
         if self.show_dlg(dlg) == wx.ID_OK:
             meas_file = dlg.GetPath()
