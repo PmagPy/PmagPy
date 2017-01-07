@@ -36,11 +36,6 @@ Then just like above you should open the PmagGUI.spec file and edit the line `da
 pyinstaller --clean PmagGUI.spec
 ```
 
-The executable will be in the dist directory, you may have to change execution permissions to make it runnable by running `chmod a+x $EXENAME` or just run it through terminal. It is also possible that you have trouble running some functions because the GUI changes the working directory and it can no longer find the bundled data files if so it can help to add the following code to data_model3.py before the line `f = open(model_file, 'r')`.
-
-```python
-if not os.path.isfile(model_file):
-    model_file = os.path.join(os.path.split(os.path.dirname(__file__))[0],'data_model','data_model.json')
-```
+The executable will be in the dist directory. If it does not run when you double click it or enter its name in the terminal you may have to change execution permissions to make it runnable by running `chmod a+x $EXENAME`. Also due to the way Pyinstaller is constructed when bundling as one-file you should note that it can take 5-30 seconds for the program to run so check with an activity manager (like top) before assuming the executable did not compile correctly.
 
 **Note:** if compiling this document to pdf using pandoc the command used is `pandoc devguide.md -o devguide.pdf --highlight-style tango -V geometry:margin=.7in`
