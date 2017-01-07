@@ -14,7 +14,7 @@ import setuptools.command.install as install_lib
 # Get list of programs to alias
 from programs_list import programs_list
 
-version_num = '3.8.0'
+version_num = '3.8.2'
 here = path.abspath(path.dirname(__file__))
 
 packages = find_packages(exclude=['pmagpy', 'pmagpy_tests.examples'
@@ -129,9 +129,9 @@ setup(
     #            #            ],
     #            'console_scripts': programs_list
     #        },
-    scripts=['bin/pmag_gui_a', 'bin/magic_gui_a',
-             'bin/magic_gui3_a', 'bin/thellier_gui_a',
-             'bin/demag_gui_a'],
+    scripts=['bin/pmag_gui_anaconda', 'bin/magic_gui_anaconda',
+             'bin/magic_gui3_anaconda', 'bin/thellier_gui_anaconda',
+             'bin/demag_gui_anaconda'],
     entry_points={
             'console_scripts': programs_list,
             'gui_scripts': [
