@@ -9,7 +9,7 @@ import pmagpy.find_pmag_dir as find_pmag_dir
 from programs import demag_gui
 
 
-@unittest.skipIf(sys.platform == 'darwin', 'these tests cause a seg fault on mac')
+#@unittest.skipIf(sys.platform == 'darwin', 'these tests cause a seg fault on mac')
 class TestDemagGUI(unittest.TestCase):
 
     def setUp(self):
@@ -249,6 +249,7 @@ class TestDemagGUI(unittest.TestCase):
         for ofit,ifit in zip(old_interpretations,imported_interpretations):
             self.assertTrue(ofit.equal(ifit))
 
+    @unittest.skipIf(sys.platform == 'darwin', 'these tests cause a seg fault on mac')
     def test_read_write_pmag_tables(self):
 
         self.ie_add_n_fits_to_all(n_fits)
@@ -564,6 +565,7 @@ class TestDemagGUI(unittest.TestCase):
                             similar_fit_present = False
                 self.assertTrue(similar_fit_present)
 
+    @unittest.skipIf(sys.platform == 'darwin', 'these tests cause a seg fault on mac')
     def test_VGP_viewer(self):
         tools_menu = self.get_menu_from_frame(self.frame, "Tools")
 
@@ -575,6 +577,7 @@ class TestDemagGUI(unittest.TestCase):
         #test actual VGP calculation and display
         self.frame.ProcessEvent(viewVGPs_menu_evt)
 
+    @unittest.skipIf(sys.platform == 'darwin', 'these tests cause a seg fault on mac')
     def test_check_sample_orientation_bad_good(self):
         analysis_menu = self.get_menu_from_frame(self.frame, "Analysis")
         check_sample_menu = analysis_menu.FindItemById(analysis_menu.FindItem("Sample Orientation")).GetSubMenu()
