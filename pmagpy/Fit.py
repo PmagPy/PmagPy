@@ -12,6 +12,8 @@ class Fit():
         @param: color -> the color of the fit when it is plotted
         @param: GUI -> the Zeq_GUI on which this fit is drawn
         """
+        if not isinstance(name,str): name = str(name)
+        elif name == "" or name.replace(" ","") == "": print("No name supplied for Fit, this is generally a problem, naming Toto."); name = "Toto"
         self.name = name
         if type(tmax) != str:
             if tmax == None: self.tmax = ""

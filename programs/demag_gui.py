@@ -1934,7 +1934,7 @@ class Demag_GUI(wx.Frame):
         if not (specimen in self.pmag_results_data['specimens'].keys()):
             self.pmag_results_data['specimens'][specimen] = []
         next_fit = str(len(self.pmag_results_data['specimens'][specimen]) + 1)
-        if name == None or name in map(lambda x: x.name, self.pmag_results_data['specimens'][specimen]):
+        if name == None or name in map(lambda x: x.name, self.pmag_results_data['specimens'][specimen]) or name == "" or name.replace(" ","") == "":
             name = ('Fit ' + next_fit)
             if name in map(lambda x: x.name, self.pmag_results_data['specimens'][specimen]): print('bad name'); return
         if color == None: color = self.colors[(int(next_fit)-1) % len(self.colors)]
