@@ -126,7 +126,7 @@ class Demag_GUI(wx.Frame):
             self.change_WD(WD)
         else:
             new_WD = self.get_DIR() # choose directory dialog, then initialize directory variables
-            if new_WD == self.currentDirectory and 'Anaconda' in sys.platform.split()[1]:
+            if new_WD == self.currentDirectory and 'Anaconda' in sys.version.split()[1]:
                 new_WD = self.get_DIR()
             self.change_WD(new_WD)
         if write_to_log_file:
