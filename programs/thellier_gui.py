@@ -171,7 +171,8 @@ try: from mpl_toolkits.basemap import Basemap, shiftgrid, basemap_datadir
 except ImportError: pass
 import matplotlib.pyplot as plt
 
-import sys, os, copy
+import sys, os, copy, pdb
+from webbrowser import open as webopen
 import pmagpy.pmag as pmag
 from pmagpy import find_pmag_dir
 import pmagpy.new_builder as nb
@@ -940,7 +941,7 @@ else:
             elif "LT-PTRM-AC" in rec['magic_method_codes'] or "LT-PMRM-AC" in rec['magic_method_codes']:
                 step="A"
             else:
-                print "unrecognized step in specimen",s,"  Method codes: ", rec['magic_method_codes']
+                print("unrecognized step in specimen %s Method codes: %s"%(str(rec['magic_method_codes']),s))
             if THERMAL:
                 self.logger.InsertStringItem(i, "%i"%i)
                 self.logger.SetStringItem(i, 1, step)
@@ -964,6 +965,10 @@ else:
             self.logger.SetItemBackgroundColour(i,"WHITE")
             if i >= tmin_index and i <= tmax_index:
                 self.logger.SetItemBackgroundColour(i,"LIGHT BLUE")
+            if 'measurement_flag' not in rec.keys():
+                rec['measurement_flag'] = 'g'
+#            elif rec['measurement_flag'] != 'g':
+#                self.logger.SetItemBackgroundColour(i,"red")
 
     def on_click_listctrl(self, event):
         meas_i=int(event.GetText())
@@ -1010,8 +1015,43 @@ else:
         self.get_new_T_PI_parameters(-1)
 
     def on_right_click_listctrl(self, event):
-        self.user_warning("Thellier GUI cannot handle data marked bad yet so this function does not work. This feature is in development and can be expected in future versions of the GUI.")
-#        import pdb; pdb.set_trace()
+        self.user_warning("Thellier GUI cannot handle data marked bad yet so this function does not work. This feature is in development and will hopefully be included in future versions. Currently bad data must be removed from measurement file mannuely."); return
+        index = int(event.GetText())
+        current_flag = self.Data[self.s]['datablock'][index]['measurement_flag']
+
+        if current_flag == "g": self.mark_meas_bad(index)
+        else: self.mark_meas_good(index)
+
+        if self.data_model == 3.0:
+            self.contribution.tables['measurements'].write_magic_file(dir_path=self.WD)
+        else:
+            pmag.magic_write(os.path.join(self.WD, "magic_measurements.txt"), self.Data[self.s]['datablock'], "magic_measurements")
+
+        self.update_selection()
+
+    def mark_meas_good(self,index):
+        self.Data[self.s]['datablock'][index]['measurement_flag'] = 'g'
+
+        if self.data_model == 3.0:
+            mdf = self.contribution.tables['measurements'].df
+            a_index = self.Data[self.s]['magic_experiment_name'] + str(index+1)
+            try: mdf.set_value(a_index,'quality','g')
+            except ValueError: self.user_warning("cannot find valid measurement data to mark bad, this feature is still under development please report this error to a developer")
+
+    def mark_meas_bad(self,index):
+        self.Data[self.s]['datablock'][index]['measurement_flag'] = 'b'
+
+        if self.data_model == 3.0:
+            mdf = self.contribution.tables['measurements'].df
+            a_index = self.Data[self.s]['magic_experiment_name'] + str(index+1)
+            try: mdf.set_value(a_index,'quality','b')
+            except ValueError: self.user_warning("cannot find valid measurement data to mark bad, this feature is still under development please report this error to a developer")
+
+    def get_meas_flags(self): #under dev
+        dblock = self.Data[self.s]['datablock']
+        in_z_flags = []
+        ptrm_flags = []
+        tail_flags = []
 
     #----------------------------------------------------------------------
 
@@ -1020,7 +1060,6 @@ else:
         Create menu bar
         """
         self.menubar = wx.MenuBar()
-
 
         menu_preferences = wx.Menu()
 
@@ -1151,9 +1190,23 @@ else:
         #m_run_consistency_test_b = menu_Optimizer.Append(-1, "&Run Consistency test beta version", "")
         #self.Bind(wx.EVT_MENU, self.on_menu_run_consistency_test_b, m_run_consistency_test_b)
 
-        menu_Plot= wx.Menu()
+        menu_Plot = wx.Menu()
         m_plot_data = menu_Plot.Append(-1, "&Plot paleointensity curve", "")
         self.Bind(wx.EVT_MENU, self.on_menu_plot_data, m_plot_data)
+
+        menu_Help = wx.Menu()
+
+        m_cookbook = menu_Help.Append(-1, "&PmagPy Cookbook\tCtrl-Shift-W", "")
+        self.Bind(wx.EVT_MENU, self.on_menu_cookbook, m_cookbook)
+
+        m_docs = menu_Help.Append(-1, "&Open Docs\tCtrl-Shift-H", "")
+        self.Bind(wx.EVT_MENU, self.on_menu_docs, m_docs)
+
+        m_git = menu_Help.Append(-1, "&Github Page\tCtrl-Shift-G", "")
+        self.Bind(wx.EVT_MENU, self.on_menu_git, m_git)
+
+        m_debug = menu_Help.Append(-1, "&Open Debugger\tCtrl-Shift-D", "")
+        self.Bind(wx.EVT_MENU, self.on_menu_debug, m_debug)
 
         #menu_results_table= wx.Menu()
         #m_make_results_table = menu_results_table.Append(-1, "&Make results table", "")
@@ -1179,6 +1232,7 @@ else:
         self.menubar.Append(menu_Auto_Interpreter, "&Auto Interpreter")
         self.menubar.Append(menu_consistency_test, "&Consistency Test")
         self.menubar.Append(menu_Plot, "&Plot")
+        self.menubar.Append(menu_Help, "&Help")
         #self.menubar.Append(menu_results_table, "&Table")
         #self.menubar.Append(menu_MagIC, "&MagIC")
 
@@ -3997,6 +4051,18 @@ else:
         self.s=self.specimens[0]
         self.update_selection()
 
+    def on_menu_docs(self,event):
+        webopen("https://earthref.org/PmagPy/cookbook/#x1-560005.1.2", new=2)
+
+    def on_menu_cookbook(self,event):
+        webopen("http://earthref.org/PmagPy/cookbook/", new=2)
+
+    def on_menu_git(self,event):
+        webopen("https://github.com/ltauxe/PmagPy", new=2)
+
+    def on_menu_debug(self,event):
+        pdb.set_trace()
+
     def calculate_sample_mean(self,Data_sample_or_site):#,acceptance_criteria):
         '''
         Data_sample_or_site is a dictonary holding the samples_or_sites mean
@@ -4619,39 +4685,39 @@ else:
     def draw_figure(self,s):
         #start_time = time.time()
 
-
         #-----------------------------------------------------------
         # Draw Arai plot
         #-----------------------------------------------------------
         self.s=s
 
-        self.x_Arai_ZI,self.y_Arai_ZI=[],[]
-        self.x_Arai_IZ,self.y_Arai_IZ=[],[]
-        self.x_Arai=self.Data[self.s]['x_Arai']
-        self.y_Arai=self.Data[self.s]['y_Arai']
+        x_Arai_ZI,y_Arai_ZI=[],[]
+        x_Arai_IZ,y_Arai_IZ=[],[]
+        x_Arai=self.Data[self.s]['x_Arai']
+        y_Arai=self.Data[self.s]['y_Arai']
         self.pars=self.Data[self.s]['pars']
-        self.x_tail_check=self.Data[self.s]['x_tail_check']
-        self.y_tail_check=self.Data[self.s]['y_tail_check']
+        x_tail_check=self.Data[self.s]['x_tail_check']
+        y_tail_check=self.Data[self.s]['y_tail_check']
 
         #self.x_additivity_check=self.Data[self.s]['x_additivity_check']
         #self.y_additivity_check=self.Data[self.s]['y_additivity_check']
 
         self.araiplot.clear()
-        self.araiplot.plot(self.Data[self.s]['x_Arai'],self.Data[self.s]['y_Arai'],'0.2',lw=0.75,clip_on=False)
+        self.araiplot.plot(x_Arai,y_Arai,'0.2',lw=0.75,clip_on=False)
 
         for i in range(len(self.Data[self.s]['steps_Arai'])):
             if self.Data[self.s]['steps_Arai'][i]=="ZI":
-                self.x_Arai_ZI.append(self.Data[self.s]['x_Arai'][i])
-                self.y_Arai_ZI.append(self.Data[self.s]['y_Arai'][i])
+                x_Arai_ZI.append(x_Arai[i])
+                y_Arai_ZI.append(y_Arai[i])
             elif self.Data[self.s]['steps_Arai'][i]=="IZ":
-                self.x_Arai_IZ.append(self.Data[self.s]['x_Arai'][i])
-                self.y_Arai_IZ.append(self.Data[self.s]['y_Arai'][i])
+                x_Arai_IZ.append(x_Arai[i])
+                y_Arai_IZ.append(y_Arai[i])
             else:
+                self.user_warning("-E- Cant plot Arai plot. check the data for specimen %s\n"%s)
                 self.GUI_log.write("-E- Cant plot Arai plot. check the data for specimen %s\n"%s)
-        if len(self.x_Arai_ZI)>0:
-            self.araiplot.scatter (self.x_Arai_ZI,self.y_Arai_ZI,marker='o',facecolor='r',edgecolor ='k',s=25*self.GUI_RESOLUTION,clip_on=False)
-        if len(self.x_Arai_IZ)>0:
-            self.araiplot.scatter (self.x_Arai_IZ,self.y_Arai_IZ,marker='o',facecolor='b',edgecolor ='k',s=25*self.GUI_RESOLUTION,clip_on=False)
+        if len(x_Arai_ZI)>0:
+            self.araiplot.scatter (x_Arai_ZI,y_Arai_ZI,marker='o',facecolor='r',edgecolor ='k',s=25*self.GUI_RESOLUTION,clip_on=False)
+        if len(x_Arai_IZ)>0:
+            self.araiplot.scatter (x_Arai_IZ,y_Arai_IZ,marker='o',facecolor='b',edgecolor ='k',s=25*self.GUI_RESOLUTION,clip_on=False)
 
         # pTRM checks
         if 'x_ptrm_check' in self.Data[self.s]:
@@ -4665,9 +4731,8 @@ else:
                         self.araiplot.plot([xx2,xx2],[yy1,yy2],color="0.5",lw=0.5,alpha=0.5,clip_on=False)
 
         # Tail checks
-        if len(self.x_tail_check >0):
-            self.araiplot.scatter (self.x_tail_check,self.y_tail_check,marker='s',edgecolor='0.1',alpha=1.0, facecolor='None',s=80*self.GUI_RESOLUTION,lw=1,clip_on=False)
-
+        if len(x_tail_check >0):
+            self.araiplot.scatter (x_tail_check,y_tail_check,marker='s',edgecolor='0.1',alpha=1.0, facecolor='None',s=80*self.GUI_RESOLUTION,lw=1,clip_on=False)
 
         # Additivity checks
 
@@ -4684,7 +4749,6 @@ else:
 
         # Arai plot temperatures
 
-
         for i in range(len(self.Data[self.s]['t_Arai'])):
             if self.Data[self.s]['t_Arai'][i]!=0:
                 if self.Data[self.s]['T_or_MW']!="MW":
@@ -4695,11 +4759,11 @@ else:
                 self.tmp_c=0.
             if self.preferences['show_Arai_temperatures'] and int(self.preferences['show_Arai_temperatures_steps'])!=1:
                 if (i+1)%int(self.preferences['show_Arai_temperatures_steps']) ==0 and i!=0:
-                    self.araiplot.text(self.x_Arai[i],self.y_Arai[i],"  %.0f"%self.tmp_c,fontsize=10,color='gray',ha='left',va='center',clip_on=False)
+                    self.araiplot.text(x_Arai[i],y_Arai[i],"  %.0f"%self.tmp_c,fontsize=10,color='gray',ha='left',va='center',clip_on=False)
             elif not self.preferences['show_Arai_temperatures']:
                 continue
             else:
-                self.araiplot.text(self.x_Arai[i],self.y_Arai[i],"  %.0f"%self.tmp_c,fontsize=10,color='gray',ha='left',va='center',clip_on=False)
+                self.araiplot.text(x_Arai[i],y_Arai[i],"  %.0f"%self.tmp_c,fontsize=10,color='gray',ha='left',va='center',clip_on=False)
 
 
 
@@ -5282,9 +5346,9 @@ else:
         t2=self.tmax_box.GetValue()
 
         if (t1 == "" or t2==""):
-            return
+            print("empty interpretation bounds"); return
         if float(t2) < float(t1):
-            return
+            print("upper bound less than lower bound"); return
 
         index_1=self.T_list.index(t1)
         index_2=self.T_list.index(t2)
@@ -6804,10 +6868,10 @@ else:
 
 
     def sortarai(self,datablock,s,Zdiff):
+        """
+        sorts data block in to first_Z, first_I, etc.
+        """
 
-        """
-         sorts data block in to first_Z, first_I, etc.
-        """
         first_Z,first_I,zptrm_check,ptrm_check,ptrm_tail=[],[],[],[],[]
         field,phi,theta="","",""
         starthere=0
@@ -6893,7 +6957,7 @@ else:
                 dec=float(rec["measurement_dec"])
                 inc=float(rec["measurement_inc"])
                 moment=float(rec["measurement_magn_moment"])
-                if 'LP-PI-M'  not in methcodes:
+                if 'LP-PI-M' not in methcodes:
                     first_I.append([273,0.,0.,0.,1])
                     first_Z.append([273,dec,inc,moment,1])  # NRM step
                 else:
@@ -7102,7 +7166,6 @@ else:
             if foundit:
                 ptrm_tail.append([temp,0,0,moment-prev_moment])
 
-        #print ptrm_tail
     #
     # final check
     #

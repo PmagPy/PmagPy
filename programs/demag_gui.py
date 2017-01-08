@@ -5849,11 +5849,7 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
         self.helper.BeginContextHelp(self)
 
     def on_menu_docs(self,event):
-        """
-        opens in library documentation for the usage of demag gui in a pdf/latex form
-        @param: event -> the wx.MenuEvent that triggered this function
-        """
-        webopen("http://earthref.org/PmagPy/cookbook/#demag_gui.py", new=2)
+        webopen("https://earthref.org/PmagPy/cookbook/#x1-350005.1.1", new=2)
 
     def on_menu_cookbook(self,event):
         webopen("http://earthref.org/PmagPy/cookbook/", new=2)
