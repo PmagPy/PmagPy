@@ -1182,9 +1182,7 @@ else:
         m_import_criteria_file =  submenu_criteria.Append(-1, "&Import criteria file", "")
         self.Bind(wx.EVT_MENU, self.on_menu_criteria_file, m_import_criteria_file)
 
-
         m_new_sub = menu_Analysis.AppendMenu(-1, "Acceptance criteria", submenu_criteria)
-
 
         m_previous_interpretation = menu_Analysis.Append(-1, "&Import previous interpretation from a 'redo' file", "")
         self.Bind(wx.EVT_MENU, self.on_menu_previous_interpretation, m_previous_interpretation)
@@ -4179,7 +4177,6 @@ else:
                     pars['pass_or_fail']='fail'
                     pars['fail_list'].append("int_interval")
 
-
             #if cutoff_value != -999 or cutoff_value_perc != -999:
             #    if not (pass_int_interval or pass_int_interval_perc):
             #        pars['pass_or_fail']='fail'
@@ -5452,11 +5449,26 @@ else:
         self.pars['saved']=False
         t1=self.tmin_box.GetValue()
         t2=self.tmax_box.GetValue()
+        izzi_flags = list(map(lambda x: x[-1], self.Data[self.s]['araiblock'][0]))
+        good_T_list = [T for T,flag in zip(self.T_list,izzi_flags) if flag=='g']
 
         if (t1 == "" or t2==""):
-            print("empty interpretation bounds"); return
+            return
         if float(t2) < float(t1):
-            print("upper bound less than lower bound"); return
+            return
+
+        if t1 not in good_T_list:
+            for i in range(self.T_list.index(t1)+1,self.T_list.index(t2)):
+                if self.T_list[i] in good_T_list:
+                    t1 = self.T_list[i]
+                    self.tmin_box.SetValue(t1)
+                    break
+        if t2 not in good_T_list:
+            for i in range(self.T_list.index(t2)-1,self.T_list.index(t1),-1):
+                if self.T_list[i] in good_T_list:
+                    t2 = self.T_list[i]
+                    self.tmin_box.SetValue(t2)
+                    break
 
         index_1=self.T_list.index(t1)
         index_2=self.T_list.index(t2)

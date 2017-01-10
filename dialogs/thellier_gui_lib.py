@@ -14,6 +14,8 @@ from scipy import *
 #import pmag
 import copy
 import pmagpy.pmag as pmag
+import SPD
+import SPD.spd as spd
 
 def get_PI_parameters(Data, acceptance_criteria, preferences, s, tmin, tmax, GUI_log, THERMAL,MICROWAVE):
     datablock = Data[s]['datablock']
@@ -21,8 +23,6 @@ def get_PI_parameters(Data, acceptance_criteria, preferences, s, tmin, tmax, GUI
     # get MagIC mothod codes:
 
     #pars['magic_method_codes']="LP-PI-TRM" # thellier Method
-    import SPD
-    import SPD.spd as spd
     Pint_pars = spd.PintPars(Data, str(s), tmin, tmax, 'magic', preferences['show_statistics_on_gui'],acceptance_criteria)
     Pint_pars.reqd_stats() # calculate only statistics indicated in preferences
     if not Pint_pars.pars:
