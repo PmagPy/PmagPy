@@ -907,7 +907,7 @@ class Demag_GUI(wx.Frame):
         self.zijplot.plot(self.CART_rot_good[:,0], -1*self.CART_rot_good[:,1], 'ro-', markersize=self.MS, clip_on=False, picker=True, zorder=1) #x,y or N,E
         self.zijplot.plot(self.CART_rot_good[:,0], -1*self.CART_rot_good[:,2], 'bs-', markersize=self.MS, clip_on=False, picker=True, zorder=1) #x-z or N,D
 
-        for i in range(len( self.CART_rot_bad)):
+        for i in range(len(self.CART_rot_bad)):
             self.zijplot.plot(self.CART_rot_bad[:,0][i],-1* self.CART_rot_bad[:,1][i],'o',mfc='None',mec=self.dec_MEC,markersize=self.MS,clip_on=False,picker=False) #x,y or N,E
             self.zijplot.plot(self.CART_rot_bad[:,0][i],-1 * self.CART_rot_bad[:,2][i],'s',mfc='None',mec=self.inc_MEC,markersize=self.MS,clip_on=False,picker=False) #x-z or N,D
 
@@ -1295,6 +1295,8 @@ class Demag_GUI(wx.Frame):
                 marker_shape = 'D'
             if pars['calculation_type'] == "DE-BFP":
                 marker_shape = 's'
+                if "bfv" in self.plane_display_box.GetValue():
+                    marker_shape = '>'
             if fit in self.bad_fits:
                 marker_shape = (4,1,0)
                 SIZE=30*self.GUI_RESOLUTION
@@ -1381,7 +1383,7 @@ class Demag_GUI(wx.Frame):
                     self.specimen_eqarea.collections.remove(d)
 
             if pars['calculation_type']=='DE-BFP' and \
-               self.plane_display_box.GetValue() != "show poles":
+               self.plane_display_box.GetValue() != "poles":
 
                 # draw a best-fit plane
                 ymin, ymax = self.specimen_eqarea.get_ylim()
@@ -1399,14 +1401,34 @@ class Demag_GUI(wx.Frame):
                         X_c_d.append(XY[0])
                         Y_c_d.append(XY[1])
 
-                if self.plane_display_box.GetValue() == "show u. hemisphere" or \
-                   self.plane_display_box.GetValue() == "show whole plane":
+                if self.plane_display_box.GetValue() == "u. hemisphere" or \
+                   self.plane_display_box.GetValue() == "whole plane" or \
+                   "wp" in self.plane_display_box.GetValue():
                     self.specimen_eqarea.plot(X_c_d,Y_c_d,'b')
-                if self.plane_display_box.GetValue() == "show l. hemisphere" or \
-                   self.plane_display_box.GetValue() == "show whole plane":
+                if self.plane_display_box.GetValue() == "l. hemisphere" or \
+                   self.plane_display_box.GetValue() == "whole plane" or \
+                   "wp" in self.plane_display_box.GetValue():
                     self.specimen_eqarea.plot(X_c_up,Y_c_up,'c')
+                eqarea_x=XY[0]
+                eqarea_y=XY[1]
+                z=1
                 fit.eqarea_data[0] = self.specimen_eqarea.lines[-1]
                 fit.eqarea_data[1] = self.specimen_eqarea.lines[-2]
+
+                if "bfv" in self.plane_display_box.GetValue():
+                    if 'bfv_dec' not in pars.keys() or 'bfv_inc' not in pars.keys():
+                        self.calculate_best_fit_vectors()
+                        pars = fit.get(self.COORDINATE_SYSTEM)
+                    try:
+                        CART=pmag.dir2cart([pars['bfv_dec'],pars['bfv_inc'],1])
+                        x=CART[0]
+                        y=CART[1]
+                        z=CART[2]
+                        R=array(sqrt(1-abs(z))/sqrt(x**2+y**2))
+                        eqarea_x=y*R
+                        eqarea_y=x*R
+                    except KeyError:
+                         print("specimen %s fit %s is marked bad or there was an error calculating bfv pole will be displayed instead"%(element,fit.name))
 
             else:
                 CART=pmag.dir2cart([pars['specimen_dec'],pars['specimen_inc'],1])
@@ -1416,15 +1438,15 @@ class Demag_GUI(wx.Frame):
                 R=array(sqrt(1-abs(z))/sqrt(x**2+y**2))
                 eqarea_x=y*R
                 eqarea_y=x*R
-                self.specimen_EA_xdata.append(eqarea_x)
-                self.specimen_EA_ydata.append(eqarea_y)
 
-                if z>0:
-                    FC=fit.color;EC='0.1'
-                else:
-                    FC=(1,1,1);EC=fit.color
-                self.specimen_eqarea.scatter([eqarea_x],[eqarea_y],marker=marker_shape,edgecolor=EC, facecolor=FC,s=SIZE,lw=1,clip_on=False)
-                fit.eqarea_data[0] = self.specimen_eqarea.collections[-1]
+            self.specimen_EA_xdata.append(eqarea_x)
+            self.specimen_EA_ydata.append(eqarea_y)
+            if z>0:
+                FC=fit.color;EC='0.1'
+            else:
+                FC=(1,1,1);EC=fit.color
+            self.specimen_eqarea.scatter([eqarea_x],[eqarea_y],marker=marker_shape,edgecolor=EC, facecolor=FC,s=SIZE,lw=1,clip_on=False)
+            fit.eqarea_data[0] = self.specimen_eqarea.collections[-1]
 
             # M/M0 plot (only if C or mT - not both)
             for d in fit.mm0_data:
@@ -1683,7 +1705,7 @@ class Demag_GUI(wx.Frame):
 
                 # draw a best-fit plane
                 if pars['calculation_type']=='DE-BFP' and \
-                   self.plane_display_box.GetValue() != "show poles":
+                   self.plane_display_box.GetValue() != "poles":
 
                     if "plane" in self.plane_display_box.GetValue() or "hemisphere" in self.plane_display_box.GetValue() or "wp" in self.plane_display_box.GetValue():
 
