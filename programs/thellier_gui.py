@@ -967,8 +967,8 @@ else:
                 self.logger.SetItemBackgroundColour(i,"LIGHT BLUE")
             if 'measurement_flag' not in rec.keys():
                 rec['measurement_flag'] = 'g'
-#            elif rec['measurement_flag'] != 'g':
-#                self.logger.SetItemBackgroundColour(i,"red")
+            elif rec['measurement_flag'] != 'g':
+                self.logger.SetItemBackgroundColour(i,"red")
 
     def on_click_listctrl(self, event):
         meas_i=int(event.GetText())
@@ -1015,22 +1015,39 @@ else:
         self.get_new_T_PI_parameters(-1)
 
     def on_right_click_listctrl(self, event):
-        self.user_warning("Thellier GUI cannot handle data marked bad yet so this function does not work. This feature is in development and will hopefully be included in future versions. Currently bad data must be removed from measurement file mannuely."); return
+#        self.user_warning("Thellier GUI cannot handle data marked bad yet so this function does not work. This feature is in development and will hopefully be included in future versions. Currently bad data must be removed from measurement file mannuely."); return
         index = int(event.GetText())
         current_flag = self.Data[self.s]['datablock'][index]['measurement_flag']
 
-        if current_flag == "g": self.mark_meas_bad(index)
-        else: self.mark_meas_good(index)
+        if current_flag == "g":
+            if not self.mark_meas_bad(index): return
+        else:
+            if not self.mark_meas_good(index): return
 
         if self.data_model == 3.0:
             self.contribution.tables['measurements'].write_magic_file(dir_path=self.WD)
         else:
-            pmag.magic_write(os.path.join(self.WD, "magic_measurements.txt"), self.Data[self.s]['datablock'], "magic_measurements")
+            pmag.magic_write(os.path.join(self.WD, "magic_measurements.txt"), self.mag_meas_data, "magic_measurements")
+
+        save_pars = {}
+        for s in self.Data.keys():
+            save_pars[s] = self.Data[s]['pars']
+        self.Data,self.Data_hierarchy = self.get_data()
+        for s in self.Data:
+            self.Data[s]['pars'] = save_pars[s]
+        self.get_new_T_PI_parameters(event)
 
         self.update_selection()
 
     def mark_meas_good(self,index):
+        meas_index,ind_data = 0,[]
+        for i,meas_data in enumerate(self.mag_meas_data):
+            if meas_data['er_specimen_name'] == self.s:
+                ind_data.append(i)
+        meas_index = ind_data[index]
+
         self.Data[self.s]['datablock'][index]['measurement_flag'] = 'g'
+        self.mag_meas_data[meas_index]['measurement_flag'] = 'g'
 
         if self.data_model == 3.0:
             mdf = self.contribution.tables['measurements'].df
@@ -1038,8 +1055,23 @@ else:
             try: mdf.set_value(a_index,'quality','g')
             except ValueError: self.user_warning("cannot find valid measurement data to mark bad, this feature is still under development please report this error to a developer")
 
+        return True
+
     def mark_meas_bad(self,index):
+
+        if 'LT-NO' in self.Data[self.s]['datablock'][index]['magic_method_codes']:
+            TEXT = "Currently Thellier GUI uses the first NRM to normalize data and this data point is essential and thus will still be used to normalize other data even if marked bad. This said it will still be removed from calculations like any other data point once marked bad. In later versions it is hoped that function can be expanded to allow this function to work as one might expect assuming you have more than one NRM measurement at the start of your specimen's measurement data. Hit okay to continue marking bad or cancel to well cancel."
+            if not self.user_warning(TEXT):
+                return False
+
+        meas_index,ind_data = 0,[]
+        for i,meas_data in enumerate(self.mag_meas_data):
+            if meas_data['er_specimen_name'] == self.s:
+                ind_data.append(i)
+        meas_index = ind_data[index]
+
         self.Data[self.s]['datablock'][index]['measurement_flag'] = 'b'
+        self.mag_meas_data[meas_index]['measurement_flag'] = 'b'
 
         if self.data_model == 3.0:
             mdf = self.contribution.tables['measurements'].df
@@ -1047,11 +1079,7 @@ else:
             try: mdf.set_value(a_index,'quality','b')
             except ValueError: self.user_warning("cannot find valid measurement data to mark bad, this feature is still under development please report this error to a developer")
 
-    def get_meas_flags(self): #under dev
-        dblock = self.Data[self.s]['datablock']
-        in_z_flags = []
-        ptrm_flags = []
-        tail_flags = []
+        return True
 
     #----------------------------------------------------------------------
 
@@ -4692,63 +4720,129 @@ else:
 
         x_Arai_ZI,y_Arai_ZI=[],[]
         x_Arai_IZ,y_Arai_IZ=[],[]
+        x_Arai_good,y_Arai_good=[],[]
+        x_Arai_bad,y_Arai_bad=[],[]
+        x_ptrm_good,y_ptrm_good=[],[]
+        x_ptrm_bad,y_ptrm_bad=[],[]
+        x_ptrm_good_start,y_ptrm_good_start=[],[]
+        x_ptrm_bad_start,y_ptrm_bad_start=[],[]
+        x_tail_good,y_tail_good=[],[]
+        x_tail_bad,y_tail_bad=[],[]
+        x_add_good,y_add_good=[],[]
+        x_add_bad,y_add_bad=[],[]
+        x_add_good_start,y_add_good_start=[],[]
+        x_add_bad_start,y_add_bad_start=[],[]
         x_Arai=self.Data[self.s]['x_Arai']
         y_Arai=self.Data[self.s]['y_Arai']
-        self.pars=self.Data[self.s]['pars']
+        x_ptrm_check = self.Data[self.s]['x_ptrm_check']
+        y_ptrm_check = self.Data[self.s]['y_ptrm_check']
+        x_ptrm_check_start = self.Data[self.s]['x_ptrm_check_starting_point']
+        y_ptrm_check_start = self.Data[self.s]['y_ptrm_check_starting_point']
         x_tail_check=self.Data[self.s]['x_tail_check']
         y_tail_check=self.Data[self.s]['y_tail_check']
-
-        #self.x_additivity_check=self.Data[self.s]['x_additivity_check']
-        #self.y_additivity_check=self.Data[self.s]['y_additivity_check']
-
-        self.araiplot.clear()
-        self.araiplot.plot(x_Arai,y_Arai,'0.2',lw=0.75,clip_on=False)
+        x_add_check=self.Data[self.s]['x_additivity_check']
+        y_add_check=self.Data[self.s]['y_additivity_check']
+        self.pars=self.Data[self.s]['pars']
+        izzi_flags = list(map(lambda x: x[-1], self.Data[self.s]['araiblock'][0]))
+        ptrm_flags = list(map(lambda x: x[-1], self.Data[self.s]['araiblock'][2]))
+        tail_flags = list(map(lambda x: x[-1], self.Data[self.s]['araiblock'][3]))
+        add_flags = list(map(lambda x: x[-1], self.Data[self.s]['araiblock'][6]))
+        all_flags = list(map(lambda x: x['measurement_flag'], self.Data[self.s]['datablock']))
 
         for i in range(len(self.Data[self.s]['steps_Arai'])):
-            if self.Data[self.s]['steps_Arai'][i]=="ZI":
-                x_Arai_ZI.append(x_Arai[i])
-                y_Arai_ZI.append(y_Arai[i])
-            elif self.Data[self.s]['steps_Arai'][i]=="IZ":
-                x_Arai_IZ.append(x_Arai[i])
-                y_Arai_IZ.append(y_Arai[i])
+            if izzi_flags[i] == 'b':
+                x_Arai_bad.append(x_Arai[i])
+                y_Arai_bad.append(y_Arai[i])
             else:
-                self.user_warning("-E- Cant plot Arai plot. check the data for specimen %s\n"%s)
-                self.GUI_log.write("-E- Cant plot Arai plot. check the data for specimen %s\n"%s)
+                x_Arai_good.append(x_Arai[i])
+                y_Arai_good.append(y_Arai[i])
+                if self.Data[self.s]['steps_Arai'][i]=="ZI":
+                    x_Arai_ZI.append(x_Arai[i])
+                    y_Arai_ZI.append(y_Arai[i])
+                elif self.Data[self.s]['steps_Arai'][i]=="IZ":
+                    x_Arai_IZ.append(x_Arai[i])
+                    y_Arai_IZ.append(y_Arai[i])
+                else:
+                    self.user_warning("-E- Cant plot Arai plot. check the data for specimen %s\n"%s)
+                    self.GUI_log.write("-E- Cant plot Arai plot. check the data for specimen %s\n"%s)
+
+        self.araiplot.clear()
+        self.araiplot.plot(x_Arai_good,y_Arai_good,'0.2',lw=0.75,clip_on=False)
+
         if len(x_Arai_ZI)>0:
             self.araiplot.scatter (x_Arai_ZI,y_Arai_ZI,marker='o',facecolor='r',edgecolor ='k',s=25*self.GUI_RESOLUTION,clip_on=False)
         if len(x_Arai_IZ)>0:
             self.araiplot.scatter (x_Arai_IZ,y_Arai_IZ,marker='o',facecolor='b',edgecolor ='k',s=25*self.GUI_RESOLUTION,clip_on=False)
+        if len(x_Arai_bad)>0:
+            self.araiplot.scatter (x_Arai_bad,y_Arai_bad,marker='o',facecolor='None',edgecolor ='k',s=25*self.GUI_RESOLUTION,clip_on=False)
 
         # pTRM checks
         if 'x_ptrm_check' in self.Data[self.s]:
-            if len(self.Data[self.s]['x_ptrm_check'])>0:
-                self.araiplot.scatter(self.Data[self.s]['x_ptrm_check'],self.Data[self.s]['y_ptrm_check'],marker='^',edgecolor='0.1',alpha=1.0, facecolor='None',s=80*self.GUI_RESOLUTION,lw=1)
+            for i in range(len(self.Data[self.s]['PTRM_Checks'])):
+                if ptrm_flags[i] == 'b':
+                    x_ptrm_bad.append(x_ptrm_check[i])
+                    y_ptrm_bad.append(y_ptrm_check[i])
+                    x_ptrm_bad_start.append(x_ptrm_check_start[i])
+                    y_ptrm_bad_start.append(y_ptrm_check_start[i])
+                else:
+                    x_ptrm_good.append(x_ptrm_check[i])
+                    y_ptrm_good.append(y_ptrm_check[i])
+                    x_ptrm_good_start.append(x_ptrm_check_start[i])
+                    y_ptrm_good_start.append(y_ptrm_check_start[i])
+
+            if len(x_ptrm_good)>0:
+                self.araiplot.scatter(x_ptrm_good,y_ptrm_good,marker='^',edgecolor='0.1',alpha=1.0, facecolor='None',s=80*self.GUI_RESOLUTION,lw=1)
+            if len(x_ptrm_bad)>0:
+                self.araiplot.scatter(x_ptrm_bad,y_ptrm_bad,marker='v',edgecolor='0.1',alpha=1.0, facecolor='None',s=80*self.GUI_RESOLUTION,lw=1)
+
                 if self.preferences['show_Arai_pTRM_arrows']:
-                    for i in range(len(self.Data[self.s]['x_ptrm_check'])):
-                        xx1,yy1=self.Data[s]['x_ptrm_check_starting_point'][i],self.Data[s]['y_ptrm_check_starting_point'][i]
-                        xx2,yy2=self.Data[s]['x_ptrm_check'][i],self.Data[s]['y_ptrm_check'][i]
+                    for i in range(len(x_ptrm_good)):
+                        xx1,yy1=x_ptrm_good_start[i],y_ptrm_good_start[i]
+                        xx2,yy2=x_ptrm_good[i],y_ptrm_good[i]
                         self.araiplot.plot([xx1,xx2],[yy1,yy1],color="0.5",lw=0.5,alpha=0.5,clip_on=False)
                         self.araiplot.plot([xx2,xx2],[yy1,yy2],color="0.5",lw=0.5,alpha=0.5,clip_on=False)
 
         # Tail checks
-        if len(x_tail_check >0):
-            self.araiplot.scatter (x_tail_check,y_tail_check,marker='s',edgecolor='0.1',alpha=1.0, facecolor='None',s=80*self.GUI_RESOLUTION,lw=1,clip_on=False)
+        for i in range(len(self.Data[self.s]['TAIL_Checks'])):
+            if tail_flags[i] == 'b':
+                x_tail_bad.append(x_tail_check[i])
+                y_tail_bad.append(y_tail_check[i])
+            else:
+                x_tail_good.append(x_tail_check[i])
+                y_tail_good.append(y_tail_check[i])
+
+        if len(x_tail_good) > 0:
+            self.araiplot.scatter (x_tail_good,y_tail_good,marker='s',edgecolor='0.1',alpha=1.0, facecolor='None',s=80*self.GUI_RESOLUTION,lw=1,clip_on=False)
+        if len(x_tail_bad) > 0:
+            self.araiplot.scatter (x_tail_bad,y_tail_bad,marker='d',edgecolor='0.1',alpha=1.0, facecolor='None',s=80*self.GUI_RESOLUTION,lw=1,clip_on=False)
 
         # Additivity checks
-
-        # pTRM checks
         if 'x_additivity_check' in self.Data[self.s]:
-            if len(self.Data[self.s]['x_additivity_check'])>0:
-                self.araiplot.scatter (self.Data[self.s]['x_additivity_check'],self.Data[self.s]['y_additivity_check'],marker='D',edgecolor='0.1',alpha=1.0, facecolor='None',s=80*self.GUI_RESOLUTION,lw=1,clip_on=False)
+            for i in range(len(add_flags)):
+                if add_flags[i] == 'b':
+                    x_add_bad.append(x_add_check[i])
+                    y_add_bad.append(y_add_check[i])
+                    x_add_bad_start.append(x_add_start[i])
+                    y_add_bad_start.append(y_add_start[i])
+                else:
+                    x_add_good.append(x_add_check[i])
+                    y_add_good.append(y_add_check[i])
+                    x_add_good_start.append(x_add_start[i])
+                    y_add_good_start.append(y_add_start[i])
+
+            if len(x_add_good)>0:
+                self.araiplot.scatter(x_add_good,y_add_good,marker='h',edgecolor='0.1',alpha=1.0, facecolor='None',s=80*self.GUI_RESOLUTION,lw=1,clip_on=False)
+            if len(x_add_bad)>0:
+                self.araiplot.scatter(x_add_bad,y_add_bad,marker='H',edgecolor='0.1',alpha=1.0, facecolor='None',s=80*self.GUI_RESOLUTION,lw=1,clip_on=False)
+
                 if self.preferences['show_Arai_pTRM_arrows']:
-                    for i in range(len(self.Data[self.s]['x_additivity_check'])):
-                        xx1,yy1=self.Data[s]['x_additivity_check_starting_point'][i],self.Data[s]['y_additivity_check_starting_point'][i]
-                        xx2,yy2=self.Data[s]['x_additivity_check'][i],self.Data[s]['y_additivity_check'][i]
+                    for i in range(len(x_add_good)):
+                        xx1,yy1=x_add_good_start[i],y_add_good_start[i]
+                        xx2,yy2=x_add_good[i],y_add_good[i]
                         self.araiplot.plot([xx1,xx1],[yy1,yy2],color="0.5",lw=0.5,alpha=0.5,clip_on=False)
                         self.araiplot.plot([xx1,xx2],[yy2,yy2],color="0.5",lw=0.5,alpha=0.5,clip_on=False)
 
-        # Arai plot temperatures
-
+        # Arai plot temperature
         for i in range(len(self.Data[self.s]['t_Arai'])):
             if self.Data[self.s]['t_Arai'][i]!=0:
                 if self.Data[self.s]['T_or_MW']!="MW":
@@ -4765,14 +4859,6 @@ else:
             else:
                 self.araiplot.text(x_Arai[i],y_Arai[i],"  %.0f"%self.tmp_c,fontsize=10,color='gray',ha='left',va='center',clip_on=False)
 
-
-
-
-
-##        if len(self.x_additivity_check >0):
-##          self.araiplot.scatter (self.x_additivity_check,self.y_additivity_check,marker='D',edgecolor='0.1',alpha=1.0, facecolor='None',s=80*self.GUI_RESOLUTION,lw=1)
-
-
         if   self.GUI_RESOLUTION >1.1:
             FONTSIZE=11
         elif   self.GUI_RESOLUTION <0.9:
@@ -4787,13 +4873,10 @@ else:
         else:
             FONTSIZE_1=10
 
-
         self.araiplot.set_xlabel("TRM / NRM0",fontsize=FONTSIZE)
         self.araiplot.set_ylabel("NRM / NRM0",fontsize=FONTSIZE)
         self.araiplot.set_xlim(xmin=0)
         self.araiplot.set_ylim(ymin=0)
-
-
 
         #search for NRM:
         nrm0=""
@@ -4801,7 +4884,6 @@ else:
             if "LT-NO" in rec['magic_method_codes']:
                 nrm0= "%.2e"%float(rec['measurement_magn_moment'])
                 break
-
 
         #self.fig1.text(0.05,0.93,r'$NRM0 = %s Am^2 $'%(nrm0),{'family':self.font_type, 'fontsize':10, 'style':'normal','va':'center', 'ha':'left' })
 
@@ -4821,10 +4903,25 @@ else:
         self.zijplot.clear()
         self.MS=6*self.GUI_RESOLUTION;self.dec_MEC='k';self.dec_MFC='b'; self.inc_MEC='k';self.inc_MFC='r'
         self.CART_rot=self.Data[self.s]['zij_rotated']
+
+        # remove bad data from plotting:
+        self.CART_rot_good=[]
+        self.CART_rot_bad=[]
+        for i in range(len(self.CART_rot)):
+            if self.Data[self.s]['zijdblock'][i][5] == 'g':
+                self.CART_rot_good.append(list(self.CART_rot[i]))
+            else:
+                self.CART_rot_bad.append(list(self.CART_rot[i]))
+        self.CART_rot_good=np.array(self.CART_rot_good)
+        self.CART_rot_bad=np.array(self.CART_rot_bad)
+
         self.z_temperatures=self.Data[self.s]['z_temp']
         self.vds=self.Data[self.s]['vds']
-        self.zijplot.plot(self.CART_rot[:,0],-1* self.CART_rot[:,1],'bo-',mfc=self.dec_MFC,mec=self.dec_MEC,markersize=self.MS,clip_on=False)  #x,y or N,E
-        self.zijplot.plot(self.CART_rot[:,0],-1 * self.CART_rot[:,2],'rs-',mfc=self.inc_MFC,mec=self.inc_MEC,markersize=self.MS,clip_on=False)   #x-z or N,D
+        self.zijplot.plot(self.CART_rot_good[:,0],-1* self.CART_rot_good[:,1],'bo-',mfc=self.dec_MFC,mec=self.dec_MEC,markersize=self.MS,clip_on=False) #x,y or N,E
+        self.zijplot.plot(self.CART_rot_good[:,0],-1 * self.CART_rot_good[:,2],'rs-',mfc=self.inc_MFC,mec=self.inc_MEC,markersize=self.MS,clip_on=False) #x-z or N,D
+        for i in range(len(self.CART_rot_bad)):
+            self.zijplot.plot(self.CART_rot_bad[:,0][i],-1* self.CART_rot_bad[:,1][i], 'o', mfc='None', mec=self.dec_MEC, markersize=self.MS, clip_on=False, picker=False) #x,y or N,E
+            self.zijplot.plot(self.CART_rot_bad[:,0][i],-1 * self.CART_rot_bad[:,2][i], 's', mfc='None', mec=self.inc_MEC, markersize=self.MS, clip_on=False, picker=False) #x-z or N,D
         #self.zijplot.axhline(0,c='k')
         #self.zijplot.axvline(0,c='k')
         self.zijplot.axis('off')
@@ -4887,7 +4984,6 @@ else:
 
         #----
 
-
         self.zij_xlim_initial=self.zijplot.axes.get_xlim()
         self.zij_ylim_initial=self.zijplot.axes.get_ylim()
 
@@ -4907,22 +5003,20 @@ else:
             self.fig3.text(0.02,0.96,"Equal area",{'family':self.font_type, 'fontsize':FONTSIZE, 'style':'normal','va':'center', 'ha':'left' })
             self.eqplot = self.fig3.add_subplot(111)
 
-
             self.draw_net()
 
             self.zij=np.array(self.Data[self.s]['zdata'])
             self.zij_norm=np.array([row/np.sqrt(sum(row**2)) for row in self.zij])
 
-            x_eq=np.array([row[0] for row in self.zij_norm])
-            y_eq=np.array([row[1] for row in self.zij_norm])
-            z_eq=abs(np.array([row[2] for row in self.zij_norm]))
+            x_eq=np.array([row[0] for row,flag in zip(self.zij_norm,izzi_flags) if flag=='g'])
+            y_eq=np.array([row[1] for row,flag in zip(self.zij_norm,izzi_flags) if flag=='g'])
+            z_eq=abs(np.array([row[2] for row,flag in zip(self.zij_norm,izzi_flags) if flag=='g']))
 
             R=np.array(np.sqrt(1-z_eq)/np.sqrt(x_eq**2+y_eq**2)) # from Collinson 1983
             eqarea_data_x=y_eq*R
             eqarea_data_y=x_eq*R
             self.eqplot.plot(eqarea_data_x,eqarea_data_y,lw=0.5,color='gray',clip_on=False)
             #self.eqplot.scatter([eqarea_data_x_dn[i]],[eqarea_data_y_dn[i]],marker='o',edgecolor='0.1', facecolor='blue',s=15,lw=1)
-
 
             x_eq_dn,y_eq_dn,z_eq_dn,eq_dn_temperatures=[],[],[],[]
             x_eq_dn=np.array([row[0] for row in self.zij_norm if row[2]>0])
@@ -4934,8 +5028,6 @@ else:
                 eqarea_data_x_dn=y_eq_dn*R
                 eqarea_data_y_dn=x_eq_dn*R
                 self.eqplot.scatter([eqarea_data_x_dn],[eqarea_data_y_dn],marker='o',edgecolor='gray', facecolor='black',s=15*self.GUI_RESOLUTION,lw=1,clip_on=False)
-
-
 
             x_eq_up,y_eq_up,z_eq_up=[],[],[]
             x_eq_up=np.array([row[0] for row in self.zij_norm if row[2]<=0])
@@ -4962,35 +5054,47 @@ else:
                         K_dif=273.
                     self.eqplot.text(eqarea_data_x[i],eqarea_data_y[i],"%.0f"%(float(self.z_temperatures[i])-K_dif),fontsize=FONTSIZE_1,color="0.5",clip_on=False)
 
-
             #self.eqplot.text(eqarea_data_x[0],eqarea_data_y[0]," NRM",fontsize=8,color='gray',ha='left',va='center')
-
 
             # In-field steps" self.preferences["show_eqarea_pTRMs"]
             if self.preferences["show_eqarea_pTRMs"]:
                 eqarea_data_x_up,eqarea_data_y_up=[],[]
                 eqarea_data_x_dn,eqarea_data_y_dn=[],[]
+                eqarea_data_x_up_bad,eqarea_data_y_up_bad=[],[]
+                eqarea_data_x_dn_bad,eqarea_data_y_dn_bad=[],[]
                 PTRMS=self.Data[self.s]['PTRMS'][1:]
                 CART_pTRMS_orig=np.array([pmag.dir2cart(row[1:4]) for row in PTRMS])
                 CART_pTRMS=[row/np.sqrt(sum((np.array(row)**2))) for row in CART_pTRMS_orig]
 
                 for i in range(1,len(CART_pTRMS)):
-                    if CART_pTRMS[i][2]<=0:
-                        R=np.sqrt(1.-abs(CART_pTRMS[i][2]))/np.sqrt(CART_pTRMS[i][0]**2+CART_pTRMS[i][1]**2)
-                        eqarea_data_x_up.append(CART_pTRMS[i][1]*R)
-                        eqarea_data_y_up.append(CART_pTRMS[i][0]*R)
+                    if PTRMS[i][-1] == 'g':
+                        if CART_pTRMS[i][2]<=0:
+                            R=np.sqrt(1.-abs(CART_pTRMS[i][2]))/np.sqrt(CART_pTRMS[i][0]**2+CART_pTRMS[i][1]**2)
+                            eqarea_data_x_up.append(CART_pTRMS[i][1]*R)
+                            eqarea_data_y_up.append(CART_pTRMS[i][0]*R)
+                        else:
+                            R=np.sqrt(1.-abs(CART_pTRMS[i][2]))/np.sqrt(CART_pTRMS[i][0]**2+CART_pTRMS[i][1]**2)
+                            eqarea_data_x_dn.append(CART_pTRMS[i][1]*R)
+                            eqarea_data_y_dn.append(CART_pTRMS[i][0]*R)
                     else:
-                        R=np.sqrt(1.-abs(CART_pTRMS[i][2]))/np.sqrt(CART_pTRMS[i][0]**2+CART_pTRMS[i][1]**2)
-                        eqarea_data_x_dn.append(CART_pTRMS[i][1]*R)
-                        eqarea_data_y_dn.append(CART_pTRMS[i][0]*R)
+                        if CART_pTRMS[i][2]<=0:
+                            R=np.sqrt(1.-abs(CART_pTRMS[i][2]))/np.sqrt(CART_pTRMS[i][0]**2+CART_pTRMS[i][1]**2)
+                            eqarea_data_x_up_bad.append(CART_pTRMS[i][1]*R)
+                            eqarea_data_y_up_bad.append(CART_pTRMS[i][0]*R)
+                        else:
+                            R=np.sqrt(1.-abs(CART_pTRMS[i][2]))/np.sqrt(CART_pTRMS[i][0]**2+CART_pTRMS[i][1]**2)
+                            eqarea_data_x_dn_bad.append(CART_pTRMS[i][1]*R)
+                            eqarea_data_y_dn_bad.append(CART_pTRMS[i][0]*R)
                 if len(eqarea_data_x_up)>0:
                     self.eqplot.scatter(eqarea_data_x_up,eqarea_data_y_up,marker='^',edgecolor='blue', facecolor='white',s=15*self.GUI_RESOLUTION,lw=1,clip_on=False)
                 if len(eqarea_data_x_dn)>0:
                     self.eqplot.scatter(eqarea_data_x_dn,eqarea_data_y_dn,marker='^',edgecolor='gray', facecolor='blue',s=15*self.GUI_RESOLUTION,lw=1,clip_on=False)
-            self.canvas3.draw()
+                if len(eqarea_data_x_up_bad)>0:
+                    self.eqplot.scatter(eqarea_data_x_up_bad,eqarea_data_y_up_bad,marker='v',edgecolor='blue', facecolor='white',s=15*self.GUI_RESOLUTION,lw=1,clip_on=False)
+                if len(eqarea_data_x_dn_bad)>0:
+                    self.eqplot.scatter(eqarea_data_x_dn_bad,eqarea_data_y_dn_bad,marker='v',edgecolor='gray', facecolor='blue',s=15*self.GUI_RESOLUTION,lw=1,clip_on=False)
 
         else:
-
             self.fig3.clf()
             self.fig3.text(0.02,0.96,"Cooling rate experiment",{'family':self.font_type, 'fontsize':FONTSIZE, 'style':'normal','va':'center', 'ha':'left' })
             self.eqplot = self.fig3.add_axes([0.2,0.15,0.7,0.7],frameon=True,axisbg='None')
@@ -5014,7 +5118,6 @@ else:
                 self.eqplot.scatter(lan_cooling_rates,moment_norm,marker='o',facecolor='b',edgecolor ='k',s=25,clip_on=False)
                 self.eqplot.scatter([x0],[y0],marker='s',facecolor='r',edgecolor ='k',s=25,clip_on=False)
 
-
                 #self.Data_info["er_samples"][
                 self.eqplot.set_ylabel("TRM / TRM[oven]",fontsize=FONTSIZE_1)
                 self.eqplot.set_xlabel("ln(CR[oven]/CR)",fontsize=FONTSIZE_1)
@@ -5029,13 +5132,12 @@ else:
                 self.eqplot.get_xaxis().tick_bottom()
                 self.eqplot.get_yaxis().tick_left()
 
-            #draw()
-            self.canvas3.draw()
+        #draw()
+        self.canvas3.draw()
 
         #-----------------------------------------------------------
         # Draw sample plot (or cooling rate experiment data)
         #-----------------------------------------------------------
-
 
         self.draw_sample_mean()
 
@@ -5049,28 +5151,36 @@ else:
             self.fig5.text(0.02,0.96,"M/T",{'family':self.font_type, 'fontsize':FONTSIZE, 'style':'normal','va':'center', 'ha':'left' })
             self.mplot = self.fig5.add_axes([0.2,0.15,0.7,0.7],frameon=True,axisbg='None')
 
-            self.mplot.clear()
             NRMS=self.Data[self.s]['NRMS']
             PTRMS=self.Data[self.s]['PTRMS']
 
             if self.Data[self.s]['T_or_MW']!="MW":
-                temperatures_NRMS=np.array([row[0]-273. for row in NRMS])
-                temperatures_PTRMS=np.array([row[0]-273. for row in PTRMS])
+                temperatures_NRMS=np.array([row[0]-273. for row in NRMS if row[-1]=='g'])
+                temperatures_PTRMS=np.array([row[0]-273. for row in PTRMS if row[-1]=='g'])
+                temperatures_NRMS_bad=np.array([row[0]-273. for row in NRMS if row[-1]=='b'])
+                temperatures_PTRMS_bad=np.array([row[0]-273. for row in PTRMS if row[-1]=='b'])
                 temperatures_NRMS[0]=21
                 temperatures_PTRMS[0]=21
             else:
-                temperatures_NRMS=np.array([row[0] for row in NRMS])
-                temperatures_PTRMS=np.array([row[0] for row in PTRMS])
+                temperatures_NRMS=np.array([row[0] for row in NRMS if row[-1]=='g'])
+                temperatures_PTRMS=np.array([row[0] for row in PTRMS if row[-1]=='g'])
+                temperatures_NRMS_bad=np.array([row[0] for row in NRMS if row[-1]=='b'])
+                temperatures_PTRMS_bad=np.array([row[0] for row in PTRMS if row[-1]=='b'])
 
             if len(temperatures_NRMS)!=len(temperatures_PTRMS):
                 self.GUI_log.write("-E- ERROR: NRMS and pTRMS are not equal in specimen %s. Check\n."%self.s)
             else:
-                M_NRMS=np.array([row[3] for row in NRMS])/NRMS[0][3]
-                M_pTRMS=np.array([row[3] for row in PTRMS])/NRMS[0][3]
+                M_NRMS=np.array([row[3] for row in NRMS if row[-1]=='g'])/NRMS[0][3]
+                M_pTRMS=np.array([row[3] for row in PTRMS if row[-1]=='g'])/NRMS[0][3]
+                M_NRMS_bad=np.array([row[3] for row in NRMS if row[-1]=='b'])/NRMS[0][3]
+                M_pTRMS_bad=np.array([row[3] for row in PTRMS if row[-1]=='b'])/NRMS[0][3]
 
-                self.mplot.clear()
                 self.mplot.plot(temperatures_NRMS,M_NRMS,'bo-',mec='0.2',markersize=5*self.GUI_RESOLUTION,lw=1,clip_on=False)
-                self.mplot.plot(temperatures_NRMS,M_pTRMS,'ro-',mec='0.2',markersize=5*self.GUI_RESOLUTION,lw=1,clip_on=False)
+                self.mplot.plot(temperatures_PTRMS,M_pTRMS,'ro-',mec='0.2',markersize=5*self.GUI_RESOLUTION,lw=1,clip_on=False)
+                for i in range(len(temperatures_NRMS_bad)):
+                    self.mplot.plot([temperatures_NRMS_bad[i]], [M_NRMS_bad[i]],'o',mfc='None',mec='k',markersize=self.MS,clip_on=False,zorder=1)
+                for i in range(len(temperatures_PTRMS_bad)):
+                    self.mplot.plot([temperatures_PTRMS_bad[i]], [M_pTRMS_bad[i]],'o',mfc='None',mec='k',markersize=self.MS,clip_on=False,zorder=1)
                 if self.Data[self.s]['T_or_MW']!="MW":
                     self.mplot.set_xlabel("C",fontsize=FONTSIZE_1)
                 else:
@@ -5080,7 +5190,7 @@ else:
                 try:
                     self.mplot.tick_params(axis='both', which='major', labelsize=8)
                 except:
-                    pass
+                    print("Error during alteration of tick parameters for MM0 plot, contact dev to report bug")
                 #self.mplot.tick_params(axis='x', which='major', labelsize=8)
                 self.mplot.spines["right"].set_visible(False)
                 self.mplot.spines["top"].set_visible(False)
@@ -5216,8 +5326,6 @@ else:
         else:
             self.inclination_window.SetValue("")
             self.inclination_window.SetBackgroundColour(wx.NamedColour('grey'))
-
-
 
         # PI statsistics
         flag_Fail=False
@@ -5712,7 +5820,6 @@ else:
 
         #self.dir_pathes=self.WD
 
-
         #------------------------------------------------
         # Read measurement file and sort to blocks
         #------------------------------------------------
@@ -5772,7 +5879,8 @@ else:
 
         CurrRec=[]
         #print "get sids"
-        sids=pmag.get_specs(meas_data) # samples ID's
+        self.mag_meas_data = meas_data
+        sids=pmag.get_specs(self.mag_meas_data) # samples ID's
         #print "done get sids"
 
         #print "initialize blocks"
@@ -5892,7 +6000,6 @@ else:
 
                     Data[s]['zijdblock'].append([tr,dec,inc,int,ZI,rec['measurement_flag'],rec['magic_instrument_codes']])
                     #print methods
-
 
             if sample not in Data_hierarchy['samples'].keys():
                 Data_hierarchy['samples'][sample]=[]
@@ -6416,7 +6523,6 @@ else:
             NRM_dir[0]=0
             CART_rot.append(pmag.dir2cart(NRM_dir))
 
-
             for i in range(1,len(Data[s]['zdata'])):
                 DIR=pmag.cart2dir(Data[s]['zdata'][i])
                 DIR[0]=DIR[0]-NRM_dec
@@ -6425,6 +6531,7 @@ else:
 
             CART_rot=np.array(CART_rot)
             Data[s]['zij_rotated']=CART_rot
+
             #--------------------------------------------------------------
             # collect all Arai plot data points to array
             #--------------------------------------------------------------
@@ -6876,6 +6983,7 @@ else:
         field,phi,theta="","",""
         starthere=0
         Treat_I,Treat_Z,Treat_PZ,Treat_PI,Treat_M,Treat_AC=[],[],[],[],[],[]
+        i_flags,z_flags,ptrm_flags,tail_flags,add_flags = [],[],[],[],[]
         ISteps,ZSteps,PISteps,PZSteps,MSteps,ACSteps=[],[],[],[],[],[]
         GammaChecks=[] # comparison of pTRM direction acquired and lab field
         Mkeys=['measurement_magn_moment','measurement_magn_volume','measurement_magn_mass','measurement_magnitude']
@@ -6884,9 +6992,8 @@ else:
             if key in rec.keys() and rec[key]!="":
                 momkey=key
                 break
-    # first find all the steps
-        for k in range(len(datablock)):
-            rec=datablock[k]
+        # first find all the steps
+        for k,rec in enumerate(datablock):
             if "treatment_temp" in rec.keys() and rec["treatment_temp"]!="":
                 temp=float(rec["treatment_temp"])
                 THERMAL=True; MICROWAVE=False
@@ -6898,14 +7005,14 @@ else:
                         if "Number" in STEP:
                             temp=float(STEP.split("-")[-1])
 
-
+            if 'measurement_flag' not in rec.keys(): rec['measurement_flag'] = 'g'
             methcodes=[]
             tmp=rec["magic_method_codes"].split(":")
             for meth in tmp:
                 methcodes.append(meth.strip())
             # for thellier-thellier
-            if 'LT-T-I' in methcodes and 'LP-PI-TRM' in methcodes and 'LP-TRM' not in methcodes :
-                Treat_I.append(temp)
+            if 'LT-T-I' in methcodes and 'LP-PI-TRM' in methcodes and 'LP-TRM' not in methcodes:
+                Treat_I.append(temp); i_flags.append(rec['measurement_flag'])
                 ISteps.append(k)
                 if field=="":field=float(rec["treatment_dc_field"])
                 if phi=="":
@@ -6914,16 +7021,16 @@ else:
 
             # for Microwave
             if 'LT-M-I' in methcodes and 'LP-PI-M' in methcodes :
-                Treat_I.append(temp)
+                Treat_I.append(temp); i_flags.append(rec['measurement_flag'])
                 ISteps.append(k)
                 if field=="":field=float(rec["treatment_dc_field"])
                 if phi=="":
                     phi=float(rec['treatment_dc_field_phi'])
                     theta=float(rec['treatment_dc_field_theta'])
 
-    # stick  first zero field stuff into first_Z
+            # stick  first zero field stuff into first_Z
             if 'LT-NO' in methcodes:
-                Treat_Z.append(temp)
+                Treat_Z.append(temp); z_flags.append(rec['measurement_flag'])
                 ZSteps.append(k)
             if "LT-AF-Z" in methcodes and 'treatment_ac_field' in rec.keys():
                 AFD_after_NRM=True
@@ -6936,48 +7043,68 @@ else:
                         dec=float(rec["measurement_dec"])
                         inc=float(rec["measurement_inc"])
                         intensity=float(rec[momkey])
-                        first_I.append([273.-AF_field,0.,0.,0.,1])
-                        first_Z.append([273.-AF_field,dec,inc,intensity,1])  # NRM step
+                        first_I.append([273.-AF_field,0.,0.,0.,1,rec['measurement_flag']])
+                        first_Z.append([273.-AF_field,dec,inc,intensity,1,rec['measurement_flag']])  # NRM step
             if 'LT-T-Z' in methcodes or 'LT-M-Z' in methcodes:
-                Treat_Z.append(temp)
+                Treat_Z.append(temp); z_flags.append(rec['measurement_flag'])
                 ZSteps.append(k)
             if 'LT-PTRM-Z' :
                 Treat_PZ.append(temp)
                 PZSteps.append(k)
             if 'LT-PTRM-I' in methcodes or 'LT-PMRM-I' in methcodes:
                 Treat_PI.append(temp)
+                ptrm_flags.append(rec['measurement_flag'])
                 PISteps.append(k)
             if 'LT-PTRM-MD' in methcodes or 'LT-PMRM-MD' in methcodes:
                 Treat_M.append(temp)
+                tail_flags.append(rec['measurement_flag'])
                 MSteps.append(k)
             if 'LT-PTRM-AC' in methcodes or 'LT-PMRM-AC' in methcodes:
                 Treat_AC.append(temp)
+                add_flags.append(rec['measurement_flag'])
                 ACSteps.append(k)
             if 'LT-NO' in methcodes:
                 dec=float(rec["measurement_dec"])
                 inc=float(rec["measurement_inc"])
                 moment=float(rec["measurement_magn_moment"])
                 if 'LP-PI-M' not in methcodes:
-                    first_I.append([273,0.,0.,0.,1])
-                    first_Z.append([273,dec,inc,moment,1])  # NRM step
+                    first_I.append([273,0.,0.,0.,1,rec['measurement_flag']])
+                    first_Z.append([273,dec,inc,moment,1,rec['measurement_flag']])  # NRM step
                 else:
-                    first_I.append([0,0.,0.,0.,1])
-                    first_Z.append([0,dec,inc,moment,1])  # NRM step
+                    first_I.append([0,0.,0.,0.,1,rec['measurement_flag']])
+                    first_Z.append([0,dec,inc,moment,1,rec['measurement_flag']])  # NRM step
 
         #---------------------
         # find  IZ and ZI
         #---------------------
-
-
         for temp in Treat_I: # look through infield steps and find matching Z step
             if temp in Treat_Z: # found a match
-                istep=ISteps[Treat_I.index(temp)]
+
+                izzi_flag = 'g'
+                #insure that first good IStep is taken, if all are bad then first is taken
+                Treat_I_use,ISteps_use = Treat_I,ISteps
+                Treat_I_tmp = [treat_i for treat_i,i_flag in zip(Treat_I,i_flags) if i_flag == 'g']
+                if temp in Treat_I_tmp:
+                    Treat_I_use = Treat_I_tmp
+                    ISteps_use = [IStep for IStep,i_flag in zip(ISteps,i_flags) if i_flag == 'g']
+                else: izzi_flag = 'b'
+                istep=ISteps_use[Treat_I_use.index(temp)]
+
                 irec=datablock[istep]
                 methcodes=[]
                 tmp=irec["magic_method_codes"].split(":")
                 for meth in tmp: methcodes.append(meth.strip())
                 brec=datablock[istep-1] # take last record as baseline to subtract
-                zstep=ZSteps[Treat_Z.index(temp)]
+
+                #insure that first good ZStep is taken, if all are bad then first is taken
+                Treat_Z_use,ZSteps_use = Treat_Z,ZSteps
+                Treat_Z_tmp = [treat_z for treat_z,z_flag in zip(Treat_Z,z_flags) if z_flag == 'g']
+                if temp in Treat_Z_tmp:
+                    Treat_Z_use = Treat_Z_tmp
+                    ZSteps_use = [ZStep for ZStep,z_flag in zip(ZSteps,z_flags) if z_flag == 'g']
+                else: izzi_flag = 'b'
+                zstep=ZSteps_use[Treat_Z_use.index(temp)]
+
                 zrec=datablock[zstep]
         # sort out first_Z records
                 # check if ZI/IZ in in method codes:
@@ -7016,8 +7143,8 @@ else:
                 dec=float(zrec["measurement_dec"])
                 inc=float(zrec["measurement_inc"])
                 str=float(zrec[momkey])
-                first_Z.append([temp,dec,inc,str,ZI])
-        # sort out first_I records
+                first_Z.append([temp,dec,inc,str,ZI,izzi_flag])
+                # sort out first_I records
                 idec=float(irec["measurement_dec"])
                 iinc=float(irec["measurement_inc"])
                 istr=float(irec[momkey])
@@ -7028,12 +7155,12 @@ else:
                 if I[2]!=0:
                     iDir=pmag.cart2dir(I)
                     if Zdiff==0:
-                        first_I.append([temp,iDir[0],iDir[1],iDir[2],ZI])
+                        first_I.append([temp,iDir[0],iDir[1],iDir[2],ZI,izzi_flag])
                     else:
-                        first_I.append([temp,0.,0.,I[2],ZI])
+                        first_I.append([temp,0.,0.,I[2],ZI,izzi_flag])
 ##                    gamma=angle([iDir[0],iDir[1]],[phi,theta])
                 else:
-                    first_I.append([temp,0.,0.,0.,ZI])
+                    first_I.append([temp,0.,0.,0.,ZI,izzi_flag])
 ##                    gamma=0.0
 ##    # put in Gamma check (infield trm versus lab field)
 ##                if 180.-gamma<gamma:
@@ -7072,8 +7199,8 @@ else:
                         DIR_zerofield=pmag.cart2dir(zerofield)
                         DIR_infield=pmag.cart2dir(infield)
 
-                        first_Z.append([temp,DIR_zerofield[0],DIR_zerofield[1],DIR_zerofield[2],0])
-                        first_I.append([temp,DIR_infield[0],DIR_infield[1],DIR_infield[2],0])
+                        first_Z.append([temp,DIR_zerofield[0],DIR_zerofield[1],DIR_zerofield[2],0,'g'])
+                        first_I.append([temp,DIR_infield[0],DIR_infield[1],DIR_infield[2],0,'g'])
 
 
         #---------------------
@@ -7083,6 +7210,7 @@ else:
         for i in range(len(Treat_PI)): # look through infield steps and find matching Z step
 
             temp=Treat_PI[i]
+            ptrm_flag = ptrm_flags[i]
             k=PISteps[i]
             rec=datablock[k]
             dec=float(rec["measurement_dec"])
@@ -7126,15 +7254,15 @@ else:
                     diff_cart=M-prev_M
                     diff_dir=pmag.cart2dir(diff_cart)
                     if after_zerofield==0:
-                        ptrm_check.append([temp,diff_dir[0],diff_dir[1],diff_dir[2],zerofield_index,after_zerofield])
+                        ptrm_check.append([temp,diff_dir[0],diff_dir[1],diff_dir[2],zerofield_index,after_zerofield,ptrm_flag])
                     else:
-                        ptrm_check.append([temp,diff_dir[0],diff_dir[1],diff_dir[2],zerofield_index,after_zerofield])
+                        ptrm_check.append([temp,diff_dir[0],diff_dir[1],diff_dir[2],zerofield_index,after_zerofield,ptrm_flag])
                 else:
                     # health check for T-T protocol:
                     if theta!=prev_theta:
                         diff=(M-prev_M)/2
                         diff_dir=pmag.cart2dir(diff)
-                        ptrm_check.append([temp,diff_dir[0],diff_dir[1],diff_dir[2],zerofield_index,""])
+                        ptrm_check.append([temp,diff_dir[0],diff_dir[1],diff_dir[2],zerofield_index,"",ptrm_flag])
                     else:
                         print "-W- WARNING: specimen. pTRM check not in place in Thellier Thellier protocol. step please check"
 
@@ -7144,9 +7272,10 @@ else:
         # find Tail checks
         #---------------------
 
-        for temp in Treat_M:
+        for k,temp in enumerate(Treat_M):
             #print temp
             step=MSteps[Treat_M.index(temp)]
+            tail_flag = tail_flags[k]
             rec=datablock[step]
             dec=float(rec["measurement_dec"])
             inc=float(rec["measurement_inc"])
@@ -7164,16 +7293,15 @@ else:
                         break
 
             if foundit:
-                ptrm_tail.append([temp,0,0,moment-prev_moment])
+                ptrm_tail.append([temp,0,0,moment-prev_moment,tail_flag])
 
     #
     # final check
     #
         if len(first_Z)!=len(first_I):
-            print len(first_Z),len(first_I)
-            print " Something wrong with this specimen! Better fix it or delete it "
+            print(len(first_Z),len(first_I))
+            print("Something wrong with specimen %s! Better fix it or delete it"%(s))
             raw_input(" press return to acknowledge message")
-
 
         #---------------------
         # find  Additivity (patch by rshaar)
@@ -7183,6 +7311,7 @@ else:
         for i in range(len(Treat_AC)):
             step_0=ACSteps[i]
             temp=Treat_AC[i]
+            add_flag = add_flags[i]
             dec0=float(datablock[step_0]["measurement_dec"])
             inc0=float(datablock[step_0]["measurement_inc"])
             moment0=float(datablock[step_0]['measurement_magn_moment'])
@@ -7209,7 +7338,7 @@ else:
                 I=[]
                 for c in range(3): I.append(V1[c]-V0[c])
                 dir1=pmag.cart2dir(I)
-                additivity_check.append([temp,dir1[0],dir1[1],dir1[2]])
+                additivity_check.append([temp,dir1[0],dir1[1],dir1[2],add_flag])
                 #print "I",np.array(I)/float(datablock[0]["measurement_magn_moment"]),dir1,"(dir1 unnormalized)"
                 X=np.array(I)/float(datablock[0]["measurement_magn_moment"])
                 #print "I",np.sqrt(sum(X**2))
