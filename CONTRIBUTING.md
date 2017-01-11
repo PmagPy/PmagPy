@@ -1,53 +1,12 @@
 # Developer's Guide
 
-
 ## Contributing
 
 As an open-source, community project, we welcome improvements and feedback!  There are two main ways to contribute to the PmagPy project.
+
 1. If you want to report a bug or request a new feature, please create a [Github issue](https://github.com/PmagPy/PmagPy/issues).  If you are reporting a bug, please provide as much detail as possible about how you discovered the bug.  For a full explanation of how to create a new issue, and what information to include, see [Github documentation](https://guides.github.com/activities/contributing-to-open-source/#contributing).
 
-    2. If you want to add a new feature yourself or fix a bug yourself, that's great too.  The process for adding a feature looks like this: fork the PmagPy repository, create a branch for your feature or bugfix, make some changes, and then submit a pull request.  Don't worry if you don't know how to do all of those steps!  If you aren't familiar with git, Github, or the details of this process, you will find this short [tutorial](https://guides.github.com/activities/forking/) helpful.  If you're still stuck after that but want to contribute, you can create a [Github issue](https://github.com/PmagPy/PmagPy/issues) and we will help get you sorted.  Depending on what kind of contribution you are making, you may also want to add some tests.  See our [testing README](https://github.com/PmagPy/PmagPy/blob/master/pmagpy_tests/README.md) for details on making and running PmagPy tests.
-
-
-## Compile and Release Guide
-
-We try to make new releases of PmagPy several times per year.
-
-A new release includes: updated pip packages (pmagpy & pmagpy-cli), and updated standalone GUIs (for Windows, Mac, and Linux).
-Making a new release has several steps:
-
-1. Make (or update) a release branch.  This allows work to continue on the master branch, while keeping a stable branch for the release.  Once the release is ready, the pip releases and standalones should be released from this branch!
-
-2. Make sure all tests are passing and all new features are working.
-
-3. Create a new release number.  Release numbers are in the form of MAJOR.MINOR.PATCH, and each release number should be higher than the one before it.  More on semantic versioning can be found [here](http://semver.org).  The pip release and the standalones should all use the same release number!
-
-4. Create a pip release.
-
-**Note:** To make a pip release, you must have a PyPI account and be added as an Owner or Maintainer of pmagpy and pmagpy-cli.
-
-These are the steps to make a pip release for pmagpy and pmagpy-cli.
-
-First, increment the version number in setup.py or command\_line\_setup.py.  PYPI will reject a duplicate version number I forget this step.
-
-From the PmagPy directory, use the following command to build a new distribution of pmagpy, upload it to PYPI, and upgrade locally:
-
-`rm -rf build dist && python setup.py sdist bdist_wheel && twine upload dist/* && pip install pmagpy —upgrade`
-
-To make a test release, use a slightly different command from the PmagPy directory, which will: build a new distribution of pmagpy, upload it to the test site (will not overwrite the version people can download), and upgrade locally:
-
-`python setup.py sdist bdist_wheel upload -r https://testpypi.python.org/pypi && pip install -i https://testpypi.python.org/pypi pmagpy —upgrade`
-
-To build pmagpy-cli, you can use the same two commands above, but replacing "setup.py" with "command\_line\_setup.py".
-
-A few notes on the whole thing:  first of all, testing the pip install locally doesn't work very well (i.e., `python setup.py install` or `python setup.py test`), because it doesn’t deal correctly with the required data files.  Whenever testing a new pip distribution, it is best to upload to test\_PYPI instead, even though it takes a minute or so to do.  Second, we are using twine for uploading to real PYPI but not to upload to test PYPI.  Using twine is recommended because it transfers the package data in a more secure way, but it doesn't currently work with test_PYPI.
-
-This article has some more good information about uploading to PYPI, etc.:  https://tom-christie.github.io/articles/pypi/
-
-5. Create standalone executables.  The process is different for each platform, and details are in the [standalones README](https://github.com/PmagPy/PmagPy/tree/master/setup_scripts).
-
-6. If any bug-fixes were made on the release branch during this process, those changes should be merged into master.
-
+2. If you want to add a new feature yourself or fix a bug yourself, that's great too.  The process for adding a feature looks like this: fork the PmagPy repository, create a branch for your feature or bugfix, make some changes, and then submit a pull request.  Don't worry if you don't know how to do all of those steps!  If you aren't familiar with git, Github, or the details of this process, you will find this short [tutorial](https://guides.github.com/activities/forking/) helpful.  If you're still stuck after that but want to contribute, you can create a [Github issue](https://github.com/PmagPy/PmagPy/issues) and we will help get you sorted.  Depending on what kind of contribution you are making, you may also want to add some tests.  See our [testing README](https://github.com/PmagPy/PmagPy/blob/master/pmagpy_tests/README.md) for details on making and running PmagPy tests.
 
 ## Style guidelines
 
@@ -95,7 +54,9 @@ build, dist, pmagpy.egg\_info and pmagpy\_cli.egg\_info are not in the main Gith
 
 uninstall\_Mac\_OSX.app is an executable that allows users who installed PmagPy pre-pip to uninstall it completely.  This prevents possible conflicts between old and new versions of PmagPy.
 
+Here is a visual representation of the directory structure:
 
+```
 ├── bin
 ├── build
 ├── data\_files
@@ -116,10 +77,53 @@ uninstall\_Mac\_OSX.app is an executable that allows users who installed PmagPy 
 │   ├── deprecated
 ├── setup\_scripts
 └── uninstall\_Mac\_OSX.app
+```
+
+## Compile and Release Guide
+
+We try to make new releases of PmagPy several times per year.
+
+A new release includes: updated pip packages (pmagpy & pmagpy-cli), and updated standalone GUIs (for Windows, Mac, and Linux).
+Making a new release has several steps:
+
+1. Make (or update) a release branch.  This allows work to continue on the master branch, while keeping a stable branch for the release.  Once the release is ready, the pip releases and standalones should be released from this branch!
+
+2. Make sure all tests are passing and all new features are working.
+
+3. Create a new release number.  Release numbers are in the form of MAJOR.MINOR.PATCH, and each release number should be higher than the one before it.  More on semantic versioning can be found [here](http://semver.org).  The pip release and the standalones should all use the same release number!
+
+4. Create a pip release.
+
+**Note:** To make a pip release, you must have a PyPI account and be added as an Owner or Maintainer of pmagpy and pmagpy-cli.
+
+These are the steps to make a pip release for pmagpy and pmagpy-cli.
+
+First, increment the version number in setup.py or command\_line\_setup.py.  PYPI will reject a duplicate version number I forget this step.
+
+From the PmagPy directory, use the following command to build a new distribution of pmagpy, upload it to PYPI, and upgrade locally:
+
+`rm -rf build dist && python setup.py sdist bdist_wheel && twine upload dist/* && pip install pmagpy —upgrade`
+
+To make a test release, use a slightly different command from the PmagPy directory, which will: build a new distribution of pmagpy, upload it to the test site (will not overwrite the version people can download), and upgrade locally:
+
+`python setup.py sdist bdist_wheel upload -r https://testpypi.python.org/pypi && pip install -i https://testpypi.python.org/pypi pmagpy —upgrade`
+
+To build pmagpy-cli, you can use the same two commands above, but replacing "setup.py" with "command\_line\_setup.py".
+
+A few notes on the whole thing:  first of all, testing the pip install locally doesn't work very well (i.e., `python setup.py install` or `python setup.py test`), because it doesn’t deal correctly with the required data files.  Whenever testing a new pip distribution, it is best to upload to test\_PYPI instead, even though it takes a minute or so to do.  Second, we are using twine for uploading to real PYPI but not to upload to test PYPI.  Using twine is recommended because it transfers the package data in a more secure way, but it doesn't currently work with test_PYPI.
+
+This article has some more good information about uploading to PYPI, etc.:  https://tom-christie.github.io/articles/pypi/
+
+5. Create standalone executables.  The process is different for each platform, and details are in the [standalones README](https://github.com/PmagPy/PmagPy/tree/master/setup_scripts).
+
+6. If any bug-fixes were made on the release branch during this process, those changes should be merged into master.
+
 
 
 ## Resources
 
-Detailed information about installing and running all of the PmagPy programs: https://earthref.org/PmagPy/cookbook/
-The MagIC database:  https://earthref.org/MagIC/
-:  https://earthref.org/MagIC/books/Tauxe/Essentials/
+Detailed information about installing and running all of the [PmagPy programs](https://earthref.org/PmagPy/cookbook/)
+
+The [MagIC database](https://earthref.org/MagIC/)
+
+Lisa Tauxe's [Essentials of Paleomagnetism](https://earthref.org/MagIC/books/Tauxe/Essentials/)

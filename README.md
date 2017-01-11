@@ -62,7 +62,7 @@ The code base for the PmagPy project has been built up over many years by Lisa T
 
 ## Contributing
 
-If you want to get involved with the project -- whether that means reporting a bug, requesting a feature, or adding significant code -- please check out our [Contribution guidelines](https://github.com/PmagPy/PmagPy/blob/master/CONTRIBUTING.md).
+If you want to get involved with the project - whether that means reporting a bug, requesting a feature, or adding significant code - please check out our [Contribution guidelines](https://github.com/PmagPy/PmagPy/blob/master/CONTRIBUTING.md).
 
 ## More information
 
