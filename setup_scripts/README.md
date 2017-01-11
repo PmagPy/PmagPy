@@ -1,8 +1,5 @@
-The scripts in this folder are for making new standalone releases.  This is done using py2app for OSX and py2exe for Windows.
+The scripts in this directory are for making new standalone releases.  This is done using py2app for OSX and pyinstaller for Windows and Linux.
 
-General documentation for py2app: https://pythonhosted.org/py2app/index.html
-
-And for py2exe:  http://py2exe.org/index.cgi/Tutorial
 
 ## OSX standalones
 
@@ -29,7 +26,9 @@ Here are the steps to make standalone Pmag/Magic GUIs for OSX.
 
 6.  Once you are confident that both standalone applications look good, run: $ `./setup_scripts/release_guis.sh <github_user_name> <release_number>`.  To run this step, you will need to provide your Github credentials (so that you can push to the Standalone repo).
 
-## Py2app troubleshooting
+### Py2app troubleshooting
+
+General documentation for py2app is available here: https://pythonhosted.org/py2app/index.html
 
 If you get see an error message like this (the build _may_ keep running):
 TypeError: dyld_find() got an unexpected keyword argument 'loader'
@@ -39,7 +38,48 @@ See this documentation on a similar problem: http://stackoverflow.com/questions/
 You may have to monkey-patch this file: MachOGraph.py.  (Located here on my machine: /usr/local/lib/python2.7/site-packages/macholib/MachOGraph.py, may be elsewhere depending on your Python installation.)
 
 
-## Windows standalones
+## Compiling on Windows
+
+Windows standalone binaries are compiled using the pyinstaller utility. Before compiling you must ensure you have all dependencies installed and the programs run correctly as python scripts. Then you can start the two stage building process, first by creating the spec file by running this script in the PmagPy main directory:
+
+```bash
+pyi-makespec --onefile --windowed --icon=.\programs\images\PmagPy.ico
+--version-file=$PATH_TO_PMAGPY_VERSION_FILE --name=PmagGUI
+-p=$PATH_TO_ANY_DEPENDENCIES_NOT_ALREADY_IN_ENV .\programs\pmag_gui.py
+```
+
+This should make a .spec file in the PmagPy main directory called PmagGUI.spec, you should then open that file and replace the line `datas=None` with `datas=[('./pmagpy/data_model/*','./data_model')]` so that pyinstaller knows where to retrieve data files. Then you can run the following to tell pyinstaller to use the data in the .spec file to build the binary. **Note:** the version file is not strictly necessary but it allows windows to better populate the properties menu for the file, an example can be found [here](http://stackoverflow.com/questions/14624245/what-does-a-version-file-look-like) and documentation [here](https://msdn.microsoft.com/en-us/library/ff468916(v=vs.85).aspx).
+
+```bash
+pyinstaller --clean PmagGUI.spec
+```
+
+The executable will be in the dist directory. If you're having trouble because your computer can't find pyinstaller try replacing pyinstaller with a direct path the the pyinstaller.exe usually in the scripts file of wherever your python environment is installed. If dependencies are not being bundled make sure all dependencies are in your $PATH variable or added to the -p flag like so -p="PATH1;PATH2".
+
+## Compiling on Linux
+
+The Linux binary is generated very similar to the Windows binary. Again you must have all PmagPy dependencies and pyinstaller on your machine all of which can be found in the standard repositories or pypi. Then you should modify and run this script from the PmagPy main directory to make the .spec file:
+
+```bash
+pyi-makespec --onefile --windowed --icon=./programs/images/PmagPy.ico
+--name=PmagGUI -p=$PATH_TO_ANY_DEPENDENCIES_NOT_ALREADY_IN_ENV
+./programs/pmag_gui.py
+```
+
+Then just like above you should open the PmagGUI.spec file and edit the line `datas=None` so it reads `datas=[('./pmagpy/data_model/*','./data_model')]`. Once you've fixed the datas line you should run the same code as above to finish the compiling process.
+
+```bash
+pyinstaller --clean PmagGUI.spec
+```
+
+The executable will be in the dist directory. If it does not run when you double click it or enter its name in the terminal you may have to change execution permissions to make it runnable by running `chmod a+x $EXENAME`. Also due to the way Pyinstaller is constructed when bundling as one-file you should note that it can take 5-30 seconds for the program to run so check with an activity manager (like top) before assuming the executable did not compile correctly.
+
+**Note:** if compiling this document to pdf using pandoc the command used is `pandoc devguide.md -o devguide.pdf --highlight-style tango -V geometry:margin=.7in`
+
+
+## DEPRECATED way of making Windows standalones
+
+**Note**: this is old way of making Windows standalones.
 
 1. Make sure your path points to the correct version of Python.  I've had success with Canopy Python, but you may be able to use a different installation.  You should have pmagpy installed using pip.
 
@@ -54,9 +94,9 @@ You may have to monkey-patch this file: MachOGraph.py.  (Located here on my mach
 
 4.  Move both Windows setup scripts from the setup_scripts directory to the main PmagPy directory.
 
-5. From the main PmagPy directory, run `python win_magic_gui_setup.py py2exe'. (expect this to take a horribly long time)
+5. From the main PmagPy directory, run `python win\_magic\_gui\_setup.py py2exe'. (expect this to take a horribly long time)
 
-6.  From the main PmagPy directory, run `python win_pmag_gui_setup.py py2exe'.  (same as above)
+6.  From the main PmagPy directory, run `python win\_pmag\_gui\_setup.py py2exe'.  (same as above)
 
 7.  Try to run the distributions.  If one of them doesn't work, you may need to find "numpy-atlas.dll" in your system and copy it to the distribution folders.  (I've had to add "numpy-atlas.dll" to the list of ignored dlls in the setup files.  Otherwise, the build halts with an error halfway through.  However, the finished program needs numpy-atlas to run.)  Once you have the standalones working correctly, you can move on to packaging them up.
 
@@ -66,11 +106,11 @@ You may have to monkey-patch this file: MachOGraph.py.  (Located here on my mach
 
 10.  Select build --> compile in Inno Setup Compiler.
 
-11.  Sometimes you'll get an error with "EndUpdateResource failed" or something like that.  This may or may not be a real error.  Check that the path of the resource is in fact correct and customized to your machine.  If it is, try again to build the setup script.  Sometimes you might have to try a few times in a row (I don't know why).  
+11.  Sometimes you'll get an error with "EndUpdateResource failed" or something like that.  This may or may not be a real error.  Check that the path of the resource is in fact correct and customized to your machine.  If it is, try again to build the setup script.  Sometimes you might have to try a few times in a row (I don't know why).
 
 12.  Run Pmag\_GUI.iss and Magic\_GUI.iss in the Inno Setup Compiler GUI.  You can find the output files through the Inno GUI by selecting Build --> Open Output Folder.  They should be called: "install\_Pmag\_GUI.exe" and "install\_Magic\_GUI.exe".
 
-13.  Try running the setup for each and see if you get a nice, happy installation.  
+13.  Try running the setup for each and see if you get a nice, happy installation.
 
 14.  If everything is good, upload "install\_Pmag\_GUI.exe" and "install\_MagIC\_GUI.exe" to https://github.com/PmagPy/PmagPy-Standalone-Windows
 
@@ -78,45 +118,19 @@ You may have to monkey-patch this file: MachOGraph.py.  (Located here on my mach
 
 NB: I know this process sucks.  Sorry.
 
-## Py2exe troubleshooting ##
+### Py2exe troubleshooting
 
 
-1.  If the executable works fine but the Inno-installed program doesn't, you may want to install the program into a directory where the log can be created (i.e., Desktop.)  You'll want to do this if the program won't run AND you get an error message that the log can't be opened.  
+1.  If the executable works fine but the Inno-installed program doesn't, you may want to install the program into a directory where the log can be created (i.e., Desktop.)  You'll want to do this if the program won't run AND you get an error message that the log can't be opened.
 
-2.  Editing registry for use with Canopy.  
+2.  Editing registry for use with Canopy.
 
-	open regedit
+    open regedit
 
-	find .py
-	change Enthought.Canopy to Python.File
-	also add Python.File to .py subfolder OpenWithProgIds
+    find .py
+    change Enthought.Canopy to Python.File
+    also add Python.File to .py subfolder OpenWithProgIds
 
-	find Python.File
-	get path where python is installed (python\_path = which python)
-	in subfolder Python.File/shell/Edit with Pythonwin/command, change Data to "python\_path + .exe" + "%1"
-	
-
-
-
-## Details for people who want them
-
-#setup_pmag_gui.py
-Uses py2app to create a Pmag GUI frozen binary for OSX
-Run with `python setup_magic_gui.py py2app`
-Note: to use this file independently (not wrapped within the make_guis bash script), you must move it to the main PmagPy directory.
-#setup_magic_gui.py
-Uses py2app to create a MagIC GUI frozen binary for OSX
-Run with `python setup_magic_gui.py py2app`
-Note: to use this file independently (not wrapped within the make_guis bash script), you must move it to the main PmagPy directory.
-#win_setup_pmag_gui.py
-Uses py2exe to create a MagIC GUI frozen binary for Windows
-Run with `python win_setup_pmag_gui.py py2exe`
-#win_setup_magic_gui.py
-Uses py2exe to create a MagIC GUI frozen binary for Windows
-Run with `python win_setup_pmag_gui.py py2exe`
-# make_guis.sh
-Creates new OSX standalones for both GUIs
-See above.
-# release_guis.sh
-Creates a new Github release for PmagPy-Standalone-OSX repo.
-See above.
+    find Python.File
+    get path where python is installed (python\_path = which python)
+    in subfolder Python.File/shell/Edit with Pythonwin/command, change Data to "python\_path + .exe" + "%1"

@@ -3,10 +3,50 @@
 
 ## Contributing
 
-There are two main ways to contribute to the PmagPy project.
-1. If you want to report a bug or request a new feature, please create a [Github issue](https://github.com/PmagPy/PmagPy/issues).  If you are reporting a bug, please provide as much detail as possible about how you discovered the bug.
+As an open-source, community project, we welcome improvements and feedback!  There are two main ways to contribute to the PmagPy project.
+1. If you want to report a bug or request a new feature, please create a [Github issue](https://github.com/PmagPy/PmagPy/issues).  If you are reporting a bug, please provide as much detail as possible about how you discovered the bug.  For a full explanation of how to create a new issue, and what information to include, see [Github documentation](https://guides.github.com/activities/contributing-to-open-source/#contributing).
 
-2. If you want to add a new feature yourself, make a pull request..... FILL IN DETAILS.
+    2. If you want to add a new feature yourself or fix a bug yourself, that's great too.  The process for adding a feature looks like this: fork the PmagPy repository, create a branch for your feature or bugfix, make some changes, and then submit a pull request.  Don't worry if you don't know how to do all of those steps!  If you aren't familiar with git, Github, or the details of this process, you will find this short [tutorial](https://guides.github.com/activities/forking/) helpful.  If you're still stuck after that but want to contribute, you can create a [Github issue](https://github.com/PmagPy/PmagPy/issues) and we will help get you sorted.  Depending on what kind of contribution you are making, you may also want to add some tests.  See our [testing README](https://github.com/PmagPy/PmagPy/blob/master/pmagpy_tests/README.md) for details on making and running PmagPy tests.
+
+
+## Compile and Release Guide
+
+We try to make new releases of PmagPy several times per year.
+
+A new release includes: updated pip packages (pmagpy & pmagpy-cli), and updated standalone GUIs (for Windows, Mac, and Linux).
+Making a new release has several steps:
+
+1. Make (or update) a release branch.  This allows work to continue on the master branch, while keeping a stable branch for the release.  Once the release is ready, the pip releases and standalones should be released from this branch!
+
+2. Make sure all tests are passing and all new features are working.
+
+3. Create a new release number.  Release numbers are in the form of MAJOR.MINOR.PATCH, and each release number should be higher than the one before it.  More on semantic versioning can be found [here](http://semver.org).  The pip release and the standalones should all use the same release number!
+
+4. Create a pip release.
+
+**Note:** To make a pip release, you must have a PyPI account and be added as an Owner or Maintainer of pmagpy and pmagpy-cli.
+
+These are the steps to make a pip release for pmagpy and pmagpy-cli.
+
+First, increment the version number in setup.py or command\_line\_setup.py.  PYPI will reject a duplicate version number I forget this step.
+
+From the PmagPy directory, use the following command to build a new distribution of pmagpy, upload it to PYPI, and upgrade locally:
+
+`rm -rf build dist && python setup.py sdist bdist_wheel && twine upload dist/* && pip install pmagpy —upgrade`
+
+To make a test release, use a slightly different command from the PmagPy directory, which will: build a new distribution of pmagpy, upload it to the test site (will not overwrite the version people can download), and upgrade locally:
+
+`python setup.py sdist bdist_wheel upload -r https://testpypi.python.org/pypi && pip install -i https://testpypi.python.org/pypi pmagpy —upgrade`
+
+To build pmagpy-cli, you can use the same two commands above, but replacing "setup.py" with "command\_line\_setup.py".
+
+A few notes on the whole thing:  first of all, testing the pip install locally doesn't work very well (i.e., `python setup.py install` or `python setup.py test`), because it doesn’t deal correctly with the required data files.  Whenever testing a new pip distribution, it is best to upload to test\_PYPI instead, even though it takes a minute or so to do.  Second, we are using twine for uploading to real PYPI but not to upload to test PYPI.  Using twine is recommended because it transfers the package data in a more secure way, but it doesn't currently work with test_PYPI.
+
+This article has some more good information about uploading to PYPI, etc.:  https://tom-christie.github.io/articles/pypi/
+
+5. Create standalone executables.  The process is different for each platform, and details are in the [standalones README](https://github.com/PmagPy/PmagPy/tree/master/setup_scripts).
+
+6. If any bug-fixes were made on the release branch during this process, those changes should be merged into master.
 
 
 ## Style guidelines
@@ -18,7 +58,42 @@ Readable code is good code.  To that end, we request that contributors adhere to
 
 For information about writing and running tests, see the [testing README](https://github.com/PmagPy/PmagPy/blob/master/pmagpy_tests/README.md).
 
+
 ## Directory structure
+
+#### Key directories
+
+**Coming soon:** links to the relevant Jupyter notebooks where you can see how some of these pieces work.
+
+The pmagpy directory contains all the low-level functionality that the PmagPy project is built on. pmag.py and ipmag.py contain many functions that can be used in Jupyter notebooks or for building up more complex programs and GUIs.  Other important modules in the pmagpy directory:
+- a plotting library -- pmagplotlib.py
+- a utility for building up MagIC contributions -- new_builder.py
+- modules for interfacing with the data models (controlled_vocabularies2.py, controlled\_vocabularies3.py, and data\_model3.py), as well as a full backup of the 2.5 and 3.0. data model (in the data\_model subdirectory).
+
+The SPD directory contains a program to calculate statistics using Greig Paterson's [standard paleointensity definitions](https://earthref.org/PmagPy/SPD/home.html).
+
+The programs directory contains executable programs that are installed as part of the pmagpy-cli package and can be run on the command-line.
+
+The dialogs directory contains GUI components that are used to build the graphical elements of the PmagPy GUIs.
+
+data_files contains example files used in testing and in [Cookbook](https://earthref.org/PmagPy/cookbook/) examples.
+
+pmag_env is a module that sets the backend for plotting as either TKAgg (for non-wxPython programs) or WXAgg (for wxPython programs).
+
+locator is a module that finds the directory where PmagPy is installed.  __Please__ use caution in modifying this module!  You can break a lot of things.
+
+
+#### Less key directories
+
+help_files contains html help that is used in the GUIs.
+
+setup_scripts contains scripts that are used in created standalone releases of the GUIs for Mac, Windows, and Linux.
+
+bin contains some scripts that are used in creating the Anaconda part of a pip release.
+
+build, dist, pmagpy.egg\_info and pmagpy\_cli.egg\_info are not in the main Github repo, however they may be created automatically when making a pip release.  You should not need to interact directly with any of them.
+
+uninstall\_Mac\_OSX.app is an executable that allows users who installed PmagPy pre-pip to uninstall it completely.  This prevents possible conflicts between old and new versions of PmagPy.
 
 
 ├── bin
@@ -41,55 +116,10 @@ For information about writing and running tests, see the [testing README](https:
 │   ├── deprecated
 ├── setup\_scripts
 └── uninstall\_Mac\_OSX.app
-    └── Contents
-        ├── MacOS
-        └── Resources
+
 
 ## Resources
 
-Link to Cookbook
-Link to Data model
-Link to Lisa's textbook
-
-
-## Compile and Release Guide
-
-For information about how the standalone executables are created, see the [standalones README](https://github.com/PmagPy/PmagPy/tree/master/setup_scripts).
-
-### Compiling on Windows
-
-Windows standalone binaries are compiled using the pyinstaller utility. Before compiling you must ensure you have all dependencies installed and the programs run correctly as python scripts. Then you can start the two stage building process, first by creating the spec file by running this script in the PmagPy main directory:
-
-```bash
-pyi-makespec --onefile --windowed --icon=.\programs\images\PmagPy.ico
---version-file=$PATH_TO_PMAGPY_VERSION_FILE --name=PmagGUI
--p=$PATH_TO_ANY_DEPENDENCIES_NOT_ALREADY_IN_ENV .\programs\pmag_gui.py
-```
-
-This should make a .spec file in the PmagPy main directory called PmagGUI.spec, you should then open that file and replace the line `datas=None` with `datas=[('./pmagpy/data_model/*','./data_model')]` so that pyinstaller knows where to retrieve data files. Then you can run the following to tell pyinstaller to use the data in the .spec file to build the binary. **Note:** the version file is not strictly necessary but it allows windows to better populate the properties menu for the file, an example can be found [here](http://stackoverflow.com/questions/14624245/what-does-a-version-file-look-like) and documentation [here](https://msdn.microsoft.com/en-us/library/ff468916(v=vs.85).aspx).
-
-```bash
-pyinstaller --clean PmagGUI.spec
-```
-
-The executable will be in the dist directory. If you're having trouble because your computer can't find pyinstaller try replacing pyinstaller with a direct path the the pyinstaller.exe usually in the scripts file of wherever your python environment is installed. If dependencies are not being bundled make sure all dependencies are in your $PATH variable or added to the -p flag like so -p="PATH1;PATH2".
-
-### Compiling on Linux
-
-The Linux binary is generated very similar to the Windows binary. Again you must have all PmagPy dependencies and pyinstaller on your machine all of which can be found in the standard repositories or pypi. Then you should modify and run this script from the PmagPy main directory to make the .spec file:
-
-```bash
-pyi-makespec --onefile --windowed --icon=./programs/images/PmagPy.ico
---name=PmagGUI -p=$PATH_TO_ANY_DEPENDENCIES_NOT_ALREADY_IN_ENV
-./programs/pmag_gui.py
-```
-
-Then just like above you should open the PmagGUI.spec file and edit the line `datas=None` so it reads `datas=[('./pmagpy/data_model/*','./data_model')]`. Once you've fixed the datas line you should run the same code as above to finish the compiling process.
-
-```bash
-pyinstaller --clean PmagGUI.spec
-```
-
-The executable will be in the dist directory. If it does not run when you double click it or enter its name in the terminal you may have to change execution permissions to make it runnable by running `chmod a+x $EXENAME`. Also due to the way Pyinstaller is constructed when bundling as one-file you should note that it can take 5-30 seconds for the program to run so check with an activity manager (like top) before assuming the executable did not compile correctly.
-
-**Note:** if compiling this document to pdf using pandoc the command used is `pandoc devguide.md -o devguide.pdf --highlight-style tango -V geometry:margin=.7in`
+Detailed information about installing and running all of the PmagPy programs: https://earthref.org/PmagPy/cookbook/
+The MagIC database:  https://earthref.org/MagIC/
+:  https://earthref.org/MagIC/books/Tauxe/Essentials/
