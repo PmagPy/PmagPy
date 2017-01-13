@@ -6713,6 +6713,11 @@ else:
                 self.site_container = self.contribution.tables['sites']
                 self.site_container.write_magic_file(custom_name='sites.bak', dir_path=self.WD) # create backup file with original
                 self.site_data = self.site_container.df
+                if 'lat' not in self.site_data.columns:
+                    self.site_data['lat'] = None
+                if 'lon' not in self.site_data.columns:
+                    self.site_data['lon'] = None
+
                 self.site_data = self.site_data[self.site_data['lat'].notnull()]
                 self.site_data = self.site_data[self.site_data['lon'].notnull()]
                 if 'age' in self.site_data.columns:
