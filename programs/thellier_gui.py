@@ -6715,9 +6715,10 @@ else:
                 self.site_data = self.site_container.df
                 if 'lat' not in self.site_data.columns:
                     self.site_data['lat'] = None
+                    print '-W- Your site file has no latitude data.'
                 if 'lon' not in self.site_data.columns:
                     self.site_data['lon'] = None
-
+                    print '-W- Your site file has no longitude data.'
                 self.site_data = self.site_data[self.site_data['lat'].notnull()]
                 self.site_data = self.site_data[self.site_data['lon'].notnull()]
                 if 'age' in self.site_data.columns:
