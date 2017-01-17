@@ -22,12 +22,13 @@ For information about writing and running tests, see the [testing README](https:
 
 **Coming soon:** links to the relevant Jupyter notebooks where you can see how some of these pieces work.
 
-#### Key directories
+### Key directories
 
-- The `pmagpy` directory contains all the low-level functionality that the PmagPy project is built on. pmag.py and ipmag.py contain many functions that can be used in Jupyter notebooks or for building up more complex programs and GUIs.  Other important modules in the `pmagpy` directory:
-  a plotting library -- pmagplotlib.py
-  a utility for building up MagIC contributions -- new\_builder.py
-  modules for interfacing with the data models (controlled\_vocabularies2.py, controlled\_vocabularies3.py, and data\_model3.py), as well as a full backup of the 2.5 and 3.0. data model (in the `data_model` subdirectory).
+#### pmagpy
+The `pmagpy` directory contains all the low-level functionality that the PmagPy project is built on. pmag.py and ipmag.py contain many functions that can be used in Jupyter notebooks or for building up more complex programs and GUIs.  Other important modules in the `pmagpy` directory:
+  - a plotting library -- pmagplotlib.py
+  - a utility for building up MagIC contributions -- new\_builder.py
+  - modules for interfacing with the data models (controlled\_vocabularies2.py, controlled\_vocabularies3.py, and data\_model3.py), as well as a full backup of the 2.5 and 3.0. data model (in the `data_model` subdirectory).
 
 To see a notebook with examples of how to use pmag.py and ipmag.py, check out [this notebook](https://github.com/PmagPy/2016_Tauxe-et-al_PmagPy_Notebooks/blob/master/Example_PmagPy_Notebook.ipynb)
 
@@ -47,10 +48,11 @@ Click Example\_PmagPy\_Notebook.ipynb
 
 For more examples of how to use ipmag.py/pmag.py, try Additional\_PmagPy\_Examples.ipynb as well (located in the same directory as the previous notebook).
 
+#### SPD
+The `SPD` directory contains a program to calculate statistics using Greig Paterson's [standard paleointensity definitions](https://earthref.org/PmagPy/SPD/home.html).
 
-- The `SPD` directory contains a program to calculate statistics using Greig Paterson's [standard paleointensity definitions](https://earthref.org/PmagPy/SPD/home.html).
-
-- The `programs` directory contains executable programs that are installed as part of the pmagpy-cli package and can be run on the command-line.
+#### programs
+The `programs` directory contains executable programs that are installed as part of the pmagpy-cli package and can be run on the command-line.
 
 To see a notebook with examples of how to run most of the command-line programs, see [this notebook](https://github.com/PmagPy/PmagPy/blob/master/notebooks/_PmagPy.ipynb).
 
@@ -58,18 +60,23 @@ If you want to actually run the notebook:
 
 You will either need to download _PmagPy.ipynb from the Github link above, or find your PmagPy directory.  Go into your command line.  You can run `jupyter notebook` from wherever you put _PmagPy.ipynb, or from your PmagPy directory.  Open _PmagPy.ipynb for examples of how to use most of the PmagPy command line programs.
 
+#### dialogs
 - The `dialogs` directory contains GUI components that are used to build the graphical elements of the PmagPy GUIs.
 
-- `data_files` contains example files used in testing and in [Cookbook](https://earthref.org/PmagPy/cookbook/) examples.
+#### data_files
+`data_files` contains example files used in testing and in [Cookbook](https://earthref.org/PmagPy/cookbook/) examples.
 
-- `notebooks` contains a number of example Jupyter notebooks that demonstrate PmagPy functionality.
+#### notebooks
+`notebooks` contains a number of example Jupyter notebooks that demonstrate PmagPy functionality.
 
-- `pmag_env` is a module that sets the backend for plotting as either TKAgg (for non-wxPython programs) or WXAgg (for wxPython programs).
+#### pmag_env
+`pmag_env` is a module that sets the backend for plotting as either TKAgg (for non-wxPython programs) or WXAgg (for wxPython programs).
 
-- `locator` is a module that finds the directory where PmagPy is installed.  __Please__ use caution in modifying this module!  You can break a lot of things.
+#### locator
+`locator` is a module that finds the directory where PmagPy is installed.  __Please__ use caution in modifying this module!  You can break a lot of things.
 
 
-#### Less key directories
+### Less key directories
 
 - `help_files` contains html help that is used in the GUIs.
 
