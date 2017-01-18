@@ -54,11 +54,27 @@ The `SPD` directory contains a program to calculate statistics using Greig Pater
 #### programs
 The `programs` directory contains executable programs that are installed as part of the pmagpy-cli package and can be run on the command-line.
 
-To see a notebook with examples of how to run most of the command-line programs, see the [command-line program notebook](https://github.com/PmagPy/PmagPy/blob/master/notebooks/_PmagPy.ipynb).
+To see a notebook with examples of how to run most of the command-line programs, see the [command-line program notebook](https://github.com/PmagPy/PmagPy/blob/master/data_files/notebooks/_PmagPy.ipynb).
 
-If you want to actually run the notebook:
+To actually run the notebook, you will need to follow these directions.
 
-You will either need to download _PmagPy.ipynb from the Github link above, or find your PmagPy directory.  Go into your command line.  You can run `jupyter notebook` from wherever you put _PmagPy.ipynb, or from your PmagPy directory.  Open _PmagPy.ipynb for examples of how to use most of the PmagPy command line programs.
+- If you have installed PmagPy using pip (standard), you will need to move your data_files to an accessible location.  To do that, you will use the command-line program `move_data_files.py`.
+
+    + You will need to go into your command line to run this program.  You can run it from the directory in which you want to place the PmagPy data_files (perhaps your Desktop), using this command:
+
+    `move_data_files.py -d .` # ("." represents your current directory)
+
+    + Alternatively, you can run it from any directory in your command line using the full destination directory name:
+
+    `move_data_files.py -d ~/Desktop`
+
+    + If you have done the "developer install" of PmagPy, you can simply navigate to your PmagPy directory.
+
+- Navigate to the data_files directory on your command line.  Run the command:
+
+    `jupyter notebook`
+
+    + A tab will pop open in your default browser.  Open the `notebooks directory` and then click on the _PmagPy.ipynb notebook.  From there, you will be able to run through all the program examples.
 
 #### dialogs
 The `dialogs` directory contains GUI components that are used to build the graphical elements of the PmagPy GUIs.
@@ -67,7 +83,7 @@ The `dialogs` directory contains GUI components that are used to build the graph
 `data_files` contains example files used in testing and in [Cookbook](https://earthref.org/PmagPy/cookbook/) examples.
 
 #### notebooks
-`notebooks` contains a number of example Jupyter notebooks that demonstrate PmagPy functionality.
+`notebooks` is a subdirectory of `data_files` and contains a number of example Jupyter notebooks that demonstrate PmagPy functionality.
 
 #### pmag_env
 `pmag_env` is a module that sets the backend for plotting as either TKAgg (for non-wxPython programs) or WXAgg (for wxPython programs).
@@ -94,12 +110,12 @@ Here is a visual representation of the directory structure:
 ├── bin
 ├── build
 ├── data_files
+│   └── notebooks
 ├── dialogs
 │   └── help_files
 ├── dist
 ├── help_files
 ├── locator
-├── notebooks
 ├── pmag_env
 ├── pmagpy
 │   ├── data_model
