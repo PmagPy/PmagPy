@@ -3453,6 +3453,7 @@ else:
                     cond1 = self.spec_data['specimen'].str.contains(specimen) == True
                     if 'int_abs' not in self.spec_data.columns:
                         self.spec_data['int_abs'] = None
+                        print "-W- No intensity data found for specimens"
                     cond2 = self.spec_data['int_abs'].notnull() == True
                     condition = (cond1 & cond2)
                     # update intensity records
@@ -3851,12 +3852,16 @@ else:
                     cond1 = self.samp_data['sample'].str.contains(sample_or_site)==True
                     if 'int_abs' not in self.samp_data.columns:
                         self.samp_data['int_abs'] = None
+                        print '-W- No intensity data found for samples'
                     cond2 = self.samp_data['int_abs'].notnull()==True
                     condition = (cond1 & cond2)
                     # update record
                     self.samp_data = self.samp_container.update_record(sample_or_site, new_data, condition)
                     self.site_data = self.site_container.df
                     # remove intensity data from site level.
+                    if 'int_abs' not in self.site_data.columns:
+                        self.site_data['int_abs'] = None
+                        print '-W- No intensity data found for sites'
                     site=self.Data_hierarchy['site_of_sample'][sample_or_site]
                     cond1=self.site_data['site'].str.contains(site)==True
                     cond2=self.site_data['int_abs'].notnull()==True
@@ -6794,13 +6799,18 @@ else:
         prev_pmag_specimen=[]
         if self.data_model==3: # data model 3.0
             if len(self.spec_data)>0:  # there are previous measurements
-                prev_specs=self.spec_data[self.spec_data['int_abs'].notnull()] # get the previous intensity interpretations
-                prev_specs=prev_specs[prev_specs['meas_step_min'].notnull()] # eliminate ones without bounds
-                prev_specs=prev_specs[prev_specs['meas_step_max'].notnull()] #
-                prev_specs=prev_specs[['specimen','meas_step_min','meas_step_max','method_codes']]
-                # rename column headers to 2.5
-                prev_specs = prev_specs.rename(columns=map_magic.spec_magic3_2_magic2_map)
-                prev_pmag_specimen=prev_specs.to_dict("records")
+                if 'int_abs' in self.spec_data.columns:
+                    prev_specs=self.spec_data[self.spec_data['int_abs'].notnull()] # get the previous intensity interpretations
+                    prev_specs=prev_specs[prev_specs['meas_step_min'].notnull()] # eliminate ones without bounds
+                    prev_specs=prev_specs[prev_specs['meas_step_max'].notnull()] #
+                    prev_specs=prev_specs[['specimen','meas_step_min','meas_step_max','method_codes']]
+                    # rename column headers to 2.5
+                    prev_specs = prev_specs.rename(columns=map_magic.spec_magic3_2_magic2_map)
+                    prev_pmag_specimen=prev_specs.to_dict("records")
+                else:
+                    print '-W- No intensity data found for specimens'
+                    self.spec_data['int_abs'] = None
+                    prev_pmag_specimen = {}
         else:
             try:
                 prev_pmag_specimen,file_type=pmag.magic_read(os.path.join(self.WD, "pmag_specimens.txt"))
