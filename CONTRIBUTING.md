@@ -169,11 +169,24 @@ This article has some more good information about uploading to PYPI, etc.:  http
 6. If any bug-fixes were made on the release branch during this process, those changes should be merged into master.
 
 
-
 ## Resources
 
+### PmagPy-specific resources
+
 Detailed information about installing and running all of the [PmagPy programs](https://earthref.org/PmagPy/cookbook/)
+
+### The larger world of MagIC and paleomagnetism
 
 The [MagIC database](https://earthref.org/MagIC/)
 
 Lisa Tauxe's [Essentials of Paleomagnetism](https://earthref.org/MagIC/books/Tauxe/Essentials/)
+
+### Programming resources
+
+Learn [Python here!](https://www.codecademy.com) These tutorials are in a sandbox environment, so you don't even need to install Python first.
+
+Another place to [learn Python](http://cscircles.cemc.uwaterloo.ca/).
+
+Learn wxPython, which is the basis of our [GUIs here](http://zetcode.com/wxpython/)  # decent wxPython tutorial
+
+Learn more about [git here](https://www.codeschool.com/courses/try-git).
