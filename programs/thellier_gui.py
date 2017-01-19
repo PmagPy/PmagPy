@@ -5964,8 +5964,6 @@ else:
                     TYPE=AniSpec['anisotropy_type']
                     Data[s]['AniSpec'][TYPE]=AniSpec
                     if AniSpec['anisotropy_F_crit']!="": Data[s]['AniSpec'][TYPE]['anisotropy_F_crit']=AniSpec['anisotropy_F_crit']
-            else:
-                self.spec_data=[] # no specimen data
         else:  # do data_model=2.5 way...
             rmag_anis_data=[]
             results_anis_data=[]

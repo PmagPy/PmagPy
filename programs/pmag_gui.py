@@ -46,9 +46,14 @@ class MagMainFrame(wx.Frame):
         and data model (optional).
         """
         wx.Frame.__init__(self, None, wx.ID_ANY, self.title, name='pmag_gui mainframe')
+        # if DM was provided:
+        if DM:
+            self.data_model_num = int(DM)
+        # try to get DM from command line args
         if not DM:
             self.data_model_num = int(pmag.get_named_arg_from_sys("-DM", 0))
             DM = self.data_model_num
+        # if you still don't have DM, make the user choose
         if not DM:
             from dialogs import demag_dialogs
             ui_dialog = demag_dialogs.user_input(self,['data_model'],parse_funcs=[float], heading="Please input prefered data model (2.5,3.0).  Note: 2.5 is for legacy projects only, if you are have new data please use 3.0.", values=[3])
