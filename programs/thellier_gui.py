@@ -272,6 +272,19 @@ class Arai_GUI(wx.Frame):
         self.Data,self.Data_hierarchy,self.Data_info={},{},{}
         self.MagIC_directories_list=[]
 
+        # stop if there is no measurement file
+        if self.data_model == 3:
+            if not 'measurements.txt' in os.listdir(self.WD):
+                print '-W- No measurements.txt file found in {}'.format(self.WD)
+                self.Destroy()
+                return
+        elif self.data_model == 2:
+            if not 'magic_measurements.txt' in os.listdir(self.WD):
+                print '-W- No magic_measurements.txt file found in {}'.format(self.WD)
+                self.Destroy()
+                return
+
+        # start grabbing data
         self.Data_info=self.get_data_info() # get all ages, locations etc.
         self.Data,self.Data_hierarchy=self.get_data() # Get data from measurements and specimens or rmag_anisotropy (data model 2.5 if they exist.)
 
