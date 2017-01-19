@@ -5770,6 +5770,8 @@ else:
                 self.user_warning("Method codes are required to sort directional and intensity data in measurements file, but no method codes were found, aborting"); return ({},{})
             meas_data3_0= meas_data3_0[meas_data3_0['method_codes'].str.contains('LP-PI-TRM|LP-TRM|LP-PI-M|LP-AN|LP-CR-TRM')==True] # fish out all the relavent data
             intensity_types = [col_name for col_name in meas_data3_0.columns if col_name in Mkeys]
+            # drop any intensity columns with no data
+            intensity_types = meas_data3_0[intensity_types].dropna(axis='columns').columns
             int_key = intensity_types[0] # plot first intensity method found - normalized to initial value anyway - doesn't matter which used
             meas_data3_0 = meas_data3_0[meas_data3_0[int_key].notnull()] # get all the non-null intensity records of the same type
             # now convert back to 2.5  changing only those keys that are necessary for thellier_gui
@@ -5896,7 +5898,8 @@ else:
                     if "measurement_inc" in rec.keys() and rec["measurement_inc"] != "":
                         inc=float(rec["measurement_inc"])
                     for key in Mkeys:
-                        if key in rec.keys() and rec[key]!="":int=float(rec[key])
+                        if key in rec.keys() and rec[key]!="" and rec[key] is not None:
+                            int = float(rec[key])
                     if 'magic_instrument_codes' not in rec.keys():rec['magic_instrument_codes']=''
                     #datablock.append([tr,dec,inc,int,ZI,rec['measurement_flag'],rec['magic_instrument_codes']])
                     if Data[s]['T_or_MW']=="T":
@@ -6710,9 +6713,20 @@ else:
             Data_info["er_samples"]=[]
             Data_info["er_sites"]=[]
             Data_info["er_ages"]=[]
-            fnames = {'measurements': self.magic_file}
-            self.contribution = nb.Contribution(self.WD, custom_filenames=fnames, read_tables=['measurements', 'specimens', 'samples','sites'])
+
+            # separate out the magic_file full path from the filename
+            magic_file_real = os.path.realpath(self.magic_file)
+            magic_file_short = os.path.split(self.magic_file)[1]
+            WD_file_real = os.path.realpath(os.path.join(self.WD, magic_file_short))
+            if magic_file_real == WD_file_real:
+                fnames = {'measurements': magic_file_short}
+            else:
+                # copy measurements file to WD, keeping original name
+                shutil.copy(magic_file_real, WD_file_real)
+                fnames = {'measurements': magic_file_short}
+            #self.contribution = nb.Contribution(self.WD, custom_filenames=fnames, read_tables=['measurements', 'specimens', 'samples','sites'])
             self.contribution = nb.Contribution(self.WD, custom_filenames=fnames,read_tables=['measurements', 'specimens', 'samples','sites'])
+            # make backup files
             if 'specimens' in self.contribution.tables:
                 self.spec_container = self.contribution.tables['specimens']
                 self.spec_container.write_magic_file(custom_name='specimens.bak', dir_path=self.WD) # create backup file with original
