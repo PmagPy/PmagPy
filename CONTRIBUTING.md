@@ -70,7 +70,7 @@ To actually run the notebook, you will need to follow these directions.
 
     + If you have done the "developer install" of PmagPy, you can simply navigate to your PmagPy directory.
 
-- Navigate to the data_files directory on your command line.  Run the command:
+- Once you have located or moved the data\_files, navigate to the data_files directory on your command line.  Run the command:
 
     `jupyter notebook`
 
