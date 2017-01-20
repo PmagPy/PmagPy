@@ -257,7 +257,7 @@ class VGP_Dialog(wx.Dialog):
 
 class magic_pmag_specimens_table_dialog(wx.Dialog):
     def __init__(self,parent):
-        super(magic_pmag_specimens_table_dialog, self).__init__(parent, title="MagIC pmag specimens table Dialog")
+        super(magic_pmag_specimens_table_dialog, self).__init__(parent, title="MagIC specimens table Dialog")
         self.InitUI()
 
     def InitUI(self):
@@ -274,7 +274,7 @@ class magic_pmag_specimens_table_dialog(wx.Dialog):
         #---------------------
         # choose coordinate system
         #---------------------
-        self.coor_text=wx.StaticText(pnl1,label="choose which coordinate systems to save in pmag specimens table:",style=wx.TE_CENTER)
+        self.coor_text=wx.StaticText(pnl1,label="choose which coordinate systems to save in specimens table:",style=wx.TE_CENTER)
         #self.rb_spec_coor = wx.RadioButton(pnl1, -1, 'specimen', (10, 10), style=wx.RB_GROUP)
         #self.rb_geo_coor = wx.RadioButton(pnl1, -1, 'geographic', (10, 30))
         #self.rb_tilt_coor = wx.RadioButton(pnl1, -1, 'tilt-corrected', (10, 30))

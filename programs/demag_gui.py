@@ -665,7 +665,7 @@ class Demag_GUI(wx.Frame):
     def create_menu(self):
         """
         Create the MenuBar for the GUI current structure is:
-        File - Change Working Directory, Import Interpretations from LSQ file, Import interpretations from a redo file, Save interpretations to a redo file, Save Save MagIC pmag tables, Save Plots
+        File - Change Working Directory, Import Interpretations from LSQ file, Import interpretations from a redo file, Save interpretations to a redo file, Save MagIC tables, Save Plots
         Edit - New Interpretation, Delete Interpretation, Next Interpretation, Previous Interpretation, Next Specimen, Previous Speciemen, Flag Measurement Data, Coordinate Systems
         Analysis - Acceptance Criteria, Sample Orientation, Flag Interpretaions
         Tools - Interpretation Editor, VGP Viewer
@@ -691,7 +691,7 @@ class Demag_GUI(wx.Frame):
         m_save_interpretation = menu_file.Append(-1, "&Save interpretations to a redo file\tCtrl-S", "")
         self.Bind(wx.EVT_MENU, self.on_menu_save_interpretation, m_save_interpretation)
 
-        m_make_MagIC_results_tables = menu_file.Append(-1, "&Save MagIC pmag tables\tCtrl-Shift-S", "")
+        m_make_MagIC_results_tables = menu_file.Append(-1, "&Save MagIC tables\tCtrl-Shift-S", "")
         self.Bind(wx.EVT_MENU, self.on_menu_make_MagIC_results_tables, m_make_MagIC_results_tables)
 
         submenu_save_plots = wx.Menu()
@@ -4685,7 +4685,7 @@ class Demag_GUI(wx.Frame):
             self.update_selection()
 
 
-        TEXT="interpretations saved in pmag tables"
+        TEXT="interpretations saved"
         self.saved_dlg(TEXT)
         self.close_warning=False
 
@@ -5528,7 +5528,7 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
             self.on_menu_save_interpretation(event,"demag_last_session.redo")
 
         if self.close_warning:
-            TEXT="Data is not saved to a file yet!\nTo properly save your data:\n1) Analysis --> Save current interpretations to a redo file.\nor\n1) File --> Save MagIC pmag tables.\n\n Press OK to exit without saving."
+            TEXT="Data is not saved to a file yet!\nTo properly save your data:\n1) Analysis --> Save current interpretations to a redo file.\nor\n1) File --> Save MagIC tables.\n\n Press OK to exit without saving."
 
             #Save all interpretation to a 'redo' file or to MagIC specimens result table\n\nPress OK to exit"
             dlg = wx.MessageDialog(self,caption="Warning:", message=TEXT ,style=wx.OK|wx.CANCEL|wx.ICON_EXCLAMATION)
