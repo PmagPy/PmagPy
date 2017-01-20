@@ -3128,10 +3128,10 @@ else:
                     # reformat all the anisotropy related keys # START HERE
                     new_data=map_magic.convert_aniso('magic3',new_aniso_parameters) # turn new_aniso data to 3.0
                     self.spec_data = self.spec_container.df
-           # edit first off existing anisotropy data for this specimen of this TYPE from self.spec_data
+
+           # edit first of existing anisotropy data for this specimen of this TYPE from self.spec_data
                     cond1 = self.spec_data['specimen'].str.contains(specimen+"$")==True
                     meths= new_aniso_parameters['magic_method_codes']
-                    #new_data['method_codes']=self.spec_data[self.spec_data['specimen'].str.contains(specimen+"$")==True].method_codes+':'+new_aniso_parameters['magic_method_codes']
                     cond3=self.spec_data['aniso_s'].notnull()==True
                     cond2 = self.spec_data['aniso_type']==TYPE
                     condition=(cond1 & cond2 & cond3)
@@ -3144,7 +3144,7 @@ else:
                                 me=""
                                 for m in methparts:
                                     if 'LP-AN' not in m and 'AE-H' not in m:me=me+m+':'
-                                me=me.strip(":") 
+                                me=me.strip(":")
                             else: me=old_meths[0]
                             new_meths=me+':'+meths
                     except:
@@ -3890,7 +3890,6 @@ else:
                     continue
                 if isinstance(sample_or_site, type(np.nan)):
                     continue
-
                 # convert, delete, add and save
                 new_sample_or_site_data = MagIC_results_data['pmag_samples_or_sites'][sample_or_site]
 
@@ -5993,7 +5992,7 @@ else:
                 anis_data=anis_data[anis_data['aniso_s'].notnull()] # get the ones with anisotropy tensors that aren't blank
                 L=['specimen','aniso_s','aniso_ftest','aniso_ftest12','aniso_ftest23','aniso_s_n_measurements','aniso_s_sigma','aniso_type','description']
                 if 'aniso_alt' in anis_data.columns:
-                    L.append('aniso_alt')                
+                    L.append('aniso_alt')
                 anis_data=anis_data[L]
                 # rename column headers to 2.5
                 #anis_data = anis_data.rename(columns=map_magic.aniso_magic3_2_magic2_map)
@@ -6006,7 +6005,7 @@ else:
                         AniSpec['anisotropy_alt']=AniSpec['aniso_alt']
                     elif 'aniso_alt' in AniSpec.keys() and type(AniSpec['aniso_alt'])!=float:
                         AniSpec['anisotropy_alt']=""
-                        
+
                     if 'AniSpec' not in Data[s].keys(): Data[s]['AniSpec']={}  # make a blank
                     TYPE=AniSpec['anisotropy_type']
                     Data[s]['AniSpec'][TYPE]=AniSpec
