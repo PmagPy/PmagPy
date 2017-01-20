@@ -63,9 +63,10 @@ class TestThellierGUI(unittest.TestCase):
 
         self.frame.ProcessEvent(calc_aniso)
 
-        self.assertTrue(os.path.isfile(os.path.join(self.frame.WD, "rmag_anisotropy.txt")))
-        self.assertTrue(os.path.isfile(os.path.join(self.frame.WD, "rmag_anisotropy.log")))
-        self.assertTrue(os.path.isfile(os.path.join(self.frame.WD, "rmag_results.txt")))
+        if self.frame.data_model!=3:
+            self.assertTrue(os.path.isfile(os.path.join(self.frame.WD, "rmag_anisotropy.txt")))
+            self.assertTrue(os.path.isfile(os.path.join(self.frame.WD, "rmag_anisotropy.log")))
+            self.assertTrue(os.path.isfile(os.path.join(self.frame.WD, "rmag_results.txt")))
 
         self.frame.ProcessEvent(warn_aniso)
 

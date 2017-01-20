@@ -282,6 +282,7 @@ class TestDemagGUI(unittest.TestCase):
             imported_interpretations[speci] = sorted(frame2.pmag_results_data['specimens'][speci],cmp=fit_cmp)
 
         for speci in speci_with_fits:
+            if speci not in old_interpretations.keys() or speci not in imported_interpretations.keys(): import pdb; pdb.set_trace()
             self.assertTrue(speci in old_interpretations.keys())
             self.assertTrue(speci in imported_interpretations.keys())
             for ofit,ifit in zip(old_interpretations[speci],imported_interpretations[speci]):

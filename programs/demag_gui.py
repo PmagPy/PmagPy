@@ -1594,6 +1594,10 @@ class Demag_GUI(wx.Frame):
 
     def plot_high_level_means(self):
         self.remove_previously_displayed_means()
+        if self.UPPER_LEVEL_SHOW != "specimens":
+            self.mean_type_box.SetValue("None")
+            if self.ie_open: self.ie.mean_type_box.SetValue("None")
+            return
         calculation_type=str(self.mean_type_box.GetValue())
         (high_level_type, high_level_name, dirtype), mean_fit = self.get_levels_and_coordinates_names(),self.mean_fit
         if calculation_type=="None": return
@@ -1618,9 +1622,11 @@ class Demag_GUI(wx.Frame):
         if 'specimen_dec' not in pars.keys() or 'specimen_inc' not in pars.keys():
             fit.put(self.s, 'specimen', self.get_PCA_parameters(self.s, fit, fit.tmin, fit.tmax, 'specimen', fit.PCA_type))
             pars = fit.get('specimen')
-            if not pars: self.user_warning("could not calculate fit %s for specimen %s in specimen coordinate system while checking sample orientation please check data"%(fit.name,self.s))
+            if not pars: self.user_warning("could not calculate fit %s for specimen %s in specimen coordinate system while checking sample orientation please check data"%(fit.name,self.s)); return
         dec,inc = pars['specimen_dec'],pars['specimen_inc']
         sample = self.Data_hierarchy['sample_of_specimen'][self.s]
+        if sample not in self.Data_info["er_samples"].keys() or "sample_azimuth" not in self.Data_info["er_samples"][sample].keys() or "sample_dip" not in self.Data_info["er_samples"][sample].keys():
+            self.user_warning("Could not display sample orientation checks because sample azimuth or sample dip is missing from er_samples table for sample %s"%sample); return
         azimuth=float(self.Data_info["er_samples"][sample]['sample_azimuth'])
         dip=float(self.Data_info["er_samples"][sample]['sample_dip'])
         # first test wrong direction of drill arrows (flip drill direction in opposite direction and re-calculate d,i)
@@ -2323,9 +2329,9 @@ class Demag_GUI(wx.Frame):
         if tmin == '' or tmax == '': return
         beg_pca,end_pca = self.get_indices(fit, tmin, tmax, specimen)
 
-        if coordinate_system=='geographic':
+        if coordinate_system=='geographic' or coordinate_system=='DA-DIR-GEO':
             block=self.Data[specimen]['zijdblock_geo']
-        elif coordinate_system=='tilt-corrected':
+        elif coordinate_system=='tilt-corrected' or coordinate_system=='DA-DIR-TILT':
             block=self.Data[specimen]['zijdblock_tilt']
         else:
             block=self.Data[specimen]['zijdblock']
@@ -3191,7 +3197,7 @@ class Demag_GUI(wx.Frame):
                     LP_methods.append(meth)
             for meth in self.excluded_methods:
                 if meth in methods:
-                    SKIP=True
+                    SKIP=True; break
             if SKIP: continue
             tr,LPcode,measurement_step_unit="","",""
             if "LT-NO" in methods:
@@ -3421,7 +3427,7 @@ class Demag_GUI(wx.Frame):
            "meas_step_max" not in self.spec_data.columns or \
            "meas_step_unit" not in self.spec_data.columns or \
            "method_codes" not in self.spec_data.columns: return
-        if "dir_comp" in self.spec_data. columns:
+        if "dir_comp" in self.spec_data.columns:
             fnames = 'dir_comp'
         elif "dir_comp_name" in self.spec_data.columns:
             fnames = 'dir_comp_name'
@@ -3443,11 +3449,11 @@ class Demag_GUI(wx.Frame):
                 if fmax == 0: fmax = str(fmax)
                 else: fmax = str(fmax)+"C"
             elif fdict[i]['meas_step_unit'] == "T":
-                fmin = int(float(fdict[i]['meas_step_min'])*1000)
-                fmax = int(float(fdict[i]['meas_step_max'])*1000)
-                if fmin == 0: fmin = str(fmin)
+                fmin = float(fdict[i]['meas_step_min'])*1000
+                fmax = float(fdict[i]['meas_step_max'])*1000
+                if fmin == 0: fmin = str(int(fmin))
                 else: fmin = str(fmin)+"mT"
-                if fmax == 0: fmax = str(fmax)
+                if fmax == 0: fmax = str(int(fmax))
                 else: fmax = str(fmax)+"mT"
             else:
                 fmin = fdict[i]['meas_step_min']
@@ -5247,8 +5253,8 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
 
                     mpars = fit.get(dirtype)
                     if not mpars:
-                        mpars = self.get_PCA_parameters(specimen,fit,fit.tmin,fit.tmax,dirtype,fit.PCA_type) #blarge
-                        if not mpars or 'specimen_dec' not in mpars.keys(): print("Could not calculate interpretation for specimen %s and fit %s while exporting pmag tables, skipping"%(specimen,fit.name));continue
+                        mpars = self.get_PCA_parameters(specimen,fit,fit.tmin,fit.tmax,dirtype,fit.PCA_type)
+                        if not mpars or 'specimen_dec' not in mpars.keys(): self.user_warning("Could not calculate interpretation for specimen %s and fit %s while exporting pmag tables, skipping"%(specimen,fit.name));continue
 
                     PmagSpecRec={}
                     user="" # Todo
