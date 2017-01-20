@@ -5136,7 +5136,7 @@ else:
             self.mplot.set_xlim(xmin=0)
             self.mplot.set_ylim(ymin=0)
             xmin,xmax=self.mplot.get_xlim()
-            x=linspace(xmin+0.1,xmax,100)
+            x=np.linspace(xmin+0.1,xmax,100)
             alpha=self.Data[self.s]['NLT_parameters']['tanh_parameters'][0][0]
             beta=self.Data[self.s]['NLT_parameters']['tanh_parameters'][0][1]
             y=alpha*(np.tanh(x*1e-6*beta))
