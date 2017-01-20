@@ -3136,7 +3136,7 @@ else:
                     new_data=map_magic.convert_aniso('magic3',new_aniso_parameters) # turn new_aniso data to 3.0
                     self.spec_data = self.spec_container.df
            # edit first of existing anisotropy data for this specimen of this TYPE from self.spec_data
-                    cond1 = self.spec_data['specimen'].str.contains(specimen)==True
+                    cond1 = self.spec_data['specimen'].str.contains(specimen+"$")==True
                     #cond3=self.spec_data['aniso_s'].notnull()==True
                     cond2 = self.spec_data['aniso_type']==TYPE
                     #condition=(cond1 & cond2 & cond3)
@@ -3475,7 +3475,7 @@ else:
                     else:
                         new_data['result_quality']='g'
                     # reformat all the keys
-                    cond1 = self.spec_data['specimen'].str.contains(specimen) == True
+                    cond1 = self.spec_data['specimen'].str.contains(specimen+"$") == True
                     if 'int_abs' not in self.spec_data.columns:
                         self.spec_data['int_abs'] = None
                         print "-W- No intensity data found for specimens"
@@ -3697,6 +3697,8 @@ else:
         pmag_results_header_5=[ "data_type","pmag_result_name","magic_method_codes","result_description","er_citation_names","magic_software_packages","pmag_criteria_codes"]
 
         for sample_or_site in pmag_samples_or_sites_list:
+            if sample_or_site is None:
+                continue
             MagIC_results_data['pmag_results'][sample_or_site]={}
             if self.data_model==3:
                 if BY_SAMPLES:MagIC_results_data['pmag_results'][sample_or_site]['pmag_criteria_codes']="IE-SPEC:IE-SAMP"
@@ -3845,6 +3847,8 @@ else:
 
             #pmag_samples_list.sort()
             for sample_or_site in pmag_samples_or_sites_list:
+                if sample_or_site is None:
+                    continue
                 String=""
                 for key in headers:
                     if key in MagIC_results_data['pmag_results'][sample_or_site].keys():
@@ -3867,6 +3871,8 @@ else:
 
         else: # write out samples/sites in data model 3.0
             for sample_or_site in pmag_samples_or_sites_list:
+                if sample_or_site is None:
+                    continue
                 # convert, delete, add and save
                 new_sample_or_site_data = MagIC_results_data['pmag_samples_or_sites'][sample_or_site]
 
@@ -3874,7 +3880,7 @@ else:
                     new_data = map_magic.convert_samp('magic3',new_sample_or_site_data) # convert to 3.0
                     new_data['criteria']='IE-SPEC:IE-SAMP'
                     self.samp_data = self.samp_container.df
-                    cond1 = self.samp_data['sample'].str.contains(sample_or_site)==True
+                    cond1 = self.samp_data['sample'].str.contains(sample_or_site+"$")==True
                     if 'int_abs' not in self.samp_data.columns:
                         self.samp_data['int_abs'] = None
                         print '-W- No intensity data found for samples'
@@ -3888,7 +3894,7 @@ else:
                         self.site_data['int_abs'] = None
                         print '-W- No intensity data found for sites'
                     site=self.Data_hierarchy['site_of_sample'][sample_or_site]
-                    cond1=self.site_data['site'].str.contains(site)==True
+                    cond1=self.site_data['site'].str.contains(site+"$")==True
                     cond2=self.site_data['int_abs'].notnull()==True
                     condition=(cond1 & cond2)
                     site_keys=['samples','int_abs','int_sigma','int_n_samples','int_sigma_perc','specimens','int_abs_sigma','int_abs_sigma_perc','vadm'] # zero these out but keep the rest
@@ -3897,7 +3903,7 @@ else:
                         blank_data[key] = ""
                     self.site_data = self.site_container.update_record(site, blank_data, condition, update_only=True)
                     # add record for sample in the site table
-                    cond1=self.site_data['site'].str.contains(sample_or_site)==True
+                    cond1=self.site_data['site'].str.contains(sample_or_site+"$")==True
                     cond2=self.site_data['int_abs'].notnull()==True
                     condition=(cond1 & cond2)
                     # change 'site' column to reflect sample name,
@@ -3910,14 +3916,14 @@ else:
                     new_data['vadm_sigma']=MagIC_results_data['pmag_results'][sample_or_site]["vadm_sigma"]
                     self.site_data = self.site_container.update_record(sample_or_site, new_data, condition, debug=True)
                 else:  # do this by site and not by sample START HERE
-                    cond1 = self.site_data['site'].str.contains(sample_or_site)==True
+                    cond1 = self.site_data['site'].str.contains(sample_or_site+"$")==True
                     if 'int_abs' not in self.site_data.columns:
                         self.site_data['int_abs'] = None
                     cond2 = self.site_data['int_abs'].notnull()==True
                     condition = (cond1 & cond2)
                     self.site_data = self.site_container.update_record(sample_or_site, new_data, condition)
                     # remove intensity data from sample level.   # need to look up samples from this site
-                    cond1 = self.samp_data['site'].str.contains(sample_or_site)==True
+                    cond1 = self.samp_data['site'].str.contains(sample_or_site+"$")==True
                     if 'int_abs' not in self.samp_data.columns:
                         self.samp_data['int_abs'] = None
                     cond2 = self.samp_data['int_abs'].notnull()==True
