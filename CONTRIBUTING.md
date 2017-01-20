@@ -22,37 +22,87 @@ For information about writing and running tests, see the [testing README](https:
 
 **Coming soon:** links to the relevant Jupyter notebooks where you can see how some of these pieces work.
 
-#### Key directories
+### Key directories
 
+#### pmagpy
 The `pmagpy` directory contains all the low-level functionality that the PmagPy project is built on. pmag.py and ipmag.py contain many functions that can be used in Jupyter notebooks or for building up more complex programs and GUIs.  Other important modules in the `pmagpy` directory:
-- a plotting library -- pmagplotlib.py
-- a utility for building up MagIC contributions -- new_builder.py
-- modules for interfacing with the data models (controlled_vocabularies2.py, controlled\_vocabularies3.py, and data\_model3.py), as well as a full backup of the 2.5 and 3.0. data model (in the `data_model` subdirectory).
+  - a plotting library -- pmagplotlib.py
+  - a utility for building up MagIC contributions -- new\_builder.py
+  - modules for interfacing with the data models (controlled\_vocabularies2.py, controlled\_vocabularies3.py, and data\_model3.py), as well as a full backup of the 2.5 and 3.0. data model (in the `data_model` subdirectory).
 
+To see a notebook with examples of how to use pmag.py and ipmag.py, see the [Example PmagPy Notebook](https://github.com/PmagPy/2016_Tauxe-et-al_PmagPy_Notebooks/blob/master/Example_PmagPy_Notebook.ipynb)
+
+To actually _run_ that notebook:
+
+Go into your command line.
+Change directories into a directory where you keep projects.
+
+`git clone git@github.com:PmagPy/2016_Tauxe-et-al_PmagPy_Notebooks.git`
+
+`cd 2016_Tauxe-et-al_PmagPy_Notebooks`
+
+`jupyter notebook`
+
+A browser window will open automatically.
+Click Example\_PmagPy\_Notebook.ipynb
+
+For more examples of how to use ipmag.py/pmag.py, try Additional\_PmagPy\_Examples.ipynb as well (located in the same directory as the previous notebook).
+
+#### SPD
 The `SPD` directory contains a program to calculate statistics using Greig Paterson's [standard paleointensity definitions](https://earthref.org/PmagPy/SPD/home.html).
 
+#### programs
 The `programs` directory contains executable programs that are installed as part of the pmagpy-cli package and can be run on the command-line.
 
+To see a notebook with examples of how to run most of the command-line programs, see the [command-line program notebook](https://github.com/PmagPy/PmagPy/blob/master/data_files/notebooks/_PmagPy.ipynb).
+
+To actually run the notebook, you will need to follow these directions.
+
+- If you have installed PmagPy using pip (standard), you will need to move your data_files to an accessible location.  To do that, you will use the command-line program `move_data_files.py`.
+
+    + You will need to go into your command line to run this program.  You can run it from the directory in which you want to place the PmagPy data_files (perhaps your Desktop), using this command:
+
+    `move_data_files.py -d .` # ("." represents your current directory)
+
+    + Alternatively, you can run it from any directory in your command line using the full destination directory name:
+
+    `move_data_files.py -d ~/Desktop`
+
+    + If you have done the "developer install" of PmagPy, you can simply navigate to your PmagPy directory.
+
+- Once you have located or moved the data\_files, navigate to the data_files directory on your command line.  Run the command:
+
+    `jupyter notebook`
+
+    + A tab will pop open in your default browser.  Open the `notebooks directory` and then click on the _PmagPy.ipynb notebook.  From there, you will be able to run through all the program examples.
+
+#### dialogs
 The `dialogs` directory contains GUI components that are used to build the graphical elements of the PmagPy GUIs.
 
+#### data_files
 `data_files` contains example files used in testing and in [Cookbook](https://earthref.org/PmagPy/cookbook/) examples.
 
+#### notebooks
+`notebooks` is a subdirectory of `data_files` and contains a number of example Jupyter notebooks that demonstrate PmagPy functionality.
+
+#### pmag_env
 `pmag_env` is a module that sets the backend for plotting as either TKAgg (for non-wxPython programs) or WXAgg (for wxPython programs).
 
+#### locator
 `locator` is a module that finds the directory where PmagPy is installed.  __Please__ use caution in modifying this module!  You can break a lot of things.
 
 
-#### Less key directories
+### Less key directories
 
-`help_files` contains html help that is used in the GUIs.
+- `help_files` contains html help that is used in the GUIs.
 
-`setup_scripts` contains scripts that are used in created standalone releases of the GUIs for Mac, Windows, and Linux.
+- `setup_scripts` contains scripts that are used in created standalone releases of the GUIs for Mac, Windows, and Linux.
 
-`bin` contains some scripts that are used in creating the Anaconda part of a pip release.
+- `bin` contains some scripts that are used in creating the Anaconda part of a pip release.
 
-`build`, `dist`, `pmagpy.egg_info` and `pmagpy_cli.egg_info` are not in the main Github repo, however they may be created automatically when making a pip release.  You should not need to interact directly with any of them.
+- `build`, `dist`, `pmagpy.egg_info` and `pmagpy_cli.egg_info` are not in the main Github repo, however they may be created automatically when making a pip release.  You should not need to interact directly with any of them.
 
-`uninstall_Mac_OSX.app` is an executable that allows users who installed PmagPy pre-pip to uninstall it completely.  This prevents possible conflicts between old and new versions of PmagPy.
+- `uninstall_Mac_OSX.app` is an executable that allows users who installed PmagPy pre-pip to uninstall it completely.  This prevents possible conflicts between old and new versions of PmagPy.
 
 Here is a visual representation of the directory structure:
 
@@ -60,12 +110,12 @@ Here is a visual representation of the directory structure:
 ├── bin
 ├── build
 ├── data_files
+│   └── notebooks
 ├── dialogs
 │   └── help_files
 ├── dist
 ├── help_files
 ├── locator
-├── notebooks
 ├── pmag_env
 ├── pmagpy
 │   ├── data_model
@@ -119,11 +169,24 @@ This article has some more good information about uploading to PYPI, etc.:  http
 6. If any bug-fixes were made on the release branch during this process, those changes should be merged into master.
 
 
-
 ## Resources
 
+### PmagPy-specific resources
+
 Detailed information about installing and running all of the [PmagPy programs](https://earthref.org/PmagPy/cookbook/)
+
+### The larger world of MagIC and paleomagnetism
 
 The [MagIC database](https://earthref.org/MagIC/)
 
 Lisa Tauxe's [Essentials of Paleomagnetism](https://earthref.org/MagIC/books/Tauxe/Essentials/)
+
+### Programming resources
+
+Learn [Python here!](https://www.codecademy.com) These tutorials are in a sandbox environment, so you don't even need to install Python first.
+
+Another place to [learn Python](http://cscircles.cemc.uwaterloo.ca/).
+
+Learn wxPython, which is the basis of our [GUIs here](http://zetcode.com/wxpython/)  # decent wxPython tutorial
+
+Learn more about [git here](https://www.codeschool.com/courses/try-git).

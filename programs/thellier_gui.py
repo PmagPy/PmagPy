@@ -272,6 +272,19 @@ class Arai_GUI(wx.Frame):
         self.Data,self.Data_hierarchy,self.Data_info={},{},{}
         self.MagIC_directories_list=[]
 
+        # stop if there is no measurement file
+        if self.data_model == 3:
+            if not 'measurements.txt' in os.listdir(self.WD):
+                print '-W- No measurements.txt file found in {}'.format(self.WD)
+                self.Destroy()
+                return
+        elif self.data_model == 2:
+            if not 'magic_measurements.txt' in os.listdir(self.WD):
+                print '-W- No magic_measurements.txt file found in {}'.format(self.WD)
+                self.Destroy()
+                return
+
+        # start grabbing data
         self.Data_info=self.get_data_info() # get all ages, locations etc.
         self.Data,self.Data_hierarchy=self.get_data() # Get data from measurements and specimens or rmag_anisotropy (data model 2.5 if they exist.)
 
@@ -3453,6 +3466,7 @@ else:
                     cond1 = self.spec_data['specimen'].str.contains(specimen) == True
                     if 'int_abs' not in self.spec_data.columns:
                         self.spec_data['int_abs'] = None
+                        print "-W- No intensity data found for specimens"
                     cond2 = self.spec_data['int_abs'].notnull() == True
                     condition = (cond1 & cond2)
                     # update intensity records
@@ -3851,12 +3865,16 @@ else:
                     cond1 = self.samp_data['sample'].str.contains(sample_or_site)==True
                     if 'int_abs' not in self.samp_data.columns:
                         self.samp_data['int_abs'] = None
+                        print '-W- No intensity data found for samples'
                     cond2 = self.samp_data['int_abs'].notnull()==True
                     condition = (cond1 & cond2)
                     # update record
                     self.samp_data = self.samp_container.update_record(sample_or_site, new_data, condition)
                     self.site_data = self.site_container.df
                     # remove intensity data from site level.
+                    if 'int_abs' not in self.site_data.columns:
+                        self.site_data['int_abs'] = None
+                        print '-W- No intensity data found for sites'
                     site=self.Data_hierarchy['site_of_sample'][sample_or_site]
                     cond1=self.site_data['site'].str.contains(site)==True
                     cond2=self.site_data['int_abs'].notnull()==True
@@ -5752,6 +5770,8 @@ else:
                 self.user_warning("Method codes are required to sort directional and intensity data in measurements file, but no method codes were found, aborting"); return ({},{})
             meas_data3_0= meas_data3_0[meas_data3_0['method_codes'].str.contains('LP-PI-TRM|LP-TRM|LP-PI-M|LP-AN|LP-CR-TRM')==True] # fish out all the relavent data
             intensity_types = [col_name for col_name in meas_data3_0.columns if col_name in Mkeys]
+            # drop any intensity columns with no data
+            intensity_types = meas_data3_0[intensity_types].dropna(axis='columns').columns
             int_key = intensity_types[0] # plot first intensity method found - normalized to initial value anyway - doesn't matter which used
             meas_data3_0 = meas_data3_0[meas_data3_0[int_key].notnull()] # get all the non-null intensity records of the same type
             # now convert back to 2.5  changing only those keys that are necessary for thellier_gui
@@ -5878,7 +5898,8 @@ else:
                     if "measurement_inc" in rec.keys() and rec["measurement_inc"] != "":
                         inc=float(rec["measurement_inc"])
                     for key in Mkeys:
-                        if key in rec.keys() and rec[key]!="":int=float(rec[key])
+                        if key in rec.keys() and rec[key]!="" and rec[key] is not None:
+                            int = float(rec[key])
                     if 'magic_instrument_codes' not in rec.keys():rec['magic_instrument_codes']=''
                     #datablock.append([tr,dec,inc,int,ZI,rec['measurement_flag'],rec['magic_instrument_codes']])
                     if Data[s]['T_or_MW']=="T":
@@ -5946,8 +5967,6 @@ else:
                     TYPE=AniSpec['anisotropy_type']
                     Data[s]['AniSpec'][TYPE]=AniSpec
                     if AniSpec['anisotropy_F_crit']!="": Data[s]['AniSpec'][TYPE]['anisotropy_F_crit']=AniSpec['anisotropy_F_crit']
-            else:
-                self.spec_data=[] # no specimen data
         else:  # do data_model=2.5 way...
             rmag_anis_data=[]
             results_anis_data=[]
@@ -6694,9 +6713,20 @@ else:
             Data_info["er_samples"]=[]
             Data_info["er_sites"]=[]
             Data_info["er_ages"]=[]
-            fnames = {'measurements': self.magic_file}
-            self.contribution = nb.Contribution(self.WD, custom_filenames=fnames, read_tables=['measurements', 'specimens', 'samples','sites'])
+
+            # separate out the magic_file full path from the filename
+            magic_file_real = os.path.realpath(self.magic_file)
+            magic_file_short = os.path.split(self.magic_file)[1]
+            WD_file_real = os.path.realpath(os.path.join(self.WD, magic_file_short))
+            if magic_file_real == WD_file_real:
+                fnames = {'measurements': magic_file_short}
+            else:
+                # copy measurements file to WD, keeping original name
+                shutil.copy(magic_file_real, WD_file_real)
+                fnames = {'measurements': magic_file_short}
+            #self.contribution = nb.Contribution(self.WD, custom_filenames=fnames, read_tables=['measurements', 'specimens', 'samples','sites'])
             self.contribution = nb.Contribution(self.WD, custom_filenames=fnames,read_tables=['measurements', 'specimens', 'samples','sites'])
+            # make backup files
             if 'specimens' in self.contribution.tables:
                 self.spec_container = self.contribution.tables['specimens']
                 self.spec_container.write_magic_file(custom_name='specimens.bak', dir_path=self.WD) # create backup file with original
@@ -6713,6 +6743,12 @@ else:
                 self.site_container = self.contribution.tables['sites']
                 self.site_container.write_magic_file(custom_name='sites.bak', dir_path=self.WD) # create backup file with original
                 self.site_data = self.site_container.df
+                if 'lat' not in self.site_data.columns:
+                    self.site_data['lat'] = None
+                    print '-W- Your site file has no latitude data.'
+                if 'lon' not in self.site_data.columns:
+                    self.site_data['lon'] = None
+                    print '-W- Your site file has no longitude data.'
                 self.site_data = self.site_data[self.site_data['lat'].notnull()]
                 self.site_data = self.site_data[self.site_data['lon'].notnull()]
                 if 'age' in self.site_data.columns:
@@ -6788,13 +6824,18 @@ else:
         prev_pmag_specimen=[]
         if self.data_model==3: # data model 3.0
             if len(self.spec_data)>0:  # there are previous measurements
-                prev_specs=self.spec_data[self.spec_data['int_abs'].notnull()] # get the previous intensity interpretations
-                prev_specs=prev_specs[prev_specs['meas_step_min'].notnull()] # eliminate ones without bounds
-                prev_specs=prev_specs[prev_specs['meas_step_max'].notnull()] #
-                prev_specs=prev_specs[['specimen','meas_step_min','meas_step_max','method_codes']]
-                # rename column headers to 2.5
-                prev_specs = prev_specs.rename(columns=map_magic.spec_magic3_2_magic2_map)
-                prev_pmag_specimen=prev_specs.to_dict("records")
+                if 'int_abs' in self.spec_data.columns:
+                    prev_specs=self.spec_data[self.spec_data['int_abs'].notnull()] # get the previous intensity interpretations
+                    prev_specs=prev_specs[prev_specs['meas_step_min'].notnull()] # eliminate ones without bounds
+                    prev_specs=prev_specs[prev_specs['meas_step_max'].notnull()] #
+                    prev_specs=prev_specs[['specimen','meas_step_min','meas_step_max','method_codes']]
+                    # rename column headers to 2.5
+                    prev_specs = prev_specs.rename(columns=map_magic.spec_magic3_2_magic2_map)
+                    prev_pmag_specimen=prev_specs.to_dict("records")
+                else:
+                    print '-W- No intensity data found for specimens'
+                    self.spec_data['int_abs'] = None
+                    prev_pmag_specimen = {}
         else:
             try:
                 prev_pmag_specimen,file_type=pmag.magic_read(os.path.join(self.WD, "pmag_specimens.txt"))

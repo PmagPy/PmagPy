@@ -1332,7 +1332,7 @@ def plotELL(fignum,pars,col,lower,plot):
     Pdec,Pinc,beta,Bdec,Binc,gamma,Gdec,Ginc=pars[0],pars[1],pars[2],pars[3],pars[4],pars[5],pars[6],pars[7]
     if beta > 90. or gamma>90:
         beta=180.-beta
-        gamma=180.-beta
+        gamma=180.-gamma
         Pdec=Pdec-180.
         Pinc=-Pinc
     beta,gamma=beta*rad,gamma*rad # convert to radians
