@@ -3890,6 +3890,7 @@ else:
                     continue
                 if isinstance(sample_or_site, type(np.nan)):
                     continue
+
                 # convert, delete, add and save
                 new_sample_or_site_data = MagIC_results_data['pmag_samples_or_sites'][sample_or_site]
 
