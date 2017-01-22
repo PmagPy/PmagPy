@@ -2359,6 +2359,16 @@ else:
             else:
                 command="value=dia.set_%s.GetValue()"%crit
             #------
+            # if averaging by sample or site, must set sample/site_int_n to at least 1
+            if crit=='sample_int_n':
+                if not dia.set_sample_int_n.GetValue():
+                    command="value=1"
+
+            if crit=='site_int_n':
+                if not dia.set_site_int_n.GetValue():
+                    command="value=1"
+
+
             try:
                 exec command
             except:
