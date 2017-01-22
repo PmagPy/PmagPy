@@ -2446,8 +2446,8 @@ def download_magic(infile, dir_path='.', input_dir_path='.',
     if 'locations' in type_list:
         locs,file_type=pmag.magic_read(os.path.join(dir_path, 'locations.txt'))
     if len(locs)>0: # at least one location
-        for loc in locs:
-            loc_name = loc['location']
+        # go through unique location names
+        for loc_name in set([loc.get('location') for loc in locs]):
             if print_progress==True:
                 print 'location_'+str(locnum)+": ", loc_name
             lpath=dir_path+'/Location_'+str(locnum)
