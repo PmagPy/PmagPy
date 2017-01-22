@@ -3699,6 +3699,8 @@ else:
         for sample_or_site in pmag_samples_or_sites_list:
             if sample_or_site is None:
                 continue
+            if isinstance(sample_or_site, type(np.nan)):
+                continue
             MagIC_results_data['pmag_results'][sample_or_site]={}
             if self.data_model==3:
                 if BY_SAMPLES:MagIC_results_data['pmag_results'][sample_or_site]['pmag_criteria_codes']="IE-SPEC:IE-SAMP"
@@ -3849,6 +3851,8 @@ else:
             for sample_or_site in pmag_samples_or_sites_list:
                 if sample_or_site is None:
                     continue
+                if isinstance(sample_or_site, type(np.nan)):
+                    continue
                 String=""
                 for key in headers:
                     if key in MagIC_results_data['pmag_results'][sample_or_site].keys():
@@ -3873,6 +3877,9 @@ else:
             for sample_or_site in pmag_samples_or_sites_list:
                 if sample_or_site is None:
                     continue
+                if isinstance(sample_or_site, type(np.nan)):
+                    continue
+
                 # convert, delete, add and save
                 new_sample_or_site_data = MagIC_results_data['pmag_samples_or_sites'][sample_or_site]
 
