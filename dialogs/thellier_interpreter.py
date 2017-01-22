@@ -658,7 +658,7 @@ class thellier_auto_interpreter():
                             pars=All_grade_A_Recs[specimen][intenstities[0]]
                             if "AC_anisotropy_type" not in pars.keys():
                                 ignore_specimen=True
-                                warning_messeage = warning_messeage + "-W- WARNING: specimen %s is exluded from sample %s because it doesnt have anisotropy correction, and other specimens are very anistropic\n"%(specimen,sample_or_site)
+                                warning_messeage = warning_messeage + "-W- WARNING: specimen %s is excluded from sample %s because it doesn't have anisotropy correction, and other specimens are very anisotropic\n"%(specimen,sample_or_site)
                             elif "AC_WARNING" in pars.keys():
                                 #if "alteration check" in pars["AC_WARNING"]:
                                     if pars["AC_anisotropy_type"]== "ATRM" and "TRM" in pars["AC_WARNING"] and  "alteration" in pars["AC_WARNING"]  : 

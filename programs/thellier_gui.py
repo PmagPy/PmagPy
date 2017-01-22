@@ -3148,6 +3148,12 @@ else:
                         except:
                             String=String+"%f"%(Data_anisotropy[specimen][TYPE][rmag_anisotropy_header[i]])+'\t'
                     rmag_anisotropy_file.write(String[:-1]+"\n")
+                    String=""
+                    for i in range(len(rmag_results_header)):
+                        try:
+                            String=String+Data_anisotropy[specimen][TYPE][rmag_results_header[i]]+'\t'
+                        except:
+                            String=String+"%f"%(Data_anisotropy[specimen][TYPE][rmag_results_header[i]])+'\t'
                     rmag_results_file.write(String[:-1]+"\n")
                 if 'AniSpec' not in self.Data[specimen]:
                     self.Data[specimen]['AniSpec']={}

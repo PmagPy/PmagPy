@@ -116,7 +116,7 @@ def read_upload(up_file, data_model=None):
             file_type = dictionary['file_type']
             # need to deal with pmag_criteria type file, too
             item_type = file_type.split('_')[1][:-1]
-            if item_type == 'criteri':
+            if item_type == 'criteria':
                 item_name = dictionary.get('criteria_definition')
             elif item_type == 'result':
                 item_name = dictionary.get('pmag_result_name', None)
