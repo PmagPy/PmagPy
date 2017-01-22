@@ -886,7 +886,7 @@ column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_ty
 69	Specimen Delta	specimen_delta	Number	Number in Degrees	Optional		Maximum angle of deviation between assumed NRM and measured NRM in perpendicular paleointensity method	Criterion = maximum
 70	Specimen Theta	specimen_theta	Number	Number in Degrees	Optional		The angle between the applied field direction and the ChRM direction of the NRM as determined from the free-floating PCA fit to the selected demagnetization steps of the paleointensity experiment		min:0
 71	Specimen Gamma	specimen_gamma	Number	Number in Degrees	Optional		Maximum angle of deviation between acquired pTRM direction and assumed applied field direction	Criterion = maximum
-72	Speciman Remanence Anistropy F-test	specimen_aniso_ftest_flag	String(1)	Flag	Optional	F	Pass/fail F-test for 95% confidence of remanence anistropy tensor calculation (g, the default, = good or b=bad)		cv:data_quality
+72	Speciman Remanence Anisotropy F-test	specimen_aniso_ftest_flag	String(1)	Flag	Optional	F	Pass/fail F-test for 95% confidence of remanence anisotropy tensor calculation (g, the default, = good or b=bad)		cv:data_quality
 73	Sample Magnetic Polarity	sample_polarity	String(1)	Flag	Optional	F	Polarity is normal (n), reversed (r), transitional (t), excursion (e) or intermediate (i)		cv:polarity
 74	Sample NRM	sample_nrm	String(1)	Flag	Optional	F	Origin of the NRM is primary (p) or secondary (s)		cv:nrm
 75	Sample Direction Type	sample_direction_type	String(1)	Flag	Optional	F	Direction determined from a line (l) or plane (p)		cv:direction_type
@@ -907,7 +907,7 @@ column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_ty
 90	Sample Magnetization Moment	sample_magn_moment	Number	Number in Am2	Optional		Measured magnetic moment	Criterion = minimum	min:-1;max:1
 91	Sample Magnetization Volume	sample_magn_volume	Number	Number in A/m	Optional		Measured intensity of magnetization, Volume normalized	Criterion = minimum	min:-1000000;max:1000000
 92	Sample Magnetization Mass	sample_magn_mass	Number	Number in Am2/kg	Optional		Measured intensity of magnetization, Mass normalized	Criterion = minimum	min:-200;max:200
-93	Sample Remanence Mean Anisotropy Degree	sample_aniso_mean	Number	Number in %	Optional		The mean remanence anistropy degree (Tau1/Tau3) of a sample in units of precentage (%)
+93	Sample Remanence Mean Anisotropy Degree	sample_aniso_mean	Number	Number in %	Optional		The mean remanence anisotropy degree (Tau1/Tau3) of a sample in units of precentage (%)
 94	Site Magnetic Polarity	site_polarity	String(1)	Flag	Optional	F	Polarity is normal (n), reversed (r), transitional (t), excursion (e) or intermediate (i)		cv:polarity
 95	Site NRM	site_nrm	String(1)	Flag	Optional	F	Origin of the NRM is primary (p) or secondary (s)		cv:nrm
 96	Site Direction Type	site_direction_type	String(1)	Flag	Optional	F	Direction determined from a line (l) or plane (p)		cv:direction_type
