@@ -157,7 +157,7 @@ def get_PI_parameters(Data, acceptance_criteria, preferences, s, tmin, tmax, GUI
                 Data[s]['AniSpec'][TYPE]['ftest']=F
                 #print "s,sigma,nf,F,Ftest_crit[this_specimen_f_type]"
                 #print s,sigma,nf,F,Ftest_crit[this_specimen_f_type]
-                if acceptance_criteria['anisotropy_ftest_flag']['value'] in ['g','1',1,True,'TRUE','True'] :
+                if acceptance_criteria['specimen_aniso_ftest_flag']['value'] in ['g','1',1,True,'TRUE','True'] :
                     Ftest_threshold=Ftest_crit[this_specimen_f_type]
                     if Data[s]['AniSpec'][TYPE]['ftest'] < Ftest_crit[this_specimen_f_type]:
                         S_matrix=identity(3,'f')

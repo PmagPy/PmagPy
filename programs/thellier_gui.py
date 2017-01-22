@@ -1653,18 +1653,6 @@ else:
                     (self.show_CR_plot, wx.EXPAND)])
                 bSizer5.Add( NLT_window, 0, wx.ALIGN_LEFT|wx.ALL, 5 )
 
-##                #-----------box6
-##
-##                bSizer6 = wx.StaticBoxSizer( wx.StaticBox( pnl1, wx.ID_ANY, "Statistical definitions" ), wx.HORIZONTAL )
-##                self.bootstrap_N=wx.TextCtrl(pnl1,style=wx.TE_CENTER,size=(80,20))
-##                #self.bootstrap_N=FS.FloatSpin(pnl1, -1, min_val=1000, max_val=10000000,increment=1000, value=10000, extrastyle=FS.FS_LEFT,size=(80,20))
-##                #self.bootstrap_N.SetFormat("%f")
-##                #self.bootstrap_N.SetDigits(0)
-##
-##                Statistics_definitions_window = wx.GridSizer(1, 2, 12, 12)
-##                Statistics_definitions_window.AddMany( [(wx.StaticText(pnl1,label="Bootstrap N",style=wx.TE_CENTER), wx.EXPAND),
-##                    (self.bootstrap_N, wx.EXPAND)])
-##                bSizer6.Add( Statistics_definitions_window, 0, wx.ALIGN_LEFT|wx.ALL, 5 )
 
                 #----------------------
 
@@ -2175,11 +2163,6 @@ else:
                 if new_Data=={}:
                     print "-E- ERROR importing MagIC data from path."
                     continue
-                #for s in new_Data.keys():
-                #    if 'crblock' in new_Data[s].keys():
-                #        print s,': found crblock in new data'
-                #    if 'cooling_rate_data' in new_Data[s].keys():
-                #        print s,': cooling_rate_data in new data'
 
                 self.Data_hierarchy['samples'].update(new_Data_hierarchy['samples'])
                 self.Data_hierarchy['sites'].update(new_Data_hierarchy['sites'])
@@ -5032,12 +5015,12 @@ else:
                     self.eqplot.scatter(eqarea_data_x_dn,eqarea_data_y_dn,marker='^',edgecolor='gray', facecolor='blue',s=15*self.GUI_RESOLUTION,lw=1,clip_on=False)
             self.canvas3.draw()
 
-        else:
+        else: # draw cooling rate data
 
             self.fig3.clf()
             self.fig3.text(0.02,0.96,"Cooling rate experiment",{'family':self.font_type, 'fontsize':FONTSIZE, 'style':'normal','va':'center', 'ha':'left' })
             self.eqplot = self.fig3.add_axes([0.2,0.15,0.7,0.7],frameon=True,axisbg='None')
-
+            #print self.Data[self.s].keys()
             if 'cooling_rate_data' in self.Data[self.s].keys() and\
             'ancient_cooling_rate' in self.Data[self.s]['cooling_rate_data'].keys() and\
             'lab_cooling_rate' in self.Data[self.s]['cooling_rate_data'].keys():
@@ -6279,7 +6262,7 @@ else:
                     if pair[0]==cooling_rate_data['lab_cooling_rate']:
                         lab_fast_cr_moments.append(pair[1])
                 #print s, cooling_rate_data['alteration_check']
-                lan_cooling_rates.append(np.math.log(cooling_rate_data['lab_cooling_rate']/cooling_rate_data['alteration_check'][0]))
+                lab_cooling_rates.append(np.math.log(cooling_rate_data['lab_cooling_rate']/cooling_rate_data['alteration_check'][0]))
                 lab_fast_cr_moments.append(cooling_rate_data['alteration_check'][1])
                 moments.append(cooling_rate_data['alteration_check'][1])
 
@@ -6292,15 +6275,10 @@ else:
                 MAX=max(lab_fast_cr_moments)
                 MIN=min(lab_fast_cr_moments)
 
-                #print MAX,MIN
-                #print (MAX-MIN)/np.mean(MAX,MIN)
-                #print abs((MAX-MIN)/np.mean(MAX,MIN))
                 if  np.mean([MAX,MIN])==0:
                     alteration_check_perc=0
                 else:
                     alteration_check_perc=100*abs((MAX-MIN)/np.mean([MAX,MIN]))
-                #print s,alteration_check_perc
-                #print "--"
                 cooling_rate_data['ancient_cooling_rate']=ancient_cooling_rate
                 cooling_rate_data['CR_correction_factor']=-999
                 cooling_rate_data['lan_cooling_rates']=lan_cooling_rates
@@ -6309,9 +6287,6 @@ else:
                 cooling_rate_data['CR_correction_factor_flag']=""
                 cooling_rate_data['x0']=x0
 
-                #if y0<=1:
-                #    cooling_rate_data['CR_correction_factor_flag']=cooling_rate_data['CR_correction_factor_flag']+"bad CR measurement data "
-                #    cooling_rate_data['CR_correction_factor']=-999
 
                 if alteration_check_perc>5:
                     cooling_rate_data['CR_correction_factor_flag']=cooling_rate_data['CR_correction_factor_flag']+"alteration > 5% "
