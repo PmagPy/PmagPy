@@ -42,7 +42,7 @@ def get_data_model():
     """
     print "-I- getting data model, please be patient"
     url = 'http://earthref.org/services/MagIC-data-model.txt'
-    offline = False
+    offline = True # always get cached data model, as 2.5 is now static
     try:
         data = urllib2.urlopen(url)
     except urllib2.URLError:
