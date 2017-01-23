@@ -6290,7 +6290,7 @@ else:
                     if pair[0]==cooling_rate_data['lab_cooling_rate']:
                         lab_fast_cr_moments.append(pair[1])
                 #print s, cooling_rate_data['alteration_check']
-                lab_cooling_rates.append(np.math.log(cooling_rate_data['lab_cooling_rate']/cooling_rate_data['alteration_check'][0]))
+                lan_cooling_rates.append(np.math.log(cooling_rate_data['lab_cooling_rate']/cooling_rate_data['alteration_check'][0]))
                 lab_fast_cr_moments.append(cooling_rate_data['alteration_check'][1])
                 moments.append(cooling_rate_data['alteration_check'][1])
 
