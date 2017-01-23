@@ -187,6 +187,6 @@ Learn [Python here!](https://www.codecademy.com) These tutorials are in a sandbo
 
 Another place to [learn Python](http://cscircles.cemc.uwaterloo.ca/).
 
-Learn wxPython, which is the basis of our [GUIs here](http://zetcode.com/wxpython/)  # decent wxPython tutorial
+Learn wxPython, which is the basis of our [GUIs here](http://zetcode.com/wxpython/)
 
 Learn more about [git here](https://www.codeschool.com/courses/try-git).
