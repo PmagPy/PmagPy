@@ -218,7 +218,7 @@ class Arai_GUI(wx.Frame):
     """
     title = "PmagPy Thellier GUI %s"%CURRENT_VERSION
 
-    def __init__(self, WD=None, parent=None, standalone=True, DM=2.5, test_mode=False):
+    def __init__(self, WD=None, parent=None, standalone=True, DM=0, test_mode=False):
 
         TEXT="""
         NAME
@@ -228,17 +228,33 @@ class Arai_GUI(wx.Frame):
     GUI for interpreting thellier-type paleointensity data.
     For tutorial chcek PmagPy cookbook in http://earthref.org/PmagPy/cookbook/
         """
-        self.data_model = int(DM)
         args=sys.argv
+
         if "-h" in args:
             print TEXT
             sys.exit()
-
         global FIRST_RUN
         FIRST_RUN = True if standalone else False
         wx.Frame.__init__(self, parent, wx.ID_ANY, self.title, name='thellier gui')
         self.set_test_mode(test_mode)
         self.redo_specimens={}
+
+        # get DM number (2 or 3)
+        # if DM was provided
+        if DM:
+            self.data_model = int(DM)
+        # otherwise try to get it from command line:
+        elif '-DM' in args:
+            self.data_model = int(pmag.get_named_arg_from_sys('-DM', 0))
+        # otherwise get it from the user
+        else:
+            from dialogs import demag_dialogs
+            ui_dialog = demag_dialogs.user_input(self,['data_model'],parse_funcs=[float], heading="Please input prefered data model (2.5,3.0).  Note: 2.5 is for legacy projects only, if you are have new data please use 3.0.", values=[3])
+            res = ui_dialog.ShowModal()
+            vals = ui_dialog.get_values()
+            self.data_model = int(vals[1]['data_model'])
+
+        # get working directory
         self.currentDirectory = os.getcwd() # get the current working directory
         if WD:
             self.WD = WD
@@ -337,17 +353,7 @@ class Arai_GUI(wx.Frame):
                 self.WD = os.getcwd()
             dialog.Destroy()
         self.WD = os.path.realpath(self.WD)
-
-        if "-DM" in sys.argv:
-            self.data_model = float(pmag.get_named_arg_from_sys('-DM', 2))
-            self.data_model = int(self.data_model)
-            print 'Data model set to {}'.format(str(self.data_model))
-        elif os.path.exists(os.path.join(self.WD, "measurements.txt")):
-            self.data_model = 3
-            print 'Data model set to 3.0'
-        else:
-            self.data_model=2
-            print 'Data model set to 2.5'
+        # name measurement file
         if self.data_model == 3:
             meas_file = 'measurements.txt'
         else:
@@ -7292,7 +7298,6 @@ def main(WD=None, standalone_app=True, parent=None, DM=2.5):
         frame.Centre()
         frame.Show()
         del wait
-
     # to run as command line:
     else:
         app = wx.App(redirect=False)#, #filename='py2app_log.log')
