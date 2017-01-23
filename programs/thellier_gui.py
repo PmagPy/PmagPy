@@ -3131,9 +3131,10 @@ else:
            # edit first of existing anisotropy data for this specimen of this TYPE from self.spec_data
                     cond1 = self.spec_data['specimen'].str.contains(specimen+"$")==True
                     #cond3=self.spec_data['aniso_s'].notnull()==True
-                    cond2 = self.spec_data['aniso_type']==TYPE
+                    #cond2 = self.spec_data['aniso_type']==TYPE
                     #condition=(cond1 & cond2 & cond3)
-                    condition = (cond1 & cond2)
+                    #condition = (cond1 & cond2)
+                    condition = (cond1)
                     self.spec_data = self.spec_container.update_record(specimen, new_data, condition)
                     for col in ['site','location']: # remove unwanted columns
                         if col in self.spec_data.keys():del self.spec_data[col]

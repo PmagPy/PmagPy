@@ -18,9 +18,6 @@ import pmagpy.pmag as pmag
 def get_PI_parameters(Data, acceptance_criteria, preferences, s, tmin, tmax, GUI_log, THERMAL,MICROWAVE):
     datablock = Data[s]['datablock']
     pars=copy.deepcopy(Data[s]['pars']) # assignments to pars are assiging to Data[s]['pars']
-    # get MagIC mothod codes:
-
-    #pars['magic_method_codes']="LP-PI-TRM" # thellier Method
     import SPD
     import SPD.spd as spd
     Pint_pars = spd.PintPars(Data, str(s), tmin, tmax, 'magic', preferences['show_statistics_on_gui'],acceptance_criteria)
@@ -28,9 +25,6 @@ def get_PI_parameters(Data, acceptance_criteria, preferences, s, tmin, tmax, GUI
     if not Pint_pars.pars:
         print "Could not get any parameters for {}".format(Pint_pars)
         return 0
-    #Pint_pars.calculate_all_statistics() # calculate every statistic available
-    #print "-D- Debag"
-    #print Pint_pars.keys()
     pars.update(Pint_pars.pars)
 
     t_Arai=Data[s]['t_Arai']
@@ -111,7 +105,7 @@ def get_PI_parameters(Data, acceptance_criteria, preferences, s, tmin, tmax, GUI
         pars['magic_method_codes']+=":LP-PI-BT"
 
     #-------------------------------------------------
-    # Calculate anistropy correction factor
+    # Calculate anisotropy correction factor
     #-------------------------------------------------
 
     if "AniSpec" in Data[s].keys():
