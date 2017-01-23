@@ -6,11 +6,13 @@ from programs import thellier_gui
 import dialogs.thellier_interpreter as thellier_interpreter
 from numpy import array,isnan
 
+
+@unittest.skipIf(any([arg for arg in sys.argv if 'discover' in arg]), 'seg fault when run with other tests')
 class TestThellierGUI(unittest.TestCase):
 
     def setUp(self):
         self.app = wx.App()
-        self.frame = thellier_gui.Arai_GUI(project_WD,test_mode=True)
+        self.frame = thellier_gui.Arai_GUI(project_WD,test_mode=True,DM=2)
         self.pnl = self.frame.GetChildren()[0]
 
     def tearDown(self):
@@ -24,7 +26,7 @@ class TestThellierGUI(unittest.TestCase):
         os.chdir(WD)
 
     def test_empty_dir(self):
-        thellier_gui.Arai_GUI(empty_WD)
+        thellier_gui.Arai_GUI(empty_WD, DM=2)
 
     def test_main_panel_is_created(self):
         """
