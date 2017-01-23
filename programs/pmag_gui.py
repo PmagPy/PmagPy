@@ -373,7 +373,7 @@ class MagMainFrame(wx.Frame):
         outstring = "thellier_gui.py -WD %s"%self.WD
         print "-I- running python script:\n %s"%(outstring)
         if self.data_model_num == 2.5:
-            thellier_gui.main(self.WD, standalone_app=False, parent=self)
+            thellier_gui.main(self.WD, standalone_app=False, parent=self, DM=self.data_model_num)
         else:
             thellier_gui.main(self.WD, standalone_app=False, parent=self, DM=self.data_model_num)
 
