@@ -487,7 +487,6 @@ class thellier_auto_interpreter():
                 self.thellier_interpreter_pars=self.calc_upper_level_mean(self.Grade_A_sorted,All_grade_A_Recs,sample_or_site)  
                 self.update_data_with_interpreter_pars(self.Grade_A_sorted,All_grade_A_Recs,sample_or_site,self.thellier_interpreter_pars)
                 self.update_files_with_intrepretation(self.Grade_A_sorted,All_grade_A_Recs,sample_or_site,self.thellier_interpreter_pars)
-
         self.thellier_interpreter_log.write("-I- Statistics:\n")
         self.thellier_interpreter_log.write("-I- number of specimens analzyed = %i\n" % len(specimens_list))
         self.thellier_interpreter_log.write("-I- number of sucsessful 'acceptable' specimens = %i\n" % len(All_grade_A_Recs.keys()))
@@ -613,7 +612,7 @@ class thellier_auto_interpreter():
             
             
             #--------------------------------------------------------------
-            # check for anistropy issue:
+            # check for anisotropy issue:
             # If the average anisotropy correction in the sample is larger than a threshold value
             # and there are enough good specimens with anisotropy correction to pass sample's criteria
             # then dont use the uncorrected specimens for sample's calculation. 
@@ -624,7 +623,6 @@ class thellier_auto_interpreter():
                 aniso_mean_cutoff = self.acceptance_criteria['sample_aniso_mean']['value']
             else:
                 aniso_mean_cutoff = self.acceptance_criteria['site_aniso_mean']['value']
-                                
             if aniso_mean_cutoff != -999:
                 if self.acceptance_criteria['average_by_sample_or_site']['value']=='sample':
                     int_n = self.acceptance_criteria['sample_int_n']['value']
@@ -645,7 +643,6 @@ class thellier_auto_interpreter():
                             aniso_corrections.append(AC_correction_factor_1)
                     if aniso_corrections!=[]:
                         self.thellier_interpreter_log.write("sample_or_site %s has anisotropy factor mean of %f\n"%(sample_or_site,mean(aniso_corrections)))
-
                     if mean(aniso_corrections) > aniso_mean_cutoff:
                         self.thellier_interpreter_log.write("sample_or_site %s has anisotropy factor mean > thershold of %f\n"%(sample_or_site,aniso_mean_cutoff))
                         
@@ -669,7 +666,6 @@ class thellier_auto_interpreter():
                                 
                                 WARNING_tmp=WARNING_tmp+"excluding specimen %s; "%(specimen)
                                 del tmp_Grade_A_sorted[sample_or_site][specimen]
-
                         #--------------------------------------------------------------
                         # calculate the STDEV-OPT best mean (after possible ignoring of specimens with bad anisotropy)
                         # and check if pass after ignoring problematic anistopry specimens 
