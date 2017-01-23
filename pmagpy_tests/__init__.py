@@ -16,11 +16,11 @@ import test_thellier_gui
 import test_validations
 import test_programs
 import test_demag_gui
-import test_magic_gui3
+import test_magic_gui2
 import test_new_builder
 import test_find_pmag_dir
 
 __all__ = [test_builder, test_er_magic_dialogs, test_imports, test_ipmag,
            test_magic_gui, test_pmag, test_pmag_gui, test_thellier_gui,
            test_validations, test_programs, test_demag_gui,
-           test_magic_gui3, test_new_builder, test_find_pmag_dir]
+           test_magic_gui2, test_new_builder, test_find_pmag_dir]

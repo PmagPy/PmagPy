@@ -79,7 +79,7 @@ class TestProgramsHelp(unittest.TestCase):
     @unittest.skipIf('Anaconda' not in sys.version.split()[1], 'only needed for Anaconda')
     def test_guis_anaconda(self):
         tests = ['pmag_gui_anaconda', 'magic_gui_anaconda',
-                 'magic_gui3_anaconda',# 'demag_gui_anaconda',
+                 'magic_gui2_anaconda',# 'demag_gui_anaconda',
                  'thellier_gui_anaconda']
         for prog in tests:
             print 'testing:', prog

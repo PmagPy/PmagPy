@@ -33,7 +33,7 @@ if __name__ == "__main__":
     suite8 = unittest.TestLoader().loadTestsFromModule(pt.test_builder)
     suite9 = unittest.TestLoader().loadTestsFromModule(pt.test_validations)
     #suite10 = unittest.TestLoader().loadTestsFromModule(pt.test_programs)
-    suite12 = unittest.TestLoader().loadTestsFromModule(pt.test_magic_gui3)
+    suite12 = unittest.TestLoader().loadTestsFromModule(pt.test_magic_gui2)
     suite13 = unittest.TestLoader().loadTestsFromModule(pt.test_new_builder)
     suite14 = unittest.TestLoader().loadTestsFromModule(pt.test_er_magic_dialogs)
     suite15 = unittest.TestLoader().loadTestsFromModule(pt.test_find_pmag_dir)
