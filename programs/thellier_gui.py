@@ -3937,10 +3937,10 @@ else:
                         self.samp_container.update_record(samp_name, new_data, cond2)
             for col in ['location']:
                 if col in self.samp_data.keys():del self.samp_data[col]
-            if BY_SAMPLES: # replace 'site' with 'sample'
-                self.samp_data['site']=self.samp_data['sample']
-                condition= self.samp_container.df['specimens'].notnull()==True  # find all the blank specimens rows
-                self.samp_container.df = self.samp_container.df.loc[condition]
+            #if BY_SAMPLES: # replace 'site' with 'sample'
+            #    self.samp_data['site']=self.samp_data['sample']
+            #    condition= self.samp_container.df['specimens'].notnull()==True  # find all the blank specimens rows
+            #    self.samp_container.df = self.samp_container.df.loc[condition]
 
             #  write out the data
             self.samp_container.write_magic_file(dir_path=self.WD)
