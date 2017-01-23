@@ -103,7 +103,7 @@ samp_magic2_2_magic3_map = {'sample_n_planes': 'dir_n_specimens_planes', 'sample
                             "er_sample_alternatives": "sample_alternatives", "sample_azimuth": "azimuth",
                             "sample_cooling_rate": "cooling_rate", "er_location_name": "location",
                             "sample_dip": "dip", "sample_date": "timestamp",
-                            "sample_bed_dip_direction": "bed_dip_direction"}
+                            "sample_bed_dip_direction": "bed_dip_direction", "er_specimen_names": "specimens"}
 
 #sample data translation samples.txt => pmag_samples.txt
 samp_magic3_2_magic2_map = {'dir_n_specimens_planes': 'sample_n_planes', 'dir_n_specimens_lines': 'sample_n_lines',
@@ -123,7 +123,7 @@ samp_magic3_2_magic2_map = {'dir_n_specimens_planes': 'sample_n_planes', 'dir_n_
                             "sample_alternatives": "er_sample_alternatives", "azimuth": "sample_azimuth",
                             "cooling_rate": "sample_cooling_rate", "location": "er_location_name",
                             "dip": "sample_dip", "timestamp": "sample_date",
-                            "bed_dip_direction": "sample_bed_dip_direction"}
+                            "bed_dip_direction": "sample_bed_dip_direction", 'specimens': 'er_specimen_names'}
 
 image_magic2_2_magic3_map = {"er_location_name": "location", "er_site_name": "site", "er_sample_name": "sample",
                              "er_specimen_name": "specimen", "er_image_name": "file", "image_type": "type",
