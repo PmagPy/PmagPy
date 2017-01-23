@@ -3128,13 +3128,30 @@ else:
                     # reformat all the anisotropy related keys # START HERE
                     new_data=map_magic.convert_aniso('magic3',new_aniso_parameters) # turn new_aniso data to 3.0
                     self.spec_data = self.spec_container.df
-           # edit first of existing anisotropy data for this specimen of this TYPE from self.spec_data
+           # edit first off existing anisotropy data for this specimen of this TYPE from self.spec_data
                     cond1 = self.spec_data['specimen'].str.contains(specimen+"$")==True
-                    #cond3=self.spec_data['aniso_s'].notnull()==True
-                    #cond2 = self.spec_data['aniso_type']==TYPE
-                    #condition=(cond1 & cond2 & cond3)
+                    meths= new_aniso_parameters['magic_method_codes']
+                    #new_data['method_codes']=self.spec_data[self.spec_data['specimen'].str.contains(specimen+"$")==True].method_codes+':'+new_aniso_parameters['magic_method_codes']
+                    cond3=self.spec_data['aniso_s'].notnull()==True
+                    cond2 = self.spec_data['aniso_type']==TYPE
+                    condition=(cond1 & cond2 & cond3)
+                    # need to add in method codes for LP-AN...
+                    old_meths=self.spec_data[condition]['method_codes'].values.tolist()
+                    try:
+                        if ":" in old_meths[0]:  # breaks if old_meths is NoneType
+                            if 'LP-AN' in old_meths[0]:
+                                methparts=old_meths[0].split(":")
+                                me=""
+                                for m in methparts:
+                                    if 'LP-AN' not in m and 'AE-H' not in m:me=me+m+':'
+                                me=me.strip(":") 
+                            else: me=old_meths[0]
+                            new_meths=me+':'+meths
+                    except:
+                        new_meths=meths
+                    new_data['method_codes']=new_meths
                     #condition = (cond1 & cond2)
-                    condition = (cond1)
+                    #condition = (cond1)
                     self.spec_data = self.spec_container.update_record(specimen, new_data, condition)
                     for col in ['site','location']: # remove unwanted columns
                         if col in self.spec_data.keys():del self.spec_data[col]
