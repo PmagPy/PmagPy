@@ -6810,7 +6810,7 @@ else:
                     # check for missing age headers
                     if header not in self.site_data.columns:
                         #create blank column for this header
-            
+
                         self.site_data[header]=None
                 age_data=self.site_data[age_headers]
                 age_data = age_data[age_data['age'].notnull()]
