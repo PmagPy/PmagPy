@@ -5967,7 +5967,10 @@ else:
             if 'specimens' in self.contribution.tables and len(self.spec_data)>0 and 'method_codes' in self.spec_data.columns and 'aniso_s' in self.spec_data.columns:
                 anis_data=self.spec_data[self.spec_data['method_codes'].str.contains('LP-AN')==True] # get the anisotropy records
                 anis_data=anis_data[anis_data['aniso_s'].notnull()] # get the ones with anisotropy tensors that aren't blank
-                anis_data=anis_data[['specimen','aniso_s','aniso_ftest','aniso_ftest12','aniso_ftest23','aniso_s_n_measurements','aniso_s_sigma','aniso_type','description']]
+                L=['specimen','aniso_s','aniso_ftest','aniso_ftest12','aniso_ftest23','aniso_s_n_measurements','aniso_s_sigma','aniso_type','description']
+                if 'aniso_alt' in anis_data.columns:
+                    L.append('aniso_alt')                
+                anis_data=anis_data[L]
                 # rename column headers to 2.5
                 #anis_data = anis_data.rename(columns=map_magic.aniso_magic3_2_magic2_map)
                 # convert to list of dictionaries
@@ -5975,6 +5978,11 @@ else:
                 for AniSpec in anis_dict:  # slip aniso data into Data[s]
                     AniSpec=map_magic.convert_aniso('magic2',AniSpec) # unpack aniso_s
                     s=AniSpec['er_specimen_name']
+                    if 'aniso_alt' in AniSpec.keys() and type(AniSpec['aniso_alt'])==float:
+                        AniSpec['anisotropy_alt']=AniSpec['aniso_alt']
+                    elif 'aniso_alt' in AniSpec.keys() and type(AniSpec['aniso_alt'])!=float:
+                        AniSpec['anisotropy_alt']=""
+                        
                     if 'AniSpec' not in Data[s].keys(): Data[s]['AniSpec']={}  # make a blank
                     TYPE=AniSpec['anisotropy_type']
                     Data[s]['AniSpec'][TYPE]=AniSpec

@@ -685,7 +685,7 @@ class thellier_auto_interpreter():
                         else:
                             #Grade_A_sorted[sample_or_site]=copy.deepcopy(tmp_Grade_A_sorted[sample_or_site])
                             #WARNING=WARNING_tmp + "sample fail criteria"
-                            warning_messeage + "-W- WARNING: sample doesnt pass after rejecting specimens with no ansiotropy. The program keeps these specimens\n"
+                            warning_messeage = warning_messeage + "-W- WARNING: sample doesnt pass after rejecting specimens with no ansiotropy. The program keeps these specimens\n"
                             self.thellier_interpreter_log.write(warning_messeage)
                             
 
