@@ -3132,6 +3132,11 @@ else:
            # edit first of existing anisotropy data for this specimen of this TYPE from self.spec_data
                     cond1 = self.spec_data['specimen'].str.contains(specimen+"$")==True
                     meths= new_aniso_parameters['magic_method_codes']
+                    for key in new_data.keys():
+                        if key not in self.spec_data.columns:
+                            self.spec_data[key]=""
+
+                    #new_data['method_codes']=self.spec_data[self.spec_data['specimen'].str.contains(specimen+"$")==True].method_codes+':'+new_aniso_parameters['magic_method_codes']
                     cond3=self.spec_data['aniso_s'].notnull()==True
                     cond2 = self.spec_data['aniso_type']==TYPE
                     condition=(cond1 & cond2 & cond3)
@@ -5991,6 +5996,7 @@ else:
             if 'specimens' in self.contribution.tables and len(self.spec_data)>0 and 'method_codes' in self.spec_data.columns and 'aniso_s' in self.spec_data.columns:
                 anis_data=self.spec_data[self.spec_data['method_codes'].str.contains('LP-AN')==True] # get the anisotropy records
                 anis_data=anis_data[anis_data['aniso_s'].notnull()] # get the ones with anisotropy tensors that aren't blank
+                anis_data=anis_data[['specimen','aniso_s','aniso_ftest','aniso_ftest12','aniso_ftest23','aniso_s_n_measurements','aniso_s_sigma','aniso_type','description']]
                 L=['specimen','aniso_s','aniso_ftest','aniso_ftest12','aniso_ftest23','aniso_s_n_measurements','aniso_s_sigma','aniso_type','description']
                 if 'aniso_alt' in anis_data.columns:
                     L.append('aniso_alt')
