@@ -30,12 +30,12 @@ The `pmagpy` directory contains all the low-level functionality that the PmagPy 
   - a utility for building up MagIC contributions -- new\_builder.py
   - modules for interfacing with the data models (controlled\_vocabularies2.py, controlled\_vocabularies3.py, and data\_model3.py), as well as a full backup of the 2.5 and 3.0. data model (in the `data_model` subdirectory).
 
-To see a notebook with examples of how to use pmag.py and ipmag.py, see the [Example PmagPy Notebook](https://github.com/PmagPy/2016_Tauxe-et-al_PmagPy_Notebooks/blob/master/Example_PmagPy_Notebook.ipynb)
+To see a notebook with examples of how to use pmag.py and ipmag.py, see the [Example_PmagPy_Notebook.ipynb](https://github.com/PmagPy/2016_Tauxe-et-al_PmagPy_Notebooks/blob/master/Example_PmagPy_Notebook.ipynb)
 
-To actually _run_ that notebook:
+To actually _run_ that notebook you will need to download it from the 2016\_Tauxe-et-al\_PmagPy\_notebooks repository:
 
-Go into your command line.
-Change directories into a directory where you keep projects.
+- Go into your command line.
+- Change directories into a directory where you keep projects.
 
 `git clone git@github.com:PmagPy/2016_Tauxe-et-al_PmagPy_Notebooks.git`
 
@@ -43,8 +43,7 @@ Change directories into a directory where you keep projects.
 
 `jupyter notebook`
 
-A browser window will open automatically.
-Click Example\_PmagPy\_Notebook.ipynb
+-A browser window will open automatically. Click Example\_PmagPy\_Notebook.ipynb
 
 For more examples of how to use ipmag.py/pmag.py, try Additional\_PmagPy\_Examples.ipynb as well (located in the same directory as the previous notebook).
 
