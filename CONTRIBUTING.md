@@ -48,33 +48,18 @@ Click Example\_PmagPy\_Notebook.ipynb
 
 For more examples of how to use ipmag.py/pmag.py, try Additional\_PmagPy\_Examples.ipynb as well (located in the same directory as the previous notebook).
 
+To see example notebooks for building and examing a MagIC contribution, see [Intro to MagIC DataFrames.ipynb](https://github.com/PmagPy/PmagPy/blob/release/data_files/notebooks/Intro%20to%20MagicDataFrames.ipynb) and [Intro to MagIC Contributions.ipynb](https://github.com/PmagPy/PmagPy/blob/release/data_files/notebooks/Intro%20to%20MagIC%20Contributions.ipynb).  To run those notebooks, follow the [instructions for running PmagPy notebooks](#running-pmagpy-notebooks).
+
+
 #### SPD
 The `SPD` directory contains a program to calculate statistics using Greig Paterson's [standard paleointensity definitions](https://earthref.org/PmagPy/SPD/home.html).
 
 #### programs
 The `programs` directory contains executable programs that are installed as part of the pmagpy-cli package and can be run on the command-line.
 
-To see a notebook with examples of how to run most of the command-line programs, see the [command-line program notebook](https://github.com/PmagPy/PmagPy/blob/master/data_files/notebooks/_PmagPy.ipynb).
+To see a notebook with examples of how to run most of the command-line programs, see the [_PmagPy.ipynb](https://github.com/PmagPy/PmagPy/blob/master/data_files/notebooks/_PmagPy.ipynb).  Also see [_PmagPy_3.0.ipynb](https://github.com/PmagPy/PmagPy/blob/master/data_files/notebooks/_PmagPy_3.0.ipynb).
 
-To actually run the notebook, you will need to follow these directions.
-
-- If you have installed PmagPy using pip (standard), you will need to move your data_files to an accessible location.  To do that, you will use the command-line program `move_data_files.py`.
-
-    + You will need to go into your command line to run this program.  You can run it from the directory in which you want to place the PmagPy data_files (perhaps your Desktop), using this command:
-
-    `move_data_files.py -d .` # ("." represents your current directory)
-
-    + Alternatively, you can run it from any directory in your command line using the full destination directory name:
-
-    `move_data_files.py -d ~/Desktop`
-
-    + If you have done the "developer install" of PmagPy, you can simply navigate to your PmagPy directory.
-
-- Once you have located or moved the data\_files, navigate to the data_files directory on your command line.  Run the command:
-
-    `jupyter notebook`
-
-    + A tab will pop open in your default browser.  Open the `notebooks directory` and then click on the _PmagPy.ipynb notebook.  From there, you will be able to run through all the program examples.
+To actually run those notebooks, you will need to follow [these directions](#running-pmagpy-notebooks).
 
 #### dialogs
 The `dialogs` directory contains GUI components that are used to build the graphical elements of the PmagPy GUIs.
@@ -128,6 +113,27 @@ Here is a visual representation of the directory structure:
 ├── setup_scripts
 └── uninstall_Mac_OSX.app
 ```
+
+## Running PmagPy notebooks
+
+- If you have installed PmagPy using pip (standard), you will need to move your data_files to an accessible location.  To do that, you will use the command-line program `move_data_files.py`.
+
+    + You will need to go into your command line to run this program.  You can run it from the directory in which you want to place the PmagPy data_files (perhaps your Desktop), using this command:
+
+    `move_data_files.py -d .` # ("." represents your current directory)
+
+    + Alternatively, you can run it from any directory in your command line using the full destination directory name:
+
+    `move_data_files.py -d ~/Desktop`
+
+    + If you have done the "developer install" of PmagPy, you can simply navigate to your PmagPy directory.
+
+- Once you have located or moved the data\_files, navigate to the data_files directory on your command line.  Run the command:
+
+    `jupyter notebook`
+
+- Click on the `notebooks` directory, then click on the notebook you want to open.  A window will pop up in your default browser with the notebook's contents.  You can then run the notebook cells.
+
 
 ## Compile and Release Guide
 
