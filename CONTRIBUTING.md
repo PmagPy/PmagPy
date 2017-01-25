@@ -43,7 +43,7 @@ To actually _run_ that notebook you will need to download it from the 2016\_Taux
 
 `jupyter notebook`
 
--A browser window will open automatically. Click Example\_PmagPy\_Notebook.ipynb
+- A browser window will open automatically. Click Example\_PmagPy\_Notebook.ipynb
 
 For more examples of how to use ipmag.py/pmag.py, try Additional\_PmagPy\_Examples.ipynb as well (located in the same directory as the previous notebook).
 
