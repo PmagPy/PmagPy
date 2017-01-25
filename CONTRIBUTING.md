@@ -20,7 +20,7 @@ For information about writing and running tests, see the [testing README](https:
 
 ## Directory structure
 
-**Coming soon:** links to the relevant Jupyter notebooks where you can see how some of these pieces work.
+Next we have a breakdown of how the PmagPy repository is structured.  In some cases, we have included relevant Jupyter notebooks so that you can get an interactive demonstration of how some these pieces of code work.
 
 ### Key directories
 
@@ -45,7 +45,7 @@ To actually _run_ that notebook you will need to download it from the 2016\_Taux
 
 - A browser window will open automatically. Click Example\_PmagPy\_Notebook.ipynb
 
-For more examples of how to use ipmag.py/pmag.py, try Additional\_PmagPy\_Examples.ipynb as well (located in the same directory as the previous notebook).
+- For more examples of how to use ipmag.py/pmag.py, try Additional\_PmagPy\_Examples.ipynb as well (located in the same directory as the previous notebook).
 
 To see example notebooks for building and examing a MagIC contribution, see [Intro to MagIC DataFrames.ipynb](https://github.com/PmagPy/PmagPy/blob/release/data_files/notebooks/Intro%20to%20MagicDataFrames.ipynb) and [Intro to MagIC Contributions.ipynb](https://github.com/PmagPy/PmagPy/blob/release/data_files/notebooks/Intro%20to%20MagIC%20Contributions.ipynb).  To run those notebooks, follow the [instructions for running PmagPy notebooks](#running-notebooks).
 
