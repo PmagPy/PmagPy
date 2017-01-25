@@ -1,6 +1,6 @@
-# Developer's Guide
+# Contributing
 
-## Contributing
+## Ways to contribute
 
 As an open-source, community project, we welcome improvements and feedback!  There are two main ways to contribute to the PmagPy project.
 
@@ -10,7 +10,7 @@ As an open-source, community project, we welcome improvements and feedback!  The
 
 ## Style guidelines
 
-Readable code is good code.  To that end, we request that contributors adhere to reasonable style guidelines.  For more information about standard Python style guidelines, see [PEP 8](https://www.python.org/dev/peps/pep-0008/).
+Readable code is good code.  To that end, we request that contributors try to write code that can be understood by others!  One way to do this is by adhering to reasonable style guidelines.  For more information about standard Python style guidelines, see [PEP 8](https://www.python.org/dev/peps/pep-0008/).
 
 
 ## Testing guidelines

@@ -30,7 +30,7 @@ https://github.com/PmagPy/PmagPy-Standalone-OSX/releases/latest
 
 ####  Windows Standalone download
 
-Get started by downloading the zip file (see links below) and putting the resulting folder wherever you wish. You’ll need to “extract all” files. Inside the PmagPy-Standalone folder you will find icons for installing Pmag GUI and MagIC GUI. Double click the program you wish to use and you will be guided the the install process.
+Get started by downloading the zip file (see links below) and putting the resulting folder wherever you wish. You’ll need to “extract all” files. Inside the PmagPy-Standalone folder you will find icons for Pmag GUI and MagIC GUI.
 You’ll find the latest stable release at:
 https://github.com/PmagPy/PmagPy-Standalone-Windows/releases/latest
 
