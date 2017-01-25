@@ -142,37 +142,37 @@ We try to make new releases of PmagPy several times per year.
 A new release includes: updated pip packages (pmagpy & pmagpy-cli), and updated standalone GUIs (for Windows, Mac, and Linux).
 Making a new release has several steps:
 
-1. Make (or update) a release branch.  This allows work to continue on the master branch, while keeping a stable branch for the release.  Once the release is ready, the pip releases and standalones should be released from this branch!
+- Make (or update) a release branch.  This allows work to continue on the master branch, while keeping a stable branch for the release.  Once the release is ready, the pip releases and standalones should be released from this branch!
 
-2. Make sure all tests are passing and all new features are working.
+- Make sure all tests are passing and all new features are working.
 
-3. Create a new release number.  Release numbers are in the form of MAJOR.MINOR.PATCH, and each release number should be higher than the one before it.  More on semantic versioning can be found [here](http://semver.org).  The pip release and the standalones should all use the same release number!
+- Create a new release number.  Release numbers are in the form of MAJOR.MINOR.PATCH, and each release number should be higher than the one before it.  More on semantic versioning can be found [here](http://semver.org).  The pip release and the standalones should all use the same release number!
 
-4. Create a pip release.
+- Create a pip release.
 
-**Note:** To make a pip release, you must have a PyPI account and be added as an Owner or Maintainer of pmagpy and pmagpy-cli.
+    + **Note:** To make a pip release, you must have a PyPI account and be added as an Owner or Maintainer of pmagpy and pmagpy-cli.
 
-These are the steps to make a pip release for pmagpy and pmagpy-cli.
+    + These are the steps to make a pip release for pmagpy and pmagpy-cli.
 
-First, increment the version number in setup.py or command\_line\_setup.py.  PYPI will reject a duplicate version number I forget this step.
+    + First, increment the version number in setup.py or command\_line\_setup.py.  PYPI will reject a duplicate version number I forget this step.
 
-From the PmagPy directory, use the following command to build a new distribution of pmagpy, upload it to PYPI, and upgrade locally:
+    + From the PmagPy directory, use the following command to build a new distribution of pmagpy, upload it to PYPI, and upgrade locally:
 
-`rm -rf build dist && python setup.py sdist bdist_wheel && twine upload dist/* && pip install pmagpy —upgrade`
+    `rm -rf build dist && python setup.py sdist bdist_wheel && twine upload dist/* && pip install pmagpy —upgrade`
 
-To make a test release, use a slightly different command from the PmagPy directory, which will: build a new distribution of pmagpy, upload it to the test site (will not overwrite the version people can download), and upgrade locally:
+    + To make a test release, use a slightly different command from the PmagPy directory, which will: build a new distribution of pmagpy, upload it to the test site (will not overwrite the version people can download), and upgrade locally:
 
-`python setup.py sdist bdist_wheel upload -r https://testpypi.python.org/pypi && pip install -i https://testpypi.python.org/pypi pmagpy —upgrade`
+    `python setup.py sdist bdist_wheel upload -r https://testpypi.python.org/pypi && pip install -i https://testpypi.python.org/pypi pmagpy —upgrade`
 
-To build pmagpy-cli, you can use the same two commands above, but replacing "setup.py" with "command\_line\_setup.py".
+    + To build pmagpy-cli, you can use the same two commands above, but replacing "setup.py" with "command\_line\_setup.py".
 
-A few notes on the whole thing:  first of all, testing the pip install locally doesn't work very well (i.e., `python setup.py install` or `python setup.py test`), because it doesn’t deal correctly with the required data files.  Whenever testing a new pip distribution, it is best to upload to test\_PYPI instead, even though it takes a minute or so to do.  Second, we are using twine for uploading to real PYPI but not to upload to test PYPI.  Using twine is recommended because it transfers the package data in a more secure way, but it doesn't currently work with test_PYPI.
+    + A few notes on the whole thing:  first of all, testing the pip install locally doesn't work very well (i.e., `python setup.py install` or `python setup.py test`), because it doesn’t deal correctly with the required data files.  Whenever testing a new pip distribution, it is best to upload to test\_PYPI instead, even though it takes a minute or so to do.  Second, we are using twine for uploading to real PYPI but not to upload to test PYPI.  Using twine is recommended because it transfers the package data in a more secure way, but it doesn't currently work with test_PYPI.
 
-This article has some more good information about uploading to PYPI, etc.:  https://tom-christie.github.io/articles/pypi/
+    + This article has some more good information about uploading to PYPI, etc.:  https://tom-christie.github.io/articles/pypi/
 
-5. Create standalone executables.  The process is different for each platform, and details are in the [standalones README](https://github.com/PmagPy/PmagPy/tree/master/setup_scripts).
+- Create standalone executables.  The process is different for each platform, and details are in the [standalones README](https://github.com/PmagPy/PmagPy/tree/master/setup_scripts).
 
-6. If any bug-fixes were made on the release branch during this process, those changes should be merged into master.
+- If any bug-fixes were made on the release branch during this process, those changes should be merged into master.
 
 
 ## Resources
