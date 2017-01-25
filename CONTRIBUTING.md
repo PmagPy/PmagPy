@@ -48,7 +48,7 @@ Click Example\_PmagPy\_Notebook.ipynb
 
 For more examples of how to use ipmag.py/pmag.py, try Additional\_PmagPy\_Examples.ipynb as well (located in the same directory as the previous notebook).
 
-To see example notebooks for building and examing a MagIC contribution, see [Intro to MagIC DataFrames.ipynb](https://github.com/PmagPy/PmagPy/blob/release/data_files/notebooks/Intro%20to%20MagicDataFrames.ipynb) and [Intro to MagIC Contributions.ipynb](https://github.com/PmagPy/PmagPy/blob/release/data_files/notebooks/Intro%20to%20MagIC%20Contributions.ipynb).  To run those notebooks, follow the [instructions for running PmagPy notebooks](#running-pmagpy-notebooks).
+To see example notebooks for building and examing a MagIC contribution, see [Intro to MagIC DataFrames.ipynb](https://github.com/PmagPy/PmagPy/blob/release/data_files/notebooks/Intro%20to%20MagicDataFrames.ipynb) and [Intro to MagIC Contributions.ipynb](https://github.com/PmagPy/PmagPy/blob/release/data_files/notebooks/Intro%20to%20MagIC%20Contributions.ipynb).  To run those notebooks, follow the [instructions for running PmagPy notebooks](#running-notebooks).
 
 
 #### SPD
@@ -59,7 +59,7 @@ The `programs` directory contains executable programs that are installed as part
 
 To see a notebook with examples of how to run most of the command-line programs, see the [_PmagPy.ipynb](https://github.com/PmagPy/PmagPy/blob/master/data_files/notebooks/_PmagPy.ipynb).  Also see [_PmagPy_3.0.ipynb](https://github.com/PmagPy/PmagPy/blob/master/data_files/notebooks/_PmagPy_3.0.ipynb).
 
-To actually run those notebooks, you will need to follow [these directions](#running-pmagpy-notebooks).
+To actually run those notebooks, you will need to follow [these directions](#running-notebooks).
 
 #### dialogs
 The `dialogs` directory contains GUI components that are used to build the graphical elements of the PmagPy GUIs.
@@ -114,7 +114,7 @@ Here is a visual representation of the directory structure:
 └── uninstall_Mac_OSX.app
 ```
 
-## Running PmagPy notebooks
+## Running notebooks
 
 - If you have installed PmagPy using pip (standard), you will need to move your data_files to an accessible location.  To do that, you will use the command-line program `move_data_files.py`.
 
