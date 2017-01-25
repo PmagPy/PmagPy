@@ -2459,7 +2459,6 @@ class Demag_GUI(wx.Frame):
                             dec,inc,direction_type=pars["dec"],pars["inc"],'l'
                         else:
                             print("-E- ERROR: cant find mean for specimen interpertation: %s , %s"%(element,fit.name))
-                            print(dec,inc,direction_type)
                             print(pars)
                             continue
                         #add for calculation
