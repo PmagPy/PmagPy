@@ -105,7 +105,6 @@ class Demag_GUI(wx.Frame):
         @param - write_to_log_file: verbal or non-verbal GUI modes True will redirect stdout to a .log file False will print to stdout as normal (default: True)
         @param - test_mode_on: used for unit testing if True all dialogs will return with AffermativeID (default: False)
         """
-
         default_style = wx.MINIMIZE_BOX | wx.MAXIMIZE_BOX | wx.RESIZE_BORDER | wx.SYSTEM_MENU | wx.CAPTION | wx.CLOSE_BOX | wx.CLIP_CHILDREN | wx.NO_FULL_REPAINT_ON_RESIZE | wx.WS_EX_CONTEXTHELP | wx.FRAME_EX_CONTEXTHELP
         wx.Frame.__init__(self, parent, wx.ID_ANY, self.title, style = default_style, name='demag gui')
         self.parent = parent
@@ -319,7 +318,7 @@ class Demag_GUI(wx.Frame):
         self.specimen_EA_ydata = []
 
         self.fig3 = Figure((2.5*self.GUI_RESOLUTION, 2.5*self.GUI_RESOLUTION), dpi=self.dpi)
-        self.mplot = self.fig3.add_axes([0.2,0.15,0.7,0.7],frameon=True,facecolor='None')
+        self.mplot = self.fig3.add_axes([0.2,0.15,0.7,0.7],frameon=True,axisbg='None')
         self.canvas3 = FigCanvas(self.scrolled_panel, -1, self.fig3)
         self.toolbar3 = NavigationToolbar(self.canvas3)
         self.toolbar3.Hide()
@@ -894,7 +893,7 @@ class Demag_GUI(wx.Frame):
         """
         self.fig1.clf()
         axis_bounds = [0,.1,1,.85]
-        self.zijplot = self.fig1.add_axes(axis_bounds,frameon=False, facecolor='None',label='zig_orig',zorder=0)
+        self.zijplot = self.fig1.add_axes(axis_bounds,frameon=False, axisbg='None',label='zig_orig',zorder=0)
         self.zijplot.clear()
         self.zijplot.axis('equal')
         self.zijplot.xaxis.set_visible(False)
@@ -1106,7 +1105,7 @@ class Demag_GUI(wx.Frame):
         """
         self.fig3.clf()
         self.fig3.text(0.02,0.96,'M/M0',{'family':self.font_type, 'fontsize':10*self.GUI_RESOLUTION, 'style':'normal','va':'center', 'ha':'left' })
-        self.mplot = self.fig3.add_axes([0.2,0.15,0.7,0.7],frameon=True,facecolor='None')
+        self.mplot = self.fig3.add_axes([0.2,0.15,0.7,0.7],frameon=True,axisbg='None')
 
         thermal_x,thermal_y=[],[]
         thermal_x_bad,thermal_y_bad=[],[]

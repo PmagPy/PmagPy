@@ -185,3 +185,5 @@ Location_*/*
 *.bak
 */*.bak
 *new_*.txt
+
+programs/flycheck_demag_gui.py
