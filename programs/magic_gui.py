@@ -468,7 +468,10 @@ def main():
     print '-I- Starting MagIC GUI - please be patient'
 
     # if redirect is true, wxpython makes its own output window for stdout/stderr
-    app = wx.App(redirect=False)
+    if 'darwin' in sys.platform:
+        app = wx.App(redirect=False)
+    else:
+        app = wx.App(redirect=True)
 
     working_dir = pmag.get_named_arg_from_sys('-WD', '.')
     app.frame = MainFrame(working_dir)

@@ -543,7 +543,10 @@ def main():
         sys.exit()
     print '-I- Starting Pmag GUI - please be patient'
     # if redirect is true, wxpython makes its own output window for stdout/stderr
-    app = wx.App(redirect=False)
+    if 'darwin' in sys.platform:
+        app = wx.App(redirect=False)
+    else:
+        app = wx.App(redirect=True)
     app.frame = MagMainFrame()
     working_dir = pmag.get_named_arg_from_sys('-WD', '.')
 
