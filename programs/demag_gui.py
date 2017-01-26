@@ -5025,10 +5025,8 @@ class Demag_GUI(wx.Frame):
         mb = self.GetMenuBar()
         am = mb.GetMenu(2)
         submenu_toggle_mean_display = wx.Menu()
-        f_name = f.replace(' ','').replace('-','_')
-        lines = ["m_%s_toggle_mean = submenu_toggle_mean_display.AppendCheckItem(-1, '&%s', '%s'); self.Bind(wx.EVT_MENU, self.on_menu_toggle_mean, m_%s_toggle_mean)"%(f_name,f_name,f_name,f_name) for f in self.all_fits_list]
+        lines = ["m_%s_toggle_mean = submenu_toggle_mean_display.AppendCheckItem(-1, '&%s', '%s'); self.Bind(wx.EVT_MENU, self.on_menu_toggle_mean, m_%s_toggle_mean)"%(f.replace(' ','').replace('-','_'),f.replace(' ','').replace('-','_'),f.replace(' ','').replace('-','_'),f.replace(' ','').replace('-','_')) for f in self.all_fits_list]
 
-        pdb.set_trace()
         for line in lines: exec(line)
 
         am.DeleteItem(am.GetMenuItems()[3])
