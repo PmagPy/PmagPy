@@ -151,6 +151,8 @@ class Contribution(object):
                     if parent in meas_df.columns:
                         df[parent] = meas_df.drop_duplicates(subset=[name])[parent].values
                 self.tables[name + "s"] = MagicDataFrame(dtype=name + "s", df=df)
+                self.tables[name + "s"].write_magic_file(dir_path=self.directory)
+
 
     def add_item(self, table_name, data, label):
         self.tables[table_name].add_row(label, data)
