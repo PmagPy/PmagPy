@@ -43,14 +43,14 @@ def get_data_model():
     print "-I- getting data model, please be patient"
     url = 'http://earthref.org/services/MagIC-data-model.txt'
     offline = True # always get cached data model, as 2.5 is now static
-    try:
-        data = urllib2.urlopen(url)
-    except urllib2.URLError:
-        print '-W- Unable to fetch data model online\nTrying to use cached data model instead'
-        offline = True
-    except httplib.BadStatusLine:
-        print '-W- Website: {} not responding\nTrying to use cached data model instead'.format(url)
-        offline = True
+    #try:
+    #    data = urllib2.urlopen(url)
+    #except urllib2.URLError:
+    #    print '-W- Unable to fetch data model online\nTrying to use cached data model instead'
+    #    offline = True
+    #except httplib.BadStatusLine:
+    #    print '-W- Website: {} not responding\nTrying to use cached data model instead'.format(url)
+    #    offline = True
     if offline:
         data = get_data_offline()
     data_model, file_type = pmag.magic_read(None, data)
