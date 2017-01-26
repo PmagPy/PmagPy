@@ -1015,6 +1015,10 @@ class convert_CIT_files_to_MagIC(convert_files_to_MagIC):
         if loc_name:
             loc_name = "-loc " + loc_name
         ncn = self.bSizer4.return_value()
+        if "-" in ncn:
+            ncn, Z = ncn.split("-")
+        else:
+            Z = ''
         options_dict['samp_con'] = ncn
         particulars = self.bSizer2.return_value()
         options_dict['methods'] = particulars
@@ -1033,7 +1037,7 @@ class convert_CIT_files_to_MagIC(convert_files_to_MagIC):
             options_dict['avg'] = 1
             replicate = '-A'
 
-        COMMAND = "cit_magic.py -WD {} -f {} -F {} {} {} {} {} -ncn {} {} {} -Fsp {} -Fsi {} -Fsa {} {} {} {}".format(wd, CIT_file, outfile, particulars, spec_num, loc_name, user, ncn, peak_AF, ID, spec_outfile, site_outfile, samp_outfile, replicate,dc_flag,dc_params)
+        COMMAND = "cit_magic.py -WD {} -f {} -F {} {} {} {} {} -ncn {} {} {} {} -Fsp {} -Fsi {} -Fsa {} {} {} {}".format(wd, CIT_file, outfile, particulars, spec_num, loc_name, user, ncn, Z, peak_AF, ID, spec_outfile, site_outfile, samp_outfile, replicate,dc_flag,dc_params)
         # to run as module:
         program_ran, error_message = cit_magic.main(command_line=False, **options_dict)
         if program_ran:
