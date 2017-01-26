@@ -3917,27 +3917,30 @@ else:
                         self.site_data['int_abs'] = None
                         print '-W- No intensity data found for sites'
                     site=self.Data_hierarchy['site_of_sample'][sample_or_site]
-                    cond1=self.site_data['site'].str.contains(site+"$")==True
-                    cond2=self.site_data['int_abs'].notnull()==True
-                    condition=(cond1 & cond2)
-                    site_keys=['samples','int_abs','int_sigma','int_n_samples','int_sigma_perc','specimens','int_abs_sigma','int_abs_sigma_perc','vadm'] # zero these out but keep the rest
-                    blank_data={}
-                    for key in site_keys:
-                        blank_data[key] = ""
-                    self.site_data = self.site_container.update_record(site, blank_data, condition, update_only=True)
+                    try: # if site name is blank will skip
+                        cond1=self.site_data['site'].str.contains(site+"$")==True
+                        cond2=self.site_data['int_abs'].notnull()==True
+                        condition=(cond1 & cond2)
+                        site_keys=['samples','int_abs','int_sigma','int_n_samples','int_sigma_perc','specimens','int_abs_sigma','int_abs_sigma_perc','vadm'] # zero these out but keep the rest
+                        blank_data={}
+                        for key in site_keys:
+                            blank_data[key] = ""
+                        self.site_data = self.site_container.update_record(site, blank_data, condition, update_only=True)
                     # add record for sample in the site table
-                    cond1=self.site_data['site'].str.contains(sample_or_site+"$")==True
-                    cond2=self.site_data['int_abs'].notnull()==True
-                    condition=(cond1 & cond2)
+                        cond1=self.site_data['site'].str.contains(sample_or_site+"$")==True
+                        cond2=self.site_data['int_abs'].notnull()==True
+                        condition=(cond1 & cond2)
                     # change 'site' column to reflect sample name,
                     # since we are putting this sample at the site level
-                    new_data['site'] = sample_or_site
-                    new_data['samples'] = sample_or_site
-                    new_data['int_n_samples'] = '1'
-                    del new_data['sample'] # get rid of this key for site table
-                    new_data['vadm']=MagIC_results_data['pmag_results'][sample_or_site]["vadm"]
-                    new_data['vadm_sigma']=MagIC_results_data['pmag_results'][sample_or_site]["vadm_sigma"]
-                    self.site_data = self.site_container.update_record(sample_or_site, new_data, condition, debug=True)
+                        new_data['site'] = sample_or_site
+                        new_data['samples'] = sample_or_site
+                        new_data['int_n_samples'] = '1'
+                        del new_data['sample'] # get rid of this key for site table
+                        new_data['vadm']=MagIC_results_data['pmag_results'][sample_or_site]["vadm"]
+                        new_data['vadm_sigma']=MagIC_results_data['pmag_results'][sample_or_site]["vadm_sigma"]
+                        self.site_data = self.site_container.update_record(sample_or_site, new_data, condition, debug=True)
+                    except:
+                        pass # no site
                 else:  # do this by site and not by sample START HERE
                     cond1 = self.site_data['site'].str.contains(sample_or_site+"$")==True
                     if 'int_abs' not in self.site_data.columns:
