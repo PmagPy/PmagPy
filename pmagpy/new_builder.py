@@ -14,7 +14,7 @@ import numpy as np
 import pandas as pd
 from pandas import DataFrame
 # from pmagpy import pmag
-# from pmagpy import data_model3 as data_model
+from pmagpy import data_model3 as data_model
 import data_model3 as data_model
 import controlled_vocabularies3 as cv
 
@@ -35,6 +35,14 @@ class Contribution(object):
     def __init__(self, directory=".", read_tables='all',
                  custom_filenames=None, single_file=None,
                  dmodel=None, vocabulary=""):
+        if isinstance(dmodel, data_model.DataModel):
+            self.data_model = dmodel
+        else:
+            try:
+                self.data_model = Contribution.dmodel
+            except AttributeError:
+                Contribution.dmodel = data_model.DataModel()
+                self.data_model = Contribution.dmodel
         if isinstance(vocabulary, cv.Vocabulary):
             self.vocab = vocabulary
         else:
