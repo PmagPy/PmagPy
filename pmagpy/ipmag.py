@@ -50,7 +50,7 @@ def igrf_print(igrf_array):
 
 def dms2dd(degrees, minutes, seconds):
     """
-    Convert latitude/longitude in degrees, minutes, seconds to decimal degrees
+    Convert latitude/longitude of a location that is in degrees, minutes, seconds to decimal degrees
 
     Parameters
     ----------
