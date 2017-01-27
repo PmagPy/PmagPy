@@ -99,7 +99,7 @@ def fisher_mean(dec=None, inc=None, di_block=None):
 
 def bingham_mean(dec=None, inc=None, di_block=None):
     """
-    Calculates the Bingham mean and associated parameters from either a list of
+    Calculates the Bingham mean and associated statistical parameters from either a list of
     declination values and a separate list of inclination values or from a
     di_block (a nested list a nested list of [dec,inc,1.0]). Returns a
     dictionary with the Bingham mean and statistical parameters.
@@ -115,6 +115,10 @@ def bingham_mean(dec=None, inc=None, di_block=None):
 
     A di_block can be provided instead of dec, inc lists in which case it will
     be used. Either dec, inc lists or a di_block need to passed to the function.
+    
+    Returns
+    ---------
+    bpars : dictionary containing the Bingham mean and associated statistics.
     """
     if di_block is None:
         di_block = make_di_block(dec,inc)
@@ -125,7 +129,7 @@ def bingham_mean(dec=None, inc=None, di_block=None):
 
 def kent_mean(dec=None, inc=None, di_block=None):
     """
-    Calculates the Kent mean and associated parameters from either a list of
+    Calculates the Kent mean and associated statistical parameters from either a list of
     declination values and a separate list of inclination values or from a
     di_block (a nested list a nested list of [dec,inc,1.0]). Returns a
     dictionary with the Kent mean and statistical parameters.
@@ -141,12 +145,16 @@ def kent_mean(dec=None, inc=None, di_block=None):
 
     A di_block can be provided instead of dec, inc lists in which case it will
     be used. Either dec, inc lists or a di_block need to passed to the function.
+    
+    Returns
+    ----------
+    kpars : dictionary containing Kent mean and associated statistics.
     """
     if di_block is None:
         di_block = make_di_block(dec,inc)
-        return pmag.dokent(di_block,len(di_block))
+        return pmag.dokent(di_block)
     else:
-        return pmag.dokent(di_block,len(di_block))
+        return pmag.dokent(di_block)
 
 
 def print_direction_mean(mean_dictionary):
