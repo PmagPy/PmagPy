@@ -2275,8 +2275,9 @@ class OrientFrameGrid3(wx.Frame):
         # contribution has already propagated measurement data...
         if 'samples' not in self.contribution.tables:
             print '-E- No sample data available'
-            return
-        samples_name_list = self.contribution.tables['samples'].df.index.unique()
+            samples_name_list = []
+        else:
+            samples_name_list = self.contribution.tables['samples'].df.index.unique()
 
         self.orient_data = {}
         try:
