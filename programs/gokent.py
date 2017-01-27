@@ -55,7 +55,7 @@ def main():
             rec=line.split() # split each line on space to get records
         DIs.append((float(rec[0]),float(rec[1])))
 #
-    kpars=pmag.dokent(DIs,len(DIs))
+    kpars=pmag.dokent(DIs)
     output = '%7.1f %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f %i' % (kpars["dec"],kpars["inc"],kpars["Eta"],kpars["Edec"],kpars["Einc"],kpars["Zeta"],kpars["Zdec"],kpars["Zinc"],kpars["n"])
     if ofile == "":
         print output
