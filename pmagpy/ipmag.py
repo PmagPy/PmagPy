@@ -85,6 +85,10 @@ def fisher_mean(dec=None, inc=None, di_block=None):
 
     A di_block can be provided instead of dec, inc lists in which case it will
     be used. Either dec, inc lists or a di_block need to passed to the function.
+    
+    Returns
+    ----------
+    fisher_mean : dictionary containing the Fisher mean parameters
     """
     if di_block is None:
         di_block = make_di_block(dec,inc)
