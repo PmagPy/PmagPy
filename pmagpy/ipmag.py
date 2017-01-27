@@ -54,13 +54,13 @@ def dms2dd(degrees, minutes, seconds):
 
     Parameters
     ----------
-    degrees: degrees of latitude/longitude
-    minutes: minutes of latitude/longitude
-    seconds: seconds of latitude/longitude
+    degrees : degrees of latitude/longitude
+    minutes : minutes of latitude/longitude
+    seconds : seconds of latitude/longitude
 
     Returns
     ----------
-    decimal degrees of location
+    degrees : decimal degrees of location
 
     """
     dd = float(degrees) + float(minutes)/60 + float(seconds)/(60*60);
