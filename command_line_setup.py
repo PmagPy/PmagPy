@@ -14,7 +14,7 @@ import setuptools.command.install as install_lib
 # Get list of programs to alias
 from programs_list import programs_list
 
-version_num = '3.8.5'
+version_num = '3.8.6'
 here = path.abspath(path.dirname(__file__))
 
 packages = find_packages(exclude=['pmagpy', 'pmagpy_tests.examples'
