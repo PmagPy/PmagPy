@@ -159,8 +159,8 @@ def main(command_line=True, **kwargs):
 
     data['measurement_dec'] = direction[0]
     data['measurement_inc'] = direction[1]
-    data['measurement_magn_moment'] = direction[2] * 1000  # the data are in EMU - this converts to Am^2 
-    data['measurement_magn_volume'] = direction[2] * 1000 / volume # EMU  - data converted to A/m
+    data['measurement_magn_moment'] = direction[2] / 1000  # the data are in EMU - this converts to Am^2 
+    data['measurement_magn_volume'] = (direction[2] / 1000) / volume # EMU  - data converted to A/m
     
     # Configure the er_sample table
 
