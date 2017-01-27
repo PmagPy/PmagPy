@@ -198,8 +198,14 @@ def fishrot(k=20, n=100, dec=0, inc=90, di_block=True):
     n : number of vectors to determine (default is 100)
     dec : mean declination of distribution (default is 0)
     inc : mean inclination of distribution (default is 90)
-    di_block : this function returns a nested of [dec,inc,1.0] as the default
+    di_block : this function returns a nested list of [dec,inc,1.0] as the default
     if di_block = False it will return a list of dec and a list of inc
+    
+    Returns
+    ---------
+    di_block : a nested list of [dec,inc,1.0] (default) 
+    or
+    declination, inclination : a list of dec and a list of inc
     """
     directions=[]
     declinations=[]
@@ -234,6 +240,10 @@ def tk03(n=100,dec=0,lat=0,rev='no',G2=0,G3=0):
     rev : if reversals are to be included this should be 'yes' (default is 'no')
     G2 : specify average g_2^0 fraction (default is 0)
     G3 : specify average g_3^0 fraction (default is 0)
+    
+    Returns
+    ----------
+    tk_03_output : a nested list of declination, inclination, and intensity (in nT)
     """
     tk_03_output=[]
     for k in range(n):
@@ -259,6 +269,10 @@ def unsquish(incs,f):
     ----------
     incs : list of inclination values or a single value
     f : unflattening factor (between 0.0 and 1.0)
+    
+    Returns
+    ----------
+    incs_unsquished : List of unflattened inclinations (in degrees)
     """
     try:
         length = len(incs)
@@ -285,6 +299,10 @@ def squish(incs,f):
     ----------
     incs : list of inclination values or a single value
     f : flattening factor (between 0.0 and 1.0)
+    
+    Returns
+    ---------
+    incs_squished : List of flattened directions (in degrees)
     """
     try:
         length = len(incs)
@@ -323,6 +341,12 @@ def do_flip(dec=None, inc=None, di_block=None):
 
     A di_block can be provided instead of dec, inc lists in which case it will
     be used. Either dec, inc lists or a di_block need to passed to the function.
+    
+    Returns
+    ----------
+    dec_flip, inc_flip : list of flipped declinations and inclinations
+    or
+    dflip : a nested list of [dec,inc,1.0]
     """
     if di_block is None:
         dec_flip = []
@@ -357,10 +381,14 @@ def bootstrap_fold_test(Data,num_sims=1000,min_untilt=-10,max_untilt=120, beddin
 
     Optional Parameters (defaults are used if not specified)
     ----------
-    NumSims : number of bootstrap samples (default is 1000)
+    num_sims : number of bootstrap samples (default is 1000)
     min_untilt : minimum percent untilting applied to the data (default is -10%)
     max_untilt : maximum percent untilting applied to the data (default is 120%)
     bedding_error : (circular standard deviation) for uncertainty on bedding poles
+    save : optional save of plots (default is False)
+    save_folder : path to directory where plots should be saved
+    fmt : format of figures to be saved (default is 'svg')
+    ninety_nine : changes confidence bounds from default 95 percent to 99
     """
 
     print 'doing ',num_sims,' iterations...please be patient.....'
@@ -458,7 +486,7 @@ def common_mean_bootstrap(Data1,Data2,NumSims=1000, save=False, save_folder = '.
     save_folder : path to directory where plots should be saved
     fmt : format of figures to be saved (default is 'svg')
     figsize : optionally adjust figure size (default is (7, 2.3))
-    nbins : because they occasionally overlap depending on the data, this
+    x_tick_bins : because they occasionally overlap depending on the data, this
         argument allows you adjust number of tick marks on the x axis of graphs
         (default is 4)
     """
@@ -946,14 +974,15 @@ def inc_from_lat(lat):
 
     Parameter
     ----------
-    lat: latitude in degrees
+    lat : latitude in degrees
+    
+    Returns
+    -------
+    inc : inclination calculated using the dipole equation
     """
     rad=np.pi/180.
     inc=np.arctan(2*np.tan(lat*rad))/rad
     return inc
-
-
-
 
 
 def plot_net(fignum):
