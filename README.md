@@ -1,6 +1,6 @@
 ## What is it
 
-**PmagPy** is a comprehensive set of tools for analyzing paleomagnetic data. It facilitates interpretation of demagnetization data, Thellier-type experimental data and data from other types of rock magnetic experiments. PmagPy can be used to create a wide variety of useful plots. It is designed to work with the MagIC database (https://earthref.org/MagIC), allowing manipulation of downloaded data sets as well as preparation of new contributions for uploading to the MagIC database. Functions within PmagPy can be imported and used in Jupyter notebooks enabling fully documented and nicely illustrated data analysis.
+**PmagPy** is a comprehensive set of tools for analyzing paleomagnetic data. It facilitates interpretation of demagnetization data, Thellier-type experimental data and data from other types of rock magnetic experiments. PmagPy can be used to create a wide variety of useful plots and conduct statistical tests. It is designed to work with the MagIC database (https://earthref.org/MagIC), allowing manipulation of downloaded data sets as well as preparation of new contributions for uploading to the MagIC database. Functions within PmagPy can be imported and used in Jupyter notebooks enabling fully documented and nicely illustrated data analysis.
 
 ## Main features
 
@@ -13,7 +13,7 @@ PmagPy is comprised of:
   - The pmagpy function module for paleomagnetic data analysis (pmagpy.pmag) and plotting (pmagpy.pmagplotlib) as well as a function module that further enables paleomagnetic data analysis within interactive computing environments such as the Jupyter notebook (pmagpy.ipmag). The functions within these modules are at the heart of the GUI and command line programs. With pmagpy in the python path (which is accomplished using pip, see below), these modules are can be imported (e.g. ```import pmagpy.ipmag as ipmag```).
   - Example data files that are used in the examples provided in the PmagPy cookbook http://earthref.org/PmagPy/cookbook
 
-Use of all these features is described in the cookbook and the underlying science behind the data and code can be explored in the book Essentials of Paleomagnetism: Third Web Edition (http://earthref.org/MagIC/books/Tauxe/Essentials/).
+Use of all these features is described in the cookbook and the underlying science behind the data and code can be explored in the book Essentials of Paleomagnetism: Third Web Edition (http://earthref.org/MagIC/books/Tauxe/Essentials/). Example Jupyter notebooks using PmagPy can be found in this repository: https://github.com/PmagPy/2016_Tauxe-et-al_PmagPy_Notebooks.
 
 ## How to get it
 
@@ -58,11 +58,11 @@ If you want access to the master branch rather than the latest release you can:
 
 ## Background and support
 
-The code base for the PmagPy project has been built up over many years by Lisa Tauxe (Distinguished Professor of Geophysics at the Scripps Institution of Oceanography) supported by grants from the National Science Foundation. Ron Shaar (Senior Lecturer at the Hebrew University of Jerusalem), Lori Jonestrask and Nick Swanson-Hysell (Assistant Professor at UC Berkeley) have also made substantial contributions to the project.
+The code base for the PmagPy project has been built up over many years by Lisa Tauxe (Distinguished Professor of Geophysics at the Scripps Institution of Oceanography) supported by grants from the National Science Foundation. Substantial contributions to the project have been made by Nick Swanson-Hysell (Assistant Professor at UC Berkeley), Ron Shaar (Senior Lecturer at the Hebrew University of Jerusalem), Lori Jonestrask and Kevin Gaastra as well as others.
 
 ## Contributing
 
-If you want to get involved with the project - whether that means reporting a bug, requesting a feature, or adding significant code - please check out our [Contribution guidelines](https://github.com/PmagPy/PmagPy/blob/master/CONTRIBUTING.md).
+If you want to get involved with the project - whether that means reporting a bug, requesting a feature, or adding significant code - please check out the project's [Contribution guidelines](https://github.com/PmagPy/PmagPy/blob/master/CONTRIBUTING.md).
 
 ## More information
 
