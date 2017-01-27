@@ -53,7 +53,6 @@ class Contribution(object):
                 #Contribution.cv = vocab.get_controlled_vocabularies()
                 #self.cv = Contribution.cv
                 self.vocab = Contribution.vocab
-        self.data_model = dmodel
         self.directory = os.path.realpath(directory)
         self.table_names = ['measurements', 'specimens', 'samples',
                             'sites', 'locations', 'contribution',
