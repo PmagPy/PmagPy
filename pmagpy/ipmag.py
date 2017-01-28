@@ -2713,6 +2713,8 @@ def upload_magic3(concat=0, dir_path='.', dmodel=None, vocab=""):
                   "criteria", "contribution", "images"]
     file_names = [os.path.join(dir_path, dtype + ".txt") for dtype in dtypes]
     con = Contribution(dir_path, vocabulary=vocab)
+    # take out any extra added columns
+    con.remove_non_magic_cols()
     # begin the upload process
     up = os.path.join(dir_path, "upload.txt")
     if os.path.exists(up):
