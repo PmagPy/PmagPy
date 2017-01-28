@@ -6,7 +6,6 @@ import validate_upload3 as val_up3
 import copy
 import numpy as np
 import random
-import matplotlib
 import matplotlib.pyplot as plt
 import os
 import sys
@@ -14,7 +13,6 @@ import time
 import re
 #from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigureCanvas
 #from matplotlib.backends.backend_wx import NavigationToolbar2Wx
-from matplotlib.figure import Figure
 from mapping import map_magic
 
 
