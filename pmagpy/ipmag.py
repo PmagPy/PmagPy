@@ -12,7 +12,6 @@ import os
 import sys
 import time
 import re
-import math
 #from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigureCanvas
 #from matplotlib.backends.backend_wx import NavigationToolbar2Wx
 from matplotlib.figure import Figure
@@ -85,7 +84,7 @@ def fisher_mean(dec=None, inc=None, di_block=None):
 
     A di_block can be provided instead of dec, inc lists in which case it will
     be used. Either dec, inc lists or a di_block need to passed to the function.
-    
+
     Returns
     ----------
     fisher_mean : dictionary containing the Fisher mean parameters
@@ -115,7 +114,7 @@ def bingham_mean(dec=None, inc=None, di_block=None):
 
     A di_block can be provided instead of dec, inc lists in which case it will
     be used. Either dec, inc lists or a di_block need to passed to the function.
-    
+
     Returns
     ---------
     bpars : dictionary containing the Bingham mean and associated statistics.
@@ -145,7 +144,7 @@ def kent_mean(dec=None, inc=None, di_block=None):
 
     A di_block can be provided instead of dec, inc lists in which case it will
     be used. Either dec, inc lists or a di_block need to passed to the function.
-    
+
     Returns
     ----------
     kpars : dictionary containing Kent mean and associated statistics.
@@ -200,10 +199,10 @@ def fishrot(k=20, n=100, dec=0, inc=90, di_block=True):
     inc : mean inclination of distribution (default is 90)
     di_block : this function returns a nested list of [dec,inc,1.0] as the default
     if di_block = False it will return a list of dec and a list of inc
-    
+
     Returns
     ---------
-    di_block : a nested list of [dec,inc,1.0] (default) 
+    di_block : a nested list of [dec,inc,1.0] (default)
     or
     declination, inclination : a list of dec and a list of inc
     """
@@ -240,7 +239,7 @@ def tk03(n=100,dec=0,lat=0,rev='no',G2=0,G3=0):
     rev : if reversals are to be included this should be 'yes' (default is 'no')
     G2 : specify average g_2^0 fraction (default is 0)
     G3 : specify average g_3^0 fraction (default is 0)
-    
+
     Returns
     ----------
     tk_03_output : a nested list of declination, inclination, and intensity (in nT)
@@ -269,7 +268,7 @@ def unsquish(incs,f):
     ----------
     incs : list of inclination values or a single value
     f : unflattening factor (between 0.0 and 1.0)
-    
+
     Returns
     ----------
     incs_unsquished : List of unflattened inclinations (in degrees)
@@ -299,7 +298,7 @@ def squish(incs,f):
     ----------
     incs : list of inclination values or a single value
     f : flattening factor (between 0.0 and 1.0)
-    
+
     Returns
     ---------
     incs_squished : List of flattened directions (in degrees)
@@ -341,7 +340,7 @@ def do_flip(dec=None, inc=None, di_block=None):
 
     A di_block can be provided instead of dec, inc lists in which case it will
     be used. Either dec, inc lists or a di_block need to passed to the function.
-    
+
     Returns
     ----------
     dec_flip, inc_flip : list of flipped declinations and inclinations
@@ -975,7 +974,7 @@ def inc_from_lat(lat):
     Parameter
     ----------
     lat : latitude in degrees
-    
+
     Returns
     -------
     inc : inclination calculated using the dipole equation
@@ -4574,7 +4573,7 @@ def kly4s_magic(infile, specnum=0, locname="unknown", inst='SIO-KLY4S',
         datetime=datetime+rec[15]
         MeasRec['measurement_number']='1'
         MeasRec['measurement_date']=datetime
-        MeasRec['measurement_lab_field_ac']='%8.3e'%(4*math.pi*1e-7*float(rec[11])) # convert from A/m to T
+        MeasRec['measurement_lab_field_ac']='%8.3e'%(4*np.pi*1e-7*float(rec[11])) # convert from A/m to T
         MeasRec['measurement_temp']="300" # assumed room T in kelvin
         MeasRec['measurement_chi_volume']=rec[8]
         MeasRec['measurement_description']='Bulk measurement'
