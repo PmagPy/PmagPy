@@ -15,12 +15,12 @@ def main():
     DESCRIPTION
        makes equal area projections from declination/inclination data
 
-    SYNTAX 
+    SYNTAX
         eqarea_magic.py [command line options]
-    
-    INPUT 
+
+    INPUT
        takes magic formatted pmag_results, pmag_sites, pmag_samples or pmag_specimens
-    
+
     OPTIONS
         -h prints help message and quits
         -f FILE: specify input magic format file from magic,default='pmag_results.txt'
@@ -30,7 +30,7 @@ def main():
                 default is geographic, unspecified assumed geographic
         -fmt [svg,png,jpg] format for output plots
         -ell [F,K,B,Be,Bv] plot Fisher, Kent, Bingham, Bootstrap ellipses or Boostrap eigenvectors
-        -c plot as colour contour 
+        -c plot as colour contour
         -sav save plot and quit quietly
     NOTE
         all: entire file; sit: site; sam: sample; spc: specimen
@@ -61,19 +61,19 @@ def main():
         if plot_by=='spc':plot_key='er_specimen_name'
     if '-c' in sys.argv: contour=1
     plt=0
-    if '-sav' in sys.argv: 
+    if '-sav' in sys.argv:
         plt=1
         verbose=0
     if '-ell' in sys.argv:
         plotE=1
         ind=sys.argv.index('-ell')
         ell_type=sys.argv[ind+1]
-        if ell_type=='F':dist='F' 
-        if ell_type=='K':dist='K' 
-        if ell_type=='B':dist='B' 
-        if ell_type=='Be':dist='BE' 
+        if ell_type=='F':dist='F'
+        if ell_type=='K':dist='K'
+        if ell_type=='B':dist='B'
+        if ell_type=='Be':dist='BE'
         if ell_type=='Bv':
-            dist='BV' 
+            dist='BV'
             FIG['bdirs']=2
             pmagplotlib.plot_init(FIG['bdirs'],5,5)
     if '-crd' in sys.argv:
@@ -92,7 +92,7 @@ def main():
     Name_keys=['er_specimen_name','er_sample_name','er_site_name','pmag_result_name']
     data,file_type=pmag.magic_read(in_file)
     if file_type=='pmag_results' and plot_key!="all":plot_key=plot_key+'s' # need plural for results table
-    if verbose:    
+    if verbose:
         print len(data),' records read from ',in_file
     #
     #
@@ -119,14 +119,14 @@ def main():
         title=plot
         mode=1
         dec_key,inc_key,tilt_key,name_key,k="","","","",0
-        if plot!="All": 
+        if plot!="All":
             odata=pmag.get_dictitem(data,plot_key,plot,'T')
         else: odata=data # data for this obj
         for dec_key in Dec_keys:
-            Decs=pmag.get_dictitem(odata,dec_key,'','F') # get all records with this dec_key not blank 
+            Decs=pmag.get_dictitem(odata,dec_key,'','F') # get all records with this dec_key not blank
             if len(Decs)>0: break
         for inc_key in Inc_keys:
-            Incs=pmag.get_dictitem(Decs,inc_key,'','F') # get all records with this inc_key not blank 
+            Incs=pmag.get_dictitem(Decs,inc_key,'','F') # get all records with this inc_key not blank
             if len(Incs)>0: break
         for tilt_key in Tilt_keys:
             if tilt_key in Incs[0].keys(): break # find the tilt_key for these records
@@ -136,12 +136,12 @@ def main():
         cdata=pmag.get_dictitem(Incs,tilt_key,coord,'T') # get all records matching specified coordinate system
         if coord=='0': # geographic
             udata=pmag.get_dictitem(Incs,tilt_key,'','T') # get all the blank records - assume geographic
-            if len(cdata)==0: crd='' 
+            if len(cdata)==0: crd=''
             if len(udata)>0:
-                for d in udata:cdata.append(d)  
+                for d in udata:cdata.append(d)
                 crd=crd+'u'
         for name_key in Name_keys:
-            Names=pmag.get_dictitem(cdata,name_key,'','F') # get all records with this name_key not blank 
+            Names=pmag.get_dictitem(cdata,name_key,'','F') # get all records with this name_key not blank
             if len(Names)>0: break
         for dir_type_key in Dir_type_keys:
             Dirs=pmag.get_dictitem(cdata,dir_type_key,'','F') # get all records with this direction type
@@ -181,7 +181,7 @@ def main():
             print '%s %s %7.1f %7.1f'%(SLblock[k][0],SLblock[k][1],DIblock[k][0],DIblock[k][1])
           for k in range(len(SPblock)):
             print '%s %s %7.1f %7.1f'%(SPblock[k][0],SPblock[k][1],GCblock[k][0],GCblock[k][1])
-        if len(DIblock)>0: 
+        if len(DIblock)>0:
             if contour==0:
                 pmagplotlib.plotEQ(FIG['eqarea'],DIblock,title)
             else:
@@ -204,13 +204,13 @@ def main():
                 for key in bpars.keys():
                     if key!='n' and verbose:print "    ",key, '%7.1f'%(bpars[key])
                     if key=='n' and verbose:print "    ",key, '       %i'%(bpars[key])
-                npars.append(bpars['dec']) 
+                npars.append(bpars['dec'])
                 npars.append(bpars['inc'])
-                npars.append(bpars['Zeta']) 
-                npars.append(bpars['Zdec']) 
+                npars.append(bpars['Zeta'])
+                npars.append(bpars['Zdec'])
                 npars.append(bpars['Zinc'])
-                npars.append(bpars['Eta']) 
-                npars.append(bpars['Edec']) 
+                npars.append(bpars['Eta'])
+                npars.append(bpars['Edec'])
                 npars.append(bpars['Einc'])
             if dist=='F':
                 etitle="Fisher confidence cone"
@@ -220,13 +220,13 @@ def main():
                         if key!='n' and verbose:print "    ",key, '%7.1f'%(fpars[key])
                         if key=='n' and verbose:print "    ",key, '       %i'%(fpars[key])
                     mode+=1
-                    npars.append(fpars['dec']) 
+                    npars.append(fpars['dec'])
                     npars.append(fpars['inc'])
                     npars.append(fpars['alpha95']) # Beta
-                    npars.append(fpars['dec']) 
-                    isign=abs(fpars['inc'])/fpars['inc'] 
+                    npars.append(fpars['dec'])
+                    isign=abs(fpars['inc'])/fpars['inc']
                     npars.append(fpars['inc']-isign*90.) #Beta inc
-                    npars.append(fpars['alpha95']) # gamma 
+                    npars.append(fpars['alpha95']) # gamma
                     npars.append(fpars['dec']+90.) # Beta dec
                     npars.append(0.) #Beta inc
                 if len(rDIs)>2:
@@ -236,80 +236,80 @@ def main():
                         if key!='n' and verbose:print "    ",key, '%7.1f'%(fpars[key])
                         if key=='n' and verbose:print "    ",key, '       %i'%(fpars[key])
                     mode+=1
-                    rpars.append(fpars['dec']) 
+                    rpars.append(fpars['dec'])
                     rpars.append(fpars['inc'])
                     rpars.append(fpars['alpha95']) # Beta
-                    rpars.append(fpars['dec']) 
-                    isign=abs(fpars['inc'])/fpars['inc'] 
+                    rpars.append(fpars['dec'])
+                    isign=abs(fpars['inc'])/fpars['inc']
                     rpars.append(fpars['inc']-isign*90.) #Beta inc
-                    rpars.append(fpars['alpha95']) # gamma 
+                    rpars.append(fpars['alpha95']) # gamma
                     rpars.append(fpars['dec']+90.) # Beta dec
                     rpars.append(0.) #Beta inc
             if dist=='K':
                 etitle="Kent confidence ellipse"
                 if len(nDIs)>3:
-                    kpars=pmag.dokent(nDIs,len(nDIs))
+                    kpars=pmag.dokent(nDIs)
                     if verbose:print "mode ",mode
                     for key in kpars.keys():
                         if key!='n' and verbose:print "    ",key, '%7.1f'%(kpars[key])
                         if key=='n' and verbose:print "    ",key, '       %i'%(kpars[key])
                     mode+=1
-                    npars.append(kpars['dec']) 
+                    npars.append(kpars['dec'])
                     npars.append(kpars['inc'])
-                    npars.append(kpars['Zeta']) 
-                    npars.append(kpars['Zdec']) 
+                    npars.append(kpars['Zeta'])
+                    npars.append(kpars['Zdec'])
                     npars.append(kpars['Zinc'])
-                    npars.append(kpars['Eta']) 
-                    npars.append(kpars['Edec']) 
+                    npars.append(kpars['Eta'])
+                    npars.append(kpars['Edec'])
                     npars.append(kpars['Einc'])
                 if len(rDIs)>3:
-                    kpars=pmag.dokent(rDIs,len(rDIs))
+                    kpars=pmag.dokent(rDIs)
                     if verbose:print "mode ",mode
                     for key in kpars.keys():
                         if key!='n' and verbose:print "    ",key, '%7.1f'%(kpars[key])
                         if key=='n' and verbose:print "    ",key, '       %i'%(kpars[key])
                     mode+=1
-                    rpars.append(kpars['dec']) 
+                    rpars.append(kpars['dec'])
                     rpars.append(kpars['inc'])
-                    rpars.append(kpars['Zeta']) 
-                    rpars.append(kpars['Zdec']) 
+                    rpars.append(kpars['Zeta'])
+                    rpars.append(kpars['Zdec'])
                     rpars.append(kpars['Zinc'])
-                    rpars.append(kpars['Eta']) 
-                    rpars.append(kpars['Edec']) 
+                    rpars.append(kpars['Eta'])
+                    rpars.append(kpars['Edec'])
                     rpars.append(kpars['Einc'])
             else: # assume bootstrap
                 if dist=='BE':
                     if len(nDIs)>5:
                         BnDIs=pmag.di_boot(nDIs)
-                        Bkpars=pmag.dokent(BnDIs,1.)
+                        Bkpars=pmag.dokent(BnDIs)
                         if verbose:print "mode ",mode
                         for key in Bkpars.keys():
                             if key!='n' and verbose:print "    ",key, '%7.1f'%(Bkpars[key])
                             if key=='n' and verbose:print "    ",key, '       %i'%(Bkpars[key])
                         mode+=1
-                        npars.append(Bkpars['dec']) 
+                        npars.append(Bkpars['dec'])
                         npars.append(Bkpars['inc'])
-                        npars.append(Bkpars['Zeta']) 
-                        npars.append(Bkpars['Zdec']) 
+                        npars.append(Bkpars['Zeta'])
+                        npars.append(Bkpars['Zdec'])
                         npars.append(Bkpars['Zinc'])
-                        npars.append(Bkpars['Eta']) 
-                        npars.append(Bkpars['Edec']) 
+                        npars.append(Bkpars['Eta'])
+                        npars.append(Bkpars['Edec'])
                         npars.append(Bkpars['Einc'])
                     if len(rDIs)>5:
                         BrDIs=pmag.di_boot(rDIs)
-                        Bkpars=pmag.dokent(BrDIs,1.)
+                        Bkpars=pmag.dokent(BrDIs)
                         if verbose:print "mode ",mode
                         for key in Bkpars.keys():
                             if key!='n' and verbose:print "    ",key, '%7.1f'%(Bkpars[key])
                             if key=='n' and verbose:print "    ",key, '       %i'%(Bkpars[key])
                         mode+=1
-                        rpars.append(Bkpars['dec']) 
+                        rpars.append(Bkpars['dec'])
                         rpars.append(Bkpars['inc'])
-                        rpars.append(Bkpars['Zeta']) 
-                        rpars.append(Bkpars['Zdec']) 
+                        rpars.append(Bkpars['Zeta'])
+                        rpars.append(Bkpars['Zdec'])
                         rpars.append(Bkpars['Zinc'])
-                        rpars.append(Bkpars['Eta']) 
-                        rpars.append(Bkpars['Edec']) 
+                        rpars.append(Bkpars['Eta'])
+                        rpars.append(Bkpars['Edec'])
                         rpars.append(Bkpars['Einc'])
                     etitle="Bootstrapped confidence ellipse"
                 elif dist=='BV':
@@ -337,7 +337,7 @@ def main():
         locations=locations[:-1]
         for key in FIG.keys():
             filename='LO:_'+locations+'_SI:_'+site+'_SA:_'+sample+'_SP:_'+specimen+'_CO:_'+crd+'_TY:_'+key+'_.'+fmt
-            files[key]=filename 
+            files[key]=filename
         if pmagplotlib.isServer:
             black     = '#000000'
             purple    = '#800080'
@@ -348,9 +348,9 @@ def main():
         elif verbose:
             ans=raw_input(" S[a]ve to save plot, [q]uit, Return to continue:  ")
             if ans=="q": sys.exit()
-            if ans=="a": pmagplotlib.saveP(FIG,files) 
+            if ans=="a": pmagplotlib.saveP(FIG,files)
         if plt:
-           pmagplotlib.saveP(FIG,files) 
+           pmagplotlib.saveP(FIG,files)
 
 if __name__ == "__main__":
-    main() 
+    main()
