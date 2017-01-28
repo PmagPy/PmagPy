@@ -379,6 +379,22 @@ class Contribution(object):
         self.tables[target_df_name].df = target_df
         return target_df
 
+    def remove_non_magic_cols(self):
+        """
+        Remove all non-MagIC columns from all tables.
+        """
+        for table_name in self.tables:
+            table = self.tables[table_name]
+            table_dm = self.data_model.dm[table_name]
+            approved_cols = table_dm.index
+            unrecognized_cols = (set(table.df.columns) - set(approved_cols))
+            if unrecognized_cols:
+                print '-I- Removing non-MagIC column names from {}:'.format(table_name),
+                for col in unrecognized_cols:
+                    self.tables[table_name].df.drop(col, axis='columns', inplace=True)
+                    print col,
+                print "\n"
+
 
 class MagicDataFrame(object):
 
