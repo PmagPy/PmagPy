@@ -282,7 +282,7 @@ def main():
             if dist=='K':
                 etitle="Kent confidence ellipse"
                 if len(nDIs)>3:
-                    kpars=pmag.dokent(nDIs)
+                    kpars=pmag.dokent(nDIs,len(nDIs))
                     if verbose: print "mode ",mode
                     for key in kpars.keys():
                         if key!='n' and verbose: print "    ",key, '%7.1f'%(kpars[key])
@@ -297,7 +297,7 @@ def main():
                     npars.append(kpars['Edec'])
                     npars.append(kpars['Einc'])
                 if len(rDIs)>3:
-                    kpars=pmag.dokent(rDIs)
+                    kpars=pmag.dokent(rDIs,len(rDIs))
                     if verbose: print "mode ",mode
                     for key in kpars.keys():
                         if key!='n' and verbose: print "    ",key, '%7.1f'%(kpars[key])
@@ -315,7 +315,7 @@ def main():
                 if dist=='BE':
                     if len(nDIs)>5:
                         BnDIs=pmag.di_boot(nDIs)
-                        Bkpars=pmag.dokent(BnDIs)
+                        Bkpars=pmag.dokent(BnDIs,1.)
                         if verbose: print "mode ",mode
                         for key in Bkpars.keys():
                             if key!='n' and verbose: print "    ",key, '%7.1f'%(Bkpars[key])
@@ -331,7 +331,7 @@ def main():
                         npars.append(Bkpars['Einc'])
                     if len(rDIs)>5:
                         BrDIs=pmag.di_boot(rDIs)
-                        Bkpars=pmag.dokent(BrDIs)
+                        Bkpars=pmag.dokent(BrDIs,1.)
                         if verbose: print "mode ",mode
                         for key in Bkpars.keys():
                             if key!='n' and verbose: print "    ",key, '%7.1f'%(Bkpars[key])
