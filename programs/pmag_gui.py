@@ -380,7 +380,7 @@ class MagMainFrame(wx.Frame):
     def on_run_demag_gui(self, event):
         outstring = "demag_gui.py -WD %s"%self.WD
         print "-I- running python script:\n %s"%(outstring)
-        demag_gui.main(self.WD, standalone_app=False, parent=self)
+        demag_gui.main(self.WD, standalone_app=False, parent=self, DM=self.data_model_num)
 
     def on_convert_file(self, event):
         pmag_dialogs_dia = pmag_basic_dialogs.import_magnetometer_data(self, wx.ID_ANY, '', self.WD)

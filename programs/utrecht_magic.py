@@ -24,8 +24,16 @@ def main(command_line=True, **kwargs):
         -Fsa: specify er_samples format file for appending, default is new er_samples.txt (Not working yet)
         -WD: output directory for MagIC files
         -ncn: Site Naming Convention
-            [1: default] XXXX-YY: YY sample from site XXXX (XXX, YY of arbitary length)
-            [2-Z] XXXX[YYY]:  YYY is sample designation with Z characters from site XXX
+         Site to Sample naming convention:
+            [1] XXXXY: where XXXX is an arbitrary length site designation and Y
+                is the single character sample designation.  e.g., TG001a is the
+                first sample from site TG001.    [default]
+            [2: default] XXXX-YY: YY sample from site XXXX (XXX, YY of arbitary length)
+            [3] XXXX.YY: YY sample from site XXXX (XXX, YY of arbitary length)
+            [4-Z] XXXX[YYY]:  YYY is sample designation with Z characters from site XXX
+            [5] site name = sample name
+            [6] site name entered in site_name column in the orient.txt format input file  -- NOT CURRENTLY SUPPORTED
+            [7-Z] [XXX]YYY:  XXX is site designation with Z characters from samples  XXXYYY
         -spc: number of characters to remove to generate sample names from specimen names
         -dmy: European date format
         -loc LOCNAME : specify location/study name
@@ -46,6 +54,7 @@ def main(command_line=True, **kwargs):
     args = sys.argv
     meth_code = "LP-NO"
     version_num = pmag.get_version()
+    site_num = 1
 
     mag_file = ""
     dir_path = '.'
@@ -115,13 +124,20 @@ def main(command_line=True, **kwargs):
         if "-ncn" in args:
             ind=args.index("-ncn")
             samp_con=sys.argv[ind+1]
-            if "2" in samp_con:
+            if "4" in samp_con:
                 if "-" not in samp_con:
-                    print "option [2] must be in form 2-Z where Z is an integer"
-                    return False, "naming convention option [2] must be in form 2-Z where Z is an integer"
+                    print "option [4] must be in form 4-Z where Z is an integer"
+                    return False, "naming convention option [4] must be in form 4-Z where Z is an integer"
                 else:
                     site_num=samp_con.split("-")[1]
-                    samp_con="2"
+                    samp_con="4"
+            elif "7" in samp_con:
+                if "-" not in samp_con:
+                    print "option [7] must be in form 7-Z where Z is an integer"
+                    return False, "naming convention option [7] must be in form 7-Z where Z is an integer"
+                else:
+                    site_num=samp_con.split("-")[1]
+                    samp_con="7"
         else: samp_con="1"
         if '-dc' in args:
             ind=args.index('-dc')
@@ -149,16 +165,31 @@ def main(command_line=True, **kwargs):
         spec_file = kwargs.get('spec_file', 'er_specimens.txt') # specimen outfile
         samp_file = kwargs.get('samp_file', 'er_samples.txt')
         site_file = kwargs.get('site_file', 'er_sites.txt') # site outfile
-        er_location_name = kwargs.get('er_location_name', '')
+        er_location_name = kwargs.get('location_name', '')
         site_lat = kwargs.get('site_lat', '')
         site_lon = kwargs.get('site_lon', '')
         #oave = kwargs.get('noave', 0) # default (0) means DO average
         meth_code = kwargs.get('meth_code', "LP-NO")
         specnum = -int(kwargs.get('specnum', 0))
-        samp_con = kwargs.get('samp_con', '1')
-        if samp_con.startswith('2'): site_num=samp_con.split('-')
+        samp_con = kwargs.get('samp_con', '2')
+        if "4" in samp_con:
+            if "-" not in samp_con:
+                print "option [4] must be in form 4-Z where Z is an integer"
+                return False, "naming convention option [4] must be in form 4-Z where Z is an integer"
+            else:
+                site_num=samp_con.split("-")[1]
+                samp_con="4"
+        elif "7" in samp_con:
+            if "-" not in samp_con:
+                print "option [7] must be in form 7-Z where Z is an integer"
+                return False, "naming convention option [7] must be in form 7-Z where Z is an integer"
+            else:
+                site_num=samp_con.split("-")[1]
+                samp_con="7"
         DC_FIELD,DC_PHI,DC_THETA = map(float, kwargs.get('dc_params', (0,0,-90)))
         DC_FIELD *= 1e-6
+        noave = kwargs.get('avg', True)
+        dmy_flag = kwargs.get('dmy_flag', False)
 
     # format variables
     if not mag_file:
@@ -214,10 +245,7 @@ def main(command_line=True, **kwargs):
         else: sample_name = spec_name[:specnum]
         ErSampRec['er_sample_name'] = sample_name
         ErSpecRec['er_sample_name'] = sample_name
-        if samp_con=='1':
-            er_site_name = sample_name.split('-')[0]
-        if samp_con=='2':
-            er_site_name = sample_name[:-site_num]
+        er_site_name = pmag.parse_site(sample_name,samp_con,site_num)
         ErSpecRec['er_site_name']=er_site_name
         ErSpecRec['er_location_name']=er_location_name
         ErSampRec['sample_azimuth'] = dec
@@ -227,8 +255,10 @@ def main(command_line=True, **kwargs):
         ErSiteRec['site_lat'] = site_lat
         ErSiteRec['site_lon'] = site_lon
         ErSpecRec['magic_method_codes'] = meth_code
+        ErSampRec['er_location_name'] = er_location_name
         ErSiteRec['er_location_name'] = er_location_name
         ErSiteRec['er_site_name'] = er_site_name
+        ErSampRec['er_site_name'] = er_site_name
         ErSampRec['er_citation_names'] = 'This study'
         SpecOuts.append(ErSpecRec)
         SampOuts.append(ErSampRec)
@@ -255,14 +285,8 @@ def main(command_line=True, **kwargs):
             Z=-A
             X=-B
             Y=C
-            print("-------------------------------------------------------")
-            print(A,B,C)
-            print(X,Y,Z)
             cart = np.array([X, Y, Z]).transpose()
-            print(cart)
             direction = pmag.cart2dir(cart).transpose()
-            print(direction)
-            print("-------------------------------------------------------")
             measurement_dec = direction[0]
             measurement_inc = direction[1]
             measurement_magn_moment = direction[2] * 1.0e-12 # the data are in pico-Am^2 - this converts to Am^2
@@ -359,9 +383,9 @@ def main(command_line=True, **kwargs):
         items = line.split(",")
 
 # write out the data to MagIC data files
-    pmag.magic_write(spec_file, SampOuts, 'er_specimens')
+    pmag.magic_write(spec_file, SpecOuts, 'er_specimens')
     pmag.magic_write(samp_file, SampOuts, 'er_samples')
-    pmag.magic_write(site_file, SampOuts, 'er_sites')
+    pmag.magic_write(site_file, SiteOuts, 'er_sites')
 #    MagOuts = pmag.measurements_methods(MagRecs, noave)
 #    pmag.magic_write(meas_file, MagOuts, 'magic_measurements')
     pmag.magic_write(meas_file, MagRecs, 'magic_measurements')

@@ -3068,7 +3068,7 @@ class Demag_GUI(wx.Frame):
                 self.samp_data.set_index('sample',inplace=True)
                 self.samp_data['sample'] = self.samp_data.index
 
-            if 'site' not in self.samp_data.columns or 'site' not in self.site_data.columns:
+            if 'site' not in self.samp_data.columns and 'site' not in self.site_data.columns:
                 ui_dialog = demag_dialogs.user_input(self,["# of characters to remove","site delimiter"], heading="No Site Data found attempting to create site names from specimen names")
                 self.show_dlg(ui_dialog)
                 ui_data = ui_dialog.get_values()

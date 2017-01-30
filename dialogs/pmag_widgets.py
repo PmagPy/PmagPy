@@ -428,6 +428,29 @@ class lab_field(wx.StaticBoxSizer):
             return ''
         return labfield
 
+class site_lat_lon(wx.StaticBoxSizer):
+
+    def __init__(self, parent):
+        box = wx.StaticBox(parent, wx.ID_ANY, "", size=(100, 100))
+        super(site_lat_lon, self).__init__(box, orient=wx.VERTICAL)
+        text = "Lattitude and Longitude of Site"
+        self.file_info_text = wx.StaticText(parent, label=text, style=wx.TE_CENTER)
+        self.file_info_site_lat = wx.TextCtrl(parent, id=-1, size=(40, 25))
+        self.file_info_site_lon = wx.TextCtrl(parent, id=-1, size=(40, 25))
+        gridbSizer3 = wx.GridSizer(2, 2, 0, 10)
+        gridbSizer3.AddMany([(wx.StaticText(parent, label="Lattitude (degrees)", style=wx.TE_CENTER), wx.ALIGN_LEFT),
+                             (wx.StaticText(parent, label="Longitude (degrees)", style=wx.TE_CENTER), wx.ALIGN_LEFT),
+                             (self.file_info_site_lat, wx.ALIGN_LEFT),
+                             (self.file_info_site_lon, wx.ALIGN_LEFT)])
+        self.Add(self.file_info_text, wx.ALIGN_LEFT)
+        self.AddSpacer(8)
+        self.Add(gridbSizer3, wx.ALIGN_LEFT)
+
+    def return_value(self):
+        latlon = "{} {}".format(self.file_info_site_lat.GetValue(), self.file_info_site_lon.GetValue())
+        if latlon.isspace():
+            return ''
+        return latlon
 
 class synthetic(wx.StaticBoxSizer):
     def __init__(self, parent):
