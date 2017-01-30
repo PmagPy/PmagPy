@@ -17,12 +17,12 @@ def main():
        makes equal area projections from declination/inclination data
        and plot ellipses
 
-    SYNTAX
+    SYNTAX 
         eqarea_ell.py -h [command line options]
-
-    INPUT
+    
+    INPUT 
        takes space delimited Dec/Inc data
-
+    
     OPTIONS
         -h prints help message and quits
         -f FILE
@@ -48,19 +48,19 @@ def main():
         plotE=1
         ind=sys.argv.index('-ell')
         ell_type=sys.argv[ind+1]
-        if ell_type=='F':dist='F'
-        if ell_type=='K':dist='K'
-        if ell_type=='B':dist='B'
-        if ell_type=='Be':dist='BE'
+        if ell_type=='F':dist='F' 
+        if ell_type=='K':dist='K' 
+        if ell_type=='B':dist='B' 
+        if ell_type=='Be':dist='BE' 
         if ell_type=='Bv':
-            dist='BV'
+            dist='BV' 
             FIG['bdirs']=2
             pmagplotlib.plot_init(FIG['bdirs'],5,5)
     if '-fmt' in sys.argv:
         ind=sys.argv.index("-fmt")
         fmt=sys.argv[ind+1]
     DIblock=numpy.array([data[0],data[1]]).transpose()
-    if len(DIblock)>0:
+    if len(DIblock)>0: 
         pmagplotlib.plotEQsym(FIG['eq'],DIblock,title,sym)
         if plot==0:pmagplotlib.drawFIGS(FIG)
     else:
@@ -81,13 +81,13 @@ def main():
             for key in bpars.keys():
                 if key!='n' and pmagplotlib.verbose:print "    ",key, '%7.1f'%(bpars[key])
                 if key=='n' and pmagplotlib.verbose:print "    ",key, '       %i'%(bpars[key])
-            npars.append(bpars['dec'])
+            npars.append(bpars['dec']) 
             npars.append(bpars['inc'])
-            npars.append(bpars['Zeta'])
-            npars.append(bpars['Zdec'])
+            npars.append(bpars['Zeta']) 
+            npars.append(bpars['Zdec']) 
             npars.append(bpars['Zinc'])
-            npars.append(bpars['Eta'])
-            npars.append(bpars['Edec'])
+            npars.append(bpars['Eta']) 
+            npars.append(bpars['Edec']) 
             npars.append(bpars['Einc'])
         if dist=='F':
             etitle="Fisher confidence cone"
@@ -97,13 +97,13 @@ def main():
                     if key!='n' and pmagplotlib.verbose:print "    ",key, '%7.1f'%(fpars[key])
                     if key=='n' and pmagplotlib.verbose:print "    ",key, '       %i'%(fpars[key])
                 mode+=1
-                npars.append(fpars['dec'])
+                npars.append(fpars['dec']) 
                 npars.append(fpars['inc'])
                 npars.append(fpars['alpha95']) # Beta
-                npars.append(fpars['dec'])
-                isign=abs(fpars['inc'])/fpars['inc']
+                npars.append(fpars['dec']) 
+                isign=abs(fpars['inc'])/fpars['inc'] 
                 npars.append(fpars['inc']-isign*90.) #Beta inc
-                npars.append(fpars['alpha95']) # gamma
+                npars.append(fpars['alpha95']) # gamma 
                 npars.append(fpars['dec']+90.) # Beta dec
                 npars.append(0.) #Beta inc
             if len(rDIs)>3:
@@ -113,46 +113,46 @@ def main():
                     if key!='n' and pmagplotlib.verbose:print "    ",key, '%7.1f'%(fpars[key])
                     if key=='n' and pmagplotlib.verbose:print "    ",key, '       %i'%(fpars[key])
                 mode+=1
-                rpars.append(fpars['dec'])
+                rpars.append(fpars['dec']) 
                 rpars.append(fpars['inc'])
                 rpars.append(fpars['alpha95']) # Beta
-                rpars.append(fpars['dec'])
-                isign=abs(fpars['inc'])/fpars['inc']
+                rpars.append(fpars['dec']) 
+                isign=abs(fpars['inc'])/fpars['inc'] 
                 rpars.append(fpars['inc']-isign*90.) #Beta inc
-                rpars.append(fpars['alpha95']) # gamma
+                rpars.append(fpars['alpha95']) # gamma 
                 rpars.append(fpars['dec']+90.) # Beta dec
                 rpars.append(0.) #Beta inc
         if dist=='K':
             etitle="Kent confidence ellipse"
             if len(nDIs)>3:
-                kpars=pmag.dokent(nDIs)
+                kpars=pmag.dokent(nDIs,len(nDIs))
                 if pmagplotlib.verbose:print "mode ",mode
                 for key in kpars.keys():
                     if key!='n' and pmagplotlib.verbose:print "    ",key, '%7.1f'%(kpars[key])
                     if key=='n' and pmagplotlib.verbose:print "    ",key, '       %i'%(kpars[key])
                 mode+=1
-                npars.append(kpars['dec'])
+                npars.append(kpars['dec']) 
                 npars.append(kpars['inc'])
-                npars.append(kpars['Zeta'])
-                npars.append(kpars['Zdec'])
+                npars.append(kpars['Zeta']) 
+                npars.append(kpars['Zdec']) 
                 npars.append(kpars['Zinc'])
-                npars.append(kpars['Eta'])
-                npars.append(kpars['Edec'])
+                npars.append(kpars['Eta']) 
+                npars.append(kpars['Edec']) 
                 npars.append(kpars['Einc'])
             if len(rDIs)>3:
-                kpars=pmag.dokent(rDIs)
+                kpars=pmag.dokent(rDIs,len(rDIs))
                 if pmagplotlib.verbose:print "mode ",mode
                 for key in kpars.keys():
                     if key!='n' and pmagplotlib.verbose:print "    ",key, '%7.1f'%(kpars[key])
                     if key=='n' and pmagplotlib.verbose:print "    ",key, '       %i'%(kpars[key])
                 mode+=1
-                rpars.append(kpars['dec'])
+                rpars.append(kpars['dec']) 
                 rpars.append(kpars['inc'])
-                rpars.append(kpars['Zeta'])
-                rpars.append(kpars['Zdec'])
+                rpars.append(kpars['Zeta']) 
+                rpars.append(kpars['Zdec']) 
                 rpars.append(kpars['Zinc'])
-                rpars.append(kpars['Eta'])
-                rpars.append(kpars['Edec'])
+                rpars.append(kpars['Eta']) 
+                rpars.append(kpars['Edec']) 
                 rpars.append(kpars['Einc'])
         else: # assume bootstrap
             if len(nDIs)<10 and len(rDIs)<10:
@@ -162,35 +162,35 @@ def main():
                 print 'Be patient for bootstrap...'
                 if len(nDIs)>=10:
                     BnDIs=pmag.di_boot(nDIs)
-                    Bkpars=pmag.dokent(BnDIs)
+                    Bkpars=pmag.dokent(BnDIs,1.)
                     if pmagplotlib.verbose:print "mode ",mode
                     for key in Bkpars.keys():
                         if key!='n' and pmagplotlib.verbose:print "    ",key, '%7.1f'%(Bkpars[key])
                         if key=='n' and pmagplotlib.verbose:print "    ",key, '       %i'%(Bkpars[key])
                     mode+=1
-                    npars.append(Bkpars['dec'])
+                    npars.append(Bkpars['dec']) 
                     npars.append(Bkpars['inc'])
-                    npars.append(Bkpars['Zeta'])
-                    npars.append(Bkpars['Zdec'])
+                    npars.append(Bkpars['Zeta']) 
+                    npars.append(Bkpars['Zdec']) 
                     npars.append(Bkpars['Zinc'])
-                    npars.append(Bkpars['Eta'])
-                    npars.append(Bkpars['Edec'])
+                    npars.append(Bkpars['Eta']) 
+                    npars.append(Bkpars['Edec']) 
                     npars.append(Bkpars['Einc'])
                 if len(rDIs)>=10:
                     BrDIs=pmag.di_boot(rDIs)
-                    Bkpars=pmag.dokent(BrDIs)
+                    Bkpars=pmag.dokent(BrDIs,1.)
                     if pmagplotlib.verbose:print "mode ",mode
                     for key in Bkpars.keys():
                         if key!='n' and pmagplotlib.verbose:print "    ",key, '%7.1f'%(Bkpars[key])
                         if key=='n' and pmagplotlib.verbose:print "    ",key, '       %i'%(Bkpars[key])
                     mode+=1
-                    rpars.append(Bkpars['dec'])
+                    rpars.append(Bkpars['dec']) 
                     rpars.append(Bkpars['inc'])
-                    rpars.append(Bkpars['Zeta'])
-                    rpars.append(Bkpars['Zdec'])
+                    rpars.append(Bkpars['Zeta']) 
+                    rpars.append(Bkpars['Zdec']) 
                     rpars.append(Bkpars['Zinc'])
-                    rpars.append(Bkpars['Eta'])
-                    rpars.append(Bkpars['Edec'])
+                    rpars.append(Bkpars['Eta']) 
+                    rpars.append(Bkpars['Edec']) 
                     rpars.append(Bkpars['Einc'])
                 etitle="Bootstrapped confidence ellipse"
             elif dist=='BV':
@@ -218,7 +218,7 @@ def main():
         #
     files={}
     for key in FIG.keys():
-        files[key]=title+'_'+key+'.'+fmt
+        files[key]=title+'_'+key+'.'+fmt 
     if pmagplotlib.isServer:
         black     = '#000000'
         purple    = '#800080'
@@ -229,10 +229,10 @@ def main():
     elif plot==0:
         ans=raw_input(" S[a]ve to save plot, [q]uit, Return to continue:  ")
         if ans=="q": sys.exit()
-        if ans=="a":
-            pmagplotlib.saveP(FIG,files)
+        if ans=="a": 
+            pmagplotlib.saveP(FIG,files) 
     else:
         pmagplotlib.saveP(FIG,files)
 
 if __name__ == "__main__":
-    main()
+    main() 
