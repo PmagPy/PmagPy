@@ -1712,6 +1712,9 @@ class convert_PMD_files_to_MagIC(convert_files_to_MagIC):
         #---sizer 6 ---
         self.bSizer6 = pw.replicate_measurements(pnl)
 
+        #---sizer 7 ---
+        self.bSizer7 = pw.site_lat_lon(pnl)
+
         #---buttons ---
         hboxok = pw.btn_panel(self, pnl)
 
@@ -1725,6 +1728,7 @@ class convert_PMD_files_to_MagIC(convert_files_to_MagIC):
         vbox.Add(self.bSizer3, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer4, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer5, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(self.bSizer7, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer6, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(hboxok, flag=wx.ALIGN_CENTER)
         vbox.AddSpacer(20)
@@ -1770,6 +1774,12 @@ class convert_PMD_files_to_MagIC(convert_files_to_MagIC):
         options['meth_code'] = particulars
         if particulars:
             particulars = "-mcd " + particulars
+        try: site_lat,site_lon = self.bSizer8.return_value().split()
+        except ValueError: site_lat,site_lon = '',''
+        options_dict['site_lat'] = site_lat
+        options_dict['site_lon'] = site_lon
+        site_lat = '-lat ' + site_lat
+        site_lon = '-lat ' + site_lon
         replicate = self.bSizer6.return_value()
         if replicate:
             replicate = ''
@@ -1782,7 +1792,7 @@ class convert_PMD_files_to_MagIC(convert_files_to_MagIC):
             options['meas_file'] = outfile
             samp_outfile = f[:f.find('.')] + "_er_samples.txt"
             options['samp_file'] = samp_outfile
-            COMMAND = "pmd_magic.py -WD {} -f {} -F {} -Fsa {} -ncn {} {} -spc {} {} {} {}".format(WD, f, outfile, samp_outfile, ncn, particulars, spc, replicate, ID, loc_name)
+            COMMAND = "pmd_magic.py -WD {} -f {} -F {} -Fsa {} -ncn {} {} -spc {} {} {} {} {} {}".format(WD, f, outfile, samp_outfile, ncn, particulars, spc, replicate, ID, loc_name, site_lat, site_lon)
 
             # to run as command_line:
             #if files.index(f) == len(files) -1:
