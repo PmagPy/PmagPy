@@ -256,9 +256,8 @@ def main():
                     PmagSpecRec["specimen_fvds"]='%5.3f'%(pars["specimen_fvds"])
                     PmagSpecRec["specimen_b_beta"]='%5.3f'%(pars["specimen_b_beta"])
                     PmagSpecRec["specimen_int_mad"]='%7.1f'%(pars["specimen_int_mad"])
-                    PmagSpecRec["specimen_Z"]='%7.1f'%(pars["specimen_Z"])
                     PmagSpecRec["specimen_gamma"]='%7.1f'%(pars["specimen_gamma"])
-                    if pars["method_codes"]!="" and pars["method_codes"] not in methcodes: methcodes.append(pars["method_codes"])
+                    if pars["magic_method_codes"]!="" and pars["magic_method_codes"] not in methcodes: methcodes.append(pars["magic_method_codes"])
                     PmagSpecRec["specimen_dec"]='%7.1f'%(pars["specimen_dec"])
                     PmagSpecRec["specimen_inc"]='%7.1f'%(pars["specimen_inc"])
                     PmagSpecRec["specimen_tilt_correction"]='-1'
