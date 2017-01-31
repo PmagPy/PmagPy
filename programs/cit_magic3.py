@@ -176,6 +176,7 @@ def main(command_line=True, **kwargs):
             Z=samp_con.split("-")[1]
             samp_con="4"
 
+    if input_dir_path=='': input_dir_path='.'
     magfile = os.path.join(input_dir_path, magfile)
     spec_file = os.path.join(output_dir_path, spec_file)
     samp_file = os.path.join(output_dir_path, samp_file)
@@ -227,12 +228,9 @@ def main(command_line=True, **kwargs):
         site=pmag.parse_site(sample,samp_con,Z)
         SpecRec['er_specimen_name']=specimen
         SpecRec['er_sample_name']=sample
-        SpecRec['er_site_name']=site
-        SpecRec['er_location_name']=locname
         SpecRec['er_citation_names']=citation
         SampRec['er_sample_name']=sample
         SampRec['er_site_name']=site
-        SampRec['er_location_name']=locname
         SampRec['er_citation_names']=citation
         SampRec['magic_method_codes']=methods
         SampRec['sample_declination_correction']='%7.1f'%(Cdec)
@@ -287,6 +285,7 @@ def main(command_line=True, **kwargs):
         for line in Lines[2:len(Lines)]:
             #print 'line:', line
             MeasRec=SpecRec.copy()
+            MeasRec.pop('er_sample_name')
 #           Remove specimen_volume and specimen_weight as they do not exits in the magic_measurement table
             del MeasRec["specimen_volume"]
             del MeasRec["specimen_weight"]
