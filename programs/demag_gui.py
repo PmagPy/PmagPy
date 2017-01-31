@@ -629,7 +629,7 @@ class Demag_GUI(wx.Frame):
         #Mean Stats and button Sizer-----------------------------------------
         stats_and_button_sizer = wx.BoxSizer(wx.HORIZONTAL)
         stats_and_button_sizer.AddMany([(self.stats_sizer, 1, wx.ALIGN_LEFT|wx.EXPAND),
-                                        (self.switch_stats_button, .3, wx.ALIGN_RIGHT)])
+                                        (self.switch_stats_button, .3, wx.ALIGN_RIGHT|wx.EXPAND)])
 
         #EQ area MM0 and stats sizer-----------------------------------------
         eqarea_MM0_stats_sizer = wx.GridSizer(2,2,0,0)
