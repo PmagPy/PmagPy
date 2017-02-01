@@ -21,9 +21,7 @@ def mapping(dictionary, mapping):
     """
     mapped_dictionary = {}
     for key, value in dictionary.iteritems():
-        print 'key', key
         if key in mapping.keys():
-            print 'key:', key, 'in mapping'
             new_key = mapping[key]
             mapped_dictionary[new_key] = value
         else:
