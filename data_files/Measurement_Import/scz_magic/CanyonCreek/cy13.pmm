@@ -1,0 +1,10 @@
+"cy13 Canyon Creek. Santa Rosa Mtns"
+"cy13","Nick Jarboe","2007-12-02"
+ID,       CODE,     STEPRANGE,  N,     Dg,    Ig,     kg,   a95g,  Ds,    Is,     ks,   a95s,  comment,  
+cy1301b,  DirOPCA,  H020-H055,  5,     156.2, 44.1,     0,  0.9,   156.2, 44.1,     0,  0.9,   "drifting"
+cy1302a,  DirOPCA,  H013-H037,  4,     56.7,  32.9,     0,  1.5,   56.7,  32.9,     0,  1.5,   "drifting. jumpy"
+cy1304a,  DirOPCA,  NRM-H090,   13,    58.8,  14.5,     0,  0.9,   58.8,  14.5,     0,  0.9,   "looks great"
+cy1305a,  DirOPCA,  H020-H045,  4,     309.2, 53.7,     0,  0.9,   309.2, 53.7,     0,  0.9,   "drifting. jumpy"
+cy1307a,  DirOPCA,  H004-H090,  10,    76.3,  -24.8,    0,  1.1,   76.3,  -24.8,    0,  1.1,   "jumpy"
+cy1308a,  DirOPCA,  NRM-H007,   5,     351.8, 65.7,     0,  0.4,   351.8, 65.7,     0,  0.4,   "jumpy at low level"
+cy1309a,  GC PCA,   H002-H007,  3,     185.8, 28.1,     0,  3.5,   185.8, 28.1,     0,  3.5,   "jumpy "

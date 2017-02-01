@@ -1,0 +1,8 @@
+"Canyon Creek site06. Santa Rosa Mtns"
+"cy06","Nick Jarboe","2007-12-02"
+ID,       CODE,     STEPRANGE,  N,     Dg,    Ig,     kg,   a95g,  Ds,    Is,     ks,   a95s,  comment,  
+cy0601a,  GCnPCA,   H009-H025,  4,     34.1,  31.3,     0,  0.9,   34.1,  31.3,     0,  0.9,   ""
+cy0601a,  DirOPCA,  H020-H070,  6,     157.8, 43.4,     0,  5.4,   157.8, 43.4,     0,  5.4,   "little jumpy"
+cy0602a,  DirOPCA,  H001-H015,  5,     89.0,  -49.5,    0,  1.3,   89.0,  -49.5,    0,  1.3,   "jumpy"
+cy0603b,  DirOPCA,  H004-H025,  5,     72.1,  26.0,     0,  1.9,   72.1,  26.0,     0,  1.9,   "jumpy"
+cy0604a,  GCnPCA,   H007-H037,  5,     265.5, 65.9,     0,  9.0,   265.5, 65.9,     0,  9.0,   "not very good. Jumpy"
