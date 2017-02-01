@@ -451,8 +451,8 @@ def get_bad_rows_and_cols(df, validation_names, type_col_names,
     if verbose:
         if bad_rows:
             formatted_rows = ["row: {}, name: {}".format(row[0], row[1]) for row in bad_rows]
-            if len(bad_rows) > 20:
-                print "-W- these rows have problems:\n", "\n".join(formatted_rows[:20]), " ..."
+            if len(bad_rows) > 5:
+                print "-W- these rows have problems:\n", "\n".join(formatted_rows[:5]), " ..."
                 print "(for full error output see error file)"
             else:
                 print "-W- these rows have problems:", "\n".join(formatted_rows)

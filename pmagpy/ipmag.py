@@ -2717,7 +2717,12 @@ def upload_magic3(concat=0, dir_path='.', dmodel=None, vocab=""):
     concat = int(concat)
     dtypes = ["locations", "samples", "specimens", "sites", "ages", "measurements",
                   "criteria", "contribution", "images"]
-    file_names = [os.path.join(dir_path, dtype + ".txt") for dtype in dtypes]
+    fnames = [os.path.join(dir_path, dtype + ".txt") for dtype in dtypes]
+    file_names = [fname for fname in fnames if os.path.exists(fname)]
+    if not file_names:
+        real_path = os.path.realpath(dir_path)
+        print "-W- No 3.0 files found in your directory: {}, upload file not created".format(real_path)
+        return False, "no 3.0 files found, upload file not created", None
     con = Contribution(dir_path, vocabulary=vocab)
     # take out any extra added columns
     con.remove_non_magic_cols()
@@ -2734,7 +2739,7 @@ def upload_magic3(concat=0, dir_path='.', dmodel=None, vocab=""):
               'external_database_ids', 'Further Notes', 'Typology', 'Notes (Year/Area/Locus/Level)',
               'Site', 'Object Number']
     print "-I- Removing: ", RmKeys
-    last = file_names[-1]
+    last_file = file_names[-1]
     first_file = 1
     failing = []
     all_failing_items = {}
@@ -2796,10 +2801,17 @@ def upload_magic3(concat=0, dir_path='.', dmodel=None, vocab=""):
             if len(df):
                 container.write_magic_file(up, append=True)
     # write out the file separator
-            f = open(up, 'a')
-            f.write('>>>>>>>>>>\n')
-            f.close()
-            print "-I-", file_type, 'written to ',up
+            if not last_file:
+                f = open(up, 'a')
+                f.write('>>>>>>>>>>\n')
+                f.close()
+                print "-I-", file_type, 'written to ',up
+            if last_file:
+                f = open(up, 'a')
+                f.write('>>>>>>>>>>')
+                f.close()
+                print "-I-", file_type, 'written to ',up
+    # if there was no understandable data
         else:
             #print 'File:', File
             print file_type, 'is bad or non-existent - skipping '
