@@ -96,6 +96,11 @@ def cache_mappings(dir_path):
 
 # Mappings between magic2 and magic3
 
+
+add_to_all = {'er_location_name': 'location', 'er_site_name': 'site',
+              'er_sample_name': 'sample', 'er_specimen_name': 'specimen',
+              'er_sample_names': 'samples', 'er_specimen_names': 'specimens'}
+
 #measurement data translation measurements.txt -> magic_measurements.txt
 meas_magic2_2_magic3_map = maps.all_maps['measurements']
 #measurement data translation magic_measurements.txt -> measurements.txt
@@ -106,6 +111,7 @@ meas_magic2_2_magic3_map['er_synthetic_name'] = 'specimen'
 
 #specimen data translation pmag_speciemns,er_specimens -> specimens.txt
 spec_magic2_2_magic3_map = maps.all_maps['specimens']
+spec_magic2_2_magic3_map.update(add_to_all)
 spec_magic3_2_magic2_map = {v:k for k,v in spec_magic2_2_magic3_map.items()}
 spec_magic3_2_magic2_map['specimen'] = 'er_specimen_name'
 spec_magic2_2_magic3_map['er_synthetic_name'] = 'specimen'
@@ -113,18 +119,21 @@ spec_magic2_2_magic3_map['er_synthetic_name'] = 'specimen'
 
 # sample data translation pmag_samples/er_samples => samples
 samp_magic2_2_magic3_map = maps.all_maps['samples']
+samp_magic2_2_magic3_map.update(add_to_all)
 #sample data translation samples => pmag_samples/er_samples
 samp_magic3_2_magic2_map = {v:k for k,v in samp_magic2_2_magic3_map.items()}
 
 
 #site data translation pmag_sites,er_sites -> sites.txt
 site_magic2_2_magic3_map = maps.all_maps['sites']
+site_magic2_2_magic3_map.update(add_to_all)
 # site data translation er_sites/pmag_sites --> sites
 site_magic3_2_magic2_map = {v: k for k, v in site_magic2_2_magic3_map.items()}
 
 
 # location data translation er_locations -> locations
 loc_magic2_2_magic3_map = maps.all_maps['locations']
+loc_magic2_2_magic3_map.update(add_to_all)
 # location data translation locations -> er_locations
 loc_magic3_2_magic2_map = {v: k for k, v in list(loc_magic2_2_magic3_map.items())}
 
