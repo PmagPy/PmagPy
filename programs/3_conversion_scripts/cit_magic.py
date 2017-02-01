@@ -13,11 +13,11 @@ OPTIONS
     -h: prints the help message and quits.
     -usr USER: Colon delimited list of analysts, default is "" 
     -f FILE: specify .sam format input file, required
-    -fsi SITEFILE : specify file with site names and locations [tab delimited magic file]
-    -F FILE: specify output  measurements file, default is magic_measurements.txt
-    -Fsp FILE: specify output er_specimens.txt file, default is er_specimens.txt
-    -Fsi FILE: specify output er_sites.txt file, default is er_sites.txt
-    -Fsa FILE: specify output er_samples.txt file, default is er_samples.txt  # LORI
+    -F FILE: specify output  measurements file, default is measurements.txt
+    -Fsp FILE: specify output specimens.txt file, default is specimens.txt
+    -Fsa FILE: specify output samples.txt file, default is samples.txt 
+    -Fsi FILE: specify output sites.txt file, default is sites.txt # LORI
+    -Flo FILE: specify output locations.txt file, default is locations.txt
     -n [gm,kg,cc,m3]: specify normalization
     -A: don't average replicate measurements
     -spc NUM : specify number of characters to designate a  specimen, default = 0
@@ -297,7 +297,7 @@ def main(**kwargs):
                 MeasRec['treat_dc_field_phi'] = '%1.2f'%DC_PHI
                 MeasRec['treat_dc_field_theta'] = '%1.2f'%DC_THETA
                 MeasRec['treat_ac_field']='0'
-            elif treat_type.startswith('LT') or treat_type.startswith('LN2'):
+            elif treat_type.startswith('LT') or treat_type.upper().startswith('LN2'):
                 MeasRec['method_codes']='LT-LT-Z'
                 MeasRec['meas_temp']='273'
                 MeasRec['treat_temp']='77'
@@ -440,6 +440,9 @@ if __name__ == "__main__":
     if '-Fsi' in sys.argv:   # LORI addition
         ind=sys.argv.index("-Fsi")
         kwargs['site_file']=sys.argv[ind+1]
+    if '-Flo' in sys.argv:
+        ind=sys.argv.index("-Flo")
+        kwargs['loc_file']=sys.argv[ind+1]
     if '-loc' in sys.argv:
         ind=sys.argv.index("-loc")
         kwargs['locname']=sys.argv[ind+1]
