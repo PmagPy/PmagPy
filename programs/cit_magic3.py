@@ -175,6 +175,13 @@ def main(command_line=True, **kwargs):
         else:
             Z=samp_con.split("-")[1]
             samp_con="4"
+    elif "7" in samp_con:
+        if "-" not in samp_con:
+            print "option [7] must be in form 7-Z where Z is an integer"
+            return False, "naming convention option [7] must be in form 7-Z where Z is an integer"
+        else:
+            Z=samp_con.split("-")[1]
+            samp_con="7"
 
     if input_dir_path=='': input_dir_path='.'
     magfile = os.path.join(input_dir_path, magfile)
