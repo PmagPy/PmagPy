@@ -1,0 +1,11 @@
+"06cy07 Canyon Creek. Santa Rosa Mtns."
+"cy07","Nick Jarboe","2007-12-02"
+ID,       CODE,     STEPRANGE,  N,     Dg,    Ig,     kg,   a95g,  Ds,    Is,     ks,   a95s,  comment,  
+cy0702a,  DirOPCA,  H004-H045,  7,     133.3, 54.9,     0,  3.8,   133.3, 54.9,     0,  3.8,   "drifting"
+cy0702a,  DirOPCA,  H014-H025,  3,     137.1, 51.9,     0,  0.9,   137.1, 51.9,     0,  0.9,   "jumpy"
+cy0704a,  GCnPCA,   NRM-H045,   7,     222.8, 22.7,     0,  2.4,   222.8, 22.7,     0,  2.4,   "skipped steps 7-9. jumpy"
+cy0705a,  GCnPCA,   H002-H020,  5,     242.2, 13.8,     0,  2.4,   242.2, 13.8,     0,  2.4,   "GC ends 20mT. Jumpy"
+cy0706a,  GCnPCA,   H004-H020,  4,     229.9, 23.6,     0,  1.5,   229.9, 23.6,     0,  1.5,   "GC ends 20mT. jumpy"
+cy0708a,  DirOPCA,  H037-H070,  4,     142.7, 62.1,     0,  1.2,   142.7, 62.1,     0,  1.2,   "drifting"
+cy0709b,  GCnPCA,   H007-H025,  4,     234.3, 25.4,     0,  1.6,   234.3, 25.4,     0,  1.6,   ""
+cy0709b,  GCnPCA,   H007-H025,  4,     234.3, 25.4,     0,  1.6,   234.3, 25.4,     0,  1.6,   "jumpy"

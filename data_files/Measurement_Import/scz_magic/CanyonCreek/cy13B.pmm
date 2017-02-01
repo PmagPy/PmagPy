@@ -1,0 +1,7 @@
+"Dike 13B"
+"cy13B","Nick Jarboe","2007-12-02"
+ID,       CODE,     STEPRANGE,  N,     Dg,    Ig,     kg,   a95g,  Ds,    Is,     ks,   a95s,  comment,  
+cy13B01,  DirOPCA,  H025-H190,  9,     312.9, 51.5,     0,  5.5,   312.9, 51.5,     0,  5.5,   "bouncy"
+cy13B01,  DirOPCA,  H025-H190,  9,     312.9, 51.5,     0,  5.5,   312.9, 51.5,     0,  5.5,   "bouncy"
+cy13B01,  DirOPCA,  H025-H190,  9,     312.9, 51.5,     0,  15.5,  310.9, 52.5,     0,  5.5,   "bouncy"
+cy13B01,  DirOPCA,  H025-H190,  9,     312.9, 51.5,     0,  15.5,  310.9, 52.5,     0,  5.5,   "bouncy"

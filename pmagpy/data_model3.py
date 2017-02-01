@@ -59,7 +59,8 @@ class DataModel(object):
         """
         data_model = {}
         levels = ['specimens', 'samples', 'sites', 'locations',
-                  'ages', 'measurements', 'criteria', 'contribution']
+                  'ages', 'measurements', 'criteria', 'contribution',
+                  'images']
         for level in levels:
             df = DataFrame(full_df['tables'][level]['columns'])
             data_model[level] = df.transpose()
