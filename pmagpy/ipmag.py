@@ -24,10 +24,10 @@ def igrf(input_list):
     Parameters
     ----------
     input_list : list with format [Date, Altitude, Latitude, Longitude]
-    Date must be in format XXXX.XXXX with years and decimals of a year (A.D.)
+        date must be in decimal year format XXXX.XXXX (A.D.)
 
     Returns
-    ----------
+    -------
     igrf_array : array of IGRF values (0: dec; 1: inc; 2: intensity)
     """
     x,y,z,f = pmag.doigrf(input_list[3]%360.,input_list[2],input_list[1],input_list[0])
@@ -56,7 +56,7 @@ def dms2dd(degrees, minutes, seconds):
     seconds : seconds of latitude/longitude
 
     Returns
-    ----------
+    -------
     degrees : decimal degrees of location
 
     """
@@ -73,19 +73,25 @@ def fisher_mean(dec=None, inc=None, di_block=None):
 
     Parameters
     ----------
-    dec: list of declinations (or longitudes)
-    inc: list of inclinations (or latitudes)
-
-    or
-
-    di_block: a nested list of [dec,inc,1.0]
-
-    A di_block can be provided instead of dec, inc lists in which case it will
-    be used. Either dec, inc lists or a di_block need to passed to the function.
+    dec : list of declinations or longitudes
+    inc : list of inclinations or latitudes
+    di_block : a nested list of [dec,inc,1.0]
+        A di_block can be provided instead of dec, inc lists in which case it
+        will be used. Either dec, inc lists or a di_block need to be provided.
 
     Returns
-    ----------
+    -------
     fisher_mean : dictionary containing the Fisher mean parameters
+
+    Examples
+    --------
+    Use lists of declination and inclination to calculate a Fisher mean:
+
+    >>> ipmag.fisher_mean(dec=[140,127,142,136],inc=[21,23,19,22])
+
+    Use a di_block to calculate a Fisher mean:
+
+    >>> ipmag.fisher_mean(di_block=[[140,21],[127,23],[142,19],[136,22]])
     """
     if di_block is None:
         di_block = make_di_block(dec,inc)
