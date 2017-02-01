@@ -3068,7 +3068,7 @@ class Demag_GUI(wx.Frame):
                 self.samp_data.set_index('sample',inplace=True)
                 self.samp_data['sample'] = self.samp_data.index
 
-            if 'site' not in self.samp_data.columns and 'site' not in self.site_data.columns:
+            if 'site' not in self.samp_data.columns or 'site' not in self.site_data.columns:
                 ui_dialog = demag_dialogs.user_input(self,["# of characters to remove","site delimiter"], heading="No Site Data found attempting to create site names from specimen names")
                 self.show_dlg(ui_dialog)
                 ui_data = ui_dialog.get_values()
@@ -3121,7 +3121,11 @@ class Demag_GUI(wx.Frame):
             Mkeys = ['magn_moment', 'magn_volume', 'magn_mass']
             meas_data3_0=meas_data3_0[meas_data3_0['method_codes'].str.contains('LT-NO|LT-AF-Z|LT-T-Z|LT-M-Z|LT-LT-Z')==True] # fish out all the relavent data
 # now convert back to 2.5  changing only those keys that are necessary for thellier_gui
-            meas_data2_5=meas_data3_0.rename(columns=map_magic.meas_magic3_2_magic2_map)
+            meas_con_dict = map_magic.meas_magic3_2_magic2_map
+            meas_con_dict['sample'] = 'er_sample_name'
+            meas_con_dict['site'] = 'er_site_name'
+            meas_con_dict['location'] = 'er_location_name'
+            meas_data2_5=meas_data3_0.rename(columns=meas_con_dict)
             mag_meas_data=meas_data2_5.to_dict("records")  # make a list of dictionaries to maintain backward compatibility
 
         else:
@@ -3507,8 +3511,8 @@ class Demag_GUI(wx.Frame):
             if 'samples' in self.con.tables:
                 samp_container = self.con.tables['samples']
                 self.samp_data = samp_container.df
-                self.samp_data = self.samp_data.rename(columns={"azimuth":"sample_azimuth","dip":"sample_dip","orientation_flag":"sample_orientation_flag","bed_dip_direction":"sample_bed_dip_direction","bed_dip":"sample_bed_dip"})
-                data_er_samples = self.samp_data.T.to_dict()
+                samp_data2 = self.samp_data.rename(columns=map_magic.samp_magic3_2_magic2_map)
+                data_er_samples = samp_data2.T.to_dict()
             else:
                 self.con.add_empty_magic_table('samples')
                 self.samp_data = self.con.tables['samples'].df
