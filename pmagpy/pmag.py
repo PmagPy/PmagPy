@@ -6304,6 +6304,418 @@ def measurements_methods(meas_data,noave):
             SpecOuts.append(NewSpecs[0]) # just copy over the single record as is
     return SpecOuts
 
+def measurements_methods3(meas_data,noave):
+    """
+    get list of unique specs
+    """
+#
+    version_num=get_version()
+    sids=get_specs(meas_data)
+# list  of measurement records for this specimen
+#
+# step through spec by spec
+#
+    SpecTmps,SpecOuts=[],[]
+    for spec in sids:
+        TRM,IRM3D,ATRM,CR=0,0,0,0
+        expcodes=""
+# first collect all data for this specimen and do lab treatments
+        SpecRecs=get_dictitem(meas_data,'specimen',spec,'T') # list  of measurement records for this specimen
+        for rec in SpecRecs:
+            if 'quality' not in rec.keys():rec['quality']='g'
+            tmpmeths=rec['method_codes'].split(":")
+            meths=[]
+            if "LP-TRM" in tmpmeths:TRM=1 # catch these suckers here!
+            if "LP-IRM-3D" in tmpmeths:
+                IRM3D=1 # catch these suckers here!
+            elif "LP-AN-TRM" in tmpmeths:
+                ATRM=1 # catch these suckers here!
+            elif "LP-CR-TRM" in tmpmeths:
+                CR=1 # catch these suckers here!
+#
+# otherwise write over existing method codes
+#
+# find NRM data (LT-NO)
+#
+            elif float(rec["meas_temp"])>=273. and float(rec["meas_temp"]) < 323.:
+# between 0 and 50C is room T measurement
+                if ("meas_dc_field" not in rec.keys() or float(rec["meas_dc_field"])==0 or rec["meas_dc_field"]=="") and ("meas_ac_field" not in rec.keys() or float(rec["meas_ac_field"])==0 or rec["meas_ac_field"]==""):
+# measurement done in zero field!
+                    if  "treat_temp" not in rec.keys() or rec["treat_temp"].strip()=="" or (float(rec["treat_temp"])>=273. and float(rec["treat_temp"]) < 298.):
+# between 0 and 50C is room T treatment
+                        if "treat_ac_field" not in rec.keys() or rec["treat_ac_field"] =="" or float(rec["treat_ac_field"])==0:
+# no AF
+                            if "treat_dc_field" not in rec.keys() or rec["treat_dc_field"]=="" or float(rec["treat_dc_field"])==0:# no IRM!
+                                if "LT-NO" not in meths:meths.append("LT-NO")
+                            elif "LT-IRM" not in meths:
+                                meths.append("LT-IRM") # it's an IRM
+#
+# find AF/infield/zerofield
+#
+                        elif "treat_dc_field" not in rec.keys() or rec["treat_dc_field"]=="" or float(rec["treat_dc_field"])==0: # no ARM
+                            if "LT-AF-Z" not in meths:meths.append("LT-AF-Z")
+                        else: # yes ARM
+                            if "LT-AF-I" not in meths: meths.append("LT-AF-I")
+#
+# find Thermal/infield/zerofield
+#
+                    elif float(rec["treat_temp"])>=323:  # treatment done at  high T
+                        if TRM==1:
+                            if "LT-T-I" not in meths: meths.append("LT-T-I") # TRM - even if zero applied field!
+                        elif "treat_dc_field" not in rec.keys() or rec["treat_dc_field"]=="" or float(rec["treat_dc_field"])==0.: # no TRM
+                            if  "LT-T-Z" not in meths: meths.append("LT-T-Z") # don't overwrite if part of a TRM experiment!
+                        else: # yes TRM
+                            if "LT-T-I" not in meths: meths.append("LT-T-I")
+#
+# find low-T infield,zero field
+#
+                    else:  # treatment done at low T
+                        if "treat_dc_field" not in rec.keys() or rec["treat_dc_field"]=="" or float(rec["treat_dc_field"])==0: # no field
+                            if "LT-LT-Z" not in meths:meths.append("LT-LT-Z")
+                        else: # yes field
+                            if "LT-LT-I" not in meths:meths.append("LT-LT-I")
+
+
+                if "susc_chi_volume" in rec.keys() or "susc_chi_mass" in rec.keys():
+                    if  "LP-X" not in meths:meths.append("LP-X")
+                elif "meas_lab_dc_field" in rec.keys() and rec["meas_lab_dc_field"]!=0: # measurement in presence of dc field and not susceptibility; hysteresis!
+                    if  "LP-HYS" not in meths:
+                        hysq=raw_input("Is this a hysteresis experiment? [1]/0")
+                        if hysq=="" or hysq=="1":
+                            meths.append("LP-HYS")
+                        else:
+                            metha=raw_input("Enter the lab protocol code that best describes this experiment ")
+                            meths.append(metha)
+                methcode=""
+                for meth in meths:
+                    methcode=methcode+meth.strip()+":"
+                rec["method_codes"]=methcode[:-1] # assign them back
+#
+# done with first pass, collect and assign provisional method codes
+            if "measurement_description" not in rec.keys():rec["measurement_description"]=""
+            rec["er_citation_names"]="This study"
+            SpecTmps.append(rec)
+# ready for second pass through, step through specimens, check whether ptrm, ptrm tail checks, or AARM, etc.
+#
+    for spec in sids:
+        MD,pTRM,IZ,ZI=0,0,0,0 # these are flags for the lab protocol codes
+        expcodes=""
+        NewSpecs,SpecMeths=[],[]
+        experiment_name,measnum="",1
+        if IRM3D==1:experiment_name="LP-IRM-3D"
+        if ATRM==1: experiment_name="LP-AN-TRM"
+        if CR==1: experiment_name="LP-CR"
+        NewSpecs=get_dictitem(SpecTmps,'specimen',spec,'T')
+#
+# first look for replicate measurements
+#
+        Ninit=len(NewSpecs)
+        if noave!=1:
+            vdata,treatkeys=vspec_magic(NewSpecs) # averages replicate measurements, returns treatment keys that are being used
+            if len(vdata)!=len(NewSpecs):
+                #print spec,'started with ',Ninit,' ending with ',len(vdata)
+                NewSpecs=vdata
+                #print "Averaged replicate measurements"
+#
+# now look through this specimen's records - try to figure out what experiment it is
+#
+        if len(NewSpecs)>1: # more than one meas for this spec - part of an unknown experiment
+            SpecMeths=get_list(NewSpecs,'method_codes').split(":")
+            if "LT-T-I" in  SpecMeths and experiment_name=="": # TRM steps, could be TRM acquisition, Shaw or a Thellier experiment or TDS experiment
+    #
+    # collect all the infield steps and look for changes in dc field vector
+    #
+                Steps,TI=[],1
+                for rec in  NewSpecs:
+                    methods=get_list(NewSpecs,'method_codes').split(":")
+                    if "LT-T-I" in methods:Steps.append(rec)  # get all infield steps together
+                rec_bak=Steps[0]
+                if "treat_dc_field_phi" in rec_bak.keys() and "treat_dc_field_theta" in rec_bak.keys():
+                    if rec_bak["treat_dc_field_phi"] !="" and rec_bak["treat_dc_field_theta"]!="":   # at least there is field orientation info
+                        phi0,theta0=rec_bak["treat_dc_field_phi"],rec_bak["treat_dc_field_theta"]
+                        for k in range(1,len(Steps)):
+                            rec=Steps[k]
+                            phi,theta=rec["treat_dc_field_phi"],rec["treat_dc_field_theta"]
+                            if phi!=phi0 or theta!=theta0: ANIS=1   # if direction changes, is some sort of anisotropy experiment
+                if "LT-AF-I" in SpecMeths and "LT-AF-Z" in SpecMeths: # must be Shaw :(
+                    experiment_name="LP-PI-TRM:LP-PI-ALT-AFARM"
+                elif TRM==1:
+                    experiment_name="LP-TRM"
+            else: TI= 0 # no infield steps at all
+            if "LT-T-Z" in  SpecMeths and experiment_name=="": # thermal demag steps
+                if TI==0:
+                    experiment_name="LP-DIR-T" # just ordinary thermal demag
+                elif TRM!=1: # heart pounding - could be some  kind of TRM normalized paleointensity or LP-TRM-TD experiment
+                    Temps=[]
+                    for step in Steps: # check through the infield steps - if all at same temperature, then must be a demag of a total TRM with checks
+                        if step['treat_temp'] not in Temps:Temps.append(step['treat_temp'])
+                    if len(Temps)>1:
+                        experiment_name="LP-PI-TRM" # paleointensity normalized by TRM
+                    else:
+                        experiment_name="LP-TRM-TD" # thermal demag of a lab TRM (could be part of a LP-PI-TDS experiment)
+                TZ=1
+            else: TZ= 0 # no zero field steps at all
+            if "LT-AF-I" in  SpecMeths: # ARM steps
+                Steps=[]
+                for rec in  NewSpecs:
+                    tmp=rec["method_codes"].split(":")
+                    methods=[]
+                    for meth in tmp:
+                        methods.append(meth.strip())
+                    if "LT-AF-I" in methods:Steps.append(rec)  # get all infield steps together
+                rec_bak=Steps[0]
+                if "treat_dc_field_phi" in rec_bak.keys() and "treat_dc_field_theta" in rec_bak.keys():
+                    if rec_bak["treat_dc_field_phi"] !="" and rec_bak["treat_dc_field_theta"]!="":   # at least there is field orientation info
+                        phi0,theta0=rec_bak["treat_dc_field_phi"],rec_bak["treat_dc_field_theta"]
+                        ANIS=0
+                        for k in range(1,len(Steps)):
+                            rec=Steps[k]
+                            phi,theta=rec["treat_dc_field_phi"],rec["treat_dc_field_theta"]
+                            if phi!=phi0 or theta!=theta0: ANIS=1   # if direction changes, is some sort of anisotropy experiment
+                        if ANIS==1:
+                            experiment_name="LP-AN-ARM"
+                if experiment_name=="":  # not anisotropy of ARM - acquisition?
+                        field0=rec_bak["treat_dc_field"]
+                        ARM=0
+                        for k in range(1,len(Steps)):
+                            rec=Steps[k]
+                            field=rec["treat_dc_field"]
+                            if field!=field0: ARM=1
+                        if ARM==1:
+                            experiment_name="LP-ARM"
+                AFI=1
+            else: AFI= 0 # no ARM steps at all
+            if "LT-AF-Z" in  SpecMeths and experiment_name=="": # AF demag steps
+                if AFI==0:
+                    experiment_name="LP-DIR-AF" # just ordinary AF demag
+                else: # heart pounding - a pseudothellier?
+                    experiment_name="LP-PI-ARM"
+                AFZ=1
+            else: AFZ= 0 # no AF demag at all
+            if "LT-IRM" in SpecMeths: # IRM
+                Steps=[]
+                for rec in  NewSpecs:
+                    tmp=rec["method_codes"].split(":")
+                    methods=[]
+                    for meth in tmp:
+                        methods.append(meth.strip())
+                    if "LT-IRM" in methods:Steps.append(rec)  # get all infield steps together
+                rec_bak=Steps[0]
+                if "treat_dc_field_phi" in rec_bak.keys() and "treat_dc_field_theta" in rec_bak.keys():
+                    if rec_bak["treat_dc_field_phi"] !="" and rec_bak["treat_dc_field_theta"]!="":   # at least there is field orientation info
+                        phi0,theta0=rec_bak["treat_dc_field_phi"],rec_bak["treat_dc_field_theta"]
+                        ANIS=0
+                        for k in range(1,len(Steps)):
+                            rec=Steps[k]
+                            phi,theta=rec["treat_dc_field_phi"],rec["treat_dc_field_theta"]
+                            if phi!=phi0 or theta!=theta0: ANIS=1   # if direction changes, is some sort of anisotropy experiment
+                        if ANIS==1:experiment_name="LP-AN-IRM"
+                if experiment_name=="":  # not anisotropy of IRM - acquisition?
+                    field0=rec_bak["treat_dc_field"]
+                    IRM=0
+                    for k in range(1,len(Steps)):
+                        rec=Steps[k]
+                        field=rec["treat_dc_field"]
+                        if field!=field0: IRM=1
+                    if IRM==1:experiment_name="LP-IRM"
+                IRM=1
+            else: IRM=0 # no IRM at all
+            if "LP-X" in SpecMeths: # susceptibility run
+                Steps=get_dictitem(NewSpecs,'method_codes','LT-X','has')
+                if len(Steps)>0:
+                    rec_bak=Steps[0]
+                    if "treat_dc_field_phi" in rec_bak.keys() and "treat_dc_field_theta" in rec_bak.keys():
+                        if rec_bak["treat_dc_field_phi"] !="" and rec_bak["treat_dc_field_theta"]!="":   # at least there is field orientation info
+                            phi0,theta0=rec_bak["treat_dc_field_phi"],rec_bak["treat_dc_field_theta"]
+                            ANIS=0
+                            for k in range(1,len(Steps)):
+                                rec=Steps[k]
+                                phi,theta=rec["treat_dc_field_phi"],rec["treat_dc_field_theta"]
+                                if phi!=phi0 or theta!=theta0: ANIS=1   # if direction changes, is some sort of anisotropy experiment
+                            if ANIS==1:experiment_name="LP-AN-MS"
+            else: CHI=0 # no susceptibility at all
+    #
+    # now need to deal with special thellier experiment problems - first clear up pTRM checks and  tail checks
+    #
+            if experiment_name=="LP-PI-TRM": # is some sort of thellier experiment
+                rec_bak=NewSpecs[0]
+                tmp=rec_bak["method_codes"].split(":")
+                methbak=[]
+                for meth in tmp:
+                    methbak.append(meth.strip()) # previous steps method codes
+                for k in range(1,len(NewSpecs)):
+                    rec=NewSpecs[k]
+                    tmp=rec["method_codes"].split(":")
+                    meths=[]
+                    for meth in tmp:
+                        meths.append(meth.strip()) # get this guys method codes
+    #
+    # check if this is a pTRM check
+    #
+                    if float(rec["treat_temp"])<float(rec_bak["treat_temp"]): # went backward
+                        if "LT-T-I" in meths and "LT-T-Z" in methbak:  #must be a pTRM check after first z
+    #
+    # replace LT-T-I method code with LT-PTRM-I
+    #
+                            methcodes=""
+                            for meth in meths:
+                                if meth!="LT-T-I":methcode=methcode+meth.strip()+":"
+                            methcodes=methcodes+"LT-PTRM-I"
+                            meths=methcodes.split(":")
+                            pTRM=1
+                        elif "LT-T-Z" in meths and "LT-T-I" in methbak:  # must be pTRM check after first I
+    #
+    # replace LT-T-Z method code with LT-PTRM-Z
+    #
+                            methcodes=""
+                            for meth in meths:
+                                if meth!="LT-T-Z":methcode=methcode+meth+":"
+                            methcodes=methcodes+"LT-PTRM-Z"
+                            meths=methcodes.split(":")
+                            pTRM=1
+                    methcodes=""
+                    for meth in meths:
+                        methcodes=methcodes+meth.strip()+":"
+                    rec["method_codes"]=methcodes[:-1]  #  attach new method code
+                    rec_bak=rec # next previous record
+                    tmp=rec_bak["method_codes"].split(":")
+                    methbak=[]
+                    for meth in tmp:
+                        methbak.append(meth.strip()) # previous steps method codes
+    #
+    # done with assigning pTRM checks.  data should be "fixed" in NewSpecs
+    #
+    # now let's find out which steps are infield zerofield (IZ) and which are zerofield infield (ZI)
+    #
+                rec_bak=NewSpecs[0]
+                tmp=rec_bak["method_codes"].split(":")
+                methbak=[]
+                for meth in tmp:
+                    methbak.append(meth.strip()) # previous steps method codes
+                if "LT-NO" not in methbak: # first measurement is not NRM
+                    if "LT-T-I" in methbak: IZorZI="LP-PI-TRM-IZ" # first pair is IZ
+                    if "LT-T-Z" in methbak: IZorZI="LP-PI-TRM-ZI" # first pair is ZI
+                    if IZorZI not in methbak:methbak.append(IZorZI)
+                    methcode=""
+                    for meth in methbak:
+                        methcode=methcode+meth+":"
+                    NewSpecs[0]["method_codes"]=methcode[:-1]  # fix first heating step when no NRM
+                else: IZorZI="" # first measurement is NRM and not one of a pair
+                for k in range(1,len(NewSpecs)): # hunt through measurements again
+                    rec=NewSpecs[k]
+                    tmp=rec["method_codes"].split(":")
+                    meths=[]
+                    for meth in tmp:
+                        meths.append(meth.strip()) # get this guys method codes
+    #
+    # check if this start a new temperature step of a infield/zerofield pair
+    #
+                    if float(rec["treat_temp"])>float(rec_bak["treat_temp"]) and "LT-PTRM-I" not in methbak: # new pair?
+                        if "LT-T-I" in meths:  # infield of this pair
+                                IZorZI="LP-PI-TRM-IZ"
+                                IZ=1 # at least one IZ pair
+                        elif "LT-T-Z" in meths: #zerofield
+                                IZorZI="LP-PI-TRM-ZI"
+                                ZI=1 # at least one ZI pair
+                    elif float(rec["treat_temp"])>float(rec_bak["treat_temp"]) and "LT-PTRM-I" in methbak and IZorZI!="LP-PI-TRM-ZI": # new pair after out of sequence PTRM check?
+                        if "LT-T-I" in meths:  # infield of this pair
+                                IZorZI="LP-PI-TRM-IZ"
+                                IZ=1 # at least one IZ pair
+                        elif "LT-T-Z" in meths: #zerofield
+                                IZorZI="LP-PI-TRM-ZI"
+                                ZI=1 # at least one ZI pair
+                    if float(rec["treat_temp"])==float(rec_bak["treat_temp"]): # stayed same temp
+                        if "LT-T-Z" in meths and "LT-T-I" in methbak and IZorZI=="LP-PI-TRM-ZI":  #must be a tail check
+    #
+    # replace LT-T-Z method code with LT-PTRM-MD
+    #
+                            methcodes=""
+                            for meth in meths:
+                                if meth!="LT-T-Z":methcode=methcode+meth+":"
+                            methcodes=methcodes+"LT-PTRM-MD"
+                            meths=methcodes.split(":")
+                            MD=1
+    # fix method codes
+                    if "LT-PTRM-I" not in meths and "LT-PTRM-MD" not in meths and IZorZI not in meths:meths.append(IZorZI)
+                    newmeths=[]
+                    for meth in meths:
+                        if meth not in newmeths:newmeths.append(meth)  # try to get uniq set
+                    methcode=""
+                    for meth in newmeths:
+                        methcode=methcode+meth+":"
+                    rec["method_codes"]=methcode[:-1]
+                    rec_bak=rec # moving on to next record, making current one the backup
+                    methbak=rec_bak["method_codes"].split(":") # get last specimen's method codes in a list
+
+    #
+    # done with this specimen's records, now  check if any pTRM checks or MD checks
+    #
+                if pTRM==1:experiment_name=experiment_name+":LP-PI-ALT-PTRM"
+                if MD==1:experiment_name=experiment_name+":LP-PI-BT-MD"
+                if IZ==1 and ZI==1:experiment_name=experiment_name+":LP-PI-BT-IZZI"
+                if IZ==1 and ZI==0:experiment_name=experiment_name+":LP-PI-IZ" # Aitken method
+                if IZ==0 and ZI==1:experiment_name=experiment_name+":LP-PI-ZI" # Coe method
+                IZ,ZI,pTRM,MD=0,0,0,0  # reset these for next specimen
+                for rec in NewSpecs: # fix the experiment name for all recs for this specimen and save in SpecOuts
+    # assign an experiment name to all specimen measurements from this specimen
+                    if experiment_name!="":
+                        rec["method_codes"]=rec["method_codes"]+":"+experiment_name
+                    rec["experiment"]=spec+":"+experiment_name
+                    rec['number']='%i'%(measnum)  # assign measurement numbers
+                    measnum+=1
+                    SpecOuts.append(rec)
+            elif experiment_name=="LP-PI-TRM:LP-PI-ALT-AFARM": # is a Shaw experiment!
+                ARM,TRM=0,0
+                for rec in NewSpecs: # fix the experiment name for all recs for this specimen and save in SpecOuts
+    # assign an experiment name to all specimen measurements from this specimen
+    # make the second ARM in Shaw experiments LT-AF-I-2, stick in the AF of ARM and TRM codes
+                    meths=rec["method_codes"].split(":")
+                    if ARM==1:
+                        if "LT-AF-I" in meths:
+                            del meths[meths.index("LT-AF-I")]
+                            meths.append("LT-AF-I-2")
+                            ARM=2
+                        if "LT-AF-Z" in meths and TRM==0 :
+                            meths.append("LP-ARM-AFD")
+                    if TRM==1 and ARM==1:
+                        if "LT-AF-Z" in meths:
+                            meths.append("LP-TRM-AFD")
+                    if ARM==2:
+                        if "LT-AF-Z" in meths:
+                            meths.append("LP-ARM2-AFD")
+                    newcode=""
+                    for meth in meths:
+                        newcode=newcode+meth+":"
+                    rec["method_codes"]=newcode[:-1]
+                    if "LT-AF-I" in meths:ARM=1
+                    if "LT-T-I" in meths:TRM=1
+                    rec["method_codes"]=rec["method_codes"]+":"+experiment_name
+                    rec["experiment"]=spec+":"+experiment_name
+                    rec['number']='%i'%(measnum)  # assign measurement numbers
+                    measnum+=1
+                    SpecOuts.append(rec)
+            else:  # not a Thellier-Thellier  or a Shaw experiemnt
+                for rec in  NewSpecs:
+                    if experiment_name=="":
+                        rec["method_codes"]="LT-NO"
+                        rec["experiment"]=spec+":LT-NO"
+                        rec['number']='%i'%(measnum)  # assign measurement numbers
+                        measnum+=1
+                    else:
+                        if experiment_name not in rec['method_codes']:
+                            rec["method_codes"]=rec["method_codes"]+":"+experiment_name
+                            rec["method_codes"]=rec["method_codes"].strip(':')
+                        rec['number']='%i'%(measnum)  # assign measurement numbers
+                        measnum+=1
+                        rec["experiment"]=spec+":"+experiment_name
+                    rec["software_packages"]=version_num
+                    SpecOuts.append(rec)
+        else:
+            NewSpecs[0]["experiment"]=spec+":"+NewSpecs[0]['method_codes'].split(':')[0]
+            NewSpecs[0]["software_packages"]=version_num
+            SpecOuts.append(NewSpecs[0]) # just copy over the single record as is
+    return SpecOuts
+
 def mw_measurements_methods(MagRecs):
 # first collect all data for this specimen and do lab treatments
     MD,pMRM,IZ,ZI=0,0,0,0 # these are flags for the lab protocol codes
