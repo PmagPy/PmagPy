@@ -14,6 +14,7 @@ import re
 #from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigureCanvas
 #from matplotlib.backends.backend_wx import NavigationToolbar2Wx
 from mapping import map_magic
+from pmagpy import new_builder as nb
 
 
 def igrf(input_list):
@@ -2704,14 +2705,29 @@ def upload_magic(concat=0, dir_path='.', data_model=None):
         return False, "file validation has failed.  You may run into problems if you try to upload this file.", errors
     return new_up, '', None
 
-def upload_magic3(concat=0, dir_path='.', dmodel=None, vocab=""):
+def upload_magic3(concat=0, dir_path='.', dmodel=None, vocab="", contribution=None):
     """
     Finds all magic files in a given directory,
     and compiles them into an upload.txt file
     which can be uploaded into the MagIC database.
-    returns a tuple of either: (False, error_message, errors)
+
+    Parameters
+    ----------
+    concat : boolean where True means do concatenate to upload.txt file in dir_path,
+        False means write a new file (default is False)
+    dir_path : string for input/output directory (default ".")
+    dmodel : pmagpy data_model.DataModel object,
+        if not provided will be created (default None)
+    vocab : pmagpy controlled_vocabularies3.Vocabulary object,
+        if not provided will be created (default None)
+    contribution : pmagpy new_builder.Contribution object, if not provided will be created
+        in directory (default None)
+
+    Returns
+    ----------
+    tuple of either: (False, error_message, errors, all_failing_items)
     if there was a problem creating/validating the upload file
-    or: (filename, '', None) if the file creation was fully successful.
+    or: (filename, '', None, None) if the file creation was fully successful.
     """
     locations = []
     concat = int(concat)
@@ -2723,7 +2739,14 @@ def upload_magic3(concat=0, dir_path='.', dmodel=None, vocab=""):
         real_path = os.path.realpath(dir_path)
         print "-W- No 3.0 files found in your directory: {}, upload file not created".format(real_path)
         return False, "no 3.0 files found, upload file not created", None
-    con = Contribution(dir_path, vocabulary=vocab)
+    if isinstance(contribution, nb.Contribution):
+        # if contribution object provided, use it
+        con = contribution
+        for table_name in con.tables:
+            con.tables[table_name].write_magic_file()
+    else:
+        # otherwise create a new Contribution in dir_path
+        con = Contribution(dir_path, vocabulary=vocab)
     # take out any extra added columns
     con.remove_non_magic_cols()
     # begin the upload process

@@ -504,7 +504,8 @@ class MagMainFrame(wx.Frame):
         wx.Yield()
         if self.data_model_num == 3:
             res, error_message, has_problems, all_failing_items = ipmag.upload_magic3(dir_path=self.WD,
-                                                                                      vocab=self.contribution.vocab)
+                                                                                      vocab=self.contribution.vocab,
+                                                                                      contribution=self.contribution)
         if self.data_model_num == 2:
             res, error_message, errors = ipmag.upload_magic(dir_path=self.WD, data_model=self.er_magic.data_model)
             del wait
