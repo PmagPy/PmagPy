@@ -174,7 +174,7 @@ def cv(row, col_name, arg, current_data_model, df, con):
     cell_values = cell_value.split(":")
     cell_values = [c.strip() for c in cell_values]
     for value in cell_values:
-        if str(value).lower() in [str(v.encode('utf-8')).lower() for v in vocabulary[col_name]]:
+        if str(value).lower() in [str(v.encode('utf-8')).lower() if isinstance(v, str) else str(v) for v in vocabulary[col_name]]:
             continue
         elif value.lower() == "none":
             continue
