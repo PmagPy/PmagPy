@@ -105,49 +105,58 @@ add_to_all = {'er_location_name': 'location', 'er_site_name': 'site',
 meas_magic2_2_magic3_map = maps.all_maps['measurements']
 #measurement data translation magic_measurements.txt -> measurements.txt
 meas_magic3_2_magic2_map = {v:k for k,v in meas_magic2_2_magic3_map.items()}
-meas_magic3_2_magic2_map['specimen'] = 'er_specimen_name'
-meas_magic2_2_magic3_map['er_synthetic_name'] = 'specimen'
-
+measurements = {'timestamp': 'measurement_date', 'specimen': 'er_specimen_name'}
+meas_magic3_2_magic2_map.update(measurements)
 
 #specimen data translation pmag_speciemns,er_specimens -> specimens.txt
 spec_magic2_2_magic3_map = maps.all_maps['specimens']
 spec_magic2_2_magic3_map.update(add_to_all)
 spec_magic3_2_magic2_map = {v:k for k,v in spec_magic2_2_magic3_map.items()}
-spec_magic3_2_magic2_map['specimen'] = 'er_specimen_name'
-spec_magic2_2_magic3_map['er_synthetic_name'] = 'specimen'
-
+specimens = {'external_database_ids': 'external_database_ids',
+             'dir_comp': 'specimen_comp_name', 'specimen': 'er_specimen_name'}
+spec_magic3_2_magic2_map.update(specimens)
 
 # sample data translation pmag_samples/er_samples => samples
 samp_magic2_2_magic3_map = maps.all_maps['samples']
 samp_magic2_2_magic3_map.update(add_to_all)
 #sample data translation samples => pmag_samples/er_samples
 samp_magic3_2_magic2_map = {v:k for k,v in samp_magic2_2_magic3_map.items()}
-
+samples = {'specimens': 'er_specimen_names', 'dir_comp_name': 'sample_comp_name',
+           'timestamp': 'sample_date', 'external_database_ids': 'external_database_ids'}
+samp_magic3_2_magic2_map.update(samples)
 
 #site data translation pmag_sites,er_sites -> sites.txt
 site_magic2_2_magic3_map = maps.all_maps['sites']
 site_magic2_2_magic3_map.update(add_to_all)
 # site data translation er_sites/pmag_sites --> sites
 site_magic3_2_magic2_map = {v: k for k, v in site_magic2_2_magic3_map.items()}
-
+sites = {'dir_comp_name': 'site_comp_name', 'specimens': 'er_specimen_names'}
+site_magic3_2_magic2_map.update(sites)
 
 # location data translation er_locations -> locations
 loc_magic2_2_magic3_map = maps.all_maps['locations']
 loc_magic2_2_magic3_map.update(add_to_all)
+locations = {'location_begin_lat': 'lat_s', 'location_begin_lon': 'lon_e',
+             'location_end_lat': 'lat_n', 'location_end_lon': 'lon_w'}
+loc_magic2_2_magic3_map.update(locations)
 # location data translation locations -> er_locations
 loc_magic3_2_magic2_map = {v: k for k, v in list(loc_magic2_2_magic3_map.items())}
+locations = {'lat_s': 'location_begin_lat', 'lat_n': 'location_end_lat',
+             'lon_e': 'location_begin_lon', 'lon_w': 'location_end_lon'}
+loc_magic3_2_magic2_map.update(locations)
 
 # anisotropy mapping
 aniso_magic3_2_magic2_map={'specimen':'er_specimen_name', 'aniso_type':'anisotropy_type', 'description':'result_description', 'aniso_ftest':'anisotropy_ftest', 'aniso_ftest12':'anisotropy_ftest12', 'aniso_ftest23':'anisotropy_ftest23', 'aniso_s_mean':'anisotropy_mean', 'aniso_s_n_measurements':'anisotropy_n', 'aniso_s_sigma':'anisotropy_sigma', 'aniso_s_unit':'anisotropy_unit', 'aniso_tilt_correction':'anisotropy_tilt_correction',"aniso_alt":'anisotropy_alt'}
 
 aniso_magic2_2_magic3_map={'anisotropy_ftest23': 'aniso_ftest23', 'anisotropy_ftest': 'aniso_ftest', 'anisotropy_sigma': 'aniso_s_sigma', 'anisotropy_type': 'aniso_type', 'anisotropy_ftest12': 'aniso_ftest12', 'anisotropy_tilt_correction': 'aniso_tilt_correction', 'er_specimen_name': 'specimen', 'anisotropy_unit': 'aniso_s_unit', 'anisotropy_mean': 'aniso_s_mean', 'result_description': 'description', 'anisotropy_n': 'aniso_s_n_measurements','pmag_criteria_codes':'criteria','result_quality':'result_quality','anisotropy_alt':'aniso_alt'}
 
-
-
 # images data translation er_images -> images
 image_magic2_2_magic3_map = maps.all_maps['images']
 # images data translation images -> er_images
 image_magic2_2_magic_3_map = {v: k for (k, v) in image_magic2_2_magic3_map.items()}
+images = {'specimen': 'er_specimen_name', 'description': 'image_description',
+          'timestamp': 'image_date'}
+image_magic2_2_magic3_map.update(images)
 
 ## translation orientation format --> 3.0.
 # orientation headers: not all have a 3.0 sample equivalent (like mag_azimuth, for instance)
@@ -159,12 +168,10 @@ orient_magic_2_magic3_map = {"sample_name": "sample", "site_name": "site", "long
 # 3.0 --> orientation format
 magic3_2_orient_magic_map = {v: k for (k, v) in image_magic2_2_magic3_map.items()}
 
-
 meas_magic2 = meas_magic3_2_magic2_map.values()
 spec_magic2 = spec_magic3_2_magic2_map.values()
 samp_magic2 = samp_magic3_2_magic2_map.values()
 site_magic2 = site_magic3_2_magic2_map.values()
-
 
 #meas_magic3 = meas_magic3_2_magic2_map.keys()  # why are these here?
 spec_magic3 = spec_magic2_2_magic3_map.keys()
