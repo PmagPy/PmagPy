@@ -203,6 +203,29 @@ class TestContribution(unittest.TestCase):
                          set(con.tables.keys()))
         self.assertGreater(len(con.tables['sites'].df), 0)
 
+    def test_get_parent_and_child(self):
+        parent_name, child_name = self.con.get_parent_and_child("samples")
+        self.assertEqual("sites", parent_name)
+        self.assertEqual("specimens", child_name)
+        # handle incorrect input table name
+        parent_name, child_name = self.con.get_parent_and_child("fake")
+        self.assertIsNone(parent_name)
+        self.assertIsNone(child_name)
+
+    def test_propagate_all_tables_info_missing_tables(self):
+        self.con.tables.pop("specimens")
+        self.con.tables.pop("locations")
+        self.con.propagate_all_tables_info(write=False)
+
+    def test_propagate_all_tables_info_missing_row(self):
+        # test by removing a value
+        self.con.tables['sites'].delete_rows(self.con.tables['sites'].df.index == 'hz06')
+        self.assertNotIn("hz06", self.con.tables['sites'].df.index)
+        self.con.propagate_all_tables_info(write=False)
+        self.assertIn("hz06", self.con.tables['sites'].df.index)
+        self.assertEqual("hz06", self.con.tables['sites'].df.ix['hz06']['site'])
+
+
 
 if __name__ == '__main__':
     unittest.main()

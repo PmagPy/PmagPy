@@ -160,6 +160,99 @@ class Contribution(object):
                 self.tables[name + "s"] = MagicDataFrame(dtype=name + "s", df=df)
                 self.tables[name + "s"].write_magic_file(dir_path=self.directory)
 
+    def propagate_all_tables_info(self, write=True):
+        """
+        Find any items (specimens, samples, sites, or locations) from
+        tables other than measurements and make sure they each have a
+        row in their own table.  For example, if a site name is in
+        the samples table but not in the sites table, create a row
+        for it in the sites table.
+        """
+        for table_name in ["specimens", "samples", "sites", "locations"]:
+            if not table_name in self.tables:
+                continue
+            df = self.tables[table_name].df
+            parent_name, child_name = self.get_parent_and_child(table_name)
+            if parent_name:
+                if parent_name[:-1] in df.columns:
+                    parents = sorted(set(df[parent_name[:-1]].dropna().values))
+                    if parent_name in self.tables: # if there is a parent table, update it
+                        parent_df = self.tables[parent_name].df
+                        missing_parents = set(parents) - set(parent_df.index)
+                        if missing_parents: # add any missing values
+                            print "-I- Updating {} table with values from {} table".format(parent_name, table_name)
+                            for item in missing_parents:
+                                self.add_item(parent_name, {parent_name[:-1]: item}, label=item)
+                            # save any changes to file
+                            if write:
+                                self.tables[parent_name].write_magic_file(dir_path=self.directory)
+
+                    else:  # if there is no parent table, create it if necessary
+                        if parents:
+                            # create a parent_df with the names you got from the child
+                            print "-I- Creating new {} table with data from {} table".format(parent_name, table_name)
+                            df = pd.DataFrame(columns=[parent_name[:-1]], index=parents)
+                            self.tables[parent_name] = MagicDataFrame(dtype=parent_name, df=df)
+                            if write:
+                                # save new table to file
+                                self.tables[parent_name].write_magic_file(dir_path=self.directory)
+            if child_name:
+                if child_name in df.columns:
+                    raw_children = df[child_name].dropna().str.split(':')
+                    # flatten list, ignore duplicates
+                    children = sorted(set([item.strip() for sublist in raw_children for item in sublist]))
+                    if child_name in self.tables: # if there is already a child table, update it
+                        child_df = self.tables[child_name].df
+                        missing_children = set(children) - set(child_df.index)
+                        if missing_children: # add any missing values
+                            print "-I- Updating {} table with values from {} table".format(child_name, table_name)
+                            for item in missing_children:
+                                self.add_item(child_name, {child_name[:-1]: item}, label=item)
+                            if write:
+                                # save any changes to file
+                                self.tables[parent_name].write_magic_file(dir_path=self.directory)
+                    else: # if there is no child table, create it if necessary
+                        if children:
+                            # create a child_df with the names you got from the parent
+                            print "-I- Creating new {} table with data from {} table".format(child_name, table_name)
+                            df = pd.DataFrame(columns=[parent_name[:-1]], index=children)
+                            self.tables[child_name] = MagicDataFrame(dtype=child_name, df=df)
+                            if write:
+                                # save new table to file
+                                self.tables[parent_name].write_magic_file(dir_path=self.directory)
+
+
+
+    def get_parent_and_child(self, table_name):
+        """
+        Get the name of the parent table and the child table
+        for a given MagIC table name.
+
+        Parameters
+        ----------
+        table_name : string of MagIC table name ['specimens', 'samples', 'sites', 'locations']
+
+        Returns
+        -------
+        parent_name : string of parent table name
+        child_name : string of child table name
+        """
+        if table_name not in self.ancestry:
+            return None, None
+        parent_ind = self.ancestry.index(table_name) + 1
+        if parent_ind + 1 > len(self.ancestry):
+            parent_name = None
+        else:
+            parent_name = self.ancestry[parent_ind]
+        child_ind = self.ancestry.index(table_name) - 1
+        if child_ind < 0:
+            child_name = None
+        else:
+            child_name = self.ancestry[child_ind]
+        return parent_name, child_name
+
+
+
 
     def add_item(self, table_name, data, label):
         self.tables[table_name].add_row(label, data)
