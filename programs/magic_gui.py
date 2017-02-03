@@ -64,6 +64,12 @@ class MainFrame(wx.Frame):
         wx.Yield()
         print '-I- Read in any available data from working directory'
         self.contribution = nb.Contribution(self.WD, dmodel=self.data_model)
+        # propagate names from measurements into other tables
+        self.contribution.propagate_measurement_info()
+        # propagate names from any table into other tables
+        # (i.e., site name from samples)
+        self.contribution.propagate_all_tables_info()
+        self.edited = False
         del wait
 
 
@@ -231,15 +237,7 @@ class MainFrame(wx.Frame):
             self.WD = change_dir_dialog.GetPath()
             self.dir_path.SetValue(self.WD)
         change_dir_dialog.Destroy()
-        wait = wx.BusyInfo('Initializing data object in new directory, please wait...')
-        wx.Yield()
-        print '-I- Initializing magic data object'
-        # make new contribution object, but reuse old data_model
-        self.contribution = nb.Contribution(self.WD, dmodel=self.data_model)
-        self.edited = False
-        print '-I- Read in any available data from working directory'
-        print '-I- Initializing headers'
-        del wait
+        self.get_wd_data()
 
     def on_open_grid_frame(self):
         self.Hide()
