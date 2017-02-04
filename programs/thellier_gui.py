@@ -5052,11 +5052,9 @@ else:
             self.canvas3.draw()
 
         else: # draw cooling rate data
-
             self.fig3.clf()
             self.fig3.text(0.02,0.96,"Cooling rate experiment",{'family':self.font_type, 'fontsize':FONTSIZE, 'style':'normal','va':'center', 'ha':'left' })
             self.eqplot = self.fig3.add_axes([0.2,0.15,0.7,0.7],frameon=True,axisbg='None')
-            #print self.Data[self.s].keys()
             if 'cooling_rate_data' in self.Data[self.s].keys() and\
             'ancient_cooling_rate' in self.Data[self.s]['cooling_rate_data'].keys() and\
             'lab_cooling_rate' in self.Data[self.s]['cooling_rate_data'].keys():
@@ -6290,7 +6288,6 @@ else:
                         cooling_rate_data['alteration_check']=[cooling_rate,moment]
                 lab_cooling_rate=max(cooling_rates_list)
                 cooling_rate_data['lab_cooling_rate']= lab_cooling_rate
-
                 #lab_cooling_rate = self.Data[self.s]['cooling_rate_data']['lab_cooling_rate']
                 moments=[]
                 lab_fast_cr_moments=[]
@@ -6326,7 +6323,6 @@ else:
                 cooling_rate_data['CR_correction_factor_flag']=""
                 cooling_rate_data['x0']=x0
 
-
                 if alteration_check_perc>5:
                     cooling_rate_data['CR_correction_factor_flag']=cooling_rate_data['CR_correction_factor_flag']+"alteration > 5% "
                     cooling_rate_data['CR_correction_factor']=-999
@@ -6334,10 +6330,7 @@ else:
                 if alteration_check_perc<=5:
                     cooling_rate_data['CR_correction_factor_flag']="calculated"
                     cooling_rate_data['CR_correction_factor']=1./(y0)
-
                 Data[s]['cooling_rate_data']= cooling_rate_data
-
-
 
         # go over all specimens. if there is a specimen with no cooling rate data
         # use the mean cooling rate corretion of the other specimens from the same sample
