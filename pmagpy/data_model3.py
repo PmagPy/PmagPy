@@ -15,7 +15,7 @@ class DataModel(object):
         """
         Grab the 3.0 data model from earthref.org
         """
-        url = 'https://beta.earthref.org/MagIC/data-models/3.0.json'
+        url = 'https://www2.earthref.org/MagIC/data-models/3.0.json'
         raw_dm = pd.io.json.read_json(url)
         return raw_dm
 
