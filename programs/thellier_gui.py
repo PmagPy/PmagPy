@@ -6731,8 +6731,6 @@ else:
             Data[s]['additivity_check_starting_temperatures']=AC_starting_temperatures
 
 
-
-
         self.GUI_log.write("-I- number of specimens in this project directory: %i\n"%len(self.specimens))
         self.GUI_log.write("-I- number of samples in this project directory: %i\n"%len(Data_hierarchy['samples'].keys()))
 
@@ -6783,7 +6781,13 @@ else:
                     print '-W- Your sample file has no cooling rate data.'
             samples=self.samp_data[['sample','site','cooling_rate']]
             samples=samples.rename(columns={'site':'er_site_name','sample':'er_sample_name','cooling_rate':'sample_cooling_rate'})
-            er_samples=samples.to_dict('records') # pick out what is needed by thellier_gui and put in 2.5 format
+            # in case of multiple rows with same sample name, make sure cooling rate date propagates
+            # to all samples with the same name
+            samples = samples.groupby(samples.index).fillna(method='ffill').groupby(samples.index).fillna(method='bfill')
+            # then get rid of any duplicates
+            samples = samples.drop_duplicates()
+            # pick out what is needed by thellier_gui and put in 2.5 format
+            er_samples=samples.to_dict('records')
             data_er_samples={}
             for s in er_samples:
                 data_er_samples[s['er_sample_name']]=s
