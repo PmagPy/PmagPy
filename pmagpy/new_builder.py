@@ -37,6 +37,7 @@ class Contribution(object):
                  dmodel=None, vocabulary=""):
         if isinstance(dmodel, data_model.DataModel):
             self.data_model = dmodel
+            Contribution.dmodel = dmodel
         else:
             try:
                 self.data_model = Contribution.dmodel
@@ -46,9 +47,10 @@ class Contribution(object):
         if isinstance(vocabulary, cv.Vocabulary):
             self.vocab = vocabulary
         else:
-            try: self.vocab = Contribution.vocab
+            try:
+                self.vocab = Contribution.vocab
             except AttributeError:
-                Contribution.vocab = cv.Vocabulary()
+                Contribution.vocab = cv.Vocabulary(dmodel=self.data_model)
                 Contribution.vocab.get_all_vocabulary()
                 #Contribution.cv = vocab.get_controlled_vocabularies()
                 #self.cv = Contribution.cv
