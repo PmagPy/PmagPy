@@ -20,7 +20,6 @@ class TestVocabularies(unittest.TestCase):
 
     def setUp(self):
         self.vocab = cv3.Vocabulary()
-        self.vocab.get_all_vocabulary()
 
     def tearDown(self):
         pass

@@ -6,7 +6,6 @@ this module will provide all the functionality for the drop-down controlled voca
 # pylint: disable=W0612,C0111,C0301
 
 import wx
-from pmagpy.controlled_vocabularies3 import Vocabulary
 
 
 class Menus(object):
@@ -18,11 +17,7 @@ class Menus(object):
         take: data_type (string), MagIC contribution,
         & grid (grid object)
         """
-        # if controlled vocabularies haven't already been grabbed from earthref
-        # do so now
         self.contribution = contribution
-        #if not any(vocab.vocabularies):
-        #    vocab.get_all_vocabulary()
 
         self.data_type = data_type
         if self.data_type in self.contribution.tables:

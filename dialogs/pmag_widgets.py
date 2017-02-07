@@ -823,10 +823,7 @@ class MethodCodeDemystifier(wx.StaticBoxSizer):
             vc = vocabulary
         else:
             vc = Vocabulary()
-            vc.get_all_vocabulary()
         self.vc = vc
-        if not any(vc.code_types):
-            vc.get_all_vocabulary()
         types = vc.code_types.index
         types = vc.code_types['label']
         type_ind = vc.code_types.index

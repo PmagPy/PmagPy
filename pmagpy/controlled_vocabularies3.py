@@ -34,6 +34,7 @@ class Vocabulary(object):
             except AttributeError:
                 Vocabulary.dmodel = data_model.DataModel()
                 self.data_model = Vocabulary.dmodel
+        self.get_all_vocabulary()
 
 
     ## Get method codes

@@ -22,11 +22,6 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
         title = 'Edit {} data'.format(panel_name)
         super(GridFrame, self).__init__(parent=parent, id=wx.ID_ANY,
                                         name=frame_name, title=title)
-        # if controlled vocabularies haven't already been grabbed from earthref
-        # do so now
-        #if not any(vocab.vocabularies):
-        #    vocab.get_all_vocabulary()
-
         self.remove_cols_mode = False
         self.deleteRowButton = None
         self.selected_rows = set()

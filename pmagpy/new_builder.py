@@ -51,9 +51,6 @@ class Contribution(object):
                 self.vocab = Contribution.vocab
             except AttributeError:
                 Contribution.vocab = cv.Vocabulary(dmodel=self.data_model)
-                Contribution.vocab.get_all_vocabulary()
-                #Contribution.cv = vocab.get_controlled_vocabularies()
-                #self.cv = Contribution.cv
                 self.vocab = Contribution.vocab
         self.directory = os.path.realpath(directory)
         self.table_names = ['measurements', 'specimens', 'samples',
