@@ -813,12 +813,8 @@ The data in a row will be associated with the lowest level that is filled in,
         if self.drop_down_menu:
             self.drop_down_menu.clean_up()
 
-        # save all changes to er_magic data object
+        # save all changes to data object and write to file
         self.grid_builder.save_grid_data()
-
-        # don't actually write data in this step (time-consuming)
-        # instead, write to files when user is done editing
-        #self.er_magic_data.write_files()
 
         wx.MessageBox('Saved!', 'Info',
                       style=wx.OK | wx.ICON_INFORMATION)
