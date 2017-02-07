@@ -117,4 +117,8 @@ class TestMapping(unittest.TestCase):
         for map_type in maps.all_maps:
             values = maps.all_maps[map_type].values()
             for val in values:
-                self.assertTrue(val in DM.dm[map_type].index)
+                ignore = ['location', 'site', 'sample', 'specimen']
+                for val in ignore[:]:
+                    ignore.append(val + "s")
+                if val not in ignore:
+                    self.assertTrue(val in DM.dm[map_type].index)
