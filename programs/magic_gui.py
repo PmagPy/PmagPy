@@ -65,7 +65,8 @@ class MainFrame(wx.Frame):
         print '-I- Read in any available data from working directory'
         self.contribution = nb.Contribution(self.WD, dmodel=self.data_model)
         # propagate names from measurements into other tables
-        self.contribution.propagate_measurement_info()
+        if "measurements" in self.contribution.tables:
+            self.contribution.propagate_measurement_info()
         # propagate names from any table into other tables
         # (i.e., site name from samples)
         self.contribution.propagate_all_tables_info()
