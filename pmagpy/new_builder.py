@@ -124,8 +124,9 @@ class Contribution(object):
         filename = os.path.join(self.directory, self.filenames[dtype])
         if os.path.exists(filename):
             data_container = MagicDataFrame(filename, dmodel=self.data_model)
-            self.tables[dtype] = data_container
-            return data_container
+            if data_container.dtype != "empty":
+                self.tables[dtype] = data_container
+                return data_container
         else:
             print "-W- No such file: {}".format(filename)
             return False
@@ -536,21 +537,14 @@ class MagicDataFrame(object):
                 self.df.index.name = dtype[:-1] if dtype.endswith("s") else dtype
         # if there is a file provided, read in the data and ascertain dtype
         else:
-            ## old way of reading in data using pmag.magic_read
-            #data, dtype, keys = pmag.magic_read(magic_file, return_keys=True)
-            ## create dataframe, maintaining column order:
-            #self.df = DataFrame(data, columns=keys)
-            #if dtype == 'bad_file':
-            #    print "-W- Bad file {}".format(magic_file)
-            #    self.dtype = 'empty'
-            #    return
-
             ## new way of reading in data using pd.read_table
             with open(magic_file) as f:
                 try:
                     delim, dtype = f.readline().split('\t')[:2]
-                except ValueError:
+                except ValueError as ex:
+                    print ex, type(ex)
                     print "-W- Empty file {}".format(magic_file)
+                    self.dtype = 'empty'
                     self.df = DataFrame()
                     return
             self.df = pd.read_table(magic_file, skiprows=[0])
@@ -605,7 +599,6 @@ class MagicDataFrame(object):
                 if col not in self.df.columns:
                     self.df[col] = None
             self.df = self.df[columns]
-
 
 
     ## Methods to change self.df inplace
