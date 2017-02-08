@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 
+import os
 import unittest
 import pmagpy.pmag as pmag
-
+WD = os.getcwd()
+PROJECT_WD = os.path.join(WD, "data_files", "2_5", "McMurdo")
 
 class TestLonAdjust(unittest.TestCase):
 
@@ -24,3 +26,25 @@ class TestLonAdjust(unittest.TestCase):
         self.assertEqual('value', result)
         result = pmag.adjust_to_360(700, 'treatment_temp_decay_rate')
         self.assertEqual(700, result)
+
+class TestConvert2To3(unittest.TestCase):
+
+    def setUp(self):
+        pass
+
+    def tearDown(self):
+        os.chdir(WD)
+        for fname in ["measurements.txt", "specimens.txt", "samples.txt",
+                      "sites.txt", "locations.txt"]:
+            os.remove(os.path.join(PROJECT_WD, fname))
+
+    def test_upgrade(self):
+        meas, upgraded, no_upgrade = pmag.convert_directory_2_to_3(input_dir=PROJECT_WD,
+                                                                   output_dir=PROJECT_WD)
+        expect_out = ['measurements.txt', 'specimens.txt', 'samples.txt', 'sites.txt', 'locations.txt']
+        self.assertEqual(expect_out, upgraded)
+        expect_not_out = ['pmag_criteria.txt', 'pmag_results.txt',
+                          'rmag_hysteresis.txt', 'rmag_anisotropy.txt',
+                          'rmag_results.txt', 'er_ages.txt',
+                          'er_images.txt']
+        self.assertEqual(sorted(expect_not_out), sorted(no_upgrade))

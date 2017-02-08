@@ -390,9 +390,9 @@ class MagMainFrame(wx.Frame):
 
     def on_convert_3(self, event):
         # turn files from 2.5 --> 3.0 (rough translation)
-        res = pmag.convert_directory_2_to_3('magic_measurements.txt',
-                                            input_dir=self.WD, output_dir=self.WD)
-        if not res:
+        meas, upgraded, no_upgrade = pmag.convert_directory_2_to_3('magic_measurements.txt',
+                                                                   input_dir=self.WD, output_dir=self.WD)
+        if not meas:
             wx.MessageBox('2.5 --> 3.0 failed. Do you have a magic_measurements.txt file in your working directory?',
                           'Info', wx.OK | wx.ICON_INFORMATION)
             return
@@ -401,9 +401,28 @@ class MagMainFrame(wx.Frame):
         self.contribution = nb.Contribution(self.WD)
         # make skeleton files with specimen, sample, site, location data
         self.contribution.propagate_measurement_info()
+        #
+        # note what DIDN'T upgrade
+        #no_upgrade = []
+        #for fname in os.listdir(self.WD):
+        #    if 'rmag' in fname:
+        #        no_upgrade.append(fname)
+        #    elif fname in ['pmag_results.txt', 'pmag_criteria.txt',
+        #                   'er_synthetics.txt', 'er_images.txt',
+        #                   'er_plots.txt', 'er_ages.txt']:
+        #        no_upgrade.append(fname)
+
         # pop up
-        wx.MessageBox('2.5 --> 3.0 translation completed!', 'Info',
-                      wx.OK | wx.ICON_INFORMATION)
+        upgraded_string = ", ".join(upgraded)
+        if no_upgrade:
+            no_upgrade_string = ", ".join(no_upgrade)
+            msg = '2.5 --> 3.0 translation completed!\n\nThese 3.0 format files were created: {}.\n\nHowever, these 2.5 format files could not be upgraded: {}.\n\nTo convert all 2.5 files, use the MagIC upgrade tool: https://www2.earthref.org/MagIC/upgrade\n'.format(upgraded_string, no_upgrade_string)
+            if 'pmag_criteria.txt' in no_upgrade:
+                msg += '\nNote: Not all criteria files can be upgraded, even on the MagIC site.  You may need to recreate an old pmag_criteria file from scratch in Thellier GUI or Demag GUI.'
+            wx.MessageBox(msg, 'Warning', wx.OK | wx.ICON_INFORMATION)
+        else:
+            msg = '2.5 --> 3.0 translation completed!\nThese files were converted: {}'.format(upgraded_string)
+            wx.MessageBox(msg, 'Info', wx.OK | wx.ICON_INFORMATION)
 
 
 

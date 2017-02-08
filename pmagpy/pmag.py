@@ -238,12 +238,26 @@ def convert_items(data, mapping):
     return new_recs
 
 
-def convert_directory_2_to_3(meas_fname, input_dir=".", output_dir=".",
-                             meas_only=False):
+def convert_directory_2_to_3(meas_fname="magic_measurements.txt", input_dir=".",
+                             output_dir=".", meas_only=False):
     """
     Convert 2.0 measurements file into 3.0 measurements file.
     Merge and convert specimen, sample, site, and location data.
     Note: does not yet handle criteria or other MagIC files.
+
+    Parameters
+    ----------
+    meas_name : name of measurement file (do not include full path,
+        default is "magic_measurements.txt")
+    input_dir : name of input directory (default is ".")
+    output_dir : name of output directory (default is ".")
+    meas_only : boolean, convert only measurement data (default is False)
+
+    Returns
+    ---------
+    NewMeas : 3.0 measurements data (output of pmag.convert_items)
+    upgraded : list of files successfully upgraded to 3.0
+    no_upgrade: list of 2.5 files not upgraded to 3.0
     """
     convert = {'specimens': map_magic.spec_magic2_2_magic3_map,
                'samples': map_magic.samp_magic2_2_magic3_map,
@@ -252,7 +266,7 @@ def convert_directory_2_to_3(meas_fname, input_dir=".", output_dir=".",
     full_name = os.path.join(input_dir, meas_fname)
     if not os.path.exists(full_name):
         print "-W- {} is not a file".format(full_name)
-        return
+        return False, False, False
     # read in data model 2.5 measurements file
     data2, filetype = magic_read(full_name)
     # convert list of dicts to 3.0
@@ -260,17 +274,34 @@ def convert_directory_2_to_3(meas_fname, input_dir=".", output_dir=".",
     # write 3.0 output to file
     ofile = os.path.join(output_dir, 'measurements.txt')
     magic_write(ofile, NewMeas,'measurements')
+    upgraded = []
     if os.path.exists(ofile):
         print "-I- 3.0 format measurements file was successfully created: {}".format(ofile)
+        upgraded.append("measurements.txt")
     else:
         print "-W- 3.0 format measurements file could not be created"
     #
+    no_upgrade = []
     if not meas_only:
         # try to convert specimens, samples, sites, & locations
         for dtype in ['specimens', 'samples', 'sites', 'locations']:
             mapping = convert[dtype]
-            convert_and_combine_2_to_3(dtype, mapping, input_dir, output_dir)
-    return NewMeas
+            res = convert_and_combine_2_to_3(dtype, mapping, input_dir, output_dir)
+            if res:
+                upgraded.append(res)
+        # create list of all un-upgradeable files
+        for fname in os.listdir(input_dir):
+            if fname in ['measurements.txt', 'specimens.txt', 'samples.txt',
+                         'sites.txt', 'locations.txt']:
+                continue
+            elif 'rmag' in fname:
+                no_upgrade.append(fname)
+            elif fname in ['pmag_results.txt', 'pmag_criteria.txt',
+                           'er_synthetics.txt', 'er_images.txt',
+                           'er_plots.txt', 'er_ages.txt']:
+                no_upgrade.append(fname)
+
+    return NewMeas, upgraded, no_upgrade
 
 
 def convert_and_combine_2_to_3(dtype, map_dict, input_dir=".", output_dir="."):
@@ -306,8 +337,10 @@ def convert_and_combine_2_to_3(dtype, map_dict, input_dir=".", output_dir="."):
     # write out the data to file
     if len(new_df.df):
         new_df.write_magic_file(dir_path=output_dir)
+        return dtype + ".txt"
     else:
         print "-I- No {} data found.".format(dtype)
+        return None
 
 
 def getsampVGP(SampRec,SiteNFO,data_model=2.5):
