@@ -8,9 +8,12 @@ As an open-source, community project, we welcome improvements and feedback!  The
 
 2. If you want to add a new feature yourself or fix a bug yourself, that's great too.  The process for adding a feature looks like this: fork the PmagPy repository, create a branch for your feature or bugfix, make some changes, and then submit a pull request.  Don't worry if you don't know how to do all of those steps!  If you aren't familiar with git, Github, or the details of this process, you will find this short [tutorial](https://guides.github.com/activities/forking/) helpful.  If you're still stuck after that but want to contribute, you can create a [Github issue](https://github.com/PmagPy/PmagPy/issues) and we will help get you sorted.  Depending on what kind of contribution you are making, you may also want to add some tests.  See our [testing README](https://github.com/PmagPy/PmagPy/blob/master/pmagpy_tests/README.md) for details on making and running PmagPy tests.
 
+If you will be making significant contributions via git, we have some additional guidelines for [good git protocols][#git-protocols].
+
 ## Style guidelines
 
 Readable code is good code.  To that end, we request that contributors try to write code that can be understood by others!  One way to do this is by adhering to reasonable style guidelines.  For more information about standard Python style guidelines, see [PEP 8](https://www.python.org/dev/peps/pep-0008/).
+
 
 
 ## Testing guidelines
@@ -133,6 +136,21 @@ Here is a visual representation of the directory structure:
 
 - Click on the `notebooks` directory, then click on the notebook you want to open.  A window will pop up in your default browser with the notebook's contents.  You can then run the notebook cells.
 
+## Git protocols
+
+For an open source project with multiple contributors, it is especially important for changes to be well and clearly documented.  Your reasoning for a certain change may be clear to you, but might need a little extra explanation for someone else.  Here are some basic guidelines to keep in mind.
+
+- Commits should have descriptive names that briefly explain what was done and why.  "Edited file1.py" is a bad commit name!
+
+- If your commit directly fixes [Github issue](https://github.com/PmagPy/PmagPy/issues) 100, it is useful to include "Fixes #100" in the text of the commit.  This syntax both closes the issue and links the issue to the commit for future reference.   However, commit names should always include more detail that just “Fixes #100” - additional context means that the commit message can stand alone.
+
+- Commits should deal with one concern at a time — spanning multiple files is fine, but commits with many unrelated changes are confusing and should be broken up. This makes it easier for someone else to understand what happened, and if something broke in a particular commit it is easier to track it down if the changes are more isolated.
+
+- If you are making a large change that will take multiple commits to implement, it is best to start a feature/fix branch.  Once the feature or fix is done, the changes can be merged into master without breaking core functionality in the meantime.
+
+- Here is a nifty article with some fun [Github keyboard shortcuts](https://help.github.com/articles/using-keyboard-shortcuts/) to let you navigate around Github quickly and easily.
+
+If you are left with any questions about git and Github best practices, go ahead and make a new [Github issue](https://github.com/PmagPy/PmagPy/issues) and we will try to get it worked out!
 
 ## Compile and Release Guide
 
