@@ -8,7 +8,7 @@ As an open-source, community project, we welcome improvements and feedback!  The
 
 2. If you want to add a new feature yourself or fix a bug yourself, that's great too.  The process for adding a feature looks like this: fork the PmagPy repository, create a branch for your feature or bugfix, make some changes, and then submit a pull request.  Don't worry if you don't know how to do all of those steps!  If you aren't familiar with git, Github, or the details of this process, you will find this short [tutorial](https://guides.github.com/activities/forking/) helpful.  If you're still stuck after that but want to contribute, you can create a [Github issue](https://github.com/PmagPy/PmagPy/issues) and we will help get you sorted.  Depending on what kind of contribution you are making, you may also want to add some tests.  See our [testing README](https://github.com/PmagPy/PmagPy/blob/master/pmagpy_tests/README.md) for details on making and running PmagPy tests.
 
-If you will be making significant contributions via git, we have some additional guidelines for [good git protocols][#git-protocols].
+If you will be making significant contributions via git, we have some additional guidelines for [good git protocols](#git-protocols).
 
 ## Style guidelines
 
