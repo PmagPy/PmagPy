@@ -59,21 +59,33 @@ def main(command_line=True, **kwargs):
 
         -samp X Y
             specimen-sample naming convention.
+            X determines which kind of convention (initial characters, terminal characters, or delimiter
+            Y determines how many characters to remove to go from specimen --> sample OR which delimiter to use
             X=0 Y=n: specimen is distinguished from sample by n initial characters.
-                     (example: if n=4 then and specimen = mgf13a then sample = mgf13)
+                     (example: "generic_magic.py -samp 0 4"
+                      if n=4 then and specimen = mgf13a then sample = mgf13)
             X=1 Y=n: specimen is distiguished from sample by n terminate characters.
-                     (example: if n=1 then and specimen = mgf13a then sample = mgf13)
+                     (example: "generic_magic.py -samp 1 1)
+                      if n=1 then and specimen = mgf13a then sample = mgf13)
             X=2 Y=c: specimen is distinguishing from sample by a delimiter.
-                     (example: if c=- then and specimen = mgf13-a then sample = mgf13)
+                     (example: "generic_magic.py -samp 2 -"
+                      if c=- then and specimen = mgf13-a then sample = mgf13)
+            default: sample is the same as specimen name
 
         -site X Y
             sample-site naming convention.
+            X determines which kind of convention (initial characters, terminal characters, or delimiter
+            Y determines how many characters to remove to go from sample --> site OR which delimiter to use
             X=0 Y=n: sample is distiguished from site by n initial characters.
-                     (example: if n=3 then and sample = mgf13 then sample = mgf)
+                     (example: "generic_magic.py --site 0 3"
+                      if n=3 then and sample = mgf13 then sample = mgf)
             X=1 Y=n: sample is distiguished from site by n terminate characters.
-                     (example: if n=2 and sample = mgf13 then site = mgf)
+                     (example: "generic_magic.py --site 1 2"
+                      if n=2 and sample = mgf13 then site = mgf)
             X=2 Y=c: specimen is distiguishing from sample by a delimiter.
-                     (example: if c='-' and sample = 'mgf-13' then site = mgf)
+                     (example: "generic_magic.py -site 2 -"
+                      if c='-' and sample = 'mgf-13' then site = mgf)
+            default: site name is the same as sample name
 
         -loc LOCNAM
             specify location/study name.
