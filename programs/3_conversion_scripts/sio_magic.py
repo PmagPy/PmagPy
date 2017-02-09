@@ -122,7 +122,7 @@ import pmagpy.new_builder as nb
 from pandas import DataFrame
 import pytz, datetime
 
-def main(command_line=True, **kwargs):
+def main(**kwargs):
 
     # initialize some stuff
     methcode="LP-NO"

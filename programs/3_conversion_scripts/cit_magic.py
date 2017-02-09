@@ -12,8 +12,9 @@ SYNTAX
 OPTIONS
     -h: prints the help message and quits.
     -usr USER: Colon delimited list of analysts, default is ""
-    -WD: directory to output files to (default : current directory)
+    -ID: directory for input file if not included in -f flag
     -f FILE: specify .sam format input file, required
+    -WD: directory to output files to (default : current directory)
     -F FILE: specify output  measurements file, default is measurements.txt
     -Fsp FILE: specify output specimens.txt file, default is specimens.txt
     -Fsa FILE: specify output samples.txt file, default is samples.txt 
@@ -105,7 +106,8 @@ def main(**kwargs):
     input_dir_path = kwargs.get('input_dir_path',os.path.split(magfile)[0])
     meas_n_orient = kwargs.get('meas_n_orient','8')
     output_dir_path = dir_path
-    DC_FIELD,DC_PHI,DC_THETA = map(float, kwargs.get('dc_params', (0,0,0)))
+    try: DC_FIELD,DC_PHI,DC_THETA = map(float, kwargs.get('dc_params', (0,0,0)))
+    except ValueError: print('problem with your dc parameters. they should be formated as "(DC_FIELD,DC_PHI,DC_THETA)"')
     DC_FIELD *= 1e-6
     yn = ''
     if DC_FIELD==0 and DC_PHI==0 and DC_THETA==0: GET_DC_PARAMS=True
@@ -457,7 +459,7 @@ if __name__ == "__main__":
         kwargs['avg'] = True
     if '-dc' in sys.argv:
         ind=sys.argv.index('-dc')
-        kwargs['dc_params']=sys.argv[ind+1]
+        kwargs['dc_params']=sys.argv[ind+1].strip('( ) [ ]').split(',')
     if "-ncn" in sys.argv:
         ind=sys.argv.index("-ncn")
         kwargs['samp_con']=sys.argv[ind+1]

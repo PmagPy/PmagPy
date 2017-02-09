@@ -6491,8 +6491,8 @@ def measurements_methods3(meas_data,noave):
                 rec["method_codes"]=methcode[:-1] # assign them back
 #
 # done with first pass, collect and assign provisional method codes
-            if "measurement_description" not in rec.keys():rec["measurement_description"]=""
-            rec["er_citation_names"]="This study"
+            if "description" not in rec.keys():rec["description"]=""
+            rec["citation"]="This study"
             SpecTmps.append(rec)
 # ready for second pass through, step through specimens, check whether ptrm, ptrm tail checks, or AARM, etc.
 #
