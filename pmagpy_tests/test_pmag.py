@@ -48,3 +48,16 @@ class TestConvert2To3(unittest.TestCase):
                           'rmag_results.txt', 'er_ages.txt',
                           'er_images.txt']
         self.assertEqual(sorted(expect_not_out), sorted(no_upgrade))
+
+
+class TestGetPlateData(unittest.TestCase):
+
+    def test_get_plate_data(self):
+        res = pmag.get_plate_data('AF')
+        expected_out =  """
+0.0        90.00    0.00
+1.0        88.38  182.20
+2.0        86.76  182.20
+"""
+        length = len(expected_out)
+        self.assertEqual(expected_out, res[:length])
