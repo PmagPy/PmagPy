@@ -7458,6 +7458,7 @@ def get_TS(ts):
     return
 
 
+## Functions for dealing with acceptance criteria
 
 def initialize_acceptance_criteria (**kwargs):
     '''
@@ -7938,7 +7939,6 @@ def initialize_acceptance_criteria (**kwargs):
     return(acceptance_criteria)
 
 
-
 def read_criteria_from_file(path,acceptance_criteria,**kwargs):
     '''
     Read accceptance criteria from magic criteria file
@@ -7979,9 +7979,21 @@ def read_criteria_from_file(path,acceptance_criteria,**kwargs):
         crit_data=acceptance_criteria # data already read in
     else:
         crit_data,file_type=magic_read(path)
+        if 'criteria' not in file_type:
+            if 'empty' in file_type:
+                print '-W- {} is an empty file'.format(path)
+            else:
+                print '-W- {} could not be read and may be improperly formatted...'.format(path)
     for rec in crit_data:
+        # gather metadata
+        metadata_dict = {'pmag_criteria_code': '', 'criteria_definition': '', 'er_citation_names': ''}
+        for metadata in metadata_dict:
+            if metadata in rec:
+                metadata_dict[metadata] = rec[metadata]
+        # check each record for correct name and compatibility
         for crit in rec.keys():
-            if crit=='anisotropy_ftest_flag' and crit not in rec.keys():crit='specimen_aniso_ftest_flag' # convert legacy criterion to 2.5
+            if crit=='anisotropy_ftest_flag' and crit not in rec.keys():
+                crit='specimen_aniso_ftest_flag' # convert legacy criterion to 2.5
             rec[crit]=rec[crit].strip('\n')
             if crit in ['pmag_criteria_code','criteria_definition','magic_experiment_names','er_citation_names']:
                 continue
@@ -7997,8 +8009,9 @@ def read_criteria_from_file(path,acceptance_criteria,**kwargs):
                 acceptance_criteria[crit]['value']=rec[crit]
                 acceptance_criteria[crit]['threshold_type']="inherited"
                 acceptance_criteria[crit]['decimal_points']=-999
-                # LJ add:
                 acceptance_criteria[crit]['category'] = None
+                # add in metadata to each record
+                acceptance_criteria[crit].update(metadata_dict)
 
             # boolean flag
             elif acceptance_criteria[crit]['threshold_type']=='bool':
@@ -8018,8 +8031,6 @@ def read_criteria_from_file(path,acceptance_criteria,**kwargs):
             else:
                 acceptance_criteria[crit]['value']=float(rec[crit])
     return(acceptance_criteria)
-
-
 
 
 def write_criteria_to_file(path,acceptance_criteria,**kwargs):
