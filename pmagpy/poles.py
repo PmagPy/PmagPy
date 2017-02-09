@@ -1619,3 +1619,4 @@ def get_apwp(plate):
 197.0      81.11   62.23
 198.0      79.92   67.11
 """
+    return apwp
