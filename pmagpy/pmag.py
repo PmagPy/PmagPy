@@ -9582,7 +9582,7 @@ def read_criteria_from_file(path,acceptance_criteria,**kwargs):
         crit_data,file_type=magic_read(path)
     for rec in crit_data:
         for crit in rec.keys():
-            if crit=='anisotropy_ftest_flag':crit='specimen_aniso_ftest_flag' # convert legacy criterion to 2.5
+            if crit=='anisotropy_ftest_flag' and crit not in rec.keys():crit='specimen_aniso_ftest_flag' # convert legacy criterion to 2.5
             rec[crit]=rec[crit].strip('\n')
             if crit in ['pmag_criteria_code','criteria_definition','magic_experiment_names','er_citation_names']:
                 continue
