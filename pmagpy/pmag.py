@@ -1013,6 +1013,72 @@ def vspec_magic(data):
                 del data[-1]  # get rid of dummy stop sign
                 return vdata,treats # bye-bye
 
+def vspec_magic3(data):
+    """
+   takes average vector of replicate measurements
+    """
+    vdata,Dirdata,step_meth=[],[],""
+    if len(data)==0:return vdata
+    treat_init=["treat_temp", "treat_temp_decay_rate", "treat_temp_dc_on", "treat_temp_dc_off", "treat_ac_field", "treat_ac_field_decay_rate", "treat_ac_field_dc_on", "treat_ac_field_dc_off", "treat_dc_field", "treat_dc_field_decay_rate", "treat_dc_field_ac_on", "treat_dc_field_ac_off", "treat_dc_field_phi", "treat_dc_field_theta"]
+    treats=[]
+#
+# find keys that are used
+#
+    for key in treat_init:
+        if key in data[0].keys():treats.append(key)  # get a list of keys
+    stop={}
+    stop["specimen"]="stop"
+    for key in treats:
+        stop[key]="" # tells program when to quit and go home
+    data.append(stop)
+#
+# set initial states
+#
+    DataState0,newstate={},0
+    for key in treats:
+        DataState0[key]=data[0][key] # set beginning treatment
+    k,R=1,0
+    for i in range(k,len(data)):
+        FDirdata,Dirdata,DataStateCurr,newstate=[],[],{},0
+        for key in treats:  # check if anything changed
+            DataStateCurr[key]=data[i][key]
+            if DataStateCurr[key].strip() !=  DataState0[key].strip(): newstate=1 # something changed
+        if newstate==1:
+            if i==k: # sample is unique
+                vdata.append(data[i-1])
+            else: # measurement is not unique
+                #print "averaging: records " ,k,i
+                for l in range(k-1,i):
+                    if 'orientation' in data[l]['description']:
+                        data[l]['description']=""
+                    Dirdata.append([float(data[l]['dir_dec']),float(data[l]['dir_inc']),float(data[l]['magn_moment'])])
+                    FDirdata.append([float(data[l]['dir_dec']),float(data[l]['dir_inc'])])
+                dir,R=vector_mean(Dirdata)
+                Fpars=fisher_mean(FDirdata)
+                vrec=data[i-1]
+                vrec['dir_dec']='%7.1f'%(dir[0])
+                vrec['dir_inc']='%7.1f'%(dir[1])
+                vrec['magn_moment']='%8.3e'%(R/(i-k+1))
+                vrec['dir_csd']='%7.1f'%(Fpars['csd'])
+                vrec['meas_n_orient']='%7.1f'%(Fpars['n'])
+                vrec['description']='average of multiple measurements'
+                if "method_codes" in vrec.keys():
+                    meths=vrec["method_codes"].strip().split(":")
+                    if "DE-VM" not in meths:meths.append("DE-VM")
+                    methods=""
+                    for meth in meths:
+                        methods=methods+meth+":"
+                    vrec["method_codes"]=methods[:-1]
+                else: vrec["method_codes"]="DE-VM"
+                vdata.append(vrec)
+# reset state to new one
+            for key in treats:
+                DataState0[key]=data[i][key] # set beginning treatment
+            k=i+1
+            if data[i]["specimen"]=="stop":
+                del data[-1]  # get rid of dummy stop sign
+                return vdata,treats # bye-bye
+
 def get_specs(data):
     """
      takes a magic format file and returns a list of unique specimen names
@@ -6444,7 +6510,7 @@ def measurements_methods3(meas_data,noave):
 #
         Ninit=len(NewSpecs)
         if noave!=1:
-            vdata,treatkeys=vspec_magic(NewSpecs) # averages replicate measurements, returns treatment keys that are being used
+            vdata,treatkeys=vspec_magic3(NewSpecs) # averages replicate measurements, returns treatment keys that are being used
             if len(vdata)!=len(NewSpecs):
                 #print spec,'started with ',Ninit,' ending with ',len(vdata)
                 NewSpecs=vdata

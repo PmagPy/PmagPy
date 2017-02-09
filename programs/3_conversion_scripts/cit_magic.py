@@ -11,7 +11,8 @@ SYNTAX
 
 OPTIONS
     -h: prints the help message and quits.
-    -usr USER: Colon delimited list of analysts, default is "" 
+    -usr USER: Colon delimited list of analysts, default is ""
+    -WD: directory to output files to (default : current directory)
     -f FILE: specify .sam format input file, required
     -F FILE: specify output  measurements file, default is measurements.txt
     -Fsp FILE: specify output specimens.txt file, default is specimens.txt
@@ -371,15 +372,10 @@ def main(**kwargs):
     con.tables['measurements'].df = DataFrame(Fixed)
 
     con.tables['specimens'].write_magic_file(custom_name=spec_file)
-    print('specimens stored in ',spec_file)
     con.tables['samples'].write_magic_file(custom_name=samp_file)
-    print('samples stored in ',samp_file)
     con.tables['sites'].write_magic_file(custom_name=site_file)
-    print('sites stored in ', site_file)
     con.tables['locations'].write_magic_file(custom_name=loc_file)
-    print('locations stored in ', loc_file)
     con.tables['measurements'].write_magic_file(custom_name=meas_file)
-    print('data stored in ',meas_file)
 
     return True, meas_file
 
