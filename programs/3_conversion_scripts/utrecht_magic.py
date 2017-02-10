@@ -230,7 +230,7 @@ def main(**kwargs):
             MagRec["meas_temp"] = '%8.3e' % (273) # room temp in kelvin
             MagRec["quality"] = 'g'
             MagRec["standard"] = 'u'
-            MagRec["experiment_name"] = location + site + spec_name
+            MagRec["experiments"] = location + site + spec_name
             MagRec["number"] = location + site + spec_name + items[0]
             MagRec["specimen"] = spec_name
             # MagRec["treat_ac_field"] = '0'
