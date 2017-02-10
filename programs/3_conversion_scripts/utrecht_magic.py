@@ -232,7 +232,7 @@ def main(**kwargs):
             MagRec["citation"] = "This study"
             MagRec['software_packages'] = version_num
             MagRec["meas_temp"] = '%8.3e' % (273) # room temp in kelvin
-            MagRec["meas_flag"] = 'g'
+            MagRec["quality"] = 'g'
             MagRec["standard"] = 'u'
             MagRec["experiment_name"] = location + site + spec_name
             MagRec["number"] = location + site + spec_name + items[0]
