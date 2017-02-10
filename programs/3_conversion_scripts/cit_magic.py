@@ -132,10 +132,6 @@ def main(**kwargs):
     #get file names and open magfile to start reading data
     if input_dir_path=='': input_dir_path='.'
     magfile = os.path.join(input_dir_path, magfile)
-    spec_file = os.path.join(output_dir_path, spec_file)
-    samp_file = os.path.join(output_dir_path, samp_file)
-    site_file = os.path.join(output_dir_path, site_file)
-    meas_file= os.path.join(output_dir_path, meas_file)
     FIRST_GET_DC=True
     try:
         file_input=open(magfile,'r')

@@ -66,6 +66,7 @@ def main(**kwargs):
     site_file = kwargs.get('site_file', 'sites.txt') # site outfile
     loc_file = kwargs.get('loc_file', 'locations.txt') # site outfile
     location = kwargs.get('location', 'unknown')
+    dmy_flag = kwargs.get('dmy_flag', False)
     lat = kwargs.get('lat', '')
     lon = kwargs.get('lon', '')
     #oave = kwargs.get('noave', 0) # default (0) means DO average
@@ -98,11 +99,6 @@ def main(**kwargs):
     if not mag_file:
         return False, 'You must provide a Utrecht formated file'
     mag_file = os.path.join(input_dir_path, mag_file)
-    meas_file = os.path.join(output_dir_path, meas_file)
-    spec_file = os.path.join(output_dir_path, spec_file)
-    samp_file = os.path.join(output_dir_path, samp_file)
-    site_file = os.path.join(output_dir_path, site_file)
-    loc_file = os.path.join(output_dir_path, loc_file)
 
     # parse data
 
@@ -217,8 +213,8 @@ def main(**kwargs):
             print time
             dt = date[0] + ":" + date[1] + ":" + date[2] + ":" + time[0] + ":" + time[1] + ":" + "0"
             local = pytz.timezone("Europe/Amsterdam")
-            try: naive = datetime.datetime.strptime(dt, "%m:%d:%Y:%H:%M:%S")
-            except ValueError: naive = datetime.datetime.strptime(dt, "%d:%m:%Y:%H:%M:%S")
+            if dmy_flag: naive = datetime.datetime.strptime(dt, "%d:%m:%Y:%H:%M:%S")
+            else: naive = datetime.datetime.strptime(dt, "%m:%d:%Y:%H:%M:%S")
             local_dt = local.localize(naive, is_dst=None)
             utc_dt = local_dt.astimezone(pytz.utc)
             timestamp=utc_dt.strftime("%Y-%m-%dT%H:%M:%S")+"Z"
@@ -375,5 +371,7 @@ if  __name__ == "__main__":
     if '-mno' in sys.argv:
         ind=sys.argv.index('-mno')
         kwargs['meas_n_orient']=sys.argv[ind+1]
+    if 'dmy' in sys.argv:
+        kwargs['dmy_flag']=True
 
     main(**kwargs)
