@@ -35,8 +35,10 @@ class TestConvert2To3(unittest.TestCase):
     def tearDown(self):
         os.chdir(WD)
         for fname in ["measurements.txt", "specimens.txt", "samples.txt",
-                      "sites.txt", "locations.txt"]:
-            os.remove(os.path.join(PROJECT_WD, fname))
+                      "sites.txt", "locations.txt"]:#, "criteria.txt"]:
+            full_file = os.path.join(PROJECT_WD, fname)
+            if os.path.exists(full_file):
+                os.remove(full_file)
 
     def test_upgrade(self):
         meas, upgraded, no_upgrade = pmag.convert_directory_2_to_3(input_dir=PROJECT_WD,
@@ -48,6 +50,11 @@ class TestConvert2To3(unittest.TestCase):
                           'rmag_results.txt', 'er_ages.txt',
                           'er_images.txt']
         self.assertEqual(sorted(expect_not_out), sorted(no_upgrade))
+
+    def test_upgrade_criteria(self):
+        output = pmag.convert_criteria_file_2_to_3(input_dir=PROJECT_WD, output_dir=PROJECT_WD)
+        print output.df.head()
+
 
 
 class TestGetPlateData(unittest.TestCase):

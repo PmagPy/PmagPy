@@ -15,7 +15,6 @@ import pandas as pd
 from pandas import DataFrame
 # from pmagpy import pmag
 from pmagpy import data_model3 as data_model
-import data_model3 as data_model
 import controlled_vocabularies3 as cv
 
 

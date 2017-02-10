@@ -342,6 +342,59 @@ def convert_and_combine_2_to_3(dtype, map_dict, input_dir=".", output_dir="."):
         print "-I- No {} data found.".format(dtype)
         return None
 
+def convert_criteria_file_2_to_3(fname="pmag_criteria.txt", input_dir=".", output_dir="."):
+    """
+    Convert a criteria file from 2.5 to 3.0 format and write it out to file
+
+    Parameters
+    ----------
+    fname : string of filename (default "pmag_criteria.txt")
+    input_dir : string of input directory (default ".")
+    output_dir : string of output directory (default ".")
+
+    Returns
+    ---------
+    crit_container : nb.MagicDataFrame with 3.0 criteria table
+    """
+    import data_model3 as dm3
+    # get criteria from infile
+    fname = os.path.join(input_dir, fname)
+    orig_crit = read_criteria_from_file(fname, initialize_acceptance_criteria(), data_model=2)
+    converted_crit = {}
+    # get data model including criteria map
+    DM = dm3.DataModel()
+    crit_map = DM.crit_map
+    # drop all empty mappings
+    stripped_crit_map = crit_map.dropna(axis='rows')
+    # go through criteria and get 3.0 name and criterion_operation
+    for crit in orig_crit:
+        if orig_crit[crit]['value'] in [-999, '-999', -999.]:
+            continue
+        if crit in stripped_crit_map.index:
+            criterion_operation = stripped_crit_map.ix[crit]['criteria_map']['criterion_operation']
+            table_col = stripped_crit_map.ix[crit]['criteria_map']['table_column']
+            orig_crit[crit]['criterion_operation'] = criterion_operation
+            converted_crit[table_col] = orig_crit[crit]
+        else:
+            print '-W- Could not convert {} to 3.0, skipping'.format(crit)
+    # switch axes
+    converted_df = pd.DataFrame(converted_crit).transpose()
+    # name the index
+    converted_df.index.name = "table_column"
+    # rename columns to 3.0 values
+    converted_df.rename(columns={'category': 'criterion', 'er_citation_names': 'citations',
+                                 'criteria_definition': 'description', 'value': 'criterion_value'},
+                        inplace=True)
+    # drop unused columns
+    valid_cols = DM.dm['criteria'].index
+    drop_cols = set(converted_df.columns) - set(valid_cols)
+    converted_df.drop(drop_cols, axis='columns', inplace=True)
+    # move 'table_column' from being the index to being a column
+    converted_df['table_column'] = converted_df.index
+    crit_container = nb.MagicDataFrame(dtype='criteria', df=converted_df)
+    crit_container.write_magic_file(dir_path=output_dir)
+    return crit_container
+
 
 def getsampVGP(SampRec,SiteNFO,data_model=2.5):
     if float(data_model) == 3.0:
