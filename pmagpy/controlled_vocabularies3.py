@@ -40,13 +40,13 @@ class Vocabulary(object):
     ## Get method codes
 
     def get_meth_codes(self):
-        try:
-            raw_codes = pd.io.json.read_json('https://www2.earthref.org/MagIC/method-codes.json')
-            print '-I- Getting method codes from earthref.org'
-        except Exception as ex:
-            print ex, type(ex)
-            raw_codes = pd.io.json.read_json(os.path.join(data_model_dir, "method_codes.json"))
-            print "-I- Couldn't connect to earthref.org, using cached method codes"
+        #try:
+        #    raw_codes = pd.io.json.read_json('https://www2.earthref.org/MagIC/method-codes.json')
+        #    print '-I- Getting method codes from earthref.org'
+        #except Exception as ex:
+        #    print ex, type(ex)
+        raw_codes = pd.io.json.read_json(os.path.join(data_model_dir, "method_codes.json"))
+        #print "-I- Couldn't connect to earthref.org, using cached method codes"
         code_types = raw_codes.ix['label']
         all_codes = []
         for code_name in code_types.index:
