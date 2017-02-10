@@ -22,9 +22,10 @@ OPTIONS
     -Flo FILE: specify output locations.txt file, default is locations.txt
     -n [gm,kg,cc,m3]: specify normalization
     -A: don't average replicate measurements
-    -spc NUM : specify number of characters to designate a  specimen, default = 0
+    -spc NUM: specify number of characters to designate a  specimen, default = 0
     -ncn NCON: specify naming convention
-    -loc LOCNAME : specify location/study name, must have either LOCNAME or SITEFILE or be a synthetic
+    -loc LOCNAME: specify location/study name, must have either LOCNAME or SITEFILE or be a synthetic
+    -sn SITENAME: specify site name for all samples
     -mcd [FS-FD:SO-MAG,.....] colon delimited list for method codes applied to all specimens in .sam file
     -dc (B, PHI, THETA): dc lab field (in microTesla), phi,and theta must be input as a tuple "(DC,PHI,THETA)". If not input user will be asked for values, this is advantagious if there are differing dc fields between steps or specimens. Note: this currently only works with the decimal IZZI naming convetion (XXX.0,1,2 where XXX is the treatment temperature and 0 is a zero field step, 1 is in field, and 2 is a PTRM check). For some reason all other steps are hardcoded dc_field = 0.
     -ac B : peak AF field (in mT) for ARM acquisition, default is none
@@ -42,7 +43,7 @@ NOTES:
     [3] XXXX.YY: YY sample from site XXXX (XXX, YY of arbitary length)
     [4-Z] XXXX[YYY]:  YYY is sample designation with Z characters from site XXX
     [5] site name = sample name
-    [6] site name entered in site_name column in the orient.txt format input file  -- NOT CURRENTLY SUPPORTED
+    [6] site name entered in sitename column in the orient.txt format input file -- NOT CURRENTLY SUPPORTED
     [7-Z] [XXX]YYY:  XXX is site designation with Z characters from samples  XXXYYY
     NB: all others you will have to either customize your
         self or e-mail ltauxe@ucsd.edu for help.
@@ -79,7 +80,7 @@ def main(**kwargs):
         [3] XXXX.YY: YY sample from site XXXX (XXX, YY of arbitary length)
         [4-Z] XXXX[YYY]:  YYY is sample designation with Z characters from site XXX
         [5] site name = sample name
-        [6] site name entered in site_name column in the orient.txt format input file  -- NOT CURRENTLY SUPPORTED
+        [6] site name entered in sitename column in the orient.txt format input file  -- NOT CURRENTLY SUPPORTED
         [7-Z] [XXX]YYY:  XXX is site designation with Z characters from samples  XXXYYY
     input_dir_path : if you did not supply a full path with magfile you can put the directory the magfile is in here
     meas_n_orient : Number of different orientations in measurement (default : 8)
@@ -97,6 +98,7 @@ def main(**kwargs):
     site_file = kwargs.get('site_file', 'sites.txt') # site outfile
     loc_file = kwargs.get('loc_file', 'locations.txt') # location outfile
     locname = kwargs.get('locname', 'unknown')
+    sitename = kwargs.get('sitename', '')
     methods = kwargs.get('methods', ['SO-MAG'])
     specnum = -int(kwargs.get('specnum', 0))
     norm = kwargs.get('norm', 'cc')
@@ -180,7 +182,8 @@ def main(**kwargs):
         if specnum!=0:
             sample=specimen[:specnum]
         else: sample=specimen
-        site=pmag.parse_site(sample,samp_con,Z)
+        if sitename: site=sitename
+        else: site=pmag.parse_site(sample,samp_con,Z)
         SpecRec['specimen']=specimen
         SpecRec['sample']=sample
         SpecRec['citation']=citation
@@ -350,7 +353,6 @@ def main(**kwargs):
         if sample not in samples:
             samples.append(sample)
             Samps.append(SampRec)
-        site=pmag.parse_site(sample,samp_con,Z)
         if site not in sites:
             sites.append(site)
             Sites.append(SiteRec)
@@ -471,5 +473,8 @@ if __name__ == "__main__":
     if '-mno' in sys.argv:
         ind = sys.argv.index('-mno')
         kwargs['meas_n_orient'] = sys.argv[ind+1]
+    if '-sn' in sys.argv:
+        ind = sys.argv.index('-sn')
+        kwargs['sitename'] = sys.argv[ind+1]
 
     main(**kwargs)
