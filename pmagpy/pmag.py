@@ -7974,7 +7974,7 @@ def read_criteria_from_file(path,acceptance_criteria,**kwargs):
             (this is used in displaying criteria in the dialog box)
 
     '''
-    acceptance_criteria_list=acceptance_criteria.keys()
+    acceptance_criteria_list = acceptance_criteria.keys()
     if 'data_model' in kwargs.keys() and kwargs['data_model']==3:
         crit_data=acceptance_criteria # data already read in
     else:
@@ -8002,7 +8002,11 @@ def read_criteria_from_file(path,acceptance_criteria,**kwargs):
             if crit=="specimen_dang" and "pmag_criteria_code" in rec.keys() and "IE-SPEC" in rec["pmag_criteria_code"]:
                 crit="specimen_int_dang"
                 print "-W- Found backward compatibility problem with selection criteria specimen_dang. Cannot be associated with IE-SPEC. Program assumes that the statistic is specimen_int_dang"
+                if 'specimen_int_dang' not in acceptance_criteria:
+                    acceptance_criteria["specimen_int_dang"] = {}
                 acceptance_criteria["specimen_int_dang"]['value']=float(rec["specimen_dang"])
+
+
             elif crit not in acceptance_criteria_list:
                 print "-W- WARNING: criteria code %s is not supported by PmagPy GUI. please check"%crit
                 acceptance_criteria[crit]={}
@@ -8010,9 +8014,6 @@ def read_criteria_from_file(path,acceptance_criteria,**kwargs):
                 acceptance_criteria[crit]['threshold_type']="inherited"
                 acceptance_criteria[crit]['decimal_points']=-999
                 acceptance_criteria[crit]['category'] = None
-                # add in metadata to each record
-                acceptance_criteria[crit].update(metadata_dict)
-
             # boolean flag
             elif acceptance_criteria[crit]['threshold_type']=='bool':
                 if str(rec[crit]) in ['1','g','True','TRUE']:
@@ -8027,9 +8028,11 @@ def read_criteria_from_file(path,acceptance_criteria,**kwargs):
                 else:
                     print "-W- WARNING: data %s from criteria code  %s and is not supported by PmagPy GUI. please check"%(crit,rec[crit])
             elif float(rec[crit]) == -999:
-                continue
+                pass
             else:
                 acceptance_criteria[crit]['value']=float(rec[crit])
+            # add in metadata to each record
+            acceptance_criteria[crit].update(metadata_dict)
     return(acceptance_criteria)
 
 
