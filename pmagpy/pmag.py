@@ -8052,6 +8052,12 @@ def read_criteria_from_file(path,acceptance_criteria,**kwargs):
                 continue
             elif rec[crit]=="":
                 continue
+
+            # this catches all the ones that are being overwritten
+            if crit in acceptance_criteria:
+                if acceptance_criteria[crit]['value'] not in [-999, '-999', -999]:
+
+                    print "-W- You have two different criteria that both use column: {}.\nThe first will be overwritten.".format(crit)
             if crit=="specimen_dang" and "pmag_criteria_code" in rec.keys() and "IE-SPEC" in rec["pmag_criteria_code"]:
                 crit="specimen_int_dang"
                 print "-W- Found backward compatibility problem with selection criteria specimen_dang. Cannot be associated with IE-SPEC. Program assumes that the statistic is specimen_int_dang"
@@ -8177,6 +8183,7 @@ def write_criteria_to_file(path,acceptance_criteria,**kwargs):
         magic_write(path,[rec],'pmag_criteria')
 
 
+## Helpers for command-line programs
 
 def add_flag(var, flag):
     """
@@ -8210,6 +8217,8 @@ def get_flag_arg_from_sys(name, true=True, false=False):
     else:
         return false
 
+
+## Miscellaneous helpers
 
 def merge_recs_headers(recs):
     '''
