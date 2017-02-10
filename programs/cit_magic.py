@@ -292,6 +292,7 @@ def main(command_line=True, **kwargs):
         else:
             ErSampRec['magic_method_codes']='SO-MAG'
         for line in Lines[2:len(Lines)]:
+            if line == '\n': continue
             MeasRec=ErSpecRec.copy()
 #           Remove specimen_volume and specimen_weight as they do not exits in the magic_measurement table
             del MeasRec["specimen_volume"]

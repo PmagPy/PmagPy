@@ -246,6 +246,7 @@ def main(**kwargs):
             SampRec['method_codes']='SO-MAG'
         for line in Lines[2:len(Lines)]:
             #print 'line:', line
+            if line == '\n': continue
             MeasRec=SpecRec.copy()
             MeasRec.pop('sample')
             MeasRec['analysts']=user
