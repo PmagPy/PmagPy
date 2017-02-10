@@ -48,7 +48,7 @@ CURRENT_VERSION = "v.0.33"
 # get directory in a way that works whether being used
 # on the command line or in a frozen binary
 import pmagpy.find_pmag_dir as find_pmag_dir
-PMAGPY_DIRECTORY = os.path.split(find_pmag_dir.get_pmag_dir())[0]
+PMAGPY_DIRECTORY = find_pmag_dir.get_pmag_dir()
 
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigCanvas
 from matplotlib.backends.backend_wxagg import NavigationToolbar2WxAgg as NavigationToolbar
@@ -139,7 +139,7 @@ class Demag_GUI(wx.Frame):
         #set icon
         icon = wx.EmptyIcon()
         icon_path = os.path.join(PMAGPY_DIRECTORY, 'programs', 'images', 'PmagPy.ico')
-        if os.path.exists(icon_path):
+        if os.path.isfile(icon_path):
             icon.CopyFromBitmap(wx.Bitmap(icon_path, wx.BITMAP_TYPE_ANY))
             self.SetIcon(icon)
         else:
