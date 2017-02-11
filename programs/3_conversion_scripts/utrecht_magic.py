@@ -319,7 +319,7 @@ if  __name__ == "__main__":
     #
     kwargs={}
     if "-h" in sys.argv:
-        print(__doc__)
+        help(__name__)
         sys.exit()
     if '-WD' in sys.argv:
         ind = sys.argv.index('-WD')

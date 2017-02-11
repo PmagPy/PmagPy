@@ -231,7 +231,7 @@ if __name__ == "__main__":
         ind = sys.argv.index('-ID')
         kwargs['input_dir_path'] = sys.argv[ind+1]
     if "-h" in sys.argv:
-        print(__doc__)
+        help(__name__)
         sys.exit()
     if '-F' in sys.argv:
         ind=sys.argv.index("-F")
