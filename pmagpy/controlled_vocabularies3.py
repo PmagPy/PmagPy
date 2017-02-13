@@ -205,7 +205,7 @@ class Vocabulary(object):
         #    print '-I- Could not connect to earthref.org, using cached vocabularies instead'
         #    fname = os.path.join(data_model_dir, "suggested_vocabularies_February_6_2017.json")
         #    data = pd.io.json.read_json(fname)
-        print '-I- Using cahced suggested vocabularies'
+        print '-I- Using cacheed suggested vocabularies'
         fname = os.path.join(data_model_dir, "suggested_vocabularies_February_6_2017.json")
         data = pd.io.json.read_json(fname)
         possible_vocabularies = data.columns
