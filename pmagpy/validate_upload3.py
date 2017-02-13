@@ -174,7 +174,8 @@ def cv(row, col_name, arg, current_data_model, df, con):
     cell_values = cell_value.split(":")
     cell_values = [c.strip() for c in cell_values]
     for value in cell_values:
-        if str(value).lower() in [str(v.encode('utf-8')).lower() if isinstance(v, str) else str(v) for v in vocabulary[col_name]]:
+        possible_values = [str(v.encode('utf-8')).lower() if isinstance(v, str) else str(v).lower() for v in vocabulary[col_name]]
+        if str(value).lower() in possible_values:
             continue
         elif value.lower() == "none":
             continue
@@ -216,10 +217,7 @@ def test_type(value, value_type):
     if not value:
         return None
     if value_type == "String":
-        if str(value) == value:
-            return None
-        else:
-            return "should be string"
+        return None
     elif value_type == "Number":
         try:
             float(value)
@@ -465,7 +463,7 @@ def get_bad_rows_and_cols(df, validation_names, type_col_names,
 
 # Run through all validations for a single table
 
-def validate_table(the_con, dtype, verbose=False):
+def validate_table(the_con, dtype, verbose=False, output_dir="."):
     """
     Return name of bad table, or False if no errors found.
     Calls validate_df then parses its output.
@@ -480,7 +478,7 @@ def validate_table(the_con, dtype, verbose=False):
     # get names of the added columns
     value_col_names, present_col_names, type_col_names, missing_groups, validation_col_names = get_validation_col_names(current_df)
     # print out failure messages
-    ofile = os.path.join(os.getcwd(), "{}_errors.txt".format(dtype))
+    ofile = os.path.join(output_dir, "{}_errors.txt".format(dtype))
     failing_items = get_row_failures(current_df, value_col_names,
                                      type_col_names, verbose, outfile=ofile)
     bad_rows, bad_cols, missing_cols = get_bad_rows_and_cols(current_df, validation_col_names,
