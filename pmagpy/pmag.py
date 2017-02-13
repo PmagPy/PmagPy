@@ -239,7 +239,7 @@ def convert_items(data, mapping):
 
 
 def convert_directory_2_to_3(meas_fname="magic_measurements.txt", input_dir=".",
-                             output_dir=".", meas_only=False):
+                             output_dir=".", meas_only=False, data_model=None):
     """
     Convert 2.0 measurements file into 3.0 measurements file.
     Merge and convert specimen, sample, site, and location data.
@@ -252,6 +252,7 @@ def convert_directory_2_to_3(meas_fname="magic_measurements.txt", input_dir=".",
     input_dir : name of input directory (default is ".")
     output_dir : name of output directory (default is ".")
     meas_only : boolean, convert only measurement data (default is False)
+    data_model : data_model3.DataModel object (default is None)
 
     Returns
     ---------
@@ -286,11 +287,13 @@ def convert_directory_2_to_3(meas_fname="magic_measurements.txt", input_dir=".",
         # try to convert specimens, samples, sites, & locations
         for dtype in ['specimens', 'samples', 'sites', 'locations']:
             mapping = convert[dtype]
-            res = convert_and_combine_2_to_3(dtype, mapping, input_dir, output_dir)
+            res = convert_and_combine_2_to_3(dtype, mapping, input_dir, output_dir, data_model)
             if res:
                 upgraded.append(res)
         # try to upgrade criteria file
-        crit_file = convert_criteria_file_2_to_3(input_dir=input_dir, output_dir=output_dir)[0]
+        crit_file = convert_criteria_file_2_to_3(input_dir=input_dir,
+                                                 output_dir=output_dir,
+                                                 data_model=data_model)[0]
         if crit_file:
             upgraded.append(crit_file)
         else:
@@ -309,11 +312,23 @@ def convert_directory_2_to_3(meas_fname="magic_measurements.txt", input_dir=".",
     return NewMeas, upgraded, no_upgrade
 
 
-def convert_and_combine_2_to_3(dtype, map_dict, input_dir=".", output_dir="."):
+def convert_and_combine_2_to_3(dtype, map_dict, input_dir=".", output_dir=".", data_model=None):
     """
     Read in er_*.txt file and pmag_*.txt file in working directory.
     Combine the data, then translate headers from 2.5 --> 3.0.
     Last, write out the data in 3.0.
+
+    Parameters
+    ----------
+    dtype : string for input type (specimens, samples, sites, etc.)
+    map_dict : dictionary with format {header2_format: header3_format, ...} (from mapping.map_magic module)
+    input_dir : input directory, default "."
+    output_dir : output directory, default "."
+    data_model : data_model3.DataModel object, default None
+
+    Returns
+    ---------
+    output_file_name with 3.0 format data (or None if translation failed)
     """
     # read in er_ data & make DataFrame
     er_file = os.path.join(input_dir, 'er_{}.txt'.format(dtype))
@@ -338,7 +353,7 @@ def convert_and_combine_2_to_3(dtype, map_dict, input_dir=".", output_dir="."):
     # fix the column names to be 3.0
     full_df.rename(columns=map_dict, inplace=True)
     # create a MagicDataFrame object, providing the dataframe and the data type
-    new_df = nb.MagicDataFrame(dtype=dtype, df=full_df)
+    new_df = nb.MagicDataFrame(dtype=dtype, df=full_df, dmodel=data_model)
     # write out the data to file
     if len(new_df.df):
         new_df.write_magic_file(dir_path=output_dir)
@@ -347,7 +362,8 @@ def convert_and_combine_2_to_3(dtype, map_dict, input_dir=".", output_dir="."):
         print "-I- No {} data found.".format(dtype)
         return None
 
-def convert_criteria_file_2_to_3(fname="pmag_criteria.txt", input_dir=".", output_dir="."):
+def convert_criteria_file_2_to_3(fname="pmag_criteria.txt", input_dir=".",
+                                 output_dir=".", data_model=None):
     """
     Convert a criteria file from 2.5 to 3.0 format and write it out to file
 
@@ -356,13 +372,13 @@ def convert_criteria_file_2_to_3(fname="pmag_criteria.txt", input_dir=".", outpu
     fname : string of filename (default "pmag_criteria.txt")
     input_dir : string of input directory (default ".")
     output_dir : string of output directory (default ".")
+    data_model : data_model.DataModel object (default None)
 
     Returns
     ---------
     outfile : string output criteria filename, or False
     crit_container : nb.MagicDataFrame with 3.0 criteria table
     """
-    import data_model3 as dm3
     # get criteria from infile
     fname = os.path.join(input_dir, fname)
     if not os.path.exists(fname):
@@ -371,7 +387,11 @@ def convert_criteria_file_2_to_3(fname="pmag_criteria.txt", input_dir=".", outpu
                                         data_model=2, return_warnings=True)
     converted_crit = {}
     # get data model including criteria map
-    DM = dm3.DataModel()
+    if not data_model:
+        import data_model3 as dm3
+        DM = dm3.DataModel()
+    else:
+        DM = data_model
     crit_map = DM.crit_map
     # drop all empty mappings
     stripped_crit_map = crit_map.dropna(axis='rows')
@@ -1300,7 +1320,6 @@ def magic_read(infile, data=None, return_keys=False):
         try:
             f=open(infile,"rU")
         except Exception as ex:
-            print 'ex', ex
             if return_keys:
                 return [], 'bad_file', []
             return [],'bad_file'
