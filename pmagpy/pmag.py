@@ -289,6 +289,12 @@ def convert_directory_2_to_3(meas_fname="magic_measurements.txt", input_dir=".",
             res = convert_and_combine_2_to_3(dtype, mapping, input_dir, output_dir)
             if res:
                 upgraded.append(res)
+        # try to upgrade criteria file
+        crit_file = convert_criteria_file_2_to_3(input_dir=input_dir, output_dir=output_dir)[0]
+        if crit_file:
+            upgraded.append(crit_file)
+        else:
+            no_upgrade.append("pmag_criteria.txt")
         # create list of all un-upgradeable files
         for fname in os.listdir(input_dir):
             if fname in ['measurements.txt', 'specimens.txt', 'samples.txt',
@@ -296,8 +302,7 @@ def convert_directory_2_to_3(meas_fname="magic_measurements.txt", input_dir=".",
                 continue
             elif 'rmag' in fname:
                 no_upgrade.append(fname)
-            elif fname in ['pmag_results.txt', 'pmag_criteria.txt',
-                           'er_synthetics.txt', 'er_images.txt',
+            elif fname in ['pmag_results.txt', 'er_synthetics.txt', 'er_images.txt',
                            'er_plots.txt', 'er_ages.txt']:
                 no_upgrade.append(fname)
 
@@ -354,12 +359,16 @@ def convert_criteria_file_2_to_3(fname="pmag_criteria.txt", input_dir=".", outpu
 
     Returns
     ---------
+    outfile : string output criteria filename, or False
     crit_container : nb.MagicDataFrame with 3.0 criteria table
     """
     import data_model3 as dm3
     # get criteria from infile
     fname = os.path.join(input_dir, fname)
-    orig_crit = read_criteria_from_file(fname, initialize_acceptance_criteria(), data_model=2)
+    if not os.path.exists(fname):
+        return False, None
+    orig_crit, warnings = read_criteria_from_file(fname, initialize_acceptance_criteria(),
+                                        data_model=2, return_warnings=True)
     converted_crit = {}
     # get data model including criteria map
     DM = dm3.DataModel()
@@ -382,7 +391,9 @@ def convert_criteria_file_2_to_3(fname="pmag_criteria.txt", input_dir=".", outpu
     # name the index
     converted_df.index.name = "table_column"
     # rename columns to 3.0 values
-    converted_df.rename(columns={'category': 'criterion', 'er_citation_names': 'citations',
+    # 'category' --> criterion (uses defaults from initalize_default_criteria)
+    # 'pmag_criteria_code' --> criterion (uses what's actually in the translated file)
+    converted_df.rename(columns={'pmag_criteria_code': 'criterion', 'er_citation_names': 'citations',
                                  'criteria_definition': 'description', 'value': 'criterion_value'},
                         inplace=True)
     # drop unused columns
@@ -393,7 +404,7 @@ def convert_criteria_file_2_to_3(fname="pmag_criteria.txt", input_dir=".", outpu
     converted_df['table_column'] = converted_df.index
     crit_container = nb.MagicDataFrame(dtype='criteria', df=converted_df)
     crit_container.write_magic_file(dir_path=output_dir)
-    return crit_container
+    return "criteria.txt", crit_container
 
 
 def getsampVGP(SampRec,SiteNFO,data_model=2.5):
@@ -1288,7 +1299,8 @@ def magic_read(infile, data=None, return_keys=False):
     else:
         try:
             f=open(infile,"rU")
-        except:
+        except Exception as ex:
+            print 'ex', ex
             if return_keys:
                 return [], 'bad_file', []
             return [],'bad_file'
@@ -8027,6 +8039,7 @@ def read_criteria_from_file(path,acceptance_criteria,**kwargs):
             (this is used in displaying criteria in the dialog box)
 
     '''
+    warnings = []
     acceptance_criteria_list = acceptance_criteria.keys()
     if 'data_model' in kwargs.keys() and kwargs['data_model']==3:
         crit_data=acceptance_criteria # data already read in
@@ -8057,7 +8070,10 @@ def read_criteria_from_file(path,acceptance_criteria,**kwargs):
             if crit in acceptance_criteria:
                 if acceptance_criteria[crit]['value'] not in [-999, '-999', -999]:
 
-                    print "-W- You have two different criteria that both use column: {}.\nThe first will be overwritten.".format(crit)
+                    print "-W- You have multiple different criteria that both use column: {}.\nThe last will be used:\n{}.".format(crit, rec)
+                    warn_string = 'multiple criteria for column: {} (only last will be used)'.format(crit)
+                    if warn_string not in warnings:
+                        warnings.append(warn_string)
             if crit=="specimen_dang" and "pmag_criteria_code" in rec.keys() and "IE-SPEC" in rec["pmag_criteria_code"]:
                 crit="specimen_int_dang"
                 print "-W- Found backward compatibility problem with selection criteria specimen_dang. Cannot be associated with IE-SPEC. Program assumes that the statistic is specimen_int_dang"
@@ -8092,7 +8108,10 @@ def read_criteria_from_file(path,acceptance_criteria,**kwargs):
                 acceptance_criteria[crit]['value']=float(rec[crit])
             # add in metadata to each record
             acceptance_criteria[crit].update(metadata_dict)
-    return(acceptance_criteria)
+    if "return_warnings" in kwargs:
+        return (acceptance_criteria, warnings)
+    else:
+        return(acceptance_criteria)
 
 
 def write_criteria_to_file(path,acceptance_criteria,**kwargs):
