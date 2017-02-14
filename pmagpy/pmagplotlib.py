@@ -36,8 +36,8 @@ def drawFIGS(FIGS):
     """
     pylab.ion()
     for fig in FIGS.keys():
-            pylab.figure(FIGS[fig])
-            pylab.draw()
+        pylab.figure(FIGS[fig])
+        pylab.draw()
     pylab.ioff()
 
 def clearFIG(fignum):
@@ -1290,14 +1290,17 @@ def saveP(Figs,filenames,**kwargs):
     for key in Figs.keys():
         try:
             pylab.figure(num=Figs[key])
+            fname = filenames[key]
+            if not isServer: # remove illegal ':' character for windows
+                fname = fname.replace(':', '_')
             if 'dpi' in kwargs.keys():
-                pylab.savefig(filenames[key].replace('/','-'),dpi=kwargs['dpi'])
+                pylab.savefig(fname.replace('/','-'),dpi=kwargs['dpi'])
             else:
-                pylab.savefig(filenames[key].replace('/','-'))
+                pylab.savefig(fname.replace('/','-'))
             if verbose:
-                print Figs[key]," saved in ",filenames[key].replace('/','-')
+                print Figs[key]," saved in ", fname.replace('/','-')
         except:
-            print 'could not save: ',Figs[key],filenames[key]
+            print 'could not save: ', Figs[key], filenames[key]
             print "output file format not supported "
     return
 #

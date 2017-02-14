@@ -1,0 +1,9 @@
+tab	samples
+sample	site
+sr01e	sr01
+sr01g	sr01
+sr01a	sr01
+sr01c	sr01
+sr01d	sr01
+sr01i	sr01
+sr01f	sr01

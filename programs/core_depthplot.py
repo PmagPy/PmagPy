@@ -8,6 +8,7 @@ if matplotlib.get_backend() != "WXAgg":
   matplotlib.use("WXAgg")
 
 import matplotlib.pyplot as plt
+from pmagpy import pmagplotlib
 import pmagpy.command_line_extractor as extractor
 import pmagpy.ipmag as ipmag
 import dialogs.pmag_widgets as pw
@@ -15,11 +16,11 @@ import dialogs.pmag_menu_dialogs as pmag_menu_dialogs
 
 def main():
     """
-    NAME 
+    NAME
         core_depthplot.py
 
     DESCRIPTION
-        plots various measurements versus core_depth or age.  plots data flagged as 'FS-SS-C' as discrete samples.  
+        plots various measurements versus core_depth or age.  plots data flagged as 'FS-SS-C' as discrete samples.
 
     SYNTAX
         core_depthplot.py [command line optins]
@@ -35,7 +36,7 @@ def main():
         -fsp FILE sym size: specify input zeq_specimen format file from magic, sym and size
               NB: PCAs will have specified color, while fisher means will be white with specified color as the edgecolor
         -fres FILE specify input pmag_results file from magic, sym and size
-        -LP [AF,T,ARM,IRM, X] step [in mT,C,mT,mT, mass/vol] to plot 
+        -LP [AF,T,ARM,IRM, X] step [in mT,C,mT,mT, mass/vol] to plot
         -S do not plot blanket treatment data (if this is set, you don't need the -LP)
         -sym SYM SIZE, symbol, size for continuous points (e.g., ro 5, bs 10, g^ 10 for red dot, blue square, green triangle), default is blue dot at 5 pt
         -D do not plot declination
@@ -47,8 +48,8 @@ def main():
         -n normalize by weight in er_specimen table
         -Iex: plot the expected inc at lat - only available for results with lat info in file
         -ts TS amin amax: plot the GPTS for the time interval between amin and amax (numbers in Ma)
-           TS: [ck95, gts04, gts12] 
-        -ds [mbsf,mcd] specify depth scale, mbsf default 
+           TS: [ck95, gts04, gts12]
+        -ds [mbsf,mcd] specify depth scale, mbsf default
         -fmt [svg, eps, pdf, png] specify output format for plot (default: svg)
         -sav save plot silently
 
@@ -67,8 +68,8 @@ def main():
     dataframe = extractor.command_line_dataframe([ ['f', False, 'magic_measurements.txt'], ['fsum', False, ''],
                                                    ['fwig', False, ''], ['fsa', False, ''],
                                                    ['fa', False, ''], ['fsp', False, ''],
-                                                   ['fres', False, '' ],  ['fmt', False, 'svg'], 
-                                                   ['LP', False,  ''], ['n', False, False], 
+                                                   ['fres', False, '' ],  ['fmt', False, 'svg'],
+                                                   ['LP', False,  ''], ['n', False, False],
                                                    ['d', False, '-1 -1'], ['ts', False, ''],
                                                    ['WD', False, '.'], ['L', False, True],
                                                    ['S', False, True], ['D', False, True],
@@ -134,7 +135,7 @@ def main():
     else:
         timescale, amin, amax = None, -1, -1
         pltTime = False
-            
+
 
     # format norm and wt_file
     if norm and not isinstance(norm, bool):
@@ -157,11 +158,13 @@ def main():
     #meas_file, sum_file, wig_file, samp_file, age_file, spc_file, res_file, fmt, meth, norm, depth, timescale, dir_path, pltLine, pltSus, pltDec, pltInc, pltMag, logit, depth_scale, symbol
 
     fig, figname = ipmag.core_depthplot(input_dir, meas_file, spc_file, samp_file, age_file, sum_file, wt_file, depth_scale, dmin, dmax, sym, size, spc_sym, spc_size, method, step, fmt, pltDec, pltInc, pltMag, pltLine, pltSus, logit, pltTime, timescale, amin, amax, norm)
+    if not pmagplotlib.isServer:
+      figname = figname.replace(':', '_')
 
     if fig and save:
         plt.savefig(figname)
         return
-    
+
     app = wx.App(redirect=False)
     if not fig:
         pw.simple_warning('No plot was able to be created with the data you provided.\nMake sure you have given all the required information and try again')
