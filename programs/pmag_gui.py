@@ -391,7 +391,8 @@ class MagMainFrame(wx.Frame):
     def on_convert_3(self, event):
         # turn files from 2.5 --> 3.0 (rough translation)
         meas, upgraded, no_upgrade = pmag.convert_directory_2_to_3('magic_measurements.txt',
-                                                                   input_dir=self.WD, output_dir=self.WD)
+                                                                   input_dir=self.WD, output_dir=self.WD,
+                                                                   data_model=self.contribution.data_model)
         if not meas:
             wx.MessageBox('2.5 --> 3.0 failed. Do you have a magic_measurements.txt file in your working directory?',
                           'Info', wx.OK | wx.ICON_INFORMATION)
@@ -417,6 +418,8 @@ class MagMainFrame(wx.Frame):
         if no_upgrade:
             no_upgrade_string = ", ".join(no_upgrade)
             msg = '2.5 --> 3.0 translation completed!\n\nThese 3.0 format files were created: {}.\n\nHowever, these 2.5 format files could not be upgraded: {}.\n\nTo convert all 2.5 files, use the MagIC upgrade tool: https://www2.earthref.org/MagIC/upgrade\n'.format(upgraded_string, no_upgrade_string)
+            if 'criteria.txt' in upgraded:
+                msg += '\nNote: Please check your criteria file for completeness and accuracy, as not all 2.5 files will be fully upgraded.'
             if 'pmag_criteria.txt' in no_upgrade:
                 msg += '\nNote: Not all criteria files can be upgraded, even on the MagIC site.  You may need to recreate an old pmag_criteria file from scratch in Thellier GUI or Demag GUI.'
             wx.MessageBox(msg, 'Warning', wx.OK | wx.ICON_INFORMATION)

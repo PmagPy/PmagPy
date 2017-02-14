@@ -15,7 +15,7 @@ import pandas as pd
 from pandas import DataFrame
 # from pmagpy import pmag
 from pmagpy import data_model3 as data_model
-import controlled_vocabularies3 as cv
+from pmagpy import controlled_vocabularies3 as cv
 
 
 class Contribution(object):
@@ -27,9 +27,6 @@ class Contribution(object):
     manipulating one or more tables in the contribution --
     for example, renaming a site.
     """
-
-    #vocab = cv.Vocabulary()
-    #cv, possible_vocabulary = vocab.get_controlled_vocabularies()
 
     def __init__(self, directory=".", read_tables='all',
                  custom_filenames=None, single_file=None,
@@ -519,10 +516,16 @@ class MagicDataFrame(object):
             self.df = None
             return
         # fetch data model if not provided
-        if isinstance(dmodel, type(None)):
-            self.data_model = data_model.DataModel()
-        else:
+        # (DataModel type sometimes not recognized, hence ugly hack below)
+        if isinstance(dmodel, data_model.DataModel) or str(data_model.DataModel) == str(type(dmodel)):
+            MagicDataFrame.data_model = dmodel
             self.data_model = dmodel
+        else:
+            try:
+                self.data_model = MagicDataFrame.data_model
+            except AttributeError:
+                MagicDataFrame.data_model = data_model.DataModel()
+                self.data_model = MagicDataFrame.data_model
 
         if isinstance(df, pd.DataFrame):
             pass

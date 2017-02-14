@@ -35,7 +35,7 @@ class TestConvert2To3(unittest.TestCase):
     def tearDown(self):
         os.chdir(WD)
         for fname in ["measurements.txt", "specimens.txt", "samples.txt",
-                      "sites.txt", "locations.txt"]:#, "criteria.txt"]:
+                      "sites.txt", "locations.txt", "criteria.txt"]:
             full_file = os.path.join(PROJECT_WD, fname)
             if os.path.exists(full_file):
                 os.remove(full_file)
@@ -43,16 +43,17 @@ class TestConvert2To3(unittest.TestCase):
     def test_upgrade(self):
         meas, upgraded, no_upgrade = pmag.convert_directory_2_to_3(input_dir=PROJECT_WD,
                                                                    output_dir=PROJECT_WD)
-        expect_out = ['measurements.txt', 'specimens.txt', 'samples.txt', 'sites.txt', 'locations.txt']
+        expect_out = ['measurements.txt', 'specimens.txt', 'samples.txt', 'sites.txt', 'locations.txt', 'criteria.txt']
         self.assertEqual(expect_out, upgraded)
-        expect_not_out = ['pmag_criteria.txt', 'pmag_results.txt',
+        expect_not_out = ['pmag_results.txt',
                           'rmag_hysteresis.txt', 'rmag_anisotropy.txt',
                           'rmag_results.txt', 'er_ages.txt',
                           'er_images.txt']
         self.assertEqual(sorted(expect_not_out), sorted(no_upgrade))
 
     def test_upgrade_criteria(self):
-        output = pmag.convert_criteria_file_2_to_3(input_dir=PROJECT_WD, output_dir=PROJECT_WD)
+        outfile, output = pmag.convert_criteria_file_2_to_3(input_dir=PROJECT_WD, output_dir=PROJECT_WD)
+        self.assertEqual('criteria.txt', outfile)
         print output.df.head()
 
 

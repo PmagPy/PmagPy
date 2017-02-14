@@ -2735,6 +2735,11 @@ def upload_magic3(concat=0, dir_path='.', dmodel=None, vocab="", contribution=No
                   "criteria", "contribution", "images"]
     fnames = [os.path.join(dir_path, dtype + ".txt") for dtype in dtypes]
     file_names = [fname for fname in fnames if os.path.exists(fname)]
+    error_fnames = [dtype + "_errors.txt" for dtype in dtypes]
+    error_full_fnames = [os.path.join(dir_path, fname) for fname in error_fnames if os.path.exists(os.path.join(dir_path, fname))]
+    print '-I- Removing old error files from {}: {}'.format(dir_path, ", ".join(error_fnames))
+    for error in error_full_fnames:
+        os.remove(error)
     if not file_names:
         real_path = os.path.realpath(dir_path)
         print "-W- No 3.0 files found in your directory: {}, upload file not created".format(real_path)
@@ -2811,7 +2816,7 @@ def upload_magic3(concat=0, dir_path='.', dmodel=None, vocab="", contribution=No
                     spec_df = con.tables['specimens'].df
                     df = df[df['specimen'].isin(spec_df.index.unique())]
     # run validations
-            res = val_up3.validate_table(con, file_type)#, verbose=True)
+            res = val_up3.validate_table(con, file_type, output_dir=dir_path)#, verbose=True)
             if res:
                 dtype, bad_rows, bad_cols, missing_cols, missing_groups, failing_items = res
                 if dtype not in all_failing_items:
