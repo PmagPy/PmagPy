@@ -33,10 +33,11 @@ class TestMapping(unittest.TestCase):
     def test_spec_map(self):
         magic2_keys = {'er_specimen_name', 'er_sample_name', 'specimen_weight',
                        'result_type', 'specimen_type', 'specimen_azimuth',
-                       'specimen_tilt_correction'}
+                       'specimen_tilt_correction', 'specimen_int_ptrm_n'}
         magic2_dict = {key: '' for key in magic2_keys}
         magic3_keys = {'specimen', 'sample', 'weight', 'result_type',
-                       'geologic_types', 'azimuth', 'dir_tilt_correction'}
+                       'geologic_types', 'azimuth', 'dir_tilt_correction',
+                       'int_n_ptrm'}
         output = map_magic.mapping(magic2_dict,
                                    map_magic.spec_magic2_2_magic3_map)
         self.assertEqual(sorted(magic3_keys), sorted(output.keys()))
