@@ -5946,7 +5946,7 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
         If mouse is over data point making it selectable change the shape of the cursor
         @param: event -> the wx Mouseevent for that click
         """
-        if not self.CART_rot.any(): return
+        if not array(self.CART_rot).any(): return
         pos=event.GetPosition()
         width, height = self.canvas1.get_width_height()
         pos[1] = height - pos[1]
@@ -5976,7 +5976,7 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
         @param: event -> the wx Mouseevent for that click
         @alters: current_fit
         """
-        if not self.CART_rot_good.any(): return
+        if not array(self.CART_rot_good).any(): return
         pos=event.GetPosition()
         width, height = self.canvas1.get_width_height()
         pos[1] = height - pos[1]
@@ -6009,7 +6009,7 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
         @param: event -> the wx Mouseevent for that click
         @alters: current_fit
         """
-        if not self.CART_rot.any(): return
+        if not array(self.CART_rot).any(): return
         pos=event.GetPosition()
         width, height = self.canvas1.get_width_height()
         pos[1] = height - pos[1]
