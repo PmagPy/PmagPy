@@ -3947,8 +3947,8 @@ def dokent(data,NN):
 #  get fisher mean and convert to co-inclination (theta)/dec (phi) in radians
 #
     fpars=fisher_mean(data)
-    pbar=fpars["dec"]*numpy.pi/180.
-    tbar=(90.-fpars["inc"])*numpy.pi/180.
+    pbar=fpars["dec"]*np.pi/180.
+    tbar=(90.-fpars["inc"])*np.pi/180.
 #
 #   initialize matrices
 #
@@ -3960,7 +3960,7 @@ def dokent(data,NN):
 #
 #  set up rotation matrix H
 #
-    H=[ [numpy.cos(tbar)*numpy.cos(pbar),-numpy.sin(pbar),numpy.sin(tbar)*numpy.cos(pbar)],[numpy.cos(tbar)*numpy.sin(pbar),numpy.cos(pbar),numpy.sin(pbar)*numpy.sin(tbar)],[-numpy.sin(tbar),0.,numpy.cos(tbar)]]
+    H=[ [np.cos(tbar)*np.cos(pbar),-np.sin(pbar),np.sin(tbar)*np.cos(pbar)],[np.cos(tbar)*np.sin(pbar),np.cos(pbar),np.sin(pbar)*np.sin(tbar)],[-np.sin(tbar),0.,np.cos(tbar)]]
 #
 #  get cartesian coordinates of data
 #
@@ -3987,8 +3987,8 @@ def dokent(data,NN):
 #
 # choose a rotation w about North pole to diagonalize upper part of B
 #
-    psi = 0.5*numpy.arctan(2.*b[0][1]/(b[0][0]-b[1][1]))
-    w=[[numpy.cos(psi),-numpy.sin(psi),0],[numpy.sin(psi),numpy.cos(psi),0],[0.,0.,1.]]
+    psi = 0.5*np.arctan(2.*b[0][1]/(b[0][0]-b[1][1]))
+    w=[[np.cos(psi),-np.sin(psi),0],[np.sin(psi),np.cos(psi),0],[0.,0.,1.]]
     for i in range(3):
         for j in range(3):
             gamtmp=0.
@@ -4012,11 +4012,11 @@ def dokent(data,NN):
     xmu=xmu/float(N)
     sigma1=sigma1/float(N)
     sigma2=sigma2/float(N)
-    g=-2.0*numpy.log(0.05)/(float(NN)*xmu**2)
-    if numpy.sqrt(sigma1*g)<1:eta=numpy.arcsin(numpy.sqrt(sigma1*g))
-    if numpy.sqrt(sigma2*g)<1:zeta=numpy.arcsin(numpy.sqrt(sigma2*g))
-    if numpy.sqrt(sigma1*g)>=1.:eta=numpy.pi/2.
-    if numpy.sqrt(sigma2*g)>=1.:zeta=numpy.pi/2.
+    g=-2.0*np.log(0.05)/(float(NN)*xmu**2)
+    if np.sqrt(sigma1*g)<1:eta=np.arcsin(np.sqrt(sigma1*g))
+    if np.sqrt(sigma2*g)<1:zeta=np.arcsin(np.sqrt(sigma2*g))
+    if np.sqrt(sigma1*g)>=1.:eta=np.pi/2.
+    if np.sqrt(sigma2*g)>=1.:zeta=np.pi/2.
 #
 #  convert Kent parameters to directions,angles
 #
@@ -4035,8 +4035,8 @@ def dokent(data,NN):
     if kpars["Einc"]<0:
         kpars["Einc"]=-kpars["Einc"]
         kpars["Edec"]=(kpars["Edec"]+180.)%360.
-    kpars["Zeta"]=zeta*180./numpy.pi
-    kpars["Eta"]=eta*180./numpy.pi
+    kpars["Zeta"]=zeta*180./np.pi
+    kpars["Eta"]=eta*180./np.pi
     return kpars
 
 
