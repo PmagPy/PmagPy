@@ -12,7 +12,7 @@ SYNTAX
 OPTIONS
     -h: prints the help message and quits.
     -ID: directory for input file if not included in -f flag
-    -f FILE: specify  input file, or
+    -f FILE: specify  input file, required
     -WD: directory to output files to (default : current directory)
     -F FILE: specify output  measurements file, default is measurements.txt
     -Fsp FILE: specify output specimens.txt file, default is specimens.txt
@@ -36,7 +36,7 @@ OPTIONS
     -lon longitude of site (also used as bounding longitude for location)
     -A: don't average replicate measurements
     -mcd: [SO-MAG,SO-SUN,SO-SIGHT...] supply how these samples were oriented
-    -dc: B PHI THETA: dc lab field (in microTesla), phi,and theta must be input as a tuple "(DC,PHI,THETA)". If not input user will be asked for values, this is advantagious if there are differing dc fields between steps or specimens. Note: this currently only works with the decimal IZZI naming convetion (XXX.0,1,2,3 where XXX is the treatment temperature and 0 is a zero field step, 1 is in field, and 2 is a pTRM check, 3 is a tail check). All other steps are hardcoded dc_field = 0.
+    -dc B PHI THETA: dc lab field (in microTesla), phi,and theta (in degrees) must be spaced after flag (i.e -dc 30 0 -90)
     -mno: number of orientations measured (default=8)
 
 INPUT
@@ -88,9 +88,11 @@ def main(**kwargs):
             site_num=samp_con.split("-")[1]
             samp_con="7"
     else: site_num=1
-    try: DC_FIELD,DC_PHI,DC_THETA = map(float, kwargs.get('dc_params', (0,0,0)))
-    except ValueError: print('problem with your dc parameters. they should be formated as "(DC_FIELD,DC_PHI,DC_THETA)"')
-    DC_FIELD *= 1e-6
+    try:
+        DC_FIELD = float(kwargs.get('labfield',0))*1e-6
+        DC_PHI = float(kwargs.get('phi',0))
+        DC_THETA = float(kwargs.get('theta',0))
+    except ValueError: raise ValueError('problem with your dc parameters. please provide a labfield in microTesla and a phi and theta in degrees.')
     noave = kwargs.get('noave', False)
     dmy_flag = kwargs.get('dmy_flag', False)
     meas_n_orient = kwargs.get('meas_n_orient', '8')
@@ -364,7 +366,9 @@ if  __name__ == "__main__":
         kwargs['samp_con']=sys.argv[ind+1]
     if '-dc' in sys.argv:
         ind=sys.argv.index('-dc')
-        kwargs['dc_params']=sys.argv[ind+1].strip('( ) [ ]').split(',')
+        kwargs['labfield']=sys.argv[ind+1]
+        kwargs['phi']=sys.argv[ind+2]
+        kwargs['theta']=sys.argv[ind+3]
     if '-spc' in sys.argv:
         ind=sys.argv.index("-spc")
         kwargs['specnum']=sys.argv[ind+1]

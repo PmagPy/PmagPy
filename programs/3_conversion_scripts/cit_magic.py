@@ -27,7 +27,7 @@ OPTIONS
     -loc LOCNAME: specify location/study name, must have either LOCNAME or SITEFILE or be a synthetic
     -sn SITENAME: specify site name for all samples
     -mcd [FS-FD:SO-MAG,.....] colon delimited list for method codes applied to all specimens in .sam file
-    -dc (B, PHI, THETA): dc lab field (in microTesla), phi,and theta must be input as a tuple "(DC,PHI,THETA)". If not input user will be asked for values, this is advantagious if there are differing dc fields between steps or specimens. Note: this currently only works with the decimal IZZI naming convetion (XXX.0,1,2 where XXX is the treatment temperature and 0 is a zero field step, 1 is in field, and 2 is a PTRM check). For some reason all other steps are hardcoded dc_field = 0.
+    -dc B PHI THETA: dc lab field (in microTesla), phi,and theta (in degrees) must be spaced after flag (i.e -dc 30 0 -90)
     -ac B : peak AF field (in mT) for ARM acquisition, default is none
     -mno: specify measurement orientation number (meas_n_orient in data model 3.0) (default = 8)
 
@@ -71,7 +71,7 @@ def main(**kwargs):
     methods : colon delimited list of sample method codes. full list here (https://www2.earthref.org/MagIC/method-codes) (default : SO-MAG
     specnum : number of terminal characters that identify a specimen
     norm : is volume or mass using cgs or si units (options : cc,m3) (default : cc)
-    avg : average measurement data or not. False is average, True is don't average. (default : False)
+    noave : average measurement data or not. False is average, True is don't average. (default : False)
     samp_con : sample naming convention options as follows:
         [1] XXXXY: where XXXX is an arbitrary length site designation and Y
             is the single character sample designation.  e.g., TG001a is the
@@ -84,7 +84,9 @@ def main(**kwargs):
         [7-Z] [XXX]YYY:  XXX is site designation with Z characters from samples  XXXYYY
     input_dir_path : if you did not supply a full path with magfile you can put the directory the magfile is in here
     meas_n_orient : Number of different orientations in measurement (default : 8)
-    dc_params : tuple which gives (DC_FIELD,DC_PHI,DC_THETA) and DC_FIELD is in microTesla (default : (0,0,0))
+    labfield : DC_FIELD in microTesla (default : 0)
+    phi : DC_PHI in degrees (default : 0)
+    theta : DC_THETA in degrees (default : 0)
 
     Returns
     -----------
@@ -102,15 +104,17 @@ def main(**kwargs):
     methods = kwargs.get('methods', ['SO-MAG'])
     specnum = -int(kwargs.get('specnum', 0))
     norm = kwargs.get('norm', 'cc')
-    avg = kwargs.get('avg', 0)  # 0 means do average, 1 means don't
+    noave = kwargs.get('noave', False)  # False means do average
     samp_con = kwargs.get('samp_con', '3')
     magfile = kwargs.get('magfile', '')
     input_dir_path = kwargs.get('input_dir_path',os.path.split(magfile)[0])
     meas_n_orient = kwargs.get('meas_n_orient','8')
     output_dir_path = dir_path
-    try: DC_FIELD,DC_PHI,DC_THETA = map(float, kwargs.get('dc_params', (0,0,0)))
-    except ValueError: print('problem with your dc parameters. they should be formated as "(DC_FIELD,DC_PHI,DC_THETA)"')
-    DC_FIELD *= 1e-6
+    try:
+        DC_FIELD = float(kwargs.get('labfield',0))*1e-6
+        DC_PHI = float(kwargs.get('phi',0))
+        DC_THETA = float(kwargs.get('theta',0))
+    except ValueError: raise ValueError('problem with your dc parameters. please provide a labfield in microTesla and a phi and theta in degrees.')
     yn = ''
     if DC_FIELD==0 and DC_PHI==0 and DC_THETA==0: GET_DC_PARAMS=True
     else: GET_DC_PARAMS=False
@@ -369,7 +373,7 @@ def main(**kwargs):
     con.tables['samples'].df = DataFrame(Samps)
     con.tables['sites'].df = DataFrame(Sites)
     con.tables['locations'].df = DataFrame(Locs)
-    Fixed=pmag.measurements_methods3(MeasRecs,avg)
+    Fixed=pmag.measurements_methods3(MeasRecs,noave)
     con.tables['measurements'].df = DataFrame(Fixed)
 
     con.tables['specimens'].write_magic_file(custom_name=spec_file)
@@ -455,10 +459,12 @@ if __name__ == "__main__":
         ind=sys.argv.index("-n")
         kwargs['norm']=sys.argv[ind+1]
     if "-A" in sys.argv:
-        kwargs['avg'] = True
+        kwargs['noave'] = True
     if '-dc' in sys.argv:
         ind=sys.argv.index('-dc')
-        kwargs['dc_params']=sys.argv[ind+1].strip('( ) [ ]').split(',')
+        kwargs['labfield']=sys.argv[ind+1]
+        kwargs['phi']=sys.argv[ind+2]
+        kwargs['theta']=sys.argv[ind+3]
     if "-ncn" in sys.argv:
         ind=sys.argv.index("-ncn")
         kwargs['samp_con']=sys.argv[ind+1]
