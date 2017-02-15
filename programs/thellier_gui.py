@@ -3585,6 +3585,8 @@ else:
                 specimens_LP_codes=[]
                 for specimen in Data_samples_or_sites[sample_or_site].keys():
                     B.append(Data_samples_or_sites[sample_or_site][specimen])
+                    if specimen not in MagIC_results_data['pmag_specimens']:
+                        continue
                     magic_codes=MagIC_results_data['pmag_specimens'][specimen]['magic_method_codes']
                     codes=magic_codes.replace(" ","").split(":")
                     for code in codes:
