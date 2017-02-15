@@ -46,7 +46,7 @@ def main():
         data_model=sys.argv[ind+1]
         if data_model=='3': new_model=1
     if new_model:
-        samp_file='samples.txt'
+            samp_file='samples.txt'
             azimuth_key='azimuth'
             meas_file='measurements.txt'
             loc_key='location'
@@ -60,7 +60,7 @@ def main():
             aniso_file='specimens.txt'
     else:
             new_model=0
-        samp_file='er_samples.txt'
+            samp_file='er_samples.txt'
             azimuth_key='sample_azimuth'
             meas_file='magic_measurements.txt'
             loc_key='er_location_name'
