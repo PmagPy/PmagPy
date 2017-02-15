@@ -11,7 +11,7 @@ def main():
         make_magic_plots.py
 
     DESCRIPTION
- 	inspects magic directory for available plots.
+    inspects magic directory for available plots.
 
     SYNTAX
         make_magic_plots.py [command line options]
@@ -46,7 +46,7 @@ def main():
         data_model=sys.argv[ind+1]
         if data_model=='3': new_model=1
     if new_model:
-	    samp_file='samples.txt'
+            samp_file='samples.txt'
             azimuth_key='azimuth'
             meas_file='measurements.txt'
             loc_key='location'
@@ -60,7 +60,7 @@ def main():
             aniso_file='specimens.txt'
     else:
             new_model=0
-	    samp_file='er_samples.txt'
+            samp_file='er_samples.txt'
             azimuth_key='sample_azimuth'
             meas_file='magic_measurements.txt'
             loc_key='er_location_name'
@@ -70,8 +70,8 @@ def main():
             Mkeys=['measurement_magnitude','measurement_magn_moment','measurement_magn_volume','measurement_magn_mass']
             results_file='pmag_results.txt'
             tilt_key='tilt_correction'
-            hyst_file='rmag_hysteresis' 
-            aniso_file='rmag_anisotropy' 
+            hyst_file='rmag_hysteresis'
+            aniso_file='rmag_anisotropy'
     if '-h' in sys.argv:
         print main.__doc__
         sys.exit()
@@ -84,7 +84,7 @@ def main():
             print 'found sample file'
             samps,file_type=pmag.magic_read(samp_file) # read in data
             Srecs=pmag.get_dictitem(samps,azimuth_key,'','F')# get all none blank sample orientations
-            if len(Srecs)>0: 
+            if len(Srecs)>0:
                 crd='g'
         if meas_file in filelist: # start with measurement data
             print 'working on measurements data'
@@ -99,9 +99,9 @@ def main():
             for key in Mkeys:
                 Mrecs=pmag.get_dictitem(data,key,'','F') # get intensity data
                 if len(Mrecs)>0:break
-            if len(AFZrecs)>0 or len(TZrecs)>0 or len(MZrecs)>0 and len(Drecs)>0 and len(Irecs)>0 and len(Mrecs)>0: # potential for stepwise demag curves 
+            if len(AFZrecs)>0 or len(TZrecs)>0 or len(MZrecs)>0 and len(Drecs)>0 and len(Irecs)>0 and len(Mrecs)>0: # potential for stepwise demag curves
                 if new_model:
-                    CMD = 'zeq_magic3.0.py -fsp specimens.txt -sav -fmt '+fmt+' -crd '+crd
+                    CMD = 'zeq_magic3.py -fsp specimens.txt -sav -fmt '+fmt+' -crd '+crd
                 else:
                     CMD='zeq_magic.py -fsp pmag_specimens.txt -sav -fmt '+fmt+' -crd '+crd
                 print CMD
@@ -109,7 +109,7 @@ def main():
             # looking for  thellier_magic possibilities
             if len(pmag.get_dictitem(data,method_key,'LP-PI-TRM','has'))>0:
                 if new_model:
-                    CMD= 'thellier_magic3.0.py -fsp specimens.txt -sav -fmt '+fmt
+                    CMD= 'thellier_magic3.py -fsp specimens.txt -sav -fmt '+fmt
                 else:
                     CMD= 'thellier_magic.py -fsp pmag_specimens.txt -sav -fmt '+fmt
                 print CMD
@@ -117,14 +117,14 @@ def main():
             # looking for hysteresis possibilities
             if len(pmag.get_dictitem(data,method_key,'LP-HYS','has'))>0: # find hyst experiments
                 if new_model:
-                    CMD= 'quick_hyst3.0.py -sav -fmt '+fmt
+                    CMD= 'quick_hyst3.py -sav -fmt '+fmt
                 else:
                     CMD= 'quick_hyst.py -sav -fmt '+fmt
                 print CMD
                 os.system(CMD)
         if results_file in filelist: # start with measurement data
             data,file_type=pmag.magic_read(results_file) # read in data
-            print 'number of datapoints: ',len(data) 
+            print 'number of datapoints: ',len(data)
             if loc == './': data=pmag.get_dictitem(data,loc_key,':','has') # get all the concatenated location names from data file
             print 'number of datapoints: ',len(data) ,loc
             if new_model:
@@ -140,29 +140,29 @@ def main():
             SiteDIs=pmag.get_dictitem(data,dec_key,"",'F') # find decs
             SiteDIs=pmag.get_dictitem(SiteDIs,inc_key,"",'F') # find decs and incs
             SiteDIs=pmag.get_dictitem(SiteDIs,'data_type','i','has') # only individual results - not poles
-            print 'number of directions: ',len(SiteDIs) 
+            print 'number of directions: ',len(SiteDIs)
             SiteDIs_t=pmag.get_dictitem(SiteDIs,tilt_key,'100','T')# tilt corrected coordinates
-            print 'number of tilt corrected directions: ',len(SiteDIs) 
+            print 'number of tilt corrected directions: ',len(SiteDIs)
             SiteDIs_g=pmag.get_dictitem(SiteDIs,tilt_key,'0','T')# geographic coordinates
             SiteDIs_s=pmag.get_dictitem(SiteDIs,'tilt_correction','-1','T')# sample coordinates
             SiteDIs_x=pmag.get_dictitem(SiteDIs,'tilt_correction','','T')# no coordinates
             if len(SiteDIs_t)>0 or len(SiteDIs_g) >0 or len(SiteDIs_s)>0 or len(SiteDIs_x)>0:
                 CRD=""
-                if len(SiteDIs_t)>0: 
+                if len(SiteDIs_t)>0:
                     CRD=' -crd t'
                 elif len(SiteDIs_g )>0:
                     CRD=' -crd g'
                 elif len(SiteDIs_s )>0:
                     CRD=' -crd s'
                 if new_model:
-                    CMD= 'eqarea_magic3.0.py -sav -crd t -fmt '+fmt +CRD
+                    CMD= 'eqarea_magic3.py -sav -crd t -fmt '+fmt +CRD
                 else:
                     CMD= 'eqarea_magic.py -sav -crd t -fmt '+fmt +CRD
                 print CMD
                 os.system(CMD)
             print 'working on VGP map'
-            VGPs=pmag.get_dictitem(SiteDIs,'vgp_lat',"",'F') # are there any VGPs?   
-            if len(VGPs)>0:  # YES!  
+            VGPs=pmag.get_dictitem(SiteDIs,'vgp_lat',"",'F') # are there any VGPs?
+            if len(VGPs)>0:  # YES!
                 os.system('vgpmap_magic.py -prj moll -res c -sym ro 5 -sav -fmt png')
             print 'working on intensities'
             if not new_model:
@@ -194,7 +194,7 @@ def main():
             hdata=pmag.get_dictitem(hdata,'hysteresis_bc','','F') # there are data for a dayplot
             if len(hdata)>0:
                 print 'dayplot_magic.py -sav -fmt '+fmt
-                os.system('dayplot_magic.py -sav -fmt '+fmt) 
+                os.system('dayplot_magic.py -sav -fmt '+fmt)
         if aniso_file in filelist: # do anisotropy plots if possible
             print 'working on anisotropy'
             data,file_type=pmag.magic_read(aniso_file) # read in data
@@ -204,7 +204,7 @@ def main():
             tdata=pmag.get_dictitem(data,'anisotropy_tilt_correction','100','T') # get specimen coordinates
             CRD=""
             if new_model:
-                CMD= 'aniso_magic3.0.py -x -B -sav -fmt '+fmt
+                CMD= 'aniso_magic3.py -x -B -sav -fmt '+fmt
             else:
                 CMD= 'aniso_magic.py -x -B -sav -fmt '+fmt
             if len(sdata)>3:
