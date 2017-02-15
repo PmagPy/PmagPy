@@ -45,7 +45,7 @@ def main(**kwargs):
     samp_file = kwargs.get('samp_file', 'samples.txt')
     site_file = kwargs.get('site_file', 'sites.txt')
     loc_file = kwargs.get('loc_file', 'locations.txt')
-    timezone = kwargs.get('timestamp', 'US/Pacific')
+    timezone = kwargs.get('timezone', 'US/Pacific')
     lat = kwargs.get('lat', '')
     lon = kwargs.get('lon', '')
 

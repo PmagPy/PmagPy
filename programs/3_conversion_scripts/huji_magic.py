@@ -12,7 +12,7 @@ SYNTAX
 
 OPTIONS
     -h: prints the help message and quits.
-    -usr USER:   identify user, default is ""
+    -usr USER: Colon delimited list of analysts, default is ""
     -ID: directory for input file if not included in -f flag
     -f FILE: specify infile file, required
     -fd FILE: specify HUJI datafile with sample orientations
@@ -37,7 +37,7 @@ OPTIONS
             where xx, yyy,zzz...xxx  are cooling time in [K/minutes], seperated by comma, ordered at the same order as XXX.10,XXX.20 ...XX.70
             if you use a zerofield step then no need to specify the cooling rate for the zerofield
         
-    -spc NUM : specify number of characters to designate a  specimen, default = 0
+    -spc NUM : specify number of characters to designate a specimen, default = 0
     -loc LOCNAME : specify location/study name, must have either LOCNAME or SAMPFILE or be a synthetic
     -dc B PHI THETA: dc lab field (in micro tesla) and phi,theta, default is none
           NB: use PHI, THETA = -1 -1 to signal that it changes, i.e. in anisotropy experiment
@@ -55,9 +55,6 @@ OPTIONS
             [7-Z] [XXXX]YYY:  XXXX is site designation with Z characters with sample name XXXXYYYY
             NB: all others you will have to customize your self
                  or e-mail ltauxe@ucsd.edu for help.
-
-            [8] synthetic - has no site name
-            [9] ODP naming convention 
     INPUT
         separate experiments ( AF, thermal, thellier, trm aquisition) should be seperate  files
         (eg. af.txt, thermal.txt, etc.)
