@@ -23,7 +23,23 @@ def mapping(dictionary, mapping):
     for key, value in dictionary.iteritems():
         if key in mapping.keys():
             new_key = mapping[key]
-            mapped_dictionary[new_key] = value
+            # if there is already a mapped value, try to figure out which value to use
+            # (i.e., if both er_synthetic_name and er_specimen_name are in one measurement file)
+            if new_key in mapped_dictionary:
+                if not value:
+                    # if new value is null, leave the old value there
+                    continue
+                elif value and not mapped_dictionary[new_key]:
+                    # choose the one that has a non-null value
+                    mapped_dictionary[new_key] = value
+                elif value and mapped_dictionary[new_key]:
+                    # if both have values, choose which one to replace and warn
+                    print '-W- Two possible values found for {}'.format(new_key)
+                    print '    Replacing {} with {}'.format(mapped_dictionary[new_key], value)
+                    mapped_dictionary[new_key] = value
+            # if there is no mapped_value already:
+            else:
+                mapped_dictionary[new_key] = value
         else:
             mapped_dictionary[key] = value # if this line is left in, it gives everything from the original dictionary
     return mapped_dictionary
