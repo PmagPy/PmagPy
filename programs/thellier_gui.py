@@ -1112,7 +1112,7 @@ else:
         menu_file.AppendSeparator()
 
         m_prepare_MagIC_results_tables= menu_file.Append(-1, "&Save MagIC tables", "")
-        self.Bind(wx.EVT_MENU, self.on_menu__prepare_MagIC_results_tables, m_prepare_MagIC_results_tables)
+        self.Bind(wx.EVT_MENU, self.on_menu_prepare_magic_results_tables, m_prepare_MagIC_results_tables)
 
         submenu_save_plots = wx.Menu()
 
@@ -1238,7 +1238,7 @@ else:
         #m_build_magic_model= menu_MagIC.Append(-1, "&Run MagIC model builder", "")
         #self.Bind(wx.EVT_MENU, self.on_menu_MagIC_model_builder, m_build_magic_model)
         #m_prepare_MagIC_results_tables= menu_MagIC.Append(-1, "&Make MagIC results Table", "")
-        #self.Bind(wx.EVT_MENU, self.on_menu__prepare_MagIC_results_tables, m_prepare_MagIC_results_tables)
+        #self.Bind(wx.EVT_MENU, self.on_menu_prepare_magic_results_tables, m_prepare_MagIC_results_tables)
 
 
 
@@ -3370,7 +3370,7 @@ else:
     #----------------------------------------------------------------------
 
 
-    def on_menu__prepare_MagIC_results_tables (self, event):
+    def on_menu_prepare_magic_results_tables(self, event):
         """
         Menubar --> File --> Save MagIC tables
         """
