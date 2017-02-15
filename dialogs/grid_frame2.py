@@ -415,7 +415,7 @@ class GridFrame(wx.Frame):
         pmag_items = [head for head in pmag_headers if head not in er_items and head not in col_labels]
         # remove unneeded headers
         pmag_items = sorted(builder.remove_list_headers(pmag_items))
-        dia = pw.HeaderDialog(self, 'columns to add', er_items, pmag_items)
+        dia = pw.HeaderDialog(self, 'columns to add', items1=er_items, items2=pmag_items)
         dia.Centre()
         result = dia.ShowModal()
         new_headers = []

@@ -683,7 +683,7 @@ class HeaderDialog(wx.Dialog):
     As user clicks or double clicks, items are added to or removed from the selection,
     which is displayed in a text control.
     """
-    def __init__(self, parent, label, items1=None, groups=False):
+    def __init__(self, parent, label, items1=None, groups=False, items2=None):
         super(HeaderDialog, self).__init__(parent, title='Choose headers', size=(500, 500))
         if groups:
             word = 'Groups'
@@ -699,6 +699,14 @@ class HeaderDialog(wx.Dialog):
             listbox_sizer.Add(box1, flag=wx.ALL, border=5)
             self.Bind(wx.EVT_LISTBOX, self.on_click, listbox1)
             self.Bind(wx.EVT_LISTBOX_DCLICK, self.on_click, listbox1)
+        if items2:
+            box2 = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, "Headers for interpretation data", name='box2'), wx.HORIZONTAL)
+            listbox2 = wx.ListBox(self, wx.ID_ANY, choices=items2, style=wx.LB_MULTIPLE, size=(200, 350))
+            box2.Add(listbox2)
+            listbox_sizer.Add(box2, flag=wx.ALL, border=5)
+            self.Bind(wx.EVT_LISTBOX, self.on_click, listbox2)
+            self.Bind(wx.EVT_LISTBOX_DCLICK, self.on_click, listbox2)
+
 
         text_sizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, 'Adding {}:'.format(word.lower()), name='text_box'),
                                      wx.HORIZONTAL)
