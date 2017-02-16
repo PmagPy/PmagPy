@@ -1774,7 +1774,7 @@ class convert_PMD_files_to_MagIC(convert_files_to_MagIC):
         options['meth_code'] = particulars
         if particulars:
             particulars = "-mcd " + particulars
-        try: site_lat,site_lon = self.bSizer8.return_value().split()
+        try: site_lat,site_lon = self.bSizer7.return_value().split()
         except ValueError: site_lat,site_lon = '',''
         options_dict['site_lat'] = site_lat
         options_dict['site_lon'] = site_lon
