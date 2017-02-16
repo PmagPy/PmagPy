@@ -20,7 +20,7 @@ OPTIONS
     -F FILE: specify output  measurements file, default is measurements.txt
     -Fsp FILE: specify output specimens.txt file, default is specimens.txt
     -Fsa FILE: specify output samples.txt file, default is samples.txt 
-    -Fsi FILE: specify output sites.txt file, default is sites.txt # LORI
+    -Fsi FILE: specify output sites.txt file, default is sites.txt
     -Flo FILE: specify output locations.txt file, default is locations.txt
     -A: don't average replicate measurements
     -LP [colon delimited list of protocols, include all that apply]
@@ -88,18 +88,17 @@ OPTIONS
           TRM:
             XXX.YYY  XXX is temperature step of total TRM
                      YYY is dc field in microtesla
-     
+
      Intensity assumed to be total moment in 10^3 Am^2 (emu)
      Declination:  Declination in specimen coordinate system
      Inclination:  Inclination in specimen coordinate system
 
      Optional metatdata string:  mm/dd/yy;hh:mm;[dC,mT];xx.xx;UNITS;USER;INST;NMEAS
-         hh in 24 hours.  
+         hh in 24 hours.
          dC or mT units of treatment XXX (see Treat above) for thermal or AF respectively
          xx.xxx   DC field
          UNITS of DC field (microT, mT)
-         INST:  instrument code, number of axes, number of positions (e.g., G34 is 2G, three axes, 
-                measured in four positions)
+         INST:  instrument code, number of axes, number of positions (e.g., G34 is 2G, three axes, measured in four positions)
          NMEAS: number of measurements in a single position (1,3,200...)
 """
 import sys,os

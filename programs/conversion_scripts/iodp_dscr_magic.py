@@ -12,14 +12,25 @@ SYNTAX
 
 OPTIONS
     -h: prints the help message and quits.
+    -ID: directory for input file if not included in -f flag
     -f FILE: specify input .csv file, default is all in directory
-    -F FILE: specify output  measurements file, default is magic_measurements.txt
-    -A : don't average replicate measurements
+    -WD: directory to output files to (default : current directory)
+    -F FILE: specify output  measurements file, default is measurements.txt
+    -Fsp FILE: specify output specimens.txt file, default is specimens.txt
+    -Fsa FILE: specify output samples.txt file, default is samples.txt 
+    -Fsi FILE: specify output sites.txt file, default is sites.txt
+    -Flo FILE: specify output locations.txt file, default is locations.txt
+    -loc HOLE : specify hole name (U1456A)
+    -lat LAT: latitude of site (also used as bounding latitude for location)
+    -lon LON: longitude of site (also used as bounding longitude for location)
+    -A: don't average replicate measurements
 INPUTS
      IODP discrete sample .csv file format exported from LIMS database
 """
 import sys, os
 import pmagpy.pmag as pmag
+import pmagpy.new_builder as nb
+from pandas import DataFrame
 
 def main(**kwargs):
     # initialize defaults
@@ -217,34 +228,35 @@ def do_help():
 if __name__ == '__main__':
     kwargs = {}
     # get command line sys.argv
-    if '-WD' in sys.argv:
-        ind=sys.argv.index("-WD")
-        kwargs['dir_path']=sys.argv[ind+1]
-    if '-ID' in sys.argv:
-        ind = sys.argv.index('-ID')
-        kwargs['input_dir_path'] = sys.argv[ind+1]
+
     if "-h" in sys.argv:
         help(__name__)
         sys.exit()
-    if "-A" in sys.argv: kwargs['noave']=True
+    if '-ID' in sys.argv:
+        ind = sys.argv.index('-ID')
+        kwargs['input_dir_path'] = sys.argv[ind+1]
     if '-f' in sys.argv:
         ind=sys.argv.index("-f")
         kwargs['csv_file']=sys.argv[ind+1]
+    if '-WD' in sys.argv:
+        ind=sys.argv.index("-WD")
+        kwargs['dir_path']=sys.argv[ind+1]
     if '-F' in sys.argv:
         ind=sys.argv.index("-F")
         kwargs['meas_file']=sys.argv[ind+1]
     if '-Fsp' in sys.argv:
         ind=sys.argv.index("-Fsp")
         kwargs['spec_file'] = sys.argv[ind+1]
-    if '-Fsi' in sys.argv:
-        ind=sys.argv.index("-Fsi")
-        kwargs['site_file']=sys.argv[ind+1]
     if '-Fsa' in sys.argv:
         ind=sys.argv.index("-Fsa")
         kwargs['samp_file'] = sys.argv[ind+1]
+    if '-Fsi' in sys.argv:
+        ind=sys.argv.index("-Fsi")
+        kwargs['site_file']=sys.argv[ind+1]
     if '-Flo' in sys.argv: # Kevin addition
         ind=sys.argv.index("-Flo")
         kwargs['loc_file']=sys.argv[ind+1]
+    if "-A" in sys.argv: kwargs['noave']=True
     if "-lat" in sys.argv:
         ind = sys.argv.index("-lat")
         kwargs['lat'] = sys.argv[ind+1]

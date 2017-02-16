@@ -12,11 +12,17 @@ SYNTAX
 
 OPTIONS
     -h: prints the help message and quits.
-    -f FILE: specify input .csv file, default is all in directory
+    -ID: directory for input file if not included in -f flag
+    -f FILE: specify infile file, required
+    -WD: directory to output files to (default : current directory)
     -F FILE: specify output  measurements file, default is measurements.txt
     -Fsp FILE: specify output specimens.txt file, default is specimens.txt
-    -Fsa FILE: specify output samples.txt file, default is samples.txt
+    -Fsa FILE: specify output samples.txt file, default is samples.txt 
     -Fsi FILE: specify output sites.txt file, default is sites.txt
+    -Flo FILE: specify output locations.txt file, default is locations.txt
+    -loc HOLE : specify hole name (U1456A)
+    -lat LAT: latitude of site (also used as bounding latitude for location)
+    -lon LON: longitude of site (also used as bounding longitude for location)
     -A: don't average replicate measurements
     -tz: timezone in pytz library format. list of timzones can be found at http://pytz.sourceforge.net/. (default: US/Pacific)
 INPUTS
@@ -126,7 +132,7 @@ def main(**kwargs):
                         specimen=expedition+'-'+location+'-'+InRec['Core']+InRec[core_type]+"-"+InRec[sect_key]+'-'+InRec[half_key]+'-'+str(InRec[interval_key])
                     else: # mark as continuous measurements
                         specimen=expedition+'-'+location+'-'+InRec['Core']+InRec[core_type]+"_"+InRec[sect_key]+InRec[half_key]+'-'+str(InRec[interval_key])
-                    sample = expedition+'-'+location+'-'+InRec['Core']+InRec[core_type]+"_"+InRec[sect_key]+InRec[half_key]
+                    sample = expedition+'-'+location+'-'+InRec['Core']+InRec[core_type]
                     site = expedition+'-'+location
 
                     if not InRec[dec_key].strip(""" " ' """) or not InRec[inc_key].strip(""" " ' """):
@@ -269,15 +275,15 @@ def do_help():
 
 if __name__ == '__main__':
     kwargs={}
+    if "-h" in sys.argv:
+        help(__name__)
+        sys.exit()
     if '-WD' in sys.argv:
         ind=sys.argv.index("-WD")
         kwargs['dir_path']=sys.argv[ind+1]
     if '-ID' in sys.argv:
         ind = sys.argv.index('-ID')
         kwargs['input_dir_path'] = sys.argv[ind+1]
-    if "-h" in sys.argv:
-        help(__name__)
-        sys.exit()
     if "-A" in sys.argv: kwargs['noave']=1
     if '-f' in sys.argv:
         ind=sys.argv.index("-f")

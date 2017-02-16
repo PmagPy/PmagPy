@@ -17,7 +17,7 @@ OPTIONS
     -F FILE: specify output  measurements file, default is measurements.txt
     -Fsp FILE: specify output specimens.txt file, default is specimens.txt
     -Fsa FILE: specify output samples.txt file, default is samples.txt 
-    -Fsi FILE: specify output sites.txt file, default is sites.txt # LORI
+    -Fsi FILE: specify output sites.txt file, default is sites.txt
     -Flo FILE: specify output locations.txt file, default is locations.txt
     -ncn: Site Naming Convention
      Site to Sample naming convention:
@@ -32,8 +32,8 @@ OPTIONS
         [7-Z] [XXX]YYY:  XXX is site designation with Z characters from samples  XXXYYY
     -spc: number of characters to remove to generate sample names from specimen names
     -loc LOCNAME : specify location/study name
-    -lat latitude of site (also used as bounding latitude for location)
-    -lon longitude of site (also used as bounding longitude for location)
+    -lat LAT: latitude of site (also used as bounding latitude for location)
+    -lon LON: longitude of site (also used as bounding longitude for location)
     -A: don't average replicate measurements
     -mcd: [SO-MAG,SO-SUN,SO-SIGHT...] supply how these samples were oriented
     -dc B PHI THETA: dc lab field (in microTesla), phi,and theta (in degrees) must be spaced after flag (i.e -dc 30 0 -90)
@@ -54,7 +54,7 @@ def main(**kwargs):
 
     # initialize some stuff
     version_num = pmag.get_version()
-    MagRecs,SpecOuts,SampOuts,SiteOuts,LocOuts = [],[],[],[],[]
+    MeasRecs,SpecOuts,SampOuts,SiteOuts,LocOuts = [],[],[],[],[]
 
     dir_path = kwargs.get('dir_path', '.')
     input_dir_path = kwargs.get('input_dir_path', dir_path)
@@ -222,29 +222,29 @@ def main(**kwargs):
             timestamp=utc_dt.strftime("%Y-%m-%dT%H:%M:%S")+"Z"
             print timestamp
 
-            MagRec = {}
-            MagRec["timestamp"]=timestamp
-            MagRec["analysts"] = operator
-            MagRec["instrument_codes"] = "Utrecht_" + machine
-            MagRec["description"] = "free string = " + free_string 
-            MagRec["citation"] = "This study"
-            MagRec['software_packages'] = version_num
-            MagRec["meas_temp"] = '%8.3e' % (273) # room temp in kelvin
-            MagRec["quality"] = 'g'
-            MagRec["standard"] = 'u'
-            MagRec["experiments"] = location + site + spec_name
-            MagRec["number"] = location + site + spec_name + items[0]
-            MagRec["specimen"] = spec_name
-            # MagRec["treat_ac_field"] = '0'
+            MeasRec = {}
+            MeasRec["timestamp"]=timestamp
+            MeasRec["analysts"] = operator
+            MeasRec["instrument_codes"] = "Utrecht_" + machine
+            MeasRec["description"] = "free string = " + free_string 
+            MeasRec["citation"] = "This study"
+            MeasRec['software_packages'] = version_num
+            MeasRec["meas_temp"] = '%8.3e' % (273) # room temp in kelvin
+            MeasRec["quality"] = 'g'
+            MeasRec["standard"] = 'u'
+            MeasRec["experiments"] = location + site + spec_name
+            MeasRec["number"] = location + site + spec_name + items[0]
+            MeasRec["specimen"] = spec_name
+            # MeasRec["treat_ac_field"] = '0'
             if AF_or_T.lower() == "th":
-                MagRec["treat_temp"] = '%8.3e' % (float(step_value)+273.) # temp in kelvin
-                MagRec['treat_ac_field']='0'
+                MeasRec["treat_temp"] = '%8.3e' % (float(step_value)+273.) # temp in kelvin
+                MeasRec['treat_ac_field']='0'
                 meas_type = "LP-DIR-T:LT-T-Z"
             else:
-                MagRec['treat_temp']='273'
-                MagRec['treat_ac_field']='%10.3e'%(float(step_value)*1e-3)
+                MeasRec['treat_temp']='273'
+                MeasRec['treat_ac_field']='%10.3e'%(float(step_value)*1e-3)
                 meas_type = "LP-DIR-AF:LT-AF-Z"
-            MagRec['treat_dc_field']='0'
+            MeasRec['treat_dc_field']='0'
             if step_value == '0':
                 meas_type = "LT-NO"
             print "step_type=", step_type
@@ -258,29 +258,29 @@ def main(**kwargs):
                     meas_type = "LT-T-I"
                 else:
                     meas_type = meas_type + ":" + "LT-T-I"
-                MagRec['treat_dc_field']='%1.2e'%DC_FIELD
+                MeasRec['treat_dc_field']='%1.2e'%DC_FIELD
             elif step_type == '2':
                 if meas_type == "":
                     meas_type = "LT-PTRM-I"
                 else:
                     meas_type = meas_type + ":" + "LT-PTRM-I"
-                MagRec['treat_dc_field']='%1.2e'%DC_FIELD
+                MeasRec['treat_dc_field']='%1.2e'%DC_FIELD
             elif step_type == '3':
                 if meas_type == "" :
                     meas_type = "LT-PTRM-Z"
                 else:
                     meas_type = meas_type + ":" + "LT-PTRM-Z"
             print "meas_type=", meas_type
-            MagRec['treat_dc_field_phi'] = '%1.2f'%DC_PHI
-            MagRec['treat_dc_field_theta'] = '%1.2f'%DC_THETA
-            MagRec['method_codes'] = meas_type
-            MagRec["magn_moment"] = magn_moment
-            MagRec["magn_volume"] = magn_volume
-            MagRec["dir_dec"] = measurement_dec
-            MagRec["dir_inc"] = measurement_inc
-            MagRec['dir_csd'] = error 
-            MagRec['meas_n_orient'] = meas_n_orient
-            MagRecs.append(MagRec)
+            MeasRec['treat_dc_field_phi'] = '%1.2f'%DC_PHI
+            MeasRec['treat_dc_field_theta'] = '%1.2f'%DC_THETA
+            MeasRec['method_codes'] = meas_type
+            MeasRec["magn_moment"] = magn_moment
+            MeasRec["magn_volume"] = magn_volume
+            MeasRec["dir_dec"] = measurement_dec
+            MeasRec["dir_inc"] = measurement_inc
+            MeasRec['dir_csd'] = error 
+            MeasRec['meas_n_orient'] = meas_n_orient
+            MeasRecs.append(MeasRec)
 
             line = data.readline()
             line = line.rstrip("\n")
@@ -301,7 +301,7 @@ def main(**kwargs):
     con.tables['samples'].df = DataFrame(SampOuts)
     con.tables['sites'].df = DataFrame(SiteOuts)
     con.tables['locations'].df = DataFrame(LocOuts)
-    Fixed=pmag.measurements_methods3(MagRecs,noave)
+    Fixed=pmag.measurements_methods3(MeasRecs,noave)
     con.tables['measurements'].df = DataFrame(Fixed)
 
     con.tables['specimens'].write_magic_file(custom_name=spec_file)
