@@ -66,7 +66,7 @@ def old_fix_separation(filename, new_filename):
     old_file.close()
     return new_filename
 
-def main(command_line=True, **kwsys.argv):
+def main(**kwargs):
 
     # initialize some stuff
     demag="N"
@@ -171,51 +171,49 @@ def main(command_line=True, **kwsys.argv):
         MeasRec["measurement_number"]='1'
         MeasRec["treatment_ac_field"]='0'
 
-            volume=float(SampRecs[0]['sample_volume'])
-            x = float(line[4])
-            y = float(line[3])
-            negz = float(line[2])
-            cart=np.array([x,y,-negz]).transpose()
-            direction = pmag.cart2dir(cart).transpose()
-            expon = float(line[5])
-            magn_volume = direction[2] * (10.0**expon)
-            moment = magn_volume * volume
+        volume=float(SampRecs[0]['sample_volume'])
+        x = float(line[4])
+        y = float(line[3])
+        negz = float(line[2])
+        cart=np.array([x,y,-negz]).transpose()
+        direction = pmag.cart2dir(cart).transpose()
+        expon = float(line[5])
+        magn_volume = direction[2] * (10.0**expon)
+        moment = magn_volume * volume
 
-            MeasRec["measurement_magn_moment"]=str(moment)
-            MeasRec["measurement_magn_volume"]=str(magn_volume)#str(direction[2] * (10.0 ** expon))
-            MeasRec["measurement_dec"]='%7.1f'%(direction[0])
-            MeasRec["measurement_inc"]='%7.1f'%(direction[1])
+        MeasRec["measurement_magn_moment"]=str(moment)
+        MeasRec["measurement_magn_volume"]=str(magn_volume)#str(direction[2] * (10.0 ** expon))
+        MeasRec["measurement_dec"]='%7.1f'%(direction[0])
+        MeasRec["measurement_inc"]='%7.1f'%(direction[1])
 
-            step = line[1]
-            if step == 'NRM':
-                meas_type="LT-NO"
-            elif step[0:2] == 'AD':
-                meas_type="LT-AF-Z"
-                treat=float(step[2:])
-                MeasRec["treatment_ac_field"]='%8.3e' %(treat*1e-3) # convert from mT to tesla
-            elif step[0:2] == 'TD':
-                meas_type="LT-T-Z"
-                treat=float(step[2:])
-                MeasRec["treatment_temp"]='%8.3e' % (treat+273.) # temp in kelvin
-            elif step[0:3]=='ARM': #
-                meas_type="LT-AF-I"
-                treat=float(row['step'][3:])
-                MeasRec["treatment_ac_field"]='%8.3e' %(treat*1e-3) # convert from mT to tesla
-                MeasRec["treatment_dc_field"]='%8.3e' %(50e-6) # assume 50uT DC field
-                MeasRec["measurement_description"]='Assumed DC field - actual unknown'
-            elif step[0:3]=='IRM': #
-                meas_type="LT-IRM"
-                treat=float(step[3:])
-                MeasRec["treatment_dc_field"]='%8.3e' %(treat*1e-3) # convert from mT to tesla
-            else:
-                print 'unknown treatment type for ',row
-                return False, 'unknown treatment type for ',row
-
-            MeasRec['magic_method_codes']=meas_type
-            MeasRecs.append(MeasRec.copy())
-
+        step = line[1]
+        if step == 'NRM':
+            meas_type="LT-NO"
+        elif step[0:2] == 'AD':
+            meas_type="LT-AF-Z"
+            treat=float(step[2:])
+            MeasRec["treatment_ac_field"]='%8.3e' %(treat*1e-3) # convert from mT to tesla
+        elif step[0:2] == 'TD':
+            meas_type="LT-T-Z"
+            treat=float(step[2:])
+            MeasRec["treatment_temp"]='%8.3e' % (treat+273.) # temp in kelvin
+        elif step[0:3]=='ARM': #
+            meas_type="LT-AF-I"
+            treat=float(row['step'][3:])
+            MeasRec["treatment_ac_field"]='%8.3e' %(treat*1e-3) # convert from mT to tesla
+            MeasRec["treatment_dc_field"]='%8.3e' %(50e-6) # assume 50uT DC field
+            MeasRec["measurement_description"]='Assumed DC field - actual unknown'
+        elif step[0:3]=='IRM': #
+            meas_type="LT-IRM"
+            treat=float(step[3:])
+            MeasRec["treatment_dc_field"]='%8.3e' %(treat*1e-3) # convert from mT to tesla
         else:
-            print 'sample name not found: ',row['specname']
+            print 'unknown treatment type for ',row
+            return False, 'unknown treatment type for ',row
+
+        MeasRec['magic_method_codes']=meas_type
+        MeasRecs.append(MeasRec.copy())
+
     MagOuts=pmag.measurements_methods(MeasRecs,noave)
     file_created, error_message = pmag.magic_write(meas_file,MagOuts,'magic_measurements')
     if file_created:

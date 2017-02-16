@@ -2,10 +2,10 @@
 """
 
 NAME
-    huji_magic_new.py
+    huji_magic.py
 
 DESCRIPTION
-    converts HUJI new format files to magic_measurements format files
+    converts HUJI format files to magic_measurements format files
 
 SYNTAX
     huji_magic.py [command line options]
@@ -137,7 +137,7 @@ def main(**kwargs):
     if magfile:
         try:
             infile=open(os.path.join(input_dir_path,magfile),'rU')
-        except:
+        except IOError:
             print "bad mag file name"
             return False, "bad mag file name"
     else: 
