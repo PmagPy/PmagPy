@@ -22,6 +22,8 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
         title = 'Edit {} data'.format(panel_name)
         super(GridFrame, self).__init__(parent=parent, id=wx.ID_ANY,
                                         name=frame_name, title=title)
+        wait = wx.BusyInfo("Please wait, working...")
+        wx.Yield()
         self.remove_cols_mode = False
         self.deleteRowButton = None
         self.selected_rows = set()
@@ -61,6 +63,7 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
 
         self.WD = WD
         self.InitUI()
+        del wait
 
 
     ## Initialization functions
