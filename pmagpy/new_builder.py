@@ -300,6 +300,12 @@ class Contribution(object):
         col_name = item_type[:-1]
         col_name_plural = col_name + "s"
         table_df = self.tables[item_type].df
+
+        if item_old_name == '':
+            # just add a new item
+            self.add_item(table_name, {col_name: item_new_name}, item_new_name)
+            return
+
         # rename item in its own table
         table_df.rename(index={item_old_name: item_new_name}, inplace=True)
         # rename in any parent/child tables

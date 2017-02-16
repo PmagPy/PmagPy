@@ -249,6 +249,13 @@ class Menus(object):
                 # update the contribution with new name
                 self.contribution.rename_item(self.grid.name,
                                               default_val, new_val)
+                # don't propagate changes if we are just assigning a new name
+                # and not really renaming
+                # (i.e., if a blank row was added then named)
+                if default_val == '':
+                    self.grid.SetCellValue(row, 0, new_val)
+                    return
+
                 # update the current grid with new name
                 for row in range(self.grid.GetNumberRows()):
                     cell_value = self.grid.GetCellValue(row, 0)
