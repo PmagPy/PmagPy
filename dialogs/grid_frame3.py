@@ -179,8 +179,8 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
                                                       name='manage columns'), wx.VERTICAL)
         row_btn_vbox = wx.StaticBoxSizer(wx.StaticBox(self.panel, -1, label='Rows',
                                                       name='manage rows'), wx.VERTICAL)
-        main_btn_vbox = wx.StaticBoxSizer(wx.StaticBox(self.panel, -1, label='Manage data',
-                                                       name='manage data'), wx.VERTICAL)
+        self.main_btn_vbox = wx.StaticBoxSizer(wx.StaticBox(self.panel, -1, label='Manage data',
+                                                            name='manage data'), wx.VERTICAL)
         input_output_vbox = wx.StaticBoxSizer(wx.StaticBox(self.panel, -1, label='In/Out',
                                                            name='manage in out'), wx.VERTICAL)
         col_btn_vbox.Add(self.add_cols_button, 1, flag=wx.ALL, border=5)
@@ -188,15 +188,15 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
         row_btn_vbox.Add(many_rows_box, 1, flag=wx.ALL, border=5)
         row_btn_vbox.Add(self.remove_row_button, 1, flag=wx.ALL, border=5)
         row_btn_vbox.Add(self.deleteRowButton, 1, flag=wx.ALL, border=5)
-        main_btn_vbox.Add(self.importButton, 1, flag=wx.ALL, border=5)
-        main_btn_vbox.Add(self.exitButton, 1, flag=wx.ALL, border=5)
-        main_btn_vbox.Add(self.cancelButton, 1, flag=wx.ALL, border=5)
+        self.main_btn_vbox.Add(self.importButton, 1, flag=wx.ALL, border=5)
+        self.main_btn_vbox.Add(self.exitButton, 1, flag=wx.ALL, border=5)
+        self.main_btn_vbox.Add(self.cancelButton, 1, flag=wx.ALL, border=5)
         input_output_vbox.Add(self.copyButton, 1, flag=wx.ALL, border=5)
         input_output_vbox.Add(self.selectAllButton, 1, flag=wx.ALL, border=5)
         input_output_vbox.Add(self.copySelectionButton, 1, flag=wx.ALL, border=5)
         self.hbox.Add(col_btn_vbox, 1)
         self.hbox.Add(row_btn_vbox, 1)
-        self.hbox.Add(main_btn_vbox, 1)
+        self.hbox.Add(self.main_btn_vbox, 1)
         self.hbox.Add(input_output_vbox, 1)
 
         #self.panel.Bind(wx.grid.EVT_GRID_LABEL_LEFT_CLICK, self.onLeftClickLabel, self.grid)
