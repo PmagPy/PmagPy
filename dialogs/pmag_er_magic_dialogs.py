@@ -50,8 +50,9 @@ class ErMagicCheckFrame3(wx.Frame):
         # other approach
         self.grid_frame.exitButton.SetLabel('Save and continue')
         # redefine default 'save & exit' function to go to next dialog instead
+        grid = self.grid_frame.grid
         self.grid_frame.Bind(wx.EVT_BUTTON,
-                             lambda event: self.onContinue(event, self.InitSampCheck),
+                             lambda event: self.onContinue(event, grid, self.InitSampCheck),
                              self.grid_frame.exitButton)
 
         # add a 'back button'
@@ -73,8 +74,9 @@ class ErMagicCheckFrame3(wx.Frame):
             next_dia = self.InitLocCheck
         else:
             next_dia = self.InitSiteCheck
+        grid = self.grid_frame.grid
         self.grid_frame.Bind(wx.EVT_BUTTON,
-                             lambda event: self.onContinue(event, next_dia),
+                             lambda event: self.onContinue(event, grid, next_dia),
                              self.grid_frame.exitButton)
 
         return
@@ -87,8 +89,9 @@ class ErMagicCheckFrame3(wx.Frame):
         self.panel = wx.Panel(self, style=wx.SIMPLE_BORDER)
         self.grid_frame = grid_frame3.GridFrame(self.contribution, self.WD, 'sites', 'sites', self.panel)
         self.grid_frame.exitButton.SetLabel('Save and continue')
+        grid = self.grid_frame.grid
         self.grid_frame.Bind(wx.EVT_BUTTON,
-                             lambda event: self.onContinue(event, self.InitSampCheck),
+                             lambda event: self.onContinue(event, grid, self.InitSampCheck),
                              self.grid_frame.exitButton)
         return
 
@@ -101,8 +104,9 @@ class ErMagicCheckFrame3(wx.Frame):
         self.panel = wx.Panel(self, style=wx.SIMPLE_BORDER)
         self.grid_frame = grid_frame3.GridFrame(self.contribution, self.WD, 'locations', 'locations', self.panel)
         self.grid_frame.exitButton.SetLabel('Save and continue')
+        grid = self.grid_frame.grid
         self.grid_frame.Bind(wx.EVT_BUTTON,
-                             lambda event: self.onContinue(event, self.InitAgeCheck),
+                             lambda event: self.onContinue(event, grid, self.InitAgeCheck),
                              self.grid_frame.exitButton)
 
         # add same stuff as for other grids, BUT ALSO min/max lat/lon
@@ -115,19 +119,48 @@ class ErMagicCheckFrame3(wx.Frame):
         self.panel = wx.Panel(self, style=wx.SIMPLE_BORDER)
         self.grid_frame = grid_frame3.GridFrame(self.contribution, self.WD, 'ages', 'ages', self.panel)
         self.grid_frame.exitButton.SetLabel('Save and continue')
-        self.grid_frame.Bind(wx.EVT_BUTTON, self.onContinue,
+        grid = self.grid_frame.grid
+        self.grid_frame.Bind(wx.EVT_BUTTON, lambda event: self.onContinue(event, grid, None),
                              self.grid_frame.exitButton)
 
         return
 
 
-    def onContinue(self, grid, next_dia=None):#, age_data_type='site'):
+    def on_close_grid_frame(self, event=None):
+        pass
+        #if self.grid_frame.grid.changes:
+        #    self.edited = True
+        #self.grid_frame = None
+        #self.Show()
+        #if event:
+        #    event.Skip()
+
+
+
+    def onContinue(self, event, grid, next_dia=None):#, age_data_type='site'):
         """
         Save grid data in the data object
         """
         # deselect column, including remove 'EDIT ALL' label
         if self.drop_down_menu:
             self.drop_down_menu.clean_up()
+
+        # remove '**' and '^^' from col names
+        #self.remove_starred_labels(grid)
+        grid.remove_starred_labels()
+
+        grid.SaveEditControlValue() # locks in value in cell currently edited
+        grid_name = str(grid.GetName())
+
+        # do validation?
+        # check that all required data are present
+        validation_errors = self.validate(grid)
+        if validation_errors:
+            result = pw.warning_with_override("You are missing required data in these columns: {}\nAre you sure you want to continue without these data?".format(', '.join(validation_errors)))
+            if result == wx.ID_YES:
+                pass
+            else:
+                return False
 
         # save all changes to data object and write to file
         self.grid_frame.grid_builder.save_grid_data()
@@ -228,7 +261,7 @@ class ErMagicCheckFrame3(wx.Frame):
         if self.drop_down_menu:
             self.drop_down_menu.clean_up()
 
-        # remove '**' from col names
+        # remove '**' and '^^' from col names
         #self.remove_starred_labels(grid)
         grid.remove_starred_labels()
 
