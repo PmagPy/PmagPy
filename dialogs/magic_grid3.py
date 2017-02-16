@@ -218,10 +218,10 @@ class MagicGrid(wx.grid.Grid, gridlabelrenderer.GridWithLabelRenderersMixin):
                 for column in cols:
                     value = row_data[column[1]]
                     this_col = column[0]
-                    self.SetCellValue(row_ind, this_col, value)
+                    self.SetCellValue(row_ind, this_col, str(value))
             else:
                 value = row_data[0]
-                self.SetCellValue(row_ind, col_ind, value)
+                self.SetCellValue(row_ind, col_ind, str(value))
             row_ind += 1
         # could instead use wxPython clipboard here
         # see old git history for that
