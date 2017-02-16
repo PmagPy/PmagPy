@@ -316,9 +316,7 @@ def do_help():
     return __doc__
 
 if  __name__ == "__main__":
-    #
     # get command line arguments
-    #
     kwargs={}
     if "-h" in sys.argv:
         help(__name__)

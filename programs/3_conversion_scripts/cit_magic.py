@@ -141,7 +141,7 @@ def main(**kwargs):
     FIRST_GET_DC=True
     try:
         file_input=open(magfile,'r')
-    except Exception as ex:
+    except IOError as ex:
         print("bad sam file name: ", magfile)
         return False, "bad sam file name"
     File = file_input.readlines()
