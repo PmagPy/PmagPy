@@ -726,9 +726,9 @@ class MagicDataFrame(object):
         # add numeric index column temporarily
         self.df['num'] = range(len(self.df))
         df_data = self.df
+        condition2 = df_data.index == name
         # edit first of existing data that meets condition
-        if len(df_data[condition]) > 0:  #we have one or more records to update or delete
-            condition2 = df_data.index == name
+        if len(df_data[condition & condition2]) > 0:  #we have one or more records to update or delete
             # list of all rows where condition is true and index == name
             inds = df_data[condition & condition2]['num']
             #inds = df_data[condition]['num'] # list of all rows where condition is true

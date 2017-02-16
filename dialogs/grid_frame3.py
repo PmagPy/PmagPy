@@ -408,12 +408,14 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
         result1 = dia.ShowModal()
         if result1 == wx.ID_YES:
             items = [col_name for col_name in self.dm.index if col_name not in col_labels]
-            dia = pw.HeaderDialog(self, 'columns to add', list(items), [])
+            dia = pw.HeaderDialog(self, 'columns to add',
+                                  items1=list(items), groups=[])
             dia.Centre()
             result2 = dia.ShowModal()
         else:
             groups = self.dm['group'].unique()
-            dia = pw.HeaderDialog(self, 'groups to add', list(groups), True)
+            dia = pw.HeaderDialog(self, 'groups to add',
+                                  items1=list(groups), groups=True)
             dia.Centre()
             result2 = dia.ShowModal()
         new_headers = []
