@@ -192,6 +192,7 @@ def main(**kwargs):
         local_dt = local.localize(naive, is_dst=None)
         utc_dt = local_dt.astimezone(pytz.utc)
         timestamp=utc_dt.strftime("%Y-%m-%dT%H:%M:%S")+"Z"
+        MeasRec["timestamp"] = timestamp
         MeasRec["citations"] = "This study"
         MeasRec['software_packages'] = version_num
         MeasRec["treat_temp"] = '%8.3e' % (273) # room temp in kelvin
@@ -293,7 +294,7 @@ if  __name__ == "__main__":
         kwargs['meth_code'] = sys.argv[ind+1]
     if "-v" in sys.argv:
         ind = sys.argv.index("-v")
-        kwargs['volume'] = float(sys.argv[ind+1]) * 1e-6 # enter volume in cc, convert to m^3
+        kwargs['volume'] = sys.argv[ind+1] # enter volume in cc, convert to m^3
     if "-ncn" in sys.argv:
         ind=sys.argv.index("-ncn")
         kwargs['samp_con']=sys.argv[ind+1]
