@@ -31,12 +31,15 @@ class ErMagicCheckFrame3(wx.Frame):
         self.grid = None
         self.deleteRowButton = None
         self.selected_rows = set()
+        self.min_size = (1160, 350)
         self.InitSpecCheck()
 
 
     def InitSpecCheck(self):
-        """make an interactive grid in which users can edit specimen names
-        as well as which sample a specimen belongs to"""
+        """
+        make an interactive grid in which users can edit specimen names
+        as well as which sample a specimen belongs to
+        """
         #wait = wx.BusyInfo("Please wait, working...")
         #wx.Yield()
         spec_df = self.contribution.tables['specimens'].df
@@ -92,13 +95,15 @@ class ErMagicCheckFrame3(wx.Frame):
                   self.backButton)
         self.grid_frame.main_btn_vbox.Add(self.backButton, flag=wx.ALL, border=5)
         # re-do fit
-        self.grid_frame.do_fit(None)
+        self.grid_frame.do_fit(None, self.min_size)
         return
 
 
     def InitSiteCheck(self):
-        """make an interactive grid in which users can edit site names
-        as well as which location a site belongs to"""
+        """
+        make an interactive grid in which users can edit site names
+        as well as which location a site belongs to
+        """
         site_df = self.contribution.tables['sites'].df
         self.panel = wx.Panel(self, style=wx.SIMPLE_BORDER)
         self.grid_frame = grid_frame3.GridFrame(self.contribution, self.WD, 'sites', 'sites', self.panel)
@@ -116,15 +121,15 @@ class ErMagicCheckFrame3(wx.Frame):
                   self.backButton)
         self.grid_frame.main_btn_vbox.Add(self.backButton, flag=wx.ALL, border=5)
         # re-do fit
-        self.grid_frame.do_fit(None)
+        self.grid_frame.do_fit(None, self.min_size)
 
         return
 
 
     def InitLocCheck(self):
-        """make an interactive grid in which users can edit specimen names
-        as well as which sample a specimen belongs to"""
-
+        """
+        make an interactive grid in which users can edit locations
+        """
         loc_df = self.contribution.tables['locations'].df
         self.panel = wx.Panel(self, style=wx.SIMPLE_BORDER)
         self.grid_frame = grid_frame3.GridFrame(self.contribution, self.WD, 'locations', 'locations', self.panel)
@@ -142,7 +147,7 @@ class ErMagicCheckFrame3(wx.Frame):
                   self.backButton)
         self.grid_frame.main_btn_vbox.Add(self.backButton, flag=wx.ALL, border=5)
         # re-do fit
-        self.grid_frame.do_fit(None)
+        self.grid_frame.do_fit(None, min_size=self.min_size)
         # add same stuff as for other grids, BUT ALSO min/max lat/lon
         return
 
@@ -164,7 +169,7 @@ class ErMagicCheckFrame3(wx.Frame):
                   self.backButton)
         self.grid_frame.main_btn_vbox.Add(self.backButton, flag=wx.ALL, border=5)
         # re-do fit
-        self.grid_frame.do_fit(None)
+        self.grid_frame.do_fit(None, self.min_size)
         return
 
 

@@ -183,21 +183,21 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
                                                             name='manage data'), wx.VERTICAL)
         input_output_vbox = wx.StaticBoxSizer(wx.StaticBox(self.panel, -1, label='In/Out',
                                                            name='manage in out'), wx.VERTICAL)
-        col_btn_vbox.Add(self.add_cols_button, 1, flag=wx.ALL, border=5)
-        col_btn_vbox.Add(self.remove_cols_button, 1, flag=wx.ALL, border=5)
-        row_btn_vbox.Add(many_rows_box, 1, flag=wx.ALL, border=5)
-        row_btn_vbox.Add(self.remove_row_button, 1, flag=wx.ALL, border=5)
-        row_btn_vbox.Add(self.deleteRowButton, 1, flag=wx.ALL, border=5)
-        self.main_btn_vbox.Add(self.importButton, 1, flag=wx.ALL, border=5)
-        self.main_btn_vbox.Add(self.exitButton, 1, flag=wx.ALL, border=5)
-        self.main_btn_vbox.Add(self.cancelButton, 1, flag=wx.ALL, border=5)
-        input_output_vbox.Add(self.copyButton, 1, flag=wx.ALL, border=5)
-        input_output_vbox.Add(self.selectAllButton, 1, flag=wx.ALL, border=5)
-        input_output_vbox.Add(self.copySelectionButton, 1, flag=wx.ALL, border=5)
-        self.hbox.Add(col_btn_vbox, 1)
-        self.hbox.Add(row_btn_vbox, 1)
-        self.hbox.Add(self.main_btn_vbox, 1)
-        self.hbox.Add(input_output_vbox, 1)
+        col_btn_vbox.Add(self.add_cols_button, flag=wx.ALL, border=5)
+        col_btn_vbox.Add(self.remove_cols_button, flag=wx.ALL, border=5)
+        row_btn_vbox.Add(many_rows_box, flag=wx.ALL, border=5)
+        row_btn_vbox.Add(self.remove_row_button, flag=wx.ALL, border=5)
+        row_btn_vbox.Add(self.deleteRowButton, flag=wx.ALL, border=5)
+        self.main_btn_vbox.Add(self.importButton, flag=wx.ALL, border=5)
+        self.main_btn_vbox.Add(self.exitButton, flag=wx.ALL, border=5)
+        self.main_btn_vbox.Add(self.cancelButton, flag=wx.ALL, border=5)
+        input_output_vbox.Add(self.copyButton, flag=wx.ALL, border=5)
+        input_output_vbox.Add(self.selectAllButton, flag=wx.ALL, border=5)
+        input_output_vbox.Add(self.copySelectionButton, flag=wx.ALL, border=5)
+        self.hbox.Add(col_btn_vbox)
+        self.hbox.Add(row_btn_vbox)
+        self.hbox.Add(self.main_btn_vbox)
+        self.hbox.Add(input_output_vbox)
 
         #self.panel.Bind(wx.grid.EVT_GRID_LABEL_LEFT_CLICK, self.onLeftClickLabel, self.grid)
         self.grid.Bind(wx.grid.EVT_GRID_LABEL_LEFT_CLICK, self.onLeftClickLabel, self.grid)
@@ -288,7 +288,7 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
             # treat it as if it were a wx.EVT_TEXT_SIZE
             self.do_fit(event)
 
-    def do_fit(self, event):
+    def do_fit(self, event, min_size=None):
         """
         Re-fit the window to the size of the content.
         """
@@ -301,8 +301,17 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
         rows = self.grid.GetNumberRows()
         # if there isn't enough room to display new content
         # resize the frame
+
         if disp_size[1] - 75 < actual_size[1]:
             self.SetSize((actual_size[0], disp_size[1] * .95))
+
+        # make sure you adhere to a minimum size
+        if min_size:
+            actual_size = self.GetSize()
+            larger_width = max([actual_size[0], min_size[0]])
+            larger_height = max([actual_size[1], min_size[1]])
+            if larger_width > actual_size[0] or larger_height > actual_size[1]:
+                self.SetSize((larger_width, larger_height))
         self.Centre()
 
     def toggle_help(self, event, mode=None):
