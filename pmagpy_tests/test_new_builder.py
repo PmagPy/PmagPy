@@ -225,6 +225,24 @@ class TestContribution(unittest.TestCase):
         self.assertIn("hz06", self.con.tables['sites'].df.index)
         self.assertEqual("hz06", self.con.tables['sites'].df.ix['hz06']['site'])
 
+    def test_get_min_max_lat_lon(self):
+        site_container = nb.MagicDataFrame(dtype='sites')
+        site_container.add_row('site1', {'lat': 10, 'lon': 4, 'location': 'location1'})
+        site_container.add_row('site2', {'lat': 10.2, 'lon': 5, 'location': 'location1'})
+        site_container.add_row('site3', {'lat': 20, 'lon': '15', 'location': 'location2'})
+        site_container.add_row('site4', {'lat': None, 'location': 'location1'})
+        loc_container = nb.MagicDataFrame(dtype='locations', columns=['lat_n', 'lat_s', 'lon_e', 'lon_w', 'location'])
+        site_container.df
+        loc_container.add_row('location1', {})
+        loc_container.add_row('location2', {})
+        con = nb.Contribution(".", read_tables=['images'])
+        con.tables['sites'] = site_container
+        con.tables['locations'] = loc_container
+        con.get_min_max_lat_lon()
+        self.assertEqual(10., con.tables['locations'].df.ix['location1', 'lat_s'])
+        self.assertEqual(15., con.tables['locations'].df.ix['location2', 'lon_e'])
+
+
 
 
 if __name__ == '__main__':

@@ -247,8 +247,67 @@ class Contribution(object):
             child_name = self.ancestry[child_ind]
         return parent_name, child_name
 
+    def get_min_max_lat_lon(self):
+        """
+        Find latitude/longitude information from sites table
+        and group it by location.
 
-
+        Returns
+        ---------
+        """
+        # get min/max lat/lon from sites table
+        site_container = self.tables['sites']
+        # convert lat/lon columns to string type
+        # (this is necessary for consistency because they MAY be string type already)
+        site_container.df['lat'] = site_container.df['lat'].fillna('').astype(str)
+        site_container.df['lon'] = site_container.df['lon'].fillna('').astype(str)
+        # replace empty strings with np.nan
+        site_container.df['lat'] = np.where(site_container.df['lat'].str.len(), site_container.df['lat'], np.nan)
+        site_container.df['lon'] = np.where(site_container.df['lon'].str.len(), site_container.df['lon'], np.nan)
+        # convert lat/lon values to float (they make be string from grid)
+        site_container.df['lat'] = site_container.df['lat'].astype(float)
+        site_container.df['lon'] = site_container.df['lon'].astype(float)
+        # group lat/lon by location
+        grouped_lon = site_container.df[['lon', 'location']].groupby('location')
+        grouped_lat = site_container.df[['lat', 'location']].groupby('location')
+        # get min/max longitude by location
+        lon_w = grouped_lon.min()
+        lon_e = grouped_lon.max()
+        # get min/max latitude by location
+        lat_s = grouped_lat.min()
+        lat_n = grouped_lat.max()
+        # assign lat/lon to location table
+        locs = {}
+        for loc in lat_s.index:
+            coords = {}
+            coords['lat_s'] = lat_s.loc[loc]['lat']
+            coords['lat_n'] = lat_n.loc[loc]['lat']
+            coords['lon_e'] = lon_e.loc[loc]['lon']
+            coords['lon_w'] = lon_w.loc[loc]['lon']
+            locs[loc] = coords
+        loc_container = self.tables['locations']
+        for loc_name in locs:
+            if loc_name in loc_container.df.index:
+                coords = locs[loc_name]
+                for coord in locs[loc_name]:
+                    # warn user if an old value will be overwritten
+                    new_value = coords[coord]
+                    old_value = loc_container.df.ix[loc_name, coord]
+                    try:
+                        old_value = old_value[0]
+                    except TypeError: # if only one value
+                        pass
+                    except IndexError: # if np.nan
+                        pass
+                    if old_value is None:
+                        pass
+                    elif np.isnan(old_value):
+                        pass
+                    elif new_value != old_value:
+                        print '-W- In {}, automatically generated {} value ({}) will overwrite previous value ({})'.format(loc_name, coord, new_value, old_value)
+                    # set new value
+                    loc_container.df.set_value(loc_name, coord, new_value)
+        return locs
 
     def add_item(self, table_name, data, label):
         self.tables[table_name].add_row(label, data)

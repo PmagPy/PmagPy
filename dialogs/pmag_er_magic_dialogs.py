@@ -130,7 +130,9 @@ class ErMagicCheckFrame3(wx.Frame):
         """
         make an interactive grid in which users can edit locations
         """
-        loc_df = self.contribution.tables['locations'].df
+        # propagate lat/lon values from sites table
+        self.contribution.get_min_max_lat_lon()
+        # set up frame
         self.panel = wx.Panel(self, style=wx.SIMPLE_BORDER)
         self.grid_frame = grid_frame3.GridFrame(self.contribution, self.WD, 'locations', 'locations', self.panel)
         # redefine default 'save & exit grid' button to go to next dialog instead
@@ -148,7 +150,6 @@ class ErMagicCheckFrame3(wx.Frame):
         self.grid_frame.main_btn_vbox.Add(self.backButton, flag=wx.ALL, border=5)
         # re-do fit
         self.grid_frame.do_fit(None, min_size=self.min_size)
-        # add same stuff as for other grids, BUT ALSO min/max lat/lon
         return
 
 
@@ -229,6 +230,7 @@ class ErMagicCheckFrame3(wx.Frame):
             self.grid_frame.onSave(event=None, alert=alert, destroy=True)
             if self.grid_frame.grid.name == 'samples':
                 self.sample_window -= 1
+
             self.panel.Destroy()
             prev_dia()
 
