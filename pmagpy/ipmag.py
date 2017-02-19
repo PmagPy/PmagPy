@@ -5185,12 +5185,25 @@ def SUFAR4_magic(ascfile, meas_output='magic_measurements.txt', aniso_output='rm
             else:
                 AniRec['anisotropy_n']="15"
         if 'Azi' in words and isspec=='0':
-            SampRec['sample_azimuth']=words[1]
-            labaz=float(words[1])
+            az = float(words[1])
+            P1 = float(words[4])
+            P2 = float(words[5])
+            P3 = float(words[6])
+            P4 = float(words[7])  # P4 relates to a fabric or bedding measurement -- not dealt with here
+            az = az+P1*360./12. - P3*360./12.
+            if az>=360:
+                az=az-360
+            elif az<=-360:
+                az=az+360
+            labaz = az
+            SampRec['sample_azimuth']=str(round(az,1))
         if 'Dip' in words:
-            SampRec['sample_dip']='%7.1f'%(-float(words[1]))
             SpecRec['specimen_vol']='%8.3e'%(float(words[10])*1e-6) # convert actual volume to m^3 from cm^3
-            labdip=float(words[1])
+            dip=float(words[1])
+            if P2==90:
+                dip=dip-90.
+            labdip=dip
+            SampRec['sample_dip']=str(round(dip,1))
         if 'T1' in words and 'F1' in words:
             k+=2 # read in fourth line down
             line=Data[k]
