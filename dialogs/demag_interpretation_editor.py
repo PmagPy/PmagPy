@@ -811,7 +811,7 @@ class InterpretationEditorFrame(wx.Frame):
             print('-E- interpretation called ' + new_name + ' already exsists for specimen ' + specimen)
             return
 
-        self.parent.add_fit(specimen, new_name, new_tmin, new_tmax, color=new_color)
+        self.parent.add_fit(specimen, new_name, new_tmin, new_tmax, color=new_color,suppress_warnings=True)
 
     def delete_highlighted_fits(self, event):
         """

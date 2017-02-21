@@ -1943,7 +1943,7 @@ class Demag_GUI(wx.Frame):
         self.CART_rot_good=array(self.CART_rot_good)
         self.CART_rot_bad=array(self.CART_rot_bad)
 
-    def add_fit(self,specimen,name,fmin,fmax,PCA_type="DE-BFL", color=None):
+    def add_fit(self,specimen,name,fmin,fmax,PCA_type="DE-BFL", color=None, suppress_warnings=False):
         """
         Goes through the data checks required to add an interpretation to the param specimen with the name param name, the bounds param fmin and param fmax, and calculation type param PCA_type.
         @param - specimen: specimen with measurement data to add the interpretation to
@@ -1954,7 +1954,7 @@ class Demag_GUI(wx.Frame):
         @prarm - color: color to plot the new interpretation in
         @return - returns new fit object or None if fit could not be added
         """
-        if specimen not in self.Data.keys():
+        if specimen not in self.Data.keys() and not suppress_warnings:
             self.user_warning("there is no measurement data for %s and therefore no interpretation can be created for this specimen"%(specimen))
             return
         if fmax!=None and fmax not in self.Data[specimen]['zijdblock_steps'] or fmin!=None and fmin not in self.Data[specimen]['zijdblock_steps']: return
@@ -1968,8 +1968,9 @@ class Demag_GUI(wx.Frame):
         new_fit = Fit(name, fmax, fmin, color, self, PCA_type)
         if fmin != None and fmax != None:
             new_fit.put(specimen,self.COORDINATE_SYSTEM,self.get_PCA_parameters(specimen,new_fit,fmin,fmax,self.COORDINATE_SYSTEM,PCA_type))
-            if 'specimen_dec' not in new_fit.get(self.COORDINATE_SYSTEM).keys()\
-            or 'specimen_inc' not in new_fit.get(self.COORDINATE_SYSTEM).keys():
+            if ('specimen_dec' not in new_fit.get(self.COORDINATE_SYSTEM).keys()\
+            or 'specimen_inc' not in new_fit.get(self.COORDINATE_SYSTEM).keys())\
+            and not suppress_warnings:
                 TEXT = "Could not calculate dec or inc for specimen %s component %s with bounds %s and %s in coordinate_system %s, component not added"%(specimen,name,fmin,fmax,self.COORDINATE_SYSTEM)
                 self.user_warning(TEXT)
                 print(TEXT); return
