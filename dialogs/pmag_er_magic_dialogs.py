@@ -26,8 +26,8 @@ class ErMagicCheckFrame3(wx.Frame):
         self.contribution = contribution
         self.temp_data = {}
         self.drop_down_menu = None
-        # sample window must be displayed (differently) twice, so it is useful to keep track
-        self.sample_window = 0
+        ## sample window must be displayed (differently) twice, so it is useful to keep track
+        #self.sample_window = 0
         self.grid = None
         self.deleteRowButton = None
         self.selected_rows = set()
@@ -71,18 +71,18 @@ class ErMagicCheckFrame3(wx.Frame):
         make an interactive grid in which users can edit sample names
         as well as which site a sample belongs to
         """
-        self.sample_window += 1
+        #self.sample_window += 1
         samp_df = self.contribution.tables['samples'].df
         self.panel = wx.Panel(self, style=wx.SIMPLE_BORDER)
         self.grid_frame = grid_frame3.GridFrame(self.contribution, self.WD, 'samples', 'samples', self.panel)
         # redefine default 'save & exit grid' button to go to next dialog instead
         self.grid_frame.exitButton.SetLabel('Save and continue')
-        if self.sample_window > 1:
-            next_dia = self.InitLocCheck
-            prev_dia = self.InitSiteCheck
-        else:
-            next_dia = self.InitSiteCheck
-            prev_dia = self.InitSpecCheck
+        #if self.sample_window > 1:
+        #    next_dia = self.InitLocCheck
+        #    prev_dia = self.InitSiteCheck
+        #else:
+        next_dia = self.InitSiteCheck
+        prev_dia = self.InitSpecCheck
         grid = self.grid_frame.grid
         self.grid_frame.Bind(wx.EVT_BUTTON,
                              lambda event: self.onContinue(event, grid, next_dia),
@@ -111,7 +111,7 @@ class ErMagicCheckFrame3(wx.Frame):
         self.grid_frame.exitButton.SetLabel('Save and continue')
         grid = self.grid_frame.grid
         self.grid_frame.Bind(wx.EVT_BUTTON,
-                             lambda event: self.onContinue(event, grid, self.InitSampCheck),
+                             lambda event: self.onContinue(event, grid, self.InitLocCheck),
                              self.grid_frame.exitButton)
         # add back button
         self.backButton = wx.Button(self.grid_frame.panel, id=-1, label='Back',
@@ -145,7 +145,7 @@ class ErMagicCheckFrame3(wx.Frame):
         self.backButton = wx.Button(self.grid_frame.panel, id=-1, label='Back',
                                       name='back_btn')
         self.Bind(wx.EVT_BUTTON,
-                  lambda event: self.onbackButton(event, self.InitSampCheck),
+                  lambda event: self.onbackButton(event, self.InitSiteCheck),
                   self.backButton)
         self.grid_frame.main_btn_vbox.Add(self.backButton, flag=wx.ALL, border=5)
         # re-do fit
@@ -228,9 +228,8 @@ class ErMagicCheckFrame3(wx.Frame):
         if prev_dia:
             alert = True if self.grid_frame.grid.changes else False
             self.grid_frame.onSave(event=None, alert=alert, destroy=True)
-            if self.grid_frame.grid.name == 'samples':
-                self.sample_window -= 1
-
+            #if self.grid_frame.grid.name == 'samples':
+            #    self.sample_window -= 2
             self.panel.Destroy()
             prev_dia()
 
