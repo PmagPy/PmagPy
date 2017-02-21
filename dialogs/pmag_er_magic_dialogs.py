@@ -398,8 +398,8 @@ class ErMagicCheckFrame3(wx.Frame):
         wx.Yield()
         if current_dia == self.InitLocCheck:
             pass
-        elif previous_dia == self.InitSpecCheck or previous_dia == self.InitSampCheck:
-            self.sample_window = 0
+        #elif previous_dia == self.InitSpecCheck or previous_dia == self.InitSampCheck:
+        #    self.sample_window = 0
         self.panel.Destroy()
         previous_dia()
         del wait
