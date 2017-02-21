@@ -379,7 +379,9 @@ class Contribution(object):
                 df[col_name_plural + "_list"] = df[col_name_plural].str.split(":")
                 replace_colon_delimited_value(df, col_name_plural + "_list", item_old_name, item_new_name)
                 df[col_name_plural] = df[col_name_plural + "_list"].apply(put_together_if_list)
+                df.drop(col_name_plural + "_list", axis=1, inplace=True)
             self.tables[table_name].df = df
+
 
     def get_table_name(self, ind):
         """
