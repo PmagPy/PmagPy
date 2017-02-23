@@ -5,6 +5,7 @@ from new_builder import Contribution
 import validate_upload3 as val_up3
 import copy
 import numpy as np
+import pandas as pd
 import random
 import matplotlib.pyplot as plt
 import os
@@ -1630,7 +1631,7 @@ def equi_colormap(m, centerlon, centerlat, radius, color, alpha='1.0'):
     plt.plot(X,Y,color,alpha=alpha)
 
 
-def combine_magic(filenames, outfile):
+def combine_magic(filenames, outfile, data_model=2.5, magic_table='measurements'):
     """
     Takes a list of magic-formatted files, concatenates them, and creates a single file.
     Returns true if the operation was successful.
@@ -1640,23 +1641,36 @@ def combine_magic(filenames, outfile):
     filenames : list of MagIC formatted files
     outfile : name of output file
     """
-    datasets = []
-    if not filenames:
-        print "You must provide at least one file"
-        return False
-    for infile in filenames:
-        if not os.path.isfile(infile):
-            print "{} is not a valid file name".format(infile)
+    if float(data_model)==3.0:
+        output_dir_path,file_name = os.path.split(outfile)
+        file_type = os.path.splitext(file_name)[0]
+        con = nb.Contribution(output_dir_path,read_tables=[])
+        if file_type not in con.table_names: file_type=magic_table
+        con.add_empty_magic_table(file_type)
+        infiles = [pd.read_csv(infile,sep='\t',header=1) for infile in filenames]
+        con.tables[file_type].df=pd.concat(infiles,ignore_index=True)
+        con.tables[file_type].df.drop_duplicates(inplace=True)
+        con.tables[file_type].df.replace(float('nan'),'',inplace=True)
+        con.tables[file_type].write_magic_file(custom_name=file_name)
+        return True
+    else:
+        datasets = []
+        if not filenames:
+            print "You must provide at least one file"
             return False
-        dataset, file_type = pmag.magic_read(infile)
-        print "File ",infile," read in with ",len(dataset), " records"
-        for rec in dataset:
-            datasets.append(rec)
+        for infile in filenames:
+            if not os.path.isfile(infile):
+                print "{} is not a valid file name".format(infile)
+                return False
+            dataset, file_type = pmag.magic_read(infile)
+            print "File ",infile," read in with ",len(dataset), " records"
+            for rec in dataset:
+                datasets.append(rec)
 
-    Recs, keys = pmag.fillkeys(datasets)
-    pmag.magic_write(outfile,Recs,file_type)
-    print "All records stored in ",outfile
-    return True
+        Recs, keys = pmag.fillkeys(datasets)
+        pmag.magic_write(outfile,Recs,file_type)
+        print "All records stored in ",outfile
+        return True
 
 
 def aniso_depthplot(ani_file='rmag_anisotropy.txt', meas_file='magic_measurements.txt', samp_file='er_samples.txt', age_file=None, sum_file=None, fmt='svg', dmin=-1, dmax=-1, depth_scale='sample_composite_depth', dir_path = '.'):
