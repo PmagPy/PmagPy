@@ -295,6 +295,32 @@ class replicate_measurements(wx.StaticBoxSizer):
             return False
 
 
+class mass_or_volume_buttons(wx.StaticBoxSizer):
+
+    def __init__(self, parent):
+        box = wx.StaticBox(parent, wx.ID_ANY, "")
+        super(mass_or_volume_buttons, self).__init__(box, orient=wx.HORIZONTAL)
+        text = "Is the final field mass or volume:"
+        stat_text = wx.StaticText(parent, label=text, style=wx.TE_CENTER)
+        self.rb1 = wx.RadioButton(parent, -1, 'Volume', style=wx.RB_GROUP)
+        self.rb1.SetValue(True)
+        self.rb2 = wx.RadioButton(parent, -1, 'Mass')
+        self.Add(stat_text, wx.ALIGN_LEFT)
+        self.AddSpacer(8)
+        self.Add(self.rb1, wx.ALIGN_LEFT)
+        self.AddSpacer(8)
+        self.Add(self.rb2, wx.ALIGN_LEFT)
+
+    def return_value(self):
+        """
+        return boolean
+        """
+        if self.rb1.GetValue():
+            return 'v'
+        else:
+            return 'm'
+
+
 class check_box(wx.StaticBoxSizer):
 
     def __init__(self, parent, text):
@@ -552,7 +578,7 @@ class combine_files(wx.BoxSizer):
         bSizer0a = wx.StaticBoxSizer(wx.StaticBox(self.parent.panel, wx.ID_ANY, ""), wx.HORIZONTAL)
         self.add_file_button = wx.Button(self.parent.panel, id=-1, label='add file', name='add')
         self.parent.Bind(wx.EVT_BUTTON, self.on_add_file_button, self.add_file_button)
-        self.add_all_files_button = wx.Button(self.parent.panel, id=-1, label="add all *_" + text + " files", name='add_all')
+        self.add_all_files_button = wx.Button(self.parent.panel, id=-1, label="add all *" + text + " files", name='add_all')
         self.parent.Bind(wx.EVT_BUTTON, self.on_add_all_files_button, self.add_all_files_button)
         bSizer0a.AddSpacer(5)
         bSizer0a.Add(self.add_file_button, wx.ALIGN_LEFT)
