@@ -720,6 +720,7 @@ class convert_tdt_files_to_MagIC(wx.Frame):
                         sample=self.get_sample_name(specimen,Data[specimen][Experiment_Type]['sample_naming_convenstion'])
                         site=self.get_site_name(sample,Data[specimen][Experiment_Type]['site_naming_convenstion'])
                         location=Data[specimen][Experiment_Type]['location']
+                        if location=='':location='unknown'
 
                         #------------------
                         # Fill data

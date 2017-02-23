@@ -21,7 +21,7 @@ OPTIONS
     -Flo FILE: specify output locations.txt file, default is locations.txt
     -lat LAT: latitude of site (also used as bounding latitude for location)
     -lon LON: longitude of site (also used as bounding longitude for location)
-    -exp EXPPEDITION: specify expedition name (i.e. 312)
+    -exp EXPEDITION: specify expedition name (i.e. 312)
     -site HOLE: specify hole name (i.e. U1456A)
     -A: don't average replicate measurements
     -v NUM: volume in cm^3, will be used if there is no volume in the input data (default : 15.625 cm^3 or a 2.5 cm cube)
@@ -97,7 +97,7 @@ def main(**kwargs):
         for dem in ['-','_']:
             if dem in spec_text_id:
                 sample=dem.join(spec_text_id.split(dem)[:-1]); break
-        location = expedition
+        location = expedition + site
 
         if specimen!="" and specimen not in map(lambda x: x['specimen'] if 'specimen' in x.keys() else "", SpecRecs):
             SpecRec['specimen'] = specimen

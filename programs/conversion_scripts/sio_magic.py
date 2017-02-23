@@ -193,7 +193,7 @@ def main(**kwargs):
         methcode="LP-IRM"
         irmunits = "V"
         if coil not in ["1","2","3"]:
-            print main.__doc__
+            print __doc__
             print 'not a valid coil specification'
             return False, '{} is not a valid coil specification'.format(coil)
     if mag_file:
@@ -203,7 +203,7 @@ def main(**kwargs):
             print "bad mag file name"
             return False, "bad mag file name"
     if not mag_file: 
-        print main.__doc__
+        print __doc__
         print "mag_file field is required option"
         return False, "mag_file field is required option"
     if specnum!=0:
@@ -427,7 +427,7 @@ def main(**kwargs):
                     else:
                         location=''
                         site=''
-                elif int(samp_con)!=6:
+                else:
                     site=pmag.parse_site(sample,samp_con,Z)
                 if location!='' and location not in map(lambda x: x['location'] if 'location' in x.keys() else '',LocRecs):
                     LocRec['location'] = location

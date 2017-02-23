@@ -40,7 +40,7 @@ OPTIONS
         [7-Z] [XXXX]YYY:  XXXX is site designation with Z characters with sample name XXXXYYYY
         NB: all others you will have to customize your self
              or e-mail ltauxe@ucsd.edu for help.
-    -tz: timezone in pytz library format. list of timzones can be found at http://pytz.sourceforge.net/. (default: US/Pacific)
+    -tz: timezone in pytz library format. list of timzones can be found at http://pytz.sourceforge.net/. (default: UTC)
 
 INPUT
     JR6 .txt format file
@@ -72,7 +72,7 @@ def main(**kwargs):
     noave = kwargs.get('noave', 0) # default (0) means DO average
     meth_code = kwargs.get('meth_code', "LP-NO")
     volume = float(kwargs.get('volume', 2.5))* 1e-6
-    timezone = kwargs.get('timestamp', 'US/Pacific')
+    timezone = kwargs.get('timestamp', 'UTC')
 
     # format variables
     mag_file = os.path.join(input_dir_path, mag_file)

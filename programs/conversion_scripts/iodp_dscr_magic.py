@@ -118,6 +118,7 @@ def main(**kwargs):
                 specimen=expedition+'-'+location+'-'+InRec['Core']+InRec[type_val]+"-"+InRec[sect_key]+'-'+InRec[half_key]+'-'+str(InRec[interval_key])
                 sample = expedition+'-'+location+'-'+InRec['Core']+InRec[type_val]
                 site = expedition+'-'+location
+                if volume_key in InRec.keys(): volume=InRec[volume_key]
 
                 if not InRec[dec_key].strip(""" " ' """) or not InRec[inc_key].strip(""" " ' """):
                     print("No dec or inc found for specimen %s, skipping"%specimen)
@@ -165,7 +166,6 @@ def main(**kwargs):
                 MeasRec["quality"]='g' # assume all data are "good"
                 MeasRec["standard"]='u' # assume all data are "good"
                 MeasRec["dir_csd"]='0' # assume all data are "good"
-                if volume_key in InRec.keys(): volume=InRec[volume_key]
                 MeasRec["method_codes"]='LT-NO'
                 sort_by='treat_ac_field' # set default to AF demag
                 if treatment_type in InRec.keys() and InRec[treatment_type]!="":
@@ -173,22 +173,22 @@ def main(**kwargs):
                         MeasRec['method_codes'] = 'LT-AF-Z'
                         inst=inst+':IODP-SRM-AF' # measured on shipboard in-line 2G AF
                         treatment_value=float(InRec[demag_key].strip('"'))*1e-3 # convert mT => T
-                        MeasRec["treat_ac_field"]=treatment_value # AF demag in treat mT => T
+                        MeasRec["treat_ac_field"]=str(treatment_value) # AF demag in treat mT => T
                     elif "T" in InRec[treatment_type].upper():
                         MeasRec['method_codes'] = 'LT-T-Z'
                         inst=inst+':IODP-TDS' # measured on shipboard Schonstedt thermal demagnetizer
                         treatment_value=float(InRec[demag_key].strip('"'))+273 # convert C => K
-                        MeasRec["treat_temp"]=treatment_value
+                        MeasRec["treat_temp"]=str(treatment_value)
                     elif "Lowrie" in InRec['Comments']:
                         MeasRec['method_codes'] = 'LP-IRM-3D'
                         treatment_value=float(InRec[demag_key].strip('"'))+273. # convert C => K
-                        MeasRec["treat_temp"]=treatment_value
+                        MeasRec["treat_temp"]=str(treatment_value)
                         MeasRec["treat_ac_field"]="0"
                         sort_by='treat_temp'
                     elif 'Isothermal' in InRec[treatment_type]:
                         MeasRec['method_codes'] = 'LT-IRM'
                         treatment_value=float(InRec[demag_key].strip('"'))*1e-3 # convert mT => T
-                        MeasRec["treat_dc_field"]=treatment_value
+                        MeasRec["treat_dc_field"]=str(treatment_value)
                         MeasRec["treat_ac_field"]="0"
                         sort_by='treat_dc_field'
                 elif InRec[demag_key]!="0" and InRec[demag_key]!="": #Assume AF if there is no Treatment typ info

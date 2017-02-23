@@ -14,7 +14,6 @@ OPTIONS
     -usr USER: Colon delimited list of analysts, default is ""
     -ID: directory for input file if not included in -f flag
     -f FILE: specify .sam format input file, required
-    -fpos: specify position input file
     -WD: directory to output files to (default : current directory)
     -F FILE: specify output  measurements file, default is measurements.txt
     -Fsp FILE: specify output specimens.txt file, default is specimens.txt
@@ -98,7 +97,6 @@ def main(**kwargs):
 
     dir_path = kwargs.get('dir_path', '.')
     mag_file = kwargs.get('mag_file', '')
-    pos_file = kwargs.get('pos_file', '')
     meas_file = kwargs.get('meas_file', 'measurements.txt')
     spec_file = kwargs.get('spec_file', 'specimens.txt')
     samp_file = kwargs.get('samp_file', 'samples.txt')
@@ -408,9 +406,6 @@ if __name__ == "__main__":
     if "-f" in sys.argv:
         ind=sys.argv.index("-f")
         kwargs['mag_file']=sys.argv[ind+1]
-    if "-fpos" in sys.argv:
-        ind=sys.argv.index("-fpos")
-        kwargs['pos_file']=sys.argv[ind+1]
     if "-F" in sys.argv:
         ind=sys.argv.index("-F")
         kwargs['meas_file']=sys.argv[ind+1]

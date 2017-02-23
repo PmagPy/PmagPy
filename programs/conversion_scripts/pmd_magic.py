@@ -11,9 +11,10 @@ SYNTAX
 
 OPTIONS
     -h: prints the help message and quits.
-    -f FILE: specify  input file, or
-    -F FILE: specify output file, default is magic_measurements.txt
-    -Fsa: specify er_samples format file for appending, default is new er_samples.txt
+    -ID: directory for input file if not included in -f flag
+    -f FILE: specify infile file, required
+    -WD: directory to output files to (default : current directory)
+    -F FILE: specify output file, default is measurements.txt
     -Fsp FILE: specify output specimens.txt file, default is specimens.txt
     -Fsa FILE: specify output samples.txt file, default is samples.txt 
     -Fsi FILE: specify output sites.txt file, default is sites.txt # LORI

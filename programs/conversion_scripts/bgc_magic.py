@@ -186,6 +186,7 @@ def main(**kwargs):
         else: print("unrecogized date formating on one of the measurement entries for specimen %s"%specimen); datelist=['','','']
         if ':' in row['Time']: timelist = row['Time'].split(':')
         else: print("unrecogized time formating on one of the measurement entries for specimen %s"%specimen); timelist=['','','']
+        datelist[2]='19'+datelist[2] if len(datelist[2])<=2 else datelist[2]
         dt=":".join([datelist[1],datelist[0],datelist[2],timelist[0],timelist[1],timelist[2]])
         local = pytz.timezone(timezone)
         naive = datetime.datetime.strptime(dt, "%m:%d:%Y:%H:%M:%S")

@@ -19,7 +19,6 @@ OPTIONS
     -Fsa FILE: specify output samples.txt file, default is samples.txt 
     -Fsi FILE: specify output sites.txt file, default is sites.txt
     -Flo FILE: specify output locations.txt file, default is locations.txt
-    -loc HOLE : specify hole name (U1456A)
     -lat LAT: latitude of site (also used as bounding latitude for location)
     -lon LON: longitude of site (also used as bounding longitude for location)
     -A: don't average replicate measurements
@@ -137,6 +136,7 @@ def main(**kwargs):
                 run_number=""
                 inst="IODP-SRM"
                 volume='15.59' # set default volume to this
+                if 'Sample Area (cm?)' in InRec.keys() and  InRec['Sample Area (cm?)']!= "": volume=InRec['Sample Area (cm?)']
                 MeasRec,SpecRec,SampRec,SiteRec,LocRec={},{},{},{},{}
                 expedition=InRec['Exp']
                 location=InRec['Site']+InRec['Hole']
@@ -201,7 +201,6 @@ def main(**kwargs):
                 MeasRec["treat_dc_field_theta"]='0'
                 MeasRec["quality"]='g' # assume all data are "good"
                 MeasRec["standard"]='u' # assume all data are "good"
-                if 'Sample Area (cm?)' in InRec.keys() and  InRec['Sample Area (cm?)']!= "": volume=InRec['Sample Area (cm?)']
                 if run_number_key in InRec.keys() and InRec[run_number_key]!= "": run_number=InRec[run_number_key]
                 datestamp=InRec[date_key].split() # date time is second line of file
                 if '/' in datestamp[0]:
