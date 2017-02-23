@@ -59,6 +59,9 @@ class ErMagicCheckFrame3(wx.Frame):
         self.grid_frame.main_btn_vbox.Add(self.backButton, flag=wx.ALL, border=5)
         # re-do fit
         self.grid_frame.do_fit(None, self.min_size)
+        # center
+        self.grid_frame.Centre()
+        return
 
 
         # add an add samples/sites/etc. button?
@@ -96,6 +99,8 @@ class ErMagicCheckFrame3(wx.Frame):
         self.grid_frame.main_btn_vbox.Add(self.backButton, flag=wx.ALL, border=5)
         # re-do fit
         self.grid_frame.do_fit(None, self.min_size)
+        # center
+        self.grid_frame.Centre()
         return
 
 
@@ -122,7 +127,8 @@ class ErMagicCheckFrame3(wx.Frame):
         self.grid_frame.main_btn_vbox.Add(self.backButton, flag=wx.ALL, border=5)
         # re-do fit
         self.grid_frame.do_fit(None, self.min_size)
-
+        # center
+        self.grid_frame.Centre()
         return
 
 
@@ -150,6 +156,8 @@ class ErMagicCheckFrame3(wx.Frame):
         self.grid_frame.main_btn_vbox.Add(self.backButton, flag=wx.ALL, border=5)
         # re-do fit
         self.grid_frame.do_fit(None, min_size=self.min_size)
+        # center
+        self.grid_frame.Centre()
         return
 
 
@@ -171,6 +179,8 @@ class ErMagicCheckFrame3(wx.Frame):
         self.grid_frame.main_btn_vbox.Add(self.backButton, flag=wx.ALL, border=5)
         # re-do fit
         self.grid_frame.do_fit(None, self.min_size)
+        # center
+        self.grid_frame.Centre()
         return
 
 
