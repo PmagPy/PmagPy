@@ -204,7 +204,7 @@ def main(**kwargs):
         SiteRec['lat']=site_lat
         SiteRec['lon']=site_lon
         SiteRec['analysts']=user
-        f=open(input_dir_path+'/'+specimen,'rU')
+        f=open(os.path.join(input_dir_path,specimen),'rU')
         Lines=f.readlines()
         comment=""
         line=Lines[0].split()
@@ -261,45 +261,15 @@ def main(**kwargs):
                 treat_type = 'NRM'
             treat=line[2:6]
             try: float(treat)
-            except ValueError: treat = line[3:6]
+            except ValueError:
+                treat=line[3:6]
+                if treat.split()=='': treat='0'
+                try: float(treat)
+                except ValueError: treat = line.split()[1]
             if treat_type.startswith('NRM'):
                 MeasRec['method_codes']='LT-NO'
                 MeasRec['meas_temp']='273'
                 MeasRec['treat_temp']='273'
-                MeasRec['treat_dc_field']='0'
-                MeasRec['treat_dc_field_phi'] = '%1.2f'%DC_PHI
-                MeasRec['treat_dc_field_theta'] = '%1.2f'%DC_THETA
-                MeasRec['treat_ac_field']='0'
-            elif treat_type.startswith('AF'):
-                MeasRec['method_codes']='LT-AF-Z'
-                MeasRec['meas_temp']='273'
-                MeasRec['treat_temp']='273'
-                MeasRec['treat_dc_field']='0'
-                MeasRec['treat_dc_field_phi'] = '%1.2f'%DC_PHI
-                MeasRec['treat_dc_field_theta'] = '%1.2f'%DC_THETA
-                if treat.strip() == '':
-                    MeasRec['treat_ac_field']='0'
-                else:
-                    MeasRec['treat_ac_field']='%10.3e'%(float(treat)*1e-3)
-            elif treat_type.startswith('ARM'):
-                MeasRec['method_codes']="LP-ARM"
-                MeasRec['meas_temp']='273'
-                MeasRec['treat_temp']='273'
-                MeasRec['treat_dc_field']='0'
-                MeasRec['treat_dc_field_phi'] = '%1.2f'%DC_PHI
-                MeasRec['treat_dc_field_theta'] = '%1.2f'%DC_THETA
-                if treat.strip() == '':
-                    MeasRec['treat_ac_field']='0'
-                else:
-                    MeasRec['method_codes']="LP-ARM-AFD"
-                    MeasRec['treat_ac_field']='%10.3e'%(float(treat)*1e-3)
-            elif treat_type.startswith('TT'):
-                MeasRec['method_codes']='LT-T-Z'
-                MeasRec['meas_temp']='273'
-                if treat.strip() == '':
-                    MeasRec['treat_temp']='273'
-                else:
-                    MeasRec['treat_temp']='%7.1f'%(float(treat)+273)
                 MeasRec['treat_dc_field']='0'
                 MeasRec['treat_dc_field_phi'] = '%1.2f'%DC_PHI
                 MeasRec['treat_dc_field_theta'] = '%1.2f'%DC_THETA
@@ -312,10 +282,55 @@ def main(**kwargs):
                 MeasRec['treat_dc_field_phi'] = '%1.2f'%DC_PHI
                 MeasRec['treat_dc_field_theta'] = '%1.2f'%DC_THETA
                 MeasRec['treat_ac_field']='0'
+            elif treat_type.startswith('AF') or treat_type.startswith('MAF'):
+                MeasRec['method_codes']='LT-AF-Z'
+                MeasRec['meas_temp']='273'
+                MeasRec['treat_temp']='273'
+                MeasRec['treat_dc_field']='0'
+                MeasRec['treat_dc_field_phi'] = '%1.2f'%DC_PHI
+                MeasRec['treat_dc_field_theta'] = '%1.2f'%DC_THETA
+                if treat.strip() == '':
+                    MeasRec['treat_ac_field']='0'
+                else:
+                    try: MeasRec['treat_ac_field']='%10.3e'%(float(treat)*1e-3)
+                    except ValueError as e: print(os.path.join(input_dir_path,specimen)); raise e
+            elif treat_type.startswith('ARM'):
+                MeasRec['method_codes']="LP-ARM"
+                MeasRec['meas_temp']='273'
+                MeasRec['treat_temp']='273'
+                MeasRec['treat_dc_field']='0'
+                MeasRec['treat_dc_field_phi'] = '%1.2f'%DC_PHI
+                MeasRec['treat_dc_field_theta'] = '%1.2f'%DC_THETA
+                if treat.strip() == '':
+                    MeasRec['treat_ac_field']='0'
+                else:
+                    MeasRec['method_codes']="LP-ARM-AFD"
+                    MeasRec['treat_ac_field']='%10.3e'%(float(treat)*1e-3)
+            elif treat_type.startswith('IRM'):
+                if GET_DC_PARAMS: GET_DC_PARAMS, FIRST_GET_DC, yn, DC_FIELD, DC_PHI, DC_THETA = get_dc_params(FIRST_GET_DC,specimen,treat_type,yn)
+                MeasRec['method_codes']="LT-IRM"
+                MeasRec['meas_temp']='273'
+                MeasRec['treat_temp']='273'
+                MeasRec['treat_dc_field']='%1.2e'%DC_FIELD
+                MeasRec['treat_dc_field_phi'] = '%1.2f'%DC_PHI
+                MeasRec['treat_dc_field_theta'] = '%1.2f'%DC_THETA
+                MeasRec['treat_ac_field']='0'
+            elif treat_type.startswith('TT'):
+                MeasRec['method_codes']='LT-T-Z'
+                MeasRec['meas_temp']='273'
+                if treat.strip() == '':
+                    MeasRec['treat_temp']='273'
+                else:
+                    MeasRec['treat_temp']='%7.1f'%(float(treat)+273)
+                MeasRec['treat_dc_field']='0'
+                MeasRec['treat_dc_field_phi'] = '%1.2f'%DC_PHI
+                MeasRec['treat_dc_field_theta'] = '%1.2f'%DC_THETA
+                MeasRec['treat_ac_field']='0'
             elif line[4] == '0': #assume decimal IZZI format 0 field thus can hardcode the dc fields
                 MeasRec['method_codes']='LT-T-Z'
                 MeasRec['meas_temp']='273'
-                MeasRec['treat_temp']=str(int(treat_type) + 273)
+                try: MeasRec['treat_temp']=str(int(treat_type) + 273)
+                except ValueError as e: print(specimen); raise e
                 MeasRec['treat_dc_field']='0'
                 MeasRec['treat_dc_field_phi'] = '%1.2f'%DC_PHI
                 MeasRec['treat_dc_field_theta'] = '%1.2f'%DC_THETA
@@ -335,6 +350,15 @@ def main(**kwargs):
                 MeasRec['meas_temp']='273'
                 MeasRec['treat_temp']=str(int(treat_type) + 273)
                 MeasRec['treat_dc_field']='%1.2e'%DC_FIELD
+                MeasRec['treat_dc_field_phi'] = '%1.2f'%DC_PHI
+                MeasRec['treat_dc_field_theta'] = '%1.2f'%DC_THETA
+                MeasRec['treat_ac_field']='0'
+            elif line[4] == '3': #assume decimal IZZI format PTRM tail check
+                if GET_DC_PARAMS: GET_DC_PARAMS, FIRST_GET_DC, yn, DC_FIELD, DC_PHI, DC_THETA = get_dc_params(FIRST_GET_DC,specimen,treat_type,yn)
+                MeasRec['method_codes']='LT-PTRM-Z'
+                MeasRec['meas_temp']='273'
+                MeasRec['treat_temp']=str(int(treat_type) + 273)
+                MeasRec['treat_dc_field']='0'
                 MeasRec['treat_dc_field_phi'] = '%1.2f'%DC_PHI
                 MeasRec['treat_dc_field_theta'] = '%1.2f'%DC_THETA
                 MeasRec['treat_ac_field']='0'
