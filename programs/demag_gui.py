@@ -3645,7 +3645,7 @@ class Demag_GUI(wx.Frame):
         interps = read_LSQ(LSQ_file)
         for interp in interps:
             specimen = interp['er_specimen_name']
-            if specimen not in self.specimens: print("specimen %s has no registered measuremtn data, skipping interpretation import"%specimen); continue
+            if specimen not in self.specimens: print("specimen %s has no registered measurement data, skipping interpretation import"%specimen); continue
             PCA_type = interp['magic_method_codes'].split(':')[0]
             tmin = self.Data[specimen]['zijdblock_steps'][interp['measurement_min_index']]
             tmax = self.Data[specimen]['zijdblock_steps'][interp['measurement_max_index']]
@@ -6306,8 +6306,12 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
                 Step="AF"
             elif "ARM" in methods:
                 Step="ARM"
-            elif "T" in methods or "LT" in methods:
+            elif "IRM" in methods:
+                Step="IRM"
+            elif "T" in methods:
                 Step="T"
+            elif "LT" in methods:
+                Step="LT"
             Tr=zijdblock[i][0]
             Dec=zijdblock[i][1]
             Inc=zijdblock[i][2]

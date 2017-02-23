@@ -50,10 +50,12 @@ def read_LSQ(filepath):
         interps_out[i]['er_specimen_name'] = enteries[0]
         if enteries[1] == 'L':
             interps_out[i]['magic_method_codes'] = 'DE-BFL:DA-DIR-GEO'
-        if enteries[1] == 'P':
+        elif enteries[1] == 'P':
             interps_out[i]['magic_method_codes'] = 'DE-BFP:DA-DIR-GEO'
-        if enteries[1] == 'C':
+        elif enteries[1] == 'C':
             interps_out[i]['magic_method_codes'] = 'DE-FM:DA-DIR-GEO'
+        else:
+            interps_out[i]['magic_method_codes'] = ''
         j = 2
         if len(enteries) > 9: interps_out[i]['specimen_comp_name'] = enteries[j]; j += 1;
         else: interps_out[i]['specimen_comp_name'] = None
@@ -76,8 +78,10 @@ def read_LSQ(filepath):
             interps_out[i]['bad_measurement_index'] = []
             for k in range(1,lc-fc):
                 interps_out[i]['bad_measurement_index'].append(fc+k)
-        interps_out[i]['specimen_n'] = enteries[j+1]
-        interps_out[i]['specimen_mad'] = enteries[j+2]
+        try:
+            interps_out[i]['specimen_n'] = enteries[j+1]
+            interps_out[i]['specimen_mad'] = enteries[j+2]
+        except IndexError: pass
     fin.close()
     return interps_out
 
