@@ -9,10 +9,10 @@ import time
 import pandas as pd
 from mapping import map_magic
 from pmagpy import new_builder as nb
+import find_pmag_dir
 
 
 def get_version():
-    import find_pmag_dir
     version=find_pmag_dir.get_version()
     return version
 
@@ -6625,7 +6625,7 @@ def measurements_methods3(meas_data,noave):
                 elif TRM==1:
                     experiment_name="LP-TRM"
             else: TI= 0 # no infield steps at all
-            if "LT-T-Z" in  SpecMeths and experiment_name=="": # thermal demag steps
+            if ("LT-T-Z" in  SpecMeths or "LT-LT-Z" in  SpecMeths)and experiment_name=="": # thermal demag steps
                 if TI==0:
                     experiment_name="LP-DIR-T" # just ordinary thermal demag
                 elif TRM!=1: # heart pounding - could be some  kind of TRM normalized paleointensity or LP-TRM-TD experiment
