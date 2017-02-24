@@ -184,17 +184,6 @@ class ErMagicCheckFrame3(wx.Frame):
         return
 
 
-    def on_close_grid_frame(self, event=None):
-        pass
-        #if self.grid_frame.grid.changes:
-        #    self.edited = True
-        #self.grid_frame = None
-        #self.Show()
-        #if event:
-        #    event.Skip()
-
-
-
     def onContinue(self, event, grid, next_dia=None):#, age_data_type='site'):
         """
         Save grid data in the data object
@@ -210,21 +199,25 @@ class ErMagicCheckFrame3(wx.Frame):
         grid.SaveEditControlValue() # locks in value in cell currently edited
         grid_name = str(grid.GetName())
 
-        # do validation?
+        # save all changes to data object and write to file
+        self.grid_frame.grid_builder.save_grid_data()
+
         # check that all required data are present
         validation_errors = self.validate(grid)
         if validation_errors:
-            result = pw.warning_with_override("You are missing required data in these columns: {}\nAre you sure you want to continue without these data?".format(', '.join(validation_errors)))
+            warn_string = ""
+            for error_name, error_cols in validation_errors.items():
+                if error_cols:
+                    warn_string += "You have {}: {}.\n\n".format(error_name, ", ".join(error_cols))
+            warn_string += "Are you sure you want to continue?"
+            result = pw.warning_with_override(warn_string)
             if result == wx.ID_YES:
                 pass
             else:
                 return False
-
-        # save all changes to data object and write to file
-        self.grid_frame.grid_builder.save_grid_data()
-
-        wx.MessageBox('Saved!', 'Info',
-                      style=wx.OK | wx.ICON_INFORMATION)
+        else:
+            wx.MessageBox('Saved!', 'Info',
+                          style=wx.OK | wx.ICON_INFORMATION)
 
         self.panel.Destroy()
         if next_dia:
@@ -244,132 +237,37 @@ class ErMagicCheckFrame3(wx.Frame):
             prev_dia()
 
 
-    #### Create Buttons ####
-    ## fix all these
-    def on_addSampleButton(self, event):
-
-        def add_sample(sample, site=None):
-            add_sample_data(sample, site)
-
-        sites = sorted(self.contribution.tables['sites'].df.index.unique())
-        # makes window for adding new data
-        pw.AddItem(self, 'Sample', add_sample,
-                   owner_items=sites, belongs_to='site')
-
-        def add_sample_data(sample, site):
-            # add sample
-            #self.er_magic_data.add_sample(sample, site)
-            row_data = {'sample': sample, 'site': site}
-            self.contribution.tables['samples'].add_row(sample, row_data)
-            # re-Bind so that the updated samples list shows up on a left click
-            samples = sorted(self.contribution.tables['samples'].df.index.unique())
-            choices = self.drop_down_menu.choices
-            choices[1] = (samples, False)
-            self.drop_down_menu.update_drop_down_menu(self.spec_grid, choices)
-
-    def on_addSiteButton(self, event):
-
-        def add_site(site, location):
-            add_site_data(site, location)
-
-        locations = sorted(self.contribution.tables['locations'].df.index.unique())
-        pw.AddItem(self, 'Site', add_site, locations, 'location')
-
-        def add_site_data(site, location):
-            # add site
-            row_data = {'site': site, 'location': location}
-            self.contribution.tables['sites'].add_row(site, row_data)
-            # re-Bind so that the updated sites list shows up on a left click
-            sites = sorted(self.contribution.tables['sites'].df.index.unique())
-            self.drop_down_menu.update_drop_down_menu(self.samp_grid, {1: (sites, False)})
-
-    def on_addLocButton(self, event):
-
-        def add_loc(loc, parent=None):
-            add_loc_data(loc)
-
-        #def __init__(self, parent, title, data_items, data_method):
-
-        pw.AddItem(self, 'Location', add_loc, owner_items=None, belongs_to=None) # makes window for adding new data
-
-        def add_loc_data(loc):
-            # add location
-            row_data = {"location": loc}
-            self.contribution.tables['locations'].add_row(loc, row_data)
-            # re-Bind so that the updated locations list shows up on a left click
-            locations = sorted(self.contribution.tables['locations'].df.index.unique())
-            choices = self.drop_down_menu.choices
-            choices[1] = (locations, False)
-            self.drop_down_menu.update_drop_down_menu(self.site_grid, choices)
-
-
-    def on_helpButton(self, event, page=None):
-        """shows html help page"""
-        # for use on the command line:
-        path = find_pmag_dir.get_pmag_dir()
-        # for use with pyinstaller
-        #path = self.main_frame.resource_dir
-        help_page = os.path.join(path, 'dialogs', 'help_files', page)
-        # if using with py2app, the directory structure is flat,
-        # so check to see where the resource actually is
-        if not os.path.exists(help_page):
-            help_page = os.path.join(path, 'help_files', page)
-        html_frame = pw.HtmlFrame(self, page=help_page)
-        html_frame.Show()
-
-    def on_continueButton(self, event, grid, next_dia=None):
-        """
-        pulls up next dialog, if there is one.
-        gets any updated information from the current grid and runs ErMagicBuilder
-        """
-        #wait = wx.BusyInfo("Please wait, working...")
-
-        # unhighlight selected columns, etc.
-        if self.drop_down_menu:
-            self.drop_down_menu.clean_up()
-
-        # remove '**' and '^^' from col names
-        #self.remove_starred_labels(grid)
-        grid.remove_starred_labels()
-
-        grid.SaveEditControlValue() # locks in value in cell currently edited
-        grid_name = str(grid.GetName())
-
-        # check that all required data are present
-        validation_errors = self.validate(grid)
-        if validation_errors:
-            result = pw.warning_with_override("You are missing required data in these columns: {}\nAre you sure you want to continue without these data?".format(', '.join(validation_errors)))
-            if result == wx.ID_YES:
-                pass
-            else:
-                return False
-
-        if grid.changes:
-            self.onSave(grid)
-
-        self.deleteRowButton = None
-        self.panel.Destroy()
-
-        # make sure that specimens get propagated with
-        # any default sample info
-        if next_dia == self.InitLocCheck:
-            if len(self.contribution.tables['specimens'].df.index):
-                cols = ['lithologies', 'geologic_classes', 'geologic_types']
-                self.contribution.propagate_cols_down(cols, 'specimens', 'samples')
-        if next_dia:
-            wait = wx.BusyInfo("Please wait, working...")
-            wx.Yield()
-            next_dia()
-            del wait
-        else:
-            self.Destroy()
-            wx.MessageBox('Step 3 completed!', 'Info',
-                          wx.OK | wx.ICON_INFORMATION)
-
-
     def validate(self, grid):
-        print "validating!!!"
-        return []
+        """
+        Using the MagIC data model, generate validation errors on a MagicGrid.
+
+        Parameters
+        ----------
+        grid : dialogs.magic_grid3.MagicGrid
+               The MagicGrid to be validated
+
+        Returns
+        ---------
+        warnings: dict
+                  Empty dict if no warnings, otherwise a dict with format {name of problem: [problem_columns]}
+        """
+        grid_name = str(grid.GetName())
+        dmodel = self.contribution.dmodel
+        reqd_headers = dmodel.get_reqd_headers(grid_name)
+        df = self.contribution.tables[grid_name].df
+        df = df.replace('', np.nan) # python does not view empty strings as null
+        col_names = set(df.columns)
+        missing_headers = set(reqd_headers) - col_names
+        present_headers = set(reqd_headers) - set(missing_headers)
+        non_null_headers = df.dropna(how='all', axis='columns').columns
+        null_reqd_headers = present_headers - set(non_null_headers)
+        if any(missing_headers) or any (null_reqd_headers):
+            warnings = {'missing required column(s)': sorted(missing_headers),
+                        'no data in required column(s)': sorted(null_reqd_headers)}
+        else:
+            warnings = {}
+        return warnings
+
 
     def on_saveButton(self, event, grid):
         """saves any editing of the grid but does not continue to the next window"""
@@ -413,7 +311,6 @@ class ErMagicCheckFrame3(wx.Frame):
         self.panel.Destroy()
         previous_dia()
         del wait
-
 
 
     ### Manage data methods ###
