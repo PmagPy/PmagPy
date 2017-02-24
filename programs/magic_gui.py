@@ -175,7 +175,7 @@ class MainFrame(wx.Frame):
 
         #---sizer 2 ----
 
-        bSizer2 = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.ID_ANY, "Upload to MagIC database", name='bSizer2'), wx.HORIZONTAL)
+        bSizer2 = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.ID_ANY, "Create file for upload to MagIC database", name='bSizer2'), wx.HORIZONTAL)
 
         text = "prepare upload txt file"
         self.btn_upload = buttons.GenButton(self.panel, id=-1, label=text,
