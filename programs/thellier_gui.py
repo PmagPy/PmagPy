@@ -6785,7 +6785,7 @@ else:
             samples=samples.rename(columns={'site':'er_site_name','sample':'er_sample_name','cooling_rate':'sample_cooling_rate'})
             # in case of multiple rows with same sample name, make sure cooling rate date propagates
             # to all samples with the same name
-            samples = samples.groupby(samples.index).fillna(method='ffill').groupby(samples.index).fillna(method='bfill')
+            samples = samples.groupby(samples.index, sort=False).fillna(method='ffill').groupby(samples.index, sort=False).fillna(method='bfill')
             # then get rid of any duplicates
             samples = samples.drop_duplicates()
             # pick out what is needed by thellier_gui and put in 2.5 format
