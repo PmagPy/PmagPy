@@ -355,7 +355,9 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
         col_labels = self.grid.col_labels
         dia = pw.ChooseOne(self, yes="Add single columns", no="Add groups")
         result1 = dia.ShowModal()
-        if result1 == wx.ID_YES:
+        if result1 == wx.ID_CANCEL:
+            return
+        elif result1 == wx.ID_YES:
             items = [col_name for col_name in self.dm.index if col_name not in col_labels]
             dia = pw.HeaderDialog(self, 'columns to add',
                                   items1=list(items), groups=[])
