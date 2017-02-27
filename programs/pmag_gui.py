@@ -150,15 +150,6 @@ class MagMainFrame(wx.Frame):
         self.btn1.InitColours()
         self.Bind(wx.EVT_BUTTON, self.on_convert_file, self.btn1)
 
-        if self.data_model_num == 3:
-            text = "1a. Convert to 3.0. format"
-            self.btn1a = buttons.GenButton(self.panel, id=-1, label=text,
-                                           size=(450, 50), name='step 1a')
-            self.btn1a.SetBackgroundColour("#FDC68A")
-            self.btn1a.InitColours()
-            self.Bind(wx.EVT_BUTTON, self.on_convert_3, self.btn1a)
-
-
         text = "2. (optional) Calculate geographic/tilt-corrected directions"
         self.btn2 = buttons.GenButton(self.panel, id=-1, label=text, size=(450, 50), name='step 2')
         self.btn2.SetBackgroundColour("#FDC68A")
@@ -176,6 +167,15 @@ class MagMainFrame(wx.Frame):
         self.btn4.InitColours()
         self.Bind(wx.EVT_BUTTON, self.on_unpack, self.btn4)
 
+        if self.data_model_num == 3:
+            text = "Convert directory to 3.0. format (legacy data only)"
+            self.btn1a = buttons.GenButton(self.panel, id=-1, label=text,
+                                           size=(450, 50), name='step 1a')
+            self.btn1a.SetBackgroundColour("#FDC68A")
+            self.btn1a.InitColours()
+            self.Bind(wx.EVT_BUTTON, self.on_convert_3, self.btn1a)
+
+
         #str = "OR"
         OR = wx.StaticText(self.panel, -1, "or", (20, 120))
         font = wx.Font(18, wx.SWISS, wx.NORMAL, wx.NORMAL)
@@ -187,9 +187,6 @@ class MagMainFrame(wx.Frame):
         bSizer1_1.AddSpacer(20)
         bSizer1_1.Add(self.btn1, wx.ALIGN_TOP)
         bSizer1_1.AddSpacer(20)
-        if self.data_model_num == 3:
-            bSizer1_1.Add(self.btn1a, wx.ALIGN_TOP)
-            bSizer1_1.AddSpacer(20)
         bSizer1_1.Add(self.btn2, wx.ALIGN_TOP)
         bSizer1_1.AddSpacer(20)
         bSizer1_1.Add(self.btn3, wx.ALIGN_TOP)
@@ -200,7 +197,18 @@ class MagMainFrame(wx.Frame):
 
         bSizer1.Add(OR, 0, wx.ALIGN_CENTER, 0)
         bSizer1.AddSpacer(20)
-        bSizer1.Add(self.btn4, 0, wx.ALIGN_CENTER, 0)
+
+        bSizer1_2 = wx.BoxSizer(wx.VERTICAL)
+        spacing = 60 if self.data_model_num == 3 else 90
+        bSizer1_2.AddSpacer(spacing)
+
+        bSizer1_2.Add(self.btn4, 0, wx.ALIGN_CENTER, 0)
+        if self.data_model_num == 3:
+            bSizer1_2.AddSpacer(20)
+            bSizer1_2.Add(self.btn1a, 0, wx.ALIGN_CENTER, 0)
+            bSizer1_2.AddSpacer(20)
+
+        bSizer1.Add(bSizer1_2)
         bSizer1.AddSpacer(20)
 
         #---sizer 2 ----
