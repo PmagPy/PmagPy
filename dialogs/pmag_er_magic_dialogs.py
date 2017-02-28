@@ -183,6 +183,9 @@ class ErMagicCheckFrame3(wx.Frame):
         self.grid_frame.Centre()
         return
 
+    def on_close_grid_frame(self, event=None):
+        # required placeholder
+        pass
 
     def onContinue(self, event, grid, next_dia=None):#, age_data_type='site'):
         """
