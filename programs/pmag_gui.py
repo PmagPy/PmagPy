@@ -450,7 +450,7 @@ class MagMainFrame(wx.Frame):
             self.ErMagic_frame = ErMagicBuilder.MagIC_model_builder(self.WD, self, self.er_magic)#,self.Data,self.Data_hierarchy)
         elif self.data_model_num == 3:
             if not os.path.isfile(os.path.join(self.WD, 'measurements.txt')):
-                pw.simple_warning("Your working directory must have a 3.0. format measurements.txt file to run this step.  Make sure you have fully completed step 1 (import magnetometer file) and step 1a (convert to 3.0., if necessary) and try again.")
+                pw.simple_warning("Your working directory must have a 3.0. format measurements.txt file to run this step.  Make sure you have fully completed step 1 (import magnetometer file) and ALSO converted to 3.0., if necessary), then try again.")
                 return False
 
             wait = wx.BusyInfo('Compiling required data, please wait...')
