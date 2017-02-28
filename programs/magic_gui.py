@@ -70,6 +70,8 @@ class MainFrame(wx.Frame):
         # propagate names from any table into other tables
         # (i.e., site name from samples)
         self.contribution.propagate_all_tables_info()
+        # extract average lats/lons from sites table
+        self.contribution.get_min_max_lat_lon()
         self.edited = False
         del wait
 
@@ -266,6 +268,9 @@ class MainFrame(wx.Frame):
             grid_type = self.FindWindowById(event.Id).Name[:-4] # remove ('_btn')
         wait = wx.BusyInfo('Making {} grid, please wait...'.format(grid_type))
         wx.Yield()
+        # propagate site lat/lon info into locations if necessary
+        if grid_type == 'locations' and 'sites' in self.contribution.tables:
+            self.contribution.get_min_max_lat_lon()
         # hide mainframe
         self.on_open_grid_frame()
         # make grid frame

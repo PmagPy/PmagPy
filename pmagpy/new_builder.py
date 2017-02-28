@@ -188,6 +188,7 @@ class Contribution(object):
                             # create a parent_df with the names you got from the child
                             print "-I- Creating new {} table with data from {} table".format(parent_name, table_name)
                             df = pd.DataFrame(columns=[parent_name[:-1]], index=parents)
+                            df[parent_name[:-1]] = df.index
                             self.tables[parent_name] = MagicDataFrame(dtype=parent_name, df=df)
                             if write:
                                 # save new table to file
@@ -255,8 +256,12 @@ class Contribution(object):
         Returns
         ---------
         """
+        if 'sites' not in self.tables:
+            return
         # get min/max lat/lon from sites table
         site_container = self.tables['sites']
+        if not ('lat' in site_container.df.columns and 'lon' in site_container.df.columns):
+            return
         # convert lat/lon columns to string type
         # (this is necessary for consistency because they MAY be string type already)
         site_container.df['lat'] = site_container.df['lat'].fillna('').astype(str)
@@ -278,6 +283,9 @@ class Contribution(object):
         lat_n = grouped_lat.max()
         # assign lat/lon to location table
         locs = {}
+        if 'locations' not in self.tables:
+            return
+        loc_container = self.tables['locations']
         for loc in lat_s.index:
             coords = {}
             coords['lat_s'] = lat_s.loc[loc]['lat']
@@ -292,15 +300,25 @@ class Contribution(object):
                 for coord in locs[loc_name]:
                     # warn user if an old value will be overwritten
                     new_value = coords[coord]
+                    if coord not in loc_container.df.columns:
+                        loc_container.df[coord] = None
                     old_value = loc_container.df.ix[loc_name, coord]
-                    try:
-                        old_value = old_value[0]
-                    except TypeError: # if only one value
-                        pass
-                    except IndexError: # if np.nan
-                        pass
+                    # use first value if multiple values returned, but don't shorten a string
+                    if not (isinstance(old_value, str) or isinstance(old_value, unicode)):
+                        try:
+                            old_value = old_value[0]
+                        except TypeError: # if only one value
+                            pass
+                        except IndexError: # if np.nan
+                            pass
                     if old_value is None:
                         pass
+                    elif isinstance(old_value, str) or isinstance(old_value, unicode):
+                        try:
+                            old_value = float(old_value)
+                        except ValueError:
+                            print '-W- In {}, automatically generated {} value ({}) will overwrite previous value ({})'.format(loc_name, coord, new_value, old_value)
+                            old_value = None
                     elif np.isnan(old_value):
                         pass
                     elif new_value != old_value:
