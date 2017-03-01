@@ -6835,7 +6835,7 @@ def main(WD=None, standalone_app=True, parent=None, write_to_log_file=True, DM=N
         app.frame.Show()
         app.MainLoop()
 
-if __name__ == '__main__':
+def main():
     if "-h" in sys.argv:
         help(Demag_GUI)
         sys.exit()
@@ -6852,3 +6852,7 @@ if __name__ == '__main__':
         if len(sys.argv)>=dm_index+2:
             data_model = sys.argv[dm_index+1]
     main(WD=WD,write_to_log_file=write_to_log_file,DM=data_model)
+
+
+if __name__ == '__main__':
+    main()
