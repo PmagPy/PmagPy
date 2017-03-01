@@ -218,7 +218,13 @@ def main():
           ResRec['anisotropy_type']=pmag.makelist(anitypes)
           ResRecs.append(ResRec)
       if len(Ss)>1:
-          title="LO:_"+ResRec['er_location_names']+'_SI:_'+site+'_SA:__SP:__CO:_'+crd
+          if pmagplotlib.isServer:
+              title="LO:_"+ResRec['er_location_names']+'_SI:_'+site+'_SA:__SP:__CO:_'+crd
+          else:
+              title=ResRec['er_location_names']
+              if site:
+                  title += "_{}".format(site)
+              title += '_{}'.format(crd)
           ResRec['er_location_names']=pmag.makelist(Locs)
           bpars,hpars=pmagplotlib.plotANIS(ANIS,Ss,iboot,ihext,ivec,ipar,title,iplot,comp,vec,Dir,nb)
           if len(PDir)>0:
@@ -447,7 +453,10 @@ def main():
                   goon,ans=0,""
               if ans=="a":
                   locs=pmag.makelist(Locs)
-                  title="LO:_"+locs+'_SI:__'+'_SA:__SP:__CO:_'+crd
+                  if pmagplotlib.isServer: # use server plot naming convention
+                      title="LO:_"+locs+'_SI:__'+'_SA:__SP:__CO:_'+crd
+                  else: # use more readable plot naming convention
+                      title="{}_{}".format(locs, crd)
                   save(ANIS,fmt,title)
                   goon=0
       else:

@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import sys
+import os
 import matplotlib
 if matplotlib.get_backend() != "TKAgg":
   matplotlib.use("TKAgg")
@@ -52,8 +53,8 @@ def main():
         plots=1
         verbose=0
     else: plots=0
-    hyst_file=dir_path+'/'+hyst_file
-    rem_file=dir_path+'/'+rem_file
+    hyst_file = os.path.realpath(os.path.join(dir_path, hyst_file))
+    rem_file = os.path.realpath(os.path.join(dir_path, rem_file))
     #
     # initialize some variables
     # define figure numbers for Day,S-Bc,S-Bcr
@@ -109,9 +110,10 @@ def main():
     files={}
     if len(locations)>0:locations=locations[:-1]
     for key in DSC.keys():
-        files[key] = 'LO:_'+locations+'_'+'SI:__SA:__SP:__TY:_'+key+'_.'+fmt
-        #else:
-        #    files[key] = '{}_{}.{}'.format(locations, key, fmt)
+        if pmagplotlib.isServer: # use server plot naming convention
+            files[key] = 'LO:_'+locations+'_'+'SI:__SA:__SP:__TY:_'+key+'_.'+fmt
+        else:  # use more readable plot naming convention
+            files[key] = '{}_{}.{}'.format(locations, key, fmt)
     if verbose:
         pmagplotlib.drawFIGS(DSC)
         ans=raw_input(" S[a]ve to save plots, return to quit:  ")

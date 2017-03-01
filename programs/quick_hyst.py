@@ -35,7 +35,6 @@ def main():
     dir_path='.'
     fmt='png'
     verbose=pmagplotlib.verbose
-    print 'verbose?', verbose
     version_num=pmag.get_version()
     if '-WD' in args:
         ind=args.index('-WD')
@@ -117,18 +116,18 @@ def main():
         if len(meas_data)>0:
             Temps=[]
             xlab,ylab,title='','',''
-            for rec in meas_data: 
+            for rec in meas_data:
                 if rec['measurement_temp'] not  in Temps:Temps.append(rec['measurement_temp'])
             for t in Temps:
               print 'working on t: ',t
               t_data=pmag.get_dictitem(meas_data,'measurement_temp',t,'T')
               B,M=[],[]
-              for rec in t_data: 
+              for rec in t_data:
                 B.append(float(rec['measurement_lab_field_dc']))
                 M.append(float(rec[m]))
     # now plot the hysteresis curve(s)
     #
-              if len(B)>0: 
+              if len(B)>0:
                     B=numpy.array(B)
                     M=numpy.array(M)
                     if t==Temps[-1]:
@@ -137,9 +136,9 @@ def main():
                         title='Hysteresis: '+s
                     if t==Temps[0]:
                         pmagplotlib.clearFIG(HDD['hyst'])
-                    pmagplotlib.plotXY(HDD['hyst'],B,M,sym=c[cnum],xlab=xlab,ylab=ylab,title=title) 
-                    pmagplotlib.plotXY(HDD['hyst'],[1.1*B.min(),1.1*B.max()],[0,0],sym='k-',xlab=xlab,ylab=ylab,title=title) 
-                    pmagplotlib.plotXY(HDD['hyst'],[0,0],[1.1*M.min(),1.1*M.max()],sym='k-',xlab=xlab,ylab=ylab,title=title) 
+                    pmagplotlib.plotXY(HDD['hyst'],B,M,sym=c[cnum],xlab=xlab,ylab=ylab,title=title)
+                    pmagplotlib.plotXY(HDD['hyst'],[1.1*B.min(),1.1*B.max()],[0,0],sym='k-',xlab=xlab,ylab=ylab,title=title)
+                    pmagplotlib.plotXY(HDD['hyst'],[0,0],[1.1*M.min(),1.1*M.max()],sym='k-',xlab=xlab,ylab=ylab,title=title)
                     if verbose:pmagplotlib.drawFIGS(HDD)
                     cnum+=1
                     if cnum==len(c):cnum=0
@@ -149,10 +148,27 @@ def main():
             if pltspec!="":s=pltspec
             files={}
             for key in HDD.keys():
-                if synth=='':
-                    files[key]="LO:_"+locname+'_SI:_'+site+'_SA:_'+sample+'_SP:_'+s+'_TY:_'+key+'_.'+fmt
-                else:
-                    files[key]='SY:_'+synth+'_TY:_'+key+'_.'+fmt
+                if pmagplotlib.isServer: # use server plot naming convention
+                    if synth=='':
+                        filename = "LO:_"+locname+'_SI:_'+site+'_SA:_'+sample+'_SP:_'+s+'_TY:_'+key+'_.'+fmt
+                    else:
+                        filename = 'SY:_'+synth+'_TY:_'+key+'_.'+fmt
+                    files[key] = filename
+                else:  # use more readable plot naming convention
+                    if synth=='':
+                        filename = ''
+                        for item in [locname, site, sample, s, key]:
+                            if item:
+                                item = item.replace(' ', '_')
+                                filename += item + '_'
+                        if filename.endswith('_'):
+                            filename = filename[:-1]
+                        filename += ".{}".format(fmt)
+                    else:
+                        filename = synth+'_'+key+'.fmt'
+                    files[key] = filename
+
+
             pmagplotlib.saveP(HDD,files)
             if pltspec!="":sys.exit()
         if verbose:
@@ -161,15 +177,29 @@ def main():
             if ans=="a":
                 files={}
                 for key in HDD.keys():
-                    files[key]="LO:_"+locname+'_SI:_'+site+'_SA:_'+sample+'_SP:_'+s+'_TY:_'+key+'_.'+fmt
+                    if pmagplotlib.isServer:
+                        print 'server'
+                        files[key]="LO:_"+locname+'_SI:_'+site+'_SA:_'+sample+'_SP:_'+s+'_TY:_'+key+'_.'+fmt
+                    else:
+                        print 'not server'
+                        filename = ''
+                        for item in [locname, site, sample, s, key]:
+                            if item:
+                                item = item.replace(' ', '_')
+                                filename += item + '_'
+                        if filename.endswith('_'):
+                            filename = filename[:-1]
+                        filename += ".{}".format(fmt)
+                        files[key] = filename
+                print 'files', files
                 pmagplotlib.saveP(HDD,files)
             if ans=='':k+=1
             if ans=="p":
-       	        del HystRecs[-1]
-    	        k-=1
-            if  ans=='q': 
-    	        print "Good bye"
-    	        sys.exit()
+                del HystRecs[-1]
+                k-=1
+            if  ans=='q':
+                print "Good bye"
+                sys.exit()
             if ans=='s':
                 keepon=1
                 specimen=raw_input('Enter desired specimen name (or first part there of): ')
@@ -188,8 +218,8 @@ def main():
         else:
             k+=1
         if len(B)==0:
-    	    if verbose:print 'skipping this one - no hysteresis data'
-       	    k+=1
+            if verbose:print 'skipping this one - no hysteresis data'
+            k+=1
 
 if __name__ == "__main__":
     main()

@@ -11,19 +11,19 @@ import pmagpy.continents as continents
 
 def main():
     """
-    NAME 
-        vgpmap_magic.py 
+    NAME
+        vgpmap_magic.py
 
     DESCRIPTION
         makes a map of vgps and a95/dp,dm for site means in a pmag_results table
- 
+
     SYNTAX
         vgpmap_magic.py [command line options]
 
     OPTIONS
         -h prints help and quits
         -eye  ELAT ELON [specify eyeball location], default is 90., 0.
-        -f FILE pmag_results format file, [default is pmag_results.txt] 
+        -f FILE pmag_results format file, [default is pmag_results.txt]
         -res [c,l,i,h] specify resolution (crude, low, intermediate, high]
         -etp plot the etopo20 topographpy data (requires high resolution data set)
         -prj PROJ,  specify one of the following:
@@ -31,25 +31,25 @@ def main():
              lcc = lambert conformal
              moll = molweide
              merc = mercator
-        -sym SYM SIZE: choose a symbol and size, examples: 
+        -sym SYM SIZE: choose a symbol and size, examples:
             ro 5 : small red circles
             bs 10 : intermediate blue squares
             g^ 20 : large green triangles
         -ell  plot dp/dm or a95 ellipses
-        -rev RSYM RSIZE : flip reverse poles to normal antipode 
+        -rev RSYM RSIZE : flip reverse poles to normal antipode
         -S:  plot antipodes of all poles
         -age : plot the ages next to the poles
         -crd [g,t] : choose coordinate system, default is to plot all site VGPs
         -fmt [pdf, png, eps...] specify output format, default is pdf
-        -sav  save and quit    
+        -sav  save and quit
     DEFAULTS
         FILE: pmag_results.txt
         res:  c
-        prj: ortho 
+        prj: ortho
         ELAT,ELON = 0,0
         SYM SIZE: ro 8
         RSYM RSIZE: g^ 8
-    
+
     """
     dir_path='.'
     res,ages='c',0
@@ -82,7 +82,7 @@ def main():
     if '-prj' in sys.argv:
         ind = sys.argv.index('-prj')
         proj=sys.argv[ind+1]
-    if '-rev' in sys.argv: 
+    if '-rev' in sys.argv:
         flip=1
         ind = sys.argv.index('-rev')
         rsym=(sys.argv[ind+1])
@@ -198,7 +198,10 @@ def main():
                 if plot==0:pmagplotlib.drawFIGS(FIG)
     files={}
     for key in FIG.keys():
-        files[key]='LO:_'+location+'_VGP_map.'+fmt
+        if pmagplotlib.isServer: # use server plot naming convention
+            files[key]='LO:_'+location+'_VGP_map.'+fmt
+        else:  # use more readable plot naming convention
+            files[key] = '{}_VGP_map.{}'.format(location.replace(' ', '_'), fmt)
     if pmagplotlib.isServer:
         black     = '#000000'
         purple    = '#800080'
