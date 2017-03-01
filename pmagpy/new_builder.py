@@ -60,7 +60,6 @@ class Contribution(object):
         # update self.filenames to include custom names
         if custom_filenames:
             self.add_custom_filenames(custom_filenames)
-
         self.tables = {}
         # if not otherwise specified, read in all possible tables
         if read_tables == 'all':
@@ -154,7 +153,8 @@ class Contribution(object):
                     if parent in meas_df.columns:
                         df[parent] = meas_df.drop_duplicates(subset=[name])[parent].values
                 self.tables[name + "s"] = MagicDataFrame(dtype=name + "s", df=df)
-                self.tables[name + "s"].write_magic_file(dir_path=self.directory)
+                self.write_table_to_file(name + "s")
+
 
     def propagate_all_tables_info(self, write=True):
         """
@@ -181,43 +181,61 @@ class Contribution(object):
                                 self.add_item(parent_name, {parent_name[:-1]: item}, label=item)
                             # save any changes to file
                             if write:
-                                self.tables[parent_name].write_magic_file(dir_path=self.directory)
+                                self.write_table_to_file(parent_name)
 
                     else:  # if there is no parent table, create it if necessary
                         if parents:
                             # create a parent_df with the names you got from the child
                             print "-I- Creating new {} table with data from {} table".format(parent_name, table_name)
-                            df = pd.DataFrame(columns=[parent_name[:-1]], index=parents)
-                            df[parent_name[:-1]] = df.index
-                            self.tables[parent_name] = MagicDataFrame(dtype=parent_name, df=df)
+                            parent_df = pd.DataFrame(columns=[parent_name[:-1]], index=parents)
+                            parent_df[parent_name[:-1]] = parent_df.index
+                            self.tables[parent_name] = MagicDataFrame(dtype=parent_name,
+                                                                      df=parent_df)
                             if write:
                                 # save new table to file
-                                self.tables[parent_name].write_magic_file(dir_path=self.directory)
+                                self.write_table_to_file(parent_name)
             if child_name:
                 if child_name in df.columns:
                     raw_children = df[child_name].dropna().str.split(':')
+                    # create dict of all children with parent info
+                    parent_of_child = {}
+                    for parent, children in raw_children.iteritems():
+                        for child in children:
+                            # remove whitespace
+                            child = child.strip()
+                            old_parent = parent_of_child.get(child)
+                            if old_parent and (old_parent != parent):
+                                print '-I- for {} {}, replacing: {} with: {}'.format(child_name, child, old_parent, parent)
+                            parent_of_child[child] = parent
+                    # old way:
                     # flatten list, ignore duplicates
-                    children = sorted(set([item.strip() for sublist in raw_children for item in sublist]))
+                    #children = sorted(set([item.strip() for sublist in raw_children for item in sublist]))
                     if child_name in self.tables: # if there is already a child table, update it
                         child_df = self.tables[child_name].df
-                        missing_children = set(children) - set(child_df.index)
+                        missing_children = set(parent_of_child.keys()) - set(child_df.index)
                         if missing_children: # add any missing values
                             print "-I- Updating {} table with values from {} table".format(child_name, table_name)
                             for item in missing_children:
-                                self.add_item(child_name, {child_name[:-1]: item}, label=item)
+                                data = {child_name[:-1]: item, table_name[:-1]: parent_of_child[item]}
+                                self.add_item(child_name, data, label=item)
                             if write:
                                 # save any changes to file
-                                self.tables[parent_name].write_magic_file(dir_path=self.directory)
+                                self.write_table_to_file(child_name)
                     else: # if there is no child table, create it if necessary
                         if children:
                             # create a child_df with the names you got from the parent
                             print "-I- Creating new {} table with data from {} table".format(child_name, table_name)
-                            df = pd.DataFrame(columns=[parent_name[:-1]], index=children)
-                            self.tables[child_name] = MagicDataFrame(dtype=child_name, df=df)
+                            # old way to make new table:
+                            #child_df = pd.DataFrame(columns=[table_name[:-1]], index=children)
+                            # new way to make new table
+                            children_list = sorted(parent_of_child.keys())
+                            children_data = [[child_name, parent_of_child[c_name]] for c_name in children_list]
+                            child_df = pd.DataFrame(index=children_list, columns=[child_name[:-1], table_name[:-1]], data=children_data)
+
+                            self.tables[child_name] = MagicDataFrame(dtype=child_name, df=child_df)
                             if write:
                                 # save new table to file
-                                self.tables[parent_name].write_magic_file(dir_path=self.directory)
-
+                                self.write_table_to_file(child_name)
 
 
     def get_parent_and_child(self, table_name):
@@ -569,6 +587,22 @@ class Contribution(object):
                     print col,
                 print "\n"
 
+    def write_table_to_file(self, dtype):
+        """
+        Write out a MagIC table to file, using custom filename
+        as specified in self.filenames.
+
+        Parameters
+        ----------
+        dtype : str
+            magic table name
+        """
+        fname = self.filenames[dtype]
+        if dtype in self.tables:
+            self.tables[dtype].write_magic_file(custom_name=fname,
+                                                dir_path=self.directory)
+
+
 
 class MagicDataFrame(object):
 
@@ -686,6 +720,8 @@ class MagicDataFrame(object):
                 if col not in self.df.columns:
                     self.df[col] = None
             self.df = self.df[columns]
+        # make sure type column is present (i.e., sample column in samples df)
+        self.df[self.dtype[:-1]] = self.df.index
 
 
     ## Methods to change self.df inplace

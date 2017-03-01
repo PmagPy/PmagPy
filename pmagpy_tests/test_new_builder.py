@@ -196,7 +196,6 @@ class TestContribution(unittest.TestCase):
         self.assertEqual(set(['specimens']), set(con.tables.keys()))
         con.add_magic_table('samples')
         self.assertEqual(set(['specimens', 'samples']), set(con.tables.keys()))
-        print "len(con.tables['samples'].df)", len(con.tables['samples'].df)
         self.assertGreater(len(con.tables['samples'].df), 0)
         con.add_magic_table('unknown', 'sites.txt')
         self.assertEqual(set(['specimens', 'samples', 'sites']),
@@ -242,6 +241,44 @@ class TestContribution(unittest.TestCase):
         self.assertEqual(10., con.tables['locations'].df.ix['location1', 'lat_s'])
         self.assertEqual(15., con.tables['locations'].df.ix['location2', 'lon_e'])
 
+    def test_sites_only_propagation(self):
+        """
+        Make sure propagation works correclty with limited tables provided
+        """
+        directory = os.path.join(WD, 'data_files', '3_0', 'McMurdo')
+        con = nb.Contribution(directory, dmodel=DMODEL, read_tables=['sites'],
+                              custom_filenames={'locations': '_locations.txt',
+                                                'samples': '_samples.txt'})
+        self.assertEqual(['sites'], con.tables.keys())
+        con.propagate_all_tables_info()
+        self.assertEqual(sorted(['samples', 'sites', 'locations']), sorted(con.tables.keys()))
+        for fname in ['_locations.txt', '_samples.txt']:
+            os.remove(os.path.join(directory, fname))
+        #
+        con = nb.Contribution(directory, dmodel=DMODEL, read_tables=['sites'],
+                              custom_filenames={'locations': '_locations.txt',
+                                                'samples': '_samples.txt'})
+        samp_df = pd.DataFrame(index=['mc01b'], columns=['sample', 'site'], data=[['mc01b', 'fake site']])
+        samp_df = nb.MagicDataFrame(dtype='samples', df=samp_df)
+        con.tables['samples'] = samp_df
+        self.assertEqual('fake site', con.tables['samples'].df.ix['mc01b', 'site'])
+        con.propagate_all_tables_info()
+        self.assertEqual(sorted(['samples', 'sites', 'locations']), sorted(con.tables.keys()))
+        # mc01b does not update b/c sample_df value trumps value from sites table
+        self.assertEqual('fake site', con.tables['samples'].df.ix['mc01b', 'site'])
+        # however, additional samples should be added
+        self.assertIn('mc01d', con.tables['samples'].df.index)
+        for fname in ['_locations.txt', '_samples.txt']:
+            os.remove(os.path.join(directory, fname))
+        #
+        con = nb.Contribution(self.directory, dmodel=DMODEL, read_tables=['sites'],
+                              custom_filenames={'locations': '_locations.txt',
+                                                'samples': '_samples.txt'})
+        self.assertEqual(['sites'], con.tables.keys())
+        con.propagate_all_tables_info()
+        self.assertEqual(sorted(['sites', 'locations']), sorted(con.tables.keys()))
+        for fname in ['_locations.txt']: # no samples available this time
+            os.remove(os.path.join(self.directory, fname))
 
 
 

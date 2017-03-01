@@ -107,7 +107,7 @@ class Menus(object):
         elif col_label in ['specimens', 'samples', 'sites', 'locations']:
             if col_label in self.contribution.tables:
                 item_df = self.contribution.tables[col_label].df
-                item_names = item_df[col_label[:-1]].unique()
+                item_names = item_df.index.unique() #[col_label[:-1]].unique()
                 self.choices[col_number] = (sorted(item_names), False)
 
         # add vocabularies
