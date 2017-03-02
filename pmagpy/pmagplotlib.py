@@ -1678,7 +1678,7 @@ def plotHDD(HDD,B,M,s):
         hpars['magic_method_codes']=""
     return hpars
 #
-def plotDay(fignum,BcrBc,S,sym):
+def plotDay(fignum,BcrBc,S,sym,**kwargs):
     """
     function to plot Day plots
     """
@@ -1714,6 +1714,11 @@ def plotDay(fignum,BcrBc,S,sym):
     Bcr=(f_sd*chi_r_sd*Bcr_sd+f_md*chi_r_md*Bcr_md)/(f_sd*chi_r_sd+f_md*chi_r_md) #  eq. 11 in Dunlop 2002
     chi_sps=numpy.arange(1,5)*chi_sd
     pylab.plot(Bcr/Bc,Mrat,'r-')
+    if 'names' in kwargs.keys():
+        names=kwargs['names']
+        for k in range(len(names)):
+            pylab.text(BcrBc[k],S[k],names[k]) #,'ha'='left'
+        
 
 #
 def plotSBc(fignum,Bc,S,sym):

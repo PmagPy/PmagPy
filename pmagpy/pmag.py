@@ -8346,5 +8346,62 @@ class MissingCommandLineArgException(Exception):
         return self.message
 
 
+def domagmap(date,**kwargs):
+    """
+    returns lists of declination, inclination and intensities for lat/lon grid for 
+    desired model and date. 
+
+    Parameters:
+    _________________
+    date = Required date in decimal years (Common Era, negative for Before Common Era)
+    
+    Optional Parameters: 
+    ______________
+    mod  = model to use ('arch3k','cals3k','pfm9k','hfm10k','cals10k.2','cals10k.1b)
+    alt  = altitude
+
+    Output:
+    ______________
+    Bdec=list of declinations
+    Binc=list of inclinations
+    B = list of total field intensities in nT
+    Br = list of radial field intensities
+    lons = list of longitudes evaluated
+    lats = list of latitudes evaluated     
+ 
+    """
+    if 'lon_0' in kwargs.keys(): # check if there are keyword arguments
+        lon_0=kwargs['lon_0'] # if lon_0 is set, use that one
+    else: # otherwise..... 
+        lon_0=0. # set the default lon_0 to 0. 
+    if 'alt' in kwargs.keys(): # check if  alt in kwargs
+        alt=kwargs['alt']
+    if 'mod' in kwargs.keys(): # check if  alt in kwargs
+        mod=kwargs['mod']
+    else:mod='cals10k'
+    incr=10 # we can vary to the resolution of the model
+    lonmax=(lon_0+180.)%360+incr # get some parameters for our arrays of lat/lon
+    lonmin=(lon_0-180.)
+    latmax=90+incr
+    lons=np.arange(lonmin,lonmax,incr) # make a 1D array of longitudes (like elons)
+    lats=np.arange(-90,latmax,incr)# make a 1D array of longitudes (like elats)
+    # set up some containers for the field elements
+    B=np.zeros((len(lats),len(lons)))
+    Binc=np.zeros((len(lats),len(lons)))
+    Bdec=np.zeros((len(lats),len(lons)))
+    Brad=np.zeros((len(lats),len(lons)))
+    for j in range(len(lats)): # step through the latitudes
+        for i in range(len(lons)): # and the longitudes
+            x,y,z,f=doigrf(lons[i],lats[j],alt,date,mod=mod)  # get the field elements
+            Dec,Inc,Int=cart2dir([x,y,z]) # turn them into polar coordites
+            B[j][i]=Int*1e-3 # convert the string to microtesla (from nT)
+            Binc[j][i]=Inc # store the inclination value
+            Bdec[j][i]=Dec # store the declination value
+    return Bdec,Binc,B,Brad,lons,lats # return the arrays.  
+
+
+
+
+
 def main():
     print "Full PmagPy documentation is available at: https://earthref.org/PmagPy/cookbook/"

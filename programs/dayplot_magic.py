@@ -28,6 +28,7 @@ def main():
         -fr: specify input remanence file, default is rmag_remanence.txt
         -fmt [svg,png,jpg] format for output plots
         -sav saves plots and quits quietly
+        -n label specimen names
     """
     args=sys.argv
     hyst_file,rem_file="rmag_hysteresis.txt","rmag_remanence.txt"
@@ -53,6 +54,10 @@ def main():
         plots=1
         verbose=0
     else: plots=0
+    if '-n' in sys.argv: 
+        label=1
+    else:
+        label=0
     hyst_file = os.path.realpath(os.path.join(dir_path, hyst_file))
     rem_file = os.path.realpath(os.path.join(dir_path, rem_file))
     #
@@ -71,6 +76,7 @@ def main():
     #
     S,BcrBc,Bcr2,Bc,hsids,Bcr=[],[],[],[],[],[]
     Ms,Bcr1,Bcr1Bc,S1=[],[],[],[]
+    names=[]
     locations=''
     for rec in  hyst_data:
         if 'er_location_name' in rec.keys() and rec['er_location_name'] not in locations: locations=locations+rec['er_location_name']+'_'
@@ -82,6 +88,7 @@ def main():
             if 'er_synthetic_name' in rec.keys() and rec['er_synthetic_name']!="":
                 rec['er_specimen_name']=rec['er_synthetic_name']
             hsids.append(rec['er_specimen_name'])
+            names.append(rec['er_specimen_name'])
     if len(rem_data)>0:
         for rec in  rem_data:
             if rec['remanence_bcr'] !="" and float(rec['remanence_bcr'])>0:
@@ -97,14 +104,15 @@ def main():
     # now plot the day and S-Bc, S-Bcr plots
     #
     leglist=[]
+    if label==0:names=[]
     if len(Bcr1)>0:
-        pmagplotlib.plotDay(DSC['day'],Bcr1Bc,S1,'ro')
+        pmagplotlib.plotDay(DSC['day'],Bcr1Bc,S1,'ro',names=names)
         pmagplotlib.plotSBcr(DSC['S-Bcr'],Bcr1,S1,'ro')
         pmagplotlib.plot_init(DSC['bcr1-bcr2'],5,5)
         pmagplotlib.plotBcr(DSC['bcr1-bcr2'],Bcr1,Bcr2)
     else:
         del DSC['bcr1-bcr2']
-    pmagplotlib.plotDay(DSC['day'],BcrBc,S,'bs')
+    pmagplotlib.plotDay(DSC['day'],BcrBc,S,'bs',names=names)
     pmagplotlib.plotSBcr(DSC['S-Bcr'],Bcr,S,'bs')
     pmagplotlib.plotSBc(DSC['S-Bc'],Bc,S,'bs')
     files={}
