@@ -233,7 +233,7 @@ class MagMainFrame(wx.Frame):
         bSizer2.AddSpacer(20)
 
         #---sizer 3 ----
-        bSizer3 = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.ID_ANY, "Upload to MagIC database"), wx.HORIZONTAL)
+        bSizer3 = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.ID_ANY, "Create file for upload to MagIC database"), wx.HORIZONTAL)
 
         text = "Create MagIC txt file for upload"
         self.btn_upload = buttons.GenButton(self.panel, id=-1, label=text, size=(300, 50))
