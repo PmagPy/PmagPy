@@ -369,10 +369,20 @@ def main():
         for key in FIG.keys():
             files = {}
             filename = pmag.get_named_arg_from_sys('-fname')
-            if filename:
+            if filename: # use provided filename
                 filename+= '.' + fmt
-            else:
+            elif pmagplotlib.isServer: # use server plot naming convention
                 filename='LO:_'+locations+'_SI:_'+site+'_SA:_'+sample+'_SP:_'+specimen+'_CO:_'+crd+'_TY:_'+key+'_.'+fmt
+            else: # use more readable naming convention
+                filename = ''
+                for item in [locations, site, sample, specimen, crd, key]:
+                    if item:
+                        item = item.replace(' ', '_')
+                        filename += item + '_'
+                if filename.endswith('_'):
+                    filename = filename[:-1]
+                filename += ".{}".format(fmt)
+
             files[key]=filename
 
         if pmagplotlib.isServer:

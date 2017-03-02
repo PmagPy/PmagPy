@@ -160,10 +160,25 @@ def main():
             if pltspec != "":
                 s = pltspec
             for key in HDD.keys():
-                if synth == '':
-                    files[key] = "LO:_"+locname+'_SI:_'+site+'_SA:_'+sample+'_SP:_'+s+'_TY:_'+key+'_.'+fmt
+                if pmagplotlib.isServer:
+                    if synth == '':
+                        files[key] = "LO:_"+locname+'_SI:_'+site+'_SA:_'+sample+'_SP:_'+s+'_TY:_'+key+'_.'+fmt
+                    else:
+                        files[key] = 'SY:_'+synth+'_TY:_'+key+'_.'+fmt
                 else:
-                    files[key] = 'SY:_'+synth+'_TY:_'+key+'_.'+fmt
+                    if synth == '':
+                        filename = ''
+                        for item in [locname, site, sample, s, key]:
+                            if item:
+                                item = item.replace(' ', '_')
+                                filename += item + '_'
+                        if filename.endswith('_'):
+                            filename = filename[:-1]
+                        filename += ".{}".format(fmt)
+                        files[key] = filename
+                    else:
+                        files[key] = "{}_{}.{}".format(synth, key, fmt)
+
             pmagplotlib.saveP(HDD, files)
             if pltspec != "":
                 sys.exit()
@@ -173,7 +188,19 @@ def main():
             if ans == "a":
                 files = {}
                 for key in HDD.keys():
-                    files[key] = "LO:_"+locname+'_SI:_'+site+'_SA:_'+sample+'_SP:_'+s+'_TY:_'+key+'_.'+fmt
+                    if pmagplotlib.isServer: # use server plot naming convention
+                        files[key] = "LO:_"+locname+'_SI:_'+site+'_SA:_'+sample+'_SP:_'+s+'_TY:_'+key+'_.'+fmt
+                    else: # use more readable plot naming convention
+                        filename = ''
+                        for item in [locname, site, sample, s, key]:
+                            if item:
+                                item = item.replace(' ', '_')
+                                filename += item + '_'
+                        if filename.endswith('_'):
+                            filename = filename[:-1]
+                        filename += ".{}".format(fmt)
+                        files[key] = filename
+
                 pmagplotlib.saveP(HDD, files)
             if ans == '':
                 k += 1

@@ -15,7 +15,10 @@ import pmagpy.new_builder as nb
 def save(ANIS,fmt,title):
     files = {}
     for key in ANIS.keys():
-        files[key] = title + '_TY:_aniso-' + key + '_.' + fmt
+        if pmagplotlib.isServer:
+            files[key] = title + '_TY:_aniso-' + key + '_.' + fmt
+        else:
+            files[key] = title.replace('__', '_') + "_aniso-" + key + "." + fmt
     pmagplotlib.saveP(ANIS, files)
 
 
@@ -189,7 +192,10 @@ def main():
             # fpars = pmag.dohext(int(rec["aniso_s_n_measurements"]) -6, float(rec["aniso_s_sigma"]), s)
             # fill in ResRecs (ignoring this for now, grab it from aniso_magic if needed)
         if len(Ss) > 1:
-            title = "LO:_" + loc_name + '_SI:_' + site + '_SA:__SP:__CO:_' + crd
+            if pmagplotlib.isServer: # use server plot naming convention
+                title = "LO:_" + loc_name + '_SI:_' + site + '_SA:__SP:__CO:_' + crd
+            else: # use more readable plot naming convention
+                title = "{}_{}_{}".format(loc_name, site, crd)
             bpars, hpars = pmagplotlib.plotANIS(ANIS, Ss, iboot, ihext, ivec, ipar,
                                                 title, iplot, comp, vec, Dir, num_bootstraps)
             if len(PDir) > 0:
@@ -457,7 +463,10 @@ def main():
                     site_name = "_"
                     if isite:
                         site_name = site
-                    title = "LO:_" + locs + '_SI:_' + site_name + '_SA:__SP:__CO:_' + crd
+                    if pmagplotlib.isServer: # use server plot naming convention
+                        title = "LO:_" + locs + '_SI:_' + site_name + '_SA:__SP:__CO:_' + crd
+                    else: # use more readable plot naming convention
+                        title = "{}_{}_{}".format(locs, site_name, crd)
                     save(ANIS, fmt, title)
                     goon = 0
         else:

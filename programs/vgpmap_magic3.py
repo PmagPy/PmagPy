@@ -207,7 +207,11 @@ def main():
                     pmagplotlib.drawFIGS(FIG)
     files = {}
     for key in FIG.keys():
-        files[key] = 'LO:_' + location + '_VGP_map.' + fmt
+        if pmagplotlib.isServer: # use server plot naming convention
+            files[key] = 'LO:_' + location + '_VGP_map.' + fmt
+        else: # use more readable naming convention
+            files[key] = '{}_VGP_map.{}'.format(location, fmt)
+
     if pmagplotlib.isServer:
         black     = '#000000'
         purple    = '#800080'

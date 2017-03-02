@@ -103,7 +103,10 @@ def main():
     if len(locations) > 0:
         locations = locations[:-1]
     for key in DSC.keys():
-        files[key] = 'LO:_' + locations + '_' + 'SI:__SA:__SP:__TY:_' + key + '_.' + fmt
+        if pmagplotlib.isServer: # use server plot naming convention
+            files[key] = 'LO:_' + locations + '_' + 'SI:__SA:__SP:__TY:_' + key + '_.' + fmt
+        else: # use more readable plot naming convention
+            files[key] = '{}_{}.{}'.format(locations, key, fmt)
     if verbose:
         pmagplotlib.drawFIGS(DSC)
         ans = raw_input(" S[a]ve to save plots, return to quit:  ")
