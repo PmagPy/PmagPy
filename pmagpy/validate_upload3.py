@@ -173,8 +173,16 @@ def cv(row, col_name, arg, current_data_model, df, con):
         return None
     cell_values = cell_value.split(":")
     cell_values = [c.strip() for c in cell_values]
+    # get possible values for controlled vocabulary
+    # exclude weird unicode
+    possible_values = []
+    for val in vocabulary[col_name]:
+        try:
+            possible_values.append(str(val).lower())
+        except UnicodeEncodeError as ex:
+            print val, ex
+
     for value in cell_values:
-        possible_values = [str(v.encode('utf-8')).lower() if isinstance(v, str) else str(v).lower() for v in vocabulary[col_name]]
         if str(value).lower() in possible_values:
             continue
         elif value.lower() == "none":

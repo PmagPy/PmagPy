@@ -869,6 +869,7 @@ class GridBuilder(object):
         """
         return grid
         """
+        changes = None
         # if there is a MagicDataFrame, extract data from it
         if isinstance(self.magic_dataframe, nb.MagicDataFrame):
             # get columns and reorder slightly
@@ -897,6 +898,7 @@ class GridBuilder(object):
             # make sure minimum defaults are present
             for header in self.reqd_headers:
                 if header not in col_labels:
+                    changes = True
                     col_labels.append(header)
         # if there is no pre-existing MagicDataFrame,
         # make a blank grid with do some defaults:
@@ -925,6 +927,7 @@ class GridBuilder(object):
         grid = magic_grid.MagicGrid(parent=self.panel, name=self.grid_type,
                                     row_labels=[], col_labels=col_labels)
         grid.do_event_bindings()
+        grid.changes = changes
 
         self.grid = grid
         return grid

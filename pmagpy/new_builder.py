@@ -343,6 +343,7 @@ class Contribution(object):
                         print '-W- In {}, automatically generated {} value ({}) will overwrite previous value ({})'.format(loc_name, coord, new_value, old_value)
                     # set new value
                     loc_container.df.set_value(loc_name, coord, new_value)
+        self.write_table_to_file('locations')
         return locs
 
     def add_item(self, table_name, data, label):
