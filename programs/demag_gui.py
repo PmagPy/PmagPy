@@ -6835,7 +6835,7 @@ def main(WD=None, standalone_app=True, parent=None, write_to_log_file=True, DM=N
         app.frame.Show()
         app.MainLoop()
 
-def main():
+def do_main():
     if "-h" in sys.argv:
         help(Demag_GUI)
         sys.exit()
@@ -6855,4 +6855,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    do_main()
