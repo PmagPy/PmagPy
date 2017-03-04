@@ -2781,19 +2781,12 @@ def upload_magic3(concat=0, dir_path='.', dmodel=None, vocab="", contribution=No
               'external_database_ids', 'Further Notes', 'Typology', 'Notes (Year/Area/Locus/Level)',
               'Site', 'Object Number']
     print "-I- Removing: ", RmKeys
-    last_file = file_names[-1]
-    first_file = 1
     failing = []
     all_failing_items = {}
     if not dmodel:
         dmodel = data_model.DataModel()
-    for file_type in dtypes:
-        print "-"
-    # read in the data
-        #Data, file_type = pmag.magic_read(File)
-        if file_type not in con.tables.keys():
-            print "-I- No {} file found, continuing".format(file_type)
-            continue
+    last_file_type = sorted(con.tables.keys())[-1]
+    for file_type in sorted(con.tables.keys()):
         container = con.tables[file_type]
         df = container.df
         if len(df):
@@ -2843,19 +2836,18 @@ def upload_magic3(concat=0, dir_path='.', dmodel=None, vocab="", contribution=No
             if len(df):
                 container.write_magic_file(up, append=True)
     # write out the file separator
-            if not last_file:
+            if last_file_type != file_type:
                 f = open(up, 'a')
                 f.write('>>>>>>>>>>\n')
                 f.close()
                 print "-I-", file_type, 'written to ',up
-            if last_file:
+            else: # last file, no newline at end of file
                 f = open(up, 'a')
                 f.write('>>>>>>>>>>')
                 f.close()
-                print "-I-", file_type, 'written to ',up
+                print "-I-", file_type, 'written to ', up
     # if there was no understandable data
         else:
-            #print 'File:', File
             print file_type, 'is bad or non-existent - skipping '
     ## add to existing file
     if concat == 1:

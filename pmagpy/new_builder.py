@@ -671,27 +671,21 @@ class MagicDataFrame(object):
                     return
             self.df = pd.read_table(magic_file, skiprows=[0])
             self.dtype = dtype.strip()
-            if self.dtype == 'measurements':
-                ###self.df['measurement_name'] = self.df['experiment_name'] + self.df['measurement_number']
-                self.df['measurement'] = self.df['experiment'] + self.df['number'].astype(str)
-                name = 'measurement'
-            elif self.dtype.endswith('s'):
-                #dtype = dtype[:-1]
+            if self.dtype.endswith('s'):
                 name = '{}'.format(self.dtype[:-1])
-            elif self.dtype == 'contribution':
-                name = 'doi'
-                # **** this is broken at the moment, fix it!
-                return
             else:
                 name = self.dtype
-            # fix these:
-            if self.dtype == 'images':
-                self.df = pd.DataFrame()
+            if self.dtype == 'measurements':
+                self.df['measurement'] = self.df['experiment'] + self.df['number'].astype(str)
+            elif self.dtype == 'contribution':
+                name = 'doi'
                 return
-            if self.dtype == 'criteria':
-                #self.df = pd.DataFrame()
+            elif self.dtype == 'images':
+                return
+            elif self.dtype == 'criteria':
                 self.df.index = self.df['table_column']
                 return
+            #
             if len(self.df) and self.dtype != 'ages':
                 self.df.index = self.df[name].astype(str)
             elif self.dtype == 'ages':
