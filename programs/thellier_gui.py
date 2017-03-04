@@ -3904,6 +3904,8 @@ else:
                 if BY_SAMPLES:
                     new_data = map_magic.convert_samp('magic3',new_sample_or_site_data) # convert to 3.0
                     new_data['criteria']='IE-SPEC:IE-SAMP'
+                    new_data['result_quality']='g'
+                    new_data['result_type']='i'
                     self.samp_data = self.samp_container.df
                     cond1 = self.samp_data['sample'].str.contains(sample_or_site+"$")==True
                     if 'int_abs' not in self.samp_data.columns:
@@ -3940,6 +3942,8 @@ else:
                         del new_data['sample'] # get rid of this key for site table
                         new_data['vadm']=MagIC_results_data['pmag_results'][sample_or_site]["vadm"]
                         new_data['vadm_sigma']=MagIC_results_data['pmag_results'][sample_or_site]["vadm_sigma"]
+                        new_data['result_quality']='g'
+                        new_data['result_type']='i'
                         self.site_data = self.site_container.update_record(sample_or_site, new_data, condition, debug=True)
                     except:
                         pass # no site
