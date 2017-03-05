@@ -233,6 +233,10 @@ def test_type(value, value_type):
         except ValueError:
             return '"{}" should be a number'.format(str(value))
     elif value_type == "Integer":
+        try:
+            int(value)
+        except ValueError:
+            return '"{}" should be an integer'.format(str(value))
         if isinstance(value, str):
             if str(int(value)) == value:
                 return None
