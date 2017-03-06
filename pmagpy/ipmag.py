@@ -61,6 +61,10 @@ def dms2dd(degrees, minutes, seconds):
     -------
     degrees : decimal degrees of location
 
+    Examples
+    --------
+    >>> ipmag.dms2dd(180,4,23)
+    180.07305555555556
     """
     dd = float(degrees) + float(minutes)/60 + float(seconds)/(60*60);
     return dd
