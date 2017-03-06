@@ -253,7 +253,7 @@ def print_direction_mean(mean_dictionary):
     --------
     Generate a Fisher mean using ``ipmag.fisher_mean`` and then print it nicely
     using ``ipmag.print_direction_mean``
-    
+
     >>> my_mean = ipmag.fisher_mean(di_block=[[140,21],[127,23],[142,19],[136,22]])
     >>> ipmag.print_direction_mean(my_mean)
     Dec: 136.3  Inc: 21.3
@@ -275,6 +275,18 @@ def print_pole_mean(mean_dictionary):
     Parameters
     ----------
     mean_dictionary: output dictionary of pmag.fisher_mean
+
+    Examples
+    --------
+    Generate a Fisher mean using ``ipmag.fisher_mean`` and then print it nicely
+    using ``ipmag.print_pole_mean``
+
+    >>> my_mean = ipmag.fisher_mean(di_block=[[140,21],[127,23],[142,19],[136,22]])
+    >>> ipmag.print_pole_mean(my_mean)
+    Plon: 136.3  Plat: 21.3
+    Number of directions in mean (n): 4
+    Angular radius of 95% confidence (A_95): 7.3
+    Precision parameter (k) estimate: 159.7
     """
     print 'Plon: ' + str(round(mean_dictionary['dec'],1)) + '  Plat: ' + str(round(mean_dictionary['inc'],1))
     print 'Number of directions in mean (n): ' + str(mean_dictionary['n'])
@@ -301,6 +313,15 @@ def fishrot(k=20, n=100, dec=0, inc=90, di_block=True):
     di_block : a nested list of [dec,inc,1.0] (default)
     or
     declination, inclination : a list of dec and a list of inc
+
+    Examples
+    --------
+    >>> ipmag.fishrot(k=20,n=5,dec=40,inc=60)
+    [[44.766285502555775, 37.440866867657235, 1.0],
+     [33.866315796883725, 64.732532250463436, 1.0],
+     [47.002912770597163, 54.317853800896977, 1.0],
+     [36.762165614432547, 56.857240672884252, 1.0],
+     [71.43950604474395, 59.825830945715431, 1.0]]
     """
     directions=[]
     declinations=[]
