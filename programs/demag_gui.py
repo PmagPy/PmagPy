@@ -3,7 +3,7 @@
 Runs Demag GUI PmagPy's main analysis GUI for demagnetization data. This
 can be used for PCA of both AF and Thermal demag data, and calculation
 of VGP's. It allows export of figures and analysis results for upload to
-the MagIC database and/or publication.
+the MagIC database and/or publication. For more information on how to interpret or use the GUI's many functions see the Help menu in the open GUI. More documentation can be found on all of PmagPy's functionality at the PmagPy cookbook which can be found here: earthref.org/PmagPy/cookbook/
 
 SYNTAX
     demag_gui.py [command line options]
