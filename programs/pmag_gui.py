@@ -16,10 +16,12 @@ from pmagpy import pmag
 from pmagpy import ipmag
 from pmagpy import builder2 as builder
 from pmagpy import new_builder as nb
-from dialogs import pmag_basic_dialogs
+from dialogs import pmag_basic_dialogs_native3 as pbd3
+from dialogs import pmag_basic_dialogs as pbd2
 from dialogs import pmag_er_magic_dialogs
 from dialogs import pmag_gui_menu3 as pmag_gui_menu
 from dialogs import ErMagicBuilder
+from dialogs import demag_dialogs
 from dialogs import pmag_widgets as pw
 
 try:
@@ -55,7 +57,6 @@ class MagMainFrame(wx.Frame):
             DM = self.data_model_num
         # if you still don't have DM, make the user choose
         if not DM:
-            from dialogs import demag_dialogs
             ui_dialog = demag_dialogs.user_input(self,['data_model'],parse_funcs=[float], heading="Please input prefered data model (2.5,3.0).  Note: 2.5 is for legacy projects only, if you are have new data please use 3.0.", values=[3])
             res = ui_dialog.ShowModal()
             vals = ui_dialog.get_values()
@@ -70,15 +71,19 @@ class MagMainFrame(wx.Frame):
         self.resource_dir = os.getcwd()
 
         if not WD:
-            self.get_DIR()        # choose directory dialog
+            self.get_DIR() # choose directory dialog
         else:
             self.WD = WD
         self.HtmlIsOpen = False
         self.Bind(wx.EVT_CLOSE, self.on_menu_exit)
+        global pmag_basic_dialogs
         if self.data_model_num == 2:
+            pmag_basic_dialogs = pbd2
             self.er_magic = builder.ErMagicBuilder(self.WD, data_model=self.data_model)
         elif self.data_model_num == 3:
+            pmag_basic_dialogs = pbd3
             wx.CallAfter(self.get_wd_data)
+        else: pw.simple_warning("Input data model not recognized please input 2.x or 3.x"); return
             #self.contribution = nb.Contribution(self.WD, dmodel=dmodel)
         #self.er_magic.init_default_headers()
         #self.er_magic.init_actual_headers()
@@ -170,7 +175,7 @@ class MagMainFrame(wx.Frame):
         if self.data_model_num == 3:
             text = "Convert directory to 3.0. format (legacy data only)"
             self.btn1a = buttons.GenButton(self.panel, id=-1, label=text,
-                                           size=(450, 50), name='step 1a')
+                                           size=(300, 50), name='step 1a')
             self.btn1a.SetBackgroundColour("#FDC68A")
             self.btn1a.InitColours()
             self.Bind(wx.EVT_BUTTON, self.on_convert_3, self.btn1a)
