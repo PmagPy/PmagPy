@@ -256,7 +256,7 @@ class TestDemagGUI(unittest.TestCase):
 
         file_menu = self.get_menu_from_frame(self.frame, "File")
 
-        writepmag_menu_evt = wx.PyCommandEvent(wx.EVT_MENU.typeId,file_menu.FindItem("&Save MagIC pmag tables\tCtrl-Shift-S"))
+        writepmag_menu_evt = wx.PyCommandEvent(wx.EVT_MENU.typeId,file_menu.FindItem("&Save MagIC tables\tCtrl-Shift-S"))
         print("-------------------------------------------------------------")
         self.frame.ProcessEvent(writepmag_menu_evt)
         print("-------------------------------------------------------------")
@@ -264,10 +264,11 @@ class TestDemagGUI(unittest.TestCase):
         speci_with_fits = []
         old_interpretations = {}
         for speci in self.frame.pmag_results_data['specimens'].keys():
-            if speci not in speci_with_fits and \
-               self.frame.pmag_results_data['specimens'][speci]!=[]:
-                speci_with_fits.append(speci)
-            old_interpretations[speci] = sorted(self.frame.pmag_results_data['specimens'][speci],cmp=fit_cmp)
+            if self.frame.pmag_results_data['specimens'][speci] and \
+               all(map(lambda x: x.get('specimen'), self.frame.pmag_results_data['specimens'][speci])):
+                if speci not in speci_with_fits:
+                    speci_with_fits.append(speci)
+                old_interpretations[speci] = sorted(self.frame.pmag_results_data['specimens'][speci],cmp=fit_cmp)
 
         frame2 = demag_gui.Demag_GUI(project_WD,write_to_log_file=False,test_mode_on=True)
 
@@ -276,10 +277,11 @@ class TestDemagGUI(unittest.TestCase):
         imported_frame = str(frame2)
         imported_interpretations = {}
         for speci in frame2.pmag_results_data['specimens'].keys():
-            if speci not in speci_with_fits and \
-               frame2.pmag_results_data['specimens'][speci]!=[]:
-                speci_with_fits.append(speci)
-            imported_interpretations[speci] = sorted(frame2.pmag_results_data['specimens'][speci],cmp=fit_cmp)
+            if frame2.pmag_results_data['specimens'][speci] and \
+               all(map(lambda x: x.get('specimen'),frame2.pmag_results_data['specimens'][speci])):
+                if speci not in speci_with_fits:
+                    speci_with_fits.append(speci)
+                imported_interpretations[speci] = sorted(frame2.pmag_results_data['specimens'][speci],cmp=fit_cmp)
 
         for speci in speci_with_fits:
             if speci not in old_interpretations.keys() or speci not in imported_interpretations.keys(): import pdb; pdb.set_trace()

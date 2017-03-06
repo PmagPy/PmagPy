@@ -1983,6 +1983,7 @@ class Demag_GUI(wx.Frame):
             else:
                 self.CART_rot_bad.append(list(self.CART_rot[i]))
 
+        self.CART_rot=array(self.CART_rot)
         self.CART_rot_good=array(self.CART_rot_good)
         self.CART_rot_bad=array(self.CART_rot_bad)
 
@@ -5343,18 +5344,17 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
         # dialog box to choose coordinate systems for pmag_specimens.txt
         #---------------------------------------
         dia = demag_dialogs.magic_pmag_specimens_table_dialog(None)
-        CoorTypes=['DA-DIR','DA-DIR-GEO','DA-DIR-TILT']
+        CoorTypes=[]
         if self.test_mode:
-            pass
+            CoorTypes=['DA-DIR']
         elif dia.ShowModal() == wx.ID_OK: # Until the user clicks OK, show the message
-            CoorTypes=[]
             if dia.cb_spec_coor.GetValue()==True:
                 CoorTypes.append('DA-DIR')
             if dia.cb_geo_coor.GetValue()==True:
                 CoorTypes.append('DA-DIR-GEO')
             if dia.cb_tilt_coor.GetValue()==True:
                 CoorTypes.append('DA-DIR-TILT')
-        else: self.user_warning("MagIC tables not saved");print("MagIC tables not saved"); return
+        else: self.user_warning("MagIC tables not saved"); print("MagIC tables not saved"); return
         #------------------------------
 
         self.PmagRecsOld={}
@@ -5372,9 +5372,7 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
                 os.remove(os.path.join(self.WD,FILE))
                 print("-I- Delete old magic file  %s\n"%os.path.join(self.WD,FILE))
 
-            except OSError:
-                continue
-            except IOError:
+            except (OSError,IOError) as e:
                 continue
 
             for rec in meas_data:
@@ -5393,11 +5391,10 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
             for dirtype in CoorTypes:
                 i = 0
                 for fit in self.pmag_results_data['specimens'][specimen]:
-
                     mpars = fit.get(dirtype)
                     if not mpars:
                         mpars = self.get_PCA_parameters(specimen,fit,fit.tmin,fit.tmax,dirtype,fit.PCA_type)
-                        if not mpars or 'specimen_dec' not in mpars.keys(): self.user_warning("Could not calculate interpretation for specimen %s and fit %s while exporting pmag tables, skipping"%(specimen,fit.name));continue
+                        if not mpars or 'specimen_dec' not in mpars.keys(): self.user_warning("Could not calculate interpretation for specimen %s and fit %s in coordinate system %s while exporting pmag tables, skipping"%(specimen,fit.name,dirtype));continue
 
                     PmagSpecRec={}
                     user="" # Todo
@@ -5531,7 +5528,7 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
             result = self.show_dlg(self.dlg)
             if result == wx.ID_OK:
                 self.dlg.Destroy()
-            if result == wx.ID_CANCEL:
+            else:
                 self.dlg.Destroy()
                 return
 
@@ -5544,7 +5541,7 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
             result = self.show_dlg(dlg)
             if result == wx.ID_OK:
                 dlg.Destroy()
-            if result == wx.ID_CANCEL:
+            else:
                 dlg.Destroy()
                 return
 
