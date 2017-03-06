@@ -248,6 +248,18 @@ def print_direction_mean(mean_dictionary):
     Parameters
     ----------
     mean_dictionary: output dictionary of pmag.fisher_mean
+
+    Examples
+    --------
+    Generate a Fisher mean using ``ipmag.fisher_mean`` and then print it nicely
+    using ``ipmag.print_direction_mean``
+    
+    >>> my_mean = ipmag.fisher_mean(di_block=[[140,21],[127,23],[142,19],[136,22]])
+    >>> ipmag.print_direction_mean(my_mean)
+    Dec: 136.3  Inc: 21.3
+    Number of directions in mean (n): 4
+    Angular radius of 95% confidence (a_95): 7.3
+    Precision parameter (k) estimate: 159.7
     """
     print 'Dec: ' + str(round(mean_dictionary['dec'],1)) + '  Inc: ' + str(round(mean_dictionary['inc'],1))
     print 'Number of directions in mean (n): ' + str(mean_dictionary['n'])
