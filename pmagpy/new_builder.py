@@ -716,7 +716,8 @@ class MagicDataFrame(object):
                     self.df[col] = None
             self.df = self.df[columns]
         # make sure type column is present (i.e., sample column in samples df)
-        self.df[self.dtype[:-1]] = self.df.index
+        if self.dtype != 'ages':
+            self.df[self.dtype[:-1]] = self.df.index
 
 
     ## Methods to change self.df inplace
