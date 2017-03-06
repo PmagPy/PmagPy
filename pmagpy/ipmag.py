@@ -212,12 +212,32 @@ def kent_mean(dec=None, inc=None, di_block=None):
     Returns
     ----------
     kpars : dictionary containing Kent mean and associated statistics.
+
+    Examples
+    --------
+    Use lists of declination and inclination to calculate a Kent mean:
+
+    >>> ipmag.kent_mean(dec=[140,127,142,136],inc=[21,23,19,22])
+    {'Edec': 280.38683553668795,
+     'Einc': 64.236598921744289,
+     'Eta': 0.72982112760919715,
+     'Zdec': 40.824690028412761,
+     'Zeta': 6.7896823241008795,
+     'Zinc': 13.739412321974067,
+     'dec': 136.30838974272072,
+     'inc': 21.347784026899987,
+     'n': 4}
+
+    Use a di_block to calculate a Kent mean (will give the same output as the
+    example with the lists):
+
+    >>> ipmag.kent_mean(di_block=[[140,21],[127,23],[142,19],[136,22]])
     """
     if di_block is None:
         di_block = make_di_block(dec,inc)
-        return pmag.dokent(di_block)
+        return pmag.dokent(di_block,len(di_block))
     else:
-        return pmag.dokent(di_block)
+        return pmag.dokent(di_block,len(di_block))
 
 
 def print_direction_mean(mean_dictionary):
