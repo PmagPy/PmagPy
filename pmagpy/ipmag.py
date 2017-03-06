@@ -31,6 +31,16 @@ def igrf(input_list):
     Returns
     -------
     igrf_array : array of IGRF values (0: dec; 1: inc; 2: intensity)
+
+    Examples
+    --------
+    >>> local_field = ipmag.igrf([2013.6544, .052, 37.87, -122.27])
+    >>> local_field
+    array([  1.39489916e+01,   6.13532008e+01,   4.87452644e+04])
+    >>> ipmag.igrf_print(local_field)
+    Declination: 13.949
+    Inclination: 61.353
+    Intensity: 48745.264 nT
     """
     x,y,z,f = pmag.doigrf(input_list[3]%360.,input_list[2],input_list[1],input_list[0])
     igrf_array = pmag.cart2dir((x,y,z))
