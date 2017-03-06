@@ -15,6 +15,7 @@
 #---------------------------------------------------------------------------
 import matplotlib
 import pylab,scipy,os,time
+import pandas as pd
 from pylab import *
 from scipy import *
 import wx
@@ -398,7 +399,8 @@ class thellier_auto_interpreter():
                 if s not in Grade_A_samples[sample].keys() and len(All_grade_A_Recs[s])>0:
                     Grade_A_samples[sample][s]=[]
 
-                Grade_A_samples[sample][s].append(B_anc)
+                if pd.notnull(B_anc):
+                    Grade_A_samples[sample][s].append(B_anc)
 
                 # sort by sites
                 #------------------------------------------------------------
@@ -407,7 +409,8 @@ class thellier_auto_interpreter():
                     Grade_A_sites[site]={}
                 if s not in Grade_A_sites[site].keys() and len(All_grade_A_Recs[s])>0:
                     Grade_A_sites[site][s]=[]
-                Grade_A_sites[site][s].append(B_anc)
+                if pd.notnull(B_anc):
+                    Grade_A_sites[site][s].append(B_anc)
 
                 # ? check
                 #------------------------------------------------------------
