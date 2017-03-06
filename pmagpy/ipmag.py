@@ -128,8 +128,8 @@ def fisher_mean(dec=None, inc=None, di_block=None):
     'n': 4,
     'r': 3.9812138971889026}
 
-    Use a di_block to calculate a Fisher mean (which in this example will given
-    the same output):
+    Use a di_block to calculate a Fisher mean (will give the same output as the
+    example with the lists):
 
     >>> ipmag.fisher_mean(di_block=[[140,21],[127,23],[142,19],[136,22]])
     """
@@ -142,10 +142,10 @@ def fisher_mean(dec=None, inc=None, di_block=None):
 
 def bingham_mean(dec=None, inc=None, di_block=None):
     """
-    Calculates the Bingham mean and associated statistical parameters from either a list of
-    declination values and a separate list of inclination values or from a
-    di_block (a nested list a nested list of [dec,inc,1.0]). Returns a
-    dictionary with the Bingham mean and statistical parameters.
+    Calculates the Bingham mean and associated statistical parameters from
+    either a list of declination values and a separate list of inclination
+    values or from a di_block (a nested list a nested list of [dec,inc,1.0]).
+    Returns a dictionary with the Bingham mean and statistical parameters.
 
     Parameters
     ----------
@@ -162,6 +162,26 @@ def bingham_mean(dec=None, inc=None, di_block=None):
     Returns
     ---------
     bpars : dictionary containing the Bingham mean and associated statistics.
+
+    Examples
+    --------
+    Use lists of declination and inclination to calculate a Bingham mean:
+
+    >>> ipmag.bingham_mean(dec=[140,127,142,136],inc=[21,23,19,22])
+    {'Edec': 220.84075754194598,
+     'Einc': -13.745780972597291,
+     'Eta': 9.9111522306938742,
+     'Zdec': 280.38894136954474,
+     'Zeta': 9.8653370276451113,
+     'Zinc': 64.23509410796224,
+     'dec': 136.32637167111312,
+     'inc': 21.34518678073179,
+     'n': 4}
+
+    Use a di_block to calculate a Bingham mean (will give the same output as the
+    example with the lists):
+
+    >>> ipmag.fisher_mean(di_block=[[140,21],[127,23],[142,19],[136,22]])
     """
     if di_block is None:
         di_block = make_di_block(dec,inc)
