@@ -167,7 +167,7 @@ class MagMainFrame(wx.Frame):
         self.Bind(wx.EVT_BUTTON, self.on_er_data, self.btn3)
 
         text = "Unpack txt file downloaded from MagIC"
-        self.btn4 = buttons.GenButton(self.panel, id=-1, label=text, size=(300, 50))
+        self.btn4 = buttons.GenButton(self.panel, id=-1, label=text, size=(330, 50))
         self.btn4.SetBackgroundColour("#FDC68A")
         self.btn4.InitColours()
         self.Bind(wx.EVT_BUTTON, self.on_unpack, self.btn4)
@@ -175,7 +175,7 @@ class MagMainFrame(wx.Frame):
         if self.data_model_num == 3:
             text = "Convert directory to 3.0. format (legacy data only)"
             self.btn1a = buttons.GenButton(self.panel, id=-1, label=text,
-                                           size=(300, 50), name='step 1a')
+                                           size=(330, 50), name='step 1a')
             self.btn1a.SetBackgroundColour("#FDC68A")
             self.btn1a.InitColours()
             self.Bind(wx.EVT_BUTTON, self.on_convert_3, self.btn1a)
