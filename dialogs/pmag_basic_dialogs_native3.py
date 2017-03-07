@@ -130,7 +130,7 @@ class import_magnetometer_data(wx.Dialog):
         elif file_type == 'BGC':
             dia = convert_BGC_files_to_magic(self, self.WD, "PmagPy BGC conversion")
         elif file_type == 'TDT':
-            tdt_magic.main(False, self.WD)
+            tdt_magic.convert(False, self.WD)
             return True
         elif file_type == 'JR6':
             dia = convert_JR6_files_to_MagIC(self, self.WD)
@@ -678,7 +678,7 @@ class convert_generic_files_to_MagIC(convert_files_to_MagIC):
         %(WD,FILE,OUTFILE,EXP,SAMP,SITE,LOC,LABFIELD,DONT_AVERAGE, SPEC_OUTFILE, SAMP_OUTFILE, SITE_OUTFILE, LOC_OUTFILE, lat, lon)
 
         print "-I- Running Python command:\n %s"%COMMAND
-        program_run, error_message = generic_magic.main(**options)
+        program_run, error_message = generic_magic.convert(**options)
 
         if program_run:
             pw.close_window(self, COMMAND, OUTFILE)
@@ -918,7 +918,7 @@ class convert_SIO_files_to_MagIC(convert_files_to_MagIC):
         COMMAND = "sio_magic.py -F {0} -Fsp {1} -Fsa {2} -Fsi {3} -Flo {4} -f {5} {6} {7} {8} {9} -spc {10} -ncn {11} {12} {13} {14}".format(outfile, SIO_file, user, experiment_type, cooling_rates, loc_name, spc, ncn, lab_field, peak_AF, coil_number, instrument, replicate, lat, lon)
         print "COMMAND", COMMAND
         # to run as module:
-        if sio_magic.main(**options_dict):
+        if sio_magic.convert(**options_dict):
             pw.close_window(self, COMMAND, outfile)
         else:
             pw.simple_warning()
@@ -1085,7 +1085,7 @@ class convert_CIT_files_to_MagIC(convert_files_to_MagIC):
 
         COMMAND = "cit_magic.py -WD {} -f {} -F {} {} {} {} {} -ncn {} {} {} {} -Fsp {} -Fsa {} -Fsi {} -Flo {} {} {} {} -mno {}".format(wd, CIT_file, outfile, particulars, spec_num, loc_name, user, ncn, Z, peak_AF, ID, spec_outfile, samp_outfile, site_outfile, loc_outfile, replicate, dc_flag, dc_params, meas_n_orient)
         # to run as module:
-        program_ran, error_message = cit_magic.main(**options_dict)
+        program_ran, error_message = cit_magic.convert(**options_dict)
         if program_ran:
             pw.close_window(self, COMMAND, outfile)
         else:
@@ -1264,7 +1264,7 @@ class convert_HUJI_files_to_MagIC(convert_files_to_MagIC):
             replicate = '-A'
 
         COMMAND = "huji_magic.py -f {} -fd {} -F {} -Fsp {} -Fsa {} -Fsi {} -Flo {} {} -LP {} {} -ncn {} {} {} {} {}".format(HUJI_file, dat_file, outfile, spec_outfile, samp_outfile, site_outfile, loc_outfile, user, experiment_type, loc_name, ncn, lab_field, spc, peak_AF, replicate)
-        program_ran, error_message = huji_magic.main(**options)
+        program_ran, error_message = huji_magic.convert(**options)
         if program_ran:
             pw.close_window(self, COMMAND, outfile)
         else:
@@ -1417,14 +1417,14 @@ class convert_2g_binary_files_to_MagIC(convert_files_to_MagIC):
             COMMAND = "_2g_bin_magic.py -WD {} -f {} -F {} -Fsp {} -Fsa {} -Fsi {} -Flo {} -ncn {} {} {} -ocn {} {} {} {} {} -lat {} -lon {}".format(WD, file_2g_bin, outfile, spec_outfile, samp_outfile, sites_outfile, loc_outfile, ncn, mcd, spc, ocn, loc_name, replicate, ID, instrument,lat,lon)
             if files.index(f) == (len(files) - 1): # terminate process on last file call
                 # to run as module:
-                if _2g_bin_magic.main(**options_dict):
+                if _2g_bin_magic.convert(**options_dict):
                     pw.close_window(self, COMMAND, outfile)
                 else:
                     pw.simple_warning()
 
             else:
                 print "Running equivalent of python command: ", COMMAND
-                if _2g_bin_magic.main(**options_dict):
+                if _2g_bin_magic.convert(**options_dict):
                     pass # success, continue on to next file
                 else:
                     pw.simple_warning()
@@ -1603,7 +1603,7 @@ class convert_LDEO_files_to_MagIC(convert_files_to_MagIC):
         options_dict['mv'] = mv
         COMMAND = "ldeo_magic.py -f {0} -F {1} -Fsp {2} -Fsa {3} -Fsi {4} -Flo {5} {6} {7} {8} -ncn {9} {10} {11} {12} {13} {14} {15} -mv {16}".format(LDEO_file, outfile, spec_outfile, samp_outfile, site_outfile, loc_outfile, user, experiment_type, lab_field, ncn, spc, loc_name, instrument, replicate, AF_field, coil_number, mv)
         # to run as module:
-        program_ran, error_message = ldeo_magic.main(**options_dict)
+        program_ran, error_message = ldeo_magic.convert(**options_dict)
         if program_ran:
             pw.close_window(self, COMMAND, outfile)
         else:
@@ -1719,13 +1719,13 @@ class convert_IODP_files_to_MagIC(convert_files_to_MagIC):
         COMMAND = "iodp_srm_magic.py -WD {0} -f {1} -F {2} {3} -ID {4} -Fsp {5} -Fsa {6} -Fsi {7} -Flo {8} {9} {10}".format(wd, IODP_file, outfile, replicate, ID, spec_outfile, samp_outfile, site_outfile, loc_outfile, lat_with_flag, lon_with_flag)
 
         if is_section: # SRM section
-            program_ran, error_message = iodp_srm_magic.main(**options)
+            program_ran, error_message = iodp_srm_magic.convert(**options)
             if program_ran:
                 pw.close_window(self, COMMAND, outfile)
             else:
                 pw.simple_warning(error_message)
         else: # SRM discrete
-            program_ran, error_message = iodp_dscr_magic.main(**options)
+            program_ran, error_message = iodp_dscr_magic.convert(**options)
             if program_ran:
                 pw.close_window(self, COMMAND, outfile)
             else:
@@ -1865,7 +1865,7 @@ class convert_PMD_files_to_MagIC(convert_files_to_MagIC):
             options['loc_file'] = loc_outfile
             COMMAND = "pmd_magic.py -WD {} -f {} -F {} -Fsp {} -Fsa {} -Fsi {} -Flo {} -ncn {} {} -spc {} {} {} {} {} {}".format(WD, f, outfile, spec_outfile, samp_outfile, site_outfile, loc_outfile, ncn, particulars, spc, replicate, ID, loc_name, lat, lon)
 
-            program_ran, error_message = pmd_magic.main(**options)
+            program_ran, error_message = pmd_magic.convert(**options)
             if not program_ran:
                 pw.simple_warning(error_message)
                 return False
@@ -2091,25 +2091,25 @@ class convert_JR6_files_to_MagIC(wx.Frame):
                 pw.simple_warning("You must provide a .txt format file")
                 return False
             if input_format == 'txt': # .txt format
-                program_ran, error_message = jr6_txt_magic.main(**options)
+                program_ran, error_message = jr6_txt_magic.convert(**options)
                 if program_ran:
-                    COMMAND = "options={}\njr6_txt_magic.main(**options)".format(str(options))
+                    COMMAND = "options={}\njr6_txt_magic.convert(**options)".format(str(options))
                     pw.close_window(self, COMMAND, meas_file)
                 else:
                     pw.simple_warning(error_message)
             else:
-                program_ran, error_message = jr6_jr6_magic.main(**options)
+                program_ran, error_message = jr6_jr6_magic.convert(**options)
                 if program_ran:
-                    COMMAND = "options={}\njr6_jr6_magic.main(**options)".format(str(options))
+                    COMMAND = "options={}\njr6_jr6_magic.convert(**options)".format(str(options))
                     pw.close_window(self, COMMAND, meas_file)
                 else:
                     pw.simple_warning(error_message)
         else: # Joides Resolution
             if not mag_file:
                 pw.simple_warning('You must provide a valid IODP JR6 file')
-            program_ran, error_message = iodp_jr6_magic.main(**options)
+            program_ran, error_message = iodp_jr6_magic.convert(**options)
             if program_ran:
-                COMMAND = "options={}\niodp_jr6_magic.main(**options)".format(str(options))
+                COMMAND = "options={}\niodp_jr6_magic.convert(**options)".format(str(options))
                 pw.close_window(self, COMMAND, meas_file)
             else:
                 pw.simple_warning(error_message)
@@ -2274,7 +2274,7 @@ class convert_BGC_files_to_magic(wx.Frame):
         for key, value in options.items():
             print key, value
 
-        COMMAND = "options = {}\nbgc_magic.main(**options)".format(str(options))
+        COMMAND = "options = {}\nbgc_magic.convert(**options)".format(str(options))
 
         if infile=='':
             all_files=[f for f in os.listdir('.') if os.path.isfile(f)]
@@ -2291,11 +2291,11 @@ class convert_BGC_files_to_magic(wx.Frame):
                 options['site_file'] = site_outfile
                 loc_outfile = infile + "_locations.txt"
                 options['loc_file'] = loc_outfile
-                try: program_ran, error_message = bgc_magic.main(**options)
+                try: program_ran, error_message = bgc_magic.convert(**options)
                 except IndexError: continue
                 if program_ran: outfiles.append(outfile)
             outfile=str(outfiles)
-        else: program_ran, error_message = bgc_magic.main(**options)
+        else: program_ran, error_message = bgc_magic.convert(**options)
 
         if program_ran:
             pw.close_window(self, COMMAND, outfile)
@@ -2462,7 +2462,7 @@ class convert_Utrecht_files_to_MagIC(convert_files_to_MagIC):
 
         COMMAND = "cit_magic.py -WD {} -f {} -F {} {} {} {} -ncn {} {} -Fsp {} -Fsa {} -Fsi {} -Flo {} {} {} {} -lat {} -lon {}".format(wd, Utrecht_file, outfile, particulars, spec_num, loc_name, ncn, ID, spec_outfile, samp_outfile, site_outfile, loc_outfile, replicate, dc_flag, dmy_flag, lon, lat)
         # to run as module:
-        program_ran, error_message = utrecht_magic.main(**options_dict)
+        program_ran, error_message = utrecht_magic.convert(**options_dict)
         if program_ran:
             pw.close_window(self, COMMAND, outfile)
         else:
