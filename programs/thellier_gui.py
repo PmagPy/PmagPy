@@ -2578,7 +2578,6 @@ else:
 
 
     def on_menu_calculate_aniso_tensor(self, event):
-
         self.calculate_anisotropy_tensors(data_model=self.data_model)
         if self.data_model==3:
             text1="Anisotropy elements and statistics are saved in specimens.txt\n"
@@ -3142,7 +3141,8 @@ else:
                     condition=(cond1 & cond2 & cond3)
                     # need to add in method codes for LP-AN...
                     old_meths=self.spec_data[condition]['method_codes'].values.tolist()
-                    try:
+                    if len(old_meths)>0:
+                      try:
                         if ":" in old_meths[0]:  # breaks if old_meths is NoneType
                             if 'LP-AN' in old_meths[0]:
                                 methparts=old_meths[0].split(":")
@@ -3152,7 +3152,9 @@ else:
                                 me=me.strip(":")
                             else: me=old_meths[0]
                             new_meths=me+':'+meths
-                    except:
+                      except:
+                        new_meths=meths
+                    else:
                         new_meths=meths
                     new_data['method_codes']=new_meths
                     #condition = (cond1 & cond2)
