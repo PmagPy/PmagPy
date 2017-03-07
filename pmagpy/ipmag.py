@@ -438,6 +438,14 @@ def squish(incs,f):
     Returns
     ---------
     incs_squished : List of flattened directions (in degrees)
+
+    Examples
+    --------
+    Take a list of inclinations, flatten them.
+
+    >>> inclinations = [43,47,41]
+    >>> ipmag.squish(inclinations,0.4)
+    [20.455818908027187, 23.216791019112204, 19.173314360172309]
     """
     try:
         length = len(incs)
@@ -462,7 +470,7 @@ def do_flip(dec=None, inc=None, di_block=None):
     The function can take dec and inc as seperate lists if they are of equal
     length and explicitly specified or are the first two arguments. It will then
     return a list of flipped decs and a list of flipped incs. If a di_block (a
-    nested list of [dec,inc,1.0]) is specified then it is used and the function
+    nested list of [dec, inc, 1.0]) is specified then it is used and the function
     returns a di_block with the flipped directions.
 
     Parameters
@@ -472,7 +480,7 @@ def do_flip(dec=None, inc=None, di_block=None):
 
     or
 
-    di_block: a nested list of [dec,inc,1.0]
+    di_block: a nested list of [dec, inc, 1.0]
 
     A di_block can be provided instead of dec, inc lists in which case it will
     be used. Either dec, inc lists or a di_block need to passed to the function.
@@ -481,7 +489,22 @@ def do_flip(dec=None, inc=None, di_block=None):
     ----------
     dec_flip, inc_flip : list of flipped declinations and inclinations
     or
-    dflip : a nested list of [dec,inc,1.0]
+    dflip : a nested list of [dec, inc, 1.0]
+
+    Examples
+    ----------
+    Lists of declination and inclination can be flipped to their antipodes:
+
+    >>> decs = [1.0, 358.0, 2.0]
+    >>> incs = [10.0, 12.0, 8.0]
+    >>> ipmag.do_flip(decs, incs)
+    ([181.0, 178.0, 182.0], [-10.0, -12.0, -8.0])
+
+    The function can also take a di_block that is then flipped:
+
+    >>> directions = [[1.0,10.0],[358.0,12.0,],[2.0,8.0]]
+    >>> ipmag.do_flip(di_block=directions)
+    [[181.0, -10.0, 1.0], [178.0, -12.0, 1.0], [182.0, -8.0, 1.0]]
     """
     if di_block is None:
         dec_flip = []
