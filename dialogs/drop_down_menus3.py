@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 
 """
-this module will provide all the functionality for the drop-down controlled vocabulary menus
+provides all the functionality for the drop-down controlled vocabulary menus
+used in MagIC grids
 """
 # pylint: disable=W0612,C0111,C0301
 
@@ -46,6 +47,9 @@ class Menus(object):
 
 
     def InitUI(self):
+        """
+        Initialize interface for drop down menu
+        """
         if self.data_type in ['orient', 'ages']:
             belongs_to = []
         else:
@@ -97,6 +101,13 @@ class Menus(object):
         Add a correctly formatted drop-down-menu for given col_label,
         if required or suggested.
         Otherwise do nothing.
+
+        Parameters
+        ----------
+        col_number : int
+                grid position at which to add a drop down menu
+        col_label : str
+                column name
         """
         if col_label.endswith('**') or col_label.endswith('^^'):
             col_label = col_label[:-2]
@@ -164,6 +175,14 @@ class Menus(object):
         self.choices[col_number] = (method_list, True)
 
     def on_label_click(self, event):
+        """
+        When a grid column or row label is clicked,
+        provide the appropriate behavior.
+        If there is a drop-down menu, it should pop up
+        for assigning to the entire column.
+        Otherwise user should be able to edit the entire column
+        by entering text.
+        """
         col = event.GetCol()
         color = self.grid.GetCellBackgroundColour(0, col)
         if color != (191, 216, 216, 255): # light blue
@@ -351,6 +370,9 @@ class Menus(object):
 
 
     def show_menu(self, event, menu):
+        """
+        Show drop-down menu
+        """
         position = event.GetPosition()
         horizontal, vertical = position
         grid_horizontal, grid_vertical = self.grid.GetSize()
@@ -361,6 +383,15 @@ class Menus(object):
         menu.Destroy()
 
     def update_drop_down_menu(self, grid, choices):
+        """
+        Update drop-down-menus with a new dict of options
+
+        Parameters
+        ----------
+        grid : magic_grid3.MagicGrid
+        choices : list or dict
+            in format: {column_number: ([value1, value2, ...], two_tiered), ... }
+        """
         self.window.Bind(wx.grid.EVT_GRID_CELL_LEFT_CLICK, lambda event: self.on_left_click(event, grid, choices), grid)
         self.choices = choices
 
