@@ -1860,6 +1860,8 @@ def angle(D1,D2):
     -------
     angle : angle between the directions as a single-element array
 
+    Examples
+    --------
     >>> pmag.angle([350.0,10.0],[320.0,20.0])
     array([ 30.59060998])
     """
@@ -1892,6 +1894,11 @@ def cart2dir(cart):
     Returns
     -------
     direction_array : returns an array of [declination, inclination, intensity]
+
+    Examples
+    --------
+    >>> pmag.cart2dir([0,1,0])
+    array([ 90.,   0.,   1.])
     """
     cart=np.array(cart)
     rad=np.pi/180. # constant to convert degrees to radians
