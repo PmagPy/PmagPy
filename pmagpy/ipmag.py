@@ -1707,8 +1707,8 @@ def make_diddd_array(dec,inc,dip_direction,dip):
 
 def shoot(lon, lat, azimuth, maxdist=None):
     """
-    This function enables A95 error ellipses to be drawn in basemap around paleomagnetic
-    poles in conjunction with equi
+    This function enables A95 error ellipses to be drawn in basemap around
+    paleomagnetic poles in conjunction with equi
     (from: http://www.geophysique.be/2011/02/20/matplotlib-basemap-tutorial-09-drawing-circles/)
     """
     glat1 = lat * np.pi / 180.
@@ -1776,8 +1776,8 @@ def shoot(lon, lat, azimuth, maxdist=None):
 
 def equi(m, centerlon, centerlat, radius, color):
     """
-    This function enables A95 error ellipses to be drawn in basemap around paleomagnetic poles
-    in conjunction with shoot
+    This function enables A95 error ellipses to be drawn in basemap around
+    paleomagnetic poles in conjunction with shoot
     (from: http://www.geophysique.be/2011/02/20/matplotlib-basemap-tutorial-09-drawing-circles/).
     """
     glon1 = centerlon
@@ -1797,8 +1797,8 @@ def equi(m, centerlon, centerlat, radius, color):
 
 def equi_colormap(m, centerlon, centerlat, radius, color, alpha='1.0'):
     """
-    This function enables A95 error ellipses to be drawn in basemap around paleomagnetic poles
-    in conjunction with shoot
+    This function enables A95 error ellipses to be drawn in basemap around
+    paleomagnetic poles in conjunction with shoot
     (from: http://www.geophysique.be/2011/02/20/matplotlib-basemap-tutorial-09-drawing-circles/).
     """
     glon1 = centerlon
@@ -1818,8 +1818,8 @@ def equi_colormap(m, centerlon, centerlat, radius, color, alpha='1.0'):
 
 def combine_magic(filenames, outfile, data_model=2.5, magic_table='measurements'):
     """
-    Takes a list of magic-formatted files, concatenates them, and creates a single file.
-    Returns true if the operation was successful.
+    Takes a list of magic-formatted files, concatenates them, and creates a
+    single file. Returns true if the operation was successful.
 
     Parameters
     -----------
@@ -2719,9 +2719,11 @@ def download_magic(infile, dir_path='.', input_dir_path='.',
 
 def upload_magic(concat=0, dir_path='.', data_model=None):
     """
-    Finds all magic files in a given directory, and compiles them into an upload.txt file which can be uploaded into the MagIC database.
-    returns a tuple of either: (False, error_message, errors) if there was a problem creating/validating the upload file
-    or: (filename, '', None) if the upload was fully successful
+    Finds all magic files in a given directory, and compiles them into an
+    upload.txt file which can be uploaded into the MagIC database. Returns a
+    tuple of either: (False, error_message, errors) if there was a problem
+    creating/validating the upload file or: (filename, '', None) if the upload
+    was fully successful.
     """
     SpecDone=[]
     locations = []
@@ -2906,9 +2908,8 @@ def upload_magic(concat=0, dir_path='.', data_model=None):
 
 def upload_magic3(concat=0, dir_path='.', dmodel=None, vocab="", contribution=None):
     """
-    Finds all magic files in a given directory,
-    and compiles them into an upload.txt file
-    which can be uploaded into the MagIC database.
+    Finds all magic files in a given directory, and compiles them into an
+    upload.txt file which can be uploaded into the MagIC database.
 
     Parameters
     ----------
@@ -3083,7 +3084,7 @@ def upload_magic3(concat=0, dir_path='.', dmodel=None, vocab="", contribution=No
 
 def specimens_results_magic(infile='pmag_specimens.txt', measfile='magic_measurements.txt', sampfile='er_samples.txt', sitefile='er_sites.txt', agefile='er_ages.txt', specout='er_specimens.txt', sampout='pmag_samples.txt', siteout='pmag_sites.txt', resout='pmag_results.txt', critout='pmag_criteria.txt', instout='magic_instruments.txt', plotsites = False, fmt='svg', dir_path='.', cors=[], priorities=['DA-AC-ARM','DA-AC-TRM'], coord='g', user='', vgps_level='site', do_site_intensity=True, DefaultAge=["none"], avg_directions_by_sample=False, avg_intensities_by_sample=False, avg_all_components=False, avg_by_polarity=False, skip_directions=False, skip_intensities=False, use_sample_latitude=False, use_paleolatitude=False, use_criteria='default'):
     """
-    Writes magic_intruments, er_specimens, pmag_samples, pmag_sites, pmag_criteria, and pmag_results. The data used to write this is obtained by reading a pmag_speciemns, a magic_measurements, a er_samples, a er_sites, a er_ages.
+    Writes magic_instruments, er_specimens, pmag_samples, pmag_sites, pmag_criteria, and pmag_results. The data used to write this is obtained by reading a pmag_speciemns, a magic_measurements, a er_samples, a er_sites, a er_ages.
     @param -> infile: path from the WD to the pmag speciemns table
     @param -> measfile: path from the WD to the magic measurement file
     @param -> sampfile: path from the WD to the er sample file
@@ -7276,31 +7277,26 @@ def plate_rate_mc(pole1_plon,pole1_plat,pole1_kappa,pole1_N,pole1_age,pole1_age_
     the Monte Carlo sampling method of Swanson-Hysell (2014) to determine the
     associated uncertainty.
 
-    These values are required for pole1 and pole2:
-    ----------------------------
+    Parameters:
+    ------------
     plon : longitude of pole
     plat : latitude of pole
     kappa : Fisher precision parameter for VPGs in pole
     N : number of VGPs in pole
     age : age assigned to pole in Ma
     age_error : 1 sigma age uncertainty in million years
-
-    Additional required parameters:
-    ----------------------------
     ref_loc_lon : longitude of reference location
     ref_loc_lat : latitude of reference location
     samplesize : number of draws from pole and age distributions (default set to 10000)
-
-    Optional parameters for plotting and saving figures (3 are generated):
-    ----------------------------
-    plot : whether to make figures (default is True)
-    savefig : whether to save figures (default is True)
-    save_directory = default is local directory
-    figure_name = prefix for file names
+    plot : whether to make figures (default is True, optional)
+    savefig : whether to save figures (default is True, optional)
+    save_directory = default is local directory (optional)
+    figure_name = prefix for file names (optional)
 
     Returns
-    ----------------------------
-    rate, 2.5 percentile rate, 97.5 percentile rate
+    --------
+    rate : rate of latitudinal motion in cm/yr along with estimated 2.5 and 97.5
+    percentile rate estimates
     """
     from mpl_toolkits.basemap import Basemap
     from scipy import stats
