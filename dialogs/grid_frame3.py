@@ -902,7 +902,7 @@ class GridBuilder(object):
             # make sure minimum defaults are present
             for header in self.reqd_headers:
                 if header not in col_labels:
-                    changes = True
+                    changes = set([1])
                     col_labels.append(header)
         # if there is no pre-existing MagicDataFrame,
         # make a blank grid with do some defaults:
