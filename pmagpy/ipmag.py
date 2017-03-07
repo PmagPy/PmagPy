@@ -387,8 +387,8 @@ def tk03(n=100,dec=0,lat=0,rev='no',G2=0,G3=0):
 
 def unsquish(incs,f):
     """
-    This function applies an unflattening factor (f) to inclination data
-    (incs) and returns 'unsquished' values.
+    This function applies uses a flattening factor (f) to unflatten inclination
+    data (incs) and returns 'unsquished' values.
 
     Parameters
     ----------
@@ -398,6 +398,16 @@ def unsquish(incs,f):
     Returns
     ----------
     incs_unsquished : List of unflattened inclinations (in degrees)
+
+    Examples
+    --------
+    Take a list of inclinations, flatten them using ``ipmag.squish`` and then
+    use ``ipmag.squish`` and the flattening factor to unflatten them.
+
+    >>> inclinations = [43,47,41]
+    >>> squished_incs = ipmag.squish(inclinations,0.4)
+    >>> ipmag.unsquish(squished_incs,0.4)
+    [43.0, 47.0, 41.0]
     """
     try:
         length = len(incs)
