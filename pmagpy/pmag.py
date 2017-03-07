@@ -1735,8 +1735,8 @@ def dogeo(dec,inc,az,pl):
 
 def dogeo_V(input):
     """
-    rotates dec,in into geographic coordinates using az,pl as azimuth and plunge of X direction
-    handles  array for  input
+    Rotates declination and inclination into geographic coordinates of an array
+    using the azimuth and plunge of the X direction (lab arrow) of a specimen.
     """
     input=input.transpose()
     dec, inc, az, pl =input[0],input[1],input[2],input[3]  # unpack input array into separate arrays
@@ -1812,7 +1812,7 @@ def find_samp_rec(s,data,az_type):
 
 def vspec(data):
     """
-    takes the vector mean of replicate measurements at a give step
+    Takes the vector mean of replicate measurements at a given step
     """
     vdata,Dirdata,step_meth=[],[],[]
     tr0=data[0][0] # set beginning treatment
@@ -1858,7 +1858,10 @@ def angle(D1,D2):
 
     Returns
     -------
-    angle : angle between the directions
+    angle : angle between the directions as a single-element array
+
+    >>> pmag.angle([350.0,10.0],[320.0,20.0])
+    array([ 30.59060998])
     """
     D1=np.array(D1)
     if len(D1.shape)>1:
