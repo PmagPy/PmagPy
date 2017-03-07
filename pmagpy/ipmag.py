@@ -311,8 +311,7 @@ def fishrot(k=20, n=100, dec=0, inc=90, di_block=True):
     Returns
     ---------
     di_block : a nested list of [dec,inc,1.0] (default)
-    or
-    declination, inclination : a list of dec and a list of inc
+    dec, inc : a list of dec and a list of inc (if di_block = False)
 
     Examples
     --------
