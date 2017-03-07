@@ -30,14 +30,15 @@ class MainFrame(wx.Frame):
     MagIC GUI
     """
 
-    def __init__(self, WD=None, name='Main Frame', dmodel=None):
+    def __init__(self, WD=None, name='Main Frame', dmodel=None, title=None):
         try:
             version = pmag.get_version()
         except:
             version = ""
-        title = "MagIC GUI   version: %s" % version
-        if sys.platform in ['win32', 'win64']:
-            title += "  Powered by Enthought Canopy"
+        if not title:
+            title = "MagIC GUI   version: %s" % version
+        #if sys.platform in ['win32', 'win64']:
+        #    title += "  Powered by Enthought Canopy"
         wx.Frame.__init__(self, None, wx.ID_ANY, title, name=name)
         #
         self.grid_frame = None
@@ -324,6 +325,19 @@ For full error messages, see {}.""".format(grid_type + "_errors.txt")
                                                                                   vocab=self.contribution.vocab)
         self.failing_items = all_failing_items
         if has_problems:
+            self.highlight_problems(has_problems)
+        if not has_problems:
+            self.validation_mode = set()
+            self.message.SetLabel('')
+            self.bSizer_msg.ShowItems(False)
+            self.hbox.Fit(self)
+        del wait
+
+    def highlight_problems(self, has_problems):
+        """
+        Outline grid buttons in red if they have validation errors
+        """
+        if has_problems:
             self.validation_mode = set(has_problems)
             # highlighting doesn't work with Windows
             if sys.platform in ['win32', 'win62']:
@@ -340,12 +354,7 @@ For full error messages, see {}.""".format(grid_type + "_errors.txt")
                 self.message.SetLabel('Highlighted grids have incorrect or incomplete data')
             self.bSizer_msg.ShowItems(True)
             self.hbox.Fit(self)
-        if not has_problems:
-            self.validation_mode = set()
-            self.message.SetLabel('')
-            self.bSizer_msg.ShowItems(False)
-            self.hbox.Fit(self)
-        del wait
+
 
 
     def highlight_button(self, event):
