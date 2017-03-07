@@ -1033,7 +1033,7 @@ def dovds(data):
 
 def vspec_magic(data):
     """
-   takes average vector of replicate measurements
+    Takes average vector of replicate measurements
     """
     vdata,Dirdata,step_meth=[],[],""
     if len(data)==0:return vdata
@@ -1099,7 +1099,7 @@ def vspec_magic(data):
 
 def vspec_magic3(data):
     """
-   takes average vector of replicate measurements
+    Takes average vector of replicate measurements
     """
     vdata,Dirdata,step_meth=[],[],""
     if len(data)==0:return vdata
@@ -1165,7 +1165,7 @@ def vspec_magic3(data):
 
 def get_specs(data):
     """
-     takes a magic format file and returns a list of unique specimen names
+    Takes a magic format file and returns a list of unique specimen names
     """
     # sort the specimen names
     speclist=[]
@@ -1197,7 +1197,7 @@ def vector_mean(data):
 
 def mark_dmag_rec(s,ind,data):
     """
-    edits demagnetization data to mark "bad" points with measurement_flag
+    Edits demagnetization data to mark "bad" points with measurement_flag
     """
     datablock=[]
     for rec in  data:
@@ -1229,7 +1229,8 @@ def mark_samp(Samps,data,crd):
 
 def find_dmag_rec(s,data,**kwargs):
     """
-    returns demagnetization data for specimen s from the data - excludes other kinds of experiments and "bad" measurements
+    Returns demagnetization data for specimen s from the data. Excludes other
+    kinds of experiments and "bad" measurements
     """
     if 'version' in kwargs.keys() and kwargs['version']==3:
         data=data.to_dict('records')  # convert dataframe to list of dictionaries
@@ -1311,7 +1312,7 @@ def find_dmag_rec(s,data,**kwargs):
 
 def magic_read(infile, data=None, return_keys=False):
     """
-    reads  a Magic template file, puts data in a list of dictionaries.
+    Reads  a Magic template file, puts data in a list of dictionaries.
     """
     hold,magic_data,magic_record,magic_keys=[],[],{},[]
     if data: #
@@ -1397,8 +1398,8 @@ def magic_read(infile, data=None, return_keys=False):
 
 def magic_read_dict(path, data=None, sort_by_this_name=None, return_keys=False):
     """
-    read a magic-formatted tab-delimited file.
-    return a dictionary of dictionaries, with this format:
+    Read a magic-formatted tab-delimited file and return a dictionary of
+    dictionaries, with this format:
     {'Z35.5a': {'specimen_weight': '1.000e-03', 'er_citation_names': 'This study', 'specimen_volume': '', 'er_location_name': '', 'er_site_name': 'Z35.', 'er_sample_name': 'Z35.5', 'specimen_class': '', 'er_specimen_name': 'Z35.5a', 'specimen_lithology': '', 'specimen_type': ''}, ....}
     return data, file_type, and keys (if return_keys is true)
     """
@@ -1458,7 +1459,7 @@ def magic_read_dict(path, data=None, sort_by_this_name=None, return_keys=False):
 
 def sort_magic_data(magic_data,sort_name):
     '''
-    sort magic_data by on header (like er_specimen_name for example)
+    Sort magic_data by header (like er_specimen_name for example)
     '''
     magic_data_sorted={}
     for rec in magic_data:
@@ -1470,8 +1471,8 @@ def sort_magic_data(magic_data,sort_name):
 
 def upload_read(infile,table):
     """
-    reads  a table from a MagIC upload (or downloaded) txt file,
-     puts data in a list of dictionaries
+    Reads a table from a MagIC upload (or downloaded) txt file, puts data in a
+    list of dictionaries
     """
     delim='tab'
     hold,magic_data,magic_record,magic_keys=[],[],{},[]
@@ -1628,8 +1629,8 @@ def magic_write(ofile,Recs,file_type):
 
 def dotilt(dec,inc,bed_az,bed_dip):
     """
-    Does a tilt correction on directions (dec,inc) using bedding dip direction
-    and bed_dip.
+    Does a tilt correction on a direction (dec,inc) using bedding dip direction
+    and bedding dip.
 
     Parameters
     ----------
@@ -1641,6 +1642,11 @@ def dotilt(dec,inc,bed_az,bed_dip):
     Returns
     -------
     dec,inc : a tuple of rotated dec, inc values
+
+    Examples
+    -------
+    >>> pmag.dotilt(91.2,43.1,90.0,20.0)
+    (90.952568837153436, 23.103411670066617)
     """
     rad=np.pi/180. # converts from degrees to radians
     X=dir2cart([dec,inc,1.]) # get cartesian coordinates of dec,inc
@@ -1689,8 +1695,22 @@ def dotilt_V(input):
 
 def dogeo(dec,inc,az,pl):
     """
-    called as:  dogeo(dec,inc,az,pl)
-    rotates dec,inc into geographic coordinates using az,pl as azimuth and plunge of X direction
+    Rotates declination and inclination into geographic coordinates using the
+    azimuth and plunge of the X direction (lab arrow) of a specimen.
+
+    Parameters
+    ----------
+    dec : declination in specimen coordinates
+    inc : inclination in specimen coordinates
+
+    Returns
+    -------
+    rotated_direction : tuple of declination, inclination in geographic coordinates
+
+    Examples
+    --------
+    >>> pmag.dogeo(0.0,90.0,0.0,45.5)
+    (180.0, 44.5)
     """
     A1,A2,A3=[],[],[] # set up lists for rotation vector
     Dir=[dec,inc,1.] # put dec inc in direction list and set  length to unity
@@ -1715,8 +1735,8 @@ def dogeo(dec,inc,az,pl):
 
 def dogeo_V(input):
     """
-    rotates dec,in into geographic coordinates using az,pl as azimuth and plunge of X direction
-    handles  array for  input
+    Rotates declination and inclination into geographic coordinates of an array
+    using the azimuth and plunge of the X direction (lab arrow) of a specimen.
     """
     input=input.transpose()
     dec, inc, az, pl =input[0],input[1],input[2],input[3]  # unpack input array into separate arrays
@@ -1792,7 +1812,7 @@ def find_samp_rec(s,data,az_type):
 
 def vspec(data):
     """
-    takes the vector mean of replicate measurements at a give step
+    Takes the vector mean of replicate measurements at a given step
     """
     vdata,Dirdata,step_meth=[],[],[]
     tr0=data[0][0] # set beginning treatment
@@ -1838,7 +1858,12 @@ def angle(D1,D2):
 
     Returns
     -------
-    angle : angle between the directions
+    angle : angle between the directions as a single-element array
+
+    Examples
+    --------
+    >>> pmag.angle([350.0,10.0],[320.0,20.0])
+    array([ 30.59060998])
     """
     D1=np.array(D1)
     if len(D1.shape)>1:
@@ -1869,6 +1894,11 @@ def cart2dir(cart):
     Returns
     -------
     direction_array : returns an array of [declination, inclination, intensity]
+
+    Examples
+    --------
+    >>> pmag.cart2dir([0,1,0])
+    array([ 90.,   0.,   1.])
     """
     cart=np.array(cart)
     rad=np.pi/180. # constant to convert degrees to radians
@@ -1892,7 +1922,7 @@ def cart2dir(cart):
 
 def tauV(T):
     """
-    gets the eigenvalues (tau) and eigenvectors (V) from matrix T
+    Gets the eigenvalues (tau) and eigenvectors (V) from matrix T
     """
     t,V,tr=[],[],0.
     ind1,ind2,ind3=0,1,2
@@ -1946,6 +1976,11 @@ def dir2cart(d):
     Returns
     -------
     cart : array of [x,y,z]
+
+    Examples
+    --------
+    >>> pmag.dir2cart([200,40,1])
+    array([-0.71984631, -0.26200263,  0.64278761])
     """
     ints=np.ones(len(d)).transpose() # get an array of ones to plug into dec,inc pairs
     d=np.array(d)
@@ -1986,7 +2021,22 @@ def findrec(s,data):
 
 def domean(data,start,end,calculation_type):
     """
-     gets average direction using fisher or pca (line or plane) methods
+    Gets average direction using Fisher or principal component analysis (line
+    or plane) methods
+
+    Parameters
+    ----------
+    data : block of data as [treatment,dec,inc,int]
+    start : step being used as start of fit (often temperature minimum)
+    end : step being used as end of fit (often temperature maximum)
+    calculation_type : string describing type of calculation to be made
+    'DE-BFL' (line), 'DE-BFL-A' (line-anchored), 'DE-BFL-O' (line-with-origin),
+    'DE-BFP' (plane), 'DE-FM' (Fisher mean)
+
+    Returns
+    -------
+    mpars : dictionary with the keys "specimen_n","measurement_step_min",
+    "measurement_step_max","specimen_mad","specimen_dec","specimen_inc"
     """
     mpars={}
     datablock=[]
@@ -8348,14 +8398,14 @@ class MissingCommandLineArgException(Exception):
 
 def domagmap(date,**kwargs):
     """
-    returns lists of declination, inclination and intensities for lat/lon grid for 
-    desired model and date. 
+    returns lists of declination, inclination and intensities for lat/lon grid for
+    desired model and date.
 
     Parameters:
     _________________
     date = Required date in decimal years (Common Era, negative for Before Common Era)
-    
-    Optional Parameters: 
+
+    Optional Parameters:
     ______________
     mod  = model to use ('arch3k','cals3k','pfm9k','hfm10k','cals10k.2','cals10k.1b)
     alt  = altitude
@@ -8367,13 +8417,13 @@ def domagmap(date,**kwargs):
     B = list of total field intensities in nT
     Br = list of radial field intensities
     lons = list of longitudes evaluated
-    lats = list of latitudes evaluated     
- 
+    lats = list of latitudes evaluated
+
     """
     if 'lon_0' in kwargs.keys(): # check if there are keyword arguments
         lon_0=kwargs['lon_0'] # if lon_0 is set, use that one
-    else: # otherwise..... 
-        lon_0=0. # set the default lon_0 to 0. 
+    else: # otherwise.....
+        lon_0=0. # set the default lon_0 to 0.
     if 'alt' in kwargs.keys(): # check if  alt in kwargs
         alt=kwargs['alt']
     if 'mod' in kwargs.keys(): # check if  alt in kwargs
@@ -8397,7 +8447,7 @@ def domagmap(date,**kwargs):
             B[j][i]=Int*1e-3 # convert the string to microtesla (from nT)
             Binc[j][i]=Inc # store the inclination value
             Bdec[j][i]=Dec # store the declination value
-    return Bdec,Binc,B,Brad,lons,lats # return the arrays.  
+    return Bdec,Binc,B,Brad,lons,lats # return the arrays.
 
 
 
