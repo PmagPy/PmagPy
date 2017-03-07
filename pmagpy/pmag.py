@@ -1629,8 +1629,8 @@ def magic_write(ofile,Recs,file_type):
 
 def dotilt(dec,inc,bed_az,bed_dip):
     """
-    Does a tilt correction on directions (dec,inc) using bedding dip direction
-    and bed_dip.
+    Does a tilt correction on a direction (dec,inc) using bedding dip direction
+    and bedding dip.
 
     Parameters
     ----------
@@ -1695,8 +1695,22 @@ def dotilt_V(input):
 
 def dogeo(dec,inc,az,pl):
     """
-    called as:  dogeo(dec,inc,az,pl)
-    rotates dec,inc into geographic coordinates using az,pl as azimuth and plunge of X direction
+    Rotates declination and inclination into geographic coordinates using the
+    azimuth and plunge of the X direction (lab arrow) of a specimen.
+
+    Parameters
+    ----------
+    dec : declination in specimen coordinates
+    inc : inclination in specimen coordinates
+
+    Returns
+    -------
+    rotated_direction : tuple of declination, inclination in geographic coordinates
+
+    Examples
+    --------
+    >>> pmag.dogeo(0.0,90.0,0.0,45.5)
+    (180.0, 44.5)
     """
     A1,A2,A3=[],[],[] # set up lists for rotation vector
     Dir=[dec,inc,1.] # put dec inc in direction list and set  length to unity
