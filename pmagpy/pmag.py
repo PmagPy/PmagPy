@@ -1922,7 +1922,7 @@ def cart2dir(cart):
 
 def tauV(T):
     """
-    gets the eigenvalues (tau) and eigenvectors (V) from matrix T
+    Gets the eigenvalues (tau) and eigenvectors (V) from matrix T
     """
     t,V,tr=[],[],0.
     ind1,ind2,ind3=0,1,2
@@ -1976,6 +1976,11 @@ def dir2cart(d):
     Returns
     -------
     cart : array of [x,y,z]
+
+    Examples
+    --------
+    >>> pmag.dir2cart([200,40,1])
+    array([-0.71984631, -0.26200263,  0.64278761])
     """
     ints=np.ones(len(d)).transpose() # get an array of ones to plug into dec,inc pairs
     d=np.array(d)
