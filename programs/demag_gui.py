@@ -6982,7 +6982,7 @@ class SaveMyPlot(wx.Frame):
 # Run the GUI
 #--------------------------------------------------------------
 
-def main(WD=None, standalone_app=True, parent=None, write_to_log_file=True, DM=None):
+def start(WD=None, standalone_app=True, parent=None, write_to_log_file=True, DM=None):
     # to run as module:
     if not standalone_app:
         disableAll = wx.WindowDisabler()
@@ -6998,7 +6998,7 @@ def main(WD=None, standalone_app=True, parent=None, write_to_log_file=True, DM=N
         app.frame.Show()
         app.MainLoop()
 
-if __name__ == '__main__':
+def main():
     if "-h" in sys.argv:
         help(__name__)
         sys.exit()
@@ -7014,4 +7014,7 @@ if __name__ == '__main__':
         dm_index = sys.argv.index('-DM')
         if len(sys.argv)>=dm_index+2:
             data_model = sys.argv[dm_index+1]
-    main(WD=WD,write_to_log_file=write_to_log_file,DM=data_model)
+    start(WD=WD,write_to_log_file=write_to_log_file,DM=data_model)
+
+if __name__ == '__main__':
+    main()

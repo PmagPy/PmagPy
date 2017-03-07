@@ -357,7 +357,7 @@ def merge_pmag_recs(old_recs):
                 rec[header]=""
     return recs
 
-def main(**kwargs):
+def convert(**kwargs):
 
     # unpack keyword args
     user = kwargs.get('user', '')
@@ -880,7 +880,7 @@ def main(**kwargs):
 def do_help():
     return __doc__
 
-if __name__ == '__main__':
+def main():
     kwargs={}
     if "-h" in sys.argv:
         help(__name__)
@@ -941,4 +941,7 @@ if __name__ == '__main__':
         kwargs['lon'] = sys.argv[ind+1]
     if "-A" in sys.argv: kwargs['noave']=True
 
-    main(**kwargs)
+    convert(**kwargs)
+
+if __name__ == '__main__':
+    main()

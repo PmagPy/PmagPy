@@ -53,7 +53,7 @@ import pmagpy.pmag as pmag
 import pmagpy.new_builder as nb
 from pandas import DataFrame
 
-def main(**kwargs):
+def convert(**kwargs):
     """
     Converts CIT formated Magnetometer data into MagIC format for Analysis and contribution to the MagIC database
 
@@ -441,7 +441,7 @@ def do_help():
     """
     return __doc__
 
-if __name__ == "__main__":
+def main():
     kwargs = {}
     if '-WD' in sys.argv:
         ind=sys.argv.index("-WD")
@@ -506,4 +506,7 @@ if __name__ == "__main__":
         ind = sys.argv.index('-sn')
         kwargs['sitename'] = sys.argv[ind+1]
 
-    main(**kwargs)
+    convert(**kwargs)
+
+if __name__ == "__main__":
+    main()

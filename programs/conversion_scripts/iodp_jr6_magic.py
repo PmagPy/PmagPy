@@ -49,7 +49,7 @@ def fix_separation(filename, new_filename):
     new_file.close()
     return new_filename
 
-def main(**kwargs):
+def convert(**kwargs):
 
     # initialize some stuff
     demag="N"
@@ -216,8 +216,10 @@ def main(**kwargs):
 
     return (True, meas_file)
 
+def do_help():
+    return __doc__
 
-if __name__ == '__main__':
+def main():
     kwargs={}
     # get command line arguments
     if '-WD' in sys.argv:
@@ -265,4 +267,7 @@ if __name__ == '__main__':
         ind=sys.argv.index("-v")
         kwargs['volume']=sys.argv[ind+1]
 
-    main(**kwargs)
+    convert(**kwargs)
+
+if __name__ == '__main__':
+    main()

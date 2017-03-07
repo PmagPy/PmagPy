@@ -50,7 +50,7 @@ from numpy import array
 import pytz, datetime
 
 
-def main(**kwargs):
+def convert(**kwargs):
 
     # initialize some stuff
     version_num = pmag.get_version()
@@ -315,7 +315,7 @@ def main(**kwargs):
 def do_help():
     return __doc__
 
-if  __name__ == "__main__":
+def main():
     # get command line arguments
     kwargs={}
     if "-h" in sys.argv:
@@ -376,4 +376,7 @@ if  __name__ == "__main__":
     if 'dmy' in sys.argv:
         kwargs['dmy_flag']=True
 
-    main(**kwargs)
+    convert(**kwargs)
+
+if  __name__ == "__main__":
+    main()

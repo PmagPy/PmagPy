@@ -49,7 +49,7 @@ import pmagpy.pmag as pmag
 import pmagpy.new_builder as nb
 from pandas import DataFrame
 
-def main(**kwargs):
+def convert(**kwargs):
     """
     
     """
@@ -221,9 +221,9 @@ def main(**kwargs):
     return True, meas_file
 
 def do_help():
-    return main.__doc__
+    return __doc__
 
-if __name__ == "__main__":
+def main():
     kwargs = {}
     if '-WD' in sys.argv:
         ind = sys.argv.index('-WD')
@@ -272,4 +272,7 @@ if __name__ == "__main__":
         ind=sys.argv.index("-lon")
         kwargs['lon']=sys.argv[ind+1]
 
-    main(**kwargs)
+    convert(**kwargs)
+
+if __name__ == "__main__":
+    main()

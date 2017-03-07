@@ -52,7 +52,7 @@ import pandas as pd
 import pytz, datetime
 
 
-def main(**kwargs):
+def convert(**kwargs):
     version_num = pmag.get_version()
 
     user = kwargs.get('user', '')
@@ -250,7 +250,7 @@ def main(**kwargs):
 def do_help():
     return __doc__
 
-if  __name__ == "__main__":
+def main():
     kwargs={}
     if "-h" in sys.argv:
         help(__name__)
@@ -306,4 +306,7 @@ if  __name__ == "__main__":
         ind=sys.argv.index("-tz")
         kwargs['timezone']=sys.argv[ind+1]
 
-    main(**kwargs)
+    convert(**kwargs)
+
+if  __name__ == "__main__":
+    main()

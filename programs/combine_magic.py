@@ -21,14 +21,14 @@ import sys,os
 import pmagpy.ipmag as ipmag
 import pmagpy.command_line_extractor as extractor
 
-def main(filenames,outfile,dir_path='.',data_model=2.5):
+def combine(filenames,outfile,dir_path='.',data_model=2.5):
     files=[]
     for f in filenames.split():
         files.append(os.path.join(dir_path,f)) 
     outfile=(os.path.join(dir_path,outfile))
     ipmag.combine_magic(files, outfile, data_model=data_model)
 
-if __name__ == "__main__":
+def main():
     if "-h" in sys.argv:
         help(__name__)
         sys.exit()
@@ -49,4 +49,7 @@ if __name__ == "__main__":
         dataframe = extractor.command_line_dataframe([["F", True, '']])
         args = extractor.extract_and_check_args(sys.argv, dataframe)
         data_model, dir_path, outfile, filenames = extractor.get_vars(["dm","WD", "F", "f"], args)
-    main(filenames,outfile,dir_path,data_model)
+    combine(filenames,outfile,dir_path,data_model)
+
+if __name__ == "__main__":
+    main()

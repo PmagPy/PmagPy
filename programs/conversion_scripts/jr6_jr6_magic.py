@@ -248,7 +248,7 @@ def main(**kwargs):
 def do_help():
     return __doc__
 
-if  __name__ == "__main__":
+def main():
     kwargs={}
     if "-h" in sys.argv:
         help(__name__)
@@ -304,4 +304,7 @@ if  __name__ == "__main__":
         ind=sys.argv.index("-v")
         kwargs['volume']=sys.argv[ind+1] # enter volume in cc, convert to m^3
 
-    main(**kwargs)
+    convert(**kwargs)
+
+if  __name__ == "__main__":
+    main()

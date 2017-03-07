@@ -86,7 +86,7 @@ def skip(N,ind,L):
     while L[ind]=="":ind+=1
     return ind
 
-def main(**kwargs):
+def convert(**kwargs):
     #
     # initialize variables
     #
@@ -392,7 +392,7 @@ def main(**kwargs):
 def do_help():
     return __doc__
 
-if __name__ == "__main__":
+def main():
     kwargs={}
     if '-WD' in sys.argv:
         ind=sys.argv.index("-WD")
@@ -451,4 +451,7 @@ if __name__ == "__main__":
         ind = sys.argv.index("-lon")
         kwargs['lon'] = sys.argv[ind+1]
 
-    main(**kwargs)
+    convert(**kwargs)
+
+if __name__ == "__main__":
+    main()

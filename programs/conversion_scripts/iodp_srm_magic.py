@@ -32,7 +32,7 @@ import pmagpy.new_builder as nb
 from pandas import DataFrame
 import datetime
 
-def main(**kwargs):
+def convert(**kwargs):
     # initialize defaults
     version_num=pmag.get_version()
     citation="This study"
@@ -293,7 +293,7 @@ def main(**kwargs):
 def do_help():
     return __doc__
 
-if __name__ == '__main__':
+def main():
     kwargs={}
     if "-h" in sys.argv:
         help(__name__)
@@ -330,4 +330,7 @@ if __name__ == '__main__':
         ind = sys.argv.index("-lon")
         kwargs['lon'] = sys.argv[ind+1]
 
-    main(**kwargs)
+    convert(**kwargs)
+
+if __name__ == '__main__':
+    main()

@@ -87,7 +87,7 @@ import pmagpy.pmag as pmag
 import pmagpy.new_builder as nb
 from pandas import DataFrame
 
-def main(**kwargs):
+def convert(**kwargs):
     # initialize some stuff
     dec=[315,225,180,135,45,90,270,270,270,90,180,180,0,0,0]
     inc=[0,0,0,0,0,-45,-45,0,45,45,45,-45,-90,-45,45]
@@ -329,7 +329,7 @@ def main(**kwargs):
 def do_help():
     return __doc__
 
-if __name__ == '__main__':
+def main():
     kwargs = {}
     if "-h" in sys.argv:
         help(__name__)
@@ -395,4 +395,7 @@ if __name__ == '__main__':
         ind = sys.argv.index('-mv')
         kwargs['mv'] = sys.argv[ind+1]
 
-    main(**kwargs)
+    convert(**kwargs)
+
+if __name__ == '__main__':
+    main()

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-EXAMPLE DOCSTRING for script
+EXAMPLE DOCSTRING for script (delete this line)
 
 NAME
     template_magic.py
@@ -21,13 +21,14 @@ import pmagpy.pmag as pmag
 import pmagpy.new_builder as nb
 from pandas import DataFrame
 
-def main(**kwargs):
+def convert(**kwargs):
     """
     EXAMPLE DOCSTRING for function (you would usually put the discription here)
 
     Parameters
     -----------
     user : colon delimited list of analysts (default : "")
+    magfile : input magnetometer file (required)
 
     Returns
     -----------
@@ -112,8 +113,7 @@ def do_help():
     """
     return __doc__
 
-#this if statement insures it's being called from the commandline
-if __name__ == "__main__":
+def main():
     kwargs = {} #create a key word argument dictionary
     if "-h" in sys.argv:
         help(__name__)
@@ -125,4 +125,8 @@ if __name__ == "__main__":
         ind=sys.argv.index("-f")
         kwargs['magfile']=sys.argv[ind+1]
 
-    main(**kwargs)
+    convert(**kwargs)
+
+#this if statement insures it's being called from the commandline
+if __name__ == "__main__":
+    main()

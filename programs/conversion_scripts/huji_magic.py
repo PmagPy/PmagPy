@@ -107,7 +107,7 @@ import pmagpy.new_builder as nb
 from pandas import DataFrame
 import pytz, datetime
 
-def main(**kwargs):
+def convert(**kwargs):
 
     user = kwargs.get('user', '')
     dir_path = kwargs.get('dir_path', '.')
@@ -612,7 +612,7 @@ def main(**kwargs):
 def do_help():
     return __doc__
 
-if __name__ == "__main__":
+def main():
     kwargs={}
     if "-h" in sys.argv:
         help(__name__)
@@ -670,4 +670,7 @@ if __name__ == "__main__":
     if '-A' in sys.argv:
         kwargs['noave']=True
 
-    main(**kwargs)
+    convert(**kwargs)
+
+if __name__ == "__main__":
+    main()

@@ -32,7 +32,7 @@ import pmagpy.pmag as pmag
 import pmagpy.new_builder as nb
 from pandas import DataFrame
 
-def main(**kwargs):
+def convert(**kwargs):
     # initialize defaults
     version_num=pmag.get_version()
 
@@ -245,7 +245,7 @@ def main(**kwargs):
 def do_help():
     return __doc__
 
-if __name__ == '__main__':
+def main():
     kwargs = {}
     # get command line sys.argv
 
@@ -285,6 +285,9 @@ if __name__ == '__main__':
         kwargs['lon'] = sys.argv[ind+1]
     if "-v" in sys.argv:
         ind=sys.argv.index("-v")
-        kwsys.argv['volume']=sys.argv[ind+1]
+        kwargs['volume']=sys.argv[ind+1]
 
-    main(**kwargs)
+    convert(**kwargs)
+
+if __name__ == '__main__':
+    main()

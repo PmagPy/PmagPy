@@ -1153,7 +1153,7 @@ class message_box(wx.Frame):
         self.panel.SetSizer(self.sizer)
 
 
-def main(wd=None,noave=False):
+def start(wd=None,noave=False):
     if not wd:
         WD = os.getcwd()
     else:
@@ -1164,8 +1164,7 @@ def main(wd=None,noave=False):
     app.frame.Center()
     app.MainLoop()
 
-
-if __name__ == '__main__':
+def main():
     kwargs={}
     if '-h' in sys.argv:
         help(__name__)
@@ -1174,4 +1173,8 @@ if __name__ == '__main__':
         ind=sys.argv.index("-WD")
         kwargs['wd']=sys.argv[ind+1]
     if "-A" in sys.argv: kwargs['noave']=True
-    main(**kwargs)
+    start(**kwargs)
+
+
+if __name__ == '__main__':
+    main()
