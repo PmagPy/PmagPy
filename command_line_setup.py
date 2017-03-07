@@ -137,7 +137,7 @@ setup(
             'gui_scripts': [
                     'magic_gui.py = programs.magic_gui:main',
                     'pmag_gui.py = programs.pmag_gui:main',
-                    'demag_gui.py = programs.demag_gui:do_main',
+                    'demag_gui.py = programs.demag_gui:main',
                     'thellier_gui.py = programs.thellier_gui:main',
                     'pmag_gui = programs.pmag_gui:main',
                     'magic_gui2.py = programs.magic_gui2:main',
