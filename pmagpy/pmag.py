@@ -2021,7 +2021,22 @@ def findrec(s,data):
 
 def domean(data,start,end,calculation_type):
     """
-     gets average direction using fisher or pca (line or plane) methods
+    Gets average direction using Fisher or principal component analysis (line
+    or plane) methods
+
+    Parameters
+    ----------
+    data : block of data as [treatment,dec,inc,int]
+    start : step being used as start of fit (often temperature minimum)
+    end : step being used as end of fit (often temperature maximum)
+    calculation_type : string describing type of calculation to be made
+    'DE-BFL' (line), 'DE-BFL-A' (line-anchored), 'DE-BFL-O' (line-with-origin),
+    'DE-BFP' (plane), 'DE-FM' (Fisher mean)
+
+    Returns
+    -------
+    mpars : dictionary with the keys "specimen_n","measurement_step_min",
+    "measurement_step_max","specimen_mad","specimen_dec","specimen_inc"
     """
     mpars={}
     datablock=[]
