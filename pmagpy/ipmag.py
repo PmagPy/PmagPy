@@ -500,7 +500,7 @@ def do_flip(dec=None, inc=None, di_block=None):
     >>> ipmag.do_flip(decs, incs)
     ([181.0, 178.0, 182.0], [-10.0, -12.0, -8.0])
 
-    The function can also take a di_block that is then flipped:
+    The function can also take a di_block and returns a flipped di_block:
 
     >>> directions = [[1.0,10.0],[358.0,12.0,],[2.0,8.0]]
     >>> ipmag.do_flip(di_block=directions)
@@ -521,7 +521,7 @@ def do_flip(dec=None, inc=None, di_block=None):
         return dflip
 
 
-def bootstrap_fold_test(Data,num_sims=1000,min_untilt=-10,max_untilt=120, bedding_error=0, save = False, save_folder = '.',fmt = 'svg',ninety_nine=False):
+def bootstrap_fold_test(Data, num_sims=1000, min_untilt=-10, max_untilt=120, bedding_error=0, save = False, save_folder = '.',fmt = 'svg',ninety_nine=False):
     """
     Conduct a bootstrap fold test (Tauxe and Watson, 1994)
 
@@ -622,7 +622,7 @@ def bootstrap_fold_test(Data,num_sims=1000,min_untilt=-10,max_untilt=120, beddin
     plt.show()
 
 
-def common_mean_bootstrap(Data1,Data2,NumSims=1000, save=False, save_folder = '.', fmt = 'svg',figsize=(7,2.3), x_tick_bins = 4):
+def common_mean_bootstrap(Data1, Data2, NumSims=1000, save=False, save_folder = '.', fmt = 'svg', figsize=(7,2.3), x_tick_bins = 4):
     """
     Conduct a bootstrap test (Tauxe, 2010) for a common mean on two declination,
     inclination data sets
@@ -704,7 +704,7 @@ def common_mean_bootstrap(Data1,Data2,NumSims=1000, save=False, save_folder = '.
     plt.show()
 
 
-def common_mean_watson(Data1,Data2,NumSims=5000,plot='no', save=False, save_folder = '.', fmt = 'svg'):
+def common_mean_watson(Data1, Data2, NumSims=5000, plot='no', save=False, save_folder = '.', fmt = 'svg'):
     """
     Conduct a Watson V test for a common mean on two directional data sets.
 
@@ -1621,8 +1621,25 @@ def sb_vgp_calc(dataframe,site_correction = 'yes', dec_tc = 'dec_tc', inc_tc = '
 
 def make_di_block(dec,inc):
     """
-    Some pmag.py functions require a list of unit vectors [dec,inc,1.] as input. This
-    function takes declination and inclination data and make it into such a list
+    Some pmag.py and ipmag.py functions require or will take a list of unit
+    vectors [dec,inc,1.] as input. This function takes declination and
+    inclination data and make it into such a list.
+
+    Parameters
+    -----------
+    dec : list of declinations
+    inc : list of inclinations
+
+    Returns
+    -----------
+    di_block : nest list of declination, inclination lists
+
+    Examples
+    -----------
+    >>> decs = [180.3, 179.2, 177.2]
+    >>> incs = [12.1, 13.7, 11.9]
+    >>> ipmag.make_di_block(decs,incs)
+    [[180.3, 12.1, 1.0], [179.2, 13.7, 1.0], [177.2, 11.9, 1.0]]
     """
     di_block=[]
     for n in range(0,len(dec)):
