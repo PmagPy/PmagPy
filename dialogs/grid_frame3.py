@@ -417,6 +417,8 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
                         self.drop_down_menu.add_drop_down(col_number, col)
                     elif col in self.contribution.vocab.suggested:
                         self.drop_down_menu.add_drop_down(col_number, col)
+                    elif col in ['specimen', 'sample', 'site', 'location']:
+                        self.drop_down_menu.add_drop_down(col_number, col)
                     if col == "method_codes":
                         self.drop_down_menu.add_method_drop_down(col_number, col)
                 else:
@@ -439,6 +441,8 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
                     if name in self.contribution.vocab.vocabularies:
                         self.drop_down_menu.add_drop_down(col_number, name)
                     elif name in self.contribution.vocab.suggested:
+                        self.drop_down_menu.add_drop_down(col_number, name)
+                    elif name in ['specimen', 'sample', 'site']:
                         self.drop_down_menu.add_drop_down(col_number, name)
                     if name == "method_codes":
                         self.drop_down_menu.add_method_drop_down(col_number, name)
