@@ -533,12 +533,9 @@ def bootstrap_fold_test(Data, num_sims=1000, min_untilt=-10, max_untilt=120, bed
     maxima. If the confidence bounds enclose 100% unfolding, the data "pass"
     the fold test.
 
-    Required Parameters
+    Parameters
     ----------
-    Data : a numpy array of directional data [dec,inc,dip_direction,dip]
-
-    Optional Parameters (defaults are used if not specified)
-    ----------
+    Data : a numpy array of directional data [dec, inc, dip_direction, dip]
     num_sims : number of bootstrap samples (default is 1000)
     min_untilt : minimum percent untilting applied to the data (default is -10%)
     max_untilt : maximum percent untilting applied to the data (default is 120%)
@@ -546,7 +543,33 @@ def bootstrap_fold_test(Data, num_sims=1000, min_untilt=-10, max_untilt=120, bed
     save : optional save of plots (default is False)
     save_folder : path to directory where plots should be saved
     fmt : format of figures to be saved (default is 'svg')
-    ninety_nine : changes confidence bounds from default 95 percent to 99
+    ninety_nine : changes confidence bounds from 95 percent to 99 if True
+
+    Returns
+    -------
+    three plots : uncorrected data equal area plot, tilt-corrected data equal
+    area plot, bootstrap results and CDF of the eigenvalue maximum
+
+    Examples
+    --------
+    Data in separate lists of dec, inc, dip_direction, dip data can be made into
+    the needed array using the ``ipmag.make_diddd_array`` function.
+
+    >>> dec = [132.5,124.3,142.7,130.3,163.2]
+    >>> inc = [12.1,23.2,34.2,37.7,32.6]
+    >>> dip_direction = [265.0,265.0,265.0,164.0,164.0]
+    >>> dip = [20.0,20.0,20.0,72.0,72.0]
+    >>> data_array = ipmag.make_diddd_array(dec,inc,dip_direction,dip)
+    >>> data_array
+    array([[ 132.5,   12.1,  265. ,   20. ],
+       [ 124.3,   23.2,  265. ,   20. ],
+       [ 142.7,   34.2,  265. ,   20. ],
+       [ 130.3,   37.7,  164. ,   72. ],
+       [ 163.2,   32.6,  164. ,   72. ]])
+
+    This array can then be passed to the function:
+
+    >>> ipmag.bootstrap_fold_test(data_array)
     """
 
     print 'doing ',num_sims,' iterations...please be patient.....'
