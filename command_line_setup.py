@@ -4,17 +4,16 @@ from setuptools import setup, find_packages
 from codecs import open
 import sys
 from os import path
-
 from setuptools.command.install import install
-
 import setuptools.command.install as install_lib
+from pmagpy import version
 
 
 #import glob
 # Get list of programs to alias
 from programs_list import programs_list
 
-version_num = '3.8.8-1'
+version_num = version.version.strip('pmagpy-')
 here = path.abspath(path.dirname(__file__))
 
 packages = find_packages(exclude=['pmagpy', 'pmagpy_tests.examples'

@@ -13,6 +13,12 @@ import find_pmag_dir
 
 
 def get_version():
+    """
+    Returns
+    ---------
+    version : str
+            pmagpy version string, format "pmagpy-3.8.8"
+    """
     version=find_pmag_dir.get_version()
     return version
 
