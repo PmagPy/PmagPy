@@ -1623,7 +1623,7 @@ def make_di_block(dec,inc):
     """
     Some pmag.py and ipmag.py functions require or will take a list of unit
     vectors [dec,inc,1.] as input. This function takes declination and
-    inclination data and make it into such a list.
+    inclination data and make it into such a nest list of lists.
 
     Parameters
     -----------
@@ -1632,7 +1632,7 @@ def make_di_block(dec,inc):
 
     Returns
     -----------
-    di_block : nest list of declination, inclination lists
+    di_block : nested list of declination, inclination lists
 
     Examples
     -----------
@@ -1653,6 +1653,21 @@ def unpack_di_block(di_block):
     declination values, a list of inclination values and a list of magnetic
     moment values. Mag_moment values are optional, while dec and inc values are
     required.
+
+    Parameters
+    -----------
+    di_block : nested list of declination, inclination lists
+
+    Returns
+    -----------
+    dec : list of declinations
+    inc : list of inclinations
+
+    Examples
+    -----------
+    >>> directions = [[180.3, 12.1, 1.0], [179.2, 13.7, 1.0], [177.2, 11.9, 1.0]]
+    >>> ipmag.unpack_di_block(directions)
+    ([180.3, 179.2, 177.2], [12.1, 13.7, 11.9], [1.0, 1.0, 1.0])
     """
     dec_list = []
     inc_list = []
