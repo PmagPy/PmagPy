@@ -173,7 +173,8 @@ class Vocabulary(object):
 
         # add in boolean category to controlled vocabularies
         bool_items = [{'item': True}, {'item': False}, {'item': 'true'},
-                      {'item': 'false'}, {'item': 0}, {'item': 1}]
+                      {'item': 'false'}, {'item': 0}, {'item': 1},
+                      {'item': 0.0}, {'item': 1.0}]
         series = Series({'label': 'Boolean', 'items': bool_items})
         data['boolean'] = series
         # use vocabulary name to get possible values for the column name
