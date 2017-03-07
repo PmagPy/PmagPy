@@ -13,11 +13,39 @@ import find_pmag_dir
 
 
 def get_version():
+    """
+    Returns
+    ---------
+    version : str
+            pmagpy version string, format "pmagpy-3.8.8"
+    """
     version=find_pmag_dir.get_version()
     return version
 
 
 def sort_diclist(undecorated,sort_on):
+    """
+    Sort a list of dictionaries by the value in each
+    dictionary for the sorting key
+
+    Parameters
+    ----------
+    undecorated : list of dicts
+    sort_on : str, numeric
+        key that is present in all dicts to sort on
+
+    Returns
+    ---------
+    ordered list of dicts
+
+    Examples
+    ---------
+    >>> lst = [{'key1': 10, 'key2': 2}, {'key1': 1, 'key2': 20}]
+    >>> sort_diclist(lst, 'key1')
+    [{'key2': 20, 'key1': 1}, {'key2': 2, 'key1': 10}]
+    >>> sort_diclist(lst, 'key2')
+    [{'key2': 2, 'key1': 10}, {'key2': 20, 'key1': 1}]
+    """
     decorated=[(dict_[sort_on],dict_) for dict_ in undecorated]
     decorated.sort()
     return[dict_ for (key, dict_) in decorated]
