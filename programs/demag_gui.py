@@ -108,15 +108,22 @@ class Demag_GUI(wx.Frame):
         """
         Initializes the GUI by creating necessary variables, importing data,
         setting icon, and initializing the UI and menu
-        @param - WD: Working directory where data files will be written to
+
+        Parameters
+        ----------
+        WD : Working directory where data files will be written to
         and read from if None will prompt user for location (default: None)
-        @param - parent: wx.Frame object that is already running in a wx.App
+        parent : wx.Frame object that is already running in a wx.App
         or NoneType object if this is the top level window (default: None)
-        @param - write_to_log_file: verbal or non-verbal GUI modes True will
+        write_to_log_file : verbal or non-verbal GUI modes True will
         redirect stdout to a .log file False will print to stdout as normal
         (default: True)
-        @param - test_mode_on: used for unit testing if True all dialogs
+        test_mode_on : used for unit testing if True all dialogs
         will return with AffermativeID (default: False)
+
+        Returns
+        -------
+        Instance of Demag_GUI class
         """
         default_style = wx.MINIMIZE_BOX | wx.MAXIMIZE_BOX | wx.RESIZE_BORDER | wx.SYSTEM_MENU | wx.CAPTION | wx.CLOSE_BOX | wx.CLIP_CHILDREN | wx.NO_FULL_REPAINT_ON_RESIZE | wx.WS_EX_CONTEXTHELP | wx.FRAME_EX_CONTEXTHELP
         wx.Frame.__init__(self, parent, wx.ID_ANY, self.title, style = default_style, name='demag gui')
@@ -680,16 +687,16 @@ class Demag_GUI(wx.Frame):
     def create_menu(self):
         """
         Create the MenuBar for the GUI current structure is:
-        File - Change Working Directory, Import Interpretations from LSQ 
+        File : Change Working Directory, Import Interpretations from LSQ 
         file, Import interpretations from a redo file, Save interpretations 
         to a redo file, Save MagIC tables, Save Plots
-        Edit - New Interpretation, Delete Interpretation, Next 
+        Edit : New Interpretation, Delete Interpretation, Next 
         Interpretation, Previous Interpretation, Next Specimen, Previous 
         Speciemen, Flag Measurement Data, Coordinate Systems
-        Analysis - Acceptance Criteria, Sample Orientation, Flag 
+        Analysis : Acceptance Criteria, Sample Orientation, Flag 
         Interpretaions
-        Tools - Interpretation Editor, VGP Viewer
-        Help - Usage and Tips, PmagPy Cookbook, Open Docs, Github Page, Open 
+        Tools : Interpretation Editor, VGP Viewer
+        Help : Usage and Tips, PmagPy Cookbook, Open Docs, Github Page, Open 
         Debugger
         """
         self.menubar = wx.MenuBar()
@@ -887,9 +894,12 @@ class Demag_GUI(wx.Frame):
         """
         Convenience function that sets current specimen to s and calculates 
         data for that specimen then redraws all plots.
-        @param - s: specimen to set current specimen too
-        @param - update_high_plots: bool which decides if high level mean 
-        plot updates (default: False)
+
+        Parameters
+        ----------
+        s : specimen to set current specimen too
+        update_high_plots : bool which decides if high level mean plot
+            updates (default: False)
         """
         self.initialize_CART_rot(s)
 
@@ -1281,7 +1291,10 @@ class Demag_GUI(wx.Frame):
         """
         draw the specimen interpretations on the zijderveld, the specimen 
         equal area, and the M/M0 plots
-        @alters: fit.lines, fit.points, fit.eqarea_data, fit.mm0_data, 
+
+        Alters
+        ------
+        fit.lines, fit.points, fit.eqarea_data, fit.mm0_data, 
         zijplot, specimen_eqarea_interpretation, mplot_interpretation
         """
 
@@ -1568,7 +1581,12 @@ class Demag_GUI(wx.Frame):
         Get the current level of the high level mean plot and the name of 
         the corrisponding site, study, etc. As well as the code for the 
         current coordinate system.
-        @return: tup -> (high_level_type,high_level_name,coordinate_system)
+
+        Returns
+        -------
+        (high_level_type,high_level_name,coordinate_system) : tuple object 
+            containing current high level type, name, and coordinate system 
+            being analyzed
         """
         if self.COORDINATE_SYSTEM=="geographic": dirtype='DA-DIR-GEO'
         elif self.COORDINATE_SYSTEM=="tilt-corrected": dirtype='DA-DIR-TILT'
@@ -1909,7 +1927,10 @@ class Demag_GUI(wx.Frame):
         """
         Sets current specimen to s and calculates the data necessary to plot 
         the specimen plots (zijderveld, specimen eqarea, M/M0)
-        @param - s: specimen to set as the GUI's current specimen
+
+        Parameters
+        ----------
+        s: specimen to set as the GUI's current specimen
         """
         self.s = s #only place in code where self.s is to be set directly
         if self.orthogonal_box.GetValue()=="X=East":
@@ -1992,15 +2013,21 @@ class Demag_GUI(wx.Frame):
         Goes through the data checks required to add an interpretation to 
         the param specimen with the name param name, the bounds param fmin 
         and param fmax, and calculation type param PCA_type.
-        @param - specimen: specimen with measurement data to add the 
+
+        Parameters
+        ----------
+        specimen : specimen with measurement data to add the 
         interpretation to
-        @param - name: name of the new interpretation
-        @param - fmin: lower bound of new interpretation
-        @param - fmax: upper bound of new interpretation
-        @param - PCA_type: type of regression or mean for new interpretaion 
+        name : name of the new interpretation
+        fmin : lower bound of new interpretation
+        fmax : upper bound of new interpretation
+        PCA_type : type of regression or mean for new interpretaion 
         (default: DE-BFL or line)
-        @prarm - color: color to plot the new interpretation in
-        @return - returns new fit object or None if fit could not be added
+        color : color to plot the new interpretation in
+
+        Returns
+        -------
+        new Fit object or None if fit could not be added
         """
         if specimen not in self.Data.keys() and not suppress_warnings:
             self.user_warning("there is no measurement data for %s and therefore no interpretation can be created for this specimen"%(specimen))
@@ -2034,8 +2061,11 @@ class Demag_GUI(wx.Frame):
     def delete_fit(self,fit,specimen=None):
         """
         removes fit from GUI results data
-        @param: fit - fit to remove
-        @param: specimen - specimen of fit to remove, if not provided and 
+
+        Parameters
+        ----------
+        fit : fit to remove
+        specimen : specimen of fit to remove, if not provided and 
         set to None then the function will find the specimen itself
         """
         if specimen==None:
@@ -2059,8 +2089,11 @@ class Demag_GUI(wx.Frame):
     def calculate_vgp_data(self):
         """
         Calculates VGPS for all samples, sites, and locations
-        @return - VGP_Data: dictionary of structure {sample: {comp: data}, 
-        site: {comp: data}, location: {comp: data}}
+
+        Returns
+        -------
+        VGP_Data : dictionary of structure {sample: {comp: data}, 
+            site: {comp: data}, location: {comp: data}}
         """
         #get criteria if it exists else use default
         crit_data = self.read_criteria_file()
@@ -2248,6 +2281,17 @@ class Demag_GUI(wx.Frame):
     def convert_ages_to_calendar_year(self,er_ages_rec):
         """
         convert all age units to calendar year
+
+        Parameters
+        ----------
+        er_ages_rec : Dict type object containing preferbly at least keys 
+            'age', 'age_unit', and either 'age_range_high', 'age_range_low' 
+            or 'age_sigma'
+
+        Returns
+        -------
+        er_ages_rec : Same dict object input but altered to have new records 
+            'age_cal_year_range_low' and 'age_cal_year_range_high'
         """
         if "age" not in  er_ages_rec.keys():
             return(er_ages_rec)
@@ -2337,8 +2381,14 @@ class Demag_GUI(wx.Frame):
         reads 2.5 or 3.0 formatted PmagPy criteria file and returns a set of 
         nested dictionary 2.5 formated criteria data that can be passed into 
         pmag.grade to filter data.
-        @param: criteria_file - name of criteria file to read in
-        @return: nested dictionary 2.5 formated criteria data
+
+        Parameters
+        ----------
+        criteria_file : name of criteria file to read in
+
+        Returns
+        -------
+        nested dictionary 2.5 formated criteria data
         """
         acceptance_criteria=pmag.initialize_acceptance_criteria()
         if self.data_model==3:
@@ -2375,18 +2425,24 @@ class Demag_GUI(wx.Frame):
         or plane least squared regression or a fisher mean on the 
         measurement data of specimen in coordinate system between bounds 
         tmin to tmax
-        @param: specimen - specimen with measurement data in self.Data
-        @param: fit - fit for which the regression or mean is being applied 
-        (used for calculating measurement index of tmin and tmax)
-        @param: tmin - lower bound of measurement data
-        @param: tmax - upper bound of measurement data
-        @param: coordinate_system - which coordinate system the measurement 
-        data should be in
-        @param: calculation_type - type of regression or mean to preform 
-        (options - DE-BFL:line,DE-BFL-A:line-anchored,DE-BFL-O:line-with-
-        origin,DE-FM:fisher,DE-BFP:plane)
-        @return: a 2.5 data model dictionary of the dec, inc, etc of the 
-        regression and mean
+
+        Parameters
+        ----------
+        specimen : specimen with measurement data in self.Data
+        fit : fit for which the regression or mean is being applied 
+            (used for calculating measurement index of tmin and tmax)
+        tmin : lower bound of measurement data
+        tmax : upper bound of measurement data
+        coordinate_system : which coordinate system the measurement data
+            should be in
+        calculation_type : type of regression or mean to preform 
+            (options - DE-BFL:line,DE-BFL-A:line-anchored,DE-BFL-O:line-with-
+            origin,DE-FM:fisher,DE-BFP:plane)
+
+        Returns
+        -------
+        mpars : a 2.5 data model dictionary type specimen record of the dec, 
+            inc, etc of the regression or mean
         """
         if tmin == '' or tmax == '': return
         beg_pca,end_pca = self.get_indices(fit, tmin, tmax, specimen)
@@ -2431,12 +2487,14 @@ class Demag_GUI(wx.Frame):
         step size and type = calculation_type and testing the mad or a95 
         then finding peaks in these to note areas of maximum error then fits 
         between these peaks excluding them.
-        @param: step_size - int that is the size of fits to make while 
-        stepping through data if None then step size = len(meas data for 
-        specimen)/10 rounded up if that value is greater than 3 else it is 3 
-        (default: None)
-        @param: calculation_type - type of fit to make (default: DE-BFL or  
-        line)
+
+        Parameters
+        ----------
+        step_size : int that is the size of fits to make while stepping
+            through data if None then step size = len(meas data for 
+            specimen)/10 rounded up if that value is greater than 3 else it 
+            is 3 (default: None)
+        calculation_type : type of fit to make (default: DE-BFL or line)
         """
         if not self.user_warning("This feature is in ALPHA and still in development and testing. It is subject to bugs and will often create a LOT of new interpretations. This feature should only be used to get a general idea of the trend of the data before actually mannuely interpreting the data and the output of this function should certainly not be trusted as 100% accurate and useable for publication. Would you like to continue?"): return
         if not self.clear_interpretations(): return
@@ -2491,15 +2549,20 @@ class Demag_GUI(wx.Frame):
 
     def get_high_level_mean_pars (self,high_level_type,high_level_name,calculation_type,elements_type,mean_fit,dirtype):
         """
-        @param: high_level_type - 'samples','sites','locations','study'
-        @param: high_level_name - sample, site, location, or study whose 
-        data to which to apply the mean
-        @param: calculation_type - 'Bingham','Fisher','Fisher by polarity'
-        @param: elements_type - what to average: 'specimens', 'samples', 
-        'sites' (Ron. ToDo allow VGP and maybe locations?)
-        @param: mean_fit - name of interpretation to average if All uses all
-        figure out what level to average,and what elements to average 
-        (specimen, samples, sites, vgp)
+        Gets the Parameters of a mean of lower level data such as a Site    
+        level Fisher mean of Specimen interpretations
+
+        Parameters
+        ----------
+        high_level_type : 'samples','sites','locations','study'
+        high_level_name : sample, site, location, or study whose
+            data to which to apply the mean
+        calculation_type : 'Bingham','Fisher','Fisher by polarity'
+        elements_type : what to average: 'specimens', 'samples',
+            'sites' (Ron. ToDo allow VGP and maybe locations?)
+        mean_fit : name of interpretation to average if All uses all
+            figure out what level to average,and what elements to average
+            (specimen, samples, sites, vgp)
         """
 
         elements_list=self.Data_hierarchy[high_level_type][high_level_name][elements_type]
@@ -2585,11 +2648,18 @@ class Demag_GUI(wx.Frame):
         """
         Uses pmag.dolnp or pmag.fisher_by_pol to do a fisher mean or fisher 
         mean by polarity on the list of dictionaries in pars for mean
-        @param: pars_for_mean - list of dictionaries with all data to average
-        @param: calculation_type - type of mean to take (options: Fisher, 
+
+        Parameters
+        ----------
+        pars_for_mean : list of dictionaries with all data to average
+        calculation_type : type of mean to take (options: Fisher, 
         Fisher by polarity)
-        @return: dictionary with information of mean or empty dictionary
-        @TODO: put Bingham statistics back in once a method for displaying 
+
+        Returns
+        -------
+        mpars : dictionary with information of mean or empty dictionary
+
+        TODO : put Bingham statistics back in once a method for displaying 
         them is figured out
         """
 
@@ -2673,7 +2743,10 @@ class Demag_GUI(wx.Frame):
         Doesn't update plots or logger or any visable data but resets all 
         measurement data, hierarchy data, and optionally resets 
         intepretations.
-        @param: reset_interps - bool to tell the function to reset fits or 
+
+        Parameters
+        ----------
+        reset_interps : bool to tell the function to reset fits or 
         not.
         """
         new_Data_info=self.get_data_info()
@@ -2732,10 +2805,13 @@ class Demag_GUI(wx.Frame):
         """
         Resets GUI data and updates GUI displays such as plots, boxes, and 
         logger
-        @param: warn_user - bool which decides if a warning dialog is 
-        displayed to the user to ask about reseting data
-        @param: reset_interps - bool which decides if interpretations are 
-        read in for pmag tables or left alone
+
+        Parameters
+        ----------
+        warn_user : bool which decides if a warning dialog is displayed to
+            the user to ask about reseting data
+        reset_interps : bool which decides if interpretations are read in
+            for pmag tables or left alone
         """
         if warn_user and not self.data_loss_warning(): return False
 
@@ -2775,13 +2851,17 @@ class Demag_GUI(wx.Frame):
         converts Kelvin/Tesla temperature/AF data from the MagIC/Redo format 
         to that of Celsius/milliTesla which is used by the GUI as it is 
         often more intuitive
-        @param tmin0 -> the input temperature/AF lower bound value to convert
-        @param tmax0 -> the input temperature/AF upper bound value to convert
-        @param specimen -> the specimen these bounds are for
-        @return tmin -> the converted lower bound temperature/AF or None if 
-        input format was wrong
-        @return tmax -> the converted upper bound temperature/AF or None if 
-        the input format was wrong
+
+        Parameters
+        ----------
+        tmin0 : the input temperature/AF lower bound value to convert
+        tmax0 : the input temperature/AF upper bound value to convert
+        specimen : the specimen these bounds are for
+
+        tmin : the converted lower bound temperature/AF or None if input
+            format was wrong
+        tmax : the converted upper bound temperature/AF or None if the input
+            format was wrong
         """
         if specimen not in self.Data:
             print("no measurement data found loaded for specimen %s and will be ignored"%(specimen))
@@ -2830,14 +2910,20 @@ class Demag_GUI(wx.Frame):
         steps using the convention that the first good step of that name is 
         the indicated step by that bound if there are no steps of the names 
         tmin or tmax then it complains and reutrns a tuple (None,None).
-        @param: fit -> the fit who's bounds to find the indecies of if no 
-        upper or lower bounds are specified
-        @param: tmin -> the lower bound to find the index of
-        @param: tmax -> the upper bound to find the index of
-        @param: specimen -> the specimen who's steps to search for indecies 
-        (defaults to currently selected specimen)
-        @return: a tuple with the lower bound index then the upper bound 
-        index
+
+        Parameters
+        ----------
+        fit : the fit who's bounds to find the indecies of if no upper or 
+            lower bounds are specified
+        tmin : the lower bound to find the index of
+        tmax : the upper bound to find the index of
+        specimen : the specimen who's steps to search for indecies (defaults
+            to currently selected specimen)
+
+        Returns
+        -------
+        (tmin_index, tmax_index) : a tuple with the lower bound index then 
+            the upper bound index
         """
         if specimen==None:
             specimen = self.s
@@ -2920,8 +3006,14 @@ class Demag_GUI(wx.Frame):
         Takes in a list of dictionaries old_recs and returns a list of 
         dictionaries where every dictionary in the returned list has the 
         same keys as all the others.
-        @param: old_recs - list of dictionaries to fix
-        @return: list of dictionaries with same keys
+
+        Parameters
+        ----------
+        old_recs : list of dictionaries to fix
+
+        Returns
+        -------
+        recs : list of dictionaries with same keys
         """
         recs={}
         recs=deepcopy(old_recs)
@@ -2961,7 +3053,10 @@ class Demag_GUI(wx.Frame):
     def clear_interpretations(self,message=None):
         """
         Clears all specimen interpretations
-        @param: message - message to display when warning the user that all 
+
+        Parameters
+        ----------
+        message : message to display when warning the user that all 
         fits will be deleted. If None default message is used (None is 
         default)
         """
@@ -2990,7 +3085,10 @@ class Demag_GUI(wx.Frame):
     def set_test_mode(self,on_off):
         """
         Sets GUI test mode on or off
-        @param: on_off - bool value to set test mode to
+
+        Parameters
+        ----------
+        on_off : bool value to set test mode to
         """
         if type(on_off) != bool: print("test mode must be a bool"); return
         self.test_mode = on_off
@@ -2998,8 +3096,11 @@ class Demag_GUI(wx.Frame):
     def mark_meas_good(self,g_index):
         """
         Marks the g_index'th measuremnt of current specimen good
-        @param: g_index - int that gives the index of the measurement to 
-        mark good, indexed from 0
+
+        Parameters
+        ----------
+        g_index : int that gives the index of the measurement to mark good,
+            indexed from 0
         """
         meas_index,ind_data = 0,[]
         for i,meas_data in enumerate(self.mag_meas_data):
@@ -3034,8 +3135,11 @@ class Demag_GUI(wx.Frame):
     def mark_meas_bad(self,g_index):
         """
         Marks the g_index'th measuremnt of current specimen bad
-        @param: g_index - int that gives the index of the measurement to 
-        mark bad, indexed from 0
+
+        Parameters
+        ----------
+        g_index : int that gives the index of the measurement to mark bad,
+            indexed from 0
         """
         meas_index,ind_data = 0,[]
         for i,meas_data in enumerate(self.mag_meas_data):
@@ -3070,9 +3174,12 @@ class Demag_GUI(wx.Frame):
     def mark_fit_good(self,fit,spec=None):
         """
         Marks fit good so it is used in high level means
-        @param: fit - fit to mark good
-        @param: spec - specimen of fit to mark good (optional though runtime 
-        will increase if not provided)
+
+        Parameters
+        ----------
+        fit : fit to mark good
+        spec : specimen of fit to mark good (optional though runtime will
+            increase if not provided)
         """
         if spec==None:
             for spec,fits in self.pmag_results_data['specimens'].items():
@@ -3089,7 +3196,10 @@ class Demag_GUI(wx.Frame):
     def mark_fit_bad(self,fit):
         """
         Marks fit bad so it is excluded from high level means
-        @param: fit - fit to mark bad
+
+        Parameters
+        ----------
+        fit : fit to mark bad
         """
         if fit not in self.bad_fits:
             self.bad_fits.append(fit); return True
@@ -3726,8 +3836,11 @@ class Demag_GUI(wx.Frame):
         """
         reads a magic formated data file from path and sorts the keys 
         according to sort_by_this_name
-        @param: path - path to file to read
-        @param: sort_by_this_name - variable to sort data by
+
+        Parameters
+        ----------
+        path : path to file to read
+        sort_by_this_name : variable to sort data by
         """
         DATA={}
         fin=open(path,'rU')
@@ -3749,7 +3862,10 @@ class Demag_GUI(wx.Frame):
         """
         Clears all current interpretations and replaces them with 
         interpretations read from LSQ file.
-        @param: LSQ_file - path to LSQ file to read in
+
+        Parameters
+        ----------
+        LSQ_file : path to LSQ file to read in
         """
         cont = self.user_warning("LSQ import only works if all measurements are present and not averaged during import from magnetometer files to magic format. Do you wish to continue reading interpretations?")
         if not cont: return
@@ -3787,7 +3903,10 @@ class Demag_GUI(wx.Frame):
         """
         Reads a .redo formated file and replaces all current interpretations 
         with interpretations taken from the .redo file
-        @param: redo_file - path to .redo file to read
+
+        Parameters
+        ----------
+        redo_file : path to .redo file to read
         """
         if not self.clear_interpretations(): return
         print("-I- read redo file and processing new bounds")
@@ -3829,7 +3948,10 @@ class Demag_GUI(wx.Frame):
     def change_WD(self,new_WD):
         """
         Changes Demag GUI's current WD to new_WD if possible
-        @param: new_WD - WD to change to current GUI's WD
+
+        Parameters
+        ----------
+        new_WD : WD to change to current GUI's WD
         """
         if not os.path.isdir(new_WD): return
         self.WD = new_WD
@@ -4066,7 +4188,10 @@ class Demag_GUI(wx.Frame):
     def show_dlg(self,dlg):
         """
         Abstraction function that is to be used instead of dlg.ShowModal
-        @param: dlg - dialog to ShowModal if possible
+
+        Parameters
+        ----------
+        dlg : dialog to ShowModal if possible
         """
         if not self.test_mode:
             dlg.Center()
@@ -4111,8 +4236,11 @@ class Demag_GUI(wx.Frame):
     def saved_dlg(self, message, caption = 'Saved:'):
         """
         Shows a dialog that tells the user that a file has been saved
-        @param: message - message to display to user
-        @param: caption - title for dialog (default: "Saved:")
+
+        Parameters
+        ----------
+        message : message to display to user
+        caption : title for dialog (default: "Saved:")
         """
         dlg = wx.MessageDialog(self, caption=caption,message=message,style=wx.OK)
         result = self.show_dlg(dlg)
@@ -4121,9 +4249,15 @@ class Demag_GUI(wx.Frame):
     def user_warning(self, message, caption = 'Warning!'):
         """
         Shows a dialog that warns the user about some action
-        @param: message - message to display to user
-        @param: caption - title for dialog (default: "Warning!")
-        @return: True or False
+
+        Parameters
+        ----------
+        message : message to display to user
+        caption : title for dialog (default: "Warning!")
+
+        Returns
+        -------
+        continue_bool : True or False
         """
         dlg = wx.MessageDialog(self, message, caption, wx.OK | wx.CANCEL | wx.ICON_WARNING)
         if self.show_dlg(dlg) == wx.ID_OK:
@@ -4145,7 +4279,10 @@ class Demag_GUI(wx.Frame):
         Function called on close of change acceptance criteria dialog that 
         writes new criteria to the hardrive and sets new criteria as GUI's 
         current criteria.
-        @param: dia - closed change criteria dialog
+
+        Parameters
+        ----------
+        dia : closed change criteria dialog
         """
         window_list_specimens=['specimen_n','specimen_mad','specimen_dang','specimen_alpha95']
         window_list_samples=['sample_n','sample_n_lines','sample_n_planes','sample_k','sample_r','sample_alpha95']
@@ -4221,7 +4358,10 @@ class Demag_GUI(wx.Frame):
         """
         Function called after save high level pmag table dialog. It 
         calculates VGPs, high level means, and saves them the hard drive.
-        @param: dia - save higher level pmag tables
+
+        Parameters
+        ----------
+        dia : save higher level pmag tables
         """
         if dia.cb_acceptance_criteria.GetValue():
             use_criteria='existing'
@@ -5086,8 +5226,14 @@ class Demag_GUI(wx.Frame):
         """
         alters fit_box and mean_fit_box lists to match with changes in 
         specimen or new/removed interpretations
-        @param: new_fit -> boolean representing if there is a new fit
-        @alters: fit_box selection, tmin_box selection, tmax_box selection, 
+
+        Parameters
+        ----------
+        new_fit : boolean representing if there is a new fit
+
+        Alters
+        ------
+        fit_box selection, tmin_box selection, tmax_box selection, 
         mean_fit_box selection, current_fit
         """
         #update the fit box
@@ -5101,8 +5247,14 @@ class Demag_GUI(wx.Frame):
         """
         alters fit_box lists to match with changes in specimen or new/
         removed interpretations
-        @param: new_fit -> boolean representing if there is a new fit
-        @alters: fit_box selection and choices, current_fit
+
+        Parameters
+        ----------
+        new_fit : boolean representing if there is a new fit
+
+        Alters
+        ------
+        fit_box selection and choices, current_fit
         """
         #get new fit data
         if self.s in self.pmag_results_data['specimens'].keys(): self.fit_list=list(map(lambda x: x.name, self.pmag_results_data['specimens'][self.s]))
@@ -5128,8 +5280,10 @@ class Demag_GUI(wx.Frame):
         """
         alters mean_fit_box list to match with changes in specimen or new/
         removed interpretations
-        @alters: mean_fit_box selection and choices, mean_types_box string 
-        selection
+
+        Alters
+        ------
+        mean_fit_box selection and choices, mean_types_box string selection
         """
         self.mean_fit_box.Clear()
         #update high level mean fit box
@@ -5290,7 +5444,9 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
         self.set_mean_stats_color()
 
     def MacReopenApp(self):
-        """Called when the doc icon is clicked"""
+        """
+        Called when the doc icon is clicked
+        """
         self.GetTopWindow().Raise()
 
 #==========================================================================================#
@@ -5321,6 +5477,12 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
 
     def on_menu_make_MagIC_results_tables(self,event):
         """
+         Creates or Updates Specimens or Pmag Specimens MagIC table, 
+         overwrites .redo file for safety, and starts User dialog to 
+         generate other MagIC tables for later contribution to the MagIC 
+         database. The following describes the steps used in the 2.5 data 
+         format to do this:
+
          1. read pmag_specimens.txt, pmag_samples.txt, pmag_sites.txt, and 
             sort out lines with LP-DIR in magic_codes
          2. saves a clean pmag_*.txt files without LP-DIR stuff as 
@@ -6014,7 +6176,10 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
         """
         Toggles the GUI's help mode which allows user to click on any part 
         of the dialog and get help
-        @param: event -> wx.MenuEvent that triggers this function
+
+        Parameters
+        ----------
+        event : wx.MenuEvent that triggers this function
         """
         self.helper.BeginContextHelp(self)
 
@@ -6059,9 +6224,14 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
         """
         toggles between zoom and pan effects for the zijderveld on right 
         click
-        @param: event -> the wx.MouseEvent that triggered the call of this 
-        function
-        @alters: zijderveld_setting, toolbar1 setting
+
+        Parameters
+        ----------
+        event : the wx.MouseEvent that triggered the call of this function
+
+        Alters
+        ------
+        zijderveld_setting, toolbar1 setting
         """
         if event.LeftIsDown() or event.ButtonDClick():
             return
@@ -6077,9 +6247,15 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
     def home_zijderveld(self,event):
         """
         homes zijderveld to original position
-        @param: event -> the wx.MouseEvent that triggered the call of this 
+
+        Parameters
+        ----------
+        event : the wx.MouseEvent that triggered the call of this 
         function
-        @alters: toolbar1 setting
+
+        Alters
+        ------
+        toolbar1 setting
         """
         try: self.toolbar1.home()
         except TypeError: pass
@@ -6088,7 +6264,10 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
         """
         If mouse is over data point making it selectable change the shape of 
         the cursor
-        @param: event -> the wx Mouseevent for that click
+
+        Parameters
+        ----------
+        event : the wx Mouseevent for that click
         """
         if not array(self.CART_rot).any(): return
         pos=event.GetPosition()
@@ -6118,8 +6297,14 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
         Get mouse position on double click find the nearest interpretation 
         to the mouse
         position then select that interpretation
-        @param: event -> the wx Mouseevent for that click
-        @alters: current_fit
+
+        Parameters
+        ----------
+        event : the wx Mouseevent for that click
+
+        Alters
+        ------
+        current_fit
         """
         if not array(self.CART_rot_good).any(): return
         pos=event.GetPosition()
@@ -6152,8 +6337,14 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
         Get mouse position on double right click find the interpretation in 
         range of mouse
         position then mark that interpretation bad or good
-        @param: event -> the wx Mouseevent for that click
-        @alters: current_fit
+
+        Parameters
+        ----------
+        event : the wx Mouseevent for that click
+
+        Alters
+        ------
+        current_fit
         """
         if not array(self.CART_rot).any(): return
         pos=event.GetPosition()
@@ -6192,9 +6383,14 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
         """
         toggles between zoom and pan effects for the specimen equal area on 
         right click
-        @param: event -> the wx.MouseEvent that triggered the call of this 
-        function
-        @alters: specimen_EA_setting, toolbar2 setting
+
+        Parameters
+        ----------
+        event : the wx.MouseEvent that triggered the call of this function
+
+        Alters
+        ------
+        specimen_EA_setting, toolbar2 setting
         """
         if event.LeftIsDown() or event.ButtonDClick():
             return
@@ -6210,9 +6406,14 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
     def home_specimen_equalarea(self,event):
         """
         returns the equal specimen area plot to it's original position
-        @param: event -> the wx.MouseEvent that triggered the call of this 
-        function
-        @alters: toolbar2 setting
+
+        Parameters
+        ----------
+        event : the wx.MouseEvent that triggered the call of this function
+
+        Alters
+        ------
+        toolbar2 setting
         """
         self.toolbar2.home()
 
@@ -6220,7 +6421,10 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
         """
         If mouse is over data point making it selectable change the shape of 
         the cursor
-        @param: event -> the wx Mouseevent for that click
+
+        Parameters
+        ----------
+        event : the wx Mouseevent for that click
         """
         if not self.specimen_EA_xdata or not self.specimen_EA_ydata: return
         pos=event.GetPosition()
@@ -6250,8 +6454,14 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
         Get mouse position on double click find the nearest interpretation 
         to the mouse
         position then select that interpretation
-        @param: event -> the wx Mouseevent for that click
-        @alters: current_fit
+
+        Parameters
+        ----------
+        event : the wx Mouseevent for that click
+
+        Alters
+        ------
+        current_fit
         """
         if not self.specimen_EA_xdata or not self.specimen_EA_ydata: return
         pos=event.GetPosition()
@@ -6280,9 +6490,14 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
         """
         toggles between zoom and pan effects for the high equal area on 
         right click
-        @param: event -> the wx.MouseEvent that triggered the call of this 
-        function
-        @alters: high_EA_setting, toolbar4 setting
+
+        Parameters
+        ----------
+        event : the wx.MouseEvent that triggered the call of this function
+
+        Alters
+        ------
+        high_EA_setting, toolbar4 setting
         """
         if event.LeftIsDown():
             return
@@ -6298,9 +6513,14 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
     def home_high_equalarea(self,event):
         """
         returns high equal area to it's original position
-        @param: event -> the wx.MouseEvent that triggered the call of this 
-        function
-        @alters: toolbar4 setting
+
+        Parameters
+        ----------
+        event : the wx.MouseEvent that triggered the call of this function
+
+        Alters
+        ------
+        toolbar4 setting
         """
         self.toolbar4.home()
 
@@ -6308,7 +6528,10 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
         """
         If mouse is over data point making it selectable change the shape of 
         the cursor
-        @param: event -> the wx Mouseevent for that click
+
+        Parameters
+        ----------
+        event : the wx Mouseevent for that click
         """
         if self.ie_open and self.ie.show_box.GetValue() != "specimens": return
         pos=event.GetPosition()
@@ -6337,12 +6560,16 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
     def on_equalarea_high_select(self,event,fig=None,canvas=None):
         """
         Get mouse position on double click find the nearest interpretation 
-        to the mouse
-        position then select that interpretation
-        @param: event -> the wx Mouseevent for that click
-        @alters: current_fit, s, mean_fit, fit_box selection, mean_fit_box 
-        selection, specimens_box selection, tmin_box selection, tmax_box 
-        selection
+        to the mouse position then select that interpretation
+
+        Parameters
+        ----------
+        event : the wx Mouseevent for that click
+
+        Alters
+        ------
+        current_fit, s, mean_fit, fit_box selection, mean_fit_box selection,
+        specimens_box selection, tmin_box selection, tmax_box selection
         """
         if self.ie_open and self.ie.show_box.GetValue() != "specimens": return
         if not self.high_EA_xdata or not self.high_EA_ydata: return
@@ -6502,7 +6729,10 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
         other bound is and selects it in the logger. Requires 2 calls to 
         completely update a interpretation. NOTE: Requires an interpretation 
         to exist before it is called.
-        @param: index - index of the step to select in the logger
+
+        Parameters
+        ----------
+        index : index of the step to select in the logger
         """
         tmin_index,tmax_index="",""
         if str(self.tmin_box.GetValue())!="":
@@ -6775,9 +7005,15 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
         Picks out the fit selected in the fit combobox and sets it to the 
         current fit of the GUI then calls the select function of the fit to 
         set the GUI's bounds boxes and alter other such parameters
-        @param: event -> the wx.ComboBoxEvent that triggers this function
-        @alters: current_fit, fit_box selection, tmin_box selection, 
-        tmax_box selection
+
+        Parameters
+        ----------
+        event : the wx.ComboBoxEvent that triggers this function
+
+        Alters
+        ------
+        current_fit, fit_box selection, tmin_box selection, tmax_box 
+        selection
         """
         fit_val = self.fit_box.GetValue()
         if self.s not in self.pmag_results_data['specimens'] or not self.pmag_results_data['specimens'][self.s] or fit_val == 'None':
@@ -6798,8 +7034,14 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
     def on_enter_fit_name(self,event):
         """
         Allows the entering of new fit names in the fit combobox
-        @param: event -> the wx.ComboBoxEvent that triggers this function
-        @alters: current_fit.name
+
+        Parameters
+        ----------
+        event : the wx.ComboBoxEvent that triggers this function
+
+        Alters
+        ------
+        current_fit.name
         """
         if self.current_fit == None:
             self.on_btn_add_fit(event)
@@ -6818,9 +7060,8 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
 
     def on_save_interpretation_button(self,event):
         """
-        on the save button
-        the interpretation is saved to pmag_results_table data
-        in all coordinate systems
+        on the save button the interpretation is saved to pmag_results_table 
+        data in all coordinate systems
         """
         if self.current_fit:
             calculation_type=self.current_fit.get(self.COORDINATE_SYSTEM)['calculation_type']
@@ -6843,8 +7084,14 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
     def on_btn_add_fit(self,event):
         """
         add a new interpretation to the current specimen
-        @param: event -> the wx.ButtonEvent that triggered this function
-        @alters: pmag_results_data
+
+        Parameters
+        ----------
+        event : the wx.ButtonEvent that triggered this function
+
+        Alters
+        ------
+        pmag_results_data
         """
         self.current_fit = self.add_fit(self.s,None,None,None)
         self.generate_warning_text()
@@ -6860,7 +7107,10 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
     def on_btn_delete_fit(self,event):
         """
         removes the current interpretation
-        @param: event -> the wx.ButtonEvent that triggered this function
+
+        Parameters
+        ----------
+        event : the wx.ButtonEvent that triggered this function
         """
         self.delete_fit(self.current_fit,specimen=self.s)
 
