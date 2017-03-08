@@ -616,9 +616,9 @@ def convert(**kwargs):
                 if treat[1][0]=='0':
                     meas_type="LT-T-Z"
                 else:
-                    MeasRec["treat_dc_field"]='%8.3e' % (labfield) # labfield in tesla (convert from microT)
-                    MeasRec["treat_dc_field_phi"]='%7.1f' % (phi) # labfield phi
-                    MeasRec["treat_dc_field_theta"]='%7.1f' % (theta) # labfield theta
+                    MagRec["treat_dc_field"]='%8.3e' % (labfield) # labfield in tesla (convert from microT)
+                    MagRec["treat_dc_field_phi"]='%7.1f' % (phi) # labfield phi
+                    MagRec["treat_dc_field_theta"]='%7.1f' % (theta) # labfield theta
                     if treat[1][0]=='1':meas_type="LT-T-I" # in-field thermal step
                     if treat[1][0]=='2':
                         meas_type="LT-PTRM-I" # pTRM check
