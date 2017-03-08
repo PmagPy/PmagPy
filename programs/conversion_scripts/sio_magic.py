@@ -616,9 +616,9 @@ def convert(**kwargs):
                 if treat[1][0]=='0':
                     meas_type="LT-T-Z"
                 else:
-                    MagRec["treat_dc_field"]='%8.3e' % (labfield) # labfield in tesla (convert from microT)
-                    MagRec["treat_dc_field_phi"]='%7.1f' % (phi) # labfield phi
-                    MagRec["treat_dc_field_theta"]='%7.1f' % (theta) # labfield theta
+                    MeasRec["treat_dc_field"]='%8.3e' % (labfield) # labfield in tesla (convert from microT)
+                    MeasRec["treat_dc_field_phi"]='%7.1f' % (phi) # labfield phi
+                    MeasRec["treat_dc_field_theta"]='%7.1f' % (theta) # labfield theta
                     if treat[1][0]=='1':meas_type="LT-T-I" # in-field thermal step
                     if treat[1][0]=='2':
                         meas_type="LT-PTRM-I" # pTRM check
@@ -647,7 +647,6 @@ def convert(**kwargs):
             if 'std' in rec[0]:
                 MeasRec["standard"]='s'
             else:
-
                 MeasRec["standard"]='u'
             MeasRec["number"]='1'
             #print MeasRec['treat_temp']
@@ -656,12 +655,21 @@ def convert(**kwargs):
     con = nb.Contribution(output_dir_path,read_tables=[])
 
     # create MagIC tables
+<<<<<<< HEAD
     con.add_magic_table_from_data(dtype='specimens', data=SpecRecs)
     con.add_magic_table_from_data(dtype='samples', data=SampRecs)
     con.add_magic_table_from_data(dtype='sites', data=SiteRecs)
     con.add_magic_table_from_data(dtype='locations', data=LocRecs)
     MeasOuts=pmag.measurements_methods3(MeasRecs,noave)
     con.add_magic_table_from_data(dtype='measurements', data=MeasOuts)
+=======
+    con.tables['specimens'] = nb.MagicDataFrame(dtype='specimens', data=SpecRecs)
+    con.tables['samples'] = nb.MagicDataFrame(dtype='samples', data=SampRecs)
+    con.tables['sites'] = nb.MagicDataFrame(dtype='sites', data=SiteRecs)
+    con.tables['locations'] = nb.MagicDataFrame(dtype='locations', data=LocRecs)
+    MeasOuts=pmag.measurements_methods3(MeasRecs,noave)
+    con.tables['measurements'] = nb.MagicDataFrame(dtype='measurements', data=MeasOuts)
+>>>>>>> changed how data is added to a contribution before writing to disk so that it is handled more eligantly and with less possibility for error
     # write MagIC tables to file
     con.tables['specimens'].write_magic_file(custom_name=spec_file)
     con.tables['samples'].write_magic_file(custom_name=samp_file)
