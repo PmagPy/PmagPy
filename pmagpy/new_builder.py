@@ -813,6 +813,24 @@ class MagicDataFrame(object):
         return self.df
 
 
+    def add_data(self, data, dtype):  # add append option later
+        """
+        Add df to a MagicDataFrame using a data list.
+
+        Parameters
+        ----------
+        data : list of dicts
+            data list with format [{'key1': 'val1', ...}, {'key1': 'val2', ...}, ... }]
+        dtype : str
+            MagIC table type
+        """
+        df = pd.DataFrame(data)
+        name, dtype = self.get_singular_and_plural_dtype(dtype)
+        if name in df.columns:
+            df.index = df[name]
+        self.df = df
+
+
     def get_singular_and_plural_dtype(self, dtype):
         """
         Parameters
