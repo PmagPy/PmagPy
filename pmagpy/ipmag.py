@@ -181,7 +181,7 @@ def bingham_mean(dec=None, inc=None, di_block=None):
     Use a di_block to calculate a Bingham mean (will give the same output as the
     example with the lists):
 
-    >>> ipmag.fisher_mean(di_block=[[140,21],[127,23],[142,19],[136,22]])
+    >>> ipmag.bingham_mean(di_block=[[140,21],[127,23],[142,19],[136,22]])
     """
     if di_block is None:
         di_block = make_di_block(dec,inc)
