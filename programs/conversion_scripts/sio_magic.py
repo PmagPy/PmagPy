@@ -435,17 +435,21 @@ def convert(**kwargs):
                     LocRec['lat_s'] = lat
                     LocRec['lon_e'] = lon
                     LocRec['lon_w'] = lon
+                    LocRecs.append(LocRec)
                 if site!='' and site not in map(lambda x: x['site'] if 'site' in x.keys() else '',SiteRecs):
                     SiteRec['location'] = location
                     SiteRec['site'] = site
                     SiteRec['lat'] = lat
                     SiteRec['lon'] = lon
+                    SiteRecs.append(SiteRec)
                 if sample!='' and sample not in map(lambda x: x['sample'] if 'sample' in x.keys() else '',SampRecs):
                     SampRec['site'] = site
                     SampRec['sample'] = sample
+                    SampRecs.append(SampRec)
                 if specimen!='' and specimen not in map(lambda x: x['specimen'] if 'specimen' in x.keys() else '',SpecRecs):
                     SpecRec["specimen"]=specimen
                     SpecRec['sample'] = sample
+                    SpecRecs.append(SpecRec)
             else:
                 specimen=rec[0]
                 MagRec["specimen"]=specimen
@@ -460,17 +464,21 @@ def convert(**kwargs):
                     LocRec['lat_s'] = lat
                     LocRec['lon_e'] = lon
                     LocRec['lon_w'] = lon
+                    LocRecs.append(LocRec)
                 if site!='' and site not in map(lambda x: x['site'] if 'site' in x.keys() else '',SiteRecs):
                     SiteRec['location'] = location
                     SiteRec['site'] = site
                     SiteRec['lat'] = lat
                     SiteRec['lon'] = lon
+                    SiteRecs.append(SiteRec)
                 if sample!='' and sample not in map(lambda x: x['sample'] if 'sample' in x.keys() else '',SampRecs):
                     SampRec['site'] = site
                     SampRec['sample'] = sample
+                    SampRecs.append(SampRec)
                 if specimen!='' and specimen not in map(lambda x: x['specimen'] if 'specimen' in x.keys() else '',SpecRecs):
                     SpecRec["specimen"]=specimen
                     SpecRec['sample'] = sample
+                    SpecRecs.append(SpecRec)
                 SampRec["institution"]=institution
                 SampRec["material_type"]=syntype
             if float(rec[1])==0:
@@ -644,10 +652,6 @@ def convert(**kwargs):
             MagRec["number"]='1'
             #print MagRec['treat_temp']
             MagRecs.append(MagRec)
-            SpecRecs.append(SpecRec)
-            SampRecs.append(SampRec)
-            SiteRecs.append(SiteRec)
-            LocRecs.append(LocRec)
 
     con = nb.Contribution(output_dir_path,read_tables=[])
 
