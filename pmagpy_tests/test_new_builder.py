@@ -32,6 +32,7 @@ class TestMagicDataFrame(unittest.TestCase):
         self.assertEqual('specimen', magic_df.df.index.name)
         self.assertEqual(['spec1', 'spec2'], sorted(magic_df.df.index))
 
+
     def test_init_then_add_data(self):
         magic_df = nb.MagicDataFrame(dtype='specimens')
         data = [{'specimen': 'spec1', 'sample': 'samp1'},

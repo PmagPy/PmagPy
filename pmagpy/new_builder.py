@@ -637,7 +637,35 @@ class MagicDataFrame(object):
         will be filled in by the data model.
         If provided, col_names takes precedence.
         """
-        # first fetch data model if not provided
+        if isinstance(df, pd.DataFrame):
+            self.df = df
+            if dtype:
+                self.dtype = dtype
+            else:
+                print '-W- Please provide data type...'
+        # make sure all required arguments are present
+
+        # if user provides 'data', they must also provide dtype
+        if data:
+            df = pd.DataFrame(data)
+            self.df = df
+            if dtype:
+                self.dtype = dtype
+                try:
+                    self.df.index = self.df[dtype[:-1]]
+                except KeyError:
+                    pass
+
+            else:
+                print "-W- To make a MagicDataFrame from data, you must provide a datatype"
+                self.df = None
+                return
+
+        if not magic_file and not dtype and not isinstance(df, pd.DataFrame):
+            print "-W- To make a MagicDataFrame, you must provide either a filename or a datatype"
+            self.df = None
+            return
+        # fetch data model if not provided
         # (DataModel type sometimes not recognized, hence ugly hack below)
         if isinstance(dmodel, data_model.DataModel) or str(data_model.DataModel) == str(type(dmodel)):
             MagicDataFrame.data_model = dmodel
