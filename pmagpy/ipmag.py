@@ -647,20 +647,15 @@ def bootstrap_fold_test(Data, num_sims=1000, min_untilt=-10, max_untilt=120, bed
 def common_mean_bootstrap(Data1, Data2, NumSims=1000, save=False, save_folder = '.', fmt = 'svg', figsize=(7,2.3), x_tick_bins = 4):
     """
     Conduct a bootstrap test (Tauxe, 2010) for a common mean on two declination,
-    inclination data sets
-
-    This function modifies code from PmagPy for use calculating and plotting
-    bootstrap statistics. Three plots are generated (one for x, one for y and
-    one for z). If the 95 percent confidence bounds for each component overlap
-    each other, the two directions are not significantly different.
+    inclination data sets. Plots are generated of the cumulative distributions
+    of the Cartesian coordinates of the means of the pseudo-samples (one for x,
+    one for y and one for z). If the 95 percent confidence bounds for each
+    component overlap, the two directions are not significantly different.
 
     Parameters
     ----------
     Data1 : a nested list of directional data [dec,inc] (a di_block)
     Data2 : a nested list of directional data [dec,inc] (a di_block)
-
-    Optional Parameters (defaults are used if not specified)
-    ----------
     NumSims : number of bootstrap samples (default is 1000)
     save : optional save of plots (default is False)
     save_folder : path to directory where plots should be saved
@@ -669,6 +664,20 @@ def common_mean_bootstrap(Data1, Data2, NumSims=1000, save=False, save_folder = 
     x_tick_bins : because they occasionally overlap depending on the data, this
         argument allows you adjust number of tick marks on the x axis of graphs
         (default is 4)
+
+    Returns
+    -------
+    three plots : cumulative distributions of the X, Y, Z of bootstrapped means
+
+    Examples
+    --------
+    Develop two populations of directions using pmag.fishrot. Use the function
+    to determine if they share a common mean (through visual inspection of
+    resulting plots).
+
+    >>> directions_A = ipmag.fishrot(k=20, n=30, dec=40, inc=60)
+    >>> directions_B = ipmag.fishrot(k=35, n=25, dec=42, inc=57)
+    >>> ipmag.common_mean_bootstrap(directions_A, directions_B)
     """
     counter=0
     BDI1=pmag.di_boot(Data1)
@@ -1490,13 +1499,15 @@ def plot_vgp(mapname,vgp_lon=None,vgp_lat=None,di_block=None,label='',color='k',
 
 def vgp_calc(dataframe,tilt_correction='yes', site_lon = 'site_lon', site_lat = 'site_lat', dec_is = 'dec_is', inc_is = 'inc_is', dec_tc = 'dec_tc', inc_tc = 'inc_tc'):
     """
-    This function calculates paleomagnetic poles using directional data and site location data within a pandas.DataFrame. The function adds the columns 'paleolatitude', 'pole_lat', 'pole_lon', 'pole_lat_rev', and 'pole_lon_rev' to the dataframe. The '_rev' columns allow for subsequent choice as to which polarity will be used for the VGPs.
+    This function calculates paleomagnetic poles using directional data and site
+    location data within a pandas.DataFrame. The function adds the columns
+    'paleolatitude', 'pole_lat', 'pole_lon', 'pole_lat_rev', and 'pole_lon_rev'
+    to the dataframe. The '_rev' columns allow for subsequent choice as to which
+    polarity will be used for the VGPs.
 
     Parameters
     -----------
     dataframe : the name of the pandas.DataFrame containing the data
-
-    ----- the following default parameters can be changes by keyword argument -----
     tilt-correction : 'yes' is the default and uses tilt-corrected data (dec_tc, inc_tc), 'no' uses data that is not tilt-corrected and is in geographic coordinates
     dataframe['site_lat'] : the name of the Dataframe column containing the latitude of the site
     dataframe['site_lon'] : the name of the Dataframe column containing the longitude of the site
@@ -1504,6 +1515,15 @@ def vgp_calc(dataframe,tilt_correction='yes', site_lon = 'site_lon', site_lat = 
     dataframe['dec_tc'] : the name of the Dataframe column containing the tilt-corrected declination (used by default tilt-correction='yes')
     dataframe['inc_is'] : the name of the Dataframe column containing the insitu inclination (used when tilt-correction='no')
     dataframe['dec_is'] : the name of the Dataframe column containing the insitu declination (used when tilt-correction='no')
+
+    Returns
+    -------
+    dataframe['paleolatitude']
+    dataframe['colatitude']
+    dataframe['vgp_lat']
+    dataframe['vgp_lon']
+    dataframe['vgp_lat_rev']
+    dataframe['vgp_lon_rev']
     """
     dataframe.is_copy = False
     if tilt_correction=='yes':
