@@ -1710,8 +1710,8 @@ def unpack_di_block(di_block):
 def make_diddd_array(dec,inc,dip_direction,dip):
     """
     Some pmag.py functions such as the bootstrap fold test require a numpy array
-     of dec, inc, dip direction, dip [dec,inc,dd,dip] as input. This function
-     makes such a list.
+     of dec, inc, dip direction, dip [dec, inc, dd, dip] as input. This function
+     makes such an array.
 
     Parameters
     -----------
@@ -1719,6 +1719,27 @@ def make_diddd_array(dec,inc,dip_direction,dip):
     inc : paleomagnetic inclination in degrees
     dip_direction : the dip direction of bedding (in degrees between 0 and 360)
     dip: dip of bedding (in degrees)
+
+    Returns
+    -------
+    array : an array of [dec, inc, dip_direction, dip]
+
+    Examples
+    --------
+    Data in separate lists of dec, inc, dip_direction, dip data can be made into
+    an array.
+
+    >>> dec = [132.5,124.3,142.7,130.3,163.2]
+    >>> inc = [12.1,23.2,34.2,37.7,32.6]
+    >>> dip_direction = [265.0,265.0,265.0,164.0,164.0]
+    >>> dip = [20.0,20.0,20.0,72.0,72.0]
+    >>> data_array = ipmag.make_diddd_array(dec,inc,dip_direction,dip)
+    >>> data_array
+    array([[ 132.5,   12.1,  265. ,   20. ],
+       [ 124.3,   23.2,  265. ,   20. ],
+       [ 142.7,   34.2,  265. ,   20. ],
+       [ 130.3,   37.7,  164. ,   72. ],
+       [ 163.2,   32.6,  164. ,   72. ]])
     """
     diddd_block=[]
     for n in range(0,len(dec)):
