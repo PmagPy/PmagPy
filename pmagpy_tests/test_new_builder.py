@@ -23,6 +23,15 @@ class TestMagicDataFrame(unittest.TestCase):
     def tearDown(self):
         os.chdir(WD)
 
+    def test_init_with_data(self):
+        data = [{'specimen': 'spec1', 'sample': 'samp1'},
+                {'specimen': 'spec2', 'sample': 'samp2'}]
+        magic_df = nb.MagicDataFrame(dtype='specimens', data=data)
+        self.assertEqual(len(magic_df.df), 2)
+        self.assertEqual(magic_df.dtype, 'specimens')
+        self.assertEqual('specimen', magic_df.df.index.name)
+        self.assertEqual(['spec1', 'spec2'], sorted(magic_df.df.index))
+
     def test_init_blank(self):
         magic_df = nb.MagicDataFrame()
         self.assertFalse(magic_df.df)

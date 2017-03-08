@@ -614,7 +614,7 @@ class MagicDataFrame(object):
     """
 
     def __init__(self, magic_file=None, columns=None, dtype=None,
-                 groups=None, dmodel=None, df=None):
+                 groups=None, dmodel=None, df=None, data=None):
         """
         Provide either a magic_file or a dtype.
         List of columns is optional,
@@ -631,6 +631,23 @@ class MagicDataFrame(object):
             else:
                 print '-W- Please provide data type...'
         # make sure all required arguments are present
+
+        # if user provides 'data', they must also provide dtype
+        if data:
+            df = pd.DataFrame(data)
+            self.df = df
+            if dtype:
+                self.dtype = dtype
+                try:
+                    self.df.index = self.df[dtype[:-1]]
+                except KeyError:
+                    pass
+
+            else:
+                print "-W- To make a MagicDataFrame from data, you must provide a datatype"
+                self.df = None
+                return
+
         if not magic_file and not dtype and not isinstance(df, pd.DataFrame):
             print "-W- To make a MagicDataFrame, you must provide either a filename or a datatype"
             self.df = None
@@ -1106,6 +1123,8 @@ class MagicDataFrame(object):
         f.write('tab\t{}\n'.format(self.dtype))
         df.to_csv(f, sep="\t", header=True, index=False)
         f.close()
+
+
 
 
 if __name__ == "__main__":
