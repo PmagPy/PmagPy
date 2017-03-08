@@ -76,7 +76,6 @@ OUTPUT
 import sys, os
 import pmagpy.pmag as pmag
 import pmagpy.new_builder as nb
-from pandas import DataFrame
 
 def skip(N,ind,L):
     for b in range(N):
@@ -166,7 +165,7 @@ def convert(**kwargs):
         SampRecs,file_type=pmag.magic_read(samp_file)
     except:
         SampRecs=[]
-    MagRecs,SpecRecs,SiteRecs,LocRecs=[],[],[],[]
+    MeasRecs,SpecRecs,SiteRecs,LocRecs=[],[],[],[]
     try:
         f=open(mag_file,'rU')
         input=f.read()
@@ -298,18 +297,18 @@ def convert(**kwargs):
                 LocRecs.append(LocRec)
 
         else:
-            MagRec={}
-            MagRec["treat_temp"]='%8.3e' % (273) # room temp in kelvin
-            MagRec["meas_temp"]='%8.3e' % (273) # room temp in kelvin
-            MagRec["treat_ac_field"]='0'
-            MagRec["treat_dc_field"]='0'
-            MagRec["treat_dc_field_phi"]='0'
-            MagRec["treat_dc_field_theta"]='0'
+            MeasRec={}
+            MeasRec["treat_temp"]='%8.3e' % (273) # room temp in kelvin
+            MeasRec["meas_temp"]='%8.3e' % (273) # room temp in kelvin
+            MeasRec["treat_ac_field"]='0'
+            MeasRec["treat_dc_field"]='0'
+            MeasRec["treat_dc_field_phi"]='0'
+            MeasRec["treat_dc_field_theta"]='0'
             meas_type="LT-NO"
-            MagRec["quality"]='g'
-            MagRec["standard"]='u'
-            MagRec["number"]='1'
-            MagRec["specimen"]=specname
+            MeasRec["quality"]='g'
+            MeasRec["standard"]='u'
+            MeasRec["number"]='1'
+            MeasRec["specimen"]=specname
             el,demag=1,''
             treat=rec[el]
             if treat[-1]=='C':
@@ -318,11 +317,11 @@ def convert(**kwargs):
                 demag='AF'  
             el+=1
             while rec[el]=="":el+=1
-            MagRec["dir_dec"]=rec[el]
+            MeasRec["dir_dec"]=rec[el]
             cdec=float(rec[el])
             el+=1
             while rec[el]=="":el+=1
-            MagRec["dir_inc"]=rec[el]
+            MeasRec["dir_inc"]=rec[el]
             cinc=float(rec[el])
             el+=1
             while rec[el]=="":el+=1
@@ -333,16 +332,16 @@ def convert(**kwargs):
             el=skip(2,el,rec) # skip bdec,binc
 #                el=skip(4,el,rec) # skip gdec,ginc,bdec,binc
 #                print 'moment emu: ',rec[el]
-            MagRec["magn_moment"]='%10.3e'% (float(rec[el])*1e-3) # moment in Am^2 (from emu)
-            MagRec["magn_volume"]='%10.3e'% (float(rec[el])*1e-3/vol) # magnetization in A/m
+            MeasRec["magn_moment"]='%10.3e'% (float(rec[el])*1e-3) # moment in Am^2 (from emu)
+            MeasRec["magn_volume"]='%10.3e'% (float(rec[el])*1e-3/vol) # magnetization in A/m
             el=skip(2,el,rec) # skip to xsig
-            MagRec["magn_x_sigma"]='%10.3e'% (float(rec[el])*1e-3) # convert from emu
+            MeasRec["magn_x_sigma"]='%10.3e'% (float(rec[el])*1e-3) # convert from emu
             el=skip(3,el,rec) # skip to ysig
-            MagRec["magn_y_sigma"]='%10.3e'% (float(rec[el])*1e-3) # convert from emu
+            MeasRec["magn_y_sigma"]='%10.3e'% (float(rec[el])*1e-3) # convert from emu
             el=skip(3,el,rec) # skip to zsig
-            MagRec["magn_z_sigma"]='%10.3e'% (float(rec[el])*1e-3) # convert from emu
+            MeasRec["magn_z_sigma"]='%10.3e'% (float(rec[el])*1e-3) # convert from emu
             el+=1 # skip to positions
-            MagRec["meas_n_orient"]=rec[el]
+            MeasRec["meas_n_orient"]=rec[el]
 #                    el=skip(5,el,rec) # skip to date
 #                    mm=str(months.index(date[0]))
 #                    if len(mm)==1:
@@ -350,36 +349,29 @@ def convert(**kwargs):
 #                    else:
 #                        mm=str(mm)
 #                    dstring=date[2]+':'+mm+':'+date[1]+":"+date[3]
-#                    MagRec['measurement_date']=dstring
-            MagRec["instrument_codes"]=inst
-            MagRec["analysts"]=user
-            MagRec["citation"]="This study"
-            MagRec["method_codes"]=meas_type
+#                    MeasRec['measurement_date']=dstring
+            MeasRec["instrument_codes"]=inst
+            MeasRec["analysts"]=user
+            MeasRec["citation"]="This study"
+            MeasRec["method_codes"]=meas_type
             if demag=="AF":
-                MagRec["treat_ac_field"]='%8.3e' %(float(treat[:-2])*1e-3) # peak field in tesla
+                MeasRec["treat_ac_field"]='%8.3e' %(float(treat[:-2])*1e-3) # peak field in tesla
                 meas_type="LT-AF-Z"
-                MagRec["treat_dc_field"]='0'
+                MeasRec["treat_dc_field"]='0'
             elif demag=="T":
-                MagRec["treat_temp"]='%8.3e' % (float(treat[:-1])+273.) # temp in kelvin
+                MeasRec["treat_temp"]='%8.3e' % (float(treat[:-1])+273.) # temp in kelvin
                 meas_type="LT-T-Z"
-            MagRec['method_codes']=meas_type
-            MagRecs.append(MagRec)
+            MeasRec['method_codes']=meas_type
+            MeasRecs.append(MeasRec)
 
     con = nb.Contribution(output_dir_path,read_tables=[])
 
-    con.add_empty_magic_table('specimens')
-    con.add_empty_magic_table('samples')
-    con.add_empty_magic_table('sites')
-    con.add_empty_magic_table('locations')
-    con.add_empty_magic_table('measurements')
-
-    con.tables['specimens'].df = DataFrame(SpecRecs)
-    con.tables['samples'].df = DataFrame(SampRecs)
-    con.tables['sites'].df = DataFrame(SiteRecs)
-    con.tables['locations'].df = DataFrame(LocRecs)
-    MagOuts=pmag.measurements_methods3(MagRecs,noave)
-    MagOuts, keylist = pmag.fillkeys(MagOuts)
-    con.tables['measurements'].df = DataFrame(MagOuts)
+    con.tables['specimens'] = nb.MagicDataFrame(dtype='specimens', data=SpecRecs)
+    con.tables['samples'] = nb.MagicDataFrame(dtype='samples', data=SampRecs)
+    con.tables['sites'] = nb.MagicDataFrame(dtype='sites', data=SiteRecs)
+    con.tables['locations'] = nb.MagicDataFrame(dtype='locations', data=LocRecs)
+    MeasOuts=pmag.measurements_methods3(MeasRecs,noave)
+    con.tables['measurements'] = nb.MagicDataFrame(dtype='measurements', data=MeasOuts)
 
     con.tables['specimens'].write_magic_file(custom_name=spec_file)
     con.tables['samples'].write_magic_file(custom_name=samp_file)

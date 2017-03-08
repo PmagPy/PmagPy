@@ -47,7 +47,6 @@ INPUT
 import os,sys
 import pmagpy.pmag as pmag
 import pmagpy.new_builder as nb
-from pandas import DataFrame
 
 def convert(**kwargs):
     """
@@ -104,7 +103,7 @@ def convert(**kwargs):
     line=line.replace("=","= ")  # make finding orientations easier
     rec=line.split() # read in sample orientation, etc.
     specimen=rec[0]
-    SpecOuts,SampOuts,SiteOuts,LocOuts,MagRecs = [],[],[],[],[]
+    SpecRecs,SampRecs,SiteRecs,LocRecs,MeasRecs = [],[],[],[],[]
     SpecRec,SampRec,SiteRec,LocRec={},{},{},{} # make a  sample record
     if specnum!=0:
         sample=rec[0][:specnum]
@@ -152,24 +151,24 @@ def convert(**kwargs):
     LocRec['lon_e'] = lon
     LocRec['lon_w'] = lon
 
-    SpecOuts.append(SpecRec)
-    SampOuts.append(SampRec)
-    SiteOuts.append(SiteRec)
-    LocOuts.append(LocRec)
+    SpecRecs.append(SpecRec)
+    SampRecs.append(SampRec)
+    SiteRecs.append(SiteRec)
+    LocRecs.append(LocRec)
     for k in range(3,len(data)): # read in data
       line=data[k]
       rec=line.split()
       if len(rec)>1: # skip blank lines at bottom  
-        MagRec={}
-        MagRec['description']='Date: '+date+' '+time
-        MagRec["citations"]="This study"
-        MagRec['software_packages']=version_num
-        MagRec["treat_temp"]='%8.3e' % (273) # room temp in kelvin
-        MagRec["meas_temp"]='%8.3e' % (273) # room temp in kelvin
-        MagRec["quality"]='g'
-        MagRec["standard"]='u'
-        MagRec["number"]='1'
-        MagRec["specimen"]=specimen
+        MeasRec={}
+        MeasRec['description']='Date: '+date+' '+time
+        MeasRec["citations"]="This study"
+        MeasRec['software_packages']=version_num
+        MeasRec["treat_temp"]='%8.3e' % (273) # room temp in kelvin
+        MeasRec["meas_temp"]='%8.3e' % (273) # room temp in kelvin
+        MeasRec["quality"]='g'
+        MeasRec["standard"]='u'
+        MeasRec["number"]='1'
+        MeasRec["specimen"]=specimen
         if rec[0]=='NRM': 
             meas_type="LT-NO"
         elif rec[0][0]=='M' or rec[0][0]=='H': 
@@ -181,36 +180,30 @@ def convert(**kwargs):
             return False, "measurement type unknown"
         X=[float(rec[1]),float(rec[2]),float(rec[3])]
         Vec=pmag.cart2dir(X)
-        MagRec["magn_moment"]='%10.3e'% (Vec[2]) # Am^2 
-        MagRec["magn_volume"]=rec[4] # A/m 
-        MagRec["dir_dec"]='%7.1f'%(Vec[0])
-        MagRec["dir_inc"]='%7.1f'%(Vec[1])
-        MagRec["treat_ac_field"]='0'
+        MeasRec["magn_moment"]='%10.3e'% (Vec[2]) # Am^2 
+        MeasRec["magn_volume"]=rec[4] # A/m 
+        MeasRec["dir_dec"]='%7.1f'%(Vec[0])
+        MeasRec["dir_inc"]='%7.1f'%(Vec[1])
+        MeasRec["treat_ac_field"]='0'
         if meas_type!='LT-NO':
             treat=float(rec[0][1:])
         else:
             treat=0
         if meas_type=="LT-AF-Z":
-            MagRec["treat_ac_field"]='%8.3e' %(treat*1e-3) # convert from mT to tesla
+            MeasRec["treat_ac_field"]='%8.3e' %(treat*1e-3) # convert from mT to tesla
         elif meas_type=="LT-T-Z":
-            MagRec["treat_temp"]='%8.3e' % (treat+273.) # temp in kelvin
-        MagRec['method_codes']=meas_type
-        MagRecs.append(MagRec)
+            MeasRec["treat_temp"]='%8.3e' % (treat+273.) # temp in kelvin
+        MeasRec['method_codes']=meas_type
+        MeasRecs.append(MeasRec)
 
     con = nb.Contribution(output_dir_path,read_tables=[])
 
-    con.add_empty_magic_table('specimens')
-    con.add_empty_magic_table('samples')
-    con.add_empty_magic_table('sites')
-    con.add_empty_magic_table('locations')
-    con.add_empty_magic_table('measurements')
-
-    con.tables['specimens'].df = DataFrame(SpecOuts)
-    con.tables['samples'].df = DataFrame(SampOuts)
-    con.tables['sites'].df = DataFrame(SiteOuts)
-    con.tables['locations'].df = DataFrame(LocOuts)
-    MagOuts=pmag.measurements_methods3(MagRecs,noave)
-    con.tables['measurements'].df = DataFrame(MagOuts)
+    con.tables['specimens'] = nb.MagicDataFrame(dtype='specimens', data=SpecRecs)
+    con.tables['samples'] = nb.MagicDataFrame(dtype='samples', data=SampRecs)
+    con.tables['sites'] = nb.MagicDataFrame(dtype='sites', data=SiteRecs)
+    con.tables['locations'] = nb.MagicDataFrame(dtype='locations', data=LocRecs)
+    MeasOuts=pmag.measurements_methods3(MeasRecs,noave)
+    con.tables['measurements'] = nb.MagicDataFrame(dtype='measurements', data=MeasOuts)
 
     con.tables['specimens'].write_magic_file(custom_name=spec_file)
     con.tables['samples'].write_magic_file(custom_name=samp_file)

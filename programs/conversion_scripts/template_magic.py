@@ -83,20 +83,13 @@ def convert(**kwargs):
     #open a Contribution object
     con = nb.Contribution(output_dir_path,read_tables=[])
 
-    #Create tables
-    con.add_empty_magic_table('specimens')
-    con.add_empty_magic_table('samples')
-    con.add_empty_magic_table('sites')
-    con.add_empty_magic_table('locations')
-    con.add_empty_magic_table('measurements')
-
-    #turn above data structures into something that can be put in a contribution
-    con.tables['specimens'].df = DataFrame(Specs)
-    con.tables['samples'].df = DataFrame(Samps)
-    con.tables['sites'].df = DataFrame(Sites)
-    con.tables['locations'].df = DataFrame(Locs)
-    Fixed=pmag.measurements_methods3(MeasRecs,noave) #figures out method codes for measuremet data
-    con.tables['measurements'].df = DataFrame(Fixed)
+    #Create Magic Tables and add to a contribution
+    con.tables['specimens'] = nb.MagicDataFrame(dtype='specimens', data=SpecRecs)
+    con.tables['samples'] = nb.MagicDataFrame(dtype='samples', data=SampRecs)
+    con.tables['sites'] = nb.MagicDataFrame(dtype='sites', data=SiteRecs)
+    con.tables['locations'] = nb.MagicDataFrame(dtype='locations', data=LocRecs)
+    MeasOuts=pmag.measurements_methods3(MeasRecs,noave)#figures out method codes for measuremet data
+    con.tables['measurements'] = nb.MagicDataFrame(dtype='measurements', data=MeasOuts)
 
     #write to file
     con.tables['specimens'].write_magic_file(custom_name=spec_file)

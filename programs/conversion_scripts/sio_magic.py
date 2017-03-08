@@ -119,7 +119,6 @@ INPUT
 import sys
 import pmagpy.pmag as pmag
 import pmagpy.new_builder as nb
-from pandas import DataFrame
 import pytz, datetime
 
 def convert(**kwargs):
@@ -277,7 +276,7 @@ def convert(**kwargs):
         if labfield==0: labfield=50e-6
         if peakfield==0: peakfield=.180
 
-    MagRecs,SpecRecs,SampRecs,SiteRecs,LocRecs=[],[],[],[],[]
+    MeasRecs,SpecRecs,SampRecs,SiteRecs,LocRecs=[],[],[],[],[]
     version_num=pmag.get_version()
 
     ##################################
@@ -285,15 +284,15 @@ def convert(**kwargs):
     for line in input.readlines():
         instcode=""
         if len(line)>2:
-            MagRec,SpecRec,SampRec,SiteRec,LocRec={},{},{},{},{}
-            MagRec['software_packages']=version_num
-            MagRec["description"]=""
-            MagRec["treat_temp"]='%8.3e' % (273) # room temp in kelvin
-            MagRec["meas_temp"]='%8.3e' % (273) # room temp in kelvin
-            MagRec["treat_ac_field"]='0'
-            MagRec["treat_dc_field"]='0'
-            MagRec["treat_dc_field_phi"]='0'
-            MagRec["treat_dc_field_theta"]='0'
+            MeasRec,SpecRec,SampRec,SiteRec,LocRec={},{},{},{},{}
+            MeasRec['software_packages']=version_num
+            MeasRec["description"]=""
+            MeasRec["treat_temp"]='%8.3e' % (273) # room temp in kelvin
+            MeasRec["meas_temp"]='%8.3e' % (273) # room temp in kelvin
+            MeasRec["treat_ac_field"]='0'
+            MeasRec["treat_dc_field"]='0'
+            MeasRec["treat_dc_field_phi"]='0'
+            MeasRec["treat_dc_field_theta"]='0'
             meas_type="LT-NO"
             rec=line.split()
             if rec[1]==".00":rec[1]="0.00"
@@ -308,9 +307,9 @@ def convert(**kwargs):
                 else:
                     phi,theta=0.,-90.
                 meas_type="LT-IRM"
-                MagRec["treat_dc_field"]='%8.3e'%(labfield)
-                MagRec["treat_dc_field_phi"]='%7.1f'%(phi)
-                MagRec["treat_dc_field_theta"]='%7.1f'%(theta)
+                MeasRec["treat_dc_field"]='%8.3e'%(labfield)
+                MeasRec["treat_dc_field_phi"]='%7.1f'%(phi)
+                MeasRec["treat_dc_field_theta"]='%7.1f'%(theta)
             if len(rec)>6:
               code1=rec[6].split(';') # break e.g., 10/15/02;7:45 indo date and time
               if len(code1)==2: # old format with AM/PM
@@ -344,13 +343,13 @@ def convert(**kwargs):
                 naive = datetime.datetime.strptime(dt, "%Y:%m:%d:%H:%M:%S")
                 local_dt = local.localize(naive, is_dst=None)
                 utc_dt = local_dt.astimezone(pytz.utc)
-                MagRec["timestamp"]=utc_dt.strftime("%Y-%m-%dT%H:%M:%S")+"Z"
+                MeasRec["timestamp"]=utc_dt.strftime("%Y-%m-%dT%H:%M:%S")+"Z"
                 if inst=="":
                     if code3[1][0]=='C':instcode='SIO-bubba'
                     if code3[1][0]=='G':instcode='SIO-flo'
                 else:
                     instcode=''
-                MagRec["meas_n_orient"]=code3[1][2]
+                MeasRec["meas_n_orient"]=code3[1][2]
               elif len(code1)>2: # newest format (cryo7 or later)
                 if "LP-AN-ARM" not in methcode:labfield=0
                 fmt='new'
@@ -382,7 +381,7 @@ def convert(**kwargs):
                 naive = datetime.datetime.strptime(dt, "%Y:%m:%d:%H:%M:%S")
                 local_dt = local.localize(naive, is_dst=None)
                 utc_dt = local_dt.astimezone(pytz.utc)
-                MagRec["timestamp"]=utc_dt.strftime("%Y-%m-%dT%H:%M:%S")+"Z"
+                MeasRec["timestamp"]=utc_dt.strftime("%Y-%m-%dT%H:%M:%S")+"Z"
                 if inst=="":
                     if code1[6][0]=='C':
                         instcode='SIO-bubba'
@@ -391,9 +390,9 @@ def convert(**kwargs):
                 else:
                     instcode=''
                 if len(code1)>1:
-                    MagRec["meas_n_orient"]=code1[6][2]
+                    MeasRec["meas_n_orient"]=code1[6][2]
                 else:
-                    MagRec["meas_n_orient"]=code1[7]   # takes care of awkward format with bubba and flo being different
+                    MeasRec["meas_n_orient"]=code1[7]   # takes care of awkward format with bubba and flo being different
                 if user=="":user=code1[5]
                 if code1[2][-1]=='C':
                     demag="T"
@@ -405,16 +404,16 @@ def convert(**kwargs):
                     phi,theta=0.,-90.
                     if demag=="T": meas_type="LT-T-I"
                     if demag=="AF": meas_type="LT-AF-I"
-                    MagRec["treat_dc_field"]='%8.3e'%(labfield)
-                    MagRec["treat_dc_field_phi"]='%7.1f'%(phi)
-                    MagRec["treat_dc_field_theta"]='%7.1f'%(theta)
+                    MeasRec["treat_dc_field"]='%8.3e'%(labfield)
+                    MeasRec["treat_dc_field_phi"]='%7.1f'%(phi)
+                    MeasRec["treat_dc_field_theta"]='%7.1f'%(theta)
                 if code1[4]=='' or labfield==0. and meas_type!="LT-IRM":
                     if demag=='T':meas_type="LT-T-Z"
                     if demag=="AF":meas_type="LT-AF-Z"
-                    MagRec["treat_dc_field"]='0'
+                    MeasRec["treat_dc_field"]='0'
             if syn==0:
                 specimen=rec[0]
-                MagRec["specimen"]=specimen
+                MeasRec["specimen"]=specimen
                 if specnum!=0:
                     sample=rec[0][:specnum]
                 else:
@@ -452,7 +451,7 @@ def convert(**kwargs):
                     SpecRecs.append(SpecRec)
             else:
                 specimen=rec[0]
-                MagRec["specimen"]=specimen
+                MeasRec["specimen"]=specimen
                 if specnum!=0:
                     sample=rec[0][:specnum]
                 else:
@@ -485,30 +484,30 @@ def convert(**kwargs):
                 pass
             elif demag=="AF":
                 if methcode != "LP-AN-ARM":
-                    MagRec["treat_ac_field"]='%8.3e' %(float(rec[1])*1e-3) # peak field in tesla
-                    if meas_type=="LT-AF-Z": MagRec["treat_dc_field"]='0'
+                    MeasRec["treat_ac_field"]='%8.3e' %(float(rec[1])*1e-3) # peak field in tesla
+                    if meas_type=="LT-AF-Z": MeasRec["treat_dc_field"]='0'
                 else: # AARM experiment
                     if treat[1][0]=='0':
                         meas_type="LT-AF-Z:LP-AN-ARM:"
-                        MagRec["treat_ac_field"]='%8.3e' %(peakfield) # peak field in tesla
-                        MagRec["treat_dc_field"]='%8.3e'%(0)
+                        MeasRec["treat_ac_field"]='%8.3e' %(peakfield) # peak field in tesla
+                        MeasRec["treat_dc_field"]='%8.3e'%(0)
                         if labfield!=0 and methcode!="LP-AN-ARM": print "Warning - inconsistency in mag file with lab field - overriding file with 0"
                     else:
                         meas_type="LT-AF-I:LP-AN-ARM"
                         ipos=int(treat[0])-1
-                        MagRec["treat_dc_field_phi"]='%7.1f' %(dec[ipos])
-                        MagRec["treat_dc_field_theta"]='%7.1f'% (inc[ipos])
-                        MagRec["treat_dc_field"]='%8.3e'%(labfield)
-                        MagRec["treat_ac_field"]='%8.3e' %(peakfield) # peak field in tesla
+                        MeasRec["treat_dc_field_phi"]='%7.1f' %(dec[ipos])
+                        MeasRec["treat_dc_field_theta"]='%7.1f'% (inc[ipos])
+                        MeasRec["treat_dc_field"]='%8.3e'%(labfield)
+                        MeasRec["treat_ac_field"]='%8.3e' %(peakfield) # peak field in tesla
             elif demag=="T" and methcode == "LP-AN-TRM":
-                MagRec["treat_temp"]='%8.3e' % (float(treat[0])+273.) # temp in kelvin
+                MeasRec["treat_temp"]='%8.3e' % (float(treat[0])+273.) # temp in kelvin
                 if treat[1][0]=='0':
                     meas_type="LT-T-Z:LP-AN-TRM"
-                    MagRec["treat_dc_field"]='%8.3e'%(0)
-                    MagRec["treat_dc_field_phi"]='0'
-                    MagRec["treat_dc_field_theta"]='0'
+                    MeasRec["treat_dc_field"]='%8.3e'%(0)
+                    MeasRec["treat_dc_field_phi"]='0'
+                    MeasRec["treat_dc_field_theta"]='0'
                 else:
-                    MagRec["treat_dc_field"]='%8.3e'%(labfield)
+                    MeasRec["treat_dc_field"]='%8.3e'%(labfield)
                     if treat[1][0]=='7': # alteration check as final measurement
                             meas_type="LT-PTRM-I:LP-AN-TRM"
                     else:
@@ -530,8 +529,8 @@ def convert(**kwargs):
                         if INC <-45: ipos_guess=5
                     # prefer the guess over the code
                     ipos=ipos_guess
-                    MagRec["treat_dc_field_phi"]='%7.1f' %(tdec[ipos])
-                    MagRec["treat_dc_field_theta"]='%7.1f'% (tinc[ipos])
+                    MeasRec["treat_dc_field_phi"]='%7.1f' %(tdec[ipos])
+                    MeasRec["treat_dc_field_theta"]='%7.1f'% (tinc[ipos])
                     # check it
                     if ipos_guess!=ipos_code and treat[1][0]!='7':
                         print "-E- ERROR: check specimen %s step %s, ATRM measurements, coding does not match the direction of the lab field!"%(rec[0],".".join(list(treat)))
@@ -540,66 +539,66 @@ def convert(**kwargs):
             elif demag=="S": # Shaw experiment
                 if treat[1][1]=='0':
                     if  int(treat[0])!=0:
-                        MagRec["treat_ac_field"]='%8.3e' % (float(treat[0])*1e-3) # AF field in tesla
-                        MagRec["treat_dc_field"]='0'
+                        MeasRec["treat_ac_field"]='%8.3e' % (float(treat[0])*1e-3) # AF field in tesla
+                        MeasRec["treat_dc_field"]='0'
                         meas_type="LT-AF-Z" # first AF
                     else:
                         meas_type="LT-NO"
-                        MagRec["treat_ac_field"]='0'
-                        MagRec["treat_dc_field"]='0'
+                        MeasRec["treat_ac_field"]='0'
+                        MeasRec["treat_dc_field"]='0'
                 elif treat[1][1]=='1':
                     if int(treat[0])==0:
-                        MagRec["treat_ac_field"]='%8.3e' %(peakfield) # peak field in tesla
-                        MagRec["treat_dc_field"]='%8.3e'%(arm_labfield)
-                        MagRec["treat_dc_field_phi"]='%7.1f'%(phi)
-                        MagRec["treat_dc_field_theta"]='%7.1f'%(theta)
+                        MeasRec["treat_ac_field"]='%8.3e' %(peakfield) # peak field in tesla
+                        MeasRec["treat_dc_field"]='%8.3e'%(arm_labfield)
+                        MeasRec["treat_dc_field_phi"]='%7.1f'%(phi)
+                        MeasRec["treat_dc_field_theta"]='%7.1f'%(theta)
                         meas_type="LT-AF-I"
                     else:
-                        MagRec["treat_ac_field"]='%8.3e' % ( float(treat[0])*1e-3) # AF field in tesla
-                        MagRec["treat_dc_field"]='0'
+                        MeasRec["treat_ac_field"]='%8.3e' % ( float(treat[0])*1e-3) # AF field in tesla
+                        MeasRec["treat_dc_field"]='0'
                         meas_type="LT-AF-Z"
                 elif treat[1][1]=='2':
                     if int(treat[0])==0:
-                        MagRec["treat_ac_field"]='0'
-                        MagRec["treat_dc_field"]='%8.3e'%(trm_labfield)
-                        MagRec["treat_dc_field_phi"]='%7.1f'%(phi)
-                        MagRec["treat_dc_field_theta"]='%7.1f'%(theta)
-                        MagRec["treat_temp"]='%8.3e' % (trm_peakT)
+                        MeasRec["treat_ac_field"]='0'
+                        MeasRec["treat_dc_field"]='%8.3e'%(trm_labfield)
+                        MeasRec["treat_dc_field_phi"]='%7.1f'%(phi)
+                        MeasRec["treat_dc_field_theta"]='%7.1f'%(theta)
+                        MeasRec["treat_temp"]='%8.3e' % (trm_peakT)
                         meas_type="LT-T-I"
                     else:
-                        MagRec["treat_ac_field"]='%8.3e' % ( float(treat[0])*1e-3) # AF field in tesla
-                        MagRec["treat_dc_field"]='0'
+                        MeasRec["treat_ac_field"]='%8.3e' % ( float(treat[0])*1e-3) # AF field in tesla
+                        MeasRec["treat_dc_field"]='0'
                         meas_type="LT-AF-Z"
                 elif treat[1][1]=='3':
                     if int(treat[0])==0:
-                        MagRec["treat_ac_field"]='%8.3e' %(peakfield) # peak field in tesla
-                        MagRec["treat_dc_field"]='%8.3e'%(arm_labfield)
-                        MagRec["treat_dc_field_phi"]='%7.1f'%(phi)
-                        MagRec["treat_dc_field_theta"]='%7.1f'%(theta)
+                        MeasRec["treat_ac_field"]='%8.3e' %(peakfield) # peak field in tesla
+                        MeasRec["treat_dc_field"]='%8.3e'%(arm_labfield)
+                        MeasRec["treat_dc_field_phi"]='%7.1f'%(phi)
+                        MeasRec["treat_dc_field_theta"]='%7.1f'%(theta)
                         meas_type="LT-AF-I"
                     else:
-                        MagRec["treat_ac_field"]='%8.3e' % ( float(treat[0])*1e-3) # AF field in tesla
-                        MagRec["treat_dc_field"]='0'
+                        MeasRec["treat_ac_field"]='%8.3e' % ( float(treat[0])*1e-3) # AF field in tesla
+                        MeasRec["treat_dc_field"]='0'
                         meas_type="LT-AF-Z"
 
 
             # Cooling rate experient # added by rshaar
             elif demag=="T" and methcode == "LP-CR-TRM":
 
-                MagRec["treat_temp"]='%8.3e' % (float(treat[0])+273.) # temp in kelvin
+                MeasRec["treat_temp"]='%8.3e' % (float(treat[0])+273.) # temp in kelvin
                 if treat[1][0]=='0':
                     meas_type="LT-T-Z:LP-CR-TRM"
-                    MagRec["treat_dc_field"]='%8.3e'%(0)
-                    MagRec["treat_dc_field_phi"]='0'
-                    MagRec["treat_dc_field_theta"]='0'
+                    MeasRec["treat_dc_field"]='%8.3e'%(0)
+                    MeasRec["treat_dc_field_phi"]='0'
+                    MeasRec["treat_dc_field_theta"]='0'
                 else:
-                    MagRec["treat_dc_field"]='%8.3e'%(labfield)
+                    MeasRec["treat_dc_field"]='%8.3e'%(labfield)
                     if treat[1][0]=='7': # alteration check as final measurement
                             meas_type="LT-PTRM-I:LP-CR-TRM"
                     else:
                             meas_type="LT-T-I:LP-CR-TRM"
-                    MagRec["treat_dc_field_phi"]='%7.1f' % (phi) # labfield phi
-                    MagRec["treat_dc_field_theta"]='%7.1f' % (theta) # labfield theta
+                    MeasRec["treat_dc_field_phi"]='%7.1f' % (phi) # labfield phi
+                    MeasRec["treat_dc_field_theta"]='%7.1f' % (theta) # labfield theta
 
                     indx=int(treat[1][0])-1
                     # alteration check matjed as 0.7 in the measurement file
@@ -607,51 +606,51 @@ def convert(**kwargs):
                        cooling_time= cooling_rates_list[-1]
                     else:
                        cooling_time=cooling_rates_list[indx]
-                    MagRec["description"]="cooling_rate"+":"+cooling_time+":"+"K/min"
+                    MeasRec["description"]="cooling_rate"+":"+cooling_time+":"+"K/min"
 
 
             elif demag!='N':
               if len(treat)==1:treat.append('0')
-              MagRec["treat_temp"]='%8.3e' % (float(treat[0])+273.) # temp in kelvin
+              MeasRec["treat_temp"]='%8.3e' % (float(treat[0])+273.) # temp in kelvin
               if trm==0:  # demag=T and not trmaq
                 if treat[1][0]=='0':
                     meas_type="LT-T-Z"
                 else:
-                    MagRec["treat_dc_field"]='%8.3e' % (labfield) # labfield in tesla (convert from microT)
-                    MagRec["treat_dc_field_phi"]='%7.1f' % (phi) # labfield phi
-                    MagRec["treat_dc_field_theta"]='%7.1f' % (theta) # labfield theta
+                    MeasRec["treat_dc_field"]='%8.3e' % (labfield) # labfield in tesla (convert from microT)
+                    MeasRec["treat_dc_field_phi"]='%7.1f' % (phi) # labfield phi
+                    MeasRec["treat_dc_field_theta"]='%7.1f' % (theta) # labfield theta
                     if treat[1][0]=='1':meas_type="LT-T-I" # in-field thermal step
                     if treat[1][0]=='2':
                         meas_type="LT-PTRM-I" # pTRM check
                         pTRM=1
                     if treat[1][0]=='3':
-                        MagRec["treat_dc_field"]='0'  # this is a zero field step
+                        MeasRec["treat_dc_field"]='0'  # this is a zero field step
                         meas_type="LT-PTRM-MD" # pTRM tail check
               else:
                 labfield=float(treat[1])*1e-6
-                MagRec["treat_dc_field"]='%8.3e' % (labfield) # labfield in tesla (convert from microT)
-                MagRec["treat_dc_field_phi"]='%7.1f' % (phi) # labfield phi
-                MagRec["treat_dc_field_theta"]='%7.1f' % (theta) # labfield theta
+                MeasRec["treat_dc_field"]='%8.3e' % (labfield) # labfield in tesla (convert from microT)
+                MeasRec["treat_dc_field_phi"]='%7.1f' % (phi) # labfield phi
+                MeasRec["treat_dc_field_theta"]='%7.1f' % (theta) # labfield theta
                 meas_type="LT-T-I:LP-TRM" # trm acquisition experiment
 
-            MagRec["dir_csd"]=rec[2]
-            MagRec["magn_moment"]='%10.3e'% (float(rec[3])*1e-3) # moment in Am^2 (from emu)
-            MagRec["dir_dec"]=rec[4]
-            MagRec["dir_inc"]=rec[5]
-            MagRec["instrument_codes"]=instcode
-            MagRec["analysts"]=user
-            MagRec["citations"]=citation
+            MeasRec["dir_csd"]=rec[2]
+            MeasRec["magn_moment"]='%10.3e'% (float(rec[3])*1e-3) # moment in Am^2 (from emu)
+            MeasRec["dir_dec"]=rec[4]
+            MeasRec["dir_inc"]=rec[5]
+            MeasRec["instrument_codes"]=instcode
+            MeasRec["analysts"]=user
+            MeasRec["citations"]=citation
             if "LP-IRM-3D" in methcode : meas_type=methcode
-            #MagRec["method_codes"]=methcode.strip(':')
-            MagRec["method_codes"]=meas_type
-            MagRec["quality"]='g'
+            #MeasRec["method_codes"]=methcode.strip(':')
+            MeasRec["method_codes"]=meas_type
+            MeasRec["quality"]='g'
             if 'std' in rec[0]:
-                MagRec["standard"]='s'
+                MeasRec["standard"]='s'
             else:
-                MagRec["standard"]='u'
-            MagRec["number"]='1'
-            #print MagRec['treat_temp']
-            MagRecs.append(MagRec)
+                MeasRec["standard"]='u'
+            MeasRec["number"]='1'
+            #print MeasRec['treat_temp']
+            MeasRecs.append(MeasRec)
 
     con = nb.Contribution(output_dir_path,read_tables=[])
 
@@ -660,8 +659,8 @@ def convert(**kwargs):
     con.tables['samples'] = nb.MagicDataFrame(dtype='samples', data=SampRecs)
     con.tables['sites'] = nb.MagicDataFrame(dtype='sites', data=SiteRecs)
     con.tables['locations'] = nb.MagicDataFrame(dtype='locations', data=LocRecs)
-    MagOuts=pmag.measurements_methods3(MagRecs,noave)
-    con.tables['measurements'] = nb.MagicDataFrame(dtype='measurements', data=MagOuts)
+    MeasOuts=pmag.measurements_methods3(MeasRecs,noave)
+    con.tables['measurements'] = nb.MagicDataFrame(dtype='measurements', data=MeasOuts)
     # write MagIC tables to file
     con.tables['specimens'].write_magic_file(custom_name=spec_file)
     con.tables['samples'].write_magic_file(custom_name=samp_file)

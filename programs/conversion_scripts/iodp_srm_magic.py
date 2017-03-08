@@ -29,7 +29,6 @@ INPUTS
 import sys, os, time
 import pmagpy.pmag as pmag
 import pmagpy.new_builder as nb
-from pandas import DataFrame
 import datetime
 
 def convert(**kwargs):
@@ -265,22 +264,15 @@ def convert(**kwargs):
         print("No .csv files were found")
         return (False, "No .csv files were found")
 
-    MagSort=sorted(MeasRecs,lambda x,y: int(round(x['treat_ac_field']-y['treat_ac_field'])))
-    Fixed=pmag.measurements_methods3(MagSort,noave)
-
     con = nb.Contribution(output_dir_path,read_tables=[])
 
-    con.add_empty_magic_table('specimens')
-    con.add_empty_magic_table('samples')
-    con.add_empty_magic_table('sites')
-    con.add_empty_magic_table('locations')
-    con.add_empty_magic_table('measurements')
-
-    con.tables['specimens'].df = DataFrame(SpecRecs)
-    con.tables['samples'].df = DataFrame(SampRecs)
-    con.tables['sites'].df = DataFrame(SiteRecs)
-    con.tables['locations'].df = DataFrame(LocRecs)
-    con.tables['measurements'].df = DataFrame(Fixed)
+    con.tables['specimens'] = nb.MagicDataFrame(dtype='specimens', data=SpecRecs)
+    con.tables['samples'] = nb.MagicDataFrame(dtype='samples', data=SampRecs)
+    con.tables['sites'] = nb.MagicDataFrame(dtype='sites', data=SiteRecs)
+    con.tables['locations'] = nb.MagicDataFrame(dtype='locations', data=LocRecs)
+    MeasSort=sorted(MeasRecs,lambda x,y: int(round(x['treat_ac_field']-y['treat_ac_field'])))
+    MeasOuts=pmag.measurements_methods3(MeasSort,noave)
+    con.tables['measurements'] = nb.MagicDataFrame(dtype='measurements', data=MeasOuts)
 
     con.tables['specimens'].write_magic_file(custom_name=spec_file)
     con.tables['samples'].write_magic_file(custom_name=samp_file)

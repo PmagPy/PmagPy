@@ -51,7 +51,6 @@ NOTES:
 import os,sys
 import pmagpy.pmag as pmag
 import pmagpy.new_builder as nb
-from pandas import DataFrame
 
 def convert(**kwargs):
     """
@@ -148,7 +147,7 @@ def convert(**kwargs):
     if len(File) == 1: File = File[0].split('\r'); File = [x+"\r\n" for x in File]
 
     #define initial variables
-    Specs,Samps,Sites,Locs,MeasRecs=[],[],[],[],[]
+    SpecRecs,SampRecs,SiteRecs,LocRecs,MeasRecs=[],[],[],[],[]
     sids,ln,format,citation=[],0,'CIT',"This study"
     formats=['CIT','2G','APP','JRA']
 
@@ -173,7 +172,7 @@ def convert(**kwargs):
         LocRec["lon_e"]=site_lon
         LocRec["lat_s"]=site_lat
         LocRec["lon_w"]=site_lon
-        Locs.append(LocRec)
+        LocRecs.append(LocRec)
         Cdec=float(line[2])
         for k in range(ln+1,len(File)):
             line=File[k]
@@ -376,28 +375,22 @@ def convert(**kwargs):
                 MeasRec['magn_y_sigma']='%8.2e'%(float(line[67:76])*1e-8)
                 MeasRec['magn_z_sigma']='%8.2e'%(float(line[76:85])*1e-8)
             MeasRecs.append(MeasRec)
-        Specs.append(SpecRec)
+        SpecRecs.append(SpecRec)
         if sample not in samples:
             samples.append(sample)
-            Samps.append(SampRec)
+            SampRecs.append(SampRec)
         if site not in sites:
             sites.append(site)
-            Sites.append(SiteRec)
+            SiteRecs.append(SiteRec)
 
     con = nb.Contribution(output_dir_path,read_tables=[])
 
-    con.add_empty_magic_table('specimens')
-    con.add_empty_magic_table('samples')
-    con.add_empty_magic_table('sites')
-    con.add_empty_magic_table('locations')
-    con.add_empty_magic_table('measurements')
-
-    con.tables['specimens'].df = DataFrame(Specs)
-    con.tables['samples'].df = DataFrame(Samps)
-    con.tables['sites'].df = DataFrame(Sites)
-    con.tables['locations'].df = DataFrame(Locs)
-    Fixed=pmag.measurements_methods3(MeasRecs,noave)
-    con.tables['measurements'].df = DataFrame(Fixed)
+    con.tables['specimens'] = nb.MagicDataFrame(dtype='specimens', data=SpecRecs)
+    con.tables['samples'] = nb.MagicDataFrame(dtype='samples', data=SampRecs)
+    con.tables['sites'] = nb.MagicDataFrame(dtype='sites', data=SiteRecs)
+    con.tables['locations'] = nb.MagicDataFrame(dtype='locations', data=LocRecs)
+    MeasOuts=pmag.measurements_methods3(MeasRecs,noave)
+    con.tables['measurements'] = nb.MagicDataFrame(dtype='measurements', data=MeasOuts)
 
     con.tables['specimens'].write_magic_file(custom_name=spec_file)
     con.tables['samples'].write_magic_file(custom_name=samp_file)

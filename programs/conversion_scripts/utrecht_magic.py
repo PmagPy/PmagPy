@@ -45,7 +45,6 @@ INPUT
 import os,sys
 import pmagpy.pmag as pmag
 import pmagpy.new_builder as nb
-from pandas import DataFrame
 from numpy import array
 import pytz, datetime
 
@@ -54,7 +53,7 @@ def convert(**kwargs):
 
     # initialize some stuff
     version_num = pmag.get_version()
-    MeasRecs,SpecOuts,SampOuts,SiteOuts,LocOuts = [],[],[],[],[]
+    MeasRecs,SpecRecs,SampRecs,SiteRecs,LocRecs = [],[],[],[],[]
 
     dir_path = kwargs.get('dir_path', '.')
     input_dir_path = kwargs.get('input_dir_path', dir_path)
@@ -147,8 +146,8 @@ def convert(**kwargs):
         site = pmag.parse_site(sample_name,samp_con,site_num)
         SpecRec['specimen'] = spec_name
         SpecRec['sample'] = sample_name
-        SpecOuts.append(SpecRec)
-        if sample_name!="" and sample_name not in map(lambda x: x['sample'] if 'sample' in x.keys() else "", SampOuts):
+        SpecRecs.append(SpecRec)
+        if sample_name!="" and sample_name not in map(lambda x: x['sample'] if 'sample' in x.keys() else "", SampRecs):
             SampRec['sample'] = sample_name
             SampRec['azimuth'] = dec
             SampRec['dip'] = str(float(inc)-90)
@@ -156,20 +155,20 @@ def convert(**kwargs):
             SampRec['bed_dip'] = bed_dip
             SampRec['method_codes'] = meth_code
             SampRec['site'] = site
-            SampOuts.append(SampRec)
-        if site!="" and site not in map(lambda x: x['site'] if 'site' in x.keys() else "", SiteOuts):
+            SampRecs.append(SampRec)
+        if site!="" and site not in map(lambda x: x['site'] if 'site' in x.keys() else "", SiteRecs):
             SiteRec['site'] = site
             SiteRec['location'] = location
             SiteRec['lat'] = lat
             SiteRec['lon'] = lon
-            SiteOuts.append(SiteRec)
-        if location!="" and location not in map(lambda x: x['location'] if 'location' in x.keys() else "", LocOuts):
+            SiteRecs.append(SiteRec)
+        if location!="" and location not in map(lambda x: x['location'] if 'location' in x.keys() else "", LocRecs):
             LocRec['location']=location
             LocRec['lat_n'] = lat
             LocRec['lon_e'] = lon
             LocRec['lat_s'] = lat
             LocRec['lon_w'] = lon
-            LocOuts.append(LocRec)
+            LocRecs.append(LocRec)
 
         #measurement data
         line = data.readline()
@@ -291,18 +290,12 @@ def convert(**kwargs):
 
     con = nb.Contribution(output_dir_path,read_tables=[])
 
-    con.add_empty_magic_table('specimens')
-    con.add_empty_magic_table('samples')
-    con.add_empty_magic_table('sites')
-    con.add_empty_magic_table('locations')
-    con.add_empty_magic_table('measurements')
-
-    con.tables['specimens'].df = DataFrame(SpecOuts)
-    con.tables['samples'].df = DataFrame(SampOuts)
-    con.tables['sites'].df = DataFrame(SiteOuts)
-    con.tables['locations'].df = DataFrame(LocOuts)
-    Fixed=pmag.measurements_methods3(MeasRecs,noave)
-    con.tables['measurements'].df = DataFrame(Fixed)
+    con.tables['specimens'] = nb.MagicDataFrame(dtype='specimens', data=SpecRecs)
+    con.tables['samples'] = nb.MagicDataFrame(dtype='samples', data=SampRecs)
+    con.tables['sites'] = nb.MagicDataFrame(dtype='sites', data=SiteRecs)
+    con.tables['locations'] = nb.MagicDataFrame(dtype='locations', data=LocRecs)
+    MeasOuts=pmag.measurements_methods3(MeasRecs,noave)#figures out method codes for measuremet data
+    con.tables['measurements'] = nb.MagicDataFrame(dtype='measurements', data=MeasOuts)
 
     con.tables['specimens'].write_magic_file(custom_name=spec_file)
     con.tables['samples'].write_magic_file(custom_name=samp_file)
