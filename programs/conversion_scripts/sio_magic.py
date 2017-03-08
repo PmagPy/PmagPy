@@ -16,7 +16,7 @@ OPTIONS
     -f FILE: specify .mag format input file, required
     -fsa SAMPFILE : specify samples.txt file relating samples, site and locations names,default is none -- values in SAMPFILE will override selections for -loc (location), -spc (designate specimen), and -ncn (sample-site naming convention) (DEPRICIATED)
     -Fsp FILE: specify output specimens.txt file, default is specimens.txt
-    -Fsa FILE: specify output samples.txt file, default is samples.txt 
+    -Fsa FILE: specify output samples.txt file, default is samples.txt
     -Fsi FILE: specify output sites.txt file, default is sites.txt # LORI
     -Flo FILE: specify output locations.txt file, default is locations.txt
     -LP [colon delimited list of protocols, include all that apply]
@@ -65,12 +65,12 @@ OPTIONS
              or e-mail ltauxe@ucsd.edu for help.
 
         [8] synthetic - has no site name
-        [9] ODP naming convention 
+        [9] ODP naming convention
 INPUT
-    Best to put separate experiments (all AF, thermal, thellier, trm aquisition, Shaw, etc.) in 
+    Best to put separate experiments (all AF, thermal, thellier, trm aquisition, Shaw, etc.) in
        seperate .mag files (eg. af.mag, thermal.mag, etc.)
 
-    Format of SIO .mag files:   
+    Format of SIO .mag files:
     Spec Treat CSD Intensity Declination Inclination [optional metadata string]
 
     Spec: specimen name
@@ -87,7 +87,7 @@ INPUT
           AARM:
             X.00  baseline step (AF in zero bias field - high peak field)
             X.1   ARM step (in field step)  where
-               X is the step number in the 15 position scheme 
+               X is the step number in the 15 position scheme
                   (see Appendix to Lecture 13 - http://magician.ucsd.edu/Essentials_2)
           ATRM:
             X.00 optional baseline
@@ -108,11 +108,11 @@ INPUT
      Inclination:  Declination in specimen coordinate system
 
      Optional metatdata string:  mm/dd/yy;hh:mm;[dC,mT];xx.xx;UNITS;USER;INST;NMEAS
-         hh in 24 hours.  
+         hh in 24 hours.
          dC or mT units of treatment XXX (see Treat above) for thermal or AF respectively
          xx.xxx   DC field
          UNITS of DC field (microT, mT)
-         INST:  instrument code, number of axes, number of positions (e.g., G34 is 2G, three axes, 
+         INST:  instrument code, number of axes, number of positions (e.g., G34 is 2G, three axes,
                 measured in four positions)
          NMEAS: number of measurements in a single position (1,3,200...)
 """
@@ -151,25 +151,25 @@ def convert(**kwargs):
     loc_file = kwargs.get('loc_file', 'locations.txt') # location outfile
     mag_file = kwargs.get('mag_file', '')
     labfield = kwargs.get('labfield', '')
-    if labfield: 
+    if labfield:
         labfield = float(labfield) *1e-6
     else:
         labfield = 0
     phi = kwargs.get('phi', 0)
-    if phi: 
+    if phi:
         phi = float(phi)
-    else: 
+    else:
         phi = 0
     theta = kwargs.get('theta', 0)
-    if theta: 
+    if theta:
         theta=float(theta)
-    else: 
+    else:
         theta = 0
     peakfield = kwargs.get('peakfield', 0)
-    if peakfield: 
+    if peakfield:
         peakfield=float(peakfield) *1e-3
     else:
-        peakfield = 0 
+        peakfield = 0
     specnum = kwargs.get('specnum', 0)
     samp_con = kwargs.get('samp_con', '1')
     location = kwargs.get('location', 'unknown')
@@ -202,7 +202,7 @@ def convert(**kwargs):
         except:
             print "bad mag file name"
             return False, "bad mag file name"
-    if not mag_file: 
+    if not mag_file:
         print __doc__
         print "mag_file field is required option"
         return False, "mag_file field is required option"
@@ -395,10 +395,10 @@ def convert(**kwargs):
                 else:
                     MagRec["meas_n_orient"]=code1[7]   # takes care of awkward format with bubba and flo being different
                 if user=="":user=code1[5]
-                if code1[2][-1]=='C': 
+                if code1[2][-1]=='C':
                     demag="T"
                     if code1[4]=='microT' and float(code1[3])!=0. and "LP-AN-ARM" not in methcode: labfield=float(code1[3])*1e-6
-                if code1[2]=='mT' and methcode!="LP-IRM": 
+                if code1[2]=='mT' and methcode!="LP-IRM":
                     demag="AF"
                     if code1[4]=='microT' and float(code1[3])!=0.: labfield=float(code1[3])*1e-6
                 if code1[4]=='microT' and labfield!=0. and meas_type!="LT-IRM":
@@ -474,7 +474,7 @@ def convert(**kwargs):
                 SampRec["institution"]=institution
                 SampRec["material_type"]=syntype
             if float(rec[1])==0:
-                pass 
+                pass
             elif demag=="AF":
                 if methcode != "LP-AN-ARM":
                     MagRec["treat_ac_field"]='%8.3e' %(float(rec[1])*1e-3) # peak field in tesla
@@ -524,10 +524,10 @@ def convert(**kwargs):
                     ipos=ipos_guess
                     MagRec["treat_dc_field_phi"]='%7.1f' %(tdec[ipos])
                     MagRec["treat_dc_field_theta"]='%7.1f'% (tinc[ipos])
-                    # check it 
+                    # check it
                     if ipos_guess!=ipos_code and treat[1][0]!='7':
                         print "-E- ERROR: check specimen %s step %s, ATRM measurements, coding does not match the direction of the lab field!"%(rec[0],".".join(list(treat)))
-                    
+
 
             elif demag=="S": # Shaw experiment
                 if treat[1][1]=='0':
@@ -602,13 +602,13 @@ def convert(**kwargs):
                     MagRec["description"]="cooling_rate"+":"+cooling_time+":"+"K/min"
 
 
-            elif demag!='N':  
+            elif demag!='N':
               if len(treat)==1:treat.append('0')
               MagRec["treat_temp"]='%8.3e' % (float(treat[0])+273.) # temp in kelvin
               if trm==0:  # demag=T and not trmaq
                 if treat[1][0]=='0':
                     meas_type="LT-T-Z"
-                else: 
+                else:
                     MagRec["treat_dc_field"]='%8.3e' % (labfield) # labfield in tesla (convert from microT)
                     MagRec["treat_dc_field_phi"]='%7.1f' % (phi) # labfield phi
                     MagRec["treat_dc_field_theta"]='%7.1f' % (theta) # labfield theta
@@ -619,7 +619,7 @@ def convert(**kwargs):
                     if treat[1][0]=='3':
                         MagRec["treat_dc_field"]='0'  # this is a zero field step
                         meas_type="LT-PTRM-MD" # pTRM tail check
-              else: 
+              else:
                 labfield=float(treat[1])*1e-6
                 MagRec["treat_dc_field"]='%8.3e' % (labfield) # labfield in tesla (convert from microT)
                 MagRec["treat_dc_field_phi"]='%7.1f' % (phi) # labfield phi
