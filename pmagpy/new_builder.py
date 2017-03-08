@@ -624,15 +624,28 @@ class MagicDataFrame(object):
         will be filled in by the data model.
         If provided, col_names takes precedence.
         """
+        # first fetch data model if not provided
+        # (DataModel type sometimes not recognized, hence ugly hack below)
+        if isinstance(dmodel, data_model.DataModel) or str(data_model.DataModel) == str(type(dmodel)):
+            MagicDataFrame.data_model = dmodel
+            self.data_model = dmodel
+        else:
+            try:
+                self.data_model = MagicDataFrame.data_model
+            except AttributeError:
+                MagicDataFrame.data_model = data_model.DataModel()
+                self.data_model = MagicDataFrame.data_model
+
+        # create MagicDataFrame using a DataFrame and a dtype:
         if isinstance(df, pd.DataFrame):
             self.df = df
             if dtype:
-                self.dtype = dtype
+                name, self.dtype = self.get_singular_and_plural_dtype(dtype)
+                self.df.index = self.df[name]
             else:
                 print '-W- Please provide data type...'
-        # make sure all required arguments are present
 
-        # if user provides 'data', they must also provide dtype
+        # create MagicDataFrame using data and a dtype
         if data:
             df = pd.DataFrame(data)
             self.df = df
@@ -648,32 +661,27 @@ class MagicDataFrame(object):
                 self.df = None
                 return
 
+        # if user has not provided a filename, they must provide a dtype and either a df/data
+        # warn them and return
         if not magic_file and not dtype and not isinstance(df, pd.DataFrame):
             print "-W- To make a MagicDataFrame, you must provide either a filename or a datatype"
             self.df = None
             return
-        # fetch data model if not provided
-        # (DataModel type sometimes not recognized, hence ugly hack below)
-        if isinstance(dmodel, data_model.DataModel) or str(data_model.DataModel) == str(type(dmodel)):
-            MagicDataFrame.data_model = dmodel
-            self.data_model = dmodel
-        else:
-            try:
-                self.data_model = MagicDataFrame.data_model
-            except AttributeError:
-                MagicDataFrame.data_model = data_model.DataModel()
-                self.data_model = MagicDataFrame.data_model
 
+        # if a DataFrame was already created, continue
+        # otherwise create MagicDataFrame by reading the file if present,
+        # or make an empty MagicDataFrame of the correct dtype
         if isinstance(df, pd.DataFrame):
-            pass
+            # get singular name and plural datatype
+            name, self.dtype = self.get_singular_and_plural_dtype(dtype)
         # if no file is provided, make an empty dataframe of the appropriate type
-        elif not magic_file:
-            self.dtype = dtype
+        elif dtype and not magic_file:
+            name, self.dtype = self.get_singular_and_plural_dtype(dtype)
             if not isinstance(columns, type(None)):
                 self.df = DataFrame(columns=columns)
             else:
                 self.df = DataFrame()
-                self.df.index.name = dtype[:-1] if dtype.endswith("s") else dtype
+                self.df.index.name = name #dtype[:-1] if dtype.endswith("s") else dtype
         # if there is a file provided, read in the data and ascertain dtype
         else:
             ## new way of reading in data using pd.read_table
@@ -686,16 +694,12 @@ class MagicDataFrame(object):
                     self.dtype = 'empty'
                     self.df = DataFrame()
                     return
+            # get singular name and plural datatype
+            name, self.dtype = self.get_singular_and_plural_dtype(dtype)
             self.df = pd.read_table(magic_file, skiprows=[0])
-            self.dtype = dtype.strip()
-            if self.dtype.endswith('s'):
-                name = '{}'.format(self.dtype[:-1])
-            else:
-                name = self.dtype
             if self.dtype == 'measurements':
                 self.df['measurement'] = self.df['experiment'] + self.df['number'].astype(str)
             elif self.dtype == 'contribution':
-                name = 'doi'
                 return
             elif self.dtype == 'images':
                 return
@@ -717,24 +721,26 @@ class MagicDataFrame(object):
             # this is not necessarily a good idea....
             #self.df.dropna(axis=1, how='all', inplace=True)
             #
-            # add df columns that were passed in but weren't in the file
-            if columns:
-                for col in columns:
-                    if col not in self.df.columns:
-                        self.df[col] = None
 
-        # add col_names by group
+        # add any columns specified but not already in self.df
+        if columns:
+            for col in columns:
+                if col not in self.df.columns:
+                    self.df[col] = None
+
+        # add col_names by group (unless columns was specified)
         if groups and not columns:
-            columns = []
+            columns = list(self.df.columns)
             for group_name in groups:
                 columns.extend(list(self.data_model.get_group_headers(self.dtype, group_name)))
             for col in columns:
                 if col not in self.df.columns:
                     self.df[col] = None
             self.df = self.df[columns]
-        # make sure type column is present (i.e., sample column in samples df)
-        if self.dtype != 'ages':
-            self.df[self.dtype[:-1]] = self.df.index
+
+        # make sure name column is present (i.e., sample column in samples df)
+        if name not in ['measurement', 'age']:
+            self.df[name] = self.df.index
 
 
     ## Methods to change self.df inplace
@@ -806,6 +812,28 @@ class MagicDataFrame(object):
         #self.df.sort_index(inplace=True)
         return self.df
 
+
+    def get_singular_and_plural_dtype(self, dtype):
+        """
+        Parameters
+        ----------
+        dtype : str
+            MagIC table type (specimens, samples, contribution, etc.)
+
+        Returns
+        ---------
+        name : str
+           singular name for MagIC table ('specimen' for specimens table, etc.)
+        dtype : str
+           plural dtype for MagIC table ('specimens' for specimens table, etc.)
+        """
+        dtype = dtype.strip()
+        if dtype.endswith('s'):
+            return dtype[:-1], dtype
+        elif dtype == 'criteria':
+            return 'table_column', 'criteria'
+        elif dtype == 'contribution':
+            return 'doi', 'contribution'
 
     def add_blank_row(self, label):
         """
