@@ -671,9 +671,9 @@ def common_mean_bootstrap(Data1, Data2, NumSims=1000, save=False, save_folder = 
 
     Examples
     --------
-    Develop two populations of directions using pmag.fishrot. Use the function
-    to determine if they share a common mean (through visual inspection of
-    resulting plots).
+    Develop two populations of directions using ``ipmag.fishrot``. Use the
+    function to determine if they share a common mean (through visual inspection
+    of resulting plots).
 
     >>> directions_A = ipmag.fishrot(k=20, n=30, dec=40, inc=60)
     >>> directions_B = ipmag.fishrot(k=35, n=25, dec=42, inc=57)
@@ -749,15 +749,21 @@ def common_mean_watson(Data1, Data2, NumSims=5000, plot='no', save=False, save_f
     ----------
     Data1 : a nested list of directional data [dec,inc] (a di_block)
     Data2 : a nested list of directional data [dec,inc] (a di_block)
-
-    Optional Parameters (defaults are used if not specified)
-    ----------
     NumSims : number of Monte Carlo simulations (default is 5000)
-    plot : the default is no plot ('no'). Putting 'yes' will the plot the CDF from
-    the Monte Carlo simulations.
+    plot : the default is no plot ('no'). Putting 'yes' will the plot the CDF
+        from the Monte Carlo simulations.
     save : optional save of plots (default is False)
-    save_folder : path to directory where plots should be saved
+    save_folder : path to where plots will be saved (default is current)
     fmt : format of figures to be saved (default is 'svg')
+
+    Examples
+    --------
+    Develop two populations of directions using ``ipmag.fishrot``. Use the
+    function to determine if they share a common mean.
+
+    >>> directions_A = ipmag.fishrot(k=20, n=30, dec=40, inc=60)
+    >>> directions_B = ipmag.fishrot(k=35, n=25, dec=42, inc=57)
+    >>> ipmag.common_mean_watson(directions_A, directions_B)
     """
     pars_1=pmag.fisher_mean(Data1)
     pars_2=pmag.fisher_mean(Data2)
