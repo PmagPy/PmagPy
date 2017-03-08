@@ -3158,7 +3158,12 @@ def upload_magic3(concat=0, dir_path='.', dmodel=None, vocab="", contribution=No
             df.drop(DropKeys, axis=1, inplace=True)
             # make sure int_b_beta is positive
             if 'int_b_beta' in df.columns:
-                df['int_b_beta'] = df['int_b_beta'].astype(float).apply(abs)
+                # make sure dtype can become float
+                df = df.replace(r'\s+( +\.)|#',np.nan,regex=True).replace('',np.nan)
+                try:
+                    df['int_b_beta'] = df['int_b_beta'].astype(float).apply(abs)
+                except ValueError:
+                    "-W- Non numeric values found in int_b_beta column.\n   Could not apply absolute value."
             # make all declinations/azimuths/longitudes in range 0=>360.
             relevant_cols = val_up3.get_degree_cols(df)
             for col in relevant_cols:
