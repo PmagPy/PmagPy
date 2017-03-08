@@ -100,6 +100,7 @@ class Contribution(object):
         """
         Add a MagIC table to the contribution from a data list
 
+
         Parameters
         ----------
         dtype : str
@@ -109,7 +110,7 @@ class Contribution(object):
         """
         self.tables[dtype] = MagicDataFrame(dtype=dtype, data=data)
 
-    # add_magic_table_from_file
+
     def add_magic_table(self, dtype, fname=None):
         """
         Read in a new file to add a table to self.tables.
