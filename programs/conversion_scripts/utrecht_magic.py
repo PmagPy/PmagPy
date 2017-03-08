@@ -290,12 +290,12 @@ def convert(**kwargs):
 
     con = nb.Contribution(output_dir_path,read_tables=[])
 
-    con.tables['specimens'] = nb.MagicDataFrame(dtype='specimens', data=SpecRecs)
-    con.tables['samples'] = nb.MagicDataFrame(dtype='samples', data=SampRecs)
-    con.tables['sites'] = nb.MagicDataFrame(dtype='sites', data=SiteRecs)
-    con.tables['locations'] = nb.MagicDataFrame(dtype='locations', data=LocRecs)
-    MeasOuts=pmag.measurements_methods3(MeasRecs,noave)#figures out method codes for measuremet data
-    con.tables['measurements'] = nb.MagicDataFrame(dtype='measurements', data=MeasOuts)
+    con.add_magic_table_from_data(dtype='specimens', data=SpecRecs)
+    con.add_magic_table_from_data(dtype='samples', data=SampRecs)
+    con.add_magic_table_from_data(dtype='sites', data=SiteRecs)
+    con.add_magic_table_from_data(dtype='locations', data=LocRecs)
+    MeasOuts=pmag.measurements_methods3(MeasRecs,noave) #figures out method codes for measuremet data
+    con.add_magic_table_from_data(dtype='measurements', data=MeasOuts)
 
     con.tables['specimens'].write_magic_file(custom_name=spec_file)
     con.tables['samples'].write_magic_file(custom_name=samp_file)
