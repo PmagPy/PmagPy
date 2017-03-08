@@ -637,15 +637,28 @@ class MagicDataFrame(object):
         will be filled in by the data model.
         If provided, col_names takes precedence.
         """
+        # first fetch data model if not provided
+        # (DataModel type sometimes not recognized, hence ugly hack below)
+        if isinstance(dmodel, data_model.DataModel) or str(data_model.DataModel) == str(type(dmodel)):
+            MagicDataFrame.data_model = dmodel
+            self.data_model = dmodel
+        else:
+            try:
+                self.data_model = MagicDataFrame.data_model
+            except AttributeError:
+                MagicDataFrame.data_model = data_model.DataModel()
+                self.data_model = MagicDataFrame.data_model
+
+        # create MagicDataFrame using a DataFrame and a dtype:
         if isinstance(df, pd.DataFrame):
             self.df = df
             if dtype:
-                self.dtype = dtype
+                name, self.dtype = self.get_singular_and_plural_dtype(dtype)
+                self.df.index = self.df[name]
             else:
                 print '-W- Please provide data type...'
-        # make sure all required arguments are present
 
-        # if user provides 'data', they must also provide dtype
+        # create MagicDataFrame using data and a dtype
         if data:
             df = pd.DataFrame(data)
             self.df = df
@@ -661,21 +674,12 @@ class MagicDataFrame(object):
                 self.df = None
                 return
 
+        # if user has not provided a filename, they must provide a dtype and either a df/data
+        # warn them and return
         if not magic_file and not dtype and not isinstance(df, pd.DataFrame):
             print "-W- To make a MagicDataFrame, you must provide either a filename or a datatype"
             self.df = None
             return
-        # fetch data model if not provided
-        # (DataModel type sometimes not recognized, hence ugly hack below)
-        if isinstance(dmodel, data_model.DataModel) or str(data_model.DataModel) == str(type(dmodel)):
-            MagicDataFrame.data_model = dmodel
-            self.data_model = dmodel
-        else:
-            try:
-                self.data_model = MagicDataFrame.data_model
-            except AttributeError:
-                MagicDataFrame.data_model = data_model.DataModel()
-                self.data_model = MagicDataFrame.data_model
 
         # create MagicDataFrame using a DataFrame and a dtype:
         if isinstance(df, pd.DataFrame):
