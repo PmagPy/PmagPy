@@ -96,7 +96,20 @@ class Contribution(object):
         data_container = MagicDataFrame(dtype=dtype, columns=col_names, groups=groups)
         self.tables[dtype] = data_container
 
+    def add_magic_table_from_data(self, dtype, data):
+        """
+        Add a MagIC table to the contribution from a data list
 
+        Parameters
+        ----------
+        dtype : str
+            MagIC table type
+        data : list of dicts
+            data list with format [{'key1': 'val1', ...}, {'key1': 'val2', ...}, ... }]
+        """
+        self.tables[dtype] = MagicDataFrame(dtype=dtype, data=data)
+
+    # add_magic_table_from_file
     def add_magic_table(self, dtype, fname=None):
         """
         Read in a new file to add a table to self.tables.
@@ -813,7 +826,7 @@ class MagicDataFrame(object):
         return self.df
 
 
-    def add_data(self, data, dtype):  # add append option later
+    def add_data(self, data):  # add append option later
         """
         Add df to a MagicDataFrame using a data list.
 
@@ -825,7 +838,7 @@ class MagicDataFrame(object):
             MagIC table type
         """
         df = pd.DataFrame(data)
-        name, dtype = self.get_singular_and_plural_dtype(dtype)
+        name, dtype = self.get_singular_and_plural_dtype(self.dtype)
         if name in df.columns:
             df.index = df[name]
         self.df = df
