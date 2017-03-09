@@ -86,6 +86,9 @@ def plot_init(fignum,w,h):
     #pylab.ioff()
 
 def plot3d_init(fignum):
+    """
+    initializes 3D plot
+    """
     from mpl_toolkits.mplot3d import Axes3D
     fig=pylab.figure(fignum)
     ax=fig.add_subplot(111,projection='3d')
@@ -108,12 +111,12 @@ def gaussfunc(y,ybar,sigma):
     erf=abs(erf)
     sign=x/abs(x)
     return 0.5*(1.0+sign*erf)
-#
-def k_s(X): # kolmorgorov-smirnov statistic
+
+def k_s(X):
     """
-        finds the probability that the data are
-        distributed as func - used method of Numerical
-        Recipes (Press et al., 1986)
+    Kolmorgorov-Smirnov statistic. Finds the
+    probability that the data are distributed
+    as func - used method of Numerical Recipes (Press et al., 1986)
     """
     xbar,sigma=pmag.gausspars(X)
     d,f=0,0.
@@ -1719,7 +1722,7 @@ def plotDay(fignum,BcrBc,S,sym,**kwargs):
         names=kwargs['names']
         for k in range(len(names)):
             pylab.text(BcrBc[k],S[k],names[k]) #,'ha'='left'
-        
+
 
 #
 def plotSBc(fignum,Bc,S,sym):

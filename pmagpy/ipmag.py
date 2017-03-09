@@ -7277,7 +7277,7 @@ def find_ei(data, nb=1000, save = False, save_folder = '.', fmt='svg',
         Note that many directions (~ 100) are needed for this correction to be reliable.
     return_new_dirs: optional return of newly "unflattened" directions (default is False)
 
-    Output
+    Returns
     -----------
     four plots:   1) equal area plot of original directions
                   2) Elongation/inclination pairs as a function of f,  data plus 25 bootstrap samples
