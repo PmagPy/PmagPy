@@ -656,7 +656,8 @@ class MagicDataFrame(object):
             self.df = df
             if dtype:
                 name, self.dtype = self.get_singular_and_plural_dtype(dtype)
-                self.df.index = self.df[name]
+                if name in self.df.columns:
+                    self.df.index = self.df[name]
             else:
                 print '-W- Please provide data type...'
 
