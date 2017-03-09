@@ -220,6 +220,8 @@ class combine_magic_dialog(wx.Frame):
         self.Parent.Show()
         self.Parent.Raise()
         self.Destroy()
+        # make sure contribution is created
+        self.Parent.get_wd_data()
 
     def on_nextButton(self, event):
         combine_dia = combine_everything_dialog(self.WD, self.Parent)
@@ -338,6 +340,8 @@ class combine_everything_dialog(wx.Frame):
         self.Parent.Show()
         self.Parent.Raise()
         self.Destroy()
+        # make sure contribution is created
+        self.Parent.get_wd_data()
 
     def on_okButton(self,event):
         os.chdir(self.WD)
@@ -363,8 +367,13 @@ class combine_everything_dialog(wx.Frame):
             self.Parent.Show()
             self.Parent.Raise()
             self.Destroy()
+            # make sure contribution is created
+            self.Parent.get_wd_data()
+
         else:
             pw.simple_warning()
+            # make sure contribution is created
+            self.Parent.get_wd_data()
 
 
 #--------------------------------------------------------------
