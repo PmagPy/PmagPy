@@ -1692,8 +1692,9 @@ def plotDay(fignum,BcrBc,S,sym,**kwargs):
     pylab.xlabel('Bcr/Bc')
     pylab.ylabel('Mr/Ms')
     pylab.title('Day Plot')
-    bounds= pylab.axis()
-    pylab.axis([0, bounds[1],0, 1])
+    pylab.xlim(0,6)
+    #bounds= pylab.axis()
+    #pylab.axis([0, bounds[1],0, 1])
     mu_o=4.*numpy.pi*1e-7
     Bc_sd=46e-3 #  # (MV1H) dunlop and carter-stiglitz 2006 (in T)
     Bc_md=5.56e-3 #  # (041183) dunlop and carter-stiglitz 2006 (in T)
