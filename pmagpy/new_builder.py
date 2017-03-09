@@ -218,8 +218,9 @@ class Contribution(object):
                             # remove whitespace
                             child = child.strip()
                             old_parent = parent_of_child.get(child)
-                            if old_parent and (old_parent != parent):
-                                print '-I- for {} {}, replacing: {} with: {}'.format(child_name, child, old_parent, parent)
+                            if old_parent and parent and (old_parent != parent):
+                                print '-I- for {} {}, replacing: {} with: {}'.format(child_name[:-1], child,
+                                                                                     old_parent, parent)
                             parent_of_child[child] = parent
                     # old way:
                     # flatten list, ignore duplicates
