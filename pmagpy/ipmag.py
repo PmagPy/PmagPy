@@ -897,8 +897,9 @@ def reversal_test_bootstrap(dec=None, inc=None, di_block=None, plot_stereo = Fal
     inc: list of inclinations
         or
     di_block: a nested list of [dec,inc]
-        A di_block can be provided instead of dec, inc lists in which case it
-        will be used. Either dec, inc lists or a di_block need to passed to the function.
+        A di_block can be provided in which case it will be used instead of
+        dec, inc lists.
+
     plot_stereo : before plotting the CDFs, plot stereonet with the
         bidirectionally separated data (default is False)
     save : boolean argument to save plots (default is False)
@@ -923,7 +924,7 @@ def reversal_test_bootstrap(dec=None, inc=None, di_block=None, plot_stereo = Fal
     >>> ipmag.reversal_test_bootstrap(di_block=directions, plot_stereo = True)
 
     Data can also be input to the function as separate lists of dec and inc.
-    In this example the di_block from above is split into lists of dec and inc
+    In this example, the di_block from above is split into lists of dec and inc
     which are then used in the function:
 
     >>> direction_dec, direction_inc, direction_moment = ipmag.unpack_di_block(directions)
@@ -954,20 +955,15 @@ def reversal_test_MM1990(dec=None, inc=None, di_block=None, plot_CDF=False, plot
     the critical angle between the two sample mean directions and the
     corresponding McFadden and McElhinny (1990) classification.
 
-    Required Parameters
+    Parameters
     ----------
     dec: list of declinations
     inc: list of inclinations
-
-    or
-
+        or
     di_block: a nested list of [dec,inc]
+        A di_block can be provided in which case it will be used instead of
+        dec, inc lists.
 
-    A di_block can be provided instead of dec, inc lists in which case it will
-    be used. Either dec, inc lists or a di_block need to passed to the function.
-
-    Optional Parameters (defaults are used if not specified)
-    ----------
     plot_CDF : plot the CDF accompanying the printed results (default is False)
     plot_stereo : plot stereonet with the bidirectionally separated data
         (default is False)
@@ -975,6 +971,25 @@ def reversal_test_MM1990(dec=None, inc=None, di_block=None, plot_CDF=False, plot
     save_folder : relative directory where plots will be saved
         (default is current directory, '.')
     fmt : format of saved figures (default is 'svg')
+
+    Examples
+    --------
+    Populations of roughly antipodal directions are developed here using
+    ``ipmag.fishrot``. These directions are combined into a single di_block
+    given that the function determines the principal component and splits the
+    data accordingly by polarity.
+
+    >>> directions_n = ipmag.fishrot(k=20, n=30, dec=5, inc=-60)
+    >>> directions_r = ipmag.fishrot(k=35, n=25, dec=182, inc=57)
+    >>> directions = directions_n + directions_r
+    >>> ipmag.reversal_test_MM1990(di_block=directions, plot_stereo = True)
+
+    Data can also be input to the function as separate lists of dec and inc.
+    In this example, the di_block from above is split into lists of dec and inc
+    which are then used in the function:
+
+    >>> direction_dec, direction_inc, direction_moment = ipmag.unpack_di_block(directions)
+    >>> ipmag.reversal_test_MM1990(dec=direction_dec,inc=direction_inc, plot_stereo = True)
     """
     if di_block is None:
         all_dirs = make_di_block(dec, inc)
@@ -1013,11 +1028,10 @@ def fishqq(lon=None, lat=None, di_block=None):
     -----------
     lon : longitude or declination of the data
     lat : latitude or inclination of the data
-
-    or
-
-    di_block: a nested list of [lon,lat,1.0] or [dec,inc,1.0]
-    (di_block can be provided instead of lon, lat in which case it will be used)
+        or
+    di_block: a nested list of [dec,inc]
+        A di_block can be provided in which case it will be used instead of
+        dec, inc lists.
 
     Output:
     -----------
