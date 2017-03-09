@@ -10,6 +10,7 @@ if not matplotlib.get_backend() == 'WXAgg':
     matplotlib.use('WXAgg')
 import wx
 import wx.lib.buttons as buttons
+import wx.lib.newevent as newevent
 import os
 import sys
 from pmagpy import pmag
@@ -388,12 +389,63 @@ class MagMainFrame(wx.Frame):
         if self.data_model_num == 2.5:
             thellier_gui.main(self.WD, standalone_app=False, parent=self, DM=self.data_model_num)
         else:
-            thellier_gui.main(self.WD, standalone_app=False, parent=self, DM=self.data_model_num)
+            # disable and hide Pmag GUI mainframe
+            self.Disable()
+            self.Hide()
+            # show busyinfo
+            wait = wx.BusyInfo('Compiling required data, please wait...')
+            wx.Yield()
+            # create custom Thellier GUI closing event and bind it
+            ThellierGuiExitEvent, EVT_THELLIER_GUI_EXIT = newevent.NewCommandEvent()
+            self.Bind(EVT_THELLIER_GUI_EXIT, self.on_analysis_gui_exit)
+            # make and show the Thellier GUI frame
+            thellier_gui_frame = thellier_gui.Arai_GUI(self.WD, self,
+                                                       standalone=False,
+                                                       DM=self.data_model_num,
+                                                       evt_quit=ThellierGuiExitEvent)
+            thellier_gui_frame.Centre()
+            thellier_gui_frame.Show()
+            del wait
+
 
     def on_run_demag_gui(self, event):
         outstring = "demag_gui.py -WD %s"%self.WD
         print "-I- running python script:\n %s"%(outstring)
-        demag_gui.start(self.WD, standalone_app=False, parent=self, DM=self.data_model_num)
+        if self.data_model_num == 2:
+            demag_gui.start(self.WD, standalone_app=False, parent=self, DM=self.data_model_num)
+        else:
+            # disable and hide Pmag GUI mainframe
+            self.Disable()
+            self.Hide()
+            # show busyinfo
+            wait = wx.BusyInfo('Compiling required data, please wait...')
+            wx.Yield()
+            # create custom Demag GUI closing event and bind it
+            DemagGuiExitEvent, EVT_DEMAG_GUI_EXIT = newevent.NewCommandEvent()
+            self.Bind(EVT_DEMAG_GUI_EXIT, self.on_analysis_gui_exit)
+            # make and show the Demag GUI frame
+            demag_gui_frame = demag_gui.Demag_GUI(self.WD, self,
+                                                  data_model=self.data_model_num,
+                                                  evt_quit=DemagGuiExitEvent)
+            demag_gui_frame.Centre()
+            demag_gui_frame.Show()
+            del wait
+
+
+    def on_analysis_gui_exit(self, event):
+        """
+        When Thellier or Demag GUI closes,
+        show and enable Pmag GUI main frame.
+        Read in an updated contribution object
+        based on any changed files.
+        (For Pmag GUI 3.0 only)
+        """
+        self.Enable()
+        self.Show()
+        # also, refresh contribution object based on files
+        # that may have been written/overwritten by Thellier GUI
+        self.get_wd_data()
+
 
     def on_convert_file(self, event):
         pmag_dialogs_dia = pmag_basic_dialogs.import_magnetometer_data(self, wx.ID_ANY, '', self.WD)

@@ -104,7 +104,8 @@ class Demag_GUI(wx.Frame):
 #============================Initalization Functions=======================================#
 #==========================================================================================#
 
-    def __init__(self, WD=None, parent=None, write_to_log_file=True, test_mode_on=False, data_model=None):
+    def __init__(self, WD=None, parent=None, write_to_log_file=True,
+                 test_mode_on=False, data_model=None, evt_quit=None):
         """
         Initializes the GUI by creating necessary variables, importing data,
         setting icon, and initializing the UI and menu
@@ -130,6 +131,7 @@ class Demag_GUI(wx.Frame):
         self.parent = parent
         self.set_test_mode(test_mode_on)
         self.data_model = data_model
+        self.evt_quit = evt_quit
 
         #setup wx help provider class to give help messages
         provider = wx.SimpleHelpProvider()
@@ -5795,7 +5797,6 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
         print("Working Directory altered from %s to %s, all output will be sent here"%(old_WD,new_WD))
 
     def on_menu_exit(self, event):
-
         #check if interpretations have changed and were not saved
         write_session_to_failsafe = False
         try:
@@ -5839,11 +5840,19 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
                 if self.ie_open:
                     self.ie.on_close_edit_window(event)
                 self.Destroy()
+                if self.evt_quit:
+                    event = self.evt_quit(self.GetId())
+                    self.GetEventHandler().ProcessEvent(event)
+
         else:
             if self.ie_open:
                 self.ie.on_close_edit_window(event)
             self.close_log_file()
             self.Destroy()
+            if self.evt_quit:
+                event = self.evt_quit(self.GetId())
+                self.GetEventHandler().ProcessEvent(event)
+
         self.running = False
 
     #---------------------------------------------#

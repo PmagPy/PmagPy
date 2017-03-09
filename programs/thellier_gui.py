@@ -218,7 +218,7 @@ class Arai_GUI(wx.Frame):
     """
     title = "PmagPy Thellier GUI %s"%CURRENT_VERSION
 
-    def __init__(self, WD=None, parent=None, standalone=True, DM=0, test_mode=False):
+    def __init__(self, WD=None, parent=None, standalone=True, DM=0, test_mode=False, evt_quit=None):
 
         TEXT="""
         NAME
@@ -238,6 +238,7 @@ class Arai_GUI(wx.Frame):
         wx.Frame.__init__(self, parent, wx.ID_ANY, self.title, name='thellier gui')
         self.set_test_mode(test_mode)
         self.redo_specimens={}
+        self.evt_quit = evt_quit
 
         # get DM number (2 or 3)
         # if DM was provided
@@ -1933,15 +1934,26 @@ else:
     #-----------------------------------
 
     def on_menu_exit(self, event):
+        """
+        Runs whenever Thellier GUI exits
+        """
         if self.close_warning:
             TEXT="Data is not saved to a file yet!\nTo properly save your data:\n1) Analysis --> Save current interpretations to a redo file.\nor\n1) File --> Save MagIC tables.\n\n Press OK to exit without saving."
             dlg1 = wx.MessageDialog(None,caption="Warning:", message=TEXT ,style=wx.OK|wx.CANCEL|wx.ICON_EXCLAMATION)
             if self.show_dlg(dlg1) == wx.ID_OK:
                 dlg1.Destroy()
                 self.Destroy()
-                #sys.exit()
+                # if a custom quit event is specified, fire it
+                if self.evt_quit:
+                    event = self.evt_quit(self.GetId())
+                    self.GetEventHandler().ProcessEvent(event)
         else:
             self.Destroy()
+            # if a custom quit event is specified, fire it
+            if self.evt_quit:
+                event = self.evt_quit(self.GetId())
+                self.GetEventHandler().ProcessEvent(event)
+
             #self.Destroy() # works if matplotlib isn't using 'WXAgg', otherwise doesn't quit fully
             #wx.Exit() # works by itself, but if called in conjunction with self.Destroy you get a seg error
             # wx.Exit() # forces the program to exit, with no clean up.  works, but not an ideal solution

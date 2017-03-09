@@ -3158,7 +3158,7 @@ def upload_magic3(concat=0, dir_path='.', dmodel=None, vocab="", contribution=No
             df.drop(DropKeys, axis=1, inplace=True)
             # make sure int_b_beta is positive
             if 'int_b_beta' in df.columns:
-                # make sure dtype can become float
+                # get rid of empty strings
                 df = df.replace(r'\s+( +\.)|#',np.nan,regex=True).replace('',np.nan)
                 try:
                     df['int_b_beta'] = df['int_b_beta'].astype(float).apply(abs)
