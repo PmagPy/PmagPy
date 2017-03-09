@@ -25,10 +25,7 @@ from dialogs import ErMagicBuilder
 from dialogs import demag_dialogs
 from dialogs import pmag_widgets as pw
 
-try:
-    from programs import demag_gui
-except:
-    pass
+from programs import demag_gui
 from programs import thellier_gui
 #from programs import thellier_gui3
 
@@ -425,6 +422,7 @@ class MagMainFrame(wx.Frame):
             self.Bind(EVT_DEMAG_GUI_EXIT, self.on_analysis_gui_exit)
             # make and show the Demag GUI frame
             demag_gui_frame = demag_gui.Demag_GUI(self.WD, self,
+                                                  write_to_log_file=False,
                                                   data_model=self.data_model_num,
                                                   evt_quit=DemagGuiExitEvent)
             demag_gui_frame.Centre()
