@@ -1848,7 +1848,7 @@ else:
             self.GUI_log.write( "-I- thellier_gui.preferences imported\n")
             preferences.update(thellier_gui_preferences.preferences)
         except (IOError,OSError,NameError):
-            self.GUI_log.write( " -I- cant find thellier_gui_preferences file, using defualt default \n")
+            self.GUI_log.write( " -I- can't find thellier_gui_preferences file, using default \n")
 
         # check criteria file
         # if a statistic appear in the criteria file  but does not appear in
@@ -2278,7 +2278,7 @@ else:
                 if self.acceptance_criteria[crit]['value']!=-999:
                     short_crit=crit.split('specimen_')[-1]
                     if short_crit not in self.preferences['show_statistics_on_gui']:
-                        print "-I- statitics %s is not in your preferences"%crit
+                        print "-I- statistic %s is not in your preferences"%crit
                         self.preferences['show_statistics_on_gui'].append(short_crit)
                         crit_list_not_in_pref.append(crit)
         if  len(crit_list_not_in_pref)>0:
@@ -2514,14 +2514,14 @@ else:
                         else:
                             self.acceptance_criteria[m2_name]['value']=0
             else:
-                print "-E- Cant read criteria file"
+                print "-E- Can't read criteria file"
 
         else: #      Do it the data model 2.5 way:
             self.crit_data={}
             try:
                 self.acceptance_criteria=pmag.read_criteria_from_file(criteria_file,self.acceptance_criteria)
             except:
-                print "-E- Cant read pmag criteria file"
+                print "-E- Can't read pmag criteria file"
         # guesss if average by site or sample:
         by_sample=True
         flag=False
@@ -3048,11 +3048,11 @@ else:
                 # AARM - 6, 9 or 15 positions
                 #-----------------------------------
 
-                aniso_logfile.write( "-I- Start calculating AARM tensors specimen %s\n"%specimen)
+                aniso_logfile.write( "-I- Start calculating AARM tensors for specimen %s\n"%specimen)
 
                 aarmblock=self.Data[specimen]['aarmblock']
                 if len(aarmblock)<12:
-                    aniso_logfile.write( "-W- WARNING: not enough aarm measurement for specimen %s\n"%specimen)
+                    aniso_logfile.write( "-W- WARNING: not enough aarm measurements for specimen %s\n"%specimen)
                     continue
                 elif len(aarmblock)==12:
                     n_pos=6
@@ -3068,7 +3068,7 @@ else:
                     B=Matrices[15]['B']
                     M=np.zeros([15,3],'f')
                 else:
-                    aniso_logfile.write( "-E- ERROR: number of measurements in aarm block is incorrect sample %s\n"%specimen)
+                    aniso_logfile.write( "-E- ERROR: number of measurements in aarm block is incorrect for sample %s\n"%specimen)
                     continue
 
                 Reject_specimen = False
@@ -3227,7 +3227,7 @@ else:
         self.Data=copy.deepcopy(thellier_auto_interpreter.Data)
         self.Data_samples=copy.deepcopy(thellier_auto_interpreter.Data_samples)
         self.Data_sites=copy.deepcopy(thellier_auto_interpreter.Data_sites)
-        dlg1 = wx.MessageDialog(self,caption="Message:", message="Interpreter finished sucsessfuly\nCheck output files in folder /thellier_interpreter in the current project directory" ,style=wx.OK|wx.ICON_INFORMATION)
+        dlg1 = wx.MessageDialog(self,caption="Message:", message="Interpreter finished successfully\nCheck output files in folder /thellier_interpreter in the current project directory" ,style=wx.OK|wx.ICON_INFORMATION)
 
         # display the interpretation of the current specimen:
         self.pars=self.Data[self.s]['pars']
@@ -3291,7 +3291,7 @@ else:
         Read previous interpretation from a redo file
         and update gui with the new interpretation
         """
-        self.GUI_log.write ("-I- read redo file and processing new temperature bounds")
+        self.GUI_log.write ("-I- reading redo file and processing new temperature bounds")
         self.redo_specimens={}
         # first delete all previous interpretation
         for sp in self.Data.keys():
@@ -3317,7 +3317,7 @@ else:
             self.redo_specimens[specimen]['t_max']=float(tmax_kelvin)
             if specimen in self.Data.keys():
                 if tmin_kelvin not in self.Data[specimen]['t_Arai'] or tmax_kelvin not in self.Data[specimen]['t_Arai'] :
-                    self.GUI_log.write ("-W- WARNING: cant fit temperature bounds in the redo file to the actual measurement. specimen %s\n"%specimen)
+                    self.GUI_log.write ("-W- WARNING: can't fit temperature bounds in the redo file to the actual measurement. specimen %s\n"%specimen)
                 else:
                     self.Data[specimen]['pars']=thellier_gui_lib.get_PI_parameters(self.Data,self.acceptance_criteria,self.preferences,specimen,float(tmin_kelvin),float(tmax_kelvin),self.GUI_log,THERMAL,MICROWAVE)
                     try:
@@ -3340,10 +3340,10 @@ else:
 
                     except:
                         print "-E- ERROR 1"
-                        self.GUI_log.write ("-E- ERROR. Cant calculate PI paremeters for specimen %s using redo file. Check!\n"%(specimen))
+                        self.GUI_log.write ("-E- ERROR. Can't calculate PI paremeters for specimen %s using redo file. Check!\n"%(specimen))
             else:
-                self.GUI_log.write ("-W- WARNING: Cant find specimen %s from redo file in measurement file!\n"%specimen)
-                print "-W- WARNING: Cant find specimen %s from redo file in measurement file!\n"%specimen
+                self.GUI_log.write ("-W- WARNING: Can't find specimen %s from redo file in measurement file!\n"%specimen)
+                print "-W- WARNING: Can't find specimen %s from redo file in measurement file!\n"%specimen
         fin.close()
         self.pars=self.Data[self.s]['pars']
         self.clear_boxes()
@@ -3405,12 +3405,12 @@ else:
                 PmagRecsOld[FILE],meas_data=[],[]
                 try:
                     meas_data,file_type=pmag.magic_read(os.path.join(self.WD, FILE))
-                    self.GUI_log.write("-I- Read exiting magic file  %s\n"%(os.path.join(self.WD, FILE)))
+                    self.GUI_log.write("-I- Read existing magic file  %s\n"%(os.path.join(self.WD, FILE)))
                     #if FILE !='pmag_specimens.txt':
                     os.rename(os.path.join(self.WD, FILE), os.path.join(self.WD, FILE+".backup"))
                     self.GUI_log.write("-I- rename old magic file  %s.backup\n"%(os.path.join(self.WD, FILE)))
                 except:
-                    self.GUI_log.write("-I- Cant read existing magic file  %s\n"%(os.path.join(self.WD, FILE)))
+                    self.GUI_log.write("-I- Can't read existing magic file  %s\n"%(os.path.join(self.WD, FILE)))
                     continue
                 for rec in meas_data:
                     if "magic_method_codes" in rec.keys():
@@ -3852,15 +3852,15 @@ else:
                 foundkeys=False
             #print    "element_with_age",element_with_age
                 for key in ['age','age_sigma','age_range_low','age_range_high','age_unit']:
-                    print "Ron debug"
-                    print element_with_age
-                    print sample_or_site
+                    #print "Ron debug"
+                    #print element_with_age
+                    #print sample_or_site
                     if "er_ages" in self.Data_info.keys() and element_with_age in self.Data_info["er_ages"].keys():
                         if key in  self.Data_info["er_ages"][element_with_age].keys():
                             if  self.Data_info["er_ages"][element_with_age][key] !="":
-                                print self.Data_info["er_ages"][element_with_age]
-                                print  self.Data_info["er_ages"][element_with_age][key]
-                                print MagIC_results_data['pmag_results'][sample_or_site]
+                                #print self.Data_info["er_ages"][element_with_age]
+                                #print  self.Data_info["er_ages"][element_with_age][key]
+                                #print MagIC_results_data['pmag_results'][sample_or_site]
                                 MagIC_results_data['pmag_results'][sample_or_site][key]=self.Data_info["er_ages"][element_with_age][key]
                                 foundkeys=True
                 if foundkeys==True:
@@ -4561,8 +4561,8 @@ else:
                     plot_by_locations[location]['Y_data_minus_extended'].append(VADM-VADM_minus_extended)
 
             elif plt_VADM and not found_lat:
-                self.GUI_log.write( "-W- Plot: skipping sample %s because cant find latitude for V[A]DM calculation\n"%sample_or_site)
-                print "-W- Plot: skipping sample %s because  cant find latitude for V[A]DM calculation\n"%sample_or_site
+                self.GUI_log.write( "-W- Plot: skipping sample %s because can't find latitude for V[A]DM calculation\n"%sample_or_site)
+                print "-W- Plot: skipping sample %s because  can't find latitude for V[A]DM calculation\n"%sample_or_site
                 continue
 
             #-----
@@ -4648,7 +4648,7 @@ else:
                 m.drawcountries()
                 m.drawmapboundary()
             else:
-                print "Cant plot map. Is basemap installed?"
+                print "Can't plot map. Is basemap installed?"
         cnt=0
 
         #-----
@@ -4795,8 +4795,8 @@ else:
                 x_Arai_IZ.append(x_Arai[i])
                 y_Arai_IZ.append(y_Arai[i])
             else:
-                self.user_warning("-E- Cant plot Arai plot. check the data for specimen %s\n"%s)
-                self.GUI_log.write("-E- Cant plot Arai plot. check the data for specimen %s\n"%s)
+                self.user_warning("-E- Can't plot Arai plot. check the data for specimen %s\n"%s)
+                self.GUI_log.write("-E- Can't plot Arai plot. check the data for specimen %s\n"%s)
         if len(x_Arai_ZI)>0:
             self.araiplot.scatter (x_Arai_ZI,y_Arai_ZI,marker='o',facecolor='r',edgecolor ='k',s=25*self.GUI_RESOLUTION,clip_on=False)
         if len(x_Arai_IZ)>0:
@@ -5844,7 +5844,7 @@ else:
             try:
                 meas_data,file_type=pmag.magic_read(self.magic_file)
             except:
-                print "-E- ERROR: Cant read measurement file. "
+                print "-E- ERROR: Can't read measurement file. "
                 return {},{}
 
         #print "done Magic read %s " %self.magic_file
@@ -6046,14 +6046,14 @@ else:
                 rmag_anis_data,file_type=pmag.magic_read(os.path.join(self.WD, 'rmag_anisotropy.txt'))
                 self.GUI_log.write( "-I- Anisotropy data read  %s/from rmag_anisotropy.txt\n"%self.WD)
             except:
-                self.GUI_log.write("-W- WARNING cant find rmag_anisotropy in working directory\n")
+                self.GUI_log.write("-W- WARNING can't find rmag_anisotropy in working directory\n")
 
             try:
                 results_anis_data,file_type=pmag.magic_read(os.path.join(self.WD, 'rmag_results.txt'))
                 self.GUI_log.write( "-I- Anisotropy data read  %s/from rmag_anisotropy.txt\n"%self.WD)
 
             except:
-                self.GUI_log.write("-W- WARNING cant find rmag_anisotropy in working directory\n")
+                self.GUI_log.write("-W- WARNING can't find rmag_anisotropy in working directory\n")
 
 
             for AniSpec in rmag_anis_data:
@@ -6092,7 +6092,7 @@ else:
         #
         # A) If there are only 2 NLT measurement: C
         #
-        #   Cant do NLT correctio procedure (few data points).
+        #   Can't do NLT correctio procedure (few data points).
         #   Instead, check the different in the ratio (M/B) in the two measurements.
         #   slop_diff = max(first slope, second slope)/min(first slope, second slope)
         #   if: 1.1 > slop_diff > 1.05 : WARNING
@@ -6167,7 +6167,7 @@ else:
                 for rec in datablock:
                     if float(rec['treatment_temp'])==NLT_temperature and float(rec['treatment_dc_field'])==0:
                         m_tmp.append(float(rec['measurement_magn_moment']))
-                        self.GUI_log.write("-I- Found basleine for NLT measurements in datablock, specimen %s\n"%s)
+                        self.GUI_log.write("-I- Found baseline for NLT measurements in datablock, specimen %s\n"%s)
                 if len(m_tmp)>0:
                     M_baseline = np.mean(m_tmp)
 
@@ -6178,7 +6178,7 @@ else:
             M_NLT=np.array(M_NLT)-M_baseline
             B_NLT=np.array(B_NLT)
             # calculate M/B ratio for each step, and compare them
-            # If cant do NLT correction: check a difference in M/B ratio
+            # If can't do NLT correction: check a difference in M/B ratio
             # > 5% : WARNING
             # > 10%: ERROR
 
@@ -6237,13 +6237,13 @@ else:
                     Data[s]['NLT_parameters']['B_NLT']=B_NLT
                     Data[s]['NLT_parameters']['M_NLT_norm']=M_NLT_norm
 
-                    self.GUI_log.write("-I-  tanh parameters for specimen %s were calculated sucsessfuly\n"%s)
+                    self.GUI_log.write("-I-  tanh parameters for specimen %s were calculated successfully\n"%s)
 
                 except RuntimeError:
-                    self.GUI_log.write( "-W- WARNING: Cant fit tanh function to NLT data specimen %s. Ignore NLT data for specimen %s. Instead check [max(M/B)]/ [min(M/B)] \n"%(s,s))
+                    self.GUI_log.write( "-W- WARNING: Can't fit tanh function to NLT data specimen %s. Ignore NLT data for specimen %s. Instead check [max(M/B)]/ [min(M/B)] \n"%(s,s))
                     #print "-I- NLT meaurements specime %s: B,M="%s,B_NLT,M_NLT
 
-                    # Cant do NLT correction. Instead, check a difference in M/B ratio
+                    # Can't do NLT correction. Instead, check a difference in M/B ratio
                     # The maximum difference allowd is 5%
                     # if difference is larger than 5%: WARNING
 
@@ -6283,7 +6283,7 @@ else:
                     ancient_cooling_rate=float(self.Data_info["er_samples"][sample]['sample_cooling_rate'])
                     ancient_cooling_rate=ancient_cooling_rate/(1e6*365.*24.*60.) # change to K/minute
                 except:
-                    self.GUI_log.write("-W- Cant find ancient cooling rate estimation for sample %s\n"%sample)
+                    self.GUI_log.write("-W- Can't find ancient cooling rate estimation for sample %s\n"%sample)
                     continue
                 #self.Data_info["er_samples"]
                 cooling_rate_data={}
@@ -6861,17 +6861,17 @@ else:
             try:
                 data_er_samples=self.read_magic_file(os.path.join(self.WD, "er_samples.txt"),1,'er_sample_name')
             except:
-                self.GUI_log.write ("-W- Cant find er_samples.txt in project directory\n")
+                self.GUI_log.write ("-W- Can't find er_samples.txt in project directory\n")
 
             try:
                 data_er_sites=self.read_magic_file(os.path.join(self.WD, "er_sites.txt"),1,'er_site_name')
             except:
-                self.GUI_log.write ("-W- Cant find er_sites.txt in project directory\n")
+                self.GUI_log.write ("-W- Can't find er_sites.txt in project directory\n")
 
             try:
                 data_er_ages=self.read_er_ages_file(os.path.join(self.WD, "er_ages.txt"),1,["er_site_name","er_sample_name"])
             except:
-                self.GUI_log.write ("-W- Cant find er_ages.txt in project directory\n")
+                self.GUI_log.write ("-W- Can't find er_ages.txt in project directory\n")
         Data_info["er_samples"]=data_er_samples
         Data_info["er_sites"]=data_er_sites
         Data_info["er_ages"]=data_er_ages
@@ -6939,7 +6939,7 @@ else:
                 self.redo_specimens[specimen]['t_max']=float(tmax_kelvin)
             if specimen in self.Data.keys():
                 if tmin_kelvin not in self.Data[specimen]['t_Arai'] or tmax_kelvin not in self.Data[specimen]['t_Arai'] :
-                    self.GUI_log.write ("-W- WARNING: cant fit temperature bounds in the redo file to the actual measurement. specimen %s\n"%specimen)
+                    self.GUI_log.write ("-W- WARNING: can't fit temperature bounds in the redo file to the actual measurement. specimen %s\n"%specimen)
                 else:
                     try:
                         self.Data[specimen]['pars']=thellier_gui_lib.get_PI_parameters(self.Data,self.acceptance_criteria, self.preferences,specimen,float(tmin_kelvin),float(tmax_kelvin),self.GUI_log,THERMAL,MICROWAVE)
@@ -6960,9 +6960,9 @@ else:
                         self.Data_sites[site][specimen]['B']=self.Data[specimen]['pars']['specimen_int_uT']
 
                     except:
-                        self.GUI_log.write ("-E- ERROR. Cant calculate PI paremeters for specimen %s using redo file. Check!"%(specimen))
+                        self.GUI_log.write ("-E- ERROR. Can't calculate PI paremeters for specimen %s using redo file. Check!"%(specimen))
             else:
-                self.GUI_log.write ("-W- WARNING: Cant find specimen %s from redo file in measurement file!\n"%specimen)
+                self.GUI_log.write ("-W- WARNING: Can't find specimen %s from redo file in measurement file!\n"%specimen)
 
         try:
             self.s=self.specimens[0]
