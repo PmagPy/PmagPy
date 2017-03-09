@@ -111,9 +111,9 @@ def gaussfunc(y,ybar,sigma):
 #
 def k_s(X): # kolmorgorov-smirnov statistic
     """
-        finds the probability that the data are
-        distributed as func - used method of Numerical
-        Recipes (Press et al., 1986)
+    Kolmorgorov-Smirnov statistic. Finds the
+    probability that the data are distributed
+    as func - used method of Numerical Recipes (Press et al., 1986)
     """
     xbar,sigma=pmag.gausspars(X)
     d,f=0,0.
@@ -1718,7 +1718,7 @@ def plotDay(fignum,BcrBc,S,sym,**kwargs):
         names=kwargs['names']
         for k in range(len(names)):
             pylab.text(BcrBc[k],S[k],names[k]) #,'ha'='left'
-        
+
 
 #
 def plotSBc(fignum,Bc,S,sym):
