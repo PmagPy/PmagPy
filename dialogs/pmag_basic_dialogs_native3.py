@@ -2312,7 +2312,7 @@ class convert_BGC_files_to_magic(wx.Frame):
 class convert_Utrecht_files_to_MagIC(convert_files_to_MagIC):
     """
     A GUI which allows easy input of meta data required to convert Utrecht
-    Magnetometer files into MagIC format for analysis or contribution to the 
+    Magnetometer files into MagIC format for analysis or contribution to the
     EarthRef MagIC Archive.
     """
 
@@ -2394,7 +2394,7 @@ class convert_Utrecht_files_to_MagIC(convert_files_to_MagIC):
 
     def on_okButton(self, event):
         """
-        Complies information input in GUI into a kwargs dictionary which can 
+        Complies information input in GUI into a kwargs dictionary which can
         be passed into the utrecht_magic script and run to output magic files
         """
         os.chdir(self.WD)
