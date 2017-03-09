@@ -86,6 +86,9 @@ def plot_init(fignum,w,h):
     #pylab.ioff()
 
 def plot3d_init(fignum):
+    """
+    initializes 3D plot
+    """
     from mpl_toolkits.mplot3d import Axes3D
     fig=pylab.figure(fignum)
     ax=fig.add_subplot(111,projection='3d')
@@ -108,8 +111,8 @@ def gaussfunc(y,ybar,sigma):
     erf=abs(erf)
     sign=x/abs(x)
     return 0.5*(1.0+sign*erf)
-#
-def k_s(X): # kolmorgorov-smirnov statistic
+
+def k_s(X):
     """
     Kolmorgorov-Smirnov statistic. Finds the
     probability that the data are distributed

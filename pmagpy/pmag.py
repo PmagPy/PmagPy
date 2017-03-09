@@ -14,10 +14,11 @@ import find_pmag_dir
 
 def get_version():
     """
+    Determines the version of PmagPy installed on your machine.
+
     Returns
     ---------
-    version : str
-            pmagpy version string, format "pmagpy-3.8.8"
+    version : string of pmagpy version, such as "pmagpy-3.8.8"
     """
     version=find_pmag_dir.get_version()
     return version
@@ -126,11 +127,56 @@ def get_orient(samp_data,er_sample_name):
 
 
 def EI(inc):
-    poly_tk03= [  3.15976125e-06,  -3.52459817e-04,  -1.46641090e-02,   2.89538539e+00]
+    """
+    Given a mean inclination value of a distribution of directions, this
+    function calculates the expected elongation of this distribution using a
+    best-fit polynomial of the TK03 GAD secular variation model (Tauxe and
+    Kent, 2004).
+
+    Parameters
+    ----------
+    inc : inclination in degrees (int or float)
+
+    Returns
+    ---------
+    elongation : float
+
+    Examples
+    ---------
+    >>> pmag.EI(20)
+    2.4863973732
+    >>> pmag.EI(90)
+    1.0241570135500004
+    """
+    poly_tk03 = [3.15976125e-06,  -3.52459817e-04,  -1.46641090e-02,   2.89538539e+00]
     return poly_tk03[0]*inc**3 + poly_tk03[1]*inc**2+poly_tk03[2]*inc+poly_tk03[3]
 
 
 def find_f(data):
+    """
+    Given a distribution of directions, this function determines parameters
+    (elongation, inclination, flattening factor, and elongation direction) that
+    are consistent with the TK03 secular variation model.
+
+    Parameters
+    ----------
+    data : array of declination, inclination pairs
+        (e.g. np.array([[140,21],[127,23],[142,19],[136,22]]))
+
+    Returns
+    ---------
+    Es : list of elongation values
+    Is : list of inclination values
+    Fs : list of flattening factors
+    V2s : list of elongation directions (relative to the distribution)
+
+    The function will return a zero list ([0]) for each of these parameters if the directions constitute a pathological distribution.
+
+    Examples
+    ---------
+    >>> directions = np.array([[140,21],[127,23],[142,19],[136,22]])
+    >>> Es, Is, Fs, V2s = pmag.find_f(directions)
+    """
     rad=np.pi/180.
     Es,Is,Fs,V2s=[],[],[],[]
     ppars=doprinc(data)
