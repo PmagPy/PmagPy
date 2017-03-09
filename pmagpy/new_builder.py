@@ -920,10 +920,23 @@ class MagicDataFrame(object):
         self.df = pd.concat([self.df[:ind], self.df[ind+1:]])
         return self.df
 
-    def delete_rows(self, condition):
+    def delete_rows(self, condition, info_str=None):
         """
         delete all rows with  condition==True
         inplace
+
+        Parameters
+        ----------
+        condition : pandas DataFrame indexer
+            all self.df rows that meet this condition will be deleted
+        info_str : str
+            description of the kind of rows to be deleted,
+            e.g "specimen rows with blank method codes"
+
+        Returns
+        --------
+        df_data : pandas DataFrame
+            updated self.df
         """
         self.df['num'] = range(len(self.df))
         df_data = self.df
@@ -932,7 +945,9 @@ class MagicDataFrame(object):
             inds = df_data[condition]['num'] # list of all rows where condition is TRUE
             for ind in inds[::-1]:
                 df_data = self.delete_row(ind)
-                print 'deleting row {}'.format(str(ind))
+                if info_str:
+                    print "-I- Deleting {}. ".format(info_str),
+                    print 'deleting row {}'.format(str(ind))
         # sort so that all rows for an item are together
         df_data.sort_index(inplace=True)
         # redo temporary index
