@@ -1083,6 +1083,33 @@ def fishqq(lon=None, lat=None, di_block=None):
     if the data has two modes with N >=10 (N and R)
     two of these dictionaries will be returned
 
+    Examples
+    --------
+    In this example, directions are sampled from a Fisher distribution using
+    ``ipmag.fishrot`` and then the ``ipmag.fishqq`` function is used to test
+    whether that distribution is Fisherian:
+
+    >>> directions = ipmag.fishrot(k=40, n=50, dec=200, inc=50)
+    >>> ipmag.fishqq(di_block = directions)
+    {'Dec': 199.73564290371894,
+    'Inc': 49.017612342358298,
+    'Me': 0.78330310031220352,
+    'Me_critical': 1.094,
+    'Mode': 'Mode 1',
+    'Mu': 0.69915926146177099,
+    'Mu_critical': 1.207,
+    'N': 50,
+    'Test_result': 'consistent with Fisherian model'}
+
+    The above example passed a di_block to the function as an input. Lists of
+    paired declination and inclination can also be used as inputs. Here the
+    directions di_block is unpacked to separate declination and inclination
+    lists using the ``ipmag.unpack_di_block`` functionwhich are then used as
+    input to fishqq:
+
+    >>> dec_list, inc_list = ipmag.unpack_di_block(directions)
+    >>> ipmag.fishqq(lon=dec_list, lat=inc_list)
+
     """
     if di_block is None:
         all_dirs = make_di_block(lon, lat)
