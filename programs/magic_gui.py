@@ -30,14 +30,15 @@ class MainFrame(wx.Frame):
     MagIC GUI
     """
 
-    def __init__(self, WD=None, name='Main Frame', dmodel=None):
+    def __init__(self, WD=None, name='Main Frame', dmodel=None, title=None, contribution=None):
         try:
             version = pmag.get_version()
         except:
             version = ""
-        title = "MagIC GUI   version: %s" % version
-        if sys.platform in ['win32', 'win64']:
-            title += "  Powered by Enthought Canopy"
+        if not title:
+            title = "MagIC GUI   version: %s" % version
+        #if sys.platform in ['win32', 'win64']:
+        #    title += "  Powered by Enthought Canopy"
         wx.Frame.__init__(self, None, wx.ID_ANY, title, name=name)
         #
         self.grid_frame = None
@@ -57,7 +58,10 @@ class MainFrame(wx.Frame):
         self.InitUI()
 
         print '-I- Completed interface'
-        wx.CallAfter(self.get_wd_data)
+        if contribution:
+            self.contribution = contribution
+        else:
+            wx.CallAfter(self.get_wd_data)
 
     def get_wd_data(self):
         wait = wx.BusyInfo('Reading in data from current working directory, please wait...')
@@ -177,7 +181,7 @@ class MainFrame(wx.Frame):
 
         #---sizer 2 ----
 
-        bSizer2 = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.ID_ANY, "Create file for upload to MagIC database", name='bSizer2'), wx.HORIZONTAL)
+        self.bSizer2 = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.ID_ANY, "Create file for upload to MagIC database", name='bSizer2'), wx.HORIZONTAL)
 
         text = "prepare upload txt file"
         self.btn_upload = buttons.GenButton(self.panel, id=-1, label=text,
@@ -186,9 +190,9 @@ class MainFrame(wx.Frame):
         self.btn_upload.InitColours()
         self.Bind(wx.EVT_BUTTON, self.on_upload_file, self.btn_upload)
 
-        bSizer2.AddSpacer(20)
-        bSizer2.Add(self.btn_upload, 0, wx.ALIGN_CENTER, 0)
-        bSizer2.AddSpacer(20)
+        self.bSizer2.AddSpacer(20)
+        self.bSizer2.Add(self.btn_upload, 0, wx.ALIGN_CENTER, 0)
+        self.bSizer2.AddSpacer(20)
         #self.Bind(wx.EVT_BUTTON, self.on_btn_upload, self.btn_upload)
 
 
@@ -209,7 +213,7 @@ class MainFrame(wx.Frame):
         vbox.AddSpacer(10)
         vbox.AddSpacer(10)
         self.hbox.AddSpacer(10)
-        vbox.Add(bSizer2, 0, wx.ALIGN_CENTER, 0)
+        vbox.Add(self.bSizer2, 0, wx.ALIGN_CENTER, 0)
         vbox.AddSpacer(10)
 
         self.hbox.Add(vbox, 0, wx.ALIGN_CENTER, 0)
@@ -324,6 +328,19 @@ For full error messages, see {}.""".format(grid_type + "_errors.txt")
                                                                                   vocab=self.contribution.vocab)
         self.failing_items = all_failing_items
         if has_problems:
+            self.highlight_problems(has_problems)
+        if not has_problems:
+            self.validation_mode = set()
+            self.message.SetLabel('')
+            self.bSizer_msg.ShowItems(False)
+            self.hbox.Fit(self)
+        del wait
+
+    def highlight_problems(self, has_problems):
+        """
+        Outline grid buttons in red if they have validation errors
+        """
+        if has_problems:
             self.validation_mode = set(has_problems)
             # highlighting doesn't work with Windows
             if sys.platform in ['win32', 'win62']:
@@ -340,12 +357,7 @@ For full error messages, see {}.""".format(grid_type + "_errors.txt")
                 self.message.SetLabel('Highlighted grids have incorrect or incomplete data')
             self.bSizer_msg.ShowItems(True)
             self.hbox.Fit(self)
-        if not has_problems:
-            self.validation_mode = set()
-            self.message.SetLabel('')
-            self.bSizer_msg.ShowItems(False)
-            self.hbox.Fit(self)
-        del wait
+
 
 
     def highlight_button(self, event):
