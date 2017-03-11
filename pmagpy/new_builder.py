@@ -111,34 +111,53 @@ class Contribution(object):
         self.tables[dtype] = MagicDataFrame(dtype=dtype, data=data)
 
 
-    def add_magic_table(self, dtype, fname=None):
+    def add_magic_table(self, dtype, fname=None, df=None):
         """
         Read in a new file to add a table to self.tables.
+        Requires dtype argument and EITHER filename or df.
+
+        Parameters
+        ----------
+        dtype : str
+            MagIC table name
+        fname : str
+            filename of MagIC format file
+            (short path, directory is self.directory)
+        df : pandas DataFrame
+            data to create the new table with
         """
-        # if providing a filename but no data type
-        if dtype == "unknown":
-            filename = os.path.join(self.directory, fname)
-            data_container = MagicDataFrame(filename, dmodel=self.data_model)
-            dtype = data_container.dtype
-            if dtype == 'empty':
+        if df is None:
+            # if providing a filename but no data type
+            if dtype == "unknown":
+                filename = os.path.join(self.directory, fname)
+                data_container = MagicDataFrame(filename, dmodel=self.data_model)
+                dtype = data_container.dtype
+                if dtype == 'empty':
+                    return False
+                else:
+                    self.tables[dtype] = data_container
+                    return data_container
+            # if providing a data type, use the canonical filename
+            elif dtype not in self.filenames:
+                print '-W- "{}" is not a valid MagIC table type'.format(dtype)
+                print "-I- Available table types are: {}".format(", ".join(self.table_names))
                 return False
+            filename = os.path.join(self.directory, self.filenames[dtype])
+            if os.path.exists(filename):
+                data_container = MagicDataFrame(filename, dmodel=self.data_model)
+                if data_container.dtype != "empty":
+                    self.tables[dtype] = data_container
+                    return data_container
             else:
-                self.tables[dtype] = data_container
-                return data_container
-        # if providing a data type, use the canonical filename
-        elif dtype not in self.filenames:
-            print '-W- "{}" is not a valid MagIC table type'.format(dtype)
-            print "-I- Available table types are: {}".format(", ".join(self.table_names))
-            return False
-        filename = os.path.join(self.directory, self.filenames[dtype])
-        if os.path.exists(filename):
-            data_container = MagicDataFrame(filename, dmodel=self.data_model)
-            if data_container.dtype != "empty":
-                self.tables[dtype] = data_container
-                return data_container
+                print "-W- No such file: {}".format(filename)
+                return False
+        # df is not None
         else:
-            print "-W- No such file: {}".format(filename)
-            return False
+            if not dtype:
+                print "-W- Must provide dtype"
+                return False
+            data_container = MagicDataFrame(dtype=dtype, df=df)
+            self.tables[dtype] = data_container
 
 
     def propagate_measurement_info(self):
@@ -689,7 +708,8 @@ class MagicDataFrame(object):
             self.df = df
             if dtype:
                 name, self.dtype = self.get_singular_and_plural_dtype(dtype)
-                self.df.index = self.df[name]
+                if name in self.df.columns:
+                    self.df.index = self.df[name]
             else:
                 print '-W- Please provide data type...'
 
@@ -789,6 +809,8 @@ class MagicDataFrame(object):
         # make sure name column is present (i.e., sample column in samples df)
         if name not in ['measurement', 'age']:
             self.df[name] = self.df.index
+        elif name == 'measurement':
+            self.df['measurement'] = self.df['experiment'] + self.df['number'].astype(str)
 
 
     ## Methods to change self.df inplace

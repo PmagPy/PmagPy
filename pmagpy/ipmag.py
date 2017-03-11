@@ -2005,12 +2005,11 @@ def combine_magic(filenames, outfile, data_model=2.5, magic_table='measurements'
         output_dir_path,file_name = os.path.split(outfile)
         file_type = os.path.splitext(file_name)[0]
         con = nb.Contribution(output_dir_path,read_tables=[])
-        if file_type not in con.table_names: file_type=magic_table
-        con.add_empty_magic_table(file_type)
+        if file_type not in con.table_names:
+            file_type=magic_table
         infiles = [pd.read_csv(infile,sep='\t',header=1) for infile in filenames]
-        con.tables[file_type].df=pd.concat(infiles,ignore_index=True)
-        con.tables[file_type].df.drop_duplicates(inplace=True)
-        con.tables[file_type].df.replace(float('nan'),'',inplace=True)
+        df = pd.concat(infiles, ignore_index=True)
+        con.add_magic_table(dtype=file_type, df=df)
         con.tables[file_type].write_magic_file(custom_name=file_name)
         return True
     else:
