@@ -5332,6 +5332,8 @@ else:
                 if abs(self.pars[stat])>cutoff_value:
                     command="self.%s_window.SetBackgroundColour(wx.RED)"%stat.split('specimen_')[-1]  # set text color
                     flag_Fail=True
+                else:
+                    command="self.%s_window.SetBackgroundColour(wx.GREEN)"%stat.split('specimen_')[-1]  # set text color                    
             elif self.acceptance_criteria[stat]['threshold_type']=='high' and self.pars[stat]>cutoff_value:
                 command="self.%s_window.SetBackgroundColour(wx.RED)"%stat.split('specimen_')[-1]  # set text color
                 flag_Fail=True
