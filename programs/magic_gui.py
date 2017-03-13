@@ -360,6 +360,12 @@ For full error messages, see {}.""".format(grid_type + "_errors.txt")
                 self.Refresh()
                 self.message.SetLabel('Highlighted grids have incorrect or incomplete data')
             self.bSizer_msg.ShowItems(True)
+            # manually fire a paint event to make sure all buttons
+            # are highlighted/unhighlighted appropriately
+            paintEvent = wx.CommandEvent(wx.wxEVT_PAINT,
+                                         self.GetId())
+            self.GetEventHandler().ProcessEvent(paintEvent)
+
             self.hbox.Fit(self)
 
     def reset_highlights(self):
