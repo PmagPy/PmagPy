@@ -11,7 +11,7 @@ def main(command_line=True, **kwargs):
         generic_magic.py
 
     DESCRIPTION
-        converts magnetometer files in generic format to magic_measurements format
+        converts magnetometer files in generic format to MagIC measurements format
 
     SYNTAX
         generic_magic.py [command line options]
@@ -24,7 +24,7 @@ def main(command_line=True, **kwargs):
         -f FILE:
             specify path to input file, required
         -fsa SAMPFILE:
-            specify er_samples.txt file for sample orientation data. default is er_samples.txt
+            specify the samples file for sample orientation data. default is er_samples.txt
         -F FILE
             specify output file, default is magic_measurements.txt
 
@@ -103,8 +103,8 @@ def main(command_line=True, **kwargs):
 
     INPUT
 
-        A generic file is a tab-delimited file. Each columns should have a header.
-        The file must include the follwing headers (the order of the columns is not important):
+        A generic file is a tab-delimited file. Each column should have a header.
+        The file must include the following headers (the order of the columns is not important):
 
             specimen
                 string specifying specimen name
@@ -153,7 +153,7 @@ def main(command_line=True, **kwargs):
             moment:
                 magnetic moment in emu !!
 
-        In addition, at least one of the following headers are requiered:
+        In addition, at least one of the following headers are required:
 
             dec_s:
                 declination in specimen coordinate system (0 to 360)

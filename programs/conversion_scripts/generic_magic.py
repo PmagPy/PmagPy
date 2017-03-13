@@ -4,7 +4,7 @@ NAME
     generic_magic.py
 
 DESCRIPTION
-    converts magnetometer files in generic format to magic_measurements format
+    converts magnetometer files in generic format to MagIC measurements format
 
 SYNTAX
     generic_magic.py [command line options]
@@ -17,7 +17,7 @@ OPTIONS
     -WD: directory to output files to (default : current directory)
     -F FILE: specify output  measurements file, default is measurements.txt
     -Fsp FILE: specify output specimens.txt file, default is specimens.txt
-    -Fsa FILE: specify output samples.txt file, default is samples.txt 
+    -Fsa FILE: specify output samples.txt file, default is samples.txt
     -Fsi FILE: specify output sites.txt file, default is sites.txt
     -Flo FILE: specify output locations.txt file, default is locations.txt
 
@@ -89,8 +89,8 @@ OPTIONS
 
 INPUT
 
-    A generic file is a tab-delimited file. Each columns should have a header.
-    The file must include the follwing headers (the order of the columns is not important):
+    A generic file is a tab-delimited file. Each column should have a header.
+    The file must include the following headers (the order of the columns is not important):
 
         specimen
             string specifying specimen name
@@ -139,7 +139,7 @@ INPUT
         moment:
             magnetic moment in emu !!
 
-    In addition, at least one of the following headers are requiered:
+    In addition, at least one of the following headers are required:
 
         dec_s:
             declination in specimen coordinate system (0 to 360)
