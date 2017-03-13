@@ -352,6 +352,10 @@ class Contribution(object):
                 for coord in locs[loc_name]:
                     # warn user if an old value will be overwritten
                     new_value = coords[coord]
+                    # if the new value is null, ignore it
+                    if np.isnan(new_value):
+                        continue
+                    # set old value to None if it wasn't in table
                     if coord not in loc_container.df.columns:
                         loc_container.df[coord] = None
                     old_value = loc_container.df.ix[loc_name, coord]
@@ -363,7 +367,7 @@ class Contribution(object):
                             pass
                         except IndexError: # if np.nan
                             pass
-                    if old_value is None:
+                    if old_value is None or old_value is np.nan:
                         pass
                     elif isinstance(old_value, str) or isinstance(old_value, unicode):
                         try:
