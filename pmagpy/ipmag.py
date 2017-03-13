@@ -2000,6 +2000,10 @@ def combine_magic(filenames, outfile, data_model=2.5, magic_table='measurements'
     -----------
     filenames : list of MagIC formatted files
     outfile : name of output file
+
+    Returns
+    ----------
+    True if success, False if failure
     """
     if float(data_model)==3.0:
         output_dir_path,file_name = os.path.split(outfile)
@@ -2009,6 +2013,8 @@ def combine_magic(filenames, outfile, data_model=2.5, magic_table='measurements'
             file_type=magic_table
         infiles = [pd.read_csv(infile,sep='\t',header=1) for infile in filenames]
         df = pd.concat(infiles, ignore_index=True)
+        # drop any fully duplicated rows
+        df.drop_duplicates(inplace=True)
         con.add_magic_table(dtype=file_type, df=df)
         con.tables[file_type].write_magic_file(custom_name=file_name)
         return True
