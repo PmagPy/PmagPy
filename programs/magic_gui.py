@@ -64,6 +64,10 @@ class MainFrame(wx.Frame):
             wx.CallAfter(self.get_wd_data)
 
     def get_wd_data(self):
+        self.edited = False
+        self.validation_mode = False
+        self.reset_highlights()
+
         wait = wx.BusyInfo('Reading in data from current working directory, please wait...')
         wx.Yield()
         print '-I- Read in any available data from working directory'
@@ -358,6 +362,17 @@ For full error messages, see {}.""".format(grid_type + "_errors.txt")
             self.bSizer_msg.ShowItems(True)
             self.hbox.Fit(self)
 
+    def reset_highlights(self):
+        """
+        Remove red outlines from all buttons
+        """
+        for dtype in ["specimens", "samples", "sites", "locations", "ages"]:
+            wind = self.FindWindowByName(dtype + '_btn')
+            wind.Unbind(wx.EVT_PAINT, handler=self.highlight_button)
+        self.Refresh()
+        #self.message.SetLabel('Highlighted grids have incorrect or incomplete data')
+        self.bSizer_msg.ShowItems(False)
+        self.hbox.Fit(self)
 
 
     def highlight_button(self, event):
