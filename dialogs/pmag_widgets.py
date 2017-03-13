@@ -1013,7 +1013,7 @@ def run_command_and_close_window(SELF, command, outfile):
     os.system(command)
     if not outfile:
         outfile = ''
-    msg = "file(s) converted to MagIC format file:\n%s.\n\nSee Terminal (Mac) or command prompt (Windows) for errors"% outfile
+    msg = "file(s) converted to MagIC format file:\n%s.\n\nSee Terminal/message window for errors"% outfile
     dlg = wx.MessageDialog(None, caption="Message:", message=msg, style=wx.OK|wx.ICON_INFORMATION)
     dlg.ShowModal()
     dlg.Destroy()
@@ -1024,7 +1024,7 @@ def close_window(SELF, command, outfile):
     print "-I- Finished running equivalent to Python command:\n %s"%command
     if not outfile:
         outfile = ''
-    msg = "file(s) converted to MagIC format file:\n%s.\n\nSee Terminal (Mac) or command prompt (Windows) for errors"% outfile
+    msg = "file(s) converted to MagIC format file:\n%s.\n\nSee Terminal/message windowfor errors"% outfile
     dlg = wx.MessageDialog(None, caption="Message:", message=msg, style=wx.OK|wx.ICON_INFORMATION)
     dlg.ShowModal()
     dlg.Destroy()

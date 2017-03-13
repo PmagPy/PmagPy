@@ -567,7 +567,7 @@ class MagMainFrame(wx.Frame):
         ex = None
         try:
             if ipmag.download_magic(f, self.WD, input_dir, overwrite=True):
-                text = "Successfully ran download_magic.py program.\nMagIC files were saved in your working directory.\nSee Terminal/Command Prompt for details."
+                text = "Successfully ran download_magic.py program.\nMagIC files were saved in your working directory.\nSee Terminal/message window for details."
             else:
                 text = "Something went wrong.  Make sure you chose a valid file downloaded from the MagIC database and try again."
 
@@ -599,7 +599,7 @@ class MagMainFrame(wx.Frame):
             text = "You are ready to upload.\n Your file: {}  was generated in MagIC Project Directory.\nDrag and drop this file in the MagIC database.".format(os.path.split(res)[1])
             dlg = wx.MessageDialog(self, caption="Saved", message=text, style=wx.OK)
         else:
-            text = "There were some problems with the creation of your upload file.\nError message: {}\nSee Terminal/Command Prompt for details".format(error_message)
+            text = "There were some problems with the creation of your upload file.\nError message: {}\nSee Terminal/message window for details".format(error_message)
             dlg = wx.MessageDialog(self, caption="Error", message=text, style=wx.OK)
 
         result = dlg.ShowModal()

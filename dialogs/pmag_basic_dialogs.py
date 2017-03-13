@@ -242,7 +242,7 @@ class combine_magic_dialog(wx.Frame):
 
         if ipmag.combine_magic(files, 'magic_measurements.txt'):
             #pw.close_window(self.panel, COMMAND, 'magic_measurements.txt')
-            MSG="%i file are merged to one MagIC format file:\n magic_measurements.txt.\n\nSee Terminal (Mac) or command prompt (Windows) for errors"%(len(files))
+            MSG="%i file are merged to one MagIC format file:\n magic_measurements.txt.\n\nSee Terminal/message window for errors"%(len(files))
             dlg1 = wx.MessageDialog(None,caption="Message:", message=MSG ,style=wx.OK|wx.ICON_INFORMATION)
             dlg1.ShowModal()
             dlg1.Destroy()
@@ -361,7 +361,7 @@ class combine_everything_dialog(wx.Frame):
                 success = False
         if success:
             new = '\n' + '\n'.join(new_files)
-            MSG = "Created new file(s): {} \nSee Terminal (Mac) or command prompt (Windows) for details and errors".format(new)
+            MSG = "Created new file(s): {} \nSee Terminal/message window for details and errors".format(new)
             dlg1 = wx.MessageDialog(None,caption="Message:", message=MSG ,style=wx.OK|wx.ICON_INFORMATION)
             dlg1.ShowModal()
             dlg1.Destroy()
@@ -2188,7 +2188,7 @@ class convert_BGC_files_to_magic(wx.Frame):
 class convert_Utrecht_files_to_MagIC(convert_files_to_MagIC):
     """
     A GUI which allows easy input of meta data required to convert Utrecht
-    Magnetometer files into MagIC format for analysis or contribution to the 
+    Magnetometer files into MagIC format for analysis or contribution to the
     EarthRef MagIC Archive.
     """
 
@@ -2270,7 +2270,7 @@ class convert_Utrecht_files_to_MagIC(convert_files_to_MagIC):
 
     def on_okButton(self, event):
         """
-        Complies information input in GUI into a kwargs dictionary which can 
+        Complies information input in GUI into a kwargs dictionary which can
         be passed into the utrecht_magic script and run to output magic files
         """
         os.chdir(self.WD)

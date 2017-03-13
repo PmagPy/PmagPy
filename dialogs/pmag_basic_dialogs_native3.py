@@ -239,7 +239,7 @@ class combine_magic_dialog(wx.Frame):
         COMMAND="combine_magic.py -F measurements.txt -f %s"%(" ".join(files) )
 
         if ipmag.combine_magic(files, 'measurements.txt', data_model=3.0):
-            MSG="%i file are merged to one MagIC format file:\n measurements.txt.\n\nSee Terminal (Mac) or command prompt (Windows) for errors"%(len(files))
+            MSG="%i file are merged to one MagIC format file:\n measurements.txt.\n\nSee Terminal/message window for errors"%(len(files))
             dlg1 = wx.MessageDialog(None,caption="Message:", message=MSG ,style=wx.OK|wx.ICON_INFORMATION)
             dlg1.ShowModal()
             dlg1.Destroy()
@@ -360,7 +360,7 @@ class combine_everything_dialog(wx.Frame):
                 success = False
         if success:
             new = '\n' + '\n'.join(new_files)
-            MSG = "Created new file(s): {} \nSee Terminal (Mac) or command prompt (Windows) for details and errors".format(new)
+            MSG = "Created new file(s): {} \nSee Terminal/message window for details and errors".format(new)
             dlg1 = wx.MessageDialog(None,caption="Message:", message=MSG ,style=wx.OK|wx.ICON_INFORMATION)
             dlg1.ShowModal()
             dlg1.Destroy()
