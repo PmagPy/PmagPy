@@ -25,7 +25,7 @@ class ErMagicCheckFrame3(wx.Frame):
         self.main_frame = self.Parent
         self.contribution = contribution
         self.temp_data = {}
-        self.drop_down_menu = None
+        #self.drop_down_menu = None
         ## sample window must be displayed (differently) twice, so it is useful to keep track
         #self.sample_window = 0
         self.grid = None
@@ -192,8 +192,8 @@ class ErMagicCheckFrame3(wx.Frame):
         Save grid data in the data object
         """
         # deselect column, including remove 'EDIT ALL' label
-        if self.drop_down_menu:
-            self.drop_down_menu.clean_up()
+        if self.grid_frame.drop_down_menu:
+            self.grid_frame.drop_down_menu.clean_up()
 
         # remove '**' and '^^' from col names
         #self.remove_starred_labels(grid)
@@ -277,8 +277,8 @@ class ErMagicCheckFrame3(wx.Frame):
         wait = wx.BusyInfo("Please wait, working...")
         wx.Yield()
 
-        if self.drop_down_menu:  # unhighlight selected columns, etc.
-            self.drop_down_menu.clean_up()
+        if self.grid_frame.drop_down_menu:  # unhighlight selected columns, etc.
+            self.grid_frame.drop_down_menu.clean_up()
 
         # remove '**' and '^^' from col labels
         starred_cols, hatted_cols = grid.remove_starred_labels()
@@ -323,8 +323,8 @@ class ErMagicCheckFrame3(wx.Frame):
         Save grid data in the data object
         """
         # deselect column, including remove 'EDIT ALL' label
-        if self.drop_down_menu:
-            self.drop_down_menu.clean_up()
+        if self.grid_frame.drop_down_menu:
+            self.grid_frame.drop_down_menu.clean_up()
 
         # save all changes to data object and write to file
         self.grid_builder.save_grid_data()
@@ -974,7 +974,6 @@ You may use the drop-down menus to add as many values as needed in these columns
         gets any updated information from the current grid and runs ErMagicBuilder
         """
         #wait = wx.BusyInfo("Please wait, working...")
-
         # unhighlight selected columns, etc.
         if self.drop_down_menu:
             self.drop_down_menu.clean_up()
