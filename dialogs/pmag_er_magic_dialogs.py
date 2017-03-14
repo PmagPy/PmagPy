@@ -74,6 +74,9 @@ class ErMagicCheckFrame3(wx.Frame):
         make an interactive grid in which users can edit sample names
         as well as which site a sample belongs to
         """
+        # propagate any type/lithology/class data from sites to samples table
+        # will only overwrite if sample values are blank or "Not Specified"
+        self.contribution.propagate_lithology_cols()
         #self.sample_window += 1
         samp_df = self.contribution.tables['samples'].df
         self.panel = wx.Panel(self, style=wx.SIMPLE_BORDER)
@@ -226,6 +229,9 @@ class ErMagicCheckFrame3(wx.Frame):
         if next_dia:
             next_dia()
         else:
+            # propagate any type/lithology/class data from sites to samples table
+            # will only overwrite if sample values are blank or "Not Specified"
+            self.contribution.propagate_lithology_cols()
             wx.MessageBox('Done!', 'Info',
                           style=wx.OK | wx.ICON_INFORMATION)
 
