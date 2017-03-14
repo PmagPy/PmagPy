@@ -279,6 +279,9 @@ class MainFrame(wx.Frame):
         # propagate site lat/lon info into locations if necessary
         if grid_type == 'locations' and 'sites' in self.contribution.tables:
             self.contribution.get_min_max_lat_lon()
+        # propagate lithologies/type/class information from sites to samples/specimens
+        if grid_type in ['specimens', 'samples']:
+            self.contribution.propagate_lithology_cols()
         # hide mainframe
         self.on_open_grid_frame()
         # make grid frame

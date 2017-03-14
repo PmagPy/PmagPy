@@ -384,6 +384,22 @@ class Contribution(object):
         self.write_table_to_file('locations')
         return locs
 
+    def propagate_lithology_cols(self):
+        """
+        Propagate any data from lithologies, geologic_types, or geologic_classes
+        from the sites table to the samples and specimens table.
+        In the samples/specimens tables, null or "Not Specified" values
+        will be overwritten based on the data from their parent site.
+        """
+        cols = ['lithologies', 'geologic_types', 'geologic_classes']
+        for table in ['specimens', 'samples']:
+            # convert "Not Specified" to blank
+            self.tables[table].df.replace("^[Nn]ot [Ss]pecified", '',
+                                          regex=True, inplace=True)
+        self.propagate_cols_down(cols, 'samples', 'sites')
+        self.propagate_cols_down(cols, 'specimens', 'sites')
+
+
     def add_item(self, table_name, data, label):
         self.tables[table_name].add_row(label, data)
 
