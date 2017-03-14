@@ -4425,8 +4425,25 @@ def vfunc(pars_1,pars_2):
 
 def vgp_di(plat,plong,slat,slong):
     """
-    returns direction for a given observation site from a Virtual geomagnetic pole
+    Converts a pole position (pole latitude, pole longitude) to a direction
+    (declination, inclination) at a given location (slat, slong) assuming a
+    dipolar field.
+
+    Parameters
+    ----------
+    plat : latitude of pole (vgp latitude)
+    plong : longitude of pole (vgp longitude)
+    slat : latitude of site
+    slong : longitude of site
+
+    Returns
+    ----------
+    dec,inc : tuple of declination and inclination
     """
+    if plong < 0:
+        plong = plong + 360
+    if slong < 0:
+        slong = slong + 360
     rad,signdec=np.pi/180.,1.
     delphi=abs(plong-slong)
     if delphi!=0:signdec=(plong-slong)/delphi
