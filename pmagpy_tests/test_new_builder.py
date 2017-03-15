@@ -273,6 +273,15 @@ class TestContribution(unittest.TestCase):
         self.assertEqual(10., con.tables['locations'].df.ix['location1', 'lat_s'])
         self.assertEqual(15., con.tables['locations'].df.ix['location2', 'lon_e'])
 
+    def test_propagate_lithology_cols(self):
+        self.con.tables['specimens'].df.loc[:, 'geologic_classes'] = None
+        res = self.con.tables['specimens'].df['geologic_classes'].unique()
+        self.assertEqual([None], res)
+        self.con.propagate_lithology_cols()
+        res = self.con.tables['specimens'].df['geologic_classes'].unique()
+        self.assertEqual(res, ['Archeologic'])
+
+
     def test_sites_only_propagation(self):
         """
         Make sure propagation works correclty with limited tables provided
