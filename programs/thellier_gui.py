@@ -5333,7 +5333,7 @@ else:
                     command="self.%s_window.SetBackgroundColour(wx.RED)"%stat.split('specimen_')[-1]  # set text color
                     flag_Fail=True
                 else:
-                    command="self.%s_window.SetBackgroundColour(wx.GREEN)"%stat.split('specimen_')[-1]  # set text color                    
+                    command="self.%s_window.SetBackgroundColour(wx.GREEN)"%stat.split('specimen_')[-1]  # set text color
             elif self.acceptance_criteria[stat]['threshold_type']=='high' and self.pars[stat]>cutoff_value:
                 command="self.%s_window.SetBackgroundColour(wx.RED)"%stat.split('specimen_')[-1]  # set text color
                 flag_Fail=True
@@ -6796,24 +6796,33 @@ else:
             if 'samples' in self.contribution.tables:
                 self.samp_container = self.contribution.tables['samples']
                 self.samp_container.write_magic_file(custom_name='samples.bak', dir_path=self.WD) # create backup file with original
-            else:
-                self.samp_container = nb.MagicDataFrame(dtype='samples',columns=['sample'])
-            self.samp_data = self.samp_container.df # only need this for saving tables
-            if 'cooling_rate' not in self.samp_data.columns:
+                if 'cooling_rate' not in self.samp_data.columns:
                     self.samp_data['cooling_rate']=None
                     print '-W- Your sample file has no cooling rate data.'
-            samples=self.samp_data[['sample','site','cooling_rate']]
-            samples=samples.rename(columns={'site':'er_site_name','sample':'er_sample_name','cooling_rate':'sample_cooling_rate'})
-            # in case of multiple rows with same sample name, make sure cooling rate date propagates
-            # to all samples with the same name
-            samples = samples.groupby(samples.index, sort=False).fillna(method='ffill').groupby(samples.index, sort=False).fillna(method='bfill')
-            # then get rid of any duplicates
-            samples = samples.drop_duplicates()
-            # pick out what is needed by thellier_gui and put in 2.5 format
-            er_samples=samples.to_dict('records')
-            data_er_samples={}
-            for s in er_samples:
-                data_er_samples[s['er_sample_name']]=s
+
+            else:
+                self.samp_container = nb.MagicDataFrame(dtype='samples',
+                                                        columns=['sample', 'site', 'cooling_rate'])
+            self.samp_data = self.samp_container.df # only need this for saving tables
+            # gather data for samples
+            if len(self.samp_container.df):
+                samples=self.samp_data[['sample','site','cooling_rate']]
+                samples=samples.rename(columns={'site':'er_site_name','sample':'er_sample_name','cooling_rate':'sample_cooling_rate'})
+                # in case of multiple rows with same sample name, make sure cooling rate date propagates
+                # to all samples with the same name
+                samples = samples.groupby(samples.index, sort=False).fillna(method='ffill').groupby(samples.index, sort=False).fillna(method='bfill')
+                # then get rid of any duplicates
+                samples = samples.drop_duplicates()
+                # pick out what is needed by thellier_gui and put in 2.5 format
+                er_samples=samples.to_dict('records')
+                data_er_samples={}
+                for s in er_samples:
+                    data_er_samples[s['er_sample_name']]=s
+            # if there is no data for samples:
+            else:
+                er_samples = {}
+                data_er_samples = {}
+            #
             age_headers=['site','age','age_high','age_low','age_unit']
             if 'sites' in self.contribution.tables:
                 self.site_container = self.contribution.tables['sites']
