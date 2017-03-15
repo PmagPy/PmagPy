@@ -178,6 +178,7 @@ from pmagpy import find_pmag_dir
 import pmagpy.new_builder as nb
 from pmagpy.mapping import map_magic
 import pmagpy.controlled_vocabularies3 as cv
+import pandas as pd
 import numpy as np
 from numpy.linalg import inv, eig
 from numpy import sqrt, append
@@ -3169,8 +3170,18 @@ else:
                     else:
                         new_meths=meths
                     new_data['method_codes']=new_meths
-                    #condition = (cond1 & cond2)
-                    #condition = (cond1)
+                    # try to get the sample name for the updated record
+                    try:
+                        samples = self.spec_container.df.ix[specimen, 'sample'].unique()
+                        mask = pd.notnull(samples)
+                        samples = samples[mask]
+                        sample = samples[0]
+                    except AttributeError as ex:
+                        sample = self.spec_container.df.ix[specimen, 'sample']
+                    except (IndexError, KeyError) as ex:
+                        sample = ''
+
+                    new_data['sample'] = sample
                     self.spec_data = self.spec_container.update_record(specimen, new_data, condition)
                     for col in ['site','location']: # remove unwanted columns
                         if col in self.spec_data.keys():del self.spec_data[col]
@@ -6785,7 +6796,10 @@ else:
                 # copy measurements file to WD, keeping original name
                 shutil.copy(magic_file_real, WD_file_real)
                 fnames = {'measurements': magic_file_short}
+            # create MagIC contribution
             self.contribution = nb.Contribution(self.WD, custom_filenames=fnames,read_tables=['measurements', 'specimens', 'samples','sites'])
+            # propagate data from measurements table into other tables
+            self.contribution.propagate_measurement_info()
             # make backup files
             if 'specimens' in self.contribution.tables:
                 self.spec_container = self.contribution.tables['specimens']
@@ -6796,14 +6810,15 @@ else:
             if 'samples' in self.contribution.tables:
                 self.samp_container = self.contribution.tables['samples']
                 self.samp_container.write_magic_file(custom_name='samples.bak', dir_path=self.WD) # create backup file with original
-                if 'cooling_rate' not in self.samp_data.columns:
-                    self.samp_data['cooling_rate']=None
-                    print '-W- Your sample file has no cooling rate data.'
 
             else:
                 self.samp_container = nb.MagicDataFrame(dtype='samples',
                                                         columns=['sample', 'site', 'cooling_rate'])
             self.samp_data = self.samp_container.df # only need this for saving tables
+            if 'cooling_rate' not in self.samp_data.columns:
+                self.samp_data['cooling_rate']=None
+                print '-W- Your sample file has no cooling rate data.'
+
             # gather data for samples
             if len(self.samp_container.df):
                 samples=self.samp_data[['sample','site','cooling_rate']]
@@ -6911,6 +6926,10 @@ else:
         if self.data_model==3: # data model 3.0
             if len(self.spec_data)>0:  # there are previous measurements
                 if 'int_abs' in self.spec_data.columns:
+                    # add in these columns if missing, otherwise can throw errors
+                    for col in ['meas_step_min', 'meas_step_max', 'method_codes']:
+                        if col not in self.spec_data.columns:
+                            self.spec_data[col] = None
                     prev_specs=self.spec_data[self.spec_data['int_abs'].notnull()] # get the previous intensity interpretations
                     prev_specs=prev_specs[prev_specs['meas_step_min'].notnull()] # eliminate ones without bounds
                     prev_specs=prev_specs[prev_specs['meas_step_max'].notnull()] #
