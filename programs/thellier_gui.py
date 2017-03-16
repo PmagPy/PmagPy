@@ -3180,7 +3180,7 @@ else:
                         sample = self.spec_container.df.ix[specimen, 'sample']
                     except (IndexError, KeyError) as ex:
                         sample = ''
-
+                    new_data['result_type']='i'
                     new_data['sample'] = sample
                     self.spec_data = self.spec_container.update_record(specimen, new_data, condition)
                     for col in ['site','location']: # remove unwanted columns
@@ -3515,6 +3515,7 @@ else:
                         new_data['result_quality']='b'
                     else:
                         new_data['result_quality']='g'
+                    if 'result_type' not in new_data.keys():new_data['result_type']='i'
                     # reformat all the keys
                     cond1 = self.spec_data['specimen'].str.contains(specimen+"$") == True
                     if 'int_abs' not in self.spec_data.columns:
