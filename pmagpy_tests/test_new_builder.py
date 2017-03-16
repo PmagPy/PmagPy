@@ -280,6 +280,15 @@ class TestContribution(unittest.TestCase):
         self.con.propagate_lithology_cols()
         res = self.con.tables['specimens'].df['geologic_classes'].unique()
         self.assertEqual(res, ['Archeologic'])
+        #
+        self.con.tables['specimens'].df.loc[:, 'geologic_types'] = "not Specified"
+        res = self.con.tables['specimens'].df['geologic_types'].unique()
+        self.assertEqual(["not Specified"], res)
+        self.con.propagate_lithology_cols()
+        res = self.con.tables['specimens'].df['geologic_types'].unique()
+        self.assertEqual(sorted(res), ['Mixed Archeological Objects', 'Oven'])
+        res = self.con.tables['specimens'].df.loc['mgh12t101', 'geologic_types']
+        self.assertEqual('Oven', res)
 
 
     def test_sites_only_propagation(self):

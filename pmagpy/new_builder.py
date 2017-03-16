@@ -602,14 +602,22 @@ class Contribution(object):
 
         add_name = source_df_name[:-1]
         self.propagate_name_down(add_name, target_df_name)
-        #
+        # get dataframes for merge
         target_df = self.tables[target_df_name].df
         source_df = self.tables[source_df_name].df
-        #
+        # finesse source_df to make sure it has all the right columns
+        # and no unnecessary duplicates
+        if source_df_name not in source_df.columns:
+            source_df[source_df_name] = source_df.index
+        source_df.drop_duplicates(inplace=True, subset=col_names + [source_df_name])
+        source_df = source_df.groupby(source_df.index, sort=False).fillna(method='ffill').groupby(source_df.index, sort=False).fillna(method='bfill')
+        # do merge
         target_df = target_df.merge(source_df[col_names], how='left',
                                     left_on=add_name, right_index=True,
                                     suffixes=["_target", "_source"])
-        # mess with target_df to remove unneded merge columns
+        # ignore any duplicate rows
+        target_df.drop_duplicates(inplace=True)
+        # mess with target_df to remove un-needed merge columns
         for col in col_names:
             # if there has been a previous merge, consolidate and delete data
             if col + "_target" in target_df.columns:
