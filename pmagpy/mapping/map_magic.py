@@ -175,6 +175,15 @@ images = {'specimen': 'er_specimen_name', 'description': 'image_description',
           'timestamp': 'image_date'}
 image_magic2_2_magic3_map.update(images)
 
+# ages data translation er_ages -> ages
+age_magic2_2_magic3_map = maps.all_maps['ages']
+# images data translation images -> er_images
+age_magic2_2_magic_3_map = {v: k for (k, v) in age_magic2_2_magic3_map.items()}
+#images = {'specimen': 'er_specimen_name', 'description': 'image_description',
+#          'timestamp': 'image_date'}
+#image_magic2_2_magic3_map.update(images)
+
+
 ## translation orientation format --> 3.0.
 # orientation headers: not all have a 3.0 sample equivalent (like mag_azimuth, for instance)
 #site_name sample_name mag_azimuth field_dip date lat long sample_lithology sample_type sample_class shadow_angle hhmm stratigraphic_height bedding_dip_direction bedding_dip GPS_baseline image_name image_look image_photographer participants method_codes site_description sample_description GPS_Az, sample_igsn, sample_texture, sample_cooling_rate, cooling_rate_corr, cooling_rate_mcd

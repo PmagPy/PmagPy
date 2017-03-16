@@ -317,7 +317,7 @@ def convert_directory_2_to_3(meas_fname="magic_measurements.txt", input_dir=".",
     """
     Convert 2.0 measurements file into 3.0 measurements file.
     Merge and convert specimen, sample, site, and location data.
-    Note: does not yet handle criteria or other MagIC files.
+    Also translates criteria data.
 
     Parameters
     ----------
@@ -337,7 +337,8 @@ def convert_directory_2_to_3(meas_fname="magic_measurements.txt", input_dir=".",
     convert = {'specimens': map_magic.spec_magic2_2_magic3_map,
                'samples': map_magic.samp_magic2_2_magic3_map,
                'sites': map_magic.site_magic2_2_magic3_map,
-               'locations': map_magic.loc_magic2_2_magic3_map}
+               'locations': map_magic.loc_magic2_2_magic3_map,
+               'ages': map_magic.age_magic2_2_magic3_map}
     full_name = os.path.join(input_dir, meas_fname)
     if not os.path.exists(full_name):
         print "-W- {} is not a file".format(full_name)
@@ -359,7 +360,7 @@ def convert_directory_2_to_3(meas_fname="magic_measurements.txt", input_dir=".",
     no_upgrade = []
     if not meas_only:
         # try to convert specimens, samples, sites, & locations
-        for dtype in ['specimens', 'samples', 'sites', 'locations']:
+        for dtype in ['specimens', 'samples', 'sites', 'locations', 'ages']:
             mapping = convert[dtype]
             res = convert_and_combine_2_to_3(dtype, mapping, input_dir, output_dir, data_model)
             if res:
@@ -380,7 +381,7 @@ def convert_directory_2_to_3(meas_fname="magic_measurements.txt", input_dir=".",
             elif 'rmag' in fname:
                 no_upgrade.append(fname)
             elif fname in ['pmag_results.txt', 'er_synthetics.txt', 'er_images.txt',
-                           'er_plots.txt', 'er_ages.txt']:
+                           'er_plots.txt']:
                 no_upgrade.append(fname)
 
     return NewMeas, upgraded, no_upgrade
@@ -409,21 +410,28 @@ def convert_and_combine_2_to_3(dtype, map_dict, input_dir=".", output_dir=".", d
     er_data, er_dtype = magic_read(er_file)
     if len(er_data):
         er_df = pd.DataFrame(er_data)
-        er_df.index = er_df['er_{}_name'.format(dtype[:-1])]
+        if dtype == 'ages':
+            pass
+        else:
+            er_df.index = er_df['er_{}_name'.format(dtype[:-1])]
     else:
         er_df = pd.DataFrame()
-    # read in pmag_ data & make DataFrame
-    pmag_file = os.path.join(input_dir, 'pmag_{}.txt'.format(dtype))
-    pmag_data, pmag_dtype = magic_read(pmag_file)
-    if len(pmag_data):
-        pmag_df = pd.DataFrame(pmag_data)
-        pmag_df.index = pmag_df['er_{}_name'.format(dtype[:-1])]
+    #
+    if dtype == 'ages':
+        full_df = er_df
     else:
-        pmag_df = pd.DataFrame()
-    # combine the two Dataframes
-    full_df = pd.concat([er_df, pmag_df])
-    # sort the DataFrame so that all records from one item are together
-    full_df.sort_index(inplace=True)
+        # read in pmag_ data & make DataFrame
+        pmag_file = os.path.join(input_dir, 'pmag_{}.txt'.format(dtype))
+        pmag_data, pmag_dtype = magic_read(pmag_file)
+        if len(pmag_data):
+            pmag_df = pd.DataFrame(pmag_data)
+            pmag_df.index = pmag_df['er_{}_name'.format(dtype[:-1])]
+        else:
+            pmag_df = pd.DataFrame()
+        # combine the two Dataframes
+        full_df = pd.concat([er_df, pmag_df])
+        # sort the DataFrame so that all records from one item are together
+        full_df.sort_index(inplace=True)
     # fix the column names to be 3.0
     full_df.rename(columns=map_dict, inplace=True)
     # create a MagicDataFrame object, providing the dataframe and the data type

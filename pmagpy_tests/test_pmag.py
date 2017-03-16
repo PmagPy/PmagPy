@@ -43,19 +43,18 @@ class TestConvert2To3(unittest.TestCase):
     def test_upgrade(self):
         meas, upgraded, no_upgrade = pmag.convert_directory_2_to_3(input_dir=PROJECT_WD,
                                                                    output_dir=PROJECT_WD)
-        expect_out = ['measurements.txt', 'specimens.txt', 'samples.txt', 'sites.txt', 'locations.txt', 'criteria.txt']
-        self.assertEqual(expect_out, upgraded)
+        expect_out = ['measurements.txt', 'specimens.txt', 'samples.txt',
+                      'sites.txt', 'locations.txt', 'criteria.txt', 'ages.txt']
+        self.assertEqual(sorted(expect_out), sorted(upgraded))
         expect_not_out = ['pmag_results.txt',
                           'rmag_hysteresis.txt', 'rmag_anisotropy.txt',
-                          'rmag_results.txt', 'er_ages.txt',
-                          'er_images.txt']
+                          'rmag_results.txt', 'er_images.txt']
         self.assertEqual(sorted(expect_not_out), sorted(no_upgrade))
 
     def test_upgrade_criteria(self):
         outfile, output = pmag.convert_criteria_file_2_to_3(input_dir=PROJECT_WD, output_dir=PROJECT_WD)
         self.assertEqual('criteria.txt', outfile)
         print output.df.head()
-
 
 
 class TestGetPlateData(unittest.TestCase):
