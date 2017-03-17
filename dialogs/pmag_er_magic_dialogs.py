@@ -42,6 +42,7 @@ class ErMagicCheckFrame3(wx.Frame):
         """
         #wait = wx.BusyInfo("Please wait, working...")
         #wx.Yield()
+        self.contribution.propagate_lithology_cols()
         spec_df = self.contribution.tables['specimens'].df
         self.panel = wx.Panel(self, style=wx.SIMPLE_BORDER)
         self.grid_frame = grid_frame3.GridFrame(self.contribution, self.WD, 'specimens', 'specimens', self.panel)
