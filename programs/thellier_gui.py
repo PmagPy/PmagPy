@@ -2852,6 +2852,7 @@ else:
         for specimen in specimens:
 
             if 'atrmblock' in self.Data[specimen].keys():
+                experiment=self.Data[specimen]['atrmblock'][0]['magic_experiment_name']
 
                 #-----------------------------------
                 # aTRM 6 positions
@@ -3038,7 +3039,8 @@ else:
                     Data_anisotropy[specimen]['ATRM']['er_specimen_name']=specimen
                     Data_anisotropy[specimen]['ATRM']['er_site_name']=atrmblock[0]['er_site_name']
                     Data_anisotropy[specimen]['ATRM']['anisotropy_description']='Hext statistics adapted to ATRM'
-                    Data_anisotropy[specimen]['ATRM']['magic_experiment_names']=specimen+";ATRM"
+                   # Data_anisotropy[specimen]['ATRM']['magic_experiment_names']=specimen+";ATRM" # this is wrong!  should be from the measurement table
+                    Data_anisotropy[specimen]['ATRM']['magic_experiment_names']=experiment
                     Data_anisotropy[specimen]['ATRM']['magic_method_codes']="LP-AN-TRM:AE-H"
                     #Data_anisotropy[specimen]['ATRM']['rmag_anisotropy_name']=specimen
 
@@ -3050,7 +3052,7 @@ else:
                 #-----------------------------------
 
                 aniso_logfile.write( "-I- Start calculating AARM tensors for specimen %s\n"%specimen)
-
+                experiment=self.Data[specimen]['aarmblock'][0]['magic_experiment_name']
                 aarmblock=self.Data[specimen]['aarmblock']
                 if len(aarmblock)<12:
                     aniso_logfile.write( "-W- WARNING: not enough aarm measurements for specimen %s\n"%specimen)
@@ -3106,7 +3108,7 @@ else:
                 Data_anisotropy[specimen]['AARM']['er_site_name']=aarmblock[0]['er_site_name']
                 Data_anisotropy[specimen]['AARM']['er_specimen_name']=specimen
                 Data_anisotropy[specimen]['AARM']['anisotropy_description']='Hext statistics adapted to AARM'
-                Data_anisotropy[specimen]['AARM']['magic_experiment_names']=specimen+";AARM"
+                Data_anisotropy[specimen]['AARM']['magic_experiment_names']=experiment
                 Data_anisotropy[specimen]['AARM']['magic_method_codes']="LP-AN-ARM:AE-H"
                 #Data_anisotropy[specimen]['AARM']['rmag_anisotropy_name']=specimen
 
@@ -3408,7 +3410,7 @@ else:
         #------------------
         # read existing pmag results data and sort out the directional data.
         # The directional data will be merged to one combined pmag table.
-        # this data will be merged later
+        # these data will be merged later
         #-----------------------.
 
             PmagRecsOld={}
@@ -3470,12 +3472,12 @@ else:
                 MagIC_results_data['pmag_specimens'][specimen]['er_location_name']=location_name
                 MagIC_results_data['pmag_specimens'][specimen]['magic_method_codes']=self.Data[specimen]['pars']['magic_method_codes']+":IE-TT"
                 tmp=MagIC_results_data['pmag_specimens'][specimen]['magic_method_codes'].split(":")
-                magic_experiment_names=specimen
-                for m in tmp:
-                    if "LP-" in m:
-                        magic_experiment_names=magic_experiment_names+" : " + m
+                #magic_experiment_names=specimen
+                magic_experiment_names=""
+                #for m in tmp: # this is incorrect - it should be a concatinated list of the experiment names from the measurement table. 
+                #    if "LP-" in m:
+                #        magic_experiment_names=magic_experiment_names+":" + m
                 MagIC_results_data['pmag_specimens'][specimen]['magic_experiment_names']=magic_experiment_names
-
                 MagIC_results_data['pmag_specimens'][specimen]['measurement_step_unit']='K'
                 MagIC_results_data['pmag_specimens'][specimen]['specimen_lab_field_dc']="%.2e"%(self.Data[specimen]['pars']['lab_dc_field'])
                 MagIC_results_data['pmag_specimens'][specimen]['specimen_correction']=self.Data[specimen]['pars']['specimen_correction']
