@@ -397,7 +397,8 @@ class Contribution(object):
             self.tables[table].df.replace("^[Nn]ot [Ss]pecified", '',
                                           regex=True, inplace=True)
         self.propagate_cols_down(cols, 'samples', 'sites')
-        self.propagate_cols_down(cols, 'specimens', 'sites')
+        cols = ['lithologies', 'geologic_types', 'geologic_classes']
+        self.propagate_cols_down(cols, 'specimens', 'samples')
 
 
     def add_item(self, table_name, data, label):
