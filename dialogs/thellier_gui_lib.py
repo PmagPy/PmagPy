@@ -26,7 +26,6 @@ def get_PI_parameters(Data, acceptance_criteria, preferences, s, tmin, tmax, GUI
         print "Could not get any parameters for {}".format(Pint_pars)
         return 0
     pars.update(Pint_pars.pars)
-    
 
     t_Arai=Data[s]['t_Arai']
     x_Arai=Data[s]['x_Arai']
