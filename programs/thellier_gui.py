@@ -229,6 +229,10 @@ class Arai_GUI(wx.Frame):
     GUI for interpreting thellier-type paleointensity data.
     For tutorial chcek PmagPy cookbook in http://earthref.org/PmagPy/cookbook/
         """
+        try:
+            reload(thellier_gui_preferences)
+        except NameError:
+            pass
         args=sys.argv
 
         if "-h" in args:
@@ -316,6 +320,10 @@ class Arai_GUI(wx.Frame):
         self.last_saved_pars={}
         self.specimens=self.Data.keys() # get list of specimens
         self.specimens.sort() # get list of specimens
+        self.InitUI()
+        wait.Destroy()
+
+    def InitUI(self):
         # make Panels
         self.plot_panel = wx.lib.scrolledpanel.ScrolledPanel(self,wx.ID_ANY)
         self.top_panel = wx.Panel(self,wx.ID_ANY)
@@ -336,7 +344,7 @@ class Arai_GUI(wx.Frame):
         FIRST_RUN=False
         self.Bind(wx.EVT_CLOSE, self.on_menu_exit)
         self.close_warning=False
-        wait.Destroy()
+
 
     def get_DIR(self, WD=None):
         """
@@ -1820,8 +1828,9 @@ else:
             result = self.show_dlg(dlg3)
             dlg3.Destroy()
             if result == wx.ID_OK:
+                self.on_menu_exit(None)
                 #self.Destroy()
-                sys.exit()
+                #sys.exit()
 
 
 
@@ -2301,8 +2310,9 @@ else:
                 style=wx.OK|wx.ICON_INFORMATION)
                 self.show_dlg(dlg1)
                 dlg1.Destroy()
+                self.on_menu_exit(None)
                 #self.Destroy()
-                sys.exit()
+                #sys.exit()
 
         if result == wx.ID_CANCEL: # Until the user clicks OK, show the message
             for crit in crit_list_not_in_pref:
@@ -3474,7 +3484,7 @@ else:
                 tmp=MagIC_results_data['pmag_specimens'][specimen]['magic_method_codes'].split(":")
                 #magic_experiment_names=specimen
                 magic_experiment_names=""
-                #for m in tmp: # this is incorrect - it should be a concatinated list of the experiment names from the measurement table. 
+                #for m in tmp: # this is incorrect - it should be a concatinated list of the experiment names from the measurement table.
                 #    if "LP-" in m:
                 #        magic_experiment_names=magic_experiment_names+":" + m
                 MagIC_results_data['pmag_specimens'][specimen]['magic_experiment_names']=magic_experiment_names
