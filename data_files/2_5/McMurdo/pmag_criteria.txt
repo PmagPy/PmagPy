@@ -1,0 +1,10 @@
+tab 	pmag_criteria
+criteria_definition	er_citation_names	pmag_criteria_code	sample_alpha95	sample_int_n	sample_int_sigma	sample_int_sigma_perc	site_alpha95	site_int_n	site_int_sigma	site_int_sigma_perc	site_k	site_n	site_n_lines	site_polarity	specimen_alpha95	specimen_b_beta	specimen_dang	specimen_drats	specimen_fvds	specimen_int_mad	specimen_int_ptrm_n	specimen_mad	specimen_md	specimen_n	specimen_q
+Criteria for selection of specimen direction	This study	DE-SPEC													180							5		4	
+Criteria for selection of specimen intensity	This study	IE-SPEC														0.14	13	17	0.3	11	2		15		1
+Criteria for selection of sample direction	This study	DE-SAMP	180																						
+sample intensity	This study	IE-SAMP		1	-1	200																			
+Criteria for selection of site intensity	This study	IE-SITE						2	-1	15															
+Criteria for selection of site direction	This study	DE-SITE					180				50	5	4												
+Criteria for inclusion in normal mean	This study	NPOLE												n											
+Criteria for inclusion in reverse mean	This study	RPOLE												r											

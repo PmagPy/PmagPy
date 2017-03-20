@@ -28,7 +28,6 @@ pmagpy/*.png
 new-test-output/*
 
 SPD_consistency_tests/*
-pmag_criteria.txt
 
 *.DS_Store
 SPD_consistency_tests/*
