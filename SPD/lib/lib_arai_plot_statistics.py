@@ -88,6 +88,9 @@ def get_SCAT_box(slope, x_mean, y_mean, beta_threshold = .1):
     the largest possible x_value, the largest possible y_value,
     and functions for the two bounding lines of the box
     """
+    # if beta_threshold is -999, that means null
+    if beta_threshold == -999:
+        beta_threshold = .1
     slope_err_threshold = abs(slope) * beta_threshold
     x, y = x_mean, y_mean
     # get lines that pass through mass center, with opposite slope
