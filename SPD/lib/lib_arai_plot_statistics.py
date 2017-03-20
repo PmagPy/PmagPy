@@ -7,9 +7,9 @@ import numpy
 def York_Regression(x_segment, y_segment, x_mean, y_mean, n, lab_dc_field, steps_Arai):
     """
     input: x_segment, y_segment, x_mean, y_mean, n, lab_dc_field, steps_Arai
-    output: x_err,  y_err, x_tag, y_tag, b, b_sigma, specimen_b_beta, y_intercept, 
-            x_intercept, x_prime, y_prime, delta_x_prime, delta_y_prime, f_Coe, 
-            g_Coe, g_lim, specimen_q, specimen_w, count_IZ, count_ZI, B_lab, B_anc, 
+    output: x_err,  y_err, x_tag, y_tag, b, b_sigma, specimen_b_beta, y_intercept,
+            x_intercept, x_prime, y_prime, delta_x_prime, delta_y_prime, f_Coe,
+            g_Coe, g_lim, specimen_q, specimen_w, count_IZ, count_ZI, B_lab, B_anc,
             B_anc_sigma, specimen_int
     """
     x_err = x_segment - x_mean
@@ -25,9 +25,9 @@ def York_Regression(x_segment, y_segment, x_mean, y_mean, n, lab_dc_field, steps
     york_sigma= numpy.sqrt( (2 * sum(y_err**2) - 2*york_b* sum(x_err*y_err)) / ( (n-2) * sum(x_err**2) ) )
     if york_sigma == 0: # prevent divide by zero
         york_sigma = 1e-10
-    beta_Coe = abs(york_sigma/york_b) 
+    beta_Coe = abs(york_sigma/york_b)
     # y_T is the intercept of the extrepolated line
-    # through the center of mass (see figure 7 in Coe (1978))  
+    # through the center of mass (see figure 7 in Coe (1978))
     y_T = y_mean - (york_b* x_mean)
     x_T = (-1 * y_T) / york_b  # x intercept
     # # calculate the extrarpolated data points for f and fvds
@@ -35,7 +35,7 @@ def York_Regression(x_segment, y_segment, x_mean, y_mean, n, lab_dc_field, steps
     y_tag = york_b*x_segment + y_T
 
     # intersect of the dashed square and the horizontal dahed line  next to delta-y-5 in figure 7, Coe (1978)
-    x_prime = (x_segment+x_tag) / 2  
+    x_prime = (x_segment+x_tag) / 2
     y_prime = (y_segment+y_tag) / 2
 
     delta_x_prime = abs(max(x_prime) - min(x_prime)) # TRM length of best fit line
@@ -46,7 +46,7 @@ def York_Regression(x_segment, y_segment, x_mean, y_mean, n, lab_dc_field, steps
         g_Coe =  1 - (sum((y_prime[:-1]-y_prime[1:])**2) / delta_y_prime ** 2)  # gap factor
     else:
         g_Coe = float('nan')
-    g_lim = (float(n) - 2) / (float(n) - 1) 
+    g_lim = (float(n) - 2) / (float(n) - 1)
     q_Coe = abs(york_b)*f_Coe*g_Coe/york_sigma
     w_Coe = q_Coe / numpy.sqrt(n - 2)
     count_IZ = steps_Arai.count('IZ')
@@ -56,16 +56,16 @@ def York_Regression(x_segment, y_segment, x_mean, y_mean, n, lab_dc_field, steps
     B_anc_sigma = york_sigma * B_lab
     specimen_int = -1* lab_dc_field * york_b # in tesla
     specimen_int_sigma = york_sigma * lab_dc_field
-    return {'x_err': x_err, 'y_err': y_err, 'x_tag': x_tag, 'y_tag': y_tag, 
-            'specimen_b': york_b, 'specimen_b_sigma': york_sigma, 'specimen_b_beta': beta_Coe, 
-            'y_int': y_T, 'x_int': x_T, 'x_prime': x_prime, 'y_prime': y_prime, 
-            'delta_x_prime': delta_x_prime, 'delta_y_prime': delta_y_prime, 'specimen_f': f_Coe, 
-            'specimen_g': g_Coe, 'specimen_g_lim': g_lim, 'specimen_q': q_Coe, 'specimen_w': w_Coe, 
-            'count_IZ': count_IZ, 'count_ZI': count_ZI, 'B_lab': B_lab, 'B_anc': B_anc, 
+    return {'x_err': x_err, 'y_err': y_err, 'x_tag': x_tag, 'y_tag': y_tag,
+            'specimen_b': york_b, 'specimen_b_sigma': york_sigma, 'specimen_b_beta': beta_Coe,
+            'y_int': y_T, 'x_int': x_T, 'x_prime': x_prime, 'y_prime': y_prime,
+            'delta_x_prime': delta_x_prime, 'delta_y_prime': delta_y_prime, 'specimen_f': f_Coe,
+            'specimen_g': g_Coe, 'specimen_g_lim': g_lim, 'specimen_q': q_Coe, 'specimen_w': w_Coe,
+            'count_IZ': count_IZ, 'count_ZI': count_ZI, 'B_lab': B_lab, 'B_anc': B_anc,
             'B_anc_sigma': B_anc_sigma, 'specimen_int': specimen_int, 'specimen_int_sigma': specimen_int_sigma}
 
-def get_vds(zdata, delta_y_prime, start, end): 
-    """takes zdata array: [[1, 2, 3], [3, 4, 5]], 
+def get_vds(zdata, delta_y_prime, start, end):
+    """takes zdata array: [[1, 2, 3], [3, 4, 5]],
     delta_y_prime: 1, start value, and end value.  gets vds and f_vds, etc. """
     vector_diffs = []
     for k in range(len(zdata)-1): # gets diff between two vectors
@@ -73,19 +73,19 @@ def get_vds(zdata, delta_y_prime, start, end):
     last_vector = numpy.linalg.norm(zdata[-1])
     vector_diffs.append(last_vector)
     vds = sum(vector_diffs)
-    f_vds = abs(delta_y_prime / vds) # fvds varies, because of delta_y_prime, but vds does not.              
+    f_vds = abs(delta_y_prime / vds) # fvds varies, because of delta_y_prime, but vds does not.
     vector_diffs_segment = vector_diffs[start:end]
     partial_vds = sum(vector_diffs_segment)
     max_diff = max(vector_diffs_segment)
     GAP_MAX = max_diff / partial_vds #
-    return {'max_diff': max_diff, 'vector_diffs': vector_diffs, 'specimen_vds': vds, 
-            'specimen_fvds': f_vds, 'vector_diffs_segment': vector_diffs_segment, 
+    return {'max_diff': max_diff, 'vector_diffs': vector_diffs, 'specimen_vds': vds,
+            'specimen_fvds': f_vds, 'vector_diffs_segment': vector_diffs_segment,
             'partial_vds': partial_vds, 'GAP-MAX': GAP_MAX}
 
-def get_SCAT_box(slope, x_mean, y_mean, beta_threshold = .1): 
+def get_SCAT_box(slope, x_mean, y_mean, beta_threshold = .1):
     """
-    takes in data and returns information about SCAT box: 
-    the largest possible x_value, the largest possible y_value, 
+    takes in data and returns information about SCAT box:
+    the largest possible x_value, the largest possible y_value,
     and functions for the two bounding lines of the box
     """
     slope_err_threshold = abs(slope) * beta_threshold
@@ -97,26 +97,26 @@ def get_SCAT_box(slope, x_mean, y_mean, beta_threshold = .1):
     slope2 = slope - (2 * slope_err_threshold)
     line2_y_int = y - (slope2 * x)
     line2_x_int = -1 * (line2_y_int / slope2)
-        # l1_y_int and l2_x_int form the bottom line of the box       
-        # l2_y_int and l1_x_int form the top line of the box              
-#    print "_diagonal line1:", (0, line2_y_int), (line2_x_int, 0), (x, y)     
+        # l1_y_int and l2_x_int form the bottom line of the box
+        # l2_y_int and l1_x_int form the top line of the box
+#    print "_diagonal line1:", (0, line2_y_int), (line2_x_int, 0), (x, y)
 #    print "_diagonal line2:", (0, line1_y_int), (line1_x_int, 0), (x, y)
-#    print "_bottom line:", [(0, line1_y_int), (line2_x_int, 0)]    
-#    print "_top line:", [(0, line2_y_int), (line1_x_int, 0)]     
+#    print "_bottom line:", [(0, line1_y_int), (line2_x_int, 0)]
+#    print "_top line:", [(0, line2_y_int), (line1_x_int, 0)]
     low_bound = [(0, line1_y_int), (line2_x_int, 0)]
     high_bound = [(0, line2_y_int), (line1_x_int, 0)]
-    x_max = high_bound[1][0]#              
+    x_max = high_bound[1][0]#
     y_max = high_bound[0][1]
     # function for low_bound
-    low_slope = (low_bound[0][1] - low_bound[1][1]) / (low_bound[0][0] - low_bound[1][0]) # 
+    low_slope = (low_bound[0][1] - low_bound[1][1]) / (low_bound[0][0] - low_bound[1][0]) #
     low_y_int = low_bound[0][1]
-    def low_bound(x): 
+    def low_bound(x):
         y = low_slope * x + low_y_int
         return y
     # function for high_bound
-    high_slope = (high_bound[0][1] - high_bound[1][1]) / (high_bound[0][0] - high_bound[1][0]) # y_0-y_1/x_0-x_1     
+    high_slope = (high_bound[0][1] - high_bound[1][1]) / (high_bound[0][0] - high_bound[1][0]) # y_0-y_1/x_0-x_1
     high_y_int = high_bound[0][1]
-    def high_bound(x): 
+    def high_bound(x):
         y = high_slope * x + high_y_int
         return y
     high_line = [high_y_int, high_slope]
@@ -138,9 +138,9 @@ def in_SCAT_box(x, y, low_bound, high_bound, x_max, y_max):
         passing = False
     return passing
 
-def get_SCAT_points(x_Arai_segment, y_Arai_segment, tmin, tmax, ptrm_checks_temperatures, 
-                    ptrm_checks_starting_temperatures, x_ptrm_check, y_ptrm_check, 
-                    tail_checks_temperatures, tail_checks_starting_temperatures, 
+def get_SCAT_points(x_Arai_segment, y_Arai_segment, tmin, tmax, ptrm_checks_temperatures,
+                    ptrm_checks_starting_temperatures, x_ptrm_check, y_ptrm_check,
+                    tail_checks_temperatures, tail_checks_starting_temperatures,
                     x_tail_check, y_tail_check):
     """returns relevant points for a SCAT test"""
     points = []
@@ -153,18 +153,18 @@ def get_SCAT_points(x_Arai_segment, y_Arai_segment, tmin, tmax, ptrm_checks_temp
         points.append((x, y))
         points_arai.append((x,y))
 
-    for num, temp in enumerate(ptrm_checks_temperatures): # 
+    for num, temp in enumerate(ptrm_checks_temperatures): #
         if temp >= tmin and temp <= tmax: # if temp is within selected range
-            if (ptrm_checks_starting_temperatures[num] >= tmin and 
+            if (ptrm_checks_starting_temperatures[num] >= tmin and
                     ptrm_checks_starting_temperatures[num] <= tmax): # and also if it was not done after an out-of-range temp
                 x = x_ptrm_check[num]
                 y = y_ptrm_check[num]
                 points.append((x, y))
                 points_ptrm.append((x,y))
 
-    for num, temp in enumerate(tail_checks_temperatures):  
+    for num, temp in enumerate(tail_checks_temperatures):
         if temp >= tmin and temp <= tmax:
-            if (tail_checks_starting_temperatures[num] >= tmin and 
+            if (tail_checks_starting_temperatures[num] >= tmin and
                     tail_checks_starting_temperatures[num] <= tmax):
                 x = x_tail_check[num]
                 y = y_tail_check[num]
@@ -210,7 +210,7 @@ def fancy_SCAT(points, low_bound, high_bound, x_max, y_max):
     return SCAT, SCATs
 
 
-def get_FRAC(vds, vector_diffs_segment):   
+def get_FRAC(vds, vector_diffs_segment):
     """
     input: vds, vector_diffs_segment
     output: FRAC
@@ -220,10 +220,10 @@ def get_FRAC(vds, vector_diffs_segment):
             raise ValueError('vector diffs should not be negative')
     if vds == 0:
         raise ValueError('attempting to divide by zero. vds should be a positive number')
-    FRAC = sum(vector_diffs_segment) / vds 
+    FRAC = sum(vector_diffs_segment) / vds
     return FRAC
 
-def get_R_corr2(x_avg, y_avg, x_segment, y_segment): # 
+def get_R_corr2(x_avg, y_avg, x_segment, y_segment): #
     """
     input: x_avg, y_avg, x_segment, y_segment
     output: R_corr2
@@ -237,7 +237,7 @@ def get_R_corr2(x_avg, y_avg, x_segment, y_segment): #
 
 def get_R_det2(y_segment, y_avg, y_prime):
     """
-    takes in an array of y values, the mean of those values, and the array of y prime values.  
+    takes in an array of y values, the mean of those values, and the array of y prime values.
     returns R_det2
     """
     numerator = sum((numpy.array(y_segment) - numpy.array(y_prime))**2)
@@ -300,7 +300,7 @@ def get_normed_points(point_array, norm): # good to go
     points = numpy.array(point_array) / norm
     return points
 
-def get_xy_array(x_segment, y_segment): 
+def get_xy_array(x_segment, y_segment):
     """
     input: x_segment, y_segment
     output: xy_segment, ( format: [(x[0], y[0]), (x[1], y[1])]
@@ -309,8 +309,3 @@ def get_xy_array(x_segment, y_segment):
     for num, x in enumerate(x_segment):
         xy_array.append((x, y_segment[num]))
     return xy_array
-
-
-
-
-
