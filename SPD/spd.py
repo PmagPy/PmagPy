@@ -738,6 +738,8 @@ class PintPars(object):
             return None
         stats_run = []
         #print 'self.calculate: ', self.calculate
+        if 'best_fit_vector_Free' not in self.calculate:
+            self.calculate.append('best_fit_vector_Free')
         for stat in self.calculate: # iterate through all stats that should be calculated
             func = self.statistics[stat]
             #print 'func', func
