@@ -4,7 +4,7 @@
 # Author: Ron Shaar
 # Revision notes
 #
-# Rev 1.0 Initial revision August 2012 
+# Rev 1.0 Initial revision August 2012
 # Rev 2.0 November 2014
 #---------------------------------------------------------------------------
 import matplotlib
@@ -132,7 +132,7 @@ def get_PI_parameters(Data, acceptance_criteria, preferences, s, tmin, tmax, GUI
             Data[s]['AniSpec'][TYPE]['anisotropy_n']=int(float(Data[s]['AniSpec'][TYPE]['anisotropy_n']))
 
             this_specimen_f_type=Data[s]['AniSpec'][TYPE]['anisotropy_type']+"_"+"%i"%(int(Data[s]['AniSpec'][TYPE]['anisotropy_n']))
-            Ftest_crit={} 
+            Ftest_crit={}
             Ftest_crit['ATRM_6']=  3.1059
             Ftest_crit['AARM_6']=  3.1059
             Ftest_crit['AARM_9']= 2.6848
@@ -170,7 +170,7 @@ def get_PI_parameters(Data, acceptance_criteria, preferences, s, tmin, tmax, GUI
             else:
                 Data[s]['AniSpec'][TYPE]['anisotropy_alt']=""
 
-            Data[s]['AniSpec'][TYPE]['S_matrix']=S_matrix 
+            Data[s]['AniSpec'][TYPE]['S_matrix']=S_matrix
         #--------------------------
         # if AARM passes all, use the AARM.
         # if ATRM fail alteration use the AARM
@@ -182,7 +182,7 @@ def get_PI_parameters(Data, acceptance_criteria, preferences, s, tmin, tmax, GUI
                 TYPE='AARM'
             elif "ATRM tensor fails F-test" in pars["AC_WARNING"]:
                 TYPE='AARM'
-            else: 
+            else:
                 TYPE=='AARM'
         S_matrix= Data[s]['AniSpec'][TYPE]['S_matrix']
 
@@ -194,7 +194,7 @@ def get_PI_parameters(Data, acceptance_criteria, preferences, s, tmin, tmax, GUI
         Anisotropy_correction_factor=linalg.norm(dot(inv(S_matrix),TRM_anc_unit.transpose()))*norm(dot(S_matrix,B_lab_unit))
         pars["Anisotropy_correction_factor"]=Anisotropy_correction_factor
         pars["AC_specimen_int"]= pars["Anisotropy_correction_factor"] * float(pars["specimen_int"])
-        
+
         pars["AC_anisotropy_type"]=Data[s]['AniSpec'][TYPE]["anisotropy_type"]
         pars["specimen_int_uT"]=float(pars["AC_specimen_int"])*1e6
         if TYPE=='AARM':
@@ -205,7 +205,7 @@ def get_PI_parameters(Data, acceptance_criteria, preferences, s, tmin, tmax, GUI
         if TYPE=='ATRM':
             if ":LP-AN-TRM" not in pars['magic_method_codes']:
                 pars['magic_method_codes']+=":LP-AN-TRM:AE-H:DA-AC-ATRM"
-                pars['specimen_correction']='c' 
+                pars['specimen_correction']='c'
                 pars['specimen_int_corr_anisotropy']=Anisotropy_correction_factor
 
 
@@ -213,7 +213,7 @@ def get_PI_parameters(Data, acceptance_criteria, preferences, s, tmin, tmax, GUI
         pars["Anisotropy_correction_factor"]=1.0
         pars["specimen_int_uT"]=float(pars["specimen_int"])*1e6
         pars["AC_WARNING"]="No anistropy correction"
-        pars['specimen_correction']='u' 
+        pars['specimen_correction']='u'
 
     pars["specimen_int_corr_anisotropy"]=pars["Anisotropy_correction_factor"]
     #-------------------------------------------------
@@ -273,7 +273,7 @@ def get_PI_parameters(Data, acceptance_criteria, preferences, s, tmin, tmax, GUI
 
     def combine_dictionaries(d1, d2):
         """
-        combines dict1 and dict2 into a new dict.  
+        combines dict1 and dict2 into a new dict.
         if dict1 and dict2 share a key, the value from dict1 is used
         """
         for key, value in d2.iteritems():
