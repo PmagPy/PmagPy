@@ -2,7 +2,7 @@
 
 If you have installed using pip, you can test your installation from the command line (in any directory) with this command:
 
-`python -m unittest pmagpy_tests.run_all_tests -pip`
+`python -m pmagpy_tests.run_all_tests -pip`
 
 This runs through every PmagPy test using the data files that were automatically installed with you ran `pip install pmagpy`.  It should take a few minutes, and let's you know that everything works as expected.  Any issues can be reported to the PmagPy team on the [Github repository](https://github.com/PmagPy/PmagPy/issues).
 

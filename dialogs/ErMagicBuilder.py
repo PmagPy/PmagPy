@@ -55,6 +55,9 @@ class MagIC_model_builder3(wx.Frame):
 
         # first propagate from measurements
         self.contribution.propagate_measurement_info()
+        # then propagate from other tables
+        # (i.e., if sites are in specimens or samples but not measurements)
+        self.contribution.propagate_all_tables_info()
         # then add in blank tables if any are missing
         self.table_list = ["specimens", "samples", "sites", "locations", "ages"]
         for table in self.table_list:

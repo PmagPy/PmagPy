@@ -7,7 +7,7 @@ def main():
         convert2unix.py
     
     DESCRIPTION
-      converts mac or dos formatted file to unix file in plac
+      converts mac or dos formatted file to unix file in place
     
     SYNTAX
         convert2unix.py FILE 

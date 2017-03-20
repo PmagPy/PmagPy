@@ -42,15 +42,15 @@ def get_data_model():
     """
     print "-I- getting data model, please be patient"
     url = 'http://earthref.org/services/MagIC-data-model.txt'
-    offline = False
-    try:
-        data = urllib2.urlopen(url)
-    except urllib2.URLError:
-        print '-W- Unable to fetch data model online\nTrying to use cached data model instead'
-        offline = True
-    except httplib.BadStatusLine:
-        print '-W- Website: {} not responding\nTrying to use cached data model instead'.format(url)
-        offline = True
+    offline = True # always get cached data model, as 2.5 is now static
+    #try:
+    #    data = urllib2.urlopen(url)
+    #except urllib2.URLError:
+    #    print '-W- Unable to fetch data model online\nTrying to use cached data model instead'
+    #    offline = True
+    #except httplib.BadStatusLine:
+    #    print '-W- Website: {} not responding\nTrying to use cached data model instead'.format(url)
+    #    offline = True
     if offline:
         data = get_data_offline()
     data_model, file_type = pmag.magic_read(None, data)
@@ -116,7 +116,7 @@ def read_upload(up_file, data_model=None):
             file_type = dictionary['file_type']
             # need to deal with pmag_criteria type file, too
             item_type = file_type.split('_')[1][:-1]
-            if item_type == 'criteri':
+            if item_type == 'criteria':
                 item_name = dictionary.get('criteria_definition')
             elif item_type == 'result':
                 item_name = dictionary.get('pmag_result_name', None)

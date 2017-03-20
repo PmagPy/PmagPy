@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 
 """
-this module will provide all the functionality for the drop-down controlled vocabulary menus
+provides all the functionality for the drop-down controlled vocabulary menus
+used in MagIC grids
 """
 # pylint: disable=W0612,C0111,C0301
 
 import wx
-from pmagpy.controlled_vocabularies3 import Vocabulary
 
 
 class Menus(object):
@@ -18,11 +18,7 @@ class Menus(object):
         take: data_type (string), MagIC contribution,
         & grid (grid object)
         """
-        # if controlled vocabularies haven't already been grabbed from earthref
-        # do so now
         self.contribution = contribution
-        #if not any(vocab.vocabularies):
-        #    vocab.get_all_vocabulary()
 
         self.data_type = data_type
         if self.data_type in self.contribution.tables:
@@ -51,6 +47,9 @@ class Menus(object):
 
 
     def InitUI(self):
+        """
+        Initialize interface for drop down menu
+        """
         if self.data_type in ['orient', 'ages']:
             belongs_to = []
         else:
@@ -102,6 +101,13 @@ class Menus(object):
         Add a correctly formatted drop-down-menu for given col_label,
         if required or suggested.
         Otherwise do nothing.
+
+        Parameters
+        ----------
+        col_number : int
+                grid position at which to add a drop down menu
+        col_label : str
+                column name
         """
         if col_label.endswith('**') or col_label.endswith('^^'):
             col_label = col_label[:-2]
@@ -112,9 +118,13 @@ class Menus(object):
         elif col_label in ['specimens', 'samples', 'sites', 'locations']:
             if col_label in self.contribution.tables:
                 item_df = self.contribution.tables[col_label].df
-                item_names = item_df[col_label[:-1]].unique()
+                item_names = item_df.index.unique() #[col_label[:-1]].unique()
                 self.choices[col_number] = (sorted(item_names), False)
-
+        elif col_label in ['specimen', 'sample', 'site', 'location']:
+            if col_label + "s" in self.contribution.tables:
+                item_df = self.contribution.tables[col_label + "s"].df
+                item_names = item_df.index.unique() #[col_label[:-1]].unique()
+                self.choices[col_number] = (sorted(item_names), False)
         # add vocabularies
         if col_label in self.contribution.vocab.suggested:
             typ = 'suggested'
@@ -165,6 +175,14 @@ class Menus(object):
         self.choices[col_number] = (method_list, True)
 
     def on_label_click(self, event):
+        """
+        When a grid column or row label is clicked,
+        provide the appropriate behavior.
+        If there is a drop-down menu, it should pop up
+        for assigning to the entire column.
+        Otherwise user should be able to edit the entire column
+        by entering text.
+        """
         col = event.GetCol()
         color = self.grid.GetCellBackgroundColour(0, col)
         if color != (191, 216, 216, 255): # light blue
@@ -254,6 +272,13 @@ class Menus(object):
                 # update the contribution with new name
                 self.contribution.rename_item(self.grid.name,
                                               default_val, new_val)
+                # don't propagate changes if we are just assigning a new name
+                # and not really renaming
+                # (i.e., if a blank row was added then named)
+                if default_val == '':
+                    self.grid.SetCellValue(row, 0, new_val)
+                    return
+
                 # update the current grid with new name
                 for row in range(self.grid.GetNumberRows()):
                     cell_value = self.grid.GetCellValue(row, 0)
@@ -345,6 +370,9 @@ class Menus(object):
 
 
     def show_menu(self, event, menu):
+        """
+        Show drop-down menu
+        """
         position = event.GetPosition()
         horizontal, vertical = position
         grid_horizontal, grid_vertical = self.grid.GetSize()
@@ -355,6 +383,15 @@ class Menus(object):
         menu.Destroy()
 
     def update_drop_down_menu(self, grid, choices):
+        """
+        Update drop-down-menus with a new dict of options
+
+        Parameters
+        ----------
+        grid : magic_grid3.MagicGrid
+        choices : list or dict
+            in format: {column_number: ([value1, value2, ...], two_tiered), ... }
+        """
         self.window.Bind(wx.grid.EVT_GRID_CELL_LEFT_CLICK, lambda event: self.on_left_click(event, grid, choices), grid)
         self.choices = choices
 

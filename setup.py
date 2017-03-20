@@ -4,8 +4,9 @@ from setuptools import setup, find_packages
 from codecs import open
 import os
 from os import path
+from pmagpy import version
 
-version_num = '3.8.0'
+version_num = version.version.strip('pmagpy-')
 packages = find_packages(exclude=['programs', 'pmagpy_tests',
                                   #'dialogs',
                                   'pmagpy_tests.examples', 'pmag_env',

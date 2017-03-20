@@ -1,0 +1,13 @@
+"cy11"
+"cy11","Nick Jarboe","2007-12-02"
+ID,       CODE,     STEPRANGE,  N,     Dg,    Ig,     kg,   a95g,  Ds,    Is,     ks,   a95s,  comment,  
+cy1101a,  GCnPCA,   H005-H020,  4,     85.7,  37.7,     0,  0.4,   85.7,  37.7,     0,  0.4,   "short. jumpy"
+cy1102a,  DirOPCA,  H020-H045,  4,     42.7,  3.3,      0,  0.7,   42.7,  3.3,      0,  0.7,   "drifting. jumpy"
+cy1103a,  DirOPCA,  H013-H110,  10,    41.7,  9.4,      0,  0.7,   41.7,  9.4,      0,  0.7,   "looks great"
+cy1104a,  DirOPCA,  H025-H045,  4,     38.2,  18.9,     0,  2.2,   38.2,  18.9,     0,  2.2,   "drifting. jumpy"
+cy1104a,  GCnPCA,   H004-H020,  4,     136.6, 22.8,     0,  0.9,   136.6, 22.8,     0,  0.9,   "jumpy"
+cy1105a,  GCnPCA,   H001-H020,  6,     300.9, 2.9,      0,  0.9,   300.9, 2.9,      0,  0.9,   "short. jumpy"
+cy1105a,  DirOPCA,  H020-H070,  6,     31.5,  12.2,     0,  1.0,   31.5,  12.2,     0,  1.0,   "drifting. jumpy"
+cy1106a,  DirOPCA,  H013-H035,  4,     41.0,  11.6,     0,  1.4,   41.0,  11.6,     0,  1.4,   "drifting. jumpy\"
+cy1107a,  DirOPCA,  H020-H035,  3,     46.2,  7.3,      0,  1.3,   46.2,  7.3,      0,  1.3,   "drifting. jumpy"
+cy1108a,  DirOPCA,  H013-H045,  5,     46.3,  9.8,      0,  1.7,   46.3,  9.8,      0,  1.7,   "drifting. jumpy"

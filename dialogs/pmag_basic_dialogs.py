@@ -29,6 +29,7 @@ from programs import pmd_magic
 from programs import jr6_txt_magic
 from programs import jr6_jr6_magic
 from programs import iodp_jr6_magic
+from programs import utrecht_magic
 from programs import bgc_magic
 from pmagpy.mapping import map_magic
 
@@ -47,7 +48,7 @@ class import_magnetometer_data(wx.Dialog):
 
         formats = ['generic format','SIO format','CIT format','2g-binary format',
                    'HUJI format','LDEO format','IODP SRM (csv) format','PMD (ascii) format',
-                   'TDT format', 'JR6 format', "BGC format"]
+                   'TDT format', 'JR6 format', 'Utrecht format', 'BGC format']
         sbs = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.ID_ANY, 'step 1: choose file format'), wx.VERTICAL)
         sbs.AddSpacer(5)
 
@@ -134,6 +135,8 @@ class import_magnetometer_data(wx.Dialog):
             return True
         elif file_type == 'JR6':
             dia = convert_JR6_files_to_MagIC(self, self.WD)
+        elif file_type == 'Utrecht':
+            dia = convert_Utrecht_files_to_MagIC(self, self.WD, "PmagPy Utrecht conversion")
         dia.Center()
         dia.Show()
 
@@ -239,7 +242,7 @@ class combine_magic_dialog(wx.Frame):
 
         if ipmag.combine_magic(files, 'magic_measurements.txt'):
             #pw.close_window(self.panel, COMMAND, 'magic_measurements.txt')
-            MSG="%i file are merged to one MagIC format file:\n magic_measurements.txt.\n\nSee Terminal (Mac) or command prompt (Windows) for errors"%(len(files))
+            MSG="%i file are merged to one MagIC format file:\n magic_measurements.txt.\n\nSee Terminal/message window for errors"%(len(files))
             dlg1 = wx.MessageDialog(None,caption="Message:", message=MSG ,style=wx.OK|wx.ICON_INFORMATION)
             dlg1.ShowModal()
             dlg1.Destroy()
@@ -358,7 +361,7 @@ class combine_everything_dialog(wx.Frame):
                 success = False
         if success:
             new = '\n' + '\n'.join(new_files)
-            MSG = "Created new file(s): {} \nSee Terminal (Mac) or command prompt (Windows) for details and errors".format(new)
+            MSG = "Created new file(s): {} \nSee Terminal/message window for details and errors".format(new)
             dlg1 = wx.MessageDialog(None,caption="Message:", message=MSG ,style=wx.OK|wx.ICON_INFORMATION)
             dlg1.ShowModal()
             dlg1.Destroy()
@@ -376,7 +379,7 @@ class combine_everything_dialog(wx.Frame):
 
 class convert_files_to_MagIC(wx.Frame):
     """
-    Base class for file conversion frames
+    Abstract class for file conversion frames
     """
 
     def __init__(self, parent, WD, title):
@@ -899,7 +902,7 @@ class convert_SIO_files_to_MagIC(convert_files_to_MagIC):
 
 
 class convert_CIT_files_to_MagIC(convert_files_to_MagIC):
-    """stuff"""
+    """Class that converts CIT files magnetometer files into MagIC format for analysis and archiving"""
 
     def InitUI(self):
         pnl = self.panel
@@ -1015,6 +1018,10 @@ class convert_CIT_files_to_MagIC(convert_files_to_MagIC):
         if loc_name:
             loc_name = "-loc " + loc_name
         ncn = self.bSizer4.return_value()
+        if "-" in ncn:
+            ncn, Z = ncn.split("-")
+        else:
+            Z = ''
         options_dict['samp_con'] = ncn
         particulars = self.bSizer2.return_value()
         options_dict['methods'] = particulars
@@ -1033,7 +1040,7 @@ class convert_CIT_files_to_MagIC(convert_files_to_MagIC):
             options_dict['avg'] = 1
             replicate = '-A'
 
-        COMMAND = "cit_magic.py -WD {} -f {} -F {} {} {} {} {} -ncn {} {} {} -Fsp {} -Fsi {} -Fsa {} {} {} {}".format(wd, CIT_file, outfile, particulars, spec_num, loc_name, user, ncn, peak_AF, ID, spec_outfile, site_outfile, samp_outfile, replicate,dc_flag,dc_params)
+        COMMAND = "cit_magic.py -WD {} -f {} -F {} {} {} {} {} -ncn {} {} {} {} -Fsp {} -Fsi {} -Fsa {} {} {} {}".format(wd, CIT_file, outfile, particulars, spec_num, loc_name, user, ncn, Z, peak_AF, ID, spec_outfile, site_outfile, samp_outfile, replicate,dc_flag,dc_params)
         # to run as module:
         program_ran, error_message = cit_magic.main(command_line=False, **options_dict)
         if program_ran:
@@ -1705,6 +1712,9 @@ class convert_PMD_files_to_MagIC(convert_files_to_MagIC):
         #---sizer 6 ---
         self.bSizer6 = pw.replicate_measurements(pnl)
 
+        #---sizer 7 ---
+        self.bSizer7 = pw.site_lat_lon(pnl)
+
         #---buttons ---
         hboxok = pw.btn_panel(self, pnl)
 
@@ -1718,6 +1728,7 @@ class convert_PMD_files_to_MagIC(convert_files_to_MagIC):
         vbox.Add(self.bSizer3, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer4, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer5, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(self.bSizer7, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer6, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(hboxok, flag=wx.ALIGN_CENTER)
         vbox.AddSpacer(20)
@@ -1763,6 +1774,12 @@ class convert_PMD_files_to_MagIC(convert_files_to_MagIC):
         options['meth_code'] = particulars
         if particulars:
             particulars = "-mcd " + particulars
+        try: site_lat,site_lon = self.bSizer7.return_value().split()
+        except ValueError: site_lat,site_lon = '',''
+        options_dict['site_lat'] = site_lat
+        options_dict['site_lon'] = site_lon
+        site_lat = '-lat ' + site_lat
+        site_lon = '-lat ' + site_lon
         replicate = self.bSizer6.return_value()
         if replicate:
             replicate = ''
@@ -1775,7 +1792,7 @@ class convert_PMD_files_to_MagIC(convert_files_to_MagIC):
             options['meas_file'] = outfile
             samp_outfile = f[:f.find('.')] + "_er_samples.txt"
             options['samp_file'] = samp_outfile
-            COMMAND = "pmd_magic.py -WD {} -f {} -F {} -Fsa {} -ncn {} {} -spc {} {} {} {}".format(WD, f, outfile, samp_outfile, ncn, particulars, spc, replicate, ID, loc_name)
+            COMMAND = "pmd_magic.py -WD {} -f {} -F {} -Fsa {} -ncn {} {} -spc {} {} {} {} {} {}".format(WD, f, outfile, samp_outfile, ncn, particulars, spc, replicate, ID, loc_name, site_lat, site_lon)
 
             # to run as command_line:
             #if files.index(f) == len(files) -1:
@@ -2168,6 +2185,168 @@ class convert_BGC_files_to_magic(wx.Frame):
     def on_helpButton(self, event):
         pw.on_helpButton(text=bgc_magic.do_help())
 
+class convert_Utrecht_files_to_MagIC(convert_files_to_MagIC):
+    """
+    A GUI which allows easy input of meta data required to convert Utrecht
+    Magnetometer files into MagIC format for analysis or contribution to the
+    EarthRef MagIC Archive.
+    """
+
+    def InitUI(self):
+        """
+        Overwrite of InitUI in parent class convert_files_to_MagIC.
+        Creates UI for input of relavent data to convert Utrecht to MagIC.
+        """
+
+        pnl = self.panel
+
+        TEXT = "Convert Utrecht Magnetometer file format"
+        bSizer_info = wx.BoxSizer(wx.HORIZONTAL)
+        bSizer_info.Add(wx.StaticText(pnl, label=TEXT), wx.ALIGN_LEFT)
+
+        #---sizer 0 ----
+        self.bSizer0 = pw.choose_file(pnl, 'add', method = self.on_add_file_button)
+
+        #---sizer 1 ----
+        self.bSizer1 = pw.sampling_particulars(pnl)
+
+        #---sizer 2 ----
+        self.bSizer2 = pw.select_ncn(pnl)
+
+        #---sizer 3 ----
+        TEXT = "specify number of characters to designate a specimen, default = 0"
+        self.bSizer3 = pw.specimen_n(pnl)
+
+        #---sizer 4 ----
+        TEXT="Location name:"
+        self.bSizer4 = pw.labeled_text_field(pnl, TEXT)
+
+        #---sizer 5 ---
+        self.bSizer5 = pw.replicate_measurements(pnl)
+
+        #---sizer 6 ----
+        self.bSizer6 = pw.lab_field(pnl)
+
+        #---sizer 7 ---
+        TEXT= "use the European date format (dd/mm/yyyy)"
+        self.bSizer7 = pw.check_box(pnl, TEXT)
+
+        #---sizer 8 ---
+        self.bSizer8 = pw.site_lat_lon(pnl)
+
+
+        #---buttons ---
+        hboxok = pw.btn_panel(self, pnl)
+
+        #------
+        vbox=wx.BoxSizer(wx.VERTICAL)
+
+        vbox.AddSpacer(10)
+        vbox.Add(bSizer_info, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(self.bSizer0, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(self.bSizer1, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(self.bSizer8, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(self.bSizer6, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(self.bSizer2, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(self.bSizer3, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(self.bSizer4, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(self.bSizer7, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(self.bSizer5, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.AddSpacer(10)
+        vbox.Add(wx.StaticLine(pnl), 0, wx.ALL|wx.EXPAND, 5)
+        vbox.Add(hboxok, flag=wx.ALIGN_CENTER)
+        vbox.AddSpacer(20)
+
+        hbox_all= wx.BoxSizer(wx.HORIZONTAL)
+        hbox_all.AddSpacer(20)
+        hbox_all.AddSpacer(vbox)
+        hbox_all.AddSpacer(20)
+
+        self.panel.SetSizer(hbox_all)
+        self.panel.SetScrollbars(20, 20, 50, 50)
+        hbox_all.Fit(self)
+        self.Centre()
+        self.Show()
+
+    def on_okButton(self, event):
+        """
+        Complies information input in GUI into a kwargs dictionary which can
+        be passed into the utrecht_magic script and run to output magic files
+        """
+        os.chdir(self.WD)
+        options_dict = {}
+        wd = self.WD
+        options_dict['dir_path'] = wd
+        full_file = self.bSizer0.return_value()
+        if not full_file:
+            pw.simple_warning('You must provide a Utrecht format file')
+            return False
+        input_directory, Utrecht_file = os.path.split(full_file)
+        options_dict['mag_file'] = Utrecht_file
+        options_dict['input_dir_path'] = input_directory
+        if input_directory:
+            ID = "-ID " + input_directory
+        else:
+            ID = ''
+        outfile = Utrecht_file + ".magic"
+        options_dict['meas_file'] = outfile
+        samp_outfile = Utrecht_file[:Utrecht_file.find('.')] + "_er_samples.txt"
+        options_dict['samp_file'] = samp_outfile
+        spec_outfile = Utrecht_file[:Utrecht_file.find('.')] + "_er_specimens.txt"
+        options_dict['spec_file'] = spec_outfile
+        site_outfile = Utrecht_file[:Utrecht_file.find('.')] + "_er_sites.txt"
+        options_dict['site_file'] = site_outfile
+        dc_flag,dc_params = '',''
+        if self.bSizer6.return_value() != '':
+            dc_params = map(float,self.bSizer6.return_value().split())
+            options_dict['dc_params'] = dc_params
+            dc_flag = '-dc'
+        spec_num = self.bSizer3.return_value()
+        options_dict['specnum'] = spec_num
+        if spec_num:
+            spec_num = "-spc " + str(spec_num)
+        else:
+            spec_num = "-spc 0" # defaults to 0 if user doesn't choose number
+        loc_name = self.bSizer4.return_value()
+        options_dict['location_name'] = loc_name
+        if loc_name:
+            loc_name = "-loc " + loc_name
+        ncn = self.bSizer2.return_value()
+        options_dict['samp_con'] = ncn
+        particulars = self.bSizer1.return_value()
+        options_dict['meth_code'] = particulars
+        if particulars:
+            particulars = "-mcd " + particulars
+        euro_date = self.bSizer7.return_value()
+        if euro_date: options_dict['dmy_flag'] = True; dmy_flag='-dmy'
+        else: options_dict['dmy_flag'] = False; dmy_flag=''
+        try: site_lat,site_lon = self.bSizer8.return_value().split()
+        except ValueError: site_lat,site_lon = '',''
+        options_dict['site_lat'] = site_lat
+        options_dict['site_lon'] = site_lon
+        replicate = self.bSizer5.return_value()
+        if replicate:
+            options_dict['avg'] = False
+            replicate = ''
+        else:
+            options_dict['avg'] = True
+            replicate = '-A'
+
+        COMMAND = "cit_magic.py -WD {} -f {} -F {} {} {} {} -ncn {} {} -Fsp {} -Fsi {} -Fsa {} {} {} {} {} -lat {} -lon {}".format(wd, Utrecht_file, outfile, particulars, spec_num, loc_name, ncn, ID, spec_outfile, site_outfile, samp_outfile, replicate, dc_flag, dc_params, dmy_flag, site_lon, site_lat)
+        # to run as module:
+        program_ran, error_message = utrecht_magic.main(command_line=False, **options_dict)
+        if program_ran:
+            pw.close_window(self, COMMAND, outfile)
+        else:
+            pw.simple_warning(error_message)
+
+    def on_helpButton(self, event):
+        """
+        Displays utrecht_magic scripts help message
+        """
+        pw.on_helpButton(text=utrecht_magic.do_help())
+
+
 # template for an import window
 class something(wx.Frame):
 
@@ -2271,8 +2450,9 @@ class OrientFrameGrid3(wx.Frame):
         # contribution has already propagated measurement data...
         if 'samples' not in self.contribution.tables:
             print '-E- No sample data available'
-            return
-        samples_name_list = self.contribution.tables['samples'].df.index.unique()
+            samples_name_list = []
+        else:
+            samples_name_list = self.contribution.tables['samples'].df.index.unique()
 
         self.orient_data = {}
         try:

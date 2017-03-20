@@ -21,14 +21,13 @@ extra_out_full_output.txt
 random_full_output.txt
 rename_me_full_output.txt
 data_files/*/*checkpoint.ipynb
-notebooks/*/*checkpoint.ipynb
+data_files/notebooks/*/*checkpoint.ipynb
 demag_orient.txt
 pmagpy/*.png
 
 new-test-output/*
 
 SPD_consistency_tests/*
-pmag_criteria.txt
 
 *.DS_Store
 SPD_consistency_tests/*
@@ -164,6 +163,16 @@ data_files/measurements_normalize/irm_norm_measurements.txt
 data_files/parse_measurements/er_specimens.txt
 data_files/parse_measurements/magic_instruments.txt
 data_files/s_magic/rmag_anisotropy.txt
+data_files/2_5/McMurdo/ages.txt
+data_files/2_5/McMurdo/specimens.txt
+data_files/2_5/McMurdo/samples.txt
+data_files/2_5/McMurdo/sites.txt
+data_files/2_5/McMurdo/locations.txt
+data_files/2_5/McMurdo/McMurdo*.txt
+data_files/2_5/McMurdo/*errors.txt
+data_files/3_0/McMurdo/McMurdo*.txt
+data_files/3_0/McMurdo/*errors.txt
+
 
 pmagpy.egg-info
 pmagpy.egg-info/*
@@ -185,3 +194,5 @@ Location_*/*
 *.bak
 */*.bak
 *new_*.txt
+
+programs/flycheck_demag_gui.py

@@ -36,8 +36,8 @@ def drawFIGS(FIGS):
     """
     pylab.ion()
     for fig in FIGS.keys():
-            pylab.figure(FIGS[fig])
-            pylab.draw()
+        pylab.figure(FIGS[fig])
+        pylab.draw()
     pylab.ioff()
 
 def clearFIG(fignum):
@@ -86,6 +86,9 @@ def plot_init(fignum,w,h):
     #pylab.ioff()
 
 def plot3d_init(fignum):
+    """
+    initializes 3D plot
+    """
     from mpl_toolkits.mplot3d import Axes3D
     fig=pylab.figure(fignum)
     ax=fig.add_subplot(111,projection='3d')
@@ -108,12 +111,12 @@ def gaussfunc(y,ybar,sigma):
     erf=abs(erf)
     sign=x/abs(x)
     return 0.5*(1.0+sign*erf)
-#
-def k_s(X): # kolmorgorov-smirnov statistic
+
+def k_s(X):
     """
-        finds the probability that the data are
-        distributed as func - used method of Numerical
-        Recipes (Press et al., 1986)
+    Kolmorgorov-Smirnov statistic. Finds the
+    probability that the data are distributed
+    as func - used method of Numerical Recipes (Press et al., 1986)
     """
     xbar,sigma=pmag.gausspars(X)
     d,f=0,0.
@@ -1290,14 +1293,17 @@ def saveP(Figs,filenames,**kwargs):
     for key in Figs.keys():
         try:
             pylab.figure(num=Figs[key])
+            fname = filenames[key]
+            if not isServer: # remove illegal ':' character for windows
+                fname = fname.replace(':', '_')
             if 'dpi' in kwargs.keys():
-                pylab.savefig(filenames[key].replace('/','-'),dpi=kwargs['dpi'])
+                pylab.savefig(fname.replace('/','-'),dpi=kwargs['dpi'])
             else:
-                pylab.savefig(filenames[key].replace('/','-'))
+                pylab.savefig(fname.replace('/','-'))
             if verbose:
-                print Figs[key]," saved in ",filenames[key].replace('/','-')
+                print Figs[key]," saved in ", fname.replace('/','-')
         except:
-            print 'could not save: ',Figs[key],filenames[key]
+            print 'could not save: ', Figs[key], filenames[key]
             print "output file format not supported "
     return
 #
@@ -1332,7 +1338,7 @@ def plotELL(fignum,pars,col,lower,plot):
     Pdec,Pinc,beta,Bdec,Binc,gamma,Gdec,Ginc=pars[0],pars[1],pars[2],pars[3],pars[4],pars[5],pars[6],pars[7]
     if beta > 90. or gamma>90:
         beta=180.-beta
-        gamma=180.-beta
+        gamma=180.-gamma
         Pdec=Pdec-180.
         Pinc=-Pinc
     beta,gamma=beta*rad,gamma*rad # convert to radians
@@ -1675,7 +1681,7 @@ def plotHDD(HDD,B,M,s):
         hpars['magic_method_codes']=""
     return hpars
 #
-def plotDay(fignum,BcrBc,S,sym):
+def plotDay(fignum,BcrBc,S,sym,**kwargs):
     """
     function to plot Day plots
     """
@@ -1689,8 +1695,9 @@ def plotDay(fignum,BcrBc,S,sym):
     pylab.xlabel('Bcr/Bc')
     pylab.ylabel('Mr/Ms')
     pylab.title('Day Plot')
-    bounds= pylab.axis()
-    pylab.axis([0, bounds[1],0, 1])
+    pylab.xlim(0,6)
+    #bounds= pylab.axis()
+    #pylab.axis([0, bounds[1],0, 1])
     mu_o=4.*numpy.pi*1e-7
     Bc_sd=46e-3 #  # (MV1H) dunlop and carter-stiglitz 2006 (in T)
     Bc_md=5.56e-3 #  # (041183) dunlop and carter-stiglitz 2006 (in T)
@@ -1711,6 +1718,11 @@ def plotDay(fignum,BcrBc,S,sym):
     Bcr=(f_sd*chi_r_sd*Bcr_sd+f_md*chi_r_md*Bcr_md)/(f_sd*chi_r_sd+f_md*chi_r_md) #  eq. 11 in Dunlop 2002
     chi_sps=numpy.arange(1,5)*chi_sd
     pylab.plot(Bcr/Bc,Mrat,'r-')
+    if 'names' in kwargs.keys():
+        names=kwargs['names']
+        for k in range(len(names)):
+            pylab.text(BcrBc[k],S[k],names[k]) #,'ha'='left'
+
 
 #
 def plotSBc(fignum,Bc,S,sym):

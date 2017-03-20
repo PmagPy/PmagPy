@@ -173,8 +173,17 @@ def cv(row, col_name, arg, current_data_model, df, con):
         return None
     cell_values = cell_value.split(":")
     cell_values = [c.strip() for c in cell_values]
+    # get possible values for controlled vocabulary
+    # exclude weird unicode
+    possible_values = []
+    for val in vocabulary[col_name]:
+        try:
+            possible_values.append(str(val).lower())
+        except UnicodeEncodeError as ex:
+            print val, ex
+
     for value in cell_values:
-        if value.lower() in [v.lower() for v in vocabulary[col_name]]:
+        if str(value).lower() in possible_values:
             continue
         elif value.lower() == "none":
             continue
@@ -216,10 +225,7 @@ def test_type(value, value_type):
     if not value:
         return None
     if value_type == "String":
-        if str(value) == value:
-            return None
-        else:
-            return "should be string"
+        return None
     elif value_type == "Number":
         try:
             float(value)
@@ -227,6 +233,10 @@ def test_type(value, value_type):
         except ValueError:
             return '"{}" should be a number'.format(str(value))
     elif value_type == "Integer":
+        try:
+            int(value)
+        except ValueError:
+            return '"{}" should be an integer'.format(str(value))
         if isinstance(value, str):
             if str(int(value)) == value:
                 return None
@@ -451,8 +461,8 @@ def get_bad_rows_and_cols(df, validation_names, type_col_names,
     if verbose:
         if bad_rows:
             formatted_rows = ["row: {}, name: {}".format(row[0], row[1]) for row in bad_rows]
-            if len(bad_rows) > 20:
-                print "-W- these rows have problems:\n", "\n".join(formatted_rows[:20]), " ..."
+            if len(bad_rows) > 5:
+                print "-W- these rows have problems:\n", "\n".join(formatted_rows[:5]), " ..."
                 print "(for full error output see error file)"
             else:
                 print "-W- these rows have problems:", "\n".join(formatted_rows)
@@ -465,7 +475,7 @@ def get_bad_rows_and_cols(df, validation_names, type_col_names,
 
 # Run through all validations for a single table
 
-def validate_table(the_con, dtype, verbose=False):
+def validate_table(the_con, dtype, verbose=False, output_dir="."):
     """
     Return name of bad table, or False if no errors found.
     Calls validate_df then parses its output.
@@ -480,7 +490,7 @@ def validate_table(the_con, dtype, verbose=False):
     # get names of the added columns
     value_col_names, present_col_names, type_col_names, missing_groups, validation_col_names = get_validation_col_names(current_df)
     # print out failure messages
-    ofile = os.path.join(os.getcwd(), "{}_errors.txt".format(dtype))
+    ofile = os.path.join(output_dir, "{}_errors.txt".format(dtype))
     failing_items = get_row_failures(current_df, value_col_names,
                                      type_col_names, verbose, outfile=ofile)
     bad_rows, bad_cols, missing_cols = get_bad_rows_and_cols(current_df, validation_col_names,

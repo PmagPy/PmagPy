@@ -22,7 +22,6 @@ def main(command_line=True, **kwargs):
         -loc LOCNAME : specify location/study name
         -A: don't average replicate measurements
         -ncn NCON: specify naming convention
-        -mcd [SO-MAG,SO-SUN,SO-SIGHT...] supply how these samples were oriented
        Sample naming convention:
             [1] XXXXY: where XXXX is an arbitrary length site designation and Y
                 is the single character sample designation.  e.g., TG001a is the
@@ -33,6 +32,11 @@ def main(command_line=True, **kwargs):
             [5] site name same as sample
             [6] site is entered under a separate column -- NOT CURRENTLY SUPPORTED
             [7-Z] [XXXX]YYY:  XXXX is site designation with Z characters with sample name XXXXYYYY
+        -lat: Lattitude of site (if no value given assumes 0)
+        -lon: Longitude of site (if no value given assumes 0)
+        -mcd [SO-MAG,SO-SUN,SO-SIGHT...] supply how these samples were oriented
+
+
             NB: all others you will have to customize your self
                  or e-mail ltauxe@ucsd.edu for help.
  
@@ -112,6 +116,12 @@ def main(command_line=True, **kwargs):
         if "-mcd" in args: 
             ind=args.index("-mcd")
             meth_code=args[ind+1]
+        if "-lat" in args:
+            ind=args.index("-lat")
+            site_lat=args[ind+1]
+        if "-lon" in args:
+            ind=args.index("-lon")
+            site_lon=args[ind+1]
 
     if not command_line:
         dir_path = kwargs.get('dir_path', '.')
@@ -119,7 +129,11 @@ def main(command_line=True, **kwargs):
         output_dir_path = dir_path
         meas_file = kwargs.get('meas_file', 'magic_measurements.txt')
         mag_file = kwargs.get('mag_file')
+        spec_file = kwargs.get('spec_file', 'er_specimens.txt')
         samp_file = kwargs.get('samp_file', 'er_samples.txt')
+        site_file = kwargs.get('site_file', 'er_sites.txt')
+        site_lat = kwargs.get('site_lat', 0)
+        site_lon = kwargs.get('site_lon', 0)
         specnum = kwargs.get('specnum', 0)
         samp_con = kwargs.get('samp_con', '1')
         er_location_name = kwargs.get('er_location_name', '')
@@ -128,9 +142,11 @@ def main(command_line=True, **kwargs):
 
     print samp_con
     # format variables
-    mag_file = input_dir_path+"/" + mag_file
-    meas_file = output_dir_path+"/" + meas_file
-    samp_file = output_dir_path+"/" + samp_file
+    mag_file = os.path.join(input_dir_path,mag_file)
+    meas_file = os.path.join(output_dir_path,meas_file)
+    spec_file = os.path.join(output_dir_path,spec_file)
+    samp_file = os.path.join(output_dir_path,samp_file)
+    site_file = os.path.join(output_dir_path,site_file)
     if specnum!=0:specnum=-specnum
     if "4" in samp_con:
         if "-" not in samp_con:
@@ -154,7 +170,7 @@ def main(command_line=True, **kwargs):
     line=line.replace("=","= ")  # make finding orientations easier
     rec=line.split() # read in sample orientation, etc.
     er_specimen_name=rec[0]
-    ErSampRec,ErSiteRec={},{} # make a  sample record
+    ErSpecRec,ErSampRec,ErSiteRec={},{},{} # make a  sample record
     if specnum!=0:
         er_sample_name=rec[0][:specnum]
     else:
@@ -190,7 +206,22 @@ def main(command_line=True, **kwargs):
     if 'er_site_name' not in ErSampRec.keys():ErSampRec['er_site_name']=er_site_name
     if 'er_citation_names' not in ErSampRec.keys():ErSampRec['er_citation_names']='This study'
     if 'magic_method_codes' not in ErSampRec.keys():ErSampRec['magic_method_codes']='SO-NO'
+
+    ErSpecRec['er_specimen_name'] = er_specimen_name
+    ErSpecRec['er_sample_name'] = er_sample_name
+    ErSpecRec['er_site_name'] = er_site_name
+    ErSpecRec['er_location_name'] = er_location_name
+    ErSpecRec['er_citation_names']='This study'
+
+    ErSiteRec['er_site_name'] = er_site_name
+    ErSiteRec['er_location_name'] = er_location_name
+    ErSiteRec['er_citation_names']='This study'
+    ErSiteRec['site_lat'] = site_lat
+    ErSiteRec['site_lon']= site_lon
+
+    SpecOuts.append(ErSpecRec)
     SampOuts.append(ErSampRec)
+    SiteOuts.append(ErSiteRec)
     for k in range(3,len(data)): # read in data
       line=data[k]
       rec=line.split()
@@ -237,8 +268,9 @@ def main(command_line=True, **kwargs):
     MagOuts=pmag.measurements_methods(MagRecs,noave)
     pmag.magic_write(meas_file,MagOuts,'magic_measurements')
     print "results put in ",meas_file
+    pmag.magic_write(samp_file,SpecOuts,'er_specimens')
     pmag.magic_write(samp_file,SampOuts,'er_samples')
-    print "sample orientations put in ",samp_file
+    pmag.magic_write(samp_file,SiteOuts,'er_sites')
     return True, meas_file
 
 def do_help():

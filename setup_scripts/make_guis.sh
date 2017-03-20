@@ -33,6 +33,7 @@ echo $my_commit
 
 echo "starting make_guis script"
 cp setup_scripts/setup_pmag_gui.py .
+#cp setup_scripts/setup_magic_gui2.py .
 cp setup_scripts/setup_magic_gui.py .
 echo "copied in setup scripts"
 rm -rf build dist
@@ -48,6 +49,16 @@ echo "moved pmag_gui.app to PmagPy-Standalone-OSX"
 rm -rf build dist
 echo "removed build & dist"
 
+#python setup_magic_gui2.py py2app
+#echo "ran setup script for Magic GUI 2"
+#rm -rf ../PmagPy-Standalone-OSX/magic_gui2.app
+#echo "deleted old Magic GUI"
+#mv dist/magic_gui2.app ../PmagPy-Standalone-OSX
+#echo "moved magic_gui2.app " #to PmagPy-Standalone-OSX"
+
+#rm -rf build dist
+#echo "removed build & dist"
+
 python setup_magic_gui.py py2app
 echo "ran setup script for MagIC GUI"
 rm -rf ../PmagPy-Standalone-OSX/magic_gui.app
@@ -57,6 +68,7 @@ echo "moved magic_gui.app to PmagPy-Standalone-OSX"
 
 echo "clean up"
 rm setup_pmag_gui.py
+#rm setup_magic_gui2.py
 rm setup_magic_gui.py
 
 cd ../PmagPy-Standalone-OSX
@@ -68,4 +80,4 @@ git commit -m "$my_commit"
 echo 'committed'
 
 
-echo "Done!  Changes have been committed to PmagPy-Standalone-OSX"
+echo 'Done!  Changes have been committed to PmagPy-Standalone-OSX'

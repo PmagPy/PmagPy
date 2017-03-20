@@ -142,7 +142,7 @@ def main(command_line=True, **kwargs):
     line = pre_data.readline()
     line_items = line.split('\t')
     sample_azimuth = float(line_items[1])
-    sample_dip = 90.0 - float(line_items[2])
+    sample_dip = float(line_items[2])
     sample_bed_dip = line_items[3]
     sample_bed_azimuth = line_items[4]
     sample_lon = line_items[5]
@@ -154,29 +154,14 @@ def main(command_line=True, **kwargs):
 
     data = pd.read_csv(mag_file, sep='\t', header=3, index_col=False)
 
-#    print "\ndata\n", data
-
     cart = np.array([data['X'], data['Y'], data['Z']]).transpose()
     direction = pmag.cart2dir(cart).transpose()
 
     data['measurement_dec'] = direction[0]
     data['measurement_inc'] = direction[1]
-    data['measurement_magn_moment'] = direction[2] * 1000 * volume # the data are in EMU - this converts to Am^2 
-    data['measurement_magn_volume'] = direction[2] * 1000 # EMU  - data converted to A/m
+    data['measurement_magn_moment'] = direction[2] / 1000  # the data are in EMU - this converts to Am^2 
+    data['measurement_magn_volume'] = (direction[2] / 1000) / volume # EMU  - data converted to A/m
     
-    #DGEOs, IGEOs = [], []
-    #print "len(data)=",len(data)
-    #for ind in range(len(data)):
-    #    dgeo,igeo=pmag.dogeo(data.ix[ind]['measurement_dec'],data.ix[ind]['measurement_inc'],90-sample_azimuth,sample_dip)
-    #    DGEOs.append(dgeo)
-    #    IGEOs.append(igeo)
-    #data['specimen_dec']=DGEOs
-    #data['specimen_inc']=IGEOs
-    #data['specimen_tilt']='1'
-
-    #print "data specimn_dec=",DGEOs
-    #print "data specimn_inc=",IGEOs
-
     # Configure the er_sample table
 
     ErSampRec['er_sample_name'] = sample_name
@@ -206,7 +191,7 @@ def main(command_line=True, **kwargs):
         MagRec["measurement_temp"] = '%8.3e' % (273) # room temp in kelvin
         MagRec["measurement_flag"] = 'g'
         MagRec["measurement_standard"] = 'u'
-        MagRec["measurement_number"] = '1'
+        MagRec["measurement_number"] = rowNum
         MagRec["er_specimen_name"] = sample_name
         MagRec["treatment_ac_field"] = '0'
         if row['DM Val'] == '0':
@@ -234,7 +219,6 @@ def main(command_line=True, **kwargs):
     MagOuts = pmag.measurements_methods(MagRecs, noave)
     pmag.magic_write(meas_file, MagOuts, 'magic_measurements')
     print "results put in ", meas_file
-    print "exit!"
     return True, meas_file
 
 def do_help():

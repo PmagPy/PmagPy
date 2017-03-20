@@ -41,7 +41,7 @@ def main(command_line=True, **kwargs):
             is the single character sample designation.  e.g., TG001a is the
             first sample from site TG001.    [default]
         [2] XXXX-YY: YY sample from site XXXX (XXX, YY of arbitary length)
-        [3] XXXX.YY: YY sample from site XXXX (XXX, YY of arbitary length)
+        [3: default] XXXX.YY: YY sample from site XXXX (XXX, YY of arbitary length)
         [4-Z] XXXX[YYY]:  YYY is sample designation with Z characters from site XXX
         [5] site name = sample name
         [6] site name entered in site_name column in the orient.txt format input file  -- NOT CURRENTLY SUPPORTED
@@ -124,6 +124,13 @@ def main(command_line=True, **kwargs):
                 else:
                     Z=samp_con.split("-")[1]
                     samp_con="4"
+            elif "7" in samp_con:
+                if "-" not in samp_con:
+                    print "option [7] must be in form 7-Z where Z is an integer"
+                    return False, "naming convention option [7] must be in form 7-Z where Z is an integer"
+                else:
+                    Z=samp_con.split("-")[1]
+                    samp_con="7"
         if '-f' in args:
             ind=args.index("-f")
             magfile=args[ind+1]
@@ -157,16 +164,23 @@ def main(command_line=True, **kwargs):
         yn = ''
         if DC_FIELD==0 and DC_PHI==0 and DC_THETA==-90: GET_DC_PARAMS=True
         else: GET_DC_PARAMS=False
-    # done with module-specific stuff
+        # done with module-specific stuff
 
-    # formatting and checking variables
-    if "4" in samp_con:
-        if "-" not in samp_con:
-            print "option [4] must be in form 4-Z where Z is an integer"
-            return False, "naming convention option [4] must be in form 4-Z where Z is an integer"
-        else:
-            Z=samp_con.split("-")[1]
-            samp_con="4"
+        # formatting and checking variables
+        if "4" in samp_con:
+            if "-" not in samp_con:
+                print "option [4] must be in form 4-Z where Z is an integer"
+                return False, "naming convention option [4] must be in form 4-Z where Z is an integer"
+            else:
+                Z=samp_con.split("-")[1]
+                samp_con="4"
+        elif "7" in samp_con:
+            if "-" not in samp_con:
+                print "option [7] must be in form 7-Z where Z is an integer"
+                return False, "naming convention option [7] must be in form 7-Z where Z is an integer"
+            else:
+                Z=samp_con.split("-")[1]
+                samp_con="7"
 
     magfile = os.path.join(input_dir_path, magfile)
     spec_file = os.path.join(output_dir_path, spec_file)
@@ -278,6 +292,7 @@ def main(command_line=True, **kwargs):
         else:
             ErSampRec['magic_method_codes']='SO-MAG'
         for line in Lines[2:len(Lines)]:
+            if line == '\n': continue
             MeasRec=ErSpecRec.copy()
 #           Remove specimen_volume and specimen_weight as they do not exits in the magic_measurement table
             del MeasRec["specimen_volume"]

@@ -23,6 +23,26 @@ class TestMagicDataFrame(unittest.TestCase):
     def tearDown(self):
         os.chdir(WD)
 
+    def test_init_with_data(self):
+        data = [{'specimen': 'spec1', 'sample': 'samp1'},
+                {'specimen': 'spec2', 'sample': 'samp2'}]
+        magic_df = nb.MagicDataFrame(dtype='specimens', data=data)
+        self.assertEqual(len(magic_df.df), 2)
+        self.assertEqual(magic_df.dtype, 'specimens')
+        self.assertEqual('specimen', magic_df.df.index.name)
+        self.assertEqual(['spec1', 'spec2'], sorted(magic_df.df.index))
+
+    def test_init_then_add_data(self):
+        magic_df = nb.MagicDataFrame(dtype='specimens')
+        data = [{'specimen': 'spec1', 'sample': 'samp1'},
+                {'specimen': 'spec2', 'sample': 'samp2'}]
+        magic_df.add_data(data)
+        self.assertEqual(len(magic_df.df), 2)
+        self.assertEqual(magic_df.dtype, 'specimens')
+        self.assertEqual('specimen', magic_df.df.index.name)
+        self.assertEqual(['spec1', 'spec2'], sorted(magic_df.df.index))
+
+
     def test_init_blank(self):
         magic_df = nb.MagicDataFrame()
         self.assertFalse(magic_df.df)
@@ -182,6 +202,18 @@ class TestContribution(unittest.TestCase):
         self.con.add_custom_filenames({'specimens': 'custom_specimens.txt'})
         self.assertEqual('custom_specimens.txt', self.con.filenames['specimens'])
 
+    def test_add_magic_table_from_data(self):
+        data = [{'specimen': 'spec1', 'sample': 'samp1'},
+                {'specimen': 'spec2', 'sample': 'samp2'}]
+        self.con.add_magic_table_from_data('specimens', data)
+        magic_df = self.con.tables['specimens']
+        self.assertEqual(len(magic_df.df), 2)
+        self.assertEqual(magic_df.dtype, 'specimens')
+        self.assertEqual('specimen', magic_df.df.index.name)
+        self.assertEqual(['spec1', 'spec2'], sorted(magic_df.df.index))
+
+
+
     def test_add_empty_magic_table(self):
         con = nb.Contribution(self.directory, read_tables=['specimens'],
                               dmodel=DMODEL)
@@ -196,12 +228,109 @@ class TestContribution(unittest.TestCase):
         self.assertEqual(set(['specimens']), set(con.tables.keys()))
         con.add_magic_table('samples')
         self.assertEqual(set(['specimens', 'samples']), set(con.tables.keys()))
-        print "len(con.tables['samples'].df)", len(con.tables['samples'].df)
         self.assertGreater(len(con.tables['samples'].df), 0)
         con.add_magic_table('unknown', 'sites.txt')
         self.assertEqual(set(['specimens', 'samples', 'sites']),
                          set(con.tables.keys()))
         self.assertGreater(len(con.tables['sites'].df), 0)
+
+    def test_get_parent_and_child(self):
+        parent_name, child_name = self.con.get_parent_and_child("samples")
+        self.assertEqual("sites", parent_name)
+        self.assertEqual("specimens", child_name)
+        # handle incorrect input table name
+        parent_name, child_name = self.con.get_parent_and_child("fake")
+        self.assertIsNone(parent_name)
+        self.assertIsNone(child_name)
+
+    def test_propagate_all_tables_info_missing_tables(self):
+        self.con.tables.pop("specimens")
+        self.con.tables.pop("locations")
+        self.con.propagate_all_tables_info(write=False)
+
+    def test_propagate_all_tables_info_missing_row(self):
+        # test by removing a value
+        self.con.tables['sites'].delete_rows(self.con.tables['sites'].df.index == 'hz06')
+        self.assertNotIn("hz06", self.con.tables['sites'].df.index)
+        self.con.propagate_all_tables_info(write=False)
+        self.assertIn("hz06", self.con.tables['sites'].df.index)
+        self.assertEqual("hz06", self.con.tables['sites'].df.ix['hz06']['site'])
+
+    def test_get_min_max_lat_lon(self):
+        site_container = nb.MagicDataFrame(dtype='sites')
+        site_container.add_row('site1', {'lat': 10, 'lon': 4, 'location': 'location1'})
+        site_container.add_row('site2', {'lat': 10.2, 'lon': 5, 'location': 'location1'})
+        site_container.add_row('site3', {'lat': 20, 'lon': '15', 'location': 'location2'})
+        site_container.add_row('site4', {'lat': None, 'location': 'location1'})
+        loc_container = nb.MagicDataFrame(dtype='locations', columns=['lat_n', 'lat_s', 'lon_e', 'lon_w', 'location'])
+        site_container.df
+        loc_container.add_row('location1', {})
+        loc_container.add_row('location2', {})
+        con = nb.Contribution(".", read_tables=['images'])
+        con.tables['sites'] = site_container
+        con.tables['locations'] = loc_container
+        con.get_min_max_lat_lon()
+        self.assertEqual(10., con.tables['locations'].df.ix['location1', 'lat_s'])
+        self.assertEqual(15., con.tables['locations'].df.ix['location2', 'lon_e'])
+
+    def test_propagate_lithology_cols(self):
+        self.con.tables['specimens'].df.loc[:, 'geologic_classes'] = None
+        res = self.con.tables['specimens'].df['geologic_classes'].unique()
+        self.assertEqual([None], res)
+        self.con.propagate_lithology_cols()
+        res = self.con.tables['specimens'].df['geologic_classes'].unique()
+        self.assertEqual(res, ['Archeologic'])
+        #
+        self.con.tables['specimens'].df.loc[:, 'geologic_types'] = "not Specified"
+        res = self.con.tables['specimens'].df['geologic_types'].unique()
+        self.assertEqual(["not Specified"], res)
+        self.con.tables['samples'].df.loc['mgh12t101', 'geologic_types'] = "Oven"
+        self.con.propagate_lithology_cols()
+        res = self.con.tables['specimens'].df['geologic_types'].unique()
+        self.assertEqual(sorted(res), ['Mixed Archeological Objects', 'Oven'])
+        res = self.con.tables['specimens'].df.loc['mgh12t101', 'geologic_types']
+        self.assertEqual('Oven', res)
+
+
+    def test_sites_only_propagation(self):
+        """
+        Make sure propagation works correclty with limited tables provided
+        """
+        directory = os.path.join(WD, 'data_files', '3_0', 'McMurdo')
+        con = nb.Contribution(directory, dmodel=DMODEL, read_tables=['sites'],
+                              custom_filenames={'locations': '_locations.txt',
+                                                'samples': '_samples.txt'})
+        self.assertEqual(['sites'], con.tables.keys())
+        con.propagate_all_tables_info()
+        self.assertEqual(sorted(['samples', 'sites', 'locations']), sorted(con.tables.keys()))
+        for fname in ['_locations.txt', '_samples.txt']:
+            os.remove(os.path.join(directory, fname))
+        #
+        con = nb.Contribution(directory, dmodel=DMODEL, read_tables=['sites'],
+                              custom_filenames={'locations': '_locations.txt',
+                                                'samples': '_samples.txt'})
+        samp_df = pd.DataFrame(index=['mc01b'], columns=['sample', 'site'], data=[['mc01b', 'fake site']])
+        samp_df = nb.MagicDataFrame(dtype='samples', df=samp_df)
+        con.tables['samples'] = samp_df
+        self.assertEqual('fake site', con.tables['samples'].df.ix['mc01b', 'site'])
+        con.propagate_all_tables_info()
+        self.assertEqual(sorted(['samples', 'sites', 'locations']), sorted(con.tables.keys()))
+        # mc01b does not update b/c sample_df value trumps value from sites table
+        self.assertEqual('fake site', con.tables['samples'].df.ix['mc01b', 'site'])
+        # however, additional samples should be added
+        self.assertIn('mc01d', con.tables['samples'].df.index)
+        for fname in ['_locations.txt', '_samples.txt']:
+            os.remove(os.path.join(directory, fname))
+        #
+        con = nb.Contribution(self.directory, dmodel=DMODEL, read_tables=['sites'],
+                              custom_filenames={'locations': '_locations.txt',
+                                                'samples': '_samples.txt'})
+        self.assertEqual(['sites'], con.tables.keys())
+        con.propagate_all_tables_info()
+        self.assertEqual(sorted(['sites', 'locations']), sorted(con.tables.keys()))
+        for fname in ['_locations.txt']: # no samples available this time
+            os.remove(os.path.join(self.directory, fname))
+
 
 
 if __name__ == '__main__':

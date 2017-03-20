@@ -9,37 +9,37 @@ def main(command_line=True, **kwargs):
     """
     NAME
         generic_magic.py
- 
+
     DESCRIPTION
-        converts magnetometer files in generic format to magic_measurements format
+        converts magnetometer files in generic format to MagIC measurements format
 
     SYNTAX
         generic_magic.py [command line options]
-                      
+
     OPTIONS
-        -h 
+        -h
             prints the help message and quits.
         -usr USER
             identify user, default is ""
         -f FILE:
             specify path to input file, required
         -fsa SAMPFILE:
-            specify er_samples.txt file for sample orientation data. default is er_samples.txt
+            specify the samples file for sample orientation data. default is er_samples.txt
         -F FILE
             specify output file, default is magic_measurements.txt
 
         -Fsa FILE
             specify output file, default is er_samples.txt
 
-        -exp EXPERIMENT-TYPE 
+        -exp EXPERIMENT-TYPE
             Demag:
                 AF and/or Thermal
             PI:
                 paleointenisty thermal experiment (ZI/IZ/IZZI)
             ATRM n:
-                
+
                 ATRM in n positions (n=6)
-            
+
             AARM n:
                 AARM in n positions
             CR:
@@ -49,57 +49,69 @@ def main(command_line=True, **kwargs):
                 XXX.00 is optional zerofield baseline. XXX.70 is alteration check.
                 syntax in sio_magic is: -LP CR xxx,yyy,zzz,.....xx -A
                 where xx, yyy,zzz...xxx  are cooling rates in [K/minutes], seperated by comma, ordered at the same order as XXX.10,XXX.20 ...XX.70
-                
+
                 No need to specify the cooling rate for the zerofield
                 It is important to add to the command line the -A option so the measurements will not be averaged.
                 But users need to make sure that there are no duplicate meaurements in the file
-            
+
             NLT:
                 non-linear-TRM experiment
-                
+
         -samp X Y
             specimen-sample naming convention.
+            X determines which kind of convention (initial characters, terminal characters, or delimiter
+            Y determines how many characters to remove to go from specimen --> sample OR which delimiter to use
             X=0 Y=n: specimen is distinguished from sample by n initial characters.
-                     (example: if n=4 then and specimen = mgf13a then sample = mgf13)
+                     (example: "generic_magic.py -samp 0 4"
+                      if n=4 then and specimen = mgf13a then sample = mgf13)
             X=1 Y=n: specimen is distiguished from sample by n terminate characters.
-                     (example: if n=1 then and specimen = mgf13a then sample = mgf13)
+                     (example: "generic_magic.py -samp 1 1)
+                      if n=1 then and specimen = mgf13a then sample = mgf13)
             X=2 Y=c: specimen is distinguishing from sample by a delimiter.
-                     (example: if c=- then and specimen = mgf13-a then sample = mgf13)
+                     (example: "generic_magic.py -samp 2 -"
+                      if c=- then and specimen = mgf13-a then sample = mgf13)
+            default: sample is the same as specimen name
 
         -site X Y
             sample-site naming convention.
+            X determines which kind of convention (initial characters, terminal characters, or delimiter
+            Y determines how many characters to remove to go from sample --> site OR which delimiter to use
             X=0 Y=n: sample is distiguished from site by n initial characters.
-                     (example: if n=3 then and sample = mgf13 then sample = mgf)
+                     (example: "generic_magic.py --site 0 3"
+                      if n=3 then and sample = mgf13 then sample = mgf)
             X=1 Y=n: sample is distiguished from site by n terminate characters.
-                     (example: if n=2 and sample = mgf13 then site = mgf)
+                     (example: "generic_magic.py --site 1 2"
+                      if n=2 and sample = mgf13 then site = mgf)
             X=2 Y=c: specimen is distiguishing from sample by a delimiter.
-                     (example: if c='-' and sample = 'mgf-13' then site = mgf)
-        
-        -loc LOCNAM 
+                     (example: "generic_magic.py -site 2 -"
+                      if c='-' and sample = 'mgf-13' then site = mgf)
+            default: site name is the same as sample name
+
+        -loc LOCNAM
             specify location/study name.
-        
+
         -dc B PHI THETA:
             B: dc lab field (in micro tesla)
             PHI (declination). takes numbers from 0 to 360
             THETA (inclination). takes numbers from -90 to 90
-              
+
             NB: use PHI, THETA = -1 -1 to signal that it changes, i.e. in anisotropy experiment.
-              
+
         -A: don't average replicate measurements. Take the last measurement from replicate measurements.
-        
+
         -WD working directory
 
     INPUT
-    
-        A generic file is a tab-delimited file. Each columns should have a header.
-        The file must include the follwing headers (the order of the columns is not important):
-        
+
+        A generic file is a tab-delimited file. Each column should have a header.
+        The file must include the following headers (the order of the columns is not important):
+
             specimen
                 string specifying specimen name
-            
+
             treatment:
                 a number with one or two decimal point (X.Y)
-                coding for thermal demagnetization: 
+                coding for thermal demagnetization:
                     0.0 or 0 is NRM.
                     X is temperature in celsius
                     Y is always 0
@@ -110,54 +122,54 @@ def main(command_line=True, **kwargs):
                 coding for Thellier-type experiment:
                     0.0 or 0 is NRM
                     X is temperature in celsius
-                    Y=0: zerofield              
-                    Y=1: infield              
-                    Y=2: pTRM check              
-                    Y=3: pTRM tail check              
-                    Y=4: Additivity check 
-                    # Ron, Add also 5 for Thellier protocol            
+                    Y=0: zerofield
+                    Y=1: infield
+                    Y=2: pTRM check
+                    Y=3: pTRM tail check
+                    Y=4: Additivity check
+                    # Ron, Add also 5 for Thellier protocol
                 coding for ATRM experiment (6 poitions):
                     X is temperature in celsius
-                    Y=0: zerofield baseline to be subtracted            
-                    Y=1: +x              
-                    Y=2: -x              
-                    Y=3: +y              
-                    Y=4: -y 
-                    Y=5: +z              
-                    Y=6: -z 
-                    Y=7: alteration check 
+                    Y=0: zerofield baseline to be subtracted
+                    Y=1: +x
+                    Y=2: -x
+                    Y=3: +y
+                    Y=4: -y
+                    Y=5: +z
+                    Y=6: -z
+                    Y=7: alteration check
                 coding for NLT experiment:
                     X is temperature in celsius
-                    Y=0: zerofield baseline to be subtracted            
-                    Y!=0: oven field  in microT              
+                    Y=0: zerofield baseline to be subtracted
+                    Y!=0: oven field  in microT
                 coding for CR experiment:
                     see "OPTIONS" list above
-            
+
             treatment_type:
                 N: NRM
                 A: AF
                 T: Thermal
-            
+
             moment:
-                magnetic moment in emu !!           
-            
-        In addition, at least one of the following headers are requiered:   
-            
+                magnetic moment in emu !!
+
+        In addition, at least one of the following headers are required:
+
             dec_s:
-                declination in specimen coordinate system (0 to 360)  
+                declination in specimen coordinate system (0 to 360)
             inc_s:
-                inclination in specimen coordinate system (-90 to 90)                
-    
+                inclination in specimen coordinate system (-90 to 90)
+
             dec_g:
-                declination in geographic coordinate system (0 to 360)  
+                declination in geographic coordinate system (0 to 360)
             inc_g:
-                inclination in geographic coordinate system (-90 to 90)                
-    
+                inclination in geographic coordinate system (-90 to 90)
+
             dec_t:
-                declination in tilt-corrected coordinate system (0 to 360)  
+                declination in tilt-corrected coordinate system (0 to 360)
             inc_t:
-                inclination in tilt-corrected coordinate system (-90 to 90)                
-                                                
+                inclination in tilt-corrected coordinate system (-90 to 90)
+
     """
 
     #--------------------------------------
@@ -167,7 +179,7 @@ def main(command_line=True, **kwargs):
 
     def sort_magic_file(path,ignore_lines_n,sort_by_this_name):
         '''
-        reads a file with headers. Each line is stored as a dictionary following the headers.  
+        reads a file with headers. Each line is stored as a dictionary following the headers.
         Lines are sorted in DATA by the sort_by_this_name header
         DATA[sort_by_this_name]=[dictionary1,dictionary2,...]
         '''
@@ -191,7 +203,7 @@ def main(command_line=True, **kwargs):
                     continue
                 tmp_data[header[i]]=tmp_line[i]
             DATA[tmp_data[sort_by_this_name]]=tmp_data
-        fin.close()        
+        fin.close()
         return(DATA)
 
     def read_generic_file(path,average_replicates):
@@ -205,7 +217,7 @@ def main(command_line=True, **kwargs):
         header=Fin.readline().strip('\n').split('\t')
         duplicates=[]
         for line in Fin.readlines():
-            tmp_data={}            
+            tmp_data={}
             #found_duplicate=False
             l=line.strip('\n').split('\t')
             for i in range(min(len(header),len(l))):
@@ -214,12 +226,12 @@ def main(command_line=True, **kwargs):
             if specimen not in Data.keys():
                 Data[specimen]=[]
             Data[specimen].append(tmp_data)
-        # search fro duplicates 
+        # search fro duplicates
         for specimen in Data.keys():
             x=len(Data[specimen])-1
             new_data=[]
             duplicates=[]
-            for i in range(1,x):                
+            for i in range(1,x):
                 while i< len(Data[specimen]) and Data[specimen][i]['treatment']==Data[specimen][i-1]['treatment'] and Data[specimen][i]['treatment_type']==Data[specimen][i-1]['treatment_type']:
                    duplicates.append(Data[specimen][i])
                    del(Data[specimen][i])
@@ -233,40 +245,40 @@ def main(command_line=True, **kwargs):
                        Data[specimen][i-1]=duplicates[-1]
                        print "-W- WARNING: found %i duplicates for specimen %s treatmant %s. Taking the last measurement only"%(len(duplicates),specimen,duplicates[-1]['treatment'])
                        duplicates=[]
-                        
+
                 if i==len(Data[specimen])-1:
                     break
-                          
-                    
-                    
+
+
+
             #    if tmp_data['treatment']==Data[specimen][-1]['treatment'] and tmp_data['treatment_type']==Data[specimen][-1]['treatment_type']:
-            #    
+            #
             ## check replicates
             #if tmp_data['treatment']==Data[specimen][-1]['treatment'] and tmp_data['treatment_type']==Data[specimen][-1]['treatment_type']:
             #    #found_duplicate=True
-            #    duplicates.append(Data[specimen][-1]) 
+            #    duplicates.append(Data[specimen][-1])
             #    duplicates.append(tmp_data)
-            #    del(Data[specimen][-1])                
+            #    del(Data[specimen][-1])
             #    continue
-            #else:                           
+            #else:
             #    if len(duplicates)>0:
             #        if average_replicates:
             #            Data[specimen].append(average_duplicates(duplicates))
             #            print "-W- WARNING: averaging %i duplicates for specimen %s treatmant %s"%(len(duplicates),specimen,duplicates[-1]['treatment'])
             #        else:
-            #            Data[specimen].append(duplicates[-1])                        
+            #            Data[specimen].append(duplicates[-1])
             #            print "-W- WARNING: found %i duplicates for specimen %s treatmant %s. Taking the last measurement only"%(len(duplicates),specimen,duplicates[-1]['treatment'])
             #    duplicates=[]
             #    Data[specimen].append(tmp_data)
-                                        
-           
-        return(Data)               
+
+
+        return(Data)
 
     def average_duplicates(duplicates):
         '''
         avarage replicate measurements.
         '''
-        carts_s,carts_g,carts_t=[],[],[]   
+        carts_s,carts_g,carts_t=[],[],[]
         for rec in duplicates:
             moment=float(rec['moment'])
             if 'dec_s' in rec.keys() and 'inc_s' in rec.keys():
@@ -287,7 +299,7 @@ def main(command_line=True, **kwargs):
                     inc_t=float(rec['inc_t'])
                     cart_t=pmag.dir2cart([dec_t,inc_t,moment])
                     carts_t.append(cart_t)
-        if len(carts_s)>0:                               
+        if len(carts_s)>0:
             carts=scipy.array(carts_s)
             x_mean=scipy.mean(carts[:,0])
             y_mean=scipy.mean(carts[:,1])
@@ -298,7 +310,7 @@ def main(command_line=True, **kwargs):
             mean_moment="%10.3e"%mean_dir[2]
         else:
             mean_dec_s,mean_inc_s="",""
-        if len(carts_g)>0:                               
+        if len(carts_g)>0:
             carts=scipy.array(carts_g)
             x_mean=scipy.mean(carts[:,0])
             y_mean=scipy.mean(carts[:,1])
@@ -309,8 +321,8 @@ def main(command_line=True, **kwargs):
             mean_moment="%10.3e"%mean_dir[2]
         else:
             mean_dec_g,mean_inc_g="",""
-            
-        if len(carts_t)>0:                               
+
+        if len(carts_t)>0:
             carts=scipy.array(carts_t)
             x_mean=scipy.mean(carts[:,0])
             y_mean=scipy.mean(carts[:,1])
@@ -321,7 +333,7 @@ def main(command_line=True, **kwargs):
             mean_moment="%10.3e"%mean_dir[2]
         else:
             mean_dec_t,mean_inc_t="",""
-                                                                        
+
         meanrec={}
         for key in duplicates[0].keys():
             if key in ['dec_s','inc_s','dec_g','inc_g','dec_t','inc_t','moment']:
@@ -336,7 +348,7 @@ def main(command_line=True, **kwargs):
         meanrec['inc_t']=mean_inc_t
         meanrec['moment']=mean_moment
         return meanrec
-                    
+
     def get_upper_level_name(name,nc):
         '''
         get sample/site name from specimen/sample using naming convention
@@ -363,7 +375,7 @@ def main(command_line=True, **kwargs):
         else:
             high_name=name
         return high_name
-                            
+
     def merge_pmag_recs(old_recs):
         recs={}
         recs=copy.deepcopy(old_recs)
@@ -377,7 +389,7 @@ def main(command_line=True, **kwargs):
                 if header not in rec.keys():
                     rec[header]=""
         return recs
-    
+
 
     # initialize some variables
     experiment = ''
@@ -389,7 +401,7 @@ def main(command_line=True, **kwargs):
     #--------------------------------------
     # get command line arguments
     #--------------------------------------
-    
+
     if command_line:
         args=sys.argv
         user=""
@@ -413,7 +425,7 @@ def main(command_line=True, **kwargs):
         if '-f' in args:
             ind=args.index("-f")
             magfile=args[ind+1]
-    
+
         if "-dc" in args:
             ind=args.index("-dc")
             labfield=float(args[ind+1])*1e-6
@@ -421,7 +433,7 @@ def main(command_line=True, **kwargs):
             labfield_theta=float(args[ind+3])
         if '-exp' in args:
             ind=args.index("-exp")
-            experiment=args[ind+1]        
+            experiment=args[ind+1]
         if "-samp" in args:
             ind=args.index("-samp")
             sample_nc=[]
@@ -438,9 +450,9 @@ def main(command_line=True, **kwargs):
         else:
             er_location_name=""
         if "-A" in args:
-            noave=1 
+            noave=1
         else:
-            noave=0             
+            noave=0
 
         if "-WD" in args:
             ind=args.index("-WD")
@@ -466,7 +478,7 @@ def main(command_line=True, **kwargs):
         noave = kwargs.get('noave', 0) # 0 is default, means do average
         WD = kwargs.get('WD', '.')
         #os.chdir(WD)
-        
+
     # format and validate variables
     if magfile:
         try:
@@ -474,27 +486,27 @@ def main(command_line=True, **kwargs):
         except:
             print "bad mag file:",magfile
             return False, "bad mag file"
-    else: 
+    else:
         print "mag_file field is required option"
         print main.__doc__
         return False, "mag_file field is required option"
 
     if not experiment:
-        print "-LP is required option"
+        print "-exp is required option. Please provide experiment type of: Demag, PI, ATRM n (n of positions), CR (see below for format), NLT"
         print main.__doc__
-        return False, "-LP is required option"
+        return False, "-exp is required option"
 
     if experiment=='ATRM':
         if command_line:
             ind=args.index("ATRM")
-            atrm_n_pos=int(args[ind+1])    
+            atrm_n_pos=int(args[ind+1])
         else:
             atrm_n_pos = 6
-            
+
     if experiment=='AARM':
         if command_line:
             ind=args.index("AARM")
-            aarm_n_pos=int(args[ind+1])        
+            aarm_n_pos=int(args[ind+1])
         else:
             aarm_n_pos = 6
 
@@ -527,16 +539,16 @@ def main(command_line=True, **kwargs):
     except:
         print "-I- Cant find file er_samples.txt"
         print '-I- sample information will be stored in new er_samples.txt file'
-            
+
     #--------------------------------------
     # read data from generic file
     #--------------------------------------
-    
-    if  noave:   
+
+    if  noave:
         mag_data=read_generic_file(magfile,False)
     else:
         mag_data=read_generic_file(magfile,True)
-        
+
     #--------------------------------------
     # for each specimen get the data, and translate it to MagIC format
     #--------------------------------------
@@ -551,9 +563,9 @@ def main(command_line=True, **kwargs):
         MagRecs_this_specimen=[]
         LP_this_specimen=[] # a list of all lab protocols
         IZ,ZI=0,0 # counter for IZ and ZI steps
-        
-        for meas_line in mag_data[specimen]:  
-            
+
+        for meas_line in mag_data[specimen]:
+
             #------------------
             # trivial MagRec data
             #------------------
@@ -564,18 +576,18 @@ def main(command_line=True, **kwargs):
             MagRec["er_sample_name"]=get_upper_level_name(MagRec["er_specimen_name"],sample_nc)
             MagRec["er_site_name"]=get_upper_level_name(MagRec["er_sample_name"],site_nc)
             MagRec['er_location_name']=er_location_name
-            MagRec['er_analyst_mail_names']=user 
-            MagRec["magic_instrument_codes"]="" 
+            MagRec['er_analyst_mail_names']=user
+            MagRec["magic_instrument_codes"]=""
             MagRec["measurement_flag"]='g'
             MagRec["measurement_number"]="%i"%measurement_running_number
-            
+
             MagRec["measurement_magn_moment"]='%10.3e'%(float(meas_line["moment"])*1e-3) # in Am^2
             MagRec["measurement_temp"]='273.' # room temp in kelvin
 
             #------------------
-            #  decode treatments from treatment column in the generic file 
+            #  decode treatments from treatment column in the generic file
             #------------------
-            
+
             treatment=[]
             treatment_code=str(meas_line['treatment']).split(".")
             treatment.append(float(treatment_code[0]))
@@ -589,16 +601,16 @@ def main(command_line=True, **kwargs):
             #------------------
 
             if experiment in ['PI','NLT','CR']:
-                
+
                 if float(treatment[1])==0:
                     MagRec["treatment_dc_field"]="0"
                     MagRec["treatment_dc_field_phi"]="0"
                     MagRec["treatment_dc_field_theta"]="0"
-                elif not labfield:                        
+                elif not labfield:
                     print "-W- WARNING: labfield (-dc) is a required argument for this experiment type"
                     return False, "labfield (-dc) is a required argument for this experiment type"
 
-                else:                        
+                else:
                     MagRec["treatment_dc_field"]='%8.3e'%(float(labfield))
                     MagRec["treatment_dc_field_phi"]="%.2f"%(float(labfield_phi))
                     MagRec["treatment_dc_field_theta"]="%.2f"%(float(labfield_theta))
@@ -606,65 +618,65 @@ def main(command_line=True, **kwargs):
                 MagRec["treatment_dc_field"]=""
                 MagRec["treatment_dc_field_phi"]=""
                 MagRec["treatment_dc_field_theta"]=""
-            
+
             #------------------
-            # treatment temperature/peak field 
+            # treatment temperature/peak field
             #------------------
-            
+
             if experiment == 'Demag':
                 if meas_line['treatment_type']=='A':
                     MagRec['treatment_temp']="273."
-                    MagRec["treatment_ac_field"]="%.3e"%(treatment[0]*1e-3)                                                        
+                    MagRec["treatment_ac_field"]="%.3e"%(treatment[0]*1e-3)
                 elif meas_line['treatment_type']=='N':
                     MagRec['treatment_temp']="273."
-                    MagRec["treatment_ac_field"]=""                                                        
+                    MagRec["treatment_ac_field"]=""
                 else:
                     MagRec['treatment_temp']="%.2f"%(treatment[0]+273.)
-                    MagRec["treatment_ac_field"]=""                                                        
-            else: 
+                    MagRec["treatment_ac_field"]=""
+            else:
                     MagRec['treatment_temp']="%.2f"%(treatment[0]+273.)
-                    MagRec["treatment_ac_field"]=""                                                        
+                    MagRec["treatment_ac_field"]=""
 
 
-            #---------------------                    
+            #---------------------
             # Lab treatment
             # Lab protocol
             #---------------------
-                                
-            #---------------------                    
+
+            #---------------------
             # Lab treatment and lab protocoal for NRM:
             #---------------------
-            
+
             if float(meas_line['treatment'])==0:
                 LT="LT-NO"
                 LP="" # will be filled later after finishing reading all measurements line
 
-            #---------------------                    
+            #---------------------
             # Lab treatment and lab protocoal for paleointensity experiment
             #---------------------
-                                
+
             elif experiment =='PI':
                 LP="LP-PI-TRM"
                 if treatment[1]==0:
                     LT="LT-T-Z"
                 elif  treatment[1]==1 or treatment[1]==10: # infield
                     LT="LT-T-I"
-                elif treatment[1]==2 or treatment[1]==20:  # pTRM check                          
-                    LT="LT-PTRM-I" 
-                    LP=LP+":"+"LP-PI-ALT-PTRM"           
-                elif treatment[1]==3 or treatment[1]==30: # Tail check                                  
-                    LT="LT-PTRM-MD"  
-                    LP=LP+":"+"LP-PI-BT-MD"          
-                elif treatment[1]==4 or treatment[1]==40: # Additivity check                                   
-                    LT="LT-PTRM-AC"            
-                    LP=LP+":"+"LP-PI-BT-MD"          
+                elif treatment[1]==2 or treatment[1]==20:  # pTRM check
+                    LT="LT-PTRM-I"
+                    LP=LP+":"+"LP-PI-ALT-PTRM"
+                elif treatment[1]==3 or treatment[1]==30: # Tail check
+                    LT="LT-PTRM-MD"
+                    LP=LP+":"+"LP-PI-BT-MD"
+                elif treatment[1]==4 or treatment[1]==40: # Additivity check
+                    LT="LT-PTRM-AC"
+                    LP=LP+":"+"LP-PI-BT-MD"
                 else:
                     print "-E- unknown measurement code specimen %s treatmemt %s"%(meas_line['specimen'],meas_line['treatment'])
                     MagRec={}
                     continue
-                # save all treatment in a list 
+                # save all treatment in a list
                 # we will use this later to distinguidh between ZI / IZ / and IZZI
-                
+
                 this_specimen_treatments.append(float(meas_line['treatment']))
                 if LT=="LT-T-Z":
                     if float(treatment[0]+0.1) in this_specimen_treatments:
@@ -672,51 +684,51 @@ def main(command_line=True, **kwargs):
                 if LT=="LT-T-I":
                     if float(treatment[0]+0.0) in this_specimen_treatments:
                         LP=LP+":"+"LP-PI-ZI"
-            #---------------------                    
+            #---------------------
             # Lab treatment and lab protocoal for demag experiment
             #---------------------
-            
+
             elif "Demag" in experiment:
-                if meas_line['treatment_type']=='A': 
+                if meas_line['treatment_type']=='A':
                     LT="LT-AF-Z"
                     LP="LP-DIR-AF"
                 else:
                     LT="LT-T-Z"
                     LP="LP-DIR-T"
 
-            #---------------------                    
+            #---------------------
             # Lab treatment and lab protocoal for ATRM experiment
             #---------------------
-                                
+
             elif experiment in ['ATRM','AARM']:
-                
+
                 if experiment=='ATRM':
                     LP="LP-AN-TRM"
-                    n_pos=atrm_n_pos                    
+                    n_pos=atrm_n_pos
                     if n_pos!=6:
                         print "the program does not support ATRM in %i position."%n_pos
                         continue
-                        
+
                 if experiment=='AARM':
                     #MagRec['treatment_temp']="273."
-                    #MagRec["treatment_ac_field"]=""                                                        
+                    #MagRec["treatment_ac_field"]=""
                     LP="LP-AN-ARM"
                     n_pos=aarm_n_pos
                     if n_pos!=6:
                         print "the program does not support AARM in %i position."%n_pos
                         continue
-                                
+
                 if treatment[1]==0:
                     if experiment=='ATRM':
                         LT="LT-T-Z"
                         MagRec['treatment_temp']="%.2f"%(treatment[0]+273.)
-                        MagRec["treatment_ac_field"]="" 
-                                                                               
+                        MagRec["treatment_ac_field"]=""
+
                     else:
-                        LT="LT-AF-Z"                        
+                        LT="LT-AF-Z"
                         MagRec['treatment_temp']="273."
-                        MagRec["treatment_ac_field"]="%.3e"%(treatment[0]*1e-3)  
-                    MagRec["treatment_dc_field"]='0'                                               
+                        MagRec["treatment_ac_field"]="%.3e"%(treatment[0]*1e-3)
+                    MagRec["treatment_dc_field"]='0'
                     MagRec["treatment_dc_field_phi"]='0'
                     MagRec["treatment_dc_field_theta"]='0'
                 else:
@@ -727,10 +739,10 @@ def main(command_line=True, **kwargs):
                             LT="LT-T-I"
                     else:
                         LT="LT-AF-I"
-                    MagRec["treatment_dc_field"]='%8.3e'%(float(labfield))                                               
-                            
+                    MagRec["treatment_dc_field"]='%8.3e'%(float(labfield))
+
                     # find the direction of the lab field in two ways:
-                    
+
                     # (1) using the treatment coding (XX.1=+x, XX.2=+y, XX.3=+z, XX.4=-x, XX.5=-y, XX.6=-z)
                     tdec=[0,90,0,180,270,0,0,90,0]
                     tinc=[0,0,90,0,0,-90,0,0,90]
@@ -738,7 +750,7 @@ def main(command_line=True, **kwargs):
                         ipos_code=int(treatment[1])-1
                     else:
                         ipos_code=int(treatment[1]/10)-1
-                    
+
                     # (2) using the magnetization
                     if meas_line["dec_s"]!="":
                         DEC=float(meas_line["dec_s"])
@@ -751,7 +763,7 @@ def main(command_line=True, **kwargs):
                         INC=float(meas_line["inc_t"])
                     if DEC<0 and DEC>-359:
                         DEC=360.+DEC
-                        
+
                     if INC < 45 and INC > -45:
                         if DEC>315  or DEC<45: ipos_guess=0
                         if DEC>45 and DEC<135: ipos_guess=1
@@ -762,37 +774,37 @@ def main(command_line=True, **kwargs):
                         if INC <-45: ipos_guess=5
                     # prefer the guess over the code
                     ipos=ipos_guess
-                    # check it 
+                    # check it
                     if treatment[1]!= 7 and treatment[1]!= 70:
                         if ipos_guess!=ipos_code:
                             print "-W- WARNING: check specimen %s step %s, anistropy measurements, coding does not match the direction of the lab field"%(specimen,meas_line['treatment'])
                     MagRec["treatment_dc_field_phi"]='%7.1f' %(tdec[ipos])
                     MagRec["treatment_dc_field_theta"]='%7.1f'% (tinc[ipos])
-                        
-        
-            #---------------------                    
+
+
+            #---------------------
             # Lab treatment and lab protocoal for cooling rate experiment
             #---------------------
 
             elif experiment == "CR":
-                
+
                 cooling_times_list
-                LP="LP-CR-TRM"                
+                LP="LP-CR-TRM"
                 MagRec["treatment_temp"]='%8.3e' % (float(treatment[0])+273.) # temp in kelvin
-                
+
                 if treatment[1]==0:
-                    LT="LT-T-Z"                    
+                    LT="LT-T-Z"
                     MagRec["treatment_dc_field"]="0"
                     MagRec["treatment_dc_field_phi"]='0'
                     MagRec["treatment_dc_field_theta"]='0'
-                else:                     
+                else:
                     if treatment[1]==7: # alteration check as final measurement
                             LT="LT-PTRM-I"
                     else:
-                            LT="LT-T-I" 
+                            LT="LT-T-I"
                     MagRec["treatment_dc_field"]='%8.3e'%(labfield)
                     MagRec["treatment_dc_field_phi"]='%7.1f' % (labfield_phi) # labfield phi
-                    MagRec["treatment_dc_field_theta"]='%7.1f' % (labfield_theta) # labfield theta                    
+                    MagRec["treatment_dc_field_theta"]='%7.1f' % (labfield_theta) # labfield theta
 
                     indx=int(treatment[1])-1
                     # alteration check matjed as 0.7 in the measurement file
@@ -801,24 +813,24 @@ def main(command_line=True, **kwargs):
                     else:
                         cooling_time=cooling_times_list[indx]
                     MagRec["measurement_description"]="cooling_rate"+":"+cooling_time+":"+"K/min"
-    
 
-            #---------------------                    
+
+            #---------------------
             # Lab treatment and lab protocoal for NLT experiment
             #---------------------
-            
+
             elif 'NLT' in experiment :
                 print "Dont support yet NLT rate experiment file. Contact rshaar@ucsd.edu"
 
-            #---------------------                                        
+            #---------------------
             # magic_method_codes for this measurement only
             # LP will be fixed after all measurement lines are read
             #---------------------
-            
+
             MagRec["magic_method_codes"]=LT+":"+LP
 
-            #---------------------  
-            # Demag experiments only:                                      
+            #---------------------
+            # Demag experiments only:
             # search if orientation data exists in er_samples.txt
             # if not: create one and save
             #---------------------
@@ -841,7 +853,7 @@ def main(command_line=True, **kwargs):
                     found_sample_bed_dip=True
             else:
                 er_sample_data[sample]={}
-            
+
             #--------------------
             # deal with specimen orientation and different coordinate system
             #--------------------
@@ -858,45 +870,45 @@ def main(command_line=True, **kwargs):
             if "dec_t" in meas_line.keys() and "inc_t" in meas_line.keys():
                 if meas_line["dec_t"]!="" and meas_line["inc_t"]!="":
                     found_tilt=True
-                
-            #-----------------------------                    
+
+            #-----------------------------
             # specimen coordinates: no
             # geographic coordinates: yes
-            #-----------------------------                    
-            
+            #-----------------------------
+
             if found_geo and not found_s:
                 MagRec["measurement_dec"]=meas_line["dec_g"]
                 MagRec["measurement_inc"]=meas_line["inc_g"]
-                
+
                 # core azimuth/plunge is not in er_samples.txt
                 if not found_sample_dip or not found_sample_azimuth:
                     er_sample_data[sample]['sample_azimuth']="0"
                     er_sample_data[sample]['sample_dip']="0"
 
-                # core azimuth/plunge is in er_samples.txt                        
+                # core azimuth/plunge is in er_samples.txt
                 else:
-                    sample_azimuth=float(er_sample_data[sample]['sample_azimuth'])  
-                    sample_dip=float(er_sample_data[sample]['sample_dip'])   
+                    sample_azimuth=float(er_sample_data[sample]['sample_azimuth'])
+                    sample_dip=float(er_sample_data[sample]['sample_dip'])
                     if sample_azimuth!=0 and sample_dip!=0:
                         print "-W- WARNING: delete core azimuth/plunge in er_samples.txt\n\
-                        becasue dec_s and inc_s are unavaialable" 
+                        becasue dec_s and inc_s are unavaialable"
 
-            #-----------------------------                                                
+            #-----------------------------
             # specimen coordinates: no
             # geographic coordinates: no
-            #-----------------------------                    
+            #-----------------------------
             if not found_geo and not found_s:
                 print "-E- ERROR: sample %s does not have dec_s/inc_s or dec_g/inc_g. Ignore specimen %s "%(sample,specimen)
                 break
-                    
-            #-----------------------------                                                
+
+            #-----------------------------
             # specimen coordinates: yes
             # geographic coordinates: yes
             #
             # commant: Ron, this need to be tested !!
-            #-----------------------------                    
+            #-----------------------------
             if found_geo and found_s:
-                
+
                 cdec,cinc=float(meas_line["dec_s"]),float(meas_line["inc_s"])
                 gdec,ginc=float(meas_line["dec_g"]),float(meas_line["inc_g"])
                 az,pl=pmag.get_azpl(cdec,cinc,gdec,ginc)
@@ -906,19 +918,19 @@ def main(command_line=True, **kwargs):
                 if not found_sample_dip or not found_sample_azimuth:
                     er_sample_data[sample]['sample_azimuth']="%.1f"%az
                     er_sample_data[sample]['sample_dip']="%.1f"%pl
-                
+
                 # core azimuth/plunge is in er_samples.txt
                 else:
                     if float(er_sample_data[sample]['sample_azimuth'])!= az:
                         print "-E- ERROR in sample_azimuth sample %s. Check it! using the value in er_samples.txt"%sample
-                        
+
                     if float(er_sample_data[sample]['sample_dip'])!= pl:
                         print "-E- ERROR in sample_dip sample %s. Check it! using the value in er_samples.txt"%sample
-                    
-            #-----------------------------                                                
+
+            #-----------------------------
             # specimen coordinates: yes
             # geographic coordinates: no
-            #-----------------------------                    
+            #-----------------------------
             if not found_geo and found_s:
                 if found_sample_dip and found_sample_azimuth:
                     pass
@@ -927,33 +939,33 @@ def main(command_line=True, **kwargs):
                     if "Demag" in experiment:
                         print "-W- WARNING: missing sample_dip or sample_azimuth for sample %s"%sample
 
-            #-----------------------------                                                
+            #-----------------------------
             # tilt-corrected coordinates: yes
             # geographic coordinates: no
-            #-----------------------------                    
+            #-----------------------------
             if found_tilt and not found_geo:
                     print "-E- ERROR: missing geographic data for sample %s. Ignoring tilt-corrected data "%sample
             if found_tilt and found_geo:
                 dec_geo,inc_geo=float(meas_line["dec_g"]),float(meas_line["inc_g"])
                 dec_tilt,inc_tilt=float(meas_line["dec_t"]),float(meas_line["inc_t"])
                 if dec_geo==dec_tilt and inc_geo==inc_tilt:
-                    DipDir,Dip=0.,0. 
+                    DipDir,Dip=0.,0.
                 else:
                     DipDir,Dip=pmag.get_tilt(dec_geo,inc_geo,dec_tilt,inc_tilt)
-                    
+
                 if not found_sample_bed_dip_direction or not found_sample_bed_dip:
                     print "-I- calculating dip and dip direction used for tilt correction sample %s. results are put in er_samples.txt"%sample
                     er_sample_data[sample]['sample_bed_dip_direction']="%.1f"%DipDir
                     er_sample_data[sample]['sample_bed_dip']="%.1f"%Dip
 
-            #-----------------------------                                                
+            #-----------------------------
             # er_samples method codes
             # geographic coordinates: no
-            #-----------------------------                    
+            #-----------------------------
             if found_tilt or found_geo:
-                er_sample_data[sample]['magic_method_codes']="SO-NO"               
-            
-            
+                er_sample_data[sample]['magic_method_codes']="SO-NO"
+
+
             #-----------------
             # er_samples_data
             #-----------------
@@ -967,16 +979,16 @@ def main(command_line=True, **kwargs):
 
             #if LP!="" and LP not in LP_this_specimen:
             #    LP_this_specimen.append(LP)
-            
-            measurement_running_number+=1
-            #-------                    
 
-        #-------  
-        # after reading all the measurements lines for this specimen                  
+            measurement_running_number+=1
+            #-------
+
+        #-------
+        # after reading all the measurements lines for this specimen
         # 1) add magic_experiment_name
         # 2) fix magic_method_codes with the correct lab protocol
-        #------- 
-        LP_this_specimen=[]                   
+        #-------
+        LP_this_specimen=[]
         for MagRec in MagRecs_this_specimen:
             magic_method_codes=MagRec["magic_method_codes"].split(":")
             for code in magic_method_codes:
@@ -987,20 +999,20 @@ def main(command_line=True, **kwargs):
             LP_this_specimen.remove("LP-PI-ZI")
             LP_this_specimen.remove("LP-PI-IZ")
             LP_this_specimen.append("LP-PI-BT-IZZI")
-        
-        # add the right LP codes and fix experiment name    
-        for MagRec in MagRecs_this_specimen:                                                          
+
+        # add the right LP codes and fix experiment name
+        for MagRec in MagRecs_this_specimen:
             MagRec["magic_experiment_name"]=MagRec["er_specimen_name"]+":"+":".join(LP_this_specimen)
             magic_method_codes=MagRec["magic_method_codes"].split(":")
             LT=""
             for code in magic_method_codes:
                 if code[:3]=="LT-":
                     LT=code;
-                    break            
+                    break
             MagRec["magic_method_codes"]=LT+":"+":".join(LP_this_specimen)
-            
-            MagRecs.append(MagRec)   
-                                
+
+            MagRecs.append(MagRec)
+
     #--
     # write magic_measurements.txt
     #--

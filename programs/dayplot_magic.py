@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import sys
+import os
 import matplotlib
 if matplotlib.get_backend() != "TKAgg":
   matplotlib.use("TKAgg")
@@ -13,7 +14,7 @@ def main():
         dayplot_magic.py
 
     DESCRIPTION
-        makes 'day plots' (Day et al. 1977) and squareness/coercivity, 
+        makes 'day plots' (Day et al. 1977) and squareness/coercivity,
         plots 'linear mixing' curve from Dunlop and Carter-Stiglitz (2006).
           squareness coercivity of remanence (Neel, 1955) plots after
           Tauxe et al. (2002)
@@ -27,6 +28,7 @@ def main():
         -fr: specify input remanence file, default is rmag_remanence.txt
         -fmt [svg,png,jpg] format for output plots
         -sav saves plots and quits quietly
+        -n label specimen names
     """
     args=sys.argv
     hyst_file,rem_file="rmag_hysteresis.txt","rmag_remanence.txt"
@@ -52,8 +54,12 @@ def main():
         plots=1
         verbose=0
     else: plots=0
-    hyst_file=dir_path+'/'+hyst_file
-    rem_file=dir_path+'/'+rem_file
+    if '-n' in sys.argv: 
+        label=1
+    else:
+        label=0
+    hyst_file = os.path.realpath(os.path.join(dir_path, hyst_file))
+    rem_file = os.path.realpath(os.path.join(dir_path, rem_file))
     #
     # initialize some variables
     # define figure numbers for Day,S-Bc,S-Bcr
@@ -70,17 +76,19 @@ def main():
     #
     S,BcrBc,Bcr2,Bc,hsids,Bcr=[],[],[],[],[],[]
     Ms,Bcr1,Bcr1Bc,S1=[],[],[],[]
+    names=[]
     locations=''
     for rec in  hyst_data:
         if 'er_location_name' in rec.keys() and rec['er_location_name'] not in locations: locations=locations+rec['er_location_name']+'_'
-        if rec['hysteresis_bcr'] !="" and rec['hysteresis_mr_moment']!="": 
+        if rec['hysteresis_bcr'] !="" and rec['hysteresis_mr_moment']!="":
             S.append(float(rec['hysteresis_mr_moment'])/float(rec['hysteresis_ms_moment']))
             Bcr.append(float(rec['hysteresis_bcr']))
             Bc.append(float(rec['hysteresis_bc']))
-            BcrBc.append(Bcr[-1]/Bc[-1]) 
+            BcrBc.append(Bcr[-1]/Bc[-1])
             if 'er_synthetic_name' in rec.keys() and rec['er_synthetic_name']!="":
                 rec['er_specimen_name']=rec['er_synthetic_name']
             hsids.append(rec['er_specimen_name'])
+            names.append(rec['er_specimen_name'])
     if len(rem_data)>0:
         for rec in  rem_data:
             if rec['remanence_bcr'] !="" and float(rec['remanence_bcr'])>0:
@@ -96,20 +104,24 @@ def main():
     # now plot the day and S-Bc, S-Bcr plots
     #
     leglist=[]
+    if label==0:names=[]
     if len(Bcr1)>0:
-        pmagplotlib.plotDay(DSC['day'],Bcr1Bc,S1,'ro') 
-        pmagplotlib.plotSBcr(DSC['S-Bcr'],Bcr1,S1,'ro') 
+        pmagplotlib.plotDay(DSC['day'],Bcr1Bc,S1,'ro',names=names)
+        pmagplotlib.plotSBcr(DSC['S-Bcr'],Bcr1,S1,'ro')
         pmagplotlib.plot_init(DSC['bcr1-bcr2'],5,5)
         pmagplotlib.plotBcr(DSC['bcr1-bcr2'],Bcr1,Bcr2)
     else:
         del DSC['bcr1-bcr2']
-    pmagplotlib.plotDay(DSC['day'],BcrBc,S,'bs') 
-    pmagplotlib.plotSBcr(DSC['S-Bcr'],Bcr,S,'bs') 
-    pmagplotlib.plotSBc(DSC['S-Bc'],Bc,S,'bs') 
+    pmagplotlib.plotDay(DSC['day'],BcrBc,S,'bs',names=names)
+    pmagplotlib.plotSBcr(DSC['S-Bcr'],Bcr,S,'bs')
+    pmagplotlib.plotSBc(DSC['S-Bc'],Bc,S,'bs')
     files={}
     if len(locations)>0:locations=locations[:-1]
     for key in DSC.keys():
-        files[key]='LO:_'+locations+'_'+'SI:__SA:__SP:__TY:_'+key+'_.'+fmt
+        if pmagplotlib.isServer: # use server plot naming convention
+            files[key] = 'LO:_'+locations+'_'+'SI:__SA:__SP:__TY:_'+key+'_.'+fmt
+        else:  # use more readable plot naming convention
+            files[key] = '{}_{}.{}'.format(locations, key, fmt)
     if verbose:
         pmagplotlib.drawFIGS(DSC)
         ans=raw_input(" S[a]ve to save plots, return to quit:  ")

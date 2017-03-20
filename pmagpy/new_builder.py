@@ -14,9 +14,8 @@ import numpy as np
 import pandas as pd
 from pandas import DataFrame
 # from pmagpy import pmag
-# from pmagpy import data_model3 as data_model
-import data_model3 as data_model
-import controlled_vocabularies3 as cv
+from pmagpy import data_model3 as data_model
+from pmagpy import controlled_vocabularies3 as cv
 
 
 class Contribution(object):
@@ -29,23 +28,26 @@ class Contribution(object):
     for example, renaming a site.
     """
 
-    #vocab = cv.Vocabulary()
-    #cv, possible_vocabulary = vocab.get_controlled_vocabularies()
-
     def __init__(self, directory=".", read_tables='all',
                  custom_filenames=None, single_file=None,
                  dmodel=None, vocabulary=""):
+        if isinstance(dmodel, data_model.DataModel):
+            self.data_model = dmodel
+            Contribution.dmodel = dmodel
+        else:
+            try:
+                self.data_model = Contribution.dmodel
+            except AttributeError:
+                Contribution.dmodel = data_model.DataModel()
+                self.data_model = Contribution.dmodel
         if isinstance(vocabulary, cv.Vocabulary):
             self.vocab = vocabulary
         else:
-            try: self.vocab = Contribution.vocab
-            except AttributeError:
-                Contribution.vocab = cv.Vocabulary()
-                Contribution.vocab.get_all_vocabulary()
-                #Contribution.cv = vocab.get_controlled_vocabularies()
-                #self.cv = Contribution.cv
+            try:
                 self.vocab = Contribution.vocab
-        self.data_model = dmodel
+            except AttributeError:
+                Contribution.vocab = cv.Vocabulary(dmodel=self.data_model)
+                self.vocab = Contribution.vocab
         self.directory = os.path.realpath(directory)
         self.table_names = ['measurements', 'specimens', 'samples',
                             'sites', 'locations', 'contribution',
@@ -58,7 +60,6 @@ class Contribution(object):
         # update self.filenames to include custom names
         if custom_filenames:
             self.add_custom_filenames(custom_filenames)
-
         self.tables = {}
         # if not otherwise specified, read in all possible tables
         if read_tables == 'all':
@@ -95,34 +96,68 @@ class Contribution(object):
         data_container = MagicDataFrame(dtype=dtype, columns=col_names, groups=groups)
         self.tables[dtype] = data_container
 
+    def add_magic_table_from_data(self, dtype, data):
+        """
+        Add a MagIC table to the contribution from a data list
 
-    def add_magic_table(self, dtype, fname=None):
+
+        Parameters
+        ----------
+        dtype : str
+            MagIC table type
+        data : list of dicts
+            data list with format [{'key1': 'val1', ...}, {'key1': 'val2', ...}, ... }]
+        """
+        self.tables[dtype] = MagicDataFrame(dtype=dtype, data=data)
+
+
+    def add_magic_table(self, dtype, fname=None, df=None):
         """
         Read in a new file to add a table to self.tables.
+        Requires dtype argument and EITHER filename or df.
+
+        Parameters
+        ----------
+        dtype : str
+            MagIC table name
+        fname : str
+            filename of MagIC format file
+            (short path, directory is self.directory)
+        df : pandas DataFrame
+            data to create the new table with
         """
-        # if providing a filename but no data type
-        if dtype == "unknown":
-            filename = os.path.join(self.directory, fname)
-            data_container = MagicDataFrame(filename, dmodel=self.data_model)
-            dtype = data_container.dtype
-            if dtype == 'empty':
+        if df is None:
+            # if providing a filename but no data type
+            if dtype == "unknown":
+                filename = os.path.join(self.directory, fname)
+                data_container = MagicDataFrame(filename, dmodel=self.data_model)
+                dtype = data_container.dtype
+                if dtype == 'empty':
+                    return False
+                else:
+                    self.tables[dtype] = data_container
+                    return data_container
+            # if providing a data type, use the canonical filename
+            elif dtype not in self.filenames:
+                print '-W- "{}" is not a valid MagIC table type'.format(dtype)
+                print "-I- Available table types are: {}".format(", ".join(self.table_names))
                 return False
+            filename = os.path.join(self.directory, self.filenames[dtype])
+            if os.path.exists(filename):
+                data_container = MagicDataFrame(filename, dmodel=self.data_model)
+                if data_container.dtype != "empty":
+                    self.tables[dtype] = data_container
+                    return data_container
             else:
-                self.tables[dtype] = data_container
-                return data_container
-        # if providing a data type, use the canonical filename
-        elif dtype not in self.filenames:
-            print '-W- "{}" is not a valid MagIC table type'.format(dtype)
-            print "-I- Available table types are: {}".format(", ".join(self.table_names))
-            return False
-        filename = os.path.join(self.directory, self.filenames[dtype])
-        if os.path.exists(filename):
-            data_container = MagicDataFrame(filename, dmodel=self.data_model)
-            self.tables[dtype] = data_container
-            return data_container
+                print "-W- No such file: {}".format(filename)
+                return False
+        # df is not None
         else:
-            print "-W- No such file: {}".format(filename)
-            return False
+            if not dtype:
+                print "-W- Must provide dtype"
+                return False
+            data_container = MagicDataFrame(dtype=dtype, df=df)
+            self.tables[dtype] = data_container
 
 
     def propagate_measurement_info(self):
@@ -151,6 +186,220 @@ class Contribution(object):
                     if parent in meas_df.columns:
                         df[parent] = meas_df.drop_duplicates(subset=[name])[parent].values
                 self.tables[name + "s"] = MagicDataFrame(dtype=name + "s", df=df)
+                self.write_table_to_file(name + "s")
+
+
+    def propagate_all_tables_info(self, write=True):
+        """
+        Find any items (specimens, samples, sites, or locations) from
+        tables other than measurements and make sure they each have a
+        row in their own table.  For example, if a site name is in
+        the samples table but not in the sites table, create a row
+        for it in the sites table.
+        """
+        for table_name in ["specimens", "samples", "sites", "locations"]:
+            if not table_name in self.tables:
+                continue
+            df = self.tables[table_name].df
+            parent_name, child_name = self.get_parent_and_child(table_name)
+            if parent_name:
+                if parent_name[:-1] in df.columns:
+                    parents = sorted(set(df[parent_name[:-1]].dropna().values))
+                    if parent_name in self.tables: # if there is a parent table, update it
+                        parent_df = self.tables[parent_name].df
+                        missing_parents = set(parents) - set(parent_df.index)
+                        if missing_parents: # add any missing values
+                            print "-I- Updating {} table with values from {} table".format(parent_name, table_name)
+                            for item in missing_parents:
+                                self.add_item(parent_name, {parent_name[:-1]: item}, label=item)
+                            # save any changes to file
+                            if write:
+                                self.write_table_to_file(parent_name)
+
+                    else:  # if there is no parent table, create it if necessary
+                        if parents:
+                            # create a parent_df with the names you got from the child
+                            print "-I- Creating new {} table with data from {} table".format(parent_name, table_name)
+                            parent_df = pd.DataFrame(columns=[parent_name[:-1]], index=parents)
+                            parent_df[parent_name[:-1]] = parent_df.index
+                            self.tables[parent_name] = MagicDataFrame(dtype=parent_name,
+                                                                      df=parent_df)
+                            if write:
+                                # save new table to file
+                                self.write_table_to_file(parent_name)
+            if child_name:
+                if child_name in df.columns:
+                    raw_children = df[child_name].dropna().str.split(':')
+                    # create dict of all children with parent info
+                    parent_of_child = {}
+                    for parent, children in raw_children.iteritems():
+                        for child in children:
+                            # remove whitespace
+                            child = child.strip()
+                            old_parent = parent_of_child.get(child)
+                            if old_parent and parent and (old_parent != parent):
+                                print '-I- for {} {}, replacing: {} with: {}'.format(child_name[:-1], child,
+                                                                                     old_parent, parent)
+                            parent_of_child[child] = parent
+                    # old way:
+                    # flatten list, ignore duplicates
+                    #children = sorted(set([item.strip() for sublist in raw_children for item in sublist]))
+                    if child_name in self.tables: # if there is already a child table, update it
+                        child_df = self.tables[child_name].df
+                        missing_children = set(parent_of_child.keys()) - set(child_df.index)
+                        if missing_children: # add any missing values
+                            print "-I- Updating {} table with values from {} table".format(child_name, table_name)
+                            for item in missing_children:
+                                data = {child_name[:-1]: item, table_name[:-1]: parent_of_child[item]}
+                                self.add_item(child_name, data, label=item)
+                            if write:
+                                # save any changes to file
+                                self.write_table_to_file(child_name)
+                    else: # if there is no child table, create it if necessary
+                        if children:
+                            # create a child_df with the names you got from the parent
+                            print "-I- Creating new {} table with data from {} table".format(child_name, table_name)
+                            # old way to make new table:
+                            #child_df = pd.DataFrame(columns=[table_name[:-1]], index=children)
+                            # new way to make new table
+                            children_list = sorted(parent_of_child.keys())
+                            children_data = [[child_name, parent_of_child[c_name]] for c_name in children_list]
+                            child_df = pd.DataFrame(index=children_list, columns=[child_name[:-1], table_name[:-1]], data=children_data)
+
+                            self.tables[child_name] = MagicDataFrame(dtype=child_name, df=child_df)
+                            if write:
+                                # save new table to file
+                                self.write_table_to_file(child_name)
+
+
+    def get_parent_and_child(self, table_name):
+        """
+        Get the name of the parent table and the child table
+        for a given MagIC table name.
+
+        Parameters
+        ----------
+        table_name : string of MagIC table name ['specimens', 'samples', 'sites', 'locations']
+
+        Returns
+        -------
+        parent_name : string of parent table name
+        child_name : string of child table name
+        """
+        if table_name not in self.ancestry:
+            return None, None
+        parent_ind = self.ancestry.index(table_name) + 1
+        if parent_ind + 1 > len(self.ancestry):
+            parent_name = None
+        else:
+            parent_name = self.ancestry[parent_ind]
+        child_ind = self.ancestry.index(table_name) - 1
+        if child_ind < 0:
+            child_name = None
+        else:
+            child_name = self.ancestry[child_ind]
+        return parent_name, child_name
+
+    def get_min_max_lat_lon(self):
+        """
+        Find latitude/longitude information from sites table
+        and group it by location.
+
+        Returns
+        ---------
+        """
+        if 'sites' not in self.tables:
+            return
+        # get min/max lat/lon from sites table
+        site_container = self.tables['sites']
+        if not ('lat' in site_container.df.columns and 'lon' in site_container.df.columns):
+            return
+        # convert lat/lon columns to string type
+        # (this is necessary for consistency because they MAY be string type already)
+        site_container.df['lat'] = site_container.df['lat'].fillna('').astype(str)
+        site_container.df['lon'] = site_container.df['lon'].fillna('').astype(str)
+        # replace empty strings with np.nan
+        site_container.df['lat'] = np.where(site_container.df['lat'].str.len(), site_container.df['lat'], np.nan)
+        site_container.df['lon'] = np.where(site_container.df['lon'].str.len(), site_container.df['lon'], np.nan)
+        # convert lat/lon values to float (they make be string from grid)
+        site_container.df['lat'] = site_container.df['lat'].astype(float)
+        site_container.df['lon'] = site_container.df['lon'].astype(float)
+        # group lat/lon by location
+        grouped_lon = site_container.df[['lon', 'location']].groupby('location')
+        grouped_lat = site_container.df[['lat', 'location']].groupby('location')
+        # get min/max longitude by location
+        lon_w = grouped_lon.min()
+        lon_e = grouped_lon.max()
+        # get min/max latitude by location
+        lat_s = grouped_lat.min()
+        lat_n = grouped_lat.max()
+        # assign lat/lon to location table
+        locs = {}
+        if 'locations' not in self.tables:
+            return
+        loc_container = self.tables['locations']
+        for loc in lat_s.index:
+            coords = {}
+            coords['lat_s'] = lat_s.loc[loc]['lat']
+            coords['lat_n'] = lat_n.loc[loc]['lat']
+            coords['lon_e'] = lon_e.loc[loc]['lon']
+            coords['lon_w'] = lon_w.loc[loc]['lon']
+            locs[loc] = coords
+        loc_container = self.tables['locations']
+        for loc_name in locs:
+            if loc_name in loc_container.df.index:
+                coords = locs[loc_name]
+                for coord in locs[loc_name]:
+                    # warn user if an old value will be overwritten
+                    new_value = coords[coord]
+                    # if the new value is null, ignore it
+                    if np.isnan(new_value):
+                        continue
+                    # set old value to None if it wasn't in table
+                    if coord not in loc_container.df.columns:
+                        loc_container.df[coord] = None
+                    old_value = loc_container.df.ix[loc_name, coord]
+                    # use first value if multiple values returned, but don't shorten a string
+                    if not (isinstance(old_value, str) or isinstance(old_value, unicode)):
+                        try:
+                            old_value = old_value[0]
+                        except TypeError: # if only one value
+                            pass
+                        except IndexError: # if np.nan
+                            pass
+                    if old_value is None or old_value is np.nan:
+                        pass
+                    elif isinstance(old_value, str) or isinstance(old_value, unicode):
+                        try:
+                            old_value = float(old_value)
+                        except ValueError:
+                            print '-W- In {}, automatically generated {} value ({}) will overwrite previous value ({})'.format(loc_name, coord, new_value, old_value)
+                            old_value = None
+                    elif np.isnan(old_value):
+                        pass
+                    elif new_value != old_value:
+                        print '-W- In {}, automatically generated {} value ({}) will overwrite previous value ({})'.format(loc_name, coord, new_value, old_value)
+                    # set new value
+                    loc_container.df.set_value(loc_name, coord, new_value)
+        self.write_table_to_file('locations')
+        return locs
+
+    def propagate_lithology_cols(self):
+        """
+        Propagate any data from lithologies, geologic_types, or geologic_classes
+        from the sites table to the samples and specimens table.
+        In the samples/specimens tables, null or "Not Specified" values
+        will be overwritten based on the data from their parent site.
+        """
+        cols = ['lithologies', 'geologic_types', 'geologic_classes']
+        for table in ['specimens', 'samples']:
+            # convert "Not Specified" to blank
+            self.tables[table].df.replace("^[Nn]ot [Ss]pecified", '',
+                                          regex=True, inplace=True)
+        self.propagate_cols_down(cols, 'samples', 'sites')
+        cols = ['lithologies', 'geologic_types', 'geologic_classes']
+        self.propagate_cols_down(cols, 'specimens', 'samples')
+
 
     def add_item(self, table_name, data, label):
         self.tables[table_name].add_row(label, data)
@@ -202,6 +451,12 @@ class Contribution(object):
         col_name = item_type[:-1]
         col_name_plural = col_name + "s"
         table_df = self.tables[item_type].df
+
+        if item_old_name == '':
+            # just add a new item
+            self.add_item(table_name, {col_name: item_new_name}, item_new_name)
+            return
+
         # rename item in its own table
         table_df.rename(index={item_old_name: item_new_name}, inplace=True)
         # rename in any parent/child tables
@@ -216,7 +471,9 @@ class Contribution(object):
                 df[col_name_plural + "_list"] = df[col_name_plural].str.split(":")
                 replace_colon_delimited_value(df, col_name_plural + "_list", item_old_name, item_new_name)
                 df[col_name_plural] = df[col_name_plural + "_list"].apply(put_together_if_list)
+                df.drop(col_name_plural + "_list", axis=1, inplace=True)
             self.tables[table_name].df = df
+
 
     def get_table_name(self, ind):
         """
@@ -346,14 +603,22 @@ class Contribution(object):
 
         add_name = source_df_name[:-1]
         self.propagate_name_down(add_name, target_df_name)
-        #
+        # get dataframes for merge
         target_df = self.tables[target_df_name].df
         source_df = self.tables[source_df_name].df
-        #
+        # finesse source_df to make sure it has all the right columns
+        # and no unnecessary duplicates
+        if source_df_name not in source_df.columns:
+            source_df[source_df_name] = source_df.index
+        source_df.drop_duplicates(inplace=True, subset=col_names + [source_df_name])
+        source_df = source_df.groupby(source_df.index, sort=False).fillna(method='ffill').groupby(source_df.index, sort=False).fillna(method='bfill')
+        # do merge
         target_df = target_df.merge(source_df[col_names], how='left',
                                     left_on=add_name, right_index=True,
                                     suffixes=["_target", "_source"])
-        # mess with target_df to remove unneded merge columns
+        # ignore any duplicate rows
+        target_df.drop_duplicates(inplace=True)
+        # mess with target_df to remove un-needed merge columns
         for col in col_names:
             # if there has been a previous merge, consolidate and delete data
             if col + "_target" in target_df.columns:
@@ -370,6 +635,38 @@ class Contribution(object):
         self.tables[target_df_name].df = target_df
         return target_df
 
+    def remove_non_magic_cols(self):
+        """
+        Remove all non-MagIC columns from all tables.
+        """
+        for table_name in self.tables:
+            table = self.tables[table_name]
+            table_dm = self.data_model.dm[table_name]
+            approved_cols = table_dm.index
+            unrecognized_cols = (set(table.df.columns) - set(approved_cols))
+            if unrecognized_cols:
+                print '-I- Removing non-MagIC column names from {}:'.format(table_name),
+                for col in unrecognized_cols:
+                    self.tables[table_name].df.drop(col, axis='columns', inplace=True)
+                    print col,
+                print "\n"
+
+    def write_table_to_file(self, dtype):
+        """
+        Write out a MagIC table to file, using custom filename
+        as specified in self.filenames.
+
+        Parameters
+        ----------
+        dtype : str
+            magic table name
+        """
+        fname = self.filenames[dtype]
+        if dtype in self.tables:
+            self.tables[dtype].write_magic_file(custom_name=fname,
+                                                dir_path=self.directory)
+
+
 
 class MagicDataFrame(object):
 
@@ -380,7 +677,7 @@ class MagicDataFrame(object):
     """
 
     def __init__(self, magic_file=None, columns=None, dtype=None,
-                 groups=None, dmodel=None, df=None):
+                 groups=None, dmodel=None, df=None, data=None):
         """
         Provide either a magic_file or a dtype.
         List of columns is optional,
@@ -390,75 +687,123 @@ class MagicDataFrame(object):
         will be filled in by the data model.
         If provided, col_names takes precedence.
         """
+        # first fetch data model if not provided
+        # (DataModel type sometimes not recognized, hence ugly hack below)
+        if isinstance(dmodel, data_model.DataModel) or str(data_model.DataModel) == str(type(dmodel)):
+            MagicDataFrame.data_model = dmodel
+            self.data_model = dmodel
+        else:
+            try:
+                self.data_model = MagicDataFrame.data_model
+            except AttributeError:
+                MagicDataFrame.data_model = data_model.DataModel()
+                self.data_model = MagicDataFrame.data_model
+
+        # create MagicDataFrame using a DataFrame and a dtype:
         if isinstance(df, pd.DataFrame):
             self.df = df
             if dtype:
-                self.dtype = dtype
+                name, self.dtype = self.get_singular_and_plural_dtype(dtype)
+                if name in self.df.columns:
+                    self.df.index = self.df[name]
             else:
                 print '-W- Please provide data type...'
-        # make sure all required arguments are present
+
+        # create MagicDataFrame using data and a dtype
+        if data:
+            df = pd.DataFrame(data)
+            self.df = df
+            if dtype:
+                self.dtype = dtype
+                try:
+                    self.df.index = self.df[dtype[:-1]]
+                except KeyError:
+                    pass
+
+            else:
+                print "-W- To make a MagicDataFrame from data, you must provide a datatype"
+                self.df = None
+                return
+
+        # if user has not provided a filename, they must provide a dtype and either a df/data
+        # warn them and return
         if not magic_file and not dtype and not isinstance(df, pd.DataFrame):
             print "-W- To make a MagicDataFrame, you must provide either a filename or a datatype"
             self.df = None
             return
-        # fetch data model if not provided
-        if isinstance(dmodel, type(None)):
-            self.data_model = data_model.DataModel()
-        else:
-            self.data_model = dmodel
 
+        # create MagicDataFrame using a DataFrame and a dtype:
         if isinstance(df, pd.DataFrame):
-            pass
+            self.df = df
+            if dtype:
+                name, self.dtype = self.get_singular_and_plural_dtype(dtype)
+                if name in self.df.columns:
+                    self.df.index = self.df[name]
+            else:
+                print '-W- Please provide data type...'
+
+        # create MagicDataFrame using data and a dtype
+        if data:
+            df = pd.DataFrame(data)
+            self.df = df
+            if dtype:
+                self.dtype = dtype
+                try:
+                    self.df.index = self.df[dtype[:-1]]
+                except KeyError:
+                    pass
+
+            else:
+                print "-W- To make a MagicDataFrame from data, you must provide a datatype"
+                self.df = None
+                return
+
+        # if user has not provided a filename, they must provide a dtype and either a df/data
+        # warn them and return
+        if not magic_file and not dtype and not isinstance(df, pd.DataFrame):
+            print "-W- To make a MagicDataFrame, you must provide either a filename or a datatype"
+            self.df = None
+            return
+
+        # if a DataFrame was already created, continue
+        # otherwise create MagicDataFrame by reading the file if present,
+        # or make an empty MagicDataFrame of the correct dtype
+        if isinstance(df, pd.DataFrame):
+            # get singular name and plural datatype
+            name, self.dtype = self.get_singular_and_plural_dtype(dtype)
         # if no file is provided, make an empty dataframe of the appropriate type
-        elif not magic_file:
-            self.dtype = dtype
+        elif dtype and not magic_file:
+            name, self.dtype = self.get_singular_and_plural_dtype(dtype)
             if not isinstance(columns, type(None)):
                 self.df = DataFrame(columns=columns)
             else:
                 self.df = DataFrame()
-                self.df.index.name = dtype[:-1] if dtype.endswith("s") else dtype
+                self.df.index.name = name #dtype[:-1] if dtype.endswith("s") else dtype
         # if there is a file provided, read in the data and ascertain dtype
         else:
-            ## old way of reading in data using pmag.magic_read
-            #data, dtype, keys = pmag.magic_read(magic_file, return_keys=True)
-            ## create dataframe, maintaining column order:
-            #self.df = DataFrame(data, columns=keys)
-            #if dtype == 'bad_file':
-            #    print "-W- Bad file {}".format(magic_file)
-            #    self.dtype = 'empty'
-            #    return
-
             ## new way of reading in data using pd.read_table
             with open(magic_file) as f:
                 try:
                     delim, dtype = f.readline().split('\t')[:2]
-                except ValueError:
+                except ValueError as ex:
+                    print ex, type(ex)
                     print "-W- Empty file {}".format(magic_file)
+                    self.dtype = 'empty'
                     self.df = DataFrame()
                     return
+            # get singular name and plural datatype
+            name, self.dtype = self.get_singular_and_plural_dtype(dtype)
             self.df = pd.read_table(magic_file, skiprows=[0])
-            self.dtype = dtype.strip()
             if self.dtype == 'measurements':
-                ###self.df['measurement_name'] = self.df['experiment_name'] + self.df['measurement_number']
                 self.df['measurement'] = self.df['experiment'] + self.df['number'].astype(str)
-                name = 'measurement'
-            elif self.dtype.endswith('s'):
-                #dtype = dtype[:-1]
-                name = '{}'.format(self.dtype[:-1])
             elif self.dtype == 'contribution':
-                name = 'doi'
-                # **** this is broken at the moment, fix it!
                 return
-            else:
-                name = self.dtype
-            # fix these:
-            if self.dtype == 'images':
-                self.df = pd.DataFrame()
+            elif self.dtype == 'images':
                 return
-            if self.dtype == 'criteria':
-                #self.df = pd.DataFrame()
+            elif self.dtype == 'criteria':
                 self.df.index = self.df['table_column']
                 return
+            #
             if len(self.df) and self.dtype != 'ages':
                 self.df.index = self.df[name].astype(str)
             elif self.dtype == 'ages':
@@ -473,15 +818,16 @@ class MagicDataFrame(object):
             # this is not necessarily a good idea....
             #self.df.dropna(axis=1, how='all', inplace=True)
             #
-            # add df columns that were passed in but weren't in the file
-            if columns:
-                for col in columns:
-                    if col not in self.df.columns:
-                        self.df[col] = None
 
-        # add col_names by group
+        # add any columns specified but not already in self.df
+        if columns:
+            for col in columns:
+                if col not in self.df.columns:
+                    self.df[col] = None
+
+        # add col_names by group (unless columns was specified)
         if groups and not columns:
-            columns = []
+            columns = list(self.df.columns)
             for group_name in groups:
                 columns.extend(list(self.data_model.get_group_headers(self.dtype, group_name)))
             for col in columns:
@@ -489,6 +835,11 @@ class MagicDataFrame(object):
                     self.df[col] = None
             self.df = self.df[columns]
 
+        # make sure name column is present (i.e., sample column in samples df)
+        if name not in ['measurement', 'age']:
+            self.df[name] = self.df.index
+        elif name == 'measurement':
+            self.df['measurement'] = self.df['experiment'] + self.df['number'].astype(str)
 
 
     ## Methods to change self.df inplace
@@ -561,6 +912,46 @@ class MagicDataFrame(object):
         return self.df
 
 
+    def add_data(self, data):  # add append option later
+        """
+        Add df to a MagicDataFrame using a data list.
+
+        Parameters
+        ----------
+        data : list of dicts
+            data list with format [{'key1': 'val1', ...}, {'key1': 'val2', ...}, ... }]
+        dtype : str
+            MagIC table type
+        """
+        df = pd.DataFrame(data)
+        name, dtype = self.get_singular_and_plural_dtype(self.dtype)
+        if name in df.columns:
+            df.index = df[name]
+        self.df = df
+
+
+    def get_singular_and_plural_dtype(self, dtype):
+        """
+        Parameters
+        ----------
+        dtype : str
+            MagIC table type (specimens, samples, contribution, etc.)
+
+        Returns
+        ---------
+        name : str
+           singular name for MagIC table ('specimen' for specimens table, etc.)
+        dtype : str
+           plural dtype for MagIC table ('specimens' for specimens table, etc.)
+        """
+        dtype = dtype.strip()
+        if dtype.endswith('s'):
+            return dtype[:-1], dtype
+        elif dtype == 'criteria':
+            return 'table_column', 'criteria'
+        elif dtype == 'contribution':
+            return 'doi', 'contribution'
+
     def add_blank_row(self, label):
         """
         Add a blank row with only an index value to self.df.
@@ -581,10 +972,23 @@ class MagicDataFrame(object):
         self.df = pd.concat([self.df[:ind], self.df[ind+1:]])
         return self.df
 
-    def delete_rows(self, condition):
+    def delete_rows(self, condition, info_str=None):
         """
         delete all rows with  condition==True
         inplace
+
+        Parameters
+        ----------
+        condition : pandas DataFrame indexer
+            all self.df rows that meet this condition will be deleted
+        info_str : str
+            description of the kind of rows to be deleted,
+            e.g "specimen rows with blank method codes"
+
+        Returns
+        --------
+        df_data : pandas DataFrame
+            updated self.df
         """
         self.df['num'] = range(len(self.df))
         df_data = self.df
@@ -593,7 +997,9 @@ class MagicDataFrame(object):
             inds = df_data[condition]['num'] # list of all rows where condition is TRUE
             for ind in inds[::-1]:
                 df_data = self.delete_row(ind)
-                print 'deleting row {}'.format(str(ind))
+                if info_str:
+                    print "-I- Deleting {}. ".format(info_str),
+                    print 'deleting row {}'.format(str(ind))
         # sort so that all rows for an item are together
         df_data.sort_index(inplace=True)
         # redo temporary index
@@ -614,9 +1020,9 @@ class MagicDataFrame(object):
         # add numeric index column temporarily
         self.df['num'] = range(len(self.df))
         df_data = self.df
+        condition2 = df_data.index == name
         # edit first of existing data that meets condition
-        if len(df_data[condition]) > 0:  #we have one or more records to update or delete
-            condition2 = df_data.index == name
+        if len(df_data[condition & condition2]) > 0:  #we have one or more records to update or delete
             # list of all rows where condition is true and index == name
             inds = df_data[condition & condition2]['num']
             #inds = df_data[condition]['num'] # list of all rows where condition is true
@@ -877,6 +1283,8 @@ class MagicDataFrame(object):
         f.write('tab\t{}\n'.format(self.dtype))
         df.to_csv(f, sep="\t", header=True, index=False)
         f.close()
+
+
 
 
 if __name__ == "__main__":

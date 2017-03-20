@@ -118,7 +118,7 @@ class Test_cit_magic(unittest.TestCase):
         options = {}
         options['input_dir_path'] = os.path.join(WD, 'data_files',
                                                  'Measurement_Import',
-                                                 'cit_magic', 'PI47')
+                                                 'CIT_magic', 'PI47')
         options['magfile'] = 'PI47-.sam'
         program_ran, outfile = cit_magic.main(False, **options)
         self.assertTrue(program_ran)
@@ -129,7 +129,7 @@ class Test_cit_magic(unittest.TestCase):
         options = {}
         options['input_dir_path'] = os.path.join(WD, 'data_files',
                                                  'Measurement_Import',
-                                                 'cit_magic', 'PI47')
+                                                 'CIT_magic', 'PI47')
         options['magfile'] = 'PI47-.sam'
         options['samp_con'] = '4'
         program_ran, error_message = cit_magic.main(False, **options)
@@ -140,7 +140,7 @@ class Test_cit_magic(unittest.TestCase):
         options = {}
         options['input_dir_path'] = os.path.join(WD, 'data_files',
                                                  'Measurement_Import',
-                                                 'cit_magic', 'PI47')
+                                                 'CIT_magic', 'PI47')
         options['magfile'] = 'PI47-.sam'
         options['samp_con'] = '4-3'
         program_ran, outfile = cit_magic.main(False, **options)
@@ -152,7 +152,7 @@ class Test_cit_magic(unittest.TestCase):
         options = {}
         options['input_dir_path'] = os.path.join(WD, 'data_files',
                                                  'Measurement_Import',
-                                                 'cit_magic', 'PI47')
+                                                 'CIT_magic', 'PI47')
         options['magfile'] = 'PI47-.sam'
         options['samp_con'] = '2'
         options['methods'] = ['SO-SM:SO-MAG']
@@ -168,7 +168,7 @@ class Test_cit_magic(unittest.TestCase):
         options = {}
         options['input_dir_path'] = os.path.join(WD, 'data_files',
                                                  'Measurement_Import',
-                                                 'cit_magic', 'PI47')
+                                                 'CIT_magic', 'PI47')
         options['magfile'] = 'PI47-.sam'
         options['samp_con'] = '1'
         options['methods'] = ['SO-SM:SO-MAG']
@@ -341,7 +341,7 @@ class Test2g_bin_magic(unittest.TestCase):
     def test_2g_with_files(self):
         options = {}
         options['ID'] = os.path.join(WD, 'data_files', 'Measurement_Import',
-                                     '2g_bin_magic', 'mn1')
+                                     '2G_bin_magic', 'mn1')
         options['mag_file'] = 'mn001-1a.dat'
         program_ran, outfile = _2g_bin_magic.main(False, **options)
         self.assertTrue(program_ran)
@@ -353,7 +353,7 @@ class Test2g_bin_magic(unittest.TestCase):
         options = {}
         options['input_dir_path'] = os.path.join(WD, 'data_files',
                                                  'Measurement_Import',
-                                                 '2g_bin_magic', 'mn1')
+                                                 '2G_bin_magic', 'mn1')
         options['magfile'] =  'mn001-1a.dat'
         options['samp_con'] = '4'
         program_ran, error_message = _2g_bin_magic.main(False, **options)
@@ -363,7 +363,7 @@ class Test2g_bin_magic(unittest.TestCase):
     def test_2g_succeed_option4(self):
         options = {}
         options['ID'] = os.path.join(WD, 'data_files', 'Measurement_Import',
-                                     '2g_bin_magic', 'mn1')
+                                     '2G_bin_magic', 'mn1')
         options['mag_file'] =  'mn001-1a.dat'
         options['samp_con'] = '4-3'
         program_ran, outfile = _2g_bin_magic.main(False, **options)
@@ -373,7 +373,7 @@ class Test2g_bin_magic(unittest.TestCase):
     def test_2g_fail_option7(self):
         options = {}
         options['ID'] = os.path.join(WD, 'data_files', 'Measurement_Import',
-                                     '2g_bin_magic', 'mn1')
+                                     '2G_bin_magic', 'mn1')
         options['mag_file'] = 'mn001-1a.dat'
         options['samp_con'] = '7'
         program_ran, error_message = _2g_bin_magic.main(False, **options)
@@ -383,7 +383,7 @@ class Test2g_bin_magic(unittest.TestCase):
     def test_2g_succeed_option7(self):
         options = {}
         options['ID'] = os.path.join(WD, 'data_files', 'Measurement_Import',
-                                     '2g_bin_magic', 'mn1')
+                                     '2G_bin_magic', 'mn1')
         options['mag_file'] = 'mn001-1a.dat'
         options['samp_con'] = '7-3'
         program_ran, outfile = _2g_bin_magic.main(False, **options)
@@ -393,7 +393,7 @@ class Test2g_bin_magic(unittest.TestCase):
     def test_2g_fail_option6(self):
         options = {}
         options['ID'] = os.path.join(WD, 'data_files', 'Measurement_Import',
-                                     '2g_bin_magic', 'mn1')
+                                     '2G_bin_magic', 'mn1')
         options['mag_file'] =  'mn001-1a.dat'
         options['samp_con'] = '6'
         program_ran, error_message = _2g_bin_magic.main(False, **options)
@@ -403,7 +403,7 @@ class Test2g_bin_magic(unittest.TestCase):
     def test_2g_with_bad_file(self):
         options = {}
         options['ID'] = os.path.join(WD, 'data_files', 'Measurement_Import',
-                                     '2g_bin_magic', 'mn1')
+                                     '2G_bin_magic', 'mn1')
         options['mag_file'] =  'mn001-1ax.dat'
         program_ran, error_message = _2g_bin_magic.main(False, **options)
         self.assertFalse(program_ran)
@@ -412,7 +412,7 @@ class Test2g_bin_magic(unittest.TestCase):
     def test_2g_with_options(self):
         options = {}
         options['ID'] = os.path.join(WD, 'data_files', 'Measurement_Import',
-                                     '2g_bin_magic', 'mn1')
+                                     '2G_bin_magic', 'mn1')
         options['mag_file'] = 'mn001-1a.dat'
         options['meas_file'] = 'mn001-1a.magic'
         options['samp_con'] = '4-3'

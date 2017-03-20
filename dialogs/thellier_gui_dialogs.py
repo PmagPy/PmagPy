@@ -496,7 +496,7 @@ class Criteria_Dialog(wx.Dialog):
             exec command
         self.set_anisotropy_alt.SetValue(value) 
 
-        crit="anisotropy_ftest_flag"        
+        crit="specimen_aniso_ftest_flag"        
         if self.acceptance_criteria[crit]['value'] in [True,1,"True","TRUE","1","1.0",'g']:
             self.set_anisotropy_ftest_flag.SetValue(True)
         else:

@@ -295,6 +295,32 @@ class replicate_measurements(wx.StaticBoxSizer):
             return False
 
 
+class mass_or_volume_buttons(wx.StaticBoxSizer):
+
+    def __init__(self, parent):
+        box = wx.StaticBox(parent, wx.ID_ANY, "")
+        super(mass_or_volume_buttons, self).__init__(box, orient=wx.HORIZONTAL)
+        text = "Is the final field mass or volume:"
+        stat_text = wx.StaticText(parent, label=text, style=wx.TE_CENTER)
+        self.rb1 = wx.RadioButton(parent, -1, 'Volume', style=wx.RB_GROUP)
+        self.rb1.SetValue(True)
+        self.rb2 = wx.RadioButton(parent, -1, 'Mass')
+        self.Add(stat_text, wx.ALIGN_LEFT)
+        self.AddSpacer(8)
+        self.Add(self.rb1, wx.ALIGN_LEFT)
+        self.AddSpacer(8)
+        self.Add(self.rb2, wx.ALIGN_LEFT)
+
+    def return_value(self):
+        """
+        return boolean
+        """
+        if self.rb1.GetValue():
+            return 'v'
+        else:
+            return 'm'
+
+
 class check_box(wx.StaticBoxSizer):
 
     def __init__(self, parent, text):
@@ -428,6 +454,29 @@ class lab_field(wx.StaticBoxSizer):
             return ''
         return labfield
 
+class site_lat_lon(wx.StaticBoxSizer):
+
+    def __init__(self, parent):
+        box = wx.StaticBox(parent, wx.ID_ANY, "", size=(100, 100))
+        super(site_lat_lon, self).__init__(box, orient=wx.VERTICAL)
+        text = "Lattitude and Longitude of Site"
+        self.file_info_text = wx.StaticText(parent, label=text, style=wx.TE_CENTER)
+        self.file_info_site_lat = wx.TextCtrl(parent, id=-1, size=(40, 25))
+        self.file_info_site_lon = wx.TextCtrl(parent, id=-1, size=(40, 25))
+        gridbSizer3 = wx.GridSizer(2, 2, 0, 10)
+        gridbSizer3.AddMany([(wx.StaticText(parent, label="Lattitude (degrees)", style=wx.TE_CENTER), wx.ALIGN_LEFT),
+                             (wx.StaticText(parent, label="Longitude (degrees)", style=wx.TE_CENTER), wx.ALIGN_LEFT),
+                             (self.file_info_site_lat, wx.ALIGN_LEFT),
+                             (self.file_info_site_lon, wx.ALIGN_LEFT)])
+        self.Add(self.file_info_text, wx.ALIGN_LEFT)
+        self.AddSpacer(8)
+        self.Add(gridbSizer3, wx.ALIGN_LEFT)
+
+    def return_value(self):
+        latlon = "{} {}".format(self.file_info_site_lat.GetValue(), self.file_info_site_lon.GetValue())
+        if latlon.isspace():
+            return ''
+        return latlon
 
 class synthetic(wx.StaticBoxSizer):
     def __init__(self, parent):
@@ -529,7 +578,7 @@ class combine_files(wx.BoxSizer):
         bSizer0a = wx.StaticBoxSizer(wx.StaticBox(self.parent.panel, wx.ID_ANY, ""), wx.HORIZONTAL)
         self.add_file_button = wx.Button(self.parent.panel, id=-1, label='add file', name='add')
         self.parent.Bind(wx.EVT_BUTTON, self.on_add_file_button, self.add_file_button)
-        self.add_all_files_button = wx.Button(self.parent.panel, id=-1, label="add all *_" + text + " files", name='add_all')
+        self.add_all_files_button = wx.Button(self.parent.panel, id=-1, label="add all *" + text + " files", name='add_all')
         self.parent.Bind(wx.EVT_BUTTON, self.on_add_all_files_button, self.add_all_files_button)
         bSizer0a.AddSpacer(5)
         bSizer0a.Add(self.add_file_button, wx.ALIGN_LEFT)
@@ -660,7 +709,7 @@ class HeaderDialog(wx.Dialog):
     As user clicks or double clicks, items are added to or removed from the selection,
     which is displayed in a text control.
     """
-    def __init__(self, parent, label, items1=None, groups=False):
+    def __init__(self, parent, label, items1=None, groups=False, items2=None):
         super(HeaderDialog, self).__init__(parent, title='Choose headers', size=(500, 500))
         if groups:
             word = 'Groups'
@@ -676,6 +725,14 @@ class HeaderDialog(wx.Dialog):
             listbox_sizer.Add(box1, flag=wx.ALL, border=5)
             self.Bind(wx.EVT_LISTBOX, self.on_click, listbox1)
             self.Bind(wx.EVT_LISTBOX_DCLICK, self.on_click, listbox1)
+        if items2:
+            box2 = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, "Headers for interpretation data", name='box2'), wx.HORIZONTAL)
+            listbox2 = wx.ListBox(self, wx.ID_ANY, choices=items2, style=wx.LB_MULTIPLE, size=(200, 350))
+            box2.Add(listbox2)
+            listbox_sizer.Add(box2, flag=wx.ALL, border=5)
+            self.Bind(wx.EVT_LISTBOX, self.on_click, listbox2)
+            self.Bind(wx.EVT_LISTBOX_DCLICK, self.on_click, listbox2)
+
 
         text_sizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, 'Adding {}:'.format(word.lower()), name='text_box'),
                                      wx.HORIZONTAL)
@@ -800,10 +857,7 @@ class MethodCodeDemystifier(wx.StaticBoxSizer):
             vc = vocabulary
         else:
             vc = Vocabulary()
-            vc.get_all_vocabulary()
         self.vc = vc
-        if not any(vc.code_types):
-            vc.get_all_vocabulary()
         types = vc.code_types.index
         types = vc.code_types['label']
         type_ind = vc.code_types.index
@@ -959,7 +1013,7 @@ def run_command_and_close_window(SELF, command, outfile):
     os.system(command)
     if not outfile:
         outfile = ''
-    msg = "file(s) converted to MagIC format file:\n%s.\n\nSee Terminal (Mac) or command prompt (Windows) for errors"% outfile
+    msg = "file(s) converted to MagIC format file:\n%s.\n\nSee Terminal/message window for errors"% outfile
     dlg = wx.MessageDialog(None, caption="Message:", message=msg, style=wx.OK|wx.ICON_INFORMATION)
     dlg.ShowModal()
     dlg.Destroy()
@@ -970,7 +1024,7 @@ def close_window(SELF, command, outfile):
     print "-I- Finished running equivalent to Python command:\n %s"%command
     if not outfile:
         outfile = ''
-    msg = "file(s) converted to MagIC format file:\n%s.\n\nSee Terminal (Mac) or command prompt (Windows) for errors"% outfile
+    msg = "file(s) converted to MagIC format file:\n%s.\n\nSee Terminal/message windowfor errors"% outfile
     dlg = wx.MessageDialog(None, caption="Message:", message=msg, style=wx.OK|wx.ICON_INFORMATION)
     dlg.ShowModal()
     dlg.Destroy()

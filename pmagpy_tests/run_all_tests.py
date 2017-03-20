@@ -33,13 +33,15 @@ if __name__ == "__main__":
     suite8 = unittest.TestLoader().loadTestsFromModule(pt.test_builder)
     suite9 = unittest.TestLoader().loadTestsFromModule(pt.test_validations)
     #suite10 = unittest.TestLoader().loadTestsFromModule(pt.test_programs)
-    suite12 = unittest.TestLoader().loadTestsFromModule(pt.test_magic_gui3)
+    suite12 = unittest.TestLoader().loadTestsFromModule(pt.test_magic_gui2)
     suite13 = unittest.TestLoader().loadTestsFromModule(pt.test_new_builder)
     suite14 = unittest.TestLoader().loadTestsFromModule(pt.test_er_magic_dialogs)
     suite15 = unittest.TestLoader().loadTestsFromModule(pt.test_find_pmag_dir)
+    suite16 = unittest.TestLoader().loadTestsFromModule(pt.test_map_magic)
     full = unittest.TestSuite([suite1, suite2, suite3, suite4,
                                suite7, suite8, suite9,
-                               suite12, suite13, suite14, suite15])
+                               suite12, suite13, suite14, suite15,
+                               suite16])
 
     unittest.TextTestRunner(verbosity=3).run(full)
 

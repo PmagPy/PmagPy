@@ -12,13 +12,13 @@ import pmagpy.pmagplotlib as pmagplotlib
 def main():
     """
     NAME 
-        plot_mapPTS.py 
+        plot_map_pts.py 
 
     DESCRIPTION
         plots points on map
  
     SYNTAX
-        plot_mapPTS.py [command line options]
+        plot_map_pts.py [command line options]
 
     OPTIONS
         -h prints help and quits
