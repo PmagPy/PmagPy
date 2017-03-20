@@ -26,17 +26,40 @@ def mapping(dictionary, mapping):
             # if there is already a mapped value, try to figure out which value to use
             # (i.e., if both er_synthetic_name and er_specimen_name are in one measurement file)
             if new_key in mapped_dictionary:
-                if not value:
-                    # if new value is null, leave the old value there
-                    continue
-                elif value and not mapped_dictionary[new_key]:
-                    # choose the one that has a non-null value
-                    mapped_dictionary[new_key] = value
-                elif value and mapped_dictionary[new_key]:
-                    # if both have values, choose which one to replace and warn
-                    print '-W- Two possible values found for {}'.format(new_key)
-                    print '    Replacing {} with {}'.format(mapped_dictionary[new_key], value)
-                    mapped_dictionary[new_key] = value
+                if hasattr(value,'any'):
+                    if not value.any():
+                        # if new value is null, leave the old value there
+                        continue
+                    if hasattr(mapped_dictionary,'any'):
+                        if value.any() and not mapped_dictionary[new_key].any():
+                            # choose the one that has a non-null value
+                            mapped_dictionary[new_key] = value
+                        elif value.any() and mapped_dictionary[new_key].any():
+                            # if both have values, choose which one to replace and warn
+                            print '-W- Two possible values found for {}'.format(new_key)
+                            print '    Replacing {} with {}'.format(mapped_dictionary[new_key], value)
+                            mapped_dictionary[new_key] = value
+                    else:
+                        if value.any() and not mapped_dictionary[new_key].any():
+                            # choose the one that has a non-null value
+                            mapped_dictionary[new_key] = value
+                        elif value.any() and mapped_dictionary[new_key].any():
+                            # if both have values, choose which one to replace and warn
+                            print '-W- Two possible values found for {}'.format(new_key)
+                            print '    Replacing {} with {}'.format(mapped_dictionary[new_key], value)
+                            mapped_dictionary[new_key] = value
+                else:
+                    if not value:
+                        # if new value is null, leave the old value there
+                        continue
+                    elif value and not mapped_dictionary[new_key]:
+                        # choose the one that has a non-null value
+                        mapped_dictionary[new_key] = value
+                    elif value and mapped_dictionary[new_key]:
+                        # if both have values, choose which one to replace and warn
+                        print '-W- Two possible values found for {}'.format(new_key)
+                        print '    Replacing {} with {}'.format(mapped_dictionary[new_key], value)
+                        mapped_dictionary[new_key] = value
             # if there is no mapped_value already:
             else:
                 mapped_dictionary[new_key] = value
