@@ -1,5 +1,24 @@
 #!/usr/bin/env pythonw
+"""
+Runs Thellier GUI PmagPy's main analysis GUI for thellier-tyep 
+paleointensity data. This can be used to obtain intensities for Thermal and 
+Microwave data. It allows export of figures and analysis results for upload 
+to the MagIC database and/or publication. For more information on how to 
+interpret or use the GUI's many functions see the Help menu in the open GUI. 
+More documentation can be found on all of PmagPy's functionality at the 
+PmagPy cookbook which can be found here: earthref.org/PmagPy/cookbook/
 
+SYNTAX
+    thellier_gui.py [command line options]
+
+OPTIONS
+    -h : opens this help message
+    -WD : specify working directory
+    -DM : specify MagIC data model (options : 3 or 2.x)
+
+AUTHORS
+    Ron Shaar and Lisa Tauxe
+"""
 #============================================================================================
 # LOG HEADER:
 #============================================================================================
@@ -219,19 +238,12 @@ class Arai_GUI(wx.Frame):
     title = "PmagPy Thellier GUI %s"%CURRENT_VERSION
 
     def __init__(self, WD=None, parent=None, standalone=True, DM=2.5, test_mode=False):
-
-        TEXT="""
-        NAME
-    thellier_gui.py
-
-        DESCRIPTION
-    GUI for interpreting thellier-type paleointensity data.
-    For tutorial chcek PmagPy cookbook in http://earthref.org/PmagPy/cookbook/
+        """
         """
         self.data_model = int(DM)
         args=sys.argv
         if "-h" in args:
-            print TEXT
+            help('__main__')
             sys.exit()
 
         global FIRST_RUN
@@ -971,7 +983,9 @@ else:
                 self.logger.SetItemBackgroundColour(i,"red")
 
     def on_click_listctrl(self, event):
-        meas_i=int(event.GetText())
+        try: meas_i=int(event.GetText())
+        except ValueError:
+            print('invalid operation, index of measurement record must be a positive integer'); return
         step_key = 'treatment_temp'
         if MICROWAVE: step_key = 'treatment_mw_power'
         m_step=self.Data[self.s]['datablock'][meas_i][step_key]
@@ -1016,7 +1030,9 @@ else:
 
     def on_right_click_listctrl(self, event):
 #        self.user_warning("Thellier GUI cannot handle data marked bad yet so this function does not work. This feature is in development and will hopefully be included in future versions. Currently bad data must be removed from measurement file mannuely."); return
-        index = int(event.GetText())
+        try: index = int(event.GetText())
+        except ValueError:
+            print('invalid operation, index of measurement record must be a positive integer'); return
         current_flag = self.Data[self.s]['datablock'][index]['measurement_flag']
 
         if current_flag == "g":

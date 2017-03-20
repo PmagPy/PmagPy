@@ -277,20 +277,20 @@ def get_PI_parameters(Data, acceptance_criteria, preferences, s, tmin, tmax, GUI
     else:
         pars["CR_WARNING"]="no cooling rate correction"
 
-    def combine_dictionaries(d1, d2):
-        """
-        combines dict1 and dict2 into a new dict.  
-        if dict1 and dict2 share a key, the value from dict1 is used
-        """
-        for key, value in d2.iteritems():
-            if key not in d1.keys():
-                d1[key] = value
-        return d1
-
     Data[s]['pars'] = pars
     #print pars.keys()
 
     return(pars)
+
+def combine_dictionaries(d1, d2):
+    """
+    combines dict1 and dict2 into a new dict.  
+    if dict1 and dict2 share a key, the value from dict1 is used
+    """
+    for key, value in d2.iteritems():
+        if key not in d1.keys():
+            d1[key] = value
+    return d1
 
 def calculate_ftest(s,sigma,nf):
     chibar=(s[0][0]+s[1][1]+s[2][2])/3.
