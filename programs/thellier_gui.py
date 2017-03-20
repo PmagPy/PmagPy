@@ -5369,18 +5369,25 @@ else:
             exec command
 
         # specimen_scat
-        if 'scat' in self.preferences['show_statistics_on_gui']:
-            if self.acceptance_criteria['specimen_scat']['value'] in ['True','TRUE','1',1,True,'g']:
-                if self.pars["specimen_scat"]=='Pass':
-                    self.scat_window.SetValue("Pass")
-                    self.scat_window.SetBackgroundColour(wx.GREEN) # set text color
+        #if 'scat' in self.preferences['show_statistics_on_gui']:
+        if "specimen_scat" in self.pars:
+            in_acceptance = self.acceptance_criteria['specimen_scat']['value'] in ['True','TRUE','1',1,True,'g']
+            if self.pars["specimen_scat"]=='Pass':
+                self.scat_window.SetValue("Pass")
+                if in_acceptance:
+                    self.scat_window.SetBackgroundColour(wx.GREEN) # set background color
                 else:
-                    self.scat_window.SetValue("Fail")
-                    self.scat_window.SetBackgroundColour(wx.RED) # set text color
-
+                    self.scat_window.SetBackgroundColour(wx.WHITE)
             else:
-                self.scat_window.SetValue("")
-                self.scat_window.SetBackgroundColour(wx.NamedColour('grey')) # set text color
+                self.scat_window.SetValue("Fail")
+                if in_acceptance:
+                    self.scat_window.SetBackgroundColour(wx.RED) # set background color
+                else:
+                    self.scat_window.SetBackgroundColour(wx.WHITE)
+
+        else:
+            self.scat_window.SetValue("")
+            self.scat_window.SetBackgroundColour(wx.NamedColour('grey')) # set text color
 
 
         # Blab, Banc, correction factors
