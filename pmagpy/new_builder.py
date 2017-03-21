@@ -392,10 +392,10 @@ class Contribution(object):
         will be overwritten based on the data from their parent site.
         """
         cols = ['lithologies', 'geologic_types', 'geologic_classes']
-        for table in ['specimens', 'samples']:
+        #for table in ['specimens', 'samples']:
             # convert "Not Specified" to blank
-            self.tables[table].df.replace("^[Nn]ot [Ss]pecified", '',
-                                          regex=True, inplace=True)
+            #self.tables[table].df.replace("^[Nn]ot [Ss]pecified", '',
+            #                              regex=True, inplace=True)
         self.propagate_cols_down(cols, 'samples', 'sites')
         cols = ['lithologies', 'geologic_types', 'geologic_classes']
         self.propagate_cols_down(cols, 'specimens', 'samples')
