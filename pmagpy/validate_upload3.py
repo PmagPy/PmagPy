@@ -183,7 +183,9 @@ def cv(row, col_name, arg, current_data_model, df, con):
             print val, ex
 
     for value in cell_values:
-        if str(value).lower() in possible_values:
+        if str(value).lower() == "nan":
+            continue
+        elif str(value).lower() in possible_values:
             continue
         elif value.lower() == "none":
             continue
