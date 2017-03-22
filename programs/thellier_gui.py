@@ -174,7 +174,6 @@ AUTHORS
 global CURRENT_VERSION
 global MICROWAVE
 global THERMAL
-CURRENT_VERSION = "v.3.0"
 MICROWAVE=False
 THERMAL=True
 
@@ -193,6 +192,7 @@ import matplotlib.pyplot as plt
 import sys, os, copy, pdb
 from webbrowser import open as webopen
 import pmagpy.pmag as pmag
+CURRENT_VERSION = pmag.get_version()
 from pmagpy import find_pmag_dir
 import pmagpy.new_builder as nb
 from pmagpy.mapping import map_magic
@@ -236,7 +236,7 @@ class Arai_GUI(wx.Frame):
     """
     The main frame of the application
     """
-    title = "PmagPy Thellier GUI %s"%CURRENT_VERSION
+    title = "Thellier GUI version:%s"%CURRENT_VERSION
 
     def __init__(self, WD=None, parent=None, standalone=True, DM=0, test_mode=False, evt_quit=None):
 

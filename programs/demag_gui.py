@@ -54,8 +54,10 @@ import matplotlib
 if not matplotlib.get_backend() == 'WXAgg':
     matplotlib.use('WXAgg')
 import os, sys, pdb, shutil
+import pmagpy.pmag as pmag
+import pmagpy.ipmag as ipmag
 global CURRENT_VERSION, PMAGPY_DIRECTORY
-CURRENT_VERSION = "v.0.33"
+CURRENT_VERSION = pmag.get_version()
 import pmagpy.find_pmag_dir as find_pmag_dir
 PMAGPY_DIRECTORY = find_pmag_dir.get_pmag_dir()
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigCanvas
@@ -73,8 +75,6 @@ from scipy.optimize import curve_fit
 from scipy.signal import find_peaks_cwt
 from webbrowser import open as webopen
 from pkg_resources import resource_filename
-import pmagpy.pmag as pmag
-import pmagpy.ipmag as ipmag
 from dialogs.demag_interpretation_editor import InterpretationEditorFrame
 from pmagpy.demag_gui_utilities import *
 from pmagpy.Fit import *
@@ -98,7 +98,7 @@ class Demag_GUI(wx.Frame):
     """
     GUI for interpreting demagnetization data (AF and/or thermal)
     """
-    title = "PmagPy Demag GUI %s (beta)"%CURRENT_VERSION
+    title = "Demag GUI version:%s"%CURRENT_VERSION
 
 #==========================================================================================#
 #============================Initalization Functions=======================================#
