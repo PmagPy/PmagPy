@@ -178,7 +178,6 @@ class Demag_GUI(wx.Frame):
         self.dpi = 100
 
         self.all_fits_list = []
-        self.means_to_plot = None
 
         self.pmag_results_data={}
         for level in ['specimens','samples','sites','locations','study']:
@@ -1550,7 +1549,7 @@ class Demag_GUI(wx.Frame):
         check if on, and if interpretation editor is open it calls the
         interpretation editor to have it draw the same things.
         """
-        self.toolbar4.home()
+#        self.toolbar4.home()
         high_level=self.level_box.GetValue()
         self.UPPER_LEVEL_NAME=self.level_names.GetValue()
         self.UPPER_LEVEL_MEAN=self.mean_type_box.GetValue()
@@ -1661,11 +1660,21 @@ class Demag_GUI(wx.Frame):
             if mean_fit in self.high_level_means[high_level_type][high_level_name].keys() and dirtype in self.high_level_means[high_level_type][high_level_name][mean_fit].keys():
                 self.plot_eqarea_mean(self.high_level_means[high_level_type][high_level_name][mean_fit][dirtype],self.high_level_eqarea)
         else:
-            for mf in self.means_to_plot+['All']:
+            means_to_plot = self.get_means_to_plot()
+            for mf in means_to_plot+['All']:
                 if mf not in self.high_level_means[high_level_type][high_level_name].keys() or (dirtype in self.high_level_means[high_level_type][high_level_name][mf] and 'calculation_type' in self.high_level_means[high_level_type][high_level_name][mf][dirtype] and self.high_level_means[high_level_type][high_level_name][mf][dirtype]['calculation_type'] != calculation_type):
                     self.calculate_high_level_mean(high_level_type,high_level_name,calculation_type,self.UPPER_LEVEL_SHOW,mf)
                 if mf in self.high_level_means[high_level_type][high_level_name].keys() and dirtype in self.high_level_means[high_level_type][high_level_name][mf].keys():
                     self.plot_eqarea_mean(self.high_level_means[high_level_type][high_level_name][mf][dirtype],self.high_level_eqarea)
+
+    def get_means_to_plot(self):
+        mb = self.GetMenuBar()
+        am = mb.GetMenu(2)
+        toggleable_means = am.GetMenuItems()[3].SubMenu.GetMenuItems()
+        means_to_plot = []
+        for tm in toggleable_means:
+            if not tm.IsChecked(): means_to_plot.append(tm.GetLabel())
+        return means_to_plot
 
     def calc_and_plot_sample_orient_check(self):
         """
@@ -5297,7 +5306,6 @@ class Demag_GUI(wx.Frame):
             if specimen in self.pmag_results_data['specimens']:
                 for name in map(lambda x: x.name, self.pmag_results_data['specimens'][specimen]):
                     if name not in self.all_fits_list: self.all_fits_list.append(name)
-        if self.means_to_plot == None: self.means_to_plot = self.all_fits_list
         self.mean_fit_box.SetItems(['None','All'] + self.all_fits_list)
         #select defaults
         if fit_index:
@@ -6140,12 +6148,6 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
             self.bad_fits.remove(self.current_fit)
 
     def on_menu_toggle_mean(self,event):
-        mb = self.GetMenuBar()
-        am = mb.GetMenu(2)
-        toggleable_means = am.GetMenuItems()[3].SubMenu.GetMenuItems()
-        self.means_to_plot = []
-        for tm in toggleable_means:
-            if not tm.IsChecked(): self.means_to_plot.append(tm.GetLabel())
         self.plot_high_level_means()
         self.canvas4.draw()
         if self.ie_open: self.ie.draw()
