@@ -2407,7 +2407,7 @@ else:
                     command="value=1"
 
             if crit=='site_int_n':
-                if not dia.set_site_int_n.GetValue():
+                if not dia.set_sample_int_n.GetValue():
                     command="value=1"
 
 

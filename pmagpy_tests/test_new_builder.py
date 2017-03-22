@@ -281,9 +281,9 @@ class TestContribution(unittest.TestCase):
         res = self.con.tables['specimens'].df['geologic_classes'].unique()
         self.assertEqual(res, ['Archeologic'])
         #
-        self.con.tables['specimens'].df.loc[:, 'geologic_types'] = "not Specified"
+        self.con.tables['specimens'].df.loc[:, 'geologic_types'] = ""
         res = self.con.tables['specimens'].df['geologic_types'].unique()
-        self.assertEqual(["not Specified"], res)
+        self.assertEqual([""], res)
         self.con.tables['samples'].df.loc['mgh12t101', 'geologic_types'] = "Oven"
         self.con.propagate_lithology_cols()
         res = self.con.tables['specimens'].df['geologic_types'].unique()
