@@ -98,10 +98,10 @@ class PintPars(object):
         self.specimen_Data = Data[self.s]
         self.datablock = self.specimen_Data['datablock']
 
-        izzi_flags = list(map(lambda x: x[-1], Data[self.s]['araiblock'][0]))
-        ptrm_flags = list(map(lambda x: x[-1], Data[self.s]['araiblock'][2]))
-        tail_flags = list(map(lambda x: x[-1], Data[self.s]['araiblock'][3]))
-        add_flags = list(map(lambda x: x[-1], Data[self.s]['araiblock'][6]))
+        izzi_flags = list(map(lambda x: x[-1] if len(x)>=6 else 'g', Data[self.s]['araiblock'][0]))
+        ptrm_flags = list(map(lambda x: x[-1] if len(x)>=6 else 'g', Data[self.s]['araiblock'][2]))
+        tail_flags = list(map(lambda x: x[-1] if len(x)>=6 else 'g', Data[self.s]['araiblock'][3]))
+        add_flags = list(map(lambda x: x[-1] if len(x)>=6 else 'g', Data[self.s]['araiblock'][6]))
         zijd_flags = list(map(lambda x: x[5], Data[self.s]['zijdblock']))
         all_flags = list(map(lambda x: x['measurement_flag'], Data[self.s]['datablock']))
 
@@ -145,6 +145,18 @@ class PintPars(object):
 
         self.zijdblock=self.specimen_Data['zijdblock']
         self.z_temperatures=self.specimen_Data['z_temp']
+
+        if self.t_Arai==[]: print("No Arai data found, aborting"); return
+        while tmin not in self.t_Arai:
+            i = self.specimen_Data['t_Arai'].index(tmin)
+            if i>=len(self.specimen_Data['t_Arai']): new_i=i-1
+            else: new_i=i+1
+            tmin=self.specimen_Data['t_Arai'][new_i]
+        while tmax not in self.t_Arai:
+            i = self.specimen_Data['t_Arai'].index(tmax)
+            if i>=len(self.specimen_Data['t_Arai']): new_i=i-1
+            else: new_i=i+1
+            tmax=self.specimen_Data['t_Arai'][new_i]
 
         self.start=self.t_Arai.index(tmin)
         self.end=self.t_Arai.index(tmax)
