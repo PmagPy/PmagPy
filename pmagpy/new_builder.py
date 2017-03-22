@@ -396,9 +396,9 @@ class Contribution(object):
             # convert "Not Specified" to blank
             #self.tables[table].df.replace("^[Nn]ot [Ss]pecified", '',
             #                              regex=True, inplace=True)
-        self.propagate_cols_down(cols, 'samples', 'sites')
+        self.propagate_cols(cols, 'samples', 'sites')
         cols = ['lithologies', 'geologic_types', 'geologic_classes']
-        self.propagate_cols_down(cols, 'specimens', 'samples')
+        self.propagate_cols(cols, 'specimens', 'samples')
 
 
     def add_item(self, table_name, data, label):
@@ -570,8 +570,8 @@ class Contribution(object):
         self.tables[df_name].df = df
         return df
 
-
-    def propagate_cols_down(self, col_names, target_df_name, source_df_name):
+    def propagate_cols(self, col_names, target_df_name, source_df_name,
+                       down=True):
         """
         Put the data for "col_name" from source_df into target_df
         Used to get "azimuth" from sample table into measurements table
@@ -598,11 +598,15 @@ class Contribution(object):
                     print "-W- Column '{}' isn't in {} table, skipping it".format(col, source_df_name)
                     col_names.remove(col)
         if not col_names:
-            print "-W- Invalid or missing column names, could not propagate down"
+            print "-W- Invalid or missing column names, could not propagate columns"
             return
+        #
+        if down:
+            add_name = source_df_name[:-1]
+            self.propagate_name_down(add_name, target_df_name)
+        else:
+            add_name = target_df_name[:-1]
 
-        add_name = source_df_name[:-1]
-        self.propagate_name_down(add_name, target_df_name)
         # get dataframes for merge
         target_df = self.tables[target_df_name].df
         source_df = self.tables[source_df_name].df
@@ -612,10 +616,23 @@ class Contribution(object):
             source_df[source_df_name] = source_df.index
         source_df.drop_duplicates(inplace=True, subset=col_names + [source_df_name])
         source_df = source_df.groupby(source_df.index, sort=False).fillna(method='ffill').groupby(source_df.index, sort=False).fillna(method='bfill')
-        # do merge
-        target_df = target_df.merge(source_df[col_names], how='left',
-                                    left_on=add_name, right_index=True,
-                                    suffixes=["_target", "_source"])
+        # propagate down
+        if down:
+            # do merge
+            target_df = target_df.merge(source_df[col_names], how='left',
+                                        left_on=add_name, right_index=True,
+                                        suffixes=["_target", "_source"])
+        # propagate up
+        else:
+            # do merge
+            col_names.append(add_name)
+            target_df = target_df.merge(source_df[col_names],
+                                        how='left', left_index=True,
+                                        right_on=add_name,
+                                        suffixes=['_target', '_source'])
+            target_df.index = target_df[add_name]
+            target_df.drop([add_name + "_source", add_name + "_target"], axis=1, inplace=True)
+
         # ignore any duplicate rows
         target_df.drop_duplicates(inplace=True)
         # mess with target_df to remove un-needed merge columns
@@ -867,7 +884,6 @@ class MagicDataFrame(object):
             return False
         return self.df
 
-
     def add_row(self, label, row_data, columns=""):
         """
         Add a row with data.
@@ -911,7 +927,6 @@ class MagicDataFrame(object):
         #self.df.sort_index(inplace=True)
         return self.df
 
-
     def add_data(self, data):  # add append option later
         """
         Add df to a MagicDataFrame using a data list.
@@ -929,29 +944,6 @@ class MagicDataFrame(object):
             df.index = df[name]
         self.df = df
 
-
-    def get_singular_and_plural_dtype(self, dtype):
-        """
-        Parameters
-        ----------
-        dtype : str
-            MagIC table type (specimens, samples, contribution, etc.)
-
-        Returns
-        ---------
-        name : str
-           singular name for MagIC table ('specimen' for specimens table, etc.)
-        dtype : str
-           plural dtype for MagIC table ('specimens' for specimens table, etc.)
-        """
-        dtype = dtype.strip()
-        if dtype.endswith('s'):
-            return dtype[:-1], dtype
-        elif dtype == 'criteria':
-            return 'table_column', 'criteria'
-        elif dtype == 'contribution':
-            return 'doi', 'contribution'
-
     def add_blank_row(self, label):
         """
         Add a blank row with only an index value to self.df.
@@ -962,7 +954,6 @@ class MagicDataFrame(object):
         # use .loc to add in place (append won't do that)
         self.df.loc[blank_item.name] = blank_item
         return self.df
-
 
     def delete_row(self, ind):
         """
@@ -1007,7 +998,6 @@ class MagicDataFrame(object):
         self.df = df_data
         return df_data
 
-
     def update_record(self, name, new_data, condition, update_only=False,
                       debug=False):
         """
@@ -1048,6 +1038,28 @@ class MagicDataFrame(object):
         df_data['num'] = range(len(df_data))
         self.df = df_data
         return df_data
+
+    def front_and_backfill(self, cols):
+        """
+        Groups dataframe by index name then replaces null values in selected
+        columns with front/backfilled values if available.
+        Changes self.df inplace.
+
+        Parameters
+        ----------
+        self : MagicDataFrame
+        cols : array-like
+            list of column names
+
+        Returns
+        ---------
+        self.df
+        """
+        short_df = self.df[cols]
+        short_df = short_df.groupby(short_df.index, sort=False).fillna(method='ffill').groupby(short_df.index, sort=False).fillna(method='bfill')
+        self.df[cols] = short_df[cols]
+        return self.df
+
 
 
     ## Methods that take self.df and extract some information from it
@@ -1283,6 +1295,56 @@ class MagicDataFrame(object):
         f.write('tab\t{}\n'.format(self.dtype))
         df.to_csv(f, sep="\t", header=True, index=False)
         f.close()
+
+    ## Helper methods
+
+    def get_first_non_null_value(self, ind_name, col_name):
+        """
+        For a given index and column, find the first non-null value.
+
+        Parameters
+        ----------
+        self : MagicDataFrame
+        ind_name : str
+            index name for indexing
+        col_name : str
+            column name for indexing
+
+        Returns
+        ---------
+        single value of str, float, or int
+        """
+        short_df = self.df.loc[ind_name, col_name]
+        mask = pd.notnull(short_df)
+        print short_df[mask]
+        try:
+            val = short_df[mask].unique()[0]
+        except IndexError:
+            val = None
+        return val
+
+
+    def get_singular_and_plural_dtype(self, dtype):
+        """
+        Parameters
+        ----------
+        dtype : str
+            MagIC table type (specimens, samples, contribution, etc.)
+
+        Returns
+        ---------
+        name : str
+           singular name for MagIC table ('specimen' for specimens table, etc.)
+        dtype : str
+           plural dtype for MagIC table ('specimens' for specimens table, etc.)
+        """
+        dtype = dtype.strip()
+        if dtype.endswith('s'):
+            return dtype[:-1], dtype
+        elif dtype == 'criteria':
+            return 'table_column', 'criteria'
+        elif dtype == 'contribution':
+            return 'doi', 'contribution'
 
 
 

@@ -167,6 +167,26 @@ class TestMagicDataFrame(unittest.TestCase):
         self.assertEqual(1, len(results))
 
 
+    def test_get_first_non_null_value(self):
+        magic_df = nb.MagicDataFrame(os.path.join(PROJECT_WD, 'sites.txt'),
+                                     dmodel=DMODEL)
+        res = magic_df.get_first_non_null_value('1', 'bed_dip_direction')
+        self.assertEqual(135, res)
+        magic_df.df.loc['1', 'bed_dip_direction'] = None
+        res = magic_df.get_first_non_null_value('1', 'bed_dip_direction')
+        self.assertTrue(pd.isnull(res))
+
+
+    def test_front_and_backfill(self):
+        magic_df = nb.MagicDataFrame(os.path.join(PROJECT_WD, 'sites.txt'),
+                                     dmodel=DMODEL)
+        directions = magic_df.df.loc['1', 'bed_dip_direction']
+        self.assertEqual(sorted(directions), [None, 135, 135])
+        magic_df.front_and_backfill(cols=['bed_dip_direction'])
+        directions = magic_df.df.loc['1', 'bed_dip_direction']
+        self.assertEqual(sorted(directions), [135, 135, 135])
+
+
 class TestContribution(unittest.TestCase):
 
     def setUp(self):
@@ -330,6 +350,18 @@ class TestContribution(unittest.TestCase):
         self.assertEqual(sorted(['sites', 'locations']), sorted(con.tables.keys()))
         for fname in ['_locations.txt']: # no samples available this time
             os.remove(os.path.join(self.directory, fname))
+
+    def test_propagate_cols_up(self):
+        directory = os.path.join(WD, 'data_files', '3_0', 'McMurdo')
+        con = nb.Contribution(directory, dmodel=DMODEL,
+                              read_tables=['sites', 'samples'])
+        con.tables['sites'].df.loc[:, 'lithologies'] = None
+        con.tables['sites'].df.loc[:, 'geologic_types'] = 'your type'
+        con.tables['samples'].df.loc[:, 'geologic_types'] = 'my_type'
+        con.propagate_cols(['lithologies', 'geologic_types'], 'sites',
+                           'samples', down=False)
+        self.assertEqual('Basalt', con.tables['sites'].get_first_non_null_value('mc50', 'lithologies'))
+        self.assertEqual('your type', con.tables['sites'].get_first_non_null_value('mc50', 'geologic_types'))
 
 
 

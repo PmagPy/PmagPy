@@ -2,7 +2,7 @@
 
 #============================================================================================
 # LOG HEADER:
-#  
+#
 # Dialogs boxes for thellier_gui.py
 #
 #============================================================================================
@@ -18,7 +18,7 @@
 #
 #============================================================================================
 
-#--------------------------------------------------------------    
+#--------------------------------------------------------------
 # Thellier GUI dialog
 #--------------------------------------------------------------
 
@@ -34,19 +34,19 @@ from scipy import arange
 import wx
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigCanvas
 import pmagpy.pmag as pmag
-#--------------------------------------------------------------    
+#--------------------------------------------------------------
 # paleointensity statistics list (SPD.v.1.0)
 #--------------------------------------------------------------
 
 class PI_Statistics_Dialog(wx.Dialog):
 
     def __init__(self, parent, show_statistics_on_gui,title):
-        style =  wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER  
+        style =  wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER
         super(PI_Statistics_Dialog, self).__init__(parent, title=title,style=style)
         self.show_statistics_on_gui=copy.copy(show_statistics_on_gui)
 
         self.stat_by_category={}
-        
+
         self.stat_by_category['Arai plot']=['specimen_int_n',
         'specimen_frac','specimen_f','specimen_fvds',
         'specimen_b_sigma','specimen_b_beta','specimen_scat',
@@ -55,7 +55,7 @@ class PI_Statistics_Dialog(wx.Dialog):
         'specimen_k_prime','specimen_k_prime_sse',
         'specimen_z','specimen_z_md',
         'specimen_q',
-        'specimen_r_sq','specimen_coeff_det_sq',      
+        'specimen_r_sq','specimen_coeff_det_sq',
         ]
         self.stat_by_category['Direction']=['specimen_int_mad','specimen_int_mad_anc','specimen_int_dang','specimen_int_alpha','specimen_alpha_prime','specimen_theta','specimen_int_crm','specimen_gamma']
         self.stat_by_category['pTRM Checks']=['specimen_int_ptrm_n','specimen_ptrm','specimen_drat','specimen_drats','specimen_cdrat','specimen_mdrat',
@@ -129,9 +129,9 @@ class PI_Statistics_Dialog(wx.Dialog):
         pnl1 = wx.Panel(self)
         vbox = wx.BoxSizer(wx.VERTICAL)
 
-        #============================        
+        #============================
         # design the panel
-        #============================        
+        #============================
 
         #---------------------------
         # sizer 1
@@ -142,18 +142,18 @@ class PI_Statistics_Dialog(wx.Dialog):
         for k in range(len(categories)):
             command = "bSizer%i = wx.StaticBoxSizer( wx.StaticBox( pnl1, wx.ID_ANY, '%s' ), wx.VERTICAL )"%(k,categories[k])
             exec command
-            
+
             for stat in self.stat_by_category[categories[k]]:
                 short_name=stat.replace("specimen_","")
                 command="self.set_specimen_%s=wx.CheckBox(pnl1,-1,label='%s',name='%s')"%(short_name,short_name,short_name)
                 exec command
                 command = "self.Bind(wx.EVT_CHECKBOX, self.OnCheckBox, self.set_specimen_%s)"%(short_name)
-                exec command                
+                exec command
                 command="self.specimen_%s_button = wx.Button(pnl1, -1, label='description',name='%s')" %(short_name,stat)
                 exec command
                 command = "self.Bind(wx.EVT_BUTTON,self.PI_stat_description, self.specimen_%s_button)"%(short_name)
                 exec command
-                
+
             for i in range(len(self.stat_by_category[categories[k]])):
                 command="hbox_%i= wx.BoxSizer(wx.HORIZONTAL)"%i
                 exec command
@@ -163,14 +163,14 @@ class PI_Statistics_Dialog(wx.Dialog):
                 exec command
                 command="hbox_%i.AddSpacer(10)"%(i)
                 exec command
-                
+
                 command="hbox_%i.Add(self.set_specimen_%s)"%(i,short_name)
                 exec command
                 command="bSizer%i.Add(hbox_%i)"%(k,i)
                 exec command
                 command="bSizer%i.AddSpacer(10)"%k
                 exec command
-        #self.specimen_int_n_button.Bind(wx.EVT_BUTTON, lambda evt, name=specimen_int_n_button.GetLabel(): self.onButton(evt, name)        
+        #self.specimen_int_n_button.Bind(wx.EVT_BUTTON, lambda evt, name=specimen_int_n_button.GetLabel(): self.onButton(evt, name)
         #self.Bind(wx.EVT_BUTTON,self.PI_stat_description, self.specimen_int_n_button)
         #---------------------------
         # OK / CANCEL
@@ -183,11 +183,11 @@ class PI_Statistics_Dialog(wx.Dialog):
         hbox_OK_CANCEL.AddSpacer(10)
         hbox_OK_CANCEL.Add(self.cancelButton )
 
-        #============================        
+        #============================
         # arrange sizers
-        #============================   
-             
-             
+        #============================
+
+
         hbox= wx.BoxSizer(wx.HORIZONTAL)
         hbox.AddSpacer(10)
         hbox.Add(bSizer0, flag=wx.ALIGN_CENTER_HORIZONTAL)
@@ -199,14 +199,14 @@ class PI_Statistics_Dialog(wx.Dialog):
         hbox.Add(bSizer3, flag=wx.ALIGN_CENTER_HORIZONTAL)
         hbox.AddSpacer(10)
         hbox.Add(bSizer4, flag=wx.ALIGN_CENTER_HORIZONTAL)
-        hbox.AddSpacer(10)            
-                                    
+        hbox.AddSpacer(10)
+
         vbox.AddSpacer(10)
         vbox.Add(hbox, flag=wx.ALIGN_CENTER_HORIZONTAL)
         vbox.AddSpacer(10)
         vbox.Add(hbox_OK_CANCEL, flag=wx.ALIGN_CENTER_HORIZONTAL)
         vbox.AddSpacer(10)
-                    
+
         pnl1.SetSizer(vbox)
         vbox.Fit(self)
 
@@ -218,8 +218,8 @@ class PI_Statistics_Dialog(wx.Dialog):
                 if "specimen_" + short_name in self.stat_by_category[category]:
                     command="self.set_specimen_%s.SetValue(True)"%short_name
                     exec command
-                    
-                    
+
+
 
     def PI_stat_description(self,event):
         button = event.GetEventObject()
@@ -230,7 +230,7 @@ class PI_Statistics_Dialog(wx.Dialog):
         dlg1 = wx.MessageDialog(None,caption=crit, message=TEXT ,style=wx.OK|wx.ICON_INFORMATION)
         dlg1.ShowModal()
         dlg1.Destroy()
-        
+
     def OnCheckBox(self,event):
         checkbox= event.GetEventObject()
         if checkbox.GetValue()==True:
@@ -241,7 +241,7 @@ class PI_Statistics_Dialog(wx.Dialog):
             crit=str(checkbox.GetName())
             if crit in self.show_statistics_on_gui:
                 self.show_statistics_on_gui.remove(crit)
-        
+
         # arrange_all_statistics in order:
         tmp_list=copy.copy(self.show_statistics_on_gui)
         self.show_statistics_on_gui=[]
@@ -253,7 +253,7 @@ class PI_Statistics_Dialog(wx.Dialog):
                     self.show_statistics_on_gui.append(short_name)
 
 
-#--------------------------------------------------------------    
+#--------------------------------------------------------------
 # Change Acceptance criteria dialog
 #--------------------------------------------------------------
 
@@ -262,7 +262,7 @@ class PI_Statistics_Dialog(wx.Dialog):
 class Criteria_Dialog(wx.Dialog):
 
     def __init__(self, parent, acceptance_criteria,preferences,title):
-        style =  wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER  
+        style =  wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER
         super(Criteria_Dialog, self).__init__(parent, title=title,style=style)
         self.acceptance_criteria=acceptance_criteria
         self.preferences=preferences
@@ -278,9 +278,9 @@ class Criteria_Dialog(wx.Dialog):
         vbox = wx.BoxSizer(wx.VERTICAL)
 
 
-        #============================        
+        #============================
         # design the panel
-        #============================        
+        #============================
 
         #---------------------------
         # sizer 1
@@ -288,10 +288,10 @@ class Criteria_Dialog(wx.Dialog):
         #---------------------------
 
         bSizer1 = wx.StaticBoxSizer( wx.StaticBox( pnl1, wx.ID_ANY, "specimen acceptance criteria" ), wx.HORIZONTAL )
-        
+
         hbox_criteria = wx.BoxSizer(wx.HORIZONTAL)
         window_list_specimens=self.preferences['show_statistics_on_gui']
-        
+
         for stat in window_list_specimens:
             if stat=='scat':
                 self.set_specimen_scat=wx.CheckBox(pnl1, -1, '')
@@ -300,17 +300,17 @@ class Criteria_Dialog(wx.Dialog):
                 exec command
             command="self.%s_label=wx.StaticText(pnl1,label='%s',style=wx.ALIGN_CENTRE)"%(stat,stat.replace("specimen_",""))
             exec command
-            
+
             command="gs_%s = wx.GridSizer(2, 1,5,5)"%stat
-            exec command            
+            exec command
             command="gs_%s.AddMany( [(self.%s_label,wx.EXPAND),(self.set_specimen_%s,wx.EXPAND)])"%(stat,stat,stat)
             exec command
             command="bSizer1.Add(gs_%s,flag=wx.ALIGN_LEFT)"%stat
             exec command
             bSizer1.AddSpacer(12)
 
-                
-                                                
+
+
 
         #---------------------------
         # anisotropy criteria
@@ -333,19 +333,19 @@ class Criteria_Dialog(wx.Dialog):
         #---------------------------
 
         bSizer2 = wx.StaticBoxSizer( wx.StaticBox( pnl1, wx.ID_ANY, "sample/Site acceptance criteria" ), wx.HORIZONTAL )
-    
+
         self.set_average_by_sample_or_site=wx.ComboBox(pnl1, -1,size=(150, -1), value = 'sample', choices=['sample','site'], style=wx.CB_READONLY)
-        
+
         # Sample criteria
         window_list_samples=['int_n','int_n_outlier_check']
         for key in window_list_samples:
             command="self.set_sample_%s=wx.TextCtrl(pnl1,style=wx.TE_CENTER,size=(50,20))"%key
             exec command
         criteria_sample_window = wx.GridSizer(2, 3, 6, 6)
-        criteria_sample_window.AddMany( [(wx.StaticText(pnl1,label="averge by sample/site",style=wx.TE_CENTER), wx.EXPAND),
+        criteria_sample_window.AddMany( [(wx.StaticText(pnl1,label="average by sample/site",style=wx.TE_CENTER), wx.EXPAND),
             (wx.StaticText(pnl1,label="int_n",style=wx.TE_CENTER), wx.EXPAND),
             (wx.StaticText(pnl1,label="int_n_outlier_check",style=wx.TE_CENTER), wx.EXPAND),
-            (self.set_average_by_sample_or_site),            
+            (self.set_average_by_sample_or_site),
             (self.set_sample_int_n),
             (self.set_sample_int_n_outlier_check)])
 
@@ -358,7 +358,7 @@ class Criteria_Dialog(wx.Dialog):
 
 
         bSizer2a = wx.StaticBoxSizer( wx.StaticBox( pnl1, wx.ID_ANY, "mean calculation algorithm" ), wx.HORIZONTAL )
-    
+
 
         self.set_stdev_opt=wx.RadioButton(pnl1, -1, '', (10, 10), style=wx.RB_GROUP)
         self.set_bs=wx.RadioButton(pnl1, -1, ' ', (10, 30))
@@ -369,7 +369,7 @@ class Criteria_Dialog(wx.Dialog):
             (wx.StaticText(pnl1,label="Enable BS",style=wx.TE_CENTER), wx.EXPAND),
             (wx.StaticText(pnl1,label="Enable BS_PAR",style=wx.TE_CENTER), wx.EXPAND),
             (wx.StaticText(pnl1,label="include NRM",style=wx.TE_CENTER), wx.EXPAND),
-            (self.set_stdev_opt),            
+            (self.set_stdev_opt),
             (self.set_bs),
             (self.set_bs_par),
             (self.set_include_nrm)])
@@ -388,7 +388,7 @@ class Criteria_Dialog(wx.Dialog):
         for key in window_list_samples:
             command="self.set_sample_%s=wx.TextCtrl(pnl1,style=wx.TE_CENTER,size=(50,20))"%key
             exec command
-        
+
         criteria_sample_window_2 = wx.GridSizer(2, 5, 6, 6)
         criteria_sample_window_2.AddMany( [(wx.StaticText(pnl1,label="int_sigma_uT",style=wx.TE_CENTER), wx.EXPAND),
             (wx.StaticText(pnl1,label="int_sigma_perc",style=wx.TE_CENTER), wx.EXPAND),
@@ -403,7 +403,7 @@ class Criteria_Dialog(wx.Dialog):
 
         bSizer3.Add( criteria_sample_window_2, 0, wx.ALIGN_LEFT|wx.ALL, 5 )
 
-        
+
         #---------------------------
         # bootstrap criteria
         #---------------------------
@@ -415,14 +415,14 @@ class Criteria_Dialog(wx.Dialog):
             exec command
         # for bootstarp
         self.set_specimen_int_max_slope_diff=wx.TextCtrl(pnl1,style=wx.TE_CENTER,size=(50,20))
-        
+
         criteria_sample_window_3 = wx.GridSizer(2, 5, 6, 6)
         criteria_sample_window_3.AddMany( [(wx.StaticText(pnl1,label="specimen_int_max_slope_diff",style=wx.TE_CENTER), wx.EXPAND),
             (wx.StaticText(pnl1,label="int_BS_68_uT",style=wx.TE_CENTER), wx.EXPAND),
             (wx.StaticText(pnl1,label="int_BS_68_perc",style=wx.TE_CENTER), wx.EXPAND),
             (wx.StaticText(pnl1,label="int_BS_95_uT",style=wx.TE_CENTER), wx.EXPAND),
-            (wx.StaticText(pnl1,label="int_BS_95_perc",style=wx.TE_CENTER), wx.EXPAND),                                           
-            (self.set_specimen_int_max_slope_diff),                                           
+            (wx.StaticText(pnl1,label="int_BS_95_perc",style=wx.TE_CENTER), wx.EXPAND),
+            (self.set_specimen_int_max_slope_diff),
             (self.set_sample_int_BS_68_uT),
             (self.set_sample_int_BS_68_perc),
             (self.set_sample_int_BS_95_uT),
@@ -440,23 +440,23 @@ class Criteria_Dialog(wx.Dialog):
         hbox3.Add(self.okButton)
         hbox3.AddSpacer(10)
         hbox3.Add(self.cancelButton )
-        
-        #============================        
+
+        #============================
         # Intialize values
-        #============================        
-        
+        #============================
+
         for key in window_list_specimens:
             command="self.set_specimen_%s.SetBackgroundColour(wx.NullColour)"%key
         exec command
 
 
-        #-------------------------------------------        
+        #-------------------------------------------
         # Intialize values: specimen criteria window
-        #-------------------------------------------        
+        #-------------------------------------------
 
         #criteria_list_for_window=['specimen_gmax','specimen_b_beta','specimen_int_dang','specimen_drats','specimen_int_mad','specimen_md']+\
         #['specimen_int_n','specimen_int_ptrm_n','specimen_f','specimen_fvds','specimen_frac','specimen_g','specimen_q']
-        
+
         criteria_list_for_window=self.preferences['show_statistics_on_gui']
         for crit in criteria_list_for_window:
             value=""
@@ -473,72 +473,72 @@ class Criteria_Dialog(wx.Dialog):
                         exec command
                     else:
                         value="%.3e"%(self.acceptance_criteria[crit]['value'])
-    
+
                 command="self.set_%s.SetValue(value)"%crit
-    
+
                 exec command
-            else:    
+            else:
                 if self.acceptance_criteria['specimen_scat']['value'] in [True,1,"True","TRUE","1","1.0",'g']:
                     self.set_specimen_scat.SetValue(True)
-                    
+
                 else:
                     self.set_specimen_scat.SetValue(False)
 
-        #-------------------------------------------        
+        #-------------------------------------------
         # Intialize values: anisotropy window
-        #-------------------------------------------        
-        
+        #-------------------------------------------
+
         crit="anisotropy_alt"
         if self.acceptance_criteria[crit]['value']==-999:
             value=""
         else:
             command="value='%%.%if'%%(self.acceptance_criteria[crit]['value'])"%int(self.acceptance_criteria[crit]['decimal_points'])
             exec command
-        self.set_anisotropy_alt.SetValue(value) 
+        self.set_anisotropy_alt.SetValue(value)
 
-        crit="specimen_aniso_ftest_flag"        
+        crit="specimen_aniso_ftest_flag"
         if self.acceptance_criteria[crit]['value'] in [True,1,"True","TRUE","1","1.0",'g']:
             self.set_anisotropy_ftest_flag.SetValue(True)
         else:
             self.set_anisotropy_ftest_flag.SetValue(False)
-            
-        #-------------------------------------------        
+
+        #-------------------------------------------
         # Intialize values: avearge by site or sample
-        #-------------------------------------------        
-        if 'average_by_sample_or_site' not in self.acceptance_criteria.keys():self.acceptance_criteria['average_by_sample_or_site']['value']='site' 
+        #-------------------------------------------
+        if 'average_by_sample_or_site' not in self.acceptance_criteria.keys():self.acceptance_criteria['average_by_sample_or_site']['value']='site'
         if str(self.acceptance_criteria['average_by_sample_or_site']['value'])=='site':
-            self.set_average_by_sample_or_site.SetStringSelection('site')           
+            self.set_average_by_sample_or_site.SetStringSelection('site')
         else:
-            self.set_average_by_sample_or_site.SetStringSelection('sample')           
+            self.set_average_by_sample_or_site.SetStringSelection('sample')
 
-        #-------------------------------------------        
+        #-------------------------------------------
         # Intialize values: sample/site criteria method codes
-        #-------------------------------------------        
-       
-        if self.acceptance_criteria['interpreter_method']=="bs":
-            self.set_bs.SetValue(True) 
-        elif self.acceptance_criteria['interpreter_method']=="bs_par":
-            self.set_bs_par.SetValue(True) 
-        else:
-            self.set_stdev_opt.SetValue(True) 
+        #-------------------------------------------
 
-        #-------------------------------------------        
+        if self.acceptance_criteria['interpreter_method']=="bs":
+            self.set_bs.SetValue(True)
+        elif self.acceptance_criteria['interpreter_method']=="bs_par":
+            self.set_bs_par.SetValue(True)
+        else:
+            self.set_stdev_opt.SetValue(True)
+
+        #-------------------------------------------
         # Intialize values: include NRM
-        #-------------------------------------------        
-        self.set_include_nrm.SetValue(True)         
-        #-------------------------------------------        
+        #-------------------------------------------
+        self.set_include_nrm.SetValue(True)
+        #-------------------------------------------
         # Intialize values: sample/site criteria
-        #------------------------------------------- 
-               
+        #-------------------------------------------
+
         criteria_list_for_window=[]+\
         ['sample_int_n','sample_int_sigma','sample_int_sigma_perc','sample_int_n_outlier_check']+\
         ['site_int_n','site_int_sigma','site_int_sigma_perc','site_int_n_outlier_check']+\
         ['sample_aniso_mean','site_aniso_mean']+\
         ['sample_int_interval_uT','sample_int_interval_perc']+\
         ['sample_int_BS_68_uT','sample_int_BS_95_uT','sample_int_BS_68_perc','sample_int_BS_95_perc']
-        
+
         for crit in criteria_list_for_window:
-            
+
             # check if averaging by site or sample
             if self.acceptance_criteria['average_by_sample_or_site']['value']=='site':
                 if 'sample' in crit:
@@ -546,11 +546,11 @@ class Criteria_Dialog(wx.Dialog):
             else:
                 if 'site' in crit:
                     continue
-                
+
             #--------------
-            # get the value to write         
+            # get the value to write
             if self.acceptance_criteria[crit]['value']==-999:
-                value=""            
+                value=""
             elif crit in ['sample_int_sigma','site_int_sigma']:
                 value="%.1f"%(float(self.acceptance_criteria[crit]['value'])*1e6)
             elif type(self.acceptance_criteria[crit]['value'])==float or type(self.acceptance_criteria[crit]['value'])==int :
@@ -561,10 +561,10 @@ class Criteria_Dialog(wx.Dialog):
             elif type(self.acceptance_criteria[crit]['value'])==str:
                  value=str(self.acceptance_criteria[crit]['value'])
             #-------
-            
-            # write the value to box       
-            
-            
+
+            # write the value to box
+
+
             if str(self.acceptance_criteria['average_by_sample_or_site']['value'])=='site':
                 if crit in ['site_int_n','site_int_sigma_perc','site_int_n_outlier_check','site_aniso_mean']:
                     command="self.set_%s.SetValue(value)"%(crit.replace('site','sample'))
@@ -578,15 +578,15 @@ class Criteria_Dialog(wx.Dialog):
                 else:
                     command="self.set_%s.SetValue(value)"%crit
                 exec command
-                         
-                                  
-            
-                    
-        
-        #============================        
+
+
+
+
+
+        #============================
         # arrange sizers
-        #============================   
-             
+        #============================
+
         vbox.AddSpacer(10)
         vbox.Add(bSizer1, flag=wx.ALIGN_CENTER_HORIZONTAL)
         vbox.AddSpacer(10)
@@ -602,27 +602,27 @@ class Criteria_Dialog(wx.Dialog):
         vbox.AddSpacer(10)
         vbox.Add(hbox3, flag=wx.ALIGN_CENTER_HORIZONTAL)
         vbox.AddSpacer(10)
-                    
+
         pnl1.SetSizer(vbox)
         vbox.Fit(self)
 
 
-#--------------------------------------------------------------    
+#--------------------------------------------------------------
 # Show a table
 #--------------------------------------------------------------
 
 class MyForm(wx.Frame):
     """"""
- 
+
     #----------------------------------------------------------------------
     def __init__(self,number_of_rows_to_ignore,file_name):
         """Constructor"""
         wx.Frame.__init__(self, parent=None, title=file_name.split('/')[-1])
-        
+
         panel = wx.Panel(self)
 
         self.read_the_file(file_name)
-        
+
         self.myGrid = wx.grid.Grid(panel)
         self.myGrid.CreateGrid(len(self.report)-number_of_rows_to_ignore-1, len(self.report[number_of_rows_to_ignore]))
         index=0
@@ -635,7 +635,7 @@ class MyForm(wx.Frame):
         self.myGrid.SetLabelFont(wx.Font(9, wx.SWISS, wx.NORMAL, wx.NORMAL, False, u'Arial'))
         self.myGrid.SetDefaultCellFont(wx.Font(9, wx.SWISS, wx.NORMAL, wx.NORMAL, False, u'Arial'))
 
-        
+
         self.myGrid.AutoSize()
         #myGrid.SetRowLabelSize(0)
         sizer = wx.BoxSizer(wx.VERTICAL)
@@ -645,7 +645,7 @@ class MyForm(wx.Frame):
 
 
 
-    def  read_the_file(self,file_name):                    
+    def  read_the_file(self,file_name):
 
 ##        dlg = wx.FileDialog(
 ##            self, message="choose a file in a pmagpy redo format",
@@ -662,7 +662,7 @@ class MyForm(wx.Frame):
           self.report.append(line)
 
 
-#--------------------------------------------------------------    
+#--------------------------------------------------------------
 # Save plots
 #--------------------------------------------------------------
 
@@ -675,33 +675,33 @@ class SaveMyPlot(wx.Frame):
         file_choices="(*.pdf)|*.pdf|(*.svg)|*.svg| (*.png)|*.png"
         default_fig_name="%s_%s.pdf"%(pars['er_specimen_name'],plot_type)
         dlg = wx.FileDialog(
-            self, 
+            self,
             message="Save plot as...",
             defaultDir=os.getcwd(),
             defaultFile=default_fig_name,
             wildcard=file_choices,
             style=wx.SAVE)
-        
+
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
-            
+
         title=pars['er_specimen_name']
         self.panel = wx.Panel(self)
         self.dpi=300
 
         canvas_tmp_1 = FigCanvas(self.panel, -1, fig)
-        canvas_tmp_1.print_figure(path, dpi=self.dpi)  
+        canvas_tmp_1.print_figure(path, dpi=self.dpi)
 
 #----------------------------------------------------------------------
 
 #===========================================================
 # Consistency Test
 #===========================================================
-    
+
 
 class Consistency_Test(wx.Frame):
     """"""
-    
+
     #----------------------------------------------------------------------
     def __init__(self,Data,Data_hierarchy,WD,acceptance_criteria,preferences,Thermal,Microwave):
         wx.Frame.__init__(self, parent=None)
@@ -739,21 +739,21 @@ class Consistency_Test(wx.Frame):
 
 
     def On_close_fixed_criteria_box(self,dia):
-        
+
         """
-        after criteria dialog window is closed. 
+        after criteria dialog window is closed.
         Take the acceptance criteria values and update
         self.acceptance_criteria
         """
-        
+
         criteria_list=self.acceptance_criteria.keys()
         criteria_list.sort()
-        
+
         #---------------------------------------
         # check if averaging by sample or by site
         # and intialize sample/site criteria
         #---------------------------------------
-        
+
         if dia.set_average_by_sample_or_site.GetValue()=='sample':
             for crit in ['site_int_n','site_int_sigma','site_int_sigma_perc','site_aniso_mean','site_int_n_outlier_check']:
                 self.acceptance_criteria[crit]['value']=-999
@@ -762,8 +762,8 @@ class Consistency_Test(wx.Frame):
                 self.acceptance_criteria[crit]['value']=-999
 
         #---------
-        
-        for i in range(len(criteria_list)):            
+
+        for i in range(len(criteria_list)):
             crit=criteria_list[i]
             #---------
             # get the "value" from dialog box
@@ -777,10 +777,10 @@ class Consistency_Test(wx.Frame):
                     continue
             #------
             if crit in ['site_int_n','site_int_sigma_perc','site_aniso_mean','site_int_n_outlier_check']:
-                command="value=dia.set_%s.GetValue()"%crit.replace('site','sample')                
-            
+                command="value=dia.set_%s.GetValue()"%crit.replace('site','sample')
+
             elif crit=='sample_int_sigma' or crit=='site_int_sigma':
-                #command="value=float(dia.set_sample_int_sigma_uT.GetValue())*1e-6"            
+                #command="value=float(dia.set_sample_int_sigma_uT.GetValue())*1e-6"
                 command="value=dia.set_%s.GetValue()"%crit
             else:
                 command="value=dia.set_%s.GetValue()"%crit
@@ -789,43 +789,43 @@ class Consistency_Test(wx.Frame):
                 exec command
             except:
                 continue
-            
+
             #---------
             # write the "value" to self.acceptance_criteria
             #---------
-                        
-            if crit=='average_by_sample_or_site': 
+
+            if crit=='average_by_sample_or_site':
                 self.acceptance_criteria[crit]['value']=str(value)
-                continue 
+                continue
             if type(value)==bool and value==True:
                 self.acceptance_criteria[crit]['value']=True
             elif type(value)==bool and value==False:
-                self.acceptance_criteria[crit]['value']=-999                        
+                self.acceptance_criteria[crit]['value']=-999
             elif type(value)==unicode and str(value)=="":
                 self.acceptance_criteria[crit]['value']=-999
             elif type(value)==unicode and str(value)!="": # should be a number
                 try:
                     self.acceptance_criteria[crit]['value']=float(value)
                 except:
-                    self.show_messege(crit) 
+                    self.show_messege(crit)
             elif type(value)==float or type(value)==int:
                if  crit=='sample_int_sigma' or crit=='site_int_sigma':
                     self.acceptance_criteria[crit]['value']=float(value)*1e-6
                else:
-                    self.acceptance_criteria[crit]['value']=float(value)                             
-            else:  
+                    self.acceptance_criteria[crit]['value']=float(value)
+            else:
                 self.show_messege(crit)
         #---------
         # thellier interpreter calculation type
         if dia.set_stdev_opt.GetValue()==True:
             self.acceptance_criteria['interpreter_method']['value']='stdev_opt'
         elif  dia.set_bs.GetValue()==True:
-            self.acceptance_criteria['interpreter_method']['value']='bs'            
+            self.acceptance_criteria['interpreter_method']['value']='bs'
         elif  dia.set_bs_par.GetValue()==True:
-            self.acceptance_criteria['interpreter_method']['value']='bs_par'            
-            
-                
-            
+            self.acceptance_criteria['interpreter_method']['value']='bs_par'
+
+
+
         #  message dialog
         dlg1 = wx.MessageDialog(self,caption="Warning:", message="changes are saved to consistency_test/pmag_fixed_criteria.txt\n " ,style=wx.OK)
         result = dlg1.ShowModal()
@@ -847,12 +847,12 @@ class Consistency_Test(wx.Frame):
             #    pass
             ofile = os.path.join(self.WD, "consistency_test/pmag_fixed_criteria.txt")
             pmag.write_criteria_to_file(ofile, self.acceptance_criteria)
-            dlg1.Destroy()    
+            dlg1.Destroy()
             dia.Destroy()
         #self.recaclulate_satistics()
-        
+
     # only valid naumber can be entered to boxes
-    # used by On_close_criteria_box         
+    # used by On_close_criteria_box
     def show_messege(self,key):
         dlg1 = wx.MessageDialog(self,caption="Error:",
             message="non-vaild value for box %s"%key ,style=wx.OK)
@@ -884,9 +884,9 @@ class Consistency_Test(wx.Frame):
         self.stat_2_low = wx.TextCtrl(self.panel,style=wx.TE_CENTER,size=(50,20))
         self.stat_2_high = wx.TextCtrl(self.panel,style=wx.TE_CENTER,size=(50,20))
         self.stat_2_delta = wx.TextCtrl(self.panel,style=wx.TE_CENTER,size=(50,20))
-        
 
-        
+
+
         beta_window = wx.GridSizer(2, 4, 5, 10)
         beta_window.AddMany( [(wx.StaticText(self.panel,label="statistic",style=wx.TE_CENTER), wx.EXPAND),
             (wx.StaticText(self.panel,label="start value",style=wx.TE_CENTER), wx.EXPAND),
@@ -898,7 +898,7 @@ class Consistency_Test(wx.Frame):
             (self.stat_1_delta, wx.EXPAND) ])
 
         scat_window = wx.GridSizer(2, 4, 5, 10)
-        
+
         scat_window.AddMany( [(wx.StaticText(self.panel,label="statistic",style=wx.TE_CENTER), wx.EXPAND),
             (wx.StaticText(self.panel,label="start value",style=wx.TE_CENTER), wx.EXPAND),
             (wx.StaticText(self.panel,label="end value",style=wx.TE_CENTER), wx.EXPAND),
@@ -911,25 +911,25 @@ class Consistency_Test(wx.Frame):
         Text2="Use a valid python syntax with logic or arithmetic operators\n (see example functions)\n\n"
         Text3="List of legal operands:\n"
         Text4="study_sample_n:  Total number of samples in the study that pass the criteria\n"
-        Text5="test_group_n:  Number of test groups that have at least one sample that passed acceptance criteria\n" 
+        Text5="test_group_n:  Number of test groups that have at least one sample that passed acceptance criteria\n"
         Text6="max_group_int_sigma_uT:  standard deviation of the group with the maximum scatter \n"
         Text7="max_group_int_sigma_perc:  standard deviation of the group with the maximum scatter divided by its mean (in unit of %)\n\n"
-        Text8="Check \"Check function syntax\" when done inserting functions.\n\n" 
-                    
+        Text8="Check \"Check function syntax\" when done inserting functions.\n\n"
+
         self.function_label = wx.StaticText(self.panel, label=Text1+Text2+Text3+Text4+Text5+Text6+Text7+Text8,style=wx.ALIGN_CENTRE)
 
-        # text_box 
+        # text_box
         self.text_logger = wx.TextCtrl(self.panel, id=-1, size=(800,200), style= wx.HSCROLL|wx.TE_MULTILINE)
         self.Bind(wx.EVT_TEXT,self.on_change_function,self.text_logger)
 
-        # check function button 
+        # check function button
         self.check_button = wx.Button(self.panel, id=-1, label='Check function syntax')#,style=wx.BU_EXACTFIT)#, size=(175, 28))
         self.Bind(wx.EVT_BUTTON, self.on_check_button, self.check_button)
 
-        # check function status 
+        # check function status
         self.check_status=wx.TextCtrl(self.panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50,20))
 
-        # group definition  button 
+        # group definition  button
 #        self.optimizer_make_groups_next_button = wx.Button(self.panel, id=-1, label='Next')#,style=wx.BU_EXACTFIT)#, size=(175, 28))
 #        self.Bind(wx.EVT_BUTTON, self.on_optimizer_make_groups_next_button, self.optimizer_make_groups_next_button)
         self.open_existing_optimizer_group_file = wx.Button(self.panel,id=-1, label='Choose a test group file')
@@ -940,7 +940,7 @@ class Consistency_Test(wx.Frame):
         #self.make_new_optimizer_group_file = wx.Button(self.panel,id=-1, label='make new group definition file')#,style=wx.BU_EXACTFIT)#, size=(175, 28))
         #self.Bind(wx.EVT_BUTTON, self.on_make_new_optimizer_group_file, self.make_new_optimizer_group_file)
 
-        # Cancel  button 
+        # Cancel  button
         self.cancel_optimizer_button = wx.Button(self.panel, id=-1, label='Cancel')#,style=wx.BU_EXACTFIT)#, size=(175, 28))
         self.Bind(wx.EVT_BUTTON, self.on_cancel_optimizer_button, self.cancel_optimizer_button)
 
@@ -958,7 +958,7 @@ class Consistency_Test(wx.Frame):
             TEXT="study_sample_n\ntest_group_n\nmax_group_int_sigma_uT\nmax_group_int_sigma_perc\n((max_group_int_sigma_uT < 6) or (max_group_int_sigma_perc < 10)) and  int(study_sample_n)"
 
         self.text_logger.SetValue(TEXT)
-            
+
         #TEXT=Text1+Text2+Text3+Text4+Text5+Text6+Text7+Text8
 
         #self.text_logger.SetValue()
@@ -988,12 +988,12 @@ class Consistency_Test(wx.Frame):
 
         hbox2.Add(self.function_label,flag=wx.ALIGN_CENTER_VERTICAL,border=2)
 
-        hbox3.Add(self.text_logger,flag=wx.ALIGN_CENTER_HORIZONTAL)#,border=8)        
+        hbox3.Add(self.text_logger,flag=wx.ALIGN_CENTER_HORIZONTAL)#,border=8)
 
         hbox4.Add(self.check_button,flag=wx.ALIGN_CENTER_HORIZONTAL)#,border=8)
         hbox4a.Add(self.check_status,flag=wx.ALIGN_CENTER_HORIZONTAL)#,border=8)
         #hbox4.AddSpacer(50)
-    
+
         #hbox6.Add(self.optimizer_make_groups_next_button,flag=wx.ALIGN_CENTER_HORIZONTAL)#,border=8)
         hbox5.Add(self.open_existing_optimizer_group_file,flag=wx.ALIGN_LEFT)
         hbox6.Add(self.optimizer_group_file_window,flag=wx.ALIGN_LEFT)
@@ -1022,10 +1022,10 @@ class Consistency_Test(wx.Frame):
         box.AddSpacer(30)
         box.AddSpacer(vbox)
         box.AddSpacer(30)
-        
+
         self.panel.SetSizer(box)
         box.Fit(self)
-        
+
         self.Show()
         self.Centre()
 
@@ -1056,14 +1056,14 @@ class Consistency_Test(wx.Frame):
 
     def on_change_function (self,event):
             self.check_status.SetValue("")
-         
+
 
 
     #def on_make_new_optimizer_group_file(self,event):
     def on_open_existing_optimizer_group_file(self,event):
-        
-        dirname=self.WD 
-            
+
+        dirname=self.WD
+
         dlg = wx.FileDialog(self, "Choose a test groups file", dirname, "", "*.*", wx.OPEN)
         if dlg.ShowModal() == wx.ID_OK:
             filename = dlg.GetFilename()
@@ -1077,7 +1077,7 @@ class Consistency_Test(wx.Frame):
             stat1_start=float(self.stat_1_low.GetValue())
             stat1_end=float(self.stat_1_high.GetValue())
             stat1_delta=float(self.stat_1_delta.GetValue())
-            
+
             stat2=str("specimen_"+str(self.stat_2.GetValue()))
             stat2_start=float(self.stat_2_low.GetValue())
             stat2_end=float(self.stat_2_high.GetValue())
@@ -1093,10 +1093,10 @@ class Consistency_Test(wx.Frame):
 
             optimizer_functions_path="/consistency_test/consistency_test_functions.txt"
             criteria_fixed_paremeters_file="/consistency_test/pmag_fixed_criteria.txt"
-  
+
             stat1_range=[stat1,arange(stat1_start,stat1_end,stat1_delta)]
             stat2_range=[stat2,arange(stat2_start,stat2_end,stat2_delta)]
-                      
+
             #beta_range=arange(beta_start,beta_end,beta_step)
             #frac_range=arange(frac_start,frac_end,beta_step)
             #try:
@@ -1104,7 +1104,7 @@ class Consistency_Test(wx.Frame):
             thellier_consistency_test.run_thellier_consistency_test(self.WD, self.Data,self.Data_hierarchy,self.acceptance_criteria,self.optimizer_group_file_path,optimizer_functions_path,self.preferences,stat1_range,stat2_range,THERMAL,MICROWAVE)
             #except:
             #    dlg1 = wx.MessageDialog(self,caption="Error:", message="Optimizer finished with Errors" ,style=wx.OK)
-                
+
             #tmp.Thellier_optimizer(self.WD, self.Data,self.optimizer_group_file_path,optimizer_functions_path,beta_range,frac_range)
 
 ##            optimizer_output=open(self.WD+"/optimizer/thellier_optimizer.log",'w')
@@ -1115,22 +1115,22 @@ class Consistency_Test(wx.Frame):
 ##            try:
 ##                subprocess.check_call(Command_line,stdout=optimizer_output)
 ##                dlg1 = wx.MessageDialog(self,caption="Message:", message="Optimizer finished sucsessfuly\nCheck folder optimizer in working directory" ,style=wx.OK|wx.ICON_INFORMATION)
-##                
+##
 ##            except:
 ##                dlg1 = wx.MessageDialog(self,caption="Error:", message="Optimizer finished with Errors" ,style=wx.OK)
-            
+
 
             dlg1 = wx.MessageDialog(self,caption="Message:", message="Consistency Test finished sucsessfuly\nCheck folder consistency_test in working directory" ,style=wx.OK|wx.ICON_INFORMATION)
             dlg1.ShowModal()
             dlg1.Destroy()
             gframe.Destroy()
-        
+
 
 #--------------------------------------------------------------
 
 
-            
-#--------------------------------------------------------------    
+
+#--------------------------------------------------------------
 # Ploting  dialog
 #--------------------------------------------------------------
 
@@ -1144,14 +1144,14 @@ class Plot_Dialog(wx.Dialog):
     def InitUI(self):
 
         pnl1 = wx.Panel(self)
-        
+
         vbox = wx.BoxSizer(wx.VERTICAL)
 
-        #-----------   
-        #-----------        
+        #-----------
+        #-----------
 
         bSizer1 = wx.StaticBoxSizer( wx.StaticBox( pnl1, wx.ID_ANY, "Age axis" ), wx.HORIZONTAL )
-        
+
         window_list_commands=["age_min","age_max",]
         for key in window_list_commands:
             command="self.set_plot_%s=wx.TextCtrl(pnl1,style=wx.TE_CENTER,size=(50,20))"%key
@@ -1160,30 +1160,30 @@ class Plot_Dialog(wx.Dialog):
         self.set_x_axis_auto.SetValue(True)
 
         self.set_age_unit=wx.ComboBox(pnl1, -1, 'Automatic',choices=['Automatic','Years AD (+/-)','Years BP','Ka','Ma','Ga'],style=wx.CB_DROPDOWN)
-        
+
         #self.set_plot_year = wx.RadioButton(pnl1, -1, 'timescale = date (year)', (10, 10), style=wx.RB_GROUP)
         # self.set_plot_BP = wx.RadioButton(pnl1, -1, 'timescale = BP ', (10, 30))
         #self.set_plot_year.SetValue(True)
-        
+
         Plot_age_window = wx.GridSizer(2, 4, 12, 12)
         Plot_age_window.AddMany( [(wx.StaticText(pnl1,label="age unit",style=wx.TE_CENTER), wx.EXPAND),
-            (wx.StaticText(pnl1,label="auto scale",style=wx.TE_CENTER), wx.EXPAND),                                  
+            (wx.StaticText(pnl1,label="auto scale",style=wx.TE_CENTER), wx.EXPAND),
             (wx.StaticText(pnl1,label="younger bound",style=wx.TE_CENTER), wx.EXPAND),
             (wx.StaticText(pnl1,label="older bound",style=wx.TE_CENTER), wx.EXPAND),
             (self.set_age_unit),
-            #(self.set_plot_BP),                                  
+            #(self.set_plot_BP),
             (self.set_x_axis_auto),
             (self.set_plot_age_min),
             (self.set_plot_age_max)])
-                                           
+
         bSizer1.Add( Plot_age_window, 0, wx.ALIGN_LEFT|wx.ALL, 5 )
 
-        #-----------   
-        #-----------        
+        #-----------
+        #-----------
 
 
         bSizer2 = wx.StaticBoxSizer( wx.StaticBox( pnl1, wx.ID_ANY, "Intensity axis" ), wx.HORIZONTAL )
-        
+
         window_list_commands=["intensity_min","intensity_max"]
         for key in window_list_commands:
             command="self.set_plot_%s=wx.TextCtrl(pnl1,style=wx.TE_CENTER,size=(50,20))"%key
@@ -1194,33 +1194,33 @@ class Plot_Dialog(wx.Dialog):
 
         self.set_y_axis_auto.SetValue(True)
         self.set_plot_VADM.SetValue(True)
-        
+
         Plot_intensity_window = wx.GridSizer(2, 5, 12, 12)
         Plot_intensity_window.AddMany( [(wx.StaticText(pnl1,label="",style=wx.TE_CENTER), wx.EXPAND),
             (wx.StaticText(pnl1,label="",style=wx.TE_CENTER), wx.EXPAND),
-            (wx.StaticText(pnl1,label="auto scale",style=wx.TE_CENTER), wx.EXPAND),                                        
+            (wx.StaticText(pnl1,label="auto scale",style=wx.TE_CENTER), wx.EXPAND),
             (wx.StaticText(pnl1,label="min value",style=wx.TE_CENTER), wx.EXPAND),
             (wx.StaticText(pnl1,label="max value",style=wx.TE_CENTER), wx.EXPAND),
             (self.set_plot_B),
             (self.set_plot_VADM),
-            (self.set_y_axis_auto),                        
+            (self.set_y_axis_auto),
             (self.set_plot_intensity_min),
             (self.set_plot_intensity_max)])
-                                           
+
         bSizer2.Add( Plot_intensity_window, 0, wx.ALIGN_LEFT|wx.ALL, 5 )
 
-        #-----------  
+        #-----------
 
 
 
         bSizer3 = wx.StaticBoxSizer( wx.StaticBox( pnl1, wx.ID_ANY, "more plot options" ), wx.HORIZONTAL )
-        
+
         self.show_samples_ID=wx.CheckBox(pnl1, -1, '', (50, 50))
         self.show_x_error_bar=wx.CheckBox(pnl1, -1, '', (50, 50))
         self.show_y_error_bar=wx.CheckBox(pnl1, -1, '', (50, 50))
         self.show_STDEVOPT=wx.CheckBox(pnl1, -1, '', (50, 50))
         self.show_STDEVOPT_extended=wx.CheckBox(pnl1, -1, '', (50, 50))
-        
+
         self.show_samples_ID.SetValue(True)
         self.show_x_error_bar.SetValue(True)
         self.show_y_error_bar.SetValue(True)
@@ -1234,19 +1234,19 @@ class Plot_Dialog(wx.Dialog):
             (wx.StaticText(pnl1,label="show STDEV-OPT error bounds",style=wx.TE_CENTER), wx.EXPAND),
             (self.show_samples_ID),
             (self.show_x_error_bar),
-            (self.show_y_error_bar),                                              
+            (self.show_y_error_bar),
             (self.show_STDEVOPT),
             (self.show_STDEVOPT_extended)])
-                                           
+
         bSizer3.Add( bsizer_3_window, 0, wx.ALIGN_LEFT|wx.ALL, 5 )
 
-        #-----------  
+        #-----------
 
 
 
 
         bSizer4 = wx.StaticBoxSizer( wx.StaticBox( pnl1, wx.ID_ANY, "Location map" ), wx.HORIZONTAL )
-        
+
         self.show_map=wx.CheckBox(pnl1, -1, '', (50, 50))
         self.show_map.SetValue(False)
         self.set_map_autoscale=wx.CheckBox(pnl1, -1, '', (50, 50))
@@ -1259,27 +1259,27 @@ class Plot_Dialog(wx.Dialog):
         bsizer_4_window = wx.GridSizer(2, 8, 12, 12)
 
         bsizer_4_window.AddMany( [(wx.StaticText(pnl1,label="show location map",style=wx.TE_CENTER), wx.EXPAND),
-            (wx.StaticText(pnl1,label="auto scale",style=wx.TE_CENTER), wx.EXPAND),                      
+            (wx.StaticText(pnl1,label="auto scale",style=wx.TE_CENTER), wx.EXPAND),
             (wx.StaticText(pnl1,label="lat min",style=wx.TE_CENTER), wx.EXPAND),
-            (wx.StaticText(pnl1,label="lat max",style=wx.TE_CENTER), wx.EXPAND),                                        
-            (wx.StaticText(pnl1,label="lat grid",style=wx.TE_CENTER), wx.EXPAND),                                        
+            (wx.StaticText(pnl1,label="lat max",style=wx.TE_CENTER), wx.EXPAND),
+            (wx.StaticText(pnl1,label="lat grid",style=wx.TE_CENTER), wx.EXPAND),
             (wx.StaticText(pnl1,label="lon min",style=wx.TE_CENTER), wx.EXPAND),
             (wx.StaticText(pnl1,label="lon max",style=wx.TE_CENTER), wx.EXPAND),
             (wx.StaticText(pnl1,label="lon grid",style=wx.TE_CENTER), wx.EXPAND),
             (self.show_map),
             (self.set_map_autoscale),
             (self.set_map_lat_min),
-            (self.set_map_lat_max),                        
-            (self.set_map_lat_grid),                        
+            (self.set_map_lat_max),
+            (self.set_map_lat_grid),
             (self.set_map_lon_min),
             (self.set_map_lon_max),
             (self.set_map_lon_grid)])
 
-        
-                                           
+
+
         bSizer4.Add( bsizer_4_window, 0, wx.ALIGN_LEFT|wx.ALL, 5 )
 
-        #-----------  
+        #-----------
 
 
         hbox2 = wx.BoxSizer(wx.HORIZONTAL)
@@ -1288,10 +1288,10 @@ class Plot_Dialog(wx.Dialog):
         hbox2.Add(self.okButton)
         hbox2.Add(self.cancelButton )
         #self.okButton.Bind(wx.EVT_BUTTON, self.OnOK)
-        #-----------  
+        #-----------
 
-        
-        #----------------------  
+
+        #----------------------
         vbox.AddSpacer(20)
         vbox.Add(bSizer1, flag=wx.ALIGN_CENTER_HORIZONTAL)
         vbox.AddSpacer(20)
@@ -1304,22 +1304,22 @@ class Plot_Dialog(wx.Dialog):
 
         vbox.Add(hbox2, flag=wx.ALIGN_CENTER_HORIZONTAL)
         vbox.AddSpacer(20)
-                    
+
         pnl1.SetSizer(vbox)
         vbox.Fit(self)
-        
 
-#--------------------------------------------------------------    
+
+#--------------------------------------------------------------
 # Show a logfile erros
 #--------------------------------------------------------------
 
 class MyLogFileErrors(wx.Frame):
     """"""
- 
+
     #----------------------------------------------------------------------
     def __init__(self,title,file_path):
         wx.Frame.__init__(self, parent=None,size=(1000,500))
-        
+
         self.panel = wx.Panel(self)
         self.sizer = wx.BoxSizer(wx.VERTICAL)
         self.text_log = wx.TextCtrl(self.panel, id=-1, style=wx.TE_MULTILINE | wx.TE_READONLY  | wx.HSCROLL)
@@ -1337,9 +1337,9 @@ class MyLogFileErrors(wx.Frame):
         #sizer.Fit(self)
         self.panel.SetSizer(self.sizer)
 
-    
 
-#--------------------------------------------------------------    
+
+#--------------------------------------------------------------
 # MagIC generic files conversion
 #--------------------------------------------------------------
 
@@ -1363,13 +1363,13 @@ class convert_generic_files_to_MagIC(wx.Frame):
 
         TEXT1="Generic thellier GUI file is a tab-delimited file with the following headers:\n"
         TEXT2="Specimen  Treatment  Declination  Inclination  Moment\n"
-        TEXT3="Treatment: XXX.Y or XXX.YY where XXX is temperature in C, and YY is treatment code. See tutorial for explenation. NRM step is 000.00\n" 
+        TEXT3="Treatment: XXX.Y or XXX.YY where XXX is temperature in C, and YY is treatment code. See tutorial for explenation. NRM step is 000.00\n"
         TEXT4="Moment: In units of emu.\n"
 
         TEXT=TEXT1+TEXT2+TEXT3+TEXT4
         bSizer_info = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "" ), wx.HORIZONTAL )
         bSizer_info.Add(wx.StaticText(pnl,label=TEXT),wx.ALIGN_LEFT)
-            
+
 
         #---sizer 0 ----
         TEXT="File:\n Choose measurement file\n No spaces are alowd in path"
@@ -1383,12 +1383,12 @@ class convert_generic_files_to_MagIC(wx.Frame):
             exec command
             command= "self.Bind(wx.EVT_BUTTON, self.on_add_file_button_i, self.add_file_button_%i)"%i
             #print command
-            exec command            
+            exec command
             command="bSizer0_%i = wx.BoxSizer(wx.HORIZONTAL)"%i
             exec command
             command="bSizer0_%i.Add(wx.StaticText(pnl,label=('%i  '[:2])),wx.ALIGN_LEFT)"%(i,i+1)
             exec command
-            
+
             command="bSizer0_%i.Add(self.file_path_%i,wx.ALIGN_LEFT)" %(i,i)
             exec command
             command="bSizer0_%i.Add(self.add_file_button_%i,wx.ALIGN_LEFT)" %(i,i)
@@ -1396,7 +1396,7 @@ class convert_generic_files_to_MagIC(wx.Frame):
             command="bSizer0.Add(bSizer0_%i,wx.ALIGN_TOP)" %i
             exec command
             bSizer0.AddSpacer(5)
-              
+
         #---sizer 1 ----
 
         TEXT="\n\nExperiment:"
@@ -1409,7 +1409,7 @@ class convert_generic_files_to_MagIC(wx.Frame):
             #command="self.protocol_info_%i = wx.TextCtrl(self.panel, id=-1, size=(100,20), style=wx.TE_MULTILINE | wx.HSCROLL)"%i
             #print command
             exec command
-            command="bSizer1.Add(self.protocol_info_%i,wx.ALIGN_TOP)"%i        
+            command="bSizer1.Add(self.protocol_info_%i,wx.ALIGN_TOP)"%i
             exec command
             bSizer1.AddSpacer(5)
 
@@ -1425,7 +1425,7 @@ class convert_generic_files_to_MagIC(wx.Frame):
             command= "self.file_info_Blab_dec_%i = wx.TextCtrl(self.panel, id=-1, size=(40,25))"%i
             exec command
             command= "self.file_info_Blab_inc_%i = wx.TextCtrl(self.panel, id=-1, size=(40,25))"%i
-            exec command          
+            exec command
             command="bSizer2_%i = wx.BoxSizer(wx.HORIZONTAL)"%i
             exec command
             command="bSizer2_%i.Add(self.file_info_Blab_%i ,wx.ALIGN_LEFT)" %(i,i)
@@ -1440,7 +1440,7 @@ class convert_generic_files_to_MagIC(wx.Frame):
 
 
         #self.blab_info = wx.TextCtrl(self.panel, id=-1, size=(80,250), style=wx.TE_MULTILINE | wx.HSCROLL)
-        #bSizer2.Add(self.blab_info,wx.ALIGN_TOP)        
+        #bSizer2.Add(self.blab_info,wx.ALIGN_TOP)
 
         #---sizer 3 ----
 
@@ -1464,7 +1464,7 @@ class convert_generic_files_to_MagIC(wx.Frame):
         bSizer4.AddSpacer(5)
         for i in range(self.max_files):
             command="self.sample_naming_convention_%i = wx.ComboBox(self.panel, -1, self.sample_naming_conventions[0], size=(180,25), choices=self.sample_naming_conventions, style=wx.CB_DROPDOWN)"%i
-            exec command            
+            exec command
             command="self.sample_naming_convention_char_%i = wx.TextCtrl(self.panel, id=-1, size=(40,25))"%i
             exec command
             command="bSizer4_%i = wx.BoxSizer(wx.HORIZONTAL)"%i
@@ -1473,7 +1473,7 @@ class convert_generic_files_to_MagIC(wx.Frame):
             exec command
             command="bSizer4_%i.Add(self.sample_naming_convention_char_%i,wx.ALIGN_LEFT)" %(i,i)
             exec command
-            command="bSizer4.Add(bSizer4_%i,wx.ALIGN_TOP)"%i        
+            command="bSizer4.Add(bSizer4_%i,wx.ALIGN_TOP)"%i
             exec command
 
             bSizer4.AddSpacer(5)
@@ -1496,7 +1496,7 @@ class convert_generic_files_to_MagIC(wx.Frame):
             exec command
             command="bSizer5_%i.Add(self.site_naming_convention_char_%i,wx.ALIGN_LEFT)" %(i,i)
             exec command
-            command="bSizer5.Add(bSizer5_%i,wx.ALIGN_TOP)"%i        
+            command="bSizer5.Add(bSizer5_%i,wx.ALIGN_TOP)"%i
             exec command
             bSizer5.AddSpacer(5)
 
@@ -1510,18 +1510,18 @@ class convert_generic_files_to_MagIC(wx.Frame):
 
         #self.remove_file_button =  wx.Button(self.panel, id=-1, label='remove file')
 
-                     
+
         self.okButton = wx.Button(self.panel, wx.ID_OK, "&OK")
         self.Bind(wx.EVT_BUTTON, self.on_okButton, self.okButton)
 
         self.cancelButton = wx.Button(self.panel, wx.ID_CANCEL, '&Cancel')
         self.Bind(wx.EVT_BUTTON, self.on_cancelButton, self.cancelButton)
 
-        hbox1 = wx.BoxSizer(wx.HORIZONTAL)        
+        hbox1 = wx.BoxSizer(wx.HORIZONTAL)
         #hbox1.Add(self.add_file_button)
         #hbox1.Add(self.remove_file_button )
 
-        hbox2 = wx.BoxSizer(wx.HORIZONTAL)        
+        hbox2 = wx.BoxSizer(wx.HORIZONTAL)
         hbox2.Add(self.okButton)
         hbox2.Add(self.cancelButton )
 
@@ -1531,31 +1531,31 @@ class convert_generic_files_to_MagIC(wx.Frame):
 
         hbox = wx.BoxSizer(wx.HORIZONTAL)
         hbox.AddSpacer(5)
-        hbox.Add(bSizer0, flag=wx.ALIGN_LEFT)        
+        hbox.Add(bSizer0, flag=wx.ALIGN_LEFT)
         hbox.AddSpacer(5)
-        hbox.Add(bSizer1, flag=wx.ALIGN_LEFT)        
+        hbox.Add(bSizer1, flag=wx.ALIGN_LEFT)
         hbox.AddSpacer(5)
-        hbox.Add(bSizer2, flag=wx.ALIGN_LEFT)        
+        hbox.Add(bSizer2, flag=wx.ALIGN_LEFT)
         hbox.AddSpacer(5)
-        hbox.Add(bSizer3, flag=wx.ALIGN_LEFT)        
+        hbox.Add(bSizer3, flag=wx.ALIGN_LEFT)
         hbox.AddSpacer(5)
-        hbox.Add(bSizer4, flag=wx.ALIGN_LEFT)        
+        hbox.Add(bSizer4, flag=wx.ALIGN_LEFT)
         hbox.AddSpacer(5)
-        hbox.Add(bSizer5, flag=wx.ALIGN_LEFT)        
+        hbox.Add(bSizer5, flag=wx.ALIGN_LEFT)
         hbox.AddSpacer(5)
 
         #-----
-        
+
         vbox.AddSpacer(20)
         vbox.Add(bSizer_info,flag=wx.ALIGN_CENTER_HORIZONTAL)
-        vbox.AddSpacer(20)        
+        vbox.AddSpacer(20)
         vbox.Add(hbox)
         vbox.AddSpacer(20)
         vbox.Add(hbox1,flag=wx.ALIGN_CENTER_HORIZONTAL)
         vbox.AddSpacer(20)
         vbox.Add(hbox2,flag=wx.ALIGN_CENTER_HORIZONTAL)
         vbox.AddSpacer(20)
-        
+
         self.panel.SetSizer(vbox)
         vbox.Fit(self)
         self.Show()
@@ -1575,11 +1575,11 @@ class convert_generic_files_to_MagIC(wx.Frame):
         Rs=sqrt(Xs**2+Ys**2+Zs**2) # calculate resultant vector length
         Decs=(arctan2(Ys,Xs)/rad)%360. # calculate declination taking care of correct quadrants (arctan2) and making modulo 360.
         try:
-            Incs=arcsin(Zs/Rs)/rad # calculate inclination (converting to degrees) # 
+            Incs=arcsin(Zs/Rs)/rad # calculate inclination (converting to degrees) #
         except:
             print 'trouble in cart2dir' # most likely division by zero somewhere
             return zeros(3)
-            
+
         return array([Decs,Incs,Rs]).transpose() # return the directions list
 
 
@@ -1588,10 +1588,10 @@ class convert_generic_files_to_MagIC(wx.Frame):
 
         dlg = wx.FileDialog(
             None,message="choose file to convert to MagIC",
-            defaultDir=self.WD, 
+            defaultDir=self.WD,
             defaultFile="",
             style=wx.OPEN | wx.CHANGE_DIR
-            )        
+            )
         if dlg.ShowModal() == wx.ID_OK:
             FILE = dlg.GetPath()
         # fin=open(FILE,'rU')
@@ -1603,10 +1603,10 @@ class convert_generic_files_to_MagIC(wx.Frame):
 
         dlg = wx.FileDialog(
             None,message="choose file to convert to MagIC",
-            defaultDir="./", 
+            defaultDir="./",
             defaultFile="",
             style=wx.OPEN | wx.CHANGE_DIR
-            )        
+            )
         if dlg.ShowModal() == wx.ID_OK:
             FILE = dlg.GetPath()
         # fin=open(FILE,'rU')
@@ -1614,7 +1614,7 @@ class convert_generic_files_to_MagIC(wx.Frame):
         name=button.GetName()
         i=int((name).split("_")[-1])
         #print "The button's name is " + button.GetName()
-        
+
         command="self.file_path_%i.SetValue(FILE)"%i
         exec command
 
@@ -1627,7 +1627,7 @@ class convert_generic_files_to_MagIC(wx.Frame):
         Data={}
         Fin=open(path,'rU')
         header=Fin.readline().strip('\n').split('\t')
-        
+
         for line in Fin.readlines():
             tmp_data={}
             l=line.strip('\n').split('\t')
@@ -1645,9 +1645,9 @@ class convert_generic_files_to_MagIC(wx.Frame):
                     if tmp_data['Treatment']==Data[specimen][-1]['Treatment']:
                         print "-W- WARNING: duplicate measurements specimen %s, Treatment %s. keeping onlt the last one"%(tmp_data['Specimen'],tmp_data['Treatment'])
                         Data[specimen].pop()
-                        
+
                 Data[specimen].append(tmp_data)
-        return(Data)               
+        return(Data)
 
     def on_okButton(self,event):
         os.chdir(self.WD)
@@ -1659,9 +1659,9 @@ class convert_generic_files_to_MagIC(wx.Frame):
         # prepare output file
         magic_headers=['er_citation_names','er_specimen_name',"er_sample_name","er_site_name",'er_location_name','er_analyst_mail_names',\
                        "magic_instrument_codes","measurement_flag","measurement_standard","magic_experiment_name","magic_method_codes","measurement_number",'treatment_temp',"measurement_dec","measurement_inc",\
-                       "measurement_magn_moment","measurement_temp","treatment_dc_field","treatment_dc_field_phi","treatment_dc_field_theta"]             
+                       "measurement_magn_moment","measurement_temp","treatment_dc_field","treatment_dc_field_phi","treatment_dc_field_theta"]
 
-        fout=open("magic_measurements.txt",'w')        
+        fout=open("magic_measurements.txt",'w')
         fout.write("tab\tmagic_measurements\n")
         header_string=""
         for i in range(len(magic_headers)):
@@ -1669,7 +1669,7 @@ class convert_generic_files_to_MagIC(wx.Frame):
         fout.write(header_string[:-1]+"\n")
 
         #-----------------------------------
-            
+
         Data={}
         header_codes=[]
         ERROR=""
@@ -1684,11 +1684,11 @@ class convert_generic_files_to_MagIC(wx.Frame):
                 try:
                     this_file_data= self.read_generic_file(datafile)
                 except:
-                    print "-E- Cant read file %s" %datafile                
+                    print "-E- Cant read file %s" %datafile
             else:
                 continue
 
-                
+
             # get experiment
             command="experiment=self.protocol_info_%i.GetValue()"%i
             exec command
@@ -1701,12 +1701,12 @@ class convert_generic_files_to_MagIC(wx.Frame):
             exec command
             command="labfield[2]=self.file_info_Blab_inc_%i.GetValue()"%i
             exec command
-            
+
             # get User_name
             user_name=""
             command="user_name=self.file_info_user_%i.GetValue()"%i
             exec command
-            
+
             # get sample-specimen naming convention
 
             sample_naming_convenstion=["",""]
@@ -1714,7 +1714,7 @@ class convert_generic_files_to_MagIC(wx.Frame):
             exec command
             command="sample_naming_convenstion[1]=self.sample_naming_convention_char_%i.GetValue()"%i
             exec command
-            
+
             # get site-sample naming convention
 
             site_naming_convenstion=["",""]
@@ -1744,8 +1744,8 @@ class convert_generic_files_to_MagIC(wx.Frame):
                     MagRec["er_sample_name"]=self.get_sample_name(MagRec["er_specimen_name"],sample_naming_convenstion)
                     MagRec["er_site_name"]=self.get_site_name(MagRec["er_sample_name"],site_naming_convenstion)
                     MagRec['er_location_name']=""
-                    MagRec['er_analyst_mail_names']=user_name 
-                    MagRec["magic_instrument_codes"]="" 
+                    MagRec['er_analyst_mail_names']=user_name
+                    MagRec["magic_instrument_codes"]=""
                     MagRec["measurement_flag"]='g'
                     MagRec["measurement_number"]="%i"%measurement_running_number
                     MagRec['treatment_temp']="%.2f"%(float(meas_line['Treatment'].split(".")[0])+273.)
@@ -1759,7 +1759,7 @@ class convert_generic_files_to_MagIC(wx.Frame):
                     MagRec["measurement_standard"]="u"
                     MagRec["magic_experiment_name"]=MagRec["er_specimen_name"]+":"+Magic_lab_protocols[experiment]
 
-                    this_specimen_teratments.append(float(meas_line['Treatment']))                    
+                    this_specimen_teratments.append(float(meas_line['Treatment']))
                     # fill in LP and LT
                     lab_protocols_string=Magic_lab_protocols[experiment]
                     tr_temp=float(meas_line['Treatment'].split(".")[0])
@@ -1767,35 +1767,35 @@ class convert_generic_files_to_MagIC(wx.Frame):
                         tr_tr=0
                     else:
                         tr_tr=float(meas_line['Treatment'].split(".")[1])
-                    
+
                     # identify the step in the experiment from Experiment_Type,
                     # IZ/ZI/IZZI
                     if experiment in ['IZZI','IZ','ZI']:
                         if float(tr_temp)==0:
                             lab_treatment="LT-NO" # NRM
-                        elif float(tr_tr)==0:                            
+                        elif float(tr_tr)==0:
                             lab_treatment="LT-T-Z"
                             if tr_temp+0.1 in this_specimen_teratments[:-1]:
                                 lab_protocols_string="LP-PI-TRM-IZ:"+lab_protocols_string
                             else:
                                 lab_protocols_string="LP-PI-TRM-ZI:"+lab_protocols_string
-                                                
-                        elif float(tr_tr)==10 or float(tr_tr)==1:                            
+
+                        elif float(tr_tr)==10 or float(tr_tr)==1:
                             lab_treatment="LT-T-I"
                             if tr_temp+0.0 in this_specimen_teratments[:-1]:
                                 lab_protocols_string="LP-PI-TRM-ZI:"+lab_protocols_string
                             else:
                                 lab_protocols_string="LP-PI-TRM-IZ:"+lab_protocols_string
 
-                        elif float(tr_tr)==20 or float(tr_tr)==2:                            
-                            lab_treatment="LT-PTRM-I"            
-                        elif float(tr_tr)==30 or float(tr_tr)==3:                            
-                            lab_treatment="LT-PTRM-MD"            
-                        elif float(tr_tr)==40 or float(tr_tr)==4:                            
-                            lab_treatment="LT-PTRM-AC"            
-                        else:                            
+                        elif float(tr_tr)==20 or float(tr_tr)==2:
+                            lab_treatment="LT-PTRM-I"
+                        elif float(tr_tr)==30 or float(tr_tr)==3:
+                            lab_treatment="LT-PTRM-MD"
+                        elif float(tr_tr)==40 or float(tr_tr)==4:
+                            lab_treatment="LT-PTRM-AC"
+                        else:
                             print "-E- unknown measurement code specimen %s treatmemt %s"%(meas_line['Specimen'],meas_line['Treatment'])
-                        
+
                     elif experiment in ['ATRM 6 positions']:
                         lab_protocols_string="LP-AN-TRM"
                         if float(tr_tr)==0:
@@ -1803,7 +1803,7 @@ class convert_generic_files_to_MagIC(wx.Frame):
                             MagRec["treatment_dc_field_phi"]='0'
                             MagRec["treatment_dc_field_theta"]='0'
                         else:
-                                    
+
                             # find the direction of the lab field in two ways:
                             # (1) using the treatment coding (XX.1=+x, XX.2=+y, XX.3=+z, XX.4=-x, XX.5=-y, XX.6=-z)
                             tdec=[0,90,0,180,270,0,0,90,0]
@@ -1825,18 +1825,18 @@ class convert_generic_files_to_MagIC(wx.Frame):
                                 if INC <-45: ipos_guess=5
                             # prefer the guess over the code
                             ipos=ipos_guess
-                            # check it 
+                            # check it
                             if tr_tr!= 7 and tr_tr!= 70:
                                 if ipos_guess!=ipos_code:
                                     print "-W- WARNING: check specimen %s step %s, ATRM measurements, coding does not match the direction of the lab field"%(specimen,meas_line['Treatment'])
                             MagRec["treatment_dc_field_phi"]='%7.1f' %(tdec[ipos])
                             MagRec["treatment_dc_field_theta"]='%7.1f'% (tinc[ipos])
-                                
+
                             if float(tr_tr)==70 or float(tr_tr)==7: # alteration check as final measurement
                                     lab_treatment="LT-PTRM-I"
                             else:
                                     lab_treatment="LT-T-I"
-                                
+
                     elif experiment in ['cooling rate']:
                         print "Dont support yet cooling rate experiment file. Contact rshaar@ucsd.edu"
                     elif experiment in ['NLT']:
@@ -1846,7 +1846,7 @@ class convert_generic_files_to_MagIC(wx.Frame):
                         else:
                             lab_protocols_string="LP-TRM"
                             lab_treatment="LT-T-I"
-                            
+
                     MagRec["magic_method_codes"]=lab_treatment+":"+lab_protocols_string
                     line_string=""
                     for i in range(len(magic_headers)):
@@ -1854,7 +1854,7 @@ class convert_generic_files_to_MagIC(wx.Frame):
                     fout.write(line_string[:-1]+"\n")
 
         #--
-        MSG="files converted to MagIC format and merged into one file:\n magic_measurements.txt\n "            
+        MSG="files converted to MagIC format and merged into one file:\n magic_measurements.txt\n "
         dlg1 = wx.MessageDialog(None,caption="Message:", message=MSG ,style=wx.OK|wx.ICON_INFORMATION)
         dlg1.ShowModal()
         dlg1.Destroy()
@@ -1879,7 +1879,7 @@ class convert_generic_files_to_MagIC(wx.Frame):
             else:
                 sample=d.join(sample_splitted[:-1])
         return sample
-                            
+
     def get_site_name(self,sample,site_naming_convenstion):
         if site_naming_convenstion[0]=="site=sample":
             site=sample
@@ -1893,11 +1893,11 @@ class convert_generic_files_to_MagIC(wx.Frame):
                 site=site_splitted[0]
             else:
                 site=d.join(site_splitted[:-1])
-        
+
         return site
 
 class preferences_stats_dialog(wx.Dialog):
-            
+
             def __init__(self, parent,title,preferences):
                 self.preferences=preferences
                 super(preferences_stats_dialog, self).__init__(parent, title=title)
@@ -1917,37 +1917,37 @@ class preferences_stats_dialog(wx.Dialog):
                   self.preferences['show_statistics_on_gui'].remove(selName)
                 self.criteria_list_window.Set(self.preferences['show_statistics_on_gui'])
                 self.criteria_options.Set(self.statistics_options)
-               
-                
+
+
             def InitUI(self):
 
                 pnl1 = wx.Panel(self)
 
                 vbox = wx.BoxSizer(wx.VERTICAL)
 
-                #-----------box1        
+                #-----------box1
 
                 bSizer1 = wx.StaticBoxSizer( wx.StaticBox( pnl1, wx.ID_ANY, "Statistical definitions" ), wx.HORIZONTAL )
                 self.bootstrap_N=wx.TextCtrl(pnl1,style=wx.TE_CENTER,size=(80,20))
-                                             
+
                 Statistics_definitions_window = wx.GridSizer(1, 2, 12, 12)
                 Statistics_definitions_window.AddMany( [(wx.StaticText(pnl1,label="Bootstrap N",style=wx.TE_CENTER), wx.EXPAND),
-                    (self.bootstrap_N, wx.EXPAND)])                 
+                    (self.bootstrap_N, wx.EXPAND)])
                 bSizer1.Add( Statistics_definitions_window, 0, wx.ALIGN_LEFT|wx.ALL, 5 )
-                
-                #-----------box2        
+
+                #-----------box2
 
                 bSizer2 = wx.StaticBoxSizer( wx.StaticBox( pnl1, wx.ID_ANY, "Dipole Moment" ), wx.HORIZONTAL )
 
                 self.v_adm_box = wx.ComboBox(pnl1, -1, self.preferences['VDM_or_VADM'], (100, 20), wx.DefaultSize, ["VADM","VDM"], wx.CB_DROPDOWN,name="VDM or VADM?")
-                                             
+
                 Statistics_VADM = wx.GridSizer(1, 2, 12, 12)
                 Statistics_VADM.AddMany( [(wx.StaticText(pnl1,label="VDM or VADM?",style=wx.TE_CENTER), wx.EXPAND),
-                    (self.v_adm_box, wx.EXPAND)])                 
+                    (self.v_adm_box, wx.EXPAND)])
                 bSizer2.Add( Statistics_VADM, 0, wx.ALIGN_LEFT|wx.ALL, 5 )
-                         
+
                 #----------------------
-                                    
+
 #                bSizer3 = wx.StaticBoxSizer( wx.StaticBox( pnl1, wx.ID_ANY, "Choose statistics to display on GUI" ), wx.VERTICAL )
 #
 #                self.statistics_options=["int_n","int_ptrm_n","frac","scat","gmax","b_beta","int_mad","int_dang","f","fvds","g","q","drats","md",'ptrms_dec','ptrms_inc','ptrms_mad','ptrms_angle']
@@ -1963,7 +1963,7 @@ class preferences_stats_dialog(wx.Dialog):
 #                Statistics_criteria_0 = wx.GridSizer(1, 2, 0, 0)
 #                Statistics_criteria_0.AddMany( [(wx.StaticText(pnl1,label="Options:"), wx.EXPAND),
 #                    (wx.StaticText(pnl1,label="Statistics displayed:"), wx.EXPAND)])
-#   
+#
 #                Statistics_criteria_1 = wx.GridSizer(2, 2, 0, 0)
 #                Statistics_criteria_1.AddMany( [((self.criteria_options),wx.EXPAND),
 #                    ((self.criteria_list_window),wx.EXPAND),
@@ -1976,7 +1976,7 @@ class preferences_stats_dialog(wx.Dialog):
 ###                bSizer3.Add(self.criteria_list_window)
 #                bSizer3.Add(Statistics_criteria_0, 0, wx.ALIGN_TOP, 0 )
 #                bSizer3.Add(Statistics_criteria_1, 0, wx.ALIGN_TOP, 0 )
-#                #self.update_text_box() 
+#                #self.update_text_box()
 
                 #----------------------
 
@@ -1986,8 +1986,8 @@ class preferences_stats_dialog(wx.Dialog):
                 hbox2.Add(self.okButton)
                 hbox2.Add(self.cancelButton )
 
-                
-                #----------------------  
+
+                #----------------------
                 vbox.AddSpacer(20)
                 vbox.Add(bSizer1, flag=wx.ALIGN_TOP)
                 vbox.AddSpacer(20)
@@ -2000,21 +2000,21 @@ class preferences_stats_dialog(wx.Dialog):
 
                 vbox.Add(hbox2, flag=wx.ALIGN_TOP)
                 vbox.AddSpacer(20)
-                            
+
                 pnl1.SetSizer(vbox)
                 vbox.Fit(self)
 
 
                 #---------------------- Initialize  values:
 
-                try:                    
+                try:
                     self.bootstrap_N.SetValue("%.0f"%(self.preferences["BOOTSTRAP_N"]))
                 except:
                     self.bootstrap_N.SetValue("10000")
-                    
+
                 #----------------------
 
-#--------------------------------------------------------------    
+#--------------------------------------------------------------
 # show figures
 #--------------------------------------------------------------
 
@@ -2022,5 +2022,3 @@ class ShowFigure():
     def __init__(self,fig):
         self.fig=fig
         self.fig.show()
-    
-    
