@@ -84,7 +84,6 @@ def isIn(row, col_name, arg, dm, df, con=None):
     If not, return error message.
     """
     #grade = df.apply(func, args=(validation_name, arg, dm), axis=1)
-    x = 0
     cell_value = row[col_name]
     if not cell_value:
         return None
@@ -101,8 +100,14 @@ def isIn(row, col_name, arg, dm, df, con=None):
         possible_values = con.tables[table_name].df[table_col_name].unique()
         for value in cell_values:
             if value not in possible_values:
-                return 'This value: "{}" is not found in: {}'.format(value, arg)
-                break
+                trunc_possible_values = [val.replace(' ', '') for val in possible_values if val]
+                trunc_cell_value = cell_value.replace(' ', '')
+                if trunc_cell_value not in trunc_possible_values:
+                    if trunc_cell_value != value:
+                        return 'This value (long): "{}" is not found in: {} column in {} table.  Also (short): {} is not in {}'.format(value, table_col_name, table_name, trunc_cell_value, arg)
+                    else:
+                        return 'This value: "{}" is not found in: {} column in {} table'.format(value, table_col_name, table_name)
+                    break
     # if it's in the present table:
     else:
         possible_values = df[arg].unique()
@@ -181,7 +186,6 @@ def cv(row, col_name, arg, current_data_model, df, con):
             possible_values.append(str(val).lower())
         except UnicodeEncodeError as ex:
             print val, ex
-
     for value in cell_values:
         if str(value).lower() == "nan":
             continue
@@ -241,11 +245,6 @@ def test_type(value, value_type):
             return '"{}" should be an integer'.format(str(value))
         if isinstance(value, str):
             if str(int(value)) == value:
-                return None
-            else:
-                return '"{}" should be an integer'.format(str(value))
-        else:
-            if int(value) == value:
                 return None
             else:
                 return '"{}" should be an integer'.format(str(value))
