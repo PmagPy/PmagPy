@@ -10,7 +10,7 @@ from pmagpy.demag_gui_utilities import *
 from pmagpy.Fit import *
 
 global CURRENT_VERSION, PMAGPY_DIRECTORY
-CURRENT_VERSION = "v.0.33"
+CURRENT_VERSION = pmag.get_version()
 PMAGPY_DIRECTORY = find_pmag_dir.get_pmag_dir()
 IMG_DIRECTORY = os.path.join(PMAGPY_DIRECTORY, 'dialogs', 'images')
 
@@ -26,7 +26,7 @@ class InterpretationEditorFrame(wx.Frame):
         self.GUI_RESOLUTION=self.parent.GUI_RESOLUTION
         #call init of super class
         default_style = wx.MINIMIZE_BOX | wx.MAXIMIZE_BOX | wx.RESIZE_BORDER | wx.SYSTEM_MENU | wx.CAPTION | wx.CLOSE_BOX | wx.CLIP_CHILDREN | wx.NO_FULL_REPAINT_ON_RESIZE | wx.WS_EX_CONTEXTHELP | wx.FRAME_EX_CONTEXTHELP
-        wx.Frame.__init__(self, self.parent, title="Interpretation Editor",style=default_style, size=(675*self.GUI_RESOLUTION,425*self.GUI_RESOLUTION))
+        wx.Frame.__init__(self, self.parent, title="Interpretation Editor version:%s"%CURRENT_VERSION,style=default_style, size=(675*self.GUI_RESOLUTION,425*self.GUI_RESOLUTION))
         self.Bind(wx.EVT_CLOSE, self.on_close_edit_window)
         #setup wx help provider class to give help messages
         provider = wx.SimpleHelpProvider()
