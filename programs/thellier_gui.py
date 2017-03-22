@@ -237,7 +237,7 @@ class Arai_GUI(wx.Frame):
     """
     title = "PmagPy Thellier GUI %s"%CURRENT_VERSION
 
-    def __init__(self, WD=None, parent=None, standalone=True, DM=2.5, test_mode=False):
+    def __init__(self, WD=None, parent=None, standalone=True, DM=0, test_mode=False, evt_quit=None):
         """
         """
         self.data_model = int(DM)
@@ -280,6 +280,7 @@ class Arai_GUI(wx.Frame):
         self.dpi = 100
 
         self.preferences=preferences
+        self.evt_quit = evt_quit
 
         self.Data,self.Data_hierarchy,self.Data_info={},{},{}
         self.MagIC_directories_list=[]
@@ -1974,9 +1975,16 @@ else:
             if self.show_dlg(dlg1) == wx.ID_OK:
                 dlg1.Destroy()
                 self.Destroy()
-                #sys.exit()
+                # if a custom quit event is specified, fire it
+                if self.evt_quit:
+                    event = self.evt_quit(self.GetId())
+                    self.GetEventHandler().ProcessEvent(event)
         else:
             self.Destroy()
+            # if a custom quit event is specified, fire it
+            if self.evt_quit:
+                event = self.evt_quit(self.GetId())
+                self.GetEventHandler().ProcessEvent(event)
             #self.Destroy() # works if matplotlib isn't using 'WXAgg', otherwise doesn't quit fully
             #wx.Exit() # works by itself, but if called in conjunction with self.Destroy you get a seg error
             # wx.Exit() # forces the program to exit, with no clean up.  works, but not an ideal solution
