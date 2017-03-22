@@ -167,6 +167,26 @@ class TestMagicDataFrame(unittest.TestCase):
         self.assertEqual(1, len(results))
 
 
+    def test_get_first_non_null_value(self):
+        magic_df = nb.MagicDataFrame(os.path.join(PROJECT_WD, 'sites.txt'),
+                                     dmodel=DMODEL)
+        res = magic_df.get_first_non_null_value('1', 'bed_dip_direction')
+        self.assertEqual(135, res)
+        magic_df.df.loc['1', 'bed_dip_direction'] = None
+        res = magic_df.get_first_non_null_value('1', 'bed_dip_direction')
+        self.assertTrue(pd.isnull(res))
+
+
+    def test_front_and_backfill(self):
+        magic_df = nb.MagicDataFrame(os.path.join(PROJECT_WD, 'sites.txt'),
+                                     dmodel=DMODEL)
+        directions = magic_df.df.loc['1', 'bed_dip_direction']
+        self.assertEqual(sorted(directions), [None, 135, 135])
+        magic_df.front_and_backfill(cols=['bed_dip_direction'])
+        directions = magic_df.df.loc['1', 'bed_dip_direction']
+        self.assertEqual(sorted(directions), [135, 135, 135])
+
+
 class TestContribution(unittest.TestCase):
 
     def setUp(self):

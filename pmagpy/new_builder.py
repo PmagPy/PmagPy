@@ -867,7 +867,6 @@ class MagicDataFrame(object):
             return False
         return self.df
 
-
     def add_row(self, label, row_data, columns=""):
         """
         Add a row with data.
@@ -911,7 +910,6 @@ class MagicDataFrame(object):
         #self.df.sort_index(inplace=True)
         return self.df
 
-
     def add_data(self, data):  # add append option later
         """
         Add df to a MagicDataFrame using a data list.
@@ -929,29 +927,6 @@ class MagicDataFrame(object):
             df.index = df[name]
         self.df = df
 
-
-    def get_singular_and_plural_dtype(self, dtype):
-        """
-        Parameters
-        ----------
-        dtype : str
-            MagIC table type (specimens, samples, contribution, etc.)
-
-        Returns
-        ---------
-        name : str
-           singular name for MagIC table ('specimen' for specimens table, etc.)
-        dtype : str
-           plural dtype for MagIC table ('specimens' for specimens table, etc.)
-        """
-        dtype = dtype.strip()
-        if dtype.endswith('s'):
-            return dtype[:-1], dtype
-        elif dtype == 'criteria':
-            return 'table_column', 'criteria'
-        elif dtype == 'contribution':
-            return 'doi', 'contribution'
-
     def add_blank_row(self, label):
         """
         Add a blank row with only an index value to self.df.
@@ -962,7 +937,6 @@ class MagicDataFrame(object):
         # use .loc to add in place (append won't do that)
         self.df.loc[blank_item.name] = blank_item
         return self.df
-
 
     def delete_row(self, ind):
         """
@@ -1007,7 +981,6 @@ class MagicDataFrame(object):
         self.df = df_data
         return df_data
 
-
     def update_record(self, name, new_data, condition, update_only=False,
                       debug=False):
         """
@@ -1048,6 +1021,28 @@ class MagicDataFrame(object):
         df_data['num'] = range(len(df_data))
         self.df = df_data
         return df_data
+
+    def front_and_backfill(self, cols):
+        """
+        Groups dataframe by index name then replaces null values in selected
+        columns with front/backfilled values if available.
+        Changes self.df inplace.
+
+        Parameters
+        ----------
+        self : MagicDataFrame
+        cols : array-like
+            list of column names
+
+        Returns
+        ---------
+        self.df
+        """
+        short_df = self.df[cols]
+        short_df = short_df.groupby(short_df.index, sort=False).fillna(method='ffill').groupby(short_df.index, sort=False).fillna(method='bfill')
+        self.df[cols] = short_df[cols]
+        return self.df
+
 
 
     ## Methods that take self.df and extract some information from it
@@ -1283,6 +1278,56 @@ class MagicDataFrame(object):
         f.write('tab\t{}\n'.format(self.dtype))
         df.to_csv(f, sep="\t", header=True, index=False)
         f.close()
+
+    ## Helper methods
+
+    def get_first_non_null_value(self, ind_name, col_name):
+        """
+        For a given index and column, find the first non-null value.
+
+        Parameters
+        ----------
+        self : MagicDataFrame
+        ind_name : str
+            index name for indexing
+        col_name : str
+            column name for indexing
+
+        Returns
+        ---------
+        single value of str, float, or int
+        """
+        short_df = self.df.loc[ind_name, col_name]
+        mask = pd.notnull(short_df)
+        print short_df[mask]
+        try:
+            val = short_df[mask].unique()[0]
+        except IndexError:
+            val = None
+        return val
+
+
+    def get_singular_and_plural_dtype(self, dtype):
+        """
+        Parameters
+        ----------
+        dtype : str
+            MagIC table type (specimens, samples, contribution, etc.)
+
+        Returns
+        ---------
+        name : str
+           singular name for MagIC table ('specimen' for specimens table, etc.)
+        dtype : str
+           plural dtype for MagIC table ('specimens' for specimens table, etc.)
+        """
+        dtype = dtype.strip()
+        if dtype.endswith('s'):
+            return dtype[:-1], dtype
+        elif dtype == 'criteria':
+            return 'table_column', 'criteria'
+        elif dtype == 'contribution':
+            return 'doi', 'contribution'
 
 
 
