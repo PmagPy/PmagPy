@@ -1,5 +1,24 @@
 #!/usr/bin/env pythonw
+"""
+Runs Thellier GUI PmagPy's main analysis GUI for thellier-tyep 
+paleointensity data. This can be used to obtain intensities for Thermal and 
+Microwave data. It allows export of figures and analysis results for upload 
+to the MagIC database and/or publication. For more information on how to 
+interpret or use the GUI's many functions see the Help menu in the open GUI. 
+More documentation can be found on all of PmagPy's functionality at the 
+PmagPy cookbook which can be found here: earthref.org/PmagPy/cookbook/
 
+SYNTAX
+    thellier_gui.py [command line options]
+
+OPTIONS
+    -h : opens this help message
+    -WD : specify working directory
+    -DM : specify MagIC data model (options : 3 or 2.x)
+
+AUTHORS
+    Ron Shaar and Lisa Tauxe
+"""
 #============================================================================================
 # LOG HEADER:
 #============================================================================================

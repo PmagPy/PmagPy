@@ -5222,6 +5222,7 @@ class Demag_GUI(wx.Frame):
             elif calculation_type=="DE-BFL-O": PCA_type="line-with-origin"
             elif calculation_type=="DE-FM": PCA_type="Fisher"
             elif calculation_type=="DE-BFP": PCA_type="plane"
+            else: print("no PCA type found setting to line"); PCA_type="line"
             self.PCA_type_box.SetStringSelection(PCA_type)
 
     def update_fit_boxes(self, new_fit = False):
