@@ -6,7 +6,10 @@ import matplotlib
 if matplotlib.get_backend() != "TKAgg":
   matplotlib.use("TKAgg")
 import pylab as plt
-from mpl_toolkits.basemap import Basemap
+try:
+  from mpl_toolkits.basemap import Basemap
+except ImportError:
+  Basemap = None
 from pylab import meshgrid
 
 import pmagpy.pmag as pmag
@@ -14,12 +17,12 @@ import pmagpy.pmagplotlib as pmagplotlib
 
 def main():
     """
-    NAME 
-        plot_magmap.py 
+    NAME
+        plot_magmap.py
 
     DESCRIPTION
         makes a color contour map of desired field model
- 
+
     SYNTAX
         plot_magmap.py [command line options]
 
@@ -31,8 +34,11 @@ def main():
         -age specify date in decimal year, default is 2015
         -lon0: 0 longitude for map, default is 0
         -el: [D,I,B,Br]  specify element for plotting, default is B
-    
+
     """
+    if not Basemap:
+      print "-W- You must intstall the Basemap module to run plot_magmap.py"
+      sys.exit()
     dir_path='.'
     lincr=1 # level increment for contours
     if '-WD' in sys.argv:
@@ -48,7 +54,7 @@ def main():
     if '-el' in sys.argv:
         ind = sys.argv.index('-el')
         el=sys.argv[ind+1]
-    else: 
+    else:
         el='B'
     if '-alt' in sys.argv:
         ind = sys.argv.index('-alt')
@@ -73,24 +79,24 @@ def main():
     if el=='B':
         levmax=Bs.max()+lincr
         levmin=round(Bs.min()-lincr)
-        cs=m.contourf(x,y,Bs,levels=np.arange(levmin,levmax,lincr)) 
+        cs=m.contourf(x,y,Bs,levels=np.arange(levmin,levmax,lincr))
         plt.title('Field strength ($\mu$T): '+str(date));
     if el=='Brs':
         levmax=Brs.max()+lincr
         levmin=round(Brs.min()-lincr)
-        cs=m.contourf(x,y,Brs,levels=np.arange(levmin,levmax,lincr)) 
+        cs=m.contourf(x,y,Brs,levels=np.arange(levmin,levmax,lincr))
         plt.title('Radial field strength ($\mu$T): '+str(date));
     if el=='I':
         levmax=Is.max()+lincr
         levmin=round(Is.min()-lincr)
         cs=m.contourf(x,y,Is,levels=np.arange(levmin,levmax,lincr))
-        m.contour(x,y,Is,levels=np.arange(-80,90,10),colors='black') 
+        m.contour(x,y,Is,levels=np.arange(-80,90,10),colors='black')
         plt.title('Field inclination: '+str(date));
     if el=='D':
         levmax=Ds.max()+lincr
         levmin=round(Ds.min()-lincr)
         cs=m.contourf(x,y,Ds,levels=np.arange(levmin,levmax,lincr))
-        m.contour(x,y,Ds,levels=np.arange(0,360,10),colors='black') 
+        m.contour(x,y,Ds,levels=np.arange(0,360,10),colors='black')
         plt.title('Field declination: '+str(date));
     cbar=m.colorbar(cs,location='bottom')
     plt.savefig('igrf'+'%6.1f'%(date)+'.'+fmt)
