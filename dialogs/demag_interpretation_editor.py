@@ -6,6 +6,7 @@ from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigCanvas
 from matplotlib.backends.backend_wxagg import NavigationToolbar2WxAgg as NavigationToolbar
 from matplotlib.figure import Figure
 import help_files.demag_interpretation_editor_help as dieh
+from pmagpy import pmag
 from pmagpy.demag_gui_utilities import *
 from pmagpy.Fit import *
 
