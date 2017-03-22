@@ -351,6 +351,18 @@ class TestContribution(unittest.TestCase):
         for fname in ['_locations.txt']: # no samples available this time
             os.remove(os.path.join(self.directory, fname))
 
+    def test_propagate_cols_up(self):
+        directory = os.path.join(WD, 'data_files', '3_0', 'McMurdo')
+        con = nb.Contribution(directory, dmodel=DMODEL,
+                              read_tables=['sites', 'samples'])
+        con.tables['sites'].df.loc[:, 'lithologies'] = None
+        con.tables['sites'].df.loc[:, 'geologic_types'] = 'your type'
+        con.tables['samples'].df.loc[:, 'geologic_types'] = 'my_type'
+        con.propagate_cols(['lithologies', 'geologic_types'], 'sites',
+                           'samples', down=False)
+        self.assertEqual('Basalt', con.tables['sites'].get_first_non_null_value('mc50', 'lithologies'))
+        self.assertEqual('your type', con.tables['sites'].get_first_non_null_value('mc50', 'geologic_types'))
+
 
 
 if __name__ == '__main__':

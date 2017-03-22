@@ -396,9 +396,9 @@ class Contribution(object):
             # convert "Not Specified" to blank
             #self.tables[table].df.replace("^[Nn]ot [Ss]pecified", '',
             #                              regex=True, inplace=True)
-        self.propagate_cols_down(cols, 'samples', 'sites')
+        self.propagate_cols(cols, 'samples', 'sites')
         cols = ['lithologies', 'geologic_types', 'geologic_classes']
-        self.propagate_cols_down(cols, 'specimens', 'samples')
+        self.propagate_cols(cols, 'specimens', 'samples')
 
 
     def add_item(self, table_name, data, label):
@@ -570,8 +570,8 @@ class Contribution(object):
         self.tables[df_name].df = df
         return df
 
-
-    def propagate_cols_down(self, col_names, target_df_name, source_df_name):
+    def propagate_cols(self, col_names, target_df_name, source_df_name,
+                       down=True):
         """
         Put the data for "col_name" from source_df into target_df
         Used to get "azimuth" from sample table into measurements table
@@ -598,11 +598,15 @@ class Contribution(object):
                     print "-W- Column '{}' isn't in {} table, skipping it".format(col, source_df_name)
                     col_names.remove(col)
         if not col_names:
-            print "-W- Invalid or missing column names, could not propagate down"
+            print "-W- Invalid or missing column names, could not propagate columns"
             return
+        #
+        if down:
+            add_name = source_df_name[:-1]
+            self.propagate_name_down(add_name, target_df_name)
+        else:
+            add_name = target_df_name[:-1]
 
-        add_name = source_df_name[:-1]
-        self.propagate_name_down(add_name, target_df_name)
         # get dataframes for merge
         target_df = self.tables[target_df_name].df
         source_df = self.tables[source_df_name].df
@@ -612,10 +616,23 @@ class Contribution(object):
             source_df[source_df_name] = source_df.index
         source_df.drop_duplicates(inplace=True, subset=col_names + [source_df_name])
         source_df = source_df.groupby(source_df.index, sort=False).fillna(method='ffill').groupby(source_df.index, sort=False).fillna(method='bfill')
-        # do merge
-        target_df = target_df.merge(source_df[col_names], how='left',
-                                    left_on=add_name, right_index=True,
-                                    suffixes=["_target", "_source"])
+        # propagate down
+        if down:
+            # do merge
+            target_df = target_df.merge(source_df[col_names], how='left',
+                                        left_on=add_name, right_index=True,
+                                        suffixes=["_target", "_source"])
+        # propagate up
+        else:
+            # do merge
+            col_names.append(add_name)
+            target_df = target_df.merge(source_df[col_names],
+                                        how='left', left_index=True,
+                                        right_on=add_name,
+                                        suffixes=['_target', '_source'])
+            target_df.index = target_df[add_name]
+            target_df.drop([add_name + "_source", add_name + "_target"], axis=1, inplace=True)
+
         # ignore any duplicate rows
         target_df.drop_duplicates(inplace=True)
         # mess with target_df to remove un-needed merge columns
