@@ -98,34 +98,41 @@ class PintPars(object):
         self.specimen_Data = Data[self.s]
         self.datablock = self.specimen_Data['datablock']
 
-        self.x_Arai = self.specimen_Data['x_Arai']
-        self.y_Arai = self.specimen_Data['y_Arai']
-        self.t_Arai = self.specimen_Data['t_Arai']
+        izzi_flags = list(map(lambda x: x[-1], Data[self.s]['araiblock'][0]))
+        ptrm_flags = list(map(lambda x: x[-1], Data[self.s]['araiblock'][2]))
+        tail_flags = list(map(lambda x: x[-1], Data[self.s]['araiblock'][3]))
+        add_flags = list(map(lambda x: x[-1], Data[self.s]['araiblock'][6]))
+        zijd_flags = list(map(lambda x: x[5], Data[self.s]['zijdblock']))
+        all_flags = list(map(lambda x: x['measurement_flag'], Data[self.s]['datablock']))
 
-        self.zdata = self.specimen_Data['zdata']
+        self.x_Arai = numpy.array([self.specimen_Data['x_Arai'][i] for i in range(len(self.specimen_Data['x_Arai'])) if izzi_flags[i]=='g'])
+        self.y_Arai = numpy.array([self.specimen_Data['y_Arai'][i] for i in range(len(self.specimen_Data['y_Arai'])) if izzi_flags[i]=='g'])
+        self.t_Arai = [self.specimen_Data['t_Arai'][i] for i in range(len(self.specimen_Data['t_Arai'])) if izzi_flags[i]=='g']
 
-        self.x_tail_check=self.specimen_Data['x_tail_check']
-        self.y_tail_check=self.specimen_Data['y_tail_check']
-        self.tail_checks_temperatures = self.specimen_Data['tail_check_temperatures']
+        self.zdata = numpy.array([self.specimen_Data['zdata'][i] for i in range(len(self.specimen_Data['zdata'])) if zijd_flags[i]=='g'])
+
+        self.x_tail_check=numpy.array([self.specimen_Data['x_tail_check'][i] for i in range(len(self.specimen_Data['x_tail_check'])) if tail_flags[i]=='g'])
+        self.y_tail_check=numpy.array([self.specimen_Data['y_tail_check'][i] for i in range(len(self.specimen_Data['y_tail_check'])) if tail_flags[i]=='g'])
+        self.tail_checks_temperatures = numpy.array([self.specimen_Data['tail_check_temperatures'][i] for i in range(len(self.specimen_Data['tail_check_temperatures'])) if tail_flags[i]=='g'])
 #        self.x_tail_check_starting_point = self.specimen_Data['x_tail_check_starting_point']
 #        self.y_tail_check_starting_point = self.specimen_Data['y_tail_check_starting_point']
-        self.tail_checks_starting_temperatures = self.specimen_Data['tail_checks_starting_temperatures']
+        self.tail_checks_starting_temperatures = numpy.array([self.specimen_Data['tail_checks_starting_temperatures'][i] for i in range(len(self.specimen_Data['tail_checks_starting_temperatures'])) if tail_flags[i]=='g'])
 
 # pTRM checks ("triangles")
-        self.x_ptrm_check = self.specimen_Data['x_ptrm_check'] # a list of x coordinates of pTRM checks
-        self.y_ptrm_check = self.specimen_Data['y_ptrm_check'] # a list of y coordinates of pTRM checks
-        self.ptrm_checks_temperatures= self.specimen_Data['ptrm_checks_temperatures'] # a list of pTRM checks temperature
+        self.x_ptrm_check = numpy.array([self.specimen_Data['x_ptrm_check'][i] for i in range(len(self.specimen_Data['x_ptrm_check'])) if ptrm_flags[i]=='g']) # a list of x coordinates of pTRM checks
+        self.y_ptrm_check = numpy.array([self.specimen_Data['y_ptrm_check'][i] for i in range(len(self.specimen_Data['y_ptrm_check'])) if ptrm_flags[i]=='g']) # a list of y coordinates of pTRM checks
+        self.ptrm_checks_temperatures = numpy.array([self.specimen_Data['ptrm_checks_temperatures'][i] for i in range(len(self.specimen_Data['ptrm_checks_temperatures'])) if ptrm_flags[i]=='g']) # a list of pTRM checks temperature
 #        Data[s]['x_ptrm_check_starting_point'] # a list of x coordinates of the point ehere the pTRM checks started from
 #         Data[s]['y_ptrm_check_starting_point'] # a list of y coordinates of the point ehere the pTRM checks started from
-        self.ptrm_checks_starting_temperatures = self.specimen_Data['ptrm_checks_starting_temperatures'] # a list of temperatures from which the pTRM checks started from
+        self.ptrm_checks_starting_temperatures = numpy.array([self.specimen_Data['ptrm_checks_starting_temperatures'][i] for i in range(len(self.specimen_Data['ptrm_checks_starting_temperatures'])) if ptrm_flags[i]=='g']) # a list of temperatures from which the pTRM checks started from
 
         # AC checks
-        self.x_add_check = self.specimen_Data['x_additivity_check']
-        self.y_add_check = self.specimen_Data['y_additivity_check']
-        self.add_checks_temperatures = self.specimen_Data['additivity_check_temperatures']
-        self.add_checks_starting_temperatures = self.specimen_Data['additivity_check_starting_temperatures']
-        self.x_add_check_starting_point = self.specimen_Data['x_additivity_check_starting_point']
-        self.y_add_check_starting_point = self.specimen_Data['y_additivity_check_starting_point']
+        self.x_add_check = numpy.array([self.specimen_Data['x_additivity_check'][i] for i in range(len(self.specimen_Data['x_additivity_check'])) if add_flags[i]=='g'])
+        self.y_add_check = numpy.array([self.specimen_Data['y_additivity_check'][i] for i in range(len(self.specimen_Data['y_additivity_check'])) if add_flags[i]=='g'])
+        self.add_checks_temperatures = numpy.array([self.specimen_Data['additivity_check_temperatures'][i] for i in range(len(self.specimen_Data['additivity_check_temperatures'])) if add_flags[i]=='g'])
+        self.add_checks_starting_temperatures = numpy.array([self.specimen_Data['additivity_check_starting_temperatures'][i] for i in range(len(self.specimen_Data['additivity_check_starting_temperatures'])) if add_flags[i]=='g'])
+        self.x_add_check_starting_point = numpy.array([self.specimen_Data['x_additivity_check_starting_point'][i] for i in range(len(self.specimen_Data['x_additivity_check_starting_point'])) if add_flags[i]=='g'])
+        self.y_add_check_starting_point = numpy.array([self.specimen_Data['y_additivity_check_starting_point'][i] for i in range(len(self.specimen_Data['y_additivity_check_starting_point'])) if add_flags[i]=='g'])
 
         # Data in Temp/Dec/Inc/Int format
         self.PTRMS = self.specimen_Data['PTRMS']
@@ -156,7 +163,7 @@ class PintPars(object):
 
 
         #LJ ADDING stats:
-        self.steps_Arai = self.specimen_Data['steps_Arai']
+        self.steps_Arai = numpy.array([self.specimen_Data['steps_Arai'][i] for i in range(len(self.specimen_Data['steps_Arai'])) if izzi_flags[i]=='g'])
         self.n = int(self.end-self.start+1)
         self.n_max = len(self.t_Arai)
         self.tmin = tmin
