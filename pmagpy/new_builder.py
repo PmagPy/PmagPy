@@ -811,6 +811,9 @@ class MagicDataFrame(object):
             # get singular name and plural datatype
             name, self.dtype = self.get_singular_and_plural_dtype(dtype)
             self.df = pd.read_table(magic_file, skiprows=[0])
+            # drop all blank rows
+            self.df = self.df.dropna(how='all', axis=0)
+            #
             if self.dtype == 'measurements':
                 self.df['measurement'] = self.df['experiment'] + self.df['number'].astype(str)
             elif self.dtype == 'contribution':
