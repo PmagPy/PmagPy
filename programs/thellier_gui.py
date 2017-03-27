@@ -1070,14 +1070,14 @@ else:
             mdf = self.contribution.tables['measurements'].df
             a_index = self.Data[self.s]['magic_experiment_name'] + str(index+1)
             try: mdf.set_value(a_index,'quality','g')
-            except ValueError: self.user_warning("cannot find valid measurement data to mark bad, this feature is still under development please report this error to a developer")
+            except ValueError: self.user_warning("cannot find valid measurement data to mark bad, this feature is still under development please report this error to a developer"); return False
 
         return True
 
     def mark_meas_bad(self,index):
 
         if 'LT-NO' in self.Data[self.s]['datablock'][index]['magic_method_codes']:
-            TEXT = "Currently Thellier GUI uses the first NRM to normalize data and this data point is essential and thus will still be used to normalize other data even if marked bad. This said it will still be removed from calculations like any other data point once marked bad. In later versions it is hoped that function can be expanded to allow this function to work as one might expect assuming you have more than one NRM measurement at the start of your specimen's measurement data. Hit okay to continue marking bad or cancel to well cancel."
+            TEXT = "Currently Thellier GUI uses the first NRM to normalize data and this data point is essential and thus will still be used to normalize other data even if marked bad. This said it will still be removed from calculations like any other data point once marked bad. In later versions it is hoped that functionality can be expanded to allow this function to work as one might expect assuming you have more than one NRM measurement at the start of your specimen's measurement data. Hit okay to continue marking bad or cancel to well cancel."
             if not self.user_warning(TEXT):
                 return False
 
@@ -1094,7 +1094,73 @@ else:
             mdf = self.contribution.tables['measurements'].df
             a_index = self.Data[self.s]['magic_experiment_name'] + str(index+1)
             try: mdf.set_value(a_index,'quality','b')
-            except ValueError: self.user_warning("cannot find valid measurement data to mark bad, this feature is still under development please report this error to a developer")
+            except ValueError: self.user_warning("cannot find valid measurement data to mark bad, this feature is still under development please report this error to a developer"); return False
+
+        return True
+
+    def mark_ptrm_bad(self,s,temp):
+
+        self.user_warning("There is no longer both an I and a Z step for step %s on specimen %s so checks at the same temperature must also be marked as bad, marking ptrm check for %s bad"%(temp,s,temp))
+
+        meas_index,ind_data = 0,[]
+        for i,meas_data in enumerate(self.mag_meas_data):
+            if meas_data['er_specimen_name']==s and \
+               'LT-PTRM-I' in meas_data['magic_method_codes'] and \
+               (float(meas_data['treatment_temp'])==temp or \
+               float(meas_data['treatment_ac_field'])==temp):
+                meas_index=i
+        a_index = self.mag_meas_data[meas_index]['magic_experiment_name']
+
+        self.mag_meas_data[meas_index]['measurement_flag'] = 'b'
+
+        if self.data_model == 3.0:
+            mdf = self.contribution.tables['measurements'].df
+            try: mdf.set_value(a_index,'quality','b')
+            except (AttributeError,ValueError) as e: self.user_warning("cannot find valid measurement data to mark bad, this feature is still under development please report this error to a developer"); return False
+
+        return True
+
+    def mark_tail_bad(self,s,temp):
+
+        self.user_warning("There is no longer both an I and a Z step for step %s on specimen %s so checks at the same temperature must also be marked as bad, marking tail check for %s bad"%(temp,s,temp))
+
+        meas_index,ind_data = 0,[]
+        for i,meas_data in enumerate(self.mag_meas_data):
+            if meas_data['er_specimen_name']==s and \
+               'LT-PTRM-MD' in meas_data['magic_method_codes'] and \
+               (float(meas_data['treatment_temp'])==temp or \
+               float(meas_data['treatment_ac_field'])==temp):
+                meas_index=i
+        a_index = self.mag_meas_data[meas_index]['magic_experiment_name']
+
+        self.mag_meas_data[meas_index]['measurement_flag'] = 'b'
+
+        if self.data_model == 3.0:
+            mdf = self.contribution.tables['measurements'].df
+            try: mdf.set_value(a_index,'quality','b')
+            except (AttributeError,ValueError) as e: self.user_warning("cannot find valid measurement data to mark bad, this feature is still under development please report this error to a developer"); return False
+
+        return True
+
+    def mark_add_check_bad(self,s,temp):
+
+        self.user_warning("There is no longer both an I and a Z step for step %s on specimen %s so checks at the same temperature must also be marked as bad, marking additivity check for %s bad"%(temp,s,temp))
+
+        meas_index,ind_data = 0,[]
+        for i,meas_data in enumerate(self.mag_meas_data):
+            if meas_data['er_specimen_name']==s and \
+               'LT-PTRM-AC' in meas_data['magic_method_codes'] and \
+               (float(meas_data['treatment_temp'])==temp or \
+               float(meas_data['treatment_ac_field'])==temp):
+                meas_index=i
+        a_index = self.mag_meas_data[meas_index]['magic_experiment_name']
+
+        self.mag_meas_data[meas_index]['measurement_flag'] = 'b'
+
+        if self.data_model == 3.0:
+            mdf = self.contribution.tables['measurements'].df
+            try: mdf.set_value(a_index,'quality','b')
+            except (AttributeError,ValueError) as e: self.user_warning("cannot find valid measurement data to mark bad, this feature is still under development please report this error to a developer"); return False
 
         return True
 
@@ -5818,9 +5884,17 @@ else:
         self.bs=False
         self.bs_par=False
 
-
-
     def get_data(self):
+        Data,Data_hierarchy,resave_meas_data=self.get_data_from_file()
+        if resave_meas_data:
+            if self.data_model == 3.0:
+                self.contribution.tables['measurements'].write_magic_file(dir_path=self.WD)
+            else:
+                pmag.magic_write(os.path.join(self.WD, "magic_measurements.txt"), self.mag_meas_data, "magic_measurements")
+            Data,Data_hierarchy,resave_meas_data=self.get_data_from_file()
+        return Data,Data_hierarchy
+
+    def get_data_from_file(self):
 
         def tan_h(x, a, b):
             return a*np.tanh(b*x)
@@ -6330,7 +6404,7 @@ else:
         #
         #
         #------------------------------------------------
-
+        resave_meas_data=False
         for s in sids:
             datablock = Data[s]['datablock']
             trmblock = Data[s]['trmblock']
@@ -6474,7 +6548,9 @@ else:
                 except KeyError: pass
                 continue
 
-            araiblock,field=self.sortarai(datablock,s,0)
+            araiblock,field,resave_meas_data_tmp=self.sortarai(datablock,s,0)
+
+            if resave_meas_data_tmp: resave_meas_data=True
 
             # thermal or microwave
             rec=datablock[0]
@@ -6532,7 +6608,7 @@ else:
             #--------------------------------------------------------------
 
             z_temperatures=[row[0] for row in zijdblock]
-            zdata=[]
+            zdata,zdata_good,zdata_bad=[],[],[]
             vector_diffs=[]
 
             # if AFD before the Thellier Experiment: ignore the AF steps in NRM calculation
@@ -6543,15 +6619,21 @@ else:
                 DIR = [zijdblock[k][1],zijdblock[k][2],zijdblock[k][3]/NRM]
                 cart = pmag.dir2cart(DIR)
                 zdata.append(np.array([cart[0],cart[1],cart[2]]))
-                if k>0:
-                    vector_diffs.append(np.sqrt(sum((np.array(zdata[-2])-np.array(zdata[-1]))**2)))
-            vector_diffs.append(np.sqrt(sum(np.array(zdata[-1])**2))) # last vector of the vds
+                if zijdblock[5]=='b':
+                    zdata_bad.append(np.array([cart[0],cart[1],cart[2]]))
+                else:
+                    zdata_good.append(np.array([cart[0],cart[1],cart[2]]))
+                if len(zdata_good)>2:
+                    vector_diffs.append(np.sqrt(sum((np.array(zdata_good[-2])-np.array(zdata_good[-1]))**2)))
+            vector_diffs.append(np.sqrt(sum(np.array(zdata_good[-1])**2))) # last vector of the vds
             vds = sum(vector_diffs)  # vds calculation
             zdata = np.array(zdata)
 
             Data[s]['vector_diffs']=np.array(vector_diffs)
             Data[s]['vds']=vds
             Data[s]['zdata']=zdata
+            Data[s]['zdata_good']=zdata_good
+            Data[s]['zdata_bad']=zdata_bad
             Data[s]['z_temp']=z_temperatures
             Data[s]['NRM']=NRM
 
@@ -6823,14 +6905,11 @@ else:
             Data[s]['y_additivity_check_starting_point']=y_AC_starting_point
             Data[s]['additivity_check_starting_temperatures']=AC_starting_temperatures
 
-
-
-
         self.GUI_log.write("-I- number of specimens in this project directory: %i\n"%len(self.specimens))
         self.GUI_log.write("-I- number of samples in this project directory: %i\n"%len(Data_hierarchy['samples'].keys()))
 
         print "done sort blocks to arai, zij. etc."
-        return(Data,Data_hierarchy)
+        return(Data,Data_hierarchy,resave_meas_data)
 
 
 
@@ -7030,6 +7109,7 @@ else:
         Treat_I,Treat_Z,Treat_PZ,Treat_PI,Treat_M,Treat_AC=[],[],[],[],[],[]
         i_flags,z_flags,ptrm_flags,tail_flags,add_flags = [],[],[],[],[]
         ISteps,ZSteps,PISteps,PZSteps,MSteps,ACSteps=[],[],[],[],[],[]
+        good_Arai_temps,resave_meas_data=[],False
         GammaChecks=[] # comparison of pTRM direction acquired and lab field
         Mkeys=['measurement_magn_moment','measurement_magn_volume','measurement_magn_mass','measurement_magnitude']
         rec=datablock[0]
@@ -7151,7 +7231,7 @@ else:
                 zstep=ZSteps_use[Treat_Z_use.index(temp)]
 
                 zrec=datablock[zstep]
-        # sort out first_Z records
+                # sort out first_Z records
                 # check if ZI/IZ in in method codes:
                 ZI=""
                 if "LP-PI-TRM-IZ" in methcodes or "LP-PI-M-IZ" in methcodes or "LP-PI-IZ" in methcodes:
@@ -7185,6 +7265,7 @@ else:
                         ZI=1
                     else:
                         ZI=0
+                if izzi_flag=='g': good_Arai_temps.append(temp)
                 dec=float(zrec["measurement_dec"])
                 inc=float(zrec["measurement_inc"])
                 str=float(zrec[momkey])
@@ -7255,6 +7336,7 @@ else:
         for i in range(len(Treat_PI)): # look through infield steps and find matching Z step
 
             temp=Treat_PI[i]
+            if temp not in good_Arai_temps and ptrm_flags[i]!='b': resave_meas_data=self.mark_ptrm_bad(s,temp)
             ptrm_flag = ptrm_flags[i]
             k=PISteps[i]
             rec=datablock[k]
@@ -7319,6 +7401,7 @@ else:
 
         for k,temp in enumerate(Treat_M):
             #print temp
+            if temp not in good_Arai_temps and ptrm_flags[i]!='b': resave_meas_data=self.mark_tail_bad(s,temp)
             step=MSteps[Treat_M.index(temp)]
             tail_flag = tail_flags[k]
             rec=datablock[step]
@@ -7356,6 +7439,7 @@ else:
         for i in range(len(Treat_AC)):
             step_0=ACSteps[i]
             temp=Treat_AC[i]
+            if temp not in good_Arai_temps and ptrm_flags[i]!='b': resave_meas_data=self.mark_add_check_bad(s,temp)
             add_flag = add_flags[i]
             dec0=float(datablock[step_0]["measurement_dec"])
             inc0=float(datablock[step_0]["measurement_inc"])
@@ -7389,7 +7473,7 @@ else:
                 #print "I",np.sqrt(sum(X**2))
         araiblock=(first_Z,first_I,ptrm_check,ptrm_tail,zptrm_check,GammaChecks,additivity_check)
 
-        return araiblock,field
+        return araiblock,field,resave_meas_data
 
     def user_warning(self, message, caption = 'Warning!'):
         """

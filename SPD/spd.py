@@ -144,7 +144,7 @@ class PintPars(object):
 #        self.ADD_Checks = self.specimen_Data['ADD_Checks'] # removed this from new_lj_thellier_gui
 
         self.zijdblock=self.specimen_Data['zijdblock']
-        self.z_temperatures=self.specimen_Data['z_temp']
+        self.z_temperatures=[self.specimen_Data['z_temp'][i] for i in range(len(self.specimen_Data['z_temp'])) if zijd_flags[i]=='g']
 
         if self.t_Arai==[]: print("No Arai data found, aborting"); return
         while tmin not in self.t_Arai:
@@ -160,6 +160,8 @@ class PintPars(object):
 
         self.start=self.t_Arai.index(tmin)
         self.end=self.t_Arai.index(tmax)
+        self.zstart=self.z_temperatures.index(tmin)
+        self.zend=self.z_temperatures.index(tmax)
 
         self.pars={}
 
@@ -171,6 +173,7 @@ class PintPars(object):
 
   #      self.pars['magic_method_codes']=Data[self.s]['pars']['magic_method_codes']
         self.pars['specimen_int_n']=int(self.end-self.start+1)
+        self.pars['specimen_n']=int(self.zend-self.zstart)
         self.pars['specimen_n_total']=len(self.x_Arai)
 
 
@@ -243,7 +246,7 @@ class PintPars(object):
     def get_vds(self):
         zdata = self.zdata
         delta_y_prime = self.pars['delta_y_prime']
-        start, end = self.start, self.end
+        start, end = self.zstart, self.zend
         data = lib_arai.get_vds(zdata, delta_y_prime, start, end)
         self.pars['max_diff'] = data['max_diff']
         self.pars['vector_diffs'] = data['vector_diffs']
@@ -367,9 +370,9 @@ class PintPars(object):
 
     def get_dec_and_inc(self):
         Dec_Anc, Inc_Anc, best_fit_Anc, tau_Anc, V_Anc, mass_center, PCA_sigma_Anc = lib_direct.get_dec_and_inc(self.zdata,
-                self.t_Arai, self.tmin, self.tmax, anchored=True)
+                self.z_temperatures, self.tmin, self.tmax, anchored=True)
         Dec_Free, Inc_Free, best_fit_Free, tau_Free, V_Free, mass_center, PCA_sigma_Free = lib_direct.get_dec_and_inc(self.zdata,
-                self.t_Arai, self.tmin, self.tmax, anchored=False)
+                self.z_temperatures, self.tmin, self.tmax, anchored=False)
         self.pars['Dec_Anc'], self.pars['Dec_Free'] = Dec_Anc, Dec_Free
         self.pars['Inc_Anc'], self.pars['Inc_Free'] = Inc_Anc, Inc_Free
         self.pars['best_fit_vector_Anc'] = best_fit_Anc
@@ -458,8 +461,7 @@ class PintPars(object):
         ptrm_checks = self.ptrm_checks_temperatures
         ptrm_x = self.x_ptrm_check
         x_Arai, t_Arai = self.x_Arai, self.t_Arai
-        ptrm_checks, max_ptrm_check, sum_ptrm_checks, check_percent, sum_abs_ptrm_checks = lib_ptrm.get_max_ptrm_check(ptrm_checks_included_temps,
-            ptrm_checks, ptrm_x, t_Arai, x_Arai)
+        ptrm_checks, max_ptrm_check, sum_ptrm_checks, check_percent, sum_abs_ptrm_checks = lib_ptrm.get_max_ptrm_check(ptrm_checks_included_temps, ptrm_checks, ptrm_x, t_Arai, x_Arai)
         self.pars['ptrm_checks'] = ptrm_checks
         self.pars['max_ptrm_check_percent'] = check_percent
         self.pars['max_ptrm_check'] = max_ptrm_check
