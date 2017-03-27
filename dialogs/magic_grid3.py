@@ -1,12 +1,43 @@
 #import matplotlib
 #matplotlib.use('WXAgg')
+import sys
 import numpy as np
 import pandas as pd
 import wx
-import wx.grid
+import wx.grid as gridlib
 import wx.lib.mixins.gridlabelrenderer as gridlabelrenderer
 
-class MagicGrid(wx.grid.Grid, gridlabelrenderer.GridWithLabelRenderersMixin):
+
+class HugeTable(gridlib.PyGridTableBase):
+
+    def __init__(self, log):
+        gridlib.PyGridTableBase.__init__(self)
+        self.log = log
+
+        self.odd=gridlib.GridCellAttr()
+        self.odd.SetBackgroundColour("sky blue")
+        self.even=gridlib.GridCellAttr()
+        self.even.SetBackgroundColour("sea green")
+
+    def GetAttr(self, row, col, kind):
+        attr = [self.even, self.odd][row % 2]
+        attr.IncRef()
+        return attr
+
+    # This is all it takes to make a custom data table to plug into a
+    # wxGrid.  There are many more methods that can be overridden, but
+    # the ones shown below are the required ones.  This table simply
+    # provides strings containing the row and column values.
+
+    def GetNumberRows(self):
+        return 10000
+
+    def GetNumberCols(self):
+        return 10000
+
+
+
+class BaseMagicGrid(gridlib.Grid, gridlabelrenderer.GridWithLabelRenderersMixin):
     """
     grid class
     """
@@ -17,9 +48,9 @@ class MagicGrid(wx.grid.Grid, gridlabelrenderer.GridWithLabelRenderersMixin):
         self.row_labels = sorted(row_labels)
         self.col_labels = col_labels
         if not size:
-            super(MagicGrid, self).__init__(parent, -1, name=name)
+            super(BaseMagicGrid, self).__init__(parent, -1, name=name)
         if size:
-            super(MagicGrid, self).__init__(parent, -1, name=name, size=size)
+            super(BaseMagicGrid, self).__init__(parent, -1, name=name, size=size)
         gridlabelrenderer.GridWithLabelRenderersMixin.__init__(self)
         ### the next few lines may prove unnecessary
         ancestry = ['specimen', 'sample', 'site', 'location', None]
@@ -135,8 +166,8 @@ class MagicGrid(wx.grid.Grid, gridlabelrenderer.GridWithLabelRenderersMixin):
         self.ForceRefresh()
 
     def do_event_bindings(self):
-        self.Bind(wx.grid.EVT_GRID_EDITOR_CREATED, self.on_edit_grid)
-        self.Bind(wx.grid.EVT_GRID_EDITOR_SHOWN, self.on_edit_grid)
+        self.Bind(gridlib.EVT_GRID_EDITOR_CREATED, self.on_edit_grid)
+        self.Bind(gridlib.EVT_GRID_EDITOR_SHOWN, self.on_edit_grid)
         self.Bind(wx.EVT_KEY_DOWN, self.on_key_down)
         #self.Bind(wx.EVT_TEXT, self.on_key_down_in_editor)
         #self.Bind(wx.EVT_CHAR, self.on_key_down)
@@ -376,9 +407,57 @@ class MagicGrid(wx.grid.Grid, gridlabelrenderer.GridWithLabelRenderersMixin):
 
 
 
-class MyCustomRenderer(wx.grid.PyGridCellRenderer):
+class MagicGrid(BaseMagicGrid):
+#gridlib.Grid, gridlabelrenderer.GridWithLabelRenderersMixin):
+    """
+    grid class
+    """
+
+    def __init__(self, parent, name, row_labels, col_labels, size=0):
+        super(MagicGrid, self).__init__(parent, name, row_labels, col_labels, size=0)
+
+
+
+class HugeMagicGrid(BaseMagicGrid):
+
+    def __init__(self, parent, log=sys.stdout):
+        gridlib.Grid.__init__(self, parent, -1)
+
+        table = HugeTable(log)
+
+        # The second parameter means that the grid is to take ownership of the
+        # table and will destroy it when done.  Otherwise you would need to keep
+        # a reference to it and call it's Destroy method later.
+        self.SetTable(table, True)
+
+        self.Bind(gridlib.EVT_GRID_CELL_RIGHT_CLICK, self.OnRightDown)
+
+    def InitUI(self):
+        pass
+
+    def add_items(self, df, exclude_cols):
+        pass
+
+    def size_grid(self):
+        pass
+
+    def remove_row(self, row_num):
+        pass
+
+    def set_scrollbars(self):
+        pass
+
+    def OnRightDown(self, event):
+        print "hello"
+        print self.GetSelectedRows()
+
+
+
+
+
+class MyCustomRenderer(gridlib.PyGridCellRenderer):
     def __init__(self, color='MEDIUM VIOLET RED'):
-        wx.grid.PyGridCellRenderer.__init__(self)
+        gridlib.PyGridCellRenderer.__init__(self)
         self.color = color
 
     def Draw(self, grid, attr, dc, rect, row, col, isSelected):
