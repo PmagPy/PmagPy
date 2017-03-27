@@ -408,11 +408,9 @@ class BaseMagicGrid(gridlib.Grid, gridlabelrenderer.GridWithLabelRenderersMixin)
 
 
 class MagicGrid(BaseMagicGrid):
-#gridlib.Grid, gridlabelrenderer.GridWithLabelRenderersMixin):
     """
     grid class
     """
-
     def __init__(self, parent, name, row_labels, col_labels, size=0):
         super(MagicGrid, self).__init__(parent, name, row_labels, col_labels, size=0)
 
@@ -420,10 +418,10 @@ class MagicGrid(BaseMagicGrid):
 
 class HugeMagicGrid(BaseMagicGrid):
 
-    def __init__(self, parent, log=sys.stdout):
-        gridlib.Grid.__init__(self, parent, -1)
-
-        table = HugeTable(log)
+    def __init__(self, parent, name, row_labels, col_labels, size=0):
+        super(HugeMagicGrid, self).__init__(parent, name, row_labels, col_labels, size=0)
+        # add table
+        table = HugeTable(log=sys.stdout)
 
         # The second parameter means that the grid is to take ownership of the
         # table and will destroy it when done.  Otherwise you would need to keep

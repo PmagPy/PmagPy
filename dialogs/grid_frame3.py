@@ -16,7 +16,8 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
     make_magic
     """
     def __init__(self, contribution, WD=None, frame_name="grid frame",
-                 panel_name="grid panel", parent=None, exclude_cols=()):
+                 panel_name="grid panel", parent=None, exclude_cols=(),
+                 huge=False):
         self.parent = parent
         wx.GetDisplaySize()
         title = 'Edit {} data'.format(panel_name)
@@ -29,6 +30,7 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
         self.selected_rows = set()
 
         self.contribution = contribution
+        self.huge = huge
         self.df_slice = None
         self.exclude_cols = exclude_cols
 
@@ -80,7 +82,8 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
         self.grid_builder = GridBuilder(self.contribution, self.grid_type,
                                         self.panel, parent_type=self.parent_type,
                                         reqd_headers=self.reqd_headers,
-                                        exclude_cols=self.exclude_cols)
+                                        exclude_cols=self.exclude_cols,
+                                        huge=self.huge)
 
         self.grid = self.grid_builder.make_grid()
         self.grid.InitUI()
@@ -860,7 +863,7 @@ class GridBuilder(object):
 
     def __init__(self, contribution, grid_type, panel,
                  parent_type=None, reqd_headers=None,
-                 exclude_cols=()):
+                 exclude_cols=(), huge=False):
         self.contribution = contribution
         self.exclude_cols = exclude_cols
         if grid_type in contribution.tables:
@@ -873,6 +876,7 @@ class GridBuilder(object):
 
         self.panel = panel
         self.parent_type = parent_type
+        self.huge=huge
         self.grid = None
 
     def make_grid(self):
@@ -934,8 +938,12 @@ class GridBuilder(object):
                     col_labels[:0] = [self.parent_type[:-1]]
                 col_labels.remove(self.grid_type[:-1])
                 col_labels[:0] = [self.grid_type[:-1]]
-        grid = magic_grid.MagicGrid(parent=self.panel, name=self.grid_type,
-                                    row_labels=[], col_labels=col_labels)
+        if not self.huge:
+            grid = magic_grid.MagicGrid(parent=self.panel, name=self.grid_type,
+                                        row_labels=[], col_labels=col_labels)
+        else:
+            grid = magic_grid.HugeMagicGrid(parent=self.panel, name=self.grid_type,
+                            row_labels=[], col_labels=col_labels)
         grid.do_event_bindings()
         grid.changes = changes
 
