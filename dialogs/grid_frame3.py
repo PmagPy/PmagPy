@@ -417,7 +417,10 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
                         self.drop_down_menu.add_drop_down(col_number, col)
                     elif col in self.contribution.vocab.suggested:
                         self.drop_down_menu.add_drop_down(col_number, col)
-                    elif col in ['specimen', 'sample', 'site', 'location']:
+                    elif col in ['specimen', 'sample', 'site', 'location',
+                                 'specimens', 'samples', 'sites']:
+                        self.drop_down_menu.add_drop_down(col_number, col)
+                    elif col == 'experiments':
                         self.drop_down_menu.add_drop_down(col_number, col)
                     if col == "method_codes":
                         self.drop_down_menu.add_method_drop_down(col_number, col)
@@ -442,7 +445,10 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
                         self.drop_down_menu.add_drop_down(col_number, name)
                     elif name in self.contribution.vocab.suggested:
                         self.drop_down_menu.add_drop_down(col_number, name)
-                    elif name in ['specimen', 'sample', 'site']:
+                    elif name in ['specimen', 'sample', 'site',
+                                  'specimens', 'samples', 'sites']:
+                        self.drop_down_menu.add_drop_down(col_number, name)
+                    elif name == 'experiments':
                         self.drop_down_menu.add_drop_down(col_number, name)
                     if name == "method_codes":
                         self.drop_down_menu.add_method_drop_down(col_number, name)
