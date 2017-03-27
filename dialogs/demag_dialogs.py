@@ -45,6 +45,8 @@ class VGP_Dialog(wx.Dialog):
         if VGP_Data!={} and not all([len(VGP_Data[k]) for k in VGP_Data.keys()]):
             parent.user_warning("No VGP Data for VGP viewer to display")
             self.Destroy(); self.failed_init=True; return
+        self.WD=parent.WD
+        self.test_mode=parent.test_mode
         self.selected_pole = None
         self.selected_pole_index = 0
         self.dp_list = []
@@ -104,12 +106,17 @@ class VGP_Dialog(wx.Dialog):
 
         #set hotkeys
         randomId = wx.NewId()
+        randomId2 = wx.NewId()
         self.Bind(wx.EVT_MENU, self.on_exit_hk, id=randomId)
-        accel_tbl = wx.AcceleratorTable([(wx.ACCEL_CTRL,  ord('Q'), randomId )])
+        self.Bind(wx.EVT_MENU, self.save_plot, id=randomId2)
+        accel_tbl = wx.AcceleratorTable([(wx.ACCEL_CTRL,  ord('Q'), randomId ),(wx.ACCEL_CTRL,  ord('S'), randomId2 )])
         self.SetAcceleratorTable(accel_tbl)
 
     def on_exit_hk(self,event):
         self.Close()
+
+    def save_plot(self,event):
+        SaveMyPlot(self.fig,self.VGP_level,"VGPPlot",self.WD,test_mode=self.test_mode)
 
     def on_plot_select(self,event):
         """
@@ -185,7 +192,7 @@ class VGP_Dialog(wx.Dialog):
 
     def draw_map(self):
         #set basemap
-        self.map = Basemap(projection='moll',lon_0=self.mean_lon,resolution='c',ax=self.eqarea)
+        self.map = Basemap(projection='moll',lon_0=0,resolution='c',ax=self.eqarea)
         self.map.drawcoastlines(linewidth=.25)
         self.map.fillcontinents(color='bisque',lake_color='white',zorder=1)
         self.map.drawmapboundary(fill_color='white')
@@ -250,6 +257,40 @@ class VGP_Dialog(wx.Dialog):
 
     def on_click_listctrl(self,event):
         self.change_selected(event.GetIndex())
+
+#--------------------------------------------------------------
+# Save plots
+#--------------------------------------------------------------
+
+class SaveMyPlot(wx.Frame):
+    """"""
+    def __init__(self,fig,name,plot_type,dir_path,test_mode=False):
+        """Constructor"""
+        wx.Frame.__init__(self, parent=None, title="")
+
+        file_choices="(*.pdf)|*.pdf|(*.svg)|*.svg| (*.png)|*.png"
+        default_fig_name="%s_%s.pdf"%(name,plot_type)
+        dlg = wx.FileDialog(
+            self,
+            message="Save plot as...",
+            defaultDir=dir_path,
+            defaultFile=default_fig_name,
+            wildcard=file_choices,
+            style=wx.SAVE)
+        dlg.Center()
+        if test_mode: result=dlg.GetAffirmativeId()
+        else: result=dlg.ShowModal()
+        if result == wx.ID_OK:
+            path = dlg.GetPath()
+        else:
+            return
+
+        title=name
+        self.panel = wx.Panel(self)
+        self.dpi=300
+
+        canvas_tmp_1 = FigCanvas(self.panel, -1, fig)
+        canvas_tmp_1.print_figure(path, dpi=self.dpi)
 
 #--------------------------------------------------------------
 # MagIc results tables dialog

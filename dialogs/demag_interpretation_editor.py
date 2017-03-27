@@ -8,9 +8,10 @@ from matplotlib.figure import Figure
 import help_files.demag_interpretation_editor_help as dieh
 from pmagpy.demag_gui_utilities import *
 from pmagpy.Fit import *
+from pmagpy.pmag import get_version
 
 global CURRENT_VERSION, PMAGPY_DIRECTORY
-CURRENT_VERSION = pmag.get_version()
+CURRENT_VERSION = get_version()
 PMAGPY_DIRECTORY = find_pmag_dir.get_pmag_dir()
 IMG_DIRECTORY = os.path.join(PMAGPY_DIRECTORY, 'dialogs', 'images')
 

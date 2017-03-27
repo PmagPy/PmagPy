@@ -5730,7 +5730,7 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
         self.draw_interpretations()
         self.plot_high_levels_data()
         self.fig1.text(0.9,0.98,'%s'%(self.s),{'family':self.font_type, 'fontsize':10, 'style':'normal','va':'center', 'ha':'right' })
-        SaveMyPlot(self.fig1,self.s,"Zij",self.WD,test_mode=self.test_mode)
+        demag_dialogs.SaveMyPlot(self.fig1,self.s,"Zij",self.WD,test_mode=self.test_mode)
 #        self.fig1.clear()
         self.draw_figure(self.s)
         self.update_selection()
@@ -5741,7 +5741,7 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
         self.plot_high_levels_data()
         #self.fig2.text(0.9,0.96,'%s'%(self.s),{'family':self.font_type, 'fontsize':10, 'style':'normal','va':'center', 'ha':'right' })
         #self.canvas4.print_figure("./tmp.pdf")#, dpi=self.dpi)
-        SaveMyPlot(self.fig2,self.s,"EqArea",self.WD,test_mode=self.test_mode)
+        demag_dialogs.SaveMyPlot(self.fig2,self.s,"EqArea",self.WD,test_mode=self.test_mode)
 #        self.fig2.clear()
         self.draw_figure(self.s)
         self.update_selection()
@@ -5751,7 +5751,7 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
         self.draw_interpretations()
         self.plot_high_levels_data()
         self.fig3.text(0.9,0.96,'%s'%(self.s),{'family':self.font_type, 'fontsize':10, 'style':'normal','va':'center', 'ha':'right' })
-        SaveMyPlot(self.fig3,self.s,"M_M0",self.WD,test_mode=self.test_mode)
+        demag_dialogs.SaveMyPlot(self.fig3,self.s,"M_M0",self.WD,test_mode=self.test_mode)
 #        self.fig3.clear()
         self.draw_figure(self.s)
         self.update_selection()
@@ -5760,7 +5760,7 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
         self.current_fit = None
         self.draw_interpretations()
         self.plot_high_levels_data()
-        SaveMyPlot(self.fig4,str(self.level_names.GetValue()),str(self.level_box.GetValue()), self.WD ,test_mode=self.test_mode)
+        demag_dialogs.SaveMyPlot(self.fig4,str(self.level_names.GetValue()),str(self.level_box.GetValue()), self.WD ,test_mode=self.test_mode)
 #        self.fig4.clear()
         self.draw_figure(self.s)
         self.update_selection()
@@ -5783,14 +5783,14 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
             try:
                 if plot_types[i]=="Zij":
                     self.fig1.text(0.9,0.98,'%s'%(self.s),{'family':self.font_type, 'fontsize':10, 'style':'normal','va':'center', 'ha':'right' })
-                    SaveMyPlot(self.fig1,self.s,"Zij",dir_path,test_mode=self.test_mode)
+                    demag_dialogs.SaveMyPlot(self.fig1,self.s,"Zij",dir_path,test_mode=self.test_mode)
                 if plot_types[i]=="EqArea":
-                    SaveMyPlot(self.fig2,self.s,"EqArea",dir_path,test_mode=self.test_mode)
+                    demag_dialogs.SaveMyPlot(self.fig2,self.s,"EqArea",dir_path,test_mode=self.test_mode)
                 if plot_types[i]=="M_M0":
                     self.fig3.text(0.9,0.96,'%s'%(self.s),{'family':self.font_type, 'fontsize':10, 'style':'normal','va':'center', 'ha':'right' })
-                    SaveMyPlot(self.fig3,self.s,"M_M0",dir_path,test_mode=self.test_mode)
+                    demag_dialogs.SaveMyPlot(self.fig3,self.s,"M_M0",dir_path,test_mode=self.test_mode)
                 if plot_types[i]==str(self.level_box.GetValue()):
-                    SaveMyPlot(self.fig4,str(self.level_names.GetValue()),str(self.level_box.GetValue()),dir_path ,test_mode=self.test_mode)
+                    demag_dialogs.SaveMyPlot(self.fig4,str(self.level_names.GetValue()),str(self.level_box.GetValue()),dir_path ,test_mode=self.test_mode)
             except:
                 pass
 
@@ -7204,41 +7204,6 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
             if specimen in self.pmag_results_data['specimens']:
                 num_interp += len(self.pmag_results_data['specimens'][specimen])
         return num_interp
-
-
-#--------------------------------------------------------------
-# Save plots
-#--------------------------------------------------------------
-
-class SaveMyPlot(wx.Frame):
-    """"""
-    def __init__(self,fig,name,plot_type,dir_path,test_mode=False):
-        """Constructor"""
-        wx.Frame.__init__(self, parent=None, title="")
-
-        file_choices="(*.pdf)|*.pdf|(*.svg)|*.svg| (*.png)|*.png"
-        default_fig_name="%s_%s.pdf"%(name,plot_type)
-        dlg = wx.FileDialog(
-            self,
-            message="Save plot as...",
-            defaultDir=dir_path,
-            defaultFile=default_fig_name,
-            wildcard=file_choices,
-            style=wx.SAVE)
-        dlg.Center()
-        if test_mode: result=dlg.GetAffirmativeId()
-        else: result=dlg.ShowModal()
-        if result == wx.ID_OK:
-            path = dlg.GetPath()
-        else:
-            return
-
-        title=name
-        self.panel = wx.Panel(self)
-        self.dpi=300
-
-        canvas_tmp_1 = FigCanvas(self.panel, -1, fig)
-        canvas_tmp_1.print_figure(path, dpi=self.dpi)
 
 #--------------------------------------------------------------
 # Run the GUI
