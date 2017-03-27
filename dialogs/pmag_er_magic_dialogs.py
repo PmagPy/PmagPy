@@ -76,7 +76,7 @@ class ErMagicCheckFrame3(wx.Frame):
         as well as which site a sample belongs to
         """
         # propagate any type/lithology/class data from sites to samples table
-        # will only overwrite if sample values are blank or "Not Specified"
+        # will only overwrite if sample values are blank
         self.contribution.propagate_lithology_cols()
         #self.sample_window += 1
         samp_df = self.contribution.tables['samples'].df

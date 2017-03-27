@@ -73,11 +73,6 @@ class Menus(object):
                     num = self.grid.col_labels.index(level)
                     self.choices[num] = (level_names, False)
         # Bind left click to drop-down menu popping out
-        # replacing this:
-        #self.window.Bind(wx.grid.EVT_GRID_CELL_LEFT_CLICK,
-        #lambda event: self.on_left_click(event, self.grid, self.choices),
-        #                 self.grid)
-        # with this:
         self.grid.Bind(wx.grid.EVT_GRID_CELL_LEFT_CLICK,
                        lambda event: self.on_left_click(event, self.grid, self.choices))
 
@@ -111,6 +106,16 @@ class Menus(object):
         """
         if col_label.endswith('**') or col_label.endswith('^^'):
             col_label = col_label[:-2]
+        # add drop-down for experiments
+        if col_label == "experiments":
+            if 'measurements' in self.contribution.tables:
+                meas_table = self.contribution.tables['measurements'].df
+                if 'experiment' in meas_table.columns:
+                    exps = meas_table['experiment'].unique()
+                    self.choices[col_number] = (sorted(exps), False)
+                    self.grid.SetColLabelValue(col_number, col_label + "**")
+            return
+        #
         if col_label == 'method_codes':
             self.add_method_drop_down(col_number, col_label)
         elif col_label == 'magic_method_codes':

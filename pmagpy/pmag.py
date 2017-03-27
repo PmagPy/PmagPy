@@ -841,18 +841,18 @@ def grade(PmagRec,ACCEPT,type,data_model=2.5):
     """
     Finds the 'grade' (pass/fail; A/F) of a record (specimen,sample,site) given the acceptance criteria
     """
-    GREATERTHAN=['specimen_q','site_k','site_n','site_n_lines','site_int_n','measurement_step_min','specimen_int_ptrm_n','specimen_fvds','specimen_frac','specimen_f','specimen_n','specimen_int_n','sample_int_n','average_age_min','average_k','average_r','specimen_magn_moment','specimen_magn_volumn','specimen_rsc','sample_n','sample_n_lines','sample_n_planes','sample_k','sample_r','site_magn_moment','site_magn_volumn','site_magn_mass','site_r'] # these statistics must be exceede to pass, all others must be less than (except specimen_scat, which must be true)
+    GREATERTHAN=['specimen_q','site_k','site_n','site_n_lines','site_int_n','measurement_step_min','specimen_int_ptrm_n','specimen_fvds','specimen_frac','specimen_f','specimen_n','specimen_int_n','sample_int_n','average_age_min','average_k','average_r','specimen_magn_moment','specimen_magn_volume','specimen_rsc','sample_n','sample_n_lines','sample_n_planes','sample_k','sample_r','site_magn_moment','site_magn_volume','site_magn_mass','site_r'] # these statistics must be exceede to pass, all others must be less than (except specimen_scat, which must be true)
     ISTRUE=['specimen_scat']
     kill=[] # criteria that kill the record
     sigma_types=['sample_int_sigma','sample_int_sigma_perc','site_int_sigma','site_int_sigma_perc','average_int_sigma','average_int_sigma_perc']
     sigmas=[]
     accept={}
     if type=='specimen_int':
-        USEKEYS=['specimen_q','measurement_step_min','measurement_step_max','specimen_int_ptrm_n','specimen_fvds','specimen_frac','specimen_f','specimen_int_n','specimen_magn_moment','specimen_magn_volumn','specimen_rsc','specimen_scat','specimen_drats','specimen_int_mad','specimen_int_dang','specimen_md','specimen_b_beta','specimen_w','specimen_gmax']
+        USEKEYS=['specimen_q','measurement_step_min','measurement_step_max','specimen_int_ptrm_n','specimen_fvds','specimen_frac','specimen_f','specimen_int_n','specimen_magn_moment','specimen_magn_volume','specimen_rsc','specimen_scat','specimen_drats','specimen_int_mad','specimen_int_dang','specimen_md','specimen_b_beta','specimen_w','specimen_gmax']
         if data_model==3.0:
             USEKEYS=[map_magic.spec_magic2_2_magic3_map[k] for k in USEKEYS]
     elif type=='specimen_dir':
-        USEKEYS=['measurement_step_min','measurement_step_max','specimen_mad','specimen_n','specimen_magn_moment','specimen_magn_volumn']
+        USEKEYS=['measurement_step_min','measurement_step_max','specimen_mad','specimen_n','specimen_magn_moment','specimen_magn_volume']
         if data_model==3.0:
             USEKEYS=[map_magic.spec_magic2_2_magic3_map[k] for k in USEKEYS]
     elif type=='sample_int':
