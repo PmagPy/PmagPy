@@ -1,5 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from __future__ import division
+from __future__ import print_function
+from builtins import str
+from builtins import range
+from past.utils import old_div
 import wx
 import sys
 import math
@@ -15,17 +20,17 @@ def cart2dir(cart):
     converts a direction to cartesian coordinates
     """
     cart=array(cart)
-    rad=pi/180. # constant to convert degrees to radians
+    rad=old_div(pi,180.) # constant to convert degrees to radians
     if len(cart.shape)>1:
         Xs,Ys,Zs=cart[:,0],cart[:,1],cart[:,2]
     else: #single vector
         Xs,Ys,Zs=cart[0],cart[1],cart[2]
     Rs=sqrt(Xs**2+Ys**2+Zs**2) # calculate resultant vector length
-    Decs=(arctan2(Ys,Xs)/rad)%360. # calculate declination taking care of correct quadrants (arctan2) and making modulo 360.
+    Decs=(old_div(arctan2(Ys,Xs),rad))%360. # calculate declination taking care of correct quadrants (arctan2) and making modulo 360.
     try:
-        Incs=arcsin(Zs/Rs)/rad # calculate inclination (converting to degrees) #
+        Incs=old_div(arcsin(old_div(Zs,Rs)),rad) # calculate inclination (converting to degrees) #
     except:
-        print 'trouble in cart2dir' # most likely division by zero somewhere
+        print('trouble in cart2dir') # most likely division by zero somewhere
         return zeros(3)
 
     return array([Decs,Incs,Rs]).transpose() # return the directions list
@@ -101,23 +106,23 @@ class convert_livdb_files_to_MagIC(wx.Frame):
         bSizer1.AddSpacer(5)
         for i in range(self.max_files):
             command= "self.dir_path_%i = wx.TextCtrl(self.panel, id=-1, size=(200,25), style=wx.TE_READONLY)"%i
-            exec command
+            exec(command)
             command= "self.add_dir_button_%i =  wx.Button(self.panel, id=-1, label='add',name='add_%i')"%(i,i)
-            exec command
+            exec(command)
             command= "self.Bind(wx.EVT_BUTTON, self.on_add_dir_button_i, self.add_dir_button_%i)"%i
             #print command
-            exec command
+            exec(command)
             command="bSizer1_%i = wx.BoxSizer(wx.HORIZONTAL)"%i
-            exec command
+            exec(command)
             command="bSizer1_%i.Add(wx.StaticText(pnl,label=('%i  '[:2])),wx.ALIGN_LEFT)"%(i,i+1)
-            exec command
+            exec(command)
 
             command="bSizer1_%i.Add(self.dir_path_%i,wx.ALIGN_LEFT)" %(i,i)
-            exec command
+            exec(command)
             command="bSizer1_%i.Add(self.add_dir_button_%i,wx.ALIGN_LEFT)" %(i,i)
-            exec command
+            exec(command)
             command="bSizer1.Add(bSizer1_%i,wx.ALIGN_TOP)" %i
-            exec command
+            exec(command)
             bSizer1.AddSpacer(5)
 
 
@@ -129,9 +134,9 @@ class convert_livdb_files_to_MagIC(wx.Frame):
         bSizer2.AddSpacer(5)
         for i in range(self.max_files):
             command= "self.file_location_%i = wx.TextCtrl(self.panel, id=-1, size=(60,25))"%i
-            exec command
+            exec(command)
             command="bSizer2.Add(self.file_location_%i,wx.ALIGN_TOP)" %i
-            exec command
+            exec(command)
             bSizer2.AddSpacer(5)
 
 ##        #---sizer 3 ----
@@ -147,17 +152,17 @@ class convert_livdb_files_to_MagIC(wx.Frame):
         bSizer4.AddSpacer(5)
         for i in range(self.max_files):
             command="self.sample_naming_convention_%i = wx.ComboBox(self.panel, -1, self.sample_naming_conventions[0], size=(180,25), choices=self.sample_naming_conventions, style=wx.CB_DROPDOWN)"%i
-            exec command
+            exec(command)
             command="self.sample_naming_convention_char_%i = wx.TextCtrl(self.panel, id=-1, size=(40,25))"%i
-            exec command
+            exec(command)
             command="bSizer4_%i = wx.BoxSizer(wx.HORIZONTAL)"%i
-            exec command
+            exec(command)
             command="bSizer4_%i.Add(self.sample_naming_convention_%i,wx.ALIGN_LEFT)" %(i,i)
-            exec command
+            exec(command)
             command="bSizer4_%i.Add(self.sample_naming_convention_char_%i,wx.ALIGN_LEFT)" %(i,i)
-            exec command
+            exec(command)
             command="bSizer4.Add(bSizer4_%i,wx.ALIGN_TOP)"%i
-            exec command
+            exec(command)
 
             bSizer4.AddSpacer(5)
 
@@ -170,17 +175,17 @@ class convert_livdb_files_to_MagIC(wx.Frame):
         bSizer5.AddSpacer(5)
         for i in range(self.max_files):
             command="self.site_naming_convention_char_%i = wx.TextCtrl(self.panel, id=-1, size=(40,25))"%i
-            exec command
+            exec(command)
             command="self.site_naming_convention_%i = wx.ComboBox(self.panel, -1, self.site_naming_conventions[0], size=(180,25), choices=self.site_naming_conventions, style=wx.CB_DROPDOWN)"%i
-            exec command
+            exec(command)
             command="bSizer5_%i = wx.BoxSizer(wx.HORIZONTAL)"%i
-            exec command
+            exec(command)
             command="bSizer5_%i.Add(self.site_naming_convention_%i,wx.ALIGN_LEFT)" %(i,i)
-            exec command
+            exec(command)
             command="bSizer5_%i.Add(self.site_naming_convention_char_%i,wx.ALIGN_LEFT)" %(i,i)
-            exec command
+            exec(command)
             command="bSizer5.Add(bSizer5_%i,wx.ALIGN_TOP)"%i
-            exec command
+            exec(command)
             bSizer5.AddSpacer(5)
 
         #------------------
@@ -239,17 +244,17 @@ class convert_livdb_files_to_MagIC(wx.Frame):
         converts a direction to cartesian coordinates
         """
         cart=array(cart)
-        rad=pi/180. # constant to convert degrees to radians
+        rad=old_div(pi,180.) # constant to convert degrees to radians
         if len(cart.shape)>1:
             Xs,Ys,Zs=cart[:,0],cart[:,1],cart[:,2]
         else: #single vector
             Xs,Ys,Zs=cart[0],cart[1],cart[2]
         Rs=sqrt(Xs**2+Ys**2+Zs**2) # calculate resultant vector length
-        Decs=(arctan2(Ys,Xs)/rad)%360. # calculate declination taking care of correct quadrants (arctan2) and making modulo 360.
+        Decs=(old_div(arctan2(Ys,Xs),rad))%360. # calculate declination taking care of correct quadrants (arctan2) and making modulo 360.
         try:
-            Incs=arcsin(Zs/Rs)/rad # calculate inclination (converting to degrees) #
+            Incs=old_div(arcsin(old_div(Zs,Rs)),rad) # calculate inclination (converting to degrees) #
         except:
-            print 'trouble in cart2dir' # most likely division by zero somewhere
+            print('trouble in cart2dir') # most likely division by zero somewhere
             return zeros(3)
 
         return array([Decs,Incs,Rs]).transpose() # return the directions list
@@ -273,7 +278,7 @@ class convert_livdb_files_to_MagIC(wx.Frame):
         #print "The button's name is " + button.GetName()
 
         command="self.dir_path_%i.SetValue(FILE)"%i
-        exec command
+        exec(command)
 
 
 
@@ -291,12 +296,12 @@ class convert_livdb_files_to_MagIC(wx.Frame):
                 for i in range(len(header)):
                     tmp_data[header[i]]=l[i]
                 specimen=tmp_data['Specimen']
-                if specimen not in Data.keys():
+                if specimen not in list(Data.keys()):
                     Data[specimen]=[]
                 # check dupliactes
                 if len(Data[specimen]) >0:
                     if tmp_data['Treatment (aka field)']==Data[specimen][-1]['Treatment (aka field)']:
-                        print "-W- WARNING: duplicate measurements specimen %s, Treatment %s. keeping onlt the last one"%(tmp_data['Specimen'],tmp_data['Treatment (aka field)'])
+                        print("-W- WARNING: duplicate measurements specimen %s, Treatment %s. keeping onlt the last one"%(tmp_data['Specimen'],tmp_data['Treatment (aka field)']))
                         Data[specimen].pop()
 
                 Data[specimen].append(tmp_data)
@@ -312,7 +317,7 @@ class convert_livdb_files_to_MagIC(wx.Frame):
             # read directiory path
             dirpath=""
             command="dirpath=self.dir_path_%i.GetValue()"%i
-            exec command
+            exec(command)
             if dirpath!="":
                 dir_name=str(dirpath.split("/")[-1])
                 DIRS_data[dir_name]={}
@@ -324,16 +329,16 @@ class convert_livdb_files_to_MagIC(wx.Frame):
             # get location
             user_name=""
             command="location_name=self.file_location_%i.GetValue()"%i
-            exec command
+            exec(command)
             DIRS_data[dir_name]['location_name']=str(location_name)
 
             # get sample-specimen naming convention
 
             sample_naming_convenstion=["",""]
             command="sample_naming_convenstion[0]=str(self.sample_naming_convention_%i.GetValue())"%i
-            exec command
+            exec(command)
             command="sample_naming_convenstion[1]=str(self.sample_naming_convention_char_%i.GetValue())"%i
-            exec command
+            exec(command)
             DIRS_data[dir_name]["sample_naming_convenstion"]=sample_naming_convenstion
 
 
@@ -341,9 +346,9 @@ class convert_livdb_files_to_MagIC(wx.Frame):
 
             site_naming_convenstion=["",""]
             command="site_naming_convenstion[0]=str(self.site_naming_convention_%i.GetValue())"%i
-            exec command
+            exec(command)
             command="site_naming_convenstion[1]=str(self.site_naming_convention_char_%i.GetValue())"%i
-            exec command
+            exec(command)
             DIRS_data[dir_name]["site_naming_convenstion"]=site_naming_convenstion
 
         #print "DIRS_data",DIRS_data
@@ -402,7 +407,7 @@ class convert_livdb_files_to_MagIC(wx.Frame):
         ErRecs=[]
 
 
-        for dir_name in DIRS_data.keys():
+        for dir_name in list(DIRS_data.keys()):
 
 
             #--------------------------------------
@@ -511,7 +516,7 @@ class convert_livdb_files_to_MagIC(wx.Frame):
 
             for files in os.listdir(DIRS_data[dir_name]["path"]):
                 if files.endswith(".livdb") or files.endswith(".livdb.csv") :
-                    print "Open file: ", DIRS_data[dir_name]["path"]+"/"+files
+                    print("Open file: ", DIRS_data[dir_name]["path"]+"/"+files)
                     fin=open(DIRS_data[dir_name]["path"]+"/"+files,'rU')
                     Data={}
                     header_codes=['Sample code','Sample Dip','Sample Dec','Height','Position','Thickness','Unit Dip','Unit Dip Direction','Site Latitude',\
@@ -554,8 +559,8 @@ class convert_livdb_files_to_MagIC(wx.Frame):
                             # warning if missing info.
 
                             if len(header) < 19:
-                                print "missing data in header.Line %i" %line_number
-                                print header
+                                print("missing data in header.Line %i" %line_number)
+                                print(header)
 
                             # read header and sort in a dictionary
                             tmp_header_data={}
@@ -565,10 +570,10 @@ class convert_livdb_files_to_MagIC(wx.Frame):
                             specimen=tmp_header_data['Sample code']
                             Experiment_Type=tmp_header_data['Experiment Type']
 
-                            if specimen not in Data.keys():
+                            if specimen not in list(Data.keys()):
                                 Data[specimen]={}
-                            if Experiment_Type in Data[specimen].keys():
-                                print "-E- specimen %s has duplicate Experimental type %s. check it!"%(specimen,Experiment_Type)
+                            if Experiment_Type in list(Data[specimen].keys()):
+                                print("-E- specimen %s has duplicate Experimental type %s. check it!"%(specimen,Experiment_Type))
 
                             Data[specimen][Experiment_Type]={}
                             Data[specimen][Experiment_Type]['header_data']=tmp_header_data
@@ -589,8 +594,8 @@ class convert_livdb_files_to_MagIC(wx.Frame):
                                 #this_line_data=str(this_line[0]).split()+ this_line[1:-1]
                                 this_line_data=line.strip('\n').split(",")
                                 if len(this_line_data) < 22:
-                                    print "missing data in Line %i" %line_number
-                                    print this_line_data
+                                    print("missing data in Line %i" %line_number)
+                                    print(this_line_data)
                                 tmp_data={}
                                 for i in range(len(this_line_data)):
                                     tmp_data[meas_codes[i]]=this_line_data[i]
@@ -601,10 +606,10 @@ class convert_livdb_files_to_MagIC(wx.Frame):
                     # Convert to MagIC
                     #-----------------------------------
         
-                    specimens_list=Data.keys()
+                    specimens_list=list(Data.keys())
                     specimens_list.sort()
                     for specimen in specimens_list:
-                        Experiment_Types_list=Data[specimen].keys()
+                        Experiment_Types_list=list(Data[specimen].keys())
                         Experiment_Types_list.sort()
                         for Experiment_Type in Experiment_Types_list:
 
@@ -639,7 +644,7 @@ class convert_livdb_files_to_MagIC(wx.Frame):
                                             if Data[specimen][Experiment_Type]['meas_data'][i][key]!=Data[specimen][Experiment_Type]['meas_data'][i+1][key]:
                                                 Repeating_measurements=False
                                         if Repeating_measurements==True:
-                                            print "Found a repeating measurement at line %i, sample %s. taking the last one"%(i,specimen)
+                                            print("Found a repeating measurement at line %i, sample %s. taking the last one"%(i,specimen))
                                             continue
                                     #------------------
                                     
@@ -671,7 +676,7 @@ class convert_livdb_files_to_MagIC(wx.Frame):
                                     elif "/" in meas_line['Measurement Date']:
                                         date=meas_line['Measurement Date'].strip("\"").split('/')
                                     else:
-                                        print "-E- ERROR: line no. %i please use one of the following convention for date: MM-DD-YYYY or MM/DD/YYYY"%i
+                                        print("-E- ERROR: line no. %i please use one of the following convention for date: MM-DD-YYYY or MM/DD/YYYY"%i)
                                     yyyy=date[2];dd=date[1];mm=date[0]
                                     hour=meas_line['Measurement Time'].strip("\"")
                                     MagRec["measurement_date"]=yyyy+':'+mm+":"+dd+":"+hour
@@ -747,8 +752,8 @@ class convert_livdb_files_to_MagIC(wx.Frame):
                                         elif labfield!=0 and float(treatment)  < float(experiment_treatments[-1]):  # PMRM check
                                             lab_treatment="LT-PMRM-I"
                                             if  Experiment_Type !='MW-PI-OT+':
-                                                print "-W- WARNING sample %s: Check Experiment_Type ! it is %s, but a pTRM check is found."\
-                                                      %(MagRec["er_specimen_name"], Experiment_Type)
+                                                print("-W- WARNING sample %s: Check Experiment_Type ! it is %s, but a pTRM check is found."\
+                                                      %(MagRec["er_specimen_name"], Experiment_Type))
                                         else:
                                             lab_treatment="LT-M-I"
                                         #experiment_treatments.append(treatment)
@@ -862,16 +867,16 @@ class convert_livdb_files_to_MagIC(wx.Frame):
                                                             IZorZI=""
                                                         
                                                 else:
-                                                    print "-E- ERROR. specimen %s. Cant relate step %s to the protocol"%\
-                                                          (MagRec["er_specimen_name"],treatment)
+                                                    print("-E- ERROR. specimen %s. Cant relate step %s to the protocol"%\
+                                                          (MagRec["er_specimen_name"],treatment))
 
                                         # check Step Type in the file and the deduced step from the program
                                         if ((lab_treatment=="LT-M-I" or lab_treatment=="LT-T-I") and meas_line['Step Type']!="I" ) or \
                                            ((lab_treatment=="LT-M-Z" or lab_treatment=="LT-T-Z") and meas_line['Step Type']!="Z" ) or \
                                            ((lab_treatment=="LT-PMRM-I" or lab_treatment=="LT-PTRM-I") and meas_line['Step Type']!="P" ) or \
                                            ((lab_treatment=="LT-PMRM-MD" or lab_treatment=="LT-PTRM-MD") and meas_line['Step Type']!="T") :
-                                            print "-W- WARNING sample %s treatment=%s. Step Type is %s but the program assumes %s"\
-                                                  %(MagRec["er_specimen_name"],treatment , meas_line['Step Type'],lab_treatment)
+                                            print("-W- WARNING sample %s treatment=%s. Step Type is %s but the program assumes %s"\
+                                                  %(MagRec["er_specimen_name"],treatment , meas_line['Step Type'],lab_treatment))
 
                                         #experiment_treatments.append(treatment)
                                         lab_treatments.append(lab_treatment)
@@ -949,7 +954,7 @@ class convert_livdb_files_to_MagIC(wx.Frame):
                                     MagRec["magic_experiment_name"]=specimen+":"+lab_protocols_string
                                     MagRecs.append(MagRec)
                                     measurement_running_number+=1
-                                    headers=MagRec.keys()
+                                    headers=list(MagRec.keys())
                                     for key in headers:
                                         if key not in magic_measurements_headers:
                                             magic_measurements_headers.append(key)
@@ -957,7 +962,7 @@ class convert_livdb_files_to_MagIC(wx.Frame):
 
                             else:
                                 #print "experiment format",Experiment_Type," is not supported yet. sorry.."
-                                print "livdb.py does not support this experiment type yet.please contact Ron Shaar at rshaar@ucsd.edu"
+                                print("livdb.py does not support this experiment type yet.please contact Ron Shaar at rshaar@ucsd.edu")
 
 
 
@@ -967,11 +972,11 @@ class convert_livdb_files_to_MagIC(wx.Frame):
                     #-----------------------------------
 
                     for specimen in specimens_list:
-                        print specimen
-                        Experiment_Types_list=Data[specimen].keys()
+                        print(specimen)
+                        Experiment_Types_list=list(Data[specimen].keys())
                         Experiment_Types_list.sort()
                         for Experiment_Type in Experiment_Types_list:
-                            print Experiment_Type
+                            print(Experiment_Type)
                             if Experiment_Type in supported_experiments:
                                 header_line=Data[specimen][Experiment_Type]['header_data']
                                 meas_first_line=Data[specimen][Experiment_Type]['meas_data'][0]
@@ -1000,7 +1005,7 @@ class convert_livdb_files_to_MagIC(wx.Frame):
                                 ErRec['specimen_density']=header_line['Sample Density']
                                 
                                 ErRecs.append(ErRec)
-                                headers=ErRec.keys()
+                                headers=list(ErRec.keys())
                                 for key in headers:
                                     if key not in er_specimens_headers:
                                         er_specimens_headers.append(key)
@@ -1019,7 +1024,7 @@ class convert_livdb_files_to_MagIC(wx.Frame):
         for MagRec in MagRecs:
             line_string=""
             for i in range(len(magic_measurements_headers)):
-                if magic_measurements_headers[i] in MagRec.keys():
+                if magic_measurements_headers[i] in list(MagRec.keys()):
                     line_string=line_string+MagRec[magic_measurements_headers[i]]+"\t"
                 else:
                     line_string=line_string+""+"\t"
@@ -1041,7 +1046,7 @@ class convert_livdb_files_to_MagIC(wx.Frame):
         for ErRec in ErRecs:
             line_string=""
             for i in range(len(er_specimens_headers)):
-                if er_specimens_headers[i] in ErRec.keys():
+                if er_specimens_headers[i] in list(ErRec.keys()):
                     line_string=line_string+ErRec[er_specimens_headers[i]]+"\t"
                 else:
                     line_string=line_string+"\t"
@@ -1191,7 +1196,7 @@ DESCRIPTION
 
 def main():
     if '-h' in sys.argv:
-        print "Convert Livdb files to MagIC format"
+        print("Convert Livdb files to MagIC format")
         sys.exit()
     app = wx.App()
     app.frame = convert_livdb_files_to_MagIC("./")

@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 #
+from __future__ import print_function
 import sys
 import pmagpy.ipmag as ipmag
 import pmagpy.command_line_extractor as extractor
@@ -56,7 +57,7 @@ def main():
     """
     args = sys.argv
     if '-h' in args:
-        print do_help()
+        print(do_help())
         sys.exit()
 
     #def k15_magic(k15file, specnum=0, sample_naming_con='1', er_location_name="unknown", measfile='magic_measurements.txt', sampfile="er_samples.txt", aniso_outfile='rmag_anisotropy.txt', result_file="rmag_results.txt", input_dir_path='.', output_dir_path='.'):

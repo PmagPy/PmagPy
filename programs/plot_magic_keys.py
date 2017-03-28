@@ -1,4 +1,7 @@
 #!/usr/bin/env python
+from __future__ import print_function
+from builtins import input
+from builtins import str
 import sys
 
 
@@ -29,13 +32,13 @@ def main():
         ind=sys.argv.index('-WD')
         dir_path=sys.argv[ind+1]
     if '-h' in sys.argv:
-        print main.__doc__
+        print(main.__doc__)
         sys.exit()
     if '-f' in sys.argv:
         ind=sys.argv.index('-f')
         magic_file=dir_path+'/'+sys.argv[ind+1]
     else:
-        print main.__doc__
+        print(main.__doc__)
         sys.exit()
     if '-xkey' in sys.argv:
         ind=sys.argv.index('-xkey')
@@ -44,7 +47,7 @@ def main():
             ind=sys.argv.index('-ykey')
             ykey=sys.argv[ind+1]
     else:
-        print main.__doc__
+        print(main.__doc__)
         sys.exit()
     if '-b' in sys.argv:
         ind=sys.argv.index('-b')
@@ -59,7 +62,7 @@ def main():
     Data,file_type=pmag.magic_read(magic_file) 
     if len(Data)>0:
         for rec in Data: 
-            if xkey in rec.keys() and rec[xkey]!="" and ykey in rec.keys() and rec[ykey]!="":
+            if xkey in list(rec.keys()) and rec[xkey]!="" and ykey in list(rec.keys()) and rec[ykey]!="":
                 try:
                     X.append(float(rec[xkey]))
                     Y.append(float(rec[ykey]))
@@ -72,16 +75,16 @@ def main():
         else:
             pmagplotlib.plotXY(FIG['fig'],X,Y,sym='ro',xlab=xkey,ylab=ykey)
         pmagplotlib.drawFIGS(FIG)
-        ans=raw_input(" S[a]ve to save plot, [q]uit, Return to continue:  ")
+        ans=input(" S[a]ve to save plot, [q]uit, Return to continue:  ")
         if ans=="q": sys.exit()
         if ans=="a":
             files = {}
-            for key in FIG.keys():
+            for key in list(FIG.keys()):
                 files[key]=str(key) + ".svg"
                 pmagplotlib.saveP(FIG,files)
         sys.exit()
     else:
-        print 'no data to plot'
+        print('no data to plot')
 
 if __name__ == "__main__":
     main()

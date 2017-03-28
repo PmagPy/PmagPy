@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+from __future__ import print_function
+from builtins import range
 import sys
 import random
 import pmagpy.pmag as pmag
@@ -42,7 +44,7 @@ def main():
     coord_key='tilt_correction'
     rev=0
     if '-h' in sys.argv:
-        print main.__doc__
+        print(main.__doc__)
         sys.exit()
     if '-f' in sys.argv:
         ind=sys.argv.index("-f")
@@ -129,7 +131,7 @@ def main():
     if boot==1:
         for i in range(nb): # now do bootstrap 
             BVgps=[]
-            if i%100==0: print i,' out of ',nb
+            if i%100==0: print(i,' out of ',nb)
             for k in range(len(Vgps)):
                 ind=random.randint(0,len(Vgps)-1)
                 random.jumpahead(int(ind*1000))
@@ -138,9 +140,9 @@ def main():
         SBs.sort()
         low=int(.025*nb)
         high=int(.975*nb)
-        print len(Vgps),'%7.1f _ %7.1f ^ %7.1f %7.1f'%(S_B,SBs[low],SBs[high],A)
+        print(len(Vgps),'%7.1f _ %7.1f ^ %7.1f %7.1f'%(S_B,SBs[low],SBs[high],A))
     else:
-        print len(Vgps),'%7.1f  %7.1f '%(S_B,A)
+        print(len(Vgps),'%7.1f  %7.1f '%(S_B,A))
 
     
 # 

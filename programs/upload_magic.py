@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import print_function
 import sys
 from pmagpy import pmag
 from pmagpy import ipmag
@@ -29,7 +30,7 @@ def main():
         upload.txt:  file for uploading to MagIC database
     """
     if '-h' in sys.argv:
-        print main.__doc__
+        print(main.__doc__)
         sys.exit()
     else:
         data_model_num = pmag.get_named_arg_from_sys("-DM", 3)

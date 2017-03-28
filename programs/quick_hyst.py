@@ -1,4 +1,7 @@
 #!/usr/bin/env python
+from __future__ import print_function
+from builtins import input
+from builtins import range
 import sys
 import numpy
 import matplotlib
@@ -40,7 +43,7 @@ def main():
         ind=args.index('-WD')
         dir_path=args[ind+1]
     if "-h" in args:
-        print main.__doc__
+        print(main.__doc__)
         sys.exit()
     if "-usr" in args:
         ind=args.index("-usr")
@@ -60,13 +63,13 @@ def main():
         ind=args.index("-fmt")
         fmt=args[ind+1]
     meas_file=dir_path+'/'+meas_file
-    print 'verbose', verbose
+    print('verbose', verbose)
     #
     #
     meas_data,file_type=pmag.magic_read(meas_file)
     if file_type!='magic_measurements':
-        print main.__doc__
-        print 'bad file'
+        print(main.__doc__)
+        print('bad file')
         sys.exit()
     #
     # initialize some variables
@@ -81,11 +84,11 @@ def main():
     experiment_names,sids=[],[]
     hyst_data=pmag.get_dictitem(meas_data,'magic_method_codes','LP-HYS','has') # get all hysteresis data
     for rec in hyst_data:
-        if 'er_synthetic_name' in rec.keys() and rec['er_synthetic_name']!="":
+        if 'er_synthetic_name' in list(rec.keys()) and rec['er_synthetic_name']!="":
             rec['er_specimen_name']=rec['er_synthetic_name']
         if rec['magic_experiment_name'] not in experiment_names:experiment_names.append(rec['magic_experiment_name'])
         if rec['er_specimen_name'] not in sids:sids.append(rec['er_specimen_name'])
-        if 'measurement_temp' not in rec.keys(): rec['measurement_temp']='300' # assume room T measurement unless otherwise specified
+        if 'measurement_temp' not in list(rec.keys()): rec['measurement_temp']='300' # assume room T measurement unless otherwise specified
     #
     k=0
     if pltspec!="":
@@ -95,18 +98,18 @@ def main():
         locname,site,sample,synth='','','',''
         s=sids[k]
         hmeths=[]
-        if verbose:print s, k+1 , 'out of ',len(sids)
+        if verbose:print(s, k+1 , 'out of ',len(sids))
     #
     #
         B,M=[],[] #B,M for hysteresis, Bdcd,Mdcd for irm-dcd data
         spec=pmag.get_dictitem(hyst_data,'er_specimen_name',s,'T') # get all measurements for this specimen
-        if 'er_location_name' in spec[0].keys():
+        if 'er_location_name' in list(spec[0].keys()):
             locname=spec[0]['er_location_name']
-        if 'er_site_name' in spec[0].keys():
+        if 'er_site_name' in list(spec[0].keys()):
             site=spec[0]['er_site_name']
-        if 'er_sample_name' in spec[0].keys():
+        if 'er_sample_name' in list(spec[0].keys()):
             sample=spec[0]['er_sample_name']
-        if 'er_synthetic_name' in spec[0].keys():
+        if 'er_synthetic_name' in list(spec[0].keys()):
             synth=spec[0]['er_synthetic_name']
         for m in intlist:
             meas_data=pmag.get_dictitem(spec,m,'','F') # get all non-blank data for this specimen
@@ -119,7 +122,7 @@ def main():
             for rec in meas_data:
                 if rec['measurement_temp'] not  in Temps:Temps.append(rec['measurement_temp'])
             for t in Temps:
-              print 'working on t: ',t
+              print('working on t: ',t)
               t_data=pmag.get_dictitem(meas_data,'measurement_temp',t,'T')
               B,M=[],[]
               for rec in t_data:
@@ -147,7 +150,7 @@ def main():
         if plots:
             if pltspec!="":s=pltspec
             files={}
-            for key in HDD.keys():
+            for key in list(HDD.keys()):
                 if pmagplotlib.isServer: # use server plot naming convention
                     if synth=='':
                         filename = "LO:_"+locname+'_SI:_'+site+'_SA:_'+sample+'_SP:_'+s+'_TY:_'+key+'_.'+fmt
@@ -173,15 +176,15 @@ def main():
             if pltspec!="":sys.exit()
         if verbose:
             pmagplotlib.drawFIGS(HDD)
-            ans=raw_input("S[a]ve plots, [s]pecimen name, [q]uit, <return> to continue\n ")
+            ans=input("S[a]ve plots, [s]pecimen name, [q]uit, <return> to continue\n ")
             if ans=="a":
                 files={}
-                for key in HDD.keys():
+                for key in list(HDD.keys()):
                     if pmagplotlib.isServer:
-                        print 'server'
+                        print('server')
                         files[key]="LO:_"+locname+'_SI:_'+site+'_SA:_'+sample+'_SP:_'+s+'_TY:_'+key+'_.'+fmt
                     else:
-                        print 'not server'
+                        print('not server')
                         filename = ''
                         for item in [locname, site, sample, s, key]:
                             if item:
@@ -191,18 +194,18 @@ def main():
                             filename = filename[:-1]
                         filename += ".{}".format(fmt)
                         files[key] = filename
-                print 'files', files
+                print('files', files)
                 pmagplotlib.saveP(HDD,files)
             if ans=='':k+=1
             if ans=="p":
                 del HystRecs[-1]
                 k-=1
             if  ans=='q':
-                print "Good bye"
+                print("Good bye")
                 sys.exit()
             if ans=='s':
                 keepon=1
-                specimen=raw_input('Enter desired specimen name (or first part there of): ')
+                specimen=input('Enter desired specimen name (or first part there of): ')
                 while keepon==1:
                     try:
                         k =sids.index(specimen)
@@ -211,14 +214,14 @@ def main():
                         tmplist=[]
                         for qq in range(len(sids)):
                             if specimen in sids[qq]:tmplist.append(sids[qq])
-                        print specimen," not found, but this was: "
-                        print tmplist
-                        specimen=raw_input('Select one or try again\n ')
+                        print(specimen," not found, but this was: ")
+                        print(tmplist)
+                        specimen=input('Select one or try again\n ')
                         k =sids.index(specimen)
         else:
             k+=1
         if len(B)==0:
-            if verbose:print 'skipping this one - no hysteresis data'
+            if verbose:print('skipping this one - no hysteresis data')
             k+=1
 
 if __name__ == "__main__":

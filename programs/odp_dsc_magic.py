@@ -1,4 +1,7 @@
 #!/usr/bin/env python
+from __future__ import print_function
+from builtins import input
+from builtins import range
 import sys
 import os
 import pmagpy.pmag as pmag
@@ -45,7 +48,7 @@ def main():
         ind=args.index("-WD")
         dir_path=args[ind+1]
     if "-h" in args:
-        print main.__doc__
+        print(main.__doc__)
         sys.exit()
     if "-A" in args: noave=1
     if '-F' in args:
@@ -78,12 +81,12 @@ def main():
             demag="S"
             methcode="LP-PI-TRM:LP-PI-ALT-AFARM"
             trm_labfield=labfield
-            ans=raw_input("DC lab field for ARM step: [50uT] ")
+            ans=input("DC lab field for ARM step: [50uT] ")
             if ans=="":
                 arm_labfield=50e-6
             else: 
                 arm_labfield=float(ans)*1e-6
-            ans=raw_input("temperature for total trm step: [600 C] ")
+            ans=input("temperature for total trm step: [600 C] ")
             if ans=="":
                 trm_peakT=600+273 # convert to kelvin
             else: 
@@ -111,7 +114,7 @@ def main():
             SampRecs.append(samp)
     for file in filelist: # parse each file
         if file[-3:].lower()=='dsc':
-            print 'processing: ',file
+            print('processing: ',file)
             MagRec,SpecRec,SampRec={},{},{}
             treatment_type,treatment_value,user="","",""
             inst="ODP-SRM"
@@ -135,13 +138,13 @@ def main():
             SpecRec['er_site_name']=specimen
             SpecRec['er_sample_name']=specimen
             SpecRec['er_citation_names']=citation
-            for key in SpecRec.keys():SampRec[key]=SpecRec[key]
+            for key in list(SpecRec.keys()):SampRec[key]=SpecRec[key]
             SampRec['sample_azimuth']='0'
             SampRec['sample_dip']='0'
             SampRec['magic_method_codes']='FS-C-DRILL-IODP:SP-SS-C:SO-V'
             SpecRec['er_specimen_name']=specimen
             SampRec['er_specimen_names']=specimen
-            for key in SpecRec.keys():MagRec[key]=SpecRec[key]
+            for key in list(SpecRec.keys()):MagRec[key]=SpecRec[key]
 # set up measurement record - default is NRM 
             MagRec['er_analyst_mail_names']=user
             MagRec['magic_method_codes']='LT-NO'
@@ -234,13 +237,13 @@ def main():
     if len(SampRecs)>0:
         SampOut,keys=pmag.fillkeys(SampRecs)
         pmag.magic_write(samp_file,SampOut,'er_samples')
-        print 'samples stored in ',samp_file
+        print('samples stored in ',samp_file)
     pmag.magic_write(samp_file,SampRecs,'er_samples')
-    print 'specimens stored in ',spec_file
+    print('specimens stored in ',spec_file)
     
     Fixed=pmag.measurements_methods(MagOuts,noave)
     pmag.magic_write(meas_file,Fixed,'magic_measurements')
-    print 'data stored in ',meas_file
+    print('data stored in ',meas_file)
 
 if __name__ == "__main__":
     main()

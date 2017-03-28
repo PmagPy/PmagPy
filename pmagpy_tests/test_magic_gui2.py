@@ -26,8 +26,8 @@ class TestMainFrame(unittest.TestCase):
     def tearDown(self):
         os.chdir(WD)
         return
-        print 'self.app.IsMainLoopRunning()', self.app.IsMainLoopRunning()
-        print 'wx.GetTopLevelWindows()', wx.GetTopLevelWindows()
+        print('self.app.IsMainLoopRunning()', self.app.IsMainLoopRunning())
+        print('wx.GetTopLevelWindows()', wx.GetTopLevelWindows())
         if not wx.GetTopLevelWindows():
             return
         def _cleanup():
@@ -39,9 +39,9 @@ class TestMainFrame(unittest.TestCase):
             #wx.WakeUpIdle()
             ##self.app.ExitMainLoop()
         #wx.CallLater(50, _cleanup)
-        print 'about to start MainLoop'
+        print('about to start MainLoop')
         #self.app.MainLoop()
-        print 'closed MainLoop, about to del app'
+        print('closed MainLoop, about to del app')
         self.app.Destroy()
         del self.app
         os.chdir(WD)
@@ -211,7 +211,7 @@ class TestMainFrameWithData(unittest.TestCase):
         self.assertTrue(site.er_data)
         self.assertTrue(site.pmag_data)
         self.assertTrue(location.er_data)
-        self.assertFalse(len(location.pmag_data.keys()) > 1)
+        self.assertFalse(len(list(location.pmag_data.keys())) > 1)
 
         #self.assertTrue(self.frame.er_magic.pmag_results_header)
         #self.assertTrue(self.frame.er_magic.pmag_results_reqd_header)
@@ -303,18 +303,18 @@ class TestMagICGUIMenu(unittest.TestCase):
         help_item = fmenu.FindItemById(help_id)
 
         top_windows = wx.GetTopLevelWindows()
-        print 'before'
+        print('before')
         for window in top_windows:
-            print 'top-level window:', window
-            print 'name:', window.Label
-        print 'after'
+            print('top-level window:', window)
+            print('name:', window.Label)
+        print('after')
         event = wx.CommandEvent(wx.EVT_MENU.evtType[0], help_id)
         self.frame.GetEventHandler().ProcessEvent(event)
         top_windows = wx.GetTopLevelWindows()
         help_window = False
         for window in top_windows:
-            print 'top-level window:', window
-            print 'name:', window.Label
+            print('top-level window:', window)
+            print('name:', window.Label)
             if window.Label == 'Help Window':
                 help_window = window
         self.assertTrue(help_window)

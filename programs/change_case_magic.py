@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import print_function
 import sys
 import pmagpy.pmag as pmag
 
@@ -27,13 +28,13 @@ def main():
         ind=sys.argv.index('-WD')
         dir_path=sys.argv[ind+1]
     if '-h' in sys.argv:
-        print main.__doc__
+        print(main.__doc__)
         sys.exit()
     if '-f' in sys.argv:
         ind=sys.argv.index('-f')
         magic_file=dir_path+'/'+sys.argv[ind+1]
     else:
-        print main.__doc__
+        print(main.__doc__)
         sys.exit()
     if '-F' in sys.argv:
         ind=sys.argv.index('-F')
@@ -43,7 +44,7 @@ def main():
         ind=sys.argv.index('-keys')
         grab_keys=sys.argv[ind+1].split(":")
     else:
-        print main.__doc__
+        print(main.__doc__)
         sys.exit()
     if '-U' in sys.argv: change='U'
     #
@@ -58,7 +59,7 @@ def main():
             else:
                 rec[grab_key]=rec[grab_key].upper()
     else:
-        print 'bad file name'
+        print('bad file name')
     pmag.magic_write(out_file,Data,file_type)
 
 if __name__ == "__main__":

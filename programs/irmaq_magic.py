@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+from __future__ import print_function
+from builtins import input
 import sys
 import matplotlib
 if matplotlib.get_backend() != "TKAgg":
@@ -41,7 +43,7 @@ def main():
     in_file,plot_key,LP='magic_measurements.txt','er_location_name',"LP-IRM"
     if len(sys.argv)>1:
         if '-h' in sys.argv:
-            print main.__doc__
+            print(main.__doc__)
             sys.exit()
         if '-N' in sys.argv:norm=0
         if '-sav' in sys.argv:plot=1
@@ -81,13 +83,13 @@ def main():
            NoInts=0 
            if int_key=="":int_key=key
     if NoInts==1:
-        print 'No intensity information found'
+        print('No intensity information found')
         sys.exit()
     for  rec in Ints[int_key]:
         if rec[plot_key] not in plotlist: plotlist.append(rec[plot_key])
     plotlist.sort()
     for plt in plotlist:
-        print plt
+        print(plt)
         INTblock=[]
         data=pmag.get_dictitem(Ints[int_key],plot_key,plt,'T') # get data with right intensity info whose plot_key matches plot
         sids=pmag.get_specs(data) # get a list of specimens with appropriate data
@@ -100,11 +102,11 @@ def main():
                 INTblock.append([float(rec[dmag_key]),0,0,float(rec[int_key]),1,'g'])
             pmagplotlib.plotMT(FIG['exp'],INTblock,title,0,units,norm)
         files={}
-        for key in FIG.keys():
+        for key in list(FIG.keys()):
             files[key]=title+'_'+LP+'.'+fmt 
         if plot==0:
             pmagplotlib.drawFIGS(FIG)
-            ans=raw_input(" S[a]ve to save plot, [q]uit,  Return to continue:  ")
+            ans=input(" S[a]ve to save plot, [q]uit,  Return to continue:  ")
             if ans=='q':sys.exit()
             if ans=="a": 
                 pmagplotlib.saveP(FIG,files) 

@@ -1,4 +1,9 @@
 #!/usr/bin/env python
+from __future__ import print_function
+from builtins import map
+from builtins import input
+from builtins import str
+from builtins import range
 import os
 import sys
 import pmagpy.pmag as pmag
@@ -72,7 +77,7 @@ def main(command_line=True, **kwargs):
             ind=args.index("-WD")
             dir_path=args[ind+1]
         if "-h" in args:
-            print main.__doc__
+            print(main.__doc__)
             return False
         if "-usr" in args:
             ind=args.index("-usr")
@@ -109,7 +114,7 @@ def main(command_line=True, **kwargs):
             avg=0
         if '-dc' in args:
             ind=args.index('-dc')
-            DC_FIELD,DC_PHI,DC_THETA=map(float,args[ind+1].strip('( ) [ ]').split(','))
+            DC_FIELD,DC_PHI,DC_THETA=list(map(float,args[ind+1].strip('( ) [ ]').split(',')))
             DC_FIELD *= 1e-6
             yn=''
             GET_DC_PARAMS=False
@@ -119,14 +124,14 @@ def main(command_line=True, **kwargs):
             samp_con=sys.argv[ind+1]
             if "4" in samp_con:
                 if "-" not in samp_con:
-                    print "option [4] must be in form 4-Z where Z is an integer"
+                    print("option [4] must be in form 4-Z where Z is an integer")
                     return False, "naming convention option [4] must be in form 4-Z where Z is an integer"
                 else:
                     Z=samp_con.split("-")[1]
                     samp_con="4"
             elif "7" in samp_con:
                 if "-" not in samp_con:
-                    print "option [7] must be in form 7-Z where Z is an integer"
+                    print("option [7] must be in form 7-Z where Z is an integer")
                     return False, "naming convention option [7] must be in form 7-Z where Z is an integer"
                 else:
                     Z=samp_con.split("-")[1]
@@ -159,7 +164,7 @@ def main(command_line=True, **kwargs):
         magfile = kwargs.get('magfile', '')
         input_dir_path = kwargs.get('input_dir_path', os.path.split(magfile)[0])
         output_dir_path = dir_path
-        DC_FIELD,DC_PHI,DC_THETA = map(float, kwargs.get('dc_params', (0,0,-90)))
+        DC_FIELD,DC_PHI,DC_THETA = list(map(float, kwargs.get('dc_params', (0,0,-90))))
         DC_FIELD *= 1e-6
         yn = ''
         if DC_FIELD==0 and DC_PHI==0 and DC_THETA==-90: GET_DC_PARAMS=True
@@ -169,14 +174,14 @@ def main(command_line=True, **kwargs):
         # formatting and checking variables
         if "4" in samp_con:
             if "-" not in samp_con:
-                print "option [4] must be in form 4-Z where Z is an integer"
+                print("option [4] must be in form 4-Z where Z is an integer")
                 return False, "naming convention option [4] must be in form 4-Z where Z is an integer"
             else:
                 Z=samp_con.split("-")[1]
                 samp_con="4"
         elif "7" in samp_con:
             if "-" not in samp_con:
-                print "option [7] must be in form 7-Z where Z is an integer"
+                print("option [7] must be in form 7-Z where Z is an integer")
                 return False, "naming convention option [7] must be in form 7-Z where Z is an integer"
             else:
                 Z=samp_con.split("-")[1]
@@ -191,10 +196,10 @@ def main(command_line=True, **kwargs):
     try:
         file_input=open(magfile,'r')
     except Exception as ex:
-        print "bad sam file name: ", magfile
+        print("bad sam file name: ", magfile)
         return False, "bad sam file name"
     File = file_input.readlines()
-    if len(File) == 1: File = File[0].split('\r'); File = map(lambda x: x+"\r\n", File)
+    if len(File) == 1: File = File[0].split('\r'); File = [x+"\r\n" for x in File]
     sids,ln,format=[],0,'CIT'
     formats=['CIT','2G','APP','JRA']
     if File[ln].strip()=='CIT': ln+=1
@@ -206,7 +211,7 @@ def main(command_line=True, **kwargs):
        format=comment
        ln+=1
     comment=File[ln]
-    print comment
+    print(comment)
     ln+=1
     specimens,samples,sites=[],[],[]
     if format=='CIT':
@@ -380,7 +385,7 @@ def main(command_line=True, **kwargs):
                 MeasRec['treatment_dc_field_theta'] = '%1.2f'%DC_THETA
                 MeasRec['treatment_ac_field']='0'
             else:
-                print "trouble with your treatment steps"
+                print("trouble with your treatment steps")
             MeasRec['measurement_dec']=line[46:51]
             MeasRec['measurement_inc']=line[52:58]
             M='%8.2e'%(float(line[31:39])*vol*1e-3) # convert to Am2
@@ -403,22 +408,22 @@ def main(command_line=True, **kwargs):
             sites.append(site)
             ErSites.append(ErSiteRec)
     pmag.magic_write(spec_file,ErSpecs,'er_specimens')
-    print 'specimens stored in ',spec_file
+    print('specimens stored in ',spec_file)
     pmag.magic_write(samp_file,ErSamps,'er_samples')
-    print 'samples stored in ',samp_file
+    print('samples stored in ',samp_file)
     pmag.magic_write(site_file,ErSites,'er_sites')
-    print 'sites stored in ', site_file
+    print('sites stored in ', site_file)
     Fixed=pmag.measurements_methods(MeasRecs,avg)
     pmag.magic_write(meas_file,Fixed,'magic_measurements')
-    print 'data stored in ',meas_file
+    print('data stored in ',meas_file)
     return True, meas_file
 
 def get_dc_params(FIRST_GET_DC, specimen, treat_type, yn):
     if FIRST_GET_DC:
-        yn = raw_input("Is the DC field used in this IZZI study constant or does it varry between specimen or step? (y=const) [y/N]: ")
+        yn = input("Is the DC field used in this IZZI study constant or does it varry between specimen or step? (y=const) [y/N]: ")
         FIRST_GET_DC = False
-    if "y" == yn: DC_FIELD,DC_PHI,DC_THETA = map(float, input("What DC field, Phi, and Theta was used for all steps? (float (in microTesla),float,float): ")); GET_DC_PARAMS=False
-    else: DC_FIELD,DC_PHI,DC_THETA = map(float,input("What DC field, Phi, and Theta was used for specimen %s and step %s? (float (in microTesla),float,float): "%(str(specimen),str(treat_type))))
+    if "y" == yn: DC_FIELD,DC_PHI,DC_THETA = list(map(float, eval(input("What DC field, Phi, and Theta was used for all steps? (float (in microTesla),float,float): ")))); GET_DC_PARAMS=False
+    else: DC_FIELD,DC_PHI,DC_THETA = list(map(float,eval(input("What DC field, Phi, and Theta was used for specimen %s and step %s? (float (in microTesla),float,float): "%(str(specimen),str(treat_type))))))
     return GET_DC_PARAMS,FIRST_GET_DC,yn,DC_FIELD*1e-6,DC_PHI,DC_THETA
 
 def do_help():

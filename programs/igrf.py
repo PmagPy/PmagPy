@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+from __future__ import print_function
+from builtins import input
 import sys
 import matplotlib
 if matplotlib.get_backend() != "TKAgg":
@@ -53,7 +55,7 @@ def main():
         ind=sys.argv.index('-fmt')
         fmt=sys.argv[ind+1]
     if len(sys.argv)!=0 and '-h' in sys.argv:
-        print main.__doc__
+        print(main.__doc__)
         sys.exit()
     if '-mod' in sys.argv:
         ind=sys.argv.index('-mod')
@@ -67,20 +69,20 @@ def main():
         while 1:
           try:
             line=[]
-            line.append(float(raw_input("Decimal year: <cntrl-D to quit> ")))
-            alt=raw_input("Elevation in km [0] ")
+            line.append(float(input("Decimal year: <cntrl-D to quit> ")))
+            alt=input("Elevation in km [0] ")
             if alt=="":alt="0"
             line.append(float(alt))
-            line.append(float(raw_input("Latitude (positive north) ")))
-            line.append(float(raw_input("Longitude (positive east) ")))
+            line.append(float(input("Latitude (positive north) ")))
+            line.append(float(input("Longitude (positive east) ")))
             if mod=='':
                 x,y,z,f=pmag.doigrf(line[3]%360.,line[2],line[1],line[0])
             else:
                 x,y,z,f=pmag.doigrf(line[3]%360.,line[2],line[1],line[0],mod=mod)
             Dir=pmag.cart2dir((x,y,z))
-            print '%8.2f %8.2f %8.0f'%(Dir[0],Dir[1],f)           
+            print('%8.2f %8.2f %8.0f'%(Dir[0],Dir[1],f))           
           except EOFError:
-            print "\n Good-bye\n"
+            print("\n Good-bye\n")
             sys.exit()
     elif '-ages' in sys.argv:
         ind=sys.argv.index('-ages')
@@ -92,7 +94,7 @@ def main():
             lat=float(sys.argv[ind+1])
             lon=float(sys.argv[ind+2])
         else: 
-            print "must specify lat/lon if using age range option"
+            print("must specify lat/lon if using age range option")
             sys.exit()
         if '-alt' in sys.argv:
             ind=sys.argv.index('-alt')
@@ -135,7 +137,7 @@ def main():
             Ints.append(f*1e-3)
             VADMs.append(pmag.b_vdm(f*1e-9,line[2])*1e-21)
         else:
-            print '%8.2f %8.2f %8.0f %7.1f %7.1f %7.1f %7.1f'%(Dir[0],Dir[1],f,line[0],line[1],line[2],line[3])           
+            print('%8.2f %8.2f %8.0f %7.1f %7.1f %7.1f %7.1f'%(Dir[0],Dir[1],f,line[0],line[1],line[2],line[3]))           
     if plt:
         fig=pylab.figure(num=1,figsize=(7,9))
         fig.add_subplot(411)
@@ -153,13 +155,13 @@ def main():
         pylab.xlabel('Ages')
         if plot==0:
             pylab.draw()
-            ans=raw_input("S[a]ve to save figure, <Return>  to quit  ")
+            ans=input("S[a]ve to save figure, <Return>  to quit  ")
             if ans=='a':
                 pylab.savefig('igrf.'+fmt)
-                print 'Figure saved as: ','igrf.'+fmt
+                print('Figure saved as: ','igrf.'+fmt)
         else: 
             pylab.savefig('igrf.'+fmt)
-            print 'Figure saved as: ','igrf.'+fmt
+            print('Figure saved as: ','igrf.'+fmt)
         sys.exit()
 
 if __name__ == "__main__":

@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+from __future__ import print_function
+from builtins import range
 import sys
 import pmagpy.pmag as pmag
 import pmagpy.nlt as nlt
@@ -63,7 +65,7 @@ def main():
         ind=args.index('-WD')
         dir_path=args[ind+1]
     if "-h" in args:
-        print main.__doc__
+        print(main.__doc__)
         sys.exit()
     if "-usr" in args:
         ind=args.index("-usr")
@@ -94,7 +96,7 @@ def main():
         SampCRs=pmag.get_dictitem(Samps,'cooling_rate_corr','','F') # get samples cooling rate corrections
         cool=1
         if file_type!='er_samples':
-            print 'not a valid er_samples.txt file'
+            print('not a valid er_samples.txt file')
             sys.exit()
     #
     #
@@ -129,23 +131,23 @@ def main():
         critout=dir_path+"/"+critout
         crit_data,file_type=pmag.magic_read(critout)
         if file_type!='pmag_criteria':
-            print 'bad pmag_criteria file, using no acceptance criteria'
-        print "Acceptance criteria read in from ", critout
+            print('bad pmag_criteria file, using no acceptance criteria')
+        print("Acceptance criteria read in from ", critout)
         for critrec in crit_data:
-            if 'sample_int_sigma_uT' in critrec.keys(): # accommodate Shaar's new criterion
+            if 'sample_int_sigma_uT' in list(critrec.keys()): # accommodate Shaar's new criterion
                     critrec['sample_int_sigma']='%10.3e'%(eval(critrec['sample_int_sigma_uT'])*1e-6)
-            for key in critrec.keys():
-                if key not in accept.keys() and critrec[key]!='':
+            for key in list(critrec.keys()):
+                if key not in list(accept.keys()) and critrec[key]!='':
                     accept[key]=critrec[key]
     meas_data,file_type=pmag.magic_read(meas_file)
     if file_type != 'magic_measurements':
-        print file_type
-        print file_type,"This is not a valid magic_measurements file " 
+        print(file_type)
+        print(file_type,"This is not a valid magic_measurements file ") 
         sys.exit()
     try:
         mk_f=open(mk_file,'rU')
     except:
-        print "Bad redo file"
+        print("Bad redo file")
         sys.exit()
     mkspec=[]
     speclist=[]
@@ -157,8 +159,8 @@ def main():
         anis_file=dir_path+"/"+anis_file 
         anis_data,file_type=pmag.magic_read(anis_file)
         if file_type != 'rmag_anisotropy':
-            print file_type
-            print file_type,"This is not a valid rmag_anisotropy file "
+            print(file_type)
+            print(file_type,"This is not a valid rmag_anisotropy file ")
             sys.exit()
     if nlt_file=="":
         nlt_data=pmag.get_dictitem(meas_data,'magic_method_codes','LP-TRM','has')  # look for trm acquisition data in the meas_data file
@@ -172,7 +174,7 @@ def main():
 #
     sids=pmag.get_specs(meas_data)
 # 
-    print 'Processing ',len(speclist),' specimens - please wait '
+    print('Processing ',len(speclist),' specimens - please wait ')
     while spec < len(speclist):
         s=speclist[spec]
         recnum=0
@@ -189,7 +191,7 @@ def main():
         datablock=pmag.get_dictitem(datablock,'magic_method_codes','LP-PI-TRM','has') #pick out the thellier experiment data 
         if len(datablock)>0:
             for rec in datablock:
-                if "magic_instrument_codes" not in rec.keys(): rec["magic_instrument_codes"]="unknown"
+                if "magic_instrument_codes" not in list(rec.keys()): rec["magic_instrument_codes"]="unknown"
     #
     #  collect info for the PmagSpecRec dictionary
     #
@@ -200,12 +202,12 @@ def main():
             PmagSpecRec["er_location_name"]=rec["er_location_name"]
             PmagSpecRec["measurement_step_unit"]="K"
             PmagSpecRec["specimen_correction"]='u'
-            if "er_expedition_name" in rec.keys():PmagSpecRec["er_expedition_name"]=rec["er_expedition_name"]
-            if "magic_instrument_codes" not in rec.keys():
+            if "er_expedition_name" in list(rec.keys()):PmagSpecRec["er_expedition_name"]=rec["er_expedition_name"]
+            if "magic_instrument_codes" not in list(rec.keys()):
                 PmagSpecRec["magic_instrument_codes"]="unknown"
             else:
                 PmagSpecRec["magic_instrument_codes"]=rec["magic_instrument_codes"]
-            if "magic_experiment_name" not in rec.keys():
+            if "magic_experiment_name" not in list(rec.keys()):
                 rec["magic_experiment_name"]=""
             else:
                 PmagSpecRec["magic_experiment_names"]=rec["magic_experiment_name"]
@@ -222,7 +224,7 @@ def main():
             ptrm_tail=araiblock[3]
             if len(first_I)<3 or len(first_Z)<4:
                 spec+=1
-                print 'skipping specimen ', s 
+                print('skipping specimen ', s) 
             else:
     #
     # get start, end
@@ -239,9 +241,9 @@ def main():
                 if nsteps>2:
                     zijdblock,units=pmag.find_dmag_rec(s,meas_data)
                     pars,errcode=pmag.PintPars(datablock,araiblock,zijdblock,start,end,accept)
-                    if 'specimen_scat' in pars.keys(): PmagSpecRec['specimen_scat']=pars['specimen_scat']
-                    if 'specimen_frac' in pars.keys(): PmagSpecRec['specimen_frac']='%5.3f'%(pars['specimen_frac'])
-                    if 'specimen_gmax' in pars.keys(): PmagSpecRec['specimen_gmax']='%5.3f'%(pars['specimen_gmax'])
+                    if 'specimen_scat' in list(pars.keys()): PmagSpecRec['specimen_scat']=pars['specimen_scat']
+                    if 'specimen_frac' in list(pars.keys()): PmagSpecRec['specimen_frac']='%5.3f'%(pars['specimen_frac'])
+                    if 'specimen_gmax' in list(pars.keys()): PmagSpecRec['specimen_gmax']='%5.3f'%(pars['specimen_gmax'])
                     pars['measurement_step_unit']=units
                     pars["specimen_lab_field_dc"]=field
                     pars["specimen_int"]=-1*field*pars["specimen_b"]
@@ -310,14 +312,14 @@ def main():
                             NLTpars=nlt.NLtrm(Bs,TRMs,float(PmagSpecRec['specimen_int']),float(PmagSpecRec['specimen_lab_field_dc']),0) 
                             if NLTpars['banc']>0:
                                 NltSpecRec={}
-                                for key in PmagSpecRec.keys():
+                                for key in list(PmagSpecRec.keys()):
                                     NltSpecRec[key]=PmagSpecRec[key]
                                 NltSpecRec['specimen_int']='%9.4e'%(NLTpars['banc'])  
                                 NltSpecRec['magic_method_codes']=PmagSpecRec["magic_method_codes"]+":DA-NL"
                                 NltSpecRec["specimen_correction"]='c'
                                 NltSpecRec['specimen_grade']=PmagSpecRec['specimen_grade']
                                 NltSpecRec["magic_software_packages"]=version_num
-                                print NltSpecRec['er_specimen_name'],  ' Banc= ',float(NLTpars['banc'])*1e6
+                                print(NltSpecRec['er_specimen_name'],  ' Banc= ',float(NLTpars['banc'])*1e6)
                                 if anis==0 and cool!=0:
                                     SCR=pmag.get_dictitem(SampCRs,'er_sample_name',NltSpecRec['er_sample_name'],'T') # get this samples, cooling rate correction 
                                     CrSpecRec=pmag.cooling_rate(NltSpecRec,SCR,crfrac,crtype)
@@ -354,7 +356,7 @@ def main():
                                 AniSpecRec["magic_software_packages"]=version_num
                                 if crfrac!=0:
                                     CrSpecRec={}
-                                    for key in AniSpecRec.keys():CrSpecRec[key]=AniSpecRec[key]
+                                    for key in list(AniSpecRec.keys()):CrSpecRec[key]=AniSpecRec[key]
                                     inten=frac*float(CrSpecRec['specimen_int'])
                                     CrSpecRec["specimen_int"]='%9.4e '%(inten) # adjust specimen intensity by cooling rate correction
                                     CrSpecRec['magic_method_codes'] = CrSpecRec['magic_method_codes']+':DA-CR-'+crtype
@@ -362,23 +364,23 @@ def main():
                                 AniSpecRecs.append(AniSpecRec) 
                 spec +=1
         else:
-            print "skipping ",s
+            print("skipping ",s)
             spec+=1
     pmag_file=dir_path+'/'+pmag_file
     pmag.magic_write(pmag_file,PmagSpecs,'pmag_specimens')
-    print 'uncorrected thellier data saved in: ',pmag_file
+    print('uncorrected thellier data saved in: ',pmag_file)
     if anis==1 and len(AniSpecRecs)>0:
         anisout=dir_path+'/'+anisout
         pmag.magic_write(anisout,AniSpecRecs,'pmag_specimens')
-        print 'anisotropy corrected data saved in: ',anisout
+        print('anisotropy corrected data saved in: ',anisout)
     if nltrm==1 and len(NltSpecRecs)>0:
         nltout=dir_path+'/'+nltout
         pmag.magic_write(nltout,NltSpecRecs,'pmag_specimens')
-        print 'non-linear TRM corrected data saved in: ',nltout
+        print('non-linear TRM corrected data saved in: ',nltout)
     if crfrac!=0:
         crout=dir_path+'/'+crout
         pmag.magic_write(crout,CRSpecs,'pmag_specimens')
-        print 'cooling rate corrected data saved in: ',crout
+        print('cooling rate corrected data saved in: ',crout)
 
 if __name__ == "__main__":
     main()

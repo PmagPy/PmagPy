@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import print_function
 import sys
 import pmagpy.pmag as pmag
 
@@ -70,7 +71,7 @@ def main():
         ind=args.index('-WD')
         dir_path=args[ind+1]
     if "-h" in args:
-        print main.__doc__
+        print(main.__doc__)
         sys.exit()
     if "-usr" in args:
         ind=args.index("-usr")
@@ -86,11 +87,11 @@ def main():
         try:
             input=open(magfile,'rU')
         except:
-            print "bad mag file name"
+            print("bad mag file name")
             sys.exit()
     else: 
-        print "mag_file field is required option"
-        print main.__doc__
+        print("mag_file field is required option")
+        print(main.__doc__)
         sys.exit()
     specnum=0
     if "-spc" in args:
@@ -112,14 +113,14 @@ def main():
         samp_con=sys.argv[ind+1]
         if "4" in samp_con:
             if "-" not in samp_con:
-                print "option [4] must be in form 4-Z where Z is an integer"
+                print("option [4] must be in form 4-Z where Z is an integer")
                 sys.exit()
             else:
                 Z=samp_con.split("-")[1]
                 samp_con="4"
         if "7" in samp_con:
             if "-" not in samp_con:
-                print "option [7] must be in form 7-Z where Z is an integer"
+                print("option [7] must be in form 7-Z where Z is an integer")
                 sys.exit()
             else:
                 Z=samp_con.split("-")[1]
@@ -142,7 +143,7 @@ def main():
             IDs=rec[0].split('_')
             treat=IDs[1]
             MagRec["er_specimen_name"]=IDs[0]
-            print MagRec['er_specimen_name']
+            print(MagRec['er_specimen_name'])
             sids=IDs[0].split('-')
             MagRec['er_location_name']=sids[0]
             MagRec['er_site_name']=sids[0]+'-'+sids[1]
@@ -150,7 +151,7 @@ def main():
                 MagRec["er_sample_name"]=IDs[0]
             else:
                 MagRec["er_sample_name"]=sids[0]+'-'+sids[1]+'-'+sids[2]
-            print MagRec
+            print(MagRec)
             MagRec['magic_software_packages']=version_num
             MagRec["treatment_temp"]='%8.3e' % (273) # room temp in kelvin
             MagRec["measurement_temp"]='%8.3e' % (273) # room temp in kelvin
@@ -182,7 +183,7 @@ def main():
             MagRecs.append(MagRec) 
     MagOuts=pmag.measurements_methods(MagRecs,noave)
     pmag.magic_write(meas_file,MagOuts,'magic_measurements')
-    print "results put in ",meas_file
+    print("results put in ",meas_file)
 
 if __name__ == "__main__":
     main()

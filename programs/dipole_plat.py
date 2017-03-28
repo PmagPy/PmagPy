@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+from __future__ import print_function
+from builtins import input
 import sys
 import pmagpy.pmag as pmag
 
@@ -19,7 +21,7 @@ def main():
         -f file, specifies file name on command line
     """
     if '-h' in sys.argv:
-        print main.__doc__
+        print(main.__doc__)
         sys.exit()
     elif '-f' in sys.argv:
        ind=sys.argv.index('-f')
@@ -31,14 +33,14 @@ def main():
     if '-i' not in sys.argv:
         for line in data:
             rec=line.split()
-            print '%7.1f'%(pmag.plat(float(rec[0])))
+            print('%7.1f'%(pmag.plat(float(rec[0]))))
     else: 
        while 1:
            try:
-               inc=raw_input("Inclination for converting to paleolatitude: <cntl-D> to quit ")
-               print '%7.1f'%(pmag.plat(float(inc)))
+               inc=input("Inclination for converting to paleolatitude: <cntl-D> to quit ")
+               print('%7.1f'%(pmag.plat(float(inc))))
            except:
-               print '\n Good-bye \n'
+               print('\n Good-bye \n')
                sys.exit()
 
 if __name__ == "__main__":

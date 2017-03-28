@@ -1,4 +1,9 @@
 #! /usr/bin/env python
+from __future__ import division
+from __future__ import print_function
+from builtins import input
+from builtins import str
+from past.utils import old_div
 import numpy
 import sys
 
@@ -39,7 +44,7 @@ def main():
         dates=numpy.loadtxt(sys.argv[ind+1])
     if '-n' in sys.argv: norm=1
     if len(sys.argv)!=0 and '-h' in sys.argv:
-        print main.__doc__
+        print(main.__doc__)
         sys.exit()
     pylab.semilogy()
     pylab.xlabel('Degree (l)')
@@ -51,14 +56,14 @@ def main():
             data=pmag.unpack(gh)
             Ls,Rs=pmag.lowes(data)
             labels.append(str(date))
-        print date,Rs[0]
+        print(date,Rs[0])
         if norm==1: 
-            Rs=numpy.array(Rs)/Rs[0]
+            Rs=old_div(numpy.array(Rs),Rs[0])
         #pylab.plot(Ls,Rs,'ro')
         pylab.plot(Ls,Rs,linewidth=2)
         pylab.legend(labels,'upper right')
         pylab.draw()
-    raw_input()
+    input()
 
 if __name__ == "__main__":
     main()

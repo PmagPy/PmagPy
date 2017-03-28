@@ -44,6 +44,10 @@ OPTIONS
 INPUT
     BGC paleomag format file
 """
+from __future__ import division
+from __future__ import print_function
+from builtins import str
+from past.utils import old_div
 import sys, os
 import numpy as np
 import pmagpy.pmag as pmag
@@ -79,14 +83,14 @@ def convert(**kwargs):
         specnum=-specnum
     if "4" in samp_con:
         if "-" not in samp_con:
-            print "option [4] must be in form 4-Z where Z is an integer"
+            print("option [4] must be in form 4-Z where Z is an integer")
             return False, "option [4] must be in form 4-Z where Z is an integer"
         else:
             Z=int(samp_con.split("-")[1])
             samp_con="4"
     if "7" in samp_con:
         if "-" not in samp_con:
-            print "option [7] must be in form 7-Z where Z is an integer"
+            print("option [7] must be in form 7-Z where Z is an integer")
             return False, "option [7] must be in form 7-Z where Z is an integer"
         else:
             Z=int(samp_con.split("-")[1])
@@ -100,7 +104,7 @@ def convert(**kwargs):
     mag_file = os.path.join(input_dir_path, mag_file)
 
     # Open up the BGC file and read the header information
-    print 'mag_file in bgc_magic', mag_file
+    print('mag_file in bgc_magic', mag_file)
     pre_data = open(mag_file, 'rU')
     line = pre_data.readline()
     line_items = line.split(' ')
@@ -127,8 +131,8 @@ def convert(**kwargs):
 
     data['dir_dec'] = direction[0]
     data['dir_inc'] = direction[1]
-    data['magn_moment'] = direction[2] / 1000  # the data are in EMU - this converts to Am^2 
-    data['magn_volume'] = (direction[2] / 1000) / volume # EMU  - data converted to A/m
+    data['magn_moment'] = old_div(direction[2], 1000)  # the data are in EMU - this converts to Am^2 
+    data['magn_volume'] = old_div((old_div(direction[2], 1000)), volume) # EMU  - data converted to A/m
 
     # Configure the magic_measurements table
     MeasRecs,SpecRecs,SampRecs,SiteRecs,LocRecs=[],[],[],[],[]
@@ -142,14 +146,14 @@ def convert(**kwargs):
         if site=='':
             site=pmag.parse_site(sample,samp_con,Z)
 
-        if specimen!="" and specimen not in map(lambda x: x['specimen'] if 'specimen' in x.keys() else "", SpecRecs):
+        if specimen!="" and specimen not in [x['specimen'] if 'specimen' in list(x.keys()) else "" for x in SpecRecs]:
             SpecRec['specimen'] = specimen
             SpecRec['sample'] = sample
             SpecRec['volume'] = volume
             SpecRec['analysts']=user
             SpecRec['citations'] = 'This study'
             SpecRecs.append(SpecRec)
-        if sample!="" and sample not in map(lambda x: x['sample'] if 'sample' in x.keys() else "", SampRecs):
+        if sample!="" and sample not in [x['sample'] if 'sample' in list(x.keys()) else "" for x in SampRecs]:
             SampRec['sample'] = sample
             SampRec['site'] = site
             SampRec['azimuth'] = azimuth
@@ -160,7 +164,7 @@ def convert(**kwargs):
             SampRec['analysts']=user
             SampRec['citations'] = 'This study'
             SampRecs.append(SampRec)
-        if site!="" and site not in map(lambda x: x['site'] if 'site' in x.keys() else "", SiteRecs):
+        if site!="" and site not in [x['site'] if 'site' in list(x.keys()) else "" for x in SiteRecs]:
             SiteRec['site'] = site
             SiteRec['location'] = location
             SiteRec['lat'] = lat
@@ -168,7 +172,7 @@ def convert(**kwargs):
             SiteRec['analysts']=user
             SiteRec['citations'] = 'This study'
             SiteRecs.append(SiteRec)
-        if location!="" and location not in map(lambda x: x['location'] if 'location' in x.keys() else "", LocRecs):
+        if location!="" and location not in [x['location'] if 'location' in list(x.keys()) else "" for x in LocRecs]:
             LocRec['location']=location
             LocRec['analysts']=user
             LocRec['citations'] = 'This study'
@@ -213,7 +217,7 @@ def convert(**kwargs):
             treat = float(row['DM Val'])
             MeasRec["treat_temp"] = '%8.3e' % (treat+273.) # temp in kelvin
         else:
-            print "measurement type unknown:", row['DM Type'], " in row ", rowNum
+            print("measurement type unknown:", row['DM Type'], " in row ", rowNum)
         MeasRec["magn_moment"] = str(row['magn_moment'])
         MeasRec["magn_volume"] = str(row['magn_volume'])
         MeasRec["dir_dec"] = str(row['dir_dec'])

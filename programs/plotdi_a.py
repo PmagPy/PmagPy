@@ -1,4 +1,9 @@
 #!/usr/bin/env python
+from __future__ import division
+from __future__ import print_function
+from builtins import input
+from builtins import range
+from past.utils import old_div
 import sys
 import matplotlib
 if matplotlib.get_backend() != "TKAgg":
@@ -29,7 +34,7 @@ def main():
     fmt,plot='svg',0
     if len(sys.argv) > 0:
         if '-h' in sys.argv: # check if help is needed
-            print main.__doc__
+            print(main.__doc__)
             sys.exit() # graceful quit
         if '-fmt' in sys.argv:
             ind=sys.argv.index('-fmt')
@@ -51,7 +56,7 @@ def main():
         pars.append(float(rec[1]))
         pars.append(float(rec[2]))
         pars.append(float(rec[0]))
-        isign=abs(float(rec[1]))/float(rec[1])
+        isign=old_div(abs(float(rec[1])),float(rec[1]))
         pars.append(float(rec[1])-isign*90.) #Beta inc
         pars.append(float(rec[2])) # gamma
         pars.append(float(rec[0])+90.) # Beta dec
@@ -65,7 +70,7 @@ def main():
     for k in range(len(Pars)):
         pmagplotlib.plotELL(EQ['eq'],Pars[k],'b',0,1) # plot ellipses
     files={}
-    for key in EQ.keys():
+    for key in list(EQ.keys()):
         files[key]=key+'.'+fmt 
     titles={}
     titles['eq']='Equal Area Plot'
@@ -76,7 +81,7 @@ def main():
         pmagplotlib.saveP(EQ,files)
     elif plot==0:
         pmagplotlib.drawFIGS(EQ)
-        ans=raw_input(" S[a]ve to save plot, [q]uit, Return to continue:  ")
+        ans=input(" S[a]ve to save plot, [q]uit, Return to continue:  ")
         if ans=="q": sys.exit()
         if ans=="a": 
             pmagplotlib.saveP(EQ,files) 

@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+from __future__ import print_function
+from builtins import input
 import sys
 import pmagpy.pmag as pmag
 
@@ -9,7 +11,7 @@ def spitout(line):
     for element in rec : # step through dec,inc, int
         dat.append(float(element)) # append floating point variable to dat list
     dec,inc=pmag.vgp_di(dat[0],dat[1],dat[2],dat[3])  # call vgp_di function from pmag module
-    print '%7.1f %7.1f'%(dec,inc) # print out returned stuff
+    print('%7.1f %7.1f'%(dec,inc)) # print out returned stuff
     return dec,inc
 
 def main():
@@ -43,23 +45,23 @@ def main():
            I: inclination
     """
     if '-h' in sys.argv:
-        print main.__doc__
+        print(main.__doc__)
         sys.exit()
     if '-i' in sys.argv: # if one is -i
         while 1:
             try:
-                ans=raw_input("Input Pole Latitude [positive north]: <cntrl-D to quit>  ")
+                ans=input("Input Pole Latitude [positive north]: <cntrl-D to quit>  ")
                 plat=float(ans)  # assign input to plat, after conversion to floating point
-                ans=raw_input("Input Pole Longitude [positive east]:  ")
+                ans=input("Input Pole Longitude [positive east]:  ")
                 plon =float(ans)
-                ans=raw_input("Input Site Latitude:  ")
+                ans=input("Input Site Latitude:  ")
                 slat =float(ans)
-                ans=raw_input("Input Site Longitude:  ")
+                ans=input("Input Site Longitude:  ")
                 slong =float(ans)
                 dec,inc=pmag.vgp_di(plat,plon,slat,slong)  # call vgp_di function from pmag module
-                print '%7.1f %7.1f'%(dec,inc) # print out returned stuff
+                print('%7.1f %7.1f'%(dec,inc)) # print out returned stuff
             except EOFError:
-                print "\n Good-bye\n"
+                print("\n Good-bye\n")
                 sys.exit()
             
     elif '-f' in sys.argv: # manual input of file name

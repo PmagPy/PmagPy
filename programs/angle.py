@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+from __future__ import print_function
+from builtins import input
 import sys
 import numpy
 
@@ -30,7 +32,7 @@ def main():
     """
     out=""
     if '-h' in sys.argv:
-        print main.__doc__
+        print(main.__doc__)
         sys.exit()
     if '-F' in sys.argv:
         ind=sys.argv.index('-F')
@@ -41,20 +43,20 @@ def main():
         while cont==1:
             dir1,dir2=[],[]
             try:
-                ans=raw_input('Declination 1: [ctrl-D  to quit] ')
+                ans=input('Declination 1: [ctrl-D  to quit] ')
                 dir1.append(float(ans))
-                ans=raw_input('Inclination 1: ')
+                ans=input('Inclination 1: ')
                 dir1.append(float(ans))
-                ans=raw_input('Declination 2: ')
+                ans=input('Declination 2: ')
                 dir2.append(float(ans))
-                ans=raw_input('Inclination 2: ')
+                ans=input('Inclination 2: ')
                 dir2.append(float(ans))
             except:
-                print "\nGood bye\n"
+                print("\nGood bye\n")
                 sys.exit()
                  
             ang= pmag.angle(dir1,dir2)  # send dirs  to angle and spit out result
-            print '%7.1f '%(ang)
+            print('%7.1f '%(ang))
     elif '-f' in sys.argv:
         ind=sys.argv.index('-f')
         file=sys.argv[ind+1]
@@ -66,7 +68,7 @@ def main():
     else: dir1,dir2=input[0:2],input[2:]
     angs=pmag.angle(dir1,dir2)
     for ang in angs:   # read in the data (as string variable), line by line
-        print '%7.1f'%(ang)
+        print('%7.1f'%(ang))
         if out!="":out.write('%7.1f \n'%(ang))
 
 if __name__ == "__main__":

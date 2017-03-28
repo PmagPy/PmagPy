@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
+from builtins import input
+from builtins import range
 import sys
 import pmagpy.pmag as pmag
 
@@ -17,9 +20,9 @@ def printout(output): # print out returned stuff
     if len(output) > 1:
         if isinstance(output[0],list):        
             for i in range(len(output[0])):
-                print '%7.1f %7.1f %7.1f %7.1f'%(output[0][i],output[1][i],output[2][i],output[3][i])
+                print('%7.1f %7.1f %7.1f %7.1f'%(output[0][i],output[1][i],output[2][i],output[3][i]))
         else:
-            print '%7.1f %7.1f %7.1f %7.1f'%(output[0],output[1],output[2],output[3])     
+            print('%7.1f %7.1f %7.1f %7.1f'%(output[0],output[1],output[2],output[3]))     
 
 def main():
     """
@@ -55,25 +58,25 @@ def main():
              DM: 95% confidence angle in meridian 
     """
     if '-h' in sys.argv:
-        print main.__doc__
+        print(main.__doc__)
         sys.exit()
     if '-i' in sys.argv: # if one is -i
         while 1:
             try:
-                ans=raw_input("Input Declination: <cntrl-D to quit>  ")
+                ans=input("Input Declination: <cntrl-D to quit>  ")
                 Dec=float(ans)  # assign input to Dec, after conversion to floating point
-                ans=raw_input("Input Inclination:  ")
+                ans=input("Input Inclination:  ")
                 Inc =float(ans)
-                ans=raw_input("Input Alpha 95:  ")
+                ans=input("Input Alpha 95:  ")
                 a95 =float(ans)
-                ans=raw_input("Input Site Latitude:  ")
+                ans=input("Input Site Latitude:  ")
                 slat =float(ans)
-                ans=raw_input("Input Site Longitude:  ")
+                ans=input("Input Site Longitude:  ")
                 slong =float(ans)
                 spitout(Dec,Inc,a95,slat,slong)  # call dia_vgp function from pmag module
-                print '%7.1f %7.1f %7.1f %7.1f'%(plong,plat,dp,dm) # print out returned stuff
+                print('%7.1f %7.1f %7.1f %7.1f'%(plong,plat,dp,dm)) # print out returned stuff
             except:
-                print "\n Good-bye\n"
+                print("\n Good-bye\n")
                 sys.exit()
             
     elif '-f' in sys.argv: # manual input of file name

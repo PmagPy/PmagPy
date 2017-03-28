@@ -93,7 +93,7 @@ class TestMainFrame(unittest.TestCase):
         """
         btn = None
         children = parent.GetChildren()
-        print ", ".join([child.GetName() for child in children])
+        print(", ".join([child.GetName() for child in children]))
         for child in children:
             if child.GetName() == btn_name:
                 btn = child

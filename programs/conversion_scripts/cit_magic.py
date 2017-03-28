@@ -48,6 +48,11 @@ NOTES:
     NB: all others you will have to either customize your
         self or e-mail ltauxe@ucsd.edu for help.
 """
+from __future__ import print_function
+from builtins import map
+from builtins import input
+from builtins import str
+from builtins import range
 import os,sys
 import pmagpy.pmag as pmag
 import pmagpy.new_builder as nb
@@ -127,7 +132,7 @@ def convert(**kwargs):
             samp_con="4"
     elif "7" in samp_con:
         if "-" not in samp_con:
-            print "option [7] must be in form 7-Z where Z is an integer"
+            print("option [7] must be in form 7-Z where Z is an integer")
             return False, "naming convention option [7] must be in form 7-Z where Z is an integer"
         else:
             Z=samp_con.split("-")[1]
@@ -141,7 +146,7 @@ def convert(**kwargs):
     try:
         file_input=open(magfile,'r')
     except IOError as ex:
-        print("bad sam file name: ", magfile)
+        print(("bad sam file name: ", magfile))
         return False, "bad sam file name"
     File = file_input.readlines()
     if len(File) == 1: File = File[0].split('\r'); File = [x+"\r\n" for x in File]
@@ -422,10 +427,10 @@ def get_dc_params(FIRST_GET_DC, specimen, treat_type, yn):
     DC_THETA : field polar angle
     """
     if FIRST_GET_DC:
-        yn = raw_input("Is the DC field used in this IZZI study constant or does it varry between specimen or step? (y=const) [y/N]: ")
+        yn = input("Is the DC field used in this IZZI study constant or does it varry between specimen or step? (y=const) [y/N]: ")
         FIRST_GET_DC = False
-    if "y" == yn: DC_FIELD,DC_PHI,DC_THETA = map(float, input("What DC field, Phi, and Theta was used for all steps? (float (in microTesla),float,float): ")); GET_DC_PARAMS=False
-    else: DC_FIELD,DC_PHI,DC_THETA = map(float,input("What DC field, Phi, and Theta was used for specimen %s and step %s? (float (in microTesla),float,float): "%(str(specimen),str(treat_type))))
+    if "y" == yn: DC_FIELD,DC_PHI,DC_THETA = list(map(float, eval(input("What DC field, Phi, and Theta was used for all steps? (float (in microTesla),float,float): ")))); GET_DC_PARAMS=False
+    else: DC_FIELD,DC_PHI,DC_THETA = list(map(float,eval(input("What DC field, Phi, and Theta was used for specimen %s and step %s? (float (in microTesla),float,float): "%(str(specimen),str(treat_type))))))
     return GET_DC_PARAMS,FIRST_GET_DC,yn,DC_FIELD*1e-6,DC_PHI,DC_THETA
 
 def do_help():

@@ -1,4 +1,8 @@
 #!/usr/bin/env python
+from __future__ import print_function
+from builtins import input
+from builtins import str
+from builtins import range
 import sys
 import matplotlib
 if matplotlib.get_backend() != "TKAgg":
@@ -39,10 +43,10 @@ def main():
     fmt='svg' # default image type for saving
     plot=0
     if '-h' in sys.argv:
-        print main.__doc__
+        print(main.__doc__)
         sys.exit()
     if '-i' in sys.argv:
-        file=raw_input("Input magic_measurements file name? [magic_measurements.txt]  ")
+        file=input("Input magic_measurements file name? [magic_measurements.txt]  ")
         if file!="":meas_file=file
     if '-e' in sys.argv:
         ind=sys.argv.index('-e')
@@ -72,11 +76,11 @@ def main():
         try:
             k=experiment_names.index(EXP)
         except:
-            print "Bad experiment name"
+            print("Bad experiment name")
             sys.exit()
     while k < len(experiment_names):
         e=experiment_names[k]
-        if EXP=="":print e, k+1 , 'out of ',len(experiment_names)
+        if EXP=="":print(e, k+1 , 'out of ',len(experiment_names))
     #
     #  initialize lists of data, susceptibility, temperature, frequency and field
         X,T,F,B=[],[],[],[]
@@ -84,9 +88,9 @@ def main():
             methcodes=rec['magic_method_codes']
             meths=methcodes.strip().split(':')
             if rec['magic_experiment_name']==e and "LP-X" in meths: # looking for chi measurement
-                if 'measurement_temp' not in rec.keys():rec['measurement_temp']='300' # set defaults
-                if 'measurement_freq' not in rec.keys():rec['measurement_freq']='0' # set defaults
-                if 'measurement_lab_field_ac' not in rec.keys():rec['measurement_lab_field_ac']='0' # set default
+                if 'measurement_temp' not in list(rec.keys()):rec['measurement_temp']='300' # set defaults
+                if 'measurement_freq' not in list(rec.keys()):rec['measurement_freq']='0' # set defaults
+                if 'measurement_lab_field_ac' not in list(rec.keys()):rec['measurement_lab_field_ac']='0' # set default
                 X.append(float(rec['measurement_x']))
                 T.append(float(rec['measurement_temp']))
                 F.append(float(rec['measurement_freq']))
@@ -139,8 +143,8 @@ def main():
                 plotnum+=1 # increment plot number
             if '-i' in sys.argv: 
                 for ind in range(len(Ts)):  # print list of temperatures available
-                    print ind,int(Ts[ind]) 
-                cont=raw_input("Enter index of desired temperature step, s[a]ve plots, [return] to quit ")
+                    print(ind,int(Ts[ind])) 
+                cont=input("Enter index of desired temperature step, s[a]ve plots, [return] to quit ")
                 if cont=='a':
                         files={}
                         PLTS={}
@@ -149,7 +153,7 @@ def main():
                             files[key]=e+'_'+key+'.'+fmt
                             PLTS[key]=key
                         pmagplotlib.saveP(PLTS,files)
-                        cont=raw_input("Enter index of desired temperature step, s[a]ve plots, [return] to quit ")
+                        cont=input("Enter index of desired temperature step, s[a]ve plots, [return] to quit ")
                 if cont=="":cont='q'
             while cont!="q":
                 if '-i' in sys.argv:Tind=int(cont) # set temperature index
@@ -168,7 +172,7 @@ def main():
                     pmagplotlib.plotXFT(XFplot,XF,Ts[Tind],e,b)
                     if plot==0:pmagplotlib.drawFIGS({'fig':plotnum})
                 else:
-                    print '\n *** Skipping susceptibitily-frequency plot as a function of temperature *** \n'
+                    print('\n *** Skipping susceptibitily-frequency plot as a function of temperature *** \n')
                 f=Fs[0] # set frequency to minimum available
                 XB=[] # initialize chi versus field list
                 for kk in range(len(X)): # hunt through the data
@@ -181,7 +185,7 @@ def main():
                     pmagplotlib.plotXBT(plotnum,XB,Ts[Tind],e,f) # and call plotting function 
                     if plot==0:pmagplotlib.drawFIGS({'fig':plotnum})
                 else:
-                    print 'Skipping susceptibitily - AC field plot as a function of temperature'
+                    print('Skipping susceptibitily - AC field plot as a function of temperature')
                 files={}
                 PLTS={}
                 for p in range(1,plotnum):
@@ -190,15 +194,15 @@ def main():
                     PLTS[key]=p
                 if '-i' in sys.argv:
                     for ind in range(len(Ts)): # just in case you forgot, print out a new list of temperatures
-                        print ind,int(Ts[ind]) 
-                    cont=raw_input("Enter index of next temperature step, s[a]ve plots,  [return] to quit ") # ask for new temp
+                        print(ind,int(Ts[ind])) 
+                    cont=input("Enter index of next temperature step, s[a]ve plots,  [return] to quit ") # ask for new temp
                     if cont=="":sys.exit()
                     if cont=='a':
                         pmagplotlib.saveP(PLTS,files)
-                        cont=raw_input("Enter index of desired temperature step, s[a]ve plots, [return] to quit ")
+                        cont=input("Enter index of desired temperature step, s[a]ve plots, [return] to quit ")
                         if cont=="":sys.exit()
                 elif plot==0:
-                    ans=raw_input("enter s[a]ve to save files,  [return] to quit ")
+                    ans=input("enter s[a]ve to save files,  [return] to quit ")
                     if ans=='a': 
                         pmagplotlib.saveP(PLTS,files)
                         sys.exit()

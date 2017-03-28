@@ -16,6 +16,7 @@ OPTIONS
     -usr : colon delimited list of analysts (default : "")
     -f : magnetometer file path
 """
+from __future__ import print_function
 import os,sys
 import pmagpy.pmag as pmag
 import pmagpy.new_builder as nb
@@ -45,7 +46,7 @@ def convert(**kwargs):
     try:
         infile=open(magfile,'r')
     except Exception as ex:
-        print("bad file path: ", magfile)
+        print(("bad file path: ", magfile))
         return False, "bad file path"
 
     #Depending on the dataset you may need to read in all data here put it in a list of dictionaries or something here. If you do just replace the "for line in infile.readlines():" bellow with "for d in data:" where data is the structure you put your data into
@@ -60,19 +61,19 @@ def convert(**kwargs):
         #extract data from line and put it in variables
 
         #fill this line of the Specimen table using above variables
-        if specimen!="" and specimen not in map(lambda x: x['specimen'] if 'specimen' in x.keys() else "", SpecRecs):
+        if specimen!="" and specimen not in [x['specimen'] if 'specimen' in list(x.keys()) else "" for x in SpecRecs]:
             SpecRec['analysts']=user
             SpecRecs.append(SpecRec)
         #fill this line of the Sample table using above variables
-        if sample!="" and sample not in map(lambda x: x['sample'] if 'sample' in x.keys() else "", SampRecs):
+        if sample!="" and sample not in [x['sample'] if 'sample' in list(x.keys()) else "" for x in SampRecs]:
             SampRec['analysts']=user
             SampRecs.append(SampRec)
         #fill this line of the Site table using above variables
-        if site!="" and site not in map(lambda x: x['site'] if 'site' in x.keys() else "", SiteRecs):
+        if site!="" and site not in [x['site'] if 'site' in list(x.keys()) else "" for x in SiteRecs]:
             SiteRec['analysts']=user
             SiteRecs.append(SiteRec)
         #fill this line of the Location table using above variables
-        if location!="" and location not in map(lambda x: x['location'] if 'location' in x.keys() else "", LocRecs):
+        if location!="" and location not in [x['location'] if 'location' in list(x.keys()) else "" for x in LocRecs]:
             LocRec['analysts']=user
             LocRecs.append(LocRec)
 

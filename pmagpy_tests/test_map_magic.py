@@ -27,7 +27,7 @@ class TestMapping(unittest.TestCase):
         # check that translation worked
         self.assertEqual(sorted(magic3_keys), sorted(output.keys()))
         # check that all output values are 3.0 valid
-        for val in output.keys():
+        for val in list(output.keys()):
             self.assertIn(val, DM.dm['measurements'].index)
 
     def test_spec_map(self):
@@ -42,7 +42,7 @@ class TestMapping(unittest.TestCase):
                                    map_magic.spec_magic2_2_magic3_map)
         self.assertEqual(sorted(magic3_keys), sorted(output.keys()))
         # check that all output values are 3.0 valid
-        for val in output.keys():
+        for val in list(output.keys()):
             self.assertIn(val, DM.dm['specimens'].index)
 
     def test_spec_name(self):
@@ -66,7 +66,7 @@ class TestMapping(unittest.TestCase):
                                    map_magic.samp_magic2_2_magic3_map)
         self.assertEqual(sorted(magic3_keys), sorted(output.keys()))
         # check that all output values are 3.0 valid
-        for val in output.keys():
+        for val in list(output.keys()):
             self.assertIn(val, DM.dm['samples'].index)
 
     def test_samp_map_with_adjusted_vocab(self):
@@ -94,7 +94,7 @@ class TestMapping(unittest.TestCase):
                                    map_magic.site_magic2_2_magic3_map)
         self.assertEqual(sorted(magic3_keys), sorted(output.keys()))
         # check that all output values are 3.0 valid
-        for val in output.keys():
+        for val in list(output.keys()):
             self.assertIn(val, DM.dm['sites'].index)
         # try reverse operation (2.5 --> 3.0)
         output = map_magic.mapping(magic3_dict,
@@ -111,12 +111,12 @@ class TestMapping(unittest.TestCase):
                                    map_magic.loc_magic2_2_magic3_map)
         self.assertEqual(sorted(magic3_keys), sorted(output.keys()))
         # check that all output values are 3.0 valid
-        for val in output.keys():
+        for val in list(output.keys()):
             self.assertIn(val, DM.dm['locations'].index)
 
     def test_all_values_in_maps(self):
         for map_type in maps.all_maps:
-            values = maps.all_maps[map_type].values()
+            values = list(maps.all_maps[map_type].values())
             for val in values:
                 ignore = ['location', 'site', 'sample', 'specimen']
                 for val in ignore[:]:

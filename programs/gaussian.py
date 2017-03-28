@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+from __future__ import print_function
+from builtins import range
 import sys
 import pmagpy.pmag as pmag
 
@@ -28,7 +30,7 @@ def main():
     N,mean,sigma=100,0,1.
     outfile=""
     if '-h' in sys.argv:
-        print main.__doc__
+        print(main.__doc__)
         sys.exit()
     else:
         if '-s' in sys.argv:
@@ -47,7 +49,7 @@ def main():
     for k in range(N): 
         x='%f'%(pmag.gaussdev(mean,sigma))  # send kappa to fshdev
         if outfile=="":
-            print x
+            print(x)
         else:
            out.write(x+'\n')
 

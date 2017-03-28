@@ -1,4 +1,8 @@
 #!/usr/bin/env python
+from __future__ import division
+from __future__ import print_function
+from builtins import input
+from past.utils import old_div
 import sys
 import matplotlib
 if matplotlib.get_backend() != "TKAgg":
@@ -39,7 +43,7 @@ def main():
             ind=sys.argv.index('-WD')
             dir_path=sys.argv[ind+1]
         if '-h' in sys.argv:
-            print main.__doc__
+            print(main.__doc__)
             sys.exit()
         if '-N' in sys.argv: norm=0 # don't normalize
         if '-sav' in sys.argv: plot=1 # don't normalize
@@ -50,25 +54,25 @@ def main():
             ind=sys.argv.index("-f")
             in_file=sys.argv[ind+1]
     else:
-        print main.__doc__
-        print 'you must supply a file name'
+        print(main.__doc__)
+        print('you must supply a file name')
         sys.exit() 
     in_file=dir_path+'/'+in_file
-    print in_file
+    print(in_file)
     PmagRecs,file_type=pmag.magic_read(in_file)
     if file_type!="magic_measurements":
-         print 'bad input file'
+         print('bad input file')
          sys.exit()
     PmagRecs=pmag.get_dictitem(PmagRecs,'magic_method_codes','LP-IRM-3D','has') # get all 3D IRM records
     if len(PmagRecs)==0:
-        print 'no records found'
+        print('no records found')
         sys.exit()
     specs=pmag.get_dictkey(PmagRecs,'er_specimen_name','')
     sids=[]
     for spec in specs:
         if spec not in sids:sids.append(spec) # get list of unique specimen names
     for spc in sids:  # step through the specimen names
-        print spc
+        print(spc)
         specdata=pmag.get_dictitem(PmagRecs,'er_specimen_name',spc,'T') # get all this one's data
         DIMs,Temps=[],[]
         for dat in specdata: # step through the data
@@ -82,16 +86,16 @@ def main():
             nrm=1. # don't normalize
             ylab="Magnetic moment (Am^2)"
         xlab="Temperature (C)"
-        pmagplotlib.plotXY(FIG['lowrie'],Temps,abs(carts[0])/nrm,sym='r-')
-        pmagplotlib.plotXY(FIG['lowrie'],Temps,abs(carts[0])/nrm,sym='ro') # X direction
-        pmagplotlib.plotXY(FIG['lowrie'],Temps,abs(carts[1])/nrm,sym='c-')
-        pmagplotlib.plotXY(FIG['lowrie'],Temps,abs(carts[1])/nrm,sym='cs') # Y direction
-        pmagplotlib.plotXY(FIG['lowrie'],Temps,abs(carts[2])/nrm,sym='k-')
-        pmagplotlib.plotXY(FIG['lowrie'],Temps,abs(carts[2])/nrm,sym='k^',title=spc,xlab=xlab,ylab=ylab) # Z direction
+        pmagplotlib.plotXY(FIG['lowrie'],Temps,old_div(abs(carts[0]),nrm),sym='r-')
+        pmagplotlib.plotXY(FIG['lowrie'],Temps,old_div(abs(carts[0]),nrm),sym='ro') # X direction
+        pmagplotlib.plotXY(FIG['lowrie'],Temps,old_div(abs(carts[1]),nrm),sym='c-')
+        pmagplotlib.plotXY(FIG['lowrie'],Temps,old_div(abs(carts[1]),nrm),sym='cs') # Y direction
+        pmagplotlib.plotXY(FIG['lowrie'],Temps,old_div(abs(carts[2]),nrm),sym='k-')
+        pmagplotlib.plotXY(FIG['lowrie'],Temps,old_div(abs(carts[2]),nrm),sym='k^',title=spc,xlab=xlab,ylab=ylab) # Z direction
         files={'lowrie':'lowrie:_'+spc+'_.'+fmt}
         if plot==0:
             pmagplotlib.drawFIGS(FIG)
-            ans=raw_input('S[a]ve figure? [q]uit, <return> to continue   ')
+            ans=input('S[a]ve figure? [q]uit, <return> to continue   ')
             if ans=='a':
                 pmagplotlib.saveP(FIG,files)
             elif ans=='q':

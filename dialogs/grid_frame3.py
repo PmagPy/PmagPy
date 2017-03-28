@@ -341,7 +341,7 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
             pw.simple_warning("That header is required, and cannot be removed")
             return False
         else:
-            print 'That header is not required:', label
+            print('That header is not required:', label)
             self.grid.remove_col(col)
             del self.contribution.tables[self.grid_type].df[label]
         # causes resize on each column header delete
@@ -489,7 +489,7 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
         """
         num_rows = self.rows_spin_ctrl.GetValue()
         #last_row = self.grid.GetNumberRows()
-        for row in xrange(num_rows):
+        for row in range(num_rows):
             self.grid.add_row()
             #if not self.grid.changes:
             #    self.grid.changes = set([])
@@ -520,7 +520,7 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
             self.selected_rows = {row_num}
         # remove row(s) from the contribution
         df = self.contribution.tables[self.grid_type].df
-        row_nums = range(len(df))
+        row_nums = list(range(len(df)))
         df = df.iloc[[i for i in row_nums if i not in self.selected_rows]]
         self.contribution.tables[self.grid_type].df = df
         # now remove row(s) from grid
@@ -615,7 +615,7 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
         Import a MagIC-format file
         """
         if self.grid.changes:
-            print "-W- Your changes will be overwritten..."
+            print("-W- Your changes will be overwritten...")
             wind = pw.ChooseOne(self, "Import file anyway", "Save grid first",
                                 "-W- Your grid has unsaved changes which will be overwritten if you import a file now...")
             wind.Centre()
@@ -809,7 +809,7 @@ You may then paste into a text document or spreadsheet!
         # header arg determines whether columns are taken
         # index arg determines whether index is taken
         pd.DataFrame.to_clipboard(df, header=False, index=False)
-        print '-I- You have copied all cells! You may paste them into a text document or spreadsheet using Command v.'
+        print('-I- You have copied all cells! You may paste them into a text document or spreadsheet using Command v.')
         # done!
 
     def onCopySelection(self, event):
@@ -820,9 +820,9 @@ You may then paste into a text document or spreadsheet!
             pd.DataFrame.to_clipboard(self.df_slice, header=False, index=False)
             self.grid.ClearSelection()
             self.df_slice = None
-            print '-I- You have copied the selected cells.  You may paste them into a text document or spreadsheet using Command v.'
+            print('-I- You have copied the selected cells.  You may paste them into a text document or spreadsheet using Command v.')
         else:
-            print '-W- No cells were copied! You must highlight a selection cells before hitting the copy button.  You can do this by clicking and dragging, or by using the Shift key and click.'
+            print('-W- No cells were copied! You must highlight a selection cells before hitting the copy button.  You can do this by clicking and dragging, or by using the Shift key and click.')
 
     def onEndCopyMode(self, event):
         # enable/disable buttons as needed
@@ -963,7 +963,7 @@ class GridBuilder(object):
         Save grid data in the data object
         """
         if not self.grid.changes:
-            print '-I- No changes to save'
+            print('-I- No changes to save')
             return
 
         starred_cols = self.grid.remove_starred_labels()

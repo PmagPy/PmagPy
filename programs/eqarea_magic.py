@@ -1,4 +1,9 @@
 #!/usr/bin/env python
+from __future__ import division
+from __future__ import print_function
+from builtins import input
+from builtins import range
+from past.utils import old_div
 import sys
 import matplotlib
 if matplotlib.get_backend() != "TKAgg":
@@ -43,7 +48,7 @@ def main():
     fmt='svg'
     verbose=pmagplotlib.verbose
     if '-h' in sys.argv:
-        print main.__doc__
+        print(main.__doc__)
         sys.exit()
     if '-WD' in sys.argv:
         ind=sys.argv.index('-WD')
@@ -93,7 +98,7 @@ def main():
     data,file_type=pmag.magic_read(in_file)
     if file_type=='pmag_results' and plot_key!="all":plot_key=plot_key+'s' # need plural for results table
     if verbose:
-        print len(data),' records read from ',in_file
+        print(len(data),' records read from ',in_file)
     #
     #
     # find desired dec,inc data:
@@ -129,7 +134,7 @@ def main():
             Incs=pmag.get_dictitem(Decs,inc_key,'','F') # get all records with this inc_key not blank
             if len(Incs)>0: break
         for tilt_key in Tilt_keys:
-            if tilt_key in Incs[0].keys(): break # find the tilt_key for these records
+            if tilt_key in list(Incs[0].keys()): break # find the tilt_key for these records
         if tilt_key=='none': # no tilt key in data, need to fix this with fake data which will be unknown tilt
             tilt_key='tilt_correction'
             for rec in Incs:rec[tilt_key]=''
@@ -149,8 +154,8 @@ def main():
         if dir_type_key=="":dir_type_key='direction_type'
         locations,site,sample,specimen="","","",""
         for rec in cdata: # pick out the data
-            if 'er_location_name' in rec.keys() and rec['er_location_name']!="" and rec['er_location_name'] not in locations:locations=locations+rec['er_location_name'].replace("/","")+"_"
-            if 'er_location_names' in rec.keys() and rec['er_location_names']!="":
+            if 'er_location_name' in list(rec.keys()) and rec['er_location_name']!="" and rec['er_location_name'] not in locations:locations=locations+rec['er_location_name'].replace("/","")+"_"
+            if 'er_location_names' in list(rec.keys()) and rec['er_location_names']!="":
                locs=rec['er_location_names'].split(':')
                for loc in locs:
                    if loc not in locations:locations=locations+loc.replace("/","")+'_'
@@ -166,21 +171,21 @@ def main():
                 sample=rec['er_sample_names']
             if plot_key=='er_specimen_names':
                 specimen=rec['er_specimen_names']
-            if dir_type_key not in rec.keys() or rec[dir_type_key]=="":rec[dir_type_key]='l'
-            if 'magic_method_codes' not in rec.keys():rec['magic_method_codes']=""
+            if dir_type_key not in list(rec.keys()) or rec[dir_type_key]=="":rec[dir_type_key]='l'
+            if 'magic_method_codes' not in list(rec.keys()):rec['magic_method_codes']=""
             DIblock.append([float(rec[dec_key]),float(rec[inc_key])])
             SLblock.append([rec[name_key],rec['magic_method_codes']])
             if rec[tilt_key]==coord and rec[dir_type_key]!='l' and rec[dec_key]!="" and rec[inc_key]!="":
                 GCblock.append([float(rec[dec_key]),float(rec[inc_key])])
                 SPblock.append([rec[name_key],rec['magic_method_codes']])
         if len(DIblock)==0 and len(GCblock)==0:
-            if verbose: print "no records for plotting"
+            if verbose: print("no records for plotting")
             sys.exit()
         if verbose:
           for k in range(len(SLblock)):
-            print '%s %s %7.1f %7.1f'%(SLblock[k][0],SLblock[k][1],DIblock[k][0],DIblock[k][1])
+            print('%s %s %7.1f %7.1f'%(SLblock[k][0],SLblock[k][1],DIblock[k][0],DIblock[k][1]))
           for k in range(len(SPblock)):
-            print '%s %s %7.1f %7.1f'%(SPblock[k][0],SPblock[k][1],GCblock[k][0],GCblock[k][1])
+            print('%s %s %7.1f %7.1f'%(SPblock[k][0],SPblock[k][1],GCblock[k][0],GCblock[k][1]))
         if len(DIblock)>0:
             if contour==0:
                 pmagplotlib.plotEQ(FIG['eqarea'],DIblock,title)
@@ -201,9 +206,9 @@ def main():
             if dist=='B': # do on whole dataset
                 etitle="Bingham confidence ellipse"
                 bpars=pmag.dobingham(DIblock)
-                for key in bpars.keys():
-                    if key!='n' and verbose:print "    ",key, '%7.1f'%(bpars[key])
-                    if key=='n' and verbose:print "    ",key, '       %i'%(bpars[key])
+                for key in list(bpars.keys()):
+                    if key!='n' and verbose:print("    ",key, '%7.1f'%(bpars[key]))
+                    if key=='n' and verbose:print("    ",key, '       %i'%(bpars[key]))
                 npars.append(bpars['dec'])
                 npars.append(bpars['inc'])
                 npars.append(bpars['Zeta'])
@@ -216,31 +221,31 @@ def main():
                 etitle="Fisher confidence cone"
                 if len(nDIs)>2:
                     fpars=pmag.fisher_mean(nDIs)
-                    for key in fpars.keys():
-                        if key!='n' and verbose:print "    ",key, '%7.1f'%(fpars[key])
-                        if key=='n' and verbose:print "    ",key, '       %i'%(fpars[key])
+                    for key in list(fpars.keys()):
+                        if key!='n' and verbose:print("    ",key, '%7.1f'%(fpars[key]))
+                        if key=='n' and verbose:print("    ",key, '       %i'%(fpars[key]))
                     mode+=1
                     npars.append(fpars['dec'])
                     npars.append(fpars['inc'])
                     npars.append(fpars['alpha95']) # Beta
                     npars.append(fpars['dec'])
-                    isign=abs(fpars['inc'])/fpars['inc']
+                    isign=old_div(abs(fpars['inc']),fpars['inc'])
                     npars.append(fpars['inc']-isign*90.) #Beta inc
                     npars.append(fpars['alpha95']) # gamma
                     npars.append(fpars['dec']+90.) # Beta dec
                     npars.append(0.) #Beta inc
                 if len(rDIs)>2:
                     fpars=pmag.fisher_mean(rDIs)
-                    if verbose:print "mode ",mode
-                    for key in fpars.keys():
-                        if key!='n' and verbose:print "    ",key, '%7.1f'%(fpars[key])
-                        if key=='n' and verbose:print "    ",key, '       %i'%(fpars[key])
+                    if verbose:print("mode ",mode)
+                    for key in list(fpars.keys()):
+                        if key!='n' and verbose:print("    ",key, '%7.1f'%(fpars[key]))
+                        if key=='n' and verbose:print("    ",key, '       %i'%(fpars[key]))
                     mode+=1
                     rpars.append(fpars['dec'])
                     rpars.append(fpars['inc'])
                     rpars.append(fpars['alpha95']) # Beta
                     rpars.append(fpars['dec'])
-                    isign=abs(fpars['inc'])/fpars['inc']
+                    isign=old_div(abs(fpars['inc']),fpars['inc'])
                     rpars.append(fpars['inc']-isign*90.) #Beta inc
                     rpars.append(fpars['alpha95']) # gamma
                     rpars.append(fpars['dec']+90.) # Beta dec
@@ -249,10 +254,10 @@ def main():
                 etitle="Kent confidence ellipse"
                 if len(nDIs)>3:
                     kpars=pmag.dokent(nDIs,len(nDIs))
-                    if verbose:print "mode ",mode
-                    for key in kpars.keys():
-                        if key!='n' and verbose:print "    ",key, '%7.1f'%(kpars[key])
-                        if key=='n' and verbose:print "    ",key, '       %i'%(kpars[key])
+                    if verbose:print("mode ",mode)
+                    for key in list(kpars.keys()):
+                        if key!='n' and verbose:print("    ",key, '%7.1f'%(kpars[key]))
+                        if key=='n' and verbose:print("    ",key, '       %i'%(kpars[key]))
                     mode+=1
                     npars.append(kpars['dec'])
                     npars.append(kpars['inc'])
@@ -264,10 +269,10 @@ def main():
                     npars.append(kpars['Einc'])
                 if len(rDIs)>3:
                     kpars=pmag.dokent(rDIs,len(rDIs))
-                    if verbose:print "mode ",mode
-                    for key in kpars.keys():
-                        if key!='n' and verbose:print "    ",key, '%7.1f'%(kpars[key])
-                        if key=='n' and verbose:print "    ",key, '       %i'%(kpars[key])
+                    if verbose:print("mode ",mode)
+                    for key in list(kpars.keys()):
+                        if key!='n' and verbose:print("    ",key, '%7.1f'%(kpars[key]))
+                        if key=='n' and verbose:print("    ",key, '       %i'%(kpars[key]))
                     mode+=1
                     rpars.append(kpars['dec'])
                     rpars.append(kpars['inc'])
@@ -282,10 +287,10 @@ def main():
                     if len(nDIs)>5:
                         BnDIs=pmag.di_boot(nDIs)
                         Bkpars=pmag.dokent(BnDIs,1.)
-                        if verbose:print "mode ",mode
-                        for key in Bkpars.keys():
-                            if key!='n' and verbose:print "    ",key, '%7.1f'%(Bkpars[key])
-                            if key=='n' and verbose:print "    ",key, '       %i'%(Bkpars[key])
+                        if verbose:print("mode ",mode)
+                        for key in list(Bkpars.keys()):
+                            if key!='n' and verbose:print("    ",key, '%7.1f'%(Bkpars[key]))
+                            if key=='n' and verbose:print("    ",key, '       %i'%(Bkpars[key]))
                         mode+=1
                         npars.append(Bkpars['dec'])
                         npars.append(Bkpars['inc'])
@@ -298,10 +303,10 @@ def main():
                     if len(rDIs)>5:
                         BrDIs=pmag.di_boot(rDIs)
                         Bkpars=pmag.dokent(BrDIs,1.)
-                        if verbose:print "mode ",mode
-                        for key in Bkpars.keys():
-                            if key!='n' and verbose:print "    ",key, '%7.1f'%(Bkpars[key])
-                            if key=='n' and verbose:print "    ",key, '       %i'%(Bkpars[key])
+                        if verbose:print("mode ",mode)
+                        for key in list(Bkpars.keys()):
+                            if key!='n' and verbose:print("    ",key, '%7.1f'%(Bkpars[key]))
+                            if key=='n' and verbose:print("    ",key, '       %i'%(Bkpars[key]))
                         mode+=1
                         rpars.append(Bkpars['dec'])
                         rpars.append(Bkpars['inc'])
@@ -335,7 +340,7 @@ def main():
             #
         files={}
         locations=locations[:-1]
-        for key in FIG.keys():
+        for key in list(FIG.keys()):
             if pmagplotlib.isServer: # use server plot naming convention
                 filename='LO:_'+locations+'_SI:_'+site+'_SA:_'+sample+'_SP:_'+specimen+'_CO:_'+crd+'_TY:_'+key+'_.'+fmt
             else:  # use more readable plot naming convention
@@ -356,7 +361,7 @@ def main():
             FIG = pmagplotlib.addBorders(FIG,titles,black,purple)
             pmagplotlib.saveP(FIG,files)
         elif verbose:
-            ans=raw_input(" S[a]ve to save plot, [q]uit, Return to continue:  ")
+            ans=input(" S[a]ve to save plot, [q]uit, Return to continue:  ")
             if ans=="q": sys.exit()
             if ans=="a": pmagplotlib.saveP(FIG,files)
         if plt:

@@ -45,11 +45,14 @@ OPTIONS
 INPUT
     JR6 .jr6 format file
 """
+from __future__ import print_function
+from builtins import str
 import sys,os
 import numpy as np
 import pmagpy.pmag as pmag
 import pandas as pd
 import pmagpy.new_builder as nb
+from functools import reduce
 
 def main(**kwargs):
 
@@ -93,7 +96,7 @@ def main(**kwargs):
             samp_con="4"
     elif samp_con.startswith("7"):
         if "-" not in samp_con:
-            print "option [7] must be in form 7-Z where Z is an integer"
+            print("option [7] must be in form 7-Z where Z is an integer")
             return False, "naming convention option [7] must be in form 7-Z where Z is an integer"
         else:
             Z=samp_con.split("-")[1]
@@ -110,7 +113,7 @@ def main(**kwargs):
         for line in pre_data.readlines():
             entries=line.split()
             if len(entries)<2: continue
-            fixed_line = entries[0] + ' ' + reduce(lambda x,y: x+' '+y, map(lambda x: x.replace('-',' -'), entries[1:]))
+            fixed_line = entries[0] + ' ' + reduce(lambda x,y: x+' '+y, [x.replace('-',' -') for x in entries[1:]])
             fixed_data += fixed_line+os.linesep
     tmp_data.write(fixed_data)
     tmp_data.close()
@@ -142,14 +145,14 @@ def main(**kwargs):
         if specnum!=0: sample=specimen[:specnum]
         else: sample=specimen
         site=pmag.parse_site(sample,samp_con,Z)
-        if specimen!="" and specimen not in map(lambda x: x['specimen'] if 'specimen' in x.keys() else "", SpecRecs):
+        if specimen!="" and specimen not in [x['specimen'] if 'specimen' in list(x.keys()) else "" for x in SpecRecs]:
             SpecRec['specimen'] = specimen
             SpecRec['sample'] = sample
             SpecRec["citations"]="This study"
             SpecRec["analysts"]=user
             SpecRec['volume'] = volume
             SpecRecs.append(SpecRec)
-        if sample!="" and sample not in map(lambda x: x['sample'] if 'sample' in x.keys() else "", SampRecs):
+        if sample!="" and sample not in [x['sample'] if 'sample' in list(x.keys()) else "" for x in SampRecs]:
             SampRec['sample'] = sample
             SampRec['site'] = site
             SampRec["citations"]="This study"
@@ -160,7 +163,7 @@ def main(**kwargs):
             SampRec['bed_dip'] = row['bed_dip']
             SampRec['method_codes']=meth_code
             SampRecs.append(SampRec)
-        if site!="" and site not in map(lambda x: x['site'] if 'site' in x.keys() else "", SiteRecs):
+        if site!="" and site not in [x['site'] if 'site' in list(x.keys()) else "" for x in SiteRecs]:
             SiteRec['site'] = site
             SiteRec['location'] = location
             SiteRec["citations"]="This study"
@@ -168,7 +171,7 @@ def main(**kwargs):
             SiteRec['lat'] = lat
             SiteRec['lon'] = lon
             SiteRecs.append(SiteRec)
-        if location!="" and location not in map(lambda x: x['location'] if 'location' in x.keys() else "", LocRecs):
+        if location!="" and location not in [x['location'] if 'location' in list(x.keys()) else "" for x in LocRecs]:
             LocRec['location']=location
             LocRec["citations"]="This study"
             LocRec["analysts"]=user
@@ -210,7 +213,7 @@ def main(**kwargs):
             treat=float(row['step'][1:])
             MeasRec["treat_temp"]='%8.3e' % (treat+273.) # temp in kelvin
         else: # need to add IRM, and ARM options
-            print "measurement type unknown", row['step']
+            print("measurement type unknown", row['step'])
             return False, "measurement type unknown"
         MeasRec["magn_moment"]=str(row['magn_moment'])
         MeasRec["magn_volume"]=str(row['magn_volume'])

@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+from __future__ import print_function
+from builtins import input
 import sys
 
 
@@ -37,14 +39,14 @@ def main():
     xlab,ylab='',''
     lines=0
     if '-h' in sys.argv:
-        print main.__doc__
+        print(main.__doc__)
         sys.exit()
     if '-f' in sys.argv:
         ind=sys.argv.index('-f')
         file=sys.argv[ind+1]
     else:
         '-f option is a required field'
-        print main.__doc__
+        print(main.__doc__)
         sys.exit()
     if '-c' in sys.argv:
         ind=sys.argv.index('-c')
@@ -52,7 +54,7 @@ def main():
         col2=sys.argv[ind+2]
     else:
         'Column headers a required field'
-        print main.__doc__
+        print(main.__doc__)
         sys.exit()
     if '-xlab' in sys.argv:
         ind=sys.argv.index('-xlab')
@@ -77,11 +79,11 @@ def main():
     if '-S' in sys.argv: sym=''
     X,Y=[],[]
     data,file_type=pmag.magic_read(file)
-    print file_type
+    print(file_type)
     for rec in data:
-        if col1 not in rec.keys() or col2 not in rec.keys():
-            print col1,' and/or ',col2, ' not in file headers'
-            print 'try again'
+        if col1 not in list(rec.keys()) or col2 not in list(rec.keys()):
+            print(col1,' and/or ',col2, ' not in file headers')
+            print('try again')
             sys.exit()
         if rec[col1]!='' and rec[col2]!='':
             skip=0
@@ -100,18 +102,18 @@ def main():
                 X.append(float(rec[col1]))
                 Y.append(float(rec[col2]))
     if len(X)==0:
-            print col1,' and/or ',col2, ' have no data '
-            print 'try again'
+            print(col1,' and/or ',col2, ' have no data ')
+            print('try again')
             sys.exit()
     else:
-        print len(X),' data points'
+        print(len(X),' data points')
     if sym!='':pylab.scatter(X,Y,c=sym[0],marker=sym[1],s=size)
     if xlab!='':pylab.xlabel(xlab)
     if ylab!='':pylab.ylabel(ylab)
     if lines==1:pylab.plot(X,Y,'k-')
     if '-b' in sys.argv:pylab.axis([xmin,xmax,ymin,ymax])
     pylab.draw()
-    ans=raw_input("Press return to quit  ")
+    ans=input("Press return to quit  ")
     sys.exit()
 
 if __name__ == "__main__":

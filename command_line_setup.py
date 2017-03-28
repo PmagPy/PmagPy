@@ -1,3 +1,4 @@
+from __future__ import print_function
 # Always prefer setuptools over distutils
 from setuptools import setup, find_packages
 # To use a consistent encoding
@@ -18,7 +19,7 @@ here = path.abspath(path.dirname(__file__))
 
 packages = find_packages(exclude=['pmagpy', 'pmagpy_tests.examples'
                                   'SPD', 'pmag_env'])
-print 'packages', packages
+print('packages', packages)
 
 
 # Get the long description from the README file

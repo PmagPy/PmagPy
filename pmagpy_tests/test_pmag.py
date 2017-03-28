@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
+from builtins import str
 import os
 import unittest
 import pmagpy.pmag as pmag
@@ -54,7 +56,7 @@ class TestConvert2To3(unittest.TestCase):
     def test_upgrade_criteria(self):
         outfile, output = pmag.convert_criteria_file_2_to_3(input_dir=PROJECT_WD, output_dir=PROJECT_WD)
         self.assertEqual('criteria.txt', outfile)
-        print output.df.head()
+        print(output.df.head())
 
 
 class TestGetPlateData(unittest.TestCase):

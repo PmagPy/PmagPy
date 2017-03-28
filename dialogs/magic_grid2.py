@@ -73,7 +73,7 @@ class MagicGrid(wx.grid.Grid, gridlabelrenderer.GridWithLabelRenderersMixin):
         Add items and/or update existing items in grid
         """
         num_rows = self.GetNumberRows()
-        current_grid_rows = [self.GetCellValue(num, 0) for num in xrange(num_rows)]
+        current_grid_rows = [self.GetCellValue(num, 0) for num in range(num_rows)]
         er_data = {item.name: item.er_data for item in items_list}
         pmag_data = {item.name: item.pmag_data for item in items_list}
         items_list = sorted(items_list, key=lambda item: item.name)
@@ -103,7 +103,7 @@ class MagicGrid(wx.grid.Grid, gridlabelrenderer.GridWithLabelRenderersMixin):
                     if '++' in col:
                         if pmag:
                             col_name = col[:-2]
-                            if col_name in data_dict[row].keys():
+                            if col_name in list(data_dict[row].keys()):
                                 value = data_dict[row][col_name]
                     # in pmag_results, magic_method_codes won't have '++'
                     # so we have to handle it separately
@@ -113,7 +113,7 @@ class MagicGrid(wx.grid.Grid, gridlabelrenderer.GridWithLabelRenderersMixin):
                     # (for pmag we use 'magic_method_codes++' and skip plain magic_method_codes
                     elif col in self.double and pmag:
                         continue
-                    elif col in data_dict[row].keys():
+                    elif col in list(data_dict[row].keys()):
                         value = data_dict[row][col]
                         # set defaults
                         if col == 'er_citation_names':
@@ -139,7 +139,7 @@ class MagicGrid(wx.grid.Grid, gridlabelrenderer.GridWithLabelRenderersMixin):
 
     def size_grid(self, event=None):
         self.AutoSizeColumns(True)
-        for col in xrange(len(self.col_labels)):
+        for col in range(len(self.col_labels)):
             # adjust column widths to be a little larger then auto for nicer editing
             orig_size = self.GetColSize(col)
             if orig_size > 110:
@@ -392,7 +392,7 @@ class MagicGrid(wx.grid.Grid, gridlabelrenderer.GridWithLabelRenderersMixin):
 
     def remove_starred_labels(self):#, grid):
         cols_with_stars = []
-        for col in xrange(self.GetNumberCols()):
+        for col in range(self.GetNumberCols()):
             label = self.GetColLabelValue(col)
             if '**' in label:
                 self.SetColLabelValue(col, label.strip('**'))
@@ -482,7 +482,7 @@ class MagicGrid(wx.grid.Grid, gridlabelrenderer.GridWithLabelRenderersMixin):
                 elif problem in 'vocab_problem':
                     highlight('vocab_problem', item, row_ind, 'WHITE')
                 else:
-                    print 'other problem', problem
+                    print('other problem', problem)
         #  looks like we can do tooltips over cells using techniques in
         #  simple_examples/highlight_grid and simple_examples/tooltip_grid
         #  but these only work with brew python (wxPython version)

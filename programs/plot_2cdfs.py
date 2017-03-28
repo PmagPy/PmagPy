@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+from __future__ import print_function
+from builtins import input
 import sys
 import scipy
 import numpy
@@ -27,7 +29,7 @@ def main():
     fmt='svg'
     title=""
     if '-h' in sys.argv:
-        print main.__doc__
+        print(main.__doc__)
         sys.exit()
     if '-f' in sys.argv:
        ind=sys.argv.index('-f')
@@ -38,8 +40,8 @@ def main():
 #    else:
 #       X=numpy.loadtxt(sys.stdin,dtype=numpy.float)
     else:
-       print '-f option required'
-       print main.__doc__
+       print('-f option required')
+       print(main.__doc__)
        sys.exit()
     if '-fmt' in sys.argv:
        ind=sys.argv.index('-fmt')
@@ -53,11 +55,11 @@ def main():
     pmagplotlib.plotCDF(CDF['X'],X2,title,'b','')
     D,p=scipy.stats.ks_2samp(X,X2)
     if p>=.05:
-        print D,p,' not rejected at 95%'
+        print(D,p,' not rejected at 95%')
     else:
-        print D,p,' rejected at 95%'
+        print(D,p,' rejected at 95%')
     pmagplotlib.drawFIGS(CDF)
-    ans= raw_input('S[a]ve  plot, <Return> to quit ')
+    ans= input('S[a]ve  plot, <Return> to quit ')
     if ans=='a':
         files={'X':'CDF_.'+fmt}
         pmagplotlib.saveP(CDF,files)

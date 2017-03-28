@@ -1,5 +1,9 @@
 #!/usr/bin/env python
 # define some variables
+from __future__ import division
+from __future__ import print_function
+from builtins import input
+from past.utils import old_div
 import sys
 import matplotlib
 if matplotlib.get_backend() != "TKAgg":
@@ -68,7 +72,7 @@ def main():
         ind = sys.argv.index('-WD')
         dir_path=sys.argv[ind+1]
     if '-h' in sys.argv:
-        print main.__doc__
+        print(main.__doc__)
         sys.exit()
     if '-S' in sys.argv:anti=1
     if '-fmt' in sys.argv:
@@ -108,7 +112,7 @@ def main():
     results_file=dir_path+'/'+results_file
     data,file_type=pmag.magic_read(results_file)
     if file_type!='pmag_results':
-        print "bad results file"
+        print("bad results file")
         sys.exit()
     FIG={'map':1}
     pmagplotlib.plot_init(FIG['map'],6,6)
@@ -116,7 +120,7 @@ def main():
     lats,lons,dp,dm,a95=[],[],[],[],[]
     Pars=[]
     dates,rlats,rlons=[],[],[]
-    if 'data_type' in data[0].keys():
+    if 'data_type' in list(data[0].keys()):
         Results=pmag.get_dictitem(data,'data_type','i','T') # get all site level data
     else:
         Results=data
@@ -126,7 +130,7 @@ def main():
     location=""
     for rec in Results:
             if rec['er_location_names'] not in location:location = location+':'+rec['er_location_names']
-            if 'average_age' in rec.keys() and rec['average_age']!="" and ages==1:
+            if 'average_age' in list(rec.keys()) and rec['average_age']!="" and ages==1:
                 dates.append(rec['average_age'])
             lat=float(rec['vgp_lat'])
             lon=float(rec['vgp_lon'])
@@ -151,16 +155,16 @@ def main():
             ppars.append(lon)
             ppars.append(lat)
             ell1,ell2="",""
-            if 'vgp_dm' in rec.keys() and rec['vgp_dm']!="":ell1=float(rec['vgp_dm'])
-            if 'vgp_dp' in rec.keys() and rec['vgp_dp']!="":ell2=float(rec['vgp_dp'])
-            if 'vgp_alpha95' in rec.keys() and rec['vgp_alpha95']!="":ell1,ell2=float(rec['vgp_alpha95']),float(rec['vgp_alpha95'])
+            if 'vgp_dm' in list(rec.keys()) and rec['vgp_dm']!="":ell1=float(rec['vgp_dm'])
+            if 'vgp_dp' in list(rec.keys()) and rec['vgp_dp']!="":ell2=float(rec['vgp_dp'])
+            if 'vgp_alpha95' in list(rec.keys()) and rec['vgp_alpha95']!="":ell1,ell2=float(rec['vgp_alpha95']),float(rec['vgp_alpha95'])
             if ell1!="" and ell2!="":
                 ppars=[]
                 ppars.append(lons[-1])
                 ppars.append(lats[-1])
                 ppars.append(ell1)
                 ppars.append(lons[-1])
-                isign=abs(lats[-1])/lats[-1]
+                isign=old_div(abs(lats[-1]),lats[-1])
                 ppars.append(lats[-1]-isign*90.)
                 ppars.append(ell2)
                 ppars.append(lons[-1]+90.)
@@ -197,7 +201,7 @@ def main():
                 pmagplotlib.plotMAP(FIG['map'],elats,elons,Opts) # make the base map with a blue triangle at the pole`
                 if plot==0:pmagplotlib.drawFIGS(FIG)
     files={}
-    for key in FIG.keys():
+    for key in list(FIG.keys()):
         if pmagplotlib.isServer: # use server plot naming convention
             files[key]='LO:_'+location+'_VGP_map.'+fmt
         else:  # use more readable plot naming convention
@@ -211,11 +215,11 @@ def main():
         pmagplotlib.saveP(FIG,files)
     elif plot==0:
         pmagplotlib.drawFIGS(FIG)
-        ans=raw_input(" S[a]ve to save plot, Return to quit:  ")
+        ans=input(" S[a]ve to save plot, Return to quit:  ")
         if ans=="a":
             pmagplotlib.saveP(FIG,files)
         else:
-            print "Good bye"
+            print("Good bye")
             sys.exit()
     else:
         pmagplotlib.saveP(FIG,files)

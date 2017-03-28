@@ -1,4 +1,7 @@
 #!/usr/bin/env python
+from __future__ import print_function
+from builtins import input
+from builtins import range
 import sys
 import pmagpy.pmag as pmag
 
@@ -37,28 +40,28 @@ def main():
     """
     infile,outfile,data,indata="","",[],[]
     if '-h' in sys.argv:
-        print main.__doc__
+        print(main.__doc__)
         sys.exit()
     if '-F' in sys.argv:
         ind=sys.argv.index('-F')
         outfile=sys.argv[ind+1]
         out=open(outfile,'w')
     if '-i' in sys.argv:
-        print "Welcome to paleolatitude calculator\n"
+        print("Welcome to paleolatitude calculator\n")
         while 1:
             data=[]
-            print "pick a plate: NA, SA, AF, IN, EU, AU, ANT, GL \n   cntl-D to quit"
+            print("pick a plate: NA, SA, AF, IN, EU, AU, ANT, GL \n   cntl-D to quit")
             try:
-                plate=raw_input("Plate\n").upper()
+                plate=input("Plate\n").upper()
             except:
-                print "Goodbye \n"
+                print("Goodbye \n")
                 sys.exit()
-            lat=float(raw_input( "Site latitude\n"))
-            lon=float(raw_input(" Site longitude\n"))
-            age=float(raw_input(" Age\n"))
+            lat=float(input( "Site latitude\n"))
+            lon=float(input(" Site longitude\n"))
+            age=float(input(" Age\n"))
             data=[plate,lat,lon,age]
-            print "Age  Paleolat.  Dec.  Inc.  Pole_lat.  Pole_Long."
-            print spitout(data)
+            print("Age  Paleolat.  Dec.  Inc.  Pole_lat.  Pole_Long.")
+            print(spitout(data))
     elif '-f' in sys.argv:
         ind=sys.argv.index('-f')
         infile=sys.argv[ind+1]
@@ -71,25 +74,25 @@ def main():
             ind=sys.argv.index('-lat')
             lat=float(sys.argv[ind+1])
         else:
-            print main.__doc__
+            print(main.__doc__)
             sys.exit()
         if '-lon' in sys.argv:
             ind=sys.argv.index('-lon')
             lon=float(sys.argv[ind+1])
         else:
-            print main.__doc__
+            print(main.__doc__)
             sys.exit()
         if '-age' in sys.argv:
             ind=sys.argv.index('-age')
             age=float(sys.argv[ind+1])
         else:
-            print main.__doc__
+            print(main.__doc__)
             sys.exit()
         data=[plate,lat,lon,age]
         outstring=spitout(data)
         if outfile=="": 
-            print "Age  Paleolat.  Dec.  Inc.  Pole_lat.  Pole_Long."
-            print outstring
+            print("Age  Paleolat.  Dec.  Inc.  Pole_lat.  Pole_Long.")
+            print(outstring)
         else:
             out.write(outstring)
         sys.exit()
@@ -106,11 +109,11 @@ def main():
         for line in indata:
             outstring=spitout(line)
             if outfile=="": 
-                print outstring
+                print(outstring)
             else:
                 out.write(outstring)
     else:
-       print 'no input data'
+       print('no input data')
        sys.exit()
 
 if __name__ == "__main__":

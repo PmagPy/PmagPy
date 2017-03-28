@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import print_function
 import sys
 import numpy
 import pmagpy.pmag as pmag
@@ -22,7 +23,7 @@ def main():
     out=""
     UP=0
     if '-h' in sys.argv:
-        print main.__doc__
+        print(main.__doc__)
         sys.exit()
     if '-f' in sys.argv:
         ind=sys.argv.index('-f')
@@ -35,10 +36,10 @@ def main():
     if len(DI)>1: #array of data
        XY=pmag.dimap_V(Ds,Is)
        for xy in XY:
-           print '%f %f'%(xy[0],xy[1])
+           print('%f %f'%(xy[0],xy[1]))
     else: # single data point
        XY=pmag.dimap(Ds,Is)
-       print '%f %f'%(XY[0],XY[1])
+       print('%f %f'%(XY[0],XY[1]))
 
 if __name__ == "__main__":
     main()

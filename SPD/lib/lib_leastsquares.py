@@ -1,5 +1,9 @@
 #!/usr/bin/env python
 
+from __future__ import division
+from __future__ import print_function
+from builtins import map
+from past.utils import old_div
 from numpy import *
 from scipy      import optimize
 
@@ -18,13 +22,13 @@ y = r_[ 34., 10.,   6., -14.,  27., -10.]
 
 
 def do_circlefit(x=x, y=y):
-    print "x: ", x, "y: ", y
+    print("x: ", x, "y: ", y)
 
     # ensure all values are floats, then norm them by largest value
-    x = array(map(float, x))
-    x = x / max(x)
-    y = array(map(float, y))
-    y = y / max(y)
+    x = array(list(map(float, x)))
+    x = old_div(x, max(x))
+    y = array(list(map(float, y)))
+    y = old_div(y, max(y))
     
 
     # coordinates of the barycenter
@@ -48,7 +52,7 @@ def do_circlefit(x=x, y=y):
 
     # Solving the linear system
     A = array([ [ Suu, Suv ], [Suv, Svv]])
-    B = array([ Suuu + Suvv, Svvv + Suuv ])/2.0
+    B = old_div(array([ Suuu + Suvv, Svvv + Suuv ]),2.0)
     uc, vc = linalg.solve(A, B)
 
     xc_1 = x_m + uc
@@ -81,10 +85,10 @@ def do_circlefit(x=x, y=y):
     xc_2, yc_2 = center_2
     Ri_2       = calc_R(xc_2, yc_2)
     R_2        = Ri_2.mean()
-    print "R_2", R_2
+    print("R_2", R_2)
     residu_2   = sum((Ri_2 - R_2)**2)
     residu2_2  = sum((Ri_2**2-R_2**2)**2)
-    print "xc_2:", xc_2, "yc_2", yc_2
+    print("xc_2:", xc_2, "yc_2", yc_2)
 
 
 

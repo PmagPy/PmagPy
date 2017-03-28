@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 #
+from __future__ import print_function
+from builtins import range
 import sys
 import pmagpy.pmag as pmag
 #import numpy.linalg
@@ -32,7 +34,7 @@ def main():
 # set options
     ipar,nb=0,1000
     if '-h' in sys.argv:
-        print main.__doc__
+        print(main.__doc__)
         sys.exit()
     if '-f' in sys.argv:
         ind=sys.argv.index('-f')
@@ -44,7 +46,7 @@ def main():
         ind=sys.argv.index('-nb')
         nb=int(sys.argv[ind+1])
 # read in the data
-    print "Doing bootstrap - be patient"
+    print("Doing bootstrap - be patient")
     Ss=[]
     for line in data:
         s=[]
@@ -63,15 +65,15 @@ def main():
     bpars["t1"]=Tmean[0]
     bpars["t2"]=Tmean[1]
     bpars["t3"]=Tmean[2]
-    print """
+    print("""
 tau tau_sigma V_dec V_inc V_eta V_eta_dec V_eta_inc V_zeta V_zeta_dec V_zeta_inc
-"""
+""")
     outstring='%7.5f %7.5f %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f'%(bpars["t1"],bpars["t1_sigma"],bpars["v1_dec"],bpars["v1_inc"],bpars["v1_zeta"],bpars["v1_zeta_dec"],bpars["v1_zeta_inc"],bpars["v1_eta"],bpars["v1_eta_dec"],bpars["v1_eta_inc"])
-    print outstring
+    print(outstring)
     outstring='%7.5f %7.5f %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f'%(bpars["t2"],bpars["t2_sigma"],bpars["v2_dec"],bpars["v2_inc"],bpars["v2_zeta"],bpars["v2_zeta_dec"],bpars["v2_zeta_inc"],bpars["v2_eta"],bpars["v2_eta_dec"],bpars["v2_eta_inc"])
-    print outstring
+    print(outstring)
     outstring='%7.5f %7.5f %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f'%(bpars["t3"],bpars["t3_sigma"],bpars["v3_dec"],bpars["v3_inc"],bpars["v3_zeta"],bpars["v3_zeta_dec"],bpars["v3_zeta_inc"],bpars["v3_eta"],bpars["v3_eta_dec"],bpars["v3_eta_inc"])
-    print outstring
+    print(outstring)
 
 if __name__ == "__main__":
     main() 

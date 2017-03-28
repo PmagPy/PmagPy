@@ -1,3 +1,4 @@
+from __future__ import print_function
 # Always prefer setuptools over distutils
 from setuptools import setup, find_packages
 # To use a consistent encoding
@@ -13,9 +14,9 @@ packages = find_packages(exclude=['programs', 'pmagpy_tests',
                                   'pmagpy_tests.examples.my_project',
                                   'pmagpy_tests.examples.empty_dir',
                                   'pmagpy_tests.examples.my_project_with_errors'])
-print 'packages', packages
+print('packages', packages)
 packages.append('pmag_env')
-print 'packages', packages
+print('packages', packages)
 
 
 
@@ -51,7 +52,7 @@ def do_walk(data_path):
 def parse_dict(dictionary):
     formatted = []
     formatted_dict = {}
-    for key in dictionary.keys():
+    for key in list(dictionary.keys()):
         files = dictionary.pop(key)
         formatted_files = [path.join(key, f) for f in files]
         ind = key.index('/data_files') + len('/data_files/')

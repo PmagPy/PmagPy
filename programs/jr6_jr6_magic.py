@@ -1,4 +1,7 @@
 #!/usr/bin/env python
+from __future__ import print_function
+from builtins import str
+from builtins import range
 import pandas as pd
 import sys
 import numpy as np
@@ -85,7 +88,7 @@ def main(command_line=True, **kwargs):
             input_dir_path = dir_path
         output_dir_path = dir_path
         if "-h" in args:
-            print main.__doc__
+            print(main.__doc__)
             return False
         if '-F' in args:
             ind=args.index("-F")
@@ -159,14 +162,14 @@ def main(command_line=True, **kwargs):
         specnum=-specnum
     if "4" in samp_con:
         if "-" not in samp_con:
-            print "option [4] must be in form 4-Z where Z is an integer"
+            print("option [4] must be in form 4-Z where Z is an integer")
             return False, "option [4] must be in form 4-Z where Z is an integer"
         else:
             Z=samp_con.split("-")[1]
             samp_con="4"
     if "7" in samp_con:
         if "-" not in samp_con:
-            print "option [7] must be in form 7-Z where Z is an integer"
+            print("option [7] must be in form 7-Z where Z is an integer")
             return False, "option [7] must be in form 7-Z where Z is an integer"
         else:
             Z=samp_con.split("-")[1]
@@ -267,7 +270,7 @@ def main(command_line=True, **kwargs):
             treat=float(row['step'][2:])
             MagRec["treatment_temp"]='%8.3e' % (treat+273.) # temp in kelvin
         else: # need to add IRM, and ARM options
-            print "measurement type unknown", row['step']
+            print("measurement type unknown", row['step'])
             return False, "measurement type unknown"
         MagRec["measurement_magn_moment"]=str(row['measurement_magn_moment'])
         MagRec["measurement_magn_volume"]=str(row['measurement_magn_volume'])
@@ -276,11 +279,11 @@ def main(command_line=True, **kwargs):
         MagRec['magic_method_codes']=meas_type
         MagRecs.append(MagRec.copy())
     pmag.magic_write(samp_file,SampOuts,'er_samples')
-    print "sample orientations put in ",samp_file
+    print("sample orientations put in ",samp_file)
     MagOuts=pmag.measurements_methods(MagRecs,noave)
     pmag.magic_write(meas_file,MagOuts,'magic_measurements')
-    print "results put in ",meas_file
-    print "exit!"
+    print("results put in ",meas_file)
+    print("exit!")
     return True, meas_file
 
 def do_help():

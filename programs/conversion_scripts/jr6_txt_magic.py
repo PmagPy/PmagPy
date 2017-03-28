@@ -45,6 +45,8 @@ OPTIONS
 INPUT
     JR6 .txt format file
 """
+from __future__ import print_function
+from builtins import str
 import sys, os
 import pmagpy.pmag as pmag
 import pmagpy.new_builder as nb
@@ -85,7 +87,7 @@ def convert(**kwargs):
             samp_con="4"
     elif samp_con.startswith("7"):
         if "-" not in samp_con:
-            print "option [7] must be in form 7-Z where Z is an integer"
+            print("option [7] must be in form 7-Z where Z is an integer")
             return False, "naming convention option [7] must be in form 7-Z where Z is an integer"
         else:
             Z=samp_con.split("-")[1]
@@ -160,14 +162,14 @@ def convert(**kwargs):
 
             MeasRec,SpecRec,SampRec,SiteRec,LocRec={},{},{},{},{}
 
-            if specimen!="" and specimen not in map(lambda x: x['specimen'] if 'specimen' in x.keys() else "", SpecRecs):
+            if specimen!="" and specimen not in [x['specimen'] if 'specimen' in list(x.keys()) else "" for x in SpecRecs]:
                 SpecRec['specimen'] = specimen
                 SpecRec['sample'] = sample
                 SpecRec["citations"]="This study"
                 SpecRec["analysts"]=user
                 SpecRec['volume'] = volume
                 SpecRecs.append(SpecRec)
-            if sample!="" and sample not in map(lambda x: x['sample'] if 'sample' in x.keys() else "", SampRecs):
+            if sample!="" and sample not in [x['sample'] if 'sample' in list(x.keys()) else "" for x in SampRecs]:
                 SampRec['sample'] = sample
                 SampRec['site'] = site
                 SampRec["citations"]="This study"
@@ -177,7 +179,7 @@ def convert(**kwargs):
                 SampRec['dip'] = sample_dip
                 SampRec['method_codes']=meth_code
                 SampRecs.append(SampRec)
-            if site!="" and site not in map(lambda x: x['site'] if 'site' in x.keys() else "", SiteRecs):
+            if site!="" and site not in [x['site'] if 'site' in list(x.keys()) else "" for x in SiteRecs]:
                 SiteRec['site'] = site
                 SiteRec['location'] = location
                 SiteRec["citations"]="This study"
@@ -185,7 +187,7 @@ def convert(**kwargs):
                 SiteRec['lat'] = lat
                 SiteRec['lon'] = lon
                 SiteRecs.append(SiteRec)
-            if location!="" and location not in map(lambda x: x['location'] if 'location' in x.keys() else "", LocRecs):
+            if location!="" and location not in [x['location'] if 'location' in list(x.keys()) else "" for x in LocRecs]:
                 LocRec['location']=location
                 LocRec["citations"]="This study"
                 LocRec["analysts"]=user
@@ -222,7 +224,7 @@ def convert(**kwargs):
                 treat=float(demagLevel[1:])
                 MeasRec["treat_temp"]='%8.3e' % (treat+273.) # temp in kelvin
             else:
-                print "measurement type unknown", demag_level
+                print("measurement type unknown", demag_level)
                 return False, "measurement type unknown"
 
             MeasRec["magn_moment"]=str(intensityVol*volume) # Am^2

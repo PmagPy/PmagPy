@@ -1,5 +1,10 @@
 #!/usr/bin/env python
 #from builtins import range
+from __future__ import print_function
+from builtins import map
+from builtins import input
+from builtins import str
+from builtins import range
 import os,sys
 import pmagpy.pmag as pmag
 import pmagpy.new_builder as nb
@@ -112,7 +117,7 @@ def main(command_line=True, **kwargs):
             avg=0
         if '-dc' in args:
             ind=args.index('-dc')
-            DC_FIELD,DC_PHI,DC_THETA=map(float,args[ind+1].strip('( ) [ ]').split(','))
+            DC_FIELD,DC_PHI,DC_THETA=list(map(float,args[ind+1].strip('( ) [ ]').split(',')))
             DC_FIELD *= 1e-6
             yn=''
             GET_DC_PARAMS=False
@@ -159,7 +164,7 @@ def main(command_line=True, **kwargs):
         magfile = kwargs.get('magfile', '')
         input_dir_path = kwargs.get('input_dir_path',os.path.split(magfile)[0])
         output_dir_path = dir_path
-        DC_FIELD,DC_PHI,DC_THETA = map(float, kwargs.get('dc_params', (0,0,-90)))
+        DC_FIELD,DC_PHI,DC_THETA = list(map(float, kwargs.get('dc_params', (0,0,-90))))
         DC_FIELD *= 1e-6
         yn = ''
         if DC_FIELD==0 and DC_PHI==0 and DC_THETA==-90: GET_DC_PARAMS=True
@@ -177,7 +182,7 @@ def main(command_line=True, **kwargs):
             samp_con="4"
     elif "7" in samp_con:
         if "-" not in samp_con:
-            print "option [7] must be in form 7-Z where Z is an integer"
+            print("option [7] must be in form 7-Z where Z is an integer")
             return False, "naming convention option [7] must be in form 7-Z where Z is an integer"
         else:
             Z=samp_con.split("-")[1]
@@ -193,7 +198,7 @@ def main(command_line=True, **kwargs):
     try:
         file_input=open(magfile,'r')
     except Exception as ex:
-        print("bad sam file name: ", magfile)
+        print(("bad sam file name: ", magfile))
         return False, "bad sam file name"
     File = file_input.readlines()
     if len(File) == 1: File = File[0].split('\r'); File = [x+"\r\n" for x in File]
@@ -419,35 +424,35 @@ def main(command_line=True, **kwargs):
         con.tables['measurements'].df = DataFrame(Fixed).rename(columns=mapm.meas_magic2_2_magic3_map)
 
         con.tables['specimens'].write_magic_file(custom_name=spec_file)
-        print('specimens stored in ',spec_file)
+        print(('specimens stored in ',spec_file))
         con.tables['samples'].write_magic_file(custom_name=samp_file)
-        print('samples stored in ',samp_file)
+        print(('samples stored in ',samp_file))
         con.tables['sites'].write_magic_file(custom_name=site_file)
-        print('sites stored in ', site_file)
+        print(('sites stored in ', site_file))
         con.tables['locations'].write_magic_file(custom_name=loc_file)
-        print('locations stored in ', loc_file)
+        print(('locations stored in ', loc_file))
         con.tables['measurements'].write_magic_file(custom_name=meas_file)
-        print('data stored in ',meas_file)
+        print(('data stored in ',meas_file))
     else:
         pmag.magic_write(spec_file,Specs,'er_specimens')
-        print('specimens stored in ',spec_file)
+        print(('specimens stored in ',spec_file))
         pmag.magic_write(samp_file,Samps,'er_samples')
-        print('samples stored in ',samp_file)
+        print(('samples stored in ',samp_file))
         pmag.magic_write(site_file,Sites,'er_sites')
-        print('sites stored in ', site_file)
+        print(('sites stored in ', site_file))
         Fixed=pmag.measurements_methods(MeasRecs,avg)
         pmag.magic_write(meas_file,Fixed,'magic_measurements')
-        print('data stored in ',meas_file)
+        print(('data stored in ',meas_file))
         return True, meas_file
 
     return True, meas_file
 
 def get_dc_params(FIRST_GET_DC, specimen, treat_type, yn):
     if FIRST_GET_DC:
-        yn = raw_input("Is the DC field used in this IZZI study constant or does it varry between specimen or step? (y=const) [y/N]: ")
+        yn = input("Is the DC field used in this IZZI study constant or does it varry between specimen or step? (y=const) [y/N]: ")
         FIRST_GET_DC = False
-    if "y" == yn: DC_FIELD,DC_PHI,DC_THETA = map(float, input("What DC field, Phi, and Theta was used for all steps? (float (in microTesla),float,float): ")); GET_DC_PARAMS=False
-    else: DC_FIELD,DC_PHI,DC_THETA = map(float,input("What DC field, Phi, and Theta was used for specimen %s and step %s? (float (in microTesla),float,float): "%(str(specimen),str(treat_type))))
+    if "y" == yn: DC_FIELD,DC_PHI,DC_THETA = list(map(float, eval(input("What DC field, Phi, and Theta was used for all steps? (float (in microTesla),float,float): ")))); GET_DC_PARAMS=False
+    else: DC_FIELD,DC_PHI,DC_THETA = list(map(float,eval(input("What DC field, Phi, and Theta was used for specimen %s and step %s? (float (in microTesla),float,float): "%(str(specimen),str(treat_type))))))
     return GET_DC_PARAMS,FIRST_GET_DC,yn,DC_FIELD*1e-6,DC_PHI,DC_THETA
 
 def do_help():

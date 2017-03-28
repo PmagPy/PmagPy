@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import print_function
 import sys
 import pmagpy.pmag as pmag
 #
@@ -28,7 +29,7 @@ def main():
     outfile="er_samples.txt"
 # get command line stuff
     if "-h" in sys.argv:
-	print main.__doc__
+	print(main.__doc__)
         sys.exit()
     if '-fsp' in sys.argv:
 	ind=sys.argv.index("-fsp")

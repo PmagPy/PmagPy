@@ -18,8 +18,8 @@ import gzip
 #import pmag
 import copy
 from scipy.optimize import curve_fit
-import thellier_interpreter
-import thellier_gui_lib
+from . import thellier_interpreter
+from . import thellier_gui_lib
 #rcParams.update({"svg.embed_char_paths":False})
 
 def run_thellier_consistency_test(WD, Data,Data_hierarchy,acceptance_criteria,optimizer_group_file_path,optimizer_functions_path,preferences,stat1_range,stat2_range,THERMAL,MICROWAVE):
@@ -47,11 +47,11 @@ def run_thellier_consistency_test(WD, Data,Data_hierarchy,acceptance_criteria,op
       Best_interpretations={}
       Best_interpretations_tmp={}
       
-      for this_specimen in Intensities.keys():
+      for this_specimen in list(Intensities.keys()):
           for value in Intensities[this_specimen]:
               Best_interpretations_tmp[this_specimen]=value
               Best_array_tmp=[value]
-              all_other_specimens=Intensities.keys()
+              all_other_specimens=list(Intensities.keys())
               all_other_specimens.remove(this_specimen)
               
               for other_specimen in all_other_specimens:
@@ -73,17 +73,17 @@ def run_thellier_consistency_test(WD, Data,Data_hierarchy,acceptance_criteria,op
         
         tmp_Intensities={}
         Acceptable_sample_min,Acceptable_sample_max="",""
-        for this_specimen in Intensities.keys():
+        for this_specimen in list(Intensities.keys()):
           B_list=copy.deepcopy(Intensities[this_specimen])
           if len(B_list)>0:
               B_list.sort()
               tmp_Intensities[this_specimen]=B_list
 
         # find min values
-        while len(tmp_Intensities.keys())>=float(acceptance_criteria["sample_int_n"]):
+        while len(list(tmp_Intensities.keys()))>=float(acceptance_criteria["sample_int_n"]):
             B_tmp=[]
             B_tmp_min=1e10
-            for sample in tmp_Intensities.keys():
+            for sample in list(tmp_Intensities.keys()):
                 B_tmp.append(min(tmp_Intensities[sample]))
                 if min(tmp_Intensities[sample])<B_tmp_min:
                     sample_to_remove=sample
@@ -97,7 +97,7 @@ def run_thellier_consistency_test(WD, Data,Data_hierarchy,acceptance_criteria,op
                     break
                     
         tmp_Intensities={}
-        for this_specimen in Intensities.keys():
+        for this_specimen in list(Intensities.keys()):
           B_list=copy.deepcopy(Intensities[this_specimen])
           if len(B_list)>0:
               B_list.sort()
@@ -105,13 +105,13 @@ def run_thellier_consistency_test(WD, Data,Data_hierarchy,acceptance_criteria,op
 
         # find max values
         counter=0
-        while len(tmp_Intensities.keys())>=float(acceptance_criteria["sample_int_n"]):
+        while len(list(tmp_Intensities.keys()))>=float(acceptance_criteria["sample_int_n"]):
             counter+=1
             B_tmp=[]
             B_tmp_max=0
             #print "iteration %i"%counter
             #print tmp_Intensities
-            for sample in tmp_Intensities.keys():
+            for sample in list(tmp_Intensities.keys()):
                 B_tmp.append(max(tmp_Intensities[sample]))
                 if max(tmp_Intensities[sample])>B_tmp_max:
                     sample_to_remove=sample
@@ -222,15 +222,15 @@ def run_thellier_consistency_test(WD, Data,Data_hierarchy,acceptance_criteria,op
       tmp_data[header[i]]=line[i]
     sample=tmp_data['er_sample_name']
     site=tmp_data['er_group_name']
-    if "comments" in tmp_data.keys() and "exclude" in tmp_data['comments']:
+    if "comments" in list(tmp_data.keys()) and "exclude" in tmp_data['comments']:
       logfile.write(  "-W- WARNING: ignoring sample %s\n"%sample)
       continue
-    if "sample_int" in tmp_data.keys() and  tmp_data['sample_int']!="":
+    if "sample_int" in list(tmp_data.keys()) and  tmp_data['sample_int']!="":
       try:
         samples_expected_intensity[sample]=float(tmp_data['sample_int'])*1e6 # convert form T to uT
       except:
         pass
-    if site not in sites_samples.keys():
+    if site not in list(sites_samples.keys()):
       sites_samples[site]=[]
     if sample not in sites_samples[site]:
       sites_samples[site].append(sample)
@@ -243,7 +243,7 @@ def run_thellier_consistency_test(WD, Data,Data_hierarchy,acceptance_criteria,op
   
   n_min=int(acceptance_criteria['specimen_int_n']['value'])
 
-  specimens=Data.keys()
+  specimens=list(Data.keys())
   specimens.sort()
 
 
@@ -317,7 +317,7 @@ def run_thellier_consistency_test(WD, Data,Data_hierarchy,acceptance_criteria,op
       Key="%s,%s"%(str(stat1_value),str(stat2_value))
 
       Optimizer_data[Key]={}
-      for sample in Data_hierarchy['samples'].keys():
+      for sample in list(Data_hierarchy['samples'].keys()):
         for specimen in Data_hierarchy['samples'][sample]:
           if specimen not in specimens:
             continue
@@ -338,9 +338,9 @@ def run_thellier_consistency_test(WD, Data,Data_hierarchy,acceptance_criteria,op
                     
               
               #------------
-              if sample not in Optimizer_data[Key].keys():
+              if sample not in list(Optimizer_data[Key].keys()):
                 Optimizer_data[Key][sample]={}                
-              if specimen not in Optimizer_data[Key][sample].keys():
+              if specimen not in list(Optimizer_data[Key][sample].keys()):
                 Optimizer_data[Key][sample][specimen]=[]
                 
               Optimizer_data[Key][sample][specimen].append(pars)
@@ -366,23 +366,23 @@ def run_thellier_consistency_test(WD, Data,Data_hierarchy,acceptance_criteria,op
       #--------------------------------------------------------------
       B_specimens={}
       All_grade_A_Recs={}
-      for sample in Optimizer_data[Key].keys():
+      for sample in list(Optimizer_data[Key].keys()):
         B_specimens[sample]={}
-        for specimen in Optimizer_data[Key][sample].keys():
-          if specimen not in B_specimens.keys():
+        for specimen in list(Optimizer_data[Key][sample].keys()):
+          if specimen not in list(B_specimens.keys()):
             B_specimens[sample][specimen]=[]
-          if specimen not in All_grade_A_Recs.keys():
+          if specimen not in list(All_grade_A_Recs.keys()):
             All_grade_A_Recs[specimen]={}  
           for pars in Optimizer_data[Key][sample][specimen]:
             B_specimens[sample][specimen].append(pars['specimen_int_uT'])
             TEMP="%.0f,%.0f"%(float(pars["measurement_step_min"])-273,float(pars["measurement_step_max"])-273)
             new_pars={}
-            for k in pars.keys():
+            for k in list(pars.keys()):
                 new_pars[k]=pars[k]
             All_grade_A_Recs[specimen][TEMP]=pars
           B_specimens[sample][specimen].sort()
  
-        if len(B_specimens[sample].keys())<2:
+        if len(list(B_specimens[sample].keys()))<2:
             continue    
                                 
         thellier_auto_interpreter=thellier_interpreter.thellier_auto_interpreter(Data,Data_hierarchy,WD,acceptance_criteria,preferences,logfile,THERMAL,MICROWAVE)
@@ -399,7 +399,7 @@ def run_thellier_consistency_test(WD, Data,Data_hierarchy,acceptance_criteria,op
         %(sample,interpreter_mean,interpreter_std,interpreter_interval))
         
         # write interpreter data in matrix
-        if Key not in Optimizer_STDEV_OPT.keys():
+        if Key not in list(Optimizer_STDEV_OPT.keys()):
             Optimizer_STDEV_OPT[Key]={}
         if sample not in Optimizer_STDEV_OPT[Key]:
             Optimizer_STDEV_OPT[Key][sample]={}          
@@ -424,8 +424,8 @@ def run_thellier_consistency_test(WD, Data,Data_hierarchy,acceptance_criteria,op
     for stat2_value in stat2_range[1]:
       Key="%s,%s"%(str(stat1_value),str(stat2_value))
 
-      study_sample_n=len(Optimizer_STDEV_OPT[Key].keys())
-      tmp= Optimizer_STDEV_OPT[Key].keys()
+      study_sample_n=len(list(Optimizer_STDEV_OPT[Key].keys()))
+      tmp= list(Optimizer_STDEV_OPT[Key].keys())
       tmp.sort()
       max_group_int_sigma_uT=0
       max_group_int_sigma_perc=0
@@ -433,7 +433,7 @@ def run_thellier_consistency_test(WD, Data,Data_hierarchy,acceptance_criteria,op
       for site in sites_samples:
         site_B=[];site_samples_id=[]
         for sample in sites_samples[site]:
-          if sample in Optimizer_STDEV_OPT[Key].keys():
+          if sample in list(Optimizer_STDEV_OPT[Key].keys()):
             site_B.append(Optimizer_STDEV_OPT[Key][sample]['sample_int_uT'])
             site_samples_id.append(sample)
             
@@ -462,15 +462,15 @@ def run_thellier_consistency_test(WD, Data,Data_hierarchy,acceptance_criteria,op
         #Optimizer_results_file.close()
 
       max_sample_accuracy_uT=0.
-      for sample in samples_expected_intensity.keys():
-        if sample in Optimizer_STDEV_OPT[Key].keys():
-          if 'sample_int_uT_diff_from_expected_uT' in Optimizer_STDEV_OPT[Key][sample].keys():
+      for sample in list(samples_expected_intensity.keys()):
+        if sample in list(Optimizer_STDEV_OPT[Key].keys()):
+          if 'sample_int_uT_diff_from_expected_uT' in list(Optimizer_STDEV_OPT[Key][sample].keys()):
            max_sample_accuracy_uT= max(max_sample_accuracy_uT,Optimizer_STDEV_OPT[Key][sample]['sample_int_uT_diff_from_expected_uT'])
 
       max_sample_accuracy_perc=0.
-      for sample in samples_expected_intensity.keys():
-        if sample in Optimizer_STDEV_OPT[Key].keys():
-          if 'sample_int_uT_diff_from_expected_perc' in Optimizer_STDEV_OPT[Key][sample].keys():
+      for sample in list(samples_expected_intensity.keys()):
+        if sample in list(Optimizer_STDEV_OPT[Key].keys()):
+          if 'sample_int_uT_diff_from_expected_perc' in list(Optimizer_STDEV_OPT[Key][sample].keys()):
            max_sample_accuracy_perc= max(max_sample_accuracy_perc,Optimizer_STDEV_OPT[Key][sample]['sample_int_uT_diff_from_expected_perc'])
 
       

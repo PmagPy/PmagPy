@@ -1,4 +1,7 @@
 #!/usr/bin/env python
+from __future__ import print_function
+from builtins import str
+from builtins import range
 import sys
 import os
 import pmagpy.pmag as pmag
@@ -53,7 +56,7 @@ def main(command_line=True, **kwargs):
             input_dir_path = dir_path
         output_dir_path = dir_path
         if "-h" in args:
-            print main.__doc__
+            print(main.__doc__)
             return False
         if "-A" in args: noave=1
         if '-f' in args:
@@ -109,7 +112,7 @@ def main(command_line=True, **kwargs):
     for f in filelist: # parse each file
         if f[-3:].lower()=='csv':
             file_found = True
-            print 'processing: ',f
+            print('processing: ',f)
             full_file = os.path.join(input_dir_path, f)
             file_input=open(full_file,'rU').readlines()
             keys=file_input[0].replace('\n','').split(',') # splits on underscores
@@ -169,7 +172,7 @@ def main(command_line=True, **kwargs):
 # Maintain backward compatibility for the ever-changing LIMS format (Argh!)
                 while len(InRec['Core'])<3:
                     InRec['Core']='0'+InRec['Core']
-                if "Last Tray Measurment" in InRec.keys() and "SHLF" not in InRec[text_id] or 'dscr' in csv_file :  # assume discrete sample
+                if "Last Tray Measurment" in list(InRec.keys()) and "SHLF" not in InRec[text_id] or 'dscr' in csv_file :  # assume discrete sample
                     specimen=expedition+'-'+location+'-'+InRec['Core']+InRec[core_type]+"-"+InRec[sect_key]+'-'+InRec[half_key]+'-'+str(InRec[interval_key])
                 else: # mark as continuous measurements
                     specimen=expedition+'-'+location+'-'+InRec['Core']+InRec[core_type]+"_"+InRec[sect_key]+InRec[half_key]+'-'+str(InRec[interval_key])
@@ -177,8 +180,8 @@ def main(command_line=True, **kwargs):
                 SpecRec['er_location_name']=location
                 SpecRec['er_site_name']=specimen
                 SpecRec['er_citation_names']=citation
-                for key in SpecRec.keys():SampRec[key]=SpecRec[key]
-                for key in SpecRec.keys():SiteRec[key]=SpecRec[key]
+                for key in list(SpecRec.keys()):SampRec[key]=SpecRec[key]
+                for key in list(SpecRec.keys()):SiteRec[key]=SpecRec[key]
                 SampRec['sample_azimuth']='0'
                 SampRec['sample_dip']='0'
                 SampRec['sample_core_depth']=InRec[depth_key]
@@ -194,7 +197,7 @@ def main(command_line=True, **kwargs):
                 SampRec['er_specimen_names']=specimen
                 SiteRec['er_specimen_names']=specimen
 
-                for key in SpecRec.keys():MagRec[key]=SpecRec[key]
+                for key in list(SpecRec.keys()):MagRec[key]=SpecRec[key]
 # set up measurement record - default is NRM 
                 #MagRec['er_analyst_mail_names']=InRec['Test Entered By']
                 MagRec['magic_software_packages']=version_num
@@ -207,7 +210,7 @@ def main(command_line=True, **kwargs):
                 MagRec["measurement_flag"]='g' # assume all data are "good"
                 MagRec["measurement_standard"]='u' # assume all data are "good"
                 SpecRec['er_specimen_alternatives']=InRec[text_id]
-                if 'Sample Area (cm?)' in InRec.keys() and  InRec['Sample Area (cm?)']!= "": volume=InRec['Sample Area (cm?)']
+                if 'Sample Area (cm?)' in list(InRec.keys()) and  InRec['Sample Area (cm?)']!= "": volume=InRec['Sample Area (cm?)']
                 if InRec[run_number_key]!= "": run_number=InRec[run_number_key]
                 datestamp=InRec[date_key].split() # date time is second line of file
                 if '/' in datestamp[0]:
@@ -226,7 +229,7 @@ def main(command_line=True, **kwargs):
                     inst=inst+':IODP-SRM-AF' # measured on shipboard in-line 2G AF
                     treatment_value=float(InRec[demag_key].strip('"'))*1e-3 # convert mT => T
                     MagRec["treatment_ac_field"]=treatment_value # AF demag in treat mT => T
-                if 'Treatment Type' in InRec.keys() and InRec['Treatment Type']!="":
+                if 'Treatment Type' in list(InRec.keys()) and InRec['Treatment Type']!="":
                     if 'Alternating Frequency' in InRec['Treatment Type']:
                         MagRec['magic_method_codes'] = 'LT-AF-Z'
                         inst=inst+':I`ODP-DTECH' # measured on shipboard Dtech D2000
@@ -266,10 +269,10 @@ def main(command_line=True, **kwargs):
               #except:
               #   print 'Boo-boo somewhere - no idea where'
     if not file_found:
-        print "No .csv files were found"
+        print("No .csv files were found")
         return False, "No .csv files were found"
     if len(SpecRecs)>0:
-        print 'spec_file', spec_file
+        print('spec_file', spec_file)
         pmag.magic_write(spec_file,SpecRecs,'er_specimens')
         #print 'specimens stored in ',spec_file
     if len(SampRecs)>0:
@@ -286,10 +289,10 @@ def main(command_line=True, **kwargs):
        MagOuts.append(MagRec)
     Fixed=pmag.measurements_methods(MagOuts,noave)
     if pmag.magic_write(meas_file,Fixed,'magic_measurements'):
-        print 'data stored in ',meas_file
+        print('data stored in ',meas_file)
         return True, meas_file
     else:
-        print 'no data found.  bad magfile?'
+        print('no data found.  bad magfile?')
         return False, 'no data found.  bad magfile?'
 
 def do_help():

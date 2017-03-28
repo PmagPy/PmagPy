@@ -1,4 +1,7 @@
 #!/usr/bin/env python
+from __future__ import print_function
+from builtins import input
+from builtins import range
 import sys
 
 from pmag_env import set_env
@@ -90,7 +93,7 @@ def main():
 #
     spc,BEG,END="","",""
     if '-h' in sys.argv:
-        print main.__doc__
+        print(main.__doc__)
         sys.exit()
     if '-f' in sys.argv:
         ind=sys.argv.index('-f')
@@ -114,13 +117,13 @@ def main():
     if critout!="":
         crit_data,file_type=pmag.magic_read(critout)
         if pmagplotlib.verbose:
-            print "Acceptance criteria read in from ", critout
+            print("Acceptance criteria read in from ", critout)
         accept={}
         accept['specimen_int_ptrm_n']=2.0
         for critrec in crit_data:
             if critrec["pmag_criteria_code"]=="IE-SPEC": 
                 for key in accept_keys:
-                    if key not in critrec.keys():
+                    if key not in list(critrec.keys()):
                         accept[key]=-1
                     else:
                         accept[key]=float(critrec[key])
@@ -128,18 +131,18 @@ def main():
         open(inspec,'rU')
         PriorRecs,file_type=pmag.magic_read(inspec)
         if file_type != 'pmag_specimens':
-            print file_type
-            print file_type,inspec," is not a valid pmag_specimens file " 
+            print(file_type)
+            print(file_type,inspec," is not a valid pmag_specimens file ") 
             sys.exit()
         for rec in PriorRecs:
-            if 'magic_software_packages' not in rec.keys():rec['magic_software_packages']=""
+            if 'magic_software_packages' not in list(rec.keys()):rec['magic_software_packages']=""
     except IOError:
         PriorRecs=[]
-        if pmagplotlib.verbose:print "starting new specimen interpretation file: ",inspec
+        if pmagplotlib.verbose:print("starting new specimen interpretation file: ",inspec)
     meas_data,file_type=pmag.magic_read(meas_file)
     if file_type != 'magic_measurements':
-        print file_type
-        print file_type,"This is not a valid magic_measurements file " 
+        print(file_type)
+        print(file_type,"This is not a valid magic_measurements file ") 
         sys.exit()
     backup=0
     # define figure numbers for arai, zijderveld and 
@@ -163,7 +166,7 @@ def main():
     while specimen < len(sids):
         methcodes=[]
         if pmagplotlib.verbose and spc!="":
-            print sids[specimen],specimen+1, 'of ', len(sids)
+            print(sids[specimen],specimen+1, 'of ', len(sids))
         MeasRecs=[]
         s=sids[specimen]
         datablock,trmblock=[],[]
@@ -199,11 +202,11 @@ def main():
            if backup==0:
                specimen+=1
                if pmagplotlib.verbose:
-                   print 'skipping specimen - moving forward ', s
+                   print('skipping specimen - moving forward ', s)
            else:
                specimen-=1
                if pmagplotlib.verbose:
-                   print 'skipping specimen - moving backward ', s
+                   print('skipping specimen - moving backward ', s)
     #
     #  collect info for the PmagSpecRec dictionary
     #
@@ -214,10 +217,10 @@ def main():
            PmagSpecRec["er_sample_name"]=rec["er_sample_name"]
            PmagSpecRec["er_site_name"]=rec["er_site_name"]
            PmagSpecRec["er_location_name"]=rec["er_location_name"]
-           if "magic_instrument_codes" not in rec.keys():rec["magic_instrument_codes"]=""
+           if "magic_instrument_codes" not in list(rec.keys()):rec["magic_instrument_codes"]=""
            PmagSpecRec["magic_instrument_codes"]=rec["magic_instrument_codes"]
            PmagSpecRec["measurement_step_unit"]="J"
-           if "magic_experiment_name" not in rec.keys():
+           if "magic_experiment_name" not in list(rec.keys()):
                rec["magic_experiment_name"]=""
            else:
                PmagSpecRec["magic_experiment_names"]=rec["magic_experiment_name"]
@@ -229,7 +232,7 @@ def main():
            elif "LP-PI-M-S" in meths:
                exp_type="LP-PI-M-S"
            else:
-               print "experiment type not supported yet "
+               print("experiment type not supported yet ")
                break
            araiblock,field=pmag.sortmwarai(datablock,exp_type)
            first_Z=araiblock[0]
@@ -241,41 +244,41 @@ def main():
                if backup==0:
                    specimen+=1
                    if pmagplotlib.verbose:
-                       print 'skipping specimen - moving forward ', s
+                       print('skipping specimen - moving forward ', s)
                else:
                    specimen-=1
                    if pmagplotlib.verbose:
-                       print 'skipping specimen - moving backward ', s
+                       print('skipping specimen - moving backward ', s)
            else:
                backup=0
                zijdblock,units=pmag.find_dmag_rec(s,meas_data)
                if exp_type=="LP-PI-M-D":
                    recnum=0
-                   print "ZStep Watts  Dec Inc  Int"
+                   print("ZStep Watts  Dec Inc  Int")
                    for plotrec in zijdblock:
                        if pmagplotlib.verbose:
-                           print '%i  %i %7.1f %7.1f %8.3e ' % (recnum,plotrec[0],plotrec[1],plotrec[2],plotrec[3])
+                           print('%i  %i %7.1f %7.1f %8.3e ' % (recnum,plotrec[0],plotrec[1],plotrec[2],plotrec[3]))
                            recnum += 1
                    recnum = 1
                    if GammaChecks!="":
-                       print "IStep Watts  Gamma"
+                       print("IStep Watts  Gamma")
                        for gamma in GammaChecks:
-                           if pmagplotlib.verbose: print '%i %i %7.1f ' % (recnum, gamma[0],gamma[1])
+                           if pmagplotlib.verbose: print('%i %i %7.1f ' % (recnum, gamma[0],gamma[1]))
                            recnum += 1
                if exp_type=="LP-PI-M-S":
                    if pmagplotlib.verbose:
-                       print "IStep Watts  Theta"
+                       print("IStep Watts  Theta")
                        kk=0
                        for theta in ThetaChecks:
                            kk+=1
-                           print '%i  %i %7.1f ' % (kk,theta[0],theta[1])
+                           print('%i  %i %7.1f ' % (kk,theta[0],theta[1]))
                    if pmagplotlib.verbose:
-                       print "Watts  Delta"
+                       print("Watts  Delta")
                        for delta in DeltaChecks:
-                           print '%i %7.1f ' % (delta[0],delta[1])
+                           print('%i %7.1f ' % (delta[0],delta[1]))
                pmagplotlib.plotAZ(AZD,araiblock,zijdblock,s,units[0])
                if inspec !="":
-                   if pmagplotlib.verbose: print 'Looking up saved interpretation....'
+                   if pmagplotlib.verbose: print('Looking up saved interpretation....')
                    found = 0
                    for k in range(len(PriorRecs)):
                        try:
@@ -293,7 +296,7 @@ def main():
                                pars["specimen_int"]=-1*field*pars["specimen_b"]
                                pars["er_specimen_name"]=s
                                if pmagplotlib.verbose:
-                                   print 'Saved interpretation: '
+                                   print('Saved interpretation: ')
                                pars=pmag.scoreit(pars,PmagSpecRec,accept,'',0)
                                pmagplotlib.plotB(AZD,araiblock,zijdblock,pars)
                                if len(trmblock)>2:
@@ -310,16 +313,16 @@ def main():
                                        npred=nlt.TRM(Bp[-1],NLpars['xopt'][0],NLpars['xopt'][1]) # predicted NRM for this field
                                        Mp.append(npred)
                                    pmagplotlib.plotTRM(AZD['MRM'],Bs,TRMs,Bp,Mp,NLpars,trec['magic_experiment_name'])
-                                   print npred
-                                   print 'Banc= ',float(NLpars['banc'])*1e6
+                                   print(npred)
+                                   print('Banc= ',float(NLpars['banc'])*1e6)
                                    if pmagplotlib.verbose:
-                                       print 'Banc= ',float(NLpars['banc'])*1e6
+                                       print('Banc= ',float(NLpars['banc'])*1e6)
                                    pmagplotlib.drawFIGS(AZD)
                            else:
-                               print 'error on specimen ',s
+                               print('error on specimen ',s)
                        except:
                          pass
-                   if pmagplotlib.verbose and found==0: print  '    None found :(  ' 
+                   if pmagplotlib.verbose and found==0: print('    None found :(  ') 
                if spc!="":
                    if BEG!="":
                        pars,errcode=pmag.PintPars(araiblock,zijdblock,BEG,END)
@@ -346,17 +349,17 @@ def main():
                                Bp.append(float(k)*1e-6)
                                npred=nlt.TRM(Bp[-1],NLpars['xopt'][0],NLpars['xopt'][1]) # predicted NRM for this field
                    files={}
-                   for key in AZD.keys():
+                   for key in list(AZD.keys()):
                        files[key]=s+'_'+key+fmt 
                    pmagplotlib.saveP(AZD,files)
                    sys.exit()
                if plots==0:
                    ans='b'
                    while ans != "":
-                       print """
+                       print("""
                s[a]ve plot, set [b]ounds for calculation, [d]elete current interpretation, [p]revious, [s]ample, [q]uit:
-               """
-                       ans=raw_input('Return for next specimen \n')
+               """)
+                       ans=input('Return for next specimen \n')
                        if ans=="": 
                            specimen +=1
                        if ans=="d": 
@@ -366,12 +369,12 @@ def main():
                            pmagplotlib.drawFIGS(AZD)
                        if ans=='a':
                            files={}
-                           for key in AZD.keys():
+                           for key in list(AZD.keys()):
                                files[key]=s+'_'+key+fmt 
                            pmagplotlib.saveP(AZD,files)
                            ans=""
                        if ans=='q':
-                           print "Good bye"
+                           print("Good bye")
                            sys.exit()
                        if ans=='p':
                            specimen =specimen -1
@@ -379,7 +382,7 @@ def main():
                            ans=""
                        if ans=='s':
                            keepon=1
-                           spec=raw_input('Enter desired specimen name (or first part there of): ')
+                           spec=input('Enter desired specimen name (or first part there of): ')
                            while keepon==1:
                                try:
                                    specimen =sids.index(spec)
@@ -388,25 +391,25 @@ def main():
                                    tmplist=[]
                                    for qq in range(len(sids)):
                                        if spec in sids[qq]:tmplist.append(sids[qq])
-                                   print specimen," not found, but this was: "
-                                   print tmplist
-                                   spec=raw_input('Select one or try again\n ')
+                                   print(specimen," not found, but this was: ")
+                                   print(tmplist)
+                                   spec=input('Select one or try again\n ')
                            ans=""
                        if  ans=='b':
                            if end==0 or end >=len(araiblock[0]):end=len(araiblock[0])-1
                            GoOn=0
                            while GoOn==0:
-                               print 'Enter index of first point for calculation: ','[',start,']'
-                               answer=raw_input('return to keep default  ')
+                               print('Enter index of first point for calculation: ','[',start,']')
+                               answer=input('return to keep default  ')
                                if answer != "":start=int(answer)
-                               print 'Enter index  of last point for calculation: ','[',end,']'
-                               answer=raw_input('return to keep default  ')
+                               print('Enter index  of last point for calculation: ','[',end,']')
+                               answer=input('return to keep default  ')
                                if answer != "":
                                    end=int(answer)
                                if start >=0 and start <len(araiblock[0])-2 and end >0 and end <len(araiblock[0]) and start<end:
                                    GoOn=1
                                else:
-                                   print "Bad endpoints - try again! "
+                                   print("Bad endpoints - try again! ")
                                    start,end=0,len(araiblock)
                            s=sids[specimen]
                            pars,errcode=pmag.PintPars(araiblock,zijdblock,start,end)
@@ -467,11 +470,11 @@ def main():
                                    npred=nlt.TRM(Bp[-1],NLpars['xopt'][0],NLpars['xopt'][1]) # predicted NRM for this field
                                    Mp.append(npred)
                                pmagplotlib.plotTRM(AZD['MRM'],Bs,TRMs,Bp,Mp,NLpars,trec['magic_experiment_name'])
-                               print 'Banc= ',float(NLpars['banc'])*1e6
+                               print('Banc= ',float(NLpars['banc'])*1e6)
                            pmagplotlib.drawFIGS(AZD)
                            pars["specimen_lab_field_dc"]=field
                            pars["specimen_int"]=-1*field*pars["specimen_b"]
-                           saveit=raw_input("Save this interpretation? [y]/n \n")
+                           saveit=input("Save this interpretation? [y]/n \n")
                            if saveit!='n':
                                specimen+=1
                                PriorRecs.append(PmagSpecRec) # put back an interpretation
@@ -482,7 +485,7 @@ def main():
                    if fmt != ".pmag":
                        basename=s+'_microwave'+fmt
                        files={}
-                       for key in AZD.keys():
+                       for key in list(AZD.keys()):
                            files[key]=s+'_'+key+fmt 
                        if pmagplotlib.isServer:
                            black     = '#000000'
@@ -499,19 +502,19 @@ def main():
                 PriorRecs.append(rec)
         CurrRec=[]
     if plots!=1:
-        ans=raw_input(" Save last plot? 1/[0] ")
+        ans=input(" Save last plot? 1/[0] ")
         if ans=="1":
             if fmt != ".pmag":
                 files={}
-                for key in AZD.keys():
+                for key in list(AZD.keys()):
                     files[key]=s+'_'+key+fmt
                 pmagplotlib.saveP(AZD,files)
         if len(CurrRec)>0:PriorRecs.append(CurrRec) # put back an interpretation
         if len(PriorRecs)>0:
             save_redo(PriorRecs,inspec)
-            print 'Updated interpretations saved in ',inspec
+            print('Updated interpretations saved in ',inspec)
     if pmagplotlib.verbose:
-        print "Good bye"
+        print("Good bye")
 
 if __name__ == "__main__":
     main()

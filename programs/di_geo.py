@@ -1,4 +1,7 @@
 #!/usr/bin/env python
+from __future__ import print_function
+from builtins import input
+from builtins import range
 import numpy
 import sys
 import pmagpy.pmag as pmag
@@ -27,26 +30,26 @@ def main():
         declination inclination
  """
     if '-h' in sys.argv:
-        print main.__doc__
+        print(main.__doc__)
         sys.exit()
     if '-F' in sys.argv:
         ind=sys.argv.index('-F')
         ofile=sys.argv[ind+1]
         out=open(ofile,'w')
-        print ofile, ' opened for output'
+        print(ofile, ' opened for output')
     else: ofile=""
 
     if '-i' in sys.argv: # interactive flag
         while 1:
             try:
-                Dec=float(raw_input("Declination: <cntrl-D> to quit  "))
+                Dec=float(input("Declination: <cntrl-D> to quit  "))
             except EOFError:
-                print "\n Good-bye\n"
+                print("\n Good-bye\n")
                 sys.exit()
-            Inc=float(raw_input("Inclination: "))
-            Az=float(raw_input("Azimuth: "))
-            Pl=float(raw_input("Plunge: "))
-            print '%7.1f %7.1f'%(pmag.dogeo(Dec,Inc,Az,Pl))
+            Inc=float(input("Inclination: "))
+            Az=float(input("Azimuth: "))
+            Pl=float(input("Plunge: "))
+            print('%7.1f %7.1f'%(pmag.dogeo(Dec,Inc,Az,Pl)))
     elif '-f' in sys.argv:
         ind=sys.argv.index('-f')
         file=sys.argv[ind+1]
@@ -56,7 +59,7 @@ def main():
     D,I=pmag.dogeo_V(data)
     for k in range(len(D)):
         if ofile=="":
-            print '%7.1f %7.1f'%(D[k],I[k])
+            print('%7.1f %7.1f'%(D[k],I[k]))
         else:
             out.write('%7.1f %7.1f\n'%(D[k],I[k]))
 

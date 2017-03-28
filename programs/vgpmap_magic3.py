@@ -2,6 +2,10 @@
 # -*- python-indent-offset: 4; -*-
 # define some variables
 
+from __future__ import division
+from __future__ import print_function
+from builtins import input
+from past.utils import old_div
 import sys
 import matplotlib
 if matplotlib.get_backend() != "TKAgg":
@@ -55,7 +59,7 @@ def main():
 
     """
     if '-h' in sys.argv:
-        print main.__doc__
+        print(main.__doc__)
         sys.exit()
     dir_path = pmag.get_named_arg_from_sys("-WD", ".")
     # plot: default is 0, if -sav in sys.argv should be 1
@@ -92,8 +96,8 @@ def main():
     results_file = pmag.get_named_arg_from_sys("-f", "sites.txt")
 
     con = nb.Contribution(dir_path, single_file=results_file)
-    if not con.tables.keys():
-        print "-W - Couldn't read in data"
+    if not list(con.tables.keys()):
+        print("-W - Couldn't read in data")
         return
 
     FIG = {'map': 1}
@@ -145,11 +149,11 @@ def main():
         ppars.append(lon)
         ppars.append(lat)
         ell1, ell2 = "", ""
-        if 'vgp_dm' in row.keys() and row['vgp_dm']:
+        if 'vgp_dm' in list(row.keys()) and row['vgp_dm']:
             ell1 = float(row['vgp_dm'])
-        if 'vgp_dp' in row.keys() and row['vgp_dp']:
+        if 'vgp_dp' in list(row.keys()) and row['vgp_dp']:
             ell2 = float(row['vgp_dp'])
-        if 'vgp_alpha95' in row.keys() and row['vgp_alpha95'].notnull():
+        if 'vgp_alpha95' in list(row.keys()) and row['vgp_alpha95'].notnull():
             ell1, ell2 = float(row['vgp_alpha95']), float(row['vgp_alpha95'])
         if ell1 and ell2:
             ppars = []
@@ -157,7 +161,7 @@ def main():
             ppars.append(lats[-1])
             ppars.append(ell1)
             ppars.append(lons[-1])
-            isign = abs(lats[-1]) / lats[-1]
+            isign = old_div(abs(lats[-1]), lats[-1])
             ppars.append(lats[-1] - isign * 90.)
             ppars.append(ell2)
             ppars.append(lons[-1] + 90.)
@@ -206,7 +210,7 @@ def main():
                 if plot == 0:
                     pmagplotlib.drawFIGS(FIG)
     files = {}
-    for key in FIG.keys():
+    for key in list(FIG.keys()):
         if pmagplotlib.isServer: # use server plot naming convention
             files[key] = 'LO:_' + location + '_VGP_map.' + fmt
         else: # use more readable naming convention
@@ -221,11 +225,11 @@ def main():
         pmagplotlib.saveP(FIG, files)
     elif plot == 0:
         pmagplotlib.drawFIGS(FIG)
-        ans = raw_input(" S[a]ve to save plot, Return to quit:  ")
+        ans = input(" S[a]ve to save plot, Return to quit:  ")
         if ans == "a":
             pmagplotlib.saveP(FIG, files)
         else:
-            print "Good bye"
+            print("Good bye")
             sys.exit()
     else:
         pmagplotlib.saveP(FIG, files)

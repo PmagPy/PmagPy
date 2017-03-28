@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import print_function
 import sys
 import os
 
@@ -73,21 +74,21 @@ def main():
             hyst_file='rmag_hysteresis'
             aniso_file='rmag_anisotropy'
     if '-h' in sys.argv:
-        print main.__doc__
+        print(main.__doc__)
         sys.exit()
     for loc in dirlist:
-        print 'working on: ',loc
+        print('working on: ',loc)
         os.chdir(loc) # change working directories to each location
         crd='s'
-        print samp_file
+        print(samp_file)
         if samp_file in filelist: # find coordinate systems
-            print 'found sample file'
+            print('found sample file')
             samps,file_type=pmag.magic_read(samp_file) # read in data
             Srecs=pmag.get_dictitem(samps,azimuth_key,'','F')# get all none blank sample orientations
             if len(Srecs)>0:
                 crd='g'
         if meas_file in filelist: # start with measurement data
-            print 'working on measurements data'
+            print('working on measurements data')
             data,file_type=pmag.magic_read(meas_file) # read in data
             if loc == './': data=pmag.get_dictitem(data,loc_key,'','T') # get all the blank location names from data file
             # looking for  zeq_magic possibilities
@@ -104,7 +105,7 @@ def main():
                     CMD = 'zeq_magic3.py -fsp specimens.txt -sav -fmt '+fmt+' -crd '+crd
                 else:
                     CMD='zeq_magic.py -fsp pmag_specimens.txt -sav -fmt '+fmt+' -crd '+crd
-                print CMD
+                print(CMD)
                 os.system(CMD)
             # looking for  thellier_magic possibilities
             if len(pmag.get_dictitem(data,method_key,'LP-PI-TRM','has'))>0:
@@ -112,7 +113,7 @@ def main():
                     CMD= 'thellier_magic3.py -fsp specimens.txt -sav -fmt '+fmt
                 else:
                     CMD= 'thellier_magic.py -fsp pmag_specimens.txt -sav -fmt '+fmt
-                print CMD
+                print(CMD)
                 os.system(CMD)
             # looking for hysteresis possibilities
             if len(pmag.get_dictitem(data,method_key,'LP-HYS','has'))>0: # find hyst experiments
@@ -120,29 +121,29 @@ def main():
                     CMD= 'quick_hyst3.py -sav -fmt '+fmt
                 else:
                     CMD= 'quick_hyst.py -sav -fmt '+fmt
-                print CMD
+                print(CMD)
                 os.system(CMD)
         if results_file in filelist: # start with measurement data
             data,file_type=pmag.magic_read(results_file) # read in data
-            print 'number of datapoints: ',len(data)
+            print('number of datapoints: ',len(data))
             if loc == './': data=pmag.get_dictitem(data,loc_key,':','has') # get all the concatenated location names from data file
-            print 'number of datapoints: ',len(data) ,loc
+            print('number of datapoints: ',len(data) ,loc)
             if new_model:
-                print 'working on site directions'
+                print('working on site directions')
                 dec_key='dir_dec'
                 inc_key='dir_inc'
                 int_key='int_abs'
             else:
-                print 'working on results directions'
+                print('working on results directions')
                 dec_key='average_dec'
                 inc_key='average_inc'
                 int_key='average_int'
             SiteDIs=pmag.get_dictitem(data,dec_key,"",'F') # find decs
             SiteDIs=pmag.get_dictitem(SiteDIs,inc_key,"",'F') # find decs and incs
             SiteDIs=pmag.get_dictitem(SiteDIs,'data_type','i','has') # only individual results - not poles
-            print 'number of directions: ',len(SiteDIs)
+            print('number of directions: ',len(SiteDIs))
             SiteDIs_t=pmag.get_dictitem(SiteDIs,tilt_key,'100','T')# tilt corrected coordinates
-            print 'number of tilt corrected directions: ',len(SiteDIs)
+            print('number of tilt corrected directions: ',len(SiteDIs))
             SiteDIs_g=pmag.get_dictitem(SiteDIs,tilt_key,'0','T')# geographic coordinates
             SiteDIs_s=pmag.get_dictitem(SiteDIs,'tilt_correction','-1','T')# sample coordinates
             SiteDIs_x=pmag.get_dictitem(SiteDIs,'tilt_correction','','T')# no coordinates
@@ -158,19 +159,19 @@ def main():
                     CMD= 'eqarea_magic3.py -sav -crd t -fmt '+fmt +CRD
                 else:
                     CMD= 'eqarea_magic.py -sav -crd t -fmt '+fmt +CRD
-                print CMD
+                print(CMD)
                 os.system(CMD)
-            print 'working on VGP map'
+            print('working on VGP map')
             VGPs=pmag.get_dictitem(SiteDIs,'vgp_lat',"",'F') # are there any VGPs?
             if len(VGPs)>0:  # YES!
                 os.system('vgpmap_magic.py -prj moll -res c -sym ro 5 -sav -fmt png')
-            print 'working on intensities'
+            print('working on intensities')
             if not new_model:
                 CMD='magic_select.py -f '+results_file+' -key data_type i T -F tmp.txt'
                 os.system(CMD)
                 infile=' tmp.txt'
             else: infile=results_file
-            print int_key
+            print(int_key)
             CMD='magic_select.py  -key '+int_key +' 0. has -F tmp1.txt -f '+infile
             os.system(CMD)
             CMD="grab_magic_key.py -f tmp1.txt -key "+int_key+ " | awk '{print $1*1e6}' >tmp2.txt"
@@ -182,10 +183,10 @@ def main():
                 locations=pmag.get_dictkey(data,loc_key+'s',"")
             histfile='LO:_'+locations[0]+'_intensities_histogram:_.'+fmt
             os.system("histplot.py -b 1 -xlab 'Intensity (uT)' -sav -f tmp2.txt -F " +histfile)
-            print "histplot.py -b 1 -xlab 'Intensity (uT)' -sav -f tmp2.txt -F " +histfile
+            print("histplot.py -b 1 -xlab 'Intensity (uT)' -sav -f tmp2.txt -F " +histfile)
             os.system('rm tmp*.txt')
         if hyst_file in filelist: # start with measurement data
-            print 'working on hysteresis'
+            print('working on hysteresis')
             data,file_type=pmag.magic_read(hyst_file) # read in data
             if loc == './': data=pmag.get_dictitem(data,loc_key,'','T') # get all the blank location names from data file
             hdata=pmag.get_dictitem(data,'hysteresis_bcr','','F')
@@ -193,10 +194,10 @@ def main():
             hdata=pmag.get_dictitem(hdata,'hysteresis_ms_moment','','F')
             hdata=pmag.get_dictitem(hdata,'hysteresis_bc','','F') # there are data for a dayplot
             if len(hdata)>0:
-                print 'dayplot_magic.py -sav -fmt '+fmt
+                print('dayplot_magic.py -sav -fmt '+fmt)
                 os.system('dayplot_magic.py -sav -fmt '+fmt)
         if aniso_file in filelist: # do anisotropy plots if possible
-            print 'working on anisotropy'
+            print('working on anisotropy')
             data,file_type=pmag.magic_read(aniso_file) # read in data
             if loc == './': data=pmag.get_dictitem(data,loc_key,'','T') # get all the blank location names from data file
             sdata=pmag.get_dictitem(data,'anisotropy_tilt_correction','-1','T') # get specimen coordinates
@@ -209,15 +210,15 @@ def main():
                 CMD= 'aniso_magic.py -x -B -sav -fmt '+fmt
             if len(sdata)>3:
                 CMD=CMD+' -crd s'
-                print CMD
+                print(CMD)
                 os.system(CMD)
             if len(gdata)>3:
                 CMD=CMD+' -crd g'
-                print CMD
+                print(CMD)
                 os.system(CMD)
             if len(tdata)>3:
                 CMD=CMD+' -crd t'
-                print CMD
+                print(CMD)
                 os.system(CMD)
         if loc!='./':os.chdir('..') # change working directories to each location
 

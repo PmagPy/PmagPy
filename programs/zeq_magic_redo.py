@@ -1,4 +1,6 @@
 #! /usr/bin/env python
+from __future__ import print_function
+from builtins import range
 import sys
 import string
 import pmagpy.pmag as pmag
@@ -44,7 +46,7 @@ def main():
     meas_file,pmag_file,mk_file= dir_path+"/"+"magic_measurements.txt",dir_path+"/"+"zeq_specimens.txt",dir_path+"/"+"zeq_redo"
     samp_file,coord=dir_path+"/"+"er_samples.txt",""
     if "-h" in args:
-        print main.__doc__
+        print(main.__doc__)
         sys.exit()
     if "-usr" in args:
         ind=args.index("-usr")
@@ -63,7 +65,7 @@ def main():
     try:
         mk_f=open(mk_file,'rU')
     except:
-        print "Bad redo file"
+        print("Bad redo file")
         sys.exit()
     mkspec,skipped=[],[]
     speclist=[]
@@ -84,8 +86,8 @@ def main():
     if geo==1:
         samp_data,file_type=pmag.magic_read(samp_file)
         if file_type != 'er_samples':
-            print file_type
-            print "This is not a valid er_samples file " 
+            print(file_type)
+            print("This is not a valid er_samples file ") 
             sys.exit()
     #
     #
@@ -93,14 +95,14 @@ def main():
 
     meas_data,file_type=pmag.magic_read(meas_file)
     if file_type != 'magic_measurements':
-        print file_type
-        print file_type,"This is not a valid magic_measurements file " 
+        print(file_type)
+        print(file_type,"This is not a valid magic_measurements file ") 
         sys.exit()
     #
     # sort the specimen names
     #
     k = 0
-    print 'Processing ',len(speclist), ' specimens - please wait'
+    print('Processing ',len(speclist), ' specimens - please wait')
     PmagSpecs=[]
     while k < len(speclist):
         s=speclist[k]
@@ -114,8 +116,8 @@ def main():
         meas_meth=[]
         spec=pmag.get_dictitem(meas_data,'er_specimen_name',s,'T')   
         if len(spec)==0:
-            print 'no data found for specimen:  ',s
-            print 'delete from zeq_redo input file...., then try again'
+            print('no data found for specimen:  ',s)
+            print('delete from zeq_redo input file...., then try again')
         else: 
           for rec in  spec: # copy of vital stats to PmagSpecRec from first spec record in demag block
            skip=1
@@ -127,11 +129,11 @@ def main():
                    PmagSpecRec["er_sample_name"]=rec["er_sample_name"]
                    PmagSpecRec["er_site_name"]=rec["er_site_name"]
                    PmagSpecRec["er_location_name"]=rec["er_location_name"]
-                   if "er_expedition_name" in rec.keys():PmagSpecRec["er_expedition_name"]=rec["er_expedition_name"]
+                   if "er_expedition_name" in list(rec.keys()):PmagSpecRec["er_expedition_name"]=rec["er_expedition_name"]
                    PmagSpecRec["er_citation_names"]="This study"
-                   if "magic_experiment_name" not in rec.keys(): rec["magic_experiment_name"]=""
+                   if "magic_experiment_name" not in list(rec.keys()): rec["magic_experiment_name"]=""
                    PmagSpecRec["magic_experiment_names"]=rec["magic_experiment_name"]
-                   if "magic_instrument_codes" not in rec.keys(): rec["magic_instrument_codes"]=""
+                   if "magic_instrument_codes" not in list(rec.keys()): rec["magic_instrument_codes"]=""
                    inst=rec['magic_instrument_codes'].split(":")
                    for I in inst:
                        if I not in inst_codes:  # copy over instruments
@@ -177,19 +179,19 @@ def main():
         #
                 tiltblock,geoblock=[],[]
                 for rec in datablock:
-                    if "sample_azimuth" in orient.keys() and orient["sample_azimuth"]!="":
+                    if "sample_azimuth" in list(orient.keys()) and orient["sample_azimuth"]!="":
                         d_geo,i_geo=pmag.dogeo(rec[1],rec[2],float(orient["sample_azimuth"]),float(orient["sample_dip"]))
                         geoblock.append([rec[0],d_geo,i_geo,rec[3],rec[4],rec[5]])
-                        if tilt==1 and "sample_bed_dip_direction" in orient.keys(): 
+                        if tilt==1 and "sample_bed_dip_direction" in list(orient.keys()): 
                             d_tilt,i_tilt=pmag.dotilt(d_geo,i_geo,float(orient["sample_bed_dip_direction"]),float(orient["sample_bed_dip"]))
                             tiltblock.append([rec[0],d_tilt,i_tilt,rec[3],rec[4],rec[5]])
                         elif tilt==1:
                             if PmagSpecRec["er_sample_name"] not in skipped:
-                                print 'no tilt correction for ', PmagSpecRec["er_sample_name"],' skipping....'
+                                print('no tilt correction for ', PmagSpecRec["er_sample_name"],' skipping....')
                                 skipped.append(PmagSpecRec["er_sample_name"])
                     else:
                         if PmagSpecRec["er_sample_name"] not in skipped:
-                            print 'no geographic correction for ', PmagSpecRec["er_sample_name"],' skipping....'
+                            print('no geographic correction for ', PmagSpecRec["er_sample_name"],' skipping....')
                             skipped.append(PmagSpecRec["er_sample_name"])
     #
     #	get beg_pca, end_pca, pca
@@ -198,7 +200,7 @@ def main():
                 for spec in mkspec:
                     if spec[0]==s:
                         CompRec={}
-                        for key in PmagSpecRec.keys():CompRec[key]=PmagSpecRec[key]
+                        for key in list(PmagSpecRec.keys()):CompRec[key]=PmagSpecRec[key]
                         compnum+=1
                         calculation_type=spec[1]
                         beg=float(spec[2])
@@ -238,7 +240,7 @@ def main():
                             try:
                                 CompRec["measurement_step_max"]='%8.3e '%(datablock[end_pca][0] )
                             except:
-                                print 'error in end_pca ',PmagSpecRec['er_specimen_name']
+                                print('error in end_pca ',PmagSpecRec['er_specimen_name'])
                             CompRec["specimen_correction"]='u'
                             if calculation_type!='DE-FM':
                                 CompRec["specimen_mad"]='%7.1f '%(mpars["specimen_mad"])
@@ -273,7 +275,7 @@ def main():
                             PmagSpecs.append(CompRec)
             k+=1
     pmag.magic_write(pmag_file,PmagSpecs,'pmag_specimens')
-    print "Recalculated specimen data stored in ",pmag_file
+    print("Recalculated specimen data stored in ",pmag_file)
 
 if __name__ == "__main__":
     main()

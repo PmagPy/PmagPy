@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from builtins import map
 import matplotlib
 matplotlib.use("TkAgg")
 import pylab,numpy
@@ -15,7 +16,7 @@ map.drawcoastlines()
 map.drawmapboundary()
 map.drawmeridians(numpy.arange(0,360,30)) # draws longitudes from list
 map.drawparallels(numpy.arange(-60,90,30)) # draws latitudes from list
-X,Y=map(Lons,Lats) # calculates the projection of the X,Y
+X,Y=list(map(Lons,Lats)) # calculates the projection of the X,Y
 pylab.plot(X,Y,'ro') # uses pylab's plot to plot these arrays
 #pylab.show() #
 pylab.savefig('map.eps')

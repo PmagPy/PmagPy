@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 # define some variables
+from __future__ import print_function
+from builtins import str
 import numpy as np
 import sys
 import matplotlib
@@ -37,7 +39,7 @@ def main():
 
     """
     if not Basemap:
-      print "-W- You must intstall the Basemap module to run plot_magmap.py"
+      print("-W- You must intstall the Basemap module to run plot_magmap.py")
       sys.exit()
     dir_path='.'
     lincr=1 # level increment for contours
@@ -45,7 +47,7 @@ def main():
         ind = sys.argv.index('-WD')
         dir_path=sys.argv[ind+1]
     if '-h' in sys.argv:
-        print main.__doc__
+        print(main.__doc__)
         sys.exit()
     if '-fmt' in sys.argv:
         ind = sys.argv.index('-fmt')
@@ -100,7 +102,7 @@ def main():
         plt.title('Field declination: '+str(date));
     cbar=m.colorbar(cs,location='bottom')
     plt.savefig('igrf'+'%6.1f'%(date)+'.'+fmt)
-    print 'Figure saved as: ','igrf'+'%6.1f'%(date)+'.'+fmt
+    print('Figure saved as: ','igrf'+'%6.1f'%(date)+'.'+fmt)
 
 if __name__ == "__main__":
     main()

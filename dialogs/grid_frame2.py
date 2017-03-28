@@ -4,9 +4,9 @@ GridBuilder -- data methods for GridFrame (add data to frame, save it, etc.)
 """
 #import pdb
 import wx
-import drop_down_menus2 as drop_down_menus
-import pmag_widgets as pw
-import magic_grid2 as magic_grid
+from . import drop_down_menus2 as drop_down_menus
+from . import pmag_widgets as pw
+from . import magic_grid2 as magic_grid
 from pmagpy import builder2 as builder
 from pmagpy import pmag
 from pmagpy.controlled_vocabularies2 import vocab
@@ -186,9 +186,9 @@ class GridFrame(wx.Frame):
             for loc in self.er_magic.locations:
                 # try to fill in min/max latitudes/longitudes from sites
                 d = lat_lon_dict[loc.name]
-                col_labels = [self.grid.GetColLabelValue(col) for col in xrange(self.grid.GetNumberCols())]
-                row_labels = [self.grid.GetCellValue(row, 0) for row in xrange(self.grid.GetNumberRows())]
-                for key, value in d.items():
+                col_labels = [self.grid.GetColLabelValue(col) for col in range(self.grid.GetNumberCols())]
+                row_labels = [self.grid.GetCellValue(row, 0) for row in range(self.grid.GetNumberRows())]
+                for key, value in list(d.items()):
                     if value:
                         if str(loc.er_data[key]) == str(value):
                             # no need to update
@@ -228,7 +228,7 @@ class GridFrame(wx.Frame):
             self.drop_down_menu.choices[3] = [sorted([samp.name for samp in self.er_magic.samples if samp]), False]
             self.drop_down_menu.choices[4] = [sorted([site.name for site in self.er_magic.sites if site]), False]
             self.drop_down_menu.choices[5] = [sorted([loc.name for loc in self.er_magic.locations if loc]), False]
-            for row in xrange(self.grid.GetNumberRows()):
+            for row in range(self.grid.GetNumberRows()):
                 result_name = self.grid.GetCellValue(row, 0)
                 result = self.er_magic.find_by_name(result_name, self.er_magic.results)
                 if result:
@@ -381,11 +381,11 @@ class GridFrame(wx.Frame):
         #    pw.simple_warning("That header is required, and cannot be removed")
         #    return False
         else:
-            print 'That header is not required:', label
+            print('That header is not required:', label)
             self.grid.remove_col(col)
             #if label in er_possible_headers:
             try:
-                print 'removing {} from er_actual_headers'.format(label)
+                print('removing {} from er_actual_headers'.format(label))
                 er_actual_headers.remove(label)
             except ValueError:
                 pass
@@ -524,7 +524,7 @@ class GridFrame(wx.Frame):
         """
         num_rows = self.rows_spin_ctrl.GetValue()
         #last_row = self.grid.GetNumberRows()
-        for row in xrange(num_rows):
+        for row in range(num_rows):
             self.grid.add_row()
             #if not self.grid.changes:
             #    self.grid.changes = set([])
@@ -660,8 +660,8 @@ class GridFrame(wx.Frame):
                     filename = openFileDialog.GetPath()
                     self.er_magic.get_results_info(filename)
                 except Exception as ex:
-                    print '-W- ', ex
-                    print '-W- Could not read file:\n{}\nFile may be corrupted, or may not be a results format file.'.format(filename)
+                    print('-W- ', ex)
+                    print('-W- Could not read file:\n{}\nFile may be corrupted, or may not be a results format file.'.format(filename))
                     pw.simple_warning('Could not read file:\n{}\nFile may be corrupted, or may not be a results format file.'.format(filename))
                     return
             else:
@@ -866,7 +866,7 @@ class GridBuilder(object):
 
     def add_age_data_to_grid(self):
         dtype = self.er_magic.age_type
-        row_labels = [self.grid.GetCellValue(row, 0) for row in xrange(self.grid.GetNumberRows())]
+        row_labels = [self.grid.GetCellValue(row, 0) for row in range(self.grid.GetNumberRows())]
         items_list = self.er_magic.data_lists[dtype][0]
         items = [self.er_magic.find_by_name(label, items_list) for label in row_labels if label]
 
@@ -877,7 +877,7 @@ class GridBuilder(object):
             for col_num, label in enumerate(col_labels):
                 col_num += 1
                 if item:
-                    if not label in item.age_data.keys():
+                    if not label in list(item.age_data.keys()):
                         item.age_data[label] = ''
                     cell_value = item.age_data[label]
                     if cell_value:
@@ -892,7 +892,7 @@ class GridBuilder(object):
         Save grid data in the data object
         """
         if not self.grid.changes:
-            print '-I- No changes to save'
+            print('-I- No changes to save')
             return
 
         if self.grid_type == 'age':
@@ -919,7 +919,7 @@ class GridBuilder(object):
                     start_num = 2 if self.parent_type else 1
                     result_data = {}
 
-                    for col in xrange(start_num, num_cols):
+                    for col in range(start_num, num_cols):
                         col_label = str(self.grid.GetColLabelValue(col))
                         value = str(self.grid.GetCellValue(change, col))
                         #new_data[col_label] = value
@@ -965,7 +965,7 @@ class GridBuilder(object):
 
                     # create a new item
                     if new_item_name and not old_item_name:
-                        print '-I- make new item named', new_item_name
+                        print('-I- make new item named', new_item_name)
                         if self.grid_type == 'result':
                             specs, samps, sites, locs = self.get_result_children(result_data)
                             item = self.er_magic.add_result(new_item_name, specs, samps, sites,
@@ -976,9 +976,9 @@ class GridBuilder(object):
 
                     # update an existing item
                     elif new_item_name and old_item_name:
-                        print '-I- update existing {} formerly named {} to {}'.format(self.grid_type,
+                        print('-I- update existing {} formerly named {} to {}'.format(self.grid_type,
                                                                                   old_item_name,
-                                                                                  new_item_name)
+                                                                                  new_item_name))
                         if self.grid_type == 'result':
                             specs, samps, sites, locs = self.get_result_children(result_data)
                             item = self.er_magic.update_methods['result'](old_item_name, new_item_name,

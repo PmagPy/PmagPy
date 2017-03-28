@@ -1,5 +1,9 @@
+from __future__ import print_function
 
-class Fit():
+from builtins import map
+from builtins import str
+from builtins import object
+class Fit(object):
 
     meas_data = None
 
@@ -95,9 +99,9 @@ class Fit():
 
         if specimen != None:
             if type(new_pars)==dict:
-                if 'er_specimen_name' not in new_pars.keys(): new_pars['er_specimen_name'] = specimen
-                if 'specimen_comp_name' not in new_pars.keys(): new_pars['specimen_comp_name'] = self.name
-            if type(new_pars) != dict or 'measurement_step_min' not in new_pars.keys() or 'measurement_step_max' not in new_pars.keys() or 'calculation_type' not in new_pars.keys():
+                if 'er_specimen_name' not in list(new_pars.keys()): new_pars['er_specimen_name'] = specimen
+                if 'specimen_comp_name' not in list(new_pars.keys()): new_pars['specimen_comp_name'] = self.name
+            if type(new_pars) != dict or 'measurement_step_min' not in list(new_pars.keys()) or 'measurement_step_max' not in list(new_pars.keys()) or 'calculation_type' not in list(new_pars.keys()):
                 print("-E- invalid parameters cannot assign to fit %s for specimen %s - was given:\n%s"%(self.name,specimen,str(new_pars)))
                 return self.get(coordinate_system)
 
@@ -129,7 +133,7 @@ class Fit():
                         print("-E- Step " + str(tl[i]) + " does not exsist (func: Fit.put)")
                         tl[i] = str(t)
                 self.tmin,self.tmax = tl
-            else: self.tmin,self.tmax = map(str, tl)
+            else: self.tmin,self.tmax = list(map(str, tl))
 
         if coordinate_system == 'DA-DIR' or coordinate_system == 'specimen':
             self.pars = new_pars

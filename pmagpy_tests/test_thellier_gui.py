@@ -83,18 +83,18 @@ class TestThellierGUI(unittest.TestCase):
         self.frame.ProcessEvent(write_redo_event)
         self.assertTrue(os.path.isfile(os.path.join(self.frame.WD, "thellier_GUI.redo")))
 
-        old_interps = {sp : self.frame.Data[sp]['pars'] for sp in self.frame.Data.keys()}
+        old_interps = {sp : self.frame.Data[sp]['pars'] for sp in list(self.frame.Data.keys())}
 
         self.frame.ProcessEvent(clear_interps_event)
         cleared_vals = []
-        [cleared_vals.extend(self.frame.Data[sp]['pars'].keys()) for sp in self.frame.Data.keys()]
+        [cleared_vals.extend(list(self.frame.Data[sp]['pars'].keys())) for sp in list(self.frame.Data.keys())]
         self.assertEqual(cleared_vals.count('lab_dc_field'), len(cleared_vals)/3)
         self.assertEqual(cleared_vals.count('er_specimen_name'), len(cleared_vals)/3)
         self.assertEqual(cleared_vals.count('er_sample_name'), len(cleared_vals)/3)
 
         self.frame.ProcessEvent(read_redo_event)
-        new_interps = {sp : self.frame.Data[sp]['pars'] for sp in self.frame.Data.keys()}
-        self.assertTrue(all([array(old_interps[k][k2]).all()==array(new_interps[k][k2]).all() if hasattr(old_interps[k][k2],'__iter__') else old_interps[k][k2]==new_interps[k][k2] for k in new_interps.keys() for k2 in new_interps[k].keys() if isinstance(old_interps[k][k2],float) and isinstance(new_interps[k][k2],float) and not isnan(old_interps[k][k2]) and not isnan(new_interps[k][k2])]))
+        new_interps = {sp : self.frame.Data[sp]['pars'] for sp in list(self.frame.Data.keys())}
+        self.assertTrue(all([array(old_interps[k][k2]).all()==array(new_interps[k][k2]).all() if hasattr(old_interps[k][k2],'__iter__') else old_interps[k][k2]==new_interps[k][k2] for k in list(new_interps.keys()) for k2 in list(new_interps[k].keys()) if isinstance(old_interps[k][k2],float) and isinstance(new_interps[k][k2],float) and not isnan(old_interps[k][k2]) and not isnan(new_interps[k][k2])]))
 
         self.assertTrue(os.path.isfile(os.path.join(self.frame.WD, "thellier_GUI.redo")))
         try: os.remove(os.path.join(self.frame.WD, "thellier_GUI.redo"))

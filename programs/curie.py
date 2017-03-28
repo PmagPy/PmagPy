@@ -1,4 +1,10 @@
 #!/usr/bin/env python
+from __future__ import division
+from __future__ import print_function
+from builtins import input
+from builtins import str
+from builtins import range
+from past.utils import old_div
 import sys
 import numpy
 import matplotlib
@@ -36,17 +42,17 @@ def smooth(x,window_len,window='bartlett'):
     """
 
     if x.ndim != 1:
-        raise ValueError, "smooth only accepts 1 dimension arrays."
+        raise ValueError("smooth only accepts 1 dimension arrays.")
 
     if x.size < window_len:
-        raise ValueError, "Input vector needs to be bigger than window size."
+        raise ValueError("Input vector needs to be bigger than window size.")
 
     if window_len<3:
         return x
 
     # numpy available windows
     if not window in ['flat', 'hanning', 'hamming', 'bartlett', 'blackman']:
-        raise ValueError, "Window is on of 'flat', 'hanning', 'hamming', 'bartlett', 'blackman'"
+        raise ValueError("Window is on of 'flat', 'hanning', 'hamming', 'bartlett', 'blackman'")
 
     # padding the beggining and the end of the signal with an average value to evoid edge effect
     start=[average(x[0:10])]*window_len
@@ -59,7 +65,7 @@ def smooth(x,window_len,window='bartlett'):
         w=ones(window_len,'d')
     else:
         w=eval('numpy.'+window+'(window_len)')
-    y=numpy.convolve(w/w.sum(),s,mode='same')
+    y=numpy.convolve(old_div(w,w.sum()),s,mode='same')
     return array(y[window_len:-window_len])
 
 
@@ -82,7 +88,7 @@ def deriv1(x,y,i,n):
         y_=y_+y[ix]
         xy_=xy_+x[ix]*y[ix]
         x_2=x_2+x[ix]**2
-    m= ( (n*xy_) - (x_*y_) ) / ( n*x_2-(x_)**2)
+    m= old_div(( (n*xy_) - (x_*y_) ), ( n*x_2-(x_)**2))
     return(m)
 
 
@@ -121,13 +127,13 @@ def main():
     """
     plot,fmt=0,'svg'
     if '-h' in sys.argv:
-        print main.__doc__
+        print(main.__doc__)
         sys.exit()
     if '-f' in sys.argv:
         ind=sys.argv.index('-f')
         meas_file=sys.argv[ind+1]
     else:
-        print "missing -f\n"
+        print("missing -f\n")
         sys.exit()
     if '-w' in sys.argv:
         ind=sys.argv.index('-w')
@@ -170,15 +176,15 @@ def main():
     i=0
     while i<(len(T)-1):
         if (T[i+1]-T[i])%1>0.001:
-            print "delta T should be integer, this program will not work!"
-            print "temperature range:",T[i],T[i+1]
+            print("delta T should be integer, this program will not work!")
+            print("temperature range:",T[i],T[i+1])
             sys.exit()
         if (T[i+1]-T[i])==0.:
             M[i]=average([M[i],M[i+1]])
             M.pop(i+1);T.pop(i+1)
         elif (T[i+1]-T[i])<0.:
             M.pop(i+1);T.pop(i+1)
-            print "check data in T=%.0f ,M[T] is ignored"%(T[i])
+            print("check data in T=%.0f ,M[T] is ignored"%(T[i]))
         elif (T[i+1]-T[i])>1.:
             slope,b=polyfit([T[i],T[i+1]],[M[i],M[i+1]],1)
             for j in range(int(T[i+1])-int(T[i])-1):
@@ -205,7 +211,7 @@ def main():
     for i in range(len(M_smooth)-1):
         Dy=M_smooth[i-1]-M_smooth[i+1]
         Dx=T[i-1]-T[i+1]
-        d1.append(Dy/Dx)
+        d1.append(old_div(Dy,Dx))
     T_d1=T[1:len(T-1)]
     d1=array(d1,'f')
     d1_smooth=smooth(d1,window_len)
@@ -222,7 +228,7 @@ def main():
         Dy=d1_smooth[i-1]-d1_smooth[i+1]
         Dx=T[i-1]-T[i+1]
         #print Dy/Dx
-        d2.append(Dy/Dx)
+        d2.append(old_div(Dy,Dx))
     T_d2=T[2:len(T-2)]
     d2=array(d2,'f')
     d2_smooth=smooth(d2,window_len)
@@ -232,11 +238,11 @@ def main():
     string='2nd derivative (sliding window=%i)'%int(window_len)
     pmagplotlib.plotXY(PLT['der2'],T_d2,d2,sym='-',xlab='Temperature C',title=string)
     d2=list(d2)
-    print 'second derivative maximum is at T=%i'%int(T_d2[d2.index(max(d2))])
+    print('second derivative maximum is at T=%i'%int(T_d2[d2.index(max(d2))]))
 
     # calculate Curie temperature for different width of sliding windows
     curie,curie_1=[],[]
-    wn=range(5,50,1)
+    wn=list(range(5,50,1))
     for win in wn:
         # calculate the smoothed signal
         M_smooth=[]
@@ -246,7 +252,7 @@ def main():
         for i in range(len(M_smooth)-1):
             Dy=M_smooth[i-1]-M_smooth[i+1]
             Dx=T[i-1]-T[i+1]
-            d1.append(Dy/Dx)
+            d1.append(old_div(Dy,Dx))
         T_d1=T[1:len(T-1)]
         d1=array(d1,'f')
         d1_smooth=smooth(d1,win)
@@ -255,7 +261,7 @@ def main():
         for i in range(len(d1_smooth)-1):
             Dy=d1_smooth[i-1]-d1_smooth[i+1]
             Dx=T[i-1]-T[i+1]
-            d2.append(Dy/Dx)
+            d2.append(old_div(Dy,Dx))
         T_d2=T[2:len(T-2)]
         d2=array(d2,'f')
         d2_smooth=smooth(d2,win)
@@ -268,10 +274,10 @@ def main():
     pmagplotlib.plot_init(PLT['Curie'],5,5)
     pmagplotlib.plotXY(PLT['Curie'],wn,curie,sym='.',xlab='Sliding Window Width (degrees)',ylab='Curie Temp',title='Curie Statistics')
     files = {}
-    for key in PLT.keys(): files[key]=str(key) + "." +fmt
+    for key in list(PLT.keys()): files[key]=str(key) + "." +fmt
     if plot==0:
         pmagplotlib.drawFIGS(PLT)
-        ans=raw_input(" S[a]ve to save plot, [q]uit, Return to continue:  ")
+        ans=input(" S[a]ve to save plot, [q]uit, Return to continue:  ")
         if ans=="q": sys.exit()
         if ans=="a": pmagplotlib.saveP(PLT,files)
     else: pmagplotlib.saveP(PLT,files)

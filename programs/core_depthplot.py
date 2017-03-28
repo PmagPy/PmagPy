@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import print_function
 import sys
 import wx
 import os
@@ -62,7 +63,7 @@ def main():
 
     args = sys.argv
     if '-h' in args:
-        print main.__doc__
+        print(main.__doc__)
         sys.exit()
 
     dataframe = extractor.command_line_dataframe([ ['f', False, 'magic_measurements.txt'], ['fsum', False, ''],
@@ -88,8 +89,8 @@ def main():
         sym, size = symbol.split()
         size = int(size)
     except:
-        print 'you should provide -sym in this format: ro 5'
-        print 'using defaults instead'
+        print('you should provide -sym in this format: ro 5')
+        print('using defaults instead')
         sym, size = 'ro', 5
 
     # format result file, symbol, size
@@ -97,8 +98,8 @@ def main():
         try:
             res_file, res_sym, res_size = res_file.split()
         except:
-            print 'you must provide -fres in this format: -fres filename symbol size'
-            print 'could not parse {}, defaulting to using no result file'.format(res_file)
+            print('you must provide -fres in this format: -fres filename symbol size')
+            print('could not parse {}, defaulting to using no result file'.format(res_file))
             res_file, res_sym, res_size = '', '', 0
     else:
         res_file, res_sym, res_size = '', '', 0
@@ -108,8 +109,8 @@ def main():
         try:
             spc_file, spc_sym, spc_size = spc_file.split()
         except:
-            print 'you must provide -fsp in this format: -fsp filename symbol size'
-            print 'could not parse {}, defaulting to using no specimen file'.format(spc_file)
+            print('you must provide -fsp in this format: -fsp filename symbol size')
+            print('could not parse {}, defaulting to using no specimen file'.format(spc_file))
             spc_file, spc_sym, spc_size = '', '', 0
     else:
         spc_file, spc_sym, spc_size = '', '', 0
@@ -118,8 +119,8 @@ def main():
     try:
         dmin, dmax = depth.split()
     except:
-        print 'you must provide -d in this format: -d dmin dmax'
-        print 'could not parse {}, defaulting to plotting all depths'.format(depth)
+        print('you must provide -d in this format: -d dmin dmax')
+        print('could not parse {}, defaulting to plotting all depths'.format(depth))
         dmin, dmax = -1, -1
 
     # format timescale, min/max time
@@ -128,8 +129,8 @@ def main():
             timescale, amin, amax = timescale.split()
             pltTime = True
         except:
-            print 'you must provide -ts in this format: -ts timescale minimum_age maximum_age'
-            print 'could not parse {}, defaulting to using no timescale'.format(timescale)
+            print('you must provide -ts in this format: -ts timescale minimum_age maximum_age')
+            print('could not parse {}, defaulting to using no timescale'.format(timescale))
             timescale, amin, amax = None, -1, -1
             pltTime = False
     else:
@@ -149,8 +150,8 @@ def main():
     try:
         method, step = meth.split()
     except:
-        print 'To use the -LP flag you must provide both the protocol and the step in this format:\n-LP [AF,T,ARM,IRM, X] step [in mT,C,mT,mT, mass/vol] to plot'
-        print 'Defaulting to using no protocol'
+        print('To use the -LP flag you must provide both the protocol and the step in this format:\n-LP [AF,T,ARM,IRM, X] step [in mT,C,mT,mT, mass/vol] to plot')
+        print('Defaulting to using no protocol')
         method, step = 'LT-NO', 0
 
     # list of varnames

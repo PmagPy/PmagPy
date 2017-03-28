@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+from __future__ import print_function
+from builtins import range
 import sys
 import numpy
 import matplotlib
@@ -46,7 +48,7 @@ def main():
     xlab,ylab='',''
     lines=0
     if '-h' in sys.argv:
-        print main.__doc__
+        print(main.__doc__)
         sys.exit()
     if '-f' in sys.argv:
         ind=sys.argv.index('-f')
@@ -109,8 +111,8 @@ def main():
           xs=numpy.linspace(numpy.min(X),numpy.max(X),10)
           ys=polynomial(xs)
           pylab.plot(xs,ys)
-          print polynomial
-          if degr=='1': print 'R-square value =', '%5.4f'%(correl[0,1])
+          print(polynomial)
+          if degr=='1': print('R-square value =', '%5.4f'%(correl[0,1]))
     if sym!='':
        pylab.scatter(X,Y,marker=sym[1],c=sym[0],s=size)
     else:
@@ -129,7 +131,7 @@ def main():
         pylab.show()
     else:
         pylab.savefig('plotXY.'+fmt) 
-        print 'Figure saved as ','plotXY.'+fmt
+        print('Figure saved as ','plotXY.'+fmt)
     sys.exit()
 
 if __name__ == "__main__":

@@ -1,4 +1,8 @@
 #!/usr/bin/env python
+from __future__ import division
+from __future__ import print_function
+from builtins import input
+from past.utils import old_div
 import sys
 import os
 import matplotlib
@@ -39,7 +43,7 @@ def main():
        ind=args.index('-WD')
        dir_path=args[ind+1]
     if "-h" in args:
-        print main.__doc__
+        print(main.__doc__)
         sys.exit()
     if '-f' in args:
         ind=args.index("-f")
@@ -79,13 +83,13 @@ def main():
     names=[]
     locations=''
     for rec in  hyst_data:
-        if 'er_location_name' in rec.keys() and rec['er_location_name'] not in locations: locations=locations+rec['er_location_name']+'_'
+        if 'er_location_name' in list(rec.keys()) and rec['er_location_name'] not in locations: locations=locations+rec['er_location_name']+'_'
         if rec['hysteresis_bcr'] !="" and rec['hysteresis_mr_moment']!="":
-            S.append(float(rec['hysteresis_mr_moment'])/float(rec['hysteresis_ms_moment']))
+            S.append(old_div(float(rec['hysteresis_mr_moment']),float(rec['hysteresis_ms_moment'])))
             Bcr.append(float(rec['hysteresis_bcr']))
             Bc.append(float(rec['hysteresis_bc']))
-            BcrBc.append(Bcr[-1]/Bc[-1])
-            if 'er_synthetic_name' in rec.keys() and rec['er_synthetic_name']!="":
+            BcrBc.append(old_div(Bcr[-1],Bc[-1]))
+            if 'er_synthetic_name' in list(rec.keys()) and rec['er_synthetic_name']!="":
                 rec['er_specimen_name']=rec['er_synthetic_name']
             hsids.append(rec['er_specimen_name'])
             names.append(rec['er_specimen_name'])
@@ -95,11 +99,11 @@ def main():
                 try:
                     ind=hsids.index(rec['er_specimen_name'])
                     Bcr1.append(float(rec['remanence_bcr']))
-                    Bcr1Bc.append(Bcr1[-1]/Bc[ind])
+                    Bcr1Bc.append(old_div(Bcr1[-1],Bc[ind]))
                     S1.append(S[ind])
                     Bcr2.append(Bcr[ind])
                 except ValueError:
-                    if verbose:print 'hysteresis data for ',rec['er_specimen_name'],' not found'
+                    if verbose:print('hysteresis data for ',rec['er_specimen_name'],' not found')
     #
     # now plot the day and S-Bc, S-Bcr plots
     #
@@ -117,14 +121,14 @@ def main():
     pmagplotlib.plotSBc(DSC['S-Bc'],Bc,S,'bs')
     files={}
     if len(locations)>0:locations=locations[:-1]
-    for key in DSC.keys():
+    for key in list(DSC.keys()):
         if pmagplotlib.isServer: # use server plot naming convention
             files[key] = 'LO:_'+locations+'_'+'SI:__SA:__SP:__TY:_'+key+'_.'+fmt
         else:  # use more readable plot naming convention
             files[key] = '{}_{}.{}'.format(locations, key, fmt)
     if verbose:
         pmagplotlib.drawFIGS(DSC)
-        ans=raw_input(" S[a]ve to save plots, return to quit:  ")
+        ans=input(" S[a]ve to save plots, return to quit:  ")
         if ans=="a":
             pmagplotlib.saveP(DSC,files)
         else: sys.exit()

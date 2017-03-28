@@ -52,22 +52,22 @@ class choose_file(wx.StaticBoxSizer):
 
 class NotEmptyValidator(wx.PyValidator):
     def __init__(self):
-        print "initing validator"
+        print("initing validator")
         wx.PyValidator.__init__(self)
 
     def Clone(self):
         """
         Note that every validator must implement the Clone() method.
         """
-        print "doing Clone"
+        print("doing Clone")
         return NotEmptyValidator()
 
     def Validate(self, win):
-        print "doing Validate"
+        print("doing Validate")
         textCtrl = self.GetWindow()
         text = textCtrl.GetValue()
         if len(text) == 0:
-            print "textCtrl.Name:", textCtrl.Name
+            print("textCtrl.Name:", textCtrl.Name)
             wx.MessageBox("{} must contain some text!".format(str(textCtrl.Name)), "Error")
             textCtrl.SetBackgroundColour("pink")
             textCtrl.SetFocus()
@@ -80,11 +80,11 @@ class NotEmptyValidator(wx.PyValidator):
             return True
 
     def TransferToWindow(self):
-        print "doing TransferToWindow"
+        print("doing TransferToWindow")
         return True
 
     def TransferFromWindow(self):
-        print "doing TransferFromWindow"
+        print("doing TransferFromWindow")
         return True
 
 
@@ -193,8 +193,8 @@ class select_ncn(wx.StaticBoxSizer):
         self.parent = parent
         box = wx.StaticBox(parent, wx.ID_ANY, "")
         super(select_ncn, self).__init__(box, orient=wx.VERTICAL)
-        ncn_values = range(1, 8)
-        self.sample_naming_conventions = dict(zip(ncn_keys, ncn_values))
+        ncn_values = list(range(1, 8))
+        self.sample_naming_conventions = dict(list(zip(ncn_keys, ncn_values)))
         self.select_naming_convention = wx.ComboBox(parent, -1, ncn_keys[0], size=(440, 25), choices=ncn_keys, style=wx.CB_READONLY)
         self.sample_naming_convention_char = wx.TextCtrl(parent, id=-1, size=(40, 25))
         label1 = wx.StaticText(parent, label="sample-site naming convention:", style=wx.TE_CENTER)
@@ -231,8 +231,8 @@ class select_specimen_ocn(wx.StaticBoxSizer):
                     "lab azimuth and dip are same as mag_azimuth, field_dip",
                     "lab azimuth is same as mag_azimuth,lab arrow dip=field_dip-90",
                     "Lab arrow azimuth = mag_azimuth-90; Lab arrow dip = 90-field_dip"]
-        ocn_values = range(1, 6)
-        self.sample_orientation_conventions = dict(zip(ocn_keys, ocn_values))
+        ocn_values = list(range(1, 6))
+        self.sample_orientation_conventions = dict(list(zip(ocn_keys, ocn_values)))
         self.select_orientation_convention = wx.ComboBox(parent, -1, ocn_keys[0], size=(705, 25), choices=ocn_keys, style=wx.CB_READONLY)
         self.Add(label, wx.ALIGN_LEFT)
         self.Add(self.select_orientation_convention, wx.ALIGN_LEFT)
@@ -252,8 +252,8 @@ class select_declination(wx.StaticBoxSizer):
         label2 = wx.StaticText(self.parent, label="if necessary")
         self.dec_box = wx.TextCtrl(self.parent, size=(40, 25))
         declination_keys = ["Use the IGRF DEC value at the lat/long and date supplied", "Use this DEC: ", "DEC=0, mag_az is already corrected in file", "Correct mag_az but not bedding_dip_dir"]
-        declination_values = range(1, 4)
-        self.dcn = dict(zip(declination_keys, declination_values))
+        declination_values = list(range(1, 4))
+        self.dcn = dict(list(zip(declination_keys, declination_values)))
         self.select_dcn = wx.ComboBox(parent, -1, declination_keys[0], size=(405, 25), choices=declination_keys, style=wx.CB_READONLY)
         gridSizer = wx.GridSizer(2, 2, 5, 10)
         gridSizer.AddMany([label1, label2, self.select_dcn, self.dec_box])
@@ -380,7 +380,7 @@ class large_checkbox_window(wx.StaticBoxSizer):
                 values.append(str(sizer.GetWindow().GetValue()))
             else:
                 keys.append(str(sizer.GetWindow().Label))
-        data_dict = dict(zip(keys, values))
+        data_dict = dict(list(zip(keys, values)))
         return [data_dict]
 
 
@@ -1003,13 +1003,13 @@ def on_helpButton(command=None, text=None):
 
 
 def run_command(SELF, command, outfile):
-    print "-I- Running Python command:\n %s"%command
+    print("-I- Running Python command:\n %s"%command)
     os.system(command)
-    print "-I- Saved results in MagIC format file: {}".format(outfile)
+    print("-I- Saved results in MagIC format file: {}".format(outfile))
 
 
 def run_command_and_close_window(SELF, command, outfile):
-    print "-I- Running Python command:\n %s"%command
+    print("-I- Running Python command:\n %s"%command)
     os.system(command)
     if not outfile:
         outfile = ''
@@ -1021,7 +1021,7 @@ def run_command_and_close_window(SELF, command, outfile):
     SELF.Parent.Raise()
 
 def close_window(SELF, command, outfile):
-    print "-I- Finished running equivalent to Python command:\n %s"%command
+    print("-I- Finished running equivalent to Python command:\n %s"%command)
     if not outfile:
         outfile = ''
     msg = "file(s) converted to MagIC format file:\n%s.\n\nSee Terminal/message windowfor errors"% outfile
@@ -1049,7 +1049,7 @@ def on_hide_output(event):
     outframe.Hide()
 
 def get_output_frame():
-    print '-I- Fetching output frame'
+    print('-I- Fetching output frame')
     wins = wx.GetTopLevelWindows()
     for win in wins:
         if win.Name == 'frame':

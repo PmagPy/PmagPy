@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import print_function
 import sys
 import string
 
@@ -24,7 +25,7 @@ def main():
         dir_path=sys.argv[ind+1]
     zfile=dir_path+'/zeq_redo'
     if '-h' in sys.argv:
-        print main.__doc__
+        print(main.__doc__)
         sys.exit()
     if '-f' in sys.argv:
         ind=sys.argv.index('-f')

@@ -526,7 +526,7 @@ class ImportK15(wx.Frame):
         aniso_results_file = infile + '_rmag_results.txt'
         COMMAND = "k15_magic.py -WD {} -f {} -F {} -ncn {} -spc {} {} -ID {} -Fsa {} -Fa {} -Fr {}".format(WD, infile, outfile, ncn, specnum, loc, ID, samp_outfile, aniso_outfile, aniso_results_file)
         program_ran, error_message = ipmag.k15_magic(infile, specnum, ncn, location, outfile, samp_outfile, aniso_outfile, aniso_results_file, ID, WD)
-        print COMMAND
+        print(COMMAND)
         if program_ran:
             pw.close_window(self, COMMAND, outfile)
         else:
@@ -1007,7 +1007,7 @@ class ExportResults(wx.Frame):
     def on_okButton(self, event):
         os.chdir(self.WD)
         COMMAND = ""
-        print COMMAND
+        print(COMMAND)
         res_file = self.bSizer0.return_value()
         if not os.path.isfile(res_file):
             pw.simple_warning("You must have a result file to run this step")
@@ -1026,7 +1026,7 @@ class ExportResults(wx.Frame):
         grade = self.bSizer5.return_value()
         WD = self.WD
         COMMAND = "ipmag.pmag_results_extract(res_file='{}', crit_file='{}', spec_file='{}', age_file='{}', latex='{}' grade='{}', WD='{}')".format(res_file, crit_file, spec_file, age_file, latex, grade, WD)
-        print COMMAND
+        print(COMMAND)
         res, outfiles = ipmag.pmag_results_extract(res_file, crit_file, spec_file, age_file,
                                                    latex, grade, WD)
         outfiles = [os.path.split(f)[1] for f in outfiles]
@@ -1125,7 +1125,7 @@ class CustomizeCriteria(wx.Frame):
                 if file_type != "pmag_criteria":
                     raise Exception
             except Exception as ex:
-                print "exception", ex
+                print("exception", ex)
                 MSG = "No pmag_criteria.txt file found in working directory ({})".format(self.WD)
                 dia = wx.MessageDialog(None,caption="Message:", message=MSG ,style=wx.OK|wx.ICON_INFORMATION)
                 return 0
@@ -1158,7 +1158,7 @@ class CustomizeCriteria(wx.Frame):
  
 
     def on_edit_okButton(self, event):
-        print self.boxes.return_value()
+        print(self.boxes.return_value())
         crit_data = self.boxes.return_value()
         critout = os.path.join(self.WD, '/pmag_criteria.txt')
         pmag.magic_write(critout, crit_data, 'pmag_criteria')
@@ -1177,7 +1177,7 @@ class CustomizeCriteria(wx.Frame):
         self.Parent.Raise()
 
     def on_helpButton(self, event):
-        print "do help button"
+        print("do help button")
         # have a little info thing pop up
 
 
@@ -1320,7 +1320,7 @@ class ZeqMagic(wx.Frame):
     def on_okButton(self, event):
         os.chdir(self.WD)
         COMMAND = "zeq_magic.py -WD {}".format(self.WD)
-        print COMMAND
+        print(COMMAND)
         #pw.run_command_and_close_window(self, COMMAND, "er_samples.txt")
 
     def on_cancelButton(self,event):
@@ -1365,7 +1365,7 @@ class Core_depthplot(wx.Frame):
         #---sizer 5 ---
         shape_choices = ['circle', 'triangle_down','triangle_up','square', 'star','hexagon','+','x','diamond']
         shape_symbols =['o', 'v', '^', 's', '*', 'h', '+', 'x', 'd']
-        self.shape_choices_dict = dict(zip(shape_choices, shape_symbols))
+        self.shape_choices_dict = dict(list(zip(shape_choices, shape_symbols)))
         self.bSizer5 = pw.radio_buttons(pnl, shape_choices, "choose shape for plot points")
 
         #---sizer 5a---
@@ -1829,7 +1829,7 @@ class Core_depthplot(wx.Frame):
         fmt = pmag.add_flag(fmt, '-fmt')
 
         COMMAND = "core_depthplot.py {meas_file} {pmag_spec_file} {sym} {samp_file} {age_file} {depth_scale} {depth_range} {timescale} {method} {pltDec} {pltInc} {pltMag} {logit} {fmt} {pltLine} -WD {WD}".format(meas_file=meas_file, pmag_spec_file=pmag_spec_file, sym=sym, samp_file=samp_file, age_file=age_file, depth_scale=depth_scale, depth_range=depth_range, timescale=timescale, method=method, pltDec=pltDec, pltInc=pltInc, pltMag=pltMag, logit=logit, fmt=fmt, pltLine=pltLine, WD=self.WD)
-        print COMMAND
+        print(COMMAND)
         #os.system(COMMAND)
 
 
@@ -1980,7 +1980,7 @@ class Ani_depthplot(wx.Frame):
             
         fmt = self.bSizer3.return_value()
         depth_scale = self.bSizer4.return_value()
-        print 'age_file', age_file
+        print('age_file', age_file)
         if age_file:
             depth_scale='age'
         elif depth_scale:
@@ -2091,7 +2091,7 @@ class something(wx.Frame):
     def on_okButton(self, event):
         os.chdir(self.WD)
         COMMAND = ""
-        print COMMAND
+        print(COMMAND)
         #pw.run_command_and_close_window(self, COMMAND, "er_samples.txt")
 
     def on_cancelButton(self,event):
@@ -2126,7 +2126,7 @@ class ClearWD(wx.MessageDialog):
             os.chdir(self.WD)
             return True
         else:
-            print "{} has not been emptied".format(self.WD)
+            print("{} has not been emptied".format(self.WD))
             return False
             
 

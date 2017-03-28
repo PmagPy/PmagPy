@@ -34,7 +34,7 @@ class TestVocabularies(unittest.TestCase):
 
 
     def test_methods(self):
-        self.assertIn('sample_preparation', self.vocab.methods.keys())
+        self.assertIn('sample_preparation', list(self.vocab.methods.keys()))
         for item in self.vocab.methods['sample_preparation']:
             self.assertTrue(item.startswith('SP-'))
 

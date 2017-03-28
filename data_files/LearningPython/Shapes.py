@@ -1,4 +1,5 @@
-class Circle:
+from builtins import object
+class Circle(object):
     """
     This is simple example of a class
     """

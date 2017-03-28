@@ -2,6 +2,8 @@
 # -*- python-indent-offset: 4; -*-
 
 # -*- mode: python-mode; python-indent-offset: 4 -*-
+from __future__ import print_function
+from builtins import input
 import sys
 import os
 import matplotlib
@@ -42,7 +44,7 @@ def main():
         loc: location (study); sit: site; sam: sample; spc: specimen
     """
     if '-h' in sys.argv:
-        print main.__doc__
+        print(main.__doc__)
         sys.exit()
     # initialize variables from command line + defaults
     FIG = {}  # plot dictionary
@@ -76,8 +78,8 @@ def main():
     fnames = {"specimens": spec_file, "samples": samp_file, 'sites': site_file}
     contribution = nb.Contribution(dir_path, single_file=in_file,
                                    custom_filenames=fnames)
-    file_type = contribution.tables.keys()[0]
-    print len(contribution.tables['measurements'].df), ' records read from ', in_file
+    file_type = list(contribution.tables.keys())[0]
+    print(len(contribution.tables['measurements'].df), ' records read from ', in_file)
     # add plot_key into measurements table
     if plot_key not in contribution.tables['measurements'].df.columns:
         contribution.propagate_name_down(plot_key, 'measurements')
@@ -101,7 +103,7 @@ def main():
             data.drop(col_name, axis=1, inplace=True)
     IntMeths = [col_name for col_name in data.columns if col_name in intlist]
     if len(IntMeths) == 0:
-        print 'No intensity headers found'
+        print('No intensity headers found')
         sys.exit()
 
     int_key = IntMeths[0] # plot first intensity method found - normalized to initial value anyway - doesn't matter which used
@@ -115,7 +117,7 @@ def main():
     for plt in plotlist:
         plot_data = data[data[plot_key] == plt].copy()
         if plot:
-            print plt, 'plotting by: ', plot_key
+            print(plt, 'plotting by: ', plot_key)
         if len(plot_data) > 2:
             title = plt
             spcs = []
@@ -131,19 +133,19 @@ def main():
 
             if not plot:
                 files = {}
-                for key in FIG.keys():
+                for key in list(FIG.keys()):
                     files[key] = title + '_' + LT + '.' + fmt
                 pmagplotlib.saveP(FIG, files)
                 #sys.exit()
             else:
                 pmagplotlib.drawFIGS(FIG)
                 prompt = " S[a]ve to save plot, [q]uit,  Return to continue:  "
-                ans = raw_input(prompt)
+                ans = input(prompt)
                 if ans == 'q':
                     sys.exit()
                 if ans == "a":
                     files = {}
-                    for key in FIG.keys():
+                    for key in list(FIG.keys()):
                         files[key] = title + '_' + LT + '.' + fmt
                     pmagplotlib.saveP(FIG, files)
             pmagplotlib.clearFIG(FIG['demag'])

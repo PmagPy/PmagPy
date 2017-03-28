@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+from __future__ import print_function
+from builtins import input
 import sys
 import os
 import numpy
@@ -39,7 +41,7 @@ def main():
     sym={'lower':['o','r'],'upper':['o','w']}
     plot=0
     if '-h' in sys.argv: # check if help is needed
-        print main.__doc__
+        print(main.__doc__)
         sys.exit() # graceful quit
     if '-sav' in sys.argv: plot=1
     if '-fmt'  in sys.argv:
@@ -62,15 +64,15 @@ def main():
         ind=sys.argv.index('-f')
         fname=sys.argv[ind+1]
     else:
-        print main.__doc__
-        print ' \n   -f option required'
+        print(main.__doc__)
+        print(' \n   -f option required')
         sys.exit() # graceful quit
     DI=numpy.loadtxt(fname)
     EQ={'eq':1}
     pmagplotlib.plot_init(EQ['eq'],5,5)
     pmagplotlib.plotEQsym(EQ['eq'],DI,'Equal Area Plot',sym) # make plot
     if plot==0:pmagplotlib.drawFIGS(EQ) # make it visible
-    for key in EQ.keys():
+    for key in list(EQ.keys()):
         files[key]=key+'.'+fmt
     if pmagplotlib.isServer:
         black     = '#000000'
@@ -84,7 +86,7 @@ def main():
         files['eq']=fname+'_eq.'+fmt
         pmagplotlib.saveP(EQ,files)
     else:
-        ans=raw_input(" S[a]ve to save plot, [q]uit without saving:  ")
+        ans=input(" S[a]ve to save plot, [q]uit without saving:  ")
         if ans=="a": pmagplotlib.saveP(EQ,files)
 
 if __name__ == "__main__":

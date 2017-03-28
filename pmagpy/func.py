@@ -13,6 +13,8 @@
 # but should give a big win on vectors.
 # 
 
+from builtins import range
+from builtins import object
 import numpy
 from numpy import *
 import operator
@@ -24,7 +26,7 @@ UfuncType = type(numpy.add)
 
 # unary function objects (maybe rename to UN_FUNC?)
 
-class FuncOps:
+class FuncOps(object):
     """
     Common mix-in operations for function objects.
     Normal function classes are assumed to implement a call routine,
@@ -120,7 +122,7 @@ class UnCompose(FuncOps):
 #    d=m.compose(c)   - m(c(x,y))
 
 
-class BinFuncOps:
+class BinFuncOps(object):
     # returns self(f(x), g(x)), a unary function
     def compose(self, f, g):
 	return BinCompose(self, f, g)
@@ -293,7 +295,7 @@ def array_map(f, ar):
     "Apply an ordinary function to all values in an array."
     flat_ar = ravel(ar)
     out = zeros(len(flat_ar), flat_ar.typecode())
-    for i in xrange(len(flat_ar)):
+    for i in range(len(flat_ar)):
 	out[i] = f(flat_ar[i])
     out.shape = ar.shape
     return out
@@ -304,6 +306,6 @@ def array_map_2(f, a, b):
     flat_a = ravel(a)
     flat_b = ravel(b)
     out    = zeros(len(flat_a), a.typecode())
-    for i in xrange(len(flat_a)):
+    for i in range(len(flat_a)):
 	out[i] = f(flat_a[i], flat_b[i])
     return reshape(out, a.shape)

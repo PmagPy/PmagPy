@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+from __future__ import division
+from past.utils import old_div
 import unittest
 #import sys
 #sys.path.append('/Users/nebula/Python')
@@ -34,7 +36,7 @@ class CheckAdditivity(unittest.TestCase):
 
     add_checks = [0, .2, .1, .6]
     x_int = 2.
-    ref_delta_AC = (.2 / 2) * 100.
+    ref_delta_AC = (old_div(.2, 2)) * 100.
 
     # think I additionally need the check diffs.  what I have is just x check values.
     # I believe it will be: pTRM of start temperature - pTRM of additivity check step.  then I can compare those values.  
@@ -68,18 +70,18 @@ if False:
     def test_pTRM_star(self):
 #        def get_ptrm_star(incl_temps, starting_temps, x_Arai, t_Arai):
         ptrm_star = lib_add.get_ptrm_star(self.ref_incl_temps, self.starting_temps, self.x_Arai, self.t_Arai)
-        for k, v in ptrm_star.items():
+        for k, v in list(ptrm_star.items()):
             self.assertAlmostEqual(self.ptrm_star[k], v)
 
 
     def test_pTRM_actual(self):
         ptrm_actual = lib_add.get_ptrm_actual(self.ref_incl_temps, self.starting_temps, self.x_Arai, self.t_Arai, self.x_add_check)
-        for k, v in ptrm_actual.items():
+        for k, v in list(ptrm_actual.items()):
             self.assertAlmostEqual(self.ptrm_actual[k], v)
         
     def test_ACs(self):
         additivity_checks = lib_add.get_add_checks(self.ptrm_star, self.ptrm_actual)
-        for key, check in additivity_checks.items():
+        for key, check in list(additivity_checks.items()):
             self.assertAlmostEqual(self.additivity_checks[key], check)
 
 # get AC check diffs

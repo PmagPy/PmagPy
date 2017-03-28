@@ -1,10 +1,12 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
+from builtins import object
 import pandas as pd
 import sys
 import pmagpy.pmag as pmag
 
-class command_line_dataframe():
+class command_line_dataframe(object):
     """
     creates a dataframe used for validating arguments grabbed from sys.argv.
     the dataframe is accessed as self.df.
@@ -20,7 +22,7 @@ class command_line_dataframe():
     def __init__(self, changes=None):
         arg_names = ['f', 'F', 'A', 'WD', 'ID', 'Fsa', 'Fsi']
         self.default_dict = {'arg_name': arg_names, 'reqd': [True, False, False, False, False, False, False], 'default': ['', '', '', '.', '.', 'er_samples.txt', 'er_sites.txt']}
-        print arg_names, len(arg_names)
+        print(arg_names, len(arg_names))
         self.df = pd.DataFrame(self.default_dict, index=arg_names)
         arg_names = self.df['arg_name']
         if changes:
@@ -59,8 +61,8 @@ def check_args(arguments, data_frame):
     # first make sure all args are valid
     for a in arguments:
         if a[0] not in df.index:
-            print "-I- ignoring invalid argument: {}".format(a[0])
-            print "-"
+            print("-I- ignoring invalid argument: {}".format(a[0]))
+            print("-")
     # next make sure required arguments are present
     condition = df['reqd']
     reqd_args = df[condition]
@@ -74,8 +76,8 @@ def check_args(arguments, data_frame):
     for value in default_args.values:
         arg_name, default = value[0], value[1]
         if arg_name not in stripped_args:
-            print "-I- using default for arg:", arg_name
-            print "-"
+            print("-I- using default for arg:", arg_name)
+            print("-")
             arguments.append([arg_name, default])
     return arguments
 

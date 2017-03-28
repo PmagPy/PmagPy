@@ -109,21 +109,21 @@ class MagicGrid(wx.grid.Grid, gridlabelrenderer.GridWithLabelRenderersMixin):
         if rows:
             rows = rows
         else:
-            rows = range(self.GetNumberRows())
-        cols = range(self.GetNumberCols())
+            rows = list(range(self.GetNumberRows()))
+        cols = list(range(self.GetNumberCols()))
         data = {}
         for row in rows:
             data[row] = {}
             for col in cols:
                 col_name = self.GetColLabelValue(col)
                 if verbose:
-                    print col_name, ":", self.GetCellValue(row, col)
+                    print(col_name, ":", self.GetCellValue(row, col))
                 data[row][col_name] = self.GetCellValue(row, col)
         return data
 
     def size_grid(self, event=None):
         self.AutoSizeColumns(True)
-        for col in xrange(len(self.col_labels)):
+        for col in range(len(self.col_labels)):
             # adjust column widths to be a little larger then auto for nicer editing
             orig_size = self.GetColSize(col)
             if orig_size > 110:
@@ -212,9 +212,9 @@ class MagicGrid(wx.grid.Grid, gridlabelrenderer.GridWithLabelRenderersMixin):
             text_df = text_df.iloc[:, :-col_length_diff].copy()
         # go through copied text and parse it into the grid rows
         for label, row_data in text_df.iterrows():
-            col_range = range(col_ind, col_ind + len(row_data))
+            col_range = list(range(col_ind, col_ind + len(row_data)))
             if len(row_data) > 1:
-                cols = zip(col_range, row_data.index)
+                cols = list(zip(col_range, row_data.index))
                 for column in cols:
                     value = row_data[column[1]]
                     this_col = column[0]
@@ -350,7 +350,7 @@ class MagicGrid(wx.grid.Grid, gridlabelrenderer.GridWithLabelRenderersMixin):
     def remove_starred_labels(self):#, grid):
         cols_with_stars = []
         cols_with_hats = []
-        for col in xrange(self.GetNumberCols()):
+        for col in range(self.GetNumberCols()):
             label = self.GetColLabelValue(col)
             if '**' in label:
                 self.SetColLabelValue(col, label.strip('**'))

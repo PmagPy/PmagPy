@@ -1,4 +1,9 @@
 #!/usr/bin/env python
+from __future__ import division
+from __future__ import print_function
+from builtins import input
+from builtins import range
+from past.utils import old_div
 import sys
 import numpy
 import matplotlib
@@ -67,7 +72,7 @@ def main():
         ind=sys.argv.index('-WD')
         dir_path=sys.argv[ind+1]
     if '-h' in sys.argv: # check if help is needed
-        print main.__doc__
+        print(main.__doc__)
         sys.exit() # graceful quit
     if '-n' in sys.argv:
         ind=sys.argv.index('-n')
@@ -121,11 +126,11 @@ def main():
             if dip!=0 and dip_dir!=-1:
                 if  '-exc' in  sys.argv:
                     keep=1
-                    for key in SiteCrit.keys():
+                    for key in list(SiteCrit.keys()):
                         if 'site' in key  and SiteCrit[key]!="" and rec[key]!="" and key!='site_alpha95':
                             if float(rec[key])<float(SiteCrit[key]): 
                                 keep=0
-                                print rec['er_site_name'],key,rec[key]
+                                print(rec['er_site_name'],key,rec[key])
                         if key=='site_alpha95'  and SiteCrit[key]!="" and rec[key]!="":
                             if float(rec[key])>float(SiteCrit[key]): 
                                 keep=0
@@ -133,7 +138,7 @@ def main():
                 else:
                                 DIDDs.append([Dec,Inc,dip_dir,dip])
     else:
-        print 'no geographic directional data found'
+        print('no geographic directional data found')
         sys.exit()
     pmagplotlib.plotEQ(PLTS['geo'],DIDDs,'Geographic')
     data=numpy.array(DIDDs)
@@ -141,12 +146,12 @@ def main():
     TCs=numpy.array([D,I]).transpose()
     pmagplotlib.plotEQ(PLTS['strat'],TCs,'Stratigraphic')
     if plot==0:pmagplotlib.drawFIGS(PLTS)
-    Percs=range(min,max)
+    Percs=list(range(min,max))
     Cdf,Untilt=[],[]
     pylab.figure(num=PLTS['taus'])
-    print 'doing ',nb,' iterations...please be patient.....'
+    print('doing ',nb,' iterations...please be patient.....')
     for n in range(nb): # do bootstrap data sets - plot first 25 as dashed red line
-            if n%50==0:print n
+            if n%50==0:print(n)
             Taus=[] # set up lists for taus
             PDs=pmag.pseudo(DIDDs)
             if kappa!=0:
@@ -163,7 +168,7 @@ def main():
                 Taus.append(ppars['tau1'])
             if n<25:pylab.plot(Percs,Taus,'r--')
             Untilt.append(Percs[Taus.index(numpy.max(Taus))]) # tilt that gives maximum tau
-            Cdf.append(float(n)/float(nb))
+            Cdf.append(old_div(float(n),float(nb)))
     pylab.plot(Percs,Taus,'k')
     pylab.xlabel('% Untilting')
     pylab.ylabel('tau_1 (red), CDF (green)')
@@ -174,16 +179,16 @@ def main():
     pylab.axvline(x=Untilt[lower],ymin=0,ymax=1,linewidth=1,linestyle='--')
     pylab.axvline(x=Untilt[upper],ymin=0,ymax=1,linewidth=1,linestyle='--')
     tit= '%i - %i %s'%(Untilt[lower],Untilt[upper],'Percent Unfolding')
-    print tit
+    print(tit)
     pylab.title(tit)
     if plot==0:
         pmagplotlib.drawFIGS(PLTS)
-        ans= raw_input('S[a]ve all figures, <Return> to quit  \n ')
+        ans= input('S[a]ve all figures, <Return> to quit  \n ')
         if ans!='a':
-            print "Good bye"
+            print("Good bye")
             sys.exit()
     files={}
-    for key in PLTS.keys():
+    for key in list(PLTS.keys()):
         files[key]=('foldtest_'+'%s'%(key.strip()[:2])+'.'+fmt)
     pmagplotlib.saveP(PLTS,files)
 

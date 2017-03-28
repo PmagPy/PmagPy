@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+from __future__ import print_function
+from builtins import input
 import sys
 import pmagpy.command_line_extractor as extractor
 import pmagpy.ipmag as ipmag
@@ -27,14 +29,14 @@ def main():
         -O do not overwrite duplicate Location_* directories while downloading
     """
     if '-h' in sys.argv:
-        print main.__doc__
+        print(main.__doc__)
         sys.exit()
     if '-WD' in sys.argv:
         ind=sys.argv.index('-WD')
         dir_path=sys.argv[ind+1]
     # interactive entry
     if '-i' in sys.argv:
-        infile=raw_input("Magic txt file for unpacking? ")
+        infile=input("Magic txt file for unpacking? ")
         dir_path = '.'
         input_dir_path = '.'
     # non-interactive

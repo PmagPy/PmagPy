@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+from __future__ import print_function
+from builtins import input
 import sys
 import matplotlib
 if matplotlib.get_backend() != "TKAgg":
@@ -46,7 +48,7 @@ def main():
     Crits=""
     M,N,acutoff,kcutoff=180.,1,180.,0.
     if '-h' in sys.argv:
-        print main.__doc__
+        print(main.__doc__)
         sys.exit()
     if '-WD' in sys.argv:
         ind=sys.argv.index('-WD')
@@ -80,7 +82,7 @@ def main():
     in_file=dir_path+'/'+in_file
     Specs,file_type=pmag.magic_read(in_file)
     if file_type!='pmag_specimens':
-        print 'Error opening file'
+        print('Error opening file')
         sys.exit()
     sitelist=[]
     for rec in Specs:
@@ -91,45 +93,45 @@ def main():
         EQ['eqarea']=1
         pmagplotlib.plot_init(EQ['eqarea'],4,4)
     for site in sitelist:
-        print site
+        print(site)
         data=[]
         for spec in Specs:
-           if 'specimen_tilt_correction' not in spec.keys():spec['specimen_tilt_correction']='-1' # assume unoriented
+           if 'specimen_tilt_correction' not in list(spec.keys()):spec['specimen_tilt_correction']='-1' # assume unoriented
            if spec['er_site_name']==site:
-              if 'specimen_mad' not in spec.keys() or spec['specimen_mad']=="":
-                   if 'specimen_alpha95' in spec.keys() and spec['specimen_alpha95']!="":
+              if 'specimen_mad' not in list(spec.keys()) or spec['specimen_mad']=="":
+                   if 'specimen_alpha95' in list(spec.keys()) and spec['specimen_alpha95']!="":
                        spec['specimen_mad']=spec['specimen_alpha95']
                    else:
                        spec['specimen_mad']='180'
               if spec['specimen_tilt_correction']==coord and float(spec['specimen_mad'])<=M and float(spec['specimen_n'])>=N: 
                    rec={}
-                   for key in spec.keys():rec[key]=spec[key]
+                   for key in list(spec.keys()):rec[key]=spec[key]
                    rec["dec"]=float(spec['specimen_dec'])
                    rec["inc"]=float(spec['specimen_inc'])
                    rec["tilt_correction"]=spec['specimen_tilt_correction']
                    data.append(rec)
         if len(data)>2:
             fpars=pmag.dolnp(data,'specimen_direction_type')
-            print "Site lines planes  kappa   a95   dec   inc"
-            print site, fpars["n_lines"], fpars["n_planes"], fpars["K"], fpars["alpha95"], fpars["dec"], fpars["inc"], fpars["R"]
+            print("Site lines planes  kappa   a95   dec   inc")
+            print(site, fpars["n_lines"], fpars["n_planes"], fpars["K"], fpars["alpha95"], fpars["dec"], fpars["inc"], fpars["R"])
             if out_file!="":
                 if float(fpars["alpha95"])<=acutoff and float(fpars["K"])>=kcutoff:
                     out.write('%s %s %s\n'%(fpars["dec"],fpars['inc'],fpars['alpha95']))
-            print '% tilt correction: ',coord
+            print('% tilt correction: ',coord)
             if plt==1:
                 files={}
                 files['eqarea']=site+'_'+crd+'_'+'eqarea'+'.'+fmt
                 pmagplotlib.plotLNP(EQ['eqarea'],site,data,fpars,'specimen_direction_type')
                 if plot==0:
                     pmagplotlib.drawFIGS(EQ)
-                    ans=raw_input("s[a]ve plot, [q]uit, <return> to continue:\n ")
+                    ans=input("s[a]ve plot, [q]uit, <return> to continue:\n ")
                     if ans=="a":
                         pmagplotlib.saveP(EQ,files)
                     if ans=="q": sys.exit()
                 else:
                     pmagplotlib.saveP(EQ,files)
         else:
-            print 'skipping site - not enough data with specified coordinate system'
+            print('skipping site - not enough data with specified coordinate system')
 
 if __name__ == "__main__":
     main()

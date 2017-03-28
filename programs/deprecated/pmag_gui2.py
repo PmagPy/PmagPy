@@ -2,7 +2,7 @@
 
 # pylint: disable=W0612,C0111,C0103,W0201
 
-print "-I- Importing Pmag GUI dependencies"
+print("-I- Importing Pmag GUI dependencies")
 #from pmag_env import set_env
 #set_env.set_backend(wx=True)
 import matplotlib
@@ -324,12 +324,12 @@ class MagMainFrame(wx.Frame):
     def on_run_thellier_gui(self, event):
 
         outstring = "thellier_gui.py -WD %s"%self.WD
-        print "-I- running python script:\n %s"%(outstring)
+        print("-I- running python script:\n %s"%(outstring))
         thellier_gui.main(self.WD, standalone_app=False, parent=self)
 
     def on_run_demag_gui(self, event):
         outstring = "demag_gui.py -WD %s"%self.WD
-        print "-I- running python script:\n %s"%(outstring)
+        print("-I- running python script:\n %s"%(outstring))
         demag_gui.main(self.WD, standalone_app=False, parent=self)
 
     def on_convert_file(self, event):
@@ -387,7 +387,7 @@ class MagMainFrame(wx.Frame):
         outstring="download_magic.py -f {} -WD {} -ID {}".format(f, self.WD, input_dir)
 
         # run as module:
-        print "-I- running python script:\n %s"%(outstring)
+        print("-I- running python script:\n %s"%(outstring))
         wait = wx.BusyInfo("Please wait, working...")
         wx.Yield()
         ex = None
@@ -410,7 +410,7 @@ class MagMainFrame(wx.Frame):
 
     def on_btn_upload(self, event):
         outstring="upload_magic.py"
-        print "-I- running python script:\n %s"%(outstring)
+        print("-I- running python script:\n %s"%(outstring))
         wait = wx.BusyInfo("Please wait, working...")
         wx.Yield()
 
@@ -445,9 +445,9 @@ class MagMainFrame(wx.Frame):
 
 def main():
     if '-h' in sys.argv:
-        print "See https://earthref.org/PmagPy/cookbook/#pmag_gui.py for a complete tutorial"
+        print("See https://earthref.org/PmagPy/cookbook/#pmag_gui.py for a complete tutorial")
         sys.exit()
-    print '-I- Starting Pmag GUI - please be patient'
+    print('-I- Starting Pmag GUI - please be patient')
     # if redirect is true, wxpython makes its own output window for stdout/stderr
     app = wx.App(redirect=False)
     app.frame = MagMainFrame()

@@ -1,4 +1,7 @@
 #!/usr/bin/env python
+from __future__ import print_function
+from builtins import input
+from builtins import str
 import sys
 import pmagpy.pmag as pmag
 
@@ -81,7 +84,7 @@ def main():
     priorities=['DA-AC-ARM','DA-AC-TRM'] # priorities for anisotropy correction
 # get command line stuff
     if "-h" in args:
-	print main.__doc__
+	print(main.__doc__)
 	sys.exit()
     if '-WD' in args:
 	ind=args.index("-WD")
@@ -138,7 +141,7 @@ def main():
 	noInt=1
     elif "-fla" in args: 
 	if '-lat' in args:
-	    print "you should set a paleolatitude file OR use present day lat - not both"
+	    print("you should set a paleolatitude file OR use present day lat - not both")
 	    sys.exit()
 	ind=args.index("-fla")
 	model_lat_file=dir_path+'/'+args[ind+1]
@@ -182,34 +185,34 @@ def main():
 	critout=dir_path+'/'+critout
     if "-exc" in args: # use existing pmag_criteria file 
 	if "-C" in args:
-	    print 'you can not use both existing and no criteria - choose either -exc OR -C OR neither (for default)'
+	    print('you can not use both existing and no criteria - choose either -exc OR -C OR neither (for default)')
 	    sys.exit()
 	crit_data,file_type=pmag.magic_read(critout)
-	print "Acceptance criteria read in from ", critout
+	print("Acceptance criteria read in from ", critout)
     else  : # use default criteria (if nocrit set, then get really loose criteria as default)
 	crit_data=pmag.default_criteria(nocrit)
 	if nocrit==0:
-	    print "Acceptance criteria are defaults"
+	    print("Acceptance criteria are defaults")
 	else:
-	    print "No acceptance criteria used "
+	    print("No acceptance criteria used ")
     accept={}
     for critrec in crit_data:
-        for key in critrec.keys():
+        for key in list(critrec.keys()):
 # need to migrate specimen_dang to specimen_int_dang for intensity data using old format
-            if 'IE-SPEC' in critrec.keys() and 'specimen_dang' in critrec.keys() and 'specimen_int_dang' not in critrec.keys():
+            if 'IE-SPEC' in list(critrec.keys()) and 'specimen_dang' in list(critrec.keys()) and 'specimen_int_dang' not in list(critrec.keys()):
                 critrec['specimen_int_dang']=critrec['specimen_dang']
                 del critrec['specimen_dang']   
 # need to get rid of ron shaars sample_int_sigma_uT
-            if 'sample_int_sigma_uT' in critrec.keys():
+            if 'sample_int_sigma_uT' in list(critrec.keys()):
                 critrec['sample_int_sigma']='%10.3e'%(eval(critrec['sample_int_sigma_uT'])*1e-6)
-            if key not in accept.keys() and critrec[key]!='':
+            if key not in list(accept.keys()) and critrec[key]!='':
                 accept[key]=critrec[key]
     #
     #
     if "-exc" not in args and "-C" not in args:
-        print "args",args
+        print("args",args)
         pmag.magic_write(critout,[accept],'pmag_criteria')
-        print "\n Pmag Criteria stored in ",critout,'\n'
+        print("\n Pmag Criteria stored in ",critout,'\n')
 #
 # now we're done slow dancing
 #
@@ -223,25 +226,25 @@ def main():
     samples,sites=[],[]
     for rec in Data: # run through the data filling in missing keys and finding all components, coordinates available
 # fill in missing fields, collect unique sample and site names
-	if 'er_sample_name' not in rec.keys():
+	if 'er_sample_name' not in list(rec.keys()):
 	    rec['er_sample_name']=""
 	elif rec['er_sample_name'] not in samples:
 	    samples.append(rec['er_sample_name'])
-	if 'er_site_name' not in rec.keys():
+	if 'er_site_name' not in list(rec.keys()):
 	    rec['er_site_name']=""
 	elif rec['er_site_name'] not in sites:
 	    sites.append(rec['er_site_name'])
-	if 'specimen_int' not in rec.keys():rec['specimen_int']=''
-	if 'specimen_comp_name' not in rec.keys() or rec['specimen_comp_name']=="":rec['specimen_comp_name']='A'
+	if 'specimen_int' not in list(rec.keys()):rec['specimen_int']=''
+	if 'specimen_comp_name' not in list(rec.keys()) or rec['specimen_comp_name']=="":rec['specimen_comp_name']='A'
 	if rec['specimen_comp_name'] not in Comps:Comps.append(rec['specimen_comp_name'])
         rec['specimen_tilt_correction']=rec['specimen_tilt_correction'].strip('\n')
-	if "specimen_tilt_correction" not in rec.keys(): rec["specimen_tilt_correction"]="-1" # assume sample coordinates
+	if "specimen_tilt_correction" not in list(rec.keys()): rec["specimen_tilt_correction"]="-1" # assume sample coordinates
 	if rec["specimen_tilt_correction"] not in orient: orient.append(rec["specimen_tilt_correction"])  # collect available coordinate systems
-	if "specimen_direction_type" not in rec.keys(): rec["specimen_direction_type"]='l'  # assume direction is line - not plane
-	if "specimen_dec" not in rec.keys(): rec["specimen_direction_type"]=''  # if no declination, set direction type to blank
-	if "specimen_n" not in rec.keys(): rec["specimen_n"]=''  # put in n
-	if "specimen_alpha95" not in rec.keys(): rec["specimen_alpha95"]=''  # put in alpha95 
-	if "magic_method_codes" not in rec.keys(): rec["magic_method_codes"]=''
+	if "specimen_direction_type" not in list(rec.keys()): rec["specimen_direction_type"]='l'  # assume direction is line - not plane
+	if "specimen_dec" not in list(rec.keys()): rec["specimen_direction_type"]=''  # if no declination, set direction type to blank
+	if "specimen_n" not in list(rec.keys()): rec["specimen_n"]=''  # put in n
+	if "specimen_alpha95" not in list(rec.keys()): rec["specimen_alpha95"]=''  # put in alpha95 
+	if "magic_method_codes" not in list(rec.keys()): rec["magic_method_codes"]=''
      #
      # start parsing data into SpecDirs, SpecPlanes, SpecInts 
     SpecInts,SpecDirs,SpecPlanes=[],[],[]
@@ -403,7 +406,7 @@ def main():
     if len(PmagSamps)>0:
 	TmpSamps,keylist=pmag.fillkeys(PmagSamps) # fill in missing keys from different types of records       
 	pmag.magic_write(sampout,TmpSamps,'pmag_samples') # save in sample output file
-	print ' sample averages written to ',sampout
+	print(' sample averages written to ',sampout)
    
 #
 #create site averages from specimens or samples as specified
@@ -439,7 +442,7 @@ def main():
 			PmagSiteRec['magic_method_codes']= pmag.get_list(siteD,'magic_method_codes')+':'+ 'LP-DC'+str(DC)
 			PmagSiteRec['magic_method_codes'].strip(":")
 			if plotsites==1:
-                            print PmagSiteRec['er_site_name']
+                            print(PmagSiteRec['er_site_name'])
                             pmagplotlib.plotSITE(EQ['eqarea'],PmagSiteRec,siteD,key) # plot and list the data
                             pmagplotlib.drawFIGS(EQ)
 			PmagSites.append(PmagSiteRec) 
@@ -467,14 +470,14 @@ def main():
                         pmagplotlib.drawFIGS(EQ)
 		    PmagSites.append(PmagSiteRec)
         else:
-            print 'site information not found in er_sites for site, ',site,' site will be skipped'
+            print('site information not found in er_sites for site, ',site,' site will be skipped')
     for PmagSiteRec in PmagSites: # now decorate each dictionary some more, and calculate VGPs etc. for results table
 	PmagSiteRec["er_citation_names"]="This study"
 	PmagSiteRec["er_analyst_mail_names"]=user
 	PmagSiteRec['magic_software_packages']=version_num
 	if agefile != "": PmagSiteRec= pmag.get_age(PmagSiteRec,"er_site_name","site_inferred_",AgeNFO,DefaultAge)
 	PmagSiteRec['pmag_criteria_codes']='ACCEPT'
-	if 'site_n_lines' in PmagSiteRec.keys() and 'site_n_planes' in PmagSiteRec.keys() and PmagSiteRec['site_n_lines']!="" and PmagSiteRec['site_n_planes']!="":
+	if 'site_n_lines' in list(PmagSiteRec.keys()) and 'site_n_planes' in list(PmagSiteRec.keys()) and PmagSiteRec['site_n_lines']!="" and PmagSiteRec['site_n_planes']!="":
 	    if int(PmagSiteRec["site_n_planes"])>0:
 		PmagSiteRec["magic_method_codes"]=PmagSiteRec['magic_method_codes']+":DE-FM-LP"
 	    elif int(PmagSiteRec["site_n_lines"])>2:
@@ -488,7 +491,7 @@ def main():
 		PmagResRec['pmag_criteria_codes']='ACCEPT'
 		dec=float(PmagSiteRec["site_dec"])
 		inc=float(PmagSiteRec["site_inc"])
-                if 'site_alpha95' in PmagSiteRec.keys() and PmagSiteRec['site_alpha95']!="": 
+                if 'site_alpha95' in list(PmagSiteRec.keys()) and PmagSiteRec['site_alpha95']!="": 
 		    a95=float(PmagSiteRec["site_alpha95"])
                 else:a95=180.
 	        sitedat=pmag.get_dictitem(SiteNFO,'er_site_name',PmagSiteRec['er_site_name'],'T')[0] # fish out site information (lat/lon, etc.)
@@ -549,7 +552,7 @@ def main():
             for rec in crecs:
                 precs.append({'dec':rec['site_dec'],'inc':rec['site_inc'],'name':rec['er_site_name'],'loc':rec['er_location_name']})
             polpars=pmag.fisher_by_pol(precs) # calculate average by polarity
-            for mode in polpars.keys(): # hunt through all the modes (normal=A, reverse=B, all=ALL)
+            for mode in list(polpars.keys()): # hunt through all the modes (normal=A, reverse=B, all=ALL)
                 PolRes={}
                 PolRes['er_citation_names']='This study'
                 PolRes["pmag_result_name"]="Polarity Average: Polarity "+mode # 
@@ -567,7 +570,7 @@ def main():
          
     if noInt!=1 and nositeints!=1:
       for site in sites: # now do intensities for each site
-        if plotsites==1:print site
+        if plotsites==1:print(site)
         if Iaverage==0: key,intlist='specimen',SpecInts # if using specimen level data
         if Iaverage==1: key,intlist='sample',PmagSamps # if using sample level data
         Ints=pmag.get_dictitem(intlist,'er_site_name',site,'T') # get all the intensities  for this site
@@ -575,11 +578,11 @@ def main():
             PmagSiteRec=pmag.average_int(Ints,key,'site') # get average intensity stuff for site table
             PmagResRec=pmag.average_int(Ints,key,'average') # get average intensity stuff for results table
             if plotsites==1: # if site by site examination requested - print this site out to the screen
-                for rec in Ints:print rec['er_'+key+'_name'],' %7.1f'%(1e6*float(rec[key+'_int']))
+                for rec in Ints:print(rec['er_'+key+'_name'],' %7.1f'%(1e6*float(rec[key+'_int'])))
                 if len(Ints)>1:
-                    print 'Average: ','%7.1f'%(1e6*float(PmagResRec['average_int'])),'N: ',len(Ints)
-                    print 'Sigma: ','%7.1f'%(1e6*float(PmagResRec['average_int_sigma'])),'Sigma %: ',PmagResRec['average_int_sigma_perc']
-                raw_input('Press any key to continue\n')
+                    print('Average: ','%7.1f'%(1e6*float(PmagResRec['average_int'])),'N: ',len(Ints))
+                    print('Sigma: ','%7.1f'%(1e6*float(PmagResRec['average_int_sigma'])),'Sigma %: ',PmagResRec['average_int_sigma_perc'])
+                input('Press any key to continue\n')
             er_location_name=Ints[0]["er_location_name"] 
             PmagSiteRec["er_location_name"]=er_location_name # decorate the records
             PmagSiteRec["er_citation_names"]="This study"
@@ -607,7 +610,7 @@ def main():
                         mlat=pmag.magnetic_lat(inc) # get magnetic latitude using dipole formula
                         PmagResRec["vdm"]='%8.3e '% (pmag.b_vdm(b,mlat)) # get VDM with magnetic latitude
                         PmagResRec["vdm_n"]=PmagResRec['average_int_n']
-                        if 'average_int_sigma' in PmagResRec.keys() and PmagResRec['average_int_sigma']!="":
+                        if 'average_int_sigma' in list(PmagResRec.keys()) and PmagResRec['average_int_sigma']!="":
                             vdm_sig=pmag.b_vdm(float(PmagResRec['average_int_sigma']),mlat)
                             PmagResRec["vdm_sigma"]='%8.3e '% (vdm_sig)
                         else:
@@ -648,13 +651,13 @@ def main():
     if len(PmagSites)>0:
         Tmp,keylist=pmag.fillkeys(PmagSites)         
         pmag.magic_write(siteout,Tmp,'pmag_sites')
-        print ' sites written to ',siteout
-    else: print "No Site level table"
+        print(' sites written to ',siteout)
+    else: print("No Site level table")
     if len(PmagResults)>0:
         TmpRes,keylist=pmag.fillkeys(PmagResults)         
         pmag.magic_write(resout,TmpRes,'pmag_results')
-        print ' results written to ',resout
-    else: print "No Results level table"
+        print(' results written to ',resout)
+    else: print("No Results level table")
 
 if __name__ == "__main__":
     main()

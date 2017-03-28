@@ -4,7 +4,7 @@ doc string
 """
 
 # pylint: disable=C0103,E402
-print '-I- Importing MagIC GUI dependencies'
+print('-I- Importing MagIC GUI dependencies')
 #from pmag_env import set_env
 #set_env.set_backend(wx=True)
 import matplotlib
@@ -41,10 +41,10 @@ class MainFrame(wx.Frame):
         #
         self.grid_frame = None
         self.panel = wx.Panel(self, size=wx.GetDisplaySize(), name='main panel')
-        print '-I- Fetching working directory'
+        print('-I- Fetching working directory')
         self.WD = os.path.realpath(WD) or os.getcwd()
 
-        print '-I- Initializing magic data object'
+        print('-I- Initializing magic data object')
         if dmodel is None:
             dmodel = validate_upload.get_data_model()
         self.data_model = dmodel
@@ -54,15 +54,15 @@ class MainFrame(wx.Frame):
 
         # initialize magic data object
         # attempt to read magic_measurements.txt, and all er_* and pmag_* files
-        print '-I- Read in any available data from working directory'
+        print('-I- Read in any available data from working directory')
         self.er_magic.get_all_magic_info()
 
         # POSSIBLY RELOCATE THIS EVENTUALLY:
-        print '-I- Initializing headers'
+        print('-I- Initializing headers')
         self.er_magic.init_default_headers()
         self.er_magic.init_actual_headers()
         #
-        print '-I- Initializing interface'
+        print('-I- Initializing interface')
         self.InitUI()
 
 
@@ -226,12 +226,12 @@ class MainFrame(wx.Frame):
         change_dir_dialog.Destroy()
         wait = wx.BusyInfo('Initializing data object in new directory, please wait...')
         wx.Yield()
-        print '-I- Initializing magic data object'
+        print('-I- Initializing magic data object')
         # make new builder object, but reuse old data_model
         self.er_magic = builder.ErMagicBuilder(self.WD, self.er_magic.data_model)
-        print '-I- Read in any available data from working directory'
+        print('-I- Read in any available data from working directory')
         self.er_magic.get_all_magic_info()
-        print '-I- Initializing headers'
+        print('-I- Initializing headers')
         self.er_magic.init_default_headers()
         self.er_magic.init_actual_headers()
         del wait
@@ -253,7 +253,7 @@ class MainFrame(wx.Frame):
         Create a GridFrame for data type of the button that was clicked
         """
         if self.grid_frame:
-            print '-I- You already have a grid frame open'
+            print('-I- You already have a grid frame open')
             pw.simple_warning("You already have a grid open")
             return
 
@@ -335,7 +335,7 @@ Once each item in the data has its proper parent, validations will be correct.
                         self.warn_dict[item_type][item_name] = errors[item_type][item_name]
 
         has_problems = []
-        for item_type, warnings in self.warn_dict.items():
+        for item_type, warnings in list(self.warn_dict.items()):
             if warnings:
                 has_problems.append(item_type)
         # for any dtypes with validation problems (data or coherence),
@@ -452,9 +452,9 @@ class MagICMenu(wx.MenuBar):
         dia = pmag_menu_dialogs.ClearWD(self.parent, self.parent.WD)
         clear = dia.do_clear()
         if clear:
-            print '-I- Clear data object'
+            print('-I- Clear data object')
             self.parent.er_magic = builder.ErMagicBuilder(self.parent.WD, self.parent.data_model)
-            print '-I- Initializing headers'
+            print('-I- Initializing headers')
             self.parent.er_magic.init_default_headers()
             self.parent.er_magic.init_actual_headers()
 
@@ -490,9 +490,9 @@ class MagICMenu(wx.MenuBar):
 
 def main():
     if '-h' in sys.argv:
-        print "See https://earthref.org/PmagPy/cookbook/#magic_gui.py for a complete tutorial"
+        print("See https://earthref.org/PmagPy/cookbook/#magic_gui.py for a complete tutorial")
         sys.exit()
-    print '-I- Starting MagIC GUI - please be patient'
+    print('-I- Starting MagIC GUI - please be patient')
 
     # if redirect is true, wxpython makes its own output window for stdout/stderr
     app = wx.App(redirect=True)

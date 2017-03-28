@@ -29,6 +29,8 @@ OPTIONS
 INPUT
     JR6 .jr6 format file
 """
+from __future__ import print_function
+from builtins import str
 import sys, os
 import numpy as np
 import pmagpy.pmag as pmag
@@ -77,7 +79,7 @@ def convert(**kwargs):
 
     # validate variables
     if not os.path.exists(mag_file):
-        print 'The input file you provided: {} does not exist.\nMake sure you have specified the correct filename AND correct input directory name.'.format(mag_file)
+        print('The input file you provided: {} does not exist.\nMake sure you have specified the correct filename AND correct input directory name.'.format(mag_file))
         return False, 'The input file you provided: {} does not exist.\nMake sure you have specified the correct filename AND correct input directory name.'.format(mag_file)
 
     # parse data
@@ -98,13 +100,13 @@ def convert(**kwargs):
                 sample=dem.join(spec_text_id.split(dem)[:-1]); break
         location = expedition + site
 
-        if specimen!="" and specimen not in map(lambda x: x['specimen'] if 'specimen' in x.keys() else "", SpecRecs):
+        if specimen!="" and specimen not in [x['specimen'] if 'specimen' in list(x.keys()) else "" for x in SpecRecs]:
             SpecRec['specimen'] = specimen
             SpecRec['sample'] = sample
             SpecRec['volume'] = volume
             SpecRec['citations']=citation
             SpecRecs.append(SpecRec)
-        if sample!="" and sample not in map(lambda x: x['sample'] if 'sample' in x.keys() else "", SampRecs):
+        if sample!="" and sample not in [x['sample'] if 'sample' in list(x.keys()) else "" for x in SampRecs]:
             SampRec['sample'] = sample
             SampRec['site'] = site
             SampRec['citations']=citation
@@ -114,14 +116,14 @@ def convert(**kwargs):
             SampRec['bed_dip']=line[9]
             SampRec['method_codes']=meth_code
             SampRecs.append(SampRec)
-        if site!="" and site not in map(lambda x: x['site'] if 'site' in x.keys() else "", SiteRecs):
+        if site!="" and site not in [x['site'] if 'site' in list(x.keys()) else "" for x in SiteRecs]:
             SiteRec['site'] = site
             SiteRec['location'] = location
             SiteRec['citations']= citation
             SiteRec['lat'] = lat
             SiteRec['lon'] = lon
             SiteRecs.append(SiteRec)
-        if location!="" and location not in map(lambda x: x['location'] if 'location' in x.keys() else "", LocRecs):
+        if location!="" and location not in [x['location'] if 'location' in list(x.keys()) else "" for x in LocRecs]:
             LocRec['location']=location
             LocRec['citations']=citation
             LocRec['expedition_name']=expedition
@@ -185,7 +187,7 @@ def convert(**kwargs):
             treat=float(step[3:])
             MeasRec["treat_dc_field"]='%8.3e' %(treat*1e-3) # convert from mT to tesla
         else:
-            print 'unknown treatment type for ',row
+            print('unknown treatment type for ',row)
             return False, 'unknown treatment type for ',row
 
         MeasRec['method_codes']=meas_type

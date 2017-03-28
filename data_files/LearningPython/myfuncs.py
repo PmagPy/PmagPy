@@ -1,3 +1,4 @@
+from __future__ import print_function
 def gimmepi():  
     """
     returns pi
@@ -12,6 +13,6 @@ def print_args(*args):
     """
     prints argument list
     """
-    print 'You sent me these arguments: '
+    print('You sent me these arguments: ')
     for arg in args:
-        print arg
+        print(arg)

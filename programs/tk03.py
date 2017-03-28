@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+from __future__ import print_function
+from builtins import range
 import sys
 import random
 import pmagpy.pmag as pmag
@@ -33,7 +35,7 @@ def main():
     cnt=1
     Imax=0
     if len(sys.argv)!=0 and  '-h' in sys.argv:
-        print main.__doc__
+        print(main.__doc__)
         sys.exit()
     else:
         if '-n' in sys.argv:
@@ -58,14 +60,14 @@ def main():
     for k in range(N): 
         gh=pmag.mktk03(8,k,G2,G3) # terms and random seed
         long=random.randint(0,360) # get a random longitude, between 0 and 359
-        vec= pmag.getvec(gh,L,long)  # send field model and lat to getvec
+        vec= pmag.getvec(gh,L,int)  # send field model and lat to getvec
         if vec[2]>=Imax:
             vec[0]+=D
             if k%2==0 and R==1:
                vec[0]+=180.
                vec[1]=-vec[1]
             if vec[0]>=360.:vec[0]-=360.
-            print'%7.1f %7.1f %8.2f ' % (vec[0],vec[1],vec[2])
+            print('%7.1f %7.1f %8.2f ' % (vec[0],vec[1],vec[2]))
 
 if __name__ == "__main__":
     main()

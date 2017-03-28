@@ -1,4 +1,7 @@
 #!/usr/bin/env python
+from __future__ import print_function
+from builtins import input
+from builtins import str
 import sys
 import pmagpy.pmag as pmag
 def main():
@@ -29,10 +32,10 @@ def main():
       95% conf.=  1.96*sigma/sqrt(N)
     """
     if '-h' in sys.argv:
-        print main.__doc__
+        print(main.__doc__)
         sys.exit()
     if '-i' in sys.argv:
-        file=raw_input("Enter file name: ")
+        file=input("Enter file name: ")
         f=open(file,'rU')
     elif '-f' in sys.argv:
         ind=sys.argv.index('-f')
@@ -55,7 +58,7 @@ def main():
     mean,std=pmag.gausspars(dat)
     outdata = len(dat),mean,sum,std,100*std/mean
     if ofile == "":
-        print len(dat),mean,sum,std,100*std/mean
+        print(len(dat),mean,sum,std,100*std/mean)
     else:
         for i in outdata:
             i = str(i)

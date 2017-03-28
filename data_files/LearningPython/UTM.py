@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 # Lat Long-UTM, UTM-Lat Long conversions
 
+from __future__ import division
+from __future__ import print_function
+from past.utils import old_div
 from math import pi, sin, cos, tan, sqrt, radians, degrees
 
 _EquatorialRadius = 2
@@ -60,13 +63,13 @@ def LLtoUTM(ReferenceEllipsoid, Long, Lat, zone = None):
         k0 = 0.9996
 
 # Make sure the longitude is between-180.00 .. 179.9
-        LongTemp = (Long+180)-int((Long+180)/360)*360-180 #-180.00 .. 179.9
+        LongTemp = (Long+180)-int(old_div((Long+180),360))*360-180 #-180.00 .. 179.9
 
         LatRad = radians(Lat)
         LongRad = radians(LongTemp)
 
         if zone is None:
-                ZoneNumber = int((LongTemp+180)/6)+1
+                ZoneNumber = int(old_div((LongTemp+180),6))+1
         else:
                 ZoneNumber = zone
 
@@ -86,14 +89,14 @@ def LLtoUTM(ReferenceEllipsoid, Long, Lat, zone = None):
         # compute the UTM Zone from the latitude and longitude
         UTMZone = "%d%c" % (ZoneNumber, _UTMLetterDesignator(Lat))
 
-        eccPrimeSquared = (eccSquared)/(1-eccSquared)
-        N = a/sqrt(1-eccSquared*sin(LatRad)*sin(LatRad))
+        eccPrimeSquared = old_div((eccSquared),(1-eccSquared))
+        N = old_div(a,sqrt(1-eccSquared*sin(LatRad)*sin(LatRad)))
         T = tan(LatRad)*tan(LatRad)
         C = eccPrimeSquared*cos(LatRad)*cos(LatRad)
         A = cos(LatRad)*(LongRad-LongOriginRad)
 
         M = a*(
-                (1-eccSquared/4-3*eccSquared*eccSquared/64-5*eccSquared*eccSquared*eccSquared/256)*LatRad
+                (1-old_div(eccSquared,4)-3*eccSquared*eccSquared/64-5*eccSquared*eccSquared*eccSquared/256)*LatRad
                 -(3*eccSquared/8+3*eccSquared*eccSquared/32+45*eccSquared*eccSquared*eccSquared/1024)*sin(2*LatRad)
                 +(15*eccSquared*eccSquared/256+45*eccSquared*eccSquared*eccSquared/1024)*sin(4*LatRad)
                 -(35*eccSquared*eccSquared*eccSquared/3072)*sin(6*LatRad)
@@ -159,7 +162,7 @@ def UTMtoLL(ReferenceEllipsoid, easting, northing, zone):
         k0 = 0.9996
         a = _ellipsoid[ReferenceEllipsoid][_EquatorialRadius]
         eccSquared = _ellipsoid[ReferenceEllipsoid][_eccentricitySquared]
-        e1 = (1-sqrt(1-eccSquared))/(1+sqrt(1-eccSquared))
+        e1 = old_div((1-sqrt(1-eccSquared)),(1+sqrt(1-eccSquared)))
         #NorthernHemisphere; //1 for northern hemispher, 0 for southern
 
         x = easting-500000.0 #remove 500,000 meter offset for longitude
@@ -178,31 +181,31 @@ def UTMtoLL(ReferenceEllipsoid, easting, northing, zone):
 
         LongOrigin = (ZoneNumber-1)*6-180+3  # +3 puts origin in middle of zone
 
-        eccPrimeSquared = (eccSquared)/(1-eccSquared)
+        eccPrimeSquared = old_div((eccSquared),(1-eccSquared))
 
-        M = y / k0
-        mu = M/(a*(1-eccSquared/4-3*eccSquared*eccSquared/64-5*eccSquared*eccSquared*eccSquared/256))
+        M = old_div(y, k0)
+        mu = old_div(M,(a*(1-old_div(eccSquared,4)-3*eccSquared*eccSquared/64-5*eccSquared*eccSquared*eccSquared/256)))
 
         phi1Rad = (mu+(3*e1/2-27*e1*e1*e1/32)*sin(2*mu)
                   +(21*e1*e1/16-55*e1*e1*e1*e1/32)*sin(4*mu)
                   +(151*e1*e1*e1/96)*sin(6*mu))
         phi1 = degrees(phi1Rad);
 
-        N1 = a/sqrt(1-eccSquared*sin(phi1Rad)*sin(phi1Rad))
+        N1 = old_div(a,sqrt(1-eccSquared*sin(phi1Rad)*sin(phi1Rad)))
         T1 = tan(phi1Rad)*tan(phi1Rad)
         C1 = eccPrimeSquared*cos(phi1Rad)*cos(phi1Rad)
         R1 = a*(1-eccSquared)/pow(1-eccSquared*sin(phi1Rad)*sin(phi1Rad), 1.5)
-        D = x/(N1*k0)
+        D = old_div(x,(N1*k0))
 
         Lat = phi1Rad-(N1*tan(phi1Rad)/R1)*(D*D/2-(5+3*T1+10*C1-4*C1*C1-9*eccPrimeSquared)*D*D*D*D/24
                      +(61+90*T1+298*C1+45*T1*T1-252*eccPrimeSquared-3*C1*C1)*D*D*D*D*D*D/720)
         Lat = degrees(Lat)
 
-        Long = (D-(1+2*T1+C1)*D*D*D/6+(5-2*C1+28*T1-3*C1*C1+8*eccPrimeSquared+24*T1*T1)*D*D*D*D*D/120)/cos(phi1Rad)
+        Long = old_div((D-(1+2*T1+C1)*D*D*D/6+(5-2*C1+28*T1-3*C1*C1+8*eccPrimeSquared+24*T1*T1)*D*D*D*D*D/120),cos(phi1Rad))
         Long = LongOrigin+degrees(Long)
         return (Long, Lat)
 
 if __name__ == '__main__':
     (z, e, n) = LLtoUTM(23-1, 3.2, -43.5)
-    print z, e, n
-    print UTMtoLL(23-1, e, n, z)
+    print(z, e, n)
+    print(UTMtoLL(23-1, e, n, z))

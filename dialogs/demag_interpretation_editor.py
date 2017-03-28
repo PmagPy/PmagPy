@@ -5,7 +5,7 @@ from numpy import vstack,sqrt
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigCanvas
 from matplotlib.backends.backend_wxagg import NavigationToolbar2WxAgg as NavigationToolbar
 from matplotlib.figure import Figure
-import help_files.demag_interpretation_editor_help as dieh
+from . import help_files.demag_interpretation_editor_help as dieh
 from pmagpy.demag_gui_utilities import *
 from pmagpy.Fit import *
 from pmagpy.pmag import get_version
@@ -235,19 +235,19 @@ class InterpretationEditorFrame(wx.Frame):
 
         for parameter in ['mean_type','dec','inc','alpha95','K','R','n_lines','n_planes']:
             COMMAND="self.%s_window=wx.TextCtrl(self.panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(100*self.GUI_RESOLUTION,25))"%parameter
-            exec COMMAND
+            exec(COMMAND)
             COMMAND="self.%s_window.SetBackgroundColour(wx.WHITE)"%parameter
-            exec COMMAND
+            exec(COMMAND)
             COMMAND="self.%s_window.SetFont(font2)"%parameter
-            exec COMMAND
+            exec(COMMAND)
             COMMAND="self.%s_outer_window = wx.GridSizer(1,2,5*self.GUI_RESOLUTION,15*self.GUI_RESOLUTION)"%parameter
-            exec COMMAND
+            exec(COMMAND)
             COMMAND="""self.%s_outer_window.AddMany([
                     (wx.StaticText(self.panel,label='%s',style=wx.TE_CENTER),wx.EXPAND),
                     (self.%s_window, wx.EXPAND)])"""%(parameter,parameter,parameter)
-            exec COMMAND
+            exec(COMMAND)
             COMMAND="self.stats_sizer.Add(self.%s_outer_window, 1, wx.ALIGN_LEFT|wx.EXPAND, 0)"%parameter
-            exec COMMAND
+            exec(COMMAND)
 
         self.switch_stats_button = wx.SpinButton(self.panel, id=wx.ID_ANY, style=wx.SP_HORIZONTAL|wx.SP_ARROW_KEYS|wx.SP_WRAP, name="change stats")
         self.Bind(wx.EVT_SPIN, self.on_select_stats_button,self.switch_stats_button)
@@ -455,9 +455,9 @@ class InterpretationEditorFrame(wx.Frame):
             spars = fit.get('specimen')
             fmin = fit.tmin
             fmax = fit.tmax
-            if 'specimen_n' in spars.keys(): n = str(spars['specimen_n'])
+            if 'specimen_n' in list(spars.keys()): n = str(spars['specimen_n'])
             else: n = 'No Data'
-            if 'calculation_type' in spars.keys(): ftype = spars['calculation_type']
+            if 'calculation_type' in list(spars.keys()): ftype = spars['calculation_type']
             else: ftype = 'No Data'
             dec = 'No Data'
             inc = 'No Data'
@@ -467,27 +467,27 @@ class InterpretationEditorFrame(wx.Frame):
             sk = 'No Data'
             sr2 = 'No Data'
         else:
-            if 'measurement_step_min' in pars.keys(): fmin = str(fit.tmin)
+            if 'measurement_step_min' in list(pars.keys()): fmin = str(fit.tmin)
             else: fmin = "N/A"
-            if 'measurement_step_max' in pars.keys(): fmax = str(fit.tmax)
+            if 'measurement_step_max' in list(pars.keys()): fmax = str(fit.tmax)
             else: fmax = "N/A"
-            if 'specimen_n' in pars.keys(): n = str(pars['specimen_n'])
+            if 'specimen_n' in list(pars.keys()): n = str(pars['specimen_n'])
             else: n = "N/A"
-            if 'calculation_type' in pars.keys(): ftype = pars['calculation_type']
+            if 'calculation_type' in list(pars.keys()): ftype = pars['calculation_type']
             else: ftype = "N/A"
-            if 'specimen_dec' in pars.keys(): dec = "%.1f"%pars['specimen_dec']
+            if 'specimen_dec' in list(pars.keys()): dec = "%.1f"%pars['specimen_dec']
             else: dec = "N/A"
-            if 'specimen_inc' in pars.keys(): inc = "%.1f"%pars['specimen_inc']
+            if 'specimen_inc' in list(pars.keys()): inc = "%.1f"%pars['specimen_inc']
             else: inc = "N/A"
-            if 'specimen_mad' in pars.keys(): mad = "%.1f"%pars['specimen_mad']
+            if 'specimen_mad' in list(pars.keys()): mad = "%.1f"%pars['specimen_mad']
             else: mad = "N/A"
-            if 'specimen_dang' in pars.keys(): dang = "%.1f"%pars['specimen_dang']
+            if 'specimen_dang' in list(pars.keys()): dang = "%.1f"%pars['specimen_dang']
             else: dang = "N/A"
-            if 'specimen_alpha95' in pars.keys(): a95 = "%.1f"%pars['specimen_alpha95']
+            if 'specimen_alpha95' in list(pars.keys()): a95 = "%.1f"%pars['specimen_alpha95']
             else: a95 = "N/A"
-            if 'specimen_k' in pars.keys(): sk = "%.1f"%pars['specimen_k']
+            if 'specimen_k' in list(pars.keys()): sk = "%.1f"%pars['specimen_k']
             else: sk = "N/A"
-            if 'specimen_r' in pars.keys(): sr2 = "%.1f"%pars['specimen_r']
+            if 'specimen_r' in list(pars.keys()): sr2 = "%.1f"%pars['specimen_r']
             else: sr2 = "N/A"
 
         if self.search_query != "":
@@ -543,7 +543,7 @@ class InterpretationEditorFrame(wx.Frame):
         @param: new_fit -> fit object to highlight as selected
         """
         if len(self.fit_list)==0: return
-        if self.search_query and self.parent.current_fit not in map(lambda x: x[0], self.fit_list): return
+        if self.search_query and self.parent.current_fit not in [x[0] for x in self.fit_list]: return
         if self.current_fit_index == None:
             if not self.parent.current_fit: return
             for i,(fit,specimen) in enumerate(self.fit_list):
@@ -558,7 +558,7 @@ class InterpretationEditorFrame(wx.Frame):
         elif type(new_fit) is int:
             i = new_fit
         elif new_fit != None:
-            print('cannot select fit of type: ' + str(type(new_fit)))
+            print(('cannot select fit of type: ' + str(type(new_fit))))
         if self.current_fit_index != None and \
         len(self.fit_list) > 0 and \
         self.fit_list[self.current_fit_index][0] in self.parent.bad_fits:
@@ -649,7 +649,7 @@ class InterpretationEditorFrame(wx.Frame):
                         self.parent.user_warning('invalid hex color must be of form #0F0F0F');return
                 color_val = color_list[1]
             elif '(' in color_list[1] and ')' in color_list[1]:
-                color_val = map(eval, tuple(color_list[1].strip('( )').split(',')))
+                color_val = list(map(eval, tuple(color_list[1].strip('( )').split(','))))
                 for val in color_val:
                     if val > 1 or val < 0: self.parent.user_warning("invalid RGB sequence"); return
             else: self.parent.user_warning("colors must be given as a valid hex color or rgb tuple"); return
@@ -798,7 +798,7 @@ class InterpretationEditorFrame(wx.Frame):
 
         if not new_name:
             next_fit = str(len(self.parent.pmag_results_data['specimens'][specimen]) + 1)
-            while ("Fit " + next_fit) in map(lambda x: x.name, self.parent.pmag_results_data['specimens'][specimen]):
+            while ("Fit " + next_fit) in [x.name for x in self.parent.pmag_results_data['specimens'][specimen]]:
                 next_fit = str(int(next_fit) + 1)
             new_name = ("Fit " + next_fit)
         if not new_color:
@@ -808,8 +808,8 @@ class InterpretationEditorFrame(wx.Frame):
         if not new_tmin: new_tmin = None
         if not new_tmax: new_tmax = None
 
-        if new_name in map(lambda x: x.name, self.parent.pmag_results_data['specimens'][specimen]):
-            print('-E- interpretation called ' + new_name + ' already exsists for specimen ' + specimen)
+        if new_name in [x.name for x in self.parent.pmag_results_data['specimens'][specimen]]:
+            print(('-E- interpretation called ' + new_name + ' already exsists for specimen ' + specimen))
             return
 
         self.parent.add_fit(specimen, new_name, new_tmin, new_tmax, color=new_color,suppress_warnings=True)
@@ -848,7 +848,7 @@ class InterpretationEditorFrame(wx.Frame):
 
         if index == self.current_fit_index: self.current_fit_index = None
         if fit not in self.parent.pmag_results_data['specimens'][specimen]:
-            print("cannot remove item (entry #: " + str(index) + ") as it doesn't exist, this is a dumb bug contact devs")
+            print(("cannot remove item (entry #: " + str(index) + ") as it doesn't exist, this is a dumb bug contact devs"))
             self.logger.DeleteItem(index)
             return
         self.parent.pmag_results_data['specimens'][specimen].remove(fit)
@@ -875,7 +875,7 @@ class InterpretationEditorFrame(wx.Frame):
             specimen = self.fit_list[next_i][1]
             fit = self.fit_list[next_i][0]
             if new_name:
-                if new_name not in map(lambda x: x.name, self.parent.pmag_results_data['specimens'][specimen]): fit.name = new_name
+                if new_name not in [x.name for x in self.parent.pmag_results_data['specimens'][specimen]]: fit.name = new_name
             if new_color:
                 fit.color = self.color_dict[new_color]
             #testing
@@ -974,8 +974,8 @@ class InterpretationEditorFrame(wx.Frame):
         ydata_org = self.parent.high_EA_ydata
         data_corrected = self.eqarea.transData.transform(vstack([xdata_org,ydata_org]).T)
         xdata,ydata = data_corrected.T
-        xdata = map(float,xdata)
-        ydata = map(float,ydata)
+        xdata = list(map(float,xdata))
+        ydata = list(map(float,ydata))
         e = 4e0
 
         if self.high_EA_setting == "Zoom":

@@ -1,3 +1,6 @@
+from __future__ import print_function
+from builtins import str
+from builtins import object
 import os
 import json
 import pandas as pd
@@ -24,7 +27,7 @@ class DataModel(object):
         """
         Grab the 3.0 data model from the PmagPy/pmagpy directory
         """
-        print "-I- Using cached 3.0 data model"
+        print("-I- Using cached 3.0 data model")
         pmag_dir = find_pmag_dir.get_pmag_dir()
         if pmag_dir is None:
             pmag_dir = '.'
@@ -40,7 +43,7 @@ class DataModel(object):
             model_file = os.path.join(os.path.split(os.path.dirname(__file__))[0], 'data_model','data_model.json')
         f = open(model_file, 'r')
         string = '\n'.join(f.readlines())
-        raw = json.loads(unicode(string, errors='ignore'))
+        raw = json.loads(str(string, errors='ignore'))
         full = DataFrame(raw)
         return full
 

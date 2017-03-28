@@ -1,6 +1,10 @@
 #!/usr/bin/env python
 # -*- python-indent-offset: 4; -*-
 
+from __future__ import division
+from __future__ import print_function
+from builtins import input
+from past.utils import old_div
 import sys
 import matplotlib
 if matplotlib.get_backend() != "TKAgg":
@@ -33,7 +37,7 @@ def main():
     """
     args = sys.argv
     if "-h" in args:
-        print main.__doc__
+        print(main.__doc__)
         sys.exit()
     verbose = pmagplotlib.verbose
     dir_path = pmag.get_named_arg_from_sys('-WD', '.')
@@ -69,22 +73,22 @@ def main():
 
     for ind, row in spec_df.iterrows():
         if row['hyst_bcr'] and row['hyst_mr_moment']:
-            S.append(float(row['hyst_mr_moment']) / float(row['hyst_ms_moment']))
+            S.append(old_div(float(row['hyst_mr_moment']), float(row['hyst_ms_moment'])))
             Bcr.append(float(row['hyst_bcr']))
             Bc.append(float(row['hyst_bc']))
-            BcrBc.append(Bcr[-1] / Bc[-1])
+            BcrBc.append(old_div(Bcr[-1], Bc[-1]))
             hsids.append(row['specimen'])
         if do_rem:
             if row['rem_bcr'] and float(row['rem_bcr']) > 0:
                 try:
                     Bcr1.append(float(row['rem_bcr']))
-                    Bcr1Bc.append(Bcr1[-1] / Bc[-1])
+                    Bcr1Bc.append(old_div(Bcr1[-1], Bc[-1]))
                     S1.append(S[-1])
                     Bcr2.append(Bcr[-1])
                 except ValueError:
                     if verbose:
-                        print 'hysteresis data for ', row['specimen'],
-                        print ' not found'
+                        print('hysteresis data for ', row['specimen'], end=' ')
+                        print(' not found')
 
     #
     # now plot the day and S-Bc, S-Bcr plots
@@ -102,14 +106,14 @@ def main():
     files = {}
     if len(locations) > 0:
         locations = locations[:-1]
-    for key in DSC.keys():
+    for key in list(DSC.keys()):
         if pmagplotlib.isServer: # use server plot naming convention
             files[key] = 'LO:_' + locations + '_' + 'SI:__SA:__SP:__TY:_' + key + '_.' + fmt
         else: # use more readable plot naming convention
             files[key] = '{}_{}.{}'.format(locations, key, fmt)
     if verbose:
         pmagplotlib.drawFIGS(DSC)
-        ans = raw_input(" S[a]ve to save plots, return to quit:  ")
+        ans = input(" S[a]ve to save plots, return to quit:  ")
         if ans == "a":
             pmagplotlib.saveP(DSC, files)
         else:

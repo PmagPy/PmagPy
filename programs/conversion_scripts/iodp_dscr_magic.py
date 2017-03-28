@@ -27,6 +27,9 @@ OPTIONS
 INPUTS
      IODP discrete sample .csv file format exported from LIMS database
 """
+from __future__ import print_function
+from builtins import str
+from builtins import range
 import sys, os
 import pmagpy.pmag as pmag
 import pmagpy.new_builder as nb
@@ -62,7 +65,7 @@ def convert(**kwargs):
     for fin in filelist: # parse each file
         if fin[-3:].lower()=='csv':
             file_found = True
-            print 'processing: ',fin
+            print('processing: ',fin)
             indata=open(fin,'rU').readlines()
             keys=indata[0].replace('\n','').split(',') # splits on underscores
             keys=[k.strip('"') for k in keys]
@@ -117,18 +120,18 @@ def convert(**kwargs):
                 specimen=expedition+'-'+location+'-'+InRec['Core']+InRec[type_val]+"-"+InRec[sect_key]+'-'+InRec[half_key]+'-'+str(InRec[interval_key])
                 sample = expedition+'-'+location+'-'+InRec['Core']+InRec[type_val]
                 site = expedition+'-'+location
-                if volume_key in InRec.keys(): volume=InRec[volume_key]
+                if volume_key in list(InRec.keys()): volume=InRec[volume_key]
 
                 if not InRec[dec_key].strip(""" " ' """) or not InRec[inc_key].strip(""" " ' """):
                     print("No dec or inc found for specimen %s, skipping"%specimen)
 
-                if specimen!="" and specimen not in map(lambda x: x['specimen'] if 'specimen' in x.keys() else "", SpecRecs):
+                if specimen!="" and specimen not in [x['specimen'] if 'specimen' in list(x.keys()) else "" for x in SpecRecs]:
                     SpecRec['specimen'] = specimen
                     SpecRec['sample'] = sample
                     SpecRec['volume'] = volume
                     SpecRec['citations']=citation
                     SpecRecs.append(SpecRec)
-                if sample!="" and sample not in map(lambda x: x['sample'] if 'sample' in x.keys() else "", SampRecs):
+                if sample!="" and sample not in [x['sample'] if 'sample' in list(x.keys()) else "" for x in SampRecs]:
                     SampRec['sample'] = sample
                     SampRec['site'] = site
                     SampRec['citations']=citation
@@ -136,14 +139,14 @@ def convert(**kwargs):
                     SampRec['dip']='0'
                     SampRec['method_codes']='FS-C-DRILL-IODP:SO-V'
                     SampRecs.append(SampRec)
-                if site!="" and site not in map(lambda x: x['site'] if 'site' in x.keys() else "", SiteRecs):
+                if site!="" and site not in [x['site'] if 'site' in list(x.keys()) else "" for x in SiteRecs]:
                     SiteRec['site'] = site
                     SiteRec['location'] = location
                     SiteRec['citations']=citation
                     SiteRec['lat'] = lat
                     SiteRec['lon'] = lon
                     SiteRecs.append(SiteRec)
-                if location!="" and location not in map(lambda x: x['location'] if 'location' in x.keys() else "", LocRecs):
+                if location!="" and location not in [x['location'] if 'location' in list(x.keys()) else "" for x in LocRecs]:
                     LocRec['location']=location
                     LocRec['citations']=citation
                     LocRec['expedition_name']=expedition
@@ -167,7 +170,7 @@ def convert(**kwargs):
                 MeasRec["dir_csd"]='0' # assume all data are "good"
                 MeasRec["method_codes"]='LT-NO'
                 sort_by='treat_ac_field' # set default to AF demag
-                if treatment_type in InRec.keys() and InRec[treatment_type]!="":
+                if treatment_type in list(InRec.keys()) and InRec[treatment_type]!="":
                     if "AF" in InRec[treatment_type].upper():
                         MeasRec['method_codes'] = 'LT-AF-Z'
                         inst=inst+':IODP-SRM-AF' # measured on shipboard in-line 2G AF
@@ -197,7 +200,7 @@ def convert(**kwargs):
                     MeasRec["treat_ac_field"]=treatment_value # AF demag in treat mT => T
                 MeasRec["standard"]='u' # assume all data are "good"
                 vol=float(volume)
-                if run_key in InRec.keys():
+                if run_key in list(InRec.keys()):
                     run_number=InRec[run_key]
                     MeasRec['external_database_ids']={'LIMS':run_number}
                 else:
@@ -212,7 +215,7 @@ def convert(**kwargs):
                 MeasRec['meas_n_orient']=''
                 MeasRecs.append(MeasRec)
     if not file_found:
-        print "No .csv files were found"
+        print("No .csv files were found")
         return False, "No .csv files were found"
 
     con = nb.Contribution(output_dir_path,read_tables=[])

@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+from __future__ import print_function
+from builtins import range
 import sys
 import os
 import pmagpy.pmag as pmag
@@ -103,7 +105,7 @@ def main(command_line=True, **kwargs):
             ind=args.index("-WD")
             dir_path=sys.argv[ind+1]
         if "-h" in args:
-            print main.__doc__
+            print(main.__doc__)
             return False
         if "-f" in args:
             ind=args.index("-f")
@@ -176,14 +178,14 @@ def main(command_line=True, **kwargs):
     if samp_con:
         if "4" in samp_con:
             if "-" not in samp_con:
-                print "option [4] must be in form 4-Z where Z is an integer"
+                print("option [4] must be in form 4-Z where Z is an integer")
                 return False, "option [4] must be in form 4-Z where Z is an integer"
             else:
                 Z=samp_con.split("-")[1]
                 samp_con="4"
         if "7" in samp_con:
             if "-" not in samp_con:
-                print "option [7] must be in form 7-Z where Z is an integer"
+                print("option [7] must be in form 7-Z where Z is an integer")
                 return False, "option [7] must be in form 7-Z where Z is an integer"
             else:
                 Z=samp_con.split("-")[1]
@@ -192,15 +194,15 @@ def main(command_line=True, **kwargs):
             try:
                 Samps,file_type=pmag.magic_read(os.path.join(input_dir_path, 'er_samples.txt'))
             except:
-                print "there is no er_samples.txt file in your input directory - you can't use naming convention #6"
+                print("there is no er_samples.txt file in your input directory - you can't use naming convention #6")
                 return False, "there is no er_samples.txt file in your input directory - you can't use naming convention #6"
             if file_type == 'bad_file':
-                print "there is no er_samples.txt file in your input directory - you can't use naming convention #6"
+                print("there is no er_samples.txt file in your input directory - you can't use naming convention #6")
                 return False, "there is no er_samples.txt file in your input directory - you can't use naming convention #6"
                 
 
     if not mag_file:
-        print "mag file is required input"
+        print("mag file is required input")
         return False, "mag file is required input"
     output_dir_path = dir_path
     mag_file = os.path.join(input_dir_path, mag_file)
@@ -220,8 +222,8 @@ def main(command_line=True, **kwargs):
         input=f.read()
         f.close()
     except Exception as ex:
-        print 'ex', ex
-        print "bad mag file"
+        print('ex', ex)
+        print("bad mag file")
         return False, "bad mag file"
     firstline,date=1,""
     d=input.split('\xcd')
@@ -249,7 +251,7 @@ def main(command_line=True, **kwargs):
                         while rec[el]!='\x01':el+=1
                         vcc,date,comments=rec[el-3],rec[el+7],[]
                     specname=spec.lower()
-                    print 'importing ',specname
+                    print('importing ',specname)
                     el+=8
                     while rec[el].isdigit()==False:
                         comments.append(rec[el])
@@ -405,7 +407,7 @@ def main(command_line=True, **kwargs):
     MagOuts=pmag.measurements_methods(MagRecs,noave)
     MagOuts, keylist = pmag.fillkeys(MagOuts) 
     pmag.magic_write(meas_file,MagOuts,'magic_measurements')
-    print "Measurements put in ",meas_file
+    print("Measurements put in ",meas_file)
     SampsOut,sampkeys=pmag.fillkeys(Samps)
     pmag.magic_write(samp_file,SampsOut,"er_samples")
     Sites=[]
@@ -415,18 +417,18 @@ def main(command_line=True, **kwargs):
         SiteRec['er_location_name']=samp['er_location_name']
         SiteRec['site_definition']='s'
         SiteRec['er_citation_names']='This study'
-        if 'sample_class' in samp.keys():SiteRec['site_class']=samp['sample_class']
-        if 'sample_lithology' in samp.keys():SiteRec['site_lithology']=samp['sample_lithology']
-        if 'sample_type' in samp.keys():SiteRec['site_lithology']=samp['sample_lithology']
-        if 'sample_lat' in samp.keys():
+        if 'sample_class' in list(samp.keys()):SiteRec['site_class']=samp['sample_class']
+        if 'sample_lithology' in list(samp.keys()):SiteRec['site_lithology']=samp['sample_lithology']
+        if 'sample_type' in list(samp.keys()):SiteRec['site_lithology']=samp['sample_lithology']
+        if 'sample_lat' in list(samp.keys()):
             SiteRec['site_lat']=samp['sample_lat']
         else:
             SiteRec['site_lat']="-999"
-        if 'sample_lon' in samp.keys():
+        if 'sample_lon' in list(samp.keys()):
             SiteRec['site_lon']=samp['sample_lon']
         else:
             SiteRec['site_lon']="-999"
-        if 'sample_height' in samp.keys():SiteRec['site_height']=samp['sample_height']
+        if 'sample_height' in list(samp.keys()):SiteRec['site_height']=samp['sample_height']
         Sites.append(SiteRec)
     pmag.magic_write(site_file,Sites,'er_sites')
     return True, meas_file

@@ -7,11 +7,11 @@ import matplotlib
 
 def main():
     if '-h' in sys.argv:
-        print "See https://earthref.org/PmagPy/cookbook/#pmag_gui.py for a complete tutorial"
+        print("See https://earthref.org/PmagPy/cookbook/#pmag_gui.py for a complete tutorial")
         sys.exit()
     from programs import pmag_gui
     from pmagpy import pmag
-    print '-I- Starting Pmag GUI 3 - please be patient'
+    print('-I- Starting Pmag GUI 3 - please be patient')
     # if redirect is true, wxpython makes its own output window for stdout/stderr
     app = wx.App(redirect=True)
     app.frame = pmag_gui.MagMainFrame(DM=3)

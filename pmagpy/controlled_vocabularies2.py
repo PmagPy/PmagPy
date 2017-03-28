@@ -1,9 +1,12 @@
 #!/usr/bin/env python
+from __future__ import print_function
+from __future__ import absolute_import
+from builtins import object
 import pandas as pd
 from pandas import Series
 import json
 import os
-import find_pmag_dir
+from . import find_pmag_dir
 pmag_dir = find_pmag_dir.get_pmag_dir()
 data_model_dir = os.path.join(pmag_dir, 'pmagpy', 'data_model')
 # if using with py2app, the directory structure is flat,
@@ -49,7 +52,7 @@ class Vocabulary(object):
         return json_data
 
     def get_meth_codes(self):
-        print '-I- Getting cached method codes for 2.5'
+        print('-I- Getting cached method codes for 2.5')
         er_methods = self.get_tiered_meth_category_offline('er')
         pmag_methods = self.get_tiered_meth_category_offline('pmag')
         age_methods = self.get_tiered_meth_category_offline('age')
@@ -68,7 +71,7 @@ class Vocabulary(object):
         self.code_types = code_types
 
     def get_vocabularies(self):
-        print '-I- Getting cached controlled vocabularies for 2.5'
+        print('-I- Getting cached controlled vocabularies for 2.5')
         ## skip trying to get method codes etc. dynamically.
         ## 2.5 method codes etc. are no longer available on earthref
         #all_codes, code_types = self.get_meth_codes()
@@ -84,7 +87,7 @@ class Vocabulary(object):
         path = os.path.join(data_model_dir, 'controlled_vocabularies2.json')
         with open(path, 'r') as code_file:
             raw_vocabularies = json.load(code_file)
-        vocabularies = dict([(k, v) for k, v in raw_vocabularies.iteritems()])
+        vocabularies = dict([(k, v) for k, v in raw_vocabularies.items()])
         self.vocabularies = vocabularies
         self.possible_vocabularies = vocabularies
 

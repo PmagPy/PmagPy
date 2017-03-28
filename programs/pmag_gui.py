@@ -2,7 +2,7 @@
 
 # pylint: disable=W0612,C0111,C0103,W0201,E402
 
-print "-I- Importing Pmag GUI dependencies"
+print("-I- Importing Pmag GUI dependencies")
 #from pmag_env import set_env
 #set_env.set_backend(wx=True)
 import matplotlib
@@ -89,7 +89,7 @@ class MagMainFrame(wx.Frame):
     def get_wd_data(self):
         wait = wx.BusyInfo('Reading in data from current working directory, please wait...')
         wx.Yield()
-        print '-I- Read in any available data from working directory'
+        print('-I- Read in any available data from working directory')
         self.contribution = nb.Contribution(self.WD, dmodel=self.data_model)
         del wait
 
@@ -382,7 +382,7 @@ class MagMainFrame(wx.Frame):
     def on_run_thellier_gui(self, event):
 
         outstring = "thellier_gui.py -WD %s"%self.WD
-        print "-I- running python script:\n %s"%(outstring)
+        print("-I- running python script:\n %s"%(outstring))
         if self.data_model_num == 2.5:
             thellier_gui.main(self.WD, standalone_app=False, parent=self, DM=self.data_model_num)
         else:
@@ -407,7 +407,7 @@ class MagMainFrame(wx.Frame):
 
     def on_run_demag_gui(self, event):
         outstring = "demag_gui.py -WD %s"%self.WD
-        print "-I- running python script:\n %s"%(outstring)
+        print("-I- running python script:\n %s"%(outstring))
         if self.data_model_num == 2:
             demag_gui.start(self.WD, standalone_app=False, parent=self, DM=self.data_model_num)
         else:
@@ -495,7 +495,7 @@ class MagMainFrame(wx.Frame):
     def on_er_data(self, event):
         if self.data_model_num == 2:
             if not os.path.isfile(os.path.join(self.WD, 'magic_measurements.txt')):
-                print '-W- {} is missing'.format(os.path.join(self.WD, 'magic_measurements.txt'))
+                print('-W- {} is missing'.format(os.path.join(self.WD, 'magic_measurements.txt')))
                 pw.simple_warning("Your working directory must have a magic_measurements.txt file to run this step.  Make sure you have fully completed step 1 (import magnetometer file), by combining all imported magnetometer files into one magic_measurements file.")
                 return False
 
@@ -561,7 +561,7 @@ class MagMainFrame(wx.Frame):
         outstring="download_magic.py -f {} -WD {} -ID {}".format(f, self.WD, input_dir)
 
         # run as module:
-        print "-I- running python script:\n %s"%(outstring)
+        print("-I- running python script:\n %s"%(outstring))
         wait = wx.BusyInfo("Please wait, working...")
         wx.Yield()
         ex = None
@@ -584,7 +584,7 @@ class MagMainFrame(wx.Frame):
 
     def on_btn_upload(self, event):
         outstring="upload_magic.py"
-        print "-I- running python script:\n %s"%(outstring)
+        print("-I- running python script:\n %s"%(outstring))
         wait = wx.BusyInfo("Please wait, working...")
         wx.Yield()
         if self.data_model_num == 3:
@@ -654,9 +654,9 @@ class MagMainFrame(wx.Frame):
 
 def main():
     if '-h' in sys.argv:
-        print "See https://earthref.org/PmagPy/cookbook/#pmag_gui.py for a complete tutorial"
+        print("See https://earthref.org/PmagPy/cookbook/#pmag_gui.py for a complete tutorial")
         sys.exit()
-    print '-I- Starting Pmag GUI - please be patient'
+    print('-I- Starting Pmag GUI - please be patient')
     # if redirect is true, wxpython makes its own output window for stdout/stderr
     if 'darwin' in sys.platform:
         app = wx.App(redirect=False)

@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+from __future__ import print_function
+from builtins import str
 import wx
 import os
 import sys
@@ -44,7 +46,7 @@ def main():
 
     args = sys.argv
     if '-h' in args:
-        print main.__doc__
+        print(main.__doc__)
         sys.exit()
     dataframe = extractor.command_line_dataframe([['f', False, 'rmag_anisotropy.txt'],
                                                   ['fb', False, 'magic_measurements.txt'],
@@ -62,8 +64,8 @@ def main():
         dmin, dmax = depth.split()
         dmin, dmax = float(dmin), float(dmax)
     except:
-        print 'you must provide depth in this format: -d dmin dmax'
-        print 'could not parse "{}", defaulting to plotting all depths'.format('-d ' + str(depth))
+        print('you must provide depth in this format: -d dmin dmax')
+        print('could not parse "{}", defaulting to plotting all depths'.format('-d ' + str(depth)))
         dmin, dmax = -1, -1
 
     if depth_scale:
@@ -74,7 +76,7 @@ def main():
         elif 'mcd' in depth_scale:
             depth_scale = 'sample_composite_depth'
         else:
-            print 'Warning: Unrecognized option "{}" provided for depth scale.\nOptions for depth scale are mbsf -- meters below sea floor -- or mcd -- meters composite depth.\nAlternatively, if you provide an age file the depth scale will be automatically set to plot by age instead.\nUsing default "mbsf"'.format(depth_scale)
+            print('Warning: Unrecognized option "{}" provided for depth scale.\nOptions for depth scale are mbsf -- meters below sea floor -- or mcd -- meters composite depth.\nAlternatively, if you provide an age file the depth scale will be automatically set to plot by age instead.\nUsing default "mbsf"'.format(depth_scale))
             depth_scale = 'sample_composite_depth'
             
     fig, figname = ipmag.aniso_depthplot(ani_file, meas_file, samp_file, age_file, sum_file, fmt, dmin, dmax, depth_scale, dir_path)
@@ -83,7 +85,7 @@ def main():
             dir_path = os.getcwd()
         plt.savefig(figname)
         plt.clf()
-        print 'Saved file: {} in folder: {}'.format(figname, dir_path)
+        print('Saved file: {} in folder: {}'.format(figname, dir_path))
         return False
     
     app = wx.App(redirect=False)

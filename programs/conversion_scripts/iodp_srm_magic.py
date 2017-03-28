@@ -26,6 +26,9 @@ OPTIONS
 INPUTS
     IODP .csv file format exported from LIMS database
 """
+from __future__ import print_function
+from builtins import str
+from builtins import range
 import sys, os, time
 import pmagpy.pmag as pmag
 import pmagpy.new_builder as nb
@@ -64,7 +67,7 @@ def convert(**kwargs):
     for f in filelist: # parse each file
         if f[-3:].lower()=='csv':
             file_found = True
-            print 'processing: ',f
+            print('processing: ',f)
             full_file = os.path.join(input_dir_path, f)
             file_input=open(full_file,'rU').readlines()
             keys=file_input[0].replace('\n','').split(',') # splits on underscores
@@ -130,19 +133,19 @@ def convert(**kwargs):
                 for k in range(len(keys)):
                     if len(recs)==len(keys):
                         InRec[keys[k]]=line.split(',')[k].strip(""" " ' """)
-                if 'Exp' in InRec.keys() and InRec['Exp']!="": test=1 # get rid of pesky blank lines (why is this a thing?)
+                if 'Exp' in list(InRec.keys()) and InRec['Exp']!="": test=1 # get rid of pesky blank lines (why is this a thing?)
                 if not test: continue
                 run_number=""
                 inst="IODP-SRM"
                 volume='15.59' # set default volume to this
-                if 'Sample Area (cm?)' in InRec.keys() and  InRec['Sample Area (cm?)']!= "": volume=InRec['Sample Area (cm?)']
+                if 'Sample Area (cm?)' in list(InRec.keys()) and  InRec['Sample Area (cm?)']!= "": volume=InRec['Sample Area (cm?)']
                 MeasRec,SpecRec,SampRec,SiteRec,LocRec={},{},{},{},{}
                 expedition=InRec['Exp']
                 location=InRec['Site']+InRec['Hole']
 # Maintain backward compatibility for the ever-changing LIMS format (Argh!)
                 while len(InRec['Core'])<3:
                     InRec['Core']='0'+InRec['Core']
-                if "Last Tray Measurment" in InRec.keys() and "SHLF" not in InRec[text_id] or 'dscr' in csv_file :  # assume discrete sample
+                if "Last Tray Measurment" in list(InRec.keys()) and "SHLF" not in InRec[text_id] or 'dscr' in csv_file :  # assume discrete sample
                     specimen=expedition+'-'+location+'-'+InRec['Core']+InRec[core_type]+"-"+InRec[sect_key]+'-'+InRec[half_key]+'-'+str(InRec[interval_key])
                 else: # mark as continuous measurements
                     specimen=expedition+'-'+location+'-'+InRec['Core']+InRec[core_type]+"_"+InRec[sect_key]+InRec[half_key]+'-'+str(InRec[interval_key])
@@ -152,14 +155,14 @@ def convert(**kwargs):
                 if not InRec[dec_key] or not InRec[inc_key]:
                     print("No dec or inc found for specimen %s, skipping"%specimen); continue
 
-                if specimen!="" and specimen not in map(lambda x: x['specimen'] if 'specimen' in x.keys() else "", SpecRecs):
+                if specimen!="" and specimen not in [x['specimen'] if 'specimen' in list(x.keys()) else "" for x in SpecRecs]:
                     SpecRec['specimen'] = specimen
                     SpecRec['sample'] = sample
                     SpecRec['citations']=citation
                     SpecRec['volume'] = volume
                     SpecRec['specimen_alternatives']=InRec[text_id]
                     SpecRecs.append(SpecRec)
-                if sample!="" and sample not in map(lambda x: x['sample'] if 'sample' in x.keys() else "", SampRecs):
+                if sample!="" and sample not in [x['sample'] if 'sample' in list(x.keys()) else "" for x in SampRecs]:
                     SampRec['sample'] = sample
                     SampRec['site'] = site
                     SampRec['citations']=citation
@@ -173,14 +176,14 @@ def convert(**kwargs):
                     else:
                         SampRec['method_codes']='FS-C-DRILL-IODP:SO-V'
                     SampRecs.append(SampRec)
-                if site!="" and site not in map(lambda x: x['site'] if 'site' in x.keys() else "", SiteRecs):
+                if site!="" and site not in [x['site'] if 'site' in list(x.keys()) else "" for x in SiteRecs]:
                     SiteRec['site'] = site
                     SiteRec['location'] = location
                     SiteRec['citations']=citation
                     SiteRec['lat'] = lat
                     SiteRec['lon'] = lon
                     SiteRecs.append(SiteRec)
-                if location!="" and location not in map(lambda x: x['location'] if 'location' in x.keys() else "", LocRecs):
+                if location!="" and location not in [x['location'] if 'location' in list(x.keys()) else "" for x in LocRecs]:
                     LocRec['location']=location
                     LocRec['citations']=citation
                     LocRec['expedition_name']=expedition
@@ -200,7 +203,7 @@ def convert(**kwargs):
                 MeasRec["treat_dc_field_theta"]='0'
                 MeasRec["quality"]='g' # assume all data are "good"
                 MeasRec["standard"]='u' # assume all data are "good"
-                if run_number_key in InRec.keys() and InRec[run_number_key]!= "": run_number=InRec[run_number_key]
+                if run_number_key in list(InRec.keys()) and InRec[run_number_key]!= "": run_number=InRec[run_number_key]
                 datestamp=InRec[date_key].split() # date time is second line of file
                 if '/' in datestamp[0]:
                     mmddyy=datestamp[0].split('/') # break into month day year
@@ -217,7 +220,7 @@ def convert(**kwargs):
                     utc_dt = datetime.datetime.strptime(date, "%Y:%m:%d:%H:%M:%S")
                 MeasRec['timestamp']=utc_dt.strftime("%Y-%m-%dT%H:%M:%S")+"Z"
                 MeasRec["method_codes"]='LT-NO'
-                if 'Treatment Type' in InRec.keys() and InRec['Treatment Type']!="":
+                if 'Treatment Type' in list(InRec.keys()) and InRec['Treatment Type']!="":
                     if "AF" in InRec['Treatment Type'].upper():
                         MeasRec['method_codes'] = 'LT-AF-Z'
                         inst=inst+':IODP-SRM-AF' # measured on shipboard in-line 2G AF

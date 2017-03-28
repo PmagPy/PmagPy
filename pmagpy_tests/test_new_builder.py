@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from builtins import str
 import unittest
 import os
 import pandas as pd
@@ -123,7 +124,7 @@ class TestMagicDataFrame(unittest.TestCase):
         #
         dct = magic_df.convert_to_pmag_data_list("dict")
         self.assertEqual(dict, type(dct))
-        self.assertEqual(dict, type(dct[dct.keys()[0]]))
+        self.assertEqual(dict, type(dct[list(dct.keys())[0]]))
         self.assertEqual('1', str(dct['1']['site']))
 
     def test_get_name(self):
@@ -320,7 +321,7 @@ class TestContribution(unittest.TestCase):
         con = nb.Contribution(directory, dmodel=DMODEL, read_tables=['sites'],
                               custom_filenames={'locations': '_locations.txt',
                                                 'samples': '_samples.txt'})
-        self.assertEqual(['sites'], con.tables.keys())
+        self.assertEqual(['sites'], list(con.tables.keys()))
         con.propagate_all_tables_info()
         self.assertEqual(sorted(['samples', 'sites', 'locations']), sorted(con.tables.keys()))
         for fname in ['_locations.txt', '_samples.txt']:
@@ -345,7 +346,7 @@ class TestContribution(unittest.TestCase):
         con = nb.Contribution(self.directory, dmodel=DMODEL, read_tables=['sites'],
                               custom_filenames={'locations': '_locations.txt',
                                                 'samples': '_samples.txt'})
-        self.assertEqual(['sites'], con.tables.keys())
+        self.assertEqual(['sites'], list(con.tables.keys()))
         con.propagate_all_tables_info()
         self.assertEqual(sorted(['sites', 'locations']), sorted(con.tables.keys()))
         for fname in ['_locations.txt']: # no samples available this time

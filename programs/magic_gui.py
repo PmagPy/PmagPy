@@ -4,7 +4,7 @@ doc string
 """
 
 # pylint: disable=C0103,E402
-print '-I- Importing MagIC GUI dependencies'
+print('-I- Importing MagIC GUI dependencies')
 import matplotlib
 if not matplotlib.get_backend() == 'WXAgg':
     matplotlib.use('WXAgg')
@@ -43,10 +43,10 @@ class MainFrame(wx.Frame):
         #
         self.grid_frame = None
         self.panel = wx.Panel(self, size=wx.GetDisplaySize(), name='main panel')
-        print '-I- Fetching working directory'
+        print('-I- Fetching working directory')
         self.WD = os.path.realpath(WD) or os.getcwd()
 
-        print '-I- Initializing magic data model'
+        print('-I- Initializing magic data model')
         if dmodel is None:
             dmodel = data_model3.DataModel()
         self.data_model = dmodel
@@ -54,10 +54,10 @@ class MainFrame(wx.Frame):
         self.edited = False
         self.validation_mode = False
 
-        print '-I- Initializing interface'
+        print('-I- Initializing interface')
         self.InitUI()
 
-        print '-I- Completed interface'
+        print('-I- Completed interface')
         if contribution:
             self.contribution = contribution
         else:
@@ -70,7 +70,7 @@ class MainFrame(wx.Frame):
 
         wait = wx.BusyInfo('Reading in data from current working directory, please wait...')
         wx.Yield()
-        print '-I- Read in any available data from working directory'
+        print('-I- Read in any available data from working directory')
         self.contribution = nb.Contribution(self.WD, dmodel=self.data_model)
         # propagate names from measurements into other tables
         if "measurements" in self.contribution.tables:
@@ -227,7 +227,7 @@ class MainFrame(wx.Frame):
         self.hbox.Fit(self)
 
         # do menu
-        print "-I- Initializing menu"
+        print("-I- Initializing menu")
         menubar = MagICMenu(self)
         self.SetMenuBar(menubar)
 
@@ -266,7 +266,7 @@ class MainFrame(wx.Frame):
         Create a GridFrame for data type of the button that was clicked
         """
         if self.grid_frame:
-            print '-I- You already have a grid frame open'
+            print('-I- You already have a grid frame open')
             pw.simple_warning("You already have a grid open")
             return
 
@@ -466,7 +466,7 @@ class MagICMenu(wx.MenuBar):
         dia = pmag_menu_dialogs.ClearWD(self.parent, self.parent.WD)
         clear = dia.do_clear()
         if clear:
-            print '-I- Clear data object'
+            print('-I- Clear data object')
             self.contribution = nb.Contribution(self.WD, dmodel=self.data_model)
             self.edited = False
 
@@ -503,9 +503,9 @@ class MagICMenu(wx.MenuBar):
 
 def main():
     if '-h' in sys.argv:
-        print "See https://earthref.org/PmagPy/cookbook/#magic_gui.py for a complete tutorial"
+        print("See https://earthref.org/PmagPy/cookbook/#magic_gui.py for a complete tutorial")
         sys.exit()
-    print '-I- Starting MagIC GUI - please be patient'
+    print('-I- Starting MagIC GUI - please be patient')
 
     # if redirect is true, wxpython makes its own output window for stdout/stderr
     if 'darwin' in sys.platform:
