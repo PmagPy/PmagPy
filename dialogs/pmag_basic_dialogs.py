@@ -937,6 +937,7 @@ class convert_CIT_files_to_MagIC(convert_files_to_MagIC):
 
         #---sizer 7 ----
         self.bSizer7 = pw.replicate_measurements(pnl)
+        self.bSizer7.replicate_rb2.SetValue(True)
 
         #---sizer 8 ---
         TEXT = "peak AF field (mT) if ARM: "
