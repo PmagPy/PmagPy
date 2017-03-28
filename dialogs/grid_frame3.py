@@ -942,8 +942,9 @@ class GridBuilder(object):
             grid = magic_grid.MagicGrid(parent=self.panel, name=self.grid_type,
                                         row_labels=[], col_labels=col_labels)
         else:
+            row_labels = self.magic_dataframe.df.index
             grid = magic_grid.HugeMagicGrid(parent=self.panel, name=self.grid_type,
-                            row_labels=[], col_labels=col_labels)
+                            row_labels=row_labels, col_labels=col_labels)
         grid.do_event_bindings()
         grid.changes = changes
 
@@ -953,17 +954,20 @@ class GridBuilder(object):
     def add_data_to_grid(self, grid, grid_type=None):
         if isinstance(self.magic_dataframe, nb.MagicDataFrame):
             grid.add_items(self.magic_dataframe.df, self.exclude_cols)
-        grid.size_grid()
 
-        # always start with at least one row:
-        if not grid.GetNumberRows():
-            grid.add_row()
-        # if adding actual data, remove the blank row
-        else:
-            if not grid.GetCellValue(0, 0) and grid.GetNumberRows() > 1:
-                grid.remove_row(0)
-        # include horizontal scrollbar unless grid has less than 5 rows
-        grid.set_scrollbars()
+        if not self.huge:
+            grid.size_grid()
+
+        if not self.huge:
+            # always start with at least one row:
+            if not grid.GetNumberRows():
+                grid.add_row()
+            # if adding actual data, remove the blank row
+            else:
+                if not grid.GetCellValue(0, 0) and grid.GetNumberRows() > 1:
+                    grid.remove_row(0)
+            # include horizontal scrollbar unless grid has less than 5 rows
+            grid.set_scrollbars()
 
 
     def save_grid_data(self):
