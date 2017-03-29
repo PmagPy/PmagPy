@@ -10,6 +10,10 @@ import wx.lib.mixins.gridlabelrenderer as gridlabelrenderer
 
 class HugeTable(gridlib.PyGridTableBase):
 
+    """
+    Table class for virtual grid
+    """
+
     def __init__(self, log, num_rows, num_cols):
         gridlib.PyGridTableBase.__init__(self)
         self.log = log
@@ -27,11 +31,6 @@ class HugeTable(gridlib.PyGridTableBase):
         attr.IncRef()
         return attr
 
-    # This is all it takes to make a custom data table to plug into a
-    # wxGrid.  There are many more methods that can be overridden, but
-    # the ones shown below are the required ones.  This table simply
-    # provides strings containing the row and column values.
-
     def GetNumberRows(self):
         return self.num_rows #10000
 
@@ -44,12 +43,15 @@ class HugeTable(gridlib.PyGridTableBase):
     def GetValue(self, row, col):
         if len(self.dataframe):
             return self.dataframe.iloc[row, col]
-        return '' #str( (row, col) )
+        return ''
 
     def SetValue(self, row, col, value):
-        self.log.write('SetValue(%d, %d, "%s") ignored.\n' % (row, col, value))
+        self.dataframe.iloc[row, col] = value
 
-
+    def GetColLabelValue(self, col):
+        if len(self.dataframe):
+            return self.dataframe.columns[col]
+        return ''
 
 
 
@@ -453,8 +455,10 @@ class HugeMagicGrid(BaseMagicGrid):
 
         self.Bind(gridlib.EVT_GRID_CELL_RIGHT_CLICK, self.OnRightDown)
 
-    #def InitUI(self):
-    #    pass
+        #self.InitUI()
+
+    def InitUI(self):
+        self.size_grid()
 
     def add_items(self, dataframe, hide_cols=()):
         # replace "None" values with ""
@@ -464,24 +468,10 @@ class HugeMagicGrid(BaseMagicGrid):
             if col in dataframe.columns:
                 del dataframe[col]
         self.table.dataframe = dataframe
-        #'base_AppendCols', 'base_AppendRow'
-        print 'done adding items to huge table'
-
-
-    #def size_grid(self):
-    #    pass
-
-    def remove_row(self, row_num):
-        pass
-
-    #def set_scrollbars(self):
-    #    pass
 
     def OnRightDown(self, event):
         print "hello"
         print self.GetSelectedRows()
-
-
 
 
 

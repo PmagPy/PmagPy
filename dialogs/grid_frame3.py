@@ -118,6 +118,12 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
         self.Bind(wx.EVT_BUTTON, lambda event: self.on_remove_row(event, False), self.deleteRowButton)
         self.deleteRowButton.Disable()
 
+        # measurements table should not be able to add new rows
+        # that should be done elsewhere
+        if self.huge:
+            self.add_many_rows_button.Disable()
+            self.remove_row_button.Disable()
+
         ## Data management buttons
         self.importButton = wx.Button(self.panel, id=-1,
                                       label='Import MagIC-format file',
