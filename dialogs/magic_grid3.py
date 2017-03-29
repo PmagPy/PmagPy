@@ -345,16 +345,15 @@ class BaseMagicGrid(gridlib.Grid, gridlabelrenderer.GridWithLabelRenderersMixin)
     def paint_invalid_row(self, row, color="LIGHT BLUE"):
         self.SetRowLabelRenderer(row, MyRowLabelRenderer(color))
 
-    def paint_invalid_cell(self, row, col, color='MEDIUM VIOLET RED'):
+    def paint_invalid_cell(self, row, col, color='MEDIUM VIOLET RED',
+                           skip_cell=False):
         """
         Take row, column, and turn it color
         """
-        #col_ind = self.col_labels.index(col_name)
-        #print 'row', row
-        #print 'col', col
-        #print 'color', color
         self.SetColLabelRenderer(col, MyColLabelRenderer('#1101e0'))
-        self.SetCellRenderer(row, col, MyCustomRenderer(color))#color))
+        # SetCellRenderer doesn't work with table-based grid (HugeGrid class)
+        if not skip_cell:
+            self.SetCellRenderer(row, col, MyCustomRenderer(color))
 
 
 

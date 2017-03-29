@@ -297,6 +297,10 @@ class MainFrame(wx.Frame):
         # paint validations if appropriate
         if self.validation_mode:
             if grid_type in self.validation_mode:
+                if grid_type == 'measurements':
+                    skip_cell_render = True
+                else:
+                    skip_cell_render = False
                 self.grid_frame.toggle_help(None, "open")
                 row_problems = self.failing_items[grid_type]["rows"]
                 missing_columns = self.failing_items[grid_type]["missing_columns"]
@@ -305,10 +309,10 @@ class MainFrame(wx.Frame):
                 #col_nums = range(len(all_cols))
                 #col_pos = dict(zip(all_cols, col_nums))
                 if len(row_problems):
-                    row_string = """Columns and rows with problem data have been highlighted in blue.
-Cells with problem data are highlighted according to the type of problem.
-Red: incorrect data
-For full error messages, see {}.""".format(grid_type + "_errors.txt")
+                    row_string = "Columns and rows with problem data have been highlighted in blue.\n"
+                    if not skip_cell_render:
+                        row_string += "Cells with problem data are highlighted according to the type of problem.\nRed: incorrect data\n"
+                    row_string += "For full error messages, see {}.".format(grid_type + "_errors.txt")
                     for row in row_problems['num']:
                         self.grid_frame.grid.paint_invalid_row(row)
                         mask = row_problems["num"] == row
@@ -317,7 +321,8 @@ For full error messages, see {}.""".format(grid_type + "_errors.txt")
                         for col in cols:
                             pre, col_name = val_up3.extract_col_name(col)
                             col_ind = self.grid_frame.grid.col_labels.index(col_name)
-                            self.grid_frame.grid.paint_invalid_cell(row, col_ind)
+                            self.grid_frame.grid.paint_invalid_cell(row, col_ind,
+                                                                    skip_cell=skip_cell_render)
                 current_label = self.grid_frame.msg_text.GetLabel()
                 if len(missing_columns):
                     col_string = "You are missing the following required columns: {}\n\n".format(", ".join(missing_columns))
@@ -361,7 +366,7 @@ For full error messages, see {}.""".format(grid_type + "_errors.txt")
                 self.message.SetLabel('The following grid(s) have incorrect or incomplete data:\n{}'.format(', '.join(self.validation_mode)))
             # highlighting does work with OSX
             else:
-                for dtype in ["specimens", "samples", "sites", "locations", "ages"]:
+                for dtype in ["specimens", "samples", "sites", "locations", "ages", "measurements"]:
                     wind = self.FindWindowByName(dtype + '_btn')
                     if dtype not in has_problems:
                         wind.Unbind(wx.EVT_PAINT, handler=self.highlight_button)
