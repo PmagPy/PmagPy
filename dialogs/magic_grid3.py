@@ -41,11 +41,18 @@ class HugeTable(gridlib.PyGridTableBase):
         return False
 
     def GetValue(self, row, col):
+        """
+        Find the matching value from pandas DataFrame,
+        return it.
+        """
         if len(self.dataframe):
             return self.dataframe.iloc[row, col]
         return ''
 
     def SetValue(self, row, col, value):
+        """
+        Set value in the pandas DataFrame
+        """
         self.dataframe.iloc[row, col] = value
 
     def GetColLabelValue(self, col):
@@ -53,6 +60,9 @@ class HugeTable(gridlib.PyGridTableBase):
             return self.dataframe.columns[col]
         return ''
 
+    ## this one doesn't seem to work right... just hangs...
+    #def AppendCols(self, *args):
+    #    pass
 
 
 class BaseMagicGrid(gridlib.Grid, gridlabelrenderer.GridWithLabelRenderersMixin):
@@ -468,8 +478,13 @@ class HugeMagicGrid(BaseMagicGrid):
                 del dataframe[col]
         self.table.dataframe = dataframe
 
+    def save_items(self):
+        """
+        Return dataframe so that a contribution can update
+        """
+        return self.table.dataframe
+
     def OnRightDown(self, event):
-        print "hello"
         print self.GetSelectedRows()
 
 
