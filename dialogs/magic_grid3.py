@@ -32,10 +32,10 @@ class HugeTable(gridlib.PyGridTableBase):
         return attr
 
     def GetNumberRows(self):
-        return self.num_rows #10000
+        return self.num_rows
 
     def GetNumberCols(self):
-        return self.num_cols #10000
+        return self.num_cols
 
     def IsEmptyCell(self, row, col):
         return False
@@ -63,8 +63,20 @@ class HugeTable(gridlib.PyGridTableBase):
         self.dataframe.iloc[:, col] = value
 
     def GetColLabelValue(self, col):
+        """
+        Get col label from dataframe
+        """
         if len(self.dataframe):
             return self.dataframe.columns[col]
+        return ''
+
+    def SetColLabelValue(self, col, value):
+        """
+        Set col label value in dataframe
+        """
+        if len(self.dataframe):
+            col_name = self.dataframe.columns[col]
+            self.dataframe.rename(columns={col_name: value}, inplace=True)
         return ''
 
     ## this one doesn't seem to work right... just hangs...
@@ -277,7 +289,7 @@ class BaseMagicGrid(gridlib.Grid, gridlabelrenderer.GridWithLabelRenderersMixin)
         Add a new column to the grid.
         Resize grid to display the column.
         """
-        self.AppendCols(1)
+        self.AppendCols(1, updateLabels=False)
         last_col = self.GetNumberCols() - 1
         self.SetColLabelValue(last_col, label)
         self.col_labels.append(label)

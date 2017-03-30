@@ -230,9 +230,12 @@ class Menus(object):
         # if the column has no drop-down list, allow user to edit all cells in the column through text entry
         if not has_dropdown and col != 0:
             if self.selected_col == col:
+                col_label = self.grid.GetColLabelValue(col)
+                if col_label.endswith(" \nEDIT ALL"):
+                    col_label = col_label[:-10]
                 default_value = self.grid.GetCellValue(0, col)
                 data = None
-                dialog = wx.TextEntryDialog(None, "Enter value for all cells in the column\nNote: this will overwrite any existing cell values", "Edit All", default_value, style=wx.OK|wx.CANCEL)
+                dialog = wx.TextEntryDialog(None, "Enter value for all cells in the column {}\nNote: this will overwrite any existing cell values".format(col_label_value), "Edit All", default_value, style=wx.OK|wx.CANCEL)
                 dialog.Centre()
                 if dialog.ShowModal() == wx.ID_OK:
                     data = dialog.GetValue()
