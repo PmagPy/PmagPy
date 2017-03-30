@@ -1640,7 +1640,7 @@ class convert_generic_files_to_MagIC(wx.Frame):
                 specimen=tmp_data['Specimen']
                 if specimen not in Data.keys():
                     Data[specimen]=[]
-                # check dupliactes
+                # check duplicates
                 if len(Data[specimen]) >0:
                     if tmp_data['Treatment']==Data[specimen][-1]['Treatment']:
                         print "-W- WARNING: duplicate measurements specimen %s, Treatment %s. keeping onlt the last one"%(tmp_data['Specimen'],tmp_data['Treatment'])
