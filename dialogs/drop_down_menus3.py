@@ -7,6 +7,7 @@ used in MagIC grids
 # pylint: disable=W0612,C0111,C0301
 
 import wx
+from dialogs import magic_grid3
 
 
 class Menus(object):
@@ -34,6 +35,7 @@ class Menus(object):
             parent_table, self.parent_type = self.contribution.get_table_name(parent_ind+1)
 
         self.grid = grid
+        self.huge_grid = True if isinstance(self.grid, magic_grid3.HugeMagicGrid) else False
         self.window = grid.Parent  # parent window in which grid resides
         #self.headers = headers
         self.selected_col = None
@@ -187,6 +189,8 @@ class Menus(object):
         for assigning to the entire column.
         Otherwise user should be able to edit the entire column
         by entering text.
+        If Menus are attached to a HugeMagicGrid, don't try to do
+        highlighting of a column, it doesn't work.
         """
         col = event.GetCol()
         color = self.grid.GetCellBackgroundColour(0, col)
@@ -197,15 +201,17 @@ class Menus(object):
             if self.selected_col is not None and self.selected_col != col:
                 col_label_value = self.grid.GetColLabelValue(self.selected_col)
                 self.grid.SetColLabelValue(self.selected_col, col_label_value[:-10])
-                for row in range(self.grid.GetNumberRows()):
-                    self.grid.SetCellBackgroundColour(row, self.selected_col, self.col_color)# 'white'
+                if not self.huge_grid:
+                    for row in range(self.grid.GetNumberRows()):
+                        self.grid.SetCellBackgroundColour(row, self.selected_col, self.col_color)# 'white'
                 self.grid.ForceRefresh()
             # deselect col if user is clicking on it a second time
             if col == self.selected_col:
                 col_label_value = self.grid.GetColLabelValue(col)
                 self.grid.SetColLabelValue(col, col_label_value[:-10])
-                for row in range(self.grid.GetNumberRows()):
-                    self.grid.SetCellBackgroundColour(row, col, self.col_color) # 'white'
+                if not self.huge_grid:
+                    for row in range(self.grid.GetNumberRows()):
+                        self.grid.SetCellBackgroundColour(row, col, self.col_color) # 'white'
                 self.grid.ForceRefresh()
                 self.selected_col = None
             # otherwise, select (highlight) col
@@ -213,8 +219,9 @@ class Menus(object):
                 self.selected_col = col
                 col_label_value = self.grid.GetColLabelValue(col)
                 self.grid.SetColLabelValue(col, col_label_value + " \nEDIT ALL")
-                for row in range(self.grid.GetNumberRows()):
-                    self.grid.SetCellBackgroundColour(row, col, 'light blue')
+                if not self.huge_grid:
+                    for row in range(self.grid.GetNumberRows()):
+                        self.grid.SetCellBackgroundColour(row, col, 'light blue')
                 self.grid.ForceRefresh()
         has_dropdown = False
         if col in self.choices.keys():
@@ -229,18 +236,30 @@ class Menus(object):
                 dialog.Centre()
                 if dialog.ShowModal() == wx.ID_OK:
                     data = dialog.GetValue()
-                    for row in range(self.grid.GetNumberRows()):
-                        self.grid.SetCellValue(row, col, str(data))
+                    # with HugeMagicGrid, you can add a new value to a column
+                    # all at once
+                    if self.huge_grid:
+                        self.grid.SetColumnValues(col, str(data))
                         if self.grid.changes:
-                            self.grid.changes.add(row)
+                            self.grid.changes.add(0)
                         else:
-                            self.grid.changes = {row}
+                            self.grid.changes = {0}
+                    # with MagicGrid, you must add a new value
+                    # one row at a time
+                    else:
+                        for row in range(self.grid.GetNumberRows()):
+                            self.grid.SetCellValue(row, col, str(data))
+                            if self.grid.changes:
+                                self.grid.changes.add(row)
+                            else:
+                                self.grid.changes = {row}
                 dialog.Destroy()
                 # then deselect column
                 col_label_value = self.grid.GetColLabelValue(col)
                 self.grid.SetColLabelValue(col, col_label_value[:-10])
-                for row in range(self.grid.GetNumberRows()):
-                    self.grid.SetCellBackgroundColour(row, col, self.col_color) # 'white'
+                if not self.huge_grid:
+                    for row in range(self.grid.GetNumberRows()):
+                        self.grid.SetCellBackgroundColour(row, col, self.col_color) # 'white'
                 self.grid.ForceRefresh()
                 self.selected_col = None
 

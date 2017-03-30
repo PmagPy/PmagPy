@@ -55,6 +55,13 @@ class HugeTable(gridlib.PyGridTableBase):
         """
         self.dataframe.iloc[row, col] = value
 
+    def SetColumnValues(self, col, value):
+        """
+        Custom method to efficiently set all values
+        in a column
+        """
+        self.dataframe.iloc[:, col] = value
+
     def GetColLabelValue(self, col):
         if len(self.dataframe):
             return self.dataframe.columns[col]
@@ -71,6 +78,7 @@ class BaseMagicGrid(gridlib.Grid, gridlabelrenderer.GridWithLabelRenderersMixin)
     """
 
     def __init__(self, parent, name, row_labels, col_labels, size=0):
+        print 'initing BaseMagicGrid'
         self.name = name
         self.changes = None
         self.row_labels = sorted(row_labels)
@@ -366,7 +374,6 @@ class BaseMagicGrid(gridlib.Grid, gridlabelrenderer.GridWithLabelRenderersMixin)
             self.SetCellRenderer(row, col, MyCustomRenderer(color))
 
 
-
 class MagicGrid(BaseMagicGrid):
     """
     grid class
@@ -463,7 +470,6 @@ class HugeMagicGrid(BaseMagicGrid):
         self.SetTable(table, True)
 
         self.Bind(gridlib.EVT_GRID_CELL_RIGHT_CLICK, self.OnRightDown)
-
         #self.InitUI()
 
     def InitUI(self):
@@ -484,9 +490,15 @@ class HugeMagicGrid(BaseMagicGrid):
         """
         return self.table.dataframe
 
+    def SetColumnValues(self, col, data):
+        """
+        Set a whole column worth of values
+        in self.table
+        """
+        self.table.SetColumnValues(col, data)
+
     def OnRightDown(self, event):
         print self.GetSelectedRows()
-
 
 
 class MyCustomRenderer(gridlib.PyGridCellRenderer):
