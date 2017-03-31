@@ -90,7 +90,6 @@ class BaseMagicGrid(gridlib.Grid, gridlabelrenderer.GridWithLabelRenderersMixin)
     """
 
     def __init__(self, parent, name, row_labels, col_labels, size=0):
-        print 'initing BaseMagicGrid'
         self.name = name
         self.changes = None
         self.row_labels = sorted(row_labels)

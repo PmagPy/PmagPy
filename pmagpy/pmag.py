@@ -366,13 +366,14 @@ def convert_directory_2_to_3(meas_fname="magic_measurements.txt", input_dir=".",
             if res:
                 upgraded.append(res)
         # try to upgrade criteria file
-        crit_file = convert_criteria_file_2_to_3(input_dir=input_dir,
-                                                 output_dir=output_dir,
-                                                 data_model=data_model)[0]
-        if crit_file:
-            upgraded.append(crit_file)
-        else:
-            no_upgrade.append("pmag_criteria.txt")
+        if os.path.exists(os.path.join(input_dir, 'pmag_criteria.txt')):
+            crit_file = convert_criteria_file_2_to_3(input_dir=input_dir,
+                                                     output_dir=output_dir,
+                                                     data_model=data_model)[0]
+            if crit_file:
+                upgraded.append(crit_file)
+            else:
+                no_upgrade.append("pmag_criteria.txt")
         # create list of all un-upgradeable files
         for fname in os.listdir(input_dir):
             if fname in ['measurements.txt', 'specimens.txt', 'samples.txt',
