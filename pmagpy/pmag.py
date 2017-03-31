@@ -8495,7 +8495,7 @@ class MissingCommandLineArgException(Exception):
         return self.message
 
 
-def domagmap(date,**kwargs):
+def do_mag_map(date,**kwargs):
     """
     returns lists of declination, inclination and intensities for lat/lon grid for
     desired model and date.

@@ -72,7 +72,7 @@ def main():
         ind=sys.argv.index('-age')
         date=float(sys.argv[ind+1])
     else: date=2016.
-    Ds,Is,Bs,Brs,lons,lats=pmag.doMagMap(date,mod=mod,lon_0=lon_0,alt=alt,el=el)
+    Ds,Is,Bs,Brs,lons,lats=pmag.do_mag_map(date,mod=mod,lon_0=lon_0,alt=alt,el=el)
     m = Basemap(projection='hammer',lon_0=lon_0)
     x,y=m(*meshgrid(lons,lats))
     m.drawcoastlines()
