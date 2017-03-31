@@ -527,10 +527,13 @@ class Contribution(object):
             add_df = self.tables[bottom_table_name].df
             # drop duplicate names
             add_df = add_df.drop_duplicates(subset=bottom_name)
-            df = df.merge(add_df[[child_name]],
-                          left_on=[bottom_name],
-                          right_index=True, how="left")
-            self.tables[df_name].df = df
+            if child_name not in df.columns:
+                print "-W- Cannot complete propagation, {} table is missing {} column".format(df_name, child_name)
+            else:
+                df = df.merge(add_df[[child_name]],
+                              left_on=[bottom_name],
+                              right_index=True, how="left")
+                self.tables[df_name].df = df
 
         # merge in one level above
         if parent_name not in df.columns:
@@ -545,10 +548,15 @@ class Contribution(object):
             add_df = self.tables[child_table_name].df
             # drop duplicate names
             add_df = add_df.drop_duplicates(subset=child_name)
-            df = df.merge(add_df[[parent_name]],
-                          left_on=[child_name],
-                          right_index=True, how="left")
-            self.tables[df_name].df = df
+            if parent_name not in add_df:
+                print '-W- could not finish propagating names: {} table is missing {} column'.format(child_table_name, parent_name)
+            elif parent_name not in df:
+                print '-W- could not finish propagating names: {} table is missing {} column'.format(df_name, parent_name)
+            else:
+                df = df.merge(add_df[[parent_name]],
+                              left_on=[child_name],
+                              right_index=True, how="left")
+                self.tables[df_name].df = df
 
         # merge in two levels above
         if grandparent_name not in df.columns:
@@ -563,9 +571,14 @@ class Contribution(object):
             add_df = self.tables[parent_table_name].df
             # drop duplicate names
             add_df = add_df.drop_duplicates(subset=parent_name)
-            df = df.merge(add_df[[grandparent_name]],
-                          left_on=[parent_name],
-                          right_index=True, how="left")
+            if grandparent_name not in add_df.columns:
+                print '-W- could not finish propagating names: {} table is missing {} column'.format(parent_table_name, grandparent_name)
+            elif grandparent_name not in df.columns:
+                print '-W- could not finish propagating names: {} table is missing {} column'.format(df_name, grandparent_name)
+            else:
+                df = df.merge(add_df[[grandparent_name]],
+                              left_on=[parent_name],
+                              right_index=True, how="left")
         # update the Contribution
         self.tables[df_name].df = df
         return df

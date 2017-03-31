@@ -366,13 +366,14 @@ def convert_directory_2_to_3(meas_fname="magic_measurements.txt", input_dir=".",
             if res:
                 upgraded.append(res)
         # try to upgrade criteria file
-        crit_file = convert_criteria_file_2_to_3(input_dir=input_dir,
-                                                 output_dir=output_dir,
-                                                 data_model=data_model)[0]
-        if crit_file:
-            upgraded.append(crit_file)
-        else:
-            no_upgrade.append("pmag_criteria.txt")
+        if os.path.exists(os.path.join(input_dir, 'pmag_criteria.txt')):
+            crit_file = convert_criteria_file_2_to_3(input_dir=input_dir,
+                                                     output_dir=output_dir,
+                                                     data_model=data_model)[0]
+            if crit_file:
+                upgraded.append(crit_file)
+            else:
+                no_upgrade.append("pmag_criteria.txt")
         # create list of all un-upgradeable files
         for fname in os.listdir(input_dir):
             if fname in ['measurements.txt', 'specimens.txt', 'samples.txt',
@@ -8357,14 +8358,22 @@ def write_criteria_to_file(path,acceptance_criteria,**kwargs):
             if type(acceptance_criteria[crit]["value"])==bool:
                 rec[value_key]=str(acceptance_criteria[crit]["value"])
             if 'data_model' in kwargs.keys() and kwargs['data_model']==3: # need to make a list of these dictionaries
-                if eval(rec[value_key])!=-999: recs.append(rec)
+                if eval(rec[value_key])!=-999:
+                    recs.append(rec)
           else:
-              print "-W- WARNING: statistic %s not written to file:",crit
+              print "-W- WARNING: statistic: {} not written to file".format(crit)
     if 'data_model' in kwargs.keys() and kwargs['data_model']==3: # need to make a list of these dictionaries
         if 'prior_crits' in kwargs.keys():
              prior_crits=kwargs['prior_crits']
+             included = {rec['table_column'] for rec in recs}
              for rec in prior_crits:
-                 if 'criterion' in rec.keys() and 'IE-' not in rec['criterion']:recs.append(rec) # preserve non-intensity related criteria
+                 if 'criterion' in rec.keys() and 'IE-' not in rec['criterion']:
+                     if rec['criterion'] == 'ACCEPT' and rec['table_column'] in included:
+                         # ignore intensity criteria converted from ACCEPT to IE-*
+                         pass
+                     else:
+                         # preserve non-intensity related criteria
+                         recs.append(rec)
         magic_write(path,recs,'criteria')
     else:
         magic_write(path,[rec],'pmag_criteria')
