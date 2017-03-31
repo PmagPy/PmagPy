@@ -5929,8 +5929,9 @@ else:
         for rec in meas_data:
             s=rec["er_specimen_name"]
             Data[s]['T_or_MW']="T"
-            sample=rec["er_sample_name"]
-            site=rec["er_site_name"]
+            sample=rec.get("er_sample_name", '')
+            site=rec.get("er_site_name", '')
+            rec['er_sample_name'], rec['er_site_name'] = sample, site
             # if "er_site_name" in an empty string: use er_sample_name tp assign site to sample.
             if rec["er_site_name"]=="":
                 site=sample
