@@ -1014,6 +1014,31 @@ class MagicDataFrame(object):
         self.df = df_data
         return df_data
 
+    def drop_stub_rows(self, ignore_cols=('specimen',
+                                          'sample',
+                                          'software_packages',
+                                          'num')):
+        """
+        Drop self.df rows that have only null values,
+        ignoring certain columns.
+
+        Parameters
+        ----------
+        ignore_cols : list-like
+            list of column names to ignore for
+
+        Returns
+        ---------
+        self.df : pandas DataFrame
+        """
+        # ignore citations if they just say 'This study'
+        if 'citations' in self.df.columns:
+            if sorted(self.df['citations'].unique()) == ['This study']:
+                ignore_cols = ignore_cols + ('citations',)
+        drop_cols = self.df.columns.difference(ignore_cols)
+        self.df.dropna(axis='index', subset=drop_cols, how='all', inplace=True)
+        return self.df
+
     def update_record(self, name, new_data, condition, update_only=False,
                       debug=False):
         """

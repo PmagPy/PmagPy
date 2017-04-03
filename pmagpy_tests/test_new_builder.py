@@ -186,6 +186,17 @@ class TestMagicDataFrame(unittest.TestCase):
         directions = magic_df.df.loc['1', 'bed_dip_direction']
         self.assertEqual(sorted(directions), [135, 135, 135])
 
+    def test_drop_stub_rows(self):
+        magic_df = nb.MagicDataFrame(os.path.join(PROJECT_WD, 'sites.txt'),
+                                     dmodel=DMODEL)
+        self.assertEqual(3, len(magic_df.df.loc['1']))
+        magic_df.add_row('1', {'site': '1', 'location': 'new_loc'})
+        magic_df.add_row('1', {'site': '1', 'location': 'new_loc',
+                               'citations': 'real citation'})
+        self.assertEqual(5, len(magic_df.df.loc['1']))
+        magic_df.drop_stub_rows(['site', 'location'])
+        self.assertEqual(4, len(magic_df.df.loc['1']))
+
 
 class TestContribution(unittest.TestCase):
 

@@ -3241,6 +3241,8 @@ else:
         aniso_logfile.write("-I- Done anisotropy script\n")
         aniso_logfile.write( "------------------------\n")
         if self.data_model==3:
+            #  drop any stub rows (mostly empty rows)
+            self.spec_container.drop_stub_rows()
             #  write out the data
             self.spec_container.write_magic_file(dir_path=self.WD)
         else:
