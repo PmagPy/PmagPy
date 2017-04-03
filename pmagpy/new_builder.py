@@ -399,7 +399,11 @@ class Contribution(object):
         self.propagate_cols(cols, 'samples', 'sites')
         cols = ['lithologies', 'geologic_types', 'geologic_classes']
         self.propagate_cols(cols, 'specimens', 'samples')
-
+        # if sites table is missing any values,
+        # go ahead and propagate values UP as well
+        if not all(self.tables['sites'].df[cols].values.ravel()):
+            print '-I- Propagating values up from samples to sites...'
+            self.propagate_cols_up(cols, 'sites', 'samples')
 
     def add_item(self, table_name, data, label):
         self.tables[table_name].add_row(label, data)
@@ -664,6 +668,56 @@ class Contribution(object):
         #
         self.tables[target_df_name].df = target_df
         return target_df
+
+    def propagate_cols_up(self, cols, target_df_name, source_df_name):
+        """
+        Take values from source table, compile them into a colon-delimited list,
+        and apply them to the target table.
+        This method won't overwrite values in the target table, it will only
+        supply values where they are missing.
+
+        Parameters
+        ----------
+        cols : list-like
+            list of columns to propagate
+        target_df_name : str
+            name of table to propagate values into
+        source_df_name:
+            name of table to propagate values from
+
+        Returns
+        ---------
+        target_df : MagicDataFrame
+            updated MagicDataFrame with propagated values
+        """
+        target_df = self.tables[target_df_name]
+        source_df = self.tables[source_df_name]
+        target_name = target_df_name[:-1]
+        # if target_df has info, propagate that into all rows
+        target_df.front_and_backfill(cols)
+        # make sure target_name is in source_df for merging
+        if target_name not in source_df.df.columns:
+            print "-W- You can't merge data from {} table into {} table".format(source_df_name, target_df_name)
+            print "    Your {} table is missing {} column".format(source_df_name, target_name)
+            self.tables[target_df_name] = target_df
+            return target_df
+        source_df.front_and_backfill([target_name])
+        # group source df by target_name
+        grouped = source_df.df.groupby(source_df.df[target_name])
+        # function to generate colon-delimited list
+        def func(group, col_name):
+            group_col = ":".join(group[col_name].unique())
+            return group_col
+        # apply func to each column
+        for col in cols:
+            res = grouped.apply(func, col)
+            target_df.df['new_' + col] = res
+            target_df.df[col] = np.where(target_df.df[col], target_df.df[col], target_df.df['new_' + col])
+            target_df.df.drop(['new_' + col], axis='columns')
+        # set table
+        self.tables[target_df_name] = target_df
+        return target_df
+
 
     def remove_non_magic_cols(self):
         """

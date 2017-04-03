@@ -197,6 +197,19 @@ class TestMagicDataFrame(unittest.TestCase):
         magic_df.drop_stub_rows(['site', 'location'])
         self.assertEqual(4, len(magic_df.df.loc['1']))
 
+    def test_propagate_cols_up(self):
+        directory = os.path.join('data_files', '3_0', 'McMurdo')
+        con = nb.Contribution(directory, read_tables=['sites', 'samples'],
+                              custom_filenames={'locations': '_locations.txt'})
+        con.tables['samples'].df.loc['mc01a', 'lithologies'] = 'other'
+        con.tables['sites'].df.loc['mc01', 'lithologies'] = ''
+        con.tables['sites'].df[:10][['lithologies', 'geologic_types']]
+        cols = ['lithologies', 'geologic_types']
+        con.propagate_cols_up(cols, 'sites', 'samples')
+        self.assertEqual('other:Trachyte', con.tables['sites'].df.loc['mc01', 'lithologies'].unique()[0])
+        self.assertEqual('Basalt', con.tables['sites'].df.loc['mc02', 'lithologies'].unique()[0])
+        self.assertTrue(all(con.tables['sites'].df['lithologies']))
+
 
 class TestContribution(unittest.TestCase):
 
