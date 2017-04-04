@@ -282,6 +282,13 @@ class MainFrame(wx.Frame):
         # propagate lithologies/type/class information from sites to samples/specimens
         if grid_type in ['specimens', 'samples']:
             self.contribution.propagate_lithology_cols()
+        # propagate average lat/lon info from samples table if
+        # available in samples and missing in sites
+        if grid_type == 'sites':
+            self.contribution.propagate_average_up(cols=['lat', 'lon'],
+                                           target_df_name='sites',
+                                           source_df_name='samples')
+            self.contribution.propagate_lithology_cols()
         # hide mainframe
         self.on_open_grid_frame()
         # choose appropriate size for grid

@@ -401,6 +401,9 @@ class Contribution(object):
         self.propagate_cols(cols, 'specimens', 'samples')
         # if sites table is missing any values,
         # go ahead and propagate values UP as well
+        for col in cols:
+            if col not in self.tables['sites'].df.columns:
+                self.tables['sites'].df[col] = None
         if not all(self.tables['sites'].df[cols].values.ravel()):
             print '-I- Propagating values up from samples to sites...'
             self.propagate_cols_up(cols, 'sites', 'samples')
@@ -724,7 +727,7 @@ class Contribution(object):
             res = grouped.apply(func, col)
             target_df.df['new_' + col] = res
             target_df.df[col] = np.where(target_df.df[col], target_df.df[col], target_df.df['new_' + col])
-            target_df.df.drop(['new_' + col], axis='columns')
+            target_df.df.drop(['new_' + col], axis='columns', inplace=True)
         # set table
         self.tables[target_df_name] = target_df
         return target_df
@@ -760,8 +763,6 @@ class Contribution(object):
             print '    Source table must be lower in the hierarchy than the target table.'
             print '    You have provided "{}" as the target table and "{}" as the source table.'.format(target_df_name, source_df_name)
             return None
-
-
         # make sure target table is read in
         if target_df_name not in self.tables:
             self.add_magic_table(target_df_name)
