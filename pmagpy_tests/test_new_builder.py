@@ -197,18 +197,9 @@ class TestMagicDataFrame(unittest.TestCase):
         magic_df.drop_stub_rows(['site', 'location'])
         self.assertEqual(4, len(magic_df.df.loc['1']))
 
-    def test_propagate_cols_up(self):
-        directory = os.path.join('data_files', '3_0', 'McMurdo')
-        con = nb.Contribution(directory, read_tables=['sites', 'samples'],
-                              custom_filenames={'locations': '_locations.txt'})
-        con.tables['samples'].df.loc['mc01a', 'lithologies'] = 'other'
-        con.tables['sites'].df.loc['mc01', 'lithologies'] = ''
-        con.tables['sites'].df[:10][['lithologies', 'geologic_types']]
-        cols = ['lithologies', 'geologic_types']
-        con.propagate_cols_up(cols, 'sites', 'samples')
-        self.assertEqual('other:Trachyte', con.tables['sites'].df.loc['mc01', 'lithologies'].unique()[0])
-        self.assertEqual('Basalt', con.tables['sites'].df.loc['mc02', 'lithologies'].unique()[0])
-        self.assertTrue(all(con.tables['sites'].df['lithologies']))
+
+
+
 
 
 class TestContribution(unittest.TestCase):
@@ -386,6 +377,59 @@ class TestContribution(unittest.TestCase):
                            'samples', down=False)
         self.assertEqual('Basalt', con.tables['sites'].get_first_non_null_value('mc50', 'lithologies'))
         self.assertEqual('your type', con.tables['sites'].get_first_non_null_value('mc50', 'geologic_types'))
+
+    def test_propagate_cols_up(self):
+        directory = os.path.join('data_files', '3_0', 'McMurdo')
+        con = nb.Contribution(directory, read_tables=['sites', 'samples'],
+                              custom_filenames={'locations': '_locations.txt'})
+        con.tables['samples'].df.loc['mc01a', 'lithologies'] = 'other'
+        con.tables['sites'].df.loc['mc01', 'lithologies'] = ''
+        con.tables['sites'].df[:10][['lithologies', 'geologic_types']]
+        cols = ['lithologies', 'geologic_types']
+        con.propagate_cols_up(cols, 'sites', 'samples')
+        self.assertEqual('other:Trachyte', con.tables['sites'].df.loc['mc01', 'lithologies'].unique()[0])
+        self.assertEqual('Basalt', con.tables['sites'].df.loc['mc02', 'lithologies'].unique()[0])
+        self.assertTrue(all(con.tables['sites'].df['lithologies']))
+
+    def test_propagate_average_up(self):
+        directory = os.path.join('data_files', '3_0', 'McMurdo')
+        con = nb.Contribution(directory, read_tables=['sites', 'samples'])
+        con.tables['sites'].df.drop(['lat', 'lon'], axis='columns',
+                                    inplace=True)
+        con.tables['samples'].df.loc['mc01a', 'lat'] = -60.
+        # test basic function
+        con.propagate_average_up()
+        self.assertTrue(all(con.tables['sites'].df[['lat', 'lon']].values.ravel()))
+        self.assertEqual([-75.61875], con.tables['sites'].df.loc['mc01', 'lat'].unique())
+        # make sure does not overwrite existing values
+        con = nb.Contribution(directory, read_tables=['sites', 'samples'])
+        con.tables['sites'].df.loc['mc01', 'lon'] = 12
+        con.propagate_average_up()
+        self.assertEqual([12], con.tables['sites'].df.loc['mc01', 'lon'].unique())
+        self.assertNotIn('new_lat', con.tables['sites'].df.columns)
+        self.assertNotIn('new_lon', con.tables['sites'].df.columns)
+        # make sure works with only some sample data available
+        con = nb.Contribution(directory, read_tables=['sites', 'samples'])
+        con.tables['samples'].df.drop(['lon'], axis='columns', inplace=True)
+        con.propagate_average_up()
+        # fails gracefully?
+        con = nb.Contribution(directory, read_tables=['sites', 'samples'])
+        con.tables['samples'].df.drop(['site'], axis='columns', inplace=True)
+        con.tables['sites'].df.loc['mc01', 'lat'] = ''
+        con.propagate_average_up()
+        # fails gracefully?
+        con = nb.Contribution(directory, read_tables=['sites', 'samples'],
+                              custom_filenames={'samples': '_samples.txt'})
+        res = con.propagate_average_up()
+        self.assertIsNone(res)
+        # fails gracefully?
+        res = con.propagate_average_up(target_df_name='samples', source_df_name='sites')
+        self.assertIsNone(res)
+        # fails gracefully?
+        res = con.propagate_average_up(target_df_name='sites', source_df_name='specimens')
+        self.assertIsNone(res)
+
+
 
 
 

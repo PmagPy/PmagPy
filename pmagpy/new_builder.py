@@ -690,6 +690,17 @@ class Contribution(object):
         target_df : MagicDataFrame
             updated MagicDataFrame with propagated values
         """
+        # make sure target table is read in
+        if target_df_name not in self.tables:
+            self.add_magic_table(target_df_name)
+        if target_df_name not in self.tables:
+            print "-W- Couldn't read in {} table".format(target_df_name)
+            return
+        # make sure source table is read in
+        if source_df_name not in self.tables:
+            self.add_magic_table(source_df_name)
+            print "-W- Couldn't read in {} table".format(source_df_name)
+            return
         target_df = self.tables[target_df_name]
         source_df = self.tables[source_df_name]
         target_name = target_df_name[:-1]
@@ -715,6 +726,85 @@ class Contribution(object):
             target_df.df[col] = np.where(target_df.df[col], target_df.df[col], target_df.df['new_' + col])
             target_df.df.drop(['new_' + col], axis='columns')
         # set table
+        self.tables[target_df_name] = target_df
+        return target_df
+
+
+    def propagate_average_up(self, cols=['lat', 'lon'],
+                             target_df_name='sites', source_df_name='samples'):
+        """
+        Propagate average values from a lower table to a higher one.
+        For example, propagate average lats/lons from samples to sites.
+        Pre-existing values will not be overwritten.
+
+        Parameters
+        ----------
+        cols : list-like
+            list of columns to propagate
+        target_df_name : str
+            name of table to propagate values into
+        source_df_name:
+            name of table to propagate values from
+
+        Returns
+        ---------
+        target_df : MagicDataFrame or None
+            returns table with propagated data,
+            or None if no propagation could be done
+        """
+        # make sure target/source table are appropriate
+        target_ind = self.ancestry.index(target_df_name)
+        source_ind = self.ancestry.index(source_df_name)
+        if target_ind - source_ind != 1:
+            print '-W- propagate_average_up only works with tables that are spaced one apart, i.e. sites and samples.'
+            print '    Source table must be lower in the hierarchy than the target table.'
+            print '    You have provided "{}" as the target table and "{}" as the source table.'.format(target_df_name, source_df_name)
+            return None
+
+
+        # make sure target table is read in
+        if target_df_name not in self.tables:
+            self.add_magic_table(target_df_name)
+        if target_df_name not in self.tables:
+            print "-W- Couldn't read in {} table".format(target_df_name)
+            return
+        # make sure source table is read in
+        if source_df_name not in self.tables:
+            self.add_magic_table(source_df_name)
+        if source_df_name not in self.tables:
+            print "-W- Couldn't read in {} table".format(source_df_name)
+            return
+        # get tables
+        target_df = self.tables[target_df_name]
+        source_df = self.tables[source_df_name]
+        target_name = target_df_name[:-1]
+        # step 1: make sure columns exist in target_df
+        for col in cols:
+            if col not in target_df.df.columns:
+                target_df.df[col] = None
+        # step 2: propagate target_df columns forward & back
+        target_df.front_and_backfill(cols)
+        # step 3: see if any column values are missing
+        if all(target_df.df[cols].values.ravel()):
+            print '-I- {} table already has {} filled column(s)'.format(target_df_name, cols)
+            self.tables[target_df_name] = target_df
+            return target_df
+        # step 4: make sure columns are in source table, also target name
+        if target_name not in source_df.df.columns:
+            print "-W- can't propagate from {} to {} table".format(source_df_name, target_df_name)
+            print "    Missing {} column in {} table".format(target_name, source_df_name)
+            self.tables[target_df_name] = target_df
+            return target_df
+        for col in cols:
+            if col not in target_df.df.columns:
+                target_df.df[col] = None
+        # step 5: if needed, average from source table and apply to target table
+        grouped = source_df.df[cols + [target_name]].groupby(target_name)
+        grouped = grouped[cols].apply(np.mean)
+        for col in cols:
+            target_df.df['new_' + col] = grouped[col]
+            target_df.df[col] = np.where(target_df.df[col], target_df.df[col], target_df.df['new_' + col])
+            target_df.df.drop(['new_' + col], inplace=True, axis=1)
         self.tables[target_df_name] = target_df
         return target_df
 
