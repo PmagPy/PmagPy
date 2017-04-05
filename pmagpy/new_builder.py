@@ -718,9 +718,13 @@ class Contribution(object):
         source_df.front_and_backfill([target_name])
         # group source df by target_name
         grouped = source_df.df.groupby(source_df.df[target_name])
-        # function to generate colon-delimited list
+        # function to generate capitalized, sorted, colon-delimited list
+        # of unique, non-null values from a column
         def func(group, col_name):
-            group_col = ":".join(group[col_name].unique())
+            lst = group[col_name][group[col_name].notnull()].unique()
+            split_lst = [col.split(':') for col in lst if col]
+            sorted_lst = sorted(np.unique([item.capitalize() for sublist in split_lst for item in sublist]))
+            group_col = ":".join(sorted_lst)
             return group_col
         # apply func to each column
         for col in cols:

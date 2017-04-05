@@ -2,6 +2,7 @@
 
 import unittest
 import os
+import numpy as np
 import pandas as pd
 from pmagpy import new_builder as nb
 from pmagpy import data_model3 as data_model
@@ -366,7 +367,7 @@ class TestContribution(unittest.TestCase):
         for fname in ['_locations.txt']: # no samples available this time
             os.remove(os.path.join(self.directory, fname))
 
-    def test_propagate_cols_up(self):
+    def test_propagate_cols_up_old(self):
         directory = os.path.join(WD, 'data_files', '3_0', 'McMurdo')
         con = nb.Contribution(directory, dmodel=DMODEL,
                               read_tables=['sites', 'samples'])
@@ -382,12 +383,16 @@ class TestContribution(unittest.TestCase):
         directory = os.path.join('data_files', '3_0', 'McMurdo')
         con = nb.Contribution(directory, read_tables=['sites', 'samples'],
                               custom_filenames={'locations': '_locations.txt'})
-        con.tables['samples'].df.loc['mc01a', 'lithologies'] = 'other'
+        con.tables['samples'].df.loc['mc01a', 'lithologies'] = 'other:Trachyte'
+        ind = con.tables['samples'].df.columns.get_loc('lithologies')
+        con.tables['samples'].df.iloc[2, ind] = None
+        con.tables['samples'].df.iloc[3, ind] = np.nan
+        con.tables['samples'].df.iloc[4, ind] = ''
         con.tables['sites'].df.loc['mc01', 'lithologies'] = ''
         con.tables['sites'].df[:10][['lithologies', 'geologic_types']]
         cols = ['lithologies', 'geologic_types']
         con.propagate_cols_up(cols, 'sites', 'samples')
-        self.assertEqual('other:Trachyte', con.tables['sites'].df.loc['mc01', 'lithologies'].unique()[0])
+        self.assertEqual('Other:Trachyte', con.tables['sites'].df.loc['mc01', 'lithologies'].unique()[0])
         self.assertEqual('Basalt', con.tables['sites'].df.loc['mc02', 'lithologies'].unique()[0])
         self.assertTrue(all(con.tables['sites'].df['lithologies']))
 
