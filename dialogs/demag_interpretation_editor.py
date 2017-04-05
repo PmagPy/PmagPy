@@ -5,7 +5,7 @@ from numpy import vstack,sqrt
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigCanvas
 from matplotlib.backends.backend_wxagg import NavigationToolbar2WxAgg as NavigationToolbar
 from matplotlib.figure import Figure
-from . import help_files.demag_interpretation_editor_help as dieh
+import help_files.demag_interpretation_editor_help as dieh
 from pmagpy.demag_gui_utilities import *
 from pmagpy.Fit import *
 from pmagpy.pmag import get_version
@@ -31,12 +31,12 @@ class InterpretationEditorFrame(wx.Frame):
         self.Bind(wx.EVT_CLOSE, self.on_close_edit_window)
         #setup wx help provider class to give help messages
         provider = wx.SimpleHelpProvider()
-        wx.HelpProvider_Set(provider)
+        wx.HelpProvider.Set(provider)
         self.helper = wx.ContextHelp(doNow=False)
         #make the Panel
         self.panel = wx.Panel(self,-1,size=(700*self.GUI_RESOLUTION,450*self.GUI_RESOLUTION))
         #set icon
-        icon = wx.EmptyIcon()
+        icon = wx.Icon()
         icon_path = os.path.join(IMG_DIRECTORY, 'PmagPy.ico')
         if os.path.exists(icon_path):
             icon.CopyFromBitmap(wx.Bitmap(icon_path), wx.BITMAP_TYPE_ANY)
@@ -302,7 +302,7 @@ class InterpretationEditorFrame(wx.Frame):
         m_save_high_level = submenu_save_plots.Append(-1, "&Save high level plot", "")
         self.Bind(wx.EVT_MENU, self.parent.on_save_high_level, m_save_high_level,"Eq")
 
-        m_new_sub_plots = menu_file.AppendMenu(-1, "&Save plot", submenu_save_plots)
+        m_new_sub_plots = menu_file.Append(-1, "&Save plot", submenu_save_plots)
 
         menu_file.AppendSeparator()
         m_exit = menu_file.Append(-1, "E&xit\tCtrl-Q", "Exit")
@@ -320,7 +320,7 @@ class InterpretationEditorFrame(wx.Frame):
         m_import_criteria_file =  submenu_criteria.Append(-1, "&Import criteria file", "")
         self.Bind(wx.EVT_MENU, self.parent.on_menu_criteria_file, m_import_criteria_file)
 
-        m_new_sub = menu_Analysis.AppendMenu(-1, "Acceptance criteria", submenu_criteria)
+        m_new_sub = menu_Analysis.Append(-1, "Acceptance criteria", submenu_criteria)
 
         m_import_LSQ = menu_Analysis.Append(-1, "&Import Interpretations from LSQ file\tCtrl-L", "")
         self.Bind(wx.EVT_MENU, self.parent.on_menu_read_from_LSQ, m_import_LSQ)
@@ -390,7 +390,7 @@ class InterpretationEditorFrame(wx.Frame):
             m_tilt = menu_coordinates.Append(-1, "&Tilt-Corrected Coordinates\tCtrl-T", "")
             self.Bind(wx.EVT_MENU, self.parent.on_menu_change_tilt_coord, m_tilt)
 
-        m_coords = menu_edit.AppendMenu(-1, "&Coordinate Systems", menu_coordinates)
+        m_coords = menu_edit.Append(-1, "&Coordinate Systems", menu_coordinates)
 
         #--------------------------------------------------------------------
 
@@ -503,19 +503,19 @@ class InterpretationEditorFrame(wx.Frame):
 
         if i < self.logger.GetItemCount():
             self.logger.DeleteItem(i)
-        self.logger.InsertStringItem(i, str(specimen))
-        self.logger.SetStringItem(i, 1, name)
-        self.logger.SetStringItem(i, 2, fmin)
-        self.logger.SetStringItem(i, 3, fmax)
-        self.logger.SetStringItem(i, 4, n)
-        self.logger.SetStringItem(i, 5, ftype)
-        self.logger.SetStringItem(i, 6, dec)
-        self.logger.SetStringItem(i, 7, inc)
-        self.logger.SetStringItem(i, 8, mad)
-        self.logger.SetStringItem(i, 9, dang)
-        self.logger.SetStringItem(i, 10, a95)
-        self.logger.SetStringItem(i, 11, sk)
-        self.logger.SetStringItem(i, 12, sr2)
+        self.logger.InsertItem(i, str(specimen))
+        self.logger.SetItem(i, 1, name)
+        self.logger.SetItem(i, 2, fmin)
+        self.logger.SetItem(i, 3, fmax)
+        self.logger.SetItem(i, 4, n)
+        self.logger.SetItem(i, 5, ftype)
+        self.logger.SetItem(i, 6, dec)
+        self.logger.SetItem(i, 7, inc)
+        self.logger.SetItem(i, 8, mad)
+        self.logger.SetItem(i, 9, dang)
+        self.logger.SetItem(i, 10, a95)
+        self.logger.SetItem(i, 11, sk)
+        self.logger.SetItem(i, 12, sr2)
         self.logger.SetItemBackgroundColour(i,"WHITE")
         a,b = False,False
         if fit in self.parent.bad_fits:
@@ -724,7 +724,7 @@ class InterpretationEditorFrame(wx.Frame):
             self.parent.level_names.SetStringSelection(high_level_name)
             self.parent.onSelect_level_name(event,True)
 
-        self.specimens_list.sort(cmp=specimens_comparator)
+        self.specimens_list.sort(key=specimens_comparator)
         self.update_editor()
 
     def on_select_mean_type_box(self, event):
@@ -827,7 +827,7 @@ class InterpretationEditorFrame(wx.Frame):
             if next_i == -1:
                 break
             deleted_items.append(next_i)
-        deleted_items.sort(cmp=lambda x,y: y - x)
+        deleted_items.sort(reverse=True)
         for item in deleted_items:
             self.delete_entry(index=item)
         self.parent.update_selection()
@@ -979,12 +979,12 @@ class InterpretationEditorFrame(wx.Frame):
         e = 4e0
 
         if self.high_EA_setting == "Zoom":
-            self.canvas.SetCursor(wx.StockCursor(wx.CURSOR_CROSS))
+            self.canvas.SetCursor(wx.Cursor(wx.CURSOR_CROSS))
         else:
-            self.canvas.SetCursor(wx.StockCursor(wx.CURSOR_ARROW))
+            self.canvas.SetCursor(wx.Cursor(wx.CURSOR_ARROW))
         for i,(x,y) in enumerate(zip(xdata,ydata)):
             if 0 < sqrt((x-xpick_data)**2. + (y-ypick_data)**2.) < e:
-                self.canvas.SetCursor(wx.StockCursor(wx.CURSOR_HAND))
+                self.canvas.SetCursor(wx.Cursor(wx.CURSOR_HAND))
                 break
         event.Skip()
 

@@ -182,8 +182,8 @@ def main(command_line=True, **kwargs):
     MagOuts=[]
     for spec in Specs:
         Speclist=pmag.get_dictitem(MagRecs,'er_specimen_name',spec,'T')
-        sorted=pmag.sort_diclist(Speclist,sort_by)    
-        for rec in sorted:
+        Meassorted=sorted(Speclist, key=lambda x,y=None: int(round(float(x[sort_by])-float(y[sort_by]))) if y!=None else 0)
+        for rec in Meassorted:
             for key in list(rec.keys()): rec[key]=str(rec[key])
             MagOuts.append(rec)
     Fixed=pmag.measurements_methods(MagOuts,noave)

@@ -1017,16 +1017,16 @@ class MagicDataFrame(object):
         # add numeric index column temporarily
         self.df['num'] = list(range(len(self.df)))
         df_data = self.df
-        condition2 = df_data.index == name
+        condition2 = (df_data.index == name)
         # edit first of existing data that meets condition
         if len(df_data[condition & condition2]) > 0:  #we have one or more records to update or delete
             # list of all rows where condition is true and index == name
             inds = df_data[condition & condition2]['num']
             #inds = df_data[condition]['num'] # list of all rows where condition is true
-            existing_data = dict(df_data.iloc[inds[0]]) # get first record of existing_data from dataframe
+            existing_data = dict(df_data.iloc[inds.ix[0]]) # get first record of existing_data from dataframe
             existing_data.update(new_data) # update existing data with new interpretations
             # update row
-            self.update_row(inds[0], existing_data)
+            self.update_row(inds.ix[0], existing_data)
             # now remove all the remaining records of same condition
             if len(inds) > 1:
                 for ind in inds[1:]:

@@ -428,7 +428,7 @@ Check that all specimens belong to the correct sample
 
         self.hbox_all = wx.BoxSizer(wx.HORIZONTAL)
         self.hbox_all.AddSpacer(20)
-        self.hbox_all.AddSpacer(vbox)
+        self.hbox_all.Add(vbox)
         self.hbox_all.AddSpacer(20)
 
         self.panel.SetSizer(self.hbox_all)
@@ -529,7 +529,7 @@ You may use the drop-down menus to add as many values as needed in these columns
 
         self.hbox_all = wx.BoxSizer(wx.HORIZONTAL)
         self.hbox_all.AddSpacer(20)
-        self.hbox_all.AddSpacer(vbox)
+        self.hbox_all.Add(vbox)
         self.hbox_all.AddSpacer(20)
 
         self.panel.SetSizer(self.hbox_all)
@@ -648,7 +648,7 @@ However, you will be able to edit sample_class, sample_lithology, and sample_typ
 
         self.hbox_all = wx.BoxSizer(wx.HORIZONTAL)
         self.hbox_all.AddSpacer(20)
-        self.hbox_all.AddSpacer(vbox)
+        self.hbox_all.Add(vbox)
         self.hbox_all.AddSpacer(20)
 
         self.panel.SetSizer(self.hbox_all)
@@ -751,7 +751,7 @@ Fill in any blank cells using controlled vocabularies.
 
         self.hbox_all = wx.BoxSizer(wx.HORIZONTAL)
         self.hbox_all.AddSpacer(20)
-        self.hbox_all.AddSpacer(vbox)
+        self.hbox_all.Add(vbox)
         self.hbox_all.AddSpacer(20)
 
         self.panel.SetSizer(self.hbox_all)
@@ -833,7 +833,7 @@ You may use the drop-down menus to add as many values as needed in these columns
 
         self.hbox_all = wx.BoxSizer(wx.HORIZONTAL)
         self.hbox_all.AddSpacer(20)
-        self.hbox_all.AddSpacer(vbox)
+        self.hbox_all.Add(vbox)
         self.hbox_all.AddSpacer(20)
 
         self.panel.SetSizer(self.hbox_all)

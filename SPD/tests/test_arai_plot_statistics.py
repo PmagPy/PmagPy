@@ -148,7 +148,8 @@ class CheckVDSsequence(unittest.TestCase): # adequate
  
     def test_for_negative_values(self):
         for k, v in list(self.result.items()):
-            self.assertGreaterEqual(v, 0) # none of these stats can possibly be negative numbers
+            if isinstance(v,int):
+                self.assertGreaterEqual(v, 0) # none of these stats can possibly be negative numbers
 
 
 class CheckSCAT(unittest.TestCase): # NOT DONE

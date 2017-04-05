@@ -74,12 +74,12 @@ class ImportAzDipFile(wx.Frame):
             vbox.Add(self.bSizer4, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         except AttributeError:
             pass
-        vbox.Add(hboxok, flag=wx.ALIGN_CENTER)        
+        vbox.Add(hboxok, flag=wx.ALIGN_CENTER)
         vbox.AddSpacer(20)
 
         hbox_all = wx.BoxSizer(wx.HORIZONTAL)
         hbox_all.AddSpacer(20)
-        hbox_all.AddSpacer(vbox)
+        hbox_all.Add(vbox)
 
         self.panel.SetSizer(hbox_all)
         self.panel.SetScrollbars(20, 20, 50, 50)
@@ -162,7 +162,7 @@ class MoveFileIntoWD(wx.Frame):
 
         hbox_all = wx.BoxSizer(wx.HORIZONTAL)
         hbox_all.AddSpacer(20)
-        hbox_all.AddSpacer(vbox)
+        hbox_all.Add(vbox)
 
         self.panel.SetSizer(hbox_all)
         self.panel.SetScrollbars(20, 20, 50, 50)
@@ -226,7 +226,7 @@ class ImportIODPSampleSummary(wx.Frame):
 
         hbox_all = wx.BoxSizer(wx.HORIZONTAL)
         hbox_all.AddSpacer(20)
-        hbox_all.AddSpacer(vbox)
+        hbox_all.Add(vbox)
 
         self.panel.SetSizer(hbox_all)
         self.panel.SetScrollbars(20, 20, 50, 50)
@@ -290,7 +290,7 @@ class ImportModelLatitude(wx.Frame):
 
         hbox_all = wx.BoxSizer(wx.HORIZONTAL)
         hbox_all.AddSpacer(20)
-        hbox_all.AddSpacer(vbox)
+        hbox_all.Add(vbox)
 
         self.panel.SetSizer(hbox_all)
         self.panel.SetScrollbars(20, 20, 50, 50)
@@ -379,7 +379,7 @@ class ImportKly4s(wx.Frame):
 
         self.hbox_all = wx.BoxSizer(wx.HORIZONTAL)
         self.hbox_all.AddSpacer(20)
-        self.hbox_all.AddSpacer(vbox)
+        self.hbox_all.Add(vbox)
 
         self.panel.SetSizer(self.hbox_all)
         self.panel.SetScrollbars(20, 20, 50, 50)
@@ -495,7 +495,7 @@ class ImportK15(wx.Frame):
 
         hbox_all = wx.BoxSizer(wx.HORIZONTAL)
         hbox_all.AddSpacer(20)
-        hbox_all.AddSpacer(vbox)
+        hbox_all.Add(vbox)
 
         self.panel.SetSizer(hbox_all)
         self.panel.SetScrollbars(20, 20, 50, 50)
@@ -606,7 +606,7 @@ class ImportSufarAscii(wx.Frame):
 
         hbox_all = wx.BoxSizer(wx.HORIZONTAL)
         hbox_all.AddSpacer(20)
-        hbox_all.AddSpacer(vbox)
+        hbox_all.Add(vbox)
 
         self.panel.SetSizer(hbox_all)
         self.panel.SetScrollbars(20, 20, 50, 50)
@@ -733,7 +733,7 @@ class ImportAgmFile(wx.Frame):
 
         hbox_all = wx.BoxSizer(wx.HORIZONTAL)
         hbox_all.AddSpacer(20)
-        hbox_all.AddSpacer(vbox)
+        hbox_all.Add(vbox)
 
         self.panel.SetSizer(hbox_all)
         self.panel.SetScrollbars(20, 20, 50, 50)
@@ -855,7 +855,7 @@ class ImportAgmFolder(wx.Frame):
 
         hbox_all = wx.BoxSizer(wx.HORIZONTAL)
         hbox_all.AddSpacer(20)
-        hbox_all.AddSpacer(vbox)
+        hbox_all.Add(vbox)
 
         self.panel.SetSizer(hbox_all)
         self.panel.SetScrollbars(20, 20, 50, 50)
@@ -976,7 +976,7 @@ class ExportResults(wx.Frame):
 
         hbox_all = wx.BoxSizer(wx.HORIZONTAL)
         hbox_all.AddSpacer(20)
-        hbox_all.AddSpacer(vbox)
+        hbox_all.Add(vbox)
 
         self.panel.SetSizer(hbox_all)
         self.panel.SetScrollbars(20, 20, 50, 50)
@@ -1085,7 +1085,7 @@ class CustomizeCriteria(wx.Frame):
 
         hbox_all = wx.BoxSizer(wx.HORIZONTAL)
         hbox_all.AddSpacer(20)
-        hbox_all.AddSpacer(vbox)
+        hbox_all.Add(vbox)
 
         self.panel.SetSizer(hbox_all)
         self.panel.SetScrollbars(20, 20, 50, 50)
@@ -1305,7 +1305,7 @@ class ZeqMagic(wx.Frame):
 
         hbox_all = wx.BoxSizer(wx.HORIZONTAL)
         hbox_all.AddSpacer(20)
-        hbox_all.AddSpacer(vbox)
+        hbox_all.Add(vbox)
 
         self.panel.SetSizer(hbox_all)
         self.panel.SetScrollbars(20, 20, 50, 50)
@@ -1539,7 +1539,7 @@ class Core_depthplot(wx.Frame):
 
         self.hbox_all = wx.BoxSizer(wx.HORIZONTAL)
         self.hbox_all.AddSpacer(20)
-        self.hbox_all.AddSpacer(vbox)
+        self.hbox_all.Add(vbox)
 
         self.panel.SetSizer(self.hbox_all)
         self.panel.SetScrollbars(20, 20, 50, 50)
@@ -1924,7 +1924,7 @@ class Ani_depthplot(wx.Frame):
 
         hbox_all = wx.BoxSizer(wx.HORIZONTAL)
         hbox_all.AddSpacer(20)
-        hbox_all.AddSpacer(vbox)
+        hbox_all.Add(vbox)
 
         self.panel.SetSizer(hbox_all)
         self.panel.SetScrollbars(20, 20, 50, 50)
@@ -2076,7 +2076,7 @@ class something(wx.Frame):
 
         hbox_all = wx.BoxSizer(wx.HORIZONTAL)
         hbox_all.AddSpacer(20)
-        hbox_all.AddSpacer(vbox)
+        hbox_all.Add(vbox)
 
         self.panel.SetSizer(hbox_all)
         self.panel.SetScrollbars(20, 20, 50, 50)

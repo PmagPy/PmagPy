@@ -20,7 +20,8 @@ isServer = set_env.isServer
 verbose = set_env.verbose
 
 #wmpl_version=matplotlib.__version__
-import pmag, pylab
+import pmagpy.pmag as pmag
+import pylab
 globals = 0
 graphmenu = 0
 global version_num

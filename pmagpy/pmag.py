@@ -54,9 +54,9 @@ def sort_diclist(undecorated,sort_on):
     >>> sort_diclist(lst, 'key2')
     [{'key2': 2, 'key1': 10}, {'key2': 20, 'key1': 1}]
     """
-    decorated=[(dict_[sort_on],dict_) for dict_ in undecorated]
+    decorated=[(len(dict_[sort_on]) if hasattr(dict_[sort_on],'__len__') else dict_[sort_on],index) for (index,dict_) in enumerate(undecorated)]
     decorated.sort()
-    return[dict_ for (key, dict_) in decorated]
+    return[undecorated[index] for (key, index) in decorated]
 
 
 def get_dictitem(In,k,v,flag):
@@ -5962,7 +5962,7 @@ def sortmwarai(datablock,exp_type):
     return araiblock,field
 
     #
-def doigrf(long,lat,alt,date,**kwargs):
+def doigrf(lon,lat,alt,date,**kwargs):
     """
     Calculates the interpolated (<2015) or extrapolated (>2015) main field and
     secular variation coefficients and passes them to the Malin and Barraclough
@@ -6006,7 +6006,7 @@ def doigrf(long,lat,alt,date,**kwargs):
     gh,sv=[],[]
     colat = 90.-lat
 #! convert to colatitude for MB routine
-    if int>0: long=int+360.
+    if lon<0: lon=lon+360.
 # ensure all positive east longitudes
     itype = 1
     models,igrf12coeffs=cf.get_igrf12()
@@ -6042,13 +6042,13 @@ def doigrf(long,lat,alt,date,**kwargs):
         model=date-date%incr
         gh=psvcoeffs[psvmodels.index(int(model))]
         sv=old_div((psvcoeffs[psvmodels.index(int(model+incr))]-gh),float(incr))
-        x,y,z,f=magsyn(gh,sv,model,date,itype,alt,colat,int)
+        x,y,z,f=magsyn(gh,sv,model,date,itype,alt,colat,lon)
     elif date<-1000:
         incr=10
         model=date-date%incr
         gh=psvcoeffs[psvmodels.index(int(model))]
         sv=old_div((psvcoeffs[psvmodels.index(int(model+incr))]-gh),float(incr))
-        x,y,z,f=magsyn(gh,sv,model,date,itype,alt,colat,int)
+        x,y,z,f=magsyn(gh,sv,model,date,itype,alt,colat,lon)
     elif date<1900:
         if kwargs['mod']=='cals10k':
             incr=50
@@ -6061,17 +6061,17 @@ def doigrf(long,lat,alt,date,**kwargs):
         else:
             field2=igrf12coeffs[models.index(1940)][0:120]
             sv=old_div((field2-gh),float(1940-model))
-        x,y,z,f=magsyn(gh,sv,model,date,itype,alt,colat,int)
+        x,y,z,f=magsyn(gh,sv,model,date,itype,alt,colat,lon)
     else:
         model=date-date%5
         if date<2015:
             gh=igrf12coeffs[models.index(model)]
             sv=old_div((igrf12coeffs[models.index(model+5)]-gh),5.)
-            x,y,z,f=magsyn(gh,sv,model,date,itype,alt,colat,int)
+            x,y,z,f=magsyn(gh,sv,model,date,itype,alt,colat,lon)
         else:
             gh=igrf12coeffs[models.index(2015)]
             sv=igrf12coeffs[models.index(2015.20)]
-            x,y,z,f=magsyn(gh,sv,model,date,itype,alt,colat,int)
+            x,y,z,f=magsyn(gh,sv,model,date,itype,alt,colat,lon)
     if 'coeffs' in list(kwargs.keys()):
         return gh
     else:

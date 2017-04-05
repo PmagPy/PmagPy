@@ -248,7 +248,7 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
         panel_sizer.Fit(self)
         ## this keeps sizing correct if the user resizes the window manually
         #self.Bind(wx.EVT_SIZE, self.do_fit)
-        self.Centre()
+#        self.Centre()
         self.Show()
 
     def on_key_down(self, event):
@@ -283,7 +283,7 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
             larger_height = max([actual_size[1], min_size[1]])
             if larger_width > actual_size[0] or larger_height > actual_size[1]:
                 self.SetSize((larger_width, larger_height))
-        self.Centre()
+#        self.Centre()
 
     def toggle_help(self, event, mode=None):
         """

@@ -241,10 +241,11 @@ class MainFrame(wx.Frame):
         self.Hide()
 
     def on_close_grid_frame(self, event=None):
-        if self.grid_frame.grid.changes:
+        if self.grid_frame!=None and self.grid_frame.grid.changes:
             self.edited = True
         self.grid_frame = None
-        self.Show()
+        try: self.Show()
+        except RuntimeError as e: pass
         if event:
             event.Skip()
 

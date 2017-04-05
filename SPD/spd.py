@@ -338,7 +338,7 @@ class PintPars(object):
         return Zstar
 
     def get_IZZI_MD(self):
-        from . import lib.lib_IZZI_MD as lib_izzi
+        import SPD.lib.lib_IZZI_MD as lib_izzi
         if ('IZ' in self.steps_Arai):
             IZZI_MD = lib_izzi.get_IZZI_MD(self.x_Arai, self.y_Arai, self.steps_Arai, self.start, self.end)
             self.pars['IZZI_MD'] = IZZI_MD
@@ -784,7 +784,7 @@ def make_thing():
     cwd = os.getcwd()
     main_dir = cwd + '/SPD'
     try:
-        from . import new_lj_thellier_gui_spd as tgs
+        import new_lj_thellier_gui_spd as tgs
         gui = tgs.Arai_GUI('/magic_measurements.txt', main_dir)
         specimens = list(gui.Data.keys())
         thing = PintPars(gui.Data, '0238x6011044', 473., 623.)

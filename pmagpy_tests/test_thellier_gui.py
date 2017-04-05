@@ -16,7 +16,6 @@ class TestThellierGUI(unittest.TestCase):
         self.pnl = self.frame.GetChildren()[0]
 
     def tearDown(self):
-        self.app.Destroy()
         try: os.remove(os.path.join(project_WD, "rmag_anisotropy.txt"))
         except OSError: pass
         try: os.remove(os.path.join(project_WD, "rmag_anisotropy.log"))
@@ -24,6 +23,7 @@ class TestThellierGUI(unittest.TestCase):
         try: os.remove(os.path.join(project_WD, "rmag_results.txt"))
         except OSError: pass
         os.chdir(WD)
+        wx.CallAfter(self.app.Destroy)
 
     def test_empty_dir(self):
         thellier_gui.Arai_GUI(empty_WD, DM=2)

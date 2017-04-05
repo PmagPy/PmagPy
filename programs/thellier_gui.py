@@ -340,7 +340,7 @@ class Arai_GUI(wx.Frame):
         self.specimens=list(self.Data.keys()) # get list of specimens
         self.specimens.sort() # get list of specimens
         self.InitUI()
-        wait.Destroy()
+        del wait
 
     def InitUI(self):
         # make Panels
@@ -456,7 +456,7 @@ class Arai_GUI(wx.Frame):
         # GUI headers
 
         font3 = wx.Font(11+FONT_RATIO, wx.SWISS, wx.NORMAL, wx.NORMAL, False, self.font_type)
-        font = wx.SystemSettings_GetFont(wx.SYS_SYSTEM_FONT)
+        font = wx.SystemSettings.GetFont(wx.SYS_SYSTEM_FONT)
         font.SetPointSize(10+FONT_RATIO)
 
         #--------------------------------------------------------------------
@@ -674,10 +674,9 @@ class Arai_GUI(wx.Frame):
 
         #--------------------------------------------------------------------
 
-        TEXT=["                    ","Acceptance criteria:","Specimen statistics:"]
-        for i in range(len(TEXT)):
-            command="label_%i=wx.StaticText(self.bottom_panel,label='%s',style=wx.ALIGN_CENTER,size=(180,25))"%(i,TEXT[i])
-            exec(command)
+        label_0=wx.StaticText(self.bottom_panel,label="                    ",style=wx.ALIGN_CENTER,size=(180,25))
+        label_1=wx.StaticText(self.bottom_panel,label="Acceptance criteria:",style=wx.ALIGN_CENTER,size=(180,25))
+        label_2=wx.StaticText(self.bottom_panel,label="Specimen statistics:",style=wx.ALIGN_CENTER,size=(180,25))
 
         for statistic in self.preferences['show_statistics_on_gui']:
             command="self.%s_window=wx.TextCtrl(self.bottom_panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50*self.GUI_RESOLUTION,25))"%statistic
@@ -916,10 +915,10 @@ else:
             elif crit=="specimen_scat":
                 if self.acceptance_criteria[crit]['value'] in ['g',1,'1',True,"True"]:
                     value="True"
-                    #self.scat_threshold_window.SetBackgroundColour(wx.Colour(128, 128, 128))
+                    #self.scat_threshold_window.SetBackgroundColour(wx.SetBackgroundColour(128, 128, 128))
                 else:
                     value=""
-                    self.scat_threshold_window.SetBackgroundColour(wx.Colour(128, 128, 128))
+                    self.scat_threshold_window.SetBackgroundColour(wx.SetBackgroundColour(128, 128, 128))
 
             elif type(self.acceptance_criteria[crit]['value'])==int:
                 value="%i"%self.acceptance_criteria[crit]['value']
@@ -991,12 +990,12 @@ else:
             else:
                 print(("unrecognized step in specimen %s Method codes: %s"%(str(rec['magic_method_codes']),s)))
             if THERMAL:
-                self.logger.InsertStringItem(i, "%i"%i)
-                self.logger.SetStringItem(i, 1, step)
-                self.logger.SetStringItem(i, 2, "%1.0f"%(float(rec['treatment_temp'])-273.))
-                self.logger.SetStringItem(i, 3, "%.1f"%float(rec['measurement_dec']))
-                self.logger.SetStringItem(i, 4, "%.1f"%float(rec['measurement_inc']))
-                self.logger.SetStringItem(i, 5, "%.2e"%float(rec['measurement_magn_moment']))
+                self.logger.InsertItem(i, "%i"%i)
+                self.logger.SetItem(i, 1, step)
+                self.logger.SetItem(i, 2, "%1.0f"%(float(rec['treatment_temp'])-273.))
+                self.logger.SetItem(i, 3, "%.1f"%float(rec['measurement_dec']))
+                self.logger.SetItem(i, 4, "%.1f"%float(rec['measurement_inc']))
+                self.logger.SetItem(i, 5, "%.2e"%float(rec['measurement_magn_moment']))
             elif MICROWAVE: # mcrowave
                 if "measurement_description" in list(rec.keys()):
                     MW_step=rec["measurement_description"].strip('\n').split(":")
@@ -1004,12 +1003,12 @@ else:
                         if "Number" not in STEP: continue
                         temp=float(STEP.split("-")[-1])
 
-                        self.logger.InsertStringItem(i, "%i"%i)
-                        self.logger.SetStringItem(i, 1, step)
-                        self.logger.SetStringItem(i, 2, "%1.0f"%temp)
-                        self.logger.SetStringItem(i, 3, "%.1f"%float(rec['measurement_dec']))
-                        self.logger.SetStringItem(i, 4, "%.1f"%float(rec['measurement_inc']))
-                        self.logger.SetStringItem(i, 5, "%.2e"%float(rec['measurement_magn_moment']))
+                        self.logger.InsertItem(i, "%i"%i)
+                        self.logger.SetItem(i, 1, step)
+                        self.logger.SetItem(i, 2, "%1.0f"%temp)
+                        self.logger.SetItem(i, 3, "%.1f"%float(rec['measurement_dec']))
+                        self.logger.SetItem(i, 4, "%.1f"%float(rec['measurement_inc']))
+                        self.logger.SetItem(i, 5, "%.2e"%float(rec['measurement_magn_moment']))
             self.logger.SetItemBackgroundColour(i,"WHITE")
             if i >= tmin_index and i <= tmax_index:
                 self.logger.SetItemBackgroundColour(i,"LIGHT BLUE")
@@ -1171,7 +1170,7 @@ else:
 
         menu_file.AppendSeparator()
 
-        m_new_sub_plots = menu_file.AppendMenu(-1, "&Save plot", submenu_save_plots)
+        m_new_sub_plots = menu_file.Append(-1, "&Save plot", submenu_save_plots)
 
 
         menu_file.AppendSeparator()
@@ -1203,7 +1202,7 @@ else:
         self.Bind(wx.EVT_MENU, self.on_menu_criteria_file, m_import_criteria_file)
 
 
-        m_new_sub = menu_Analysis.AppendMenu(-1, "Acceptance criteria", submenu_criteria)
+        m_new_sub = menu_Analysis.Append(-1, "Acceptance criteria", submenu_criteria)
 
 
         m_previous_interpretation = menu_Analysis.Append(-1, "&Import previous interpretation from a 'redo' file", "")
@@ -1435,23 +1434,23 @@ else:
 
         self.Blab_window.SetValue("")
         self.Banc_window.SetValue("")
-        self.Banc_window.SetBackgroundColour(wx.NamedColour('grey'))
+        self.Banc_window.SetBackgroundColour(wx.Colour('grey'))
         self.Aniso_factor_window.SetValue("")
-        self.Aniso_factor_window.SetBackgroundColour(wx.NamedColour('grey'))
+        self.Aniso_factor_window.SetBackgroundColour(wx.Colour('grey'))
         self.NLT_factor_window.SetValue("")
-        self.NLT_factor_window.SetBackgroundColour(wx.NamedColour('grey'))
+        self.NLT_factor_window.SetBackgroundColour(wx.Colour('grey'))
         self.CR_factor_window.SetValue("")
-        self.CR_factor_window.SetBackgroundColour(wx.NamedColour('grey'))
+        self.CR_factor_window.SetBackgroundColour(wx.Colour('grey'))
         self.declination_window.SetValue("")
-        self.declination_window.SetBackgroundColour(wx.NamedColour('grey'))
+        self.declination_window.SetBackgroundColour(wx.Colour('grey'))
         self.inclination_window.SetValue("")
-        self.inclination_window.SetBackgroundColour(wx.NamedColour('grey'))
+        self.inclination_window.SetBackgroundColour(wx.Colour('grey'))
 
         window_list=['sample_int_n','sample_int_uT','sample_int_sigma','sample_int_sigma_perc']
         for key in window_list:
             command="self.%s_window.SetValue(\"\")"%key
             exec(command)
-            command="self.%s_window.SetBackgroundColour(wx.NamedColour('grey'))"%key
+            command="self.%s_window.SetBackgroundColour(wx.Colour('grey'))"%key
             exec(command)
 
         #window_list=['int_n','int_ptrm_n','frac','scat','gmax','f','fvds','b_beta','g','q','int_mad','int_dang','drats','md','ptrms_dec','ptrms_inc','ptrms_mad','ptrms_angle']
@@ -1459,7 +1458,7 @@ else:
         for key in self.preferences['show_statistics_on_gui']:
             command="self.%s_window.SetValue(\"\")"%key
             exec(command)
-            command="self.%s_window.SetBackgroundColour(wx.NamedColour('grey'))"%key
+            command="self.%s_window.SetBackgroundColour(wx.Colour('grey'))"%key
             exec(command)
 
     def write_sample_box(self):
@@ -1512,10 +1511,10 @@ else:
             self.sample_int_uT_window.SetValue("")
             self.sample_int_sigma_window.SetValue("")
             self.sample_int_sigma_perc_window.SetValue("")
-            self.sample_int_uT_window.SetBackgroundColour(wx.NamedColour('grey'))
-            self.sample_int_n_window.SetBackgroundColour(wx.NamedColour('grey'))
-            self.sample_int_sigma_window.SetBackgroundColour(wx.NamedColour('grey'))
-            self.sample_int_sigma_perc_window.SetBackgroundColour(wx.NamedColour('grey'))
+            self.sample_int_uT_window.SetBackgroundColour(wx.Colour('grey'))
+            self.sample_int_n_window.SetBackgroundColour(wx.Colour('grey'))
+            self.sample_int_sigma_window.SetBackgroundColour(wx.Colour('grey'))
+            self.sample_int_sigma_perc_window.SetBackgroundColour(wx.Colour('grey'))
 
 
             return()
@@ -1814,7 +1813,7 @@ else:
             self, message="save the thellier_gui_preference.txt in PmagPy directory!",
             defaultDir=PATH,
             defaultFile="thellier_gui_preferences.py",
-            style=wx.FD_SAVE | wx.CHANGE_DIR
+            style=wx.FD_SAVE | wx.FD_CHANGE_DIR
             )
         if self.show_dlg(dlg2) == wx.ID_OK:
             preference_file = dlg2.GetPath()
@@ -1915,7 +1914,7 @@ else:
                 self, message="save the thellier_gui_preference.txt in PmagPy directory!",
                 defaultDir="~/PmagPy",
                 defaultFile="thellier_gui_preferences.py",
-                style=wx.FD_SAVE | wx.CHANGE_DIR
+                style=wx.FD_SAVE | wx.FD_CHANGE_DIR
                 )
             if self.show_dlg(dlg2) == wx.ID_OK:
                 preference_file = dlg2.GetPath()
@@ -2087,7 +2086,7 @@ else:
             defaultDir=self.WD,
             defaultFile="thellier_GUI.redo",
             wildcard="*.redo",
-            style=wx.OPEN | wx.CHANGE_DIR
+            style=wx.FD_OPEN | wx.FD_CHANGE_DIR
             )
         if self.show_dlg(dlg) == wx.ID_OK:
             redo_file = dlg.GetPath()
@@ -2234,7 +2233,7 @@ else:
             defaultDir=self.currentDirectory,
             defaultFile="",
             #wildcard=wildcard,
-            style=wx.OPEN | wx.CHANGE_DIR
+            style=wx.FD_OPEN | wx.FD_CHANGE_DIR
             )
         if self.show_dlg(dlg) == wx.ID_OK:
             new_magic_file = dlg.GetPath()
@@ -2268,7 +2267,7 @@ else:
                 self, message="choose a file in MagIC Data Model 3.0  format",
                 defaultDir=self.WD,
                 defaultFile="criteria.txt",
-                style=wx.OPEN | wx.CHANGE_DIR
+                style=wx.FD_OPEN | wx.FD_CHANGE_DIR
                 )
         else:
             dlg = wx.FileDialog(
@@ -2276,7 +2275,7 @@ else:
                 defaultDir=self.WD,
                 defaultFile="pmag_criteria.txt",
                 #wildcard=wildcard,
-                style=wx.OPEN | wx.CHANGE_DIR
+                style=wx.FD_OPEN | wx.FD_CHANGE_DIR
                 )
 
         if self.show_dlg(dlg) == wx.ID_OK:
@@ -3297,10 +3296,10 @@ else:
             self, message="Choose an auto-interpreter output file",
             defaultDir=dirname,
             #defaultFile="",
-            style=wx.OPEN | wx.CHANGE_DIR
+            style=wx.FD_OPEN | wx.FD_CHANGE_DIR
             )
 
-        #dlg = wx.FileDialog(self, "Choose an auto-interpreter output file", defaultDir=dirname, "", "*.*", wx.OPEN)
+        #dlg = wx.FileDialog(self, "Choose an auto-interpreter output file", defaultDir=dirname, "", "*.*", wx.FD_OPEN)
         if self.show_dlg(dlg) == wx.ID_OK:
             filename = dlg.GetFilename()
             path=dlg.GetPath()
@@ -3347,7 +3346,7 @@ else:
         self.Data_samples={}
         self.Data_sites={}
 
-        fin=open(redo_file,'rU')
+        fin=open(redo_file,'r')
         for Line in fin.readlines():
             line=Line.strip('\n').split()
             specimen=line[0]
@@ -4048,7 +4047,7 @@ else:
         magic_method_codes=[]
         for F in ["magic_measurements.txt","rmag_anisotropy.txt","rmag_results.txt","rmag_results.txt","pmag_samples.txt","pmag_specimens.txt","pmag_sites.txt","er_ages.txt"]:
             try:
-                fin=open(os.path.join(self.WD, F),'rU')
+                fin=open(os.path.join(self.WD, F),'r')
             except:
                 continue
             line=fin.readline()
@@ -4108,7 +4107,7 @@ else:
 
     def read_magic_file(self,path,ignore_lines_n,sort_by_this_name):
         DATA={}
-        fin=open(path,'rU')
+        fin=open(path,'r')
         #ignore first lines
         for i in range(ignore_lines_n):
             fin.readline()
@@ -4137,7 +4136,7 @@ else:
 
         '''
         DATA={}
-        fin=open(path,'rU')
+        fin=open(path,'r')
         #ignore first lines
         for i in range(ignore_lines_n):
             fin.readline()
@@ -5333,13 +5332,13 @@ else:
             self.declination_window.SetBackgroundColour(wx.WHITE)
         else:
             self.declination_window.SetValue("")
-            self.declination_window.SetBackgroundColour(wx.NamedColour('grey'))
+            self.declination_window.SetBackgroundColour(wx.Colour('grey'))
         if 'specimen_inc' in list(self.pars.keys()):
             self.inclination_window.SetValue("%.1f"%(self.pars['specimen_inc']))
             self.inclination_window.SetBackgroundColour(wx.WHITE)
         else:
             self.inclination_window.SetValue("")
-            self.inclination_window.SetBackgroundColour(wx.NamedColour('grey'))
+            self.inclination_window.SetBackgroundColour(wx.Colour('grey'))
 
 
 
@@ -5356,6 +5355,7 @@ else:
                 continue
 
             # get the value
+            value=''
             if self.acceptance_criteria[stat]['decimal_points']==-999:
                 value='%.2e'%self.pars[stat]
             elif type(self.acceptance_criteria[stat]['decimal_points'])==float or type(self.acceptance_criteria[stat]['decimal_points'])==int:
@@ -5406,7 +5406,7 @@ else:
 
         else:
             self.scat_window.SetValue("")
-            self.scat_window.SetBackgroundColour(wx.NamedColour('grey')) # set text color
+            self.scat_window.SetBackgroundColour(wx.Colour('grey')) # set text color
 
 
         # Blab, Banc, correction factors
@@ -5434,13 +5434,13 @@ else:
 
         else:
             self.Aniso_factor_window.SetValue("")
-            self.Aniso_factor_window.SetBackgroundColour(wx.NamedColour('grey'))
+            self.Aniso_factor_window.SetBackgroundColour(wx.Colour('grey'))
 
         if self.pars['NLT_specimen_correction_factor']!=-1:
             self.NLT_factor_window.SetValue("%.2f"%(self.pars['NLT_specimen_correction_factor']))
         else:
             self.NLT_factor_window.SetValue("")
-            self.NLT_factor_window.SetBackgroundColour(wx.NamedColour("grey"))
+            self.NLT_factor_window.SetBackgroundColour(wx.Colour("grey"))
 
         if self.pars['specimen_int_corr_cooling_rate']!=-1 and self.pars['specimen_int_corr_cooling_rate']!=-999:
             self.CR_factor_window.SetValue("%.2f"%(self.pars['specimen_int_corr_cooling_rate']))
@@ -5453,7 +5453,7 @@ else:
 
         else:
             self.CR_factor_window.SetValue("")
-            self.CR_factor_window.SetBackgroundColour(wx.NamedColour('grey'))
+            self.CR_factor_window.SetBackgroundColour(wx.Colour('grey'))
 
         # sample
         self.write_sample_box()

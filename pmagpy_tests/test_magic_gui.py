@@ -29,7 +29,6 @@ class TestMainFrame(unittest.TestCase):
 
     def tearDown(self):
         os.chdir(WD)
-        return
 
     def test_main_panel_is_created(self):
         """
@@ -54,28 +53,28 @@ class TestMainFrame(unittest.TestCase):
         self.assertTrue(window, 'specimens grid window was not created')
         self.assertIsInstance(window, grid_frame.GridFrame)
         self.assertTrue(window.IsEnabled())
-        self.assertTrue(window.IsShown())
+        wx.CallAfter(self.assertTrue,window.IsShown())
 
     def test_sample_button(self):
         window = self.does_top_window_exist(self.pnl, 'samples_btn', 'samples')
         self.assertTrue(window, 'samples grid window was not created')
         self.assertIsInstance(window, grid_frame.GridFrame)
         self.assertTrue(window.IsEnabled())
-        self.assertTrue(window.IsShown())
+        wx.CallAfter(self.assertTrue,window.IsShown())
 
     def test_site_button(self):
         window = self.does_top_window_exist(self.pnl, 'sites_btn', 'sites')
         self.assertTrue(window, 'sites grid window was not created')
         self.assertIsInstance(window, grid_frame.GridFrame)
         self.assertTrue(window.IsEnabled())
-        self.assertTrue(window.IsShown())
+        wx.CallAfter(self.assertTrue,window.IsShown())
 
     def test_location_button(self):
         window = self.does_top_window_exist(self.pnl, 'locations_btn', 'locations')
         self.assertTrue(window, 'locations grid window was not created')
         self.assertIsInstance(window, grid_frame.GridFrame)
         self.assertTrue(window.IsEnabled())
-        self.assertTrue(window.IsShown())
+        wx.CallAfter(self.assertTrue,window.IsShown())
 
 
     def test_age_button(self):
@@ -83,7 +82,7 @@ class TestMainFrame(unittest.TestCase):
         self.assertTrue(window, 'age grid window was not created')
         self.assertIsInstance(window, grid_frame.GridFrame)
         self.assertTrue(window.IsEnabled())
-        self.assertTrue(window.IsShown())
+        wx.CallAfter(self.assertTrue,window.IsShown())
 
 
     def does_top_window_exist(self, parent, btn_name, window_name):

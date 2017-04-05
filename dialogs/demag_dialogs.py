@@ -163,12 +163,12 @@ class VGP_Dialog(wx.Dialog):
         e = 4e0
 
         if self.plot_setting == "Zoom":
-            self.canvas.SetCursor(wx.StockCursor(wx.CURSOR_CROSS))
+            self.canvas.SetCursor(wx.Cursor(wx.CURSOR_CROSS))
         else:
-            self.canvas.SetCursor(wx.StockCursor(wx.CURSOR_ARROW))
+            self.canvas.SetCursor(wx.Cursor(wx.CURSOR_ARROW))
         for i,(x,y) in enumerate(zip(xdata,ydata)):
             if 0 < sqrt((x-xpick_data)**2. + (y-ypick_data)**2.) < e:
-                self.canvas.SetCursor(wx.StockCursor(wx.CURSOR_HAND))
+                self.canvas.SetCursor(wx.Cursor(wx.CURSOR_HAND))
                 break
         event.Skip()
 
@@ -236,13 +236,13 @@ class VGP_Dialog(wx.Dialog):
 
         if i < self.logger.GetItemCount():
             self.logger.DeleteItem(i)
-        self.logger.InsertStringItem(i, str(pars['name']))
-        self.logger.SetStringItem(i, 1, str(pars['comp_name']))
-        self.logger.SetStringItem(i, 2, str(pars['vgp_lat']))
-        self.logger.SetStringItem(i, 3, str(pars['vgp_lon']))
-        self.logger.SetStringItem(i, 4, str(pars['vgp_dp']))
-        self.logger.SetStringItem(i, 5, str(pars['vgp_dm']))
-        self.logger.SetStringItem(i, 6, str(pars['n']))
+        self.logger.InsertItem(i, str(pars['name']))
+        self.logger.SetItem(i, 1, str(pars['comp_name']))
+        self.logger.SetItem(i, 2, str(pars['vgp_lat']))
+        self.logger.SetItem(i, 3, str(pars['vgp_lon']))
+        self.logger.SetItem(i, 4, str(pars['vgp_dp']))
+        self.logger.SetItem(i, 5, str(pars['vgp_dm']))
+        self.logger.SetItem(i, 6, str(pars['n']))
         self.logger.SetItemBackgroundColour(i,"WHITE")
         if self.selected_pole_index==i:
             self.selected_pole=pars['name']+pars['comp_name']

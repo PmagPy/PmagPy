@@ -136,7 +136,7 @@ class Demag_GUI(wx.Frame):
 
         #setup wx help provider class to give help messages
         provider = wx.SimpleHelpProvider()
-        wx.HelpProvider_Set(provider)
+        wx.HelpProvider.Set(provider)
         self.helper = wx.ContextHelp(doNow=False)
 
         self.currentDirectory = os.getcwd() # get the current working directory
@@ -160,7 +160,7 @@ class Demag_GUI(wx.Frame):
         wx.Yield()
 
         #set icon
-        icon = wx.EmptyIcon()
+        icon = wx.Icon()
         icon_path = os.path.join(PMAGPY_DIRECTORY, 'programs', 'images', 'PmagPy.ico')
         if os.path.isfile(icon_path):
             icon.CopyFromBitmap(wx.Bitmap(icon_path, wx.BITMAP_TYPE_ANY))
@@ -220,13 +220,13 @@ class Demag_GUI(wx.Frame):
         self.locations=list(self.Data_hierarchy['locations'].keys())# get list of sites
         self.locations.sort()# get list of sites
         self.sites=list(self.Data_hierarchy['sites'].keys())# get list of sites
-        self.sites.sort(cmp=specimens_comparator)# get list of sites
+        self.sites.sort(key=specimens_comparator)# get list of sites
         self.samples=[] #sort the samples within each site
         for site in self.sites:
-            self.samples.extend(sorted(self.Data_hierarchy['sites'][site]['samples'], cmp=specimens_comparator))
+            self.samples.extend(sorted(self.Data_hierarchy['sites'][site]['samples'], key=specimens_comparator))
         self.specimens=[] #sort the specimens within each sample
         for samp in self.samples:
-            self.specimens.extend(sorted(self.Data_hierarchy['samples'][samp]['specimens'], cmp=specimens_comparator))
+            self.specimens.extend(sorted(self.Data_hierarchy['samples'][samp]['specimens'], key=specimens_comparator))
 
         #first initialization of self.s only place besides init_cart_rot where it can be set without calling select_specimen
         if len(self.specimens)>0:
@@ -251,7 +251,7 @@ class Demag_GUI(wx.Frame):
         self.scrolled_panel.SetupScrolling()# endable scrolling
 
         # Draw figures and add text
-        if self.Data and any(self.Data[s][k] for s in self.Data for k in self.Data[s]):
+        if self.Data and any(self.Data[s][k] if not isinstance(self.Data[s][k],type(array([]))) else self.Data[s][k].any() for s in self.Data for k in self.Data[s]):
             # get previous interpretations from pmag tables
             if self.data_model == 3.0 and 'specimens' in self.con.tables:
                 self.get_interpretations3()
@@ -268,7 +268,7 @@ class Demag_GUI(wx.Frame):
         self.arrow_keys()
         self.Bind(wx.EVT_CLOSE, self.on_menu_exit)
         self.close_warning=False
-        wait.Destroy()
+        del wait
 
     def init_UI(self):
         """
@@ -741,7 +741,7 @@ class Demag_GUI(wx.Frame):
         m_save_all_plots = submenu_save_plots.Append(-1, "&Save all plots", "")
         self.Bind(wx.EVT_MENU, self.on_save_all_figures, m_save_all_plots)
 
-        m_new_sub_plots = menu_file.AppendMenu(-1, "&Save plot", submenu_save_plots)
+        m_new_sub_plots = menu_file.Append(-1, "&Save plot", submenu_save_plots)
 
         menu_file.AppendSeparator()
         m_exit = menu_file.Append(-1, "E&xit\tCtrl-Q", "Exit")
@@ -778,7 +778,7 @@ class Demag_GUI(wx.Frame):
         m_bad = menu_flag_meas.Append(-1, "&Bad Measurement\tCtrl-Alt-B", "")
         self.Bind(wx.EVT_MENU, self.on_menu_flag_meas_bad, m_bad)
 
-        m_flag_meas = menu_edit.AppendMenu(-1, "&Flag Measurement Data", menu_flag_meas)
+        m_flag_meas = menu_edit.Append(-1, "&Flag Measurement Data", menu_flag_meas)
 
         menu_coordinates = wx.Menu()
 
@@ -791,7 +791,7 @@ class Demag_GUI(wx.Frame):
             m_tilt = menu_coordinates.Append(-1, "&Tilt-Corrected Coordinates\tCtrl-T", "")
             self.Bind(wx.EVT_MENU, self.on_menu_change_tilt_coord, m_tilt)
 
-        m_coords = menu_edit.AppendMenu(-1, "&Coordinate Systems", menu_coordinates)
+        m_coords = menu_edit.Append(-1, "&Coordinate Systems", menu_coordinates)
 
         #-----------------
         # Analysis Menu
@@ -807,7 +807,7 @@ class Demag_GUI(wx.Frame):
         m_import_criteria_file = submenu_criteria.Append(-1, "&Import criteria file", "")
         self.Bind(wx.EVT_MENU, self.on_menu_criteria_file, m_import_criteria_file)
 
-        m_new_sub = menu_Analysis.AppendMenu(-1, "Acceptance criteria", submenu_criteria)
+        m_new_sub = menu_Analysis.Append(-1, "Acceptance criteria", submenu_criteria)
 
         menu_flag_fit = wx.Menu()
 
@@ -816,7 +816,7 @@ class Demag_GUI(wx.Frame):
         m_bad_fit = menu_flag_fit.Append(-1, "&Bad Interpretation\tCtrl-Shift-B", "")
         self.Bind(wx.EVT_MENU, self.on_menu_flag_fit_bad, m_bad_fit)
 
-        m_flag_fit = menu_Analysis.AppendMenu(-1, "&Flag Interpretations", menu_flag_fit)
+        m_flag_fit = menu_Analysis.Append(-1, "&Flag Interpretations", menu_flag_fit)
 
         submenu_sample_check = wx.Menu()
 
@@ -829,7 +829,7 @@ class Demag_GUI(wx.Frame):
         m_mark_samp_good = submenu_sample_check.Append(-1, "&Mark Sample Good\tCtrl-,", "")
         self.Bind(wx.EVT_MENU, self.on_menu_mark_samp_good, m_mark_samp_good)
 
-        m_submenu = menu_Analysis.AppendMenu(-1, "Sample Orientation", submenu_sample_check)
+        m_submenu = menu_Analysis.Append(-1, "Sample Orientation", submenu_sample_check)
 
         submenu_toggle_mean_display = wx.Menu()
 
@@ -837,7 +837,7 @@ class Demag_GUI(wx.Frame):
 
         for line in lines: exec(line)
 
-        menu_Analysis.AppendMenu(-1, "Toggle Mean Display", submenu_toggle_mean_display)
+        menu_Analysis.Append(-1, "Toggle Mean Display", submenu_toggle_mean_display)
 
         #-----------------
         # Tools Menu
@@ -2784,13 +2784,13 @@ class Demag_GUI(wx.Frame):
         self.locations=list(self.Data_hierarchy['locations'].keys())# get list of sites
         self.locations.sort()# get list of sites
         self.sites=list(self.Data_hierarchy['sites'].keys())# get list of sites
-        self.sites.sort(cmp=specimens_comparator)# get list of sites
+        self.sites.sort(key=specimens_comparator)# get list of sites
         self.samples=[] #sort the samples within each site
         for site in self.sites:
-            self.samples.extend(sorted(self.Data_hierarchy['sites'][site]['samples'], cmp=specimens_comparator))
+            self.samples.extend(sorted(self.Data_hierarchy['sites'][site]['samples'], key=specimens_comparator))
         self.specimens=[] #sort the specimens within each sample
         for samp in self.samples:
-            self.specimens.extend(sorted(self.Data_hierarchy['samples'][samp]['specimens'], cmp=specimens_comparator))
+            self.specimens.extend(sorted(self.Data_hierarchy['samples'][samp]['specimens'], key=specimens_comparator))
 
         #--------------------------------------------------------------------
         # initialize first specimen in list as current specimen
@@ -3396,7 +3396,7 @@ class Demag_GUI(wx.Frame):
         # list of excluded lab protocols. copied from pmag.find_dmag_rec(s,data)
         self.excluded_methods=["LP-AN-ARM","LP-AN-TRM","LP-ARM-AFD","LP-ARM2-AFD","LP-TRM-AFD","LP-TRM","LP-TRM-TD","LP-X"]
         self.included_methods=["LT-NO", "LT-AF-Z", "LT-T-Z", "LT-M-Z","LT-LT-Z"]
-#        self.mag_meas_data.sort(cmp=meas_cmp)
+#        self.mag_meas_data.sort(key=meas_key)
         # asiigned default values for NRM
         if len(self.mag_meas_data) > 0 and "measurement_magn_moment" in list(self.mag_meas_data[0].keys()):
             NRM=float(self.mag_meas_data[0]["measurement_magn_moment"])
@@ -4234,7 +4234,7 @@ class Demag_GUI(wx.Frame):
             defaultDir=self.WD,
             defaultFile="magic_measurements.txt",
             wildcard="*.magic|*.txt",
-            style=wx.FD_OPEN | wx.CHANGE_DIR
+            style=wx.FD_OPEN | wx.FD_CHANGE_DIR
             )
         if self.show_dlg(dlg) == wx.ID_OK:
             meas_file = dlg.GetPath()
@@ -4586,7 +4586,7 @@ class Demag_GUI(wx.Frame):
                     if len(CoordDir)<=0: continue # no data for this coordinate system
                     for comp in Comps:
                         CompDir=pmag.get_dictitem(CoordDir,'dir_comp',comp,'T') # get all directions from this component
-                        CompDir=[x for x in CompDir if x['result_quality']=='g' if 'result_quality' in x else True]
+                        CompDir=[x if 'result_quality' in x and x['result_quality']=='g' else True for x in CompDir]
                         if len(CompDir)<=0: continue # no data for comp
                         PmagSampRec=pmag.dolnp3_0(CompDir)
                         for k,v in list(renamelnp.items()):
@@ -4660,7 +4660,7 @@ class Demag_GUI(wx.Frame):
                     for comp in Comps:
                         siteD=pmag.get_dictitem(tmp1,comp_key,comp,'T') # get all components comp
                         #remove bad data from means
-                        siteD=[x for x in siteD if x['result_quality']=='g' if 'result_quality' in x else True]
+                        siteD=[x if 'result_quality' in x and x['result_quality']=='g' else True for x in siteD]
                         if len(siteD)<=0: continue;# print("no data for comp %s in site %s. skipping"%(comp,site))
                         PmagSiteRec=PmagSampRec=pmag.dolnp3_0(siteD) # get an average for this site
                         for k,v in list(renamelnp.items()):
@@ -4768,7 +4768,7 @@ class Demag_GUI(wx.Frame):
                         prev_dat = pmag.get_dictitem(SiteNFO,'site',PmagSiteRec['site'],'T')
                         if len(prev_dat)!=0:
                             for ndd in set(PmagSiteRec.keys()).symmetric_difference(set(prev_dat[0].keys())):
-                                sitedat=[x for x in prev_dat if x[ndd]!=None if ndd in x else False]
+                                sitedat=[x if ndd in x and x[ndd]!=None else False for x in prev_dat]
                                 if len(sitedat)!=0:sitedat=sitedat[0]
                                 else: continue
                                 PmagSiteRec[ndd] = sitedat[ndd]
@@ -4904,7 +4904,7 @@ class Demag_GUI(wx.Frame):
                             PolRes['method_codes']=reduce(lambda x,y: x+':'+y, methods)
                             if len(prev_dat)!=0:
                                 for ndd in set(PolRes.keys()).symmetric_difference(set(prev_dat[0].keys())):
-                                    dat=[x for x in prev_dat if x[ndd]!=None if ndd in x else False]
+                                    dat=[x if ndd in x and x[ndd]!=None else False for x in prev_dat]
                                     if len(dat)!=0:dat=dat[0]
                                     else: continue
                                     PolRes[ndd] = dat[ndd]
@@ -5104,7 +5104,7 @@ class Demag_GUI(wx.Frame):
             self.sdec_window.SetBackgroundColour(wx.WHITE)
         else:
             self.sdec_window.SetValue("")
-            self.sdec_window.SetBackgroundColour(wx.NamedColour('grey'))
+            self.sdec_window.SetBackgroundColour(wx.Colour('grey'))
 
         if mpars and 'specimen_inc' in list(mpars.keys()):
             inc_key = 'specimen_inc'
@@ -5118,35 +5118,35 @@ class Demag_GUI(wx.Frame):
             self.sinc_window.SetBackgroundColour(wx.WHITE)
         else:
             self.sinc_window.SetValue("")
-            self.sinc_window.SetBackgroundColour(wx.NamedColour('grey'))
+            self.sinc_window.SetBackgroundColour(wx.Colour('grey'))
 
         if mpars and 'specimen_n' in list(mpars.keys()):
             self.sn_window.SetValue("%i"%mpars['specimen_n'])
             self.sn_window.SetBackgroundColour(wx.WHITE)
         else:
             self.sn_window.SetValue("")
-            self.sn_window.SetBackgroundColour(wx.NamedColour('grey'))
+            self.sn_window.SetBackgroundColour(wx.Colour('grey'))
 
         if mpars and 'specimen_mad' in list(mpars.keys()):
             self.smad_window.SetValue("%.1f"%mpars['specimen_mad'])
             self.smad_window.SetBackgroundColour(wx.WHITE)
         else:
             self.smad_window.SetValue("")
-            self.smad_window.SetBackgroundColour(wx.NamedColour('grey'))
+            self.smad_window.SetBackgroundColour(wx.Colour('grey'))
 
         if mpars and 'specimen_dang' in list(mpars.keys()) and float(mpars['specimen_dang'])!=-1:
             self.sdang_window.SetValue("%.1f"%mpars['specimen_dang'])
             self.sdang_window.SetBackgroundColour(wx.WHITE)
         else:
             self.sdang_window.SetValue("")
-            self.sdang_window.SetBackgroundColour(wx.NamedColour('grey'))
+            self.sdang_window.SetBackgroundColour(wx.Colour('grey'))
 
         if mpars and 'specimen_alpha95' in list(mpars.keys()) and float(mpars['specimen_alpha95'])!=-1:
             self.salpha95_window.SetValue("%.1f"%mpars['specimen_alpha95'])
             self.salpha95_window.SetBackgroundColour(wx.WHITE)
         else:
             self.salpha95_window.SetValue("")
-            self.salpha95_window.SetBackgroundColour(wx.NamedColour('grey'))
+            self.salpha95_window.SetBackgroundColour(wx.Colour('grey'))
 
         if self.orthogonal_box.GetValue()=="X=best fit line dec":
             if mpars and 'specimen_dec' in list(mpars.keys()):
@@ -5337,8 +5337,8 @@ class Demag_GUI(wx.Frame):
 
         for line in lines: exec(line)
 
-        am.DeleteItem(am.GetMenuItems()[3])
-        am.AppendMenu(-1, "Toggle Mean Display", submenu_toggle_mean_display)
+        am.DestroyItem(am.GetMenuItems()[3])
+        am.Append(-1, "Toggle Mean Display", submenu_toggle_mean_display)
 
     def show_high_levels_pars(self,mpars):
         """
@@ -5403,14 +5403,14 @@ class Demag_GUI(wx.Frame):
     def set_mean_stats_color(self):
         for val in ['mean_type', 'dec', 'inc', 'alpha95', 'K', 'R', 'n_lines', 'n_planes']:
             command = """
-if self.%s_window.GetValue()=="": self.%s_window.SetBackgroundColour(wx.NamedColour('grey'))
+if self.%s_window.GetValue()=="": self.%s_window.SetBackgroundColour(wx.Colour('grey'))
 else: self.%s_window.SetBackgroundColour(wx.WHITE)
             """%(val,val,val)
             exec(command)
         if self.ie_open:
             for val in ['mean_type', 'dec', 'inc', 'alpha95', 'K', 'R', 'n_lines', 'n_planes']:
                 command = """
-if self.ie.%s_window.GetValue()=="": self.ie.%s_window.SetBackgroundColour(wx.NamedColour('grey'))
+if self.ie.%s_window.GetValue()=="": self.ie.%s_window.SetBackgroundColour(wx.Colour('grey'))
 else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
                 """%(val,val,val)
                 exec(command)
@@ -5439,7 +5439,7 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
         for parameter in ['dec','inc','n','mad','dang','alpha95']:
             COMMAND="self.s%s_window.SetValue('')"%parameter
             exec(COMMAND)
-            COMMAND="self.s%s_window.SetBackgroundColour(wx.NamedColour('grey'))"%parameter
+            COMMAND="self.s%s_window.SetBackgroundColour(wx.Colour('grey'))"%parameter
             exec(COMMAND)
 
     def clear_high_level_pars(self):
@@ -5959,7 +5959,7 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
             defaultDir=self.WD,
             defaultFile="demag_gui.redo",
             wildcard="*.redo",
-            style=wx.OPEN | wx.CHANGE_DIR
+            style=wx.FD_OPEN | wx.FD_CHANGE_DIR
             )
         if self.show_dlg(dlg) == wx.ID_OK:
             redo_file = dlg.GetPath()
@@ -5975,7 +5975,7 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
             self, message="choose a LSQ file",
             defaultDir=self.WD,
             wildcard="*.LSQ",
-            style=wx.OPEN
+            style=wx.FD_OPEN
             )
         if self.show_dlg(dlg) == wx.ID_OK:
             LSQ_file = dlg.GetPath()
@@ -5988,7 +5988,7 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
     def on_menu_save_interpretation(self,event,redo_file_name = "demag_gui.redo"):
         fout=open(redo_file_name,'w')
         specimens_list=list(self.pmag_results_data['specimens'].keys())
-        specimens_list.sort(cmp=specimens_comparator)
+        specimens_list.sort(key=specimens_comparator)
         if self.s not in specimens_list: fout.write("current_"+self.s+"\n")
         for specimen in specimens_list:
             for fit in self.pmag_results_data['specimens'][specimen]:
@@ -6038,7 +6038,7 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
             self, message="choose pmag criteria file",
             defaultDir=self.WD,
             defaultFile=default_file,
-            style=wx.OPEN | wx.CHANGE_DIR
+            style=wx.FD_OPEN | wx.FD_CHANGE_DIR
             )
         if self.show_dlg(dlg) == wx.ID_OK:
             criteria_file = dlg.GetPath()
@@ -6296,12 +6296,12 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
         e = 4e0
 
         if self.zijderveld_setting == "Zoom":
-            self.canvas1.SetCursor(wx.StockCursor(wx.CURSOR_CROSS))
+            self.canvas1.SetCursor(wx.Cursor(wx.CURSOR_CROSS))
         else:
-            self.canvas1.SetCursor(wx.StockCursor(wx.CURSOR_ARROW))
+            self.canvas1.SetCursor(wx.Cursor(wx.CURSOR_ARROW))
         for i,(x,y) in enumerate(zip(xdata,ydata)):
             if 0 < sqrt((x-xpick_data)**2. + (y-ypick_data)**2.) < e:
-                self.canvas1.SetCursor(wx.StockCursor(wx.CURSOR_HAND))
+                self.canvas1.SetCursor(wx.Cursor(wx.CURSOR_HAND))
                 break
         event.Skip()
 
@@ -6453,12 +6453,12 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
         e = 4e0
 
         if self.specimen_EA_setting == "Zoom":
-            self.canvas2.SetCursor(wx.StockCursor(wx.CURSOR_CROSS))
+            self.canvas2.SetCursor(wx.Cursor(wx.CURSOR_CROSS))
         else:
-            self.canvas2.SetCursor(wx.StockCursor(wx.CURSOR_ARROW))
+            self.canvas2.SetCursor(wx.Cursor(wx.CURSOR_ARROW))
         for i,(x,y) in enumerate(zip(xdata,ydata)):
             if 0 < sqrt((x-xpick_data)**2. + (y-ypick_data)**2.) < e:
-                self.canvas2.SetCursor(wx.StockCursor(wx.CURSOR_HAND))
+                self.canvas2.SetCursor(wx.Cursor(wx.CURSOR_HAND))
                 break
         event.Skip()
 
@@ -6560,13 +6560,13 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
         e = 4e0
 
         if self.high_EA_setting == "Zoom":
-            self.canvas4.SetCursor(wx.StockCursor(wx.CURSOR_CROSS))
+            self.canvas4.SetCursor(wx.Cursor(wx.CURSOR_CROSS))
         else:
-            self.canvas4.SetCursor(wx.StockCursor(wx.CURSOR_ARROW))
+            self.canvas4.SetCursor(wx.Cursor(wx.CURSOR_ARROW))
         if not self.high_EA_xdata or not self.high_EA_ydata: return
         for i,(x,y) in enumerate(zip(xdata,ydata)):
             if 0 < sqrt((x-xpick_data)**2. + (y-ypick_data)**2.) < e:
-                self.canvas4.SetCursor(wx.StockCursor(wx.CURSOR_HAND))
+                self.canvas4.SetCursor(wx.Cursor(wx.CURSOR_HAND))
                 break
         event.Skip()
 
@@ -6714,13 +6714,13 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
             Inc=zijdblock[i][2]
             Int=zijdblock[i][3]
             csd=self.Data[self.s]['csds'][i]
-            self.logger.InsertStringItem(i, "%i"%i)
-            self.logger.SetStringItem(i, 1, Step)
-            self.logger.SetStringItem(i, 2, "%.1f"%Tr)
-            self.logger.SetStringItem(i, 3, "%.1f"%Dec)
-            self.logger.SetStringItem(i, 4, "%.1f"%Inc)
-            self.logger.SetStringItem(i, 5, "%.2e"%Int)
-            self.logger.SetStringItem(i, 6, csd)
+            self.logger.InsertItem(i, "%i"%i)
+            self.logger.SetItem(i, 1, Step)
+            self.logger.SetItem(i, 2, "%.1f"%Tr)
+            self.logger.SetItem(i, 3, "%.1f"%Dec)
+            self.logger.SetItem(i, 4, "%.1f"%Inc)
+            self.logger.SetItem(i, 5, "%.2e"%Int)
+            self.logger.SetItem(i, 6, csd)
             self.logger.SetItemBackgroundColour(i,"WHITE")
             if i >= tmin_index and i <= tmax_index:
                 self.logger.SetItemBackgroundColour(i,"LIGHT BLUE")
@@ -6995,7 +6995,7 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
             specimen_list=self.Data_hierarchy['study']['this study']['specimens']
 
         if self.s not in specimen_list:
-            specimen_list.sort(cmp=specimens_comparator)
+            specimen_list.sort(key=specimens_comparator)
             self.select_specimen(str(specimen_list[0]))
             self.specimens_box.SetStringSelection(str(self.s))
 
@@ -7037,7 +7037,7 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
             self.tmax_box.SetStringSelection('')
         else:
             try:
-                fit_num = map(lambda x: x.name, self.pmag_results_data['specimens'][self.s]).index(fit_val)
+                fit_num = list(map(lambda x: x.name, self.pmag_results_data['specimens'][self.s])).index(fit_val)
             except ValueError:
                 fit_num = -1
             self.pmag_results_data['specimens'][self.s][fit_num].select()

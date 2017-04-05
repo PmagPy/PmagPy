@@ -170,29 +170,29 @@ def convert(**kwargs):
         SampRecs=[]
     MeasRecs,SpecRecs,SiteRecs,LocRecs=[],[],[],[]
     try:
-        f=open(mag_file,'rU')
-        input=f.read()
+        f=open(mag_file,'brU')
+        input=str(f.read()).strip("b '")
         f.close()
     except Exception as ex:
         print('ex', ex)
         print("bad mag file")
         return False, "bad mag file"
     firstline,date=1,""
-    d=input.split('\xcd')
+    d=input.split('\\xcd')
     for line in d:
-        rec=line.split('\x00')
+        rec=line.split('\\x00')
         if firstline==1:
             firstline=0
             spec,vol="",1
-            for c in line[15:23]:
-                if c!='\x00':spec=spec+c
-# check for bad sample name
+            el=51
+            while line[el:el+1]!="\\": spec=spec+line[el];el+=1
+            # check for bad sample name
             test=spec.split('.')
             date=""
             if len(test)>1:
                 spec=test[0]
                 kk=24
-                while line[kk]!='\x01' and line[kk]!='\x00':
+                while line[kk]!='\\x01' and line[kk]!='\\x00':
                     kk+=1
                 vcc=line[24:kk]
                 el=10
@@ -200,7 +200,7 @@ def convert(**kwargs):
                 date,comments=rec[el+7],[]
             else:
                 el=9
-                while rec[el]!='\x01':el+=1
+                while rec[el]!='\\x01':el+=1
                 vcc,date,comments=rec[el-3],rec[el+7],[]
             specname=spec.lower()
             print('importing ',specname)
@@ -221,7 +221,7 @@ def convert(**kwargs):
             bed_dip=float(rec[el])
             el+=1
             while rec[el]=="":el+=1
-            if rec[el]=='\x01': 
+            if rec[el]=='\\x01': 
                 bed_dip=180.-bed_dip
                 el+=1
                 while rec[el]=="":el+=1
@@ -231,7 +231,7 @@ def convert(**kwargs):
             fold_pl=rec[el]
             el+=1
             while rec[el]=="":el+=1
-            if rec[el]!="" and rec[el]!='\x02' and rec[el]!='\x01':
+            if rec[el]!="" and rec[el]!='\\x02' and rec[el]!='\\x01':
                 deccorr=float(rec[el])
                 az+=deccorr
                 bed_dip_dir+=deccorr

@@ -3622,8 +3622,8 @@ def specimens_results_magic(infile='pmag_specimens.txt', measfile='magic_measure
                     for comp in Comps:
                         siteD=pmag.get_dictitem(tmp1,key+'_comp_name',comp,'T') # get all components comp
                         #remove bad data from means
-                        siteD=[x for x in siteD if x['specimen_flag']=='g' if 'specimen_flag' in x else True]
-                        siteD=[x for x in siteD if x['sample_flag']=='g' if 'sample_flag' in x else True]
+                        siteD=[x if 'specimen_flag' in x and x['specimen_flag']=='g' else True for x in siteD]
+                        siteD=[x if 'sample_flag' in x and x['sample_flag']=='g' else True for x in siteD]
                         if len(siteD)>0: # there are some for this site and component name
                             PmagSiteRec=pmag.lnpbykey(siteD,'site',key) # get an average for this site
                             PmagSiteRec['site_comp_name']=comp # decorate the site record

@@ -48,15 +48,15 @@ class MagMainFrame(wx.Frame):
         wx.Frame.__init__(self, None, wx.ID_ANY, self.title, name='pmag_gui mainframe')
         # if DM was provided:
         if DM:
-            self.data_model_num = int(DM)
+            self.data_model_num = int(float(DM))
         # try to get DM from command line args
         if not DM:
-            self.data_model_num = int(pmag.get_named_arg_from_sys("-DM", 0))
+            self.data_model_num = int(float(pmag.get_named_arg_from_sys("-DM", 0)))
             DM = self.data_model_num
         # if you still don't have DM, make the user choose
         if not DM:
             ui_dialog = demag_dialogs.user_input(self,['data_model'],parse_funcs=[float], heading="Please input prefered data model (2.5,3.0).  Note: 2.5 is for legacy projects only, if you are have new data please use 3.0.", values=[3])
-            res = ui_dialog.ShowModal()
+#            res = ui_dialog.ShowModal()
             vals = ui_dialog.get_values()
             self.data_model_num = int(vals[1]['data_model'])
         self.data_model = dmodel
@@ -661,7 +661,7 @@ def main():
     if 'darwin' in sys.platform:
         app = wx.App(redirect=False)
     else:
-        app = wx.App(redirect=True)
+        app = wx.App(redirect=False)
     app.frame = MagMainFrame()
     working_dir = pmag.get_named_arg_from_sys('-WD', '.')
 
@@ -670,7 +670,6 @@ def main():
     ## need to use these lines for Py2app
     #if working_dir == '.':
     #    app.frame.on_change_dir_button(None)
-
     app.frame.Show()
     app.frame.Center()
     ## use for debugging:

@@ -75,42 +75,42 @@ class TestMainFrame(unittest.TestCase):
         self.assertTrue(window, 'er_specimens grid window was not created')
         self.assertIsInstance(window, grid_frame.GridFrame)
         self.assertTrue(window.IsEnabled())
-        self.assertTrue(window.IsShown())
+        wx.CallAfter(self.assertTrue,window.IsShown())
 
     def test_sample_button(self):
         window = self.does_top_window_exist(self.pnl, 'sample_btn', 'sample')
         self.assertTrue(window, 'er_samples grid window was not created')
         self.assertIsInstance(window, grid_frame.GridFrame)
         self.assertTrue(window.IsEnabled())
-        self.assertTrue(window.IsShown())
+        wx.CallAfter(self.assertTrue,window.IsShown())
 
     def test_site_button(self):
         window = self.does_top_window_exist(self.pnl, 'site_btn', 'site')
         self.assertTrue(window, 'er_sites grid window was not created')
         self.assertIsInstance(window, grid_frame.GridFrame)
         self.assertTrue(window.IsEnabled())
-        self.assertTrue(window.IsShown())
+        wx.CallAfter(self.assertTrue,window.IsShown())
 
     def test_location_button(self):
         window = self.does_top_window_exist(self.pnl, 'location_btn', 'location')
         self.assertTrue(window, 'er_locations grid window was not created')
         self.assertIsInstance(window, grid_frame.GridFrame)
         self.assertTrue(window.IsEnabled())
-        self.assertTrue(window.IsShown())
+        wx.CallAfter(self.assertTrue,window.IsShown())
 
     def test_ages_button(self):
         window = self.does_top_window_exist(self.pnl, 'age_btn', 'age')
         self.assertTrue(window, 'er_ages grid window was not created')
         self.assertIsInstance(window, grid_frame.GridFrame)
         self.assertTrue(window.IsEnabled())
-        self.assertTrue(window.IsShown())
+        wx.CallAfter(self.assertTrue,window.IsShown())
 
     def test_results_button(self):
         window = self.does_top_window_exist(self.pnl, 'result_btn', 'result')
         self.assertTrue(window, 'er_results grid window was not created')
         self.assertIsInstance(window, grid_frame.GridFrame)
         self.assertTrue(window.IsEnabled())
-        self.assertTrue(window.IsShown())
+        wx.CallAfter(self.assertTrue,window.IsShown())
 
 
     def does_window_exist(self, parent, btn_name, window_name):

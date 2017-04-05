@@ -6,21 +6,21 @@ import os
 if "-pip" in sys.argv:
     os.chdir(sys.prefix)
 
-from . import test_builder
-from . import test_er_magic_dialogs
-from . import test_imports
-from . import test_ipmag
-from . import test_magic_gui
-from . import test_pmag
-from . import test_pmag_gui
-from . import test_thellier_gui
-from . import test_validations
-from . import test_programs
-from . import test_demag_gui
-from . import test_magic_gui2
-from . import test_new_builder
-from . import test_find_pmag_dir
-from . import test_map_magic
+import pmagpy_tests.test_builder as test_builder
+import pmagpy_tests.test_er_magic_dialogs as test_er_magic_dialogs
+import pmagpy_tests.test_imports as test_imports
+import pmagpy_tests.test_ipmag as test_ipmag
+import pmagpy_tests.test_magic_gui as test_magic_gui
+import pmagpy_tests.test_pmag as test_pmag
+import pmagpy_tests.test_pmag_gui as test_pmag_gui
+import pmagpy_tests.test_thellier_gui as test_thellier_gui
+import pmagpy_tests.test_validations as test_validations
+import pmagpy_tests.test_programs as test_programs
+import pmagpy_tests.test_demag_gui as test_demag_gui
+import pmagpy_tests.test_magic_gui2 as test_magic_gui2
+import pmagpy_tests.test_new_builder as test_new_builder
+import pmagpy_tests.test_find_pmag_dir as test_find_pmag_dir
+import pmagpy_tests.test_map_magic as test_map_magic
 
 __all__ = [test_builder, test_er_magic_dialogs, test_imports, test_ipmag,
            test_magic_gui, test_pmag, test_pmag_gui, test_thellier_gui,

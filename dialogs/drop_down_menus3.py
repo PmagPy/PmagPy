@@ -295,7 +295,7 @@ class Menus(object):
         color = self.grid.GetCellBackgroundColour(event.GetRow(), event.GetCol())
         # allow user to cherry-pick cells for editing.
         # gets selection of meta key for mac, ctrl key for pc
-        if event.CmdDown():
+        if event.ControlDown() or event.MetaDown():
             row, col = event.GetRow(), event.GetCol()
             if (row, col) not in self.dispersed_selection:
                 self.dispersed_selection.append((row, col))

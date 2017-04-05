@@ -182,7 +182,7 @@ class TestMagicDataFrame(unittest.TestCase):
         magic_df = nb.MagicDataFrame(os.path.join(PROJECT_WD, 'sites.txt'),
                                      dmodel=DMODEL)
         directions = magic_df.df.loc['1', 'bed_dip_direction']
-        self.assertEqual(sorted(directions), [None, 135, 135])
+        self.assertEqual(sorted(directions,key=lambda x,y=0: int(x-y) if (isinstance(x,float) or isinstance(x,int)) and (isinstance(y,float) or isinstance(y,int)) else -1), [None, 135, 135])
         magic_df.front_and_backfill(cols=['bed_dip_direction'])
         directions = magic_df.df.loc['1', 'bed_dip_direction']
         self.assertEqual(sorted(directions), [135, 135, 135])
@@ -198,6 +198,8 @@ class TestContribution(unittest.TestCase):
         os.chdir(WD)
 
     def test_init_empty(self):
+        try: os.remove(os.path.join(WD,"locations.txt"))
+        except OSError: print("wow it worked this time")
         con = nb.Contribution(WD, dmodel=DMODEL)
         self.assertEqual(0, len(con.tables))
 

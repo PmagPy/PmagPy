@@ -9,7 +9,7 @@ from re import findall,split
 from numpy import array,arange,pi,cos,sin
 from .pmag import dimap,cart2dir,dir2cart
 
-def specimens_comparator(s1,s2):
+def specimens_comparator(s1,s2=''):
     if type(s1) != str and type(s2) != str: return 0
     elif type(s1) != str: return -1
     elif type(s2) != str: return 1
