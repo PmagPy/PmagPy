@@ -804,6 +804,9 @@ class Contribution(object):
             if col not in target_df.df.columns:
                 target_df.df[col] = None
         # step 5: if needed, average from source table and apply to target table
+        for col in cols:
+            if col not in source_df.df.columns:
+                source_df.df[col] = None
         grouped = source_df.df[cols + [target_name]].groupby(target_name)
         grouped = grouped[cols].apply(np.mean)
         for col in cols:
