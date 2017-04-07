@@ -840,6 +840,49 @@ class Contribution(object):
         self.tables['ages'].df['level'] = self.tables['ages'].df.apply(get_level, axis=1, args=[levels])
         return self.tables['ages']
 
+    def propagate_ages(self):
+        """
+        Mine ages table for any age data, and write it into
+        specimens, samples, sites, locations tables.
+        Do not overwrite existing age data.
+        """
+        # get levels in age table
+        self.get_age_levels()
+        # go through each level of age data
+        for level in self.tables['ages'].df['level'].unique():
+            table_name = level + 's'
+            age_headers = self.data_model.get_group_headers('sites', 'Age')
+            # find age headers that are actually in table
+            actual_age_headers = list(set(self.tables[table_name].df.columns).intersection(age_headers))
+            # find site age headers that are available in ages table
+            available_age_headers = list(set(self.tables['ages'].df.columns).intersection(age_headers))
+            # fill in all available age info to all rows
+            self.tables[table_name].front_and_backfill(actual_age_headers)
+            # add any available headers to table
+            add_headers = set(available_age_headers).difference(actual_age_headers)
+            for header in add_headers:
+                self.tables[table_name].df[header] = None
+            # propagate values from ages into table
+            def move_values(ser, level, available_headers):
+                name = ser.name
+                cond1 = self.tables['ages'].df[level] == name
+                cond2 = self.tables['ages'].df['level'] == level
+                mask = cond1 & cond2
+                sli = self.tables['ages'].df[mask]
+                if len(sli):
+                    return list(sli[available_headers].values[0])
+                return [None] * len(available_headers)
+
+            res = self.tables[table_name].df.apply(move_values, axis=1,
+                                                   args=[level, available_age_headers])
+            # fill in table with values gleaned from ages
+            new_df = pd.DataFrame(data=list(res.values), index=res.index,
+                                  columns=available_age_headers)
+            age_values = np.where(self.tables[table_name].df[available_age_headers],
+                                  self.tables[table_name].df[available_age_headers],
+                                  new_df)
+            self.tables[table_name].df[available_age_headers] = age_values
+
     ## Methods for outputting tables
 
     def remove_non_magic_cols(self):

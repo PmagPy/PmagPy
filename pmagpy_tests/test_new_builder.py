@@ -451,6 +451,36 @@ class TestContribution(unittest.TestCase):
         self.assertEqual('location', self.con.tables['ages'].df.loc['5', 'level'])
         self.assertEqual('location', self.con.tables['ages'].df.loc['6', 'level'])
 
+    def test_propagate_ages(self):
+        # mess up data
+        self.con.tables['ages'].df['sample'] = None
+        self.con.tables['ages'].df['specimen'] = ''
+        self.con.tables['ages'].df.loc['1', 'site'] = None
+        self.con.tables['ages'].df.loc['2', 'sample'] = 'mgq05t2a2'
+        self.con.tables['ages'].df.loc['3', 'sample'] = 'mgq05t2a2'
+        self.con.tables['ages'].df.loc['3', 'specimen'] = 'hz05a1'
+        self.con.tables['sites'].df.loc['hz10', 'age'] = 999
+        self.con.tables['sites'].df.loc['hz11', 'age'] = ''
+        # do propagation
+        self.con.propagate_ages()
+        # results
+        res = self.con.tables['locations'].df.loc['Tel Hazor', 'age_high']
+        self.assertEqual(-732, res)
+        res = self.con.tables['sites'].df.loc['hz05', 'age']
+        self.assertEqual(-740, res)
+        res = self.con.tables['samples'].df.loc['mgq05t2a2', 'age_unit']
+        self.assertEqual('Years Cal AD (+/-)', res)
+        res = self.con.tables['specimens'].df.loc['hz05a1', 'age'].unique()[0]
+        self.assertEqual(-950, res)
+        res = self.con.tables['sites'].df.loc['hz10', 'age']
+        self.assertEqual(999, res)
+        res = self.con.tables['sites'].df.loc['hz11', 'age']
+        self.assertEqual(-1050, res)
+
+    def test_propagate_ages_other_contribution(self):
+        directory = os.path.join(WD, 'data_files', '3_0', 'McMurdo')
+        con = nb.Contribution(directory)
+        con.propagate_ages()
 
 
 if __name__ == '__main__':
