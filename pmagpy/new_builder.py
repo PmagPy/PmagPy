@@ -485,7 +485,6 @@ class Contribution(object):
     def get_table_name(self, ind):
         """
         Return both the table_name (i.e., 'specimens')
-        ###and the col_name (i.e., 'specimen_name')
         and the col_name (i.e., 'specimen')
         for a given index in self.ancestry.
         """
@@ -736,7 +735,6 @@ class Contribution(object):
         self.tables[target_df_name] = target_df
         return target_df
 
-
     def propagate_average_up(self, cols=['lat', 'lon'],
                              target_df_name='sites', source_df_name='samples'):
         """
@@ -816,6 +814,33 @@ class Contribution(object):
         self.tables[target_df_name] = target_df
         return target_df
 
+    def get_age_levels(self):
+        """
+        Method to add a "level" column to the ages table.
+        Finds the lowest filled in level (i.e., specimen, sample, etc.)
+        for that particular row.
+        I.e., a row with both site and sample name filled in is considered
+        a sample-level age.
+
+        Returns
+        ---------
+        self.tables['ages'] : MagicDataFrame
+            updated ages table
+        """
+        def get_level(ser, levels=('specimen', 'sample', 'site', 'location')):
+            for level in levels:
+                if pd.notnull(ser[level]):
+                    if len(ser[level]):  # guard against empty strings
+                        return level
+            return
+        # get available levels in age table
+        possible_levels = ['specimen', 'sample', 'site', 'location']
+        levels = [level for level in possible_levels if level in self.tables['ages'].df.columns]
+        # find level for each age row
+        self.tables['ages'].df['level'] = self.tables['ages'].df.apply(get_level, axis=1, args=[levels])
+        return self.tables['ages']
+
+    ## Methods for outputting tables
 
     def remove_non_magic_cols(self):
         """
@@ -960,10 +985,9 @@ class MagicDataFrame(object):
                 self.df = DataFrame(columns=columns)
             else:
                 self.df = DataFrame()
-                self.df.index.name = name #dtype[:-1] if dtype.endswith("s") else dtype
+                self.df.index.name = name
         # if there is a file provided, read in the data and ascertain dtype
         else:
-            ## new way of reading in data using pd.read_table
             with open(magic_file) as f:
                 try:
                     delim, dtype = f.readline().split('\t')[:2]

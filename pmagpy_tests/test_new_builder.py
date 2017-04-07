@@ -199,10 +199,6 @@ class TestMagicDataFrame(unittest.TestCase):
         self.assertEqual(4, len(magic_df.df.loc['1']))
 
 
-
-
-
-
 class TestContribution(unittest.TestCase):
 
     def setUp(self):
@@ -435,6 +431,25 @@ class TestContribution(unittest.TestCase):
         self.assertIsNone(res)
 
 
+    def test_get_age_levels(self):
+        # mess with data
+        self.con.tables['ages'].df['sample'] = None
+        self.con.tables['ages'].df['specimen'] = None
+        self.con.tables['ages'].df.loc['1', 'sample'] = 'a_sample'
+        self.con.tables['ages'].df.loc['2', 'specimen'] = 'a_specimen'
+        self.con.tables['ages'].df.loc['3', 'sample'] = 'a_sample'
+        self.con.tables['ages'].df.loc['3', 'specimen'] = 'a_specimen'
+        self.con.tables['ages'].df.loc['5', 'site'] = ''
+        self.con.tables['ages'].df.loc['6', 'site'] = None
+        # do level calculation
+        self.con.get_age_levels()
+        # results
+        self.assertEqual('sample', self.con.tables['ages'].df.loc['1', 'level'])
+        self.assertEqual('specimen', self.con.tables['ages'].df.loc['2', 'level'])
+        self.assertEqual('specimen', self.con.tables['ages'].df.loc['3', 'level'])
+        self.assertEqual('site', self.con.tables['ages'].df.loc['4', 'level'])
+        self.assertEqual('location', self.con.tables['ages'].df.loc['5', 'level'])
+        self.assertEqual('location', self.con.tables['ages'].df.loc['6', 'level'])
 
 
 
