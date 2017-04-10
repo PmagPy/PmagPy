@@ -963,6 +963,11 @@ class Contribution(object):
                                   self.tables[table_name].df[available_age_headers],
                                   new_df)
             self.tables[table_name].df[available_age_headers] = age_values
+        #
+        # put age_high, age_low into locations table
+        print "-I- Adding age_high and age_low to locations table based on minimum/maximum ages found in sites table"
+        self.propagate_min_max_up(cols=['age'], target_df_name='locations',
+                                  source_df_name='sites')
 
     ## Methods for outputting tables
 
