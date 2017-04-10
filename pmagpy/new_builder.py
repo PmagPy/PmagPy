@@ -927,6 +927,8 @@ class Contribution(object):
         """
         if 'ages' not in self.tables:
             return
+        if not len(self.tables['ages'].df):
+            return
         # get levels in age table
         self.get_age_levels()
         # go through each level of age data
