@@ -491,6 +491,25 @@ class TestContribution(unittest.TestCase):
         con = nb.Contribution(directory)
         con.propagate_ages()
 
+    def test_propagate_ages_location_component(self):
+        self.con.propagate_min_max_up(min_suffix='lowest', max_suffix='highest')
+        res = self.con.tables['locations'].df.loc[['Tel Hazor'], 'age_lowest'].values[0]
+        self.assertEqual(-2700, res)
+        res = self.con.tables['locations'].df.loc[['Tel Megiddo'], 'age_highest'].values[0]
+        self.assertEqual(-740, res)
+        # test don't overwrite
+        self.con.tables['locations'].df.loc['Tel Hazor', 'age_high'] = 10
+        self.con.propagate_min_max_up()
+        res = self.con.tables['locations'].df.loc[['Tel Hazor'], 'age_high'].values[0]
+        self.assertEqual(10, res)
+        res = self.con.tables['locations'].df.loc[['Tel Megiddo'], 'age_high'].values[0]
+        self.assertEqual(-740, res)
+        res = self.con.tables['locations'].df.loc[['Tel Megiddo'], 'age_low'].values[0]
+        self.assertEqual(-3000, res)
+        # test graceful fail
+        self.con.tables['sites'].df.drop(['age'], axis='columns', inplace=True)
+        res = self.con.propagate_min_max_up(min_suffix='lowest', max_suffix='highest')
+
 
 if __name__ == '__main__':
     unittest.main()

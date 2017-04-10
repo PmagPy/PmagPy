@@ -814,6 +814,85 @@ class Contribution(object):
         self.tables[target_df_name] = target_df
         return target_df
 
+    def propagate_min_max_up(self, cols=['age'],
+                             target_df_name='locations',
+                             source_df_name='sites',
+                             min_suffix='low',
+                             max_suffix='high'):
+        """
+        Take minimum/maximum values for a set of columns in source_df,
+        and apply them to the target table.
+        This method won't overwrite values in the target table, it will only
+        supply values where they are missing.
+
+        Parameters
+        ----------
+        cols : list-like
+            list of columns to propagate, default ['age']
+        target_df_name : str
+            name of table to propagate values into, default 'locations'
+        source_df_name:
+            name of table to propagate values from, default 'sites'
+        min_suffix : str
+            suffix for minimum value, default 'low'
+        max_suffix : str
+            suffix for maximum value, default 'high'
+
+        Returns
+        ---------
+        target_df : MagicDataFrame
+            updated MagicDataFrame with propagated values
+        """
+        # make sure target/source table are appropriate
+        target_ind = self.ancestry.index(target_df_name)
+        source_ind = self.ancestry.index(source_df_name)
+        if target_ind - source_ind != 1:
+            print '-W- propagate_min_max_up only works with tables that are spaced one apart, i.e. sites and samples.'
+            print '    Source table must be lower in the hierarchy than the target table.'
+            print '    You have provided "{}" as the target table and "{}" as the source table.'.format(target_df_name, source_df_name)
+            return None
+        # make sure target table is read in
+        if target_df_name not in self.tables:
+            self.add_magic_table(target_df_name)
+        if target_df_name not in self.tables:
+            print "-W- Couldn't read in {} table".format(target_df_name)
+            return
+        # make sure source table is read in
+        if source_df_name not in self.tables:
+            self.add_magic_table(source_df_name)
+        if source_df_name not in self.tables:
+            print "-W- Couldn't read in {} table".format(source_df_name)
+            return
+        # get tables
+        target_df = self.tables[target_df_name]
+        source_df = self.tables[source_df_name]
+        target_name = target_df_name[:-1]
+        # find and propagate min/max for each col in cols
+        for col in cols:
+            if col not in source_df.df.columns:
+                print '-W- {} table is missing "{}" column, skipping'.format(source_df_name, col)
+                continue
+            min_col = col + "_" + min_suffix
+            max_col = col + "_" + max_suffix
+            # add min/max cols to target_df if missing
+            if min_col not in target_df.df.columns:
+                target_df.df[min_col] = None
+            if max_col not in target_df.df.columns:
+                target_df.df[max_col] = None
+            # get min/max from source
+            grouped = source_df.df[[col, target_name]].groupby(target_name)
+            minimum, maximum = grouped.min(), grouped.max()
+            # update target_df without overwriting existing values
+            target_df.df[min_col] = np.where(target_df.df[min_col].notnull(),
+                                             target_df.df[min_col],
+                                             minimum[col])
+            target_df.df[max_col] = np.where(target_df.df[max_col].notnull(),
+                                             target_df.df[max_col],
+                                             maximum[col])
+        # update contribution
+        self.tables[target_df_name] = target_df
+        return target_df
+
     def get_age_levels(self):
         """
         Method to add a "level" column to the ages table.
