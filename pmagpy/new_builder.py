@@ -853,7 +853,7 @@ class Contribution(object):
         # go through each level of age data
         for level in self.tables['ages'].df['level'].unique():
             table_name = level + 's'
-            age_headers = self.data_model.get_group_headers('sites', 'Age')
+            age_headers = self.data_model.get_group_headers(table_name, 'Age')
             # find age headers that are actually in table
             actual_age_headers = list(set(self.tables[table_name].df.columns).intersection(age_headers))
             # find site age headers that are available in ages table
