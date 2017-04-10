@@ -925,7 +925,7 @@ class Contribution(object):
         specimens, samples, sites, locations tables.
         Do not overwrite existing age data.
         """
-        if not 'ages' in self.tables:
+        if 'ages' not in self.tables:
             return
         # get levels in age table
         self.get_age_levels()
