@@ -209,6 +209,14 @@ class TestContribution(unittest.TestCase):
         os.chdir(WD)
 
     def test_init_empty(self):
+        tables = ['measurements', 'specimens', 'samples',
+                  'sites', 'locations', 'ages', 'criteria',
+                  'contribution']
+        files = os.listdir(WD)
+        for table in tables:
+            fname = table + ".txt"
+            if table in files:
+                os.remove(os.path.join(WD, fname))
         con = nb.Contribution(WD, dmodel=DMODEL)
         self.assertEqual(0, len(con.tables))
 
@@ -304,6 +312,7 @@ class TestContribution(unittest.TestCase):
         con.get_min_max_lat_lon()
         self.assertEqual(10., con.tables['locations'].df.ix['location1', 'lat_s'])
         self.assertEqual(15., con.tables['locations'].df.ix['location2', 'lon_e'])
+        os.remove(os.path.join(".", "locations.txt"))
 
     def test_propagate_lithology_cols(self):
         self.con.tables['specimens'].df.loc[:, 'geologic_classes'] = None

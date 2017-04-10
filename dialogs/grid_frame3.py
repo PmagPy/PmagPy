@@ -1024,6 +1024,9 @@ class GridBuilder(object):
             # *** probably don't actually want to write to file, here (but maybe)
             self.magic_dataframe.write_magic_file("{}.txt".format(self.grid_type),
                                                   self.contribution.directory)
+            # propagate age info if age table was edited
+            if self.grid_type == 'ages':
+                self.contribution.propagate_ages()
             return
 
     def get_result_children(self, result_data):

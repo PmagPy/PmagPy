@@ -846,6 +846,8 @@ class Contribution(object):
         specimens, samples, sites, locations tables.
         Do not overwrite existing age data.
         """
+        if not 'ages' in self.tables:
+            return
         # get levels in age table
         self.get_age_levels()
         # go through each level of age data
@@ -1315,6 +1317,7 @@ class MagicDataFrame(object):
         ---------
         self.df
         """
+        cols = list(cols)
         short_df = self.df[cols]
         short_df = short_df.groupby(short_df.index, sort=False).fillna(method='ffill').groupby(short_df.index, sort=False).fillna(method='bfill')
         self.df[cols] = short_df[cols]

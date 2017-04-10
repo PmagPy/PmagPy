@@ -7,7 +7,6 @@ import wx
 import wx.grid
 import numpy as np
 import drop_down_menus2 as drop_down_menus
-import drop_down_menus3
 import pmag_widgets as pw
 import magic_grid2 as magic_grid
 import grid_frame2
@@ -30,6 +29,7 @@ class ErMagicCheckFrame3(wx.Frame):
         self.deleteRowButton = None
         self.selected_rows = set()
         self.min_size = (1160, 350)
+        self.contribution.propagate_ages()
         self.InitSpecCheck()
 
 

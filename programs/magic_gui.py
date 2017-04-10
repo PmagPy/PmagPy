@@ -80,6 +80,9 @@ class MainFrame(wx.Frame):
         self.contribution.propagate_all_tables_info()
         # extract average lats/lons from sites table
         self.contribution.get_min_max_lat_lon()
+        # extract age info from ages table and put into other tables
+        self.contribution.propagate_ages()
+        # finish up
         self.edited = False
         del wait
 
