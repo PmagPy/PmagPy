@@ -16,7 +16,8 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
     make_magic
     """
     def __init__(self, contribution, WD=None, frame_name="grid frame",
-                 panel_name="grid panel", parent=None, exclude_cols=()):
+                 panel_name="grid panel", parent=None, exclude_cols=(),
+                 huge=False):
         self.parent = parent
         wx.GetDisplaySize()
         title = 'Edit {} data'.format(panel_name)
@@ -29,6 +30,7 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
         self.selected_rows = set()
 
         self.contribution = contribution
+        self.huge = huge
         self.df_slice = None
         self.exclude_cols = exclude_cols
 
@@ -80,7 +82,8 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
         self.grid_builder = GridBuilder(self.contribution, self.grid_type,
                                         self.panel, parent_type=self.parent_type,
                                         reqd_headers=self.reqd_headers,
-                                        exclude_cols=self.exclude_cols)
+                                        exclude_cols=self.exclude_cols,
+                                        huge=self.huge)
 
         self.grid = self.grid_builder.make_grid()
         self.grid.InitUI()
@@ -114,6 +117,17 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
                                          name='delete_row_btn')
         self.Bind(wx.EVT_BUTTON, lambda event: self.on_remove_row(event, False), self.deleteRowButton)
         self.deleteRowButton.Disable()
+
+        # measurements table should not be able to add new rows
+        # that should be done elsewhere
+        if self.huge:
+            self.add_many_rows_button.Disable()
+            self.rows_spin_ctrl.Disable()
+            self.remove_row_button.Disable()
+            #
+            self.add_cols_button.Disable()
+            self.remove_cols_button.Disable()
+
 
         ## Data management buttons
         self.importButton = wx.Button(self.panel, id=-1,
@@ -150,7 +164,11 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
         self.Bind(wx.EVT_BUTTON, self.toggle_help, self.toggle_help_btn)
         # message
         self.help_msg_boxsizer = wx.StaticBoxSizer(wx.StaticBox(self.panel, -1, name='help_msg_boxsizer'), wx.VERTICAL)
-        self.default_msg_text = 'Edit {} here.\nYou can add or remove both rows and columns, however required columns may not be deleted.\nControlled vocabularies are indicated by **, and will have drop-down-menus.\nSuggested vocabularies are indicated by ^^, and also have drop-down-menus.\nTo edit all values in a column, click the column header.\nYou can cut and paste a block of cells from an Excel-like file.\nJust click the top left cell and use command "v".'.format(self.grid_type)
+
+        if self.grid_type == 'measurements':
+            self.default_msg_text = "Edit measurements here.\nIn general, measurements should be imported directly into Pmag GUI,\nwhich has protocols for converting many lab formats into the MagIC format.\nIf we are missing your particular lab format, please let us know: https://github.com/PmagPy/PmagPy/issues.\nThis grid is just meant for looking at your measurements and doing small edits.\nCurrently, you can't add/remove rows or columns here, but you can edit individual cell values."
+        else:
+            self.default_msg_text = 'Edit {} here.\nYou can add or remove both rows and columns, however required columns may not be deleted.\nControlled vocabularies are indicated by **, and will have drop-down-menus.\nSuggested vocabularies are indicated by ^^, and also have drop-down-menus.\nTo edit all values in a column, click the column header.\nYou can cut and paste a block of cells from an Excel-like file.\nJust click the top left cell and use command "v".'.format(self.grid_type)
         txt = ''
         if self.grid_type == 'locations':
             txt = '\n\nNote: you can fill in location start/end latitude/longitude here.\nHowever, if you add sites in step 2, the program will calculate those values automatically,\nbased on site latitudes/logitudes.\nThese values will be written to your upload file.'
@@ -860,7 +878,7 @@ class GridBuilder(object):
 
     def __init__(self, contribution, grid_type, panel,
                  parent_type=None, reqd_headers=None,
-                 exclude_cols=()):
+                 exclude_cols=(), huge=False):
         self.contribution = contribution
         self.exclude_cols = exclude_cols
         if grid_type in contribution.tables:
@@ -873,6 +891,7 @@ class GridBuilder(object):
 
         self.panel = panel
         self.parent_type = parent_type
+        self.huge=huge
         self.grid = None
 
     def make_grid(self):
@@ -934,8 +953,13 @@ class GridBuilder(object):
                     col_labels[:0] = [self.parent_type[:-1]]
                 col_labels.remove(self.grid_type[:-1])
                 col_labels[:0] = [self.grid_type[:-1]]
-        grid = magic_grid.MagicGrid(parent=self.panel, name=self.grid_type,
-                                    row_labels=[], col_labels=col_labels)
+        if not self.huge:
+            grid = magic_grid.MagicGrid(parent=self.panel, name=self.grid_type,
+                                        row_labels=[], col_labels=col_labels)
+        else:
+            row_labels = self.magic_dataframe.df.index
+            grid = magic_grid.HugeMagicGrid(parent=self.panel, name=self.grid_type,
+                            row_labels=row_labels, col_labels=col_labels)
         grid.do_event_bindings()
         grid.changes = changes
 
@@ -945,17 +969,20 @@ class GridBuilder(object):
     def add_data_to_grid(self, grid, grid_type=None):
         if isinstance(self.magic_dataframe, nb.MagicDataFrame):
             grid.add_items(self.magic_dataframe.df, self.exclude_cols)
-        grid.size_grid()
 
-        # always start with at least one row:
-        if not grid.GetNumberRows():
-            grid.add_row()
-        # if adding actual data, remove the blank row
-        else:
-            if not grid.GetCellValue(0, 0) and grid.GetNumberRows() > 1:
-                grid.remove_row(0)
-        # include horizontal scrollbar unless grid has less than 5 rows
-        grid.set_scrollbars()
+        if not self.huge:
+            grid.size_grid()
+
+        if not self.huge:
+            # always start with at least one row:
+            if not grid.GetNumberRows():
+                grid.add_row()
+            # if adding actual data, remove the blank row
+            else:
+                if not grid.GetCellValue(0, 0) and grid.GetNumberRows() > 1:
+                    grid.remove_row(0)
+            # include horizontal scrollbar unless grid has less than 5 rows
+            grid.set_scrollbars()
 
 
     def save_grid_data(self):
@@ -972,24 +999,34 @@ class GridBuilder(object):
         # changes is a dict with key values == row number
         if self.grid.changes:
             new_data = self.grid.save_items()
-            for key in new_data:
-                data = new_data[key]
-                # update the row if it exists already,
-                # otherwise create a new row
+            # HugeMagicGrid will return a pandas dataframe
+            if self.huge:
+                self.magic_dataframe.df = new_data
+            # MagicGrid will return a dictionary with
+            # new/updated data that must be incorporated
+            # into the dataframe
+            else:
+                for key in new_data:
+                    data = new_data[key]
+                    # update the row if it exists already,
+                    # otherwise create a new row
 
-                updated = self.magic_dataframe.update_row(key, data)
-                if not isinstance(updated, pd.DataFrame):
-                    if self.grid_type == 'ages':
-                        label = key
-                    else:
-                        label = self.grid_type[:-1]
-                    self.magic_dataframe.add_row(label, data,
-                                                 self.grid.col_labels)
+                    updated = self.magic_dataframe.update_row(key, data)
+                    if not isinstance(updated, pd.DataFrame):
+                        if self.grid_type == 'ages':
+                            label = key
+                        else:
+                            label = self.grid_type[:-1]
+                        self.magic_dataframe.add_row(label, data,
+                                                     self.grid.col_labels)
             # update the contribution with the new dataframe
             self.contribution.tables[self.grid_type] = self.magic_dataframe
             # *** probably don't actually want to write to file, here (but maybe)
             self.magic_dataframe.write_magic_file("{}.txt".format(self.grid_type),
                                                   self.contribution.directory)
+            # propagate age info if age table was edited
+            if self.grid_type == 'ages':
+                self.contribution.propagate_ages()
             return
 
     def get_result_children(self, result_data):

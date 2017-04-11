@@ -399,7 +399,14 @@ class Contribution(object):
         self.propagate_cols(cols, 'samples', 'sites')
         cols = ['lithologies', 'geologic_types', 'geologic_classes']
         self.propagate_cols(cols, 'specimens', 'samples')
-
+        # if sites table is missing any values,
+        # go ahead and propagate values UP as well
+        for col in cols:
+            if col not in self.tables['sites'].df.columns:
+                self.tables['sites'].df[col] = None
+        if not all(self.tables['sites'].df[cols].values.ravel()):
+            print '-I- Propagating values up from samples to sites...'
+            self.propagate_cols_up(cols, 'sites', 'samples')
 
     def add_item(self, table_name, data, label):
         self.tables[table_name].add_row(label, data)
@@ -478,7 +485,6 @@ class Contribution(object):
     def get_table_name(self, ind):
         """
         Return both the table_name (i.e., 'specimens')
-        ###and the col_name (i.e., 'specimen_name')
         and the col_name (i.e., 'specimen')
         for a given index in self.ancestry.
         """
@@ -527,10 +533,13 @@ class Contribution(object):
             add_df = self.tables[bottom_table_name].df
             # drop duplicate names
             add_df = add_df.drop_duplicates(subset=bottom_name)
-            df = df.merge(add_df[[child_name]],
-                          left_on=[bottom_name],
-                          right_index=True, how="left")
-            self.tables[df_name].df = df
+            if child_name not in df.columns:
+                print "-W- Cannot complete propagation, {} table is missing {} column".format(df_name, child_name)
+            else:
+                df = df.merge(add_df[[child_name]],
+                              left_on=[bottom_name],
+                              right_index=True, how="left")
+                self.tables[df_name].df = df
 
         # merge in one level above
         if parent_name not in df.columns:
@@ -545,10 +554,15 @@ class Contribution(object):
             add_df = self.tables[child_table_name].df
             # drop duplicate names
             add_df = add_df.drop_duplicates(subset=child_name)
-            df = df.merge(add_df[[parent_name]],
-                          left_on=[child_name],
-                          right_index=True, how="left")
-            self.tables[df_name].df = df
+            if parent_name not in add_df:
+                print '-W- could not finish propagating names: {} table is missing {} column'.format(child_table_name, parent_name)
+            elif parent_name not in df:
+                print '-W- could not finish propagating names: {} table is missing {} column'.format(df_name, parent_name)
+            else:
+                df = df.merge(add_df[[parent_name]],
+                              left_on=[child_name],
+                              right_index=True, how="left")
+                self.tables[df_name].df = df
 
         # merge in two levels above
         if grandparent_name not in df.columns:
@@ -563,9 +577,14 @@ class Contribution(object):
             add_df = self.tables[parent_table_name].df
             # drop duplicate names
             add_df = add_df.drop_duplicates(subset=parent_name)
-            df = df.merge(add_df[[grandparent_name]],
-                          left_on=[parent_name],
-                          right_index=True, how="left")
+            if grandparent_name not in add_df.columns:
+                print '-W- could not finish propagating names: {} table is missing {} column'.format(parent_table_name, grandparent_name)
+            elif grandparent_name not in df.columns:
+                print '-W- could not finish propagating names: {} table is missing {} column'.format(df_name, grandparent_name)
+            else:
+                df = df.merge(add_df[[grandparent_name]],
+                              left_on=[parent_name],
+                              right_index=True, how="left")
         # update the Contribution
         self.tables[df_name].df = df
         return df
@@ -651,6 +670,308 @@ class Contribution(object):
         #
         self.tables[target_df_name].df = target_df
         return target_df
+
+    def propagate_cols_up(self, cols, target_df_name, source_df_name):
+        """
+        Take values from source table, compile them into a colon-delimited list,
+        and apply them to the target table.
+        This method won't overwrite values in the target table, it will only
+        supply values where they are missing.
+
+        Parameters
+        ----------
+        cols : list-like
+            list of columns to propagate
+        target_df_name : str
+            name of table to propagate values into
+        source_df_name:
+            name of table to propagate values from
+
+        Returns
+        ---------
+        target_df : MagicDataFrame
+            updated MagicDataFrame with propagated values
+        """
+        # make sure target table is read in
+        if target_df_name not in self.tables:
+            self.add_magic_table(target_df_name)
+        if target_df_name not in self.tables:
+            print "-W- Couldn't read in {} table".format(target_df_name)
+            return
+        # make sure source table is read in
+        if source_df_name not in self.tables:
+            self.add_magic_table(source_df_name)
+            print "-W- Couldn't read in {} table".format(source_df_name)
+            return
+        target_df = self.tables[target_df_name]
+        source_df = self.tables[source_df_name]
+        target_name = target_df_name[:-1]
+        # if target_df has info, propagate that into all rows
+        target_df.front_and_backfill(cols)
+        # make sure target_name is in source_df for merging
+        if target_name not in source_df.df.columns:
+            print "-W- You can't merge data from {} table into {} table".format(source_df_name, target_df_name)
+            print "    Your {} table is missing {} column".format(source_df_name, target_name)
+            self.tables[target_df_name] = target_df
+            return target_df
+        source_df.front_and_backfill([target_name])
+        # group source df by target_name
+        grouped = source_df.df.groupby(source_df.df[target_name])
+        # function to generate capitalized, sorted, colon-delimited list
+        # of unique, non-null values from a column
+        def func(group, col_name):
+            lst = group[col_name][group[col_name].notnull()].unique()
+            split_lst = [col.split(':') for col in lst if col]
+            sorted_lst = sorted(np.unique([item.capitalize() for sublist in split_lst for item in sublist]))
+            group_col = ":".join(sorted_lst)
+            return group_col
+        # apply func to each column
+        for col in cols:
+            res = grouped.apply(func, col)
+            target_df.df['new_' + col] = res
+            target_df.df[col] = np.where(target_df.df[col], target_df.df[col], target_df.df['new_' + col])
+            target_df.df.drop(['new_' + col], axis='columns', inplace=True)
+        # set table
+        self.tables[target_df_name] = target_df
+        return target_df
+
+    def propagate_average_up(self, cols=['lat', 'lon'],
+                             target_df_name='sites', source_df_name='samples'):
+        """
+        Propagate average values from a lower table to a higher one.
+        For example, propagate average lats/lons from samples to sites.
+        Pre-existing values will not be overwritten.
+
+        Parameters
+        ----------
+        cols : list-like
+            list of columns to propagate
+        target_df_name : str
+            name of table to propagate values into
+        source_df_name:
+            name of table to propagate values from
+
+        Returns
+        ---------
+        target_df : MagicDataFrame or None
+            returns table with propagated data,
+            or None if no propagation could be done
+        """
+        # make sure target/source table are appropriate
+        target_ind = self.ancestry.index(target_df_name)
+        source_ind = self.ancestry.index(source_df_name)
+        if target_ind - source_ind != 1:
+            print '-W- propagate_average_up only works with tables that are spaced one apart, i.e. sites and samples.'
+            print '    Source table must be lower in the hierarchy than the target table.'
+            print '    You have provided "{}" as the target table and "{}" as the source table.'.format(target_df_name, source_df_name)
+            return None
+        # make sure target table is read in
+        if target_df_name not in self.tables:
+            self.add_magic_table(target_df_name)
+        if target_df_name not in self.tables:
+            print "-W- Couldn't read in {} table".format(target_df_name)
+            return
+        # make sure source table is read in
+        if source_df_name not in self.tables:
+            self.add_magic_table(source_df_name)
+        if source_df_name not in self.tables:
+            print "-W- Couldn't read in {} table".format(source_df_name)
+            return
+        # get tables
+        target_df = self.tables[target_df_name]
+        source_df = self.tables[source_df_name]
+        target_name = target_df_name[:-1]
+        # step 1: make sure columns exist in target_df
+        for col in cols:
+            if col not in target_df.df.columns:
+                target_df.df[col] = None
+        # step 2: propagate target_df columns forward & back
+        target_df.front_and_backfill(cols)
+        # step 3: see if any column values are missing
+        if all(target_df.df[cols].values.ravel()):
+            print '-I- {} table already has {} filled column(s)'.format(target_df_name, cols)
+            self.tables[target_df_name] = target_df
+            return target_df
+        # step 4: make sure columns are in source table, also target name
+        if target_name not in source_df.df.columns:
+            print "-W- can't propagate from {} to {} table".format(source_df_name, target_df_name)
+            print "    Missing {} column in {} table".format(target_name, source_df_name)
+            self.tables[target_df_name] = target_df
+            return target_df
+        for col in cols:
+            if col not in target_df.df.columns:
+                target_df.df[col] = None
+        # step 5: if needed, average from source table and apply to target table
+        for col in cols:
+            if col not in source_df.df.columns:
+                source_df.df[col] = None
+        grouped = source_df.df[cols + [target_name]].groupby(target_name)
+        grouped = grouped[cols].apply(np.mean)
+        for col in cols:
+            target_df.df['new_' + col] = grouped[col]
+            target_df.df[col] = np.where(target_df.df[col], target_df.df[col], target_df.df['new_' + col])
+            target_df.df.drop(['new_' + col], inplace=True, axis=1)
+        self.tables[target_df_name] = target_df
+        return target_df
+
+    def propagate_min_max_up(self, cols=['age'],
+                             target_df_name='locations',
+                             source_df_name='sites',
+                             min_suffix='low',
+                             max_suffix='high'):
+        """
+        Take minimum/maximum values for a set of columns in source_df,
+        and apply them to the target table.
+        This method won't overwrite values in the target table, it will only
+        supply values where they are missing.
+
+        Parameters
+        ----------
+        cols : list-like
+            list of columns to propagate, default ['age']
+        target_df_name : str
+            name of table to propagate values into, default 'locations'
+        source_df_name:
+            name of table to propagate values from, default 'sites'
+        min_suffix : str
+            suffix for minimum value, default 'low'
+        max_suffix : str
+            suffix for maximum value, default 'high'
+
+        Returns
+        ---------
+        target_df : MagicDataFrame
+            updated MagicDataFrame with propagated values
+        """
+        # make sure target/source table are appropriate
+        target_ind = self.ancestry.index(target_df_name)
+        source_ind = self.ancestry.index(source_df_name)
+        if target_ind - source_ind != 1:
+            print '-W- propagate_min_max_up only works with tables that are spaced one apart, i.e. sites and samples.'
+            print '    Source table must be lower in the hierarchy than the target table.'
+            print '    You have provided "{}" as the target table and "{}" as the source table.'.format(target_df_name, source_df_name)
+            return None
+        # make sure target table is read in
+        if target_df_name not in self.tables:
+            self.add_magic_table(target_df_name)
+        if target_df_name not in self.tables:
+            print "-W- Couldn't read in {} table".format(target_df_name)
+            return
+        # make sure source table is read in
+        if source_df_name not in self.tables:
+            self.add_magic_table(source_df_name)
+        if source_df_name not in self.tables:
+            print "-W- Couldn't read in {} table".format(source_df_name)
+            return
+        # get tables
+        target_df = self.tables[target_df_name]
+        source_df = self.tables[source_df_name]
+        target_name = target_df_name[:-1]
+        # find and propagate min/max for each col in cols
+        for col in cols:
+            if col not in source_df.df.columns:
+                print '-W- {} table is missing "{}" column, skipping'.format(source_df_name, col)
+                continue
+            min_col = col + "_" + min_suffix
+            max_col = col + "_" + max_suffix
+            # add min/max cols to target_df if missing
+            if min_col not in target_df.df.columns:
+                target_df.df[min_col] = None
+            if max_col not in target_df.df.columns:
+                target_df.df[max_col] = None
+            # get min/max from source
+            grouped = source_df.df[[col, target_name]].groupby(target_name)
+            minimum, maximum = grouped.min(), grouped.max()
+            # update target_df without overwriting existing values
+            target_df.df[min_col] = np.where(target_df.df[min_col].notnull(),
+                                             target_df.df[min_col],
+                                             minimum[col])
+            target_df.df[max_col] = np.where(target_df.df[max_col].notnull(),
+                                             target_df.df[max_col],
+                                             maximum[col])
+        # update contribution
+        self.tables[target_df_name] = target_df
+        return target_df
+
+    def get_age_levels(self):
+        """
+        Method to add a "level" column to the ages table.
+        Finds the lowest filled in level (i.e., specimen, sample, etc.)
+        for that particular row.
+        I.e., a row with both site and sample name filled in is considered
+        a sample-level age.
+
+        Returns
+        ---------
+        self.tables['ages'] : MagicDataFrame
+            updated ages table
+        """
+        def get_level(ser, levels=('specimen', 'sample', 'site', 'location')):
+            for level in levels:
+                if pd.notnull(ser[level]):
+                    if len(ser[level]):  # guard against empty strings
+                        return level
+            return
+        # get available levels in age table
+        possible_levels = ['specimen', 'sample', 'site', 'location']
+        levels = [level for level in possible_levels if level in self.tables['ages'].df.columns]
+        # find level for each age row
+        self.tables['ages'].df['level'] = self.tables['ages'].df.apply(get_level, axis=1, args=[levels])
+        return self.tables['ages']
+
+    def propagate_ages(self):
+        """
+        Mine ages table for any age data, and write it into
+        specimens, samples, sites, locations tables.
+        Do not overwrite existing age data.
+        """
+        if 'ages' not in self.tables:
+            return
+        if not len(self.tables['ages'].df):
+            return
+        # get levels in age table
+        self.get_age_levels()
+        # go through each level of age data
+        for level in self.tables['ages'].df['level'].unique():
+            table_name = level + 's'
+            age_headers = self.data_model.get_group_headers(table_name, 'Age')
+            # find age headers that are actually in table
+            actual_age_headers = list(set(self.tables[table_name].df.columns).intersection(age_headers))
+            # find site age headers that are available in ages table
+            available_age_headers = list(set(self.tables['ages'].df.columns).intersection(age_headers))
+            # fill in all available age info to all rows
+            self.tables[table_name].front_and_backfill(actual_age_headers)
+            # add any available headers to table
+            add_headers = set(available_age_headers).difference(actual_age_headers)
+            for header in add_headers:
+                self.tables[table_name].df[header] = None
+            # propagate values from ages into table
+            def move_values(ser, level, available_headers):
+                name = ser.name
+                cond1 = self.tables['ages'].df[level] == name
+                cond2 = self.tables['ages'].df['level'] == level
+                mask = cond1 & cond2
+                sli = self.tables['ages'].df[mask]
+                if len(sli):
+                    return list(sli[available_headers].values[0])
+                return [None] * len(available_headers)
+
+            res = self.tables[table_name].df.apply(move_values, axis=1,
+                                                   args=[level, available_age_headers])
+            # fill in table with values gleaned from ages
+            new_df = pd.DataFrame(data=list(res.values), index=res.index,
+                                  columns=available_age_headers)
+            age_values = np.where(self.tables[table_name].df[available_age_headers],
+                                  self.tables[table_name].df[available_age_headers],
+                                  new_df)
+            self.tables[table_name].df[available_age_headers] = age_values
+        #
+        # put age_high, age_low into locations table
+        print "-I- Adding age_high and age_low to locations table based on minimum/maximum ages found in sites table"
+        self.propagate_min_max_up(cols=['age'], target_df_name='locations',
+                                  source_df_name='sites')
+
+    ## Methods for outputting tables
 
     def remove_non_magic_cols(self):
         """
@@ -795,10 +1116,9 @@ class MagicDataFrame(object):
                 self.df = DataFrame(columns=columns)
             else:
                 self.df = DataFrame()
-                self.df.index.name = name #dtype[:-1] if dtype.endswith("s") else dtype
+                self.df.index.name = name
         # if there is a file provided, read in the data and ascertain dtype
         else:
-            ## new way of reading in data using pd.read_table
             with open(magic_file) as f:
                 try:
                     delim, dtype = f.readline().split('\t')[:2]
@@ -858,7 +1178,7 @@ class MagicDataFrame(object):
         # make sure name column is present (i.e., sample column in samples df)
         if name not in ['measurement', 'age']:
             self.df[name] = self.df.index
-        elif name == 'measurement':
+        elif name == 'measurement' and len(self.df):
             self.df['measurement'] = self.df['experiment'] + self.df['number'].astype(str)
 
 
@@ -1001,6 +1321,31 @@ class MagicDataFrame(object):
         self.df = df_data
         return df_data
 
+    def drop_stub_rows(self, ignore_cols=('specimen',
+                                          'sample',
+                                          'software_packages',
+                                          'num')):
+        """
+        Drop self.df rows that have only null values,
+        ignoring certain columns.
+
+        Parameters
+        ----------
+        ignore_cols : list-like
+            list of column names to ignore for
+
+        Returns
+        ---------
+        self.df : pandas DataFrame
+        """
+        # ignore citations if they just say 'This study'
+        if 'citations' in self.df.columns:
+            if sorted(self.df['citations'].unique()) == ['This study']:
+                ignore_cols = ignore_cols + ('citations',)
+        drop_cols = self.df.columns.difference(ignore_cols)
+        self.df.dropna(axis='index', subset=drop_cols, how='all', inplace=True)
+        return self.df
+
     def update_record(self, name, new_data, condition, update_only=False,
                       debug=False):
         """
@@ -1058,6 +1403,7 @@ class MagicDataFrame(object):
         ---------
         self.df
         """
+        cols = list(cols)
         short_df = self.df[cols]
         short_df = short_df.groupby(short_df.index, sort=False).fillna(method='ffill').groupby(short_df.index, sort=False).fillna(method='bfill')
         self.df[cols] = short_df[cols]

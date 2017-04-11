@@ -1,12 +1,90 @@
 #import matplotlib
 #matplotlib.use('WXAgg')
+import sys
 import numpy as np
 import pandas as pd
 import wx
-import wx.grid
+import wx.grid as gridlib
 import wx.lib.mixins.gridlabelrenderer as gridlabelrenderer
 
-class MagicGrid(wx.grid.Grid, gridlabelrenderer.GridWithLabelRenderersMixin):
+
+class HugeTable(gridlib.PyGridTableBase):
+
+    """
+    Table class for virtual grid
+    """
+
+    def __init__(self, log, num_rows, num_cols):
+        gridlib.PyGridTableBase.__init__(self)
+        self.log = log
+
+        self.odd=gridlib.GridCellAttr()
+        #self.odd.SetBackgroundColour("sky blue")
+        self.even=gridlib.GridCellAttr()
+        #self.even.SetBackgroundColour("sea green")
+        self.num_rows = num_rows
+        self.num_cols = num_cols
+        self.dataframe = []
+
+    def GetAttr(self, row, col, kind):
+        attr = [self.even, self.odd][row % 2]
+        attr.IncRef()
+        return attr
+
+    def GetNumberRows(self):
+        return self.num_rows
+
+    def GetNumberCols(self):
+        return self.num_cols
+
+    def IsEmptyCell(self, row, col):
+        return False
+
+    def GetValue(self, row, col):
+        """
+        Find the matching value from pandas DataFrame,
+        return it.
+        """
+        if len(self.dataframe):
+            return self.dataframe.iloc[row, col]
+        return ''
+
+    def SetValue(self, row, col, value):
+        """
+        Set value in the pandas DataFrame
+        """
+        self.dataframe.iloc[row, col] = value
+
+    def SetColumnValues(self, col, value):
+        """
+        Custom method to efficiently set all values
+        in a column
+        """
+        self.dataframe.iloc[:, col] = value
+
+    def GetColLabelValue(self, col):
+        """
+        Get col label from dataframe
+        """
+        if len(self.dataframe):
+            return self.dataframe.columns[col]
+        return ''
+
+    def SetColLabelValue(self, col, value):
+        """
+        Set col label value in dataframe
+        """
+        if len(self.dataframe):
+            col_name = self.dataframe.columns[col]
+            self.dataframe.rename(columns={col_name: value}, inplace=True)
+        return ''
+
+    ## this one doesn't seem to work right... just hangs...
+    #def AppendCols(self, *args):
+    #    pass
+
+
+class BaseMagicGrid(gridlib.Grid, gridlabelrenderer.GridWithLabelRenderersMixin):
     """
     grid class
     """
@@ -17,9 +95,9 @@ class MagicGrid(wx.grid.Grid, gridlabelrenderer.GridWithLabelRenderersMixin):
         self.row_labels = sorted(row_labels)
         self.col_labels = col_labels
         if not size:
-            super(MagicGrid, self).__init__(parent, -1, name=name)
+            super(BaseMagicGrid, self).__init__(parent, -1, name=name)
         if size:
-            super(MagicGrid, self).__init__(parent, -1, name=name, size=size)
+            super(BaseMagicGrid, self).__init__(parent, -1, name=name, size=size)
         gridlabelrenderer.GridWithLabelRenderersMixin.__init__(self)
         ### the next few lines may prove unnecessary
         ancestry = ['specimen', 'sample', 'site', 'location', None]
@@ -35,20 +113,7 @@ class MagicGrid(wx.grid.Grid, gridlabelrenderer.GridWithLabelRenderersMixin):
         #self.InitUI()
 
     def InitUI(self):
-        data = []
-        num_rows = len(self.row_labels)
-        num_cols = len(self.col_labels)
-        self.ClearGrid()
-        self.CreateGrid(num_rows, num_cols)
-        for n, row in enumerate(self.row_labels):
-            self.SetRowLabelValue(n, str(n+1))
-            self.SetCellValue(n, 0, row)
-            data.append(row)
-        # set column labels
-        for n, col in enumerate(self.col_labels):
-            self.SetColLabelValue(n, str(col))
-        # set scrollbars
-        self.set_scrollbars()
+        pass
 
     def set_scrollbars(self):
         """
@@ -66,60 +131,6 @@ class MagicGrid(wx.grid.Grid, gridlabelrenderer.GridWithLabelRenderersMixin):
         except AttributeError:
             pass
 
-    def add_items(self, dataframe, hide_cols=()):
-        """
-        Add items and/or update existing items in grid
-        """
-        # replace "None" values with ""
-        dataframe = dataframe.fillna("")
-        # remove any columns that shouldn't be shown
-        for col in hide_cols:
-            if col in dataframe.columns:
-                del dataframe[col]
-        # add more rows
-        self.AppendRows(len(dataframe))
-        columns = dataframe.columns
-        row_num = -1
-        # fill in all rows with appropriate values
-        for ind, row in dataframe.iterrows():
-            row_num += 1
-            for col_num, col in enumerate(columns):
-                value = row[col]
-                self.SetCellValue(row_num, col_num, str(value))
-                # set citation default value
-                if col == 'citations':
-                    citation = row['citations']
-                    if (citation is None) or (citation is np.nan):
-                            self.SetCellValue(row_num, col_num, 'This study')
-                    else:
-                        if 'This study' not in citation:
-                            if len(citation):
-                                citation += ':'
-                            citation += 'This study'
-                            self.SetCellValue(row_num, col_num, citation)
-        self.row_labels.extend(dataframe.index)
-
-
-    def save_items(self, rows=None, verbose=False):
-        """
-        Return a dictionary of row data for selected rows:
-        {1: {col1: val1, col2: val2}, ...}
-        If a list of row numbers isn't provided, get data for all.
-        """
-        if rows:
-            rows = rows
-        else:
-            rows = range(self.GetNumberRows())
-        cols = range(self.GetNumberCols())
-        data = {}
-        for row in rows:
-            data[row] = {}
-            for col in cols:
-                col_name = self.GetColLabelValue(col)
-                if verbose:
-                    print col_name, ":", self.GetCellValue(row, col)
-                data[row][col_name] = self.GetCellValue(row, col)
-        return data
 
     def size_grid(self, event=None):
         self.AutoSizeColumns(True)
@@ -135,8 +146,8 @@ class MagicGrid(wx.grid.Grid, gridlabelrenderer.GridWithLabelRenderersMixin):
         self.ForceRefresh()
 
     def do_event_bindings(self):
-        self.Bind(wx.grid.EVT_GRID_EDITOR_CREATED, self.on_edit_grid)
-        self.Bind(wx.grid.EVT_GRID_EDITOR_SHOWN, self.on_edit_grid)
+        self.Bind(gridlib.EVT_GRID_EDITOR_CREATED, self.on_edit_grid)
+        self.Bind(gridlib.EVT_GRID_EDITOR_SHOWN, self.on_edit_grid)
         self.Bind(wx.EVT_KEY_DOWN, self.on_key_down)
         #self.Bind(wx.EVT_TEXT, self.on_key_down_in_editor)
         #self.Bind(wx.EVT_CHAR, self.on_key_down)
@@ -277,7 +288,7 @@ class MagicGrid(wx.grid.Grid, gridlabelrenderer.GridWithLabelRenderersMixin):
         Add a new column to the grid.
         Resize grid to display the column.
         """
-        self.AppendCols(1)
+        self.AppendCols(1, updateLabels=False)
         last_col = self.GetNumberCols() - 1
         self.SetColLabelValue(last_col, label)
         self.col_labels.append(label)
@@ -363,22 +374,147 @@ class MagicGrid(wx.grid.Grid, gridlabelrenderer.GridWithLabelRenderersMixin):
     def paint_invalid_row(self, row, color="LIGHT BLUE"):
         self.SetRowLabelRenderer(row, MyRowLabelRenderer(color))
 
-    def paint_invalid_cell(self, row, col, color='MEDIUM VIOLET RED'):
+    def paint_invalid_cell(self, row, col, color='MEDIUM VIOLET RED',
+                           skip_cell=False):
         """
         Take row, column, and turn it color
         """
-        #col_ind = self.col_labels.index(col_name)
-        #print 'row', row
-        #print 'col', col
-        #print 'color', color
         self.SetColLabelRenderer(col, MyColLabelRenderer('#1101e0'))
-        self.SetCellRenderer(row, col, MyCustomRenderer(color))#color))
+        # SetCellRenderer doesn't work with table-based grid (HugeGrid class)
+        if not skip_cell:
+            self.SetCellRenderer(row, col, MyCustomRenderer(color))
+
+
+class MagicGrid(BaseMagicGrid):
+    """
+    grid class
+    """
+    def __init__(self, parent, name, row_labels, col_labels, size=0):
+        super(MagicGrid, self).__init__(parent, name, row_labels, col_labels, size=0)
+
+    def InitUI(self):
+        data = []
+        num_rows = len(self.row_labels)
+        num_cols = len(self.col_labels)
+        self.ClearGrid()
+        self.CreateGrid(num_rows, num_cols)
+        for n, row in enumerate(self.row_labels):
+            self.SetRowLabelValue(n, str(n+1))
+            self.SetCellValue(n, 0, row)
+            data.append(row)
+        # set column labels
+        for n, col in enumerate(self.col_labels):
+            self.SetColLabelValue(n, str(col))
+        # set scrollbars
+        self.set_scrollbars()
+
+
+    def add_items(self, dataframe, hide_cols=()):
+        """
+        Add items and/or update existing items in grid
+        """
+        # replace "None" values with ""
+        dataframe = dataframe.fillna("")
+        # remove any columns that shouldn't be shown
+        for col in hide_cols:
+            if col in dataframe.columns:
+                del dataframe[col]
+        # add more rows
+        self.AppendRows(len(dataframe))
+        columns = dataframe.columns
+        row_num = -1
+        # fill in all rows with appropriate values
+        for ind, row in dataframe.iterrows():
+            row_num += 1
+            for col_num, col in enumerate(columns):
+                value = row[col]
+                self.SetCellValue(row_num, col_num, str(value))
+                # set citation default value
+                if col == 'citations':
+                    citation = row['citations']
+                    if (citation is None) or (citation is np.nan):
+                            self.SetCellValue(row_num, col_num, 'This study')
+                    else:
+                        if 'This study' not in citation:
+                            if len(citation):
+                                citation += ':'
+                            citation += 'This study'
+                            self.SetCellValue(row_num, col_num, citation)
+        self.row_labels.extend(dataframe.index)
+
+
+    def save_items(self, rows=None, verbose=False):
+        """
+        Return a dictionary of row data for selected rows:
+        {1: {col1: val1, col2: val2}, ...}
+        If a list of row numbers isn't provided, get data for all.
+        """
+        if rows:
+            rows = rows
+        else:
+            rows = range(self.GetNumberRows())
+        cols = range(self.GetNumberCols())
+        data = {}
+        for row in rows:
+            data[row] = {}
+            for col in cols:
+                col_name = self.GetColLabelValue(col)
+                if verbose:
+                    print col_name, ":", self.GetCellValue(row, col)
+                data[row][col_name] = self.GetCellValue(row, col)
+        return data
 
 
 
-class MyCustomRenderer(wx.grid.PyGridCellRenderer):
+
+class HugeMagicGrid(BaseMagicGrid):
+
+    def __init__(self, parent, name, row_labels, col_labels, size=0):
+        super(HugeMagicGrid, self).__init__(parent, name, row_labels, col_labels, size=0)
+        # add table
+        table = HugeTable(sys.stdout, len(row_labels), len(col_labels))
+        self.table = table
+
+        # The second parameter means that the grid is to take ownership of the
+        # table and will destroy it when done.  Otherwise you would need to keep
+        # a reference to it and call it's Destroy method later.
+        self.SetTable(table, True)
+
+        self.Bind(gridlib.EVT_GRID_CELL_RIGHT_CLICK, self.OnRightDown)
+        #self.InitUI()
+
+    def InitUI(self):
+        self.size_grid()
+
+    def add_items(self, dataframe, hide_cols=()):
+        # replace "None" values with ""
+        dataframe = dataframe.fillna("")
+        # remove any columns that shouldn't be shown
+        for col in hide_cols:
+            if col in dataframe.columns:
+                del dataframe[col]
+        self.table.dataframe = dataframe
+
+    def save_items(self):
+        """
+        Return dataframe so that a contribution can update
+        """
+        return self.table.dataframe
+
+    def SetColumnValues(self, col, data):
+        """
+        Set a whole column worth of values
+        in self.table
+        """
+        self.table.SetColumnValues(col, data)
+
+    def OnRightDown(self, event):
+        print self.GetSelectedRows()
+
+
+class MyCustomRenderer(gridlib.PyGridCellRenderer):
     def __init__(self, color='MEDIUM VIOLET RED'):
-        wx.grid.PyGridCellRenderer.__init__(self)
+        gridlib.PyGridCellRenderer.__init__(self)
         self.color = color
 
     def Draw(self, grid, attr, dc, rect, row, col, isSelected):

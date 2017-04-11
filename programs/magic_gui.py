@@ -80,6 +80,9 @@ class MainFrame(wx.Frame):
         self.contribution.propagate_all_tables_info()
         # extract average lats/lons from sites table
         self.contribution.get_min_max_lat_lon()
+        # extract age info from ages table and put into other tables
+        self.contribution.propagate_ages()
+        # finish up
         self.edited = False
         del wait
 
@@ -154,12 +157,12 @@ class MainFrame(wx.Frame):
         self.btn5.InitColours()
         self.Bind(wx.EVT_BUTTON, self.make_grid_frame, self.btn5)
 
-        #text = "6. add results data"
-        #self.btn6 = buttons.GenButton(self.panel, id=-1, label=text,
-        #                              size=(300, 50), name='result_btn')
-        #self.btn6.SetBackgroundColour("#C4DF9B")
-        #self.btn6.InitColours()
-        #self.Bind(wx.EVT_BUTTON, self.make_grid_frame, self.btn6)
+        text = "6. add measurements data"
+        self.btn6 = buttons.GenButton(self.panel, id=-1, label=text,
+                                      size=(300, 50), name='measurements_btn')
+        self.btn6.SetBackgroundColour("#C4DF9B")
+        self.btn6.InitColours()
+        self.Bind(wx.EVT_BUTTON, self.make_grid_frame, self.btn6)
 
         bsizer1a = wx.BoxSizer(wx.VERTICAL)
         bsizer1a.AddSpacer(20)
@@ -179,7 +182,7 @@ class MainFrame(wx.Frame):
         #__init__(self, parent, id, label, pos, size, style, validator, name
         bsizer1b.Add(self.btn4, flag=wx.ALIGN_CENTER|wx.BOTTOM, border=20)
         bsizer1b.Add(self.btn5, 0, flag=wx.ALIGN_CENTER|wx.BOTTOM, border=20)
-        #bsizer1b.Add(self.btn6, 0, wx.ALIGN_CENTER, 0)
+        bsizer1b.Add(self.btn6, 0, wx.ALIGN_CENTER, 0)
         bSizer1.Add(bsizer1b, 0, wx.ALIGN_CENTER, 0)
         bSizer1.AddSpacer(20)
 
@@ -282,14 +285,32 @@ class MainFrame(wx.Frame):
         # propagate lithologies/type/class information from sites to samples/specimens
         if grid_type in ['specimens', 'samples']:
             self.contribution.propagate_lithology_cols()
+        # propagate average lat/lon info from samples table if
+        # available in samples and missing in sites
+        if grid_type == 'sites':
+            self.contribution.propagate_average_up(cols=['lat', 'lon'],
+                                           target_df_name='sites',
+                                           source_df_name='samples')
+            self.contribution.propagate_lithology_cols()
         # hide mainframe
         self.on_open_grid_frame()
+        # choose appropriate size for grid
+        if grid_type == 'measurements':
+            huge = True
+        else:
+            huge = False
         # make grid frame
-        self.grid_frame = grid_frame.GridFrame(self.contribution, self.WD, grid_type, grid_type, self.panel)
+        self.grid_frame = grid_frame.GridFrame(self.contribution, self.WD,
+                                               grid_type, grid_type,
+                                               self.panel, huge=huge)
         row_string = ""
         # paint validations if appropriate
         if self.validation_mode:
             if grid_type in self.validation_mode:
+                if grid_type == 'measurements':
+                    skip_cell_render = True
+                else:
+                    skip_cell_render = False
                 self.grid_frame.toggle_help(None, "open")
                 row_problems = self.failing_items[grid_type]["rows"]
                 missing_columns = self.failing_items[grid_type]["missing_columns"]
@@ -298,10 +319,10 @@ class MainFrame(wx.Frame):
                 #col_nums = range(len(all_cols))
                 #col_pos = dict(zip(all_cols, col_nums))
                 if len(row_problems):
-                    row_string = """Columns and rows with problem data have been highlighted in blue.
-Cells with problem data are highlighted according to the type of problem.
-Red: incorrect data
-For full error messages, see {}.""".format(grid_type + "_errors.txt")
+                    row_string = "Columns and rows with problem data have been highlighted in blue.\n"
+                    if not skip_cell_render:
+                        row_string += "Cells with problem data are highlighted according to the type of problem.\nRed: incorrect data\n"
+                    row_string += "For full error messages, see {}.".format(grid_type + "_errors.txt")
                     for row in row_problems['num']:
                         self.grid_frame.grid.paint_invalid_row(row)
                         mask = row_problems["num"] == row
@@ -310,7 +331,8 @@ For full error messages, see {}.""".format(grid_type + "_errors.txt")
                         for col in cols:
                             pre, col_name = val_up3.extract_col_name(col)
                             col_ind = self.grid_frame.grid.col_labels.index(col_name)
-                            self.grid_frame.grid.paint_invalid_cell(row, col_ind)
+                            self.grid_frame.grid.paint_invalid_cell(row, col_ind,
+                                                                    skip_cell=skip_cell_render)
                 current_label = self.grid_frame.msg_text.GetLabel()
                 if len(missing_columns):
                     col_string = "You are missing the following required columns: {}\n\n".format(", ".join(missing_columns))
@@ -354,7 +376,7 @@ For full error messages, see {}.""".format(grid_type + "_errors.txt")
                 self.message.SetLabel('The following grid(s) have incorrect or incomplete data:\n{}'.format(', '.join(self.validation_mode)))
             # highlighting does work with OSX
             else:
-                for dtype in ["specimens", "samples", "sites", "locations", "ages"]:
+                for dtype in ["specimens", "samples", "sites", "locations", "ages", "measurements"]:
                     wind = self.FindWindowByName(dtype + '_btn')
                     if dtype not in has_problems:
                         wind.Unbind(wx.EVT_PAINT, handler=self.highlight_button)
