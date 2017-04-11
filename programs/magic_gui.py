@@ -288,7 +288,7 @@ class MainFrame(wx.Frame):
         # propagate average lat/lon info from samples table if
         # available in samples and missing in sites
         if grid_type == 'sites':
-            self.contribution.propagate_average_up(cols=['lat', 'lon'],
+            self.contribution.propagate_average_up(cols=['lat', 'lon', 'height'],
                                            target_df_name='sites',
                                            source_df_name='samples')
             self.contribution.propagate_lithology_cols()

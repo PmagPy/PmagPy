@@ -113,7 +113,7 @@ class ErMagicCheckFrame3(wx.Frame):
         """
         # propagate average lat/lon info from samples table if
         # available in samples and missing in sites
-        self.contribution.propagate_average_up(cols=['lat', 'lon'],
+        self.contribution.propagate_average_up(cols=['lat', 'lon', 'height'],
                                        target_df_name='sites',
                                        source_df_name='samples')
         site_df = self.contribution.tables['sites'].df
