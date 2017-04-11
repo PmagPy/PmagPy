@@ -1,7 +1,6 @@
 programs_list=["ani_depthplot.py=programs.ani_depthplot:main",
 "bgc_magic.py=programs.bgc_magic:main",
-"cit_magic.py=programs.cit_magic:main",
-"cit_magic3.py=programs.cit_magic3:main",
+"cit_magic2.py=programs.cit_magic2:main",
 "core_depthplot.py=programs.core_depthplot:main",
 "dir_redo.py=programs.dir_redo:main",
 "huji_magic.py=programs.huji_magic:main",
