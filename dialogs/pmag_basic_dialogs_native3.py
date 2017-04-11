@@ -2435,7 +2435,7 @@ class convert_Utrecht_files_to_MagIC(convert_files_to_MagIC):
         dc_flag,dc_params = '',''
         if self.bSizer6.return_value() != '':
             dc_params = map(float,self.bSizer6.return_value().split())
-            options_dict['lab_field'] = dc_params[0]
+            options_dict['labfield'] = dc_params[0]
             options_dict['phi'] = dc_params[1]
             options_dict['theta'] = dc_params[2]
             dc_flag = '-dc ' + self.bSizer6.return_value()
@@ -2470,7 +2470,7 @@ class convert_Utrecht_files_to_MagIC(convert_files_to_MagIC):
             options_dict['avg'] = True
             replicate = '-A'
 
-        COMMAND = "cit_magic.py -WD {} -f {} -F {} {} {} {} -ncn {} {} -Fsp {} -Fsa {} -Fsi {} -Flo {} {} {} {} -lat {} -lon {}".format(wd, Utrecht_file, outfile, particulars, spec_num, loc_name, ncn, ID, spec_outfile, samp_outfile, site_outfile, loc_outfile, replicate, dc_flag, dmy_flag, lon, lat)
+        COMMAND = "utrecht_magic.py -WD {} -f {} -F {} {} {} {} -ncn {} {} -Fsp {} -Fsa {} -Fsi {} -Flo {} {} {} {} -lat {} -lon {}".format(wd, Utrecht_file, outfile, particulars, spec_num, loc_name, ncn, ID, spec_outfile, samp_outfile, site_outfile, loc_outfile, replicate, dc_flag, dmy_flag, lon, lat)
         # to run as module:
         program_ran, error_message = utrecht_magic.convert(**options_dict)
         if program_ran:
