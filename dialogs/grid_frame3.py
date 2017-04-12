@@ -4,6 +4,7 @@ GridBuilder -- data methods for GridFrame (add data to frame, save it, etc.)
 """
 import wx
 import pandas as pd
+import numpy as np
 from dialogs import drop_down_menus3 as drop_down_menus
 from dialogs import pmag_widgets as pw
 from dialogs import magic_grid3 as magic_grid
@@ -87,6 +88,7 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
 
         self.grid = self.grid_builder.make_grid()
         self.grid.InitUI()
+
 
         ## Column management buttons
         self.add_cols_button = wx.Button(self.panel, label="Add additional columns",
@@ -227,6 +229,8 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
         self.panel.Bind(wx.EVT_TEXT_PASTE, self.do_fit)
         # add actual data!
         self.grid_builder.add_data_to_grid(self.grid, self.grid_type)
+        # fill in some default values
+        self.grid_builder.fill_defaults()
         # set scrollbars
         self.grid.set_scrollbars()
 
@@ -1028,6 +1032,42 @@ class GridBuilder(object):
             if self.grid_type == 'ages':
                 self.contribution.propagate_ages()
             return
+
+    def fill_defaults(self):
+        """
+        Fill in self.grid with default values in certain columns.
+        Only fill in new values if grid is missing those values.
+        """
+        defaults = {'result_quality': 'g',
+                    'result_type': 'i',
+                    'orientation_quality': 'g',
+                    'citations': 'This study'}
+        for col_name in defaults:
+            if col_name in self.grid.col_labels:
+                # try to grab existing values from contribution
+                if self.grid_type in self.contribution.tables:
+                    if col_name in self.contribution.tables[self.grid_type].df.columns:
+                        old_vals = self.contribution.tables[self.grid_type].df[col_name]
+                        new_val = defaults[col_name]
+                        vals = list(np.where((old_vals.notnull()) & (old_vals != ''), old_vals, new_val))
+                    else:
+                        vals = [defaults[col_name]] * self.grid.GetNumberRows()
+                # if values not available in contribution, use defaults
+                else:
+                    vals = [defaults[col_name]] * self.grid.GetNumberRows()
+            # if col_name not present in grid, skip
+            else:
+                vals = None
+            #
+            if vals:
+                print '-I- Updating column "{}" with default values'.format(col_name)
+                if self.huge:
+                    self.SetColumnValues(col_name, vals)
+                else:
+                    col_ind = self.grid.col_labels.index(col_name)
+                    for row, val in enumerate(vals):
+                        self.grid.SetCellValue(row, col_ind, val)
+                        self.grid.changes = set(range(self.grid.GetNumberRows()))
 
     def get_result_children(self, result_data):
         """
