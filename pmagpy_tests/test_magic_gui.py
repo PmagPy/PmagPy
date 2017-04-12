@@ -28,6 +28,8 @@ class TestMainFrame(unittest.TestCase):
         self.pnl = self.frame.GetChildren()[0]
 
     def tearDown(self):
+        wx.CallAfter(self.frame.Destroy)
+        wx.CallAfter(self.app.Destroy)
         os.chdir(WD)
 
     def test_main_panel_is_created(self):

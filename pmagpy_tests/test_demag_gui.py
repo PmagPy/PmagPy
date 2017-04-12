@@ -659,6 +659,7 @@ class TestDemagGUI(unittest.TestCase):
         frame.s = old_s
 
     def tearDown(self):
+        wx.CallAfter(self.frame.Destroy)
         wx.CallAfter(self.app.Destroy)
         try: os.remove(os.path.join(project_WD, "demag_gui.redo"))
         except OSError: pass
