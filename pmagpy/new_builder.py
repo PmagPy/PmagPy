@@ -788,7 +788,8 @@ class Contribution(object):
         # step 2: propagate target_df columns forward & back
         target_df.front_and_backfill(cols)
         # step 3: see if any column values are missing
-        if all(target_df.df[cols].values.ravel()):
+        values = [not_null(val) for val in target_df.df[cols].values.ravel()]
+        if all(values):
             print '-I- {} table already has {} filled column(s)'.format(target_df_name, cols)
             self.tables[target_df_name] = target_df
             return target_df
@@ -804,12 +805,19 @@ class Contribution(object):
         # step 5: if needed, average from source table and apply to target table
         for col in cols:
             if col not in source_df.df.columns:
-                source_df.df[col] = None
+                source_df.df[col] = np.nan
+            else:
+                # make sure is numeric
+                source_df.df[col] = pd.to_numeric(source_df.df[col], errors='coerce')
         grouped = source_df.df[cols + [target_name]].groupby(target_name)
         grouped = grouped[cols].apply(np.mean)
         for col in cols:
             target_df.df['new_' + col] = grouped[col]
-            target_df.df[col] = np.where(target_df.df[col], target_df.df[col], target_df.df['new_' + col])
+            # use custom not_null
+            mask = [not_null(val) for val in target_df.df[col]]
+            target_df.df[col] = np.where(mask, #target_df.df[col].notnull(),
+                                         target_df.df[col],
+                                         target_df.df['new_' + col])
             target_df.df.drop(['new_' + col], inplace=True, axis=1)
         self.tables[target_df_name] = target_df
         return target_df

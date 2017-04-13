@@ -1048,6 +1048,9 @@ class GridBuilder(object):
                 if self.grid_type in self.contribution.tables:
                     if col_name in self.contribution.tables[self.grid_type].df.columns:
                         old_vals = self.contribution.tables[self.grid_type].df[col_name]
+                        # if column is completely filled in, skip
+                        if all(nb.not_null(old_vals)):
+                            continue
                         new_val = defaults[col_name]
                         vals = list(np.where((old_vals.notnull()) & (old_vals != ''), old_vals, new_val))
                     else:
