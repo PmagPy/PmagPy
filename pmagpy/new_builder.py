@@ -1698,5 +1698,64 @@ class MagicDataFrame(object):
 
 
 
+def not_null(val):
+    """
+    Comprehensive check to see if a value is null or not.
+    Returns True for: non-empty iterables, True, non-zero floats and ints,
+    non-emtpy strings.
+    Returns False for: empty iterables, False, zero, empty strings.
+
+    Parameters
+    ----------
+    val : any Python object
+
+    Returns
+    ---------
+    boolean
+    """
+
+    def can_iter(x):
+        try:
+            any(x)
+            return True
+        except TypeError:
+            return False
+
+    def not_empty(x):
+        if len(x):
+            return True
+        return False
+
+
+    def exists(x):
+        if x:
+            return True
+        return False
+
+
+    def is_nan(x):
+        try:
+            if np.isnan(x):
+                return True
+        except TypeError:
+            return False
+        return False
+
+    # return True iff you have a non-empty iterable
+    # and False for an empty iterable (including an empty string)
+    if can_iter(val):
+        return not_empty(val)
+    # if value is not iterable, return False for np.nan, None, 0, or False
+    # & True for all else
+    else:
+        if is_nan(val):
+            return False
+        else:
+            return exists(val)
+
+
+
+
+
 if __name__ == "__main__":
     pass

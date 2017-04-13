@@ -516,5 +516,19 @@ class TestContribution(unittest.TestCase):
         res = self.con.propagate_min_max_up(min_suffix='lowest', max_suffix='highest')
 
 
+class TestNotNull(unittest.TestCase):
+
+    def test_values(self):
+        vals = [1, 0, True, False, 'string', '', ['a'], [], ('t',), (),
+                pd.DataFrame(['val1']), pd.DataFrame([]),
+                pd.Series(['s']), pd.Series([]),
+                3., np.nan]
+        for num, val in enumerate(vals):
+            res = nb.not_null(val)
+            # all evens should be True, all odds should be False
+            correct = (num % 2) == 0
+            self.assertEqual(correct, res)
+
+
 if __name__ == '__main__':
     unittest.main()
