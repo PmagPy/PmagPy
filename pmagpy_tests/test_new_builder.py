@@ -519,6 +519,18 @@ class TestContribution(unittest.TestCase):
         res = self.con.propagate_min_max_up(min_suffix='lowest', max_suffix='highest')
 
 
+    def test_propagate_name_down(self):
+        directory = os.path.join(WD, 'data_files', 'Measurement_Import', 'CIT_magic', 'PI47')
+        con = nb.Contribution(directory)
+        self.assertNotIn('location', con.tables['measurements'].df.columns)
+        # need to actually test this
+        con.propagate_name_down('sample', 'measurements')
+        con.propagate_name_down('site', 'measurements')
+        con.propagate_name_down('location', 'measurements')
+        self.assertIn('location', con.tables['measurements'].df.columns)
+
+
+
 class TestNotNull(unittest.TestCase):
 
     def test_values(self):

@@ -579,8 +579,8 @@ class Contribution(object):
             add_df = add_df.drop_duplicates(subset=parent_name)
             if grandparent_name not in add_df.columns:
                 print '-W- could not finish propagating names: {} table is missing {} column'.format(parent_table_name, grandparent_name)
-            elif grandparent_name not in df.columns:
-                print '-W- could not finish propagating names: {} table is missing {} column'.format(df_name, grandparent_name)
+            elif parent_name not in df.columns:
+                print '-W- could not finish propagating names: {} table is missing {} column'.format(df_name, parent_name)
             else:
                 df = df.merge(add_df[[grandparent_name]],
                               left_on=[parent_name],
