@@ -8495,6 +8495,19 @@ def adjust_all_to_360(dictionary):
         dictionary[key] = adjust_to_360(dictionary[key], key)
     return dictionary
 
+
+def get_test_WD():
+    """
+    Find proper working directory to run tests.
+    With developer install, tests should be run from PmagPy directory.
+    Otherwise, assume pip install, and run tests from sys.prefix,
+    where data_files are installed by setuptools.
+    """
+    WD = os.getcwd()
+    if 'PmagPy' not in WD:
+        WD = sys.prefix
+    return WD
+
 class MissingCommandLineArgException(Exception):
 
     def __init__(self, message):

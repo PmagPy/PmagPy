@@ -2,14 +2,17 @@
 
 import unittest
 import os
+import sys
 import numpy as np
 import pandas as pd
+from pmagpy import pmag
 from pmagpy import new_builder as nb
 from pmagpy import data_model3 as data_model
 from pmagpy import controlled_vocabularies3 as cv
 
 # set constants
-WD = os.getcwd()
+
+WD = pmag.get_test_WD()
 PROJECT_WD = os.path.join(WD, 'data_files', '3_0', 'Osler')
 #vocab = cv.Vocabulary()
 #VOCABULARY, possible_vocabulary = vocab.get_controlled_vocabularies()

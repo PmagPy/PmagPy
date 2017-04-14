@@ -3,7 +3,7 @@
 import os
 import unittest
 import pmagpy.pmag as pmag
-WD = os.getcwd()
+WD = pmag.get_test_WD()
 PROJECT_WD = os.path.join(WD, "data_files", "2_5", "McMurdo")
 
 class TestLonAdjust(unittest.TestCase):

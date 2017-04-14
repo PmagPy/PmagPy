@@ -1,10 +1,12 @@
 #!/usr/bin/env python
 
 import unittest
-import wx,os,shutil,sys
+import wx, os, shutil, sys
+from numpy import array, isnan
 from programs import thellier_gui
+from pmagpy import pmag
 import dialogs.thellier_interpreter as thellier_interpreter
-from numpy import array,isnan
+
 
 
 @unittest.skipIf(any([arg for arg in sys.argv if 'discover' in arg]), 'seg fault when run with other tests')
@@ -147,7 +149,7 @@ def revert_from_backup(WD):
 
 if __name__ == '__main__':
     # set constants
-    WD = os.getcwd()
+    WD = pmag.get_test_WD()
     project_WD = os.path.join(WD, 'data_files', 'testing', 'my_project')
     empty_WD = os.path.join(os.getcwd(), 'pmagpy_tests', 'examples', 'empty_dir')
 

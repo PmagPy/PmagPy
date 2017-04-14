@@ -18,20 +18,6 @@ programs_WD = os.path.split(fname)[0]
                  "Doesn't work without PmagPy in PYTHONPATH")
 class TestProgramsHelp(unittest.TestCase):
 
-    def spawn_tests(self):
-        programs = os.listdir(programs_WD)
-        not_checked = []
-        for prog in programs:
-            if prog in ['__init__.py', 'program_envs.py']:
-                continue
-            if not prog.endswith('.py') or '#' in prog:
-                not_checked.append(prog)
-                continue
-            if prog.lower() != prog:
-                continue
-            #res = env.run(prog, '-h')
-            return prog
-
     def setUp(self):
         if os.path.exists('./new-test-output'):
             shutil.rmtree('./new-test-output')
@@ -44,22 +30,30 @@ class TestProgramsHelp(unittest.TestCase):
             shutil.rmtree('./new-test-output')
 
     def test_cmd_line(self):
-        print 'programs_WD', programs_WD
         programs = os.listdir(programs_WD)
+        conversion_scripts = os.listdir(os.path.join(programs_WD,
+                                                     'conversion_scripts'))
+        programs.extend(conversion_scripts)
+        conversion_scripts2 = os.listdir(os.path.join(programs_WD,
+                                                      'conversion_scripts2'))
+        programs.extend(conversion_scripts2)
         not_checked = []
         for prog in programs:
-            print "Testing help message for:", prog
             if prog in ['__init__.py', 'program_envs.py']:
                 continue
             if 'gui' in prog:
                 continue
-            if not prog.endswith('.py') or '#' in prog:
+            if prog.endswith('.pyc') or '#' in prog:
+                continue
+            if not prog.endswith('.py'):
                 not_checked.append(prog)
                 continue
             if prog.lower() != prog:
+                not_checked.append(prog)
                 continue
             if sys.platform in ['win32', 'win62']:
                 prog = prog[:-3]
+            print "Testing help message for:", prog
             res = self.env.run(prog, '-h')
             #except AssertionError as ex:
             #    not_checked.append(prog)

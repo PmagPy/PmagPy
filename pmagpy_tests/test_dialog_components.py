@@ -6,13 +6,14 @@ import wx
 import unittest
 import os
 #import dialogs.pmag_widgets as pmag_widgets
+from pmagpy import pmag
 from pmagpy import new_builder as nb
 from pmagpy import data_model3 as data_model
 from pmagpy import controlled_vocabularies3 as cv3
 
 # set constants
 DMODEL = data_model.DataModel()
-WD = os.getcwd()
+WD = pmag.get_test_WD()
 PROJECT_WD = os.path.join(WD, "data_files", "magic_gui", "3_0")
 
 

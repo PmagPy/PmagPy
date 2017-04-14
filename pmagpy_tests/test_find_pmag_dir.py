@@ -3,11 +3,9 @@
 import unittest
 import os
 import sys
-import matplotlib
 from pmagpy import pmag
-from pmagpy import ipmag
 from pmagpy import find_pmag_dir
-WD = os.getcwd()
+WD = pmag.get_test_WD()
 
 
 class TestFindPmagDir(unittest.TestCase):

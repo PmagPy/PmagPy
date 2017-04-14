@@ -7,11 +7,10 @@ tests for validations
 import unittest
 import os
 import re
-import sys
 import pmagpy.validate_upload2 as validate_upload
 import pmagpy.pmag as pmag
 
-WD = os.getcwd()
+WD = pmag.get_test_WD()
 
 
 class TestValidation(unittest.TestCase):

@@ -8,6 +8,8 @@ from pmagpy import version
 
 version_num = version.version.strip('pmagpy-')
 packages = find_packages(exclude=['programs', 'pmagpy_tests',
+                                  'programs.conversion_scripts',
+                                  'programs.conversion_scripts2',
                                   #'dialogs',
                                   'pmagpy_tests.examples', 'pmag_env',
                                   'pmagpy_tests.examples.my_project',
