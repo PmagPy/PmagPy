@@ -25,5 +25,5 @@ class TestFindPmagDir(unittest.TestCase):
         dir3 = find_pmag_dir.get_pmag_dir()
         self.assertEqual(dir1, dir2)
         self.assertEqual(dir2, dir3)
-        if "-pip" not in sys.argv:
+        if WD != sys.prefix:
             self.assertIn('PmagPy', dir1)
