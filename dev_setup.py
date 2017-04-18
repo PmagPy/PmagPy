@@ -46,18 +46,20 @@ def unix_install():
     """
     PmagPyDir=os.path.abspath(".")
     COMMAND="""\n
-PMAGPATHS="%s"
-PMAGPATHS="$PMAGPATHS:%s/programs/"
-for d in %s/programs/*/; do
-  PMAGPATHS="$PMAGPATHS:$d"
+for d in %s/programs/*/ "%s" "%s/programs/"; do
+  case ":$PATH:" in
+    *":$d:"*) :;; # already there
+    *) PMAGPATHS="$PMAGPATHS:$d";; # or PATH="$PATH:$new_entry"
+  esac
 done
 export PYTHONPATH="$PYTHONPATH:%s:%s/programs/"
 export PATH="$PATH:$PMAGPATHS" """%(PmagPyDir,PmagPyDir,PmagPyDir,PmagPyDir,PmagPyDir)
     frc_path=os.path.join(os.environ["HOME"],".bashrc") #not recommended, but hey it freaking works
     fbprof_path=os.path.join(os.environ["HOME"],".bash_profile")
     fprof_path=os.path.join(os.environ["HOME"],".profile")
+    all_paths=[frc_path,fbprof_path,fprof_path]
 
-    for f_path in [frc_path,fbprof_path,fprof_path]:
+    for f_path in all_paths:
         open_type='a'
         if not os.path.isfile(f_path):
             open_type='w+'
@@ -84,7 +86,7 @@ def unix_uninstall():
         fin=open(f_path,'r')
         fout_string,skip="",False
         for line in fin.readlines():
-            if "PMAGPATHS=" in line: skip=True
+            if ("for d in " in line and "/programs/*/" in line) or "PMAGPATHS=" in line: skip=True
             elif 'export PATH="$PATH:$PMAGPATHS"' in line: skip=False; continue
             if skip: continue
             else: fout_string+=line
