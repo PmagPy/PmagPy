@@ -159,8 +159,10 @@ def windows_uninstall():
     new_paths = [p for p in paths if 'pmagpy' not in p.lower()]
     new_pypaths = [p for p in pypaths if 'pmagpy' not in p.lower()]
 
-    new_path = reduce(lambda x,y: x+';'+y, new_paths)
-    new_pypath = reduce(lambda x,y: x+';'+y, new_pypaths)
+    if new_paths: new_path = reduce(lambda x,y: x+';'+y, new_paths)
+    else: new_path=''
+    if new_pypaths: new_pypath = reduce(lambda x,y: x+';'+y, new_pypaths)
+    else: new_pypath=''
 
     print('setx PATH "%s"'%new_path)
     subprocess.call('setx PATH "%s"'%new_path, shell=True)
