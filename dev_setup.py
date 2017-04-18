@@ -4,42 +4,44 @@ NAME
     dev_setup.py
 
 DESCRIPTION
-    Facilitates simple install, uninstall, and reinstall of the developer 
-    version of the PmagPy library and GUIs for both Unix and Windows systems. 
-    This will edit global environment variables and shell configuration files 
-    if you have no idea what those are, unless you need immediate quick 
-    updates to PmagPy, it may be better to use the pip or binary installs of 
-    this software instructions here
-    (https://earthref.org/PmagPy/cookbook/#x1-20001). Also note for Windows 
-    users the windows_install function of this file requires administrative 
-    access so you will need to run in a command prompt with elevated 
-    privileges. This file MUST BE RUN FROM THE PMAGPY DIRECTORY.
+    Facilitates simple install, uninstall, and reinstall of the developer
+    version of the PmagPy library and GUIs for both Unix and Windows systems.
+    This will edit global environment variables and shell configuration files
+    if you have no idea what those are, unless you need immediate quick
+    updates to PmagPy, it may be better to use the pip or binary installs of
+    this software instructions here:
+    (https://earthref.org/PmagPy/cookbook/#pip_install).
+    Also note for Windows users the windows_install function of this file
+    requires administrative access so you will need to run in a command prompt
+    with elevated privileges. See:
+    (http://www.thewindowsclub.com/how-to-run-command-prompt-as-an-administrator)
+    Last, this script MUST BE RUN FROM THE PMAGPY DIRECTORY.
 
 SYNTAX
     python dev_setup.py [install,uninstall,reinstall] [OPTIONS]
 
 OPTIONS
     -h: open help message
-    -p: path_to_python -> necessary if you don't have a fully set up python 
-        environment on windows. This information will allow the script to set 
-        this python.exe to be the default python interpreter and will have it 
-        run when file name with extension .py is entered in command prompt. 
-        Note: this should be an ABSOLUTE path. If you don't know where your 
+    -p: path_to_python -> necessary if you don't have a fully set up python
+        environment on windows. This information will allow the script to set
+        this python.exe to be the default python interpreter and will have it
+        run when file name with extension .py is entered in command prompt.
+        Note: this should be an ABSOLUTE path. If you don't know where your
         python.exe is type this:
-            cd \
+            cd \\
             dir python.exe /s /p
-        ,into command prompt and it will tell you the location of all 
-        python.exe it can find. Though this process can take a while so be 
+        into command prompt and it will tell you the location of all
+        python.exe it can find. This process can take a while, so be
         patient.
 """
 import sys,os,subprocess
 
 def unix_install():
     """
-    Edits or creates .bashrc, .bash_profile, and .profile files in the users 
-    HOME directory in order to add your current directory (hopefully your 
-    PmagPy directory) and assorted lower directories in the PmagPy/programs 
-    directory to your PATH environment variable. It also adds the PmagPy and 
+    Edits or creates .bashrc, .bash_profile, and .profile files in the users
+    HOME directory in order to add your current directory (hopefully your
+    PmagPy directory) and assorted lower directories in the PmagPy/programs
+    directory to your PATH environment variable. It also adds the PmagPy and
     the PmagPy/programs directories to PYTHONPATH.
     """
     PmagPyDir=os.path.abspath(".")
@@ -71,7 +73,7 @@ export PATH="$PATH:$PMAGPATHS" """%(PmagPyDir,PmagPyDir,PmagPyDir,PmagPyDir,Pmag
                 fout.write(COMMAND)
                 fout.close()
 
-    print("Install complete. Please restart the shell to complete install.\nIf you are seeing strange or non-existant paths in your PATH or PYTHONPATH variable please manually check your .bashrc, .bash_profile, and .profile or attempt to reinstall.")
+    print("Install complete. Please restart the shell to complete install.\nIf you are seeing strange or non-existent paths in your PATH or PYTHONPATH variable please manually check your .bashrc, .bash_profile, and .profile or attempt to reinstall.")
 
 def unix_uninstall():
     frc_path=os.path.join(os.environ["HOME"],".bashrc") #not recommended, but hey it freaking works
@@ -94,18 +96,18 @@ def unix_uninstall():
 
 def windows_install(path_to_python=""):
     """
-    Sets the .py extension to be associated with the ftype Python which is 
-    then set to the python.exe you provide in the path_to_python variable or 
-    after the -p flag if run as a script. Once the python environment is set 
+    Sets the .py extension to be associated with the ftype Python which is
+    then set to the python.exe you provide in the path_to_python variable or
+    after the -p flag if run as a script. Once the python environment is set
     up the function proceeds to set PATH and PYTHONPATH using setx.
 
     Parameters
     ----------
-    path_to_python : the path the python.exe you want windows to execute when 
+    path_to_python : the path the python.exe you want windows to execute when
     running .py files
     """
     if not path_to_python:
-        print("please the path to your python.exe you wish Windows to use to run python files. If you do not this script will not be able to Set up a full python environment in Windows. If you already have a python environment set up in Windows such that you can run python scripts from command prompt with just a file name then ignore this message. For more information rerun script with -h flag.")
+        print("Please enter the path to your python.exe you wish Windows to use to run python files. If you do not, this script will not be able to set up a full python environment in Windows. If you already have a python environment set up in Windows such that you can run python scripts from command prompt with just a file name then ignore this message. For more information, rerun script with -h flag.")
         print("Would you like to continue? [y/N] ")
         ans=raw_input()
         if ans=='y': pass
