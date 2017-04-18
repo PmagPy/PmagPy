@@ -82,11 +82,10 @@ def unix_uninstall():
         fin=open(f_path,'r')
         fout_string,skip="",False
         for line in fin.readlines():
-            if line=='\n': continue
-            elif "PMAGPATHS=" in line: skip=True
+            if "PMAGPATHS=" in line: skip=True
             elif 'export PATH="$PATH:$PMAGPATHS"' in line: skip=False; continue
             if skip: continue
-            else: fout_string+=line+'\n'
+            else: fout_string+=line
         fout_string=fout_string.strip('\n')
         fout=open(f_path,'w')
         fout.write(fout_string); fin.close(); fout.close()
