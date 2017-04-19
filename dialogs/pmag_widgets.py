@@ -605,7 +605,7 @@ class combine_files(wx.BoxSizer):
             None, message="choose MagIC formatted measurement file",
             defaultDir=self.WD,
             defaultFile="",
-            style=wx.OPEN | wx.CHANGE_DIR
+            style=wx.FD_OPEN | wx.FD_CHANGE_DIR
             )
         if dlg.ShowModal() == wx.ID_OK:
             full_path = dlg.GetPath()
@@ -944,7 +944,7 @@ def on_add_dir_button(SELF, text):
     dlg = wx.DirDialog(
         None, message=text,
         defaultPath=os.getcwd(),
-        style=wx.OPEN | wx.DD_DEFAULT_STYLE
+        style=wx.FD_OPEN | wx.DD_DEFAULT_STYLE
     )
     if dlg.ShowModal() == wx.ID_OK:
         SELF.parent.dir_path.SetValue(str(dlg.GetPath()))
@@ -958,7 +958,7 @@ def on_add_file_button(SELF, text):
         None, message=text,
         defaultDir=os.getcwd(),
         defaultFile="",
-        style=wx.OPEN | wx.CHANGE_DIR
+        style=wx.FD_OPEN | wx.FD_CHANGE_DIR
     )
     if dlg.ShowModal() == wx.ID_OK:
         SELF.file_path.SetValue(str(dlg.GetPath()))
