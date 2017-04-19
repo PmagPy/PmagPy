@@ -46,14 +46,14 @@ def unix_install():
     """
     PmagPyDir=os.path.abspath(".")
     COMMAND="""\n
-for d in %s/programs/*/ "%s" "%s/programs/"; do
+for d in %s/programs/*/ "%s/programs/"; do
   case ":$PATH:" in
     *":$d:"*) :;; # already there
     *) PMAGPATHS="$PMAGPATHS:$d";; # or PATH="$PATH:$new_entry"
   esac
 done
 export PYTHONPATH="$PYTHONPATH:%s:%s/programs/"
-export PATH="$PATH:$PMAGPATHS" """%(PmagPyDir,PmagPyDir,PmagPyDir,PmagPyDir,PmagPyDir)
+export PATH="$PATH:$PMAGPATHS" """%(PmagPyDir,PmagPyDir,PmagPyDir,PmagPyDir)
     frc_path=os.path.join(os.environ["HOME"],".bashrc") #not recommended, but hey it freaking works
     fbprof_path=os.path.join(os.environ["HOME"],".bash_profile")
     fprof_path=os.path.join(os.environ["HOME"],".profile")
@@ -120,16 +120,16 @@ def windows_install(path_to_python=""):
 
     PmagPyDir=os.path.abspath(".")
     ProgramsDir=os.path.join(PmagPyDir,'programs')
-    dirs_to_add = [PmagPyDir,ProgramsDir]
+    dirs_to_add = [ProgramsDir]
     for d in next(os.walk(ProgramsDir))[1]:
         dirs_to_add.append(os.path.join(ProgramsDir,d))
     path = subprocess.check_output('echo %PATH%', shell=True).strip('\n')
     if "PATH" in path: path=''
     pypath = subprocess.check_output('echo %PYTHONPATH%', shell=True).strip('\n')
-    if "PYTHONPATH" in pypath: pypath=''
+    if "PYTHONPATH" in pypath: pypath=PmagPyDir+';'+ProgramsDir
+    else: pypath+=';'+PmagPyDir+';'+ProgramsDir
     for d_add in dirs_to_add:
         path+=';'+d_add
-    pypath+=PmagPyDir+';'+ProgramsDir
     unique_path_list=[]
     for p in path.split(';'):
         p=p.replace('"','')
@@ -151,9 +151,9 @@ def windows_install(path_to_python=""):
 
 def windows_uninstall():
     path = subprocess.check_output('echo %PATH%', shell=True).strip('\n')
-    if "PATH" in path: path=''; print("PmagPy dev version not installed, aborting"); return
+    if "PATH" in path: print("PmagPy dev version not installed, aborting"); return
     pypath = subprocess.check_output('echo %PYTHONPATH%', shell=True).strip('\n')
-    if "PYTHONPATH" in pypath: pypath=''; print("PmagPy dev version not installed, aborting"); return
+    if "PYTHONPATH" in pypath: print("PmagPy dev version not installed, aborting"); return
 
     paths=path.split(';')
     pypaths=pypath.split(';')
