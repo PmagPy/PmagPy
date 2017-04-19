@@ -160,13 +160,17 @@ class Demag_GUI(wx.Frame):
         wx.Yield()
 
         #set icon
-        icon = wx.Icon()
-        icon_path = os.path.join(PMAGPY_DIRECTORY, 'programs', 'images', 'PmagPy.ico')
-        if os.path.isfile(icon_path):
-            icon.CopyFromBitmap(wx.Bitmap(icon_path, wx.BITMAP_TYPE_ANY))
-            self.SetIcon(icon)
+        if not self.parent:
+            self.icon = wx.Icon()
+            icon_path = os.path.join(PMAGPY_DIRECTORY, 'programs', 'images', 'PmagPy.ico')
+            if os.path.isfile(icon_path):
+                self.icon.CopyFromBitmap(wx.Bitmap(icon_path, wx.BITMAP_TYPE_ANY))
+                self.SetIcon(self.icon)
+            else:
+                print("-I- PmagPy icon file not found -- skipping")
         else:
-            print("-I- PmagPy icon file not found -- skipping")
+            self.icon=self.parent.icon
+            self.SetIcon(self.parent.icon)
 
         # initialize acceptence criteria with NULL values
         self.acceptance_criteria=self.read_criteria_file()

@@ -25,6 +25,10 @@ from dialogs import ErMagicBuilder
 from dialogs import demag_dialogs
 from dialogs import pmag_widgets as pw
 
+global PMAGPY_DIRECTORY
+import pmagpy.find_pmag_dir as find_pmag_dir
+PMAGPY_DIRECTORY = find_pmag_dir.get_pmag_dir()
+
 from programs import demag_gui
 from programs import thellier_gui
 #from programs import thellier_gui3
@@ -46,6 +50,16 @@ class MagMainFrame(wx.Frame):
         and data model (optional).
         """
         wx.Frame.__init__(self, None, wx.ID_ANY, self.title, name='pmag_gui mainframe')
+
+        #set icon
+        self.icon = wx.Icon()
+        icon_path = os.path.join(PMAGPY_DIRECTORY, 'programs', 'images', 'PmagPy.ico')
+        if os.path.isfile(icon_path):
+            self.icon.CopyFromBitmap(wx.Bitmap(icon_path, wx.BITMAP_TYPE_ANY))
+            self.SetIcon(self.icon)
+        else:
+            print("-I- PmagPy icon file not found -- skipping")
+
         # if DM was provided:
         if DM:
             self.data_model_num = int(float(DM))
@@ -400,6 +414,7 @@ class MagMainFrame(wx.Frame):
                                                        standalone=False,
                                                        DM=self.data_model_num,
                                                        evt_quit=ThellierGuiExitEvent)
+            if not thellier_gui_frame: print("Thellier GUI failed to start aborting"); del wait; return
             thellier_gui_frame.Centre()
             thellier_gui_frame.Show()
             del wait

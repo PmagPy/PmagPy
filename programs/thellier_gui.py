@@ -172,6 +172,7 @@ AUTHORS
 #============================================================================================
 
 global CURRENT_VERSION
+global PMAGPY_DIRECTORY
 global MICROWAVE
 global THERMAL
 MICROWAVE=False
@@ -193,7 +194,8 @@ import sys, os, copy, pdb
 from webbrowser import open as webopen
 import pmagpy.pmag as pmag
 CURRENT_VERSION = pmag.get_version()
-from pmagpy import find_pmag_dir
+import pmagpy.find_pmag_dir as find_pmag_dir
+PMAGPY_DIRECTORY = find_pmag_dir.get_pmag_dir()
 import pmagpy.new_builder as nb
 from pmagpy.mapping import map_magic
 import pmagpy.controlled_vocabularies3 as cv
@@ -263,6 +265,21 @@ class Arai_GUI(wx.Frame):
         self.set_test_mode(test_mode)
         self.redo_specimens={}
         self.evt_quit = evt_quit
+        self.close_warning=False
+        self.parent=parent
+
+        #set icon
+        if not self.parent:
+            self.icon = wx.Icon()
+            icon_path = os.path.join(PMAGPY_DIRECTORY, 'programs', 'images', 'PmagPy.ico')
+            if os.path.isfile(icon_path):
+                self.icon.CopyFromBitmap(wx.Bitmap(icon_path, wx.BITMAP_TYPE_ANY))
+                self.SetIcon(self.icon)
+            else:
+                print("-I- PmagPy icon file not found -- skipping")
+        else:
+            self.icon=self.parent.icon
+            self.SetIcon(self.parent.icon)
 
         # get DM number (2 or 3)
         # if DM was provided
@@ -317,12 +334,12 @@ class Arai_GUI(wx.Frame):
         if self.data_model == 3:
             if not 'measurements.txt' in os.listdir(self.WD):
                 print('-W- No measurements.txt file found in {}'.format(self.WD))
-                self.Destroy()
+                self.on_menu_exit(-1)
                 return
         elif self.data_model == 2:
             if not 'magic_measurements.txt' in os.listdir(self.WD):
                 print('-W- No magic_measurements.txt file found in {}'.format(self.WD))
-                self.Destroy()
+                self.on_menu_exit(-1)
                 return
 
         # start grabbing data

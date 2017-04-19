@@ -36,11 +36,12 @@ class InterpretationEditorFrame(wx.Frame):
         #make the Panel
         self.panel = wx.Panel(self,-1,size=(700*self.GUI_RESOLUTION,450*self.GUI_RESOLUTION))
         #set icon
-        icon = wx.Icon()
-        icon_path = os.path.join(IMG_DIRECTORY, 'PmagPy.ico')
-        if os.path.exists(icon_path):
-            icon.CopyFromBitmap(wx.Bitmap(icon_path), wx.BITMAP_TYPE_ANY)
-            self.SetIcon(icon)
+        self.SetIcon(self.parent.icon)
+#        icon = wx.Icon()
+#        icon_path = os.path.join(IMG_DIRECTORY, 'PmagPy.ico')
+#        if os.path.exists(icon_path):
+#            icon.CopyFromBitmap(wx.Bitmap(icon_path), wx.BITMAP_TYPE_ANY)
+#            self.SetIcon(icon)
         self.specimens_list=self.parent.specimens
         self.current_fit_index = None
         self.search_query = ""
