@@ -57,7 +57,7 @@ def convert(**kwargs):
         filelist=[csv_file]
 
     # parsing the data
-    file_found,citation = False,"This Study"
+    file_found,citations = False,"This Study"
     MeasRecs,SpecRecs,SampRecs,SiteRecs,LocRecs=[],[],[],[],[]
     for fin in filelist: # parse each file
         if fin[-3:].lower()=='csv':
@@ -126,12 +126,12 @@ def convert(**kwargs):
                     SpecRec['specimen'] = specimen
                     SpecRec['sample'] = sample
                     SpecRec['volume'] = volume
-                    SpecRec['citations']=citation
+                    SpecRec['citations']=citations
                     SpecRecs.append(SpecRec)
                 if sample!="" and sample not in map(lambda x: x['sample'] if 'sample' in x.keys() else "", SampRecs):
                     SampRec['sample'] = sample
                     SampRec['site'] = site
-                    SampRec['citations']=citation
+                    SampRec['citations']=citations
                     SampRec['azimuth']='0'
                     SampRec['dip']='0'
                     SampRec['method_codes']='FS-C-DRILL-IODP:SO-V'
@@ -139,13 +139,13 @@ def convert(**kwargs):
                 if site!="" and site not in map(lambda x: x['site'] if 'site' in x.keys() else "", SiteRecs):
                     SiteRec['site'] = site
                     SiteRec['location'] = location
-                    SiteRec['citations']=citation
+                    SiteRec['citations']=citations
                     SiteRec['lat'] = lat
                     SiteRec['lon'] = lon
                     SiteRecs.append(SiteRec)
                 if location!="" and location not in map(lambda x: x['location'] if 'location' in x.keys() else "", LocRecs):
                     LocRec['location']=location
-                    LocRec['citations']=citation
+                    LocRec['citations']=citations
                     LocRec['expedition_name']=expedition
                     LocRec['lat_n'] = lat
                     LocRec['lon_e'] = lon

@@ -231,7 +231,7 @@ def convert(**kwargs):
             MeasRec["analysts"] = operator
             MeasRec["instrument_codes"] = "Utrecht_" + machine
             MeasRec["description"] = "free string = " + free_string 
-            MeasRec["citation"] = "This study"
+            MeasRec["citations"] = "This study"
             MeasRec['software_packages'] = version_num
             MeasRec["meas_temp"] = '%8.3e' % (273) # room temp in kelvin
             MeasRec["quality"] = 'g'

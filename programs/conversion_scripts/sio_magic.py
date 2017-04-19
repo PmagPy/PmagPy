@@ -133,7 +133,7 @@ def convert(**kwargs):
     tinc=[0,0,90,0,0,-90,0,0,90]
     missing=1
     demag="N"
-    citation='This study'
+    citations='This study'
     fmt='old'
     Samps=[]
     trm=0
@@ -639,7 +639,7 @@ def convert(**kwargs):
             MeasRec["dir_inc"]=rec[5]
             MeasRec["instrument_codes"]=instcode
             MeasRec["analysts"]=user
-            MeasRec["citations"]=citation
+            MeasRec["citations"]=citations
             if "LP-IRM-3D" in methcode : meas_type=methcode
             #MeasRec["method_codes"]=methcode.strip(':')
             MeasRec["method_codes"]=meas_type

@@ -255,9 +255,9 @@ def convert(**kwargs):
             SpecRec["sample"]=sample
             if vcc.strip()!="":vol=float(vcc)*1e-6 # convert to m^3 from cc
             SpecRec["volumne"]='%10.3e'%(vol) # 
-            SpecRec["geologic_class"]=sclass
+            SpecRec["geologic_classes"]=sclass
             SpecRec["lithologies"]=lithology
-            SpecRec["geologic_type"]=_type
+            SpecRec["geologic_types"]=_type
             SpecRecs.append(SpecRec)
 
             if sample!="" and sample not in map(lambda x: x['sample'] if 'sample' in x.keys() else "", SampRecs):
@@ -269,9 +269,9 @@ def convert(**kwargs):
                 SampRec["dip"]='%7.1f'%(labdip)
                 SampRec["azimuth"]='%7.1f'%(labaz)
                 SampRec["azimuth_dec_correction"]='%7.1f'%(deccorr)
-                SampRec["geologic_class"]=sclass
+                SampRec["geologic_classes"]=sclass
                 SampRec["lithologies"]=lithology
-                SampRec["geologic_type"]=_type
+                SampRec["geologic_types"]=_type
                 SampRec["method_codes"]=method_codes
                 SampRecs.append(SampRec)
 
@@ -280,9 +280,9 @@ def convert(**kwargs):
                 SiteRec['location'] = location
                 SiteRec['lat'] = lat
                 SiteRec['lon'] = lon
-                SiteRec["geologic_class"]=sclass
+                SiteRec["geologic_classes"]=sclass
                 SiteRec["lithologies"]=lithology
-                SiteRec["geologic_type"]=_type
+                SiteRec["geologic_types"]=_type
                 SiteRecs.append(SiteRec)
 
             if location!="" and location not in map(lambda x: x['location'] if 'location' in x.keys() else "", LocRecs):
@@ -291,9 +291,9 @@ def convert(**kwargs):
                 LocRec['lon_e'] = lon
                 LocRec['lat_s'] = lat
                 LocRec['lon_w'] = lon
-                LocRec["geologic_class"]=sclass
+                LocRec["geologic_classes"]=sclass
                 LocRec["lithologies"]=lithology
-                LocRec["geologic_type"]=_type
+                LocRec["geologic_types"]=_type
                 LocRecs.append(LocRec)
 
         else:
@@ -352,7 +352,7 @@ def convert(**kwargs):
 #                    MeasRec['measurement_date']=dstring
             MeasRec["instrument_codes"]=inst
             MeasRec["analysts"]=user
-            MeasRec["citation"]="This study"
+            MeasRec["citations"]="This study"
             MeasRec["method_codes"]=meas_type
             if demag=="AF":
                 MeasRec["treat_ac_field"]='%8.3e' %(float(treat[:-2])*1e-3) # peak field in tesla
