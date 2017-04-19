@@ -208,7 +208,7 @@ class combine_magic_dialog(wx.Frame):
 
         hbox_all= wx.BoxSizer(wx.HORIZONTAL)
         hbox_all.AddSpacer(20)
-        hbox_all.AddSpacer(vbox)
+        hbox_all.Add(vbox)
         hbox_all.AddSpacer(20)
 
         self.panel.SetSizer(hbox_all)
@@ -331,7 +331,7 @@ class combine_everything_dialog(wx.Frame):
 
         hbox_all= wx.BoxSizer(wx.HORIZONTAL)
         hbox_all.AddSpacer(20)
-        hbox_all.AddSpacer(vbox)
+        hbox_all.Add(vbox)
         hbox_all.AddSpacer(20)
 
         self.panel.SetSizer(hbox_all)
@@ -516,7 +516,7 @@ class convert_generic_files_to_MagIC(convert_files_to_MagIC):
 
         self.hbox_all= wx.BoxSizer(wx.HORIZONTAL)
         self.hbox_all.AddSpacer(20)
-        self.hbox_all.AddSpacer(vbox)
+        self.hbox_all.Add(vbox)
         self.hbox_all.AddSpacer(20)
 
         self.panel.SetSizer(self.hbox_all)
@@ -811,7 +811,7 @@ class convert_SIO_files_to_MagIC(convert_files_to_MagIC):
 
         hbox_all= wx.BoxSizer(wx.HORIZONTAL)
         hbox_all.AddSpacer(20)
-        hbox_all.AddSpacer(vbox)
+        hbox_all.Add(vbox)
         hbox_all.AddSpacer(20)
 
         self.panel.SetSizer(hbox_all)
@@ -966,7 +966,7 @@ class convert_CIT_files_to_MagIC(convert_files_to_MagIC):
 
         hbox_all= wx.BoxSizer(wx.HORIZONTAL)
         hbox_all.AddSpacer(20)
-        hbox_all.AddSpacer(vbox)
+        hbox_all.Add(vbox)
         hbox_all.AddSpacer(20)
 
         self.panel.SetSizer(hbox_all)
@@ -1134,7 +1134,7 @@ class convert_HUJI_files_to_MagIC(convert_files_to_MagIC):
 
         self.hbox_all= wx.BoxSizer(wx.HORIZONTAL)
         self.hbox_all.AddSpacer(20)
-        self.hbox_all.AddSpacer(vbox)
+        self.hbox_all.Add(vbox)
         self.hbox_all.AddSpacer(20)
 
         self.panel.SetSizer(self.hbox_all)
@@ -1295,7 +1295,7 @@ class convert_2g_binary_files_to_MagIC(convert_files_to_MagIC):
 
         hbox_all= wx.BoxSizer(wx.HORIZONTAL)
         hbox_all.AddSpacer(20)
-        hbox_all.AddSpacer(vbox)
+        hbox_all.Add(vbox)
         hbox_all.AddSpacer(20)
 
         self.panel.SetSizer(hbox_all)
@@ -1473,7 +1473,7 @@ class convert_LDEO_files_to_MagIC(convert_files_to_MagIC):
 
         hbox_all= wx.BoxSizer(wx.HORIZONTAL)
         hbox_all.AddSpacer(20)
-        hbox_all.AddSpacer(vbox)
+        hbox_all.Add(vbox)
         hbox_all.AddSpacer(20)
 
         self.panel.SetSizer(hbox_all)
@@ -1613,7 +1613,7 @@ class convert_IODP_files_to_MagIC(convert_files_to_MagIC):
 
         hbox_all= wx.BoxSizer(wx.HORIZONTAL)
         hbox_all.AddSpacer(20)
-        hbox_all.AddSpacer(vbox)
+        hbox_all.Add(vbox)
         hbox_all.AddSpacer(20)
 
         self.panel.SetSizer(hbox_all)
@@ -1736,7 +1736,7 @@ class convert_PMD_files_to_MagIC(convert_files_to_MagIC):
 
         hbox_all= wx.BoxSizer(wx.HORIZONTAL)
         hbox_all.AddSpacer(20)
-        hbox_all.AddSpacer(vbox)
+        hbox_all.Add(vbox)
         hbox_all.AddSpacer(20)
 
         self.panel.SetSizer(hbox_all)
@@ -1903,7 +1903,7 @@ class convert_JR6_files_to_MagIC(wx.Frame):
 
         hbox_all= wx.BoxSizer(wx.HORIZONTAL)
         hbox_all.AddSpacer(20)
-        hbox_all.AddSpacer(vbox)
+        hbox_all.Add(vbox)
         hbox_all.AddSpacer(20)
 
         self.panel.SetSizer(hbox_all)
@@ -2116,7 +2116,7 @@ class convert_BGC_files_to_magic(wx.Frame):
 
         hbox_all= wx.BoxSizer(wx.HORIZONTAL)
         hbox_all.AddSpacer(20)
-        hbox_all.AddSpacer(vbox)
+        hbox_all.Add(vbox)
         hbox_all.AddSpacer(20)
 
         self.panel.SetSizer(hbox_all)
@@ -2260,7 +2260,7 @@ class convert_Utrecht_files_to_MagIC(convert_files_to_MagIC):
 
         hbox_all= wx.BoxSizer(wx.HORIZONTAL)
         hbox_all.AddSpacer(20)
-        hbox_all.AddSpacer(vbox)
+        hbox_all.Add(vbox)
         hbox_all.AddSpacer(20)
 
         self.panel.SetSizer(hbox_all)
@@ -2402,7 +2402,7 @@ class something(wx.Frame):
 
         hbox_all= wx.BoxSizer(wx.HORIZONTAL)
         hbox_all.AddSpacer(20)
-        hbox_all.AddSpacer(vbox)
+        hbox_all.Add(vbox)
         hbox_all.AddSpacer(20)
 
         self.panel.SetSizer(hbox_all)
