@@ -275,7 +275,7 @@ class Arai_GUI(wx.Frame):
         else:
             from dialogs import demag_dialogs
             ui_dialog = demag_dialogs.user_input(self,['data_model'],parse_funcs=[float], heading="Please input prefered data model (2.5,3.0).  Note: 2.5 is for legacy projects only, if you are have new data please use 3.0.", values=[3])
-            res = ui_dialog.ShowModal()
+#            res = ui_dialog.ShowModal()
             vals = ui_dialog.get_values()
             self.data_model = int(vals[1]['data_model'])
 
