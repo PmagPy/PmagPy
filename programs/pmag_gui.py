@@ -67,12 +67,6 @@ class MagMainFrame(wx.Frame):
         if not DM:
             self.data_model_num = int(float(pmag.get_named_arg_from_sys("-DM", 0)))
             DM = self.data_model_num
-        # if you still don't have DM, make the user choose
-        if not DM:
-            ui_dialog = demag_dialogs.user_input(self,['data_model'],parse_funcs=[float], heading="Please input prefered data model (2.5,3.0).  Note: 2.5 is for legacy projects only, if you are have new data please use 3.0.", values=[3])
-#            res = ui_dialog.ShowModal()
-            vals = ui_dialog.get_values()
-            self.data_model_num = int(vals[1]['data_model'])
         self.data_model = dmodel
         self.FIRST_RUN = True
 
@@ -82,34 +76,79 @@ class MagMainFrame(wx.Frame):
         # for use as module:
         self.resource_dir = os.getcwd()
 
-        if not WD:
-            self.get_DIR() # choose directory dialog
-        else:
-            self.WD = WD
+        # set some things
         self.HtmlIsOpen = False
         self.Bind(wx.EVT_CLOSE, self.on_menu_exit)
+
+        # if not specified on the command line,
+        # make the user choose data model num (2 or 3)
+        # and working directory
+        wx.CallAfter(self.get_dm_and_wd, DM, WD)
+
+    def get_dm_and_wd(self, DM=None, WD=None):
+        """
+        If DM and/or WD are missing, call user-input dialogs
+        to ascertain that information.
+
+        Parameters
+        ----------
+        self
+        DM : int
+            number of data model to use (2 or 3), default None
+        WD : str
+            name of working directory, default None
+        """
+        if not DM:
+            self.get_dm_num()
+        if not WD:
+            self.get_DIR()
+
+    def get_dm_num(self):
+        """
+        Show dialog to get user input for which data model to use,
+        2 or 3.
+        Set self.data_model_num, and create 3.0 contribution or
+        2.5 ErMagicBuilder as needed.
+        """
+        ui_dialog = demag_dialogs.user_input(self,['data_model'],
+                                             parse_funcs=[float],
+                                             heading="Please input prefered data model (2.5,3.0).  Note: 2.5 is for legacy projects only, if you have new data OR if you want to upgrade your old data, please use 3.0.",
+                                             values=[3])
+        # figure out where to put this
+        res = ui_dialog.ShowModal()
+        vals = ui_dialog.get_values()
+        self.data_model_num = int(vals[1]['data_model'])
+        #
+        #enable or disable self.btn1a
+        if self.data_model_num == 3:
+            self.btn1a.Enable()
+        #
+        # set pmag_basic_dialogs
         global pmag_basic_dialogs
         if self.data_model_num == 2:
             pmag_basic_dialogs = pbd2
-            self.er_magic = builder.ErMagicBuilder(self.WD, data_model=self.data_model)
+            self.er_magic = builder.ErMagicBuilder(self.WD,
+                                                   data_model=self.data_model)
         elif self.data_model_num == 3:
             pmag_basic_dialogs = pbd3
             wx.CallAfter(self.get_wd_data)
-        else: pw.simple_warning("Input data model not recognized please input 2.x or 3.x"); return
-            #self.contribution = nb.Contribution(self.WD, dmodel=dmodel)
-        #self.er_magic.init_default_headers()
-        #self.er_magic.init_actual_headers()
+        else:
+            pw.simple_warning("Input data model not recognized please input 2.x or 3.x"); return
+
 
     def get_wd_data(self):
+        """
+        Show dialog to get user input for which directory
+        to set as working directory.
+        """
         wait = wx.BusyInfo('Reading in data from current working directory, please wait...')
-        wx.Yield()
+        #wx.Yield()
         print('-I- Read in any available data from working directory')
         self.contribution = nb.Contribution(self.WD, dmodel=self.data_model)
         del wait
 
 
     def InitUI(self):
-
         menubar = pmag_gui_menu.MagICMenu(self, data_model_num=self.data_model_num)
         self.SetMenuBar(menubar)
 
@@ -184,13 +223,15 @@ class MagMainFrame(wx.Frame):
         self.btn4.InitColours()
         self.Bind(wx.EVT_BUTTON, self.on_unpack, self.btn4)
 
-        if self.data_model_num == 3:
-            text = "Convert directory to 3.0. format (legacy data only)"
-            self.btn1a = buttons.GenButton(self.panel, id=-1, label=text,
-                                           size=(330, 50), name='step 1a')
-            self.btn1a.SetBackgroundColour("#FDC68A")
-            self.btn1a.InitColours()
-            self.Bind(wx.EVT_BUTTON, self.on_convert_3, self.btn1a)
+
+        text = "Convert directory to 3.0. format (legacy data only)"
+        self.btn1a = buttons.GenButton(self.panel, id=-1, label=text,
+                                       size=(330, 50), name='step 1a')
+        self.btn1a.SetBackgroundColour("#FDC68A")
+        self.btn1a.InitColours()
+        self.Bind(wx.EVT_BUTTON, self.on_convert_3, self.btn1a)
+        if self.data_model_num != 3:
+            self.btn1a.Disable()
 
 
         #str = "OR"
@@ -216,14 +257,13 @@ class MagMainFrame(wx.Frame):
         bSizer1.AddSpacer(20)
 
         bSizer1_2 = wx.BoxSizer(wx.VERTICAL)
-        spacing = 60 if self.data_model_num == 3 else 90
+        spacing = 60 #if self.data_model_num == 3 else 90
         bSizer1_2.AddSpacer(spacing)
 
         bSizer1_2.Add(self.btn4, 0, wx.ALIGN_CENTER, 0)
-        if self.data_model_num == 3:
-            bSizer1_2.AddSpacer(20)
-            bSizer1_2.Add(self.btn1a, 0, wx.ALIGN_CENTER, 0)
-            bSizer1_2.AddSpacer(20)
+        bSizer1_2.AddSpacer(20)
+        bSizer1_2.Add(self.btn1a, 0, wx.ALIGN_CENTER, 0)
+        bSizer1_2.AddSpacer(20)
 
         bSizer1.Add(bSizer1_2)
         bSizer1.AddSpacer(20)
@@ -293,17 +333,16 @@ class MagMainFrame(wx.Frame):
         """
         Choose a working directory dialog
         """
-
         if "-WD" in sys.argv and self.FIRST_RUN:
             ind = sys.argv.index('-WD')
             self.WD = os.path.abspath(sys.argv[ind+1])
-
-        else:
+            os.chdir(self.WD)
             self.WD = os.getcwd()
+            self.dir_path.SetValue(self.WD)
+        else:
+            self.on_change_dir_button(None)
+            #self.WD = os.getcwd()
 
-        os.chdir(self.WD)
-        self.WD = os.getcwd()
-        self.dir_path.SetValue(self.WD)
         self.FIRST_RUN = False
         # this functionality is not fully working yet, so I've removed it for now
         #try:
