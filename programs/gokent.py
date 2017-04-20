@@ -35,11 +35,11 @@ def main():
         if '-f' in sys.argv:
             ind=sys.argv.index('-f')
             file=sys.argv[ind+1]
-            f=open(file,'rU')
+            f=open(file,'r')
             data=f.readlines()
         elif '-i' in sys.argv: # ask for filename
             file=input("Enter file name with dec, inc data: ")
-            f=open(file,'rU')
+            f=open(file,'r')
             data=f.readlines()
         else:
 #

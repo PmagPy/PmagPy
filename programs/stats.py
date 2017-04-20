@@ -36,11 +36,11 @@ def main():
         sys.exit()
     if '-i' in sys.argv:
         file=input("Enter file name: ")
-        f=open(file,'rU')
+        f=open(file,'r')
     elif '-f' in sys.argv:
         ind=sys.argv.index('-f')
         file=sys.argv[ind+1]
-        f=open(file,'rU')
+        f=open(file,'r')
     else:
         f=sys.stdin
     ofile = ""

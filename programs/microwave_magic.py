@@ -128,7 +128,7 @@ def main():
                     else:
                         accept[key]=float(critrec[key])
     try:
-        open(inspec,'rU')
+        open(inspec,'r')
         PriorRecs,file_type=pmag.magic_read(inspec)
         if file_type != 'pmag_specimens':
             print(file_type)

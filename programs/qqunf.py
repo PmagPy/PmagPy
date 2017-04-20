@@ -30,7 +30,7 @@ def main():
     elif '-f' in sys.argv: # ask for filename
         ind=sys.argv.index('-f')
         file=sys.argv[ind+1]
-        f=open(file,'rU')
+        f=open(file,'r')
         input=f.readlines()
     Data=[]
     for line in input:

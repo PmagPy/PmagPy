@@ -49,7 +49,7 @@ def main():
     if '-f' in sys.argv:
         ind=sys.argv.index('-f')
         file1=sys.argv[ind+1]
-    f1=open(file1,'rU')
+    f1=open(file1,'r')
     for line in f1.readlines():
         rec=line.split()
         Dec,Inc=float(rec[0]),float(rec[1]) 
@@ -58,7 +58,7 @@ def main():
     if '-f2' in sys.argv:
         ind=sys.argv.index('-f2')
         file2=sys.argv[ind+1]
-    	f2=open(file2,'rU')
+    	f2=open(file2,'r')
     	print("be patient, your computer is doing 5000 simulations...") 
     for line in f2.readlines():
         rec=line.split()

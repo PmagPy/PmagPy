@@ -173,7 +173,7 @@ def main():
         ErSpecRecs,keylist=pmag.fillkeys(ErSpecRecs)
         pmag.magic_write(specfile,ErSpecRecs,'er_specimens')
         print("specimen name put in ",specfile)
-    f=open(agm_file,'rU')
+    f=open(agm_file,'r')
     Data=f.readlines()
     if "ASCII" not in Data[0]:fmt='new'
     measnum,start=1,""

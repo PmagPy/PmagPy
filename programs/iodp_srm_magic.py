@@ -114,7 +114,7 @@ def main(command_line=True, **kwargs):
             file_found = True
             print('processing: ',f)
             full_file = os.path.join(input_dir_path, f)
-            file_input=open(full_file,'rU').readlines()
+            file_input=open(full_file,'r').readlines()
             keys=file_input[0].replace('\n','').split(',') # splits on underscores
             if "Interval Top (cm) on SHLF" in keys:interval_key="Interval Top (cm) on SHLF"
             if " Interval Bot (cm) on SECT" in keys:interval_key=" Interval Bot (cm) on SECT"

@@ -100,7 +100,7 @@ def main(command_line=True, **kwargs):
             ind=args.index("-Fsi")
             site_file=args[ind+1]
             #try:
-            #    open(samp_file,'rU')
+            #    open(samp_file,'r')
             #    ErSamps,file_type=pmag.magic_read(samp_file)
             #    print 'sample information will be appended to ', samp_file
             #except:
@@ -208,7 +208,7 @@ def main(command_line=True, **kwargs):
     # Open up the Utrecht file and read the header information
     print('mag_file in utrecht_file', mag_file)
     AF_or_T = mag_file.split('.')[-1]
-    data = open(mag_file, 'rU')
+    data = open(mag_file, 'r')
     line = data.readline()
     line_items = line.split(',')
     operator=line_items[0]

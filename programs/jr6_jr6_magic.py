@@ -97,7 +97,7 @@ def main(command_line=True, **kwargs):
             ind = args.index("-Fsa")
             samp_file = args[ind+1]
             #try:
-            #    open(samp_file,'rU')
+            #    open(samp_file,'r')
             #    ErSamps,file_type=pmag.magic_read(samp_file)
             #    print 'sample information will be appended to ', samp_file 
             #except:
@@ -180,7 +180,7 @@ def main(command_line=True, **kwargs):
     # parse data
 
     # fix .jr6 file so that there are spaces between all the columns.
-    pre_data=open(mag_file, 'rU')
+    pre_data=open(mag_file, 'r')
     tmp_data=open(tmp_file, 'w')
     line=pre_data.readline()
     while line !='':

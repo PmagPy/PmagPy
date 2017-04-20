@@ -36,13 +36,13 @@ def main():
 # read in the data
     elif '-i' in sys.argv:
         file=input("Enter filename for processing: ")
-        f=open(file,'rU')
+        f=open(file,'r')
         data=f.readlines()
         f.close()
     elif '-f' in sys.argv:
         ind=sys.argv.index('-f')
         file=sys.argv[ind+1] 
-        f=open(file,'rU')
+        f=open(file,'r')
         data=f.readlines()
         f.close()
     else: 

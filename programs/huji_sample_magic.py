@@ -117,7 +117,7 @@ def main():
     #
     # read in file to convert
     #
-    azfile=open(orient_file,'rU')
+    azfile=open(orient_file,'r')
     AzDipDat=azfile.readlines()
     azfile.close()
     SampOut=[]

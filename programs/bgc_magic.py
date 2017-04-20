@@ -82,7 +82,7 @@ def main(command_line=True, **kwargs):
             ind = args.index("-Fsa")
             samp_file = args[ind+1]
             #try:
-            #    open(samp_file,'rU')
+            #    open(samp_file,'r')
             #    ErSamps,file_type=pmag.magic_read(samp_file)
             #    print 'sample information will be appended to ', samp_file
             #except:
@@ -137,7 +137,7 @@ def main(command_line=True, **kwargs):
 
     # Open up the BGC file and read the header information
     print('mag_file in bgc_magic', mag_file)
-    pre_data = open(mag_file, 'rU')
+    pre_data = open(mag_file, 'r')
     line = pre_data.readline()
     line_items = line.split(' ')
     sample_name = line_items[2]

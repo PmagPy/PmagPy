@@ -16,7 +16,7 @@ import SPD.lib.lib_arai_plot_statistics as lib_arai
 import SPD.spd as spd
 from SPD.test_instance import example, SCAT_spec, SCAT_spec2 # pre-made, ready to go PintPars object
 
-from . import known_values
+from SPD.tests import known_values
 
 
 

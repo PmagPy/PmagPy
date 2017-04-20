@@ -260,7 +260,7 @@ def main(command_line=True, **kwargs):
             return False, '{} is not a valid coil specification'.format(coil)
     if mag_file:
         try:
-            input=open(mag_file,'rU')
+            input=open(mag_file,'r')
         except:
             print("bad mag file name")
             return False, "bad mag file name"

@@ -145,7 +145,7 @@ def main():
         print(file_type,"This is not a valid magic_measurements file ") 
         sys.exit()
     try:
-        mk_f=open(mk_file,'rU')
+        mk_f=open(mk_file,'r')
     except:
         print("Bad redo file")
         sys.exit()

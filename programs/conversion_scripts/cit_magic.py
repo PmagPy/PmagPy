@@ -208,7 +208,7 @@ def convert(**kwargs):
         SiteRec['lat']=site_lat
         SiteRec['lon']=site_lon
         SiteRec['analysts']=user
-        f=open(os.path.join(input_dir_path,specimen),'rU')
+        f=open(os.path.join(input_dir_path,specimen),'r')
         Lines=f.readlines()
         comment=""
         line=Lines[0].split()

@@ -61,7 +61,7 @@ def main():
 # read in LSQ file
 #
     specs,MeasOuts=[],[]
-    prior_spec_data=open(inspec,'rU').readlines()
+    prior_spec_data=open(inspec,'r').readlines()
     for line in prior_spec_data:
         if len(line)<2:
             sys.exit() 

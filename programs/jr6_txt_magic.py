@@ -92,7 +92,7 @@ def main(command_line=True, **kwargs):
             ind = args.index("-Fsa")
             samp_file = args[ind+1]
             #try:
-            #    open(samp_file,'rU')
+            #    open(samp_file,'r')
             #    ErSamps,file_type=pmag.magic_read(samp_file)
             #    print 'sample information will be appended to ', samp_file 
             #except:
@@ -162,7 +162,7 @@ def main(command_line=True, **kwargs):
     ErSampRec,ErSiteRec={},{}
 
     # parse data
-    data=open(mag_file,'rU')
+    data=open(mag_file,'r')
     line=data.readline()
     line=data.readline()
     line=data.readline()

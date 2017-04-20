@@ -118,7 +118,7 @@ def main():
             MagRec,SpecRec,SampRec={},{},{}
             treatment_type,treatment_value,user="","",""
             inst="ODP-SRM"
-            input=open(dir_path+'/'+file,'rU').readlines()
+            input=open(dir_path+'/'+file,'r').readlines()
             IDs=file.split('_') # splits on underscores
             pieces=IDs[0].split('-')
             expedition=pieces[0]

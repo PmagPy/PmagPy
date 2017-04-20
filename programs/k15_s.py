@@ -41,7 +41,7 @@ def main():
         sys.exit()
     if '-i' in sys.argv:
         file=input("Input file name [.k15 format]: ")
-        f=open(file,'rU')
+        f=open(file,'r')
         data=f.readlines()
         f.close()
         file=input("Output file name [.s format]: ")
@@ -55,7 +55,7 @@ def main():
     elif '-f' in sys.argv:
         ind=sys.argv.index('-f')
         file=sys.argv[ind+1]
-        f=open(file,'rU')
+        f=open(file,'r')
         data=f.readlines()
         f.close()
     else:

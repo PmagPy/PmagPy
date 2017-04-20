@@ -31,7 +31,7 @@ def main():
         dat=[]
         ind=sys.argv.index('-f')
         file=sys.argv[ind+1]  
-        f=open(file,'rU')
+        f=open(file,'r')
         input=f.readlines()
     else:
         input = sys.stdin.readlines()  # read from standard input

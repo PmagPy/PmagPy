@@ -133,7 +133,7 @@ def main():
     if '-f' in sys.argv:
         ind = sys.argv.index('-f')
         file=dir_path+'/'+sys.argv[ind+1]
-        header=open(file,'rU').readlines()[0].split('\t')
+        header=open(file,'r').readlines()[0].split('\t')
         if 'tab' in header[0]:
             if '-n' in sys.argv:prn_name=1
             if '-l' in sys.argv:prn_loc=1

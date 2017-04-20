@@ -137,7 +137,7 @@ def convert(**kwargs):
     # format and validate variables
     if magfile:
         try:
-            infile=open(os.path.join(input_dir_path,magfile),'rU')
+            infile=open(os.path.join(input_dir_path,magfile),'r')
         except IOError:
             print("bad mag file name")
             return False, "bad mag file name"

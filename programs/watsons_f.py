@@ -44,7 +44,7 @@ def main():
     if '-f2' in sys.argv:
         ind=sys.argv.index('-f2')
         file2=sys.argv[ind+1]
-    f=open(file1,'rU')
+    f=open(file1,'r')
     for line in f.readlines():
         if '\t' in line:
             rec=line.split('\t') # split each line on space to get records
@@ -55,7 +55,7 @@ def main():
         D.append([Dec,Inc,1.])
     f.close()
     if Flip==0:
-        f=open(file2,'rU')
+        f=open(file2,'r')
         for line in f.readlines():
             rec=line.split()
             Dec,Inc=float(rec[0]),float(rec[1]) 

@@ -837,7 +837,7 @@ Adding location with name: {}""".format(new_location_name, new_location_name))
         {'Z35.5a': {'specimen_weight': '1.000e-03', 'er_citation_names': 'This study', 'specimen_volume': '', 'er_location_name': '', 'er_site_name': 'Z35.', 'er_sample_name': 'Z35.5', 'specimen_class': '', 'er_specimen_name': 'Z35.5a', 'specimen_lithology': '', 'specimen_type': ''}, ....}
         """
         DATA = {}
-        fin = open(path, 'rU')
+        fin = open(path, 'r')
         first_line = fin.readline()
         if not first_line:
             return False, None, 'empty_file'

@@ -32,7 +32,7 @@ def main(command_line=True, **kwargs):
 
 
     def fix_separation(filename, new_filename):
-        old_file = open(filename, 'rU')
+        old_file = open(filename, 'r')
         data = old_file.readlines()
         new_data = []
         for line in data:
@@ -48,7 +48,7 @@ def main(command_line=True, **kwargs):
         
 
     def old_fix_separation(filename, new_filename):
-        old_file = open(filename, 'rU')
+        old_file = open(filename, 'r')
         data = old_file.readlines()
         new_data = []
         for line in data:
@@ -117,7 +117,7 @@ def main(command_line=True, **kwargs):
             if samp_file[0]!='/':
                 samp_file = os.path.join(input_dir_path, samp_file)
             try:
-                open(samp_file,'rU')
+                open(samp_file,'r')
                 ErSamps,file_type=pmag.magic_read(samp_file)
             except:
                 print(samp_file,' not found: ')
@@ -170,7 +170,7 @@ def main(command_line=True, **kwargs):
     temp = os.path.join(output_dir_path, 'temp.txt')
     fix_separation(mag_file, temp)
     samples,filetype = pmag.magic_read(samp_file)
-    lines = open(temp, 'rU').readlines()
+    lines = open(temp, 'r').readlines()
     os.remove(temp)
     for line in lines:
         MagRec = {}

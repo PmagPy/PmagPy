@@ -146,7 +146,7 @@ def main():
 	ind=args.index("-fla")
 	model_lat_file=dir_path+'/'+args[ind+1]
 	get_model_lat=2
-	mlat=open(model_lat_file,'rU')
+	mlat=open(model_lat_file,'r')
 	ModelLats=[]
 	for line in mlat.readlines():
 	    ModelLat={}

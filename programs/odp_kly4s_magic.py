@@ -137,7 +137,7 @@ def main():
         except:
             sitenames,SiteRecs=[],[]
     try:
-        input=open(ascfile,'rU')
+        input=open(ascfile,'r')
     except:
         print('Error opening file: ', ascfile)
     Data=input.readlines()

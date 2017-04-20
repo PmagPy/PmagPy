@@ -189,7 +189,7 @@ def main(command_line=True, **kwargs):
         DATA[sort_by_this_name]=[dictionary1,dictionary2,...]
         '''
         DATA={}
-        fin=open(path,'rU')
+        fin=open(path,'r')
         #ignore first lines
         for i in range(ignore_lines_n):
             fin.readline()
@@ -218,7 +218,7 @@ def main(command_line=True, **kwargs):
         Data[specimen_name][dict1,dict2,...]
         '''
         Data={}
-        Fin=open(path,'rU')
+        Fin=open(path,'r')
         header=Fin.readline().strip('\n').split('\t')
         duplicates=[]
         for line in Fin.readlines():
@@ -487,7 +487,7 @@ def main(command_line=True, **kwargs):
     # format and validate variables
     if magfile:
         try:
-            input=open(magfile,'rU')
+            input=open(magfile,'r')
         except:
             print("bad mag file:",magfile)
             return False, "bad mag file"

@@ -661,7 +661,7 @@ class MyForm(wx.Frame):
 ##            interpreter_output= dlg.GetPath()
 ##        dlg.Destroy()
 
-        fin=open(str(file_name),'rU')
+        fin=open(str(file_name),'r')
         self.report=[]
         for L in fin.readlines():
           line=L.strip('\n').split('\t')
@@ -957,7 +957,7 @@ class Consistency_Test(wx.Frame):
         # put an example
         try:
             ofile = os.path.join(self.WD, "consistency_test", "consistency_test_functions.txt")
-            function_in=open(ofile, 'rU')
+            function_in=open(ofile, 'r')
             TEXT=""
             for line in function_in.readlines():
                 TEXT=TEXT+line
@@ -1332,7 +1332,7 @@ class MyLogFileErrors(wx.Frame):
         self.text_log = wx.TextCtrl(self.panel, id=-1, style=wx.TE_MULTILINE | wx.TE_READONLY  | wx.HSCROLL)
         self.sizer.Add(self.text_log, 1, wx.EXPAND)
 
-        fin =open(file_path,'rU')
+        fin =open(file_path,'r')
         for line in fin.readlines():
             if "-E-" in line :
                 self.text_log.SetDefaultStyle(wx.TextAttr(wx.RED))
@@ -1601,7 +1601,7 @@ class convert_generic_files_to_MagIC(wx.Frame):
             )        
         if dlg.ShowModal() == wx.ID_OK:
             FILE = dlg.GetPath()
-        # fin=open(FILE,'rU')
+        # fin=open(FILE,'r')
         self.file_path.AppendText(FILE+"\n")
         self.protocol_info.AppendText("IZZI"+"\n")
 
@@ -1616,7 +1616,7 @@ class convert_generic_files_to_MagIC(wx.Frame):
             )        
         if dlg.ShowModal() == wx.ID_OK:
             FILE = dlg.GetPath()
-        # fin=open(FILE,'rU')
+        # fin=open(FILE,'r')
         button = event.GetEventObject()
         name=button.GetName()
         i=int((name).split("_")[-1])
@@ -1632,7 +1632,7 @@ class convert_generic_files_to_MagIC(wx.Frame):
 
     def read_generic_file(self,path):
         Data={}
-        Fin=open(path,'rU')
+        Fin=open(path,'r')
         header=Fin.readline().strip('\n').split('\t')
         
         for line in Fin.readlines():

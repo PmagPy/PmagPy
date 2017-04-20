@@ -105,7 +105,7 @@ def convert(**kwargs):
 
     # Open up the BGC file and read the header information
     print('mag_file in bgc_magic', mag_file)
-    pre_data = open(mag_file, 'rU')
+    pre_data = open(mag_file, 'r')
     line = pre_data.readline()
     line_items = line.split(' ')
     specimen = line_items[2]

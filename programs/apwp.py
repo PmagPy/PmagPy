@@ -65,7 +65,7 @@ def main():
     elif '-f' in sys.argv:
         ind=sys.argv.index('-f')
         infile=sys.argv[ind+1]
-        f=open(infile,'rU')
+        f=open(infile,'r')
         input=f.readlines()
     elif '-P' in sys.argv:
         ind=sys.argv.index('-P')

@@ -38,7 +38,7 @@ def main():
 # read in PMM file
 #
     specs=[]
-    prior_spec_data=open(inspec,'rU').readlines()
+    prior_spec_data=open(inspec,'r').readlines()
     for line in prior_spec_data:
       rec=line.split(',')
       if rec[0][0]!='"' and rec[0]!="ID" and len(rec)>2: # skip all the header stuff

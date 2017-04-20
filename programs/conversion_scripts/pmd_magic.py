@@ -99,7 +99,7 @@ def convert(**kwargs):
     site_file = os.path.join(output_dir_path,site_file)
 
     # parse data
-    data=open(mag_file,'rU').readlines() # read in data from file
+    data=open(mag_file,'r').readlines() # read in data from file
     comment=data[0]
     line=data[1].strip()
     line=line.replace("=","= ")  # make finding orientations easier

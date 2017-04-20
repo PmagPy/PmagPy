@@ -50,7 +50,7 @@ def main():
     if '-f' in sys.argv:
         ind=sys.argv.index("-f")
         in_file=sys.argv[ind+1]
-        f=open(in_file,'rU')
+        f=open(in_file,'r')
         lines=f.readlines()
     else:
         lines=sys.stdin.readlines()

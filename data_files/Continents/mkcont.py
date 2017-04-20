@@ -5,7 +5,7 @@ out.write("def get_continent(continent):\n")
 for file in files:
     outstring="    if continent=="+repr(file)+":\n"
     out.write(outstring)
-    f=open(file,'rU')
+    f=open(file,'r')
     cont="["
     for line in f.readlines():
         rec=line.split()

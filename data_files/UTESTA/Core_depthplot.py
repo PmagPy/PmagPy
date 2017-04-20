@@ -215,7 +215,7 @@ def main():
     Cores=[] 
     core_depth_key="Top depth cored CSF (m)"
     if sum_file!="":
-        input=open(sum_file,'rU').readlines()
+        input=open(sum_file,'r').readlines()
         if "Core Summary" in input[0]:
             headline=1
         else:
@@ -363,7 +363,7 @@ def main():
             if min(ResDepths)<dmin:dmin=min(ResDepths)
             if max(ResDepths)>dmax:dmax=max(ResDepths)
     if suc_file!="":
-        sucdat=open(suc_file,'rU').readlines()
+        sucdat=open(suc_file,'r').readlines()
         keys=sucdat[0].replace('\n','').split(',') # splits on underscores
         for line in sucdat[1:]:
             SucRec={}

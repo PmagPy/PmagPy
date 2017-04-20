@@ -3859,7 +3859,7 @@ class Demag_GUI(wx.Frame):
         sort_by_this_name : variable to sort data by
         """
         DATA={}
-        fin=open(path,'rU')
+        fin=open(path,'r')
         fin.readline()
         line=fin.readline()
         header=line.strip('\n').split('\t')
@@ -3926,7 +3926,7 @@ class Demag_GUI(wx.Frame):
         """
         if not self.clear_interpretations(): return
         print("-I- read redo file and processing new bounds")
-        fin=open(redo_file,'rU')
+        fin=open(redo_file,'r')
 
         new_s = ""
         for Line in fin.read().splitlines():

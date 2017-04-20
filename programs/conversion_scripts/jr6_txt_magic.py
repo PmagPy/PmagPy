@@ -98,7 +98,7 @@ def convert(**kwargs):
     MeasRecs,SpecRecs,SampRecs,SiteRecs,LocRecs=[],[],[],[],[]
 
     # parse data
-    data=open(mag_file,'rU')
+    data=open(mag_file,'r')
     line=data.readline()
     line=data.readline()
     line=data.readline()

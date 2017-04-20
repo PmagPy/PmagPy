@@ -124,7 +124,7 @@ def main():
     # get down to bidness
     sfile=dir_path+'/'+sfile
     anisfile=dir_path+'/'+anisfile
-    input=open(sfile,'rU')
+    input=open(sfile,'r')
     AnisRecs=[]
     linecnt=0
     citation="This study"

@@ -43,7 +43,7 @@ def main():
     elif '-f' in sys.argv: # ask for filename
         ind=sys.argv.index('-f')
         file=sys.argv[ind+1]
-        f=open(file,'rU')
+        f=open(file,'r')
         data=f.readlines()
     if '-F' in sys.argv:
         ind=sys.argv.index('-F')

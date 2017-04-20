@@ -271,7 +271,7 @@ class convert_livdb_files_to_MagIC(wx.Frame):
             )
         if dlg.ShowModal() == wx.ID_OK:
             FILE = dlg.GetPath()
-        # fin=open(FILE,'rU')
+        # fin=open(FILE,'r')
         button = event.GetEventObject()
         name=button.GetName()
         i=int((name).split("_")[-1])
@@ -284,7 +284,7 @@ class convert_livdb_files_to_MagIC(wx.Frame):
 
     def read_generic_file(self,path):
         Data={}
-        Fin=open(path,'rU')
+        Fin=open(path,'r')
         header=Fin.readline().strip('\n').split('\t')
 
         for line in Fin.readlines():
@@ -517,7 +517,7 @@ class convert_livdb_files_to_MagIC(wx.Frame):
             for files in os.listdir(DIRS_data[dir_name]["path"]):
                 if files.endswith(".livdb") or files.endswith(".livdb.csv") :
                     print("Open file: ", DIRS_data[dir_name]["path"]+"/"+files)
-                    fin=open(DIRS_data[dir_name]["path"]+"/"+files,'rU')
+                    fin=open(DIRS_data[dir_name]["path"]+"/"+files,'r')
                     Data={}
                     header_codes=['Sample code','Sample Dip','Sample Dec','Height','Position','Thickness','Unit Dip','Unit Dip Direction','Site Latitude',\
                                   'Site Longitude','Experiment Type','Name of measurer','Magnetometer name','Demagnetiser name','Specimen/Experiment Comment',\

@@ -347,7 +347,7 @@ class convert_tdt_files_to_MagIC(wx.Frame):
         if dlg.ShowModal() == wx.ID_OK:
             FILE = dlg.GetPath()
         else: return
-        # fin=open(FILE,'rU')
+        # fin=open(FILE,'r')
         button = event.GetEventObject()
         name=button.GetName()
         i=int((name).split("_")[-1])
@@ -360,7 +360,7 @@ class convert_tdt_files_to_MagIC(wx.Frame):
 
     def read_generic_file(self,path):
         Data={}
-        Fin=open(path,'rU')
+        Fin=open(path,'r')
         header=Fin.readline().strip('\n').split('\t')
 
         for line in Fin.readlines():
@@ -564,7 +564,7 @@ class convert_tdt_files_to_MagIC(wx.Frame):
             for files in os.listdir(DIRS_data[dir_name]["path"]):
                 if files.endswith(".tdt"):
                     print("Open file: ", DIRS_data[dir_name]["path"]+"/"+files)
-                    fin=open(DIRS_data[dir_name]["path"]+"/"+files,'rU')
+                    fin=open(DIRS_data[dir_name]["path"]+"/"+files,'r')
                     header_codes=['labfield','core_azimuth','core_plunge','bedding_dip_direction','bedding_dip']
                     body_codes=['specimen_name','treatment','moment','dec','inc']
                     tmp_body=[]
@@ -1136,7 +1136,7 @@ class message_box(wx.Frame):
         # -------------------------------------'''
 
         self.text_log.AppendText(TEXT)
-##        fin =open(file_path,'rU')
+##        fin =open(file_path,'r')
 ##        for line in fin.readlines():
 ##            if "-E-" in line :
 ##                self.text_log.SetDefaultStyle(wx.TextAttr(wx.RED))

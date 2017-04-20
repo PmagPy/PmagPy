@@ -48,15 +48,15 @@ def main():
     if '-f' in sys.argv:
         ind = sys.argv.index('-f')
         file=dir_path+'/'+sys.argv[ind+1]
-        f=open(file,'rU')
+        f=open(file,'r')
         data=f.readlines()
     elif '-ff' in sys.argv:
         ind = sys.argv.index('-ff')
         file=dir_path+'/'+sys.argv[ind+1]
-        f=open(file,'rU')
+        f=open(file,'r')
         data=f.readlines()
         Efile=dir_path+'/'+sys.argv[ind+2]
-        f=open(Efile,'rU')
+        f=open(Efile,'r')
         edata=f.readlines()
         Poles=[]
         for p in edata:

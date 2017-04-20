@@ -101,7 +101,7 @@ def main():
                 sect=int(Nfo[3][:-1])
             except:
                 sect=1
-            input=open(file,'rU').readlines()
+            input=open(file,'r').readlines()
             MagRec,SpecRec,SampRec={},{},{}
             alt_spec,treatment_type,treatment_value,user="","","",""
             inst="ODP-SRM"

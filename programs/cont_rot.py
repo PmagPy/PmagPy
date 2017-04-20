@@ -149,7 +149,7 @@ def main():
     elif '-ffr' in sys.argv:
         ind = sys.argv.index('-ffr')
         file=dir_path+'/'+sys.argv[ind+1]
-        f=open(file,'rU')
+        f=open(file,'r')
         edata=f.readlines()
         for line in edata:
             rec=line.split()
@@ -157,7 +157,7 @@ def main():
     elif '-fpp' in sys.argv:
         ind = sys.argv.index('-fpp')
         file=dir_path+'/'+sys.argv[ind+1]
-        f=open(file,'rU')
+        f=open(file,'r')
         pdata=f.readlines()
         for line in pdata:
             rec=line.split()
@@ -166,7 +166,7 @@ def main():
     if '-fpt' in sys.argv:
         ind = sys.argv.index('-fpt')
         file=dir_path+'/'+sys.argv[ind+1]
-        f=open(file,'rU')
+        f=open(file,'r')
         ptdata=f.readlines()
         for line in ptdata:
             rec=line.split()

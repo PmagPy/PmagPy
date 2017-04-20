@@ -105,7 +105,7 @@ def main(**kwargs):
 
     # parse data
     # fix .jr6 file so that there are spaces between all the columns.
-    pre_data=open(mag_file, 'rU')
+    pre_data=open(mag_file, 'r')
     tmp_data=open(tmp_file, 'w')
     if samp_con!='2': fixed_data=pre_data.read().replace('-',' -')
     else:

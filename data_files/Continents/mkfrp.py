@@ -6,9 +6,9 @@ for file in files:
     outstring="    if continent=="+repr(file)+":\n"
     out.write(outstring)
     if file!='ib':
-        f=open(file+'_saf.frp','rU')
+        f=open(file+'_saf.frp','r')
     else:
-        f=open('ib_eur.frp','rU')
+        f=open('ib_eur.frp','r')
     frp='['
     for line in f.readlines():
         rec=line.split()
@@ -21,7 +21,7 @@ for file in files:
     out.write(outstring)
 outstring="    if continent=='saf':\n"
 out.write(outstring)
-f=open('saf.frp','rU')
+f=open('saf.frp','r')
 frp='['
 for line in f.readlines():
     rec=line.split()

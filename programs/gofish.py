@@ -34,13 +34,13 @@ def main():
         sys.exit() # graceful quit
     if '-i' in sys.argv: # ask for filename
         file=input("Enter file name with dec, inc data: ")
-        f=open(file,'rU')
+        f=open(file,'r')
         data=f.readlines()
     elif '-f' in sys.argv:
         dat=[]
         ind=sys.argv.index('-f')
         file=sys.argv[ind+1]
-        f=open(file,'rU')
+        f=open(file,'r')
         data=f.readlines()
     else:
         data = sys.stdin.readlines()  # read from standard input

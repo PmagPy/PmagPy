@@ -82,7 +82,7 @@ def main():
     elif '-f' in sys.argv: # manual input of file name
         ind=sys.argv.index('-f')
         file=sys.argv[ind+1]
-        f=open(file,'rU')
+        f=open(file,'r')
         inlist  = []
         for line in f.readlines():
             inlist.append([])

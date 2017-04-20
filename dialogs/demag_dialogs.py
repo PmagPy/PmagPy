@@ -918,7 +918,7 @@ class convert_generic_files_to_MagIC(wx.Frame):
             )        
         if dlg.ShowModal() == wx.ID_OK:
             FILE = dlg.GetPath()
-        # fin=open(FILE,'rU')
+        # fin=open(FILE,'r')
         self.file_path.AppendText(FILE+"\n")
         self.protocol_info.AppendText("IZZI"+"\n")
 
@@ -933,7 +933,7 @@ class convert_generic_files_to_MagIC(wx.Frame):
             )        
         if dlg.ShowModal() == wx.ID_OK:
             FILE = dlg.GetPath()
-        # fin=open(FILE,'rU')
+        # fin=open(FILE,'r')
         button = event.GetEventObject()
         name=button.GetName()
         i=int((name).split("_")[-1])
@@ -951,7 +951,7 @@ class convert_generic_files_to_MagIC(wx.Frame):
         Data={}
         if str(path)=="":
             return ({})
-        Fin=open(str(path),'rU')
+        Fin=open(str(path),'r')
         header=Fin.readline().strip('\n').split('\t')
         
         for line in Fin.readlines():
@@ -1343,7 +1343,7 @@ class convert_generic_files_to_MagIC(wx.Frame):
             
     def read_magic_file(self,path,sort_by_this_name):
         DATA={}
-        fin=open(path,'rU')
+        fin=open(path,'r')
         fin.readline()
         line=fin.readline()
         header=line.strip('\n').split('\t')

@@ -91,7 +91,7 @@ def main():
     skip = int(pmag.get_named_arg_from_sys('-skip', default_val=0))
     X,Y=[],[]
     Xerrs,Yerrs=[],[]
-    f=open(file,'rU')
+    f=open(file,'r')
     for num in range(skip):
         f.readline()
     data=f.readlines()

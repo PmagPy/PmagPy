@@ -1,4 +1,4 @@
-#!/usr/bin/env python                                                                                            
+#!/usr/bin/env python
 from __future__ import division
 from past.utils import old_div
 import numpy
@@ -71,12 +71,3 @@ def get_MD_VDS(tail_check_max, vds):
         return float('nan')
     MD_VDS = (old_div(tail_check_max, vds)) * 100
     return MD_VDS
-
-
-
-
-
-
-if __name__ == '__main__':
-    unittest.main()
-

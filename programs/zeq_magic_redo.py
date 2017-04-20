@@ -63,7 +63,7 @@ def main():
         ind=args.index("-fre")
         mk_file=dir_path+"/"+args[ind+1]
     try:
-        mk_f=open(mk_file,'rU')
+        mk_f=open(mk_file,'r')
     except:
         print("Bad redo file")
         sys.exit()

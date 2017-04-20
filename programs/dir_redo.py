@@ -39,7 +39,7 @@ def main():
 # read in DIR file
 #
     specs=[]
-    prior_spec_data=open(inspec,'rU').readlines()
+    prior_spec_data=open(inspec,'r').readlines()
     for line in prior_spec_data:
         line=line.replace("Dir"," Dir")
         line=line.replace("OKir"," OKir")

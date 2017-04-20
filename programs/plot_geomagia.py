@@ -77,7 +77,7 @@ def main():
         ind = sys.argv.index('-WD')
         dir_path=sys.argv[ind+1]
     sites_file=dir_path+'/'+sites_file
-    geo_in=open(sites_file,'rU').readlines()
+    geo_in=open(sites_file,'r').readlines()
     Age,AgeErr,Vadm,VadmErr,slats,slons=[],[],[],[],[],[]
     for line in geo_in[2:]: # skip top two rows`
         rec=line.split()

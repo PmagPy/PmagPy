@@ -178,7 +178,7 @@ def main(command_line=True, **kwargs):
     # format and validate variables
     if magfile:
         try:
-            input=open(magfile,'rU')
+            input=open(magfile,'r')
         except:
             print("bad mag file name")
             return False, "bad mag file name"

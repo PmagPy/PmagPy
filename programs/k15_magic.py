@@ -152,7 +152,7 @@ def main():
 # some magic default definitions
     #
     # read in data
-    input=open(k15file,'rU')
+    input=open(k15file,'r')
     MeasRecs,SpecRecs,AnisRecs,ResRecs=[],[],[],[]
     # read in data
     MeasRec,SpecRec,SampRec,SiteRec,AnisRec,ResRec={},{},{},{},{},{}

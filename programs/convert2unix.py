@@ -21,7 +21,7 @@ def main():
         print(main.__doc__)
         sys.exit()
     file=sys.argv[1]
-    f=open(file,'rU')
+    f=open(file,'r')
     Input=f.readlines()
     f.close()
     out=open(file,'w')

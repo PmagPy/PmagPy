@@ -4138,7 +4138,7 @@ class Arai_GUI(wx.Frame):
         self.Data_samples={}
         self.Data_sites={}
         
-        fin=open(redo_file,'rU')
+        fin=open(redo_file,'r')
         for Line in fin.readlines():
           line=Line.strip('\n').split()
           specimen=line[0]
@@ -4193,7 +4193,7 @@ class Arai_GUI(wx.Frame):
 #        # check if an old pmag_criteria.txt exist:
 #        other_criteria={}
 #        try:
-#            fin=open(self.WD+"/"+"pmag_criteria.txt",'rU')
+#            fin=open(self.WD+"/"+"pmag_criteria.txt",'r')
 #            lines=""
 #            line=fin.readline()
 #            line=fin.readline()
@@ -5057,7 +5057,7 @@ class Arai_GUI(wx.Frame):
         magic_method_codes=[]
         for F in ["magic_measurements.txt","rmag_anisotropy.txt","rmag_results.txt","rmag_results.txt","pmag_samples.txt","pmag_specimens.txt","pmag_sites.txt","er_ages.txt"]:
             try:
-                fin=open(os.path.join(self.WD, F),'rU')
+                fin=open(os.path.join(self.WD, F),'r')
             except:
                 continue
             line=fin.readline()
@@ -5163,7 +5163,7 @@ class Arai_GUI(wx.Frame):
                           
     def read_magic_file(self,path,ignore_lines_n,sort_by_this_name):
         DATA={}
-        fin=open(path,'rU')
+        fin=open(path,'r')
         #ignore first lines
         for i in range(ignore_lines_n):
             fin.readline()
@@ -5192,7 +5192,7 @@ class Arai_GUI(wx.Frame):
         
         '''
         DATA={}
-        fin=open(path,'rU')
+        fin=open(path,'r')
         #ignore first lines
         for i in range(ignore_lines_n):
             fin.readline()

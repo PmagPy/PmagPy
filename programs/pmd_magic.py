@@ -96,7 +96,7 @@ def main(command_line=True, **kwargs):
             ind = args.index("-Fsa")
             samp_file = args[ind+1]
             #try:
-            #    open(samp_file,'rU')
+            #    open(samp_file,'r')
             #    ErSamps,file_type=pmag.magic_read(samp_file)
             #    print 'sample information will be appended to ', samp_file 
             #except:
@@ -166,7 +166,7 @@ def main(command_line=True, **kwargs):
             samp_con="7"
 
     # parse data
-    data=open(mag_file,'rU').readlines() # read in data from file
+    data=open(mag_file,'r').readlines() # read in data from file
     comment=data[0]
     line=data[1].strip()
     line=line.replace("=","= ")  # make finding orientations easier

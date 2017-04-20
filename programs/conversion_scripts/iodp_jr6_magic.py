@@ -37,7 +37,7 @@ import pmagpy.pmag as pmag
 import pmagpy.new_builder as nb
 
 def fix_separation(filename, new_filename):
-    old_file = open(filename, 'rU')
+    old_file = open(filename, 'r')
     new_file = open(new_filename, 'w')
     data = old_file.readlines()
     for line in data:
@@ -85,7 +85,7 @@ def convert(**kwargs):
     # parse data
     temp = os.path.join(output_dir_path, 'temp.txt')
     fix_separation(mag_file, temp)
-    lines = open(temp, 'rU').readlines()
+    lines = open(temp, 'r').readlines()
     try: os.remove(temp)
     except OSError: print("problem with temp file")
     citation="This Study"

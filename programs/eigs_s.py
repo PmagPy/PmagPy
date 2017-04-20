@@ -40,7 +40,7 @@ def main():
        ind=sys.argv.index('-f')
        file=sys.argv[ind+1]
    if file!="":
-       f=open(file,'rU')
+       f=open(file,'r')
        data=f.readlines()
        f.close()
    else:

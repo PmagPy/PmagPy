@@ -978,7 +978,7 @@ class Arai_GUI(object):
 #            print "Calling read_magic_file() in get_data_info"
  #           print path
             DATA={}
-            fin=open(path,'rU')
+            fin=open(path,'r')
             fin.readline()
             line=fin.readline()
             header=line.strip('\n').split('\t')
@@ -1083,7 +1083,7 @@ class Arai_GUI(object):
 #        print "calling magic_read(self, infile)", infile
         hold,magic_data,magic_record,magic_keys=[],[],{},[]
         try:
-            f=open(infile,"rU")
+            f=open(infile,"r")
         except:
             return [],'bad_file'
         d = f.readline()[:-1].strip('\n')

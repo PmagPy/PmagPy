@@ -54,7 +54,7 @@ class ImportAzDipFile(wx.Frame):
         label2 = "no, update existing er_samples file"
         er_samples_file_present = True
         try:
-            open(os.path.join(self.WD, "er_samples.txt"), "rU")
+            open(os.path.join(self.WD, "er_samples.txt"), "r")
         except Exception as ex:
             er_samples_file_present = False
         if er_samples_file_present:
@@ -1277,7 +1277,7 @@ class ZeqMagic(wx.Frame):
 
         #---sizer 4 ----
         #try:
-        #    open(self.WD + "/er_samples.txt", "rU")
+        #    open(self.WD + "/er_samples.txt", "r")
         #except Exception as ex:
         #    er_samples_file_present = False
         #if er_samples_file_present:
@@ -2048,7 +2048,7 @@ class something(wx.Frame):
 
         #---sizer 4 ----
         #try:
-        #    open(self.WD + "/er_samples.txt", "rU")
+        #    open(self.WD + "/er_samples.txt", "r")
         #except Exception as ex:
         #    er_samples_file_present = False
         #if er_samples_file_present:

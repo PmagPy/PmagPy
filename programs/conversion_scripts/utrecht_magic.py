@@ -108,7 +108,7 @@ def convert(**kwargs):
     # Open up the Utrecht file and read the header information
     print('mag_file in utrecht_file', mag_file)
     AF_or_T = mag_file.split('.')[-1]
-    data = open(mag_file, 'rU')
+    data = open(mag_file, 'r')
     line = data.readline()
     line_items = line.split(',')
     operator=line_items[0]

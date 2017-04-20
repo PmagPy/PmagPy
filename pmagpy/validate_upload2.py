@@ -22,7 +22,7 @@ def get_data_offline():
         # so check to see where the resource actually is
         if not os.path.exists(the_file):
             the_file = os.path.join(pmag_dir, 'data_model', 'MagIC-data-model.txt')
-        data = open(the_file, 'rU')
+        data = open(the_file, 'r')
         return data
     except IOError:
         print("can't access MagIC-data-model at the moment\nif you are working offline, make sure MagIC-data-model.txt is in your PmagPy directory (or download it from https://github.com/ltauxe/PmagPy and put it in your PmagPy directory)\notherwise, check your internet connection")

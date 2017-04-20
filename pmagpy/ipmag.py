@@ -2392,12 +2392,13 @@ def core_depthplot(input_dir_path='.', meas_file='magic_measurements.txt', spc_f
     core_depth_key="Top depth cored CSF (m)"
     if sum_file:
         sum_file = os.path.join(input_dir_path, sum_file)
-        input=open(sum_file,'rU').readlines()
-        if "Core Summary" in input[0]:
+        fin=open(sum_file,'r')
+        indat=fin.readlines()
+        if "Core Summary" in indat[0]:
             headline=1
         else:
             headline=0
-        keys=input[headline].replace('\n','').split(',')
+        keys=indat[headline].replace('\n','').split(',')
         if "Core Top (m)" in keys:
             core_depth_key="Core Top (m)"
         if "Top depth cored CSF (m)" in keys:
@@ -2406,11 +2407,12 @@ def core_depthplot(input_dir_path='.', meas_file='magic_measurements.txt', spc_f
             core_label_key="Core Label"
         if "Core label" in keys:
             core_label_key="Core label"
-        for line in input[2:]:
+        for line in indat[2:]:
             if 'TOTALS' not in line:
                 CoreRec={}
                 for k in range(len(keys)):CoreRec[keys[k]]=line.split(',')[k]
                 Cores.append(CoreRec)
+        fin.close()
         if len(Cores)==0:
             print('no Core depth information available: import core summary file')
             sum_file=""
@@ -2555,7 +2557,7 @@ def core_depthplot(input_dir_path='.', meas_file='magic_measurements.txt', spc_f
             if min(ResDepths)<dmin:dmin=min(ResDepths)
             if max(ResDepths)>dmax:dmax=max(ResDepths)
     if suc_file:
-        sucdat=open(suc_file,'rU').readlines()
+        sucdat=open(suc_file,'r').readlines()
         keys=sucdat[0].replace('\n','').split(',') # splits on underscores
         for line in sucdat[1:]:
             SucRec={}
@@ -2565,6 +2567,7 @@ def core_depthplot(input_dir_path='.', meas_file='magic_measurements.txt', spc_f
                 if Susc[-1]>maxSuc:maxSuc=Susc[-1]
                 if Susc[-1]<minSuc:minSuc=Susc[-1]
                 Sus_depths.append(float(SucRec['Top Depth (m)']))
+        sucdat.close()
     WIG,WIG_depths=[],[]
     if wig_file:
         wigdat,file_type=pmag.magic_read(wig_file)
@@ -2783,8 +2786,9 @@ def download_magic(infile, dir_path='.', input_dir_path='.',
         method_col = "magic_method_codes"
     else:
         method_col = "method_codes"
-    f=open(os.path.join(input_dir_path, infile),'rU')
+    f=open(os.path.join(input_dir_path, infile),'r')
     infile=f.readlines()
+    f.close()
     File=[] # will contain all non-blank lines from downloaded file
     for line in infile:
         line=line.replace('\n','')
@@ -3340,7 +3344,7 @@ def specimens_results_magic(infile='pmag_specimens.txt', measfile='magic_measure
             try:
                 model_lat_file=dir_path+'/'+args[ind+1]
                 get_model_lat=2
-                mlat=open(model_lat_file,'rU')
+                mlat=open(model_lat_file,'r')
                 ModelLats=[]
                 for line in mlat.readlines():
                     ModelLat={}
@@ -3350,6 +3354,7 @@ def specimens_results_magic(infile='pmag_specimens.txt', measfile='magic_measure
                     ModelLat["er_sample_name"]=tmp[0]
                     ModelLat["sample_lat"]=tmp[1]
                     ModelLats.append(ModelLat)
+                mlat.clos()
             except:
                 print("use_paleolatitude option requires a valid paleolatitude file")
         else:
@@ -4574,8 +4579,9 @@ def azdip_magic(orient_file='orient.txt', samp_file="er_samples.txt", samp_con="
     #
     # read in file to convert
     #
-    azfile=open(orient_file,'rU')
+    azfile=open(orient_file,'r')
     AzDipDat=azfile.readlines()
+    azfile.close()
     if not AzDipDat:
         return False, 'No data in orientation file, please try again'
     azfile.close()
@@ -4640,7 +4646,9 @@ def iodp_samples_magic(samp_file, output_samp_file=None, output_dir_path='.', in
         print(len(Samps), ' read in from: ',samp_out)
     else:
         samp_out = os.path.join(output_dir_path, 'er_samples.txt')
-    file_input = open(samp_file,"rU").readlines()
+    fin = open(samp_file,"r")
+    file_input = fin.readlines()
+    fin.close()
     keys = file_input[0].replace('\n','').split(',')
     if "CSF-B Top (m)" in keys:
         comp_depth_key="CSF-B Top (m)"
@@ -4824,8 +4832,9 @@ def kly4s_magic(infile, specnum=0, locname="unknown", inst='SIO-KLY4S',
     or_con = str(or_con)
     if azdip_infile:
         azdip_infile = os.path.join(input_dir_path, azdip_infile)
-        azfile=open(azdip_infile,'rU')
+        azfile=open(azdip_infile,'r')
         AzDipDat=azfile.readlines()
+        azfile.close()
     amsfile = os.path.join(input_dir_path, infile)
     if spec_infile:
         spec_infile = os.path.join(output_dir_path, spec_infile)
@@ -4855,7 +4864,7 @@ def kly4s_magic(infile, specnum=0, locname="unknown", inst='SIO-KLY4S',
             samp_con="7"
 
     try:
-        file_input=open(amsfile,'rU')
+        file_input=open(amsfile,'r')
     except:
         print('Error opening file: ', amsfile)
         return False, 'Error opening file: {}'.format(amsfile)
@@ -4872,6 +4881,7 @@ def kly4s_magic(infile, specnum=0, locname="unknown", inst='SIO-KLY4S',
         except IOError:
             print('trouble opening ',spec_infile)
     Data=file_input.readlines()
+    file_input.close()
     samps=[]
     if samp_infile:
         samps,file_type=pmag.magic_read(samp_infile)
@@ -5163,7 +5173,7 @@ def k15_magic(k15file, specnum=0, sample_naming_con='1', er_location_name="unkno
 # some magic default definitions
     #
     # read in data
-    input=open(k15file,'rU')
+    input=open(k15file,'r')
     MeasRecs,SpecRecs,AnisRecs,ResRecs=[],[],[],[]
     # read in data
     MeasRec,SpecRec,SampRec,SiteRec,AnisRec,ResRec={},{},{},{},{},{}
@@ -5498,11 +5508,12 @@ def SUFAR4_magic(ascfile, meas_output='magic_measurements.txt', aniso_output='rm
     #        sitenames,SiteRecs=[],[]
 
     try:
-        file_input=open(ascfile,'rU')
+        file_input=open(ascfile,'r')
     except:
         print('Error opening file: ', ascfile)
         return False, 'Error opening file: {}'.format(ascfile)
     Data=file_input.readlines()
+    file_input.close()
     k=0
     while k<len(Data):
         line = Data[k]
@@ -5805,8 +5816,9 @@ def agm_magic(agm_file, samp_infile=None, outfile='agm_measurements.txt', spec_o
         ErSpecRecs,keylist=pmag.fillkeys(ErSpecRecs)
         pmag.magic_write(specfile,ErSpecRecs,'er_specimens')
         print("specimen name put in ",specfile)
-    f=open(agm_file,'rU')
+    f=open(agm_file,'r')
     Data=f.readlines()
+    f.close()
     if "ASCII" not in Data[0]:
         fmt='new'
     measnum,start,end=1,"",1
@@ -5880,12 +5892,13 @@ def read_core_csv_file(sum_file):
     Cores=[]
     core_depth_key="Top depth cored CSF (m)"
     if os.path.isfile(sum_file):
-        input=open(sum_file,'rU').readlines()
-        if "Core Summary" in input[0]:
+        fin=open(sum_file,'r')
+        indat=fin.readlines()
+        if "Core Summary" in indat[0]:
             headline=1
         else:
             headline=0
-        keys=input[headline].replace('\n','').split(',')
+        keys=indat[headline].replace('\n','').split(',')
         if "Core Top (m)" in keys:
             core_depth_key="Core Top (m)"
         if "Top depth cored CSF (m)" in keys:
@@ -5894,11 +5907,12 @@ def read_core_csv_file(sum_file):
             core_label_key="Core Label"
         if "Core label" in keys:
             core_label_key="Core label"
-        for line in input[2:]:
+        for line in indat[2:]:
             if 'TOTALS' not in line:
                 CoreRec={}
                 for k in range(len(keys)):CoreRec[keys[k]]=line.split(',')[k]
                 Cores.append(CoreRec)
+        fin.close()
         if len(Cores)==0:
             print('no Core depth information available: import core summary file')
             return False, False, []

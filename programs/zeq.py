@@ -75,7 +75,7 @@ def main():
     if '-end' in sys.argv:
         ind=sys.argv.index('-end')
         end_pca=int(sys.argv[ind+1])
-    f=open(file,'rU')
+    f=open(file,'r')
     data=f.readlines()
 #
     datablock= [] # set up list for data

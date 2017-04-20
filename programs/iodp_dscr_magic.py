@@ -80,7 +80,7 @@ def main(command_line=True, **kwargs):
         if file[-3:].lower()=='csv':
             file_found = True
             print('processing: ',file)
-            input=open(file,'rU').readlines()
+            input=open(file,'r').readlines()
             keys=input[0].replace('\n','').split(',') # splits on underscores
             interval_key="Offset (cm)"
             demag_key="Demag level (mT)"

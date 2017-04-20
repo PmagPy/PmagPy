@@ -154,7 +154,7 @@ def main():
                     if key not in list(accept.keys()) and critrec[key]!='':
                         accept[key]=critrec[key]
     try:
-        open(inspec,'rU')
+        open(inspec,'r')
         PriorRecs,file_type=pmag.magic_read(inspec)
         if file_type != 'pmag_specimens':
             print(file_type)

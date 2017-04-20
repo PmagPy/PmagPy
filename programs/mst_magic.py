@@ -78,7 +78,7 @@ def main():
         ind=args.index("-f")
         infile=dir_path+'/'+args[ind+1]
         try:
-            input=open(infile,'rU')
+            input=open(infile,'r')
         except:
             print("bad mag file name")
             sys.exit()

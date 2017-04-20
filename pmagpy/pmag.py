@@ -1408,7 +1408,7 @@ def magic_read(infile, data=None, return_keys=False):
         f = data
     else:
         try:
-            f=open(infile,"rU")
+            f=open(infile,"r")
         except Exception as ex:
             if return_keys:
                 return [], 'bad_file', []
@@ -1416,6 +1416,7 @@ def magic_read(infile, data=None, return_keys=False):
 
     d = f.readline()[:-1].strip('\n')
     if not d:
+        f.close()
         if return_keys:
             return [], 'empty_file', []
         return [], 'empty_file'
@@ -1424,6 +1425,7 @@ def magic_read(infile, data=None, return_keys=False):
     elif d[0]=="t" or d[1]=="t":
         delim='tab'
     else:
+        f.close()
         print('error reading ', infile)
         if return_keys:
             return [], 'bad_file', []
@@ -1444,6 +1446,7 @@ def magic_read(infile, data=None, return_keys=False):
     for key in line:
         magic_keys.append(key)
     lines=f.readlines()
+    f.close()
     if len(lines) < 1:
         if return_keys:
             return [], 'empty_file', []
@@ -1493,7 +1496,7 @@ def magic_read_dict(path, data=None, sort_by_this_name=None, return_keys=False):
     return data, file_type, and keys (if return_keys is true)
     """
     DATA = {}
-    fin = open(path, 'rU')
+    fin = open(path, 'r')
     first_line = fin.readline()
     if not first_line:
         if return_keys:
@@ -1565,7 +1568,7 @@ def upload_read(infile,table):
     """
     delim='tab'
     hold,magic_data,magic_record,magic_keys=[],[],{},[]
-    f=open(infile,"rU")
+    f=open(infile,"r")
 #
 # look for right table
 #
@@ -4266,7 +4269,7 @@ def dread(infile,cols):
      tr, dec, inc, int determined by cols[]
     """
     data=[]
-    f=open(infile,"rU")
+    f=open(infile,"r")
     for line in f.readlines():
         tmp=line.split()
         rec=(tmp[0],float(tmp[cols[0]]),float(tmp[cols[1]]),float(tmp[cols[2]]),

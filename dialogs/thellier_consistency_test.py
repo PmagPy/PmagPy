@@ -196,7 +196,7 @@ def run_thellier_consistency_test(WD, Data,Data_hierarchy,acceptance_criteria,op
   #------------------------------------------------
 
   optimization_functions=[]
-  fin=open(WD + "/" + optimizer_functions_path,'rU')
+  fin=open(WD + "/" + optimizer_functions_path,'r')
   for line in fin.readlines():
     optimization_functions.append(line.strip('\n'))
 
@@ -209,7 +209,7 @@ def run_thellier_consistency_test(WD, Data,Data_hierarchy,acceptance_criteria,op
   sites_samples={}
   samples_expected_intensity={}
   
-  fin=open(optimizer_group_file_path,'rU')            
+  fin=open(optimizer_group_file_path,'r')            
   line=fin.readline()
   line=fin.readline()
   header=line.strip('\n').split('\t')
