@@ -1578,6 +1578,7 @@ def upload_read(infile,table):
     if delim=='tab':
         line =f.readline()[:-1].split('\t')
     else:
+        f.close()
         print("only tab delimitted files are supported now")
         return
     while file_type!=table:
@@ -1601,6 +1602,7 @@ def upload_read(infile,table):
             for k in range(len(magic_keys)):
                 magic_record[magic_keys[k]]=rec[k]
             magic_data.append(magic_record)
+    f.close()
     return magic_data
 
 def putout(ofile,keylist,Rec):
@@ -1753,7 +1755,7 @@ def dotilt(dec,inc,bed_az,bed_dip):
     Dir=cart2dir([xc,yc,-zc])
     return Dir[0],Dir[1] # return declination, inclination of rotated direction
 
-def dotilt_V(input):
+def dotilt_V(indat):
     """
     Does a tilt correction on dec,inc using bedding dip direction and dip.
 
@@ -1766,8 +1768,8 @@ def dotilt_V(input):
     -------
     dec,inc : a tuple of rotated dec, inc values
     """
-    input=input.transpose()
-    dec, inc, bed_az, bed_dip =input[0],input[1],input[2],input[3]  # unpack input array into separate arrays
+    indat=indat.transpose()
+    dec, inc, bed_az, bed_dip =indat[0],indat[1],indat[2],indat[3]  # unpack input array into separate arrays
     rad=old_div(np.pi,180.) # convert to radians
     Dir=np.array([dec,inc]).transpose()
     X=dir2cart(Dir).transpose() # get cartesian coordinates
@@ -1825,13 +1827,13 @@ def dogeo(dec,inc,az,pl):
     Dir_geo=cart2dir([xp,yp,zp])
     return Dir_geo[0],Dir_geo[1]    # send back declination and inclination
 
-def dogeo_V(input):
+def dogeo_V(indat):
     """
     Rotates declination and inclination into geographic coordinates of an array
     using the azimuth and plunge of the X direction (lab arrow) of a specimen.
     """
-    input=input.transpose()
-    dec, inc, az, pl =input[0],input[1],input[2],input[3]  # unpack input array into separate arrays
+    indat=indat.transpose()
+    dec, inc, az, pl =indat[0],indat[1],indat[2],indat[3]  # unpack input array into separate arrays
     Dir=np.array([dec,inc]).transpose()
     X=dir2cart(Dir).transpose() # get cartesian coordinates
     N=np.size(dec)
@@ -3958,6 +3960,7 @@ def cdfout(data,file):
         y=old_div(float(j),float(len(data)))
         out=str(data[j])+' '+str(y)+ '\n'
         f.write(out)
+    f.close()
 
 def dobingham(data):
     """
@@ -4275,6 +4278,7 @@ def dread(infile,cols):
         rec=(tmp[0],float(tmp[cols[0]]),float(tmp[cols[1]]),float(tmp[cols[2]]),
           float(tmp[cols[3]]) )
         data.append(rec)
+    f.close()
     return data
 
 def fshdev(k):
