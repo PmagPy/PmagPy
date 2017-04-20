@@ -41,6 +41,7 @@ OPTIONS
             But users need to make sure that there are no duplicate measurements in the file
     -V [1,2,3] units of IRM field in volts using ASC coil #1,2 or 3
     -spc NUM : specify number of characters to designate a  specimen, default = 0
+    -tz TIMEZONE: timezone of measurements used to convert to UTC and format for MagIC database
     -loc LOCNAME : specify location/study name, must have either LOCNAME or SAMPFILE or be a synthetic
     -syn INST TYPE: sets these specimens as synthetics created at institution INST and of type TYPE
     -ins INST : specify which demag instrument was used (e.g, SIO-Suzy or SIO-Odette),default is ""
@@ -183,6 +184,7 @@ def convert(**kwargs):
     cooling_rates = kwargs.get('cooling_rates', '')
     lat = kwargs.get('lat', '')
     lon = kwargs.get('lon', '')
+    timezone = kwargs.get('timezone', 'UTC')
 
     # make sure all initial values are correctly set up (whether they come from the command line or a GUI)
     if samp_infile:
@@ -338,8 +340,8 @@ def convert(**kwargs):
                 if min<10:
                    min= "0"+str(min)
                 else: min=str(min)
-                dt=yyyy+":"+mm+":"+dd+":"+hh+":"+min+":00.00"
-                local = pytz.timezone("America/Los_Angeles")
+                dt=yyyy+":"+mm+":"+dd+":"+hh+":"+min+":00"
+                local = pytz.timezone(timezone)
                 naive = datetime.datetime.strptime(dt, "%Y:%m:%d:%H:%M:%S")
                 local_dt = local.localize(naive, is_dst=None)
                 utc_dt = local_dt.astimezone(pytz.utc)
@@ -376,8 +378,8 @@ def convert(**kwargs):
                    min= "0"+str(min)
                 else:
                     min=str(min)
-                dt=yyyy+":"+mm+":"+dd+":"+hh+":"+min+":00.00"
-                local = pytz.timezone("America/Los_Angeles")
+                dt=yyyy+":"+mm+":"+dd+":"+hh+":"+min+":00"
+                local = pytz.timezone(timezone)
                 naive = datetime.datetime.strptime(dt, "%Y:%m:%d:%H:%M:%S")
                 local_dt = local.localize(naive, is_dst=None)
                 utc_dt = local_dt.astimezone(pytz.utc)
@@ -746,6 +748,9 @@ def main():
     if "-lon" in sys.argv:
         ind=sys.argv.index("-lon")
         kwargs["lon"]=sys.argv[ind+1]
+    if "-tz" in sys.argv:
+        ind=sys.argv.index("-tz")
+        kwargs["timezone"]=sys.argv[ind+1]
 
     convert(**kwargs)
 

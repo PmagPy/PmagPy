@@ -924,7 +924,7 @@ class convert_SIO_files_to_MagIC(convert_files_to_MagIC):
         options_dict['site_file'] = SITE_OUTFILE
         options_dict['loc_file'] = LOC_OUTFILE
 
-        COMMAND = "sio_magic.py -F {0} -Fsp {1} -Fsa {2} -Fsi {3} -Flo {4} -f {5} {6} {7} {8} {9} -spc {10} -ncn {11} {12} {13} {14}".format(outfile, SIO_file, user, experiment_type, cooling_rates, loc_name, spc, ncn, lab_field, peak_AF, coil_number, instrument, replicate, lat, lon)
+        COMMAND = "sio_magic.py -F {0} -Fsp {1} -Fsa {2} -Fsi {3} -Flo {4} -f {5} -spc {6} -ncn {7} {8} {9} {10} {11} {12} {13} {14} {15} {16} {17} {18}".format(outfile, SPEC_OUTFILE, SAMP_OUTFILE, SITE_OUTFILE, LOC_OUTFILE, SIO_file, spc, ncn, user, experiment_type, cooling_rates, loc_name, lab_field, peak_AF, coil_number, instrument, replicate, lat, lon)
         print "COMMAND", COMMAND
         # to run as module:
         if sio_magic.convert(**options_dict):
