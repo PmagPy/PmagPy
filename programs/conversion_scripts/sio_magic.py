@@ -199,7 +199,7 @@ def convert(**kwargs):
             return False, '{} is not a valid coil specification'.format(coil)
     if mag_file:
         try:
-            input=open(mag_file,'rU')
+            fin=open(mag_file,'rU')
         except:
             print "bad mag file name"
             return False, "bad mag file name"
@@ -283,7 +283,8 @@ def convert(**kwargs):
 
     ##################################
 
-    for line in input.readlines():
+    lines=fin.readlines()
+    for line in lines:
         instcode=""
         if len(line)>2:
             MeasRec,SpecRec,SampRec,SiteRec,LocRec={},{},{},{},{}
@@ -297,6 +298,8 @@ def convert(**kwargs):
             MeasRec["treat_dc_field_theta"]='0'
             meas_type="LT-NO"
             rec=line.split()
+            try: float(rec[0]); print("No specimen name for line #%d in the measurement file"%lines.index(line)); continue
+            except ValueError: pass
             if rec[1]==".00":rec[1]="0.00"
             treat=rec[1].split('.')
             if methcode=="LP-IRM":
