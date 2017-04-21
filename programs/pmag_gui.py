@@ -67,11 +67,25 @@ class MagMainFrame(wx.Frame):
         if not DM:
             self.data_model_num = int(float(pmag.get_named_arg_from_sys("-DM", 0)))
             DM = self.data_model_num
+
+        # if WD was provided:
+        if WD:
+            self.WD = WD
+        else:
+            WD = pmag.get_named_arg_from_sys("-WD", '')
+            self.WD = WD
+
         self.data_model = dmodel
         self.FIRST_RUN = True
 
         self.panel = wx.Panel(self, name='pmag_gui main panel')
         self.InitUI()
+
+        if WD and DM:
+            self.set_dm(self.data_model_num)
+        if WD:
+            self.dir_path.SetValue(self.WD)
+
 
         # for use as module:
         self.resource_dir = os.getcwd()
@@ -102,6 +116,12 @@ class MagMainFrame(wx.Frame):
             self.get_dm_num()
         if not WD:
             self.get_DIR()
+            # no need to get wd_data
+            return
+        if self.data_model_num == 2:
+            self.get_wd_data2()
+        else:
+            self.get_wd_data()
 
     def get_dm_num(self):
         """
@@ -119,22 +139,34 @@ class MagMainFrame(wx.Frame):
         vals = ui_dialog.get_values()
         self.data_model_num = int(vals[1]['data_model'])
         #
+        if self.data_model_num not in (2, 3):
+            pw.simple_warning("Input data model not recognized, defaulting to 3")
+            self.data_model_num = 3
+        self.set_dm(self.data_model_num)
+
+    def set_dm(self, num):
+        """
+        Make GUI changes based on data model num.
+        Get info from WD in appropriate format
+        """
         #enable or disable self.btn1a
         if self.data_model_num == 3:
             self.btn1a.Enable()
+        else:
+            self.btn1a.Disable()
         #
         # set pmag_basic_dialogs
         global pmag_basic_dialogs
         if self.data_model_num == 2:
             pmag_basic_dialogs = pbd2
-            self.er_magic = builder.ErMagicBuilder(self.WD,
-                                                   data_model=self.data_model)
+            #wx.CallAfter(self.get_wd_data2)
         elif self.data_model_num == 3:
             pmag_basic_dialogs = pbd3
-            wx.CallAfter(self.get_wd_data)
-        else:
-            pw.simple_warning("Input data model not recognized please input 2.x or 3.x"); return
+            #wx.CallAfter(self.get_wd_data)
 
+        # do / re-do menubar
+        menubar = pmag_gui_menu.MagICMenu(self, data_model_num=self.data_model_num)
+        self.SetMenuBar(menubar)
 
     def get_wd_data(self):
         """
@@ -147,6 +179,14 @@ class MagMainFrame(wx.Frame):
         self.contribution = nb.Contribution(self.WD, dmodel=self.data_model)
         del wait
 
+    def get_wd_data2(self):
+        wait = wx.BusyInfo('Reading in data from current working directory, please wait...')
+        #wx.Yield()
+        print('-I- Read in any available data from working directory (data model 2)')
+
+        self.er_magic = builder.ErMagicBuilder(self.WD,
+                                               data_model=self.data_model)
+        del wait
 
     def InitUI(self):
         menubar = pmag_gui_menu.MagICMenu(self, data_model_num=self.data_model_num)
@@ -230,9 +270,6 @@ class MagMainFrame(wx.Frame):
         self.btn1a.SetBackgroundColour("#FDC68A")
         self.btn1a.InitColours()
         self.Bind(wx.EVT_BUTTON, self.on_convert_3, self.btn1a)
-        if self.data_model_num != 3:
-            self.btn1a.Disable()
-
 
         #str = "OR"
         OR = wx.StaticText(self.panel, -1, "or", (20, 120))
@@ -382,7 +419,7 @@ class MagMainFrame(wx.Frame):
             self.dir_path.SetValue(self.WD)
             dialog.Destroy()
             if self.data_model_num == 2:
-                self.er_magic = builder.ErMagicBuilder(self.WD, self.er_magic.data_model)
+                self.get_wd_data2()
             else:
                 self.get_wd_data()
         else:
