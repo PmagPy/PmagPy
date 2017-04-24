@@ -1666,7 +1666,7 @@ class Core_depthplot(wx.Frame):
             if not input_dir_path:
                 del wait
                 return False
-            sum_file = self.bSizer2.return_value()
+        sum_file = self.bSizer2.return_value()
         if sum_file:
             new_dir_path, sum_file = os.path.split(sum_file)
             input_dir_path = check_input_dir_path(input_dir_path, new_dir_path)
