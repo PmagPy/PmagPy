@@ -39,7 +39,8 @@ class TestProgramsHelp(unittest.TestCase):
         programs.extend(conversion_scripts2)
         not_checked = []
         for prog in programs:
-            if prog in ['__init__.py', 'program_envs.py']:
+            if prog in ['__init__.py', 'program_envs.py',
+                        'template_magic.py']:
                 continue
             if 'gui' in prog:
                 continue
@@ -69,6 +70,9 @@ class TestProgramsHelp(unittest.TestCase):
                 prog = prog[:-3]
             print 'testing:', prog
             res = self.env.run(prog, '-h')
+
+    def test_help(self):
+        res = self.env.run('template_magic.py', '-h')
 
     @unittest.skipIf('Anaconda' not in sys.version.split()[1], 'only needed for Anaconda')
     def test_guis_anaconda(self):
