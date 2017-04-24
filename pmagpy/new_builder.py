@@ -357,21 +357,21 @@ class Contribution(object):
                     # warn user if an old value will be overwritten
                     new_value = coords[coord]
                     # if the new value is null, ignore it
-                    if np.isnan(new_value):
+                    if is_null(new_value):
                         continue
                     # set old value to None if it wasn't in table
                     if coord not in loc_container.df.columns:
                         loc_container.df[coord] = None
                     old_value = loc_container.df.ix[loc_name, coord]
                     # use first value if multiple values returned, but don't shorten a string
-                    if not (isinstance(old_value, str) or isinstance(old_value, str)):
+                    if not (isinstance(old_value, str)):
                         try:
-                            old_value = old_value[0]
+                            old_value = old_value.values[0]
                         except TypeError: # if only one value
                             pass
                         except IndexError: # if np.nan
                             pass
-                    if old_value is None or old_value is np.nan:
+                    if is_null(old_value):
                         pass
                     elif isinstance(old_value, str) or isinstance(old_value, str):
                         try:
@@ -379,8 +379,6 @@ class Contribution(object):
                         except ValueError:
                             print('-W- In {}, automatically generated {} value ({}) will overwrite previous value ({})'.format(loc_name, coord, new_value, old_value))
                             old_value = None
-                    elif np.isnan(old_value):
-                        pass
                     elif new_value != old_value:
                         print('-W- In {}, automatically generated {} value ({}) will overwrite previous value ({})'.format(loc_name, coord, new_value, old_value))
                     # set new value
@@ -1354,6 +1352,63 @@ class MagicDataFrame(object):
             return 'doi', 'contribution'
 
 
+def not_null(val):
+    """
+    Comprehensive check to see if a value is null or not.
+    Returns True for: non-empty iterables, True, non-zero floats and ints,
+    non-emtpy strings.
+    Returns False for: empty iterables, False, zero, empty strings.
+
+    Parameters
+    ----------
+    val : any Python object
+
+    Returns
+    ---------
+    boolean
+    """
+
+    def can_iter(x):
+        try:
+            any(x)
+            return True
+        except TypeError:
+            return False
+
+    def not_empty(x):
+        if len(x):
+            return True
+        return False
+
+
+    def exists(x):
+        if x:
+            return True
+        return False
+
+
+    def is_nan(x):
+        try:
+            if np.isnan(x):
+                return True
+        except TypeError:
+            return False
+        return False
+
+    # return True iff you have a non-empty iterable
+    # and False for an empty iterable (including an empty string)
+    if can_iter(val):
+        return not_empty(val)
+    # if value is not iterable, return False for np.nan, None, 0, or False
+    # & True for all else
+    else:
+        if is_nan(val):
+            return False
+        else:
+            return exists(val)
+
+def is_null(val):
+    return not not_null(val)
 
 
 if __name__ == "__main__":
