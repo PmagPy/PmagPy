@@ -290,6 +290,8 @@ def convert(**kwargs):
         line = line.rstrip("\n")
         items = line.split(",")
 
+    data.close()
+
     con = nb.Contribution(output_dir_path,read_tables=[])
 
     con.add_magic_table_from_data(dtype='specimens', data=SpecRecs)

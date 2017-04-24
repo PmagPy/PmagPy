@@ -258,6 +258,7 @@ def convert(**kwargs):
         this_line_data['lon']=''
         this_line_data['volume']=''
         Data[specimen].append(this_line_data)
+    infile.close()
     print("-I- done reading file %s"%magfile)
 
     if datafile:
@@ -277,6 +278,7 @@ def convert(**kwargs):
                     Data[data[0]][i]['volume'] = data[7]
             else:
                 print("no specimen %s found in magnetometer data file when reading specimen orientation data file, or data file record for specimen too short"%data[0])
+        dinfile.close()
 
     #--------------------------------------
     # Convert to MagIC

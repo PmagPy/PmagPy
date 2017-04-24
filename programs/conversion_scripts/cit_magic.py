@@ -149,6 +149,7 @@ def convert(**kwargs):
         print(("bad sam file name: ", magfile))
         return False, "bad sam file name"
     File = file_input.readlines()
+    file_input.close()
     if len(File) == 1: File = File[0].split('\r'); File = [x+"\r\n" for x in File]
 
     #define initial variables
@@ -210,6 +211,7 @@ def convert(**kwargs):
         SiteRec['analysts']=user
         f=open(os.path.join(input_dir_path,specimen),'r')
         Lines=f.readlines()
+        f.close()
         comment=""
         line=Lines[0].split()
         if len(line)>2:

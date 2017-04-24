@@ -220,6 +220,7 @@ def read_generic_file(path,average_replicates):
         if specimen not in list(Data.keys()):
             Data[specimen]=[]
         Data[specimen].append(tmp_data)
+    Fin.close()
     # search fro duplicates
     for specimen in list(Data.keys()):
         x=len(Data[specimen])-1

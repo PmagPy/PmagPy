@@ -246,6 +246,8 @@ def convert(**kwargs):
             line=data.readline()
         #end of data while loop
 
+    data.close()
+
     con = nb.Contribution(output_dir_path,read_tables=[])
 
     con.add_magic_table_from_data(dtype='specimens', data=SpecRecs)

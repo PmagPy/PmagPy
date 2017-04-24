@@ -381,6 +381,7 @@ class convert_tdt_files_to_MagIC(wx.Frame):
                         Data[specimen].pop()
 
                 Data[specimen].append(tmp_data)
+        Fin.close()
         return(Data)
 
     def on_okButton(self,event):
@@ -572,7 +573,9 @@ class convert_tdt_files_to_MagIC(wx.Frame):
                     line_number=0
                     continue_reading=True
                     line=fin.readline() # ignore first line
-                    for line in fin.readlines():
+                    lines = fin.readlines()
+                    fin.close()
+                    for line in lines:
 
                         if "END" in line:
                             break

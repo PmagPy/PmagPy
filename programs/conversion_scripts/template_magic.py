@@ -81,6 +81,9 @@ def convert(**kwargs):
         MeasRec['analysts']=user
         MeasRecs.append(MeasRec)
 
+    #close your file object so Python3 doesn't throw an annoying warning
+    infile.close()
+
     #open a Contribution object
     con = nb.Contribution(output_dir_path,read_tables=[])
 

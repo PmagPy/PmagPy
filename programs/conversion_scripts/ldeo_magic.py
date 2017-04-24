@@ -194,6 +194,7 @@ def convert(**kwargs):
     # find start of data:
     DIspec=[]
     Data=infile.readlines()
+    infile.close()
     for k in range(len(Data)):
         rec=Data[k].split()
         if len(rec)<=2: continue
