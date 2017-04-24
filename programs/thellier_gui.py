@@ -919,7 +919,7 @@ else:
         (after changing temperature bounds or changing specimen)
         """
 
-        self.ignore_parameters={}
+        self.ignore_parameters,value={},''
         for crit_short_name in self.preferences['show_statistics_on_gui']:
             crit="specimen_"+crit_short_name
             if self.acceptance_criteria[crit]['value']==-999:
