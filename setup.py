@@ -56,7 +56,8 @@ def parse_dict(dictionary):
     for key in dictionary.keys():
         files = dictionary.pop(key)
         formatted_files = [path.join(key, f) for f in files]
-        ind = key.index('/data_files') + len('/data_files/')
+        #ind = key.index('/data_files') + len('/data_files/')
+        ind = key.index('data_files') + len('data_files/')
         new_key = key[ind:]
         #new_key = os.path.join('pmagpy_data_files', new_key)
         new_key = os.path.join('data_files', new_key)
@@ -65,13 +66,18 @@ def parse_dict(dictionary):
     return formatted, formatted_dict
 
 # get formatted list of data_files for setup()
-data_files = do_walk(path.join(here, 'data_files'))
+#data_files = do_walk(path.join(here, 'data_files'))
+data_files = do_walk('data_files')
 formatted, formatted_dict = parse_dict(data_files)
 
 
 # Get the long description from the README file
-with open(path.join(here, 'README.md'), encoding='utf-8') as f:
-        long_description = f.read()
+#with open(path.join(here, 'README.md'), encoding='utf-8') as f:
+#        long_description = f.read()
+
+with open('README.md', encoding='utf-8') as f:
+    long_description = f.read()
+
 
 setup(
         name='pmagpy',
@@ -146,6 +152,12 @@ setup(
     # If there are data files included in your packages that need to be
     # installed, specify them here.  If using Python 2.6 or less, then these
     # have to be included in MANIFEST.in as well.
+    #
+    # removing MANIFEST.in doesn't help
+    # changing this to False breaks data model, etc.
+    # but it prevents this error:
+    ##  setup() arguments must *always* be /-separated paths relative to the
+    ## setup.py directory, *never* absolute paths.
     include_package_data=True,
     #package_data={
     #            'zebra': ['demag_gui.log'],
