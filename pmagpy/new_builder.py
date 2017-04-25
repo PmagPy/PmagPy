@@ -692,6 +692,9 @@ class Contribution(object):
         target_df : MagicDataFrame
             updated MagicDataFrame with propagated values
         """
+        print("-I- Trying to propagate {} columns from {} table into {} table".format(cols,
+                                                                                      source_df_name,
+                                                                                      target_df_name))
         # make sure target table is read in
         if target_df_name not in self.tables:
             self.add_magic_table(target_df_name)

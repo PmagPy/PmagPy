@@ -145,6 +145,11 @@ class ErMagicCheckFrame3(wx.Frame):
         """
         # propagate lat/lon values from sites table
         self.contribution.get_min_max_lat_lon()
+        # propagate lithologies & geologic classes from sites table
+        self.contribution.propagate_cols_up(['lithologies',
+                                             'geologic_classes'],
+                                            'locations', 'sites')
+
         # set up frame
         self.panel = wx.Panel(self, style=wx.SIMPLE_BORDER)
         self.grid_frame = grid_frame3.GridFrame(self.contribution, self.WD, 'locations', 'locations', self.panel)

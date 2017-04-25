@@ -403,6 +403,10 @@ class TestContribution(unittest.TestCase):
         self.assertEqual('Other:Trachyte', con.tables['sites'].df.loc['mc01', 'lithologies'].unique()[0])
         self.assertEqual('Basalt', con.tables['sites'].df.loc['mc02', 'lithologies'].unique()[0])
         self.assertTrue(all(con.tables['sites'].df['lithologies']))
+        # fail gracefully
+        con = nb.Contribution(directory, read_tables=['sites'])
+        con.propagate_cols_up(cols, 'sites', 'samples')
+
 
     def test_propagate_average_up(self):
         directory = os.path.join('data_files', '3_0', 'McMurdo')
