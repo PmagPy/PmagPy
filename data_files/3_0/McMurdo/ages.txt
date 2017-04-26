@@ -1,4 +1,4 @@
-tab 	ages
+tab	ages
 age	age_sigma	age_unit	citations	description	location	magic_method_codes	method_codes	site
 1.18	0.005	Ma	Tauxe et al. 2004	Excellent flat spectrum.	McMurdo	GM-ARAR-AP	GM-ARAR-AP	mc01
 0.33	0.01	Ma	Tauxe et al. 2004	Reasonably flat, some recoil, climbs ar high T, but decent data. .	McMurdo	GM-ARAR-AP	GM-ARAR-AP	mc02

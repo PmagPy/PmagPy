@@ -1,4 +1,4 @@
-tab 	criteria
+tab	criteria
 citations	criterion	criterion_operation	criterion_value	definition	table_column
 This study	IE-SITE	>=	3.0	acceptance criteria for study	sites.int_n_specimens
 This study	IE-SITE	<=	6e-06	acceptance criteria for study	sites.int_sigma
