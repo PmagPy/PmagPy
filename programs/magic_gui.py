@@ -60,6 +60,8 @@ class MainFrame(wx.Frame):
         print('-I- Completed interface')
         if contribution:
             self.contribution = contribution
+        elif not WD:
+            wx.CallAfter(self.on_change_dir_button)
         else:
             wx.CallAfter(self.get_wd_data)
 
@@ -232,7 +234,7 @@ class MainFrame(wx.Frame):
         self.SetMenuBar(menubar)
 
 
-    def on_change_dir_button(self, event):
+    def on_change_dir_button(self, event=None):
         """
         create change directory frame
         """
@@ -514,7 +516,7 @@ def main():
     else:
         app = wx.App(redirect=True)
 
-    working_dir = pmag.get_named_arg_from_sys('-WD', '.')
+    working_dir = pmag.get_named_arg_from_sys('-WD', '')
     app.frame = MainFrame(working_dir)
     ## this causes an error with Canopy Python
     ## (it works with brew Python)
