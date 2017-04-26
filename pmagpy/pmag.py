@@ -5977,7 +5977,7 @@ def doigrf(lon,lat,alt,date,**kwargs):
 
     Parameters:
     -----------
-    long  = east longitude in degrees (0 to 360 or -180 to 180)
+    lon  = east longitude in degrees (0 to 360 or -180 to 180)
     lat   = latitude in degrees (-90 to 90)
     alt   = height above mean sea level in km (itype = 1 assumed)
     date  = Required date in years and decimals of a year (A.D.)
@@ -7451,7 +7451,7 @@ def makelist(List):
     return clist[:-1]
 
 
-def getvec(gh,lat,long):
+def getvec(gh,lat,lon):
     """
     Evaluates the vector at a given latitude and longitude for a specified
     set of coefficients
@@ -7474,7 +7474,7 @@ def getvec(gh,lat,long):
     itype = 1
     colat = 90.-lat
     date,alt=2000.,0. # use a dummy date and altitude
-    x,y,z,f=magsyn(gh,sv,date,date,itype,alt,colat,int)
+    x,y,z,f=magsyn(gh,sv,date,date,itype,alt,colat,lon)
     vec=cart2dir([x,y,z])
     vec[2]=f
     return vec

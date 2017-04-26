@@ -415,9 +415,9 @@ def tk03(n=100,dec=0,lat=0,rev='no',G2=0,G3=0):
     """
     tk_03_output=[]
     for k in range(n):
-        gh=pmag.mktk03(8,k,G2,G3) # terms and random seed
-        long=random.randint(0,360) # get a random longitude, between 0 and 359
-        vec= pmag.getvec(gh,lat,int)  # send field model and lat to getvec
+        gh = pmag.mktk03(8,k,G2,G3) # terms and random seed
+        lon = random.randint(0,360) # get a random longitude, between 0 and 359
+        vec = pmag.getvec(gh,lat,lon)  # send field model and lat to getvec
         vec[0]+=dec
         if vec[0]>=360.:
             vec[0]-=360.
