@@ -3,8 +3,8 @@ if sys.version_info >= (3,):
     raise Exception("""
 You are running Python {}.
 This version of pmagpy-cli is only compatible with Python 2.
-Make sure you have pip ≥ 9.0 to avoid this kind of issue,
-as well as setuptools ≥ 24.2:
+Make sure you have pip >= 9.0 to avoid this kind of issue,
+as well as setuptools >= 24.2:
 
  $ pip install pip setuptools --upgrade
 
@@ -91,6 +91,9 @@ setup(
         'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 2.6',
         'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
     ],
 
     keywords='geology paleomagnetism',
