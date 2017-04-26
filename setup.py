@@ -1,3 +1,24 @@
+import sys
+if sys.version_info >= (3,):
+    raise Exception("""
+You are running Python {}.
+This version of pmagpy is only compatible with Python 2.
+Make sure you have pip ≥ 9.0 to avoid this kind of issue,
+as well as setuptools ≥ 24.2:
+
+ $ pip install pip setuptools --upgrade
+
+Then you should be able to download the correct version of pmagpy:
+
+ $ pip install pmagpy --upgrade
+
+If this still gives you an error, please report the issue:
+https://github.com/PmagPy/PmagPy/issues
+
+Thanks!
+
+""".format(sys.version))
+
 # Always prefer setuptools over distutils
 from setuptools import setup, find_packages
 # To use a consistent encoding
@@ -121,6 +142,10 @@ setup(
     ],
 
     keywords='geology paleomagnetism',
+
+    # won't install if user has python 3
+    python_requires='<3.0',
+
 
     # You can just specify the packages manually here if your project is
     # simple. Or you can use find_packages().
