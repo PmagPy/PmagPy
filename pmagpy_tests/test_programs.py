@@ -54,7 +54,7 @@ class TestProgramsHelp(unittest.TestCase):
                 continue
             if sys.platform in ['win32', 'win62']:
                 prog = prog[:-3]
-            print "Testing help message for:", prog
+            print("Testing help message for:", prog)
             res = self.env.run(prog, '-h')
             #except AssertionError as ex:
             #    not_checked.append(prog)

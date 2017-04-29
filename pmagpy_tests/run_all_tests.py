@@ -8,7 +8,7 @@ import unittest
 import pmagpy_tests as pt
 
 
-print "__name__", __name__
+print("__name__", __name__)
 if (__name__ == "__main__") or (__name__ == 'pmagpy_tests.run_all_tests'):
     #if '-gui' in sys.argv:
     #    os.system("pythonw -m unittest -v pmagpy_tests.test_pmag_gui pmagpy_tests.test_magic_gui pmagpy_tests.test_demag_gui pmagpy_tests.test_thellier_gui pmagpy_tests.test_er_magic_dialogs")
