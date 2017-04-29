@@ -115,6 +115,11 @@ def windows_install(path_to_python=""):
         ans=raw_input()
         if ans=='y': pass
         else: return
+
+    #be sure to add python.exe if the user forgets to include the file name
+    if os.path.isdir(path_to_python):
+        path_to_python = os.path.join(path_to_python, "python.exe")
+
     #make windows associate .py with python
     subprocess.check_call('assoc .py=Python',shell=True)
     subprocess.check_call('ftype Python=%s '%path_to_python + '"%1" %*', shell=True)
