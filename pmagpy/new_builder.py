@@ -367,9 +367,7 @@ class Contribution(object):
                     if not (isinstance(old_value, str)):
                         try:
                             old_value = old_value.values[0]
-                        except TypeError: # if only one value
-                            pass
-                        except IndexError: # if np.nan
+                        except (TypeError,IndexError,AttributeError) as e: # if only one value, or np.nan, or NoneType
                             pass
                     if is_null(old_value):
                         pass
@@ -1353,7 +1351,7 @@ class MagicDataFrame(object):
         """
         # ignore citations if they just say 'This study'
         if 'citations' in self.df.columns:
-            if sorted(self.df['citations'].unique()) == ['This study']:
+            if list(self.df['citations'].unique()) == ['This study']:
                 ignore_cols = ignore_cols + ('citations',)
         drop_cols = self.df.columns.difference(ignore_cols)
         self.df.dropna(axis='index', subset=drop_cols, how='all', inplace=True)
@@ -1417,6 +1415,8 @@ class MagicDataFrame(object):
         self.df
         """
         cols = list(cols)
+        for col in cols:
+            if col not in self.df.columns: self.df[col] = np.nan
         short_df = self.df[cols]
         short_df = short_df.groupby(short_df.index, sort=False).fillna(method='ffill').groupby(short_df.index, sort=False).fillna(method='bfill')
         self.df[cols] = short_df[cols]
