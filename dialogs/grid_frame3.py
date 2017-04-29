@@ -1063,7 +1063,7 @@ class GridBuilder(object):
                 vals = None
             #
             if vals:
-                print '-I- Updating column "{}" with default values'.format(col_name)
+                print('-I- Updating column "{}" with default values'.format(col_name))
                 if self.huge:
                     self.SetColumnValues(col_name, vals)
                 else:

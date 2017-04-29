@@ -514,7 +514,7 @@ class MagicGrid(BaseMagicGrid):
             for col in cols:
                 col_name = self.GetColLabelValue(col)
                 if verbose:
-                    print col_name, ":", self.GetCellValue(row, col)
+                    print(col_name, ":", self.GetCellValue(row, col))
                 data[row][col_name] = self.GetCellValue(row, col)
         return data
 
@@ -563,7 +563,7 @@ class HugeMagicGrid(BaseMagicGrid):
         self.table.SetColumnValues(col, data)
 
     def OnRightDown(self, event):
-        print self.GetSelectedRows()
+        print(self.GetSelectedRows())
 
 
 class MyCustomRenderer(gridlib.PyGridCellRenderer):
