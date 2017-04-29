@@ -1,4 +1,7 @@
 #!/usr/bin/env python
+from __future__ import division
+from __future__ import print_function
+from past.utils import old_div
 import sys
 import math
 import pmagpy.pmag as pmag
@@ -22,13 +25,13 @@ def main():
     out=""
     UP=0
     if '-h' in sys.argv:
-        print main.__doc__
+        print(main.__doc__)
         sys.exit()
     if '-f' in sys.argv:
         dat=[]
         ind=sys.argv.index('-f')
         file=sys.argv[ind+1]  
-        f=open(file,'rU')
+        f=open(file,'r')
         input=f.readlines()
     else:
         input = sys.stdin.readlines()  # read from standard input
@@ -51,7 +54,7 @@ def main():
             if y<0:
                 p=3.*math.pi/2.
             else:
-                p=math.pi/2.
+                p=old_div(math.pi,2.)
         else:
             p=math.atan2(y,x)
         d,i=p*180./math.pi,t*180./math.pi
@@ -60,7 +63,7 @@ def main():
         outstring = '%7.1f %7.1f'%(d,i)
         if ofile == "":
            # print '%7.1f %7.1f'%(d,i)
-            print outstring
+            print(outstring)
         else:
             out.write(outstring+'\n')
         #end

@@ -1,4 +1,7 @@
 #!/usr/bin/env python
+from __future__ import print_function
+from builtins import input
+from builtins import range
 import sys
 import os
 import numpy
@@ -31,7 +34,7 @@ def main():
     """
     args = sys.argv
     if "-h" in args:
-        print main.__doc__
+        print(main.__doc__)
         sys.exit()
     plots = 0
     pltspec = ""
@@ -54,13 +57,13 @@ def main():
                           custom_filenames={'measurements': meas_file})
     # get as much name data as possible (used for naming plots)
     if not 'measurements' in con.tables:
-        print "-W- No measurement file found"
+        print("-W- No measurement file found")
         return
     con.propagate_name_down('location', 'measurements')
 
     if 'measurements' not in con.tables:
-        print main.__doc__
-        print 'bad file'
+        print(main.__doc__)
+        print('bad file')
         sys.exit()
     meas_container = con.tables['measurements']
     #meas_df = meas_container.df
@@ -79,7 +82,7 @@ def main():
     hyst_data = meas_container.get_records_for_code('LP-HYS')
     #experiment_names = hyst_data['experiment_name'].unique()
     if not len(hyst_data):
-        print "-W- No hysteresis data found"
+        print("-W- No hysteresis data found")
         return
     sids = hyst_data['specimen'].unique()
 
@@ -89,11 +92,11 @@ def main():
     k = 0
     if pltspec != "":
         try:
-            print sids
+            print(sids)
             k = list(sids).index(pltspec)
         except ValueError:
-            print '-W- No specimen named: {}.'.format(pltspec)
-            print '-W- Please provide a valid specimen name'
+            print('-W- No specimen named: {}.'.format(pltspec))
+            print('-W- Please provide a valid specimen name')
             return
     intlist = ['magn_moment', 'magn_volume', 'magn_mass']
 
@@ -101,7 +104,7 @@ def main():
         locname, site, sample, synth = '', '', '', ''
         s = sids[k]
         if verbose:
-            print s, k + 1, 'out of ', len(sids)
+            print(s, k + 1, 'out of ', len(sids))
         # B, M for hysteresis, Bdcd,Mdcd for irm-dcd data
         B, M = [], []
         # get all measurements for this specimen
@@ -130,7 +133,7 @@ def main():
         xlab, ylab, title = '', '', ''
         Temps = meas_data['treat_temp'].unique()
         for t in Temps:
-            print 'working on t: ', t
+            print('working on t: ', t)
             t_data = meas_data[meas_data['treat_temp'] == t]
             m = int_col
             B = t_data['meas_field_dc'].astype(float).values
@@ -159,7 +162,7 @@ def main():
         if plots:
             if pltspec != "":
                 s = pltspec
-            for key in HDD.keys():
+            for key in list(HDD.keys()):
                 if pmagplotlib.isServer:
                     if synth == '':
                         files[key] = "LO:_"+locname+'_SI:_'+site+'_SA:_'+sample+'_SP:_'+s+'_TY:_'+key+'_.'+fmt
@@ -184,10 +187,10 @@ def main():
                 sys.exit()
         if verbose:
             pmagplotlib.drawFIGS(HDD)
-            ans = raw_input("S[a]ve plots, [s]pecimen name, [q]uit, <return> to continue\n ")
+            ans = input("S[a]ve plots, [s]pecimen name, [q]uit, <return> to continue\n ")
             if ans == "a":
                 files = {}
-                for key in HDD.keys():
+                for key in list(HDD.keys()):
                     if pmagplotlib.isServer: # use server plot naming convention
                         files[key] = "LO:_"+locname+'_SI:_'+site+'_SA:_'+sample+'_SP:_'+s+'_TY:_'+key+'_.'+fmt
                     else: # use more readable plot naming convention
@@ -208,11 +211,11 @@ def main():
                 del HystRecs[-1]
                 k -= 1
             if ans == 'q':
-                print "Good bye"
+                print("Good bye")
                 sys.exit()
             if ans == 's':
                 keepon = 1
-                specimen = raw_input('Enter desired specimen name (or first part there of): ')
+                specimen = input('Enter desired specimen name (or first part there of): ')
                 while keepon == 1:
                     try:
                         k = sids.index(specimen)
@@ -222,15 +225,15 @@ def main():
                         for qq in range(len(sids)):
                             if specimen in sids[qq]:
                                 tmplist.append(sids[qq])
-                        print specimen, " not found, but this was: "
-                        print tmplist
-                        specimen = raw_input('Select one or try again\n ')
+                        print(specimen, " not found, but this was: ")
+                        print(tmplist)
+                        specimen = input('Select one or try again\n ')
                         k = sids.index(specimen)
         else:
             k += 1
         if len(B) == 0:
             if verbose:
-                print 'skipping this one - no hysteresis data'
+                print('skipping this one - no hysteresis data')
             k += 1
 
 if __name__ == "__main__":

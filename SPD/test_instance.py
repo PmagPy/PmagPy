@@ -1,10 +1,12 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
+from __future__ import absolute_import
 import os
-import spd
+from . import spd
 # K temps: [0.0, 100.0, 150.0, 200.0, 225.0, 250.0, 275.0, 300.0, 325.0, 350.0, 375.0, 400.0, 425.0, 450.0, 475.0, 500.0, 525.0, 550.0]
 # C temps: [273, 373.0, 423.0, 473.0, 498.0, 523.0, 548.0, 573.0, 598.0, 623.0, 648.0, 673.0, 698.0, 723.0, 748.0, 773.0, 798.0, 823.0]
-import new_lj_thellier_gui_spd as tgs
+from . import new_lj_thellier_gui_spd as tgs
 cwd = os.getcwd()
 main_dir = cwd + '/SPD'
 
@@ -17,7 +19,7 @@ calculate = ['int_n', 'frac', 'fvds', 'b_sigma', 'b_beta', 'scat', 'g', 'k', 'k_
 #calculate = ['drats']
 
 gui = tgs.Arai_GUI('/magic_measurements.txt', main_dir)
-specimens = gui.Data.keys()
+specimens = list(gui.Data.keys())
 example = spd.PintPars(gui.Data, '0238x6011044', 473., 623., 'magic', calculate)
 example.calculate_all_statistics()
 PintPars_example = example
@@ -26,18 +28,18 @@ def make_specimens(calculate=calculate):
     for stat in calculate:
         spec = spd.PintPars(gui.Data, '0238x6011044', 473., 623., 'magic', [stat])
         spec.reqd_stats()
-        print '---------'
-    print calculate
+        print('---------')
+    print(calculate)
 
 
 def many_specimens(calculate=calculate):
     from itertools import combinations
     c = combinations(calculate, 2)
     for combo in c:
-        print 'combo', combo
+        print('combo', combo)
         spec = spd.PintPars(gui.Data, '0238x6011044', 473., 623., 'magic', combo)
         spec.reqd_stats()
-        print 'XXXXXXXXXXXXXXX'
+        print('XXXXXXXXXXXXXXX')
 
 
 

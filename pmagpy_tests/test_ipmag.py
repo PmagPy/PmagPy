@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
 import unittest
 import os
 import matplotlib
@@ -258,8 +259,8 @@ class TestSUFAR_asc_magic(unittest.TestCase):
     def test_SUFAR4_succeed_option4(self):
         input_dir = os.path.join(WD, 'data_files', 'Measurement_Import',
                                  'SUFAR_asc_magic')
-        print 'WD', WD
-        print 'input_dir', input_dir
+        print('WD', WD)
+        print('input_dir', input_dir)
         infile = 'sufar4-asc_magic_example.txt'
         ofile = 'my_magic_measurements.txt'
         program_ran, outfile = ipmag.SUFAR4_magic(infile,

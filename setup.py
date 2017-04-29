@@ -1,3 +1,25 @@
+from __future__ import print_function
+import sys
+if sys.version_info < (3,):
+    raise Exception("""
+You are running Python {}.
+This version of pmagpy is only compatible with Python 3.
+Make sure you have pip ≥ 9.0 to avoid this kind of issue,
+as well as setuptools ≥ 24.2:
+
+ $ pip install pip setuptools --upgrade
+
+Then you should be able to download the correct version of pmagpy:
+
+ $ pip install pmagpy --upgrade
+
+If this still gives you an error, please report the issue:
+https://github.com/PmagPy/PmagPy/issues
+
+Thanks!
+
+""".format(sys.version))
+
 # Always prefer setuptools over distutils
 from setuptools import setup, find_packages
 # To use a consistent encoding
@@ -15,9 +37,9 @@ packages = find_packages(exclude=['programs', 'pmagpy_tests',
                                   'pmagpy_tests.examples.my_project',
                                   'pmagpy_tests.examples.empty_dir',
                                   'pmagpy_tests.examples.my_project_with_errors'])
-print 'packages', packages
+print('packages', packages)
 packages.append('pmag_env')
-print 'packages', packages
+print('packages', packages)
 
 
 
@@ -53,7 +75,7 @@ def do_walk(data_path):
 def parse_dict(dictionary):
     formatted = []
     formatted_dict = {}
-    for key in dictionary.keys():
+    for key in list(dictionary.keys()):
         files = dictionary.pop(key)
         formatted_files = [path.join(key, f) for f in files]
         #ind = key.index('/data_files') + len('/data_files/')
@@ -118,9 +140,17 @@ setup(
                     'Programming Language :: Python :: 2',
                     'Programming Language :: Python :: 2.6',
                     'Programming Language :: Python :: 2.7',
+                    'Programming Language :: Python :: 3',
+                    'Programming Language :: Python :: 3.5',
+                    'Programming Language :: Python :: 3.6',
+
     ],
 
     keywords='geology paleomagnetism',
+
+    # won't install if user has python 2
+    python_requires='>=3.4',
+
 
     # You can just specify the packages manually here if your project is
     # simple. Or you can use find_packages().

@@ -1,10 +1,11 @@
 #!/usr/bin/env python
+from __future__ import print_function
 def print_kwargs(**kwargs):
     """
     prints keyworded argument list
     """
     for key in kwargs:
-        print '%s  %s' %(key, kwargs[key])
+        print('%s  %s' %(key, kwargs[key]))
      
 def main():
     """

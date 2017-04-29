@@ -1,4 +1,8 @@
 #!/usr/bin/env python
+from __future__ import print_function
+from builtins import input
+from builtins import str
+from builtins import range
 import sys
 
 def main():
@@ -16,14 +20,14 @@ def main():
     
     chart is stored in:  chart.txt
     """
-    print main.__doc__
+    print(main.__doc__)
     if '-h' in sys.argv:sys.exit() 
     f=open('chart.txt','w')
     cont,Int,Top,Tzero=1,[],[],[]
     while cont==1:
         try: 
-            Int.append(int(raw_input(" Enter desired treatment step interval: <return> to quit ")))
-            Top.append(int(raw_input(" Enter upper bound for this interval: ")))
+            Int.append(int(input(" Enter desired treatment step interval: <return> to quit ")))
+            Top.append(int(input(" Enter upper bound for this interval: ")))
         except:
             cont=0
     low,k,iz=100,0,0
@@ -67,7 +71,7 @@ def main():
             low=Top[k]+Int[k+1] # increment to next temp step
         except:
             f.close()
-    print "output stored in: chart.txt"
+    print("output stored in: chart.txt")
 
 if __name__ == "__main__":
     main()

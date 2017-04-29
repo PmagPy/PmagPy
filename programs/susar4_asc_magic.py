@@ -1,4 +1,7 @@
 #!/usr/bin/env python
+from __future__ import division
+from __future__ import print_function
+from past.utils import old_div
 import sys
 import pmagpy.pmag as pmag
 
@@ -66,7 +69,7 @@ def main():
         dir_path=sys.argv[ind+1] 
     aoutput,routput,moutput=dir_path+'/rmag_anisotropy.txt',dir_path+'/rmag_results.txt',dir_path+'/magic_measurements.txt'
     if '-h' in sys.argv:
-        print main.__doc__
+        print(main.__doc__)
         sys.exit()
     if '-usr' in sys.argv:
         ind=sys.argv.index('-usr')
@@ -76,14 +79,14 @@ def main():
         samp_con=sys.argv[ind+1]
         if "4" in samp_con:
             if "-" not in samp_con:
-                print "option [4] must be in form 4-Z where Z is an integer"
+                print("option [4] must be in form 4-Z where Z is an integer")
                 sys.exit()
             else:
                 Z=samp_con.split("-")[1]
                 samp_con="4"
         if "7" in samp_con:
             if "-" not in samp_con:
-                print "option [7] must be in form 7-Z where Z is an integer"
+                print("option [7] must be in form 7-Z where Z is an integer")
                 sys.exit()
             else:
                 Z=samp_con.split("-")[1]
@@ -135,9 +138,9 @@ def main():
         except:
             sitenames,SiteRecs=[],[]
     try:
-        input=open(ascfile,'rU')
+        input=open(ascfile,'r')
     except:
-        print 'Error opening file: ', ascfile
+        print('Error opening file: ', ascfile)
     Data=input.readlines()
     k=0
     while k<len(Data):
@@ -182,7 +185,7 @@ def main():
             AniRec['magic_method_codes']="LP-X:AE-H:LP-AN-MS"
             AniRec['magic_experiment_names']=specname+":"+"LP-AN-MS"
             AniRec['er_analyst_mail_names']=user
-            for key in AniRec.keys():MeasRec[key]=AniRec[key]
+            for key in list(AniRec.keys()):MeasRec[key]=AniRec[key]
             MeasRec['measurement_flag']='g'
             AniRec['anisotropy_flag']='g'
             MeasRec['measurement_standard']='u'
@@ -222,20 +225,20 @@ def main():
             line=Data[k]
             rec=line.split()
         if "Specimen" in words:  # first part of specimen data
-            AniRec['anisotropy_s1']='%7.4f'%(float(words[5])/3.) # eigenvalues sum to unity - not 3
-            AniRec['anisotropy_s2']='%7.4f'%(float(words[6])/3.) 
-            AniRec['anisotropy_s3']='%7.4f'%(float(words[7])/3.)
+            AniRec['anisotropy_s1']='%7.4f'%(old_div(float(words[5]),3.)) # eigenvalues sum to unity - not 3
+            AniRec['anisotropy_s2']='%7.4f'%(old_div(float(words[6]),3.)) 
+            AniRec['anisotropy_s3']='%7.4f'%(old_div(float(words[7]),3.))
             k+=1
             line=Data[k]
             rec=line.split()
-            AniRec['anisotropy_s4']='%7.4f'%(float(rec[5])/3.) # eigenvalues sum to unity - not 3
-            AniRec['anisotropy_s5']='%7.4f'%(float(rec[6])/3.) 
-            AniRec['anisotropy_s6']='%7.4f'%(float(rec[7])/3.)
+            AniRec['anisotropy_s4']='%7.4f'%(old_div(float(rec[5]),3.)) # eigenvalues sum to unity - not 3
+            AniRec['anisotropy_s5']='%7.4f'%(old_div(float(rec[6]),3.)) 
+            AniRec['anisotropy_s6']='%7.4f'%(old_div(float(rec[7]),3.))
             AniRec['anisotropy_tilt_correction']='-1'
             AniRecs.append(AniRec) 
             AniRecG,AniRecT={},{}
-            for key in AniRec.keys():AniRecG[key]=AniRec[key]
-            for key in AniRec.keys():AniRecT[key]=AniRec[key]
+            for key in list(AniRec.keys()):AniRecG[key]=AniRec[key]
+            for key in list(AniRec.keys()):AniRecT[key]=AniRec[key]
             sbar=[]
             sbar.append(float(AniRec['anisotropy_s1']))
             sbar.append(float(AniRec['anisotropy_s2']))
@@ -274,26 +277,26 @@ def main():
                 sitenames.append(SiteRec['er_site_name'])
         k+=1 # skip to next specimen
     pmag.magic_write(aoutput,AniRecs,'rmag_anisotropy')
-    print "anisotropy tensors put in ",aoutput
+    print("anisotropy tensors put in ",aoutput)
     pmag.magic_write(moutput,MeasRecs,'magic_measurements')
-    print "bulk measurements put in ",moutput
+    print("bulk measurements put in ",moutput)
     if isspec=="0":
         SpecOut,keys=pmag.fillkeys(SpecRecs)
         output=dir_path+"/er_specimens.txt"
         pmag.magic_write(output,SpecOut,'er_specimens')
-        print "specimen info put in ",output
+        print("specimen info put in ",output)
         output=dir_path+"/er_samples.txt"
         SampOut,keys=pmag.fillkeys(SampRecs)
         pmag.magic_write(output,SampOut,'er_samples')
-        print "sample info put in ",output
+        print("sample info put in ",output)
         output=dir_path+"/er_sites.txt"
         SiteOut,keys=pmag.fillkeys(SiteRecs)
         pmag.magic_write(output,SiteOut,'er_sites')
-        print "site info put in ",output
-    print """"
+        print("site info put in ",output)
+    print(""""
          You can now import your data into the Magic Console and complete data entry, 
          for example the site locations, lithologies, etc. plotting can be done with aniso_magic.py
-    """
+    """)
 
 if __name__ == "__main__":
     main()

@@ -1,4 +1,4 @@
-tab 	images
+tab	images
 citations	file	keywords	location	photographers	site	timestamp	title	type
 This study	P1080029.JPG	outcrop photo: paleomagnetic site :McMurdo volcanics	McMurdo	Lisa Tauxe	mc108	2004:01:08:00:00:00.00	MC108 site overview	Outcrop
 This study	P1120001.JPG	outcrop photo: paleomagnetic site :McMurdo volcanics	McMurdo	Lisa Tauxe	mc118	2004:01:12:00:00:00.00	MC118 closeup of sampling sites	Outcrop

@@ -47,8 +47,8 @@ class TestMainFrame2(unittest.TestCase):
         #wx.lib.inspection.InspectionTool().Show()
 
     def tearDown(self):
-        #self.frame.Destroy() # this does not work and causes strange errors
-        self.app.Destroy()
+        wx.CallAfter(self.frame.Destroy)
+        wx.CallAfter(self.app.Destroy)
         os.chdir(TEST_DIR)
 
     def test_main_panel_is_created(self):

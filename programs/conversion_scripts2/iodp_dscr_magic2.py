@@ -1,4 +1,7 @@
 #!/usr/bin/env python
+from __future__ import print_function
+from builtins import str
+from builtins import range
 import sys
 import os
 import pmagpy.pmag as pmag
@@ -45,7 +48,7 @@ def main(command_line=True, **kwargs):
             input_dir_path = dir_path
         output_dir_path = dir_path
         if "-h" in args:
-            print main.__doc__
+            print(main.__doc__)
             return False
         if "-A" in args: noave=1
         if '-f' in args:
@@ -76,8 +79,8 @@ def main(command_line=True, **kwargs):
     for file in filelist: # parse each file
         if file[-3:].lower()=='csv':
             file_found = True
-            print 'processing: ',file
-            input=open(file,'rU').readlines()
+            print('processing: ',file)
+            input=open(file,'r').readlines()
             keys=input[0].replace('\n','').split(',') # splits on underscores
             interval_key="Offset (cm)"
             demag_key="Demag level (mT)"
@@ -142,7 +145,7 @@ def main(command_line=True, **kwargs):
                         MagRec["treatment_ac_field"]=treatment_value # AF demag in treat mT => T
                     else:
                         MagRec["treatment_ac_field"]=str(treatment_value)# AF demag in treat mT => T
-                elif offline_treatment_type in InRec.keys() and InRec[offline_treatment_type]!="":
+                elif offline_treatment_type in list(InRec.keys()) and InRec[offline_treatment_type]!="":
                     if "Lowrie" in InRec['Comments']:   
                         MagRec['magic_method_codes'] = 'LP-IRM-3D'
                         treatment_value=float(InRec[offline_demag_key].strip('"'))+273. # convert C => K
@@ -157,7 +160,7 @@ def main(command_line=True, **kwargs):
                         sort_by='treatment_dc_field'
                 MagRec["measurement_standard"]='u' # assume all data are "good"
                 vol=float(volume)*1e-6 # convert from cc to m^3
-                if run_key in InRec.keys():
+                if run_key in list(InRec.keys()):
                     run_number=InRec[run_key]
                     MagRec['external_database_ids']=run_number
                     MagRec['external_database_names']='LIMS'
@@ -174,22 +177,22 @@ def main(command_line=True, **kwargs):
                 MagRec['measurement_positions']=''
                 MagRecs.append(MagRec)
     if not file_found:
-        print "No .csv files were found"
+        print("No .csv files were found")
         return False, "No .csv files were found"
     MagOuts=[]
     for spec in Specs:
         Speclist=pmag.get_dictitem(MagRecs,'er_specimen_name',spec,'T')
-        sorted=pmag.sort_diclist(Speclist,sort_by)    
-        for rec in sorted:
-            for key in rec.keys(): rec[key]=str(rec[key])
+        Meassorted=sorted(Speclist, key=lambda x,y=None: int(round(float(x[sort_by])-float(y[sort_by]))) if y!=None else 0)
+        for rec in Meassorted:
+            for key in list(rec.keys()): rec[key]=str(rec[key])
             MagOuts.append(rec)
     Fixed=pmag.measurements_methods(MagOuts,noave)
     Out,keys=pmag.fillkeys(Fixed)
     if pmag.magic_write(meas_file,Out,'magic_measurements'):
-        print 'data stored in ',meas_file
+        print('data stored in ',meas_file)
         return True, meas_file
     else:
-        print 'no data found.  bad magfile?'
+        print('no data found.  bad magfile?')
         return False, 'no data found.  bad magfile?'
 
 def do_help():

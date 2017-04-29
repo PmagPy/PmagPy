@@ -82,6 +82,10 @@ is031c2       .0  SD  0 461.600 163.9  17.5  337.1  74.5  319.1  74.4    .0   .0
     SUSC:  magnetic susceptibility (in micro SI)a
     M/V: mass or volume for nomalizing (0 won't normalize)
 """
+from __future__ import division
+from __future__ import print_function
+from builtins import range
+from past.utils import old_div
 import sys,os
 import pmagpy.pmag as pmag
 import pmagpy.new_builder as nb
@@ -123,7 +127,7 @@ def convert(**kwargs):
     # format/organize variables
     if magfile:
         try:
-            infile=open(os.path.join(input_dir_path,magfile),'rU')
+            infile=open(os.path.join(input_dir_path,magfile),'r')
         except IOError:
             print("bad mag file name")
             return False, "bad mag file name"
@@ -190,6 +194,7 @@ def convert(**kwargs):
     # find start of data:
     DIspec=[]
     Data=infile.readlines()
+    infile.close()
     for k in range(len(Data)):
         rec=Data[k].split()
         if len(rec)<=2: continue
@@ -204,16 +209,16 @@ def convert(**kwargs):
         site=pmag.parse_site(sample,samp_con,Z)
         if mv=='v':
             volume = float(rec[12])
-            if volume > 0: susc_chi_volume='%10.3e'%((float(rec[11])*1e-5)/volume) #convert to SI (assume Bartington, 10-5 SI)
+            if volume > 0: susc_chi_volume='%10.3e'%(old_div((float(rec[11])*1e-5),volume)) #convert to SI (assume Bartington, 10-5 SI)
             else: susc_chi_volume='%10.3e'%(float(rec[11])*1e-5) #convert to SI (assume Bartington, 10-5 SI)
         else:
             mass = float(rec[12])
-            if mass > 0: susc_chi_mass='%10.3e'%((float(rec[11])*1e-5)/mass) #convert to SI (assume Bartington, 10-5 SI)
+            if mass > 0: susc_chi_mass='%10.3e'%(old_div((float(rec[11])*1e-5),mass)) #convert to SI (assume Bartington, 10-5 SI)
             else: susc_chi_mass='%10.3e'%(float(rec[11])*1e-5) #convert to SI (assume Bartington, 10-5 SI)
-        print(specimen,sample,site,samp_con,Z)
+        print((specimen,sample,site,samp_con,Z))
 
         #fill tables besides measurements
-        if specimen!="" and specimen not in map(lambda x: x['specimen'] if 'specimen' in x.keys() else "", SpecRecs):
+        if specimen!="" and specimen not in [x['specimen'] if 'specimen' in list(x.keys()) else "" for x in SpecRecs]:
             SpecRec['specimen'] = specimen
             SpecRec['sample'] = sample
             if mv=='v':
@@ -223,17 +228,17 @@ def convert(**kwargs):
                 SpecRec["susc_chi_mass"]=susc_chi_mass
                 SpecRec["mass"]=mass
             SpecRecs.append(SpecRec)
-        if sample!="" and sample not in map(lambda x: x['sample'] if 'sample' in x.keys() else "", SampRecs):
+        if sample!="" and sample not in [x['sample'] if 'sample' in list(x.keys()) else "" for x in SampRecs]:
             SampRec['sample'] = sample
             SampRec['site'] = site
             SampRecs.append(SampRec)
-        if site!="" and site not in map(lambda x: x['site'] if 'site' in x.keys() else "", SiteRecs):
+        if site!="" and site not in [x['site'] if 'site' in list(x.keys()) else "" for x in SiteRecs]:
             SiteRec['site'] = site
             SiteRec['location'] = location
             SiteRec['lat'] = lat
             SiteRec['lon'] = lon
             SiteRecs.append(SiteRec)
-        if location!="" and location not in map(lambda x: x['location'] if 'location' in x.keys() else "", LocRecs):
+        if location!="" and location not in [x['location'] if 'location' in list(x.keys()) else "" for x in LocRecs]:
             LocRec['location']=location
             LocRec['lat_n'] = lat
             LocRec['lon_e'] = lon

@@ -1,3 +1,7 @@
+from __future__ import division
+from builtins import map
+from builtins import range
+from past.utils import old_div
 import numpy
 from scipy import optimize
 
@@ -9,10 +13,10 @@ Y = [ 34., 10.,   6., -14.,  27., -10.]
 
 def AraiCurvature(x=X, y=Y):
     # ensure all values are floats, then norm them by largest value
-    x = numpy.array(map(float, x))
-    x =x / max(x)
-    y = numpy.array(map(float, y))
-    y =y / max(y)
+    x = numpy.array(list(map(float, x)))
+    x =old_div(x, max(x))
+    y = numpy.array(list(map(float, y)))
+    y =old_div(y, max(y))
     # if all x or all y values are identical, there is no curvature (it is a line)
     if len(set(x)) == 1 or len(set(y)) == 1:
         return -999., None, None, -999.
@@ -20,9 +24,9 @@ def AraiCurvature(x=X, y=Y):
     #print "best_a, best_b, r", best_a, best_b, r
     SSE = get_SSE(best_a, best_b, r, x, y)
     if best_a <= numpy.mean(x) and best_b <= numpy.mean(y):
-        k = -1. / r
+        k = old_div(-1., r)
     else:
-        k = 1. / r
+        k = old_div(1., r)
     return k, best_a, best_b, SSE
 
 def do_circlefit(x, y):
@@ -46,7 +50,7 @@ def do_circlefit(x, y):
     Svvv = sum(v**3)
     # Solving the linear system                                                    
     A = numpy.array([ [ Suu, Suv ], [Suv, Svv]])
-    B = numpy.array([ Suuu + Suvv, Svvv + Suuv ])/2.0
+    B = old_div(numpy.array([ Suuu + Suvv, Svvv + Suuv ]),2.0)
     uc, vc = numpy.linalg.solve(A, B)
 
     xc_1 = x_m + uc
@@ -76,8 +80,8 @@ def do_circlefit(x, y):
         df2b_dc    = numpy.empty((len(c), x.size))
 
         Ri = calc_R(xc, yc)
-        df2b_dc[0] = (xc - x)/Ri                   # dR/dxc
-        df2b_dc[1] = (yc - y)/Ri                   # dR/dyc
+        df2b_dc[0] = old_div((xc - x),Ri)                   # dR/dxc
+        df2b_dc[1] = old_div((yc - y),Ri)                   # dR/dyc
         df2b_dc    = df2b_dc - df2b_dc.mean(axis=1)[:, numpy.newaxis]
 
         return df2b_dc

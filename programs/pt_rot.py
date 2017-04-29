@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # define some variables
+from __future__ import print_function
 import sys
 import matplotlib
 if matplotlib.get_backend() != "TKAgg":
@@ -39,7 +40,7 @@ def main():
         ind = sys.argv.index('-WD')
         dir_path=sys.argv[ind+1]
     if '-h' in sys.argv:
-        print main.__doc__
+        print(main.__doc__)
         sys.exit()
     if '-F' in sys.argv:
         ind = sys.argv.index('-F')
@@ -47,15 +48,15 @@ def main():
     if '-f' in sys.argv:
         ind = sys.argv.index('-f')
         file=dir_path+'/'+sys.argv[ind+1]
-        f=open(file,'rU')
+        f=open(file,'r')
         data=f.readlines()
     elif '-ff' in sys.argv:
         ind = sys.argv.index('-ff')
         file=dir_path+'/'+sys.argv[ind+1]
-        f=open(file,'rU')
+        f=open(file,'r')
         data=f.readlines()
         Efile=dir_path+'/'+sys.argv[ind+2]
-        f=open(Efile,'rU')
+        f=open(Efile,'r')
         edata=f.readlines()
         Poles=[]
         for p in edata:
@@ -76,7 +77,7 @@ def main():
                 pt_lat=ptrot[0][0]
                 pt_lon=ptrot[1][0]
             if ofile=="":
-                print ptrot[1][0], ptrot[0][0]
+                print(ptrot[1][0], ptrot[0][0])
             else:
                 ResRec={'vgp_lat': '%7.1f'%(ptrot[0][0]),'vgp_lon':'%7.1f'%( ptrot[1][0])}
                 ResRecs.append(ResRec)
@@ -103,31 +104,31 @@ def main():
             if pt['cont']!='saf':
                 pole1=frp.get_pole(pt['cont'],age)
                 ptrot= pmag.PTrot(pole1,[pt_lat],[pt_lon])
-                if 'dcont' in pt.keys():
+                if 'dcont' in list(pt.keys()):
                     pt_lat=ptrot[0][0]
                     pt_lon=ptrot[1][0]
                     pole=frp.get_pole(pt['dcont'],age)
                     pole[2]=-pole[2] 
                     ptrot= pmag.PTrot(pole,[pt_lat],[pt_lon])
                 if ofile=="":
-                    print ptrot[1][0], ptrot[0][0]
+                    print(ptrot[1][0], ptrot[0][0])
                 else:
                     ResRec={'vgp_lat': '%7.1f'%(ptrot[0][0]),'vgp_lon':'%7.1f'%( ptrot[1][0])}
                     ResRecs.append(ResRec)
             else:
-                if 'dcont' in pt.keys():
+                if 'dcont' in list(pt.keys()):
                     pole=frp.get_pole(pt['dcont'],age)
                     pole[2]=-pole[2] 
                     ptrot= pmag.PTrot(pole,[pt_lat],[pt_lon])
-                    print ptrot
+                    print(ptrot)
                     if ofile=="":
-                        print ptrot[1][0], ptrot[0][0] 
+                        print(ptrot[1][0], ptrot[0][0]) 
                     else:
                         ResRec={'vgp_lat': '%7.1f'%(ptrot[0][0]),'vgp_lon':'%7.1f'%( ptrot[1][0])}
                         ResRecs.append(ResRec)
                 else:
                     if ofile=="":
-                        print ptrot[1][0], ptrot[0][0]
+                        print(ptrot[1][0], ptrot[0][0])
                     else:
                         ResRec={'vgp_lat': '%7.1f'%(ptrot[0][0]),'vgp_lon':'%7.1f'%( ptrot[1][0])}
                         ResRecs.append(ResRec)

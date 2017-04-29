@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import print_function
 import sys
 import string
 
@@ -24,7 +25,7 @@ def main():
         dir_path=sys.argv[ind+1]
     zfile=dir_path+'/zeq_redo'
     if '-h' in sys.argv:
-        print main.__doc__
+        print(main.__doc__)
         sys.exit()
     if '-f' in sys.argv:
         ind=sys.argv.index('-f')
@@ -37,7 +38,7 @@ def main():
 # read in PMM file
 #
     specs=[]
-    prior_spec_data=open(inspec,'rU').readlines()
+    prior_spec_data=open(inspec,'r').readlines()
     for line in prior_spec_data:
       rec=line.split(',')
       if rec[0][0]!='"' and rec[0]!="ID" and len(rec)>2: # skip all the header stuff

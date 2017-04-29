@@ -117,6 +117,9 @@ INPUT
                 measured in four positions)
          NMEAS: number of measurements in a single position (1,3,200...)
 """
+from __future__ import print_function
+from builtins import input
+from builtins import str
 import sys
 import pmagpy.pmag as pmag
 import pmagpy.new_builder as nb
@@ -194,32 +197,32 @@ def convert(**kwargs):
         methcode="LP-IRM"
         irmunits = "V"
         if coil not in ["1","2","3"]:
-            print __doc__
-            print 'not a valid coil specification'
+            print(__doc__)
+            print('not a valid coil specification')
             return False, '{} is not a valid coil specification'.format(coil)
     if mag_file:
         try:
-            fin=open(mag_file,'rU')
-        except:
-            print "bad mag file name"
+            fin=open(mag_file,'r')
+        except IOError:
+            print("bad mag file name")
             return False, "bad mag file name"
     if not mag_file:
-        print __doc__
-        print "mag_file field is required option"
+        print(__doc__)
+        print("mag_file field is required option")
         return False, "mag_file field is required option"
     if specnum!=0:
         specnum=-specnum
     if "4" == samp_con[0]:
         if "-" not in samp_con:
-            print "naming convention option [4] must be in form 4-Z where Z is an integer"
-            print '---------------'
+            print("naming convention option [4] must be in form 4-Z where Z is an integer")
+            print('---------------')
             return False, "naming convention option [4] must be in form 4-Z where Z is an integer"
         else:
             Z=samp_con.split("-")[1]
             samp_con="4"
     if "7" == samp_con[0]:
         if "-" not in samp_con:
-            print "option [7] must be in form 7-Z where Z is an integer"
+            print("option [7] must be in form 7-Z where Z is an integer")
             return False, "option [7] must be in form 7-Z where Z is an integer"
         else:
             Z=samp_con.split("-")[1]
@@ -245,12 +248,12 @@ def convert(**kwargs):
             demag="S"
             methcode="LP-PI-TRM:LP-PI-ALT-AFARM"
             trm_labfield=labfield
-            ans=raw_input("DC lab field for ARM step: [50uT] ")
+            ans=input("DC lab field for ARM step: [50uT] ")
             if ans=="":
                 arm_labfield=50e-6
             else:
                 arm_labfield=float(ans)*1e-6
-            ans=raw_input("temperature for total trm step: [600 C] ")
+            ans=input("temperature for total trm step: [600 C] ")
             if ans=="":
                 trm_peakT=600+273 # convert to kelvin
             else:
@@ -433,24 +436,24 @@ def convert(**kwargs):
                         site=''
                 else:
                     site=pmag.parse_site(sample,samp_con,Z)
-                if location!='' and location not in map(lambda x: x['location'] if 'location' in x.keys() else '',LocRecs):
+                if location!='' and location not in [x['location'] if 'location' in list(x.keys()) else '' for x in LocRecs]:
                     LocRec['location'] = location
                     LocRec['lat_n'] = lat
                     LocRec['lat_s'] = lat
                     LocRec['lon_e'] = lon
                     LocRec['lon_w'] = lon
                     LocRecs.append(LocRec)
-                if site!='' and site not in map(lambda x: x['site'] if 'site' in x.keys() else '',SiteRecs):
+                if site!='' and site not in [x['site'] if 'site' in list(x.keys()) else '' for x in SiteRecs]:
                     SiteRec['location'] = location
                     SiteRec['site'] = site
                     SiteRec['lat'] = lat
                     SiteRec['lon'] = lon
                     SiteRecs.append(SiteRec)
-                if sample!='' and sample not in map(lambda x: x['sample'] if 'sample' in x.keys() else '',SampRecs):
+                if sample!='' and sample not in [x['sample'] if 'sample' in list(x.keys()) else '' for x in SampRecs]:
                     SampRec['site'] = site
                     SampRec['sample'] = sample
                     SampRecs.append(SampRec)
-                if specimen!='' and specimen not in map(lambda x: x['specimen'] if 'specimen' in x.keys() else '',SpecRecs):
+                if specimen!='' and specimen not in [x['specimen'] if 'specimen' in list(x.keys()) else '' for x in SpecRecs]:
                     SpecRec["specimen"]=specimen
                     SpecRec['sample'] = sample
                     SpecRecs.append(SpecRec)
@@ -462,24 +465,24 @@ def convert(**kwargs):
                 else:
                     sample=rec[0]
                 site=pmag.parse_site(sample,samp_con,Z)
-                if location!='' and location not in map(lambda x: x['location'] if 'location' in x.keys() else '',LocRecs):
+                if location!='' and location not in [x['location'] if 'location' in list(x.keys()) else '' for x in LocRecs]:
                     LocRec['location'] = location
                     LocRec['lat_n'] = lat
                     LocRec['lat_s'] = lat
                     LocRec['lon_e'] = lon
                     LocRec['lon_w'] = lon
                     LocRecs.append(LocRec)
-                if site!='' and site not in map(lambda x: x['site'] if 'site' in x.keys() else '',SiteRecs):
+                if site!='' and site not in [x['site'] if 'site' in list(x.keys()) else '' for x in SiteRecs]:
                     SiteRec['location'] = location
                     SiteRec['site'] = site
                     SiteRec['lat'] = lat
                     SiteRec['lon'] = lon
                     SiteRecs.append(SiteRec)
-                if sample!='' and sample not in map(lambda x: x['sample'] if 'sample' in x.keys() else '',SampRecs):
+                if sample!='' and sample not in [x['sample'] if 'sample' in list(x.keys()) else '' for x in SampRecs]:
                     SampRec['site'] = site
                     SampRec['sample'] = sample
                     SampRecs.append(SampRec)
-                if specimen!='' and specimen not in map(lambda x: x['specimen'] if 'specimen' in x.keys() else '',SpecRecs):
+                if specimen!='' and specimen not in [x['specimen'] if 'specimen' in list(x.keys()) else '' for x in SpecRecs]:
                     SpecRec["specimen"]=specimen
                     SpecRec['sample'] = sample
                     SpecRecs.append(SpecRec)
@@ -496,7 +499,7 @@ def convert(**kwargs):
                         meas_type="LT-AF-Z:LP-AN-ARM:"
                         MeasRec["treat_ac_field"]='%8.3e' %(peakfield) # peak field in tesla
                         MeasRec["treat_dc_field"]='%8.3e'%(0)
-                        if labfield!=0 and methcode!="LP-AN-ARM": print "Warning - inconsistency in mag file with lab field - overriding file with 0"
+                        if labfield!=0 and methcode!="LP-AN-ARM": print("Warning - inconsistency in mag file with lab field - overriding file with 0")
                     else:
                         meas_type="LT-AF-I:LP-AN-ARM"
                         ipos=int(treat[0])-1
@@ -538,7 +541,7 @@ def convert(**kwargs):
                     MeasRec["treat_dc_field_theta"]='%7.1f'% (tinc[ipos])
                     # check it
                     if ipos_guess!=ipos_code and treat[1][0]!='7':
-                        print "-E- ERROR: check specimen %s step %s, ATRM measurements, coding does not match the direction of the lab field!"%(rec[0],".".join(list(treat)))
+                        print("-E- ERROR: check specimen %s step %s, ATRM measurements, coding does not match the direction of the lab field!"%(rec[0],".".join(list(treat))))
 
 
             elif demag=="S": # Shaw experiment
@@ -656,6 +659,8 @@ def convert(**kwargs):
             MeasRec["number"]='1'
             #print MeasRec['treat_temp']
             MeasRecs.append(MeasRec)
+
+    fin.close()
 
     con = nb.Contribution(output_dir_path,read_tables=[])
 

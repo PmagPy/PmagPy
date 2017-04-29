@@ -3,6 +3,8 @@
 
 
 
+from __future__ import print_function
+from builtins import input
 import matplotlib
 import sys
 import pylab
@@ -44,7 +46,7 @@ def main():
     Lon_bounds=[15,55]
     fmt='pdf'
     if '-h' in sys.argv:
-        print main.__doc__
+        print(main.__doc__)
         sys.exit()
     if '-f' in sys.argv:
         ind = sys.argv.index('-f')
@@ -75,7 +77,7 @@ def main():
         ind = sys.argv.index('-WD')
         dir_path=sys.argv[ind+1]
     sites_file=dir_path+'/'+sites_file
-    geo_in=open(sites_file,'rU').readlines()
+    geo_in=open(sites_file,'r').readlines()
     Age,AgeErr,Vadm,VadmErr,slats,slons=[],[],[],[],[],[]
     for line in geo_in[2:]: # skip top two rows`
         rec=line.split()
@@ -104,7 +106,7 @@ def main():
     pmagplotlib.plotXY(FIGS['vadms'],Age,Vadm,sym='bo',xlab='Age (Years CE)',ylab=r'VADM (ZAm$^2$)')
     if verbose:pmagplotlib.drawFIGS(FIGS)
     files={}
-    for key in FIGS.keys():
+    for key in list(FIGS.keys()):
         files[key]=key+'.'+fmt
     if pmagplotlib.isServer:
         black     = '#000000'
@@ -115,7 +117,7 @@ def main():
         FIG = pmagplotlib.addBorders(FIGS,titles,black,purple)
         pmagplotlib.saveP(FIGS,files)
     elif verbose:
-        ans=raw_input(" S[a]ve to save plot, Return to quit:  ")
+        ans=input(" S[a]ve to save plot, Return to quit:  ")
         if ans=="a":
             pmagplotlib.saveP(FIGS,files)
     else:

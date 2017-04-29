@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+from __future__ import print_function
+from builtins import input
 import numpy
 import sys
 import pmagpy.pmag as pmag
@@ -29,7 +31,7 @@ def main():
     """
     ofile=""
     if '-h' in sys.argv:
-        print main.__doc__
+        print(main.__doc__)
         sys.exit()
     if '-F' in sys.argv:
         ind=sys.argv.index('-F')
@@ -40,17 +42,17 @@ def main():
         while cont==1:
             cart=[]
             try:
-                ans=raw_input('X: [ctrl-D  to quit] ')
+                ans=input('X: [ctrl-D  to quit] ')
                 cart.append(float(ans))
-                ans=raw_input('Y: ')
+                ans=input('Y: ')
                 cart.append(float(ans))
-                ans=raw_input('Z: ')
+                ans=input('Z: ')
                 cart.append(float(ans))
             except:
-                print "\n Good-bye \n"
+                print("\n Good-bye \n")
                 sys.exit()
             dir= pmag.cart2dir(cart)  # send dir to dir2cart and spit out result
-            print '%7.1f %7.1f %10.3e'%(dir[0],dir[1],dir[2])
+            print('%7.1f %7.1f %10.3e'%(dir[0],dir[1],dir[2]))
     elif '-f' in sys.argv:
         ind=sys.argv.index('-f')
         file=sys.argv[ind+1]
@@ -60,13 +62,13 @@ def main():
     dir=pmag.cart2dir(input)
     if len(dir.shape)==1:
         line=dir 
-        print '%7.1f %7.1f %10.3e'%(line[0],line[1],line[2])
+        print('%7.1f %7.1f %10.3e'%(line[0],line[1],line[2]))
         if ofile!="":
            outstring='%7.1f %7.1f %10.8e\n' %(line[0],line[1],line[2]) 
            outfile.write(outstring)
     else: 
         for line in dir:
-            print '%7.1f %7.1f %10.3e'%(line[0],line[1],line[2])
+            print('%7.1f %7.1f %10.3e'%(line[0],line[1],line[2]))
             if ofile!="":
                outstring='%7.1f %7.1f %10.8e\n' %(line[0],line[1],line[2]) 
                outfile.write(outstring)

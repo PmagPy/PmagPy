@@ -1,8 +1,15 @@
+from __future__ import division
+from __future__ import print_function
+from __future__ import absolute_import
 #pylint: skip-file
 #pylint: disable-all
 # causes too many errors and crashes
 
 ##from Tkinter import *
+from builtins import input
+from builtins import str
+from builtins import range
+from past.utils import old_div
 import sys, os
 sys.path.insert(0, os.getcwd())
 import numpy
@@ -13,7 +20,8 @@ isServer = set_env.isServer
 verbose = set_env.verbose
 
 #wmpl_version=matplotlib.__version__
-import pmag, pylab
+import pmagpy.pmag as pmag
+import pylab
 globals = 0
 graphmenu = 0
 global version_num
@@ -35,7 +43,7 @@ def drawFIGS(FIGS):
     Does not play well with wxPython
     """
     pylab.ion()
-    for fig in FIGS.keys():
+    for fig in list(FIGS.keys()):
         pylab.figure(FIGS[fig])
         pylab.draw()
     pylab.ioff()
@@ -52,12 +60,12 @@ def clearFIG(fignum):
 ##	graphmenu = interface
 #
 def click(event):
-    print 'you clicked', event.xdata,event.ydata
+    print('you clicked', event.xdata,event.ydata)
 #
 #
 def delticks(fig): # deletes half the x-axis tick marks
     locs= fig.xaxis.get_ticklocs()
-    nlocs=numpy.delete(locs,range(0,len(locs),2))
+    nlocs=numpy.delete(locs,list(range(0,len(locs),2)))
     fig.set_xticks(nlocs)
 
 fig_x_pos=25
@@ -105,11 +113,11 @@ def gaussfunc(y,ybar,sigma):
     uses expression 7.1.26 from Abramowitz & Stegun
     accuracy better than 1.5e-7 absolute
     """
-    x=(y-ybar)/(numpy.sqrt(2.)*sigma)
-    t=1.0/(1.0 + .3275911*abs(x))
+    x=old_div((y-ybar),(numpy.sqrt(2.)*sigma))
+    t=old_div(1.0,(1.0 + .3275911*abs(x)))
     erf=1.0 - numpy.exp(-x*x)*t*(.254829592 -t*(.284496736-t*(1.421413741-t*(1.453152027 -t*1.061405429))))
     erf=abs(erf)
-    sign=x/abs(x)
+    sign=old_div(x,abs(x))
     return 0.5*(1.0+sign*erf)
 
 def k_s(X):
@@ -121,7 +129,7 @@ def k_s(X):
     xbar,sigma=pmag.gausspars(X)
     d,f=0,0.
     for i in range(1,len(X)+1):
-        b=float(i)/float(len(X))
+        b=old_div(float(i),float(len(X)))
         a=gaussfunc(X[i-1],xbar,sigma)
         if abs(f-a)>abs(b-a):
             delta=abs(f-a)
@@ -139,14 +147,14 @@ def qsnorm(p):
     """
     d=p
     if d<0. or d> 1.:
-        print 'd not in (1,1) '
+        print('d not in (1,1) ')
         sys.exit()
     x=0.
     if (d-0.5)>0: d=1.-d
     if (d-0.5) < 0:
         t2=-2.*numpy.log(d)
         t=numpy.sqrt(t2)
-        x=t-(2.515517+.802853*t+.010328*t2)/(1.+1.432788*t+  .189269*t2+.001308*t*t2)
+        x=t-old_div((2.515517+.802853*t+.010328*t2),(1.+1.432788*t+  .189269*t2+.001308*t*t2))
         if p<0.5:x=-x
     return x
 
@@ -195,18 +203,18 @@ def plotXY(fignum,X,Y,**kwargs):
 #          pylab.plot(xs,ys)
 #          print coefs
 #          print polynomial
-    if 'sym' in kwargs.keys():
+    if 'sym' in list(kwargs.keys()):
         sym=kwargs['sym']
     else: sym='ro'
-    if 'lw' in kwargs.keys():
+    if 'lw' in list(kwargs.keys()):
         lw=kwargs['lw']
     else:
         lw=1
-    if 'xerr' in kwargs.keys():
+    if 'xerr' in list(kwargs.keys()):
        pylab.errorbar(X,Y,fmt=sym,xerr=kwargs['xerr'])
-    if 'yerr' in kwargs.keys():
+    if 'yerr' in list(kwargs.keys()):
        pylab.errorbar(X,Y,fmt=sym,yerr=kwargs['yerr'])
-    if 'axis' in kwargs.keys():
+    if 'axis' in list(kwargs.keys()):
        if kwargs['axis']=='semilogx':
            pylab.semilogx(X,Y,marker=sym[1],markerfacecolor=sym[0])
        if kwargs['axis']=='semilogy':
@@ -215,30 +223,30 @@ def plotXY(fignum,X,Y,**kwargs):
            pylab.loglog(X,Y,marker=sym[1],markerfacecolor=sym[0])
     else:
         pylab.plot(X,Y,sym,linewidth=lw)
-    if 'xlab' in kwargs.keys():pylab.xlabel(kwargs['xlab'])
-    if 'ylab' in kwargs.keys():pylab.ylabel(kwargs['ylab'])
-    if 'title' in kwargs.keys():pylab.title(kwargs['title'])
-    if 'xmin' in kwargs.keys(): pylab.axis([kwargs['xmin'],kwargs['xmax'],kwargs['ymin'],kwargs['ymax']])
-    if 'notes' in kwargs.keys():
+    if 'xlab' in list(kwargs.keys()):pylab.xlabel(kwargs['xlab'])
+    if 'ylab' in list(kwargs.keys()):pylab.ylabel(kwargs['ylab'])
+    if 'title' in list(kwargs.keys()):pylab.title(kwargs['title'])
+    if 'xmin' in list(kwargs.keys()): pylab.axis([kwargs['xmin'],kwargs['xmax'],kwargs['ymin'],kwargs['ymax']])
+    if 'notes' in list(kwargs.keys()):
        for note in kwargs['notes']:
            pylab.text(note[0],note[1],note[2])
 
 
 def plotSITE(fignum,SiteRec,data,key):
-    print 'Site mean data: '
-    print '   dec    inc n_lines n_planes kappa R alpha_95 comp coord'
-    print SiteRec['site_dec'],SiteRec['site_inc'],SiteRec['site_n_lines'],SiteRec['site_n_planes'],SiteRec['site_k'],SiteRec['site_r'],SiteRec['site_alpha95'],SiteRec['site_comp_name'],SiteRec['site_tilt_correction']
-    print 'sample/specimen, dec, inc, n_specs/a95,| method codes '
+    print('Site mean data: ')
+    print('   dec    inc n_lines n_planes kappa R alpha_95 comp coord')
+    print(SiteRec['site_dec'],SiteRec['site_inc'],SiteRec['site_n_lines'],SiteRec['site_n_planes'],SiteRec['site_k'],SiteRec['site_r'],SiteRec['site_alpha95'],SiteRec['site_comp_name'],SiteRec['site_tilt_correction'])
+    print('sample/specimen, dec, inc, n_specs/a95,| method codes ')
     for i  in range(len(data)):
-        print '%s: %s %s %s / %s | %s' % (data[i]['er_'+key+'_name'], data[i][key+'_dec'], data[i][key+'_inc'], data[i][key+'_n'], data[i][key+'_alpha95'], data[i]['magic_method_codes'])
+        print('%s: %s %s %s / %s | %s' % (data[i]['er_'+key+'_name'], data[i][key+'_dec'], data[i][key+'_inc'], data[i][key+'_n'], data[i][key+'_alpha95'], data[i]['magic_method_codes']))
     plotSLNP(fignum,SiteRec,data,key)
-    plot=raw_input("s[a]ve plot, [q]uit or <return> to continue:   ")
+    plot=input("s[a]ve plot, [q]uit or <return> to continue:   ")
     if plot=='q':
-         print "CUL8R"
+         print("CUL8R")
          sys.exit()
     if plot=='a':
         files={}
-        for key in EQ.keys():
+        for key in list(EQ.keys()):
             files[key]=site+'_'+key+'.'+fmt
         saveP(EQ,files)
 
@@ -247,12 +255,12 @@ def plotQQnorm(fignum,Y,title):
     Y.sort() # data
     n=len(Y)
     d,mean,sigma=k_s(Y)
-    dc=0.886/numpy.sqrt(float(n))
-    print 'mean,sigma, d, Dc'
-    print mean,sigma, d, dc
+    dc=old_div(0.886,numpy.sqrt(float(n)))
+    print('mean,sigma, d, Dc')
+    print(mean,sigma, d, dc)
     X=[] # list for normal quantile
     for i in range(1,n+1):
-        p=float(i)/float(n+1)
+        p=old_div(float(i),float(n+1))
         X.append(qsnorm(p))
     pylab.plot(X,Y,'ro')
     pylab.title(title)
@@ -284,18 +292,18 @@ def plotQQunf(fignum,D,title,subplot=False):
     for d in D:
         if d<0:d=d+360.
         if d>360.:d=d-360.
-        X.append(d/360.)
+        X.append(old_div(d,360.))
     X.sort()
     n=float(len(X))
     for i in range(len(X)):
-        Y.append((float(i)-0.5)/n)  # expected value from uniform distribution
-        ds=float(i)/n - X[i] # calculated K-S test statistic
+        Y.append(old_div((float(i)-0.5),n))  # expected value from uniform distribution
+        ds=old_div(float(i),n) - X[i] # calculated K-S test statistic
         if dpos<ds:dpos=ds
-        ds=X[i]-(float(i-1.)/n)
+        ds=X[i]-(old_div(float(i-1.),n))
         if dneg<ds:dneg=ds
     pylab.plot(Y,X,'ro')
     v=dneg+dpos # kuiper's v
-    Mu=v*(numpy.sqrt(n)-0.567+(1.623/(numpy.sqrt(n)))) # Mu of fisher et al. equation 5.16
+    Mu=v*(numpy.sqrt(n)-0.567+(old_div(1.623,(numpy.sqrt(n))))) # Mu of fisher et al. equation 5.16
     pylab.axis([0,1.,0.,1.])
     bounds=pylab.axis()
     notestr='N: '+'%i'%(n)
@@ -324,7 +332,7 @@ def plotQQexp(fignum,I,title,subplot=False):
     else:
         pylab.figure(num=fignum)
     X,Y,dpos,dneg=[],[],0.,0.
-    rad=numpy.pi/180.
+    rad=old_div(numpy.pi,180.)
     xsum=0
     for i in I:
         theta=(90.-i)*rad
@@ -332,20 +340,20 @@ def plotQQexp(fignum,I,title,subplot=False):
         xsum+=X[-1]
     X.sort()
     n=float(len(X))
-    kappa=(n-1.)/xsum
+    kappa=old_div((n-1.),xsum)
     for i in range(len(X)):
-        p=(float(i)-0.5)/n
+        p=old_div((float(i)-0.5),n)
         Y.append(-numpy.log(1.-p))
         f=1.-numpy.exp(-kappa*X[i])
-        ds=float(i)/n - f
+        ds=old_div(float(i),n) - f
         if dpos<ds:dpos=ds
-        ds=f-(float(i)-1.)/n
+        ds=f-old_div((float(i)-1.),n)
         if dneg<ds:dneg=ds
     if dneg>dpos:
        ds=dneg
     else:
        ds=dpos
-    Me=(ds-(0.2/n))*(numpy.sqrt(n)+0.26+(0.5/(numpy.sqrt(n)))) # Eq. 5.15 from Fisher et al. (1987)
+    Me=(ds-(old_div(0.2,n)))*(numpy.sqrt(n)+0.26+(old_div(0.5,(numpy.sqrt(n))))) # Eq. 5.15 from Fisher et al. (1987)
 
     pylab.plot(Y,X,'ro')
     bounds=pylab.axis()
@@ -474,11 +482,11 @@ def plotDIsym(fignum,DIblock,sym):
              X_up.append(XY[0])
              Y_up.append(XY[1])
 #
-    if 'size' not in sym.keys():
+    if 'size' not in list(sym.keys()):
         size=50
     else:
         size=sym['size']
-    if 'edgecolor' not in sym.keys():
+    if 'edgecolor' not in list(sym.keys()):
         sym['edgecolor']='k'
     if len(X_down)>0:
         pylab.scatter(X_down,Y_down,marker=sym['lower'][0],c=sym['lower'][1],s=size,edgecolor=sym['edgecolor'])
@@ -522,7 +530,7 @@ def plotZ(fignum,datablock,angle,s,norm):
     if not isServer:
         pylab.figtext(.02,.01,version_num)
     amin,amax=0.,-100.
-    fact=1./datablock[0][3]   # normalize to NRM=1
+    fact=old_div(1.,datablock[0][3])   # normalize to NRM=1
     if norm==0:fact=1.
     x,y,z=[],[],[]
     xb,yb,zb=[],[],[]
@@ -530,7 +538,7 @@ def plotZ(fignum,datablock,angle,s,norm):
 # convert to cartesian
     recnum,delta=0,""
     for plotrec in datablock:
-        forVDS.append([plotrec[1],plotrec[2],plotrec[3]/datablock[0][3]])
+        forVDS.append([plotrec[1],plotrec[2],old_div(plotrec[3],datablock[0][3])])
         rec= pmag.dir2cart([(plotrec[1]-angle),plotrec[2],plotrec[3]*fact])
         if len(plotrec)==4:plotrec.append('0') # fake the ZI,IZ step for old data
         if len(plotrec)==5:plotrec.append('g') # assume good measurement if not specified
@@ -632,7 +640,7 @@ def plotMT(fignum,datablock,s,num,units,norm):
             Tv.append(rec[0])
             if recnum>0:Tv.append(rec[0])
         if norm==1:
-            M.append(rec[3]/Ints[-1])
+            M.append(old_div(rec[3],Ints[-1]))
         else:
             M.append(rec[3])
         if recnum>0 and len(rec)>0 and len(recbak)>0:
@@ -642,8 +650,8 @@ def plotMT(fignum,datablock,s,num,units,norm):
                 V1=pmag.dir2cart([rec[1],rec[2],rec[3]])
                 for el in range(3):v.append(abs(V1[el]-V0[el]))
                 vdir=pmag.cart2dir(v)
-                Vdif.append(vdir[2]/Ints[-1]) # append vector difference
-                Vdif.append(vdir[2]/Ints[-1]) #
+                Vdif.append(old_div(vdir[2],Ints[-1])) # append vector difference
+                Vdif.append(old_div(vdir[2],Ints[-1])) #
         recbak=[]
         for el in rec: recbak.append(el)
         delta=.005*M[0]
@@ -653,7 +661,7 @@ def plotMT(fignum,datablock,s,num,units,norm):
       else:
         if rec[0]<200:Tex.append(rec[0]*1e3)
         if rec[0]>=200:Tex.append(rec[0]-273)
-        Mex.append(rec[3]/Ints[-1])
+        Mex.append(old_div(rec[3],Ints[-1]))
         recnum+=1
     if globals !=0:
         globals.MTlist =T
@@ -661,7 +669,7 @@ def plotMT(fignum,datablock,s,num,units,norm):
     if len(Mex)>0 and len(Tex)>0:
         pylab.scatter(Tex,Mex,marker='d',color='k')
     if len(Vdif)>0:
-        Vdif.append(vdir[2]/Ints[-1]) #
+        Vdif.append(old_div(vdir[2],Ints[-1])) #
         Vdif.append(0)
     Tv.append(Tv[-1])
     pylab.plot(T,M)
@@ -689,7 +697,7 @@ def plotZED(ZED,datablock,angle,s,units):
     """
     function to make equal area plot and zijderveld plot
     """
-    for fignum in ZED.keys():
+    for fignum in list(ZED.keys()):
         fig=pylab.figure(num=ZED[fignum])
         pylab.clf()
         if not isServer:
@@ -715,7 +723,7 @@ def plotZED(ZED,datablock,angle,s,units):
     pylab.figure(num=ZED['eqarea'])
     pylab.plot(AngleX,AngleY,'r-') # Draw a line for Zijderveld horizontal axis
     if AngleX[-1]==0:AngleX[-1]=0.01
-    pylab.text(AngleX[-1]+(AngleX[-1]/abs(AngleX[-1]))*.1,AngleY[-1]+(AngleY[-1]/abs(AngleY[-1]))*.1,'X')
+    pylab.text(AngleX[-1]+(old_div(AngleX[-1],abs(AngleX[-1])))*.1,AngleY[-1]+(old_div(AngleY[-1],abs(AngleY[-1])))*.1,'X')
     norm=1
     #if units=="U": norm=0
     plotMT(ZED['demag'],datablock,s,1,units,norm)
@@ -744,12 +752,12 @@ def plotDir(ZED,pars,datablock,angle):
             StartDir[0]=rec[1]
             StartDir[1]=rec[2]
             if pars["specimen_direction_type"]=='l':
-                StartDir[2]=rec[3]/datablock[0][3]
+                StartDir[2]=old_div(rec[3],datablock[0][3])
         if rec[0]==pars["measurement_step_max"]:
             EndDir[0]=rec[1]
             EndDir[1]=rec[2]
             if pars["specimen_direction_type"]=='l':
-                EndDir[2]=rec[3]/datablock[0][3]
+                EndDir[2]=old_div(rec[3],datablock[0][3])
 
 #
 #  put them on the plots
@@ -803,13 +811,13 @@ def plotDir(ZED,pars,datablock,angle):
        if cm!=[0.,0.,0.]:
            cmDir=pmag.cart2dir(cm)
            cmDir[0]=cmDir[0]-angle
-           cmDir[2]=cmDir[2]/(datablock[0][3])
+           cmDir[2]=old_div(cmDir[2],(datablock[0][3]))
            cm=pmag.dir2cart(cmDir)
            diff=[]
            for i in range(3):
                diff.append(XYZe[i]-XYZs[i])
            R=numpy.sqrt(diff[0]**2+diff[1]**2+diff[2]**2)
-           P=pmag.dir2cart(((pars["specimen_dec"]-angle),pars["specimen_inc"],R/2.5))
+           P=pmag.dir2cart(((pars["specimen_dec"]-angle),pars["specimen_inc"],old_div(R,2.5)))
            px,py,pz=[],[],[]
            px.append((cm[0]+P[0]))
          #  py.append(-(cm[1]+P[1]))
@@ -863,7 +871,7 @@ def plotA(fignum,indata,s,units):
 # plot the NRM-pTRM data
     forVDS=[]
     for zrec in first_Z:
-        forVDS.append([zrec[1],zrec[2],zrec[3]/first_Z[0][3]])
+        forVDS.append([zrec[1],zrec[2],old_div(zrec[3],first_Z[0][3])])
         ZI=zrec[4]
         if zrec[0]=='0':
             irec=['0',0,0,0]
@@ -873,14 +881,14 @@ def plotA(fignum,indata,s,units):
             for irec in first_I:
                 if irec[0]==zrec[0]:break
 # save the NRM data used for calculation in Vi
-        x.append(irec[3]/first_Z[0][3])
-        y.append(zrec[3]/first_Z[0][3])
+        x.append(old_div(irec[3],first_Z[0][3]))
+        y.append(old_div(zrec[3],first_Z[0][3]))
         if ZI==1:
-            x_zi.append(irec[3]/first_Z[0][3])
-            y_zi.append(zrec[3]/first_Z[0][3])
+            x_zi.append(old_div(irec[3],first_Z[0][3]))
+            y_zi.append(old_div(zrec[3],first_Z[0][3]))
         else:
-            x_iz.append(irec[3]/first_Z[0][3])
-            y_iz.append(zrec[3]/first_Z[0][3])
+            x_iz.append(old_div(irec[3],first_Z[0][3]))
+            y_iz.append(old_div(zrec[3],first_Z[0][3]))
         pylab.text(x[-1],y[-1],(' '+str(recnum)),fontsize=9)
         recnum+=1
 # now deal with ptrm checks.
@@ -889,27 +897,27 @@ def plotA(fignum,indata,s,units):
             step=prec[0]
             for  zrec in first_Z:
                 if zrec[0]==step:break
-            xptrm.append(prec[3]/first_Z[0][3])
-            yptrm.append(zrec[3]/first_Z[0][3])
+            xptrm.append(old_div(prec[3],first_Z[0][3]))
+            yptrm.append(old_div(zrec[3],first_Z[0][3]))
 # now deal with zptrm checks.
     if len(zptrm_check) != 0:
         for prec in zptrm_check:
             step=prec[0]
             for  zrec in first_Z:
                 if zrec[0]==step:break
-            xzptrm.append(prec[3]/first_Z[0][3])
-            yzptrm.append(zrec[3]/first_Z[0][3])
+            xzptrm.append(old_div(prec[3],first_Z[0][3]))
+            yzptrm.append(old_div(zrec[3],first_Z[0][3]))
 # and the pTRM tails
     if len(ptrm_tail) != 0:
         for trec in ptrm_tail:
            step=trec[0]
            for irec in first_I:
                if irec[0]==step:break
-           xptrmt.append(irec[3]/first_Z[0][3])
-           yptrmt.append((trec[3]/first_Z[0][3]))
+           xptrmt.append(old_div(irec[3],first_Z[0][3]))
+           yptrmt.append((old_div(trec[3],first_Z[0][3])))
 # now plot stuff
     if len(x) ==0:
-        print "Can't do nuttin for ya"
+        print("Can't do nuttin for ya")
         return
     try:
         if len(x_zi)>0:pylab.scatter(x_zi,y_zi,marker='o',c='r',edgecolors="none" ) # zero field-infield
@@ -960,7 +968,7 @@ def plotNP(fignum,indata,s,units):
             else:
                 X.append(rec[0])
         if units=="J":X.append(rec[0])
-        Y.append(rec[3]/first_Z[0][3])
+        Y.append(old_div(rec[3],first_Z[0][3]))
         delta=.02*Y[0]
         if recnum%2==0: pylab.text(X[-1]-delta,Y[-1]+delta,(' '+str(recnum)),fontsize=9)
         recnum+=1
@@ -974,7 +982,7 @@ def plotNP(fignum,indata,s,units):
             else:
                 X.append(rec[0])
         if units=="J":X.append(rec[0])
-        Y.append(rec[3]/first_Z[0][3])
+        Y.append(old_div(rec[3],first_Z[0][3]))
     if globals !=0:
         globals.DIlist = X
         globals.DIlisty= Y
@@ -1011,8 +1019,8 @@ def plotSHAW(SHAW,shawblock,zijdblock,field,s):
     Nmax=NRM[0][1]
 #
     for k in range(len(NRM)):
-        Y.append(NRM[k][1]/Nmax)
-        X.append(TRM[k][1]/Nmax)
+        Y.append(old_div(NRM[k][1],Nmax))
+        X.append(old_div(TRM[k][1],Nmax))
 #        delta=.02*Y[0]
 #        if recnum%2==0: pylab.text(X[-1]-delta,Y[-1]+delta,(' '+str(recnum)),fontsize=9)
 #        recnum+=1
@@ -1030,8 +1038,8 @@ def plotSHAW(SHAW,shawblock,zijdblock,field,s):
     Nmax=ARM1[0][1]
 #
     for k in range(len(ARM1)):
-        Y.append(ARM2[k][1]/Nmax)
-        X.append(ARM1[k][1]/Nmax)
+        Y.append(old_div(ARM2[k][1],Nmax))
+        X.append(old_div(ARM1[k][1],Nmax))
 #        delta=.02*Y[0]
 #        if recnum%2==0: pylab.text(X[-1]-delta,Y[-1]+delta,(' '+str(recnum)),fontsize=9)
 #        recnum+=1
@@ -1049,8 +1057,8 @@ def plotSHAW(SHAW,shawblock,zijdblock,field,s):
     Nmax=NRM[0][1]
 #
     for k in range(len(NRM)):
-        Y.append(NRM[k][1]/Nmax)
-        X.append(TRM_ADJ[k][1]/Nmax)
+        Y.append(old_div(NRM[k][1],Nmax))
+        X.append(old_div(TRM_ADJ[k][1],Nmax))
 #        delta=.02*Y[0]
 #        if recnum%2==0: pylab.text(X[-1]-delta,Y[-1]+delta,(' '+str(recnum)),fontsize=9)
 #        recnum+=1
@@ -1060,8 +1068,8 @@ def plotSHAW(SHAW,shawblock,zijdblock,field,s):
     pylab.ylabel("NRM")
     spars=pylab.polyfit(X,Y,1)
     Banc=spars[0]*field
-    print spars[0],field
-    print 'Banc= ',Banc*1e6,' uT'
+    print(spars[0],field)
+    print('Banc= ',Banc*1e6,' uT')
     notestr='Banc = '+ '%5.1f'%(Banc*1e6)+' uT'
     pylab.text(.5*TRM[-1][1]+.2,.9,notestr)
 
@@ -1073,8 +1081,8 @@ def  plotB(Figs,araiblock,zijdblock,pars):
     zstart,zend=0,len(zijdblock)
     first_Z,first_I=araiblock[0],araiblock[1]
     for rec in zijdblock:
-        if rec[0]==pars["measurement_step_min"]: Dir.append((rec[1]-angle,rec[2],rec[3]/zijdblock[0][3]))
-        if rec[0]==pars["measurement_step_max"]: Dir.append((rec[1]-angle,rec[2],rec[3]/zijdblock[0][3]))
+        if rec[0]==pars["measurement_step_min"]: Dir.append((rec[1]-angle,rec[2],old_div(rec[3],zijdblock[0][3])))
+        if rec[0]==pars["measurement_step_max"]: Dir.append((rec[1]-angle,rec[2],old_div(rec[3],zijdblock[0][3])))
     for drec in Dir:
         cart=pmag.dir2cart(drec)
         zx.append(cart[0])
@@ -1087,15 +1095,15 @@ def  plotB(Figs,araiblock,zijdblock,pars):
         pylab.scatter(zx,zy,marker='d',s=100,c='y')
         pylab.scatter(zx,zz,marker='d',s=100,c='y')
         pylab.axis("equal")
-    ax.append(first_I[0][3]/first_Z[0][3])
-    ax.append(first_I[-1][3]/first_Z[0][3])
-    ay.append(first_Z[0][3]/first_Z[0][3])
-    ay.append(first_Z[-1][3]/first_Z[0][3])
+    ax.append(old_div(first_I[0][3],first_Z[0][3]))
+    ax.append(old_div(first_I[-1][3],first_Z[0][3]))
+    ay.append(old_div(first_Z[0][3],first_Z[0][3]))
+    ay.append(old_div(first_Z[-1][3],first_Z[0][3]))
     for k in range(len(first_Z)):
-        if first_Z[k][0]==pars["measurement_step_min"]:ay[0]=(first_Z[k][3]/first_Z[0][3])
-        if first_Z[k][0]==pars["measurement_step_max"]:ay[1]=(first_Z[k][3]/first_Z[0][3])
-        if first_I[k][0]==pars["measurement_step_min"]:ax[0]=(first_I[k][3]/first_Z[0][3])
-        if first_I[k][0]==pars["measurement_step_max"]:ax[1]=(first_I[k][3]/first_Z[0][3])
+        if first_Z[k][0]==pars["measurement_step_min"]:ay[0]=(old_div(first_Z[k][3],first_Z[0][3]))
+        if first_Z[k][0]==pars["measurement_step_max"]:ay[1]=(old_div(first_Z[k][3],first_Z[0][3]))
+        if first_I[k][0]==pars["measurement_step_min"]:ax[0]=(old_div(first_I[k][3],first_Z[0][3]))
+        if first_I[k][0]==pars["measurement_step_max"]:ax[1]=(old_div(first_I[k][3],first_Z[0][3]))
     new_Z,new_I=[],[]
     for zrec in first_Z:
         if zrec[0]>=pars['measurement_step_min'] and zrec[0]<=pars['measurement_step_max']:
@@ -1111,8 +1119,8 @@ def  plotB(Figs,araiblock,zijdblock,pars):
 #  find midpoint between two endpoints
 #
     sy=[]
-    sy.append((pars["specimen_b"]*ax[0]+pars["specimen_ytot"]/first_Z[0][3]))
-    sy.append((pars["specimen_b"]*ax[1]+pars["specimen_ytot"]/first_Z[0][3]))
+    sy.append((pars["specimen_b"]*ax[0]+old_div(pars["specimen_ytot"],first_Z[0][3])))
+    sy.append((pars["specimen_b"]*ax[1]+old_div(pars["specimen_ytot"],first_Z[0][3])))
     pylab.plot(ax,sy,'g',linewidth=2)
     bounds=pylab.axis()
     if pars['specimen_grade']!='':
@@ -1290,21 +1298,21 @@ def plotTEQ(fignum,araiblock,s,pars):
 
 
 def saveP(Figs,filenames,**kwargs):
-    for key in Figs.keys():
+    for key in list(Figs.keys()):
         try:
             pylab.figure(num=Figs[key])
             fname = filenames[key]
             if not isServer: # remove illegal ':' character for windows
                 fname = fname.replace(':', '_')
-            if 'dpi' in kwargs.keys():
+            if 'dpi' in list(kwargs.keys()):
                 pylab.savefig(fname.replace('/','-'),dpi=kwargs['dpi'])
             else:
                 pylab.savefig(fname.replace('/','-'))
             if verbose:
-                print Figs[key]," saved in ", fname.replace('/','-')
+                print(Figs[key]," saved in ", fname.replace('/','-'))
         except:
-            print 'could not save: ', Figs[key], filenames[key]
-            print "output file format not supported "
+            print('could not save: ', Figs[key], filenames[key])
+            print("output file format not supported ")
     return
 #
 def plotEVEC(fignum,Vs,symsize,title):
@@ -1334,7 +1342,7 @@ def plotELL(fignum,pars,col,lower,plot):
     function to calculate points on an ellipse about Pdec,Pdip with angle beta,gamma
     """
     pylab.figure(num=fignum)
-    rad=numpy.pi/180.
+    rad=old_div(numpy.pi,180.)
     Pdec,Pinc,beta,Bdec,Binc,gamma,Gdec,Ginc=pars[0],pars[1],pars[2],pars[3],pars[4],pars[5],pars[6],pars[7]
     if beta > 90. or gamma>90:
         beta=180.-beta
@@ -1344,7 +1352,7 @@ def plotELL(fignum,pars,col,lower,plot):
     beta,gamma=beta*rad,gamma*rad # convert to radians
     X_ell,Y_ell,X_up,Y_up,PTS=[],[],[],[],[]
     nums=201
-    xnum=float(nums-1.)/2.
+    xnum=old_div(float(nums-1.),2.)
 # set up t matrix
     t=[[0,0,0],[0,0,0],[0,0,0]]
     X=pmag.dir2cart((Pdec,Pinc,1.0)) # convert to cartesian coordintes
@@ -1382,7 +1390,7 @@ def plotELL(fignum,pars,col,lower,plot):
             for k in range(3):
                 elli[j]=elli[j] + t[j][k]*v[k]  # cartesian coordinate j of ellipse
         PTS.append(pmag.cart2dir(elli))
-        R=numpy.sqrt( 1.-abs(elli[2]))/(numpy.sqrt(elli[0]**2+elli[1]**2)) # put on an equal area projection
+        R=old_div(numpy.sqrt( 1.-abs(elli[2])),(numpy.sqrt(elli[0]**2+elli[1]**2))) # put on an equal area projection
         if elli[2]<0:
 #            for i in range(3): elli[i]=-elli[i]
             X_up.append(elli[1]*R)
@@ -1444,11 +1452,11 @@ this function returns x and y"""
     X,Y=[],[]
     color=""
     for j in range(len(sdata)):
-        Y.append(float(j)/float(len(sdata)))
+        Y.append(old_div(float(j),float(len(sdata))))
         X.append(sdata[j])
-    if 'color' in kwargs.keys():
+    if 'color' in list(kwargs.keys()):
         color=kwargs['color']
-    if 'linewidth' in kwargs.keys():
+    if 'linewidth' in list(kwargs.keys()):
         lw=kwargs['linewidth']
     else:
         lw=1
@@ -1512,7 +1520,7 @@ def plotHYS(fignum,B,M,s):
     """
    function to plot hysteresis data
     """
-    import spline
+    from . import spline
     if fignum!=0:
         pylab.figure(num=fignum)
         pylab.clf()
@@ -1535,7 +1543,7 @@ def plotHYS(fignum,B,M,s):
     diff=m_fin-m_init
     Bmin=0.
     for k in range(Npts):
-        frac=float(k)/float(Npts-1)
+        frac=old_div(float(k),float(Npts-1))
         Mfix.append((M[k]-diff*frac))
         if Bzero=="" and B[k]<0: Bzero=k
         if B[k]<Bmin:
@@ -1564,10 +1572,10 @@ def plotHYS(fignum,B,M,s):
     Mupper,Bupper,Mlower,Blower=[],[],[],[]
     deltaM,Bdm=[],[] # diff between upper and lower curves at Bdm
     for k in range(kmin-2,0,-1):
-        Mupper.append(Moff[k]/Msat)
+        Mupper.append(old_div(Moff[k],Msat))
         Bupper.append(B[k])
     for k in range(kmin+2,len(B)):
-        Mlower.append(Moff[k]/Msat)
+        Mlower.append(old_div(Moff[k],Msat))
         Blower.append(B[k])
     Iupper=spline.Spline(Bupper,Mupper) # get splines for upper up and down
     Ilower=spline.Spline(Blower,Mlower) # get splines for lower
@@ -1578,8 +1586,8 @@ def plotHYS(fignum,B,M,s):
         Bdm.append(b)
         deltaM.append(0.5*(Mpos+Mneg))# take average delta M
     for k in range(Npts):
-        MadjN.append(Moff[k]/Msat)
-        Mnorm.append(M[k]/Msat)
+        MadjN.append(old_div(Moff[k],Msat))
+        Mnorm.append(old_div(M[k],Msat))
     if fignum!=0:
         pylab.plot(B,Mnorm,'r')
         pylab.plot(B,MadjN,'b')
@@ -1598,9 +1606,9 @@ def plotHYS(fignum,B,M,s):
     Maz=Moff[Mazero-1:Mazero+1]
     try:
        poly=pylab.polyfit(Bz,Mz,1) # best fit line through two bounding points
-       Bc=-poly[1]/poly[0] # x intercept
+       Bc=old_div(-poly[1],poly[0]) # x intercept
        poly=pylab.polyfit(Baz,Maz,1) # best fit line through two bounding points
-       Bac=-poly[1]/poly[0] # x intercept
+       Bac=old_div(-poly[1],poly[0]) # x intercept
        hpars['hysteresis_bc']='%8.3e'%(0.5*(abs(Bc)+abs(Bac)))
     except:
        hpars['hysteresis_bc']='0'
@@ -1618,7 +1626,7 @@ def plotDM(fignum,B,DM,Bcr,s):
     pylab.xlabel('B (T)')
     pylab.ylabel('Delta M')
     linex=[0,Bcr,Bcr]
-    liney=[DM[0]/2.,DM[0]/2.,0]
+    liney=[old_div(DM[0],2.),old_div(DM[0],2.),0]
     pylab.plot(linex,liney,'r')
     pylab.title(s)
 #
@@ -1659,16 +1667,16 @@ def plotHDD(HDD,B,M,s):
     DdeltaM=[]
     Mhalf=""
     for k in range(2,len(Bdm)):
-        DdeltaM.append(abs(deltaM[k]-deltaM[k-2])/(Bdm[k]-Bdm[k-2])) # differnential
+        DdeltaM.append(old_div(abs(deltaM[k]-deltaM[k-2]),(Bdm[k]-Bdm[k-2]))) # differnential
     for k in range(len(deltaM)):
-        if deltaM[k]/deltaM[0] < 0.5:
+        if old_div(deltaM[k],deltaM[0]) < 0.5:
             Mhalf=k
             break
     try:
         Bhf=Bdm[Mhalf-1:Mhalf+1]
         Mhf=deltaM[Mhalf-1:Mhalf+1]
         poly=pylab.polyfit(Bhf,Mhf,1) # best fit line through two bounding points
-        Bcr=(.5*deltaM[0] - poly[1])/poly[0]
+        Bcr=old_div((.5*deltaM[0] - poly[1]),poly[0])
         hpars['hysteresis_bcr']='%8.3e'%(Bcr)
         hpars['magic_method_codes']="LP-BCR-HDM"
         if HDD['deltaM']!=0:
@@ -1708,17 +1716,17 @@ def plotDay(fignum,BcrBc,S,sym,**kwargs):
     Bcr_sd,Bcr_md=52.5e-3,26.1e-3 # (MV1H and 041183 in DC06 in tesla)
     Ms=480e3 # A/m
     p=.1 # from Dunlop 2002
-    N=1./3. # demagnetizing factor
+    N=old_div(1.,3.) # demagnetizing factor
     f_sd=numpy.arange(1.,0.,-.01) # fraction of sd
     f_md=1.-f_sd # fraction of md
     f_sp=1.-f_sd # fraction of sp
     sdrat,mdrat,cbrat=0.498,0.048,0.6 # Mr/Ms ratios for USD,MD and Jax shaped
     Mrat=f_sd*sdrat+f_md*mdrat # linear mixing - eq. 9 in Dunlop 2002
-    Bc=(f_sd*chi_sd*Bc_sd+f_md*chi_md*Bc_md)/(f_sd*chi_sd+f_md*chi_md) # eq. 10 in Dunlop 2002
-    Bcr=(f_sd*chi_r_sd*Bcr_sd+f_md*chi_r_md*Bcr_md)/(f_sd*chi_r_sd+f_md*chi_r_md) #  eq. 11 in Dunlop 2002
+    Bc=old_div((f_sd*chi_sd*Bc_sd+f_md*chi_md*Bc_md),(f_sd*chi_sd+f_md*chi_md)) # eq. 10 in Dunlop 2002
+    Bcr=old_div((f_sd*chi_r_sd*Bcr_sd+f_md*chi_r_md*Bcr_md),(f_sd*chi_r_sd+f_md*chi_r_md)) #  eq. 11 in Dunlop 2002
     chi_sps=numpy.arange(1,5)*chi_sd
-    pylab.plot(Bcr/Bc,Mrat,'r-')
-    if 'names' in kwargs.keys():
+    pylab.plot(old_div(Bcr,Bc),Mrat,'r-')
+    if 'names' in list(kwargs.keys()):
         names=kwargs['names']
         for k in range(len(names)):
             pylab.text(BcrBc[k],S[k],names[k]) #,'ha'='left'
@@ -1766,7 +1774,7 @@ def plotHPARS(HDD,hpars,sym):
     pylab.figure(num=HDD['hyst'])
     X,Y=[],[]
     X.append(0)
-    Y.append(float(hpars['hysteresis_mr_moment'])/float(hpars['hysteresis_ms_moment']))
+    Y.append(old_div(float(hpars['hysteresis_mr_moment']),float(hpars['hysteresis_ms_moment'])))
     X.append(float(hpars['hysteresis_bc']))
     Y.append(0)
     pylab.plot(X,Y,sym)
@@ -1777,12 +1785,12 @@ def plotHPARS(HDD,hpars,sym):
     pylab.text(bounds[1]-.9*bounds[1],-.7,n1)
     n2='Bc: '+'%8.2e'%(float(hpars['hysteresis_bc']))+' T'
     pylab.text(bounds[1]-.9*bounds[1],-.5,n2)
-    if 'hysteresis_xhf' in hpars.keys():
+    if 'hysteresis_xhf' in list(hpars.keys()):
         n3=r'Xhf: '+'%8.2e'%(float(hpars['hysteresis_xhf']))+' m^3'
         pylab.text(bounds[1]-.9*bounds[1],-.3,n3)
     pylab.figure(num=HDD['deltaM'])
     X,Y,Bcr=[],[],""
-    if 'hysteresis_bcr' in hpars.keys():
+    if 'hysteresis_bcr' in list(hpars.keys()):
         X.append(float(hpars['hysteresis_bcr']))
         Y.append(0)
         Bcr=float(hpars['hysteresis_bcr'])
@@ -1812,7 +1820,7 @@ def plotIRM(fignum,B,M,title):
     if backfield==1:
         poly=pylab.polyfit(X,Y,1)
         if poly[0]!=0:
-            bcr=(-poly[1]/poly[0])
+            bcr=(old_div(-poly[1],poly[0]))
         else:
             bcr=0
         rpars['remanence_mr_moment']='%8.3e'%(M[0])
@@ -1820,12 +1828,12 @@ def plotIRM(fignum,B,M,title):
         rpars['magic_method_codes']='LP-BCR-BF'
         if M[0]!=0:
             for m in M:
-                Mnorm.append(m/M[0]) # normalize to unity Msat
+                Mnorm.append(old_div(m,M[0])) # normalize to unity Msat
             title=title+':'+'%8.3e'%(M[0])
     else:
         if M[-1]!=0:
             for m in M:
-                Mnorm.append(m/M[-1]) # normalize to unity Msat
+                Mnorm.append(old_div(m,M[-1])) # normalize to unity Msat
             title=title+':'+'%8.3e'%(M[-1])
 # do plots if desired
     if fignum!=0 and M[0]!=0: #skip plot for fignum = 0
@@ -1851,7 +1859,7 @@ def plotIRM(fignum,B,M,title):
         #pylab.clf()
         if not isServer:
             pylab.figtext(.02,.01,version_num)
-        print 'M[0]=0,  skipping specimen'
+        print('M[0]=0,  skipping specimen')
     return rpars
 
 def plotXTF(fignum,XTF,Fs,e,b):
@@ -1996,7 +2004,7 @@ def plotANIS(ANIS,Ss,iboot,ihext,ivec,ipar,title,plt,comp,vec,Dir,nb):
         Vs.append(V)
     nf,sigma,avs=pmag.sbar(Ss)
     if plt==1:
-        for key in ANIS.keys():
+        for key in list(ANIS.keys()):
             pylab.figure(num=ANIS[key])
             pylab.clf()
             if not isServer:
@@ -2022,7 +2030,7 @@ def plotANIS(ANIS,Ss,iboot,ihext,ivec,ipar,title,plt,comp,vec,Dir,nb):
 # plot mean confidence
 #
     if iboot==1:
-        print 'Doing bootstrap - be patient'
+        print('Doing bootstrap - be patient')
         Tmean,Vmean,Taus,BVs=pmag.s_boot(Ss,ipar,nb) # get eigenvectors of mean tensor
         bpars=pmag.sbootpars(Taus,BVs)
         bpars['t1']=hpars['t1']
@@ -2170,18 +2178,18 @@ def plotTRM(fig,B,TRM,Bp,Mp,NLpars,title):
     Tnorm,Mnorm=[],[]
     for b in B:Bnorm.append(b*1e6)
     for b in Bp:Bpnorm.append(b*1e6)
-    for t in TRM:Tnorm.append(t/Mp[-1])
-    for t in Mp:Mnorm.append(t/Mp[-1])
+    for t in TRM:Tnorm.append(old_div(t,Mp[-1]))
+    for t in Mp:Mnorm.append(old_div(t,Mp[-1]))
     pylab.plot(Bnorm,Tnorm,'go')
     pylab.plot(Bpnorm,Mnorm,'g-')
     if NLpars['banc']>0:
-        pylab.plot([0,NLpars['best']*1e6],[0,NLpars['banc_npred']/Mp[-1]],'b--')
-        pylab.plot([NLpars['best']*1e6,NLpars['banc']*1e6],[NLpars['banc_npred']/Mp[-1],NLpars['banc_npred']/Mp[-1]],'r--')
-        pylab.plot([NLpars['best']*1e6],[NLpars['banc_npred']/Mp[-1]],'bd')
-        pylab.plot([NLpars['banc']*1e6],[NLpars['banc_npred']/Mp[-1]],'rs')
+        pylab.plot([0,NLpars['best']*1e6],[0,old_div(NLpars['banc_npred'],Mp[-1])],'b--')
+        pylab.plot([NLpars['best']*1e6,NLpars['banc']*1e6],[old_div(NLpars['banc_npred'],Mp[-1]),old_div(NLpars['banc_npred'],Mp[-1])],'r--')
+        pylab.plot([NLpars['best']*1e6],[old_div(NLpars['banc_npred'],Mp[-1])],'bd')
+        pylab.plot([NLpars['banc']*1e6],[old_div(NLpars['banc_npred'],Mp[-1])],'rs')
     else:
-        pylab.plot([0,NLpars['best']*1e6],[0,NLpars['best_npred']/Mp[-1]],'b--')
-        pylab.plot([0,NLpars['best']*1e6],[0,NLpars['best_npred']/Mp[-1]],'bd')
+        pylab.plot([0,NLpars['best']*1e6],[0,old_div(NLpars['best_npred'],Mp[-1])],'b--')
+        pylab.plot([0,NLpars['best']*1e6],[0,old_div(NLpars['best_npred'],Mp[-1])],'bd')
 
 ###
 def plotTDS(fig,tdsblock,title):
@@ -2345,13 +2353,13 @@ def addBorders(Figs,titles,border_color,text_color):
     import datetime
     now = datetime.datetime.now()
 
-    for key in Figs.keys():
+    for key in list(Figs.keys()):
 
         fig = pylab.figure(Figs[key])
         plot_title = titles[key]
         fig.set_figheight(5.5)
         (x,y,w,h) = fig.gca().get_position()
-        fig.gca().set_position([x,1.3*y,w,h/1.1])
+        fig.gca().set_position([x,1.3*y,w,old_div(h,1.1)])
 
         # add an axis covering the entire figure
         border_ax = fig.add_axes([0,0,1,1])
@@ -2375,7 +2383,7 @@ def addBorders(Figs,titles,border_color,text_color):
                                size=18)
 
         # add text
-        border_ax.text((4/fig.get_figwidth())*0.015, 0.03, now.strftime("%d %B %Y, %I:%M:%S %p"),
+        border_ax.text((old_div(4,fig.get_figwidth()))*0.015, 0.03, now.strftime("%d %B %Y, %I:%M:%S %p"),
                                horizontalalignment='left',
                                verticalalignment='top',
                                color=text_color,
@@ -2385,7 +2393,7 @@ def addBorders(Figs,titles,border_color,text_color):
                                verticalalignment='top',
                                color=text_color,
                                size=20)
-        border_ax.text(1-(4/fig.get_figwidth())*0.015, 0.03, 'http://earthref.org/MAGIC',
+        border_ax.text(1-(old_div(4,fig.get_figwidth()))*0.015, 0.03, 'http://earthref.org/MAGIC',
                                horizontalalignment='right',
                                verticalalignment='top',
                                color=text_color,
@@ -2407,7 +2415,7 @@ def plotMAP(fignum,lats,lons,Opts):
         plabels=[0,0,0,0]
     else:
         m=Basemap(llcrnrlon=Opts['lonmin'],llcrnrlat=Opts['latmin'],urcrnrlat=Opts['latmax'],urcrnrlon=Opts['lonmax'],projection=Opts['proj'],lat_0=Opts['lat_0'],lon_0=Opts['lon_0'],lat_ts=0.,resolution=Opts['res'],boundinglat=Opts['boundinglat'])
-    if 'details' in Opts.keys():
+    if 'details' in list(Opts.keys()):
         if Opts['details']['fancy']==1:
            from pylab import meshgrid
            from mpl_toolkits.basemap import basemap_datadir
@@ -2431,8 +2439,8 @@ def plotMAP(fignum,lats,lons,Opts):
             meridians=numpy.arange(0,360.,Opts['gridspace'])
         else:
             g=Opts['gridspace']
-            latmin,lonmin=g*int(Opts['latmin']/g), g*int(Opts['lonmin']/g)
-            latmax,lonmax=g*int(Opts['latmax']/g), g*int(Opts['lonmax']/g)
+            latmin,lonmin=g*int(old_div(Opts['latmin'],g)), g*int(old_div(Opts['lonmin'],g))
+            latmax,lonmax=g*int(old_div(Opts['latmax'],g)), g*int(old_div(Opts['lonmax'],g))
             #circles=numpy.arange(latmin-2.*Opts['padlat'],latmax+2.*Opts['padlat'],Opts['gridspace'])
             #meridians=numpy.arange(lonmin-2.*Opts['padlon'],lonmax+2.*Opts['padlon'],Opts['gridspace'])
             meridians=numpy.arange(0,360,30)
@@ -2444,13 +2452,13 @@ def plotMAP(fignum,lats,lons,Opts):
         m.drawmeridians(meridians,color='black') # skip the labels - they are ugly
         m.drawmapboundary()
     prn_name,symsize=0,5
-    if 'names' in Opts.keys()>0:
+    if 'names' in list(Opts.keys())>0:
         names=Opts['names']
         if len(names)>0:
             prn_name=1
 #
     X,Y,T,k=[],[],[],0
-    if 'symsize' in Opts.keys():symsize=Opts['symsize']
+    if 'symsize' in list(Opts.keys()):symsize=Opts['symsize']
     if Opts['sym'][-1]!='-': # just plot points
         X,Y=m(lons,lats)
         if prn_name==1:
@@ -2483,10 +2491,10 @@ def plotEQcont(fignum,DIblock):
     for rec in DIblock:
             counter=counter+1
             X=pmag.dir2cart([rec[0],rec[1],1.])
-            R=numpy.sqrt( 1.-X[2])/(numpy.sqrt(X[0]**2+X[1]**2)) # from Collinson 1983
+            R=old_div(numpy.sqrt( 1.-X[2]),(numpy.sqrt(X[0]**2+X[1]**2))) # from Collinson 1983
             XY.append([X[0]*R,X[1]*R])
-    radius=(3./(numpy.sqrt(numpy.pi*(9.+float(counter)))))+0.01 #radius of the circle
-    num=2.*(1./radius) # number of circles
+    radius=(old_div(3.,(numpy.sqrt(numpy.pi*(9.+float(counter))))))+0.01 #radius of the circle
+    num=2.*(old_div(1.,radius)) # number of circles
     #a,b are the extent of the grids over which the circles are equispaced
     a1,a2=(0.-(radius*num/2.)),(0.+(radius*num/2.))
     b1,b2=(0.-(radius*num/2.)),(0.+(radius*num/2.))
@@ -2516,7 +2524,7 @@ def plotEQcont(fignum,DIblock):
                         beta=beta+1.
                     else:
                         alpha=alpha+1.
-            fraction.append(alpha/beta)
+            fraction.append(old_div(alpha,beta))
             alpha,beta=0.001,0.001
         else:
             fraction.append(1.) # if the whole circle lies in the net
@@ -2537,15 +2545,15 @@ def plotEQcont(fignum,DIblock):
     x,y=[],[]
     # Draws the border
     for i in range(0,360):
-        x.append(numpy.sin((numpy.pi/180.)*float(i)))
-        y.append(numpy.cos((numpy.pi/180.)*float(i)))
+        x.append(numpy.sin((old_div(numpy.pi,180.))*float(i)))
+        y.append(numpy.cos((old_div(numpy.pi,180.))*float(i)))
     pylab.plot(x,y,'w-')
     x,y=[],[]
     # the map will be a square of 1X1..this is how I erase the redundant area
     for j in range(1,4):
         for i in range(0,360):
-            x.append(numpy.sin((numpy.pi/180.)*float(i))*(1.+(float(j)/10.)))
-            y.append(numpy.cos((numpy.pi/180.)*float(i))*(1.+(float(j)/10.)))
+            x.append(numpy.sin((old_div(numpy.pi,180.))*float(i))*(1.+(old_div(float(j),10.))))
+            y.append(numpy.cos((old_div(numpy.pi,180.))*float(i))*(1.+(old_div(float(j),10.))))
         pylab.plot(x,y,'w-',linewidth=26)
         x,y=[],[]
     # the axes

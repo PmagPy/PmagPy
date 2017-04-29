@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+from __future__ import print_function
+from builtins import input
 import sys
 import numpy
 import matplotlib
@@ -48,15 +50,15 @@ def main():
     fmt,nb='svg',1000
     plot=0
     if '-i' in sys.argv:
-        file=raw_input("Enter file name for processing: ")
+        file=input("Enter file name for processing: ")
     if '-h' in sys.argv:
-        print main.__doc__
+        print(main.__doc__)
         sys.exit() # graceful quit
     elif '-f' in sys.argv:
         ind=sys.argv.index('-f')
         file=sys.argv[ind+1]
     else:
-        print main.__doc__
+        print(main.__doc__)
         sys.exit()
     if '-nb' in sys.argv:
         ind=sys.argv.index('-nb')
@@ -92,7 +94,7 @@ def main():
     pmagplotlib.plotEI(PLTS['ei'],Es,Is,flat_f)
     pmagplotlib.plotV2s(PLTS['v2'],V2s,Is,flat_f)
     b=0
-    print "Bootstrapping.... be patient"
+    print("Bootstrapping.... be patient")
     while b<nb:
         bdata=pmag.pseudo(data)
         Esb,Isb,Fsb,V2sb=pmag.find_f(bdata)
@@ -107,7 +109,7 @@ def main():
                 I.append(abs(Isb[-1]))
                 E.append(Esb[-1])
             b+=1
-            if b%25==0:print b,' out of ',nb
+            if b%25==0:print(b,' out of ',nb)
     I.sort()
     E.sort()
     Eexp=[]
@@ -124,11 +126,11 @@ def main():
     pmagplotlib.plotVs(PLTS['cdf'],[Io],'k','-')
     if plot==0:
         pmagplotlib.drawFIGS(PLTS)
-        print "Io Inc  I_lower, I_upper, Elon, E_lower, E_upper"
-        print '%7.1f %s %7.1f _ %7.1f ^ %7.1f:  %6.4f _ %6.4f ^ %6.4f' %(Io, " => ", Inc, I[lower],I[upper], Elong, E[lower],E[upper])
-        ans= raw_input("S[a]ve plots - <return> to quit:  ")
+        print("Io Inc  I_lower, I_upper, Elon, E_lower, E_upper")
+        print('%7.1f %s %7.1f _ %7.1f ^ %7.1f:  %6.4f _ %6.4f ^ %6.4f' %(Io, " => ", Inc, I[lower],I[upper], Elong, E[lower],E[upper]))
+        ans= input("S[a]ve plots - <return> to quit:  ")
         if ans!='a':
-           print "\n Good bye\n"
+           print("\n Good bye\n")
            sys.exit()
     files={}
     files['eq']='findEI_eq.'+fmt

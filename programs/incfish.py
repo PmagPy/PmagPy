@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+from __future__ import print_function
+from builtins import input
 import sys
 import numpy
 import pmagpy.pmag as pmag
@@ -35,10 +37,10 @@ def main():
     """
     inc=[]
     if '-h' in sys.argv: # check if help is needed
-        print main.__doc__
+        print(main.__doc__)
         sys.exit() # graceful quit
     if '-i' in sys.argv: # ask for filename
-        file=raw_input("Enter file name with inc data: ")
+        file=input("Enter file name with inc data: ")
         inc=numpy.loadtxt(file)
     elif '-f' in sys.argv:
         ind=sys.argv.index('-f')
@@ -56,7 +58,7 @@ def main():
     fpars= pmag.doincfish(inc)
     outstring='%7.1f %7.1f  %i %8.1f %7.1f %7.1f'%(fpars['ginc'],fpars['inc'],fpars['n'],fpars['r'],fpars['k'],fpars['alpha95'])
     if ofile == "":
-        print outstring
+        print(outstring)
     else:
         out.write(outstring+'\n')
 

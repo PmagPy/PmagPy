@@ -1,15 +1,22 @@
+from __future__ import division
+from __future__ import print_function
+from __future__ import absolute_import
+from builtins import zip
+from builtins import str
+from builtins import input
+from builtins import range
+from past.utils import old_div
 import numpy as np
 import string
 import sys
 from numpy import random
 from numpy import linalg
-import exceptions
 import os
 import time
 import pandas as pd
-from mapping import map_magic
+from .mapping import map_magic
 from pmagpy import new_builder as nb
-import find_pmag_dir
+from . import find_pmag_dir
 
 
 def get_version():
@@ -47,9 +54,9 @@ def sort_diclist(undecorated,sort_on):
     >>> sort_diclist(lst, 'key2')
     [{'key2': 2, 'key1': 10}, {'key2': 20, 'key1': 1}]
     """
-    decorated=[(dict_[sort_on],dict_) for dict_ in undecorated]
+    decorated=[(len(dict_[sort_on]) if hasattr(dict_[sort_on],'__len__') else dict_[sort_on],index) for (index,dict_) in enumerate(undecorated)]
     decorated.sort()
-    return[dict_ for (key, dict_) in decorated]
+    return[undecorated[index] for (key, index) in decorated]
 
 
 def get_dictitem(In,k,v,flag):
@@ -57,20 +64,20 @@ def get_dictitem(In,k,v,flag):
         requires that the value of k in the dictionaries contained in In be castable to string and requires that v be castable to a string if flag is T,F
         ,has or not and requires they be castable to float if flag is eval, min, or max.
     """
-    if flag=="T":return [dictionary for dictionary in In if k in dictionary.keys() and str(dictionary[k]).lower()==str(v).lower()] # return that which is
+    if flag=="T":return [dictionary for dictionary in In if k in list(dictionary.keys()) and str(dictionary[k]).lower()==str(v).lower()] # return that which is
     if flag=="F":
-        return [dictionary for dictionary in In if k in dictionary.keys() and str(dictionary[k]).lower()!=str(v).lower()] # return that which is not
-    if flag=="has":return [dictionary for dictionary in In if k in dictionary.keys() and str(v).lower() in str(dictionary[k]).lower()] # return that which is contained
-    if flag=="not":return [dictionary for dictionary in In if k in dictionary.keys() and str(v).lower() not in str(dictionary[k]).lower()] # return that which is not contained
+        return [dictionary for dictionary in In if k in list(dictionary.keys()) and str(dictionary[k]).lower()!=str(v).lower()] # return that which is not
+    if flag=="has":return [dictionary for dictionary in In if k in list(dictionary.keys()) and str(v).lower() in str(dictionary[k]).lower()] # return that which is contained
+    if flag=="not":return [dictionary for dictionary in In if k in list(dictionary.keys()) and str(v).lower() not in str(dictionary[k]).lower()] # return that which is not contained
     if flag=="eval":
-        A=[dictionary for dictionary in In if k in dictionary.keys() and dictionary[k]!=''] # find records with no blank values for key
-        return [dictionary for dictionary in A if k in dictionary.keys() and float(dictionary[k])==float(v)] # return that which is
+        A=[dictionary for dictionary in In if k in list(dictionary.keys()) and dictionary[k]!=''] # find records with no blank values for key
+        return [dictionary for dictionary in A if k in list(dictionary.keys()) and float(dictionary[k])==float(v)] # return that which is
     if flag=="min":
-        A=[dictionary for dictionary in In if k in dictionary.keys() and dictionary[k]!=''] # find records with no blank values for key
-        return [dictionary for dictionary in A if k in dictionary.keys() and float(dictionary[k])>=float(v)] # return that which is greater than
+        A=[dictionary for dictionary in In if k in list(dictionary.keys()) and dictionary[k]!=''] # find records with no blank values for key
+        return [dictionary for dictionary in A if k in list(dictionary.keys()) and float(dictionary[k])>=float(v)] # return that which is greater than
     if flag=="max":
-        A=[dictionary for dictionary in In if k in dictionary.keys() and  dictionary[k]!=''] # find records with no blank values for key
-        return [dictionary for dictionary in A if k in dictionary.keys() and float(dictionary[k])<=float(v)] # return that which is less than
+        A=[dictionary for dictionary in In if k in list(dictionary.keys()) and  dictionary[k]!=''] # find records with no blank values for key
+        return [dictionary for dictionary in A if k in list(dictionary.keys()) and float(dictionary[k])<=float(v)] # return that which is less than
 
 def get_dictkey(In,k,dtype):
     """
@@ -103,7 +110,7 @@ def get_orient(samp_data,er_sample_name):
     EX=["SO-ASC","SO-POM"]
     orient={'er_sample_name':er_sample_name,'sample_azimuth':"",'sample_dip':"",'sample_description':""}
     orients=get_dictitem(samp_data,'er_sample_name',er_sample_name,'T') # get all the orientation data for this sample
-    if 'sample_orientation_flag' in orients[0].keys(): orients=get_dictitem(orients,'sample_orientation_flag','b','F') # exclude all samples with bad orientation flag
+    if 'sample_orientation_flag' in list(orients[0].keys()): orients=get_dictitem(orients,'sample_orientation_flag','b','F') # exclude all samples with bad orientation flag
     if len(orients)>0:orient=orients[0] # re-initialize to first one
     methods=get_dictitem(orients,'magic_method_codes','SO-','has')
     methods=get_dictkey(methods,'magic_method_codes','') # get a list of all orientation methods for this sample
@@ -114,7 +121,7 @@ def get_orient(samp_data,er_sample_name):
            if meth.strip() not in EX:SO_methods.append(meth)
    # find top priority orientation method
     if len(SO_methods)==0:
-        print "no orientation data for ",er_sample_name
+        print("no orientation data for ",er_sample_name)
         # preserve meta-data anyway even though orientation is bad
         orig_data = get_dictitem(samp_data,'er_sample_name',er_sample_name,'T')[0] # get all the orientation data for this sample
         orient.update(orig_data)
@@ -177,18 +184,18 @@ def find_f(data):
     >>> directions = np.array([[140,21],[127,23],[142,19],[136,22]])
     >>> Es, Is, Fs, V2s = pmag.find_f(directions)
     """
-    rad=np.pi/180.
+    rad=old_div(np.pi,180.)
     Es,Is,Fs,V2s=[],[],[],[]
     ppars=doprinc(data)
     D=ppars['dec']
     Decs,Incs=data.transpose()[0],data.transpose()[1]
     Tan_Incs=np.tan(Incs*rad)
     for f in np.arange(1.,.2 ,-.01):
-        U=np.arctan((1./f)*Tan_Incs)/rad
+        U=old_div(np.arctan((old_div(1.,f))*Tan_Incs),rad)
         fdata=np.array([Decs,U]).transpose()
         ppars=doprinc(fdata)
         Fs.append(f)
-        Es.append(ppars["tau2"]/ppars["tau3"])
+        Es.append(old_div(ppars["tau2"],ppars["tau3"]))
         ang = angle([D,0],[ppars["V2dec"],0])
         if 180.-ang<ang:ang=180.-ang
         V2s.append(ang)
@@ -200,11 +207,11 @@ def find_f(data):
             del V2s[-1]
             if len(Fs)>0:
                 for f in np.arange(Fs[-1],.2 ,-.005):
-                    U=np.arctan((1./f)*Tan_Incs)/rad
+                    U=old_div(np.arctan((old_div(1.,f))*Tan_Incs),rad)
                     fdata=np.array([Decs,U]).transpose()
                     ppars=doprinc(fdata)
                     Fs.append(f)
-                    Es.append(ppars["tau2"]/ppars["tau3"])
+                    Es.append(old_div(ppars["tau2"],ppars["tau3"]))
                     Is.append(abs(ppars["inc"]))
                     ang=angle([D,0],[ppars["V2dec"],0])
                     if 180.-ang<ang:ang=180.-ang
@@ -216,7 +223,7 @@ def find_f(data):
 
 def cooling_rate(SpecRec,SampRecs,crfrac,crtype):
     CrSpecRec,frac,crmcd={},0,'DA-CR'
-    for key in SpecRec.keys():CrSpecRec[key]=SpecRec[key]
+    for key in list(SpecRec.keys()):CrSpecRec[key]=SpecRec[key]
     if len(SampRecs)>0:
         frac=.01*float(SampRecs[0]['cooling_rate_corr'])
         if 'DA-CR' in SampRecs[0]['cooling_rate_mcd']:
@@ -242,13 +249,13 @@ def convert_lat(Recs):
     """
     New=[]
     for rec in Recs:
-        if 'model_lat' in rec.keys() and rec['model_lat']!="":
+        if 'model_lat' in list(rec.keys()) and rec['model_lat']!="":
              New.append(rec)
-        elif 'average_age'  in rec.keys() and rec['average_age']!="" and  float(rec['average_age'])<=5.:
-            if 'site_lat' in rec.keys() and rec['site_lat']!="":
+        elif 'average_age'  in list(rec.keys()) and rec['average_age']!="" and  float(rec['average_age'])<=5.:
+            if 'site_lat' in list(rec.keys()) and rec['site_lat']!="":
                  rec['model_lat']=rec['site_lat']
                  New.append(rec)
-        elif 'average_inc' in rec.keys() and rec['average_inc']!="":
+        elif 'average_inc' in list(rec.keys()) and rec['average_inc']!="":
             rec['model_lat']='%7.1f'%(plat(float(rec['average_inc'])))
             New.append(rec)
     return New
@@ -260,13 +267,13 @@ def convert_ages(Recs):
     New=[]
     for rec in Recs:
         age=''
-        agekey=find('age',rec.keys())
+        agekey=find('age',list(rec.keys()))
         if agekey!="":
             keybase=agekey.split('_')[0]+'_'
             if rec[keybase+'age']!="":
                 age=float(rec[keybase+"age"])
             elif rec[keybase+'age_low']!="" and rec[keybase+'age_high']!='':
-                age=float(rec[keybase+'age_low'])  +(float(rec[keybase+'age_high'])-float(rec[keybase+'age_low']))/2.
+                age=float(rec[keybase+'age_low'])  +old_div((float(rec[keybase+'age_high'])-float(rec[keybase+'age_low'])),2.)
             if age!='':
                 rec[keybase+'age_unit']
                 if rec[keybase+'age_unit']=='Ma':
@@ -280,14 +287,14 @@ def convert_ages(Recs):
                 rec[keybase+'age_unit']='Ma'
                 New.append(rec)
             else:
-                if 'er_site_names' in rec.keys():
-                    print 'problem in convert_ages:', rec['er_site_names']
-                elif 'er_site_name' in rec.keys():
-                    print 'problem in convert_ages:', rec['er_site_name']
+                if 'er_site_names' in list(rec.keys()):
+                    print('problem in convert_ages:', rec['er_site_names'])
+                elif 'er_site_name' in list(rec.keys()):
+                    print('problem in convert_ages:', rec['er_site_name'])
                 else:
-                    print 'problem in convert_ages:', rec
+                    print('problem in convert_ages:', rec)
         else:
-            print 'no age key:', rec
+            print('no age key:', rec)
     return New
 
 
@@ -341,7 +348,7 @@ def convert_directory_2_to_3(meas_fname="magic_measurements.txt", input_dir=".",
                'ages': map_magic.age_magic2_2_magic3_map}
     full_name = os.path.join(input_dir, meas_fname)
     if not os.path.exists(full_name):
-        print "-W- {} is not a file".format(full_name)
+        print("-W- {} is not a file".format(full_name))
         return False, False, False
     # read in data model 2.5 measurements file
     data2, filetype = magic_read(full_name)
@@ -352,10 +359,10 @@ def convert_directory_2_to_3(meas_fname="magic_measurements.txt", input_dir=".",
     magic_write(ofile, NewMeas,'measurements')
     upgraded = []
     if os.path.exists(ofile):
-        print "-I- 3.0 format measurements file was successfully created: {}".format(ofile)
+        print("-I- 3.0 format measurements file was successfully created: {}".format(ofile))
         upgraded.append("measurements.txt")
     else:
-        print "-W- 3.0 format measurements file could not be created"
+        print("-W- 3.0 format measurements file could not be created")
     #
     no_upgrade = []
     if not meas_only:
@@ -442,7 +449,7 @@ def convert_and_combine_2_to_3(dtype, map_dict, input_dir=".", output_dir=".", d
         new_df.write_magic_file(dir_path=output_dir)
         return dtype + ".txt"
     else:
-        print "-I- No {} data found.".format(dtype)
+        print("-I- No {} data found.".format(dtype))
         return None
 
 def convert_criteria_file_2_to_3(fname="pmag_criteria.txt", input_dir=".",
@@ -471,7 +478,7 @@ def convert_criteria_file_2_to_3(fname="pmag_criteria.txt", input_dir=".",
     converted_crit = {}
     # get data model including criteria map
     if not data_model:
-        import data_model3 as dm3
+        from . import data_model3 as dm3
         DM = dm3.DataModel()
     else:
         DM = data_model
@@ -488,7 +495,7 @@ def convert_criteria_file_2_to_3(fname="pmag_criteria.txt", input_dir=".",
             orig_crit[crit]['criterion_operation'] = criterion_operation
             converted_crit[table_col] = orig_crit[crit]
         else:
-            print '-W- Could not convert {} to 3.0, skipping'.format(crit)
+            print('-W- Could not convert {} to 3.0, skipping'.format(crit))
     # switch axes
     converted_df = pd.DataFrame(converted_crit).transpose()
     # name the index
@@ -591,13 +598,13 @@ def getsampVDM(SampRec,SampNFO):
         lat=float(samp['sample_lat'])
         int = float(SampRec['sample_int'])
         vdm=b_vdm(int,lat)
-        if 'sample_int_sigma' in SampRec.keys() and  SampRec['sample_int_sigma']!="":
+        if 'sample_int_sigma' in list(SampRec.keys()) and  SampRec['sample_int_sigma']!="":
             sig=b_vdm(float(SampRec['sample_int_sigma']),lat)
             sig='%8.3e'%(sig)
         else:
             sig=""
     else:
-        print 'could not find sample info for: ', SampRec['er_sample_name']
+        print('could not find sample info for: ', SampRec['er_sample_name'])
         return {}
     ResRec={}
     ResRec['pmag_result_name']='V[A]DM Sample: '+SampRec['er_sample_name']
@@ -605,11 +612,11 @@ def getsampVDM(SampRec,SampNFO):
     ResRec['er_citation_names']="This study"
     ResRec['er_site_names']=SampRec['er_site_name']
     ResRec['er_sample_names']=SampRec['er_sample_name']
-    if 'sample_dec' in SampRec.keys():
+    if 'sample_dec' in list(SampRec.keys()):
         ResRec['average_dec']=SampRec['sample_dec']
     else:
         ResRec['average_dec']=""
-    if 'sample_inc' in SampRec.keys():
+    if 'sample_inc' in list(SampRec.keys()):
         ResRec['average_inc']=SampRec['sample_inc']
     else:
         ResRec['average_inc']=""
@@ -677,13 +684,13 @@ def ParseMeasFile(measfile,sitefile,instout,specout): # fix up some stuff for up
     InstRecs=[]
     meas_data,file_type=magic_read(measfile)
     if file_type != 'magic_measurements':
-        print file_type,"This is not a valid magic_measurements file "
+        print(file_type,"This is not a valid magic_measurements file ")
         return
     # read in site data
     if sitefile!="":
         SiteNFO,file_type=magic_read(sitefile)
         if file_type=="bad_file":
-            print "Bad  or no er_sites file - lithology, etc will not be imported"
+            print("Bad  or no er_sites file - lithology, etc will not be imported")
     else:
         SiteNFO=[]
     # define the Er_specimen records to create a new er_specimens.txt file
@@ -691,7 +698,7 @@ def ParseMeasFile(measfile,sitefile,instout,specout): # fix up some stuff for up
     suniq,ErSpecs=[],[]
     for rec in meas_data:
 # fill in some potentially missing fields
-        if "magic_instrument_codes" in rec.keys():
+        if "magic_instrument_codes" in list(rec.keys()):
             list=(rec["magic_instrument_codes"])
             list.strip()
             tmplist=list.split(":")
@@ -701,7 +708,7 @@ def ParseMeasFile(measfile,sitefile,instout,specout): # fix up some stuff for up
                     InstRec={}
                     InstRec["magic_instrument_code"]=inst
                     InstRecs.append(InstRec)
-        if "measurement_standard" not in rec.keys():rec['measurement_standard']='u' # make this an unknown if not specified
+        if "measurement_standard" not in list(rec.keys()):rec['measurement_standard']='u' # make this an unknown if not specified
         if rec["er_specimen_name"] not in suniq and rec["measurement_standard"]!='s': # exclude standards
             suniq.append(rec["er_specimen_name"])
             ErSpecRec={}
@@ -715,32 +722,32 @@ def ParseMeasFile(measfile,sitefile,instout,specout): # fix up some stuff for up
             sites=get_dictitem(SiteNFO,'er_site_name',rec['er_site_name'],'T')
             if len(sites)==0:
                 site={}
-                print 'site record in er_sites table not found for: ',rec['er_site_name']
+                print('site record in er_sites table not found for: ',rec['er_site_name'])
             else:
                 site=sites[0]
-            if 'site_class' not in site.keys() or 'site_lithology' not in site.keys() or 'site_type' not in site.keys():
+            if 'site_class' not in list(site.keys()) or 'site_lithology' not in list(site.keys()) or 'site_type' not in list(site.keys()):
                 site['site_class']='Not Specified'
                 site['site_lithology']='Not Specified'
                 site['site_type']='Not Specified'
-            if 'specimen_class' not in ErSpecRec.keys():ErSpecRec["specimen_class"]=site['site_class']
-            if 'specimen_lithology' not in ErSpecRec.keys():ErSpecRec["specimen_lithology"]=site['site_lithology']
-            if 'specimen_type' not in ErSpecRec.keys():ErSpecRec["specimen_type"]=site['site_type']
-            if 'specimen_volume' not in ErSpecRec.keys():ErSpecRec["specimen_volume"]=""
-            if 'specimen_weight' not in ErSpecRec.keys():ErSpecRec["specimen_weight"]=""
+            if 'specimen_class' not in list(ErSpecRec.keys()):ErSpecRec["specimen_class"]=site['site_class']
+            if 'specimen_lithology' not in list(ErSpecRec.keys()):ErSpecRec["specimen_lithology"]=site['site_lithology']
+            if 'specimen_type' not in list(ErSpecRec.keys()):ErSpecRec["specimen_type"]=site['site_type']
+            if 'specimen_volume' not in list(ErSpecRec.keys()):ErSpecRec["specimen_volume"]=""
+            if 'specimen_weight' not in list(ErSpecRec.keys()):ErSpecRec["specimen_weight"]=""
             ErSpecs.append(ErSpecRec)
     #
     #
     # save the data
     #
     magic_write(specout,ErSpecs,"er_specimens")
-    print " Er_Specimen data (with updated info from site if necessary)  saved in ",specout
+    print(" Er_Specimen data (with updated info from site if necessary)  saved in ",specout)
     #
     # write out the instrument list
     if len(InstRecs) >0:
         magic_write(instout,InstRecs,"magic_instruments")
-        print " Instruments data saved in ",instout
+        print(" Instruments data saved in ",instout)
     else:
-        print "No instruments found"
+        print("No instruments found")
 
 def ReorderSamples(specfile,sampfile,outfile): # take care of re-ordering sample table, putting used orientations first
     UsedSamps,RestSamps=[],[]
@@ -757,7 +764,7 @@ def ReorderSamples(specfile,sampfile,outfile): # take care of re-ordering sample
         if len(used)>0:
             UsedSamps.append(used[0])
         else:
-            print 'orientation not found for: ',rec['er_specimen_name']
+            print('orientation not found for: ',rec['er_specimen_name'])
         rest=get_dictitem(samprecs,'magic_method_codes',SO_meth,'not')
         for rec in rest:
             RestSamps.append(rec)
@@ -786,7 +793,7 @@ def orient(mag_azimuth,field_dip,or_con):
         return mag_azimuth-90., 90.-field_dip
     if or_con=="7": # lab_mag_az=mag_az;  sample_dip = 90.-dip
         return mag_azimuth-90., 90.-field_dip
-    print "Error in orientation convention"
+    print("Error in orientation convention")
 
 def get_Sb(data):
     """
@@ -799,13 +806,13 @@ def get_Sb(data):
                     k=float(rec['average_k'])
                     L=float(rec['average_lat'])*np.pi/180. # latitude in radians
                     Nsi=float(rec['average_nn'])
-                    K=k/(2.*(1.+3.*np.sin(L)**2)/(5.-3.*np.sin(L)**2))
-                    Sw=81./np.sqrt(K)
+                    K=old_div(k,(2.*(1.+3.*np.sin(L)**2)/(5.-3.*np.sin(L)**2)))
+                    Sw=old_div(81.,np.sqrt(K))
                 else:
                     Sw,Nsi=0,1.
-                Sb+=delta**2.-(Sw**2)/Nsi
+                Sb+=delta**2.-old_div((Sw**2),Nsi)
                 N+=1.
-    return np.sqrt( Sb/float(N-1.) )
+    return np.sqrt( old_div(Sb,float(N-1.)) )
 
 def default_criteria(nocrit):
     Crits={}
@@ -873,7 +880,7 @@ def grade(PmagRec,ACCEPT,type,data_model=2.5):
         if data_model==3.0:
             USEKEYS=[map_magic.site_magic2_2_magic3_map[k] for k in USEKEYS]
 
-    for key in ACCEPT.keys():
+    for key in list(ACCEPT.keys()):
         if ACCEPT[key]!="" and key in USEKEYS:
             if key in ISTRUE and ACCEPT[key]=='TRUE' or ACCEPT[key]=='True':
                 ACCEPT[key]='1' # this is because Excel always capitalizes True to TRUE and python doesn't recognize that as a boolean.  never mind
@@ -883,7 +890,7 @@ def grade(PmagRec,ACCEPT,type,data_model=2.5):
                 ACCEPT[key]=""
             accept[key]=ACCEPT[key]
     for key in sigma_types:
-        if key in USEKEYS and key in accept.keys() and key in PmagRec.keys(): sigmas.append(key)
+        if key in USEKEYS and key in list(accept.keys()) and key in list(PmagRec.keys()): sigmas.append(key)
     if len(sigmas)>1:
         if PmagRec[sigmas[0]]=="" or PmagRec[sigmas[1]]=="":
            kill.append(sigmas[0])
@@ -891,12 +898,12 @@ def grade(PmagRec,ACCEPT,type,data_model=2.5):
         elif eval(PmagRec[sigmas[0]])>eval(accept[sigmas[0]]) and eval(PmagRec[sigmas[1]])>eval(accept[sigmas[1]]):
            kill.append(sigmas[0])
            kill.append(sigmas[1])
-    elif len(sigmas)==1 and sigmas[0] in accept.keys():
+    elif len(sigmas)==1 and sigmas[0] in list(accept.keys()):
         if PmagRec[sigmas[0]]>accept[sigmas[0]]:
            kill.append(sigmas[0])
-    for key in accept.keys():
+    for key in list(accept.keys()):
      if accept[key]!="":
-        if key not in PmagRec.keys() or PmagRec[key]=='':
+        if key not in list(PmagRec.keys()) or PmagRec[key]=='':
             kill.append(key)
         elif key not in sigma_types:
             if key in ISTRUE: # boolean must be true
@@ -954,7 +961,7 @@ def dia_vgp(*args): # new function interface by J.Holmes, SIO, 6/1/2011
     # test whether arguments are one 2-D list or 5 floats
     if len(args) == 1: # args comes in as a tuple of multi-dim lists.
         largs=list(args).pop() # scrap the tuple.
-        (decs, dips, a95s, slats, slongs) = zip(*largs) # reorganize the lists so that we get columns of data in each var.
+        (decs, dips, a95s, slats, slongs) = list(zip(*largs)) # reorganize the lists so that we get columns of data in each var.
     else:
         # When args > 1, we are receiving five floats. This usually happens when the invoking script is
         # executed in interactive mode.
@@ -963,11 +970,11 @@ def dia_vgp(*args): # new function interface by J.Holmes, SIO, 6/1/2011
     # We send all incoming data to numpy in an array form. Even if it means a 1x1 matrix. That's OKAY. Really.
     (dec, dip, a95, slat, slong) = (np.array(decs), np.array(dips), np.array(a95s), \
                                     np.array(slats), np.array(slongs)) # package columns into arrays
-    rad=np.pi/180. # convert to radians
+    rad=old_div(np.pi,180.) # convert to radians
     dec,dip,a95,slat,slong=dec*rad,dip*rad,a95*rad,slat*rad,slong*rad
     p=np.arctan2(2.0,np.tan(dip))
     plat=np.arcsin(np.sin(slat)*np.cos(p)+np.cos(slat)*np.sin(p)*np.cos(dec))
-    beta=(np.sin(p)*np.sin(dec))/np.cos(plat)
+    beta=old_div((np.sin(p)*np.sin(dec)),np.cos(plat))
 
     #------------------------------------------------------------------------------------------------------------
     # The deal with "boolmask":
@@ -1015,8 +1022,8 @@ def dia_vgp(*args): # new function interface by J.Holmes, SIO, 6/1/2011
         if boolmask:
             plong = plong-2*np.pi
 
-    dm = np.rad2deg(a95*(np.sin(p)/np.cos(dip)))
-    dp = np.rad2deg(a95 * ((1+3*(np.cos(p)**2))/2))
+    dm = np.rad2deg(a95*(old_div(np.sin(p),np.cos(dip))))
+    dp = np.rad2deg(a95 * (old_div((1+3*(np.cos(p)**2)),2)))
     plat = np.rad2deg(plat)
     plong = np.rad2deg(plong)
     return plong.tolist(),plat.tolist(),dp.tolist(),dm.tolist()
@@ -1026,7 +1033,7 @@ def int_pars(x,y,vds,**kwargs):
      calculates York regression and Coe parameters (with Tauxe Fvds)
     """
     # first do linear regression a la York
-    if 'version' in kwargs.keys() and kwargs['version']==3: # do Data Model 3 way:
+    if 'version' in list(kwargs.keys()) and kwargs['version']==3: # do Data Model 3 way:
         n_key='int_n_measurements'
         b_key='int_b'
         sigma_key='int_b_sigma'
@@ -1053,7 +1060,7 @@ def int_pars(x,y,vds,**kwargs):
     pars[n_key]=len(x)
     n=float(len(x))
     if n<=2:
-        print "shouldn't be here at all!"
+        print("shouldn't be here at all!")
         return pars,1
     for i in range(len(x)):
         xx+=x[i]**2.
@@ -1061,42 +1068,42 @@ def int_pars(x,y,vds,**kwargs):
         xy+=x[i]*y[i]
         xsum+=x[i]
         ysum+=y[i]
-    xsig=np.sqrt((xx-(xsum**2./n))/(n-1.))
-    ysig=np.sqrt((yy-(ysum**2./n))/(n-1.))
+    xsig=np.sqrt(old_div((xx-(old_div(xsum**2.,n))),(n-1.)))
+    ysig=np.sqrt(old_div((yy-(old_div(ysum**2.,n))),(n-1.)))
     sum=0
     for i in range(int(n)):
-        yer+= (y[i]-ysum/n)**2.
-        xer+= (x[i]-xsum/n)**2.
-        xyer+= (y[i]-ysum/n)*(x[i]-xsum/n)
-    slop=-np.sqrt(yer/xer)
+        yer+= (y[i]-old_div(ysum,n))**2.
+        xer+= (x[i]-old_div(xsum,n))**2.
+        xyer+= (y[i]-old_div(ysum,n))*(x[i]-old_div(xsum,n))
+    slop=-np.sqrt(old_div(yer,xer))
     pars[b_key]=slop
     s1=2.*yer-2.*slop*xyer
     s2=(n-2.)*xer
-    sigma=np.sqrt(s1/s2)
+    sigma=np.sqrt(old_div(s1,s2))
     pars[sigma_key]=sigma
-    s=(xy-(xsum*ysum/n))/(xx-(xsum**2.)/n)
-    r=(s*xsig)/ysig
+    s=old_div((xy-(xsum*ysum/n)),(xx-old_div((xsum**2.),n)))
+    r=old_div((s*xsig),ysig)
     pars["specimen_rsc"]=r**2.
-    ytot=abs(ysum/n-slop*xsum/n)
+    ytot=abs(old_div(ysum,n)-slop*xsum/n)
     for i in range(int(n)):
-        xprime.append((slop*x[i]+y[i]-ytot)/(2.*slop))
-        yprime.append(((slop*x[i]+y[i]-ytot)/2.)+ytot)
+        xprime.append(old_div((slop*x[i]+y[i]-ytot),(2.*slop)))
+        yprime.append((old_div((slop*x[i]+y[i]-ytot),2.))+ytot)
     sumdy,dy=0,[]
     dyt = abs(yprime[0]-yprime[int(n)-1])
     for i in range((int(n)-1)):
         dy.append(abs(yprime[i+1]-yprime[i]))
         sumdy+= dy[i]**2.
-    f=dyt/ytot
+    f=old_div(dyt,ytot)
     pars[f_key]=f
     pars["specimen_ytot"]=ytot
-    ff=dyt/vds
+    ff=old_div(dyt,vds)
     pars[fvds_key]=ff
-    ddy=(1./dyt)*sumdy
-    g=1.-ddy/dyt
+    ddy=(old_div(1.,dyt))*sumdy
+    g=1.-old_div(ddy,dyt)
     pars[g_key]=g
     q=abs(slop)*f*g/sigma
     pars[q_key]=q
-    pars[b_beta_key]=-sigma/slop
+    pars[b_beta_key]=old_div(-sigma,slop)
     return pars,0
 
 def dovds(data):
@@ -1126,7 +1133,7 @@ def vspec_magic(data):
 # find keys that are used
 #
     for key in treat_init:
-        if key in data[0].keys():treats.append(key)  # get a list of keys
+        if key in list(data[0].keys()):treats.append(key)  # get a list of keys
     stop={}
     stop["er_specimen_name"]="stop"
     for key in treats:
@@ -1159,11 +1166,11 @@ def vspec_magic(data):
                 vrec=data[i-1]
                 vrec['measurement_dec']='%7.1f'%(dir[0])
                 vrec['measurement_inc']='%7.1f'%(dir[1])
-                vrec['measurement_magn_moment']='%8.3e'%(R/(i-k+1))
+                vrec['measurement_magn_moment']='%8.3e'%(old_div(R,(i-k+1)))
                 vrec['measurement_csd']='%7.1f'%(Fpars['csd'])
                 vrec['measurement_positions']='%7.1f'%(Fpars['n'])
                 vrec['measurement_description']='average of multiple measurements'
-                if "magic_method_codes" in vrec.keys():
+                if "magic_method_codes" in list(vrec.keys()):
                     meths=vrec["magic_method_codes"].strip().split(":")
                     if "DE-VM" not in meths:meths.append("DE-VM")
                     methods=""
@@ -1192,7 +1199,7 @@ def vspec_magic3(data):
 # find keys that are used
 #
     for key in treat_init:
-        if key in data[0].keys():treats.append(key)  # get a list of keys
+        if key in list(data[0].keys()):treats.append(key)  # get a list of keys
     stop={}
     stop["specimen"]="stop"
     for key in treats:
@@ -1225,11 +1232,11 @@ def vspec_magic3(data):
                 vrec=data[i-1]
                 vrec['dir_dec']='%7.1f'%(dir[0])
                 vrec['dir_inc']='%7.1f'%(dir[1])
-                vrec['magn_moment']='%8.3e'%(R/(i-k+1))
+                vrec['magn_moment']='%8.3e'%(old_div(R,(i-k+1)))
                 vrec['dir_csd']='%7.1f'%(Fpars['csd'])
                 vrec['meas_n_orient']='%7.1f'%(Fpars['n'])
                 vrec['description']='average of multiple measurements'
-                if "method_codes" in vrec.keys():
+                if "method_codes" in list(vrec.keys()):
                     meths=vrec["method_codes"].strip().split(":")
                     if "DE-VM" not in meths:meths.append("DE-VM")
                     methods=""
@@ -1274,7 +1281,7 @@ def vector_mean(data):
         R+=Xbar[c]**2
     R=np.sqrt(R)
     for c in range(3):
-        Xbar[c]=Xbar[c]/R
+        Xbar[c]=old_div(Xbar[c],R)
     dir=cart2dir(Xbar)
     return dir, R
 
@@ -1315,7 +1322,7 @@ def find_dmag_rec(s,data,**kwargs):
     Returns demagnetization data for specimen s from the data. Excludes other
     kinds of experiments and "bad" measurements
     """
-    if 'version' in kwargs.keys() and kwargs['version']==3:
+    if 'version' in list(kwargs.keys()) and kwargs['version']==3:
         data=data.to_dict('records')  # convert dataframe to list of dictionaries
         spec_key,dec_key,inc_key='specimen','dir_dec','dir_inc'
         flag_key,temp_key,ac_key='flag','treat_temp','treat_ac_field'
@@ -1340,7 +1347,7 @@ def find_dmag_rec(s,data,**kwargs):
     units=[]
     spec_meas=get_dictitem(data,spec_key,s,'T')
     for rec in spec_meas:
-           if flag_key not in rec.keys():rec[flag_key]='g'
+           if flag_key not in list(rec.keys()):rec[flag_key]='g'
            skip=1
            tr=""
            meths=rec[meth_key].split(":")
@@ -1372,13 +1379,13 @@ def find_dmag_rec(s,data,**kwargs):
                    ZI=1
                if tr !="":
                    dec,inc,int = "","",""
-                   if dec_key in rec.keys() and rec[dec_key] != "":
+                   if dec_key in list(rec.keys()) and rec[dec_key] != "":
                        dec=float(rec[dec_key])
-                   if inc_key in rec.keys() and rec[inc_key] != "":
+                   if inc_key in list(rec.keys()) and rec[inc_key] != "":
                        inc=float(rec[inc_key])
                    for key in Mkeys:
-                       if key in rec.keys() and rec[key]!="":int=float(rec[key])
-                   if inst_key not in rec.keys():rec[inst_key]=''
+                       if key in list(rec.keys()) and rec[key]!="":int=float(rec[key])
+                   if inst_key not in list(rec.keys()):rec[inst_key]=''
                    datablock.append([tr,dec,inc,int,ZI,rec[flag_key],rec[inst_key]])
     if therm_flag==1:
         for k in range(len(datablock)):
@@ -1402,7 +1409,7 @@ def magic_read(infile, data=None, return_keys=False):
         f = data
     else:
         try:
-            f=open(infile,"rU")
+            f=open(infile,"r")
         except Exception as ex:
             if return_keys:
                 return [], 'bad_file', []
@@ -1410,6 +1417,7 @@ def magic_read(infile, data=None, return_keys=False):
 
     d = f.readline()[:-1].strip('\n')
     if not d:
+        f.close()
         if return_keys:
             return [], 'empty_file', []
         return [], 'empty_file'
@@ -1418,7 +1426,8 @@ def magic_read(infile, data=None, return_keys=False):
     elif d[0]=="t" or d[1]=="t":
         delim='tab'
     else:
-        print 'error reading ', infile
+        f.close()
+        print('error reading ', infile)
         if return_keys:
             return [], 'bad_file', []
         return [], 'bad_file'
@@ -1438,6 +1447,7 @@ def magic_read(infile, data=None, return_keys=False):
     for key in line:
         magic_keys.append(key)
     lines=f.readlines()
+    f.close()
     if len(lines) < 1:
         if return_keys:
             return [], 'empty_file', []
@@ -1459,9 +1469,9 @@ def magic_read(infile, data=None, return_keys=False):
                 rec.append('')
         if len(magic_keys) != len(rec):
             if rec != ['>>>>>>>>>>'] and 'delimited' not in rec[0]: # ignores this warning when reading the dividers in an upload.txt composite file
-                print "Warning: Uneven record lengths detected in {}: ".format(infile)
-                print magic_keys
-                print rec
+                print("Warning: Uneven record lengths detected in {}: ".format(infile))
+                print(magic_keys)
+                print(rec)
         # modified by Ron Shaar:
         # add a health check:
         # if len(magic_keys) > len(rec): take rec
@@ -1487,7 +1497,7 @@ def magic_read_dict(path, data=None, sort_by_this_name=None, return_keys=False):
     return data, file_type, and keys (if return_keys is true)
     """
     DATA = {}
-    fin = open(path, 'rU')
+    fin = open(path, 'r')
     first_line = fin.readline()
     if not first_line:
         if return_keys:
@@ -1499,7 +1509,7 @@ def magic_read_dict(path, data=None, sort_by_this_name=None, return_keys=False):
     elif first_line[0] == "t" or first_line[1] == "t":
         delim = '\t'
     else:
-        print '-W- error reading ', path
+        print('-W- error reading ', path)
         if return_keys:
             return False, 'bad_file', None
         else:
@@ -1522,7 +1532,7 @@ def magic_read_dict(path, data=None, sort_by_this_name=None, return_keys=False):
     for line in fin.readlines():
         tmp_data = {}
         tmp_line = line.strip('\n').split(delim)
-        for i in xrange(len(header)):
+        for i in range(len(header)):
             if i < len(tmp_line):
                 tmp_data[header[i]] = tmp_line[i].strip()
             else:
@@ -1547,7 +1557,7 @@ def sort_magic_data(magic_data,sort_name):
     magic_data_sorted={}
     for rec in magic_data:
        name=rec[sort_name]
-       if name not in magic_data_sorted.keys():
+       if name not in list(magic_data_sorted.keys()):
            magic_data_sorted[name]=[]
        magic_data_sorted[name].append(rec)
     return  magic_data_sorted
@@ -1559,7 +1569,7 @@ def upload_read(infile,table):
     """
     delim='tab'
     hold,magic_data,magic_record,magic_keys=[],[],{},[]
-    f=open(infile,"rU")
+    f=open(infile,"r")
 #
 # look for right table
 #
@@ -1569,7 +1579,8 @@ def upload_read(infile,table):
     if delim=='tab':
         line =f.readline()[:-1].split('\t')
     else:
-        print "only tab delimitted files are supported now"
+        f.close()
+        print("only tab delimitted files are supported now")
         return
     while file_type!=table:
         while line[0][0:5] in f.readlines() !=">>>>>":
@@ -1587,11 +1598,12 @@ def upload_read(infile,table):
         for rec in hold:
             magic_record={}
             if len(magic_keys) != len(rec):
-                print "Uneven record lengths detected: ",rec
-                raw_input("Return to continue.... ")
+                print("Uneven record lengths detected: ",rec)
+                input("Return to continue.... ")
             for k in range(len(magic_keys)):
                 magic_record[magic_keys[k]]=rec[k]
             magic_data.append(magic_record)
+    f.close()
     return magic_data
 
 def putout(ofile,keylist,Rec):
@@ -1604,7 +1616,7 @@ def putout(ofile,keylist,Rec):
         try:
            outstring=outstring + '\t' + str(Rec[key]).strip()
         except:
-           print key,Rec[key]
+           print(key,Rec[key])
            #raw_input()
     outstring=outstring+'\n'
     pmag_out.write(outstring[1:])
@@ -1627,7 +1639,7 @@ def first_rec(ofile,Rec,file_type):
     outstring="tab \t"+file_type+"\n"
     pmag_out.write(outstring)
     keystring=""
-    for key in Rec.keys():
+    for key in list(Rec.keys()):
         keystring=keystring+'\t'+key.strip()
         keylist.append(key)
     keystring=keystring + '\n'
@@ -1647,7 +1659,7 @@ def magic_write_old(ofile,Recs,file_type):
     pmag_out.write(outstring)
     keystring=""
     keylist=[]
-    for key in Recs[0].keys():
+    for key in list(Recs[0].keys()):
         keylist.append(key)
     keylist.sort()
     for key in keylist:
@@ -1660,11 +1672,11 @@ def magic_write_old(ofile,Recs,file_type):
            try:
               outstring=outstring+'\t'+str(Rec[key].strip())
            except:
-              if 'er_specimen_name' in Rec.keys():
-                  print Rec['er_specimen_name']
-              elif 'er_specimen_names' in Rec.keys():
-                  print Rec['er_specimen_names']
-              print key,Rec[key]
+              if 'er_specimen_name' in list(Rec.keys()):
+                  print(Rec['er_specimen_name'])
+              elif 'er_specimen_names' in list(Rec.keys()):
+                  print(Rec['er_specimen_names'])
+              print(key,Rec[key])
               #raw_input()
         outstring=outstring+'\n'
         pmag_out.write(outstring[1:])
@@ -1678,7 +1690,7 @@ def magic_write(ofile,Recs,file_type):
     if len(Recs)<1:
         return False, 'No records to write to file {}'.format(ofile)
     else:
-        print len(Recs),' records written to file ',ofile
+        print(len(Recs),' records written to file ',ofile)
     if os.path.split(ofile)[0] != "" and not os.path.isdir(os.path.split(ofile)[0]):
         os.mkdir(os.path.split(ofile)[0])
     pmag_out=open(ofile,'w+')
@@ -1686,7 +1698,7 @@ def magic_write(ofile,Recs,file_type):
     pmag_out.write(outstring)
     keystring=""
     keylist=[]
-    for key in Recs[0].keys():
+    for key in list(Recs[0].keys()):
         keylist.append(key)
     keylist.sort()
     for key in keylist:
@@ -1699,10 +1711,10 @@ def magic_write(ofile,Recs,file_type):
            try:
               outstring=outstring+'\t'+str(Rec[key]).strip()
            except KeyError:
-              if 'er_specimen_name' in Rec.keys():
-                  print Rec['er_specimen_name']
-              elif 'er_specimen_names' in Rec.keys():
-                  print 'specimen names:', Rec['er_specimen_names']
+              if 'er_specimen_name' in list(Rec.keys()):
+                  print(Rec['er_specimen_name'])
+              elif 'er_specimen_names' in list(Rec.keys()):
+                  print('specimen names:', Rec['er_specimen_names'])
               print("No data for %s"%key)
               #raw_input()
         outstring=outstring+'\n'
@@ -1731,7 +1743,7 @@ def dotilt(dec,inc,bed_az,bed_dip):
     >>> pmag.dotilt(91.2,43.1,90.0,20.0)
     (90.952568837153436, 23.103411670066617)
     """
-    rad=np.pi/180. # converts from degrees to radians
+    rad=old_div(np.pi,180.) # converts from degrees to radians
     X=dir2cart([dec,inc,1.]) # get cartesian coordinates of dec,inc
 # get some sines and cosines of new coordinate system
     sa,ca= -np.sin(bed_az*rad),np.cos(bed_az*rad)
@@ -1744,7 +1756,7 @@ def dotilt(dec,inc,bed_az,bed_dip):
     Dir=cart2dir([xc,yc,-zc])
     return Dir[0],Dir[1] # return declination, inclination of rotated direction
 
-def dotilt_V(input):
+def dotilt_V(indat):
     """
     Does a tilt correction on dec,inc using bedding dip direction and dip.
 
@@ -1757,9 +1769,9 @@ def dotilt_V(input):
     -------
     dec,inc : a tuple of rotated dec, inc values
     """
-    input=input.transpose()
-    dec, inc, bed_az, bed_dip =input[0],input[1],input[2],input[3]  # unpack input array into separate arrays
-    rad=np.pi/180. # convert to radians
+    indat=indat.transpose()
+    dec, inc, bed_az, bed_dip =indat[0],indat[1],indat[2],indat[3]  # unpack input array into separate arrays
+    rad=old_div(np.pi,180.) # convert to radians
     Dir=np.array([dec,inc]).transpose()
     X=dir2cart(Dir).transpose() # get cartesian coordinates
     N=np.size(dec)
@@ -1816,13 +1828,13 @@ def dogeo(dec,inc,az,pl):
     Dir_geo=cart2dir([xp,yp,zp])
     return Dir_geo[0],Dir_geo[1]    # send back declination and inclination
 
-def dogeo_V(input):
+def dogeo_V(indat):
     """
     Rotates declination and inclination into geographic coordinates of an array
     using the azimuth and plunge of the X direction (lab arrow) of a specimen.
     """
-    input=input.transpose()
-    dec, inc, az, pl =input[0],input[1],input[2],input[3]  # unpack input array into separate arrays
+    indat=indat.transpose()
+    dec, inc, az, pl =indat[0],indat[1],indat[2],indat[3]  # unpack input array into separate arrays
     Dir=np.array([dec,inc]).transpose()
     X=dir2cart(Dir).transpose() # get cartesian coordinates
     N=np.size(dec)
@@ -1875,21 +1887,21 @@ def find_samp_rec(s,data,az_type):
     orient['sample_description']=""
     for rec in data:
         if rec["er_sample_name"].lower()==s.lower():
-           if 'sample_orientation_flag' in  rec.keys() and rec['sample_orientation_flag']=='b':
+           if 'sample_orientation_flag' in  list(rec.keys()) and rec['sample_orientation_flag']=='b':
                orient['sample_orientation_flag']='b'
                return orient
-           if "magic_method_codes" in rec.keys() and az_type != "0":
+           if "magic_method_codes" in list(rec.keys()) and az_type != "0":
                methods=rec["magic_method_codes"].replace(" ","").split(":")
-               if az_type in methods and "sample_azimuth" in rec.keys() and rec["sample_azimuth"]!="": orient["sample_azimuth"]= float(rec["sample_azimuth"])
-               if "sample_dip" in rec.keys() and rec["sample_dip"]!="": orient["sample_dip"]=float(rec["sample_dip"])
-               if "sample_bed_dip_direction" in rec.keys() and rec["sample_bed_dip_direction"]!="":orient["sample_bed_dip_direction"]=float(rec["sample_bed_dip_direction"])
-               if "sample_bed_dip" in rec.keys() and rec["sample_bed_dip"]!="":orient["sample_bed_dip"]=float(rec["sample_bed_dip"])
+               if az_type in methods and "sample_azimuth" in list(rec.keys()) and rec["sample_azimuth"]!="": orient["sample_azimuth"]= float(rec["sample_azimuth"])
+               if "sample_dip" in list(rec.keys()) and rec["sample_dip"]!="": orient["sample_dip"]=float(rec["sample_dip"])
+               if "sample_bed_dip_direction" in list(rec.keys()) and rec["sample_bed_dip_direction"]!="":orient["sample_bed_dip_direction"]=float(rec["sample_bed_dip_direction"])
+               if "sample_bed_dip" in list(rec.keys()) and rec["sample_bed_dip"]!="":orient["sample_bed_dip"]=float(rec["sample_bed_dip"])
            else:
-               if "sample_azimuth" in rec.keys():orient["sample_azimuth"]=float(rec["sample_azimuth"])
-               if "sample_dip" in rec.keys(): orient["sample_dip"]=float(rec["sample_dip"])
-               if "sample_bed_dip_direction" in rec.keys(): orient["sample_bed_dip_direction"]=float(rec["sample_bed_dip_direction"])
-               if "sample_bed_dip" in rec.keys(): orient["sample_bed_dip"]=float(rec["sample_bed_dip"])
-               if 'sample_description' in rec.keys(): orient['sample_description']=rec['sample_description']
+               if "sample_azimuth" in list(rec.keys()):orient["sample_azimuth"]=float(rec["sample_azimuth"])
+               if "sample_dip" in list(rec.keys()): orient["sample_dip"]=float(rec["sample_dip"])
+               if "sample_bed_dip_direction" in list(rec.keys()): orient["sample_bed_dip_direction"]=float(rec["sample_bed_dip_direction"])
+               if "sample_bed_dip" in list(rec.keys()): orient["sample_bed_dip"]=float(rec["sample_bed_dip"])
+               if 'sample_description' in list(rec.keys()): orient['sample_description']=rec['sample_description']
         if orient["sample_azimuth"]!="": break
     return orient
 
@@ -1911,7 +1923,7 @@ def vspec(data):
                 for l in range(k-1,i):
                     Dirdata.append([data[l][1],data[l][2],data[l][3]])
                 dir,R=vector_mean(Dirdata)
-                vdata.append([data[i-1][0],dir[0],dir[1],R/(i-k+1),'1','g'])
+                vdata.append([data[i-1][0],dir[0],dir[1],old_div(R,(i-k+1)),'1','g'])
                 step_meth.append("DE-VM")
             tr0=data[i][0]
             k=i+1
@@ -1984,7 +1996,7 @@ def cart2dir(cart):
     array([ 90.,   0.,   1.])
     """
     cart=np.array(cart)
-    rad=np.pi/180. # constant to convert degrees to radians
+    rad=old_div(np.pi,180.) # constant to convert degrees to radians
     if len(cart.shape)>1:
         Xs,Ys,Zs=cart[:,0],cart[:,1],cart[:,2]
     else: #single vector
@@ -1993,11 +2005,11 @@ def cart2dir(cart):
     if np.iscomplexobj(Ys): Ys = Ys.real
     if np.iscomplexobj(Zs): Zs = Zs.real
     Rs=np.sqrt(Xs**2+Ys**2+Zs**2) # calculate resultant vector length
-    Decs=(np.arctan2(Ys,Xs)/rad)%360. # calculate declination taking care of correct quadrants (arctan2) and making modulo 360.
+    Decs=(old_div(np.arctan2(Ys,Xs),rad))%360. # calculate declination taking care of correct quadrants (arctan2) and making modulo 360.
     try:
-        Incs=np.arcsin(Zs/Rs)/rad # calculate inclination (converting to degrees) #
+        Incs=old_div(np.arcsin(old_div(Zs,Rs)),rad) # calculate inclination (converting to degrees) #
     except:
-        print 'trouble in cart2dir' # most likely division by zero somewhere
+        print('trouble in cart2dir') # most likely division by zero somewhere
         return np.zeros(3)
 
     return np.array([Decs,Incs,Rs]).transpose() # return the directions list
@@ -2015,7 +2027,7 @@ def tauV(T):
         tr+=tau
     if tr!=0:
         for i in range(3):
-            evalues[i]=evalues[i]/tr
+            evalues[i]=old_div(evalues[i],tr)
     else:
         return t,V
 # sort evalues,evectors
@@ -2067,7 +2079,7 @@ def dir2cart(d):
     """
     ints=np.ones(len(d)).transpose() # get an array of ones to plug into dec,inc pairs
     d=np.array(d)
-    rad=np.pi/180.
+    rad=old_div(np.pi,180.)
     if len(d.shape)>1: # array of vectors
         decs,incs=d[:,0]*rad,d[:,1]*rad
         if d.shape[1]==3: ints=d[:,2] # take the given lengths
@@ -2085,11 +2097,11 @@ def dms2dd(d):
     d=np.array(d)
     if len(d.shape)>1: # array of angles
         degs,mins,secs=d[:,0],d[:,1],d[:,2]
-        print degs,mins,secs
+        print(degs,mins,secs)
     else: # single vector
         degs,mins,secs=np.array(d[0]),np.array(d[1]),np.array(d[2])
-        print degs,mins,secs
-    dd= np.array(degs+mins/60.+secs/3600.).transpose()
+        print(degs,mins,secs)
+    dd= np.array(degs+old_div(mins,60.)+old_div(secs,3600.)).transpose()
     return dd
 
 def findrec(s,data):
@@ -2130,18 +2142,18 @@ def domean(data,start,end,calculation_type):
         if len(rec)<6:rec.append('g')
         indata.append(rec)
     if indata[start0][5] == 'b': print("Can't select 'bad' point as start for PCA")
-    flags = map(lambda x: x[5], indata)
+    flags = [x[5] for x in indata]
     bad_before_start = flags[:start0].count('b')
     bad_in_mean = flags[start0:end0+1].count('b')
     start = start0 - bad_before_start
     end = end0 - bad_before_start - bad_in_mean
-    datablock = filter(lambda x: x[5]=='g', indata)
+    datablock = [x for x in indata if x[5]=='g']
     if indata[start0] != datablock[start]:
         print('problem removing bad data in pmag.domean start of datablock shifted:\norigional: %d\nafter removal: %d'%(start0,indata.index(datablock[start])))
     if indata[end0] != datablock[end]:
         print('problem removing bad data in pmag.domean end of datablock shifted:\norigional: %d\nafter removal: %d'%(end0,indata.index(datablock[end])))
     mpars["calculation_type"]=calculation_type
-    rad=np.pi/180.
+    rad=old_div(np.pi,180.)
     if end>len(datablock)-1 or end<start: end=len(datablock)-1
     control,data,X,Nrec=[],[],[],float(end-start+1)
     cm=[0.,0.,0.]
@@ -2178,7 +2190,7 @@ def domean(data,start,end,calculation_type):
 #
     for cart in X:
         for l in range(3):
-            cm[l]+=cart[l]/Nrec
+            cm[l]+=old_div(cart[l],Nrec)
     mpars["center_of_mass"]=cm
 
 #
@@ -2202,7 +2214,7 @@ def domean(data,start,end,calculation_type):
     t,V=tauV(T)
     if t==[]:
         mpars["specimen_direction_type"]="Error"
-        print "Error in calculation"
+        print("Error in calculation")
         return mpars
     v1,v3=V[0],V[2]
     if t[2]<0:t[2]=0 # make positive
@@ -2216,7 +2228,7 @@ def domean(data,start,end,calculation_type):
         mpars["measurement_step_max"]=indata[end0][0]
         mpars["center_of_mass"]=cm
         s1=np.sqrt(t[0])
-        MAD=np.arctan(np.sqrt(t[1]+t[2])/s1)/rad
+        MAD=old_div(np.arctan(old_div(np.sqrt(t[1]+t[2]),s1)),rad)
         if np.iscomplexobj(MAD): MAD = MAD.real
         mpars["specimen_mad"]=MAD # I think this is how it is done - i never anchor the "PCA" - check
         return mpars
@@ -2243,18 +2255,18 @@ def domean(data,start,end,calculation_type):
             dot += v1[k]*control[k]
         if dot<-1:dot=-1
         if dot>1:dot=1
-        if np.arccos(dot) > np.pi/2.:
+        if np.arccos(dot) > old_div(np.pi,2.):
             for k in range(3):
                 v1[k]=-v1[k]
 #   get right direction along principal component
 #
         s1=np.sqrt(t[0])
         Dir=cart2dir(v1)
-        MAD=np.arctan(np.sqrt(t[1]+t[2])/s1)/rad
+        MAD=old_div(np.arctan(old_div(np.sqrt(t[1]+t[2]),s1)),rad)
         if np.iscomplexobj(MAD): MAD = MAD.real
     if calculation_type=="DE-BFP":
         Dir=cart2dir(v3)
-        MAD=np.arctan(np.sqrt(t[2]/t[1]+t[2]/t[0]))/rad
+        MAD=old_div(np.arctan(np.sqrt(old_div(t[2],t[1])+old_div(t[2],t[0]))),rad)
         if np.iscomplexobj(MAD): MAD = MAD.real
 #
 #   get angle with  center of mass
@@ -2276,13 +2288,13 @@ def circ(dec,dip,alpha):
     """
     function to calculate points on an circle about dec,dip with angle alpha
     """
-    rad=np.pi/180.
+    rad=old_div(np.pi,180.)
     D_out,I_out=[],[]
     dec,dip,alpha=dec*rad ,dip*rad,alpha*rad
-    dec1=dec+np.pi/2.
+    dec1=dec+old_div(np.pi,2.)
     isign=1
-    if dip!=0: isign=(abs(dip)/dip)
-    dip1=(dip-isign*(np.pi/2.))
+    if dip!=0: isign=(old_div(abs(dip),dip))
+    dip1=(dip-isign*(old_div(np.pi,2.)))
     t=[[0,0,0],[0,0,0],[0,0,0]]
     v=[0,0,0]
     t[0][2]=np.cos(dec)*np.cos(dip)
@@ -2312,7 +2324,7 @@ def PintPars(datablock,araiblock,zijdblock,start,end,accept,**kwargs):
     """
      calculate the paleointensity magic parameters  make some definitions
     """
-    if 'version' in kwargs.keys() and kwargs['version']==3:
+    if 'version' in list(kwargs.keys()) and kwargs['version']==3:
         meth_key='method_codes'
         beta_key='int_b_beta'
         temp_key,min_key,max_key='treat_temp','meas_step_min','meas_step_max'
@@ -2406,7 +2418,7 @@ def PintPars(datablock,araiblock,zijdblock,start,end,accept,**kwargs):
 #    for k in range(start,end+1):
     for k in range(len(first_Z)-1):
         for l in range(k):
-            if first_Z[k][3]/vds>0.1:   # only go down to 10% of NRM.....
+            if old_div(first_Z[k][3],vds)>0.1:   # only go down to 10% of NRM.....
                irec=first_I[l]
                if irec[4]==1 and first_I[l+1][4]==0: # a ZI step
                    xzi=irec[3]
@@ -2439,7 +2451,7 @@ def PintPars(datablock,araiblock,zijdblock,start,end,accept,**kwargs):
             F=(dup['n']-2.)* (dzip['r']+dizp['r']-dup['r'])/(dup['n']-dzip['r']-dizp['r']) # Watson test for common mean
             nf=2.*(dup['n']-2.) # number of degees of freedom
             ftest=fcalc(2,nf)
-            Frat=F/ftest
+            Frat=old_div(F,ftest)
             if Frat>1.:
                 ZigZag=Frat # fails zigzag on directions
                 methcode="SM-FTEST"
@@ -2454,10 +2466,10 @@ def PintPars(datablock,araiblock,zijdblock,start,end,accept,**kwargs):
 # avoid false positives - set 3 degree slope difference here too
         if b_diff>3*np.pi/180.:
             nf=n_zi+n_iz-2.  # degrees of freedom
-            svar= ((n_zi-1.)*bzi_sig**2 + (n_iz-1.)*biz_sig**2)/nf
-            T=(b_diff)/np.sqrt(svar*(1.0/n_zi + 1.0/n_iz)) # student's t
+            svar= old_div(((n_zi-1.)*bzi_sig**2 + (n_iz-1.)*biz_sig**2),nf)
+            T=old_div((b_diff),np.sqrt(svar*(old_div(1.0,n_zi) + old_div(1.0,n_iz)))) # student's t
             ttest=tcalc(nf,.05) # t-test at 95% conf.
-            Trat=T/ttest
+            Trat=old_div(T,ttest)
             if Trat>1  and Trat>Frat:
                 ZigZag=Trat # fails zigzag on directions
                 methcode="SM-TTEST"
@@ -2557,7 +2569,7 @@ def PintPars(datablock,araiblock,zijdblock,start,end,accept,**kwargs):
     NRM=zijdblock[0][3]     # NRM
 
     for k in range(len(zijdblock)):
-        DIR=[zijdblock[k][1],zijdblock[k][2],zijdblock[k][3]/NRM]
+        DIR=[zijdblock[k][1],zijdblock[k][2],old_div(zijdblock[k][3],NRM)]
         cart=dir2cart(DIR)
         zdata.append(np.array([cart[0],cart[1],cart[2]]))
         if k>0:
@@ -2570,11 +2582,11 @@ def PintPars(datablock,araiblock,zijdblock,start,end,accept,**kwargs):
     # calculate the vds within the chosen segment
     vector_diffs_segment=vector_diffs[zstart:zend]
     # FRAC calculation
-    FRAC=sum(vector_diffs_segment)/vds
+    FRAC=old_div(sum(vector_diffs_segment),vds)
     pars[frac_key]=FRAC
 
     # gap_max calculation
-    max_FRAC_gap=max(vector_diffs_segment/sum(vector_diffs_segment))
+    max_FRAC_gap=max(old_div(vector_diffs_segment,sum(vector_diffs_segment)))
     pars[gmax_key]=max_FRAC_gap
 
 
@@ -2604,8 +2616,8 @@ def PintPars(datablock,araiblock,zijdblock,start,end,accept,**kwargs):
 
     for k in range(len(NRMs)):
       index_pTRMs=PTRMs_temperatures.index(NRMs[k][0])
-      x_Arai.append(PTRMs[index_pTRMs][3]/NRM)
-      y_Arai.append(NRMs[k][3]/NRM)
+      x_Arai.append(old_div(PTRMs[index_pTRMs][3],NRM))
+      y_Arai.append(old_div(NRMs[k][3],NRM))
       t_Arai.append(NRMs[k][0])
       if NRMs[k][4]==1:
         steps_Arai.append('ZI')
@@ -2634,8 +2646,8 @@ def PintPars(datablock,araiblock,zijdblock,start,end,accept,**kwargs):
                     ptrm_checks_starting_temperatures.append(starting_temperature)
 
                     index_zerofield=zerofield_temperatures.index(ptrm_checks[k][0])
-                    x_ptrm_check.append(ptrm_checks[k][3]/NRM)
-                    y_ptrm_check.append(zerofields[index_zerofield][3]/NRM)
+                    x_ptrm_check.append(old_div(ptrm_checks[k][3],NRM))
+                    y_ptrm_check.append(old_div(zerofields[index_zerofield][3],NRM))
                     ptrm_checks_temperatures.append(ptrm_checks[k][0])
 
                     break
@@ -2671,8 +2683,8 @@ def PintPars(datablock,araiblock,zijdblock,start,end,accept,**kwargs):
                     tail_checks_starting_temperatures.append(starting_temperature)
 
                     index_infield=infield_temperatures.index(ptrm_tail[k][0])
-                    x_tail_check.append(infields[index_infield][3]/NRM)
-                    y_tail_check.append(ptrm_tail[k][3]/NRM + zerofields[index_infield][3]/NRM)
+                    x_tail_check.append(old_div(infields[index_infield][3],NRM))
+                    y_tail_check.append(old_div(ptrm_tail[k][3],NRM) + old_div(zerofields[index_infield][3],NRM))
                     tail_check_temperatures.append(ptrm_tail[k][0])
 
                     break
@@ -2729,7 +2741,7 @@ def PintPars(datablock,araiblock,zijdblock,start,end,accept,**kwargs):
 
     # if threshold value for beta is not defined, then scat cannot be calculated (pass)
     # in this case, scat pass
-    if beta_key in accept.keys() and accept[beta_key]!="":
+    if beta_key in list(accept.keys()) and accept[beta_key]!="":
         b_beta_threshold=float(accept[beta_key])
         b=pars[b_key]             # best fit line
         cm_x=np.mean(np.array(x_Arai_segment)) # x center of mass
@@ -2753,13 +2765,13 @@ def PintPars(datablock,araiblock,zijdblock,start,end,accept,**kwargs):
 
         # lower bounding line of the 'beta box'
         # y=intercept1+slop1x
-        slop1=a1/((a2/b2))
+        slop1=old_div(a1,((old_div(a2,b2))))
         intercept1=a1
 
         # higher bounding line of the 'beta box'
         # y=intercept2+slop2x
 
-        slop2=a2/((a1/b1))
+        slop2=old_div(a2,((old_div(a1,b1))))
         intercept2=a2
 
         pars['specimen_scat_bounding_line_high']=[intercept2,slop2]
@@ -2993,7 +3005,7 @@ def getnames():
     namestring=""
     addmore=1
     while addmore:
-        scientist=raw_input("Enter  name  - <Return> when done ")
+        scientist=input("Enter  name  - <Return> when done ")
         if scientist != "":
             namestring=namestring+":"+scientist
         else:
@@ -3318,7 +3330,7 @@ def dosundec(sundata):
     OUTPUT:
       the declination of the desired direction wrt true north.
     """
-    rad=np.pi/180.
+    rad=old_div(np.pi,180.)
     iday=0
     timedate=sundata["date"]
     timedate=timedate.split(":")
@@ -3336,7 +3348,7 @@ def dosundec(sundata):
         day=day-1
         hrs=hrs+24
     julian_day=julian(mon,day,year)
-    utd=(hrs+min/60.)/24.
+    utd=old_div((hrs+old_div(min,60.)),24.)
     greenwich_hour_angle,delta=gha(julian_day,utd)
     H=greenwich_hour_angle+float(sundata["lon"])
     if H > 360: H=H-360
@@ -3352,7 +3364,7 @@ def dosundec(sundata):
 #
 #       check which beta
 #
-    beta=np.arcsin(beta)/rad
+    beta=old_div(np.arcsin(beta),rad)
     if delta < lat: beta=180-beta
     sunaz=180-beta
     suncor=(sunaz+float(sundata["shadow_angle"]))%360. #  mod 360
@@ -3362,7 +3374,7 @@ def gha(julian_day,f):
     """
     returns greenwich hour angle
     """
-    rad=np.pi/180.
+    rad=old_div(np.pi,180.)
     d=julian_day-2451545.0+f
     L= 280.460 + 0.9856474*d
     g=  357.528 + 0.9856003*d
@@ -3373,19 +3385,19 @@ def gha(julian_day,f):
 # obliquity of ecliptic
     epsilon= 23.439 - 0.0000004*d
 # right ascension (in same quadrant as lambda)
-    t=(np.tan((epsilon*rad)/2))**2
-    r=1/rad
+    t=(np.tan(old_div((epsilon*rad),2)))**2
+    r=old_div(1,rad)
     rl=lamb*rad
-    alpha=lamb-r*t*np.sin(2*rl)+(r/2)*t*t*np.sin(4*rl)
+    alpha=lamb-r*t*np.sin(2*rl)+(old_div(r,2))*t*t*np.sin(4*rl)
 #       alpha=mod(alpha,360.0)
 # declination
     delta=np.sin(epsilon*rad)*np.sin(lamb*rad)
-    delta=np.arcsin(delta)/rad
+    delta=old_div(np.arcsin(delta),rad)
 # equation of time
     eqt=(L-alpha)
 #
     utm=f*24*60
-    H=utm/4+eqt+180
+    H=old_div(utm,4)+eqt+180
     H=H%360.0
     return H,delta
 
@@ -3395,7 +3407,7 @@ def julian(mon,day,year):
     """
     ig=15+31*(10+12*1582)
     if year == 0:
-        print "Julian no can do"
+        print("Julian no can do")
         return
     if year < 0: year=year+1
     if mon > 2:
@@ -3419,11 +3431,11 @@ def fillkeys(Recs):
     """
     keylist,OutRecs=[],[]
     for rec in Recs:
-        for key in rec.keys():
+        for key in list(rec.keys()):
             if key not in keylist:keylist.append(key)
     for rec in  Recs:
         for key in keylist:
-            if key not in rec.keys(): rec[key]=""
+            if key not in list(rec.keys()): rec[key]=""
         OutRecs.append(rec)
     return OutRecs,keylist
 
@@ -3451,20 +3463,20 @@ def fisher_mean(data):
         R+=Xbar[c]**2
     R=np.sqrt(R)
     for c in range(3):
-        Xbar[c]=Xbar[c]/R
+        Xbar[c]=old_div(Xbar[c],R)
     dir=cart2dir(Xbar)
     fpars["dec"]=dir[0]
     fpars["inc"]=dir[1]
     fpars["n"]=N
     fpars["r"]=R
     if N!=R:
-        k=(N-1.)/(N-R)
+        k=old_div((N-1.),(N-R))
         fpars["k"]=k
-        csd=81./np.sqrt(k)
+        csd=old_div(81.,np.sqrt(k))
     else:
         fpars['k']='inf'
         csd=0.
-    b=20.**(1./(N-1.)) -1
+    b=20.**(old_div(1.,(N-1.))) -1
     a=1-b*(N-R)/R
     if a<-1:a=-1
     a95=np.arccos(a)*180./np.pi
@@ -3481,10 +3493,10 @@ def gausspars(data):
     if N<1: return "",""
     if N==1: return data[0],0
     for j in range(N):
-       mean+=data[j]/float(N)
+       mean+=old_div(data[j],float(N))
     for j in range(N):
        d+=(data[j]-mean)**2
-    stdev=np.sqrt(d*(1./(float(N-1))))
+    stdev=np.sqrt(d*(old_div(1.,(float(N-1)))))
     return mean,stdev
 
 def weighted_mean(data):
@@ -3497,10 +3509,10 @@ def weighted_mean(data):
     for x in data:
        W+=x[1] # sum of the weights
     for x in data:
-       mean+=(float(x[1])*float(x[0]))/float(W)
+       mean+=old_div((float(x[1])*float(x[0])),float(W))
     for x in data:
-       d+=(float(x[1])/float(W))*(float(x[0])-mean)**2
-    stdev=np.sqrt(d*(1./(float(N-1))))
+       d+=(old_div(float(x[1]),float(W)))*(float(x[0])-mean)**2
+    stdev=np.sqrt(d*(old_div(1.,(float(N-1)))))
     return mean,stdev
 
 def lnpbykey(data,key0,key1): # calculate a fisher mean of key1 data for a group of key0
@@ -3551,15 +3563,15 @@ def fisher_by_pol(data):
     FisherByPoles={}
     DIblock,nameblock,locblock=[],[],[]
     for rec in data:
-        if 'dec' in rec.keys() and 'inc' in rec.keys():
+        if 'dec' in list(rec.keys()) and 'inc' in list(rec.keys()):
             DIblock.append([float(rec["dec"]),float(rec["inc"])]) # collect data for fisher calculation
         else:
             continue
-        if 'name' in rec.keys():
+        if 'name' in list(rec.keys()):
             nameblock.append(rec['name'])
         else:
             nameblock.append("")
-        if 'loc' in rec.keys():
+        if 'loc' in list(rec.keys()):
             locblock.append(rec['loc'])
         else:
             locblock.append("")
@@ -3640,7 +3652,7 @@ def dolnp3_0(Data):
             LnpData[n]['dec'] = d['dir_dec']
             LnpData[n]['inc'] = d['dir_inc']
             LnpData[n]['tilt_correction'] = d['dir_tilt_correction']
-            if 'method_codes' in d.keys():
+            if 'method_codes' in list(d.keys()):
                 if "DE-BFP" in d['method_codes']: LnpData[n]['dir_type'] = 'p'
                 else: LnpData[n]['dir_type'] = 'l'
         ReturnData=dolnp(LnpData,'dir_type') # get a sample average from all specimens
@@ -3652,7 +3664,7 @@ def dolnp(data,direction_type_key):
     returns fisher mean, a95 for data  using method of mcfadden and mcelhinny '88 for lines and planes
     """
 
-    if "tilt_correction" in data[0].keys():
+    if "tilt_correction" in list(data[0].keys()):
         tc=data[0]["tilt_correction"]
     else:
         tc='-1'
@@ -3669,14 +3681,14 @@ def dolnp(data,direction_type_key):
         else:
            R=np.sqrt(E[0]**2+E[1]**2+E[2]**2)
            for c in E:
-               V.append(c/R) # set initial direction as mean of lines
+               V.append(old_div(c,R)) # set initial direction as mean of lines
         XV = calculate_best_fit_vectors(L,E,V,n_planes)
 # calculating overall mean direction and R
         U=E[:]
         for dir in XV:
             for c in range(3):U[c]=U[c]+dir[c]
         R=np.sqrt(U[0]**2+U[1]**2+U[2]**2)
-        for c in range(3):U[c]=U[c]/R
+        for c in range(3):U[c]=old_div(U[c],R)
 # get dec and inc of solution points on gt circles
         dirV=cart2dir(U)
 # calculate modified Fisher stats fo fit
@@ -3684,10 +3696,10 @@ def dolnp(data,direction_type_key):
         NP=n_lines+0.5*n_planes
         if NP<1.1:NP=1.1
         if n_total-R !=0:
-            K=(NP-1.)/(n_total-R)
-            fac=(20.**(1./(NP-1.))-1.)
+            K=old_div((NP-1.),(n_total-R))
+            fac=(20.**(old_div(1.,(NP-1.)))-1.)
             fac=fac*(NP-1.)/K
-            a=1.-fac/R
+            a=1.-old_div(fac,R)
             a95=a
             if abs(a) > 1.0: a95=1.
             if a<0:a95=-a95
@@ -3722,7 +3734,7 @@ def vclose(L,V):
         lam=lam+V[k]*L[k]
     beta=np.sqrt(1.-lam**2)
     for k in range(3):
-        X.append( ((V[k]-lam*L[k])/beta))
+        X.append( (old_div((V[k]-lam*L[k]),beta)))
     return X
 
 def calculate_best_fit_vectors(L,E,V,n_planes):
@@ -3746,7 +3758,7 @@ def calculate_best_fit_vectors(L,E,V,n_planes):
         for k in range(n_planes):
            for c in range(3): U[c]=U[c]-XV[k][c]
            R=np.sqrt(U[0]**2+U[1]**2+U[2]**2)
-           for c in range(3):V[c]=U[c]/R
+           for c in range(3):V[c]=old_div(U[c],R)
            XX=vclose(L[k],V)
            ang=XX[0]*XV[k][0]+XX[1]*XV[k][1]+XX[2]*XV[k][2]
            angles.append(np.arccos(ang)*180./np.pi)
@@ -3781,7 +3793,7 @@ def process_data_for_mean(data,direction_type_key):
     # sort data  into lines and planes and collect cartesian coordinates
     for rec in data:
         cart=dir2cart([float(rec["dec"]),float(rec["inc"])])[0]
-        if direction_type_key in rec.keys():
+        if direction_type_key in list(rec.keys()):
             if rec[direction_type_key]=='p': # this is a pole to a plane
                 n_planes+=1
                 L.append(cart) # this is the "EL, EM, EN" array of MM88
@@ -3791,7 +3803,7 @@ def process_data_for_mean(data,direction_type_key):
                 E[0]+=cart[0]
                 E[1]+=cart[1]
                 E[2]+=cart[2]
-        elif 'method_codes' in rec.keys():
+        elif 'method_codes' in list(rec.keys()):
             if "DE-BFP" in rec['method_codes']: # this is a pole to a plane
                 n_planes+=1
                 L.append(cart) # this is the "EL, EM, EN" array of MM88
@@ -3801,7 +3813,7 @@ def process_data_for_mean(data,direction_type_key):
                 E[0]+=cart[0]
                 E[1]+=cart[1]
                 E[2]+=cart[2]
-        elif 'magic_method_codes' in rec.keys():
+        elif 'magic_method_codes' in list(rec.keys()):
             if "DE-BFP" in rec['magic_method_codes']: # this is a pole to a plane
                 n_planes+=1
                 L.append(cart) # this is the "EL, EM, EN" array of MM88
@@ -3846,9 +3858,9 @@ def scoreit(pars,PmagSpecRec,accept,text,verbose):
     PmagSpecRec["specimen_rsc"]='%6.4f '%(pars["specimen_rsc"])
     PmagSpecRec["specimen_md"]='%i '%(int(pars["specimen_md"]))
     PmagSpecRec["specimen_b_sigma"]='%5.3f '%(pars["specimen_b_sigma"])
-    if 'specimen_scat' in pars.keys():PmagSpecRec['specimen_scat']=pars['specimen_scat']
-    if 'specimen_gmax' in pars.keys():PmagSpecRec['specimen_gmax']='%5.3f'%(pars['specimen_gmax'])
-    if 'specimen_frac' in pars.keys():PmagSpecRec['specimen_frac']='%5.3f'%(pars['specimen_frac'])
+    if 'specimen_scat' in list(pars.keys()):PmagSpecRec['specimen_scat']=pars['specimen_scat']
+    if 'specimen_gmax' in list(pars.keys()):PmagSpecRec['specimen_gmax']='%5.3f'%(pars['specimen_gmax'])
+    if 'specimen_frac' in list(pars.keys()):PmagSpecRec['specimen_frac']='%5.3f'%(pars['specimen_frac'])
     #PmagSpecRec["specimen_Z"]='%7.1f'%(pars["specimen_Z"])
   # check score
    #
@@ -3871,12 +3883,12 @@ def scoreit(pars,PmagSpecRec,accept,text,verbose):
         pars_out= (s,(pars["measurement_step_min"]),(pars["measurement_step_max"]),(pars["specimen_int_n"]),1e6*(pars["specimen_lab_field_dc"]),1e6*(pars["specimen_int"]),pars["specimen_b"],pars["specimen_q"],pars["specimen_f"],pars["specimen_fvds"],pars["specimen_b_beta"],pars["specimen_int_mad"],pars["specimen_int_dang"],pars["specimen_drats"],pars["specimen_int_ptrm_n"],pars["specimen_grade"],np.sqrt(pars["specimen_rsc"]),int(pars["specimen_md"]), pars["specimen_b_sigma"],pars["specimen_theta"],pars["specimen_delta"],pars["specimen_gamma"])
         outstring= '%s %4.0f %4.0f %i %4.1f %4.1f %5.3f %5.1f %5.3f %5.3f %5.3f  %7.1f %7.1f %7.1f %s %s %6.3f %i %5.3f %7.1f %7.1f %7.1f' % pars_out +'\n'
     if pars["specimen_grade"]!="A":
-        print '\n killed by:'
+        print('\n killed by:')
         for k in kill:
-            print k,':, criterion set to: ',accept[k],', specimen value: ',pars[k]
-        print '\n'
-    print outstr
-    print outstring
+            print(k,':, criterion set to: ',accept[k],', specimen value: ',pars[k])
+        print('\n')
+    print(outstr)
+    print(outstring)
     return pars,kill
 
 def b_vdm(B,lat):
@@ -3894,7 +3906,7 @@ def b_vdm(B,lat):
     ----------
     V(A)DM in units of Am^2
     """
-    rad=np.pi/180.
+    rad=old_div(np.pi,180.)
     fact=((6.371e6)**3)*1e7 # changed radius of the earth from 3.367e6 3/12/2010
     colat=(90.-lat) * rad
     return fact*B/(np.sqrt(1+3*(np.cos(colat)**2)))
@@ -3914,7 +3926,7 @@ def vdm_b(vdm,lat):
     ----------
     B: local magnetic field strength in tesla
     """
-    rad=np.pi/180.
+    rad=old_div(np.pi,180.)
     fact=((6.371e6)**3)*1e7 # changed radius of the earth from 3.367e6 3/12/2010
     colat=(90.-lat) * rad
     return vdm*(np.sqrt(1+3*(np.cos(colat)**2)))/fact
@@ -3926,14 +3938,14 @@ def binglookup(w1i,w2i):
     K={'0.06': {'0.02': ['-25.58', '-8.996'], '0.06': ['-9.043', '-9.043'], '0.04': ['-13.14', '-9.019']}, '0.22': {'0.08': ['-6.944', '-2.644'], '0.02': ['-25.63', '-2.712'], '0.20': ['-2.649', '-2.354'], '0.06': [ '-9.027', '-2.673'], '0.04': ['-13.17', '-2.695'], '0.14': ['-4.071', '-2.521'], '0.16': ['-3.518', '-2.470'], '0.10': ['-5.658', '-2.609'], '0.12': ['-4.757', '-2.568'], '0.18': ['-3.053', '-2.414'], '0.22': ['-2.289', '-2.289']}, '0.46': {'0.02': ['-25.12', '-0.250'], '0.08': ['-6.215', '0.000'], '0.06': ['-8.371', '-0.090'], '0.04': ['-12.58', '-0.173']}, '0.44': {'0.08': ['-6.305', '-0.186'], '0.02': ['-25.19', '-0.418'], '0.06': ['-8.454', '-0.270'], '0.04': ['-12.66', '-0.347'], '0.10': ['-4.955', '-0.097'], '0.12': ['-3.992', '0.000']}, '0.42': {'0.08': ['-6.388', '-0.374'], '0.02': ['-25.5', '-0.589'], '0.06': [ '-8.532', '-0.452'], '0.04': ['-12.73', '-0.523'], '0.14': ['-3.349', '-0.104'], '0.16': ['-2.741', '0.000'], '0.10': ['-5.045', '-0.290'], '0.12': ['-4.089', '-0.200']}, '0.40': {'0.08': ['-6.466', '-0.564'], '0.02': ['-25.31', '-0.762'], '0.20': ['-1.874', '-0.000'], '0.06': ['-8.604', '-0.636'], '0.04': ['-12.80', '-0.702'], '0.14': ['-3.446', '-0.312'], '0.16': ['-2.845', '-0.215'], '0.10': ['-5.126', '-0.486'] , '0.12': ['-4.179', '-0.402'], '0.18': ['-2.330', '-0.111']}, '0.08': {'0.02': ['-25.6', '-6.977'], '0.08': ['-7.035', '-7.035'], '0.06': ['-9.065', '-7.020'], '0.04': ['-13.16', '-6.999']}, '0.28': {'0.08': ['-6.827', '-1.828'], '0.28': ['-1.106', '-1.106'], '0.02': ['-25.57', '-1.939'], '0.20': ['-2.441', '-1.458'], '0.26': ['-1.406', '-1.203'], '0.24': ['-1.724', '-1.294'], '0.06': ['-8.928', '-1.871'], '0.04': ['-13.09', '-1.908'], '0.14': ['-3.906', '-1.665'], '0.16': ['-3.338', '-1.601'], '0.10': ['-5.523', '-1.779'], '0.12': ['-4.606', '-1.725'], '0.18': ['-2.859', '-1.532'], '0.22': ['-2.066', '-1.378']}, '0.02': {'0.02': ['-25.55','-25.55']}, '0.26': {'0.08': ['-6.870', '-2.078'], '0.02': ['-25.59', '-2.175'], '0.20': ['-2.515', '-1.735'], '0.26': ['-1.497', '-1.497'], '0.24': ['-1.809', '-1.582'], '0.06': ['-8.96 6', '-2.117'], '0.04': ['-13.12', '-2.149'], '0.14': ['-3.965', '-1.929'], '0.16': ['-3.403', '-1.869'], '0.10': ['-5.573', '-2.034'], '0.12': ['-4.661', '-1.984'], '0.18': ['-2.928', '-1.805'], '0.22': ['-2.1 46', '-1.661']}, '0.20': {'0.08': ['-6.974', '-2.973'], '0.02': ['-25.64', '-3.025'], '0.20': ['-2.709', '-2.709'], '0.06': ['-9.05', '-2.997'], '0.04': ['-13.18', '-3.014'], '0.14': ['-4.118', '-2.863'], '0.1 6': ['-3.570', '-2.816'], '0.10': ['-5.694', '-2.942'], '0.12': ['-4.799', '-2.905'], '0.18': ['-3.109', '-2.765']}, '0.04': {'0.02': ['-25.56', '-13.09'], '0.04': ['-13.11', '-13.11']}, '0.14': {'0.08': ['-7.  033', '-4.294'], '0.02': ['-25.64', '-4.295'], '0.06': ['-9.087', '-4.301'], '0.04': ['-13.20', '-4.301'], '0.14': ['-4.231', '-4.231'], '0.10': ['-5.773', '-4.279'], '0.12': ['-4.896', '-4.258']}, '0.16': {'0 .08': ['-7.019', '-3.777'], '0.02': ['-25.65', '-3.796'], '0.06': ['-9.081', '-3.790'], '0.04': ['-13.20', '-3.796'], '0.14': ['-4.198', '-3.697'], '0.16': ['-3.659', '-3.659'], '0.10': ['-5.752', '-3.756'], ' 0.12': ['-4.868', '-3.729']}, '0.10': {'0.02': ['-25.62', '-5.760'], '0.08': ['-7.042', '-5.798'], '0.06': ['-9.080', '-5.791'], '0.10': ['-5.797', '-5.797'], '0.04': ['-13.18', '-5.777']}, '0.12': {'0.08': [' -7.041', '-4.941'], '0.02': ['-25.63', '-4.923'], '0.06': ['-9.087', '-4.941'], '0.04': ['-13.19', '-4.934'], '0.10': ['-5.789', '-4.933'], '0.12': ['-4.917', '-4.917']}, '0.18': {'0.08': ['-6.999', '-3.345'], '0.02': ['-25.65', '-3.381'], '0.06': ['-9.068', '-3.363'], '0.04': ['-13.19', '-3.375'], '0.14': ['-4.160', '-3.249'], '0.16': ['-3.616', '-3.207'], '0.10': ['-5.726', '-3.319'], '0.12': ['-4.836', '-3.287'] , '0.18': ['-3.160', '-3.160']}, '0.38': {'0.08': ['-6.539', '-0.757'], '0.02': ['-25.37', '-0.940'], '0.20': ['-1.986', '-0.231'], '0.24': ['-1.202', '0.000'], '0.06': ['-8.670', '-0.824'], '0.04': ['-12.86', '-0.885'], '0.14': ['-3.536', '-0.522'], '0.16': ['-2.941', '-0.432'], '0.10': ['-5.207', '-0.684'], '0.12': ['-4.263', '-0.606'], '0.18': ['-2.434', '-0.335'], '0.22': ['-1.579', '-0.120']}, '0.36': {'0.08': ['-6.606', '-9.555'], '0.28': ['-0.642', '0.000'], '0.02': ['-25.42', '-1.123'], '0.20': ['-2.089', '-0.464'], '0.26': ['-0.974', '-0.129'], '0.24': ['-1.322', '-0.249'], '0.06': ['-8.731', '-1.017'], '0.04': ['-12.91', '-1.073'], '0.14': ['-3.620', '-0.736'], '0.16': ['-3.032', '-0.651'], '0.10': ['-5.280', '-0.887'], '0.12': ['-4.342', '-0.814'], '0.18': ['-2.531', '-0.561'], '0.22': ['-1.690', '-0.360']}, '0.34 ': {'0.08': ['-6.668', '-1.159'], '0.28': ['-0.771', '-0.269'], '0.02': ['-25.46', '-1.312'], '0.20': ['-2.186', '-0.701'], '0.26': ['-1.094', '-0.389'], '0.24': ['-1.433', '-0.500'], '0.06': ['-8.788', '-1.21 6'], '0.32': ['-0.152', '0.000'], '0.04': ['-12.96', '-1.267'], '0.30': ['-0.459', '-0.140'], '0.14': ['-3.699', '-0.955'], '0.16': ['-3.116', '-0.876'], '0.10': ['-5.348', '-1.096'], '0.12': ['-4.415', '-1.02 8'], '0.18': ['-2.621', '-0.791'], '0.22': ['-1.794', '-0.604']}, '0.32': {'0.08': ['-6.725', '-1.371'], '0.28': ['-0.891', '-0.541'], '0.02': ['-25.50', '-1.510'], '0.20': ['-2.277', '-0.944'], '0.26': ['-1.2 06', '-0.653'], '0.24': ['-1.537', '-0.756'], '0.06': ['-8.839', '-1.423'], '0.32': ['-0.292', '-0.292'], '0.04': ['-13.01', '-1.470'], '0.30': ['-0.588', '-0.421'], '0.14': ['-3.773', '-1.181'], '0.16': ['-3.  195', '-1.108'], '0.10': ['-5.411', '-1.313'], '0.12': ['-4.484', '-1.250'], '0.18': ['-2.706', '-1.028'], '0.22': ['-1.891', '-0.853']}, '0.30': {'0.08': ['-6.778', '-1.596'], '0.28': ['-1.002', '-0.819'], '0 .02': ['-25.54', '-1.718'], '0.20': ['-2.361', '-1.195'], '0.26': ['-1.309', '-0.923'], '0.24': ['-1.634', '-1.020'], '0.06': ['-8.886', '-1.641'], '0.04': ['-13.05', '-1.682'], '0.30': ['-0.708', '-0.708'], ' 0.14': ['-3.842', '-1.417'], '0.16': ['-3.269', '-1.348'], '0.10': ['-5.469', '-1.540'], '0.12': ['-4.547', '-1.481'], '0.18': ['-2.785', '-1.274'], '0.22': ['-1.981', '-1.110']}, '0.24': {'0.08': ['-6.910', ' -2.349'], '0.02': ['-25.61', '-2.431'], '0.20': ['-2.584', '-2.032'], '0.24': ['-1.888', '-1.888'], '0.06': ['-8.999', '-2.382'], '0.04': ['-23.14', '-2.410'], '0.14': ['-4.021', '-2.212'], '0.16': ['-3.463', '-2.157'], '0.10': ['-5.618', '-2.309'], '0.12': ['-4.711', '-2.263'], '0.18': ['-2.993', '-2.097'], '0.22': ['-2.220', '-1.963']}}
     w1,w2=0.,0.
     wstart,incr=0.01,0.02
-    if w1i < wstart: w1='%4.2f'%(wstart+incr/2.)
-    if w2i < wstart: w2='%4.2f'%(wstart+incr/2.)
+    if w1i < wstart: w1='%4.2f'%(wstart+old_div(incr,2.))
+    if w2i < wstart: w2='%4.2f'%(wstart+old_div(incr,2.))
     wnext=wstart+incr
     while wstart <0.5:
         if w1i >=wstart and w1i <wnext :
-            w1='%4.2f'%(wstart+incr/2.)
+            w1='%4.2f'%(wstart+old_div(incr,2.))
         if w2i >=wstart and w2i <wnext :
-            w2='%4.2f'%(wstart+incr/2.)
+            w2='%4.2f'%(wstart+old_div(incr,2.))
         wstart+=incr
         wnext+=incr
     k1,k2=float(K[w2][w1][0]),float(K[w2][w1][1])
@@ -3946,9 +3958,10 @@ def cdfout(data,file):
     f=open(file,"w")
     data.sort()
     for j in range(len(data)):
-        y=float(j)/float(len(data))
+        y=old_div(float(j),float(len(data)))
         out=str(data[j])+' '+str(y)+ '\n'
         f.write(out)
+    f.close()
 
 def dobingham(data):
     """
@@ -3997,7 +4010,7 @@ def dobingham(data):
 #  now for Bingham ellipses.
 #
     fac1,fac2=-2*N*(k1)*(w3-w1),-2*N*(k2)*(w3-w2)
-    sig31,sig32=np.sqrt(1./fac1), np.sqrt(1./fac2)
+    sig31,sig32=np.sqrt(old_div(1.,fac1)), np.sqrt(old_div(1.,fac2))
     bpars["Zeta"],bpars["Eta"]=2.45*sig31*180./np.pi,2.45*sig32*180./np.pi
     return  bpars
 
@@ -4014,7 +4027,7 @@ def doincfish(inc):
     """
     gets fisher mean inc from inc only data
     """
-    rad,SCOi,SSOi=np.pi/180.,0.,0. # some definitions
+    rad,SCOi,SSOi=old_div(np.pi,180.),0.,0. # some definitions
     abinc=[]
     for i in inc:abinc.append(abs(i))
     MI,std=gausspars(abinc) # get mean inc and standard deviation
@@ -4028,7 +4041,7 @@ def doincfish(inc):
         fpars['alpha95']=0
         fpars['csd']=0
         fpars['r']=0
-        print 'WARNING: mean inc < 30, returning gaussian mean'
+        print('WARNING: mean inc < 30, returning gaussian mean')
         return fpars
     for i in inc:  # sum over all incs (but take only positive inc)
         coinc=(90.-abs(i))*rad
@@ -4053,17 +4066,17 @@ def doincfish(inc):
         coinc=(90.-abs(i))*rad
         S+= np.sin(Oo-coinc)
         C+= np.cos(Oo-coinc)
-    k=(N-1.)/(2.*(N-C))
-    Imle=90.-(Oo/rad)
+    k=old_div((N-1.),(2.*(N-C)))
+    Imle=90.-(old_div(Oo,rad))
     fpars["inc"]=Imle
     fpars["r"],R=2.*C-N,2*C-N
     fpars["k"]=k
     f=fcalc(2,N-1)
-    a95= 1. - (0.5)*(S/C)**2 - (f/(2.*C*k))
+    a95= 1. - (0.5)*(old_div(S,C))**2 - (old_div(f,(2.*C*k)))
 #    b=20.**(1./(N-1.)) -1.
 #    a=1.-b*(N-R)/R
 #    a95=np.arccos(a)*180./np.pi
-    csd=81./np.sqrt(k)
+    csd=old_div(81.,np.sqrt(k))
     fpars["alpha95"]=a95
     fpars["csd"]=csd
     return fpars
@@ -4105,7 +4118,7 @@ def dokent(data,NN):
     T=Tmatrix(X)
     for i in range(3):
         for j in range(3):
-            T[i][j]=T[i][j]/float(NN)
+            T[i][j]=old_div(T[i][j],float(NN))
 #
 # compute B=H'TH
 #
@@ -4142,14 +4155,14 @@ def dokent(data,NN):
         xmu+= xg[i][2]
         sigma1=sigma1+xg[i][0]**2
         sigma2=sigma2+xg[i][1]**2
-    xmu=xmu/float(N)
-    sigma1=sigma1/float(N)
-    sigma2=sigma2/float(N)
+    xmu=old_div(xmu,float(N))
+    sigma1=old_div(sigma1,float(N))
+    sigma2=old_div(sigma2,float(N))
     g=-2.0*np.log(0.05)/(float(NN)*xmu**2)
     if np.sqrt(sigma1*g)<1:eta=np.arcsin(np.sqrt(sigma1*g))
     if np.sqrt(sigma2*g)<1:zeta=np.arcsin(np.sqrt(sigma2*g))
-    if np.sqrt(sigma1*g)>=1.:eta=np.pi/2.
-    if np.sqrt(sigma2*g)>=1.:zeta=np.pi/2.
+    if np.sqrt(sigma1*g)>=1.:eta=old_div(np.pi,2.)
+    if np.sqrt(sigma2*g)>=1.:zeta=old_div(np.pi,2.)
 #
 #  convert Kent parameters to directions,angles
 #
@@ -4186,7 +4199,7 @@ def doprinc(data):
     ppars : dictionary with the principal components
     """
     ppars={}
-    rad=np.pi/180.
+    rad=old_div(np.pi,180.)
     X=dir2cart(data)
     #for rec in data:
     #    dir=[]
@@ -4260,12 +4273,13 @@ def dread(infile,cols):
      tr, dec, inc, int determined by cols[]
     """
     data=[]
-    f=open(infile,"rU")
+    f=open(infile,"r")
     for line in f.readlines():
         tmp=line.split()
         rec=(tmp[0],float(tmp[cols[0]]),float(tmp[cols[1]]),float(tmp[cols[2]]),
           float(tmp[cols[3]]) )
         data.append(rec)
+    f.close()
     return data
 
 def fshdev(k):
@@ -4285,7 +4299,7 @@ def fshdev(k):
     R2=random.random()
     L=np.exp(-2*k)
     a=R1*(1-L)+L
-    fac=np.sqrt((-np.log(a))/(2*k))
+    fac=np.sqrt(old_div((-np.log(a)),(2*k)))
     inc=90.-2*np.arcsin(fac)*180./np.pi
     dec=2*np.pi*R2*180./np.pi
     return dec,inc
@@ -4294,7 +4308,7 @@ def lowes(data):
     """
     gets Lowe's power spectrum from infile - writes to ofile
     """
-    Ls=range(1,9)
+    Ls=list(range(1,9))
     Rs=[]
     recno=0
     for l in Ls:
@@ -4309,8 +4323,8 @@ def magnetic_lat(inc):
     """
     returns magnetic latitude from inclination
     """
-    rad=np.pi/180.
-    paleo_lat=np.arctan( 0.5*np.tan(inc*rad))/rad
+    rad=old_div(np.pi,180.)
+    paleo_lat=old_div(np.arctan( 0.5*np.tan(inc*rad)),rad)
     return paleo_lat
 
 def check_F(AniSpec):
@@ -4321,11 +4335,11 @@ def check_F(AniSpec):
     s[3]=float(AniSpec["anisotropy_s4"])
     s[4]=float(AniSpec["anisotropy_s5"])
     s[5]=float(AniSpec["anisotropy_s6"])
-    chibar=(s[0]+s[1]+s[2])/3.
+    chibar=old_div((s[0]+s[1]+s[2]),3.)
     tau,Vdir=doseigs(s)
     t2sum=0
     for i in range(3): t2sum+=tau[i]**2
-    if 'anisotropy_sigma' in AniSpec.keys() and 'anisotropy_n' in AniSpec.keys():
+    if 'anisotropy_sigma' in list(AniSpec.keys()) and 'anisotropy_n' in list(AniSpec.keys()):
         if AniSpec['anisotropy_type']=='AMS':
             nf=int(AniSpec["anisotropy_n"])-6
         else:
@@ -4342,7 +4356,7 @@ def check_F(AniSpec):
             chi_inv=np.array([[1.,0,0],[0,1.,0],[0,0,1.]]) # make anisotropy tensor identity tensor
             chi=chi_inv
     else: # no sigma key available - just do the correction
-        print 'WARNING: NO FTEST ON ANISOTROPY PERFORMED BECAUSE OF MISSING SIGMA - DOING CORRECTION ANYWAY'
+        print('WARNING: NO FTEST ON ANISOTROPY PERFORMED BECAUSE OF MISSING SIGMA - DOING CORRECTION ANYWAY')
         chi=np.array([[s[0],s[3],s[5]],[s[3],s[1],s[4]],[s[5],s[4],s[2]]])
         chi_inv=linalg.inv(chi)
     return chi,chi_inv
@@ -4369,7 +4383,7 @@ def doaniscorr(PmagSpecRec,AniSpec):
     performs simple anisotropy correction. returns corrected Dec, Inc, Int
     """
     AniSpecRec={}
-    for key in PmagSpecRec.keys():
+    for key in list(PmagSpecRec.keys()):
         AniSpecRec[key]=PmagSpecRec[key]
     Dir=np.zeros((3),'f')
     Dir[0]=float(PmagSpecRec["specimen_dec"])
@@ -4385,7 +4399,7 @@ def doaniscorr(PmagSpecRec,AniSpec):
         M=np.array(X)
         H=np.dot(M,chi_inv)
         cDir= cart2dir(H)
-        Hunit=[H[0]/cDir[2],H[1]/cDir[2],H[2]/cDir[2]] # unit vector parallel to Banc
+        Hunit=[old_div(H[0],cDir[2]),old_div(H[1],cDir[2]),old_div(H[2],cDir[2])] # unit vector parallel to Banc
         Zunit=[0,0,-1.] # unit vector parallel to lab field
         Hpar=np.dot(chi,Hunit) # unit vector applied along ancient field
         Zpar=np.dot(chi,Zunit) # unit vector applied along lab field
@@ -4399,7 +4413,7 @@ def doaniscorr(PmagSpecRec,AniSpec):
     AniSpecRec["specimen_inc"]='%7.1f'%(cDir[1])
     AniSpecRec["specimen_int"]='%9.4e'%(newint)
     AniSpecRec["specimen_correction"]='c'
-    if 'magic_method_codes' in AniSpecRec.keys():
+    if 'magic_method_codes' in list(AniSpecRec.keys()):
         methcodes=AniSpecRec["magic_method_codes"]
     else:
         methcodes=""
@@ -4453,25 +4467,25 @@ def vgp_di(plat,plong,slat,slong):
         plong = plong + 360
     if slong < 0:
         slong = slong + 360
-    rad,signdec=np.pi/180.,1.
+    rad,signdec=old_div(np.pi,180.),1.
     delphi=abs(plong-slong)
-    if delphi!=0:signdec=(plong-slong)/delphi
+    if delphi!=0:signdec=old_div((plong-slong),delphi)
     if slat==90.:slat=89.99
     thetaS=(90.-slat)*rad
     thetaP=(90.-plat)*rad
     delphi=delphi*rad
     cosp=np.cos(thetaS)*np.cos(thetaP)+np.sin(thetaS)*np.sin(thetaP)*np.cos(delphi)
     thetaM=np.arccos(cosp)
-    cosd=(np.cos(thetaP)-np.cos(thetaM)*np.cos(thetaS))/(np.sin(thetaM)*np.sin(thetaS))
+    cosd=old_div((np.cos(thetaP)-np.cos(thetaM)*np.cos(thetaS)),(np.sin(thetaM)*np.sin(thetaS)))
     C=abs(1.-cosd**2)
     if C!=0:
-         dec=-np.arctan(cosd/np.sqrt(abs(C)))+np.pi/2.
+         dec=-np.arctan(old_div(cosd,np.sqrt(abs(C))))+old_div(np.pi,2.)
     else:
         dec=np.arccos(cosd)
     if -np.pi<signdec*delphi and signdec<0: dec=2.*np.pi-dec  # checking quadrant
     if signdec*delphi> np.pi: dec=2.*np.pi-dec
-    dec=(dec/rad)%360.
-    inc=(np.arctan2(2.*np.cos(thetaM),np.sin(thetaM)))/rad
+    dec=(old_div(dec,rad))%360.
+    inc=old_div((np.arctan2(2.*np.cos(thetaM),np.sin(thetaM))),rad)
     return  dec,inc
 
 def watsonsV(Dir1,Dir2):
@@ -4492,11 +4506,11 @@ def watsonsV(Dir1,Dir2):
 # do monte carlo simulation of datasets with same kappas, but common mean
 #
     Vp=[] # set of Vs from simulations
-    print "Doing ",NumSims," simulations"
+    print("Doing ",NumSims," simulations")
     for k in range(NumSims):
         counter+=1
         if counter==50:
-            print k+1
+            print(k+1)
             counter=0
         Dirp=[]
 # get a set of N1 fisher distributed vectors with k1, calculate fisher stats
@@ -4546,7 +4560,7 @@ def dimap(D,I):
     if X[2]<0:X[2]=-X[2]                           # this only works on lower hemisphere projections
 
 ### CALCULATE THE X,Y COORDINATES FOR THE EQUAL AREA PROJECTION
-    R=np.sqrt( 1.-X[2])/(np.sqrt(X[0]**2+X[1]**2)) # from Collinson 1983
+    R=old_div(np.sqrt( 1.-X[2]),(np.sqrt(X[0]**2+X[1]**2))) # from Collinson 1983
     XY[1],XY[0]=X[0]*R,X[1]*R
 
 ### RETURN XY[X,Y]
@@ -4564,7 +4578,7 @@ def dimap_V(D,I):
     DI=np.array([D,I]).transpose() #
     X=dir2cart(DI).transpose()
 ### CALCULATE THE X,Y COORDINATES FOR THE EQUAL AREA PROJECTION
-    R=np.sqrt( 1.-abs(X[2]))/(np.sqrt(X[0]**2+X[1]**2)) # from Collinson 1983
+    R=old_div(np.sqrt( 1.-abs(X[2])),(np.sqrt(X[0]**2+X[1]**2))) # from Collinson 1983
     XY=np.array([X[1]*R,X[0]*R]).transpose()
 
 ### RETURN XY[X,Y]
@@ -4619,7 +4633,7 @@ def first_up(ofile,Rec,file_type):
     outstring="tab \t"+file_type+"\n"
     pmag_out.write(outstring)
     keystring=""
-    for key in Rec.keys():
+    for key in list(Rec.keys()):
         keystring=keystring+'\t'+key
         keylist.append(key)
     keystring=keystring + '\n'
@@ -4652,11 +4666,11 @@ def get_age(Rec,sitekey,keybase,Ages,DefaultAge):
     if len(Ages)>0:
         for agerec in Ages:
             if agerec["er_site_name"]==site:
-                if "age" in agerec.keys() and agerec["age"]!="":
+                if "age" in list(agerec.keys()) and agerec["age"]!="":
                     Rec[keybase+"age"]=agerec["age"]
                     gotone=1
-                if "age_unit" in agerec.keys(): Rec[keybase+"age_unit"]=agerec["age_unit"]
-                if "age_sigma" in agerec.keys(): Rec[keybase+"age_sigma"]=agerec["age_sigma"]
+                if "age_unit" in list(agerec.keys()): Rec[keybase+"age_unit"]=agerec["age_unit"]
+                if "age_sigma" in list(agerec.keys()): Rec[keybase+"age_sigma"]=agerec["age_sigma"]
     if gotone==0 and len(DefaultAge)>1:
         sigma=0.5*(float(DefaultAge[1])-float(DefaultAge[0]))
         age=float(DefaultAge[0])+sigma
@@ -4693,10 +4707,10 @@ def adjust_ages(AgesIn):
             if agerec[1]=="Ma":AgesOut.append(agerec[0]*1e6/factor)
             if agerec[1]=="Ka":AgesOut.append(agerec[0]*1e3/factor)
             if "Years" in agerec[1].split():
-                if agerec[1]=="Years BP":AgesOut.append(agerec[0]/factor)
-                if agerec[1]=="Years Cal BP":AgesOut.append(agerec[0]/factor)
-                if agerec[1]=="Years AD (+/-)":AgesOut.append((1950-agerec[0])/factor) # convert to years BP first
-                if agerec[1]=="Years Cal AD (+/-)":AgesOut.append((1950-agerec[0])/factor)
+                if agerec[1]=="Years BP":AgesOut.append(old_div(agerec[0],factor))
+                if agerec[1]=="Years Cal BP":AgesOut.append(old_div(agerec[0],factor))
+                if agerec[1]=="Years AD (+/-)":AgesOut.append(old_div((1950-agerec[0]),factor)) # convert to years BP first
+                if agerec[1]=="Years Cal AD (+/-)":AgesOut.append(old_div((1950-agerec[0]),factor))
     return AgesOut,age_unit
 #
 def gaussdev(mean,sigma):
@@ -5251,7 +5265,7 @@ def sbar(Ss):
     s0=0
     Dels=(D-avd)**2
     s0=np.sum(Dels)
-    sigma=np.sqrt(s0/float(nf))
+    sigma=np.sqrt(old_div(s0,float(nf)))
     return nf,sigma,avs
 
 def dohext(nf,sigma,s):
@@ -5282,12 +5296,12 @@ def dohext(nf,sigma,s):
     t2sum=0
     tau,Vdir=doseigs(s)
     for i in range(3): t2sum+=tau[i]**2
-    chibar=(s[0]+s[1]+s[2])/3.
+    chibar=old_div((s[0]+s[1]+s[2]),3.)
     hpars['F_crit']='%s'%(fcalc(5,nf))
     hpars['F12_crit']='%s'%(fcalc(2,nf))
     hpars["F"]=0.4*(t2sum-3*chibar**2)/(sigma**2)
-    hpars["F12"]=0.5*((tau[0]-tau[1])/sigma)**2
-    hpars["F23"]=0.5*((tau[1]-tau[2])/sigma)**2
+    hpars["F12"]=0.5*(old_div((tau[0]-tau[1]),sigma))**2
+    hpars["F23"]=0.5*(old_div((tau[1]-tau[2]),sigma))**2
     hpars["v1_dec"]=Vdir[0][0]
     hpars["v1_inc"]=Vdir[0][1]
     hpars["v2_dec"]=Vdir[1][0]
@@ -5297,9 +5311,9 @@ def dohext(nf,sigma,s):
     hpars["t1"]=tau[0]
     hpars["t2"]=tau[1]
     hpars["t3"]=tau[2]
-    hpars["e12"]=np.arctan((f*sigma)/(2*abs(tau[0]-tau[1])))*180./np.pi
-    hpars["e23"]=np.arctan((f*sigma)/(2*abs(tau[1]-tau[2])))*180./np.pi
-    hpars["e13"]=np.arctan((f*sigma)/(2*abs(tau[0]-tau[2])))*180./np.pi
+    hpars["e12"]=np.arctan(old_div((f*sigma),(2*abs(tau[0]-tau[1]))))*180./np.pi
+    hpars["e23"]=np.arctan(old_div((f*sigma),(2*abs(tau[1]-tau[2]))))*180./np.pi
+    hpars["e13"]=np.arctan(old_div((f*sigma),(2*abs(tau[0]-tau[2]))))*180./np.pi
     return hpars
 #
 #
@@ -5316,7 +5330,7 @@ def design(npos):
         A=np.array([[1.,0,0,0,0,0],[0,1.,0,0,0,0],[0,0,1.,0,0,0],[.5,.5,0,1.,0,0],[0,.5,.5,0,1.,0],[.5,0,.5,0,0,1.]]) #  design matrix for 6 measurment positions
 
     else:
-        print "measurement protocol not supported yet "
+        print("measurement protocol not supported yet ")
         return
     B=np.dot(np.transpose(A),A)
     B=linalg.inv(B)
@@ -5332,12 +5346,12 @@ def dok15_s(k15):
     A,B=design(15) #  get design matrix for 15 measurements
     sbar=np.dot(B,k15) # get mean s
     t=(sbar[0]+sbar[1]+sbar[2]) # trace
-    bulk=t/3. # bulk susceptibility
+    bulk=old_div(t,3.) # bulk susceptibility
     Kbar=np.dot(A,sbar)  # get best fit values for K
     dels=k15-Kbar  # get deltas
-    dels,sbar=dels/t,sbar/t# normalize by trace
+    dels,sbar=old_div(dels,t),old_div(sbar,t)# normalize by trace
     So= sum(dels**2)
-    sigma=np.sqrt(So/9.) # standard deviation
+    sigma=np.sqrt(old_div(So,9.)) # standard deviation
     return sbar,sigma,bulk
 #
 def cross(v, w):
@@ -5484,7 +5498,7 @@ def designAARM(npos):
     calculates B matrix for AARM calculations.
     """
     if npos!=9:
-        print 'Sorry - only 9 positions available'
+        print('Sorry - only 9 positions available')
         return
     Dec=[315.,225.,180.,135.,45.,90.,270.,270.,270.,90.,180.,180.,0.,0.,0.]
     Dip=[0.,0.,0.,0.,0.,-45.,-45.,0.,45.,45.,45.,-45.,-90.,-45.,45.]
@@ -5520,7 +5534,7 @@ def designAARM(npos):
         ATAI=linalg.inv(ATA)
         B=np.dot(ATAI,At)
     else:
-        print "B matrix not yet supported"
+        print("B matrix not yet supported")
         return
     return B,H,tmpH
 #
@@ -5601,12 +5615,12 @@ def cleanup(first_I,first_Z):
     if len(first_Z)<Nmin:Nmin=len(first_Z)
     for kk in range(Nmin):
         if first_I[kk][0]!=first_Z[kk][0]:
-            print "\n WARNING: "
+            print("\n WARNING: ")
             if first_I[kk]<first_Z[kk]:
                 del first_I[kk]
             else:
                 del first_Z[kk]
-            print "Unmatched step number: ",kk+1,'  ignored'
+            print("Unmatched step number: ",kk+1,'  ignored')
             cont=1
         if cont==1: return first_I,first_Z,cont
     return first_I,first_Z,cont
@@ -5616,7 +5630,7 @@ def sortarai(datablock,s,Zdiff,**kwargs):
     """
      sorts data block in to first_Z, first_I, etc.
     """
-    if 'version' in kwargs.keys() and kwargs['version']==3:
+    if 'version' in list(kwargs.keys()) and kwargs['version']==3:
         dec_key,inc_key='dir_dec','dir_inc'
         Mkeys=['magn_moment','magn_volume','magn_mass','magnitude']
         meth_key='method_codes'
@@ -5637,7 +5651,7 @@ def sortarai(datablock,s,Zdiff,**kwargs):
     GammaChecks=[] # comparison of pTRM direction acquired and lab field
     rec=datablock[0]
     for key in Mkeys:
-        if key in rec.keys() and rec[key]!="":
+        if key in list(rec.keys()) and rec[key]!="":
             momkey=key
             break
 # first find all the steps
@@ -5770,14 +5784,14 @@ def sortarai(datablock,s,Zdiff,**kwargs):
 #        ptrm_tail.append([temp,d[0],d[1],d[2]])
             ptrm_tail.append([temp,0,0,str-pint])  # difference - if negative, negative tail!
         else:
-            print s, '  has a tail check with no first zero field step - check input file! for step',temp-273.
+            print(s, '  has a tail check with no first zero field step - check input file! for step',temp-273.)
 #
 # final check
 #
     if len(first_Z)!=len(first_I):
-               print len(first_Z),len(first_I)
-               print " Something wrong with this specimen! Better fix it or delete it "
-               raw_input(" press return to acknowledge message")
+               print(len(first_Z),len(first_I))
+               print(" Something wrong with this specimen! Better fix it or delete it ")
+               input(" press return to acknowledge message")
     araiblock=(first_Z,first_I,ptrm_check,ptrm_tail,zptrm_check,GammaChecks)
     return araiblock,field
 
@@ -5789,7 +5803,7 @@ def sortmwarai(datablock,exp_type):
     field,phi,theta="","",""
     POWT_I,POWT_Z,POWT_PZ,POWT_PI,POWT_M=[],[],[],[],[]
     ISteps,ZSteps,PZSteps,PISteps,MSteps=[],[],[],[],[]
-    rad=np.pi/180.
+    rad=old_div(np.pi,180.)
     ThetaChecks=[] #
     DeltaChecks=[]
     GammaChecks=[]
@@ -5880,8 +5894,8 @@ def sortmwarai(datablock,exp_type):
             powt=int(float(irec["treatment_mw_energy"]))
             ThetaChecks.append([powt,theta1+theta2])
             p=(180.-(theta1+theta2))
-            nstr=rstr*(np.sin(theta2*rad)/np.sin(p*rad))
-            tmstr=rstr*(np.sin(theta1*rad)/np.sin(p*rad))
+            nstr=rstr*(old_div(np.sin(theta2*rad),np.sin(p*rad)))
+            tmstr=rstr*(old_div(np.sin(theta1*rad),np.sin(p*rad)))
             first_Z.append([powt,ndec,ninc,nstr,1])
             first_I.append([powt,dec,inc,tmstr,1])
 # check if zero field steps are parallel to assumed NRM
@@ -5948,15 +5962,15 @@ def sortmwarai(datablock,exp_type):
     #  check
     #
         if len(first_Z)!=len(first_I):
-                   print len(first_Z),len(first_I)
-                   print " Something wrong with this specimen! Better fix it or delete it "
-                   raw_input(" press return to acknowledge message")
-                   print MaxRec
+                   print(len(first_Z),len(first_I))
+                   print(" Something wrong with this specimen! Better fix it or delete it ")
+                   input(" press return to acknowledge message")
+                   print(MaxRec)
     araiblock=(first_Z,first_I,ptrm_check,ptrm_tail,zptrm_check,GammaChecks,ThetaChecks,DeltaChecks)
     return araiblock,field
 
     #
-def doigrf(long,lat,alt,date,**kwargs):
+def doigrf(lon,lat,alt,date,**kwargs):
     """
     Calculates the interpolated (<2015) or extrapolated (>2015) main field and
     secular variation coefficients and passes them to the Malin and Barraclough
@@ -5964,7 +5978,7 @@ def doigrf(long,lat,alt,date,**kwargs):
 
     Parameters:
     -----------
-    long  = east longitude in degrees (0 to 360 or -180 to 180)
+    lon  = east longitude in degrees (0 to 360 or -180 to 180)
     lat   = latitude in degrees (-90 to 90)
     alt   = height above mean sea level in km (itype = 1 assumed)
     date  = Required date in years and decimals of a year (A.D.)
@@ -5996,15 +6010,15 @@ def doigrf(long,lat,alt,date,**kwargs):
     To check the results you can run the interactive program at the NGDC
     www.ngdc.noaa.gov/geomag-web
     """
-    import coefficients as cf
+    from . import coefficients as cf
     gh,sv=[],[]
     colat = 90.-lat
 #! convert to colatitude for MB routine
-    if long>0: long=long+360.
+    if lon<0: lon=lon+360.
 # ensure all positive east longitudes
     itype = 1
     models,igrf12coeffs=cf.get_igrf12()
-    if 'mod' in kwargs.keys():
+    if 'mod' in list(kwargs.keys()):
         if kwargs['mod']=='arch3k':
             psvmodels,psvcoeffs=cf.get_arch3k() # use ARCH3k coefficients
         elif kwargs['mod']=='cals3k':
@@ -6021,28 +6035,28 @@ def doigrf(long,lat,alt,date,**kwargs):
             psvmodels,psvcoeffs=cf.get_cals10k() # Korte and Constable, 2011;  use prior to -1000, back to -8000
 # use geodetic coordinates
     if 'models' in kwargs:
-        if 'mod' in kwargs.keys():
+        if 'mod' in list(kwargs.keys()):
             return psvmodels,psvcoeffs
         else:
             return models,igrf12coeffs
     if date<-12000:
-        print 'too old'
+        print('too old')
         return
-    if 'mod' in kwargs.keys() and kwargs['mod']=='shadif14k':
+    if 'mod' in list(kwargs.keys()) and kwargs['mod']=='shadif14k':
         if date<-10000:
             incr=100
         else:
             incr=50
         model=date-date%incr
         gh=psvcoeffs[psvmodels.index(int(model))]
-        sv=(psvcoeffs[psvmodels.index(int(model+incr))]-gh)/float(incr)
-        x,y,z,f=magsyn(gh,sv,model,date,itype,alt,colat,long)
+        sv=old_div((psvcoeffs[psvmodels.index(int(model+incr))]-gh),float(incr))
+        x,y,z,f=magsyn(gh,sv,model,date,itype,alt,colat,lon)
     elif date<-1000:
         incr=10
         model=date-date%incr
         gh=psvcoeffs[psvmodels.index(int(model))]
-        sv=(psvcoeffs[psvmodels.index(int(model+incr))]-gh)/float(incr)
-        x,y,z,f=magsyn(gh,sv,model,date,itype,alt,colat,long)
+        sv=old_div((psvcoeffs[psvmodels.index(int(model+incr))]-gh),float(incr))
+        x,y,z,f=magsyn(gh,sv,model,date,itype,alt,colat,lon)
     elif date<1900:
         if kwargs['mod']=='cals10k':
             incr=50
@@ -6051,22 +6065,22 @@ def doigrf(long,lat,alt,date,**kwargs):
         model=date-date%incr
         gh=psvcoeffs[psvmodels.index(model)]
         if model+incr<1900:
-            sv=(psvcoeffs[psvmodels.index(model+incr)]-gh)/float(incr)
+            sv=old_div((psvcoeffs[psvmodels.index(model+incr)]-gh),float(incr))
         else:
             field2=igrf12coeffs[models.index(1940)][0:120]
-            sv=(field2-gh)/float(1940-model)
-        x,y,z,f=magsyn(gh,sv,model,date,itype,alt,colat,long)
+            sv=old_div((field2-gh),float(1940-model))
+        x,y,z,f=magsyn(gh,sv,model,date,itype,alt,colat,lon)
     else:
         model=date-date%5
         if date<2015:
             gh=igrf12coeffs[models.index(model)]
-            sv=(igrf12coeffs[models.index(model+5)]-gh)/5.
-            x,y,z,f=magsyn(gh,sv,model,date,itype,alt,colat,long)
+            sv=old_div((igrf12coeffs[models.index(model+5)]-gh),5.)
+            x,y,z,f=magsyn(gh,sv,model,date,itype,alt,colat,lon)
         else:
             gh=igrf12coeffs[models.index(2015)]
             sv=igrf12coeffs[models.index(2015.20)]
-            x,y,z,f=magsyn(gh,sv,model,date,itype,alt,colat,long)
-    if 'coeffs' in kwargs.keys():
+            x,y,z,f=magsyn(gh,sv,model,date,itype,alt,colat,lon)
+    if 'coeffs' in list(kwargs.keys()):
         return gh
     else:
         return x,y,z,f
@@ -6155,13 +6169,13 @@ def magsyn(gh,sv,b,date,itype,alt,colat,elong):
         two = b2 * ct * ct
         three = one + two
         rho = np.sqrt(three)
-        r = np.sqrt(alt*(alt+2.0*rho) + (a2*one+b2*two)/three)
-        cd = (alt + rho) /r
+        r = np.sqrt(alt*(alt+2.0*rho) + old_div((a2*one+b2*two),three))
+        cd = old_div((alt + rho),r)
         sd = (a2 - b2) /rho * ct * st /r
         one = ct
         ct = ct*cd - st*sd
         st  = st*cd + one*sd
-    ratio = 6371.2 /r
+    ratio = old_div(6371.2,r)
     rr = ratio * ratio
 #
 # compute Schmidt quasi-normal coefficients p and x(=q)
@@ -6180,7 +6194,7 @@ def magsyn(gh,sv,b,date,itype,alt,colat,elong):
         fm = m
         if k != 2: # else go to 4
             if m == n:   # else go to 3
-                one = np.sqrt(1.0 - 0.5/fm)
+                one = np.sqrt(1.0 - old_div(0.5,fm))
                 j = k - n - 1
                 p[k] = one * st * p[j]
                 q[k] = one * (st*q[j] + ct*p[j])
@@ -6190,8 +6204,8 @@ def magsyn(gh,sv,b,date,itype,alt,colat,elong):
 # 3
                 gm = m * m
                 one = np.sqrt(fn*fn - gm)
-                two = np.sqrt(gn*gn - gm) /one
-                three = (fn + gn) /one
+                two = old_div(np.sqrt(gn*gn - gm),one)
+                three = old_div((fn + gn),one)
                 i = k - n
                 j = i - n + 1
                 p[k] = three*ct*p[i] - two*p[j]
@@ -6245,7 +6259,7 @@ def measurements_methods(meas_data,noave):
 # first collect all data for this specimen and do lab treatments
         SpecRecs=get_dictitem(meas_data,'er_specimen_name',spec,'T') # list  of measurement records for this specimen
         for rec in SpecRecs:
-            if 'measurement_flag' not in rec.keys():rec['measurement_flag']='g'
+            if 'measurement_flag' not in list(rec.keys()):rec['measurement_flag']='g'
             tmpmeths=rec['magic_method_codes'].split(":")
             meths=[]
             if "LP-TRM" in tmpmeths:TRM=1 # catch these suckers here!
@@ -6262,20 +6276,20 @@ def measurements_methods(meas_data,noave):
 #
             elif float(rec["measurement_temp"])>=273. and float(rec["measurement_temp"]) < 323.:
 # between 0 and 50C is room T measurement
-                if ("measurement_dc_field" not in rec.keys() or float(rec["measurement_dc_field"])==0 or rec["measurement_dc_field"]=="") and ("measurement_ac_field" not in rec.keys() or float(rec["measurement_ac_field"])==0 or rec["measurement_ac_field"]==""):
+                if ("measurement_dc_field" not in list(rec.keys()) or float(rec["measurement_dc_field"])==0 or rec["measurement_dc_field"]=="") and ("measurement_ac_field" not in list(rec.keys()) or float(rec["measurement_ac_field"])==0 or rec["measurement_ac_field"]==""):
 # measurement done in zero field!
-                    if  "treatment_temp" not in rec.keys() or rec["treatment_temp"].strip()=="" or (float(rec["treatment_temp"])>=273. and float(rec["treatment_temp"]) < 298.):
+                    if  "treatment_temp" not in list(rec.keys()) or rec["treatment_temp"].strip()=="" or (float(rec["treatment_temp"])>=273. and float(rec["treatment_temp"]) < 298.):
 # between 0 and 50C is room T treatment
-                        if "treatment_ac_field" not in rec.keys() or rec["treatment_ac_field"] =="" or float(rec["treatment_ac_field"])==0:
+                        if "treatment_ac_field" not in list(rec.keys()) or rec["treatment_ac_field"] =="" or float(rec["treatment_ac_field"])==0:
 # no AF
-                            if "treatment_dc_field" not in rec.keys() or rec["treatment_dc_field"]=="" or float(rec["treatment_dc_field"])==0:# no IRM!
+                            if "treatment_dc_field" not in list(rec.keys()) or rec["treatment_dc_field"]=="" or float(rec["treatment_dc_field"])==0:# no IRM!
                                 if "LT-NO" not in meths:meths.append("LT-NO")
                             elif "LT-IRM" not in meths:
                                 meths.append("LT-IRM") # it's an IRM
 #
 # find AF/infield/zerofield
 #
-                        elif "treatment_dc_field" not in rec.keys() or rec["treatment_dc_field"]=="" or float(rec["treatment_dc_field"])==0: # no ARM
+                        elif "treatment_dc_field" not in list(rec.keys()) or rec["treatment_dc_field"]=="" or float(rec["treatment_dc_field"])==0: # no ARM
                             if "LT-AF-Z" not in meths:meths.append("LT-AF-Z")
                         else: # yes ARM
                             if "LT-AF-I" not in meths: meths.append("LT-AF-I")
@@ -6285,7 +6299,7 @@ def measurements_methods(meas_data,noave):
                     elif float(rec["treatment_temp"])>=323:  # treatment done at  high T
                         if TRM==1:
                             if "LT-T-I" not in meths: meths.append("LT-T-I") # TRM - even if zero applied field!
-                        elif "treatment_dc_field" not in rec.keys() or rec["treatment_dc_field"]=="" or float(rec["treatment_dc_field"])==0.: # no TRM
+                        elif "treatment_dc_field" not in list(rec.keys()) or rec["treatment_dc_field"]=="" or float(rec["treatment_dc_field"])==0.: # no TRM
                             if  "LT-T-Z" not in meths: meths.append("LT-T-Z") # don't overwrite if part of a TRM experiment!
                         else: # yes TRM
                             if "LT-T-I" not in meths: meths.append("LT-T-I")
@@ -6293,19 +6307,19 @@ def measurements_methods(meas_data,noave):
 # find low-T infield,zero field
 #
                     else:  # treatment done at low T
-                        if "treatment_dc_field" not in rec.keys() or rec["treatment_dc_field"]=="" or float(rec["treatment_dc_field"])==0: # no field
+                        if "treatment_dc_field" not in list(rec.keys()) or rec["treatment_dc_field"]=="" or float(rec["treatment_dc_field"])==0: # no field
                             if "LT-LT-Z" not in meths:meths.append("LT-LT-Z")
                         else: # yes field
                             if "LT-LT-I" not in meths:meths.append("LT-LT-I")
-                if "measurement_chi_volume" in rec.keys() or "measurement_chi_mass" in rec.keys():
+                if "measurement_chi_volume" in list(rec.keys()) or "measurement_chi_mass" in list(rec.keys()):
                     if  "LP-X" not in meths:meths.append("LP-X")
-                elif "measurement_lab_dc_field" in rec.keys() and rec["measurement_lab_dc_field"]!=0: # measurement in presence of dc field and not susceptibility; hysteresis!
+                elif "measurement_lab_dc_field" in list(rec.keys()) and rec["measurement_lab_dc_field"]!=0: # measurement in presence of dc field and not susceptibility; hysteresis!
                     if  "LP-HYS" not in meths:
-                        hysq=raw_input("Is this a hysteresis experiment? [1]/0")
+                        hysq=input("Is this a hysteresis experiment? [1]/0")
                         if hysq=="" or hysq=="1":
                             meths.append("LP-HYS")
                         else:
-                            metha=raw_input("Enter the lab protocol code that best describes this experiment ")
+                            metha=input("Enter the lab protocol code that best describes this experiment ")
                             meths.append(metha)
                 methcode=""
                 for meth in meths:
@@ -6313,7 +6327,7 @@ def measurements_methods(meas_data,noave):
                 rec["magic_method_codes"]=methcode[:-1] # assign them back
 #
 # done with first pass, collect and assign provisional method codes
-            if "measurement_description" not in rec.keys():rec["measurement_description"]=""
+            if "measurement_description" not in list(rec.keys()):rec["measurement_description"]=""
             rec["er_citation_names"]="This study"
             SpecTmps.append(rec)
 # ready for second pass through, step through specimens, check whether ptrm, ptrm tail checks, or AARM, etc.
@@ -6351,7 +6365,7 @@ def measurements_methods(meas_data,noave):
                     methods=get_list(NewSpecs,'magic_method_codes').split(":")
                     if "LT-T-I" in methods:Steps.append(rec)  # get all infield steps together
                 rec_bak=Steps[0]
-                if "treatment_dc_field_phi" in rec_bak.keys() and "treatment_dc_field_theta" in rec_bak.keys():
+                if "treatment_dc_field_phi" in list(rec_bak.keys()) and "treatment_dc_field_theta" in list(rec_bak.keys()):
                     if rec_bak["treatment_dc_field_phi"] !="" and rec_bak["treatment_dc_field_theta"]!="":   # at least there is field orientation info
                         phi0,theta0=rec_bak["treatment_dc_field_phi"],rec_bak["treatment_dc_field_theta"]
                         for k in range(1,len(Steps)):
@@ -6385,7 +6399,7 @@ def measurements_methods(meas_data,noave):
                         methods.append(meth.strip())
                     if "LT-AF-I" in methods:Steps.append(rec)  # get all infield steps together
                 rec_bak=Steps[0]
-                if "treatment_dc_field_phi" in rec_bak.keys() and "treatment_dc_field_theta" in rec_bak.keys():
+                if "treatment_dc_field_phi" in list(rec_bak.keys()) and "treatment_dc_field_theta" in list(rec_bak.keys()):
                     if rec_bak["treatment_dc_field_phi"] !="" and rec_bak["treatment_dc_field_theta"]!="":   # at least there is field orientation info
                         phi0,theta0=rec_bak["treatment_dc_field_phi"],rec_bak["treatment_dc_field_theta"]
                         ANIS=0
@@ -6422,7 +6436,7 @@ def measurements_methods(meas_data,noave):
                         methods.append(meth.strip())
                     if "LT-IRM" in methods:Steps.append(rec)  # get all infield steps together
                 rec_bak=Steps[0]
-                if "treatment_dc_field_phi" in rec_bak.keys() and "treatment_dc_field_theta" in rec_bak.keys():
+                if "treatment_dc_field_phi" in list(rec_bak.keys()) and "treatment_dc_field_theta" in list(rec_bak.keys()):
                     if rec_bak["treatment_dc_field_phi"] !="" and rec_bak["treatment_dc_field_theta"]!="":   # at least there is field orientation info
                         phi0,theta0=rec_bak["treatment_dc_field_phi"],rec_bak["treatment_dc_field_theta"]
                         ANIS=0
@@ -6445,7 +6459,7 @@ def measurements_methods(meas_data,noave):
                 Steps=get_dictitem(NewSpecs,'magic_method_codes','LT-X','has')
                 if len(Steps)>0:
                     rec_bak=Steps[0]
-                    if "treatment_dc_field_phi" in rec_bak.keys() and "treatment_dc_field_theta" in rec_bak.keys():
+                    if "treatment_dc_field_phi" in list(rec_bak.keys()) and "treatment_dc_field_theta" in list(rec_bak.keys()):
                         if rec_bak["treatment_dc_field_phi"] !="" and rec_bak["treatment_dc_field_theta"]!="":   # at least there is field orientation info
                             phi0,theta0=rec_bak["treatment_dc_field_phi"],rec_bak["treatment_dc_field_theta"]
                             ANIS=0
@@ -6655,7 +6669,7 @@ def measurements_methods3(meas_data,noave):
 # first collect all data for this specimen and do lab treatments
         SpecRecs=get_dictitem(meas_data,'specimen',spec,'T') # list  of measurement records for this specimen
         for rec in SpecRecs:
-            if 'quality' not in rec.keys():rec['quality']='g'
+            if 'quality' not in list(rec.keys()):rec['quality']='g'
             tmpmeths=rec['method_codes'].split(":")
             meths=[]
             if "LP-TRM" in tmpmeths:TRM=1 # catch these suckers here!
@@ -6672,20 +6686,20 @@ def measurements_methods3(meas_data,noave):
 #
             elif float(rec["meas_temp"])>=273. and float(rec["meas_temp"]) < 323.:
 # between 0 and 50C is room T measurement
-                if ("meas_dc_field" not in rec.keys() or float(rec["meas_dc_field"])==0 or rec["meas_dc_field"]=="") and ("meas_ac_field" not in rec.keys() or float(rec["meas_ac_field"])==0 or rec["meas_ac_field"]==""):
+                if ("meas_dc_field" not in list(rec.keys()) or float(rec["meas_dc_field"])==0 or rec["meas_dc_field"]=="") and ("meas_ac_field" not in list(rec.keys()) or float(rec["meas_ac_field"])==0 or rec["meas_ac_field"]==""):
 # measurement done in zero field!
-                    if  "treat_temp" not in rec.keys() or rec["treat_temp"].strip()=="" or (float(rec["treat_temp"])>=273. and float(rec["treat_temp"]) < 298.):
+                    if  "treat_temp" not in list(rec.keys()) or rec["treat_temp"].strip()=="" or (float(rec["treat_temp"])>=273. and float(rec["treat_temp"]) < 298.):
 # between 0 and 50C is room T treatment
-                        if "treat_ac_field" not in rec.keys() or rec["treat_ac_field"] =="" or float(rec["treat_ac_field"])==0:
+                        if "treat_ac_field" not in list(rec.keys()) or rec["treat_ac_field"] =="" or float(rec["treat_ac_field"])==0:
 # no AF
-                            if "treat_dc_field" not in rec.keys() or rec["treat_dc_field"]=="" or float(rec["treat_dc_field"])==0:# no IRM!
+                            if "treat_dc_field" not in list(rec.keys()) or rec["treat_dc_field"]=="" or float(rec["treat_dc_field"])==0:# no IRM!
                                 if "LT-NO" not in meths:meths.append("LT-NO")
                             elif "LT-IRM" not in meths:
                                 meths.append("LT-IRM") # it's an IRM
 #
 # find AF/infield/zerofield
 #
-                        elif "treat_dc_field" not in rec.keys() or rec["treat_dc_field"]=="" or float(rec["treat_dc_field"])==0: # no ARM
+                        elif "treat_dc_field" not in list(rec.keys()) or rec["treat_dc_field"]=="" or float(rec["treat_dc_field"])==0: # no ARM
                             if "LT-AF-Z" not in meths:meths.append("LT-AF-Z")
                         else: # yes ARM
                             if "LT-AF-I" not in meths: meths.append("LT-AF-I")
@@ -6695,7 +6709,7 @@ def measurements_methods3(meas_data,noave):
                     elif float(rec["treat_temp"])>=323:  # treatment done at  high T
                         if TRM==1:
                             if "LT-T-I" not in meths: meths.append("LT-T-I") # TRM - even if zero applied field!
-                        elif "treat_dc_field" not in rec.keys() or rec["treat_dc_field"]=="" or float(rec["treat_dc_field"])==0.: # no TRM
+                        elif "treat_dc_field" not in list(rec.keys()) or rec["treat_dc_field"]=="" or float(rec["treat_dc_field"])==0.: # no TRM
                             if  "LT-T-Z" not in meths: meths.append("LT-T-Z") # don't overwrite if part of a TRM experiment!
                         else: # yes TRM
                             if "LT-T-I" not in meths: meths.append("LT-T-I")
@@ -6703,21 +6717,21 @@ def measurements_methods3(meas_data,noave):
 # find low-T infield,zero field
 #
                     else:  # treatment done at low T
-                        if "treat_dc_field" not in rec.keys() or rec["treat_dc_field"]=="" or float(rec["treat_dc_field"])==0: # no field
+                        if "treat_dc_field" not in list(rec.keys()) or rec["treat_dc_field"]=="" or float(rec["treat_dc_field"])==0: # no field
                             if "LT-LT-Z" not in meths:meths.append("LT-LT-Z")
                         else: # yes field
                             if "LT-LT-I" not in meths:meths.append("LT-LT-I")
 
 
-                if "susc_chi_volume" in rec.keys() or "susc_chi_mass" in rec.keys():
+                if "susc_chi_volume" in list(rec.keys()) or "susc_chi_mass" in list(rec.keys()):
                     if  "LP-X" not in meths:meths.append("LP-X")
-                elif "meas_lab_dc_field" in rec.keys() and rec["meas_lab_dc_field"]!=0: # measurement in presence of dc field and not susceptibility; hysteresis!
+                elif "meas_lab_dc_field" in list(rec.keys()) and rec["meas_lab_dc_field"]!=0: # measurement in presence of dc field and not susceptibility; hysteresis!
                     if  "LP-HYS" not in meths:
-                        hysq=raw_input("Is this a hysteresis experiment? [1]/0")
+                        hysq=input("Is this a hysteresis experiment? [1]/0")
                         if hysq=="" or hysq=="1":
                             meths.append("LP-HYS")
                         else:
-                            metha=raw_input("Enter the lab protocol code that best describes this experiment ")
+                            metha=input("Enter the lab protocol code that best describes this experiment ")
                             meths.append(metha)
                 methcode=""
                 for meth in meths:
@@ -6725,7 +6739,7 @@ def measurements_methods3(meas_data,noave):
                 rec["method_codes"]=methcode[:-1] # assign them back
 #
 # done with first pass, collect and assign provisional method codes
-            if "description" not in rec.keys():rec["description"]=""
+            if "description" not in list(rec.keys()):rec["description"]=""
             rec["citations"]="This study"
             SpecTmps.append(rec)
 # ready for second pass through, step through specimens, check whether ptrm, ptrm tail checks, or AARM, etc.
@@ -6763,7 +6777,7 @@ def measurements_methods3(meas_data,noave):
                     methods=get_list(NewSpecs,'method_codes').split(":")
                     if "LT-T-I" in methods:Steps.append(rec)  # get all infield steps together
                 rec_bak=Steps[0]
-                if "treat_dc_field_phi" in rec_bak.keys() and "treat_dc_field_theta" in rec_bak.keys():
+                if "treat_dc_field_phi" in list(rec_bak.keys()) and "treat_dc_field_theta" in list(rec_bak.keys()):
                     if rec_bak["treat_dc_field_phi"] !="" and rec_bak["treat_dc_field_theta"]!="":   # at least there is field orientation info
                         phi0,theta0=rec_bak["treat_dc_field_phi"],rec_bak["treat_dc_field_theta"]
                         for k in range(1,len(Steps)):
@@ -6797,7 +6811,7 @@ def measurements_methods3(meas_data,noave):
                         methods.append(meth.strip())
                     if "LT-AF-I" in methods:Steps.append(rec)  # get all infield steps together
                 rec_bak=Steps[0]
-                if "treat_dc_field_phi" in rec_bak.keys() and "treat_dc_field_theta" in rec_bak.keys():
+                if "treat_dc_field_phi" in list(rec_bak.keys()) and "treat_dc_field_theta" in list(rec_bak.keys()):
                     if rec_bak["treat_dc_field_phi"] !="" and rec_bak["treat_dc_field_theta"]!="":   # at least there is field orientation info
                         phi0,theta0=rec_bak["treat_dc_field_phi"],rec_bak["treat_dc_field_theta"]
                         ANIS=0
@@ -6834,7 +6848,7 @@ def measurements_methods3(meas_data,noave):
                         methods.append(meth.strip())
                     if "LT-IRM" in methods:Steps.append(rec)  # get all infield steps together
                 rec_bak=Steps[0]
-                if "treat_dc_field_phi" in rec_bak.keys() and "treat_dc_field_theta" in rec_bak.keys():
+                if "treat_dc_field_phi" in list(rec_bak.keys()) and "treat_dc_field_theta" in list(rec_bak.keys()):
                     if rec_bak["treat_dc_field_phi"] !="" and rec_bak["treat_dc_field_theta"]!="":   # at least there is field orientation info
                         phi0,theta0=rec_bak["treat_dc_field_phi"],rec_bak["treat_dc_field_theta"]
                         ANIS=0
@@ -6857,7 +6871,7 @@ def measurements_methods3(meas_data,noave):
                 Steps=get_dictitem(NewSpecs,'method_codes','LT-X','has')
                 if len(Steps)>0:
                     rec_bak=Steps[0]
-                    if "treat_dc_field_phi" in rec_bak.keys() and "treat_dc_field_theta" in rec_bak.keys():
+                    if "treat_dc_field_phi" in list(rec_bak.keys()) and "treat_dc_field_theta" in list(rec_bak.keys()):
                         if rec_bak["treat_dc_field_phi"] !="" and rec_bak["treat_dc_field_theta"]!="":   # at least there is field orientation info
                             phi0,theta0=rec_bak["treat_dc_field_phi"],rec_bak["treat_dc_field_theta"]
                             ANIS=0
@@ -7108,7 +7122,7 @@ def mw_measurements_methods(MagRecs):
             if  "LP-NRM-PERP" in meths: # this is a single  heating experiment
                 experiment_name=experiment_name+":LP-PI-M-S"
             else:
-                print "Trouble interpreting file - missing zerofield steps? "
+                print("Trouble interpreting file - missing zerofield steps? ")
                 return
         else: # this is a double heating experiment
             experiment_name=experiment_name+":LP-PI-M-D"
@@ -7134,13 +7148,13 @@ def mw_measurements_methods(MagRecs):
                 if IZorZI!="":
                     MagRecs[istep]['magic_method_codes']= MagRecs[istep]['magic_method_codes']+':'+IZorZI
                     MagRecs[zstep]['magic_method_codes']= MagRecs[zstep]['magic_method_codes']+':'+IZorZI
-            print POWT_Z
-            print POWT_I
+            print(POWT_Z)
+            print(POWT_I)
             for  istep in ISteps: # now look for MD checks (zero field)
               if istep+2<len(MagRecs):  # only if there is another step to consider
                 irec=MagRecs[istep]
                 powt_i=int(float(irec["treatment_mw_energy"]))
-                print istep,powt_i,ZSteps[POWT_Z.index(powt_i)]
+                print(istep,powt_i,ZSteps[POWT_Z.index(powt_i)])
                 if powt_i in POWT_Z and ZSteps[POWT_Z.index(powt_i)] < istep:  # if there is a previous zero field step at same  power
                     nrec=MagRecs[istep+1] # next step
                     nmeths=nrec['magic_method_codes'].split(":")
@@ -7162,10 +7176,10 @@ def mw_measurements_methods(MagRecs):
                 if ZI==1:
                     experiment_name=experiment_name+":LP-PI-M-ZI"
                 else:
-                    print "problem in measurements_methods - no ZI or IZ in double heating experiment"
+                    print("problem in measurements_methods - no ZI or IZ in double heating experiment")
                     return
     for rec in MagRecs:
-        if 'er_synthetic_name' in rec.keys() and rec['er_synthetic_name']!="":
+        if 'er_synthetic_name' in list(rec.keys()) and rec['er_synthetic_name']!="":
             rec['magic_experiment_name']=rec['er_synthetic_name']+":"+experiment_name
         else:
             rec['magic_experiment_name']=rec['er_specimen_name']+":"+experiment_name
@@ -7205,7 +7219,7 @@ def parse_site(sample,convention,Z):
         return sample
 
     if convention=="6": # should be names in orient.txt
-        print "-W- Finding names in orient.txt is not currently supported"
+        print("-W- Finding names in orient.txt is not currently supported")
 
     if convention=="7": # peel off Z characters for site
        k=int(Z)
@@ -7217,7 +7231,7 @@ def parse_site(sample,convention,Z):
     if convention=="9": # peel off Z characters for site
        return sample
 
-    print "Error in site parsing routine"
+    print("Error in site parsing routine")
     return
 
 def get_samp_con():
@@ -7227,7 +7241,7 @@ def get_samp_con():
 #
     samp_con,Z="",""
     while samp_con=="":
-        samp_con=raw_input("""
+        samp_con=input("""
         Sample naming convention:
             [1] XXXXY: where XXXX is an arbitrary length site designation and Y
                 is the single character sample designation.  e.g., TG001a is the
@@ -7247,20 +7261,20 @@ def get_samp_con():
             samp_con,Z="1",1
         if "4" in samp_con:
             if "-" not in samp_con:
-                print "option [4] must be in form 4-Z where Z is an integer"
+                print("option [4] must be in form 4-Z where Z is an integer")
                 samp_con=""
             else:
                 Z=samp_con.split("-")[1]
                 samp_con="4"
         if "7" in samp_con:
             if "-" not in samp_con:
-                print "option [7] must be in form 7-Z where Z is an integer"
+                print("option [7] must be in form 7-Z where Z is an integer")
                 samp_con=""
             else:
                 Z=samp_con.split("-")[1]
                 samp_con="7"
         if samp_con.isdigit()==False or int(samp_con)>7:
-            print "Try again\n "
+            print("Try again\n ")
             samp_con=""
     return samp_con,Z
 
@@ -7274,8 +7288,8 @@ def get_tilt(dec_geo,inc_geo,dec_tilt,inc_tilt):
     SCart[2]=0.  # by definition
     GCart=dir2cart([dec_geo,inc_geo,1.]) # cartesian coordites of Geographic D
     TCart=dir2cart([dec_tilt,inc_tilt,1.]) # cartesian coordites of Tilt D
-    X=(TCart[1]-GCart[1])/(GCart[0]-TCart[0])
-    SCart[1]=np.sqrt(1/(X**2+1.))
+    X=old_div((TCart[1]-GCart[1]),(GCart[0]-TCart[0]))
+    SCart[1]=np.sqrt(old_div(1,(X**2+1.)))
     SCart[0]=SCart[1]*X
     SDir=cart2dir(SCart)
     DipDir=(SDir[0]-90.)%360.
@@ -7286,7 +7300,7 @@ def get_tilt(dec_geo,inc_geo,dec_tilt,inc_tilt):
     cosd = GCart[0]*SCart[0]+GCart[1]*SCart[1]  # cosine of angle between two
     d=np.arccos(cosd)
     cosTheta=GCart[0]*TCart[0]+GCart[1]*TCart[1]+GCart[2]*TCart[2]
-    Dip =(180./np.pi)*np.arccos(-((cosd**2-cosTheta)/np.sin(d)**2))
+    Dip =(old_div(180.,np.pi))*np.arccos(-(old_div((cosd**2-cosTheta),np.sin(d)**2)))
     if Dip>90:Dip=-Dip
     return DipDir,Dip
 #
@@ -7295,7 +7309,7 @@ def get_azpl(cdec,cinc,gdec,ginc):
      gets azimuth and pl from specimen dec inc (cdec,cinc) and gdec,ginc (geographic)  coordinates
     """
     TOL=1e-4
-    rad=np.pi/180.
+    rad=old_div(np.pi,180.)
     Xp=dir2cart([gdec,ginc,1.])
     X=dir2cart([cdec,cinc,1.])
     # find plunge first
@@ -7324,8 +7338,8 @@ def set_priorities(SO_methods,ask):
                 SO_priorities.append(SO_defaults[l])
     pri,change=0,"1"
     if ask==1:
-        print  """These methods of sample orientation were found:
-      They have been assigned a provisional priority (top = zero, last = highest number) """
+        print("""These methods of sample orientation were found:
+      They have been assigned a provisional priority (top = zero, last = highest number) """)
         for m in range(len(SO_defaults)):
             if SO_defaults[m] in SO_methods:
                 SO_priorities[SO_methods.index(SO_defaults[m])]=pri
@@ -7333,14 +7347,14 @@ def set_priorities(SO_methods,ask):
         while change=="1":
             prior_list=SO_priorities
             for m in range(len(SO_methods)):
-                print SO_methods[m],SO_priorities[m]
-            change=raw_input("Change these?  1/[0] ")
+                print(SO_methods[m],SO_priorities[m])
+            change=input("Change these?  1/[0] ")
             if change!="1":break
         SO_priorities=[]
         for l in range(len(SO_methods)):
-             print SO_methods[l]
-             print " Priority?   ",prior_list
-             pri=int(raw_input())
+             print(SO_methods[l])
+             print(" Priority?   ",prior_list)
+             pri=int(input())
              SO_priorities.append(pri)
              del prior_list[prior_list.index(pri)]
     return SO_priorities
@@ -7355,16 +7369,16 @@ def get_EOL(file):
     EOL=""
     for k in range(350):
         if firstline[k:k+2] == "\r\n":
-            print file, ' appears to be a dos file'
+            print(file, ' appears to be a dos file')
             EOL='\r\n'
             break
     if EOL=="":
         for k in range(350):
             if firstline[k] == "\r":
-                print file, ' appears to be a mac file'
+                print(file, ' appears to be a mac file')
                 EOL='\r'
     if EOL=="":
-        print file, " appears to be a  unix file"
+        print(file, " appears to be a  unix file")
         EOL='\n'
     f.close()
     return EOL
@@ -7399,22 +7413,22 @@ def sortshaw(s,datablock):
     cont=1
     while cont==1:
         if len(NRM)!=len(TRM):
-            print "Uneven NRM/TRM steps: "
+            print("Uneven NRM/TRM steps: ")
             NRM,TRM,cont=cleanup(TRM,NRM)
         else:cont=0
     cont=1
     while cont==1:
         if len(ARM1)!=len(ARM2):
-            print "Uneven ARM1/ARM2 steps: "
+            print("Uneven ARM1/ARM2 steps: ")
             ARM1,ARM2,cont=cleanup(ARM2,ARM1)
         else:cont=0
 #
 # final check
 #
     if len(NRM)!=len(TRM) or len(ARM1)!=len(ARM2):
-               print len(NRM),len(TRM),len(ARM1),len(ARM2)
-               print " Something wrong with this specimen! Better fix it or delete it "
-               raw_input(" press return to acknowledge message")
+               print(len(NRM),len(TRM),len(ARM1),len(ARM2))
+               print(" Something wrong with this specimen! Better fix it or delete it ")
+               input(" press return to acknowledge message")
 # now do the ratio to "fix" NRM/TRM data
 # a
     TRM_ADJ=[]
@@ -7438,7 +7452,7 @@ def makelist(List):
     return clist[:-1]
 
 
-def getvec(gh,lat,long):
+def getvec(gh,lat,lon):
     """
     Evaluates the vector at a given latitude and longitude for a specified
     set of coefficients
@@ -7461,7 +7475,7 @@ def getvec(gh,lat,long):
     itype = 1
     colat = 90.-lat
     date,alt=2000.,0. # use a dummy date and altitude
-    x,y,z,f=magsyn(gh,sv,date,date,itype,alt,colat,long)
+    x,y,z,f=magsyn(gh,sv,date,date,itype,alt,colat,lon)
     vec=cart2dir([x,y,z])
     vec[2]=f
     return vec
@@ -7473,7 +7487,7 @@ def s_l(l,alpha):
     """
     a2=alpha**2
     c_a=0.547
-    s_l=np.sqrt(((c_a**(2.*l))*a2)/((l+1.)*(2.*l+1.)))
+    s_l=np.sqrt(old_div(((c_a**(2.*l))*a2),((l+1.)*(2.*l+1.))))
     return s_l
 #
 def mktk03(terms,seed,G2,G3):
@@ -7487,17 +7501,17 @@ def mktk03(terms,seed,G2,G3):
     g10,sfact,afact=-18e3,3.8,2.4
     g20=G2*g10
     g30=G3*g10
-    alpha=g10/afact
+    alpha=old_div(g10,afact)
     s1=s_l(1,alpha)
     s10=sfact*s1
     gnew=random.normal(g10,s10)
-    if p==1:print 1,0,gnew,0
+    if p==1:print(1,0,gnew,0)
     gh.append(gnew)
     gh.append(random.normal(0,s1))
     gnew=gh[-1]
     gh.append(random.normal(0,s1))
     hnew=gh[-1]
-    if p==1:print 1,1,gnew,hnew
+    if p==1:print(1,1,gnew,hnew)
     for l in range(2,terms+1):
         for m in range(l+1):
             OFF=0.0
@@ -7514,7 +7528,7 @@ def mktk03(terms,seed,G2,G3):
             else:
                 gh.append(random.normal(0,s))
                 hnew=gh[-1]
-            if p==1:print l,m,gnew,hnew
+            if p==1:print(l,m,gnew,hnew)
     return gh
 #
 #
@@ -7522,19 +7536,19 @@ def pinc(lat):
     """
     calculate paleoinclination from latitude
     """
-    rad = np.pi/180.
+    rad = old_div(np.pi,180.)
     tanl=np.tan(lat*rad)
     inc=np.arctan(2.*tanl)
-    return inc/rad
+    return old_div(inc,rad)
 #
 def plat(inc):
     """
     calculate paleolat from inclination
     """
-    rad = np.pi/180.
+    rad = old_div(np.pi,180.)
     tani=np.tan(inc*rad)
-    lat=np.arctan(tani/2.)
-    return lat/rad
+    lat=np.arctan(old_div(tani,2.))
+    return old_div(lat,rad)
 #
 #
 def pseudo(DIs):
@@ -7603,7 +7617,7 @@ def get_plate_data(plate):
         ...
 
     """
-    import poles
+    from . import poles
     apwp = poles.get_apwp(plate)
     return apwp
 #
@@ -7643,7 +7657,7 @@ def linreg(x,y):
     does a linear regression
     """
     if len(x)!=len(y):
-        print 'x and y must be same length'
+        print('x and y must be same length')
         return
     xx,yy,xsum,ysum,xy,n,sum=0,0,0,0,0,len(x),0
     linpars={}
@@ -7653,15 +7667,15 @@ def linreg(x,y):
         xy+=x[i]*y[i]
         xsum+=x[i]
         ysum+=y[i]
-        xsig=np.sqrt((xx-xsum**2/n)/(n-1.))
-        ysig=np.sqrt((yy-ysum**2/n)/(n-1.))
-    linpars['slope']=(xy-(xsum*ysum/n))/(xx-(xsum**2)/n)
-    linpars['b']=(ysum-linpars['slope']*xsum)/n
-    linpars['r']=(linpars['slope']*xsig)/ysig
+        xsig=np.sqrt(old_div((xx-old_div(xsum**2,n)),(n-1.)))
+        ysig=np.sqrt(old_div((yy-old_div(ysum**2,n)),(n-1.)))
+    linpars['slope']=old_div((xy-(xsum*ysum/n)),(xx-old_div((xsum**2),n)))
+    linpars['b']=old_div((ysum-linpars['slope']*xsum),n)
+    linpars['r']=old_div((linpars['slope']*xsig),ysig)
     for i in range(n):
         a=y[i]-linpars['b']-linpars['slope']*x[i]
         sum+=a
-    linpars['sigma']=sum/(n-2.)
+    linpars['sigma']=old_div(sum,(n-2.))
     linpars['n']=n
     return linpars
 
@@ -7688,7 +7702,7 @@ def get_TS(ts):
         TS=[0, 0.781, 0.988, 1.072, 1.173, 1.185, 1.778, 1.945, 2.128, 2.148, 2.581, 3.032, 3.116, 3.207, 3.330, 3.596, 4.187, 4.300, 4.493, 4.631, 4.799, 4.896, 4.997, 5.235, 6.033, 6.252, 6.436, 6.733, 7.140, 7.212, 7.251, 7.285, 7.454, 7.489, 7.528, 7.642, 7.695, 8.108, 8.254, 8.300, 8.771, 9.105, 9.311, 9.426, 9.647, 9.721, 9.786, 9.937, 9.984, 11.056, 11.146, 11.188, 11.592, 11.657, 12.049, 12.174, 12.272, 12.474, 12.735, 12.770, 12.829, 12.887, 13.032, 13.183, 13.363, 13.608, 13.739, 14.070, 14.163, 14.609, 14.775, 14.870, 15.032, 15.160, 15.974, 16.268, 16.303, 16.472, 16.543, 16.721, 17.235, 17.533, 17.717, 17.740, 18.056, 18.524, 18.748, 19.722, 20.040, 20.213, 20.439, 20.709, 21.083, 21.159, 21.403, 21.483, 21.659, 21.688, 21.767, 21.936, 21.992, 22.268, 22.564, 22.754, 22.902, 23.030, 23.233, 23.295, 23.962, 24.000, 24.109, 24.474, 24.761, 24.984, 25.099, 25.264, 25.304, 25.987, 26.420, 27.439, 27.859, 28.087, 28.141, 28.278, 29.183, 29.477, 29.527, 29.970, 30.591, 31.034, 33.157, 33.705, 34.999, 35.294, 35.706, 35.892, 36.051, 36.700, 36.969, 37.753, 37.872, 38.093, 38.159, 38.333, 38.615, 39.627, 39.698, 40.145, 41.154, 41.390, 42.301, 43.432, 45.724, 47.349, 48.566, 49.344, 50.628, 50.835, 50.961, 51.833, 52.620, 53.074, 53.199, 53.274, 53.416, 53.983, 57.101, 57.656, 58.959, 59.237, 62.221, 62.517, 63.494, 64.667, 64.958, 65.688, 66.398, 68.196, 68.369, 69.269, 71.449, 71.689, 71.939, 73.649, 73.949, 74.049, 74.309, 79.900, 83.64]
         Labels=[['C1n',0.000],['C1r',0.781],['C2',1.778],['C2An',2.581],['C2Ar',3.596],['C3n',4.187],['C3r',5.235],['C3An',6.033],['C3Ar',6.733],['C3Bn',7.140],['C3Br',7.212],['C4n',7.528],['C4r',8.108],['C4An',8.771],['C4Ar',9.105],['C5n',9.786],['C5r',11.056],['C5An',12.049],['C5Ar',12.474],['C5AAn',13.032],['C5AAr',13.183],['C5ABn',13.363],['C5ABr',13.608],['C5ACn',13.739],['C5ACr',14.070],['C5ADn',14.163],['C5ADr',14.609],['C5Bn',14.775],['C5Br',15.160],['C5Cn',15.974],['C5Cr',16.721],['C5Dn',17.235],['C5Dr',17.533],['C5En',18.056],['C5Er',18.524],['C6n',18.748],['C6r',19.722],['C6An',20.040],['C6Ar',20.709],['C6AAn',21.083],['C6AAr',21.159],['C6Bn',21.767],['C6Br',22.268],['C6Cn',22.564],['C6Cr',23.295],['C7n',23.962],['C7r',24.474],['C7An',24.761],['C7Ar',24.984],['C8n',25.099],['C8r',25.987],['C9n',26.420],['C9r',27.439],['C10n',27.859],['C10r',28.278],['C11n',29.183],['C11r',29.970],['C12n',30.591],['C12r',31.034],['C13n',33.157],['C13r',33.705],['C15n',34.999],['C15r',35.294],['C16n',35.706],['C16r',36.700],['C17n',36.969],['C17r',38.333],['C18n',38.615],['C18r',40.145],['C19n',41.154],['C19r',41.390],['C20n',42.301],['C20r',43.432],['C21n',45.724],['C21r',47.349],['C22n',48.566],['C22r',49.344],['C23n',50.628],['C23r',51.833],['C24n',52.620],['C24r',53.983],['C25n',57.101],['C25r',57.656],['C26n',58.959],['C26r',59.237],['C27n',62.221],['C27r',62.517],['C28n',63.494],['C28r',64.667],['C29n',64.958],['C29r',65.688],['C30n',66.398],['C30r',68.196],['C31n',68.369],['C31r',69.269],['C32n',71.449],['C32r',73.649],['C33n',74.309],['C33r',79.900],['C34n',83.64]]
         return TS,Labels
-    print "Time Scale Option Not Available"
+    print("Time Scale Option Not Available")
     return
 
 
@@ -8209,16 +8223,16 @@ def read_criteria_from_file(path,acceptance_criteria,**kwargs):
 
     '''
     warnings = []
-    acceptance_criteria_list = acceptance_criteria.keys()
-    if 'data_model' in kwargs.keys() and kwargs['data_model']==3:
+    acceptance_criteria_list = list(acceptance_criteria.keys())
+    if 'data_model' in list(kwargs.keys()) and kwargs['data_model']==3:
         crit_data=acceptance_criteria # data already read in
     else:
         crit_data,file_type=magic_read(path)
         if 'criteria' not in file_type:
             if 'empty' in file_type:
-                print '-W- {} is an empty file'.format(path)
+                print('-W- {} is an empty file'.format(path))
             else:
-                print '-W- {} could not be read and may be improperly formatted...'.format(path)
+                print('-W- {} could not be read and may be improperly formatted...'.format(path))
     for rec in crit_data:
         # gather metadata
         metadata_dict = {'pmag_criteria_code': '', 'criteria_definition': '', 'er_citation_names': ''}
@@ -8226,8 +8240,8 @@ def read_criteria_from_file(path,acceptance_criteria,**kwargs):
             if metadata in rec:
                 metadata_dict[metadata] = rec[metadata]
         # check each record for correct name and compatibility
-        for crit in rec.keys():
-            if crit=='anisotropy_ftest_flag' and crit not in rec.keys():
+        for crit in list(rec.keys()):
+            if crit=='anisotropy_ftest_flag' and crit not in list(rec.keys()):
                 crit='specimen_aniso_ftest_flag' # convert legacy criterion to 2.5
             rec[crit]=rec[crit].strip('\n')
             if crit in ['pmag_criteria_code','criteria_definition','magic_experiment_names','er_citation_names']:
@@ -8239,20 +8253,20 @@ def read_criteria_from_file(path,acceptance_criteria,**kwargs):
             if crit in acceptance_criteria:
                 if acceptance_criteria[crit]['value'] not in [-999, '-999', -999]:
 
-                    print "-W- You have multiple different criteria that both use column: {}.\nThe last will be used:\n{}.".format(crit, rec)
+                    print("-W- You have multiple different criteria that both use column: {}.\nThe last will be used:\n{}.".format(crit, rec))
                     warn_string = 'multiple criteria for column: {} (only last will be used)'.format(crit)
                     if warn_string not in warnings:
                         warnings.append(warn_string)
-            if crit=="specimen_dang" and "pmag_criteria_code" in rec.keys() and "IE-SPEC" in rec["pmag_criteria_code"]:
+            if crit=="specimen_dang" and "pmag_criteria_code" in list(rec.keys()) and "IE-SPEC" in rec["pmag_criteria_code"]:
                 crit="specimen_int_dang"
-                print "-W- Found backward compatibility problem with selection criteria specimen_dang. Cannot be associated with IE-SPEC. Program assumes that the statistic is specimen_int_dang"
+                print("-W- Found backward compatibility problem with selection criteria specimen_dang. Cannot be associated with IE-SPEC. Program assumes that the statistic is specimen_int_dang")
                 if 'specimen_int_dang' not in acceptance_criteria:
                     acceptance_criteria["specimen_int_dang"] = {}
                 acceptance_criteria["specimen_int_dang"]['value']=float(rec["specimen_dang"])
 
 
             elif crit not in acceptance_criteria_list:
-                print "-W- WARNING: criteria code %s is not supported by PmagPy GUI. please check"%crit
+                print("-W- WARNING: criteria code %s is not supported by PmagPy GUI. please check"%crit)
                 acceptance_criteria[crit]={}
                 acceptance_criteria[crit]['value']=rec[crit]
                 acceptance_criteria[crit]['threshold_type']="inherited"
@@ -8270,7 +8284,7 @@ def read_criteria_from_file(path,acceptance_criteria,**kwargs):
                 if str(rec[crit]) in acceptance_criteria[crit]['threshold_type']:
                     acceptance_criteria[crit]['value']=str(rec[crit])
                 else:
-                    print "-W- WARNING: data %s from criteria code  %s and is not supported by PmagPy GUI. please check"%(crit,rec[crit])
+                    print("-W- WARNING: data %s from criteria code  %s and is not supported by PmagPy GUI. please check"%(crit,rec[crit]))
             elif float(rec[crit]) == -999:
                 pass
             else:
@@ -8285,10 +8299,10 @@ def read_criteria_from_file(path,acceptance_criteria,**kwargs):
 
 def write_criteria_to_file(path,acceptance_criteria,**kwargs):
     bad_vals = ['-999', -999, -999.]
-    acceptance_criteria = {k: v for k, v in acceptance_criteria.items() if v.get('value') and v.get('value') not in bad_vals}
-    crit_list=acceptance_criteria.keys()
+    acceptance_criteria = {k: v for k, v in list(acceptance_criteria.items()) if v.get('value') and v.get('value') not in bad_vals}
+    crit_list=list(acceptance_criteria.keys())
     crit_list.sort()
-    if 'data_model' in kwargs.keys() and kwargs['data_model']==3:
+    if 'data_model' in list(kwargs.keys()) and kwargs['data_model']==3:
         code_key='criterion'
         definition_key='definition'
         citation_key='citations'
@@ -8302,10 +8316,10 @@ def write_criteria_to_file(path,acceptance_criteria,**kwargs):
     rec[definition_key]="acceptance criteria for study"
     rec[citation_key]="This study"
     for crit in crit_list:
-        if 'category' in acceptance_criteria[crit].keys():
+        if 'category' in list(acceptance_criteria[crit].keys()):
         # ignore criteria that are not in MagIc model 2.5 or 3.0
           if acceptance_criteria[crit]['category']!='thellier_gui':
-            if 'data_model' in kwargs.keys() and kwargs['data_model']==3: # need to make a list of these dictionaries
+            if 'data_model' in list(kwargs.keys()) and kwargs['data_model']==3: # need to make a list of these dictionaries
                 rec={}
                 rec[definition_key]="acceptance criteria for study"
                 rec[citation_key]="This study"
@@ -8346,7 +8360,7 @@ def write_criteria_to_file(path,acceptance_criteria,**kwargs):
                 elif type(acceptance_criteria[crit]["value"])==float:
                     if float(acceptance_criteria[crit]["value"])==-999:
                         continue
-            if 'decimal_points' in acceptance_criteria[crit] in acceptance_criteria[crit].keys():
+            if 'decimal_points' in acceptance_criteria[crit] in list(acceptance_criteria[crit].keys()):
                 decimal_points=acceptance_criteria[crit]['decimal_points']
                 if decimal_points != -999:
                     val = acceptance_criteria[crit]['value']
@@ -8357,17 +8371,16 @@ def write_criteria_to_file(path,acceptance_criteria,**kwargs):
                 rec[value_key]=str(acceptance_criteria[crit]["value"])
             if type(acceptance_criteria[crit]["value"])==bool:
                 rec[value_key]=str(acceptance_criteria[crit]["value"])
-            if 'data_model' in kwargs.keys() and kwargs['data_model']==3: # need to make a list of these dictionaries
-                if eval(rec[value_key])!=-999:
-                    recs.append(rec)
+            if 'data_model' in list(kwargs.keys()) and kwargs['data_model']==3: # need to make a list of these dictionaries
+                if eval(rec[value_key])!=-999: recs.append(rec)
           else:
-              print "-W- WARNING: statistic: {} not written to file".format(crit)
-    if 'data_model' in kwargs.keys() and kwargs['data_model']==3: # need to make a list of these dictionaries
-        if 'prior_crits' in kwargs.keys():
+              print("-W- WARNING: statistic %s not written to file:",crit)
+    if 'data_model' in list(kwargs.keys()) and kwargs['data_model']==3: # need to make a list of these dictionaries
+        if 'prior_crits' in list(kwargs.keys()):
              prior_crits=kwargs['prior_crits']
              included = {rec['table_column'] for rec in recs}
              for rec in prior_crits:
-                 if 'criterion' in rec.keys() and 'IE-' not in rec['criterion']:
+                 if 'criterion' in list(rec.keys()) and 'IE-' not in rec['criterion']:
                      if rec['criterion'] == 'ACCEPT' and rec['table_column'] in included:
                          # ignore intensity criteria converted from ACCEPT to IE-*
                          pass
@@ -8423,13 +8436,13 @@ def merge_recs_headers(recs):
     '''
     headers=[]
     for rec in recs:
-        keys=rec.keys()
+        keys=list(rec.keys())
         for key in keys:
             if key not in headers:
                     headers.append(key)
     for rec in recs:
         for header in headers:
-            if header not in rec.keys():
+            if header not in list(rec.keys()):
                 rec[header]=""
     return recs
 
@@ -8481,7 +8494,7 @@ def adjust_to_360(val, key):
     elif adjust:
         new_val = float(val) % 360
         if new_val != float(val):
-            print '-I- adjusted {} {} to 0=>360.: {}'.format(key, val, new_val)
+            print('-I- adjusted {} {} to 0=>360.: {}'.format(key, val, new_val))
         return new_val
 
 
@@ -8541,13 +8554,13 @@ def do_mag_map(date,**kwargs):
     lats = list of latitudes evaluated
 
     """
-    if 'lon_0' in kwargs.keys(): # check if there are keyword arguments
+    if 'lon_0' in list(kwargs.keys()): # check if there are keyword arguments
         lon_0=kwargs['lon_0'] # if lon_0 is set, use that one
     else: # otherwise.....
         lon_0=0. # set the default lon_0 to 0.
-    if 'alt' in kwargs.keys(): # check if  alt in kwargs
+    if 'alt' in list(kwargs.keys()): # check if  alt in kwargs
         alt=kwargs['alt']
-    if 'mod' in kwargs.keys(): # check if  alt in kwargs
+    if 'mod' in list(kwargs.keys()): # check if  alt in kwargs
         mod=kwargs['mod']
     else:mod='cals10k'
     incr=10 # we can vary to the resolution of the model
@@ -8575,4 +8588,4 @@ def do_mag_map(date,**kwargs):
 
 
 def main():
-    print "Full PmagPy documentation is available at: https://earthref.org/PmagPy/cookbook/"
+    print("Full PmagPy documentation is available at: https://earthref.org/PmagPy/cookbook/")

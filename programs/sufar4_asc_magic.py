@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import print_function
 import sys
 import pmagpy.pmag as pmag
 import pmagpy.command_line_extractor as extractor
@@ -60,7 +61,7 @@ def main():
 
     args = sys.argv
     if '-h' in args:
-        print main.__doc__
+        print(main.__doc__)
         sys.exit()
 
     dataframe = extractor.command_line_dataframe([ ['WD', False, '.'], ['ID', False, '.'], ['usr', False, ''], ['ncn', False, '1'], ['k15', False, False], ['ins', False, ''], ['f', True, ''], ['F', False, 'magic_measurements.txt'], ['Fa', False, 'rmag_anisotropy.txt'], ['Fsi', False, 'er_specimens.txt'], ['loc', False, 'unknown'], ['spc', False, 0], ['fsi', False, None]])

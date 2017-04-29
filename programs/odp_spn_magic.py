@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import print_function
 import sys
 import pmagpy.pmag as pmag
 
@@ -73,7 +74,7 @@ followed by data
         dir_path=args[ind+1]
     samp_file=dir_path+'/'+'er_samples.txt'
     if "-h" in args:
-        print main.__doc__
+        print(main.__doc__)
         sys.exit()
     if '-F' in args:
         ind=args.index("-F")
@@ -82,13 +83,13 @@ followed by data
         ind=args.index("-f")
         mag_file=dir_path+'/'+args[ind+1]
         try:
-            input=open(mag_file,'rU')
+            input=open(mag_file,'r')
         except:
-            print "bad mag file name"
+            print("bad mag file name")
             sys.exit()
     else: 
-        print "spn_file field is required option"
-        print main.__doc__
+        print("spn_file field is required option")
+        print(main.__doc__)
         sys.exit()
     vol=10.5e-6 # default for spinner program
     if "-V" in args:
@@ -154,7 +155,7 @@ followed by data
             MagRecs.append(MagRec) 
     MagOuts=pmag.measurements_methods(MagRecs,noave)
     pmag.magic_write(meas_file,MagOuts,'magic_measurements')
-    print "results put in ",meas_file
+    print("results put in ",meas_file)
 
 if __name__ == "__main__":
     main()

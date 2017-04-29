@@ -1,4 +1,10 @@
 #!/usr/bin/env python
+from __future__ import division
+from __future__ import print_function
+from builtins import input
+from builtins import str
+from builtins import range
+from past.utils import old_div
 import pmagplotlib
 import pmag,sys,exceptions,pylab
 pylab.ion()
@@ -81,7 +87,7 @@ def main():
         dir_path=sys.argv[ind+1]
     norm=0
     if '-h' in sys.argv:
-        print main.__doc__
+        print(main.__doc__)
         sys.exit()
     if '-L' in sys.argv:
         pltL=0
@@ -114,8 +120,8 @@ def main():
         ind=sys.argv.index('-fsa')
         samp_file=sys.argv[ind+1]
         if '-fa' in sys.argv:
-            print main.__doc__
-            print 'only -fsa OR -fa - not both'
+            print(main.__doc__)
+            print('only -fsa OR -fa - not both')
             sys.exit()
     elif '-fa' in sys.argv:
         ind=sys.argv.index('-fa')
@@ -167,10 +173,10 @@ def main():
             elif sys.argv[ind+2]=='vol':
                 suc_key='measurement_chi_volume'
             else:
-                print 'error in susceptibility units'
+                print('error in susceptibility units')
                 sys.exit()
         else:
-           print 'method not supported'
+           print('method not supported')
            sys.exit()
     if '-n' in sys.argv: 
         ind=sys.argv.index('-n')
@@ -205,11 +211,11 @@ def main():
     if res_file!="":Results,file_type=pmag.magic_read(res_file)
     if norm==1:
         ErSpecs,file_type=pmag.magic_read(wt_file) 
-        print len(ErSpecs), ' specimens read in from ',wt_file
+        print(len(ErSpecs), ' specimens read in from ',wt_file)
     Cores=[] 
     core_depth_key="Top depth cored CSF (m)"
     if sum_file!="":
-        input=open(sum_file,'rU').readlines()
+        input=open(sum_file,'r').readlines()
         if "Core Summary" in input[0]:
             headline=1
         else:
@@ -224,7 +230,7 @@ def main():
                 for k in range(len(keys)):CoreRec[keys[k]]=line.split(',')[k]
                 Cores.append(CoreRec)
         if len(Cores)==0:
-            print 'no Core depth information available: import core summary file'
+            print('no Core depth information available: import core summary file')
             sum_file=""
     Data=[]
     if depth_scale=='sample_core_depth':
@@ -242,7 +248,7 @@ def main():
     if pltS: # plot the bulk measurement data
         Meas,file_type=pmag.magic_read(meas_file) 
         meas_key='measurement_magn_moment'
-        print len(Meas), ' measurements read in from ',meas_file
+        print(len(Meas), ' measurements read in from ',meas_file)
         for m in intlist: # find the intensity key with data
             meas_data=pmag.get_dictitem(Meas,m,'','F') # get all non-blank data for this specimen
             if len(meas_data)>0: 
@@ -291,7 +297,7 @@ def main():
                    if pltD==1:Decs.append(float(rec['measurement_dec']))
                    if pltI==1:Incs.append(float(rec['measurement_inc']))
                    if norm==0 and pltM==1:Ints.append(float(rec[meas_key]))
-                   if norm==1 and pltM==1:Ints.append(float(rec[meas_key])/float(rec['specimen_weight']))
+                   if norm==1 and pltM==1:Ints.append(old_div(float(rec[meas_key]),float(rec['specimen_weight'])))
             if len(SSucs)>0:  
                 maxSuc=max(SSucs)
                 minSuc=min(SSucs)
@@ -299,37 +305,37 @@ def main():
                 maxInt=max(Ints)
                 minInt=min(Ints)
         if len(Depths)==0:
-            print 'no bulk measurement data matched your request'
+            print('no bulk measurement data matched your request')
     SpecDepths,SpecDecs,SpecIncs=[],[],[]
     FDepths,FDecs,FIncs=[],[],[]
     if spc_file!="": # add depths to spec data
-        print 'spec file found'
+        print('spec file found')
         BFLs=pmag.get_dictitem(Specs,'magic_method_codes','DE-BFL','has')  # get all the discrete data with best fit lines
         for spec in BFLs:
             if location=="":
                location=spec['er_location_name']
             samp=pmag.get_dictitem(Samps,'er_sample_name',spec['er_sample_name'],'T')
-            if len(samp)>0 and depth_scale in samp[0].keys() and samp[0][depth_scale]!="":
+            if len(samp)>0 and depth_scale in list(samp[0].keys()) and samp[0][depth_scale]!="":
               if ylab=='Age': ylab=ylab+' ('+samp[0]['age_unit']+')' # get units of ages - assume they are all the same!
               if dmax==-1 or float(samp[0][depth_scale])<dmax and float(samp[0][depth_scale])>dmin: # filter for depth
                 SpecDepths.append(float(samp[0][depth_scale])) # fish out data with core_depth
                 SpecDecs.append(float(spec['specimen_dec'])) # fish out data with core_depth
                 SpecIncs.append(float(spec['specimen_inc'])) # fish out data with core_depth
             else:
-                print 'no core_depth found for: ',spec['er_specimen_name']
+                print('no core_depth found for: ',spec['er_specimen_name'])
         FMs=pmag.get_dictitem(Specs,'magic_method_codes','DE-FM','has')  # get all the discrete data with best fit lines
         for spec in FMs:
             if location=="":
                location=spec['er_location_name']
             samp=pmag.get_dictitem(Samps,'er_sample_name',spec['er_sample_name'],'T')
-	    if len(samp)>0 and depth_scale in samp[0].keys() and samp[0][depth_scale]!="":
+	    if len(samp)>0 and depth_scale in list(samp[0].keys()) and samp[0][depth_scale]!="":
               if ylab=='Age': ylab=ylab+' ('+samp[0]['age_unit']+')' # get units of ages - assume they are all the same!
               if dmax==-1 or float(samp[0][depth_scale])<dmax and float(samp[0][depth_scale])>dmin: # filter for depth
                 FDepths.append(float(samp[0][depth_scale]))# fish out data with core_depth
                 FDecs.append(float(spec['specimen_dec'])) # fish out data with core_depth
                 FIncs.append(float(spec['specimen_inc'])) # fish out data with core_depth
             else:
-                print 'no core_depth found for: ',spec['er_specimen_name']
+                print('no core_depth found for: ',spec['er_specimen_name'])
     ResDepths,ResDecs,ResIncs=[],[],[]
     if 'age' in depth_scale: # set y-key
         res_scale='average_age'
@@ -357,7 +363,7 @@ def main():
             if min(ResDepths)<dmin:dmin=min(ResDepths)
             if max(ResDepths)>dmax:dmax=max(ResDepths)
     if suc_file!="":
-        sucdat=open(suc_file,'rU').readlines()
+        sucdat=open(suc_file,'r').readlines()
         keys=sucdat[0].replace('\n','').split(',') # splits on underscores
         for line in sucdat[1:]:
             SucRec={}
@@ -371,7 +377,7 @@ def main():
     if wig_file!="":
         wigdat,file_type=pmag.magic_read(wig_file)
         swigdat=pmag.sort_diclist(wigdat,depth_scale)
-        keys=wigdat[0].keys()
+        keys=list(wigdat[0].keys())
         for key in keys:
             if key!=depth_scale:
                 plt_key=key
@@ -532,7 +538,7 @@ def main():
             for k in range(len(Chrons)-1):
                 c=Chrons[k]  
                 cnext=Chrons[k+1]
-                d=cnext[1]-(cnext[1]-c[1])/3.
+                d=cnext[1]-old_div((cnext[1]-c[1]),3.)
                 if d>=amin and d<amax:
                     ax2.plot([1,1.5],[c[1],c[1]],'k-') # make the Chron boundary tick
                     ax2.text(1.05,d,c[0]) # 
@@ -541,12 +547,12 @@ def main():
     pylab.title(location)
     if verbose:
         pylab.draw()
-        ans=raw_input("S[a]ve plot? ")
+        ans=input("S[a]ve plot? ")
         if ans=='a':
             pylab.savefig(figname)
-            print 'Plot saved as ',figname
+            print('Plot saved as ',figname)
     elif plots:
         pylab.savefig(figname)
-        print 'Plot saved as ',figname
+        print('Plot saved as ',figname)
     sys.exit()
 main()

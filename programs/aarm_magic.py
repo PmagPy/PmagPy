@@ -1,4 +1,8 @@
 #!/usr/bin/env python
+from __future__ import division
+from __future__ import print_function
+from builtins import range
+from past.utils import old_div
 import sys
 import numpy
 import pmagpy.pmag as pmag
@@ -53,7 +57,7 @@ def main():
         ind=args.index('-WD')
         dir_path=args[ind+1]
     if "-h" in args:
-        print main.__doc__
+        print(main.__doc__)
         sys.exit()
     if "-usr" in args:
         ind=args.index("-usr")
@@ -85,15 +89,15 @@ def main():
     meas_data,file_type=pmag.magic_read(meas_file)
     meas_data=pmag.get_dictitem(meas_data,'magic_method_codes','LP-AN-ARM','has')
     if file_type != 'magic_measurements':
-        print file_type
-        print file_type,"This is not a valid magic_measurements file " 
+        print(file_type)
+        print(file_type,"This is not a valid magic_measurements file ") 
         sys.exit()
     if coord!='-1': # need to read in sample data
         samp_data,file_type=pmag.magic_read(samp_file)
         if file_type != 'er_samples':
-            print file_type
-            print file_type,"This is not a valid er_samples file " 
-            print "Only specimen coordinates will be calculated"
+            print(file_type)
+            print(file_type,"This is not a valid er_samples file ") 
+            print("Only specimen coordinates will be calculated")
             coord='-1'
     #
     # sort the specimen names
@@ -124,7 +128,7 @@ def main():
     #
     # find out the number of measurements (9, 12 or 15)
     #
-        npos=len(data)/2
+        npos=old_div(len(data),2)
         if npos==9:
         #
         # get dec, inc, int and convert to x,y,z
@@ -160,7 +164,7 @@ def main():
                     s[i]+=B[i][j]*w[j] 
             trace=s[0]+s[1]+s[2]   # normalize by the trace
             for i in range(6):
-                s[i]=s[i]/trace
+                s[i]=old_div(s[i],trace)
             a=pmag.s2a(s)
         #------------------------------------------------------------
         #  Calculating dels is different than in the Kappabridge
@@ -176,11 +180,11 @@ def main():
                     compare=a[j][0]*tmpH[i][0]+a[j][1]*tmpH[i][1]+a[j][2]*tmpH[i][2]
                     comp[index]=compare
             for i in range(npos*3):
-                d=w[i]/trace - comp[i] # del values
+                d=old_div(w[i],trace) - comp[i] # del values
                 S+=d*d
             nf=float(npos*3-6) # number of degrees of freedom
             if S >0: 
-                sigma=numpy.sqrt(S/nf)
+                sigma=numpy.sqrt(old_div(S,nf))
             else: sigma=0
             RmagSpecRec["rmag_anisotropy_name"]=data[0]["er_specimen_name"]
             RmagSpecRec["er_location_name"]=data[0]["er_location_name"]
@@ -196,7 +200,7 @@ def main():
             RmagResRec["er_site_names"]=data[0]["er_site_name"]
             RmagResRec["magic_experiment_names"]=RmagSpecRec["rmag_anisotropy_name"]+":AARM"
             RmagResRec["er_citation_names"]="This study"
-            if "magic_instrument_codes" in data[0].keys():
+            if "magic_instrument_codes" in list(data[0].keys()):
                 RmagSpecRec["magic_instrument_codes"]=data[0]["magic_instrument_codes"]
             else:  
                 RmagSpecRec["magic_instrument_codes"]=""
@@ -223,7 +227,7 @@ def main():
                     redo=0
                 while redo==1:
                     if p>=len(SO_priorities):
-                        print "no orientation data for ",s
+                        print("no orientation data for ",s)
                         orient["sample_azimuth"]=""
                         orient["sample_dip"]=""
                         method_codes.append("SO-NO")
@@ -250,7 +254,7 @@ def main():
             RmagSpecRec["anisotropy_s4"]='%8.6f'%(s[3])
             RmagSpecRec["anisotropy_s5"]='%8.6f'%(s[4])
             RmagSpecRec["anisotropy_s6"]='%8.6f'%(s[5])
-            RmagSpecRec["anisotropy_mean"]='%8.3e'%(trace/3)
+            RmagSpecRec["anisotropy_mean"]='%8.3e'%(old_div(trace,3))
             RmagSpecRec["anisotropy_sigma"]='%8.6f'%(sigma)
             RmagSpecRec["anisotropy_unit"]="Am^2"
             RmagSpecRec["anisotropy_n"]='%i'%(npos)
@@ -332,14 +336,14 @@ def main():
             RmagSpecRecs.append(RmagSpecRec)
             RmagResRecs.append(RmagResRec)
         else:
-            print 'skipping specimen ',s,' only 9 positions supported','; this has ',npos
+            print('skipping specimen ',s,' only 9 positions supported','; this has ',npos)
             specimen+=1
     if rmag_anis=="":rmag_anis="rmag_anisotropy.txt"
     pmag.magic_write(rmag_anis,RmagSpecRecs,'rmag_anisotropy')
-    print "specimen tensor elements stored in ",rmag_anis
+    print("specimen tensor elements stored in ",rmag_anis)
     if rmag_res=="":rmag_res="rmag_results.txt"
     pmag.magic_write(rmag_res,RmagResRecs,'rmag_results')
-    print "specimen statistics and eigenparameters stored in ",rmag_res
+    print("specimen statistics and eigenparameters stored in ",rmag_res)
 
 if __name__ == "__main__":
     main()

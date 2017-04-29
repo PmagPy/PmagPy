@@ -5,9 +5,13 @@
 #  Copyright (c) 2014 Lori Jonestrask
 #  Author: Lori Jonestrask (mintblue87@gmail.com) .
 
+from __future__ import print_function
+from __future__ import absolute_import
+from builtins import zip
+from builtins import str
 import json
 from pmagpy.data_model3 import DataModel
-import maps
+from . import maps
 
 
 def mapping(dictionary, mapping):
@@ -20,8 +24,8 @@ def mapping(dictionary, mapping):
     mapped_dictionary = {'aa': 1, b, 2, 'cc': 3}
     """
     mapped_dictionary = {}
-    for key, value in dictionary.iteritems():
-        if key in mapping.keys():
+    for key, value in dictionary.items():
+        if key in list(mapping.keys()):
             new_key = mapping[key]
             # if there is already a mapped value, try to figure out which value to use
             # (i.e., if both er_synthetic_name and er_specimen_name are in one measurement file)
@@ -36,8 +40,8 @@ def mapping(dictionary, mapping):
                             mapped_dictionary[new_key] = value
                         elif value.any() and mapped_dictionary[new_key].any():
                             # if both have values, choose which one to replace and warn
-                            print '-W- Two possible values found for {}'.format(new_key)
-                            print '    Replacing {} with {}'.format(mapped_dictionary[new_key], value)
+                            print('-W- Two possible values found for {}'.format(new_key))
+                            print('    Replacing {} with {}'.format(mapped_dictionary[new_key], value))
                             mapped_dictionary[new_key] = value
                     else:
                         if value.any() and not mapped_dictionary[new_key].any():
@@ -45,8 +49,8 @@ def mapping(dictionary, mapping):
                             mapped_dictionary[new_key] = value
                         elif value.any() and mapped_dictionary[new_key].any():
                             # if both have values, choose which one to replace and warn
-                            print '-W- Two possible values found for {}'.format(new_key)
-                            print '    Replacing {} with {}'.format(mapped_dictionary[new_key], value)
+                            print('-W- Two possible values found for {}'.format(new_key))
+                            print('    Replacing {} with {}'.format(mapped_dictionary[new_key], value))
                             mapped_dictionary[new_key] = value
                 else:
                     if not value:
@@ -57,8 +61,8 @@ def mapping(dictionary, mapping):
                         mapped_dictionary[new_key] = value
                     elif value and mapped_dictionary[new_key]:
                         # if both have values, choose which one to replace and warn
-                        print '-W- Two possible values found for {}'.format(new_key)
-                        print '    Replacing {} with {}'.format(mapped_dictionary[new_key], value)
+                        print('-W- Two possible values found for {}'.format(new_key))
+                        print('    Replacing {} with {}'.format(mapped_dictionary[new_key], value))
                         mapped_dictionary[new_key] = value
             # if there is no mapped_value already:
             else:
@@ -74,8 +78,8 @@ spd = ['R_corr2', 'PCA_sigma_int_Free', 'PCA_sigma_max_Free', 'n_tail', 'delta_p
 
 magic = ['specimen_coeff_det_sq', 'specimen_PCA_sigma_int', 'specimen_PCA_sigma_max', 'specimen_int_ptrm_tail_n', 'specimen_dpal', 'specimen_tail_drat', 'specimen_md', 'specimen_ac_n', 'specimen_dac', 'specimen_cm_y', 'specimen_int_mad', 'specimen_int_ptrm_n', 'specimen_drat', 'specimen_z_md', 'specimen_frac', 'specimen_cdrat', 'specimen_dec', 'specimen_mdev', 'specimen_drats', 'specimen_z', 'specimen_maxdev', 'fail_arai_beta_box_scatter', 'specimen_gmax', 'specimen_ptrms_mad', 'specimen_ptrms_dec', 'specimen_int_mad_anc', 'fail_ptrm_beta_box_scatter', 'specimen_ptrms_angle', 'specimen_scat_bounding_line_low', 'specimen_PCA_sigma_min', 'specimen_int_uT', 'specimen_scat', 'specimen_r_sq', 'specimen_PCA_v1', 'specimen_b_beta', 'specimen_YT', 'specimen_dck', 'lab_dc_field', 'specimen_inc', 'specimen_mdrat', 'specimen_theta', 'specimen_ptrm', 'measurement_step_min', 'specimen_cm_x', 'fail_tail_beta_box_scatter', 'specimen_dtr', 'specimen_int_alpha', 'specimen_alpha_prime', 'specimen_fvds', 'specimen_b_sigma', 'specimen_b', 'specimen_g', 'specimen_f', 'measurement_step_max', 'specimen_int_n', 'specimen_q', 'specimen_int_dang', 'specimen_ptrms_inc', 'specimen_k_sse', 'specimen_gamma', 'specimen_scat_bounding_line_high', 'specimen_k', 'specimen_int_crm', 'specimen_dt', 'specimen_k_prime', 'specimen_k_prime_sse']
 
-spd2magic_map = dict(zip(spd, magic))
-magic2spd_map = dict(zip(magic, spd))
+spd2magic_map = dict(list(zip(spd, magic)))
+magic2spd_map = dict(list(zip(magic, spd)))
 
 
 def cache_mappings(dir_path):
@@ -143,14 +147,14 @@ add_to_all = {'er_location_name': 'location', 'er_site_name': 'site',
 meas_magic2_2_magic3_map = maps.all_maps['measurements']
 meas_magic2_2_magic3_map.update(add_to_all)
 #measurement data translation magic_measurements.txt -> measurements.txt
-meas_magic3_2_magic2_map = {v:k for k,v in meas_magic2_2_magic3_map.items()}
+meas_magic3_2_magic2_map = {v:k for k,v in list(meas_magic2_2_magic3_map.items())}
 measurements = {'timestamp': 'measurement_date', 'specimen': 'er_specimen_name'}
 meas_magic3_2_magic2_map.update(measurements)
 
 #specimen data translation pmag_speciemns,er_specimens -> specimens.txt
 spec_magic2_2_magic3_map = maps.all_maps['specimens']
 spec_magic2_2_magic3_map.update(add_to_all)
-spec_magic3_2_magic2_map = {v:k for k,v in spec_magic2_2_magic3_map.items()}
+spec_magic3_2_magic2_map = {v:k for k,v in list(spec_magic2_2_magic3_map.items())}
 specimens = {'external_database_ids': 'external_database_ids',
              'dir_comp': 'specimen_comp_name', 'specimen': 'er_specimen_name'}
 spec_magic3_2_magic2_map.update(specimens)
@@ -159,7 +163,7 @@ spec_magic3_2_magic2_map.update(specimens)
 samp_magic2_2_magic3_map = maps.all_maps['samples']
 samp_magic2_2_magic3_map.update(add_to_all)
 #sample data translation samples => pmag_samples/er_samples
-samp_magic3_2_magic2_map = {v:k for k,v in samp_magic2_2_magic3_map.items()}
+samp_magic3_2_magic2_map = {v:k for k,v in list(samp_magic2_2_magic3_map.items())}
 samples = {'specimens': 'er_specimen_names', 'dir_comp_name': 'sample_comp_name',
            'timestamp': 'sample_date', 'external_database_ids': 'external_database_ids'}
 samp_magic3_2_magic2_map.update(samples)
@@ -168,7 +172,7 @@ samp_magic3_2_magic2_map.update(samples)
 site_magic2_2_magic3_map = maps.all_maps['sites']
 site_magic2_2_magic3_map.update(add_to_all)
 # site data translation er_sites/pmag_sites --> sites
-site_magic3_2_magic2_map = {v: k for k, v in site_magic2_2_magic3_map.items()}
+site_magic3_2_magic2_map = {v: k for k, v in list(site_magic2_2_magic3_map.items())}
 sites = {'dir_comp_name': 'site_comp_name', 'specimens': 'er_specimen_names'}
 site_magic3_2_magic2_map.update(sites)
 
@@ -192,7 +196,7 @@ aniso_magic2_2_magic3_map={'anisotropy_ftest23': 'aniso_ftest23', 'anisotropy_ft
 # images data translation er_images -> images
 image_magic2_2_magic3_map = maps.all_maps['images']
 # images data translation images -> er_images
-image_magic2_2_magic_3_map = {v: k for (k, v) in image_magic2_2_magic3_map.items()}
+image_magic2_2_magic_3_map = {v: k for (k, v) in list(image_magic2_2_magic3_map.items())}
 images = {'specimen': 'er_specimen_name', 'description': 'image_description',
           'timestamp': 'image_date'}
 image_magic2_2_magic3_map.update(images)
@@ -200,7 +204,7 @@ image_magic2_2_magic3_map.update(images)
 # ages data translation er_ages -> ages
 age_magic2_2_magic3_map = maps.all_maps['ages']
 # images data translation images -> er_images
-age_magic2_2_magic_3_map = {v: k for (k, v) in age_magic2_2_magic3_map.items()}
+age_magic2_2_magic_3_map = {v: k for (k, v) in list(age_magic2_2_magic3_map.items())}
 #images = {'specimen': 'er_specimen_name', 'description': 'image_description',
 #          'timestamp': 'image_date'}
 #image_magic2_2_magic3_map.update(images)
@@ -214,17 +218,17 @@ orient_magic_2_magic3_map = {"sample_name": "sample", "site_name": "site", "long
                              "sample_lithology": "lithologies", "sample_type": "geologic_types",
                              "sample_class": "geologic_classes"}
 # 3.0 --> orientation format
-magic3_2_orient_magic_map = {v: k for (k, v) in image_magic2_2_magic3_map.items()}
+magic3_2_orient_magic_map = {v: k for (k, v) in list(image_magic2_2_magic3_map.items())}
 
-meas_magic2 = meas_magic3_2_magic2_map.values()
-spec_magic2 = spec_magic3_2_magic2_map.values()
-samp_magic2 = samp_magic3_2_magic2_map.values()
-site_magic2 = site_magic3_2_magic2_map.values()
+meas_magic2 = list(meas_magic3_2_magic2_map.values())
+spec_magic2 = list(spec_magic3_2_magic2_map.values())
+samp_magic2 = list(samp_magic3_2_magic2_map.values())
+site_magic2 = list(site_magic3_2_magic2_map.values())
 
 #meas_magic3 = meas_magic3_2_magic2_map.keys()  # why are these here?
-spec_magic3 = spec_magic2_2_magic3_map.keys()
+spec_magic3 = list(spec_magic2_2_magic3_map.keys())
 #samp_magic3 = samp_magic3_2_magic2_map.keys()
-site_magic3 = site_magic3_2_magic2_map.keys()
+site_magic3 = list(site_magic3_2_magic2_map.keys())
 
 
 # Data conversion for specific types of data
@@ -273,7 +277,7 @@ def convert_meas(direction,Rec):
         columns=meas_magic2_2_magic3_map
         MeasRec={}
         for key in columns:
-            if key in Rec.keys():
+            if key in list(Rec.keys()):
                 MeasRec[columns[key]]=Rec[key] # transfer info and change column name to data model 3.0
         return MeasRec
     else: # haven't added this way yet
@@ -284,7 +288,7 @@ def convert_spec(direction,Rec):
         columns=spec_magic2_2_magic3_map
         SpecRec={}
         for key in columns:
-            if key in Rec.keys():
+            if key in list(Rec.keys()):
                 SpecRec[columns[key]]=Rec[key] # transfer info and change column name to data model 3.0
         return SpecRec
     else: # haven't added this way yet
@@ -295,7 +299,7 @@ def convert_samp(direction,Rec):
         columns=samp_magic2_2_magic3_map
         SampRec={}
         for key in columns:
-            if key in Rec.keys():
+            if key in list(Rec.keys()):
                 SampRec[columns[key]]=Rec[key] # transfer info and change column name to data model 3.0
         return SampRec
     else: # haven't added this way yet
@@ -306,7 +310,7 @@ def convert_site(direction,Rec):
         columns=site_magic2_2_magic3_map
         SiteRec={}
         for key in columns:
-            if key in Rec.keys():
+            if key in list(Rec.keys()):
                 SiteRec[columns[key]]=Rec[key] # transfer info and change column name to data model 3.0
         return SiteRec
     else: # haven't added this way yet
@@ -319,7 +323,7 @@ def convert_aniso(direction,AniSpec):
         AniRec={}
         s_data=AniSpec['aniso_s'].split(':')
         for key in columns:
-            if key in AniSpec.keys():
+            if key in list(AniSpec.keys()):
                 AniRec[columns[key]]=AniSpec[key] # transfer info and change column name to data model 2.5
         AniRec['anisotropy_s1']=s_data[0]# need to add these things
         AniRec['anisotropy_s2']=s_data[1]
@@ -328,7 +332,7 @@ def convert_aniso(direction,AniSpec):
         AniRec['anisotropy_s5']=s_data[4]
         AniRec['anisotropy_s6']=s_data[5]
         AniRec['anisotropy_F_crit']=""
-        if 'result_description'  in AniSpec.keys():
+        if 'result_description'  in list(AniSpec.keys()):
             result_description=AniSpec['result_description'].split(";")
             for description in result_description:
               if "Critical F" in description:
@@ -340,7 +344,7 @@ def convert_aniso(direction,AniSpec):
         # first fix aniso_s
         AniRec={}
         for key in columns:
-            if key in AniSpec.keys():
+            if key in list(AniSpec.keys()):
                 AniRec[columns[key]]=AniSpec[key] # transfer info and change column name to data model 3.0
         s_string=""
         s_string=s_string+ str(AniSpec['anisotropy_s1']) +' : '

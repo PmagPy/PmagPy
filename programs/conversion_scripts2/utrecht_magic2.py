@@ -1,4 +1,7 @@
 #!/usr/bin/env python
+from __future__ import print_function
+from builtins import str
+from builtins import map
 import pandas as pd
 import sys
 import os
@@ -82,7 +85,7 @@ def main(command_line=True, **kwargs):
             input_dir_path = dir_path
         output_dir_path = dir_path
         if "-h" in args:
-            print main.__doc__
+            print(main.__doc__)
             return False
         if '-F' in args:
             ind = args.index("-F")
@@ -97,7 +100,7 @@ def main(command_line=True, **kwargs):
             ind=args.index("-Fsi")
             site_file=args[ind+1]
             #try:
-            #    open(samp_file,'rU')
+            #    open(samp_file,'r')
             #    ErSamps,file_type=pmag.magic_read(samp_file)
             #    print 'sample information will be appended to ', samp_file
             #except:
@@ -126,14 +129,14 @@ def main(command_line=True, **kwargs):
             samp_con=sys.argv[ind+1]
             if "4" in samp_con:
                 if "-" not in samp_con:
-                    print "option [4] must be in form 4-Z where Z is an integer"
+                    print("option [4] must be in form 4-Z where Z is an integer")
                     return False, "naming convention option [4] must be in form 4-Z where Z is an integer"
                 else:
                     site_num=samp_con.split("-")[1]
                     samp_con="4"
             elif "7" in samp_con:
                 if "-" not in samp_con:
-                    print "option [7] must be in form 7-Z where Z is an integer"
+                    print("option [7] must be in form 7-Z where Z is an integer")
                     return False, "naming convention option [7] must be in form 7-Z where Z is an integer"
                 else:
                     site_num=samp_con.split("-")[1]
@@ -141,7 +144,7 @@ def main(command_line=True, **kwargs):
         else: samp_con="1"
         if '-dc' in args:
             ind=args.index('-dc')
-            DC_FIELD,DC_PHI,DC_THETA=map(float,args[ind+1].strip('( ) [ ]').split(','))
+            DC_FIELD,DC_PHI,DC_THETA=list(map(float,args[ind+1].strip('( ) [ ]').split(',')))
             DC_FIELD *= 1e-6
             yn=''
             GET_DC_PARAMS=False
@@ -174,19 +177,19 @@ def main(command_line=True, **kwargs):
         samp_con = kwargs.get('samp_con', '2')
         if "4" in samp_con:
             if "-" not in samp_con:
-                print "option [4] must be in form 4-Z where Z is an integer"
+                print("option [4] must be in form 4-Z where Z is an integer")
                 return False, "naming convention option [4] must be in form 4-Z where Z is an integer"
             else:
                 site_num=samp_con.split("-")[1]
                 samp_con="4"
         elif "7" in samp_con:
             if "-" not in samp_con:
-                print "option [7] must be in form 7-Z where Z is an integer"
+                print("option [7] must be in form 7-Z where Z is an integer")
                 return False, "naming convention option [7] must be in form 7-Z where Z is an integer"
             else:
                 site_num=samp_con.split("-")[1]
                 samp_con="7"
-        DC_FIELD,DC_PHI,DC_THETA = map(float, kwargs.get('dc_params', (0,0,-90)))
+        DC_FIELD,DC_PHI,DC_THETA = list(map(float, kwargs.get('dc_params', (0,0,-90))))
         DC_FIELD *= 1e-6
         noave = kwargs.get('avg', True)
         dmy_flag = kwargs.get('dmy_flag', False)
@@ -203,9 +206,9 @@ def main(command_line=True, **kwargs):
     # parse data
 
     # Open up the Utrecht file and read the header information
-    print 'mag_file in utrecht_file', mag_file
+    print('mag_file in utrecht_file', mag_file)
     AF_or_T = mag_file.split('.')[-1]
-    data = open(mag_file, 'rU')
+    data = open(mag_file, 'r')
     line = data.readline()
     line_items = line.split(',')
     operator=line_items[0]
@@ -213,8 +216,8 @@ def main(command_line=True, **kwargs):
     machine=line_items[1]
     machine=machine.replace("\"","")
     machine=machine.rstrip('\n')
-    print "operator=", operator
-    print "machine=", machine
+    print("operator=", operator)
+    print("machine=", machine)
 
     #read in measurement data
     line = data.readline()
@@ -223,21 +226,21 @@ def main(command_line=True, **kwargs):
         line_items = line.split(',')
         spec_name=line_items[0]
         spec_name=spec_name.replace("\"","")
-        print "spec_name=", spec_name
+        print("spec_name=", spec_name)
         free_string=line_items[1]
         free_string=free_string.replace("\"","")
-        print "free_string=", free_string
+        print("free_string=", free_string)
         dec=line_items[2]
-        print "dec=", dec
+        print("dec=", dec)
         inc=line_items[3]
-        print "inc=", inc
+        print("inc=", inc)
         volume=float(line_items[4])
         volume=volume * 1e-6 # enter volume in cm^3, convert to m^3
-        print "volume=", volume
+        print("volume=", volume)
         bed_plane=line_items[5]
-        print "bed_plane=", bed_plane
+        print("bed_plane=", bed_plane)
         bed_tilt=line_items[6]
-        print "bed_tilt=", bed_tilt
+        print("bed_tilt=", bed_tilt)
 
         # Configure et er_ tables
         ErSpecRec['er_specimen_name'] = spec_name
@@ -269,7 +272,7 @@ def main(command_line=True, **kwargs):
         line = line.rstrip("\n")
         items = line.split(",")
         while line != '9999':
-            print line
+            print(line)
             step=items[0]
             step=step.split('.')
             step_value=step[0]
@@ -291,8 +294,8 @@ def main(command_line=True, **kwargs):
             measurement_inc = direction[1]
             measurement_magn_moment = direction[2] * 1.0e-12 # the data are in pico-Am^2 - this converts to Am^2
             measurement_magn_volume = direction[2] * 1.0e-12 / volume # data volume normalized - converted to A/m
-            print "measurement_magn_moment=", measurement_magn_moment
-            print "measurement_magn_volume=", measurement_magn_volume
+            print("measurement_magn_moment=", measurement_magn_moment)
+            print("measurement_magn_volume=", measurement_magn_volume)
             error = items[4]
             date=items[5]
             date=date.strip('"')
@@ -301,16 +304,16 @@ def main(command_line=True, **kwargs):
             elif date.count("/") > 0:
                 date=date.split("/")
             else: print("date format seperator cannot be identified")
-            print date
+            print(date)
             time=items[6]
             time=time.strip('"')
             time=time.split(":")
-            print time
+            print(time)
             if dmy_flag:
                 date_time = date[1] + ":" + date[0] + ":" + date[2] + ":" + time[0] + ":" + time[1] + ":" + "0.0"
             else:
                 date_time = date[0] + ":" + date[1] + ":" + date[2] + ":" + time[0] + ":" + time[1] + ":" + "0.0"
-            print date_time
+            print(date_time)
 
             MagRec = {}
             MagRec["er_analyst_mail_names"] = operator
@@ -340,7 +343,7 @@ def main(command_line=True, **kwargs):
             MagRec['treatment_dc_field']='0'
             if step_value == '0':
                 meas_type = "LT-NO"
-            print "step_type=", step_type
+            print("step_type=", step_type)
             if step_type == '0' and AF_or_T.lower() == 'th':
                 if meas_type == "":
                     meas_type = "LT-T-Z"
@@ -363,7 +366,7 @@ def main(command_line=True, **kwargs):
                     meas_type = "LT-PTRM-Z"
                 else:
                     meas_type = meas_type + ":" + "LT-PTRM-Z"
-            print "meas_type=", meas_type
+            print("meas_type=", meas_type)
             MagRec['treatment_dc_field_phi'] = '%1.2f'%DC_PHI
             MagRec['treatment_dc_field_theta'] = '%1.2f'%DC_THETA
             MagRec['magic_method_codes'] = meas_type
@@ -389,8 +392,8 @@ def main(command_line=True, **kwargs):
 #    MagOuts = pmag.measurements_methods(MagRecs, noave)
 #    pmag.magic_write(meas_file, MagOuts, 'magic_measurements')
     pmag.magic_write(meas_file, MagRecs, 'magic_measurements')
-    print "results put in ", meas_file
-    print "exit!"
+    print("results put in ", meas_file)
+    print("exit!")
     return True, meas_file
 
 def do_help():

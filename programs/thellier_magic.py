@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
+from builtins import input
 import pandas as pd
 import numpy as np
 import sys
@@ -83,7 +85,7 @@ def main():
 #
     plots,fmt,Zdiff=0,'svg',0
     if '-h' in sys.argv:
-        print main.__doc__
+        print(main.__doc__)
         sys.exit()
     dir_path = pmag.get_named_arg_from_sys("-WD", default_val=os.getcwd())
     meas_file = pmag.get_named_arg_from_sys("-f", default_val="measurements.txt")
@@ -165,7 +167,7 @@ def main():
     #
     while k < len(specimen_names):
         this_specimen=specimen_names[k] # set the current specimen for plotting
-        if verbose and  this_specimen!="":print this_specimen, k+1 , 'out of ',len(specimen_names)
+        if verbose and  this_specimen!="":print(this_specimen, k+1 , 'out of ',len(specimen_names))
 #
 #    set up datablocks
 #
@@ -184,16 +186,16 @@ def main():
            if backup==0:
                    k+=1
                    if verbose:
-                       print 'skipping specimen - moving forward ', this_specimen
+                       print('skipping specimen - moving forward ', this_specimen)
            else:
                    k-=1
                    if verbose:
-                       print 'skipping specimen - moving backward ', this_specimen
+                       print('skipping specimen - moving backward ', this_specimen)
         else:
                backup=0
                zijdblock,units=pmag.find_dmag_rec(this_specimen,thelblock,version=3)
                if start=="" and len(prior_specimen_interpretations)>0:
-                   if verbose: print 'Looking up saved interpretation....'
+                   if verbose: print('Looking up saved interpretation....')
 #
 # get prior interpretation steps
 #
@@ -201,7 +203,7 @@ def main():
                    end_int=pd.to_numeric(prior_specimen_interpretations.meas_step_max.values).tolist()[0]
                else: beg_int,end_int="",""
                recnum=0
-               if verbose: print "index step Dec   Inc  Int       Gamma"
+               if verbose: print("index step Dec   Inc  Int       Gamma")
                for plotrec in zijdblock:
                    if plotrec[0]==beg_int:start=recnum # while we are at it, collect these bounds
                    if plotrec[0]==end_int:end=recnum
@@ -213,11 +215,11 @@ def main():
                                    gamma=g[1]
                                    break
                        if gamma!="":
-                           print '%i     %i %7.1f %7.1f %8.3e %7.1f' % (recnum,plotrec[0]-273,plotrec[1],plotrec[2],plotrec[3],gamma)
+                           print('%i     %i %7.1f %7.1f %8.3e %7.1f' % (recnum,plotrec[0]-273,plotrec[1],plotrec[2],plotrec[3],gamma))
                        else:
-                           print '%i     %i %7.1f %7.1f %8.3e ' % (recnum,plotrec[0]-273,plotrec[1],plotrec[2],plotrec[3])
+                           print('%i     %i %7.1f %7.1f %8.3e ' % (recnum,plotrec[0]-273,plotrec[1],plotrec[2],plotrec[3]))
                    recnum += 1
-               for fig in AZD.keys():pmagplotlib.clearFIG(AZD[fig]) # clear all figures
+               for fig in list(AZD.keys()):pmagplotlib.clearFIG(AZD[fig]) # clear all figures
                pmagplotlib.plotAZ(AZD,araiblock,zijdblock,this_specimen,units[0])
                if verbose:pmagplotlib.drawFIGS(AZD)
                pars,errcode=pmag.PintPars(thelblock,araiblock,zijdblock,start,end,accept,version=3)
@@ -242,19 +244,19 @@ def main():
                         outstr= "specimen     Wmin  Wmax  N  lab_field  B_anc  b  q  f(coe)  Fvds  beta  MAD  Dang  Drats  Nptrm  Grade  R  MD%  sigma  ThetaMax DeltaMax GammaMax\n"
                         pars_out= (this_specimen,(pars["meas_step_min"]),(pars["meas_step_max"]),(pars["specimen_int_n"]),1e6*(pars["specimen_lab_field_dc"]),1e6*(pars["specimen_int"]),pars["specimen_b"],pars["specimen_q"],pars["specimen_f"],pars["specimen_fvds"],pars["specimen_b_beta"],pars["specimen_int_mad"],pars["specimen_int_dang"],pars["specimen_drats"],pars["specimen_int_ptrm_n"],pars["specimen_grade"],np.sqrt(pars["specimen_rsc"]),int(pars["specimen_md"]), pars["specimen_b_sigma"],pars["specimen_theta"],pars["specimen_delta"],pars["specimen_gamma"])
                         outstring= '%s %4.0f %4.0f %i %4.1f %4.1f %5.3f %5.1f %5.3f %5.3f %5.3f  %7.1f %7.1f %7.1f %s %s %6.3f %i %5.3f %7.1f %7.1f %7.1f' % pars_out +'\n'
-                    print outstr
-                    print outstring
+                    print(outstr)
+                    print(outstring)
                     pmagplotlib.plotB(AZD,araiblock,zijdblock,pars)
                     mpars=pmag.domean(araiblock[1],start,end,'DE-BFL')
                     if verbose:
                         pmagplotlib.drawFIGS(AZD)
-                        print 'pTRM direction= ','%7.1f'%(mpars['specimen_dec']),' %7.1f'%(mpars['specimen_inc']),' MAD:','%7.1f'%(mpars['specimen_mad'])
+                        print('pTRM direction= ','%7.1f'%(mpars['specimen_dec']),' %7.1f'%(mpars['specimen_inc']),' MAD:','%7.1f'%(mpars['specimen_mad']))
                if len(anisblock)>0:  # this specimen has anisotropy data
-                           if verbose: print 'Found anisotropy record... but ignoring for now '
+                           if verbose: print('Found anisotropy record... but ignoring for now ')
                if plots==1:
                    if fmt != "pmag":
                        files={}
-                       for key in AZD.keys():
+                       for key in list(AZD.keys()):
                            files[key]='SP:_'+this_specimen+'_TY:_'+key+'_'+'.'+fmt
                        if pmagplotlib.isServer:
                            black     = '#000000'
@@ -267,7 +269,7 @@ def main():
                            AZD = pmagplotlib.addBorders(AZD,titles,black,purple)
                        pmagplotlib.saveP(AZD,files)
                    else:  # save in pmag format
-                       print 'pmag format no longer supported'
+                       print('pmag format no longer supported')
                        #script="grep "+this_specimen+" output.mag | thellier -mfsi"
                        #script=script+' %8.4e'%(field)
                        #min='%i'%((pars["measurement_step_min"]-273))
@@ -278,7 +280,7 @@ def main():
                        #pmag.domagicmag(outf,MeasRecs)
                if specimen!="": sys.exit() # syonara
                if verbose:
-                   ans=raw_input('Return for next specimen, q to quit:  ')
+                   ans=input('Return for next specimen, q to quit:  ')
                    if ans=='q':sys.exit()
                k+=1 # moving on
 

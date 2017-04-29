@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+from __future__ import print_function
+from builtins import input
 import sys
 import pmagpy.pmag as pmag
 
@@ -28,17 +30,17 @@ def main():
 
     """
     if '-h' in sys.argv: # check if help is needed
-        print main.__doc__
+        print(main.__doc__)
         sys.exit() # graceful quit
     if '-i' in sys.argv: # ask for filename
-        file=raw_input("Enter file name with dec, inc data: ")
-        f=open(file,'rU')
+        file=input("Enter file name with dec, inc data: ")
+        f=open(file,'r')
         data=f.readlines()
     elif '-f' in sys.argv:
         dat=[]
         ind=sys.argv.index('-f')
         file=sys.argv[ind+1]
-        f=open(file,'rU')
+        f=open(file,'r')
         data=f.readlines()
     else:
         data = sys.stdin.readlines()  # read from standard input
@@ -58,7 +60,7 @@ def main():
     fpars=pmag.fisher_mean(DIs)
     outstring='%7.1f %7.1f    %i %10.4f %8.1f %7.1f %7.1f'%(fpars['dec'],fpars['inc'],fpars['n'],fpars['r'],fpars['k'],fpars['alpha95'], fpars['csd'])
     if ofile == "":
-        print outstring
+        print(outstring)
     else:
         out.write(outstring+'\n')
     #

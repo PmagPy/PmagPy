@@ -1,4 +1,7 @@
 #!/usr/bin/env python
+from __future__ import print_function
+from builtins import input
+from builtins import range
 import sys
 import numpy
 import pmagpy.pmag as pmag
@@ -36,7 +39,7 @@ def main():
              PLON: pole longitude (positive east)
     """
     if '-h' in sys.argv:
-        print main.__doc__
+        print(main.__doc__)
         sys.exit()
     if '-F' in sys.argv:
         ind=sys.argv.index('-F')
@@ -48,18 +51,18 @@ def main():
         a95=0
         while 1:
             try:
-                ans   = raw_input("Input Declination: <cntrl-D to quit>  ")
+                ans   = input("Input Declination: <cntrl-D to quit>  ")
                 Dec   = float(ans)  # assign input to Dec, after conversion to floating point
-                ans   = raw_input("Input Inclination:  ")
+                ans   = input("Input Inclination:  ")
                 Inc   = float(ans)
-                ans   = raw_input("Input Site Latitude:  ")
+                ans   = input("Input Site Latitude:  ")
                 slat  = float(ans)
-                ans   = raw_input("Input Site Longitude:  ")
+                ans   = input("Input Site Longitude:  ")
                 slong = float(ans)     
                 output = pmag.dia_vgp(Dec,Inc,a95,slat,slong)
-                print '%7.1f %7.1f'%(output[0],output[1]) 
+                print('%7.1f %7.1f'%(output[0],output[1])) 
             except:
-                print "\n Good-bye\n"
+                print("\n Good-bye\n")
                 sys.exit()
     elif '-f' in sys.argv: # input of file name
         ind=sys.argv.index('-f')
@@ -75,7 +78,7 @@ def main():
             output = pmag.dia_vgp(inlist)
             for k in range(N):
                 if out=='':
-                    print '%7.1f %7.1f'%(output[0][k],output[1][k]) 
+                    print('%7.1f %7.1f'%(output[0][k],output[1][k])) 
                 else:
                     out.write('%7.1f %7.1f\n'%(output[0][k],output[1][k]))
     else: # single line of data
@@ -83,7 +86,7 @@ def main():
             data=[data[0],data[1],0,data[2],data[3]]
         output = pmag.dia_vgp(data)
         if out=='': # spit to standard output
-            print '%7.1f %7.1f'%(output[0],output[1]) 
+            print('%7.1f %7.1f'%(output[0],output[1])) 
         else: # write to file
             out.write('%7.1f %7.1f\n'%(output[0],output[1]))
 

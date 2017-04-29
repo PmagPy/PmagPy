@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+from __future__ import print_function
+from builtins import range
 import sys
 import string
 import pmagpy.pmag as pmag
@@ -28,7 +30,7 @@ def main():
         ind=sys.argv.index('-WD')
         dir_path=sys.argv[ind+1]
     if '-h' in sys.argv:
-        print main.__doc__
+        print(main.__doc__)
         sys.exit()
     if '-f' in sys.argv:
         ind=sys.argv.index('-f')
@@ -49,9 +51,9 @@ def main():
         open(meas_file,"r")
         meas_data,file_type=pmag.magic_read(meas_file)
     except IOError:
-        print main.__doc__
-        print """You must have a valid measurements file prior to converting
-                this LSQ file"""
+        print(main.__doc__)
+        print("""You must have a valid measurements file prior to converting
+                this LSQ file""")
         sys.exit()
     zredo=open(zfile,"w")
     MeasRecs=[]
@@ -59,7 +61,7 @@ def main():
 # read in LSQ file
 #
     specs,MeasOuts=[],[]
-    prior_spec_data=open(inspec,'rU').readlines()
+    prior_spec_data=open(inspec,'r').readlines()
     for line in prior_spec_data:
         if len(line)<2:
             sys.exit() 
@@ -96,7 +98,7 @@ def main():
                 if 'LT-NO' in meths or 'LT-AF-Z' in meths or 'LT-T-Z' in meths: 
                     datablock.append(s)
         if len(datablock)>0:
-            for t in datablock:print t['magic_method_codes']
+            for t in datablock:print(t['magic_method_codes'])
             incl_int=len(incl)
             while incl[-1]>len(datablock)-1: 
                 del incl[-1] # don't include measurements beyond what is in file

@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+from __future__ import print_function
+from builtins import str
 import sys
 import pmagpy.pmag as pmag
 
@@ -79,7 +81,7 @@ def main():
         ind=args.index("-WD")
         dir_path=args[ind+1]
     if "-h" in args:
-        print main.__doc__
+        print(main.__doc__)
         sys.exit()
     if "-usr" in args:
         ind=args.index("-usr")
@@ -91,13 +93,13 @@ def main():
         ind=args.index("-f")
         magfile=dir_path+'/'+args[ind+1]
         try:
-            input=open(magfile,'rU')
+            input=open(magfile,'r')
         except:
-            print "bad mag file name"
+            print("bad mag file name")
             sys.exit()
     else: 
-        print "mag_file field is required option"
-        print main.__doc__
+        print("mag_file field is required option")
+        print(main.__doc__)
         sys.exit()
     if "-spc" in args:
         ind=args.index("-spc")
@@ -116,7 +118,7 @@ def main():
         samp_con=sys.argv[ind+1]
         if "4" in samp_con:
             if "-" not in samp_con:
-                print "option [4] must be in form 4-Z where Z is an integer"
+                print("option [4] must be in form 4-Z where Z is an integer")
                 sys.exit()
             else:
                 Z=samp_con.split("-")[1]
@@ -124,7 +126,7 @@ def main():
             samp_con=sys.argv[ind+1]
         if "7" in samp_con:
             if "-" not in samp_con:
-                print "option [7] must be in form 7-Z where Z is an integer"
+                print("option [7] must be in form 7-Z where Z is an integer")
                 sys.exit()
             else:
                 Z=samp_con.split("-")[1]
@@ -207,9 +209,9 @@ def main():
                     site=pmag.parse_site(MagRec['er_sample_name'],samp_con,Z)
                     MagRec["er_site_name"]=site
                 if MagRec['er_site_name']=="":
-                    print 'No site name found for: ',MagRec['er_specimen_name'],MagRec['er_sample_name']
+                    print('No site name found for: ',MagRec['er_specimen_name'],MagRec['er_sample_name'])
                 if MagRec["er_location_name"]=="":
-                    print 'no location name for: ',MagRec["er_specimen_name"] 
+                    print('no location name for: ',MagRec["er_specimen_name"]) 
                 if rec[1]==".00":rec[1]="0.00"
                 MagRec["measurement_csd"]=rec[2]
                 MagRec["measurement_magn_moment"]='%10.3e'% (float(rec[3])*1e-3) # moment in Am^2 (from emu)
@@ -239,7 +241,7 @@ def main():
             rec['magic_experiment_name']=expname
             MagOuts.append(rec)
     pmag.magic_write(meas_file,MagOuts,'magic_measurements')
-    print "results put in ",meas_file
+    print("results put in ",meas_file)
     
 if __name__ == "__main__":
     main()

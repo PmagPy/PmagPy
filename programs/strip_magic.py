@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+from __future__ import print_function
+from builtins import input
 import sys
 import matplotlib
 if matplotlib.get_backend() != "TKAgg":
@@ -64,7 +66,7 @@ def main():
         dir_path=sys.argv[ind+1]
     res_file=dir_path+'/pmag_results.txt'
     if '-h' in sys.argv:
-        print main.__doc__
+        print(main.__doc__)
         sys.exit()
     if '-f' in sys.argv:
         ind=sys.argv.index('-f')
@@ -105,7 +107,7 @@ def main():
     # get data read in
     Results,file_type=pmag.magic_read(res_file) 
     if file_type not in supported:
-        print "Unsupported file type, try again"
+        print("Unsupported file type, try again")
         sys.exit()
     PltObjs=['all']
     if file_type=='pmag_results': # find out what to plot
@@ -114,7 +116,7 @@ def main():
             if 'Sample' in resname and 'sam' not in PltObjs:PltObjs.append('sam')
             if 'Site' in resname and 'sit' not in PltObjs:PltObjs.append('sit')
     methcodes=[]
-    if "magic_method_codes" in Results[0].keys(): # need to know all the measurement types from method_codes
+    if "magic_method_codes" in list(Results[0].keys()): # need to know all the measurement types from method_codes
         for rec in Results:
             meths=rec["magic_method_codes"].split(":")
             for meth in meths:
@@ -129,7 +131,7 @@ def main():
     # step through possible plottable keys
     #
     if xaxis=="" or yaxis=="":
-        for key in Results[0].keys():
+        for key in list(Results[0].keys()):
             for keys in  X_keys:
                 for xkeys in keys: 
                     if key in xkeys:
@@ -158,10 +160,10 @@ def main():
             if plt in Vadm_keys and 'vadm' not in Y:Y.append('vadm')
             if plt in Vdm_keys and 'vdm' not in Y:Y.append('vdm')
         if file_type=='pmag_results':
-            print 'available objects for plotting: ',PltObjs
-        print 'available X plots: ',X
-        print 'available Y plots: ',Y
-        print 'available method codes: ',methcodes
+            print('available objects for plotting: ',PltObjs)
+        print('available X plots: ',X)
+        print('available Y plots: ',Y)
+        print('available method codes: ',methcodes)
         f=open(dir_path+'/.striprc','w')
         for x in X:
            f.write('x:'+x+'\n') 
@@ -174,46 +176,46 @@ def main():
         sys.exit()
     if plotexp==1:
         for lkey in Lat_keys:
-            for key in Results[0].keys():
+            for key in list(Results[0].keys()):
                 if key==lkey:    
                     lat=float(Results[0][lkey])
                     Xinc=[pmag.pinc(lat),-pmag.pinc(lat)]
                     break
         if Xinc=="":
-            print 'can not plot expected inc for site - lat unknown'
+            print('can not plot expected inc for site - lat unknown')
     if method!="" and method not in methcodes:
-        print 'your method not available, but these are:  '
-        print methcodes
-        print 'use ',methocodes[0],'? ^D to quit' 
+        print('your method not available, but these are:  ')
+        print(methcodes)
+        print('use ',methocodes[0],'? ^D to quit') 
     if xaxis=='age':
         for akey in Age_keys:
-            for key in Results[0].keys():
+            for key in list(Results[0].keys()):
                 if key==akey:
                     Xplots.append(key)
                     Xunits.append(Unit_keys[key])
     if xaxis=='pos':
         for dkey in Depth_keys:
-            for key in Results[0].keys():
+            for key in list(Results[0].keys()):
                 if key==dkey: 
                     Xplots.append(key)
     if len(Xplots)==0:
-        print 'desired X axis  information not found'
+        print('desired X axis  information not found')
         sys.exit()
     if xaxis=='age':age_unit=Results[0][Xunits[0]]
     if len(Xplots)>1:
-        print 'multiple X axis  keys found, using: ',Xplots[xplotind]
+        print('multiple X axis  keys found, using: ',Xplots[xplotind])
     for ykey in ykeys: 
-        for key in Results[0].keys():
+        for key in list(Results[0].keys()):
             if key==ykey:Yplots.append(key)
     if len(Yplots)==0:
-        print 'desired Y axis  information not found'
+        print('desired Y axis  information not found')
         sys.exit()
     if len(Yplots)>1:
-        print 'multiple Y axis  keys found, using: ',Yplots[yplotind]
+        print('multiple Y axis  keys found, using: ',Yplots[yplotind])
     
     # check if age or depth info        
     if len(Xplots)==0:
-        print "Must have either age or height info to plot "
+        print("Must have either age or height info to plot ")
         sys.exit()
     #
     # check for variable to plot
@@ -240,7 +242,7 @@ def main():
 #    else:
 #        isign=1.
     for rec in Results:
-        if "magic_method_codes" in rec.keys():
+        if "magic_method_codes" in list(rec.keys()):
             meths=rec["magic_method_codes"].split(":")
             if method in meths: # make sure it is desired lab treatment step
                 if obj=='all' and rec[Xkey].strip()!="":
@@ -257,12 +259,12 @@ def main():
                 if obj=='sit' and "Site" in name: XY.append([isign*float(rec[Xkey]),float(rec[Ykey])])
                 if obj=='sam' and "Sample" in name: XY.append([isign*float(rec[Xkey]),float(rec[Ykey])])
         else:  
-            print "Something wrong with your plotting choices"
+            print("Something wrong with your plotting choices")
             break
     XY.sort()
     title=""
-    if "er_locations_names" in Results[0].keys(): title=Results[0]["er_location_names"]
-    if "er_locations_name" in Results[0].keys(): title=Results[0]["er_location_name"]
+    if "er_locations_names" in list(Results[0].keys()): title=Results[0]["er_location_names"]
+    if "er_locations_name" in list(Results[0].keys()): title=Results[0]["er_location_name"]
     labels=[xlab,ylab,title]
     pmagplotlib.plot_init(FIG['strat'],10,5)
     pmagplotlib.plotSTRAT(FIG['strat'],XY,labels) # plot them
@@ -275,7 +277,7 @@ def main():
         pmagplotlib.plot_init(FIG['ts'],10,5)
         pmagplotlib.plotTS(FIG['ts'],[amin,amax],ts)
     files={}
-    for key in FIG.keys():
+    for key in list(FIG.keys()):
         files[key]=key+'.'+fmt 
     if pmagplotlib.isServer: 
         black     = '#000000'
@@ -292,7 +294,7 @@ def main():
         pmagplotlib.saveP(FIG,files)
     else:
         pmagplotlib.drawFIGS(FIG)
-        ans=raw_input(" S[a]ve to save plot, [q]uit without saving:  ")
+        ans=input(" S[a]ve to save plot, [q]uit without saving:  ")
         if ans=="a": pmagplotlib.saveP(FIG,files)
 
 if __name__ == "__main__":

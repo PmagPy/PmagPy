@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from builtins import str
 import unittest
 import os
 import sys
@@ -127,7 +128,7 @@ class TestMagicDataFrame(unittest.TestCase):
         #
         dct = magic_df.convert_to_pmag_data_list("dict")
         self.assertEqual(dict, type(dct))
-        self.assertEqual(dict, type(dct[dct.keys()[0]]))
+        self.assertEqual(dict, type(dct[list(dct.keys())[0]]))
         self.assertEqual('1', str(dct['1']['site']))
 
     def test_get_name(self):
@@ -185,7 +186,7 @@ class TestMagicDataFrame(unittest.TestCase):
         magic_df = nb.MagicDataFrame(os.path.join(PROJECT_WD, 'sites.txt'),
                                      dmodel=DMODEL)
         directions = magic_df.df.loc['1', 'bed_dip_direction']
-        self.assertEqual(sorted(directions), [None, 135, 135])
+        self.assertEqual(sorted(directions,key=lambda x,y=0: int(x-y) if (isinstance(x,float) or isinstance(x,int)) and (isinstance(y,float) or isinstance(y,int)) else -1), [None, 135, 135])
         magic_df.front_and_backfill(cols=['bed_dip_direction'])
         directions = magic_df.df.loc['1', 'bed_dip_direction']
         self.assertEqual(sorted(directions), [135, 135, 135])
@@ -219,7 +220,8 @@ class TestContribution(unittest.TestCase):
         for table in tables:
             fname = table + ".txt"
             if table in files:
-                os.remove(os.path.join(WD, fname))
+                try: os.remove(os.path.join(WD, fname))
+                except OSError: print("error when removing files for empty directory test in test_new_builder")
         con = nb.Contribution(WD, dmodel=DMODEL)
         self.assertEqual(0, len(con.tables))
 
@@ -344,7 +346,7 @@ class TestContribution(unittest.TestCase):
         con = nb.Contribution(directory, dmodel=DMODEL, read_tables=['sites'],
                               custom_filenames={'locations': '_locations.txt',
                                                 'samples': '_samples.txt'})
-        self.assertEqual(['sites'], con.tables.keys())
+        self.assertEqual(['sites'], list(con.tables.keys()))
         con.propagate_all_tables_info()
         self.assertEqual(sorted(['samples', 'sites', 'locations']), sorted(con.tables.keys()))
         for fname in ['_locations.txt', '_samples.txt']:
@@ -369,7 +371,7 @@ class TestContribution(unittest.TestCase):
         con = nb.Contribution(self.directory, dmodel=DMODEL, read_tables=['sites'],
                               custom_filenames={'locations': '_locations.txt',
                                                 'samples': '_samples.txt'})
-        self.assertEqual(['sites'], con.tables.keys())
+        self.assertEqual(['sites'], list(con.tables.keys()))
         con.propagate_all_tables_info()
         self.assertEqual(sorted(['sites', 'locations']), sorted(con.tables.keys()))
         for fname in ['_locations.txt']: # no samples available this time

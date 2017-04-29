@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+from __future__ import print_function
+from builtins import str
 import sys
 import pmagpy.pmag as pmag
 
@@ -32,7 +34,7 @@ def main():
 	ind=args.index("-WD")
 	dir_path=args[ind+1]
     if "-h" in args:
-	print main.__doc__
+	print(main.__doc__)
         sys.exit()
     if '-f' in args:
 	ind=args.index("-f")
@@ -45,8 +47,8 @@ def main():
     loc_file=dir_path+'/'+loc_file
     Sites,file_type=pmag.magic_read(site_file)
     if file_type != 'er_sites':
-        print file_type
-        print file_type,"This is not a valid er_sites file "
+        print(file_type)
+        print(file_type,"This is not a valid er_sites file ")
         sys.exit()
     # read in site data
     #
@@ -65,7 +67,7 @@ def main():
             Locations.append(LocRec)
     if len(Locations)>0:
         pmag.magic_write(loc_file,Locations,"er_locations")
-        print "Locations written to: ",loc_file
+        print("Locations written to: ",loc_file)
 
 if __name__ == "__main__":
     main()

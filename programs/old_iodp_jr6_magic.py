@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+from __future__ import print_function
+from builtins import str
 import pandas as pd
 import sys
 import numpy as np
@@ -31,7 +33,7 @@ def main(command_line=True, **kwargs):
 
 
     def fix_separation(filename, new_filename):
-        old_file = open(filename, 'rU')
+        old_file = open(filename, 'r')
         data = old_file.readlines()
         new_data = []
         for line in data:
@@ -47,7 +49,7 @@ def main(command_line=True, **kwargs):
         
 
     def old_fix_separation(filename, new_filename):
-        old_file = open(filename, 'rU')
+        old_file = open(filename, 'r')
         data = old_file.readlines()
         new_data = []
         for line in data:
@@ -105,7 +107,7 @@ def main(command_line=True, **kwargs):
             input_dir_path = dir_path
         output_dir_path = dir_path
         if "-h" in args:
-            print main.__doc__
+            print(main.__doc__)
             return False
         if '-F' in args:
             ind=args.index("-F")
@@ -116,11 +118,11 @@ def main(command_line=True, **kwargs):
             if samp_file[0]!='/':
                 samp_file = os.path.join(input_dir_path, samp_file)
             try:
-                open(samp_file,'rU')
+                open(samp_file,'r')
                 ErSamps,file_type=pmag.magic_read(samp_file)
             except:
-                print samp_file,' not found: '
-                print '   download csv file and import to MagIC with iodp_samples_magic.py'
+                print(samp_file,' not found: ')
+                print('   download csv file and import to MagIC with iodp_samples_magic.py')
         if '-f' in args:
             ind = args.index("-f")
             mag_file= args[ind+1]
@@ -157,21 +159,21 @@ def main(command_line=True, **kwargs):
 
     # validate variables
     if not mag_file:
-        print "You must provide an IODP_jr6 format file"
+        print("You must provide an IODP_jr6 format file")
         return False, "You must provide an IODP_jr6 format file"
     if not os.path.exists(mag_file):
-        print 'The input file you provided: {} does not exist.\nMake sure you have specified the correct filename AND correct input directory name.'.format(os.path.join(input_dir_path, mag_file))
+        print('The input file you provided: {} does not exist.\nMake sure you have specified the correct filename AND correct input directory name.'.format(os.path.join(input_dir_path, mag_file)))
         return False, 'The input file you provided: {} does not exist.\nMake sure you have specified the correct filename AND correct input directory name.'.format(magfile)
     if not os.path.exists(samp_file):
-        print 'samp_file', samp_file
-        print "Your input directory:\n{}\nmust contain an er_samples.txt file, or you must explicitly provide one".format(input_dir_path)
+        print('samp_file', samp_file)
+        print("Your input directory:\n{}\nmust contain an er_samples.txt file, or you must explicitly provide one".format(input_dir_path))
         return False, "Your input directory:\n{}\nmust contain an er_samples.txt file, or you must explicitly provide one".format(input_dir_path)
     
     # parse data
     temp = os.path.join(output_dir_path, 'temp.txt')
     fix_separation(mag_file, temp)
     #os.rename('temp.txt', mag_file)
-    #data = open(mag_file, 'rU').readlines()
+    #data = open(mag_file, 'r').readlines()
     data=pd.read_csv(temp, delim_whitespace=True,header=None)
     os.remove(temp)
     samples,filetype = pmag.magic_read(samp_file)
@@ -230,12 +232,12 @@ def main(command_line=True, **kwargs):
                 treat=float(row['step'][3:])
                 MagRec["treatment_dc_field"]='%8.3e' %(treat*1e-3) # convert from mT to tesla
             else:
-                print 'unknown treatment type for ',row
+                print('unknown treatment type for ',row)
                 return False, 'unknown treatment type for ',row
             MagRec['magic_method_codes']=meas_type
             MagRecs.append(MagRec.copy())
         else:
-            print 'sample name not found: ',row['specname']
+            print('sample name not found: ',row['specname'])
     MagOuts=pmag.measurements_methods(MagRecs,noave)
     file_created, error_message = pmag.magic_write(meas_file,MagOuts,'magic_measurements')
     if file_created:

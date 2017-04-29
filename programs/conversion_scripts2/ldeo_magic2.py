@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+from __future__ import print_function
+from builtins import range
 import sys
 import pmagpy.pmag as pmag
 
@@ -116,7 +118,7 @@ is031c2       .0  SD  0 461.600 163.9  17.5  337.1  74.5  319.1  74.4    .0   .0
     user=""
     if command_line:
         if "-h" in args:
-            print main.__doc__
+            print(main.__doc__)
             return False
         if "-usr" in args:
             ind=args.index("-usr")
@@ -201,27 +203,27 @@ is031c2       .0  SD  0 461.600 163.9  17.5  337.1  74.5  319.1  74.4    .0   .0
     # format/organize variables
     if magfile:
         try:
-            input=open(magfile,'rU')
+            input=open(magfile,'r')
         except:
-            print "bad mag file name"
+            print("bad mag file name")
             return False, "bad mag file name"
     else: 
-        print "mag_file field is required option"
-        print main.__doc__
+        print("mag_file field is required option")
+        print(main.__doc__)
         return False, "mag_file field is required option"
         
     if specnum!=0:specnum=-specnum
 
     if "4" in samp_con:
         if "-" not in samp_con:
-            print "naming convention option [4] must be in form 4-Z where Z is an integer"
+            print("naming convention option [4] must be in form 4-Z where Z is an integer")
             return False, "naming convention option [4] must be in form 4-Z where Z is an integer"
         else:
             Z=samp_con.split("-")[1]
             samp_con="4"
     if "7" in samp_con:
         if "-" not in samp_con:
-            print "naming convention option [7] must be in form 7-Z where Z is an integer"
+            print("naming convention option [7] must be in form 7-Z where Z is an integer")
             return False, "naming convention option [7] must be in form 7-Z where Z is an integer"
         else:
             Z=samp_con.split("-")[1]
@@ -254,8 +256,8 @@ is031c2       .0  SD  0 461.600 163.9  17.5  337.1  74.5  319.1  74.4    .0   .0
         methcode="LP-IRM"
         irmunits="V"
         if coil not in ["1","2","3"]:
-            print main.__doc__
-            print 'not a valid coil specification'
+            print(main.__doc__)
+            print('not a valid coil specification')
             return False, 'not a valid coil specification'
 
     if demag=="T" and "ANI" in codes:
@@ -373,10 +375,10 @@ is031c2       .0  SD  0 461.600 163.9  17.5  337.1  74.5  319.1  74.4    .0   .0
             MagRecs.append(MagRec) 
     MagOuts=pmag.measurements_methods(MagRecs,noave)
     pmag.magic_write(meas_file,MagOuts,'magic_measurements')
-    print "results put in ",meas_file
+    print("results put in ",meas_file)
     if len(SynRecs)>0:
         pmag.magic_write(synfile,SynRecs,'er_synthetics')
-        print "synthetics put in ",synfile
+        print("synthetics put in ",synfile)
     return True, meas_file
 
 def do_help():

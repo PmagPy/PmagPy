@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import print_function
 import sys
 #import os
 #import pmagpy.pmag as pmag
@@ -84,7 +85,7 @@ def main():
     """
     args = sys.argv
     if "-h" in args:
-        print main.__doc__
+        print(main.__doc__)
         sys.exit()
     else:
         info = [['WD', False, '.'], ['ID', False, '.'], ['f', False, 'orient.txt'],

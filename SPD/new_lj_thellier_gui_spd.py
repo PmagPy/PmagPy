@@ -1,4 +1,11 @@
+from __future__ import division
+from __future__ import print_function
+from __future__ import absolute_import
 #============================================================================================
+from builtins import input
+from builtins import range
+from builtins import object
+from past.utils import old_div
 global CURRENT_VRSION
 CURRENT_VRSION = "v.2.03"
 #import matplotlib
@@ -29,7 +36,7 @@ except:
 #import thellier_consistency_test
 
 
-class Arai_GUI():
+class Arai_GUI(object):
     """ The main frame of the application
     """
     title = "PmagPy Thellier GUI %s"%CURRENT_VRSION
@@ -59,7 +66,7 @@ class Arai_GUI():
 
         self.Data_samples={}
         self.last_saved_pars={}
-        self.specimens=self.Data.keys()         # get list of specimens
+        self.specimens=list(self.Data.keys())         # get list of specimens
         self.specimens.sort()                   # get list of specimens
 
 #        self.get_previous_interpretation() # get interpretations from pmag_specimens.txt.  don't even have pmag_specimens.txt
@@ -70,9 +77,9 @@ class Arai_GUI():
     #----------------------------------------------------------------------
                           
     def classy_read_magic_file(self,path,ignore_lines_n,sort_by_this_name): # only called for 'pmag_specimens.txt'
-        print "calling classy_read_magic_file() in thellier_gui_spd_lj.py"
-        print path
-        print "not using because we aren't doing the self.get_previous_interpretation call, which is the only function that calls for this one."
+        print("calling classy_read_magic_file() in thellier_gui_spd_lj.py")
+        print(path)
+        print("not using because we aren't doing the self.get_previous_interpretation call, which is the only function that calls for this one.")
 
 #===========================================================
 # calculate PI statistics
@@ -84,8 +91,8 @@ class Arai_GUI():
       # read criteria file
       # Format is as pmag_criteria.txt
       #------------------------------------------------
-      print "calling get_default_criteria()"
-      print "not really using this"
+      print("calling get_default_criteria()")
+      print("not really using this")
       return False
 
       
@@ -120,7 +127,7 @@ class Arai_GUI():
 # so, first is a zero field, heated to 273 and measured at 273.  second is infield, heated to 373 but measured at 273.  
 # actual measurements: measurement_magn_moment, measurement_inc, measurement_dec, and measurement_csd.  inc == inclination (how a compass would want to point down through the earth to get to the N pole, at least while in northern hemisphere)  magn_moment = "The product of the pole strength of a magnet and the distance between the poles."  dec == declination.  
       except:
-          print "-E- ERROR: Cant read magic_measurement.txt file. File is corrupted."
+          print("-E- ERROR: Cant read magic_measurement.txt file. File is corrupted.")
           return {},{}
 
       #print "done Magic read %s " %self.magic_file
@@ -139,7 +146,7 @@ class Arai_GUI():
       
       for s in sids:
 
-          if s not in Data.keys(): # if a record doesn't already exist for this specimen
+          if s not in list(Data.keys()): # if a record doesn't already exist for this specimen
               Data[s]={}
               Data[s]['datablock']=[]
               Data[s]['trmblock']=[]
@@ -163,7 +170,7 @@ class Arai_GUI():
           else:
              Data[s]['T_or_MW']="T"
     
-          if "magic_method_codes" not in rec.keys():
+          if "magic_method_codes" not in list(rec.keys()):
               rec["magic_method_codes"]=""
           methods=rec["magic_method_codes"].split(":") # LJ UNCOMMENTED THIS, NOT SURE IF IT WORKS!!!
 #          print "METHODS", methods
@@ -184,20 +191,20 @@ class Arai_GUI():
 
           if "LP-AN-TRM" in rec["magic_method_codes"]:
               # if Anisotropy measurement (TRM acquisition):
-              if 'atrmblock' not in Data[s].keys():
+              if 'atrmblock' not in list(Data[s].keys()):
                 Data[s]['atrmblock']=[]
               Data[s]['atrmblock'].append(rec)
 
 
           if "LP-AN-ARM" in rec["magic_method_codes"]:
               # if Anisotropy measurement(ARM acquisition. Measure of anisotropy of anhysteretic susceptibility (AAS) via ARM acquisition (AARM)):
-              if 'aarmblock' not in Data[s].keys():
+              if 'aarmblock' not in list(Data[s].keys()):
                 Data[s]['aarmblock']=[]
               Data[s]['aarmblock'].append(rec)
 
           if "LP-CR-TRM" in rec["magic_method_codes"]:
               # could not find this code on earthref.org.  must relate to cooling rate, though.
-              if 'crblock' not in Data[s].keys():
+              if 'crblock' not in list(Data[s].keys()):
                 Data[s]['crblock']=[]
               Data[s]['crblock'].append(rec)
 
@@ -211,7 +218,7 @@ class Arai_GUI():
           methods=rec["magic_method_codes"].split(":")
           for i in range (len(methods)):
                methods[i]=methods[i].strip()
-          if 'measurement_flag' not in rec.keys(): rec['measurement_flag']='g'
+          if 'measurement_flag' not in list(rec.keys()): rec['measurement_flag']='g'
           skip=1
           for meth in methods:
                if meth in INC:
@@ -219,9 +226,9 @@ class Arai_GUI():
           for meth in EX:
                if meth in methods:skip=1
           if skip==0:                      # control flow verifies that an IN method was used, and no EX methods were.  if this is fulfilled, then tr (treatment temperature, or microwave power) is set
-             if  'treatment_temp' in rec.keys():
+             if  'treatment_temp' in list(rec.keys()):
                  tr = float(rec["treatment_temp"])
-             elif "treatment_mw_power" in rec.keys():
+             elif "treatment_mw_power" in list(rec.keys()):
                  tr = float(rec["treatment_mw_power"])
                  
              if "LP-PI-TRM-IZ" in methods or "LP-PI-M-IZ" in methods:  # looking for in-field first thellier or microwave data - otherwise, just ignore this
@@ -232,13 +239,13 @@ class Arai_GUI():
              Mkeys=['measurement_magnitude','measurement_magn_moment','measurement_magn_volume','measurement_magn_mass']
              if tr !="":
                  dec,inc,int = "","",""
-                 if "measurement_dec" in rec.keys() and rec["measurement_dec"] != "":
+                 if "measurement_dec" in list(rec.keys()) and rec["measurement_dec"] != "":
                      dec=float(rec["measurement_dec"])
-                 if "measurement_inc" in rec.keys() and rec["measurement_inc"] != "":
+                 if "measurement_inc" in list(rec.keys()) and rec["measurement_inc"] != "":
                      inc=float(rec["measurement_inc"])
                  for key in Mkeys: # grabs whichever magnetic measurement is present in the file
-                     if key in rec.keys() and rec[key]!="":int=float(rec[key])
-                 if 'magic_instrument_codes' not in rec.keys():rec['magic_instrument_codes']=''
+                     if key in list(rec.keys()) and rec[key]!="":int=float(rec[key])
+                 if 'magic_instrument_codes' not in list(rec.keys()):rec['magic_instrument_codes']=''
                  #datablock.append([tr,dec,inc,int,ZI,rec['measurement_flag'],rec['magic_instrument_codes']])
                  if Data[s]['T_or_MW']=="T":  
                      if tr==0.: tr=273.  # if thermal, and treatment temp has not been set, set it to 273
@@ -246,7 +253,7 @@ class Arai_GUI():
                  #print methods
 
        
-          if sample not in Data_hierarchy['samples'].keys():
+          if sample not in list(Data_hierarchy['samples'].keys()):
               Data_hierarchy['samples'][sample]=[]
           if s not in Data_hierarchy['samples'][sample]:
               Data_hierarchy['samples'][sample].append(s)
@@ -257,7 +264,7 @@ class Arai_GUI():
           
       #print "done sorting meas data"
       
-      self.specimens=Data.keys()
+      self.specimens=list(Data.keys())
 #      self.s = self.specimens[0]  # LORI convenience ADDITION
       self.specimens.sort()
 
@@ -286,25 +293,25 @@ class Arai_GUI():
       for AniSpec in rmag_anis_data:
           s=AniSpec['er_specimen_name']
 
-          if s not in Data.keys():
+          if s not in list(Data.keys()):
               print("-W- WARNING: specimen %s in rmag_anisotropy.txt but not in magic_measurement.txt. Check it !\n"%s)
               continue
-          if 'AniSpec' in Data[s].keys():
+          if 'AniSpec' in list(Data[s].keys()):
               print("-W- WARNING: more than one anisotropy data for specimen %s !\n"%s)
           TYPE=AniSpec['anisotropy_type']
-          if 'AniSpec' not in Data[s].keys():
+          if 'AniSpec' not in list(Data[s].keys()):
               Data[s]['AniSpec']={}
           Data[s]['AniSpec'][TYPE]=AniSpec
         
       for AniSpec in results_anis_data:
           s=AniSpec['er_specimen_names']
-          if s not in Data.keys():
+          if s not in list(Data.keys()):
               print("-W- WARNING: specimen %s in rmag_results.txt but not in magic_measurement.txt. Check it !\n"%s)
               continue
           TYPE=AniSpec['anisotropy_type']         
-          if 'AniSpec' in Data[s].keys() and TYPE in  Data[s]['AniSpec'].keys():
+          if 'AniSpec' in list(Data[s].keys()) and TYPE in  list(Data[s]['AniSpec'].keys()):
               Data[s]['AniSpec'][TYPE].update(AniSpec)
-              if 'result_description' in AniSpec.keys():
+              if 'result_description' in list(AniSpec.keys()):
                 result_description=AniSpec['result_description'].split(";")
                 for description in result_description:
                     if "Critical F" in description:
@@ -414,16 +421,16 @@ class Arai_GUI():
           # > 5% : WARNING
           # > 10%: ERROR           
 
-          slopes=M_NLT/B_NLT #  B = B_anc / B_lab ??
+          slopes=old_div(M_NLT,B_NLT) #  B = B_anc / B_lab ??
 
           if len(trmblock)==2:
-              if max(slopes)/min(slopes)<1.05:
+              if old_div(max(slopes),min(slopes))<1.05:
                   print("-I- 2 NLT measurement for specimen %s. [max(M/B)/ [min(M/B)] < 1.05.\n"%s)         
-              elif max(slopes)/min(slopes)<1.1:
-                  print("-W- WARNING: 2 NLT measurement for specimen %s. [max(M/B)]/ [min(M/B)] is %.2f  (   > 1.05 and  < 1.1 ). More NLT mrasurements may be required.\n" %(s,max(slopes)/min(slopes)))
+              elif old_div(max(slopes),min(slopes))<1.1:
+                  print("-W- WARNING: 2 NLT measurement for specimen %s. [max(M/B)]/ [min(M/B)] is %.2f  (   > 1.05 and  < 1.1 ). More NLT mrasurements may be required.\n" %(s,old_div(max(slopes),min(slopes))))
                   #print("-I- NLT meaurements specime %s: B,M="%s,B_NLT,M_NLT)
               else:
-                  print("-E- ERROR: 2 NLT measurement for specimen %s. [max(M/B)]/ [min(M/B)] is %.2f  ( > 1.1 ). More NLT mrasurements may be required  !\n" %(s,max(slopes)/min(slopes)))
+                  print("-E- ERROR: 2 NLT measurement for specimen %s. [max(M/B)]/ [min(M/B)] is %.2f  ( > 1.1 ). More NLT mrasurements may be required  !\n" %(s,old_div(max(slopes),min(slopes))))
                   #print("-I- NLT meaurements specime %s: B,M="%s,B_NLT,M_NLT)
                   
           # NLT procedure following Shaar et al (2010)        
@@ -441,8 +448,8 @@ class Arai_GUI():
                   M_lab=popt[0]*math.tanh(labfield*popt[1])
 
                   # Now  fit tanh function to the normalized curve
-                  M_NLT_norm=M_NLT/M_lab
-                  popt, pcov = curve_fit(tan_h, B_NLT, M_NLT_norm,p0=(popt[0]/M_lab,popt[1]))
+                  M_NLT_norm=old_div(M_NLT,M_lab)
+                  popt, pcov = curve_fit(tan_h, B_NLT, M_NLT_norm,p0=(old_div(popt[0],M_lab),popt[1]))
                   Data[s]['NLT_parameters']={}
                   Data[s]['NLT_parameters']['tanh_parameters']=(popt, pcov)
                   Data[s]['NLT_parameters']['B_NLT']=B_NLT
@@ -458,13 +465,13 @@ class Arai_GUI():
                   # The maximum difference allowd is 5%
                   # if difference is larger than 5%: WARNING            
                   
-                  if max(slopes)/min(slopes)<1.05:
+                  if old_div(max(slopes),min(slopes))<1.05:
                       print("-I- 2 NLT measurement for specimen %s. [max(M/B)/ [min(M/B)] < 1.05.\n"%s)         
-                  elif max(slopes)/min(slopes)<1.1:
-                      print("-W- WARNING: 2 NLT measurement for specimen %s. [max(M/B)]/ [min(M/B)] is %.2f  (   > 1.05 and  < 1.1 ). More NLT mrasurements may be required.\n" %(s,max(slopes)/min(slopes)))
+                  elif old_div(max(slopes),min(slopes))<1.1:
+                      print("-W- WARNING: 2 NLT measurement for specimen %s. [max(M/B)]/ [min(M/B)] is %.2f  (   > 1.05 and  < 1.1 ). More NLT mrasurements may be required.\n" %(s,old_div(max(slopes),min(slopes))))
                       #print "-I- NLT meaurements specime %s: B,M="%s,B_NLT,M_NLT
                   else:
-                      print("-E- ERROR: 2 NLT measurement for specimen %s. [max(M/B)]/ [min(M/B)] is %.2f  ( > 1.1 ). More NLT mrasurements may be required  !\n" %(s,max(slopes)/min(slopes)))
+                      print("-E- ERROR: 2 NLT measurement for specimen %s. [max(M/B)]/ [min(M/B)] is %.2f  ( > 1.1 ). More NLT mrasurements may be required  !\n" %(s,old_div(max(slopes),min(slopes))))
                       #print "-I- NLT meaurements specime %s: B,M="%s,B_NLT,M_NLT
                   
       #print "done searching NLT data"
@@ -484,7 +491,7 @@ class Arai_GUI():
       for s in self.specimens:
           datablock = Data[s]['datablock']
           trmblock = Data[s]['trmblock']
-          if 'crblock' in Data[s].keys():
+          if 'crblock' in list(Data[s].keys()):
               if len(Data[s]['crblock'])<3:
                   del Data[s]['crblock']
                   continue
@@ -499,7 +506,7 @@ class Arai_GUI():
 ##                  continue                  
               try:
                   ancient_cooling_rate=float(self.Data_info["er_samples"][sample]['sample_cooling_rate'])
-                  ancient_cooling_rate=ancient_cooling_rate/(1e6*365*24*60) # change to K/minute
+                  ancient_cooling_rate=old_div(ancient_cooling_rate,(1e6*365*24*60)) # change to K/minute
               except:
                   print("-W- Cant find ancient cooling rate estimation for sample %s"%sample)
                   continue
@@ -534,25 +541,25 @@ class Arai_GUI():
               lab_fast_cr_moments=[]
               lan_cooling_rates=[]
               for pair in cooling_rate_data['pairs']:
-                    lan_cooling_rates.append(math.log(cooling_rate_data['lab_cooling_rate']/pair[0]))
+                    lan_cooling_rates.append(math.log(old_div(cooling_rate_data['lab_cooling_rate'],pair[0])))
                     moments.append(pair[1])
                     if pair[0]==cooling_rate_data['lab_cooling_rate']:
                         lab_fast_cr_moments.append(pair[1])
               #print s, cooling_rate_data['alteration_check']
-              lan_cooling_rates.append(math.log(cooling_rate_data['lab_cooling_rate']/cooling_rate_data['alteration_check'][0]))
+              lan_cooling_rates.append(math.log(old_div(cooling_rate_data['lab_cooling_rate'],cooling_rate_data['alteration_check'][0])))
               lab_fast_cr_moments.append(cooling_rate_data['alteration_check'][1])
               moments.append(cooling_rate_data['alteration_check'][1])        
 
               lab_fast_cr_moment=mean(lab_fast_cr_moments)
-              moment_norm=numpy.array(moments)/lab_fast_cr_moment
+              moment_norm=old_div(numpy.array(moments),lab_fast_cr_moment)
               (a,b)=polyfit(lan_cooling_rates, moment_norm, 1)
               #ancient_cooling_rate=0.41
-              x0=math.log(lab_cooling_rate/ancient_cooling_rate)
+              x0=math.log(old_div(lab_cooling_rate,ancient_cooling_rate))
               y0=a*x0+b
               MAX=max(lab_fast_cr_moments)
               MIN=min(lab_fast_cr_moments)
                       
-              alteration_check_perc=100*abs((MAX-MIN)/mean(MAX,MIN))
+              alteration_check_perc=100*abs(old_div((MAX-MIN),mean(MAX,MIN)))
               #print s,alteration_check_perc
               #print "--"
               cooling_rate_data['ancient_cooling_rate']=ancient_cooling_rate
@@ -570,7 +577,7 @@ class Arai_GUI():
                   cooling_rate_data['CR_correction_factor']=-999
               if y0>1 and alteration_check_perc<=5:    
                   cooling_rate_data['CR_correction_factor_flag']="calculated"
-                  cooling_rate_data['CR_correction_factor']=1/(y0)
+                  cooling_rate_data['CR_correction_factor']=old_div(1,(y0))
                   
               Data[s]['cooling_rate_data']= cooling_rate_data     
               # at present not generated for my particular specimens
@@ -580,12 +587,12 @@ class Arai_GUI():
       # use the mean cooling rate corretion of the othr specimens from the same sample
       # this cooling rate correction is flagges as "inferred"
 
-      for sample in Data_hierarchy['samples'].keys():
+      for sample in list(Data_hierarchy['samples'].keys()):
           CR_corrections=[]
           for s in Data_hierarchy['samples'][sample]:
-              if 'cooling_rate_data' in Data[s].keys():
-                  if 'CR_correction_factor' in Data[s]['cooling_rate_data'].keys():
-                      if 'CR_correction_factor_flag' in Data[s]['cooling_rate_data'].keys():
+              if 'cooling_rate_data' in list(Data[s].keys()):
+                  if 'CR_correction_factor' in list(Data[s]['cooling_rate_data'].keys()):
+                      if 'CR_correction_factor_flag' in list(Data[s]['cooling_rate_data'].keys()):
                           if Data[s]['cooling_rate_data']['CR_correction_factor_flag']=='calculated':
                               CR_corrections.append(Data[s]['cooling_rate_data']['CR_correction_factor'])
           if len(CR_corrections) > 0:
@@ -594,9 +601,9 @@ class Arai_GUI():
               mean_CR_correction=-1
           if mean_CR_correction != -1:
               for s in Data_hierarchy['samples'][sample]:
-                  if 'cooling_rate_data' not in Data[s].keys():
+                  if 'cooling_rate_data' not in list(Data[s].keys()):
                       Data[s]['cooling_rate_data']={}
-                  if 'CR_correction_factor' not in Data[s]['cooling_rate_data'].keys() or\
+                  if 'CR_correction_factor' not in list(Data[s]['cooling_rate_data'].keys()) or\
                      Data[s]['cooling_rate_data']['CR_correction_factor_flag']!="calculated":
                         Data[s]['cooling_rate_data']['CR_correction_factor']=mean_CR_correction
                         Data[s]['cooling_rate_data']['CR_correction_factor_flag']="inferred"
@@ -661,7 +668,7 @@ class Arai_GUI():
         NRM=zijdblock[0][3]  ## NRM before anything has been done to the sample
 
         for k in range(len(zijdblock)):
-            DIR=[zijdblock[k][1],zijdblock[k][2],zijdblock[k][3]/NRM]
+            DIR=[zijdblock[k][1],zijdblock[k][2],old_div(zijdblock[k][3],NRM)]
             cart=self.dir2cart(DIR)
             zdata.append(numpy.array([cart[0],cart[1],cart[2]]))
             if k>0:
@@ -717,8 +724,8 @@ class Arai_GUI():
 
         for k in range(len(zerofields)):                  
           index_infield=infield_temperatures.index(zerofields[k][0])
-          x_Arai.append(infields[index_infield][3]/NRM)   #  from infields point: x = magnetic strength / NRM
-          y_Arai.append(zerofields[k][3]/NRM)  # from corresponding zerofield point: y = magnetic strength / NRM
+          x_Arai.append(old_div(infields[index_infield][3],NRM))   #  from infields point: x = magnetic strength / NRM
+          y_Arai.append(old_div(zerofields[k][3],NRM))  # from corresponding zerofield point: y = magnetic strength / NRM
           t_Arai.append(zerofields[k][0])  # temperature.  .
           if zerofields[k][4]==1:   
             steps_Arai.append('ZI')
@@ -758,8 +765,8 @@ class Arai_GUI():
                         ptrm_checks_starting_temperatures.append(starting_temperature)
 
                         index_zerofield=zerofield_temperatures.index(ptrm_checks[k][0])
-                        x_ptrm_check.append(ptrm_checks[k][3]/NRM)
-                        y_ptrm_check.append(zerofields[index_zerofield][3]/NRM)
+                        x_ptrm_check.append(old_div(ptrm_checks[k][3],NRM))
+                        y_ptrm_check.append(old_div(zerofields[index_zerofield][3],NRM))
                         ptrm_checks_temperatures.append(ptrm_checks[k][0])
                     except:
                         pass
@@ -775,8 +782,8 @@ class Arai_GUI():
                         ptrm_checks_starting_temperatures.append(starting_temperature)
 
                         index_zerofield=zerofield_temperatures.index(ptrm_checks[k][0])
-                        x_ptrm_check.append(ptrm_checks[k][3]/NRM)
-                        y_ptrm_check.append(zerofields[index_zerofield][3]/NRM)
+                        x_ptrm_check.append(old_div(ptrm_checks[k][3],NRM))
+                        y_ptrm_check.append(old_div(zerofields[index_zerofield][3],NRM))
                         ptrm_checks_temperatures.append(ptrm_checks[k][0])
                     except:
                         pass
@@ -824,8 +831,8 @@ class Arai_GUI():
                         tail_checks_starting_temperatures.append(starting_temperature)
 
                         index_infield=infield_temperatures.index(ptrm_tail[k][0])
-                        x_tail_check.append(infields[index_infield][3]/NRM)
-                        y_tail_check.append(ptrm_tail[k][3]/NRM + zerofields[index_infield][3]/NRM)
+                        x_tail_check.append(old_div(infields[index_infield][3],NRM))
+                        y_tail_check.append(old_div(ptrm_tail[k][3],NRM) + old_div(zerofields[index_infield][3],NRM))
                         tail_check_temperatures.append(ptrm_tail[k][0])
 
                         break
@@ -895,11 +902,11 @@ class Arai_GUI():
                     AC_starting_temperatures.append(starting_temperature)
 
                     index_zerofield=zerofield_temperatures.index(additivity_checks[k][0])
-                    x_AC.append(additivity_checks[k][3]/NRM)
-                    y_AC.append(zerofields[index_zerofield][3]/NRM)
+                    x_AC.append(old_div(additivity_checks[k][3],NRM))
+                    y_AC.append(old_div(zerofields[index_zerofield][3],NRM))
                     AC_temperatures.append(additivity_checks[k][0])
                     index_pTRMs=t_Arai.index(additivity_checks[k][0])
-                    AC.append(additivity_checks[k][3]/NRM - x_Arai[index_pTRMs]) 
+                    AC.append(old_div(additivity_checks[k][3],NRM) - x_Arai[index_pTRMs]) 
                     # above is not using pTRM_star, but x_add_check -  pTRM(Ti)
                     #lj
                     # this is the intensity from the additivity checks araiblock normed by the initial nrm, - the equivalent ptrm value from the previous infield step (I think).  x_Arai is also taken directly from direction (intensity)
@@ -937,7 +944,7 @@ class Arai_GUI():
 
         
       print("-I- number of specimens in this project directory: %i\n"%len(self.specimens))
-      print("-I- number of samples in this project directory: %i\n"%len(Data_hierarchy['samples'].keys()))
+      print("-I- number of samples in this project directory: %i\n"%len(list(Data_hierarchy['samples'].keys())))
 
       #print "done sort blocks to arai, zij. etc."
 #      print "returning Data, data_hierarchy.  This is the completion of self.get_data().  printing Data['0238x5721062']"
@@ -971,7 +978,7 @@ class Arai_GUI():
 #            print "Calling read_magic_file() in get_data_info"
  #           print path
             DATA={}
-            fin=open(path,'rU')
+            fin=open(path,'r')
             fin.readline()
             line=fin.readline()
             header=line.strip('\n').split('\t')
@@ -988,7 +995,7 @@ class Arai_GUI():
         try:
             data_er_samples=read_magic_file(self.WD+"/er_samples.txt",'er_sample_name')
         except:
-            print "-W- Cant find er_sample.txt in project directory\n"
+            print("-W- Cant find er_sample.txt in project directory\n")
     
         try:
             data_er_sites=read_magic_file(self.WD+"/er_sites.txt",'er_site_name')
@@ -1017,8 +1024,8 @@ class Arai_GUI():
     #--------------------------------------------------------------
     # deleted #    def get_previous_interpretation(self):
     def get_previous_interpretation(self):
-        print "calling get_previous_interpretation()"
-        print "but not actually using"
+        print("calling get_previous_interpretation()")
+        print("but not actually using")
         return False
 
 
@@ -1033,17 +1040,17 @@ class Arai_GUI():
         """
 #        print "calling cart2dir(), not in anything"
         cart=numpy.array(cart)
-        rad=numpy.pi/180. # constant to convert degrees to radians
+        rad=old_div(numpy.pi,180.) # constant to convert degrees to radians
         if len(cart.shape)>1:
             Xs,Ys,Zs=cart[:,0],cart[:,1],cart[:,2]
         else: #single vector
             Xs,Ys,Zs=cart[0],cart[1],cart[2]
         Rs=numpy.sqrt(Xs**2+Ys**2+Zs**2) # calculate resultant vector length
-        Decs=(numpy.arctan2(Ys,Xs)/rad)%360. # calculate declination taking care of correct quadrants (arctan2) and making modulo 360.
+        Decs=(old_div(numpy.arctan2(Ys,Xs),rad))%360. # calculate declination taking care of correct quadrants (arctan2) and making modulo 360.
         try:
-            Incs=numpy.arcsin(Zs/Rs)/rad # calculate inclination (converting to degrees) # 
+            Incs=old_div(numpy.arcsin(old_div(Zs,Rs)),rad) # calculate inclination (converting to degrees) # 
         except:
-            print 'trouble in cart2dir' # most likely division by zero somewhere
+            print('trouble in cart2dir') # most likely division by zero somewhere
             return numpy.zeros(3)
             
         return numpy.array([Decs,Incs,Rs]).transpose() # return the directions list
@@ -1054,7 +1061,7 @@ class Arai_GUI():
        # converts list or array of vector directions, in degrees, to array of cartesian coordinates, in x,y,z
         ints=numpy.ones(len(d)).transpose() # get an array of ones to plug into dec,inc pairs
         d = numpy.array(d)
-        rad=numpy.pi/180.
+        rad=old_div(numpy.pi,180.)
         if len(d.shape)>1: # array of vectors
             decs,incs=d[:,0]*rad,d[:,1]*rad
             if d.shape[1]==3: ints=d[:,2] # take the given lengths
@@ -1076,7 +1083,7 @@ class Arai_GUI():
 #        print "calling magic_read(self, infile)", infile
         hold,magic_data,magic_record,magic_keys=[],[],{},[]
         try:
-            f=open(infile,"rU")
+            f=open(infile,"r")
         except:
             return [],'bad_file'
         d = f.readline()[:-1].strip('\n')
@@ -1085,7 +1092,7 @@ class Arai_GUI():
         elif d[0]=="t" or d[1]=="t":
             delim='tab'
         else: 
-            print 'error reading ', infile
+            print('error reading ', infile)
             sys.exit()
         if delim=='space':file_type=d.split()[1]
         if delim=='tab':file_type=d.split('\t')[1]
@@ -1110,7 +1117,7 @@ class Arai_GUI():
             magic_record={}
             if len(magic_keys) != len(rec):
                 
-                print "Warning: Uneven record lengths detected: "
+                print("Warning: Uneven record lengths detected: ")
                 #print magic_keys
                 #print rec
             for k in range(len(rec)):
@@ -1156,15 +1163,15 @@ class Arai_GUI():
         Mkeys=['measurement_magn_moment','measurement_magn_volume','measurement_magn_mass','measurement_magnitude']
         rec=datablock[0]  # finds which type of magnetic measurement is present in magic_measurements.txt, then assigns momkey to that value
         for key in Mkeys:
-            if key in rec.keys() and rec[key]!="":
+            if key in list(rec.keys()) and rec[key]!="":
                 momkey=key
                 break
     # first find all the steps
         for k in range(len(datablock)):  # iterates through records.  
             rec=datablock[k]
-            if "treatment_temp" in rec.keys():
+            if "treatment_temp" in list(rec.keys()):
                 temp=float(rec["treatment_temp"])
-            elif "treatment_mw_power" in rec.keys():
+            elif "treatment_mw_power" in list(rec.keys()):
                 temp=float(rec["treatment_mw_power"])
                 
             methcodes=[]
@@ -1316,15 +1323,15 @@ class Arai_GUI():
                     if Treat_I[i] == Treat_I[i-2] and dec2!=dec_initial and inc2!=inc_initial:
                         continue
                     if dec1!=dec2 and inc1!=inc2:
-                        zerofield=(cart2+cart1)/2
-                        infield=(cart2-cart1)/2
+                        zerofield=old_div((cart2+cart1),2)
+                        infield=old_div((cart2-cart1),2)
 
                         DIR_zerofield=self.cart2dir(zerofield)
                         DIR_infield=self.cart2dir(infield)
 
                         first_Z.append([temp,DIR_zerofield[0],DIR_zerofield[1],DIR_zerofield[2],0])
-                        print "appending to first_I" # LJ remove this
-                        print [temp,DIR_infield[0],DIR_infield[1],DIR_infield[2],0] # LJ remove this
+                        print("appending to first_I") # LJ remove this
+                        print([temp,DIR_infield[0],DIR_infield[1],DIR_infield[2],0]) # LJ remove this
                         first_I.append([temp,DIR_infield[0],DIR_infield[1],DIR_infield[2],0])
     
 
@@ -1396,14 +1403,14 @@ class Arai_GUI():
                 pint=float(brec[momkey])
                 ptrm_tail.append([temp,0,0,str-pint])  # difference - if negative, negative tail!
             else:
-                print s, '  has a tail check with no first zero field step - check input file! for step',temp-273.
+                print(s, '  has a tail check with no first zero field step - check input file! for step',temp-273.)
     #
     # final check
     #
         if len(first_Z)!=len(first_I):
-                   print len(first_Z),len(first_I)
-                   print " Something wrong with this specimen! Better fix it or delete it "
-                   raw_input(" press return to acknowledge message")
+                   print(len(first_Z),len(first_I))
+                   print(" Something wrong with this specimen! Better fix it or delete it ")
+                   input(" press return to acknowledge message")
 
        #---------------------                                                                         
         # find  Additivity (patch by rshaar)                                                           
@@ -1469,20 +1476,20 @@ class Arai_GUI():
 #    gui = Arai_GUI('new_magic_measurements.txt')
 if False:
     gui = Arai_GUI()
-    specimens = gui.Data.keys()
-    print specimens.sort()
-    print "SPECIMENS"
-    import spd
-    print specimens
+    specimens = list(gui.Data.keys())
+    print(specimens.sort())
+    print("SPECIMENS")
+    from . import spd
+    print(specimens)
     things = []
     for n, s in enumerate(specimens):
-        print "looping: "
-        print s
-        print gui.Data[s]['t_Arai']
+        print("looping: ")
+        print(s)
+        print(gui.Data[s]['t_Arai'])
         tmin = gui.Data[s]['t_Arai'][0]
         tmax = gui.Data[s]['t_Arai'][-1]
-        print "tmin is: %s" %(tmin)
-        print "tmax is: %s" %(tmax)
+        print("tmin is: %s" %(tmin))
+        print("tmax is: %s" %(tmax))
         thing = spd.PintPars(gui.Data, s, tmin, tmax)
         things.append(thing)
     thing = things[0]
@@ -1504,7 +1511,7 @@ if False:
 
 # not currently getting used in your process, but probs has useful code.  a lot of overlap with what's in spd.py
     def get_PI_parameters(self,s,tmin,tmax):
-        print "calling get_PI_parameters() from thellier_gui_spd_lj.py"
+        print("calling get_PI_parameters() from thellier_gui_spd_lj.py")
         not_called = """
         print "self", self, str(self.Data)[:500] + "..."
 

@@ -1,4 +1,9 @@
 #!/usr/bin/env python
+from __future__ import division
+from __future__ import print_function
+from builtins import str
+from builtins import range
+from past.utils import old_div
 import sys
 import scipy
 import copy
@@ -184,7 +189,7 @@ def main(command_line=True, **kwargs):
         DATA[sort_by_this_name]=[dictionary1,dictionary2,...]
         '''
         DATA={}
-        fin=open(path,'rU')
+        fin=open(path,'r')
         #ignore first lines
         for i in range(ignore_lines_n):
             fin.readline()
@@ -213,7 +218,7 @@ def main(command_line=True, **kwargs):
         Data[specimen_name][dict1,dict2,...]
         '''
         Data={}
-        Fin=open(path,'rU')
+        Fin=open(path,'r')
         header=Fin.readline().strip('\n').split('\t')
         duplicates=[]
         for line in Fin.readlines():
@@ -223,11 +228,11 @@ def main(command_line=True, **kwargs):
             for i in range(min(len(header),len(l))):
                 tmp_data[header[i]]=l[i]
             specimen=tmp_data['specimen']
-            if specimen not in Data.keys():
+            if specimen not in list(Data.keys()):
                 Data[specimen]=[]
             Data[specimen].append(tmp_data)
         # search fro duplicates
-        for specimen in Data.keys():
+        for specimen in list(Data.keys()):
             x=len(Data[specimen])-1
             new_data=[]
             duplicates=[]
@@ -239,11 +244,11 @@ def main(command_line=True, **kwargs):
                    if average_replicates:
                        duplicates.append(Data[specimen][i-1])
                        Data[specimen][i-1]=average_duplicates(duplicates)
-                       print "-W- WARNING: averaging %i duplicates for specimen %s treatmant %s"%(len(duplicates),specimen,duplicates[-1]['treatment'])
+                       print("-W- WARNING: averaging %i duplicates for specimen %s treatmant %s"%(len(duplicates),specimen,duplicates[-1]['treatment']))
                        duplicates=[]
                    else:
                        Data[specimen][i-1]=duplicates[-1]
-                       print "-W- WARNING: found %i duplicates for specimen %s treatmant %s. Taking the last measurement only"%(len(duplicates),specimen,duplicates[-1]['treatment'])
+                       print("-W- WARNING: found %i duplicates for specimen %s treatmant %s. Taking the last measurement only"%(len(duplicates),specimen,duplicates[-1]['treatment']))
                        duplicates=[]
 
                 if i==len(Data[specimen])-1:
@@ -281,19 +286,19 @@ def main(command_line=True, **kwargs):
         carts_s,carts_g,carts_t=[],[],[]
         for rec in duplicates:
             moment=float(rec['moment'])
-            if 'dec_s' in rec.keys() and 'inc_s' in rec.keys():
+            if 'dec_s' in list(rec.keys()) and 'inc_s' in list(rec.keys()):
                 if rec['dec_s']!="" and rec['inc_s']!="":
                     dec_s=float(rec['dec_s'])
                     inc_s=float(rec['inc_s'])
                     cart_s=pmag.dir2cart([dec_s,inc_s,moment])
                     carts_s.append(cart_s)
-            if 'dec_g' in rec.keys() and 'inc_g' in rec.keys():
+            if 'dec_g' in list(rec.keys()) and 'inc_g' in list(rec.keys()):
                 if rec['dec_g']!="" and rec['inc_g']!="":
                     dec_g=float(rec['dec_g'])
                     inc_g=float(rec['inc_g'])
                     cart_g=pmag.dir2cart([dec_g,inc_g,moment])
                     carts_g.append(cart_g)
-            if 'dec_t' in rec.keys() and 'inc_t' in rec.keys():
+            if 'dec_t' in list(rec.keys()) and 'inc_t' in list(rec.keys()):
                 if rec['dec_t']!="" and rec['inc_t']!="":
                     dec_t=float(rec['dec_t'])
                     inc_t=float(rec['inc_t'])
@@ -335,7 +340,7 @@ def main(command_line=True, **kwargs):
             mean_dec_t,mean_inc_t="",""
 
         meanrec={}
-        for key in duplicates[0].keys():
+        for key in list(duplicates[0].keys()):
             if key in ['dec_s','inc_s','dec_g','inc_g','dec_t','inc_t','moment']:
                 continue
             else:
@@ -381,12 +386,12 @@ def main(command_line=True, **kwargs):
         recs=copy.deepcopy(old_recs)
         headers=[]
         for rec in recs:
-            for key in rec.keys():
+            for key in list(rec.keys()):
                 if key not in headers:
                     headers.append(key)
         for rec in recs:
             for header in headers:
-                if header not in rec.keys():
+                if header not in list(rec.keys()):
                     rec[header]=""
         return recs
 
@@ -406,7 +411,7 @@ def main(command_line=True, **kwargs):
         args=sys.argv
         user=""
         if "-h" in args:
-            print main.__doc__
+            print(main.__doc__)
             return False
         if "-usr" in args:
             ind=args.index("-usr")
@@ -482,18 +487,18 @@ def main(command_line=True, **kwargs):
     # format and validate variables
     if magfile:
         try:
-            input=open(magfile,'rU')
+            input=open(magfile,'r')
         except:
-            print "bad mag file:",magfile
+            print("bad mag file:",magfile)
             return False, "bad mag file"
     else:
-        print "mag_file field is required option"
-        print main.__doc__
+        print("mag_file field is required option")
+        print(main.__doc__)
         return False, "mag_file field is required option"
 
     if not experiment:
-        print "-exp is required option. Please provide experiment type of: Demag, PI, ATRM n (n of positions), CR (see below for format), NLT"
-        print main.__doc__
+        print("-exp is required option. Please provide experiment type of: Demag, PI, ATRM n (n of positions), CR (see below for format), NLT")
+        print(main.__doc__)
         return False, "-exp is required option"
 
     if experiment=='ATRM':
@@ -534,11 +539,11 @@ def main(command_line=True, **kwargs):
     #er_sample_data=sort_magic_file(samp_file,1,'er_sample_name')
     try:
         er_sample_data=sort_magic_file(samp_file,1,'er_sample_name')
-        print "-I- Found er_samples.txt"
-        print '-I- sample information will be appended to existing er_samples.txt file'
+        print("-I- Found er_samples.txt")
+        print('-I- sample information will be appended to existing er_samples.txt file')
     except:
-        print "-I- Cant find file er_samples.txt"
-        print '-I- sample information will be stored in new er_samples.txt file'
+        print("-I- Cant find file er_samples.txt")
+        print('-I- sample information will be stored in new er_samples.txt file')
 
     #--------------------------------------
     # read data from generic file
@@ -555,7 +560,7 @@ def main(command_line=True, **kwargs):
 
     ErSamplesRecs=[]
     MagRecs=[]
-    specimens_list=mag_data.keys()
+    specimens_list=list(mag_data.keys())
     specimens_list.sort()
     for specimen in specimens_list:
         measurement_running_number=0
@@ -607,7 +612,7 @@ def main(command_line=True, **kwargs):
                     MagRec["treatment_dc_field_phi"]="0"
                     MagRec["treatment_dc_field_theta"]="0"
                 elif not labfield:
-                    print "-W- WARNING: labfield (-dc) is a required argument for this experiment type"
+                    print("-W- WARNING: labfield (-dc) is a required argument for this experiment type")
                     return False, "labfield (-dc) is a required argument for this experiment type"
 
                 else:
@@ -671,7 +676,7 @@ def main(command_line=True, **kwargs):
                     LT="LT-PTRM-AC"
                     LP=LP+":"+"LP-PI-BT-MD"
                 else:
-                    print "-E- unknown measurement code specimen %s treatmemt %s"%(meas_line['specimen'],meas_line['treatment'])
+                    print("-E- unknown measurement code specimen %s treatmemt %s"%(meas_line['specimen'],meas_line['treatment']))
                     MagRec={}
                     continue
                 # save all treatment in a list
@@ -706,7 +711,7 @@ def main(command_line=True, **kwargs):
                     LP="LP-AN-TRM"
                     n_pos=atrm_n_pos
                     if n_pos!=6:
-                        print "the program does not support ATRM in %i position."%n_pos
+                        print("the program does not support ATRM in %i position."%n_pos)
                         continue
 
                 if experiment=='AARM':
@@ -715,7 +720,7 @@ def main(command_line=True, **kwargs):
                     LP="LP-AN-ARM"
                     n_pos=aarm_n_pos
                     if n_pos!=6:
-                        print "the program does not support AARM in %i position."%n_pos
+                        print("the program does not support AARM in %i position."%n_pos)
                         continue
 
                 if treatment[1]==0:
@@ -749,7 +754,7 @@ def main(command_line=True, **kwargs):
                     if treatment[1] < 10:
                         ipos_code=int(treatment[1])-1
                     else:
-                        ipos_code=int(treatment[1]/10)-1
+                        ipos_code=int(old_div(treatment[1],10))-1
 
                     # (2) using the magnetization
                     if meas_line["dec_s"]!="":
@@ -777,7 +782,7 @@ def main(command_line=True, **kwargs):
                     # check it
                     if treatment[1]!= 7 and treatment[1]!= 70:
                         if ipos_guess!=ipos_code:
-                            print "-W- WARNING: check specimen %s step %s, anistropy measurements, coding does not match the direction of the lab field"%(specimen,meas_line['treatment'])
+                            print("-W- WARNING: check specimen %s step %s, anistropy measurements, coding does not match the direction of the lab field"%(specimen,meas_line['treatment']))
                     MagRec["treatment_dc_field_phi"]='%7.1f' %(tdec[ipos])
                     MagRec["treatment_dc_field_theta"]='%7.1f'% (tinc[ipos])
 
@@ -820,7 +825,7 @@ def main(command_line=True, **kwargs):
             #---------------------
 
             elif 'NLT' in experiment :
-                print "Dont support yet NLT rate experiment file. Contact rshaar@ucsd.edu"
+                print("Dont support yet NLT rate experiment file. Contact rshaar@ucsd.edu")
 
             #---------------------
             # magic_method_codes for this measurement only
@@ -838,17 +843,17 @@ def main(command_line=True, **kwargs):
             # see if core azimuth and tilt-corrected data are in er_samples.txt
             sample=MagRec["er_sample_name"]
             found_sample_azimuth,found_sample_dip,found_sample_bed_dip_direction,found_sample_bed_dip=False,False,False,False
-            if sample in er_sample_data.keys():
-                if "sample_azimuth" in er_sample_data[sample].keys() and er_sample_data[sample]['sample_azimuth'] !="":
+            if sample in list(er_sample_data.keys()):
+                if "sample_azimuth" in list(er_sample_data[sample].keys()) and er_sample_data[sample]['sample_azimuth'] !="":
                     sample_azimuth=float(er_sample_data[sample]['sample_azimuth'])
                     found_sample_azimuth=True
-                if "sample_dip" in er_sample_data[sample].keys() and er_sample_data[sample]['sample_dip']!="":
+                if "sample_dip" in list(er_sample_data[sample].keys()) and er_sample_data[sample]['sample_dip']!="":
                     sample_dip=float(er_sample_data[sample]['sample_dip'])
                     found_sample_dip=True
-                if "sample_bed_dip_direction" in er_sample_data[sample].keys() and er_sample_data[sample]['sample_bed_dip_direction']!="":
+                if "sample_bed_dip_direction" in list(er_sample_data[sample].keys()) and er_sample_data[sample]['sample_bed_dip_direction']!="":
                     sample_bed_dip_direction=float(er_sample_data[sample]['sample_bed_dip_direction'])
                     found_sample_bed_dip_direction=True
-                if "sample_bed_dip" in er_sample_data[sample].keys() and er_sample_data[sample]['sample_bed_dip']!="":
+                if "sample_bed_dip" in list(er_sample_data[sample].keys()) and er_sample_data[sample]['sample_bed_dip']!="":
                     sample_bed_dip=float(er_sample_data[sample]['sample_bed_dip'])
                     found_sample_bed_dip=True
             else:
@@ -859,15 +864,15 @@ def main(command_line=True, **kwargs):
             #--------------------
 
             found_s,found_geo,found_tilt=False,False,False
-            if "dec_s" in meas_line.keys() and "inc_s" in meas_line.keys():
+            if "dec_s" in list(meas_line.keys()) and "inc_s" in list(meas_line.keys()):
                 if meas_line["dec_s"]!="" and meas_line["inc_s"]!="":
                     found_s=True
                 MagRec["measurement_dec"]=meas_line["dec_s"]
                 MagRec["measurement_inc"]=meas_line["inc_s"]
-            if "dec_g" in meas_line.keys() and "inc_g" in meas_line.keys():
+            if "dec_g" in list(meas_line.keys()) and "inc_g" in list(meas_line.keys()):
                 if meas_line["dec_g"]!="" and meas_line["inc_g"]!="":
                     found_geo=True
-            if "dec_t" in meas_line.keys() and "inc_t" in meas_line.keys():
+            if "dec_t" in list(meas_line.keys()) and "inc_t" in list(meas_line.keys()):
                 if meas_line["dec_t"]!="" and meas_line["inc_t"]!="":
                     found_tilt=True
 
@@ -890,15 +895,15 @@ def main(command_line=True, **kwargs):
                     sample_azimuth=float(er_sample_data[sample]['sample_azimuth'])
                     sample_dip=float(er_sample_data[sample]['sample_dip'])
                     if sample_azimuth!=0 and sample_dip!=0:
-                        print "-W- WARNING: delete core azimuth/plunge in er_samples.txt\n\
-                        becasue dec_s and inc_s are unavaialable"
+                        print("-W- WARNING: delete core azimuth/plunge in er_samples.txt\n\
+                        becasue dec_s and inc_s are unavaialable")
 
             #-----------------------------
             # specimen coordinates: no
             # geographic coordinates: no
             #-----------------------------
             if not found_geo and not found_s:
-                print "-E- ERROR: sample %s does not have dec_s/inc_s or dec_g/inc_g. Ignore specimen %s "%(sample,specimen)
+                print("-E- ERROR: sample %s does not have dec_s/inc_s or dec_g/inc_g. Ignore specimen %s "%(sample,specimen))
                 break
 
             #-----------------------------
@@ -922,10 +927,10 @@ def main(command_line=True, **kwargs):
                 # core azimuth/plunge is in er_samples.txt
                 else:
                     if float(er_sample_data[sample]['sample_azimuth'])!= az:
-                        print "-E- ERROR in sample_azimuth sample %s. Check it! using the value in er_samples.txt"%sample
+                        print("-E- ERROR in sample_azimuth sample %s. Check it! using the value in er_samples.txt"%sample)
 
                     if float(er_sample_data[sample]['sample_dip'])!= pl:
-                        print "-E- ERROR in sample_dip sample %s. Check it! using the value in er_samples.txt"%sample
+                        print("-E- ERROR in sample_dip sample %s. Check it! using the value in er_samples.txt"%sample)
 
             #-----------------------------
             # specimen coordinates: yes
@@ -937,14 +942,14 @@ def main(command_line=True, **kwargs):
                     # (nothing to do)
                 else:
                     if "Demag" in experiment:
-                        print "-W- WARNING: missing sample_dip or sample_azimuth for sample %s"%sample
+                        print("-W- WARNING: missing sample_dip or sample_azimuth for sample %s"%sample)
 
             #-----------------------------
             # tilt-corrected coordinates: yes
             # geographic coordinates: no
             #-----------------------------
             if found_tilt and not found_geo:
-                    print "-E- ERROR: missing geographic data for sample %s. Ignoring tilt-corrected data "%sample
+                    print("-E- ERROR: missing geographic data for sample %s. Ignoring tilt-corrected data "%sample)
             if found_tilt and found_geo:
                 dec_geo,inc_geo=float(meas_line["dec_g"]),float(meas_line["inc_g"])
                 dec_tilt,inc_tilt=float(meas_line["dec_t"]),float(meas_line["inc_t"])
@@ -954,7 +959,7 @@ def main(command_line=True, **kwargs):
                     DipDir,Dip=pmag.get_tilt(dec_geo,inc_geo,dec_tilt,inc_tilt)
 
                 if not found_sample_bed_dip_direction or not found_sample_bed_dip:
-                    print "-I- calculating dip and dip direction used for tilt correction sample %s. results are put in er_samples.txt"%sample
+                    print("-I- calculating dip and dip direction used for tilt correction sample %s. results are put in er_samples.txt"%sample)
                     er_sample_data[sample]['sample_bed_dip_direction']="%.1f"%DipDir
                     er_sample_data[sample]['sample_bed_dip']="%.1f"%Dip
 
@@ -969,7 +974,7 @@ def main(command_line=True, **kwargs):
             #-----------------
             # er_samples_data
             #-----------------
-            if sample in er_sample_data.keys():
+            if sample in list(er_sample_data.keys()):
                 er_sample_data[sample]['er_sample_name']=sample
                 er_sample_data[sample]['er_site_name']=MagRec["er_site_name"]
                 er_sample_data[sample]['er_location_name']=MagRec["er_location_name"]
@@ -1018,13 +1023,13 @@ def main(command_line=True, **kwargs):
     #--
     MagRecs_fixed=merge_pmag_recs(MagRecs)
     pmag.magic_write(meas_file,MagRecs_fixed,'magic_measurements')
-    print "-I- MagIC file is saved in  %s"%meas_file
+    print("-I- MagIC file is saved in  %s"%meas_file)
 
     #--
     # write er_samples.txt
     #--
     ErSamplesRecs=[]
-    samples=er_sample_data.keys()
+    samples=list(er_sample_data.keys())
     samples.sort()
     for sample in samples:
         ErSamplesRecs.append(er_sample_data[sample])

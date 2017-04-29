@@ -1,4 +1,7 @@
 #!/usr/bin/env python
+from __future__ import division
+from __future__ import print_function
+from past.utils import old_div
 import sys
 
 
@@ -32,7 +35,7 @@ def main():
     D,D1,D2=[],[],[]
     Flip=0
     if '-h' in sys.argv: # check if help is needed
-        print main.__doc__
+        print(main.__doc__)
         sys.exit() # graceful quit
     if '-ant' in  sys.argv: Flip=1
     if '-f' in sys.argv:
@@ -41,7 +44,7 @@ def main():
     if '-f2' in sys.argv:
         ind=sys.argv.index('-f2')
         file2=sys.argv[ind+1]
-    f=open(file1,'rU')
+    f=open(file1,'r')
     for line in f.readlines():
         if '\t' in line:
             rec=line.split('\t') # split each line on space to get records
@@ -52,7 +55,7 @@ def main():
         D.append([Dec,Inc,1.])
     f.close()
     if Flip==0:
-        f=open(file2,'rU')
+        f=open(file2,'r')
         for line in f.readlines():
             rec=line.split()
             Dec,Inc=float(rec[0]),float(rec[1]) 
@@ -75,9 +78,9 @@ def main():
     R=pars_0['r']
     R1=pars_1['r']
     R2=pars_2['r']
-    F=(N-2)*((R1+R2-R)/(N-R1-R2))
+    F=(N-2)*(old_div((R1+R2-R),(N-R1-R2)))
     Fcrit=pmag.fcalc(2,2*(N-2))
-    print '%7.2f %7.2f'%(F,Fcrit)
+    print('%7.2f %7.2f'%(F,Fcrit))
 
 if __name__ == "__main__":
     main()

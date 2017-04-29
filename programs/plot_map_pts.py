@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 # define some variables
+from __future__ import print_function
+from builtins import input
 import numpy
 import sys
 import matplotlib
@@ -98,7 +100,7 @@ def main():
         ind = sys.argv.index('-WD')
         dir_path=sys.argv[ind+1]
     if '-h' in sys.argv:
-        print main.__doc__
+        print(main.__doc__)
         sys.exit()
     if '-fmt' in sys.argv:
         ind = sys.argv.index('-fmt')
@@ -107,7 +109,7 @@ def main():
         ind = sys.argv.index('-res')
         res=sys.argv[ind+1]
         if res!= 'c' and res!='l':
-            print 'this resolution will take a while - be patient'
+            print('this resolution will take a while - be patient')
     if '-etp' in sys.argv: fancy=1
     if '-sav' in sys.argv: plot=1
     if '-R' in sys.argv:rivers=0
@@ -131,7 +133,7 @@ def main():
     if '-f' in sys.argv:
         ind = sys.argv.index('-f')
         file=dir_path+'/'+sys.argv[ind+1]
-        header=open(file,'rU').readlines()[0].split('\t')
+        header=open(file,'r').readlines()[0].split('\t')
         if 'tab' in header[0]:
             if '-n' in sys.argv:prn_name=1
             if '-l' in sys.argv:prn_loc=1
@@ -147,8 +149,8 @@ def main():
                 namekey='er_site_name'
                 lockey='er_location_name'
             else:  
-                print 'file type not supported'
-                print main.__doc__
+                print('file type not supported')
+                print(main.__doc__)
                 sys.exit()
             Sites,file_type=pmag.magic_read(file)
             Lats=pmag.get_dictkey(Sites,latkey,'f')
@@ -167,7 +169,7 @@ def main():
             lon_0=0.5*(lonmin+lonmax)
             lat_0=0.5*(latmin+latmax)
     else:
-        print "input file must be specified"
+        print("input file must be specified")
         sys.exit()
     if '-prj' in sys.argv:
         ind = sys.argv.index('-prj')
@@ -194,14 +196,14 @@ def main():
         Opts['latmax']=70
         Opts['lonmin']=-180
         Opts['lonmax']=180
-    print 'please wait to draw points'
+    print('please wait to draw points')
     Opts['sym']=sym
     Opts['symsize']=symsize
     pmagplotlib.plotMAP(FIG['map'],Lats,Lons,Opts)
     files={}
     titles={}
     titles['map']='PT Map'
-    for key in FIG.keys():
+    for key in list(FIG.keys()):
         files[key]='Map_PTS'+'.'+fmt
     if pmagplotlib.isServer:
         black     = '#000000'
@@ -212,7 +214,7 @@ def main():
         pmagplotlib.saveP(FIG,files)
     else:
         pmagplotlib.drawFIGS(FIG)
-        ans=raw_input(" S[a]ve to save plot, Return to quit:  ")
+        ans=input(" S[a]ve to save plot, Return to quit:  ")
         if ans=="a": pmagplotlib.saveP(FIG,files)
 
 if __name__ == "__main__":

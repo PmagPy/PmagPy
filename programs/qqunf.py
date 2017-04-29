@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+from __future__ import print_function
+from builtins import input
 import sys
 
 
@@ -23,12 +25,12 @@ def main():
     """
     fmt,plot='svg',0
     if '-h' in sys.argv: # check if help is needed
-        print main.__doc__
+        print(main.__doc__)
         sys.exit() # graceful quit
     elif '-f' in sys.argv: # ask for filename
         ind=sys.argv.index('-f')
         file=sys.argv[ind+1]
-        f=open(file,'rU')
+        f=open(file,'r')
         input=f.readlines()
     Data=[]
     for line in input:
@@ -45,11 +47,11 @@ def main():
         pmagplotlib.plot_init(QQ['unf1'],5,5)
         pmagplotlib.plotQQunf(QQ['unf1'],Data,'QQ-Uniform') # make plot
     else:
-        print 'you need N> 10'
+        print('you need N> 10')
         sys.exit()
     pmagplotlib.drawFIGS(QQ) 
     files={}
-    for key in QQ.keys():
+    for key in list(QQ.keys()):
         files[key]=key+'.'+fmt 
     if pmagplotlib.isServer:
         black     = '#000000'
@@ -62,7 +64,7 @@ def main():
         files['qq']=file+'.'+fmt 
         pmagplotlib.saveP(QQ,files)
     else:
-        ans=raw_input(" S[a]ve to save plot, [q]uit without saving:  ")
+        ans=input(" S[a]ve to save plot, [q]uit without saving:  ")
         if ans=="a": pmagplotlib.saveP(QQ,files)
 
 if __name__ == "__main__":

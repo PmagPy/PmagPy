@@ -56,7 +56,7 @@ class Menus(object):
         if self.data_type == 'sample' or self.data_type == 'site':
             self.choices = {1: (belongs_to, False), 3: (vocab.vocabularies['class'], False), 4: (vocab.vocabularies['lithology'], True), 5: (vocab.vocabularies['type'], False)}
         if self.data_type in ['specimen', 'sample', 'site']:
-            map(lambda (x, y): self.grid.SetColLabelValue(x, y), [(3, '{}_class**'.format(self.data_type)), (4, '{}_lithology**'.format(self.data_type)), (5, '{}_type**'.format(self.data_type))])
+            list(map(lambda x_y: self.grid.SetColLabelValue(x_y[0], x_y[1]), [(3, '{}_class**'.format(self.data_type)), (4, '{}_lithology**'.format(self.data_type)), (5, '{}_type**'.format(self.data_type))]))
         if self.data_type == 'site':
             self.choices[6] = (vocab.vocabularies['site_definition'], False)
             self.grid.SetColLabelValue(6, 'site_definition**')
@@ -67,7 +67,7 @@ class Menus(object):
             #self.choices = {2: (vocab.vocabulariesulary.age_methods, False), 3: (vocab['age_unit'], False)}
             self.choices = {3: (vocab.vocabularies['age_unit'], False)}
             #map(lambda (x, y): self.grid.SetColLabelValue(x, y), [(2, 'magic_method_codes**'), (3, 'age_unit**')])
-            map(lambda (x, y): self.grid.SetColLabelValue(x, y), [(3, 'age_unit**')])
+            list(map(lambda x_y1: self.grid.SetColLabelValue(x_y1[0], x_y1[1]), [(3, 'age_unit**')]))
             for row in range(self.grid.GetNumberRows()):
                 self.grid.SetReadOnly(row, 0)
         if self.data_type == 'orient':
@@ -95,7 +95,7 @@ class Menus(object):
         if col_label in ['magic_method_codes', 'magic_method_codes++']:
             self.add_method_drop_down(col_number, col_label)
         if col_label in vocab.possible_vocabularies:
-            if col_number not in self.choices.keys(): # if not already assigned above
+            if col_number not in list(self.choices.keys()): # if not already assigned above
                 self.grid.SetColLabelValue(col_number, col_label + "**") # mark it as using a controlled vocabulary
                 url = 'https://api.earthref.org/MagIC/vocabularies/{}.json'.format(col_label)
                 controlled_vocabulary = pd.io.json.read_json(url)
@@ -113,7 +113,7 @@ class Menus(object):
                     dictionary = {}
                     for item in stripped_list:
                         letter = item[0].upper()
-                        if letter not in dictionary.keys():
+                        if letter not in list(dictionary.keys()):
                             dictionary[letter] = []
                         dictionary[letter].append(item)
 
@@ -167,7 +167,7 @@ class Menus(object):
                     self.grid.SetCellBackgroundColour(row, col, 'light blue')
                 self.grid.ForceRefresh()
         has_dropdown = False
-        if col in self.choices.keys():
+        if col in list(self.choices.keys()):
             has_dropdown = True
 
         # if the column has no drop-down list, allow user to edit all cells in the column through text entry
@@ -215,7 +215,7 @@ class Menus(object):
         """
         color = self.grid.GetCellBackgroundColour(event.GetRow(), event.GetCol())
         # allow user to cherry-pick cells for editing.  gets selection of meta key for mac, ctrl key for pc
-        if event.CmdDown():
+        if event.ControlDown() or event.MetaDown():
             row, col = event.GetRow(), event.GetCol()
             if (row, col) not in self.dispersed_selection:
                 self.dispersed_selection.append((row, col))
@@ -234,9 +234,9 @@ class Menus(object):
                 return
             else:
                 if row > previous_row:
-                    row_range = range(previous_row, row+1)
+                    row_range = list(range(previous_row, row+1))
                 else:
-                    row_range = range(row, previous_row+1)
+                    row_range = list(range(row, previous_row+1))
             for r in row_range:
                 self.grid.SetCellBackgroundColour(r, col, 'light blue')
                 self.selection.append((r, col))
@@ -261,7 +261,7 @@ class Menus(object):
 
         self.grid.SetGridCursor(row, col)
 
-        if col in choices.keys(): # column should have a pop-up menu
+        if col in list(choices.keys()): # column should have a pop-up menu
             menu = wx.Menu()
             two_tiered = choices[col][1]
             choices = choices[col][0]

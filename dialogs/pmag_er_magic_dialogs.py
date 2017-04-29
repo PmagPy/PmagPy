@@ -6,11 +6,11 @@ import os
 import wx
 import wx.grid
 import numpy as np
-import drop_down_menus2 as drop_down_menus
-import pmag_widgets as pw
-import magic_grid2 as magic_grid
-import grid_frame2
-import grid_frame3
+from . import drop_down_menus2 as drop_down_menus
+from . import pmag_widgets as pw
+from . import magic_grid2 as magic_grid
+from . import grid_frame2
+from . import grid_frame3
 from pmagpy import find_pmag_dir
 
 
@@ -221,7 +221,7 @@ class ErMagicCheckFrame3(wx.Frame):
         validation_errors = self.validate(grid)
         if validation_errors:
             warn_string = ""
-            for error_name, error_cols in validation_errors.items():
+            for error_name, error_cols in list(validation_errors.items()):
                 if error_cols:
                     warn_string += "You have {}: {}.\n\n".format(error_name, ", ".join(error_cols))
             warn_string += "Are you sure you want to continue?"
@@ -436,7 +436,7 @@ Check that all specimens belong to the correct sample
 
         self.hbox_all = wx.BoxSizer(wx.HORIZONTAL)
         self.hbox_all.AddSpacer(20)
-        self.hbox_all.AddSpacer(vbox)
+        self.hbox_all.Add(vbox)
         self.hbox_all.AddSpacer(20)
 
         self.panel.SetSizer(self.hbox_all)
@@ -537,7 +537,7 @@ You may use the drop-down menus to add as many values as needed in these columns
 
         self.hbox_all = wx.BoxSizer(wx.HORIZONTAL)
         self.hbox_all.AddSpacer(20)
-        self.hbox_all.AddSpacer(vbox)
+        self.hbox_all.Add(vbox)
         self.hbox_all.AddSpacer(20)
 
         self.panel.SetSizer(self.hbox_all)
@@ -656,7 +656,7 @@ However, you will be able to edit sample_class, sample_lithology, and sample_typ
 
         self.hbox_all = wx.BoxSizer(wx.HORIZONTAL)
         self.hbox_all.AddSpacer(20)
-        self.hbox_all.AddSpacer(vbox)
+        self.hbox_all.Add(vbox)
         self.hbox_all.AddSpacer(20)
 
         self.panel.SetSizer(self.hbox_all)
@@ -712,7 +712,7 @@ Fill in any blank cells using controlled vocabularies.
 
         col_names = ('location_begin_lat', 'location_end_lat', 'location_begin_lon', 'location_end_lon')
         col_inds = [self.grid.col_labels.index(name) for name in col_names]
-        col_info = zip(col_names, col_inds)
+        col_info = list(zip(col_names, col_inds))
         for loc in self.er_magic_data.locations:
             row_ind = self.grid.row_labels.index(loc.name)
             for col_name, col_ind in col_info:
@@ -759,7 +759,7 @@ Fill in any blank cells using controlled vocabularies.
 
         self.hbox_all = wx.BoxSizer(wx.HORIZONTAL)
         self.hbox_all.AddSpacer(20)
-        self.hbox_all.AddSpacer(vbox)
+        self.hbox_all.Add(vbox)
         self.hbox_all.AddSpacer(20)
 
         self.panel.SetSizer(self.hbox_all)
@@ -841,7 +841,7 @@ You may use the drop-down menus to add as many values as needed in these columns
 
         self.hbox_all = wx.BoxSizer(wx.HORIZONTAL)
         self.hbox_all.AddSpacer(20)
-        self.hbox_all.AddSpacer(vbox)
+        self.hbox_all.Add(vbox)
         self.hbox_all.AddSpacer(20)
 
         self.panel.SetSizer(self.hbox_all)
@@ -898,8 +898,8 @@ You may use the drop-down menus to add as many values as needed in these columns
 
     def validate(self, grid):
         validations = ['er_specimen_name', 'er_sample_name', 'er_site_name', 'er_location_name', 'site_class', 'site_lithology', 'site_type', 'site_definition', 'site_lon', 'site_lat', 'sample_class', 'sample_lithology', 'sample_type', 'sample_lat', 'sample_lon', 'location_type', 'age_unit', 'age']#, 'magic_method_codes']
-        cols = range(grid.GetNumberCols())
-        rows = range(grid.GetNumberRows())
+        cols = list(range(grid.GetNumberCols()))
+        rows = list(range(grid.GetNumberRows()))
         data_missing = []
         for col in cols:
             col_label = str(grid.GetColLabelValue(col))
@@ -1172,7 +1172,7 @@ You may use the drop-down menus to add as many values as needed in these columns
 
         grid_name = str(grid.GetName())
 
-        cols = range(grid.GetNumberCols())
+        cols = list(range(grid.GetNumberCols()))
 
         col_labels = []
         for col in cols:

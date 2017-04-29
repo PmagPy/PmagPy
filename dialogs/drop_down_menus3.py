@@ -141,7 +141,7 @@ class Menus(object):
             return
 
         # add menu, if not already set
-        if col_number not in self.choices.keys():
+        if col_number not in list(self.choices.keys()):
             if typ == 'suggested':
                 self.grid.SetColLabelValue(col_number, col_label + "^^")
                 controlled_vocabulary = self.contribution.vocab.suggested[col_label]
@@ -162,7 +162,7 @@ class Menus(object):
                 dictionary = {}
                 for item in stripped_list:
                     letter = item[0].upper()
-                    if letter not in dictionary.keys():
+                    if letter not in list(dictionary.keys()):
                         dictionary[letter] = []
                     dictionary[letter].append(item)
                 stripped_list = dictionary
@@ -224,7 +224,7 @@ class Menus(object):
                         self.grid.SetCellBackgroundColour(row, col, 'light blue')
                 self.grid.ForceRefresh()
         has_dropdown = False
-        if col in self.choices.keys():
+        if col in list(self.choices.keys()):
             has_dropdown = True
 
         # if the column has no drop-down list, allow user to edit all cells in the column through text entry
@@ -317,7 +317,7 @@ class Menus(object):
         color = self.grid.GetCellBackgroundColour(event.GetRow(), event.GetCol())
         # allow user to cherry-pick cells for editing.
         # gets selection of meta key for mac, ctrl key for pc
-        if event.CmdDown():
+        if event.ControlDown() or event.MetaDown():
             row, col = event.GetRow(), event.GetCol()
             if (row, col) not in self.dispersed_selection:
                 self.dispersed_selection.append((row, col))
@@ -336,9 +336,9 @@ class Menus(object):
                 return
             else:
                 if row > previous_row:
-                    row_range = range(previous_row, row+1)
+                    row_range = list(range(previous_row, row+1))
                 else:
-                    row_range = range(row, previous_row+1)
+                    row_range = list(range(row, previous_row+1))
             for r in row_range:
                 self.grid.SetCellBackgroundColour(r, col, 'light blue')
                 self.selection.append((r, col))
@@ -363,7 +363,7 @@ class Menus(object):
 
         self.grid.SetGridCursor(row, col)
 
-        if col in choices.keys(): # column should have a pop-up menu
+        if col in list(choices.keys()): # column should have a pop-up menu
             menu = wx.Menu()
             two_tiered = choices[col][1]
             choices = choices[col][0]

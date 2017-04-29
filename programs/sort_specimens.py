@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import print_function
 import sys
 import pmagpy.pmag as pmag
 
@@ -30,7 +31,7 @@ def main():
         ind=sys.argv.index('-WD')
         dir_path=sys.argv[ind+1]
     if '-h' in sys.argv:
-        print main.__doc__
+        print(main.__doc__)
         sys.exit()
     if '-f' in sys.argv:
         ind=sys.argv.index('-f')
@@ -43,27 +44,27 @@ def main():
 #
     prior_spec_data,file_type=pmag.magic_read(inspec)
     if file_type != 'pmag_specimens':
-        print  file_type, " this is not a valid pmag_specimens file"
+        print(file_type, " this is not a valid pmag_specimens file")
         sys.exit()
 # get list of specimens in file, components, coordinate systems available
     specs,comps,coords=[],[],[]
     for spec in prior_spec_data:
         if spec['er_specimen_name'] not in specs:specs.append(spec['er_specimen_name'])
-        if 'specimen_comp_name' not in spec.keys():spec['specimen_comp_name']='A'
-        if 'specimen_tilt_correction'  not in spec.keys():spec['tilt_correction']='-1' # assume specimen coordinates
+        if 'specimen_comp_name' not in list(spec.keys()):spec['specimen_comp_name']='A'
+        if 'specimen_tilt_correction'  not in list(spec.keys()):spec['tilt_correction']='-1' # assume specimen coordinates
         if spec['specimen_comp_name'] not in comps:comps.append(spec['specimen_comp_name'])
         if spec['specimen_tilt_correction'] not in coords:coords.append(spec['specimen_tilt_correction'])
 # work on separating out components, coordinate systems by specimen
     for coord in coords:
-        print coord
+        print(coord)
         for comp in comps:
-            print comp
+            print(comp)
             speclist=[]
             for spec in prior_spec_data:
                 if spec['specimen_tilt_correction']==coord and spec['specimen_comp_name']==comp:speclist.append(spec)
             ofile=ofile_base+'_'+coord+'_'+comp+'.txt'
             pmag.magic_write(ofile,speclist,'pmag_specimens')
-            print 'coordinate system: ',coord,' component name: ',comp,' saved in ',ofile
+            print('coordinate system: ',coord,' component name: ',comp,' saved in ',ofile)
 
 if __name__ == "__main__":
     main()

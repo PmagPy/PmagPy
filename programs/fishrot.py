@@ -1,4 +1,7 @@
 #!/usr/bin/env python
+from __future__ import print_function
+from builtins import input
+from builtins import range
 import sys
 import pmagpy.pmag as pmag
 
@@ -30,16 +33,16 @@ def main():
     """
     N,kappa,D,I=100,20.,0.,90.
     if len(sys.argv)!=0 and  '-h' in sys.argv:
-        print main.__doc__
+        print(main.__doc__)
         sys.exit()
     elif '-i' in sys.argv:
-        ans=raw_input('    Kappa: ')
+        ans=input('    Kappa: ')
         kappa=float(ans)
-        ans=raw_input('    N: ')
+        ans=input('    N: ')
         N=int(ans)
-        ans=raw_input('    Mean Dec: ')
+        ans=input('    Mean Dec: ')
         D=float(ans)
-        ans=raw_input('    Mean Inc: ')
+        ans=input('    Mean Inc: ')
         I=float(ans)
     else:
         if '-k' in sys.argv:
@@ -57,7 +60,7 @@ def main():
     for k in range(N): 
         dec,inc= pmag.fshdev(kappa)  # send kappa to fshdev
         drot,irot=pmag.dodirot(dec,inc,D,I)   
-        print '%7.1f %7.1f ' % (drot,irot)
+        print('%7.1f %7.1f ' % (drot,irot))
 
 if __name__ == "__main__":
     main()

@@ -1,4 +1,7 @@
 #!/usr/bin/env python
+from __future__ import print_function
+from builtins import input
+from builtins import str
 import sys
 import pmagpy.pmag as pmag
 
@@ -189,7 +192,7 @@ def main(command_line=True, **kwargs):
         cooling_rates = kwargs.get('cooling_rates', '')
     if command_line:
         if "-h" in args:
-            print main.__doc__
+            print(main.__doc__)
             return False
         if "-usr" in args:
             ind=args.index("-usr")
@@ -252,18 +255,18 @@ def main(command_line=True, **kwargs):
         methcode="LP-IRM"
         irmunits = "V"
         if coil not in ["1","2","3"]:
-            print main.__doc__
-            print 'not a valid coil specification'
+            print(main.__doc__)
+            print('not a valid coil specification')
             return False, '{} is not a valid coil specification'.format(coil)
     if mag_file:
         try:
-            input=open(mag_file,'rU')
+            input=open(mag_file,'r')
         except:
-            print "bad mag file name"
+            print("bad mag file name")
             return False, "bad mag file name"
     if not mag_file: 
-        print main.__doc__
-        print "mag_file field is required option"
+        print(main.__doc__)
+        print("mag_file field is required option")
         return False, "mag_file field is required option"
     if specnum!=0:
         specnum=-specnum
@@ -271,15 +274,15 @@ def main(command_line=True, **kwargs):
     if samp_con:
         if "4" == samp_con[0]:
             if "-" not in samp_con:
-                print "naming convention option [4] must be in form 4-Z where Z is an integer"
-                print '---------------'
+                print("naming convention option [4] must be in form 4-Z where Z is an integer")
+                print('---------------')
                 return False, "naming convention option [4] must be in form 4-Z where Z is an integer"
             else:
                 Z=samp_con.split("-")[1]
                 samp_con="4"
         if "7" == samp_con[0]:
             if "-" not in samp_con:
-                print "option [7] must be in form 7-Z where Z is an integer"
+                print("option [7] must be in form 7-Z where Z is an integer")
                 return False, "option [7] must be in form 7-Z where Z is an integer"
             else:
                 Z=samp_con.split("-")[1]
@@ -304,12 +307,12 @@ def main(command_line=True, **kwargs):
             demag="S"
             methcode="LP-PI-TRM:LP-PI-ALT-AFARM"
             trm_labfield=labfield
-            ans=raw_input("DC lab field for ARM step: [50uT] ")
+            ans=input("DC lab field for ARM step: [50uT] ")
             if ans=="":
                 arm_labfield=50e-6
             else: 
                 arm_labfield=float(ans)*1e-6
-            ans=raw_input("temperature for total trm step: [600 C] ")
+            ans=input("temperature for total trm step: [600 C] ")
             if ans=="":
                 trm_peakT=600+273 # convert to kelvin
             else: 
@@ -487,9 +490,9 @@ def main(command_line=True, **kwargs):
                         site=pmag.parse_site(MagRec['er_sample_name'],samp_con,Z)
                         MagRec["er_site_name"]=site
                     if MagRec['er_site_name']=="":
-                        print 'No site name found for: ',MagRec['er_specimen_name'],MagRec['er_sample_name']
+                        print('No site name found for: ',MagRec['er_specimen_name'],MagRec['er_sample_name'])
                     if MagRec["er_location_name"]=="":
-                        print 'no location name for: ',MagRec["er_specimen_name"] 
+                        print('no location name for: ',MagRec["er_specimen_name"]) 
                 else:
                     MagRec["er_specimen_name"]=rec[0]
                     if specnum!=0:
@@ -516,7 +519,7 @@ def main(command_line=True, **kwargs):
                             meas_type="LT-AF-Z:LP-AN-ARM:"
                             MagRec["treatment_ac_field"]='%8.3e' %(peakfield) # peak field in tesla
                             MagRec["treatment_dc_field"]='%8.3e'%(0)
-                            if labfield!=0 and methcode!="LP-AN-ARM": print "Warning - inconsistency in mag file with lab field - overriding file with 0"
+                            if labfield!=0 and methcode!="LP-AN-ARM": print("Warning - inconsistency in mag file with lab field - overriding file with 0")
                         else:
                             meas_type="LT-AF-I:LP-AN-ARM"
                             ipos=int(treat[0])-1
@@ -558,7 +561,7 @@ def main(command_line=True, **kwargs):
                         MagRec["treatment_dc_field_theta"]='%7.1f'% (tinc[ipos])
                         # check it 
                         if ipos_guess!=ipos_code and treat[1][0]!='7':
-                            print "-E- ERROR: check specimen %s step %s, ATRM measurements, coding does not match the direction of the lab field!"%(rec[0],".".join(list(treat)))
+                            print("-E- ERROR: check specimen %s step %s, ATRM measurements, coding does not match the direction of the lab field!"%(rec[0],".".join(list(treat))))
                         
 
                 elif demag=="S": # Shaw experiment
@@ -681,10 +684,10 @@ def main(command_line=True, **kwargs):
                 MagRecs.append(MagRec) 
     MagOuts=pmag.measurements_methods(MagRecs,noave)
     pmag.magic_write(meas_file,MagOuts,'magic_measurements')
-    print "results put in ",meas_file
+    print("results put in ",meas_file)
     if len(SynRecs)>0:
         pmag.magic_write(synfile,SynRecs,'er_synthetics')
-        print "synthetics put in ",synfile
+        print("synthetics put in ",synfile)
     return True, meas_file
 
 def do_help():

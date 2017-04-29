@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 #
+from __future__ import division
+from __future__ import print_function
+from past.utils import old_div
 import sys
 import pmagpy.pmag as pmag
 
@@ -71,7 +74,7 @@ def main():
         ind=sys.argv.index('-WD')
         dir_path=sys.argv[ind+1]
     if '-h' in sys.argv:
-        print main.__doc__
+        print(main.__doc__)
         sys.exit()
     if "-spc" in sys.argv:
         ind=sys.argv.index("-spc")
@@ -110,7 +113,7 @@ def main():
         samp_con=sys.argv[ind+1]
         if "4" in samp_con:
             if "-" not in samp_con:
-                print "option [4] must be in form 4-Z where Z is an integer"
+                print("option [4] must be in form 4-Z where Z is an integer")
                 sys.exit()
             else:
                 Z=samp_con.split("-")[1]
@@ -121,7 +124,7 @@ def main():
     # get down to bidness
     sfile=dir_path+'/'+sfile
     anisfile=dir_path+'/'+anisfile
-    input=open(sfile,'rU')
+    input=open(sfile,'r')
     AnisRecs=[]
     linecnt=0
     citation="This study"
@@ -135,12 +138,12 @@ def main():
         else:
             k=0
         trace=float(rec[k])+float(rec[k+1])+float(rec[k+2])
-        s1='%10.9e'%(float(rec[k])/trace)
-        s2='%10.9e'%(float(rec[k+1])/trace)
-        s3='%10.9e'%(float(rec[k+2])/trace)
-        s4='%10.9e'%(float(rec[k+3])/trace)
-        s5='%10.9e'%(float(rec[k+4])/trace)
-        s6='%10.9e'%(float(rec[k+5])/trace)
+        s1='%10.9e'%(old_div(float(rec[k]),trace))
+        s2='%10.9e'%(old_div(float(rec[k+1]),trace))
+        s3='%10.9e'%(old_div(float(rec[k+2]),trace))
+        s4='%10.9e'%(old_div(float(rec[k+3]),trace))
+        s5='%10.9e'%(old_div(float(rec[k+4]),trace))
+        s6='%10.9e'%(old_div(float(rec[k+5]),trace))
         AnisRec["er_citation_names"]=citation
         AnisRec["er_specimen_name"]=spec
         if specnum!=0:
@@ -169,13 +172,13 @@ def main():
         AnisRec["anisotropy_s4"]=s4
         AnisRec["anisotropy_s5"]=s5
         AnisRec["anisotropy_s6"]=s6
-        if sigma==1: AnisRec["anisotropy_sigma"]='%10.8e'%(float(rec[k+6])/trace)
+        if sigma==1: AnisRec["anisotropy_sigma"]='%10.8e'%(old_div(float(rec[k+6]),trace))
         AnisRec["anisotropy_unit"]='SI'
         AnisRec["anisotropy_tilt_correction"]=coord
         AnisRec["magic_method_codes"]='LP-'+type
         AnisRecs.append(AnisRec)
     pmag.magic_write(anisfile,AnisRecs,'rmag_anisotropy')
-    print 'data saved in ',anisfile 
+    print('data saved in ',anisfile) 
     #
 if __name__ == "__main__":
     main()

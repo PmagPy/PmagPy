@@ -101,6 +101,8 @@ OPTIONS
          INST:  instrument code, number of axes, number of positions (e.g., G34 is 2G, three axes, measured in four positions)
          NMEAS: number of measurements in a single position (1,3,200...)
 """
+from __future__ import print_function
+from builtins import range
 import sys,os
 import pmagpy.pmag as pmag
 import pmagpy.new_builder as nb
@@ -135,27 +137,27 @@ def convert(**kwargs):
     # format and validate variables
     if magfile:
         try:
-            infile=open(os.path.join(input_dir_path,magfile),'rU')
+            infile=open(os.path.join(input_dir_path,magfile),'r')
         except IOError:
-            print "bad mag file name"
+            print("bad mag file name")
             return False, "bad mag file name"
     else: 
-        print "mag_file field is required option"
-        print __doc__
+        print("mag_file field is required option")
+        print(__doc__)
         return False, "mag_file field is required option"
 
     if specnum!=0:
         specnum=-specnum
     if "4" in samp_con:
         if "-" not in samp_con:
-            print "option [4] must be in form 4-Z where Z is an integer"
+            print("option [4] must be in form 4-Z where Z is an integer")
             return False, "option [4] must be in form 4-Z where Z is an integer"
         else:
             Z=int(samp_con.split("-")[1])
             samp_con="4"
     if "7" in samp_con:
         if "-" not in samp_con:
-            print "option [7] must be in form 7-Z where Z is an integer"
+            print("option [7] must be in form 7-Z where Z is an integer")
             return False, "option [7] must be in form 7-Z where Z is an integer"
         else:
             Z=int(samp_con.split("-")[1])
@@ -165,7 +167,7 @@ def convert(**kwargs):
     if codelist:
         codes=codelist.split(':')
     else:
-        print "Must select experiment type (-LP option)"
+        print("Must select experiment type (-LP option)")
         return False, "Must select experiment type (-LP option)"
     if "AF" in codes:
         demag='AF' 
@@ -176,7 +178,7 @@ def convert(**kwargs):
         if labfield: LPcode="LP-PI-TRM"
         if "ANI" in codes:
             if not labfield:
-                print "missing lab field option"
+                print("missing lab field option")
                 return False, "missing lab field option"
             LPcode="LP-AN-TRM"
 
@@ -189,7 +191,7 @@ def convert(**kwargs):
         demag="T"
         # dc should be in the code
         if not labfield:
-            print "missing lab field option"
+            print("missing lab field option")
             return False, "missing lab field option"
 
         LPcode="LP-CR-TRM" # TRM in different cooling rates
@@ -228,7 +230,7 @@ def convert(**kwargs):
         inc_core=rec[7]
         moment_emu=float(rec[-1])
 
-        if specimen not in Data.keys():
+        if specimen not in list(Data.keys()):
             Data[specimen]=[]
 
         # check duplicate treatments:
@@ -237,7 +239,7 @@ def convert(**kwargs):
         if len(Data[specimen])>0:
             if treatment==Data[specimen][-1]['treatment']:
                 del(Data[specimen][-1])
-                print "-W- Identical treatments in file %s magfile line %i: specimen %s, treatment %s ignoring the first. " %(magfile, line_no, specimen,".".join(treatment))
+                print("-W- Identical treatments in file %s magfile line %i: specimen %s, treatment %s ignoring the first. " %(magfile, line_no, specimen,".".join(treatment)))
 
         this_line_data={}
         this_line_data['specimen']=specimen
@@ -256,14 +258,15 @@ def convert(**kwargs):
         this_line_data['lon']=''
         this_line_data['volume']=''
         Data[specimen].append(this_line_data)
-    print "-I- done reading file %s"%magfile
+    infile.close()
+    print("-I- done reading file %s"%magfile)
 
     if datafile:
         dinfile = open(datafile)
         for line in dinfile.readlines():
             data = line.split()
             if len(data)<8 or data[0]=='': continue
-            elif data[0] in Data.keys():
+            elif data[0] in list(Data.keys()):
                 for i in range(len(Data[data[0]])):
                     Data[data[0]][i]['azimuth'] = data[1]
                     Data[data[0]][i]['dip'] = data[2]
@@ -275,12 +278,13 @@ def convert(**kwargs):
                     Data[data[0]][i]['volume'] = data[7]
             else:
                 print("no specimen %s found in magnetometer data file when reading specimen orientation data file, or data file record for specimen too short"%data[0])
+        dinfile.close()
 
     #--------------------------------------
     # Convert to MagIC
     #--------------------------------------
 
-    specimens_list=Data.keys()
+    specimens_list=list(Data.keys())
     specimens_list.sort()
 
     MeasRecs,SpecRecs,SampRecs,SiteRecs,LocRecs=[],[],[],[],[]
@@ -297,11 +301,11 @@ def convert(**kwargs):
             site=pmag.parse_site(sample,samp_con,Z)
             if not location:
                 location=site
-            if specimen!="" and specimen not in map(lambda x: x['specimen'] if 'specimen' in x.keys() else "", SpecRecs):
+            if specimen!="" and specimen not in [x['specimen'] if 'specimen' in list(x.keys()) else "" for x in SpecRecs]:
                 SpecRec['specimen'] = specimen
                 SpecRec['sample'] = sample
                 SpecRecs.append(SpecRec)
-            if sample!="" and sample not in map(lambda x: x['sample'] if 'sample' in x.keys() else "", SampRecs):
+            if sample!="" and sample not in [x['sample'] if 'sample' in list(x.keys()) else "" for x in SampRecs]:
                 SampRec['sample'] = sample
                 SampRec['site'] = site
                 SampRec['azimuth'] = this_line_data['azimuth']
@@ -309,13 +313,13 @@ def convert(**kwargs):
                 SampRec['bed_dip_direction'] = this_line_data['bed_dip_direction']
                 SampRec['bed_dip'] = this_line_data['bed_dip']
                 SampRecs.append(SampRec)
-            if site!="" and site not in map(lambda x: x['site'] if 'site' in x.keys() else "", SiteRecs):
+            if site!="" and site not in [x['site'] if 'site' in list(x.keys()) else "" for x in SiteRecs]:
                 SiteRec['site'] = site
                 SiteRec['location'] = location
                 SiteRec['lat'] = this_line_data['lat']
                 SiteRec['lon'] = this_line_data['lon']
                 SiteRecs.append(SiteRec)
-            if location!="" and location not in map(lambda x: x['location'] if 'location' in x.keys() else "", LocRecs):
+            if location!="" and location not in [x['location'] if 'location' in list(x.keys()) else "" for x in LocRecs]:
                 LocRec['location']=location
                 LocRec['lat_n'] = this_line_data['lat']
                 LocRec['lon_e'] = this_line_data['lon']
@@ -373,12 +377,12 @@ def convert(**kwargs):
                     elif treatment_type=="A":
                         methcode="LP-DIR-AF:LT-AF-Z"
                     else:
-                        print "ERROR in treatment field line %i... exiting until you fix the problem" %line_no
-                        print this_line_data
+                        print("ERROR in treatment field line %i... exiting until you fix the problem" %line_no)
+                        print(this_line_data)
                         return False, "ERROR in treatment field line %i... exiting until you fix the problem" %line_no
                 # AARM experiment
                 else:
-                    print "Dont supprot AARM in HUJI format yet. sorry... do be DONE"
+                    print("Dont supprot AARM in HUJI format yet. sorry... do be DONE")
                 MeasRec["method_codes"]=methcode
                 MeasRec["experiments"]=specimen+ ":" + LPcode
                 MeasRec["number"]="%i"%i
@@ -456,7 +460,7 @@ def convert(**kwargs):
                             methcode="LP-PI-TRM:LP-PI-TRM-IZ"
 
                     else:
-                            print "ERROR in treatment field line %i... exiting until you fix the problem" %line_no
+                            print("ERROR in treatment field line %i... exiting until you fix the problem" %line_no)
                             return False, "ERROR in treatment field line %i... exiting until you fix the problem" %line_no
                     MeasRec["method_codes"]=LT_code+":"+methcode
                     MeasRec["number"]="%i"%i

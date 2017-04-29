@@ -42,6 +42,8 @@ OPTIONS
 INPUT
     Utrecht magnetometer data file
 """
+from __future__ import print_function
+from builtins import str
 import os,sys
 import pmagpy.pmag as pmag
 import pmagpy.new_builder as nb
@@ -74,14 +76,14 @@ def convert(**kwargs):
     samp_con = kwargs.get('samp_con', '2')
     if "4" in samp_con:
         if "-" not in samp_con:
-            print "option [4] must be in form 4-Z where Z is an integer"
+            print("option [4] must be in form 4-Z where Z is an integer")
             return False, "naming convention option [4] must be in form 4-Z where Z is an integer"
         else:
             site_num=samp_con.split("-")[1]
             samp_con="4"
     elif "7" in samp_con:
         if "-" not in samp_con:
-            print "option [7] must be in form 7-Z where Z is an integer"
+            print("option [7] must be in form 7-Z where Z is an integer")
             return False, "naming convention option [7] must be in form 7-Z where Z is an integer"
         else:
             site_num=samp_con.split("-")[1]
@@ -104,9 +106,8 @@ def convert(**kwargs):
     # parse data
 
     # Open up the Utrecht file and read the header information
-#    print 'mag_file in utrecht_file', mag_file
     AF_or_T = mag_file.split('.')[-1]
-    data = open(mag_file, 'rU')
+    data = open(mag_file, 'r')
     line = data.readline()
     line_items = line.split(',')
     operator=line_items[0]
@@ -114,8 +115,8 @@ def convert(**kwargs):
     machine=line_items[1]
     machine=machine.replace("\"","")
     machine=machine.rstrip('\n')
-#    print "operator=", operator
-#    print "machine=", machine
+#    print("operator=", operator)
+#    print("machine=", machine)
 
     #read in measurement data
     line = data.readline()
@@ -124,21 +125,21 @@ def convert(**kwargs):
         line_items = line.split(',')
         spec_name=line_items[0]
         spec_name=spec_name.replace("\"","")
-#        print "spec_name=", spec_name
+#        print("spec_name=", spec_name)
         free_string=line_items[1]
         free_string=free_string.replace("\"","")
-#        print "free_string=", free_string
+#        print("free_string=", free_string)
         dec=line_items[2]
-#        print "dec=", dec
+#        print("dec=", dec)
         inc=line_items[3]
-#        print "inc=", inc
+#        print("inc=", inc)
         volume=float(line_items[4])
         volume=volume * 1e-6 # enter volume in cm^3, convert to m^3
-#        print "volume=", volume
+#        print("volume=", volume)
         bed_plane=line_items[5]
-#        print "bed_plane=", bed_plane
+#        print("bed_plane=", bed_plane)
         bed_dip=line_items[6]
-#        print "bed_dip=", bed_dip
+#        print("bed_dip=", bed_dip)
 
         # Configure et er_ tables
         if specnum==0: sample_name = spec_name
@@ -148,7 +149,7 @@ def convert(**kwargs):
         SpecRec['sample'] = sample_name
         if volume!=0: SpecRec['volume']=volume
         SpecRecs.append(SpecRec)
-        if sample_name!="" and sample_name not in map(lambda x: x['sample'] if 'sample' in x.keys() else "", SampRecs):
+        if sample_name!="" and sample_name not in [x['sample'] if 'sample' in list(x.keys()) else "" for x in SampRecs]:
             SampRec['sample'] = sample_name
             SampRec['azimuth'] = dec
             SampRec['dip'] = str(float(inc)-90)
@@ -157,13 +158,13 @@ def convert(**kwargs):
             SampRec['method_codes'] = meth_code
             SampRec['site'] = site
             SampRecs.append(SampRec)
-        if site!="" and site not in map(lambda x: x['site'] if 'site' in x.keys() else "", SiteRecs):
+        if site!="" and site not in [x['site'] if 'site' in list(x.keys()) else "" for x in SiteRecs]:
             SiteRec['site'] = site
             SiteRec['location'] = location
             SiteRec['lat'] = lat
             SiteRec['lon'] = lon
             SiteRecs.append(SiteRec)
-        if location!="" and location not in map(lambda x: x['location'] if 'location' in x.keys() else "", LocRecs):
+        if location!="" and location not in [x['location'] if 'location' in list(x.keys()) else "" for x in LocRecs]:
             LocRec['location']=location
             LocRec['lat_n'] = lat
             LocRec['lon_e'] = lon
@@ -176,7 +177,6 @@ def convert(**kwargs):
         line = line.rstrip("\n")
         items = line.split(",")
         while line != '9999':
-#            print line
             step=items[0]
             step=step.split('.')
             step_value=step[0]
@@ -199,8 +199,8 @@ def convert(**kwargs):
             magn_moment = direction[2] * 1.0e-12 # the data are in pico-Am^2 - this converts to Am^2
             if volume!=0:
                 magn_volume = direction[2] * 1.0e-12 / volume # data volume normalized - converted to A/m
-#            print "magn_moment=", magn_moment
-#            print "magn_volume=", magn_volume
+#            print("magn_moment=", magn_moment)
+#            print("magn_volume=", magn_volume)
             error = items[4]
             date=items[5]
             date=date.strip('"').replace(' ','')
@@ -209,11 +209,11 @@ def convert(**kwargs):
             elif date.count("/") > 0:
                 date=date.split("/")
             else: print("date format seperator cannot be identified")
-#            print date
+#            print(date)
             time=items[6]
             time=time.strip('"').replace(' ','')
             time=time.split(":")
-#            print time
+#            print(time)
             dt = date[0] + ":" + date[1] + ":" + date[2] + ":" + time[0] + ":" + time[1] + ":" + "0"
             local = pytz.timezone("Europe/Amsterdam")
             try:
@@ -224,7 +224,7 @@ def convert(**kwargs):
             local_dt = local.localize(naive, is_dst=None)
             utc_dt = local_dt.astimezone(pytz.utc)
             timestamp=utc_dt.strftime("%Y-%m-%dT%H:%M:%S")+"Z"
-#            print timestamp
+#            print(timestamp)
 
             MeasRec = {}
             MeasRec["timestamp"]=timestamp
@@ -251,7 +251,7 @@ def convert(**kwargs):
             MeasRec['treat_dc_field']='0'
             if step_value == '0':
                 meas_type = "LT-NO"
-#            print "step_type=", step_type
+#            print("step_type=", step_type)
             if step_type == '0' or step_type == '00':
                 meas_type = "LT-%s-Z"%lab_treat_type
             elif step_type == '1' or step_type == '11':
@@ -262,7 +262,7 @@ def convert(**kwargs):
                 MeasRec['treat_dc_field']='%1.2e'%DC_FIELD
             elif step_type == '3' or step_type == '13':
                 meas_type = "LT-PTRM-Z"
-#            print "meas_type=", meas_type
+#            print("meas_type=", meas_type)
             MeasRec['treat_dc_field_phi'] = '%1.2f'%DC_PHI
             MeasRec['treat_dc_field_theta'] = '%1.2f'%DC_THETA
             MeasRec['method_codes'] = meas_type
@@ -281,6 +281,8 @@ def convert(**kwargs):
         line = data.readline()
         line = line.rstrip("\n")
         items = line.split(",")
+
+    data.close()
 
     con = nb.Contribution(output_dir_path,read_tables=[])
 

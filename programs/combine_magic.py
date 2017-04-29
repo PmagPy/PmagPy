@@ -17,6 +17,8 @@ OPTIONS
     -F specify output file name [must come BEFORE input file names]
     -f specify input file names [ must come last]
 """
+from __future__ import print_function
+from builtins import input
 import sys,os
 import pmagpy.ipmag as ipmag
 import pmagpy.command_line_extractor as extractor
@@ -35,14 +37,14 @@ def main():
     if "-i" in sys.argv: # interactive
         dataset,datasets=[],[]
         while True:
-            infile=raw_input('\n\n Enter magic files for combining, <return>  when done: ')
+            infile=input('\n\n Enter magic files for combining, <return>  when done: ')
             if infile=='':
                 break
             if os.path.isfile(infile):
                 filenames.append(infile)
             else:
-                print "-W- You have not provided a valid filename.\nIf the file is not in your current working directory, you will need to provide the full path to the file"
-        outfile=raw_input('\n\n Enter name for new combined file')
+                print("-W- You have not provided a valid filename.\nIf the file is not in your current working directory, you will need to provide the full path to the file")
+        outfile=input('\n\n Enter name for new combined file')
         if not outfile:
             return False
     else: # non-interactive

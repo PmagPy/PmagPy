@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+from __future__ import print_function
+from builtins import str
 import sys
 import pmagpy.pmag as pmag
 
@@ -81,7 +83,7 @@ def main(command_line=True, **kwargs):
             input_dir_path = dir_path
         output_dir_path = dir_path
         if "-h" in args:
-            print main.__doc__
+            print(main.__doc__)
             return False
         if '-F' in args:
             ind=args.index("-F")
@@ -90,7 +92,7 @@ def main(command_line=True, **kwargs):
             ind = args.index("-Fsa")
             samp_file = args[ind+1]
             #try:
-            #    open(samp_file,'rU')
+            #    open(samp_file,'r')
             #    ErSamps,file_type=pmag.magic_read(samp_file)
             #    print 'sample information will be appended to ', samp_file 
             #except:
@@ -144,14 +146,14 @@ def main(command_line=True, **kwargs):
         specnum=-specnum
     if "4" in samp_con:
         if "-" not in samp_con:
-            print "option [4] must be in form 4-Z where Z is an integer"
+            print("option [4] must be in form 4-Z where Z is an integer")
             return False, "option [4] must be in form 4-Z where Z is an integer"
         else:
             Z=samp_con.split("-")[1]
             samp_con="4"
     if "7" in samp_con:
         if "-" not in samp_con:
-            print "option [7] must be in form 7-Z where Z is an integer"
+            print("option [7] must be in form 7-Z where Z is an integer")
             return False, "option [7] must be in form 7-Z where Z is an integer"
         else:
             Z=samp_con.split("-")[1]
@@ -160,7 +162,7 @@ def main(command_line=True, **kwargs):
     ErSampRec,ErSiteRec={},{}
 
     # parse data
-    data=open(mag_file,'rU')
+    data=open(mag_file,'r')
     line=data.readline()
     line=data.readline()
     line=data.readline()
@@ -227,7 +229,7 @@ def main(command_line=True, **kwargs):
         if int(samp_con) in [1, 2, 3, 4, 5, 7]:
             er_site_name=pmag.parse_site(er_sample_name,samp_con,Z)
         else:
-            print "-W- Using unreognized sample convention option: ", samp_con
+            print("-W- Using unreognized sample convention option: ", samp_con)
         # else:
         #     if 'er_site_name' in ErSampRec.keys():er_site_name=ErSampRec['er_site_name']
         #     if 'er_location_name' in ErSampRec.keys():er_location_name=ErSampRec['er_location_name']
@@ -274,7 +276,7 @@ def main(command_line=True, **kwargs):
             treat=float(demagLevel[1:])
             MagRec["treatment_temp"]='%8.3e' % (treat+273.) # temp in kelvin
         else:
-            print "measurement type unknown", demag_level
+            print("measurement type unknown", demag_level)
             return False, "measurement type unknown"
 
         MagRec["measurement_magn_moment"]=str(intensityVol*volume) # Am^2
@@ -299,9 +301,9 @@ def main(command_line=True, **kwargs):
 
     MagOuts=pmag.measurements_methods(MagRecs,noave)
     pmag.magic_write(samp_file,SampOuts,'er_samples') 
-    print "sample orientations put in ",samp_file
+    print("sample orientations put in ",samp_file)
     pmag.magic_write(meas_file,MagOuts,'magic_measurements')
-    print "results put in ",meas_file
+    print("results put in ",meas_file)
     return True, meas_file
 
 def do_help():

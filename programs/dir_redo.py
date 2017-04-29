@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import print_function
 import sys
 
 def main():
@@ -23,7 +24,7 @@ def main():
         ind=sys.argv.index('-WD')
         dir_path=sys.argv[ind+1]
     if '-h' in sys.argv:
-        print main.__doc__
+        print(main.__doc__)
         sys.exit()
     if '-f' in sys.argv:
         ind=sys.argv.index('-f')
@@ -38,7 +39,7 @@ def main():
 # read in DIR file
 #
     specs=[]
-    prior_spec_data=open(inspec,'rU').readlines()
+    prior_spec_data=open(inspec,'r').readlines()
     for line in prior_spec_data:
         line=line.replace("Dir"," Dir")
         line=line.replace("OKir"," OKir")

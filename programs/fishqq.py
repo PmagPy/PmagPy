@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+from __future__ import print_function
+from builtins import input
 import sys
 import matplotlib
 if matplotlib.get_backend() != "TKAgg":
@@ -36,12 +38,12 @@ def main():
     fmt,plot='svg',0
     outfile=""
     if '-h' in sys.argv: # check if help is needed
-        print main.__doc__
+        print(main.__doc__)
         sys.exit() # graceful quit
     elif '-f' in sys.argv: # ask for filename
         ind=sys.argv.index('-f')
         file=sys.argv[ind+1]
-        f=open(file,'rU')
+        f=open(file,'r')
         data=f.readlines()
     if '-F' in sys.argv:
         ind=sys.argv.index('-F')
@@ -108,7 +110,7 @@ def main():
             outstring='%7.1f %7.1f %i %5.3f %5.3f %5.3f %5.3f %s \n'%(Dnbar,Inbar,Nn,Mu_n,Mu_ncr,Me_n,Me_ncr,F)
             outfile.write(outstring)
     else:
-        print 'you need N> 10 for at least one mode'
+        print('you need N> 10 for at least one mode')
         sys.exit()
     if len(rDIs)>10 and len(nDIs)>10:
         D2,I2=[],[]
@@ -138,7 +140,7 @@ def main():
             outstring='%7.1f %7.1f %i %5.3f %5.3f %5.3f %5.3f %s \n'%(Drbar,Irbar,Nr,Mu_r,Mu_rcr,Me_r,Me_rcr,F)
             outfile.write(outstring)
     files={}
-    for key in QQ.keys():
+    for key in list(QQ.keys()):
         files[key]=file+'_'+key+'.'+fmt 
     if pmagplotlib.isServer:
         black     = '#000000'
@@ -151,7 +153,7 @@ def main():
         pmagplotlib.saveP(QQ,files)
     else:
         pmagplotlib.drawFIGS(QQ) 
-        ans=raw_input(" S[a]ve to save plot, [q]uit without saving:  ")
+        ans=input(" S[a]ve to save plot, [q]uit without saving:  ")
         if ans=="a": pmagplotlib.saveP(QQ,files)
 
 if __name__ == "__main__":

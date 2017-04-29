@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import print_function
 import sys
 
 def main():
@@ -17,10 +18,10 @@ def main():
     
     """
     if '-h' in sys.argv:
-        print main.__doc__
+        print(main.__doc__)
         sys.exit()
     file=sys.argv[1]
-    f=open(file,'rU')
+    f=open(file,'r')
     Input=f.readlines()
     f.close()
     out=open(file,'w')

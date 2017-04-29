@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+from __future__ import print_function
+from builtins import input
 import sys
 import os
 import pmagpy.pmag as pmag
@@ -38,7 +40,7 @@ def main():
         ind=args.index("-WD")
         dir_path=args[ind+1]
     if "-h" in args:
-        print main.__doc__
+        print(main.__doc__)
         sys.exit()
     if "-A" in args: noave=1
     if '-F' in args:
@@ -65,12 +67,12 @@ def main():
             demag="S"
             methcode="LP-PI-TRM:LP-PI-ALT-AFARM"
             trm_labfield=labfield
-            ans=raw_input("DC lab field for ARM step: [50uT] ")
+            ans=input("DC lab field for ARM step: [50uT] ")
             if ans=="":
                 arm_labfield=50e-6
             else: 
                 arm_labfield=float(ans)*1e-6
-            ans=raw_input("temperature for total trm step: [600 C] ")
+            ans=input("temperature for total trm step: [600 C] ")
             if ans=="":
                 trm_peakT=600+273 # convert to kelvin
             else: 
@@ -93,13 +95,13 @@ def main():
     MagRecs,SpecRecs,SampRecs=[],[],[]
     for file in filelist: # parse each file
         if file[-3:].lower()=='srm':
-            print 'processing: ',file
+            print('processing: ',file)
             Nfo=file.split('_')[0].split('-')
             try:
                 sect=int(Nfo[3][:-1])
             except:
                 sect=1
-            input=open(file,'rU').readlines()
+            input=open(file,'r').readlines()
             MagRec,SpecRec,SampRec={},{},{}
             alt_spec,treatment_type,treatment_value,user="","","",""
             inst="ODP-SRM"
@@ -157,7 +159,7 @@ def main():
                 rec=line.replace('\n','').split(',') # list of data
                 if len(rec)>2:
                     MeasRec,SampRec={},{'core_depth':'0','er_sample_name':'0','er_site_name':'0','er_location_name':'location'}
-                    for key in MagRec.keys():MeasRec[key]=MagRec[key]
+                    for key in list(MagRec.keys()):MeasRec[key]=MagRec[key]
                     for item in rec:
                              items=item.split('=')
                              if 'demag_level' in items[0]:
@@ -184,10 +186,10 @@ def main():
                     SampRecs.append(SampRec)
                     MagRecs.append(MeasRec)
     pmag.magic_write(samp_file,SampRecs,'er_samples')
-    print 'samples stored in ',samp_file
+    print('samples stored in ',samp_file)
     Fixed=pmag.measurements_methods(MagRecs,noave)
     pmag.magic_write(meas_file,Fixed,'magic_measurements')
-    print 'data stored in ',meas_file
+    print('data stored in ',meas_file)
 
 if __name__ == "__main__":
     main()

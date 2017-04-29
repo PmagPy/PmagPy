@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import print_function
 import sys
 import pmagpy.pmag as pmag
 #
@@ -30,7 +31,7 @@ def main():
     instout="magic_instruments.txt"
 # get command line stuff
     if "-h" in sys.argv:
-	print main.__doc__
+	print(main.__doc__)
         sys.exit()
     if '-f' in sys.argv:
 	ind=sys.argv.index("-f")

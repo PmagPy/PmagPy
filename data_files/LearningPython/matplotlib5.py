@@ -3,7 +3,7 @@ import matplotlib
 matplotlib.use("TkAgg")
 import pylab
 def readEQs(infile):
-    input=open(infile,'rU').readlines()
+    input=open(infile,'r').readlines()
     EQs=[] # list to put EQ dictionaries in
     linenum=0
     while linenum <len(input):

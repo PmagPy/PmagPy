@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 # define some variables
+from __future__ import print_function
+from builtins import input
 import sys
 import matplotlib
 if matplotlib.get_backend() != "TKAgg":
@@ -97,7 +99,7 @@ def main():
         ind = sys.argv.index('-WD')
         dir_path=sys.argv[ind+1]
     if '-h' in sys.argv:
-        print main.__doc__
+        print(main.__doc__)
         sys.exit()
     if '-fmt' in sys.argv:
         ind = sys.argv.index('-fmt')
@@ -109,15 +111,15 @@ def main():
         ind = sys.argv.index('-age')
         age=int(sys.argv[ind+1])
         if age%5!=0 and age>320:
-            print main.__doc__
-            print 'age must be multiple of 5 less than 325'
+            print(main.__doc__)
+            print('age must be multiple of 5 less than 325')
             sys.exit()
         import pmagpy.frp as frp
     if '-res' in sys.argv:
         ind = sys.argv.index('-res')
         res=sys.argv[ind+1]
         if res!= 'c' and res!='l':
-            print 'this resolution will take a while - be patient'
+            print('this resolution will take a while - be patient')
     if '-prj' in sys.argv:
         ind = sys.argv.index('-prj')
         proj=sys.argv[ind+1]
@@ -147,7 +149,7 @@ def main():
     elif '-ffr' in sys.argv:
         ind = sys.argv.index('-ffr')
         file=dir_path+'/'+sys.argv[ind+1]
-        f=open(file,'rU')
+        f=open(file,'r')
         edata=f.readlines()
         for line in edata:
             rec=line.split()
@@ -155,7 +157,7 @@ def main():
     elif '-fpp' in sys.argv:
         ind = sys.argv.index('-fpp')
         file=dir_path+'/'+sys.argv[ind+1]
-        f=open(file,'rU')
+        f=open(file,'r')
         pdata=f.readlines()
         for line in pdata:
             rec=line.split()
@@ -164,7 +166,7 @@ def main():
     if '-fpt' in sys.argv:
         ind = sys.argv.index('-fpt')
         file=dir_path+'/'+sys.argv[ind+1]
-        f=open(file,'rU')
+        f=open(file,'r')
         ptdata=f.readlines()
         for line in ptdata:
             rec=line.split()
@@ -197,10 +199,10 @@ def main():
             Poles=[]
             rcont=cont
             if rcont not in rconts:
-                print main.__doc__
-                print rcont
-                print 'continents  must be one of following: '
-                print rconts
+                print(main.__doc__)
+                print(rcont)
+                print('continents  must be one of following: ')
+                print(rconts)
                 sys.exit()
             if rcont=='congo':rcont='nwaf'
             if rcont=='kala':rcont='neaf'
@@ -213,7 +215,7 @@ def main():
             if SAC==1:Poles.append(frp.get_pole('saf',age))
             SEQ=1
             if Poles[-1]=='NONE':
-                print 'continent does not exist for rotation, try again '
+                print('continent does not exist for rotation, try again ')
                 sys.exit()
         data=continents.get_continent(cont+'.asc')
         for line in data:
@@ -257,7 +259,7 @@ def main():
             Opts['sym']=sym
             Opts['symsize']=symsize
             Rlats,Rlons=pmag.PTrot(pole,[pt_lat],[pt_lon])
-            print Rlats,Rlons
+            print(Rlats,Rlons)
             pmagplotlib.plotMAP(FIG['map'],Rlats,Rlons,Opts)
             if plot==0:pmagplotlib.drawFIGS(FIG)
         Opts['sym']='g^'
@@ -265,7 +267,7 @@ def main():
         pmagplotlib.plotMAP(FIG['map'],[pole[0]],[pole[1]],Opts)
         if plot==0:pmagplotlib.drawFIGS(FIG)
     files={}
-    for key in FIG.keys():
+    for key in list(FIG.keys()):
         files[key]='Cont_rot'+'.'+fmt
     if plot==1:
         pmagplotlib.saveP(FIG,files)
@@ -279,7 +281,7 @@ def main():
         pmagplotlib.saveP(FIG,files)
     else:
         pmagplotlib.drawFIGS(FIG)
-        ans=raw_input(" S[a]ve to save plot, Return to quit:  ")
+        ans=input(" S[a]ve to save plot, Return to quit:  ")
         if ans=="a":
             pmagplotlib.saveP(FIG,files)
 

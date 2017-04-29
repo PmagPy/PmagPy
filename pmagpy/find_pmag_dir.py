@@ -1,6 +1,9 @@
+from __future__ import print_function
+from __future__ import absolute_import
 import os, sys
 from pkg_resources import resource_filename
 import locator
+from imp import reload
 #import time
 #import urllib2
 #import pickle
@@ -54,7 +57,7 @@ def get_pmag_dir():
         if os.path.isfile(os.path.join(pmag_dir,'pmagpy','pmag.py')):
             return pmag_dir
         else:
-            print '-W- Can\'t find the data model!  Make sure you have installed pmagpy using pip: "pip install pmagpy --upgrade"'
+            print('-W- Can\'t find the data model!  Make sure you have installed pmagpy using pip: "pip install pmagpy --upgrade"')
             return '.'
     # strip "/" or "\" and "pmagpy" to return proper PmagPy directory
     if lib_dir.endswith(os.sep):
@@ -82,7 +85,7 @@ def is_frozen():
     return False
 
 def get_version():
-    import version
+    from . import version
     #global pmagpy_path
     pmagpy_path = get_pmag_dir()
     return version.version

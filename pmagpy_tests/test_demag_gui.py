@@ -136,7 +136,7 @@ class TestDemagGUI(unittest.TestCase):
         #mark first step good for the initial test
         self.frame.logger.Select(0)
         self.frame.ProcessEvent(markgood_menu_evt)
-        total_num_of_good_meas_data =  len(filter(lambda x: x=='g', self.frame.Data[self.frame.s]['measurement_flag']))
+        total_num_of_good_meas_data =  len([x for x in self.frame.Data[self.frame.s]['measurement_flag'] if x=='g'])
         total_num_of_good_meas_data-=tmax_i #account for the fact you might not be able to select all measurements if the last and first step are equal
         total_n = len(self.frame.Data[self.frame.s]['measurement_flag'])
         total_n-=tmax_i #this is the total n that can be selected between these bounds if you couldn't chose the top and bottom measurement you have to adjust
@@ -235,16 +235,16 @@ class TestDemagGUI(unittest.TestCase):
         self.frame.ProcessEvent(writeredo_menu_evt)
         old_frame = str(self.frame)
         old_interpretations = []
-        for speci in self.frame.pmag_results_data['specimens'].keys():
-            old_interpretations += sorted(self.frame.pmag_results_data['specimens'][speci],cmp=fit_cmp)
+        for speci in list(self.frame.pmag_results_data['specimens'].keys()):
+            old_interpretations += sorted(self.frame.pmag_results_data['specimens'][speci],key=fit_key)
 
         self.frame.clear_interpretations()
 
         self.frame.ProcessEvent(importredo_menu_evt)
         imported_frame = str(self.frame)
         imported_interpretations = []
-        for speci in self.frame.pmag_results_data['specimens'].keys():
-            imported_interpretations += sorted(self.frame.pmag_results_data['specimens'][speci],cmp=fit_cmp)
+        for speci in list(self.frame.pmag_results_data['specimens'].keys()):
+            imported_interpretations += sorted(self.frame.pmag_results_data['specimens'][speci],key=fit_key)
 
         for ofit,ifit in zip(old_interpretations,imported_interpretations):
             self.assertTrue(ofit.equal(ifit))
@@ -263,12 +263,12 @@ class TestDemagGUI(unittest.TestCase):
         old_frame = str(self.frame)
         speci_with_fits = []
         old_interpretations = {}
-        for speci in self.frame.pmag_results_data['specimens'].keys():
+        for speci in list(self.frame.pmag_results_data['specimens'].keys()):
             if self.frame.pmag_results_data['specimens'][speci] and \
-               all(map(lambda x: x.get('specimen'), self.frame.pmag_results_data['specimens'][speci])):
+               all([x.get('specimen') for x in self.frame.pmag_results_data['specimens'][speci]]):
                 if speci not in speci_with_fits:
                     speci_with_fits.append(speci)
-                old_interpretations[speci] = sorted(self.frame.pmag_results_data['specimens'][speci],cmp=fit_cmp)
+                old_interpretations[speci] = sorted(self.frame.pmag_results_data['specimens'][speci],key=fit_key)
 
         frame2 = demag_gui.Demag_GUI(project_WD,write_to_log_file=False,test_mode_on=True)
 
@@ -276,17 +276,17 @@ class TestDemagGUI(unittest.TestCase):
 
         imported_frame = str(frame2)
         imported_interpretations = {}
-        for speci in frame2.pmag_results_data['specimens'].keys():
+        for speci in list(frame2.pmag_results_data['specimens'].keys()):
             if frame2.pmag_results_data['specimens'][speci] and \
-               all(map(lambda x: x.get('specimen'),frame2.pmag_results_data['specimens'][speci])):
+               all([x.get('specimen') for x in frame2.pmag_results_data['specimens'][speci]]):
                 if speci not in speci_with_fits:
                     speci_with_fits.append(speci)
-                imported_interpretations[speci] = sorted(frame2.pmag_results_data['specimens'][speci],cmp=fit_cmp)
+                imported_interpretations[speci] = sorted(frame2.pmag_results_data['specimens'][speci],key=fit_key)
 
         for speci in speci_with_fits:
-            if speci not in old_interpretations.keys() or speci not in imported_interpretations.keys(): import pdb; pdb.set_trace()
-            self.assertTrue(speci in old_interpretations.keys())
-            self.assertTrue(speci in imported_interpretations.keys())
+            if speci not in list(old_interpretations.keys()) or speci not in list(imported_interpretations.keys()): import pdb; pdb.set_trace()
+            self.assertTrue(speci in list(old_interpretations.keys()))
+            self.assertTrue(speci in list(imported_interpretations.keys()))
             for ofit,ifit in zip(old_interpretations[speci],imported_interpretations[speci]):
                 self.assertTrue(ofit.equal(ifit))
 
@@ -309,7 +309,7 @@ class TestDemagGUI(unittest.TestCase):
         ie.tmin_box.SetValue(tmin)
         ie.tmax_box.SetValue(tmax)
         ie.name_box.WriteText("Test")
-        if "goldenrod" in ie.color_dict.keys():
+        if "goldenrod" in list(ie.color_dict.keys()):
             ie.color_box.SetValue("goldenrod")
         self.assertEqual(ie.tmin_box.GetValue(),tmin)
         self.assertEqual(ie.tmax_box.GetValue(),tmax)
@@ -372,7 +372,7 @@ class TestDemagGUI(unittest.TestCase):
 
         #alter parameters
         ie.name_box.SetValue("HighlightedTest")
-        if "green" in ie.color_dict.keys():
+        if "green" in list(ie.color_dict.keys()):
             ie.color_box.SetValue("green")
 
         #highlight the first 2 specimens
@@ -409,7 +409,7 @@ class TestDemagGUI(unittest.TestCase):
         ie.logger.SetItemState(1, wx.LIST_STATE_SELECTED, wx.LIST_STATE_SELECTED)
         ie.logger.SetItemState(3, wx.LIST_STATE_SELECTED, wx.LIST_STATE_SELECTED)
         ie.ProcessEvent(delete_evt)
-        self.assertEqual(self.frame.total_num_of_interpertations(),valid_specs)
+        wx.CallAfter(self.assertEqual,(self.frame.total_num_of_interpertations(),valid_specs))
 
         #apply changes with nothing selected so nothing happens
         ie.ProcessEvent(apply_change_evt)
@@ -452,7 +452,7 @@ class TestDemagGUI(unittest.TestCase):
         ie.tmin_box.SetValue(tmin)
         ie.tmax_box.SetValue(tmax)
         ie.name_box.SetValue("Test")
-        if "goldenrod" in ie.color_dict.keys():
+        if "goldenrod" in list(ie.color_dict.keys()):
             ie.color_box.SetValue("goldenrod")
         self.assertEqual(ie.tmin_box.GetValue(),tmin)
         self.assertEqual(ie.tmax_box.GetValue(),tmax)
@@ -509,7 +509,7 @@ class TestDemagGUI(unittest.TestCase):
         ie.tmin_box.SetValue(tmin)
         ie.tmax_box.SetValue(tmax)
         ie.name_box.SetValue("OtherTest")
-        if "pink" in ie.color_dict.keys():
+        if "pink" in list(ie.color_dict.keys()):
             ie.color_box.SetValue("pink")
         self.assertEqual(ie.tmin_box.GetValue(),tmin)
         self.assertEqual(ie.tmax_box.GetValue(),tmax)
@@ -546,14 +546,14 @@ class TestDemagGUI(unittest.TestCase):
 
     def test_interpretation_accuracy_with_lsq(self):
         g = os.walk(project_WD)
-        lsq_filenames = list(map(lambda x: os.path.join(project_WD,x),filter(lambda x: x.lower().endswith('.lsq'), g.next()[2])))
+        lsq_filenames = list([os.path.join(project_WD,x) for x in [x for x in next(g)[2] if x.lower().endswith('.lsq')]])
         for lsq_filename in lsq_filenames:
             try:
                 interps = read_LSQ(lsq_filename)
                 self.frame.COORDINATE_SYSTEM = 'geographic'
                 self.frame.read_from_LSQ(lsq_filename)
-            except OSError as e: print("Could not read in LSQ file: %s"%lsq_filename); raise e
-            except IOError as e: print("No LSQ file: %s"%lsq_filename); raise e
+            except OSError as e: print(("Could not read in LSQ file: %s"%lsq_filename)); raise e
+            except IOError as e: print(("No LSQ file: %s"%lsq_filename)); raise e
 
             for interp in interps:
                 specimen = interp['er_specimen_name']
@@ -564,7 +564,7 @@ class TestDemagGUI(unittest.TestCase):
                     if int(pars['specimen_n']) != int(interp['specimen_n']): continue
                     for value in ['specimen_dec','specimen_inc','specimen_mad','specimen_n']:
                         if round(float(pars[value]),1)-allowable_float_error > float(interp[value]) and float(interp[value]) > round(float(pars[value]),1)+allowable_float_error:
-                            print(round(float(pars[value]),1),float(interp[value]))
+                            print((round(float(pars[value]),1),float(interp[value])))
                             similar_fit_present = False
                 self.assertTrue(similar_fit_present)
 
@@ -597,7 +597,7 @@ class TestDemagGUI(unittest.TestCase):
 
         self.assertFalse(self.frame.check_orient_on)
         self.frame.ProcessEvent(check_orient_menu_evt)
-        self.assertTrue(self.frame.check_orient_on)
+        wx.CallAfter(self.assertTrue,self.frame.check_orient_on)
 
         self.frame.ProcessEvent(mark_sample_bad_menu_evt)
         samp = self.frame.Data_hierarchy['sample_of_specimen'][self.frame.s]
@@ -605,9 +605,8 @@ class TestDemagGUI(unittest.TestCase):
         for s in specs:
             for comp in self.frame.pmag_results_data['specimens'][s]:
                 self.assertTrue(comp in self.frame.bad_fits)
-
-        self.frame.mark_fit_good(comp,spec=s)
-        self.assertTrue(comp in self.frame.bad_fits)
+                self.frame.mark_fit_good(comp,spec=s)
+                self.assertTrue(comp in self.frame.bad_fits)
 
         self.frame.ProcessEvent(mark_sample_good_menu_evt)
         samp = self.frame.Data_hierarchy['sample_of_specimen'][self.frame.s]
@@ -644,7 +643,7 @@ class TestDemagGUI(unittest.TestCase):
             self.assertEqual(ie.tmin_box.GetValue(),tmin)
             self.assertEqual(ie.tmax_box.GetValue(),tmax)
             self.assertEqual(ie.name_box.GetValue(),"test%d"%i)
-            ie.ProcessEvent(addall_evt)
+            wx.CallAfter(ie.ProcessEvent, addall_evt)
 
     def get_menu_from_frame(self,frame,menu_name):
         mb = frame.GetMenuBar()
@@ -660,8 +659,8 @@ class TestDemagGUI(unittest.TestCase):
         frame.s = old_s
 
     def tearDown(self):
-        wx.CallAfter(self.app.Exit)
-        self.app.MainLoop()
+        wx.CallAfter(self.frame.Destroy)
+        wx.CallAfter(self.app.Destroy)
         try: os.remove(os.path.join(project_WD, "demag_gui.redo"))
         except OSError: pass
         try: os.remove(os.path.join(project_WD, "pmag_specimens.txt"))
@@ -675,7 +674,8 @@ class TestDemagGUI(unittest.TestCase):
     def test_main_frame(self):
         self.assertTrue(self.frame)
 
-def fit_cmp(f1,f2):
+def fit_key(f1,f2=None):
+    if f2==None: return 0
     for c1,c2 in zip(f1.name,f2.name):
         if ord(c1)==ord(c2): continue
         else: return ord(c1)-ord(c2)

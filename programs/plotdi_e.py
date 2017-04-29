@@ -1,4 +1,8 @@
 #!/usr/bin/env python
+from __future__ import division
+from __future__ import print_function
+from builtins import input
+from past.utils import old_div
 import sys
 import matplotlib
 if matplotlib.get_backend() != "TKAgg":
@@ -39,14 +43,14 @@ def main():
     EQ={'eq':1}
     if len(sys.argv) > 0:
         if '-h' in sys.argv: # check if help is needed
-            print main.__doc__
+            print(main.__doc__)
             sys.exit() # graceful quit
         if '-i' in sys.argv: # ask for filename
-            file=raw_input("Enter file name with dec, inc data: ")
-            dist=raw_input("Enter desired distrubution: [Fish]er, [Bing]ham, [Kent] [Boot] [default is Fisher]: ")
+            file=input("Enter file name with dec, inc data: ")
+            dist=input("Enter desired distrubution: [Fish]er, [Bing]ham, [Kent] [Boot] [default is Fisher]: ")
             if dist=="":dist="F"
             if dist=="Boot":
-                 type=raw_input(" Ellipses or distribution of vectors? [E]/V ")
+                 type=input(" Ellipses or distribution of vectors? [E]/V ")
                  if type=="" or type=="E":
                      dist="BE"
                  else:
@@ -57,8 +61,8 @@ def main():
                 ind=sys.argv.index('-f')
                 file=sys.argv[ind+1]
             else:
-                print 'you must specify a file name'
-                print main.__doc__
+                print('you must specify a file name')
+                print(main.__doc__)
                 sys.exit()
             if '-Bing' in sys.argv:dist='B'
             if '-Kent' in sys.argv:dist='K'
@@ -72,7 +76,7 @@ def main():
                     EQ['bdirs']=2
                     pmagplotlib.plot_init(EQ['bdirs'],5,5)
                 else:
-                    print main.__doc__
+                    print(main.__doc__)
                     sys.exit()
     pmagplotlib.plot_init(EQ['eq'],5,5)
 #
@@ -104,9 +108,9 @@ def main():
     if dist=='B': # do on whole dataset
         title="Bingham confidence ellipse"
         bpars=pmag.dobingham(DIs)
-        for key in bpars.keys():
-            if key!='n':print "    ",key, '%7.1f'%(bpars[key])
-            if key=='n':print "    ",key, '       %i'%(bpars[key])
+        for key in list(bpars.keys()):
+            if key!='n':print("    ",key, '%7.1f'%(bpars[key]))
+            if key=='n':print("    ",key, '       %i'%(bpars[key]))
         npars.append(bpars['dec']) 
         npars.append(bpars['inc'])
         npars.append(bpars['Zeta']) 
@@ -119,32 +123,32 @@ def main():
         title="Fisher confidence cone"
         if len(nDIs)>3:
             fpars=pmag.fisher_mean(nDIs)
-            print "mode ",mode
-            for key in fpars.keys():
-                if key!='n':print "    ",key, '%7.1f'%(fpars[key])
-                if key=='n':print "    ",key, '       %i'%(fpars[key])
+            print("mode ",mode)
+            for key in list(fpars.keys()):
+                if key!='n':print("    ",key, '%7.1f'%(fpars[key]))
+                if key=='n':print("    ",key, '       %i'%(fpars[key]))
             mode+=1
             npars.append(fpars['dec']) 
             npars.append(fpars['inc'])
             npars.append(fpars['alpha95']) # Beta
             npars.append(fpars['dec']) 
-            isign=abs(fpars['inc'])/fpars['inc'] 
+            isign=old_div(abs(fpars['inc']),fpars['inc']) 
             npars.append(fpars['inc']-isign*90.) #Beta inc
             npars.append(fpars['alpha95']) # gamma 
             npars.append(fpars['dec']+90.) # Beta dec
             npars.append(0.) #Beta inc
         if len(rDIs)>3:
             fpars=pmag.fisher_mean(rDIs)
-            print "mode ",mode
-            for key in fpars.keys():
-                if key!='n':print "    ",key, '%7.1f'%(fpars[key])
-                if key=='n':print "    ",key, '       %i'%(fpars[key])
+            print("mode ",mode)
+            for key in list(fpars.keys()):
+                if key!='n':print("    ",key, '%7.1f'%(fpars[key]))
+                if key=='n':print("    ",key, '       %i'%(fpars[key]))
             mode+=1
             rpars.append(fpars['dec']) 
             rpars.append(fpars['inc'])
             rpars.append(fpars['alpha95']) # Beta
             rpars.append(fpars['dec']) 
-            isign=abs(fpars['inc'])/fpars['inc'] 
+            isign=old_div(abs(fpars['inc']),fpars['inc']) 
             rpars.append(fpars['inc']-isign*90.) #Beta inc
             rpars.append(fpars['alpha95']) # gamma 
             rpars.append(fpars['dec']+90.) # Beta dec
@@ -153,10 +157,10 @@ def main():
         title="Kent confidence ellipse"
         if len(nDIs)>3:
             kpars=pmag.dokent(nDIs,len(nDIs))
-            print "mode ",mode
-            for key in kpars.keys():
-                if key!='n':print "    ",key, '%7.1f'%(kpars[key])
-                if key=='n':print "    ",key, '       %i'%(kpars[key])
+            print("mode ",mode)
+            for key in list(kpars.keys()):
+                if key!='n':print("    ",key, '%7.1f'%(kpars[key]))
+                if key=='n':print("    ",key, '       %i'%(kpars[key]))
             mode+=1
             npars.append(kpars['dec']) 
             npars.append(kpars['inc'])
@@ -168,10 +172,10 @@ def main():
             npars.append(kpars['Einc'])
         if len(rDIs)>3:
             kpars=pmag.dokent(rDIs,len(rDIs))
-            print "mode ",mode
-            for key in kpars.keys():
-                if key!='n':print "    ",key, '%7.1f'%(kpars[key])
-                if key=='n':print "    ",key, '       %i'%(kpars[key])
+            print("mode ",mode)
+            for key in list(kpars.keys()):
+                if key!='n':print("    ",key, '%7.1f'%(kpars[key]))
+                if key=='n':print("    ",key, '       %i'%(kpars[key]))
             mode+=1
             rpars.append(kpars['dec']) 
             rpars.append(kpars['inc'])
@@ -186,10 +190,10 @@ def main():
             if len(nDIs)>5:
                 BnDIs=pmag.di_boot(nDIs)
                 Bkpars=pmag.dokent(BnDIs,1.)
-                print "mode ",mode
-                for key in Bkpars.keys():
-                    if key!='n':print "    ",key, '%7.1f'%(Bkpars[key])
-                    if key=='n':print "    ",key, '       %i'%(Bkpars[key])
+                print("mode ",mode)
+                for key in list(Bkpars.keys()):
+                    if key!='n':print("    ",key, '%7.1f'%(Bkpars[key]))
+                    if key=='n':print("    ",key, '       %i'%(Bkpars[key]))
                 mode+=1
                 npars.append(Bkpars['dec']) 
                 npars.append(Bkpars['inc'])
@@ -202,10 +206,10 @@ def main():
             if len(rDIs)>5:
                 BrDIs=pmag.di_boot(rDIs)
                 Bkpars=pmag.dokent(BrDIs,1.)
-                print "mode ",mode
-                for key in Bkpars.keys():
-                    if key!='n':print "    ",key, '%7.1f'%(Bkpars[key])
-                    if key=='n':print "    ",key, '       %i'%(Bkpars[key])
+                print("mode ",mode)
+                for key in list(Bkpars.keys()):
+                    if key!='n':print("    ",key, '%7.1f'%(Bkpars[key]))
+                    if key=='n':print("    ",key, '       %i'%(Bkpars[key]))
                 mode+=1
                 rpars.append(Bkpars['dec']) 
                 rpars.append(Bkpars['inc'])
@@ -230,11 +234,11 @@ def main():
                     pmagplotlib.plotEQ(EQ['eq'],rDIs,'Data')
                     pmagplotlib.plotEQ(EQ['bdirs'],BrDIs,'Bootstrapped Eigenvectors')
             pmagplotlib.drawFIGS(EQ)
-            ans=raw_input('s[a]ve, [q]uit ')
+            ans=input('s[a]ve, [q]uit ')
             if ans=='q':sys.exit()
             if ans=='a':
                 files={}
-                for key in EQ.keys():
+                for key in list(EQ.keys()):
                     files[key]='BE_'+key+'.svg'
                 pmagplotlib.saveP(EQ,files)
             sys.exit() 
@@ -245,11 +249,11 @@ def main():
     elif len(rDIs)>5 and dist!='B': 
         pmagplotlib.plotCONF(EQ['eq'],title,DiRecs,rpars,1)
     pmagplotlib.drawFIGS(EQ)
-    ans=raw_input('s[a]ve, [q]uit ')
+    ans=input('s[a]ve, [q]uit ')
     if ans=='q':sys.exit()
     if ans=='a':
         files={}
-        for key in EQ.keys():
+        for key in list(EQ.keys()):
             files[key]=key+'.svg'
         pmagplotlib.saveP(EQ,files)
     #

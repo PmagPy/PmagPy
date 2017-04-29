@@ -1,4 +1,6 @@
 #! /usr/bin/env python
+from __future__ import print_function
+from builtins import str
 import sys
 import pmagpy.pmag as pmag
 
@@ -43,7 +45,7 @@ def main():
     user,comment,doave,coord="","",1,""
     dir_path='.'
     if "-h" in args:
-        print main.__doc__
+        print(main.__doc__)
         sys.exit()
     if '-WD' in sys.argv:
         ind=sys.argv.index('-WD')
@@ -74,19 +76,19 @@ def main():
     if samp_file!="":
         samp_data,file_type=pmag.magic_read(samp_file)
         if file_type != 'er_samples':
-           print file_type
-           print "This is not a valid er_samples file " 
+           print(file_type)
+           print("This is not a valid er_samples file ") 
            sys.exit()
-        else: print samp_file,' read in with ',len(samp_data),' records'
+        else: print(samp_file,' read in with ',len(samp_data),' records')
     else:
-        print 'no orientations - will create file in specimen coordinates'
+        print('no orientations - will create file in specimen coordinates')
         geo,tilt,orient=0,0,0
     #
     #
     meas_data,file_type=pmag.magic_read(meas_file)
     if file_type != 'magic_measurements':
-        print file_type
-        print file_type,"This is not a valid magic_measurements file " 
+        print(file_type)
+        print(file_type,"This is not a valid magic_measurements file ") 
         sys.exit()
     #
     if orient==1:
@@ -125,9 +127,9 @@ def main():
                PmagSpecRec["er_location_name"]=rec["er_location_name"]
                PmagSpecRec["er_citation_names"]="This study"
                PmagSpecRec["magic_instrument_codes"]=""
-               if "magic_experiment_name" not in rec.keys():
+               if "magic_experiment_name" not in list(rec.keys()):
                    rec["magic_experiment_name"]=""
-               if "magic_instrument_codes" not in rec.keys():
+               if "magic_instrument_codes" not in list(rec.keys()):
                    rec["magic_instrument_codes"]=""
                else:
                    PmagSpecRec["magic_experiment_names"]=rec["magic_experiment_name"]
@@ -158,7 +160,7 @@ def main():
             if len(avedata) != len(datablock):
                 method_codes.append("DE-VM")
                 SpecRec=avedata[0]
-                print 'averaging data '
+                print('averaging data ')
             else: SpecRec=data[0]
             Specs.append(SpecRec)
         else:
@@ -178,7 +180,7 @@ def main():
                     redo=0
                 while redo==1:
                     if p>=len(orientation_priorities):
-                        print "no orientation data for ",s 
+                        print("no orientation data for ",s) 
                         skip,redo=1,0
                         break
                     az_type=orientation_priorities[str(p)]
@@ -195,7 +197,7 @@ def main():
                     d_geo,i_geo=pmag.dogeo(SpecRec[1],SpecRec[2],orient["sample_azimuth"],orient["sample_dip"])
                     SpecRec[1]=d_geo
                     SpecRec[2]=i_geo
-                    if tilt==1 and "sample_bed_dip" in orient.keys() and orient['sample_bed_dip']!="": 
+                    if tilt==1 and "sample_bed_dip" in list(orient.keys()) and orient['sample_bed_dip']!="": 
                         d_tilt,i_tilt=pmag.dotilt(d_geo,i_geo,orient["sample_bed_dip_direction"],orient["sample_bed_dip"])
                         SpecRec[1]=d_tilt
                         SpecRec[2]=i_tilt
@@ -215,7 +217,7 @@ def main():
                 PmagSpecRec["specimen_description"]="NRM data"
                 PmagSpecRecs.append(PmagSpecRec)
     pmag.magic_write(pmag_file,PmagSpecRecs,'pmag_specimens')
-    print "Data saved in ",pmag_file
+    print("Data saved in ",pmag_file)
 
 if __name__ == "__main__":
     main()

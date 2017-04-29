@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+from __future__ import print_function
+from builtins import input
 import sys
 import numpy
 import pmagpy.pmag as pmag
@@ -31,7 +33,7 @@ def main():
     """
     out=""
     if '-h' in sys.argv:
-        print main.__doc__
+        print(main.__doc__)
         sys.exit()
     if '-F' in sys.argv:
         ind=sys.argv.index('-F')
@@ -42,17 +44,17 @@ def main():
         while cont==1:
             try:
                 dir=[]
-                ans=raw_input('Declination: [cntrl-D  to quit] ')
+                ans=input('Declination: [cntrl-D  to quit] ')
                 dir.append(float(ans))
-                ans=raw_input('Inclination: ')
+                ans=input('Inclination: ')
                 dir.append(float(ans))
-                ans=raw_input('Intensity [return for unity]: ')
+                ans=input('Intensity [return for unity]: ')
                 if ans=='':ans='1'
                 dir.append(float(ans))
                 cart= pmag.dir2cart(dir)  # send dir to dir2cart and spit out result
-                print '%8.4e %8.4e %8.4e'%(cart[0],cart[1],cart[2])
+                print('%8.4e %8.4e %8.4e'%(cart[0],cart[1],cart[2]))
             except:
-                print '\n Good-bye \n'
+                print('\n Good-bye \n')
                 sys.exit()
     elif '-f' in sys.argv:
         ind=sys.argv.index('-f')
@@ -63,11 +65,11 @@ def main():
     cart= pmag.dir2cart(input)
     if len(cart.shape)==1:
         line=cart
-        print '%8.4e %8.4e %8.4e'%(line[0],line[1],line[2])
+        print('%8.4e %8.4e %8.4e'%(line[0],line[1],line[2]))
         if out!="":out.write('%8.4e %8.4e %8.4e\n'%(line[0],line[1],line[2]))
     else:
         for line in cart:
-            print '%8.4e %8.4e %8.4e'%(line[0],line[1],line[2])
+            print('%8.4e %8.4e %8.4e'%(line[0],line[1],line[2]))
             if out!="":out.write('%8.4e %8.4e %8.4e\n'%(line[0],line[1],line[2]))
 
 if __name__ == "__main__":

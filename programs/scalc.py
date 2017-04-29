@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+from __future__ import print_function
+from builtins import range
 import sys
 import random
 
@@ -43,12 +45,12 @@ def main():
     spin=1
     coord_key='tilt_correction'
     if '-h' in sys.argv:
-        print main.__doc__
+        print(main.__doc__)
         sys.exit()
     if '-f' in sys.argv:
         ind=sys.argv.index("-f")
         in_file=sys.argv[ind+1]
-        f=open(in_file,'rU')
+        f=open(in_file,'r')
         lines=f.readlines()
     else:
         lines=sys.stdin.readlines()
@@ -120,7 +122,7 @@ def main():
         for vgp in vVgps:Vgps.append(vgp) # make a new Vgp list
     SBs,Ns=[],[]
     if boot==1:
-      print 'please be patient...   bootstrapping'
+      print('please be patient...   bootstrapping')
       for i in range(nb): # now do bootstrap 
         BVgps=[]
         for k in range(len(Vgps)):
@@ -131,12 +133,12 @@ def main():
       SBs.sort()
       low=int(.025*nb)
       high=int(.975*nb)
-      print len(Vgps),'%7.1f %7.1f  %7.1f %7.1f '%(S_B,SBs[low],SBs[high],A)
+      print(len(Vgps),'%7.1f %7.1f  %7.1f %7.1f '%(S_B,SBs[low],SBs[high],A))
     else:
-      print len(Vgps),'%7.1f  %7.1f '%(S_B,A)
+      print(len(Vgps),'%7.1f  %7.1f '%(S_B,A))
     if  len(slats)>2:
         stats= pmag.gausspars(slats)
-        print 'mean lat = ','%7.1f'%(stats[0])
+        print('mean lat = ','%7.1f'%(stats[0]))
 
 if __name__ == "__main__":
     main()

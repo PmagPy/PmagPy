@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+from __future__ import print_function
+from builtins import input
 import sys
 import numpy
 import matplotlib
@@ -35,7 +37,7 @@ def main():
     d,i,file2="","",""
     fmt,plot='svg',0
     if '-h' in sys.argv: # check if help is needed
-        print main.__doc__
+        print(main.__doc__)
         sys.exit() # graceful quit
     if '-sav' in sys.argv: plot=1
     if '-fmt'  in sys.argv:
@@ -58,13 +60,13 @@ def main():
 #
 # get bootstrapped means for first data set
 #
-    print "Doing first set of directions, please be patient.."
+    print("Doing first set of directions, please be patient..")
     BDI1=pmag.di_boot(D1)
 #
 #   convert to cartesian coordinates X1,X2, Y1,Y2 and Z1, Z2
 #
     if d=="": # repeat for second data set
-        print "Doing second  set of directions, please be patient.."
+        print("Doing second  set of directions, please be patient..")
         BDI2=pmag.di_boot(D2)
     else:
         BDI2=[]
@@ -81,7 +83,7 @@ def main():
     files['Z']='CD_Z.'+fmt
     if plot==0:
         pmagplotlib.drawFIGS(CDF)
-        ans=raw_input("S[a]ve plots, <Return> to quit ")
+        ans=input("S[a]ve plots, <Return> to quit ")
         if ans=="a":
             pmagplotlib.saveP(CDF,files)
         else:

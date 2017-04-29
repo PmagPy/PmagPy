@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import print_function
 import sys
 import pmagpy.command_line_extractor as extractor
 import pmagpy.ipmag as ipmag
@@ -70,7 +71,7 @@ def main():
     #def kly4s_magic(infile, specnum=0, locname="unknown", inst='SIO-KLY4S', samp_con="1", or_con='3' ,user='', measfile='magic_measurements.txt', aniso_outfile='rmag_anisotropy.txt', samp_infile='', spec_infile='', azdip_infile='', output_dir_path='.', input_dir_path='.'):
     args = sys.argv
     if '-h' in args:
-        print main.__doc__
+        print(main.__doc__)
         sys.exit()
     dataframe = extractor.command_line_dataframe([['f', True, ''], ['fad', False, ''], ['fsa', False, ''], ['fsp', False, ''], ['Fsp', False, 'er_specimens.txt'], ['F', False, 'magic_measurements.txt'], ['Fa', False, 'rmag_anisotropy.txt'], ['ocn', False, '3'], ['usr', False, ''], ['loc', False, ''], ['ins', False, 'SIO-KLY4S'], ['spc', False, 0], ['ncn', False, '1'], ['WD', False, '.'], ['ID', False, '.'] ])
     checked_args = extractor.extract_and_check_args(args, dataframe)

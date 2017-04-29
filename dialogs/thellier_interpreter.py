@@ -24,7 +24,7 @@ import gzip
 #import pmag
 import copy
 #from scipy.optimize import curve_fit
-import thellier_gui_lib
+from . import thellier_gui_lib
 
 class thellier_auto_interpreter():
 
@@ -80,8 +80,8 @@ class thellier_auto_interpreter():
 
         # sort acceptance criteria
         self.specimen_criteria=[]
-        for crit in self.acceptance_criteria.keys():
-            if 'category' in self.acceptance_criteria[crit].keys():
+        for crit in list(self.acceptance_criteria.keys()):
+            if 'category' in list(self.acceptance_criteria[crit].keys()):
                 if self.acceptance_criteria[crit]['category']=="IE-SPEC":
                     if self.acceptance_criteria[crit]['value']!=-999:
                         self.specimen_criteria.append(crit)
@@ -89,24 +89,24 @@ class thellier_auto_interpreter():
                                         
         # sort acceptance criteria
         sample_criteria=[]
-        for crit in self.acceptance_criteria.keys():
-            if 'category' in self.acceptance_criteria[crit].keys():
+        for crit in list(self.acceptance_criteria.keys()):
+            if 'category' in list(self.acceptance_criteria[crit].keys()):
                 if self.acceptance_criteria[crit]['category']=="IE-SAMP":
                     if self.acceptance_criteria[crit]['value']!=-999:
                         sample_criteria.append(crit)
 
         # sort acceptance criteria
         site_criteria=[]
-        for crit in self.acceptance_criteria.keys():
-            if 'category' in self.acceptance_criteria[crit].keys():
+        for crit in list(self.acceptance_criteria.keys()):
+            if 'category' in list(self.acceptance_criteria[crit].keys()):
                 if self.acceptance_criteria[crit]['category']=="thellier_gui":
                     if self.acceptance_criteria[crit]['value']!=-999:
                         site_criteria.append(crit)
 
         # sort acceptance criteria
         thellier_gui_criteria=[]
-        for crit in self.acceptance_criteria.keys():
-            if 'category' in self.acceptance_criteria[crit].keys():
+        for crit in list(self.acceptance_criteria.keys()):
+            if 'category' in list(self.acceptance_criteria[crit].keys()):
                 if self.acceptance_criteria[crit]['category']=="thellier_gui":
                     if self.acceptance_criteria[crit]['value']!=-999:
                         thellier_gui_criteria.append(crit)
@@ -143,7 +143,7 @@ class thellier_auto_interpreter():
                   string="%.3e"%(float(self.acceptance_criteria[crit]['value']))
                 else:
                     command=  "string='%%.%if'%%(self.acceptance_criteria[crit]['value'])"%int(self.acceptance_criteria[crit]['decimal_points'])
-                    exec command
+                    exec(command)
             else:
                 string=""
                 
@@ -170,7 +170,7 @@ class thellier_auto_interpreter():
                   string="%.3e"%(float(self.acceptance_criteria[crit]['value']))
                 else:
                     command=  "string='%%.%if'%%(self.acceptance_criteria[crit]['value'])"%int(self.acceptance_criteria[crit]['decimal_points'])
-                    exec command
+                    exec(command)
             else:
                 string=""
                 
@@ -222,7 +222,7 @@ class thellier_auto_interpreter():
         #------------------------------------------------
 
 
-        specimens_list=self.Data.keys()
+        specimens_list=list(self.Data.keys())
         specimens_list.sort()
         self.thellier_interpreter_log.write("-I- Found %i specimens\n"%(len(specimens_list)))
 
@@ -272,7 +272,7 @@ class thellier_auto_interpreter():
                         message_string = '-W- Problem in SPD. Could not calculate any parameters for {} with tmin: {} and tmax {}. Check data for typos, make sure temperatures are correct, etc.'.format(s, tmin, tmax)
                         self.thellier_interpreter_log.write(message_string+"\n")
                         continue
-                    if 'NLT_specimen_correction_factor' not in pars.keys():
+                    if 'NLT_specimen_correction_factor' not in list(pars.keys()):
                         # problem in get_PI_parameters (probably with tmin/zdata).  can't run specimen
                         message_string = '-W- Problem in get_PI_parameters. Could not get all parameters for {} with tmin: {} and tmax: {}. Check data for typos, make sure temperatures are correct, etc.'.format(s, tmin, tmax)
                         self.thellier_interpreter_log.write(message_string+"\n")
@@ -282,7 +282,7 @@ class thellier_auto_interpreter():
                     # check if pass the criteria
                     #-------------------------------------------------
 
-                    if 'specimen_fail_criteria' in pars.keys() and len(pars['specimen_fail_criteria'])>0:
+                    if 'specimen_fail_criteria' in list(pars.keys()) and len(pars['specimen_fail_criteria'])>0:
                         # Fail:
                         message_string= "-I- specimen %s (%.0f-%.0f) FAIL on: "%(s,float(pars["measurement_step_min"])-273, float(pars["measurement_step_max"])-273)
                         for parameter in pars['specimen_fail_criteria']:
@@ -292,7 +292,7 @@ class thellier_auto_interpreter():
                                 message_string=message_string+parameter + "= %s,  "%str(pars[parameter])
 
                         self.thellier_interpreter_log.write(message_string+"\n")
-                    elif 'specimen_fail_criteria' in pars.keys() and len(pars['specimen_fail_criteria'])==0:
+                    elif 'specimen_fail_criteria' in list(pars.keys()) and len(pars['specimen_fail_criteria'])==0:
 
                         # PASS:
                         message_string = "-I- specimen %s (%.0f-%.0f) PASS"%(s,float(pars["measurement_step_min"])-273, float(pars["measurement_step_max"])-273)
@@ -307,7 +307,7 @@ class thellier_auto_interpreter():
                         String=String+"%.0f\t"%(float(pars["measurement_step_max"])-273.)
                         String=String+"%.0f\t"%(float(pars["lab_dc_field"])*1e6)
 
-                        if "Anisotropy_correction_factor" in pars.keys():
+                        if "Anisotropy_correction_factor" in list(pars.keys()):
                            String=String+"%.2f\t"%float(pars["Anisotropy_correction_factor"])
                         else:
                            String=String+"-\t"
@@ -337,16 +337,16 @@ class thellier_auto_interpreter():
                         # All_grade_A_Recs[specimen_name]["tmin,tmax"]={PI pars sorted in dictionary}
                         #-------------------------------------------------
 
-                        if s not in All_grade_A_Recs.keys():
+                        if s not in list(All_grade_A_Recs.keys()):
                            All_grade_A_Recs[s]={}
                         new_pars={}
-                        for k in pars.keys():
+                        for k in list(pars.keys()):
                             new_pars[k]=pars[k]
                         TEMP="%.0f,%.0f"%(float(pars["measurement_step_min"])-273,float(pars["measurement_step_max"])-273)
                         All_grade_A_Recs[s][TEMP]=new_pars
 
 
-        specimens_list=All_grade_A_Recs.keys()
+        specimens_list=list(All_grade_A_Recs.keys())
         specimens_list.sort()
         Grade_A_samples={}
         Grade_A_sites={}
@@ -365,13 +365,13 @@ class thellier_auto_interpreter():
             NLT_factor_min,NLT_factor_max=1e10,0.
             all_B_tmp_array=[]
 
-            for TEMP in All_grade_A_Recs[s].keys():
+            for TEMP in list(All_grade_A_Recs[s].keys()):
                 pars=All_grade_A_Recs[s][TEMP]
-                if "AC_anisotropy_type" in pars.keys():
+                if "AC_anisotropy_type" in list(pars.keys()):
                     AC_correction_factor=pars["Anisotropy_correction_factor"]
                     AC_correction_type=pars["AC_anisotropy_type"]
                     WARNING=""
-                    if "AC_WARNING" in pars.keys():
+                    if "AC_WARNING" in list(pars.keys()):
                         WARNING=WARNING+pars["AC_WARNING"]
                 else:
                     AC_correction_factor=1.
@@ -394,9 +394,9 @@ class thellier_auto_interpreter():
                 # sort by samples
                 #------------------------------------------------------------
 
-                if sample not in Grade_A_samples.keys():
+                if sample not in list(Grade_A_samples.keys()):
                     Grade_A_samples[sample]={}
-                if s not in Grade_A_samples[sample].keys() and len(All_grade_A_Recs[s])>0:
+                if s not in list(Grade_A_samples[sample].keys()) and len(All_grade_A_Recs[s])>0:
                     Grade_A_samples[sample][s]=[]
 
                 if pd.notnull(B_anc):
@@ -405,9 +405,9 @@ class thellier_auto_interpreter():
                 # sort by sites
                 #------------------------------------------------------------
 
-                if site not in Grade_A_sites.keys():
+                if site not in list(Grade_A_sites.keys()):
                     Grade_A_sites[site]={}
-                if s not in Grade_A_sites[site].keys() and len(All_grade_A_Recs[s])>0:
+                if s not in list(Grade_A_sites[site].keys()) and len(All_grade_A_Recs[s])>0:
                     Grade_A_sites[site][s]=[]
                 if pd.notnull(B_anc):
                     Grade_A_sites[site][s].append(B_anc)
@@ -415,7 +415,7 @@ class thellier_auto_interpreter():
                 # ? check
                 #------------------------------------------------------------
 
-                if s not in Redo_data_specimens.keys():
+                if s not in list(Redo_data_specimens.keys()):
                     Redo_data_specimens[s]={}
 
             # write to specimen_bounds
@@ -430,8 +430,8 @@ class thellier_auto_interpreter():
                 CR_factor="%.2f"%(float(pars["specimen_int_corr_cooling_rate"]))
             else:
                 CR_factor="-"
-            if 'cooling_rate_data' in  self.Data[s].keys():
-                if 'CR_correction_factor_flag' in  self.Data[s]['cooling_rate_data'].keys():
+            if 'cooling_rate_data' in  list(self.Data[s].keys()):
+                if 'CR_correction_factor_flag' in  list(self.Data[s]['cooling_rate_data'].keys()):
                     if self.Data[s]['cooling_rate_data']['CR_correction_factor_flag'] != "calculated":
                         if "inferred" in self.Data[s]['cooling_rate_data']['CR_correction_factor_flag']:
                             WARNING=WARNING+";"+"cooling rate correction inferred from sister specimens"
@@ -460,10 +460,10 @@ class thellier_auto_interpreter():
 
         # Sort all grade A interpretation
 
-        samples=Grade_A_samples.keys()
+        samples=list(Grade_A_samples.keys())
         samples.sort()
 
-        sites=Grade_A_sites.keys()
+        sites=list(Grade_A_sites.keys())
         sites.sort()
 
         #--------------------------------------------------------------
@@ -479,12 +479,12 @@ class thellier_auto_interpreter():
 
         self.clean_workspace()
 
-        samples_or_sites=self.Grade_A_sorted.keys()
+        samples_or_sites=list(self.Grade_A_sorted.keys())
         samples_or_sites.sort()
         #print Grade_A_sorted
         for sample_or_site in samples_or_sites:
-            if len(self.Grade_A_sorted[sample_or_site].keys()) == 1:
-                specimen=self.Grade_A_sorted[sample_or_site].keys()[0]
+            if len(list(self.Grade_A_sorted[sample_or_site].keys())) == 1:
+                specimen=list(self.Grade_A_sorted[sample_or_site].keys())[0]
                 self.choose_interpretation_max_frac(All_grade_A_Recs,specimen)
             else:
                 self.thellier_interpreter_pars=self.calc_upper_level_mean(self.Grade_A_sorted,All_grade_A_Recs,sample_or_site)  
@@ -492,7 +492,7 @@ class thellier_auto_interpreter():
                 self.update_files_with_intrepretation(self.Grade_A_sorted,All_grade_A_Recs,sample_or_site,self.thellier_interpreter_pars)
         self.thellier_interpreter_log.write("-I- Statistics:\n")
         self.thellier_interpreter_log.write("-I- number of specimens analzyed = %i\n" % len(specimens_list))
-        self.thellier_interpreter_log.write("-I- number of sucsessful 'acceptable' specimens = %i\n" % len(All_grade_A_Recs.keys()))
+        self.thellier_interpreter_log.write("-I- number of sucsessful 'acceptable' specimens = %i\n" % len(list(All_grade_A_Recs.keys())))
 
         runtime_sec = time.time() - start_time
         m, s = divmod(runtime_sec, 60)
@@ -534,23 +534,23 @@ class thellier_auto_interpreter():
 
 
     def update_data_with_interpreter_pars(self,Grade_A_sorted,All_grade_A_Recs,sample_or_site,thellier_interpreter_pars):
-        for specimen in Grade_A_sorted[sample_or_site].keys():
-            if specimen not in thellier_interpreter_pars['stdev_opt_interpretations'].keys():
+        for specimen in list(Grade_A_sorted[sample_or_site].keys()):
+            if specimen not in list(thellier_interpreter_pars['stdev_opt_interpretations'].keys()):
                 continue
-            for TEMP in All_grade_A_Recs[specimen].keys():
+            for TEMP in list(All_grade_A_Recs[specimen].keys()):
                 if All_grade_A_Recs[specimen][TEMP]['specimen_int_uT']==thellier_interpreter_pars['stdev_opt_interpretations'][specimen]:    #Best_interpretations[specimen]:
                     self.Data[specimen]['pars'].update(All_grade_A_Recs[specimen][TEMP])
                     self.Data[specimen]['pars']['saved']=True
                     sample=self.Data_hierarchy['specimens'][specimen]
-                    if sample not in self.Data_samples.keys():
+                    if sample not in list(self.Data_samples.keys()):
                         self.Data_samples[sample]={}
-                    if specimen not in self.Data_samples[sample].keys():
+                    if specimen not in list(self.Data_samples[sample].keys()):
                         self.Data_samples[sample][specimen]={}
                     self.Data_samples[sample][specimen]['B']=self.Data[specimen]['pars']['specimen_int_uT']
                     site=thellier_gui_lib.get_site_from_hierarchy(sample,self.Data_hierarchy)
-                    if site not in self.Data_sites.keys():
+                    if site not in list(self.Data_sites.keys()):
                         self.Data_sites[site]={}
-                    if specimen not in self.Data_sites.keys():
+                    if specimen not in list(self.Data_sites.keys()):
                         self.Data_sites[site][specimen]={}
                     self.Data_sites[site][specimen]['B']=self.Data[specimen]['pars']['specimen_int_uT']
 
@@ -564,25 +564,25 @@ class thellier_auto_interpreter():
         #--------------------------------------------------------------
         
         frac_max=0
-        for TEMP in All_grade_A_Recs[specimen].keys():
+        for TEMP in list(All_grade_A_Recs[specimen].keys()):
             if All_grade_A_Recs[specimen][TEMP]['specimen_frac']>frac_max:
                 best_intensity=All_grade_A_Recs[specimen][TEMP]['specimen_int_uT']
-        for TEMP in All_grade_A_Recs[specimen].keys():                        
+        for TEMP in list(All_grade_A_Recs[specimen].keys()):                        
             if All_grade_A_Recs[specimen][TEMP]['specimen_int_uT']==best_intensity:
                 self.Data[specimen]['pars'].update(All_grade_A_Recs[specimen][TEMP])
                 self.Data[specimen]['pars']['saved']=True
                 sample=self.Data_hierarchy['specimens'][specimen]
-                if sample not in self.Data_samples.keys():
+                if sample not in list(self.Data_samples.keys()):
                     self.Data_samples[sample]={}
-                if specimen not in self.Data_samples[sample].keys():
+                if specimen not in list(self.Data_samples[sample].keys()):
                     self.Data_samples[sample][specimen]={}
                     
                 self.Data_samples[sample][specimen]['B']=self.Data[specimen]['pars']['specimen_int_uT']
 
                 site=thellier_gui_lib.get_site_from_hierarchy(sample,self.Data_hierarchy)
-                if site not in self.Data_sites.keys():
+                if site not in list(self.Data_sites.keys()):
                     self.Data_sites[site]={}
-                if specimen not in self.Data_sites[site].keys():
+                if specimen not in list(self.Data_sites[site].keys()):
                     self.Data_sites[site][specimen]={}
                 self.Data_sites[site][specimen]['B']=self.Data[specimen]['pars']['specimen_int_uT']
         
@@ -594,7 +594,7 @@ class thellier_auto_interpreter():
         # clean workspace: delete all previous interpretation
         #--------------------------------------------------------------
        
-        for sp in self.Data.keys():
+        for sp in list(self.Data.keys()):
             del self.Data[sp]['pars']
             self.Data[sp]['pars']={}
             self.Data[sp]['pars']['lab_dc_field']=self.Data[sp]['lab_dc_field']
@@ -631,14 +631,14 @@ class thellier_auto_interpreter():
                     int_n = self.acceptance_criteria['sample_int_n']['value']
                 else:
                     int_n = self.acceptance_criteria['site_int_n']['value']
-                if len(tmp_Grade_A_sorted[sample_or_site].keys())>int_n:
+                if len(list(tmp_Grade_A_sorted[sample_or_site].keys()))>int_n:
                     aniso_corrections=[]
-                    for specimen in tmp_Grade_A_sorted[sample_or_site].keys():
+                    for specimen in list(tmp_Grade_A_sorted[sample_or_site].keys()):
                         AC_correction_factor_1=0
-                        for k in All_grade_A_Recs[specimen].keys():
+                        for k in list(All_grade_A_Recs[specimen].keys()):
                             pars=All_grade_A_Recs[specimen][k]
-                            if "AC_anisotropy_type" in pars.keys():
-                                if "AC_WARNING" in pars.keys():
+                            if "AC_anisotropy_type" in list(pars.keys()):
+                                if "AC_WARNING" in list(pars.keys()):
                                     if "TRM" in pars["AC_WARNING"] and pars["AC_anisotropy_type"]== "ATRM" and "alteration" in pars["AC_WARNING"]:
                                         continue
                                     AC_correction_factor_1=max(AC_correction_factor_1,100*abs(1.-pars["Anisotropy_correction_factor"]))
@@ -652,14 +652,14 @@ class thellier_auto_interpreter():
                         warning_messeage=""
                         WARNING_tmp=""
                         #print "sample %s have anisotropy factor mean of %f"%(sample,mean(aniso_corrections))
-                        for specimen in tmp_Grade_A_sorted[sample_or_site].keys():
+                        for specimen in list(tmp_Grade_A_sorted[sample_or_site].keys()):
                             ignore_specimen=False
-                            intenstities=All_grade_A_Recs[specimen].keys()
+                            intenstities=list(All_grade_A_Recs[specimen].keys())
                             pars=All_grade_A_Recs[specimen][intenstities[0]]
-                            if "AC_anisotropy_type" not in pars.keys():
+                            if "AC_anisotropy_type" not in list(pars.keys()):
                                 ignore_specimen=True
                                 warning_messeage = warning_messeage + "-W- WARNING: specimen %s is excluded from sample %s because it doesn't have anisotropy correction, and other specimens are very anisotropic\n"%(specimen,sample_or_site)
-                            elif "AC_WARNING" in pars.keys():
+                            elif "AC_WARNING" in list(pars.keys()):
                                 #if "alteration check" in pars["AC_WARNING"]:
                                     if pars["AC_anisotropy_type"]== "ATRM" and "TRM" in pars["AC_WARNING"] and  "alteration" in pars["AC_WARNING"]  : 
                                        #or "ARM" in pars["AC_WARNING"] and  pars["AC_anisotropy_type"]== "AARM":
@@ -713,9 +713,9 @@ class thellier_auto_interpreter():
             if int_n_outlier_check==-999:
                  int_n_outlier_check=9999   
                
-            if len(tmp_Grade_A_sorted[sample_or_site].keys())>=int_n_outlier_check:
+            if len(list(tmp_Grade_A_sorted[sample_or_site].keys()))>=int_n_outlier_check:
                 self.thellier_interpreter_log.write( "-I- check outlier for sample %s \n"%sample)
-                all_specimens=tmp_Grade_A_sorted[sample_or_site].keys()
+                all_specimens=list(tmp_Grade_A_sorted[sample_or_site].keys())
                 for specimen in all_specimens:
                     B_min_array,B_max_array=[],[]
                     for specimen_b in all_specimens:
@@ -776,10 +776,10 @@ class thellier_auto_interpreter():
                 n_anistropy=0
                 n_anistropy_fail=0
                 n_anistropy_pass=0
-                for specimen in Grade_A_sorted[sample_or_site].keys():
-                    if "AniSpec" in self.Data[specimen].keys():
+                for specimen in list(Grade_A_sorted[sample_or_site].keys()):
+                    if "AniSpec" in list(self.Data[specimen].keys()):
                         n_anistropy+=1
-                        if 'pars' in self.Data[specimen].keys() and "AC_WARNING" in  self.Data[specimen]['pars'].keys():
+                        if 'pars' in list(self.Data[specimen].keys()) and "AC_WARNING" in  list(self.Data[specimen]['pars'].keys()):
                             if  self.Data[specimen]['pars']["AC_anisotropy_type"]=='ATRM' and "alteration" in self.Data[specimen]['pars']["AC_WARNING"]:
                                 n_anistropy_fail+=1
                             else:
@@ -789,22 +789,22 @@ class thellier_auto_interpreter():
                 n_cooling_rate_pass=0
                 n_cooling_rate_fail=0
                 
-                for specimen in Grade_A_sorted[sample_or_site].keys():
-                        if "cooling_rate_data" in self.Data[specimen].keys():
+                for specimen in list(Grade_A_sorted[sample_or_site].keys()):
+                        if "cooling_rate_data" in list(self.Data[specimen].keys()):
                             n_cooling_rate+=1
-                            if "CR_correction_factor" in self.Data[specimen]["cooling_rate_data"].keys():
+                            if "CR_correction_factor" in list(self.Data[specimen]["cooling_rate_data"].keys()):
                                 if self.Data[specimen]["cooling_rate_data"]["CR_correction_factor"]!= -1 and self.Data[specimen]["cooling_rate_data"]["CR_correction_factor"]!= -999:
                                     no_cooling_rate=False
-                                if 'CR_correction_factor_flag' in self.Data[specimen]["cooling_rate_data"].keys():
+                                if 'CR_correction_factor_flag' in list(self.Data[specimen]["cooling_rate_data"].keys()):
                                     if 'calculated' in self.Data[specimen]['cooling_rate_data']['CR_correction_factor_flag']:
                                         n_cooling_rate_pass+=1
                                     elif 'failed'  in self.Data[specimen]['cooling_rate_data']['CR_correction_factor_flag']:
                                         n_cooling_rate_fail+=1 
                                 
              
-                if len(Grade_A_sorted[sample_or_site].keys()) > 1 and "int_n" not in thellier_interpreter_pars['fail_criteria']:
+                if len(list(Grade_A_sorted[sample_or_site].keys())) > 1 and "int_n" not in thellier_interpreter_pars['fail_criteria']:
                     TEXT= "-I- sample %s 'STDEV-OPT interpretation: "%sample_or_site
-                    for ss in thellier_interpreter_pars['stdev_opt_interpretations'].keys():
+                    for ss in list(thellier_interpreter_pars['stdev_opt_interpretations'].keys()):
                         TEXT=TEXT+"%s=%.1f, "%(ss,thellier_interpreter_pars['stdev_opt_interpretations'][ss])
                     self.thellier_interpreter_log.write(TEXT+"\n")
                     self.thellier_interpreter_log.write("-I- sample %s STDEV-OPT mean=%f, STDEV-OPT std=%f \n"%(sample_or_site,thellier_interpreter_pars['stdev-opt']['B'],thellier_interpreter_pars['stdev-opt']['std']))
@@ -814,9 +814,9 @@ class thellier_auto_interpreter():
                     # check if interpretation pass criteria for samples:
                     if thellier_interpreter_pars['pass_or_fail']=='pass':                
                             # write the interpretation to a redo file
-                            for specimen in Grade_A_sorted[sample_or_site].keys():
+                            for specimen in list(Grade_A_sorted[sample_or_site].keys()):
                                 #print Redo_data_specimens[specimen]
-                                for TEMP in All_grade_A_Recs[specimen].keys():
+                                for TEMP in list(All_grade_A_Recs[specimen].keys()):
                                     if All_grade_A_Recs[specimen][TEMP]['specimen_int_uT']==thellier_interpreter_pars['stdev_opt_interpretations'][specimen]:
                                         t_min=All_grade_A_Recs[specimen][TEMP]['measurement_step_min']
                                         t_max=All_grade_A_Recs[specimen][TEMP]['measurement_step_max']
@@ -827,7 +827,7 @@ class thellier_auto_interpreter():
                                     # write the interpretation to the specimen file
                                         B_lab=float(All_grade_A_Recs[specimen][TEMP]['lab_dc_field'])*1e6
                                         sample=All_grade_A_Recs[specimen][TEMP]['er_sample_name']
-                                        if "Anisotropy_correction_factor" in All_grade_A_Recs[specimen][TEMP].keys():
+                                        if "Anisotropy_correction_factor" in list(All_grade_A_Recs[specimen][TEMP].keys()):
                                             Anisotropy_correction_factor="%.2f"%(All_grade_A_Recs[specimen][TEMP]["Anisotropy_correction_factor"])
                                             #AC_correction_type=pars["AC_anisotropy_type"]
                                         #if 'AC_specimen_correction_factor' in All_grade_A_Recs[specimen][TEMP].keys():
@@ -945,11 +945,11 @@ class thellier_auto_interpreter():
             Best_array_tmp=[]
             Best_interpretations={}
             Best_interpretations_tmp={}
-            for this_specimen in Intensities.keys():
+            for this_specimen in list(Intensities.keys()):
                 for value in Intensities[this_specimen]:
                     Best_interpretations_tmp[this_specimen]=value
                     Best_array_tmp=[value]
-                    all_other_specimens=Intensities.keys()
+                    all_other_specimens=list(Intensities.keys())
                     all_other_specimens.remove(this_specimen)
                     
                     for other_specimen in all_other_specimens:
@@ -1012,17 +1012,17 @@ class thellier_auto_interpreter():
           # make a new dictionary named "tmp_Intensities" with all grade A interpretation sorted. 
           tmp_Intensities={}
           Acceptable_sample_min_mean,Acceptable_sample_max_mean="",""
-          for this_specimen in Intensities.keys():
+          for this_specimen in list(Intensities.keys()):
             B_list=[B  for B in Intensities[this_specimen]]
             if len(B_list)>0:
                 B_list.sort()
                 tmp_Intensities[this_specimen]=B_list
 
           # find the minmum acceptable values
-          while len(tmp_Intensities.keys())>=int_n_cutoff:
+          while len(list(tmp_Intensities.keys()))>=int_n_cutoff:
               B_tmp=[]
               B_tmp_min=1e10
-              for specimen in tmp_Intensities.keys():
+              for specimen in list(tmp_Intensities.keys()):
                   B_tmp.append(min(tmp_Intensities[specimen]))
                   if min(tmp_Intensities[specimen])<B_tmp_min:
                       specimen_to_remove=specimen
@@ -1040,16 +1040,16 @@ class thellier_auto_interpreter():
                   
                                                                     
           tmp_Intensities={}
-          for this_specimen in Intensities.keys():
+          for this_specimen in list(Intensities.keys()):
             B_list=[B  for B in Intensities[this_specimen]]
             if len(B_list)>0:
                 B_list.sort()
                 tmp_Intensities[this_specimen]=B_list
 
-          while len(tmp_Intensities.keys())>=int_n_cutoff:
+          while len(list(tmp_Intensities.keys()))>=int_n_cutoff:
               B_tmp=[]
               B_tmp_max=0
-              for specimen in tmp_Intensities.keys():
+              for specimen in list(tmp_Intensities.keys()):
                   B_tmp.append(max(tmp_Intensities[specimen]))
                   if max(tmp_Intensities[specimen])>B_tmp_max:
                       specimen_to_remove=specimen
@@ -1111,7 +1111,7 @@ class thellier_auto_interpreter():
             int_interval_cutoff=self.acceptance_criteria['site_int_interval_uT']['value']
             int_interval_perc_cutoff=self.acceptance_criteria['site_int_interval_perc']['value']
         
-        N= len(Grade_As.keys())
+        N= len(list(Grade_As.keys()))
         if N <= 1:
            thellier_interpreter_pars['pass_or_fail']='fail'
            thellier_interpreter_pars['fail_criteria'].append("int_n")
@@ -1183,9 +1183,9 @@ class thellier_auto_interpreter():
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         
         BOOTSTRAP_N=int(self.preferences['BOOTSTRAP_N'])
         Grade_A_samples_BS={} 
-        if len(Grade_As.keys()) >= self.acceptance_criteria['sample_int_n']['value']:
-            for specimen in Grade_As.keys():
-                if specimen not in Grade_A_samples_BS.keys() and len(Grade_As[specimen])>0:
+        if len(list(Grade_As.keys())) >= self.acceptance_criteria['sample_int_n']['value']:
+            for specimen in list(Grade_As.keys()):
+                if specimen not in list(Grade_A_samples_BS.keys()) and len(Grade_As[specimen])>0:
                     Grade_A_samples_BS[specimen]=[]
                 for B in Grade_As[specimen]:
                     Grade_A_samples_BS[specimen].append(B)
@@ -1195,11 +1195,11 @@ class thellier_auto_interpreter():
                     self.thellier_interpreter_log.write( "-I- specimen %s Failed specimen_int_max_slope_diff\n"%specimen,Grade_A_samples_BS[specimen])
                     del Grade_A_samples_BS[specimen]
 
-        if len(Grade_A_samples_BS.keys())>=self.acceptance_criteria['sample_int_n']['value']:        
+        if len(list(Grade_A_samples_BS.keys()))>=self.acceptance_criteria['sample_int_n']['value']:        
             BS_means_collection=[]
             for i in range(BOOTSTRAP_N):
                 B_BS=[]
-                for j in range(len(Grade_A_samples_BS.keys())):
+                for j in range(len(list(Grade_A_samples_BS.keys()))):
                     LIST=list(Grade_A_samples_BS.keys())
                     specimen=random.choice(LIST)
                     if self.acceptance_criteria['interpreter_method']['value']=='bs':
@@ -1217,7 +1217,7 @@ class thellier_auto_interpreter():
             sample_95=[BS_means[(0.025)*len(BS_means)],BS_means[(0.975)*len(BS_means)]]
 
         else:
-            String="-I- sample %s FAIL: not enough specimen int_n= %i < %i "%(sample,len(Grade_A_samples_BS.keys()),int(self.acceptance_criteria['sample_int_n']['value']))
+            String="-I- sample %s FAIL: not enough specimen int_n= %i < %i "%(sample,len(list(Grade_A_samples_BS.keys())),int(self.acceptance_criteria['sample_int_n']['value']))
             #print String
             self.thellier_interpreter_log.write(String)
             
@@ -1225,6 +1225,6 @@ class thellier_auto_interpreter():
         thellier_interpreter_pars['bs_std']=sample_std
         thellier_interpreter_pars['bs_68']=sample_68
         thellier_interpreter_pars['bs_95']=sample_95
-        thellier_interpreter_pars['bs_n']=len(Grade_A_samples_BS.keys())
+        thellier_interpreter_pars['bs_n']=len(list(Grade_A_samples_BS.keys()))
             
     

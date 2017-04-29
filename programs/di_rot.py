@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+from __future__ import print_function
+from builtins import range
 import sys
 import matplotlib
 if matplotlib.get_backend() != "TKAgg":
@@ -32,7 +34,7 @@ def main():
     outfile=""
     infile=""
     if '-h' in sys.argv:
-        print main.__doc__
+        print(main.__doc__)
         sys.exit()
     if '-f' in sys.argv:
         ind=sys.argv.index('-f')
@@ -59,13 +61,13 @@ def main():
         drot=(drot-180.)%360.  # 
         for k in range(N): 
              if outfile=="":
-                print '%7.1f %7.1f ' % (drot[k],irot[k])
+                print('%7.1f %7.1f ' % (drot[k],irot[k]))
              else:
                 out.write('%7.1f %7.1f\n' % (drot[k],irot[k]))
     else: 
         d,i=pmag.dotilt(data[0],data[1],(D-180.),90.-I)
         if outfile=="":
-            print '%7.1f %7.1f ' % ((d-180.)%360.,i)
+            print('%7.1f %7.1f ' % ((d-180.)%360.,i))
         else:
             out.write('%7.1f %7.1f\n' % ((d-180.)%360.,i))
 

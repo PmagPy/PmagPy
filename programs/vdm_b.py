@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+from __future__ import print_function
+from builtins import input
 import sys
 import pmagpy.pmag as pmag
 
@@ -34,12 +36,12 @@ def main():
     """
     input,out="",""
     if '-h' in sys.argv:
-        print main.__doc__
+        print(main.__doc__)
         sys.exit()
     if '-f' in sys.argv:
         ind=sys.argv.index('-f')
         file=sys.argv[ind+1]
-        f=open(file,'rU')
+        f=open(file,'r')
         input=f.readlines()
     if '-F' in sys.argv:
         ind=sys.argv.index('-F')
@@ -49,20 +51,20 @@ def main():
         cont=1
         while cont==1:
             try:
-                vdm=float(raw_input('V[A]DM in Am^2: <cntl-D to quit '))
-                lat=float(raw_input('Latitude: '))
+                vdm=float(input('V[A]DM in Am^2: <cntl-D to quit '))
+                lat=float(input('Latitude: '))
             except:
-                print "\nGood bye\n"
+                print("\nGood bye\n")
                 sys.exit()
                  
             b= pmag.vdm_b(vdm,lat)
-            print '%10.3e '%(b)
+            print('%10.3e '%(b))
     if input=="":
         input = sys.stdin.readlines()  # read from standard input
     for line in input:
         b=spitout(line)
         if out=="":
-            print '%10.3e'%(b)
+            print('%10.3e'%(b))
         else:
             out.write('%10.3e \n'%(b))
 

@@ -2,6 +2,10 @@
 
 #import matplotlib
 
+from __future__ import division
+from __future__ import print_function
+from builtins import range
+from past.utils import old_div
 import sys
 import pylab
 from pylab import *
@@ -83,7 +87,7 @@ def main():
         ind=args.index('-WD')
         dir_path=args[ind+1]
     if "-h" in args:
-        print main.__doc__
+        print(main.__doc__)
         sys.exit()
     if "-f" in args:
         ind=args.index("-f")
@@ -106,7 +110,7 @@ def main():
         try:
             meas_data,file_type=pmag.magic_read(magic_file)
         except:
-            print "-E- ERROR: Cant read magic_measurement.txt file. File is corrupted."
+            print("-E- ERROR: Cant read magic_measurement.txt file. File is corrupted.")
             return Data
             
         # get list of unique specimen names
@@ -119,17 +123,17 @@ def main():
             method_codes.replace(" ","")
             methods=method_codes.split(":")
             if "LP-AN-TRM" in methods:
-                if s not in Data.keys():
+                if s not in list(Data.keys()):
                     Data[s]={}
-                if 'atrmblock' not in Data[s].keys():
+                if 'atrmblock' not in list(Data[s].keys()):
                     Data[s]['atrmblock']=[]
                 Data[s]['atrmblock'].append(rec)
             
             
             if "LP-AN-ARM" in methods:
-                if s not in Data.keys():
+                if s not in list(Data.keys()):
                     Data[s]={}
-                if 'aarmblock' not in Data[s].keys():
+                if 'aarmblock' not in list(Data[s].keys()):
                     Data[s]['aarmblock']=[]
                 Data[s]['aarmblock'].append(rec)
         return (Data)        
@@ -145,7 +149,7 @@ def main():
         
         # normalize by trace
         trace=S_bs[0]+S_bs[1]+S_bs[2]
-        S_bs=S_bs/trace
+        S_bs=old_div(S_bs,trace)
         s1,s2,s3,s4,s5,s6=S_bs[0],S_bs[1],S_bs[2],S_bs[3],S_bs[4],S_bs[5]
         s_matrix=[[s1,s4,s6],[s4,s2,s5],[s6,s5,s3]]
         
@@ -178,7 +182,7 @@ def main():
         aniso_parameters['anisotropy_s4']="%f"%s4
         aniso_parameters['anisotropy_s5']="%f"%s5
         aniso_parameters['anisotropy_s6']="%f"%s6
-        aniso_parameters['anisotropy_degree']="%f"%(t1/t3)
+        aniso_parameters['anisotropy_degree']="%f"%(old_div(t1,t3))
         aniso_parameters['anisotropy_t1']="%f"%t1
         aniso_parameters['anisotropy_t2']="%f"%t2
         aniso_parameters['anisotropy_t3']="%f"%t3
@@ -190,8 +194,8 @@ def main():
         aniso_parameters['anisotropy_v3_inc']="%.1f"%DIR_v3[1]
     
         # modified from pmagpy:
-        if len(K)/3==9 or len(K)/3==6 or len(K)/3==15:
-            n_pos=len(K)/3
+        if old_div(len(K),3)==9 or old_div(len(K),3)==6 or old_div(len(K),3)==15:
+            n_pos=old_div(len(K),3)
             tmpH = Matrices[n_pos]['tmpH']
             a=s_matrix
             S=0.
@@ -202,11 +206,11 @@ def main():
                     compare=a[j][0]*tmpH[i][0]+a[j][1]*tmpH[i][1]+a[j][2]*tmpH[i][2]
                     comp[index]=compare
             for i in range(n_pos*3):
-                d=K[i]/trace - comp[i] # del values
+                d=old_div(K[i],trace) - comp[i] # del values
                 S+=d*d
             nf=float(n_pos*3-6) # number of degrees of freedom
             if S >0: 
-                sigma=math.sqrt(S/nf)
+                sigma=math.sqrt(old_div(S,nf))
             hpars=pmag.dohext(nf,sigma,[s1,s2,s3,s4,s5,s6])
             
             aniso_parameters['anisotropy_sigma']="%f"%sigma
@@ -243,7 +247,7 @@ def main():
     
         
     Data_anisotropy={}                
-    specimens=Data.keys()
+    specimens=list(Data.keys())
     specimens.sort()
     
     
@@ -353,7 +357,7 @@ def main():
     
     for specimen in specimens:
     
-        if 'atrmblock' in Data[specimen].keys():
+        if 'atrmblock' in list(Data[specimen].keys()):
             
             #-----------------------------------
             # aTRM 6 positions
@@ -471,7 +475,7 @@ def main():
                         M_1=sqrt(sum((array(M[i])**2)))
                         M_2=sqrt(sum(Alteration_check**2))
                         diff=abs(M_1-M_2)
-                        diff_ratio=diff/mean([M_1,M_2])
+                        diff_ratio=old_div(diff,mean([M_1,M_2]))
                         diff_ratio_perc=100*diff_ratio
                         if diff_ratio_perc > anisotropy_alt:
                             anisotropy_alt=diff_ratio_perc
@@ -489,7 +493,7 @@ def main():
                 M_2=sqrt(sum(array(M[i+3])**2))
                 
                 diff=abs(M_1-M_2)
-                diff_ratio=diff/max(M_1,M_2)
+                diff_ratio=old_div(diff,max(M_1,M_2))
                 diff_ratio_perc=100*diff_ratio
                 
                 if diff_ratio_perc>anisotropy_alt:
@@ -506,7 +510,7 @@ def main():
                 K[12],K[13],K[14]=M[4][0],M[4][1],M[4][2]
                 K[15],K[16],K[17]=M[5][0],M[5][1],M[5][2]
     
-                if specimen not in Data_anisotropy.keys():
+                if specimen not in list(Data_anisotropy.keys()):
                     Data_anisotropy[specimen]={}
                 aniso_parameters=calculate_aniso_parameters(B,K)
                 Data_anisotropy[specimen]['ATRM']=aniso_parameters
@@ -521,7 +525,7 @@ def main():
                 #Data_anisotropy[specimen]['ATRM']['rmag_anisotropy_name']=specimen
     
     
-        if 'aarmblock' in Data[specimen].keys():    
+        if 'aarmblock' in list(Data[specimen].keys()):    
     
             #-----------------------------------
             # AARM - 6, 9 or 15 positions
@@ -574,7 +578,7 @@ def main():
                 K[i*3+1]=M[i][1]
                 K[i*3+2]=M[i][2]            
     
-            if specimen not in Data_anisotropy.keys():
+            if specimen not in list(Data_anisotropy.keys()):
                 Data_anisotropy[specimen]={}
             aniso_parameters=calculate_aniso_parameters(B,K)
             Data_anisotropy[specimen]['AARM']=aniso_parameters
@@ -591,21 +595,21 @@ def main():
     
     #-----------------------------------   
     
-    specimens=Data_anisotropy.keys()
+    specimens=list(Data_anisotropy.keys())
     specimens.sort
     
     # remove previous anistropy data, and replace with the new one:
-    s_list=Data.keys()
+    s_list=list(Data.keys())
     for sp in s_list:
-        if 'AniSpec' in Data[sp].keys():
+        if 'AniSpec' in list(Data[sp].keys()):
             del  Data[sp]['AniSpec']
     for specimen in specimens:
         # if both AARM and ATRM axist prefer the AARM !!
-        if 'AARM' in Data_anisotropy[specimen].keys():
+        if 'AARM' in list(Data_anisotropy[specimen].keys()):
             TYPES=['AARM']
-        if 'ATRM' in Data_anisotropy[specimen].keys():
+        if 'ATRM' in list(Data_anisotropy[specimen].keys()):
             TYPES=['ATRM']
-        if  'AARM' in Data_anisotropy[specimen].keys() and 'ATRM' in Data_anisotropy[specimen].keys():
+        if  'AARM' in list(Data_anisotropy[specimen].keys()) and 'ATRM' in list(Data_anisotropy[specimen].keys()):
             TYPES=['ATRM','AARM']
             aniso_logfile.write( "-W- WARNING: both aarm and atrm data exist for specimen %s. using AARM by default. If you prefer using one of them, delete the other!\n"%specimen)
         for TYPE in TYPES:
@@ -637,9 +641,9 @@ def main():
     aniso_logfile.write( "------------------------\n")
     
     rmag_anisotropy_file.close()
-    print "Anisotropy tensors elements are saved in rmag_anistropy.txt"
-    print "Other anisotropy statistics are saved in rmag_results.txt"
-    print "log file is  in rmag_anisotropy.log"
+    print("Anisotropy tensors elements are saved in rmag_anistropy.txt")
+    print("Other anisotropy statistics are saved in rmag_results.txt")
+    print("log file is  in rmag_anisotropy.log")
 
 
 if __name__ == "__main__":    

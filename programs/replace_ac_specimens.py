@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import print_function
 import sys
 import pmagpy.pmag as pmag
 
@@ -38,7 +39,7 @@ def main():
     GoodSamps,SpecOuts=[],[]
 # get arguments from command line
     if '-h' in sys.argv:
-        print main.__doc__
+        print(main.__doc__)
         sys.exit()
     if '-fu' in sys.argv:
         ind=sys.argv.index('-fu')
@@ -81,7 +82,7 @@ def main():
             for spec in AC: 
                 SpecOuts.append(spec)
                 AClist.append(spec['er_specimen_name'])
-                print 'using AC: ',spec['er_specimen_name'],'%7.1f'%(1e6*float(spec['specimen_int']))
+                print('using AC: ',spec['er_specimen_name'],'%7.1f'%(1e6*float(spec['specimen_int'])))
             for spec in UC: 
                 if spec['er_specimen_name'] not in AClist:
                    SpecOuts.append(spec)
@@ -92,7 +93,7 @@ def main():
 #                print 'using UC: ',spec['er_specimen_name'],'%7.1f'%(1e6*float(spec['specimen_int']))
     SpecOuts,keys=pmag.fillkeys(SpecOuts)
     pmag.magic_write(ofile,SpecOuts,'pmag_specimens')
-    print 'thellier data assessed for AC correction put in ', ofile
+    print('thellier data assessed for AC correction put in ', ofile)
 
 if __name__ == "__main__":
     main()

@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import print_function
 import sys
 import pmagpy.pmag as pmag
 
@@ -34,12 +35,12 @@ def main():
 
     """
     if '-h' in sys.argv: # check if help is needed
-        print main.__doc__
+        print(main.__doc__)
         sys.exit() # graceful quit
     if '-f' in sys.argv:
         ind=sys.argv.index('-f')
         file=sys.argv[ind+1]
-        f=open(file,'rU')
+        f=open(file,'r')
         data=f.readlines()
     else:
         data=sys.stdin.readlines() # read in data from standard input
@@ -60,15 +61,15 @@ def main():
         rec=line.split() # split each line on space to get records
         if s=="":
             s=rec[0]
-            print s, calculation_type
-        print ind,rec[1],rec[3],rec[4],rec[2]
+            print(s, calculation_type)
+        print(ind,rec[1],rec[3],rec[4],rec[2])
         ind+=1
         datablock.append([float(rec[1]),float(rec[3]),float(rec[4]),float(rec[2]),'0']) # treatment,dec,inc,int,dummy
     mpars=pmag.domean(datablock,beg_pca,end_pca,calculation_type)
     if calculation_type=="DE-FM":
-        print '%s %s %i  %6.2f %6.2f %6.1f %7.1f %7.1f' % (s,calculation_type,mpars["specimen_n"],mpars["measurement_step_min"],mpars["measurement_step_max"],mpars["specimen_a95"],mpars["specimen_dec"],mpars["specimen_inc"])
+        print('%s %s %i  %6.2f %6.2f %6.1f %7.1f %7.1f' % (s,calculation_type,mpars["specimen_n"],mpars["measurement_step_min"],mpars["measurement_step_max"],mpars["specimen_a95"],mpars["specimen_dec"],mpars["specimen_inc"]))
     else:
-        print '%s %s %i  %6.2f %6.2f %6.1f %7.1f %7.1f' % (s,calculation_type,mpars["specimen_n"],mpars["measurement_step_min"],mpars["measurement_step_max"],mpars["specimen_mad"],mpars["specimen_dec"],mpars["specimen_inc"])
+        print('%s %s %i  %6.2f %6.2f %6.1f %7.1f %7.1f' % (s,calculation_type,mpars["specimen_n"],mpars["measurement_step_min"],mpars["measurement_step_max"],mpars["specimen_mad"],mpars["specimen_dec"],mpars["specimen_inc"]))
 
 if __name__ == "__main__":
     main()

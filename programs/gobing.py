@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import print_function
 import sys
 import pmagpy.pmag as pmag
 
@@ -26,12 +27,12 @@ def main():
     """
     if len(sys.argv) > 0:
         if '-h' in sys.argv: # check if help is needed
-            print main.__doc__
+            print(main.__doc__)
             sys.exit() # graceful quit
         if '-f' in sys.argv: # ask for filename
             ind=sys.argv.index('-f')
             file=sys.argv[ind+1]
-            f=open(file,'rU')
+            f=open(file,'r')
             data=f.readlines()
         else:
             data=sys.stdin.readlines() # read in data from standard input
@@ -51,7 +52,7 @@ def main():
     bpars=pmag.dobingham(DIs)
     output = '%7.1f %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f %i' % (bpars["dec"],bpars["inc"],bpars["Eta"],bpars["Edec"],bpars["Einc"],bpars["Zeta"],bpars["Zdec"],bpars["Zinc"],bpars["n"])
     if ofile == "":
-        print output
+        print(output)
     else:
         out.write(output+'\n')
     #print '%7.1f %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f %i' % (bpars["dec"],bpars["inc"],bpars["Eta"],bpars["Edec"],bpars["Einc"],bpars["Zeta"],bpars["Zdec"],bpars["Zinc"],bpars["n"])

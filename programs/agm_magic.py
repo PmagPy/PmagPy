@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+from __future__ import print_function
+from builtins import range
 import sys
 import pmagpy.pmag as pmag
 
@@ -72,7 +74,7 @@ def main():
     specfile = output_dir_path+'/er_specimens.txt'
     output = output_dir_path+"/agm_measurements.txt"
     if "-h" in args:
-        print main.__doc__
+        print(main.__doc__)
         sys.exit()
     if "-bak" in args:
         meth="LP-IRM-DCD"
@@ -89,8 +91,8 @@ def main():
         agm_file= input_dir_path+'/'+args[ind+1]
         er_specimen_name=args[ind+1].split('.')[0]
     else: 
-        print "agm_file field is required option"
-        print main.__doc__
+        print("agm_file field is required option")
+        print(main.__doc__)
         sys.exit()
     if '-Fsp' in args:
         ind=args.index("-Fsp")
@@ -117,20 +119,20 @@ def main():
         ind=args.index("-fsa")
         sampfile = input_dir_path+'/'+args[ind+1]
         Samps,file_type=pmag.magic_read(sampfile)
-        print 'sample_file successfully read in'
+        print('sample_file successfully read in')
     if "-ncn" in args:
         ind=args.index("-ncn")
         samp_con=sys.argv[ind+1]
         if "4" in samp_con:
             if "-" not in samp_con:
-                print "option [4] must be in form 4-Z where Z is an integer"
+                print("option [4] must be in form 4-Z where Z is an integer")
                 sys.exit()
             else:
                 Z=samp_con.split("-")[1]
                 samp_con="4"
         if "7" in samp_con:
             if "-" not in samp_con:
-                print "option [7] must be in form 7-Z where Z is an integer"
+                print("option [7] must be in form 7-Z where Z is an integer")
                 sys.exit()
             else:
                 Z=samp_con.split("-")[1]
@@ -170,8 +172,8 @@ def main():
         ErSpecRecs.append(ErSpecRec)
         ErSpecRecs,keylist=pmag.fillkeys(ErSpecRecs)
         pmag.magic_write(specfile,ErSpecRecs,'er_specimens')
-        print "specimen name put in ",specfile
-    f=open(agm_file,'rU')
+        print("specimen name put in ",specfile)
+    f=open(agm_file,'r')
     Data=f.readlines()
     if "ASCII" not in Data[0]:fmt='new'
     measnum,start=1,""
@@ -192,11 +194,11 @@ def main():
     for i in range(start,len(Data)-end): # skip header stuff
 
         MeasRec={}
-        for key in ErSpecRec.keys():
+        for key in list(ErSpecRec.keys()):
             MeasRec[key]=ErSpecRec[key]
         MeasRec['magic_instrument_codes']=inst
         MeasRec['magic_method_codes']=meth
-        if 'er_synthetic_name' in MeasRec.keys() and MeasRec['er_synthetic_name']!="":
+        if 'er_synthetic_name' in list(MeasRec.keys()) and MeasRec['er_synthetic_name']!="":
             MeasRec['magic_experiment_name']=er_synthetic_name+':'+meth
         else:
             MeasRec['magic_experiment_name']=er_specimen_name+':'+meth
@@ -234,7 +236,7 @@ def main():
             recnum+=1
 # 
     pmag.magic_write(output,MeasRecs,'magic_measurements')
-    print "results put in ",output
+    print("results put in ",output)
 
 if __name__ == "__main__":
     main()

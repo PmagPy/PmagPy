@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # define some variables
+from __future__ import print_function
 import sys
 import pmagpy.pmag as pmag
 
@@ -25,7 +26,7 @@ def main():
     samp_file="er_samples.txt"
     out_file='magic_measurements.txt'
     if '-h' in sys.argv:
-        print main.__doc__
+        print(main.__doc__)
         sys.exit()
     if '-WD' in sys.argv:
         ind = sys.argv.index('-WD')
@@ -59,22 +60,22 @@ def main():
             sampnames.append(rec['er_sample_name'].lower())
             sflag=1
             SampRec={}
-            for key in samps[0].keys():SampRec[key]=""
+            for key in list(samps[0].keys()):SampRec[key]=""
             SampRec['er_sample_name']=rec['er_sample_name']
             SampRec['er_citation_names']="This study"
             SampRec['er_site_name']='MISSING'
             SampRec['er_location_name']='MISSING'
             SampRec['sample_desription']='recorded added by update_measurements - edit as needed'
             samps.append(SampRec)
-            print rec['er_sample_name'],' missing from er_samples.txt file - edit orient.txt file and re-import'
+            print(rec['er_sample_name'],' missing from er_samples.txt file - edit orient.txt file and re-import')
             rec['er_site_name']='MISSING'
             rec['er_location_name']='MISSING'
             MeasRecs.append(rec)
     pmag.magic_write(out_file,MeasRecs,'magic_measurements')
-    print "updated measurements file stored in ", out_file
+    print("updated measurements file stored in ", out_file)
     if sflag==1:
          pmag.magic_write(samp_file,samps,'er_samples')
-         print "updated sample file stored in ", samp_file
+         print("updated sample file stored in ", samp_file)
 
 if __name__ == "__main__":
     main()

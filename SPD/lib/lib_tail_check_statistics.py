@@ -1,4 +1,6 @@
-#!/usr/bin/env python                                                                                            
+#!/usr/bin/env python
+from __future__ import division
+from past.utils import old_div
 import numpy
 
 
@@ -47,7 +49,7 @@ def get_DRAT_tail(max_check, L):
     """
     if max_check == 0:
         return float('nan')
-    DRAT_tail = (max_check / L) * 100.
+    DRAT_tail = (old_div(max_check, L)) * 100.
     return DRAT_tail
 
 def get_delta_TR(tail_check_max, y_int):
@@ -57,7 +59,7 @@ def get_delta_TR(tail_check_max, y_int):
     """
     if tail_check_max == 0 or numpy.isnan(tail_check_max):
         return float('nan')
-    delta_TR = (tail_check_max / abs(y_int)) * 100.
+    delta_TR = (old_div(tail_check_max, abs(y_int))) * 100.
     return delta_TR
 
 def get_MD_VDS(tail_check_max, vds):
@@ -67,14 +69,5 @@ def get_MD_VDS(tail_check_max, vds):
     """    
     if tail_check_max == 0 or numpy.isnan(tail_check_max):
         return float('nan')
-    MD_VDS = (tail_check_max / vds) * 100
+    MD_VDS = (old_div(tail_check_max, vds)) * 100
     return MD_VDS
-
-
-
-
-
-
-if __name__ == '__main__':
-    unittest.main()
-

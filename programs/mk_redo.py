@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import print_function
 import sys
 import string
 import pmagpy.pmag as pmag
@@ -34,7 +35,7 @@ def main():
         ind=sys.argv.index('-WD')
         dir_path=sys.argv[ind+1]
     if '-h' in sys.argv:
-        print main.__doc__
+        print(main.__doc__)
         sys.exit()
     if '-f' in sys.argv:
         ind=sys.argv.index('-f')
@@ -53,7 +54,7 @@ def main():
     specs=[]
     prior_spec_data,file_type=pmag.magic_read(inspec)
     if file_type != 'pmag_specimens':
-        print  file_type, " this is not a valid pmag_specimens file"
+        print(file_type, " this is not a valid pmag_specimens file")
         sys.exit()
     outstrings=[]
     for spec in prior_spec_data:
@@ -65,7 +66,7 @@ def main():
                 if m not in meths:meths.append(m)
         if 'DIR' in meths: # DE-BFL, DE-BFP or DE-FM
             specs.append(spec['er_specimen_name']) 
-            if 'specimen_comp_name' in spec.keys() and spec['specimen_comp_name']!="" and spec['specimen_comp_name']!=" ":
+            if 'specimen_comp_name' in list(spec.keys()) and spec['specimen_comp_name']!="" and spec['specimen_comp_name']!=" ":
                 comp_name=spec['specimen_comp_name']
             else: 
                 comp_name=string.uppercase[specs.count(spec['er_specimen_name'])-1]
@@ -85,6 +86,6 @@ def main():
             if outstring not in outstrings:
                 tredo.write(outstring)
             outstrings.append(outstring) # only writes unique interpretions
-    print 'Redo files saved to: ',zfile,tfile
+    print('Redo files saved to: ',zfile,tfile)
 if __name__ == "__main__":
     main()

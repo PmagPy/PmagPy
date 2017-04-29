@@ -131,10 +131,64 @@ class BaseMagicGrid(gridlib.Grid, gridlabelrenderer.GridWithLabelRenderersMixin)
         except AttributeError:
             pass
 
+    def add_items(self, dataframe, hide_cols=()):
+        """
+        Add items and/or update existing items in grid
+        """
+        # replace "None" values with ""
+        dataframe = dataframe.fillna("")
+        # remove any columns that shouldn't be shown
+        for col in hide_cols:
+            if col in dataframe.columns:
+                del dataframe[col]
+        # add more rows
+        self.AppendRows(len(dataframe))
+        columns = dataframe.columns
+        row_num = -1
+        # fill in all rows with appropriate values
+        for ind, row in dataframe.iterrows():
+            row_num += 1
+            for col_num, col in enumerate(columns):
+                value = row[col]
+                self.SetCellValue(row_num, col_num, str(value))
+                # set citation default value
+                if col == 'citations':
+                    citation = row['citations']
+                    if (citation is None) or (citation is np.nan):
+                            self.SetCellValue(row_num, col_num, 'This study')
+                    else:
+                        if 'This study' not in citation:
+                            if len(citation):
+                                citation += ':'
+                            citation += 'This study'
+                            self.SetCellValue(row_num, col_num, citation)
+        self.row_labels.extend(dataframe.index)
+
+
+    def save_items(self, rows=None, verbose=False):
+        """
+        Return a dictionary of row data for selected rows:
+        {1: {col1: val1, col2: val2}, ...}
+        If a list of row numbers isn't provided, get data for all.
+        """
+        if rows:
+            rows = rows
+        else:
+            rows = list(range(self.GetNumberRows()))
+        cols = list(range(self.GetNumberCols()))
+        data = {}
+        for row in rows:
+            data[row] = {}
+            for col in cols:
+                col_name = self.GetColLabelValue(col)
+                if verbose:
+                    print(col_name, ":", self.GetCellValue(row, col))
+                data[row][col_name] = self.GetCellValue(row, col)
+        return data
 
     def size_grid(self, event=None):
         self.AutoSizeColumns(True)
-        for col in xrange(len(self.col_labels)):
+        for col in range(len(self.col_labels)):
             # adjust column widths to be a little larger then auto for nicer editing
             orig_size = self.GetColSize(col)
             if orig_size > 110:
@@ -223,9 +277,9 @@ class BaseMagicGrid(gridlib.Grid, gridlabelrenderer.GridWithLabelRenderersMixin)
             text_df = text_df.iloc[:, :-col_length_diff].copy()
         # go through copied text and parse it into the grid rows
         for label, row_data in text_df.iterrows():
-            col_range = range(col_ind, col_ind + len(row_data))
+            col_range = list(range(col_ind, col_ind + len(row_data)))
             if len(row_data) > 1:
-                cols = zip(col_range, row_data.index)
+                cols = list(zip(col_range, row_data.index))
                 for column in cols:
                     value = row_data[column[1]]
                     this_col = column[0]
@@ -361,7 +415,7 @@ class BaseMagicGrid(gridlib.Grid, gridlabelrenderer.GridWithLabelRenderersMixin)
     def remove_starred_labels(self):#, grid):
         cols_with_stars = []
         cols_with_hats = []
-        for col in xrange(self.GetNumberCols()):
+        for col in range(self.GetNumberCols()):
             label = self.GetColLabelValue(col)
             if '**' in label:
                 self.SetColLabelValue(col, label.strip('**'))

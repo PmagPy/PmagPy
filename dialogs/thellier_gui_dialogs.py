@@ -141,35 +141,35 @@ class PI_Statistics_Dialog(wx.Dialog):
         categories=['Arai plot','Direction','pTRM Checks','Tail Checks','Additivity Checks']
         for k in range(len(categories)):
             command = "bSizer%i = wx.StaticBoxSizer( wx.StaticBox( pnl1, wx.ID_ANY, '%s' ), wx.VERTICAL )"%(k,categories[k])
-            exec command
+            exec(command)
 
             for stat in self.stat_by_category[categories[k]]:
                 short_name=stat.replace("specimen_","")
                 command="self.set_specimen_%s=wx.CheckBox(pnl1,-1,label='%s',name='%s')"%(short_name,short_name,short_name)
-                exec command
+                exec(command)
                 command = "self.Bind(wx.EVT_CHECKBOX, self.OnCheckBox, self.set_specimen_%s)"%(short_name)
-                exec command
+                exec(command)
                 command="self.specimen_%s_button = wx.Button(pnl1, -1, label='description',name='%s')" %(short_name,stat)
-                exec command
+                exec(command)
                 command = "self.Bind(wx.EVT_BUTTON,self.PI_stat_description, self.specimen_%s_button)"%(short_name)
-                exec command
+                exec(command)
 
             for i in range(len(self.stat_by_category[categories[k]])):
                 command="hbox_%i= wx.BoxSizer(wx.HORIZONTAL)"%i
-                exec command
+                exec(command)
                 stat=self.stat_by_category[categories[k]][i]
                 short_name=stat.replace("specimen_","")
                 command="hbox_%i.Add(self.specimen_%s_button)"%(i,short_name)
-                exec command
+                exec(command)
                 command="hbox_%i.AddSpacer(10)"%(i)
-                exec command
+                exec(command)
 
                 command="hbox_%i.Add(self.set_specimen_%s)"%(i,short_name)
-                exec command
+                exec(command)
                 command="bSizer%i.Add(hbox_%i)"%(k,i)
-                exec command
+                exec(command)
                 command="bSizer%i.AddSpacer(10)"%k
-                exec command
+                exec(command)
         #self.specimen_int_n_button.Bind(wx.EVT_BUTTON, lambda evt, name=specimen_int_n_button.GetLabel(): self.onButton(evt, name)
         #self.Bind(wx.EVT_BUTTON,self.PI_stat_description, self.specimen_int_n_button)
         #---------------------------
@@ -217,7 +217,7 @@ class PI_Statistics_Dialog(wx.Dialog):
             for category in categories:
                 if "specimen_" + short_name in self.stat_by_category[category]:
                     command="self.set_specimen_%s.SetValue(True)"%short_name
-                    exec command
+                    exec(command)
 
 
 
@@ -297,16 +297,16 @@ class Criteria_Dialog(wx.Dialog):
                 self.set_specimen_scat=wx.CheckBox(pnl1, -1, '')
             else:
                 command="self.set_specimen_%s=wx.TextCtrl(pnl1,style=wx.TE_CENTER,size=(50,20))"%stat
-                exec command
+                exec(command)
             command="self.%s_label=wx.StaticText(pnl1,label='%s',style=wx.ALIGN_CENTRE)"%(stat,stat.replace("specimen_",""))
-            exec command
+            exec(command)
 
             command="gs_%s = wx.GridSizer(2, 1,5,5)"%stat
-            exec command
+            exec(command)
             command="gs_%s.AddMany( [(self.%s_label,wx.EXPAND),(self.set_specimen_%s,wx.EXPAND)])"%(stat,stat,stat)
-            exec command
+            exec(command)
             command="bSizer1.Add(gs_%s,flag=wx.ALIGN_LEFT)"%stat
-            exec command
+            exec(command)
             bSizer1.AddSpacer(12)
 
 
@@ -340,7 +340,7 @@ class Criteria_Dialog(wx.Dialog):
         window_list_samples=['int_n','int_n_outlier_check']
         for key in window_list_samples:
             command="self.set_sample_%s=wx.TextCtrl(pnl1,style=wx.TE_CENTER,size=(50,20))"%key
-            exec command
+            exec(command)
         criteria_sample_window = wx.GridSizer(2, 3, 6, 6)
         criteria_sample_window.AddMany( [(wx.StaticText(pnl1,label="average by sample/site",style=wx.TE_CENTER), wx.EXPAND),
             (wx.StaticText(pnl1,label="int_n",style=wx.TE_CENTER), wx.EXPAND),
@@ -387,7 +387,7 @@ class Criteria_Dialog(wx.Dialog):
         window_list_samples=['int_sigma_uT','int_sigma_perc','int_interval_uT','int_interval_perc','aniso_mean']
         for key in window_list_samples:
             command="self.set_sample_%s=wx.TextCtrl(pnl1,style=wx.TE_CENTER,size=(50,20))"%key
-            exec command
+            exec(command)
 
         criteria_sample_window_2 = wx.GridSizer(2, 5, 6, 6)
         criteria_sample_window_2.AddMany( [(wx.StaticText(pnl1,label="int_sigma_uT",style=wx.TE_CENTER), wx.EXPAND),
@@ -412,7 +412,7 @@ class Criteria_Dialog(wx.Dialog):
         window_list_samples=['int_BS_68_uT','int_BS_68_perc','int_BS_95_uT','int_BS_95_perc']
         for key in window_list_samples:
             command="self.set_sample_%s=wx.TextCtrl(pnl1,style=wx.TE_CENTER,size=(50,20))"%key
-            exec command
+            exec(command)
         # for bootstarp
         self.set_specimen_int_max_slope_diff=wx.TextCtrl(pnl1,style=wx.TE_CENTER,size=(50,20))
 
@@ -447,7 +447,7 @@ class Criteria_Dialog(wx.Dialog):
 
         for key in window_list_specimens:
             command="self.set_specimen_%s.SetBackgroundColour(wx.NullColour)"%key
-        exec command
+        exec(command)
 
 
         #-------------------------------------------
@@ -470,13 +470,13 @@ class Criteria_Dialog(wx.Dialog):
                 elif type(self.acceptance_criteria[crit]['value'])==float or  type(self.acceptance_criteria[crit]['value'])==int:
                     if self.acceptance_criteria[crit]['decimal_points']!=-999:
                         command="value='%%.%if'%%(self.acceptance_criteria[crit]['value'])"%int(self.acceptance_criteria[crit]['decimal_points'])
-                        exec command
+                        exec(command)
                     else:
                         value="%.3e"%(self.acceptance_criteria[crit]['value'])
 
                 command="self.set_%s.SetValue(value)"%crit
 
-                exec command
+                exec(command)
             else:
                 if self.acceptance_criteria['specimen_scat']['value'] in [True,1,"True","TRUE","1","1.0",'g']:
                     self.set_specimen_scat.SetValue(True)
@@ -493,7 +493,7 @@ class Criteria_Dialog(wx.Dialog):
             value=""
         else:
             command="value='%%.%if'%%(self.acceptance_criteria[crit]['value'])"%int(self.acceptance_criteria[crit]['decimal_points'])
-            exec command
+            exec(command)
         self.set_anisotropy_alt.SetValue(value)
 
         crit="specimen_aniso_ftest_flag"
@@ -505,7 +505,7 @@ class Criteria_Dialog(wx.Dialog):
         #-------------------------------------------
         # Intialize values: avearge by site or sample
         #-------------------------------------------
-        if 'average_by_sample_or_site' not in self.acceptance_criteria.keys():self.acceptance_criteria['average_by_sample_or_site']['value']='site'
+        if 'average_by_sample_or_site' not in list(self.acceptance_criteria.keys()):self.acceptance_criteria['average_by_sample_or_site']['value']='site'
         if str(self.acceptance_criteria['average_by_sample_or_site']['value'])=='site':
             self.set_average_by_sample_or_site.SetStringSelection('site')
         else:
@@ -555,7 +555,7 @@ class Criteria_Dialog(wx.Dialog):
                 value="%.1f"%(float(self.acceptance_criteria[crit]['value'])*1e6)
             elif type(self.acceptance_criteria[crit]['value'])==float or type(self.acceptance_criteria[crit]['value'])==int :
                 command="value='%%.%if'%%(self.acceptance_criteria[crit]['value'])"%int(self.acceptance_criteria[crit]['decimal_points'])
-                exec command
+                exec(command)
             elif type(self.acceptance_criteria[crit]['value'])==bool:
                  value="%.s"%str(self.acceptance_criteria[crit]['value'])
             elif type(self.acceptance_criteria[crit]['value'])==str:
@@ -568,16 +568,16 @@ class Criteria_Dialog(wx.Dialog):
             if str(self.acceptance_criteria['average_by_sample_or_site']['value'])=='site':
                 if crit in ['site_int_n','site_int_sigma_perc','site_int_n_outlier_check','site_aniso_mean']:
                     command="self.set_%s.SetValue(value)"%(crit.replace('site','sample'))
-                    exec command
+                    exec(command)
                 if crit in ['site_int_sigma']:
                     command="self.set_%s_uT.SetValue(value)"%(crit.replace('site','sample'))
-                    exec command
+                    exec(command)
             else:
                 if crit in ['sample_int_sigma']:
                     command="self.set_%s_uT.SetValue(value)"%crit
                 else:
                     command="self.set_%s.SetValue(value)"%crit
-                exec command
+                exec(command)
 
 
 
@@ -632,8 +632,8 @@ class MyForm(wx.Frame):
           for j in range(len(self.report[i])):
             self.myGrid.SetCellValue(index,j, self.report[i][j])
           index+=1
-        self.myGrid.SetLabelFont(wx.Font(9, wx.SWISS, wx.NORMAL, wx.NORMAL, False, u'Arial'))
-        self.myGrid.SetDefaultCellFont(wx.Font(9, wx.SWISS, wx.NORMAL, wx.NORMAL, False, u'Arial'))
+        self.myGrid.SetLabelFont(wx.Font(9, wx.SWISS, wx.NORMAL, wx.NORMAL, False, 'Arial'))
+        self.myGrid.SetDefaultCellFont(wx.Font(9, wx.SWISS, wx.NORMAL, wx.NORMAL, False, 'Arial'))
 
 
         self.myGrid.AutoSize()
@@ -655,7 +655,7 @@ class MyForm(wx.Frame):
 ##            interpreter_output= dlg.GetPath()
 ##        dlg.Destroy()
 
-        fin=open(str(file_name),'rU')
+        fin=open(str(file_name),'r')
         self.report=[]
         for L in fin.readlines():
           line=L.strip('\n').split('\t')
@@ -707,7 +707,7 @@ class Consistency_Test(wx.Frame):
         wx.Frame.__init__(self, parent=None)
         """
         """
-        import thellier_consistency_test
+        from . import thellier_consistency_test
         self.WD=WD
         self.Data=Data
         self.Data_hierarchy=Data_hierarchy
@@ -746,7 +746,7 @@ class Consistency_Test(wx.Frame):
         self.acceptance_criteria
         """
 
-        criteria_list=self.acceptance_criteria.keys()
+        criteria_list=list(self.acceptance_criteria.keys())
         criteria_list.sort()
 
         #---------------------------------------
@@ -786,7 +786,7 @@ class Consistency_Test(wx.Frame):
                 command="value=dia.set_%s.GetValue()"%crit
             #------
             try:
-                exec command
+                exec(command)
             except:
                 continue
 
@@ -801,9 +801,9 @@ class Consistency_Test(wx.Frame):
                 self.acceptance_criteria[crit]['value']=True
             elif type(value)==bool and value==False:
                 self.acceptance_criteria[crit]['value']=-999
-            elif type(value)==unicode and str(value)=="":
+            elif type(value)==str and str(value)=="":
                 self.acceptance_criteria[crit]['value']=-999
-            elif type(value)==unicode and str(value)!="": # should be a number
+            elif type(value)==str and str(value)!="": # should be a number
                 try:
                     self.acceptance_criteria[crit]['value']=float(value)
                 except:
@@ -950,7 +950,7 @@ class Consistency_Test(wx.Frame):
         # put an example
         try:
             ofile = os.path.join(self.WD, "consistency_test", "consistency_test_functions.txt")
-            function_in=open(ofile, 'rU')
+            function_in=open(ofile, 'r')
             TEXT=""
             for line in function_in.readlines():
                 TEXT=TEXT+line
@@ -1041,7 +1041,7 @@ class Consistency_Test(wx.Frame):
         OK=True
         for f in func:
             try:
-                exec f
+                exec(f)
             except:
                 OK=False
                 #  message dialog
@@ -1100,7 +1100,7 @@ class Consistency_Test(wx.Frame):
             #beta_range=arange(beta_start,beta_end,beta_step)
             #frac_range=arange(frac_start,frac_end,beta_step)
             #try:
-            import thellier_consistency_test
+            from . import thellier_consistency_test
             thellier_consistency_test.run_thellier_consistency_test(self.WD, self.Data,self.Data_hierarchy,self.acceptance_criteria,self.optimizer_group_file_path,optimizer_functions_path,self.preferences,stat1_range,stat2_range,THERMAL,MICROWAVE)
             #except:
             #    dlg1 = wx.MessageDialog(self,caption="Error:", message="Optimizer finished with Errors" ,style=wx.OK)
@@ -1155,7 +1155,7 @@ class Plot_Dialog(wx.Dialog):
         window_list_commands=["age_min","age_max",]
         for key in window_list_commands:
             command="self.set_plot_%s=wx.TextCtrl(pnl1,style=wx.TE_CENTER,size=(50,20))"%key
-            exec command
+            exec(command)
         self.set_x_axis_auto=wx.CheckBox(pnl1, -1, '', (50, 50))
         self.set_x_axis_auto.SetValue(True)
 
@@ -1187,7 +1187,7 @@ class Plot_Dialog(wx.Dialog):
         window_list_commands=["intensity_min","intensity_max"]
         for key in window_list_commands:
             command="self.set_plot_%s=wx.TextCtrl(pnl1,style=wx.TE_CENTER,size=(50,20))"%key
-            exec command
+            exec(command)
         self.set_y_axis_auto=wx.CheckBox(pnl1, -1, '', (50, 50))
         self.set_plot_B = wx.RadioButton(pnl1, -1, 'B (microT)', (10, 10), style=wx.RB_GROUP)
         self.set_plot_VADM = wx.RadioButton(pnl1, -1, 'VADM (ZAm^2)', (10, 30))
@@ -1255,7 +1255,7 @@ class Plot_Dialog(wx.Dialog):
         window_list_commands=["lat_min","lat_max","lat_grid","lon_min","lon_max","lon_grid"]
         for key in window_list_commands:
             command="self.set_map_%s=wx.TextCtrl(pnl1,style=wx.TE_CENTER,size=(50,20))"%key
-            exec command
+            exec(command)
         bsizer_4_window = wx.GridSizer(2, 8, 12, 12)
 
         bsizer_4_window.AddMany( [(wx.StaticText(pnl1,label="show location map",style=wx.TE_CENTER), wx.EXPAND),
@@ -1325,7 +1325,7 @@ class MyLogFileErrors(wx.Frame):
         self.text_log = wx.TextCtrl(self.panel, id=-1, style=wx.TE_MULTILINE | wx.TE_READONLY  | wx.HSCROLL)
         self.sizer.Add(self.text_log, 1, wx.EXPAND)
 
-        fin =open(file_path,'rU')
+        fin =open(file_path,'r')
         for line in fin.readlines():
             if "-E-" in line :
                 self.text_log.SetDefaultStyle(wx.TextAttr(wx.RED))
@@ -1378,23 +1378,23 @@ class convert_generic_files_to_MagIC(wx.Frame):
         bSizer0.AddSpacer(5)
         for i in range(self.max_files):
             command= "self.file_path_%i = wx.TextCtrl(self.panel, id=-1, size=(200,25), style=wx.TE_READONLY)"%i
-            exec command
+            exec(command)
             command= "self.add_file_button_%i =  wx.Button(self.panel, id=-1, label='add',name='add_%i')"%(i,i)
-            exec command
+            exec(command)
             command= "self.Bind(wx.EVT_BUTTON, self.on_add_file_button_i, self.add_file_button_%i)"%i
             #print command
-            exec command
+            exec(command)
             command="bSizer0_%i = wx.BoxSizer(wx.HORIZONTAL)"%i
-            exec command
+            exec(command)
             command="bSizer0_%i.Add(wx.StaticText(pnl,label=('%i  '[:2])),wx.ALIGN_LEFT)"%(i,i+1)
-            exec command
+            exec(command)
 
             command="bSizer0_%i.Add(self.file_path_%i,wx.ALIGN_LEFT)" %(i,i)
-            exec command
+            exec(command)
             command="bSizer0_%i.Add(self.add_file_button_%i,wx.ALIGN_LEFT)" %(i,i)
-            exec command
+            exec(command)
             command="bSizer0.Add(bSizer0_%i,wx.ALIGN_TOP)" %i
-            exec command
+            exec(command)
             bSizer0.AddSpacer(5)
 
         #---sizer 1 ----
@@ -1408,9 +1408,9 @@ class convert_generic_files_to_MagIC(wx.Frame):
             command="self.protocol_info_%i = wx.ComboBox(self.panel, -1, self.experiments_names[0], size=(100,25), choices=self.experiments_names, style=wx.CB_DROPDOWN)"%i
             #command="self.protocol_info_%i = wx.TextCtrl(self.panel, id=-1, size=(100,20), style=wx.TE_MULTILINE | wx.HSCROLL)"%i
             #print command
-            exec command
+            exec(command)
             command="bSizer1.Add(self.protocol_info_%i,wx.ALIGN_TOP)"%i
-            exec command
+            exec(command)
             bSizer1.AddSpacer(5)
 
         #---sizer 2 ----
@@ -1421,21 +1421,21 @@ class convert_generic_files_to_MagIC(wx.Frame):
         bSizer2.AddSpacer(5)
         for i in range(self.max_files):
             command= "self.file_info_Blab_%i = wx.TextCtrl(self.panel, id=-1, size=(40,25))"%i
-            exec command
+            exec(command)
             command= "self.file_info_Blab_dec_%i = wx.TextCtrl(self.panel, id=-1, size=(40,25))"%i
-            exec command
+            exec(command)
             command= "self.file_info_Blab_inc_%i = wx.TextCtrl(self.panel, id=-1, size=(40,25))"%i
-            exec command
+            exec(command)
             command="bSizer2_%i = wx.BoxSizer(wx.HORIZONTAL)"%i
-            exec command
+            exec(command)
             command="bSizer2_%i.Add(self.file_info_Blab_%i ,wx.ALIGN_LEFT)" %(i,i)
-            exec command
+            exec(command)
             command="bSizer2_%i.Add(self.file_info_Blab_dec_%i,wx.ALIGN_LEFT)" %(i,i)
-            exec command
+            exec(command)
             command="bSizer2_%i.Add(self.file_info_Blab_inc_%i,wx.ALIGN_LEFT)" %(i,i)
-            exec command
+            exec(command)
             command="bSizer2.Add(bSizer2_%i,wx.ALIGN_TOP)" %i
-            exec command
+            exec(command)
             bSizer2.AddSpacer(5)
 
 
@@ -1450,9 +1450,9 @@ class convert_generic_files_to_MagIC(wx.Frame):
         bSizer3.AddSpacer(5)
         for i in range(self.max_files):
             command= "self.file_info_user_%i = wx.TextCtrl(self.panel, id=-1, size=(60,25))"%i
-            exec command
+            exec(command)
             command="bSizer3.Add(self.file_info_user_%i,wx.ALIGN_TOP)" %i
-            exec command
+            exec(command)
             bSizer3.AddSpacer(5)
 
         #---sizer 4 ----
@@ -1464,17 +1464,17 @@ class convert_generic_files_to_MagIC(wx.Frame):
         bSizer4.AddSpacer(5)
         for i in range(self.max_files):
             command="self.sample_naming_convention_%i = wx.ComboBox(self.panel, -1, self.sample_naming_conventions[0], size=(180,25), choices=self.sample_naming_conventions, style=wx.CB_DROPDOWN)"%i
-            exec command
+            exec(command)
             command="self.sample_naming_convention_char_%i = wx.TextCtrl(self.panel, id=-1, size=(40,25))"%i
-            exec command
+            exec(command)
             command="bSizer4_%i = wx.BoxSizer(wx.HORIZONTAL)"%i
-            exec command
+            exec(command)
             command="bSizer4_%i.Add(self.sample_naming_convention_%i,wx.ALIGN_LEFT)" %(i,i)
-            exec command
+            exec(command)
             command="bSizer4_%i.Add(self.sample_naming_convention_char_%i,wx.ALIGN_LEFT)" %(i,i)
-            exec command
+            exec(command)
             command="bSizer4.Add(bSizer4_%i,wx.ALIGN_TOP)"%i
-            exec command
+            exec(command)
 
             bSizer4.AddSpacer(5)
 
@@ -1487,17 +1487,17 @@ class convert_generic_files_to_MagIC(wx.Frame):
         bSizer5.AddSpacer(5)
         for i in range(self.max_files):
             command="self.site_naming_convention_char_%i = wx.TextCtrl(self.panel, id=-1, size=(40,25))"%i
-            exec command
+            exec(command)
             command="self.site_naming_convention_%i = wx.ComboBox(self.panel, -1, self.site_naming_conventions[0], size=(180,25), choices=self.site_naming_conventions, style=wx.CB_DROPDOWN)"%i
-            exec command
+            exec(command)
             command="bSizer5_%i = wx.BoxSizer(wx.HORIZONTAL)"%i
-            exec command
+            exec(command)
             command="bSizer5_%i.Add(self.site_naming_convention_%i,wx.ALIGN_LEFT)" %(i,i)
-            exec command
+            exec(command)
             command="bSizer5_%i.Add(self.site_naming_convention_char_%i,wx.ALIGN_LEFT)" %(i,i)
-            exec command
+            exec(command)
             command="bSizer5.Add(bSizer5_%i,wx.ALIGN_TOP)"%i
-            exec command
+            exec(command)
             bSizer5.AddSpacer(5)
 
 
@@ -1577,7 +1577,7 @@ class convert_generic_files_to_MagIC(wx.Frame):
         try:
             Incs=arcsin(Zs/Rs)/rad # calculate inclination (converting to degrees) #
         except:
-            print 'trouble in cart2dir' # most likely division by zero somewhere
+            print('trouble in cart2dir') # most likely division by zero somewhere
             return zeros(3)
 
         return array([Decs,Incs,Rs]).transpose() # return the directions list
@@ -1594,7 +1594,7 @@ class convert_generic_files_to_MagIC(wx.Frame):
             )
         if dlg.ShowModal() == wx.ID_OK:
             FILE = dlg.GetPath()
-        # fin=open(FILE,'rU')
+        # fin=open(FILE,'r')
         self.file_path.AppendText(FILE+"\n")
         self.protocol_info.AppendText("IZZI"+"\n")
 
@@ -1609,14 +1609,14 @@ class convert_generic_files_to_MagIC(wx.Frame):
             )
         if dlg.ShowModal() == wx.ID_OK:
             FILE = dlg.GetPath()
-        # fin=open(FILE,'rU')
+        # fin=open(FILE,'r')
         button = event.GetEventObject()
         name=button.GetName()
         i=int((name).split("_")[-1])
         #print "The button's name is " + button.GetName()
 
         command="self.file_path_%i.SetValue(FILE)"%i
-        exec command
+        exec(command)
 
         #self.file_path.AppendText(FILE)
         #self.protocol_info.AppendText("IZZI"+"\n")
@@ -1625,7 +1625,7 @@ class convert_generic_files_to_MagIC(wx.Frame):
 
     def read_generic_file(self,path):
         Data={}
-        Fin=open(path,'rU')
+        Fin=open(path,'r')
         header=Fin.readline().strip('\n').split('\t')
 
         for line in Fin.readlines():
@@ -1638,12 +1638,12 @@ class convert_generic_files_to_MagIC(wx.Frame):
                 for i in range(len(header)):
                     tmp_data[header[i]]=l[i]
                 specimen=tmp_data['Specimen']
-                if specimen not in Data.keys():
+                if specimen not in list(Data.keys()):
                     Data[specimen]=[]
                 # check duplicates
                 if len(Data[specimen]) >0:
                     if tmp_data['Treatment']==Data[specimen][-1]['Treatment']:
-                        print "-W- WARNING: duplicate measurements specimen %s, Treatment %s. keeping onlt the last one"%(tmp_data['Specimen'],tmp_data['Treatment'])
+                        print("-W- WARNING: duplicate measurements specimen %s, Treatment %s. keeping onlt the last one"%(tmp_data['Specimen'],tmp_data['Treatment']))
                         Data[specimen].pop()
 
                 Data[specimen].append(tmp_data)
@@ -1679,49 +1679,49 @@ class convert_generic_files_to_MagIC(wx.Frame):
             # read data from generic file
             datafile=""
             command="datafile=self.file_path_%i.GetValue()"%i
-            exec command
+            exec(command)
             if datafile!="":
                 try:
                     this_file_data= self.read_generic_file(datafile)
                 except:
-                    print "-E- Cant read file %s" %datafile
+                    print("-E- Cant read file %s" %datafile)
             else:
                 continue
 
 
             # get experiment
             command="experiment=self.protocol_info_%i.GetValue()"%i
-            exec command
+            exec(command)
 
             # get Blab
             labfield=["0","-1","-1"]
             command="labfield[0]=self.file_info_Blab_%i.GetValue()"%i
-            exec command
+            exec(command)
             command="labfield[1]=self.file_info_Blab_dec_%i.GetValue()"%i
-            exec command
+            exec(command)
             command="labfield[2]=self.file_info_Blab_inc_%i.GetValue()"%i
-            exec command
+            exec(command)
 
             # get User_name
             user_name=""
             command="user_name=self.file_info_user_%i.GetValue()"%i
-            exec command
+            exec(command)
 
             # get sample-specimen naming convention
 
             sample_naming_convenstion=["",""]
             command="sample_naming_convenstion[0]=self.sample_naming_convention_%i.GetValue()"%i
-            exec command
+            exec(command)
             command="sample_naming_convenstion[1]=self.sample_naming_convention_char_%i.GetValue()"%i
-            exec command
+            exec(command)
 
             # get site-sample naming convention
 
             site_naming_convenstion=["",""]
             command="site_naming_convenstion[0]=self.site_naming_convention_%i.GetValue()"%i
-            exec command
+            exec(command)
             command="site_naming_convenstion[1]=self.site_naming_convention_char_%i.GetValue()"%i
-            exec command
+            exec(command)
 
             #-------------------------------
             Magic_lab_protocols={}
@@ -1733,7 +1733,7 @@ class convert_generic_files_to_MagIC(wx.Frame):
             Magic_lab_protocols['NLT'] = "LP-TRM" # LT-T-I:
             #------------------------------
 
-            for specimen in this_file_data.keys():
+            for specimen in list(this_file_data.keys()):
                 measurement_running_number=0
                 this_specimen_teratments=[]
                 for meas_line in this_file_data[specimen]:
@@ -1794,7 +1794,7 @@ class convert_generic_files_to_MagIC(wx.Frame):
                         elif float(tr_tr)==40 or float(tr_tr)==4:
                             lab_treatment="LT-PTRM-AC"
                         else:
-                            print "-E- unknown measurement code specimen %s treatmemt %s"%(meas_line['Specimen'],meas_line['Treatment'])
+                            print("-E- unknown measurement code specimen %s treatmemt %s"%(meas_line['Specimen'],meas_line['Treatment']))
 
                     elif experiment in ['ATRM 6 positions']:
                         lab_protocols_string="LP-AN-TRM"
@@ -1828,7 +1828,7 @@ class convert_generic_files_to_MagIC(wx.Frame):
                             # check it
                             if tr_tr!= 7 and tr_tr!= 70:
                                 if ipos_guess!=ipos_code:
-                                    print "-W- WARNING: check specimen %s step %s, ATRM measurements, coding does not match the direction of the lab field"%(specimen,meas_line['Treatment'])
+                                    print("-W- WARNING: check specimen %s step %s, ATRM measurements, coding does not match the direction of the lab field"%(specimen,meas_line['Treatment']))
                             MagRec["treatment_dc_field_phi"]='%7.1f' %(tdec[ipos])
                             MagRec["treatment_dc_field_theta"]='%7.1f'% (tinc[ipos])
 
@@ -1838,7 +1838,7 @@ class convert_generic_files_to_MagIC(wx.Frame):
                                     lab_treatment="LT-T-I"
 
                     elif experiment in ['cooling rate']:
-                        print "Dont support yet cooling rate experiment file. Contact rshaar@ucsd.edu"
+                        print("Dont support yet cooling rate experiment file. Contact rshaar@ucsd.edu")
                     elif experiment in ['NLT']:
                         if float(tr_tr)==0:
                             lab_protocols_string="LP-TRM"

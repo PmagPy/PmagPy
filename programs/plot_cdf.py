@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+from __future__ import print_function
+from builtins import input
 import sys
 import numpy
 import matplotlib
@@ -29,7 +31,7 @@ def main():
     fmt,plot='svg',0
     title=""
     if '-h' in sys.argv:
-        print main.__doc__
+        print(main.__doc__)
         sys.exit()
     if '-sav' in sys.argv:plot=1
     if '-f' in sys.argv:
@@ -39,8 +41,8 @@ def main():
 #    else:
 #       X=numpy.loadtxt(sys.stdin,dtype=numpy.float)
     else:
-       print '-f option required'
-       print main.__doc__
+       print('-f option required')
+       print(main.__doc__)
        sys.exit()
     if '-fmt' in sys.argv:
        ind=sys.argv.index('-fmt')
@@ -54,7 +56,7 @@ def main():
     files={'X':'CDF_.'+fmt}
     if plot==0:
         pmagplotlib.drawFIGS(CDF)
-        ans= raw_input('S[a]ve  plot, <Return> to quit ')
+        ans= input('S[a]ve  plot, <Return> to quit ')
         if ans=='a':
             pmagplotlib.saveP(CDF,files)
     else:

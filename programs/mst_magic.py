@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+from __future__ import print_function
+from builtins import str
 import sys
 import pmagpy.pmag as pmag
 
@@ -56,7 +58,7 @@ def main():
         dir_path=args[ind+1]
     meas_file=dir_path+"/MsT_measurements.txt"
     if "-h" in args:
-        print main.__doc__
+        print(main.__doc__)
         sys.exit()
     if "-usr" in args:
         ind=args.index("-usr")
@@ -76,13 +78,13 @@ def main():
         ind=args.index("-f")
         infile=dir_path+'/'+args[ind+1]
         try:
-            input=open(infile,'rU')
+            input=open(infile,'r')
         except:
-            print "bad mag file name"
+            print("bad mag file name")
             sys.exit()
     else: 
-        print main.__doc__
-        print "-f  is required option"
+        print(main.__doc__)
+        print("-f  is required option")
         sys.exit()
     if "-spc" in args:
         ind=args.index("-spc")
@@ -96,8 +98,8 @@ def main():
         ind=args.index("-spn")
         specimen_name=args[ind+1]
     else: 
-        print main.__doc__
-        print "-spn  is required option"
+        print(main.__doc__)
+        print("-spn  is required option")
         sys.exit()
     if "-syn" in args: syn=1
     if "-ncn" in args:
@@ -105,7 +107,7 @@ def main():
         samp_con=sys.argv[ind+1]
         if "4" in samp_con:
             if "-" not in samp_con:
-                print "option [4] must be in form 4-Z where Z is an integer"
+                print("option [4] must be in form 4-Z where Z is an integer")
                 sys.exit()
             else:
                 Z=samp_con.split("-")[1]
@@ -113,7 +115,7 @@ def main():
             samp_con=sys.argv[ind+1]
         if "7" in samp_con:
             if "-" not in samp_con:
-                print "option [7] must be in form 7-Z where Z is an integer"
+                print("option [7] must be in form 7-Z where Z is an integer")
                 sys.exit()
             else:
                 Z=samp_con.split("-")[1]
@@ -138,7 +140,7 @@ def main():
                 MagRec["magic_method_codes"]='LP-MC-I'
                 T0=T 
             else:
-                print 'skipping repeated temperature step'
+                print('skipping repeated temperature step')
                 MagRec["magic_method_codes"]=''
             T0=T 
             MagRec["measurement_magnitude"]='%10.3e'% (float(rec[1])) # uncalibrated magnitude
@@ -159,9 +161,9 @@ def main():
                     site=pmag.parse_site(MagRec['er_sample_name'],samp_con,Z)
                     MagRec["er_site_name"]=site
                 if MagRec['er_site_name']=="":
-                    print 'No site name found for: ',MagRec['er_specimen_name'],MagRec['er_sample_name']
+                    print('No site name found for: ',MagRec['er_specimen_name'],MagRec['er_sample_name'])
                 if MagRec["er_location_name"]=="":
-                    print 'no location name for: ',MagRec["er_specimen_name"] 
+                    print('no location name for: ',MagRec["er_specimen_name"]) 
             else:
                 MagRec["er_synthetic_name"]=specimen_name
                 MagRec["er_location_name"]=""
@@ -182,7 +184,7 @@ def main():
         elif rec['magic_method_codes']=='LP-MC-I':
             rec["magic_experiment_name"]=specimen_name+':LP-MC-I'
     pmag.magic_write(meas_file,MagRecs,'magic_measurements')
-    print "results put in ",meas_file
+    print("results put in ",meas_file)
 
 if __name__ == "__main__":
     main()

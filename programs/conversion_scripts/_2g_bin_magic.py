@@ -73,9 +73,12 @@ OUTPUT
         output saved in magic_measurements.txt & er_samples.txt formatted files
           will overwrite any existing files 
 """
+from __future__ import print_function
+from builtins import range
 import sys, os
 import pmagpy.pmag as pmag
 import pmagpy.new_builder as nb
+from functools import reduce
 
 def skip(N,ind,L):
     for b in range(N):
@@ -125,14 +128,14 @@ def convert(**kwargs):
     if samp_con:
         if "4" in samp_con:
             if "-" not in samp_con:
-                print "option [4] must be in form 4-Z where Z is an integer"
+                print("option [4] must be in form 4-Z where Z is an integer")
                 return False, "option [4] must be in form 4-Z where Z is an integer"
             else:
                 Z=samp_con.split("-")[1]
                 samp_con="4"
         if "7" in samp_con:
             if "-" not in samp_con:
-                print "option [7] must be in form 7-Z where Z is an integer"
+                print("option [7] must be in form 7-Z where Z is an integer")
                 return False, "option [7] must be in form 7-Z where Z is an integer"
             else:
                 Z=samp_con.split("-")[1]
@@ -142,15 +145,15 @@ def convert(**kwargs):
             try:
                 SampRecs,file_type=pmag.magic_read(os.path.join(input_dir_path, 'er_samples.txt'))
             except:
-                print "there is no er_samples.txt file in your input directory - you can't use naming convention #6"
+                print("there is no er_samples.txt file in your input directory - you can't use naming convention #6")
                 return False, "there is no er_samples.txt file in your input directory - you can't use naming convention #6"
             if file_type == 'bad_file':
-                print "there is no er_samples.txt file in your input directory - you can't use naming convention #6"
+                print("there is no er_samples.txt file in your input directory - you can't use naming convention #6")
                 return False, "there is no er_samples.txt file in your input directory - you can't use naming convention #6"
         else: Z=1
 
     if not mag_file:
-        print "mag file is required input"
+        print("mag file is required input")
         return False, "mag file is required input"
     output_dir_path = dir_path
     mag_file = os.path.join(input_dir_path, mag_file)
@@ -167,29 +170,29 @@ def convert(**kwargs):
         SampRecs=[]
     MeasRecs,SpecRecs,SiteRecs,LocRecs=[],[],[],[]
     try:
-        f=open(mag_file,'rU')
-        input=f.read()
+        f=open(mag_file,'brU')
+        input=str(f.read()).strip("b '")
         f.close()
     except Exception as ex:
-        print 'ex', ex
-        print "bad mag file"
+        print('ex', ex)
+        print("bad mag file")
         return False, "bad mag file"
     firstline,date=1,""
-    d=input.split('\xcd')
+    d=input.split('\\xcd')
     for line in d:
-        rec=line.split('\x00')
+        rec=line.split('\\x00')
         if firstline==1:
             firstline=0
             spec,vol="",1
-            for c in line[15:23]:
-                if c!='\x00':spec=spec+c
-# check for bad sample name
+            el=51
+            while line[el:el+1]!="\\": spec=spec+line[el];el+=1
+            # check for bad sample name
             test=spec.split('.')
             date=""
             if len(test)>1:
                 spec=test[0]
                 kk=24
-                while line[kk]!='\x01' and line[kk]!='\x00':
+                while line[kk]!='\\x01' and line[kk]!='\\x00':
                     kk+=1
                 vcc=line[24:kk]
                 el=10
@@ -197,10 +200,10 @@ def convert(**kwargs):
                 date,comments=rec[el+7],[]
             else:
                 el=9
-                while rec[el]!='\x01':el+=1
+                while rec[el]!='\\x01':el+=1
                 vcc,date,comments=rec[el-3],rec[el+7],[]
             specname=spec.lower()
-            print 'importing ',specname
+            print('importing ',specname)
             el+=8
             while rec[el].isdigit()==False:
                 comments.append(rec[el])
@@ -218,7 +221,7 @@ def convert(**kwargs):
             bed_dip=float(rec[el])
             el+=1
             while rec[el]=="":el+=1
-            if rec[el]=='\x01': 
+            if rec[el]=='\\x01': 
                 bed_dip=180.-bed_dip
                 el+=1
                 while rec[el]=="":el+=1
@@ -228,7 +231,7 @@ def convert(**kwargs):
             fold_pl=rec[el]
             el+=1
             while rec[el]=="":el+=1
-            if rec[el]!="" and rec[el]!='\x02' and rec[el]!='\x01':
+            if rec[el]!="" and rec[el]!='\\x02' and rec[el]!='\\x01':
                 deccorr=float(rec[el])
                 az+=deccorr
                 bed_dip_dir+=deccorr
@@ -260,7 +263,7 @@ def convert(**kwargs):
             SpecRec["geologic_types"]=_type
             SpecRecs.append(SpecRec)
 
-            if sample!="" and sample not in map(lambda x: x['sample'] if 'sample' in x.keys() else "", SampRecs):
+            if sample!="" and sample not in [x['sample'] if 'sample' in list(x.keys()) else "" for x in SampRecs]:
                 SampRec["sample"]=sample
                 SampRec["site"]=site
                 labaz,labdip=pmag.orient(az,pl,or_con) # convert to labaz, labpl
@@ -275,7 +278,7 @@ def convert(**kwargs):
                 SampRec["method_codes"]=method_codes
                 SampRecs.append(SampRec)
 
-            if site!="" and site not in map(lambda x: x['site'] if 'site' in x.keys() else "", SiteRecs):
+            if site!="" and site not in [x['site'] if 'site' in list(x.keys()) else "" for x in SiteRecs]:
                 SiteRec['site'] = site
                 SiteRec['location'] = location
                 SiteRec['lat'] = lat
@@ -285,7 +288,7 @@ def convert(**kwargs):
                 SiteRec["geologic_types"]=_type
                 SiteRecs.append(SiteRec)
 
-            if location!="" and location not in map(lambda x: x['location'] if 'location' in x.keys() else "", LocRecs):
+            if location!="" and location not in [x['location'] if 'location' in list(x.keys()) else "" for x in LocRecs]:
                 LocRec['location']=location
                 LocRec['lat_n'] = lat
                 LocRec['lon_e'] = lon

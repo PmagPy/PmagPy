@@ -44,6 +44,8 @@ OPTIONS
 INPUT
     PMD format files
 """
+from __future__ import print_function
+from builtins import range
 import os,sys
 import pmagpy.pmag as pmag
 import pmagpy.new_builder as nb
@@ -75,14 +77,14 @@ def convert(**kwargs):
     if specnum!=0:specnum=-specnum
     if "4" in samp_con:
         if "-" not in samp_con:
-            print "naming convention option [4] must be in form 4-Z where Z is an integer"
+            print("naming convention option [4] must be in form 4-Z where Z is an integer")
             return False, "naming convention option [4] must be in form 4-Z where Z is an integer"
         else:
             Z=samp_con.split("-")[1]
             samp_con="4"
     elif "7" in samp_con:
         if "-" not in samp_con:
-            print "option [7] must be in form 7-Z where Z is an integer"
+            print("option [7] must be in form 7-Z where Z is an integer")
             return False, "naming convention option [7] must be in form 7-Z where Z is an integer"
         else:
             Z=samp_con.split("-")[1]
@@ -97,7 +99,7 @@ def convert(**kwargs):
     site_file = os.path.join(output_dir_path,site_file)
 
     # parse data
-    data=open(mag_file,'rU').readlines() # read in data from file
+    data=open(mag_file,'r').readlines() # read in data from file
     comment=data[0]
     line=data[1].strip()
     line=line.replace("=","= ")  # make finding orientations easier
@@ -112,8 +114,8 @@ def convert(**kwargs):
     if int(samp_con)<6:
         site=pmag.parse_site(sample,samp_con,Z)
     else:
-        if 'site' in SampRec.keys():site=ErSampREc['site']
-        if 'location' in SampRec.keys():location=ErSampREc['location']
+        if 'site' in list(SampRec.keys()):site=ErSampREc['site']
+        if 'location' in list(SampRec.keys()):location=ErSampREc['location']
     az_ind=rec.index('a=')+1
     SampRec['sample']=sample
     SampRec['description']=comment
@@ -176,7 +178,7 @@ def convert(**kwargs):
         elif rec[0][0]=='T': 
             meas_type="LT-T-Z"
         else:
-            print "measurement type unknown"
+            print("measurement type unknown")
             return False, "measurement type unknown"
         X=[float(rec[1]),float(rec[2]),float(rec[3])]
         Vec=pmag.cart2dir(X)

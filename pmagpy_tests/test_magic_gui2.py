@@ -22,29 +22,12 @@ class TestMainFrame(unittest.TestCase):
     def setUp(self):
         self.app = wx.App()
         self.frame = magic_gui.MainFrame(WD, "zebra", DMODEL)
+        self.app.frame=self.frame
         self.pnl = self.frame.GetChildren()[0]
 
     def tearDown(self):
-        os.chdir(WD)
-        return
-        print 'self.app.IsMainLoopRunning()', self.app.IsMainLoopRunning()
-        print 'wx.GetTopLevelWindows()', wx.GetTopLevelWindows()
-        if not wx.GetTopLevelWindows():
-            return
-        def _cleanup():
-            pass
-            #print 'doing _cleanup'
-            #for tlw in wx.GetTopLevelWindows():
-            #    if tlw:
-            #        tlw.Destroy()
-            #wx.WakeUpIdle()
-            ##self.app.ExitMainLoop()
-        #wx.CallLater(50, _cleanup)
-        print 'about to start MainLoop'
-        #self.app.MainLoop()
-        print 'closed MainLoop, about to del app'
-        self.app.Destroy()
-        del self.app
+        wx.CallAfter(self.frame.Destroy)
+        wx.CallAfter(self.app.Destroy)
         os.chdir(WD)
 
     def test_main_panel_is_created(self):
@@ -76,42 +59,42 @@ class TestMainFrame(unittest.TestCase):
         self.assertTrue(window, 'er_specimens grid window was not created')
         self.assertIsInstance(window, grid_frame.GridFrame)
         self.assertTrue(window.IsEnabled())
-        self.assertTrue(window.IsShown())
+        wx.CallAfter(self.assertTrue,window.IsShown())
 
     def test_sample_button(self):
         window = self.does_top_window_exist(self.pnl, 'sample_btn', 'sample')
         self.assertTrue(window, 'er_samples grid window was not created')
         self.assertIsInstance(window, grid_frame.GridFrame)
         self.assertTrue(window.IsEnabled())
-        self.assertTrue(window.IsShown())
+        wx.CallAfter(self.assertTrue,window.IsShown())
 
     def test_site_button(self):
         window = self.does_top_window_exist(self.pnl, 'site_btn', 'site')
         self.assertTrue(window, 'er_sites grid window was not created')
         self.assertIsInstance(window, grid_frame.GridFrame)
         self.assertTrue(window.IsEnabled())
-        self.assertTrue(window.IsShown())
+        wx.CallAfter(self.assertTrue,window.IsShown())
 
     def test_location_button(self):
         window = self.does_top_window_exist(self.pnl, 'location_btn', 'location')
         self.assertTrue(window, 'er_locations grid window was not created')
         self.assertIsInstance(window, grid_frame.GridFrame)
         self.assertTrue(window.IsEnabled())
-        self.assertTrue(window.IsShown())
+        wx.CallAfter(self.assertTrue,window.IsShown())
 
     def test_ages_button(self):
         window = self.does_top_window_exist(self.pnl, 'age_btn', 'age')
         self.assertTrue(window, 'er_ages grid window was not created')
         self.assertIsInstance(window, grid_frame.GridFrame)
         self.assertTrue(window.IsEnabled())
-        self.assertTrue(window.IsShown())
+        wx.CallAfter(self.assertTrue,window.IsShown())
 
     def test_results_button(self):
         window = self.does_top_window_exist(self.pnl, 'result_btn', 'result')
         self.assertTrue(window, 'er_results grid window was not created')
         self.assertIsInstance(window, grid_frame.GridFrame)
         self.assertTrue(window.IsEnabled())
-        self.assertTrue(window.IsShown())
+        wx.CallAfter(self.assertTrue,window.IsShown())
 
 
     def does_window_exist(self, parent, btn_name, window_name):
@@ -212,7 +195,7 @@ class TestMainFrameWithData(unittest.TestCase):
         self.assertTrue(site.er_data)
         self.assertTrue(site.pmag_data)
         self.assertTrue(location.er_data)
-        self.assertFalse(len(location.pmag_data.keys()) > 1)
+        self.assertFalse(len(list(location.pmag_data.keys())) > 1)
 
         #self.assertTrue(self.frame.er_magic.pmag_results_header)
         #self.assertTrue(self.frame.er_magic.pmag_results_reqd_header)
@@ -304,18 +287,18 @@ class TestMagICGUIMenu(unittest.TestCase):
         help_item = fmenu.FindItemById(help_id)
 
         top_windows = wx.GetTopLevelWindows()
-        print 'before'
+        print('before')
         for window in top_windows:
-            print 'top-level window:', window
-            print 'name:', window.Label
-        print 'after'
+            print('top-level window:', window)
+            print('name:', window.Label)
+        print('after')
         event = wx.CommandEvent(wx.EVT_MENU.evtType[0], help_id)
         self.frame.GetEventHandler().ProcessEvent(event)
         top_windows = wx.GetTopLevelWindows()
         help_window = False
         for window in top_windows:
-            print 'top-level window:', window
-            print 'name:', window.Label
+            print('top-level window:', window)
+            print('name:', window.Label)
             if window.Label == 'Help Window':
                 help_window = window
         self.assertTrue(help_window)

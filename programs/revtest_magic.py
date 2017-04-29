@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+from __future__ import print_function
+from builtins import input
 import sys
 import matplotlib
 if matplotlib.get_backend() != "TKAgg":
@@ -36,7 +38,7 @@ def main():
     critfile='pmag_criteria.txt'
     dir_path='.'
     if '-h' in sys.argv: # check if help is needed
-        print main.__doc__
+        print(main.__doc__)
         sys.exit() # graceful quit
     if '-WD' in sys.argv:
         ind=sys.argv.index('-WD')
@@ -60,7 +62,7 @@ def main():
     Accept=['site_k','site_alpha95','site_n','site_n_lines']
     data,file_type=pmag.magic_read(infile)
     if file_type!='pmag_sites':
-        print "Error opening file"
+        print("Error opening file")
         sys.exit()
 #    ordata,file_type=pmag.magic_read(orfile)
     if '-exc' in sys.argv:
@@ -95,18 +97,18 @@ def main():
 # get bootstrapped means for each data set
 #
     if len(D1) < 5 or len(D2) < 5:
-        print 'not enough data in two different modes for reversals test'
+        print('not enough data in two different modes for reversals test')
         sys.exit()
-    print 'doing first mode, be patient'
+    print('doing first mode, be patient')
     BDI1=pmag.di_boot(D1)
-    print 'doing second mode, be patient'
+    print('doing second mode, be patient')
     BDI2=pmag.di_boot(D2)
     pmagplotlib.plotCOM(CDF,BDI1,BDI2,[""])
     files={}
-    for key in CDF.keys(): files[key]='REV'+'_'+key+'.'+fmt 
+    for key in list(CDF.keys()): files[key]='REV'+'_'+key+'.'+fmt 
     if plot==0:
         pmagplotlib.drawFIGS(CDF)
-        ans=  raw_input("s[a]ve plots, [q]uit: ")
+        ans=  input("s[a]ve plots, [q]uit: ")
         if ans=='a':
             pmagplotlib.saveP(CDF,files)
     else:

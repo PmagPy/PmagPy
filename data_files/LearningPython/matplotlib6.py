@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+from builtins import str
+from builtins import range
 import matplotlib
 matplotlib.use("TkAgg")
 import pylab

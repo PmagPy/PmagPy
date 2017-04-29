@@ -156,6 +156,11 @@ INPUT
         inc_t:
             inclination in tilt-corrected coordinate system (-90 to 90)
 """
+from __future__ import division
+from __future__ import print_function
+from builtins import str
+from builtins import range
+from past.utils import old_div
 import sys, copy, os
 import scipy
 from pmagpy import pmag
@@ -173,7 +178,7 @@ def sort_magic_file(path,ignore_lines_n,sort_by_this_name):
     DATA[sort_by_this_name]=[dictionary1,dictionary2,...]
     '''
     DATA={}
-    fin=open(path,'rU')
+    fin=open(path,'r')
     #ignore first lines
     for i in range(ignore_lines_n):
         fin.readline()
@@ -202,7 +207,7 @@ def read_generic_file(path,average_replicates):
     Data[specimen_name][dict1,dict2,...]
     '''
     Data={}
-    Fin=open(path,'rU')
+    Fin=open(path,'r')
     header=Fin.readline().strip('\n').split('\t')
     duplicates=[]
     for line in Fin.readlines():
@@ -212,11 +217,12 @@ def read_generic_file(path,average_replicates):
         for i in range(min(len(header),len(l))):
             tmp_data[header[i]]=l[i]
         specimen=tmp_data['specimen']
-        if specimen not in Data.keys():
+        if specimen not in list(Data.keys()):
             Data[specimen]=[]
         Data[specimen].append(tmp_data)
+    Fin.close()
     # search fro duplicates
-    for specimen in Data.keys():
+    for specimen in list(Data.keys()):
         x=len(Data[specimen])-1
         new_data=[]
         duplicates=[]
@@ -228,11 +234,11 @@ def read_generic_file(path,average_replicates):
                if average_replicates:
                    duplicates.append(Data[specimen][i-1])
                    Data[specimen][i-1]=average_duplicates(duplicates)
-                   print "-W- WARNING: averaging %i duplicates for specimen %s treatmant %s"%(len(duplicates),specimen,duplicates[-1]['treatment'])
+                   print("-W- WARNING: averaging %i duplicates for specimen %s treatmant %s"%(len(duplicates),specimen,duplicates[-1]['treatment']))
                    duplicates=[]
                else:
                    Data[specimen][i-1]=duplicates[-1]
-                   print "-W- WARNING: found %i duplicates for specimen %s treatmant %s. Taking the last measurement only"%(len(duplicates),specimen,duplicates[-1]['treatment'])
+                   print("-W- WARNING: found %i duplicates for specimen %s treatmant %s. Taking the last measurement only"%(len(duplicates),specimen,duplicates[-1]['treatment']))
                    duplicates=[]
 
             if i==len(Data[specimen])-1:
@@ -247,19 +253,19 @@ def average_duplicates(duplicates):
     carts_s,carts_g,carts_t=[],[],[]
     for rec in duplicates:
         moment=float(rec['moment'])
-        if 'dec_s' in rec.keys() and 'inc_s' in rec.keys():
+        if 'dec_s' in list(rec.keys()) and 'inc_s' in list(rec.keys()):
             if rec['dec_s']!="" and rec['inc_s']!="":
                 dec_s=float(rec['dec_s'])
                 inc_s=float(rec['inc_s'])
                 cart_s=pmag.dir2cart([dec_s,inc_s,moment])
                 carts_s.append(cart_s)
-        if 'dec_g' in rec.keys() and 'inc_g' in rec.keys():
+        if 'dec_g' in list(rec.keys()) and 'inc_g' in list(rec.keys()):
             if rec['dec_g']!="" and rec['inc_g']!="":
                 dec_g=float(rec['dec_g'])
                 inc_g=float(rec['inc_g'])
                 cart_g=pmag.dir2cart([dec_g,inc_g,moment])
                 carts_g.append(cart_g)
-        if 'dec_t' in rec.keys() and 'inc_t' in rec.keys():
+        if 'dec_t' in list(rec.keys()) and 'inc_t' in list(rec.keys()):
             if rec['dec_t']!="" and rec['inc_t']!="":
                 dec_t=float(rec['dec_t'])
                 inc_t=float(rec['inc_t'])
@@ -301,7 +307,7 @@ def average_duplicates(duplicates):
         mean_dec_t,mean_inc_t="",""
 
     meanrec={}
-    for key in duplicates[0].keys():
+    for key in list(duplicates[0].keys()):
         if key in ['dec_s','inc_s','dec_g','inc_g','dec_t','inc_t','moment']:
             continue
         else:
@@ -347,12 +353,12 @@ def merge_pmag_recs(old_recs):
     recs=copy.deepcopy(old_recs)
     headers=[]
     for rec in recs:
-        for key in rec.keys():
+        for key in list(rec.keys()):
             if key not in headers:
                 headers.append(key)
     for rec in recs:
         for header in headers:
-            if header not in rec.keys():
+            if header not in list(rec.keys()):
                 rec[header]=""
     return recs
 
@@ -383,18 +389,18 @@ def convert(**kwargs):
     # format and validate variables
     if magfile:
         try:
-            input=open(magfile,'rU')
+            input=open(magfile,'r')
         except:
-            print "bad mag file:",magfile
+            print("bad mag file:",magfile)
             return False, "bad mag file"
     else:
-        print "mag_file field is required option"
-        print __doc__
+        print("mag_file field is required option")
+        print(__doc__)
         return False, "mag_file field is required option"
 
     if not experiment:
-        print "-exp is required option. Please provide experiment type of: Demag, PI, ATRM n (n of positions), CR (see below for format), NLT"
-        print __doc__
+        print("-exp is required option. Please provide experiment type of: Demag, PI, ATRM n (n of positions), CR (see below for format), NLT")
+        print(__doc__)
         return False, "-exp is required option"
 
     if experiment=='ATRM':
@@ -483,7 +489,7 @@ def convert(**kwargs):
                     MeasRec["treat_dc_field_phi"]="0"
                     MeasRec["treat_dc_field_theta"]="0"
                 elif not labfield:
-                    print "-W- WARNING: labfield (-dc) is a required argument for this experiment type"
+                    print("-W- WARNING: labfield (-dc) is a required argument for this experiment type")
                     return False, "labfield (-dc) is a required argument for this experiment type"
 
                 else:
@@ -547,7 +553,7 @@ def convert(**kwargs):
                     LT="LT-PTRM-AC"
                     LP=LP+":"+"LP-PI-BT-MD"
                 else:
-                    print "-E- unknown measurement code specimen %s treatmemt %s"%(meas_line['specimen'],meas_line['treatment'])
+                    print("-E- unknown measurement code specimen %s treatmemt %s"%(meas_line['specimen'],meas_line['treatment']))
                     MeasRec={}
                     continue
                 # save all treatment in a list
@@ -582,14 +588,14 @@ def convert(**kwargs):
                     LP="LP-AN-TRM"
                     n_pos=atrm_n_pos
                     if n_pos!=6:
-                        print "the program does not support ATRM in %i position."%n_pos
+                        print("the program does not support ATRM in %i position."%n_pos)
                         continue
 
                 if experiment=='AARM':
                     LP="LP-AN-ARM"
                     n_pos=aarm_n_pos
                     if n_pos!=6:
-                        print "the program does not support AARM in %i position."%n_pos
+                        print("the program does not support AARM in %i position."%n_pos)
                         continue
 
                 if treatment[1]==0:
@@ -623,7 +629,7 @@ def convert(**kwargs):
                     if treatment[1] < 10:
                         ipos_code=int(treatment[1])-1
                     else:
-                        ipos_code=int(treatment[1]/10)-1
+                        ipos_code=int(old_div(treatment[1],10))-1
 
                     # (2) using the magnetization
                     if meas_line["dec_s"]!="":
@@ -651,7 +657,7 @@ def convert(**kwargs):
                     # check it
                     if treatment[1]!= 7 and treatment[1]!= 70:
                         if ipos_guess!=ipos_code:
-                            print "-W- WARNING: check specimen %s step %s, anistropy measurements, coding does not match the direction of the lab field"%(specimen,meas_line['treatment'])
+                            print("-W- WARNING: check specimen %s step %s, anistropy measurements, coding does not match the direction of the lab field"%(specimen,meas_line['treatment']))
                     MeasRec["treat_dc_field_phi"]='%7.1f' %(tdec[ipos])
                     MeasRec["treat_dc_field_theta"]='%7.1f'% (tinc[ipos])
 
@@ -693,7 +699,7 @@ def convert(**kwargs):
             #---------------------
 
             elif 'NLT' in experiment :
-                print "Dont support yet NLT rate experiment file. Contact rshaar@ucsd.edu"
+                print("Dont support yet NLT rate experiment file. Contact rshaar@ucsd.edu")
 
             #---------------------
             # method_codes for this measurement only
@@ -707,15 +713,15 @@ def convert(**kwargs):
             #--------------------
 
             found_s,found_geo,found_tilt=False,False,False
-            if "dec_s" in meas_line.keys() and "inc_s" in meas_line.keys():
+            if "dec_s" in list(meas_line.keys()) and "inc_s" in list(meas_line.keys()):
                 if meas_line["dec_s"]!="" and meas_line["inc_s"]!="":
                     found_s=True
                 MeasRec["dir_dec"]=meas_line["dec_s"]
                 MeasRec["dir_inc"]=meas_line["inc_s"]
-            if "dec_g" in meas_line.keys() and "inc_g" in meas_line.keys():
+            if "dec_g" in list(meas_line.keys()) and "inc_g" in list(meas_line.keys()):
                 if meas_line["dec_g"]!="" and meas_line["inc_g"]!="":
                     found_geo=True
-            if "dec_t" in meas_line.keys() and "inc_t" in meas_line.keys():
+            if "dec_t" in list(meas_line.keys()) and "inc_t" in list(meas_line.keys()):
                 if meas_line["dec_t"]!="" and meas_line["inc_t"]!="":
                     found_tilt=True
 
@@ -735,7 +741,7 @@ def convert(**kwargs):
             # geographic coordinates: no
             #-----------------------------
             if not found_geo and not found_s:
-                print "-E- ERROR: sample %s does not have dec_s/inc_s or dec_g/inc_g. Ignore specimen %s "%(sample,specimen)
+                print("-E- ERROR: sample %s does not have dec_s/inc_s or dec_g/inc_g. Ignore specimen %s "%(sample,specimen))
                 break
 
             #-----------------------------
@@ -756,14 +762,14 @@ def convert(**kwargs):
             # geographic coordinates: no
             #-----------------------------
             if not found_geo and found_s and "Demag" in experiment:
-                print "-W- WARNING: missing dip or azimuth for sample %s"%sample
+                print("-W- WARNING: missing dip or azimuth for sample %s"%sample)
 
             #-----------------------------
             # tilt-corrected coordinates: yes
             # geographic coordinates: no
             #-----------------------------
             if found_tilt and not found_geo:
-                    print "-E- ERROR: missing geographic data for sample %s. Ignoring tilt-corrected data "%sample
+                    print("-E- ERROR: missing geographic data for sample %s. Ignoring tilt-corrected data "%sample)
 
             #-----------------------------
             # tilt-corrected coordinates: yes
@@ -785,12 +791,12 @@ def convert(**kwargs):
                 sample_method_codes="SO-NO"
 
 
-            if specimen!="" and specimen not in map(lambda x: x['specimen'] if 'specimen' in x.keys() else "", SpecRecs):
+            if specimen!="" and specimen not in [x['specimen'] if 'specimen' in list(x.keys()) else "" for x in SpecRecs]:
                 SpecRec['specimen'] = specimen
                 SpecRec['sample'] = sample
                 SpecRec['citations'] = "This study"
                 SpecRecs.append(SpecRec)
-            if sample!="" and sample not in map(lambda x: x['sample'] if 'sample' in x.keys() else "", SampRecs):
+            if sample!="" and sample not in [x['sample'] if 'sample' in list(x.keys()) else "" for x in SampRecs]:
                 SampRec['sample'] = sample
                 SampRec['site'] = site
                 SampRec['citations'] = "This study"
@@ -800,14 +806,14 @@ def convert(**kwargs):
                 SampRec['bed_dip'] = Dip
                 SampRec['method_codes']=sample_method_codes
                 SampRecs.append(SampRec)
-            if site!="" and site not in map(lambda x: x['site'] if 'site' in x.keys() else "", SiteRecs):
+            if site!="" and site not in [x['site'] if 'site' in list(x.keys()) else "" for x in SiteRecs]:
                 SiteRec['site'] = site
                 SiteRec['location'] = location
                 SiteRec['citations'] = "This study"
                 SiteRec['lat'] = lat
                 SiteRec['lon'] = lon
                 SiteRecs.append(SiteRec)
-            if location!="" and location not in map(lambda x: x['location'] if 'location' in x.keys() else "", LocRecs):
+            if location!="" and location not in [x['location'] if 'location' in list(x.keys()) else "" for x in LocRecs]:
                 LocRec['location'] = location
                 LocRec['citations'] = "This study"
                 LocRec['lat_n'] = lat

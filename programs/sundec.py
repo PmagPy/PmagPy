@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+from __future__ import print_function
+from builtins import input
 import sys
 import pmagpy.pmag as pmag
 
@@ -16,7 +18,7 @@ def spitout(line):
     sundata["date"]=year+":"+month+":"+day+":"+hours+":"+min # put together the date the way dosundec wants it.
     sundata["shadow_angle"]=rec[8]
     dec=pmag.dosundec(sundata) # print out the output from sundec (the magnetic declination)
-    print '%7.1f'%(dec) # print out the output from sundec (the magnetic declination)
+    print('%7.1f'%(dec)) # print out the output from sundec (the magnetic declination)
     return dec
 def main():
     """
@@ -41,12 +43,12 @@ def main():
         declination
  """
     if '-h' in sys.argv:
-        print main.__doc__
+        print(main.__doc__)
         sys.exit()
     if '-f' in sys.argv:
         ind=sys.argv.index('-f')
         file=sys.argv[ind+1]
-        f=open(file,'rU')
+        f=open(file,'r')
         data=f.readlines() # read in data from standard input
         for line in data: # step through line by line
             dec=spitout(line)
@@ -56,21 +58,21 @@ def main():
             sundata={}  # dictionary with sundata in it
             print ("Time difference between Greenwich Mean Time (hrs to SUBTRACT from local time to get GMT): ")
             try:
-                sundata["delta_u"]=raw_input("<cntl-D> to quit ")
+                sundata["delta_u"]=input("<cntl-D> to quit ")
             except:
-                print "\n Good-bye\n"
+                print("\n Good-bye\n")
                 sys.exit()
             date=""
-            date=date+raw_input("Year:  <cntl-D to quit> ")
-            date=date+":"+raw_input("Month:  ")
-            date=date+":"+raw_input("Day:  ")
-            date=date+":"+raw_input("hour:  ")
-            date=date+":"+raw_input("minute:  ")
+            date=date+input("Year:  <cntl-D to quit> ")
+            date=date+":"+input("Month:  ")
+            date=date+":"+input("Day:  ")
+            date=date+":"+input("hour:  ")
+            date=date+":"+input("minute:  ")
             sundata["date"]=date
-            sundata["lat"]=raw_input("Latitude of sampling site (negative in southern hemisphere): ")
-            sundata["lon"]=raw_input("Longitude of sampling site (negative for western hemisphere): ")
-            sundata["shadow_angle"]=raw_input("Shadow angle: ")
-            print '%7.1f'%(pmag.dosundec(sundata)) # call sundec function from pmag module and print
+            sundata["lat"]=input("Latitude of sampling site (negative in southern hemisphere): ")
+            sundata["lon"]=input("Longitude of sampling site (negative for western hemisphere): ")
+            sundata["shadow_angle"]=input("Shadow angle: ")
+            print('%7.1f'%(pmag.dosundec(sundata))) # call sundec function from pmag module and print
     else:
         data=sys.stdin.readlines() # read in data from standard input
     for line in data: # step through line by line

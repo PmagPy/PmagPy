@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+from __future__ import print_function
+from builtins import input
 import sys
 import numpy
 import matplotlib
@@ -32,7 +34,7 @@ def main():
     """
     fmt,plot='svg',0
     if '-h' in sys.argv: # check if help is needed
-        print main.__doc__
+        print(main.__doc__)
         sys.exit() # graceful quit
     if '-f' in sys.argv:
         ind=sys.argv.index('-f')
@@ -40,9 +42,9 @@ def main():
         data=numpy.loadtxt(file).transpose()
         D=numpy.array([data[0],data[1]]).transpose()
     else: 
-        print '-f is a required switch'
-        print main.__doc__
-        print sys.exit()
+        print('-f is a required switch')
+        print(main.__doc__)
+        print(sys.exit())
     if '-fmt' in sys.argv:
         ind=sys.argv.index('-fmt')
         fmt=sys.argv[ind+1]
@@ -61,20 +63,20 @@ def main():
 #
 # get bootstrapped means for each data set
 #
-    print 'doing first mode, be patient'
+    print('doing first mode, be patient')
     BDI1=pmag.di_boot(D1)
-    print 'doing second mode, be patient'
+    print('doing second mode, be patient')
     BDI2=pmag.di_boot(D2)
     pmagplotlib.plotCOM(CDF,BDI1,BDI2,[""])
     files={}
-    for key in CDF.keys():
+    for key in list(CDF.keys()):
         files[key]='REV'+'_'+key+'.'+fmt 
     if plot==0:
         pmagplotlib.drawFIGS(CDF)
-        ans=  raw_input("s[a]ve plots, [q]uit: ")
+        ans=  input("s[a]ve plots, [q]uit: ")
         if ans=='a':
             pmagplotlib.saveP(CDF,files)
-        print 'good bye'
+        print('good bye')
         sys.exit()
     else:
         pmagplotlib.saveP(CDF,files)
