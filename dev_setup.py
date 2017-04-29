@@ -119,6 +119,8 @@ def windows_install(path_to_python=""):
     #be sure to add python.exe if the user forgets to include the file name
     if os.path.isdir(path_to_python):
         path_to_python = os.path.join(path_to_python, "python.exe")
+    if not os.path.isfile(path_to_python):
+        print("The path to python provided is not a full path to the python.exe file or this path does not exist, was given %s.\nPlease run again with the correct full path, run with -h flag for help"%path_to_python); return
 
     #make windows associate .py with python
     subprocess.check_call('assoc .py=Python',shell=True)
