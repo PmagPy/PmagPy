@@ -641,7 +641,7 @@ class MagMainFrame(wx.Frame):
             None, message = "choose txt file to unpack",
             defaultDir=self.WD,
             defaultFile="",
-            style=wx.OPEN #| wx.CHANGE_DIR
+            style=wx.FD_OPEN #| wx.FD_CHANGE_DIR
             )
         if dlg.ShowModal() == wx.ID_OK:
             FILE = dlg.GetPath()
