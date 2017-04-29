@@ -6796,8 +6796,6 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
         """
         right click on the listctrl toggles measurement bad
         """
-        position=event.GetPosition()
-        position[1]=position[1]+300*self.GUI_RESOLUTION
         g_index=event.GetIndex()
 
         if self.Data[self.s]['measurement_flag'][g_index] == 'g':
