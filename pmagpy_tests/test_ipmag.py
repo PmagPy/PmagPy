@@ -103,7 +103,12 @@ class Test_iodp_samples_magic(unittest.TestCase):
                                       'odp_magic', 'odp_magic_er_samples.txt')
         infile = os.path.join(self.input_dir, 'samples_318_U1359_B.csv')
         program_ran, outfile = ipmag.iodp_samples_magic(infile)
-        self.assertEqual(open(reference_file).readlines(), open(outfile).readlines())
+        with open(reference_file) as ref_file:
+            ref_lines = ref_file.readlines()
+        with open(outfile) as out_file:
+            out_lines = out_file.readlines()
+        self.assertTrue(program_ran)
+        self.assertEqual(ref_lines, out_lines)
 
 
 

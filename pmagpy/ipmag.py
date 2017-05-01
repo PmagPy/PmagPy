@@ -2392,8 +2392,8 @@ def core_depthplot(input_dir_path='.', meas_file='magic_measurements.txt', spc_f
     core_depth_key="Top depth cored CSF (m)"
     if sum_file:
         sum_file = os.path.join(input_dir_path, sum_file)
-        fin=open(sum_file,'r')
-        indat=fin.readlines()
+        with open(sum_file, 'r') as fin:
+            indat = fin.readlines()
         if "Core Summary" in indat[0]:
             headline=1
         else:
@@ -2412,7 +2412,6 @@ def core_depthplot(input_dir_path='.', meas_file='magic_measurements.txt', spc_f
                 CoreRec={}
                 for k in range(len(keys)):CoreRec[keys[k]]=line.split(',')[k]
                 Cores.append(CoreRec)
-        fin.close()
         if len(Cores)==0:
             print('no Core depth information available: import core summary file')
             sum_file=""
@@ -2557,7 +2556,8 @@ def core_depthplot(input_dir_path='.', meas_file='magic_measurements.txt', spc_f
             if min(ResDepths)<dmin:dmin=min(ResDepths)
             if max(ResDepths)>dmax:dmax=max(ResDepths)
     if suc_file:
-        sucdat=open(suc_file,'r').readlines()
+        with open(suc_file, 'r') as s_file:
+            sucdat = s_file.readlines()
         keys=sucdat[0].replace('\n','').split(',') # splits on underscores
         for line in sucdat[1:]:
             SucRec={}
@@ -2567,7 +2567,6 @@ def core_depthplot(input_dir_path='.', meas_file='magic_measurements.txt', spc_f
                 if Susc[-1]>maxSuc:maxSuc=Susc[-1]
                 if Susc[-1]<minSuc:minSuc=Susc[-1]
                 Sus_depths.append(float(SucRec['Top Depth (m)']))
-        sucdat.close()
     WIG,WIG_depths=[],[]
     if wig_file:
         wigdat,file_type=pmag.magic_read(wig_file)
@@ -5173,11 +5172,12 @@ def k15_magic(k15file, specnum=0, sample_naming_con='1', er_location_name="unkno
 # some magic default definitions
     #
     # read in data
-    input=open(k15file,'r')
+    with open(k15file, 'r') as finput:
+        lines = finput.readlines()
     MeasRecs,SpecRecs,AnisRecs,ResRecs=[],[],[],[]
     # read in data
     MeasRec,SpecRec,SampRec,SiteRec,AnisRec,ResRec={},{},{},{},{},{}
-    for line in input.readlines():
+    for line in lines:
             linecnt+=1
             rec=line.split()
             if linecnt==1:

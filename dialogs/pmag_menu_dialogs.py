@@ -54,7 +54,8 @@ class ImportAzDipFile(wx.Frame):
         label2 = "no, update existing er_samples file"
         er_samples_file_present = True
         try:
-            open(os.path.join(self.WD, "er_samples.txt"), "r")
+            er_samp_file = open(os.path.join(self.WD, "er_samples.txt"), "r")
+            er_samp_file.close()
         except Exception as ex:
             er_samples_file_present = False
         if er_samples_file_present:

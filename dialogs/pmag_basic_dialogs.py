@@ -2686,6 +2686,7 @@ class OrientFrameGrid3(wx.Frame):
                 value = self.grid.GetCellValue(sample_index, i)
                 STR = STR + value + "\t"
             fout.write(STR[:-1] + "\n")
+        fout.close()
         if event != None:
             dlg1 = wx.MessageDialog(None,caption="Message:", message="data saved in file demag_orient.txt" ,style=wx.OK|wx.ICON_INFORMATION)
             dlg1.ShowModal()
@@ -3074,6 +3075,7 @@ class OrientFrameGrid(wx.Frame):
                 value = self.grid.GetCellValue(sample_index, i)
                 STR = STR + value + "\t"
             fout.write(STR[:-1] + "\n")
+        fout.close()
         if event != None:
             dlg1 = wx.MessageDialog(None,caption="Message:", message="data saved in file demag_orient.txt" ,style=wx.OK|wx.ICON_INFORMATION)
             dlg1.ShowModal()

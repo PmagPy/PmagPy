@@ -1406,48 +1406,46 @@ def magic_read(infile, data=None, return_keys=False):
     """
     hold,magic_data,magic_record,magic_keys=[],[],{},[]
     if data: #
-        f = data
+        lines = list(data)
     else:
         try:
-            f=open(infile,"r")
+            with open(infile, "r") as f:
+                lines = list(f.readlines())
         except Exception as ex:
             if return_keys:
                 return [], 'bad_file', []
             return [],'bad_file'
 
-    d = f.readline()[:-1].strip('\n')
-    if not d:
-        f.close()
+    d_line = lines[0][:-1].strip('\n')
+    if not d_line:
         if return_keys:
             return [], 'empty_file', []
         return [], 'empty_file'
-    if d[0]=="s" or d[1]=="s":
+    if d_line[0]=="s" or d_line[1]=="s":
         delim='space'
-    elif d[0]=="t" or d[1]=="t":
+    elif d_line[0]=="t" or d_line[1]=="t":
         delim='tab'
     else:
-        f.close()
         print('error reading ', infile)
         if return_keys:
             return [], 'bad_file', []
         return [], 'bad_file'
     if delim=='space':
-        file_type=d.split()[1]
+        file_type=d_line.split()[1]
     if delim=='tab':
-        file_type=d.split('\t')[1]
+        file_type=d_line.split('\t')[1]
     if file_type=='delimited':
         if delim=='space':
-            file_type=d.split()[2]
+            file_type=d_line.split()[2]
         if delim=='tab':
-            file_type=d.split('\t')[2]
+            file_type=d_line.split('\t')[2]
     if delim=='space':
-        line =f.readline()[:-1].split()
+        line = lines[1][:-1].split()
     if delim=='tab':
-        line =f.readline()[:-1].split('\t')
+        line =lines[1][:-1].split('\t')
     for key in line:
         magic_keys.append(key)
-    lines=f.readlines()
-    f.close()
+    lines = lines[2:]
     if len(lines) < 1:
         if return_keys:
             return [], 'empty_file', []

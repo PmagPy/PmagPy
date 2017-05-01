@@ -194,11 +194,11 @@ def main(command_line=True, **kwargs):
     meas_file= os.path.join(output_dir_path, meas_file)
     FIRST_GET_DC=True
     try:
-        file_input=open(magfile,'r')
+        with open(magfile,'r') as file_input:
+            File = file_input.readlines()
     except Exception as ex:
         print("bad sam file name: ", magfile)
         return False, "bad sam file name"
-    File = file_input.readlines()
     if len(File) == 1: File = File[0].split('\r'); File = [x+"\r\n" for x in File]
     sids,ln,format=[],0,'CIT'
     formats=['CIT','2G','APP','JRA']

@@ -260,7 +260,8 @@ def main(command_line=True, **kwargs):
             return False, '{} is not a valid coil specification'.format(coil)
     if mag_file:
         try:
-            input=open(mag_file,'r')
+            with open(mag_file,'r') as finput:
+                lines = finput.readlines()
         except:
             print("bad mag file name")
             return False, "bad mag file name"
@@ -347,7 +348,7 @@ def main(command_line=True, **kwargs):
 
     if 1:
     #if infile_type=="SIO format":
-        for line in input.readlines():
+        for line in lines:
             instcode=""
             if len(line)>2:
                 SynRec={}

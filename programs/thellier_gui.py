@@ -1987,12 +1987,14 @@ else:
             dlg1 = wx.MessageDialog(None,caption="Warning:", message=TEXT ,style=wx.OK|wx.CANCEL|wx.ICON_EXCLAMATION)
             if self.show_dlg(dlg1) == wx.ID_OK:
                 dlg1.Destroy()
+                self.GUI_log.close()
                 self.Destroy()
                 # if a custom quit event is specified, fire it
                 if self.evt_quit:
                     event = self.evt_quit(self.GetId())
                     self.GetEventHandler().ProcessEvent(event)
         else:
+            self.GUI_log.close()
             self.Destroy()
             # if a custom quit event is specified, fire it
             if self.evt_quit:
