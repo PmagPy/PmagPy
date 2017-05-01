@@ -9,11 +9,12 @@ from programs import magic_gui
 from pmagpy import new_builder as nb
 from dialogs import grid_frame3 as grid_frame
 #import dialogs.pmag_widgets as pmag_widgets
+from pmagpy import pmag
 from pmagpy import data_model3 as data_model
 
 # set constants
 DMODEL = data_model.DataModel()
-WD = os.getcwd()
+WD = pmag.get_test_WD()
 PROJECT_WD = os.path.join(WD, "data_files", "magic_gui", "3_0")
 
 
@@ -28,8 +29,8 @@ class TestMainFrame(unittest.TestCase):
         self.pnl = self.frame.GetChildren()[0]
 
     def tearDown(self):
-        wx.CallAfter(self.frame.Destroy)
-        wx.CallAfter(self.app.Destroy)
+#        wx.CallAfter(self.frame.Destroy)
+#        wx.CallAfter(self.app.Destroy)
         os.chdir(WD)
 
     def test_main_panel_is_created(self):

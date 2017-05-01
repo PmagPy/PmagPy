@@ -2,12 +2,10 @@
 
 import unittest
 import os
-import sys
 import wx
 #import wx.lib.inspection
 from programs import pmag_gui
-import dialogs.pmag_menu_dialogs as pmag_menu_dialogs
-from pmagpy import find_pmag_dir
+from pmagpy import pmag
 from pmagpy import validate_upload2 as validate_upload
 from pmagpy import data_model3 as data_model
 from pmagpy import new_builder as nb
@@ -29,7 +27,7 @@ from pmagpy import new_builder as nb
 
 
 # get WD before all the Pmag GUI stuff starts to happen
-TEST_DIR = os.getcwd()
+TEST_DIR = pmag.get_test_WD()
 # constants for 2.5
 dmodel2 = validate_upload.get_data_model()
 project2_WD = os.path.join(TEST_DIR, 'data_files', 'testing', 'my_project')

@@ -9,13 +9,12 @@ Tests for new ErMagicBuilder
 from builtins import str
 import unittest
 import os
-import sys
+from pmagpy import pmag
 from pmagpy import builder2 as builder
 from pmagpy import validate_upload2 as validate_upload
-from pmagpy import find_pmag_dir as find_pmag_dir
 
 # set constants
-WD = os.getcwd()
+WD = pmag.get_test_WD()
 DATA_DIR = os.path.join(WD, 'data_files')
 DATA_MODEL = validate_upload.get_data_model()
 

@@ -5,11 +5,8 @@ dialogs for ErMagicBuilder
 import os
 import wx
 import wx.grid
-#import sys
-import pandas as pd
 import numpy as np
 from . import drop_down_menus2 as drop_down_menus
-from . import drop_down_menus3
 from . import pmag_widgets as pw
 from . import magic_grid2 as magic_grid
 from . import grid_frame2
@@ -32,6 +29,7 @@ class ErMagicCheckFrame3(wx.Frame):
         self.deleteRowButton = None
         self.selected_rows = set()
         self.min_size = (1160, 350)
+        self.contribution.propagate_ages()
         self.InitSpecCheck()
 
 
@@ -113,6 +111,11 @@ class ErMagicCheckFrame3(wx.Frame):
         make an interactive grid in which users can edit site names
         as well as which location a site belongs to
         """
+        # propagate average lat/lon info from samples table if
+        # available in samples and missing in sites
+        self.contribution.propagate_average_up(cols=['lat', 'lon', 'height'],
+                                       target_df_name='sites',
+                                       source_df_name='samples')
         site_df = self.contribution.tables['sites'].df
         self.panel = wx.Panel(self, style=wx.SIMPLE_BORDER)
         self.grid_frame = grid_frame3.GridFrame(self.contribution, self.WD, 'sites', 'sites', self.panel)
@@ -142,6 +145,11 @@ class ErMagicCheckFrame3(wx.Frame):
         """
         # propagate lat/lon values from sites table
         self.contribution.get_min_max_lat_lon()
+        # propagate lithologies & geologic classes from sites table
+        self.contribution.propagate_cols_up(['lithologies',
+                                             'geologic_classes'],
+                                            'locations', 'sites')
+
         # set up frame
         self.panel = wx.Panel(self, style=wx.SIMPLE_BORDER)
         self.grid_frame = grid_frame3.GridFrame(self.contribution, self.WD, 'locations', 'locations', self.panel)

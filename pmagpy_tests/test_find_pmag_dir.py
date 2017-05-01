@@ -3,11 +3,9 @@
 import unittest
 import os
 import sys
-import matplotlib
 from pmagpy import pmag
-from pmagpy import ipmag
 from pmagpy import find_pmag_dir
-WD = os.getcwd()
+WD = pmag.get_test_WD()
 
 
 class TestFindPmagDir(unittest.TestCase):
@@ -27,5 +25,5 @@ class TestFindPmagDir(unittest.TestCase):
         dir3 = find_pmag_dir.get_pmag_dir()
         self.assertEqual(dir1, dir2)
         self.assertEqual(dir2, dir3)
-        if "-pip" not in sys.argv:
+        if WD != sys.prefix:
             self.assertIn('PmagPy', dir1)

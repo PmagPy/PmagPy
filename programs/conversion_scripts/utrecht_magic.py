@@ -106,7 +106,6 @@ def convert(**kwargs):
     # parse data
 
     # Open up the Utrecht file and read the header information
-    print('mag_file in utrecht_file', mag_file)
     AF_or_T = mag_file.split('.')[-1]
     data = open(mag_file, 'r')
     line = data.readline()
@@ -116,8 +115,8 @@ def convert(**kwargs):
     machine=line_items[1]
     machine=machine.replace("\"","")
     machine=machine.rstrip('\n')
-    print("operator=", operator)
-    print("machine=", machine)
+#    print("operator=", operator)
+#    print("machine=", machine)
 
     #read in measurement data
     line = data.readline()
@@ -126,21 +125,21 @@ def convert(**kwargs):
         line_items = line.split(',')
         spec_name=line_items[0]
         spec_name=spec_name.replace("\"","")
-        print("spec_name=", spec_name)
+#        print("spec_name=", spec_name)
         free_string=line_items[1]
         free_string=free_string.replace("\"","")
-        print("free_string=", free_string)
+#        print("free_string=", free_string)
         dec=line_items[2]
-        print("dec=", dec)
+#        print("dec=", dec)
         inc=line_items[3]
-        print("inc=", inc)
+#        print("inc=", inc)
         volume=float(line_items[4])
         volume=volume * 1e-6 # enter volume in cm^3, convert to m^3
-        print("volume=", volume)
+#        print("volume=", volume)
         bed_plane=line_items[5]
-        print("bed_plane=", bed_plane)
+#        print("bed_plane=", bed_plane)
         bed_dip=line_items[6]
-        print("bed_dip=", bed_dip)
+#        print("bed_dip=", bed_dip)
 
         # Configure et er_ tables
         if specnum==0: sample_name = spec_name
@@ -148,6 +147,7 @@ def convert(**kwargs):
         site = pmag.parse_site(sample_name,samp_con,site_num)
         SpecRec['specimen'] = spec_name
         SpecRec['sample'] = sample_name
+        if volume!=0: SpecRec['volume']=volume
         SpecRecs.append(SpecRec)
         if sample_name!="" and sample_name not in [x['sample'] if 'sample' in list(x.keys()) else "" for x in SampRecs]:
             SampRec['sample'] = sample_name
@@ -177,7 +177,6 @@ def convert(**kwargs):
         line = line.rstrip("\n")
         items = line.split(",")
         while line != '9999':
-            print(line)
             step=items[0]
             step=step.split('.')
             step_value=step[0]
@@ -198,37 +197,41 @@ def convert(**kwargs):
             measurement_dec = direction[0]
             measurement_inc = direction[1]
             magn_moment = direction[2] * 1.0e-12 # the data are in pico-Am^2 - this converts to Am^2
-            magn_volume = direction[2] * 1.0e-12 / volume # data volume normalized - converted to A/m
-            print("magn_moment=", magn_moment)
-            print("magn_volume=", magn_volume)
+            if volume!=0:
+                magn_volume = direction[2] * 1.0e-12 / volume # data volume normalized - converted to A/m
+#            print("magn_moment=", magn_moment)
+#            print("magn_volume=", magn_volume)
             error = items[4]
             date=items[5]
-            date=date.strip('"')
+            date=date.strip('"').replace(' ','')
             if date.count("-") > 0:
                 date=date.split("-")
             elif date.count("/") > 0:
                 date=date.split("/")
             else: print("date format seperator cannot be identified")
-            print(date)
+#            print(date)
             time=items[6]
-            time=time.strip('"')
+            time=time.strip('"').replace(' ','')
             time=time.split(":")
-            print(time)
+#            print(time)
             dt = date[0] + ":" + date[1] + ":" + date[2] + ":" + time[0] + ":" + time[1] + ":" + "0"
             local = pytz.timezone("Europe/Amsterdam")
-            if dmy_flag: naive = datetime.datetime.strptime(dt, "%d:%m:%Y:%H:%M:%S")
-            else: naive = datetime.datetime.strptime(dt, "%m:%d:%Y:%H:%M:%S")
+            try:
+                if dmy_flag: naive = datetime.datetime.strptime(dt, "%d:%m:%Y:%H:%M:%S")
+                else: naive = datetime.datetime.strptime(dt, "%m:%d:%Y:%H:%M:%S")
+            except ValueError:
+                naive = datetime.datetime.strptime(dt, "%Y:%m:%d:%H:%M:%S")
             local_dt = local.localize(naive, is_dst=None)
             utc_dt = local_dt.astimezone(pytz.utc)
             timestamp=utc_dt.strftime("%Y-%m-%dT%H:%M:%S")+"Z"
-            print(timestamp)
+#            print(timestamp)
 
             MeasRec = {}
             MeasRec["timestamp"]=timestamp
             MeasRec["analysts"] = operator
             MeasRec["instrument_codes"] = "Utrecht_" + machine
             MeasRec["description"] = "free string = " + free_string 
-            MeasRec["citation"] = "This study"
+            MeasRec["citations"] = "This study"
             MeasRec['software_packages'] = version_num
             MeasRec["meas_temp"] = '%8.3e' % (273) # room temp in kelvin
             MeasRec["quality"] = 'g'
@@ -240,47 +243,36 @@ def convert(**kwargs):
             if AF_or_T.lower() == "th":
                 MeasRec["treat_temp"] = '%8.3e' % (float(step_value)+273.) # temp in kelvin
                 MeasRec['treat_ac_field']='0'
-                meas_type = "LP-DIR-T:LT-T-Z"
+                lab_treat_type = "T"
             else:
                 MeasRec['treat_temp']='273'
                 MeasRec['treat_ac_field']='%10.3e'%(float(step_value)*1e-3)
-                meas_type = "LP-DIR-AF:LT-AF-Z"
+                lab_treat_type = "AF"
             MeasRec['treat_dc_field']='0'
             if step_value == '0':
                 meas_type = "LT-NO"
-            print("step_type=", step_type)
-            if step_type == '0' and AF_or_T.lower() == 'th':
-                if meas_type == "":
-                    meas_type = "LT-T-Z"
-                else:
-                    meas_type = meas_type + ":" + "LT-T-Z"
-            elif step_type == '1':
-                if meas_type == "":
-                    meas_type = "LT-T-I"
-                else:
-                    meas_type = meas_type + ":" + "LT-T-I"
+#            print("step_type=", step_type)
+            if step_type == '0' or step_type == '00':
+                meas_type = "LT-%s-Z"%lab_treat_type
+            elif step_type == '1' or step_type == '11':
+                meas_type = "LT-%s-I"%lab_treat_type
                 MeasRec['treat_dc_field']='%1.2e'%DC_FIELD
-            elif step_type == '2':
-                if meas_type == "":
-                    meas_type = "LT-PTRM-I"
-                else:
-                    meas_type = meas_type + ":" + "LT-PTRM-I"
+            elif step_type == '2' or step_type == '12':
+                meas_type = "LT-PTRM-I"
                 MeasRec['treat_dc_field']='%1.2e'%DC_FIELD
-            elif step_type == '3':
-                if meas_type == "" :
-                    meas_type = "LT-PTRM-Z"
-                else:
-                    meas_type = meas_type + ":" + "LT-PTRM-Z"
-            print("meas_type=", meas_type)
+            elif step_type == '3' or step_type == '13':
+                meas_type = "LT-PTRM-Z"
+#            print("meas_type=", meas_type)
             MeasRec['treat_dc_field_phi'] = '%1.2f'%DC_PHI
             MeasRec['treat_dc_field_theta'] = '%1.2f'%DC_THETA
             MeasRec['method_codes'] = meas_type
             MeasRec["magn_moment"] = magn_moment
-            MeasRec["magn_volume"] = magn_volume
+            if volume!=0: MeasRec["magn_volume"] = magn_volume
             MeasRec["dir_dec"] = measurement_dec
             MeasRec["dir_inc"] = measurement_inc
             MeasRec['dir_csd'] = error 
             MeasRec['meas_n_orient'] = meas_n_orient
+#            print(MeasRec)
             MeasRecs.append(MeasRec)
 
             line = data.readline()

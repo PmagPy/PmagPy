@@ -4,13 +4,14 @@ import unittest
 import sys
 import os
 import wx
+from pmagpy import pmag
 from dialogs import magic_grid2 as magic_grid
 
 #import wx.lib.inspection
 #import numpy as np
 #import ipmag
 
-WD = os.getcwd()
+WD = pmag.get_test_WD()
 
 class TestMagicGrid(unittest.TestCase):
     """

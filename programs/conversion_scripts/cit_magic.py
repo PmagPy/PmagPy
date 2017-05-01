@@ -17,7 +17,7 @@ OPTIONS
     -WD: directory to output files to (default : current directory)
     -F FILE: specify output  measurements file, default is measurements.txt
     -Fsp FILE: specify output specimens.txt file, default is specimens.txt
-    -Fsa FILE: specify output samples.txt file, default is samples.txt 
+    -Fsa FILE: specify output samples.txt file, default is samples.txt
     -Fsi FILE: specify output sites.txt file, default is sites.txt # LORI
     -Flo FILE: specify output locations.txt file, default is locations.txt
     -n [gm,kg,cc,m3]: specify normalization
@@ -154,13 +154,13 @@ def convert(**kwargs):
 
     #define initial variables
     SpecRecs,SampRecs,SiteRecs,LocRecs,MeasRecs=[],[],[],[],[]
-    sids,ln,format,citation=[],0,'CIT',"This study"
+    sids,ln,format,citations=[],0,'CIT',"This study"
     formats=['CIT','2G','APP','JRA']
 
     if File[ln].strip()=='CIT': ln+=1
     LocRec={}
     LocRec["location"]=locname
-    LocRec["citation"]=citation
+    LocRec["citations"]=citations
     LocRec['analysts']=user
     comment=File[ln]
     if comment=='CIT':
@@ -195,17 +195,17 @@ def convert(**kwargs):
         else: site=pmag.parse_site(sample,samp_con,Z)
         SpecRec['specimen']=specimen
         SpecRec['sample']=sample
-        SpecRec['citation']=citation
+        SpecRec['citations']=citations
         SpecRec['analysts']=user
         SampRec['sample']=sample
         SampRec['site']=site
-        SampRec['citation']=citation
+        SampRec['citations']=citations
         SampRec['method_codes']=methods
         SampRec['azimuth_dec_correction']='%7.1f'%(Cdec)
         SampRec['analysts']=user
         SiteRec['site']=site
         SiteRec['location']=locname
-        SiteRec['citation']=citation
+        SiteRec['citations']=citations
         SiteRec['lat']=site_lat
         SiteRec['lon']=site_lon
         SiteRec['analysts']=user
@@ -246,8 +246,8 @@ def convert(**kwargs):
         SampRec['dip']='%7.1f'%(sample_dip)
         SampRec['bed_dip']='%7.1f'%(dip)
         SampRec['bed_dip_direction']='%7.1f'%(dip_direction)
-        SampRec['geologic_class']=''
-        SampRec['geologic_type']=''
+        SampRec['geologic_classes']=''
+        SampRec['geologic_types']=''
         SampRec['lithologies']=''
         if Cdec!=0 or Cdec!="":
             SampRec['method_codes']='SO-CMD-NORTH'
@@ -261,6 +261,8 @@ def convert(**kwargs):
 #           Remove volume and weight as they do not exits in the magic_measurement table
             del MeasRec["volume"]
             del MeasRec["weight"]
+            if line[3:6]=='   ' : # USGS files have blank for an AF demag value when measurement is the NRM. njarboe
+                line = 'NRM' + line[3:]
             treat_type=line[0:3]
             if treat_type[1] == '.':
                 treat_type = 'NRM'

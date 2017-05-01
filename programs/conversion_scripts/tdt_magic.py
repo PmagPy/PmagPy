@@ -1152,7 +1152,7 @@ class message_box(wx.Frame):
         self.panel.SetSizer(self.sizer)
 
 
-def start(wd=None,noave=False):
+def convert(wd=None,noave=False):
     if not wd:
         WD = os.getcwd()
     else:

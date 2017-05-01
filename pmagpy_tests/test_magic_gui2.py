@@ -7,13 +7,14 @@ import unittest
 import os
 from programs import magic_gui2 as magic_gui
 from pmagpy import builder2 as builder
+from pmagpy import pmag
 from dialogs import grid_frame2 as grid_frame
 from dialogs import pmag_widgets
 from pmagpy import validate_upload2 as validate_upload
 
 # set constants
 DMODEL = validate_upload.get_data_model()
-WD = os.getcwd() #find_pmag_dir.get_pmag_dir() # sys.prefix
+WD = pmag.get_test_WD() #find_pmag_dir.get_pmag_dir() # sys.prefix
 
 #@unittest.skip('seg fault')
 class TestMainFrame(unittest.TestCase):

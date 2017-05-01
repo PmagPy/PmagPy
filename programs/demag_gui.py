@@ -2708,8 +2708,9 @@ class Demag_GUI(wx.Frame):
 
         return mpars
 
-    def calculate_best_fit_vectors(self,high_level_type=None,high_level_name=None):
-        cur_high_level_type, cur_high_level_name, dirtype = self.get_levels_and_coordinates_names()
+    def calculate_best_fit_vectors(self,high_level_type=None,high_level_name=None,dirtype=None):
+        cur_high_level_type, cur_high_level_name, cur_dirtype = self.get_levels_and_coordinates_names()
+        if dirtype==None: dirtype=cur_dirtype
         if high_level_name==None: high_level_name=cur_high_level_name
         if high_level_type==None: high_level_type=cur_high_level_type
         pars_for_mean = self.get_high_level_mean_pars(high_level_type,high_level_name,'Fisher','specimens','All',dirtype)
@@ -3675,8 +3676,10 @@ class Demag_GUI(wx.Frame):
             fnames = 'dir_comp'
         elif "dir_comp_name" in self.spec_data.columns:
             fnames = 'dir_comp_name'
-        else: return
-        fdict = self.spec_data[['specimen',fnames,'meas_step_min','meas_step_max','meas_step_unit','dir_tilt_correction','method_codes']].to_dict("records")
+        else: print("No specimen interpretation name found in specimens.txt"); return
+        if "result_quality" not in self.spec_data.columns:
+            self.spec_data["result_quality"]="g"
+        fdict = self.spec_data[['specimen',fnames,'meas_step_min','meas_step_max','meas_step_unit','dir_tilt_correction','method_codes','result_quality']].to_dict("records")
         for i in range(len(fdict)):
             spec = fdict[i]['specimen']
             if spec not in self.specimens:
@@ -3708,7 +3711,10 @@ class Demag_GUI(wx.Frame):
             if len(PCA_type_list)>0: PCA_type=PCA_type_list[0].strip()
             else: PCA_type="DE-BFL"
 
-            self.add_fit(spec,fname,fmin,fmax,PCA_type)
+            fit = self.add_fit(spec,fname,fmin,fmax,PCA_type)
+
+            if fdict[i]['result_quality']=='b':
+                self.bad_fits.append(fit)
 
     def get_data_info(self):
         """
@@ -4590,7 +4596,7 @@ class Demag_GUI(wx.Frame):
                     if len(CoordDir)<=0: continue # no data for this coordinate system
                     for comp in Comps:
                         CompDir=pmag.get_dictitem(CoordDir,'dir_comp',comp,'T') # get all directions from this component
-                        CompDir=[x if 'result_quality' in x and x['result_quality']=='g' else True for x in CompDir]
+                        CompDir=[x for x in CompDir if 'result_quality' in x and x['result_quality']=='g']
                         if len(CompDir)<=0: continue # no data for comp
                         PmagSampRec=pmag.dolnp3_0(CompDir)
                         for k,v in list(renamelnp.items()):
@@ -4600,7 +4606,7 @@ class Demag_GUI(wx.Frame):
                         PmagSampRec["location"]=CompDir[0]['location'] # decorate the sample record
                         PmagSampRec["site"]=CompDir[0]['site']
                         PmagSampRec["sample"]=samp
-                        PmagSampRec["citation"]="This study"
+                        PmagSampRec["citations"]="This study"
                         PmagSampRec['software_packages']=version_num + ': demag_gui.v.3.0'
                         if CompDir[0]['result_quality']=='g':
                             PmagSampRec['result_quality']='g'
@@ -4664,7 +4670,7 @@ class Demag_GUI(wx.Frame):
                     for comp in Comps:
                         siteD=pmag.get_dictitem(tmp1,comp_key,comp,'T') # get all components comp
                         #remove bad data from means
-                        siteD=[x if 'result_quality' in x and x['result_quality']=='g' else True for x in siteD]
+                        siteD=[x for x in siteD if 'result_quality' in x and x['result_quality']=='g']
                         if len(siteD)<=0: continue;# print("no data for comp %s in site %s. skipping"%(comp,site))
                         PmagSiteRec=PmagSampRec=pmag.dolnp3_0(siteD) # get an average for this site
                         for k,v in list(renamelnp.items()):
@@ -4768,11 +4774,11 @@ class Demag_GUI(wx.Frame):
                         if len(kill)>0: PmagSiteRec['result_quality'] = 'b'
                         else: PmagSiteRec['result_quality'] = 'g'
 
-                        #fix not duplicating data
+                        #Carry over data from previous sites
                         prev_dat = pmag.get_dictitem(SiteNFO,'site',PmagSiteRec['site'],'T')
                         if len(prev_dat)!=0:
                             for ndd in set(PmagSiteRec.keys()).symmetric_difference(set(prev_dat[0].keys())):
-                                sitedat=[x if ndd in x and x[ndd]!=None else False for x in prev_dat]
+                                sitedat=[x for x in prev_dat if ndd in x and x[ndd]!=None]
                                 if len(sitedat)!=0:sitedat=sitedat[0]
                                 else: continue
                                 PmagSiteRec[ndd] = sitedat[ndd]
@@ -4805,7 +4811,7 @@ class Demag_GUI(wx.Frame):
                     if len(coordrecs)<2:print(("no %s percent tilt corrected data in all sites"%coord)); continue
                     for comp in Comps:
                         crecs=pmag.get_dictitem(coordrecs,'dir_comp_name',comp,'T') # fish out all of the component
-                        if len(crecs)<2:print(("no data for comp %s"%comp)); continue
+                        if len(crecs)<2:print(("insuffecent data for comp %s when calculating location"%comp)); continue
                         precs=[]
                         for rec in crecs:
                             prec = {'dec':rec['dir_dec'],'inc':rec['dir_inc'],'name':rec['site'],'loc':rec['location']}
@@ -4908,7 +4914,7 @@ class Demag_GUI(wx.Frame):
                             PolRes['method_codes']=reduce(lambda x,y: x+':'+y, methods)
                             if len(prev_dat)!=0:
                                 for ndd in set(PolRes.keys()).symmetric_difference(set(prev_dat[0].keys())):
-                                    dat=[x if ndd in x and x[ndd]!=None else False for x in prev_dat]
+                                    dat=[x for x in prev_dat if ndd in x and x[ndd]!=None]
                                     if len(dat)!=0:dat=dat[0]
                                     else: continue
                                     PolRes[ndd] = dat[ndd]
@@ -5577,7 +5583,7 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
                     PmagSpecRec={}
                     user="" # Todo
                     PmagSpecRec["er_analyst_mail_names"]=user
-                    PmagSpecRec["magic_software_packages"]=pmag.get_version() + ': demag_gui.v.3.0'
+                    PmagSpecRec["magic_software_packages"]=pmag.get_version() + ': demag_gui'
                     PmagSpecRec["er_specimen_name"]=specimen
                     PmagSpecRec["er_sample_name"]=self.Data_hierarchy['sample_of_specimen'][specimen]
                     PmagSpecRec["er_site_name"]=self.Data_hierarchy['site_of_specimen'][specimen]
@@ -5641,6 +5647,16 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
                         PmagSpecRec['specimen_mad']="%.1f"%float(mpars['specimen_mad'])
                         PmagSpecRec['specimen_dang']=""
                         PmagSpecRec['specimen_alpha95']=""
+                        if self.data_model == 3.0:
+                            if 'bfv_dec' not in list(mpars.keys()) or \
+                               'bfv_inc' not in list(mpars.keys()):
+                                self.calculate_best_fit_vectors(high_level_type="sites", high_level_name=PmagSpecRec["er_site_name"], dirtype=dirtype)
+                                mpars = fit.get(dirtype)
+                            try:
+                                PmagSpecRec['dir_bfv_dec'] = "%.1f"%mpars['bfv_dec']
+                                PmagSpecRec['dir_bfv_inc'] = "%.1f"%mpars['bfv_inc']
+                            except KeyError:
+                                print("Error calculating BFV during export of interpretations for %s, %s, %s"%(fit.name, specimen,dirtype))
                     elif calculation_type in ["DE-FM"]:
                         PmagSpecRec['specimen_direction_type']='l'
                         PmagSpecRec['specimen_mad']=""
@@ -6796,8 +6812,6 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
         """
         right click on the listctrl toggles measurement bad
         """
-        position=event.GetPosition()
-        position[1]=position[1]+300*self.GUI_RESOLUTION
         g_index=event.GetIndex()
 
         if self.Data[self.s]['measurement_flag'][g_index] == 'g':

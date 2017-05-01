@@ -15,22 +15,24 @@ from dialogs import drop_down_menus2 as drop_down_menus
 from dialogs import drop_down_menus3
 from dialogs import magic_grid2 as magic_grid
 sys.path.append("../programs") #later fix imports further down in code to "from programs import ...." also imports should be moved to top of file unless import is so large it slows down the program
-from programs import tdt_magic
-from programs import generic_magic
-from programs import sio_magic
-from programs import cit_magic
-from programs import huji_magic
-from programs import huji_magic_new
-from programs import _2g_bin_magic
-from programs import ldeo_magic
-from programs import iodp_srm_magic
-from programs import iodp_dscr_magic
-from programs import pmd_magic
-from programs import jr6_txt_magic
-from programs import jr6_jr6_magic
-from programs import iodp_jr6_magic
-from programs import utrecht_magic
-from programs import bgc_magic
+
+
+from programs.conversion_scripts2 import tdt_magic2 as tdt_magic
+from programs.conversion_scripts2 import generic_magic2 as generic_magic
+from programs.conversion_scripts2 import sio_magic2 as sio_magic
+from programs.conversion_scripts2 import cit_magic2 as cit_magic
+from programs.conversion_scripts2 import huji_magic2 as huji_magic
+from programs.conversion_scripts2 import _2g_bin_magic2 as _2g_bin_magic
+from programs.conversion_scripts2 import ldeo_magic2 as ldeo_magic
+from programs.conversion_scripts2 import iodp_srm_magic2 as iodp_srm_magic
+from programs.conversion_scripts2 import iodp_dscr_magic2 as iodp_dscr_magic
+from programs.conversion_scripts2 import pmd_magic2 as pmd_magic
+from programs.conversion_scripts2 import jr6_txt_magic2 as jr6_txt_magic
+from programs.conversion_scripts2 import jr6_jr6_magic2 as jr6_jr6_magic
+from programs.conversion_scripts2 import iodp_jr6_magic2 as iodp_jr6_magic
+from programs.conversion_scripts2 import utrecht_magic2 as utrecht_magic
+from programs.conversion_scripts2 import bgc_magic2 as bgc_magic
+
 from pmagpy.mapping import map_magic
 
 

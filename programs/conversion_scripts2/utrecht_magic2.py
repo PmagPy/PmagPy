@@ -318,7 +318,7 @@ def main(command_line=True, **kwargs):
             MagRec = {}
             MagRec["er_analyst_mail_names"] = operator
             MagRec["magic_instrument_codes"] = "Utrecht_" + machine
-            MagRec["measurement_description"] = "free string = " + free_string 
+            MagRec["measurement_description"] = "free string = " + free_string
             MagRec["measurement_date"] = date_time 
             MagRec["er_citation_names"] = "This study"
             MagRec['er_location_name'] = er_location_name

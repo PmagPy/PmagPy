@@ -37,7 +37,7 @@ import datetime
 def convert(**kwargs):
     # initialize defaults
     version_num=pmag.get_version()
-    citation="This study"
+    citations="This study"
     dir_path,demag='.','NRM'
     depth_method='a'
 
@@ -158,14 +158,14 @@ def convert(**kwargs):
                 if specimen!="" and specimen not in [x['specimen'] if 'specimen' in list(x.keys()) else "" for x in SpecRecs]:
                     SpecRec['specimen'] = specimen
                     SpecRec['sample'] = sample
-                    SpecRec['citations']=citation
+                    SpecRec['citations']=citations
                     SpecRec['volume'] = volume
                     SpecRec['specimen_alternatives']=InRec[text_id]
                     SpecRecs.append(SpecRec)
                 if sample!="" and sample not in [x['sample'] if 'sample' in list(x.keys()) else "" for x in SampRecs]:
                     SampRec['sample'] = sample
                     SampRec['site'] = site
-                    SampRec['citations']=citation
+                    SampRec['citations']=citations
                     SampRec['azimuth']='0'
                     SampRec['dip']='0'
                     SampRec['core_depth']=InRec[depth_key]
@@ -179,13 +179,13 @@ def convert(**kwargs):
                 if site!="" and site not in [x['site'] if 'site' in list(x.keys()) else "" for x in SiteRecs]:
                     SiteRec['site'] = site
                     SiteRec['location'] = location
-                    SiteRec['citations']=citation
+                    SiteRec['citations']=citations
                     SiteRec['lat'] = lat
                     SiteRec['lon'] = lon
                     SiteRecs.append(SiteRec)
                 if location!="" and location not in [x['location'] if 'location' in list(x.keys()) else "" for x in LocRecs]:
                     LocRec['location']=location
-                    LocRec['citations']=citation
+                    LocRec['citations']=citations
                     LocRec['expedition_name']=expedition
                     LocRec['lat_n'] = lat
                     LocRec['lon_e'] = lon

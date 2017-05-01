@@ -1,11 +1,11 @@
 #!/usr/bin/env pythonw
 """
-Runs Thellier GUI PmagPy's main analysis GUI for thellier-tyep 
-paleointensity data. This can be used to obtain intensities for Thermal and 
-Microwave data. It allows export of figures and analysis results for upload 
-to the MagIC database and/or publication. For more information on how to 
-interpret or use the GUI's many functions see the Help menu in the open GUI. 
-More documentation can be found on all of PmagPy's functionality at the 
+Runs Thellier GUI PmagPy's main analysis GUI for thellier-type
+paleointensity data. This can be used to obtain intensities for Thermal and
+Microwave data. It allows export of figures and analysis results for upload
+to the MagIC database and/or publication. For more information on how to
+interpret or use the GUI's many functions see the Help menu in the open GUI.
+More documentation can be found on all of PmagPy's functionality at the
 PmagPy cookbook which can be found here: earthref.org/PmagPy/cookbook/
 
 SYNTAX
@@ -215,6 +215,7 @@ import wx.lib.agw.floatspin as FS
 try: import thellier_gui_preferences
 except ImportError: pass
 
+from dialogs import demag_dialogs
 import dialogs.thellier_consistency_test as thellier_consistency_test
 import dialogs.thellier_gui_dialogs as thellier_gui_dialogs
 import dialogs.thellier_gui_lib as thellier_gui_lib
@@ -248,7 +249,7 @@ class Arai_GUI(wx.Frame):
 
         DESCRIPTION
     GUI for interpreting thellier-type paleointensity data.
-    For tutorial chcek PmagPy cookbook in http://earthref.org/PmagPy/cookbook/
+    For tutorial check PmagPy cookbook in http://earthref.org/PmagPy/cookbook/
         """
         try:
             reload(thellier_gui_preferences)
@@ -290,7 +291,6 @@ class Arai_GUI(wx.Frame):
             self.data_model = int(pmag.get_named_arg_from_sys('-DM', 0))
         # otherwise get it from the user
         else:
-            from dialogs import demag_dialogs
             ui_dialog = demag_dialogs.user_input(self,['data_model'],parse_funcs=[float], heading="Please input prefered data model (2.5,3.0).  Note: 2.5 is for legacy projects only, if you are have new data please use 3.0.", values=[3])
 #            res = ui_dialog.ShowModal()
             vals = ui_dialog.get_values()
@@ -1079,7 +1079,7 @@ else:
         self.get_new_T_PI_parameters(-1)
 
     def on_right_click_listctrl(self, event):
-        self.user_warning("Thellier GUI cannot handle data marked bad yet so this function does not work. This feature is in development and will hopefully be included in future versions. Currently bad data must be removed from measurement file mannuely."); return
+        self.user_warning("Thellier GUI cannot handle data marked bad yet so this function does not work. This feature is in development and will hopefully be included in future versions. Currently bad data must be removed from measurement file manually."); return
         index = int(event.GetText())
         current_flag = self.Data[self.s]['datablock'][index]['measurement_flag']
 
@@ -1100,7 +1100,7 @@ else:
             mdf = self.contribution.tables['measurements'].df
             a_index = self.Data[self.s]['magic_experiment_name'] + str(index+1)
             try: mdf.set_value(a_index,'quality','g')
-            except ValueError: self.user_warning("cannot find valid measurement data to mark bad, this feature is still under development please report this error to a developer")
+            except ValueError: self.user_warning("cannot find valid measurement data to mark bad, this feature is still under development. please report this error to a developer")
 
     def mark_meas_bad(self,index):
         self.Data[self.s]['datablock'][index]['measurement_flag'] = 'b'
@@ -3257,6 +3257,8 @@ else:
         aniso_logfile.write("-I- Done anisotropy script\n")
         aniso_logfile.write( "------------------------\n")
         if self.data_model==3:
+            #  drop any stub rows (mostly empty rows)
+            self.spec_container.drop_stub_rows()
             #  write out the data
             self.spec_container.write_magic_file(dir_path=self.WD)
         else:
@@ -4200,7 +4202,7 @@ else:
         webopen("http://earthref.org/PmagPy/cookbook/", new=2)
 
     def on_menu_git(self,event):
-        webopen("https://github.com/ltauxe/PmagPy", new=2)
+        webopen("https://github.com/PmagPy/PmagPy", new=2)
 
     def on_menu_debug(self,event):
         pdb.set_trace()
@@ -5946,8 +5948,9 @@ else:
         for rec in meas_data:
             s=rec["er_specimen_name"]
             Data[s]['T_or_MW']="T"
-            sample=rec["er_sample_name"]
-            site=rec["er_site_name"]
+            sample=rec.get("er_sample_name", '')
+            site=rec.get("er_site_name", '')
+            rec['er_sample_name'], rec['er_site_name'] = sample, site
             # if "er_site_name" in an empty string: use er_sample_name tp assign site to sample.
             if rec["er_site_name"]=="":
                 site=sample

@@ -23,10 +23,8 @@ Thanks!
 from setuptools import setup, find_packages
 # To use a consistent encoding
 from codecs import open
-import sys
 from os import path
 from setuptools.command.install import install
-import setuptools.command.install as install_lib
 from pmagpy import version
 
 
