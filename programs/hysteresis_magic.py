@@ -65,7 +65,7 @@ def main():
         rmag_file=dir_path+'/'+rmag_file
     if '-P' in args:
         PLT=0
-        irm_init,imag_init=-1,-1 
+        irm_init,imag_init=-1,-1
     if '-sav' in args:
         verbose=0
         plots=1
@@ -109,7 +109,7 @@ def main():
     # get list of unique experiment names and specimen names
     #
     experiment_names,sids=[],[]
-    for rec in meas_data: 
+    for rec in meas_data:
       meths=rec['magic_method_codes'].split(':')
       methods=[]
       for meth in meths:
@@ -137,7 +137,7 @@ def main():
             methcodes=rec['magic_method_codes'].split(':')
             meths=[]
             for meth in methcodes:
-                meths.append(meth.strip()) 
+                meths.append(meth.strip())
             if rec['er_specimen_name']==s and "LP-HYS" in meths:
                 B.append(float(rec['measurement_lab_field_dc']))
                 M.append(float(rec['measurement_magn_moment']))
@@ -177,10 +177,10 @@ def main():
     #
     # now plot the hysteresis curve
     #
-        if len(B)>0: 
+        if len(B)>0:
             hmeths=[]
-            for meth in meths: hmeths.append(meth)  
-            hpars=pmagplotlib.plotHDD(HDD,B,M,e) 
+            for meth in meths: hmeths.append(meth)
+            hpars=pmagplotlib.plotHDD(HDD,B,M,e)
             if verbose and PLT:pmagplotlib.drawFIGS(HDD)
     #
     # get prior interpretations from hyst_data
@@ -188,7 +188,7 @@ def main():
                 hpars_prior={}
                 for rec in hyst_data:
                     if rec['magic_experiment_names']==e:
-                        if rec['hysteresis_bcr'] !="" and rec['hysteresis_mr_moment']!="": 
+                        if rec['hysteresis_bcr'] !="" and rec['hysteresis_mr_moment']!="":
                             hpars_prior['hysteresis_mr_moment']=rec['hysteresis_mr_moment']
                             hpars_prior['hysteresis_ms_moment']=rec['hysteresis_ms_moment']
                             hpars_prior['hysteresis_bc']=rec['hysteresis_bc']
@@ -212,7 +212,7 @@ def main():
                 HystRec["er_citation_names"]="This study"
                 HystRecs.append(HystRec)
     #
-        if len(Bdcd)>0: 
+        if len(Bdcd)>0:
             rmeths=[]
             for meth in meths: rmeths.append(meth)
             if verbose and PLT:print('plotting IRM')
@@ -220,7 +220,7 @@ def main():
                 HDD['irm']=5
                 pmagplotlib.plot_init(HDD['irm'],5,5)
                 irm_init=1
-            rpars=pmagplotlib.plotIRM(HDD['irm'],Bdcd,Mdcd,irm_exp) 
+            rpars=pmagplotlib.plotIRM(HDD['irm'],Bdcd,Mdcd,irm_exp)
             RemRec['remanence_mr_moment']=rpars['remanence_mr_moment']
             RemRec['remanence_bcr']=rpars['remanence_bcr']
             RemRec['magic_experiment_names']=irm_exp
@@ -231,9 +231,9 @@ def main():
             RemRec["magic_method_codes"]=methods[:-1]
             RemRec["er_citation_names"]="This study"
             RemRecs.append(RemRec)
-        else: 
+        else:
             if irm_init:pmagplotlib.clearFIG(HDD['irm'])
-        if len(Bimag)>0: 
+        if len(Bimag)>0:
             if verbose:print('plotting initial magnetization curve')
 # first normalize by Ms
             Mnorm=[]
@@ -242,8 +242,8 @@ def main():
                 HDD['imag']=4
                 pmagplotlib.plot_init(HDD['imag'],5,5)
                 imag_init=1
-            pmagplotlib.plotIMAG(HDD['imag'],Bimag,Mnorm,imag_exp) 
-        else: 
+            pmagplotlib.plotIMAG(HDD['imag'],Bimag,Mnorm,imag_exp)
+        else:
             if imag_init:pmagplotlib.clearFIG(HDD['imag'])
     #
         files={}
@@ -264,11 +264,11 @@ def main():
                 pmagplotlib.saveP(HDD,files)
             if ans=='':k+=1
             if ans=="p":
-       	        del HystRecs[-1]
-    	        k-=1
-            if  ans=='q': 
-    	        print("Good bye")
-    	        sys.exit()
+                del HystRecs[-1]
+                k-=1
+            if  ans=='q':
+                print("Good bye")
+                sys.exit()
             if ans=='s':
                 keepon=1
                 specimen=input('Enter desired specimen name (or first part there of): ')
@@ -287,13 +287,13 @@ def main():
         else:
             k+=1
         if len(B)==0 and len(Bdcd)==0:
-    	    if verbose:print('skipping this one - no hysteresis data')
-       	    k+=1
+            if verbose:print('skipping this one - no hysteresis data')
+            k+=1
     if rmag_out=="" and ans=='s' and verbose:
         really=input(" Do you want to overwrite the existing rmag_hystersis.txt file? 1/[0] ")
         if really=="":
-    	    print('i thought not - goodbye')
-    	    sys.exit()
+            print('i thought not - goodbye')
+            sys.exit()
         rmag_out="rmag_hysteresis.txt"
     if len(HystRecs)>0:
         pmag.magic_write(rmag_out,HystRecs,"rmag_hysteresis")
