@@ -2611,7 +2611,7 @@ class Demag_GUI(wx.Frame):
                         elif "dec" in list(pars.keys()) and "inc" in list(pars.keys()):
                             dec,inc,direction_type=pars["dec"],pars["inc"],'l'
                         else:
-                            print(("-E- ERROR: cant find mean for specimen interpertation: %s , %s"%(element,fit.name)))
+                            print(("-E- ERROR: can't find mean for specimen interpertation: %s , %s"%(element,fit.name)))
                             print(pars)
                             continue
                         #add for calculation
@@ -2626,7 +2626,7 @@ class Demag_GUI(wx.Frame):
                     if "dec" in list(pars.keys()) and "inc" in list(pars.keys()):
                         dec,inc,direction_type=pars["dec"],pars["inc"],'l'
                     else:
-#                            print "-E- ERROR: cant find mean for element %s"%element
+#                            print "-E- ERROR: can't find mean for element %s"%element
                         continue
                 except KeyError:
 #                        print("KeyError in calculate_high_level_mean for element: " + str(element) + " please report to a dev")
@@ -3567,7 +3567,7 @@ class Demag_GUI(wx.Frame):
                 except (IOError, KeyError, ValueError, TypeError) as e:
                     pass
                 #                    if prev_s != s:
-                #                        print( "-W- cant find sample_azimuth,sample_dip for sample %s"%sample)
+                #                        print( "-W- can't find sample_azimuth,sample_dip for sample %s"%sample)
 
                 # tilt-corrected coordinates
                 try:
@@ -3581,7 +3581,7 @@ class Demag_GUI(wx.Frame):
                 except (IOError, KeyError, TypeError, ValueError, UnboundLocalError) as e:
                     pass
                 #                    if prev_s != s:
-                #                        printd("-W- cant find tilt-corrected data for sample %s"%sample)
+                #                        printd("-W- can't find tilt-corrected data for sample %s"%sample)
 
                 if len(Data[s]['zdata'])>1:
                     Data[s]['vector_diffs'].append(sqrt(sum((array(Data[s]['zdata'][-2])-array(Data[s]['zdata'][-1]))**2)))
@@ -3804,17 +3804,17 @@ class Demag_GUI(wx.Frame):
             try:
                 data_er_samples=self.read_magic_file(os.path.join(self.WD, "er_samples.txt"),'er_sample_name')
             except:
-                print("-W- Cant find er_sample.txt in project directory")
+                print("-W- Can't find er_sample.txt in project directory")
 
             try:
                 data_er_sites=self.read_magic_file(os.path.join(self.WD, "er_sites.txt"),'er_site_name')
             except:
-                print("-W- Cant find er_sites.txt in project directory")
+                print("-W- Can't find er_sites.txt in project directory")
 
             try:
                 data_er_locations=self.read_magic_file(os.path.join(self.WD, "er_locations.txt"), 'er_location_name')
             except:
-                print("-W- Cant find er_locations.txt in project directory")
+                print("-W- Can't find er_locations.txt in project directory")
 
             try:
                 data_er_ages=self.read_magic_file(os.path.join(self.WD, "er_ages.txt"),'er_sample_name')
@@ -3822,7 +3822,7 @@ class Demag_GUI(wx.Frame):
                 try:
                     data_er_ages=self.read_magic_file(os.path.join(self.WD, "er_ages.txt"),'er_site_name')
                 except:
-                    print("-W- Cant find er_ages in project directory")
+                    print("-W- Can't find er_ages in project directory")
 
 
 
@@ -3851,7 +3851,7 @@ class Demag_GUI(wx.Frame):
             print( "-I- zeq_gui.preferences imported")
             preferences.update(thellier_gui_preferences.preferences)
         except:
-            print( "-I- cant find zeq_gui_preferences file, using defualt default")
+            print( "-I- can't find zeq_gui_preferences file, using defualt default")
         return(preferences)
 
     def read_magic_file(self,path,sort_by_this_name):
@@ -4039,15 +4039,15 @@ class Demag_GUI(wx.Frame):
         try:
             pmag_specimens,file_type=pmag.magic_read(os.path.join(self.WD, "pmag_specimens.txt"))
         except:
-            print("-I- Cant read pmag_specimens.txt")
+            print("-I- Can't read pmag_specimens.txt")
         try:
             pmag_samples,file_type=pmag.magic_read(os.path.join(self.WD, "pmag_samples.txt"))
         except:
-            print("-I- Cant read pmag_samples.txt")
+            print("-I- Can't read pmag_samples.txt")
         try:
             pmag_sites,file_type=pmag.magic_read(os.path.join(self.WD, "pmag_sites.txt"))
         except:
-            print("-I- Cant read pmag_sites.txt")
+            print("-I- Can't read pmag_sites.txt")
         #--------------------------
         # reads pmag_specimens.txt and
         # update pmag_results_data['specimens'][specimen]
