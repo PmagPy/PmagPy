@@ -39,6 +39,7 @@ if (__name__ == "__main__") or (__name__ == 'pmagpy_tests.run_all_tests'):
     suite15 = unittest.TestLoader().loadTestsFromModule(pt.test_find_pmag_dir)
     suite16 = unittest.TestLoader().loadTestsFromModule(pt.test_map_magic)
     full = unittest.TestSuite([suite10, suite1, suite2, suite4,
+                               suite5, suite6,
                                suite7, suite8, suite9,
                                suite13, suite14, suite15,
                                suite16]) # suite12 causes segfault right now...
