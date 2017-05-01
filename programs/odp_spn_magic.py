@@ -7,7 +7,7 @@ def main():
     """
     NAME
         odp_spn_magic.py
- 
+
     DESCRIPTION
         converts ODP's Molspin's .spn format files to magic_measurements format files
 
@@ -18,26 +18,26 @@ def main():
         -h: prints the help message and quits.
         -f FILE: specify .spn format input file, required
         -F FILE: specify output file, default is magic_measurements.txt
-        -LP [AF, T, A FIELD, I N] specify one (FIELD is DC field in uT) 
+        -LP [AF, T, A FIELD, I N] specify one (FIELD is DC field in uT)
             AF:  af demag
-            T: thermal 
-            A: anhysteretic remanence 
-            I: isothermal remanence 
+            T: thermal
+            A: anhysteretic remanence
+            I: isothermal remanence
             N: NRM only
         -v  vol , specify volume used in MolSpin program in cm^3
         -A: don't average replicate measurements
- 
+
     INPUT
         Best to put separate experiments (all AF, thermal, ARM, etc. files in
-           seperate .spn files 
+           seperate .spn files
 
-        Format of  .spn files:   
-        header with: 
+        Format of  .spn files:
+        header with:
        Leg Sit H Cor T Sec Top Bot      Dec     Inc     Intens   Demag. Stage
 followed by data
-        Leg: Expedition number 
+        Leg: Expedition number
         Sit: is ODP Site
-        H: Hole letter 
+        H: Hole letter
         Cor: Core number
         T:  Core type (R,H,X,etc.)
         Sec: section number
@@ -87,7 +87,7 @@ followed by data
         except:
             print("bad mag file name")
             sys.exit()
-    else: 
+    else:
         print("spn_file field is required option")
         print(main.__doc__)
         sys.exit()
@@ -101,7 +101,7 @@ followed by data
         codelist=args[ind+1]
         codes=codelist.split(':')
         if "AF" in codes:
-            demag='AF' 
+            demag='AF'
             methcode="LT-AF-Z"
         if "T" in codes:
             demag="T"
@@ -133,12 +133,12 @@ followed by data
             MagRec["treatment_dc_field_theta"]='0'
             meas_type="LT-NO"
             if float(rec[11])==0:
-                pass 
+                pass
             elif demag=="AF":
                 MagRec["treatment_ac_field"]='%8.3e' %(float(rec[11])*1e-3) # peak field in tesla
                 meas_type="LT-AF-Z"
                 MagRec["treatment_dc_field"]='0'
-            else: 
+            else:
               MagRec["treatment_temp"]='%8.3e' % (float(rec[11])+273.) # temp in kelvin
               meas_type="LT-T-Z"
             intens=1e-3*float(rec[10])*vol # convert mA/m to Am^2
@@ -150,9 +150,9 @@ followed by data
             MagRec["er_citation_names"]=citation
             MagRec["magic_method_codes"]=meas_type
             MagRec["measurement_flag"]='g'
-	    MagRec["measurement_csd"]=''
+            MagRec["measurement_csd"]=''
             MagRec["measurement_number"]='1'
-            MagRecs.append(MagRec) 
+            MagRecs.append(MagRec)
     MagOuts=pmag.measurements_methods(MagRecs,noave)
     pmag.magic_write(meas_file,MagOuts,'magic_measurements')
     print("results put in ",meas_file)

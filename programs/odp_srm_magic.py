@@ -9,7 +9,7 @@ def main():
     """
     NAME
         odp_srm_magic.py
- 
+
     DESCRIPTION
         converts ODP measurement format files to magic_measurements format files
 
@@ -25,7 +25,7 @@ def main():
         put data from a single core into a directory. depths will be below core top
 
     """
-#        
+#
 #
     version_num=pmag.get_version()
     meas_file='magic_measurements.txt'
@@ -54,7 +54,7 @@ def main():
         codelist=args[ind+1]
         codes=codelist.split(':')
         if "AF" in codes:
-            demag='AF' 
+            demag='AF'
             if'-dc' not in args: methcode="LT-AF-Z"
             if'-dc' in args: methcode="LT-AF-I"
         if "T" in codes:
@@ -63,25 +63,25 @@ def main():
             if '-dc' in args: methcode="LT-T-I"
         if "I" in codes:
             methcode="LP-IRM"
-        if "S" in codes: 
+        if "S" in codes:
             demag="S"
             methcode="LP-PI-TRM:LP-PI-ALT-AFARM"
             trm_labfield=labfield
             ans=input("DC lab field for ARM step: [50uT] ")
             if ans=="":
                 arm_labfield=50e-6
-            else: 
+            else:
                 arm_labfield=float(ans)*1e-6
             ans=input("temperature for total trm step: [600 C] ")
             if ans=="":
                 trm_peakT=600+273 # convert to kelvin
-            else: 
+            else:
                 trm_peakT=float(ans)+273 # convert to kelvin
         if "G" in codes: methcode="LT-AF-G"
-	if "D" in codes: methcode="LT-AF-D"
-        if "TRM" in codes: 
-            demag="T"
-            trm=1
+    if "D" in codes: methcode="LT-AF-D"
+    if "TRM" in codes:
+        demag="T"
+        trm=1
     if demag=="T" and "ANI" in codes:
         methcode="LP-AN-TRM"
     if demag=="AF" and "ANI" in codes:
@@ -139,22 +139,22 @@ def main():
                     if value!=" ":
                         treatment_value=float(value)*1e-3
                         MagRec["treatment_ac_field"]='%8.3e'%(treatment_value) # AF demag in treat mT => T
-                if 'user' in fields[0]: 
+                if 'user' in fields[0]:
                     user=fields[-1]
                     MagRec["er_analyst_mail_names"]=user
                 MagRec["measurement_standard"]='u' # assume all data are "good"
                 if 'sample_area' in fields[0]:  vol=float(fields[1])*1e-6 # takes volume (cc) and converts to m^3
-                if 'run_number' in fields[0]:  
+                if 'run_number' in fields[0]:
                     MagRec['external_database_ids']=fields[1] # run number is the LIMS measurement number
                     MagRec['external_database_names']='LIMS'
                 k+=1
-                if input[k][0:7]=='<MULTI>': 
-                    break 
+                if input[k][0:7]=='<MULTI>':
+                    break
             while 1:
                 k+=1
                 line = input[k]
-                if line[0:5]=='<RAW>': 
-                    break 
+                if line[0:5]=='<RAW>':
+                    break
                 treatment_value=""
                 rec=line.replace('\n','').split(',') # list of data
                 if len(rec)>2:

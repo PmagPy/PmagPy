@@ -31,20 +31,20 @@ def main():
     instout="magic_instruments.txt"
 # get command line stuff
     if "-h" in sys.argv:
-	print(main.__doc__)
+        print(main.__doc__)
         sys.exit()
     if '-f' in sys.argv:
-	ind=sys.argv.index("-f")
-	infile=sys.argv[ind+1]
+        ind=sys.argv.index("-f")
+        infile=sys.argv[ind+1]
     if '-fsi' in sys.argv:
-	ind=sys.argv.index("-fsi")
-	sitefile=sys.argv[ind+1]
+        ind=sys.argv.index("-fsi")
+        sitefile=sys.argv[ind+1]
     if '-Fsp' in sys.argv:
-	ind=sys.argv.index("-Fsp")
-	specout=sys.argv[ind+1]
+        ind=sys.argv.index("-Fsp")
+        specout=sys.argv[ind+1]
     if '-Fin' in sys.argv:
-	ind=sys.argv.index("-Fin")
-	instout=sys.argv[ind+1]
+        ind=sys.argv.index("-Fin")
+        instout=sys.argv[ind+1]
     if '-WD' in sys.argv:
         ind=sys.argv.index("-WD")
         dir_path=sys.argv[ind+1]
@@ -52,7 +52,7 @@ def main():
         if sitefile!="":sitefile=dir_path+'/'+sitefile
         specout=dir_path+'/'+specout
         instout=dir_path+'/'+instout
-# now do re-ordering 
+# now do re-ordering
     pmag.ParseMeasFile(infile,sitefile,instout,specout)
 
 if __name__ == "__main__":
