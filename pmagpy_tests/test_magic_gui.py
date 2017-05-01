@@ -31,6 +31,8 @@ class TestMainFrame(unittest.TestCase):
     def tearDown(self):
 #        wx.CallAfter(self.frame.Destroy)
 #        wx.CallAfter(self.app.Destroy)
+        for fname in ('locations.txt', 'sites.txt'):
+            os.remove(os.path.join(PROJECT_WD, fname))
         os.chdir(WD)
 
     def test_main_panel_is_created(self):
