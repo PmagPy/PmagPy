@@ -10,7 +10,7 @@ def main(command_line=True, **kwargs):
     """
     NAME
         iodp_jr6_magic.py
- 
+
     DESCRIPTION
         converts shipboard .jr6 format files to magic_measurements format files
 
@@ -25,7 +25,7 @@ def main(command_line=True, **kwargs):
            default is 'er_samples.txt'
         -loc HOLE : specify hole name (U1456A)
         -A: don't average replicate measurements
- 
+
     INPUT
         JR6 .jr6 format file
     """
@@ -45,7 +45,7 @@ def main(command_line=True, **kwargs):
         old_file.close()
         new_file.close()
         return new_filename
-        
+
 
     def old_fix_separation(filename, new_filename):
         old_file = open(filename, 'r')
@@ -74,7 +74,7 @@ def main(command_line=True, **kwargs):
         return new_filename
 
 
-    
+
 # initialize some stuff
     noave=0
     volume=2.5**3 #default volume is a 2.5cm cube
@@ -154,7 +154,7 @@ def main(command_line=True, **kwargs):
         mag_file = os.path.join(input_dir_path, mag_file)
     samp_file = os.path.join(input_dir_path, samp_file)
     meas_file = os.path.join(output_dir_path, meas_file)
-        
+
     # validate variables
     if not mag_file:
         print("You must provide an IODP_jr6 format file")
@@ -165,7 +165,7 @@ def main(command_line=True, **kwargs):
     if not os.path.exists(samp_file):
         print("Your input directory:\n{}\nmust contain an er_samples.txt file, or you must explicitly provide one".format(input_dir_path))
         return False, "Your input directory:\n{}\nmust contain an er_samples.txt file, or you must explicitly provide one".format(input_dir_path)
-    
+
     # parse data
     temp = os.path.join(output_dir_path, 'temp.txt')
     fix_separation(mag_file, temp)
@@ -190,7 +190,7 @@ def main(command_line=True, **kwargs):
             MagRec["measurement_standard"]='u'
             MagRec["measurement_number"]='1'
             MagRec["treatment_ac_field"]='0'
-            
+
             volume=float(SampRecs[0]['sample_volume'])
             x = float(line[4])
             y = float(line[3])
@@ -200,12 +200,12 @@ def main(command_line=True, **kwargs):
             expon = float(line[5])
             magn_volume = direction[2] * (10.0**expon)
             moment = magn_volume * volume
-            
+
             MagRec["measurement_magn_moment"]=str(moment)
-            MagRec["measurement_magn_volume"]=str(magn_volume)#str(direction[2] * (10.0 ** expon)) 
+            MagRec["measurement_magn_volume"]=str(magn_volume)#str(direction[2] * (10.0 ** expon))
             MagRec["measurement_dec"]='%7.1f'%(direction[0])
             MagRec["measurement_inc"]='%7.1f'%(direction[1])
-            
+
             step = line[1]
             if step == 'NRM':
                 meas_type="LT-NO"
@@ -230,10 +230,10 @@ def main(command_line=True, **kwargs):
             else:
                 print('unknown treatment type for ',row)
                 return False, 'unknown treatment type for ',row
-                
+
             MagRec['magic_method_codes']=meas_type
             MagRecs.append(MagRec.copy())
-            
+
         else:
             print('sample name not found: ',row['specname'])
     MagOuts=pmag.measurements_methods(MagRecs,noave)
