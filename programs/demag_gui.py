@@ -3865,11 +3865,13 @@ class Demag_GUI(wx.Frame):
         sort_by_this_name : variable to sort data by
         """
         DATA={}
-        fin=open(path,'r')
-        fin.readline()
-        line=fin.readline()
-        header=line.strip('\n').split('\t')
-        for line in fin.readlines():
+        with open(path, 'r') as finput:
+            lines = list(finput.readlines()[1:])
+        #fin=open(path,'r')
+        #fin.readline()
+        line = lines[0]
+        header = line.strip('\n').split('\t')
+        for line in lines[1:]:
             tmp_data={}
             tmp_line=line.strip('\n').split('\t')
             for i in range(len(tmp_line)):

@@ -253,9 +253,9 @@ def main(command_line=True, **kwargs):
         ErSiteRec['er_citation_names']=citation
         ErSiteRec['site_lat']=site_lat
         ErSiteRec['site_lon']=site_lon
-        f=open(os.path.join(input_dir_path,specimen),'r')
-        Lines=f.readlines()
-        comment=""
+        with open(os.path.join(input_dir_path,specimen),'r') as finput:
+            Lines = list(finput.readlines())
+        comment = ""
         line=Lines[0].split()
         if len(line)>2:
             comment=line[2]

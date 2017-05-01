@@ -169,8 +169,9 @@ def main(command_line=True, **kwargs):
     # parse data
     temp = os.path.join(output_dir_path, 'temp.txt')
     fix_separation(mag_file, temp)
-    samples,filetype = pmag.magic_read(samp_file)
-    lines = open(temp, 'r').readlines()
+    samples, filetype = pmag.magic_read(samp_file)
+    with open(temp, 'r') as finput:
+        lines = finput.readlines()
     os.remove(temp)
     for line in lines:
         MagRec = {}

@@ -76,12 +76,13 @@ def main(command_line=True, **kwargs):
         filelist=[csv_file]
     # parsing the data
     file_found = False
-    for file in filelist: # parse each file
-        if file[-3:].lower()=='csv':
+    for fname in filelist: # parse each file
+        if fname[-3:].lower()=='csv':
             file_found = True
-            print('processing: ',file)
-            input=open(file,'r').readlines()
-            keys=input[0].replace('\n','').split(',') # splits on underscores
+            print('processing: ',fname)
+            with open(fname, 'r') as finput:
+                data = list(finput.readlines())
+            keys = data[0].replace('\n','').split(',') # splits on underscores
             interval_key="Offset (cm)"
             demag_key="Demag level (mT)"
             offline_demag_key="Treatment Value (mT or &deg;C)"
@@ -100,7 +101,7 @@ def main(command_line=True, **kwargs):
             if "Sample volume (cm^3)" in keys:volume_key="Sample volume (cm^3)"
             if "Sample volume (cc)" in keys:volume_key="Sample volume (cc)"
             if "Sample volume (cm&sup3;)" in keys:volume_key="Sample volume (cm&sup3;)"
-            for line in input[1:]:
+            for line in data[1:]:
                 InRec={}
                 for k in range(len(keys)):InRec[keys[k]]=line.split(',')[k]
                 inst="IODP-SRM"

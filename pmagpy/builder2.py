@@ -837,8 +837,9 @@ Adding location with name: {}""".format(new_location_name, new_location_name))
         {'Z35.5a': {'specimen_weight': '1.000e-03', 'er_citation_names': 'This study', 'specimen_volume': '', 'er_location_name': '', 'er_site_name': 'Z35.', 'er_sample_name': 'Z35.5', 'specimen_class': '', 'er_specimen_name': 'Z35.5a', 'specimen_lithology': '', 'specimen_type': ''}, ....}
         """
         DATA = {}
-        fin = open(path, 'r')
-        first_line = fin.readline()
+        with open(path, 'r') as fin:
+            lines = list(fin.readlines())
+        first_line = lines[0]
         if not first_line:
             return False, None, 'empty_file'
         if first_line[0] == "s" or first_line[1] == "s":
@@ -856,10 +857,10 @@ Adding location with name: {}""".format(new_location_name, new_location_name))
                 sort_by_this_name = "by_line_number"
             else:
                 sort_by_this_name = 'er_' + item_type + '_name'
-        line = fin.readline()
+        line = lines[1]
         header = line.strip('\n').split(delim)
         counter = 0
-        for line in fin.readlines():
+        for line in lines[2:]:
             tmp_data = {}
             tmp_line = line.strip('\n').split(delim)
             for i in range(len(header)):
@@ -873,7 +874,6 @@ Adding location with name: {}""".format(new_location_name, new_location_name))
             else:
                 if tmp_data[sort_by_this_name] != "":
                     DATA[tmp_data[sort_by_this_name]] = tmp_data
-        fin.close()
         return DATA, header, file_type
 
 
