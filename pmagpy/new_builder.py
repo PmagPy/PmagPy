@@ -709,6 +709,10 @@ class Contribution(object):
         target_df = self.tables[target_df_name]
         source_df = self.tables[source_df_name]
         target_name = target_df_name[:-1]
+        # make sure source_df has relevant columns
+        for col in cols:
+            if col not in source_df.df.columns:
+                source_df.df[col] = None
         # if target_df has info, propagate that into all rows
         target_df.front_and_backfill(cols)
         # make sure target_name is in source_df for merging
