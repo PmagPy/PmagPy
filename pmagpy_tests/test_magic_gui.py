@@ -32,7 +32,10 @@ class TestMainFrame(unittest.TestCase):
 #        wx.CallAfter(self.frame.Destroy)
 #        wx.CallAfter(self.app.Destroy)
         for fname in ('locations.txt', 'sites.txt'):
-            os.remove(os.path.join(PROJECT_WD, fname))
+            try:
+                os.remove(os.path.join(PROJECT_WD, fname))
+            except OSError:
+                pass
         os.chdir(WD)
 
     def test_main_panel_is_created(self):
