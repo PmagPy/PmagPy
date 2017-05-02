@@ -80,24 +80,24 @@ def main():
     SiteRecs=pmag.get_dictitem(VgpRecs,'data_type','i','T') # get VGPs (as opposed to averaged)
     SiteRecs=pmag.get_dictitem(SiteRecs,coord_key,coord,'T') # get right coordinate system
     for rec in SiteRecs:
-            if anti==1:
-                if 90.-abs(float(rec['vgp_lat']))<=cutoff and float(rec['average_k'])>=kappa: 
-                    if float(rec['vgp_lat'])<0:
-                        rec['vgp_lat']='%7.1f'%(-1*float(rec['vgp_lat']))
-                        rec['vgp_lon']='%7.1f'%(float(rec['vgp_lon'])-180.)
+        if anti==1:
+            if 90.-abs(float(rec['vgp_lat']))<=cutoff and float(rec['average_k'])>=kappa: 
+                if float(rec['vgp_lat'])<0:
+                    rec['vgp_lat']='%7.1f'%(-1*float(rec['vgp_lat']))
+                    rec['vgp_lon']='%7.1f'%(float(rec['vgp_lon'])-180.)
+                Vgps.append(rec)
+                Pvgps.append([float(rec['vgp_lon']),float(rec['vgp_lat'])])
+        elif rev==0: # exclude normals
+            if 90.-(float(rec['vgp_lat']))<=cutoff and float(rec['average_k'])>=kappa: 
+                Vgps.append(rec)
+                Pvgps.append([float(rec['vgp_lon']),float(rec['vgp_lat'])])
+        else: # include normals
+            if 90.-abs(float(rec['vgp_lat']))<=cutoff and float(rec['average_k'])>=kappa: 
+                if float(rec['vgp_lat'])<0:
+                    rec['vgp_lat']='%7.1f'%(-1*float(rec['vgp_lat']))
+                    rec['vgp_lon']='%7.1f'%(float(rec['vgp_lon'])-180.)
                     Vgps.append(rec)
                     Pvgps.append([float(rec['vgp_lon']),float(rec['vgp_lat'])])
-            elif rev==0: # exclude normals
-                if 90.-(float(rec['vgp_lat']))<=cutoff and float(rec['average_k'])>=kappa: 
-                    Vgps.append(rec)
-                    Pvgps.append([float(rec['vgp_lon']),float(rec['vgp_lat'])])
-            else: # include normals
-                if 90.-abs(float(rec['vgp_lat']))<=cutoff and float(rec['average_k'])>=kappa: 
-                    if float(rec['vgp_lat'])<0:
-                        rec['vgp_lat']='%7.1f'%(-1*float(rec['vgp_lat']))
-                        rec['vgp_lon']='%7.1f'%(float(rec['vgp_lon'])-180.)
-                        Vgps.append(rec)
-                        Pvgps.append([float(rec['vgp_lon']),float(rec['vgp_lat'])])
     if spin==0: # do transformation to pole
         ppars=pmag.doprinc(Pvgps)
         for vgp in Vgps:
@@ -133,8 +133,8 @@ def main():
             BVgps=[]
             if i%100==0: print(i,' out of ',nb)
             for k in range(len(Vgps)):
+                random.seed()
                 ind=random.randint(0,len(Vgps)-1)
-                random.jumpahead(int(ind*1000))
                 BVgps.append(Vgps[ind])
             SBs.append(pmag.get_Sb(BVgps))
         SBs.sort()

@@ -94,7 +94,7 @@ def main():
     if spin==0: # do transformation to pole
         ppars=pmag.doprinc(Pvgps)
         for vgp in Vgps:
-	    vlon,vlat=pmag.dotilt(float(vgp['vgp_lon']),float(vgp['vgp_lat']),ppars['dec']-180.,90.-ppars['inc'])
+            vlon,vlat=pmag.dotilt(float(vgp['vgp_lon']),float(vgp['vgp_lat']),ppars['dec']-180.,90.-ppars['inc'])
             vgp['vgp_lon']=vlon  
             vgp['vgp_lat']=vlat  
             vgp['average_k']="0"
@@ -126,8 +126,8 @@ def main():
       for i in range(nb): # now do bootstrap 
         BVgps=[]
         for k in range(len(Vgps)):
+            random.reseed()
             ind=random.randint(0,len(Vgps)-1)
-            random.jumpahead(int(ind*1000))
             BVgps.append(Vgps[ind])
         SBs.append(pmag.get_Sb(BVgps))
       SBs.sort()
