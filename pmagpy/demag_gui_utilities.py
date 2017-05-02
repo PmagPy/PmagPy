@@ -9,7 +9,7 @@ from re import findall,split
 from numpy import array,arange,pi,cos,sin
 from .pmag import dimap,cart2dir,dir2cart
 
-def specimens_comparator(s1,s2=''):
+def spec_cmp(s1,s2=''):
     if type(s1) != str and type(s2) != str: return 0
     elif type(s1) != str: return -1
     elif type(s2) != str: return 1
@@ -43,6 +43,28 @@ def meas_cmp(m1,m2):
         elif 'LT-NO' in m1_meths: return -1
         elif 'LT-NO' in m2_meths: return 1
     return 0
+
+def cmp_to_key(mycmp):
+    'Convert a cmp= function into a key= function'
+    class K(object):
+        def __init__(self, obj, *args):
+            self.obj = obj
+        def __lt__(self, other):
+            return mycmp(self.obj, other.obj) < 0
+        def __gt__(self, other):
+            return mycmp(self.obj, other.obj) > 0
+        def __eq__(self, other):
+            return mycmp(self.obj, other.obj) == 0
+        def __le__(self, other):
+            return mycmp(self.obj, other.obj) <= 0  
+        def __ge__(self, other):
+            return mycmp(self.obj, other.obj) >= 0
+        def __ne__(self, other):
+            return mycmp(self.obj, other.obj) != 0
+    return K
+
+spec_key_func=cmp_to_key(spec_cmp)
+meas_key_func=cmp_to_key(meas_cmp)
 
 def read_LSQ(filepath):
     fin = open(filepath, 'r')
