@@ -211,7 +211,7 @@ def convert(**kwargs):
                 intens= InRec[int_key].strip('"')
                 MeasRec['magn_moment']='%8.3e'%(float(intens)*vol) # convert intensity from A/m to Am^2 using vol
                 MeasRec['instrument_codes']=inst
-                MeasRec['number']='1'
+                MeasRec['treat_step_num']='1'
                 MeasRec['meas_n_orient']=''
                 MeasRecs.append(MeasRec)
     if not file_found:

@@ -256,7 +256,7 @@ def convert(**kwargs):
         meas_type="LT-NO"
         MeasRec["quality"]='g'
         MeasRec["standard"]='u'
-        MeasRec["number"]='1'
+        MeasRec["treat_step_num"]='1'
         MeasRec["specimen"]=specimen
 #        if mv=='v': MeasRec["susc_chi_volume"]=susc_chi_volume
 #        else: MeasRec["susc_chi_mass"]=susc_chi_mass

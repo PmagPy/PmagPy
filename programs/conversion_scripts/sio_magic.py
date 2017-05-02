@@ -656,7 +656,7 @@ def convert(**kwargs):
                 MeasRec["standard"]='s'
             else:
                 MeasRec["standard"]='u'
-            MeasRec["number"]='1'
+            MeasRec["treat_step_num"]='1'
             #print MeasRec['treat_temp']
             MeasRecs.append(MeasRec)
 

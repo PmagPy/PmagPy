@@ -259,7 +259,7 @@ def convert(**kwargs):
                 try: MeasRec['magn_moment']='%8.3e'%(float(intens)*vol) # convert intensity from A/m to Am^2 using vol
                 except ValueError: print("couldn't find magnetic moment for specimen %s and int_key %s; leaving this field blank you'll have to fix this manually"%(specimen, int_key)); MeasRec['magn_moment']=''
                 MeasRec['instrument_codes']=inst
-                MeasRec['number']='1'
+                MeasRec['treat_step_num']='1'
                 MeasRec['dir_csd']='0'
                 MeasRec['meas_n_orient']=''
                 MeasRecs.append(MeasRec)

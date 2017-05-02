@@ -385,7 +385,7 @@ def convert(**kwargs):
                     print("Dont supprot AARM in HUJI format yet. sorry... do be DONE")
                 MeasRec["method_codes"]=methcode
                 MeasRec["experiments"]=specimen+ ":" + LPcode
-                MeasRec["number"]="%i"%i
+                MeasRec["treat_step_num"]="%i"%i
                 MeasRec["description"]=""
 
                 MeasRecs.append(MeasRec)
@@ -484,7 +484,7 @@ def convert(**kwargs):
                     MeasRec["treat_dc_field"]='%8.3e'%(0)
                     MeasRec["treat_temp"]='%8.3e' % (float(treatment[0])+273.) # temp in kelvin
                     MeasRec["method_codes"]=LT_code+":"+methcode
-                    MeasRec["number"]="%i"%i
+                    MeasRec["treat_step_num"]="%i"%i
                     MeasRec["description"]=""
                     MeasRecs.append(MeasRec)
                     #continue
@@ -509,28 +509,28 @@ def convert(**kwargs):
                         if float(treatment[1])==7:
                             # alteration check
                             methcode="LP-AN-TRM:LT-PTRM-I"
-                            MeasRec["number"]='7'# -z
+                            MeasRec["treat_step_num"]='7'# -z
                         else:
                             MeasRec["method_codes"]="LP-AN-TRM:LT-T-I"
                             inc=float(MeasRec["dir_inc"]);dec=float(MeasRec["dir_dec"])
                             if abs(inc)<45 and (dec<45 or dec>315): # +x
                                 tdec,tinc=0,0
-                                MeasRec["number"]='1'
+                                MeasRec["treat_step_num"]='1'
                             if abs(inc)<45 and (dec<135 and dec>45):
                                 tdec,tinc=90,0
-                                MeasRec["number"]='2' # +y
+                                MeasRec["treat_step_num"]='2' # +y
                             if inc>45 :
                                 tdec,tinc=0,90
-                                MeasRec["number"]='3' # +z
+                                MeasRec["treat_step_num"]='3' # +z
                             if abs(inc)<45 and (dec<225 and dec>135):
                                 tdec,tinc=180,0
-                                MeasRec["number"]='4' # -x
+                                MeasRec["treat_step_num"]='4' # -x
                             if abs(inc)<45 and (dec<315 and dec>225):
                                 tdec,tinc=270,0
-                                MeasRec["number"]='5'# -y
+                                MeasRec["treat_step_num"]='5'# -y
                             if inc<-45 :
                                 tdec,tinc=0,-90
-                                MeasRec["number"]='6'# -z
+                                MeasRec["treat_step_num"]='6'# -z
 
                         MeasRec["treat_dc_field_phi"]='%7.1f' %(tdec)
                         MeasRec["treat_dc_field_theta"]='%7.1f'% (tinc)
@@ -556,7 +556,7 @@ def convert(**kwargs):
                     MeasRec["treat_dc_field"]='%8.3e' % (labfield) # labfield in tesla (convert from microT)
                     MeasRec["treat_dc_field_phi"]='%7.1f' % (phi) # labfield phi
                     MeasRec["treat_dc_field_theta"]='%7.1f' % (theta) # labfield theta
-                    MeasRec["number"]="%i"%i
+                    MeasRec["treat_step_num"]="%i"%i
                     MeasRec["description"]=""
                     MeasRecs.append(MeasRec)
                     #continue
@@ -583,7 +583,7 @@ def convert(**kwargs):
                     MeasRec["treat_dc_field"]='%8.3e' % (labfield) # labfield in tesla (convert from microT)
                     MeasRec["treat_dc_field_phi"]='%7.1f' % (phi) # labfield phi
                     MeasRec["treat_dc_field_theta"]='%7.1f' % (theta) # labfield theta
-                    MeasRec["number"]="%i"%index
+                    MeasRec["treat_step_num"]="%i"%index
                     MeasRec["description"]="cooling_rate"+":"+CR_cooling_time+":"+"K/min"
                     #MeasRec["description"]="%.1f minutes per cooling time"%int(CR_cooling_time)
                     MeasRecs.append(MeasRec)

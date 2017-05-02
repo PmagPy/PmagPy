@@ -310,7 +310,7 @@ def convert(**kwargs):
             meas_type="LT-NO"
             MeasRec["quality"]='g'
             MeasRec["standard"]='u'
-            MeasRec["number"]='1'
+            MeasRec["treat_step_num"]='1'
             MeasRec["specimen"]=specname
             el,demag=1,''
             treat=rec[el]
