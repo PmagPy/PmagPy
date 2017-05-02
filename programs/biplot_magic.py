@@ -16,11 +16,11 @@ def main():
 
     DESCRIPTION
         makes a biplot of specified variables from magic_measurements.txt format file
-  
+
     SYNTAX
         biplot_magic.py [-h] [-i] [command line options]
 
-    INPUT 
+    INPUT
         takes magic formated magic_measurments file
 
     OPTIONS
@@ -35,9 +35,9 @@ def main():
         -n [V,M] plot volume or mass normalized data only
     NOTES
         if nothing is specified for x and y, the user will be presented with options
-        key = ['treatment_ac_field','treatment_dc_field',treatment_temp'] 
+        key = ['treatment_ac_field','treatment_dc_field',treatment_temp']
         step in mT for fields, K for temperatures
-           """ 
+           """
     #
     file='magic_measurements.txt'
     methx,methy,fmt="","",'.svg'
@@ -76,7 +76,7 @@ def main():
         if len(meths)>1:
             ytreat_key=meths[1]
             ystep=float(meths[2])
-    if '-obj' in sys.argv: 
+    if '-obj' in sys.argv:
         ind=sys.argv.index('-obj')
         plot_by=sys.argv[ind+1]
         if plot_by=='loc':plot_key='er_location_name'
@@ -85,7 +85,7 @@ def main():
         if plot_by=='spc':plot_key='er_specimen_name'
     if '-h' in sys.argv:
         do_plot = False
-    if '-i' in sys.argv: 
+    if '-i' in sys.argv:
     #
     # get name of file from command line
     #
@@ -114,8 +114,8 @@ def main():
     #
     if '-i' in sys.argv:
         print(methods)
-    elif methx =="" or methy=="": 
-	print(methods)
+    elif methx =="" or methy=="":
+        print(methods)
         sys.exit()
     GoOn=1
     while GoOn==1:
@@ -123,7 +123,7 @@ def main():
         if methx not in methods:
             if '-i' in sys.argv:
                 print('try again! method not available')
-            else: 
+            else:
                 print(main.__doc__)
                 print('\n must specify X axis method\n')
                 sys.exit()
@@ -136,7 +136,7 @@ def main():
         if methy not in methods:
             if '-i' in sys.argv:
                 print('try again! method not available')
-            else: 
+            else:
                 print(main.__doc__)
                 print('\n must specify Y axis method\n')
                 sys.exit()
@@ -169,7 +169,7 @@ def main():
                                     xmeaskey=key
                                     if pmagplotlib.verbose:
                                         print(xmeaskey,' being used for plotting X.')
-                                    break 
+                                    break
                     if meth.strip()==methy:
                         if ymeaskey=="":
                             for key in measkeys:
@@ -177,16 +177,16 @@ def main():
                                     ymeaskey=key
                                     if pmagplotlib.verbose:
                                         print(ymeaskey,' being used for plotting Y')
-                                    break 
+                                    break
         if ymeaskey!="" and xmeaskey!="":
             for rec in data:
                 x,y='',''
                 spec=rec['er_specimen_name'] # get the ydata for this specimen
-                if rec[ymeaskey]!="" and methy in rec['magic_method_codes'].split(':'): 
+                if rec[ymeaskey]!="" and methy in rec['magic_method_codes'].split(':'):
                     if ytreat_key=="" or (ytreat_key in list(rec.keys()) and float(rec[ytreat_key])==ystep):
                         y=float(rec[ymeaskey])
-                        for rec in data: # now find the xdata 
-                            if rec['er_specimen_name']==spec and rec[xmeaskey]!="" and methx in rec['magic_method_codes'].split(':'): 
+                        for rec in data: # now find the xdata
+                            if rec['er_specimen_name']==spec and rec[xmeaskey]!="" and methx in rec['magic_method_codes'].split(':'):
                                 if xtreat_key=="" or (xtreat_key in list(rec.keys()) and float(rec[xtreat_key])==xstep):
                                     x=float(rec[xmeaskey])
                 if x != '' and y!= '':

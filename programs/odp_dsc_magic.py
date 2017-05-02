@@ -6,11 +6,12 @@ import sys
 import os
 import pmagpy.pmag as pmag
 
+
 def main():
     """
     NAME
         odp_dcs_magic.py
- 
+
     DESCRIPTION
         converts ODP discrete sample format files to magic_measurements format files
 
@@ -31,7 +32,7 @@ def main():
         Put data from separate experiments (all AF, thermal, thellier, trm aquisition, Shaw, etc.)  in separate directory
 
     """
-#        
+#
 #
     version_num=pmag.get_version()
     meas_file='magic_measurements.txt'
@@ -68,7 +69,7 @@ def main():
         codelist=args[ind+1]
         codes=codelist.split(':')
         if "AF" in codes:
-            demag='AF' 
+            demag='AF'
             if'-dc' not in args: methcode="LT-AF-Z"
             if'-dc' in args: methcode="LT-AF-I"
         if "T" in codes:
@@ -77,25 +78,25 @@ def main():
             if '-dc' in args: methcode="LT-T-I"
         if "I" in codes:
             methcode="LP-IRM"
-        if "S" in codes: 
+        if "S" in codes:
             demag="S"
             methcode="LP-PI-TRM:LP-PI-ALT-AFARM"
             trm_labfield=labfield
             ans=input("DC lab field for ARM step: [50uT] ")
             if ans=="":
                 arm_labfield=50e-6
-            else: 
+            else:
                 arm_labfield=float(ans)*1e-6
             ans=input("temperature for total trm step: [600 C] ")
             if ans=="":
                 trm_peakT=600+273 # convert to kelvin
-            else: 
+            else:
                 trm_peakT=float(ans)+273 # convert to kelvin
         if "G" in codes: methcode="LT-AF-G"
-	if "D" in codes: methcode="LT-AF-D"
-        if "TRM" in codes: 
-            demag="T"
-            trm=1
+    if "D" in codes: methcode="LT-AF-D"
+    if "TRM" in codes:
+        demag="T"
+        trm=1
     if demag=="T" and "ANI" in codes:
         methcode="LP-AN-TRM"
     if demag=="AF" and "ANI" in codes:
@@ -145,7 +146,7 @@ def main():
             SpecRec['er_specimen_name']=specimen
             SampRec['er_specimen_names']=specimen
             for key in list(SpecRec.keys()):MagRec[key]=SpecRec[key]
-# set up measurement record - default is NRM 
+# set up measurement record - default is NRM
             MagRec['er_analyst_mail_names']=user
             MagRec['magic_method_codes']='LT-NO'
             MagRec['magic_software_packages']=version_num
@@ -194,14 +195,14 @@ def main():
                             dc_value=float(values[1])*1e-3
                             MagRec["treatment_ac_field"]=treatment_value # AF demag in treat mT => T
                             MagRec["treatment_dc_field"]='%8.3e'%(dc_value) # DC mT => T
-                if 'user' in fields[0]: 
+                if 'user' in fields[0]:
                     user=fields[-1]
                     MagRec["er_analyst_mail_names"]=user
-                if 'sample_orientation' in fields[0]: 
+                if 'sample_orientation' in fields[0]:
                     MagRec["measurement_description"]=fields[-1]
                 MagRec["measurement_standard"]='u' # assume all data are "good"
                 if 'sample_area' in fields[0]:  vol=float(fields[1])*1e-6 # takes volume (cc) and converts to m^3
-                if 'run_number' in fields[0]:  
+                if 'run_number' in fields[0]:
                     MagRec['external_database_ids']=fields[1] # run number is the LIMS measurement number
                     MagRec['external_database_names']='LIMS'
                 if input[k][0:7]=='<MULTI>':
@@ -240,7 +241,7 @@ def main():
         print('samples stored in ',samp_file)
     pmag.magic_write(samp_file,SampRecs,'er_samples')
     print('specimens stored in ',spec_file)
-    
+
     Fixed=pmag.measurements_methods(MagOuts,noave)
     pmag.magic_write(meas_file,Fixed,'magic_measurements')
     print('data stored in ',meas_file)

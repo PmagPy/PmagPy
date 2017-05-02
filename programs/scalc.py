@@ -16,18 +16,18 @@ def main():
     DESCRIPTION
        calculates Sb from VGP Long,VGP Lat,Directional kappa,Site latitude data
 
-    SYNTAX 
+    SYNTAX
         scalc -h [command line options] [< standard input]
-    
-    INPUT 
+
+    INPUT
        takes space delimited files with PLong, PLat,[kappa, N_site, slat]
-    
+
     OPTIONS
         -h prints help message and quits
         -f FILE: specify input file
         -c cutoff:  specify VGP colatitude cutoff value
         -k cutoff: specify kappa cutoff
-        -v : use the VanDammme criterion 
+        -v : use the VanDammme criterion
         -a: use antipodes of reverse data: default is to use only normal
         -C:  use all data without regard to polarity
         -b: do a bootstrap for confidence
@@ -88,15 +88,15 @@ def main():
         if len(rec)==5:
             vgp['average_k'],vgp['average_nn'],vgp['average_lat']=rec[2],rec[3],rec[4]
             slats.append(float(rec[4]))
-        else: 
+        else:
             vgp['average_k'],vgp['average_nn'],vgp['average_lat']="0","0","0"
-        if 90.-(float(vgp['vgp_lat']))<=cutoff and float(vgp['average_k'])>=kappa and int(vgp['average_nn'])>=n: Vgps.append(vgp) 
+        if 90.-(float(vgp['vgp_lat']))<=cutoff and float(vgp['average_k'])>=kappa and int(vgp['average_nn'])>=n: Vgps.append(vgp)
     if spin==0: # do transformation to pole
         ppars=pmag.doprinc(Pvgps)
         for vgp in Vgps:
             vlon,vlat=pmag.dotilt(float(vgp['vgp_lon']),float(vgp['vgp_lat']),ppars['dec']-180.,90.-ppars['inc'])
-            vgp['vgp_lon']=vlon  
-            vgp['vgp_lat']=vlat  
+            vgp['vgp_lon']=vlon
+            vgp['vgp_lat']=vlat
             vgp['average_k']="0"
     S_B= pmag.get_Sb(Vgps)
     A=cutoff
@@ -116,14 +116,14 @@ def main():
             for  vgp in vVgps:
                 if 90.-(float(vgp['vgp_lat']))<thetamax:nVgps.append(vgp)
             vVgps=[]
-            for vgp in nVgps:vVgps.append(vgp) 
+            for vgp in nVgps:vVgps.append(vgp)
             S_B= pmag.get_Sb(vVgps)
         Vgps=[]
         for vgp in vVgps:Vgps.append(vgp) # make a new Vgp list
     SBs,Ns=[],[]
     if boot==1:
       print('please be patient...   bootstrapping')
-      for i in range(nb): # now do bootstrap 
+      for i in range(nb): # now do bootstrap
         BVgps=[]
         for k in range(len(Vgps)):
             random.reseed()

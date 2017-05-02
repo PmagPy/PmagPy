@@ -764,7 +764,7 @@ class convert_tdt_files_to_MagIC(wx.Frame):
                         MeasRec['analysts']=Data[specimen][Experiment_Type]['user_name']
                         MeasRec["quality"]='g'
                         MeasRec["standard"]='u'
-                        MeasRec["number"]="%i"%measurement_running_number
+                        MeasRec["treat_step_num"]="%i"%measurement_running_number
                         MeasRec["dir_dec"]=meas_line['dec']
                         MeasRec["dir_inc"]=meas_line['inc']
                         if Data[specimen][Experiment_Type]['moment_units']=='mA/m':
@@ -990,7 +990,7 @@ class convert_tdt_files_to_MagIC(wx.Frame):
                         MeasRec['citations']="This study"
                         MeasRec["quality"]='g'
                         MeasRec["standard"]='u'
-                        MeasRec["number"]="%i"%measurement_running_number
+                        MeasRec["treat_step_num"]="%i"%measurement_running_number
                         MeasRec["dir_dec"]=meas_line['dec']
                         MeasRec["dir_inc"]=meas_line['inc']
                         MeasRec["magn_moment"]="%5e"%(float(meas_line['moment'])*1e-3*float(Data[specimen][Experiment_Type]['volume'])) # converted to Am^2

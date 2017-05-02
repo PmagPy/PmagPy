@@ -10,7 +10,7 @@ def main(command_line=True, **kwargs):
     """
     NAME
         iodp_dscr_magic.py
- 
+
     DESCRIPTION
         converts ODP LIMS discrete sample format files to magic_measurements format files
 
@@ -24,9 +24,9 @@ def main(command_line=True, **kwargs):
         -F FILE: specify output  measurements file, default is magic_measurements.txt
         -A : don't average replicate measurements
     INPUTS
- 	 IODP discrete sample .csv file format exported from LIMS database
+     IODP discrete sample .csv file format exported from LIMS database
     """
-    #        
+    #
     # initialize defaults
     version_num=pmag.get_version()
     meas_file='magic_measurements.txt'
@@ -53,7 +53,7 @@ def main(command_line=True, **kwargs):
         if "-A" in args: noave=1
         if '-f' in args:
             ind=args.index("-f")
-            csv_file=args[ind+1] 
+            csv_file=args[ind+1]
         if '-F' in args:
             ind=args.index("-F")
             meas_file=args[ind+1]
@@ -76,12 +76,13 @@ def main(command_line=True, **kwargs):
         filelist=[csv_file]
     # parsing the data
     file_found = False
-    for file in filelist: # parse each file
-        if file[-3:].lower()=='csv':
+    for fname in filelist: # parse each file
+        if fname[-3:].lower()=='csv':
             file_found = True
-            print('processing: ',file)
-            input=open(file,'r').readlines()
-            keys=input[0].replace('\n','').split(',') # splits on underscores
+            print('processing: ',fname)
+            with open(fname, 'r') as finput:
+                data = list(finput.readlines())
+            keys = data[0].replace('\n','').split(',') # splits on underscores
             interval_key="Offset (cm)"
             demag_key="Demag level (mT)"
             offline_demag_key="Treatment Value (mT or &deg;C)"
@@ -93,14 +94,14 @@ def main(command_line=True, **kwargs):
             if "Declination background &amp; tray corrected (deg)" in keys: dec_key="Declination background &amp; tray corrected (deg)"
             if "Intensity background + tray corrected  (A/m)" in keys: int_key="Intensity background + tray corrected  (A/m)"
             if "Intensity background &amp; tray corrected (A/m)" in keys: int_key="Intensity background &amp; tray corrected (A/m)"
-            type="Type" 
+            type="Type"
             sect_key="Sect"
             half_key="A/W"
-# need to add volume_key to LORE format! 
+# need to add volume_key to LORE format!
             if "Sample volume (cm^3)" in keys:volume_key="Sample volume (cm^3)"
             if "Sample volume (cc)" in keys:volume_key="Sample volume (cc)"
             if "Sample volume (cm&sup3;)" in keys:volume_key="Sample volume (cm&sup3;)"
-            for line in input[1:]:
+            for line in data[1:]:
                 InRec={}
                 for k in range(len(keys)):InRec[keys[k]]=line.split(',')[k]
                 inst="IODP-SRM"
@@ -123,7 +124,7 @@ def main(command_line=True, **kwargs):
                 MagRec['er_specimen_name']=specimen
                 MagRec['er_sample_name']=specimen
                 MagRec['er_site_name']=specimen
-# set up measurement record - default is NRM 
+# set up measurement record - default is NRM
                 MagRec['magic_software_packages']=version_num
                 MagRec["treatment_temp"]='%8.3e' % (273) # room temp in kelvin
                 MagRec["measurement_temp"]='%8.3e' % (273) # room temp in kelvin
@@ -146,16 +147,16 @@ def main(command_line=True, **kwargs):
                     else:
                         MagRec["treatment_ac_field"]=str(treatment_value)# AF demag in treat mT => T
                 elif offline_treatment_type in list(InRec.keys()) and InRec[offline_treatment_type]!="":
-                    if "Lowrie" in InRec['Comments']:   
+                    if "Lowrie" in InRec['Comments']:
                         MagRec['magic_method_codes'] = 'LP-IRM-3D'
                         treatment_value=float(InRec[offline_demag_key].strip('"'))+273. # convert C => K
-                        MagRec["treatment_temp"]=treatment_value 
+                        MagRec["treatment_temp"]=treatment_value
                         MagRec["treatment_ac_field"]="0"
                         sort_by='treatment_temp'
                     elif 'Isothermal' in InRec[offline_treatment_type]:
                         MagRec['magic_method_codes'] = 'LT-IRM'
                         treatment_value=float(InRec[offline_demag_key].strip('"'))*1e-3 # convert mT => T
-                        MagRec["treatment_dc_field"]=treatment_value 
+                        MagRec["treatment_dc_field"]=treatment_value
                         MagRec["treatment_ac_field"]="0"
                         sort_by='treatment_dc_field'
                 MagRec["measurement_standard"]='u' # assume all data are "good"
@@ -167,7 +168,7 @@ def main(command_line=True, **kwargs):
                 else:
                     MagRec['external_database_ids']=""
                     MagRec['external_database_names']=''
-                MagRec['measurement_description']='sample orientation: '+InRec['Sample orientation'] 
+                MagRec['measurement_description']='sample orientation: '+InRec['Sample orientation']
                 MagRec['measurement_inc']=InRec[inc_key].strip('"')
                 MagRec['measurement_dec']=InRec[dec_key].strip('"')
                 intens= InRec[int_key].strip('"')

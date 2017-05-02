@@ -17,7 +17,7 @@ OPTIONS
     -WD: directory to output files to (default : current directory)
     -F FILE: specify output  measurements file, default is measurements.txt
     -Fsp FILE: specify output specimens.txt file, default is specimens.txt
-    -Fsa FILE: specify output samples.txt file, default is samples.txt 
+    -Fsa FILE: specify output samples.txt file, default is samples.txt
     -Fsi FILE: specify output sites.txt file, default is sites.txt # LORI
     -Flo FILE: specify output locations.txt file, default is locations.txt
     -spc NUM : specify number of characters to designate a  specimen, default = 1
@@ -116,15 +116,15 @@ def convert(**kwargs):
             specimenAngleDec=parsedLine[1]
             specimenAngleInc=parsedLine[2]
             while parsedLine[0] != 'MEAN' :
-                line=data.readline() 
+                line=data.readline()
                 parsedLine=line.split()
                 if len(parsedLine) == 0:
                     parsedLine=["Hello"]
             Mx=parsedLine[1]
             My=parsedLine[2]
             Mz=parsedLine[3]
-            line=data.readline() 
-            line=data.readline() 
+            line=data.readline()
+            line=data.readline()
             parsedLine=line.split()
             splitExp = parsedLine[2].split('A')
             intensityVolStr=parsedLine[1] + splitExp[0]
@@ -136,12 +136,12 @@ def convert(**kwargs):
                 precisionStr=parsedLine[5][0:-1]
             else:
                 precisionStr=parsedLine[4][0:-1]
-                
+
             precisionPer = float(precisionStr)
             precision=intensityVol*precisionPer/100
 
             while parsedLine[0] != 'SPEC.' :
-                line=data.readline() 
+                line=data.readline()
                 parsedLine=line.split()
                 if len(parsedLine) == 0:
                     parsedLine=["Hello"]
@@ -211,7 +211,7 @@ def convert(**kwargs):
             MeasRec["meas_temp"]='%8.3e' % (273) # room temp in kelvin
             MeasRec["quality"]='g'
             MeasRec["standard"]='u'
-            MeasRec["number"]='1'
+            MeasRec["treat_step_num"]='1'
             MeasRec["treat_ac_field"]='0'
             if demagLevel == 'NRM':
                 meas_type="LT-NO"

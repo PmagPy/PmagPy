@@ -16,7 +16,7 @@ OPTIONS
     -WD: directory to output files to (default : current directory)
     -F FILE: specify output  measurements file, default is measurements.txt
     -Fsp FILE: specify output specimens.txt file, default is specimens.txt
-    -Fsa FILE: specify output samples.txt file, default is samples.txt 
+    -Fsa FILE: specify output samples.txt file, default is samples.txt
     -Fsi FILE: specify output sites.txt file, default is sites.txt
     -Flo FILE: specify output locations.txt file, default is locations.txt
     -lat LAT: latitude of site (also used as bounding latitude for location)
@@ -140,7 +140,7 @@ def convert(**kwargs):
         MeasRec["meas_temp"]='%8.3e' % (273) # room temp in kelvin
         MeasRec["quality"]='g'
         MeasRec["standard"]='u'
-        MeasRec["number"]='1'
+        MeasRec["treat_step_num"]='1'
         MeasRec["treat_ac_field"]='0'
 
         x = float(line[4])

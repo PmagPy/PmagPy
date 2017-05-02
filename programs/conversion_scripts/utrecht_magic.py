@@ -16,7 +16,7 @@ OPTIONS
     -WD: directory to output files to (default : current directory)
     -F FILE: specify output  measurements file, default is measurements.txt
     -Fsp FILE: specify output specimens.txt file, default is specimens.txt
-    -Fsa FILE: specify output samples.txt file, default is samples.txt 
+    -Fsa FILE: specify output samples.txt file, default is samples.txt
     -Fsi FILE: specify output sites.txt file, default is sites.txt
     -Flo FILE: specify output locations.txt file, default is locations.txt
     -ncn: Site Naming Convention
@@ -230,14 +230,14 @@ def convert(**kwargs):
             MeasRec["timestamp"]=timestamp
             MeasRec["analysts"] = operator
             MeasRec["instrument_codes"] = "Utrecht_" + machine
-            MeasRec["description"] = "free string = " + free_string 
+            MeasRec["description"] = "free string = " + free_string
             MeasRec["citations"] = "This study"
             MeasRec['software_packages'] = version_num
             MeasRec["meas_temp"] = '%8.3e' % (273) # room temp in kelvin
             MeasRec["quality"] = 'g'
             MeasRec["standard"] = 'u'
             MeasRec["experiments"] = location + site + spec_name
-            MeasRec["number"] = location + site + spec_name + items[0]
+            MeasRec["treat_step_num"] = location + site + spec_name + items[0]
             MeasRec["specimen"] = spec_name
             # MeasRec["treat_ac_field"] = '0'
             if AF_or_T.lower() == "th":
@@ -270,7 +270,7 @@ def convert(**kwargs):
             if volume!=0: MeasRec["magn_volume"] = magn_volume
             MeasRec["dir_dec"] = measurement_dec
             MeasRec["dir_inc"] = measurement_inc
-            MeasRec['dir_csd'] = error 
+            MeasRec['dir_csd'] = error
             MeasRec['meas_n_orient'] = meas_n_orient
 #            print(MeasRec)
             MeasRecs.append(MeasRec)

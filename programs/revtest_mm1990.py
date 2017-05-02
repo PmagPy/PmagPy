@@ -23,7 +23,7 @@ def main():
 
     INPUT FORMAT
        takes dec/inc as first two columns in two space delimited files (one file for normal directions, one file for reversed directions).
-   
+
     SYNTAX
        revtest_MM1990.py [command line options]
 
@@ -52,25 +52,25 @@ def main():
     f1=open(file1,'r')
     for line in f1.readlines():
         rec=line.split()
-        Dec,Inc=float(rec[0]),float(rec[1]) 
+        Dec,Inc=float(rec[0]),float(rec[1])
         D1.append([Dec,Inc,1.])
     f1.close()
     if '-f2' in sys.argv:
         ind=sys.argv.index('-f2')
         file2=sys.argv[ind+1]
-    	f2=open(file2,'r')
-    	print("be patient, your computer is doing 5000 simulations...") 
-    for line in f2.readlines():
-        rec=line.split()
-        Dec,Inc=float(rec[0]),float(rec[1]) 
-        D2.append([Dec,Inc,1.])
-    	f2.close() 
-#take the antipode for the directions in file 2    	      
+        f2=open(file2,'r')
+        print("be patient, your computer is doing 5000 simulations...")
+        for line in f2.readlines():
+            rec=line.split()
+            Dec,Inc=float(rec[0]),float(rec[1])
+            D2.append([Dec,Inc,1.])
+        f2.close()
+    #take the antipode for the directions in file 2
     D2_flip=[]
     for rec in D2:
         d,i=(rec[0]-180.)%360.,-rec[1]
         D2_flip.append([d,i,1.])
-    
+
     pars_1=pmag.fisher_mean(D1)
     pars_2=pmag.fisher_mean(D2_flip)
 
@@ -84,15 +84,15 @@ def main():
     V=2*(Sw-Rw)
 #
 #keep weighted sum for later when determining the "critical angle" let's save it as Sr (notation of McFadden and McElhinny, 1990)
-#    
+#
     Sr=Sw
-#    
+#
 # do monte carlo simulation of datasets with same kappas, but common mean
-# 
+#
     counter,NumSims=0,5000
     Vp=[] # set of Vs from simulations
-    for k in range(NumSims): 
-#       
+    for k in range(NumSims):
+#
 # get a set of N1 fisher distributed vectors with k1, calculate fisher stats
 #
         Dirp=[]
@@ -133,11 +133,11 @@ def main():
     D2_mean=(pars_2['dec'],pars_2['inc'])
     angle=pmag.angle(D1_mean,D2_mean)
 #
-# print the results of the test 
+# print the results of the test
 #
-    print("") 
+    print("")
     print("Results of Watson V test: ")
-    print("") 
+    print("")
     print("Watson's V:           " '%.1f' %(V))
     print("Critical value of V:  " '%.1f' %(Vcrit))
 
@@ -145,12 +145,12 @@ def main():
         print('"Pass": Since V is less than Vcrit, the null hypothesis that the two populations are drawn from distributions that share a common mean direction (antipodal to one another) cannot be rejected.')
     elif V>Vcrit:
         print('"Fail": Since V is greater than Vcrit, the two means can be distinguished at the 95% confidence level.')
-    print("")    
+    print("")
     print("M&M1990 classification:")
-    print("") 
+    print("")
     print("Angle between data set means: " '%.1f'%(angle))
     print("Critical angle of M&M1990:   " '%.1f'%(critical_angle))
-    
+
     if V>Vcrit:
         print("")
     elif V<Vcrit:

@@ -25,7 +25,7 @@ def main():
         -Fr RFILE: specify rmag_results output file
         -Fs SFILE: specify er_specimens output file with location, sample, site, etc. information
         -usr USER: specify who made the measurements
-        -loc LOC: specify location name for study 
+        -loc LOC: specify location name for study
         -ins INST: specify instrument used
         -spc SPEC: specify number of characters to specify specimen from sample
         -ncn NCON:  specify naming convention: default is #2 below
@@ -53,7 +53,7 @@ def main():
             [7-Z] [XXXX]YYY:  XXXX is site designation with Z characters with sample name XXXXYYYY
             NB: all others you will have to customize your self
                  or e-mail ltauxe@ucsd.edu for help.
- 
+
 
     """
     citation='This study'
@@ -66,14 +66,14 @@ def main():
     dir_path='.'
     if '-WD' in sys.argv:
         ind=sys.argv.index('-WD')
-        dir_path=sys.argv[ind+1] 
+        dir_path=sys.argv[ind+1]
     aoutput,routput,moutput=dir_path+'/rmag_anisotropy.txt',dir_path+'/rmag_results.txt',dir_path+'/magic_measurements.txt'
     if '-h' in sys.argv:
         print(main.__doc__)
         sys.exit()
     if '-usr' in sys.argv:
         ind=sys.argv.index('-usr')
-        user=sys.argv[ind+1] 
+        user=sys.argv[ind+1]
     if "-ncn" in sys.argv:
         ind=sys.argv.index("-ncn")
         samp_con=sys.argv[ind+1]
@@ -94,27 +94,27 @@ def main():
     if '-k15' in sys.argv:spin=0
     if '-f' in sys.argv:
         ind=sys.argv.index('-f')
-        ascfile=dir_path+'/'+sys.argv[ind+1] 
+        ascfile=dir_path+'/'+sys.argv[ind+1]
     if '-F' in sys.argv:
         ind=sys.argv.index('-F')
-        moutput=dir_path+'/'+sys.argv[ind+1] 
+        moutput=dir_path+'/'+sys.argv[ind+1]
     if '-Fa' in sys.argv:
         ind=sys.argv.index('-Fa')
-        aoutput=dir_path+'/'+sys.argv[ind+1] 
+        aoutput=dir_path+'/'+sys.argv[ind+1]
     if '-Fr' in sys.argv:
         ind=sys.argv.index('-Fr')
-        routput=dir_path+'/'+sys.argv[ind+1] 
+        routput=dir_path+'/'+sys.argv[ind+1]
     if '-Fs' in sys.argv:
         ind=sys.argv.index('-Fs')
-        specfile=dir_path+'/'+sys.argv[ind+1] 
+        specfile=dir_path+'/'+sys.argv[ind+1]
         isspec='1'
     elif '-loc' in sys.argv:
         ind=sys.argv.index('-loc')
-        locname=sys.argv[ind+1] 
+        locname=sys.argv[ind+1]
     if '-spc' in sys.argv:
         ind=sys.argv.index('-spc')
         specnum=-(int(sys.argv[ind+1]))
-    if isspec=="1": 
+    if isspec=="1":
         specs,file_type=pmag.magic_read(specfile)
     specnames,sampnames,sitenames=[],[],[]
     if '-new' not in sys.argv: # see if there are already specimen,sample, site files lying around
@@ -159,48 +159,48 @@ def main():
                         break
             elif isspec=="0":
                 AniRec['er_sample_name']=specname[:specnum]
-		SpecRec['er_specimen_name']=specname
-		SpecRec['er_sample_name']=specname[:specnum]
-		SampRec['er_sample_name']=specname[:specnum]
-		SiteRec['er_sample_name']=specname[:specnum]
-		SiteRec['site_description']='s'
-                AniRec['er_site_name']=pmag.parse_site(AniRec['er_sample_name'],samp_con,Z)
-                SpecRec['er_site_name']=pmag.parse_site(AniRec['er_sample_name'],samp_con,Z)
-                SampRec['er_site_name']=pmag.parse_site(AniRec['er_sample_name'],samp_con,Z)
-                SiteRec['er_site_name']=pmag.parse_site(AniRec['er_sample_name'],samp_con,Z)
-                AniRec['er_location_name']=locname
-                SpecRec['er_location_name']=locname
-                SampRec['er_location_name']=locname
-                SiteRec['er_location_name']=locname
-                AniRec['er_citation_names']="This study"
-                SpecRec['er_citation_names']="This study"
-                SampRec['er_citation_names']="This study"
-                SiteRec['er_citation_names']="This study"
-            AniRec['er_citation_names']="This study"
-            AniRec['magic_instrument_codes']=inst
-            AniRec['magic_method_codes']="LP-X:AE-H:LP-AN-MS"
-            AniRec['magic_experiment_names']=specname+":"+"LP-AN-MS"
-            AniRec['er_analyst_mail_names']=user
-            for key in list(AniRec.keys()):MeasRec[key]=AniRec[key]
-            MeasRec['measurement_flag']='g'
-            AniRec['anisotropy_flag']='g'
-            MeasRec['measurement_standard']='u'
-            MeasRec['measurement_description']='Bulk sucsecptibility measurement'
-            AniRec['anisotropy_type']="AMS"
-            AniRec['anisotropy_unit']="Normalized by trace"
-            AniRec['anisotropy_unit']='SI'
-            if spin==1:
-                AniRec['anisotropy_n']="192"
-            else:
-                AniRec['anisotropy_n']="15"
-        if 'Azi' in words and isspec=='0': 
+        SpecRec['er_specimen_name']=specname
+        SpecRec['er_sample_name']=specname[:specnum]
+        SampRec['er_sample_name']=specname[:specnum]
+        SiteRec['er_sample_name']=specname[:specnum]
+        SiteRec['site_description']='s'
+        AniRec['er_site_name']=pmag.parse_site(AniRec['er_sample_name'],samp_con,Z)
+        SpecRec['er_site_name']=pmag.parse_site(AniRec['er_sample_name'],samp_con,Z)
+        SampRec['er_site_name']=pmag.parse_site(AniRec['er_sample_name'],samp_con,Z)
+        SiteRec['er_site_name']=pmag.parse_site(AniRec['er_sample_name'],samp_con,Z)
+        AniRec['er_location_name']=locname
+        SpecRec['er_location_name']=locname
+        SampRec['er_location_name']=locname
+        SiteRec['er_location_name']=locname
+        AniRec['er_citation_names']="This study"
+        SpecRec['er_citation_names']="This study"
+        SampRec['er_citation_names']="This study"
+        SiteRec['er_citation_names']="This study"
+        AniRec['er_citation_names']="This study"
+        AniRec['magic_instrument_codes']=inst
+        AniRec['magic_method_codes']="LP-X:AE-H:LP-AN-MS"
+        AniRec['magic_experiment_names']=specname+":"+"LP-AN-MS"
+        AniRec['er_analyst_mail_names']=user
+        for key in list(AniRec.keys()):MeasRec[key]=AniRec[key]
+        MeasRec['measurement_flag']='g'
+        AniRec['anisotropy_flag']='g'
+        MeasRec['measurement_standard']='u'
+        MeasRec['measurement_description']='Bulk sucsecptibility measurement'
+        AniRec['anisotropy_type']="AMS"
+        AniRec['anisotropy_unit']="Normalized by trace"
+        AniRec['anisotropy_unit']='SI'
+        if spin==1:
+            AniRec['anisotropy_n']="192"
+        else:
+            AniRec['anisotropy_n']="15"
+        if 'Azi' in words and isspec=='0':
             SampRec['sample_azimuth']=words[1]
             labaz=float(words[1])
         if 'Dip' in words:
             SampRec['sample_dip']='%7.1f'%(-float(words[1]))
             SpecRec['specimen_vol']='%8.3e'%(float(words[10])*1e-6) # convert actual volume to m^3 from cm^3
             labdip=float(words[1])-90.
-        if 'T1' in words and 'F1' in words: 
+        if 'T1' in words and 'F1' in words:
             k+=2 # read in fourth line down
             line=Data[k]
             rec=line.split()
@@ -223,17 +223,17 @@ def main():
             line=Data[k+2]
             rec=line.split()
             AniRec['anisotropy_s1']='%7.4f'%(old_div(float(rec[1]),3.)) # eigenvalues sum to unity - not 3
-            AniRec['anisotropy_s2']='%7.4f'%(old_div(float(rec[2]),3.)) 
+            AniRec['anisotropy_s2']='%7.4f'%(old_div(float(rec[2]),3.))
             AniRec['anisotropy_s3']='%7.4f'%(old_div(float(rec[3]),3.))
             k+=2
             line=Data[k]
             rec=line.split()
             AniRec['anisotropy_s4']='%7.4f'%(old_div(float(rec[0]),3.)) # eigenvalues sum to unity - not 3
-            AniRec['anisotropy_s5']='%7.4f'%(old_div(float(rec[1]),3.)) 
+            AniRec['anisotropy_s5']='%7.4f'%(old_div(float(rec[1]),3.))
             AniRec['anisotropy_s6']='%7.4f'%(old_div(float(rec[2]),3.))
             AniRec['anisotropy_tilt_correction']='-1'
-            AniRecs.append(AniRec) 
-            MeasRecs.append(MeasRec) 
+            AniRecs.append(AniRec)
+            MeasRecs.append(MeasRec)
             if SpecRec['er_specimen_name'] not in specnames:
                 SpecRecs.append(SpecRec)
                 specnames.append(SpecRec['er_specimen_name'])
@@ -259,7 +259,7 @@ def main():
         pmag.magic_write(output,SiteRecs,'er_sites')
         print("site info put in ",output)
     print(""""
-         You can now import your data into Pmag GUI and complete data entry, 
+         You can now import your data into Pmag GUI and complete data entry,
          for example the site locations, lithologies, etc. plotting can be done with aniso_magic.py
     """)
 

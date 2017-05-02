@@ -10,7 +10,7 @@ def main(command_line=True, **kwargs):
     """
     NAME
         iodp_srm_magic.py
- 
+
     DESCRIPTION
         converts IODP LIMS and LORE SRM archive half sample format files to magic_measurements format files
 
@@ -27,9 +27,9 @@ def main(command_line=True, **kwargs):
         -Fsi FILE: specify output er_sites.txt file, default is er_sites.txt
         -A : don't average replicate measurements
     INPUTS
- 	 IODP .csv file format exported from LIMS database
+     IODP .csv file format exported from LIMS database
     """
-    #        
+    #
     # initialize defaults
     version_num=pmag.get_version()
     meas_file='magic_measurements.txt'
@@ -61,7 +61,7 @@ def main(command_line=True, **kwargs):
         if "-A" in args: noave=1
         if '-f' in args:
             ind=args.index("-f")
-            csv_file=args[ind+1] 
+            csv_file=args[ind+1]
         if '-F' in args:
             ind=args.index("-F")
             meas_file=args[ind+1]
@@ -100,7 +100,7 @@ def main(command_line=True, **kwargs):
         csv_file = os.path.join(input_dir_path, csv_file)
         filelist=[csv_file]
 
-    
+
     # parsing the data
     specimens,samples,sites=[],[],[]
     MagRecs,SpecRecs,SampRecs,SiteRecs=[],[],[],[]
@@ -114,16 +114,17 @@ def main(command_line=True, **kwargs):
             file_found = True
             print('processing: ',f)
             full_file = os.path.join(input_dir_path, f)
-            file_input=open(full_file,'r').readlines()
+            with open(full_file, 'r') as fin:
+                file_input = fin.readlines()
             keys=file_input[0].replace('\n','').split(',') # splits on underscores
             if "Interval Top (cm) on SHLF" in keys:interval_key="Interval Top (cm) on SHLF"
             if " Interval Bot (cm) on SECT" in keys:interval_key=" Interval Bot (cm) on SECT"
             if "Offset (cm)" in keys: interval_key="Offset (cm)"
             if "Top Depth (m)" in keys:depth_key="Top Depth (m)"
-            if "CSF-A Top (m)" in keys:depth_key="CSF-A Top (m)" 
+            if "CSF-A Top (m)" in keys:depth_key="CSF-A Top (m)"
             if "Depth CSF-A (m)" in keys:depth_key="Depth CSF-A (m)"
-            if "CSF-B Top (m)" in keys: 
-                comp_depth_key="CSF-B Top (m)" # use this model if available 
+            if "CSF-B Top (m)" in keys:
+                comp_depth_key="CSF-B Top (m)" # use this model if available
             elif "Depth CSF-B (m)" in keys:
                 comp_depth_key="Depth CSF-B (m)"
             else:
@@ -143,7 +144,7 @@ def main(command_line=True, **kwargs):
             if "Intensity background &amp; tray corrected (A/m)" in keys:int_key="Intensity background &amp; tray corrected (A/m)"
             if "Core Type" in keys:
                 core_type="Core Type"
-            else: core_type="Type" 
+            else: core_type="Type"
             if 'Run Number' in keys: run_number_key='Run Number'
             if 'Test No.' in keys: run_number_key='Test No.'
             if 'Test Changed On' in keys: date_key='Test Changed On'
@@ -159,7 +160,7 @@ def main(command_line=True, **kwargs):
               test=0
               recs=line.split(',')
               for k in range(len(keys)):
-                  if len(recs)==len(keys): 
+                  if len(recs)==len(keys):
                       InRec[keys[k]]=line.split(',')[k]
               if InRec['Exp']!="": test=1 # get rid of pesky blank lines
               if test==1:
@@ -187,7 +188,7 @@ def main(command_line=True, **kwargs):
                 SampRec['sample_core_depth']=InRec[depth_key]
                 if comp_depth_key!='':
                     SampRec['sample_composite_depth']=InRec[comp_depth_key]
-                if "SHLF" not in InRec[text_id]: 
+                if "SHLF" not in InRec[text_id]:
                     SampRec['magic_method_codes']='FS-C-DRILL-IODP:SP-SS-C:SO-V'
                 else:
                     SampRec['magic_method_codes']='FS-C-DRILL-IODP:SO-V'
@@ -198,7 +199,7 @@ def main(command_line=True, **kwargs):
                 SiteRec['er_specimen_names']=specimen
 
                 for key in list(SpecRec.keys()):MagRec[key]=SpecRec[key]
-# set up measurement record - default is NRM 
+# set up measurement record - default is NRM
                 #MagRec['er_analyst_mail_names']=InRec['Test Entered By']
                 MagRec['magic_software_packages']=version_num
                 MagRec["treatment_temp"]='%8.3e' % (273) # room temp in kelvin
@@ -239,7 +240,7 @@ def main(command_line=True, **kwargs):
                         MagRec['magic_method_codes'] = 'LT-T-Z'
                         inst=inst+':IODP-TDS' # measured on shipboard Schonstedt thermal demagnetizer
                         treatment_value=float(InRec['Treatment Value'])+273 # convert C => K
-                        MagRec["treatment_temp"]='%8.3e'%(treatment_value) # 
+                        MagRec["treatment_temp"]='%8.3e'%(treatment_value) #
                 MagRec["measurement_standard"]='u' # assume all data are "good"
                 vol=float(volume)*1e-6 # convert from cc to m^3
                 if run_number!="":

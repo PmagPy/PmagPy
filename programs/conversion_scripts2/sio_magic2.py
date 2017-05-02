@@ -9,7 +9,7 @@ def main(command_line=True, **kwargs):
     """
     NAME
         sio_magic.py
- 
+
     DESCRIPTION
         converts SIO .mag format files to magic_measurements format files
 
@@ -65,17 +65,17 @@ def main(command_line=True, **kwargs):
             [7-Z] [XXXX]YYY:  XXXX is site designation with Z characters with sample name XXXXYYYY
             NB: all others you will have to customize your self
                  or e-mail ltauxe@ucsd.edu for help.
- 
+
             [8] synthetic - has no site name
-            [9] ODP naming convention 
+            [9] ODP naming convention
     INPUT
-        Best to put separate experiments (all AF, thermal, thellier, trm aquisition, Shaw, etc.) in 
+        Best to put separate experiments (all AF, thermal, thellier, trm aquisition, Shaw, etc.) in
            seperate .mag files (eg. af.mag, thermal.mag, etc.)
 
-        Format of SIO .mag files:   
+        Format of SIO .mag files:
         Spec Treat CSD Intensity Declination Inclination [optional metadata string]
-        
-        
+
+
         Spec: specimen name
         Treat:  treatment step
             XXX T in Centigrade
@@ -90,7 +90,7 @@ def main(command_line=True, **kwargs):
               AARM:
                 X.00  baseline step (AF in zero bias field - high peak field)
                 X.1   ARM step (in field step)  where
-                   X is the step number in the 15 position scheme 
+                   X is the step number in the 15 position scheme
                       (see Appendix to Lecture 13 - http://magician.ucsd.edu/Essentials_2)
               ATRM:
                 X.00 optional baseline
@@ -106,21 +106,21 @@ def main(command_line=True, **kwargs):
                 XXX.YYY  XXX is temperature step of total TRM
                          YYY is dc field in microtesla
 
-         
+
          Intensity assumed to be total moment in 10^3 Am^2 (emu)
          Declination:  Declination in specimen coordinate system
          Inclination:  Declination in specimen coordinate system
 
          Optional metatdata string:  mm/dd/yy;hh:mm;[dC,mT];xx.xx;UNITS;USER;INST;NMEAS
-             hh in 24 hours.  
+             hh in 24 hours.
              dC or mT units of treatment XXX (see Treat above) for thermal or AF respectively
              xx.xxx   DC field
              UNITS of DC field (microT, mT)
-             INST:  instrument code, number of axes, number of positions (e.g., G34 is 2G, three axes, 
+             INST:  instrument code, number of axes, number of positions (e.g., G34 is 2G, three axes,
                     measured in four positions)
              NMEAS: number of measurements in a single position (1,3,200...)
-       
-     
+
+
     """
     # initialize some stuff
     mag_file = None
@@ -153,31 +153,31 @@ def main(command_line=True, **kwargs):
 #
     meas_file="magic_measurements.txt"
     user=""
-    if not command_line: 
+    if not command_line:
         user = kwargs.get('user', '')
         meas_file = kwargs.get('meas_file', '')
         syn_file = kwargs.get('syn_file', '')
         mag_file = kwargs.get('mag_file', '')
         labfield = kwargs.get('labfield', '')
-        if labfield: 
+        if labfield:
             labfield = float(labfield) *1e-6
         else:
             labfield = 0
         phi = kwargs.get('phi', 0)
-        if phi: 
+        if phi:
             phi = float(phi)
-        else: 
+        else:
             phi = 0
         theta = kwargs.get('theta', 0)
-        if theta: 
+        if theta:
             theta=float(theta)
-        else: 
+        else:
             theta = 0
         peakfield = kwargs.get('peakfield', 0)
-        if peakfield: 
+        if peakfield:
             peakfield=float(peakfield) *1e-3
         else:
-            peakfield = 0 
+            peakfield = 0
         specnum = kwargs.get('specnum', 0)
         samp_con = kwargs.get('samp_con', '1')
         er_location_name = kwargs.get('er_location_name', '')
@@ -260,11 +260,12 @@ def main(command_line=True, **kwargs):
             return False, '{} is not a valid coil specification'.format(coil)
     if mag_file:
         try:
-            input=open(mag_file,'r')
+            with open(mag_file,'r') as finput:
+                lines = finput.readlines()
         except:
             print("bad mag file name")
             return False, "bad mag file name"
-    if not mag_file: 
+    if not mag_file:
         print(main.__doc__)
         print("mag_file field is required option")
         return False, "mag_file field is required option"
@@ -288,10 +289,10 @@ def main(command_line=True, **kwargs):
                 Z=samp_con.split("-")[1]
                 samp_con="7"
 
-    if codelist: 
+    if codelist:
         codes=codelist.split(':')
         if "AF" in codes:
-            demag='AF' 
+            demag='AF'
             if'-dc' not in args: methcode="LT-AF-Z"
             if'-dc' in args: methcode="LT-AF-I"
         if "T" in codes:
@@ -303,26 +304,26 @@ def main(command_line=True, **kwargs):
             irmunits="mT"
         if "I3d" in codes:
             methcode="LT-T-Z:LP-IRM-3D"
-        if "S" in codes: 
+        if "S" in codes:
             demag="S"
             methcode="LP-PI-TRM:LP-PI-ALT-AFARM"
             trm_labfield=labfield
             ans=input("DC lab field for ARM step: [50uT] ")
             if ans=="":
                 arm_labfield=50e-6
-            else: 
+            else:
                 arm_labfield=float(ans)*1e-6
             ans=input("temperature for total trm step: [600 C] ")
             if ans=="":
                 trm_peakT=600+273 # convert to kelvin
-            else: 
+            else:
                 trm_peakT=float(ans)+273 # convert to kelvin
         if "G" in codes: methcode="LT-AF-G"
         if "D" in codes: methcode="LT-AF-D"
-        if "TRM" in codes: 
+        if "TRM" in codes:
             demag="T"
             trm=1
-        if "CR" in     codes: 
+        if "CR" in     codes:
             demag="T"
             cooling_rate_experiment=1
             if command_line:
@@ -347,7 +348,7 @@ def main(command_line=True, **kwargs):
 
     if 1:
     #if infile_type=="SIO format":
-        for line in input.readlines():
+        for line in lines:
             instcode=""
             if len(line)>2:
                 SynRec={}
@@ -453,10 +454,10 @@ def main(command_line=True, **kwargs):
                     else:
                         MagRec["measurement_positions"]=code1[7]   # takes care of awkward format with bubba and flo being different
                     if user=="":user=code1[5]
-                    if code1[2][-1]=='C': 
+                    if code1[2][-1]=='C':
                         demag="T"
                         if code1[4]=='microT' and float(code1[3])!=0. and "LP-AN-ARM" not in methcode: labfield=float(code1[3])*1e-6
-                    if code1[2]=='mT' and methcode!="LP-IRM": 
+                    if code1[2]=='mT' and methcode!="LP-IRM":
                         demag="AF"
                         if code1[4]=='microT' and float(code1[3])!=0.: labfield=float(code1[3])*1e-6
                     if code1[4]=='microT' and labfield!=0. and meas_type!="LT-IRM":
@@ -483,7 +484,7 @@ def main(command_line=True, **kwargs):
                         if len(samp)>0:
                             MagRec["er_location_name"]=samp[0]["er_location_name"]
                             MagRec["er_site_name"]=samp[0]["er_site_name"]
-                        else: 
+                        else:
                             MagRec['er_location_name']=''
                             MagRec["er_site_name"]=''
                     elif int(samp_con)!=6:
@@ -492,7 +493,7 @@ def main(command_line=True, **kwargs):
                     if MagRec['er_site_name']=="":
                         print('No site name found for: ',MagRec['er_specimen_name'],MagRec['er_sample_name'])
                     if MagRec["er_location_name"]=="":
-                        print('no location name for: ',MagRec["er_specimen_name"]) 
+                        print('no location name for: ',MagRec["er_specimen_name"])
                 else:
                     MagRec["er_specimen_name"]=rec[0]
                     if specnum!=0:
@@ -509,7 +510,7 @@ def main(command_line=True, **kwargs):
                     SynRec["synthetic_type"]=syntype
                     SynRecs.append(SynRec)
                 if float(rec[1])==0:
-                    pass 
+                    pass
                 elif demag=="AF":
                     if methcode != "LP-AN-ARM":
                         MagRec["treatment_ac_field"]='%8.3e' %(float(rec[1])*1e-3) # peak field in tesla
@@ -559,10 +560,10 @@ def main(command_line=True, **kwargs):
                         ipos=ipos_guess
                         MagRec["treatment_dc_field_phi"]='%7.1f' %(tdec[ipos])
                         MagRec["treatment_dc_field_theta"]='%7.1f'% (tinc[ipos])
-                        # check it 
+                        # check it
                         if ipos_guess!=ipos_code and treat[1][0]!='7':
                             print("-E- ERROR: check specimen %s step %s, ATRM measurements, coding does not match the direction of the lab field!"%(rec[0],".".join(list(treat))))
-                        
+
 
                 elif demag=="S": # Shaw experiment
                     if treat[1][1]=='0':
@@ -627,7 +628,7 @@ def main(command_line=True, **kwargs):
                                 meas_type="LT-T-I:LP-CR-TRM"
                         MagRec["treatment_dc_field_phi"]='%7.1f' % (phi) # labfield phi
                         MagRec["treatment_dc_field_theta"]='%7.1f' % (theta) # labfield theta
-                        
+
                         indx=int(treat[1][0])-1
                         # alteration check matjed as 0.7 in the measurement file
                         if indx==6:
@@ -637,13 +638,13 @@ def main(command_line=True, **kwargs):
                         MagRec["measurement_description"]="cooling_rate"+":"+cooling_time+":"+"K/min"
 
 
-                elif demag!='N':  
+                elif demag!='N':
                   if len(treat)==1:treat.append('0')
                   MagRec["treatment_temp"]='%8.3e' % (float(treat[0])+273.) # temp in kelvin
                   if trm==0:  # demag=T and not trmaq
                     if treat[1][0]=='0':
                         meas_type="LT-T-Z"
-                    else: 
+                    else:
                         MagRec["treatment_dc_field"]='%8.3e' % (labfield) # labfield in tesla (convert from microT)
                         MagRec["treatment_dc_field_phi"]='%7.1f' % (phi) # labfield phi
                         MagRec["treatment_dc_field_theta"]='%7.1f' % (theta) # labfield theta
@@ -654,14 +655,14 @@ def main(command_line=True, **kwargs):
                         if treat[1][0]=='3':
                             MagRec["treatment_dc_field"]='0'  # this is a zero field step
                             meas_type="LT-PTRM-MD" # pTRM tail check
-                  else: 
+                  else:
                     labfield=float(treat[1])*1e-6
                     MagRec["treatment_dc_field"]='%8.3e' % (labfield) # labfield in tesla (convert from microT)
                     MagRec["treatment_dc_field_phi"]='%7.1f' % (phi) # labfield phi
                     MagRec["treatment_dc_field_theta"]='%7.1f' % (theta) # labfield theta
                     meas_type="LT-T-I:LP-TRM" # trm acquisition experiment
 
-                            
+
 
                 MagRec["measurement_csd"]=rec[2]
                 MagRec["measurement_magn_moment"]='%10.3e'% (float(rec[3])*1e-3) # moment in Am^2 (from emu)
@@ -681,7 +682,7 @@ def main(command_line=True, **kwargs):
                     MagRec["measurement_standard"]='u'
                 MagRec["measurement_number"]='1'
                 #print MagRec['treatment_temp']
-                MagRecs.append(MagRec) 
+                MagRecs.append(MagRec)
     MagOuts=pmag.measurements_methods(MagRecs,noave)
     pmag.magic_write(meas_file,MagOuts,'magic_measurements')
     print("results put in ",meas_file)

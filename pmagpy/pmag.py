@@ -1406,48 +1406,46 @@ def magic_read(infile, data=None, return_keys=False):
     """
     hold,magic_data,magic_record,magic_keys=[],[],{},[]
     if data: #
-        f = data
+        lines = list(data)
     else:
         try:
-            f=open(infile,"r")
+            with open(infile, "r") as f:
+                lines = list(f.readlines())
         except Exception as ex:
             if return_keys:
                 return [], 'bad_file', []
             return [],'bad_file'
 
-    d = f.readline()[:-1].strip('\n')
-    if not d:
-        f.close()
+    d_line = lines[0][:-1].strip('\n')
+    if not d_line:
         if return_keys:
             return [], 'empty_file', []
         return [], 'empty_file'
-    if d[0]=="s" or d[1]=="s":
+    if d_line[0]=="s" or d_line[1]=="s":
         delim='space'
-    elif d[0]=="t" or d[1]=="t":
+    elif d_line[0]=="t" or d_line[1]=="t":
         delim='tab'
     else:
-        f.close()
         print('error reading ', infile)
         if return_keys:
             return [], 'bad_file', []
         return [], 'bad_file'
     if delim=='space':
-        file_type=d.split()[1]
+        file_type=d_line.split()[1]
     if delim=='tab':
-        file_type=d.split('\t')[1]
+        file_type=d_line.split('\t')[1]
     if file_type=='delimited':
         if delim=='space':
-            file_type=d.split()[2]
+            file_type=d_line.split()[2]
         if delim=='tab':
-            file_type=d.split('\t')[2]
+            file_type=d_line.split('\t')[2]
     if delim=='space':
-        line =f.readline()[:-1].split()
+        line = lines[1][:-1].split()
     if delim=='tab':
-        line =f.readline()[:-1].split('\t')
+        line =lines[1][:-1].split('\t')
     for key in line:
         magic_keys.append(key)
-    lines=f.readlines()
-    f.close()
+    lines = lines[2:]
     if len(lines) < 1:
         if return_keys:
             return [], 'empty_file', []
@@ -7008,7 +7006,7 @@ def measurements_methods3(meas_data,noave):
                     if experiment_name!="":
                         rec["method_codes"]=rec["method_codes"]+":"+experiment_name
                     rec["experiment"]=spec+":"+experiment_name
-                    rec['number']='%i'%(measnum)  # assign measurement numbers
+                    rec['treat_step_num']='%i'%(measnum)  # assign measurement numbers
                     measnum+=1
                     SpecOuts.append(rec)
             elif experiment_name=="LP-PI-TRM:LP-PI-ALT-AFARM": # is a Shaw experiment!
@@ -7038,7 +7036,7 @@ def measurements_methods3(meas_data,noave):
                     if "LT-T-I" in meths:TRM=1
                     rec["method_codes"]=rec["method_codes"]+":"+experiment_name
                     rec["experiment"]=spec+":"+experiment_name
-                    rec['number']='%i'%(measnum)  # assign measurement numbers
+                    rec['treat_step_num']='%i'%(measnum)  # assign measurement numbers
                     measnum+=1
                     SpecOuts.append(rec)
             else:  # not a Thellier-Thellier  or a Shaw experiemnt
@@ -7046,13 +7044,13 @@ def measurements_methods3(meas_data,noave):
                     if experiment_name=="":
                         rec["method_codes"]="LT-NO"
                         rec["experiment"]=spec+":LT-NO"
-                        rec['number']='%i'%(measnum)  # assign measurement numbers
+                        rec['treat_step_num']='%i'%(measnum)  # assign measurement numbers
                         measnum+=1
                     else:
                         if experiment_name not in rec['method_codes']:
                             rec["method_codes"]=rec["method_codes"]+":"+experiment_name
                             rec["method_codes"]=rec["method_codes"].strip(':')
-                        rec['number']='%i'%(measnum)  # assign measurement numbers
+                        rec['treat_step_num']='%i'%(measnum)  # assign measurement numbers
                         measnum+=1
                         rec["experiment"]=spec+":"+experiment_name
                     rec["software_packages"]=version_num

@@ -23,7 +23,7 @@ import dialogs.pmag_widgets as pw
 class ImportAzDipFile(wx.Frame):
 
     title = "Import AzDip format file"
-    
+
     def __init__(self, parent, WD):
         wx.Frame.__init__(self, parent, wx.ID_ANY, self.title, name='azdip_window')
         self.panel = wx.ScrolledWindow(self)
@@ -54,7 +54,8 @@ class ImportAzDipFile(wx.Frame):
         label2 = "no, update existing er_samples file"
         er_samples_file_present = True
         try:
-            open(os.path.join(self.WD, "er_samples.txt"), "r")
+            er_samp_file = open(os.path.join(self.WD, "er_samples.txt"), "r")
+            er_samp_file.close()
         except Exception as ex:
             er_samples_file_present = False
         if er_samples_file_present:
@@ -135,7 +136,7 @@ class ImportAzDipFile(wx.Frame):
 class MoveFileIntoWD(wx.Frame):
 
     title = "Import any file into your working directory"
-    
+
     def __init__(self, parent, WD):
         wx.Frame.__init__(self, parent, wx.ID_ANY, self.title, name='any file')
         self.panel = wx.ScrolledWindow(self)
@@ -157,7 +158,7 @@ class MoveFileIntoWD(wx.Frame):
         vbox = wx.BoxSizer(wx.VERTICAL)
         vbox.Add(bSizer_info, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer0, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
-        vbox.Add(hboxok, flag=wx.ALIGN_CENTER)        
+        vbox.Add(hboxok, flag=wx.ALIGN_CENTER)
         vbox.AddSpacer(20)
 
         hbox_all = wx.BoxSizer(wx.HORIZONTAL)
@@ -184,7 +185,7 @@ class MoveFileIntoWD(wx.Frame):
         infile = os.path.join(WD, os.path.split(full_infile)[1])
         shutil.copyfile(full_infile, os.path.join(WD, infile))
         pw.close_window(self, 'Copy infile to {}'.format(WD), infile)
-        
+
 
     def on_cancelButton(self,event):
         self.Destroy()
@@ -199,7 +200,7 @@ class MoveFileIntoWD(wx.Frame):
 class ImportIODPSampleSummary(wx.Frame):
 
     title = "Import IODP Sample Summary csv file"
-    
+
     def __init__(self, parent, WD):
         wx.Frame.__init__(self, parent, wx.ID_ANY, self.title, name='IODP_samples')
         self.panel = wx.ScrolledWindow(self)
@@ -221,7 +222,7 @@ class ImportIODPSampleSummary(wx.Frame):
         vbox = wx.BoxSizer(wx.VERTICAL)
         vbox.Add(bSizer_info, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer0, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
-        vbox.Add(hboxok, flag=wx.ALIGN_CENTER)        
+        vbox.Add(hboxok, flag=wx.ALIGN_CENTER)
         vbox.AddSpacer(20)
 
         hbox_all = wx.BoxSizer(wx.HORIZONTAL)
@@ -264,7 +265,7 @@ class ImportIODPSampleSummary(wx.Frame):
 class ImportModelLatitude(wx.Frame):
 
     title = "Import Model Latitude data file"
-    
+
     def __init__(self, parent, WD):
         wx.Frame.__init__(self, parent, wx.ID_ANY, self.title)
         self.panel = wx.ScrolledWindow(self)
@@ -285,7 +286,7 @@ class ImportModelLatitude(wx.Frame):
         vbox = wx.BoxSizer(wx.VERTICAL)
         vbox.Add(bSizer_info, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer0, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
-        vbox.Add(hboxok, flag=wx.ALIGN_CENTER)        
+        vbox.Add(hboxok, flag=wx.ALIGN_CENTER)
         vbox.AddSpacer(20)
 
         hbox_all = wx.BoxSizer(wx.HORIZONTAL)
@@ -322,7 +323,7 @@ class ImportModelLatitude(wx.Frame):
 class ImportKly4s(wx.Frame):
 
     title = "kly4s format"
-    
+
     def __init__(self, parent, WD):
         wx.Frame.__init__(self, parent, wx.ID_ANY, self.title, name='kly4s')
         self.panel = wx.ScrolledWindow(self)
@@ -341,7 +342,7 @@ class ImportKly4s(wx.Frame):
         #---sizer 1 ---
         # changed to er_samples only, not azdip
         self.bSizer1 = pw.choose_file(pnl, btn_text='add er_samples file (optional)', method = self.on_add_AZDIP_file_button)
-        
+
         #---sizer 2 ----
         self.bSizer2 = pw.labeled_text_field(pnl)
 
@@ -374,7 +375,7 @@ class ImportKly4s(wx.Frame):
         vbox.Add(self.bSizer3, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer4, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(hbox1, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
-        vbox.Add(hboxok, flag=wx.ALIGN_CENTER)        
+        vbox.Add(hboxok, flag=wx.ALIGN_CENTER)
         vbox.AddSpacer(20)
 
         self.hbox_all = wx.BoxSizer(wx.HORIZONTAL)
@@ -449,7 +450,7 @@ class ImportKly4s(wx.Frame):
 class ImportK15(wx.Frame):
 
     title = "Import K15 format file"
-    
+
     def __init__(self, parent, WD):
         wx.Frame.__init__(self, parent, wx.ID_ANY, self.title)
         self.panel = wx.ScrolledWindow(self)
@@ -490,7 +491,7 @@ class ImportK15(wx.Frame):
         vbox.Add(self.bSizer1, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer2, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(hbox, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
-        vbox.Add(hboxok, flag=wx.ALIGN_CENTER)        
+        vbox.Add(hboxok, flag=wx.ALIGN_CENTER)
         vbox.AddSpacer(20)
 
         hbox_all = wx.BoxSizer(wx.HORIZONTAL)
@@ -545,7 +546,7 @@ class ImportK15(wx.Frame):
 class ImportSufarAscii(wx.Frame):
 
     title = "Import Sufar Ascii format file"
-    
+
     def __init__(self, parent, WD):
         wx.Frame.__init__(self, parent, wx.ID_ANY, self.title, name='Sufar')
         self.panel = wx.ScrolledWindow(self)
@@ -601,7 +602,7 @@ class ImportSufarAscii(wx.Frame):
         #    vbox.Add(self.bSizer4, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         #except AttributeError:
         #    pass
-        vbox.Add(hboxok, flag=wx.ALIGN_CENTER)        
+        vbox.Add(hboxok, flag=wx.ALIGN_CENTER)
         vbox.AddSpacer(20)
 
         hbox_all = wx.BoxSizer(wx.HORIZONTAL)
@@ -674,7 +675,7 @@ class ImportSufarAscii(wx.Frame):
 class ImportAgmFile(wx.Frame):
 
     title = "Import single .agm file"
-    
+
     def __init__(self, parent, WD):
         wx.Frame.__init__(self, parent, wx.ID_ANY, self.title, name='agm_file')
         self.panel = wx.ScrolledWindow(self)
@@ -728,7 +729,7 @@ class ImportAgmFile(wx.Frame):
         vbox.Add(self.bSizer3, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(hbox1, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(hbox2, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
-        vbox.Add(hboxok, flag=wx.ALIGN_CENTER)        
+        vbox.Add(hboxok, flag=wx.ALIGN_CENTER)
         vbox.AddSpacer(20)
 
         hbox_all = wx.BoxSizer(wx.HORIZONTAL)
@@ -792,11 +793,11 @@ class ImportAgmFile(wx.Frame):
     def on_helpButton(self, event):
         pw.on_helpButton(text=ipmag.agm_magic.__doc__)
 
-                         
+
 class ImportAgmFolder(wx.Frame):
 
     title = "Import folder of Micromag agm files"
-    
+
     def __init__(self, parent, WD):
         wx.Frame.__init__(self, parent, wx.ID_ANY, self.title, name='agm_directory')
         self.panel = wx.ScrolledWindow(self)
@@ -850,7 +851,7 @@ class ImportAgmFolder(wx.Frame):
         vbox.Add(self.bSizer3, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(hbox, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer6, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
-        vbox.Add(hboxok, flag=wx.ALIGN_CENTER)        
+        vbox.Add(hboxok, flag=wx.ALIGN_CENTER)
         vbox.AddSpacer(20)
 
         hbox_all = wx.BoxSizer(wx.HORIZONTAL)
@@ -916,7 +917,7 @@ class ImportAgmFolder(wx.Frame):
 class ExportResults(wx.Frame):
 
     title = "Extract results"
-    
+
     def __init__(self, parent, WD):
         wx.Frame.__init__(self, parent, wx.ID_ANY, self.title)
         self.panel = wx.ScrolledWindow(self)
@@ -971,7 +972,7 @@ class ExportResults(wx.Frame):
         vbox.Add(self.bSizer2, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer3, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(hbox, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
-        vbox.Add(hboxok, flag=wx.ALIGN_CENTER)        
+        vbox.Add(hboxok, flag=wx.ALIGN_CENTER)
         vbox.AddSpacer(20)
 
         hbox_all = wx.BoxSizer(wx.HORIZONTAL)
@@ -1043,13 +1044,13 @@ class ExportResults(wx.Frame):
 
 
 
-        
+
 ### Analysis and plots
 
 class CustomizeCriteria(wx.Frame):
 
     title = "Customize Criteria"
-    
+
     def __init__(self, parent, WD):
         wx.Frame.__init__(self, parent, wx.ID_ANY, self.title)
         self.panel = wx.ScrolledWindow(self)
@@ -1080,7 +1081,7 @@ class CustomizeCriteria(wx.Frame):
         #    vbox.Add(self.bSizer4, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         #except AttributeError:
         #    pass
-        vbox.Add(hboxok, flag=wx.ALIGN_CENTER)        
+        vbox.Add(hboxok, flag=wx.ALIGN_CENTER)
         vbox.AddSpacer(20)
 
         hbox_all = wx.BoxSizer(wx.HORIZONTAL)
@@ -1155,7 +1156,7 @@ class CustomizeCriteria(wx.Frame):
         window.SetScrollbars(20, 20, 50, 50)
         frame.Centre()
         frame.Show()
- 
+
 
     def on_edit_okButton(self, event):
         print(self.boxes.return_value())
@@ -1188,9 +1189,9 @@ def add_thellier_gui_criteria(acceptance_criteria):
     '''criteria used only in thellier gui
     these criteria are not written to pmag_criteria.txt
     '''
-    category="thellier_gui"      
+    category="thellier_gui"
     for crit in ['sample_int_n_outlier_check','site_int_n_outlier_check']:
-        acceptance_criteria[crit]={} 
+        acceptance_criteria[crit]={}
         acceptance_criteria[crit]['category']=category
         acceptance_criteria[crit]['criterion_name']=crit
         acceptance_criteria[crit]['value']=-999
@@ -1200,19 +1201,19 @@ def add_thellier_gui_criteria(acceptance_criteria):
     for crit in ['sample_int_interval_uT','sample_int_interval_perc',\
     'site_int_interval_uT','site_int_interval_perc',\
     'sample_int_BS_68_uT','sample_int_BS_95_uT','sample_int_BS_68_perc','sample_int_BS_95_perc','specimen_int_max_slope_diff']:
-        acceptance_criteria[crit]={} 
+        acceptance_criteria[crit]={}
         acceptance_criteria[crit]['category']=category
         acceptance_criteria[crit]['criterion_name']=crit
         acceptance_criteria[crit]['value']=-999
         acceptance_criteria[crit]['threshold_type']="high"
         if crit in ['specimen_int_max_slope_diff']:
             acceptance_criteria[crit]['decimal_points']=-999
-        else:        
+        else:
             acceptance_criteria[crit]['decimal_points']=1
         acceptance_criteria[crit]['comments']="thellier_gui_only"
 
     for crit in ['average_by_sample_or_site','interpreter_method']:
-        acceptance_criteria[crit]={} 
+        acceptance_criteria[crit]={}
         acceptance_criteria[crit]['category']=category
         acceptance_criteria[crit]['criterion_name']=crit
         if crit in ['average_by_sample_or_site']:
@@ -1223,7 +1224,7 @@ def add_thellier_gui_criteria(acceptance_criteria):
         acceptance_criteria[crit]['decimal_points']=-999
 
     for crit in ['include_nrm']:
-        acceptance_criteria[crit]={} 
+        acceptance_criteria[crit]={}
         acceptance_criteria[crit]['category']=category
         acceptance_criteria[crit]['criterion_name']=crit
         acceptance_criteria[crit]['value']=True
@@ -1246,7 +1247,7 @@ def add_thellier_gui_criteria(acceptance_criteria):
 class ZeqMagic(wx.Frame):
 
     title = "Zeq Magic"
-    
+
     def __init__(self, parent, WD):
         wx.Frame.__init__(self, parent, wx.ID_ANY, self.title)
         self.panel = wx.ScrolledWindow(self)
@@ -1300,7 +1301,7 @@ class ZeqMagic(wx.Frame):
         #    vbox.Add(self.bSizer4, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         #except AttributeError:
         #    pass
-        vbox.Add(hboxok, flag=wx.ALIGN_CENTER)        
+        vbox.Add(hboxok, flag=wx.ALIGN_CENTER)
         vbox.AddSpacer(20)
 
         hbox_all = wx.BoxSizer(wx.HORIZONTAL)
@@ -1336,7 +1337,7 @@ class ZeqMagic(wx.Frame):
 class Core_depthplot(wx.Frame):
 
     title = "Remanence data vs. depth/height/age"
-    
+
     def __init__(self, parent, WD):
         wx.Frame.__init__(self, parent, wx.ID_ANY, self.title, name='core_depthplot')
         self.panel = wx.ScrolledWindow(self)
@@ -1387,29 +1388,29 @@ class Core_depthplot(wx.Frame):
 
         # set default color to red
         self.bSizer0a1.radio_buttons[2].SetValue(True)
-        
+
         self.bSizer0a2 = pw.radio_buttons(pnl, shape_choices, "choose shape for plot points")
 
         # set default symbol:
         self.bSizer0a2.radio_buttons[2].SetValue(True)
-        
+
         self.bSizer0a3 = pw.labeled_spin_ctrl(pnl, "point size (default is 5): ")
-        
+
         self.Bind(wx.EVT_TEXT, self.change_results_path, self.bSizer0a.file_path)
 
-        
+
         #---sizer 1 ---
         self.bSizer1a = pw.labeled_yes_or_no(pnl, "Choose file to provide sample data", "er_samples", "er_ages")
         self.Bind(wx.EVT_RADIOBUTTON, self.on_sample_or_age, self.bSizer1a.rb1)
         self.Bind(wx.EVT_RADIOBUTTON, self.on_sample_or_age, self.bSizer1a.rb2)
-        
+
         self.bSizer1 = pw.choose_file(pnl, btn_text='add er_samples file', method = self.on_add_samples_button)
         sampfile = os.path.join(self.WD, 'er_samples.txt')
         self.check_and_add_file(sampfile, self.bSizer1.file_path)
 
         #---sizer 2 ----
         self.bSizer2 = pw.choose_file(pnl, btn_text='add IODP core summary csv file (optional)', method = self.on_add_csv_button)
-        
+
         #---sizer 3 ---
         plot_choices = ['Plot declination', 'Plot inclination', 'Plot magnetization', 'Plot magnetization on log scale']
         self.bSizer3 = pw.check_boxes(pnl, (5, 1, 0, 0), plot_choices, "Choose what to plot:")
@@ -1452,7 +1453,7 @@ class Core_depthplot(wx.Frame):
 
         self.bSizer12 = pw.labeled_text_field(pnl, label="Maximum age (in Ma)")
 
-        
+
         #---buttons ---
         hboxok = pw.btn_panel(self, pnl)
 
@@ -1519,10 +1520,10 @@ class Core_depthplot(wx.Frame):
         vbox.Add(bSizer_info, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer0, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.vbox1, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
-        
+
         vbox.Add(self.bSizer0a, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.vbox5, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
-        
+
         vbox.Add(self.bSizer1a, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer1, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer2, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
@@ -1534,7 +1535,7 @@ class Core_depthplot(wx.Frame):
         vbox.Add(vbox3, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
 
         #--- add buttons ---
-        vbox.Add(hboxok, flag=wx.ALIGN_CENTER)        
+        vbox.Add(hboxok, flag=wx.ALIGN_CENTER)
         vbox.AddSpacer(20)
 
         self.hbox_all = wx.BoxSizer(wx.HORIZONTAL)
@@ -1544,7 +1545,7 @@ class Core_depthplot(wx.Frame):
         self.panel.SetSizer(self.hbox_all)
         self.panel.SetScrollbars(20, 20, 50, 50)
 
-        
+
         # hide plotting stuff
         # no longer hiding this initially -- it causes a sizing nightmare
         #if not self.bSizer0.file_path.GetValue():
@@ -1633,7 +1634,7 @@ class Core_depthplot(wx.Frame):
         age_file # -fa er_ages_file
         depth_scale # -ds scale
         dmin, dmax # -d 1 50  # depth to plot
-        timescale, amin, amax (also sets pTS, pcol, width) =  # -ts scale min max        
+        timescale, amin, amax (also sets pTS, pcol, width) =  # -ts scale min max
         sym, size # -sym symbol size
         method, step (also may set suc_key) # -LP protocol step
         pltDec (also sets pcol, pel, width)# -D (don't plot dec)
@@ -1673,7 +1674,7 @@ class Core_depthplot(wx.Frame):
             if not input_dir_path:
                 del wait
                 return False
-            
+
         spec_sym, spec_sym_shape, spec_sym_color, spec_sym_size = "", "", "", ""
 
         if pmag_spec_file:
@@ -1682,7 +1683,7 @@ class Core_depthplot(wx.Frame):
             spec_sym_color = self.bSizer0a1.return_value()[0]
             spec_sym_size = self.bSizer0a3.return_value()
             spec_sym = str(spec_sym_color) + str(spec_sym_shape)
-    
+
         use_sampfile = self.bSizer1a.return_value()
         if use_sampfile:
             new_dir_path, samp_file = os.path.split(str(self.bSizer1.return_value()))
@@ -1698,7 +1699,7 @@ class Core_depthplot(wx.Frame):
             if not input_dir_path:
                 del wait
                 return False
-            
+
         depth_scale = self.bSizer8.return_value()
         if age_file:
             depth_scale='age'
@@ -1755,7 +1756,7 @@ class Core_depthplot(wx.Frame):
         #    pltSus = 0
         #else:
         #    pltSus = 1
-        
+
         fmt = self.bSizer16.return_value()
         #print "meas_file", meas_file, "pmag_spec_file", pmag_spec_file, "spec_sym_shape", spec_sym_shape, "spec_sym_color", spec_sym_color, "spec_sym_size", spec_sym_size, "samp_file", samp_file, "age_file", age_file, "depth_scale", depth_scale, "dmin", dmin, "dmax", dmax, "timescale", timescale, "amin", amin, "amax", amax, "sym", sym, "size", size, "method", method, "step", step, "pltDec", pltDec, "pltInc", pltInc, "pltMag", pltMag, "pltTime", pltTime, "logit", logit, "fmt", fmt
 
@@ -1843,7 +1844,7 @@ class Core_depthplot(wx.Frame):
 
         (sets plots & verbose) # -sav
         """
-        
+
         #pw.run_command_and_close_window(self, COMMAND, "er_samples.txt")
 
     def on_cancelButton(self,event):
@@ -1853,12 +1854,12 @@ class Core_depthplot(wx.Frame):
     def on_helpButton(self, event):
         pw.on_helpButton(text=ipmag.core_depthplot.__doc__)
 
-        
+
 
 class Ani_depthplot(wx.Frame):
 
     title = "Plot anisotropoy vs. depth/height/age"
-    
+
     def __init__(self, parent, WD):
         wx.Frame.__init__(self, parent, wx.ID_ANY, self.title, name='aniso_depthplot')
         self.panel = wx.ScrolledWindow(self)
@@ -1883,7 +1884,7 @@ class Ani_depthplot(wx.Frame):
         self.bSizer2a = pw.labeled_yes_or_no(pnl, "Choose file to provide sample data", "er_samples", "er_ages")
         self.Bind(wx.EVT_RADIOBUTTON, self.on_sample_or_age, self.bSizer2a.rb1)
         self.Bind(wx.EVT_RADIOBUTTON, self.on_sample_or_age, self.bSizer2a.rb2)
-        
+
         self.bSizer2 = pw.choose_file(pnl, btn_text='add er_samples file', method = self.on_add_samples_button)
         sampfile = os.path.join(self.WD, 'er_samples.txt')
         self.check_and_add_file(sampfile, self.bSizer2.file_path)
@@ -1893,7 +1894,7 @@ class Ani_depthplot(wx.Frame):
 
         #---sizer 3---
         self.bSizer3 = pw.radio_buttons(pnl, ['svg', 'eps', 'pdf', 'png'], "Save plot in this format:")
-        
+
         #---sizer 4 ---
         self.bSizer4 = pw.labeled_yes_or_no(pnl, "Depth scale", "Meters below sea floor (mbsf)", "Meters composite depth (mcd)")
 
@@ -1918,8 +1919,8 @@ class Ani_depthplot(wx.Frame):
         hbox1 = wx.BoxSizer(wx.HORIZONTAL)
         hbox1.AddMany([self.bSizer5, self.bSizer6])
         vbox.Add(hbox1, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
-        
-        vbox.Add(hboxok, flag=wx.ALIGN_CENTER)        
+
+        vbox.Add(hboxok, flag=wx.ALIGN_CENTER)
         vbox.AddSpacer(20)
 
         hbox_all = wx.BoxSizer(wx.HORIZONTAL)
@@ -1935,7 +1936,7 @@ class Ani_depthplot(wx.Frame):
     def on_add_rmag_button(self,event):
         text = "choose rmag_anisotropy file"
         pw.on_add_file_button(self.bSizer0, text)
-    
+
     def on_add_measurements_button(self,event):
         text = "choose magic_measurements file"
         pw.on_add_file_button(self.bSizer1, text)
@@ -1977,7 +1978,7 @@ class Ani_depthplot(wx.Frame):
         sum_file = self.bSizer2b.return_value()
         if sum_file:
             sum_file = os.path.split(sum_file)[1]
-            
+
         fmt = self.bSizer3.return_value()
         depth_scale = self.bSizer4.return_value()
         print('age_file', age_file)
@@ -1993,7 +1994,7 @@ class Ani_depthplot(wx.Frame):
         # for use as module:
         fig, figname = ipmag.aniso_depthplot(ani_file, meas_file, samp_file, age_file, sum_file, fmt, float(dmin), float(dmax), depth_scale)
         if fig:
-            self.Destroy() 
+            self.Destroy()
             dpi = fig.get_dpi()
             pixel_width = dpi * fig.get_figwidth()
             pixel_height = dpi * fig.get_figheight()
@@ -2017,7 +2018,7 @@ class Ani_depthplot(wx.Frame):
 class something(wx.Frame):
 
     title = ""
-    
+
     def __init__(self, parent, WD):
         wx.Frame.__init__(self, parent, wx.ID_ANY, self.title)
         self.panel = wx.ScrolledWindow(self)
@@ -2043,7 +2044,7 @@ class something(wx.Frame):
         self.bSizer3 = pw.labeled_text_field(pnl, label="Location name:")
 
         #---sizer 4 ---
-        
+
 
 
         #---sizer 4 ----
@@ -2071,7 +2072,7 @@ class something(wx.Frame):
         #    vbox.Add(self.bSizer4, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         #except AttributeError:
         #    pass
-        vbox.Add(hboxok, flag=wx.ALIGN_CENTER)        
+        vbox.Add(hboxok, flag=wx.ALIGN_CENTER)
         vbox.AddSpacer(20)
 
         hbox_all = wx.BoxSizer(wx.HORIZONTAL)
@@ -2105,7 +2106,7 @@ class something(wx.Frame):
 
 
 
-        
+
 # File
 
 class ClearWD(wx.MessageDialog):
@@ -2128,7 +2129,7 @@ class ClearWD(wx.MessageDialog):
         else:
             print("{} has not been emptied".format(self.WD))
             return False
-            
+
 
 #consider using this instead (will preserve permissions of directory, but this may or may not be crucial)
 #def emptydir(top):
@@ -2191,5 +2192,3 @@ class PlotFrame(wx.Frame):
             self.Destroy()
             if self.standalone:
                 sys.exit()
-        
-

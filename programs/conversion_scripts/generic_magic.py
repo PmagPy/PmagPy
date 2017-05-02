@@ -462,7 +462,7 @@ def convert(**kwargs):
             MeasRec['analysts']=user
             MeasRec["instrument_codes"]=""
             MeasRec["quality"]='g'
-            MeasRec["number"]="%i"%measurement_running_number
+            MeasRec["treat_step_num"]="%i"%measurement_running_number
             MeasRec["magn_moment"]='%10.3e'%(float(meas_line["moment"])*1e-3) # in Am^2
             MeasRec["meas_temp"]='273.' # room temp in kelvin
 
