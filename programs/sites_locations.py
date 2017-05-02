@@ -31,17 +31,17 @@ def main():
     dir_path='.'
 # get command line stuff
     if '-WD' in args:
-	ind=args.index("-WD")
-	dir_path=args[ind+1]
+        ind=args.index("-WD")
+        dir_path=args[ind+1]
     if "-h" in args:
-	print(main.__doc__)
+        print(main.__doc__)
         sys.exit()
     if '-f' in args:
-	ind=args.index("-f")
-	site_file=args[ind+1]
+        ind=args.index("-f")
+        site_file=args[ind+1]
     if '-F' in args:
-	ind=args.index("-F")
-	loc_file=args[ind+1]
+        ind=args.index("-F")
+        loc_file=args[ind+1]
     #
     site_file=dir_path+'/'+site_file
     loc_file=dir_path+'/'+loc_file
