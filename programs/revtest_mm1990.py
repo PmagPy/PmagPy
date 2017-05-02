@@ -60,10 +60,10 @@ def main():
         file2=sys.argv[ind+1]
         f2=open(file2,'r')
         print("be patient, your computer is doing 5000 simulations...")
-    for line in f2.readlines():
-        rec=line.split()
-        Dec,Inc=float(rec[0]),float(rec[1])
-        D2.append([Dec,Inc,1.])
+        for line in f2.readlines():
+            rec=line.split()
+            Dec,Inc=float(rec[0]),float(rec[1])
+            D2.append([Dec,Inc,1.])
         f2.close()
     #take the antipode for the directions in file 2
     D2_flip=[]
