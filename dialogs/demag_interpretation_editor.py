@@ -725,7 +725,7 @@ class InterpretationEditorFrame(wx.Frame):
             self.parent.level_names.SetStringSelection(high_level_name)
             self.parent.onSelect_level_name(event,True)
 
-        self.specimens_list.sort(key=specimens_comparator)
+        self.specimens_list.sort(key=spec_key_func)
         self.update_editor()
 
     def on_select_mean_type_box(self, event):
