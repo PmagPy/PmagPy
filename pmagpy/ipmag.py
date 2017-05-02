@@ -103,6 +103,10 @@ def dms2dd(degrees, minutes, seconds):
     dd = float(degrees) + old_div(float(minutes),60) + old_div(float(seconds),(60*60));
     return dd
 
+def igrf_print(igrf_array):
+    print "Declination: %0.3f"%(igrf_array[0])
+    print "Inclination: %0.3f"%(igrf_array[1])
+    print "Intensity: %0.3f n"%(igrf_array[0])
 
 def fisher_mean(dec=None, inc=None, di_block=None):
     """
