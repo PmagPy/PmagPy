@@ -3627,8 +3627,8 @@ def specimens_results_magic(infile='pmag_specimens.txt', measfile='magic_measure
                     for comp in Comps:
                         siteD=pmag.get_dictitem(tmp1,key+'_comp_name',comp,'T') # get all components comp
                         #remove bad data from means
-                        siteD=[x if 'specimen_flag' in x and x['specimen_flag']=='g' else True for x in siteD]
-                        siteD=[x if 'sample_flag' in x and x['sample_flag']=='g' else True for x in siteD]
+                        siteD=[x for x in siteD if 'specimen_flag' not in x or ('specimen_flag' in x and x['specimen_flag']=='g')]
+                        siteD=[x for x in siteD if 'sample_flag' not in x or ('sample_flag' in x and x['sample_flag']=='g')]
                         if len(siteD)>0: # there are some for this site and component name
                             PmagSiteRec=pmag.lnpbykey(siteD,'site',key) # get an average for this site
                             PmagSiteRec['site_comp_name']=comp # decorate the site record
@@ -3725,6 +3725,7 @@ def specimens_results_magic(infile='pmag_specimens.txt', measfile='magic_measure
                 PmagResRec["average_inc"]=PmagSiteRec["site_inc"]
                 PmagResRec["average_alpha95"]=PmagSiteRec["site_alpha95"]
                 PmagResRec["average_n"]=PmagSiteRec["site_n"]
+                PmagResRec["average_nn"]=len(PmagSiteRec["er_samples_names"].split(":")) if "er_samples_names" in PmagSiteRec else PmagSiteRec["site_n"]
                 PmagResRec["average_n_lines"]=PmagSiteRec["site_n_lines"]
                 PmagResRec["average_n_planes"]=PmagSiteRec["site_n_planes"]
                 PmagResRec["vgp_n"]=PmagSiteRec["site_n"]

@@ -800,7 +800,7 @@ def get_Sb(data):
     returns vgp scatter for data set
     """
     Sb,N=0.,0.
-    for  rec in data:
+    for rec in data:
                 delta=90.-abs(float(rec['vgp_lat']))
                 if rec['average_k']!="0":
                     k=float(rec['average_k'])

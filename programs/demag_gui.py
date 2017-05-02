@@ -224,13 +224,13 @@ class Demag_GUI(wx.Frame):
         self.locations=list(self.Data_hierarchy['locations'].keys())# get list of sites
         self.locations.sort()# get list of sites
         self.sites=list(self.Data_hierarchy['sites'].keys())# get list of sites
-        self.sites.sort(key=specimens_comparator)# get list of sites
+        self.sites.sort(key=spec_key_func)# get list of sites
         self.samples=[] #sort the samples within each site
         for site in self.sites:
-            self.samples.extend(sorted(self.Data_hierarchy['sites'][site]['samples'], key=specimens_comparator))
+            self.samples.extend(sorted(self.Data_hierarchy['sites'][site]['samples'], key=spec_key_func))
         self.specimens=[] #sort the specimens within each sample
         for samp in self.samples:
-            self.specimens.extend(sorted(self.Data_hierarchy['samples'][samp]['specimens'], key=specimens_comparator))
+            self.specimens.extend(sorted(self.Data_hierarchy['samples'][samp]['specimens'], key=spec_key_func))
 
         #first initialization of self.s only place besides init_cart_rot where it can be set without calling select_specimen
         if len(self.specimens)>0:
@@ -347,7 +347,7 @@ class Demag_GUI(wx.Frame):
         self.specimen_EA_ydata = []
 
         self.fig3 = Figure((2.5*self.GUI_RESOLUTION, 2.5*self.GUI_RESOLUTION), dpi=self.dpi)
-        self.mplot = self.fig3.add_axes([0.2,0.15,0.7,0.7],frameon=True,axisbg='None')
+        self.mplot = self.fig3.add_axes([0.2,0.15,0.7,0.7],frameon=True,facecolor='None')
         self.canvas3 = FigCanvas(self.scrolled_panel, -1, self.fig3)
         self.toolbar3 = NavigationToolbar(self.canvas3)
         self.toolbar3.Hide()
@@ -2789,13 +2789,13 @@ class Demag_GUI(wx.Frame):
         self.locations=list(self.Data_hierarchy['locations'].keys())# get list of sites
         self.locations.sort()# get list of sites
         self.sites=list(self.Data_hierarchy['sites'].keys())# get list of sites
-        self.sites.sort(key=specimens_comparator)# get list of sites
+        self.sites.sort(key=spec_key_func)# get list of sites
         self.samples=[] #sort the samples within each site
         for site in self.sites:
-            self.samples.extend(sorted(self.Data_hierarchy['sites'][site]['samples'], key=specimens_comparator))
+            self.samples.extend(sorted(self.Data_hierarchy['sites'][site]['samples'], key=spec_key_func))
         self.specimens=[] #sort the specimens within each sample
         for samp in self.samples:
-            self.specimens.extend(sorted(self.Data_hierarchy['samples'][samp]['specimens'], key=specimens_comparator))
+            self.specimens.extend(sorted(self.Data_hierarchy['samples'][samp]['specimens'], key=spec_key_func))
 
         #--------------------------------------------------------------------
         # initialize first specimen in list as current specimen
@@ -3975,6 +3975,7 @@ class Demag_GUI(wx.Frame):
         ----------
         new_WD : WD to change to current GUI's WD
         """
+        new_WD=os.path.abspath(new_WD)
         if not os.path.isdir(new_WD): return
         self.WD = new_WD
         if self.data_model==None:
@@ -4946,11 +4947,14 @@ class Demag_GUI(wx.Frame):
 
             for rec in meas_data:
                 if "magic_method_codes" in list(rec.keys()):
-                    if "LP-DIR" not in rec['magic_method_codes'] and "DE-" not in  rec['magic_method_codes']:
+                    if "LP-DIR" not in rec['magic_method_codes'] and "DE-" not in rec['magic_method_codes']:
                         self.PmagRecsOld[FILE].append(rec)
 
             print(('coord', coord, 'vgps_level', vgps_level, 'DefaultAge', DefaultAge, 'avg_directions_by_sample', avg_directions_by_sample, 'avg_by_polarity', avg_by_polarity, 'use_criteria', use_criteria))
+            prev_cwd=os.getcwd()
+            os.chdir(self.WD)
             ipmag.specimens_results_magic(coord=coord, vgps_level=vgps_level, DefaultAge=DefaultAge, avg_directions_by_sample=avg_directions_by_sample, avg_by_polarity=avg_by_polarity, use_criteria=use_criteria)
+            os.chdir(prev_cwd)
 
             # reads new pmag tables, and merge the old lines:
             for FILE in ['pmag_samples.txt','pmag_sites.txt','pmag_results.txt']:
@@ -6008,7 +6012,7 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
     def on_menu_save_interpretation(self,event,redo_file_name = "demag_gui.redo"):
         fout=open(redo_file_name,'w')
         specimens_list=list(self.pmag_results_data['specimens'].keys())
-        specimens_list.sort(key=specimens_comparator)
+        specimens_list.sort(key=spec_key_func)
         if self.s not in specimens_list: fout.write("current_"+self.s+"\n")
         for specimen in specimens_list:
             for fit in self.pmag_results_data['specimens'][specimen]:
@@ -7013,7 +7017,7 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
             specimen_list=self.Data_hierarchy['study']['this study']['specimens']
 
         if self.s not in specimen_list:
-            specimen_list.sort(key=specimens_comparator)
+            specimen_list.sort(key=spec_key_func)
             self.select_specimen(str(specimen_list[0]))
             self.specimens_box.SetStringSelection(str(self.s))
 

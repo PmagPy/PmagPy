@@ -538,8 +538,8 @@ class Arai_GUI(wx.Frame):
         self.araiplot = self.fig1.add_axes([0.1,0.1,0.8,0.8])
         self.zijplot = self.fig2.add_subplot(111)
         self.eqplot = self.fig3.add_subplot(111)
-        self.sampleplot = self.fig4.add_axes([0.2,0.3,0.7,0.6],frameon=True,axisbg='None')
-        self.mplot = self.fig5.add_axes([0.2,0.15,0.7,0.7],frameon=True,axisbg='None')
+        self.sampleplot = self.fig4.add_axes([0.2,0.3,0.7,0.6],frameon=True,facecolor='None')
+        self.mplot = self.fig5.add_axes([0.2,0.15,0.7,0.7],frameon=True,facecolor='None')
 
 
         #--------------------------------------------------------------------
@@ -2048,7 +2048,7 @@ else:
             self.fig5.text(0.9,0.96,'%s'%(self.s),{'family':self.font_type, 'fontsize':10, 'style':'normal','va':'center', 'ha':'right' })
             thellier_gui_dialogs.SaveMyPlot(self.fig5,self.pars,"M_T")
             self.fig5.clear()
-            self.mplot = self.fig5.add_axes([0.2,0.15,0.7,0.7],frameon=True,axisbg='None')
+            self.mplot = self.fig5.add_axes([0.2,0.15,0.7,0.7],frameon=True,facecolor='None')
             self.fig5.text(0.02,0.96,"M/T",{'family':self.font_type, 'fontsize':10, 'style':'normal','va':'center', 'ha':'left' })
             self.draw_figure(self.s)
             self.update_selection()
@@ -2061,7 +2061,7 @@ else:
         thellier_gui_dialogs.SaveMyPlot(self.fig4,self.pars,"Sample")
         self.fig4.clear()
         self.fig4.text(0.02,0.96,"Sample data",{'family':self.font_type, 'fontsize':10, 'style':'normal','va':'center', 'ha':'left' })
-        self.sampleplot = self.fig4.add_axes([0.2,0.3,0.7,0.6],frameon=True,axisbg='None')
+        self.sampleplot = self.fig4.add_axes([0.2,0.3,0.7,0.6],frameon=True,facecolor='None')
         self.draw_figure(self.s)
         self.update_selection()
 
@@ -2072,7 +2072,7 @@ else:
             self.fig5.text(0.9,0.96,'%s'%(self.s),{'family':self.font_type, 'fontsize':10, 'style':'normal','va':'center', 'ha':'right' })
             thellier_gui_dialogs.SaveMyPlot(self.fig5,self.pars,"NLT")
             self.fig5.clear()
-            self.mplot = self.fig5.add_axes([0.2,0.15,0.7,0.7],frameon=True,axisbg='None')
+            self.mplot = self.fig5.add_axes([0.2,0.15,0.7,0.7],frameon=True,facecolor='None')
             self.fig5.text(0.02,0.96,"Non-linear TRM check",{'family':self.font_type, 'fontsize':10, 'style':'normal','va':'center', 'ha':'left' })
             self.draw_figure(self.s)
             self.update_selection()
@@ -2084,7 +2084,7 @@ else:
             self.fig3.text(0.9,0.96,'%s'%(self.s),{'family':self.font_type, 'fontsize':10, 'style':'normal','va':'center', 'ha':'right' })
             thellier_gui_dialogs.SaveMyPlot(self.fig3,self.pars,"CR")
             self.fig3.clear()
-            self.eqplot = self.fig3.add_axes([0.2,0.15,0.7,0.7],frameon=True,axisbg='None')
+            self.eqplot = self.fig3.add_axes([0.2,0.15,0.7,0.7],frameon=True,facecolor='None')
             self.fig3.text(0.02,0.96,"Cooling rate correction",{'family':self.font_type, 'fontsize':10, 'style':'normal','va':'center', 'ha':'left' })
             self.draw_figure(self.s)
             self.update_selection()
@@ -5136,7 +5136,7 @@ else:
         else: # draw cooling rate data
             self.fig3.clf()
             self.fig3.text(0.02,0.96,"Cooling rate experiment",{'family':self.font_type, 'fontsize':FONTSIZE, 'style':'normal','va':'center', 'ha':'left' })
-            self.eqplot = self.fig3.add_axes([0.2,0.15,0.7,0.7],frameon=True,axisbg='None')
+            self.eqplot = self.fig3.add_axes([0.2,0.15,0.7,0.7],frameon=True,facecolor='None')
             if 'cooling_rate_data' in list(self.Data[self.s].keys()) and\
             'ancient_cooling_rate' in list(self.Data[self.s]['cooling_rate_data'].keys()) and\
             'lab_cooling_rate' in list(self.Data[self.s]['cooling_rate_data'].keys()):
@@ -5189,7 +5189,7 @@ else:
         if self.preferences['show_NLT_plot'] ==False or 'NLT_parameters' not in list(self.Data[self.s].keys()):
             self.fig5.clf()
             self.fig5.text(0.02,0.96,"M/T",{'family':self.font_type, 'fontsize':FONTSIZE, 'style':'normal','va':'center', 'ha':'left' })
-            self.mplot = self.fig5.add_axes([0.2,0.15,0.7,0.7],frameon=True,axisbg='None')
+            self.mplot = self.fig5.add_axes([0.2,0.15,0.7,0.7],frameon=True,facecolor='None')
 
             self.mplot.clear()
             NRMS=self.Data[self.s]['NRMS']
@@ -5247,7 +5247,7 @@ else:
         else:
             self.fig5.clf()
             self.fig5.text(0.02,0.96,"Non-linear TRM check",{'family':self.font_type, 'fontsize':10, 'style':'normal','va':'center', 'ha':'left' })
-            self.mplot = self.fig5.add_axes([0.2,0.15,0.7,0.7],frameon=True,axisbg='None')
+            self.mplot = self.fig5.add_axes([0.2,0.15,0.7,0.7],frameon=True,facecolor='None')
             #self.mplot.clear()
             self.mplot.scatter(np.array(self.Data[self.s]['NLT_parameters']['B_NLT'])*1e6,self.Data[self.s]['NLT_parameters']['M_NLT_norm'],marker='o',facecolor='b',edgecolor ='k',s=15,clip_on=False)
             self.mplot.set_xlabel("$\mu$ T",fontsize=8)
