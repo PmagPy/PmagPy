@@ -1152,6 +1152,10 @@ class MagicDataFrame(object):
             if self.dtype == 'measurements':
                 if 'number' in self.df.columns:
                     self.df.rename(columns={'number':'treat_step_num'}, inplace=True)
+                if 'treat_step_num' not in self.df.columns:
+                    print("-W- You are missing the 'treat_step_num' column in your measurements file")
+                    print("    This may cause strange behavior in the analysis GUIs")
+                    self.df['treat_step_num'] = ''
                 self.df['measurement'] = self.df['experiment'] + self.df['treat_step_num'].astype(str)
             elif self.dtype == 'contribution':
                 return
