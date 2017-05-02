@@ -1150,6 +1150,8 @@ class MagicDataFrame(object):
             self.df = self.df.dropna(how='all', axis=0)
             #
             if self.dtype == 'measurements':
+                if 'number' in self.df.columns:
+                    self.df.rename(columns={'number':'treat_step_num'}, inplace=True)
                 self.df['measurement'] = self.df['experiment'] + self.df['treat_step_num'].astype(str)
             elif self.dtype == 'contribution':
                 return
