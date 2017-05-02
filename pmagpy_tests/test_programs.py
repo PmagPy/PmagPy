@@ -31,15 +31,15 @@ class TestProgramsHelp(unittest.TestCase):
             shutil.rmtree('./new-test-output')
 
     def test_cmd_line(self):
-        programs = os.listdir(programs_WD)
+        programs_list = os.listdir(programs_WD)
         conversion_scripts = os.listdir(os.path.join(programs_WD,
                                                      'conversion_scripts'))
-        programs.extend(conversion_scripts)
+        programs_list.extend(conversion_scripts)
         conversion_scripts2 = os.listdir(os.path.join(programs_WD,
                                                       'conversion_scripts2'))
-        programs.extend(conversion_scripts2)
+        programs_list.extend(conversion_scripts2)
         not_checked = []
-        for prog in programs:
+        for prog in programs_list:
             if prog in ['__init__.py', 'program_envs.py', 'template_magic.py']:
                 continue
             if 'gui' in prog:
