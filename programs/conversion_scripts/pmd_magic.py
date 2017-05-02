@@ -16,7 +16,7 @@ OPTIONS
     -WD: directory to output files to (default : current directory)
     -F FILE: specify output file, default is measurements.txt
     -Fsp FILE: specify output specimens.txt file, default is specimens.txt
-    -Fsa FILE: specify output samples.txt file, default is samples.txt 
+    -Fsa FILE: specify output samples.txt file, default is samples.txt
     -Fsi FILE: specify output sites.txt file, default is sites.txt # LORI
     -Flo FILE: specify output locations.txt file, default is locations.txt
     -spc NUM : specify number of characters to designate a  specimen, default = 1
@@ -52,7 +52,7 @@ import pmagpy.new_builder as nb
 
 def convert(**kwargs):
     """
-    
+
     """
 
     #get kwargs
@@ -160,7 +160,7 @@ def convert(**kwargs):
     for k in range(3,len(data)): # read in data
       line=data[k]
       rec=line.split()
-      if len(rec)>1: # skip blank lines at bottom  
+      if len(rec)>1: # skip blank lines at bottom
         MeasRec={}
         MeasRec['description']='Date: '+date+' '+time
         MeasRec["citations"]="This study"
@@ -171,19 +171,19 @@ def convert(**kwargs):
         MeasRec["standard"]='u'
         MeasRec["treat_step_num"]='1'
         MeasRec["specimen"]=specimen
-        if rec[0]=='NRM': 
+        if rec[0]=='NRM':
             meas_type="LT-NO"
-        elif rec[0][0]=='M' or rec[0][0]=='H': 
+        elif rec[0][0]=='M' or rec[0][0]=='H':
             meas_type="LT-AF-Z"
-        elif rec[0][0]=='T': 
+        elif rec[0][0]=='T':
             meas_type="LT-T-Z"
         else:
             print("measurement type unknown")
             return False, "measurement type unknown"
         X=[float(rec[1]),float(rec[2]),float(rec[3])]
         Vec=pmag.cart2dir(X)
-        MeasRec["magn_moment"]='%10.3e'% (Vec[2]) # Am^2 
-        MeasRec["magn_volume"]=rec[4] # A/m 
+        MeasRec["magn_moment"]='%10.3e'% (Vec[2]) # Am^2
+        MeasRec["magn_volume"]=rec[4] # A/m
         MeasRec["dir_dec"]='%7.1f'%(Vec[0])
         MeasRec["dir_inc"]='%7.1f'%(Vec[1])
         MeasRec["treat_ac_field"]='0'
@@ -257,7 +257,7 @@ def main():
         ind=sys.argv.index("-loc")
         kwargs['location']=sys.argv[ind+1]
     if "-A" in sys.argv: kwargs['noave']=1
-    if "-mcd" in sys.argv: 
+    if "-mcd" in sys.argv:
         ind=sys.argv.index("-mcd")
         kwargs['meth_code']=sys.argv[ind+1]
     if "-lat" in sys.argv:

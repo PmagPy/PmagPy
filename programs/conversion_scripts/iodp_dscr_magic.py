@@ -16,7 +16,7 @@ OPTIONS
     -WD: directory to output files to (default : current directory)
     -F FILE: specify output  measurements file, default is measurements.txt
     -Fsp FILE: specify output specimens.txt file, default is specimens.txt
-    -Fsa FILE: specify output samples.txt file, default is samples.txt 
+    -Fsa FILE: specify output samples.txt file, default is samples.txt
     -Fsi FILE: specify output sites.txt file, default is sites.txt
     -Flo FILE: specify output locations.txt file, default is locations.txt
     -lat LAT: latitude of site (also used as bounding latitude for location)

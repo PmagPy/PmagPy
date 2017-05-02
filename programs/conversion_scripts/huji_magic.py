@@ -19,7 +19,7 @@ OPTIONS
     -WD: directory to output files to (default : current directory)
     -F FILE: specify output  measurements file, default is measurements.txt
     -Fsp FILE: specify output specimens.txt file, default is specimens.txt
-    -Fsa FILE: specify output samples.txt file, default is samples.txt 
+    -Fsa FILE: specify output samples.txt file, default is samples.txt
     -Fsi FILE: specify output sites.txt file, default is sites.txt
     -Flo FILE: specify output locations.txt file, default is locations.txt
     -A: don't average replicate measurements
@@ -36,7 +36,7 @@ OPTIONS
             syntax in sio_magic is: -LP CR xxx,yyy,zzz,.....xx
             where xx, yyy,zzz...xxx  are cooling time in [K/minutes], seperated by comma, ordered at the same order as XXX.10,XXX.20 ...XX.70
             if you use a zerofield step then no need to specify the cooling rate for the zerofield
-        
+
     -spc NUM : specify number of characters to designate a specimen, default = 0
     -loc LOCNAME : specify location/study name, must have either LOCNAME or SAMPFILE or be a synthetic
     -dc B PHI THETA: dc lab field (in micro tesla) and phi,theta, default is none
@@ -141,7 +141,7 @@ def convert(**kwargs):
         except IOError:
             print("bad mag file name")
             return False, "bad mag file name"
-    else: 
+    else:
         print("mag_file field is required option")
         print(__doc__)
         return False, "mag_file field is required option"
@@ -170,7 +170,7 @@ def convert(**kwargs):
         print("Must select experiment type (-LP option)")
         return False, "Must select experiment type (-LP option)"
     if "AF" in codes:
-        demag='AF' 
+        demag='AF'
         LPcode="LP-DIR-AF"
     if "T" in codes:
         demag="T"
@@ -182,7 +182,7 @@ def convert(**kwargs):
                 return False, "missing lab field option"
             LPcode="LP-AN-TRM"
 
-    if "TRM" in codes: 
+    if "TRM" in codes:
         demag="T"
         LPcode="LP-TRM"
         #trm=1
@@ -391,7 +391,7 @@ def convert(**kwargs):
                 MeasRecs.append(MeasRec)
 
             #----------------------------------------
-            # Thermal:  
+            # Thermal:
             # Thellier experiment: "IZ", "ZI", "IZZI", pTRM checks
             # Thermal demag
             # Thermal cooling rate experiment
@@ -399,7 +399,7 @@ def convert(**kwargs):
             #----------------------------------------
 
 
-            if demag=="T": 
+            if demag=="T":
 
                 treatment=this_line_data['treatment']
                 treatment_type=this_line_data['treatment_type']
@@ -413,15 +413,15 @@ def convert(**kwargs):
                     methcode=LPcode
                     if treatment_type=="N" or ( (treatment[1]=='0' or  treatment[1]=='00') and float(treatment[0])==0):
                             LT_code="LT-NO"
-                            MeasRec["treat_dc_field_phi"]='0' 
-                            MeasRec["treat_dc_field_theta"]='0' 
+                            MeasRec["treat_dc_field_phi"]='0'
+                            MeasRec["treat_dc_field_theta"]='0'
                             MeasRec["treat_dc_field"]='0'
                             MeasRec["treat_temp"]='273.'
 
                     elif treatment[1]=='0' or  treatment[1]=='00':
                             LT_code="LT-T-Z"
-                            MeasRec["treat_dc_field_phi"]='0' 
-                            MeasRec["treat_dc_field_theta"]='0' 
+                            MeasRec["treat_dc_field_phi"]='0'
+                            MeasRec["treat_dc_field_theta"]='0'
                             MeasRec["treat_dc_field"]='%8.3e'%(0)
                             MeasRec["treat_temp"]='%8.3e' % (float(treatment[0])+273.) # temp in kelvin
 
@@ -463,7 +463,7 @@ def convert(**kwargs):
                             print("ERROR in treatment field line %i... exiting until you fix the problem" %line_no)
                             return False, "ERROR in treatment field line %i... exiting until you fix the problem" %line_no
                     MeasRec["method_codes"]=LT_code+":"+methcode
-                    MeasRec["number"]="%i"%i
+                    MeasRec["treat_step_num"]="%i"%i
                     MeasRec["description"]=""
                     MeasRecs.append(MeasRec)
 
@@ -479,8 +479,8 @@ def convert(**kwargs):
                     else:
                         LT_code="LT-T-Z"
                         methcode=LPcode+":"+"LT-T-Z"
-                    MeasRec["treat_dc_field_phi"]='0' 
-                    MeasRec["treat_dc_field_theta"]='0' 
+                    MeasRec["treat_dc_field_phi"]='0'
+                    MeasRec["treat_dc_field_theta"]='0'
                     MeasRec["treat_dc_field"]='%8.3e'%(0)
                     MeasRec["treat_temp"]='%8.3e' % (float(treatment[0])+273.) # temp in kelvin
                     MeasRec["method_codes"]=LT_code+":"+methcode
@@ -574,7 +574,7 @@ def convert(**kwargs):
                     if index==7 or index==70: # alteration check as final measurement
                             meas_type="LT-PTRM-I:LP-CR-TRM"
                             CR_cooling_time=CR_cooling_times[-1]
-                    else: 
+                    else:
                             meas_type="LT-T-I:LP-CR-TRM"
                             CR_cooling_time=CR_cooling_times[index-1]
                     MeasRec["method_codes"]=meas_type

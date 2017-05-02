@@ -17,7 +17,7 @@ OPTIONS
     -WD: directory to output files to (default : current directory)
     -F FILE: specify output  measurements file, default is measurements.txt
     -Fsp FILE: specify output specimens.txt file, default is specimens.txt
-    -Fsa FILE: specify output samples.txt file, default is samples.txt 
+    -Fsa FILE: specify output samples.txt file, default is samples.txt
     -Fsi FILE: specify output sites.txt file, default is sites.txt # LORI
     -Flo FILE: specify output locations.txt file, default is locations.txt
     -spc NUM : specify number of characters to designate a specimen, default = 0
@@ -131,7 +131,7 @@ def convert(**kwargs):
 
     data['dir_dec'] = direction[0]
     data['dir_inc'] = direction[1]
-    data['magn_moment'] = old_div(direction[2], 1000)  # the data are in EMU - this converts to Am^2 
+    data['magn_moment'] = old_div(direction[2], 1000)  # the data are in EMU - this converts to Am^2
     data['magn_volume'] = old_div((old_div(direction[2], 1000)), volume) # EMU  - data converted to A/m
 
     # Configure the magic_measurements table
