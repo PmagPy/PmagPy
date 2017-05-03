@@ -3354,13 +3354,17 @@ class Demag_GUI(wx.Frame):
 
             # do some filtering
             if 'location' in meas_data3_0.columns:
-                meas_data3_0 = meas_data3_0[meas_data3_0['location'].notnull()]
+#                meas_data3_0 = meas_data3_0[meas_data3_0['location'].notnull()]
+                meas_data3_0.replace({'location':float('nan')},'unknown',inplace=True)
             if 'site' in meas_data3_0.columns:
-                meas_data3_0 = meas_data3_0[meas_data3_0['site'].notnull()]
+#                meas_data3_0 = meas_data3_0[meas_data3_0['site'].notnull()]
+                meas_data3_0.replace({'site':float('nan')},'unknown',inplace=True)
             if 'sample' in meas_data3_0.columns:
-                meas_data3_0 = meas_data3_0[meas_data3_0['sample'].notnull()]
+#                meas_data3_0 = meas_data3_0[meas_data3_0['sample'].notnull()]
+                meas_data3_0.replace({'sample':float('nan')},'unknown',inplace=True)
             if 'specimen' in meas_data3_0.columns:
-                meas_data3_0 = meas_data3_0[meas_data3_0['specimen'].notnull()]
+#                meas_data3_0 = meas_data3_0[meas_data3_0['specimen'].notnull()]
+                meas_data3_0.replace({'specimen':float('nan')},'unknown',inplace=True)
             Mkeys = ['magn_moment', 'magn_volume', 'magn_mass']
             meas_data3_0=meas_data3_0[meas_data3_0['method_codes'].str.contains('LT-NO|LT-AF-Z|LT-T-Z|LT-M-Z|LT-LT-Z')==True] # fish out all the relavent data
 # now convert back to 2.5  changing only those keys that are necessary for thellier_gui
@@ -4537,11 +4541,11 @@ class Demag_GUI(wx.Frame):
             Data = spec_df.to_dict("records")
 
             comment = ""
-            orient = list(spec_df['dir_tilt_correction'].drop_duplicates())
+            orient = list(spec_df[spec_df['dir_tilt_correction'].notnull()]['dir_tilt_correction'].drop_duplicates())
             samples = sorted(list(spec_df['sample'].drop_duplicates()))
             sites = sorted(list(spec_df['site'].drop_duplicates()))
             locations = sorted(list(spec_df['location'].drop_duplicates()))
-            Comps = sorted(list(spec_df['dir_comp'].drop_duplicates()))
+            Comps = sorted(list(spec_df[spec_df['dir_comp'].notnull()]['dir_comp'].drop_duplicates()))
             Comps = [c for c in Comps if type(c) == str]
             height_info=pmag.get_dictitem(SiteNFO,'height','','F') # find all the sites with height info.
 
@@ -4624,7 +4628,14 @@ class Demag_GUI(wx.Frame):
                         if 'dir_n_specimens' not in PmagSampRec:
                             PmagSampRec['dir_n_specimens'] = len(specs)
                         PmagSampRec['specimens']=reduce(lambda x,y: str(x)+':'+str(y),specs) # get a list of the specimen names used
-                        PmagSampRec['method_codes']= pmag.get_list(CompDir,'method_codes') # get a list of the methods used
+                        #get old method codes
+                        prev_meth_codes = self.con.tables['samples'].df.loc[samp]['method_codes']
+                        new_meth_codes = pmag.get_list(CompDir,'method_codes') # get a list of the methods used
+                        if isinstance(prev_meth_codes,Series):
+                            merged_meths=self.merge_meth_codes(prev_meth_codes.ix[0], new_meth_codes)
+                        else:
+                            merged_meths=self.merge_meth_codes(prev_meth_codes, new_meth_codes)
+                        PmagSampRec['method_codes']=merged_meths
                         if nocrit!=1: # apply selection criteria
                             kill=pmag.grade(PmagSampRec,accept,'sample_dir',data_model=3.0)
                         else:
@@ -4652,7 +4663,7 @@ class Demag_GUI(wx.Frame):
                 samps_df = DataFrame(PmagSamps)
                 samps_df = samps_df.set_index('sample')
                 samps_df['sample'] = samps_df.index
-                nsdf = self.con.tables['samples'].merge_dfs(samps_df,'full')
+                nsdf = self.con.tables['samples'].merge_dfs(samps_df)
                 if not vgps==1:
                     nsdf.drop([col for col in nsdf.columns if type(col) == str and col.startswith('vgp')], axis=1, inplace=True)
                 nsdf =  nsdf.reindex_axis(sorted(nsdf.columns), axis=1)
@@ -4797,7 +4808,7 @@ class Demag_GUI(wx.Frame):
                     sites_df.drop('tilt_correction', axis=1, inplace=True)
                 sites_df = sites_df.set_index('site')
                 sites_df['site'] = sites_df.index
-                nsdf = self.con.tables['sites'].merge_dfs(sites_df,'full')
+                nsdf = self.con.tables['sites'].merge_dfs(sites_df)
                 if not dia.cb_site_mean_VGP.GetValue():
                     nsdf.drop([col for col in nsdf.columns if type(col) == str and col.startswith('vgp')], axis=1, inplace=True)
                 nsdf =  nsdf.reindex_axis(sorted(nsdf.columns), axis=1)
@@ -4812,7 +4823,7 @@ class Demag_GUI(wx.Frame):
                 if len(locrecs)<2:print(("no data for location %s"%location)); continue
                 for coord in coords:
                     coordrecs=pmag.get_dictitem(locrecs,'dir_tilt_correction',coord,'T') # find the tilt corrected data
-                    if len(coordrecs)<2:print(("no %s percent tilt corrected data in all sites"%coord)); continue
+                    if len(coordrecs)<2:print(("not enough data of %s percent tilt corrected data in sites to calculate locations mean or vgp"%coord)); continue
                     for comp in Comps:
                         crecs=pmag.get_dictitem(coordrecs,'dir_comp_name',comp,'T') # fish out all of the component
                         if len(crecs)<2:print(("insuffecent data for comp %s when calculating location"%comp)); continue
@@ -4837,7 +4848,7 @@ class Demag_GUI(wx.Frame):
                             PolRes['sites'] = polpars[mode]['sites']
                             sites_dat = self.con.tables['sites'].df
                             for e in ['samples','specimens']:
-                                PolRes[e] = reduce(lambda x,y: x+':'+y, [sites_dat.loc[site][e][0] if type(sites_dat.loc[site][e])!=str else sites_dat.loc[site][e] for site in PolRes['sites'].split(':')])
+                                PolRes[e] = reduce(lambda x,y: x+':'+y, [sites_dat.loc[site][e].ix[0] if isinstance(sites_dat.loc[site][e],Series) else sites_dat.loc[site][e] for site in PolRes['sites'].split(':')])
                             PolRes['dir_n_samples'] = len(PolRes['samples'].split(':'))
                             PolRes['dir_n_specimens'] = len(PolRes['specimens'].split(':'))
                             PolRes['location'] = polpars[mode]['locs']
@@ -4864,14 +4875,14 @@ class Demag_GUI(wx.Frame):
                                 if 'locations' in self.con.tables:
                                     locs_dat = self.con.tables['locations'].df
                                     if 'lat_n' in locs_dat.columns:
-                                        lat = locs_dat['lat_n'][location] if type(locs_dat['lat_n'][location])==str else locs_dat['lat_n'][location][0]
+                                        lat = locs_dat['lat_n'][location].ix[0] if isinstance(locs_dat['lat_n'][location],Series) else locs_dat['lat_n'][location]
                                     elif 'lat_s' in locs_dat.columns:
-                                        lat = locs_dat['lat_s'][location] if type(locs_dat['lat_s'][location])==str else locs_dat['lat_s'][location][0]
+                                        lat = locs_dat['lat_s'][location].ix[0] if isinstance(locs_dat['lat_s'][location],Series) else locs_dat['lat_s'][location]
                                     else: sucess_lat_lon_info=False
                                     if 'lon_e' in locs_dat.columns:
-                                        lon = locs_dat['lon_e'][location] if type(locs_dat['lon_e'][location])==str else locs_dat['lon_e'][location][0]
+                                        lon = locs_dat['lon_e'][location].ix[0] if isinstance(locs_dat['lon_e'][location],Series) else locs_dat['lon_e'][location]
                                     elif 'lon_w' in locs_dat.columns:
-                                        lon = locs_dat['lon_w'][location] if type(locs_dat['lon_w'][location])==str else locs_dat['lon_w'][location][0]
+                                        lon = locs_dat['lon_w'][location].ix[0] if isinstance(locs_dat['lon_w'][location],Series) else locs_dat['lon_w'][location]
                                     else: sucess_lat_lon_info=False
                                 if not sucess_lat_lon_info:
                                     ui_dialog = demag_dialogs.user_input(self,['North Boundary Latitude', 'South Boundary Latitude', 'East Boundary Longitude', 'West Boundary Longitude'],parse_funcs=[float,float,float,float], heading="Missing Latitude or Longitude data for location %s please define the boundary of this region so VGP calculations can be preformed"%location)
@@ -4915,7 +4926,10 @@ class Demag_GUI(wx.Frame):
                                 for mc in prd['method_codes'].split(':'):
                                     if mc not in methods:
                                         methods.append(mc)
-                            PolRes['method_codes']=reduce(lambda x,y: x+':'+y, methods)
+                            if len(methods)>1:
+                                PolRes['method_codes']=reduce(lambda x,y: x+':'+y, methods)
+                            elif len(methods)>0: PolRes['method_codes']=methods[0]
+                            else: PolRes['method_codes']=''
                             if len(prev_dat)!=0:
                                 for ndd in set(PolRes.keys()).symmetric_difference(set(prev_dat[0].keys())):
                                     dat=[x for x in prev_dat if ndd in x and x[ndd]!=None]
@@ -4929,7 +4943,7 @@ class Demag_GUI(wx.Frame):
                 locs_df = DataFrame(PmagLocs)
                 locs_df = locs_df.set_index('location')
                 locs_df['location'] = locs_df.index
-                nsdf = self.con.tables['locations'].merge_dfs(locs_df,'full')
+                nsdf = self.con.tables['locations'].merge_dfs(locs_df)
                 if not dia.cb_location_mean_VGP.GetValue():
                     nsdf.drop([col for col in nsdf.columns if type(col) == str and col.startswith('pole') and col != 'pol_comp_name'], axis=1, inplace=True)
                 nsdf = nsdf.reindex_axis(sorted(nsdf.columns), axis=1)
@@ -4989,6 +5003,18 @@ class Demag_GUI(wx.Frame):
         TEXT="interpretations saved"
         self.saved_dlg(TEXT)
         self.close_warning=False
+
+    def merge_meth_codes(self,meths1,meths2):
+        if not isinstance(meths1,str) or not meths1: return meths2
+        elif not isinstance(meths2,str) or not meths2: return meths1
+        merged_meths=[]
+        for meth in meths1.split(':'):
+            if meth not in merged_meths: merged_meths.append(meth)
+        for meth in meths2.split(':'):
+            if meth not in merged_meths: merged_meths.append(meth)
+        if len(merged_meths)>1: return reduce(lambda x,y: x+':'+y, merged_meths)
+        elif len(merged_meths)>0: return merged_meths[0]
+        else: return ''
 
 #==========================================================================================#
 #=============================Update Panel Functions=======================================#
@@ -5588,8 +5614,6 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
                         if not mpars or 'specimen_dec' not in list(mpars.keys()): self.user_warning("Could not calculate interpretation for specimen %s and fit %s in coordinate system %s while exporting pmag tables, skipping"%(specimen,fit.name,dirtype));continue
 
                     PmagSpecRec={}
-                    user="" # Todo
-                    PmagSpecRec["er_analyst_mail_names"]=user
                     PmagSpecRec["magic_software_packages"]=pmag.get_version() + ': demag_gui'
                     PmagSpecRec["er_specimen_name"]=specimen
                     PmagSpecRec["er_sample_name"]=self.Data_hierarchy['sample_of_specimen'][specimen]
@@ -5713,7 +5737,7 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
                     del spmdf.df[dc]
 
             #merge previous df with new interpretaions DataFrame
-            merdf = spmdf.merge_dfs(ndf3_0,'dir')
+            merdf = spmdf.merge_dfs(ndf3_0)
 
             #sort columns so it matches previous exports
             merdf = merdf.reindex_axis(sorted(merdf.columns), axis=1)
@@ -6013,7 +6037,7 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
         self.read_from_LSQ(LSQ_file)
 
     def on_menu_save_interpretation(self,event,redo_file_name = "demag_gui.redo"):
-        fout=open(redo_file_name,'w')
+        fout=open(os.path.join(self.WD,redo_file_name),'w')
         specimens_list=list(self.pmag_results_data['specimens'].keys())
         specimens_list.sort(key=spec_key_func)
         if self.s not in specimens_list: fout.write("current_"+self.s+"\n")

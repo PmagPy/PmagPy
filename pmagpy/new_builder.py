@@ -1580,12 +1580,11 @@ class MagicDataFrame(object):
 
     ## Combining multiple DataFrames
 
-    def merge_dfs(self, df1, replace_dir_or_int):
+    def merge_dfs(self, df1):
         """
-        Description: takes new calculated directional, intensity data, or both and replaces the corresponding data in self.df with the new input data preserving any data that is not replaced.
+        Description: takes new calculated data and replaces the corresponding data in self.df with the new input data preserving the most important metadata if they are not otherwise saved.
 
         @param: df1 - first DataFrame whose data will preferentially be used.
-        @param: replace_dir_or_int - must be string 'dir', 'int', or 'full' and acts as a flag to tell the funciton weather to replace directional, intensity data, or just everything in current table. If there is not enough data in the current table to split by dir or int the two dfs will be fully merged (Note: if you are dealing with tables other than specimens.txt you should likely use full as that is the only table the other options have been tested on)
         """
 
         if self.df.empty: return df1
@@ -1595,31 +1594,55 @@ class MagicDataFrame(object):
         cdf2 = self.df.copy()
 
         #split data into types and decide which to replace
-        if replace_dir_or_int == 'dir' and 'method_codes' in cdf2.columns:
-            cdf2 = cdf2[cdf2['method_codes'].notnull()]
-            acdf2 = cdf2[cdf2['method_codes'].str.contains('LP-PI')]
-            mcdf2 = cdf2[cdf2['method_codes'].str.contains('LP-DIR')]
-        elif replace_dir_or_int == 'int' and 'method_codes' in cdf2.columns:
-            cdf2 = cdf2[cdf2['method_codes'].notnull()]
-            mcdf2 = cdf2[cdf2['method_codes'].str.contains('LP-PI')]
-            acdf2 = cdf2[cdf2['method_codes'].str.contains('LP-DIR')]
-        else:
-            mcdf2 = cdf2
-            acdf2 = pd.DataFrame(columns=mcdf2.columns)
+#        if replace_dir_or_int == 'dir' and 'method_codes' in cdf2.columns:
+#            cdf2 = cdf2[cdf2['method_codes'].notnull()]
+#            acdf2 = cdf2[cdf2['method_codes'].str.contains('LP-PI')]
+#            mcdf2 = cdf2[cdf2['method_codes'].str.contains('LP-DIR')]
+#        elif replace_dir_or_int == 'int' and 'method_codes' in cdf2.columns:
+#            cdf2 = cdf2[cdf2['method_codes'].notnull()]
+#            mcdf2 = cdf2[cdf2['method_codes'].str.contains('LP-PI')]
+#            acdf2 = cdf2[cdf2['method_codes'].str.contains('LP-DIR')]
+#        else:
+#            mcdf2 = cdf2
+#            acdf2 = pd.DataFrame(columns=mcdf2.columns)
 
         #get rid of stupid duplicates
-        [mcdf2.drop(cx,inplace=True,axis=1) for cx in mcdf2.columns if cx in df1.columns]
+#        [mcdf2.drop(cx,inplace=True,axis=1) for cx in mcdf2.columns if cx in df1.columns]
 
         #join the new calculated data with the old data of same type
         if self.dtype.endswith('s'): dtype = self.dtype[:-1]
         else: dtype = self.dtype
-        mdf = df1.join(mcdf2, how='left', rsuffix='_remove', on=dtype)
+        mdf = df1.join(cdf2, how='outer', rsuffix='_remove', on=dtype)
+        if 'specimen' in mdf.columns and \
+           'specimen_remove' in mdf.columns and \
+           len(mdf[mdf['specimen'].isnull()])>0:
+            mdf['specimen']=mdf['specimen_remove']
+        if 'sample' in mdf.columns and \
+           'sample_remove' in mdf.columns and \
+           len(mdf[mdf['sample'].isnull()])>0:
+            mdf['sample']=mdf['sample_remove']
+        if 'site' in mdf.columns and \
+           'site_remove' in mdf.columns and \
+            len(mdf[mdf['site'].isnull()])>0:
+            mdf['site']=mdf['site_remove']
+        if 'location' in mdf.columns and \
+           'location_remove' in mdf.columns and \
+           len(mdf[mdf['location'].isnull()])>0:
+            mdf['location']=mdf['location_remove']
+        if 'lat' in mdf.columns and \
+           'lat_remove' in mdf.columns:
+            if len(mdf[mdf['lat'].isnull()])>len(mdf[mdf['lat_remove'].isnull()]):
+                mdf['lat']=mdf['lat_remove']
+        if 'lon' in mdf.columns and \
+           'lon_remove' in mdf.columns:
+            if len(mdf[mdf['lon'].isnull()])>len(mdf[mdf['lon_remove'].isnull()]):
+                mdf['lon']=mdf['lon_remove']
         #drop duplicate columns if they are created
         [mdf.drop(col,inplace=True,axis=1) for col in mdf.columns if col.endswith("_remove")]
         #duplicates rows for some freaking reason
         mdf.drop_duplicates(inplace=True,subset=[col for col in mdf.columns if col != 'description'])
         #merge the data of the other type with the new data
-        mdf = mdf.merge(acdf2, how='outer')
+#        mdf = mdf.merge(acdf2, how='outer')
         if dtype in mdf.columns:
             #fix freaking indecies because pandas
             mdf = mdf.set_index(dtype)
