@@ -222,7 +222,6 @@ class Demag_GUI(wx.Frame):
         self.Data,self.Data_hierarchy=self.get_data() # Get data from magic_measurements and rmag_anistropy if exist.
 
         self.locations=list(self.Data_hierarchy['locations'].keys())# get list of sites
-        self.locations = [loc for loc in self.locations if nb.not_null(loc)]
         self.locations.sort()# get list of sites
         self.sites=list(self.Data_hierarchy['sites'].keys())# get list of sites
         self.sites.sort(key=spec_key_func)# get list of sites
@@ -3338,7 +3337,6 @@ class Demag_GUI(wx.Frame):
                 self.loc_data.set_index('location',inplace=True)
                 self.loc_data['location'] = self.loc_data.index
 
-
             #add data to other dataframes
             if 'specimens' in self.con.tables:
                 self.con.propagate_name_down('sample', 'measurements')
@@ -3355,6 +3353,8 @@ class Demag_GUI(wx.Frame):
             meas_data3_0 = meas_container.df
 
             # do some filtering
+            if 'location' in meas_data3_0.columns:
+                meas_data3_0 = meas_data3_0[meas_data3_0['location'].notnull()]
             if 'site' in meas_data3_0.columns:
                 meas_data3_0 = meas_data3_0[meas_data3_0['site'].notnull()]
             if 'sample' in meas_data3_0.columns:
