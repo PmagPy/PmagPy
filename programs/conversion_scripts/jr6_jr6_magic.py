@@ -17,7 +17,7 @@ OPTIONS
     -WD: directory to output files to (default : current directory)
     -F FILE: specify output  measurements file, default is measurements.txt
     -Fsp FILE: specify output specimens.txt file, default is specimens.txt
-    -Fsa FILE: specify output samples.txt file, default is samples.txt 
+    -Fsa FILE: specify output samples.txt file, default is samples.txt
     -Fsi FILE: specify output sites.txt file, default is sites.txt # LORI
     -Flo FILE: specify output locations.txt file, default is locations.txt
     -spc NUM : specify number of characters to designate a  specimen, default = 1
@@ -129,7 +129,7 @@ def main(**kwargs):
     dir_dat= pmag.cart2dir(cart).transpose()
     data['dir_dec']=dir_dat[0]
     data['dir_inc']=dir_dat[1]
-    data['magn_moment']=dir_dat[2]*(10.0**data['expon'])*volume # the data are in A/m - this converts to Am^2 
+    data['magn_moment']=dir_dat[2]*(10.0**data['expon'])*volume # the data are in A/m - this converts to Am^2
     data['magn_volume']=dir_dat[2]*(10.0**data['expon']) # A/m  - data in A/m
     data['dip']=-data['dip']
 

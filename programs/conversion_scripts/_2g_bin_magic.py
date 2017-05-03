@@ -17,7 +17,7 @@ OPTIONS
     -WD: directory to output files to (default : current directory)
     -F FILE: specify output  measurements file, default is measurements.txt
     -Fsp FILE: specify output specimens.txt file, default is specimens.txt
-    -Fsa FILE: specify output samples.txt file, default is samples.txt 
+    -Fsa FILE: specify output samples.txt file, default is samples.txt
     -Fsi FILE: specify output sites.txt file, default is sites.txt # LORI
     -Flo FILE: specify output locations.txt file, default is locations.txt
     -ncn NCON:  specify naming convention: default is #2 below
@@ -34,7 +34,7 @@ OPTIONS
     -loc: location name, default="unknown"
     -lat latitude of site (also used as bounding latitude for location)
     -lon longitude of site (also used as bounding longitude for location)
-    -spc NUM : specify number of characters to designate a  specimen, default = 0     
+    -spc NUM : specify number of characters to designate a  specimen, default = 0
     -ins INST : specify instsrument name
     -A: average replicate measurements
 
@@ -50,11 +50,11 @@ INPUT FORMAT
         [4] lab azimuth and dip are same as mag_azimuth, field_dip
         [5] lab azimuth is same as mag_azimuth,lab arrow dip=field_dip-90
         [6] Lab arrow azimuth = mag_azimuth-90; Lab arrow dip = 90-field_dip
-        [7] all others you will have to either customize your 
-            self or e-mail ltauxe@ucsd.edu for help.  
+        [7] all others you will have to either customize your
+            self or e-mail ltauxe@ucsd.edu for help.
 
      Magnetic declination convention:
-         Az will use supplied declination to correct azimuth 
+         Az will use supplied declination to correct azimuth
 
    Sample naming convention:
     [1] XXXXY: where XXXX is an arbitrary length site designation and Y
@@ -71,7 +71,7 @@ INPUT FORMAT
 
 OUTPUT
         output saved in magic_measurements.txt & er_samples.txt formatted files
-          will overwrite any existing files 
+          will overwrite any existing files
 """
 import sys, os
 import pmagpy.pmag as pmag
@@ -218,7 +218,7 @@ def convert(**kwargs):
             bed_dip=float(rec[el])
             el+=1
             while rec[el]=="":el+=1
-            if rec[el]=='\x01': 
+            if rec[el]=='\x01':
                 bed_dip=180.-bed_dip
                 el+=1
                 while rec[el]=="":el+=1
@@ -254,7 +254,7 @@ def convert(**kwargs):
             SpecRec["specimen"]=specname
             SpecRec["sample"]=sample
             if vcc.strip()!="":vol=float(vcc)*1e-6 # convert to m^3 from cc
-            SpecRec["volumne"]='%10.3e'%(vol) # 
+            SpecRec["volumne"]='%10.3e'%(vol) #
             SpecRec["geologic_classes"]=sclass
             SpecRec["lithologies"]=lithology
             SpecRec["geologic_types"]=_type
@@ -314,7 +314,7 @@ def convert(**kwargs):
             if treat[-1]=='C':
                 demag='T'
             elif treat!='NRM':
-                demag='AF'  
+                demag='AF'
             el+=1
             while rec[el]=="":el+=1
             MeasRec["dir_dec"]=rec[el]
