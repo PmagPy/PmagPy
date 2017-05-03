@@ -4029,7 +4029,7 @@ class Demag_GUI(wx.Frame):
         try:
             sys.stdout = self.old_stdout
         except AttributeError:
-            print("Log file was never openned it cannot be closed")
+            print("Log file was never opened it cannot be closed")
 
     def update_pmag_tables(self):
         """
