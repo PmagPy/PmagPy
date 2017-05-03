@@ -1428,7 +1428,12 @@ class MagicDataFrame(object):
         for col in cols:
             if col not in self.df.columns: self.df[col] = np.nan
         short_df = self.df[cols]
-        short_df = short_df.groupby(short_df.index, sort=False).fillna(method='ffill').groupby(short_df.index, sort=False).fillna(method='bfill')
+        # horrible, bizarre hack to test for pandas malfunction
+        tester = short_df.groupby(short_df.index, sort=False).fillna(method='ffill')
+        if not_null(tester):
+            short_df = short_df.groupby(short_df.index, sort=False).fillna(method='ffill').groupby(short_df.index, sort=False).fillna(method='bfill')
+        else:
+            print('-W- Was not able to front/back fill table {} with these columns: {}'.format(self.dtype, ', '.join(cols)))
         self.df[cols] = short_df[cols]
         return self.df
 
