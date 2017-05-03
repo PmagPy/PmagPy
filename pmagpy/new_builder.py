@@ -1427,7 +1427,10 @@ class MagicDataFrame(object):
             if col not in self.df.columns:
                 self.df[col] = None
         short_df = self.df[cols]
-        short_df = short_df.groupby(short_df.index, sort=False).fillna(method='ffill').groupby(short_df.index, sort=False).fillna(method='bfill')
+        # horrible, bizarre hack to test for pandas malfunction
+        tester = short_df.groupby(short_df.index, sort=False).fillna(method='ffill')
+        if not_null(tester):
+            short_df = short_df.groupby(short_df.index, sort=False).fillna(method='ffill').groupby(short_df.index, sort=False).fillna(method='bfill')
         self.df[cols] = short_df[cols]
         return self.df
 
