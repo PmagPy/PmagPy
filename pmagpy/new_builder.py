@@ -1147,7 +1147,7 @@ class MagicDataFrame(object):
             #
             if self.dtype == 'measurements':
                 if "number" in self.df.columns:
-                    self.df.rename(columns={'number': 'treat_step_num'})
+                    self.df.rename(columns={'number': 'treat_step_num'}, inplace=True)
                 self.df['measurement'] = self.df['experiment'] + self.df['treat_step_num'].astype(str)
             elif self.dtype == 'contribution':
                 return
@@ -1193,7 +1193,7 @@ class MagicDataFrame(object):
             self.df[name] = self.df.index
         elif name == 'measurement' and len(self.df):
             if "number" in self.df.columns:
-                self.df.rename(columns={'number': 'treat_step_num'})
+                self.df.rename(columns={'number': 'treat_step_num'}, inplace=True)
             self.df['measurement'] = self.df['experiment'] + self.df['treat_step_num'].astype(str)
 
 
