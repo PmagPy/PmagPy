@@ -209,7 +209,7 @@ def convert(**kwargs):
             MeasRec["meas_temp"]='%8.3e' % (273) # room temp in kelvin
             MeasRec["quality"]='g'
             MeasRec["standard"]='u'
-            MeasRec["number"]='1'
+            MeasRec["treat_step_num"]='1'
             MeasRec["treat_ac_field"]='0'
             if demagLevel == 'NRM':
                 meas_type="LT-NO"

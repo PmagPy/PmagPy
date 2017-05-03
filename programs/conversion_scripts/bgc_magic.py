@@ -199,7 +199,7 @@ def convert(**kwargs):
         MeasRec["meas_temp"] = '%8.3e' % (273) # room temp in kelvin
         MeasRec["quality"] = 'g'
         MeasRec["standard"] = 'u'
-        MeasRec["number"] = rowNum
+        MeasRec["treat_step_num"] = rowNum
         MeasRec["specimen"] = specimen
         MeasRec["treat_ac_field"] = '0'
         if row['DM Val'] == '0':

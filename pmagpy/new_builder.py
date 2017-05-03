@@ -1146,7 +1146,9 @@ class MagicDataFrame(object):
             self.df = self.df.dropna(how='all', axis=0)
             #
             if self.dtype == 'measurements':
-                self.df['measurement'] = self.df['experiment'] + self.df['number'].astype(str)
+                if "number" in self.df.columns:
+                    self.df.rename(columns={'number': 'treat_step_num'})
+                self.df['measurement'] = self.df['experiment'] + self.df['treat_step_num'].astype(str)
             elif self.dtype == 'contribution':
                 return
             elif self.dtype == 'images':
@@ -1190,7 +1192,9 @@ class MagicDataFrame(object):
         if name not in ['measurement', 'age']:
             self.df[name] = self.df.index
         elif name == 'measurement' and len(self.df):
-            self.df['measurement'] = self.df['experiment'] + self.df['number'].astype(str)
+            if "number" in self.df.columns:
+                self.df.rename(columns={'number': 'treat_step_num'})
+            self.df['measurement'] = self.df['experiment'] + self.df['treat_step_num'].astype(str)
 
 
     ## Methods to change self.df inplace

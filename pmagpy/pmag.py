@@ -6994,7 +6994,7 @@ def measurements_methods3(meas_data,noave):
                     if experiment_name!="":
                         rec["method_codes"]=rec["method_codes"]+":"+experiment_name
                     rec["experiment"]=spec+":"+experiment_name
-                    rec['number']='%i'%(measnum)  # assign measurement numbers
+                    rec['treat_step_num']='%i'%(measnum)  # assign measurement numbers
                     measnum+=1
                     SpecOuts.append(rec)
             elif experiment_name=="LP-PI-TRM:LP-PI-ALT-AFARM": # is a Shaw experiment!
@@ -7024,7 +7024,7 @@ def measurements_methods3(meas_data,noave):
                     if "LT-T-I" in meths:TRM=1
                     rec["method_codes"]=rec["method_codes"]+":"+experiment_name
                     rec["experiment"]=spec+":"+experiment_name
-                    rec['number']='%i'%(measnum)  # assign measurement numbers
+                    rec['treat_step_num']='%i'%(measnum)  # assign measurement numbers
                     measnum+=1
                     SpecOuts.append(rec)
             else:  # not a Thellier-Thellier  or a Shaw experiemnt
@@ -7032,13 +7032,13 @@ def measurements_methods3(meas_data,noave):
                     if experiment_name=="":
                         rec["method_codes"]="LT-NO"
                         rec["experiment"]=spec+":LT-NO"
-                        rec['number']='%i'%(measnum)  # assign measurement numbers
+                        rec['treat_step_num']='%i'%(measnum)  # assign measurement numbers
                         measnum+=1
                     else:
                         if experiment_name not in rec['method_codes']:
                             rec["method_codes"]=rec["method_codes"]+":"+experiment_name
                             rec["method_codes"]=rec["method_codes"].strip(':')
-                        rec['number']='%i'%(measnum)  # assign measurement numbers
+                        rec['treat_step_num']='%i'%(measnum)  # assign measurement numbers
                         measnum+=1
                         rec["experiment"]=spec+":"+experiment_name
                     rec["software_packages"]=version_num

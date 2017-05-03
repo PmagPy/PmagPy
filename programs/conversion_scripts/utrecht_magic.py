@@ -237,7 +237,7 @@ def convert(**kwargs):
             MeasRec["quality"] = 'g'
             MeasRec["standard"] = 'u'
             MeasRec["experiments"] = location + site + spec_name
-            MeasRec["number"] = location + site + spec_name + items[0]
+            MeasRec["treat_step_num"] = location + site + spec_name + items[0]
             MeasRec["specimen"] = spec_name
             # MeasRec["treat_ac_field"] = '0'
             if AF_or_T.lower() == "th":

@@ -167,7 +167,7 @@ def convert(**kwargs):
         MeasRec["meas_temp"]='%8.3e' % (273) # room temp in kelvin
         MeasRec["quality"]='g'
         MeasRec["standard"]='u'
-        MeasRec["number"]='1'
+        MeasRec["treat_step_num"]='1'
         MeasRec["specimen"]=specimen
         if rec[0]=='NRM': 
             meas_type="LT-NO"
