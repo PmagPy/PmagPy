@@ -1582,7 +1582,7 @@ class MagicDataFrame(object):
 
     def merge_dfs(self, df1):
         """
-        Description: takes new calculated data and replaces the corresponding data in self.df with the new input data preserving the most important metadata if they are not otherwise saved.
+        Description: takes new calculated data and replaces the corresponding data in self.df with the new input data preserving the most important metadata if they are not otherwise saved. Note this does not mutate self.df it simply returns the merged dataframe if you want to replace self.df you'll have to do that yourself.
 
         @param: df1 - first DataFrame whose data will preferentially be used.
         """
