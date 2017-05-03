@@ -29,6 +29,11 @@ class TestMainFrame(unittest.TestCase):
         self.pnl = self.frame.GetChildren()[0]
 
     def tearDown(self):
+        for fname in ('locations.txt', 'sites.txt'):
+            try:
+                os.remove(os.path.join(PROJECT_WD, fname))
+            except OSError:
+                pass
         os.chdir(WD)
         return
 
