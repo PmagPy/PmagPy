@@ -222,6 +222,7 @@ class Demag_GUI(wx.Frame):
         self.Data,self.Data_hierarchy=self.get_data() # Get data from magic_measurements and rmag_anistropy if exist.
 
         self.locations=list(self.Data_hierarchy['locations'].keys())# get list of sites
+        self.locations = [loc for loc in self.locations if nb.not_null(loc)]
         self.locations.sort()# get list of sites
         self.sites=list(self.Data_hierarchy['sites'].keys())# get list of sites
         self.sites.sort(key=spec_key_func)# get list of sites
