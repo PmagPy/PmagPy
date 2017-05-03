@@ -5,12 +5,21 @@
 # e.g.
 # wrapper.sh angle.py -h
 
-# make sure a program name was provided
+# check if program name was provided
 prog_name="$1"
-if [ -z "$prog_name" ]; then
-    echo "-W- You must provide a PmagPy program name"
-    echo 'Correct usage is wrapper.sh pmagpy_program.py'
-    exit
+
+if [[ $prog_name == -* ]]; then
+    echo "-I- You have not provided a PmagPy program name, defaulting to open Pmag GUI"
+    echo '-I- If you want to invoke a different program, correct usage is pmag_gui.sh pmagpy_program.py'
+    prog_name="pmag_gui.py"
+    start_arg=1
+elif [ -z "$prog_name" ]; then
+    echo "-I- You have not provided a PmagPy program name, defaulting to open Pmag GUI"
+    echo '-I- If you want to invoke a different program, correct usage is pmag_gui.sh pmagpy_program.py'
+    prog_name="pmag_gui.py"
+    start_arg=2
+else
+    start_arg=2
 fi
 
 # try pythonw first, then python
@@ -29,12 +38,11 @@ for py_exec in ${pythons[@]}; do
     if "$is_3"; then
         if [[ -f $py_exec ]]; then
             # get full program name
-            prog_name="$(which $1)"
+            prog_name="$(which $prog_name)"
             # find number of args
             num_args="$#"
-            # grab all args after the first two
-            use_args=${@:2:$num_args}
-            echo 'executing:' $py_exec $prog_name $use_args
+            # grab all args after the first two (or one, if using pmag_gui)
+            use_args=${@:$start_arg:$num_args}
             # execute the program
             exec $py_exec $prog_name $use_args
             exit
