@@ -7,6 +7,7 @@ import numpy
 
 import pmagpy.pmag as pmag
 
+
 def main():
     """
     NAME
@@ -30,46 +31,51 @@ def main():
         -F FILE output filename (required if -F set)
         Standard I/O
     """
-    out=""
+    out = ""
     if '-h' in sys.argv:
         print(main.__doc__)
         sys.exit()
     if '-F' in sys.argv:
-        ind=sys.argv.index('-F')
-        o=sys.argv[ind+1]
-        out=open(o,'w')
+        ind = sys.argv.index('-F')
+        o = sys.argv[ind + 1]
+        out = open(o, 'w')
     if '-i' in sys.argv:
-        cont=1
-        while cont==1:
-            dir1,dir2=[],[]
+        cont = 1
+        while cont == 1:
+            dir1, dir2 = [], []
             try:
-                ans=input('Declination 1: [ctrl-D  to quit] ')
+                ans = input('Declination 1: [ctrl-D  to quit] ')
                 dir1.append(float(ans))
-                ans=input('Inclination 1: ')
+                ans = input('Inclination 1: ')
                 dir1.append(float(ans))
-                ans=input('Declination 2: ')
+                ans = input('Declination 2: ')
                 dir2.append(float(ans))
-                ans=input('Inclination 2: ')
+                ans = input('Inclination 2: ')
                 dir2.append(float(ans))
             except:
                 print("\nGood bye\n")
                 sys.exit()
 
-            ang= pmag.angle(dir1,dir2)  # send dirs  to angle and spit out result
-            print('%7.1f '%(ang))
+            # send dirs  to angle and spit out result
+            ang = pmag.angle(dir1, dir2)
+            print('%7.1f ' % (ang))
     elif '-f' in sys.argv:
-        ind=sys.argv.index('-f')
-        file=sys.argv[ind+1]
-        file_input=numpy.loadtxt(file)
+        ind = sys.argv.index('-f')
+        file = sys.argv[ind + 1]
+        file_input = numpy.loadtxt(file)
     else:
-        file_input = numpy.loadtxt(sys.stdin.readlines(),dtype=numpy.float)  # read from standard input
-    if len(file_input.shape)>1: # list of directions
-        dir1,dir2=file_input[:,0:2], file_input[:,2:]
-    else: dir1,dir2= file_input[0:2], file_input[2:]
-    angs=pmag.angle(dir1,dir2)
+        # read from standard input
+        file_input = numpy.loadtxt(sys.stdin.readlines(), dtype=numpy.float)
+    if len(file_input.shape) > 1:  # list of directions
+        dir1, dir2 = file_input[:, 0:2], file_input[:, 2:]
+    else:
+        dir1, dir2 = file_input[0:2], file_input[2:]
+    angs = pmag.angle(dir1, dir2)
     for ang in angs:   # read in the data (as string variable), line by line
-        print('%7.1f'%(ang))
-        if out!="":out.write('%7.1f \n'%(ang))
+        print('%7.1f' % (ang))
+        if out != "":
+            out.write('%7.1f \n' % (ang))
+
 
 if __name__ == "__main__":
     main()
