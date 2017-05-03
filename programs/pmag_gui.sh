@@ -8,16 +8,20 @@
 # make sure a program name was provided
 prog_name="$1"
 if [ -z "$prog_name" ]; then
-    echo "-W- You must provide a PmagPy program name"
-    echo 'Correct usage is wrapper.sh pmagpy_program.py'
-    exit
+    echo "-I- You have not provided a PmagPy program name, defaulting to open Pmag GUI"
+    echo '-I- If you want to invoke a different program, correct usage is pmag_gui.sh pmagpy_program.py'
+    prog_name="pmag_gui.py"
 fi
+
+echo $prog_name
 
 # try pythonw first, then python
 pythons=('pythonw' 'python')
 for py_exec in ${pythons[@]}; do
+    echo $py_exec
     # get full path to python version
     py_exec="$(which $py_exec)"
+    echo $py_exec
     # find what version of python it is
     output="$($py_exec --version 2>&1)"
     is_3=false
@@ -27,11 +31,19 @@ for py_exec in ${pythons[@]}; do
     fi
     # if we found Python 3, execute the program
     if "$is_3"; then
+        echo $is_3
         if [[ -f $py_exec ]]; then
+            echo $py_exec
             # get full program name
-            prog_name="$(which $1)"
+            echo partial prog name
+            echo $prog_name
+            prog_name="$(which $prog_name)"
+            echo full prog name
+            echo $prog_name
             # find number of args
             num_args="$#"
+            echo num_args
+            echo $num_args
             # grab all args after the first two
             use_args=${@:2:$num_args}
             echo 'executing:' $py_exec $prog_name $use_args
