@@ -943,8 +943,8 @@ else:
                 if self.acceptance_criteria[crit]['decimal_points']==-999:
                     value="%.3e"%self.acceptance_criteria[crit]['value']
                 else:
-                    command="value='%%.%if'%%self.acceptance_criteria[crit]['value']"%(self.acceptance_criteria[crit]['decimal_points'])
-                    exec(command)
+                    value = "{:.{}f}".format(self.acceptance_criteria[crit]['value'],
+                                             self.acceptance_criteria[crit]['decimal_points'])
             else:
                 continue
 
@@ -2431,7 +2431,8 @@ else:
 
             try:
                 exec(command)
-            except:
+            except Exception as ex:
+                print(ex)
                 continue
 
             #---------
@@ -5380,8 +5381,8 @@ else:
             if self.acceptance_criteria[stat]['decimal_points']==-999:
                 value='%.2e'%self.pars[stat]
             elif type(self.acceptance_criteria[stat]['decimal_points'])==float or type(self.acceptance_criteria[stat]['decimal_points'])==int:
-                command="value='%%.%if'%%(float(self.pars[stat]))"%(int(self.acceptance_criteria[stat]['decimal_points']))
-                exec(command)
+                value="{:.{}f}".format(self.pars[stat],
+                                       int(self.acceptance_criteria[stat]['decimal_points']))
             #elif  stat=='specimen_scat':
             #    value= str(self.acceptance_criteria[stat]['value'])
             # write the value
