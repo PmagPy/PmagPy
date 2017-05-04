@@ -271,6 +271,7 @@ class Criteria_Dialog(wx.Dialog):
         self.stat_gridsizers = {}
         self.set_specimen_windows = {}
         self.set_sample_windows = {}
+        self.set_anisotropy_windows = {}
         self.InitUI()
 
     def InitUI(self):
@@ -322,13 +323,17 @@ class Criteria_Dialog(wx.Dialog):
         #---------------------------
 
         bSizer1a = wx.StaticBoxSizer( wx.StaticBox( pnl1, wx.ID_ANY, "anisotropy criteria" ), wx.HORIZONTAL )
-        self.set_anisotropy_alt=wx.TextCtrl(pnl1,style=wx.TE_CENTER,size=(50,20))
-        self.set_anisotropy_ftest_flag= wx.CheckBox(pnl1, -1, '', (10, 10))
+        self.set_anisotropy_windows['anisotropy_alt'] = wx.TextCtrl(pnl1,style=wx.TE_CENTER,size=(50,20))
+        #self.set_anisotropy_alt=wx.TextCtrl(pnl1,style=wx.TE_CENTER,size=(50,20))
+        self.set_anisotropy_windows['anisotropy_ftest_flag'] = wx.CheckBox(pnl1, -1, '', (10, 10))
+        #self.set_anisotropy_ftest_flag= wx.CheckBox(pnl1, -1, '', (10, 10))
         criteria_aniso_window = wx.GridSizer(2, 2, 6, 6)
-        criteria_aniso_window.AddMany( [(wx.StaticText(pnl1,label="use F test as acceptance criteria",style=wx.TE_CENTER), wx.EXPAND),
-            (wx.StaticText(pnl1,label="alteration check (%)",style=wx.TE_CENTER), wx.EXPAND),
-            (self.set_anisotropy_ftest_flag),
-            (self.set_anisotropy_alt)])
+        criteria_aniso_window.AddMany([(wx.StaticText(pnl1,label="use F test as acceptance criteria",style=wx.TE_CENTER), wx.EXPAND),
+                                       (wx.StaticText(pnl1,label="alteration check (%)",style=wx.TE_CENTER), wx.EXPAND),
+                                       (self.set_anisotropy_windows['anisotropy_ftest_flag']),
+                                       #(self.set_anisotropy_ftest_flag),
+                                       (self.set_anisotropy_windows['anisotropy_alt'])])
+                                       #(self.set_anisotropy_alt)])
 
         bSizer1a.Add( criteria_aniso_window, 0, wx.ALIGN_LEFT|wx.ALL, 5 )
 
@@ -517,13 +522,16 @@ class Criteria_Dialog(wx.Dialog):
                                      self.acceptance_criteria[crit]['decimal_points'])
             #command="value='%%.%if'%%(self.acceptance_criteria[crit]['value'])"%int(self.acceptance_criteria[crit]['decimal_points'])
             #exec(command)
-        self.set_anisotropy_alt.SetValue(value)
+        self.set_anisotropy_windows['anisotropy_alt'].SetValue(value)
+        #self.set_anisotropy_alt.SetValue(value)
 
         crit="specimen_aniso_ftest_flag"
         if self.acceptance_criteria[crit]['value'] in [True,1,"True","TRUE","1","1.0",'g']:
-            self.set_anisotropy_ftest_flag.SetValue(True)
+            self.set_anisotropy_windows['anisotropy_ftest_flag'].SetValue(True)
+            #self.set_anisotropy_ftest_flag.SetValue(True)
         else:
-            self.set_anisotropy_ftest_flag.SetValue(False)
+            self.set_anisotropy_windows['anisotropy_ftest_flag'].SetValue(False)
+            #self.set_anisotropy_ftest_flag.SetValue(False)
 
         #-------------------------------------------
         # Intialize values: avearge by site or sample
