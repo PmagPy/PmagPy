@@ -47,6 +47,12 @@ class PI_Statistics_Dialog(wx.Dialog):
             parent, title=title, style=style)
         self.show_statistics_on_gui = copy.copy(show_statistics_on_gui)
 
+        # dicts to contain small window elements
+        self.bSizers = {}
+        self.hboxes = {}
+        self.set_specimen_windows = {}
+        self.specimen_btns = {}
+
         self.stat_by_category = {}
 
         self.stat_by_category['Arai plot'] = ['specimen_int_n',
@@ -152,42 +158,54 @@ class PI_Statistics_Dialog(wx.Dialog):
         categories = ['Arai plot', 'Direction',
                       'pTRM Checks', 'Tail Checks', 'Additivity Checks']
         for k in range(len(categories)):
-            command = "bSizer%i = wx.StaticBoxSizer( wx.StaticBox( pnl1, wx.ID_ANY, '%s' ), wx.VERTICAL )" % (
-                k, categories[k])
-            exec(command)
+            self.bSizers[k] = wx.StaticBoxSizer( wx.StaticBox( pnl1, wx.ID_ANY, '%s' ), wx.VERTICAL )
+            #command = "bSizer%i = wx.StaticBoxSizer( wx.StaticBox( pnl1, wx.ID_ANY, '%s' ), wx.VERTICAL )" % (
+            #    k, categories[k])
+            #exec(command)
 
             for stat in self.stat_by_category[categories[k]]:
                 short_name = stat.replace("specimen_", "")
-                command = "self.set_specimen_%s=wx.CheckBox(pnl1,-1,label='%s',name='%s')" % (
-                    short_name, short_name, short_name)
-                exec(command)
-                command = "self.Bind(wx.EVT_CHECKBOX, self.OnCheckBox, self.set_specimen_%s)" % (
-                    short_name)
-                exec(command)
-                command = "self.specimen_%s_button = wx.Button(pnl1, -1, label='description',name='%s')" % (
-                    short_name, stat)
-                exec(command)
-                command = "self.Bind(wx.EVT_BUTTON,self.PI_stat_description, self.specimen_%s_button)" % (
-                    short_name)
-                exec(command)
+                self.set_specimen_windows[short_name] = wx.CheckBox(pnl1, -1, label=short_name, name=short_name)
+                #command = "self.set_specimen_%s=wx.CheckBox(pnl1,-1,label='%s',name='%s')" % (
+                #    short_name, short_name, short_name)
+                #exec(command)
+                self.Bind(wx.EVT_CHECKBOX, self.OnCheckBox, self.set_specimen_windows[short_name])
+                #command = "self.Bind(wx.EVT_CHECKBOX, self.OnCheckBox, self.set_specimen_%s)" % (
+                #    short_name)
+                #exec(command)
+                self.specimen_btns[short_name] = wx.Button(pnl1, -1, label='description',name=stat)
+                #command = "self.specimen_%s_button = wx.Button(pnl1, -1, label='description',name='%s')" % (
+                #    short_name, stat)
+                #exec(command)
+                self.Bind(wx.EVT_BUTTON, self.PI_stat_description, self.specimen_btns[short_name])
+                #command = "self.Bind(wx.EVT_BUTTON,self.PI_stat_description, self.specimen_%s_button)" % (
+                #    short_name)
+                #exec(command)
 
+            self.hboxes[k] = {}
             for i in range(len(self.stat_by_category[categories[k]])):
-                command = "hbox_%i= wx.BoxSizer(wx.HORIZONTAL)" % i
-                exec(command)
+                self.hboxes[k][i] = wx.BoxSizer(wx.HORIZONTAL)
+                #command = "hbox_%i= wx.BoxSizer(wx.HORIZONTAL)" % i
+                #exec(command)
                 stat = self.stat_by_category[categories[k]][i]
                 short_name = stat.replace("specimen_", "")
-                command = "hbox_%i.Add(self.specimen_%s_button)" % (
-                    i, short_name)
-                exec(command)
-                command = "hbox_%i.AddSpacer(10)" % (i)
-                exec(command)
+                self.hboxes[k][i].Add(self.specimen_btns[short_name])
+                #command = "hbox_%i.Add(self.specimen_%s_button)" % (
+                #    i, short_name)
+                #exec(command)
+                self.hboxes[k][i].AddSpacer(10)
+                #command = "hbox_%i.AddSpacer(10)" % (i)
+                #exec(command)
 
-                command = "hbox_%i.Add(self.set_specimen_%s)" % (i, short_name)
-                exec(command)
-                command = "bSizer%i.Add(hbox_%i)" % (k, i)
-                exec(command)
-                command = "bSizer%i.AddSpacer(10)" % k
-                exec(command)
+                self.hboxes[k][i].Add(self.set_specimen_windows[short_name])
+                #command = "hbox_%i.Add(self.set_specimen_%s)" % (i, short_name)
+                #exec(command)
+                self.bSizers[k].Add(self.hboxes[k][i])
+                #command = "bSizer%i.Add(hbox_%i)" % (k, i)
+                #exec(command)
+                self.bSizers[k].AddSpacer(10)
+                #command = "bSizer%i.AddSpacer(10)" % k
+                #exec(command)
         # self.specimen_int_n_button.Bind(wx.EVT_BUTTON, lambda evt, name=specimen_int_n_button.GetLabel(): self.onButton(evt, name)
         #self.Bind(wx.EVT_BUTTON,self.PI_stat_description, self.specimen_int_n_button)
         #---------------------------
@@ -207,16 +225,19 @@ class PI_Statistics_Dialog(wx.Dialog):
 
         hbox = wx.BoxSizer(wx.HORIZONTAL)
         hbox.AddSpacer(10)
-        hbox.Add(bSizer0, flag=wx.ALIGN_CENTER_HORIZONTAL)
-        hbox.AddSpacer(10)
-        hbox.Add(bSizer1, flag=wx.ALIGN_CENTER_HORIZONTAL)
-        hbox.AddSpacer(10)
-        hbox.Add(bSizer2, flag=wx.ALIGN_CENTER_HORIZONTAL)
-        hbox.AddSpacer(10)
-        hbox.Add(bSizer3, flag=wx.ALIGN_CENTER_HORIZONTAL)
-        hbox.AddSpacer(10)
-        hbox.Add(bSizer4, flag=wx.ALIGN_CENTER_HORIZONTAL)
-        hbox.AddSpacer(10)
+        for num in sorted(self.bSizers):
+            hbox.Add(self.bSizers[num], flag=wx.ALIGN_CENTER_HORIZONTAL)
+            hbox.AddSpacer(10)
+        #hbox.Add(bSizer0, flag=wx.ALIGN_CENTER_HORIZONTAL)
+        #hbox.AddSpacer(10)
+        #hbox.Add(bSizer1, flag=wx.ALIGN_CENTER_HORIZONTAL)
+        #hbox.AddSpacer(10)
+        #hbox.Add(bSizer2, flag=wx.ALIGN_CENTER_HORIZONTAL)
+        #hbox.AddSpacer(10)
+        #hbox.Add(bSizer3, flag=wx.ALIGN_CENTER_HORIZONTAL)
+        #hbox.AddSpacer(10)
+        #hbox.Add(bSizer4, flag=wx.ALIGN_CENTER_HORIZONTAL)
+        #hbox.AddSpacer(10)
 
         vbox.AddSpacer(10)
         vbox.Add(hbox, flag=wx.ALIGN_CENTER_HORIZONTAL)
@@ -233,8 +254,9 @@ class PI_Statistics_Dialog(wx.Dialog):
         for short_name in self.show_statistics_on_gui:
             for category in categories:
                 if "specimen_" + short_name in self.stat_by_category[category]:
-                    command = "self.set_specimen_%s.SetValue(True)" % short_name
-                    exec(command)
+                    self.set_specimen_windows[short_name].SetValue(True)
+                    #command = "self.set_specimen_%s.SetValue(True)" % short_name
+                    #exec(command)
 
     def PI_stat_description(self, event):
         button = event.GetEventObject()
