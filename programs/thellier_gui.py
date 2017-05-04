@@ -384,6 +384,7 @@ class Arai_GUI(wx.Frame):
 
         self.InitUI()
         del wait
+        FIRST_RUN = False
 
     def InitUI(self):
         # make Panels
