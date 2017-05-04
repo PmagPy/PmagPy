@@ -5354,7 +5354,7 @@ else:
         #-------------------------------------------------
         s=self.s
 
-        # continue only if temperature bouds were asigned
+        # continue only if temperature bounds were assigned
 
         if "measurement_step_min" not in list(self.pars.keys()) or "measurement_step_max" not in list(self.pars.keys()):
             return(self.pars)
@@ -5411,49 +5411,57 @@ else:
             #elif  stat=='specimen_scat':
             #    value= str(self.acceptance_criteria[stat]['value'])
             # write the value
-            command= "self.%s_window.SetValue(value)"%stat.split('specimen_')[-1]
-            exec(command)
+            self.stat_windows[short_stat].SetValue(value)
+            #command= "self.%s_window.SetValue(value)"%stat.split('specimen_')[-1]
+            #exec(command)
 
             # set backgound color
             cutoff_value=self.acceptance_criteria[stat]['value']
             if cutoff_value==-999:
-                command="self.%s_window.SetBackgroundColour(wx.WHITE)"%stat.split('specimen_')[-1]  # set text color
+                self.stat_windows[short_stat].SetBackgroundColour(wx.WHITE)
+                #command="self.%s_window.SetBackgroundColour(wx.WHITE)"%stat.split('specimen_')[-1]  # set text color
             elif stat=="specimen_k" or stat=="specimen_k_prime":
                 if abs(self.pars[stat])>cutoff_value:
-                    command="self.%s_window.SetBackgroundColour(wx.RED)"%stat.split('specimen_')[-1]  # set text color
+                    self.stat_windows[short_stat].SetBackgroundColour(wx.RED)
+                    #command="self.%s_window.SetBackgroundColour(wx.RED)"%stat.split('specimen_')[-1]  # set text color
                     flag_Fail=True
                 else:
-                    command="self.%s_window.SetBackgroundColour(wx.GREEN)"%stat.split('specimen_')[-1]  # set text color
+                    self.stat_windows[short_stat].SetBackGroundColour(wx.Green)
+                    #command="self.%s_window.SetBackgroundColour(wx.GREEN)"%stat.split('specimen_')[-1]  # set text color
             elif self.acceptance_criteria[stat]['threshold_type']=='high' and self.pars[stat]>cutoff_value:
-                command="self.%s_window.SetBackgroundColour(wx.RED)"%stat.split('specimen_')[-1]  # set text color
+                self.stat_windows[short_stat].SetBackgroundColour(wx.RED)
+                #command="self.%s_window.SetBackgroundColour(wx.RED)"%stat.split('specimen_')[-1]  # set text color
                 flag_Fail=True
             elif self.acceptance_criteria[stat]['threshold_type']=='low' and self.pars[stat]<cutoff_value:
-                command="self.%s_window.SetBackgroundColour(wx.RED)"%stat.split('specimen_')[-1]  # set text color
+                self.stat_windows[short_stat].SetBackgroundColour(wx.RED)
+                #command="self.%s_window.SetBackgroundColour(wx.RED)"%stat.split('specimen_')[-1]  # set text color
                 flag_Fail=True
             else:
-                command="self.%s_window.SetBackgroundColour(wx.GREEN)"%stat.split('specimen_')[-1]  # set text color
-            exec(command)
+                self.stat_windows[short_stat].SetBackgroundColour(wx.GREEN)
+                #command="self.%s_window.SetBackgroundColour(wx.GREEN)"%stat.split('specimen_')[-1]  # set text color
+            #exec(command)
 
         # specimen_scat
         #if 'scat' in self.preferences['show_statistics_on_gui']:
         if "specimen_scat" in self.pars:
+            scat_window = self.stat_windows['scat']
             in_acceptance = self.acceptance_criteria['specimen_scat']['value'] in ['True','TRUE','1',1,True,'g']
             if self.pars["specimen_scat"]=='Pass':
-                self.scat_window.SetValue("Pass")
+                scat_window.SetValue("Pass")
                 if in_acceptance:
-                    self.scat_window.SetBackgroundColour(wx.GREEN) # set background color
+                    scat_window.SetBackgroundColour(wx.GREEN) # set background color
                 else:
-                    self.scat_window.SetBackgroundColour(wx.WHITE)
+                    scat_window.SetBackgroundColour(wx.WHITE)
             else:
-                self.scat_window.SetValue("Fail")
+                scat_window.SetValue("Fail")
                 if in_acceptance:
-                    self.scat_window.SetBackgroundColour(wx.RED) # set background color
+                    scat_window.SetBackgroundColour(wx.RED) # set background color
                 else:
-                    self.scat_window.SetBackgroundColour(wx.WHITE)
+                    scat_window.SetBackgroundColour(wx.WHITE)
 
         else:
-            self.scat_window.SetValue("")
-            self.scat_window.SetBackgroundColour(wx.Colour('grey')) # set text color
+            scat_window.SetValue("")
+            scat_window.SetBackgroundColour(wx.Colour('grey')) # set text color
 
 
         # Blab, Banc, correction factors
