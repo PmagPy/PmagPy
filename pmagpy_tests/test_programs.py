@@ -74,7 +74,7 @@ class TestProgramsHelp(unittest.TestCase):
     def test_help(self):
         res = self.env.run('template_magic.py', '-h')
 
-    @unittest.skipIf('Anaconda' not in sys.version.split()[1], 'only needed for Anaconda')
+    @unittest.skipIf(('Anaconda' not in sys.version.split()[1]) or (sys.version_info >= (3,)), 'only needed for Anaconda')
     def test_guis_anaconda(self):
         tests = ['pmag_gui_anaconda', 'magic_gui_anaconda',
                  'magic_gui2_anaconda',# 'demag_gui_anaconda',
