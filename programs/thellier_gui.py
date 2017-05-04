@@ -356,6 +356,14 @@ class Arai_GUI(wx.Frame):
         self.last_saved_pars={}
         self.specimens=list(self.Data.keys()) # get list of specimens
         self.specimens.sort() # get list of specimens
+
+        # dicts to contain statistic windows
+        # (removes need for many exec statements)
+        # self.stat_windows['scat'] is equivalent to old self.scat_window
+        self.stat_windows = {}
+        self.threshold_windows = {}
+        self.stat_labels = {}
+
         self.InitUI()
         del wait
 
@@ -696,22 +704,31 @@ class Arai_GUI(wx.Frame):
         label_2=wx.StaticText(self.bottom_panel,label="Specimen statistics:",style=wx.ALIGN_CENTER,size=(180,25))
 
         for statistic in self.preferences['show_statistics_on_gui']:
-            command="self.%s_window=wx.TextCtrl(self.bottom_panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50*self.GUI_RESOLUTION,25))"%statistic
-            exec(command)
-            command="self.%s_window.SetBackgroundColour(wx.WHITE)"%statistic
-            exec(command)
-            command="self.%s_window.SetFont(font2)"%statistic
-            exec(command)
-            command="self.%s_threshold_window=wx.TextCtrl(self.bottom_panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50*self.GUI_RESOLUTION,25))"%statistic
-            exec(command)
-            command="self.%s_threshold_window.SetFont(font2)"%statistic
-            exec(command)
-            command="self.%s_threshold_window.SetBackgroundColour(wx.WHITE)"%statistic
-            exec(command)
-            command="%s_label=wx.StaticText(self.bottom_panel,label='%s',style=wx.ALIGN_CENTRE_HORIZONTAL|wx.ALIGN_BOTTOM)"%(statistic,statistic.replace("specimen_","").replace("int_",""))
-            exec(command)
-            command="%s_label.SetFont(font2)"%statistic
-            exec(command)
+            self.stat_windows[statistic] = wx.TextCtrl(self.bottom_panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50*self.GUI_RESOLUTION,25))
+            #command="self.%s_window=wx.TextCtrl(self.bottom_panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50*self.GUI_RESOLUTION,25))"%statistic
+            #exec(command)
+            self.stat_windows[statistic].SetBackgroundColour(wx.WHITE)
+            #command="self.%s_window.SetBackgroundColour(wx.WHITE)"%statistic
+            #exec(command)
+            self.stat_windows[statistic].SetFont(font2)
+            #command="self.%s_window.SetFont(font2)"%statistic
+            #exec(command)
+            self.threshold_windows[statistic] = wx.TextCtrl(self.bottom_panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50*self.GUI_RESOLUTION,25))
+            #command="self.%s_threshold_window=wx.TextCtrl(self.bottom_panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50*self.GUI_RESOLUTION,25))"%statistic
+            #exec(command)
+            self.threshold_windows[statistic].SetFont(font2)
+            #command="self.%s_threshold_window.SetFont(font2)"%statistic
+            #exec(command)
+            self.threshold_windows[statistic].SetBackgroundColour(wx.WHITE)
+            #command="self.%s_threshold_window.SetBackgroundColour(wx.WHITE)"%statistic
+            #exec(command)
+            label = statistic.replace("specimen_","").replace("int_","")
+            self.stat_labels[statistic] = wx.StaticText(self.bottom_panel,label=label, style=wx.ALIGN_CENTRE_HORIZONTAL|wx.ALIGN_BOTTOM)
+            #command="%s_label=wx.StaticText(self.bottom_panel,label='%s',style=wx.ALIGN_CENTRE_HORIZONTAL|wx.ALIGN_BOTTOM)"%(statistic,statistic.replace("specimen_","").replace("int_",""))
+            #exec(command)
+            self.stat_labels[statistic].SetFont(font2)
+            #command="%s_label.SetFont(font2)"%statistic
+            #exec(command)
 
         #-------------------------------------------------------------------
         # Design the panels
@@ -767,13 +784,16 @@ class Arai_GUI(wx.Frame):
         sizer_stats_boxes = wx.BoxSizer(wx.HORIZONTAL)
         sizer_stats_boxes.Add(label_2, 3, wx.EXPAND|wx.LEFT, 2*h_space)
         for statistic in self.preferences['show_statistics_on_gui']:
-            exec("sizer_criteria_labels.Add(%s_label, 1, wx.ALIGN_BOTTOM, 0)"%statistic)
+            sizer_criteria_labels.Add(self.stat_labels[statistic], 1, wx.ALIGN_BOTTOM, 0)
+            #exec("sizer_criteria_labels.Add(%s_label, 1, wx.ALIGN_BOTTOM, 0)"%statistic)
 
         #----------------Acceptance Criteria Boxes---------------------------
-            exec("sizer_criteria_boxes.Add(self.%s_threshold_window, 1, wx.EXPAND|wx.LEFT, h_space)"%statistic)
+            sizer_criteria_boxes.Add(self.threshold_windows[statistic], 1, wx.EXPAND|wx.LEFT, h_space)
+            #exec("sizer_criteria_boxes.Add(self.%s_threshold_window, 1, wx.EXPAND|wx.LEFT, h_space)"%statistic)
 
         #----------------Specimen Statistics Boxes---------------------------
-            exec("sizer_stats_boxes.Add(self.%s_window, 1, wx.EXPAND|wx.LEFT, h_space)"%statistic)
+            sizer_stats_boxes.Add(self.stat_windows[statistic], 1, wx.EXPAND|wx.LEFT, h_space)
+            #exec("sizer_stats_boxes.Add(self.%s_window, 1, wx.EXPAND|wx.LEFT, h_space)"%statistic)
 
         #----------------Bottom Outer Sizer----------------------------------
         sizer_bottom_bar = wx.BoxSizer(wx.VERTICAL)
@@ -923,10 +943,12 @@ else:
         for crit_short_name in self.preferences['show_statistics_on_gui']:
             crit="specimen_"+crit_short_name
             if self.acceptance_criteria[crit]['value']==-999:
-                command="self.%s_threshold_window.SetValue(\"\")"%crit_short_name
-                exec(command)
-                command="self.%s_threshold_window.SetBackgroundColour(wx.Colour(128, 128, 128))"%crit_short_name
-                exec(command)
+                self.threshold_windows[crit_short_name].SetValue("")
+                #command="self.%s_threshold_window.SetValue(\"\")"%crit_short_name
+                #exec(command)
+                self.threshold_windows[crit_short_name].SetBackgroundColour(wx.Colour(128, 128, 128))
+                #command="self.%s_threshold_window.SetBackgroundColour(wx.Colour(128, 128, 128))"%crit_short_name
+                #exec(command)
                 self.ignore_parameters[crit]=True
                 continue
             elif crit=="specimen_scat":
@@ -935,7 +957,8 @@ else:
                     #self.scat_threshold_window.SetBackgroundColour(wx.SetBackgroundColour(128, 128, 128))
                 else:
                     value=""
-                    self.scat_threshold_window.SetBackgroundColour(wx.SetBackgroundColour(128, 128, 128))
+                    self.threshold_windows['scat'].SetBackgroundColour((128, 128, 128))
+                    #self.scat_threshold_window.SetBackgroundColour((128, 128, 128))
 
             elif type(self.acceptance_criteria[crit]['value'])==int:
                 value="%i"%self.acceptance_criteria[crit]['value']
@@ -948,10 +971,12 @@ else:
             else:
                 continue
 
-            command="self.%s_threshold_window.SetValue('%s')"%(crit_short_name,value)
-            exec(command)
-            command="self.%s_threshold_window.SetBackgroundColour(wx.WHITE)"%crit_short_name
-            exec(command)
+            self.threshold_windows[crit_short_name].SetValue(value)
+            #command="self.%s_threshold_window.SetValue('%s')"%(crit_short_name,value)
+            #exec(command)
+            self.threshold_windows[crit_short_name].SetBackgroundColour(wx.WHITE)
+            #command="self.%s_threshold_window.SetBackgroundColour(wx.WHITE)"%crit_short_name
+            #exec(command)
 
 
     #----------------------------------------------------------------------
