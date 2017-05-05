@@ -121,7 +121,7 @@ AUTHORS
 #
 # Thellier_GUI Version 2.09 01/05/2014
 # Change STDEV-OPT algorithm from minimizing the standard deviaion to minimzing the precentage of standrd deviation.
-# Resize acceptance criterai dialog window
+# Resize acceptance criteria dialog window
 #
 # Thellier_GUI Version 2.08 12/04/2013
 # Add Additivity checks code
@@ -223,6 +223,7 @@ except ImportError:
     pass
 
 from dialogs import demag_dialogs
+from dialogs import pmag_widgets as pw
 import dialogs.thellier_consistency_test as thellier_consistency_test
 import dialogs.thellier_gui_dialogs as thellier_gui_dialogs
 import dialogs.thellier_gui_lib as thellier_gui_lib
@@ -1482,8 +1483,8 @@ else:
         self.menubar.Append(menu_Help, "&Help")
         #self.menubar.Append(menu_results_table, "&Table")
         #self.menubar.Append(menu_MagIC, "&MagIC")
-
         self.SetMenuBar(self.menubar)
+
 
     #----------------------------------------------------------------------
 
@@ -2449,11 +2450,13 @@ else:
     #----------------------------------------------------------------------
 
     def on_menu_m_open_magic_tree(self, event):
-        self.open_magic_tree()
+        if self.data_model == 3:
+            pw.simple_warning("""This functionality is not currently available.
+You can combine multiple measurement files into one measurement file using Pmag GUI.""")
+        else:
+            self.open_magic_tree()
 
     def open_magic_tree(self):
-        busy_frame = wx.BusyInfo(
-            "Loading data\n It may take few seconds, depending on the number of specimens ...", self)
         # busy_frame.Center()
         if FIRST_RUN and "-tree" in sys.argv:
             new_dir = self.WD
@@ -2465,6 +2468,8 @@ else:
                 new_dir = dialog.GetPath()
             dialog.Destroy()
 
+        busy_frame = wx.BusyInfo(
+            "Loading data\n It may take few seconds, depending on the number of specimens ...", self)
         # os.chdir(new_dir)
         if self.data_model == 3:
             meas_file = 'measurements.txt'
@@ -2472,7 +2477,7 @@ else:
             meas_file = 'magic_measurements.txt'
         for FILE in os.listdir(new_dir):
             path = new_dir + "/" + FILE
-            if os.path.isdir(path):
+            if os.path.isdir(path) and not path.startswith('.'):
                 print("importing from path %s" % path)
                 # try:
                 self.WD = path
@@ -2482,7 +2487,7 @@ else:
                     new_Data_info["er_samples"])
                 self.Data_info["er_sites"].update(new_Data_info["er_sites"])
                 self.Data_info["er_ages"].update(new_Data_info["er_ages"])
-                new_Data, new_Data_hierarchy = self.get_data(self.data_model)
+                new_Data, new_Data_hierarchy = self.get_data()
                 if new_Data == {}:
                     print("-E- ERROR importing MagIC data from path.")
                     continue
@@ -2512,7 +2517,7 @@ else:
             self.s = self.specimens[0]
             self.specimens_box.SetStringSelection(self.s)
             self.update_selection()
-        busy_frame.Destroy()
+        del busy_frame
     #----------------------------------------------------------------------
 
     def on_menu_open_magic_file(self, event):
@@ -6471,6 +6476,10 @@ else:
         # for dir_path in self.dir_pathes:
         # print "start Magic read %s " %self.magic_file
         if self.data_model == 3:
+            if 'measurements' not in self.contribution.tables:
+                print("-W- No meaurements found")
+                return ({}, {})
+
             if 'specimens' in self.contribution.tables:
                 self.contribution.propagate_name_down('sample', 'measurements')
                 self.contribution.propagate_name_down(
@@ -7532,6 +7541,10 @@ else:
             # create MagIC contribution
             self.contribution = nb.Contribution(self.WD, custom_filenames=fnames, read_tables=[
                                                 'measurements', 'specimens', 'samples', 'sites'])
+            if 'measurements' not in self.contribution.tables:
+                print("-W- No measurements found")
+                return Data_info
+
             # propagate data from measurements table into other tables
             self.contribution.propagate_measurement_info()
             # make backup files
