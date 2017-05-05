@@ -2351,6 +2351,7 @@ else:
             self.draw_figure(self.s)
             self.update_selection()
         else:
+            pw.simple_warning("No cooling rate plot available to save")
             return
 
     def on_menu_previous_interpretation(self, event):

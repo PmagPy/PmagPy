@@ -791,7 +791,7 @@ class SaveMyPlot(wx.Frame):
             defaultDir=os.getcwd(),
             defaultFile=default_fig_name,
             wildcard=file_choices,
-            style=wx.SAVE)
+            style=wx.FD_SAVE)
 
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
