@@ -3616,14 +3616,15 @@ You can combine multiple measurement files into one measurement file using Pmag 
     #==================================================
 
     def on_show_anisotropy_errors(self, event):
+        fname = "rmag_anisotropy.log" if self.data_model == 2 else "anisotropy.log"
         try:
             dia = thellier_gui_dialogs.MyLogFileErrors(
-                "Anisotropy calculation errors", os.path.join(self.WD, "rmag_anisotropy.log"))
+                "Anisotropy calculation errors", os.path.join(self.WD, fname))
             dia.Show()
             dia.Center()
         except IOError:
             self.user_warning(
-                "There is no rmag_anisotropy.log in the current WD and therefore this function cannot work")
+                "There is no {} in the current WD and therefore this function cannot work".format(fname))
 
 #    #==================================================
 #    # Thellier Auto Interpreter Tool
