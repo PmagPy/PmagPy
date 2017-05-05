@@ -306,7 +306,7 @@ class Arai_GUI(wx.Frame):
         # otherwise get it from the user
         else:
             ui_dialog = demag_dialogs.user_input(self, ['data_model'], parse_funcs=[
-                                                 float], heading="Please input prefered data model (2.5,3.0).  Note: 2.5 is for legacy projects only, if you are have new data please use 3.0.", values=[3])
+                                                 float], heading="Please input prefered data model (2.5,3.0).  Note: 2.5 is for legacy projects only, if you have new data please use 3.0.", values=[3])
 #            res = ui_dialog.ShowModal()
             vals = ui_dialog.get_values()
             self.data_model = int(vals[1]['data_model'])
@@ -408,6 +408,10 @@ class Arai_GUI(wx.Frame):
         FIRST_RUN = False
         self.Bind(wx.EVT_CLOSE, self.on_menu_exit)
         self.close_warning = False
+        # try to read redo file if one exists
+        if os.path.exists(os.path.join(self.WD, 'thellier_GUI.redo')):
+            self.read_redo_file(os.path.join(self.WD, 'thellier_GUI.redo'))
+
 
     def get_DIR(self, WD=None):
         """
@@ -2589,7 +2593,8 @@ You can combine multiple measurement files into one measurement file using Pmag 
             else:
                 replace_acceptance_criteria = pmag.read_criteria_from_file(
                     criteria_file, replace_acceptance_criteria, data_model=self.data_model)  # just to see if file exists
-        except:
+        except Exception as ex:
+            print('-W-', ex)
             dlg1 = wx.MessageDialog(
                 self, caption="Error:", message="error in reading file", style=wx.OK)
             result = self.show_dlg(dlg1)
