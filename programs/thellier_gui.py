@@ -3897,7 +3897,7 @@ You can combine multiple measurement files into one measurement file using Pmag 
                     ":")
                 # magic_experiment_names=specimen
                 magic_experiment_names = ""
-                # for m in tmp: # this is incorrect - it should be a concatinated list of the experiment names from the measurement table.
+                # for m in tmp: # this is incorrect - it should be a concatenated list of the experiment names from the measurement table.
                 #    if "LP-" in m:
                 #        magic_experiment_names=magic_experiment_names+":" + m
                 MagIC_results_data['pmag_specimens'][specimen]['magic_experiment_names'] = magic_experiment_names
@@ -4011,7 +4011,8 @@ You can combine multiple measurement files into one measurement file using Pmag 
         else:  # data model 3, so merge with spec_data  and save as specimens.txt file
             # remove unwanted columns (site, location).
             for col in ['site', 'location']:
-                del self.spec_data[col]
+                if col in self.spec_data.columns:
+                    del self.spec_data[col]
             #  write out the data
             self.spec_container.write_magic_file(dir_path=self.WD)
             TEXT = "specimens interpretations are saved in specimens.txt.\nPress OK for samples/sites tables."
