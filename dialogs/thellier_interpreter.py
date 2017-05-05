@@ -145,12 +145,12 @@ class thellier_auto_interpreter():
                 string = str(self.acceptance_criteria[crit]['value'])
             elif type(self.acceptance_criteria[crit]['value']) == int or type(self.acceptance_criteria[crit]['value']) == float:
                 if self.acceptance_criteria[crit]['decimal_points'] == -999:
-                    string = "%.3e" % (
-                        float(self.acceptance_criteria[crit]['value']))
+                    string = "{:.3f}".format(self.acceptance_criteria[crit]['value'])
+
                 else:
-                    command = "string='%%.%if'%%(self.acceptance_criteria[crit]['value'])" % int(
-                        self.acceptance_criteria[crit]['decimal_points'])
-                    exec(command)
+                    string = "{:.{}f}".format(self.acceptance_criteria[crit]['value'],
+                                             self.acceptance_criteria[crit]['decimal_points'])
+
             else:
                 string = ""
 
@@ -177,9 +177,8 @@ class thellier_auto_interpreter():
                     string = "%.3e" % (
                         float(self.acceptance_criteria[crit]['value']))
                 else:
-                    command = "string='%%.%if'%%(self.acceptance_criteria[crit]['value'])" % int(
-                        self.acceptance_criteria[crit]['decimal_points'])
-                    exec(command)
+                    string = "{:.{}f}".format(self.acceptance_criteria[crit]['value'],
+                                              self.acceptance_criteria[crit]['decimal_points'])
             else:
                 string = ""
 
@@ -246,9 +245,11 @@ class thellier_auto_interpreter():
 
         # try:
         All_grade_A_Recs = {}
+        print('-I- Running through specimens:')
         for s in specimens_list:
             self.thellier_interpreter_log.write(
                 "-I- doing now specimen %s\n" % s)
+            print(s)
             self.Data[s]['pars'] = {}
             self.Data[s]['pars']['lab_dc_field'] = self.Data[s]['lab_dc_field']
             self.Data[s]['pars']['er_specimen_name'] = s
@@ -1066,7 +1067,7 @@ class thellier_auto_interpreter():
         '''
         find the minimum and maximum acceptable sample mean
         Intensities={}
-        Intensities[specimen_name]=[] array of acceptable interpretations ( units of uT)         
+        Intensities[specimen_name]=[] array of acceptable interpretations ( units of uT)
         '''
         # acceptance criteria
         if self.acceptance_criteria['average_by_sample_or_site']['value'] == 'sample':
@@ -1159,7 +1160,7 @@ class thellier_auto_interpreter():
     def thellier_interpreter_pars_calc(self, Grade_As):
         '''
         calcualte sample or site STDEV-OPT paleointensities
-        and statistics 
+        and statistics
         Grade_As={}
 
         '''
@@ -1254,8 +1255,8 @@ class thellier_auto_interpreter():
     def thellier_interpreter_BS_pars_calc(self, Grade_As):
         '''
         calcualte sample or site bootstrap paleointensities
-        and statistics 
-        Grade_As={}        
+        and statistics
+        Grade_As={}
         '''
         thellier_interpreter_pars = {}
         thellier_interpreter_pars['fail_criteria'] = []
