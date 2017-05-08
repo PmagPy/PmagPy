@@ -2399,6 +2399,7 @@ else:
 
         for i in range(len(criteria_list)):
             crit=criteria_list[i]
+            value=""
             #---------
             # get the "value" from dialog box
             #---------
@@ -2526,7 +2527,7 @@ else:
             self.Data[specimen]['pars']['lab_dc_field']=self.Data[specimen]['lab_dc_field']
             self.Data[specimen]['pars']['er_specimen_name']=self.Data[specimen]['er_specimen_name']
             self.Data[specimen]['pars']['er_sample_name']=self.Data[specimen]['er_sample_name']
-        gframe.Destroy()
+        del (gframe)
 
 
 

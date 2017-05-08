@@ -469,8 +469,8 @@ def main(command_line=True, **kwargs):
                     elif treatment[1]=='1' or  treatment[1]=='10':
                             LT_code="LT-T-I"
                             MagRec["treatment_dc_field"]='%8.3e' % (labfield) # labfield in tesla (convert from microT)
-                            MagRec["treatment_dc_field_phi"]='%7.1f' % (phi) # labfield phi
-                            MagRec["treatment_dc_field_theta"]='%7.1f' % (theta) # labfield theta
+                            MagRec["treatment_dc_field_phi"]='%i' % (int(phi)) # labfield phi
+                            MagRec["treatment_dc_field_theta"]='%i' % (int(theta)) # labfield theta
                             MagRec["treatment_temp"]='%8.3e' % (float(treatment[0])+273.) # temp in kelvin
 
                             # check if this is ZI or IZ:
@@ -486,8 +486,8 @@ def main(command_line=True, **kwargs):
                     elif treatment[1]=='2' or  treatment[1]=='20':
                             LT_code="LT-PTRM-I"
                             MagRec["treatment_dc_field"]='%8.3e' % (labfield) # labfield in tesla (convert from microT)
-                            MagRec["treatment_dc_field_phi"]='%7.1f' % (phi) # labfield phi
-                            MagRec["treatment_dc_field_theta"]='%7.1f' % (theta) # labfield theta
+                            MagRec["treatment_dc_field_phi"]='%i' % (int(phi)) # labfield phi
+                            MagRec["treatment_dc_field_theta"]='%i' % (int(theta)) # labfield theta
                             MagRec["treatment_temp"]='%8.3e' % (float(treatment[0])+273.) # temp in kelvin
                             methcode="LP-PI-TRM:LP-PI-TRM-IZ"
 
@@ -573,8 +573,8 @@ def main(command_line=True, **kwargs):
                                 tdec,tinc=0,-90
                                 MagRec["measurement_number"]='6'# -z
                         
-                        MagRec["treatment_dc_field_phi"]='%7.1f' %(tdec)
-                        MagRec["treatment_dc_field_theta"]='%7.1f'% (tinc)
+                        MagRec["treatment_dc_field_phi"]='%i' %(int(tdec))
+                        MagRec["treatment_dc_field_theta"]='%i'% (int(tinc))
                         MagRec["treatment_temp"]='%8.3e' % (float(treatment[0])+273.) # temp in kelvin
                         MagRec["treatment_dc_field"]='%8.3e'%(labfield)
                     MagRec["measurement_description"]=""

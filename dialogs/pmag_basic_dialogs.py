@@ -22,6 +22,7 @@ from programs.conversion_scripts2 import generic_magic2 as generic_magic
 from programs.conversion_scripts2 import sio_magic2 as sio_magic
 from programs.conversion_scripts2 import cit_magic2 as cit_magic
 from programs.conversion_scripts2 import huji_magic2 as huji_magic
+from programs.conversion_scripts2 import huji_magic_new2 as huji_magic_new
 from programs.conversion_scripts2 import _2g_bin_magic2 as _2g_bin_magic
 from programs.conversion_scripts2 import ldeo_magic2 as ldeo_magic
 from programs.conversion_scripts2 import iodp_srm_magic2 as iodp_srm_magic

@@ -592,8 +592,8 @@ def main(command_line=True, **kwargs):
                         labfield=float(float(treatment[1]))*1e-6
                     MagRec["treatment_temp"]='%8.3e' % (float(treatment[0])+273.) # temp in kelvin                
                     MagRec["treatment_dc_field"]='%8.3e' % (labfield) # labfield in tesla (convert from microT)
-                    MagRec["treatment_dc_field_phi"]='%7.1f' % (phi) # labfield phi
-                    MagRec["treatment_dc_field_theta"]='%7.1f' % (theta) # labfield theta
+                    MagRec["treatment_dc_field_phi"]='%i' % (int(phi)) # labfield phi
+                    MagRec["treatment_dc_field_theta"]='%i' % (int(theta)) # labfield theta
                     MagRec["measurement_number"]="%i"%i            
                     MagRec["measurement_description"]=""
                     MagRecs.append(MagRec)

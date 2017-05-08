@@ -134,6 +134,7 @@ class thellier_auto_interpreter():
         Fout_specimens_bounds.write(String[:-1]+"\n")
         String=""
         for crit in self.specimen_criteria:
+            string=""
             if type(self.acceptance_criteria[crit]['value'])==str:
                 string=self.acceptance_criteria[crit]['value']
             elif type(self.acceptance_criteria[crit]['value'])==bool:
@@ -145,8 +146,8 @@ class thellier_auto_interpreter():
                     command=  "string='%%.%if'%%(self.acceptance_criteria[crit]['value'])"%int(self.acceptance_criteria[crit]['decimal_points'])
                     exec(command)
             else:
-                string=""
-                
+                string=""            
+
             String=String+"%s\t"%string               
         Fout_specimens_bounds.write(String[:-1]+"\n")
         
