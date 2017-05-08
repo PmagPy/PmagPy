@@ -664,13 +664,13 @@ class MagMainFrame(wx.Frame):
 
         except Exception as ex:
             text = "Something went wrong.  Make sure you chose a valid file downloaded from the MagIC database and try again."
-        del wait
-        dlg = wx.MessageDialog(self, caption="Saved", message=text, style=wx.OK)
-        result = dlg.ShowModal()
-        if result == wx.ID_OK:
-            dlg.Destroy()
-        if ex:
-            raise(ex)
+            del wait
+            dlg = wx.MessageDialog(self, caption="Saved", message=text, style=wx.OK)
+            result = dlg.ShowModal()
+            if result == wx.ID_OK:
+                dlg.Destroy()
+            if ex:
+                raise(ex)
 
 
     def on_btn_upload(self, event):
