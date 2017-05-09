@@ -160,53 +160,26 @@ class PI_Statistics_Dialog(wx.Dialog):
                       'pTRM Checks', 'Tail Checks', 'Additivity Checks']
         for k in range(len(categories)):
             self.bSizers[k] = wx.StaticBoxSizer( wx.StaticBox( pnl1, wx.ID_ANY, '%s' ), wx.VERTICAL )
-            #command = "bSizer%i = wx.StaticBoxSizer( wx.StaticBox( pnl1, wx.ID_ANY, '%s' ), wx.VERTICAL )" % (
-            #    k, categories[k])
-            #exec(command)
 
             for stat in self.stat_by_category[categories[k]]:
                 short_name = stat.replace("specimen_", "")
                 self.set_specimen_windows[short_name] = wx.CheckBox(pnl1, -1, label=short_name, name=short_name)
-                #command = "self.set_specimen_%s=wx.CheckBox(pnl1,-1,label='%s',name='%s')" % (
-                #    short_name, short_name, short_name)
-                #exec(command)
                 self.Bind(wx.EVT_CHECKBOX, self.OnCheckBox, self.set_specimen_windows[short_name])
-                #command = "self.Bind(wx.EVT_CHECKBOX, self.OnCheckBox, self.set_specimen_%s)" % (
-                #    short_name)
-                #exec(command)
                 self.specimen_btns[short_name] = wx.Button(pnl1, -1, label='description',name=stat)
-                #command = "self.specimen_%s_button = wx.Button(pnl1, -1, label='description',name='%s')" % (
-                #    short_name, stat)
-                #exec(command)
                 self.Bind(wx.EVT_BUTTON, self.PI_stat_description, self.specimen_btns[short_name])
-                #command = "self.Bind(wx.EVT_BUTTON,self.PI_stat_description, self.specimen_%s_button)" % (
-                #    short_name)
-                #exec(command)
 
             self.hboxes[k] = {}
             for i in range(len(self.stat_by_category[categories[k]])):
                 self.hboxes[k][i] = wx.BoxSizer(wx.HORIZONTAL)
-                #command = "hbox_%i= wx.BoxSizer(wx.HORIZONTAL)" % i
-                #exec(command)
                 stat = self.stat_by_category[categories[k]][i]
                 short_name = stat.replace("specimen_", "")
                 self.hboxes[k][i].Add(self.specimen_btns[short_name])
-                #command = "hbox_%i.Add(self.specimen_%s_button)" % (
-                #    i, short_name)
-                #exec(command)
                 self.hboxes[k][i].AddSpacer(10)
-                #command = "hbox_%i.AddSpacer(10)" % (i)
-                #exec(command)
 
                 self.hboxes[k][i].Add(self.set_specimen_windows[short_name])
-                #command = "hbox_%i.Add(self.set_specimen_%s)" % (i, short_name)
-                #exec(command)
                 self.bSizers[k].Add(self.hboxes[k][i])
-                #command = "bSizer%i.Add(hbox_%i)" % (k, i)
-                #exec(command)
                 self.bSizers[k].AddSpacer(10)
-                #command = "bSizer%i.AddSpacer(10)" % k
-                #exec(command)
+
         # self.specimen_int_n_button.Bind(wx.EVT_BUTTON, lambda evt, name=specimen_int_n_button.GetLabel(): self.onButton(evt, name)
         #self.Bind(wx.EVT_BUTTON,self.PI_stat_description, self.specimen_int_n_button)
         #---------------------------
@@ -256,8 +229,6 @@ class PI_Statistics_Dialog(wx.Dialog):
             for category in categories:
                 if "specimen_" + short_name in self.stat_by_category[category]:
                     self.set_specimen_windows[short_name].SetValue(True)
-                    #command = "self.set_specimen_%s.SetValue(True)" % short_name
-                    #exec(command)
 
     def PI_stat_description(self, event):
         button = event.GetEventObject()
@@ -339,24 +310,14 @@ class Criteria_Dialog(wx.Dialog):
             else:
                 self.set_specimen_windows[stat] = wx.TextCtrl(
                     pnl1, style=wx.TE_CENTER, size=(50, 20))
-                # command="self.set_specimen_%s=wx.TextCtrl(pnl1,style=wx.TE_CENTER,size=(50,20))"%stat
-                # exec(command)
             label = stat.replace("specimen_", "")
             self.labels[stat] = wx.StaticText(
                 pnl1, label=label, style=wx.ALIGN_CENTRE)
-            # command="self.%s_label=wx.StaticText(pnl1,label='%s',style=wx.ALIGN_CENTRE)"%(stat,stat.replace("specimen_",""))
-            # exec(command)
 
             self.stat_gridsizers[stat] = wx.GridSizer(2, 1, 5, 5)
-            #command="gs_%s = wx.GridSizer(2, 1,5,5)"%stat
-            # exec(command)
             self.stat_gridsizers[stat].AddMany([(self.labels[stat], wx.EXPAND),
                                                 (self.set_specimen_windows[stat], wx.EXPAND)])
-            #command="gs_%s.AddMany( [(self.%s_label,wx.EXPAND),(self.set_specimen_%s,wx.EXPAND)])"%(stat,stat,stat)
-            # exec(command)
             bSizer1.Add(self.stat_gridsizers[stat], flag=wx.ALIGN_LEFT)
-            # command="bSizer1.Add(gs_%s,flag=wx.ALIGN_LEFT)"%stat
-            # exec(command)
             bSizer1.AddSpacer(12)
 
         #---------------------------
@@ -397,8 +358,6 @@ class Criteria_Dialog(wx.Dialog):
         for key in window_list_samples:
             self.set_sample_windows[key] = wx.TextCtrl(
                 pnl1, style=wx.TE_CENTER, size=(50, 20))
-            # command="self.set_sample_%s=wx.TextCtrl(pnl1,style=wx.TE_CENTER,size=(50,20))"%key
-            # exec(command)
         criteria_sample_window = wx.GridSizer(2, 3, 6, 6)
         criteria_sample_window.AddMany([(wx.StaticText(pnl1, label="average by sample/site", style=wx.TE_CENTER), wx.EXPAND),
                                         (wx.StaticText(pnl1, label="int_n",
@@ -452,8 +411,6 @@ class Criteria_Dialog(wx.Dialog):
         for key in window_list_samples:
             self.set_sample_windows[key] = wx.TextCtrl(
                 pnl1, style=wx.TE_CENTER, size=(50, 20))
-            # command="self.set_sample_%s=wx.TextCtrl(pnl1,style=wx.TE_CENTER,size=(50,20))"%key
-            # exec(command)
 
         criteria_sample_window_2 = wx.GridSizer(2, 5, 6, 6)
         criteria_sample_window_2.AddMany([(wx.StaticText(pnl1, label="int_sigma_uT", style=wx.TE_CENTER), wx.EXPAND),
@@ -489,8 +446,6 @@ class Criteria_Dialog(wx.Dialog):
         for key in window_list_samples:
             self.set_sample_windows[key] = wx.TextCtrl(
                 pnl1, style=wx.TE_CENTER, size=(50, 20))
-            # command="self.set_sample_%s=wx.TextCtrl(pnl1,style=wx.TE_CENTER,size=(50,20))"%key
-            # exec(command)
         # for bootstrap
         self.set_specimen_int_max_slope_diff = wx.TextCtrl(
             pnl1, style=wx.TE_CENTER, size=(50, 20))
@@ -560,15 +515,11 @@ class Criteria_Dialog(wx.Dialog):
                     if self.acceptance_criteria[crit]['decimal_points'] != -999:
                         value = "{:.{}f}".format(self.acceptance_criteria[crit]['value'],
                                                  self.acceptance_criteria[crit]['decimal_points'])
-                        # command="value='%%.%if'%%(self.acceptance_criteria[crit]['value'])"%int(self.acceptance_criteria[crit]['decimal_points'])
-                        # exec(command)
                     else:
                         value = "%.3e" % (
                             self.acceptance_criteria[crit]['value'])
 
                 self.set_specimen_windows[short_crit].SetValue(value)
-                # command="self.set_%s.SetValue(value)"%crit
-                # exec(command)
             else:
                 if self.acceptance_criteria['specimen_scat']['value'] in [True, 1, "True", "TRUE", "1", "1.0", 'g']:
                     self.set_specimen_windows['scat'].SetValue(True)
@@ -588,15 +539,11 @@ class Criteria_Dialog(wx.Dialog):
         else:
             value = "{:.{}f}".format(self.acceptance_criteria[crit]['value'],
                                      self.acceptance_criteria[crit]['decimal_points'])
-            # command="value='%%.%if'%%(self.acceptance_criteria[crit]['value'])"%int(self.acceptance_criteria[crit]['decimal_points'])
-            # exec(command)
         self.set_anisotropy_windows['anisotropy_alt'].SetValue(value)
-        # self.set_anisotropy_alt.SetValue(value)
 
         crit = "specimen_aniso_ftest_flag"
         if self.acceptance_criteria[crit]['value'] in [True, 1, "True", "TRUE", "1", "1.0", 'g']:
             self.set_anisotropy_windows['anisotropy_ftest_flag'].SetValue(True)
-            # self.set_anisotropy_ftest_flag.SetValue(True)
         else:
             self.set_anisotropy_windows['anisotropy_ftest_flag'].SetValue(
                 False)
@@ -664,8 +611,6 @@ class Criteria_Dialog(wx.Dialog):
                 value = "{:.{}f}".format(self.acceptance_criteria[crit]['value'],
                                          self.acceptance_criteria[crit]['decimal_points'])
 
-                # command="value='%%.%if'%%(self.acceptance_criteria[crit]['value'])"%int(self.acceptance_criteria[crit]['decimal_points'])
-                # exec(command)
             elif type(self.acceptance_criteria[crit]['value']) == bool:
                 value = "%.s" % str(self.acceptance_criteria[crit]['value'])
             elif type(self.acceptance_criteria[crit]['value']) == str:
@@ -678,21 +623,14 @@ class Criteria_Dialog(wx.Dialog):
                 # averaging by site
                 if crit in ['site_int_n', 'site_int_sigma_perc', 'site_int_n_outlier_check', 'site_aniso_mean']:
                     self.set_sample_windows[crit[5:]].SetValue(value)
-                    # command="self.set_%s.SetValue(value)"%(crit.replace('site','sample'))
-                    # exec(command)
                 if crit in ['site_int_sigma']:
                     self.set_sample_windows['int_sigma_uT'].SetValue(value)
-                    # command="self.set_%s_uT.SetValue(value)"%(crit.replace('site','sample'))
-                    # exec(command)
             else:
                 # averaging by sample
                 if crit in ['sample_int_sigma']:
                     self.set_sample_windows['int_sigma_uT'].SetValue(value)
-                    # command="self.set_%s_uT.SetValue(value)"%crit
                 else:
                     self.set_sample_windows[short_crit].SetValue(value)
-                    # command="self.set_%s.SetValue(value)"%crit
-                # exec(command)
 
         #============================
         # arrange sizers
@@ -740,11 +678,8 @@ class Criteria_Dialog(wx.Dialog):
         #------
         if crit in ['site_int_n', 'site_int_sigma_perc', 'site_aniso_mean', 'site_int_n_outlier_check']:
             value = dia.set_sample_windows[short_crit].GetValue()
-            # command="value=dia.set_%s.GetValue()"%crit.replace('site','sample')
-
         elif crit == 'sample_int_sigma' or crit == 'site_int_sigma':
             value = dia.set_sample_windows['int_sigma_uT'].GetValue()
-            # command="value=dia.set_sample_int_sigma_uT.GetValue()"
         elif short_crit in ['anisotropy_ftest_flag', 'anisotropy_alt']:
             value = dia.set_anisotropy_windows[short_crit].GetValue()
         elif crit == 'average_by_sample_or_site':
@@ -761,7 +696,6 @@ class Criteria_Dialog(wx.Dialog):
                 return "", {}
             else:
                 value = dia.set_specimen_windows[short_crit].GetValue()
-            # command="value=dia.set_%s.GetValue()"%crit
 
         #------
         # if averaging by sample or site, must set sample/site_int_n to at
@@ -769,14 +703,9 @@ class Criteria_Dialog(wx.Dialog):
         if crit == 'sample_int_n':
             if not dia.set_sample_windows['int_n'].GetValue():
                 value = 1
-                # command="value=1"
-
         if crit == 'site_int_n':
             if not dia.set_sample_windows['int_n'].GetValue():
                 value = 1
-                # command="value=1"
-
-        # exec(command)
 
         #---------
         # write the "value" to self.acceptance_criteria
