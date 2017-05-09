@@ -4733,14 +4733,14 @@ You can combine multiple measurement files into one measurement file using Pmag 
         try:
             x_axis_min = float(dia.set_plot_age_min.GetValue())
             x_axis_max = float(dia.set_plot_age_max.GetValue())
-        except:
+        except ValueError:
             pass
 
         y_autoscale = dia.set_y_axis_auto.GetValue()
         try:
             y_axis_min = float(dia.set_plot_intensity_min.GetValue())
             y_axis_max = float(dia.set_plot_intensity_max.GetValue())
-        except:
+        except ValueError:
             pass
 
         # plt_x_years=dia.set_plot_year.GetValue()
@@ -4766,7 +4766,8 @@ You can combine multiple measurement files into one measurement file using Pmag 
                 NAME = "er_site_name"
             try:
                 data2plot = self.read_magic_file(FILE, 4, NAME)
-            except:
+            except Exception as ex:
+                print(type(ex), ex)
                 data2plot = {}
         else:
             if self.acceptance_criteria['average_by_sample_or_site']['value'] == 'sample':
@@ -4796,7 +4797,7 @@ You can combine multiple measurement files into one measurement file using Pmag 
                 set_map_lon_min = float(dia.set_map_lon_min.GetValue())
                 set_map_lon_max = float(dia.set_map_lon_max.GetValue())
                 set_map_lon_grid = float(dia.set_map_lon_grid.GetValue())
-            except:
+            except ValueError:
                 pass
         plot_by_locations = {}
 
@@ -5159,22 +5160,22 @@ You can combine multiple measurement files into one measurement file using Pmag 
         if not x_autoscale:
             try:
                 ax.set_xlim(xmin=x_axis_min)
-            except:
-                pass
+            except Exception as ex:
+                print(type(ex), ex)
             try:
                 ax.set_xlim(xmax=x_axis_max)
-            except:
-                pass
+            except Exception as ex:
+                print(type(ex), ex)
 
         if not y_autoscale:
             try:
                 ax.set_ylim(ymin=y_axis_min)
-            except:
-                pass
+            except Exception as ex:
+                print(type(ex), ex)
             try:
                 ax.set_ylim(ymax=y_axis_max)
-            except:
-                pass
+            except Exception as ex:
+                print(type(ex), ex)
 
         if show_sample_labels:
             for location in locations:
@@ -5565,8 +5566,8 @@ You can combine multiple measurement files into one measurement file using Pmag 
                 try:
                     self.eqplot.tick_params(
                         axis='both', which='major', labelsize=8)
-                except:
-                    pass
+                except Exception as ex:
+                    print(type(ex), ex)
                 #self.mplot.tick_params(axis='x', which='major', labelsize=8)
                 self.eqplot.spines["right"].set_visible(False)
                 self.eqplot.spines["top"].set_visible(False)
@@ -5628,8 +5629,8 @@ You can combine multiple measurement files into one measurement file using Pmag 
                 try:
                     self.mplot.tick_params(
                         axis='both', which='major', labelsize=8)
-                except:
-                    pass
+                except Exception as ex:
+                    print(type(ex), ex)
                 #self.mplot.tick_params(axis='x', which='major', labelsize=8)
                 self.mplot.spines["right"].set_visible(False)
                 self.mplot.spines["top"].set_visible(False)
@@ -5663,8 +5664,8 @@ You can combine multiple measurement files into one measurement file using Pmag 
                 "M / M[%.0f]" % (self.Data[self.s]['lab_dc_field'] * 1e6), fontsize=8)
             try:
                 self.mplot.tick_params(axis='both', which='major', labelsize=8)
-            except:
-                pass
+            except Exception as ex:
+                print(type(ex), ex)
             # self.mplot.frametick_pa.set_linewidth(0.01)
             self.mplot.set_xlim(xmin=0)
             self.mplot.set_ylim(ymin=0)
@@ -6189,13 +6190,13 @@ You can combine multiple measurement files into one measurement file using Pmag 
             try:
                 self.sampleplot.tick_params(
                     axis='both', which='major', labelsize=8)
-            except:
-                pass
+            except Exception as ex:
+                print(type(ex), ex)
             try:
                 self.sampleplot.tick_params(
                     axis='y', which='minor', labelsize=0)
-            except:
-                pass
+            except Exception as ex:
+                print(ex, type(ex))
 
         self.canvas4.draw()
         # start_time_5=time.time()
