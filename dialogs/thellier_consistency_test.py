@@ -163,7 +163,8 @@ def run_thellier_consistency_test(WD, Data, Data_hierarchy, acceptance_criteria,
     String = "er_specimen_name\t" + "t_min\t" + "t_max_\t" + "specimen_int_uT\t"
     for crit in criteria_specimen_list:
         String = String + "specimen_" + crit + "\t"
-    thellier_optimizer_master_file.write(String[:-1] + "\n")
+    String = String[:-1] + "\n"
+    thellier_optimizer_master_file.write(String.encode('utf-8'))
     String = ""
 
     #------------------------------------------------
@@ -271,14 +272,16 @@ def run_thellier_consistency_test(WD, Data, Data_hierarchy, acceptance_criteria,
                         Data, tmp_acceptance_criteria, preferences, s, tmin, tmax, logfile, THERMAL, MICROWAVE)
                     thellier_optimizer_master_table[s][tmin, tmax, beta] = pars
 
-    thellier_optimizer_master_file.write(
-        "Done loopping through all points in Arai plot. All specimens\n")
+    temp = "Done loopping through all points in Arai plot. All specimens\n"
+    thellier_optimizer_master_file.write(temp.encode('utf-8'))
+
     time_1 = time.time()
     runtime_sec = time_1 - start_time
     m, s = divmod(runtime_sec, 60)
     h, m = divmod(m, 60)
-    thellier_optimizer_master_file.write(
-        "-I- runtime from start (hh:mm:ss)" + "%d:%02d:%02ds\n" % (h, m, s))
+    temp = "-I- runtime from start (hh:mm:ss)" + "%d:%02d:%02ds\n" % (h, m, s)
+    thellier_optimizer_master_file.write(temp.encode('utf-8'))
+
 
     #-------------------------------------------------
     #-------------------------------------------------
@@ -325,8 +328,9 @@ def run_thellier_consistency_test(WD, Data, Data_hierarchy, acceptance_criteria,
                         if pars['specimen_fail_criteria'] == []:
                             Fail = False
                         else:
-                            thellier_optimizer_master_file.write("key=%s - specimen %s, tmin,tmax =(%.0f,%.0f) fail on %s\n" % (Key, specimen, float(
-                                pars["measurement_step_min"]) - 273, float(pars["measurement_step_max"]) - 273, ",".join(pars['specimen_fail_criteria'])))
+                            temp = "key=%s - specimen %s, tmin,tmax =(%.0f,%.0f) fail on %s\n" % (Key, specimen, float(
+                                pars["measurement_step_min"]) - 273, float(pars["measurement_step_max"]) - 273, ",".join(pars['specimen_fail_criteria']))
+                            thellier_optimizer_master_file.write(temp.encode('utf-8'))
                             Fail = True
                         if Fail:
                             continue
@@ -338,8 +342,10 @@ def run_thellier_consistency_test(WD, Data, Data_hierarchy, acceptance_criteria,
                             Optimizer_data[Key][sample][specimen] = []
 
                         Optimizer_data[Key][sample][specimen].append(pars)
-                        thellier_optimizer_master_file.write("-I- key= %s specimen %s pass tmin,tmax= (%.0f,%.0f)\n" % (
-                            Key, specimen, float(pars["measurement_step_min"]) - 273, float(pars["measurement_step_max"]) - 273))
+                        temp = "-I- key= %s specimen %s pass tmin,tmax= (%.0f,%.0f)\n" % (
+                            Key, specimen, float(pars["measurement_step_min"]) - 273, float(pars["measurement_step_max"]) - 273)
+                        thellier_optimizer_master_file.write(temp.encode('utf-8'))
+
 
     #-------------------------------------------------
     # i.e. STDEV_OPT
@@ -351,9 +357,8 @@ def run_thellier_consistency_test(WD, Data, Data_hierarchy, acceptance_criteria,
     for stat1_value in stat1_range[1]:
         for stat2_value in stat2_range[1]:
             Key = "%s,%s" % (str(stat1_value), str(stat2_value))
-
-            thellier_optimizer_master_file.write(
-                "-I- calulating best sample means, %s" % Key)
+            temp = "-I- calulating best sample means, %s" % Key
+            thellier_optimizer_master_file.write(temp.encode('utf-8'))
 
             #--------------------------------------------------------------
             # sort results
@@ -391,11 +396,11 @@ def run_thellier_consistency_test(WD, Data, Data_hierarchy, acceptance_criteria,
                 interpreter_std = thellier_interpreter_pars['stdev-opt']['std']
                 interpreter_interval = thellier_interpreter_pars['sample_int_interval_uT']
                 if thellier_interpreter_pars['pass_or_fail'] == 'fail':
-                    thellier_optimizer_master_file.write(
-                        "-I- sample/site fail on %s" % (",".join(thellier_interpreter_pars['fail_criteria'])))
+                    temp = "-I- sample/site fail on %s" % (",".join(thellier_interpreter_pars['fail_criteria']))
+                    thellier_optimizer_master_file.write(temp.encode('utf-8'))
                 if thellier_interpreter_pars['pass_or_fail'] == 'pass':
-                    thellier_optimizer_master_file.write("-I- sample/site %s pass. B=%.2f, STD=%.2f, interval=%.2f"
-                                                         % (sample, interpreter_mean, interpreter_std, interpreter_interval))
+                    temp = "-I- sample/site %s pass. B=%.2f, STD=%.2f, interval=%.2f" % (sample, interpreter_mean, interpreter_std, interpreter_interval)
+                    thellier_optimizer_master_file.write(temp.encode('utf-8'))
 
                 # write interpreter data in matrix
                 if Key not in list(Optimizer_STDEV_OPT.keys()):

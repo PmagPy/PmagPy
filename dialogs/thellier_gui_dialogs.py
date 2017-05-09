@@ -1203,7 +1203,7 @@ class Consistency_Test(wx.Frame):
         vbox.AddSpacer(30)
 
         box.AddSpacer(30)
-        box.AddSpacer(vbox)
+        box.Add(vbox)
         box.AddSpacer(30)
 
         self.panel.SetSizer(box)
@@ -1250,6 +1250,8 @@ class Consistency_Test(wx.Frame):
         if dlg.ShowModal() == wx.ID_OK:
             filename = dlg.GetFilename()
             self.optimizer_group_file_path = dlg.GetPath()
+        else:
+            return
         ignore_n = 1
         self.optimizer_group_file_window.SetValue(
             self.optimizer_group_file_path)
