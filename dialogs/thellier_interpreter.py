@@ -151,7 +151,6 @@ class thellier_auto_interpreter():
                                              self.acceptance_criteria[crit]['decimal_points'])
 
             else:
-"head"
                 string=""
 
             String=String+"%s\t"%string

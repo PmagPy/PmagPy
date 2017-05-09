@@ -2684,78 +2684,9 @@ You can combine multiple measurement files into one measurement file using Pmag 
         #---------
         # get value for each criterion
         for i in range(len(criteria_list)):
-"head"
-            crit=criteria_list[i]
-            value=""
-            #---------
-            # get the "value" from dialog box
-            #---------
-                # dealing with sample/site
-            if dia.set_average_by_sample_or_site.GetValue()=='sample':
-                if crit in ['site_int_n','site_int_sigma','site_int_sigma_perc','site_aniso_mean','site_int_n_outlier_check']:
-                    continue
-            if dia.set_average_by_sample_or_site.GetValue()=='site':
-                if crit in ['sample_int_n','sample_int_sigma','sample_int_sigma_perc','sample_aniso_mean','sample_int_n_outlier_check']:
-                    continue
-            #------
-            if crit in ['site_int_n','site_int_sigma_perc','site_aniso_mean','site_int_n_outlier_check']:
-                command="value=dia.set_%s.GetValue()"%crit.replace('site','sample')
-
-            elif crit=='sample_int_sigma' or crit=='site_int_sigma':
-                #command="value=float(dia.set_sample_int_sigma_uT.GetValue())*1e-6"
-                command="value=dia.set_sample_int_sigma_uT.GetValue()"
-            else:
-                command="value=dia.set_%s.GetValue()"%crit
-            #------
-            # if averaging by sample or site, must set sample/site_int_n to at least 1
-            if crit=='sample_int_n':
-                if not dia.set_sample_int_n.GetValue():
-                    command="value=1"
-
-            if crit=='site_int_n':
-                if not dia.set_sample_int_n.GetValue():
-                    command="value=1"
-
-
-            try:
-                exec(command)
-            except Exception as ex:
-                print(ex)
-                continue
-
-            #---------
-            # write the "value" to self.acceptance_criteria
-            #---------
-
-            if crit=='average_by_sample_or_site':
-                self.acceptance_criteria[crit]['value']=str(value)
-                continue
-
-            if type(value)==bool and value==True:
-                self.acceptance_criteria[crit]['value']=True
-            elif type(value)==bool and value==False:
-                self.acceptance_criteria[crit]['value']=-999
-            elif type(value)==str and str(value)=="":
-                self.acceptance_criteria[crit]['value']=-999
-            elif type(value)==str and str(value)!="": # should be a number
-                try:
-                    self.acceptance_criteria[crit]['value']=float(value)
-                except:
-                    self.show_message(crit)
-            elif type(value)==float or type(value)==int:
-                self.acceptance_criteria[crit]['value']=float(value)
-            else:
-                self.show_message(crit)
-            if ( crit=='sample_int_sigma' or crit=='site_int_sigma' ) and str(value)!="":
-                self.acceptance_criteria[crit]['value']=float(value)*1e-6
-            #print crit
-            #print value
-            #print str(value)==""
-=======
             crit = criteria_list[i]
             value, accept = dia.get_value_for_crit(crit, self.acceptance_criteria)
             self.acceptance_criteria.update(accept)
->>>>>>> refactor_Thellier_GUI
         #---------
         # thellier interpreter calculation type
         if dia.set_stdev_opt.GetValue() == True:
