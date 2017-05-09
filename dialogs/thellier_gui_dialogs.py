@@ -1245,7 +1245,7 @@ class Consistency_Test(wx.Frame):
         dirname = self.WD
 
         dlg = wx.FileDialog(self, "Choose a test groups file",
-                            dirname, "", "*.*", wx.OPEN)
+                            dirname, "", "*.*", wx.FD_OPEN)
         if dlg.ShowModal() == wx.ID_OK:
             filename = dlg.GetFilename()
             self.optimizer_group_file_path = dlg.GetPath()
@@ -1254,39 +1254,53 @@ class Consistency_Test(wx.Frame):
             self.optimizer_group_file_path)
 
     def on_run_optimizer_button(self, event):
-        if self.optimizer_group_file_window.GetValue() != "" and self.check_status.GetValue() == "PASS":
-            stat1 = str("specimen_" + str(self.stat_1.GetValue()))
-            stat1_start = float(self.stat_1_low.GetValue())
-            stat1_end = float(self.stat_1_high.GetValue())
-            stat1_delta = float(self.stat_1_delta.GetValue())
+        # check that req'd stuff isn't missing
+        #
+        stat1 = self.stat_1_low.GetValue(), self.stat_1_high.GetValue(), self.stat_1_delta.GetValue()
+        stat2 = self.stat_2_low.GetValue(), self.stat_2_high.GetValue(), self.stat_2_delta.GetValue()
+        if not all(stat1 + stat2):
+            pw.simple_warning("Please fill out all fields and try again")
+            return
 
-            stat2 = str("specimen_" + str(self.stat_2.GetValue()))
-            stat2_start = float(self.stat_2_low.GetValue())
-            stat2_end = float(self.stat_2_high.GetValue())
-            stat2_delta = float(self.stat_2_delta.GetValue())
+        check_status = self.check_status.GetValue()
+        if check_status != "PASS":
+            pw.simple_warning("Please run 'check function syntax'")
+            return
+        if not self.optimizer_group_file_window.GetValue():
+            pw.simple_warning("Please choose a file 'Choose a test file group'")
+            return
+        stat1 = str("specimen_" + str(self.stat_1.GetValue()))
+        stat1_start = float(self.stat_1_low.GetValue())
+        stat1_end = float(self.stat_1_high.GetValue())
+        stat1_delta = float(self.stat_1_delta.GetValue())
 
-            FILE = os.path.join(self.WD, "consistency_test",
-                                "consistency_test_functions.txt")
-            optimizer_function_file = open(FILE, 'w')
-            TEXT = self.text_logger.GetValue()
-            optimizer_function_file.write(TEXT)
-            optimizer_function_file.close()
+        stat2 = str("specimen_" + str(self.stat_2.GetValue()))
+        stat2_start = float(self.stat_2_low.GetValue())
+        stat2_end = float(self.stat_2_high.GetValue())
+        stat2_delta = float(self.stat_2_delta.GetValue())
 
-            gframe = wx.BusyInfo(
-                "Running Thellier Consistency Test\n It may take a while ....", self)
+        FILE = os.path.join(self.WD, "consistency_test",
+                            "consistency_test_functions.txt")
+        optimizer_function_file = open(FILE, 'w')
+        TEXT = self.text_logger.GetValue()
+        optimizer_function_file.write(TEXT)
+        optimizer_function_file.close()
 
-            optimizer_functions_path = "/consistency_test/consistency_test_functions.txt"
-            criteria_fixed_paremeters_file = "/consistency_test/pmag_fixed_criteria.txt"
+        gframe = wx.BusyInfo(
+            "Running Thellier Consistency Test\n It may take a while ....", self)
 
-            stat1_range = [stat1, arange(stat1_start, stat1_end, stat1_delta)]
-            stat2_range = [stat2, arange(stat2_start, stat2_end, stat2_delta)]
+        optimizer_functions_path = "/consistency_test/consistency_test_functions.txt"
+        criteria_fixed_paremeters_file = "/consistency_test/pmag_fixed_criteria.txt"
 
-            # beta_range=arange(beta_start,beta_end,beta_step)
-            # frac_range=arange(frac_start,frac_end,beta_step)
-            # try:
-            from . import thellier_consistency_test
-            thellier_consistency_test.run_thellier_consistency_test(self.WD, self.Data, self.Data_hierarchy, self.acceptance_criteria,
-                                                                    self.optimizer_group_file_path, optimizer_functions_path, self.preferences, stat1_range, stat2_range, THERMAL, MICROWAVE)
+        stat1_range = [stat1, arange(stat1_start, stat1_end, stat1_delta)]
+        stat2_range = [stat2, arange(stat2_start, stat2_end, stat2_delta)]
+
+        # beta_range=arange(beta_start,beta_end,beta_step)
+        # frac_range=arange(frac_start,frac_end,beta_step)
+        # try:
+        from . import thellier_consistency_test
+        thellier_consistency_test.run_thellier_consistency_test(self.WD, self.Data, self.Data_hierarchy, self.acceptance_criteria,
+                                                                self.optimizer_group_file_path, optimizer_functions_path, self.preferences, stat1_range, stat2_range, THERMAL, MICROWAVE)
             # except:
             #    dlg1 = wx.MessageDialog(self,caption="Error:", message="Optimizer finished with Errors" ,style=wx.OK)
 
