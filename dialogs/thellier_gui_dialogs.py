@@ -1153,7 +1153,8 @@ class Consistency_Test(wx.Frame):
         for f in func:
             try:
                 exec(f)
-            except:
+            except Exception as ex:
+                print(ex)
                 OK = False
                 #  message dialog
                 dlg1 = wx.MessageDialog(
@@ -1285,9 +1286,8 @@ class Plot_Dialog(wx.Dialog):
             pnl1, wx.ID_ANY, "Age axis"), wx.HORIZONTAL)
 
         window_list_commands = ["age_min", "age_max", ]
-        for key in window_list_commands:
-            command = "self.set_plot_%s=wx.TextCtrl(pnl1,style=wx.TE_CENTER,size=(50,20))" % key
-            exec(command)
+        self.set_plot_age_min = wx.TextCtrl(pnl1,style=wx.TE_CENTER,size=(50,20))
+        self.set_plot_age_max = wx.TextCtrl(pnl1,style=wx.TE_CENTER,size=(50,20))
         self.set_x_axis_auto = wx.CheckBox(pnl1, -1, '', (50, 50))
         self.set_x_axis_auto.SetValue(True)
 
@@ -1320,10 +1320,8 @@ class Plot_Dialog(wx.Dialog):
         bSizer2 = wx.StaticBoxSizer(wx.StaticBox(
             pnl1, wx.ID_ANY, "Intensity axis"), wx.HORIZONTAL)
 
-        window_list_commands = ["intensity_min", "intensity_max"]
-        for key in window_list_commands:
-            command = "self.set_plot_%s=wx.TextCtrl(pnl1,style=wx.TE_CENTER,size=(50,20))" % key
-            exec(command)
+        self.set_plot_intensity_min = wx.TextCtrl(pnl1,style=wx.TE_CENTER,size=(50,20))
+        self.set_plot_intensity_max = wx.TextCtrl(pnl1,style=wx.TE_CENTER,size=(50,20))
         self.set_y_axis_auto = wx.CheckBox(pnl1, -1, '', (50, 50))
         self.set_plot_B = wx.RadioButton(
             pnl1, -1, 'B (microT)', (10, 10), style=wx.RB_GROUP)
@@ -1394,11 +1392,13 @@ class Plot_Dialog(wx.Dialog):
         self.set_map_autoscale = wx.CheckBox(pnl1, -1, '', (50, 50))
         self.set_map_autoscale.SetValue(True)
 
-        window_list_commands = ["lat_min", "lat_max",
-                                "lat_grid", "lon_min", "lon_max", "lon_grid"]
-        for key in window_list_commands:
-            command = "self.set_map_%s=wx.TextCtrl(pnl1,style=wx.TE_CENTER,size=(50,20))" % key
-            exec(command)
+        self.set_map_lat_min = wx.TextCtrl(pnl1,style=wx.TE_CENTER,size=(50,20))
+        self.set_map_lat_max = wx.TextCtrl(pnl1,style=wx.TE_CENTER,size=(50,20))
+        self.set_map_lat_grid = wx.TextCtrl(pnl1,style=wx.TE_CENTER,size=(50,20))
+        self.set_map_lon_min = wx.TextCtrl(pnl1,style=wx.TE_CENTER,size=(50,20))
+        self.set_map_lon_max = wx.TextCtrl(pnl1,style=wx.TE_CENTER,size=(50,20))
+        self.set_map_lon_grid =wx.TextCtrl(pnl1,style=wx.TE_CENTER,size=(50,20))
+
         bsizer_4_window = wx.GridSizer(2, 8, 12, 12)
 
         bsizer_4_window.AddMany([(wx.StaticText(pnl1, label="show location map", style=wx.TE_CENTER), wx.EXPAND),
