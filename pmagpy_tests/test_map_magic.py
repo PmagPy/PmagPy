@@ -19,7 +19,7 @@ class TestMapping(unittest.TestCase):
                        'measurement_flag', 'treatment_temp',
                        'measurement_pos_z'}
         magic2_dict = {key: '' for key in magic2_keys}
-        magic3_keys = {'analysts', 'number',
+        magic3_keys = {'analysts', 'treat_step_num',
                        'quality', 'treat_temp',
                        'meas_pos_z'}
         output = map_magic.mapping(magic2_dict,
