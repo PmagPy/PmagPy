@@ -533,7 +533,8 @@ class Criteria_Dialog(wx.Dialog):
         #============================
 
         for key in window_list_specimens:
-            print('setting to NullColour results in black, not good on OS X')
+            pass  # this should be fixed eventually
+            #print('setting to NullColour results in black, not good on OS X')
             # self.set_specimen_windows[key].SetBackgroundColour(wx.NullColour)
 
         #-------------------------------------------
