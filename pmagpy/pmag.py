@@ -9543,7 +9543,7 @@ def write_criteria_to_file(path, acceptance_criteria, **kwargs):
                     if eval(rec[value_key]) != -999:
                         recs.append(rec)
             else:
-                print("-W- WARNING: statistic %s not written to file:", crit)
+                print("-W- WARNING: statistic {} not written to file".format(crit))
     # need to make a list of these dictionaries
     if 'data_model' in list(kwargs.keys()) and kwargs['data_model'] == 3:
         if 'prior_crits' in list(kwargs.keys()):
