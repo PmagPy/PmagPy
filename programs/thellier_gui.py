@@ -4529,24 +4529,6 @@ You can combine multiple measurement files into one measurement file using Pmag 
         fin.close()
         return(DATA)
 
-    def on_menu_convert_to_magic(self, event):  # this is depricated
-        dia = thellier_gui_dialogs.convert_generic_files_to_MagIC(self.WD)
-        dia.Show()
-        dia.Center()
-        self.magic_file = os.path.join(self.WD, "magic_measurements.txt")
-        self.GUI_log = open("%s/Thellier_GUI.log" % self.WD, 'w')
-        self.Data, self.Data_hierarchy = {}, {}
-        # get all ages, locations etc. (from er_ages, er_sites, er_locations)
-        self.Data_info = self.get_data_info()
-        # Get data from magic_measurements and rmag_anisotropy if exist.
-        self.Data, self.Data_hierarchy = self.get_data()
-        self.redo_specimens = {}
-        self.specimens = list(self.Data.keys())
-        self.specimens.sort()
-        self.specimens_box.SetItems(self.specimens)
-        self.s = self.specimens[0]
-        self.update_selection()
-
     def on_menu_docs(self, event):
         webopen("https://earthref.org/PmagPy/cookbook/#x1-560005.1.2", new=2)
 
