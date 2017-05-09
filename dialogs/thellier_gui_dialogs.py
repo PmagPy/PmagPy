@@ -34,6 +34,7 @@ from scipy import arange
 import wx
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigCanvas
 import pmagpy.pmag as pmag
+from dialogs import pmag_widgets as pw
 #--------------------------------------------------------------
 # paleointensity statistics list (SPD.v.1.0)
 #--------------------------------------------------------------
@@ -715,6 +716,93 @@ class Criteria_Dialog(wx.Dialog):
         pnl1.SetSizer(vbox)
         vbox.Fit(self)
 
+    def get_value_for_crit(self, crit_name, acceptance_criteria):
+        dia = self
+        crit = crit_name
+        short_crit = crit
+        # truncate criteria name
+        for prefix in ('specimen_', 'sample_', 'site_'):
+            if crit.startswith(prefix):
+                short_crit = crit[len(prefix):]
+
+        #---------
+        # get the "value" from dialog box
+        #---------
+
+        # dealing with sample/site
+        if dia.set_average_by_sample_or_site.GetValue() == 'sample':
+            if crit in ['site_int_n', 'site_int_sigma', 'site_int_sigma_perc', 'site_aniso_mean', 'site_int_n_outlier_check']:
+                return "", {}
+        if dia.set_average_by_sample_or_site.GetValue() == 'site':
+            if crit in ['sample_int_n', 'sample_int_sigma', 'sample_int_sigma_perc', 'sample_aniso_mean', 'sample_int_n_outlier_check']:
+                return "", {}
+        #------
+        if crit in ['site_int_n', 'site_int_sigma_perc', 'site_aniso_mean', 'site_int_n_outlier_check']:
+            value = dia.set_sample_windows[short_crit].GetValue()
+            # command="value=dia.set_%s.GetValue()"%crit.replace('site','sample')
+
+        elif crit == 'sample_int_sigma' or crit == 'site_int_sigma':
+            value = dia.set_sample_windows['int_sigma_uT'].GetValue()
+            # command="value=dia.set_sample_int_sigma_uT.GetValue()"
+        elif short_crit in ['anisotropy_ftest_flag', 'anisotropy_alt']:
+            value = dia.set_anisotropy_windows[short_crit].GetValue()
+        elif crit == 'average_by_sample_or_site':
+            value = dia.set_average_by_sample_or_site.GetValue()
+        elif ('sample' in crit) or ('site' in crit):
+            if short_crit not in dia.set_sample_windows:
+                # skip criteria that weren't in dia
+                return "", {}
+            else:
+                value = dia.set_sample_windows[short_crit].GetValue()
+        else:
+            # skip criteria that weren't in dia
+            if short_crit not in dia.set_specimen_windows:
+                return "", {}
+            else:
+                value = dia.set_specimen_windows[short_crit].GetValue()
+            # command="value=dia.set_%s.GetValue()"%crit
+
+        #------
+        # if averaging by sample or site, must set sample/site_int_n to at
+        # least 1
+        if crit == 'sample_int_n':
+            if not dia.set_sample_windows['int_n'].GetValue():
+                value = 1
+                # command="value=1"
+
+        if crit == 'site_int_n':
+            if not dia.set_sample_windows['int_n'].GetValue():
+                value = 1
+                # command="value=1"
+
+        # exec(command)
+
+        #---------
+        # write the "value" to self.acceptance_criteria
+        #---------
+
+        if crit == 'average_by_sample_or_site':
+            acceptance_criteria[crit]['value'] = str(value)
+            return "", {}
+        if type(value) == bool and value == True:
+            acceptance_criteria[crit]['value'] = True
+        elif type(value) == bool and value == False:
+            acceptance_criteria[crit]['value'] = -999
+        elif type(value) == str and str(value) == "":
+            acceptance_criteria[crit]['value'] = -999
+        elif type(value) == str and str(value) != "":  # should be a number
+            try:
+                acceptance_criteria[crit]['value'] = float(value)
+            except:
+                self.show_message(crit)
+        elif type(value) == float or type(value) == int:
+            acceptance_criteria[crit]['value'] = float(value)
+        else:
+            self.show_message(crit)
+        if (crit == 'sample_int_sigma' or crit == 'site_int_sigma') and str(value) != "":
+            acceptance_criteria[crit]['value'] = float(value) * 1e-6
+        return value, acceptance_criteria
+
 
 #--------------------------------------------------------------
 # Show a table
@@ -873,69 +961,11 @@ class Consistency_Test(wx.Frame):
                 self.acceptance_criteria[crit]['value'] = -999
 
         #---------
-
+        # get value for each criterion
         for i in range(len(criteria_list)):
             crit = criteria_list[i]
-
-            short_crit = crit
-            for prefix in ('specimen_', 'sample_', 'site_'):
-                if crit.startswith(prefix):
-                    short_crit = crit[len(prefix):]
-
-            #---------
-            # get the "value" from dialog box
-            #---------
-                # dealing with sample/site
-            if dia.set_average_by_sample_or_site.GetValue() == 'sample':
-                if crit in ['site_int_n', 'site_int_sigma', 'site_int_sigma_perc', 'site_aniso_mean', 'site_int_n_outlier_check']:
-                    continue
-            if dia.set_average_by_sample_or_site.GetValue() == 'site':
-                if crit in ['sample_int_n', 'sample_int_sigma', 'sample_int_sigma_perc', 'sample_aniso_mean', 'sample_int_n_outlier_check']:
-                    continue
-            #------
-            if crit in ['site_int_n', 'site_int_sigma_perc', 'site_aniso_mean', 'site_int_n_outlier_check']:
-                value = self.set_sample_windows[crit[5:]].GetValue()
-                # command="value=dia.set_%s.GetValue()"%crit.replace('site','sample')
-
-            elif crit == 'sample_int_sigma' or crit == 'site_int_sigma':
-                value = self.set_sample_windows['int_sigma'].GetValue()
-                # command="value=dia.set_%s.GetValue()"%crit
-            else:
-                value = self.set_sample_windows[short_crit].GetValue()
-                # command="value=dia.set_%s.GetValue()"%crit
-            #------
-            # try:
-            #    exec(command)
-            # except:
-            #    continue
-
-            #---------
-            # write the "value" to self.acceptance_criteria
-            #---------
-
-            if crit == 'average_by_sample_or_site':
-                self.acceptance_criteria[crit]['value'] = str(value)
-                continue
-            if type(value) == bool and value == True:
-                self.acceptance_criteria[crit]['value'] = True
-            elif type(value) == bool and value == False:
-                self.acceptance_criteria[crit]['value'] = -999
-            elif type(value) == str and str(value) == "":
-                self.acceptance_criteria[crit]['value'] = -999
-            elif type(value) == str and str(value) != "":  # should be a number
-                try:
-                    self.acceptance_criteria[crit]['value'] = float(value)
-                except:
-                    self.show_messege(crit)
-            elif type(value) == float or type(value) == int:
-                if crit == 'sample_int_sigma' or crit == 'site_int_sigma':
-                    self.acceptance_criteria[crit]['value'] = float(
-                        value) * 1e-6
-                else:
-                    self.acceptance_criteria[crit]['value'] = float(value)
-            else:
-                self.show_messege(crit)
-        #---------
+            value, accept = dia.get_value_for_crit(crit, self.acceptance_criteria)
+            self.acceptance_criteria.update(accept)
         # thellier interpreter calculation type
         if dia.set_stdev_opt.GetValue() == True:
             self.acceptance_criteria['interpreter_method']['value'] = 'stdev_opt'
@@ -1111,7 +1141,7 @@ class Consistency_Test(wx.Frame):
 
         # self.text_logger.SetValue()
 
-        box = wx.BoxSizer(wx.wx.HORIZONTAL)
+        box = wx.BoxSizer(wx.HORIZONTAL)
         vbox = wx.BoxSizer(wx.VERTICAL)
         hbox1a = wx.BoxSizer(wx.HORIZONTAL)
         hbox1b = wx.BoxSizer(wx.HORIZONTAL)
@@ -1274,11 +1304,11 @@ class Consistency_Test(wx.Frame):
 # except:
 ##                dlg1 = wx.MessageDialog(self,caption="Error:", message="Optimizer finished with Errors" ,style=wx.OK)
 
-            dlg1 = wx.MessageDialog(
-                self, caption="Message:", message="Consistency Test finished sucsessfuly\nCheck folder consistency_test in working directory", style=wx.OK | wx.ICON_INFORMATION)
-            dlg1.ShowModal()
-            dlg1.Destroy()
-            gframe.Destroy()
+        dlg1 = wx.MessageDialog(
+            self, caption="Message:", message="Consistency Test finished sucsessfuly\nCheck folder consistency_test in working directory", style=wx.OK | wx.ICON_INFORMATION)
+        dlg1.ShowModal()
+        dlg1.Destroy()
+        gframe.Destroy()
 
 
 #--------------------------------------------------------------

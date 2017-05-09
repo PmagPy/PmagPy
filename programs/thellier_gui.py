@@ -2682,91 +2682,11 @@ You can combine multiple measurement files into one measurement file using Pmag 
                 self.acceptance_criteria[crit]['value'] = -999
 
         #---------
-
+        # get value for each criterion
         for i in range(len(criteria_list)):
             crit = criteria_list[i]
-            short_crit = crit
-            # truncate criteria name
-            for prefix in ('specimen_', 'sample_', 'site_'):
-                if crit.startswith(prefix):
-                    short_crit = crit[len(prefix):]
-
-            #---------
-            # get the "value" from dialog box
-            #---------
-
-            # dealing with sample/site
-            if dia.set_average_by_sample_or_site.GetValue() == 'sample':
-                if crit in ['site_int_n', 'site_int_sigma', 'site_int_sigma_perc', 'site_aniso_mean', 'site_int_n_outlier_check']:
-                    continue
-            if dia.set_average_by_sample_or_site.GetValue() == 'site':
-                if crit in ['sample_int_n', 'sample_int_sigma', 'sample_int_sigma_perc', 'sample_aniso_mean', 'sample_int_n_outlier_check']:
-                    continue
-            #------
-            if crit in ['site_int_n', 'site_int_sigma_perc', 'site_aniso_mean', 'site_int_n_outlier_check']:
-                value = dia.set_sample_windows[short_crit].GetValue()
-                # command="value=dia.set_%s.GetValue()"%crit.replace('site','sample')
-
-            elif crit == 'sample_int_sigma' or crit == 'site_int_sigma':
-                value = dia.set_sample_windows['int_sigma_uT'].GetValue()
-                # command="value=dia.set_sample_int_sigma_uT.GetValue()"
-            elif short_crit in ['anisotropy_ftest_flag', 'anisotropy_alt']:
-                value = dia.set_anisotropy_windows[short_crit].GetValue()
-            elif crit == 'average_by_sample_or_site':
-                value = dia.set_average_by_sample_or_site.GetValue()
-            elif ('sample' in crit) or ('site' in crit):
-                if short_crit not in dia.set_sample_windows:
-                    # skip criteria that weren't in dia
-                    continue
-                else:
-                    value = dia.set_sample_windows[short_crit].GetValue()
-            else:
-                # skip criteria that weren't in dia
-                if short_crit not in dia.set_specimen_windows:
-                    continue
-                else:
-                    value = dia.set_specimen_windows[short_crit].GetValue()
-                # command="value=dia.set_%s.GetValue()"%crit
-
-            #------
-            # if averaging by sample or site, must set sample/site_int_n to at
-            # least 1
-            if crit == 'sample_int_n':
-                if not dia.set_sample_windows['int_n'].GetValue():
-                    value = 1
-                    # command="value=1"
-
-            if crit == 'site_int_n':
-                if not dia.set_sample_windows['int_n'].GetValue():
-                    value = 1
-                    # command="value=1"
-
-            # exec(command)
-
-            #---------
-            # write the "value" to self.acceptance_criteria
-            #---------
-
-            if crit == 'average_by_sample_or_site':
-                self.acceptance_criteria[crit]['value'] = str(value)
-                continue
-            if type(value) == bool and value == True:
-                self.acceptance_criteria[crit]['value'] = True
-            elif type(value) == bool and value == False:
-                self.acceptance_criteria[crit]['value'] = -999
-            elif type(value) == str and str(value) == "":
-                self.acceptance_criteria[crit]['value'] = -999
-            elif type(value) == str and str(value) != "":  # should be a number
-                try:
-                    self.acceptance_criteria[crit]['value'] = float(value)
-                except:
-                    self.show_message(crit)
-            elif type(value) == float or type(value) == int:
-                self.acceptance_criteria[crit]['value'] = float(value)
-            else:
-                self.show_message(crit)
-            if (crit == 'sample_int_sigma' or crit == 'site_int_sigma') and str(value) != "":
-                self.acceptance_criteria[crit]['value'] = float(value) * 1e-6
+            value, accept = dia.get_value_for_crit(crit, self.acceptance_criteria)
+            self.acceptance_criteria.update(accept)
         #---------
         # thellier interpreter calculation type
         if dia.set_stdev_opt.GetValue() == True:
