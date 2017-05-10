@@ -373,6 +373,9 @@ def convert(**kwargs):
                 print("trouble with your treatment steps")
             MeasRec['dir_dec']=line[46:51]
             MeasRec['dir_inc']=line[52:58]
+#           Some MIT files have and extra digit in the exponent of the magnetude.
+#           The first digit of the exponent which should always be zero is cut out of the line if column 40 is not ' ' 
+            if line[40] == ' ': line = line[0:37] + line[38:]
             M='%8.2e'%(float(line[31:39])*vol*1e-3) # convert to Am2
             MeasRec['magn_moment']=M
             MeasRec['dir_csd']='%7.1f'%(eval(line[41:46]))
