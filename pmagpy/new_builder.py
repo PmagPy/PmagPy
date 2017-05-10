@@ -634,7 +634,8 @@ class Contribution(object):
         #
         if down:
             add_name = source_df_name[:-1]
-            self.propagate_name_down(add_name, target_df_name)
+            self.propagate_location_to_measurements()
+            #self.propagate_name_down(add_name, target_df_name)
         else:
             add_name = target_df_name[:-1]
 

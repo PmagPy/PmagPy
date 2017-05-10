@@ -78,10 +78,10 @@ def main():
     spec_file=pmag.get_named_arg_from_sys("-fsp", default_val="specimens.txt")
     samp_file=pmag.get_named_arg_from_sys("-fsa",default_val="samples.txt")
     site_file=pmag.get_named_arg_from_sys("-fsi",default_val="sites.txt")
-    meas_file=os.path.join(dir_path,meas_file)
-    spec_file=os.path.join(dir_path,spec_file)
-    samp_file=os.path.join(dir_path,samp_file)
-    site_file=os.path.join(dir_path,site_file)
+    #meas_file=os.path.join(dir_path,meas_file)
+    #spec_file=os.path.join(dir_path,spec_file)
+    #samp_file=os.path.join(dir_path,samp_file)
+    #site_file=os.path.join(dir_path,site_file)
     plot_file=pmag.get_named_arg_from_sys("-Fp",default_val="")
     crd = pmag.get_named_arg_from_sys("-crd", default_val="s")
     if crd == "s":
@@ -106,7 +106,8 @@ def main():
     #
     first_save=1
     fnames = {'measurements': meas_file, 'specimens': spec_file, 'samples': samp_file,'sites': site_file}
-    contribution = nb.Contribution(dir_path, custom_filenames=fnames, read_tables=['measurements', 'specimens', 'samples','sites'])
+    contribution = nb.Contribution(dir_path, custom_filenames=fnames,
+                                   read_tables=['measurements', 'specimens', 'samples','sites'])
 #
 #   import  specimens
 
