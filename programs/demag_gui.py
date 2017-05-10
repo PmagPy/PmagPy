@@ -3333,15 +3333,7 @@ class Demag_GUI(wx.Frame):
 
 
             #add data to other dataframes
-            if 'specimens' in self.con.tables:
-                self.con.propagate_name_down('sample', 'measurements')
-                self.con.propagate_name_down('sample', 'specimens')
-            if 'samples' in self.con.tables:
-                self.con.propagate_name_down('site', 'measurements')
-                self.con.propagate_name_down('site', 'specimens')
-            if 'sites' in self.con.tables:
-                self.con.propagate_name_down('location','measurements')
-                self.con.propagate_name_down('location','specimens')
+            self.con.propagate_location_to_measurements()
 
             #get measurement data from contribution object
             meas_container = self.con.tables['measurements']

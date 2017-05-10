@@ -533,6 +533,18 @@ class TestContribution(unittest.TestCase):
         con.propagate_name_down('location', 'measurements')
         self.assertIn('location', con.tables['measurements'].df.columns)
 
+    def test_propagate_name_down_fail(self):
+        """fail gracefully"""
+        directory = os.path.join(WD, 'data_files', 'Measurement_Import', 'CIT_magic', 'PI47')
+        con = nb.Contribution(directory)
+        self.assertNotIn('sample', con.tables['measurements'].df.columns)
+        self.assertNotIn('location', con.tables['measurements'].df.columns)
+        # missing link:
+        del con.tables['samples'].df['site']
+        meas_df = con.propagate_location_to_measurements()
+        self.assertIn('sample', con.tables['measurements'].df.columns)
+        self.assertNotIn('location', meas_df.columns)
+
 
 
 class TestNotNull(unittest.TestCase):
