@@ -69,7 +69,7 @@ class Contribution(object):
             return
         else:  # read in data for all required tables
             for name in read_tables:
-                self.add_magic_table(name)
+                self.add_magic_table(name, fname=self.filenames[name])
 
     ## Methods for building up the contribution
 
@@ -144,7 +144,8 @@ class Contribution(object):
                 return False
             filename = os.path.join(self.directory, self.filenames[dtype])
             if os.path.exists(filename):
-                data_container = MagicDataFrame(filename, dmodel=self.data_model)
+                data_container = MagicDataFrame(filename, dtype=dtype,
+                                                dmodel=self.data_model)
                 if data_container.dtype != "empty":
                     self.tables[dtype] = data_container
                     return data_container
@@ -1040,6 +1041,7 @@ class MagicDataFrame(object):
         will be filled in by the data model.
         If provided, col_names takes precedence.
         """
+        provided_dtype = dtype
         # first fetch data model if not provided
         # (DataModel type sometimes not recognized, hence ugly hack below)
         if isinstance(dmodel, data_model.DataModel) or str(data_model.DataModel) == str(type(dmodel)):
@@ -1051,6 +1053,9 @@ class MagicDataFrame(object):
             except AttributeError:
                 MagicDataFrame.data_model = data_model.DataModel()
                 self.data_model = MagicDataFrame.data_model
+
+        if dtype and magic_file:
+            name, self.dtype = self.get_singular_and_plural_dtype(dtype)
 
         # create MagicDataFrame using a DataFrame and a dtype:
         if isinstance(df, pd.DataFrame):
@@ -1085,7 +1090,7 @@ class MagicDataFrame(object):
             self.df = None
             return
 
-        # create MagicDataFrame using a DataFrame and a dtype:
+        # create MagicDataFrame using a DataFrame and a dtype
         if isinstance(df, pd.DataFrame):
             self.df = df
             if dtype:
@@ -1144,7 +1149,11 @@ class MagicDataFrame(object):
                     self.df = DataFrame()
                     return
             # get singular name and plural datatype
-            name, self.dtype = self.get_singular_and_plural_dtype(dtype)
+            if provided_dtype:
+                name, self.dtype = self.get_singular_and_plural_dtype(provided_dtype)
+            else:
+                name, self.dtype = self.get_singular_and_plural_dtype(dtype)
+
             self.df = pd.read_table(magic_file, skiprows=[0])
             # drop all blank rows
             self.df = self.df.dropna(how='all', axis=0)
