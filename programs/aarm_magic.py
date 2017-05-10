@@ -15,8 +15,8 @@ def main():
           off-axis remanence terms to construct the tensor. A better way to
           do the anisotropy of ARMs is to use 9,12 or 15 measurements in
           the Hext rotational scheme.
-    
-    SYNTAX 
+
+    SYNTAX
         aarm_magic.py [-h][command line options]
 
     OPTIONS
@@ -28,12 +28,12 @@ def main():
         -Fa FILE: specify anisotropy output file, default is arm_anisotropy.txt
         -Fr FILE: specify results output file, default is aarm_results.txt
 
-    INPUT  
+    INPUT
         Input for the present program is a series of baseline, ARM pairs.
       The baseline should be the AF demagnetized state (3 axis demag is
       preferable) for the following ARM acquisition. The order of the
       measurements is:
-    
+
            positions 1,2,3, 6,7,8, 11,12,13 (for 9 positions)
            positions 1,2,3,4, 6,7,8,9, 11,12,13,14 (for 12 positions)
            positions 1-15 (for 15 positions)
@@ -92,7 +92,7 @@ def main():
         samp_data,file_type=pmag.magic_read(samp_file)
         if file_type != 'er_samples':
             print file_type
-            print file_type,"This is not a valid er_samples file " 
+            print file_type,"This is not a valid er_samples file "
             print "Only specimen coordinates will be calculated"
             coord='-1'
     #
@@ -152,12 +152,12 @@ def main():
             index=0
             for i in range(npos):
                 for j in range(3):
-                    w[index]=work[i][j] 
+                    w[index]=work[i][j]
                     index+=1
             s=numpy.zeros((6),'f') # initialize the s matrix
             for i in range(6):
                 for j in range(len(w)):
-                    s[i]+=B[i][j]*w[j] 
+                    s[i]+=B[i][j]*w[j]
             trace=s[0]+s[1]+s[2]   # normalize by the trace
             for i in range(6):
                 s[i]=s[i]/trace
@@ -179,7 +179,7 @@ def main():
                 d=w[i]/trace - comp[i] # del values
                 S+=d*d
             nf=float(npos*3-6) # number of degrees of freedom
-            if S >0: 
+            if S >0:
                 sigma=numpy.sqrt(S/nf)
             else: sigma=0
             RmagSpecRec["rmag_anisotropy_name"]=data[0]["er_specimen_name"]
@@ -198,7 +198,7 @@ def main():
             RmagResRec["er_citation_names"]="This study"
             if "magic_instrument_codes" in data[0].keys():
                 RmagSpecRec["magic_instrument_codes"]=data[0]["magic_instrument_codes"]
-            else:  
+            else:
                 RmagSpecRec["magic_instrument_codes"]=""
             RmagSpecRec["anisotropy_type"]="AARM"
             RmagSpecRec["anisotropy_description"]="Hext statistics adapted to AARM"
@@ -237,7 +237,7 @@ def main():
                     p+=1
                 az,pl=orient['sample_azimuth'],orient['sample_dip']
                 s=pmag.dosgeo(s,az,pl) # rotate to geographic coordinates
-                if coord=='100': 
+                if coord=='100':
                     sampe_bed_dir,sample_bed_dip=orient['sample_bed_dip_direction'],orient['sample_bed_dip']
                     s=pmag.dostilt(s,bed_dir,bed_dip) # rotate to geographic coordinates
             hpars=pmag.dohext(nf,sigma,s)
