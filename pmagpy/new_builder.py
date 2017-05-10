@@ -499,6 +499,17 @@ class Contribution(object):
         return "", ""
 
 
+    def propagate_location_to_measurements(self):
+        """
+        Propagate all names from location down to measurements.
+        --------
+        Returns: measurements MagicDataFrame
+        """
+        self.propagate_name_down('sample', 'measurements')
+        self.propagate_name_down('site', 'measurements')
+        return self.propagate_name_down('location', 'measurements')
+
+
     def propagate_name_down(self, col_name, df_name):
         """
         Put the data for "col_name" into dataframe with df_name
