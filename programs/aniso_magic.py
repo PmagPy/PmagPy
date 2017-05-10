@@ -134,6 +134,7 @@ def main():
     con = nb.Contribution(dir_path, read_tables=['specimens', 'samples', 'sites'],
                           custom_filenames=fnames)
     spec_container = con.tables['specimens']
+    con.propagate_name_down('site', 'specimens')
     spec_df = con.propagate_name_down('location', 'specimens')
     # get only anisotropy records
     spec_df = spec_container.get_records_for_code('AE-', strict_match=False)
