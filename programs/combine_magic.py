@@ -24,7 +24,7 @@ import pmagpy.command_line_extractor as extractor
 def combine(filenames,outfile,dir_path='.',data_model=2.5):
     files=[]
     for f in filenames.split():
-        files.append(os.path.join(dir_path,f)) 
+        files.append(os.path.join(dir_path,f))
     outfile=(os.path.join(dir_path,outfile))
     ipmag.combine_magic(files, outfile, data_model=data_model)
 
@@ -46,7 +46,7 @@ def main():
         if not outfile:
             return False
     else: # non-interactive
-        dataframe = extractor.command_line_dataframe([["F", True, '']])
+        dataframe = extractor.command_line_dataframe([["F", True, ''], ["dm", False, 3]])
         args = extractor.extract_and_check_args(sys.argv, dataframe)
         data_model, dir_path, outfile, filenames = extractor.get_vars(["dm","WD", "F", "f"], args)
     combine(filenames,outfile,dir_path,data_model)
