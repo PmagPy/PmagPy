@@ -136,8 +136,8 @@ def main():
     fnames = {'specimens': infile, 'samples': samp_file, 'sites': site_file}
     con = nb.Contribution(dir_path, read_tables=['specimens', 'samples', 'sites'],
                           custom_filenames=fnames)
+    con.propagate_location_to_specimens()
     spec_container = con.tables['specimens']
-    spec_df = con.propagate_name_down('location', 'specimens')
     # get only anisotropy records
     spec_df = spec_container.get_records_for_code('AE-', strict_match=False)
     if 'aniso_tilt_correction' not in spec_df.columns:
