@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import print_function
 import sys
 import os
 
@@ -10,7 +11,7 @@ import pmagpy.pmagplotlib as pmagplotlib
 import pmagpy.pmag as pmag
 
 def save_redo(SpecRecs,inspec):
-    print "Saving changes to specimen file"
+    print("Saving changes to specimen file")
     pmag.magic_write(inspec,SpecRecs,'pmag_specimens')
 
 def main():
@@ -67,7 +68,7 @@ def main():
     backup=0
     specimen="" # can skip everything and just plot one specimen with bounds e,b
     if '-h' in sys.argv:
-        print main.__doc__
+        print(main.__doc__)
         sys.exit()
     if '-WD' in sys.argv:
         ind=sys.argv.index('-WD')
@@ -120,8 +121,8 @@ def main():
     meas_data,file_type=pmag.magic_read(meas_file)
     changeM,changeS=0,0 # check if data or interpretations have changed
     if file_type != 'magic_measurements':
-        print file_type
-        print file_type,"This is not a valid magic_measurements file " 
+        print(file_type)
+        print(file_type,"This is not a valid magic_measurements file ") 
         sys.exit()
     for rec in  meas_data:
         if  "magic_method_codes" not in rec.keys(): rec["magic_method_codes"]=""
@@ -134,7 +135,7 @@ def main():
     PriorSpecs=[]
     PriorRecs,file_type=pmag.magic_read(inspec)
     if len(PriorRecs)==0: 
-        if verbose:print "starting new file ",inspec
+        if verbose:print("starting new file ",inspec)
     for Rec in PriorRecs:
         if 'magic_software_packages' not in Rec.keys():Rec['magic_software_packages']=""
         if Rec['er_specimen_name'] not in PriorSpecs:
@@ -196,7 +197,7 @@ def main():
         PmagSpecRec['magic_software_packages']=version_num
         PmagSpecRec['specimen_description']=""
         PmagSpecRec['magic_method_codes']=""
-        if verbose and  s!="":print s, k , 'out of ',len(sids)
+        if verbose and  s!="":print(s, k , 'out of ',len(sids))
     #
     #  collect info for the PmagSpecRec dictionary
     #
@@ -234,7 +235,7 @@ def main():
             beg_pca,end_pca="",""
             calculation_type=""
             if inspec !="":
-              if verbose: print "    looking up previous interpretations..."
+              if verbose: print("    looking up previous interpretations...")
               precs=pmag.get_dictitem(PriorRecs,'er_specimen_name',s,'T') # get all the prior recs with this specimen name
               precs=pmag.get_dictitem(precs,'magic_method_codes','LP-DIR','has') # get the directional data
               PriorRecs=pmag.get_dictitem(PriorRecs,'er_specimen_name',s,'F') # take them all out of prior recs
@@ -257,14 +258,14 @@ def main():
                 if 'DE-BFP' in method_codes: calculation_type='DE-BFP'
                 if 'DE-BFL-A' in method_codes: calculation_type='DE-BFL-A'
                 if 'specimen_dang' not in CurrRec.keys():
-                    if verbose:print 'Run mk_redo.py and zeq_magic_redo.py to get the specimen_dang values'
+                    if verbose:print('Run mk_redo.py and zeq_magic_redo.py to get the specimen_dang values')
                     CurrRec['specimen_dang']=-1
                 if calculation_type!='DE-FM' and crd==coord: # not a fisher mean
-                    if verbose:print "Specimen  N    MAD    DANG  start     end      dec     inc  type  component coordinates"
+                    if verbose:print("Specimen  N    MAD    DANG  start     end      dec     inc  type  component coordinates")
                     if units=='K':
-                            if verbose:print '%s %i %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f  %s  %s       %s \n' % (CurrRec["er_specimen_name"],int(CurrRec["specimen_n"]),float(CurrRec["specimen_mad"]),float(CurrRec["specimen_dang"]),float(CurrRec["measurement_step_min"])-273,float(CurrRec["measurement_step_max"])-273,float(CurrRec["specimen_dec"]),float(CurrRec["specimen_inc"]),calculation_type,CurrRec['specimen_comp_name'],crd)
+                            if verbose:print('%s %i %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f  %s  %s       %s \n' % (CurrRec["er_specimen_name"],int(CurrRec["specimen_n"]),float(CurrRec["specimen_mad"]),float(CurrRec["specimen_dang"]),float(CurrRec["measurement_step_min"])-273,float(CurrRec["measurement_step_max"])-273,float(CurrRec["specimen_dec"]),float(CurrRec["specimen_inc"]),calculation_type,CurrRec['specimen_comp_name'],crd))
                     elif units=='T':
-                       if verbose:print '%s %i %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f  %s  %s %s \n' % (CurrRec["er_specimen_name"],int(CurrRec["specimen_n"]),float(CurrRec["specimen_mad"]),float(CurrRec["specimen_dang"]),float(CurrRec["measurement_step_min"])*1e3,float(CurrRec["measurement_step_max"])*1e3,float(CurrRec["specimen_dec"]),float(CurrRec["specimen_inc"]),calculation_type,CurrRec['specimen_comp_name'],crd)
+                       if verbose:print('%s %i %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f  %s  %s %s \n' % (CurrRec["er_specimen_name"],int(CurrRec["specimen_n"]),float(CurrRec["specimen_mad"]),float(CurrRec["specimen_dang"]),float(CurrRec["measurement_step_min"])*1e3,float(CurrRec["measurement_step_max"])*1e3,float(CurrRec["specimen_dec"]),float(CurrRec["specimen_inc"]),calculation_type,CurrRec['specimen_comp_name'],crd))
                     elif 'T' in units and 'K' in units:
                             if float(CurrRec['measurement_step_min'])<1.0 :
                                 min=float(CurrRec['measurement_step_min'])*1e3
@@ -274,15 +275,15 @@ def main():
                                 max=float(CurrRec['measurement_step_max'])*1e3
                             else:
                                 max=float(CurrRec['measurement_step_max'])-273
-                            if verbose:print '%s %i %7.1f %i %i %7.1f %7.1f %7.1f, %s        %s\n' % (CurrRec["er_specimen_name"],int(CurrRec["specimen_n"]),float(CurrRec["specimen_mad"]),float(CurrRec['specimen_dang']),min,max,float(CurrRec["specimen_dec"]),float(CurrRec["specimen_inc"]),calculation_type,crd)
+                            if verbose:print('%s %i %7.1f %i %i %7.1f %7.1f %7.1f, %s        %s\n' % (CurrRec["er_specimen_name"],int(CurrRec["specimen_n"]),float(CurrRec["specimen_mad"]),float(CurrRec['specimen_dang']),min,max,float(CurrRec["specimen_dec"]),float(CurrRec["specimen_inc"]),calculation_type,crd))
                     elif 'J' in units:
-                       if verbose:print '%s %i %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f  %s  %s       %s \n' % (CurrRec["er_specimen_name"],int(CurrRec["specimen_n"]),float(CurrRec["specimen_mad"]),float(CurrRec['specimen_dang']),float(CurrRec["measurement_step_min"]),float(CurrRec["measurement_step_max"]),float(CurrRec["specimen_dec"]),float(CurrRec["specimen_inc"]),calculation_type,CurrRec['specimen_comp_name'],crd)
+                       if verbose:print('%s %i %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f  %s  %s       %s \n' % (CurrRec["er_specimen_name"],int(CurrRec["specimen_n"]),float(CurrRec["specimen_mad"]),float(CurrRec['specimen_dang']),float(CurrRec["measurement_step_min"]),float(CurrRec["measurement_step_max"]),float(CurrRec["specimen_dec"]),float(CurrRec["specimen_inc"]),calculation_type,CurrRec['specimen_comp_name'],crd))
                 elif calculation_type=='DE-FM' and crd==coord: # fisher mean
-                    if verbose:print "Specimen  a95 DANG   start     end      dec     inc  type  component coordinates"
+                    if verbose:print("Specimen  a95 DANG   start     end      dec     inc  type  component coordinates")
                     if units=='K':
-                         if verbose:print '%s %i %7.1f %7.1f %7.1f %7.1f %7.1f  %s  %s       %s \n' % (CurrRec["er_specimen_name"],int(CurrRec["specimen_n"]),float(CurrRec["specimen_alpha95"]),float(CurrRec["measurement_step_min"])-273,float(CurrRec["measurement_step_max"])-273,float(CurrRec["specimen_dec"]),float(CurrRec["specimen_inc"]),calculation_type,CurrRec['specimen_comp_name'],crd)
+                         if verbose:print('%s %i %7.1f %7.1f %7.1f %7.1f %7.1f  %s  %s       %s \n' % (CurrRec["er_specimen_name"],int(CurrRec["specimen_n"]),float(CurrRec["specimen_alpha95"]),float(CurrRec["measurement_step_min"])-273,float(CurrRec["measurement_step_max"])-273,float(CurrRec["specimen_dec"]),float(CurrRec["specimen_inc"]),calculation_type,CurrRec['specimen_comp_name'],crd))
                     elif units=='T':
-                          if verbose:print '%s %i %7.1f %7.1f %7.1f %7.1f %7.1f  %s  %s       %s \n' % (CurrRec["er_specimen_name"],int(CurrRec["specimen_n"]),float(CurrRec["specimen_alpha95"]),float(CurrRec["measurement_step_min"])*1e3,float(CurrRec["measurement_step_max"])*1e3,float(CurrRec["specimen_dec"]),float(CurrRec["specimen_inc"]),calculation_type,CurrRec['specimen_comp_name'],crd)
+                          if verbose:print('%s %i %7.1f %7.1f %7.1f %7.1f %7.1f  %s  %s       %s \n' % (CurrRec["er_specimen_name"],int(CurrRec["specimen_n"]),float(CurrRec["specimen_alpha95"]),float(CurrRec["measurement_step_min"])*1e3,float(CurrRec["measurement_step_max"])*1e3,float(CurrRec["specimen_dec"]),float(CurrRec["specimen_inc"]),calculation_type,CurrRec['specimen_comp_name'],crd))
                     elif 'T' in units and 'K' in units:
                             if float(CurrRec['measurement_step_min'])<1.0 :
                                 min=float(CurrRec['measurement_step_min'])*1e3
@@ -292,9 +293,9 @@ def main():
                                 max=float(CurrRec['measurement_step_max'])*1e3
                             else:
                                 max=float(CurrRec['measurement_step_max'])-273
-                            if verbose:print '%s %i %7.1f %i %i %7.1f %7.1f %s       %s \n' % (CurrRec["er_specimen_name"],int(CurrRec["specimen_n"]),float(CurrRec["specimen_alpha95"]),min,max,float(CurrRec["specimen_dec"]),float(CurrRec["specimen_inc"]),calculation_type,crd)
+                            if verbose:print('%s %i %7.1f %i %i %7.1f %7.1f %s       %s \n' % (CurrRec["er_specimen_name"],int(CurrRec["specimen_n"]),float(CurrRec["specimen_alpha95"]),min,max,float(CurrRec["specimen_dec"]),float(CurrRec["specimen_inc"]),calculation_type,crd))
                     elif 'J' in units:
-                       if verbose:print '%s %i %7.1f %7.1f %7.1f %7.1f %7.1f %s %s       %s \n' % (CurrRec["er_specimen_name"],int(CurrRec["specimen_n"]),float(CurrRec["specimen_mad"]),float(CurrRec["measurement_step_min"]),float(CurrRec["measurement_step_max"]),float(CurrRec["specimen_dec"]),float(CurrRec["specimen_inc"]),calculation_type,CurrRec['specimen_comp_name'],crd)
+                       if verbose:print('%s %i %7.1f %7.1f %7.1f %7.1f %7.1f %s %s       %s \n' % (CurrRec["er_specimen_name"],int(CurrRec["specimen_n"]),float(CurrRec["specimen_mad"]),float(CurrRec["measurement_step_min"]),float(CurrRec["measurement_step_max"]),float(CurrRec["specimen_dec"]),float(CurrRec["specimen_inc"]),calculation_type,CurrRec['specimen_comp_name'],crd))
               if len(CurrRecs)==0:beg_pca,end_pca="",""
           datablock=data
           noskip=1
@@ -327,7 +328,7 @@ def main():
         # find top priority orientation method
                 orient,az_type=pmag.get_orient(samp_data,PmagSpecRec["er_sample_name"])
                 if az_type=='SO-NO':
-                    if verbose: print "no orientation data for ",s 
+                    if verbose: print("no orientation data for ",s) 
                     orient["sample_azimuth"]=0
                     orient["sample_dip"]=0
                     noorient=1
@@ -376,7 +377,7 @@ def main():
                             if data[j][0]==float(prec["measurement_step_max"]):end_pca=j
                         if beg_pca=="" or end_pca=="":  
                             if verbose:
-                                print "something wrong with prior interpretation "
+                                print("something wrong with prior interpretation ")
                             break
                     if calculation_type!="":
                         if beg_pca=="":beg_pca=0
@@ -401,12 +402,12 @@ def main():
     #
             recnum=0
             for plotrec in plotblock:
-                if units=='T' and verbose: print '%s: %i  %7.1f %s  %8.3e %7.1f %7.1f %s' % (plotrec[5], recnum,plotrec[0]*1e3," mT",plotrec[3],plotrec[1],plotrec[2],plotrec[6])
-                if units=="K" and verbose: print '%s: %i  %7.1f %s  %8.3e %7.1f %7.1f %s' % (plotrec[5], recnum,plotrec[0]-273,' C',plotrec[3],plotrec[1],plotrec[2],plotrec[6])
-                if units=="J" and verbose: print '%s: %i  %7.1f %s  %8.3e %7.1f %7.1f %s' % (plotrec[5], recnum,plotrec[0],' J',plotrec[3],plotrec[1],plotrec[2],plotrec[6])
+                if units=='T' and verbose: print('%s: %i  %7.1f %s  %8.3e %7.1f %7.1f %s' % (plotrec[5], recnum,plotrec[0]*1e3," mT",plotrec[3],plotrec[1],plotrec[2],plotrec[6]))
+                if units=="K" and verbose: print('%s: %i  %7.1f %s  %8.3e %7.1f %7.1f %s' % (plotrec[5], recnum,plotrec[0]-273,' C',plotrec[3],plotrec[1],plotrec[2],plotrec[6]))
+                if units=="J" and verbose: print('%s: %i  %7.1f %s  %8.3e %7.1f %7.1f %s' % (plotrec[5], recnum,plotrec[0],' J',plotrec[3],plotrec[1],plotrec[2],plotrec[6]))
                 if 'K' in units and 'T' in units:
-                    if plotrec[0]>=1. and verbose: print '%s: %i  %7.1f %s  %8.3e %7.1f %7.1f %s' % (plotrec[5], recnum,plotrec[0]-273,' C',plotrec[3],plotrec[1],plotrec[2],plotrec[6])
-                    if plotrec[0]<1. and  verbose: print '%s: %i  %7.1f %s  %8.3e %7.1f %7.1f %s' % (plotrec[5], recnum,plotrec[0]*1e3," mT",plotrec[3],plotrec[1],plotrec[2],plotrec[6])
+                    if plotrec[0]>=1. and verbose: print('%s: %i  %7.1f %s  %8.3e %7.1f %7.1f %s' % (plotrec[5], recnum,plotrec[0]-273,' C',plotrec[3],plotrec[1],plotrec[2],plotrec[6]))
+                    if plotrec[0]<1. and  verbose: print('%s: %i  %7.1f %s  %8.3e %7.1f %7.1f %s' % (plotrec[5], recnum,plotrec[0]*1e3," mT",plotrec[3],plotrec[1],plotrec[2],plotrec[6]))
                 recnum += 1
             if specimen!="":
                 if plot_file=="":
@@ -425,21 +426,21 @@ def main():
                 changeS=0
                 while ans != "":
                     if len(CurrRecs)==0:
-                        print """
+                        print("""
                 g/b: indicates  good/bad measurement.  "bad" measurements excluded from calculation
 
                 set s[a]ve plot, [b]ounds for pca and calculate, [p]revious, [s]pecimen, 
                  change [h]orizontal projection angle,   change [c]oordinate systems, 
                  [e]dit data,  [q]uit: 
-                """
+                """)
                     else:
-                        print """
+                        print("""
                 g/b: indicates  good/bad measurement.  "bad" measurements excluded from calculation
 
                  set s[a]ve plot, [b]ounds for pca and calculate, [p]revious, [s]pecimen, 
                  change [h]orizontal projection angle,   change [c]oordinate systems, 
                  [d]elete current interpretation(s), [e]dit data,   [q]uit: 
-                """
+                """)
                     ans=raw_input('<Return>  for  next specimen \n')
                     setangle=0
                     if ans=='d': # delete this interpretation
@@ -452,7 +453,7 @@ def main():
                             ans=raw_input('Save changes to magic_measurements.txt? y/[n] ')
                             if ans=='y':
                                 pmag.magic_write(meas_file,meas_data,'magic_measurements')
-                        print "Good bye"
+                        print("Good bye")
                         sys.exit()
                     if  ans=='a':
                         if plot_file=="":
@@ -470,10 +471,10 @@ def main():
                         backup=1
                     if ans=='c':
                         k-=1 # replot same block
-                        if tilt==0 and geo ==1:print "You  are currently viewing geographic  coordinates "
-                        if tilt==1 and geo ==1:print "You  are currently viewing stratigraphic  coordinates "
-                        if tilt==0 and geo ==0: print "You  are currently viewing sample coordinates "
-                        print "\n Which coordinate system do you wish to view? "
+                        if tilt==0 and geo ==1:print("You  are currently viewing geographic  coordinates ")
+                        if tilt==1 and geo ==1:print("You  are currently viewing stratigraphic  coordinates ")
+                        if tilt==0 and geo ==0: print("You  are currently viewing sample coordinates ")
+                        print("\n Which coordinate system do you wish to view? ")
                         coord=raw_input(" <Return>  specimen, [g] geographic, [t] tilt corrected ")
                         if coord=="g":geo,tilt=1,0
                         if coord=="t":
@@ -488,8 +489,8 @@ def main():
                             if samp_file=="":samp_file="er_samples.txt"
                             samp_data,file_type=pmag.magic_read(samp_file)
                             if file_type != 'er_samples':
-                               print file_type
-                               print "This is not a valid er_samples file - coordinate system not changed" 
+                               print(file_type)
+                               print("This is not a valid er_samples file - coordinate system not changed") 
                             else:
                                sfile="ok"
                         ans=""
@@ -504,8 +505,8 @@ def main():
                                 tmplist=[]
                                 for qq in range(len(sids)):
                                     if sample in sids[qq]:tmplist.append(sids[qq])
-                                print sample," not found, but this was: "
-                                print tmplist
+                                print(sample," not found, but this was: ")
+                                print(tmplist)
                                 sample=raw_input('Select one or try again\n ')
                         angle,direction_type="",""
                         setangle=0
@@ -523,8 +524,8 @@ def main():
                         ans=""
                         recnum=0
                         for plotrec in plotblock:
-                            if plotrec[0]<=200 and verbose: print '%s: %i  %7.1f %s  %8.3e %7.1f %7.1f ' % (plotrec[5], recnum,plotrec[0]*1e3," mT",plotrec[3],plotrec[1],plotrec[2])
-                            if plotrec[0]>200 and verbose: print '%s: %i  %7.1f %s  %8.3e %7.1f %7.1f ' % (plotrec[5], recnum,plotrec[0]-273,' C',plotrec[3],plotrec[1],plotrec[2])
+                            if plotrec[0]<=200 and verbose: print('%s: %i  %7.1f %s  %8.3e %7.1f %7.1f ' % (plotrec[5], recnum,plotrec[0]*1e3," mT",plotrec[3],plotrec[1],plotrec[2]))
+                            if plotrec[0]>200 and verbose: print('%s: %i  %7.1f %s  %8.3e %7.1f %7.1f ' % (plotrec[5], recnum,plotrec[0]-273,' C',plotrec[3],plotrec[1],plotrec[2]))
                             recnum += 1
                         answer=raw_input('Enter index of point to change from bad to good or vice versa:  ')
                         try: 
@@ -539,32 +540,32 @@ def main():
                         k-=1   # stay on same sample until through
                         GoOn=0
                         while GoOn==0:
-                            print 'Enter index of first point for pca: ','[',beg_pca,']'
+                            print('Enter index of first point for pca: ','[',beg_pca,']')
                             answer=raw_input('return to keep default  ')
                             if answer != "":
                                 beg_pca=int(answer)
-                            print 'Enter index  of last point for pca: ','[',end_pca,']'
+                            print('Enter index  of last point for pca: ','[',end_pca,']')
                             answer=raw_input('return to keep default  ')
                             try:
                                 end_pca=int(answer) 
                                 if plotblock[beg_pca][5]=='b' or plotblock[end_pca][5]=='b': 
-                                    print "Can't select 'bad' measurement for PCA bounds -try again"
+                                    print("Can't select 'bad' measurement for PCA bounds -try again")
                                     end_pca=len(plotblock)-1
                                     beg_pca=0
                                 elif beg_pca >=0 and beg_pca<=len(plotblock)-2 and end_pca>0 and end_pca<len(plotblock): 
                                     GoOn=1
                                 else:
-                                    print beg_pca,end_pca, " are bad entry of indices - try again"
+                                    print(beg_pca,end_pca, " are bad entry of indices - try again")
                                     end_pca=len(plotblock)-1
                                     beg_pca=0
                             except:
-                                print beg_pca,end_pca, " are bad entry of indices - try again"
+                                print(beg_pca,end_pca, " are bad entry of indices - try again")
                                 end_pca=len(plotblock)-1
                                 beg_pca=0
                         GoOn=0
                         while GoOn==0:
                             if calculation_type!="":
-                                print "Prior calculation type = ",calculation_type
+                                print("Prior calculation type = ",calculation_type)
                             ct=raw_input('Enter new Calculation Type: best-fit line,  plane or fisher mean [l]/p/f :  ' )
                             if ct=="" or ct=="l": 
                                 direction_type="l"
@@ -579,7 +580,7 @@ def main():
                                 calculation_type="DE-FM"
                                 GoOn=1
                             else: 
-                                print "bad entry of calculation type: try again. "
+                                print("bad entry of calculation type: try again. ")
                         pmagplotlib.plotZED(ZED,plotblock,angle,s,units)
                         if verbose:pmagplotlib.drawFIGS(ZED)
                         if geo==1 and tilt==0:
@@ -618,7 +619,7 @@ def main():
                         PmagSpecRec["measurement_step_max"]='%8.3e ' %(mpars["measurement_step_max"])
                         PmagSpecRec["specimen_correction"]='u'
                         PmagSpecRec["specimen_dang"]='%7.1f ' %(mpars['specimen_dang'])
-                        print 'DANG: ',PmagSpecRec["specimen_dang"]
+                        print('DANG: ',PmagSpecRec["specimen_dang"])
                         if calculation_type!='DE-FM':
                             PmagSpecRec["specimen_mad"]='%7.1f ' %(mpars["specimen_mad"])
                             PmagSpecRec["specimen_alpha95"]=""
@@ -636,12 +637,12 @@ def main():
                                 if 'DE' not in ctype:methstring=methstring+ ":" +meth # don't include old direction estimation methods
                         methstring=methstring+':'+calculation_type
                         PmagSpecRec["magic_method_codes"]= methstring.strip(':')
-                        print 'Method codes: ',PmagSpecRec['magic_method_codes']
+                        print('Method codes: ',PmagSpecRec['magic_method_codes'])
                         if calculation_type!='DE-FM':
                             if units=='K': 
-                                print '%s %i %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f, %s \n' % (PmagSpecRec["er_specimen_name"],int(PmagSpecRec["specimen_n"]),float(PmagSpecRec["specimen_mad"]),float(PmagSpecRec["specimen_dang"]),float(PmagSpecRec["measurement_step_min"])-273,float(PmagSpecRec["measurement_step_max"])-273,float(PmagSpecRec["specimen_dec"]),float(PmagSpecRec["specimen_inc"]),calculation_type)
+                                print('%s %i %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f, %s \n' % (PmagSpecRec["er_specimen_name"],int(PmagSpecRec["specimen_n"]),float(PmagSpecRec["specimen_mad"]),float(PmagSpecRec["specimen_dang"]),float(PmagSpecRec["measurement_step_min"])-273,float(PmagSpecRec["measurement_step_max"])-273,float(PmagSpecRec["specimen_dec"]),float(PmagSpecRec["specimen_inc"]),calculation_type))
                             elif units== 'T':
-                                print '%s %i %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f, %s \n' % (PmagSpecRec["er_specimen_name"],int(PmagSpecRec["specimen_n"]),float(PmagSpecRec["specimen_mad"]),float(PmagSpecRec["specimen_dang"]),float(PmagSpecRec["measurement_step_min"])*1e3,float(PmagSpecRec["measurement_step_max"])*1e3,float(PmagSpecRec["specimen_dec"]),float(PmagSpecRec["specimen_inc"]),calculation_type)
+                                print('%s %i %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f, %s \n' % (PmagSpecRec["er_specimen_name"],int(PmagSpecRec["specimen_n"]),float(PmagSpecRec["specimen_mad"]),float(PmagSpecRec["specimen_dang"]),float(PmagSpecRec["measurement_step_min"])*1e3,float(PmagSpecRec["measurement_step_max"])*1e3,float(PmagSpecRec["specimen_dec"]),float(PmagSpecRec["specimen_inc"]),calculation_type))
                             elif 'T' in units and 'K' in units:
                                 if float(PmagSpecRec['measurement_step_min'])<1.0 :
                                     min=float(PmagSpecRec['measurement_step_min'])*1e3
@@ -651,14 +652,14 @@ def main():
                                     max=float(PmagSpecRec['measurement_step_max'])*1e3
                                 else:
                                     max=float(PmagSpecRec['measurement_step_max'])-273
-                                print '%s %i %7.1f %i %i %7.1f %7.1f %7.1f, %s \n' % (PmagSpecRec["er_specimen_name"],int(PmagSpecRec["specimen_n"]),float(PmagSpecRec["specimen_mad"]),float(PmagSpecRec["specimen_dang"]),min,max,float(PmagSpecRec["specimen_dec"]),float(PmagSpecRec["specimen_inc"]),calculation_type)
+                                print('%s %i %7.1f %i %i %7.1f %7.1f %7.1f, %s \n' % (PmagSpecRec["er_specimen_name"],int(PmagSpecRec["specimen_n"]),float(PmagSpecRec["specimen_mad"]),float(PmagSpecRec["specimen_dang"]),min,max,float(PmagSpecRec["specimen_dec"]),float(PmagSpecRec["specimen_inc"]),calculation_type))
                             else:
-                                print '%s %i %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f, %s \n' % (PmagSpecRec["er_specimen_name"],int(PmagSpecRec["specimen_n"]),float(PmagSpecRec["specimen_mad"]),float(PmagSpecRec["specimen_dang"]),float(PmagSpecRec["measurement_step_min"]),float(PmagSpecRec["measurement_step_max"]),float(PmagSpecRec["specimen_dec"]),float(PmagSpecRec["specimen_inc"]),calculation_type)
+                                print('%s %i %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f, %s \n' % (PmagSpecRec["er_specimen_name"],int(PmagSpecRec["specimen_n"]),float(PmagSpecRec["specimen_mad"]),float(PmagSpecRec["specimen_dang"]),float(PmagSpecRec["measurement_step_min"]),float(PmagSpecRec["measurement_step_max"]),float(PmagSpecRec["specimen_dec"]),float(PmagSpecRec["specimen_inc"]),calculation_type))
                         else:
                             if 'K' in units:
-                                print '%s %i %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f, %s \n' % (PmagSpecRec["er_specimen_name"],int(PmagSpecRec["specimen_n"]),float(PmagSpecRec["specimen_alpha95"]),float(PmagSpecRec["specimen_dang"]),float(PmagSpecRec["measurement_step_min"])-273,float(PmagSpecRec["measurement_step_max"])-273,float(PmagSpecRec["specimen_dec"]),float(PmagSpecRec["specimen_inc"]),calculation_type)
+                                print('%s %i %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f, %s \n' % (PmagSpecRec["er_specimen_name"],int(PmagSpecRec["specimen_n"]),float(PmagSpecRec["specimen_alpha95"]),float(PmagSpecRec["specimen_dang"]),float(PmagSpecRec["measurement_step_min"])-273,float(PmagSpecRec["measurement_step_max"])-273,float(PmagSpecRec["specimen_dec"]),float(PmagSpecRec["specimen_inc"]),calculation_type))
                             elif 'T' in units:
-                                print '%s %i %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f, %s \n' % (PmagSpecRec["er_specimen_name"],int(PmagSpecRec["specimen_n"]),float(PmagSpecRec["specimen_alpha95"]),float(PmagSpecRec["specimen_dang"]),float(PmagSpecRec["measurement_step_min"])*1e3,float(PmagSpecRec["measurement_step_max"])*1e3,float(PmagSpecRec["specimen_dec"]),float(PmagSpecRec["specimen_inc"]),calculation_type)
+                                print('%s %i %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f, %s \n' % (PmagSpecRec["er_specimen_name"],int(PmagSpecRec["specimen_n"]),float(PmagSpecRec["specimen_alpha95"]),float(PmagSpecRec["specimen_dang"]),float(PmagSpecRec["measurement_step_min"])*1e3,float(PmagSpecRec["measurement_step_max"])*1e3,float(PmagSpecRec["specimen_dec"]),float(PmagSpecRec["specimen_inc"]),calculation_type))
                             elif 'T' in units and 'K' in units:
                                 if float(PmagSpecRec['measurement_step_min'])<1.0 :
                                     min=float(PmagSpecRec['measurement_step_min'])*1e3
@@ -668,9 +669,9 @@ def main():
                                     max=float(PmagSpecRec['measurement_step_max'])*1e3
                                 else:
                                     max=float(PmagSpecRec['measurement_step_max'])-273
-                                print '%s %i %7.1f %i %i %7.1f %7.1f, %s \n' % (PmagSpecRec["er_specimen_name"],int(PmagSpecRec["specimen_n"]),float(PmagSpecRec["specimen_alpha95"]),min,max,float(PmagSpecRec["specimen_dec"]),float(PmagSpecRec["specimen_inc"]),calculation_type)
+                                print('%s %i %7.1f %i %i %7.1f %7.1f, %s \n' % (PmagSpecRec["er_specimen_name"],int(PmagSpecRec["specimen_n"]),float(PmagSpecRec["specimen_alpha95"]),min,max,float(PmagSpecRec["specimen_dec"]),float(PmagSpecRec["specimen_inc"]),calculation_type))
                             else:
-                                print '%s %i %7.1f %7.1f %7.1f %7.1f %7.1f, %s \n' % (PmagSpecRec["er_specimen_name"],int(PmagSpecRec["specimen_n"]),float(PmagSpecRec["specimen_alpha95"]),float(PmagSpecRec["measurement_step_min"]),float(PmagSpecRec["measurement_step_max"]),float(PmagSpecRec["specimen_dec"]),float(PmagSpecRec["specimen_inc"]),calculation_type)
+                                print('%s %i %7.1f %7.1f %7.1f %7.1f %7.1f, %s \n' % (PmagSpecRec["er_specimen_name"],int(PmagSpecRec["specimen_n"]),float(PmagSpecRec["specimen_alpha95"]),float(PmagSpecRec["measurement_step_min"]),float(PmagSpecRec["measurement_step_max"]),float(PmagSpecRec["specimen_dec"]),float(PmagSpecRec["specimen_inc"]),calculation_type))
                         saveit=raw_input("Save this interpretation? [y]/n \n")
                         if saveit!="n":
                             changeS=1
@@ -685,11 +686,11 @@ def main():
                                     PmagSpecRec['specimen_comp_name']='A'
                                     CurrRecs.append(PmagSpecRec)
                                 else:
-                                    print 'These are the current component names for this specimen: '
-                                    for trec in CurrRecs:print trec['specimen_comp_name']
+                                    print('These are the current component names for this specimen: ')
+                                    for trec in CurrRecs:print(trec['specimen_comp_name'])
                                     compnum=raw_input("Enter new component name: ")
                                     PmagSpecRec['specimen_comp_name']=compnum
-                                    print "Adding new component: ",PmagSpecRec['specimen_comp_name']
+                                    print("Adding new component: ",PmagSpecRec['specimen_comp_name'])
                                     CurrRecs.append(PmagSpecRec)
                             else:
                                 PmagSpecRec['specimen_comp_name']='A'
@@ -702,7 +703,7 @@ def main():
                   k+=1
                   files={}
                   locname.replace('/','-')
-                  print PmagSpecRec
+                  print(PmagSpecRec)
                   for key in ZED.keys():
                       files[key]="LO:_"+locname+'_SI:_'+PmagSpecRec['er_site_name']+'_SA:_'+PmagSpecRec['er_sample_name']+'_SP:_'+s+'_CO:_'+coord+'_TY:_'+key+'_.'+fmt
                   if pmagplotlib.isServer:

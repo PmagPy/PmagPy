@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import print_function
 import sys
 import matplotlib
 if matplotlib.get_backend() != "TKAgg":
@@ -43,7 +44,7 @@ def main():
     fmt='svg'
     verbose=pmagplotlib.verbose
     if '-h' in sys.argv:
-        print main.__doc__
+        print(main.__doc__)
         sys.exit()
     if '-WD' in sys.argv:
         ind=sys.argv.index('-WD')
@@ -93,7 +94,7 @@ def main():
     data,file_type=pmag.magic_read(in_file)
     if file_type=='pmag_results' and plot_key!="all":plot_key=plot_key+'s' # need plural for results table
     if verbose:
-        print len(data),' records read from ',in_file
+        print(len(data),' records read from ',in_file)
     #
     #
     # find desired dec,inc data:
@@ -174,13 +175,13 @@ def main():
                 GCblock.append([float(rec[dec_key]),float(rec[inc_key])])
                 SPblock.append([rec[name_key],rec['magic_method_codes']])
         if len(DIblock)==0 and len(GCblock)==0:
-            if verbose: print "no records for plotting"
+            if verbose: print("no records for plotting")
             sys.exit()
         if verbose:
           for k in range(len(SLblock)):
-            print '%s %s %7.1f %7.1f'%(SLblock[k][0],SLblock[k][1],DIblock[k][0],DIblock[k][1])
+            print('%s %s %7.1f %7.1f'%(SLblock[k][0],SLblock[k][1],DIblock[k][0],DIblock[k][1]))
           for k in range(len(SPblock)):
-            print '%s %s %7.1f %7.1f'%(SPblock[k][0],SPblock[k][1],GCblock[k][0],GCblock[k][1])
+            print('%s %s %7.1f %7.1f'%(SPblock[k][0],SPblock[k][1],GCblock[k][0],GCblock[k][1]))
         if len(DIblock)>0:
             if contour==0:
                 pmagplotlib.plotEQ(FIG['eqarea'],DIblock,title)
@@ -202,8 +203,8 @@ def main():
                 etitle="Bingham confidence ellipse"
                 bpars=pmag.dobingham(DIblock)
                 for key in bpars.keys():
-                    if key!='n' and verbose:print "    ",key, '%7.1f'%(bpars[key])
-                    if key=='n' and verbose:print "    ",key, '       %i'%(bpars[key])
+                    if key!='n' and verbose:print("    ",key, '%7.1f'%(bpars[key]))
+                    if key=='n' and verbose:print("    ",key, '       %i'%(bpars[key]))
                 npars.append(bpars['dec'])
                 npars.append(bpars['inc'])
                 npars.append(bpars['Zeta'])
@@ -217,8 +218,8 @@ def main():
                 if len(nDIs)>2:
                     fpars=pmag.fisher_mean(nDIs)
                     for key in fpars.keys():
-                        if key!='n' and verbose:print "    ",key, '%7.1f'%(fpars[key])
-                        if key=='n' and verbose:print "    ",key, '       %i'%(fpars[key])
+                        if key!='n' and verbose:print("    ",key, '%7.1f'%(fpars[key]))
+                        if key=='n' and verbose:print("    ",key, '       %i'%(fpars[key]))
                     mode+=1
                     npars.append(fpars['dec'])
                     npars.append(fpars['inc'])
@@ -231,10 +232,10 @@ def main():
                     npars.append(0.) #Beta inc
                 if len(rDIs)>2:
                     fpars=pmag.fisher_mean(rDIs)
-                    if verbose:print "mode ",mode
+                    if verbose:print("mode ",mode)
                     for key in fpars.keys():
-                        if key!='n' and verbose:print "    ",key, '%7.1f'%(fpars[key])
-                        if key=='n' and verbose:print "    ",key, '       %i'%(fpars[key])
+                        if key!='n' and verbose:print("    ",key, '%7.1f'%(fpars[key]))
+                        if key=='n' and verbose:print("    ",key, '       %i'%(fpars[key]))
                     mode+=1
                     rpars.append(fpars['dec'])
                     rpars.append(fpars['inc'])
@@ -249,10 +250,10 @@ def main():
                 etitle="Kent confidence ellipse"
                 if len(nDIs)>3:
                     kpars=pmag.dokent(nDIs,len(nDIs))
-                    if verbose:print "mode ",mode
+                    if verbose:print("mode ",mode)
                     for key in kpars.keys():
-                        if key!='n' and verbose:print "    ",key, '%7.1f'%(kpars[key])
-                        if key=='n' and verbose:print "    ",key, '       %i'%(kpars[key])
+                        if key!='n' and verbose:print("    ",key, '%7.1f'%(kpars[key]))
+                        if key=='n' and verbose:print("    ",key, '       %i'%(kpars[key]))
                     mode+=1
                     npars.append(kpars['dec'])
                     npars.append(kpars['inc'])
@@ -264,10 +265,10 @@ def main():
                     npars.append(kpars['Einc'])
                 if len(rDIs)>3:
                     kpars=pmag.dokent(rDIs,len(rDIs))
-                    if verbose:print "mode ",mode
+                    if verbose:print("mode ",mode)
                     for key in kpars.keys():
-                        if key!='n' and verbose:print "    ",key, '%7.1f'%(kpars[key])
-                        if key=='n' and verbose:print "    ",key, '       %i'%(kpars[key])
+                        if key!='n' and verbose:print("    ",key, '%7.1f'%(kpars[key]))
+                        if key=='n' and verbose:print("    ",key, '       %i'%(kpars[key]))
                     mode+=1
                     rpars.append(kpars['dec'])
                     rpars.append(kpars['inc'])
@@ -282,10 +283,10 @@ def main():
                     if len(nDIs)>5:
                         BnDIs=pmag.di_boot(nDIs)
                         Bkpars=pmag.dokent(BnDIs,1.)
-                        if verbose:print "mode ",mode
+                        if verbose:print("mode ",mode)
                         for key in Bkpars.keys():
-                            if key!='n' and verbose:print "    ",key, '%7.1f'%(Bkpars[key])
-                            if key=='n' and verbose:print "    ",key, '       %i'%(Bkpars[key])
+                            if key!='n' and verbose:print("    ",key, '%7.1f'%(Bkpars[key]))
+                            if key=='n' and verbose:print("    ",key, '       %i'%(Bkpars[key]))
                         mode+=1
                         npars.append(Bkpars['dec'])
                         npars.append(Bkpars['inc'])
@@ -298,10 +299,10 @@ def main():
                     if len(rDIs)>5:
                         BrDIs=pmag.di_boot(rDIs)
                         Bkpars=pmag.dokent(BrDIs,1.)
-                        if verbose:print "mode ",mode
+                        if verbose:print("mode ",mode)
                         for key in Bkpars.keys():
-                            if key!='n' and verbose:print "    ",key, '%7.1f'%(Bkpars[key])
-                            if key=='n' and verbose:print "    ",key, '       %i'%(Bkpars[key])
+                            if key!='n' and verbose:print("    ",key, '%7.1f'%(Bkpars[key]))
+                            if key=='n' and verbose:print("    ",key, '       %i'%(Bkpars[key]))
                         mode+=1
                         rpars.append(Bkpars['dec'])
                         rpars.append(Bkpars['inc'])

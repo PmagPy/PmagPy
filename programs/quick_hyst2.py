@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import print_function
 import sys
 import numpy
 import matplotlib
@@ -40,7 +41,7 @@ def main():
         ind=args.index('-WD')
         dir_path=args[ind+1]
     if "-h" in args:
-        print main.__doc__
+        print(main.__doc__)
         sys.exit()
     if "-usr" in args:
         ind=args.index("-usr")
@@ -60,13 +61,13 @@ def main():
         ind=args.index("-fmt")
         fmt=args[ind+1]
     meas_file=dir_path+'/'+meas_file
-    print 'verbose', verbose
+    print('verbose', verbose)
     #
     #
     meas_data,file_type=pmag.magic_read(meas_file)
     if file_type!='magic_measurements':
-        print main.__doc__
-        print 'bad file'
+        print(main.__doc__)
+        print('bad file')
         sys.exit()
     #
     # initialize some variables
@@ -95,7 +96,7 @@ def main():
         locname,site,sample,synth='','','',''
         s=sids[k]
         hmeths=[]
-        if verbose:print s, k+1 , 'out of ',len(sids)
+        if verbose:print(s, k+1 , 'out of ',len(sids))
     #
     #
         B,M=[],[] #B,M for hysteresis, Bdcd,Mdcd for irm-dcd data
@@ -119,7 +120,7 @@ def main():
             for rec in meas_data:
                 if rec['measurement_temp'] not  in Temps:Temps.append(rec['measurement_temp'])
             for t in Temps:
-              print 'working on t: ',t
+              print('working on t: ',t)
               t_data=pmag.get_dictitem(meas_data,'measurement_temp',t,'T')
               B,M=[],[]
               for rec in t_data:
@@ -178,10 +179,10 @@ def main():
                 files={}
                 for key in HDD.keys():
                     if pmagplotlib.isServer:
-                        print 'server'
+                        print('server')
                         files[key]="LO:_"+locname+'_SI:_'+site+'_SA:_'+sample+'_SP:_'+s+'_TY:_'+key+'_.'+fmt
                     else:
-                        print 'not server'
+                        print('not server')
                         filename = ''
                         for item in [locname, site, sample, s, key]:
                             if item:
@@ -191,14 +192,14 @@ def main():
                             filename = filename[:-1]
                         filename += ".{}".format(fmt)
                         files[key] = filename
-                print 'files', files
+                print('files', files)
                 pmagplotlib.saveP(HDD,files)
             if ans=='':k+=1
             if ans=="p":
                 del HystRecs[-1]
                 k-=1
             if  ans=='q':
-                print "Good bye"
+                print("Good bye")
                 sys.exit()
             if ans=='s':
                 keepon=1
@@ -211,14 +212,14 @@ def main():
                         tmplist=[]
                         for qq in range(len(sids)):
                             if specimen in sids[qq]:tmplist.append(sids[qq])
-                        print specimen," not found, but this was: "
-                        print tmplist
+                        print(specimen," not found, but this was: ")
+                        print(tmplist)
                         specimen=raw_input('Select one or try again\n ')
                         k =sids.index(specimen)
         else:
             k+=1
         if len(B)==0:
-            if verbose:print 'skipping this one - no hysteresis data'
+            if verbose:print('skipping this one - no hysteresis data')
             k+=1
 
 if __name__ == "__main__":

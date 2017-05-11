@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import print_function
 import sys
 import matplotlib
 if matplotlib.get_backend() != "TKAgg":
@@ -44,7 +45,7 @@ def main():
     fmt='svg'
     if len(sys.argv)>1:
         if '-h' in sys.argv:
-            print main.__doc__
+            print(main.__doc__)
             sys.exit()
         if '-N' in sys.argv: norm=0
         if '-sav' in sys.argv:
@@ -78,7 +79,7 @@ def main():
     data,file_type=pmag.magic_read(in_file)
     sids=pmag.get_specs(data)
     pmagplotlib.plot_init(FIG['demag'],5,5)
-    print len(data),' records read from ',in_file
+    print(len(data),' records read from ',in_file)
     #
     #
     # find desired intensity data
@@ -99,12 +100,12 @@ def main():
                 FixData.append(rec)
         plotlist.sort()
     if len(IntMeths)==0:
-        print 'No intensity information found'
+        print('No intensity information found')
         sys.exit()
     data=FixData
     int_key=IntMeths[0] # plot first intensity method found - normalized to initial value anyway - doesn't matter which used
     for plt in plotlist:
-        if plot==0: print plt,'plotting by: ',plot_key
+        if plot==0: print(plt,'plotting by: ',plot_key)
         PLTblock=pmag.get_dictitem(data,plot_key,plt,'T') # fish out all the data for this type of plot
         PLTblock=pmag.get_dictitem(PLTblock,'magic_method_codes',LT,'has') # fish out all the dmag for this experiment type
         PLTblock=pmag.get_dictitem(PLTblock,int_key,'','F') # get all with this intensity key non-blank

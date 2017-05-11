@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # define some variables
+from __future__ import print_function
 import sys
 import matplotlib
 if matplotlib.get_backend() != "TKAgg":
@@ -68,7 +69,7 @@ def main():
         ind = sys.argv.index('-WD')
         dir_path=sys.argv[ind+1]
     if '-h' in sys.argv:
-        print main.__doc__
+        print(main.__doc__)
         sys.exit()
     if '-S' in sys.argv:anti=1
     if '-fmt' in sys.argv:
@@ -108,7 +109,7 @@ def main():
     results_file=dir_path+'/'+results_file
     data,file_type=pmag.magic_read(results_file)
     if file_type!='pmag_results':
-        print "bad results file"
+        print("bad results file")
         sys.exit()
     FIG={'map':1}
     pmagplotlib.plot_init(FIG['map'],6,6)
@@ -215,7 +216,7 @@ def main():
         if ans=="a":
             pmagplotlib.saveP(FIG,files)
         else:
-            print "Good bye"
+            print("Good bye")
             sys.exit()
     else:
         pmagplotlib.saveP(FIG,files)

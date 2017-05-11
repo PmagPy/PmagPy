@@ -2,6 +2,7 @@
 """
 doc string
 """
+from __future__ import print_function
 
 # pylint: disable=C0103,E402
 print('-I- Importing MagIC GUI dependencies')

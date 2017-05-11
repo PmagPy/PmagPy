@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import print_function
 import sys
 
 import matplotlib
@@ -99,7 +100,7 @@ def main():
     Zdiff,anis=0,0
     spc,BEG,END="","",""
     if '-h' in sys.argv:
-        print main.__doc__
+        print(main.__doc__)
         sys.exit()
     if '-f' in sys.argv:
         ind=sys.argv.index('-f')
@@ -112,7 +113,7 @@ def main():
         anisfile=sys.argv[ind+1]
         anis=1
         anis_data,file_type=pmag.magic_read(anisfile)
-        if verbose: print "Anisotropy data read in from ", anisfile
+        if verbose: print("Anisotropy data read in from ", anisfile)
     if '-fmt' in sys.argv:
         ind=sys.argv.index('-fmt')
         fmt='.'+sys.argv[ind+1]
@@ -136,10 +137,10 @@ def main():
         critout=sys.argv[ind+1]
         crit_data,file_type=pmag.magic_read(critout)
         if file_type!='pmag_criteria':
-            if verbose: print 'bad pmag_criteria file, using no acceptance criteria'
+            if verbose: print('bad pmag_criteria file, using no acceptance criteria')
             accept=pmag.default_criteria(1)[0]
         else:
-            if verbose: print "Acceptance criteria read in from ", critout
+            if verbose: print("Acceptance criteria read in from ", critout)
             accept={'pmag_criteria_code':'ACCEPTANCE','er_citation_names':'This study'}
             for critrec in crit_data:
                 if 'sample_int_sigma_uT' in critrec.keys(): # accommodate Shaar's new criterion
@@ -151,18 +152,18 @@ def main():
         open(inspec,'rU')
         PriorRecs,file_type=pmag.magic_read(inspec)
         if file_type != 'pmag_specimens':
-            print file_type
-            print file_type,inspec," is not a valid pmag_specimens file " 
+            print(file_type)
+            print(file_type,inspec," is not a valid pmag_specimens file ") 
             sys.exit()
         for rec in PriorRecs:
             if 'magic_software_packages' not in rec.keys():rec['magic_software_packages']=""
     except IOError:
         PriorRecs=[]
-        if verbose:print "starting new specimen interpretation file: ",inspec
+        if verbose:print("starting new specimen interpretation file: ",inspec)
     meas_data,file_type=pmag.magic_read(meas_file)
     if file_type != 'magic_measurements':
-        print file_type
-        print file_type,"This is not a valid magic_measurements file " 
+        print(file_type)
+        print(file_type,"This is not a valid magic_measurements file ") 
         sys.exit()
     backup=0
     # define figure numbers for arai, zijderveld and 
@@ -187,7 +188,7 @@ def main():
         methcodes=[]
        
         if verbose:
-            print sids[specimen],specimen+1, 'of ', len(sids)
+            print(sids[specimen],specimen+1, 'of ', len(sids))
         MeasRecs=[]
         s=sids[specimen]
         datablock,trmblock,tdsrecs=[],[],[]
@@ -235,11 +236,11 @@ def main():
            if backup==0:
                specimen+=1
                if verbose:
-                   print 'skipping specimen - moving forward ', s
+                   print('skipping specimen - moving forward ', s)
            else:
                specimen-=1
                if verbose:
-                   print 'skipping specimen - moving backward ', s
+                   print('skipping specimen - moving backward ', s)
     #
     #  collect info for the PmagSpecRec dictionary
     #
@@ -269,17 +270,17 @@ def main():
                if backup==0:
                    specimen+=1
                    if verbose:
-                       print 'skipping specimen - moving forward ', s
+                       print('skipping specimen - moving forward ', s)
                else:
                    specimen-=1
                    if verbose:
-                       print 'skipping specimen - moving backward ', s
+                       print('skipping specimen - moving backward ', s)
            else:
                backup=0
                zijdblock,units=pmag.find_dmag_rec(s,meas_data)
                recnum=0
                if verbose:
-                   print "index step Dec   Inc  Int       Gamma"
+                   print("index step Dec   Inc  Int       Gamma")
                    for plotrec in zijdblock:
                        if GammaChecks!="":
                            gamma=""
@@ -288,9 +289,9 @@ def main():
                                    gamma=g[1]
                                    break
                        if gamma!="":
-                           print '%i     %i %7.1f %7.1f %8.3e %7.1f' % (recnum,plotrec[0]-273,plotrec[1],plotrec[2],plotrec[3],gamma)
+                           print('%i     %i %7.1f %7.1f %8.3e %7.1f' % (recnum,plotrec[0]-273,plotrec[1],plotrec[2],plotrec[3],gamma))
                        else:
-                           print '%i     %i %7.1f %7.1f %8.3e ' % (recnum,plotrec[0]-273,plotrec[1],plotrec[2],plotrec[3])
+                           print('%i     %i %7.1f %7.1f %8.3e ' % (recnum,plotrec[0]-273,plotrec[1],plotrec[2],plotrec[3]))
                        recnum += 1
                pmagplotlib.plotAZ(AZD,araiblock,zijdblock,s,units[0])
                if verbose:pmagplotlib.drawFIGS(AZD)
@@ -324,16 +325,16 @@ def main():
                        pmagplotlib.plotTDS(AZD['TDS'],tdsblock,s+':LP-PI-TDS:')
                        if verbose:pmagplotlib(drawFIGS(AZD)) 
                    else: 
-                       print "Something wrong here"
+                       print("Something wrong here")
                if anis==1:   # look up anisotropy data for this specimen
                    AniSpec=""
                    for aspec in anis_data:
                        if aspec["er_specimen_name"]==PmagSpecRec["er_specimen_name"]:
                            AniSpec=aspec
-                           if verbose: print 'Found anisotropy record...'
+                           if verbose: print('Found anisotropy record...')
                            break
                if inspec !="":
-                   if verbose: print 'Looking up saved interpretation....'
+                   if verbose: print('Looking up saved interpretation....')
                    found = 0
                    for k in range(len(PriorRecs)):
                        try:
@@ -352,7 +353,7 @@ def main():
                                pars["specimen_int"]=-1*field*pars["specimen_b"]
                                pars["er_specimen_name"]=s
                                if verbose:
-                                   print 'Saved interpretation: '
+                                   print('Saved interpretation: ')
                                pars,kill=pmag.scoreit(pars,PmagSpecRec,accept,'',verbose)
                                pmagplotlib.plotB(AZD,araiblock,zijdblock,pars)
                                if verbose:pmagplotlib.drawFIGS(AZD)
@@ -372,22 +373,22 @@ def main():
                                    pmagplotlib.plotTRM(AZD['TRM'],Bs,TRMs,Bp,Mp,NLpars,trec['magic_experiment_name'])
                                    PmagSpecRec['specimen_int']=NLpars['banc'] 
                                    if verbose:
-                                       print 'Banc= ',float(NLpars['banc'])*1e6
+                                       print('Banc= ',float(NLpars['banc'])*1e6)
                                        pmagplotlib.drawFIGS(AZD)
                                mpars=pmag.domean(araiblock[1],start,end,'DE-BFL')
                                if verbose:
-                                       print 'pTRM direction= ','%7.1f'%(mpars['specimen_dec']),' %7.1f'%(mpars['specimen_inc']),' MAD:','%7.1f'%(mpars['specimen_mad'])
+                                       print('pTRM direction= ','%7.1f'%(mpars['specimen_dec']),' %7.1f'%(mpars['specimen_inc']),' MAD:','%7.1f'%(mpars['specimen_mad']))
                                if AniSpec!="":
                                    CpTRM=pmag.Dir_anis_corr([mpars['specimen_dec'],mpars['specimen_inc']],AniSpec)
                                    AniSpecRec=pmag.doaniscorr(PmagSpecRec,AniSpec)
                                    if verbose:
-                                       print 'Anisotropy corrected TRM direction= ','%7.1f'%(CpTRM[0]),' %7.1f'%(CpTRM[1])
-                                       print 'Anisotropy corrected intensity= ',float(AniSpecRec['specimen_int'])*1e6
+                                       print('Anisotropy corrected TRM direction= ','%7.1f'%(CpTRM[0]),' %7.1f'%(CpTRM[1]))
+                                       print('Anisotropy corrected intensity= ',float(AniSpecRec['specimen_int'])*1e6)
                            else:
-                               print 'error on specimen ',s
+                               print('error on specimen ',s)
                        except:
                          pass
-                   if verbose and found==0: print  '    None found :(  ' 
+                   if verbose and found==0: print('    None found :(  ') 
                if spc!="":
                    if BEG!="": 
                        pars,errcode=pmag.PintPars(datablock,araiblock,zijdblock,BEG,END,accept)
@@ -421,9 +422,9 @@ def main():
                if verbose:
                    ans='b'
                    while ans != "":
-                       print """
+                       print("""
                s[a]ve plot, set [b]ounds for calculation, [d]elete current interpretation, [p]revious, [s]ample, [q]uit:
-               """
+               """)
                        ans=raw_input('Return for next specimen \n')
                        if ans=="": 
                            specimen +=1
@@ -439,7 +440,7 @@ def main():
                            pmagplotlib.saveP(AZD,files)
                            ans=""
                        if ans=='q':
-                           print "Good bye"
+                           print("Good bye")
                            sys.exit()
                        if ans=='p':
                            specimen =specimen -1
@@ -456,8 +457,8 @@ def main():
                                    tmplist=[]
                                    for qq in range(len(sids)):
                                        if spec in sids[qq]:tmplist.append(sids[qq])
-                                   print specimen," not found, but this was: "
-                                   print tmplist
+                                   print(specimen," not found, but this was: ")
+                                   print(tmplist)
                                    spec=raw_input('Select one or try again\n ')
                            ans=""
                        if  ans=='b':
@@ -472,10 +473,10 @@ def main():
                                    if start >=0 and start <len(zijdblock)-2 and end >0 and end <len(zijdblock) or start>=end:
                                        GoOn=1
                                    else:
-                                       print "Bad endpoints - try again! "
+                                       print("Bad endpoints - try again! ")
                                        start,end=0,len(zijdblock)
                                except ValueError:
-                                   print "Bad endpoints - try again! "
+                                   print("Bad endpoints - try again! ")
                                    start,end=0,len(zijdblock)
                            s=sids[specimen] 
                            pars,errcode=pmag.PintPars(datablock,araiblock,zijdblock,start,end,accept)
@@ -544,7 +545,7 @@ def main():
                                    Mp.append(npred)
                                pmagplotlib.plotTRM(AZD['TRM'],Bs,TRMs,Bp,Mp,NLpars,trec['magic_experiment_name'])
                                if verbose:
-                                   print 'Non-linear TRM corrected intensity= ',float(NLpars['banc'])*1e6
+                                   print('Non-linear TRM corrected intensity= ',float(NLpars['banc'])*1e6)
                            if verbose:pmagplotlib.drawFIGS(AZD)
                            pars["specimen_lab_field_dc"]=field
                            pars["specimen_int"]=-1*field*pars["specimen_b"]
@@ -593,14 +594,14 @@ def main():
                     files[key]=s+'_'+key+fmt
                 pmagplotlib.saveP(AZD,files,dpi=dpi)
         else:
-            print "\n Good bye\n"
+            print("\n Good bye\n")
             sys.exit()
         if len(CurrRec)>0:PriorRecs.append(CurrRec) # put back an interpretation
         if len(PriorRecs)>0:
             save_redo(PriorRecs,inspec)
-            print 'Updated interpretations saved in ',inspec
+            print('Updated interpretations saved in ',inspec)
     if verbose:
-        print "Good bye"
+        print("Good bye")
 
 if __name__ == "__main__":
     main()

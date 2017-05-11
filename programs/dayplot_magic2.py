@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import print_function
 import sys
 import os
 import matplotlib
@@ -39,7 +40,7 @@ def main():
        ind=args.index('-WD')
        dir_path=args[ind+1]
     if "-h" in args:
-        print main.__doc__
+        print(main.__doc__)
         sys.exit()
     if '-f' in args:
         ind=args.index("-f")
@@ -99,7 +100,7 @@ def main():
                     S1.append(S[ind])
                     Bcr2.append(Bcr[ind])
                 except ValueError:
-                    if verbose:print 'hysteresis data for ',rec['er_specimen_name'],' not found'
+                    if verbose:print('hysteresis data for ',rec['er_specimen_name'],' not found')
     #
     # now plot the day and S-Bc, S-Bcr plots
     #
