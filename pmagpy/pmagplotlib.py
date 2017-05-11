@@ -2726,8 +2726,15 @@ def plotMAP(fignum, lats, lons, Opts):
         if Opts['details']['countries'] == 1:
             m.drawcountries(color='g')
         if Opts['details']['ocean'] == 1:
-            m.drawlsmask(land_color=rgba_land,
-                         ocean_color=rgba_ocean, lsmask_lats=None)
+            try:
+                m.drawlsmask(land_color=rgba_land,
+                             ocean_color=rgba_ocean, lsmask_lats=None)
+            except TypeError:
+                # this is caused by basemap function: _readlsmask
+                # interacting with numpy
+                # (a float is provided, numpy wants an int).
+                # hopefully will be fixed eventually.
+                pass
     if Opts['pltgrid'] == 0.:
         circles = numpy.arange(Opts['latmin'], Opts['latmax'] + 15., 15.)
         meridians = numpy.arange(Opts['lonmin'], Opts['lonmax'] + 30., 30.)
