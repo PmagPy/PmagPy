@@ -643,8 +643,12 @@ class Contribution(object):
         #
         if down:
             add_name = source_df_name[:-1]
-            self.propagate_location_to_measurements()
-            #self.propagate_name_down(add_name, target_df_name)
+            if 'measurements' in self.tables.keys():
+                self.propagate_location_to_measurements()
+            elif 'specimens' in self.tables.keys():
+                self.propagate_location_to_specimens()
+            else:
+                self.propagate_name_down('location', 'sites')
         else:
             add_name = target_df_name[:-1]
 
