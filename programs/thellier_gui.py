@@ -6351,17 +6351,7 @@ You can combine multiple measurement files into one measurement file using Pmag 
                 print("-W- No meaurements found")
                 return ({}, {})
 
-            if 'specimens' in self.contribution.tables:
-                self.contribution.propagate_name_down('sample', 'measurements')
-                self.contribution.propagate_name_down(
-                    'sample', 'specimens')  # need these for get_data_info
-            if 'samples' in self.contribution.tables:
-                self.contribution.propagate_name_down('site', 'measurements')
-                self.contribution.propagate_name_down('site', 'specimens')
-            if 'sites' in self.contribution.tables:
-                self.contribution.propagate_name_down(
-                    'location', 'measurements')
-                self.contribution.propagate_name_down('location', 'specimens')
+            self.contribution.propagate_location_to_measurements('location', 'specimens')
             meas_container = self.contribution.tables['measurements']
             meas_data3_0 = meas_container.df
 # do some filtering

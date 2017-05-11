@@ -59,7 +59,7 @@ def main():
     if not 'measurements' in con.tables:
         print("-W- No measurement file found")
         return
-    con.propagate_name_down('location', 'measurements')
+    con.propagate_location_to_measurements()
 
     if 'measurements' not in con.tables:
         print(main.__doc__)

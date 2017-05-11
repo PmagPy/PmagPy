@@ -82,7 +82,8 @@ def main():
     print(len(contribution.tables['measurements'].df), ' records read from ', in_file)
     # add plot_key into measurements table
     if plot_key not in contribution.tables['measurements'].df.columns:
-        contribution.propagate_name_down(plot_key, 'measurements')
+        #contribution.propagate_name_down(plot_key, 'measurements')
+        contribution.propagate_location_to_measurements()
     data_container = contribution.tables[file_type]
     # pare down to only records with useful data
     # grab records that have the requested code
