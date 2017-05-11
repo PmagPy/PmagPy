@@ -1522,7 +1522,7 @@ class MagicDataFrame(object):
         if col_name not in df_slice.columns:
             return ""
         # otherwise, return the first value from that column
-        first_val = df_slice[col_name].dropna()
+        first_val = list(df_slice[col_name].dropna())
         if any(first_val):
             return first_val[0]
         else:
