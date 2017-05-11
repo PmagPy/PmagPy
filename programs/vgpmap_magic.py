@@ -74,20 +74,20 @@ def main():
     if '-rev' in sys.argv:
         flip = 1
         ind = sys.argv.index('-rev')
-        rsym = (sys.argv[ind+1])
-        rsize = int(sys.argv[ind+2])
+        rsym = (sys.argv[ind + 1])
+        rsize = int(sys.argv[ind + 2])
     else:
         flip, rsym, rsize = 0, "g^", 8
     if '-sym' in sys.argv:
         ind = sys.argv.index('-sym')
-        sym = (sys.argv[ind+1])
-        size = int(sys.argv[ind+2])
+        sym = (sys.argv[ind + 1])
+        size = int(sys.argv[ind + 2])
     else:
         sym, size = 'ro', 8
     if '-eye' in sys.argv:
         ind = sys.argv.index('-eye')
-        lat_0 = float(sys.argv[ind+1])
-        lon_0 = float(sys.argv[ind+2])
+        lat_0 = float(sys.argv[ind + 1])
+        lon_0 = float(sys.argv[ind + 2])
     else:
         lat_0, lon_0 = 90., 0.
     crd = pmag.get_named_arg_from_sys("-crd", "")
@@ -211,14 +211,14 @@ def main():
                     pmagplotlib.drawFIGS(FIG)
     files = {}
     for key in list(FIG.keys()):
-        if pmagplotlib.isServer: # use server plot naming convention
+        if pmagplotlib.isServer:  # use server plot naming convention
             files[key] = 'LO:_' + location + '_VGP_map.' + fmt
-        else: # use more readable naming convention
+        else:  # use more readable naming convention
             files[key] = '{}_VGP_map.{}'.format(location, fmt)
 
     if pmagplotlib.isServer:
-        black     = '#000000'
-        purple    = '#800080'
+        black = '#000000'
+        purple = '#800080'
         titles = {}
         titles['eq'] = 'LO:_' + location + '_VGP_map'
         FIG = pmagplotlib.addBorders(FIG, titles, black, purple)
@@ -233,6 +233,7 @@ def main():
             sys.exit()
     else:
         pmagplotlib.saveP(FIG, files)
+
 
 if __name__ == "__main__":
     main()
