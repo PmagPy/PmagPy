@@ -87,7 +87,7 @@ def main():
     sids = hyst_data['specimen'].unique()
 
     # if 'treat_temp' is provided, use that value, otherwise assume 300
-    hyst_data['treat_temp'].where(hyst_data['treat_temp'], '300', inplace=True)
+    hyst_data['treat_temp'].where(hyst_data['treat_temp'].notnull(), '300', inplace=True)
     # start at first specimen, or at provided specimen ('-spc')
     k = 0
     if pltspec != "":
