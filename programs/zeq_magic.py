@@ -223,6 +223,9 @@ def main():
             # this is a list of all the specimen method codes`
             meas_meths = this_specimen_measurements.method_codes.unique()
             tr = pd.to_numeric(this_specimen_measurements.treatment).tolist()
+            if set(tr) == set([0]):
+                k += 1
+                continue
             for m in meas_meths:
                 if 'LT-AF-Z' in m:
                     units = 'T'  # units include tesla
