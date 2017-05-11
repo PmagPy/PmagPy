@@ -148,7 +148,9 @@ meas_magic2_2_magic3_map = maps.all_maps['measurements']
 meas_magic2_2_magic3_map.update(add_to_all)
 #measurement data translation magic_measurements.txt -> measurements.txt
 meas_magic3_2_magic2_map = {v:k for k,v in list(meas_magic2_2_magic3_map.items())}
-measurements = {'timestamp': 'measurement_date', 'specimen': 'er_specimen_name'}
+measurements = {'timestamp': 'measurement_date',
+                'specimen': 'er_specimen_name',
+                'number': 'measurement_number'}
 meas_magic3_2_magic2_map.update(measurements)
 
 #specimen data translation pmag_speciemns,er_specimens -> specimens.txt
