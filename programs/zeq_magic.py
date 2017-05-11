@@ -81,15 +81,17 @@ def main():
         print(main.__doc__)
         sys.exit()
     dir_path = pmag.get_named_arg_from_sys("-WD", default_val=os.getcwd())
-    meas_file = pmag.get_named_arg_from_sys("-f", default_val="measurements.txt")
-    spec_file=pmag.get_named_arg_from_sys("-fsp", default_val="specimens.txt")
-    samp_file=pmag.get_named_arg_from_sys("-fsa",default_val="samples.txt")
-    site_file=pmag.get_named_arg_from_sys("-fsi",default_val="sites.txt")
-    meas_file=os.path.join(dir_path,meas_file)
-    spec_file=os.path.join(dir_path,spec_file)
-    samp_file=os.path.join(dir_path,samp_file)
-    site_file=os.path.join(dir_path,site_file)
-    plot_file=pmag.get_named_arg_from_sys("-Fp",default_val="")
+    meas_file = pmag.get_named_arg_from_sys(
+        "-f", default_val="measurements.txt")
+    spec_file = pmag.get_named_arg_from_sys(
+        "-fsp", default_val="specimens.txt")
+    samp_file = pmag.get_named_arg_from_sys("-fsa", default_val="samples.txt")
+    site_file = pmag.get_named_arg_from_sys("-fsi", default_val="sites.txt")
+    #meas_file = os.path.join(dir_path, meas_file)
+    #spec_file = os.path.join(dir_path, spec_file)
+    #samp_file = os.path.join(dir_path, samp_file)
+    #site_file = os.path.join(dir_path, site_file)
+    plot_file = pmag.get_named_arg_from_sys("-Fp", default_val="")
     crd = pmag.get_named_arg_from_sys("-crd", default_val="s")
     if crd == "s":
         coord = "-1"
@@ -226,6 +228,9 @@ def main():
             # this is a list of all the specimen method codes`
             meas_meths = this_specimen_measurements.method_codes.unique()
             tr = pd.to_numeric(this_specimen_measurements.treatment).tolist()
+            if set(tr) == set([0]):
+                k += 1
+                continue
             for m in meas_meths:
                 if 'LT-AF-Z' in m:
                     units = 'T'  # units include tesla
