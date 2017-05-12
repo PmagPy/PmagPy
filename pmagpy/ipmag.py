@@ -2923,7 +2923,7 @@ def download_magic(infile, dir_path='.', input_dir_path='.',
         method_col = "magic_method_codes"
     else:
         method_col = "method_codes"
-    # codecs deals more reasonably with unicode errors
+    # try to deal reasonably with unicode errors
     try:
         f = codecs.open(os.path.join(input_dir_path, infile), 'r', "utf-8")
         infile = f.readlines()
