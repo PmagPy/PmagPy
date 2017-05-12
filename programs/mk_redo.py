@@ -71,7 +71,7 @@ def main():
             if 'specimen_comp_name' in list(spec.keys()) and spec['specimen_comp_name'] != "" and spec['specimen_comp_name'] != " ":
                 comp_name = spec['specimen_comp_name']
             else:
-                comp_name = string.uppercase[specs.count(
+                comp_name = string.ascii_uppercase[specs.count(
                     spec['er_specimen_name']) - 1]
             calculation_type = "DE-BFL"  # assume default calculation type is best-fit line
             if "BFP" in meths:
