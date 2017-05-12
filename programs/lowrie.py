@@ -5,6 +5,7 @@ from builtins import input
 from builtins import range
 from past.utils import old_div
 import sys
+import codecs
 import matplotlib
 if matplotlib.get_backend() != "TKAgg":
     matplotlib.use("TKAgg")
@@ -61,7 +62,7 @@ def main():
         print(main.__doc__)
         print('you must supply a file name')
         sys.exit()
-    data = open(in_file).readlines()  # open the SIO format file
+    data = codecs.open(in_file, 'r', 'Latin-1').readlines()  # open the SIO format file
     PmagRecs = []  # set up a list for the results
     keys = ['specimen', 'treatment', 'csd', 'M', 'dec', 'inc']
     for line in data:

@@ -6,6 +6,7 @@ from builtins import str
 from builtins import range
 from builtins import object
 from past.utils import old_div
+import codecs
 from . import pmag
 from . import pmagplotlib
 from . import data_model3 as data_model
@@ -2922,8 +2923,13 @@ def download_magic(infile, dir_path='.', input_dir_path='.',
         method_col = "magic_method_codes"
     else:
         method_col = "method_codes"
-    f = open(os.path.join(input_dir_path, infile), 'r')
-    infile = f.readlines()
+    # codecs deals more reasonably with unicode errors
+    try:
+        f = codecs.open(os.path.join(input_dir_path, infile), 'r', "utf-8")
+        infile = f.readlines()
+    except UnicodeDecodeError:
+        f = codecs.open(os.path.join(input_dir_path, infile), 'r', "Latin-1")
+        infile = f.readlines()
     f.close()
     File = []  # will contain all non-blank lines from downloaded file
     for line in infile:
