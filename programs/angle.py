@@ -75,6 +75,8 @@ def main():
         print('%7.1f' % (ang))
         if out != "":
             out.write('%7.1f \n' % (ang))
+    if out:
+        out.close()
 
 
 if __name__ == "__main__":
