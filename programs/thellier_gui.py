@@ -271,6 +271,7 @@ class Arai_GUI(wx.Frame):
         if "-h" in args:
             print(TEXT)
             sys.exit()
+        self.standalone = standalone
         global FIRST_RUN
         FIRST_RUN = True if standalone else False
         wx.Frame.__init__(self, parent, wx.ID_ANY,
@@ -2210,6 +2211,8 @@ else:
                 if self.evt_quit:
                     event = self.evt_quit(self.GetId())
                     self.GetEventHandler().ProcessEvent(event)
+                if self.standalone:
+                    sys.exit()
         else:
             self.GUI_log.close()
             self.Destroy()
@@ -2217,6 +2220,8 @@ else:
             if self.evt_quit:
                 event = self.evt_quit(self.GetId())
                 self.GetEventHandler().ProcessEvent(event)
+            if self.standalone:
+                sys.exit()
 
             # self.Destroy() # works if matplotlib isn't using 'WXAgg', otherwise doesn't quit fully
             # wx.Exit() # works by itself, but if called in conjunction with self.Destroy you get a seg error
@@ -6351,7 +6356,7 @@ You can combine multiple measurement files into one measurement file using Pmag 
                 print("-W- No meaurements found")
                 return ({}, {})
 
-            self.contribution.propagate_location_to_measurements('location', 'specimens')
+            self.contribution.propagate_location_to_measurements()
             meas_container = self.contribution.tables['measurements']
             meas_data3_0 = meas_container.df
 # do some filtering
