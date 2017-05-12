@@ -202,18 +202,18 @@ def main(command_line=True, **kwargs):
     dir= pmag.cart2dir(cart).transpose()
     data['measurement_dec']=dir[0]
     data['measurement_inc']=dir[1]
-    data['measurement_magn_moment']=dir[2]*(10.0**data['expon'])*volume # the data are in A/m - this converts to Am^2 
+    data['measurement_magn_moment']=dir[2]*(10.0**data['expon'])*volume # the data are in A/m - this converts to Am^2
     data['measurement_magn_volume']=dir[2]*(10.0**data['expon']) # A/m  - data in A/m
     data['sample_dip']=-data['sample_dip']
     DGEOs,IGEOs=[],[]
     for ind in range(len(data)):
-        dgeo,igeo=pmag.dogeo(data.ix[ind]['measurement_dec'],data.ix[ind]['measurement_inc'],data.ix[ind]['sample_azimuth'],data.ix[ind]['sample_dip'])
+        dgeo,igeo=pmag.dogeo(data.iloc[ind]['measurement_dec'],data.iloc[ind]['measurement_inc'],data.iloc[ind]['sample_azimuth'],data.iloc[ind]['sample_dip'])
         DGEOs.append(dgeo)
         IGEOs.append(igeo)
     data['specimen_dec']=DGEOs
     data['specimen_inc']=IGEOs
     data['specimen_tilt']='1'
-    if specnum!=0: 
+    if specnum!=0:
         data['er_sample_name']=data['er_specimen_name'][:specnum]
     else:
         data['er_sample_name']=data['er_specimen_name']

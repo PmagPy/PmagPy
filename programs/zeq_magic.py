@@ -184,7 +184,7 @@ def main():
     meas_data['instrument_codes'] = ""  # initialize these to blank
 #   for unusual case of microwave power....
     if 'treat_mw_power' in meas_data.columns:
-        meas_data.ix[meas_data.treat_mw_power != 0,
+        meas_data.loc[meas_data.treat_mw_power != 0,
                      'treatment'] = meas_data.treat_mw_power * meas_data.treat_mw_time
 #
 # get list of unique specimen names from measurement data

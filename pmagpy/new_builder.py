@@ -363,7 +363,7 @@ class Contribution(object):
                     # set old value to None if it wasn't in table
                     if coord not in loc_container.df.columns:
                         loc_container.df[coord] = None
-                    old_value = loc_container.df.ix[loc_name, coord]
+                    old_value = loc_container.df.loc[loc_name, coord]
                     # use first value if multiple values returned, but don't shorten a string
                     if not (isinstance(old_value, str)):
                         try:
@@ -450,7 +450,7 @@ class Contribution(object):
                     count += 1
                     continue
                 names_list[ind] = new_value
-                df.ix[count, col_name] = names_list
+                df.loc[count, col_name] = names_list
                 count += 1
 
         # initialize some things
@@ -1422,10 +1422,10 @@ class MagicDataFrame(object):
             # list of all rows where condition is true and index == name
             inds = df_data[condition & condition2]['num']
             #inds = df_data[condition]['num'] # list of all rows where condition is true
-            existing_data = dict(df_data.iloc[inds.ix[0]]) # get first record of existing_data from dataframe
+            existing_data = dict(df_data.iloc[inds.iloc[0]]) # get first record of existing_data from dataframe
             existing_data.update(new_data) # update existing data with new interpretations
             # update row
-            self.update_row(inds.ix[0], existing_data)
+            self.update_row(inds.iloc[0], existing_data)
             # now remove all the remaining records of same condition
             if len(inds) > 1:
                 for ind in inds[1:]:
@@ -1511,7 +1511,7 @@ class MagicDataFrame(object):
             df_slice = df_slice
         # if given index_names, grab a slice using fancy indexing
         elif index_names:
-            df_slice = self.df.ix[index_names]
+            df_slice = self.df.loc[index_names]
         # otherwise, use the full DataFrame
         else:
             df_slice = self.df
@@ -1551,7 +1551,7 @@ class MagicDataFrame(object):
                 df_slice = self.df
         elif do_index:
             # use fancy indexing (but note this will give duplicates)
-            df_slice = self.df.ix[item_names]
+            df_slice = self.df.loc[item_names]
         elif not do_index:
             # otherwise use the provided slice
             df_slice = df_slice

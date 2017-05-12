@@ -529,8 +529,8 @@ def convert_criteria_file_2_to_3(fname="pmag_criteria.txt", input_dir=".",
         if orig_crit[crit]['value'] in [-999, '-999', -999.]:
             continue
         if crit in stripped_crit_map.index:
-            criterion_operation = stripped_crit_map.ix[crit]['criteria_map']['criterion_operation']
-            table_col = stripped_crit_map.ix[crit]['criteria_map']['table_column']
+            criterion_operation = stripped_crit_map.loc[crit]['criteria_map']['criterion_operation']
+            table_col = stripped_crit_map.loc[crit]['criteria_map']['table_column']
             orig_crit[crit]['criterion_operation'] = criterion_operation
             converted_crit[table_col] = orig_crit[crit]
         else:

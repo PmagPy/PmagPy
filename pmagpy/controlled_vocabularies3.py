@@ -52,7 +52,7 @@ class Vocabulary(object):
         #    print "-I- Couldn't connect to earthref.org, using cached method codes"
         print("-I- Using cached method codes")
         raw_codes = pd.io.json.read_json(os.path.join(data_model_dir, "method_codes.json"))
-        code_types = raw_codes.ix['label']
+        code_types = raw_codes.loc['label']
         all_codes = []
         for code_name in code_types.index:
             df = pd.DataFrame(raw_codes[code_name]['codes'])
@@ -74,7 +74,7 @@ class Vocabulary(object):
         code_types = raw_codes.T
         code_types['age'] = False
         age = ['geochronology_method']
-        code_types.ix[age, 'age'] = True
+        code_types.loc[age, 'age'] = True
         code_types['other'] = ~code_types['age']
         return all_codes, code_types
 

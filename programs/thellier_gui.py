@@ -3458,13 +3458,13 @@ You can combine multiple measurement files into one measurement file using Pmag 
                     new_data['method_codes'] = new_meths
                     # try to get the sample name for the updated record
                     try:
-                        samples = self.spec_container.df.ix[specimen, 'sample'].unique(
+                        samples = self.spec_container.df.loc[specimen, 'sample'].unique(
                         )
                         mask = pd.notnull(samples)
                         samples = samples[mask]
                         sample = samples[0]
                     except AttributeError as ex:
-                        sample = self.spec_container.df.ix[specimen, 'sample']
+                        sample = self.spec_container.df.loc[specimen, 'sample']
                     except (IndexError, KeyError) as ex:
                         sample = ''
                     new_data['result_type'] = 'i'

@@ -27,11 +27,11 @@ class TestVocabularies(unittest.TestCase):
 
     def test_vocabularies(self):
         self.assertIn('timescale_era', self.vocab.vocabularies.index)
-        self.assertIn('Neoproterozoic', self.vocab.vocabularies.ix['timescale_era'])
+        self.assertIn('Neoproterozoic', self.vocab.vocabularies.loc['timescale_era'])
 
     def test_suggested(self):
         self.assertIn('fossil_class', self.vocab.suggested.index)
-        self.assertIn('Anthozoa', self.vocab.suggested.ix['fossil_class'])
+        self.assertIn('Anthozoa', self.vocab.suggested.loc['fossil_class'])
 
 
     def test_methods(self):
@@ -42,4 +42,4 @@ class TestVocabularies(unittest.TestCase):
     def test_all_codes(self):
         self.assertIn('SM-TTEST', self.vocab.all_codes.index)
         self.assertEqual('statistical_method',
-                         self.vocab.all_codes.ix['SM-TTEST']['dtype'])
+                         self.vocab.all_codes.loc['SM-TTEST']['dtype'])

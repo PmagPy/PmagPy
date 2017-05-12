@@ -4628,7 +4628,7 @@ class Demag_GUI(wx.Frame):
                         prev_meth_codes = self.con.tables['samples'].df.loc[samp]['method_codes']
                         new_meth_codes = pmag.get_list(CompDir,'method_codes') # get a list of the methods used
                         if isinstance(prev_meth_codes,Series):
-                            merged_meths=self.merge_meth_codes(prev_meth_codes.ix[0], new_meth_codes)
+                            merged_meths=self.merge_meth_codes(prev_meth_codes.iloc[0], new_meth_codes)
                         else:
                             merged_meths=self.merge_meth_codes(prev_meth_codes, new_meth_codes)
                         PmagSampRec['method_codes']=merged_meths
@@ -4844,7 +4844,7 @@ class Demag_GUI(wx.Frame):
                             PolRes['sites'] = polpars[mode]['sites']
                             sites_dat = self.con.tables['sites'].df
                             for e in ['samples','specimens']:
-                                PolRes[e] = reduce(lambda x,y: x+':'+y, [sites_dat.loc[site][e].ix[0] if isinstance(sites_dat.loc[site][e],Series) else sites_dat.loc[site][e] for site in PolRes['sites'].split(':')])
+                                PolRes[e] = reduce(lambda x,y: x+':'+y, [sites_dat.loc[site][e].iloc[0] if isinstance(sites_dat.loc[site][e],Series) else sites_dat.loc[site][e] for site in PolRes['sites'].split(':')])
                             PolRes['dir_n_samples'] = len(PolRes['samples'].split(':'))
                             PolRes['dir_n_specimens'] = len(PolRes['specimens'].split(':'))
                             PolRes['location'] = polpars[mode]['locs']
@@ -4871,14 +4871,14 @@ class Demag_GUI(wx.Frame):
                                 if 'locations' in self.con.tables:
                                     locs_dat = self.con.tables['locations'].df
                                     if 'lat_n' in locs_dat.columns:
-                                        lat = locs_dat['lat_n'][location].ix[0] if isinstance(locs_dat['lat_n'][location],Series) else locs_dat['lat_n'][location]
+                                        lat = locs_dat['lat_n'][location].iloc[0] if isinstance(locs_dat['lat_n'][location],Series) else locs_dat['lat_n'][location]
                                     elif 'lat_s' in locs_dat.columns:
-                                        lat = locs_dat['lat_s'][location].ix[0] if isinstance(locs_dat['lat_s'][location],Series) else locs_dat['lat_s'][location]
+                                        lat = locs_dat['lat_s'][location].iloc[0] if isinstance(locs_dat['lat_s'][location],Series) else locs_dat['lat_s'][location]
                                     else: sucess_lat_lon_info=False
                                     if 'lon_e' in locs_dat.columns:
-                                        lon = locs_dat['lon_e'][location].ix[0] if isinstance(locs_dat['lon_e'][location],Series) else locs_dat['lon_e'][location]
+                                        lon = locs_dat['lon_e'][location].iloc[0] if isinstance(locs_dat['lon_e'][location],Series) else locs_dat['lon_e'][location]
                                     elif 'lon_w' in locs_dat.columns:
-                                        lon = locs_dat['lon_w'][location].ix[0] if isinstance(locs_dat['lon_w'][location],Series) else locs_dat['lon_w'][location]
+                                        lon = locs_dat['lon_w'][location].iloc[0] if isinstance(locs_dat['lon_w'][location],Series) else locs_dat['lon_w'][location]
                                     else: sucess_lat_lon_info=False
                                 if not sucess_lat_lon_info:
                                     ui_dialog = demag_dialogs.user_input(self,['North Boundary Latitude', 'South Boundary Latitude', 'East Boundary Longitude', 'West Boundary Longitude'],parse_funcs=[float,float,float,float], heading="Missing Latitude or Longitude data for location %s please define the boundary of this region so VGP calculations can be preformed"%location)

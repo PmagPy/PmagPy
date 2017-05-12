@@ -299,7 +299,7 @@ class TestContribution(unittest.TestCase):
         self.assertNotIn("hz06", self.con.tables['sites'].df.index)
         self.con.propagate_all_tables_info(write=False)
         self.assertIn("hz06", self.con.tables['sites'].df.index)
-        self.assertEqual("hz06", self.con.tables['sites'].df.ix['hz06']['site'])
+        self.assertEqual("hz06", self.con.tables['sites'].df.loc['hz06']['site'])
 
     def test_get_min_max_lat_lon(self):
         site_container = nb.MagicDataFrame(dtype='sites')
@@ -315,8 +315,8 @@ class TestContribution(unittest.TestCase):
         con.tables['sites'] = site_container
         con.tables['locations'] = loc_container
         con.get_min_max_lat_lon()
-        self.assertEqual(10., con.tables['locations'].df.ix['location1', 'lat_s'])
-        self.assertEqual(15., con.tables['locations'].df.ix['location2', 'lon_e'])
+        self.assertEqual(10., con.tables['locations'].df.loc['location1', 'lat_s'])
+        self.assertEqual(15., con.tables['locations'].df.loc['location2', 'lon_e'])
         os.remove(os.path.join(".", "locations.txt"))
 
     def test_propagate_lithology_cols(self):
@@ -358,11 +358,11 @@ class TestContribution(unittest.TestCase):
         samp_df = pd.DataFrame(index=['mc01b'], columns=['sample', 'site'], data=[['mc01b', 'fake site']])
         samp_df = nb.MagicDataFrame(dtype='samples', df=samp_df)
         con.tables['samples'] = samp_df
-        self.assertEqual('fake site', con.tables['samples'].df.ix['mc01b', 'site'])
+        self.assertEqual('fake site', con.tables['samples'].df.loc['mc01b', 'site'])
         con.propagate_all_tables_info()
         self.assertEqual(sorted(['samples', 'sites', 'locations']), sorted(con.tables.keys()))
         # mc01b does not update b/c sample_df value trumps value from sites table
-        self.assertEqual('fake site', con.tables['samples'].df.ix['mc01b', 'site'])
+        self.assertEqual('fake site', con.tables['samples'].df.loc['mc01b', 'site'])
         # however, additional samples should be added
         self.assertIn('mc01d', con.tables['samples'].df.index)
         for fname in ['_locations.txt', '_samples.txt']:
