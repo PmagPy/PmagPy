@@ -12,11 +12,11 @@ def main():
 
     DESCRIPTION
         generates set of vectors drawn from TK03.gad at given lat and
-        rotated about vertical axis by given Dec 
+        rotated about vertical axis by given Dec
 
     INPUT (COMMAND LINE ENTRY and interactive)
     OUTPUT
-        dec,  inc, int   
+        dec,  inc, int
 
     SYNTAX
         tk03.py [command line options] [> OutputFileName]
@@ -57,10 +57,10 @@ def main():
         if '-G3' in sys.argv:
             ind=sys.argv.index('-G3')
             G3=float(sys.argv[ind+1])
-    for k in range(N): 
+    for k in range(N):
         gh=pmag.mktk03(8,k,G2,G3) # terms and random seed
-        long=random.randint(0,360) # get a random longitude, between 0 and 359
-        vec= pmag.getvec(gh,L,int)  # send field model and lat to getvec
+        lon=random.randint(0,360) # get a random longitude, between 0 and 359
+        vec= pmag.getvec(gh,L,lon)  # send field model and lat to getvec
         if vec[2]>=Imax:
             vec[0]+=D
             if k%2==0 and R==1:
