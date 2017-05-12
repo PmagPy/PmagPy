@@ -759,9 +759,9 @@ def ParseMeasFile(measfile, sitefile, instout, specout):  # fix up some stuff fo
     for rec in meas_data:
         # fill in some potentially missing fields
         if "magic_instrument_codes" in list(rec.keys()):
-            list = (rec["magic_instrument_codes"])
-            list.strip()
-            tmplist = list.split(":")
+            lst = (rec["magic_instrument_codes"])
+            lst.strip()
+            tmplist = lst.split(":")
             for inst in tmplist:
                 if inst not in master_instlist:
                     master_instlist.append(inst)
