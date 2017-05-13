@@ -4494,6 +4494,7 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
 
         # the following keys were calculated or defined in the code above:
         for key in ['sample_igsn', 'sample_texture', 'sample_cooling_rate', 'cooling_rate_corr', 'cooling_rate_mcd', 'participantlist']:
+            var=""
             command = "var= %s" % key
             exec(command)
             if var != "":

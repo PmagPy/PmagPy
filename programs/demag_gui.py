@@ -3799,6 +3799,8 @@ class Demag_GUI(wx.Frame):
         else: #try 2.5 data model
 
             print(("data model: %1.1f"%(self.data_model)))
+            self.read_magic_file(os.path.join(self.WD, "er_samples.txt"),'er_sample_name')
+             
             try:
                 data_er_samples=self.read_magic_file(os.path.join(self.WD, "er_samples.txt"),'er_sample_name')
             except:
@@ -3877,7 +3879,8 @@ class Demag_GUI(wx.Frame):
             if tmp_data[sort_by_this_name] in list(DATA.keys()):
                 print(("-E- ERROR: magic file %s has more than one line for %s %s"%(path,sort_by_this_name,tmp_data[sort_by_this_name])))
             DATA[tmp_data[sort_by_this_name]]=tmp_data
-        fin.close()
+        #fin.close()
+        finput.close()
         return(DATA)
 
     def read_from_LSQ(self,LSQ_file):
