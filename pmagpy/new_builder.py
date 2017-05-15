@@ -527,8 +527,9 @@ class Contribution(object):
             self.add_magic_table(df_name)
         df = self.tables[df_name].df
         if col_name in df.columns:
-            print('{} already in {}'.format(col_name, df_name))
-            return df
+            if all(df[col_name].apply(not_null)):
+                print('{} already in {}'.format(col_name, df_name))
+                return df
 
         # otherwise, do necessary merges to get col_name into df
         # get names for each level
