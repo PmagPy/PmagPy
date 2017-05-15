@@ -4323,7 +4323,6 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
     # date of sampling, latitude (pos North), longitude (pos East)
     date, lat, lon = "", "", ""
     bed_dip, bed_dip_dir = "", ""
-    participantlist = ""
     Lats, Lons = [], []  # list of latitudes and longitudes
     # lists of Sample records and Site records
     SampOuts, SiteOuts, ImageOuts = [], [], []
@@ -4346,6 +4345,8 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
             site_file = "sites.txt"
         image_file = "images.txt"
     orient_file = os.path.join(input_dir_path, orient_file)
+    if not os.path.exists(orient_file):
+        return False, "No such file: {}.  If the orientation file is not in your current working directory, make sure you have specified the correct input directory.".format(orient_file)
     samp_file = os.path.join(output_dir_path, samp_file)
     site_file = os.path.join(output_dir_path, site_file)
     image_file = os.path.join(output_dir_path, image_file)
@@ -4443,27 +4444,9 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
             sample_description = OrRec['sample_description']
         else:
             sample_description = ""
-        if 'sample_igsn' in list(OrRec.keys()):
-            sample_igsn = OrRec['sample_igsn']
-        else:
-            sample_igsn = ""
-        if 'sample_texture' in list(OrRec.keys()):
-            sample_texture = OrRec['sample_texture']
-        else:
-            sample_texture = ""
-        if 'sample_cooling_rate' in list(OrRec.keys()):
-            sample_cooling_rate = OrRec['sample_cooling_rate']
-        else:
-            sample_cooling_rate = ""
         if 'cooling_rate_corr' in list(OrRec.keys()):
-            cooling_rate_corr = OrRec['cooling_rate_corr']
-            if 'cooling_rate_mcd' in list(OrRec.keys()):
-                cooling_rate_mcd = OrRec['cooling_rate_mcd']
-            else:
-                cooling_rate_mcd = 'DA-CR'
-        else:
-            cooling_rate_corr = ""
-            cooling_rate_mcd = ""
+            if 'cooling_rate_mcd' not in list(OrRec.keys()):
+                OrRec['cooling_rate_mcd'] = 'DA-CR'
         sample_orientation_flag = 'g'
         if 'sample_orientation_flag' in list(OrRec.keys()):
             if OrRec['sample_orientation_flag'] == 'b' or OrRec["mag_azimuth"] == "":
@@ -4476,6 +4459,7 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
         else:
             if 'method_codes' in list(OrRec.keys()) and OrRec['method_codes'].strip() != "":
                 methcodes = OrRec['method_codes']  # add notes
+
         codes = methcodes.replace(" ", "").split(":")
         sample_name = OrRec["sample_name"]
         # patch added by rshaar 7/2016
@@ -4493,12 +4477,11 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
         MagRec["er_citation_names"] = "This study"
 
         # the following keys were calculated or defined in the code above:
-        for key in ['sample_igsn', 'sample_texture', 'sample_cooling_rate', 'cooling_rate_corr', 'cooling_rate_mcd', 'participantlist']:
-            var=""
-            command = "var= %s" % key
-            exec(command)
-            if var != "":
-                MagRec[key] = var
+        for key in ['sample_igsn', 'sample_texture', 'sample_cooling_rate',
+                    'cooling_rate_corr', 'cooling_rate_mcd']:
+            val = OrRec.get(key, '')
+            if val:
+                MagRec[key] = val
             elif key in list(Prev_MagRec.keys()):
                 MagRec[key] = Prev_MagRec[key]
             else:
@@ -4559,10 +4542,7 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
             newbaseline = OrRec["GPS_baseline"]
         if newbaseline != "":
             baseline = float(newbaseline)
-        if 'participants' in list(OrRec.keys()) and OrRec['participants'] != "" and OrRec['participants'] != participantlist:
-            participantlist = OrRec['participants']
-        MagRec['er_scientist_mail_names'] = participantlist
-        MagRec.pop("participantlist")
+        MagRec['er_scientist_mail_names'] = OrRec.get('participants', '')
         newlat = OrRec["lat"]
         if newlat != "":
             lat = float(newlat)
