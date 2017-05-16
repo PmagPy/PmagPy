@@ -20,7 +20,7 @@ OPTIONS
     -Fsa FILE: specify output samples.txt file, default is samples.txt
     -Fsi FILE: specify output sites.txt file, default is sites.txt # LORI
     -Flo FILE: specify output locations.txt file, default is locations.txt
-    -n [gm,kg,cc,m3]: specify normalization, default is gm.
+    -n [cc,m3,g,kg]: specify normalization, default is cc.
     -A: don't average replicate measurements
     -spc NUM: specify number of characters to designate a  specimen, default = 0
     -ncn NCON: specify naming convention
@@ -74,7 +74,7 @@ def convert(**kwargs):
     locname : location name
     methods : colon delimited list of sample method codes. full list here (https://www2.earthref.org/MagIC/method-codes) (default : SO-MAG
     specnum : number of terminal characters that identify a specimen
-    norm : is volume or mass using cgs or si units (options : cc,m3) (default : cc)
+    norm : is volume or mass normalization using cgs or si units (options : cc,m3,g,kg) (default : cc)
     noave : average measurement data or not. False is average, True is don't average. (default : False)
     samp_con : sample naming convention options as follows:
         [1] XXXXY: where XXXX is an arbitrary length site designation and Y
@@ -217,23 +217,30 @@ def convert(**kwargs):
         if len(line)>2:
             comment=line[2]
         info=Lines[1].split()
-        vol=float(info[-1])
-        if vol!=1.0:
-            if norm=='cc':units="1"
-            if norm=='m3':units="2"
+        volmass=float(info[-1])
+        if volmass==1.0:
+            print('Warning: Specimen volume set to 1.0.')
+            print('Warning: If volume/mass really is 1.0, set volume/mass to 1.001')
+            print('Warning: specimen method code LP-NOMAG set.')
             SpecRec['weight']=""
-            if units=="1" or "":
-                SpecRec['volume']='%10.3e'%(vol*1e-6)
-            else:
-                SpecRec['volume']='%10.3e'%(vol)
-        else:
-            if norm=='cc':units="1"
-            if norm=='m3':units="2"
             SpecRec['volume']=""
-            if units=="1" or "":
-                SpecRec['weight']='%10.3e'%(vol*1e-3)
-            else:
-                SpecRec['weight']='%10.3e'%(vol)
+            SpecRec['method_codes']='LP-NOMAG'
+        elif norm=="gm":
+            SpecRec['volume']=''
+            SpecRec['weight']='%10.3e'%volmass*1e-3
+        elif norm=="kg":
+            SpecRec['volume']=''
+            SpecRec['weight']='%10.3e'*volmass
+        elif norm=="cc":
+            SpecRec['weight']=""
+            SpecRec['volume']='%10.3e'%(volmass*1e-6)
+        elif norm=="m3":
+            SpecRec['weight']=""
+            SpecRec['volume']='%10.3e'%(volmass)
+        else:
+            print('Warning: Unknown normalization unit ', norm, '. Using default of cc')
+            SpecRec['weight']=""
+            SpecRec['volume']='%10.3e'%(volmass*1e-6)
         dip=float(info[-2])
         dip_direction=float(info[-3])+Cdec+90.
         sample_dip=-float(info[-4])
@@ -378,7 +385,7 @@ def convert(**kwargs):
 #           Not sure if we should just print an error message and exit. For now we accept the file and fix it.
 #           The first digit of the exponent, which should always be zero, is cut out of the line if column 39 is not ' ' 
             if line[39] != ' ': line = line[0:37] + line[38:]
-            M='%8.2e'%(float(line[31:39])*vol*1e-3) # convert to Am2
+            M='%8.2e'%(float(line[31:39])*volmass*1e-3) # convert to Am2
             MeasRec['magn_moment']=M
             MeasRec['dir_csd']='%7.1f'%(eval(line[41:46]))
             MeasRec["meas_n_orient"]=meas_n_orient
