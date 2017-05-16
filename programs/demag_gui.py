@@ -3346,18 +3346,36 @@ class Demag_GUI(wx.Frame):
             meas_data3_0 = meas_container.df
 
             # do some filtering
-            if 'location' in meas_data3_0.columns:
+#            if 'location' in meas_data3_0.columns:
+#                if any(meas_data3_0['location'].isnull()):
+#                    print("-W- Some measurements are missing location data, and will not be used")
 #                meas_data3_0 = meas_data3_0[meas_data3_0['location'].notnull()]
-                meas_data3_0.replace({'location':float('nan')},'unknown',inplace=True)
-            if 'site' in meas_data3_0.columns:
+##                meas_data3_0.replace({'location':float('nan')},'unknown',inplace=True)
+#            if 'site' in meas_data3_0.columns:
+#                if any(meas_data3_0['site'].isnull()):
+#                    print("-W- Some measurements are missing site data, and will not be used")
 #                meas_data3_0 = meas_data3_0[meas_data3_0['site'].notnull()]
-                meas_data3_0.replace({'site':float('nan')},'unknown',inplace=True)
-            if 'sample' in meas_data3_0.columns:
+##                meas_data3_0.replace({'site':float('nan')},'unknown',inplace=True)
+#            if 'sample' in meas_data3_0.columns:
+#                if any(meas_data3_0['sample'].isnull()):
+#                    print("-W- Some measurements are missing sample data, and will not be used")
 #                meas_data3_0 = meas_data3_0[meas_data3_0['sample'].notnull()]
-                meas_data3_0.replace({'sample':float('nan')},'unknown',inplace=True)
-            if 'specimen' in meas_data3_0.columns:
+##                meas_data3_0.replace({'sample':float('nan')},'unknown',inplace=True)
+#            if 'specimen' in meas_data3_0.columns:
+#                missing = meas_data3_0[meas_data3_0['specimen'].isnull()]
+#                if len(missing):
+#                    print("-W- {} measurements are missing specimen data, and will not be used".format(missing))
 #                meas_data3_0 = meas_data3_0[meas_data3_0['specimen'].notnull()]
-                meas_data3_0.replace({'specimen':float('nan')},'unknown',inplace=True)
+##                meas_data3_0.replace({'specimen':float('nan')},'unknown',inplace=True)
+
+            col_names = ['specimen', 'sample', 'site', 'location']
+            for col_name in col_names:
+                if col_name in meas_data3_0.columns:
+                    pruned = meas_data3_0[meas_data3_0[col_name].apply(nb.not_null)]
+                    num_missing = len(meas_data3_0) - len(pruned)
+                    if num_missing:
+                        print("-W- {} measurements are missing {} data and will be excluded".format(num_missing, col_name))
+                        meas_data3_0 = pruned
             Mkeys = ['magn_moment', 'magn_volume', 'magn_mass']
             meas_data3_0=meas_data3_0[meas_data3_0['method_codes'].str.contains('LT-NO|LT-AF-Z|LT-T-Z|LT-M-Z|LT-LT-Z')==True] # fish out all the relavent data
 # now convert back to 2.5  changing only those keys that are necessary for thellier_gui
