@@ -201,11 +201,10 @@ def convert(**kwargs):
             print('not a valid coil specification')
             return False, '{} is not a valid coil specification'.format(coil)
     if mag_file:
-        try:
-            fin=open(mag_file,'r')
-        except IOError:
-            print("bad mag file name")
-            return False, "bad mag file name"
+        lines = pmag.open_file(mag_file)
+        if not lines:
+            print("you must provide a valid mag_file")
+            return False, "you must provide a valid mag_file"
     if not mag_file:
         print(__doc__)
         print("mag_file field is required option")
@@ -286,7 +285,6 @@ def convert(**kwargs):
 
     ##################################
 
-    lines=fin.readlines()
     for line in lines:
         instcode=""
         if len(line)>2:
@@ -659,8 +657,6 @@ def convert(**kwargs):
             MeasRec["treat_step_num"]='1'
             #print MeasRec['treat_temp']
             MeasRecs.append(MeasRec)
-
-    fin.close()
 
     con = nb.Contribution(output_dir_path,read_tables=[])
 

@@ -70,3 +70,33 @@ class TestGetPlateData(unittest.TestCase):
 """
         length = len(expected_out)
         self.assertEqual(expected_out, res[:length])
+
+
+class TestMagicRead(unittest.TestCase):
+
+    def test_magic_read_success(self):
+        fname = os.path.join(WD, "data_files", "3_0", "McMurdo", "sites.txt")
+        data, ftype = pmag.magic_read(fname)
+        self.assertEqual(ftype, 'sites')
+        self.assertEqual(len(data), 541)
+        data, ftype, magic_keys = pmag.magic_read(fname,
+                                                  return_keys=True)
+        self.assertEqual(magic_keys[-1], 'vgp_n_samples')
+
+    def test_open_file_non_unicode(self):
+        fname = os.path.join(WD, 'data_files', 'lowrie', 'lowrie_example.dat')
+        data = pmag.open_file(fname)
+        self.assertTrue(len(data) >= 465)
+
+    def test_open_file_unicode(self):
+        fname = os.path.join(WD, 'data_files', '3_0', 'Megiddo', 'sites.txt')
+        data = pmag.open_file(fname)
+        print(len(data))
+        self.assertEqual(len(data), 41)
+
+
+    def test_magic_read_no_such_file(self):
+        fname = os.path.join(PROJECT_WD, 'no_sites.txt')
+        data, ftype = pmag.magic_read(fname)
+        self.assertEqual(ftype, 'bad_file')
+        self.assertEqual(len(data), 0)

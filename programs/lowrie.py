@@ -62,7 +62,7 @@ def main():
         print(main.__doc__)
         print('you must supply a file name')
         sys.exit()
-    data = codecs.open(in_file, 'r', 'Latin-1').readlines()  # open the SIO format file
+    data = pmag.open_file(in_file)
     PmagRecs = []  # set up a list for the results
     keys = ['specimen', 'treatment', 'csd', 'M', 'dec', 'inc']
     for line in data:

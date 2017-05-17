@@ -6,6 +6,7 @@ from builtins import str
 from builtins import input
 from builtins import range
 from past.utils import old_div
+import codecs
 import numpy as np
 import string
 import sys
@@ -1542,6 +1543,47 @@ def find_dmag_rec(s, data, **kwargs):
     return datablock, meas_units
 
 
+def open_file(infile):
+    """
+    Open file and return a list of the file's lines.
+    Try to use utf-8 encoding, and if that fails use Latin-1.
+
+    Parameters
+    ----------
+    infile : str
+        full path to file
+
+    Returns
+    ----------
+    data: list
+        all lines in the file
+    """
+    try:
+        with codecs.open(infile, "r", "utf-8") as f:
+            lines = list(f.readlines())
+    # file might not exist
+    except FileNotFoundError:
+        print('-W- You are trying to open a file: {} that does not exist'.format(infile))
+        return []
+    # encoding might be wrong
+    except UnicodeDecodeError:
+        try:
+            with codecs.open(infile, "r", "Latin-1") as f:
+                print('-I- Using less strict decoding, output may have formatting errors')
+                lines = list(f.readlines())
+        # if file exists, and encoding is correct, who knows what the problem is
+        except Exception as ex:
+            print("-W- ", type(ex), ex)
+            return []
+    except Exception as ex:
+        print("-W- ", type(ex), ex)
+        return []
+    # don't leave a blank line at the end
+    if not lines[-1]:
+        return lines[:-1]
+    return lines
+
+
 def magic_read(infile, data=None, return_keys=False):
     """
     Reads  a Magic template file, puts data in a list of dictionaries.
@@ -1550,14 +1592,12 @@ def magic_read(infile, data=None, return_keys=False):
     if data:
         lines = list(data)
     else:
-        try:
-            with open(infile, "r") as f:
-                lines = list(f.readlines())
-        except Exception as ex:
-            if return_keys:
-                return [], 'bad_file', []
-            return [], 'bad_file'
-
+        # use custom pmag open_file
+        lines = open_file(infile)
+    if not lines:
+        if return_keys:
+            return [], 'bad_file', []
+        return [], 'bad_file'
     d_line = lines[0][:-1].strip('\n')
     if not d_line:
         if return_keys:
@@ -1568,7 +1608,7 @@ def magic_read(infile, data=None, return_keys=False):
     elif d_line[0] == "t" or d_line[1] == "t":
         delim = 'tab'
     else:
-        print('error reading ', infile)
+        print('-W- error reading {}. Check that this is a MagIC-format file'.format(infile))
         if return_keys:
             return [], 'bad_file', []
         return [], 'bad_file'
