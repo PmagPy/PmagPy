@@ -374,8 +374,9 @@ class TestMainFrame3(unittest.TestCase):
         self.pnl = self.frame.GetChildren()[0]
 
     def tearDown(self):
+        wx.CallAfter(self.frame.Destroy)
+        wx.CallAfter(self.app.Destroy)
         os.chdir(TEST_DIR)
-        return
 
     def test_data_object_is_created(self):
         self.assertEqual(nb.Contribution, type(self.frame.contribution))
