@@ -1684,13 +1684,15 @@ def magic_read_dict(path, data=None, sort_by_this_name=None, return_keys=False):
     return data, file_type, and keys (if return_keys is true)
     """
     DATA = {}
-    fin = open(path, 'r')
-    first_line = fin.readline()
-    if not first_line:
+    #fin = open(path, 'r')
+    #first_line = fin.readline()
+    lines = open_file(path)
+    if not lines:
         if return_keys:
-            return False, 'empty_file', None
+            return {}, 'empty_file', None
         else:
-            return False, 'empty_file'
+            return {}, 'empty_file'
+    first_line = lines.pop(0)
     if first_line[0] == "s" or first_line[1] == "s":
         delim = ' '
     elif first_line[0] == "t" or first_line[1] == "t":
@@ -1698,9 +1700,9 @@ def magic_read_dict(path, data=None, sort_by_this_name=None, return_keys=False):
     else:
         print('-W- error reading ', path)
         if return_keys:
-            return False, 'bad_file', None
+            return {}, 'bad_file', None
         else:
-            return False, 'bad_file'
+            return {}, 'bad_file'
 
     file_type = first_line.strip('\n').split(delim)[1]
 
@@ -1712,10 +1714,10 @@ def magic_read_dict(path, data=None, sort_by_this_name=None, return_keys=False):
         sort_by_this_name = "by_line_number"
     else:
         sort_by_this_name = item_type
-    line = fin.readline()
+    line = lines.pop(0)
     header = line.strip('\n').split(delim)
     counter = 0
-    for line in fin.readlines():
+    for line in lines:
         tmp_data = {}
         tmp_line = line.strip('\n').split(delim)
         for i in range(len(header)):
@@ -1729,7 +1731,6 @@ def magic_read_dict(path, data=None, sort_by_this_name=None, return_keys=False):
         else:
             if tmp_data[sort_by_this_name] != "":
                 DATA[tmp_data[sort_by_this_name]] = tmp_data
-    fin.close()
     if return_keys:
         return DATA, file_type, header
     else:

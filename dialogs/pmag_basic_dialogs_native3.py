@@ -2979,6 +2979,7 @@ class OrientFrameGrid(wx.Frame):
         try:
             self.orient_data = self.er_magic_data.read_magic_file(os.path.join(self.WD, "demag_orient.txt"), "sample_name")[0]
         except Exception as ex:
+            self.orient_data = {}
             print("-W-", ex)
             #pass
         for sample_name in samples_name_list:
