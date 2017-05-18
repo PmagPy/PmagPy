@@ -220,7 +220,7 @@ orient_magic_2_magic3_map = {"sample_name": "sample", "site_name": "site", "long
                              "sample_lithology": "lithologies", "sample_type": "geologic_types",
                              "sample_class": "geologic_classes"}
 # 3.0 --> orientation format
-magic3_2_orient_magic_map = {v: k for (k, v) in list(image_magic2_2_magic3_map.items())}
+magic3_2_orient_magic_map = {v: k for (k, v) in list(orient_magic_2_magic3_map.items())}
 
 meas_magic2 = list(meas_magic3_2_magic2_map.values())
 spec_magic2 = list(spec_magic3_2_magic2_map.values())
