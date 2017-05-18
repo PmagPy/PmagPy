@@ -2960,13 +2960,13 @@ You can combine multiple measurement files into one measurement file using Pmag 
                 a = s_matrix
                 S = 0.
                 comp = np.zeros((n_pos * 3), 'f')
-                for i in range(n_pos):
+                for i in range(int(n_pos)):
                     for j in range(3):
                         index = i * 3 + j
                         compare = a[j][0] * tmpH[i][0] + a[j][1] * \
                             tmpH[i][1] + a[j][2] * tmpH[i][2]
                         comp[index] = compare
-                for i in range(n_pos * 3):
+                for i in range(int(n_pos * 3)):
                     d = K[i] / trace - comp[i]  # del values
                     S += d * d
                 nf = float(n_pos * 3 - 6)  # number of degrees of freedom
