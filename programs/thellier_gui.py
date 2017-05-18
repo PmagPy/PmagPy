@@ -1749,7 +1749,7 @@ else:
             self.sample_int_sigma_window.SetBackgroundColour(wx.WHITE)
 
         if self.acceptance_criteria['sample_int_sigma_perc']['value'] != -999:
-            if B_std_perc > self.acceptance_criteria['sample_int_sigma_perc']:
+            if B_std_perc > self.acceptance_criteria['sample_int_sigma_perc']['value']:
                 fail_int_sigma_perc = True
                 self.sample_int_sigma_perc_window.SetBackgroundColour(wx.RED)
             else:

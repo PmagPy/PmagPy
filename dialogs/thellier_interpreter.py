@@ -246,7 +246,6 @@ class thellier_auto_interpreter():
         for s in specimens_list:
             self.thellier_interpreter_log.write(
                 "-I- doing now specimen %s\n" % s)
-            print(s)
             self.Data[s]['pars'] = {}
             self.Data[s]['pars']['lab_dc_field'] = self.Data[s]['lab_dc_field']
             self.Data[s]['pars']['er_specimen_name'] = s
