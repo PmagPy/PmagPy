@@ -2729,7 +2729,6 @@ class OrientFrameGrid3(wx.Frame):
                     except AttributeError:
                         pass
                     if val and val != "None":
-                        print('val', type(val), val)
                         self.grid.SetCellValue(sample_index, i, val)
 
         #--------------------------------
