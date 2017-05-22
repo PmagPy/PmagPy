@@ -659,7 +659,7 @@ class Contribution(object):
         # and no unnecessary duplicates
         if source_df_name[:-1] not in source_df.columns:
             source_df[source_df_name[:-1]] = source_df.index
-        source_df.drop_duplicates(inplace=True, subset=col_names + [source_df_name[:-1]])
+        source_df = source_df.drop_duplicates(inplace=False, subset=col_names + [source_df_name[:-1]])
         source_df = source_df.groupby(source_df.index, sort=False).fillna(method='ffill').groupby(source_df.index, sort=False).fillna(method='bfill')
         # propagate down
         if down:
