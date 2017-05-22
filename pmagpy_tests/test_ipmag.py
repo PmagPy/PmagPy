@@ -7,6 +7,7 @@ import sys
 import matplotlib
 from pmagpy import pmag
 from pmagpy import ipmag
+from pmagpy import new_builder as nb
 #from pmagpy import find_pmag_dir
 WD = pmag.get_test_WD()
 
@@ -67,6 +68,39 @@ class TestUploadMagic(unittest.TestCase):
         assert os.path.isfile(outfile)
         directory = os.path.join(self.dir_path, 'my_project_with_errors')
         os.remove(os.path.join(directory, outfile))
+
+    def test3_with_invalid_files(self):
+        dir_path = os.path.join(WD, 'data_files', '3_0', 'Megiddo')
+        outfile, error_message, errors, all_errors = ipmag.upload_magic3(dir_path=dir_path)
+        msg = "file validation has failed.  You may run into problems if you try to upload this file."
+        self.assertEqual(error_message, msg)
+        # delete any upload file that was partially created
+        import re
+        pattern = re.compile('\w*[.]\w*[.]\w*[20]\d{2}\w*.txt$')
+        possible_files = os.listdir(dir_path)
+        files = []
+        for f in possible_files:
+            if pattern.match(f):
+                files.append(f)
+        pmag.remove_files(files, dir_path)
+
+
+    def test3_with_contribution(self):
+        dir_path = os.path.join(WD, 'data_files', '3_0', 'Megiddo')
+        con = nb.Contribution(directory=dir_path)
+        outfile, error_message, errors, all_errors = ipmag.upload_magic3(contribution=con)
+        msg = "file validation has failed.  You may run into problems if you try to upload this file."
+        self.assertEqual(error_message, msg)
+        # delete any upload file that was partially created
+        import re
+        pattern = re.compile('\w*[.]\w*[.]\w*[20]\d{2}\w*.txt$')
+        possible_files = os.listdir(dir_path)
+        files = []
+        for f in possible_files:
+            if pattern.match(f):
+                files.append(f)
+        pmag.remove_files(files, dir_path)
+
 
 
 class Test_iodp_samples_magic(unittest.TestCase):
