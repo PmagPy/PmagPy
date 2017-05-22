@@ -1020,9 +1020,7 @@ class Contribution(object):
         """
         for table_name in self.tables:
             table = self.tables[table_name]
-            table_dm = self.data_model.dm[table_name]
-            approved_cols = table_dm.index
-            unrecognized_cols = (set(table.df.columns) - set(approved_cols))
+            unrecognized_cols = table.get_non_magic_cols()
             if unrecognized_cols:
                 print('-I- Removing non-MagIC column names from {}:'.format(table_name), end=' ')
                 for col in unrecognized_cols:
@@ -1735,6 +1733,21 @@ class MagicDataFrame(object):
         f.close()
 
     ## Helper methods
+
+
+    def get_non_magic_cols(self):
+        """
+        Find all columns in self.df that are not real MagIC 3 columns.
+
+        Returns
+        --------
+        unrecognized_cols : list
+        """
+        table_dm = self.data_model.dm[self.dtype]
+        approved_cols = table_dm.index
+        unrecognized_cols = (set(self.df.columns) - set(approved_cols))
+        return unrecognized_cols
+
 
     def get_first_non_null_value(self, ind_name, col_name):
         """
