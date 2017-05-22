@@ -1579,8 +1579,13 @@ def open_file(infile):
         print("-W- ", type(ex), ex)
         return []
     # don't leave a blank line at the end
-    if not lines[-1]:
-        return lines[:-1]
+    i = 0
+    while i < 10:
+        if not lines[-1]:
+            lines = lines[:-1]
+            i += 1
+        else:
+            i = 10
     return lines
 
 
