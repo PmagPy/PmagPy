@@ -2622,10 +2622,27 @@ class OrientFrameGrid3(wx.Frame):
             raw_orient_data = samp_container.convert_to_pmag_data_list("dict")
             # convert from 3.0. headers to orient.txt headers
             self.orient_data = {}
-            for key, rec in list(raw_orient_data.items()):
+            # must group to ensure that lat/lon/etc. are found no matter what
+            df = samp_container.df
+            res = df.T.apply(dict).groupby(df.index)
+            orient_data = {}
+            for grouped in res:
+                new_dict = {}
+                ind_name = grouped[0]
+                dictionaries = grouped[1]
+                for dictionary in dictionaries:
+                    for key, value in dictionary.items():
+                        if key in new_dict:
+                            continue
+                        if value and (value != 'None'):
+                            new_dict[key] = value
+                for key in dictionary.keys():
+                    if key not in new_dict:
+                        new_dict[key] = None
+                orient_data[ind_name] = new_dict
+            for key, rec in list(orient_data.items()):
                 self.orient_data[key] = map_magic.mapping(rec, map_magic.magic3_2_orient_magic_map)
-
-
+        # create grid
         self.create_sheet()
 
         TEXT = """
