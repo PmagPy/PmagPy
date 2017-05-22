@@ -3280,6 +3280,7 @@ def upload_magic3(concat=0, dir_path='.', dmodel=None, vocab="", contribution=No
     if there was a problem creating/validating the upload file
     or: (filename, '', None, None) if the file creation was fully successful.
     """
+    dir_path = os.path.realpath(dir_path)
     locations = []
     concat = int(concat)
     dtypes = ["locations", "samples", "specimens", "sites", "ages", "measurements",
@@ -3293,33 +3294,45 @@ def upload_magic3(concat=0, dir_path='.', dmodel=None, vocab="", contribution=No
                                                             ", ".join(error_fnames)))
     for error in error_full_fnames:
         os.remove(error)
-    if not file_names:
-        real_path = os.path.realpath(dir_path)
-        print("-W- No 3.0 files found in your directory: {}, upload file not created".format(real_path))
-        return False, "no 3.0 files found, upload file not created", None
     if isinstance(contribution, nb.Contribution):
         # if contribution object provided, use it
         con = contribution
         for table_name in con.tables:
             con.tables[table_name].write_magic_file()
-    else:
+    elif file_names:
         # otherwise create a new Contribution in dir_path
         con = Contribution(dir_path, vocabulary=vocab)
+    else:
+        # if no contribution is provided and no contribution could be created,
+        # you are out of luck
+        print("-W- No 3.0 files found in your directory: {}, upload file not created".format(dir_path))
+        return False, "no 3.0 files found, upload file not created", None, None
+
+    # if the contribution has no tables, you can't make an upload file
+    if not con.tables.keys():
+        print("-W- No tables found in your contribution, file not created".format(dir_path))
+        return False, "-W- No tables found in your contribution, file not created", None, None
+
     # take out any extra added columns
-    con.remove_non_magic_cols()
+    #con.remove_non_magic_cols()
+
     # begin the upload process
     up = os.path.join(dir_path, "upload.txt")
     if os.path.exists(up):
         os.remove(up)
-    RmKeys = ['citation_label', 'compilation', 'calculation_type', 'average_n_lines', 'average_n_planes',
+    RmKeys = ('citation_label', 'compilation', 'calculation_type', 'average_n_lines', 'average_n_planes',
               'specimen_grade', 'site_vgp_lat', 'site_vgp_lon', 'direction_type', 'specimen_Z',
               'magic_instrument_codes', 'cooling_rate_corr', 'cooling_rate_mcd', 'anisotropy_atrm_alt',
               'anisotropy_apar_perc', 'anisotropy_F', 'anisotropy_F_crit', 'specimen_scat',
               'specimen_gmax', 'specimen_frac', 'site_vadm', 'site_lon', 'site_vdm', 'site_lat',
               'measurement_chi', 'specimen_k_prime', 'specimen_k_prime_sse', 'external_database_names',
               'external_database_ids', 'Further Notes', 'Typology', 'Notes (Year/Area/Locus/Level)',
-              'Site', 'Object Number', 'version']
-    print("-I- Removing: ", RmKeys)
+              'Site', 'Object Number', 'version')
+    #print("-I- Removing: ", RmKeys)
+    extra_RmKeys = {'measurements': ['sample', 'site', 'location'],
+                    'specimens': ['site', 'location', 'age'],
+                    'samples': ['location', 'age']}
+
     failing = []
     all_failing_items = {}
     if not dmodel:
@@ -3331,9 +3344,18 @@ def upload_magic3(concat=0, dir_path='.', dmodel=None, vocab="", contribution=No
         if len(df):
             print("-I- {} file successfully read in".format(file_type))
     # make some adjustments to clean up data
-            # drop non MagIC keys
-            DropKeys = set(RmKeys).intersection(df.columns)
-            df.drop(DropKeys, axis=1, inplace=True)
+            ## drop non MagIC keys
+            #DropKeys = set(RmKeys).intersection(df.columns)
+            DropKeys = list(RmKeys) + extra_RmKeys.get(file_type, [])
+            DropKeys = set(DropKeys).intersection(df.columns)
+            if DropKeys:
+                print('-I- dropping these columns: {} from the {} table'.format(', '.join(DropKeys), file_type))
+                df.drop(DropKeys, axis=1, inplace=True)
+            container.df = df
+            unrecognized_cols = container.get_non_magic_cols()
+            if unrecognized_cols:
+                print('-W- {} table still has some unrecognized columns: {}'.format(file_type.title(),
+                                                                                    ", ".join(unrecognized_cols)))
             # make sure int_b_beta is positive
             if 'int_b_beta' in df.columns:
                 # get rid of empty strings
@@ -3404,7 +3426,7 @@ def upload_magic3(concat=0, dir_path='.', dmodel=None, vocab="", contribution=No
 
     if not os.path.isfile(up):
         print("no data found, upload file not created")
-        return False, "no data found, upload file not created", None
+        return False, "no data found, upload file not created", None, None
 
     # rename upload.txt according to location + timestamp
     format_string = "%d.%b.%Y"
