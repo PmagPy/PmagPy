@@ -5,6 +5,7 @@ import unittest
 import os
 import sys
 import matplotlib
+import re
 from pmagpy import pmag
 from pmagpy import ipmag
 from pmagpy import new_builder as nb
@@ -32,6 +33,27 @@ class TestUploadMagic(unittest.TestCase):
         self.dir_path = os.path.join(WD, 'data_files', 'testing')
 
     def tearDown(self):
+        tables = ['measurements', 'specimens', 'samples',
+                  'sites', 'locations', 'ages', 'criteria',
+                  'contribution']
+        tables.extend([tname + "_errors" for tname in tables])
+        possible_files = os.listdir(WD)
+        for table in tables:
+            fname = table + ".txt"
+            if fname in possible_files:
+                try:
+                    print('trying to remove', os.path.join(WD, fname))
+                    os.remove(os.path.join(WD, fname))
+                except OSError:
+                    pass
+        # get rid of partial upload files
+        pattern = re.compile('.*\w*[.]\w*[.]\w*[20]\d{2}\w*.txt$')
+        #pattern = re.compile('\w*[.]\w*[.]\w*[20]\d{2}\w*.txt$')
+        remove = []
+        for f in possible_files:
+            if pattern.match(f):
+                remove.append(f)
+        pmag.remove_files(remove, WD)
         os.chdir(WD)
 
     def test_empty_dir(self):

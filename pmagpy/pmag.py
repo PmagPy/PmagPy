@@ -1581,7 +1581,7 @@ def open_file(infile):
     # don't leave a blank line at the end
     i = 0
     while i < 10:
-        if not lines[-1]:
+        if not len(lines[-1].strip("\n").strip("\t")):
             lines = lines[:-1]
             i += 1
         else:
