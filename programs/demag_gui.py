@@ -3523,15 +3523,15 @@ class Demag_GUI(wx.Frame):
                     else:
                         Data[s]['measurement_step_unit']=measurement_step_unit
                 dec,inc,inten = "","",""
-                if "measurement_dec" in list(rec.keys()) and rec["measurement_dec"] != "":
+                if "measurement_dec" in list(rec.keys()) and nb.not_null(rec["measurement_dec"]):
                     dec=float(rec["measurement_dec"])
                 else:
                     continue
-                if "measurement_inc" in list(rec.keys()) and rec["measurement_inc"] != "":
+                if "measurement_inc" in list(rec.keys()) and nb.not_null(rec["measurement_inc"]):
                     inc=float(rec["measurement_inc"])
                 else:
                     continue
-                if "measurement_magn_moment" in list(rec.keys()) and rec["measurement_magn_moment"] != "":
+                if "measurement_magn_moment" in list(rec.keys()) and nb.not_null(rec["measurement_magn_moment"]):
                     intensity=float(rec["measurement_magn_moment"])
                 else:
                     intensity=1. #just assume a normal vector
@@ -3818,7 +3818,7 @@ class Demag_GUI(wx.Frame):
 
             print(("data model: %1.1f"%(self.data_model)))
             self.read_magic_file(os.path.join(self.WD, "er_samples.txt"),'er_sample_name')
-             
+
             try:
                 data_er_samples=self.read_magic_file(os.path.join(self.WD, "er_samples.txt"),'er_sample_name')
             except:
