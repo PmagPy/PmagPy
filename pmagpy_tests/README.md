@@ -9,21 +9,21 @@ This runs through every PmagPy test using the data files that were automatically
 
 ## Testing locally (for developers)
 
-You can run tests from your local PmagPy directory.  To run find and run all tests, use:
+You can run tests from your local PmagPy directory.  (Tests will fail if you try to run them from PmagPy/pmagpy\_tests -- always run them from PmagPy).  To run find and run all tests, use:
 
 `python -m unittest discover`
 
 To run tests at the most granular level, the syntax looks like this:
 
-`python -m pmagpy_tests.test_ipmag.TestIGRF.test_igrf_output`
+`python -m unittest pmagpy_tests.test_ipmag.TestIGRF.test_igrf_output`
 
 This runs a single test from the pmagpy\_tests module, from the test\_ipmag submodule (the file named test\_ipmag.py), from the TestIGRF class.  The single test is called test\_igrf\_output.  You can also run the entire test\_ipmag submodule:
 
-`python -m pmagpy_tests.test_ipmag`
+`python -m unittest pmagpy_tests.test_ipmag`
 
 or all tests in the TestIGRF class:
 
-`python -m pmagpy_tests.test_ipmag.TestIGRF`.
+`python -m unittest pmagpy_tests.test_ipmag.TestIGRF`.
 
 Here is the code that makes the IGRF test run, with comments.
 
