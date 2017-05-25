@@ -502,13 +502,13 @@ def plotDI(fignum, DIblock):
 #
     if len(X_down) > 0:
         #        pylab.scatter(X_down,Y_down,marker='s',c='r')
-        pylab.scatter(X_down, Y_down, marker='o', c='c')
+        pylab.scatter(X_down, Y_down, marker='o', c='blue')
         if globals != 0:
             globals.DIlist = X_down
             globals.DIlisty = Y_down
     if len(X_up) > 0:
-        #        pylab.scatter(X_up,Y_up,marker='s',c='w')
-        pylab.scatter(X_up, Y_up, marker='o', c='w')
+        #        pylab.scatter(X_up,Y_up,marker='s',facecolor='none',edgecolor='black')
+        pylab.scatter(X_up, Y_up, marker='o', facecolor='white',edgecolor='blue')
         if globals != 0:
             globals.DIlist = X_up
             globals.DIlisty = Y_up
