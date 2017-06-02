@@ -750,6 +750,9 @@ class Contribution(object):
         source_df.front_and_backfill([target_name])
         # group source df by target_name
         grouped = source_df.df.groupby(source_df.df[target_name])
+        if not len(grouped):
+            print("-W- Couldn't propagate from {} to {}".format(source_df_name, target_df_name))
+            return target_df
         # function to generate capitalized, sorted, colon-delimited list
         # of unique, non-null values from a column
         def func(group, col_name):
@@ -922,14 +925,15 @@ class Contribution(object):
                 target_df.df[max_col] = None
             # get min/max from source
             grouped = source_df.df[[col, target_name]].groupby(target_name)
-            minimum, maximum = grouped.min(), grouped.max()
-            # update target_df without overwriting existing values
-            target_df.df[min_col] = np.where(target_df.df[min_col].notnull(),
-                                             target_df.df[min_col],
-                                             minimum[col])
-            target_df.df[max_col] = np.where(target_df.df[max_col].notnull(),
-                                             target_df.df[max_col],
-                                             maximum[col])
+            if len(grouped):
+                minimum, maximum = grouped.min(), grouped.max()
+                # update target_df without overwriting existing values
+                target_df.df[min_col] = np.where(target_df.df[min_col].notnull(),
+                                                 target_df.df[min_col],
+                                                 minimum[col])
+                target_df.df[max_col] = np.where(target_df.df[max_col].notnull(),
+                                                 target_df.df[max_col],
+                                                 maximum[col])
         # update contribution
         self.tables[target_df_name] = target_df
         return target_df
