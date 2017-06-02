@@ -204,3 +204,8 @@ Location_*/*
 
 programs/flycheck_demag_gui.py
 .png
+
+pmag_gui_dist/*
+magic_gui_dist/*
+pmag_gui_build/*
+magic_gui_build/*
