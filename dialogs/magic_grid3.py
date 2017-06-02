@@ -585,8 +585,7 @@ class MyCustomRenderer(gridlib.PyGridCellRenderer):
         dc.SetBrush(wx.Brush(self.color, wx.BDIAGONAL_HATCH))
         # or do it like this for highlighting the cell:
         #dc.SetPen(wx.Pen(self.color, 5, wx.SOLID))
-        dc.DrawRectangleRect(rect)
-
+        dc.DrawRectangle(rect)
 
         dc.SetBackgroundMode(wx.TRANSPARENT)
         dc.SetFont(attr.GetFont())
@@ -640,7 +639,7 @@ class MyRowLabelRenderer(gridlabelrenderer.GridLabelRenderer):
         dc.SetBrush(wx.TRANSPARENT_BRUSH)
         dc.SetPen(wx.Pen('blue', 5, wx.SHORT_DASH))
         #dc.SetPen(wx.TRANSPARENT_PEN)
-        dc.DrawRectangleRect(rect)
+        dc.DrawRectangle(rect)
         hAlign, vAlign = grid.GetRowLabelAlignment()
         text = grid.GetRowLabelValue(row)
         self.DrawBorder(grid, dc, rect)
