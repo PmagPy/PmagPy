@@ -1175,7 +1175,7 @@ class MagicDataFrame(object):
                     return
             # get singular name and plural datatype
             name, self.dtype = self.get_singular_and_plural_dtype(dtype)
-            self.df = pd.read_table(magic_file, skiprows=[0])
+            self.df = pd.read_table(magic_file, skiprows=[0], low_memory=False)
             # drop all blank rows
             self.df = self.df.dropna(how='all', axis=0)
             #

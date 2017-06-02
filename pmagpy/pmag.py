@@ -479,6 +479,7 @@ def convert_and_combine_2_to_3(dtype, map_dict, input_dir=".", output_dir=".", d
         full_df = pd.concat([er_df, pmag_df])
         # sort the DataFrame so that all records from one item are together
         full_df.sort_index(inplace=True)
+
     # fix the column names to be 3.0
     full_df.rename(columns=map_dict, inplace=True)
     # create a MagicDataFrame object, providing the dataframe and the data type
@@ -1603,7 +1604,7 @@ def magic_read(infile, data=None, return_keys=False):
         if return_keys:
             return [], 'bad_file', []
         return [], 'bad_file'
-    d_line = lines[0][:-1].strip('\n')
+    d_line = lines[0][:-1].strip('\n').strip('\r')
     if not d_line:
         if return_keys:
             return [], 'empty_file', []
@@ -1626,10 +1627,11 @@ def magic_read(infile, data=None, return_keys=False):
             file_type = d_line.split()[2]
         if delim == 'tab':
             file_type = d_line.split('\t')[2]
+    line = lines[1].strip('\n').strip('\r')
     if delim == 'space':
-        line = lines[1][:-1].split()
+        line = line.split() #lines[1][:-1].split()
     if delim == 'tab':
-        line = lines[1][:-1].split('\t')
+        line = line.split('\t') #lines[1][:-1].split('\t')
     for key in line:
         magic_keys.append(key)
     lines = lines[2:]
@@ -1644,7 +1646,7 @@ def magic_read(infile, data=None, return_keys=False):
         if delim == 'tab':
             rec = line[:-1].split('\t')
         hold.append(rec)
-    line = lines[-1].replace('\n', '')
+    line = lines[-1].replace('\n', '').replace('\r', '')
     if delim == 'space':
         rec = line[:-1].split()
     if delim == 'tab':
@@ -1670,7 +1672,7 @@ def magic_read(infile, data=None, return_keys=False):
         # original code: for k in range(len(rec)):
         # channged to: for k in range(min(len(magic_keys),len(rec))):
         for k in range(min(len(magic_keys), len(rec))):
-            magic_record[magic_keys[k]] = rec[k].strip('\n')
+            magic_record[magic_keys[k]] = rec[k].strip('\n').strip('\r')
         magic_data.append(magic_record)
     magictype = file_type.lower().split("_")
     Types = ['er', 'magic', 'pmag', 'rmag']
@@ -1709,7 +1711,7 @@ def magic_read_dict(path, data=None, sort_by_this_name=None, return_keys=False):
         else:
             return {}, 'bad_file'
 
-    file_type = first_line.strip('\n').split(delim)[1]
+    file_type = first_line.strip('\n').strip('\r').split(delim)[1]
 
     item_type = file_type
     #item_type = file_type.split('_')[1][:-1]
@@ -1720,11 +1722,11 @@ def magic_read_dict(path, data=None, sort_by_this_name=None, return_keys=False):
     else:
         sort_by_this_name = item_type
     line = lines.pop(0)
-    header = line.strip('\n').split(delim)
+    header = line.strip('\n').strip('\r').split(delim)
     counter = 0
     for line in lines:
         tmp_data = {}
-        tmp_line = line.strip('\n').split(delim)
+        tmp_line = line.strip('\n').strip('\r').split(delim)
         for i in range(len(header)):
             if i < len(tmp_line):
                 tmp_data[header[i]] = tmp_line[i].strip()
