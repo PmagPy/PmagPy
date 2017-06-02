@@ -176,7 +176,7 @@ class combine_magic_dialog(wx.Frame):
 
 
         #---sizer 0 ----
-        self.bSizer0 = pw.combine_files(self, ".magic")
+        self.bSizer0 = pw.combine_files(self, ".magic", DM=3)
         #------------------
 
         self.okButton = wx.Button(self.panel, wx.ID_OK, "&OK")
@@ -278,7 +278,7 @@ class combine_everything_dialog(wx.Frame):
         for dia in possible_file_dias:
             for f in all_files:
                 if dia in f:
-                    bSizer = pw.combine_files(self, dia)
+                    bSizer = pw.combine_files(self, dia, DM=3)
                     self.file_dias.append(bSizer)
                     break
         if not self.file_dias:

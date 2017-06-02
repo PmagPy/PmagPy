@@ -569,11 +569,12 @@ class btn_panel(wx.BoxSizer):
 
 class combine_files(wx.BoxSizer):
 
-    def __init__(self, parent, text):
+    def __init__(self, parent, text, DM=2):
         super(combine_files, self).__init__(wx.VERTICAL)
         self.parent = parent
         self.WD = self.parent.WD
         self.text = text
+        self.DM = DM
 
         bSizer0a = wx.StaticBoxSizer(wx.StaticBox(self.parent.panel, wx.ID_ANY, ""), wx.HORIZONTAL)
         self.add_file_button = wx.Button(self.parent.panel, id=-1, label='add file', name='add')
@@ -623,6 +624,10 @@ class combine_files(wx.BoxSizer):
                 if self.text in F:
                     # prevents adding binary files, as well as misc saved stuff
                     if "#" not in F and "~" not in F and not F.endswith('.pyc'):
+                        # ignore er_* files and pmag_* files for DM 3
+                        if (self.DM == 3):
+                            if (F.startswith("er_")) or (F.startswith("pmag_")):
+                                continue
                         # prevent adding files that are already listed
                         if str(F) not in include_files:
                             include_files.append(str(F))
