@@ -305,7 +305,7 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
             larger_height = max([actual_size[1], min_size[1]])
             if larger_width > actual_size[0] or larger_height > actual_size[1]:
                 self.SetSize((larger_width, larger_height))
-#        self.Centre()
+        self.Centre()
 
     def toggle_help(self, event, mode=None):
         """
