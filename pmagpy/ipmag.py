@@ -3083,7 +3083,7 @@ def upload_magic(concat=0, dir_path='.', data_model=None):
               'specimen_gmax', 'specimen_frac', 'site_vadm', 'site_lon', 'site_vdm', 'site_lat',
               'measurement_chi', 'specimen_k_prime', 'specimen_k_prime_sse', 'external_database_names',
               'external_database_ids', 'Further Notes', 'Typology', 'Notes (Year/Area/Locus/Level)',
-              'Site', 'Object Number']
+              'Site', 'Object Number', "level"]
     print("-I- Removing: ", RmKeys)
     CheckDec = ['_dec', '_lon', '_azimuth', 'dip_direction']
     CheckSign = ['specimen_b_beta']
@@ -3331,7 +3331,8 @@ def upload_magic3(concat=0, dir_path='.', dmodel=None, vocab="", contribution=No
     #print("-I- Removing: ", RmKeys)
     extra_RmKeys = {'measurements': ['sample', 'site', 'location'],
                     'specimens': ['site', 'location', 'age'],
-                    'samples': ['location', 'age']}
+                    'samples': ['location', 'age'],
+                    'ages': ['level']}
 
     failing = []
     all_failing_items = {}
