@@ -366,9 +366,13 @@ class MainFrame(wx.Frame):
             self.highlight_problems(has_problems)
         if not has_problems:
             self.validation_mode = set()
-            self.message.SetLabel('')
+            self.message.SetLabel('Validated!')
             self.bSizer_msg.ShowItems(False)
             self.hbox.Fit(self)
+            # do alert that your file passed
+            dlg = wx.MessageDialog(self,caption="Message:", message="Your contribution has passed validations!\nGo to https://www.earthref.org/MagIC to upload:\n{}".format(res), style=wx.OK)
+            dlg.ShowModal()
+
         del wait
 
     def highlight_problems(self, has_problems):
