@@ -1083,6 +1083,8 @@ class MagicDataFrame(object):
         # create MagicDataFrame using a DataFrame and a dtype:
         if isinstance(df, pd.DataFrame):
             self.df = df
+            #if dtype == 'ages':
+            #    pass
             if dtype:
                 name, self.dtype = self.get_singular_and_plural_dtype(dtype)
                 if name in self.df.columns:

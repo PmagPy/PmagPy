@@ -459,6 +459,9 @@ def convert_and_combine_2_to_3(dtype, map_dict, input_dir=".", output_dir=".", d
         er_df = pd.DataFrame(er_data)
         if dtype == 'ages':
             pass
+            # remove records with blank ages
+            #er_data = get_dictitem(er_data, 'age', '', "F")
+            #er_df = pd.DataFrame(er_data)
         else:
             er_df.index = er_df['er_{}_name'.format(dtype[:-1])]
     else:
