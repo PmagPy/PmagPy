@@ -752,7 +752,7 @@ def main():
     if 'darwin' in sys.platform:
         app = wx.App(redirect=False)
     else:
-        app = wx.App(redirect=False)
+        app = wx.App(redirect=True)
     app.frame = MagMainFrame()
     working_dir = pmag.get_named_arg_from_sys('-WD', '.')
 
