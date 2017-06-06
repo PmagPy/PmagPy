@@ -3,9 +3,11 @@ from __future__ import division
 from __future__ import print_function
 from builtins import range
 from past.utils import old_div
+import os
 import sys
 import numpy
 import pmagpy.pmag as pmag
+from pmagpy.mapping import map_magic
 
 
 def main():
@@ -21,17 +23,19 @@ def main():
           do the anisotropy of ARMs is to use 9,12 or 15 measurements in
           the Hext rotational scheme.
 
-    SYNTAX 
+    SYNTAX
         atrm_magic.py [-h][command line options]
 
     OPTIONS
         -h prints help message and quits
         -usr USER:   identify user, default is ""
         -f FILE: specify input file, default is atrm_measurements.txt
-        -Fa FILE: specify anisotropy output file, default is trm_anisotropy.txt
-        -Fr FILE: specify results output file, default is atrm_results.txt
+        -Fa FILE: specify anisotropy output file, default is trm_anisotropy.txt (MagIC 2.5 only)
+        -Fr FILE: specify results output file, default is atrm_results.txt (MagIC 2.5 only)
+        -Fsi FILE: specify output file, default is specimens.txt (MagIC 3 only)
+        -DM DATA_MODEL: specify MagIC 2 or MagIC 3, default is 3
 
-    INPUT  
+    INPUT
         Input for the present program is a TRM acquisition data with an optional baseline.
       The order of the measurements is:
     Decs=[0,90,0,180,270,0,0,90,0]
@@ -67,6 +71,10 @@ def main():
     if "-Fr" in args:
         ind = args.index("-Fr")
         rmag_res = args[ind + 1]
+    data_model_num = pmag.get_named_arg_from_sys("-DM", 3)
+    spec_file = pmag.get_named_arg_from_sys("-Fsi", "specimens.txt")
+    spec_file = os.path.join(dir_path, spec_file)
+
     meas_file = dir_path + '/' + meas_file
     rmag_anis = dir_path + '/' + rmag_anis
     rmag_res = dir_path + '/' + rmag_res
@@ -93,6 +101,7 @@ def main():
     #
     specimen, npos = 0, 6
     RmagSpecRecs, RmagResRecs = [], []
+    SpecRecs, SpecRecs3 = [], []
     while specimen < len(sids):
         nmeas = 0
         s = sids[specimen]
@@ -347,10 +356,29 @@ def main():
             RmagSpecRecs.append(RmagSpecRec)
             RmagResRecs.append(RmagResRec)
             specimen += 1
-    pmag.magic_write(rmag_anis, RmagSpecRecs, 'rmag_anisotropy')
-    print("specimen tensor elements stored in ", rmag_anis)
-    pmag.magic_write(rmag_res, RmagResRecs, 'rmag_results')
-    print("specimen statistics and eigenparameters stored in ", rmag_res)
+        if data_model_num == 3:
+            SpecRec = RmagResRec.copy()
+            SpecRec.update(RmagSpecRec)
+            SpecRecs.append(SpecRec)
+
+    # finished iterating through specimens,
+    # now we need to write out the data to files
+    if data_model_num == 3:
+        # translate records
+        for rec in SpecRecs:
+            rec3 = map_magic.convert_aniso('magic3', rec)
+            SpecRecs3.append(rec3)
+
+        # write output to 3.0 specimens file
+        pmag.magic_write(spec_file, SpecRecs3, 'specimens')
+        print("specimen data stored in {}".format(spec_file))
+
+    else:
+        # write output to 2.5 rmag_ files
+        pmag.magic_write(rmag_anis, RmagSpecRecs, 'rmag_anisotropy')
+        print("specimen tensor elements stored in ", rmag_anis)
+        pmag.magic_write(rmag_res, RmagResRecs, 'rmag_results')
+        print("specimen statistics and eigenparameters stored in ", rmag_res)
 
 
 if __name__ == "__main__":
