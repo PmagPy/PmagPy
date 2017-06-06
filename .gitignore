@@ -115,6 +115,7 @@ unittests/examples/my_project/thellier_interpreter/thellier_interpreter_STDEV-OP
 notes_pmagpy/
 notes_pmagpy/*
 
+data_files/aarm_magic/specimens.txt
 data_files/aarm_results.txt
 data_files/aniso_magic/rmag_results.txt
 data_files/arm_anisotropy.txt

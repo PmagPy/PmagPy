@@ -4,8 +4,10 @@ from __future__ import print_function
 from builtins import range
 from past.utils import old_div
 import sys
+import os
 import numpy
 import pmagpy.pmag as pmag
+from pmagpy.mapping import map_magic
 
 
 def main():
@@ -28,10 +30,12 @@ def main():
         -h prints help message and quits
         -usr USER:   identify user, default is ""
         -f FILE: specify input file, default is aarm_measurements.txt
-        -crd [s,g,t] specify coordinate system, requires er_samples.txt file
-        -fsa  FILE: specify er_samples.txt file, default is er_samples.txt
-        -Fa FILE: specify anisotropy output file, default is arm_anisotropy.txt
-        -Fr FILE: specify results output file, default is aarm_results.txt
+        -crd [s,g,t] specify coordinate system, requires samples file
+        -fsa  FILE: specify er_samples.txt file, default is er_samples.txt (2.5) or samples.txt (3.0)
+        -Fa FILE: specify anisotropy output file, default is arm_anisotropy.txt (MagIC 2.5 only)
+        -Fr FILE: specify results output file, default is aarm_results.txt (MagIC 2.5 only)
+        -Fsi FILE: specify output file, default is specimens.txt (MagIC 3 only)
+        -DM DATA_MODEL: specify MagIC 2 or MagIC 3, default is 3
 
     INPUT
         Input for the present program is a series of baseline, ARM pairs.
@@ -45,21 +49,28 @@ def main():
     """
     # initialize some parameters
     args = sys.argv
+
+    if "-h" in args:
+        print(main.__doc__)
+        sys.exit()
+
     user = ""
     meas_file = "aarm_measurements.txt"
-    samp_file = "er_samples.txt"
     rmag_anis = "arm_anisotropy.txt"
     rmag_res = "aarm_results.txt"
     dir_path = '.'
     #
     # get name of file from command line
     #
+    data_model_num = int(pmag.get_named_arg_from_sys("-DM", 3))
+    spec_file = pmag.get_named_arg_from_sys("-Fsi", "specimens.txt")
+    if data_model_num == 3:
+        samp_file = pmag.get_named_arg_from_sys("-fsa", "samples.txt")
+    else:
+        samp_file = pmag.get_named_arg_from_sys("-fsa", "er_samples.txt")
     if '-WD' in args:
         ind = args.index('-WD')
         dir_path = args[ind + 1]
-    if "-h" in args:
-        print(main.__doc__)
-        sys.exit()
     if "-usr" in args:
         ind = args.index("-usr")
         user = sys.argv[ind + 1]
@@ -76,9 +87,6 @@ def main():
             coord = '0'
         if coord == 't':
             coord = '100'
-        if "-fsa" in args:
-            ind = args.index("-fsa")
-            samp_file = sys.argv[ind + 1]
     if "-Fa" in args:
         ind = args.index("-Fa")
         rmag_anis = args[ind + 1]
@@ -89,21 +97,48 @@ def main():
     samp_file = dir_path + '/' + samp_file
     rmag_anis = dir_path + '/' + rmag_anis
     rmag_res = dir_path + '/' + rmag_res
+    spec_file = os.path.join(dir_path, spec_file)
     # read in data
-    meas_data, file_type = pmag.magic_read(meas_file)
+        # read in data
+    if data_model_num == 3:
+        meas_data = []
+        meas_data3, file_type = pmag.magic_read(meas_file)
+        if file_type != 'measurements':
+            print(file_type, "This is not a valid MagIC 3.0. measurements file ")
+            sys.exit()
+        # convert meas_data to 2.5
+        for rec in meas_data3:
+            meas_map = map_magic.meas_magic3_2_magic2_map
+            meas_data.append(map_magic.mapping(rec, meas_map))
+    else:
+        meas_data, file_type = pmag.magic_read(meas_file)
+        if file_type != 'magic_measurements':
+            print(file_type, "This is not a valid MagIC 2.5 magic_measurements file ")
+            sys.exit()
+    # fish out relevant data
     meas_data = pmag.get_dictitem(
         meas_data, 'magic_method_codes', 'LP-AN-ARM', 'has')
-    if file_type != 'magic_measurements':
-        print(file_type)
-        print(file_type, "This is not a valid magic_measurements file ")
-        sys.exit()
+
+    # figure out how to do this with 3 vs. 2.5
     if coord != '-1':  # need to read in sample data
-        samp_data, file_type = pmag.magic_read(samp_file)
-        if file_type != 'er_samples':
-            print(file_type)
-            print(file_type, "This is not a valid er_samples file ")
-            print("Only specimen coordinates will be calculated")
-            coord = '-1'
+        if data_model_num == 3:
+            samp_data3, file_type = pmag.magic_read(samp_file)
+            if file_type != 'samples':
+                print(file_type, "This is not a valid er_samples file ")
+                print("Only specimen coordinates will be calculated")
+                coord = '-1'
+            else:
+                # translate to 2
+                samp_data = []
+                samp_map = map_magic.samp_magic3_2_magic2_map
+                for rec in samp_data3:
+                    samp_data.append(map_magic.mapping(rec, samp_map))
+        else:
+            samp_data, file_type = pmag.magic_read(samp_file)
+            if file_type != 'er_samples':
+                print(file_type, "This is not a valid er_samples file ")
+                print("Only specimen coordinates will be calculated")
+                coord = '-1'
     #
     # sort the specimen names
     #
@@ -121,6 +156,7 @@ def main():
     #
     specimen = 0
     RmagSpecRecs, RmagResRecs = [], []
+    SpecRecs, SpecRecs3 = [], []
     while specimen < len(sids):
         s = sids[specimen]
         data = []
@@ -401,18 +437,35 @@ def main():
             specimen += 1
             RmagSpecRecs.append(RmagSpecRec)
             RmagResRecs.append(RmagResRec)
+            if data_model_num == 3:
+                SpecRec = RmagResRec.copy()
+                SpecRec.update(RmagSpecRec)
+                SpecRecs.append(SpecRec)
+
         else:
             print('skipping specimen ', s,
                   ' only 9 positions supported', '; this has ', npos)
             specimen += 1
-    if rmag_anis == "":
-        rmag_anis = "rmag_anisotropy.txt"
-    pmag.magic_write(rmag_anis, RmagSpecRecs, 'rmag_anisotropy')
-    print("specimen tensor elements stored in ", rmag_anis)
-    if rmag_res == "":
-        rmag_res = "rmag_results.txt"
-    pmag.magic_write(rmag_res, RmagResRecs, 'rmag_results')
-    print("specimen statistics and eigenparameters stored in ", rmag_res)
+
+    if data_model_num == 3:
+        # translate records
+        for rec in SpecRecs:
+            rec3 = map_magic.convert_aniso('magic3', rec)
+            SpecRecs3.append(rec3)
+
+        # write output to 3.0 specimens file
+        pmag.magic_write(spec_file, SpecRecs3, 'specimens')
+        print("specimen data stored in {}".format(spec_file))
+
+    else:
+        if rmag_anis == "":
+            rmag_anis = "rmag_anisotropy.txt"
+        pmag.magic_write(rmag_anis, RmagSpecRecs, 'rmag_anisotropy')
+        print("specimen tensor elements stored in ", rmag_anis)
+        if rmag_res == "":
+            rmag_res = "rmag_results.txt"
+        pmag.magic_write(rmag_res, RmagResRecs, 'rmag_results')
+        print("specimen statistics and eigenparameters stored in ", rmag_res)
 
 
 if __name__ == "__main__":
