@@ -71,21 +71,33 @@ def main():
     if "-Fr" in args:
         ind = args.index("-Fr")
         rmag_res = args[ind + 1]
-    data_model_num = pmag.get_named_arg_from_sys("-DM", 3)
+    data_model_num = int(pmag.get_named_arg_from_sys("-DM", 3))
     spec_file = pmag.get_named_arg_from_sys("-Fsi", "specimens.txt")
     spec_file = os.path.join(dir_path, spec_file)
 
     meas_file = dir_path + '/' + meas_file
     rmag_anis = dir_path + '/' + rmag_anis
     rmag_res = dir_path + '/' + rmag_res
+
     # read in data
-    meas_data, file_type = pmag.magic_read(meas_file)
+    if data_model_num == 3:
+        meas_data = []
+        meas_data3, file_type = pmag.magic_read(meas_file)
+        if file_type != 'measurements':
+            print(file_type, "This is not a valid measurements file ")
+            sys.exit()
+        # convert meas_data to 2.5
+        for rec in meas_data3:
+            meas_map = map_magic.meas_magic3_2_magic2_map
+            meas_data.append(map_magic.mapping(rec, meas_map))
+    else:
+        meas_data, file_type = pmag.magic_read(meas_file)
+        if file_type != 'magic_measurements':
+            print(file_type, "This is not a valid magic_measurements file ")
+            sys.exit()
+
     meas_data = pmag.get_dictitem(
         meas_data, 'magic_method_codes', 'LP-AN-TRM', 'has')
-    if file_type != 'magic_measurements':
-        print(file_type)
-        print(file_type, "This is not a valid magic_measurements file ")
-        sys.exit()
     #
     #
     # get sorted list of unique specimen names
