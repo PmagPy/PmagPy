@@ -160,7 +160,10 @@ def checkMin(row, col_name, arg, *args):
     try:
         arg_val = float(arg)
     except ValueError:
-        arg_val = row[arg]
+        if arg in row.index:
+            arg_val = row[arg]
+        else:
+            return None
     try:
         if float(cell_value) >= float(arg_val):
             return None

@@ -624,7 +624,7 @@ class MyColLabelRenderer(gridlabelrenderer.GridLabelRenderer):
         dc.SetBrush(wx.TRANSPARENT_BRUSH)
         #dc.SetPen(wx.TRANSPARENT_PEN)
         dc.SetPen(wx.Pen('blue', 5, wx.DOT_DASH))
-        dc.DrawRectangleRect(rect)
+        dc.DrawRectangle(rect)
         hAlign, vAlign = grid.GetColLabelAlignment()
         text = grid.GetColLabelValue(col)
         self.DrawBorder(grid, dc, rect)
