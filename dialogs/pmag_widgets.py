@@ -972,6 +972,44 @@ def on_add_file_button(SELF, text):
     SELF.parent.Parent.Raise()
 
 
+
+class UpgradeDialog(wx.Dialog):
+    """"""
+
+    #----------------------------------------------------------------------
+    def __init__(self, parent):
+        """
+        Dialog for MagIC 2 --> MagIC 3 upgrade warning
+        """
+        wx.Dialog.__init__(self, parent, title="Warning")
+
+        msg = """This tool is meant for relatively simple upgrades
+(for instance, a measurement file, a sample file, and a criteria file).
+If you have a more complex contribution to upgrade, and you want maximum accuracy,
+use the upgrade tool at https://www2.earthref.org/MagIC/upgrade.
+
+What do you want to do?"""
+
+        txt = wx.StaticText(self, label=msg)
+        txt_sizer = wx.StaticBoxSizer(wx.VERTICAL, self, "Warning")
+        txt_sizer.Add(txt, flag=wx.ALL|wx.ALIGN_CENTER, border=5)
+
+        btn_boxSizer = wx.BoxSizer(wx.HORIZONTAL)
+        btnOk = wx.Button(self, wx.ID_OK, label="Continue with local upgrade")
+        btnCancel = wx.Button(self, wx.ID_CANCEL, label="Open earthref upgrade tool")
+
+        btnSizer = wx.StdDialogButtonSizer()
+        btnSizer.AddButton(btnOk)
+        btnSizer.AddButton(btnCancel)
+        btnSizer.Realize()
+
+        main_boxSizer = wx.BoxSizer(wx.VERTICAL)
+        main_boxSizer.Add(txt_sizer, flag=wx.ALL|wx.ALIGN_CENTER, border=5)
+        main_boxSizer.Add(btnSizer)
+        self.SetSizer(main_boxSizer)
+        self.Fit()
+
+
 def simple_warning(text=None):
     if not text:
         text = "Something went wrong\nSee warnings in Terminal/Command Prompt and try again\nMake sure you have filled out all required fields"

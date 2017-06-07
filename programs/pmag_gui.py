@@ -13,6 +13,8 @@ import wx.lib.buttons as buttons
 import wx.lib.newevent as newevent
 import os
 import sys
+import webbrowser
+
 from pmagpy import pmag
 from pmagpy import ipmag
 from pmagpy import builder2 as builder
@@ -31,7 +33,6 @@ PMAGPY_DIRECTORY = find_pmag_dir.get_pmag_dir()
 
 from programs import demag_gui
 from programs import thellier_gui
-#from programs import thellier_gui3
 
 
 class MagMainFrame(wx.Frame):
@@ -543,6 +544,18 @@ class MagMainFrame(wx.Frame):
         self.Hide()
 
     def on_convert_3(self, event):
+        dia = pw.UpgradeDialog(None)
+        dia.Center()
+        res = dia.ShowModal()
+        if res == wx.ID_CANCEL:
+            webbrowser.open("https://www2.earthref.org/MagIC/upgrade", new=2)
+            return
+        ## more nicely styled way, but doesn't link to earthref
+        #msg = "This tool is meant for relatively simple upgrades (for instance, a measurement file, a sample file, and a criteria file).\nIf you have a more complex contribution to upgrade, and you want maximum accuracy, use the upgrade tool at https://www2.earthref.org/MagIC/upgrade.\n\nDo you want to continue?"
+        #result = pw.warning_with_override(msg)
+        #if result == wx.ID_NO:
+            #webbrowser.open("https://www2.earthref.org/MagIC/upgrade", new=2)
+            #return
         # turn files from 2.5 --> 3.0 (rough translation)
         meas, upgraded, no_upgrade = pmag.convert_directory_2_to_3('magic_measurements.txt',
                                                                    input_dir=self.WD, output_dir=self.WD,
