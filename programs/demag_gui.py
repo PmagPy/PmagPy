@@ -77,6 +77,7 @@ from scipy.signal import find_peaks_cwt
 from webbrowser import open as webopen
 from pkg_resources import resource_filename
 from dialogs.demag_interpretation_editor import InterpretationEditorFrame
+from dialogs import pmag_widgets as pw
 from pmagpy.demag_gui_utilities import *
 from pmagpy.Fit import *
 import dialogs.demag_dialogs as demag_dialogs
@@ -3374,6 +3375,8 @@ class Demag_GUI(wx.Frame):
                     pruned = meas_data3_0[meas_data3_0[col_name].apply(nb.not_null)]
                     num_missing = len(meas_data3_0) - len(pruned)
                     if num_missing:
+                        msg = "{} measurements cannot be associated with a {} and will be excluded\nTry using Pmag GUI (step 3) to make sure you have provided the full chain from specimen to location.".format(num_missing, col_name)
+                        pw.simple_warning(msg)
                         print("-W- {} measurements are missing {} data and will be excluded".format(num_missing, col_name))
                         meas_data3_0 = pruned
             Mkeys = ['magn_moment', 'magn_volume', 'magn_mass']

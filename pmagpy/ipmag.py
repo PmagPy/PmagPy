@@ -5378,7 +5378,8 @@ def kly4s_magic(infile, specnum=0, locname="unknown", inst='SIO-KLY4S',
 
     try:
         file_input = open(amsfile, 'r')
-    except:
+    except Exception as ex:
+        print('ex', ex, type(ex))
         print('Error opening file: ', amsfile)
         return False, 'Error opening file: {}'.format(amsfile)
 
