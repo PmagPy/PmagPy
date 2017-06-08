@@ -78,10 +78,10 @@ def main():
                                                    ['log', False,  0],
                                                    ['ds', False, 'sample_core_depth'],
                                                    ['sym', False, 'bo 5'], ['ID', False, '.'],
-                                                   ['sav', False, False]])
+                                                   ['sav', False, False], ['DM', False, 3]])
 
     checked_args = extractor.extract_and_check_args(args, dataframe)
-    meas_file, sum_file, wig_file, samp_file, age_file, spc_file, res_file, fmt, meth, norm, depth, timescale, dir_path, pltLine, pltSus, pltDec, pltInc, pltMag, logit, depth_scale, symbol, input_dir, save = extractor.get_vars(['f', 'fsum', 'fwig', 'fsa', 'fa', 'fsp', 'fres', 'fmt',  'LP', 'n', 'd', 'ts', 'WD', 'L', 'S', 'D', 'I', 'M', 'log', 'ds', 'sym', 'ID', 'sav'], checked_args)
+    meas_file, sum_file, wig_file, samp_file, age_file, spc_file, res_file, fmt, meth, norm, depth, timescale, dir_path, pltLine, pltSus, pltDec, pltInc, pltMag, logit, depth_scale, symbol, input_dir, save, data_model_num = extractor.get_vars(['f', 'fsum', 'fwig', 'fsa', 'fa', 'fsp', 'fres', 'fmt',  'LP', 'n', 'd', 'ts', 'WD', 'L', 'S', 'D', 'I', 'M', 'log', 'ds', 'sym', 'ID', 'sav', 'DM'], checked_args)
 
     # format some variables
     # format symbol/size
@@ -158,11 +158,13 @@ def main():
     #['f', 'fsum', 'fwig', 'fsa', 'fa', 'fsp', 'fres', 'fmt',  'LP', 'n', 'd', 'ts', 'WD', 'L', 'S', 'D', 'I', 'M', 'log', 'ds', 'sym' ]
     #meas_file, sum_file, wig_file, samp_file, age_file, spc_file, res_file, fmt, meth, norm, depth, timescale, dir_path, pltLine, pltSus, pltDec, pltInc, pltMag, logit, depth_scale, symbol
 
-    fig, figname = ipmag.core_depthplot(input_dir, meas_file, spc_file, samp_file, age_file, sum_file, wt_file, depth_scale, dmin, dmax, sym, size, spc_sym, spc_size, method, step, fmt, pltDec, pltInc, pltMag, pltLine, pltSus, logit, pltTime, timescale, amin, amax, norm)
+    fig, figname = ipmag.core_depthplot(input_dir, meas_file, spc_file, samp_file, age_file, sum_file, wt_file, depth_scale, dmin, dmax, sym, size, spc_sym, spc_size, method, step, fmt, pltDec, pltInc, pltMag, pltLine, pltSus, logit, pltTime, timescale, amin, amax, norm, data_model_num)
+
     if not pmagplotlib.isServer:
       figname = figname.replace(':', '_')
 
     if fig and save:
+        print('-I- Created plot: {}'.format(figname))
         plt.savefig(figname)
         return
 

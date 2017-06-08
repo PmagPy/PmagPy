@@ -2345,18 +2345,19 @@ def core_depthplot(input_dir_path='.', meas_file='magic_measurements.txt', spc_f
                    size=5, spc_sym='ro', spc_size=5, meth='', step=0, fmt='svg',
                    pltDec=True, pltInc=True, pltMag=True, pltLine=True, pltSus=True,
                    logit=False, pltTime=False, timescale=None, amin=-1, amax=-1,
-                   norm=False):
+                   norm=False, data_model_num=3):
     """
     depth scale can be 'sample_core_depth' or 'sample_composite_depth'
     if age file is provided, depth_scale will be set to 'age' by default
     """
-    # print 'input_dir_path', input_dir_path, 'meas_file', meas_file, 'spc_file', spc_file
-    # print 'samp_file', samp_file, 'age_file', age_file, 'depth_scale', depth_scale
-    # print 'dmin', dmin, 'dmax', dmax, 'sym', sym, 'size', size, 'spc_sym', spc_sym, 'spc_size', spc_size,
-    # print 'meth', meth, 'step', step, 'fmt', fmt, 'pltDec', pltDec, 'pltInc', pltInc, 'pltMag', pltMag,
-    # print 'pltLine', pltLine, 'pltSus', pltSus, 'logit', logit, 'timescale', timescale, 'amin', amin, 'amax', amax
+    #print('input_dir_path', input_dir_path, 'meas_file', meas_file, 'spc_file', spc_file)
+    #print('samp_file', samp_file, 'age_file', age_file, 'depth_scale', depth_scale)
+    #print('dmin', dmin, 'dmax', dmax, 'sym', sym, 'size', size, 'spc_sym', spc_sym, 'spc_size', spc_size)
+    #print('meth', meth, 'step', step, 'fmt', fmt, 'pltDec', pltDec, 'pltInc', pltInc, 'pltMag', pltMag)
+    #print('pltLine', pltLine, 'pltSus', pltSus, 'logit', logit, 'timescale', timescale, 'amin', amin, 'amax', amax)
     # print 'pltTime', pltTime
     # print 'norm', norm
+    data_model_num = int(data_model_num)
     intlist = ['measurement_magnitude', 'measurement_magn_moment',
                'measurement_magn_volume', 'measurement_magn_mass']
     width = 10
@@ -2442,29 +2443,80 @@ def core_depthplot(input_dir_path='.', meas_file='magic_measurements.txt', spc_f
 
     #
     #
-    # get data read in
+    # read in 3.0 data and translate to 2.5
+    if data_model_num == 3:
+        meas_file = os.path.join(input_dir_path, meas_file)
+        spc_file = os.path.join(input_dir_path, spc_file)
+        if age_file == "":
+            samp_file = os.path.join(input_dir_path, samp_file)
+            Samps3, file_type = pmag.magic_read(samp_file)
+            #translate samp records to MagIC 2.5
+            Samps = []
+            for samp in Samps3:
+                Samps.append(map_magic.mapping(samp, map_magic.samp_magic3_2_magic2_map))
 
-    meas_file = os.path.join(input_dir_path, meas_file)
-    spc_file = os.path.join(input_dir_path, spc_file)
-    if age_file == "":
-        samp_file = os.path.join(input_dir_path, samp_file)
-        Samps, file_type = pmag.magic_read(samp_file)
+        else:
+            depth_scale = 'age'
+            age_file = os.path.join(input_dir_path, age_file)
+            Samps3, file_type = pmag.magic_read(age_file)
+            #translate samp records to MagIC 2.5
+            Samps = []
+            for samp in Samps3:
+                Samps.append(map_magic.mapping(samp, map_magic.samp_magic3_2_magic2_map))
+            age_unit = ""
+        if spc_file:
+            Specs3, file_type = pmag.magic_read(spc_file)
+            #translate specimen records to MagIC 2.5
+            Specs = []
+            for spec in Specs3:
+                Specs.append(map_magic.mapping(spec, map_magic.spec_magic3_2_magic2_map))
+
+        if res_file:
+            warn = '-W- result file option is not currently available for MagIC data model 3'
+            print(warn)
+            return False, warn
+            #Results, file_type = pmag.magic_read(res_file)
+        if norm:
+            #warn = '-W- norm option is not currently available for MagIC data model 3'
+            #print(warn)
+            #return False, warn
+            Specs3, file_type = pmag.magic_read(wt_file)
+            # translate specimen records to 2.5
+            ErSpecs = []
+            for spec in Samps3:
+                ErSpecs.append(map_magic.mapping(spec, samp_magic3_2_magic2_map))
+
+            print(len(ErSpecs), ' specimens read in from ', wt_file)
+
+        if not os.path.isfile(spc_file):
+            if not os.path.isfile(meas_file):
+                return False, "You must provide either a magic_measurements file or a pmag_specimens file"
+
+    # read in 2.5 data
+    elif data_model_num == 2:
+        meas_file = os.path.join(input_dir_path, meas_file)
+        spc_file = os.path.join(input_dir_path, spc_file)
+        if age_file == "":
+            samp_file = os.path.join(input_dir_path, samp_file)
+            Samps, file_type = pmag.magic_read(samp_file)
+        else:
+            depth_scale = 'age'
+            age_file = os.path.join(input_dir_path, age_file)
+            Samps, file_type = pmag.magic_read(age_file)
+            age_unit = ""
+        if spc_file:
+            Specs, file_type = pmag.magic_read(spc_file)
+        if res_file:
+            Results, file_type = pmag.magic_read(res_file)
+        if norm:
+            ErSpecs, file_type = pmag.magic_read(wt_file)
+            print(len(ErSpecs), ' specimens read in from ', wt_file)
+
+        if not os.path.isfile(spc_file):
+            if not os.path.isfile(meas_file):
+                return False, "You must provide either a magic_measurements file or a pmag_specimens file"
     else:
-        depth_scale = 'age'
-        age_file = os.path.join(input_dir_path, age_file)
-        Samps, file_type = pmag.magic_read(age_file)
-        age_unit = ""
-    if spc_file:
-        Specs, file_type = pmag.magic_read(spc_file)
-    if res_file:
-        Results, file_type = pmag.magic_read(res_file)
-    if norm:
-        ErSpecs, file_type = pmag.magic_read(wt_file)
-        print(len(ErSpecs), ' specimens read in from ', wt_file)
-
-    if not os.path.isfile(spc_file):
-        if not os.path.isfile(meas_file):
-            return False, "You must provide either a magic_measurements file or a pmag_specimens file"
+        return False, "Invalid data model number: {}".format(str(data_model_num))
 
     Cores = []
     core_depth_key = "Top depth cored CSF (m)"
@@ -2514,10 +2566,23 @@ def core_depthplot(input_dir_path='.', meas_file='magic_measurements.txt', spc_f
     SSucs = []
     samples = []
     methods, steps, m2 = [], [], []
+
     if pltSus and os.path.isfile(meas_file):  # plot the bulk measurement data
-        Meas, file_type = pmag.magic_read(meas_file)
+        if data_model_num == 3:
+            Meas3, file_type = pmag.magic_read(meas_file)
+            #translate meas records to MagIC 2.5
+            Meas = []
+            for meas in Meas3:
+                Meas.append(map_magic.mapping(meas, map_magic.meas_magic3_2_magic2_map))
+            # has measurement_magn_mass ....
+
+        elif data_model_num == 2:
+            Meas, file_type = pmag.magic_read(meas_file)
+
         meas_key = 'measurement_magn_moment'
+        #
         print(len(Meas), ' measurements read in from ', meas_file)
+        #
         for m in intlist:  # find the intensity key with data
             # get all non-blank data for this specimen
             meas_data = pmag.get_dictitem(Meas, m, '', 'F')
