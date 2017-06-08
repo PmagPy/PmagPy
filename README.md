@@ -64,8 +64,7 @@ To get the full use of PmagPy functionality, you will first have to have a Pytho
 - To uninstall, use the commands: ```pip uninstall pmagpy``` and ```pip uninstall pmagpy-cli```
 - If you run into trouble, use pip to uninstall both pmagpy and pmagpy-cli, then try again to install first pmagpy and then pmagpy-cli
 
-If you want access to the master branch rather than the latest release you can:
-- either clone the repository or download the latest release and then add the directory of the main repository folder (and the program directory for access to the command line programs) to their path. On a Mac or other Unix machine, this can be done by adding these lines to the bash_profile (edited as necessary for where the PmagPy directory is on your local machine): ```export PATH=~/PmagPy:./:$PATH```; ```export PATH=~/PmagPy/programs:./:$PATH```
+If you want access to the master branch rather than the latest release, see the [developer install instructions](https://earthref.org/PmagPy/cookbook/#developer_install).
 
 - Alternatively if you want simply to install the latest under development version without messing with environment variables you can download or clone the repository and run `python setup.py install` and it will use setup tools to install PmagPy somewhere where it is accessible to python and in your path. This, however, does not update your in path version of the library when you update using `git pull origin master` but rather you must update using setup tools manually.
 
