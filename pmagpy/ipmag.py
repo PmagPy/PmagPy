@@ -2445,10 +2445,13 @@ def core_depthplot(input_dir_path='.', meas_file='magic_measurements.txt', spc_f
     #
     # read in 3.0 data and translate to 2.5
     if data_model_num == 3:
-        meas_file = os.path.join(input_dir_path, meas_file)
-        spc_file = os.path.join(input_dir_path, spc_file)
+        if meas_file:
+            meas_file = os.path.join(input_dir_path, meas_file)
+        if spc_file:
+            spc_file = os.path.join(input_dir_path, spc_file)
         if age_file == "":
-            samp_file = os.path.join(input_dir_path, samp_file)
+            if samp_file:
+                samp_file = os.path.join(input_dir_path, samp_file)
             Samps3, file_type = pmag.magic_read(samp_file)
             #translate samp records to MagIC 2.5
             Samps = []
@@ -2457,7 +2460,8 @@ def core_depthplot(input_dir_path='.', meas_file='magic_measurements.txt', spc_f
 
         else:
             depth_scale = 'age'
-            age_file = os.path.join(input_dir_path, age_file)
+            if age_file:
+                age_file = os.path.join(input_dir_path, age_file)
             Samps3, file_type = pmag.magic_read(age_file)
             #translate samp records to MagIC 2.5
             Samps = []
@@ -2494,14 +2498,18 @@ def core_depthplot(input_dir_path='.', meas_file='magic_measurements.txt', spc_f
 
     # read in 2.5 data
     elif data_model_num == 2:
-        meas_file = os.path.join(input_dir_path, meas_file)
-        spc_file = os.path.join(input_dir_path, spc_file)
+        if meas_file:
+            meas_file = os.path.join(input_dir_path, meas_file)
+        if spc_file:
+            spc_file = os.path.join(input_dir_path, spc_file)
         if age_file == "":
-            samp_file = os.path.join(input_dir_path, samp_file)
+            if samp_file:
+                samp_file = os.path.join(input_dir_path, samp_file)
             Samps, file_type = pmag.magic_read(samp_file)
         else:
             depth_scale = 'age'
-            age_file = os.path.join(input_dir_path, age_file)
+            if age_file:
+                age_file = os.path.join(input_dir_path, age_file)
             Samps, file_type = pmag.magic_read(age_file)
             age_unit = ""
         if spc_file:

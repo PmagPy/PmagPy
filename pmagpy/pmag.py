@@ -1600,8 +1600,12 @@ def magic_read(infile, data=None, return_keys=False):
     hold, magic_data, magic_record, magic_keys = [], [], {}, []
     if data:
         lines = list(data)
+    elif (not data) and (not infile):
+        if return_keys:
+            return [], 'empty_file', []
+        return [], 'empty_file'
     else:
-        # use custom pmag open_file
+        # use custom pmagpy open_file
         lines = open_file(infile)
     if not lines:
         if return_keys:
