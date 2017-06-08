@@ -171,15 +171,17 @@ Making a new release has several steps:
 
     + These are the steps to make a pip release for pmagpy and pmagpy-cli.
 
-    + First, increment the version number in setup.py or command\_line\_setup.py.  PYPI will reject a duplicate version number I forget this step.
+    + This sequence will work for either Python 3 or Python 2.  To make a new pip release for Python 2, you must first switch to the PmagPy Python2 branch, and, of course, make sure you are running Python 2.  However, as we are now developing in Python 3 exclusively, we shouldn't need to make new releases from the Python 2 branch unless there is a new bug fix.
+
+    + First, increment the version number in setup.py or command\_line\_setup.py.  PYPI will reject a duplicate version number.
 
     + From the PmagPy directory, use the following command to build a new distribution of pmagpy, upload it to PYPI, and upgrade locally:
 
-    `rm -rf build dist && python setup.py sdist bdist_wheel && twine upload dist/* && pip install pmagpy —upgrade`
+    `rm -rf build dist && python setup.py bdist_wheel && twine upload dist/* && pip install pmagpy —upgrade`
 
     + To make a test release, use a slightly different command from the PmagPy directory, which will: build a new distribution of pmagpy, upload it to the test site (will not overwrite the version people can download), and upgrade locally:
 
-    `python setup.py sdist bdist_wheel upload -r https://testpypi.python.org/pypi && pip install -i https://testpypi.python.org/pypi pmagpy —upgrade`
+    `python setup.py bdist_wheel upload -r https://testpypi.python.org/pypi && pip install -i https://testpypi.python.org/pypi pmagpy —upgrade`
 
     + To build pmagpy-cli, you can use the same two commands above, but replacing "setup.py" with "command\_line\_setup.py".
 
