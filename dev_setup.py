@@ -27,7 +27,7 @@ OPTIONS
         this python.exe to be the default python interpreter and will have it
         run when file name with extension .py is entered in command prompt.
         Note: this should be an ABSOLUTE path.
-        E.g. C:\Users\USERNAME\AppData\Local\Continuum\Anaconda2\python.exe
+        E.g. C:\\Users\\USERNAME\\AppData\\Local\\Continuum\\Anaconda2\\python.exe
         If you don't know where your python.exe is, type these commands:
             cd \\
             dir python.exe /s /p
