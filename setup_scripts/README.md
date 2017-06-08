@@ -1,41 +1,38 @@
 The scripts in this directory are for making new standalone releases.  This is done using py2app for OSX and pyinstaller for Windows and Linux.
 
+## Compiling on OS X
 
-## OSX standalones
+First, install anaconda python 3.
 
-The process of making the standalone GUIs is mostly automated, however, it is broken into two parts.  First, you'll run the process to create the guis, then the process to upload and publish a new release.  The reason for the split is to allow you to open and test your shiny new executables before you publish them.
+Install pyinstaller from the developer branch (certain needed bug fixes are here only, as of 6/8/17, see this [pyinstaller issue](https://github.com/pyinstaller/pyinstaller/issues/2434)):
 
-These instructions presume that you have cloned both the PmagPy git repo and the PmagPy-Standalone-OSX repo, and that they are both contained in the same folder (Python_Projects/ or similar).  If you have a different organizational system, you won't be able to use the bash scripts.
+    pip install git+https://github.com/pyinstaller/pyinstaller.git
 
-Here are the steps to make standalone Pmag/Magic GUIs for OSX.
+Install nomkl to prevent MKL problem (see [this issue](https://github.com/scikit-learn/scikit-learn/issues/5046):
 
-1.  Make sure your path points to the correct version of Python.  At this time, py2app doesn't play nice with Canopy.  I've had success with brew-installed Python and wxWidgets, but other distributions may work, as well.  You will, of course, need to have all dependencies installed (numpy, matplotlib, etc.)
+    conda instal nomkl
 
-2.  Edit "main" function in Pmag GUI and MagIC GUI (desired behavior is slightly different when not launching from the command line).
-2a. Change:
-`wx.App(redirect=False)` to `wx.App(redirect=True)`
-2b. Remove comments from these lines:
-`if working_dir == '.':`
-    `app.frame.on_change_dir_button(None)`
+From your PmagPy directory, generate the .spec file:
 
-3.  Open your Terminal and navigate to your PmagPy directory
+    pyi-makespec --onefile --windowed --icon=.\programs\images\PmagPy.ico  --name=PmagGUI .\programs\pmag_gui.py
 
-4.  Run:  $ `./setup_scripts/make_guis.sh <new commit name>`
+add the following to the resulting pmag_gui.spec file (where \*\*\* is your username):
 
-5.  In PmagPy-Standalone-OSX you will find the updated MagIC GUI and Pmag GUI programs.  It is highly recommended that you open both applications and make sure they look good!
+    files = [
+         ('/Users/***/PmagPy/pmagpy/data_model/*.json', './pmagpy/data_model/')
+    ]
 
-6.  Once you are confident that both standalone applications look good, run: $ `./setup_scripts/release_guis.sh <github_user_name> <release_number>`.  To run this step, you will need to provide your Github credentials (so that you can push to the Standalone repo).
+    ...
+    a = Analysis(['programs/pmag_gui.py'],
+        ...
+        datas=files,
+    ...
 
-### Py2app troubleshooting
+Then run:
 
-General documentation for py2app is available here: https://pythonhosted.org/py2app/index.html
+    pyinstaller pmag_gui.spec
 
-If you get see an error message like this (the build _may_ keep running):
-TypeError: dyld_find() got an unexpected keyword argument 'loader'
-
-See this documentation on a similar problem: http://stackoverflow.com/questions/31240052/py2app-typeerror-dyld-find-got-an-unexpected-keyword-argument-loader
-
-You may have to monkey-patch this file: MachOGraph.py.  (Located here on my machine: /usr/local/lib/python2.7/site-packages/macholib/MachOGraph.py, may be elsewhere depending on your Python installation.)
+This will create pmag\_gui.app in PmagPy/dist.  You can then move pmag\_gui.app to PmagPy\_Standalone\_OSX, commit, and push it to Github.  Make a new release on Github, and you're done!
 
 
 ## Compiling on Windows
@@ -79,7 +76,7 @@ The executable will be in the dist directory. If it does not run when you double
 
 ## DEPRECATED way of making Windows standalones
 
-**Note**: this is old way of making Windows standalones.
+**Note**: this is the old way of making Windows standalones.
 
 1. Make sure your path points to the correct version of Python.  I've had success with Canopy Python, but you may be able to use a different installation.  You should have pmagpy installed using pip.
 
@@ -134,3 +131,42 @@ NB: I know this process sucks.  Sorry.
     find Python.File
     get path where python is installed (python\_path = which python)
     in subfolder Python.File/shell/Edit with Pythonwin/command, change Data to "python\_path + .exe" + "%1"
+
+
+## DEPRECATED way of making OSX standalones
+
+**Note**: this is the old way of making OSX standalones
+
+The process of making the standalone GUIs is mostly automated, however, it is broken into two parts.  First, you'll run the process to create the guis, then the process to upload and publish a new release.  The reason for the split is to allow you to open and test your shiny new executables before you publish them.
+
+These instructions presume that you have cloned both the PmagPy git repo and the PmagPy-Standalone-OSX repo, and that they are both contained in the same folder (Python_Projects/ or similar).  If you have a different organizational system, you won't be able to use the bash scripts.
+
+Here are the steps to make standalone Pmag/Magic GUIs for OSX.
+
+1.  Make sure your path points to the correct version of Python.  At this time, py2app doesn't play nice with Canopy.  I've had success with brew-installed Python and wxWidgets, but other distributions may work, as well.  You will, of course, need to have all dependencies installed (numpy, matplotlib, etc.)
+
+2.  Edit "main" function in Pmag GUI and MagIC GUI (desired behavior is slightly different when not launching from the command line).
+2a. Change:
+`wx.App(redirect=False)` to `wx.App(redirect=True)`
+2b. Remove comments from these lines:
+`if working_dir == '.':`
+    `app.frame.on_change_dir_button(None)`
+
+3.  Open your Terminal and navigate to your PmagPy directory
+
+4.  Run:  $ `./setup_scripts/make_guis.sh <new commit name>`
+
+5.  In PmagPy-Standalone-OSX you will find the updated MagIC GUI and Pmag GUI programs.  It is highly recommended that you open both applications and make sure they look good!
+
+6.  Once you are confident that both standalone applications look good, run: $ `./setup_scripts/release_guis.sh <github_user_name> <release_number>`.  To run this step, you will need to provide your Github credentials (so that you can push to the Standalone repo).
+
+### Py2app troubleshooting
+
+General documentation for py2app is available here: https://pythonhosted.org/py2app/index.html
+
+If you get see an error message like this (the build _may_ keep running):
+TypeError: dyld_find() got an unexpected keyword argument 'loader'
+
+See this documentation on a similar problem: http://stackoverflow.com/questions/31240052/py2app-typeerror-dyld-find-got-an-unexpected-keyword-argument-loader
+
+You may have to monkey-patch this file: MachOGraph.py.  (Located here on my machine: /usr/local/lib/python2.7/site-packages/macholib/MachOGraph.py, may be elsewhere depending on your Python installation.)
