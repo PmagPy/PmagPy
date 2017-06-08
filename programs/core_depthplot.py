@@ -6,7 +6,7 @@ import os
 
 import matplotlib
 if matplotlib.get_backend() != "WXAgg":
-  matplotlib.use("WXAgg")
+    matplotlib.use("WXAgg")
 
 import matplotlib.pyplot as plt
 from pmagpy import pmagplotlib
@@ -14,6 +14,7 @@ import pmagpy.command_line_extractor as extractor
 import pmagpy.ipmag as ipmag
 import dialogs.pmag_widgets as pw
 import dialogs.pmag_menu_dialogs as pmag_menu_dialogs
+
 
 def main():
     """
@@ -81,7 +82,8 @@ def main():
                                                    ['sav', False, False], ['DM', False, 3]])
 
     checked_args = extractor.extract_and_check_args(args, dataframe)
-    meas_file, sum_file, wig_file, samp_file, age_file, spc_file, res_file, fmt, meth, norm, depth, timescale, dir_path, pltLine, pltSus, pltDec, pltInc, pltMag, logit, depth_scale, symbol, input_dir, save, data_model_num = extractor.get_vars(['f', 'fsum', 'fwig', 'fsa', 'fa', 'fsp', 'fres', 'fmt',  'LP', 'n', 'd', 'ts', 'WD', 'L', 'S', 'D', 'I', 'M', 'log', 'ds', 'sym', 'ID', 'sav', 'DM'], checked_args)
+    meas_file, sum_file, wig_file, samp_file, age_file, spc_file, res_file, fmt, meth, norm, depth, timescale, dir_path, pltLine, pltSus, pltDec, pltInc, pltMag, logit, depth_scale, symbol, input_dir, save, data_model_num = extractor.get_vars(
+        ['f', 'fsum', 'fwig', 'fsa', 'fa', 'fsp', 'fres', 'fmt',  'LP', 'n', 'd', 'ts', 'WD', 'L', 'S', 'D', 'I', 'M', 'log', 'ds', 'sym', 'ID', 'sav', 'DM'], checked_args)
 
     # format some variables
     # format symbol/size
@@ -99,7 +101,8 @@ def main():
             res_file, res_sym, res_size = res_file.split()
         except:
             print('you must provide -fres in this format: -fres filename symbol size')
-            print('could not parse {}, defaulting to using no result file'.format(res_file))
+            print(
+                'could not parse {}, defaulting to using no result file'.format(res_file))
             res_file, res_sym, res_size = '', '', 0
     else:
         res_file, res_sym, res_size = '', '', 0
@@ -110,7 +113,8 @@ def main():
             spc_file, spc_sym, spc_size = spc_file.split()
         except:
             print('you must provide -fsp in this format: -fsp filename symbol size')
-            print('could not parse {}, defaulting to using no specimen file'.format(spc_file))
+            print(
+                'could not parse {}, defaulting to using no specimen file'.format(spc_file))
             spc_file, spc_sym, spc_size = '', '', 0
     else:
         spc_file, spc_sym, spc_size = '', '', 0
@@ -129,14 +133,15 @@ def main():
             timescale, amin, amax = timescale.split()
             pltTime = True
         except:
-            print('you must provide -ts in this format: -ts timescale minimum_age maximum_age')
-            print('could not parse {}, defaulting to using no timescale'.format(timescale))
+            print(
+                'you must provide -ts in this format: -ts timescale minimum_age maximum_age')
+            print(
+                'could not parse {}, defaulting to using no timescale'.format(timescale))
             timescale, amin, amax = None, -1, -1
             pltTime = False
     else:
         timescale, amin, amax = None, -1, -1
         pltTime = False
-
 
     # format norm and wt_file
     if norm and not isinstance(norm, bool):
@@ -150,7 +155,8 @@ def main():
     try:
         method, step = meth.split()
     except:
-        print('To use the -LP flag you must provide both the protocol and the step in this format:\n-LP [AF,T,ARM,IRM, X] step [in mT,C,mT,mT, mass/vol] to plot')
+        print(
+            'To use the -LP flag you must provide both the protocol and the step in this format:\n-LP [AF,T,ARM,IRM, X] step [in mT,C,mT,mT, mass/vol] to plot')
         print('Defaulting to using no protocol')
         method, step = 'LT-NO', 0
 
@@ -158,10 +164,11 @@ def main():
     #['f', 'fsum', 'fwig', 'fsa', 'fa', 'fsp', 'fres', 'fmt',  'LP', 'n', 'd', 'ts', 'WD', 'L', 'S', 'D', 'I', 'M', 'log', 'ds', 'sym' ]
     #meas_file, sum_file, wig_file, samp_file, age_file, spc_file, res_file, fmt, meth, norm, depth, timescale, dir_path, pltLine, pltSus, pltDec, pltInc, pltMag, logit, depth_scale, symbol
 
-    fig, figname = ipmag.core_depthplot(input_dir, meas_file, spc_file, samp_file, age_file, sum_file, wt_file, depth_scale, dmin, dmax, sym, size, spc_sym, spc_size, method, step, fmt, pltDec, pltInc, pltMag, pltLine, pltSus, logit, pltTime, timescale, amin, amax, norm, data_model_num)
+    fig, figname = ipmag.core_depthplot(input_dir, meas_file, spc_file, samp_file, age_file, sum_file, wt_file, depth_scale, dmin, dmax, sym, size,
+                                        spc_sym, spc_size, method, step, fmt, pltDec, pltInc, pltMag, pltLine, pltSus, logit, pltTime, timescale, amin, amax, norm, data_model_num)
 
     if not pmagplotlib.isServer:
-      figname = figname.replace(':', '_')
+        figname = figname.replace(':', '_')
 
     if fig and save:
         print('-I- Created plot: {}'.format(figname))
@@ -170,7 +177,8 @@ def main():
 
     app = wx.App(redirect=False)
     if not fig:
-        pw.simple_warning('No plot was able to be created with the data you provided.\nMake sure you have given all the required information and try again')
+        pw.simple_warning(
+            'No plot was able to be created with the data you provided.\nMake sure you have given all the required information and try again')
         return False
 
     dpi = fig.get_dpi()
