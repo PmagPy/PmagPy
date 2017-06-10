@@ -232,17 +232,17 @@ def main():
             else:
                 sigma = 0
             RmagSpecRec["rmag_anisotropy_name"] = data[0]["er_specimen_name"]
-            RmagSpecRec["er_location_name"] = data[0]["er_location_name"]
+            RmagSpecRec["er_location_name"] = data[0].get("er_location_name", "")
             RmagSpecRec["er_specimen_name"] = data[0]["er_specimen_name"]
-            RmagSpecRec["er_sample_name"] = data[0]["er_sample_name"]
-            RmagSpecRec["er_site_name"] = data[0]["er_site_name"]
+            RmagSpecRec["er_sample_name"] = data[0].get("er_sample_name", "")
+            RmagSpecRec["er_site_name"] = data[0].get("er_site_name", "")
             RmagSpecRec["magic_experiment_names"] = RmagSpecRec["rmag_anisotropy_name"] + ":AARM"
             RmagSpecRec["er_citation_names"] = "This study"
             RmagResRec["rmag_result_name"] = data[0]["er_specimen_name"] + ":AARM"
-            RmagResRec["er_location_names"] = data[0]["er_location_name"]
+            RmagResRec["er_location_names"] = data[0].get("er_location_name", "")
             RmagResRec["er_specimen_names"] = data[0]["er_specimen_name"]
-            RmagResRec["er_sample_names"] = data[0]["er_sample_name"]
-            RmagResRec["er_site_names"] = data[0]["er_site_name"]
+            RmagResRec["er_sample_names"] = data[0].get("er_sample_name", "")
+            RmagResRec["er_site_names"] = data[0].get("er_site_name", "")
             RmagResRec["magic_experiment_names"] = RmagSpecRec["rmag_anisotropy_name"] + ":AARM"
             RmagResRec["er_citation_names"] = "This study"
             if "magic_instrument_codes" in list(data[0].keys()):
