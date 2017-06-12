@@ -1529,7 +1529,8 @@ def plot_di_mean_bingham(bingham_dictionary, fignum=1, color='k', marker='o', ma
     pmagplotlib.plotELL(fignum, pars, color, 0, 1)
 
 
-def plot_pole(mapname, plon, plat, A95, label='', color='k', marker='o', markersize=20, legend='no'):
+def plot_pole(mapname, plon, plat, A95, label='', color='k', edgecolor=None,
+              marker='o', markersize=20, legend='no'):
     """
     This function plots a paleomagnetic pole and A95 error ellipse on whatever
     current map projection has been set using the basemap plotting library.
@@ -1563,7 +1564,7 @@ def plot_pole(mapname, plon, plat, A95, label='', color='k', marker='o', markers
     centerlon, centerlat = mapname(plon, plat)
     A95_km = A95 * 111.32
     mapname.scatter(centerlon, centerlat, marker=marker,
-                    color=color, s=markersize, label=label, zorder=101)
+                    color=color, edgecolors=edgecolor, s=markersize, label=label, zorder=101)
     equi(mapname, plon, plat, A95_km, color)
     if legend == 'yes':
         plt.legend(loc=2)
