@@ -2359,6 +2359,13 @@ def core_depthplot(input_dir_path='.', meas_file='magic_measurements.txt', spc_f
     # print 'pltTime', pltTime
     # print 'norm', norm
     data_model_num = int(data_model_num)
+    # replace MagIC 2.5 defaults with MagIC 3 defaults if needed
+    if data_model_num == 3 and meas_file == 'magic_measurements.txt':
+        meas_file = 'measurements.txt'
+    if data_model_num == 3 and samp_file == 'er_samples.txt':
+        samp_file = 'samples.txt'
+    if data_model_num == 3 and age_file == 'er_ages.txt':
+        age_file = 'ages.txt'
     intlist = ['measurement_magnitude', 'measurement_magn_moment',
                'measurement_magn_volume', 'measurement_magn_mass']
     width = 10
