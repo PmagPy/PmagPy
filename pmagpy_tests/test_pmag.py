@@ -78,7 +78,7 @@ class TestMagicRead(unittest.TestCase):
         fname = os.path.join(WD, "data_files", "3_0", "McMurdo", "sites.txt")
         data, ftype = pmag.magic_read(fname)
         self.assertEqual(ftype, 'sites')
-        self.assertEqual(len(data), 541)
+        self.assertEqual(len(data), 542)
         data, ftype, magic_keys = pmag.magic_read(fname,
                                                   return_keys=True)
         self.assertEqual(magic_keys[-1], 'vgp_n_samples')

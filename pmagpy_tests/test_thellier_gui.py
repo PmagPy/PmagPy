@@ -28,7 +28,10 @@ class TestThellierGUI(unittest.TestCase):
         wx.CallAfter(self.app.Destroy)
 
     def test_empty_dir(self):
-        thellier_gui.Arai_GUI(empty_WD, DM=2)
+        try:
+            thellier_gui.Arai_GUI(empty_WD, DM=2)
+        except SystemExit as ex:
+            self.assertTrue(ex)
 
     def test_main_panel_is_created(self):
         """
