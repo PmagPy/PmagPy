@@ -1,0 +1,15 @@
+#!/usr/bin/env pythonw
+
+# -*- coding: utf-8 -*-
+import re
+import sys
+
+# this is handled in programs/__init__.py instead:
+#import matplotlib
+#matplotlib.use('WXAgg')
+
+from programs.ani_depthplot import main
+
+if __name__ == '__main__':
+    sys.argv[0] = re.sub(r'(-script\.pyw|\.exe)?$', '', sys.argv[0])
+    sys.exit(main())

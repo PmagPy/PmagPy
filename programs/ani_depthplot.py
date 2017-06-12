@@ -24,6 +24,9 @@ def main():
 
     SYNTAX
         ani_depthplot.py [command line optins]
+        # or, for Anaconda users:
+        ani_depthplot_anaconda [command line options]
+
 
     OPTIONS
         -h prints help message and quits
