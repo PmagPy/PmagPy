@@ -156,7 +156,7 @@ setup(
     #        },
     scripts=['bin/pmag_gui_anaconda', 'bin/magic_gui_anaconda',
              'bin/magic_gui2_anaconda', 'bin/thellier_gui_anaconda',
-             'bin/demag_gui_anaconda'],
+             'bin/demag_gui_anaconda', 'bin/core_depthplot_anaconda'],
     entry_points={
             'console_scripts': programs_list,
             'gui_scripts': [
