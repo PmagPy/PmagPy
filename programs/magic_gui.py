@@ -535,7 +535,21 @@ class MagICMenu(wx.MenuBar):
 
 def main():
     if '-h' in sys.argv:
-        print("See https://earthref.org/PmagPy/cookbook/#magic_gui.py for a complete tutorial")
+        help_msg = """
+MagIC GUI is for creating and uploading contributions to the MagIC database.
+Note: if you are starting with a measurement file, it is better to use
+Pmag GUI instead.
+MagIC GUI is mainly meant for contributions with specimen-level data and higher.
+
+SYNTAX
+    magic_gui.py [command line options]
+    # or, for Anaconda users:
+    magic_gui_anaconda [command line options]
+
+INFORMATION
+    See https://earthref.org/PmagPy/cookbook/#magic_gui.py for a complete tutorial
+"""
+        print(help_msg)
         sys.exit()
     print('-I- Starting MagIC GUI - please be patient')
 

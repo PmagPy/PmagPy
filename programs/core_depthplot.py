@@ -25,7 +25,9 @@ def main():
         plots various measurements versus core_depth or age.  plots data flagged as 'FS-SS-C' as discrete samples.
 
     SYNTAX
-        core_depthplot.py [command line optins]
+        core_depthplot.py [command line options]
+        # or, for Anaconda users:
+        core_depthplot_anaconda [command line options]
 
     OPTIONS
         -h prints help message and quits

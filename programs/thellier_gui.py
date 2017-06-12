@@ -10,6 +10,9 @@ PmagPy cookbook which can be found here: earthref.org/PmagPy/cookbook/
 
 SYNTAX
     thellier_gui.py [command line options]
+    # or, for Anaconda users:
+    thellier_gui_anaconda [command line options]
+
 
 OPTIONS
     -h : opens this help message
@@ -255,13 +258,35 @@ class Arai_GUI(wx.Frame):
     def __init__(self, WD=None, parent=None, standalone=True, DM=0, test_mode=False, evt_quit=None):
 
         TEXT = """
-        NAME
-    thellier_gui.py
 
-        DESCRIPTION
+Runs Thellier GUI PmagPy's main analysis GUI for thellier-type
+paleointensity data. This can be used to obtain intensities for Thermal and
+Microwave data. It allows export of figures and analysis results for upload
+to the MagIC database and/or publication. For more information on how to
+interpret or use the GUI's many functions see the Help menu in the open GUI.
+More documentation can be found on all of PmagPy's functionality at the
+PmagPy cookbook which can be found here: earthref.org/PmagPy/cookbook/
+
+SYNTAX
+    thellier_gui.py [command line options]
+    # or, for Anaconda users:
+    thellier_gui_anaconda [command line options]
+
+
+OPTIONS
+    -h : opens this help message
+    -WD : specify working directory
+    -DM : specify MagIC data model (options : 3 or 2.x)
+
+AUTHORS
+    Ron Shaar and Lisa Tauxe
+
+DESCRIPTION
     GUI for interpreting thellier-type paleointensity data.
     For tutorial check PmagPy cookbook in http://earthref.org/PmagPy/cookbook/
-        """
+
+"""
+
         try:
             reload(thellier_gui_preferences)
         except NameError:

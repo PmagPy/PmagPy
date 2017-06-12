@@ -7,6 +7,9 @@ the MagIC database and/or publication. For more information on how to interpret 
 
 SYNTAX
     demag_gui.py [command line options]
+    # or, for Anaconda users:
+    demag_gui_anaconda [command line options]
+
 
 OPTIONS
     -h : opens this help message

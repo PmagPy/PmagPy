@@ -758,7 +758,19 @@ class MagMainFrame(wx.Frame):
 
 def main():
     if '-h' in sys.argv:
-        print("See https://earthref.org/PmagPy/cookbook/#pmag_gui.py for a complete tutorial")
+        help_msg = """
+Runs Pmag GUI for uploading, downloading, analyzing and visualizing
+data.
+
+SYNTAX
+    pmag_gui.py [command line options]
+    # or, for Anaconda users:
+    pmag_gui_anaconda [command line options]
+
+INFORMATION
+    See https://earthref.org/PmagPy/cookbook/#pmag_gui.py for a complete tutorial
+"""
+        print(help_msg)
         sys.exit()
     print('-I- Starting Pmag GUI - please be patient')
     # if redirect is true, wxpython makes its own output window for stdout/stderr
