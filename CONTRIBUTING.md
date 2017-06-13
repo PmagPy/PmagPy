@@ -175,6 +175,10 @@ Making a new release has several steps:
 
     + First, increment the version number in setup.py or command\_line\_setup.py.  PYPI will reject a duplicate version number.
 
+    + If you are using Anaconda Python, downgrade matplotlib to < 2:
+
+     `conda install matplotlib=1.5.3`
+
     + From the PmagPy directory, use the following command to build a new distribution of pmagpy, upload it to PYPI, and upgrade locally:
 
     `rm -rf build dist && python setup.py bdist_wheel && twine upload dist/* && pip install pmagpy —upgrade`
