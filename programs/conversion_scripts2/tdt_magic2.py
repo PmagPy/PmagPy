@@ -21,17 +21,17 @@ NAME
 
 DESCRIPTION
     converts TDT formatted files to magic_measurements format files
-    
+
 SYNTAX
-    tdt_magic.py -WD <PATH> 
+    tdt_magic.py -WD <PATH>
 
 INPUT:
-    TDT formatted files with suffix .tdt 
-        
+    TDT formatted files with suffix .tdt
+
 OUTPUT:
-    combined measurement file saved in <PATH> 
-    
-    
+    combined measurement file saved in <PATH>
+
+
 Log:
     Initial revision 4/24/2014
     some bug fix 06/12/2015
@@ -52,7 +52,7 @@ class convert_tdt_files_to_MagIC(wx.Frame):
         wx.Frame.__init__(self, None, wx.ID_ANY, self.title)
         self.panel = wx.Panel(self)
         self.max_files=10
-        
+
         os.chdir(WD)
         self.WD=os.getcwd()+"/"
         self.create_menu()
@@ -124,7 +124,7 @@ class convert_tdt_files_to_MagIC(wx.Frame):
         for i in range(self.max_files):
             command="self.protocol_info_%i = wx.ComboBox(self.panel, -1, self.experiments_names[0], size=(100,25), choices=self.experiments_names, style=wx.CB_DROPDOWN|wx.CB_READONLY)"%i
             exec(command)
-            command="bSizer1a.Add(self.protocol_info_%i,wx.ALIGN_TOP)"%i        
+            command="bSizer1a.Add(self.protocol_info_%i,wx.ALIGN_TOP)"%i
             exec(command)
             bSizer1a.AddSpacer(5)
 
@@ -142,7 +142,7 @@ class convert_tdt_files_to_MagIC(wx.Frame):
             command= "self.file_info_Blab_dec_%i.SetValue('0')"%i
             exec(command)
             command= "self.file_info_Blab_inc_%i = wx.TextCtrl(self.panel, id=-1, size=(40,25))"%i
-            exec(command)          
+            exec(command)
             command= "self.file_info_Blab_inc_%i.SetValue('90')"%i
             exec(command)
             command="bSizer_blab%i = wx.BoxSizer(wx.HORIZONTAL)"%i
@@ -167,7 +167,7 @@ class convert_tdt_files_to_MagIC(wx.Frame):
         for i in range(self.max_files):
             command="self.moment_units_%i = wx.ComboBox(self.panel, -1, self.moment_units_names[0], size=(80,25), choices=self.moment_units_names, style=wx.CB_DROPDOWN|wx.CB_READONLY)"%i
             exec(command)
-            command="bSizer1c.Add(self.moment_units_%i,wx.ALIGN_TOP)"%i        
+            command="bSizer1c.Add(self.moment_units_%i,wx.ALIGN_TOP)"%i
             exec(command)
             bSizer1c.AddSpacer(5)
 
@@ -182,7 +182,7 @@ class convert_tdt_files_to_MagIC(wx.Frame):
             exec(command)
             command= "self.sample_volume_%i.SetValue('1.287555e-5')"%i
             exec(command)
-            command="bSizer1d.Add(self.sample_volume_%i,wx.ALIGN_TOP)"%i        
+            command="bSizer1d.Add(self.sample_volume_%i,wx.ALIGN_TOP)"%i
             exec(command)
             bSizer1d.AddSpacer(5)
 
@@ -334,7 +334,7 @@ class convert_tdt_files_to_MagIC(wx.Frame):
         menu_help = menu_about.Append(-1, "&Some notes", "")
         self.Bind(wx.EVT_MENU, self.on_menu_help, menu_help)
 
-        self.menubar.Append(menu_about, "& Instructions") 
+        self.menubar.Append(menu_about, "& Instructions")
 
         self.SetMenuBar(self.menubar)
 
@@ -524,17 +524,17 @@ class convert_tdt_files_to_MagIC(wx.Frame):
         # 2) First line is the header: "Thellier-tdt"
         # 3) Second line in header inlucdes 4 fields:
         #    [Blab] ,[unknown_1] , [unknown_2] , [unknown_3] , [unknown_4]
-        # 4) Body includes 5 fields 
+        # 4) Body includes 5 fields
         #    [specimen_name], [treatments], [moment],[meas_dec],[meas_dec
-        # Tretment: XXX.0 (zerofield) 
+        # Tretment: XXX.0 (zerofield)
         #           XXX.1 (infield)
         #           XXX.2 (pTRM check)
         #           XXX.3 (Tail check)
         #           XXX.4 (Additivity check; Krasa et al., 2003)
         #           XXX.5 (Original Thellier-Thellier protocol. )
-        #                 (where .5 is for the second direction and .1 in the first)   
+        #                 (where .5 is for the second direction and .1 in the first)
         # XXX = temperature in degrees
-        # 
+        #
         #
         # IMPORTANT ASSUMPTION:
         # (1) lab field is always in Z direction (theta=0, phi=90)
@@ -545,7 +545,7 @@ class convert_tdt_files_to_MagIC(wx.Frame):
         #
         #   ATRM in six positions
         #
-        # Tretment: XXX.0 zerofield 
+        # Tretment: XXX.0 zerofield
         #           XXX.1 +x
         #           XXX.2 +y
         #           XXX.3 +z
@@ -562,7 +562,7 @@ class convert_tdt_files_to_MagIC(wx.Frame):
         #
         # For questions and support: rshaar@ucsd.edu
         # -------------------------------------------------------------
-            
+
         magic_measurements_headers=[]
         er_specimens_headers=[]
         MagRecs=[]
@@ -587,15 +587,15 @@ class convert_tdt_files_to_MagIC(wx.Frame):
                     continue_reading=True
                     line=fin.readline() # ignore first line
                     for line in fin.readlines():
-                                            
+
                         if "END" in line:
                             break
 
                         if line.strip('\n') =="":
                             break
-                        
+
                         this_line=line.strip('\n').split()
-                        
+
                         if len(this_line)<5:
                             continue
 
@@ -613,8 +613,8 @@ class convert_tdt_files_to_MagIC(wx.Frame):
                                         new_line.append(tmp1[i])
                                 else:
                                     new_line.append(this_line[i])
-                            this_line=list(copy(new_line))     
-                                
+                            this_line=list(copy(new_line))
+
 
 
                         #-------------------------------
@@ -628,16 +628,16 @@ class convert_tdt_files_to_MagIC(wx.Frame):
                         # header
                         #---------------------------------------------------
                         if  line_number==0:
-                        
+
                             for i in range(len(this_line)):
                                 tmp_header_data[header_codes[i]]=this_line[i]
-                            
+
                             line_number+=1
 
                         #---------------------------------------------------
                         # body
                         #---------------------------------------------------
-                        
+
                         else:
                             tmp_data={}
                             for i in range(min(len(this_line),len(body_codes))):
@@ -645,10 +645,10 @@ class convert_tdt_files_to_MagIC(wx.Frame):
                             tmp_body.append(tmp_data)
 
                             #------------
-                                
+
                             specimen=tmp_body[0]['specimen_name']
                             line_number+=1
-                    
+
                     if specimen not in list(Data.keys()):
                         Data[specimen]={}
                     Experiment_Type=DIRS_data[dir_name]['experiment']
@@ -677,7 +677,7 @@ class convert_tdt_files_to_MagIC(wx.Frame):
             Experiment_Types_list.sort()
             for Experiment_Type in Experiment_Types_list:
                 if Experiment_Type in ["Thellier"]:
-                    
+
                     tmp_MagRecs=[]
 
                     # IMORTANT:
@@ -689,7 +689,7 @@ class convert_tdt_files_to_MagIC(wx.Frame):
                     experiment_treatments=[]
                     measurement_running_number=0
                     methcodes=["LP-PI-TRM"] # start to make a list of the methcodes. and later will merge it to one string
-                    
+
                     for i in range(len(Data[specimen][Experiment_Type]['meas_data'])):
                         meas_line=Data[specimen][Experiment_Type]['meas_data'][i]
 
@@ -697,7 +697,7 @@ class convert_tdt_files_to_MagIC(wx.Frame):
                         # check if the same treatment appears more than once. If yes, assuming that the measurements is repeated twice,
                         # ignore the first, and take only the second one
                         #------------------
-                        
+
                         if i< (len(Data[specimen][Experiment_Type]['meas_data'])-2) :
                             Repeating_measurements=True
                             for key in ['treatment','specimen_name']:
@@ -706,30 +706,30 @@ class convert_tdt_files_to_MagIC(wx.Frame):
                             if Repeating_measurements==True:
                                 "Found a repeating measurement at line %i, sample %s. taking the last one"%(i,specimen)
                                 continue
-                        #------------------    
-                        # Special treatment for first line (NRM data). 
+                        #------------------
+                        # Special treatment for first line (NRM data).
                         #------------------
 
                         if i==0:
                            if "." not in meas_line['treatment']:
-                               meas_line['treatment']="0.0"  
+                               meas_line['treatment']="0.0"
                            elif meas_line['treatment'].split(".")[0]=="" and meas_line['treatment'].split(".")[1]=='0': # if NRM is in the form of ".0" instead of "0.0"
                                meas_line['treatment']="0.0"
                            elif  float(meas_line['treatment'].split(".")[0])<50 and float(meas_line['treatment'].split(".")[-1])==0: # if NRM is in the form of "20.0" instead of "0.0"
                                meas_line['treatment']="0.0"
 
-                        #------------------    
+                        #------------------
                         # fix line in format of XX instead of XX.YY
                         #------------------
                         if "." not in meas_line['treatment']:
                             meas_line['treatment']=meas_line['treatment']+".0"
                         if meas_line['treatment'].split(".")[1]=="":
                             meas_line['treatment']=meas_line['treatment']+"0"
-                            
+
                         #------------------
                         # header data
                         #------------------
-                                                                
+
                         MagRec={}
                         MagRec['er_citation_names']="This study"
                         labfield=float(header_line['labfield'])*1e-6 # convert from microT to Tesla
@@ -737,7 +737,7 @@ class convert_tdt_files_to_MagIC(wx.Frame):
                         #------------------
                         # Body data
                         #------------------
-                        
+
                         MagRec["er_specimen_name"]=specimen
                         MagRec["er_sample_name"]=self.get_sample_name(MagRec["er_specimen_name"],Data[specimen][Experiment_Type]['sample_naming_convenstion'])
                         MagRec["er_site_name"]=self.get_site_name(MagRec["er_sample_name"],Data[specimen][Experiment_Type]['site_naming_convenstion'])
@@ -749,15 +749,15 @@ class convert_tdt_files_to_MagIC(wx.Frame):
                         MagRec["measurement_number"]="%i"%measurement_running_number
                         MagRec["measurement_dec"]=meas_line['dec']
                         MagRec["measurement_inc"]=meas_line['inc']
-                        if Data[specimen][Experiment_Type]['moment_units']=='mA/m':                            
+                        if Data[specimen][Experiment_Type]['moment_units']=='mA/m':
                             MagRec["measurement_magn_moment"]="%5e"%(float(meas_line['moment'])*1e-3*float(Data[specimen][Experiment_Type]['sample_volume'])) # converted to Am^2
-                        if Data[specimen][Experiment_Type]['moment_units']=='emu':                            
+                        if Data[specimen][Experiment_Type]['moment_units']=='emu':
                             MagRec["measurement_magn_moment"]="%5e"%(float(meas_line['moment'])*1e-3) # converted to Am^2
-                        if Data[specimen][Experiment_Type]['moment_units']=='Am^2':                            
+                        if Data[specimen][Experiment_Type]['moment_units']=='Am^2':
                             MagRec["measurement_magn_moment"]="%5e"%(float(meas_line['moment'])) # converted to Am^2
                         MagRec["measurement_temp"]='273.' # room temp in kelvin
 
-                        # Date and time 
+                        # Date and time
 ##                                    date=meas_line['Measurement Date'].strip("\"").split('-')
 ##                                    yyyy=date[2];dd=date[1];mm=date[0]
 ##                                    hour=meas_line['Measurement Time'].strip("\"")
@@ -775,7 +775,7 @@ class convert_tdt_files_to_MagIC(wx.Frame):
                             MagRec["treatment_dc_field_theta"]=Data[specimen][Experiment_Type]['labfield_DI'][1]
 
                         #------------------
-                        # Lab Treatments 
+                        # Lab Treatments
                         #------------------
 
                         # NRM
@@ -800,7 +800,7 @@ class convert_tdt_files_to_MagIC(wx.Frame):
                                             IZorZI=""
                                         else:
                                             IZorZI="Z"
-                                            
+
                         # Infield step
                         elif float(treatments[1])==1 or float(treatments[1])==10:
                                 MagRec["magic_method_codes"]="LT-T-I"
@@ -816,14 +816,14 @@ class convert_tdt_files_to_MagIC(wx.Frame):
                                                 IZorZI=""
                                         else:
                                                 IZorZI="I"
-                        # pTRM check step                                            
+                        # pTRM check step
                         elif float(treatments[1])==2 or float(treatments[1])==20:
                                 MagRec["magic_method_codes"]="LT-PTRM-I"
                                 MagRec["treatment_temp"]='%8.3e' % (float(treatments[0])+273.) # temp in kelvin
                                 if "LP-PI-ALT" not in methcodes:
                                     methcodes.append("LP-PI-ALT")
 
-                        # Tail check step                                            
+                        # Tail check step
                         elif float(treatments[1])==3 or float(treatments[1])==30:
                                 MagRec["magic_method_codes"]="LT-PTRM-MD"
                                 MagRec["treatment_temp"]='%8.3e' % (float(treatments[0])+273.) # temp in kelvin
@@ -833,17 +833,17 @@ class convert_tdt_files_to_MagIC(wx.Frame):
                                     MagRec["treatment_dc_field_phi"]="0"
                                     MagRec["treatment_dc_field_theta"]="0"
 
-                        # Additivity check step                                            
+                        # Additivity check step
                         elif float(treatments[1])==4 or float(treatments[1])==40:
                                 MagRec["magic_method_codes"]="LT-PTRM-AC"
                                 MagRec["treatment_temp"]='%8.3e' % (float(treatments[0])+273.) # temp in kelvin
                                 if "LP-PI-BT" not in methcodes:
                                     methcodes.append("LP-PI-BT")
 
-                        # Thellier Thellier protocol (1 for one direction and 5 for the antiparallel)                                            
+                        # Thellier Thellier protocol (1 for one direction and 5 for the antiparallel)
                         # Lab field direction of 1 is as put in the GUI dialog box
                         # Lab field direction of 5 is the anti-parallel direction of 1
-                        
+
                         elif float(treatments[1])==5 or float(treatments[1])==50:
                                 MagRec["magic_method_codes"]="LT-T-I"
                                 MagRec["treatment_temp"]='%8.3e' % (float(treatments[0])+273.) # temp in kelvin
@@ -855,11 +855,11 @@ class convert_tdt_files_to_MagIC(wx.Frame):
                         else:
                                 print("-E- ERROR in file %s"%Experiment_Type)
                                 print("-E- ERROR in treatment ",meas_line['treatment'])
-                                print("... exiting until you fix the problem") 
+                                print("... exiting until you fix the problem")
 
 
                         #-----------------------------------
-                                
+
                         #MagRec["magic_method_codes"]=lab_treatment+":"+lab_protocols_string
                         #MagRec["magic_experiment_name"]=specimen+":"+lab_protocols_string
 
@@ -869,7 +869,7 @@ class convert_tdt_files_to_MagIC(wx.Frame):
                         for key in headers:
                             if key not in magic_measurements_headers:
                                 magic_measurements_headers.append(key)
-                                
+
 
 
 
@@ -896,17 +896,17 @@ class convert_tdt_files_to_MagIC(wx.Frame):
                         STRING=":".join([tmp_MagRecs[i]["er_specimen_name"],magic_method_codes])
                         tmp_MagRecs[i]["magic_experiment_name"]=STRING
                         MagRecs.append(tmp_MagRecs[i])
-                    
+
 
                 elif Experiment_Type in ["ATRM 6 positions"]:
-                    
+
                     tmp_MagRecs=[]
 
                     header_line=Data[specimen][Experiment_Type]['header_data']
                     experiment_treatments=[]
                     measurement_running_number=0
                     methcodes=["LP-AN-TRM"] # start to make a list of the methcodes. and later will merge it to one string
-                    
+
                     for i in range(len(Data[specimen][Experiment_Type]['meas_data'])):
                         meas_line=Data[specimen][Experiment_Type]['meas_data'][i]
 
@@ -914,7 +914,7 @@ class convert_tdt_files_to_MagIC(wx.Frame):
                         # check if the same treatment appears more than once. If yes, assuming that the measurements is repeated twice,
                         # ignore the first, and take only the second one
                         #------------------
-                        
+
                         if i< (len(Data[specimen][Experiment_Type]['meas_data'])-2) :
                             Repeating_measurements=True
                             for key in ['treatment','specimen_name']:
@@ -924,18 +924,18 @@ class convert_tdt_files_to_MagIC(wx.Frame):
                                 "Found a repeating measurement at line %i, sample %s. taking the last one"%(i,specimen)
                                 continue
 
-                        #------------------    
+                        #------------------
                         # fix line in format of XX instead of XX.0
                         #------------------
                         if "." not in meas_line['treatment']:
                             meas_line['treatment']=meas_line['treatment']+".0"
                         if meas_line['treatment'].split(".")[1]=="":
                             meas_line['treatment']=meas_line['treatment']+"0"
-                     
+
                         #------------------
                         # header data
                         #------------------
-                                                                
+
                         MagRec={}
                         MagRec['er_citation_names']="This study"
                         labfield=float(header_line['labfield'])*1e-6 # convert from microT to Tesal
@@ -948,7 +948,7 @@ class convert_tdt_files_to_MagIC(wx.Frame):
                         #------------------
                         # Body data
                         #------------------
-                        
+
                         MagRec["er_specimen_name"]=specimen
                         MagRec["er_sample_name"]=self.get_sample_name(MagRec["er_specimen_name"],Data[specimen][Experiment_Type]['sample_naming_convenstion'])
                         MagRec["er_site_name"]=self.get_site_name(MagRec["er_sample_name"],Data[specimen][Experiment_Type]['site_naming_convenstion'])
@@ -966,9 +966,9 @@ class convert_tdt_files_to_MagIC(wx.Frame):
                         treatments=meas_line['treatment'].split(".")
                         if len(treatments[1])>1:
                             treatments[1]=treatments[1][0]
-                        
+
                         MagRec["treatment_temp"]='%8.3e' % (float(treatments[0])+273.) # temp in kelvin
-                        
+
                         # labfield direction
                         if float(treatments[1])==0:
                             MagRec["treatment_dc_field"]='0'
@@ -976,7 +976,7 @@ class convert_tdt_files_to_MagIC(wx.Frame):
                             MagRec["treatment_dc_field_theta"]='0'
                             MagRec["magic_method_codes"]="LT-T-Z:LP-AN-TRM"
                         else:
-                            
+
                             MagRec["treatment_dc_field"]='%8.3e'%(labfield)
 
                             if float(treatments[1])==7 or float(treatments[1])==70: # alteration check as final measurement
@@ -1005,7 +1005,7 @@ class convert_tdt_files_to_MagIC(wx.Frame):
                             ipos=ipos_guess
                             MagRec["treatment_dc_field_phi"]='%7.1f' %(tdec[ipos])
                             MagRec["treatment_dc_field_theta"]='%7.1f'% (tinc[ipos])
-                            # check it 
+                            # check it
                             if ipos_guess!=ipos_code and treatments[1]!='7':
                                 print("-E- ERROR: check specimen %s step %s, ATRM measurements, coding does not match the direction of the lab field!"%(MagRec["er_specimen_name"],".".join(list(treatments))))
 
@@ -1016,21 +1016,21 @@ class convert_tdt_files_to_MagIC(wx.Frame):
                         for key in headers:
                             if key not in magic_measurements_headers:
                                 magic_measurements_headers.append(key)
-                                
+
 
 
                     for i in range(len(tmp_MagRecs)):
                         MagRecs.append(tmp_MagRecs[i])
-                    
+
                 else:
                     print("-E- ERROR. sorry, file format %s is not supported yet. Please contact rshaar@ucsd.edu"%Experiment_Type)
 
-                                                                
+
         #-------------------------------------------
         #  magic_measurements.txt
         #-------------------------------------------
 
-        
+
         #fout=open("magic_measurements.txt",'w')
         fout=open(self.output_file_path.GetValue(), 'w')
         fout.write("tab\tmagic_measurements\n")
@@ -1062,48 +1062,48 @@ class convert_tdt_files_to_MagIC(wx.Frame):
 
 class message_box(wx.Frame):
     """"""
- 
+
     #----------------------------------------------------------------------
     def __init__(self,title):
         wx.Frame.__init__(self, parent=None,size=(1000,500))
-        
+
         self.panel = wx.Panel(self)
         self.sizer = wx.BoxSizer(wx.VERTICAL)
         self.text_log = wx.TextCtrl(self.panel, id=-1, style=wx.TE_MULTILINE | wx.TE_READONLY  | wx.HSCROLL)
         self.sizer.Add(self.text_log, 1, wx.EXPAND)
         TEXT='''
         # -------------------------------------
-        # 
+        #
         # Programs assumptions:
         #
         # 1) Each file contains the data one specimen
         # 2) First line is the header: "Thellier-tdt"
         # 3) Second line in header inlucdes 4 fields:
         #    [Blab] ,['core_azimuth'] , ['core_plunge'] , ['bedding_dip_direction'] , ['bedding_dip']
-        # 4) Body includes 5 fields 
+        # 4) Body includes 5 fields
         #    [specimen_name], [treatments], [moment],[meas_dec],[meas_inc]
         # -------------------------------------
         # Thellier experiment:
         #
-        # Tretments: XXX.0 (zerofield) 
+        # Tretments: XXX.0 (zerofield)
         #            XXX.1 (infield)
         #            XXX.2 (pTRM check)
         #            XXX.3 (Tail check)
         #            XXX.4 (Additivity check; Krasa et al., 2003)
         #            XXX.5 (Original Thellier-Thellier protocol. )
-        #                 (where .5 is for the second direction and .1 in the first)   
+        #                 (where .5 is for the second direction and .1 in the first)
         # XXX = temperature in degrees
-        # 
+        #
         #
         # 1) If if XXX <50 then assuming that this is NRM (273K)
         # 2) Lab field defaul is Z direction (theta=0, phi=90)
-        # 3) The program does not support Thermal demagnetization 
+        # 3) The program does not support Thermal demagnetization
         #
         # -------------------------------------
         #
         #   ATRM in six positions
         #
-        # Tretments: XXX.0 zerofield 
+        # Tretments: XXX.0 zerofield
         #            XXX.1 +x
         #            XXX.2 +y
         #            XXX.3 +z
@@ -1111,7 +1111,7 @@ class message_box(wx.Frame):
         #            XXX.5 -y
         #            XXX.6 -z
         #            XXX.7 alteration check
-        #   
+        #
         #
         # 1) The program checks if the direction of the magnetization fits the coding above.
         #    If not: an error message will appear
@@ -1120,7 +1120,7 @@ class message_box(wx.Frame):
         #
         # For questions and support: rshaar@ucsd.edu
         # -------------------------------------'''
-        
+
         self.text_log.AppendText(TEXT)
 ##        fin =open(file_path,'r')
 ##        for line in fin.readlines():
@@ -1155,7 +1155,7 @@ def main(command_line=True, wd=None):
             WD = os.getcwd()
         else:
             WD = wd
-    
+
     app = wx.App()
     app.frame = convert_tdt_files_to_MagIC(WD)
     app.frame.Show()
@@ -1169,4 +1169,3 @@ if __name__ == '__main__':
 
 
 #main()
-

@@ -57,7 +57,7 @@ class convert_livdb_files_to_MagIC(wx.Frame):
 
         if "-WD" in sys.argv :
             ind=sys.argv.index('-WD')
-            self.WD=sys.argv[ind+1] 
+            self.WD=sys.argv[ind+1]
         else:
             self.WD="./"
         os.chdir(self.WD)
@@ -72,7 +72,7 @@ class convert_livdb_files_to_MagIC(wx.Frame):
         menu_help = menu_about.Append(-1, "&Some notes", "")
         self.Bind(wx.EVT_MENU, self.on_menu_help, menu_help)
 
-        self.menubar.Append(menu_about, "& Instrcutions") 
+        self.menubar.Append(menu_about, "& Instrcutions")
 
         self.SetMenuBar(self.menubar)
 
@@ -417,7 +417,7 @@ class convert_livdb_files_to_MagIC(wx.Frame):
             #
             # HEADER:
             # 1) First line is the header.
-            #    The header includes 19 fields delimited by comma (',') 
+            #    The header includes 19 fields delimited by comma (',')
             #    Notice: space is not a delimiter !
             #    In the list below the delimiter is not used, and the conversion script assumes comma delimited file
             #
@@ -462,7 +462,7 @@ class convert_livdb_files_to_MagIC(wx.Frame):
             # Measurement Time (HH:SS:MM) (delimiter = |)
             # Measurement Remark (string) (delimiter = |)
             # Step Number (integer) (delimiter = |)
-            # Step Type (string) (Z/I/P/T/O/NRM) (delimiter = |) 
+            # Step Type (string) (Z/I/P/T/O/NRM) (delimiter = |)
             # Tristan Gain (integer) (delimiter = |)
             # Microwave Power Integral (W.s) (delimiter = |)
             # JR6 Error(percent %) (delimiter = |)
@@ -491,11 +491,11 @@ class convert_livdb_files_to_MagIC(wx.Frame):
             #     to MagIC.
             # (8) NRM step: NRM step is regonized either by "Applied field intensity"=0 and "Applied field Dec" =0 and "Applied Field Inc"=0
             #               or if "Step Type" = NRM
-            #  
+            #
             #
             #
             # -------------------------------------------------------------
-            
+
 
             #--------------------------------------
             # Script was tested on the following protocols:
@@ -549,7 +549,7 @@ class convert_livdb_files_to_MagIC(wx.Frame):
 
                             header=line.strip('\n').split(",")
                             #header=str(this_line[0]).split()+ this_line[1:-1]
-                            
+
                             # header consists of  fields seperated by spaces and "|"
 
                     ##            if len (header) > 15:
@@ -600,12 +600,12 @@ class convert_livdb_files_to_MagIC(wx.Frame):
                                 for i in range(len(this_line_data)):
                                     tmp_data[meas_codes[i]]=this_line_data[i]
                                 Data[specimen][Experiment_Type]['meas_data'].append(tmp_data)
-                            
+
 
                     #-----------------------------------
                     # Convert to MagIC
                     #-----------------------------------
-        
+
                     specimens_list=list(Data.keys())
                     specimens_list.sort()
                     for specimen in specimens_list:
@@ -636,7 +636,7 @@ class convert_livdb_files_to_MagIC(wx.Frame):
 
                                     # check if the same treatment appears more than once. If yes, assuming that the measurements is repeated twice,
                                     # ignore the first, and take only the second one
-                                    
+
                                     if i< (len(Data[specimen][Experiment_Type]['meas_data'])-2) :
                                         Repeating_measurements=True
                                         for key in ["Treatment (aka field)","Microwave Power","Microwave Time","AF Demag/Remag Peak Field","Applied field Intensity",\
@@ -647,8 +647,8 @@ class convert_livdb_files_to_MagIC(wx.Frame):
                                             print("Found a repeating measurement at line %i, sample %s. taking the last one"%(i,specimen))
                                             continue
                                     #------------------
-                                    
-                                        
+
+
                                     MagRec={}
                                     # header_data
                                     MagRec['er_citation_names']="This study"
@@ -736,9 +736,9 @@ class convert_livdb_files_to_MagIC(wx.Frame):
                                            float (meas_line['AF Demag/Remag Peak Field'])!=0:
                                             lab_treatment="LT-AF-Z"
                                             MagRec['treatment_ac_field']='%8.3e' %(float(meas_line['AF Demag/Remag Peak Field'])*1e-3) # peak field in tesla
-                                            
+
                                     #-----------------------------------
-                                    # Thellier-Thellier protocol: 
+                                    # Thellier-Thellier protocol:
                                     #-----------------------------------
 
                                     if Experiment_Type in ['MW-PI-OT','MW-PI-OT+','TH-PI-OT','TH-PI-OT+']:
@@ -759,7 +759,7 @@ class convert_livdb_files_to_MagIC(wx.Frame):
                                         #experiment_treatments.append(treatment)
 
                                     #-----------------------------------
-                                    # Coe/Aitken/IZZI protocols: 
+                                    # Coe/Aitken/IZZI protocols:
                                     # Coe: N/ZI/.../ZPI/.../ZIT/.../ZPIT/
                                     # Aitken: N/IZ/.../IZP/.../ITZ/.../ITZP/
                                     # IZZI: N/IZ/ZI/../ZPI/...ITZ/.../ZPIT/.../ITZP/...
@@ -807,7 +807,7 @@ class convert_livdb_files_to_MagIC(wx.Frame):
                                             TH=True; MW=False
                                         else:
                                             TH=False; MW=True
-                                            
+
                                         #-------------------------------------
                                         # Special treatment for first line
                                         #-------------------------------------
@@ -824,7 +824,7 @@ class convert_livdb_files_to_MagIC(wx.Frame):
                                         #-------------------------------------
                                         # Assigning Lab Treatment
                                         #-------------------------------------
-                                                
+
                                             IZorZI="" # a flag for the current state (Z,I,ZP,T)
                                                       # Coe:
                                         else:
@@ -846,7 +846,7 @@ class convert_livdb_files_to_MagIC(wx.Frame):
 
                                                 elif labfield!=0 and treatment  in experiment_treatments:
                                                     #if IZorZI=='Z' or IZorZI=='':
-                                                        
+
                                                         prev_treatment=treatment
                                                         #print lab_treatments,"lab_treatments"
                                                         #print experiment_treatments,"experiment_treatments"
@@ -858,14 +858,14 @@ class convert_livdb_files_to_MagIC(wx.Frame):
                                                                 break
                                                         #print "prev_treatment",prev_treatment
                                                         #print "treatment",treatment
-                                                        
+
                                                         if float(treatment) < float(prev_treatment):
                                                             lab_treatment="LT-PMRM-I"*MW + "LT-PTRM-I"*TH
                                                             IZorZI==''
                                                         else:
                                                             lab_treatment="LT-M-I"*MW + "LT-T-I"*TH
                                                             IZorZI=""
-                                                        
+
                                                 else:
                                                     print("-E- ERROR. specimen %s. Cant relate step %s to the protocol"%\
                                                           (MagRec["er_specimen_name"],treatment))
@@ -944,11 +944,11 @@ class convert_livdb_files_to_MagIC(wx.Frame):
                                             lab_protocols_string="LP-DIR-AF"
                                             lab_treatment="LT-AF-Z"
 
-                                    
+
                                     experiment_treatments.append(treatment)
 
                                     #-----------------------------------
-                                            
+
 
                                     MagRec["magic_method_codes"]=lab_treatment+":"+lab_protocols_string
                                     MagRec["magic_experiment_name"]=specimen+":"+lab_protocols_string
@@ -990,7 +990,7 @@ class convert_livdb_files_to_MagIC(wx.Frame):
                                 ErRec['specimen_type']="Not Specified"
                                 ErRec['specimen_lithology']="Not Specified"
                                 ErRec['specimen_class']="Not Specified"
-                            
+
                                 ErRec['specimen_dip']=header_line['Sample Dip']
                                 if float(ErRec['specimen_dip'])==99: ErRec['specimen_dip']=""
                                 ErRec['specimen_azimuth']=header_line['Sample Dec']
@@ -1001,15 +1001,15 @@ class convert_livdb_files_to_MagIC(wx.Frame):
                                     ErRec['specimen_volume']="%f"%float(header_line['Sample Volume'])*1e-6
                                 except:
                                     ErRec['specimen_volume']=""
-                                    
+
                                 ErRec['specimen_density']=header_line['Sample Density']
-                                
+
                                 ErRecs.append(ErRec)
                                 headers=list(ErRec.keys())
                                 for key in headers:
                                     if key not in er_specimens_headers:
                                         er_specimens_headers.append(key)
-                                                                
+
         #-------------------------------------------
         #  magic_measurements.txt
         #-------------------------------------------
@@ -1035,7 +1035,7 @@ class convert_livdb_files_to_MagIC(wx.Frame):
         #  er_specimens.txt
         #-------------------------------------------
 
-        
+
         fout=open("er_specimens.txt",'w')
         fout.write("tab\ter_specimens\n")
         header_string=""
@@ -1066,11 +1066,11 @@ class convert_livdb_files_to_MagIC(wx.Frame):
 
 class message_box(wx.Frame):
     """"""
- 
+
     #----------------------------------------------------------------------
     def __init__(self,title):
         wx.Frame.__init__(self, parent=None,size=(1000,500))
-        
+
         self.panel = wx.Panel(self)
         self.sizer = wx.BoxSizer(wx.VERTICAL)
         self.text_log = wx.TextCtrl(self.panel, id=-1, style=wx.TE_MULTILINE | wx.TE_READONLY  | wx.HSCROLL)
@@ -1082,7 +1082,7 @@ class message_box(wx.Frame):
             #
             # HEADER:
             # 1) First line is the header.
-            #    The header includes 19 fields delimited by comma (',') 
+            #    The header includes 19 fields delimited by comma (',')
             #    Notice: space is not a delimiter !
             #    In the list below the delimiter is not used, and the concersion script assumes comma delimited file
             #
@@ -1127,7 +1127,7 @@ class message_box(wx.Frame):
             # Measurement Time (HH:SS:MM) (delimiter = |)
             # Measurement Remark (string) (delimiter = |)
             # Step Number (integer) (delimiter = |)
-            # Step Type (string) (Z/I/P/T/O/NRM) (delimiter = |) 
+            # Step Type (string) (Z/I/P/T/O/NRM) (delimiter = |)
             # Tristan Gain (integer) (delimiter = |)
             # Microwave Power Integral (W.s) (delimiter = |)
             # JR6 Error(percent %) (delimiter = |)
@@ -1156,11 +1156,11 @@ class message_box(wx.Frame):
             #     to MagIC.
             # (8) NRM step: NRM step is regonized either by "Applied field intensity"=0 and "Applied field Dec" =0 and "Applied Field Inc"=0
             #               or if "Step Type" = NRM
-            #  
+            #
             #
             #
             # -------------------------------------------------------------
-            
+
 
             #--------------------------------------
             # Script was tested on the following protocols:
@@ -1174,11 +1174,11 @@ class message_box(wx.Frame):
             #
             # -------------------------------------------------------------
             '''
-        
+
         self.text_log.AppendText(TEXT)
         self.panel.SetSizer(self.sizer)
 
-        
+
 #------------------------------------------------------------------------
 #   def main():
 #------------------------------------------------------------------------
@@ -1213,4 +1213,3 @@ if __name__ == '__main__':
 
 
 #main()
-
