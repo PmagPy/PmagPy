@@ -777,7 +777,7 @@ class MyForm(wx.Frame):
 
         # dlg = wx.FileDialog(
         ##            self, message="choose a file in a pmagpy redo format",
-        ##            style=wx.OPEN | wx.CHANGE_DIR
+        ##            style=wx.FD_OPEN | wx.CHANGE_DIR
         # )
         # if dlg.ShowModal() == wx.ID_OK:
         ##            interpreter_output= dlg.GetPath()

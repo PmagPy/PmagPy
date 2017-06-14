@@ -344,15 +344,15 @@ class convert_tdt_files_to_MagIC(wx.Frame):
         dia.Show()
         dia.Center()
 
-            
-    
+
+
 
     def on_add_dir_button_i(self,event):
 
         dlg = wx.DirDialog(
             None,message="choose directtory with tdt files",
             defaultPath ="./",
-            style=wx.OPEN | wx.CHANGE_DIR
+            style=wx.FD_OPEN | wx.CHANGE_DIR
             )
         if dlg.ShowModal() == wx.ID_OK:
             FILE = dlg.GetPath()

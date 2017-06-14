@@ -2651,7 +2651,7 @@ class OrientFrameGrid3(wx.Frame):
             self, message="choose orient file",
             defaultDir=self.WD,
             defaultFile="",
-            style=wx.OPEN | wx.CHANGE_DIR
+            style=wx.FD_OPEN | wx.CHANGE_DIR
             )
         if dlg.ShowModal() == wx.ID_OK:
             orient_file = dlg.GetPath()
@@ -3043,7 +3043,7 @@ class OrientFrameGrid(wx.Frame):
             self, message="choose orient file",
             defaultDir=self.WD,
             defaultFile="",
-            style=wx.OPEN | wx.CHANGE_DIR
+            style=wx.FD_OPEN | wx.CHANGE_DIR
             )
         if dlg.ShowModal() == wx.ID_OK:
             orient_file = dlg.GetPath()

@@ -912,10 +912,10 @@ class convert_generic_files_to_MagIC(wx.Frame):
 
         dlg = wx.FileDialog(
             None,message="choose file to convert to MagIC",
-            defaultDir=self.WD, 
+            defaultDir=self.WD,
             defaultFile="",
-            style=wx.OPEN | wx.CHANGE_DIR
-            )        
+            style=wx.FD_OPEN | wx.CHANGE_DIR
+            )
         if dlg.ShowModal() == wx.ID_OK:
             FILE = dlg.GetPath()
         # fin=open(FILE,'r')
@@ -927,10 +927,10 @@ class convert_generic_files_to_MagIC(wx.Frame):
 
         dlg = wx.FileDialog(
             None,message="choose file to convert to MagIC",
-            defaultDir="./", 
+            defaultDir="./",
             defaultFile="",
-            style=wx.OPEN | wx.CHANGE_DIR
-            )        
+            style=wx.FD_OPEN | wx.CHANGE_DIR
+            )
         if dlg.ShowModal() == wx.ID_OK:
             FILE = dlg.GetPath()
         # fin=open(FILE,'r')
