@@ -459,12 +459,12 @@ class site_lat_lon(wx.StaticBoxSizer):
     def __init__(self, parent):
         box = wx.StaticBox(parent, wx.ID_ANY, "", size=(100, 100))
         super(site_lat_lon, self).__init__(box, orient=wx.VERTICAL)
-        text = "Lattitude and Longitude of Site"
+        text = "Latitude and Longitude of Site"
         self.file_info_text = wx.StaticText(parent, label=text, style=wx.TE_CENTER)
         self.file_info_site_lat = wx.TextCtrl(parent, id=-1, size=(40, 25))
         self.file_info_site_lon = wx.TextCtrl(parent, id=-1, size=(40, 25))
         gridbSizer3 = wx.GridSizer(2, 2, 0, 10)
-        gridbSizer3.AddMany([(wx.StaticText(parent, label="Lattitude (degrees)", style=wx.TE_CENTER), wx.ALIGN_LEFT),
+        gridbSizer3.AddMany([(wx.StaticText(parent, label="Latitude (degrees)", style=wx.TE_CENTER), wx.ALIGN_LEFT),
                              (wx.StaticText(parent, label="Longitude (degrees)", style=wx.TE_CENTER), wx.ALIGN_LEFT),
                              (self.file_info_site_lat, wx.ALIGN_LEFT),
                              (self.file_info_site_lon, wx.ALIGN_LEFT)])
@@ -1067,7 +1067,7 @@ def close_window(SELF, command, outfile):
     print("-I- Finished running equivalent to Python command:\n %s"%command)
     if not outfile:
         outfile = ''
-    msg = "file(s) converted to MagIC format file:\n%s.\n\nSee Terminal/message windowfor errors"% outfile
+    msg = "file(s) converted to MagIC format file:\n%s.\n\nSee Terminal/message window for errors"% outfile
     dlg = wx.MessageDialog(None, caption="Message:", message=msg, style=wx.OK|wx.ICON_INFORMATION)
     dlg.ShowModal()
     dlg.Destroy()
