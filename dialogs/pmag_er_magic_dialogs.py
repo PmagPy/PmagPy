@@ -116,6 +116,9 @@ class ErMagicCheckFrame3(wx.Frame):
         self.contribution.propagate_average_up(cols=['lat', 'lon', 'height'],
                                        target_df_name='sites',
                                        source_df_name='samples')
+        # propagate lithology columns
+        self.contribution.propagate_lithology_cols()
+
         site_df = self.contribution.tables['sites'].df
         self.panel = wx.Panel(self, style=wx.SIMPLE_BORDER)
         self.grid_frame = grid_frame3.GridFrame(self.contribution, self.WD, 'sites', 'sites', self.panel)
