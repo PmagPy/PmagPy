@@ -655,12 +655,27 @@ class Contribution(object):
         # get dataframes for merge
         target_df = self.tables[target_df_name].df
         source_df = self.tables[source_df_name].df
+        backup_source_df = source_df.copy()
         # finesse source_df to make sure it has all the right columns
         # and no unnecessary duplicates
         if source_df_name[:-1] not in source_df.columns:
             source_df[source_df_name[:-1]] = source_df.index
         source_df = source_df.drop_duplicates(inplace=False, subset=col_names + [source_df_name[:-1]])
-        source_df = source_df.groupby(source_df.index, sort=False).fillna(method='ffill').groupby(source_df.index, sort=False).fillna(method='bfill')
+        source_df = source_df.groupby(source_df.index, sort=False).fillna(method='ffill')
+        source_df = source_df.groupby(source_df.index, sort=False).fillna(method='bfill')
+        # if the groupby/fillna operation fails due to pandas bug, do the same by hand:
+        if not len(source_df):
+            new = []
+            grouped = backup_source_df.groupby(backup_source_df.index)
+            for label, group in grouped:
+                new_group = group.fillna(method="ffill")
+                new_group = new_group.fillna(method="bfill")
+                new.append(new_group)
+            source_df = pd.concat(new)
+
+        # if the groupby/fillna still doesn't work, we are out of luck
+        if not len(source_df):
+            return target_df
         # propagate down
         if down:
             # do merge
@@ -694,6 +709,9 @@ class Contribution(object):
                 # delete extra merge column
                 del target_df[col + "_source"]
         #
+
+        # drop any duplicate rows
+        target_df.drop_duplicates(inplace=True)
         self.tables[target_df_name].df = target_df
         return target_df
 
