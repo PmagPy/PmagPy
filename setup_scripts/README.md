@@ -81,11 +81,8 @@ The executable will be in the dist directory. If it does not run when you double
 1. Make sure your path points to the correct version of Python.  I've had success with Canopy Python, but you may be able to use a different installation.  You should have pmagpy installed using pip.
 
 2.  Edit "main" function in Pmag GUI and MagIC GUI (desired behavior is slightly different when not launching from the command line).
-2a. Change:
+Change:
 `wx.App(redirect=False)` to `wx.App(redirect=True)`
-2b. Remove comments from these lines:
-`if working_dir == '.':`
-    `app.frame.on_change_dir_button(None)`
 
 3. Run unittests to make sure that everything works on Windows.  In PmagPy directory: `python -m unittest discover`.  Note: not all tests necessarily have to been passing to have a successful build.  It's still a good point of reference.
 
@@ -146,11 +143,8 @@ Here are the steps to make standalone Pmag/Magic GUIs for OSX.
 1.  Make sure your path points to the correct version of Python.  At this time, py2app doesn't play nice with Canopy.  I've had success with brew-installed Python and wxWidgets, but other distributions may work, as well.  You will, of course, need to have all dependencies installed (numpy, matplotlib, etc.)
 
 2.  Edit "main" function in Pmag GUI and MagIC GUI (desired behavior is slightly different when not launching from the command line).
-2a. Change:
+Change:
 `wx.App(redirect=False)` to `wx.App(redirect=True)`
-2b. Remove comments from these lines:
-`if working_dir == '.':`
-    `app.frame.on_change_dir_button(None)`
 
 3.  Open your Terminal and navigate to your PmagPy directory
 

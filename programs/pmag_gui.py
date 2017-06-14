@@ -780,12 +780,6 @@ INFORMATION
         app = wx.App(redirect=True)
     app.frame = MagMainFrame()
     working_dir = pmag.get_named_arg_from_sys('-WD', '.')
-
-    ## this causes an error with Canopy Python
-    ## (it works with brew Python)
-    ## need to use these lines for Py2app
-    #if working_dir == '.':
-    #    app.frame.on_change_dir_button(None)
     app.frame.Show()
     app.frame.Center()
     ## use for debugging:
