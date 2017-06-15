@@ -790,8 +790,14 @@ You may then paste into a text document or spreadsheet!
         Set self.df_slice based on user's selection
         """
         if self.grid.GetSelectionBlockTopLeft():
-            top_left = self.grid.GetSelectionBlockTopLeft()[0]
-            bottom_right = self.grid.GetSelectionBlockBottomRight()[0]
+            #top_left = self.grid.GetSelectionBlockTopLeft()
+            #bottom_right = self.grid.GetSelectionBlockBottomRight()
+            # awkward hack to fix wxPhoenix memory problem, (Github issue #221)
+            bottom_right = eval(repr(self.grid.GetSelectionBlockBottomRight()).replace("GridCellCoordsArray: ", "").replace("GridCellCoords", ""))
+            top_left = eval(repr(self.grid.GetSelectionBlockTopLeft()).replace("GridCellCoordsArray: ", "").replace("GridCellCoords", ""))
+            #
+            top_left = top_left[0]
+            bottom_right = bottom_right[0]
         else:
             return
         # GetSelectionBlock returns (row, col)
