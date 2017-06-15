@@ -8,14 +8,14 @@ import wx.grid as gridlib
 import wx.lib.mixins.gridlabelrenderer as gridlabelrenderer
 
 
-class HugeTable(gridlib.PyGridTableBase):
+class HugeTable(gridlib.GridTableBase):
 
     """
     Table class for virtual grid
     """
 
     def __init__(self, log, num_rows, num_cols):
-        gridlib.PyGridTableBase.__init__(self)
+        gridlib.GridTableBase.__init__(self)
         self.log = log
 
         self.odd=gridlib.GridCellAttr()
@@ -46,7 +46,7 @@ class HugeTable(gridlib.PyGridTableBase):
         return it.
         """
         if len(self.dataframe):
-            return self.dataframe.iloc[row, col]
+            return str(self.dataframe.iloc[row, col])
         return ''
 
     def SetValue(self, row, col, value):
@@ -75,8 +75,8 @@ class HugeTable(gridlib.PyGridTableBase):
         Set col label value in dataframe
         """
         if len(self.dataframe):
-            col_name = self.dataframe.columns[col]
-            self.dataframe.rename(columns={col_name: value}, inplace=True)
+            col_name = str(self.dataframe.columns[col])
+            self.dataframe.rename(columns={col_name: str(value)}, inplace=True)
         return ''
 
     ## this one doesn't seem to work right... just hangs...
