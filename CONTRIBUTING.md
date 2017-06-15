@@ -181,11 +181,15 @@ Making a new release has several steps:
 
     + From the PmagPy directory, use the following command to build a new distribution of pmagpy, upload it to PYPI, and upgrade locally:
 
-    `rm -rf build dist && python setup.py bdist_wheel && twine upload dist/* && pip install pmagpy —upgrade`
+    `rm -rf build dist && python setup.py bdist_wheel && twine upload dist/*`
 
-    + To make a test release, use a slightly different command from the PmagPy directory, which will: build a new distribution of pmagpy, upload it to the test site (will not overwrite the version people can download), and upgrade locally:
+    + To install that new release:  `pip install pmagpy --upgrade --no-deps`
 
-    `python setup.py bdist_wheel upload -r https://testpypi.python.org/pypi && pip install -i https://testpypi.python.org/pypi pmagpy —upgrade`
+    + To make a *test* release, use a slightly different command from the PmagPy directory, which will: build a new distribution of pmagpy, upload it to the test site (will not overwrite the version people can download), and upgrade locally:
+
+    `python setup.py bdist_wheel upload -r https://testpypi.python.org/pypi`
+
+    + To install the test release: `pip install -i https://testpypi.python.org/pypi pmagpy --upgrade --no-deps`
 
     + To build pmagpy-cli, you can use the same two commands above, but replacing "setup.py" with "command\_line\_setup.py".
 
