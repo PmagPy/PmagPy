@@ -770,7 +770,7 @@ class convert_SIO_files_to_MagIC(convert_files_to_MagIC):
         self.bSizer5 = pw.labeled_text_field(pnl, TEXT)
 
         #---sizer 11 ----
-        self.bSizer11 = pw.site_lat_lon(pnl)
+        #self.bSizer11 = pw.site_lat_lon(pnl)
 
         #---sizer 6 ---
         TEXT="Instrument name (optional):"
@@ -803,7 +803,7 @@ class convert_SIO_files_to_MagIC(convert_files_to_MagIC):
         vbox=wx.BoxSizer(wx.VERTICAL)
         hbox0 = wx.BoxSizer(wx.HORIZONTAL)
         hbox0.Add(self.bSizer5, flag=wx.ALIGN_LEFT)
-        hbox0.Add(self.bSizer11, flag=wx.ALIGN_LEFT|wx.LEFT, border=5)
+        #hbox0.Add(self.bSizer11, flag=wx.ALIGN_LEFT|wx.LEFT, border=5)
         hbox0.Add(self.bSizer6, flag=wx.ALIGN_LEFT|wx.LEFT, border=5)
         hbox1 =wx.BoxSizer(wx.HORIZONTAL)
         hbox1.Add(self.bSizer8, flag=wx.ALIGN_LEFT)
@@ -904,8 +904,9 @@ class convert_SIO_files_to_MagIC(convert_files_to_MagIC):
         cooling_rates = self.bSizer10.return_value()
         options_dict['cooling_rates'] = cooling_rates
 
-        try: lat,lon = self.bSizer11.return_value().split()
-        except ValueError: lat,lon = '',''
+        lat, lon = '', ''
+        #try: lat,lon = self.bSizer11.return_value().split()
+        #except ValueError: pass
         options_dict['lat'] = lat
         options_dict['lon'] = lon
         lat = '-lat ' + lat
@@ -924,7 +925,7 @@ class convert_SIO_files_to_MagIC(convert_files_to_MagIC):
         options_dict['site_file'] = SITE_OUTFILE
         options_dict['loc_file'] = LOC_OUTFILE
 
-        COMMAND = "sio_magic.py -F {0} -Fsp {1} -Fsa {2} -Fsi {3} -Flo {4} -f {5} -spc {6} -ncn {7} {8} {9} {10} {11} {12} {13} {14} {15} {16} {17} {18}".format(outfile, SPEC_OUTFILE, SAMP_OUTFILE, SITE_OUTFILE, LOC_OUTFILE, SIO_file, spc, ncn, user, experiment_type, cooling_rates, loc_name, lab_field, peak_AF, coil_number, instrument, replicate, lat, lon)
+        COMMAND = "sio_magic.py -F {0} -Fsp {1} -Fsa {2} -Fsi {3} -Flo {4} -f {5} -spc {6} -ncn {7} {8} {9} {10} {11} {12} {13} {14} {15} {16}".format(outfile, SPEC_OUTFILE, SAMP_OUTFILE, SITE_OUTFILE, LOC_OUTFILE, SIO_file, spc, ncn, user, experiment_type, cooling_rates, loc_name, lab_field, peak_AF, coil_number, instrument, replicate)#, lat, lon)
         print("COMMAND", COMMAND)
         # to run as module:
         if sio_magic.convert(**options_dict):
