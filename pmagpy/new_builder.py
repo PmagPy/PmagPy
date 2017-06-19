@@ -402,6 +402,8 @@ class Contribution(object):
         self.propagate_cols(cols, 'specimens', 'samples')
         # if sites table is missing any values,
         # go ahead and propagate values UP as well
+        if 'sites' not in self.tables:
+            return
         for col in cols:
             if col not in self.tables['sites'].df.columns:
                 self.tables['sites'].df[col] = None
