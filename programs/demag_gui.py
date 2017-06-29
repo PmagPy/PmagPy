@@ -72,7 +72,7 @@ from time import time
 from datetime import datetime
 import wx
 import wx.lib.scrolledpanel
-from numpy import vstack,sqrt,arange,array,pi,cos,sin,mean,exp,linspace,convolve
+from numpy import vstack,sqrt,arange,array,pi,cos,sin,mean,exp,linspace,convolve,nan
 from matplotlib import rcParams
 from matplotlib.figure import Figure
 from scipy.optimize import curve_fit
@@ -3349,6 +3349,12 @@ class Demag_GUI(wx.Frame):
             meas_container = self.con.tables['measurements']
             meas_data3_0 = meas_container.df
 
+            meas_data3_0.replace({'specimen': {nan: 'unknown'},'sample': {nan: 'unknown'},'site': {nan: 'unknown'},'location': {nan: 'unknown'}},inplace=True)
+            meas_data3_0['specimen'] = meas_data3_0['specimen'].apply(str)
+            meas_data3_0['sample'] = meas_data3_0['sample'].apply(str)
+            meas_data3_0['site'] = meas_data3_0['site'].apply(str)
+            meas_data3_0['location'] = meas_data3_0['location'].apply(str)
+
             # do some filtering
 #            if 'location' in meas_data3_0.columns:
 #                if any(meas_data3_0['location'].isnull()):
@@ -3372,16 +3378,16 @@ class Demag_GUI(wx.Frame):
 #                meas_data3_0 = meas_data3_0[meas_data3_0['specimen'].notnull()]
 ##                meas_data3_0.replace({'specimen':float('nan')},'unknown',inplace=True)
 
-            col_names = ['specimen', 'sample', 'site', 'location']
-            for col_name in col_names:
-                if col_name in meas_data3_0.columns:
-                    pruned = meas_data3_0[meas_data3_0[col_name].apply(nb.not_null)]
-                    num_missing = len(meas_data3_0) - len(pruned)
-                    if num_missing:
-                        msg = "{} measurements cannot be associated with a {} and will be excluded\nTry using Pmag GUI (step 3) to make sure you have provided the full chain from specimen to location.".format(num_missing, col_name)
-                        pw.simple_warning(msg)
-                        print("-W- {} measurements are missing {} data and will be excluded".format(num_missing, col_name))
-                        meas_data3_0 = pruned
+#            col_names = ['specimen', 'sample', 'site', 'location']
+#            for col_name in col_names:
+#                if col_name in meas_data3_0.columns:
+#                    pruned = meas_data3_0[meas_data3_0[col_name].apply(nb.not_null)]
+#                    num_missing = len(meas_data3_0) - len(pruned)
+#                    if num_missing:
+#                        msg = "{} measurements cannot be associated with a {} and will be excluded\nTry using Pmag GUI (step 3) to make sure you have provided the full chain from specimen to location.".format(num_missing, col_name)
+#                        pw.simple_warning(msg)
+#                        print("-W- {} measurements are missing {} data and will be excluded".format(num_missing, col_name))
+#                        meas_data3_0 = pruned
             Mkeys = ['magn_moment', 'magn_volume', 'magn_mass']
             meas_data3_0=meas_data3_0[meas_data3_0['method_codes'].str.contains('LT-NO|LT-AF-Z|LT-T-Z|LT-M-Z|LT-LT-Z')==True] # fish out all the relavent data
 # now convert back to 2.5  changing only those keys that are necessary for thellier_gui
