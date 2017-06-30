@@ -13,7 +13,7 @@ OPTIONS
     -h: prints the help message and quits.
     -usr USER: Colon delimited list of analysts, default is ""
     -ID: directory for input file if not included in -f flag
-    -f FILE: specify .sam format input file, required
+    -f FILE: specify AUTOCORE format input file, required
     -WD: directory to output files to (default : current directory)
     -F FILE: specify output  measurements file, default is measurements.txt
     -Fsp FILE: specify output specimens.txt file, default is specimens.txt
@@ -40,6 +40,7 @@ OPTIONS
     -mcd [SO-MAG,SO-SUN,SO-SIGHT...] supply how these samples were oriented
     -v NUM : specify the volume in cc of the sample, default 2.5^3cc. Will use vol in data file if volume!=0 in file.
     -tz: timezone in pytz library format. list of timzones can be found at http://pytz.sourceforge.net/. (default: US/Pacific)
+    -append: append output files to existing files, don't overwrite.
 
 INPUT
     BGC paleomag format file
@@ -53,6 +54,7 @@ import numpy as np
 import pmagpy.pmag as pmag
 import pmagpy.new_builder as nb
 import pytz, datetime
+import pandas as pd
 
 
 def convert(**kwargs):
@@ -73,6 +75,7 @@ def convert(**kwargs):
     samp_con = kwargs.get('samp_con', '1')
     specnum = int(kwargs.get('specnum', 0))
     timezone = kwargs.get('timestamp', 'US/Pacific')
+    append = kwargs.get('append', False)
     noave = kwargs.get('noave', False) # default False means DO average
     meth_code = kwargs.get('meth_code', "LP-NO")
     volume = float(kwargs.get('volume', 0))
@@ -236,11 +239,12 @@ def convert(**kwargs):
     MeasOuts=pmag.measurements_methods3(MeasRecs,noave)
     con.add_magic_table_from_data(dtype='measurements', data=MeasOuts)
 
-    con.tables['specimens'].write_magic_file(custom_name=spec_file)
-    con.tables['samples'].write_magic_file(custom_name=samp_file)
-    con.tables['sites'].write_magic_file(custom_name=site_file)
-    con.tables['locations'].write_magic_file(custom_name=loc_file)
-    con.tables['measurements'].write_magic_file(custom_name=meas_file)
+    
+    con.tables['specimens'].write_magic_file(custom_name=spec_file, append=append)
+    con.tables['samples'].write_magic_file(custom_name=samp_file, append=append)
+    con.tables['sites'].write_magic_file(custom_name=site_file, append=append)
+    con.tables['locations'].write_magic_file(custom_name=loc_file, append=append)
+    con.tables['measurements'].write_magic_file(custom_name=meas_file, append=append)
 
     return True, meas_file
 
@@ -302,6 +306,8 @@ def main():
     if '-tz' in sys.argv:
         ind=sys.argv.index("-tz")
         kwargs['timezone']=sys.argv[ind+1]
+    if '-append' in sys.argv:
+        kwargs['append']=True
 
     convert(**kwargs)
 
