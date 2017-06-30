@@ -5837,7 +5837,7 @@ You can combine multiple measurement files into one measurement file using Pmag 
                     # # set text color
                     flag_Fail = True
                 else:
-                    self.stat_windows[short_stat].SetBackGroundColour(wx.Green)
+                    self.stat_windows[short_stat].SetBackgroundColour(wx.GREEN)
                     # # set text color
             elif self.acceptance_criteria[stat]['threshold_type'] == 'high' and self.pars[stat] > cutoff_value:
                 self.stat_windows[short_stat].SetBackgroundColour(wx.RED)
