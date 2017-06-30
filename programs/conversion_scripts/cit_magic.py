@@ -21,6 +21,7 @@ OPTIONS
     -Fsi FILE: specify output sites.txt file, default is sites.txt # LORI
     -Flo FILE: specify output locations.txt file, default is locations.txt
     -n [cc,m3,g,kg]: specify normalization, default is cc.
+    -oe: demag steps are given in Oersteds
     -A: don't average replicate measurements
     -spc NUM: specify number of characters to designate a  specimen, default = 0
     -ncn NCON: specify naming convention
@@ -75,6 +76,7 @@ def convert(**kwargs):
     methods : colon delimited list of sample method codes. full list here (https://www2.earthref.org/MagIC/method-codes) (default : SO-MAG
     specnum : number of terminal characters that identify a specimen
     norm : is volume or mass normalization using cgs or si units (options : cc,m3,g,kg) (default : cc)
+    oersted : demag step vales are in Oersted
     noave : average measurement data or not. False is average, True is don't average. (default : False)
     samp_con : sample naming convention options as follows:
         [1] XXXXY: where XXXX is an arbitrary length site designation and Y
@@ -108,6 +110,7 @@ def convert(**kwargs):
     methods = kwargs.get('methods', ['SO-MAG'])
     specnum = -int(kwargs.get('specnum', 0))
     norm = kwargs.get('norm', 'cc')
+    oersted = kwargs.get('oersted', False) # mT (oe/10) is the default value
     noave = kwargs.get('noave', False)  # False means do average
     samp_con = kwargs.get('samp_con', '3')
     magfile = kwargs.get('magfile', '')
@@ -308,6 +311,8 @@ def convert(**kwargs):
                 else:
                     try: MeasRec['treat_ac_field']='%10.3e'%(float(treat)*1e-3)
                     except ValueError as e: print(os.path.join(input_dir_path,specimen)); raise e
+                if MeasRec['treat_ac_field']!='0':
+                    MeasRec['treat_ac_field']='%10.3e'%(float(MeasRec['treat_ac_field'])/10)
             elif treat_type.startswith('ARM'):
                 MeasRec['method_codes']="LP-ARM"
                 MeasRec['meas_temp']='273'
@@ -495,6 +500,8 @@ def main():
     if '-n' in sys.argv:
         ind=sys.argv.index("-n")
         kwargs['norm']=sys.argv[ind+1]
+    if "-oe" in sys.argv:
+        kwargs['oersted'] = True
     if "-A" in sys.argv:
         kwargs['noave'] = True
     if '-dc' in sys.argv:
