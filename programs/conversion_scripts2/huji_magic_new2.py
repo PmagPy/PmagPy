@@ -239,6 +239,9 @@ def main(command_line=True, **kwargs):
             ind=args.index("-LP")
             CR_cooling_times=args[ind+2].split(",")
 
+    if "ANI" in codes:
+        demag="T"
+        LPcode="LP-AN-TRM"
 
         #print CR_cooling_time ,"CR_cooling_time"
 
@@ -358,7 +361,6 @@ def main(command_line=True, **kwargs):
             MagRec["measurement_inc"]=this_line_data['inc_core']
             date=this_line_data['date']
             hour=this_line_data['hour']    
-
             if float(date[2])>80:
                 yyyy="19"+date[2]
             else:
@@ -530,7 +532,6 @@ def main(command_line=True, **kwargs):
                 # direction of the lab field.
                 #----------------------------------------
                 
-
                 if LPcode =="LP-AN-TRM" :
                     
                     MagRec["magic_experiment_name"]=specimen+ ":" + LPcode
@@ -543,9 +544,10 @@ def main(command_line=True, **kwargs):
                         MagRec["treatment_temp"]='%8.3e' % (float(treatment[0])+273.) # temp in kelvin
                         MagRec["treatment_dc_field"]='0'
                     else:
-                        if float(treatment[1])==7:
+                        if float(treatment[1])==7 or float(treatment[1])==70:
                             # alteration check
-                            methcode="LP-AN-TRM:LT-PTRM-I"
+                            #methcode="LP-AN-TRM:LT-PTRM-I"
+                            MagRec["magic_method_codes"]="LP-AN-TRM:LT-PTRM-I"
                             MagRec["measurement_number"]='7'# -z
                         else:    
                             MagRec["magic_method_codes"]="LP-AN-TRM:LT-T-I"
@@ -613,6 +615,9 @@ def main(command_line=True, **kwargs):
                     if index==7 or index==70: # alteration check as final measurement
                             meas_type="LT-PTRM-I:LP-CR-TRM"
                             CR_cooling_time=CR_cooling_times[-1]
+                    elif index==0 or index==00: # baseline
+                            meas_type="LT-T-Z:LP-CR-TRM"
+                            CR_cooling_time=CR_cooling_times[0]
                     else: 
                             meas_type="LT-T-I:LP-CR-TRM"
                             CR_cooling_time=CR_cooling_times[index-1]
@@ -628,7 +633,6 @@ def main(command_line=True, **kwargs):
                     MagRecs.append(MagRec)
                     #continue
 
-    
     pmag.magic_write(meas_file,MagRecs,'magic_measurements')
     print("-I- results put in ",meas_file)
     return True, meas_file
