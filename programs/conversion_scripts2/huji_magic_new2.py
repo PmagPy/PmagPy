@@ -544,32 +544,32 @@ def main(command_line=True, **kwargs):
                         MagRec["treatment_temp"]='%8.3e' % (float(treatment[0])+273.) # temp in kelvin
                         MagRec["treatment_dc_field"]='0'
                     else:
+                        MagRec["magic_method_codes"]="LP-AN-TRM:LT-T-I"
+                        inc=float(MagRec["measurement_inc"]);dec=float(MagRec["measurement_dec"])
+                        if abs(inc)<45 and (dec<45 or dec>315): # +x
+                            tdec,tinc=0,0
+                            MagRec["measurement_number"]='1'
+                        if abs(inc)<45 and (dec<135 and dec>45):
+                            tdec,tinc=90,0
+                            MagRec["measurement_number"]='2' # +y
+                        if inc>45 :
+                            tdec,tinc=0,90
+                            MagRec["measurement_number"]='3' # +z
+                        if abs(inc)<45 and (dec<225 and dec>135):
+                            tdec,tinc=180,0
+                            MagRec["measurement_number"]='4' # -x
+                        if abs(inc)<45 and (dec<315 and dec>225):
+                            tdec,tinc=270,0
+                            MagRec["measurement_number"]='5'# -y
+                        if inc<-45 :
+                            tdec,tinc=0,-90
+                            MagRec["measurement_number"]='6'# -z
                         if float(treatment[1])==7 or float(treatment[1])==70:
                             # alteration check
                             #methcode="LP-AN-TRM:LT-PTRM-I"
                             MagRec["magic_method_codes"]="LP-AN-TRM:LT-PTRM-I"
                             MagRec["measurement_number"]='7'# -z
-                        else:    
-                            MagRec["magic_method_codes"]="LP-AN-TRM:LT-T-I"
-                            inc=float(MagRec["measurement_inc"]);dec=float(MagRec["measurement_dec"])
-                            if abs(inc)<45 and (dec<45 or dec>315): # +x
-                                tdec,tinc=0,0
-                                MagRec["measurement_number"]='1'
-                            if abs(inc)<45 and (dec<135 and dec>45):
-                                tdec,tinc=90,0
-                                MagRec["measurement_number"]='2' # +y
-                            if inc>45 :
-                                tdec,tinc=0,90
-                                MagRec["measurement_number"]='3' # +z
-                            if abs(inc)<45 and (dec<225 and dec>135):
-                                tdec,tinc=180,0
-                                MagRec["measurement_number"]='4' # -x
-                            if abs(inc)<45 and (dec<315 and dec>225):
-                                tdec,tinc=270,0
-                                MagRec["measurement_number"]='5'# -y
-                            if inc<-45 :
-                                tdec,tinc=0,-90
-                                MagRec["measurement_number"]='6'# -z
+
                         
                         MagRec["treatment_dc_field_phi"]='%7.1f' %(tdec)
                         MagRec["treatment_dc_field_theta"]='%7.1f'% (tinc)
