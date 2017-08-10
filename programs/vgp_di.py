@@ -68,12 +68,12 @@ def main():
         ind=sys.argv.index('-f')
         file=sys.argv[ind+1]
         f=open(file,'r')
-        input = f.readlines()  # read from standard input
-        for line in input:   # read in the data (as string variable), line by line
+        inp = f.readlines()  # read from standard inp
+        for line in inp:   # read in the data (as string variable), line by line
             dec,inc= spitout(line)
     else:
-        input = sys.stdin.readlines()  # read from standard input
-        for line in input:   # read in the data (as string variable), line by line
+        inp = sys.stdin.readlines()  # read from standard input
+        for line in inp:   # read in the data (as string variable), line by line
             spitout(line)
 
 if __name__ == "__main__":

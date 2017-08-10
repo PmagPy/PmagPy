@@ -66,7 +66,7 @@ def main():
         ind=sys.argv.index('-f')
         infile=sys.argv[ind+1]
         f=open(infile,'r')
-        input=f.readlines()
+        inp=f.readlines()
     elif '-P' in sys.argv:
         ind=sys.argv.index('-P')
         plate=sys.argv[ind+1].upper()
@@ -97,9 +97,9 @@ def main():
             out.write(outstring)
         sys.exit()
     else:
-        input=sys.stdin.readlines() # read from standard input
-    if len(input)>0:
-      for line in input:
+        inp=sys.stdin.readlines() # read from standard input
+    if len(inp)>0:
+      for line in inp:
         data=[]
         rec=line.split()
         data.append(rec[0])

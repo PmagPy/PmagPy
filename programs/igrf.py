@@ -64,7 +64,7 @@ def main():
     if '-f' in sys.argv:
         ind=sys.argv.index('-f')
         file=sys.argv[ind+1]
-        input=numpy.loadtxt(file)
+        inp=numpy.loadtxt(file)
     elif '-i' in sys.argv:
         while 1:
           try:
@@ -104,9 +104,9 @@ def main():
         lats=numpy.ones(len(ages))*lat
         lons=numpy.ones(len(ages))*lon
         alts=numpy.ones(len(ages))*alt
-        input=numpy.array([ages,alts,lats,lons]).transpose()
+        inp=numpy.array([ages,alts,lats,lons]).transpose()
     else:
-        input=numpy.loadtxt(sys.stdin,dtype=numpy.float)
+        inp=numpy.loadtxt(sys.stdin,dtype=numpy.float)
     if '-F' in sys.argv:
         ind=sys.argv.index('-F')
         outfile=sys.argv[ind+1]
@@ -120,7 +120,7 @@ def main():
         import pylab
         pylab.ion()
         Ages,Decs,Incs,Ints,VADMs=[],[],[],[],[]
-    for line in input:
+    for line in inp:
         #if mod=='':
         #    x,y,z,f=pmag.doigrf(line[3]%360.,line[2],line[1],line[0])
         #else:

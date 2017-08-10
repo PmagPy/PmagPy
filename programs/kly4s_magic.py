@@ -18,7 +18,6 @@ def main():
 
     OPTIONS
         -h: prints the help message and quits
-        -i: allows interactive input of input/output filenames
         -f FILE: specify .ams input file name
         -fad AZDIP: specify AZDIP file with orientations, will create er_samples.txt file
         -fsa SFILE: specify existing er_samples.txt file with orientation information

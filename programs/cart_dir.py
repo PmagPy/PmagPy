@@ -56,10 +56,10 @@ def main():
     elif '-f' in sys.argv:
         ind=sys.argv.index('-f')
         file=sys.argv[ind+1]
-        input=numpy.loadtxt(file) # read from a file
+        inp=numpy.loadtxt(file) # read from a file
     else:
-        input = numpy.loadtxt(sys.stdin,dtype=numpy.float)  # read from standard input
-    dir=pmag.cart2dir(input)
+        inp = numpy.loadtxt(sys.stdin,dtype=numpy.float)  # read from standard input
+    dir=pmag.cart2dir(inp)
     if len(dir.shape)==1:
         line=dir 
         print('%7.1f %7.1f %10.3e'%(line[0],line[1],line[2]))

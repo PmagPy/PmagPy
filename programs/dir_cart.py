@@ -59,10 +59,10 @@ def main():
     elif '-f' in sys.argv:
         ind=sys.argv.index('-f')
         file=sys.argv[ind+1]  
-        input=numpy.loadtxt(file)
+        inp=numpy.loadtxt(file)
     else:
-        input=numpy.loadtxt(sys.stdin,dtype=numpy.float)
-    cart= pmag.dir2cart(input)
+        inp=numpy.loadtxt(sys.stdin,dtype=numpy.float)
+    cart= pmag.dir2cart(inp)
     if len(cart.shape)==1:
         line=cart
         print('%8.4e %8.4e %8.4e'%(line[0],line[1],line[2]))

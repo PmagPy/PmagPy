@@ -34,7 +34,7 @@ def main():
         -F FILE output 
     
     """
-    input,out="",""
+    inp,out="",""
     if '-h' in sys.argv:
         print(main.__doc__)
         sys.exit()
@@ -42,7 +42,7 @@ def main():
         ind=sys.argv.index('-f')
         file=sys.argv[ind+1]
         f=open(file,'r')
-        input=f.readlines()
+        inp=f.readlines()
     if '-F' in sys.argv:
         ind=sys.argv.index('-F')
         o=sys.argv[ind+1]
@@ -59,9 +59,9 @@ def main():
                  
             b= pmag.vdm_b(vdm,lat)
             print('%10.3e '%(b))
-    if input=="":
-        input = sys.stdin.readlines()  # read from standard input
-    for line in input:
+    if inp=="":
+        inp = sys.stdin.readlines()  # read from standard inp
+    for line in inp:
         b=spitout(line)
         if out=="":
             print('%10.3e'%(b))

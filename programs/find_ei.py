@@ -25,7 +25,6 @@ def main():
 
     OPTIONS
         -h prints help message and quits
-        -i allows interactive input of file name
         -f FILE specify input file name
         -nb N specify number of bootstraps - the more the better, but slower!, default is 1000
         -sc uses a "site-level" correction to a Fisherian distribution instead
@@ -49,8 +48,6 @@ def main():
     """
     fmt,nb='svg',1000
     plot=0
-    if '-i' in sys.argv:
-        file=input("Enter file name for processing: ")
     if '-h' in sys.argv:
         print(main.__doc__)
         sys.exit() # graceful quit

@@ -40,6 +40,7 @@ def main():
     """
     dist='F' # default distribution is Fisherian
     mode=1
+    title=""
     EQ={'eq':1}
     if len(sys.argv) > 0:
         if '-h' in sys.argv: # check if help is needed
@@ -49,6 +50,8 @@ def main():
             file=input("Enter file name with dec, inc data: ")
             dist=input("Enter desired distrubution: [Fish]er, [Bing]ham, [Kent] [Boot] [default is Fisher]: ")
             if dist=="":dist="F"
+            if dist=="Bing":dist="B"
+            if dist=="Kent":dist="K"
             if dist=="Boot":
                  type=input(" Ellipses or distribution of vectors? [E]/V ")
                  if type=="" or type=="E":

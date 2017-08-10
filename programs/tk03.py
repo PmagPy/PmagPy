@@ -15,7 +15,7 @@ def main():
         generates set of vectors drawn from TK03.gad at given lat and
         rotated about vertical axis by given Dec
 
-    INPUT (COMMAND LINE ENTRY and interactive)
+    INPUT (COMMAND LINE ENTRY)
     OUTPUT
         dec,  inc, int
 
