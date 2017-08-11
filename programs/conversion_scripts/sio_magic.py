@@ -265,12 +265,13 @@ def convert(**kwargs):
         if "CR" in codes:
             demag="T"
             cooling_rate_experiment=1
-            if command_line:
-                ind=sys.argv.index("CR")
-                cooling_rates=sys.argv[ind+1]
-                cooling_rates_list=cooling_rates.split(',')
-            else:
-                cooling_rates_list=str(cooling_rates).split(',')
+            cooling_rates_list=cooling_rates.split(',') # command_line does not exist in this code
+            #if command_line:
+            #    ind=sys.argv.index("CR")
+            #    cooling_rates=sys.argv[ind+1]
+            #    cooling_rates_list=cooling_rates.split(',')
+            #else:
+            #    cooling_rates_list=str(cooling_rates).split(',')
     if demag=="T" and "ANI" in codes:
         methcode="LP-AN-TRM"
     if demag=="T" and "CR" in codes:
@@ -590,7 +591,6 @@ def convert(**kwargs):
 
             # Cooling rate experient # added by rshaar
             elif demag=="T" and methcode == "LP-CR-TRM":
-
                 MeasRec["treat_temp"]='%8.3e' % (float(treat[0])+273.) # temp in kelvin
                 if treat[1][0]=='0':
                     meas_type="LT-T-Z:LP-CR-TRM"
@@ -613,8 +613,7 @@ def convert(**kwargs):
                     else:
                        cooling_time=cooling_rates_list[indx]
                     MeasRec["description"]="cooling_rate"+":"+cooling_time+":"+"K/min"
-
-
+                    noave=1
             elif demag!='N':
               if len(treat)==1:treat.append('0')
               MeasRec["treat_temp"]='%8.3e' % (float(treat[0])+273.) # temp in kelvin
@@ -743,6 +742,9 @@ def main():
     if '-LP' in sys.argv:
         ind=sys.argv.index("-LP")
         kwargs['codelist']=sys.argv[ind+1]
+        if 'CR' in sys.argv:     
+            ind=sys.argv.index("CR")
+            kwargs['cooling_rates']=sys.argv[ind+1]
     if "-V" in sys.argv:
         ind=sys.argv.index("-V")
         kwargs['coil']=sys.argv[ind+1]
