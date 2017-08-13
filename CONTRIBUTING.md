@@ -173,7 +173,7 @@ Making a new release has several steps:
 
     + This sequence will work for either Python 3 or Python 2.  To make a new pip release for Python 2, you must first switch to the PmagPy Python2 branch, and, of course, make sure you are running Python 2.  However, as we are now developing in Python 3 exclusively, we shouldn't need to make new releases from the Python 2 branch unless there is a new bug fix.
 
-    + First, increment the version number in setup.py or command\_line\_setup.py.  PYPI will reject a duplicate version number.
+    + First, increment the version number pmagpy/version.py.  PYPI will reject a duplicate version number, so you need to update version.py each time.
 
     + If you are using Anaconda Python, downgrade matplotlib to < 2:
 
