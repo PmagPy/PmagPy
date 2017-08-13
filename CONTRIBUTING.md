@@ -163,7 +163,7 @@ Making a new release has several steps:
 
 - Make sure all tests are passing and all new features are working.
 
-- Create a new release number.  Release numbers are in the form of MAJOR.MINOR.PATCH, and each release number should be higher than the one before it.  More on semantic versioning can be found [here](http://semver.org).  The pip release and the standalones should all use the same release number!
+- Create a new release number by updating pmagpy/version.py.  Release numbers are in the form of MAJOR.MINOR.PATCH, and each release number should be higher than the one before it.  More on semantic versioning can be found [here](http://semver.org).  The pip release and the standalones should all use the same release number!
 
 - Create a pip release.
 
