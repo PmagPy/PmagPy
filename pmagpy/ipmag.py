@@ -17,6 +17,7 @@ import numpy as np
 import pandas as pd
 import random
 import matplotlib.pyplot as plt
+from matplotlib.patches import Polygon
 import os
 import sys
 import time
@@ -1529,8 +1530,7 @@ def plot_di_mean_bingham(bingham_dictionary, fignum=1, color='k', marker='o', ma
     pmagplotlib.plotELL(fignum, pars, color, 0, 1)
 
 
-def plot_pole(mapname, plon, plat, A95, label='', color='k', edgecolor=None,
-              marker='o', markersize=20, legend='no'):
+def plot_pole(mapname, plon, plat, A95, label='', color='k', marker='o', markersize=20, legend='no'):
     """
     This function plots a paleomagnetic pole and A95 error ellipse on whatever
     current map projection has been set using the basemap plotting library.
@@ -1564,7 +1564,7 @@ def plot_pole(mapname, plon, plat, A95, label='', color='k', edgecolor=None,
     centerlon, centerlat = mapname(plon, plat)
     A95_km = A95 * 111.32
     mapname.scatter(centerlon, centerlat, marker=marker,
-                    color=color, edgecolors=edgecolor, s=markersize, label=label, zorder=101)
+                    color=color, s=markersize, label=label, zorder=101)
     equi(mapname, plon, plat, A95_km, color)
     if legend == 'yes':
         plt.legend(loc=2)
@@ -1952,8 +1952,8 @@ def shoot(lon, lat, azimuth, maxdist=None):
     faz = azimuth * np.pi / 180.
 
     EPS = 0.00000000005
-    if ((np.abs(np.cos(glat1)) < EPS) and not (np.abs(np.sin(faz)) < EPS)):
-        alert("Only N-S courses are meaningful, starting at a pole!")
+#    if ((np.abs(np.cos(glat1)) < EPS) and not (np.abs(np.sin(faz)) < EPS)): #why was this ever a thing? it works fine at the north pole
+#        raise ValueError("Only N-S courses are meaningful, starting at a pole!")
 
     a = old_div(6378.13, 1.852)
     f = old_div(1, 298.257223563)
@@ -2050,6 +2050,57 @@ def equi_colormap(m, centerlon, centerlat, radius, color, alpha='1.0'):
     X, Y = m(X, Y)
     plt.plot(X, Y, color, alpha=alpha)
 
+def ellipse(m, centerlon, centerlat, major_axis, minor_axis, angle, n=360, filled=False, **kwargs):
+    """
+    This function enables general error ellipses to be drawn on the basemap projection of the input map m
+    using a center and a set of major and minor axes and a rotation angle east of north.
+    (Adapted from equi).
+
+    Parameters
+    -----------
+    m : initalized Basemap object
+    centerlon : longitude of the center of the ellipse
+    centerlat : latitude of the center of the ellipse
+    major_axis : Major axis of ellipse
+    minor_axis : Minor axis of ellipse
+    angle : angle of major axis in degrees east of north
+    n : number of points with which to apporximate the ellipse
+    filled : boolean specifying if the ellipse should be plotted as a filled polygon or
+             as a set of line segments
+    kwargs : any other key word arguments for the Polygon function of matplotlib.patches
+             if filled = True. Else any key word arguments for the basemap.plot function
+
+    Returns
+    ---------
+    The map object with the ellipse plotted on it
+
+    """
+    angle = angle*(np.pi/180)
+    glon1 = centerlon
+    glat1 = centerlat
+    X = []
+    Y = []
+    for azimuth in np.linspace(0,360,n):
+        az_rad = azimuth*(np.pi/180)
+        radius = ((major_axis*minor_axis)/(((minor_axis*np.cos(az_rad-angle))**2 + (major_axis*np.sin(az_rad-angle))**2)**.5))
+        glon2, glat2, baz = shoot(glon1, glat1, azimuth, radius)
+        X.append(glon2)
+        Y.append(glat2)
+    X.append(X[0])
+    Y.append(Y[0])
+
+    if filled:
+        ax = m._check_ax()
+        X, Y = m(X, Y)
+        ellip = np.array((X,Y)).T
+        poly = Polygon(ellip, **kwargs)
+        ax.add_patch(poly)
+        m.set_axes_limits(ax=ax)
+    else:
+        X, Y = m(X, Y)
+        m.plot(X, Y, **kwargs)
+
+    return m
 
 def combine_magic(filenames, outfile, data_model=2.5, magic_table='measurements'):
     """
@@ -2346,26 +2397,18 @@ def core_depthplot(input_dir_path='.', meas_file='magic_measurements.txt', spc_f
                    size=5, spc_sym='ro', spc_size=5, meth='', step=0, fmt='svg',
                    pltDec=True, pltInc=True, pltMag=True, pltLine=True, pltSus=True,
                    logit=False, pltTime=False, timescale=None, amin=-1, amax=-1,
-                   norm=False, data_model_num=3):
+                   norm=False):
     """
     depth scale can be 'sample_core_depth' or 'sample_composite_depth'
     if age file is provided, depth_scale will be set to 'age' by default
     """
-    #print('input_dir_path', input_dir_path, 'meas_file', meas_file, 'spc_file', spc_file)
-    #print('samp_file', samp_file, 'age_file', age_file, 'depth_scale', depth_scale)
-    #print('dmin', dmin, 'dmax', dmax, 'sym', sym, 'size', size, 'spc_sym', spc_sym, 'spc_size', spc_size)
-    #print('meth', meth, 'step', step, 'fmt', fmt, 'pltDec', pltDec, 'pltInc', pltInc, 'pltMag', pltMag)
-    #print('pltLine', pltLine, 'pltSus', pltSus, 'logit', logit, 'timescale', timescale, 'amin', amin, 'amax', amax)
+    # print 'input_dir_path', input_dir_path, 'meas_file', meas_file, 'spc_file', spc_file
+    # print 'samp_file', samp_file, 'age_file', age_file, 'depth_scale', depth_scale
+    # print 'dmin', dmin, 'dmax', dmax, 'sym', sym, 'size', size, 'spc_sym', spc_sym, 'spc_size', spc_size,
+    # print 'meth', meth, 'step', step, 'fmt', fmt, 'pltDec', pltDec, 'pltInc', pltInc, 'pltMag', pltMag,
+    # print 'pltLine', pltLine, 'pltSus', pltSus, 'logit', logit, 'timescale', timescale, 'amin', amin, 'amax', amax
     # print 'pltTime', pltTime
     # print 'norm', norm
-    data_model_num = int(data_model_num)
-    # replace MagIC 2.5 defaults with MagIC 3 defaults if needed
-    if data_model_num == 3 and meas_file == 'magic_measurements.txt':
-        meas_file = 'measurements.txt'
-    if data_model_num == 3 and samp_file == 'er_samples.txt':
-        samp_file = 'samples.txt'
-    if data_model_num == 3 and age_file == 'er_ages.txt':
-        age_file = 'ages.txt'
     intlist = ['measurement_magnitude', 'measurement_magn_moment',
                'measurement_magn_volume', 'measurement_magn_mass']
     width = 10
@@ -2451,88 +2494,29 @@ def core_depthplot(input_dir_path='.', meas_file='magic_measurements.txt', spc_f
 
     #
     #
-    # read in 3.0 data and translate to 2.5
-    if data_model_num == 3:
-        if meas_file:
-            meas_file = os.path.join(input_dir_path, meas_file)
-        if spc_file:
-            spc_file = os.path.join(input_dir_path, spc_file)
-        if age_file == "":
-            if samp_file:
-                samp_file = os.path.join(input_dir_path, samp_file)
-            Samps3, file_type = pmag.magic_read(samp_file)
-            #translate samp records to MagIC 2.5
-            Samps = []
-            for samp in Samps3:
-                Samps.append(map_magic.mapping(samp, map_magic.samp_magic3_2_magic2_map))
+    # get data read in
 
-        else:
-            depth_scale = 'age'
-            if age_file:
-                age_file = os.path.join(input_dir_path, age_file)
-            Samps3, file_type = pmag.magic_read(age_file)
-            #translate samp records to MagIC 2.5
-            Samps = []
-            for samp in Samps3:
-                Samps.append(map_magic.mapping(samp, map_magic.samp_magic3_2_magic2_map))
-            age_unit = ""
-        if spc_file:
-            Specs3, file_type = pmag.magic_read(spc_file)
-            #translate specimen records to MagIC 2.5
-            Specs = []
-            for spec in Specs3:
-                Specs.append(map_magic.mapping(spec, map_magic.spec_magic3_2_magic2_map))
-
-        if res_file:
-            warn = '-W- result file option is not currently available for MagIC data model 3'
-            print(warn)
-            return False, warn
-            #Results, file_type = pmag.magic_read(res_file)
-        if norm:
-            #warn = '-W- norm option is not currently available for MagIC data model 3'
-            #print(warn)
-            #return False, warn
-            Specs3, file_type = pmag.magic_read(wt_file)
-            # translate specimen records to 2.5
-            ErSpecs = []
-            for spec in Samps3:
-                ErSpecs.append(map_magic.mapping(spec, samp_magic3_2_magic2_map))
-
-            print(len(ErSpecs), ' specimens read in from ', wt_file)
-
-        if not os.path.isfile(spc_file):
-            if not os.path.isfile(meas_file):
-                return False, "You must provide either a magic_measurements file or a pmag_specimens file"
-
-    # read in 2.5 data
-    elif data_model_num == 2:
-        if meas_file:
-            meas_file = os.path.join(input_dir_path, meas_file)
-        if spc_file:
-            spc_file = os.path.join(input_dir_path, spc_file)
-        if age_file == "":
-            if samp_file:
-                samp_file = os.path.join(input_dir_path, samp_file)
-            Samps, file_type = pmag.magic_read(samp_file)
-        else:
-            depth_scale = 'age'
-            if age_file:
-                age_file = os.path.join(input_dir_path, age_file)
-            Samps, file_type = pmag.magic_read(age_file)
-            age_unit = ""
-        if spc_file:
-            Specs, file_type = pmag.magic_read(spc_file)
-        if res_file:
-            Results, file_type = pmag.magic_read(res_file)
-        if norm:
-            ErSpecs, file_type = pmag.magic_read(wt_file)
-            print(len(ErSpecs), ' specimens read in from ', wt_file)
-
-        if not os.path.isfile(spc_file):
-            if not os.path.isfile(meas_file):
-                return False, "You must provide either a magic_measurements file or a pmag_specimens file"
+    meas_file = os.path.join(input_dir_path, meas_file)
+    spc_file = os.path.join(input_dir_path, spc_file)
+    if age_file == "":
+        samp_file = os.path.join(input_dir_path, samp_file)
+        Samps, file_type = pmag.magic_read(samp_file)
     else:
-        return False, "Invalid data model number: {}".format(str(data_model_num))
+        depth_scale = 'age'
+        age_file = os.path.join(input_dir_path, age_file)
+        Samps, file_type = pmag.magic_read(age_file)
+        age_unit = ""
+    if spc_file:
+        Specs, file_type = pmag.magic_read(spc_file)
+    if res_file:
+        Results, file_type = pmag.magic_read(res_file)
+    if norm:
+        ErSpecs, file_type = pmag.magic_read(wt_file)
+        print(len(ErSpecs), ' specimens read in from ', wt_file)
+
+    if not os.path.isfile(spc_file):
+        if not os.path.isfile(meas_file):
+            return False, "You must provide either a magic_measurements file or a pmag_specimens file"
 
     Cores = []
     core_depth_key = "Top depth cored CSF (m)"
@@ -2582,23 +2566,10 @@ def core_depthplot(input_dir_path='.', meas_file='magic_measurements.txt', spc_f
     SSucs = []
     samples = []
     methods, steps, m2 = [], [], []
-
     if pltSus and os.path.isfile(meas_file):  # plot the bulk measurement data
-        if data_model_num == 3:
-            Meas3, file_type = pmag.magic_read(meas_file)
-            #translate meas records to MagIC 2.5
-            Meas = []
-            for meas in Meas3:
-                Meas.append(map_magic.mapping(meas, map_magic.meas_magic3_2_magic2_map))
-            # has measurement_magn_mass ....
-
-        elif data_model_num == 2:
-            Meas, file_type = pmag.magic_read(meas_file)
-
+        Meas, file_type = pmag.magic_read(meas_file)
         meas_key = 'measurement_magn_moment'
-        #
         print(len(Meas), ' measurements read in from ', meas_file)
-        #
         for m in intlist:  # find the intensity key with data
             # get all non-blank data for this specimen
             meas_data = pmag.get_dictitem(Meas, m, '', 'F')
@@ -3164,7 +3135,7 @@ def upload_magic(concat=0, dir_path='.', data_model=None):
               'specimen_gmax', 'specimen_frac', 'site_vadm', 'site_lon', 'site_vdm', 'site_lat',
               'measurement_chi', 'specimen_k_prime', 'specimen_k_prime_sse', 'external_database_names',
               'external_database_ids', 'Further Notes', 'Typology', 'Notes (Year/Area/Locus/Level)',
-              'Site', 'Object Number', "level"]
+              'Site', 'Object Number']
     print("-I- Removing: ", RmKeys)
     CheckDec = ['_dec', '_lon', '_azimuth', 'dip_direction']
     CheckSign = ['specimen_b_beta']
@@ -3361,7 +3332,6 @@ def upload_magic3(concat=0, dir_path='.', dmodel=None, vocab="", contribution=No
     if there was a problem creating/validating the upload file
     or: (filename, '', None, None) if the file creation was fully successful.
     """
-    dir_path = os.path.realpath(dir_path)
     locations = []
     concat = int(concat)
     dtypes = ["locations", "samples", "specimens", "sites", "ages", "measurements",
@@ -3375,46 +3345,33 @@ def upload_magic3(concat=0, dir_path='.', dmodel=None, vocab="", contribution=No
                                                             ", ".join(error_fnames)))
     for error in error_full_fnames:
         os.remove(error)
+    if not file_names:
+        real_path = os.path.realpath(dir_path)
+        print("-W- No 3.0 files found in your directory: {}, upload file not created".format(real_path))
+        return False, "no 3.0 files found, upload file not created", None
     if isinstance(contribution, nb.Contribution):
         # if contribution object provided, use it
         con = contribution
         for table_name in con.tables:
             con.tables[table_name].write_magic_file()
-    elif file_names:
+    else:
         # otherwise create a new Contribution in dir_path
         con = Contribution(dir_path, vocabulary=vocab)
-    else:
-        # if no contribution is provided and no contribution could be created,
-        # you are out of luck
-        print("-W- No 3.0 files found in your directory: {}, upload file not created".format(dir_path))
-        return False, "no 3.0 files found, upload file not created", None, None
-
-    # if the contribution has no tables, you can't make an upload file
-    if not con.tables.keys():
-        print("-W- No tables found in your contribution, file not created".format(dir_path))
-        return False, "-W- No tables found in your contribution, file not created", None, None
-
     # take out any extra added columns
-    #con.remove_non_magic_cols()
-
+    con.remove_non_magic_cols()
     # begin the upload process
     up = os.path.join(dir_path, "upload.txt")
     if os.path.exists(up):
         os.remove(up)
-    RmKeys = ('citation_label', 'compilation', 'calculation_type', 'average_n_lines', 'average_n_planes',
+    RmKeys = ['citation_label', 'compilation', 'calculation_type', 'average_n_lines', 'average_n_planes',
               'specimen_grade', 'site_vgp_lat', 'site_vgp_lon', 'direction_type', 'specimen_Z',
               'magic_instrument_codes', 'cooling_rate_corr', 'cooling_rate_mcd', 'anisotropy_atrm_alt',
               'anisotropy_apar_perc', 'anisotropy_F', 'anisotropy_F_crit', 'specimen_scat',
               'specimen_gmax', 'specimen_frac', 'site_vadm', 'site_lon', 'site_vdm', 'site_lat',
               'measurement_chi', 'specimen_k_prime', 'specimen_k_prime_sse', 'external_database_names',
               'external_database_ids', 'Further Notes', 'Typology', 'Notes (Year/Area/Locus/Level)',
-              'Site', 'Object Number', 'version')
-    #print("-I- Removing: ", RmKeys)
-    extra_RmKeys = {'measurements': ['sample', 'site', 'location'],
-                    'specimens': ['site', 'location', 'age'],
-                    'samples': ['location', 'age'],
-                    'ages': ['level']}
-
+              'Site', 'Object Number', 'version']
+    print("-I- Removing: ", RmKeys)
     failing = []
     all_failing_items = {}
     if not dmodel:
@@ -3426,18 +3383,9 @@ def upload_magic3(concat=0, dir_path='.', dmodel=None, vocab="", contribution=No
         if len(df):
             print("-I- {} file successfully read in".format(file_type))
     # make some adjustments to clean up data
-            ## drop non MagIC keys
-            #DropKeys = set(RmKeys).intersection(df.columns)
-            DropKeys = list(RmKeys) + extra_RmKeys.get(file_type, [])
-            DropKeys = set(DropKeys).intersection(df.columns)
-            if DropKeys:
-                print('-I- dropping these columns: {} from the {} table'.format(', '.join(DropKeys), file_type))
-                df.drop(DropKeys, axis=1, inplace=True)
-            container.df = df
-            unrecognized_cols = container.get_non_magic_cols()
-            if unrecognized_cols:
-                print('-W- {} table still has some unrecognized columns: {}'.format(file_type.title(),
-                                                                                    ", ".join(unrecognized_cols)))
+            # drop non MagIC keys
+            DropKeys = set(RmKeys).intersection(df.columns)
+            df.drop(DropKeys, axis=1, inplace=True)
             # make sure int_b_beta is positive
             if 'int_b_beta' in df.columns:
                 # get rid of empty strings
@@ -3508,7 +3456,7 @@ def upload_magic3(concat=0, dir_path='.', dmodel=None, vocab="", contribution=No
 
     if not os.path.isfile(up):
         print("no data found, upload file not created")
-        return False, "no data found, upload file not created", None, None
+        return False, "no data found, upload file not created", None
 
     # rename upload.txt according to location + timestamp
     format_string = "%d.%b.%Y"
@@ -3995,15 +3943,10 @@ def specimens_results_magic(infile='pmag_specimens.txt', measfile='magic_measure
                         siteD = pmag.get_dictitem(
                             tmp1, key + '_comp_name', comp, 'T')
                         # remove bad data from means
-                        quality_siteD = []
-                        # remove any records for which specimen_flag or sample_flag are 'b'
-                        # assume 'g' if flag is not provided
-                        for rec in siteD:
-                            spec_quality = rec.get('specimen_flag', 'g')
-                            samp_quality = rec.get('sample_flag', 'g')
-                            if (spec_quality == 'g') and (samp_quality == 'g'):
-                                quality_siteD.append(rec)
-                        siteD = quality_siteD
+                        siteD = [
+                            x if 'specimen_flag' in x and x['specimen_flag'] == 'g' else True for x in siteD]
+                        siteD = [x if 'sample_flag' in x and x['sample_flag']
+                                 == 'g' else True for x in siteD]
                         if len(siteD) > 0:  # there are some for this site and component name
                             # get an average for this site
                             PmagSiteRec = pmag.lnpbykey(siteD, 'site', key)
@@ -4612,7 +4555,7 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
             else:
                 MagRec[key] = ""
 
-        # the following keys, if blank, used to be defined as "Not Specified" :
+        # the following keys are cab be defined here as "Not Specified" :
 
         for key in ["sample_class", "sample_lithology", "sample_type"]:
             if key in list(OrRec.keys()) and OrRec[key] != "" and OrRec[key] != "Not Specified":
@@ -4620,7 +4563,7 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
             elif key in list(Prev_MagRec.keys()) and Prev_MagRec[key] != "" and Prev_MagRec[key] != "Not Specified":
                 MagRec[key] = Prev_MagRec[key]
             else:
-                MagRec[key] = ""#Not Specified"
+                MagRec[key] = "Not Specified"
 
         # (rshaar) From here parse new information and replace previous, if exists:
     #
@@ -5386,8 +5329,7 @@ def kly4s_magic(infile, specnum=0, locname="unknown", inst='SIO-KLY4S',
 
     try:
         file_input = open(amsfile, 'r')
-    except Exception as ex:
-        print('ex', ex, type(ex))
+    except:
         print('Error opening file: ', amsfile)
         return False, 'Error opening file: {}'.format(amsfile)
 
