@@ -1,8 +1,11 @@
 #!/usr/bin/env python
 from __future__ import print_function
-from builtins import range
+from builtins import input
+from builtins import str
 import sys
 import pmagpy.pmag as pmag
+import pmagpy.new_builder as nb
+import pytz, datetime
 
 def main():
     """
@@ -44,6 +47,7 @@ def main():
             [8] specimen is a synthetic - it has no sample, site, location information
             NB: all others you will have to customize your self
                  or e-mail ltauxe@ucsd.edu for help.
+        -dm [2,3] specify data model; 3 is default
  
     OUTPUT
         MagIC format files: magic_measurements, er_specimens, er_sample, er_site
@@ -62,6 +66,7 @@ def main():
     user=""
     er_site_name=""
     dir_path='.'
+    dm=3
     if "-WD" in args:
         ind=args.index("-WD")
         dir_path=args[ind+1]
@@ -79,6 +84,12 @@ def main():
     if "-bak" in args:
         meth="LP-IRM-DCD"
         output = output_dir_path+"/irm_measurements.txt"
+    if "-dm" in args:
+        ind=args.index("-dm")
+        dm=args[ind+1]
+        if dm!=2 and dm!=3:
+            print(main.__doc__)
+            sys.exit()
     if "-new" in args: fmt='new'
     if "-usr" in args:
         ind=args.index("-usr")
@@ -234,8 +245,14 @@ def main():
             MeasRecs[recnum]['magic_method_codes']='LP-IMAG'
             MeasRecs[recnum]['magic_experiment_name']=MeasRecs[recnum]['er_specimen_name']+":"+'LP-IMAG'
             recnum+=1
-# 
-    pmag.magic_write(output,MeasRecs,'magic_measurements')
+# 	
+    if dm==2:
+        pmag.magic_write(output,MeasRecs,'magic_measurements')
+    else:
+        print ('not supported yet')
+        sys.exit()
+        pmag.magic_write(output,MeasRecs,'measurements')
+        
     print("results put in ",output)
 
 if __name__ == "__main__":

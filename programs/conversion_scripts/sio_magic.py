@@ -463,6 +463,7 @@ def convert(**kwargs):
                     sample=rec[0][:specnum]
                 else:
                     sample=rec[0]
+                MeasRec["sample"]=sample
                 site=pmag.parse_site(sample,samp_con,Z)
                 if location!='' and location not in [x['location'] if 'location' in list(x.keys()) else '' for x in LocRecs]:
                     LocRec['location'] = location
