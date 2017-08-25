@@ -6916,6 +6916,25 @@ def sortmwarai(datablock, exp_type):
 
     #
 
+def docustom(lon, lat, alt,gh):
+    """
+    Passes the coefficients to the Malin and Barraclough
+    routine (function pmag.magsyn) to calculate the field from the coefficients.
+
+    Parameters:
+    -----------
+    lon  = east longitude in degrees (0 to 360 or -180 to 180)
+    lat   = latitude in degrees (-90 to 90)
+    alt   = height above mean sea level in km (itype = 1 assumed)
+    """
+    model,date,itype=0,0,1
+    sv=np.zeros(len(gh))
+    colat = 90. - lat
+    x, y, z, f = magsyn(gh, sv, model, date, itype, alt, colat, lon)
+    return x,y,z,f
+
+
+
 
 def doigrf(lon, lat, alt, date, **kwargs):
     """
@@ -9772,7 +9791,9 @@ def do_mag_map(date, **kwargs):
 
     Optional Parameters:
     ______________
-    mod  = model to use ('arch3k','cals3k','pfm9k','hfm10k','cals10k.2','cals10k.1b)
+    mod  = model to use ('arch3k','cals3k','pfm9k','hfm10k','cals10k.2','cals10k.1b','custom')
+    file = l m g h formatted filefor custom model
+    
     alt  = altitude
 
     Output:
@@ -9791,6 +9812,8 @@ def do_mag_map(date, **kwargs):
         lon_0 = 0.  # set the default lon_0 to 0.
     if 'alt' in list(kwargs.keys()):  # check if  alt in kwargs
         alt = kwargs['alt']
+    if 'file' in list(kwargs.keys()):  # check if  alt in kwargs
+        file = kwargs['file']
     if 'mod' in list(kwargs.keys()):  # check if  alt in kwargs
         mod = kwargs['mod']
     else:
@@ -9809,15 +9832,30 @@ def do_mag_map(date, **kwargs):
     Binc = np.zeros((len(lats), len(lons)))
     Bdec = np.zeros((len(lats), len(lons)))
     Brad = np.zeros((len(lats), len(lons)))
+    if mod=='custom' and file!='':
+        gh=[]
+        lmgh=np.loadtxt(file).transpose()
+        gh.append(lmgh[2][0])
+        degnum=lmgh.shape[1]
+        for i in range(1,degnum):
+            gh.append(lmgh[2][i]) 
+            gh.append(lmgh[3][i]) 
     for j in range(len(lats)):  # step through the latitudes
         for i in range(len(lons)):  # and the longitudes
             # get the field elements
-            x, y, z, f = doigrf(lons[i], lats[j], alt, date, mod=mod)
+            if mod=='custom':
+                x, y, z, f = docustom(lons[i], lats[j], alt, gh)
+            else:
+                x, y, z, f = doigrf(lons[i], lats[j], alt, date, mod=mod,file=file)
             # turn them into polar coordites
             Dec, Inc, Int = cart2dir([x, y, z])
-            B[j][i] = Int * 1e-3  # convert the string to microtesla (from nT)
+            if mod!='custom':
+                B[j][i] = Int * 1e-3  # convert the string to microtesla (from nT)
+            else:    
+                B[j][i] = Int  # convert the string to microtesla (from nT)
             Binc[j][i] = Inc  # store the inclination value
             Bdec[j][i] = Dec  # store the declination value
+            Brad[j][i]=z
     return Bdec, Binc, B, Brad, lons, lats  # return the arrays.
 
 
