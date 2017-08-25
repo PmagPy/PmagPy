@@ -17,8 +17,8 @@ OPTIONS
     -Fsa SAMPFILE, specify samples.txt file relating samples to  site; default is samples.txt 
     -Fsi SITEFILE, specify sites.txt file relating site to location; default is sites.txt 
     -Flo LOCFILE, specify locations.txt file; default is locations.txt 
-    -F MFILE, specify measurements formatted output file, default is agm.magic
     -spn SPEC, specimen name, default is base of input file name, e.g. SPECNAME.agm
+    -F MFILE, specify measurements formatted output file, default is SPECNAME.magic
     -spc NUM, specify number of characters to designate a  specimen, default = 0
     -ncn NCON,: specify naming convention: default is #1 below
     -loc LOCNAME: specify location/study name.
@@ -50,13 +50,17 @@ def convert(**kwargs):
     user = kwargs.get('user', '')
     dir_path = kwargs.get('dir_path', '.')
     output_dir_path = dir_path
-    meas_file = kwargs.get('meas_file', 'measurements.txt')
+    meas_file = kwargs.get('meas_file', 0) # measurements outfile
     spec_file = kwargs.get('spec_file', 'specimens.txt') # specimen outfile
     samp_file = kwargs.get('samp_file', 'samples.txt') # sample outfile
     site_file = kwargs.get('samp_file', 'site.txt') # site outfile
     loc_file = kwargs.get('loc_file', 'locations.txt') # location outfile
     agm_file = kwargs.get('agm_file', '')
     specnum = kwargs.get('specnum', 0)
+    specimen=kwargs.get('spn',0)
+    if not specimen: 
+        specimen=agm_file.split('.')[0] # grab the specimen name from the input file name
+    if not meas_file:meas_file=specimen+'.magic' 
     samp_con = kwargs.get('samp_con', '1')
     location = kwargs.get('location', 'unknown')
     samp_infile = kwargs.get('samp_infile', '')
@@ -67,7 +71,6 @@ def convert(**kwargs):
     syntype = kwargs.get('syntype', '')
     inst = kwargs.get('ins', '')
     bak=kwargs.get('bak', 0)
-    specimen=kwargs.get('spn',0)
     units=kwargs.get('units',0)
     if bak:
         meth="LP-IRM-DCD"
@@ -106,8 +109,6 @@ def convert(**kwargs):
         if not Data:
             print("you must provide a valid agm_file")
             return False, "you must provide a valid agm_file"
-        if not specimen: 
-            specimen=agm_file.split('.')[0] # grab the specimen name from the input file name
     if not agm_file:
         print(__doc__)
         print("agm_file field is required option")
