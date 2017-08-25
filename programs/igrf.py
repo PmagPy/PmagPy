@@ -27,6 +27,7 @@ def main():
        -h prints help message and quits
        -i for interactive data entry
        -f FILE  specify file name with input data 
+       -fgh FILE specify file with custom field coefficients in format:  l m g h
        -F FILE  specify output file name
        -ages MIN MAX INCR: specify age minimum in years (+/- AD), maximum and increment, default is line by line
        -loc LAT LON;  specify location, default is line by line
@@ -50,7 +51,14 @@ def main():
     MODELS:  ARCH3K: (Korte et al., 2009);CALS3K (Korte & Contable, 2011); CALS10k (is .1b of Korte et al., 2011); PFM9K (Nilsson et al., 2014); HFM10k (is HFM.OL1.A1 of Constable et al., 2016); CALS10k_2 (is cals10k.2 of Constable et al., 2016), SHADIF14k (SHA.DIF.14K of Pavon-Carrasco et al., 2014).
     """
     plot,fmt=0,'svg'
-    plt=0
+    mod,alt,plt,lat,lon='cals10k',0,0,0,0
+    if '-loc' in sys.argv:
+        ind=sys.argv.index('-loc')
+        lat=float(sys.argv[ind+1])
+        lon=float(sys.argv[ind+2])
+    if '-alt' in sys.argv:
+        ind=sys.argv.index('-alt')
+        alt=float(sys.argv[ind+1])
     if '-fmt' in sys.argv:
         ind=sys.argv.index('-fmt')
         fmt=sys.argv[ind+1]
@@ -60,7 +68,17 @@ def main():
     if '-mod' in sys.argv:
         ind=sys.argv.index('-mod')
         mod=sys.argv[ind+1]
-    else: mod='cals10k'
+    if '-fgh' in sys.argv:
+        ind=sys.argv.index('-fgh')
+        ghfile=sys.argv[ind+1]
+        lmgh=numpy.loadtxt(ghfile)
+        gh=[]
+        lmgh=numpy.loadtxt(ghfile).transpose()
+        gh.append(lmgh[2][0])
+        for i in range(1,lmgh.shape[1]):
+            gh.append(lmgh[2][i])
+            gh.append(lmgh[3][i])
+        mod='custom'
     if '-f' in sys.argv:
         ind=sys.argv.index('-f')
         file=sys.argv[ind+1]
@@ -69,7 +87,10 @@ def main():
         while 1:
           try:
             line=[]
-            line.append(float(input("Decimal year: <cntrl-D to quit> ")))
+            if mod!='custom':
+                line.append(float(input("Decimal year: <cntrl-D to quit> ")))
+            else:
+                line.append(0)
             alt=input("Elevation in km [0] ")
             if alt=="":alt="0"
             line.append(float(alt))
@@ -77,6 +98,8 @@ def main():
             line.append(float(input("Longitude (positive east) ")))
             if mod=='':
                 x,y,z,f=pmag.doigrf(line[3]%360.,line[2],line[1],line[0])
+            elif mod=='custom':
+                x,y,z,f = pmag.docustom(line[3]%360.,line[2], line[1], gh)
             else:
                 x,y,z,f=pmag.doigrf(line[3]%360.,line[2],line[1],line[0],mod=mod)
             Dir=pmag.cart2dir((x,y,z))
@@ -89,17 +112,6 @@ def main():
         agemin=float(sys.argv[ind+1])
         agemax=float(sys.argv[ind+2])
         ageincr=float(sys.argv[ind+3])
-        if '-loc' in sys.argv:
-            ind=sys.argv.index('-loc')
-            lat=float(sys.argv[ind+1])
-            lon=float(sys.argv[ind+2])
-        else: 
-            print("must specify lat/lon if using age range option")
-            sys.exit()
-        if '-alt' in sys.argv:
-            ind=sys.argv.index('-alt')
-            alt=float(sys.argv[ind+1])
-        else: alt=0
         ages=numpy.arange(agemin,agemax,ageincr)
         lats=numpy.ones(len(ages))*lat
         lons=numpy.ones(len(ages))*lon
@@ -121,11 +133,10 @@ def main():
         pylab.ion()
         Ages,Decs,Incs,Ints,VADMs=[],[],[],[],[]
     for line in inp:
-        #if mod=='':
-        #    x,y,z,f=pmag.doigrf(line[3]%360.,line[2],line[1],line[0])
-        #else:
-        #    x,y,z,f=pmag.doigrf(line[3]%360.,line[2],line[1],line[0],mod=mod)
-        x,y,z,f=pmag.doigrf(line[3]%360.,line[2],line[1],line[0],mod=mod)
+        if mod!='custom':
+            x,y,z,f=pmag.doigrf(line[3]%360.,line[2],line[1],line[0],mod=mod)
+        else:
+            x,y,z,f = pmag.docustom(line[3]%360.,line[2], line[1], gh)
         Dir=pmag.cart2dir((x,y,z))
         if outfile!="":
             out.write('%8.2f %8.2f %8.0f %7.1f %7.1f %7.1f %7.1f\n'%(Dir[0],Dir[1],f,line[0],line[1],line[2],line[3]))           

@@ -7149,8 +7149,7 @@ def magsyn(gh, sv, b, date, itype, alt, colat, elong):
         two = b2 * ct * ct
         three = one + two
         rho = np.sqrt(three)
-        r = np.sqrt(alt * (alt + 2.0 * rho) +
-                    old_div((a2 * one + b2 * two), three))
+        r = np.sqrt(alt * (alt + 2.0 * rho) + old_div((a2 * one + b2 * two), three))
         cd = old_div((alt + rho), r)
         sd = (a2 - b2) / rho * ct * st / r
         one = ct
@@ -9836,8 +9835,7 @@ def do_mag_map(date, **kwargs):
         gh=[]
         lmgh=np.loadtxt(file).transpose()
         gh.append(lmgh[2][0])
-        degnum=lmgh.shape[1]
-        for i in range(1,degnum):
+        for i in range(1,lmgh.shape[1]):
             gh.append(lmgh[2][i]) 
             gh.append(lmgh[3][i]) 
     for j in range(len(lats)):  # step through the latitudes
