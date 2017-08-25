@@ -7750,6 +7750,8 @@ def measurements_methods3(meas_data, noave):
                 rec['quality'] = 'g'
             tmpmeths = rec['method_codes'].split(":")
             meths = []
+            if 'LP-HYS' in tmpmeths:
+                HYS=1 # catch these!
             if "LP-TRM" in tmpmeths:
                 TRM = 1  # catch these suckers here!
             if "LP-IRM-3D" in tmpmeths:
@@ -7821,14 +7823,15 @@ def measurements_methods3(meas_data, noave):
                 # measurement in presence of dc field and not susceptibility;
                 # hysteresis!
                 elif "meas_lab_dc_field" in list(rec.keys()) and rec["meas_lab_dc_field"] != 0:
-                    if "LP-HYS" not in meths:
-                        hysq = input("Is this a hysteresis experiment? [1]/0")
-                        if hysq == "" or hysq == "1":
-                            meths.append("LP-HYS")
-                        else:
-                            metha = input(
-                                "Enter the lab protocol code that best describes this experiment ")
-                            meths.append(metha)
+                    #if "LP-HYS" not in meths:
+                    #    hysq = input("Is this a hysteresis experiment? [1]/0")
+                    #    if hysq == "" or hysq == "1":
+                    #        meths.append("LP-HYS")
+                    #    else:
+                    #        metha = input(
+                    #            "Enter the lab protocol code that best describes this experiment ")
+                    #        meths.append(metha)
+                    if HYS: meths.append("LP-HYS")
                 methcode = ""
                 for meth in meths:
                     methcode = methcode + meth.strip() + ":"
