@@ -28,6 +28,7 @@ def combine(filenames,outfile,dir_path='.',data_model=2.5):
     for f in filenames.split():
         files.append(os.path.join(dir_path,f))
     outfile=(os.path.join(dir_path,outfile))
+    print (dir_path,outfile)
     ipmag.combine_magic(files, outfile, data_model=data_model)
 
 def main():
