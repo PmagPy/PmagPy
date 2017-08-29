@@ -114,6 +114,8 @@ def main():
         Bimag,Mimag=[],[] #Bimag,Mimag for initial magnetization curves
         spec_data=pmag.get_dictitem(hys_data,'specimen',specimen,'T') # fish out all the LP-HYS data for this specimen
         if len(spec_data)>0:
+            meths=spec_data[0]['method_codes'].split(':')
+            e=spec_data[0]['experiment']
             HystRec['experiment']=spec_data[0]['experiment']
             for rec in  spec_data:
                 B.append(float(rec['meas_field_dc']))
@@ -137,6 +139,7 @@ def main():
         if len(B)>0:
             hmeths=[]
             for meth in meths: hmeths.append(meth)
+            
             hpars=pmagplotlib.plotHDD(HDD,B,M,e)
             if verbose and PLT:pmagplotlib.drawFIGS(HDD)
     #
@@ -148,7 +151,7 @@ def main():
             HystRec['susc_h']=hpars['hysteresis_xhf']
             HystRec['experiments']=e
             HystRec['software_packages']=version_num
-            if hpars["method_codes"] not in hmeths:hmeths.append(hpars["method_codes"])
+            if hpars["magic_method_codes"] not in hmeths:hmeths.append(hpars["magic_method_codes"])
             methods=""
             for meth in hmeths:
                 methods=methods+meth.strip()+":"
@@ -234,12 +237,19 @@ def main():
             k+=1
     if len(HystRecs)>0:   
 	#  go through prior_data, clean out prior results and save combined file as spec_file
-        SpecRecs=[]
-        for rec in prior_recs:
+        SpecRecs,keys=[],list(HystRecs[0].keys())
+        if len(prior_data)>0:
+            prior_keys=list(prior_data[0].keys())
+        else: prior_keys=[]
+        for rec in prior_data:
+            for key in keys:
+                if key not in list(rec.keys()):rec[key]="" 
             if  'LP-HYS' not in rec['method_codes']:
                 SpecRecs.append(rec)
         for rec in HystRecs:
-                SpecRecs.append(rec)
+            for key in prior_keys:
+                if key not in list(rec.keys()):rec[key]=""
+            SpecRecs.append(rec)
         pmag.magic_write(spec_file,SpecRecs,"specimens")
         if verbose:print("hysteresis parameters saved in ",spec_file)
 
