@@ -179,7 +179,7 @@ def main():
         else:
             if irm_init:pmagplotlib.clearFIG(HDD['irm'])
         if len(Bimag)>0:
-            if verbose:print('plotting initial magnetization curve')
+            if verbose and PLT:print('plotting initial magnetization curve')
 # first normalize by Ms
             Mnorm=[]
             for m in Mimag: Mnorm.append(old_div(m,float(hpars['hysteresis_ms_moment'])))
@@ -249,6 +249,9 @@ def main():
         for rec in HystRecs:
             for key in prior_keys:
                 if key not in list(rec.keys()):rec[key]=""
+            prior=pmag.get_dictitem(prior_data,'specimen',rec['specimen'],'T')
+            if len(prior)>0 and 'sample' in list(prior[0].keys()):
+                rec['sample']=prior[0]['sample'] # pull sample name from prior specimens table
             SpecRecs.append(rec)
         pmag.magic_write(spec_file,SpecRecs,"specimens")
         if verbose:print("hysteresis parameters saved in ",spec_file)
