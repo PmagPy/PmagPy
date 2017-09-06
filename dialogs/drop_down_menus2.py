@@ -282,7 +282,7 @@ class Menus(object):
                     for item in choice[1]:
                         menuitem = submenu.Append(-1, str(item))
                         self.window.Bind(wx.EVT_MENU, lambda event: self.on_select_menuitem(event, grid, row, col, selection), menuitem)
-                    menu.AppendMenu(-1, choice[0], submenu)
+                    menu.Append(-1, choice[0], submenu)
                 self.show_menu(event, menu)
 
         if selection:

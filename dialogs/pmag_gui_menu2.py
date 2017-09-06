@@ -80,9 +80,9 @@ class MagICMenu(wx.MenuBar):
 
         import1 = import_menu.Append(-1, "Import any file into your working directory")
         import_menu.AppendSeparator()
-        import_menu.AppendMenu(wx.ID_ANY, "orientation/location/stratigraphic files", orient_submenu)
-        import_menu.AppendMenu(wx.ID_ANY, "Anisotropy files", anisotropy_submenu)
-        import_menu.AppendMenu(wx.ID_ANY, "Hysteresis files", hysteresis_submenu)
+        import_menu.Append(wx.ID_ANY, "orientation/location/stratigraphic files", orient_submenu)
+        import_menu.Append(wx.ID_ANY, "Anisotropy files", anisotropy_submenu)
+        import_menu.Append(wx.ID_ANY, "Hysteresis files", hysteresis_submenu)
 
         parent.Bind(wx.EVT_MENU, self.on_import1, import1)
 
@@ -104,7 +104,7 @@ class MagICMenu(wx.MenuBar):
         #equal_area2 = equal_area_submenu.Append(-1, 'General remanence directions')
         #equal_area3 = equal_area_submenu.Append(-1, 'Anisotropy data')
 
-        #analysis4 = analysis_menu.AppendMenu(-1, "Equal area plots", equal_area_submenu)
+        #analysis4 = analysis_menu.Append(-1, "Equal area plots", equal_area_submenu)
         #analysis5 = analysis_menu.Append(-1, "Hysteresis data")
         #analysis6 = analysis_menu.Append(-1, "Hysteresis ratio plots")
         #analysis7 = analysis_menu.Append(-1, "IRM acquisition")
