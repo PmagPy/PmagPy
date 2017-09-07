@@ -250,11 +250,11 @@ class MagIC_model_builder3(wx.Frame):
         path = find_pmag_dir.get_pmag_dir()
         # for use with pyinstaller:
         #path = self.Parent.resource_dir
-        help_page = os.path.join(path, 'dialogs', 'help_files', 'ErMagicBuilderHelp3.html')
+        help_page = os.path.join(path, 'dialogs', 'help_files', 'ErMagicHeadersHelp.html')
         # if using with py2app, the directory structure is flat,
         # so check to see where the resource actually is
         if not os.path.exists(help_page):
-            help_page = os.path.join(path, 'help_files', 'ErMagicBuilderHelp3.html')
+            help_page = os.path.join(path, 'help_files', 'ErMagicHeadersHelp.html')
         html_frame = pw.HtmlFrame(self, page=help_page)
         html_frame.Center()
         html_frame.Show()

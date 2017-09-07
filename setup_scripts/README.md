@@ -10,7 +10,7 @@ Install pyinstaller from the developer branch (certain needed bug fixes are here
 
 Install nomkl to prevent MKL problem (see [this issue](https://github.com/scikit-learn/scikit-learn/issues/5046):
 
-    conda instal nomkl
+    conda install nomkl
 
 From your PmagPy directory, generate the .spec file:
 
@@ -19,7 +19,8 @@ From your PmagPy directory, generate the .spec file:
 add the following to the resulting pmag_gui.spec file (where \*\*\* is your username):
 
     files = [
-         ('/Users/***/PmagPy/pmagpy/data_model/*.json', './pmagpy/data_model/')
+         ('/Users/***/PmagPy/pmagpy/data_model/*.json', './pmagpy/data_model/'),
+         ('/Users/***/PmagPy/dialogs/help_files/*.html', './dialogs/help_files')
     ]
 
     ...
