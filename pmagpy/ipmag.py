@@ -3350,10 +3350,10 @@ def upload_magic3(concat=0, dir_path='.', dmodel=None, vocab="", contribution=No
                                                             ", ".join(error_fnames)))
     for error in error_full_fnames:
         os.remove(error)
-    if not file_names:
+    if not file_names and nb.is_null(contribution):
         real_path = os.path.realpath(dir_path)
         print("-W- No 3.0 files found in your directory: {}, upload file not created".format(real_path))
-        return False, "no 3.0 files found, upload file not created", None
+        return False, "no 3.0 files found, upload file not created", None, None
     if isinstance(contribution, nb.Contribution):
         # if contribution object provided, use it
         con = contribution
@@ -3362,6 +3362,8 @@ def upload_magic3(concat=0, dir_path='.', dmodel=None, vocab="", contribution=No
     else:
         # otherwise create a new Contribution in dir_path
         con = Contribution(dir_path, vocabulary=vocab)
+
+    dir_path = contribution.directory
     # take out any extra added columns
     con.remove_non_magic_cols()
     # begin the upload process
@@ -3461,7 +3463,7 @@ def upload_magic3(concat=0, dir_path='.', dmodel=None, vocab="", contribution=No
 
     if not os.path.isfile(up):
         print("no data found, upload file not created")
-        return False, "no data found, upload file not created", None
+        return False, "no data found, upload file not created", None, None
 
     # rename upload.txt according to location + timestamp
     format_string = "%d.%b.%Y"
