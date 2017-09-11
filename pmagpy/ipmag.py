@@ -3363,7 +3363,7 @@ def upload_magic3(concat=0, dir_path='.', dmodel=None, vocab="", contribution=No
         # otherwise create a new Contribution in dir_path
         con = Contribution(dir_path, vocabulary=vocab)
 
-    dir_path = contribution.directory
+    dir_path = con.directory
     # take out any extra added columns
     con.remove_non_magic_cols()
     # begin the upload process
