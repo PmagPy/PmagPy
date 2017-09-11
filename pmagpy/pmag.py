@@ -9795,7 +9795,7 @@ def do_mag_map(date, **kwargs):
     ______________
     mod  = model to use ('arch3k','cals3k','pfm9k','hfm10k','cals10k.2','cals10k.1b','custom')
     file = l m g h formatted filefor custom model
-    
+
     alt  = altitude
 
     Output:
@@ -9839,8 +9839,8 @@ def do_mag_map(date, **kwargs):
         lmgh=np.loadtxt(file).transpose()
         gh.append(lmgh[2][0])
         for i in range(1,lmgh.shape[1]):
-            gh.append(lmgh[2][i]) 
-            gh.append(lmgh[3][i]) 
+            gh.append(lmgh[2][i])
+            gh.append(lmgh[3][i])
     for j in range(len(lats)):  # step through the latitudes
         for i in range(len(lons)):  # and the longitudes
             # get the field elements
@@ -9852,7 +9852,7 @@ def do_mag_map(date, **kwargs):
             Dec, Inc, Int = cart2dir([x, y, z])
             if mod!='custom':
                 B[j][i] = Int * 1e-3  # convert the string to microtesla (from nT)
-            else:    
+            else:
                 B[j][i] = Int  # convert the string to microtesla (from nT)
             Binc[j][i] = Inc  # store the inclination value
             Bdec[j][i] = Dec  # store the declination value
