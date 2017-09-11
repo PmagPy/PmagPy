@@ -47,8 +47,8 @@ class TestUploadMagic(unittest.TestCase):
                 except OSError:
                     pass
         # get rid of partial upload files
+        # like: Tel-Hazor_Tel-Megiddo_14.Jun.2017-1.txt
         pattern = re.compile('.*\w*[.]\w*[.]\w*[20]\d{2}\w*.txt$')
-        #pattern = re.compile('\w*[.]\w*[.]\w*[20]\d{2}\w*.txt$')
         remove = []
         for f in possible_files:
             if pattern.match(f):
@@ -115,7 +115,7 @@ class TestUploadMagic(unittest.TestCase):
         self.assertEqual(error_message, msg)
         # delete any upload file that was partially created
         import re
-        pattern = re.compile('\w*[.]\w*[.]\w*[20]\d{2}\w*.txt$')
+        pattern = re.compile('\A[^.]*\.[a-zA-Z]*\.\d{4}\_?\d*\.txt')
         possible_files = os.listdir(dir_path)
         files = []
         for f in possible_files:
