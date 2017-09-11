@@ -4,8 +4,8 @@ from __future__ import print_function
 import unittest
 import os
 import sys
-import matplotlib
 import re
+import matplotlib
 from pmagpy import pmag
 from pmagpy import ipmag
 from pmagpy import new_builder as nb
@@ -122,6 +122,25 @@ class TestUploadMagic(unittest.TestCase):
             if pattern.match(f):
                 files.append(f)
         pmag.remove_files(files, dir_path)
+
+
+class Test_combine_magic(unittest.TestCase):
+
+    def setUp(self):
+        self.input_dir = os.path.join(WD, 'data_files', '3_0', 'McMurdo')
+
+
+    def test_with_custom_name(self):
+        outfile = os.path.join(self.input_dir, 'custom_outfile.txt')
+        if os.path.exists(outfile):
+            os.remove(outfile)
+        flist = ['locations.txt', 'new_locations.txt']
+        flist = [os.path.join(self.input_dir, fname) for fname in flist]
+        #res = ipmag.combine_magic(flist, 'custom_outfile.txt', 3, 'locations')
+        res = ipmag.combine_magic(flist, outfile, 3, 'locations')
+        self.assertTrue(res)
+        self.assertEqual(res, 'custom_outfile.txt')
+        self.assertTrue(os.path.exists(outfile))
 
 
 

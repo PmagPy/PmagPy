@@ -1052,7 +1052,7 @@ class Contribution(object):
                     print(col, end=' ')
                 print("\n")
 
-    def write_table_to_file(self, dtype):
+    def write_table_to_file(self, dtype, custom_name=None):
         """
         Write out a MagIC table to file, using custom filename
         as specified in self.filenames.
@@ -1062,10 +1062,14 @@ class Contribution(object):
         dtype : str
             magic table name
         """
-        fname = self.filenames[dtype]
+        if custom_name:
+            fname = custom_name
+        else:
+            fname = self.filenames[dtype]
         if dtype in self.tables:
             self.tables[dtype].write_magic_file(custom_name=fname,
                                                 dir_path=self.directory)
+        return fname
 
 
 

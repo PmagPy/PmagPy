@@ -2105,21 +2105,25 @@ def ellipse(m, centerlon, centerlat, major_axis, minor_axis, angle, n=360, fille
 def combine_magic(filenames, outfile, data_model=2.5, magic_table='measurements'):
     """
     Takes a list of magic-formatted files, concatenates them, and creates a
-    single file. Returns true if the operation was successful.
+    single file. Returns output filename if the operation was successful.
 
     Parameters
     -----------
     filenames : list of MagIC formatted files
     outfile : name of output file
+    data_model : data model number (2.5 or 3), default 2.5
+    magic_table : name of magic table, default 'measurements'
 
     Returns
     ----------
-    True if success, False if failure
+    outfile name if success, False if failure
     """
     if float(data_model) == 3.0:
         output_dir_path, file_name = os.path.split(outfile)
-        file_type = os.path.splitext(file_name)[0]
         con = nb.Contribution(output_dir_path, read_tables=[])
+        # figure out file type from first of files to join
+        with open(filenames[0]) as f:
+            file_type = f.readline().split()[1]
         if file_type not in con.table_names:
             file_type = magic_table
         infiles = [pd.read_csv(infile, sep='\t', header=1)
@@ -2128,8 +2132,9 @@ def combine_magic(filenames, outfile, data_model=2.5, magic_table='measurements'
         # drop any fully duplicated rows
         df.drop_duplicates(inplace=True)
         con.add_magic_table(dtype=file_type, df=df)
-        con.tables[file_type].write_magic_file(custom_name=file_name)
-        return True
+        # write table to file, use custom name
+        res = con.write_table_to_file(file_type, custom_name=file_name)
+        return res
     else:
         datasets = []
         if not filenames:
@@ -2147,7 +2152,7 @@ def combine_magic(filenames, outfile, data_model=2.5, magic_table='measurements'
         Recs, keys = pmag.fillkeys(datasets)
         pmag.magic_write(outfile, Recs, file_type)
         print("All records stored in ", outfile)
-        return True
+        return outfile
 
 
 def aniso_depthplot(ani_file='rmag_anisotropy.txt', meas_file='magic_measurements.txt', samp_file='er_samples.txt', age_file=None, sum_file=None, fmt='svg', dmin=-1, dmax=-1, depth_scale='sample_composite_depth', dir_path='.'):
