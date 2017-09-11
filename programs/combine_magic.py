@@ -19,28 +19,32 @@ OPTIONS
 """
 from __future__ import print_function
 from builtins import input
-import sys,os
+import sys
+import os
 import pmagpy.ipmag as ipmag
 import pmagpy.command_line_extractor as extractor
 
-def combine(filenames,outfile,dir_path='.',data_model=2.5):
-    files=[]
+
+def combine(filenames, outfile, dir_path='.', data_model=2.5):
+    files = []
     for f in filenames.split():
-        files.append(os.path.join(dir_path,f))
-    outfile=(os.path.join(dir_path,outfile))
+        files.append(os.path.join(dir_path, f))
+    outfile = (os.path.join(dir_path, outfile))
     ipmag.combine_magic(files, outfile, data_model=data_model)
+
 
 def main():
     if "-h" in sys.argv:
         help(__name__)
         sys.exit()
-    if "-i" in sys.argv: # interactive
+    if "-i" in sys.argv:  # interactive
         dir_path = "."
         dataset, datasets, filenames = [], [], []
         data_model = 3
         while True:
-            infile=input('\n\n Enter magic files for combining, <return>  when done: ')
-            if infile=='':
+            infile = input(
+                '\n\n Enter magic files for combining, <return>  when done: ')
+            if infile == '':
                 break
             if os.path.isfile(infile):
                 filenames.append(os.path.realpath(infile))
@@ -50,11 +54,14 @@ def main():
         filenames = str(", ".join(filenames))
         if not outfile:
             return False
-    else: # non-interactive
-        dataframe = extractor.command_line_dataframe([["F", True, ''], ["dm", False, 3]])
+    else:  # non-interactive
+        dataframe = extractor.command_line_dataframe(
+            [["F", True, ''], ["dm", False, 3]])
         args = extractor.extract_and_check_args(sys.argv, dataframe)
-        data_model, dir_path, outfile, filenames = extractor.get_vars(["dm","WD", "F", "f"], args)
-    combine(filenames,outfile,dir_path,data_model)
+        data_model, dir_path, outfile, filenames = extractor.get_vars(
+            ["dm", "WD", "F", "f"], args)
+    combine(filenames, outfile, dir_path, data_model)
+
 
 if __name__ == "__main__":
     main()
