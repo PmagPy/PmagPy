@@ -1,0 +1,13 @@
+[distutils]
+index-servers=
+    pypi
+    pypitest
+
+[pypitest] # provides your username & password at test_pypi
+repository: https://test.pypi.org/legacy/
+username = your username
+password = your password
+
+[pypi] # provides your username & password at PyPI.org
+username = your username
+password = your password

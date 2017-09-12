@@ -167,7 +167,7 @@ Making a new release has several steps:
 
 - Create a pip release.
 
-    + **Note:** To make a pip release, you must have a PyPI account and be added as an Owner or Maintainer of pmagpy and pmagpy-cli.
+    + **Note:** Before you can make a pip release, you must have a PyPI account and be added as an Owner or Maintainer of pmagpy and pmagpy-cli.  You will need to install twine using `pip install twine`.  You will also need to create a .pypirc file in your home directory (see [sample .pypirc file](http://github.com/PmagPy/PmagPy/example_pypirc)).
 
     + These are the steps to make a pip release for pmagpy and pmagpy-cli.
 
@@ -187,7 +187,7 @@ Making a new release has several steps:
 
     + To make a *test* release, use a slightly different command from the PmagPy directory, which will: build a new distribution of pmagpy, upload it to the test site (will not overwrite the version people can download), and upgrade locally:
 
-    `python setup.py bdist_wheel upload -r https://testpypi.python.org/pypi`
+    `rm -rf build dist && python setup.py bdist_wheel && twine upload dist/* -r testpypi`
 
     + To install the test release: `pip install -i https://testpypi.python.org/pypi pmagpy --upgrade --no-deps`
 
@@ -195,7 +195,7 @@ Making a new release has several steps:
 
     + A few notes on the whole thing:  first of all, testing the pip install locally doesn't work very well (i.e., `python setup.py install` or `python setup.py test`), because it doesn’t deal correctly with the required data files.  Whenever testing a new pip distribution, it is best to upload to test\_PYPI instead, even though it takes a minute or so to do.  Second, we are using twine for uploading to real PYPI but not to upload to test PYPI.  Using twine is recommended because it transfers the package data in a more secure way, but it doesn't currently work with test_PYPI.
 
-    + This article has some more good information about uploading to PYPI, etc.:  https://tom-christie.github.io/articles/pypi/
+    + This article has some more good information about uploading to PYPI, etc.: [clearest but slightly out of date](https://tom-christie.github.io/articles/pypi/), [official documentation](https://packaging.python.org/tutorials/distributing-packages/), [how to use testpypi](https://packaging.python.org/guides/using-testpypi/).
 
 - Create standalone executables.  The process is different for each platform, and details are in the [standalones README](https://github.com/PmagPy/PmagPy/tree/master/setup_scripts).
 
