@@ -167,7 +167,7 @@ Making a new release has several steps:
 
 - Create a pip release.
 
-    + **Note:** Before you can make a pip release, you must have a PyPI account and be added as an Owner or Maintainer of pmagpy and pmagpy-cli.  You will need to install twine using `pip install twine`.  You will also need to create a .pypirc file in your home directory (see [sample .pypirc file](http://github.com/PmagPy/PmagPy/example_pypirc)).
+    + **Note:** Before you can make a pip release, you must have a PyPI account and be added as an Owner or Maintainer of pmagpy and pmagpy-cli.  You will need to install twine using `pip install twine`.  You will also need to create a .pypirc file in your home directory (see [sample .pypirc file](https://github.com/PmagPy/PmagPy/blob/master/example_pypirc)).
 
     + These are the steps to make a pip release for pmagpy and pmagpy-cli.
 
