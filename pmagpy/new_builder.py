@@ -104,7 +104,6 @@ class Contribution(object):
         """
         Add a MagIC table to the contribution from a data list
 
-
         Parameters
         ----------
         dtype : str
@@ -1105,6 +1104,7 @@ class MagicDataFrame(object):
                 MagicDataFrame.data_model = data_model.DataModel()
                 self.data_model = MagicDataFrame.data_model
 
+        # get singular and plural dtype
         if dtype and magic_file:
             name, self.dtype = self.get_singular_and_plural_dtype(dtype)
 
@@ -1205,7 +1205,11 @@ class MagicDataFrame(object):
                     return
             # get singular name and plural datatype
             name, self.dtype = self.get_singular_and_plural_dtype(dtype)
-            self.df = pd.read_table(magic_file, skiprows=[0], low_memory=False)
+            self.df = pd.read_table(magic_file, skiprows=[0],
+                                    low_memory=False)#, dtype={name: str})
+            # make sure names are strings (sometimes could be numbers)
+
+
             # drop all blank rows
             self.df = self.df.dropna(how='all', axis=0)
             #
