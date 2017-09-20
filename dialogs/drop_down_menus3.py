@@ -177,11 +177,9 @@ class Menus(object):
         """
         if self.data_type == 'ages':
             method_list = self.contribution.vocab.age_methods
-        elif self.data_type == 'locations':
+        else:
             method_list = self.contribution.vocab.age_methods.copy()
             method_list.update(self.contribution.vocab.methods)
-        else:
-            method_list = self.contribution.vocab.methods
         self.choices[col_number] = (method_list, True)
 
     def on_label_click(self, event):
