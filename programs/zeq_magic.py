@@ -139,7 +139,6 @@ def main():
     else:
         spec_container, prior_spec_data = None, []
 
-
 #
 #   import samples  for orientation info
 #
@@ -169,7 +168,12 @@ def main():
         'AN|ARM|LP-TRM|LP-PI-ARM') == False]  # strip out unwanted experiments
     intensity_types = [
         col_name for col_name in meas_data.columns if col_name in intlist]
-    # plot first intensity method found - normalized to initial value anyway -
+    intensity_types = [
+        col_name for col_name in intensity_types if any(meas_data[col_name])]
+    if not len(intensity_types):
+        print('-W- No intensity columns found')
+        return
+    # plot first non-empty intensity method found - normalized to initial value anyway -
     # doesn't matter which used
     int_key = intensity_types[0]
     # get all the non-null intensity records of the same type
@@ -184,8 +188,11 @@ def main():
     meas_data['instrument_codes'] = ""  # initialize these to blank
 #   for unusual case of microwave power....
     if 'treat_mw_power' in meas_data.columns:
-        meas_data.loc[meas_data.treat_mw_power != 0,
-                     'treatment'] = meas_data.treat_mw_power * meas_data.treat_mw_time
+        meas_data.loc[
+            (meas_data.treat_mw_power != 0) &
+            (meas_data.treat_mw_power) &
+            (meas_data.treat_mw_time),
+             'treatment'] = meas_data.treat_mw_power * meas_data.treat_mw_time
 #
 # get list of unique specimen names from measurement data
 #
