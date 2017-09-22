@@ -35,7 +35,7 @@ OPTIONS
         python.exe it can find. This process can take a while, so be
         patient.
 """
-import sys,os,subprocess
+import sys, os, subprocess, functools
 
 def unix_install():
     """
@@ -112,7 +112,7 @@ def windows_install(path_to_python=""):
     if not path_to_python:
         print("Please enter the path to your python.exe you wish Windows to use to run python files. If you do not, this script will not be able to set up a full python environment in Windows. If you already have a python environment set up in Windows such that you can run python scripts from command prompt with just a file name then ignore this message. For more information, rerun script with -h flag.")
         print("Would you like to continue? [y/N] ")
-        ans=raw_input()
+        ans=input()
         if ans=='y': pass
         else: return
 
@@ -148,8 +148,8 @@ def windows_install(path_to_python=""):
         p=p.replace('"','')
         if p not in unique_pypath_list:
             unique_pypath_list.append(p)
-    path=reduce(lambda x,y: x+';'+y, unique_path_list)
-    pypath=reduce(lambda x,y: x+';'+y, unique_pypath_list)
+    path=functools.reduce(lambda x,y: x+';'+y, unique_path_list)
+    pypath=functools.reduce(lambda x,y: x+';'+y, unique_pypath_list)
     print('setx PATH "%s"'%path)
     subprocess.call('setx PATH "%s"'%path, shell=True)
     print('setx PYTHONPATH "%s"'%pypath)
@@ -169,9 +169,9 @@ def windows_uninstall():
     new_paths = [p for p in paths if 'pmagpy' not in p.lower()]
     new_pypaths = [p for p in pypaths if 'pmagpy' not in p.lower()]
 
-    if new_paths: new_path = reduce(lambda x,y: x+';'+y, new_paths)
+    if new_paths: new_path = functools.reduce(lambda x,y: x+';'+y, new_paths)
     else: new_path=''
-    if new_pypaths: new_pypath = reduce(lambda x,y: x+';'+y, new_pypaths)
+    if new_pypaths: new_pypath = functools.reduce(lambda x,y: x+';'+y, new_pypaths)
     else: new_pypath=''
 
     print('setx PATH "%s"'%new_path)
