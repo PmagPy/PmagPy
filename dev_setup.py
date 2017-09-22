@@ -35,7 +35,11 @@ OPTIONS
         python.exe it can find. This process can take a while, so be
         patient.
 """
-import sys, os, subprocess, functools
+import sys
+import os
+import subprocess
+import functools
+
 
 def unix_install():
     """
@@ -45,8 +49,8 @@ def unix_install():
     directory to your PATH environment variable. It also adds the PmagPy and
     the PmagPy/programs directories to PYTHONPATH.
     """
-    PmagPyDir=os.path.abspath(".")
-    COMMAND="""\n
+    PmagPyDir = os.path.abspath(".")
+    COMMAND = """\n
 for d in %s/programs/*/ "%s/programs/"; do
   case ":$PATH:" in
     *":$d:"*) :;; # already there
@@ -54,48 +58,59 @@ for d in %s/programs/*/ "%s/programs/"; do
   esac
 done
 export PYTHONPATH="$PYTHONPATH:%s:%s/programs/"
-export PATH="$PATH:$PMAGPATHS" """%(PmagPyDir,PmagPyDir,PmagPyDir,PmagPyDir)
-    frc_path=os.path.join(os.environ["HOME"],".bashrc") #not recommended, but hey it freaking works
-    fbprof_path=os.path.join(os.environ["HOME"],".bash_profile")
-    fprof_path=os.path.join(os.environ["HOME"],".profile")
-    all_paths=[frc_path,fbprof_path,fprof_path]
+export PATH="$PATH:$PMAGPATHS" """ % (PmagPyDir, PmagPyDir, PmagPyDir, PmagPyDir)
+    frc_path = os.path.join(
+        os.environ["HOME"], ".bashrc")  # not recommended, but hey it freaking works
+    fbprof_path = os.path.join(os.environ["HOME"], ".bash_profile")
+    fprof_path = os.path.join(os.environ["HOME"], ".profile")
+    all_paths = [frc_path, fbprof_path, fprof_path]
 
     for f_path in all_paths:
-        open_type='a'
+        open_type = 'a'
         if not os.path.isfile(f_path):
-            open_type='w+'
-            fout=open(f_path,open_type)
+            open_type = 'w+'
+            fout = open(f_path, open_type)
             fout.write(COMMAND)
             fout.close()
         else:
-            fin=open(f_path,'r')
-            current_f=fin.read()
+            fin = open(f_path, 'r')
+            current_f = fin.read()
             fin.close()
             if COMMAND not in current_f:
-                fout=open(f_path,open_type)
+                fout = open(f_path, open_type)
                 fout.write(COMMAND)
                 fout.close()
 
     print("Install complete. Please restart the shell to complete install.\nIf you are seeing strange or non-existent paths in your PATH or PYTHONPATH variable please manually check your .bashrc, .bash_profile, and .profile or attempt to reinstall.")
 
-def unix_uninstall():
-    frc_path=os.path.join(os.environ["HOME"],".bashrc") #not recommended, but hey it freaking works
-    fbprof_path=os.path.join(os.environ["HOME"],".bash_profile")
-    fprof_path=os.path.join(os.environ["HOME"],".profile")
 
-    for f_path in [frc_path,fbprof_path,fprof_path]:
-        fin=open(f_path,'r')
-        fout_string,skip="",False
+def unix_uninstall():
+    # not recommended, but hey it freaking works
+    frc_path = os.path.join(os.environ["HOME"], ".bashrc")
+    fbprof_path = os.path.join(os.environ["HOME"], ".bash_profile")
+    fprof_path = os.path.join(os.environ["HOME"], ".profile")
+
+    for f_path in [frc_path, fbprof_path, fprof_path]:
+        fin = open(f_path, 'r')
+        fout_string, skip = "", False
         for line in fin.readlines():
-            if ("for d in " in line and "/programs/*/" in line) or "PMAGPATHS=" in line: skip=True
-            elif 'export PATH="$PATH:$PMAGPATHS"' in line: skip=False; continue
-            if skip: continue
-            else: fout_string+=line
-        fout_string=fout_string.strip('\n')
-        fout=open(f_path,'w')
-        fout.write(fout_string); fin.close(); fout.close()
+            if ("for d in " in line and "/programs/*/" in line) or "PMAGPATHS=" in line:
+                skip = True
+            elif 'export PATH="$PATH:$PMAGPATHS"' in line:
+                skip = False
+                continue
+            if skip:
+                continue
+            else:
+                fout_string += line
+        fout_string = fout_string.strip('\n')
+        fout = open(f_path, 'w')
+        fout.write(fout_string)
+        fin.close()
+        fout.close()
 
     print("Uninstall complete. Please restart your shell to complete uninstall.")
+
 
 def windows_install(path_to_python=""):
     """
@@ -112,77 +127,97 @@ def windows_install(path_to_python=""):
     if not path_to_python:
         print("Please enter the path to your python.exe you wish Windows to use to run python files. If you do not, this script will not be able to set up a full python environment in Windows. If you already have a python environment set up in Windows such that you can run python scripts from command prompt with just a file name then ignore this message. For more information, rerun script with -h flag.")
         print("Would you like to continue? [y/N] ")
-        ans=input()
-        if ans=='y': pass
-        else: return
+        ans = input()
+        if ans == 'y':
+            pass
+        else:
+            return
 
-    #be sure to add python.exe if the user forgets to include the file name
+    # be sure to add python.exe if the user forgets to include the file name
     if os.path.isdir(path_to_python):
         path_to_python = os.path.join(path_to_python, "python.exe")
     if not os.path.isfile(path_to_python):
-        print("The path to python provided is not a full path to the python.exe file or this path does not exist, was given %s.\nPlease run again with the correct full path, run with -h flag for help"%path_to_python); return
+        print("The path to python provided is not a full path to the python.exe file or this path does not exist, was given %s.\nPlease run again with the correct full path, run with -h flag for help" % path_to_python)
+        return
 
-    #make windows associate .py with python
-    subprocess.check_call('assoc .py=Python',shell=True)
-    subprocess.check_call('ftype Python=%s '%path_to_python + '"%1" %*', shell=True)
+    # make windows associate .py with python
+    subprocess.check_call('assoc .py=Python', shell=True)
+    subprocess.check_call('ftype Python=%s ' %
+                          path_to_python + '"%1" %*', shell=True)
 
-    PmagPyDir=os.path.abspath(".")
-    ProgramsDir=os.path.join(PmagPyDir,'programs')
+    PmagPyDir = os.path.abspath(".")
+    ProgramsDir = os.path.join(PmagPyDir, 'programs')
     dirs_to_add = [ProgramsDir]
     for d in next(os.walk(ProgramsDir))[1]:
-        dirs_to_add.append(os.path.join(ProgramsDir,d))
+        dirs_to_add.append(os.path.join(ProgramsDir, d))
     path = subprocess.check_output('echo %PATH%', shell=True).strip('\n')
-    if "PATH" in path: path=''
-    pypath = subprocess.check_output('echo %PYTHONPATH%', shell=True).strip('\n')
-    if "PYTHONPATH" in pypath: pypath=PmagPyDir+';'+ProgramsDir
-    else: pypath+=';'+PmagPyDir+';'+ProgramsDir
+    if "PATH" in path:
+        path = ''
+    pypath = subprocess.check_output(
+        'echo %PYTHONPATH%', shell=True).strip('\n')
+    if "PYTHONPATH" in pypath:
+        pypath = PmagPyDir + ';' + ProgramsDir
+    else:
+        pypath += ';' + PmagPyDir + ';' + ProgramsDir
     for d_add in dirs_to_add:
-        path+=';'+d_add
-    unique_path_list=[]
+        path += ';' + d_add
+    unique_path_list = []
     for p in path.split(';'):
-        p=p.replace('"','')
+        p = p.replace('"', '')
         if p not in unique_path_list:
             unique_path_list.append(p)
-    unique_pypath_list=[]
+    unique_pypath_list = []
     for p in pypath.split(';'):
-        p=p.replace('"','')
+        p = p.replace('"', '')
         if p not in unique_pypath_list:
             unique_pypath_list.append(p)
-    path=functools.reduce(lambda x,y: x+';'+y, unique_path_list)
-    pypath=functools.reduce(lambda x,y: x+';'+y, unique_pypath_list)
-    print('setx PATH "%s"'%path)
-    subprocess.call('setx PATH "%s"'%path, shell=True)
-    print('setx PYTHONPATH "%s"'%pypath)
-    subprocess.call('setx PYTHONPATH "%s"'%(pypath), shell=True)
+    path = functools.reduce(lambda x, y: x + ';' + y, unique_path_list)
+    pypath = functools.reduce(lambda x, y: x + ';' + y, unique_pypath_list)
+    print('setx PATH "%s"' % path)
+    subprocess.call('setx PATH "%s"' % path, shell=True)
+    print('setx PYTHONPATH "%s"' % pypath)
+    subprocess.call('setx PYTHONPATH "%s"' % (pypath), shell=True)
 
     print("Install complete. Please restart the command prompt to complete install")
 
+
 def windows_uninstall():
     path = subprocess.check_output('echo %PATH%', shell=True).strip('\n')
-    if "PATH" in path: print("PmagPy dev version not installed, aborting"); return
-    pypath = subprocess.check_output('echo %PYTHONPATH%', shell=True).strip('\n')
-    if "PYTHONPATH" in pypath: print("PmagPy dev version not installed, aborting"); return
+    if "PATH" in path:
+        print("PmagPy dev version not installed, aborting")
+        return
+    pypath = subprocess.check_output(
+        'echo %PYTHONPATH%', shell=True).strip('\n')
+    if "PYTHONPATH" in pypath:
+        print("PmagPy dev version not installed, aborting")
+        return
 
-    paths=path.split(';')
-    pypaths=pypath.split(';')
+    paths = path.split(';')
+    pypaths = pypath.split(';')
 
     new_paths = [p for p in paths if 'pmagpy' not in p.lower()]
     new_pypaths = [p for p in pypaths if 'pmagpy' not in p.lower()]
 
-    if new_paths: new_path = functools.reduce(lambda x,y: x+';'+y, new_paths)
-    else: new_path=''
-    if new_pypaths: new_pypath = functools.reduce(lambda x,y: x+';'+y, new_pypaths)
-    else: new_pypath=''
+    if new_paths:
+        new_path = functools.reduce(lambda x, y: x + ';' + y, new_paths)
+    else:
+        new_path = ''
+    if new_pypaths:
+        new_pypath = functools.reduce(lambda x, y: x + ';' + y, new_pypaths)
+    else:
+        new_pypath = ''
 
-    print('setx PATH "%s"'%new_path)
-    subprocess.call('setx PATH "%s"'%new_path, shell=True)
-    print('setx PYTHONPATH "%s"'%new_pypath)
-    subprocess.call('setx PYTHONPATH "%s"'%(new_pypath), shell=True)
+    print('setx PATH "%s"' % new_path)
+    subprocess.call('setx PATH "%s"' % new_path, shell=True)
+    print('setx PYTHONPATH "%s"' % new_pypath)
+    subprocess.call('setx PYTHONPATH "%s"' % (new_pypath), shell=True)
 
     print("Uninstall complete. Please restart the command prompt to complete uninstall")
 
-if __name__=="__main__":
-    if '-h' in sys.argv: help(__name__)
+
+if __name__ == "__main__":
+    if '-h' in sys.argv:
+        help(__name__)
     elif sys.platform.startswith("linux") or sys.platform.startswith("darwin"):
         if "install" in sys.argv:
             unix_install()
@@ -191,12 +226,13 @@ if __name__=="__main__":
         elif "reinstall" in sys.argv:
             unix_uninstall()
             unix_install()
-        else: unix_install()
+        else:
+            unix_install()
     else:
-        kwargs={}
+        kwargs = {}
         if '-p' in sys.argv:
-            ip=sys.argv.index('-p')
-            kwargs['path_to_python']=sys.argv[ip+1]
+            ip = sys.argv.index('-p')
+            kwargs['path_to_python'] = sys.argv[ip + 1]
 
         if "install" in sys.argv:
             windows_install(**kwargs)
@@ -205,4 +241,5 @@ if __name__=="__main__":
         elif "reinstall" in sys.argv:
             windows_uninstall()
             windows_install(**kwargs)
-        else: windows_install(**kwargs)
+        else:
+            windows_install(**kwargs)
