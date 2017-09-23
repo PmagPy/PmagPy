@@ -150,11 +150,11 @@ def windows_install(path_to_python=""):
     dirs_to_add = [ProgramsDir]
     for d in next(os.walk(ProgramsDir))[1]:
         dirs_to_add.append(os.path.join(ProgramsDir, d))
-    path = subprocess.check_output('echo %PATH%', shell=True).strip('\n')
+    path = str(subprocess.check_output('echo %PATH%', shell=True)).strip('\n')
     if "PATH" in path:
         path = ''
-    pypath = subprocess.check_output(
-        'echo %PYTHONPATH%', shell=True).strip('\n')
+    pypath = str(subprocess.check_output(
+        'echo %PYTHONPATH%', shell=True)).strip('\n')
     if "PYTHONPATH" in pypath:
         pypath = PmagPyDir + ';' + ProgramsDir
     else:
@@ -182,12 +182,12 @@ def windows_install(path_to_python=""):
 
 
 def windows_uninstall():
-    path = subprocess.check_output('echo %PATH%', shell=True).strip('\n')
+    path = str(subprocess.check_output('echo %PATH%', shell=True)).strip('\n')
     if "PATH" in path:
         print("PmagPy dev version not installed, aborting")
         return
-    pypath = subprocess.check_output(
-        'echo %PYTHONPATH%', shell=True).strip('\n')
+    pypath = str(subprocess.check_output(
+        'echo %PYTHONPATH%', shell=True)).strip('\n')
     if "PYTHONPATH" in pypath:
         print("PmagPy dev version not installed, aborting")
         return
