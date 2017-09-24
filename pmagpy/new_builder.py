@@ -326,8 +326,16 @@ class Contribution(object):
         site_container.df['lat'] = np.where(site_container.df['lat'].str.len(), site_container.df['lat'], np.nan)
         site_container.df['lon'] = np.where(site_container.df['lon'].str.len(), site_container.df['lon'], np.nan)
         # convert lat/lon values to float (they make be string from grid)
-        site_container.df['lat'] = site_container.df['lat'].astype(float)
-        site_container.df['lon'] = site_container.df['lon'].astype(float)
+        try:
+            site_container.df['lat'] = site_container.df['lat'].astype(float)
+        except ValueError as ex:
+            print('-W- Improperly formatted numbers in sites.lat')
+            return
+        try:
+            site_container.df['lon'] = site_container.df['lon'].astype(float)
+        except ValueError as ex:
+            print('-W- Improperly formatted numbers in sites.lon')
+            return
         # group lat/lon by location
         grouped_lon = site_container.df[['lon', 'location']].groupby('location')
         grouped_lat = site_container.df[['lat', 'location']].groupby('location')
