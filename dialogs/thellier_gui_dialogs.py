@@ -158,10 +158,10 @@ class PI_Statistics_Dialog(wx.Dialog):
 
         categories = ['Arai plot', 'Direction',
                       'pTRM Checks', 'Tail Checks', 'Additivity Checks']
-        for k in range(len(categories)):
-            self.bSizers[k] = wx.StaticBoxSizer( wx.StaticBox( pnl1, wx.ID_ANY, '%s' ), wx.VERTICAL )
+        for k, cat in enumerate(categories):
+            self.bSizers[k] = wx.StaticBoxSizer(wx.StaticBox(pnl1, wx.ID_ANY, cat), wx.VERTICAL)
 
-            for stat in self.stat_by_category[categories[k]]:
+            for stat in self.stat_by_category[cat]:
                 short_name = stat.replace("specimen_", "")
                 self.set_specimen_windows[short_name] = wx.CheckBox(pnl1, -1, label=short_name, name=short_name)
                 self.Bind(wx.EVT_CHECKBOX, self.OnCheckBox, self.set_specimen_windows[short_name])
@@ -169,9 +169,9 @@ class PI_Statistics_Dialog(wx.Dialog):
                 self.Bind(wx.EVT_BUTTON, self.PI_stat_description, self.specimen_btns[short_name])
 
             self.hboxes[k] = {}
-            for i in range(len(self.stat_by_category[categories[k]])):
+            for i in range(len(self.stat_by_category[cat])):
                 self.hboxes[k][i] = wx.BoxSizer(wx.HORIZONTAL)
-                stat = self.stat_by_category[categories[k]][i]
+                stat = self.stat_by_category[cat][i]
                 short_name = stat.replace("specimen_", "")
                 self.hboxes[k][i].Add(self.specimen_btns[short_name])
                 self.hboxes[k][i].AddSpacer(10)
