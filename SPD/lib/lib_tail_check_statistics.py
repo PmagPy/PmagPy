@@ -3,7 +3,7 @@ from __future__ import division
 from past.utils import old_div
 import numpy
 
-
+# int_ptrm_tail_n
 def get_n_tail(tmax, tail_temps):
     """determines number of included tail checks in best fit segment"""
     #print "tail_temps: {0}, tmax: {0}".format(tail_temps, tmax)
@@ -21,6 +21,7 @@ def get_n_tail(tmax, tail_temps):
     incl_temps = tail_temps[0:t_index+1] # b/c not inclusive
     return len(incl_temps) #, incl_temps
 
+# not a SPD stat
 def get_max_tail_check(y_Arai, y_tail, t_Arai, tail_temps, n_tail):
     """
     input: y_Arai, y_tail, t_Arai, tail_temps, n_tail
@@ -42,6 +43,7 @@ def get_max_tail_check(y_Arai, y_tail, t_Arai, tail_temps, n_tail):
     max_check = max(abs_diffs)
     return max_check, diffs
 
+# tail_drat
 def get_DRAT_tail(max_check, L):
     """
     input: tail_check_max, best fit line length
@@ -52,6 +54,7 @@ def get_DRAT_tail(max_check, L):
     DRAT_tail = (old_div(max_check, L)) * 100.
     return DRAT_tail
 
+# dtr
 def get_delta_TR(tail_check_max, y_int):
     """
     input: tail_check_max, y_intercept
@@ -62,11 +65,12 @@ def get_delta_TR(tail_check_max, y_int):
     delta_TR = (old_div(tail_check_max, abs(y_int))) * 100.
     return delta_TR
 
+# md
 def get_MD_VDS(tail_check_max, vds):
     """
     input: tail_check_max, vector difference sum
     output: MD_VDS
-    """    
+    """
     if tail_check_max == 0 or numpy.isnan(tail_check_max):
         return float('nan')
     MD_VDS = (old_div(tail_check_max, vds)) * 100
