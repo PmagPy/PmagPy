@@ -11,14 +11,14 @@ numpy.set_printoptions(precision=15)
 def get_n_ptrm(tmin, tmax, ptrm_temps, ptrm_starting_temps):
     """
     input: tmin, tmax, ptrm_temps, ptrm_starting_temps
-    returns number of ptrm_checks included in best fit segment.  
-    excludes checks if temp exceeds tmax OR if starting temp exceeds tmax. 
+    returns number of ptrm_checks included in best fit segment.
+    excludes checks if temp exceeds tmax OR if starting temp exceeds tmax.
     output: n_ptrm, ptrm_checks_included_temperatures
     """
     # does not exclude ptrm checks that are less than tmin
     ptrm_checks_included_temps= []
     for num, check in enumerate(ptrm_temps):
-        if check > tmax: 
+        if check > tmax:
             pass
         elif ptrm_starting_temps[num] > tmax: # or ptrm_starting_temps[num] < tmin:
             pass
@@ -26,11 +26,11 @@ def get_n_ptrm(tmin, tmax, ptrm_temps, ptrm_starting_temps):
             ptrm_checks_included_temps.append(check)
     return len(ptrm_checks_included_temps), ptrm_checks_included_temps
 
-def get_max_ptrm_check(ptrm_checks_included_temps, ptrm_checks_all_temps, ptrm_x, t_Arai, x_Arai): 
+def get_max_ptrm_check(ptrm_checks_included_temps, ptrm_checks_all_temps, ptrm_x, t_Arai, x_Arai):
     """
     input: ptrm_checks_included_temps, ptrm_checks_all_temps, ptrm_x, t_Arai, x_Arai.
-    sorts through included ptrm_checks and finds the largest ptrm check diff, 
-    the sum of the total diffs, 
+    sorts through included ptrm_checks and finds the largest ptrm check diff,
+    the sum of the total diffs,
     and the percentage of the largest check / original measurement at that temperature step
     output: max_diff, sum_diffs, check_percent, sum_abs_diffs.
     """
@@ -45,8 +45,8 @@ def get_max_ptrm_check(ptrm_checks_included_temps, ptrm_checks_all_temps, ptrm_x
     for check in ptrm_checks_included_temps: # goes through each included temperature step
         ptrm_ind = ptrm_checks_all_temps.index(check) # indexes the number of the check
         ptrm_check = ptrm_x[ptrm_ind] # x value at that temperature step
-        ptrm_compare.append(ptrm_check) # 
-        arai_ind = t_Arai.index(check) 
+        ptrm_compare.append(ptrm_check) #
+        arai_ind = t_Arai.index(check)
         ptrm_orig = x_Arai[arai_ind]
         x_Arai_compare.append(ptrm_orig)
         diff = ptrm_orig - ptrm_check
@@ -61,7 +61,7 @@ def get_max_ptrm_check(ptrm_checks_included_temps, ptrm_checks_all_temps, ptrm_x
     sum_diffs = abs(sum(diffs))
     sum_abs_diffs = sum(abs_diffs)
     return diffs, max_diff, sum_diffs, check_percent, sum_abs_diffs
-    
+
 
 def get_delta_CK(max_ptrm_check, x_int):
     """
@@ -72,10 +72,10 @@ def get_delta_CK(max_ptrm_check, x_int):
 
 def get_DRAT(delta_x_prime, delta_y_prime, max_ptrm_check):
     """
-    Input: TRM length of best fit line (delta_x_prime), 
-        NRM length of best fit line, 
+    Input: TRM length of best fit line (delta_x_prime),
+        NRM length of best fit line,
         max_ptrm_check
-    Output: DRAT (maximum difference produced by a ptrm check normed by best fit line), 
+    Output: DRAT (maximum difference produced by a ptrm check normed by best fit line),
         length best fit line
     """
     L = numpy.sqrt(delta_x_prime**2 + delta_y_prime**2)
@@ -116,7 +116,7 @@ def get_DRATS(sum_ptrm_checks, sum_abs_ptrm_checks, x_Arai, end):
 def get_mean_DRAT(sum_ptrm_checks, sum_abs_ptrm_checks, n_pTRM, L):
     """
     input: sum_ptrm_checks, sum_abs_ptrm_checks, n_pTRM, L
-    output: mean DRAT (the average difference produced by a pTRM check, 
+    output: mean DRAT (the average difference produced by a pTRM check,
     normalized by the length of the best-fit line)
     """
     if not n_pTRM:
@@ -151,7 +151,7 @@ def get_delta_pal_vectors(PTRMS, PTRM_Checks, NRM):
         Checks_cart.append(check_cart)
     return PTRMS_cart, Checks_cart, TRM_1
 
-def get_diffs(ptrms_vectors, ptrm_checks_vectors, ptrms_orig, checks_orig):  
+def get_diffs(ptrms_vectors, ptrm_checks_vectors, ptrms_orig, checks_orig):
     """
     input: ptrms_vectors, ptrm_checks_vectors, ptrms_orig, checks_orig
     output: vector diffs between original and ptrm check, C
@@ -194,7 +194,7 @@ def get_TRM_star(C, ptrms_vectors, start, end):
     #print "x_star (should match corr_TRM / NRM)"
     #print x_star[start:end+1]
     return TRM_star[start:end+1], x_star[start:end+1]
-        
+
 def get_b_star(x_star, y_err, y_mean, y_segment):
     """
     input: x_star, y_err, y_mean, y_segment
@@ -204,13 +204,14 @@ def get_b_star(x_star, y_err, y_mean, y_segment):
     #print x_star
     x_star_mean = numpy.mean(x_star)
     x_err = x_star - x_star_mean
-    b_star = -1* numpy.sqrt( old_div(sum(numpy.array(y_err)**2), sum(numpy.array(x_err)**2)) )  # averaged slope 
+    b_star = -1* numpy.sqrt( old_div(sum(numpy.array(y_err)**2), sum(numpy.array(x_err)**2)) )  # averaged slope
     #print "y_segment", y_segment
     b_star = numpy.sign(sum(x_err * y_err)) * numpy.std(y_segment, ddof=1) / numpy.std(x_star, ddof=1)
     #print "b_star (should be same as corr_slope)"
     #print b_star
     return b_star
 
+# check delta pal
 def get_delta_pal(b, b_star):
     """
     input: b, b_star (actual and corrected slope)
@@ -219,6 +220,7 @@ def get_delta_pal(b, b_star):
     delta_pal = numpy.abs(old_div((b - b_star), b)) * 100
     return delta_pal
 
+# check delta pal
 def get_full_delta_pal(PTRMS, PTRM_Checks, NRM, y_err, y_mean, b, start, end, y_segment):
     """
     input: PTRMS, PTRM_Checks, NRM, y_err, y_mean, b, start, end, y_segment
@@ -257,6 +259,3 @@ def get_segments(ptrms, ptrm_checks, tmax):
     #print "checks", ptrm_checks
     #print "checks_included", checks_included
     return ptrms_included, checks_included
-
-
-
