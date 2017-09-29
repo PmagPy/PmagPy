@@ -84,7 +84,10 @@ from pmagpy.mapping import map_magic
 
 class PintPars(object):
     """ __init__(self, Data,specimen_name,tmin,tmax,mapping=None, calculate=None)"""
-    def __init__(self, Data, specimen_name, tmin, tmax, mapping=None, calculate=None,acceptance_criteria={}):
+    def __init__(self, Data, specimen_name, tmin=None, tmax=None,
+                 mapping=None, calculate=None,acceptance_criteria={},
+                 tmin_ind=None, tmax_ind=None):
+        #print("MAKING PINTPARS")
         self.acceptance_criteria=acceptance_criteria
         self.s = specimen_name
         self.mapping = mapping
@@ -144,8 +147,20 @@ class PintPars(object):
         self.zijdblock=self.specimen_Data['zijdblock']
         self.z_temperatures=self.specimen_Data['z_temp']
 
-        self.start=self.t_Arai.index(tmin)
-        self.end=self.t_Arai.index(tmax)
+
+        # find index from start/end temperatures
+        if tmin:
+            self.start=self.t_Arai.index(tmin)
+            self.end=self.t_Arai.index(tmax)
+        # or find start/end temperatures from index
+        else:
+            self.start = tmin_ind
+            self.end = tmax_ind
+            tmin = self.t_Arai[tmin_ind]
+            try:
+                tmax = self.t_Arai[tmax_ind]
+            except IndexError:
+                tmax = self.t_Arai[-1]
 
         self.pars={}
 
@@ -438,6 +453,7 @@ class PintPars(object):
         n, steps = lib_ptrm.get_n_ptrm(tmin, tmax, ptrm_temps, ptrm_starting_temps)
         self.pars['n_ptrm'] = n
         self.pars['ptrm_checks_included_temps'] = steps
+        return n, steps
 
     def get_max_ptrm_check(self):
         ptrm_checks_included_temps = self.pars['ptrm_checks_included_temps']
