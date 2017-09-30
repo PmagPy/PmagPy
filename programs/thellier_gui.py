@@ -194,16 +194,14 @@ try:
 except ImportError:
     pass
 import matplotlib.pyplot as plt
-
+import json
 import sys
 import os
 import copy
 import pdb
 from webbrowser import open as webopen
 import pmagpy.pmag as pmag
-CURRENT_VERSION = pmag.get_version()
 import pmagpy.find_pmag_dir as find_pmag_dir
-PMAGPY_DIRECTORY = find_pmag_dir.get_pmag_dir()
 import pmagpy.new_builder as nb
 from pmagpy.mapping import map_magic
 import pmagpy.controlled_vocabularies3 as cv
@@ -220,11 +218,6 @@ import wx
 import wx.lib.scrolledpanel
 import wx.grid
 import wx.lib.agw.floatspin as FS
-try:
-    import thellier_gui_preferences
-except ImportError:
-    pass
-
 from dialogs import demag_dialogs
 from dialogs import pmag_widgets as pw
 import dialogs.thellier_consistency_test as thellier_consistency_test
@@ -232,6 +225,9 @@ import dialogs.thellier_gui_dialogs as thellier_gui_dialogs
 import dialogs.thellier_gui_lib as thellier_gui_lib
 import dialogs.thellier_interpreter as thellier_interpreter
 import dialogs.thellier_consistency_test as thellier_consistency_test
+
+CURRENT_VERSION = pmag.get_version()
+PMAGPY_DIRECTORY = find_pmag_dir.get_pmag_dir()
 
 matplotlib.rc('xtick', labelsize=10)
 matplotlib.rc('ytick', labelsize=10)
@@ -285,12 +281,7 @@ DESCRIPTION
     GUI for interpreting thellier-type paleointensity data.
     For tutorial check PmagPy cookbook in http://earthref.org/PmagPy/cookbook/
 
-"""
-
-        try:
-            reload(thellier_gui_preferences)
-        except NameError:
-            pass
+        """
         args = sys.argv
 
         if "-h" in args:
@@ -2047,48 +2038,13 @@ else:
     def write_preferences_to_file(self, need_to_close_frame):
 
         dlg1 = wx.MessageDialog(
-            self, caption="Message:", message="save the thellier_gui.preferences in PmagPy directory!", style=wx.OK | wx.ICON_INFORMATION)
-        self.show_dlg(dlg1)
+            self, caption="Message:", message="Update Thellier GUI preferences?",
+            style=wx.OK | wx.CANCEL |wx.ICON_INFORMATION)
+        res = self.show_dlg(dlg1)
         dlg1.Destroy()
-        PATH = "~/PmagPy"
-        try:
-            PATH = find_pmag_dir.get_pmag_dir()
-        except:
-            pass
-        dlg2 = wx.FileDialog(
-            self, message="save the thellier_gui_preference.txt in PmagPy directory!",
-            defaultDir=PATH,
-            defaultFile="thellier_gui_preferences.py",
-            style=wx.FD_SAVE | wx.FD_CHANGE_DIR
-        )
-        if self.show_dlg(dlg2) == wx.ID_OK:
-            preference_file = dlg2.GetPath()
-            fout = open(preference_file, 'w')
-            String = ""
 
-            fout.write("preferences={}\n")
-
-            for key in list(self.preferences.keys()):
-                if key in ['BOOTSTRAP_N', 'gui_resolution', 'show_Zij_temperatures_steps', 'show_Arai_temperatures_steps']:
-                    String = "preferences['%s']=%f\n" % (
-                        key, self.preferences[key])
-                elif key in ["VDM_or_VADM"]:
-                    String = "preferences['%s']='%s'\n" % (
-                        key, self.preferences[key])
-                elif key in ["show_statistics_on_gui"]:
-                    TEXT = ""
-                    for stat in self.preferences[key]:
-                        TEXT = TEXT + "'" + stat + "',"
-                    String = "preferences['%s']=[%s]\n" % (key, TEXT[:-1])
-                else:
-                    String = "preferences['%s']=%f\n" % (
-                        key, self.preferences[key])
-
-                fout.write(String)
-            fout.close()
-            os.chmod(preference_file, 0o777)
-
-        dlg2.Destroy()
+        if res == wx.ID_OK:
+            self.write_preferences_file()
 
         if need_to_close_frame:
             dlg3 = wx.MessageDialog(
@@ -2101,6 +2057,32 @@ else:
                 # sys.exit()
 
     #-----------------------------------
+
+    def read_preferences_file(self):
+        """
+        If json preferences file exists, read it in.
+        """
+        user_data_dir = find_pmag_dir.find_user_data_dir("thellier_gui")
+        pref_file = os.path.join(user_data_dir, "thellier_gui_preferences.json")
+        if os.path.exists(pref_file):
+            with open(pref_file, "r") as pfile:
+                return json.load(pfile)
+        else:
+            return {}
+
+    def write_preferences_file(self):
+        """
+        Write json preferences file to (platform specific) user data directory,
+        or PmagPy directory if appdirs module is missing.
+        """
+        user_data_dir = find_pmag_dir.find_user_data_dir("thellier_gui")
+        if not os.path.exists(user_data_dir):
+            os.mkdir(user_data_dir)
+        pref_file = os.path.join(user_data_dir, "thellier_gui_preferences.json")
+        with open(pref_file, "w+") as pfile:
+            print('-I- writing preferences to {}'.format(pref_file))
+            json.dump(self.preferences, pfile)
+
 
     def get_preferences(self):
         # default
@@ -2120,13 +2102,9 @@ else:
         preferences['VDM_or_VADM'] = "VADM"
         preferences['show_statistics_on_gui'] = ["int_n", "int_ptrm_n", "frac", "scat", "gmax", "b_beta", "int_mad",
                                                  "int_dang", "f", "fvds", "g", "q", "drats"]  # ,'ptrms_dec','ptrms_inc','ptrms_mad','ptrms_angle']
-        # try to read preferences file:
-        try:
-            self.GUI_log.write("-I- thellier_gui.preferences imported\n")
-            preferences.update(thellier_gui_preferences.preferences)
-        except (IOError, OSError, NameError):
-            self.GUI_log.write(
-                " -I- can't find thellier_gui_preferences file, using default \n")
+        # try to read preferences file (new way)
+        saved_preferences = self.read_preferences_file()
+        preferences.update(saved_preferences)
 
         # check criteria file
         # if a statistic appear in the criteria file  but does not appear in
@@ -2161,45 +2139,12 @@ else:
             self.preferences['VDM_or_VADM'] = str(dia.v_adm_box.GetValue())
 
             dlg1 = wx.MessageDialog(
-                self, caption="Message:", message="save the thellier_gui.preferences in PmagPy directory!", style=wx.OK | wx.ICON_INFORMATION)
-            self.show_dlg(dlg1)
+                self, caption="Message:", message="Update Thellier GUI preferences?", style=wx.OK | wx.ICON_INFORMATION)
+            res = self.show_dlg(dlg1)
             dlg1.Destroy()
 
-            dlg2 = wx.FileDialog(
-                self, message="save the thellier_gui_preference.txt in PmagPy directory!",
-                defaultDir="~/PmagPy",
-                defaultFile="thellier_gui_preferences.py",
-                style=wx.FD_SAVE | wx.FD_CHANGE_DIR
-            )
-            if self.show_dlg(dlg2) == wx.ID_OK:
-                preference_file = dlg2.GetPath()
-                fout = open(preference_file, 'w')
-                String = ""
-
-                fout.write("preferences={}\n")
-                for key in list(self.preferences.keys()):
-                    if key in ['BOOTSTRAP_N', 'gui_resolution', 'show_Zij_temperatures_steps', 'show_Arai_temperatures_steps']:
-                        String = "preferences['%s']=%f\n" % (
-                            key, self.preferences[key])
-                    elif key in ["VDM_or_VADM"]:
-                        String = "preferences['%s']='%s'\n" % (
-                            key, self.preferences[key])
-                    elif key in ["show_statistics_on_gui"]:
-                        TEXT = ""
-                        for stat in self.preferences[key]:
-                            TEXT = TEXT + "'" + stat + "',"
-                        String = "preferences['%s']=[%s]\n" % (key, TEXT[:-1])
-
-                    else:
-                        String = "preferences['%s']=%f\n" % (
-                            key, self.preferences[key])
-                    # print String
-                    fout.write(String)
-
-                fout.close()
-                os.chmod(preference_file, 0o777)
-
-            dlg2.Destroy()
+            if res == wx.ID_OK:
+                self.write_preferences_file()
 
             return()
 

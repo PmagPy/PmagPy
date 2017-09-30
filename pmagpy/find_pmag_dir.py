@@ -80,8 +80,7 @@ def is_frozen():
     Checks whether python is running as a Windows frozen binary
     """
     if hasattr(sys, "frozen"):
-        if sys.frozen in ("windows_exe", "console_exe"):
-            return True
+        return True
     return False
 
 def get_version():
@@ -89,6 +88,13 @@ def get_version():
     #global pmagpy_path
     pmagpy_path = get_pmag_dir()
     return version.version
+
+def find_user_data_dir(program_name):
+    try:
+        import appdirs
+        return appdirs.user_data_dir(program_name, "PmagPy")
+    except ImportError:
+        get_pmag_dir()
 
 
 """
