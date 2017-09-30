@@ -518,6 +518,9 @@ class PintPars(object):
         self.pars['mean_DEV_prime'] = mean_DEV_prime
 
     def get_delta_pal(self):
+        if not 'n_ptrm' in self.pars:
+            self.pars['delta_pal'] = 0
+            return 0
         if self.pars['n_ptrm'] == 0: # otherwise will error if no ptrm checks
             self.pars['delta_pal'] = 0
             return 0
