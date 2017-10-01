@@ -2063,6 +2063,8 @@ else:
         If json preferences file exists, read it in.
         """
         user_data_dir = find_pmag_dir.find_user_data_dir("thellier_gui")
+        if not user_data_dir:
+            return {}
         if os.path.exists(user_data_dir):
             pref_file = os.path.join(user_data_dir, "thellier_gui_preferences.json")
             if os.path.exists(pref_file):
