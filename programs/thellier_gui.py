@@ -297,6 +297,7 @@ DESCRIPTION
         self.evt_quit = evt_quit
         self.close_warning = False
         self.parent = parent
+        self.crit_data = {}
 
         # set icon
         if not self.parent:
@@ -2662,7 +2663,8 @@ You can combine multiple measurement files into one measurement file using Pmag 
             try:
                 pmag.write_criteria_to_file(os.path.join(
                     self.WD, crit_file), self.acceptance_criteria, data_model=self.data_model, prior_crits=self.crit_data)
-            except AttributeError:
+            except AttributeError as ex:
+                print(ex)
                 print("no criteria given to save")
             dlg1.Destroy()
             dia.Destroy()
