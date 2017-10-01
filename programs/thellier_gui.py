@@ -2063,12 +2063,12 @@ else:
         If json preferences file exists, read it in.
         """
         user_data_dir = find_pmag_dir.find_user_data_dir("thellier_gui")
-        pref_file = os.path.join(user_data_dir, "thellier_gui_preferences.json")
-        if os.path.exists(pref_file):
-            with open(pref_file, "r") as pfile:
-                return json.load(pfile)
-        else:
-            return {}
+        if os.path.exists(user_data_dir):
+            pref_file = os.path.join(user_data_dir, "thellier_gui_preferences.json")
+            if os.path.exists(pref_file):
+                with open(pref_file, "r") as pfile:
+                    return json.load(pfile)
+        return {}
 
     def write_preferences_file(self):
         """
