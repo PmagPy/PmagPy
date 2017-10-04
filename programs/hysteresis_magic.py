@@ -100,7 +100,6 @@ def main():
         if rec['specimen'] not in sids:sids.append(rec['specimen'])
     #
     k=0
-    locname=''
     if pltspec:
         k=sids.index(pltspec)
         print(sids[k])
@@ -197,7 +196,7 @@ def main():
             if pltspec:s=pltspec
             files={}
             for key in list(HDD.keys()):
-                files[key]=locname+'_'+s+'_'+key+'.'+fmt
+                files[key]=s+'_'+key+'.'+fmt
             pmagplotlib.saveP(HDD,files)
             if pltspec:sys.exit()
         if verbose and PLT:
@@ -206,7 +205,7 @@ def main():
             if ans=="a":
                 files={}
                 for key in list(HDD.keys()):
-                    files[key]=locname+'_'+s+'_'+key+'.'+fmt
+                    files[key]=specimen+'_'+key+'.'+fmt
                 pmagplotlib.saveP(HDD,files)
             if ans=='':k+=1
             if ans=="p":
