@@ -2,7 +2,9 @@
 
 
 import os
+import sys
 from pmagpy import version
+sys.setrecursionlimit(30000)
 app_name = "magic_gui_{}".format(version.version[7:])
 current_dir = os.getcwd()
 
