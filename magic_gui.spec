@@ -13,7 +13,7 @@ block_cipher = None
 
 files = [('{}/pmagpy/data_model/data_model.json'.format(current_dir), './pmagpy/data_model/'),
          ('{}/pmagpy/data_model/data_model.json'.format(current_dir), '.'),
-         ('{}/pmagpy/data_model/*.json'.format(current_dir), './pmagpy/data_model/')]
+         ('{}/pmagpy/data_model/*.json'.format(current_dir), './pmagpy/data_model/')
 ]
 
 a = Analysis(['programs/magic_gui.py'],
