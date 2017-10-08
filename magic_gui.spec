@@ -8,7 +8,6 @@ sys.setrecursionlimit(30000)
 app_name = "magic_gui_{}".format(version.version[7:])
 current_dir = os.getcwd()
 
-
 block_cipher = None
 
 files = [('{}/pmagpy/data_model/*.json'.format(current_dir), './pmagpy/data_model/'),
@@ -45,6 +44,7 @@ exe = EXE(pyz,
 #               upx=True,
 #               name=app_name)
 app = BUNDLE(exe,
-             name='{}.app'.format(app_name),
-             icon='{}/programs/images/PmagPy.ico'.format(current_dir),
+             #name='magic_gui.app',
+             name=app_name + ".app",
+             icon='./programs/images/PmagPy.ico',
              bundle_identifier=None)
