@@ -37,8 +37,6 @@ class MainFrame(wx.Frame):
             version = ""
         if not title:
             title = "MagIC GUI   version: %s" % version
-        #if sys.platform in ['win32', 'win64']:
-        #    title += "  Powered by Enthought Canopy"
         wx.Frame.__init__(self, None, wx.ID_ANY, title, name=name)
         #
         self.grid_frame = None
