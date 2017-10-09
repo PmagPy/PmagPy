@@ -94,7 +94,7 @@ def find_user_data_dir(program_name):
         import appdirs
         return appdirs.user_data_dir(program_name, "PmagPy")
     except ImportError:
-        return #get_pmag_dir()
+        return get_pmag_dir()
 
 
 """
