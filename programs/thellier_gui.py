@@ -2080,7 +2080,7 @@ else:
         """
         user_data_dir = find_pmag_dir.find_user_data_dir("thellier_gui")
         if not os.path.exists(user_data_dir):
-            os.mkdir(user_data_dir)
+            find_pmag_dir.make_user_data_dir(user_data_dir)
         pref_file = os.path.join(user_data_dir, "thellier_gui_preferences.json")
         with open(pref_file, "w+") as pfile:
             print('-I- writing preferences to {}'.format(pref_file))

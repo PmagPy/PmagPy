@@ -96,6 +96,13 @@ def find_user_data_dir(program_name):
     except ImportError:
         return get_pmag_dir()
 
+def make_user_data_dir(long_path):
+    short_path = os.path.split(long_path)[0]
+    if not os.path.exists(short_path):
+        os.mkdir(short_path)
+    if not os.path.exists(long_path):
+        os.mkdir(long_path)
+
 
 """
 def main():
