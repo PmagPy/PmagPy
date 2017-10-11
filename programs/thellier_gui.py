@@ -2734,15 +2734,21 @@ You can combine multiple measurement files into one measurement file using Pmag 
                     # model 2.5 name
                     m2_name = map_magic.convert_intensity_criteria(
                         'magic2', crit['table_column'])
-                    if m2_name != crit['table_column'] and 'scat' not in m2_name != "":
-                        self.acceptance_criteria[m2_name]['value'] = float(
-                            crit['criterion_value'])
-                        self.acceptance_criteria[m2_name]['pmag_criteria_code'] = crit['criterion']
-                    if m2_name != crit['table_column'] and 'scat' in m2_name != "":
-                        if crit['criterion_value'] == 'True':
-                            self.acceptance_criteria[m2_name]['value'] = 1
-                        else:
-                            self.acceptance_criteria[m2_name]['value'] = 0
+                    if not m2_name:
+                        pass
+                    elif m2_name not in self.acceptance_criteria:
+                        print('-W- Your criteria file contains {}, which is not currently supported in Thellier GUI.'.format(m2_name))
+                        print('    This record will be skipped:\n    {}'.format(crit))
+                    else:
+                        if m2_name != crit['table_column'] and 'scat' not in m2_name != "":
+                            self.acceptance_criteria[m2_name]['value'] = float(
+                                crit['criterion_value'])
+                            self.acceptance_criteria[m2_name]['pmag_criteria_code'] = crit['criterion']
+                        if m2_name != crit['table_column'] and 'scat' in m2_name != "":
+                            if crit['criterion_value'] == 'True':
+                                self.acceptance_criteria[m2_name]['value'] = 1
+                            else:
+                                self.acceptance_criteria[m2_name]['value'] = 0
             else:
                 print("-E- Can't read criteria file")
 
