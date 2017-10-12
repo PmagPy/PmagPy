@@ -15,6 +15,7 @@ files = [('{}/pmagpy/data_model/*.json'.format(current_dir), './pmagpy/data_mode
          ('{}/dialogs/help_files/*.html'.format(current_dir), './dialogs/help_files')
         ]
 
+
 a = Analysis(['programs/pmag_gui.py'],
              pathex=[current_dir],
              binaries=[],
@@ -27,7 +28,7 @@ a = Analysis(['programs/pmag_gui.py'],
              win_private_assemblies=False,
              cipher=block_cipher)
 pyz = PYZ(a.pure, a.zipped_data,
-          cipher=block_cipher)
+             cipher=block_cipher)
 exe = EXE(pyz,
           a.scripts,
           a.binaries,
