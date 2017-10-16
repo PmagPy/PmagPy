@@ -1081,9 +1081,11 @@ class convert_CIT_files_to_MagIC(convert_files_to_MagIC):
         replicate = self.bSizer7.return_value()
         if replicate:
             options_dict['avg'] = 0
+            options_dict['noave'] = True
             replicate = ''
         else:
             options_dict['avg'] = 1
+            options_dict['noave'] = False
             replicate = '-A'
 
         meas_n_orient = self.bSizer9.return_value()

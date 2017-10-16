@@ -7732,6 +7732,10 @@ def measurements_methods3(meas_data, noave):
     get list of unique specs
     """
 #
+    if noave:
+        noave = 1
+    else:
+        noave = 0
     version_num = get_version()
     sids = get_specs(meas_data)
 # list  of measurement records for this specimen

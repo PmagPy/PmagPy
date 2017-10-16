@@ -385,10 +385,10 @@ def convert(**kwargs):
                 print("trouble with your treatment steps")
             MeasRec['dir_dec']=line[46:51]
             MeasRec['dir_inc']=line[52:58]
-#           Some MIT files have and extra digit in the exponent of the magnetude. 
+#           Some MIT files have and extra digit in the exponent of the magnetude.
 #           That makes those files not compliant with the cit measurement file spec.
 #           Not sure if we should just print an error message and exit. For now we accept the file and fix it.
-#           The first digit of the exponent, which should always be zero, is cut out of the line if column 39 is not ' ' 
+#           The first digit of the exponent, which should always be zero, is cut out of the line if column 39 is not ' '
             if line[39] != ' ': line = line[0:37] + line[38:]
             M='%8.2e'%(float(line[31:39])*volmass*1e-3) # convert to Am2
             MeasRec['magn_moment']=M
