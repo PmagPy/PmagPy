@@ -988,7 +988,9 @@ class Contribution(object):
         possible_levels = ['specimen', 'sample', 'site', 'location']
         levels = [level for level in possible_levels if level in self.tables['ages'].df.columns]
         # find level for each age row
-        self.tables['ages'].df['level'] = self.tables['ages'].df.apply(get_level, axis=1, args=[levels])
+        age_levels = self.tables['ages'].df.apply(get_level, axis=1, args=[levels])
+        if any(age_levels):
+            self.tables['ages'].df['level'] = age_levels
         return self.tables['ages']
 
     def propagate_ages(self):
@@ -997,12 +999,19 @@ class Contribution(object):
         specimens, samples, sites, locations tables.
         Do not overwrite existing age data.
         """
+        # if there is no age table, skip
         if 'ages' not in self.tables:
             return
+        # if age table has no data, skip
         if not len(self.tables['ages'].df):
             return
         # get levels in age table
         self.get_age_levels()
+        # if age levels could not be determined, skip
+        if not "level" in self.tables["ages"].df.columns:
+            return
+        if not any(self.tables["ages"].df["level"]):
+            return
         # go through each level of age data
         for level in self.tables['ages'].df['level'].unique():
             table_name = level + 's'
