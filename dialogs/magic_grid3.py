@@ -58,9 +58,19 @@ class HugeTable(gridlib.GridTableBase):
     def SetColumnValues(self, col, value):
         """
         Custom method to efficiently set all values
-        in a column
+        in a column.
+
+        Parameters
+        ----------
+        col : str or int
+            name or index position of column
+        value : str
+            value to assign to all cells in the column
         """
-        self.dataframe.iloc[:, col] = value
+        try:
+            self.dataframe.iloc[:, col] = str(value)
+        except ValueError:
+            self.dataframe.loc[:, col] = str(value)
 
     def GetColLabelValue(self, col):
         """

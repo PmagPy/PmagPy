@@ -1077,7 +1077,7 @@ class GridBuilder(object):
             if vals:
                 print('-I- Updating column "{}" with default values'.format(col_name))
                 if self.huge:
-                    self.SetColumnValues(col_name, vals)
+                    self.grid.SetColumnValues(col_name, vals)
                 else:
                     col_ind = self.grid.col_labels.index(col_name)
                     for row, val in enumerate(vals):
