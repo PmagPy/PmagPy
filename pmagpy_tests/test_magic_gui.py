@@ -7,6 +7,7 @@ import unittest
 import os
 from programs import magic_gui
 from pmagpy import new_builder as nb
+import dialogs
 from dialogs import grid_frame3 as grid_frame
 #import dialogs.pmag_widgets as pmag_widgets
 from pmagpy import pmag
@@ -91,6 +92,16 @@ class TestMainFrame(unittest.TestCase):
         self.assertIsInstance(window, grid_frame.GridFrame)
         self.assertTrue(window.IsEnabled())
         wx.CallAfter(self.assertTrue,window.IsShown())
+
+
+    def test_measurement_button(self):
+        window = self.does_top_window_exist(self.pnl, 'measurements_btn', 'measurements')
+        self.assertTrue(window, 'measurement grid window was not created')
+        self.assertIsInstance(window, grid_frame.GridFrame)
+        self.assertTrue(window.IsEnabled())
+        self.assertIsInstance(window.grid, dialogs.magic_grid3.HugeMagicGrid)
+        wx.CallAfter(self.assertTrue,window.IsShown())
+
 
 
     def does_top_window_exist(self, parent, btn_name, window_name):

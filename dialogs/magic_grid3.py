@@ -77,7 +77,7 @@ class HugeTable(gridlib.GridTableBase):
         if len(self.dataframe):
             col_name = str(self.dataframe.columns[col])
             self.dataframe.rename(columns={col_name: str(value)}, inplace=True)
-        return ''
+        return None
 
     ## this one doesn't seem to work right... just hangs...
     #def AppendCols(self, *args):
