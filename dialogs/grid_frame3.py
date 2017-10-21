@@ -963,9 +963,15 @@ class GridBuilder(object):
                     col_labels[:0] = [self.parent_type[:-1]]
                 col_labels.remove(self.grid_type[:-1])
                 col_labels[:0] = [self.grid_type[:-1]]
+        # make sure all reqd cols are in magic_dataframe
+        for col in col_labels:
+            if col not in self.magic_dataframe.df.columns:
+                self.magic_dataframe.df[col] = None
+        # make the grid
         if not self.huge:
             grid = magic_grid.MagicGrid(parent=self.panel, name=self.grid_type,
                                         row_labels=[], col_labels=col_labels)
+        # make the huge grid
         else:
             row_labels = self.magic_dataframe.df.index
             grid = magic_grid.HugeMagicGrid(parent=self.panel, name=self.grid_type,
