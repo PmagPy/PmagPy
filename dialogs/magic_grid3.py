@@ -64,13 +64,13 @@ class HugeTable(gridlib.GridTableBase):
         ----------
         col : str or int
             name or index position of column
-        value : str
-            value to assign to all cells in the column
+        value : list-like
+            values to assign to all cells in the column
         """
         try:
-            self.dataframe.iloc[:, col] = str(value)
+            self.dataframe.iloc[:, col] = value
         except ValueError:
-            self.dataframe.loc[:, col] = str(value)
+            self.dataframe.loc[:, col] = value
 
     def GetColLabelValue(self, col):
         """
