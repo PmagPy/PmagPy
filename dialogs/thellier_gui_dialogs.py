@@ -115,7 +115,7 @@ class PI_Statistics_Dialog(wx.Dialog):
         self.DESC['specimen_mdev'] = 'Mean deviation of a pTRM check'
         self.DESC[
             'specimen_dpal'] = 'A measure of cumulative alteration determined by the difference of the alteration corrected intensity estimate (Valet et al., 1996) and the uncorrected estimate, normalized by the uncorrected estimate (Leonhardt et al., 2004a)'
-        self.DESC['specimen_dt'] = 'The extent of a pTRM tail after correction for angular dependence'
+        self.DESC['specimen_dt'] = 'The extent of a pTRM tail after correction for angular dependence.  NOT CURRENTLY AVAILABLE'
         self.DESC[
             'specimen_dac'] = 'The maximum absolute additivity check difference normalized by the total TRM (obtained from the intersection of the best-fit line and the x-axis on an Arai plot'
         self.DESC['specimen_ac_n'] = 'The number of additivity checks used to analyze the best-fit segment on an Arai plot'
@@ -163,7 +163,12 @@ class PI_Statistics_Dialog(wx.Dialog):
 
             for stat in self.stat_by_category[cat]:
                 short_name = stat.replace("specimen_", "")
-                self.set_specimen_windows[short_name] = wx.CheckBox(pnl1, -1, label=short_name, name=short_name)
+                disp_name = short_name
+                if short_name == 'dt':
+                    disp_name = 'dt (NOT AVAILABLE)'
+                self.set_specimen_windows[short_name] = wx.CheckBox(pnl1, -1, label=disp_name, name=short_name)
+                if short_name == 'dt':
+                    self.set_specimen_windows[short_name].Disable()
                 self.Bind(wx.EVT_CHECKBOX, self.OnCheckBox, self.set_specimen_windows[short_name])
                 self.specimen_btns[short_name] = wx.Button(pnl1, -1, label='description',name=stat)
                 self.Bind(wx.EVT_BUTTON, self.PI_stat_description, self.specimen_btns[short_name])
