@@ -456,7 +456,7 @@ DESCRIPTION
             meas_file = 'magic_measurements.txt'
         self.magic_file = os.path.join(self.WD, meas_file)
         # intialize GUI_log
-        self.GUI_log = open(os.path.join(self.WD, "thellier_GUI.log"), 'w')
+        self.GUI_log = open(os.path.join(self.WD, "thellier_GUI.log"), 'w+')
         self.GUI_log.write("starting...\n")
         self.GUI_log = open(os.path.join(self.WD, "thellier_GUI.log"), 'a')
         os.chdir(self.WD)
