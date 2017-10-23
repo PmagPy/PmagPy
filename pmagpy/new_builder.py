@@ -126,8 +126,10 @@ class Contribution(object):
         fname : str
             filename of MagIC format file
             (short path, directory is self.directory)
+            default: None
         df : pandas DataFrame
             data to create the new table with
+            default: None
         """
         if df is None:
             # if providing a filename but no data type
