@@ -77,7 +77,7 @@ class PI_Statistics_Dialog(wx.Dialog):
         self.DESC = {}
         self.DESC['specimen_frac'] = 'The angle between the applied field direction and the ChRM direction of the NRM as determined from the free-floating PCA fit to the selected demagnetization steps of the paleointensity experiment'
         self.DESC['specimen_int_n'] = 'Number of measurements included in field strength calculations'
-        self.DESC['specimen_alpha_prime'] = 'Angular difference between the anchored best-fit direction from the paleointensity experiment and an independent measure of the paleomagnetic direction'
+        self.DESC['specimen_alpha_prime'] = 'Angular difference between the anchored best-fit direction from the paleointensity experiment and an independent measure of the paleomagnetic direction. NOT CURRENTLY AVAILABLE'
         self.DESC['specimen_alpha'] = 'Angular difference between the anchored and free-floating best-fit directions on a vector component diagram'
         self.DESC['specimen_int_alpha'] = 'Angular difference between the anchored and free-floating best-fit directions on a vector component diagram from a paleointensity experiment'
         self.DESC['specimen_mad'] = 'Maximum Angular Deviation (MAD) of the free-floating directional PCA fits to the paleomagnetic vector'
@@ -97,7 +97,7 @@ class PI_Statistics_Dialog(wx.Dialog):
         self.DESC['specimen_coeff_det_sq'] = 'The squared coefficient of determination to estimate variance accounted for by the linear model fit on an Arai plot'
         self.DESC['specimen_dang'] = 'Deviation angle of direction of component with respect to origin'
         self.DESC['specimen_int_dang'] = 'The angle between the free-floating best-fit direction and the vector connecting the center of mass and the origin of the vector component diagram'
-        self.DESC['specimen_int_crm'] = 'The cumulative deflection between the NRM vectors and the ChRM direction'
+        self.DESC['specimen_int_crm'] = 'The cumulative deflection between the NRM vectors and the ChRM direction. NOT CURRENTLY AVAILABLE'
         self.DESC['specimen_int_ptrm_tail_n'] = 'Number of pTRM tail checks used in paleointensity experiment'
         self.DESC['specimen_md'] = 'Maximum absolute difference produced by a pTRM tail check, normalized by the vector difference sum of the NRM'
         self.DESC['specimen_tail_drat'] = 'Maximum absolute difference produced by a pTRM tail check, normalized by the length of the best-fit line'
@@ -164,10 +164,10 @@ class PI_Statistics_Dialog(wx.Dialog):
             for stat in self.stat_by_category[cat]:
                 short_name = stat.replace("specimen_", "")
                 disp_name = short_name
-                if short_name == 'dt':
-                    disp_name = 'dt (NOT AVAILABLE)'
+                if short_name in ['dt', 'int_crm', 'alpha_prime']:
+                    disp_name = '{}\n(NOT AVAILABLE)'.format(short_name)
                 self.set_specimen_windows[short_name] = wx.CheckBox(pnl1, -1, label=disp_name, name=short_name)
-                if short_name == 'dt':
+                if short_name in ['dt', 'int_crm', 'alpha_prime']:
                     self.set_specimen_windows[short_name].Disable()
                 self.Bind(wx.EVT_CHECKBOX, self.OnCheckBox, self.set_specimen_windows[short_name])
                 self.specimen_btns[short_name] = wx.Button(pnl1, -1, label='description',name=stat)
