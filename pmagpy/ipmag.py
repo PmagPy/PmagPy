@@ -158,7 +158,7 @@ def fisher_angular_deviation(dec=None, inc=None, di_block=None, confidence=95):
     The angle from the true mean within which a chosen percentage of directions
     lie can be calculated from the Fisher distribution. This function uses the
     calculated Fisher concentration parameter to estimate this angle from
-    directional data. The 63 percent confidence interval is sometimes called the
+    directional data. The 63 percent confidence interval is often called the
     angular standard deviation.
 
     Parameters
