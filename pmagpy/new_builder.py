@@ -953,6 +953,9 @@ class Contribution(object):
             if max_col not in target_df.df.columns:
                 target_df.df[max_col] = None
             # get min/max from source
+            if target_name not in source_df.df.columns:
+                print('-W- {} table missing {} column, cannot propagate age info'.format(target_name, source_df_name))
+                return
             grouped = source_df.df[[col, target_name]].groupby(target_name)
             if len(grouped):
                 minimum, maximum = grouped.min(), grouped.max()
