@@ -64,8 +64,22 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
                 self.child_type = None
                 self.parent_type = None
 
+
         self.WD = WD
         self.InitUI()
+
+        # remove 'level' column from age grid if present
+        if self.grid_type == 'ages':
+            try:
+                ind = self.grid.col_labels.index('level')
+                self.remove_col_label(col=ind)
+            except ValueError:
+                pass
+
+        # if grid is empty except for defaults, reset grid.changes
+        if self.grid_builder.current_grid_empty():
+            self.grid.changes = set()
+
         del wait
 
 
@@ -348,12 +362,15 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
 
     ##  Grid event methods
 
-    def remove_col_label(self, event):
+    def remove_col_label(self, event=None, col=None):
         """
         check to see if column is required
         if it is not, delete it from grid
         """
-        col = event.GetCol()
+        if event:
+            col = event.GetCol()
+        if not col:
+            return
         label = self.grid.GetColLabelValue(col)
         if '**' in label:
             label = label.strip('**')
@@ -364,8 +381,12 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
             return False
         else:
             print('That header is not required:', label)
+            # remove column from wxPython grid
             self.grid.remove_col(col)
-            del self.contribution.tables[self.grid_type].df[label]
+            # remove column from DataFrame if present
+            if self.grid_type in self.contribution.tables:
+                if label in self.contribution.tables[self.grid_type].df.columns:
+                    del self.contribution.tables[self.grid_type].df[label]
         # causes resize on each column header delete
         # can leave this out if we want.....
         self.main_sizer.Fit(self)
@@ -999,6 +1020,50 @@ class GridBuilder(object):
                     grid.remove_row(0)
             # include horizontal scrollbar unless grid has less than 5 rows
             grid.set_scrollbars()
+
+        # add sensible defaults for an empty age grid
+        if self.grid_type == 'ages':
+            if self.current_grid_empty():
+                self.add_age_defaults()
+
+    def add_age_defaults(self):
+        """
+        Add columns as needed:
+        age, age_unit, specimen, sample, site, location.
+        """
+        if isinstance(self.magic_dataframe, nb.MagicDataFrame):
+            for col in ['age', 'age_unit']:
+                if col not in self.grid.col_labels:
+                    self.grid.add_col(col)
+            for level in ['locations', 'sites', 'samples', 'specimens']:
+                if level in self.contribution.tables:
+                    if level[:-1] not in self.grid.col_labels:
+                        self.grid.add_col(level[:-1])
+
+    def current_grid_empty(self):
+        """
+        Check to see if grid is empty except for default values
+        """
+        empty = True
+        # df IS empty if there are no rows
+        if not any(self.magic_dataframe.df.index):
+            empty = True
+        # df is NOT empty if there are at least two rows
+        elif len(self.grid.row_labels) > 1:
+            empty = False
+        # if there is one row, df MIGHT be empty
+        else:
+            # check all the non-null values
+            non_null_vals = [val for val in self.magic_dataframe.df.values[0] if nb.not_null(val)]
+            for val in non_null_vals:
+                if not isinstance(val, str):
+                    empty = False
+                    break
+                # if there are any non-default values, grid is not empty
+                if val.lower() not in ['this study', 'g', 'i']:
+                    empty = False
+                    break
+        return empty
 
 
     def save_grid_data(self):
