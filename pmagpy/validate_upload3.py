@@ -4,8 +4,9 @@ from __future__ import print_function
 from builtins import zip
 from builtins import str
 from builtins import range
-import numpy as np
 import os
+import numpy as np
+from pmagpy import new_builder as nb
 
 
 ## LOW-LEVEL VALIDATION FUNCTIONS
@@ -135,7 +136,12 @@ def checkMax(row, col_name, arg, *args):
     try:
         arg_val = float(arg)
     except ValueError:
-        arg_val = row[arg]
+        if arg in row.index:
+            arg_val = row[arg]
+        else:
+            return None
+    if nb.is_null(arg_val):
+        return None
     #arg = float(arg)
     try:
         if float(cell_value) <= float(arg_val):
@@ -164,6 +170,8 @@ def checkMin(row, col_name, arg, *args):
             arg_val = row[arg]
         else:
             return None
+    if nb.is_null(arg_val):
+        return None
     try:
         if float(cell_value) >= float(arg_val):
             return None
