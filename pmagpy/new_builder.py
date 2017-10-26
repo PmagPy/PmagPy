@@ -14,6 +14,7 @@ from builtins import range
 from builtins import object
 import os
 import re
+import math
 import numpy as np
 import pandas as pd
 from pandas import DataFrame
@@ -387,7 +388,7 @@ class Contribution(object):
                         except ValueError:
                             print('-W- In {}, automatically generated {} value ({}) will overwrite previous value ({})'.format(loc_name, coord, new_value, old_value))
                             old_value = None
-                    elif new_value != old_value:
+                    elif not math.isclose(new_value, old_value):
                         print('-W- In {}, automatically generated {} value ({}) will overwrite previous value ({})'.format(loc_name, coord, new_value, old_value))
                     # set new value
                     loc_container.df.set_value(loc_name, coord, new_value)
