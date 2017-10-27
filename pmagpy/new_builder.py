@@ -1761,6 +1761,10 @@ class MagicDataFrame(object):
         By default will write to current directory,
         or provide dir_path to write out to instead.
         """
+        # don't let custom name start with "./"
+        if custom_name:
+            if custom_name.startswith('.'):
+                custom_name = os.path.split(custom_name)[1]
         # *** maybe add some logical order to the column names, here?
         # *** i.e., alphabetical...  see grid_frame3.GridBuilder.make_grid
         df = self.df
