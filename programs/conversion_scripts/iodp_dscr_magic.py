@@ -224,7 +224,7 @@ def convert(**kwargs):
     con.add_magic_table_from_data(dtype='samples', data=SampRecs)
     con.add_magic_table_from_data(dtype='sites', data=SiteRecs)
     con.add_magic_table_from_data(dtype='locations', data=LocRecs)
-    MeasSort=sorted(MeasRecs, lambda x,y=None: int(round(float(x[sort_by])-float(y[sort_by]))) if y!=None else 0)
+    MeasSort=sorted(MeasRecs, key=lambda x,y=None: int(round(float(x[sort_by])-float(y[sort_by]))) if y!=None else 0)
     MeasFixed=pmag.measurements_methods3(MeasSort,noave)
     MeasOuts,keys=pmag.fillkeys(MeasFixed)
     con.add_magic_table_from_data(dtype='measurements', data=MeasOuts)
