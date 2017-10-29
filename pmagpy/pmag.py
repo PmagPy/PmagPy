@@ -1336,6 +1336,8 @@ def vspec_magic3(data):
         FDirdata, Dirdata, DataStateCurr, newstate = [], [], {}, 0
         for key in treats:  # check if anything changed
             DataStateCurr[key] = data[i][key]
+            DataStateCurr[key] = str(DataStateCurr[key])
+            DataState0[key] = str(DataState0[key])
             if DataStateCurr[key].strip() != DataState0[key].strip():
                 newstate = 1  # something changed
         if newstate == 1:
