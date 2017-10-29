@@ -65,11 +65,13 @@ def convert(**kwargs):
     MeasRecs,SpecRecs,SampRecs,SiteRecs,LocRecs=[],[],[],[],[]
     file_found = False
     for f in filelist: # parse each file
+        year_warning = True
         if f[-3:].lower()=='csv':
             file_found = True
             print('processing: ',f)
-            full_file = os.path.join(input_dir_path, f)
-            file_input=open(full_file,'r').readlines()
+            full_file = open(os.path.join(input_dir_path, f))
+            file_input=full_file.readlines()
+            full_file.close()
             keys=file_input[0].replace('\n','').split(',') # splits on underscores
             keys=[k.strip('"') for k in keys]
             if "Interval Top (cm) on SHLF" in keys:interval_key="Interval Top (cm) on SHLF"
@@ -209,15 +211,31 @@ def convert(**kwargs):
                     mmddyy=datestamp[0].split('/') # break into month day year
                     if len(mmddyy[0])==1: mmddyy[0]='0'+mmddyy[0] # make 2 characters
                     if len(mmddyy[1])==1: mmddyy[1]='0'+mmddyy[1] # make 2 characters
+                    if len(mmddyy[2])==1: mmddyy[2] = '0'+mmddyy[2] # make 2 characters
                     if len(datestamp[1])==1: datestamp[1]='0'+datestamp[1] # make 2 characters
-                    date=mmddyy[0]+':'+mmddyy[1]+":"+mmddyy[2] +':' +datestamp[1]+":0"
+                    hour, minute = datestamp[1].split(':')
+                    if len(hour) == 1:
+                        hour = '0' + hour
+                    date=mmddyy[0]+':'+mmddyy[1]+":"+mmddyy[2] +':' + hour + ":" + minute + ":00"
+                    #date=mmddyy[2] + ':'+mmddyy[0]+":"+mmddyy[1] +':' + hour + ":" + minute + ":00"
                 if '-' in datestamp[0]:
                     mmddyy=datestamp[0].split('-') # break into month day year
                     date=mmddyy[0]+':'+mmddyy[1]+":"+mmddyy[2] +':' +datestamp[1]+":0"
                 if len(date.split(":")) > 6: date=date[:-2]
-                try: utc_dt = datetime.datetime.strptime(date, "%m:%d:%Y:%H:%M:%S")
+                # try with month:day:year
+                try:
+                    utc_dt = datetime.datetime.strptime(date, "%m:%d:%Y:%H:%M:%S")
                 except ValueError:
-                    utc_dt = datetime.datetime.strptime(date, "%Y:%m:%d:%H:%M:%S")
+                # try with year:month:day
+                    try:
+                        utc_dt = datetime.datetime.strptime(date, "%Y:%m:%d:%H:%M:%S")
+                    except ValueError:
+                # if all else fails, assume the year is in the third position
+                # and try padding with '20'
+                        new_date = pad_year(date, ind=2, warn=year_warning, fname=os.path.split(f)[1])
+                        utc_dt = datetime.datetime.strptime(new_date, "%m:%d:%Y:%H:%M:%S")
+                        # only give warning once per csv file
+                        year_warning = False
                 MeasRec['timestamp']=utc_dt.strftime("%Y-%m-%dT%H:%M:%S")+"Z"
                 MeasRec["method_codes"]='LT-NO'
                 if 'Treatment Type' in list(InRec.keys()) and InRec['Treatment Type']!="":
@@ -284,6 +302,39 @@ def convert(**kwargs):
     con.tables['measurements'].write_magic_file(custom_name=meas_file)
 
     return (True, meas_file)
+
+# helper
+def pad_year(date, ind, warn=False, fname=''):
+    """
+    Parameters
+    ----------
+    Date: str
+        date as colon-delimited string, i.e. 04:10:2015:06:45:00
+    ind: int
+        index of year position
+    warn : bool (default False)
+        verbose or not
+    fname: str (default '')
+        filename for more informative warning
+
+    Returns
+    ---------
+    new_date: str
+       date as colon-delimited,
+       with year padded if it wasn't before
+    """
+    date_list = date.split(':')
+    year = date_list[ind]
+    if len(year) == 2:
+        padded_year = '20' + year
+        date_list[ind] = padded_year
+        if warn:
+            print('-W- Ambiguous year "{}" in {}.'.format(year, fname))
+            print('    Assuming {}.'.format(padded_year))
+    new_date = ':'.join(date_list)
+    if new_date != date and warn:
+        print('    Date translated to {}'.format(new_date))
+    return new_date
 
 def do_help():
     return __doc__
