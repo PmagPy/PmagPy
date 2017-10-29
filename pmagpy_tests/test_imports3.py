@@ -104,8 +104,8 @@ class Test_cit_magic(unittest.TestCase):
         pass
 
     def tearDown(self):
-        filelist = ['magic_measurements.txt', 'er_specimens.txt',
-                    'er_samples.txt', 'er_sites.txt']
+        filelist = ['measurements.txt', 'specimens.txt',
+                    'samples.txt', 'sites.txt']
         pmag.remove_files(filelist, WD)
         os.chdir(WD)
 
@@ -122,7 +122,7 @@ class Test_cit_magic(unittest.TestCase):
         options['magfile'] = 'PI47-.sam'
         program_ran, outfile = cit_magic.convert(**options)
         self.assertTrue(program_ran)
-        expected_file = os.path.join('.', 'magic_measurements.txt')
+        expected_file = os.path.join('measurements.txt')
         self.assertEqual(outfile, expected_file)
 
     def test_cit_magic_fail_option4(self):
@@ -145,7 +145,7 @@ class Test_cit_magic(unittest.TestCase):
         options['samp_con'] = '4-3'
         program_ran, outfile = cit_magic.convert(**options)
         self.assertTrue(program_ran)
-        expected_file = os.path.join('.', 'magic_measurements.txt')
+        expected_file = os.path.join('measurements.txt')
         self.assertEqual(outfile, expected_file)
 
     def test_cit_magic_with_options(self):
@@ -161,7 +161,7 @@ class Test_cit_magic(unittest.TestCase):
         options['specnum'] = 2
         program_ran, outfile = cit_magic.convert(**options)
         self.assertTrue(program_ran)
-        expected_file = os.path.join('.', 'magic_measurements.txt')
+        expected_file = os.path.join('measurements.txt')
         self.assertEqual(outfile, expected_file)
 
     def test_cit_magic_with_other_data(self):
@@ -177,7 +177,7 @@ class Test_cit_magic(unittest.TestCase):
         options['specnum'] = 2
         program_ran, outfile = cit_magic.convert(**options)
         self.assertTrue(program_ran)
-        expected_file = os.path.join('.', 'magic_measurements.txt')
+        expected_file = os.path.join('measurements.txt')
         self.assertEqual(outfile, expected_file)
 
 
@@ -187,13 +187,13 @@ class Test_iodp_srm_magic(unittest.TestCase):
         pass
 
     def tearDown(self):
-        filelist = ['magic_measurements.txt', 'er_specimens.txt', 'er_samples.txt', 'er_sites.txt', 'er_locations.txt']
+        filelist = ['measurements.txt', 'specimens.txt', 'samples.txt', 'sites.txt', 'locations.txt']
         #directory = os.path.join(WD)
         pmag.remove_files(filelist, WD)
         os.chdir(WD)
 
     def test_iodp_with_no_files(self):
-        program_ran, error_message = iodp_srm_magic.convert(False)
+        program_ran, error_message = iodp_srm_magic.convert()
         self.assertFalse(program_ran)
         self.assertEqual(error_message, 'No .csv files were found')
 
@@ -216,7 +216,7 @@ class Test_iodp_srm_magic(unittest.TestCase):
         options['csv_file'] = 'srmsection-XXX-UTEST-A.csv'
         program_ran, outfile = iodp_srm_magic.convert(**options)
         self.assertTrue(program_ran)
-        self.assertEqual(outfile, os.path.join('.', 'magic_measurements.txt'))
+        self.assertEqual(outfile, os.path.join('measurements.txt'))
 
 
 class Test_iodp_dscr_magic(unittest.TestCase):
@@ -225,13 +225,13 @@ class Test_iodp_dscr_magic(unittest.TestCase):
         pass
 
     def tearDown(self):
-        filelist = ['magic_measurements.txt', 'er_specimens.txt', 'er_samples.txt', 'er_sites.txt', 'er_locations.txt']
+        filelist = ['measurements.txt', 'specimens.txt', 'samples.txt', 'sites.txt', 'locations.txt']
         #directory = os.path.join(WD)
         pmag.remove_files(filelist, WD)
         os.chdir(WD)
 
     def test_iodp_with_no_files(self):
-        program_ran, error_message = iodp_dscr_magic.convert(False)
+        program_ran, error_message = iodp_dscr_magic.convert()
         self.assertFalse(program_ran)
         self.assertEqual(error_message, 'No .csv files were found')
 
@@ -245,7 +245,7 @@ class Test_iodp_dscr_magic(unittest.TestCase):
         options['csv_file'] = 'srmdiscrete-XXX-UTEST-A.csv'
         program_ran, outfile = iodp_dscr_magic.convert(**options)
         self.assertTrue(program_ran)
-        self.assertEqual(outfile, os.path.join('.', 'magic_measurements.txt'))
+        self.assertEqual(outfile, 'measurements.txt')
 
 
 class Test_iodp_jr6_magic(unittest.TestCase):
@@ -318,8 +318,8 @@ class Test2g_bin_magic(unittest.TestCase):
         #input_dir = os.path.join(WD, 'data_files', 'Measurement_Import',
         #'IODP_jr6_magic')
         #files = ['test.magic', 'other_er_samples.txt']
-        files = ['mn001-1a.magic', 'er_samples.txt', 'er_sites.txt',
-                 'magic_measurements.txt']
+        files = ['mn001-1a.magic', 'samples.txt', 'sites.txt',
+                 'measurements.txt']
         pmag.remove_files(files, WD)
         os.chdir(WD)
 
@@ -336,7 +336,7 @@ class Test2g_bin_magic(unittest.TestCase):
         options['mag_file'] = 'mn001-1a.dat'
         program_ran, outfile = _2g_bin_magic.convert(**options)
         self.assertTrue(program_ran)
-        self.assertEqual(outfile, './magic_measurements.txt')
+        self.assertEqual(os.path.split(outfile)[1], 'measurements.txt')
         self.assertTrue(os.path.isfile(outfile))
 
 
@@ -359,7 +359,7 @@ class Test2g_bin_magic(unittest.TestCase):
         options['samp_con'] = '4-3'
         program_ran, outfile = _2g_bin_magic.convert(**options)
         self.assertTrue(program_ran)
-        self.assertEqual(outfile, './magic_measurements.txt')
+        self.assertEqual(os.path.split(outfile)[1], 'measurements.txt')
 
     def test_2g_fail_option7(self):
         options = {}
@@ -379,7 +379,7 @@ class Test2g_bin_magic(unittest.TestCase):
         options['samp_con'] = '7-3'
         program_ran, outfile = _2g_bin_magic.convert(**options)
         self.assertTrue(program_ran)
-        self.assertEqual(outfile, './magic_measurements.txt')
+        self.assertEqual(os.path.split(outfile)[1], 'measurements.txt')
 
     def test_2g_fail_option6(self):
         options = {}
@@ -415,6 +415,7 @@ class Test2g_bin_magic(unittest.TestCase):
         options['gmeths'] = 'FS-LOC-MAP:SO-POM'
         program_ran, outfile = _2g_bin_magic.convert(**options)
         self.assertTrue(program_ran)
+        self.assertEqual(os.path.split(outfile)[1], 'mn001-1a.magic')
 
 
 class Test_bgc_magic(unittest.TestCase):
@@ -425,13 +426,13 @@ class Test_bgc_magic(unittest.TestCase):
 
     def tearDown(self):
         filelist = ['96MT.05.01.magic', 'BC0-3A.magic',
-                    'magic_measurements.txt', 'er_specimens.txt',
-                    'er_samples.txt', 'er_sites.txt']
+                    'measurements.txt', 'specimens.txt',
+                    'samples.txt', 'sites.txt']
         pmag.remove_files(filelist, self.input_dir)
         os.chdir(WD)
 
     def test_bgc_with_no_files(self):
-        program_ran, error_message = bgc_magic.convert(False)
+        program_ran, error_message = bgc_magic.convert()
         self.assertFalse(program_ran)
         self.assertEqual(error_message, 'You must provide a BCG format file')
 
@@ -439,10 +440,10 @@ class Test_bgc_magic(unittest.TestCase):
         options = {'input_dir_path': self.input_dir, 'mag_file': '96MT.05.01'}
         program_ran, outfile = bgc_magic.convert(**options)
         self.assertTrue(program_ran)
-        self.assertEqual(outfile, os.path.join('.', 'magic_measurements.txt'))
+        self.assertEqual(outfile, 'measurements.txt')
 
     def test_bgc_alternate_infile(self):
         options = {'input_dir_path': self.input_dir, 'mag_file': 'BC0-3A'}
         program_ran, outfile = bgc_magic.convert(**options)
         self.assertTrue(program_ran)
-        self.assertEqual(outfile, os.path.join('.', 'magic_measurements.txt'))
+        self.assertEqual(outfile, 'measurements.txt')
