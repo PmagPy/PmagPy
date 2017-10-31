@@ -66,7 +66,9 @@ def convert(**kwargs):
         if fin[-3:].lower()=='csv':
             file_found = True
             print('processing: ',fin)
-            indata=open(fin,'r').readlines()
+            infile=open(fin,'r')
+            indata=infile.readlines()
+            infile.close()
             keys=indata[0].replace('\n','').split(',') # splits on underscores
             keys=[k.strip('"') for k in keys]
             interval_key="Offset (cm)"

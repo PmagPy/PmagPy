@@ -89,7 +89,9 @@ def convert(**kwargs):
     # parse data
     temp = os.path.join(output_dir_path, 'temp.txt')
     fix_separation(mag_file, temp)
-    lines = open(temp, 'r').readlines()
+    infile = open(temp, 'r')
+    lines = infile.readlines()
+    infile.close()
     try: os.remove(temp)
     except OSError: print("problem with temp file")
     citations="This Study"
