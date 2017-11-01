@@ -271,7 +271,7 @@ def convert(**kwargs):
 #           Remove volume and weight as they do not exits in the magic_measurement table
             del MeasRec["volume"]
             del MeasRec["weight"]
-            if line[3:6]=='   ' : # USGS files have blank for an AF demag value when measurement is the NRM. njarboe
+            if line[0:6]=='AF    ' : # USGS files have blank for an AF demag value when measurement is the NRM. njarboe
                 line = 'NRM' + line[3:]
             treat_type=line[0:3]
             if treat_type[1] == '.':
