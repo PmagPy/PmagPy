@@ -191,6 +191,8 @@ def main(command_line=True, **kwargs):
                 Z=samp_con.split("-")[1]
                 samp_con="7"
         if "6" in samp_con:
+            print('Naming convention option [6] not currently supported')
+            return False, 'Naming convention option [6] not currently supported'
             try:
                 Samps,file_type=pmag.magic_read(os.path.join(input_dir_path, 'er_samples.txt'))
             except:
