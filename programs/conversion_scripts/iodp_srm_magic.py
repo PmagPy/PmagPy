@@ -33,6 +33,8 @@ import sys, os, time
 import pmagpy.pmag as pmag
 import pmagpy.new_builder as nb
 import datetime
+import functools
+
 
 def convert(**kwargs):
     # initialize defaults
@@ -291,7 +293,9 @@ def convert(**kwargs):
     con.add_magic_table_from_data(dtype='samples', data=SampRecs)
     con.add_magic_table_from_data(dtype='sites', data=SiteRecs)
     con.add_magic_table_from_data(dtype='locations', data=LocRecs)
-    MeasSort=sorted(MeasRecs,lambda x,y: int(round(x['treat_ac_field']-y['treat_ac_field'])))
+    function=functools.cmp_to_key(lambda x,y: int(round(x['treat_ac_field']-y['treat_ac_field'])))
+    MeasSort=sorted(MeasRecs,key=function)
+    #MeasSort=sorted(MeasRecs,key=lambda x,y=0: int(round(x['treat_ac_field']-y['treat_ac_field'])) if y!=0 else 0)
     MeasOuts=pmag.measurements_methods3(MeasSort,noave)
     con.add_magic_table_from_data(dtype='measurements', data=MeasOuts)
 
