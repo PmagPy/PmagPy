@@ -1412,6 +1412,8 @@ def plot_di(dec=None, inc=None, di_block=None, color='k', marker='o', markersize
     X_up = []
     Y_down = []
     Y_up = []
+    color_down = []
+    color_up = []
 
     if di_block is not None:
         di_lists = unpack_di_block(di_block)
@@ -1427,24 +1429,34 @@ def plot_di(dec=None, inc=None, di_block=None, color='k', marker='o', markersize
             if inc[n] >= 0:
                 X_down.append(XY[0])
                 Y_down.append(XY[1])
+                if type(color)==list:
+                    color_down.append(color[n])
+                else:
+                    color_down.append(color)
             else:
                 X_up.append(XY[0])
                 Y_up.append(XY[1])
+                if type(color)==list:
+                    color_up.append(color[n])
+                else:
+                    color_up.append(color)
     except:
         XY = pmag.dimap(dec, inc)
         if inc >= 0:
             X_down.append(XY[0])
             Y_down.append(XY[1])
+            color_down.append(color)
         else:
             X_up.append(XY[0])
             Y_up.append(XY[1])
+            color_up.append(color)
 
     if len(X_up) > 0:
-        plt.scatter(X_up, Y_up, facecolors='none', edgecolors=color,
+        plt.scatter(X_up, Y_up, facecolors='none', edgecolors=color_up,
                     s=markersize, marker=marker, label=label)
 
     if len(X_down) > 0:
-        plt.scatter(X_down, Y_down, facecolors=color, edgecolors=color,
+        plt.scatter(X_down, Y_down, facecolors=color_down, edgecolors=color_down,
                     s=markersize, marker=marker, label=label)
     if legend == 'yes':
         plt.legend(loc=2)
