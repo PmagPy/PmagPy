@@ -1429,11 +1429,17 @@ def plot_di(dec=None, inc=None, di_block=None, color='k', marker='o', markersize
             if inc[n] >= 0:
                 X_down.append(XY[0])
                 Y_down.append(XY[1])
-                color_down.append(color[n])
+                if type(color)==list:
+                    color_down.append(color[n])
+                else:
+                    color_down.append(color)
             else:
                 X_up.append(XY[0])
                 Y_up.append(XY[1])
-                color_up.append(color[n])
+                if type(color)==list:
+                    color_up.append(color[n])
+                else:
+                    color_up.append(color)
     except:
         XY = pmag.dimap(dec, inc)
         if inc >= 0:
