@@ -126,6 +126,7 @@ def convert(**kwargs):
         input_dir_path = dir_path
 
     if samp_con:
+        Z = 1
         if "4" in samp_con:
             if "-" not in samp_con:
                 print("option [4] must be in form 4-Z where Z is an integer")
@@ -141,16 +142,18 @@ def convert(**kwargs):
                 Z=samp_con.split("-")[1]
                 samp_con="7"
         if "6" in samp_con:
-            Z=1
-            try:
-                SampRecs,file_type=pmag.magic_read(os.path.join(input_dir_path, 'er_samples.txt'))
-            except:
-                print("there is no er_samples.txt file in your input directory - you can't use naming convention #6")
-                return False, "there is no er_samples.txt file in your input directory - you can't use naming convention #6"
-            if file_type == 'bad_file':
-                print("there is no er_samples.txt file in your input directory - you can't use naming convention #6")
-                return False, "there is no er_samples.txt file in your input directory - you can't use naming convention #6"
-        else: Z=1
+            print('Naming convention option [6] not currently supported')
+            return False, 'Naming convention option [6] not currently supported'
+            #Z=1
+            #try:
+            #    SampRecs,file_type=pmag.magic_read(os.path.join(input_dir_path, 'er_samples.txt'))
+            #except:
+            #    print("there is no er_samples.txt file in your input directory - you can't use naming convention #6")
+            #    return False, "there is no er_samples.txt file in your input directory - you can't use naming convention #6"
+            #if file_type == 'bad_file':
+            #    print("there is no er_samples.txt file in your input directory - you can't use naming convention #6")
+            #    return False, "there is no er_samples.txt file in your input directory - you can't use naming convention #6"
+        #else: Z=1
 
     if not mag_file:
         print("mag file is required input")

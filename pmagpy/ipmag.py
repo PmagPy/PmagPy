@@ -3161,7 +3161,7 @@ def upload_magic(concat=0, dir_path='.', data_model=None):
     for File in file_names:
         # read in the data
         Data, file_type = pmag.magic_read(File)
-        if file_type != "bad_file":
+        if (file_type != "bad_file") and (file_type != "empty_file"):
             print("-I- file", File, " successfully read in")
             if len(RmKeys) > 0:
                 for rec in Data:

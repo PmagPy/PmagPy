@@ -389,7 +389,7 @@ class Test2g_bin_magic(unittest.TestCase):
         options['samp_con'] = '6'
         program_ran, error_message = _2g_bin_magic.convert(**options)
         self.assertFalse(program_ran)
-        self.assertEqual(error_message, "there is no er_samples.txt file in your input directory - you can't use naming convention #6")
+        self.assertEqual(error_message, 'Naming convention option [6] not currently supported')
 
     def test_2g_with_bad_file(self):
         options = {}

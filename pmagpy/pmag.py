@@ -1549,7 +1549,7 @@ def find_dmag_rec(s, data, **kwargs):
     return datablock, meas_units
 
 
-def open_file(infile):
+def open_file(infile, verbose=True):
     """
     Open file and return a list of the file's lines.
     Try to use utf-8 encoding, and if that fails use Latin-1.
@@ -1569,13 +1569,14 @@ def open_file(infile):
             lines = list(f.readlines())
     # file might not exist
     except FileNotFoundError:
-        print('-W- You are trying to open a file: {} that does not exist'.format(infile))
+        if verbose:
+            print('-W- You are trying to open a file: {} that does not exist'.format(infile))
         return []
     # encoding might be wrong
     except UnicodeDecodeError:
         try:
             with codecs.open(infile, "r", "Latin-1") as f:
-                print('-I- Using less strict decoding, output may have formatting errors')
+                print('-I- Using less strict decoding for {}, output may have formatting errors'.format(infile))
                 lines = list(f.readlines())
         # if file exists, and encoding is correct, who knows what the problem is
         except Exception as ex:
@@ -1595,10 +1596,15 @@ def open_file(infile):
     return lines
 
 
-def magic_read(infile, data=None, return_keys=False):
+def magic_read(infile, data=None, return_keys=False, verbose=False):
     """
     Reads  a Magic template file, puts data in a list of dictionaries.
     """
+    if infile:
+        if not os.path.exists(infile):
+            if return_keys:
+                return [], 'empty_file', []
+            return [], 'empty_file'
     hold, magic_data, magic_record, magic_keys = [], [], {}, []
     if data:
         lines = list(data)
@@ -1607,8 +1613,13 @@ def magic_read(infile, data=None, return_keys=False):
             return [], 'empty_file', []
         return [], 'empty_file'
     else:
+        # if the file doesn't exist, end here
+        if not os.path.exists(infile):
+            if return_keys:
+                return [], 'bad_file', []
+            return [], 'bad_file'
         # use custom pmagpy open_file
-        lines = open_file(infile)
+        lines = open_file(infile, verbose=verbose)
     if not lines:
         if return_keys:
             return [], 'bad_file', []
@@ -9469,7 +9480,7 @@ def read_criteria_from_file(path, acceptance_criteria, **kwargs):
         crit_data, file_type = magic_read(path)
         if 'criteria' not in file_type:
             if 'empty' in file_type:
-                print('-W- {} is an empty file'.format(path))
+                print('-W- No criteria found: {} '.format(path))
             else:
                 print(
                     '-W- {} could not be read and may be improperly formatted...'.format(path))
