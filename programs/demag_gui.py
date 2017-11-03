@@ -3895,19 +3895,27 @@ class Demag_GUI(wx.Frame):
         sort_by_this_name : variable to sort data by
         """
         DATA={}
-        with open(path, 'r') as finput:
-            lines = list(finput.readlines()[1:])
+        try:
+            with open(path, 'r') as finput:
+                lines = list(finput.readlines()[1:])
+        except FileNotFoundError:
+            return []
         #fin=open(path,'r')
         #fin.readline()
         line = lines[0]
         header = line.strip('\n').split('\t')
+        error_strings = []
         for line in lines[1:]:
             tmp_data={}
             tmp_line=line.strip('\n').split('\t')
             for i in range(len(tmp_line)):
                 tmp_data[header[i]]=tmp_line[i]
             if tmp_data[sort_by_this_name] in list(DATA.keys()):
-                print(("-E- ERROR: magic file %s has more than one line for %s %s"%(path,sort_by_this_name,tmp_data[sort_by_this_name])))
+                error_string = "-E- ERROR: magic file %s has more than one line for %s %s"%(path,sort_by_this_name,tmp_data[sort_by_this_name])
+                # only print each error message once
+                if error_string not in error_strings:
+                    print(error_string)
+                    error_strings.append(error_string)
             DATA[tmp_data[sort_by_this_name]]=tmp_data
         #fin.close()
         finput.close()
