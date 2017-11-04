@@ -215,7 +215,7 @@ class Test_iodp_srm_magic(unittest.TestCase):
         options['input_dir_path'] = dir_path
         options['csv_file'] = 'srmsection-XXX-UTEST-A.csv'
         program_ran, outfile = iodp_srm_magic.convert(**options)
-        self.assertTrue(program_ran)
+        self.assertEqual(program_ran, True)
         self.assertEqual(outfile, os.path.join('measurements.txt'))
 
 
@@ -244,7 +244,7 @@ class Test_iodp_dscr_magic(unittest.TestCase):
         options['input_dir_path'] = dir_path
         options['csv_file'] = 'srmdiscrete-XXX-UTEST-A.csv'
         program_ran, outfile = iodp_dscr_magic.convert(**options)
-        self.assertTrue(program_ran)
+        self.assertEqual(program_ran, True)
         self.assertEqual(outfile, 'measurements.txt')
 
 
