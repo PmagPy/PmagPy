@@ -62,6 +62,8 @@ class TestUploadMagic(unittest.TestCase):
         self.assertFalse(errors)
         self.assertFalse(outfile)
         self.assertEqual(error_message, "no data found, upload file not created")
+        files = os.listdir(directory)
+        self.assertFalse(files)
 
     def test_with_invalid_files(self):
         directory = os.path.join(self.dir_path, 'my_project_with_errors')
