@@ -418,11 +418,11 @@ def convert(**kwargs):
     MeasOuts=pmag.measurements_methods3(MeasRecs,noave)
     con.add_magic_table_from_data(dtype='measurements', data=MeasOuts)
 
-    con.tables['specimens'].write_magic_file(custom_name=spec_file)
-    con.tables['samples'].write_magic_file(custom_name=samp_file)
-    con.tables['sites'].write_magic_file(custom_name=site_file)
-    con.tables['locations'].write_magic_file(custom_name=loc_file)
-    con.tables['measurements'].write_magic_file(custom_name=meas_file)
+    con.tables['specimens'].write_magic_file(custom_name=spec_file, dir_path=output_dir_path)
+    con.tables['samples'].write_magic_file(custom_name=samp_file, dir_path=output_dir_path)
+    con.tables['sites'].write_magic_file(custom_name=site_file, dir_path=output_dir_path)
+    con.tables['locations'].write_magic_file(custom_name=loc_file, dir_path=output_dir_path)
+    con.tables['measurements'].write_magic_file(custom_name=meas_file, dir_path=output_dir_path)
 
     return True, meas_file
 
