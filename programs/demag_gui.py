@@ -66,8 +66,8 @@ import pmagpy.find_pmag_dir as find_pmag_dir
 PMAGPY_DIRECTORY = find_pmag_dir.get_pmag_dir()
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigCanvas
 from matplotlib.backends.backend_wxagg import NavigationToolbar2WxAgg as NavigationToolbar
-try: import zeq_gui_preferences
-except ImportError: pass
+#try: import zeq_gui_preferences
+#except ImportError: pass
 from time import time
 from datetime import datetime
 import wx
@@ -3875,14 +3875,17 @@ class Demag_GUI(wx.Frame):
         preferences['show_Zij_treatments_steps']=2.
         preferences['show_eqarea_treatments']=False
         #preferences['show_statistics_on_gui']=["int_n","int_ptrm_n","frac","scat","gmax","b_beta","int_mad","dang","f","fvds","g","q","drats"]#,'ptrms_dec','ptrms_inc','ptrms_mad','ptrms_angle']
-        #try to read preferences file:
-        try:
-            import zeq_gui_preferences
-            print( "-I- zeq_gui.preferences imported")
-            preferences.update(thellier_gui_preferences.preferences)
-        except:
-            print( "-I- can't find zeq_gui_preferences file, using defualt default")
-        return(preferences)
+        #
+        ##try to read preferences file:
+        #user_data_dir = find_pmag_dir.find_user_data_dir("demag_gui")
+        #if not user_data_dir:
+        #    return preferences
+        #if os.path.exists(user_data_dir):
+        #    pref_file = os.path.join(user_data_dir, "demag_gui_preferences.json")
+        #    if os.path.exists(pref_file):
+        #        with open(pref_file, "r") as pfile:
+        #            return json.load(pfile)
+        return preferences
 
     def read_magic_file(self,path,sort_by_this_name):
         """
