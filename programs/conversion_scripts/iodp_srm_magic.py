@@ -293,8 +293,10 @@ def convert(**kwargs):
     con.add_magic_table_from_data(dtype='samples', data=SampRecs)
     con.add_magic_table_from_data(dtype='sites', data=SiteRecs)
     con.add_magic_table_from_data(dtype='locations', data=LocRecs)
-    MeasSort=sorted(MeasRecs,key=lambda x: (x['specimen'], float(x['treat_ac_field'])))
-    MeasOuts=pmag.measurements_methods3(MeasSort,noave)
+    #MeasSort=sorted(MeasRecs,key=lambda x: (x['specimen'], float(x['treat_ac_field'])))
+    #MeasSort=sorted(MeasRecs,key=lambda x: float(x['treat_ac_field']))
+    #MeasOuts=pmag.measurements_methods3(MeasSort,noave)
+    MeasOuts=pmag.measurements_methods3(MeasRecs,noave)
     con.add_magic_table_from_data(dtype='measurements', data=MeasOuts)
 
     con.tables['specimens'].write_magic_file(custom_name=spec_file)
