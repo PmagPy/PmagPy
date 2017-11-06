@@ -74,6 +74,7 @@ class MagMainFrame(wx.Frame):
             WD = pmag.get_named_arg_from_sys("-WD", '')
             self.WD = WD
 
+        self.WD = os.path.realpath(self.WD)
         self.data_model = dmodel
         self.FIRST_RUN = True
 

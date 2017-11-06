@@ -98,5 +98,5 @@ class TestMagicRead(unittest.TestCase):
     def test_magic_read_no_such_file(self):
         fname = os.path.join(PROJECT_WD, 'no_sites.txt')
         data, ftype = pmag.magic_read(fname)
-        self.assertEqual(ftype, 'bad_file')
+        self.assertEqual(ftype, 'empty_file')
         self.assertEqual(len(data), 0)

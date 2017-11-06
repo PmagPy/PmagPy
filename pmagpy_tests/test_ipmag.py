@@ -62,6 +62,8 @@ class TestUploadMagic(unittest.TestCase):
         self.assertFalse(errors)
         self.assertFalse(outfile)
         self.assertEqual(error_message, "no data found, upload file not created")
+        files = os.listdir(directory)
+        self.assertFalse(files)
 
     def test_with_invalid_files(self):
         directory = os.path.join(self.dir_path, 'my_project_with_errors')
@@ -388,7 +390,7 @@ class TestAgmMagic(unittest.TestCase):
         self.assertEqual(filename, os.path.join('.', 'agm_magic_example.magic'))
 
 
-@unittest.skipIf(sys.platform in ['darwin'], 'currently causing fatal errors on OSX')
+#@unittest.skipIf(sys.platform in ['darwin'], 'currently causing fatal errors on OSX')
 class TestCoreDepthplot(unittest.TestCase):
 
     def setUp(self):
@@ -457,6 +459,22 @@ class TestCoreDepthplot(unittest.TestCase):
                                                       amin=0, amax=3, data_model_num=2) # pltDec = False causes failure with these data
         self.assertTrue(program_ran)
         self.assertEqual(plot_name, 'DSDP Site 522_m:_LT-AF-Z_core-depthplot.png')
+
+    def test_core_depthplot_data_model3(self):
+        path = os.path.join(WD, 'data_files', 'core_depthplot')
+        program_ran, plot_name = ipmag.core_depthplot(input_dir_path=path,
+                                                      spc_file='specimens.txt',
+                                                      age_file='ages.txt',
+                                                      meth='AF', step=15,
+                                                      fmt='png', pltInc=False,
+                                                      logit=True, pltTime=True,
+                                                      timescale='gts12',
+                                                      amin=0, amax=3, data_model_num=3)
+        self.assertTrue(program_ran)
+        self.assertEqual(plot_name, 'DSDP Site 522_m:_LT-AF-Z_core-depthplot.png')
+
+
+
 
 @unittest.skipIf(sys.platform in ['darwin'], 'currently causing fatal errors on OSX')
 class TestAnisoDepthplot(unittest.TestCase):
