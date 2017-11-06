@@ -4656,7 +4656,7 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
             else:
                 MagRec[key] = ""
 
-        # the following keys are cab be defined here as "Not Specified" :
+        # the following keys, if blank, used to be defined here as "Not Specified" :
 
         for key in ["sample_class", "sample_lithology", "sample_type"]:
             if key in list(OrRec.keys()) and OrRec[key] != "" and OrRec[key] != "Not Specified":
@@ -4664,7 +4664,7 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
             elif key in list(Prev_MagRec.keys()) and Prev_MagRec[key] != "" and Prev_MagRec[key] != "Not Specified":
                 MagRec[key] = Prev_MagRec[key]
             else:
-                MagRec[key] = "Not Specified"
+                MagRec[key] = ""#"Not Specified"
 
         # (rshaar) From here parse new information and replace previous, if exists:
     #
