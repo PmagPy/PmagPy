@@ -4062,10 +4062,15 @@ def specimens_results_magic(infile='pmag_specimens.txt', measfile='magic_measure
                         siteD = pmag.get_dictitem(
                             tmp1, key + '_comp_name', comp, 'T')
                         # remove bad data from means
-                        siteD = [
-                            x if 'specimen_flag' in x and x['specimen_flag'] == 'g' else True for x in siteD]
-                        siteD = [x if 'sample_flag' in x and x['sample_flag']
-                                 == 'g' else True for x in siteD]
+                        quality_siteD = []
+                        # remove any records for which specimen_flag or sample_flag are 'b'
+                        # assume 'g' if flag is not provided
+                        for rec in siteD:
+                            spec_quality = rec.get('specimen_flag', 'g')
+                            samp_quality = rec.get('sample_flag', 'g')
+                            if (spec_quality == 'g') and (samp_quality == 'g'):
+                                quality_siteD.append(rec)
+                        siteD = quality_siteD
                         if len(siteD) > 0:  # there are some for this site and component name
                             # get an average for this site
                             PmagSiteRec = pmag.lnpbykey(siteD, 'site', key)
