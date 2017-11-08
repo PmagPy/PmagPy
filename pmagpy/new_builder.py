@@ -156,7 +156,7 @@ class Contribution(object):
                     self.tables[dtype] = data_container
                     return data_container
             else:
-                print("-W- No such file: {}".format(filename))
+                #print("-W- No such file: {}".format(filename))
                 return False
         # df is not None
         else:
@@ -382,7 +382,7 @@ class Contribution(object):
                             pass
                     if is_null(old_value):
                         pass
-                    elif isinstance(old_value, str) or isinstance(old_value, str):
+                    elif isinstance(old_value, str):
                         try:
                             old_value = float(old_value)
                         except ValueError:
@@ -391,6 +391,7 @@ class Contribution(object):
                     elif not math.isclose(new_value, old_value):
                         print('-W- In {}, automatically generated {} value ({}) will overwrite previous value ({})'.format(loc_name, coord, new_value, old_value))
                     # set new value
+
                     loc_container.df.set_value(loc_name, coord, new_value)
         self.write_table_to_file('locations')
         return locs
@@ -540,7 +541,7 @@ class Contribution(object):
         df = self.tables[df_name].df
         if col_name in df.columns:
             if all(df[col_name].apply(not_null)):
-                print('{} already in {}'.format(col_name, df_name))
+                #print('{} already in {}'.format(col_name, df_name))
                 return df
 
         # otherwise, do necessary merges to get col_name into df
