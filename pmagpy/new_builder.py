@@ -886,6 +886,12 @@ class Contribution(object):
                                          target_df.df[col],
                                          target_df.df['new_' + col])
             target_df.df.drop(['new_' + col], inplace=True, axis=1)
+            # round column to 5 decimal points
+            try:
+                target_df.df[col] = target_df.df[col].astype(float)
+                target_df.df = target_df.df.round({col: 5})
+            except ValueError: # if there are sneaky strings...
+                pass
         self.tables[target_df_name] = target_df
         return target_df
 
