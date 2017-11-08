@@ -391,7 +391,7 @@ class Contribution(object):
                     elif not math.isclose(new_value, old_value):
                         print('-W- In {}, automatically generated {} value ({}) will overwrite previous value ({})'.format(loc_name, coord, new_value, old_value))
                     # set new value
-
+                    new_value = round(float(new_value), 5)
                     loc_container.df.set_value(loc_name, coord, new_value)
         self.write_table_to_file('locations')
         return locs
