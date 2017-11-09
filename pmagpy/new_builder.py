@@ -1301,6 +1301,7 @@ class MagicDataFrame(object):
                 print("    This may cause strange behavior in the analysis GUIs")
                 self.df['treat_step_num'] = ''
             self.df['measurement'] = self.df['experiment'] + self.df['treat_step_num'].astype(str)
+        self.name = name
 
 
     ## Methods to change self.df inplace
@@ -1538,6 +1539,35 @@ class MagicDataFrame(object):
         return self.df
 
 
+    def sort_dataframe_cols(self):
+        """
+        Sort self.df so that self.name is the first column,
+        and the rest of the columns are sorted by group.
+        """
+        # get the group for each column
+        cols = self.df.columns
+        groups = list(map(lambda x: self.data_model.get_group_for_col(self.dtype, x), cols))
+        sorted_cols = cols.groupby(groups)
+        ordered_cols = []
+        # put names first
+        names = sorted_cols.pop('Names')
+        ordered_cols.extend(list(names))
+        no_group = []
+        # remove ungrouped columns
+        if '' in sorted_cols:
+            no_group = sorted_cols.pop('')
+        # flatten list of columns
+        for k in sorted(sorted_cols):
+            ordered_cols.extend(sorted(sorted_cols[k]))
+        # add back in ungrouped columns
+        ordered_cols.extend(no_group)
+
+        if self.name in ordered_cols:
+            ordered_cols.remove(self.name)
+            ordered_cols[:0] = [self.name]
+
+        self.df = self.df[ordered_cols]
+        return self.df
 
     ## Methods that take self.df and extract some information from it
 
