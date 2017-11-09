@@ -187,9 +187,16 @@ class Test_iodp_srm_magic(unittest.TestCase):
         pass
 
     def tearDown(self):
-        filelist = ['measurements.txt', 'specimens.txt', 'samples.txt', 'sites.txt', 'locations.txt']
+        filelist = ['measurements.txt', 'specimens.txt', 'samples.txt',
+                    'sites.txt', 'locations.txt',
+                    'IODP_LIMS_SRMsection_366_U1494.csv.magic',
+                    'IODP_LIMS_SRMsection_366_U1494_locations.txt',
+                    'IODP_LIMS_SRMsection_366_U1494_samples.txt',
+                    'IODP_LIMS_SRMsection_366_U1494_sites.txt',
+                    'IODP_LIMS_SRMsection_366_U1494_specimens.txt']
+        dir_path = os.path.join(WD, 'data_files', 'UTESTA', 'SRM_data')
         #directory = os.path.join(WD)
-        pmag.remove_files(filelist, WD)
+        pmag.remove_files(filelist, dir_path)
         os.chdir(WD)
 
     def test_iodp_with_no_files(self):
@@ -212,6 +219,7 @@ class Test_iodp_srm_magic(unittest.TestCase):
         #dir_path = os.path.join(WD, 'data_files', 'Measurement_Import',
         # 'iodp_srm_magic')
         dir_path = os.path.join(WD, 'data_files', 'UTESTA', 'SRM_data')
+        options['dir_path'] = dir_path
         options['input_dir_path'] = dir_path
         options['csv_file'] = 'srmsection-XXX-UTEST-A.csv'
         program_ran, outfile = iodp_srm_magic.convert(**options)
