@@ -25,6 +25,9 @@ class Test_sio_magic(unittest.TestCase):
         directory = os.path.join(WD, 'data_files', 'Measurement_Import',
                                  'sio_magic')
         pmag.remove_files(filelist, directory)
+        filelist = ['measurements.txt', 'specimens.txt',
+                    'samples.txt', 'sites.txt', 'locations.txt']
+        pmag.remove_files(filelist, WD)
         os.chdir(WD)
 
     def test_sio_magic_no_files(self):
@@ -34,15 +37,13 @@ class Test_sio_magic(unittest.TestCase):
 
     def test_sio_magic_success(self):
         options = {}
-        options['mag_file'] = os.path.join(WD, 'data_files',
-                                           'Measurement_Import', 'sio_magic',
-                                           'sio_af_example.dat')
-        meas_file = os.path.join(WD, 'data_files', 'Measurement_Import',
-                                 'sio_magic', 'sio_af_example.magic')
-        options['meas_file'] = meas_file
+        dir_path = os.path.join('data_files', 'Measurement_Import',
+                                'sio_magic')
+        options['mag_file'] = os.path.join(dir_path, 'sio_af_example.dat')
+        options['meas_file'] = os.path.join(dir_path, 'sio_af_example.magic')
         program_ran, file_name = sio_magic.convert(**options)
         self.assertTrue(program_ran)
-        self.assertEqual(file_name, meas_file)
+        self.assertEqual(file_name, options['meas_file'])
 
     def test_sio_magic_fail_option4(self):
         options = {}
