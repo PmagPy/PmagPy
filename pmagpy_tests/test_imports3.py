@@ -243,6 +243,21 @@ class Test_iodp_srm_magic(unittest.TestCase):
         self.assertEqual(outfile, os.path.join('measurements.txt'))
 
 
+    def test_iodp_with_one_file_long_path(self):
+        options = {}
+        #dir_path = os.path.join(WD, 'data_files', 'Measurement_Import',
+        # 'iodp_srm_magic')
+        dir_path = os.path.join('data_files', 'UTESTA', 'SRM_data')
+        options['dir_path'] = dir_path
+        options['dir_path'] = WD #dir_path
+        options['input_dir_path'] = "fake/path"
+        options['csv_file'] = os.path.join(dir_path, 'srmsection-XXX-UTEST-A.csv')
+        program_ran, outfile = iodp_srm_magic.convert(**options)
+        self.assertEqual(program_ran, True)
+        self.assertEqual(outfile, os.path.join('measurements.txt'))
+
+
+
 class Test_iodp_dscr_magic(unittest.TestCase):
 
     def setUp(self):

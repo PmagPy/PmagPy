@@ -60,7 +60,6 @@ def convert(**kwargs):
     if csv_file=="":
         filelist=os.listdir(input_dir_path) # read in list of files to import
     else:
-        csv_file = os.path.join(input_dir_path, csv_file)
         filelist=[csv_file]
 
     # parsing the data
@@ -69,9 +68,11 @@ def convert(**kwargs):
     for f in filelist: # parse each file
         year_warning = True
         if f[-3:].lower()=='csv':
+            print('processing:', f)
             file_found = True
-            print('processing: ',f)
-            full_file = open(os.path.join(input_dir_path, f))
+            # get correct full filename and read data
+            fname = pmag.resolve_file_name(f, input_dir_path)
+            full_file = open(fname)
             file_input=full_file.readlines()
             full_file.close()
             keys=file_input[0].replace('\n','').split(',') # splits on underscores
