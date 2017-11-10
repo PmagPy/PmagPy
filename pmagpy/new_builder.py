@@ -1829,6 +1829,7 @@ class MagicDataFrame(object):
         f.write('tab\t{}\n'.format(self.dtype))
         df.to_csv(f, sep="\t", header=True, index=False)
         f.close()
+        return fname
 
     ## Helper methods
 

@@ -43,7 +43,22 @@ class Test_sio_magic(unittest.TestCase):
         options['meas_file'] = os.path.join(dir_path, 'sio_af_example.magic')
         program_ran, file_name = sio_magic.convert(**options)
         self.assertTrue(program_ran)
-        self.assertEqual(file_name, options['meas_file'])
+        self.assertEqual(os.path.realpath(file_name),
+                         os.path.realpath(options['meas_file']))
+
+    def test_sio_magic_success_with_wd(self):
+        options = {}
+        dir_path = os.path.join('data_files', 'Measurement_Import',
+                                'sio_magic')
+        options['mag_file'] = os.path.join('sio_af_example.dat')
+        options['meas_file'] = os.path.join('sio_af_example.magic')
+        options['dir_path'] = dir_path
+        program_ran, file_name = sio_magic.convert(**options)
+        self.assertTrue(program_ran)
+        self.assertEqual(os.path.realpath(file_name),
+                         os.path.realpath(os.path.join(dir_path, options['meas_file'])))
+
+
 
     def test_sio_magic_fail_option4(self):
         options = {}
