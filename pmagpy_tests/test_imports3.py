@@ -123,6 +123,14 @@ class Test_cit_magic(unittest.TestCase):
         filelist = ['measurements.txt', 'specimens.txt',
                     'samples.txt', 'sites.txt']
         pmag.remove_files(filelist, WD)
+        loc_file = 'custom_locations.txt'
+        dir_path = os.path.join(WD, 'data_files')
+        pmag.remove_files([loc_file], dir_path)
+        samp_file  = 'custom_samples.txt'
+        dir_path = os.path.join(WD, 'data_files',
+                     'Measurement_Import',
+                     'CIT_magic', 'PI47')
+        pmag.remove_files([samp_file], dir_path)
         os.chdir(WD)
 
     def test_cit_with_no_files(self):
@@ -140,6 +148,29 @@ class Test_cit_magic(unittest.TestCase):
         self.assertTrue(program_ran)
         expected_file = os.path.join('measurements.txt')
         self.assertEqual(outfile, expected_file)
+
+    def test_cit_magic_long_file_path(self):
+        options = {}
+        #options['input_dir_path'] = os.path.join(WD, 'data_files',
+        #                                         'Measurement_Import',
+        #                                         'CIT_magic', 'PI47')pppp
+        options['magfile'] = os.path.join(WD, 'data_files',
+                                          'Measurement_Import',
+                                          'CIT_magic', 'PI47', 'PI47-.sam')
+        options['loc_file'] = 'custom_locations.txt'
+        options['samp_file'] = os.path.join(WD, 'data_files',
+                                            'Measurement_Import',
+                                            'CIT_magic', 'PI47', 'custom_samples.txt')
+        options['dir_path'] = os.path.join(WD, 'data_files')
+        program_ran, outfile = cit_magic.convert(**options)
+        self.assertTrue(program_ran)
+        expected_file = os.path.join('measurements.txt')
+        self.assertEqual(outfile, expected_file)
+        for fname in [options['loc_file'],
+                      options['samp_file'],
+                      os.path.join(WD, 'data_files', 'specimens.txt')]:
+            self.assertTrue(os.path.isfile(fname))
+
 
     def test_cit_magic_fail_option4(self):
         options = {}
