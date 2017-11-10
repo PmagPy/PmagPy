@@ -21,6 +21,7 @@ from pandas import DataFrame
 # from pmagpy import pmag
 from pmagpy import data_model3 as data_model
 from pmagpy import controlled_vocabularies3 as cv
+from pmagpy import pmag
 
 
 class Contribution(object):
@@ -1808,9 +1809,10 @@ class MagicDataFrame(object):
         # if indexing column was put in, remove it
         if "num" in self.df.columns:
             self.df.drop("num", axis=1, inplace=True)
+        # get full file path
         dir_path = os.path.realpath(dir_path)
         if custom_name:
-            fname = os.path.join(dir_path, custom_name)
+            fname = pmag.resolve_file_name(custom_name, dir_path) # os.path.join(dir_path, custom_name)
         else:
             fname = os.path.join(dir_path, self.dtype + ".txt")
         # add to existing file
