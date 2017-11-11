@@ -537,7 +537,6 @@ class Test2g_bin_magic(unittest.TestCase):
         self.assertEqual(outfile, options['meas_file'])
 
 
-
 class Test_bgc_magic(unittest.TestCase):
 
     def setUp(self):
@@ -549,6 +548,9 @@ class Test_bgc_magic(unittest.TestCase):
                     'measurements.txt', 'specimens.txt',
                     'samples.txt', 'sites.txt']
         pmag.remove_files(filelist, self.input_dir)
+        filelist = ['specimens.txt', 'samples.txt', 'sites.txt',
+                    'locations.txt', 'custom_specimens.txt', 'measurements.txt']
+        pmag.remove_files(filelist, WD)
         os.chdir(WD)
 
     def test_bgc_with_no_files(self):
@@ -560,10 +562,21 @@ class Test_bgc_magic(unittest.TestCase):
         options = {'input_dir_path': self.input_dir, 'mag_file': '96MT.05.01'}
         program_ran, outfile = bgc_magic.convert(**options)
         self.assertTrue(program_ran)
-        self.assertEqual(outfile, 'measurements.txt')
+        self.assertEqual(outfile, os.path.join(WD, 'measurements.txt'))
+
+    def test_bgc_with_path(self):
+        options = {}
+        options['mag_file'] = os.path.join(self.input_dir, '96MT.05.01')
+        options['spec_file'] = os.path.join(WD, 'custom_specimens.txt')
+        options['dir_path'] = 'data_files'
+        program_ran, outfile = bgc_magic.convert(**options)
+        self.assertEqual(outfile, os.path.join(WD, 'data_files', 'measurements.txt'))
+        self.assertTrue(os.path.isfile(options['spec_file']))
+        self.assertTrue(os.path.isfile(os.path.join(WD, 'data_files', 'samples.txt')))
+
 
     def test_bgc_alternate_infile(self):
         options = {'input_dir_path': self.input_dir, 'mag_file': 'BC0-3A'}
         program_ran, outfile = bgc_magic.convert(**options)
         self.assertTrue(program_ran)
-        self.assertEqual(outfile, 'measurements.txt')
+        self.assertEqual(outfile, os.path.join(WD, 'data_files', 'measurements.txt'))
