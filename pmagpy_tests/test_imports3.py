@@ -293,10 +293,11 @@ class Test_iodp_dscr_magic(unittest.TestCase):
         pass
 
     def tearDown(self):
-        filelist = ['measurements.txt', 'specimens.txt', 'samples.txt', 'sites.txt', 'locations.txt']
+        filelist = ['measurements.txt', 'specimens.txt', 'samples.txt',
+                    'sites.txt', 'locations.txt', 'custom_samples.txt']
         #directory = os.path.join(WD)
         pmag.remove_files(filelist, WD)
-        pmag.remove_files(['custom_measurements.txt'], os.path.join('data_files', WD))
+        pmag.remove_files(['custom_measurements.txt'], os.path.join(WD, 'data_files'))
         os.chdir(WD)
 
     def test_iodp_with_no_files(self):
