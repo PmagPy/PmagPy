@@ -423,8 +423,10 @@ class Test2g_bin_magic(unittest.TestCase):
         #'IODP_jr6_magic')
         #files = ['test.magic', 'other_er_samples.txt']
         files = ['mn001-1a.magic', 'samples.txt', 'sites.txt',
-                 'measurements.txt']
+                 'measurements.txt', 'locations.txt', 'specimens.txt']
         pmag.remove_files(files, WD)
+        pmag.remove_files(['custom_specimens.txt', 'samples.txt',
+                           'sites.txt', 'locations.txt'], 'data_files')
         os.chdir(WD)
 
     def test_2g_with_no_files(self):
@@ -520,6 +522,20 @@ class Test2g_bin_magic(unittest.TestCase):
         program_ran, outfile = _2g_bin_magic.convert(**options)
         self.assertTrue(program_ran)
         self.assertEqual(os.path.split(outfile)[1], 'mn001-1a.magic')
+
+    def test_2g_with_path(self):
+        options = {}
+        input_dir = os.path.join(WD, 'data_files', 'Measurement_Import',
+                                 '2G_bin_magic', 'mn1')
+        #options['ID'] = os.path.join(WD, 'data_files', 'Measurement_Import',
+        #                             '2G_bin_magic', 'mn1')
+        options['mag_file'] = os.path.join(input_dir, 'mn001-1a.dat')
+        options['meas_file'] = os.path.join(input_dir, 'mn001-1a.magic')
+        options['spec_file'] = os.path.join('data_files', 'custom_specimens.txt')
+        options['dir_path'] = 'data_files'
+        program_ran, outfile = _2g_bin_magic.convert(**options)
+        self.assertEqual(outfile, options['meas_file'])
+
 
 
 class Test_bgc_magic(unittest.TestCase):
