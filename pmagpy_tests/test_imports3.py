@@ -337,7 +337,8 @@ class Test_iodp_jr6_magic(unittest.TestCase):
         pass
 
     def tearDown(self):
-        files = ['test.magic', 'other_er_samples.txt']
+        files = ['test.magic', 'other_er_samples.txt',
+                 'custom_locations.txt', 'samples.txt', 'sites.txt']
         pmag.remove_files(files, WD)
         # then, make sure that hidden_er_samples.txt has been successfully renamed to er_samples.txt
         input_dir = os.path.join(WD, 'data_files', 'Measurement_Import',
@@ -346,6 +347,7 @@ class Test_iodp_jr6_magic(unittest.TestCase):
         sampfile = os.path.join(input_dir, 'er_samples.txt')
         if os.path.exists(hidden_sampfile):
             os.rename(hidden_sampfile, sampfile)
+        pmag.remove_files(['custom_specimens.txt'], 'data_files')
         os.chdir(WD)
 
     def test_iodp_jr6_with_no_files(self):
@@ -375,6 +377,24 @@ class Test_iodp_jr6_magic(unittest.TestCase):
         program_ran, outfile = iodp_jr6_magic.convert(**options)
         self.assertTrue(program_ran)
         self.assertEqual(outfile, meas_file)
+
+    def test_iodp_jr6_with_path(self):
+        options = {}
+        input_dir = os.path.join(WD, 'data_files', 'Measurement_Import',
+                                 'IODP_jr6_magic')
+        #options['input_dir_path'] = input_dir
+        mag_file = os.path.join('data_files', 'Measurement_Import', 'IODP_jr6_magic', 'test.jr6')
+        options['mag_file'] = mag_file #'test.jr6'
+        options['spec_file'] = os.path.join('data_files', 'custom_specimens.txt')
+        options['loc_file'] = 'custom_locations.txt'
+        meas_file = 'test.magic'
+        options['meas_file'] = meas_file
+        program_ran, outfile = iodp_jr6_magic.convert(**options)
+        self.assertTrue(program_ran)
+        self.assertEqual(outfile, meas_file)
+        for fname in [options['loc_file'], options['spec_file']]:
+            self.assertTrue(os.path.isfile(fname))
+
 
     #@unittest.skipIf('win32' in sys.platform or 'win62' in sys.platform, "Requires up to date version of pandas")
     def test_iodp_jr6_with_options(self):
