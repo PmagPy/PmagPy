@@ -1082,7 +1082,7 @@ class Contribution(object):
                     print(col, end=' ')
                 print("\n")
 
-    def write_table_to_file(self, dtype, custom_name=None):
+    def write_table_to_file(self, dtype, custom_name=None, append=False):
         """
         Write out a MagIC table to file, using custom filename
         as specified in self.filenames.
@@ -1097,9 +1097,10 @@ class Contribution(object):
         else:
             fname = self.filenames[dtype]
         if dtype in self.tables:
-            self.tables[dtype].write_magic_file(custom_name=fname,
-                                                dir_path=self.directory)
-        return fname
+            outfile = self.tables[dtype].write_magic_file(custom_name=fname,
+                                                          dir_path=self.directory,
+                                                          append=append)
+        return outfile
 
 
 
@@ -1828,8 +1829,11 @@ class MagicDataFrame(object):
             print('-I- writing {} data to {}'.format(self.dtype, fname))
             mode = "w"
         f = open(fname, mode)
-        f.write('tab\t{}\n'.format(self.dtype))
-        df.to_csv(f, sep="\t", header=True, index=False)
+        if append:
+            df.to_csv(f, sep="\t", header=False, index=False)
+        else:
+            f.write('tab\t{}\n'.format(self.dtype))
+            df.to_csv(f, sep="\t", header=True, index=False)
         f.close()
         return fname
 

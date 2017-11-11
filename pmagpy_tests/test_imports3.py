@@ -583,3 +583,14 @@ class Test_bgc_magic(unittest.TestCase):
         program_ran, outfile = bgc_magic.convert(**options)
         self.assertTrue(program_ran)
         self.assertEqual(outfile, os.path.join(WD, 'measurements.txt'))
+
+
+    def test_bgc_with_append(self):
+        options = {'input_dir_path': self.input_dir, 'mag_file': 'BC0-3A'}
+        program_ran, outfile = bgc_magic.convert(**options)
+        self.assertTrue(program_ran)
+        options['append'] = True
+        program_ran, outfile = bgc_magic.convert(**options)
+        self.assertTrue(program_ran)
+        lines, file_type = pmag.magic_read(os.path.join(WD, 'specimens.txt'))
+        self.assertEqual(len(lines), 2)
