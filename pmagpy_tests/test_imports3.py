@@ -121,11 +121,13 @@ class Test_cit_magic(unittest.TestCase):
 
     def tearDown(self):
         filelist = ['measurements.txt', 'specimens.txt',
-                    'samples.txt', 'sites.txt']
+                    'samples.txt', 'sites.txt', 'locations.txt']
         pmag.remove_files(filelist, WD)
-        loc_file = 'custom_locations.txt'
+        #loc_file = 'custom_locations.txt'
+        filelist = ['measurements.txt', 'specimens.txt',
+                    'samples.txt', 'sites.txt', 'custom_locations.txt']
         dir_path = os.path.join(WD, 'data_files')
-        pmag.remove_files([loc_file], dir_path)
+        pmag.remove_files(filelist, dir_path)
         samp_file  = 'custom_samples.txt'
         dir_path = os.path.join(WD, 'data_files',
                      'Measurement_Import',
@@ -149,7 +151,7 @@ class Test_cit_magic(unittest.TestCase):
         expected_file = os.path.join('measurements.txt')
         self.assertEqual(outfile, expected_file)
 
-    def test_cit_magic_long_file_path(self):
+    def test_cit_magic_with_path(self):
         options = {}
         #options['input_dir_path'] = os.path.join(WD, 'data_files',
         #                                         'Measurement_Import',
@@ -166,7 +168,7 @@ class Test_cit_magic(unittest.TestCase):
         self.assertTrue(program_ran)
         expected_file = os.path.join('measurements.txt')
         self.assertEqual(outfile, expected_file)
-        for fname in [options['loc_file'],
+        for fname in [os.path.join(WD, 'data_files', options['loc_file']),
                       options['samp_file'],
                       os.path.join(WD, 'data_files', 'specimens.txt')]:
             self.assertTrue(os.path.isfile(fname))
@@ -551,6 +553,7 @@ class Test_bgc_magic(unittest.TestCase):
         filelist = ['specimens.txt', 'samples.txt', 'sites.txt',
                     'locations.txt', 'custom_specimens.txt', 'measurements.txt']
         pmag.remove_files(filelist, WD)
+        pmag.remove_files(filelist, os.path.join(WD, 'data_files'))
         os.chdir(WD)
 
     def test_bgc_with_no_files(self):
@@ -579,4 +582,4 @@ class Test_bgc_magic(unittest.TestCase):
         options = {'input_dir_path': self.input_dir, 'mag_file': 'BC0-3A'}
         program_ran, outfile = bgc_magic.convert(**options)
         self.assertTrue(program_ran)
-        self.assertEqual(outfile, os.path.join(WD, 'data_files', 'measurements.txt'))
+        self.assertEqual(outfile, os.path.join(WD, 'measurements.txt'))
