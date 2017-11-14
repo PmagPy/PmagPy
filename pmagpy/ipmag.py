@@ -2131,6 +2131,7 @@ def combine_magic(filenames, outfile, data_model=2.5, magic_table='measurements'
     outfile name if success, False if failure
     """
     if float(data_model) == 3.0:
+        outfile = pmag.resolve_file_name('.', outfile)
         output_dir_path, file_name = os.path.split(outfile)
         con = nb.Contribution(output_dir_path, read_tables=[])
         # figure out file type from first of files to join
