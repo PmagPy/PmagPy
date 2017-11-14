@@ -50,7 +50,8 @@ class Vocabulary(object):
         #except Exception as ex:
         #    print ex, type(ex)
         #    print "-I- Couldn't connect to earthref.org, using cached method codes"
-        print("-I- Using cached method codes")
+        #
+        #print("-I- Using cached method codes")
         raw_codes = pd.io.json.read_json(os.path.join(data_model_dir, "method_codes.json"))
         code_types = raw_codes.loc['label']
         all_codes = []
@@ -134,7 +135,8 @@ class Vocabulary(object):
         #    print '-I- Could not connect to earthref.org, using cached vocabularies instead'
         #    fname = os.path.join(data_model_dir, "controlled_vocabularies_February_6_2017.json")
         #    data = pd.io.json.read_json(fname)
-        print('-I- Using cached vocabularies')
+        #
+        #print('-I- Using cached vocabularies')
         fname = os.path.join(data_model_dir, "controlled_vocabularies_February_6_2017.json")
         data = pd.io.json.read_json(fname)
         possible_vocabularies = data.columns
@@ -202,15 +204,16 @@ class Vocabulary(object):
         Get all non-method suggested vocabularies
         """
         suggested_vocabularies = []
-        print('-I- Importing suggested vocabularies from https://earthref.org')
-        url = 'https://www2.earthref.org/vocabularies/suggested.json'
+        #print('-I- Importing suggested vocabularies from https://earthref.org')
+        #url = 'https://www2.earthref.org/vocabularies/suggested.json'
         #try:
         #    data = pd.io.json.read_json(url)
         #except:
         #    print '-I- Could not connect to earthref.org, using cached vocabularies instead'
         #    fname = os.path.join(data_model_dir, "suggested_vocabularies_February_6_2017.json")
         #    data = pd.io.json.read_json(fname)
-        print('-I- Using cached suggested vocabularies')
+        #
+        #print('-I- Using cached suggested vocabularies')
         fname = os.path.join(data_model_dir, "suggested_vocabularies_February_6_2017.json")
         data = pd.io.json.read_json(fname)
         possible_vocabularies = data.columns
