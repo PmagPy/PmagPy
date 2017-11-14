@@ -21,6 +21,7 @@ from pandas import DataFrame
 # from pmagpy import pmag
 from pmagpy import data_model3 as data_model
 from pmagpy import controlled_vocabularies3 as cv
+from pmagpy import pmag
 
 
 class Contribution(object):
@@ -156,7 +157,7 @@ class Contribution(object):
                     self.tables[dtype] = data_container
                     return data_container
             else:
-                print("-W- No such file: {}".format(filename))
+                #print("-W- No such file: {}".format(filename))
                 return False
         # df is not None
         else:
@@ -382,7 +383,7 @@ class Contribution(object):
                             pass
                     if is_null(old_value):
                         pass
-                    elif isinstance(old_value, str) or isinstance(old_value, str):
+                    elif isinstance(old_value, str):
                         try:
                             old_value = float(old_value)
                         except ValueError:
@@ -391,6 +392,7 @@ class Contribution(object):
                     elif not math.isclose(new_value, old_value):
                         print('-W- In {}, automatically generated {} value ({}) will overwrite previous value ({})'.format(loc_name, coord, new_value, old_value))
                     # set new value
+                    new_value = round(float(new_value), 5)
                     loc_container.df.set_value(loc_name, coord, new_value)
         self.write_table_to_file('locations')
         return locs
@@ -540,7 +542,7 @@ class Contribution(object):
         df = self.tables[df_name].df
         if col_name in df.columns:
             if all(df[col_name].apply(not_null)):
-                print('{} already in {}'.format(col_name, df_name))
+                #print('{} already in {}'.format(col_name, df_name))
                 return df
 
         # otherwise, do necessary merges to get col_name into df
@@ -885,6 +887,12 @@ class Contribution(object):
                                          target_df.df[col],
                                          target_df.df['new_' + col])
             target_df.df.drop(['new_' + col], inplace=True, axis=1)
+            # round column to 5 decimal points
+            try:
+                target_df.df[col] = target_df.df[col].astype(float)
+                target_df.df = target_df.df.round({col: 5})
+            except ValueError: # if there are sneaky strings...
+                pass
         self.tables[target_df_name] = target_df
         return target_df
 
@@ -1074,7 +1082,7 @@ class Contribution(object):
                     print(col, end=' ')
                 print("\n")
 
-    def write_table_to_file(self, dtype, custom_name=None):
+    def write_table_to_file(self, dtype, custom_name=None, append=False):
         """
         Write out a MagIC table to file, using custom filename
         as specified in self.filenames.
@@ -1089,9 +1097,10 @@ class Contribution(object):
         else:
             fname = self.filenames[dtype]
         if dtype in self.tables:
-            self.tables[dtype].write_magic_file(custom_name=fname,
-                                                dir_path=self.directory)
-        return fname
+            outfile = self.tables[dtype].write_magic_file(custom_name=fname,
+                                                          dir_path=self.directory,
+                                                          append=append)
+        return outfile
 
 
 
@@ -1294,6 +1303,7 @@ class MagicDataFrame(object):
                 print("    This may cause strange behavior in the analysis GUIs")
                 self.df['treat_step_num'] = ''
             self.df['measurement'] = self.df['experiment'] + self.df['treat_step_num'].astype(str)
+        self.name = name
 
 
     ## Methods to change self.df inplace
@@ -1531,6 +1541,35 @@ class MagicDataFrame(object):
         return self.df
 
 
+    def sort_dataframe_cols(self):
+        """
+        Sort self.df so that self.name is the first column,
+        and the rest of the columns are sorted by group.
+        """
+        # get the group for each column
+        cols = self.df.columns
+        groups = list(map(lambda x: self.data_model.get_group_for_col(self.dtype, x), cols))
+        sorted_cols = cols.groupby(groups)
+        ordered_cols = []
+        # put names first
+        names = sorted_cols.pop('Names')
+        ordered_cols.extend(list(names))
+        no_group = []
+        # remove ungrouped columns
+        if '' in sorted_cols:
+            no_group = sorted_cols.pop('')
+        # flatten list of columns
+        for k in sorted(sorted_cols):
+            ordered_cols.extend(sorted(sorted_cols[k]))
+        # add back in ungrouped columns
+        ordered_cols.extend(no_group)
+
+        if self.name in ordered_cols:
+            ordered_cols.remove(self.name)
+            ordered_cols[:0] = [self.name]
+
+        self.df = self.df[ordered_cols]
+        return self.df
 
     ## Methods that take self.df and extract some information from it
 
@@ -1771,9 +1810,10 @@ class MagicDataFrame(object):
         # if indexing column was put in, remove it
         if "num" in self.df.columns:
             self.df.drop("num", axis=1, inplace=True)
+        # get full file path
         dir_path = os.path.realpath(dir_path)
         if custom_name:
-            fname = os.path.join(dir_path, custom_name)
+            fname = pmag.resolve_file_name(custom_name, dir_path) # os.path.join(dir_path, custom_name)
         else:
             fname = os.path.join(dir_path, self.dtype + ".txt")
         # add to existing file
@@ -1789,9 +1829,13 @@ class MagicDataFrame(object):
             print('-I- writing {} data to {}'.format(self.dtype, fname))
             mode = "w"
         f = open(fname, mode)
-        f.write('tab\t{}\n'.format(self.dtype))
-        df.to_csv(f, sep="\t", header=True, index=False)
+        if append:
+            df.to_csv(f, sep="\t", header=False, index=False)
+        else:
+            f.write('tab\t{}\n'.format(self.dtype))
+            df.to_csv(f, sep="\t", header=True, index=False)
         f.close()
+        return fname
 
     ## Helper methods
 

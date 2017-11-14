@@ -147,12 +147,18 @@ def convert(**kwargs):
     user = kwargs.get('user', '')
     dir_path = kwargs.get('dir_path', '.')
     output_dir_path = dir_path
-    meas_file = kwargs.get('meas_file', 'measurements.txt')
+    meas_file = kwargs.get('meas_file', 'measurements.txt') # measurement outfile
+    meas_file = pmag.resolve_file_name(meas_file, output_dir_path)
     spec_file = kwargs.get('spec_file', 'specimens.txt') # specimen outfile
+    spec_file = pmag.resolve_file_name(spec_file, output_dir_path)
     samp_file = kwargs.get('samp_file', 'samples.txt') # sample outfile
+    samp_file = pmag.resolve_file_name(samp_file, output_dir_path)
     site_file = kwargs.get('site_file', 'sites.txt') # site outfile
+    site_file = pmag.resolve_file_name(site_file, output_dir_path)
     loc_file = kwargs.get('loc_file', 'locations.txt') # location outfile
+    loc_file = pmag.resolve_file_name(loc_file, output_dir_path)
     mag_file = kwargs.get('mag_file', '')
+    mag_file = pmag.resolve_file_name(mag_file, dir_path)
     labfield = kwargs.get('labfield', '')
     if labfield:
         labfield = float(labfield) *1e-6
@@ -672,8 +678,7 @@ def convert(**kwargs):
     con.tables['samples'].write_magic_file(custom_name=samp_file)
     con.tables['sites'].write_magic_file(custom_name=site_file)
     con.tables['locations'].write_magic_file(custom_name=loc_file)
-    con.tables['measurements'].write_magic_file(custom_name=meas_file)
-
+    meas_file = con.tables['measurements'].write_magic_file(custom_name=meas_file)
     return True, meas_file
 
 def do_help():
@@ -743,7 +748,7 @@ def main():
     if '-LP' in sys.argv:
         ind=sys.argv.index("-LP")
         kwargs['codelist']=sys.argv[ind+1]
-        if 'CR' in sys.argv:     
+        if 'CR' in sys.argv:
             ind=sys.argv.index("CR")
             kwargs['cooling_rates']=sys.argv[ind+1]
     if "-V" in sys.argv:

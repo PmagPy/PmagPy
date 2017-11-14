@@ -3412,7 +3412,6 @@ def upload_magic3(concat=0, dir_path='.', dmodel=None, vocab="", contribution=No
     """
     Finds all magic files in a given directory, and compiles them into an
     upload.txt file which can be uploaded into the MagIC database.
-
     Parameters
     ----------
     concat : boolean where True means do concatenate to upload.txt file in dir_path,
@@ -3424,13 +3423,13 @@ def upload_magic3(concat=0, dir_path='.', dmodel=None, vocab="", contribution=No
         if not provided will be created (default None)
     contribution : pmagpy new_builder.Contribution object, if not provided will be created
         in directory (default None)
-
     Returns
     ----------
     tuple of either: (False, error_message, errors, all_failing_items)
     if there was a problem creating/validating the upload file
     or: (filename, '', None, None) if the file creation was fully successful.
     """
+    dir_path = os.path.realpath(dir_path)
     locations = []
     concat = int(concat)
     dtypes = ["locations", "samples", "specimens", "sites", "ages", "measurements",
@@ -3444,35 +3443,45 @@ def upload_magic3(concat=0, dir_path='.', dmodel=None, vocab="", contribution=No
                                                             ", ".join(error_fnames)))
     for error in error_full_fnames:
         os.remove(error)
-    if not file_names and nb.is_null(contribution):
-        real_path = os.path.realpath(dir_path)
-        print("-W- No 3.0 files found in your directory: {}, upload file not created".format(real_path))
-        return False, "no 3.0 files found, upload file not created", None, None
     if isinstance(contribution, nb.Contribution):
         # if contribution object provided, use it
         con = contribution
         for table_name in con.tables:
             con.tables[table_name].write_magic_file()
-    else:
+    elif file_names:
         # otherwise create a new Contribution in dir_path
         con = Contribution(dir_path, vocabulary=vocab)
+    else:
+        # if no contribution is provided and no contribution could be created,
+        # you are out of luck
+        print("-W- No 3.0 files found in your directory: {}, upload file not created".format(dir_path))
+        return False, "no 3.0 files found, upload file not created", None, None
 
-    dir_path = con.directory
+    # if the contribution has no tables, you can't make an upload file
+    if not con.tables.keys():
+        print("-W- No tables found in your contribution, file not created".format(dir_path))
+        return False, "-W- No tables found in your contribution, file not created", None, None
+
     # take out any extra added columns
-    con.remove_non_magic_cols()
+    #con.remove_non_magic_cols()
+
     # begin the upload process
     up = os.path.join(dir_path, "upload.txt")
     if os.path.exists(up):
         os.remove(up)
-    RmKeys = ['citation_label', 'compilation', 'calculation_type', 'average_n_lines', 'average_n_planes',
+    RmKeys = ('citation_label', 'compilation', 'calculation_type', 'average_n_lines', 'average_n_planes',
               'specimen_grade', 'site_vgp_lat', 'site_vgp_lon', 'direction_type', 'specimen_Z',
               'magic_instrument_codes', 'cooling_rate_corr', 'cooling_rate_mcd', 'anisotropy_atrm_alt',
               'anisotropy_apar_perc', 'anisotropy_F', 'anisotropy_F_crit', 'specimen_scat',
               'specimen_gmax', 'specimen_frac', 'site_vadm', 'site_lon', 'site_vdm', 'site_lat',
               'measurement_chi', 'specimen_k_prime', 'specimen_k_prime_sse', 'external_database_names',
               'external_database_ids', 'Further Notes', 'Typology', 'Notes (Year/Area/Locus/Level)',
-              'Site', 'Object Number', 'version']
-    print("-I- Removing: ", RmKeys)
+              'Site', 'Object Number', 'version')
+    #print("-I- Removing: ", RmKeys)
+    extra_RmKeys = {'measurements': ['sample', 'site', 'location'],
+                    'specimens': ['site', 'location', 'age'],
+                    'samples': ['location', 'age']}
+
     failing = []
     all_failing_items = {}
     if not dmodel:
@@ -3484,9 +3493,18 @@ def upload_magic3(concat=0, dir_path='.', dmodel=None, vocab="", contribution=No
         if len(df):
             print("-I- {} file successfully read in".format(file_type))
     # make some adjustments to clean up data
-            # drop non MagIC keys
-            DropKeys = set(RmKeys).intersection(df.columns)
-            df.drop(DropKeys, axis=1, inplace=True)
+            ## drop non MagIC keys
+            #DropKeys = set(RmKeys).intersection(df.columns)
+            DropKeys = list(RmKeys) + extra_RmKeys.get(file_type, [])
+            DropKeys = set(DropKeys).intersection(df.columns)
+            if DropKeys:
+                print('-I- dropping these columns: {} from the {} table'.format(', '.join(DropKeys), file_type))
+                df.drop(DropKeys, axis=1, inplace=True)
+            container.df = df
+            unrecognized_cols = container.get_non_magic_cols()
+            if unrecognized_cols:
+                print('-W- {} table still has some unrecognized columns: {}'.format(file_type.title(),
+                                                                                    ", ".join(unrecognized_cols)))
             # make sure int_b_beta is positive
             if 'int_b_beta' in df.columns:
                 # get rid of empty strings
@@ -4044,10 +4062,15 @@ def specimens_results_magic(infile='pmag_specimens.txt', measfile='magic_measure
                         siteD = pmag.get_dictitem(
                             tmp1, key + '_comp_name', comp, 'T')
                         # remove bad data from means
-                        siteD = [
-                            x if 'specimen_flag' in x and x['specimen_flag'] == 'g' else True for x in siteD]
-                        siteD = [x if 'sample_flag' in x and x['sample_flag']
-                                 == 'g' else True for x in siteD]
+                        quality_siteD = []
+                        # remove any records for which specimen_flag or sample_flag are 'b'
+                        # assume 'g' if flag is not provided
+                        for rec in siteD:
+                            spec_quality = rec.get('specimen_flag', 'g')
+                            samp_quality = rec.get('sample_flag', 'g')
+                            if (spec_quality == 'g') and (samp_quality == 'g'):
+                                quality_siteD.append(rec)
+                        siteD = quality_siteD
                         if len(siteD) > 0:  # there are some for this site and component name
                             # get an average for this site
                             PmagSiteRec = pmag.lnpbykey(siteD, 'site', key)
@@ -4656,7 +4679,7 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
             else:
                 MagRec[key] = ""
 
-        # the following keys are cab be defined here as "Not Specified" :
+        # the following keys, if blank, used to be defined here as "Not Specified" :
 
         for key in ["sample_class", "sample_lithology", "sample_type"]:
             if key in list(OrRec.keys()) and OrRec[key] != "" and OrRec[key] != "Not Specified":
@@ -4664,7 +4687,7 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
             elif key in list(Prev_MagRec.keys()) and Prev_MagRec[key] != "" and Prev_MagRec[key] != "Not Specified":
                 MagRec[key] = Prev_MagRec[key]
             else:
-                MagRec[key] = "Not Specified"
+                MagRec[key] = ""#"Not Specified"
 
         # (rshaar) From here parse new information and replace previous, if exists:
     #

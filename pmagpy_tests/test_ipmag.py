@@ -476,7 +476,7 @@ class TestCoreDepthplot(unittest.TestCase):
 
 
 
-@unittest.skipIf(sys.platform in ['darwin'], 'currently causing fatal errors on OSX')
+#@unittest.skipIf(sys.platform in ['darwin'], 'currently causing fatal errors on OSX')
 class TestAnisoDepthplot(unittest.TestCase):
 
     def setUp(self):
