@@ -5076,7 +5076,7 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
     return True, None
 
 
-def azdip_magic(orient_file='orient.txt', samp_file="er_samples.txt", samp_con="1", Z=1, method_codes='FS-FD', location_name='unknown', append=False, output_dir='.', input_dir='.'):
+def azdip_magic(orient_file='orient.txt', samp_file="er_samples.txt", samp_con="1", Z=1, method_codes='FS-FD', location_name='unknown', append=False, output_dir='.', input_dir='.', data_model=2):
     """
     azdip_magic(orient_file='orient.txt', samp_file="er_samples.txt", samp_con="1", Z=1, method_codes='FS-FD', location_name='unknown', append=False):
     takes space delimited AzDip file and converts to MagIC formatted tables
@@ -5117,6 +5117,9 @@ def azdip_magic(orient_file='orient.txt', samp_file="er_samples.txt", samp_con="
     #
     # initialize variables
     #
+    data_model = int(data_model)
+    if (data_model == 3) and (samp_file == "er_samples.txt"):
+        samp_file = "samples.txt"
     DEBUG = 0
     version_num = pmag.get_version()
     or_con, corr = "3", "1"
@@ -5136,8 +5139,10 @@ def azdip_magic(orient_file='orient.txt', samp_file="er_samples.txt", samp_con="
     user = ""
     corr == "3"
     DecCorr = 0.
-    samp_file = os.path.join(output_dir, samp_file)
-    orient_file = os.path.join(input_dir, orient_file)
+    samp_file = pmag.resolve_file_name(samp_file, output_dir)
+    orient_file = pmag.resolve_file_name(orient_file, input_dir)
+    input_dir = os.path.split(orient_file)[0]
+    output_dir = os.path.split(samp_file)[0]
     #
     #
     if append:
@@ -5198,7 +5203,16 @@ def azdip_magic(orient_file='orient.txt', samp_file="er_samples.txt", samp_con="
         if samp not in samplist:
             SampOut.append(samp)
     Samps, keys = pmag.fillkeys(SampOut)
-    pmag.magic_write(samp_file, Samps, "er_samples")
+    if data_model == 2:
+        # write to file
+        pmag.magic_write(samp_file, Samps, "er_samples")
+    else:
+        #translate sample records to MagIC 3
+        Samps3 = []
+        for samp in Samps:
+            Samps3.append(map_magic.mapping(samp, map_magic.samp_magic2_2_magic3_map))
+        # write to file
+        pmag.magic_write(samp_file, Samps3, "samples")
     print("Data saved in ", samp_file)
     return True, None
 
