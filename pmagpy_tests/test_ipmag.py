@@ -141,7 +141,7 @@ class Test_combine_magic(unittest.TestCase):
         #res = ipmag.combine_magic(flist, 'custom_outfile.txt', 3, 'locations')
         res = ipmag.combine_magic(flist, outfile, 3, 'locations')
         self.assertTrue(res)
-        self.assertEqual(res, 'custom_outfile.txt')
+        self.assertEqual(res, outfile)
         self.assertTrue(os.path.exists(outfile))
 
 
