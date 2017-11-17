@@ -2231,8 +2231,9 @@ def aniso_depthplot(ani_file='rmag_anisotropy.txt', meas_file='magic_measurement
     Bulks = []
     BulkDepths = []
     for rec in AniData:
-        samprecs = pmag.get_dictitem(Samps, 'er_sample_name', rec['er_sample_name'].upper(
-        ), 'T')  # look for depth record for this sample
+        # look for depth record for this sample
+        samprecs = pmag.get_dictitem(Samps, 'er_sample_name',
+                                     rec['er_sample_name'].upper(), 'T')
         # see if there are non-blank depth data
         sampdepths = pmag.get_dictitem(samprecs, depth_scale, '', 'F')
         if dmax != -1:
@@ -2264,7 +2265,6 @@ def aniso_depthplot(ani_file='rmag_anisotropy.txt', meas_file='magic_measurement
         location = Data[0]['er_location_name']
     else:
         return False, 'no data to plot'
-
     # collect the data for plotting tau  V3_inc and V1_dec
     Depths, Tau1, Tau2, Tau3, V3Incs, P, V1Decs = [], [], [], [], [], [], []
     F23s = []
@@ -2407,8 +2407,6 @@ def aniso_depthplot(ani_file='rmag_anisotropy.txt', meas_file='magic_measurement
         return main_plot, fig_name
     else:
         return False, "No data to plot"
-
-
 
 
 def core_depthplot(input_dir_path='.', meas_file='magic_measurements.txt', spc_file='',
