@@ -166,6 +166,7 @@ class Contribution(object):
                 return False
             data_container = MagicDataFrame(dtype=dtype, df=df)
             self.tables[dtype] = data_container
+        self.tables[dtype].sort_dataframe_cols()
 
 
     def propagate_measurement_info(self):
@@ -1552,7 +1553,10 @@ class MagicDataFrame(object):
         sorted_cols = cols.groupby(groups)
         ordered_cols = []
         # put names first
-        names = sorted_cols.pop('Names')
+        try:
+            names = sorted_cols.pop('Names')
+        except KeyError:
+            names = []
         ordered_cols.extend(list(names))
         no_group = []
         # remove ungrouped columns
@@ -1563,11 +1567,14 @@ class MagicDataFrame(object):
             ordered_cols.extend(sorted(sorted_cols[k]))
         # add back in ungrouped columns
         ordered_cols.extend(no_group)
-
-        if self.name in ordered_cols:
-            ordered_cols.remove(self.name)
-            ordered_cols[:0] = [self.name]
-
+        # put name first
+        try:
+            if self.name in ordered_cols:
+                ordered_cols.remove(self.name)
+                ordered_cols[:0] = [self.name]
+        except AttributeError:
+            pass
+        #
         self.df = self.df[ordered_cols]
         return self.df
 
@@ -1797,15 +1804,16 @@ class MagicDataFrame(object):
         Write self.df out to tab-delimited file.
         By default will use standard MagIC filenames (specimens.txt, etc.),
         or you can provide a custom_name to write to instead.
-        By default will write to current directory,
-        or provide dir_path to write out to instead.
+        By default will write to custom_name if custom_name is a full path,
+        or will write to dir_path + custom_name if custom_name
+        is not a full path.
         """
         # don't let custom name start with "./"
         if custom_name:
             if custom_name.startswith('.'):
                 custom_name = os.path.split(custom_name)[1]
-        # *** maybe add some logical order to the column names, here?
-        # *** i.e., alphabetical...  see grid_frame3.GridBuilder.make_grid
+        # put columns in logical order (by group)
+        self.sort_dataframe_cols()
         df = self.df
         # if indexing column was put in, remove it
         if "num" in self.df.columns:

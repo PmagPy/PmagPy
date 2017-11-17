@@ -11,7 +11,7 @@ def main():
     """
     NAME
         agm_magic.py
-    
+
     DESCRIPTION
         converts Micromag agm files to magic format
 
@@ -30,7 +30,7 @@ def main():
              [default: er_specimens.txt]
         -ncn NCON,: specify naming convention: default is #1 below
         -syn SYN,  synthetic specimen name
-        -loc LOCNAME : specify location/study name, 
+        -loc LOCNAME : specify location/study name,
              should have either LOCNAME or SAMPFILE (unless synthetic)
         -ins INST : specify which instrument was used (e.g, SIO-Maud), default is ""
         -u units:  [cgs,SI], default is cgs
@@ -47,12 +47,12 @@ def main():
             [8] specimen is a synthetic - it has no sample, site, location information
             NB: all others you will have to customize your self
                  or e-mail ltauxe@ucsd.edu for help.
- 
+
     OUTPUT
         MagIC format files: magic_measurements, er_specimens, er_sample, er_site
     """
     citation='This study'
-    MeasRecs=[] 
+    MeasRecs=[]
     units='cgs'
     meth="LP-HYS"
     version_num=pmag.get_version()
@@ -94,7 +94,7 @@ def main():
         ind=args.index("-f")
         agm_file= input_dir_path+'/'+args[ind+1]
         er_specimen_name=args[ind+1].split('.')[0]
-    else: 
+    else:
         print("agm_file field is required option")
         print(main.__doc__)
         sys.exit()
@@ -147,6 +147,7 @@ def main():
     if "-u" in args:
         ind=args.index("-u")
         units=args[ind+1]
+    dm = pmag.get_named_arg_from_sys("-DM", 2)
     ErSpecRecs,filetype=pmag.magic_read(specfile)
     ErSpecRec,MeasRec={},{}
     ErSpecRec['er_citation_names']="This study"
@@ -214,11 +215,11 @@ def main():
             else:
                 field =float(rec[0]) # field in tesla
             if meth=="LP-HYS":
-                MeasRec['measurement_lab_field_dc']='%10.3e'%(field) 
+                MeasRec['measurement_lab_field_dc']='%10.3e'%(field)
                 MeasRec['treatment_dc_field']=''
             else:
                 MeasRec['measurement_lab_field_dc']=''
-                MeasRec['treatment_dc_field']='%10.3e'%(field) 
+                MeasRec['treatment_dc_field']='%10.3e'%(field)
             if units=='cgs':
                 MeasRec['measurement_magn_moment']='%10.3e'%(float(rec[1])*1e-3) # convert from emu to Am^2
             else:
@@ -230,23 +231,23 @@ def main():
             MeasRec['measurement_number']='%i'%(measnum)
             measnum+=1
             MeasRec['magic_software_packages']=version_num
-            MeasRecs.append(MeasRec) 
+            MeasRecs.append(MeasRec)
 # now we have to relabel LP-HYS method codes.  initial loop is LP-IMT, minor loops are LP-M  - do this in measurements_methods function
-    if meth=='LP-HYS':   
+    if meth=='LP-HYS':
         recnum=0
         while float(MeasRecs[recnum]['measurement_lab_field_dc'])<float(MeasRecs[recnum+1]['measurement_lab_field_dc']) and recnum+1<len(MeasRecs): # this is LP-IMAG
             MeasRecs[recnum]['magic_method_codes']='LP-IMAG'
             MeasRecs[recnum]['magic_experiment_name']=MeasRecs[recnum]['er_specimen_name']+":"+'LP-IMAG'
             recnum+=1
-# 	
-    if dm==2:
+#
+    if int(dm)==2:
         pmag.magic_write(output,MeasRecs,'magic_measurements')
     else:
-        print ('not supported yet')
+        print ('MagIC 3 is not supported yet')
         sys.exit()
         pmag.magic_write(output,MeasRecs,'measurements')
-        
-    print("results put in ",output)
+
+    print("results put in ", output)
 
 if __name__ == "__main__":
     main()
