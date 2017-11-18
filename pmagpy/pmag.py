@@ -9713,6 +9713,37 @@ def merge_recs_headers(recs):
     return recs
 
 
+def resolve_file_name(fname, dir_path='.'):
+    """
+    Parse file name information and output full path.
+    Allows input as:
+    fname == /path/to/file.txt
+    or
+    fname == file.txt, dir_path == /path/to
+    Either way, returns /path/to/file.txt.
+    Used in conversion scripts.
+
+    Parameters
+    ----------
+    fname : str
+        short filename or full path to file
+    dir_path : str
+        directory, optional
+
+    Returns
+    ----------
+    full_file : str
+        full path/to/file.txt
+    """
+    if not fname:
+        return ''
+    file_dir_path, file_name = os.path.split(fname)
+    if (not file_dir_path) or (file_dir_path == '.'):
+        full_file = os.path.join(dir_path, fname)
+    else:
+        full_file = fname
+    return os.path.realpath(full_file)
+
 def remove_files(file_list, WD='.'):
     for f in file_list:
         full_file = os.path.join(WD, f)

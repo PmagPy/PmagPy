@@ -62,6 +62,8 @@ class TestUploadMagic(unittest.TestCase):
         self.assertFalse(errors)
         self.assertFalse(outfile)
         self.assertEqual(error_message, "no data found, upload file not created")
+        files = os.listdir(directory)
+        self.assertFalse(files)
 
     def test_with_invalid_files(self):
         directory = os.path.join(self.dir_path, 'my_project_with_errors')
@@ -139,7 +141,7 @@ class Test_combine_magic(unittest.TestCase):
         #res = ipmag.combine_magic(flist, 'custom_outfile.txt', 3, 'locations')
         res = ipmag.combine_magic(flist, outfile, 3, 'locations')
         self.assertTrue(res)
-        self.assertEqual(res, 'custom_outfile.txt')
+        self.assertEqual(res, outfile)
         self.assertTrue(os.path.exists(outfile))
 
 
@@ -474,7 +476,7 @@ class TestCoreDepthplot(unittest.TestCase):
 
 
 
-@unittest.skipIf(sys.platform in ['darwin'], 'currently causing fatal errors on OSX')
+#@unittest.skipIf(sys.platform in ['darwin'], 'currently causing fatal errors on OSX')
 class TestAnisoDepthplot(unittest.TestCase):
 
     def setUp(self):

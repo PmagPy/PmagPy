@@ -118,6 +118,13 @@ class TestMagicDataFrame(unittest.TestCase):
                                condition=cond)
         self.assertIn('updated', magic_df.df.loc['2', 'description'].values)
 
+    def test_sort_dataframe_cols(self):
+        magic_df = nb.MagicDataFrame(os.path.join(PROJECT_WD, 'sites.txt'),
+                                     dmodel=DMODEL)
+        self.assertEqual('bed_dip', magic_df.df.columns[0])
+        magic_df.sort_dataframe_cols()
+        self.assertEqual('site', magic_df.df.columns[0])
+
     def test_convert_to_pmag_data_list(self):
         magic_df = nb.MagicDataFrame(os.path.join(PROJECT_WD, 'sites.txt'),
                                      dmodel=DMODEL)

@@ -362,6 +362,8 @@ class MainFrame(wx.Frame):
 
 
     def on_upload_file(self, event):
+        if not hasattr(self, "contribution"):
+            self.contribution = nb.Contribution(self.WD, dmodel=self.data_model)
         wait = wx.BusyInfo('Validating data, please wait...')
         wx.Yield()
         res, error_message, has_problems, all_failing_items = ipmag.upload_magic3(dir_path=self.WD,

@@ -27,7 +27,7 @@ class DataModel(object):
         """
         Grab the 3.0 data model from the PmagPy/pmagpy directory
         """
-        print("-I- Using cached 3.0 data model")
+        #print("-I- Using cached 3.0 data model")
         pmag_dir = find_pmag_dir.get_pmag_dir()
         if pmag_dir is None:
             pmag_dir = '.'
@@ -113,6 +113,25 @@ class DataModel(object):
         cond = df['validations'].map(lambda x: 'required()' in str(x))
         return df[cond].index
 
+    def get_group_for_col(self, table_name, col_name):
+        """
+        Check data model to find group name for a given column header
+
+        Parameters
+        ----------
+        table_name: str
+        col_name: str
+
+        Returns
+        ---------
+        group_name: str
+        """
+        df = self.dm[table_name]
+        try:
+            group_name = df.loc[col_name, 'group']
+        except KeyError:
+            return ''
+        return group_name
 
 if __name__ == "__main__":
     #dm = DataModel()
