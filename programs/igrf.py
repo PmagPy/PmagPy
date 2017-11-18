@@ -79,6 +79,7 @@ def main():
             gh.append(lmgh[2][i])
             gh.append(lmgh[3][i])
         mod='custom'
+        inp=[[0,alt,lat,lon]]
     elif '-f' in sys.argv:
         ind=sys.argv.index('-f')
         file=sys.argv[ind+1]
@@ -132,7 +133,6 @@ def main():
         import pylab
         pylab.ion()
         Ages,Decs,Incs,Ints,VADMs=[],[],[],[],[]
-    print (gh)
     for line in inp:
         if mod!='custom':
             x,y,z,f=pmag.doigrf(line[3]%360.,line[2],line[1],line[0],mod=mod)
