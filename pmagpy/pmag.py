@@ -7212,7 +7212,7 @@ def magsyn(gh, sv, b, date, itype, alt, colat, elong):
 #
 # synthesize x, y, and z in geocentric coordinates.
 # 4
-        print (l,ll,t,rr)
+        #print (l,ll,t,rr)
         one = (gh[l - 1] + sv[ll + l - 1] * t) * rr
         if m != 0:  # else go to 7
             two = (gh[l] + sv[ll + l] * t) * rr
