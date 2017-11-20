@@ -2409,6 +2409,295 @@ def aniso_depthplot(ani_file='rmag_anisotropy.txt', meas_file='magic_measurement
         return False, "No data to plot"
 
 
+def aniso_depthplot3(spec_file='specimens.txt', samp_file='samples.txt',
+                     meas_file='measurements.txt', site_file='sites.txt',
+                     age_file=None, sum_file=None, fmt='svg', dmin=-1, dmax=-1,
+                     depth_scale='composite_depth', dir_path='.'):
+    """
+    returns matplotlib figure with anisotropy data plotted against depth
+    available depth scales: 'composite_depth', 'core_depth' or 'age' (you must provide an age file to use this option)
+
+    """
+    pcol = 4
+    tint = 9
+    plots = 0
+
+    # format files to use full path
+
+    meas_file = pmag.resolve_file_name(meas_file, dir_path)
+    spec_file = pmag.resolve_file_name(spec_file, dir_path)
+    samp_file = pmag.resolve_file_name(samp_file, dir_path)
+    site_file = pmag.resolve_file_name(site_file, dir_path)
+
+    #if not os.path.isfile(ani_file):
+    #    print("Could not find rmag_anisotropy type file: {}.\nPlease provide a valid file path and try again".format(ani_file))
+    #    return False, "Could not find rmag_anisotropy type file: {}.\nPlease provide a valid file path and try again".format(ani_file)
+    # print 'meas_file', meas_file
+
+    if age_file:
+        age_file = pmag.resolve_file_name(age_file, dir_path)
+        if not os.path.isfile(age_file):
+            print(
+                'Warning: you have provided an invalid age file.  Attempting to use sample file instead')
+            age_file = None
+            depth_scale = 'core_depth'
+        else:
+            samp_file = age_file
+            depth_scale = 'age'
+            print(
+                'Warning: you have provided an ages format file, which will take precedence over samples')
+
+    samp_file = pmag.resolve_file_name(samp_file, dir_path)
+
+    # specimens.aniso_s is what we need, actually.....
+
+    label = 1
+
+    if sum_file:
+        sum_file = os.path.join(dir_path, sum_file)
+
+    dmin, dmax = float(dmin), float(dmax)
+
+    # contribution
+
+    dir_path = os.path.split(spec_file)[0]
+    tables = ['measurements', 'specimens', 'samples', 'sites']
+    con = nb.Contribution(dir_path, read_tables=tables,
+                          custom_filenames={'measurements': meas_file, 'specimens': spec_file,
+                                            'samples': samp_file, 'sites': site_file})
+    con.propagate_cols(['core_depth'], 'samples', 'sites')
+    print('propagating...')
+    con.propagate_location_to_specimens()
+    #con.propagate_name_down('location', 'specimens')
+    print('done propagating.')
+
+    # get data read in
+    isbulk = 0  # tests if there are bulk susceptibility measurements
+    ani_file = spec_file
+
+    #AniData, file_type = pmag.magic_read(ani_file)  # read in tensor elements
+    AniData = con.tables['samples'].convert_to_pmag_data_list()
+    AniData = con.tables['specimens'].convert_to_pmag_data_list()
+
+    if not age_file:
+        Samps = con.tables['samples'].convert_to_pmag_data_list()
+    else:
+        print('age not supported yet')
+
+
+    #if not age_file:
+    #    # read in sample depth info from samples.txt format file
+    #    Samps, file_type = pmag.magic_read(samp_file)
+    #else:
+    #    # read in sample age info from er_ages.txt format file
+    #    Samps, file_type = pmag.magic_read(samp_file)
+    #    age_unit = Samps[0]['age_unit']
+    for s in Samps:
+        # change to upper case for every sample name
+        s['sample'] = s['sample'].upper()
+
+    if 'measurements' in con.tables:
+        isbulk = 1
+        Meas = con.tables['measurements'].convert_to_pmag_data_list()
+
+    #Meas, file_type = pmag.magic_read(meas_file)
+    # print 'meas_file', meas_file
+    # print 'file_type', file_type
+    #if file_type in ['magic_measurements', 'measurements']:
+    #    isbulk = 1
+    Data = []
+    Bulks = []
+    BulkDepths = []
+    for rec in AniData:
+        # look for depth record for this sample
+        samprecs = pmag.get_dictitem(Samps, 'sample',
+                         rec['sample'].upper(), 'T')
+        # see if there are non-blank depth data
+        sampdepths = pmag.get_dictitem(samprecs, depth_scale, '', 'F')
+        if dmax != -1:
+            # fishes out records within depth bounds
+            sampdepths = pmag.get_dictitem(
+                sampdepths, depth_scale, dmax, 'max')
+            sampdepths = pmag.get_dictitem(
+                sampdepths, depth_scale, dmin, 'min')
+        if len(sampdepths) > 0:  # if there are any....
+            # set the core depth of this record
+            rec['core_depth'] = sampdepths[0][depth_scale]
+            Data.append(rec)  # fish out data with core_depth
+
+            # need to fix this....
+            isbulk = False
+            if isbulk:  # if there are bulk data
+                chis = pmag.get_dictitem(
+                    Meas, 'specimen', rec['specimen'], 'T')
+                # get the non-zero values for this specimen
+                chis = pmag.get_dictitem(
+                    chis, 'susc_chi_volume', '', 'F')
+                if len(chis) > 0:  # if there are any....
+                    # put in microSI
+                    Bulks.append(
+                        1e6 * float(chis[0]['susc_chi_volume']))
+                    BulkDepths.append(float(sampdepths[0][depth_scale]))
+
+    if len(Bulks) > 0:  # set min and max bulk values
+        bmin = min(Bulks)
+        bmax = max(Bulks)
+    xlab = "Depth (m)"
+
+    print(Data[0])
+    if len(Data) > 0:
+        ## fix this, propagate names...
+        location = Data[0]['location']
+    else:
+        return False, 'no data to plot'
+
+    # collect the data for plotting tau  V3_inc and V1_dec
+    Depths, Tau1, Tau2, Tau3, V3Incs, P, V1Decs = [], [], [], [], [], [], []
+    F23s = []
+    Axs = []  # collect the plot ids
+# START HERE
+    if len(Bulks) > 0:
+        pcol += 1
+    # get all the s1 values from Data as floats
+    print('Data[0]', Data[0])
+    aniso_s = pmag.get_dictkey(Data, 'aniso_s', '')
+    print('aniso_s', aniso_s)
+    s1 = pmag.get_dictkey(Data, 'anisotropy_s1', 'f')
+    s2 = pmag.get_dictkey(Data, 'anisotropy_s2', 'f')
+    s3 = pmag.get_dictkey(Data, 'anisotropy_s3', 'f')
+    s4 = pmag.get_dictkey(Data, 'anisotropy_s4', 'f')
+    s5 = pmag.get_dictkey(Data, 'anisotropy_s5', 'f')
+    s6 = pmag.get_dictkey(Data, 'anisotropy_s6', 'f')
+    nmeas = pmag.get_dictkey(Data, 'anisotropy_n', 'int')
+    sigma = pmag.get_dictkey(Data, 'anisotropy_sigma', 'f')
+    Depths = pmag.get_dictkey(Data, 'core_depth', 'f')
+    # Ss=np.array([s1,s4,s5,s4,s2,s6,s5,s6,s3]).transpose() # make an array
+    Ss = np.array([s1, s2, s3, s4, s5, s6]).transpose()  # make an array
+    # Ts=np.reshape(Ss,(len(Ss),3,-1)) # and re-shape to be n-length array of
+    # 3x3 sub-arrays
+    for k in range(len(Depths)):
+        # tau,Evecs= pmag.tauV(Ts[k]) # get the sorted eigenvalues and eigenvectors
+        # v3=pmag.cart2dir(Evecs[2])[1] # convert to inclination of the minimum
+        # eigenvector
+        fpars = pmag.dohext(nmeas[k] - 6, sigma[k], Ss[k])
+        V3Incs.append(fpars['v3_inc'])
+        V1Decs.append(fpars['v1_dec'])
+        Tau1.append(fpars['t1'])
+        Tau2.append(fpars['t2'])
+        Tau3.append(fpars['t3'])
+        P.append(old_div(Tau1[-1], Tau3[-1]))
+        F23s.append(fpars['F23'])
+    if len(Depths) > 0:
+        if dmax == -1:
+            dmax = max(Depths)
+            dmin = min(Depths)
+        tau_min = 1
+        for t in Tau3:
+            if t > 0 and t < tau_min:
+                tau_min = t
+        tau_max = max(Tau1)
+        # tau_min=min(Tau3)
+        P_max = max(P)
+        P_min = min(P)
+        # dmax=dmax+.05*dmax
+        # dmin=dmin-.05*dmax
+
+        main_plot = plt.figure(1, figsize=(10, 8))  # make the figure
+
+        version_num = pmag.get_version()
+        plt.figtext(.02, .01, version_num)  # attach the pmagpy version number
+        ax = plt.subplot(1, pcol, 1)  # make the first column
+        Axs.append(ax)
+        ax.plot(Tau1, Depths, 'rs')
+        ax.plot(Tau2, Depths, 'b^')
+        ax.plot(Tau3, Depths, 'ko')
+        if sum_file:
+            core_depth_key, core_label_key, Cores = read_core_csv_file(
+                sum_file)
+            for core in Cores:
+                depth = float(core[core_depth_key])
+                if depth > dmin and depth < dmax:
+                    plt.plot([0, 90], [depth, depth], 'b--')
+        ax.axis([tau_min, tau_max, dmax, dmin])
+        ax.set_xlabel('Eigenvalues')
+        if depth_scale == 'sample_core_depth':
+            ax.set_ylabel('Depth (mbsf)')
+        elif depth_scale == 'age':
+            ax.set_ylabel('Age (' + age_unit + ')')
+        else:
+            ax.set_ylabel('Depth (mcd)')
+        ax2 = plt.subplot(1, pcol, 2)  # make the second column
+        ax2.plot(P, Depths, 'rs')
+        ax2.axis([P_min, P_max, dmax, dmin])
+        ax2.set_xlabel('P')
+        ax2.set_title(location)
+        if sum_file:
+            for core in Cores:
+                depth = float(core[core_depth_key])
+                if depth > dmin and depth < dmax:
+                    plt.plot([0, 90], [depth, depth], 'b--')
+        Axs.append(ax2)
+        ax3 = plt.subplot(1, pcol, 3)
+        Axs.append(ax3)
+        ax3.plot(V3Incs, Depths, 'ko')
+        ax3.axis([0, 90, dmax, dmin])
+        ax3.set_xlabel('V3 Inclination')
+        if sum_file:
+            for core in Cores:
+                depth = float(core[core_depth_key])
+                if depth > dmin and depth < dmax:
+                    plt.plot([0, 90], [depth, depth], 'b--')
+        ax4 = plt.subplot(1, np.abs(pcol), 4)
+        Axs.append(ax4)
+        ax4.plot(V1Decs, Depths, 'rs')
+        ax4.axis([0, 360, dmax, dmin])
+        ax4.set_xlabel('V1 Declination')
+        if sum_file:
+            for core in Cores:
+                depth = float(core[core_depth_key])
+                if depth >= dmin and depth <= dmax:
+                    plt.plot([0, 360], [depth, depth], 'b--')
+                    if pcol == 4 and label == 1:
+                        plt.text(360, depth + tint, core[core_label_key])
+        # ax5=plt.subplot(1,np.abs(pcol),5)
+        # Axs.append(ax5)
+        # ax5.plot(F23s,Depths,'rs')
+        # bounds=ax5.axis()
+        # ax5.axis([bounds[0],bounds[1],dmax,dmin])
+        # ax5.set_xlabel('F_23')
+        # ax5.semilogx()
+        # if sum_file:
+        #    for core in Cores:
+        #         depth=float(core[core_depth_key])
+        #         if depth>=dmin and depth<=dmax:
+        #            plt.plot([bounds[0],bounds[1]],[depth,depth],'b--')
+        #            if pcol==5 and label==1:plt.text(bounds[1],depth+tint,core[core_label_key])
+        # if pcol==6:
+        if pcol == 5:
+            # ax6=plt.subplot(1,pcol,6)
+            ax6 = plt.subplot(1, pcol, 5)
+            Axs.append(ax6)
+            ax6.plot(Bulks, BulkDepths, 'bo')
+            ax6.axis([bmin - 1, 1.1 * bmax, dmax, dmin])
+            ax6.set_xlabel('Bulk Susc. (uSI)')
+            if sum_file:
+                for core in Cores:
+                    depth = float(core[core_depth_key])
+                    if depth >= dmin and depth <= dmax:
+                        plt.plot([0, bmax], [depth, depth], 'b--')
+                        if label == 1:
+                            plt.text(1.1 * bmax, depth + tint,
+                                     core[core_label_key])
+        for x in Axs:
+            # this makes the x-tick labels more reasonable - they were
+            # overcrowded using the defaults
+            pmagplotlib.delticks(x)
+        fig_name = location + '_ani_depthplot.' + fmt
+        return main_plot, fig_name
+    else:
+        return False, "No data to plot"
+
+
 def core_depthplot(input_dir_path='.', meas_file='magic_measurements.txt', spc_file='',
                    samp_file='', age_file='', sum_file='', wt_file='',
                    depth_scale='sample_core_depth', dmin=-1, dmax=-1, sym='bo',
