@@ -149,7 +149,8 @@ class Contribution(object):
                 print('-W- "{}" is not a valid MagIC table type'.format(dtype))
                 print("-I- Available table types are: {}".format(", ".join(self.table_names)))
                 return False
-            filename = os.path.join(self.directory, self.filenames[dtype])
+            #filename = os.path.join(self.directory, self.filenames[dtype])
+            filename = pmag.resolve_file_name(self.filenames[dtype], self.directory)
             if os.path.exists(filename):
                 data_container = MagicDataFrame(filename, dtype=dtype,
                                                 dmodel=self.data_model)
@@ -1824,6 +1825,10 @@ class MagicDataFrame(object):
             fname = pmag.resolve_file_name(custom_name, dir_path) # os.path.join(dir_path, custom_name)
         else:
             fname = os.path.join(dir_path, self.dtype + ".txt")
+        # see if there's any data
+        if not len(df):
+            print('-W- No data to write to {}'.format(fname))
+            return False
         # add to existing file
         if append:
             print('-I- appending {} data to {}'.format(self.dtype, fname))
