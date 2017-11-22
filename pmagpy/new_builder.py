@@ -124,7 +124,7 @@ class Contribution(object):
         Parameters
         ----------
         dtype : str
-            MagIC table name
+            MagIC table name (plural, i.e. 'specimens')
         fname : str
             filename of MagIC format file
             (short path, directory is self.directory)
@@ -563,8 +563,7 @@ class Contribution(object):
             if bottom_table_name not in self.tables:
                 result = self.add_magic_table(bottom_table_name)
                 if not isinstance(result, MagicDataFrame):
-                    print("-W- Couldn't read in {} data".format(bottom_table_name))
-                    print("-I- Make sure you've provided the correct file name")
+                    print("-W- Couldn't read in {} data for data propagation".format(bottom_table_name))
                     return df
             # add child_name to df
             add_df = self.tables[bottom_table_name].df
