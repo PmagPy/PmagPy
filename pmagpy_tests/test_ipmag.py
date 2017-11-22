@@ -518,6 +518,50 @@ class TestAnisoDepthplot(unittest.TestCase):
         self.assertEqual(plot_name, 'U1361A_ani_depthplot.png')
 
 
+class TestAnisoDepthplot3(unittest.TestCase):
+
+    def setUp(self):
+        self.aniso_WD = os.path.join(WD, 'data_files', 'ani_depthplot3')
+
+    def tearDown(self):
+        filelist = ['measurements.txt', 'specimens.txt', 'samples.txt', 'sites.txt']
+        pmag.remove_files(filelist, WD)
+        os.chdir(WD)
+
+    def test_aniso_depthplot_with_no_files(self):
+        program_ran, error_message = ipmag.aniso_depthplot3()
+        self.assertFalse(program_ran)
+        self.assertEqual(error_message, "missing required file type: specimen")
+
+    def test_aniso_depthplot_with_files(self):
+        #dir_path = os.path.join(WD, 'data_files', 'UTESTA')
+        main_plot, plot_name = ipmag.aniso_depthplot3(dir_path=self.aniso_WD,
+                                                     sum_file='CoreSummary_XXX_UTESTA.csv')
+        assert(isinstance(main_plot, matplotlib.figure.Figure))
+        self.assertEqual(plot_name, 'U1361A_ani_depthplot.svg')
+
+    def test_aniso_depthplot_with_sum_file(self):
+        dir_path = os.path.join(WD, 'data_files', 'UTESTA', 'UTESTA_MagIC3')
+        sum_file = 'CoreSummary_XXX_UTESTA.csv'
+        main_plot, plot_name = ipmag.aniso_depthplot3(dir_path=dir_path,
+                                                      sum_file=sum_file,
+                                                      depth_scale='core_depth')
+        assert(isinstance(main_plot, matplotlib.figure.Figure))
+        self.assertEqual(plot_name, 'UTESTA_ani_depthplot.svg')
+
+    def test_aniso_depthplot_with_age_option(self):
+        main_plot, plot_name = ipmag.aniso_depthplot3(age_file='ages.txt', dir_path=self.aniso_WD)
+        assert(isinstance(main_plot, matplotlib.figure.Figure))
+        self.assertEqual(plot_name, 'U1361A_ani_depthplot.svg')
+
+    def test_aniso_depthplot_with_options(self):
+        main_plot, plot_name = ipmag.aniso_depthplot3(dmin=20, dmax=40,
+                                                      depth_scale='core_depth',
+                                                      fmt='png', dir_path=self.aniso_WD)
+        assert(isinstance(main_plot, matplotlib.figure.Figure))
+        self.assertEqual(plot_name, 'U1361A_ani_depthplot.png')
+
+
 class TestPmagResultsExtract(unittest.TestCase):
 
     def setUp(self):

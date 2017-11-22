@@ -2411,12 +2411,15 @@ def aniso_depthplot(ani_file='rmag_anisotropy.txt', meas_file='magic_measurement
 def aniso_depthplot3(spec_file='specimens.txt', samp_file='samples.txt',
                      meas_file='measurements.txt', site_file='sites.txt',
                      age_file=None, sum_file=None, fmt='svg', dmin=-1, dmax=-1,
-                     depth_scale='composite_depth', dir_path='.'):
+                     depth_scale='core_depth', dir_path='.'):
     """
     returns matplotlib figure with anisotropy data plotted against depth
     available depth scales: 'composite_depth', 'core_depth' or 'age' (you must provide an age file to use this option)
 
     """
+    if depth_scale == 'sample_core_depth':
+        depth_scale = 'core_depth'
+
     pcol = 4
     tint = 9
     plots = 0
@@ -2427,11 +2430,6 @@ def aniso_depthplot3(spec_file='specimens.txt', samp_file='samples.txt',
     spec_file = pmag.resolve_file_name(spec_file, dir_path)
     samp_file = pmag.resolve_file_name(samp_file, dir_path)
     site_file = pmag.resolve_file_name(site_file, dir_path)
-
-    #if not os.path.isfile(ani_file):
-    #    print("Could not find rmag_anisotropy type file: {}.\nPlease provide a valid file path and try again".format(ani_file))
-    #    return False, "Could not find rmag_anisotropy type file: {}.\nPlease provide a valid file path and try again".format(ani_file)
-    # print 'meas_file', meas_file
 
     if age_file:
         age_file = pmag.resolve_file_name(age_file, dir_path)
@@ -2448,12 +2446,18 @@ def aniso_depthplot3(spec_file='specimens.txt', samp_file='samples.txt',
 
     samp_file = pmag.resolve_file_name(samp_file, dir_path)
 
-    # specimens.aniso_s is what we need, actually.....
+    for (ftype, fname) in [('specimen', spec_file),
+                           ('sample', samp_file),
+                           ('site', site_file)]:
+        if not os.path.exists(fname):
+            print("-W- This function requires a {} file to run.".format(ftype))
+            print("    Make sure you include one in your working directory")
+            return False, "missing required file type: {}".format(ftype)
 
     label = 1
 
     if sum_file:
-        sum_file = os.path.join(dir_path, sum_file)
+        sum_file = pmag.resolve_file_name(sum_file, dir_path)
 
     dmin, dmax = float(dmin), float(dmax)
 
@@ -2465,32 +2469,25 @@ def aniso_depthplot3(spec_file='specimens.txt', samp_file='samples.txt',
                           custom_filenames={'measurements': meas_file, 'specimens': spec_file,
                                             'samples': samp_file, 'sites': site_file})
     con.propagate_cols(['core_depth'], 'samples', 'sites')
-    print('propagating...')
     con.propagate_location_to_specimens()
-    #con.propagate_name_down('location', 'specimens')
-    print('done propagating.')
 
     # get data read in
     isbulk = 0  # tests if there are bulk susceptibility measurements
     ani_file = spec_file
 
     #AniData, file_type = pmag.magic_read(ani_file)  # read in tensor elements
-    AniData = con.tables['samples'].convert_to_pmag_data_list()
+    #AniData = con.tables['samples'].convert_to_pmag_data_list()
     AniData = con.tables['specimens'].convert_to_pmag_data_list()
 
     if not age_file:
         Samps = con.tables['samples'].convert_to_pmag_data_list()
     else:
-        print('age not supported yet')
+        con.add_magic_table(dtype='ages', fname=age_file)
+        Samps = con.tables['ages'].convert_to_pmag_data_list()
+        # get age unit
+        age_unit = con.tables['ages'].df['age_unit'][0]
+        # propagate ages down to sample level
 
-
-    #if not age_file:
-    #    # read in sample depth info from samples.txt format file
-    #    Samps, file_type = pmag.magic_read(samp_file)
-    #else:
-    #    # read in sample age info from er_ages.txt format file
-    #    Samps, file_type = pmag.magic_read(samp_file)
-    #    age_unit = Samps[0]['age_unit']
     for s in Samps:
         # change to upper case for every sample name
         s['sample'] = s['sample'].upper()
@@ -2499,14 +2496,10 @@ def aniso_depthplot3(spec_file='specimens.txt', samp_file='samples.txt',
         isbulk = 1
         Meas = con.tables['measurements'].convert_to_pmag_data_list()
 
-    #Meas, file_type = pmag.magic_read(meas_file)
-    # print 'meas_file', meas_file
-    # print 'file_type', file_type
-    #if file_type in ['magic_measurements', 'measurements']:
-    #    isbulk = 1
     Data = []
     Bulks = []
     BulkDepths = []
+
     for rec in AniData:
         # look for depth record for this sample
         samprecs = pmag.get_dictitem(Samps, 'sample',
@@ -2523,13 +2516,12 @@ def aniso_depthplot3(spec_file='specimens.txt', samp_file='samples.txt',
             # set the core depth of this record
             rec['core_depth'] = sampdepths[0][depth_scale]
             Data.append(rec)  # fish out data with core_depth
-
-            # need to fix this....
-            isbulk = False
             if isbulk:  # if there are bulk data
                 chis = pmag.get_dictitem(
                     Meas, 'specimen', rec['specimen'], 'T')
                 # get the non-zero values for this specimen
+                chis = pmag.get_dictitem(
+                    chis, 'susc_chi_volume', '', 'not_null')
                 chis = pmag.get_dictitem(
                     chis, 'susc_chi_volume', '', 'F')
                 if len(chis) > 0:  # if there are any....
@@ -2543,10 +2535,14 @@ def aniso_depthplot3(spec_file='specimens.txt', samp_file='samples.txt',
         bmax = max(Bulks)
     xlab = "Depth (m)"
 
-    print(Data[0])
     if len(Data) > 0:
-        ## fix this, propagate names...
-        location = Data[0]['location']
+        location = Data[0].get('location', 'unknown')
+        if nb.is_null(location):
+            location = 'unknown'
+            try:
+                location = con.tables['sites'].df['location'][0]
+            except KeyError:
+                pass
     else:
         return False, 'no data to plot'
 
@@ -2557,18 +2553,21 @@ def aniso_depthplot3(spec_file='specimens.txt', samp_file='samples.txt',
 # START HERE
     if len(Bulks) > 0:
         pcol += 1
+
+    Data = pmag.get_dictitem(Data, 'aniso_s', '', 'not_null')
     # get all the s1 values from Data as floats
-    print('Data[0]', Data[0])
     aniso_s = pmag.get_dictkey(Data, 'aniso_s', '')
-    print('aniso_s', aniso_s)
-    s1 = pmag.get_dictkey(Data, 'anisotropy_s1', 'f')
-    s2 = pmag.get_dictkey(Data, 'anisotropy_s2', 'f')
-    s3 = pmag.get_dictkey(Data, 'anisotropy_s3', 'f')
-    s4 = pmag.get_dictkey(Data, 'anisotropy_s4', 'f')
-    s5 = pmag.get_dictkey(Data, 'anisotropy_s5', 'f')
-    s6 = pmag.get_dictkey(Data, 'anisotropy_s6', 'f')
-    nmeas = pmag.get_dictkey(Data, 'anisotropy_n', 'int')
-    sigma = pmag.get_dictkey(Data, 'anisotropy_sigma', 'f')
+    aniso_s = [a.split(':') for a in aniso_s if a is not None]
+    #print('aniso_s', aniso_s)
+    s1 = [float(a[0]) for a in aniso_s]
+    s2 = [float(a[1]) for a in aniso_s]
+    s3 = [float(a[2]) for a in aniso_s]
+    s4 = [float(a[3]) for a in aniso_s]
+    s5 = [float(a[4]) for a in aniso_s]
+    s6 = [float(a[5]) for a in aniso_s]
+    # we are good with s1 - s2
+    nmeas = pmag.get_dictkey(Data, 'aniso_s_n_measurements', 'int')
+    sigma = pmag.get_dictkey(Data, 'aniso_s_sigma', 'f')
     Depths = pmag.get_dictkey(Data, 'core_depth', 'f')
     # Ss=np.array([s1,s4,s5,s4,s2,s6,s5,s6,s3]).transpose() # make an array
     Ss = np.array([s1, s2, s3, s4, s5, s6]).transpose()  # make an array
@@ -2619,7 +2618,7 @@ def aniso_depthplot3(spec_file='specimens.txt', samp_file='samples.txt',
                     plt.plot([0, 90], [depth, depth], 'b--')
         ax.axis([tau_min, tau_max, dmax, dmin])
         ax.set_xlabel('Eigenvalues')
-        if depth_scale == 'sample_core_depth':
+        if depth_scale == 'core_depth':
             ax.set_ylabel('Depth (mbsf)')
         elif depth_scale == 'age':
             ax.set_ylabel('Age (' + age_unit + ')')
