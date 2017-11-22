@@ -489,7 +489,7 @@ class TestAnisoDepthplot(unittest.TestCase):
 
     def test_aniso_depthplot_with_no_files(self):
         program_ran, error_message = ipmag.aniso_depthplot()
-        expected_file = os.path.join('.', 'rmag_anisotropy.txt')
+        expected_file = pmag.resolve_file_name('rmag_anisotropy.txt')
         self.assertFalse(program_ran)
         self.assertEqual(error_message, "Could not find rmag_anisotropy type file: {}.\nPlease provide a valid file path and try again".format(expected_file))
 
