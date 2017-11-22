@@ -93,6 +93,8 @@ def get_dictitem(In, k, v, flag):
         )) and dictionary[k] != '']  # find records with no blank values for key
         # return that which is less than
         return [dictionary for dictionary in A if k in list(dictionary.keys()) and float(dictionary[k]) <= float(v)]
+    if flag == 'not_null':
+        return [dictionary for dictionary in In if dictionary[k]]
 
 
 def get_dictkey(In, k, dtype):
@@ -108,10 +110,14 @@ def get_dictkey(In, k, dtype):
         if dtype == 'f':
             if d[k] == "":
                 Out.append(0)
+            elif d[k] == None:
+                Out.append(0)
             else:
                 Out.append(float(d[k]))
         if dtype == 'int':
             if d[k] == "":
+                Out.append(0)
+            elif d[k] == None:
                 Out.append(0)
             else:
                 Out.append(int(d[k]))

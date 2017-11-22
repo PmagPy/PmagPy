@@ -37,7 +37,7 @@ class convert_tdt_files_to_MagIC(wx.Frame):
     """"""
     title = "Convert tdt files to MagIC format"
 
-    def __init__(self,WD,noave):
+    def __init__(self,WD,noave=False):
         wx.Frame.__init__(self, None, wx.ID_ANY, self.title)
         self.panel = wx.Panel(self)
         self.max_files=10
@@ -82,25 +82,19 @@ class convert_tdt_files_to_MagIC(wx.Frame):
         bSizer1 = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "" ), wx.VERTICAL )
         bSizer1.Add(wx.StaticText(pnl,label=TEXT),wx.ALIGN_TOP)
         bSizer1.AddSpacer(5)
-        for i in range(self.max_files):
-            command= "self.dir_path_%i = wx.TextCtrl(self.panel, id=-1, size=(100,25), style=wx.TE_READONLY)"%i
-            exec(command)
-            command= "self.add_dir_button_%i =  wx.Button(self.panel, id=-1, label='add',name='add_%i')"%(i,i)
-            exec(command)
-            command= "self.Bind(wx.EVT_BUTTON, self.on_add_dir_button_i, self.add_dir_button_%i)"%i
-            #print command
-            exec(command)
-            command="bSizer1_%i = wx.BoxSizer(wx.HORIZONTAL)"%i
-            exec(command)
-            command="bSizer1_%i.Add(wx.StaticText(pnl,label=('%i  '[:2])),wx.ALIGN_LEFT)"%(i,i+1)
-            exec(command)
 
-            command="bSizer1_%i.Add(self.dir_path_%i,wx.ALIGN_LEFT)" %(i,i)
-            exec(command)
-            command="bSizer1_%i.Add(self.add_dir_button_%i,wx.ALIGN_LEFT)" %(i,i)
-            exec(command)
-            command="bSizer1.Add(bSizer1_%i,wx.ALIGN_TOP)" %i
-            exec(command)
+        self.dir_paths = {}
+        self.add_dir_buttons = {}
+        self.bsizers = {}
+        for i in range(self.max_files):
+            self.dir_paths[i] = wx.TextCtrl(self.panel, id=-1, size=(100,25), style=wx.TE_READONLY)
+            self.add_dir_buttons[i] = wx.Button(self.panel, id=-1, label='add',name='add_{}'.format(i))
+            self.Bind(wx.EVT_BUTTON, self.on_add_dir_button, self.add_dir_buttons[i])
+            self.bsizers[i] = wx.BoxSizer(wx.HORIZONTAL)
+            self.bsizers[i].Add(wx.StaticText(pnl,label=('{}  '.format(i+1))), wx.ALIGN_LEFT)
+            self.bsizers[i].Add(self.dir_paths[i], wx.ALIGN_LEFT)
+            self.bsizers[i].Add(self.add_dir_buttons[i], wx.ALIGN_LEFT)
+            bSizer1.Add(self.bsizers[i], wx.ALIGN_TOP)
             bSizer1.AddSpacer(5)
 
 
@@ -111,11 +105,10 @@ class convert_tdt_files_to_MagIC(wx.Frame):
         bSizer1a.Add(wx.StaticText(pnl,label=TEXT),wx.ALIGN_TOP)
         self.experiments_names=['Thellier','ATRM 6 positions','NLT']
         bSizer1a.AddSpacer(5)
+        self.protocol_infos = {}
         for i in range(self.max_files):
-            command="self.protocol_info_%i = wx.ComboBox(self.panel, -1, self.experiments_names[0], size=(100,25), choices=self.experiments_names, style=wx.CB_DROPDOWN|wx.CB_READONLY)"%i
-            exec(command)
-            command="bSizer1a.Add(self.protocol_info_%i,wx.ALIGN_TOP)"%i
-            exec(command)
+            self.protocol_infos[i] = wx.ComboBox(self.panel, -1, self.experiments_names[0], size=(100,25), choices=self.experiments_names, style=wx.CB_DROPDOWN|wx.CB_READONLY)
+            bSizer1a.Add(self.protocol_infos[i], wx.ALIGN_TOP)
             bSizer1a.AddSpacer(5)
 
         #---sizer 1b ----
@@ -124,27 +117,18 @@ class convert_tdt_files_to_MagIC(wx.Frame):
         bSizer1b = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "" ), wx.VERTICAL )
         bSizer1b.Add(wx.StaticText(pnl,label=TEXT),wx.ALIGN_TOP)
         bSizer1b.AddSpacer(5)
+        self.file_info_Blab_dec = {}
+        self.file_info_Blab_inc = {}
+        self.bsizers_Blab = {}
         for i in range(self.max_files):
-            #command= "self.file_info_Blab_%i = wx.TextCtrl(self.panel, id=-1, size=(40,25))"%i
-            #exec command
-            command= "self.file_info_Blab_dec_%i = wx.TextCtrl(self.panel, id=-1, size=(40,25))"%i
-            exec(command)
-            command= "self.file_info_Blab_dec_%i.SetValue('0')"%i
-            exec(command)
-            command= "self.file_info_Blab_inc_%i = wx.TextCtrl(self.panel, id=-1, size=(40,25))"%i
-            exec(command)
-            command= "self.file_info_Blab_inc_%i.SetValue('90')"%i
-            exec(command)
-            command="bSizer_blab%i = wx.BoxSizer(wx.HORIZONTAL)"%i
-            exec(command)
-            #command="bSizer_blab%i.Add(self.file_info_Blab_%i ,wx.ALIGN_LEFT)" %(i,i)
-            #exec command
-            command="bSizer_blab%i.Add(self.file_info_Blab_dec_%i,wx.ALIGN_LEFT)" %(i,i)
-            exec(command)
-            command="bSizer_blab%i.Add(self.file_info_Blab_inc_%i,wx.ALIGN_LEFT)" %(i,i)
-            exec(command)
-            command="bSizer1b.Add(bSizer_blab%i,wx.ALIGN_TOP)" %i
-            exec(command)
+            self.file_info_Blab_dec[i] = wx.TextCtrl(self.panel, id=-1, size=(40,25))
+            self.file_info_Blab_dec[i].SetValue('0')
+            self.file_info_Blab_inc[i] = wx.TextCtrl(self.panel, id=-1, size=(40,25))
+            self.file_info_Blab_inc[i].SetValue('90')
+            self.bsizers_Blab[i] = wx.BoxSizer(wx.HORIZONTAL)
+            self.bsizers_Blab[i].Add(self.file_info_Blab_dec[i],wx.ALIGN_LEFT)
+            self.bsizers_Blab[i].Add(self.file_info_Blab_inc[i], wx.ALIGN_LEFT)
+            bSizer1b.Add(self.bsizers_Blab[i], wx.ALIGN_TOP)
             bSizer1b.AddSpacer(5)
 
         #---sizer 1c ----
@@ -154,11 +138,10 @@ class convert_tdt_files_to_MagIC(wx.Frame):
         bSizer1c.Add(wx.StaticText(pnl,label=TEXT),wx.ALIGN_TOP)
         self.moment_units_names=['mA/m','emu','Am^2']
         bSizer1c.AddSpacer(5)
+        self.moment_units = {}
         for i in range(self.max_files):
-            command="self.moment_units_%i = wx.ComboBox(self.panel, -1, self.moment_units_names[0], size=(80,25), choices=self.moment_units_names, style=wx.CB_DROPDOWN|wx.CB_READONLY)"%i
-            exec(command)
-            command="bSizer1c.Add(self.moment_units_%i,wx.ALIGN_TOP)"%i
-            exec(command)
+            self.moment_units[i] = wx.ComboBox(self.panel, -1, self.moment_units_names[0], size=(80,25), choices=self.moment_units_names, style=wx.CB_DROPDOWN|wx.CB_READONLY)
+            bSizer1c.Add(self.moment_units[i], wx.ALIGN_TOP)
             bSizer1c.AddSpacer(5)
 
         #---sizer 1d ----
@@ -167,13 +150,11 @@ class convert_tdt_files_to_MagIC(wx.Frame):
         bSizer1d = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "" ), wx.VERTICAL )
         bSizer1d.Add(wx.StaticText(pnl,label=TEXT),wx.ALIGN_TOP)
         bSizer1d.AddSpacer(5)
+        self.volumes = {}
         for i in range(self.max_files):
-            command= "self.volume_%i = wx.TextCtrl(self.panel, id=-1, size=(80,25))"%i
-            exec(command)
-            command= "self.volume_%i.SetValue('1.287555e-5')"%i
-            exec(command)
-            command="bSizer1d.Add(self.volume_%i,wx.ALIGN_TOP)"%i
-            exec(command)
+            self.volumes[i] = wx.TextCtrl(self.panel, id=-1, size=(80,25))
+            self.volumes[i].SetValue('1.287555e-5')
+            bSizer1d.Add(self.volumes[i], wx.ALIGN_TOP)
             bSizer1d.AddSpacer(5)
 
 
@@ -183,11 +164,10 @@ class convert_tdt_files_to_MagIC(wx.Frame):
         bSizer1e = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "" ), wx.VERTICAL )
         bSizer1e.Add(wx.StaticText(pnl,label=TEXT),wx.ALIGN_TOP)
         bSizer1e.AddSpacer(5)
+        self.file_info_users = {}
         for i in range(self.max_files):
-            command= "self.file_info_user_%i = wx.TextCtrl(self.panel, id=-1, size=(60,25))"%i
-            exec(command)
-            command="bSizer1e.Add(self.file_info_user_%i,wx.ALIGN_TOP)" %i
-            exec(command)
+            self.file_info_users[i] = wx.TextCtrl(self.panel, id=-1, size=(60,25))
+            bSizer1e.Add(self.file_info_users[i], wx.ALIGN_TOP)
             bSizer1e.AddSpacer(5)
 
         #---sizer 2 ----
@@ -197,11 +177,10 @@ class convert_tdt_files_to_MagIC(wx.Frame):
         bSizer2 = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "" ), wx.VERTICAL )
         bSizer2.Add(wx.StaticText(pnl,label=TEXT),wx.ALIGN_TOP)
         bSizer2.AddSpacer(5)
+        self.file_locations = {}
         for i in range(self.max_files):
-            command= "self.file_location_%i = wx.TextCtrl(self.panel, id=-1, size=(60,25))"%i
-            exec(command)
-            command="bSizer2.Add(self.file_location_%i,wx.ALIGN_TOP)" %i
-            exec(command)
+            self.file_locations[i] = wx.TextCtrl(self.panel, id=-1, size=(60,25))
+            bSizer2.Add(self.file_locations[i], wx.ALIGN_TOP)
             bSizer2.AddSpacer(5)
 
 ##        #---sizer 3 ----
@@ -215,19 +194,16 @@ class convert_tdt_files_to_MagIC(wx.Frame):
         bSizer4.Add(wx.StaticText(pnl,label=TEXT),wx.ALIGN_TOP)
         self.sample_naming_conventions=['sample=specimen','no. of terminate characters','charceter delimited']
         bSizer4.AddSpacer(5)
+        self.sample_naming = {}
+        self.sample_naming_char = {}
+        self.bSizer4 = {}
         for i in range(self.max_files):
-            command="self.sample_naming_convention_%i = wx.ComboBox(self.panel, -1, self.sample_naming_conventions[0], size=(150,25), choices=self.sample_naming_conventions, style=wx.CB_DROPDOWN|wx.CB_READONLY)"%i
-            exec(command)
-            command="self.sample_naming_convention_char_%i = wx.TextCtrl(self.panel, id=-1, size=(40,25))"%i
-            exec(command)
-            command="bSizer4_%i = wx.BoxSizer(wx.HORIZONTAL)"%i
-            exec(command)
-            command="bSizer4_%i.Add(self.sample_naming_convention_%i,wx.ALIGN_LEFT)" %(i,i)
-            exec(command)
-            command="bSizer4_%i.Add(self.sample_naming_convention_char_%i,wx.ALIGN_LEFT)" %(i,i)
-            exec(command)
-            command="bSizer4.Add(bSizer4_%i,wx.ALIGN_TOP)"%i
-            exec(command)
+            self.sample_naming[i] = wx.ComboBox(self.panel, -1, self.sample_naming_conventions[0], size=(150,25), choices=self.sample_naming_conventions, style=wx.CB_DROPDOWN|wx.CB_READONLY)
+            self.sample_naming_char[i] = wx.TextCtrl(self.panel, id=-1, size=(40,25))
+            self.bSizer4[i] = wx.BoxSizer(wx.HORIZONTAL)
+            self.bSizer4[i].Add(self.sample_naming[i], wx.ALIGN_LEFT)
+            self.bSizer4[i].Add(self.sample_naming_char[i], wx.ALIGN_LEFT)
+            bSizer4.Add(self.bSizer4[i], wx.ALIGN_TOP)
 
             bSizer4.AddSpacer(5)
 
@@ -238,19 +214,16 @@ class convert_tdt_files_to_MagIC(wx.Frame):
         bSizer5.Add(wx.StaticText(pnl,label=TEXT),wx.ALIGN_TOP)
         self.site_naming_conventions=['site=sample','no. of terminate characters','charceter delimited']
         bSizer5.AddSpacer(5)
+        self.site_naming = {}
+        self.site_naming_char = {}
+        self.bSizer5 = {}
         for i in range(self.max_files):
-            command="self.site_naming_convention_char_%i = wx.TextCtrl(self.panel, id=-1, size=(40,25))"%i
-            exec(command)
-            command="self.site_naming_convention_%i = wx.ComboBox(self.panel, -1, self.site_naming_conventions[0], size=(150,25), choices=self.site_naming_conventions, style=wx.CB_DROPDOWN|wx.CB_READONLY)"%i
-            exec(command)
-            command="bSizer5_%i = wx.BoxSizer(wx.HORIZONTAL)"%i
-            exec(command)
-            command="bSizer5_%i.Add(self.site_naming_convention_%i,wx.ALIGN_LEFT)" %(i,i)
-            exec(command)
-            command="bSizer5_%i.Add(self.site_naming_convention_char_%i,wx.ALIGN_LEFT)" %(i,i)
-            exec(command)
-            command="bSizer5.Add(bSizer5_%i,wx.ALIGN_TOP)"%i
-            exec(command)
+            self.site_naming_char[i] = wx.TextCtrl(self.panel, id=-1, size=(40,25))
+            self.site_naming[i] = wx.ComboBox(self.panel, -1, self.site_naming_conventions[0], size=(150,25), choices=self.site_naming_conventions, style=wx.CB_DROPDOWN|wx.CB_READONLY)
+            self.bSizer5[i] = wx.BoxSizer(wx.HORIZONTAL)
+            self.bSizer5[i].Add(self.site_naming[i])
+            self.bSizer5[i].Add(self.site_naming_char[i], wx.ALIGN_LEFT)
+            bSizer5.Add(self.bSizer5[i], wx.ALIGN_TOP)
             bSizer5.AddSpacer(5)
 
         #------------------
@@ -337,7 +310,7 @@ class convert_tdt_files_to_MagIC(wx.Frame):
 
 
 
-    def on_add_dir_button_i(self,event):
+    def on_add_dir_button(self,event):
 
         dlg = wx.DirDialog(
             None,message="choose directtory with tdt files",
@@ -353,9 +326,7 @@ class convert_tdt_files_to_MagIC(wx.Frame):
         i=int((name).split("_")[-1])
         #print "The button's name is " + button.GetName()
 
-        command="self.dir_path_%i.SetValue(FILE)"%i
-        exec(command)
-
+        self.dir_paths[i].SetValue(FILE)
 
 
     def read_generic_file(self,path):
@@ -392,73 +363,58 @@ class convert_tdt_files_to_MagIC(wx.Frame):
         for i in range(self.max_files):
 
             # read directiory path
-            dirpath=""
-            command="dirpath=self.dir_path_%i.GetValue()"%i
-            exec(command)
-            if dirpath!="":
-                dir_name=str(dirpath.split("/")[-1])
+            dir_path=""
+            dir_path = self.dir_paths[i].GetValue()
+            if dir_path!="":
+                dir_name=str(dir_path.split("/")[-1])
                 DIRS_data[dir_name]={}
-                DIRS_data[dir_name]['path']=str(dirpath)
+                DIRS_data[dir_name]['path']=str(dir_path)
             else:
                 continue
 
             # get experiment
-            command="experiment=self.protocol_info_%i.GetValue()"%i
-            exec(command)
+            experiment = self.protocol_infos[i].GetValue()
             DIRS_data[dir_name]['experiment']=str(experiment)
-
 
             # get location
             user_name=""
-            command="location_name=self.file_location_%i.GetValue()"%i
-            exec(command)
+            location_name = self.file_locations[i].GetValue()
             DIRS_data[dir_name]['location']=str(location_name)
 
             # get Blab direction
             labfield_DI=["0.","90."]
-            command="labfield_DI[0]=self.file_info_Blab_dec_%i.GetValue()"%i
-            exec(command)
-            command="labfield_DI[1]=self.file_info_Blab_inc_%i.GetValue()"%i
-            exec(command)
+            labfield_DI[0] = self.file_info_Blab_dec[i].GetValue()
+            labfield_DI[1] = self.file_info_Blab_inc[i].GetValue()
             DIRS_data[dir_name]['labfield_DI']=labfield_DI
 
             # get Moment units
-            command="moment_units=self.moment_units_%i.GetValue()"%i
-            exec(command)
+            moment_units = self.moment_units[i].GetValue()
             DIRS_data[dir_name]['moment_units']=moment_units
 
             # get sample volume
-            command="volume=self.volume_%i.GetValue()"%i
-            exec(command)
+            volume = self.volumes[i].GetValue()
             DIRS_data[dir_name]['volume']=volume
 
             # get User_name
             user_name=""
-            command="user_name=self.file_info_user_%i.GetValue()"%i
-            exec(command)
+            user_name = self.file_info_users[i].GetValue()
             DIRS_data[dir_name]['user_name']=user_name
 
 
             # get sample-specimen naming convention
 
-            sample_naming_convenstion=["",""]
-            command="sample_naming_convenstion[0]=str(self.sample_naming_convention_%i.GetValue())"%i
-            exec(command)
-            command="sample_naming_convenstion[1]=str(self.sample_naming_convention_char_%i.GetValue())"%i
-            exec(command)
-            DIRS_data[dir_name]["sample_naming_convenstion"]=sample_naming_convenstion
-
+            sample_naming_convention=["",""]
+            sample_naming_convention[0] = str(self.sample_naming[i].GetValue())
+            sample_naming_convention[1] = str(self.sample_naming_char[i].GetValue())
+            DIRS_data[dir_name]["sample_naming_convention"]=sample_naming_convention
 
             # get site-sample naming convention
 
-            site_naming_convenstion=["",""]
-            command="site_naming_convenstion[0]=str(self.site_naming_convention_%i.GetValue())"%i
-            exec(command)
-            command="site_naming_convenstion[1]=str(self.site_naming_convention_char_%i.GetValue())"%i
-            exec(command)
-            DIRS_data[dir_name]["site_naming_convenstion"]=site_naming_convenstion
+            site_naming_convention=["",""]
+            site_naming_convention[0] = str(self.site_naming[i].GetValue())
+            site_naming_convention[1] = str(self.site_naming_char[i].GetValue())
+            DIRS_data[dir_name]["site_naming_convention"]=site_naming_convention
 
-        #print "DIRS_data",DIRS_data
         self.convert_2_magic(DIRS_data)
 
 
@@ -466,14 +422,14 @@ class convert_tdt_files_to_MagIC(wx.Frame):
     def on_cancelButton(self,event):
         self.Destroy()
 
-    def get_sample_name(self,specimen,sample_naming_convenstion):
-        if sample_naming_convenstion[0]=="sample=specimen":
+    def get_sample_name(self,specimen,sample_naming_convention):
+        if sample_naming_convention[0]=="sample=specimen":
             sample=specimen
-        elif sample_naming_convenstion[0]=="no. of terminate characters":
-            n=int(sample_naming_convenstion[1])*-1
+        elif sample_naming_convention[0]=="no. of terminate characters":
+            n=int(sample_naming_convention[1])*-1
             sample=specimen[:n]
-        elif sample_naming_convenstion[0]=="charceter delimited":
-            d=sample_naming_convenstion[1]
+        elif sample_naming_convention[0]=="charceter delimited":
+            d=sample_naming_convention[1]
             sample_splitted=specimen.split(d)
             if len(sample_splitted)==1:
                 sample=sample_splitted[0]
@@ -481,14 +437,14 @@ class convert_tdt_files_to_MagIC(wx.Frame):
                 sample=d.join(sample_splitted[:-1])
         return sample
 
-    def get_site_name(self,sample,site_naming_convenstion):
-        if site_naming_convenstion[0]=="site=sample":
+    def get_site_name(self,sample,site_naming_convention):
+        if site_naming_convention[0]=="site=sample":
             site=sample
-        elif site_naming_convenstion[0]=="no. of terminate characters":
-            n=int(site_naming_convenstion[1])*-1
+        elif site_naming_convention[0]=="no. of terminate characters":
+            n=int(site_naming_convention[1])*-1
             site=sample[:n]
-        elif site_naming_convenstion[0]=="charceter delimited":
-            d=site_naming_convenstion[1]
+        elif site_naming_convention[0]=="charceter delimited":
+            d=site_naming_convention[1]
             site_splitted=sample.split(d)
             if len(site_splitted)==1:
                 site=site_splitted[0]
@@ -645,8 +601,8 @@ class convert_tdt_files_to_MagIC(wx.Frame):
                         Data[specimen][Experiment_Type]={}
                     Data[specimen][Experiment_Type]['meas_data']=tmp_body
                     Data[specimen][Experiment_Type]['header_data']=tmp_header_data
-                    Data[specimen][Experiment_Type]['sample_naming_convenstion']=DIRS_data[dir_name]['sample_naming_convenstion']
-                    Data[specimen][Experiment_Type]['site_naming_convenstion']=DIRS_data[dir_name]['site_naming_convenstion']
+                    Data[specimen][Experiment_Type]['sample_naming_convention']=DIRS_data[dir_name]['sample_naming_convention']
+                    Data[specimen][Experiment_Type]['site_naming_convention']=DIRS_data[dir_name]['site_naming_convention']
                     Data[specimen][Experiment_Type]['location']=DIRS_data[dir_name]['location']
                     Data[specimen][Experiment_Type]['user_name']=DIRS_data[dir_name]['user_name']
                     Data[specimen][Experiment_Type]['volume']=DIRS_data[dir_name]['volume']
@@ -722,8 +678,8 @@ class convert_tdt_files_to_MagIC(wx.Frame):
                         MeasRec,SpecRec,SampRec,SiteRec,LocRec={},{},{},{},{}
 
                         labfield=float(header_line['labfield'])*1e-6 # convert from microT to Tesla
-                        sample=self.get_sample_name(specimen,Data[specimen][Experiment_Type]['sample_naming_convenstion'])
-                        site=self.get_site_name(sample,Data[specimen][Experiment_Type]['site_naming_convenstion'])
+                        sample=self.get_sample_name(specimen,Data[specimen][Experiment_Type]['sample_naming_convention'])
+                        site=self.get_site_name(sample,Data[specimen][Experiment_Type]['site_naming_convention'])
                         location=Data[specimen][Experiment_Type]['location']
                         if location=='':location='unknown'
 
@@ -950,8 +906,8 @@ class convert_tdt_files_to_MagIC(wx.Frame):
                         MeasRec,SpecRec,SampRec,SiteRec,LocRec={},{},{},{},{}
 
                         labfield=float(header_line['labfield'])*1e-6 # convert from microT to Tesla
-                        sample=self.get_sample_name(specimen,Data[specimen][Experiment_Type]['sample_naming_convenstion'])
-                        site=self.get_site_name(sample,Data[specimen][Experiment_Type]['site_naming_convenstion'])
+                        sample=self.get_sample_name(specimen,Data[specimen][Experiment_Type]['sample_naming_convention'])
+                        site=self.get_site_name(sample,Data[specimen][Experiment_Type]['site_naming_convention'])
                         location=Data[specimen][Experiment_Type]['location']
 
                         #------------------
@@ -1060,18 +1016,21 @@ class convert_tdt_files_to_MagIC(wx.Frame):
         con.add_magic_table_from_data(dtype='samples', data=SampRecs)
         con.add_magic_table_from_data(dtype='sites', data=SiteRecs)
         con.add_magic_table_from_data(dtype='locations', data=LocRecs)
-        MeasOuts=pmag.measurements_methods3(MeasRecs,noave)
+        MeasOuts=pmag.measurements_methods3(MeasRecs,noave=False)
         con.add_magic_table_from_data(dtype='measurements', data=MeasOuts)
 
         con.tables['specimens'].write_magic_file()
         con.tables['samples'].write_magic_file()
         con.tables['sites'].write_magic_file()
         con.tables['locations'].write_magic_file()
-        con.tables['measurements'].write_magic_file()
+        res = con.tables['measurements'].write_magic_file()
 
         #-------------------------------------------
 
-        dlg1 = wx.MessageDialog(None,caption="Message:", message="file converted to {}\n you can try running thellier gui...\n".format(self.output_file_path.GetValue()) ,style=wx.OK|wx.ICON_INFORMATION)
+        if res:
+            dlg1 = wx.MessageDialog(None,caption="Message:", message="file converted to {}\n you can try running thellier gui...\n".format(self.output_file_path.GetValue()) ,style=wx.OK|wx.ICON_INFORMATION)
+        else:
+            dlg1 = wx.MessageDialog(None, caption="Warning:", message="No file was created.  Make sure you have selected folders that contain .tdt format files")
         dlg1.ShowModal()
         dlg1.Destroy()
         self.Destroy()
@@ -1168,11 +1127,14 @@ def main():
     if '-h' in sys.argv:
         help(__name__)
         sys.exit()
-    if "-WD" in sys.argv:
-        ind=sys.argv.index("-WD")
-        kwargs['wd']=sys.argv[ind+1]
+    #if "-WD" in sys.argv:
+    #    ind=sys.argv.index("-WD")
+    #    kwargs['wd']=sys.argv[ind+1]
+    wd = pmag.get_named_arg_from_sys('-WD', '.')
+    kwargs['wd'] = wd
     if "-A" in sys.argv: kwargs['noave']=True
-    start(**kwargs)
+    #convert_tdt_files_to_MagIC(wd, **kwargs)
+    convert(**kwargs)
 
 
 if __name__ == '__main__':
