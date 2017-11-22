@@ -2179,13 +2179,12 @@ def aniso_depthplot(ani_file='rmag_anisotropy.txt', meas_file='magic_measurement
     plots = 0
 
     # format files to use full path
-    ani_file = os.path.join(dir_path, ani_file)
+    ani_file = pmag.resolve_file_name(ani_file, dir_path) #os.path.join(dir_path, ani_file)
     if not os.path.isfile(ani_file):
         print("Could not find rmag_anisotropy type file: {}.\nPlease provide a valid file path and try again".format(ani_file))
         return False, "Could not find rmag_anisotropy type file: {}.\nPlease provide a valid file path and try again".format(ani_file)
 
-    meas_file = os.path.join(dir_path, meas_file)
-    # print 'meas_file', meas_file
+    meas_file = pmag.resolve_file_name(meas_file, dir_path) #os.path.join(dir_path, meas_file)
 
     if age_file:
         if not os.path.isfile(age_file):
@@ -2193,14 +2192,14 @@ def aniso_depthplot(ani_file='rmag_anisotropy.txt', meas_file='magic_measurement
                 'Warning: you have provided an invalid age file.  Attempting to use sample file instead')
             age_file = None
             depth_scale = 'sample_core_depth'
-            samp_file = os.path.join(dir_path, samp_file)
+            samp_file = pmag.resolve_file_name(samp_file, dir_path) #os.path.join(dir_path, samp_file)
         else:
-            samp_file = os.path.join(dir_path, age_file)
+            samp_file = pmag.resolve_file_name(samp_file, dir_path) # os.path.join(dir_path, age_file)
             depth_scale = 'age'
             print(
                 'Warning: you have provided an er_ages format file, which will take precedence over er_samples')
     else:
-        samp_file = os.path.join(dir_path, samp_file)
+        samp_file = pmag.resolve_file_name(samp_file, dir_path)
 
     label = 1
 
