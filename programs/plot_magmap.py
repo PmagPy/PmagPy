@@ -40,6 +40,7 @@ def main():
 
     """
     cmap='RdYlBu'
+    date=2016.
     if not Basemap:
       print("-W- You must intstall the Basemap module to run plot_magmap.py")
       sys.exit()
@@ -75,11 +76,11 @@ def main():
         ind=sys.argv.index('-f')
         ghfile=sys.argv[ind+1]
         mod='custom'
+        date=''
     else: mod,ghfile='cals10k',''
     if '-age' in sys.argv:
         ind=sys.argv.index('-age')
         date=float(sys.argv[ind+1])
-    else: date=2016.
     if '-alt' in sys.argv:
         ind=sys.argv.index('-alt')
         alt=float(sys.argv[ind+1])
@@ -95,7 +96,6 @@ def main():
         levmax=Bs.max()+lincr
         levmin=round(Bs.min()-lincr)
         levels=np.arange(levmin,levmax,lincr)
-        print (levels)
         cs=m.contourf(x,y,Bs,levels=levels,cmap=cmap)
         plt.title('Field strength ($\mu$T): '+d);
     if el=='Brs':

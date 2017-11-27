@@ -79,7 +79,8 @@ def main():
             gh.append(lmgh[2][i])
             gh.append(lmgh[3][i])
         mod='custom'
-    if '-f' in sys.argv:
+        inp=[[0,alt,lat,lon]]
+    elif '-f' in sys.argv:
         ind=sys.argv.index('-f')
         file=sys.argv[ind+1]
         inp=numpy.loadtxt(file)

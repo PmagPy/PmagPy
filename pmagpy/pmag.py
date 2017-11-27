@@ -93,6 +93,8 @@ def get_dictitem(In, k, v, flag):
         )) and dictionary[k] != '']  # find records with no blank values for key
         # return that which is less than
         return [dictionary for dictionary in A if k in list(dictionary.keys()) and float(dictionary[k]) <= float(v)]
+    if flag == 'not_null':
+        return [dictionary for dictionary in In if dictionary[k]]
 
 
 def get_dictkey(In, k, dtype):
@@ -108,10 +110,14 @@ def get_dictkey(In, k, dtype):
         if dtype == 'f':
             if d[k] == "":
                 Out.append(0)
+            elif d[k] == None:
+                Out.append(0)
             else:
                 Out.append(float(d[k]))
         if dtype == 'int':
             if d[k] == "":
+                Out.append(0)
+            elif d[k] == None:
                 Out.append(0)
             else:
                 Out.append(int(d[k]))
@@ -7206,6 +7212,7 @@ def magsyn(gh, sv, b, date, itype, alt, colat, elong):
 #
 # synthesize x, y, and z in geocentric coordinates.
 # 4
+        #print (l,ll,t,rr)
         one = (gh[l - 1] + sv[ll + l - 1] * t) * rr
         if m != 0:  # else go to 7
             two = (gh[l] + sv[ll + l] * t) * rr
@@ -9896,7 +9903,7 @@ def do_mag_map(date, **kwargs):
                 x, y, z, f = docustom(lons[i], lats[j], alt, gh)
             else:
                 x, y, z, f = doigrf(lons[i], lats[j], alt, date, mod=mod,file=file)
-            # turn them into polar coordites
+            # turn them into polar coordinates
             Dec, Inc, Int = cart2dir([x, y, z])
             if mod!='custom':
                 B[j][i] = Int * 1e-3  # convert the string to microtesla (from nT)
