@@ -93,6 +93,8 @@ def get_dictitem(In, k, v, flag):
         )) and dictionary[k] != '']  # find records with no blank values for key
         # return that which is less than
         return [dictionary for dictionary in A if k in list(dictionary.keys()) and float(dictionary[k]) <= float(v)]
+    if flag == 'not_null':
+        return [dictionary for dictionary in In if dictionary[k]]
 
 
 def get_dictkey(In, k, dtype):
@@ -108,10 +110,14 @@ def get_dictkey(In, k, dtype):
         if dtype == 'f':
             if d[k] == "":
                 Out.append(0)
+            elif d[k] == None:
+                Out.append(0)
             else:
                 Out.append(float(d[k]))
         if dtype == 'int':
             if d[k] == "":
+                Out.append(0)
+            elif d[k] == None:
                 Out.append(0)
             else:
                 Out.append(int(d[k]))
@@ -1336,6 +1342,8 @@ def vspec_magic3(data):
         FDirdata, Dirdata, DataStateCurr, newstate = [], [], {}, 0
         for key in treats:  # check if anything changed
             DataStateCurr[key] = data[i][key]
+            DataStateCurr[key] = str(DataStateCurr[key])
+            DataState0[key] = str(DataState0[key])
             if DataStateCurr[key].strip() != DataState0[key].strip():
                 newstate = 1  # something changed
         if newstate == 1:
@@ -1547,7 +1555,7 @@ def find_dmag_rec(s, data, **kwargs):
     return datablock, meas_units
 
 
-def open_file(infile):
+def open_file(infile, verbose=True):
     """
     Open file and return a list of the file's lines.
     Try to use utf-8 encoding, and if that fails use Latin-1.
@@ -1567,13 +1575,14 @@ def open_file(infile):
             lines = list(f.readlines())
     # file might not exist
     except FileNotFoundError:
-        print('-W- You are trying to open a file: {} that does not exist'.format(infile))
+        if verbose:
+            print('-W- You are trying to open a file: {} that does not exist'.format(infile))
         return []
     # encoding might be wrong
     except UnicodeDecodeError:
         try:
             with codecs.open(infile, "r", "Latin-1") as f:
-                print('-I- Using less strict decoding, output may have formatting errors')
+                print('-I- Using less strict decoding for {}, output may have formatting errors'.format(infile))
                 lines = list(f.readlines())
         # if file exists, and encoding is correct, who knows what the problem is
         except Exception as ex:
@@ -1593,10 +1602,15 @@ def open_file(infile):
     return lines
 
 
-def magic_read(infile, data=None, return_keys=False):
+def magic_read(infile, data=None, return_keys=False, verbose=False):
     """
     Reads  a Magic template file, puts data in a list of dictionaries.
     """
+    if infile:
+        if not os.path.exists(infile):
+            if return_keys:
+                return [], 'empty_file', []
+            return [], 'empty_file'
     hold, magic_data, magic_record, magic_keys = [], [], {}, []
     if data:
         lines = list(data)
@@ -1605,8 +1619,13 @@ def magic_read(infile, data=None, return_keys=False):
             return [], 'empty_file', []
         return [], 'empty_file'
     else:
+        # if the file doesn't exist, end here
+        if not os.path.exists(infile):
+            if return_keys:
+                return [], 'bad_file', []
+            return [], 'bad_file'
         # use custom pmagpy open_file
-        lines = open_file(infile)
+        lines = open_file(infile, verbose=verbose)
     if not lines:
         if return_keys:
             return [], 'bad_file', []
@@ -7193,6 +7212,7 @@ def magsyn(gh, sv, b, date, itype, alt, colat, elong):
 #
 # synthesize x, y, and z in geocentric coordinates.
 # 4
+        #print (l,ll,t,rr)
         one = (gh[l - 1] + sv[ll + l - 1] * t) * rr
         if m != 0:  # else go to 7
             two = (gh[l] + sv[ll + l] * t) * rr
@@ -9467,7 +9487,7 @@ def read_criteria_from_file(path, acceptance_criteria, **kwargs):
         crit_data, file_type = magic_read(path)
         if 'criteria' not in file_type:
             if 'empty' in file_type:
-                print('-W- {} is an empty file'.format(path))
+                print('-W- No criteria found: {} '.format(path))
             else:
                 print(
                     '-W- {} could not be read and may be improperly formatted...'.format(path))
@@ -9699,6 +9719,37 @@ def merge_recs_headers(recs):
     return recs
 
 
+def resolve_file_name(fname, dir_path='.'):
+    """
+    Parse file name information and output full path.
+    Allows input as:
+    fname == /path/to/file.txt
+    or
+    fname == file.txt, dir_path == /path/to
+    Either way, returns /path/to/file.txt.
+    Used in conversion scripts.
+
+    Parameters
+    ----------
+    fname : str
+        short filename or full path to file
+    dir_path : str
+        directory, optional
+
+    Returns
+    ----------
+    full_file : str
+        full path/to/file.txt
+    """
+    if not fname:
+        return ''
+    file_dir_path, file_name = os.path.split(fname)
+    if (not file_dir_path) or (file_dir_path == '.'):
+        full_file = os.path.join(dir_path, fname)
+    else:
+        full_file = fname
+    return os.path.realpath(full_file)
+
 def remove_files(file_list, WD='.'):
     for f in file_list:
         full_file = os.path.join(WD, f)
@@ -9852,7 +9903,7 @@ def do_mag_map(date, **kwargs):
                 x, y, z, f = docustom(lons[i], lats[j], alt, gh)
             else:
                 x, y, z, f = doigrf(lons[i], lats[j], alt, date, mod=mod,file=file)
-            # turn them into polar coordites
+            # turn them into polar coordinates
             Dec, Inc, Int = cart2dir([x, y, z])
             if mod!='custom':
                 B[j][i] = Int * 1e-3  # convert the string to microtesla (from nT)

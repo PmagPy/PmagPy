@@ -7,6 +7,7 @@ from builtins import input
 from builtins import range
 from past.utils import old_div
 import sys
+import os
 import matplotlib
 if matplotlib.get_backend() != "TKAgg":
   matplotlib.use("TKAgg")
@@ -41,6 +42,7 @@ def main():
     plots=0
     fmt=pmag.get_named_arg_from_sys('-fmt','svg')
     dir_path=pmag.get_named_arg_from_sys('-WD','.')
+    dir_path=os.path.realpath(dir_path)
     verbose=pmagplotlib.verbose
     version_num=pmag.get_version()
     user=pmag.get_named_arg_from_sys('-usr','')
@@ -56,8 +58,8 @@ def main():
         verbose=0
         plots=1
     pltspec=pmag.get_named_arg_from_sys('-spc',0)
-    if pltspec: 
-        pltspec= args[ind+1]
+    if pltspec:
+        #pltspec= args[ind+1]
         verbose=0
         plots=1
     spec_file=dir_path+'/'+spec_file
@@ -138,7 +140,7 @@ def main():
         if len(B)>0:
             hmeths=[]
             for meth in meths: hmeths.append(meth)
-            
+
             hpars=pmagplotlib.plotHDD(HDD,B,M,e)
             if verbose and PLT:pmagplotlib.drawFIGS(HDD)
     #
@@ -234,15 +236,15 @@ def main():
         if len(B)==0 and len(Bdcd)==0:
             if verbose:print('skipping this one - no hysteresis data')
             k+=1
-    if len(HystRecs)>0:   
-	#  go through prior_data, clean out prior results and save combined file as spec_file
+    if len(HystRecs)>0:
+    #  go through prior_data, clean out prior results and save combined file as spec_file
         SpecRecs,keys=[],list(HystRecs[0].keys())
         if len(prior_data)>0:
             prior_keys=list(prior_data[0].keys())
         else: prior_keys=[]
         for rec in prior_data:
             for key in keys:
-                if key not in list(rec.keys()):rec[key]="" 
+                if key not in list(rec.keys()):rec[key]=""
             if  'LP-HYS' not in rec['method_codes']:
                 SpecRecs.append(rec)
         for rec in HystRecs:

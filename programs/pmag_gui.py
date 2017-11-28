@@ -74,6 +74,7 @@ class MagMainFrame(wx.Frame):
             WD = pmag.get_named_arg_from_sys("-WD", '')
             self.WD = WD
 
+        self.WD = os.path.realpath(self.WD)
         self.data_model = dmodel
         self.FIRST_RUN = True
 
@@ -111,6 +112,8 @@ class MagMainFrame(wx.Frame):
         WD : str
             name of working directory, default None
         """
+        if DM:
+            self.set_dm(DM)
         if not DM:
             self.get_dm_num()
         if not WD:
@@ -682,6 +685,7 @@ class MagMainFrame(wx.Frame):
                 dlg.Destroy()
             if ex:
                 raise(ex)
+        self.contribution = nb.Contribution(self.WD)
 
 
     def on_btn_upload(self, event):

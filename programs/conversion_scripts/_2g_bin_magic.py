@@ -126,6 +126,7 @@ def convert(**kwargs):
         input_dir_path = dir_path
 
     if samp_con:
+        Z = 1
         if "4" in samp_con:
             if "-" not in samp_con:
                 print("option [4] must be in form 4-Z where Z is an integer")
@@ -141,27 +142,24 @@ def convert(**kwargs):
                 Z=samp_con.split("-")[1]
                 samp_con="7"
         if "6" in samp_con:
-            Z=1
-            try:
-                SampRecs,file_type=pmag.magic_read(os.path.join(input_dir_path, 'er_samples.txt'))
-            except:
-                print("there is no er_samples.txt file in your input directory - you can't use naming convention #6")
-                return False, "there is no er_samples.txt file in your input directory - you can't use naming convention #6"
-            if file_type == 'bad_file':
-                print("there is no er_samples.txt file in your input directory - you can't use naming convention #6")
-                return False, "there is no er_samples.txt file in your input directory - you can't use naming convention #6"
-        else: Z=1
+            print('Naming convention option [6] not currently supported')
+            return False, 'Naming convention option [6] not currently supported'
+            #Z=1
+            #try:
+            #    SampRecs,file_type=pmag.magic_read(os.path.join(input_dir_path, 'er_samples.txt'))
+            #except:
+            #    print("there is no er_samples.txt file in your input directory - you can't use naming convention #6")
+            #    return False, "there is no er_samples.txt file in your input directory - you can't use naming convention #6"
+            #if file_type == 'bad_file':
+            #    print("there is no er_samples.txt file in your input directory - you can't use naming convention #6")
+            #    return False, "there is no er_samples.txt file in your input directory - you can't use naming convention #6"
+        #else: Z=1
 
     if not mag_file:
         print("mag file is required input")
         return False, "mag file is required input"
     output_dir_path = dir_path
     mag_file = os.path.join(input_dir_path, mag_file)
-    meas_file= os.path.join(output_dir_path, meas_file)
-    spec_file= os.path.join(output_dir_path, spec_file)
-    samp_file = os.path.join(output_dir_path, samp_file)
-    site_file = os.path.join(output_dir_path, site_file)
-    loc_file= os.path.join(output_dir_path, loc_file)
 
     samplist=[]
     try:
@@ -376,12 +374,11 @@ def convert(**kwargs):
     MeasOuts=pmag.measurements_methods3(MeasRecs,noave)
     con.add_magic_table_from_data(dtype='measurements', data=MeasOuts)
 
-    con.tables['specimens'].write_magic_file(custom_name=spec_file)
-    con.tables['samples'].write_magic_file(custom_name=samp_file)
-    con.tables['sites'].write_magic_file(custom_name=site_file)
-    con.tables['locations'].write_magic_file(custom_name=loc_file)
-    con.tables['measurements'].write_magic_file(custom_name=meas_file)
-
+    con.write_table_to_file('specimens', custom_name=spec_file)
+    con.write_table_to_file('samples', custom_name=samp_file)
+    con.write_table_to_file('sites', custom_name=site_file)
+    con.write_table_to_file('locations', custom_name=loc_file)
+    con.write_table_to_file('measurements', custom_name=meas_file)
     return True, meas_file
 
 def do_help():

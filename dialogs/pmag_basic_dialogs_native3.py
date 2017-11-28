@@ -1729,15 +1729,15 @@ class convert_IODP_files_to_MagIC(convert_files_to_MagIC):
         options['lon'] = lon
         lat_with_flag,lon_with_flag = '-lat '+lat,'-lon '+lon
 
-        COMMAND = "iodp_srm_magic.py -WD {0} -f {1} -F {2} {3} -ID {4} -Fsp {5} -Fsa {6} -Fsi {7} -Flo {8} {9} {10}".format(wd, IODP_file, outfile, replicate, ID, spec_outfile, samp_outfile, site_outfile, loc_outfile, lat_with_flag, lon_with_flag)
-
         if is_section: # SRM section
+            COMMAND = "iodp_srm_magic.py -WD {0} -f {1} -F {2} {3} -ID {4} -Fsp {5} -Fsa {6} -Fsi {7} -Flo {8} {9} {10}".format(wd, IODP_file, outfile, replicate, ID, spec_outfile, samp_outfile, site_outfile, loc_outfile, lat_with_flag, lon_with_flag)
             program_ran, error_message = iodp_srm_magic.convert(**options)
             if program_ran:
                 pw.close_window(self, COMMAND, outfile)
             else:
                 pw.simple_warning(error_message)
         else: # SRM discrete
+            COMMAND = "iodp_dscr_magic.py -WD {0} -f {1} -F {2} {3} -ID {4} -Fsp {5} -Fsa {6} -Fsi {7} -Flo {8} {9} {10}".format(wd, IODP_file, outfile, replicate, ID, spec_outfile, samp_outfile, site_outfile, loc_outfile, lat_with_flag, lon_with_flag)
             program_ran, error_message = iodp_dscr_magic.convert(**options)
             if program_ran:
                 pw.close_window(self, COMMAND, outfile)

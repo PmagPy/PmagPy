@@ -30,14 +30,15 @@ def main():
 
     OPTIONS
         -h prints help message and quits
-        -f FILE: specify input rmag_anisotropy format file from magic
-        -fb FILE: specify input magic_measurements format file from magic
-        -fsa FILE: specify input er_samples format file from magic
+        -f FILE: specify input rmag_anisotropy format file from magic (MagIC 2 only)
+        -fb FILE: specify input measurements format file from magic
+        -fsa FILE: specify input sample format file from magic
+        -fsp FILE: specify input specimen file (MagIC 3 only)
         -fsum FILE : specify input LIMS database (IODP) core summary csv file
                 to print the core names, set lab to 1
-        -fa FILE: specify input er_ages format file from magic
+        -fa FILE: specify input ages format file from magic
         -d min max [in m] depth range to plot
-        -ds [mcd,mbsf], specify depth scale, default is mbsf
+        -ds [mcd,mbsf], specify depth scale, default is mbsf (core depth)
         -sav save plot without review
         -fmt specfiy format for figures - default is svg
      DEFAULTS:
@@ -57,10 +58,11 @@ def main():
                                                   ['fa', False, None], ['fsum', False, None],
                                                   ['fmt', False, 'svg'], ['ds', False, 'mbsf'],
                                                   ['d', False, '-1 -1'], ['sav', False, False],
-                                                  ['WD', False, '.' ]])
+                                                  ['WD', False, '.' ], ['DM', False, 3],
+                                                  ['fsp', False, 'specimens.txt']])
         #args = sys.argv
     checked_args = extractor.extract_and_check_args(args, dataframe)
-    ani_file, meas_file, samp_file, age_file, sum_file, fmt, depth_scale, depth, save_quietly, dir_path = extractor.get_vars(['f', 'fb', 'fsa', 'fa', 'fsum', 'fmt', 'ds', 'd', 'sav', 'WD'], checked_args)
+    ani_file, meas_file, samp_file, age_file, sum_file, fmt, depth_scale, depth, save_quietly, dir_path, data_model, spec_file = extractor.get_vars(['f', 'fb', 'fsa', 'fa', 'fsum', 'fmt', 'ds', 'd', 'sav', 'WD', 'DM', 'fsp'], checked_args)
 
     # format min/max depth
     try:
@@ -82,13 +84,24 @@ def main():
             print('Warning: Unrecognized option "{}" provided for depth scale.\nOptions for depth scale are mbsf -- meters below sea floor -- or mcd -- meters composite depth.\nAlternatively, if you provide an age file the depth scale will be automatically set to plot by age instead.\nUsing default "mbsf"'.format(depth_scale))
             depth_scale = 'sample_composite_depth'
 
-    fig, figname = ipmag.aniso_depthplot(ani_file, meas_file, samp_file, age_file, sum_file, fmt, dmin, dmax, depth_scale, dir_path)
+    data_model = int(data_model)
+    # MagIC 2
+    if data_model == 2:
+        fig, figname = ipmag.aniso_depthplot(ani_file, meas_file, samp_file, age_file, sum_file, fmt, dmin, dmax, depth_scale, dir_path)
+    # MagIC 3
+    else:
+        if meas_file == "magic_measurements.txt":
+            meas_file = 'measurements.txt'
+        if samp_file in ['er_samples.txt', 'pmag_samples.txt']:
+            samp_file = "samples.txt"
+        site_file = 'sites.txt'
+        fig, figname = ipmag.aniso_depthplot3(spec_file, samp_file, meas_file, site_file, age_file, sum_file, fmt, dmin, dmax, depth_scale, dir_path)
     if save_quietly:
         if dir_path == '.':
             dir_path = os.getcwd()
         plt.savefig(figname)
         plt.clf()
-        print('Saved file: {} in folder: {}'.format(figname, dir_path))
+        print('Saved file: {}'.format(figname))
         return False
 
     app = wx.App(redirect=False)

@@ -13,8 +13,8 @@ class command_line_dataframe(object):
     the dataframe has three columns -- arg_name, reqd, and default -- and an arbitrary number of rows.
     arg_name is the flag that signals the beginning of a value or list of values, i.e. "-f" for infile(s).
     reqd is a boolean value for whether that flag is required to run the script.
-    default is a default value to use if the user doesn't provide that flag.  
-    
+    default is a default value to use if the user doesn't provide that flag.
+
     to deviate from using the default dataframe, pass in a list of lists with this format: [["f', False, "default.txt"], ...]
     this adds or updates values for "f", indicating that it is not required and does have a default value ("default.txt")
     """
@@ -22,7 +22,7 @@ class command_line_dataframe(object):
     def __init__(self, changes=None):
         arg_names = ['f', 'F', 'A', 'WD', 'ID', 'Fsa', 'Fsi']
         self.default_dict = {'arg_name': arg_names, 'reqd': [True, False, False, False, False, False, False], 'default': ['', '', '', '.', '.', 'er_samples.txt', 'er_sites.txt']}
-        print(arg_names, len(arg_names))
+        #print(arg_names, len(arg_names))
         self.df = pd.DataFrame(self.default_dict, index=arg_names)
         arg_names = self.df['arg_name']
         if changes:
@@ -35,11 +35,11 @@ class command_line_dataframe(object):
                     #print 'putting in:', change
                     d = pd.DataFrame({'arg_name': [change[0]], 'reqd': [change[1]], 'default': [change[2]]}, index=[change[0]])
                     self.df = pd.concat([self.df, d])
-            
+
 def extract_args(argv):
     """
     take sys.argv that is used to call a command-line script and return a correctly split list of arguments
-    for example, this input: ["eqarea.py", "-f", "infile", "-F", "outfile", "-A"] 
+    for example, this input: ["eqarea.py", "-f", "infile", "-F", "outfile", "-A"]
     will return this output: [['f', 'infile'], ['F', 'outfile'], ['A']]
     """
     string = " ".join(argv)
@@ -70,15 +70,17 @@ def check_args(arguments, data_frame):
         if arg not in stripped_args:
             raise pmag.MissingCommandLineArgException("-"+arg)
     #next, assign any default values as needed
-    
+
     #condition = df['default'] != '' # don't need this, and sometimes the correct default argument IS ''
     default_args = df #[condition]
+    using_defaults = []
     for value in default_args.values:
         arg_name, default = value[0], value[1]
         if arg_name not in stripped_args:
-            print("-I- using default for arg:", arg_name)
-            print("-")
+            using_defaults.append(arg_name)
             arguments.append([arg_name, default])
+    using_defaults = ["-" + arg for arg in using_defaults]
+    print('Using default arguments for: {}'.format(', '.join(using_defaults)))
     return arguments
 
 def extract_and_check_args(args_list, dataframe):
@@ -101,7 +103,7 @@ def get_vars(arg_names, args_list):
             clean_vals.append(val)
         else:
             # deal with numbers
-            if len(val) == 1 and (isinstance(val[0], int) or isinstance(val[0], float)): 
+            if len(val) == 1 and (isinstance(val[0], int) or isinstance(val[0], float)):
                 clean_vals.append(val[0])
             # deal with lists
             elif not isinstance(val, bool):
@@ -110,7 +112,7 @@ def get_vars(arg_names, args_list):
                 except TypeError:
                     clean_vals.append([])
             # deal with strings
-            else: 
+            else:
                 clean_vals.append(val)
     return clean_vals
 
@@ -127,4 +129,3 @@ def get_vars(arg_names, args_list):
 ## assign values to variables based on their associated command-line flag
 #fmt, size, plot = get_vars(['fmt', 's', 'sav'], checked_args)
 #print "fmt:", fmt, "size:", size, "plot:", plot
-

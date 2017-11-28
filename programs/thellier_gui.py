@@ -53,7 +53,7 @@ AUTHORS
 # 3) fix non-thellier pmag_specimen competability issue
 
 # Thellier_GUI Version 2.28 12/31/2014
-# Fix minor bug in delete interpretation buttonn
+# Fix minor bug in delete interpretation button
 #
 # Thellier_GUI Version 2.27 11/30/2014
 #
@@ -458,6 +458,7 @@ DESCRIPTION
         # intialize GUI_log
         self.GUI_log = open(os.path.join(self.WD, "thellier_GUI.log"), 'w+')
         self.GUI_log.write("starting...\n")
+        self.GUI_log.close()
         self.GUI_log = open(os.path.join(self.WD, "thellier_GUI.log"), 'a')
         os.chdir(self.WD)
         self.WD = os.getcwd()
@@ -2800,6 +2801,7 @@ You can combine multiple measurement files into one measurement file using Pmag 
         result = self.show_dlg(dlg1)
         if result == wx.ID_OK:
             dlg1.Destroy()
+            thellier_gui_redo_file.close()
             return
 
         thellier_gui_redo_file.close()
@@ -3491,6 +3493,9 @@ You can combine multiple measurement files into one measurement file using Pmag 
             self.spec_container.write_magic_file(dir_path=self.WD)
         else:
             rmag_anisotropy_file.close()
+        rmag_results_file.close()
+        rmag_anisotropy_file.close()
+        aniso_logfile.close()
 
     #==================================================
 
@@ -3604,7 +3609,9 @@ You can combine multiple measurement files into one measurement file using Pmag 
         self.Data_sites = {}
 
         fin = open(redo_file, 'r')
-        for Line in fin.readlines():
+        lines = fin.readlines()
+        fin.close()
+        for Line in lines:
             line = Line.strip('\n').split()
             specimen = line[0]
             tmin_kelvin = float(line[1])
@@ -3648,7 +3655,8 @@ You can combine multiple measurement files into one measurement file using Pmag 
                     "-W- WARNING: Can't find specimen %s from redo file in measurement file!\n" % specimen)
                 print(
                     "-W- WARNING: Can't find specimen %s from redo file in measurement file!\n" % specimen)
-        fin.close()
+        if not fin.closed:
+            fin.close()
         self.pars = self.Data[self.s]['pars']
         self.clear_boxes()
         self.draw_figure(self.s)

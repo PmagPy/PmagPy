@@ -1412,6 +1412,8 @@ def plot_di(dec=None, inc=None, di_block=None, color='k', marker='o', markersize
     X_up = []
     Y_down = []
     Y_up = []
+    color_down = []
+    color_up = []
 
     if di_block is not None:
         di_lists = unpack_di_block(di_block)
@@ -1427,24 +1429,34 @@ def plot_di(dec=None, inc=None, di_block=None, color='k', marker='o', markersize
             if inc[n] >= 0:
                 X_down.append(XY[0])
                 Y_down.append(XY[1])
+                if type(color)==list:
+                    color_down.append(color[n])
+                else:
+                    color_down.append(color)
             else:
                 X_up.append(XY[0])
                 Y_up.append(XY[1])
+                if type(color)==list:
+                    color_up.append(color[n])
+                else:
+                    color_up.append(color)
     except:
         XY = pmag.dimap(dec, inc)
         if inc >= 0:
             X_down.append(XY[0])
             Y_down.append(XY[1])
+            color_down.append(color)
         else:
             X_up.append(XY[0])
             Y_up.append(XY[1])
+            color_up.append(color)
 
     if len(X_up) > 0:
-        plt.scatter(X_up, Y_up, facecolors='none', edgecolors=color,
+        plt.scatter(X_up, Y_up, facecolors='none', edgecolors=color_up,
                     s=markersize, marker=marker, label=label)
 
     if len(X_down) > 0:
-        plt.scatter(X_down, Y_down, facecolors=color, edgecolors=color,
+        plt.scatter(X_down, Y_down, facecolors=color_down, edgecolors=color_down,
                     s=markersize, marker=marker, label=label)
     if legend == 'yes':
         plt.legend(loc=2)
@@ -2119,6 +2131,7 @@ def combine_magic(filenames, outfile, data_model=2.5, magic_table='measurements'
     outfile name if success, False if failure
     """
     if float(data_model) == 3.0:
+        outfile = pmag.resolve_file_name('.', outfile)
         output_dir_path, file_name = os.path.split(outfile)
         con = nb.Contribution(output_dir_path, read_tables=[])
         # figure out file type from first of files to join
@@ -2155,7 +2168,7 @@ def combine_magic(filenames, outfile, data_model=2.5, magic_table='measurements'
         return outfile
 
 
-def aniso_depthplot(ani_file='rmag_anisotropy.txt', meas_file='magic_measurements.txt', samp_file='er_samples.txt', age_file=None, sum_file=None, fmt='svg', dmin=-1, dmax=-1, depth_scale='sample_composite_depth', dir_path='.'):
+def aniso_depthplot(ani_file='rmag_anisotropy.txt', meas_file='magic_measurements.txt', samp_file='er_samples.txt', age_file=None, sum_file=None, fmt='svg', dmin=-1, dmax=-1, depth_scale='sample_core_depth', dir_path='.'):
     """
     returns matplotlib figure with anisotropy data plotted against depth
     available depth scales: 'sample_composite_depth', 'sample_core_depth', or 'age' (you must provide an age file to use this option)
@@ -2166,13 +2179,12 @@ def aniso_depthplot(ani_file='rmag_anisotropy.txt', meas_file='magic_measurement
     plots = 0
 
     # format files to use full path
-    ani_file = os.path.join(dir_path, ani_file)
+    ani_file = pmag.resolve_file_name(ani_file, dir_path) #os.path.join(dir_path, ani_file)
     if not os.path.isfile(ani_file):
         print("Could not find rmag_anisotropy type file: {}.\nPlease provide a valid file path and try again".format(ani_file))
         return False, "Could not find rmag_anisotropy type file: {}.\nPlease provide a valid file path and try again".format(ani_file)
 
-    meas_file = os.path.join(dir_path, meas_file)
-    # print 'meas_file', meas_file
+    meas_file = pmag.resolve_file_name(meas_file, dir_path) #os.path.join(dir_path, meas_file)
 
     if age_file:
         if not os.path.isfile(age_file):
@@ -2180,14 +2192,14 @@ def aniso_depthplot(ani_file='rmag_anisotropy.txt', meas_file='magic_measurement
                 'Warning: you have provided an invalid age file.  Attempting to use sample file instead')
             age_file = None
             depth_scale = 'sample_core_depth'
-            samp_file = os.path.join(dir_path, samp_file)
+            samp_file = pmag.resolve_file_name(samp_file, dir_path) #os.path.join(dir_path, samp_file)
         else:
-            samp_file = os.path.join(dir_path, age_file)
+            samp_file = pmag.resolve_file_name(samp_file, dir_path) # os.path.join(dir_path, age_file)
             depth_scale = 'age'
             print(
                 'Warning: you have provided an er_ages format file, which will take precedence over er_samples')
     else:
-        samp_file = os.path.join(dir_path, samp_file)
+        samp_file = pmag.resolve_file_name(samp_file, dir_path)
 
     label = 1
 
@@ -2218,8 +2230,9 @@ def aniso_depthplot(ani_file='rmag_anisotropy.txt', meas_file='magic_measurement
     Bulks = []
     BulkDepths = []
     for rec in AniData:
-        samprecs = pmag.get_dictitem(Samps, 'er_sample_name', rec['er_sample_name'].upper(
-        ), 'T')  # look for depth record for this sample
+        # look for depth record for this sample
+        samprecs = pmag.get_dictitem(Samps, 'er_sample_name',
+                                     rec['er_sample_name'].upper(), 'T')
         # see if there are non-blank depth data
         sampdepths = pmag.get_dictitem(samprecs, depth_scale, '', 'F')
         if dmax != -1:
@@ -2251,7 +2264,6 @@ def aniso_depthplot(ani_file='rmag_anisotropy.txt', meas_file='magic_measurement
         location = Data[0]['er_location_name']
     else:
         return False, 'no data to plot'
-
     # collect the data for plotting tau  V3_inc and V1_dec
     Depths, Tau1, Tau2, Tau3, V3Incs, P, V1Decs = [], [], [], [], [], [], []
     F23s = []
@@ -2396,24 +2408,324 @@ def aniso_depthplot(ani_file='rmag_anisotropy.txt', meas_file='magic_measurement
         return False, "No data to plot"
 
 
+def aniso_depthplot3(spec_file='specimens.txt', samp_file='samples.txt',
+                     meas_file='measurements.txt', site_file='sites.txt',
+                     age_file=None, sum_file=None, fmt='svg', dmin=-1, dmax=-1,
+                     depth_scale='core_depth', dir_path='.'):
+    """
+    returns matplotlib figure with anisotropy data plotted against depth
+    available depth scales: 'composite_depth', 'core_depth' or 'age' (you must provide an age file to use this option)
+
+    """
+
+
+    if depth_scale == 'sample_core_depth':
+        depth_scale = 'core_depth'
+    if depth_scale == 'sample_composite_depth':
+        depth_scale = 'composite_depth'
+
+    pcol = 4
+    tint = 9
+    plots = 0
+
+    # format files to use full path
+
+    meas_file = pmag.resolve_file_name(meas_file, dir_path)
+    spec_file = pmag.resolve_file_name(spec_file, dir_path)
+    samp_file = pmag.resolve_file_name(samp_file, dir_path)
+    site_file = pmag.resolve_file_name(site_file, dir_path)
+
+    if age_file:
+        age_file = pmag.resolve_file_name(age_file, dir_path)
+        if not os.path.isfile(age_file):
+            print(
+                'Warning: you have provided an invalid age file.  Attempting to use sample file instead')
+            age_file = None
+            depth_scale = 'core_depth'
+        else:
+            samp_file = age_file
+            depth_scale = 'age'
+            print(
+                'Warning: you have provided an ages format file, which will take precedence over samples')
+
+    samp_file = pmag.resolve_file_name(samp_file, dir_path)
+
+    for (ftype, fname) in [('specimen', spec_file),
+                           ('sample', samp_file),
+                           ('site', site_file)]:
+        if not os.path.exists(fname):
+            print("-W- This function requires a {} file to run.".format(ftype))
+            print("    Make sure you include one in your working directory")
+            return False, "missing required file type: {}".format(ftype)
+
+    label = 1
+
+    if sum_file:
+        sum_file = pmag.resolve_file_name(sum_file, dir_path)
+
+    dmin, dmax = float(dmin), float(dmax)
+
+    # contribution
+
+    dir_path = os.path.split(spec_file)[0]
+    tables = ['measurements', 'specimens', 'samples', 'sites']
+    con = nb.Contribution(dir_path, read_tables=tables,
+                          custom_filenames={'measurements': meas_file, 'specimens': spec_file,
+                                            'samples': samp_file, 'sites': site_file})
+    con.propagate_cols(['core_depth'], 'samples', 'sites')
+    con.propagate_location_to_specimens()
+
+    # get data read in
+    isbulk = 0  # tests if there are bulk susceptibility measurements
+    ani_file = spec_file
+
+    #AniData, file_type = pmag.magic_read(ani_file)  # read in tensor elements
+    #AniData = con.tables['samples'].convert_to_pmag_data_list()
+    AniData = con.tables['specimens'].convert_to_pmag_data_list()
+
+    if not age_file:
+        Samps = con.tables['samples'].convert_to_pmag_data_list()
+    else:
+        con.add_magic_table(dtype='ages', fname=age_file)
+        Samps = con.tables['ages'].convert_to_pmag_data_list()
+        # get age unit
+        age_unit = con.tables['ages'].df['age_unit'][0]
+        # propagate ages down to sample level
+
+    for s in Samps:
+        # change to upper case for every sample name
+        s['sample'] = s['sample'].upper()
+
+    if 'measurements' in con.tables:
+        isbulk = 1
+        Meas = con.tables['measurements'].convert_to_pmag_data_list()
+
+    Data = []
+    Bulks = []
+    BulkDepths = []
+
+    for rec in AniData:
+        # look for depth record for this sample
+        samprecs = pmag.get_dictitem(Samps, 'sample',
+                         rec['sample'].upper(), 'T')
+        # see if there are non-blank depth data
+        sampdepths = pmag.get_dictitem(samprecs, depth_scale, '', 'F')
+        if dmax != -1:
+            # fishes out records within depth bounds
+            sampdepths = pmag.get_dictitem(
+                sampdepths, depth_scale, dmax, 'max')
+            sampdepths = pmag.get_dictitem(
+                sampdepths, depth_scale, dmin, 'min')
+        if len(sampdepths) > 0:  # if there are any....
+            # set the core depth of this record
+            rec['core_depth'] = sampdepths[0][depth_scale]
+            Data.append(rec)  # fish out data with core_depth
+            if isbulk:  # if there are bulk data
+                chis = pmag.get_dictitem(
+                    Meas, 'specimen', rec['specimen'], 'T')
+                # get the non-zero values for this specimen
+                chis = pmag.get_dictitem(
+                    chis, 'susc_chi_volume', '', 'not_null')
+                chis = pmag.get_dictitem(
+                    chis, 'susc_chi_volume', '', 'F')
+                if len(chis) > 0:  # if there are any....
+                    # put in microSI
+                    Bulks.append(
+                        1e6 * float(chis[0]['susc_chi_volume']))
+                    BulkDepths.append(float(sampdepths[0][depth_scale]))
+
+    if len(Bulks) > 0:  # set min and max bulk values
+        bmin = min(Bulks)
+        bmax = max(Bulks)
+    xlab = "Depth (m)"
+
+    if len(Data) > 0:
+        location = Data[0].get('location', 'unknown')
+        if nb.is_null(location):
+            location = 'unknown'
+            try:
+                location = con.tables['sites'].df['location'][0]
+            except KeyError:
+                pass
+    else:
+        return False, 'no data to plot'
+
+    # collect the data for plotting tau  V3_inc and V1_dec
+    Depths, Tau1, Tau2, Tau3, V3Incs, P, V1Decs = [], [], [], [], [], [], []
+    F23s = []
+    Axs = []  # collect the plot ids
+# START HERE
+    if len(Bulks) > 0:
+        pcol += 1
+
+    Data = pmag.get_dictitem(Data, 'aniso_s', '', 'not_null')
+    # get all the s1 values from Data as floats
+    aniso_s = pmag.get_dictkey(Data, 'aniso_s', '')
+    aniso_s = [a.split(':') for a in aniso_s if a is not None]
+    #print('aniso_s', aniso_s)
+    s1 = [float(a[0]) for a in aniso_s]
+    s2 = [float(a[1]) for a in aniso_s]
+    s3 = [float(a[2]) for a in aniso_s]
+    s4 = [float(a[3]) for a in aniso_s]
+    s5 = [float(a[4]) for a in aniso_s]
+    s6 = [float(a[5]) for a in aniso_s]
+    # we are good with s1 - s2
+    nmeas = pmag.get_dictkey(Data, 'aniso_s_n_measurements', 'int')
+    sigma = pmag.get_dictkey(Data, 'aniso_s_sigma', 'f')
+    Depths = pmag.get_dictkey(Data, 'core_depth', 'f')
+    # Ss=np.array([s1,s4,s5,s4,s2,s6,s5,s6,s3]).transpose() # make an array
+    Ss = np.array([s1, s2, s3, s4, s5, s6]).transpose()  # make an array
+    # Ts=np.reshape(Ss,(len(Ss),3,-1)) # and re-shape to be n-length array of
+    # 3x3 sub-arrays
+    for k in range(len(Depths)):
+        # tau,Evecs= pmag.tauV(Ts[k]) # get the sorted eigenvalues and eigenvectors
+        # v3=pmag.cart2dir(Evecs[2])[1] # convert to inclination of the minimum
+        # eigenvector
+        fpars = pmag.dohext(nmeas[k] - 6, sigma[k], Ss[k])
+        V3Incs.append(fpars['v3_inc'])
+        V1Decs.append(fpars['v1_dec'])
+        Tau1.append(fpars['t1'])
+        Tau2.append(fpars['t2'])
+        Tau3.append(fpars['t3'])
+        P.append(old_div(Tau1[-1], Tau3[-1]))
+        F23s.append(fpars['F23'])
+    if len(Depths) > 0:
+        if dmax == -1:
+            dmax = max(Depths)
+            dmin = min(Depths)
+        tau_min = 1
+        for t in Tau3:
+            if t > 0 and t < tau_min:
+                tau_min = t
+        tau_max = max(Tau1)
+        # tau_min=min(Tau3)
+        P_max = max(P)
+        P_min = min(P)
+        # dmax=dmax+.05*dmax
+        # dmin=dmin-.05*dmax
+
+        main_plot = plt.figure(1, figsize=(10, 8))  # make the figure
+
+        version_num = pmag.get_version()
+        plt.figtext(.02, .01, version_num)  # attach the pmagpy version number
+        ax = plt.subplot(1, pcol, 1)  # make the first column
+        Axs.append(ax)
+        ax.plot(Tau1, Depths, 'rs')
+        ax.plot(Tau2, Depths, 'b^')
+        ax.plot(Tau3, Depths, 'ko')
+        if sum_file:
+            core_depth_key, core_label_key, Cores = read_core_csv_file(
+                sum_file)
+            for core in Cores:
+                depth = float(core[core_depth_key])
+                if depth > dmin and depth < dmax:
+                    plt.plot([0, 90], [depth, depth], 'b--')
+        ax.axis([tau_min, tau_max, dmax, dmin])
+        ax.set_xlabel('Eigenvalues')
+        if depth_scale == 'core_depth':
+            ax.set_ylabel('Depth (mbsf)')
+        elif depth_scale == 'age':
+            ax.set_ylabel('Age (' + age_unit + ')')
+        else:
+            ax.set_ylabel('Depth (mcd)')
+        ax2 = plt.subplot(1, pcol, 2)  # make the second column
+        ax2.plot(P, Depths, 'rs')
+        ax2.axis([P_min, P_max, dmax, dmin])
+        ax2.set_xlabel('P')
+        ax2.set_title(location)
+        if sum_file:
+            for core in Cores:
+                depth = float(core[core_depth_key])
+                if depth > dmin and depth < dmax:
+                    plt.plot([0, 90], [depth, depth], 'b--')
+        Axs.append(ax2)
+        ax3 = plt.subplot(1, pcol, 3)
+        Axs.append(ax3)
+        ax3.plot(V3Incs, Depths, 'ko')
+        ax3.axis([0, 90, dmax, dmin])
+        ax3.set_xlabel('V3 Inclination')
+        if sum_file:
+            for core in Cores:
+                depth = float(core[core_depth_key])
+                if depth > dmin and depth < dmax:
+                    plt.plot([0, 90], [depth, depth], 'b--')
+        ax4 = plt.subplot(1, np.abs(pcol), 4)
+        Axs.append(ax4)
+        ax4.plot(V1Decs, Depths, 'rs')
+        ax4.axis([0, 360, dmax, dmin])
+        ax4.set_xlabel('V1 Declination')
+        if sum_file:
+            for core in Cores:
+                depth = float(core[core_depth_key])
+                if depth >= dmin and depth <= dmax:
+                    plt.plot([0, 360], [depth, depth], 'b--')
+                    if pcol == 4 and label == 1:
+                        plt.text(360, depth + tint, core[core_label_key])
+        # ax5=plt.subplot(1,np.abs(pcol),5)
+        # Axs.append(ax5)
+        # ax5.plot(F23s,Depths,'rs')
+        # bounds=ax5.axis()
+        # ax5.axis([bounds[0],bounds[1],dmax,dmin])
+        # ax5.set_xlabel('F_23')
+        # ax5.semilogx()
+        # if sum_file:
+        #    for core in Cores:
+        #         depth=float(core[core_depth_key])
+        #         if depth>=dmin and depth<=dmax:
+        #            plt.plot([bounds[0],bounds[1]],[depth,depth],'b--')
+        #            if pcol==5 and label==1:plt.text(bounds[1],depth+tint,core[core_label_key])
+        # if pcol==6:
+        if pcol == 5:
+            # ax6=plt.subplot(1,pcol,6)
+            ax6 = plt.subplot(1, pcol, 5)
+            Axs.append(ax6)
+            ax6.plot(Bulks, BulkDepths, 'bo')
+            ax6.axis([bmin - 1, 1.1 * bmax, dmax, dmin])
+            ax6.set_xlabel('Bulk Susc. (uSI)')
+            if sum_file:
+                for core in Cores:
+                    depth = float(core[core_depth_key])
+                    if depth >= dmin and depth <= dmax:
+                        plt.plot([0, bmax], [depth, depth], 'b--')
+                        if label == 1:
+                            plt.text(1.1 * bmax, depth + tint,
+                                     core[core_label_key])
+        for x in Axs:
+            # this makes the x-tick labels more reasonable - they were
+            # overcrowded using the defaults
+            pmagplotlib.delticks(x)
+        fig_name = location + '_ani_depthplot.' + fmt
+        return main_plot, fig_name
+    else:
+        return False, "No data to plot"
+
+
 def core_depthplot(input_dir_path='.', meas_file='magic_measurements.txt', spc_file='',
                    samp_file='', age_file='', sum_file='', wt_file='',
                    depth_scale='sample_core_depth', dmin=-1, dmax=-1, sym='bo',
                    size=5, spc_sym='ro', spc_size=5, meth='', step=0, fmt='svg',
                    pltDec=True, pltInc=True, pltMag=True, pltLine=True, pltSus=True,
                    logit=False, pltTime=False, timescale=None, amin=-1, amax=-1,
-                   norm=False):
+                   norm=False, data_model_num=3):
     """
     depth scale can be 'sample_core_depth' or 'sample_composite_depth'
     if age file is provided, depth_scale will be set to 'age' by default
     """
-    # print 'input_dir_path', input_dir_path, 'meas_file', meas_file, 'spc_file', spc_file
-    # print 'samp_file', samp_file, 'age_file', age_file, 'depth_scale', depth_scale
-    # print 'dmin', dmin, 'dmax', dmax, 'sym', sym, 'size', size, 'spc_sym', spc_sym, 'spc_size', spc_size,
-    # print 'meth', meth, 'step', step, 'fmt', fmt, 'pltDec', pltDec, 'pltInc', pltInc, 'pltMag', pltMag,
-    # print 'pltLine', pltLine, 'pltSus', pltSus, 'logit', logit, 'timescale', timescale, 'amin', amin, 'amax', amax
+    #print('input_dir_path', input_dir_path, 'meas_file', meas_file, 'spc_file', spc_file)
+    #print('samp_file', samp_file, 'age_file', age_file, 'depth_scale', depth_scale)
+    #print('dmin', dmin, 'dmax', dmax, 'sym', sym, 'size', size, 'spc_sym', spc_sym, 'spc_size', spc_size)
+    #print('meth', meth, 'step', step, 'fmt', fmt, 'pltDec', pltDec, 'pltInc', pltInc, 'pltMag', pltMag)
+    #print('pltLine', pltLine, 'pltSus', pltSus, 'logit', logit, 'timescale', timescale, 'amin', amin, 'amax', amax)
     # print 'pltTime', pltTime
     # print 'norm', norm
+    data_model_num = int(data_model_num)
+    # replace MagIC 2.5 defaults with MagIC 3 defaults if needed
+    if data_model_num == 3 and meas_file == 'magic_measurements.txt':
+        meas_file = 'measurements.txt'
+    if data_model_num == 3 and samp_file == 'er_samples.txt':
+        samp_file = 'samples.txt'
+    if data_model_num == 3 and age_file == 'er_ages.txt':
+        age_file = 'ages.txt'
     intlist = ['measurement_magnitude', 'measurement_magn_moment',
                'measurement_magn_volume', 'measurement_magn_mass']
     width = 10
@@ -2499,29 +2811,88 @@ def core_depthplot(input_dir_path='.', meas_file='magic_measurements.txt', spc_f
 
     #
     #
-    # get data read in
+    # read in 3.0 data and translate to 2.5
+    if data_model_num == 3:
+        if meas_file:
+            meas_file = os.path.join(input_dir_path, meas_file)
+        if spc_file:
+            spc_file = os.path.join(input_dir_path, spc_file)
+        if age_file == "":
+            if samp_file:
+                samp_file = os.path.join(input_dir_path, samp_file)
+            Samps3, file_type = pmag.magic_read(samp_file)
+            #translate samp records to MagIC 2.5
+            Samps = []
+            for samp in Samps3:
+                Samps.append(map_magic.mapping(samp, map_magic.samp_magic3_2_magic2_map))
 
-    meas_file = os.path.join(input_dir_path, meas_file)
-    spc_file = os.path.join(input_dir_path, spc_file)
-    if age_file == "":
-        samp_file = os.path.join(input_dir_path, samp_file)
-        Samps, file_type = pmag.magic_read(samp_file)
+        else:
+            depth_scale = 'age'
+            if age_file:
+                age_file = os.path.join(input_dir_path, age_file)
+            Samps3, file_type = pmag.magic_read(age_file)
+            #translate samp records to MagIC 2.5
+            Samps = []
+            for samp in Samps3:
+                Samps.append(map_magic.mapping(samp, map_magic.samp_magic3_2_magic2_map))
+            age_unit = ""
+        if spc_file:
+            Specs3, file_type = pmag.magic_read(spc_file)
+            #translate specimen records to MagIC 2.5
+            Specs = []
+            for spec in Specs3:
+                Specs.append(map_magic.mapping(spec, map_magic.spec_magic3_2_magic2_map))
+
+        if res_file:
+            warn = '-W- result file option is not currently available for MagIC data model 3'
+            print(warn)
+            return False, warn
+            #Results, file_type = pmag.magic_read(res_file)
+        if norm:
+            #warn = '-W- norm option is not currently available for MagIC data model 3'
+            #print(warn)
+            #return False, warn
+            Specs3, file_type = pmag.magic_read(wt_file)
+            # translate specimen records to 2.5
+            ErSpecs = []
+            for spec in Samps3:
+                ErSpecs.append(map_magic.mapping(spec, samp_magic3_2_magic2_map))
+
+            print(len(ErSpecs), ' specimens read in from ', wt_file)
+
+        if not os.path.isfile(spc_file):
+            if not os.path.isfile(meas_file):
+                return False, "You must provide either a magic_measurements file or a pmag_specimens file"
+
+    # read in 2.5 data
+    elif data_model_num == 2:
+        if meas_file:
+            meas_file = os.path.join(input_dir_path, meas_file)
+        if spc_file:
+            spc_file = os.path.join(input_dir_path, spc_file)
+        if age_file == "":
+            if samp_file:
+                samp_file = os.path.join(input_dir_path, samp_file)
+            Samps, file_type = pmag.magic_read(samp_file)
+        else:
+            depth_scale = 'age'
+            if age_file:
+                age_file = os.path.join(input_dir_path, age_file)
+            Samps, file_type = pmag.magic_read(age_file)
+            age_unit = ""
+        if spc_file:
+            Specs, file_type = pmag.magic_read(spc_file)
+        if res_file:
+            Results, file_type = pmag.magic_read(res_file)
+        if norm:
+            ErSpecs, file_type = pmag.magic_read(wt_file)
+            print(len(ErSpecs), ' specimens read in from ', wt_file)
+
+        if not os.path.isfile(spc_file):
+            if not os.path.isfile(meas_file):
+                return False, "You must provide either a magic_measurements file or a pmag_specimens file"
     else:
-        depth_scale = 'age'
-        age_file = os.path.join(input_dir_path, age_file)
-        Samps, file_type = pmag.magic_read(age_file)
-        age_unit = ""
-    if spc_file:
-        Specs, file_type = pmag.magic_read(spc_file)
-    if res_file:
-        Results, file_type = pmag.magic_read(res_file)
-    if norm:
-        ErSpecs, file_type = pmag.magic_read(wt_file)
-        print(len(ErSpecs), ' specimens read in from ', wt_file)
-
-    if not os.path.isfile(spc_file):
-        if not os.path.isfile(meas_file):
-            return False, "You must provide either a magic_measurements file or a pmag_specimens file"
+        return False, "Invalid data model number: {}".format(str(data_model_num))
 
     Cores = []
     core_depth_key = "Top depth cored CSF (m)"
@@ -2571,10 +2942,23 @@ def core_depthplot(input_dir_path='.', meas_file='magic_measurements.txt', spc_f
     SSucs = []
     samples = []
     methods, steps, m2 = [], [], []
+
     if pltSus and os.path.isfile(meas_file):  # plot the bulk measurement data
-        Meas, file_type = pmag.magic_read(meas_file)
+        if data_model_num == 3:
+            Meas3, file_type = pmag.magic_read(meas_file)
+            #translate meas records to MagIC 2.5
+            Meas = []
+            for meas in Meas3:
+                Meas.append(map_magic.mapping(meas, map_magic.meas_magic3_2_magic2_map))
+            # has measurement_magn_mass ....
+
+        elif data_model_num == 2:
+            Meas, file_type = pmag.magic_read(meas_file)
+
         meas_key = 'measurement_magn_moment'
+        #
         print(len(Meas), ' measurements read in from ', meas_file)
+        #
         for m in intlist:  # find the intensity key with data
             # get all non-blank data for this specimen
             meas_data = pmag.get_dictitem(Meas, m, '', 'F')
@@ -3149,7 +3533,7 @@ def upload_magic(concat=0, dir_path='.', data_model=None):
     for File in file_names:
         # read in the data
         Data, file_type = pmag.magic_read(File)
-        if file_type != "bad_file":
+        if (file_type != "bad_file") and (file_type != "empty_file"):
             print("-I- file", File, " successfully read in")
             if len(RmKeys) > 0:
                 for rec in Data:
@@ -3318,7 +3702,6 @@ def upload_magic3(concat=0, dir_path='.', dmodel=None, vocab="", contribution=No
     """
     Finds all magic files in a given directory, and compiles them into an
     upload.txt file which can be uploaded into the MagIC database.
-
     Parameters
     ----------
     concat : boolean where True means do concatenate to upload.txt file in dir_path,
@@ -3330,13 +3713,13 @@ def upload_magic3(concat=0, dir_path='.', dmodel=None, vocab="", contribution=No
         if not provided will be created (default None)
     contribution : pmagpy new_builder.Contribution object, if not provided will be created
         in directory (default None)
-
     Returns
     ----------
     tuple of either: (False, error_message, errors, all_failing_items)
     if there was a problem creating/validating the upload file
     or: (filename, '', None, None) if the file creation was fully successful.
     """
+    dir_path = os.path.realpath(dir_path)
     locations = []
     concat = int(concat)
     dtypes = ["locations", "samples", "specimens", "sites", "ages", "measurements",
@@ -3350,35 +3733,45 @@ def upload_magic3(concat=0, dir_path='.', dmodel=None, vocab="", contribution=No
                                                             ", ".join(error_fnames)))
     for error in error_full_fnames:
         os.remove(error)
-    if not file_names and nb.is_null(contribution):
-        real_path = os.path.realpath(dir_path)
-        print("-W- No 3.0 files found in your directory: {}, upload file not created".format(real_path))
-        return False, "no 3.0 files found, upload file not created", None, None
     if isinstance(contribution, nb.Contribution):
         # if contribution object provided, use it
         con = contribution
         for table_name in con.tables:
             con.tables[table_name].write_magic_file()
-    else:
+    elif file_names:
         # otherwise create a new Contribution in dir_path
         con = Contribution(dir_path, vocabulary=vocab)
+    else:
+        # if no contribution is provided and no contribution could be created,
+        # you are out of luck
+        print("-W- No 3.0 files found in your directory: {}, upload file not created".format(dir_path))
+        return False, "no 3.0 files found, upload file not created", None, None
 
-    dir_path = con.directory
+    # if the contribution has no tables, you can't make an upload file
+    if not con.tables.keys():
+        print("-W- No tables found in your contribution, file not created".format(dir_path))
+        return False, "-W- No tables found in your contribution, file not created", None, None
+
     # take out any extra added columns
-    con.remove_non_magic_cols()
+    #con.remove_non_magic_cols()
+
     # begin the upload process
     up = os.path.join(dir_path, "upload.txt")
     if os.path.exists(up):
         os.remove(up)
-    RmKeys = ['citation_label', 'compilation', 'calculation_type', 'average_n_lines', 'average_n_planes',
+    RmKeys = ('citation_label', 'compilation', 'calculation_type', 'average_n_lines', 'average_n_planes',
               'specimen_grade', 'site_vgp_lat', 'site_vgp_lon', 'direction_type', 'specimen_Z',
               'magic_instrument_codes', 'cooling_rate_corr', 'cooling_rate_mcd', 'anisotropy_atrm_alt',
               'anisotropy_apar_perc', 'anisotropy_F', 'anisotropy_F_crit', 'specimen_scat',
               'specimen_gmax', 'specimen_frac', 'site_vadm', 'site_lon', 'site_vdm', 'site_lat',
               'measurement_chi', 'specimen_k_prime', 'specimen_k_prime_sse', 'external_database_names',
               'external_database_ids', 'Further Notes', 'Typology', 'Notes (Year/Area/Locus/Level)',
-              'Site', 'Object Number', 'version']
-    print("-I- Removing: ", RmKeys)
+              'Site', 'Object Number', 'version')
+    #print("-I- Removing: ", RmKeys)
+    extra_RmKeys = {'measurements': ['sample', 'site', 'location'],
+                    'specimens': ['site', 'location', 'age', 'age_unit', 'age_high', 'age_low', 'age_sigma'],
+                    'samples': ['location', 'age', 'age_unit', 'age_high', 'age_low', 'age_sigma']}
+
     failing = []
     all_failing_items = {}
     if not dmodel:
@@ -3390,9 +3783,18 @@ def upload_magic3(concat=0, dir_path='.', dmodel=None, vocab="", contribution=No
         if len(df):
             print("-I- {} file successfully read in".format(file_type))
     # make some adjustments to clean up data
-            # drop non MagIC keys
-            DropKeys = set(RmKeys).intersection(df.columns)
-            df.drop(DropKeys, axis=1, inplace=True)
+            ## drop non MagIC keys
+            #DropKeys = set(RmKeys).intersection(df.columns)
+            DropKeys = list(RmKeys) + extra_RmKeys.get(file_type, [])
+            DropKeys = set(DropKeys).intersection(df.columns)
+            if DropKeys:
+                print('-I- dropping these columns: {} from the {} table'.format(', '.join(DropKeys), file_type))
+                df.drop(DropKeys, axis=1, inplace=True)
+            container.df = df
+            unrecognized_cols = container.get_non_magic_cols()
+            if unrecognized_cols:
+                print('-W- {} table still has some unrecognized columns: {}'.format(file_type.title(),
+                                                                                    ", ".join(unrecognized_cols)))
             # make sure int_b_beta is positive
             if 'int_b_beta' in df.columns:
                 # get rid of empty strings
@@ -3950,10 +4352,15 @@ def specimens_results_magic(infile='pmag_specimens.txt', measfile='magic_measure
                         siteD = pmag.get_dictitem(
                             tmp1, key + '_comp_name', comp, 'T')
                         # remove bad data from means
-                        siteD = [
-                            x if 'specimen_flag' in x and x['specimen_flag'] == 'g' else True for x in siteD]
-                        siteD = [x if 'sample_flag' in x and x['sample_flag']
-                                 == 'g' else True for x in siteD]
+                        quality_siteD = []
+                        # remove any records for which specimen_flag or sample_flag are 'b'
+                        # assume 'g' if flag is not provided
+                        for rec in siteD:
+                            spec_quality = rec.get('specimen_flag', 'g')
+                            samp_quality = rec.get('sample_flag', 'g')
+                            if (spec_quality == 'g') and (samp_quality == 'g'):
+                                quality_siteD.append(rec)
+                        siteD = quality_siteD
                         if len(siteD) > 0:  # there are some for this site and component name
                             # get an average for this site
                             PmagSiteRec = pmag.lnpbykey(siteD, 'site', key)
@@ -4562,7 +4969,7 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
             else:
                 MagRec[key] = ""
 
-        # the following keys are cab be defined here as "Not Specified" :
+        # the following keys, if blank, used to be defined here as "Not Specified" :
 
         for key in ["sample_class", "sample_lithology", "sample_type"]:
             if key in list(OrRec.keys()) and OrRec[key] != "" and OrRec[key] != "Not Specified":
@@ -4570,7 +4977,7 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
             elif key in list(Prev_MagRec.keys()) and Prev_MagRec[key] != "" and Prev_MagRec[key] != "Not Specified":
                 MagRec[key] = Prev_MagRec[key]
             else:
-                MagRec[key] = "Not Specified"
+                MagRec[key] = ""#"Not Specified"
 
         # (rshaar) From here parse new information and replace previous, if exists:
     #
@@ -4958,7 +5365,7 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
     return True, None
 
 
-def azdip_magic(orient_file='orient.txt', samp_file="er_samples.txt", samp_con="1", Z=1, method_codes='FS-FD', location_name='unknown', append=False, output_dir='.', input_dir='.'):
+def azdip_magic(orient_file='orient.txt', samp_file="er_samples.txt", samp_con="1", Z=1, method_codes='FS-FD', location_name='unknown', append=False, output_dir='.', input_dir='.', data_model=2):
     """
     azdip_magic(orient_file='orient.txt', samp_file="er_samples.txt", samp_con="1", Z=1, method_codes='FS-FD', location_name='unknown', append=False):
     takes space delimited AzDip file and converts to MagIC formatted tables
@@ -4999,6 +5406,9 @@ def azdip_magic(orient_file='orient.txt', samp_file="er_samples.txt", samp_con="
     #
     # initialize variables
     #
+    data_model = int(data_model)
+    if (data_model == 3) and (samp_file == "er_samples.txt"):
+        samp_file = "samples.txt"
     DEBUG = 0
     version_num = pmag.get_version()
     or_con, corr = "3", "1"
@@ -5018,8 +5428,10 @@ def azdip_magic(orient_file='orient.txt', samp_file="er_samples.txt", samp_con="
     user = ""
     corr == "3"
     DecCorr = 0.
-    samp_file = os.path.join(output_dir, samp_file)
-    orient_file = os.path.join(input_dir, orient_file)
+    samp_file = pmag.resolve_file_name(samp_file, output_dir)
+    orient_file = pmag.resolve_file_name(orient_file, input_dir)
+    input_dir = os.path.split(orient_file)[0]
+    output_dir = os.path.split(samp_file)[0]
     #
     #
     if append:
@@ -5080,7 +5492,16 @@ def azdip_magic(orient_file='orient.txt', samp_file="er_samples.txt", samp_con="
         if samp not in samplist:
             SampOut.append(samp)
     Samps, keys = pmag.fillkeys(SampOut)
-    pmag.magic_write(samp_file, Samps, "er_samples")
+    if data_model == 2:
+        # write to file
+        pmag.magic_write(samp_file, Samps, "er_samples")
+    else:
+        #translate sample records to MagIC 3
+        Samps3 = []
+        for samp in Samps:
+            Samps3.append(map_magic.mapping(samp, map_magic.samp_magic2_2_magic3_map))
+        # write to file
+        pmag.magic_write(samp_file, Samps3, "samples")
     print("Data saved in ", samp_file)
     return True, None
 

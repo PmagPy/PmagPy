@@ -8,6 +8,7 @@ import pkg_resources
 command = path.split(sys.argv[0])[-1]
 
 from .program_envs import prog_env
+
 if command.endswith(".py"):
     mpl_env = prog_env.get(command[:-3])
 elif command.endswith("_a"):
@@ -16,10 +17,16 @@ else:
     mpl_env = prog_env.get(command)
 
 import matplotlib
-if mpl_env:
-    matplotlib.use(mpl_env)
+
+# if backend was already set, skip this step
+if matplotlib.get_backend() in ('WXAgg', 'TKAgg'):
+    pass
+# if backend wasn't set yet, set it appropriately
 else:
-    matplotlib.use("TKAgg")
+    if mpl_env:
+        matplotlib.use(mpl_env)
+    else:
+        matplotlib.use("TKAgg")
 
 if "-v" in sys.argv:
     print("You are running:")

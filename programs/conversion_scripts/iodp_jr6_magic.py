@@ -75,17 +75,23 @@ def convert(**kwargs):
 
     meth_code=meth_code+":FS-C-DRILL-IODP:SP-SS-C:SO-V"
     meth_code=meth_code.strip(":")
+    if not mag_file:
+        print("-W- You must provide an IODP_jr6 format file")
+        return False, "You must provide an IODP_jr6 format file"
+
     mag_file = os.path.join(input_dir_path, mag_file)
 
     # validate variables
-    if not os.path.exists(mag_file):
+    if not os.path.isfile(mag_file):
         print('The input file you provided: {} does not exist.\nMake sure you have specified the correct filename AND correct input directory name.'.format(mag_file))
         return False, 'The input file you provided: {} does not exist.\nMake sure you have specified the correct filename AND correct input directory name.'.format(mag_file)
 
     # parse data
     temp = os.path.join(output_dir_path, 'temp.txt')
     fix_separation(mag_file, temp)
-    lines = open(temp, 'r').readlines()
+    infile = open(temp, 'r')
+    lines = infile.readlines()
+    infile.close()
     try: os.remove(temp)
     except OSError: print("problem with temp file")
     citations="This Study"

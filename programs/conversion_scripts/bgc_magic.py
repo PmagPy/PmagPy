@@ -69,7 +69,7 @@ def convert(**kwargs):
     samp_file = kwargs.get('samp_file', 'samples.txt')
     site_file = kwargs.get('site_file', 'sites.txt') # site outfile
     loc_file = kwargs.get('loc_file', 'locations.txt') # Loc outfile
-    mag_file = kwargs.get('mag_file') #required
+    mag_file = kwargs.get('mag_file', '') #required
     location = kwargs.get('location', 'unknown')
     site = kwargs.get('site', '')
     samp_con = kwargs.get('samp_con', '1')
@@ -101,10 +101,11 @@ def convert(**kwargs):
     else: Z=1
 
     # format variables
+    mag_file = os.path.join(input_dir_path, mag_file)
     if not os.path.isfile(mag_file):
         print("%s is not a BGC file"%mag_file)
         return False, 'You must provide a BCG format file'
-    mag_file = os.path.join(input_dir_path, mag_file)
+
 
     # Open up the BGC file and read the header information
     print('mag_file in bgc_magic', mag_file)
@@ -239,12 +240,11 @@ def convert(**kwargs):
     MeasOuts=pmag.measurements_methods3(MeasRecs,noave)
     con.add_magic_table_from_data(dtype='measurements', data=MeasOuts)
 
-    
-    con.tables['specimens'].write_magic_file(custom_name=spec_file, append=append)
-    con.tables['samples'].write_magic_file(custom_name=samp_file, append=append)
-    con.tables['sites'].write_magic_file(custom_name=site_file, append=append)
-    con.tables['locations'].write_magic_file(custom_name=loc_file, append=append)
-    con.tables['measurements'].write_magic_file(custom_name=meas_file, append=append)
+    con.write_table_to_file('specimens', custom_name=spec_file, append=append)
+    con.write_table_to_file('samples', custom_name=samp_file, append=append)
+    con.write_table_to_file('sites', custom_name=site_file, append=append)
+    con.write_table_to_file('locations', custom_name=loc_file, append=append)
+    meas_file = con.write_table_to_file('measurements', custom_name=meas_file, append=append)
 
     return True, meas_file
 

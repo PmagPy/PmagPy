@@ -34,6 +34,7 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
         self.huge = huge
         self.df_slice = None
         self.exclude_cols = exclude_cols
+        self.error_frame = None
 
         self.panel = wx.Panel(self, name=panel_name, size=wx.GetDisplaySize())
         self.grid_type = str(panel_name)
@@ -359,6 +360,19 @@ class GridFrame(wx.Frame):  # class GridFrame(wx.ScrolledWindow):
             self.code_msg_boxsizer.ShowItems(False)
             btn.SetLabel('Show method codes')
         self.do_fit(None)
+
+    def show_errors(self, event):
+        from dialogs import thellier_gui_dialogs
+        import os
+        error_file = os.path.join(self.WD, self.grid_type + "_errors.txt")
+        if not os.path.exists(error_file):
+            pw.simple_warning("No error file for this grid")
+            return
+        frame = thellier_gui_dialogs.MyForm(0, error_file)
+        frame.Show()
+        self.error_frame = frame
+        # frame should be destroyed when grid frame is
+
 
     ##  Grid event methods
 

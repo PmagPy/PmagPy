@@ -259,6 +259,8 @@ class MainFrame(wx.Frame):
     def on_close_grid_frame(self, event=None):
         if self.grid_frame!=None and self.grid_frame.grid.changes:
             self.edited = True
+        if self.grid_frame.error_frame:
+            self.grid_frame.error_frame.Destroy()
         self.grid_frame = None
         try: self.Show()
         except RuntimeError: pass
@@ -327,6 +329,11 @@ class MainFrame(wx.Frame):
                     if not skip_cell_render:
                         row_string += "Cells with problem data are highlighted according to the type of problem.\nRed: incorrect data\n"
                     row_string += "For full error messages, see {}.".format(grid_type + "_errors.txt")
+                    # reset codes button to show error file instead
+                    self.grid_frame.toggle_codes_btn.SetLabel("Show errors")
+                    self.grid_frame.Bind(wx.EVT_BUTTON, self.grid_frame.show_errors,
+                                         self.grid_frame.toggle_codes_btn)
+                    # paint cells
                     for row in row_problems['num']:
                         self.grid_frame.grid.paint_invalid_row(row)
                         mask = row_problems["num"] == row
@@ -355,6 +362,8 @@ class MainFrame(wx.Frame):
 
 
     def on_upload_file(self, event):
+        if not hasattr(self, "contribution"):
+            self.contribution = nb.Contribution(self.WD, dmodel=self.data_model)
         wait = wx.BusyInfo('Validating data, please wait...')
         wx.Yield()
         res, error_message, has_problems, all_failing_items = ipmag.upload_magic3(dir_path=self.WD,

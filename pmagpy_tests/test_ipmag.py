@@ -62,6 +62,8 @@ class TestUploadMagic(unittest.TestCase):
         self.assertFalse(errors)
         self.assertFalse(outfile)
         self.assertEqual(error_message, "no data found, upload file not created")
+        files = os.listdir(directory)
+        self.assertFalse(files)
 
     def test_with_invalid_files(self):
         directory = os.path.join(self.dir_path, 'my_project_with_errors')
@@ -139,7 +141,7 @@ class Test_combine_magic(unittest.TestCase):
         #res = ipmag.combine_magic(flist, 'custom_outfile.txt', 3, 'locations')
         res = ipmag.combine_magic(flist, outfile, 3, 'locations')
         self.assertTrue(res)
-        self.assertEqual(res, 'custom_outfile.txt')
+        self.assertEqual(res, outfile)
         self.assertTrue(os.path.exists(outfile))
 
 
@@ -388,7 +390,7 @@ class TestAgmMagic(unittest.TestCase):
         self.assertEqual(filename, os.path.join('.', 'agm_magic_example.magic'))
 
 
-@unittest.skipIf(sys.platform in ['darwin'], 'currently causing fatal errors on OSX')
+#@unittest.skipIf(sys.platform in ['darwin'], 'currently causing fatal errors on OSX')
 class TestCoreDepthplot(unittest.TestCase):
 
     def setUp(self):
@@ -458,7 +460,23 @@ class TestCoreDepthplot(unittest.TestCase):
         self.assertTrue(program_ran)
         self.assertEqual(plot_name, 'DSDP Site 522_m:_LT-AF-Z_core-depthplot.png')
 
-@unittest.skipIf(sys.platform in ['darwin'], 'currently causing fatal errors on OSX')
+    def test_core_depthplot_data_model3(self):
+        path = os.path.join(WD, 'data_files', 'core_depthplot')
+        program_ran, plot_name = ipmag.core_depthplot(input_dir_path=path,
+                                                      spc_file='specimens.txt',
+                                                      age_file='ages.txt',
+                                                      meth='AF', step=15,
+                                                      fmt='png', pltInc=False,
+                                                      logit=True, pltTime=True,
+                                                      timescale='gts12',
+                                                      amin=0, amax=3, data_model_num=3)
+        self.assertTrue(program_ran)
+        self.assertEqual(plot_name, 'DSDP Site 522_m:_LT-AF-Z_core-depthplot.png')
+
+
+
+
+#@unittest.skipIf(sys.platform in ['darwin'], 'currently causing fatal errors on OSX')
 class TestAnisoDepthplot(unittest.TestCase):
 
     def setUp(self):
@@ -471,7 +489,7 @@ class TestAnisoDepthplot(unittest.TestCase):
 
     def test_aniso_depthplot_with_no_files(self):
         program_ran, error_message = ipmag.aniso_depthplot()
-        expected_file = os.path.join('.', 'rmag_anisotropy.txt')
+        expected_file = pmag.resolve_file_name('rmag_anisotropy.txt')
         self.assertFalse(program_ran)
         self.assertEqual(error_message, "Could not find rmag_anisotropy type file: {}.\nPlease provide a valid file path and try again".format(expected_file))
 
@@ -496,6 +514,50 @@ class TestAnisoDepthplot(unittest.TestCase):
 
     def test_aniso_depthplot_with_options(self):
         main_plot, plot_name = ipmag.aniso_depthplot(dmin=20, dmax=40, depth_scale='sample_core_depth', fmt='png', dir_path=self.aniso_WD)
+        assert(isinstance(main_plot, matplotlib.figure.Figure))
+        self.assertEqual(plot_name, 'U1361A_ani_depthplot.png')
+
+
+class TestAnisoDepthplot3(unittest.TestCase):
+
+    def setUp(self):
+        self.aniso_WD = os.path.join(WD, 'data_files', 'ani_depthplot3')
+
+    def tearDown(self):
+        filelist = ['measurements.txt', 'specimens.txt', 'samples.txt', 'sites.txt']
+        pmag.remove_files(filelist, WD)
+        os.chdir(WD)
+
+    def test_aniso_depthplot_with_no_files(self):
+        program_ran, error_message = ipmag.aniso_depthplot3()
+        self.assertFalse(program_ran)
+        self.assertEqual(error_message, "missing required file type: specimen")
+
+    def test_aniso_depthplot_with_files(self):
+        #dir_path = os.path.join(WD, 'data_files', 'UTESTA')
+        main_plot, plot_name = ipmag.aniso_depthplot3(dir_path=self.aniso_WD,
+                                                     sum_file='CoreSummary_XXX_UTESTA.csv')
+        assert(isinstance(main_plot, matplotlib.figure.Figure))
+        self.assertEqual(plot_name, 'U1361A_ani_depthplot.svg')
+
+    def test_aniso_depthplot_with_sum_file(self):
+        dir_path = os.path.join(WD, 'data_files', 'UTESTA', 'UTESTA_MagIC3')
+        sum_file = 'CoreSummary_XXX_UTESTA.csv'
+        main_plot, plot_name = ipmag.aniso_depthplot3(dir_path=dir_path,
+                                                      sum_file=sum_file,
+                                                      depth_scale='core_depth')
+        assert(isinstance(main_plot, matplotlib.figure.Figure))
+        self.assertEqual(plot_name, 'UTESTA_ani_depthplot.svg')
+
+    def test_aniso_depthplot_with_age_option(self):
+        main_plot, plot_name = ipmag.aniso_depthplot3(age_file='ages.txt', dir_path=self.aniso_WD)
+        assert(isinstance(main_plot, matplotlib.figure.Figure))
+        self.assertEqual(plot_name, 'U1361A_ani_depthplot.svg')
+
+    def test_aniso_depthplot_with_options(self):
+        main_plot, plot_name = ipmag.aniso_depthplot3(dmin=20, dmax=40,
+                                                      depth_scale='core_depth',
+                                                      fmt='png', dir_path=self.aniso_WD)
         assert(isinstance(main_plot, matplotlib.figure.Figure))
         self.assertEqual(plot_name, 'U1361A_ani_depthplot.png')
 

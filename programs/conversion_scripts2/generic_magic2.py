@@ -40,7 +40,7 @@ def main(command_line=True, **kwargs):
             Demag:
                 AF and/or Thermal
             PI:
-                paleointenisty thermal experiment (ZI/IZ/IZZI)
+                paleointenisty thermal experiment (ZI/IZ/IZZI/TT)
             ATRM n:
 
                 ATRM in n positions (n=6)
@@ -128,11 +128,11 @@ def main(command_line=True, **kwargs):
                     0.0 or 0 is NRM
                     X is temperature in celsius
                     Y=0: zerofield
-                    Y=1: infield
+                    Y=1: infield (IZZI, IZ, ZI, and Thellier protocol- first infield)
                     Y=2: pTRM check
                     Y=3: pTRM tail check
                     Y=4: Additivity check
-                    # Ron, Add also 5 for Thellier protocol
+                    Y=5: Thellier protocol: second infield
                 coding for ATRM experiment (6 poitions):
                     X is temperature in celsius
                     Y=0: zerofield baseline to be subtracted
@@ -430,7 +430,7 @@ def main(command_line=True, **kwargs):
         if '-f' in args:
             ind=args.index("-f")
             magfile=args[ind+1]
-
+            
         if "-dc" in args:
             ind=args.index("-dc")
             labfield=float(args[ind+1])*1e-6
@@ -476,7 +476,7 @@ def main(command_line=True, **kwargs):
         labfield_phi = int(kwargs.get('labfield_phi', 0))
         labfield_theta = int(kwargs.get('labfield_theta', 0))
         experiment = kwargs.get('experiment', '')
-        cooling_times_list = kwargs.get('cooling_times_list', [])
+        cooling_times = kwargs.get('cooling_times_list', '')
         sample_nc = kwargs.get('sample_nc', [1, 0])
         site_nc = kwargs.get('site_nc', [1, 0])
         er_location_name = kwargs.get('er_location_name', '')
@@ -519,7 +519,7 @@ def main(command_line=True, **kwargs):
         if command_line:
             ind=args.index("CR")
             cooling_times=args[ind+1]
-            cooling_times_list=cooling_times.split(',')
+        cooling_times_list=cooling_times.split(',')
         # if not command line, cooling_times_list is already set
 
 
@@ -675,6 +675,14 @@ def main(command_line=True, **kwargs):
                 elif treatment[1]==4 or treatment[1]==40: # Additivity check
                     LT="LT-PTRM-AC"
                     LP=LP+":"+"LP-PI-BT-MD"
+                elif treatment[1]==5 or treatment[1]==50: # Thellier protocol, second infield step
+                    LT="LT-T-I"
+                    LP=LP+":"+"LP-PI-II"
+                    
+                    # adjust field direction in thellier protocol 
+                    MagRec["treatment_dc_field_phi"]="%.2f"%( (float(labfield_phi) +180.0)%360.    )
+                    MagRec["treatment_dc_field_theta"]="%.2f"%( float(labfield_theta)*-1 )
+
                 else:
                     print("-E- unknown measurement code specimen %s treatmemt %s"%(meas_line['specimen'],meas_line['treatment']))
                     MagRec={}
