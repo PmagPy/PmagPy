@@ -4,7 +4,6 @@ from builtins import zip
 from builtins import map
 from builtins import range
 import os
-from wx import FileDialog
 from re import findall,split
 from numpy import array,arange,pi,cos,sin
 from .pmag import dimap,cart2dir,dir2cart
