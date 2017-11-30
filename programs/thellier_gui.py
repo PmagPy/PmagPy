@@ -429,6 +429,7 @@ DESCRIPTION
         # try to read redo file if one exists
         if os.path.exists(os.path.join(self.WD, 'thellier_GUI.redo')):
             self.read_redo_file(os.path.join(self.WD, 'thellier_GUI.redo'))
+        self.update_selection()
 
 
     def get_DIR(self, WD=None):
