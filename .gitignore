@@ -129,6 +129,7 @@ data_files/download_magic/er_sites.txt
 data_files/download_magic/er_specimens.txt
 data_files/download_magic/magic_measurements.txt
 data_files/download_magic/magic_methods.txt
+data_files/download_magic/pmag_criteria.txt
 data_files/eq_di/eq_di.out
 data_files/er_samples.txt
 data_files/gaussian/gaussian.out
@@ -160,6 +161,7 @@ data_files/lnp_magic/pmag_results.txt
 data_files/lnp_magic/pmag_samples.txt
 data_files/lnp_magic/pmag_sites.txt
 data_files/lnp_magic/pmag_specimens.txt
+data_files/lnp_magic/pmag_criteria.txt
 data_files/measurements_normalize/irm_norm_measurements.txt
 data_files/parse_measurements/er_specimens.txt
 data_files/parse_measurements/magic_instruments.txt
@@ -175,6 +177,7 @@ data_files/3_0/McMurdo/McMurdo*.txt
 data_files/3_0/McMurdo/*errors.txt
 data_files/3_0/McMurdo/thellier_interpreter
 data_files/3_0/McMurdo/thellier_interpreter/*
+data_files/3_0/McMurdo/*.pdf
 data_files/3_0/sites_only
 data_files/3_0/sites_only/*
 data_files/3_0/Megiddo/Tel*
