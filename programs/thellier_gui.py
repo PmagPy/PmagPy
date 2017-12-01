@@ -5836,9 +5836,13 @@ You can combine multiple measurement files into one measurement file using Pmag 
                     scat_window.SetBackgroundColour(wx.WHITE)
 
         else:
-            scat_window.SetValue("")
-            scat_window.SetBackgroundColour(
-                wx.Colour('grey'))  # set text color
+            try:
+                scat_window.SetValue("")
+                scat_window.SetBackgroundColour(
+                    wx.Colour('grey'))  # set text color
+            # don't break if SCAT is not displayed
+            except UnboundLocalError:
+                pass
 
         # Blab, Banc, correction factors
 
