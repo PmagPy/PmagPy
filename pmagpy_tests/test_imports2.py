@@ -330,6 +330,8 @@ class Test2g_bin_magic(unittest.TestCase):
         files = ['mn001-1a.magic', 'er_samples.txt', 'er_sites.txt',
                  'magic_measurements.txt']
         pmag.remove_files(files, WD)
+        pmag.remove_files(files, os.path.join(WD, 'data_files', 'Measurement_Import',
+                                     '2G_bin_magic', 'mn1'))
         os.chdir(WD)
 
     def test_2g_with_no_files(self):
