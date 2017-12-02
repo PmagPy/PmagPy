@@ -39,6 +39,11 @@ class TestProgramsHelp(unittest.TestCase):
                                                       'conversion_scripts2'))
         programs_list.extend(conversion_scripts2)
         not_checked = []
+        pip_anaconda = False
+        if sys.platform in ['win32', 'win62']:
+            res = self.env.run('where angle.py')
+            if res.stderr:
+                pip_anaconda = True
         for prog in programs_list:
             if prog in ['__init__.py', 'program_envs.py', 'template_magic.py']:
                 continue
@@ -52,7 +57,7 @@ class TestProgramsHelp(unittest.TestCase):
             if prog.lower() != prog:
                 not_checked.append(prog)
                 continue
-            if sys.platform in ['win32', 'win62']:
+            if pip_anaconda: #
                 prog = prog[:-3]
             print("Testing help message for:", prog)
             res = self.env.run(prog, '-h')
@@ -65,8 +70,14 @@ class TestProgramsHelp(unittest.TestCase):
     def test_guis(self):
         tests = ['pmag_gui.py', 'magic_gui.py', #'demag_gui.py',
                  'thellier_gui.py']
+        pip_anaconda = False
+        if sys.platform in ['win32', 'win62']:
+            res = self.env.run('where angle.py')
+            if res.stderr:
+                pip_anaconda = True
+
         for prog in tests:
-            if sys.platform in ['win32', 'win62']:
+            if pip_anaconda: # sys.platform in ['win32', 'win62']:
                 prog = prog[:-3]
             print('testing:', prog)
             res = self.env.run(prog, '-h')
@@ -79,6 +90,13 @@ class TestProgramsHelp(unittest.TestCase):
         tests = ['pmag_gui_anaconda', 'magic_gui_anaconda',
                  'magic_gui2_anaconda',# 'demag_gui_anaconda',
                  'thellier_gui_anaconda']
+        pip_anaconda = False
+        if sys.platform in ['win32', 'win62']:
+            res = self.env.run('where angle.py')
+            if res.stderr:
+                pip_anaconda = True
+        if not pip_anaconda:
+            return
         for prog in tests:
             print('testing:', prog)
             #res = self.env.run(prog, '-h')
