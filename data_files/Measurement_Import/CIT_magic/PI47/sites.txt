@@ -1,0 +1,11 @@
+tab	sites
+analysts	citation	lat	location	lon	site
+	This study	48.7	unknown	-87.0	PI47-1a
+	This study	48.7	unknown	-87.0	PI47-2a
+	This study	48.7	unknown	-87.0	PI47-3a
+	This study	48.7	unknown	-87.0	PI47-4a
+	This study	48.7	unknown	-87.0	PI47-5a
+	This study	48.7	unknown	-87.0	PI47-6a
+	This study	48.7	unknown	-87.0	PI47-7a
+	This study	48.7	unknown	-87.0	PI47-8a
+	This study	48.7	unknown	-87.0	PI47-9a

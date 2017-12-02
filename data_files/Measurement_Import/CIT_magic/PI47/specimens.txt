@@ -1,0 +1,11 @@
+tab	specimens
+analysts	citation	sample	specimen	volume	weight
+	This study	PI47-1a	PI47-1a		 1.000e-03
+	This study	PI47-2a	PI47-2a		 1.000e-03
+	This study	PI47-3a	PI47-3a		 1.000e-03
+	This study	PI47-4a	PI47-4a		 1.000e-03
+	This study	PI47-5a	PI47-5a		 1.000e-03
+	This study	PI47-6a	PI47-6a		 1.000e-03
+	This study	PI47-7a	PI47-7a		 1.000e-03
+	This study	PI47-8a	PI47-8a		 1.000e-03
+	This study	PI47-9a	PI47-9a		 1.000e-03
