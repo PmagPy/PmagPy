@@ -32,12 +32,13 @@ class TestProgramsHelp(unittest.TestCase):
 
     def test_cmd_line(self):
         programs_list = os.listdir(programs_WD)
-        conversion_scripts = os.listdir(os.path.join(programs_WD,
-                                                     'conversion_scripts'))
-        programs_list.extend(conversion_scripts)
-        conversion_scripts2 = os.listdir(os.path.join(programs_WD,
-                                                      'conversion_scripts2'))
-        programs_list.extend(conversion_scripts2)
+        if not sys.platform in ['win32', 'win62']:
+            conversion_scripts = os.listdir(os.path.join(programs_WD,
+                                                         'conversion_scripts'))
+            programs_list.extend(conversion_scripts)
+            conversion_scripts2 = os.listdir(os.path.join(programs_WD,
+                                                          'conversion_scripts2'))
+            programs_list.extend(conversion_scripts2)
         not_checked = []
         pip_anaconda = False
         if sys.platform in ['win32', 'win62']:
