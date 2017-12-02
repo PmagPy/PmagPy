@@ -7,6 +7,9 @@ from pmagpy import pmag
 
 
 def main():
+    if '-h' in sys.argv:
+        print("Some mapping utilities use the Etopo package for topography and these data sets do not come standard with the Python installation of Basemap.  To install these additional files, use: 'install_etopo.py'.")
+        return
     try:
         from mpl_toolkits.basemap import basemap_datadir
     except:
@@ -35,7 +38,10 @@ def main():
             return
         print("installing etopo20 files from ", path.join(data_dir, 'etopo20*'))
         print("to the basemap data directory: ",basemap_datadir)
-        command = 'cp ' + path.join(data_dir, 'etopo20*')  + " "+ basemap_datadir
+        if sys.platform in ['win32', 'win64']:
+            command = 'copy ' + path.join(data_dir, 'etopo20*')  + " "+ basemap_datadir
+        else:
+            command = 'cp ' + path.join(data_dir, 'etopo20*')  + " "+ basemap_datadir
         os.system(command)
 
 if __name__ == "__main__":
