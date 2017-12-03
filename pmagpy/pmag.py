@@ -314,8 +314,9 @@ def convert_ages(Recs):
             if rec[keybase + 'age'] != "":
                 age = float(rec[keybase + "age"])
             elif rec[keybase + 'age_low'] != "" and rec[keybase + 'age_high'] != '':
-                age = float(rec[keybase + 'age_low']) + old_div(
-                    (float(rec[keybase + 'age_high']) - float(rec[keybase + 'age_low'])), 2.)
+                age = np.mean([rec[keybase + 'age_high'], rec[keybase + "age_low"]])
+                #age = float(rec[keybase + 'age_low']) + old_div(
+                #    (float(rec[keybase + 'age_high']) - float(rec[keybase + 'age_low'])), 2.)
             if age != '':
                 rec[keybase + 'age_unit']
                 if rec[keybase + 'age_unit'] == 'Ma':
