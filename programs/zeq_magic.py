@@ -131,6 +131,8 @@ def main():
     if 'specimens' in contribution.tables:
         #        contribution.propagate_name_down('sample','measurements')
         spec_container = contribution.tables['specimens']
+        if 'method_codes' not in spec_container.df.columns:
+            spec_container.df['method_codes'] = None
         prior_spec_data = spec_container.get_records_for_code(
             'LP-DIR', strict_match=False)  # look up all prior directional interpretations
 #
