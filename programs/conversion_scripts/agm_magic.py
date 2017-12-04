@@ -134,7 +134,7 @@ def convert(**kwargs):
             if 'Units' in line:units=rec[-1]
             if "Raw" in rec:
                 start=skip+2
-            if "Field" in rec and "Moment" in rec and start=="":
+            if ("Field" in rec) and ("Moment" in rec) and (not start):
                 start=skip+2
                 break
     elif fmt=='old':
@@ -216,7 +216,7 @@ def convert(**kwargs):
             rec=list(line.strip('\n').split())
         else: 
             rec=list(line.strip('\n').strip('\r').split(','))
-        print (rec)
+        #print (rec)
         if rec[0]!="":
             if units=='cgs':
                 field =float(rec[0])*1e-4 # convert from oe to tesla
