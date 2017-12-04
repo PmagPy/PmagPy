@@ -147,7 +147,7 @@ def main():
     if 'samples' in contribution.tables:
         #        contribution.propagate_name_down('site','measurements')
         contribution.propagate_cols(col_names=[
-                                    'azimuth', 'dip', 'orientation_flag'], target_df_name='measurements', source_df_name='samples')
+                                    'azimuth', 'dip', 'orientation_quality'], target_df_name='measurements', source_df_name='samples')
 #
 # define figure numbers for equal area, zijderveld,
 #  and intensity vs. demagnetiztion step respectively

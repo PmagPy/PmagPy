@@ -3494,9 +3494,10 @@ You can combine multiple measurement files into one measurement file using Pmag 
             self.spec_container.write_magic_file(dir_path=self.WD)
         else:
             rmag_anisotropy_file.close()
-        rmag_results_file.close()
-        rmag_anisotropy_file.close()
-        aniso_logfile.close()
+        if self.data_model==2:
+            rmag_results_file.close()
+            rmag_anisotropy_file.close()
+            aniso_logfile.close()
 
     #==================================================
 
