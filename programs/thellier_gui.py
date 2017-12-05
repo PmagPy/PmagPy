@@ -1248,7 +1248,7 @@ else:
             a_index = self.Data[self.s]['magic_experiment_name'] + \
                 str(index + 1)
             try:
-                mdf.set_value(a_index, 'quality', 'g')
+                mdf.loc[a_index, 'quality'] = 'g'
             except ValueError:
                 self.user_warning(
                     "cannot find valid measurement data to mark bad, this feature is still under development. please report this error to a developer")
@@ -1261,7 +1261,7 @@ else:
             a_index = self.Data[self.s]['magic_experiment_name'] + \
                 str(index + 1)
             try:
-                mdf.set_value(a_index, 'quality', 'b')
+                mdf.loc[a_index, 'quality'] = 'b'
             except ValueError:
                 self.user_warning(
                     "cannot find valid measurement data to mark bad, this feature is still under development please report this error to a developer")
