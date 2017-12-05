@@ -141,7 +141,6 @@ class TestCombineMagic(unittest.TestCase):
         outfile = os.path.join(self.input_dir, 'custom_outfile.txt')
         if os.path.exists(outfile):
             os.remove(outfile)
-
         flist = ['locations.txt', 'new_locations.txt']
         flist = [os.path.join(self.input_dir, fname) for fname in flist]
         #res = ipmag.combine_magic(flist, 'custom_outfile.txt', 3, 'locations')
@@ -149,6 +148,15 @@ class TestCombineMagic(unittest.TestCase):
         self.assertTrue(res)
         self.assertEqual(res, outfile)
         self.assertTrue(os.path.exists(outfile))
+
+    def test_with_remove_rows(self):
+        flist = ['extra_specimens.txt', 'specimens.txt']
+        flist = [os.path.join(self.input_dir, fname) for fname in flist]
+        #flist = [os.path.join(self.input_dir, fname) for fname in flist]
+        res = ipmag.combine_magic(flist, 'custom.out', data_model=3)
+        with open(os.path.join(WD, 'custom.out')) as f:
+            n = len(f.readlines()) - 2
+        self.assertEqual(n, 2747)
 
 
 
