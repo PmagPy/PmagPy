@@ -1846,10 +1846,11 @@ class MagicDataFrame(object):
                 custom_name = os.path.split(custom_name)[1]
         # put columns in logical order (by group)
         self.sort_dataframe_cols()
-        df = self.df
         # if indexing column was put in, remove it
         if "num" in self.df.columns:
-            self.df.drop("num", axis=1, inplace=True)
+            self.df = self.df.drop("num", axis=1)
+        #
+        df = self.df
         # get full file path
         dir_path = os.path.realpath(dir_path)
         if custom_name:
