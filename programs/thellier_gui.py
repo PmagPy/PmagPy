@@ -7436,8 +7436,14 @@ You can combine multiple measurement files into one measurement file using Pmag 
                                          'site': 'er_site_name', 'sample': 'er_sample_name', 'cooling_rate': 'sample_cooling_rate'})
                 # in case of multiple rows with same sample name, make sure cooling rate date propagates
                 # to all samples with the same name
-                samples = samples.groupby(samples.index, sort=False).fillna(
-                    method='ffill').groupby(samples.index, sort=False).fillna(method='bfill')
+                # (sometimes fails due to pandas bug:
+                #  https://github.com/pandas-dev/pandas/issues/14955,
+                #  hence the try/except)
+                try:
+                    samples = samples.groupby(samples.index, sort=False).fillna(
+                        method='ffill').groupby(samples.index, sort=False).fillna(method='bfill')
+                except ValueError:
+                    pass
                 # then get rid of any duplicates
                 samples = samples.drop_duplicates()
                 # pick out what is needed by thellier_gui and put in 2.5 format
