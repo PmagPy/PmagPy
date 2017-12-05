@@ -168,7 +168,7 @@ def convert(**kwargs):
         SampRecs=[]
     MeasRecs,SpecRecs,SiteRecs,LocRecs=[],[],[],[]
     try:
-        f=open(mag_file,'brU')
+        f=open(mag_file,'br')
         input=str(f.read()).strip("b '")
         f.close()
     except Exception as ex:
