@@ -41,11 +41,12 @@ def main():
         filelist=[sys.argv[ind+1]]
     else:
         filelist=os.listdir(dir_path)
-    new_model=0
+    new_model=1
     if '-DM' in sys.argv:
         ind=sys.argv.index("-DM")
         data_model=sys.argv[ind+1]
-        if data_model=='3': new_model=1
+        if data_model=='2':
+            new_model=0
     if new_model:
             samp_file='samples.txt'
             azimuth_key='azimuth'
@@ -90,7 +91,8 @@ def main():
         if meas_file in filelist: # start with measurement data
             print('working on measurements data')
             data,file_type=pmag.magic_read(meas_file) # read in data
-            if loc == './': data=pmag.get_dictitem(data,loc_key,'','T') # get all the blank location names from data file
+            if loc == './' and len(dirlist) > 1:
+                data=pmag.get_dictitem(data,loc_key,'','T') # get all the blank location names from data file
             # looking for  zeq_magic possibilities
             AFZrecs=pmag.get_dictitem(data,method_key,'LT-AF-Z','has')# get all none blank method codes
             TZrecs=pmag.get_dictitem(data,method_key,'LT-T-Z','has')# get all none blank method codes
@@ -102,25 +104,25 @@ def main():
                 if len(Mrecs)>0:break
             if len(AFZrecs)>0 or len(TZrecs)>0 or len(MZrecs)>0 and len(Drecs)>0 and len(Irecs)>0 and len(Mrecs)>0: # potential for stepwise demag curves
                 if new_model:
-                    CMD = 'zeq_magic3.py -fsp specimens.txt -sav -fmt '+fmt+' -crd '+crd
+                    CMD = 'zeq_magic.py -fsp specimens.txt -sav -fmt '+fmt+' -crd '+crd
                 else:
-                    CMD='zeq_magic.py -fsp pmag_specimens.txt -sav -fmt '+fmt+' -crd '+crd
+                    CMD='zeq_magic2.py -fsp pmag_specimens.txt -sav -fmt '+fmt+' -crd '+crd
                 print(CMD)
                 os.system(CMD)
             # looking for  thellier_magic possibilities
             if len(pmag.get_dictitem(data,method_key,'LP-PI-TRM','has'))>0:
                 if new_model:
-                    CMD= 'thellier_magic3.py -fsp specimens.txt -sav -fmt '+fmt
+                    CMD= 'thellier_magic.py -fsp specimens.txt -sav -fmt '+fmt
                 else:
-                    CMD= 'thellier_magic.py -fsp pmag_specimens.txt -sav -fmt '+fmt
+                    CMD= 'thellier_magic2.py -fsp pmag_specimens.txt -sav -fmt '+fmt
                 print(CMD)
                 os.system(CMD)
             # looking for hysteresis possibilities
             if len(pmag.get_dictitem(data,method_key,'LP-HYS','has'))>0: # find hyst experiments
                 if new_model:
-                    CMD= 'quick_hyst3.py -sav -fmt '+fmt
-                else:
                     CMD= 'quick_hyst.py -sav -fmt '+fmt
+                else:
+                    CMD= 'quick_hyst2.py -sav -fmt '+fmt
                 print(CMD)
                 os.system(CMD)
         if results_file in filelist: # start with measurement data
@@ -156,9 +158,9 @@ def main():
                 elif len(SiteDIs_s )>0:
                     CRD=' -crd s'
                 if new_model:
-                    CMD= 'eqarea_magic3.py -sav -crd t -fmt '+fmt +CRD
-                else:
                     CMD= 'eqarea_magic.py -sav -crd t -fmt '+fmt +CRD
+                else:
+                    CMD= 'eqarea_magic2.py -sav -crd t -fmt '+fmt +CRD
                 print(CMD)
                 os.system(CMD)
             print('working on VGP map')
@@ -181,6 +183,8 @@ def main():
                 locations=pmag.get_dictkey(data,loc_key,"")
             else:
                 locations=pmag.get_dictkey(data,loc_key+'s',"")
+            if not locations:
+                locations = ['']
             histfile='LO:_'+locations[0]+'_intensities_histogram:_.'+fmt
             os.system("histplot.py -b 1 -xlab 'Intensity (uT)' -sav -f tmp2.txt -F " +histfile)
             print("histplot.py -b 1 -xlab 'Intensity (uT)' -sav -f tmp2.txt -F " +histfile)
@@ -205,9 +209,9 @@ def main():
             tdata=pmag.get_dictitem(data,'anisotropy_tilt_correction','100','T') # get specimen coordinates
             CRD=""
             if new_model:
-                CMD= 'aniso_magic3.py -x -B -sav -fmt '+fmt
-            else:
                 CMD= 'aniso_magic.py -x -B -sav -fmt '+fmt
+            else:
+                CMD= 'aniso_magic2.py -x -B -sav -fmt '+fmt
             if len(sdata)>3:
                 CMD=CMD+' -crd s'
                 print(CMD)

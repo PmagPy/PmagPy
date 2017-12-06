@@ -18,7 +18,7 @@ def main():
     """
     NAME
        histplot.py
-    
+
     DESCRIPTION
        makes histograms for data
 
@@ -32,13 +32,13 @@ def main():
        -N don't normalize
        -xlab Label of X axis
        -ylab Label of Y axis
-    
+
     INPUT FORMAT
         single variable
-    
+
     SYNTAX
        histplot.py [command line options] [<file]
-    
+
     """
     file,fmt="",'svg'
     plot=0
@@ -80,9 +80,15 @@ def main():
         D=numpy.loadtxt(sys.stdin,dtype=numpy.float)
     # read in data
     #
+    try:
+      if not D:
+          print('-W- No data found')
+          return
+    except ValueError:
+        pass
     Nbins=old_div(len(D),binsize)
     n,bins,patches=pylab.hist(D,bins=Nbins,facecolor='white',histtype='step',color='black',normed=norm)
-    pylab.axis([D.min(),D.max(),0,n.max()+.1*n.max()]) 
+    pylab.axis([D.min(),D.max(),0,n.max()+.1*n.max()])
     pylab.xlabel(xlab)
     pylab.ylabel(ylab)
     name='N = '+str(len(D))
