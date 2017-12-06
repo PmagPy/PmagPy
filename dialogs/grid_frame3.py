@@ -1030,7 +1030,8 @@ class GridBuilder(object):
                 grid.add_row()
             # if adding actual data, remove the blank row
             else:
-                if not grid.GetCellValue(0, 0) and grid.GetNumberRows() > 1:
+                values = [grid.GetCellValue(0, num) for num in range(grid.GetNumberCols())]
+                if not any(values):
                     grid.remove_row(0)
             # include horizontal scrollbar unless grid has less than 5 rows
             grid.set_scrollbars()
