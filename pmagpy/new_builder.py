@@ -1005,7 +1005,7 @@ class Contribution(object):
         # find level for each age row
         age_levels = self.tables['ages'].df.apply(get_level, axis=1, args=[levels])
         if any(age_levels):
-            self.tables['ages'].df['level'] = age_levels
+            self.tables['ages'].df.loc[:, 'level'] = age_levels
         return self.tables['ages']
 
     def propagate_ages(self):
