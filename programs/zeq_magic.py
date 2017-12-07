@@ -294,6 +294,7 @@ def main():
             pmagplotlib.plotZED(ZED, datablock, angle, title, units)
             if verbose:
                 pmagplotlib.drawFIGS(ZED)
+               
 #
 #     collect info for current_specimen_interpretation dictionary
 #
@@ -337,7 +338,6 @@ def main():
                     beg_pca = 0
                     end_pca = len(datablock) - 1
                     start, end = int(beg_pca), int(end_pca)
-
                 # calculate direction/plane
                 try:
                     mpars = pmag.domean(datablock, start, end, calculation_type)
