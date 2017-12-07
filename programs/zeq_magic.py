@@ -294,7 +294,6 @@ def main():
             pmagplotlib.plotZED(ZED, datablock, angle, title, units)
             if verbose:
                 pmagplotlib.drawFIGS(ZED)
-               
 #
 #     collect info for current_specimen_interpretation dictionary
 #
@@ -304,33 +303,34 @@ def main():
                 #
                 prior_specimen_interpretations = prior_spec_data[prior_spec_data['specimen'].str.contains(
                     this_specimen) == True]
-                beg_pcas = pd.to_numeric(
-                    prior_specimen_interpretations.meas_step_min.values).tolist()
-                end_pcas = pd.to_numeric(
-                    prior_specimen_interpretations.meas_step_max.values).tolist()
-                spec_methods = prior_specimen_interpretations.method_codes.tolist()
+                if len(prior_specimen_interpretations)>0:
+                    beg_pcas = pd.to_numeric(
+                        prior_specimen_interpretations.meas_step_min.values).tolist()
+                    end_pcas = pd.to_numeric(
+                        prior_specimen_interpretations.meas_step_max.values).tolist()
+                    spec_methods = prior_specimen_interpretations.method_codes.tolist()
                 # step through all prior interpretations and plot them
-                for ind in range(len(beg_pcas)):
-                    spec_meths = spec_methods[ind].split(':')
-                    for m in spec_meths:
-                        if 'DE-BFL' in m:
-                            calculation_type = 'DE-BFL'  # best fit line
-                        if 'DE-BFP' in m:
-                            calculation_type = 'DE-BFP'  # best fit plane
-                        if 'DE-FM' in m:
-                            calculation_type = 'DE-FM'  # fisher mean
-                        if 'DE-BFL-A' in m:
-                            calculation_type = 'DE-BFL-A'  # anchored best fit line
-                    start, end = tr.index(beg_pcas[ind]), tr.index(
-                        end_pcas[ind])  # getting the starting and ending points
+                    for ind in range(len(beg_pcas)):
+                        spec_meths = spec_methods[ind].split(':')
+                        for m in spec_meths:
+                            if 'DE-BFL' in m:
+                                calculation_type = 'DE-BFL'  # best fit line
+                            if 'DE-BFP' in m:
+                                calculation_type = 'DE-BFP'  # best fit plane
+                            if 'DE-FM' in m:
+                                calculation_type = 'DE-FM'  # fisher mean
+                            if 'DE-BFL-A' in m:
+                                calculation_type = 'DE-BFL-A'  # anchored best fit line
+                        start, end = tr.index(beg_pcas[ind]), tr.index(
+                            end_pcas[ind])  # getting the starting and ending points
                     # calculate direction/plane
-                    mpars = pmag.domean(
-                        datablock, start, end, calculation_type)
-                    if mpars["specimen_direction_type"] != "Error":
-                        # put it on the plot
-                        pmagplotlib.plotDir(ZED, mpars, datablock, angle)
-                        if verbose:
-                            pmagplotlib.drawFIGS(ZED)
+                        mpars = pmag.domean(
+                            datablock, start, end, calculation_type)
+                        if mpars["specimen_direction_type"] != "Error":
+                            # put it on the plot
+                            pmagplotlib.plotDir(ZED, mpars, datablock, angle)
+                            if verbose:
+                                pmagplotlib.drawFIGS(ZED)
             else:
                 try:
                     start, end = int(beg_pca), int(end_pca)
