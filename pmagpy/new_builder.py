@@ -114,6 +114,8 @@ class Contribution(object):
             data list with format [{'key1': 'val1', ...}, {'key1': 'val2', ...}, ... }]
         """
         self.tables[dtype] = MagicDataFrame(dtype=dtype, data=data)
+        if dtype == 'measurements':
+            self.tables['measurements'].add_sequence()
 
 
     def add_magic_table(self, dtype, fname=None, df=None):
@@ -1608,6 +1610,10 @@ class MagicDataFrame(object):
             pass
         #
         self.df = self.df[ordered_cols]
+        return self.df
+
+    def add_sequence(self):
+        self.df['sequence'] = range(len(self.df))
         return self.df
 
     ## Methods that take self.df and extract some information from it
