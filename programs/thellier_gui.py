@@ -2622,11 +2622,12 @@ You can combine multiple measurement files into one measurement file using Pmag 
         # check if averaging by sample or by site
         # and intialize sample/site criteria
         #---------------------------------------
-
-        if dia.set_average_by_sample_or_site.GetValue() == 'sample':
+        avg_by = dia.set_average_by_sample_or_site.GetValue()
+        if avg_by == 'sample':
             for crit in ['site_int_n', 'site_int_sigma', 'site_int_sigma_perc', 'site_aniso_mean', 'site_int_n_outlier_check']:
                 self.acceptance_criteria[crit]['value'] = -999
-        if dia.set_average_by_sample_or_site.GetValue() == 'site':
+
+        if avg_by == 'site':
             for crit in ['sample_int_n', 'sample_int_sigma', 'sample_int_sigma_perc', 'sample_aniso_mean', 'sample_int_n_outlier_check']:
                 self.acceptance_criteria[crit]['value'] = -999
 
@@ -2670,6 +2671,11 @@ You can combine multiple measurement files into one measurement file using Pmag 
                 print("no criteria given to save")
             dlg1.Destroy()
             dia.Destroy()
+
+        self.fig4.texts[0].remove()
+        txt = "{} data".format(avg_by).capitalize()
+        self.fig4.text(0.02, 0.96, txt, {
+                       'family': self.font_type, 'fontsize': 10, 'style': 'normal', 'va': 'center', 'ha': 'left'})
         self.recalculate_satistics()
         try:
             self.update_GUI_with_new_interpretation()
