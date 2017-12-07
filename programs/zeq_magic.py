@@ -131,6 +131,8 @@ def main():
     if 'specimens' in contribution.tables:
         #        contribution.propagate_name_down('sample','measurements')
         spec_container = contribution.tables['specimens']
+        if 'method_codes' not in spec_container.df.columns:
+            spec_container.df['method_codes'] = None
         prior_spec_data = spec_container.get_records_for_code(
             'LP-DIR', strict_match=False)  # look up all prior directional interpretations
 #
@@ -142,10 +144,10 @@ def main():
 #
 #   import samples  for orientation info
 #
-    if 'samples' in contribution.tables:
+    if ('samples' in contribution.tables) and ('specimens' in contribution.tables):
         #        contribution.propagate_name_down('site','measurements')
         contribution.propagate_cols(col_names=[
-                                    'azimuth', 'dip', 'orientation_flag'], target_df_name='measurements', source_df_name='samples')
+                                    'azimuth', 'dip', 'orientation_quality'], target_df_name='measurements', source_df_name='samples')
 #
 # define figure numbers for equal area, zijderveld,
 #  and intensity vs. demagnetiztion step respectively
@@ -216,6 +218,9 @@ def main():
     while k < len(specimen_names):
         # set the current specimen for plotting
         this_specimen = specimen_names[k]
+        # reset beginning/end pca if plotting more than one specimen
+        if not specimen:
+            beg_pca, end_pca = "", ""
         if verbose and this_specimen != "":
             print(this_specimen, k + 1, 'out of ', len(specimen_names))
         if setangle == 0:
@@ -298,37 +303,50 @@ def main():
                 #
                 prior_specimen_interpretations = prior_spec_data[prior_spec_data['specimen'].str.contains(
                     this_specimen) == True]
-                beg_pcas = pd.to_numeric(
-                    prior_specimen_interpretations.meas_step_min.values).tolist()
-                end_pcas = pd.to_numeric(
-                    prior_specimen_interpretations.meas_step_max.values).tolist()
-                spec_methods = prior_specimen_interpretations.method_codes.tolist()
+                if len(prior_specimen_interpretations)>0:
+                    beg_pcas = pd.to_numeric(
+                        prior_specimen_interpretations.meas_step_min.values).tolist()
+                    end_pcas = pd.to_numeric(
+                        prior_specimen_interpretations.meas_step_max.values).tolist()
+                    spec_methods = prior_specimen_interpretations.method_codes.tolist()
                 # step through all prior interpretations and plot them
-                for ind in range(len(beg_pcas)):
-                    spec_meths = spec_methods[ind].split(':')
-                    for m in spec_meths:
-                        if 'DE-BFL' in m:
-                            calculation_type = 'DE-BFL'  # best fit line
-                        if 'DE-BFP' in m:
-                            calculation_type = 'DE-BFP'  # best fit plane
-                        if 'DE-FM' in m:
-                            calculation_type = 'DE-FM'  # fisher mean
-                        if 'DE-BFL-A' in m:
-                            calculation_type = 'DE-BFL-A'  # anchored best fit line
-                    start, end = tr.index(beg_pcas[ind]), tr.index(
-                        end_pcas[ind])  # getting the starting and ending points
+                    for ind in range(len(beg_pcas)):
+                        spec_meths = spec_methods[ind].split(':')
+                        for m in spec_meths:
+                            if 'DE-BFL' in m:
+                                calculation_type = 'DE-BFL'  # best fit line
+                            if 'DE-BFP' in m:
+                                calculation_type = 'DE-BFP'  # best fit plane
+                            if 'DE-FM' in m:
+                                calculation_type = 'DE-FM'  # fisher mean
+                            if 'DE-BFL-A' in m:
+                                calculation_type = 'DE-BFL-A'  # anchored best fit line
+                        start, end = tr.index(beg_pcas[ind]), tr.index(
+                            end_pcas[ind])  # getting the starting and ending points
                     # calculate direction/plane
-                    mpars = pmag.domean(
-                        datablock, start, end, calculation_type)
-                    if mpars["specimen_direction_type"] != "Error":
-                        # put it on the plot
-                        pmagplotlib.plotDir(ZED, mpars, datablock, angle)
-                        if verbose:
-                            pmagplotlib.drawFIGS(ZED)
+                        mpars = pmag.domean(
+                            datablock, start, end, calculation_type)
+                        if mpars["specimen_direction_type"] != "Error":
+                            # put it on the plot
+                            pmagplotlib.plotDir(ZED, mpars, datablock, angle)
+                            if verbose:
+                                pmagplotlib.drawFIGS(ZED)
             else:
-                start, end = int(beg_pca), int(end_pca)
+                try:
+                    start, end = int(beg_pca), int(end_pca)
+                except ValueError:
+                    beg_pca = 0
+                    end_pca = len(datablock) - 1
+                    start, end = int(beg_pca), int(end_pca)
                 # calculate direction/plane
-                mpars = pmag.domean(datablock, start, end, calculation_type)
+                try:
+                    mpars = pmag.domean(datablock, start, end, calculation_type)
+                except Exception as ex:
+                    print('-I- Problem with {}'.format(this_specimen))
+                    print('   ', ex)
+                    print('    Skipping')
+                    k += 1
+                    continue
                 if mpars["specimen_direction_type"] != "Error":
                     # put it on the plot
                     pmagplotlib.plotDir(ZED, mpars, datablock, angle)
@@ -472,7 +490,9 @@ def main():
         else:
             print("no data")
         if verbose:
-            input('Ready for next specimen  ')
+            res = input('  <return> for next specimen, [q]uit  ')
+            if res == 'q':
+                return
         k += 1
 
 

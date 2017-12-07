@@ -56,6 +56,7 @@ class TestUploadMagic(unittest.TestCase):
         pmag.remove_files(remove, WD)
         os.chdir(WD)
 
+
     def test_empty_dir(self):
         directory = os.path.join(self.dir_path, 'empty_dir')
         outfile, error_message, errors = ipmag.upload_magic(dir_path=directory)
@@ -63,7 +64,7 @@ class TestUploadMagic(unittest.TestCase):
         self.assertFalse(outfile)
         self.assertEqual(error_message, "no data found, upload file not created")
         files = os.listdir(directory)
-        self.assertFalse(files)
+        self.assertEqual(['blank.txt'], files)
 
     def test_with_invalid_files(self):
         directory = os.path.join(self.dir_path, 'my_project_with_errors')
@@ -126,10 +127,14 @@ class TestUploadMagic(unittest.TestCase):
         pmag.remove_files(files, dir_path)
 
 
-class Test_combine_magic(unittest.TestCase):
+class TestCombineMagic(unittest.TestCase):
 
     def setUp(self):
         self.input_dir = os.path.join(WD, 'data_files', '3_0', 'McMurdo')
+
+    def tearDown(self):
+        outfiles = ['custom_outfile.txt']
+        pmag.remove_files(outfiles, self.input_dir)
 
 
     def test_with_custom_name(self):
@@ -143,6 +148,15 @@ class Test_combine_magic(unittest.TestCase):
         self.assertTrue(res)
         self.assertEqual(res, outfile)
         self.assertTrue(os.path.exists(outfile))
+
+    def test_with_remove_rows(self):
+        flist = ['extra_specimens.txt', 'specimens.txt']
+        flist = [os.path.join(self.input_dir, fname) for fname in flist]
+        #flist = [os.path.join(self.input_dir, fname) for fname in flist]
+        res = ipmag.combine_magic(flist, 'custom.out', data_model=3)
+        with open(os.path.join(WD, 'custom.out')) as f:
+            n = len(f.readlines()) - 2
+        self.assertEqual(n, 2747)
 
 
 
@@ -369,6 +383,7 @@ class TestAgmMagic(unittest.TestCase):
     def tearDown(self):
         filelist = ['magic_measurements.txt', 'my_magic_measurements.txt', 'er_specimens.txt', 'er_samples.txt', 'my_er_samples.txt', 'er_sites.txt', 'rmag_anisotropy.txt', 'my_rmag_anisotropy.txt', 'rmag_results.txt', 'my_rmag_results.txt', 'agm_magic_example.magic']
         pmag.remove_files(filelist, WD)
+        pmag.remove_files(filelist, os.path.join(WD, 'data_files', 'agm_magic'))
         os.chdir(WD)
 
     def test_agm_with_no_files(self):
@@ -536,7 +551,14 @@ class TestAnisoDepthplot3(unittest.TestCase):
     def test_aniso_depthplot_with_files(self):
         #dir_path = os.path.join(WD, 'data_files', 'UTESTA')
         main_plot, plot_name = ipmag.aniso_depthplot3(dir_path=self.aniso_WD,
-                                                     sum_file='CoreSummary_XXX_UTESTA.csv')
+                                                      meas_file="fake.txt",
+                                                      sum_file='CoreSummary_XXX_UTESTA.csv')
+        assert(isinstance(main_plot, matplotlib.figure.Figure))
+        self.assertEqual(plot_name, 'U1361A_ani_depthplot.svg')
+
+    def test_aniso_depthplot_with_meas_file(self):
+        main_plot, plot_name = ipmag.aniso_depthplot3(dir_path=self.aniso_WD,
+                                                      sum_file='CoreSummary_XXX_UTESTA.csv')
         assert(isinstance(main_plot, matplotlib.figure.Figure))
         self.assertEqual(plot_name, 'U1361A_ani_depthplot.svg')
 
@@ -610,6 +632,7 @@ class TestPmagResultsExtract(unittest.TestCase):
         self.assertTrue(res)
         files = [os.path.join(self.result_WD, f) for f in outfiles]
         for f in files:
+
             self.assertTrue(os.path.exists(f))
 
 

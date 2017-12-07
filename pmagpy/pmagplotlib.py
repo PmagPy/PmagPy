@@ -658,12 +658,12 @@ def plotZ(fignum, datablock, angle, s, norm):
         globals.Zlisty = y
         globals.Zlistz = z
     if len(xb) > 0:
-        pylab.scatter(xb, yb, marker='d', c='w', s=30)
-        pylab.scatter(xb, zb, marker='d', c='w', s=30)
+        pylab.scatter(xb, yb, marker='d', c='y', s=30)
+        pylab.scatter(xb, zb, marker='d', c='y', s=30)
     pylab.plot(x, y, 'r')
     pylab.plot(x, z, 'b')
     pylab.scatter(x, y, marker='o', c='r')
-    pylab.scatter(x, z, marker='s', c='w')
+    pylab.scatter(x, z, marker='s', c='w',edgecolor='b')
     xline = [amin, amax]
    # yline=[-amax,-amin]
     yline = [amax, amin]

@@ -576,9 +576,9 @@ class HugeMagicGrid(BaseMagicGrid):
         print(self.GetSelectedRows())
 
 
-class MyCustomRenderer(gridlib.PyGridCellRenderer):
+class MyCustomRenderer(gridlib.GridCellRenderer):
     def __init__(self, color='MEDIUM VIOLET RED'):
-        gridlib.PyGridCellRenderer.__init__(self)
+        gridlib.GridCellRenderer.__init__(self)
         self.color = color
 
     def Draw(self, grid, attr, dc, rect, row, col, isSelected):

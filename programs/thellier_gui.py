@@ -429,6 +429,7 @@ DESCRIPTION
         # try to read redo file if one exists
         if os.path.exists(os.path.join(self.WD, 'thellier_GUI.redo')):
             self.read_redo_file(os.path.join(self.WD, 'thellier_GUI.redo'))
+        self.update_selection()
 
 
     def get_DIR(self, WD=None):
@@ -1247,7 +1248,7 @@ else:
             a_index = self.Data[self.s]['magic_experiment_name'] + \
                 str(index + 1)
             try:
-                mdf.set_value(a_index, 'quality', 'g')
+                mdf.loc[a_index, 'quality'] = 'g'
             except ValueError:
                 self.user_warning(
                     "cannot find valid measurement data to mark bad, this feature is still under development. please report this error to a developer")
@@ -1260,7 +1261,7 @@ else:
             a_index = self.Data[self.s]['magic_experiment_name'] + \
                 str(index + 1)
             try:
-                mdf.set_value(a_index, 'quality', 'b')
+                mdf.loc[a_index, 'quality'] = 'b'
             except ValueError:
                 self.user_warning(
                     "cannot find valid measurement data to mark bad, this feature is still under development please report this error to a developer")
@@ -2621,11 +2622,12 @@ You can combine multiple measurement files into one measurement file using Pmag 
         # check if averaging by sample or by site
         # and intialize sample/site criteria
         #---------------------------------------
-
-        if dia.set_average_by_sample_or_site.GetValue() == 'sample':
+        avg_by = dia.set_average_by_sample_or_site.GetValue()
+        if avg_by == 'sample':
             for crit in ['site_int_n', 'site_int_sigma', 'site_int_sigma_perc', 'site_aniso_mean', 'site_int_n_outlier_check']:
                 self.acceptance_criteria[crit]['value'] = -999
-        if dia.set_average_by_sample_or_site.GetValue() == 'site':
+
+        if avg_by == 'site':
             for crit in ['sample_int_n', 'sample_int_sigma', 'sample_int_sigma_perc', 'sample_aniso_mean', 'sample_int_n_outlier_check']:
                 self.acceptance_criteria[crit]['value'] = -999
 
@@ -2669,6 +2671,11 @@ You can combine multiple measurement files into one measurement file using Pmag 
                 print("no criteria given to save")
             dlg1.Destroy()
             dia.Destroy()
+
+        self.fig4.texts[0].remove()
+        txt = "{} data".format(avg_by).capitalize()
+        self.fig4.text(0.02, 0.96, txt, {
+                       'family': self.font_type, 'fontsize': 10, 'style': 'normal', 'va': 'center', 'ha': 'left'})
         self.recalculate_satistics()
         try:
             self.update_GUI_with_new_interpretation()
@@ -3493,9 +3500,10 @@ You can combine multiple measurement files into one measurement file using Pmag 
             self.spec_container.write_magic_file(dir_path=self.WD)
         else:
             rmag_anisotropy_file.close()
-        rmag_results_file.close()
-        rmag_anisotropy_file.close()
-        aniso_logfile.close()
+        if self.data_model==2:
+            rmag_results_file.close()
+            rmag_anisotropy_file.close()
+            aniso_logfile.close()
 
     #==================================================
 
@@ -5835,9 +5843,13 @@ You can combine multiple measurement files into one measurement file using Pmag 
                     scat_window.SetBackgroundColour(wx.WHITE)
 
         else:
-            scat_window.SetValue("")
-            scat_window.SetBackgroundColour(
-                wx.Colour('grey'))  # set text color
+            try:
+                scat_window.SetValue("")
+                scat_window.SetBackgroundColour(
+                    wx.Colour('grey'))  # set text color
+            # don't break if SCAT is not displayed
+            except UnboundLocalError:
+                pass
 
         # Blab, Banc, correction factors
 
@@ -7430,8 +7442,14 @@ You can combine multiple measurement files into one measurement file using Pmag 
                                          'site': 'er_site_name', 'sample': 'er_sample_name', 'cooling_rate': 'sample_cooling_rate'})
                 # in case of multiple rows with same sample name, make sure cooling rate date propagates
                 # to all samples with the same name
-                samples = samples.groupby(samples.index, sort=False).fillna(
-                    method='ffill').groupby(samples.index, sort=False).fillna(method='bfill')
+                # (sometimes fails due to pandas bug:
+                #  https://github.com/pandas-dev/pandas/issues/14955,
+                #  hence the try/except)
+                try:
+                    samples = samples.groupby(samples.index, sort=False).fillna(
+                        method='ffill').groupby(samples.index, sort=False).fillna(method='bfill')
+                except ValueError:
+                    pass
                 # then get rid of any duplicates
                 samples = samples.drop_duplicates()
                 # pick out what is needed by thellier_gui and put in 2.5 format

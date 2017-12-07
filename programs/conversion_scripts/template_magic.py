@@ -96,11 +96,11 @@ def convert(**kwargs):
     con.add_magic_table_from_data(dtype='measurements', data=MeasOuts)
 
     #write to file
-    con.tables['specimens'].write_magic_file(custom_name=spec_file)
-    con.tables['samples'].write_magic_file(custom_name=samp_file)
-    con.tables['sites'].write_magic_file(custom_name=site_file)
-    con.tables['locations'].write_magic_file(custom_name=loc_file)
-    con.tables['measurements'].write_magic_file(custom_name=meas_file)
+    con.write_table_to_file('specimens', custom_name=spec_file)
+    con.write_table_to_file('samples', custom_name=samp_file)
+    con.write_table_to_file('sites', custom_name=site_file)
+    con.write_table_to_file('locations', custom_name=loc_file)
+    meas_file = con.write_table_to_file('measurements', custom_name=meas_file)
 
     return True, meas_file
 

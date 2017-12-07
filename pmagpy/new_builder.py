@@ -114,6 +114,8 @@ class Contribution(object):
             data list with format [{'key1': 'val1', ...}, {'key1': 'val2', ...}, ... }]
         """
         self.tables[dtype] = MagicDataFrame(dtype=dtype, data=data)
+        if dtype == 'measurements':
+            self.tables['measurements'].add_sequence()
 
 
     def add_magic_table(self, dtype, fname=None, df=None):
@@ -395,7 +397,7 @@ class Contribution(object):
                         print('-W- In {}, automatically generated {} value ({}) will overwrite previous value ({})'.format(loc_name, coord, new_value, old_value))
                     # set new value
                     new_value = round(float(new_value), 5)
-                    loc_container.df.set_value(loc_name, coord, new_value)
+                    loc_container.df.loc[loc_name, coord] = new_value
         self.write_table_to_file('locations')
         return locs
 
@@ -1005,7 +1007,7 @@ class Contribution(object):
         # find level for each age row
         age_levels = self.tables['ages'].df.apply(get_level, axis=1, args=[levels])
         if any(age_levels):
-            self.tables['ages'].df['level'] = age_levels
+            self.tables['ages'].df.loc[:, 'level'] = age_levels
         return self.tables['ages']
 
     def propagate_ages(self):
@@ -1471,6 +1473,38 @@ class MagicDataFrame(object):
         self.df.dropna(axis='index', subset=drop_cols, how='all', inplace=True)
         return self.df
 
+    def drop_duplicate_rows(self, ignore_cols=['specimen', 'sample']):
+        """
+        Drop self.df rows that have only null values,
+        ignoring certain columns BUT only if those rows
+        do not have a unique index.
+
+        Different from drop_stub_rows because it only drops
+        empty rows if there is another row with that index.
+
+        Parameters
+        ----------
+        ignore_cols : list_like
+            list of colum names to ignore
+
+        Returns
+        ----------
+        self.df : pandas DataFrame
+        """
+        # keep any row with a unique index
+        cond1 = ~self.df.index.duplicated(keep=False)
+        # or with actual data
+        relevant_df = self.df.drop(ignore_cols, axis=1)
+        cond2 = relevant_df.notnull().any(axis=1)
+        orig_len = len(self.df)
+        self.df = self.df[cond1 | cond2]
+        end_len = len(self.df)
+        removed = orig_len - end_len
+        if removed:
+            print('-I- Removed {} redundant records from {} table'.format(removed, self.dtype))
+        return self.df
+
+
     def update_record(self, name, new_data, condition, update_only=False,
                       debug=False):
         """
@@ -1576,6 +1610,10 @@ class MagicDataFrame(object):
             pass
         #
         self.df = self.df[ordered_cols]
+        return self.df
+
+    def add_sequence(self):
+        self.df['sequence'] = range(len(self.df))
         return self.df
 
     ## Methods that take self.df and extract some information from it
@@ -1814,10 +1852,11 @@ class MagicDataFrame(object):
                 custom_name = os.path.split(custom_name)[1]
         # put columns in logical order (by group)
         self.sort_dataframe_cols()
-        df = self.df
         # if indexing column was put in, remove it
         if "num" in self.df.columns:
-            self.df.drop("num", axis=1, inplace=True)
+            self.df = self.df.drop("num", axis=1)
+        #
+        df = self.df
         # get full file path
         dir_path = os.path.realpath(dir_path)
         if custom_name:
@@ -1838,7 +1877,7 @@ class MagicDataFrame(object):
             mode = "w"
         # or create new file
         else:
-            print('-I- writing {} data to {}'.format(self.dtype, fname))
+            print('-I- writing {} records to {}'.format(self.dtype, fname))
             mode = "w"
         f = open(fname, mode)
         if append:
@@ -1846,6 +1885,7 @@ class MagicDataFrame(object):
         else:
             f.write('tab\t{}\n'.format(self.dtype))
             df.to_csv(f, sep="\t", header=True, index=False)
+        print('-I- {} records written to {} file'.format(len(df), self.dtype))
         f.close()
         return fname
 

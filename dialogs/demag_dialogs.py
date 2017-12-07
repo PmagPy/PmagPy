@@ -277,7 +277,7 @@ class SaveMyPlot(wx.Frame):
             defaultDir=dir_path,
             defaultFile=default_fig_name,
             wildcard=file_choices,
-            style=wx.SAVE)
+            style=wx.FD_SAVE)
         dlg.Center()
         if test_mode: result=dlg.GetAffirmativeId()
         else: result=dlg.ShowModal()

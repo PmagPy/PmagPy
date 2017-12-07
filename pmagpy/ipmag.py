@@ -2145,6 +2145,11 @@ def combine_magic(filenames, outfile, data_model=2.5, magic_table='measurements'
         # drop any fully duplicated rows
         df.drop_duplicates(inplace=True)
         con.add_magic_table(dtype=file_type, df=df)
+        # drop any mostly empty rows IF they have duplicate index
+        parent, child = con.get_parent_and_child(file_type)
+        ignore_cols = [col[:-1] for col in [file_type, parent] if col]
+        ignore_cols.extend(['software_packages', 'citations'])
+        con.tables[file_type].drop_duplicate_rows(ignore_cols)
         # write table to file, use custom name
         res = con.write_table_to_file(file_type, custom_name=file_name)
         return res

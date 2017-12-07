@@ -1,0 +1,11 @@
+tab	samples
+analysts	azimuth	azimuth_dec_correction	bed_dip	bed_dip_direction	citation	dip	geologic_class	geologic_type	height	lithologies	method_codes	sample	site
+	  233.1	    0.0	    0.0	   90.0	This study	  -16.0			0		SO-CMD-NORTH	PI47-1a	PI47-1a
+	  251.1	    0.0	    0.0	   90.0	This study	  -27.0			0		SO-CMD-NORTH	PI47-2a	PI47-2a
+	  224.1	    0.0	    0.0	   90.0	This study	  -13.0			0		SO-CMD-NORTH	PI47-3a	PI47-3a
+	  113.1	    0.0	    0.0	   90.0	This study	  -10.0			0		SO-CMD-NORTH	PI47-4a	PI47-4a
+	   48.1	    0.0	    0.0	   90.0	This study	  -16.0			0		SO-CMD-NORTH	PI47-5a	PI47-5a
+	   60.1	    0.0	    0.0	   90.0	This study	  -21.0			0		SO-CMD-NORTH	PI47-6a	PI47-6a
+	  188.1	    0.0	    0.0	   90.0	This study	  -47.0			0		SO-CMD-NORTH	PI47-7a	PI47-7a
+	  198.1	    0.0	    0.0	   90.0	This study	  -14.0			0		SO-CMD-NORTH	PI47-8a	PI47-8a
+	  238.1	    0.0	    0.0	   90.0	This study	  -21.0			0		SO-CMD-NORTH	PI47-9a	PI47-9a
