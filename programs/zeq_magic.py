@@ -144,7 +144,7 @@ def main():
 #
 #   import samples  for orientation info
 #
-    if 'samples' in contribution.tables:
+    if ('samples' in contribution.tables) and ('specimens' in contribution.tables):
         #        contribution.propagate_name_down('site','measurements')
         contribution.propagate_cols(col_names=[
                                     'azimuth', 'dip', 'orientation_quality'], target_df_name='measurements', source_df_name='samples')
@@ -218,6 +218,9 @@ def main():
     while k < len(specimen_names):
         # set the current specimen for plotting
         this_specimen = specimen_names[k]
+        # reset beginning/end pca if plotting more than one specimen
+        if not specimen:
+            beg_pca, end_pca = "", ""
         if verbose and this_specimen != "":
             print(this_specimen, k + 1, 'out of ', len(specimen_names))
         if setangle == 0:
@@ -328,7 +331,13 @@ def main():
                         if verbose:
                             pmagplotlib.drawFIGS(ZED)
             else:
-                start, end = int(beg_pca), int(end_pca)
+                try:
+                    start, end = int(beg_pca), int(end_pca)
+                except ValueError:
+                    beg_pca = 0
+                    end_pca = len(datablock) - 1
+                    start, end = int(beg_pca), int(end_pca)
+
                 # calculate direction/plane
                 mpars = pmag.domean(datablock, start, end, calculation_type)
                 if mpars["specimen_direction_type"] != "Error":
@@ -474,7 +483,9 @@ def main():
         else:
             print("no data")
         if verbose:
-            input('Ready for next specimen  ')
+            res = input('  <return> for next specimen, [q]uit  ')
+            if res == 'q':
+                return
         k += 1
 
 
