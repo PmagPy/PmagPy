@@ -339,7 +339,14 @@ def main():
                     start, end = int(beg_pca), int(end_pca)
 
                 # calculate direction/plane
-                mpars = pmag.domean(datablock, start, end, calculation_type)
+                try:
+                    mpars = pmag.domean(datablock, start, end, calculation_type)
+                except Exception as ex:
+                    print('-I- Problem with {}'.format(this_specimen))
+                    print('   ', ex)
+                    print('    Skipping')
+                    k += 1
+                    continue
                 if mpars["specimen_direction_type"] != "Error":
                     # put it on the plot
                     pmagplotlib.plotDir(ZED, mpars, datablock, angle)
