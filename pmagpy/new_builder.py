@@ -1106,6 +1106,32 @@ class Contribution(object):
         return outfile
 
 
+    ## Methods for validating contributions
+
+    def find_missing_items(self, dtype):
+        """
+        Find any items that are referenced in a child table
+        but are missing in their own table.
+        For example, a site that is listed in the samples table,
+        but has no entry in the sites table.
+
+        Parameters
+        ----------
+        dtype : str
+            table name, e.g. 'specimens'
+
+        Returns
+        ---------
+        set of missing values
+        """
+        parent_dtype, child_dtype = self.get_parent_and_child(dtype)
+        if not child_dtype in self.tables:
+            return set()
+        items = set(self.tables[dtype].df.index.unique())
+        items_in_child_table = set(self.tables[child_dtype].df[dtype[:-1]].unique())
+        return {i for i in (items_in_child_table - items) if not_null(i)}
+
+
 
 class MagicDataFrame(object):
 
