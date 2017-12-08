@@ -216,6 +216,7 @@ def main():
         k = specimen_names.index(specimen)
     # let's look at the data now
     while k < len(specimen_names):
+        mpars = None
         # set the current specimen for plotting
         this_specimen = specimen_names[k]
         # reset beginning/end pca if plotting more than one specimen
@@ -297,12 +298,14 @@ def main():
 #
 #     collect info for current_specimen_interpretation dictionary
 #
-            if beg_pca == "" and len(prior_spec_data) != 0:
-                #
-                #     find prior interpretation
-                #
-                prior_specimen_interpretations = prior_spec_data[prior_spec_data['specimen'].str.contains(
-                    this_specimen) == True]
+
+#
+#     find prior interpretation
+#
+
+            prior_specimen_interpretations = prior_spec_data[prior_spec_data['specimen'].str.contains(this_specimen) == True]
+
+            if (beg_pca == "") and (len(prior_specimen_interpretations) != 0):
                 if len(prior_specimen_interpretations)>0:
                     beg_pcas = pd.to_numeric(
                         prior_specimen_interpretations.meas_step_min.values).tolist()
