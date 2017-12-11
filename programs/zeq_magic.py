@@ -99,6 +99,7 @@ def main():
         coord = "100"
     else:
         coord = "0"
+    saved_coord = coord
     fmt = pmag.get_named_arg_from_sys("-fmt", "svg")
     specimen = pmag.get_named_arg_from_sys("-spc", default_val="")
     beg_pca, end_pca = "", ""
@@ -258,31 +259,47 @@ def main():
                     methods = methods + ":" + m
             decs = pd.to_numeric(this_specimen_measurements.dir_dec).tolist()
             incs = pd.to_numeric(this_specimen_measurements.dir_inc).tolist()
+
+
 #
 #    fix the coordinate system
 #
+            # revert to original coordinate system
+            coord = saved_coord
             if coord != '-1':  # need to transform coordinates to geographic
-
-                azimuths = pd.to_numeric(
-                    this_specimen_measurements.azimuth).tolist()  # get the azimuths
                 # get the azimuths
+                azimuths = pd.to_numeric(
+                    this_specimen_measurements.azimuth).tolist()
                 dips = pd.to_numeric(this_specimen_measurements.dip).tolist()
-                dirs = [decs, incs, azimuths, dips]
-                # this transposes the columns and rows of the list of lists
-                dirs_geo = np.array(list(map(list, list(zip(*dirs)))))
-                decs, incs = pmag.dogeo_V(dirs_geo)
-                if coord == '100':  # need to do tilt correction too
-                    bed_dip_dirs = pd.to_numeric(
-                        this_specimen_measurements.bed_dip_dir).tolist()  # get the azimuths
-                    bed_dips = pd.to_numeric(
-                        this_specimen_measurements.bed_dip).tolist()  # get the azimuths
-                    dirs = [decs, incs, bed_dip_dirs, bed_dips]
-                    # this transposes the columns and rows of the list of lists
-                    dirs_tilt = np.array(list(map(list, list(zip(*dirs)))))
-                    decs, incs = pmag.dotilt_V(dirs_tilt)
-                    title = title + '_t'
+                # if azimuth/dip is missing, plot using specimen coordinates instead
+                if any([nb.is_null(az) for az in azimuths if az != 0]):
+                    coord = '-1'
+                    print("-W- Couldn't find azimuth and dip for {}".format(this_specimen))
+                    print("    Plotting with specimen coordinates instead")
+                elif any([nb.is_null(dip) for dip in dips if dip != 0]):
+                    coord = '-1'
+                    print("-W- Couldn't find azimuth and dip for {}".format(this_specimen))
+                    print("    Plotting with specimen coordinates instead")
                 else:
-                    title = title + '_g'
+                    coord = saved_coord
+                # if azimuth and dip were found, continue with geographic coordinates
+                if coord != "-1":
+                    dirs = [decs, incs, azimuths, dips]
+                    # this transposes the columns and rows of the list of lists
+                    dirs_geo = np.array(list(map(list, list(zip(*dirs)))))
+                    decs, incs = pmag.dogeo_V(dirs_geo)
+                    if coord == '100':  # need to do tilt correction too
+                        bed_dip_dirs = pd.to_numeric(
+                            this_specimen_measurements.bed_dip_dir).tolist()  # get the azimuths
+                        bed_dips = pd.to_numeric(
+                            this_specimen_measurements.bed_dip).tolist()  # get the azimuths
+                        dirs = [decs, incs, bed_dip_dirs, bed_dips]
+                        # this transposes the columns and rows of the list of lists
+                        dirs_tilt = np.array(list(map(list, list(zip(*dirs)))))
+                        decs, incs = pmag.dotilt_V(dirs_tilt)
+                        title = title + '_t'
+                    else:
+                        title = title + '_g'
             if angle == "":
                 angle = decs[0]
             ints = pd.to_numeric(this_specimen_measurements[int_key]).tolist()
