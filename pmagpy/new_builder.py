@@ -1520,6 +1520,7 @@ class MagicDataFrame(object):
         # keep any row with a unique index
         cond1 = ~self.df.index.duplicated(keep=False)
         # or with actual data
+        ignore_cols = [col for col in ignore_cols if col in self.df.columns]
         relevant_df = self.df.drop(ignore_cols, axis=1)
         cond2 = relevant_df.notnull().any(axis=1)
         orig_len = len(self.df)
