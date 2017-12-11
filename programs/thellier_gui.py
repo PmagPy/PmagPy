@@ -4824,7 +4824,8 @@ You can combine multiple measurement files into one measurement file using Pmag 
                 sample_or_site_mean_pars = data2plot[sample_or_site]
 
             # locate site_name
-            if self.acceptance_criteria['average_by_sample_or_site']['value'] == 'sample':
+            avg_by = self.acceptance_criteria['average_by_sample_or_site']['value']
+            if avg_by == 'sample':
                 site_name = self.Data_hierarchy['site_of_sample'][sample_or_site]
             else:
                 site_name = sample_or_site
@@ -4837,6 +4838,8 @@ You can combine multiple measurement files into one measurement file using Pmag 
                 er_ages_rec = self.Data_info["er_ages"][sample_or_site]
             elif site_name in list(self.Data_info["er_ages"].keys()):
                 er_ages_rec = self.Data_info["er_ages"][site_name]
+            elif sample_or_site in list(self.Data_info["er_{}s".format(avg_by)]):
+                er_ages_rec = self.Data_info["er_{}s".format(avg_by)][sample_or_site]
             if "age" in list(er_ages_rec.keys()) and er_ages_rec["age"] != "":
                 found_age = True
 
@@ -4913,6 +4916,9 @@ You can combine multiple measurement files into one measurement file using Pmag 
             elif sample_or_site in list(self.Data_info["er_samples"].keys()):
                 location = self.Data_info["er_samples"][sample_or_site]["er_location_name"]
             else:
+                location = "unknown"
+
+            if nb.is_null(location):
                 location = "unknown"
 
             if location not in list(plot_by_locations.keys()):
@@ -7415,6 +7421,7 @@ You can combine multiple measurement files into one measurement file using Pmag 
 
             # propagate data from measurements table into other tables
             self.contribution.propagate_measurement_info()
+
             # make backup files
             if 'specimens' in self.contribution.tables:
                 self.spec_container = self.contribution.tables['specimens']
@@ -7425,6 +7432,7 @@ You can combine multiple measurement files into one measurement file using Pmag 
                     dtype='specimens', columns=['specimen', 'aniso_type'])
             self.spec_data = self.spec_container.df
             if 'samples' in self.contribution.tables:
+                self.contribution.tables['samples'].drop_duplicate_rows(ignore_cols=['sample', 'site', 'citations', 'software_packages'])
                 self.samp_container = self.contribution.tables['samples']
                 self.samp_container.write_magic_file(
                     custom_name='samples.bak', dir_path=self.WD)  # create backup file with original
@@ -7432,6 +7440,7 @@ You can combine multiple measurement files into one measurement file using Pmag 
             else:
                 self.samp_container = nb.MagicDataFrame(dtype='samples',
                                                         columns=['sample', 'site', 'cooling_rate'])
+
             self.samp_data = self.samp_container.df  # only need this for saving tables
             if 'cooling_rate' not in self.samp_data.columns:
                 self.samp_data['cooling_rate'] = None
@@ -7443,6 +7452,7 @@ You can combine multiple measurement files into one measurement file using Pmag 
                 samples = samples.rename(columns={
                                          'site': 'er_site_name', 'sample': 'er_sample_name', 'cooling_rate': 'sample_cooling_rate'})
                 # in case of multiple rows with same sample name, make sure cooling rate date propagates
+
                 # to all samples with the same name
                 # (sometimes fails due to pandas bug:
                 #  https://github.com/pandas-dev/pandas/issues/14955,
@@ -7457,20 +7467,43 @@ You can combine multiple measurement files into one measurement file using Pmag 
                 # pick out what is needed by thellier_gui and put in 2.5 format
                 er_samples = samples.to_dict('records')
                 data_er_samples = {}
-                for s in er_samples:
-                    data_er_samples[s['er_sample_name']] = s
+                for samp_rec in er_samples:
+                    name = samp_rec['er_sample_name']
+                    # combine two records for the same sample
+                    if name in data_er_samples:
+                        old_values = data_er_samples[name]
+                        new_values = samp_rec
+                        new_rec = {}
+                        for k, v in old_values.items():
+                            if nb.not_null(v):
+                                new_rec[k] = v
+                            else:
+                                new_rec[k] = new_values[k]
+                        data_er_samples[name] = new_rec
+                    else:
+                        data_er_samples[name] = samp_rec
+
             # if there is no data for samples:
             else:
                 er_samples = {}
                 data_er_samples = {}
             #
-            age_headers = ['site', 'age', 'age_high', 'age_low', 'age_unit']
+            age_headers = ['site', 'location', 'age',
+                           'age_high', 'age_low', 'age_unit']
             if 'sites' in self.contribution.tables:
+                # drop stub rows
+                self.contribution.tables['sites'].drop_duplicate_rows(ignore_cols=['site', 'location', 'citations', 'software_packages'])
+                # get lat/lon info from sites table
+                self.contribution.propagate_average_up(cols=['lat', 'lon'],
+                                                       target_df_name='sites',
+                                                       source_df_name='samples')
+                # get sample table
                 self.site_container = self.contribution.tables['sites']
                 # create backup file with original
                 self.site_container.write_magic_file(
                     custom_name='sites.bak', dir_path=self.WD)
                 self.site_data = self.site_container.df
+                # get required data
                 if 'lat' not in self.site_data.columns:
                     self.site_data['lat'] = None
                     print('-W- Your site file has no latitude data.')
@@ -7498,21 +7531,37 @@ You can combine multiple measurement files into one measurement file using Pmag 
                         self.site_data[header] = None
                 age_data = self.site_data[age_headers]
                 age_data = age_data[age_data['age'].notnull()]
-                age_data = age_data.rename(columns={'site': 'er_site_name'})
+                age_data = age_data.rename(columns={'site': 'er_site_name',
+                                                    'location': 'er_location_name'})
                 # save this in 2.5 format
                 er_ages = age_data.to_dict('records')
                 data_er_ages = {}
                 for s in er_ages:
                     s = self.convert_ages_to_calendar_year(s)
                     data_er_ages[s['er_site_name']] = s
-                sites = self.site_data[['site', 'lat', 'lon']]
+                sites = self.site_data[['site', 'location', 'lat', 'lon']]
                 sites = sites.rename(
-                    columns={'site': 'er_site_name', 'lat': 'site_lat', 'lon': 'site_lon'})
+                    columns={'site': 'er_site_name', 'lat': 'site_lat',
+                             'lon': 'site_lon', 'location': 'er_location_name'})
                 # pick out what is needed by thellier_gui and put in 2.5 format
                 er_sites = sites.to_dict('records')
                 data_er_sites = {}
-                for s in er_sites:
-                    data_er_sites[s['er_site_name']] = s
+                for site_rec in er_sites:
+                    name = site_rec['er_site_name']
+                    # combine two records for the same site
+                    if name in data_er_sites:
+                        old_values = data_er_sites[name]
+                        new_values = site_rec
+                        new_rec = {}
+                        for k, v in old_values.items():
+                            if nb.not_null(v):
+                                new_rec[k] = v
+                            else:
+                                new_rec[k] = new_values[k]
+                        data_er_sites[name] = new_rec
+                    # no need to combine
+                    else:
+                        data_er_sites[name] = site_rec
             else:
                 self.site_container = nb.MagicDataFrame(
                     dtype='sites', columns=['site'])
