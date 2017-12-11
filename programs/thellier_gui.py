@@ -429,7 +429,8 @@ DESCRIPTION
         # try to read redo file if one exists
         if os.path.exists(os.path.join(self.WD, 'thellier_GUI.redo')):
             self.read_redo_file(os.path.join(self.WD, 'thellier_GUI.redo'))
-        self.update_selection()
+        if self.s:
+            self.update_selection()
 
 
     def get_DIR(self, WD=None):
@@ -1594,7 +1595,8 @@ else:
             index += 1
         self.s = self.specimens[index]
         self.specimens_box.SetStringSelection(self.s)
-        self.update_selection()
+        if self.s:
+            self.update_selection()
 
     #----------------------------------------------------------------------
 
