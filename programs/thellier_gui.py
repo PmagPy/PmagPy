@@ -4732,6 +4732,10 @@ You can combine multiple measurement files into one measurement file using Pmag 
         set_map_lon_max = ""
         set_map_lon_grid = ""
 
+        set_map = {'lat_min': set_map_lat_min, 'lat_max': set_map_lat_max,
+                   'lat_grid': set_map_lat_grid, 'lon_min': set_map_lon_min,
+                   'lon_max': set_map_lon_max, 'lon_grid': set_map_lon_grid}
+
         x_autoscale = dia.set_x_axis_auto.GetValue()
         try:
             x_axis_min = float(dia.set_plot_age_min.GetValue())
@@ -4770,7 +4774,7 @@ You can combine multiple measurement files into one measurement file using Pmag 
             try:
                 data2plot = self.read_magic_file(FILE, 4, NAME)
             except Exception as ex:
-                print(type(ex), ex)
+                print("-W- Couldn't read file {}".format(FILE), type(ex), ex)
                 data2plot = {}
         else:
             if self.acceptance_criteria['average_by_sample_or_site']['value'] == 'sample':
@@ -4781,27 +4785,15 @@ You can combine multiple measurement files into one measurement file using Pmag 
 
         show_map = dia.show_map.GetValue()
         set_map_autoscale = dia.set_map_autoscale.GetValue()
+        set_map['set_map_autoscale'] = set_map_autoscale
         if not set_map_autoscale:
             window_list_commands = ["lat_min", "lat_max",
                                     "lat_grid", "lon_min", "lon_max", "lon_grid"]
             for key in window_list_commands:
-                try:
-                    command = "set_map_%s=float(dia.set_map_%s.GetValue())" % (
-                        key, key)
-                    exec(command)
-                except:
-                    command = "set_map_%s='' " % key
-                    exec(command)
+                set_map[key] = dia.set_map[key].GetValue()
+                if set_map[key] != '':
+                    set_map[key] = float(set_map[key])
 
-            try:
-                set_map_lat_min = float(dia.set_map_lat_min.GetValue())
-                set_map_lat_max = float(dia.set_map_lat_max.GetValue())
-                set_map_lat_grid = float(dia.set_map_lat_grid.GetValue())
-                set_map_lon_min = float(dia.set_map_lon_min.GetValue())
-                set_map_lon_max = float(dia.set_map_lon_max.GetValue())
-                set_map_lon_grid = float(dia.set_map_lon_grid.GetValue())
-            except ValueError:
-                pass
         plot_by_locations = {}
 
         # search for lat (for VADM calculation) and age:
@@ -4809,7 +4801,6 @@ You can combine multiple measurement files into one measurement file using Pmag 
         age_min, age_max = 1e10, -1e10
         # if not show_STDEVOPT:
         for sample_or_site in list(data2plot.keys()):
-
             found_age, found_lat = False, False
 
             if not show_STDEVOPT:
