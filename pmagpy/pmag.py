@@ -8494,9 +8494,21 @@ def get_samp_con():
 
 
 def get_tilt(dec_geo, inc_geo, dec_tilt, inc_tilt):
-    #
     """
-    Function to return dip and dip direction used to convert geo to tilt coordinates
+    Function to return the dip direction and dip that would yield the tilt
+    corrected direction if applied to the uncorrected direction (geographic
+    coordinates)
+
+    Parameters
+    ----------
+    dec_geo : declination in geographic coordinates
+    inc_geo : inclination in geographic coordinates
+    dec_tilt : declination in tilt-corrected coordinates
+    inc_tilt : inclination in tilt-corrected coordinates
+
+    Returns
+    -------
+    DipDir, Dip : tuple of dip direction and dip
     """
 # strike is horizontal line equidistant from two input directions
     SCart = [0, 0, 0]  # cartesian coordites of Strike
