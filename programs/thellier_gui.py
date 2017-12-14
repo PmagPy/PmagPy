@@ -7423,6 +7423,7 @@ You can combine multiple measurement files into one measurement file using Pmag 
 
             # propagate data from measurements table into other tables
             self.contribution.propagate_measurement_info()
+            self.contribution.propagate_name_down('location', 'samples')
 
             # make backup files
             if 'specimens' in self.contribution.tables:
@@ -7448,11 +7449,23 @@ You can combine multiple measurement files into one measurement file using Pmag 
                 self.samp_data['cooling_rate'] = None
                 print('-W- Your sample file has no cooling rate data.')
 
+
+            # maybe need to propagate ages here....?
+            self.contribution.propagate_ages()
+
             # gather data for samples
             if len(self.samp_container.df):
-                samples = self.samp_data[['sample', 'site', 'cooling_rate']]
-                samples = samples.rename(columns={
-                                         'site': 'er_site_name', 'sample': 'er_sample_name', 'cooling_rate': 'sample_cooling_rate'})
+                cols = ['sample', 'site', 'cooling_rate']
+
+                if 'location' in self.samp_data.columns:
+                    cols.append('location')
+                if 'age' in self.samp_data.columns:
+                    cols.append('age')
+                samples = self.samp_data[cols]
+                samples = samples.rename(columns={'site': 'er_site_name',
+                                                  'sample': 'er_sample_name',
+                                                  'cooling_rate': 'sample_cooling_rate',
+                                                  'location': 'er_location_name'})
                 # in case of multiple rows with same sample name, make sure cooling rate date propagates
 
                 # to all samples with the same name
