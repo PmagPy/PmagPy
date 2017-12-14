@@ -531,6 +531,12 @@ class TestContribution(unittest.TestCase):
         self.con.tables['sites'].df.drop(['age'], axis='columns', inplace=True)
         res = self.con.propagate_min_max_up(min_suffix='lowest', max_suffix='highest')
 
+    def test_propagate_ages_extra_location_rows(self):
+        directory = os.path.join(WD, 'data_files', '3_0', 'McMurdo')
+        con = nb.Contribution(directory)
+        con.tables['locations'].add_row('McMurdo2', {})
+        con.tables['sites'].df.loc['mc01', 'location'] = 'McMurdo2'
+        con.propagate_ages()
 
     def test_propagate_name_down(self):
         directory = os.path.join(WD, 'data_files', 'Measurement_Import', 'CIT_magic', 'PI47')

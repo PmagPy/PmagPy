@@ -4653,18 +4653,16 @@ You can combine multiple measurement files into one measurement file using Pmag 
         '''
         convert all age units to calendar year
         '''
-
-        if "age" not in list(er_ages_rec.keys()) or er_ages_rec['age'] == None:
+        if ("age" not in list(er_ages_rec.keys())) or (nb.is_null(er_ages_rec['age'], False)):
             return(er_ages_rec)
-        if "age_unit" not in list(er_ages_rec.keys()) or er_ages_rec['age_unit'] == None or er_ages_rec["age_unit"] == "":
+        if ("age_unit" not in list(er_ages_rec.keys())) or (nb.is_null(er_ages_rec['age_unit'])):
             return(er_ages_rec)
-
-        if er_ages_rec["age"] == "":
+        if nb.is_null(er_ages_rec["age"], False):
             if "age_range_high" in list(er_ages_rec.keys()) and "age_range_low" in list(er_ages_rec.keys()):
-                if er_ages_rec["age_range_high"] != "" and er_ages_rec["age_range_low"] != "":
+                if nb.not_null(er_ages_rec["age_range_high"], False) and nb.not_null(er_ages_rec["age_range_low"], False):
                     er_ages_rec["age"] = np.mean(
                         [float(er_ages_rec["age_range_high"]), float(er_ages_rec["age_range_low"])])
-        if er_ages_rec["age"] == "":
+        if nb.is_null(er_ages_rec["age"], False):
             return(er_ages_rec)
 
             # age_descriptier_ages_recon=er_ages_rec["age_description"]
@@ -4693,7 +4691,7 @@ You can combine multiple measurement files into one measurement file using Pmag 
         age_range_high = age
         age_sigma = 0
 
-        if "age_sigma" in list(er_ages_rec.keys()) and er_ages_rec["age_sigma"] != "":
+        if "age_sigma" in list(er_ages_rec.keys()) and nb.not_null(er_ages_rec["age_sigma"], False):
             age_sigma = float(er_ages_rec["age_sigma"]) * mutliplier
             if age_unit == "Years BP" or age_unit == "Years Cal BP":
                 age_sigma = 1950 - age_sigma
@@ -4701,7 +4699,7 @@ You can combine multiple measurement files into one measurement file using Pmag 
             age_range_high = age + age_sigma
 
         if "age_range_high" in list(er_ages_rec.keys()) and "age_range_low" in list(er_ages_rec.keys()):
-            if er_ages_rec["age_range_high"] != "" and er_ages_rec["age_range_low"] != "":
+            if nb.not_null(er_ages_rec["age_range_high"]) and nb.not_null(er_ages_rec["age_range_low"]):
                 age_range_high = float(
                     er_ages_rec["age_range_high"]) * mutliplier
                 if age_unit == "Years BP" or age_unit == "Years Cal BP":
@@ -4750,6 +4748,8 @@ You can combine multiple measurement files into one measurement file using Pmag 
         except ValueError:
             pass
 
+        avg_by = self.acceptance_criteria['average_by_sample_or_site']['value']
+
         # plt_x_years=dia.set_plot_year.GetValue()
         # plt_x_BP=dia.set_plot_BP.GetValue()
         set_age_unit = dia.set_age_unit.GetValue()
@@ -4763,7 +4763,7 @@ You can combine multiple measurement files into one measurement file using Pmag 
 
         if show_STDEVOPT:
             data2plot = {}
-            if self.acceptance_criteria['average_by_sample_or_site']['value'] == 'sample':
+            if avg_by == "sample":
                 FILE = os.path.join(
                     self.WD, 'thellier_interpreter', 'thellier_interpreter_STDEV-OPT_samples.txt')
                 NAME = "er_sample_name"
@@ -4777,7 +4777,7 @@ You can combine multiple measurement files into one measurement file using Pmag 
                 print("-W- Couldn't read file {}".format(FILE), type(ex), ex)
                 data2plot = {}
         else:
-            if self.acceptance_criteria['average_by_sample_or_site']['value'] == 'sample':
+            if avg_by == 'sample':
                 data2plot = copy.deepcopy(self.Data_samples)
             else:
                 data2plot = copy.deepcopy(self.Data_sites)
@@ -4815,7 +4815,6 @@ You can combine multiple measurement files into one measurement file using Pmag 
                 sample_or_site_mean_pars = data2plot[sample_or_site]
 
             # locate site_name
-            avg_by = self.acceptance_criteria['average_by_sample_or_site']['value']
             if avg_by == 'sample':
                 site_name = self.Data_hierarchy['site_of_sample'][sample_or_site]
             else:
@@ -4824,6 +4823,7 @@ You can combine multiple measurement files into one measurement file using Pmag 
             #-----
             # search for age data
             #-----
+
             er_ages_rec = {}
             if sample_or_site in list(self.Data_info["er_ages"].keys()):
                 er_ages_rec = self.Data_info["er_ages"][sample_or_site]
@@ -4877,7 +4877,7 @@ You can combine multiple measurement files into one measurement file using Pmag 
                     found_lon = False
                 # convert lon to -180 to +180
 
-            # tru searchinh latitude in er_samples.txt
+            # try searching for latitude in er_samples.txt
 
             if found_lat == False:
                 if sample_or_site in list(self.Data_info["er_samples"].keys()):
@@ -5032,7 +5032,7 @@ You can combine multiple measurement files into one measurement file using Pmag 
         if Plot_map:
             if True:
                 plt.ion()
-                fig2 = figure(2)
+                fig2 = plt.figure(2)
                 plt.clf()
                 plt.ioff()
 
@@ -5178,16 +5178,27 @@ You can combine multiple measurement files into one measurement file using Pmag 
                 print(type(ex), ex)
 
         if show_sample_labels:
+            xmin, xmax, ymin, ymax = ax.axis()
             for location in locations:
                 for i in range(len(plot_by_locations[location]['samples_names'])):
-                    Fig.text(plot_by_locations[location]['X_data'][i], plot_by_locations[location]['Y_data']
-                             [i], "  " + plot_by_locations[location]['samples_names'][i], fontsize=10, color="0.5")
+                    x = plot_by_locations[location]['X_data'][i]
+                    y = plot_by_locations[location]['Y_data'][i]
+                    item_label = "  " + plot_by_locations[location]['samples_names'][i]
+                    # don't add sample name if out of plot bounds
+                    if x < xmin or x > xmax or y < ymin or y > ymax:
+                        continue
+                    ax.text(x, y, item_label, fontsize=10, color="0.5")
 
         xmin, xmax = ax.get_xlim()
         if max([abs(xmin), abs(xmax)]) > 10000 and set_age_unit == "Automatic":
             plt.gca().ticklabel_format(style='scientific', axis='x', scilimits=(0, 0))
 
         thellier_gui_dialogs.ShowFigure(Fig)
+        # if a map figure was made, show it
+        try:
+            thellier_gui_dialogs.ShowFigure(fig2)
+        except UnboundLocalError:
+            pass
         dia.Destroy()
 
 #===========================================================

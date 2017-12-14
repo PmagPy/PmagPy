@@ -971,6 +971,8 @@ class Contribution(object):
             grouped = source_df.df[[col, target_name]].groupby(target_name)
             if len(grouped):
                 minimum, maximum = grouped.min(), grouped.max()
+                minimum = minimum.reindex(target_df.df.index)
+                maximum = maximum.reindex(target_df.df.index)
                 # update target_df without overwriting existing values
                 target_df.df[min_col] = np.where(target_df.df[min_col].notnull(),
                                                  target_df.df[min_col],
@@ -1981,7 +1983,7 @@ class MagicDataFrame(object):
         elif dtype == 'contribution':
             return 'doi', 'contribution'
 
-def not_null(val):
+def not_null(val, zero_as_null=True):
     """
     Comprehensive check to see if a value is null or not.
     Returns True for: non-empty iterables, True, non-zero floats and ints,
@@ -1991,6 +1993,8 @@ def not_null(val):
     Parameters
     ----------
     val : any Python object
+    zero_as_null: bool
+        treat zero as not null
 
     Returns
     ---------
@@ -2044,14 +2048,16 @@ def not_null(val):
     else:
         if is_nan(val):
             return False
-        else:
-            return exists(val)
+        if not zero_as_null:
+            if val == 0:
+                return True
+        return exists(val)
 
-def is_null(val):
+def is_null(val, zero_as_null=True):
     """
     Convenience function for ! not_null
     """
-    return not not_null(val)
+    return not not_null(val, zero_as_null)
 
 
 if __name__ == "__main__":
