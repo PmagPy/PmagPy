@@ -185,8 +185,10 @@ def main():
         meas_data['flag'] = 'g'  # set the default flag to good
 # need to treat LP-NO specially  for af data, treatment should be zero,
 # otherwise 273.
+    #meas_data['treatment'] = meas_data['treat_ac_field'].where(
+    #    cond=meas_data['treat_ac_field'] != 0, other=meas_data['treat_temp'])
     meas_data['treatment'] = meas_data['treat_ac_field'].where(
-        cond=meas_data['treat_ac_field'] != 0, other=meas_data['treat_temp'])
+        cond=meas_data['treat_ac_field'].astype(bool), other=meas_data['treat_temp'])
     meas_data['ZI'] = 1  # initialize these to one
     meas_data['instrument_codes'] = ""  # initialize these to blank
 #   for unusual case of microwave power....

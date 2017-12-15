@@ -1469,7 +1469,8 @@ def saveP(Figs, filenames, **kwargs):
                 pylab.savefig(fname.replace('/', '-'))
             if verbose:
                 print(Figs[key], " saved in ", fname.replace('/', '-'))
-        except:
+        except Exception as ex:
+            print(type(ex), ex)
             print('could not save: ', Figs[key], filenames[key])
             print("output file format not supported ")
     return
