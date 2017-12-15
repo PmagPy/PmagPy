@@ -5131,6 +5131,7 @@ You can combine multiple measurement files into one measurement file using Pmag 
         legend_font_props.set_size(12)
 
         #h,l = ax.get_legend_handles_labels()
+        plt.figure(1)
         plt.legend(handles=handles_list, loc='center left', bbox_to_anchor=[
                    0, 0, 1, 1], bbox_transform=Fig.transFigure, numpoints=1, prop=legend_font_props)
 
