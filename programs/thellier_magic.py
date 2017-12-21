@@ -253,7 +253,7 @@ def main():
                             if g[0] == plotrec[0] - 273:
                                 gamma = g[1]
                                 break
-                    if gamma != "":
+                    if gamma is not "":
                         print('%i     %i %7.1f %7.1f %8.3e %7.1f' % (
                             recnum, plotrec[0] - 273, plotrec[1], plotrec[2], plotrec[3], gamma))
                     else:
@@ -266,7 +266,15 @@ def main():
                                this_specimen, units[0])
             if verbose:
                 pmagplotlib.drawFIGS(AZD)
-            print('start', start, 'end', end)
+            if nb.is_null(start, False) or nb.is_null(end, False):
+                if verbose:
+                    ans = input('Return for next specimen, q to quit:  ')
+                    if ans == 'q':
+                        sys.exit()
+                k += 1  # moving on
+                start, end = "", ""
+                continue
+
             pars, errcode = pmag.PintPars(
                 thelblock, araiblock, zijdblock, start, end, accept, version=3)
             pars['measurement_step_unit'] = "K"
@@ -337,6 +345,7 @@ def main():
                 ans = input('Return for next specimen, q to quit:  ')
                 if ans == 'q':
                     sys.exit()
+            start, end  = "", ""
             k += 1  # moving on
 
 #
