@@ -244,7 +244,16 @@ def main():
             # this is a list of all the specimen method codes`
             meas_meths = this_specimen_measurements.method_codes.unique()
             tr = pd.to_numeric(this_specimen_measurements.treatment).tolist()
+            if any(nb.is_null(treat, False) for treat in tr):
+                print('-W- Missing required values in measurements.treatment for {}, skipping'.format(this_specimen))
+                if specimen:
+                    return
+                k += 1
+                continue
             if set(tr) == set([0]):
+                print('-W- Missing required values in measurements.treatment for {}, skipping'.format(this_specimen))
+                if specimen:
+                    return
                 k += 1
                 continue
             for m in meas_meths:
@@ -320,8 +329,11 @@ def main():
 #
 #     find prior interpretation
 #
-
-            prior_specimen_interpretations = prior_spec_data[prior_spec_data['specimen'].str.contains(this_specimen) == True]
+            if len(prior_spec_data):
+                print(prior_spec_data['specimen'].str.contains(this_specimen))
+                prior_specimen_interpretations = prior_spec_data[prior_spec_data['specimen'].str.contains(this_specimen) == True]
+            else:
+                prior_specimen_interpretations = []
             if (beg_pca == "") and (len(prior_specimen_interpretations) != 0):
                 if len(prior_specimen_interpretations)>0:
                     beg_pcas = pd.to_numeric(

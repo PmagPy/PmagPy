@@ -204,8 +204,11 @@ def main():
             this_specimen) == True]  # fish out this specimen
         anisblock = anis_data[anis_data['specimen'].str.contains(
             this_specimen) == True]  # fish out the anisotropy data
-        prior_specimen_interpretations = prior_spec_data[prior_spec_data['specimen'].str.contains(
-            this_specimen) == True]  # fish out prior interpretation
+        if len(prior_spec_data):
+            prior_specimen_interpretations = prior_spec_data[prior_spec_data['specimen'].str.contains(
+                this_specimen) == True]  # fish out prior interpretation
+        else:
+            prior_specimen_interpretations = []
 #
 # sort data into types
 #
