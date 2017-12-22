@@ -11,7 +11,7 @@ def main():
     NAME
         download_magic.py
 
-    DESCRIPTION	
+    DESCRIPTION
         unpacks a magic formatted smartbook .txt file from the MagIC database into the
         tab delimited MagIC format txt files for use with the MagIC-Py programs.
 
@@ -46,10 +46,9 @@ def main():
         infile, dir_path, input_dir_path, overwrite = extractor.get_vars(['f', 'WD', 'ID', 'O'], checked_args)
 
     data_model = float(pmag.get_named_arg_from_sys("-DM", 2.5))
-    ipmag.download_magic(infile, dir_path, input_dir_path, overwrite, data_model)
+    ipmag.download_magic(infile, dir_path, input_dir_path, overwrite, True, data_model)
 
 
-                        
+
 if __name__ == '__main__':
     main()
-
