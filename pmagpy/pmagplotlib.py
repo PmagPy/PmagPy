@@ -14,6 +14,7 @@ import sys
 import os
 sys.path.insert(0, os.getcwd())
 import numpy
+import pandas as pd
 
 # no longer setting backend here
 from pmag_env import set_env
@@ -574,6 +575,9 @@ def plotC(fignum, pole, ang, col):
     pylab.plot(X_c_up, Y_c_up, 'c.', ms=2)
 
 
+#
+#
+#
 def plotZ(fignum, datablock, angle, s, norm):
     global globals
     """
@@ -584,86 +588,38 @@ def plotZ(fignum, datablock, angle, s, norm):
     if not isServer:
         pylab.figtext(.02, .01, version_num)
     amin, amax = 0., -100.
-    fact = old_div(1., datablock[0][3])   # normalize to NRM=1
     if norm == 0:
         fact = 1.
-    x, y, z = [], [], []
-    xb, yb, zb = [], [], []
-    forVDS = []
-# convert to cartesian
-    recnum, delta = 0, ""
-    for plotrec in datablock:
-        forVDS.append(
-            [plotrec[1], plotrec[2], old_div(plotrec[3], datablock[0][3])])
-        rec = pmag.dir2cart(
-            [(plotrec[1] - angle), plotrec[2], plotrec[3] * fact])
-        if len(plotrec) == 4:
-            plotrec.append('0')  # fake the ZI,IZ step for old data
-        if len(plotrec) == 5:
-            plotrec.append('g')  # assume good measurement if not specified
-        if plotrec[5] == 'g':
-          #  z.append(-rec[2])
-            z.append(rec[2])
-            x.append(rec[0])
-          #  y.append(-rec[1])
-            y.append(rec[1])
-            if x[-1] > amax:
-                amax = x[-1]
-            if y[-1] > amax:
-                amax = y[-1]
-            if z[-1] > amax:
-                amax = z[-1]
-            if x[-1] < amin:
-                amin = x[-1]
-            if y[-1] < amin:
-                amin = y[-1]
-            if z[-1] < amin:
-                amin = z[-1]
-            if delta == "":
-                delta = .02 * x[-1]
-            #if recnum%2==0 and len(x)>0: pylab.text(x[-1]-delta,z[-1]+delta,(' '+str(recnum)),fontsize=9)
-            if recnum % 2 == 0 and len(x) > 0:
-                pylab.text(x[-1] + delta, z[-1] + delta,
-                           (' ' + str(recnum)), fontsize=9)
-            recnum += 1
-        elif len(plotrec) >= 6 and plotrec[5] == 'b':
-          #  zb.append(-rec[2])
-            zb.append(rec[2])
-            xb.append(rec[0])
-          #  yb.append(-rec[1])
-            yb.append(rec[1])
-            if xb[-1] > amax:
-                amax = xb[-1]
-            if yb[-1] > amax:
-                amax = yb[-1]
-            if zb[-1] > amax:
-                amax = zb[-1]
-            if xb[-1] < amin:
-                amin = xb[-1]
-            if yb[-1] < amin:
-                amin = yb[-1]
-            if zb[-1] < amin:
-                amin = zb[-1]
-            if delta == "":
-                delta = .02 * xb[-1]
-            pylab.text(xb[-1] - delta, zb[-1] + delta,
-                       (' ' + str(recnum)), fontsize=9)
-            recnum += 1
+    else:
+        fact = (1./datablock[0][3])   # normalize to NRM=1
+    # convert datablock to array data with  dec,inc, int
+    data=pd.DataFrame(datablock)
+    data.columns=['treat','dec','inc','int','x','quality','y']
+    data['int']=data['int']*fact # normalize
+    data['dec']=(data['dec']-angle)%360 # adjust X axis angle
+    gdata=data[data['quality'].str.contains('g')]
+    bdata=data[data['quality'].str.contains('b')]
+    forVDS=gdata[['dec','inc','int']].values
+    gXYZ=pd.DataFrame(pmag.dir2cart(forVDS))
+    gXYZ.columns=['X','Y','Z']
+    amax=numpy.maximum(gXYZ.X.max(),gXYZ.Z.max())
+    amin=numpy.minimum(gXYZ.X.min(),gXYZ.Z.min())
+    bXYZ=pmag.dir2cart(bdata[['dec','inc','int']].values).transpose()
 # plotting stuff
     if angle != 0:
         tempstr = "\n Declination rotated by: " + str(angle) + '\n'
     if globals != 0:
         globals.text.insert(globals.END, tempstr)
-        globals.Zlist = x
-        globals.Zlisty = y
-        globals.Zlistz = z
-    if len(xb) > 0:
-        pylab.scatter(xb, yb, marker='d', c='y', s=30)
-        pylab.scatter(xb, zb, marker='d', c='y', s=30)
-    pylab.plot(x, y, 'r')
-    pylab.plot(x, z, 'b')
-    pylab.scatter(x, y, marker='o', c='r')
-    pylab.scatter(x, z, marker='s', c='w',edgecolor='b')
+        globals.Zlist = gXYZ['x'].tolist()
+        globals.Zlisty = gXYZ['y'].tolist()
+        globals.Zlistz = gXYZ['z'].tolist()
+    if len(bXYZ) > 0:
+        pylab.scatter(bXYZ[0], bXYZ[1], marker='d', c='y', s=30)
+        pylab.scatter(bXYZ[0], bXYZ[2], marker='d', c='y', s=30)
+    pylab.plot(gXYZ['X'], gXYZ['Y'], 'ro')
+    pylab.plot(gXYZ['X'], gXYZ['Z'], 'bs')
+    pylab.plot(gXYZ['X'], gXYZ['Y'], 'r-')
+    pylab.plot(gXYZ['X'], gXYZ['Z'], 'b-')
     xline = [amin, amax]
    # yline=[-amax,-amin]
     yline = [amax, amin]
@@ -682,7 +638,6 @@ def plotZ(fignum, datablock, angle, s, norm):
     pylab.title(tstring)
 #
 #
-
 
 def plotMT(fignum, datablock, s, num, units, norm):
     global globals, graphmenu

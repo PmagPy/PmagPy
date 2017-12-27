@@ -248,12 +248,12 @@ def main():
                 k += 1
                 continue
             for m in meas_meths:
-                if 'LT-AF-Z' in m:
+                if 'LT-AF-Z' in m and 'T' not in units:
                     units = 'T'  # units include tesla
                     tr[0] = 0
-                if 'LT-T-Z' in m:
+                if 'LT-T-Z' in m and 'K' not in units:
                     units = units + ":K"  # units include kelvin
-                if 'LT-M-Z' in m:
+                if 'LT-M-Z' in m and 'J' not in units:
                     units = units + ':J'  # units include joules
                     tr[0] = 0
                 units = units.strip(':')  # strip off extra colons
@@ -261,7 +261,6 @@ def main():
                     methods = methods + ":" + m
             decs = pd.to_numeric(this_specimen_measurements.dir_dec).tolist()
             incs = pd.to_numeric(this_specimen_measurements.dir_inc).tolist()
-
 
 #
 #    fix the coordinate system
@@ -323,7 +322,6 @@ def main():
 #
 
             prior_specimen_interpretations = prior_spec_data[prior_spec_data['specimen'].str.contains(this_specimen) == True]
-
             if (beg_pca == "") and (len(prior_specimen_interpretations) != 0):
                 if len(prior_specimen_interpretations)>0:
                     beg_pcas = pd.to_numeric(
@@ -502,13 +500,6 @@ def main():
                                 this_specimen_interpretation["meas_step_min"]), float(this_specimen_interpretation["meas_step_max"]), float(this_specimen_interpretation["dir_dec"]), float(this_specimen_interpretation["dir_inc"]), calculation_type))
                 if verbose:
                     saveit = input("Save this interpretation? [y]/n \n")
-#   START HERE
-#
-#         if len(current_spec_data)==0: # no interpretations yet for this session
-#             print "no current interpretation"
-#             beg_pca,end_pca="",""
-#             calculation_type=""
-# get the ones that meet the current coordinate system
         else:
             print("no data")
         if verbose:
