@@ -594,7 +594,10 @@ def plotZ(fignum, datablock, angle, s, norm):
         fact = (1./datablock[0][3])   # normalize to NRM=1
     # convert datablock to array data with  dec,inc, int
     data=pd.DataFrame(datablock)
-    data.columns=['treat','dec','inc','int','x','quality','y']
+    if len(data.columns)==6:
+        data.columns=['treat','dec','inc','int','type','quality']
+    elif len(data.columns)==7:
+        data.columns=['treat','dec','inc','int','type','quality','y']
     data['int']=data['int']*fact # normalize
     data['dec']=(data['dec']-angle)%360 # adjust X axis angle
     gdata=data[data['quality'].str.contains('g')]
