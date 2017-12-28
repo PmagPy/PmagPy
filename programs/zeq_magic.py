@@ -330,7 +330,6 @@ def main():
 #     find prior interpretation
 #
             if len(prior_spec_data):
-                print(prior_spec_data['specimen'].str.contains(this_specimen))
                 prior_specimen_interpretations = prior_spec_data[prior_spec_data['specimen'].str.contains(this_specimen) == True]
             else:
                 prior_specimen_interpretations = []
