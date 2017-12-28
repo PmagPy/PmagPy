@@ -148,6 +148,10 @@ def main():
 
     # get all the non-null intensity records of the same type
     meas_data = meas_data[meas_data[int_key].notnull()]
+
+    if not len(meas_data):
+        print("-W- No intensity data found, thellier_magic cannot run")
+        return
     if 'flag' not in meas_data.columns:
         meas_data['flag'] = 'g'  # set the default flag to good
     meas_data = meas_data[meas_data['flag'].str.contains(
