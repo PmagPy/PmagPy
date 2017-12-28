@@ -1994,7 +1994,7 @@ def not_null(val, zero_as_null=True):
     ----------
     val : any Python object
     zero_as_null: bool
-        treat zero as not null
+        treat zero as null, default True
 
     Returns
     ---------
