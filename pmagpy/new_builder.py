@@ -1647,6 +1647,27 @@ class MagicDataFrame(object):
 
     ## Methods that take self.df and extract some information from it
 
+    def find_filled_col(self, col_list):
+        """
+        return the first col_name from the list that is both
+        a. present in self.df.columns and
+        b. self.df[col_name] has at least one non-null value
+
+        Parameters
+        ----------
+        self: MagicDataFrame
+        col_list : iterable
+           list of columns to check
+
+        Returns
+        ----------
+        col_name : str
+        """
+        for col in col_list:
+            if col in self.df.columns:
+                if not all([is_null(val, False) for val in self.df[col]]):
+                    return col
+
     def convert_to_pmag_data_list(self, lst_or_dict="lst", df=None):
 
         """

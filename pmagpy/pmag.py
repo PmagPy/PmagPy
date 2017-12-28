@@ -1529,12 +1529,12 @@ def find_dmag_rec(s, data, **kwargs):
                 ZI = 1
             if tr != "":
                 dec, inc, int = "", "", ""
-                if dec_key in list(rec.keys()) and rec[dec_key] != "":
+                if dec_key in list(rec.keys()) and nb.not_null(rec[dec_key], False):
                     dec = float(rec[dec_key])
-                if inc_key in list(rec.keys()) and rec[inc_key] != "":
+                if inc_key in list(rec.keys()) and nb.not_null(rec[inc_key], False):
                     inc = float(rec[inc_key])
                 for key in Mkeys:
-                    if key in list(rec.keys()) and rec[key] != "":
+                    if key in list(rec.keys()) and nb.not_null(rec[key], False):
                         int = float(rec[key])
                 if inst_key not in list(rec.keys()):
                     rec[inst_key] = ''

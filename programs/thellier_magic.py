@@ -140,7 +140,12 @@ def main():
         col_name for col_name in meas_data.columns if col_name in Mkeys]
     # plot first intensity method found - normalized to initial value anyway -
     # doesn't matter which used
-    int_key = intensity_types[0]
+
+    int_key = meas_container.find_filled_col(intensity_types)
+    if not int_key:
+        print("-W- No intensity data found, thellier_magic cannot run")
+        return
+
     # get all the non-null intensity records of the same type
     meas_data = meas_data[meas_data[int_key].notnull()]
     if 'flag' not in meas_data.columns:
