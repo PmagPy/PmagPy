@@ -353,7 +353,7 @@ def main():
                             if 'DE-BFL-A' in m:
                                 calculation_type = 'DE-BFL-A'  # anchored best fit line
                         start, end = tr.index(beg_pcas[ind]), tr.index(end_pcas[ind])  # getting the starting and ending points
-                    # calculate direction/plane
+                        # calculate direction/plane
                         mpars = pmag.domean(
                             datablock, start, end, calculation_type)
                         if mpars["specimen_direction_type"] != "Error":
@@ -369,7 +369,7 @@ def main():
                     beg_pca = 0
                     end_pca = len(datablock) - 1
                     start, end = int(beg_pca), int(end_pca)
-                 calculate direction/plane
+                # calculate direction/plane
                 try:
                     mpars = pmag.domean(datablock, start, end, calculation_type)
                 except Exception as ex:
