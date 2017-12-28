@@ -627,8 +627,8 @@ def plotZ(fignum, datablock, angle, s, norm):
    # yline=[-amax,-amin]
     yline = [amax, amin]
     zline = [0, 0]
-    pylab.plot(xline, zline)
-    pylab.plot(zline, xline)
+    pylab.plot(xline, zline,'k-')
+    pylab.plot(zline, xline,'k-')
     if angle != 0:
         xlab = "X: rotated to Dec = " + '%7.1f' % (angle)
     if angle == 0:
@@ -871,7 +871,7 @@ def plotDir(ZED, pars, datablock, angle):
         if cm != [0., 0., 0.]:
             cmDir = pmag.cart2dir(cm)
             cmDir[0] = cmDir[0] - angle
-            cmDir[2] = old_div(cmDir[2], (datablock[0][3]))
+            #cmDir[2] = old_div(cmDir[2], (datablock[0][3]))
             cm = pmag.dir2cart(cmDir)
             diff = []
             for i in range(3):
