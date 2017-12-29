@@ -148,7 +148,7 @@ def main():
     if ('samples' in contribution.tables) and ('specimens' in contribution.tables):
         #        contribution.propagate_name_down('site','measurements')
         contribution.propagate_cols(col_names=[
-                                    'azimuth', 'dip', 'orientation_quality'], target_df_name='measurements', source_df_name='samples')
+                                    'azimuth', 'dip', 'orientation_quality','bed_dip','bed_dip_direction'], target_df_name='measurements', source_df_name='samples')
 #
 # define figure numbers for equal area, zijderveld,
 #  and intensity vs. demagnetiztion step respectively
@@ -300,7 +300,7 @@ def main():
                     decs, incs = pmag.dogeo_V(dirs_geo)
                     if coord == '100':  # need to do tilt correction too
                         bed_dip_dirs = pd.to_numeric(
-                            this_specimen_measurements.bed_dip_dir).tolist()  # get the azimuths
+                            this_specimen_measurements.bed_dip_direction).tolist()  # get the azimuths
                         bed_dips = pd.to_numeric(
                             this_specimen_measurements.bed_dip).tolist()  # get the azimuths
                         dirs = [decs, incs, bed_dip_dirs, bed_dips]
@@ -362,27 +362,27 @@ def main():
                             if verbose:
                                 pmagplotlib.drawFIGS(ZED)
 ### skip if no prior interpretation
-            else:
-                try:
-                    start, end = int(beg_pca), int(end_pca)
-                except ValueError:
-                    beg_pca = 0
-                    end_pca = len(datablock) - 1
-                    start, end = int(beg_pca), int(end_pca)
-                # calculate direction/plane
-                try:
-                    mpars = pmag.domean(datablock, start, end, calculation_type)
-                except Exception as ex:
-                    print('-I- Problem with {}'.format(this_specimen))
-                    print('   ', ex)
-                    print('    Skipping')
-                    k += 1
-                    continue
-                if mpars["specimen_direction_type"] != "Error":
-                    # put it on the plot
-                    pmagplotlib.plotDir(ZED, mpars, datablock, angle)
-                    if verbose:
-                        pmagplotlib.drawFIGS(ZED)
+            #else:
+            #    try:
+            #        start, end = int(beg_pca), int(end_pca)
+            #    except ValueError:
+            #        beg_pca = 0
+            #        end_pca = len(datablock) - 1
+            #        start, end = int(beg_pca), int(end_pca)
+            #    # calculate direction/plane
+            #    try:
+            #        mpars = pmag.domean(datablock, start, end, calculation_type)
+            #    except Exception as ex:
+            #        print('-I- Problem with {}'.format(this_specimen))
+            #        print('   ', ex)
+            #        print('    Skipping')
+            #        continue
+            #        k += 1
+            #    if mpars["specimen_direction_type"] != "Error":
+            #        # put it on the plot
+            #        pmagplotlib.plotDir(ZED, mpars, datablock, angle)
+            #        if verbose:
+            #            pmagplotlib.drawFIGS(ZED)
             if plots == 1 or specimen != "":
                 if plot_file == "":
                     basename = title

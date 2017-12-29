@@ -607,6 +607,7 @@ def plotZ(fignum, datablock, angle, s, norm):
     gXYZ.columns=['X','Y','Z']
     amax=numpy.maximum(gXYZ.X.max(),gXYZ.Z.max())
     amin=numpy.minimum(gXYZ.X.min(),gXYZ.Z.min())
+    if amin>0:amin=0
     bXYZ=pmag.dir2cart(bdata[['dec','inc','int']].values).transpose()
 # plotting stuff
     if angle != 0:
