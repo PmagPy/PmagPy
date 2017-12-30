@@ -131,21 +131,28 @@ def find(f, seq):
     return ""
 
 
-def get_orient(samp_data, er_sample_name):
+def get_orient(samp_data, er_sample_name,**kwargs):
     # set orientation priorities
     EX = ["SO-ASC", "SO-POM"]
-    orient = {'er_sample_name': er_sample_name, 'sample_azimuth': "",
-              'sample_dip': "", 'sample_description': ""}
+    samp_key,az_key,dip_key='er_sample_name','sample_azimuth','sample_dip'
+    disc_key,or_key,meth_key='sample_description','sample_orientation_flag',\
+             'magic_method_codes' 
+    if 'data_model' in list(kwargs.keys()) and kwargs['data_model'] == 3:
+        samp_key,az_key,dip_key='sample','azimuth','dip'
+        disc_key,or_key,meth_key='description','orientation_quality',\
+             'method_codes'
+    orient = {samp_key: er_sample_name, az_key: "",
+              dip_key: "", disc_key: ""}
     # get all the orientation data for this sample
-    orients = get_dictitem(samp_data, 'er_sample_name', er_sample_name, 'T')
-    if 'sample_orientation_flag' in list(orients[0].keys()):
+    orients = get_dictitem(samp_data, samp_key, er_sample_name, 'T')
+    if len(orients)>0 and or_key in list(orients[0].keys()):
         # exclude all samples with bad orientation flag
-        orients = get_dictitem(orients, 'sample_orientation_flag', 'b', 'F')
+        orients = get_dictitem(orients, or_key, 'b', 'F')
     if len(orients) > 0:
         orient = orients[0]  # re-initialize to first one
-    methods = get_dictitem(orients, 'magic_method_codes', 'SO-', 'has')
+    methods = get_dictitem(orients, meth_key, 'SO-', 'has')
     # get a list of all orientation methods for this sample
-    methods = get_dictkey(methods, 'magic_method_codes', '')
+    methods = get_dictkey(methods, meth_key, '')
     SO_methods = []
     for methcode in methods:
         meths = methcode.split(":")
@@ -156,15 +163,14 @@ def get_orient(samp_data, er_sample_name):
     if len(SO_methods) == 0:
         print("no orientation data for ", er_sample_name)
         # preserve meta-data anyway even though orientation is bad
-        orig_data = get_dictitem(samp_data, 'er_sample_name', er_sample_name, 'T')[
-            0]  # get all the orientation data for this sample
+# get all the orientation data for this sample
+        orig_data = get_dictitem(samp_data, samp_key, er_sample_name, 'T')[0]  
         orient.update(orig_data)
         az_type = "SO-NO"
     else:
         SO_priorities = set_priorities(SO_methods, 0)
         az_type = SO_methods[SO_methods.index(SO_priorities[0])]
-        orient = get_dictitem(orients, 'magic_method_codes', az_type, 'has')[
-            0]  # re-initialize to best one
+        orient = get_dictitem(orients, meth_key, az_type, 'has')[0]  # re-initialize to best one
     return orient, az_type
 
 

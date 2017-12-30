@@ -130,7 +130,7 @@ def main():
     specimen_cols = ['analysts', 'aniso_ftest', 'aniso_ftest12', 'aniso_ftest23', 'aniso_s', 'aniso_s_mean', 'aniso_s_n_measurements', 'aniso_s_sigma', 'aniso_s_unit', 'aniso_tilt_correction', 'aniso_type', 'aniso_v1', 'aniso_v2', 'aniso_v3', 'citations', 'description', 'dir_alpha95', 'dir_comp', 'dir_dec', 'dir_inc', 'dir_mad_free', 'dir_n_measurements', 'dir_tilt_correction', 'experiments', 'geologic_classes',
                      'geologic_types', 'hyst_bc', 'hyst_bcr', 'hyst_mr_moment', 'hyst_ms_moment', 'int_abs', 'int_b', 'int_b_beta', 'int_b_sigma', 'int_corr', 'int_dang', 'int_drats', 'int_f', 'int_fvds', 'int_gamma', 'int_mad_free', 'int_md', 'int_n_measurements', 'int_n_ptrm', 'int_q', 'int_rsc', 'int_treat_dc_field', 'lithologies', 'meas_step_max', 'meas_step_min', 'meas_step_unit', 'method_codes', 'sample', 'software_packages', 'specimen']
     if 'specimens' in contribution.tables:
-        #        contribution.propagate_name_down('sample','measurements')
+        contribution.propagate_name_down('sample','measurements')
         spec_container = contribution.tables['specimens']
         if 'method_codes' not in spec_container.df.columns:
             spec_container.df['method_codes'] = None
@@ -145,11 +145,17 @@ def main():
 #
 #   import samples  for orientation info
 #
-    if ('samples' in contribution.tables) and ('specimens' in contribution.tables):
-        #        contribution.propagate_name_down('site','measurements')
-        contribution.propagate_cols(col_names=[
-                                    'azimuth', 'dip', 'orientation_quality','bed_dip','bed_dip_direction'], target_df_name='measurements', source_df_name='samples')
-#
+    if 'samples' in contribution.tables:
+        samp_container=contribution.tables['samples']
+        samps=samp_container.df
+        samp_data=samps.to_dict('records')# convert to list of dictionaries for use with get_orient
+    else:
+        samp_data=[]
+    #if ('samples' in contribution.tables) and ('specimens' in contribution.tables):
+    #    #        contribution.propagate_name_down('site','measurements')
+    #    contribution.propagate_cols(col_names=[
+    #                                'azimuth', 'dip', 'orientation_quality','bed_dip','bed_dip_direction'], target_df_name='measurements', source_df_name='samples')
+##
 # define figure numbers for equal area, zijderveld,
 #  and intensity vs. demagnetiztion step respectively
 #
@@ -181,8 +187,8 @@ def main():
     int_key = intensity_types[0]
     # get all the non-null intensity records of the same type
     meas_data = meas_data[meas_data[int_key].notnull()]
-    if 'flag' not in meas_data.columns:
-        meas_data['flag'] = 'g'  # set the default flag to good
+    if 'quality' not in meas_data.columns:
+        meas_data['quality'] = 'g'  # set the default flag to good
 # need to treat LP-NO specially  for af data, treatment should be zero,
 # otherwise 273.
     #meas_data['treatment'] = meas_data['treat_ac_field'].where(
@@ -231,9 +237,15 @@ def main():
             angle = ""
         this_specimen_measurements = meas_data[meas_data['specimen'].str.contains(
             this_specimen) == True]  # fish out this specimen
-        this_specimen_measurements = this_specimen_measurements[this_specimen_measurements['flag'].str.contains(
+        this_specimen_measurements = this_specimen_measurements[this_specimen_measurements['quality'].str.contains(
             'g') == True]  # fish out this specimen
         if len(this_specimen_measurements) != 0:  # if there are measurements
+            meas_list=this_specimen_measurements.to_dict('records') # get a list of dictionaries
+            this_sample=""
+            if coord != '-1' and 'sample' in meas_list[0].keys(): # look up sample name
+                this_sample=pmag.get_dictitem(meas_list,'specimen',this_specimen,'T')
+                if len(this_sample)>0:
+                    this_sample=this_sample[0]['sample']
             #
             #    set up datablock [[treatment,dec, inc, int, direction_type],[....]]
             #
@@ -277,10 +289,14 @@ def main():
             # revert to original coordinate system
             coord = saved_coord
             if coord != '-1':  # need to transform coordinates to geographic
-                # get the azimuths
-                azimuths = pd.to_numeric(
-                    this_specimen_measurements.azimuth).tolist()
-                dips = pd.to_numeric(this_specimen_measurements.dip).tolist()
+                # get the azimuth
+                or_info,az_type=pmag.get_orient(samp_data,this_sample,data_model=3)
+                if or_info['azimuth']!="":
+                    #azimuths = pd.to_numeric(
+                    #    this_specimen_measurements.azimuth).tolist()
+                    #dips = pd.to_numeric(this_specimen_measurements.dip).tolist()
+                    azimuths=len(decs)*[or_info['azimuth']]
+                    dips=len(decs)*[or_info['dip']]
                 # if azimuth/dip is missing, plot using specimen coordinates instead
                 if any([nb.is_null(az) for az in azimuths if az != 0]):
                     coord = '-1'
@@ -298,13 +314,16 @@ def main():
                     # this transposes the columns and rows of the list of lists
                     dirs_geo = np.array(list(map(list, list(zip(*dirs)))))
                     decs, incs = pmag.dogeo_V(dirs_geo)
-                    if coord == '100':  # need to do tilt correction too
-                        bed_dip_dirs = pd.to_numeric(
-                            this_specimen_measurements.bed_dip_direction).tolist()  # get the azimuths
-                        bed_dips = pd.to_numeric(
-                            this_specimen_measurements.bed_dip).tolist()  # get the azimuths
+                    if coord == '100' and 'bed_dip_direction' in or_info.keys() and or_info['bed_dip_direction']!="":  # need to do tilt correction too
+                        bed_dip_dirs=len(decs)*[or_info['bed_dip_direction']]
+                        bed_dips=len(decs)*[or_info['bed_dip']]
+                        #bed_dip_dirs = pd.to_numeric(
+                        #    this_specimen_measurements.bed_dip_direction).tolist()  # get the azimuths
+                        #bed_dips = pd.to_numeric(
+                        #    this_specimen_measurements.bed_dip).tolist()  # get the azimuths
+                        
                         dirs = [decs, incs, bed_dip_dirs, bed_dips]
-                        # this transposes the columns and rows of the list of lists
+                        ## this transposes the columns and rows of the list of lists
                         dirs_tilt = np.array(list(map(list, list(zip(*dirs)))))
                         decs, incs = pmag.dotilt_V(dirs_tilt)
                         title = title + '_t'
@@ -314,7 +333,7 @@ def main():
                 angle = decs[0]
             ints = pd.to_numeric(this_specimen_measurements[int_key]).tolist()
             ZI = this_specimen_measurements.ZI.tolist()
-            flags = this_specimen_measurements.flag.tolist()
+            flags = this_specimen_measurements.quality.tolist()
             codes = this_specimen_measurements.instrument_codes.tolist()
             datalist = [tr, decs, incs, ints, ZI, flags, codes]
             # this transposes the columns and rows of the list of lists

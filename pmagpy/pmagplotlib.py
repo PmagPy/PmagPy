@@ -870,6 +870,7 @@ def plotDir(ZED, pars, datablock, angle):
 #   old way:
         cm = pars["center_of_mass"]
         if cm != [0., 0., 0.]:
+            cm = numpy.array(pars["center_of_mass"])/datablock[0][3]
             cmDir = pmag.cart2dir(cm)
             cmDir[0] = cmDir[0] - angle
             #cmDir[2] = old_div(cmDir[2], (datablock[0][3]))
