@@ -161,7 +161,7 @@ def get_orient(samp_data, er_sample_name,**kwargs):
                 SO_methods.append(meth)
     # find top priority orientation method
     if len(SO_methods) == 0:
-        print("no orientation data for ", er_sample_name)
+        print("no orientation data for sample ", er_sample_name)
         # preserve meta-data anyway even though orientation is bad
 # get all the orientation data for this sample
         orig_data = get_dictitem(samp_data, samp_key, er_sample_name, 'T')[0]  

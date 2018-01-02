@@ -295,13 +295,15 @@ def main():
             if coord != '-1':  # need to transform coordinates to geographic
                 # get the azimuth
                 or_info,az_type=pmag.get_orient(samp_data,this_sample,data_model=3)
-                if or_info['azimuth']!="":
+                if 'azimuth' in or_info.keys() and or_info['azimuth']!="":
                     #azimuths = pd.to_numeric(
                     #    this_specimen_measurements.azimuth).tolist()
                     #dips = pd.to_numeric(this_specimen_measurements.dip).tolist()
                     azimuths=len(decs)*[or_info['azimuth']]
                     dips=len(decs)*[or_info['dip']]
                 # if azimuth/dip is missing, plot using specimen coordinates instead
+                else:
+                    azimuths,dips=[],[]
                 if any([nb.is_null(az) for az in azimuths if az != 0]):
                     coord = '-1'
                     print("-W- Couldn't find azimuth and dip for {}".format(this_specimen))
@@ -313,7 +315,7 @@ def main():
                 else:
                     coord = saved_coord
                 # if azimuth and dip were found, continue with geographic coordinates
-                if coord != "-1":
+                if coord != "-1" and len(azimuths)>0:
                     dirs = [decs, incs, azimuths, dips]
                     # this transposes the columns and rows of the list of lists
                     dirs_geo = np.array(list(map(list, list(zip(*dirs)))))
