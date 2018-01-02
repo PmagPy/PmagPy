@@ -164,8 +164,11 @@ def get_orient(samp_data, er_sample_name,**kwargs):
         print("no orientation data for sample ", er_sample_name)
         # preserve meta-data anyway even though orientation is bad
 # get all the orientation data for this sample
-        orig_data = get_dictitem(samp_data, samp_key, er_sample_name, 'T')[0]  
-        orient.update(orig_data)
+        orig_data = get_dictitem(samp_data, samp_key, er_sample_name, 'T')
+        if len(orig_data)>0:
+            orig_data = orig_data[0]
+        else:
+            orig_data=[]
         az_type = "SO-NO"
     else:
         SO_priorities = set_priorities(SO_methods, 0)

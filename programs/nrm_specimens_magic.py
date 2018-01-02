@@ -3,32 +3,33 @@ from __future__ import print_function
 from builtins import str
 import sys
 import pmagpy.pmag as pmag
-
+import pmagpy.new_builder as nb
+import pandas as pd
 def main():
     """
         NAME
             nrm_specimens_magic.py
     
         DESCRIPTION
-            converts NRM data in a magic_measurements type file to 
-            geographic and tilt corrected data in a pmag_specimens type file
+            converts NRM data in a measurements type file to 
+            geographic and tilt corrected data in a specimens type file
     
         SYNTAX
            nrm_specimens_magic.py [-h][command line options]
         
         OPTIONS:
             -h prints the help message and quits
-            -f MFILE: specify input file
-            -fsa SFILE: specify er_samples format file [with orientations]
+            -f MFILE: specify input file 
+            -fsa SFILE: specify samples format file [with orientations]
             -F PFILE: specify output file
             -A  do not average replicate measurements
             -crd [g, t]: specify coordinate system ([g]eographic or [t]ilt adjusted)
                  NB: you must have the  SFILE in this directory
 
         DEFAULTS
-            MFILE: magic_measurements.txt
+            MFILE: measurements.txt
             PFILE: nrm_specimens.txt
-            SFILE: er_samples.txt
+            SFILE: samples.txt
             coord: specimen
             average replicate measurements?: YES
 
@@ -50,16 +51,17 @@ def main():
     if '-WD' in sys.argv:
         ind=sys.argv.index('-WD')
         dir_path=sys.argv[ind+1]
-    meas_file=dir_path+"/magic_measurements.txt"
-    pmag_file=dir_path+"/nrm_specimens.txt"
-    samp_file=dir_path+"/er_samples.txt"
+    meas_file=dir_path+"/measurements.txt"
+    spec_file=dir_path+"/specimens.txt"
+    samp_file=dir_path+"/samples.txt"
+    out_file=dir_path+"/nrm_specimens.txt"
     if "-A" in args: doave=0
     if "-f" in args:
         ind=args.index("-f")
         meas_file=sys.argv[ind+1]
     if "-F" in args:
         ind=args.index("-F")
-        pmag_file=dir_path+'/'+sys.argv[ind+1]
+        out_file=dir_path+'/'+sys.argv[ind+1]
     speclist=[]
     if "-fsa" in args:
         ind=args.index("-fsa")
@@ -73,151 +75,67 @@ def main():
             tilt,orient,geo=1,1,1
 #
 # read in data
-    if samp_file!="":
-        samp_data,file_type=pmag.magic_read(samp_file)
-        if file_type != 'er_samples':
-           print(file_type)
-           print("This is not a valid er_samples file ") 
-           sys.exit()
-        else: print(samp_file,' read in with ',len(samp_data),' records')
-    else:
-        print('no orientations - will create file in specimen coordinates')
-        geo,tilt,orient=0,0,0
     #
-    #
-    meas_data,file_type=pmag.magic_read(meas_file)
-    if file_type != 'magic_measurements':
-        print(file_type)
-        print(file_type,"This is not a valid magic_measurements file ") 
-        sys.exit()
-    #
+    meas_data=pd.read_csv(meas_file,header=1,sep='\t')
+    meas_data = meas_data[meas_data['method_codes'].str.contains('LT-NO') == True]  # fish out NRM data 
+    meas_data=meas_data[['specimen','dir_dec','dir_inc']]
+    meas_data=meas_data.dropna(subset=['dir_dec','dir_inc'])
+    meas_data=pd.DataFrame(meas_data)
+#   import samples  for orientation info
+#
+##
     if orient==1:
-    # set orientation priorities
-        SO_methods=[]
-        orientation_priorities={'0':'SO-SUN','1':'SO-GPS-DIFF','2':'SO-SIGHT-BACK','3':'SO-CMD-NORTH','4':'SO-MAG'}
-        for rec in samp_data:
-           if "magic_method_codes" in rec:
-               methlist=rec["magic_method_codes"]
-               for meth in methlist.split(":"):
-                   if "SO" in meth and "SO-POM" not in meth.strip():
-                       if meth.strip() not in SO_methods: SO_methods.append(meth.strip())
+        spec_data=pd.read_csv(spec_file,header=1,sep='\t')
+        spec_data=spec_data[['specimen','sample']]
+        meas_data=pd.merge(meas_data,spec_data,how='inner',on=['specimen'])
+        samp_data=pd.read_csv(samp_file,header=1,sep='\t')
     #
-    # sort the sample names
-    #
-    sids=pmag.get_specs(meas_data)
+    sids=meas_data.specimen.unique() # list of specimen names
     #
     #
-    PmagSpecRecs=[]
-    for s in sids:
-        skip=0
-        recnum=0
-        PmagSpecRec={}
-        PmagSpecRec["er_analyst_mail_names"]=user
-        method_codes,inst_code=[],""
-    # find the data from the meas_data file for this sample
-    #
-    #  collect info for the PmagSpecRec dictionary
-    #
-        meas_meth=[]
-        for rec in  meas_data: # copy of vital stats to PmagSpecRec from first spec record
-           if rec["er_specimen_name"]==s: 
-               PmagSpecRec["er_specimen_name"]=s
-               PmagSpecRec["er_sample_name"]=rec["er_sample_name"]
-               PmagSpecRec["er_site_name"]=rec["er_site_name"]
-               PmagSpecRec["er_location_name"]=rec["er_location_name"]
-               PmagSpecRec["er_citation_names"]="This study"
-               PmagSpecRec["magic_instrument_codes"]=""
-               if "magic_experiment_name" not in list(rec.keys()):
-                   rec["magic_experiment_name"]=""
-               if "magic_instrument_codes" not in list(rec.keys()):
-                   rec["magic_instrument_codes"]=""
-               else:
-                   PmagSpecRec["magic_experiment_names"]=rec["magic_experiment_name"]
-               if len(rec["magic_instrument_codes"]) > len(inst_code):
-                   inst_code=rec["magic_instrument_codes"]
-                   PmagSpecRec["magic_instrument_codes"]=inst_code  # copy over instruments
-               break
-    #
-    # now check for correct method labels for all measurements
-    #
-        nrm_data=[]
-        for meas_rec in meas_data:
-            if meas_rec['er_specimen_name']==PmagSpecRec['er_specimen_name']:
-                meths=meas_rec["magic_method_codes"].split(":")
-                for meth in meths:
-                    if meth.strip() not in meas_meth:meas_meth.append(meth)
-                if "LT-NO" in meas_meth:nrm_data.append(meas_rec)
-    #
-        data,units=pmag.find_dmag_rec(s,nrm_data)
-    #
-        datablock=data
-        #
-        # find replicate measurements at NRM step and average them
-        #
-        Specs=[]
-        if doave==1:
-            step_meth,avedata=pmag.vspec(data)
-            if len(avedata) != len(datablock):
-                method_codes.append("DE-VM")
-                SpecRec=avedata[0]
-                print('averaging data ')
-            else: SpecRec=data[0]
-            Specs.append(SpecRec)
-        else:
-            for spec in data:Specs.append(spec)
-        for SpecRec in Specs:
-        #
-        # do geo or stratigraphic correction now
-        #
-            if geo==1:
-        #
-        # find top priority orientation method
-                redo,p=1,0
-                if len(SO_methods)<=1: 
-                    az_type=SO_methods[0] 
-                    orient=pmag.find_samp_rec(PmagSpecRec["er_sample_name"],samp_data,az_type)
-                    if orient["sample_azimuth"]  !="": method_codes.append(az_type)
-                    redo=0
-                while redo==1:
-                    if p>=len(orientation_priorities):
-                        print("no orientation data for ",s) 
-                        skip,redo=1,0
-                        break
-                    az_type=orientation_priorities[str(p)]
-                    orient=pmag.find_samp_rec(PmagSpecRec["er_sample_name"],samp_data,az_type)
-                    if orient["sample_azimuth"]  !="":
-                        method_codes.append(az_type.strip())
-                        redo=0
-                    elif orient["sample_azimuth"]  =="":
-                        p+=1
-            #
-            #  if stratigraphic selected,  get stratigraphic correction
-            #
-                if skip==0 and orient["sample_azimuth"]!="" and orient["sample_dip"]!="":
-                    d_geo,i_geo=pmag.dogeo(SpecRec[1],SpecRec[2],orient["sample_azimuth"],orient["sample_dip"])
-                    SpecRec[1]=d_geo
-                    SpecRec[2]=i_geo
-                    if tilt==1 and "sample_bed_dip" in list(orient.keys()) and orient['sample_bed_dip']!="": 
-                        d_tilt,i_tilt=pmag.dotilt(d_geo,i_geo,orient["sample_bed_dip_direction"],orient["sample_bed_dip"])
-                        SpecRec[1]=d_tilt
-                        SpecRec[2]=i_tilt
-            if skip==0:
-                PmagSpecRec["specimen_dec"]='%7.1f ' %(SpecRec[1])
-                PmagSpecRec["specimen_inc"]='%7.1f ' %(SpecRec[2])
-                if geo==1 and tilt==0:PmagSpecRec["specimen_tilt_correction"]='0'
-                if geo==1 and tilt==1: PmagSpecRec["specimen_tilt_correction"]='100'
-                if geo==0 and tilt==0: PmagSpecRec["specimen_tilt_correction"]='-1'
-                PmagSpecRec["specimen_direction_type"]='l'
-                PmagSpecRec["magic_method_codes"]="LT-NO"
-                if len(method_codes) != 0:
-                    methstring=""
-                    for meth in method_codes:
-                        methstring=methstring+ ":" +meth
-                    PmagSpecRec["magic_method_codes"]=methstring[1:]
-                PmagSpecRec["specimen_description"]="NRM data"
-                PmagSpecRecs.append(PmagSpecRec)
-    pmag.magic_write(pmag_file,PmagSpecRecs,'pmag_specimens')
-    print("Data saved in ",pmag_file)
+    NrmSpecRecs=[]
+    for spec in sids:
+        gdec,ginc,bdec,binc="","","","" 
+        this_spec_data=meas_data[meas_data.specimen.str.contains(spec)]
+        this_sample =this_spec_data['sample'].iloc[-1]
+        this_sample_data=samp_data[samp_data['sample'].str.contains(this_sample)]
+        this_sample_data=this_sample_data.to_dict('records')
+        for m in this_spec_data.to_dict('records'):
+            NrmSpecRec={'specimen':spec}
+            NrmSpecRec['dir_tilt_correction']=coord
+            if not orient:
+                NrmSpecRec['dir_dec']=m['dir_dec']
+                NrmSpecRec['dir_inc']=m['dir_inc']
+                NrmSpecRec['method_code']='SO-NO' 
+                NrmSpecRecs.append(NrmSpecRec)
+            else: # do geographic correction
+                # get the azimuth
+                or_info,az_type=pmag.get_orient(this_sample_data,this_sample,data_model=3)
+                if 'azimuth' in or_info.keys() and or_info['azimuth']!="":
+                    azimuth=or_info['azimuth'] 
+                    dip=or_info['dip']
+                    gdec,ginc=pmag.dogeo(m['dir_dec'],m['dir_inc'],azimuth,dip)
+                    if tilt:
+                        if 'bed_dip' in or_info.keys() and or_info['bed_dip']!="": # try tilt correction
+                            bed_dip=or_info['bed_dip']
+                            bed_dip_dir=or_info['bed_dip_direction']
+                            bdec,binc=pmag.dogeo(gdec,ginc,bed_dip_dir,bed_dip)
+                            NrmSpecRec['dir_dec']=bdec
+                            NrmSpecRec['dir_inc']=binc
+                            NrmSpecRec['method_code']=az_type
+                            NrmSpecRecs.append(NrmSpecRec)
+                        else:
+                            print ('no bedding orientation data for ',spec)
+                        
+                    else:
+                        NrmSpecRec['dir_dec']=gdec
+                        NrmSpecRec['dir_inc']=ginc
+                        NrmSpecRec['method_code']=az_type
+                        NrmSpecRecs.append(NrmSpecRec)
+                else:
+                    print ('no geo orientation data for ',spec)
+
+    pmag.magic_write(out_file,NrmSpecRecs,'specimens')
 
 if __name__ == "__main__":
     main()
