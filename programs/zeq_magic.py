@@ -376,7 +376,7 @@ def main():
                                 calculation_type = 'DE-FM'  # fisher mean
                             if 'DE-BFL-A' in m:
                                 calculation_type = 'DE-BFL-A'  # anchored best fit line
-                        if len(bed_pcas)!=0:
+                        if len(beg_pcas)!=0:
                             start, end = tr.index(beg_pcas[ind]), tr.index(end_pcas[ind])  # getting the starting and ending points
                         # calculate direction/plane
                             mpars = pmag.domean(
