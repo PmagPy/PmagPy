@@ -229,7 +229,7 @@ def main():
         k = specimen_names.index(specimen)
     # let's look at the data now
     while k < len(specimen_names):
-        mpars = None
+        mpars={"specimen_direction_type": "Error"}
         # set the current specimen for plotting
         this_specimen = specimen_names[k]
         # reset beginning/end pca if plotting more than one specimen
@@ -352,10 +352,9 @@ def main():
 #
 #     find prior interpretation
 #
+            prior_specimen_interpretations=[]
             if len(prior_spec_data):
                 prior_specimen_interpretations = prior_spec_data[prior_spec_data['specimen'].str.contains(this_specimen) == True]
-            else:
-                prior_specimen_interpretations = []
             if (beg_pca == "") and (len(prior_specimen_interpretations) != 0):
                 if len(prior_specimen_interpretations)>0:
                     beg_pcas = pd.to_numeric(
@@ -375,15 +374,16 @@ def main():
                                 calculation_type = 'DE-FM'  # fisher mean
                             if 'DE-BFL-A' in m:
                                 calculation_type = 'DE-BFL-A'  # anchored best fit line
-                        start, end = tr.index(beg_pcas[ind]), tr.index(end_pcas[ind])  # getting the starting and ending points
+                        if len(bed_pcas)!=0:
+                            start, end = tr.index(beg_pcas[ind]), tr.index(end_pcas[ind])  # getting the starting and ending points
                         # calculate direction/plane
-                        mpars = pmag.domean(
-                            datablock, start, end, calculation_type)
-                        if mpars["specimen_direction_type"] != "Error":
-                            # put it on the plot
-                            pmagplotlib.plotDir(ZED, mpars, datablock, angle)
-                            if verbose:
-                                pmagplotlib.drawFIGS(ZED)
+                            mpars = pmag.domean(
+                                datablock, start, end, calculation_type)
+                            if mpars["specimen_direction_type"] != "Error":
+                                # put it on the plot
+                                pmagplotlib.plotDir(ZED, mpars, datablock, angle)
+                                if verbose:
+                                    pmagplotlib.drawFIGS(ZED)
 ### SKIP if no prior interpretation - this section should not be used:
 #            else:
 #                try:
