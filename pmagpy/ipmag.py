@@ -4840,7 +4840,7 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
         if site_file == "er_sites.txt":
             site_file = "sites.txt"
         image_file = "images.txt"
-    orient_file = os.path.join(input_dir_path, orient_file)
+    orient_file = pmag.resolve_file_name(orient_file, input_dir_path)
     if not os.path.exists(orient_file):
         return False, "No such file: {}.  If the orientation file is not in your current working directory, make sure you have specified the correct input directory.".format(orient_file)
     samp_file = os.path.join(output_dir_path, samp_file)

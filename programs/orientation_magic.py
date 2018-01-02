@@ -98,6 +98,8 @@ def main():
         dataframe = extractor.command_line_dataframe(info)
         checked_args = extractor.extract_and_check_args(args, dataframe)
         output_dir_path, input_dir_path, orient_file, append, or_con, dec_correction_con, bed_correction, samp_con, hours_from_gmt, method_codes, average_bedding, samp_file, site_file, data_model = extractor.get_vars(['WD', 'ID', 'f', 'app', 'ocn', 'dcn', 'BCN', 'ncn', 'gmt', 'mcd', 'a', 'Fsa', 'Fsi', 'DM'], checked_args)
+        if input_dir_path == '.':
+            input_dir_path = output_dir_path
 
         if not isinstance(dec_correction_con, int):
             if len(dec_correction_con) > 1:
