@@ -663,7 +663,7 @@ class MagMainFrame(wx.Frame):
         else:
             return False
 
-        outstring="download_magic.py -f {} -WD {} -ID {}".format(f, self.WD, input_dir)
+        outstring="download_magic.py -f {} -WD {} -ID {} -DM {}".format(f, self.WD, input_dir, self.data_model_num)
 
         # run as module:
         print("-I- running python script:\n %s"%(outstring))
@@ -671,7 +671,7 @@ class MagMainFrame(wx.Frame):
         wx.Yield()
         ex = None
         try:
-            if ipmag.download_magic(f, self.WD, input_dir, overwrite=True):
+            if ipmag.download_magic(f, self.WD, input_dir, overwrite=True, data_model=self.data_model):
                 text = "Successfully ran download_magic.py program.\nMagIC files were saved in your working directory.\nSee Terminal/message window for details."
             else:
                 text = "Something went wrong.  Make sure you chose a valid file downloaded from the MagIC database and try again."

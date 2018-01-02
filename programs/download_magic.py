@@ -26,6 +26,7 @@ def main():
         -h prints help message and quits
         -i allows interactive entry of filename
         -f FILE specifies input file name
+        -sep write location data to separate subdirectories (Location_*)
         -O do not overwrite duplicate Location_* directories while downloading
     """
     if '-h' in sys.argv:
@@ -41,12 +42,12 @@ def main():
         input_dir_path = '.'
     # non-interactive
     else:
-        dataframe = extractor.command_line_dataframe([['O', False, True]])
+        dataframe = extractor.command_line_dataframe([['O', False, True], ['sep', False, False]])
         checked_args = extractor.extract_and_check_args(sys.argv, dataframe)
-        infile, dir_path, input_dir_path, overwrite = extractor.get_vars(['f', 'WD', 'ID', 'O'], checked_args)
+        infile, dir_path, input_dir_path, overwrite, sep = extractor.get_vars(['f', 'WD', 'ID', 'O', 'sep'], checked_args)
 
-    data_model = float(pmag.get_named_arg_from_sys("-DM", 2.5))
-    ipmag.download_magic(infile, dir_path, input_dir_path, overwrite, True, data_model)
+    data_model = float(pmag.get_named_arg_from_sys("-DM", 3))
+    ipmag.download_magic(infile, dir_path, input_dir_path, overwrite, True, data_model, sep)
 
 
 
