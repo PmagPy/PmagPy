@@ -30,7 +30,7 @@ def main():
             MFILE: measurements.txt
             PFILE: nrm_specimens.txt
             SFILE: samples.txt
-            coord: specimen
+            coord: g
             average replicate measurements?: YES
 
         
@@ -43,7 +43,9 @@ def main():
     args=sys.argv
     geo,tilt,orient=0,0,0
     doave=1
-    user,comment,doave,coord="","",1,""
+    user,comment,doave,coord="","",1,"g"
+    geo,orient=1,1
+
     dir_path='.'
     if "-h" in args:
         print(main.__doc__)
@@ -69,8 +71,6 @@ def main():
     if "-crd" in args:
         ind=args.index("-crd")
         coord=sys.argv[ind+1]
-        if coord=="g":
-            geo,orient=1,1
         if coord=="t":
             tilt,orient,geo=1,1,1
 #
@@ -102,7 +102,12 @@ def main():
         this_sample_data=this_sample_data.to_dict('records')
         for m in this_spec_data.to_dict('records'):
             NrmSpecRec={'specimen':spec}
-            NrmSpecRec['dir_tilt_correction']=coord
+            if coord=='g':
+                NrmSpecRec['dir_tilt_correction']='0'
+            elif coord=='t':
+                NrmSpecRec['dir_tilt_correction']='100'
+            else:
+                NrmSpecRec['dir_tilt_correction']='-1'
             if not orient:
                 NrmSpecRec['dir_dec']=m['dir_dec']
                 NrmSpecRec['dir_inc']=m['dir_inc']
