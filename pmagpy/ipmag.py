@@ -3276,7 +3276,8 @@ def core_depthplot(input_dir_path='.', meas_file='magic_measurements.txt', spc_f
                     if depth > dmin and depth < dmax:
                         plt.text(maxInt - .2 * maxInt, depth +
                                  tint, core[core_label_key])
-            plt.axis([0, maxInt, dmax, dmin])
+            minInt = plt.axis()[0]
+            plt.axis([minInt, maxInt, dmax, dmin])
             if not norm:
                 plt.xlabel('Intensity (Am^2)')
             else:
