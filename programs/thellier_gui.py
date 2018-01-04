@@ -1430,11 +1430,11 @@ else:
         self.Bind(wx.EVT_MENU, self.on_menu_open_interpreter_log,
                   m_open_interpreter_log)
 
-        menu_consistency_test = wx.Menu()
-        m_run_consistency_test = menu_consistency_test.Append(
-            -1, "&Run Consistency test", "")
-        self.Bind(wx.EVT_MENU, self.on_menu_run_consistency_test,
-                  m_run_consistency_test)
+        #menu_consistency_test = wx.Menu()
+        #m_run_consistency_test = menu_consistency_test.Append(
+        #    -1, "&Run Consistency test", "")
+        #self.Bind(wx.EVT_MENU, self.on_menu_run_consistency_test,
+        #          m_run_consistency_test)
 
         #m_run_consistency_test_b = menu_Optimizer.Append(-1, "&Run Consistency test beta version", "")
         #self.Bind(wx.EVT_MENU, self.on_menu_run_consistency_test_b, m_run_consistency_test_b)
@@ -1476,7 +1476,7 @@ else:
         self.menubar.Append(menu_anisotropy, "&Anisotropy")
         self.menubar.Append(menu_Analysis, "&Analysis")
         self.menubar.Append(menu_Auto_Interpreter, "&Auto Interpreter")
-        self.menubar.Append(menu_consistency_test, "&Consistency Test")
+        #self.menubar.Append(menu_consistency_test, "&Consistency Test")
         self.menubar.Append(menu_Plot, "&Plot")
         self.menubar.Append(menu_Help, "&Help")
         #self.menubar.Append(menu_results_table, "&Table")
