@@ -111,7 +111,7 @@ def main():
             if not orient:
                 NrmSpecRec['dir_dec']=m['dir_dec']
                 NrmSpecRec['dir_inc']=m['dir_inc']
-                NrmSpecRec['method_code']='SO-NO' 
+                NrmSpecRec['method_codes']='SO-NO' 
                 NrmSpecRecs.append(NrmSpecRec)
             else: # do geographic correction
                 # get the azimuth
@@ -127,7 +127,7 @@ def main():
                             bdec,binc=pmag.dogeo(gdec,ginc,bed_dip_dir,bed_dip)
                             NrmSpecRec['dir_dec']=bdec
                             NrmSpecRec['dir_inc']=binc
-                            NrmSpecRec['method_code']=az_type
+                            NrmSpecRec['method_codes']=az_type
                             NrmSpecRecs.append(NrmSpecRec)
                         else:
                             print ('no bedding orientation data for ',spec)
@@ -135,7 +135,7 @@ def main():
                     else:
                         NrmSpecRec['dir_dec']=gdec
                         NrmSpecRec['dir_inc']=ginc
-                        NrmSpecRec['method_code']=az_type
+                        NrmSpecRec['method_codes']=az_type
                         NrmSpecRecs.append(NrmSpecRec)
                 else:
                     print ('no geo orientation data for ',spec)
