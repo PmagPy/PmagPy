@@ -6380,7 +6380,13 @@ You can combine multiple measurement files into one measurement file using Pmag 
                 self.user_warning(
                     "Method codes are required to sort directional and intensity data in measurements file, but no method codes were found, aborting")
                 return ({}, {})
-            meas_data3_0 = meas_data3_0[meas_data3_0['quality'].str.contains('b')==False] # exclude 'bad' measurements
+            quality_flag = ''
+            if 'quality' in meas_data3_0.columns:
+                quality_flag = 'quality'
+            elif 'flag' in meas_data3_0.columns:
+                quality_flag = 'flag'
+            if quality_flag:
+                meas_data3_0 = meas_data3_0[meas_data3_0[quality_flag].str.contains('b')==False] # exclude 'bad' measurements
             meas_data3_0 = meas_data3_0[meas_data3_0['method_codes'].str.contains(
                 'LP-PI-TRM|LP-TRM|LP-PI-M|LP-AN|LP-CR-TRM') == True]  # fish out all the relavent data
             intensity_types = [
