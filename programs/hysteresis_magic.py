@@ -149,7 +149,7 @@ def main():
             HystRec['hyst_ms_moment']=hpars['hysteresis_ms_moment']
             HystRec['hyst_bc']=hpars['hysteresis_bc']
             HystRec['hyst_bcr']=hpars['hysteresis_bcr']
-            HystRec['susc_h']=hpars['hysteresis_xhf']
+            HystRec['hyst_xhf']=hpars['hysteresis_xhf']
             HystRec['experiments']=e
             HystRec['software_packages']=version_num
             if hpars["magic_method_codes"] not in hmeths:hmeths.append(hpars["magic_method_codes"])
@@ -195,7 +195,10 @@ def main():
     #
         files={}
         if plots:
-            if pltspec:s=pltspec
+            if pltspec:
+                s=pltspec
+            else:
+                s=specimen
             files={}
             for key in list(HDD.keys()):
                 files[key]=s+'_'+key+'.'+fmt
@@ -254,7 +257,15 @@ def main():
             if len(prior)>0 and 'sample' in list(prior[0].keys()):
                 rec['sample']=prior[0]['sample'] # pull sample name from prior specimens table
             SpecRecs.append(rec)
-        pmag.magic_write(spec_file,SpecRecs,"specimens")
+        # drop unnecessary/duplicate rows
+        dir_path = os.path.split(spec_file)[0]
+        con = nb.Contribution(dir_path, read_tables=[])
+        con.add_magic_table_from_data('specimens', SpecRecs)
+        con.tables['specimens'].drop_duplicate_rows(ignore_cols=['specimen', 'sample', 'citations', 'software_packages'])
+        con.tables['specimens'].df = con.tables['specimens'].df.drop_duplicates()
+        con.write_table_to_file('specimens', custom_name=spec_file)
+        # old way:
+        ##pmag.magic_write(spec_file,SpecRecs,"specimens")
         if verbose:print("hysteresis parameters saved in ",spec_file)
 
 if __name__ == "__main__":
