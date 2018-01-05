@@ -60,10 +60,13 @@ def main():
     if '-h' in sys.argv:
         print(main.__doc__)
         sys.exit()
-    dir_path = pmag.get_named_arg_from_sys("-WD", default_val=os.getcwd())
+    dir_path = pmag.get_named_arg_from_sys("-WD", default_val=".")
     pmagplotlib.plot_init(FIG['eqarea'],5,5)
     in_file = pmag.get_named_arg_from_sys("-f", default_val="sites.txt")
-    full_in_file = os.path.join(dir_path, in_file)
+    in_file = pmag.resolve_file_name(in_file, dir_path)
+    if "-WD" not in sys.argv:
+        dir_path = os.path.split(in_file)[0]
+    #full_in_file = os.path.join(dir_path, in_file)
     plot_by = pmag.get_named_arg_from_sys("-obj", default_val="all").lower()
     spec_file = pmag.get_named_arg_from_sys("-fsp", default_val="specimens.txt")
     samp_file = pmag.get_named_arg_from_sys("-fsa", default_val="samples.txt")
@@ -77,6 +80,7 @@ def main():
     elif plot_by == 'spc':
         plot_key = 'specimen'
     else:
+        plot_by = 'all'
         plot_key = 'all'
     if '-c' in sys.argv:
         contour = 1
@@ -116,23 +120,23 @@ def main():
     fnames = {"specimens": spec_file, "samples": samp_file, 'sites': site_file}
     contribution = nb.Contribution(dir_path, custom_filenames=fnames,
                                    single_file=in_file)
+
+    try:
+        contribution.propagate_location_to_samples()
+        contribution.propagate_location_to_specimens()
+        contribution.propagate_location_to_measurements()
+    except KeyError as ex:
+        pass
+
     # the object that contains the DataFrame + useful helper methods:
     table_name = list(contribution.tables.keys())[0]
     data_container = contribution.tables[table_name]
     # the actual DataFrame:
     data = data_container.df
 
-    # uses sample infile to add temporary site_name
-    # column to the specimen table
-
-
-
-    data_container = contribution.tables[table_name]
-    data = data_container.df
-
-    if (plot_key != "all") and (plot_key not in data.columns):
-        contribution.propagate_location_to_measurements()
-        contribution.propagate_location_to_specimens()
+    if plot_key != "all" and plot_key not in data.columns:
+        print("-E- You can't plot by {} with the data provided".format(plot_key))
+        return
 
     # add tilt key into DataFrame columns if it isn't there already
     if tilt_key not in data.columns:
@@ -378,9 +382,23 @@ def main():
                 filename+= '.' + fmt
             elif pmagplotlib.isServer: # use server plot naming convention
                 filename='LO:_'+locations+'_SI:_'+site+'_SA:_'+sample+'_SP:_'+specimen+'_CO:_'+crd+'_TY:_'+key+'_.'+fmt
+            elif plot_key == 'all':
+                filename = 'all'
+                if 'location' in plot_data.columns:
+                    locs = plot_data['location'].unique()
+                    loc_string = "_".join([loc.replace(' ', '_') for loc in locs])
+                    filename += "_" + loc_string
+                filename += "_" + crd + "_" + key
+                filename += ".{}".format(fmt)
             else: # use more readable naming convention
                 filename = ''
-                for item in [locations, site, sample, specimen, crd, key]:
+                # fix this if plot_by is location , for example
+                use_names = {'location': [locations], 'site': [locations, site],
+                             'sample': [locations, site, sample],
+                             'specimen': [locations, site, sample, specimen]}
+                use = use_names[plot_key]
+                use.extend([crd, key])
+                for item in use: #[locations, site, sample, specimen, crd, key]:
                     if item:
                         item = item.replace(' ', '_')
                         filename += item + '_'

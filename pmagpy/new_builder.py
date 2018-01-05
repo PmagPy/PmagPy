@@ -71,10 +71,11 @@ class Contribution(object):
         if read_tables == 'all':
             read_tables = self.table_names
         if single_file:  # use if filename is known but type isn't
-            self.add_magic_table('unknown', single_file)
-            return
-        else:  # read in data for all required tables
-            for name in read_tables:
+            typ = self.add_magic_table('unknown', single_file)[0]
+            self.filenames[typ] = single_file
+        # read in data for all required tables
+        for name in read_tables:
+            if name not in self.tables:
                 self.add_magic_table(name, fname=self.filenames[name])
 
     ## Methods for building up the contribution
@@ -109,13 +110,14 @@ class Contribution(object):
         Parameters
         ----------
         dtype : str
-            MagIC table type
+            MagIC table type, i.e. 'specimens'
         data : list of dicts
             data list with format [{'key1': 'val1', ...}, {'key1': 'val2', ...}, ... }]
         """
         self.tables[dtype] = MagicDataFrame(dtype=dtype, data=data)
         if dtype == 'measurements':
             self.tables['measurements'].add_sequence()
+        return dtype, self.tables[dtype]
 
 
     def add_magic_table(self, dtype, fname=None, df=None):
@@ -142,15 +144,15 @@ class Contribution(object):
                 data_container = MagicDataFrame(filename, dmodel=self.data_model)
                 dtype = data_container.dtype
                 if dtype == 'empty':
-                    return False
+                    return False, False
                 else:
                     self.tables[dtype] = data_container
-                    return data_container
+                    return dtype, data_container
             # if providing a data type, use the canonical filename
             elif dtype not in self.filenames:
                 print('-W- "{}" is not a valid MagIC table type'.format(dtype))
                 print("-I- Available table types are: {}".format(", ".join(self.table_names)))
-                return False
+                return False, False
             #filename = os.path.join(self.directory, self.filenames[dtype])
             filename = pmag.resolve_file_name(self.filenames[dtype], self.directory)
             if os.path.exists(filename):
@@ -158,18 +160,19 @@ class Contribution(object):
                                                 dmodel=self.data_model)
                 if data_container.dtype != "empty":
                     self.tables[dtype] = data_container
-                    return data_container
+                    return dtype, data_container
             else:
                 #print("-W- No such file: {}".format(filename))
-                return False
+                return False, False
         # df is not None
         else:
             if not dtype:
                 print("-W- Must provide dtype")
-                return False
+                return False, False
             data_container = MagicDataFrame(dtype=dtype, df=df)
             self.tables[dtype] = data_container
         self.tables[dtype].sort_dataframe_cols()
+        return dtype, self.tables[dtype]
 
 
     def propagate_measurement_info(self):
@@ -528,13 +531,16 @@ class Contribution(object):
         return self.propagate_name_down('location', 'measurements')
 
     def propagate_location_to_specimens(self):
-        """
-        Propagate all names from location down to specimens.
-        --------
-        Returns: specimens MagicDataFrame
-        """
         self.propagate_name_down('site', 'specimens')
         return self.propagate_name_down('location', 'specimens')
+
+    def propagate_location_to_samples(self):
+        """
+        Propagate all names from location down to samples.
+        --------
+        Returns: samples MagicDataFrame
+        """
+        return self.propagate_name_down('location', 'samples')
 
     def propagate_name_down(self, col_name, df_name):
         """
@@ -563,7 +569,7 @@ class Contribution(object):
         if child_name not in df.columns:
             # add child table if missing
             if bottom_table_name not in self.tables:
-                result = self.add_magic_table(bottom_table_name)
+                result = self.add_magic_table(bottom_table_name)[1]
                 if not isinstance(result, MagicDataFrame):
                     print("-W- Couldn't read in {} data for data propagation".format(bottom_table_name))
                     return df
@@ -583,7 +589,7 @@ class Contribution(object):
         if parent_name not in df.columns:
             # add parent_table if missing
             if child_table_name not in self.tables:
-                result = self.add_magic_table(child_table_name)
+                result = self.add_magic_table(child_table_name)[1]
                 if not isinstance(result, MagicDataFrame):
                     print("-W- Couldn't read in {} data".format(child_table_name))
                     print("-I- Make sure you've provided the correct file name")
@@ -606,7 +612,7 @@ class Contribution(object):
         if grandparent_name not in df.columns:
             # add grandparent table if it is missing
             if parent_table_name not in self.tables:
-                result = self.add_magic_table(parent_table_name)
+                result = self.add_magic_table(parent_table_name)[1]
                 if not isinstance(result, MagicDataFrame):
                     print("-W- Couldn't read in {} data".format(parent_table_name))
                     print("-I- Make sure you've provided the correct file name")

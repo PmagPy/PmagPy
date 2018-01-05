@@ -101,7 +101,7 @@ def main():
         this_sample_data=samp_data[samp_data['sample'].str.contains(this_sample)]
         this_sample_data=this_sample_data.to_dict('records')
         for m in this_spec_data.to_dict('records'):
-            NrmSpecRec={'specimen':spec}
+            NrmSpecRec={'specimen': spec, 'sample': this_sample}
             if coord=='g':
                 NrmSpecRec['dir_tilt_correction']='0'
             elif coord=='t':
