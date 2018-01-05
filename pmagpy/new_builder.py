@@ -548,7 +548,9 @@ class Contribution(object):
         Used to add 'site_name' to specimen table, for example.
         """
         if df_name not in self.tables:
-            self.add_magic_table(df_name)
+            table = self.add_magic_table(df_name)[1]
+            if is_null(table):
+                return
         df = self.tables[df_name].df
         if col_name in df.columns:
             if all(df[col_name].apply(not_null)):
