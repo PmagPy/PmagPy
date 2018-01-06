@@ -1191,8 +1191,20 @@ else:
             tmin_index = self.tmin_box.GetSelection()
         if str(self.tmax_box.GetValue()) != "":
             tmax_index = self.tmax_box.GetSelection()
-
-        if self.list_bound_loc != 0:
+        # if there is no prior interpretation, assume first click is
+        # tmin and set highest possible temp as tmax
+        if not tmin_index and not tmax_index:
+            tmin_index = index
+            self.tmin_box.SetSelection(index)
+            # set to the highest step
+            max_step_data = self.Data[self.s]['datablock'][-1]
+            step_key = 'treatment_temp'
+            if MICROWAVE:
+                step_key = 'treatment_mw_power'
+            max_step = max_step_data[step_key]
+            tmax_index = self.tmax_box.GetCount() - 1
+            self.tmax_box.SetSelection(tmax_index)
+        elif self.list_bound_loc != 0:
             if self.list_bound_loc == 1:
                 if index < tmin_index:
                     self.tmin_box.SetSelection(index)
@@ -1220,6 +1232,7 @@ else:
 
         self.logger.Select(index, on=0)
         self.get_new_T_PI_parameters(-1)
+
 
     def on_right_click_listctrl(self, event):
         self.user_warning("Thellier GUI cannot handle data marked bad yet so this function does not work. This feature is in development and will hopefully be included in future versions. Currently bad data must be removed from measurement file manually.")
