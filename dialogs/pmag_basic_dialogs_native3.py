@@ -487,7 +487,7 @@ class convert_generic_files_to_MagIC(convert_files_to_MagIC):
         self.bSizer6 = pw.labeled_text_field(pnl, TEXT)
 
         #---sizer 7 ----
-        self.bSizer7 = pw.site_lat_lon(pnl)
+        #self.bSizer7 = pw.site_lat_lon(pnl)
 
         #---sizer 8 ----
         self.bSizer8 = pw.replicate_measurements(pnl)
@@ -507,7 +507,7 @@ class convert_generic_files_to_MagIC(convert_files_to_MagIC):
         vbox.Add(self.bSizer4, flag=wx.ALIGN_LEFT|wx.TOP, border=5)
         vbox.Add(self.bSizer5, flag=wx.ALIGN_LEFT|wx.TOP, border=5)
         vbox.Add(self.bSizer6, flag=wx.ALIGN_LEFT|wx.TOP, border=5)
-        vbox.Add(self.bSizer7, flag=wx.ALIGN_LEFT|wx.TOP, border=5)
+        #vbox.Add(self.bSizer7, flag=wx.ALIGN_LEFT|wx.TOP, border=5)
         vbox.Add(self.bSizer8, flag=wx.ALIGN_LEFT|wx.TOP|wx.BOTTOM, border=5)
         vbox.Add(wx.StaticLine(self.panel), 0, wx.ALL|wx.EXPAND, 5)
         vbox.Add(hboxok, flag=wx.ALIGN_CENTER)
@@ -655,12 +655,12 @@ class convert_generic_files_to_MagIC(convert_files_to_MagIC):
 
         #-----------
 
-        try: lat,lon = self.bSizer7.return_value().split()
-        except ValueError: lat,lon = '',''
-        options['lat'] = lat
-        options['lon'] = lon
-        lat = '-lat ' + lat
-        lon = '-lat ' + lon
+        #try: lat,lon = self.bSizer7.return_value().split()
+        #except ValueError: lat,lon = '',''
+        #options['lat'] = lat
+        #options['lon'] = lon
+        #lat = '-lat ' + lat
+        #lon = '-lat ' + lon
 
         #-----------
 
@@ -683,8 +683,8 @@ class convert_generic_files_to_MagIC(convert_files_to_MagIC):
         options['site_file'] = SITE_OUTFILE
         options['loc_file'] = LOC_OUTFILE
 
-        COMMAND="generic_magic.py -WD %s -f %s -fsa er_samples.txt -F %s -exp %s  -samp %s -site %s %s %s %s -Fsp %s -Fsa %s -Fsi %s -Flo %s %s %s"\
-        %(WD,FILE,OUTFILE,EXP,SAMP,SITE,LOC,LABFIELD,DONT_AVERAGE, SPEC_OUTFILE, SAMP_OUTFILE, SITE_OUTFILE, LOC_OUTFILE, lat, lon)
+        COMMAND="generic_magic.py -WD %s -f %s -fsa er_samples.txt -F %s -exp %s  -samp %s -site %s %s %s %s -Fsp %s -Fsa %s -Fsi %s -Flo %s "\
+        %(WD,FILE,OUTFILE,EXP,SAMP,SITE,LOC,LABFIELD,DONT_AVERAGE, SPEC_OUTFILE, SAMP_OUTFILE, SITE_OUTFILE, LOC_OUTFILE)#, lat, lon)
 
         print("-I- Running Python command:\n %s"%COMMAND)
         program_run, error_message = generic_magic.convert(**options)
