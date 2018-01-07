@@ -9932,6 +9932,7 @@ def do_mag_map(date, **kwargs):
             else:
                 B[j][i] = Int  # convert the string to microtesla (from nT)
             Binc[j][i] = Inc  # store the inclination value
+            if Dec>180:Dec=Dec-360.
             Bdec[j][i] = Dec  # store the declination value
             Brad[j][i]=z
     return Bdec, Binc, B, Brad, lons, lats  # return the arrays.
