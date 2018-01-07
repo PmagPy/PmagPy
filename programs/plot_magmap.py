@@ -17,6 +17,9 @@ from pylab import meshgrid
 import pmagpy.pmag as pmag
 import pmagpy.pmagplotlib as pmagplotlib
 from matplotlib import cm
+import warnings
+warnings.filterwarnings("ignore")
+
 def main():
     """
     NAME
@@ -37,6 +40,7 @@ def main():
         -age specify date in decimal year, default is 2015
         -lon0: 0 longitude for map, default is 0
         -el: [D,I,B,Br]  specify element for plotting
+        -cm: [see https://matplotlib.org/users/colormaps.html] specify color map for plotting (default is RdYlBu)
 
     """
     cmap='RdYlBu'
@@ -60,6 +64,9 @@ def main():
             print(main.__doc__)
             sys.exit()
     else: fmt='png'
+    if '-cm' in sys.argv:
+        ind=sys.argv.index('-cm')
+        cmap=sys.argv[ind+1]
     if '-el' in sys.argv:
         ind = sys.argv.index('-el')
         el=sys.argv[ind+1]
