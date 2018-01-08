@@ -1403,6 +1403,12 @@ class Plot_Dialog(wx.Dialog):
         self.set_map_lon_min = wx.TextCtrl(pnl1,style=wx.TE_CENTER,size=(50,20))
         self.set_map_lon_max = wx.TextCtrl(pnl1,style=wx.TE_CENTER,size=(50,20))
         self.set_map_lon_grid =wx.TextCtrl(pnl1,style=wx.TE_CENTER,size=(50,20))
+        self.set_map = {'lat_min': self.set_map_lat_min,
+                        'lat_max': self.set_map_lat_max,
+                        'lat_grid': self.set_map_lat_grid,
+                        'lon_min': self.set_map_lon_min,
+                        'lon_max': self.set_map_lon_max,
+                        'lon_grid': self.set_map_lon_grid}
 
         bsizer_4_window = wx.GridSizer(2, 8, 12, 12)
 

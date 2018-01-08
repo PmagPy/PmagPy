@@ -131,21 +131,28 @@ def find(f, seq):
     return ""
 
 
-def get_orient(samp_data, er_sample_name):
+def get_orient(samp_data, er_sample_name,**kwargs):
     # set orientation priorities
     EX = ["SO-ASC", "SO-POM"]
-    orient = {'er_sample_name': er_sample_name, 'sample_azimuth': "",
-              'sample_dip': "", 'sample_description': ""}
+    samp_key,az_key,dip_key='er_sample_name','sample_azimuth','sample_dip'
+    disc_key,or_key,meth_key='sample_description','sample_orientation_flag',\
+             'magic_method_codes' 
+    if 'data_model' in list(kwargs.keys()) and kwargs['data_model'] == 3:
+        samp_key,az_key,dip_key='sample','azimuth','dip'
+        disc_key,or_key,meth_key='description','orientation_quality',\
+             'method_codes'
+    orient = {samp_key: er_sample_name, az_key: "",
+              dip_key: "", disc_key: ""}
     # get all the orientation data for this sample
-    orients = get_dictitem(samp_data, 'er_sample_name', er_sample_name, 'T')
-    if 'sample_orientation_flag' in list(orients[0].keys()):
+    orients = get_dictitem(samp_data, samp_key, er_sample_name, 'T')
+    if len(orients)>0 and or_key in list(orients[0].keys()):
         # exclude all samples with bad orientation flag
-        orients = get_dictitem(orients, 'sample_orientation_flag', 'b', 'F')
+        orients = get_dictitem(orients, or_key, 'b', 'F')
     if len(orients) > 0:
         orient = orients[0]  # re-initialize to first one
-    methods = get_dictitem(orients, 'magic_method_codes', 'SO-', 'has')
+    methods = get_dictitem(orients, meth_key, 'SO-', 'has')
     # get a list of all orientation methods for this sample
-    methods = get_dictkey(methods, 'magic_method_codes', '')
+    methods = get_dictkey(methods, meth_key, '')
     SO_methods = []
     for methcode in methods:
         meths = methcode.split(":")
@@ -154,17 +161,19 @@ def get_orient(samp_data, er_sample_name):
                 SO_methods.append(meth)
     # find top priority orientation method
     if len(SO_methods) == 0:
-        print("no orientation data for ", er_sample_name)
+        print("no orientation data for sample ", er_sample_name)
         # preserve meta-data anyway even though orientation is bad
-        orig_data = get_dictitem(samp_data, 'er_sample_name', er_sample_name, 'T')[
-            0]  # get all the orientation data for this sample
-        orient.update(orig_data)
+# get all the orientation data for this sample
+        orig_data = get_dictitem(samp_data, samp_key, er_sample_name, 'T')
+        if len(orig_data)>0:
+            orig_data = orig_data[0]
+        else:
+            orig_data=[]
         az_type = "SO-NO"
     else:
         SO_priorities = set_priorities(SO_methods, 0)
         az_type = SO_methods[SO_methods.index(SO_priorities[0])]
-        orient = get_dictitem(orients, 'magic_method_codes', az_type, 'has')[
-            0]  # re-initialize to best one
+        orient = get_dictitem(orients, meth_key, az_type, 'has')[0]  # re-initialize to best one
     return orient, az_type
 
 
@@ -314,8 +323,9 @@ def convert_ages(Recs):
             if rec[keybase + 'age'] != "":
                 age = float(rec[keybase + "age"])
             elif rec[keybase + 'age_low'] != "" and rec[keybase + 'age_high'] != '':
-                age = float(rec[keybase + 'age_low']) + old_div(
-                    (float(rec[keybase + 'age_high']) - float(rec[keybase + 'age_low'])), 2.)
+                age = np.mean([rec[keybase + 'age_high'], rec[keybase + "age_low"]])
+                #age = float(rec[keybase + 'age_low']) + old_div(
+                #    (float(rec[keybase + 'age_high']) - float(rec[keybase + 'age_low'])), 2.)
             if age != '':
                 rec[keybase + 'age_unit']
                 if rec[keybase + 'age_unit'] == 'Ma':
@@ -1528,12 +1538,12 @@ def find_dmag_rec(s, data, **kwargs):
                 ZI = 1
             if tr != "":
                 dec, inc, int = "", "", ""
-                if dec_key in list(rec.keys()) and rec[dec_key] != "":
+                if dec_key in list(rec.keys()) and nb.not_null(rec[dec_key], False):
                     dec = float(rec[dec_key])
-                if inc_key in list(rec.keys()) and rec[inc_key] != "":
+                if inc_key in list(rec.keys()) and nb.not_null(rec[inc_key], False):
                     inc = float(rec[inc_key])
                 for key in Mkeys:
-                    if key in list(rec.keys()) and rec[key] != "":
+                    if key in list(rec.keys()) and nb.not_null(rec[key], False):
                         int = float(rec[key])
                 if inst_key not in list(rec.keys()):
                     rec[inst_key] = ''
@@ -8493,9 +8503,21 @@ def get_samp_con():
 
 
 def get_tilt(dec_geo, inc_geo, dec_tilt, inc_tilt):
-    #
     """
-    Function to return dip and dip direction used to convert geo to tilt coordinates
+    Function to return the dip direction and dip that would yield the tilt
+    corrected direction if applied to the uncorrected direction (geographic
+    coordinates)
+
+    Parameters
+    ----------
+    dec_geo : declination in geographic coordinates
+    inc_geo : inclination in geographic coordinates
+    dec_tilt : declination in tilt-corrected coordinates
+    inc_tilt : inclination in tilt-corrected coordinates
+
+    Returns
+    -------
+    DipDir, Dip : tuple of dip direction and dip
     """
 # strike is horizontal line equidistant from two input directions
     SCart = [0, 0, 0]  # cartesian coordites of Strike
@@ -9910,6 +9932,7 @@ def do_mag_map(date, **kwargs):
             else:
                 B[j][i] = Int  # convert the string to microtesla (from nT)
             Binc[j][i] = Inc  # store the inclination value
+            if Dec>180:Dec=Dec-360.
             Bdec[j][i] = Dec  # store the declination value
             Brad[j][i]=z
     return Bdec, Binc, B, Brad, lons, lats  # return the arrays.

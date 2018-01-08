@@ -28,6 +28,7 @@ import gzip
 import copy
 #from scipy.optimize import curve_fit
 from . import thellier_gui_lib
+from pmagpy import new_builder as nb
 
 
 class thellier_auto_interpreter():
@@ -438,23 +439,24 @@ class thellier_auto_interpreter():
                 # sort by samples
                 #------------------------------------------------------------
 
-                if sample not in list(Grade_A_samples.keys()):
-                    Grade_A_samples[sample] = {}
-                if s not in list(Grade_A_samples[sample].keys()) and len(All_grade_A_Recs[s]) > 0:
-                    Grade_A_samples[sample][s] = []
-
-                if pd.notnull(B_anc):
-                    Grade_A_samples[sample][s].append(B_anc)
+                if nb.not_null(sample):
+                    if sample not in list(Grade_A_samples.keys()):
+                        Grade_A_samples[sample] = {}
+                    if s not in list(Grade_A_samples[sample].keys()) and len(All_grade_A_Recs[s]) > 0:
+                        Grade_A_samples[sample][s] = []
+                    if nb.not_null(B_anc):
+                        Grade_A_samples[sample][s].append(B_anc)
 
                 # sort by sites
                 #------------------------------------------------------------
 
-                if site not in list(Grade_A_sites.keys()):
-                    Grade_A_sites[site] = {}
-                if s not in list(Grade_A_sites[site].keys()) and len(All_grade_A_Recs[s]) > 0:
-                    Grade_A_sites[site][s] = []
-                if pd.notnull(B_anc):
-                    Grade_A_sites[site][s].append(B_anc)
+                if nb.not_null(site):
+                    if site not in list(Grade_A_sites.keys()):
+                        Grade_A_sites[site] = {}
+                    if s not in list(Grade_A_sites[site].keys()) and len(All_grade_A_Recs[s]) > 0:
+                        Grade_A_sites[site][s] = []
+                    if nb.not_null(B_anc):
+                        Grade_A_sites[site][s].append(B_anc)
 
                 # ? check
                 #------------------------------------------------------------

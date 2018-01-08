@@ -4,6 +4,7 @@ import unittest
 import os
 #import sys
 from pmagpy import pmag
+from pmagpy import new_builder as nb
 from programs.conversion_scripts import sio_magic as sio_magic
 from programs.conversion_scripts import cit_magic as cit_magic
 from programs.conversion_scripts import iodp_srm_magic as iodp_srm_magic
@@ -15,7 +16,7 @@ from programs.conversion_scripts import bgc_magic as bgc_magic
 WD = pmag.get_test_WD()
 
 
-class Test_sio_magic(unittest.TestCase):
+class TestSioMagic(unittest.TestCase):
 
     def setUp(self):
         pass
@@ -45,6 +46,9 @@ class Test_sio_magic(unittest.TestCase):
         self.assertTrue(program_ran)
         self.assertEqual(os.path.realpath(file_name),
                          os.path.realpath(options['meas_file']))
+        meas_df = nb.MagicDataFrame(options['meas_file'])
+        self.assertIn('sequence', meas_df.df.columns)
+        self.assertEqual(0, meas_df.df.iloc[0]['sequence'])
 
     def test_sio_magic_success_with_wd(self):
         options = {}
@@ -114,7 +118,7 @@ class Test_sio_magic(unittest.TestCase):
         self.assertEqual(file_name, meas_file)
 
 
-class Test_cit_magic(unittest.TestCase):
+class TestCitMagic(unittest.TestCase):
 
     def setUp(self):
         pass
@@ -150,6 +154,9 @@ class Test_cit_magic(unittest.TestCase):
         self.assertTrue(program_ran)
         expected_file = os.path.join('measurements.txt')
         self.assertEqual(outfile, expected_file)
+        meas_df = nb.MagicDataFrame(outfile)
+        self.assertIn('sequence', meas_df.df.columns)
+
 
     def test_cit_magic_with_path(self):
         options = {}
@@ -230,7 +237,7 @@ class Test_cit_magic(unittest.TestCase):
         self.assertEqual(outfile, expected_file)
 
 
-class Test_iodp_srm_magic(unittest.TestCase):
+class TestIodpSrmMagic(unittest.TestCase):
 
     def setUp(self):
         pass
@@ -274,6 +281,8 @@ class Test_iodp_srm_magic(unittest.TestCase):
         program_ran, outfile = iodp_srm_magic.convert(**options)
         self.assertEqual(program_ran, True)
         self.assertEqual(outfile, os.path.join('measurements.txt'))
+        meas_df = nb.MagicDataFrame(os.path.join(dir_path, outfile))
+        self.assertIn('sequence', meas_df.df.columns)
 
 
     def test_iodp_with_one_file_with_path(self):
@@ -289,7 +298,7 @@ class Test_iodp_srm_magic(unittest.TestCase):
 
 
 
-class Test_iodp_dscr_magic(unittest.TestCase):
+class TestIodpDscrMagic(unittest.TestCase):
 
     def setUp(self):
         pass
@@ -331,10 +340,12 @@ class Test_iodp_dscr_magic(unittest.TestCase):
         program_ran, outfile = iodp_dscr_magic.convert(**options)
         self.assertEqual(program_ran, True)
         self.assertEqual(outfile, os.path.join(WD, 'data_files', 'custom_measurements.txt'))
+        meas_df = nb.MagicDataFrame(outfile)
+        self.assertIn('sequence', meas_df.df.columns)
 
 
 
-class Test_iodp_jr6_magic(unittest.TestCase):
+class TestIodpJr6Magic(unittest.TestCase):
 
     def setUp(self):
         pass
@@ -380,6 +391,9 @@ class Test_iodp_jr6_magic(unittest.TestCase):
         program_ran, outfile = iodp_jr6_magic.convert(**options)
         self.assertTrue(program_ran)
         self.assertEqual(outfile, meas_file)
+        meas_df = nb.MagicDataFrame(outfile)
+        self.assertIn('sequence', meas_df.df.columns)
+
 
     def test_iodp_jr6_with_path(self):
         options = {}
@@ -429,6 +443,8 @@ class Test2g_bin_magic(unittest.TestCase):
         pmag.remove_files(files, WD)
         pmag.remove_files(['custom_specimens.txt', 'samples.txt',
                            'sites.txt', 'locations.txt'], 'data_files')
+        pmag.remove_files(files, os.path.join(WD, 'data_files', 'Measurement_Import',
+                                              '2G_bin_magic', 'mn1'))
         os.chdir(WD)
 
     def test_2g_with_no_files(self):
@@ -446,6 +462,8 @@ class Test2g_bin_magic(unittest.TestCase):
         self.assertTrue(program_ran)
         self.assertEqual(os.path.split(outfile)[1], 'measurements.txt')
         self.assertTrue(os.path.isfile(outfile))
+        meas_df = nb.MagicDataFrame(outfile)
+        self.assertIn('sequence', meas_df.df.columns)
 
 
     def test_2g_fail_option4(self):
@@ -539,7 +557,7 @@ class Test2g_bin_magic(unittest.TestCase):
         self.assertEqual(outfile, options['meas_file'])
 
 
-class Test_bgc_magic(unittest.TestCase):
+class TestBgcMagic(unittest.TestCase):
 
     def setUp(self):
         self.input_dir = os.path.join(WD, 'data_files',
@@ -566,6 +584,9 @@ class Test_bgc_magic(unittest.TestCase):
         program_ran, outfile = bgc_magic.convert(**options)
         self.assertTrue(program_ran)
         self.assertEqual(outfile, os.path.join(WD, 'measurements.txt'))
+        meas_df = nb.MagicDataFrame(outfile)
+        self.assertIn('sequence', meas_df.df.columns)
+
 
     def test_bgc_with_path(self):
         options = {}

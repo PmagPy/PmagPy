@@ -171,23 +171,17 @@ Making a new release has several steps:
 
     + These are the steps to make a pip release for pmagpy and pmagpy-cli.
 
-    + This sequence will work for either Python 3 or Python 2.  To make a new pip release for Python 2, you must first switch to the PmagPy Python2 branch, and, of course, make sure you are running Python 2.  However, as we are now developing in Python 3 exclusively, we shouldn't need to make new releases from the Python 2 branch unless there is a new bug fix.
-
     + First, increment the version number pmagpy/version.py.  PYPI will reject a duplicate version number, so you need to update version.py each time.
-
-    + If you are using Anaconda Python, downgrade matplotlib to < 2:
-
-     `conda install matplotlib=1.5.3`
 
     + From the PmagPy directory, use the following command to build a new distribution of pmagpy, upload it to PYPI, and upgrade locally:
 
-    `rm -rf build dist && python setup.py bdist_wheel && twine upload dist/*`
+    `rm -rf build dist && python setup.py sdist bdist_wheel && twine upload dist/*`
 
     + To install that new release:  `pip install pmagpy --upgrade --no-deps`
 
     + To make a *test* release, use a slightly different command from the PmagPy directory, which will: build a new distribution of pmagpy, upload it to the test site (will not overwrite the version people can download), and upgrade locally:
 
-    `rm -rf build dist && python setup.py bdist_wheel && twine upload dist/* -r testpypi`
+    `rm -rf build dist && python setup.py sdist bdist_wheel && twine upload dist/* -r testpypi`
 
     + To install the test release: `pip install -i https://testpypi.python.org/pypi pmagpy --upgrade --no-deps`
 

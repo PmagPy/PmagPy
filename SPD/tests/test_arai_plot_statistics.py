@@ -50,7 +50,7 @@ from SPD.tests import known_values
 #    def test_for_params_before(self):
 #        for par in self.pre_calculation_pars:
 #            self.assertIn(par, self.obj_pars.keys())
-#            
+#
 #    def test_for_params_after(self):
 #        """
 #        check that calculate_all_statistics() generates all expected pars
@@ -70,13 +70,13 @@ from SPD.tests import known_values
 #            value = self.obj_pars[par]
 #           # print value
 #            self.assertIsNotNone(value)
-            
+
 class CheckInitialAttributeValues(unittest.TestCase):
     obj = copy.deepcopy(example)
-    obj_attributes = {'s':obj.s, 'datablock': obj.datablock, 'x_Arai': obj.x_Arai, 'y_Arai': obj.y_Arai, 't_Arai': obj.t_Arai, 'x_Arai_segment': obj.x_Arai_segment, 'y_Arai_segment': obj.y_Arai_segment, "x_Arai_mean": obj.x_Arai_mean, "y_Arai_mean": obj.y_Arai_mean, "x_tail_check": obj.x_tail_check, 'y_tail_check': obj.y_tail_check, 'tail_checks_temperatures': obj.tail_checks_temperatures, 'tail_checks_starting_temperatures': obj.tail_checks_starting_temperatures, 'x_ptrm_check': obj.x_ptrm_check, 'y_ptrm_check': obj.y_ptrm_check, 'ptrm_checks_temperatures': obj.ptrm_checks_temperatures, 'ptrm_checks_starting_temperatures': obj.ptrm_checks_starting_temperatures, 'zijdblock': obj.zijdblock, 'z_temperatures': obj.z_temperatures, 'start': obj.start, 'end': obj.end, 'pars': obj.pars, 'specimen_Data': obj.specimen_Data, 'tmin': obj.tmin, 'tmax': obj.tmax, 'tmin_K': obj.tmin_K, 'tmax_K': obj.tmax_K} 
+    obj_attributes = {'s':obj.s, 'datablock': obj.datablock, 'x_Arai': obj.x_Arai, 'y_Arai': obj.y_Arai, 't_Arai': obj.t_Arai, 'x_Arai_segment': obj.x_Arai_segment, 'y_Arai_segment': obj.y_Arai_segment, "x_Arai_mean": obj.x_Arai_mean, "y_Arai_mean": obj.y_Arai_mean, "x_tail_check": obj.x_tail_check, 'y_tail_check': obj.y_tail_check, 'tail_checks_temperatures': obj.tail_checks_temperatures, 'tail_checks_starting_temperatures': obj.tail_checks_starting_temperatures, 'x_ptrm_check': obj.x_ptrm_check, 'y_ptrm_check': obj.y_ptrm_check, 'ptrm_checks_temperatures': obj.ptrm_checks_temperatures, 'ptrm_checks_starting_temperatures': obj.ptrm_checks_starting_temperatures, 'zijdblock': obj.zijdblock, 'z_temperatures': obj.z_temperatures, 'start': obj.start, 'end': obj.end, 'pars': obj.pars, 'specimen_Data': obj.specimen_Data, 'tmin': obj.tmin, 'tmax': obj.tmax, 'tmin_K': obj.tmin_K, 'tmax_K': obj.tmax_K}
     known_values = known_values.initial_values
 
-    # test a bunch of the initial values against known expected values.  this indirectly tests get_data and such.  I don't know, maybe that will be enough.  Then I can do more thorough tests for the other stuff. 
+    # test a bunch of the initial values against known expected values.  this indirectly tests get_data and such.  I don't know, maybe that will be enough.  Then I can do more thorough tests for the other stuff.
     def test_name(self):
         self.assertEqual(self.obj.s, '0238x6011044')
 
@@ -85,7 +85,7 @@ class CheckInitialAttributeValues(unittest.TestCase):
             if type(value) == int or type(value) == float: # can't iterate over int type or float
                # print type(value)
                 self.assertEqual(value, self.obj_attributes[key])
-            elif value != None and type(value) != dict:
+            elif type(value) != type(None) and type(value) != dict:
                # print type(value)
                 for num, item in enumerate(value):
                     message = "%s: known value = %s; obj_attribute = %s" %(key, value[:150], self.obj_attributes[key][:150])
@@ -96,18 +96,18 @@ class CheckInitialAttributeValues(unittest.TestCase):
 
 
 class CheckYorkRegression(unittest.TestCase):
-    
+
     obj = copy.deepcopy(example)
     obj.York_Regression()
     known_values = known_values.York_Regression_values
     obj_pars = obj.pars
-    
+
     def test_York_Regression(self):
         for key, value in self.known_values.items():  # goes through all values
             if type(value) == int or type(value) == float: # can't iterate over int type or float
                # print type(value)
                 self.assertAlmostEqual(value, self.obj_pars[key])
- 
+
             elif value.any() and type(value) != dict:
                # print type(value)
                 for num, item in enumerate(value):
@@ -116,7 +116,7 @@ class CheckYorkRegression(unittest.TestCase):
                         self.assertAlmostEqual(round(self.obj_pars[key][num], 8), round(item, 8), message)
                     else:
                         self.assertAlmostEqual(self.obj_pars[key][num], item, message)
-        
+
 
 
 
@@ -132,7 +132,7 @@ class CheckVDSsequence(unittest.TestCase): # adequate
     ref_GAP_MAX = 0.32852441013324574
     ref_vector_diffs_segment = [0.031295984827684566, 0.024151118628312387, 0.036482667142194579, 0.059128016249387697, 0.034082675643388412, 0.090581343759213978]
     ref_partial_vds = 0.27572180625018161
-    
+
     def test_against_known_values(self): # just testing with values verified in thellier_gui.  not a brilliant test, but fine
         #print self.result.keys()
         self.assertAlmostEqual(self.result['specimen_fvds'], self.ref_fvds)
@@ -141,11 +141,11 @@ class CheckVDSsequence(unittest.TestCase): # adequate
         self.assertAlmostEqual(self.result['vector_diffs_segment'], self.ref_vector_diffs_segment)
         self.assertAlmostEqual(self.result['partial_vds'], self.ref_partial_vds)
 
-    
+
 #zdata = [[1, 2, 3], [3, 4, 5], [4, 5.5, 6]]
 #2, 2, 2.  1, 1.5, 1.  4, 5.5, 6.
 
- 
+
     def test_for_negative_values(self):
         for k, v in list(self.result.items()):
             if isinstance(v,int):
@@ -175,7 +175,7 @@ class CheckSCAT(unittest.TestCase): # NOT DONE
         #print result[1](2) # high bound
 
     def test_in_SCAT_box(self):
-        low_bound, high_bound, x_max, y_max, low_line, high_line = lib_arai.get_SCAT_box(self.b, 
+        low_bound, high_bound, x_max, y_max, low_line, high_line = lib_arai.get_SCAT_box(self.b,
                 self.x_mean, self.y_mean, self.beta_threshold)
         good = [(2., 1.9), (1., 5.), (5., 1.8)]
         bad = [(1., 2.), (3., 4), (7.1, .2)]
@@ -239,7 +239,7 @@ class CheckSCAT(unittest.TestCase): # NOT DONE
         #print thing1.tmin_K, thing1.tmax_K
         self.assertEqual('Fail', thing.get_SCAT())
         self.assertEqual('Pass', thing1.get_SCAT())
-        
+
 
 
 
@@ -271,7 +271,7 @@ class CheckFrac(unittest.TestCase): # basically good to go
         obj_frac = self.obj.get_FRAC()
         self.assertEqual(frac, obj_frac)
 
-    
+
 
 class CheckR_corr2(unittest.TestCase):
     obj = copy.deepcopy(example)
@@ -290,7 +290,7 @@ class CheckR_corr2(unittest.TestCase):
         """should produce expected output with simple input"""
         r = lib_arai.get_R_corr2(self.x_avg, self.y_avg, self.x_segment, self.y_segment)
         self.assertEqual((old_div(self.ref_numerator,self.ref_denominator)), r)
-        
+
 #    def testDivideByZero(self):
 #        """should raise ValueError when attempting to divide by zero"""
 #        #print 'testing divide by zero'
@@ -300,11 +300,11 @@ class CheckR_det2(unittest.TestCase): # acceptable working test
     y_segment = [1., 2.5, 3]
     y_avg = 2.
     y_prime = [1., 2., 3.]
-    
+
     def test_simple_input(self):
         result = lib_arai.get_R_det2(self.y_segment, self.y_avg, self.y_prime)
         self.assertEqual((1 - old_div(.25,2.25)), result)
-    
+
 
 class CheckZigzag(unittest.TestCase):
     x = [0., 4., 5.]
@@ -325,7 +325,7 @@ class CheckZigzag(unittest.TestCase):
     obj.x_Arai, obj.y_Arai = x, y
     obj.pars['specimen_YT'], obj.pars['specimen_XT'] = y_int, x_int
     obj.pars['specimen_b'], obj.n = slope, n
-    
+
     def testWiggleB(self):
         for num, b in enumerate(self.reference_b_wiggle):
             result = lib_arai.get_b_wiggle(self.x[num], self.y[num], self.y_int)
@@ -401,10 +401,7 @@ for s in suite[1:]:
 
 def run_all_tests():
     unittest.TextTestRunner(verbosity=2).run(full_suite)
-    
+
 if __name__ == "__main__":
     #unittest.TextTestRunner(verbosity=2).run(full_suite)
     unittest.main()
-
-
-

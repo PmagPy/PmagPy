@@ -531,6 +531,12 @@ class TestContribution(unittest.TestCase):
         self.con.tables['sites'].df.drop(['age'], axis='columns', inplace=True)
         res = self.con.propagate_min_max_up(min_suffix='lowest', max_suffix='highest')
 
+    def test_propagate_ages_extra_location_rows(self):
+        directory = os.path.join(WD, 'data_files', '3_0', 'McMurdo')
+        con = nb.Contribution(directory)
+        con.tables['locations'].add_row('McMurdo2', {})
+        con.tables['sites'].df.loc['mc01', 'location'] = 'McMurdo2'
+        con.propagate_ages()
 
     def test_propagate_name_down(self):
         directory = os.path.join(WD, 'data_files', 'Measurement_Import', 'CIT_magic', 'PI47')
@@ -555,6 +561,22 @@ class TestContribution(unittest.TestCase):
         self.assertNotIn('location', meas_df.columns)
 
 
+    def test_find_missing_items(self):
+        for table in self.con.tables:
+            self.assertEqual(set(), self.con.find_missing_items(table))
+
+        self.con.tables['sites'].delete_row(0)
+        missing = self.con.find_missing_items('sites')
+        self.assertEqual(set(['hz05']), missing)
+
+        con = nb.Contribution(PROJECT_WD)
+        for table in con.tables:
+            self.assertEqual(set(), con.find_missing_items(table))
+
+        directory = os.path.join(WD, 'data_files', '3_0', 'McMurdo')
+        con = nb.Contribution(directory)
+        for table in con.tables:
+            self.assertEqual(set(), con.find_missing_items(table))
 
 
 
@@ -570,6 +592,7 @@ class TestNotNull(unittest.TestCase):
             # all evens should be True, all odds should be False
             correct = (num % 2) == 0
             self.assertEqual(correct, res)
+
 
 
 if __name__ == '__main__':

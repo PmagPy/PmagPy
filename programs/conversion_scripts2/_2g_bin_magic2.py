@@ -231,7 +231,7 @@ def main(command_line=True, **kwargs):
         Samps = []
     MagRecs = []
     try:
-        f = open(mag_file, 'brU')
+        f = open(mag_file, 'br')
         input = str(f.read()).strip("b '")
         f.close()
     except Exception as ex:

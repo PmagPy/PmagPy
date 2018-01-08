@@ -429,6 +429,8 @@ DESCRIPTION
         # try to read redo file if one exists
         if os.path.exists(os.path.join(self.WD, 'thellier_GUI.redo')):
             self.read_redo_file(os.path.join(self.WD, 'thellier_GUI.redo'))
+        if self.s:
+            self.update_selection()
 
 
     def get_DIR(self, WD=None):
@@ -1189,8 +1191,20 @@ else:
             tmin_index = self.tmin_box.GetSelection()
         if str(self.tmax_box.GetValue()) != "":
             tmax_index = self.tmax_box.GetSelection()
-
-        if self.list_bound_loc != 0:
+        # if there is no prior interpretation, assume first click is
+        # tmin and set highest possible temp as tmax
+        if not tmin_index and not tmax_index:
+            tmin_index = index
+            self.tmin_box.SetSelection(index)
+            # set to the highest step
+            max_step_data = self.Data[self.s]['datablock'][-1]
+            step_key = 'treatment_temp'
+            if MICROWAVE:
+                step_key = 'treatment_mw_power'
+            max_step = max_step_data[step_key]
+            tmax_index = self.tmax_box.GetCount() - 1
+            self.tmax_box.SetSelection(tmax_index)
+        elif self.list_bound_loc != 0:
             if self.list_bound_loc == 1:
                 if index < tmin_index:
                     self.tmin_box.SetSelection(index)
@@ -1218,6 +1232,7 @@ else:
 
         self.logger.Select(index, on=0)
         self.get_new_T_PI_parameters(-1)
+
 
     def on_right_click_listctrl(self, event):
         self.user_warning("Thellier GUI cannot handle data marked bad yet so this function does not work. This feature is in development and will hopefully be included in future versions. Currently bad data must be removed from measurement file manually.")
@@ -1247,7 +1262,7 @@ else:
             a_index = self.Data[self.s]['magic_experiment_name'] + \
                 str(index + 1)
             try:
-                mdf.set_value(a_index, 'quality', 'g')
+                mdf.loc[a_index, 'quality'] = 'g'
             except ValueError:
                 self.user_warning(
                     "cannot find valid measurement data to mark bad, this feature is still under development. please report this error to a developer")
@@ -1260,7 +1275,7 @@ else:
             a_index = self.Data[self.s]['magic_experiment_name'] + \
                 str(index + 1)
             try:
-                mdf.set_value(a_index, 'quality', 'b')
+                mdf.loc[a_index, 'quality'] = 'b'
             except ValueError:
                 self.user_warning(
                     "cannot find valid measurement data to mark bad, this feature is still under development please report this error to a developer")
@@ -1428,11 +1443,11 @@ else:
         self.Bind(wx.EVT_MENU, self.on_menu_open_interpreter_log,
                   m_open_interpreter_log)
 
-        menu_consistency_test = wx.Menu()
-        m_run_consistency_test = menu_consistency_test.Append(
-            -1, "&Run Consistency test", "")
-        self.Bind(wx.EVT_MENU, self.on_menu_run_consistency_test,
-                  m_run_consistency_test)
+        #menu_consistency_test = wx.Menu()
+        #m_run_consistency_test = menu_consistency_test.Append(
+        #    -1, "&Run Consistency test", "")
+        #self.Bind(wx.EVT_MENU, self.on_menu_run_consistency_test,
+        #          m_run_consistency_test)
 
         #m_run_consistency_test_b = menu_Optimizer.Append(-1, "&Run Consistency test beta version", "")
         #self.Bind(wx.EVT_MENU, self.on_menu_run_consistency_test_b, m_run_consistency_test_b)
@@ -1474,7 +1489,7 @@ else:
         self.menubar.Append(menu_anisotropy, "&Anisotropy")
         self.menubar.Append(menu_Analysis, "&Analysis")
         self.menubar.Append(menu_Auto_Interpreter, "&Auto Interpreter")
-        self.menubar.Append(menu_consistency_test, "&Consistency Test")
+        #self.menubar.Append(menu_consistency_test, "&Consistency Test")
         self.menubar.Append(menu_Plot, "&Plot")
         self.menubar.Append(menu_Help, "&Help")
         #self.menubar.Append(menu_results_table, "&Table")
@@ -1593,7 +1608,8 @@ else:
             index += 1
         self.s = self.specimens[index]
         self.specimens_box.SetStringSelection(self.s)
-        self.update_selection()
+        if self.s:
+            self.update_selection()
 
     #----------------------------------------------------------------------
 
@@ -2621,11 +2637,12 @@ You can combine multiple measurement files into one measurement file using Pmag 
         # check if averaging by sample or by site
         # and intialize sample/site criteria
         #---------------------------------------
-
-        if dia.set_average_by_sample_or_site.GetValue() == 'sample':
+        avg_by = dia.set_average_by_sample_or_site.GetValue()
+        if avg_by == 'sample':
             for crit in ['site_int_n', 'site_int_sigma', 'site_int_sigma_perc', 'site_aniso_mean', 'site_int_n_outlier_check']:
                 self.acceptance_criteria[crit]['value'] = -999
-        if dia.set_average_by_sample_or_site.GetValue() == 'site':
+
+        if avg_by == 'site':
             for crit in ['sample_int_n', 'sample_int_sigma', 'sample_int_sigma_perc', 'sample_aniso_mean', 'sample_int_n_outlier_check']:
                 self.acceptance_criteria[crit]['value'] = -999
 
@@ -2669,6 +2686,11 @@ You can combine multiple measurement files into one measurement file using Pmag 
                 print("no criteria given to save")
             dlg1.Destroy()
             dia.Destroy()
+
+        self.fig4.texts[0].remove()
+        txt = "{} data".format(avg_by).capitalize()
+        self.fig4.text(0.02, 0.96, txt, {
+                       'family': self.font_type, 'fontsize': 10, 'style': 'normal', 'va': 'center', 'ha': 'left'})
         self.recalculate_satistics()
         try:
             self.update_GUI_with_new_interpretation()
@@ -3493,9 +3515,10 @@ You can combine multiple measurement files into one measurement file using Pmag 
             self.spec_container.write_magic_file(dir_path=self.WD)
         else:
             rmag_anisotropy_file.close()
-        rmag_results_file.close()
-        rmag_anisotropy_file.close()
-        aniso_logfile.close()
+        if self.data_model==2:
+            rmag_results_file.close()
+            rmag_anisotropy_file.close()
+            aniso_logfile.close()
 
     #==================================================
 
@@ -4643,18 +4666,16 @@ You can combine multiple measurement files into one measurement file using Pmag 
         '''
         convert all age units to calendar year
         '''
-
-        if "age" not in list(er_ages_rec.keys()) or er_ages_rec['age'] == None:
+        if ("age" not in list(er_ages_rec.keys())) or (nb.is_null(er_ages_rec['age'], False)):
             return(er_ages_rec)
-        if "age_unit" not in list(er_ages_rec.keys()) or er_ages_rec['age_unit'] == None or er_ages_rec["age_unit"] == "":
+        if ("age_unit" not in list(er_ages_rec.keys())) or (nb.is_null(er_ages_rec['age_unit'])):
             return(er_ages_rec)
-
-        if er_ages_rec["age"] == "":
+        if nb.is_null(er_ages_rec["age"], False):
             if "age_range_high" in list(er_ages_rec.keys()) and "age_range_low" in list(er_ages_rec.keys()):
-                if er_ages_rec["age_range_high"] != "" and er_ages_rec["age_range_low"] != "":
+                if nb.not_null(er_ages_rec["age_range_high"], False) and nb.not_null(er_ages_rec["age_range_low"], False):
                     er_ages_rec["age"] = np.mean(
                         [float(er_ages_rec["age_range_high"]), float(er_ages_rec["age_range_low"])])
-        if er_ages_rec["age"] == "":
+        if nb.is_null(er_ages_rec["age"], False):
             return(er_ages_rec)
 
             # age_descriptier_ages_recon=er_ages_rec["age_description"]
@@ -4683,7 +4704,7 @@ You can combine multiple measurement files into one measurement file using Pmag 
         age_range_high = age
         age_sigma = 0
 
-        if "age_sigma" in list(er_ages_rec.keys()) and er_ages_rec["age_sigma"] != "":
+        if "age_sigma" in list(er_ages_rec.keys()) and nb.not_null(er_ages_rec["age_sigma"], False):
             age_sigma = float(er_ages_rec["age_sigma"]) * mutliplier
             if age_unit == "Years BP" or age_unit == "Years Cal BP":
                 age_sigma = 1950 - age_sigma
@@ -4691,7 +4712,7 @@ You can combine multiple measurement files into one measurement file using Pmag 
             age_range_high = age + age_sigma
 
         if "age_range_high" in list(er_ages_rec.keys()) and "age_range_low" in list(er_ages_rec.keys()):
-            if er_ages_rec["age_range_high"] != "" and er_ages_rec["age_range_low"] != "":
+            if nb.not_null(er_ages_rec["age_range_high"]) and nb.not_null(er_ages_rec["age_range_low"]):
                 age_range_high = float(
                     er_ages_rec["age_range_high"]) * mutliplier
                 if age_unit == "Years BP" or age_unit == "Years Cal BP":
@@ -4722,6 +4743,10 @@ You can combine multiple measurement files into one measurement file using Pmag 
         set_map_lon_max = ""
         set_map_lon_grid = ""
 
+        set_map = {'lat_min': set_map_lat_min, 'lat_max': set_map_lat_max,
+                   'lat_grid': set_map_lat_grid, 'lon_min': set_map_lon_min,
+                   'lon_max': set_map_lon_max, 'lon_grid': set_map_lon_grid}
+
         x_autoscale = dia.set_x_axis_auto.GetValue()
         try:
             x_axis_min = float(dia.set_plot_age_min.GetValue())
@@ -4736,6 +4761,8 @@ You can combine multiple measurement files into one measurement file using Pmag 
         except ValueError:
             pass
 
+        avg_by = self.acceptance_criteria['average_by_sample_or_site']['value']
+
         # plt_x_years=dia.set_plot_year.GetValue()
         # plt_x_BP=dia.set_plot_BP.GetValue()
         set_age_unit = dia.set_age_unit.GetValue()
@@ -4749,7 +4776,7 @@ You can combine multiple measurement files into one measurement file using Pmag 
 
         if show_STDEVOPT:
             data2plot = {}
-            if self.acceptance_criteria['average_by_sample_or_site']['value'] == 'sample':
+            if avg_by == "sample":
                 FILE = os.path.join(
                     self.WD, 'thellier_interpreter', 'thellier_interpreter_STDEV-OPT_samples.txt')
                 NAME = "er_sample_name"
@@ -4760,10 +4787,10 @@ You can combine multiple measurement files into one measurement file using Pmag 
             try:
                 data2plot = self.read_magic_file(FILE, 4, NAME)
             except Exception as ex:
-                print(type(ex), ex)
+                print("-W- Couldn't read file {}".format(FILE), type(ex), ex)
                 data2plot = {}
         else:
-            if self.acceptance_criteria['average_by_sample_or_site']['value'] == 'sample':
+            if avg_by == 'sample':
                 data2plot = copy.deepcopy(self.Data_samples)
             else:
                 data2plot = copy.deepcopy(self.Data_sites)
@@ -4771,27 +4798,15 @@ You can combine multiple measurement files into one measurement file using Pmag 
 
         show_map = dia.show_map.GetValue()
         set_map_autoscale = dia.set_map_autoscale.GetValue()
+        set_map['set_map_autoscale'] = set_map_autoscale
         if not set_map_autoscale:
             window_list_commands = ["lat_min", "lat_max",
                                     "lat_grid", "lon_min", "lon_max", "lon_grid"]
             for key in window_list_commands:
-                try:
-                    command = "set_map_%s=float(dia.set_map_%s.GetValue())" % (
-                        key, key)
-                    exec(command)
-                except:
-                    command = "set_map_%s='' " % key
-                    exec(command)
+                set_map[key] = dia.set_map[key].GetValue()
+                if set_map[key] != '':
+                    set_map[key] = float(set_map[key])
 
-            try:
-                set_map_lat_min = float(dia.set_map_lat_min.GetValue())
-                set_map_lat_max = float(dia.set_map_lat_max.GetValue())
-                set_map_lat_grid = float(dia.set_map_lat_grid.GetValue())
-                set_map_lon_min = float(dia.set_map_lon_min.GetValue())
-                set_map_lon_max = float(dia.set_map_lon_max.GetValue())
-                set_map_lon_grid = float(dia.set_map_lon_grid.GetValue())
-            except ValueError:
-                pass
         plot_by_locations = {}
 
         # search for lat (for VADM calculation) and age:
@@ -4799,7 +4814,6 @@ You can combine multiple measurement files into one measurement file using Pmag 
         age_min, age_max = 1e10, -1e10
         # if not show_STDEVOPT:
         for sample_or_site in list(data2plot.keys()):
-
             found_age, found_lat = False, False
 
             if not show_STDEVOPT:
@@ -4814,7 +4828,7 @@ You can combine multiple measurement files into one measurement file using Pmag 
                 sample_or_site_mean_pars = data2plot[sample_or_site]
 
             # locate site_name
-            if self.acceptance_criteria['average_by_sample_or_site']['value'] == 'sample':
+            if avg_by == 'sample':
                 site_name = self.Data_hierarchy['site_of_sample'][sample_or_site]
             else:
                 site_name = sample_or_site
@@ -4822,11 +4836,14 @@ You can combine multiple measurement files into one measurement file using Pmag 
             #-----
             # search for age data
             #-----
+
             er_ages_rec = {}
             if sample_or_site in list(self.Data_info["er_ages"].keys()):
                 er_ages_rec = self.Data_info["er_ages"][sample_or_site]
             elif site_name in list(self.Data_info["er_ages"].keys()):
                 er_ages_rec = self.Data_info["er_ages"][site_name]
+            elif sample_or_site in list(self.Data_info["er_{}s".format(avg_by)]):
+                er_ages_rec = self.Data_info["er_{}s".format(avg_by)][sample_or_site]
             if "age" in list(er_ages_rec.keys()) and er_ages_rec["age"] != "":
                 found_age = True
 
@@ -4873,7 +4890,7 @@ You can combine multiple measurement files into one measurement file using Pmag 
                     found_lon = False
                 # convert lon to -180 to +180
 
-            # tru searchinh latitude in er_samples.txt
+            # try searching for latitude in er_samples.txt
 
             if found_lat == False:
                 if sample_or_site in list(self.Data_info["er_samples"].keys()):
@@ -4903,6 +4920,9 @@ You can combine multiple measurement files into one measurement file using Pmag 
             elif sample_or_site in list(self.Data_info["er_samples"].keys()):
                 location = self.Data_info["er_samples"][sample_or_site]["er_location_name"]
             else:
+                location = "unknown"
+
+            if nb.is_null(location):
                 location = "unknown"
 
             if location not in list(plot_by_locations.keys()):
@@ -5025,7 +5045,7 @@ You can combine multiple measurement files into one measurement file using Pmag 
         if Plot_map:
             if True:
                 plt.ion()
-                fig2 = figure(2)
+                fig2 = plt.figure(2)
                 plt.clf()
                 plt.ioff()
 
@@ -5124,6 +5144,7 @@ You can combine multiple measurement files into one measurement file using Pmag 
         legend_font_props.set_size(12)
 
         #h,l = ax.get_legend_handles_labels()
+        plt.figure(1)
         plt.legend(handles=handles_list, loc='center left', bbox_to_anchor=[
                    0, 0, 1, 1], bbox_transform=Fig.transFigure, numpoints=1, prop=legend_font_props)
 
@@ -5171,16 +5192,27 @@ You can combine multiple measurement files into one measurement file using Pmag 
                 print(type(ex), ex)
 
         if show_sample_labels:
+            xmin, xmax, ymin, ymax = ax.axis()
             for location in locations:
                 for i in range(len(plot_by_locations[location]['samples_names'])):
-                    Fig.text(plot_by_locations[location]['X_data'][i], plot_by_locations[location]['Y_data']
-                             [i], "  " + plot_by_locations[location]['samples_names'][i], fontsize=10, color="0.5")
+                    x = plot_by_locations[location]['X_data'][i]
+                    y = plot_by_locations[location]['Y_data'][i]
+                    item_label = "  " + plot_by_locations[location]['samples_names'][i]
+                    # don't add sample name if out of plot bounds
+                    if x < xmin or x > xmax or y < ymin or y > ymax:
+                        continue
+                    ax.text(x, y, item_label, fontsize=10, color="0.5")
 
         xmin, xmax = ax.get_xlim()
         if max([abs(xmin), abs(xmax)]) > 10000 and set_age_unit == "Automatic":
             plt.gca().ticklabel_format(style='scientific', axis='x', scilimits=(0, 0))
 
         thellier_gui_dialogs.ShowFigure(Fig)
+        # if a map figure was made, show it
+        try:
+            thellier_gui_dialogs.ShowFigure(fig2)
+        except UnboundLocalError:
+            pass
         dia.Destroy()
 
 #===========================================================
@@ -5835,9 +5867,13 @@ You can combine multiple measurement files into one measurement file using Pmag 
                     scat_window.SetBackgroundColour(wx.WHITE)
 
         else:
-            scat_window.SetValue("")
-            scat_window.SetBackgroundColour(
-                wx.Colour('grey'))  # set text color
+            try:
+                scat_window.SetValue("")
+                scat_window.SetBackgroundColour(
+                    wx.Colour('grey'))  # set text color
+            # don't break if SCAT is not displayed
+            except UnboundLocalError:
+                pass
 
         # Blab, Banc, correction factors
 
@@ -6357,6 +6393,13 @@ You can combine multiple measurement files into one measurement file using Pmag 
                 self.user_warning(
                     "Method codes are required to sort directional and intensity data in measurements file, but no method codes were found, aborting")
                 return ({}, {})
+            quality_flag = ''
+            if 'quality' in meas_data3_0.columns:
+                quality_flag = 'quality'
+            elif 'flag' in meas_data3_0.columns:
+                quality_flag = 'flag'
+            if quality_flag:
+                meas_data3_0 = meas_data3_0[meas_data3_0[quality_flag].str.contains('b')==False] # exclude 'bad' measurements
             meas_data3_0 = meas_data3_0[meas_data3_0['method_codes'].str.contains(
                 'LP-PI-TRM|LP-TRM|LP-PI-M|LP-AN|LP-CR-TRM') == True]  # fish out all the relavent data
             intensity_types = [
@@ -7401,6 +7444,8 @@ You can combine multiple measurement files into one measurement file using Pmag 
 
             # propagate data from measurements table into other tables
             self.contribution.propagate_measurement_info()
+            self.contribution.propagate_name_down('location', 'samples')
+
             # make backup files
             if 'specimens' in self.contribution.tables:
                 self.spec_container = self.contribution.tables['specimens']
@@ -7411,6 +7456,7 @@ You can combine multiple measurement files into one measurement file using Pmag 
                     dtype='specimens', columns=['specimen', 'aniso_type'])
             self.spec_data = self.spec_container.df
             if 'samples' in self.contribution.tables:
+                self.contribution.tables['samples'].drop_duplicate_rows(ignore_cols=['sample', 'site', 'citations', 'software_packages'])
                 self.samp_container = self.contribution.tables['samples']
                 self.samp_container.write_magic_file(
                     custom_name='samples.bak', dir_path=self.WD)  # create backup file with original
@@ -7418,39 +7464,82 @@ You can combine multiple measurement files into one measurement file using Pmag 
             else:
                 self.samp_container = nb.MagicDataFrame(dtype='samples',
                                                         columns=['sample', 'site', 'cooling_rate'])
+
             self.samp_data = self.samp_container.df  # only need this for saving tables
             if 'cooling_rate' not in self.samp_data.columns:
                 self.samp_data['cooling_rate'] = None
                 print('-W- Your sample file has no cooling rate data.')
 
+
+            # maybe need to propagate ages here....?
+            self.contribution.propagate_ages()
+
             # gather data for samples
             if len(self.samp_container.df):
-                samples = self.samp_data[['sample', 'site', 'cooling_rate']]
-                samples = samples.rename(columns={
-                                         'site': 'er_site_name', 'sample': 'er_sample_name', 'cooling_rate': 'sample_cooling_rate'})
+                cols = ['sample', 'site', 'cooling_rate']
+
+                if 'location' in self.samp_data.columns:
+                    cols.append('location')
+                if 'age' in self.samp_data.columns:
+                    cols.append('age')
+                samples = self.samp_data[cols]
+                samples = samples.rename(columns={'site': 'er_site_name',
+                                                  'sample': 'er_sample_name',
+                                                  'cooling_rate': 'sample_cooling_rate',
+                                                  'location': 'er_location_name'})
                 # in case of multiple rows with same sample name, make sure cooling rate date propagates
+
                 # to all samples with the same name
-                samples = samples.groupby(samples.index, sort=False).fillna(
-                    method='ffill').groupby(samples.index, sort=False).fillna(method='bfill')
+                # (sometimes fails due to pandas bug:
+                #  https://github.com/pandas-dev/pandas/issues/14955,
+                #  hence the try/except)
+                try:
+                    samples = samples.groupby(samples.index, sort=False).fillna(
+                        method='ffill').groupby(samples.index, sort=False).fillna(method='bfill')
+                except ValueError:
+                    pass
                 # then get rid of any duplicates
                 samples = samples.drop_duplicates()
                 # pick out what is needed by thellier_gui and put in 2.5 format
                 er_samples = samples.to_dict('records')
                 data_er_samples = {}
-                for s in er_samples:
-                    data_er_samples[s['er_sample_name']] = s
+                for samp_rec in er_samples:
+                    name = samp_rec['er_sample_name']
+                    # combine two records for the same sample
+                    if name in data_er_samples:
+                        old_values = data_er_samples[name]
+                        new_values = samp_rec
+                        new_rec = {}
+                        for k, v in old_values.items():
+                            if nb.not_null(v):
+                                new_rec[k] = v
+                            else:
+                                new_rec[k] = new_values[k]
+                        data_er_samples[name] = new_rec
+                    else:
+                        data_er_samples[name] = samp_rec
+
             # if there is no data for samples:
             else:
                 er_samples = {}
                 data_er_samples = {}
             #
-            age_headers = ['site', 'age', 'age_high', 'age_low', 'age_unit']
+            age_headers = ['site', 'location', 'age',
+                           'age_high', 'age_low', 'age_unit']
             if 'sites' in self.contribution.tables:
+                # drop stub rows
+                self.contribution.tables['sites'].drop_duplicate_rows(ignore_cols=['site', 'location', 'citations', 'software_packages'])
+                # get lat/lon info from sites table
+                self.contribution.propagate_average_up(cols=['lat', 'lon'],
+                                                       target_df_name='sites',
+                                                       source_df_name='samples')
+                # get sample table
                 self.site_container = self.contribution.tables['sites']
                 # create backup file with original
                 self.site_container.write_magic_file(
                     custom_name='sites.bak', dir_path=self.WD)
                 self.site_data = self.site_container.df
+                # get required data
                 if 'lat' not in self.site_data.columns:
                     self.site_data['lat'] = None
                     print('-W- Your site file has no latitude data.')
@@ -7478,21 +7567,37 @@ You can combine multiple measurement files into one measurement file using Pmag 
                         self.site_data[header] = None
                 age_data = self.site_data[age_headers]
                 age_data = age_data[age_data['age'].notnull()]
-                age_data = age_data.rename(columns={'site': 'er_site_name'})
+                age_data = age_data.rename(columns={'site': 'er_site_name',
+                                                    'location': 'er_location_name'})
                 # save this in 2.5 format
                 er_ages = age_data.to_dict('records')
                 data_er_ages = {}
                 for s in er_ages:
                     s = self.convert_ages_to_calendar_year(s)
                     data_er_ages[s['er_site_name']] = s
-                sites = self.site_data[['site', 'lat', 'lon']]
+                sites = self.site_data[['site', 'location', 'lat', 'lon']]
                 sites = sites.rename(
-                    columns={'site': 'er_site_name', 'lat': 'site_lat', 'lon': 'site_lon'})
+                    columns={'site': 'er_site_name', 'lat': 'site_lat',
+                             'lon': 'site_lon', 'location': 'er_location_name'})
                 # pick out what is needed by thellier_gui and put in 2.5 format
                 er_sites = sites.to_dict('records')
                 data_er_sites = {}
-                for s in er_sites:
-                    data_er_sites[s['er_site_name']] = s
+                for site_rec in er_sites:
+                    name = site_rec['er_site_name']
+                    # combine two records for the same site
+                    if name in data_er_sites:
+                        old_values = data_er_sites[name]
+                        new_values = site_rec
+                        new_rec = {}
+                        for k, v in old_values.items():
+                            if nb.not_null(v):
+                                new_rec[k] = v
+                            else:
+                                new_rec[k] = new_values[k]
+                        data_er_sites[name] = new_rec
+                    # no need to combine
+                    else:
+                        data_er_sites[name] = site_rec
             else:
                 self.site_container = nb.MagicDataFrame(
                     dtype='sites', columns=['site'])

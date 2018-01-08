@@ -99,6 +99,7 @@ def main():
         coord = "100"
     else:
         coord = "0"
+    saved_coord = coord
     fmt = pmag.get_named_arg_from_sys("-fmt", "svg")
     specimen = pmag.get_named_arg_from_sys("-spc", default_val="")
     beg_pca, end_pca = "", ""
@@ -126,11 +127,17 @@ def main():
 #
 #   import  specimens
 
+    if 'measurements' not in contribution.tables:
+        print('-W- No measurements table found in your working directory')
+        return
+
     specimen_cols = ['analysts', 'aniso_ftest', 'aniso_ftest12', 'aniso_ftest23', 'aniso_s', 'aniso_s_mean', 'aniso_s_n_measurements', 'aniso_s_sigma', 'aniso_s_unit', 'aniso_tilt_correction', 'aniso_type', 'aniso_v1', 'aniso_v2', 'aniso_v3', 'citations', 'description', 'dir_alpha95', 'dir_comp', 'dir_dec', 'dir_inc', 'dir_mad_free', 'dir_n_measurements', 'dir_tilt_correction', 'experiments', 'geologic_classes',
                      'geologic_types', 'hyst_bc', 'hyst_bcr', 'hyst_mr_moment', 'hyst_ms_moment', 'int_abs', 'int_b', 'int_b_beta', 'int_b_sigma', 'int_corr', 'int_dang', 'int_drats', 'int_f', 'int_fvds', 'int_gamma', 'int_mad_free', 'int_md', 'int_n_measurements', 'int_n_ptrm', 'int_q', 'int_rsc', 'int_treat_dc_field', 'lithologies', 'meas_step_max', 'meas_step_min', 'meas_step_unit', 'method_codes', 'sample', 'software_packages', 'specimen']
     if 'specimens' in contribution.tables:
-        #        contribution.propagate_name_down('sample','measurements')
+        contribution.propagate_name_down('sample','measurements')
         spec_container = contribution.tables['specimens']
+        if 'method_codes' not in spec_container.df.columns:
+            spec_container.df['method_codes'] = None
         prior_spec_data = spec_container.get_records_for_code(
             'LP-DIR', strict_match=False)  # look up all prior directional interpretations
 #
@@ -143,10 +150,16 @@ def main():
 #   import samples  for orientation info
 #
     if 'samples' in contribution.tables:
-        #        contribution.propagate_name_down('site','measurements')
-        contribution.propagate_cols(col_names=[
-                                    'azimuth', 'dip', 'orientation_flag'], target_df_name='measurements', source_df_name='samples')
-#
+        samp_container=contribution.tables['samples']
+        samps=samp_container.df
+        samp_data=samps.to_dict('records')# convert to list of dictionaries for use with get_orient
+    else:
+        samp_data=[]
+    #if ('samples' in contribution.tables) and ('specimens' in contribution.tables):
+    #    #        contribution.propagate_name_down('site','measurements')
+    #    contribution.propagate_cols(col_names=[
+    #                                'azimuth', 'dip', 'orientation_quality','bed_dip','bed_dip_direction'], target_df_name='measurements', source_df_name='samples')
+##
 # define figure numbers for equal area, zijderveld,
 #  and intensity vs. demagnetiztion step respectively
 #
@@ -178,12 +191,14 @@ def main():
     int_key = intensity_types[0]
     # get all the non-null intensity records of the same type
     meas_data = meas_data[meas_data[int_key].notnull()]
-    if 'flag' not in meas_data.columns:
-        meas_data['flag'] = 'g'  # set the default flag to good
+    if 'quality' not in meas_data.columns:
+        meas_data['quality'] = 'g'  # set the default flag to good
 # need to treat LP-NO specially  for af data, treatment should be zero,
 # otherwise 273.
+    #meas_data['treatment'] = meas_data['treat_ac_field'].where(
+    #    cond=meas_data['treat_ac_field'] != 0, other=meas_data['treat_temp'])
     meas_data['treatment'] = meas_data['treat_ac_field'].where(
-        cond=meas_data['treat_ac_field'] != 0, other=meas_data['treat_temp'])
+        cond=meas_data['treat_ac_field'].astype(bool), other=meas_data['treat_temp'])
     meas_data['ZI'] = 1  # initialize these to one
     meas_data['instrument_codes'] = ""  # initialize these to blank
 #   for unusual case of microwave power....
@@ -214,17 +229,27 @@ def main():
         k = specimen_names.index(specimen)
     # let's look at the data now
     while k < len(specimen_names):
+        mpars={"specimen_direction_type": "Error"}
         # set the current specimen for plotting
         this_specimen = specimen_names[k]
+        # reset beginning/end pca if plotting more than one specimen
+        if not specimen:
+            beg_pca, end_pca = "", ""
         if verbose and this_specimen != "":
             print(this_specimen, k + 1, 'out of ', len(specimen_names))
         if setangle == 0:
             angle = ""
         this_specimen_measurements = meas_data[meas_data['specimen'].str.contains(
             this_specimen) == True]  # fish out this specimen
-        this_specimen_measurements = this_specimen_measurements[this_specimen_measurements['flag'].str.contains(
+        this_specimen_measurements = this_specimen_measurements[this_specimen_measurements['quality'].str.contains(
             'g') == True]  # fish out this specimen
         if len(this_specimen_measurements) != 0:  # if there are measurements
+            meas_list=this_specimen_measurements.to_dict('records') # get a list of dictionaries
+            this_sample=""
+            if coord != '-1' and 'sample' in meas_list[0].keys(): # look up sample name
+                this_sample=pmag.get_dictitem(meas_list,'specimen',this_specimen,'T')
+                if len(this_sample)>0:
+                    this_sample=this_sample[0]['sample']
             #
             #    set up datablock [[treatment,dec, inc, int, direction_type],[....]]
             #
@@ -235,16 +260,25 @@ def main():
             # this is a list of all the specimen method codes`
             meas_meths = this_specimen_measurements.method_codes.unique()
             tr = pd.to_numeric(this_specimen_measurements.treatment).tolist()
+            if any(nb.is_null(treat, False) for treat in tr):
+                print('-W- Missing required values in measurements.treatment for {}, skipping'.format(this_specimen))
+                if specimen:
+                    return
+                k += 1
+                continue
             if set(tr) == set([0]):
+                print('-W- Missing required values in measurements.treatment for {}, skipping'.format(this_specimen))
+                if specimen:
+                    return
                 k += 1
                 continue
             for m in meas_meths:
-                if 'LT-AF-Z' in m:
+                if 'LT-AF-Z' in m and 'T' not in units:
                     units = 'T'  # units include tesla
                     tr[0] = 0
-                if 'LT-T-Z' in m:
+                if 'LT-T-Z' in m and 'K' not in units:
                     units = units + ":K"  # units include kelvin
-                if 'LT-M-Z' in m:
+                if 'LT-M-Z' in m and 'J' not in units:
                     units = units + ':J'  # units include joules
                     tr[0] = 0
                 units = units.strip(':')  # strip off extra colons
@@ -252,36 +286,60 @@ def main():
                     methods = methods + ":" + m
             decs = pd.to_numeric(this_specimen_measurements.dir_dec).tolist()
             incs = pd.to_numeric(this_specimen_measurements.dir_inc).tolist()
+
 #
 #    fix the coordinate system
 #
+            # revert to original coordinate system
+            coord = saved_coord
             if coord != '-1':  # need to transform coordinates to geographic
-
-                azimuths = pd.to_numeric(
-                    this_specimen_measurements.azimuth).tolist()  # get the azimuths
-                # get the azimuths
-                dips = pd.to_numeric(this_specimen_measurements.dip).tolist()
-                dirs = [decs, incs, azimuths, dips]
-                # this transposes the columns and rows of the list of lists
-                dirs_geo = np.array(list(map(list, list(zip(*dirs)))))
-                decs, incs = pmag.dogeo_V(dirs_geo)
-                if coord == '100':  # need to do tilt correction too
-                    bed_dip_dirs = pd.to_numeric(
-                        this_specimen_measurements.bed_dip_dir).tolist()  # get the azimuths
-                    bed_dips = pd.to_numeric(
-                        this_specimen_measurements.bed_dip).tolist()  # get the azimuths
-                    dirs = [decs, incs, bed_dip_dirs, bed_dips]
-                    # this transposes the columns and rows of the list of lists
-                    dirs_tilt = np.array(list(map(list, list(zip(*dirs)))))
-                    decs, incs = pmag.dotilt_V(dirs_tilt)
-                    title = title + '_t'
+                # get the azimuth
+                or_info,az_type=pmag.get_orient(samp_data,this_sample,data_model=3)
+                if 'azimuth' in or_info.keys() and or_info['azimuth']!="":
+                    #azimuths = pd.to_numeric(
+                    #    this_specimen_measurements.azimuth).tolist()
+                    #dips = pd.to_numeric(this_specimen_measurements.dip).tolist()
+                    azimuths=len(decs)*[or_info['azimuth']]
+                    dips=len(decs)*[or_info['dip']]
+                # if azimuth/dip is missing, plot using specimen coordinates instead
                 else:
-                    title = title + '_g'
+                    azimuths,dips=[],[]
+                if any([nb.is_null(az) for az in azimuths if az != 0]):
+                    coord = '-1'
+                    print("-W- Couldn't find azimuth and dip for {}".format(this_specimen))
+                    print("    Plotting with specimen coordinates instead")
+                elif any([nb.is_null(dip) for dip in dips if dip != 0]):
+                    coord = '-1'
+                    print("-W- Couldn't find azimuth and dip for {}".format(this_specimen))
+                    print("    Plotting with specimen coordinates instead")
+                else:
+                    coord = saved_coord
+                # if azimuth and dip were found, continue with geographic coordinates
+                if coord != "-1" and len(azimuths)>0:
+                    dirs = [decs, incs, azimuths, dips]
+                    # this transposes the columns and rows of the list of lists
+                    dirs_geo = np.array(list(map(list, list(zip(*dirs)))))
+                    decs, incs = pmag.dogeo_V(dirs_geo)
+                    if coord == '100' and 'bed_dip_direction' in or_info.keys() and or_info['bed_dip_direction']!="":  # need to do tilt correction too
+                        bed_dip_dirs=len(decs)*[or_info['bed_dip_direction']]
+                        bed_dips=len(decs)*[or_info['bed_dip']]
+                        #bed_dip_dirs = pd.to_numeric(
+                        #    this_specimen_measurements.bed_dip_direction).tolist()  # get the azimuths
+                        #bed_dips = pd.to_numeric(
+                        #    this_specimen_measurements.bed_dip).tolist()  # get the azimuths
+
+                        dirs = [decs, incs, bed_dip_dirs, bed_dips]
+                        ## this transposes the columns and rows of the list of lists
+                        dirs_tilt = np.array(list(map(list, list(zip(*dirs)))))
+                        decs, incs = pmag.dotilt_V(dirs_tilt)
+                        title = title + '_t'
+                    else:
+                        title = title + '_g'
             if angle == "":
                 angle = decs[0]
             ints = pd.to_numeric(this_specimen_measurements[int_key]).tolist()
             ZI = this_specimen_measurements.ZI.tolist()
-            flags = this_specimen_measurements.flag.tolist()
+            flags = this_specimen_measurements.quality.tolist()
             codes = this_specimen_measurements.instrument_codes.tolist()
             datalist = [tr, decs, incs, ints, ZI, flags, codes]
             # this transposes the columns and rows of the list of lists
@@ -292,48 +350,64 @@ def main():
 #
 #     collect info for current_specimen_interpretation dictionary
 #
-            if beg_pca == "" and len(prior_spec_data) != 0:
-                #
-                #     find prior interpretation
-                #
-                prior_specimen_interpretations = prior_spec_data[prior_spec_data['specimen'].str.contains(
-                    this_specimen) == True]
-                beg_pcas = pd.to_numeric(
-                    prior_specimen_interpretations.meas_step_min.values).tolist()
-                end_pcas = pd.to_numeric(
-                    prior_specimen_interpretations.meas_step_max.values).tolist()
-                spec_methods = prior_specimen_interpretations.method_codes.tolist()
+
+#
+#     find prior interpretation
+#
+            prior_specimen_interpretations=[]
+            if len(prior_spec_data):
+                prior_specimen_interpretations = prior_spec_data[prior_spec_data['specimen'].str.contains(this_specimen) == True]
+            if (beg_pca == "") and (len(prior_specimen_interpretations) != 0):
+                if len(prior_specimen_interpretations)>0:
+                    beg_pcas = pd.to_numeric(
+                        prior_specimen_interpretations.meas_step_min.values).tolist()
+                    end_pcas = pd.to_numeric(
+                        prior_specimen_interpretations.meas_step_max.values).tolist()
+                    spec_methods = prior_specimen_interpretations.method_codes.tolist()
                 # step through all prior interpretations and plot them
-                for ind in range(len(beg_pcas)):
-                    spec_meths = spec_methods[ind].split(':')
-                    for m in spec_meths:
-                        if 'DE-BFL' in m:
-                            calculation_type = 'DE-BFL'  # best fit line
-                        if 'DE-BFP' in m:
-                            calculation_type = 'DE-BFP'  # best fit plane
-                        if 'DE-FM' in m:
-                            calculation_type = 'DE-FM'  # fisher mean
-                        if 'DE-BFL-A' in m:
-                            calculation_type = 'DE-BFL-A'  # anchored best fit line
-                    start, end = tr.index(beg_pcas[ind]), tr.index(
-                        end_pcas[ind])  # getting the starting and ending points
-                    # calculate direction/plane
-                    mpars = pmag.domean(
-                        datablock, start, end, calculation_type)
-                    if mpars["specimen_direction_type"] != "Error":
-                        # put it on the plot
-                        pmagplotlib.plotDir(ZED, mpars, datablock, angle)
-                        if verbose:
-                            pmagplotlib.drawFIGS(ZED)
-            else:
-                start, end = int(beg_pca), int(end_pca)
-                # calculate direction/plane
-                mpars = pmag.domean(datablock, start, end, calculation_type)
-                if mpars["specimen_direction_type"] != "Error":
-                    # put it on the plot
-                    pmagplotlib.plotDir(ZED, mpars, datablock, angle)
-                    if verbose:
-                        pmagplotlib.drawFIGS(ZED)
+                    for ind in range(len(beg_pcas)):
+                        spec_meths = spec_methods[ind].split(':')
+                        for m in spec_meths:
+                            if 'DE-BFL' in m:
+                                calculation_type = 'DE-BFL'  # best fit line
+                            if 'DE-BFP' in m:
+                                calculation_type = 'DE-BFP'  # best fit plane
+                            if 'DE-FM' in m:
+                                calculation_type = 'DE-FM'  # fisher mean
+                            if 'DE-BFL-A' in m:
+                                calculation_type = 'DE-BFL-A'  # anchored best fit line
+                        if len(beg_pcas)!=0:
+                            start, end = tr.index(beg_pcas[ind]), tr.index(end_pcas[ind])  # getting the starting and ending points
+                        # calculate direction/plane
+                            mpars = pmag.domean(
+                                datablock, start, end, calculation_type)
+                            if mpars["specimen_direction_type"] != "Error":
+                                # put it on the plot
+                                pmagplotlib.plotDir(ZED, mpars, datablock, angle)
+                                if verbose:
+                                    pmagplotlib.drawFIGS(ZED)
+### SKIP if no prior interpretation - this section should not be used:
+#            else:
+#                try:
+#                    start, end = int(beg_pca), int(end_pca)
+#                except ValueError:
+#                    beg_pca = 0
+#                    end_pca = len(datablock) - 1
+#                    start, end = int(beg_pca), int(end_pca)
+#            #    # calculate direction/plane
+#                try:
+#                    mpars = pmag.domean(datablock, start, end, calculation_type)
+#                except Exception as ex:
+#                    print('-I- Problem with {}'.format(this_specimen))
+#                    print('   ', ex)
+#                    print('    Skipping')
+#                    continue
+#                    k += 1
+#                if mpars["specimen_direction_type"] != "Error":
+#                    # put it on the plot
+#                    pmagplotlib.plotDir(ZED, mpars, datablock, angle)
+#                    if verbose:
+#                        pmagplotlib.drawFIGS(ZED)
             if plots == 1 or specimen != "":
                 if plot_file == "":
                     basename = title
@@ -462,17 +536,12 @@ def main():
                                 this_specimen_interpretation["meas_step_min"]), float(this_specimen_interpretation["meas_step_max"]), float(this_specimen_interpretation["dir_dec"]), float(this_specimen_interpretation["dir_inc"]), calculation_type))
                 if verbose:
                     saveit = input("Save this interpretation? [y]/n \n")
-#   START HERE
-#
-#         if len(current_spec_data)==0: # no interpretations yet for this session
-#             print "no current interpretation"
-#             beg_pca,end_pca="",""
-#             calculation_type=""
-# get the ones that meet the current coordinate system
         else:
             print("no data")
         if verbose:
-            input('Ready for next specimen  ')
+            res = input('  <return> for next specimen, [q]uit  ')
+            if res == 'q':
+                return
         k += 1
 
 

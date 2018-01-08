@@ -2145,6 +2145,11 @@ def combine_magic(filenames, outfile, data_model=2.5, magic_table='measurements'
         # drop any fully duplicated rows
         df.drop_duplicates(inplace=True)
         con.add_magic_table(dtype=file_type, df=df)
+        # drop any mostly empty rows IF they have duplicate index
+        parent, child = con.get_parent_and_child(file_type)
+        ignore_cols = [col[:-1] for col in [file_type, parent] if col]
+        ignore_cols.extend(['software_packages', 'citations'])
+        con.tables[file_type].drop_duplicate_rows(ignore_cols)
         # write table to file, use custom name
         res = con.write_table_to_file(file_type, custom_name=file_name)
         return res
@@ -3271,7 +3276,8 @@ def core_depthplot(input_dir_path='.', meas_file='magic_measurements.txt', spc_f
                     if depth > dmin and depth < dmax:
                         plt.text(maxInt - .2 * maxInt, depth +
                                  tint, core[core_label_key])
-            plt.axis([0, maxInt, dmax, dmin])
+            minInt = plt.axis()[0]
+            plt.axis([minInt, maxInt, dmax, dmin])
             if not norm:
                 plt.xlabel('Intensity (Am^2)')
             else:
@@ -3352,24 +3358,43 @@ def core_depthplot(input_dir_path='.', meas_file='magic_measurements.txt', spc_f
 
 def download_magic(infile, dir_path='.', input_dir_path='.',
                    overwrite=False, print_progress=True,
-                   data_model=2.5):
+                   data_model=3., separate_locs=False):
     """
     takes the name of a text file downloaded from the MagIC database and
     unpacks it into magic-formatted files. by default, download_magic assumes
     that you are doing everything in your current directory. if not, you may
     provide optional arguments dir_path (where you want the results to go) and
     input_dir_path (where the downloaded file is).
+
+    Parameters
+    ----------
+    infile : str
+        MagIC-format file to unpack
+    dir_path : str
+        output directory (default ".")
+    input_dir : str
+        input directory (default ".")
+    overwrite: bool
+        overwrite current directory (default False)
+    print_progress: bool
+        verbose output (default True)
+    data_model : float
+        MagIC data model 2.5 or 3 (default 3)
+    separate_locs : bool
+        create a separate directory for each location (Location_*)
+        (default False)
     """
     if data_model == 2.5:
         method_col = "magic_method_codes"
     else:
         method_col = "method_codes"
+    infile = pmag.resolve_file_name(infile, input_dir_path)
     # try to deal reasonably with unicode errors
     try:
-        f = codecs.open(os.path.join(input_dir_path, infile), 'r', "utf-8")
+        f = codecs.open(infile, 'r', "utf-8")
         infile = f.readlines()
     except UnicodeDecodeError:
-        f = codecs.open(os.path.join(input_dir_path, infile), 'r', "Latin-1")
+        f = codecs.open(infile, 'r', "Latin-1")
         infile = f.readlines()
     f.close()
     File = []  # will contain all non-blank lines from downloaded file
@@ -3463,38 +3488,44 @@ def download_magic(infile, dir_path='.', input_dir_path='.',
             print(file_type, " data put in ", outfile)
     # look through locations table and create separate directories for each
     # location
-    locs, locnum = [], 1
-    if 'locations' in type_list:
-        locs, file_type = pmag.magic_read(
-            os.path.join(dir_path, 'locations.txt'))
-    if len(locs) > 0:  # at least one location
-        # go through unique location names
-        for loc_name in set([loc.get('location') for loc in locs]):
-            if print_progress == True:
-                print('location_' + str(locnum) + ": ", loc_name)
-            lpath = dir_path + '/Location_' + str(locnum)
-            locnum += 1
-            try:
-                os.mkdir(lpath)
-            except:
-                print('directory ', lpath,
-                      ' already exists - overwriting everything: {}'.format(overwrite))
-                if not overwrite:
-                    print("-W- download_magic encountered a duplicate subdirectory ({}) and could not finish.\nRerun with overwrite=True, or unpack this file in a different directory.".format(lpath))
-                    return False
-            for f in type_list:
+    if separate_locs:
+        con = nb.Contribution(dir_path)
+        con.propagate_location_to_measurements()
+        con.propagate_name_down('location', 'samples')
+        for dtype in con.tables:
+            con.write_table_to_file(dtype)
+        locs, locnum = [], 1
+        if 'locations' in type_list:
+            locs, file_type = pmag.magic_read(
+                os.path.join(dir_path, 'locations.txt'))
+        if len(locs) > 0:  # at least one location
+            # go through unique location names
+            for loc_name in set([loc.get('location') for loc in locs]):
                 if print_progress == True:
-                    print('unpacking: ', dir_path + '/' + f + '.txt')
-                recs, file_type = pmag.magic_read(dir_path + '/' + f + '.txt')
-                if print_progress == True:
-                    print(len(recs), ' read in')
-                lrecs = pmag.get_dictitem(recs, 'location', loc_name, 'T')
-                if len(lrecs) > 0:
-                    pmag.magic_write(lpath + '/' + f +
-                                     '.txt', lrecs, file_type)
+                    print('location_' + str(locnum) + ": ", loc_name)
+                lpath = dir_path + '/Location_' + str(locnum)
+                locnum += 1
+                try:
+                    os.mkdir(lpath)
+                except:
+                    print('directory ', lpath,
+                          ' already exists - overwriting everything: {}'.format(overwrite))
+                    if not overwrite:
+                        print("-W- download_magic encountered a duplicate subdirectory ({}) and could not finish.\nRerun with overwrite=True, or unpack this file in a different directory.".format(lpath))
+                        return False
+                for f in type_list:
                     if print_progress == True:
-                        print(len(lrecs), ' stored in ',
-                              lpath + '/' + f + '.txt')
+                        print('unpacking: ', dir_path + '/' + f + '.txt')
+                    recs, file_type = pmag.magic_read(dir_path + '/' + f + '.txt')
+                    if print_progress == True:
+                        print(len(recs), ' read in')
+                    lrecs = pmag.get_dictitem(recs, 'location', loc_name, 'T')
+                    if len(lrecs) > 0:
+                        pmag.magic_write(lpath + '/' + f +
+                                         '.txt', lrecs, file_type)
+                        if print_progress == True:
+                            print(len(lrecs), ' stored in ',
+                                  lpath + '/' + f + '.txt')
     return True
 
 
@@ -4810,7 +4841,7 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
         if site_file == "er_sites.txt":
             site_file = "sites.txt"
         image_file = "images.txt"
-    orient_file = os.path.join(input_dir_path, orient_file)
+    orient_file = pmag.resolve_file_name(orient_file, input_dir_path)
     if not os.path.exists(orient_file):
         return False, "No such file: {}.  If the orientation file is not in your current working directory, make sure you have specified the correct input directory.".format(orient_file)
     samp_file = os.path.join(output_dir_path, samp_file)

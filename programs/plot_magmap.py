@@ -17,6 +17,9 @@ from pylab import meshgrid
 import pmagpy.pmag as pmag
 import pmagpy.pmagplotlib as pmagplotlib
 from matplotlib import cm
+import warnings
+warnings.filterwarnings("ignore")
+
 def main():
     """
     NAME
@@ -31,12 +34,13 @@ def main():
     OPTIONS
         -h prints help and quits
         -f FILE  specify field model file with format:  l m g h 
-        -fmt [pdf,jpg,eps,svg]  specify format for output figure  (default is jpg)
+        -fmt [pdf,eps,svg,png]  specify format for output figure  (default is png)
         -mod [arch3k,cals3k,pfm9k,hfm10k,cals10k_2,shadif14k,cals10k] specify model for 3ka to 1900 CE, default is  cals10k
         -alt ALT;  specify altitude in km, default is sealevel (0)
         -age specify date in decimal year, default is 2015
         -lon0: 0 longitude for map, default is 0
         -el: [D,I,B,Br]  specify element for plotting
+        -cm: [see https://matplotlib.org/users/colormaps.html] specify color map for plotting (default is RdYlBu)
 
     """
     cmap='RdYlBu'
@@ -55,7 +59,14 @@ def main():
     if '-fmt' in sys.argv:
         ind = sys.argv.index('-fmt')
         fmt=sys.argv[ind+1]
-    else: fmt='jpg'
+        if fmt=='jpg':
+            print ('jpg not a supported option')
+            print(main.__doc__)
+            sys.exit()
+    else: fmt='png'
+    if '-cm' in sys.argv:
+        ind=sys.argv.index('-cm')
+        cmap=sys.argv[ind+1]
     if '-el' in sys.argv:
         ind = sys.argv.index('-el')
         el=sys.argv[ind+1]
@@ -110,10 +121,9 @@ def main():
         m.contour(x,y,Is,levels=np.arange(-80,90,10),colors='black')
         plt.title('Field inclination: '+str(date));
     if el=='D':
-        levmax=Ds.max()+lincr
-        levmin=round(Ds.min()-lincr)
-        cs=m.contourf(x,y,Ds,levels=np.arange(levmin,levmax,lincr),cmap=cmap)
-        m.contour(x,y,Ds,levels=np.arange(0,360,10),colors='black')
+        #cs=m.contourf(x,y,Ds,levels=np.arange(-180,180,10),cmap=cmap)
+        cs=m.contourf(x,y,Ds,levels=np.arange(-180,180,10),cmap=cmap)
+        m.contour(x,y,Ds,levels=np.arange(-180,180,10),colors='black')
         plt.title('Field declination: '+str(date));
     cbar=m.colorbar(cs,location='bottom')
     plt.savefig('igrf'+d+'.'+fmt)
