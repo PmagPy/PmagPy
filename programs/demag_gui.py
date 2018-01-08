@@ -2410,6 +2410,7 @@ class Demag_GUI(wx.Frame):
         -------
         nested dictionary 2.5 formated criteria data
         """
+#        import pdb; pdb.set_trace()
         acceptance_criteria=pmag.initialize_acceptance_criteria()
         if self.data_model==3:
             if criteria_file_name==None: criteria_file_name = "criteria.txt"
@@ -2431,7 +2432,7 @@ class Demag_GUI(wx.Frame):
                             self.user_warning("%s is not a valid comparitor for %s, skipping this criteria"%(str(crit['criterion_value']),m2_name))
                             continue
                         acceptance_criteria[m2_name]['pmag_criteria_code']=crit['criterion']
-                return acceptance_criteria
+            return acceptance_criteria
         else:
             if criteria_file_name==None: criteria_file_name = "pmag_criteria.txt"
             try: acceptance_criteria=pmag.read_criteria_from_file(os.path.join(self.WD, criteria_file_name), acceptance_criteria)
@@ -4364,8 +4365,8 @@ class Demag_GUI(wx.Frame):
             new_crits = []
             for crit in demag_gui_supported_criteria:
                 new_crit = {}
-                command="new_value=dia.set_%s.GetValue()"%(crit)
-                exec(command)
+                command="dia.set_%s.GetValue()"%(crit)
+                new_value = pmag.execute(command, dia=dia)
                 if new_value == None or new_value == '': continue
                 d = findall(r"[-+]?\d*\.\d+|\d+", new_value)
                 if len(d)>0: d = d[0]
@@ -6151,7 +6152,7 @@ else: self.ie.%s_window.SetBackgroundColour(wx.WHITE)
             self.acceptance_criteria=self.read_criteria_file(criteria_file)
             read_sucsess=True
 
-        self.dlg.Destroy()
+        dlg.Destroy()
         if read_sucsess:
             self.on_menu_change_criteria(None)
 

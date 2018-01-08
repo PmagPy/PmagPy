@@ -8986,6 +8986,27 @@ def get_TS(ts):
     return
 
 
+def execute(st,**kwargs):
+    """
+    Work around for Python3 exec function which doesn't allow changes to the local namespace because of scope. 
+    This breaks a lot of the old functionality in the code which was origionally in Python2. So this function 
+    runs just like exec except that it returns the output of the input statement to the local namespace. It may 
+    break if you start feeding it multiline monoliths of statements (haven't tested) but you shouldn't do that 
+    anyway (bad programming).
+
+    Parameters
+    -----------
+    st : the statement you want executed and for which you want the return
+    kwargs : anything that may need to be in this namespace to execute st
+
+    Returns
+    -------
+    The return value of executing the input statement
+    """
+    namespace = kwargs
+    exec("b = {}".format(st), namespace)
+    return namespace['b']
+
 # Functions for dealing with acceptance criteria
 
 def initialize_acceptance_criteria(**kwargs):
