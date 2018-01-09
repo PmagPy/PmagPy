@@ -31,6 +31,19 @@ version_num = pmag.get_version()
 # matplotlib.ticker_Formatter.xaxis.set_powerlimits((-3,4))
 # matplotlib.ticker_Formatter.yaxis.set_powerlimits((-3,4))
 
+import matplotlib
+
+# matplotlib >= 2.1 not yet available for Canopy (also not default with anaconda)
+if matplotlib.__version__ < '2.1':
+    print("""-W- Please upgrade to matplotlib >= 2.1
+    On the command line, for Anaconda users:
+       conda upgrade matplotlib
+    For those with an alternative Python distribution:
+       pip install matplotlib --upgrade
+""")
+#    For users with Canopy Python, you can open the installed Canopy program to# update packages.
+
+
 
 def poly(X, Y, deg):
     return pylab.polyfit(X, Y, deg)
