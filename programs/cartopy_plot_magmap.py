@@ -9,9 +9,9 @@ if matplotlib.get_backend() != "TKAgg":
   matplotlib.use("TKAgg")
 import pylab as plt
 try:
-  from mpl_toolkits.basemap import Basemap
-except ImportError:
-  Basemap = None
+  import cartopy.crs as ccrs
+except:
+  ccrs = None
 from pylab import meshgrid
 
 import pmagpy.pmag as pmag
@@ -45,8 +45,8 @@ def main():
     """
     cmap='RdYlBu'
     date=2016.
-    if not Basemap:
-      print("-W- You must intstall the Basemap module to run plot_magmap.py")
+    if not ccrs:
+      print("-W- You must intstall the cartopy module to run plot_magmap.py")
       sys.exit()
     dir_path='.'
     lincr=1 # level increment for contours
@@ -97,38 +97,51 @@ def main():
         ind=sys.argv.index('-alt')
         alt=float(sys.argv[ind+1])
     else: alt=0
+
+    # doesn't work correctly with mod other than default
     Ds,Is,Bs,Brs,lons,lats=pmag.do_mag_map(date,mod=mod,lon_0=lon_0,el=el,alt=alt,file=ghfile)
-    m = Basemap(projection='hammer',lon_0=lon_0)
-    x,y=m(*meshgrid(lons,lats))
-    m.drawcoastlines()
+    ax = plt.axes(projection=ccrs.Mollweide(central_longitude=lon_0))
+    ax.coastlines()
+    xx, yy = meshgrid(lons, lats)
     if mod=='custom':
         d='Custom'
-    else: d=str(date)
+    else:
+      d=str(date)
     if el=='B':
         levmax=Bs.max()+lincr
         levmin=round(Bs.min()-lincr)
         levels=np.arange(levmin,levmax,lincr)
-        cs=m.contourf(x,y,Bs,levels=levels,cmap=cmap)
+        plt.contourf(xx, yy, Bs, levels=levels, cmap=cmap,
+                     transform=ccrs.PlateCarree(central_longitude=lon_0))
         plt.title('Field strength ($\mu$T): '+d);
     if el=='Br':
         levmax=Brs.max()+lincr
         levmin=round(Brs.min()-lincr)
-        cs=m.contourf(x,y,Brs,levels=np.arange(levmin,levmax,lincr),cmap=cmap)
+        plt.contourf(xx, yy, Brs,
+                     levels=np.arange(levmin,levmax,lincr),
+                     cmap=cmap, transform=ccrs.PlateCarree(central_longitude=lon_0))
         plt.title('Radial field strength ($\mu$T): '+str(date));
     if el=='I':
         levmax=Is.max()+lincr
         levmin=round(Is.min()-lincr)
-        cs=m.contourf(x,y,Is,levels=np.arange(levmin,levmax,lincr),cmap=cmap)
-        m.contour(x,y,Is,levels=np.arange(-80,90,10),colors='black')
+        plt.contourf(xx, yy, Is,
+                     levels=np.arange(levmin,levmax,lincr),
+                     cmap=cmap, transform=ccrs.PlateCarree(central_longitude=lon_0))
+        plt.contour(xx,yy,Is,levels=np.arange(-80,90,10),
+                    colors='black', transform=ccrs.PlateCarree(central_longitude=lon_0))
         plt.title('Field inclination: '+str(date));
     if el=='D':
+        plt.contourf(xx, yy, Ds,
+                     levels=np.arange(-180,180,10),
+                     cmap=cmap, transform=ccrs.PlateCarree(central_longitude=lon_0))
+        plt.contour(xx, yy, Ds, levels=np.arange(-180,180,10), colors='black')
         #cs=m.contourf(x,y,Ds,levels=np.arange(-180,180,10),cmap=cmap)
-        cs=m.contourf(x,y,Ds,levels=np.arange(-180,180,10),cmap=cmap)
-        m.contour(x,y,Ds,levels=np.arange(-180,180,10),colors='black')
+        #cs=m.contourf(x,y,Ds,levels=np.arange(-180,180,10),cmap=cmap)
+        #m.contour(x,y,Ds,levels=np.arange(-180,180,10),colors='black')
         plt.title('Field declination: '+str(date));
-    cbar=m.colorbar(cs,location='bottom')
-    plt.savefig('igrf'+d+'.'+fmt)
-    print('Figure saved as: ','igrf'+d+'.'+fmt)
+    cbar=plt.colorbar(orientation='horizontal')
+    plt.savefig('cartopy_igrf'+d+'.'+fmt)
+    print('Figure saved as: ','cartopy_igrf'+d+'.'+fmt)
 
 if __name__ == "__main__":
     main()
