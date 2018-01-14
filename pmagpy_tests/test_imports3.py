@@ -12,6 +12,7 @@ from programs.conversion_scripts import iodp_dscr_magic as iodp_dscr_magic
 from programs.conversion_scripts import iodp_jr6_magic as iodp_jr6_magic
 from programs.conversion_scripts import _2g_bin_magic as _2g_bin_magic
 from programs.conversion_scripts import bgc_magic as bgc_magic
+from programs.conversion_scripts import jr6_txt_magic
 
 WD = pmag.get_test_WD()
 
@@ -343,6 +344,24 @@ class TestIodpDscrMagic(unittest.TestCase):
         meas_df = nb.MagicDataFrame(outfile)
         self.assertIn('sequence', meas_df.df.columns)
 
+
+
+class TestJr6TxtMagic(unittest.TestCase):
+
+    def setUp(self):
+        pass
+
+    def tearDown(self):
+        files = ['test.magic', 'other_er_samples.txt',
+                 'custom_locations.txt', 'samples.txt', 'sites.txt']
+        pmag.remove_files(files, WD)
+
+    def test_success(self):
+        input_dir = os.path.join(WD, 'data_files', 'Measurement_Import',
+                                 'JR6_magic')
+        output = jr6_txt_magic.convert(**{'mag_file': 'AP12.txt', 'input_dir_path': input_dir})
+        self.assertTrue(output[0])
+        self.assertEqual(output[1], 'measurements.txt')
 
 
 class TestIodpJr6Magic(unittest.TestCase):
