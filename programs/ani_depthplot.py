@@ -84,7 +84,7 @@ def main():
             print('Warning: Unrecognized option "{}" provided for depth scale.\nOptions for depth scale are mbsf -- meters below sea floor -- or mcd -- meters composite depth.\nAlternatively, if you provide an age file the depth scale will be automatically set to plot by age instead.\nUsing default "mbsf"'.format(depth_scale))
             depth_scale = 'sample_composite_depth'
 
-    data_model = int(data_model)
+    data_model = int(float(data_model))
     # MagIC 2
     if data_model == 2:
         fig, figname = ipmag.aniso_depthplot(ani_file, meas_file, samp_file, age_file, sum_file, fmt, dmin, dmax, depth_scale, dir_path)
