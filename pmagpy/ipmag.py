@@ -6540,6 +6540,9 @@ def SUFAR4_magic(ascfile, meas_output='magic_measurements.txt', aniso_output='rm
             AniRec['er_analyst_mail_names'] = user
             for key in list(AniRec.keys()):
                 MeasRec[key] = AniRec[key]
+            MeasRec['magic_experiment_name'] = AniRec.get('magic_experiment_names', '')
+            if 'magic_experiment_names' in MeasRec:
+                MeasRec.pop('magic_experiment_names')
             MeasRec['measurement_flag'] = 'g'
             AniRec['anisotropy_flag'] = 'g'
             MeasRec['measurement_standard'] = 'u'
@@ -6567,7 +6570,7 @@ def SUFAR4_magic(ascfile, meas_output='magic_measurements.txt', aniso_output='rm
             SampRec['sample_azimuth'] = str(round(az, 1))
         if 'Dip' in words:
             # convert actual volume to m^3 from cm^3
-            SpecRec['specimen_vol'] = '%8.3e' % (float(words[10]) * 1e-6)
+            SpecRec['specimen_volume'] = '%8.3e' % (float(words[10]) * 1e-6)
             dip = float(words[1])
             if P2 == 90:
                 dip = dip - 90.
