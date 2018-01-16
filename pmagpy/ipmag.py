@@ -5675,6 +5675,7 @@ def kly4s_magic(infile, specnum=0, locname="unknown", inst='SIO-KLY4S',
                 aniso_outfile='rmag_anisotropy.txt', samp_infile='', spec_infile='',
                 spec_outfile='er_specimens.txt', azdip_infile='', output_dir_path='.',
                 input_dir_path='.'):
+    'magic_instrument_codes'
     """
     def kly4s_magic(infile, specnum=0, locname="unknown", inst='SIO-KLY4S', samp_con="1", or_con='3' ,user='', measfile='magic_measurements.txt', aniso_outfile='rmag_anisotropy.txt', samp_infile='', spec_infile='', azdip_infile='', output_dir_path='.', input_dir_path='.'):
 
@@ -5958,6 +5959,13 @@ def kly4s_magic(infile, specnum=0, locname="unknown", inst='SIO-KLY4S',
             MeasRec['measurement_chi_volume'] = rec[8]
             MeasRec['measurement_description'] = 'Bulk measurement'
             MeasRec['magic_method_codes'] = 'LP-X'
+            # remove keys that aren't valid in MagIC 2.5
+            for remove_key in ['magic_instrument_codes', 'magic_experiment_name']:
+                if remove_key in SpecRec:
+                    SpecRec.pop(remove_key)
+            for remove_key in ['magic_experiment_name']:
+                if remove_key in AniRec:
+                    AniRec.pop(remove_key)
             if SpecRec['er_specimen_name'] not in speclist:  # add to list
                 speclist.append(SpecRec['er_specimen_name'])
                 SpecRecs.append(SpecRec)
