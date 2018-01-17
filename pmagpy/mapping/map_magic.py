@@ -167,7 +167,8 @@ samp_magic2_2_magic3_map.update(add_to_all)
 #sample data translation samples => pmag_samples/er_samples
 samp_magic3_2_magic2_map = {v:k for k,v in list(samp_magic2_2_magic3_map.items())}
 samples = {'specimens': 'er_specimen_names', 'dir_comp_name': 'sample_comp_name',
-           'timestamp': 'sample_date', 'external_database_ids': 'external_database_ids'}
+           'timestamp': 'sample_date', 'external_database_ids': 'external_database_ids',
+           'core_depth': 'sample_core_depth', 'composite_depth': 'sample_composite_depth'}
 samp_magic3_2_magic2_map.update(samples)
 
 #site data translation pmag_sites,er_sites -> sites.txt

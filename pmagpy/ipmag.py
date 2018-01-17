@@ -2723,6 +2723,7 @@ def core_depthplot(input_dir_path='.', meas_file='magic_measurements.txt', spc_f
     #print('pltLine', pltLine, 'pltSus', pltSus, 'logit', logit, 'timescale', timescale, 'amin', amin, 'amax', amax)
     # print 'pltTime', pltTime
     # print 'norm', norm
+
     data_model_num = int(data_model_num)
     # replace MagIC 2.5 defaults with MagIC 3 defaults if needed
     if data_model_num == 3 and meas_file == 'magic_measurements.txt':
@@ -2818,10 +2819,29 @@ def core_depthplot(input_dir_path='.', meas_file='magic_measurements.txt', spc_f
     #
     # read in 3.0 data and translate to 2.5
     if data_model_num == 3:
+        meas_file = pmag.resolve_file_name(meas_file, input_dir_path)
+        input_dir_path = os.path.split(meas_file)[0]
+        fnames =  {'specimens': spc_file, 'samples': samp_file,
+                   'ages': age_file, 'measurements': meas_file}
+        fnames = {k: v for (k, v) in fnames.items() if v}
+        con = nb.Contribution(input_dir_path, custom_filenames=fnames)
+        for dtype in ['measurements', 'specimens']:
+            if dtype not in con.tables:
+                print('-E- You must have a {} file in your input directory ({}) to run core_depthplot'.format(dtype, input_dir_path))
+                #return False, '-E- You must have a {} file in your input directory ({}) to run core_depthplot'.format(dtype, input_dir_path)
+        # propagate data to measurements
+        con.propagate_name_down('sample', 'measurements')
+        con.propagate_name_down('site', 'measurements')
+        con.propagate_location_to_measurements()
+        if 'measurements' in con.tables:
+            con.write_table_to_file('measurements')
+
         if meas_file:
             meas_file = os.path.join(input_dir_path, meas_file)
         if spc_file:
             spc_file = os.path.join(input_dir_path, spc_file)
+
+
         if age_file == "":
             if samp_file:
                 samp_file = os.path.join(input_dir_path, samp_file)
@@ -2848,6 +2868,8 @@ def core_depthplot(input_dir_path='.', meas_file='magic_measurements.txt', spc_f
             for spec in Specs3:
                 Specs.append(map_magic.mapping(spec, map_magic.spec_magic3_2_magic2_map))
 
+
+
         if res_file:
             warn = '-W- result file option is not currently available for MagIC data model 3'
             print(warn)
@@ -2860,14 +2882,19 @@ def core_depthplot(input_dir_path='.', meas_file='magic_measurements.txt', spc_f
             Specs3, file_type = pmag.magic_read(wt_file)
             # translate specimen records to 2.5
             ErSpecs = []
-            for spec in Samps3:
-                ErSpecs.append(map_magic.mapping(spec, samp_magic3_2_magic2_map))
+            for spec in Specs3:
+                ErSpecs.append(map_magic.mapping(spec, spec_magic3_2_magic2_map))
 
             print(len(ErSpecs), ' specimens read in from ', wt_file)
 
         if not os.path.isfile(spc_file):
             if not os.path.isfile(meas_file):
                 return False, "You must provide either a magic_measurements file or a pmag_specimens file"
+        if not age_file and not samp_file:
+            print('-W- You must provide either an age file or a sample file')
+            return False, '-W- You must provide either an age file or a sample file'
+
+
 
     # read in 2.5 data
     elif data_model_num == 2:
@@ -3012,7 +3039,7 @@ def core_depthplot(input_dir_path='.', meas_file='magic_measurements.txt', spc_f
                         Data.append(rec)
                     if title == "":
                         pieces = rec['er_sample_name'].split('-')
-                        location = rec['er_location_name']
+                        location = rec.get('er_location_name', '')
                         title = location
 
         SData = pmag.sort_diclist(Data, 'core_depth')

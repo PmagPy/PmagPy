@@ -423,13 +423,14 @@ class TestCoreDepthplot(unittest.TestCase):
 
     def test_core_depthplot_bad_params(self):
         path = os.path.join(WD, 'data_files', 'core_depthplot')
-        program_ran, error_message = ipmag.core_depthplot(input_dir_path=path)
+        program_ran, error_message = ipmag.core_depthplot(input_dir_path=path,
+                                                          samp_file='samples.txt')
         self.assertFalse(program_ran)
         self.assertEqual('No data found to plot\nTry again with different parameters', error_message)
 
     def test_core_depthplot_bad_method(self):
         path = os.path.join(WD, 'data_files', 'core_depthplot')
-        program_ran, error_message = ipmag.core_depthplot(input_dir_path=path, step=5, meth='NA')
+        program_ran, error_message = ipmag.core_depthplot(input_dir_path=path, step=5, meth='NA', age_file='ages.txt')
         self.assertFalse(program_ran)
         self.assertEqual(error_message, 'method: "{}" not supported'.format('NA'))
 
