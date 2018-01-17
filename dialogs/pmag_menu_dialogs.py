@@ -436,6 +436,8 @@ class ImportKly4s(wx.Frame):
                                                        output_dir_path=self.WD, input_dir_path=ID)
         if program_ran:
             pw.close_window(self, COMMAND, outfile)
+            outfiles = [f for f in [outfile, spec_outfile, ani_outfile] if f]
+            pw.simple_warning('kly4s_magic has not been updated to MagIC data model 3.\nPlease upgrade output files by following these steps:\n\n1) Follow upgrade process at:\nhttps://www2.earthref.org/MagIC/upgrade\n2) Select "Save as Text"\n3) add the Upgraded Contribution file to your working directory\n4) In Pmag GUI, select "Unpack txt file downloaded from MagIC"\n\nOutput files:\n{}'.format(', '.join(outfiles)))
         else:
             pw.simple_warning(error_message)
 
@@ -530,6 +532,9 @@ class ImportK15(wx.Frame):
         print(COMMAND)
         if program_ran:
             pw.close_window(self, COMMAND, outfile)
+            outfiles = [f for f in [outfile, samp_outfile, aniso_outfile] if f]
+            pw.simple_warning('k15_magic has not been updated to MagIC data model 3.\nPlease upgrade output files by following these steps:\n\n1) Follow upgrade process at:\nhttps://www2.earthref.org/MagIC/upgrade\n2) Select "Save as Text"\n3) add the Upgraded Contribution file to your working directory\n4) In Pmag GUI, select "Unpack txt file downloaded from MagIC"\n\nOutput files:\n{}'.format(', '.join(outfiles)))
+
         else:
             pw.simple_warning(error_message)
         #print COMMAND
@@ -660,6 +665,8 @@ class ImportSufarAscii(wx.Frame):
         program_ran, error_message = ipmag.SUFAR4_magic(infile, meas_outfile, aniso_outfile, spec_infile, spec_outfile, samp_outfile, site_outfile, specnum, ncn, user, location, instrument, static_15_position_mode, WD, ID)
         if program_ran:
             pw.close_window(self, COMMAND, meas_outfile)
+            outfiles = [f for f in [meas_outfile, spec_outfile, aniso_outfile] if f]
+            pw.simple_warning('SUFAR4_asc_magic has not been updated to MagIC data model 3.\nPlease upgrade output files by following these steps:\n\n1) Follow upgrade process at:\nhttps://www2.earthref.org/MagIC/upgrade\n2) Select "Save as Text"\n3) add the Upgraded Contribution file to your working directory\n4) In Pmag GUI, select "Unpack txt file downloaded from MagIC"\n\nOutput files:\n{}'.format(', '.join(outfiles)))
         else:
             pw.simple_warning(error_message)
 

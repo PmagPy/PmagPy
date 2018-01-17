@@ -2137,6 +2137,13 @@ def combine_magic(filenames, outfile, data_model=2.5, magic_table='measurements'
         # figure out file type from first of files to join
         with open(filenames[0]) as f:
             file_type = f.readline().split()[1]
+        if file_type in ['er_specimens', 'er_samples', 'er_sites',
+                         'er_locations', 'er_ages', 'pmag_specimens',
+                         'pmag_samples', 'pmag_sites', 'pmag_results',
+                         'magic_measurements', 'rmag_anisotropy',
+                         'rmag_results', 'rmag_specimens']:
+            print('-W- You are working in MagIC 3 but have provided a MagIC 2.5 file: {}'.format(file_type))
+            return False
         if file_type not in con.table_names:
             file_type = magic_table
         infiles = [pd.read_csv(infile, sep='\t', header=1)
@@ -5862,7 +5869,7 @@ def kly4s_magic(infile, specnum=0, locname="unknown", inst='SIO-KLY4S',
             AniRec['er_citation_names'] = "This study"
             AniRec['magic_instrument_codes'] = inst
             method_codes = ['LP-X', 'AE-H', 'LP-AN-MS']
-            AniRec['magic_experiment_name'] = specname + ":" + "LP-AN-MS"
+            AniRec['magic_experiment_names'] = specname + ":" + "LP-AN-MS"
             AniRec['er_analyst_mail_names'] = user
             AniRec['er_site_name'] = site
             AniRec['er_sample_name'] = sampname
@@ -5987,12 +5994,15 @@ def kly4s_magic(infile, specnum=0, locname="unknown", inst='SIO-KLY4S',
             MeasRec['measurement_description'] = 'Bulk measurement'
             MeasRec['magic_method_codes'] = 'LP-X'
             # remove keys that aren't valid in MagIC 2.5
-            for remove_key in ['magic_instrument_codes', 'magic_experiment_name']:
+            for remove_key in ['magic_instrument_codes', 'magic_experiment_names']:
                 if remove_key in SpecRec:
-                    SpecRec.pop(remove_key)
-            for remove_key in ['magic_experiment_name']:
-                if remove_key in AniRec:
-                    AniRec.pop(remove_key)
+                    val = SpecRec.pop(remove_key)
+            #for remove_key in ['magic_experiment_name']:
+            #    if remove_key in AniRec:
+            #        AniRec.pop(remove_key)
+            MeasRec['magic_experiment_name'] = AniRec.get('magic_experiment_names', '')
+            if 'magic_experiment_names' in MeasRec:
+                MeasRec.pop('magic_experiment_names')
             if SpecRec['er_specimen_name'] not in speclist:  # add to list
                 speclist.append(SpecRec['er_specimen_name'])
                 SpecRecs.append(SpecRec)
