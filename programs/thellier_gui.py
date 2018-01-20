@@ -2963,7 +2963,7 @@ You can combine multiple measurement files into one measurement file using Pmag 
                 tmpH = Matrices[n_pos]['tmpH']
                 a = s_matrix
                 S = 0.
-                comp = np.zeros((n_pos * 3), 'f')
+                comp = np.zeros((int(n_pos) * 3), 'f')
                 for i in range(int(n_pos)):
                     for j in range(3):
                         index = i * 3 + j
