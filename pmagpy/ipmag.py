@@ -2629,7 +2629,10 @@ def aniso_depthplot3(spec_file='specimens.txt', samp_file='samples.txt',
             core_depth_key, core_label_key, Cores = read_core_csv_file(
                 sum_file)
             for core in Cores:
-                depth = float(core[core_depth_key])
+                try:
+                    depth = float(core[core_depth_key])
+                except ValueError:
+                    continue
                 if depth > dmin and depth < dmax:
                     plt.plot([0, 90], [depth, depth], 'b--')
         ax.axis([tau_min, tau_max, dmax, dmin])
@@ -2647,7 +2650,10 @@ def aniso_depthplot3(spec_file='specimens.txt', samp_file='samples.txt',
         ax2.set_title(location)
         if sum_file:
             for core in Cores:
-                depth = float(core[core_depth_key])
+                try:
+                    depth = float(core[core_depth_key])
+                except ValueError:
+                    continue
                 if depth > dmin and depth < dmax:
                     plt.plot([0, 90], [depth, depth], 'b--')
         Axs.append(ax2)
@@ -2658,7 +2664,10 @@ def aniso_depthplot3(spec_file='specimens.txt', samp_file='samples.txt',
         ax3.set_xlabel('V3 Inclination')
         if sum_file:
             for core in Cores:
-                depth = float(core[core_depth_key])
+                try:
+                    depth = float(core[core_depth_key])
+                except ValueError:
+                    continue
                 if depth > dmin and depth < dmax:
                     plt.plot([0, 90], [depth, depth], 'b--')
         ax4 = plt.subplot(1, np.abs(pcol), 4)
@@ -2668,7 +2677,10 @@ def aniso_depthplot3(spec_file='specimens.txt', samp_file='samples.txt',
         ax4.set_xlabel('V1 Declination')
         if sum_file:
             for core in Cores:
-                depth = float(core[core_depth_key])
+                try:
+                    depth = float(core[core_depth_key])
+                except ValueError:
+                    continue
                 if depth >= dmin and depth <= dmax:
                     plt.plot([0, 360], [depth, depth], 'b--')
                     if pcol == 4 and label == 1:
@@ -2696,7 +2708,10 @@ def aniso_depthplot3(spec_file='specimens.txt', samp_file='samples.txt',
             ax6.set_xlabel('Bulk Susc. (uSI)')
             if sum_file:
                 for core in Cores:
-                    depth = float(core[core_depth_key])
+                    try:
+                        depth = float(core[core_depth_key])
+                    except ValueError:
+                        continue
                     if depth >= dmin and depth <= dmax:
                         plt.plot([0, bmax], [depth, depth], 'b--')
                         if label == 1:

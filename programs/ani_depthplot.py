@@ -74,14 +74,14 @@ def main():
         dmin, dmax = -1, -1
 
     if depth_scale:
+        if depth_scale not in ['age', 'mbsf', 'mcd']:
+            print('-W- Unrecognized option "{}" provided for depth scale.\n    Options for depth scale are mbsf (meters below sea floor) or mcd (meters composite depth).\n    Alternatively, if you provide an age file the depth scale will be automatically set to plot by age instead.\n    Using default "mbsf"'.format(depth_scale))
+            depth_scale = 'sample_core_depth'
         if age_file:
             depth_scale = 'age'
         elif 'mbsf' in depth_scale:
             depth_scale = 'sample_core_depth'
         elif 'mcd' in depth_scale:
-            depth_scale = 'sample_composite_depth'
-        else:
-            print('Warning: Unrecognized option "{}" provided for depth scale.\nOptions for depth scale are mbsf -- meters below sea floor -- or mcd -- meters composite depth.\nAlternatively, if you provide an age file the depth scale will be automatically set to plot by age instead.\nUsing default "mbsf"'.format(depth_scale))
             depth_scale = 'sample_composite_depth'
 
     data_model = int(float(data_model))
