@@ -2807,16 +2807,17 @@ def core_depthplot(input_dir_path='.', meas_file='magic_measurements.txt', spc_f
         method = 'LT-IRM'
         step = round(float(step) * 1e-3, 6)
     # not supporting susceptibility at the moment LJ
-    # elif meth== 'X':
-    #    method='LP-X'
-    #    pcol+=1
-    #    if sys.argv[ind+2]=='mass':
-    #        suc_key='measurement_chi_mass'
-    #    elif sys.argv[ind+2]=='vol':
-    #        suc_key='measurement_chi_volume'
-    #    else:
-    #        print 'error in susceptibility units'
-    #        return False, 'error in susceptibility units'
+    elif meth== 'X':
+        method='LP-X'
+        pcol+=1
+        ind = sys.argv.index('-LP')
+        if sys.argv[ind+2]=='mass':
+            suc_key='measurement_chi_mass'
+        elif sys.argv[ind+2]=='vol':
+            suc_key='measurement_chi_volume'
+        else:
+            print('error in susceptibility units')
+            return False, 'error in susceptibility units'
     else:
         print('method: {} not supported'.format(meth))
         return False, 'method: "{}" not supported'.format(meth)
@@ -3028,7 +3029,7 @@ def core_depthplot(input_dir_path='.', meas_file='magic_measurements.txt', spc_f
             m2 = pmag.get_dictitem(m1, 'treatment_ac_field', str(step), 'eval')
         elif 'LT-IRM' in method:
             m2 = pmag.get_dictitem(m1, 'treatment_dc_field', str(step), 'eval')
-        elif 'LT-X' in method:
+        elif 'LP-X' in method:
             m2 = pmag.get_dictitem(m1, suc_key, '', 'F')
         if len(m2) > 0:
             for rec in m2:  # fish out depths and weights
@@ -3088,6 +3089,8 @@ def core_depthplot(input_dir_path='.', meas_file='magic_measurements.txt', spc_f
                 minInt = min(Ints)
         if len(Depths) == 0:
             print('no bulk measurement data matched your request')
+        else:
+            print(len(Depths), "depths found")
     SpecDepths, SpecDecs, SpecIncs = [], [], []
     FDepths, FDecs, FIncs = [], [], []
     if spc_file:  # add depths to spec data
@@ -3172,40 +3175,43 @@ def core_depthplot(input_dir_path='.', meas_file='magic_measurements.txt', spc_f
                 dmin = min(ResDepths)
             if max(ResDepths) > dmax:
                 dmax = max(ResDepths)
-    if suc_file:
-        with open(suc_file, 'r') as s_file:
-            sucdat = s_file.readlines()
-        keys = sucdat[0].replace('\n', '').split(',')  # splits on underscores
-        for line in sucdat[1:]:
-            SucRec = {}
-            for k in range(len(keys)):
-                SucRec[keys[k]] = line.split(',')[k]
-            if float(SucRec['Top Depth (m)']) < dmax and float(SucRec['Top Depth (m)']) > dmin and SucRec['Magnetic Susceptibility (80 mm)'] != "":
-                Susc.append(float(SucRec['Magnetic Susceptibility (80 mm)']))
-                if Susc[-1] > maxSuc:
-                    maxSuc = Susc[-1]
-                if Susc[-1] < minSuc:
-                    minSuc = Susc[-1]
-                Sus_depths.append(float(SucRec['Top Depth (m)']))
-    WIG, WIG_depths = [], []
-    if wig_file:
-        wigdat, file_type = pmag.magic_read(wig_file)
-        swigdat = pmag.sort_diclist(wigdat, depth_scale)
-        keys = list(wigdat[0].keys())
-        for key in keys:
-            if key != depth_scale:
-                plt_key = key
-                break
-        for wig in swigdat:
-            if float(wig[depth_scale]) < dmax and float(wig[depth_scale]) > dmin:
-                WIG.append(float(wig[plt_key]))
-                WIG_depths.append(float(wig[depth_scale]))
+    ## wig_file and suc_file not currently supported options
+    #if suc_file:
+    #    with open(suc_file, 'r') as s_file:
+    #        sucdat = s_file.readlines()
+    #    keys = sucdat[0].replace('\n', '').split(',')  # splits on underscores
+    #    for line in sucdat[1:]:
+    #        SucRec = {}
+    #        for k in range(len(keys)):
+    #            SucRec[keys[k]] = line.split(',')[k]
+    #        if float(SucRec['Top Depth (m)']) < dmax and float(SucRec['Top Depth (m)']) > dmin and SucRec['Magnetic Susceptibility (80 mm)'] != "":
+    #            Susc.append(float(SucRec['Magnetic Susceptibility (80 mm)']))
+    #            if Susc[-1] > maxSuc:
+    #                maxSuc = Susc[-1]
+    #            if Susc[-1] < minSuc:
+    #                minSuc = Susc[-1]
+    #            Sus_depths.append(float(SucRec['Top Depth (m)']))
+    #WIG, WIG_depths = [], []
+    #if wig_file:
+    #    wigdat, file_type = pmag.magic_read(wig_file)
+    #    swigdat = pmag.sort_diclist(wigdat, depth_scale)
+    #    keys = list(wigdat[0].keys())
+    #    for key in keys:
+    #        if key != depth_scale:
+    #            plt_key = key
+    #            break
+    #    for wig in swigdat:
+    #        if float(wig[depth_scale]) < dmax and float(wig[depth_scale]) > dmin:
+    #            WIG.append(float(wig[plt_key]))
+    #            WIG_depths.append(float(wig[depth_scale]))
     tint = 4.5
     plot = 1
-    # print 'Decs', len(Decs), 'Depths', len(Depths), 'SpecDecs',
-    # len(SpecDecs), 'SpecDepths', len(SpecDepths), 'ResDecs', len(ResDecs),
-    # 'ResDepths', len(ResDepths), 'SDecs', len(SDecs), 'SDepths',
-    # len(SDepths), 'SIincs', len(SIncs), 'Incs', len(Incs)
+    #print('Decs', len(Decs))
+    #print('Depths', len(Depths), 'SpecDecs', len(SpecDecs))
+    #print('SpecDepths', len(SpecDepths), 'ResDecs', len(ResDecs))
+    #print('ResDepths', len(ResDepths), 'SDecs', len(SDecs))
+    #print('SDepths', len(SDepths), 'SIincs', len(SIncs))
+    #print('Incs', len(Incs))
     if (Decs and Depths) or (SpecDecs and SpecDepths) or (ResDecs and ResDepths) or (SDecs and SDepths) or (SInts and SDepths) or (SIncs and SDepths) or (Incs and Depths):
         main_plot = plt.figure(1, figsize=(width, 8))  # this works
         # pylab.figure(1,figsize=(width,8))
@@ -3356,16 +3362,16 @@ def core_depthplot(input_dir_path='.', meas_file='magic_measurements.txt', spc_f
         plt.axis([minSuc, maxSuc, dmax, dmin])
         plt.xlabel('Susceptibility')
         plot += 1
-    if wig_file:
-        plt.subplot(1, pcol, plot)
-        plt.plot(WIG, WIG_depths, 'k')
-        if sum_file:
-            for core in Cores:
-                depth = float(core[core_depth_key])
-                plt.plot([WIG[0], WIG[-1]], [depth, depth], 'b--')
-        plt.axis([min(WIG), max(WIG), dmax, dmin])
-        plt.xlabel(plt_key)
-        plot += 1
+    #if wig_file:
+    #    plt.subplot(1, pcol, plot)
+    #    plt.plot(WIG, WIG_depths, 'k')
+    #    if sum_file:
+    #        for core in Cores:
+    #            depth = float(core[core_depth_key])
+    #            plt.plot([WIG[0], WIG[-1]], [depth, depth], 'b--')
+    #    plt.axis([min(WIG), max(WIG), dmax, dmin])
+    #    plt.xlabel(plt_key)
+    #    plot += 1
     if pltTime:
         ax1 = plt.subplot(1, pcol, plot)
         ax1.axis([-.25, 1.5, amax, amin])
@@ -6945,11 +6951,15 @@ def read_core_csv_file(sum_file):
         if "Core Top (m)" in keys:
             core_depth_key = "Core Top (m)"
         if "Top depth cored CSF (m)" in keys:
-            core_dpeth_key = "Top depth cored CSF (m)"
+            core_depth_key = "Top depth cored CSF (m)"
+        if 'Top depth cored (m)' in keys:
+            core_depth_key = 'Top depth cored (m)'
         if "Core Label" in keys:
             core_label_key = "Core Label"
         if "Core label" in keys:
             core_label_key = "Core label"
+        if "Label ID" in keys:
+            core_label_key = "Label ID"
         for line in indat[2:]:
             if 'TOTALS' not in line:
                 CoreRec = {}
