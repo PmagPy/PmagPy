@@ -20,13 +20,12 @@ def main():
     OPTIONS
         -h: prints the help message and quits
         -f FILE: specify .asc input file name
-        -fsi SINFILE: specify er_specimens input file
-        -F MFILE: specify magic_measurements output file
-        -Fa AFILE: specify rmag_anisotropy output file
-        -Fr RFILE: specify rmag_results output file
-        -Fsi SFILE: specify er_specimens output file with location, sample, site, etc. information
+        -fsp SINFILE: specify er_specimens input file with location, sample, site, etc. information
+        -F MFILE: specify measurements output file
+        -Fa AFILE: specify rmag_anisotropy output file # MagIC 2 only
+        -Fsi SFILE: specify specimens output file
         -usr USER: specify who made the measurements
-        -loc LOC: specify location name for study 
+        -loc LOC: specify location name for study
         -ins INST: specify instrument used
         -spc SPEC: specify number of characters to specify specimen from sample
         -ncn NCON:  specify naming convention: default is #2 below
@@ -34,14 +33,13 @@ def main():
         -new : replace all existing magic files
 
     DEFAULTS
-        AFILE: rmag_anisotropy.txt
-        RFILE: rmag_results.txt
-        SFILE: default is to create new er_specimen.txt file
+        AFILE: rmag_anisotropy.txt  # MagIC 2 only
+        SFILE: default is to create new specimen file
         USER: ""
         LOC: "unknown"
         INST: ""
         SPEC: 0  sample name is same as site (if SPEC is 1, sample is all but last character)
-        appends to  'er_specimens.txt, er_samples.txt, er_sites.txt' files
+        appends to  specimen/sample/site files
        Sample naming convention:
             [1] XXXXY: where XXXX is an arbitrary length site designation and Y
                 is the single character sample designation.  e.g., TG001a is the
@@ -50,7 +48,7 @@ def main():
             [3] XXXX.YY: YY sample from site XXXX (XXX, YY of arbitary length)
             [4-Z] XXXX[YYY]:  YYY is sample designation with Z characters from site XXX
             [5] site name same as sample
-            [6] site is entered under a separate column -- NOT CURRENTLY SUPPORTED
+            [6] site name entered in site_name column in the orient.txt format input file  -- NOT CURRENTLY SUPPORTED
             [7-Z] [XXXX]YYY:  XXXX is site designation with Z characters with sample name XXXXYYYY
             NB: all others you will have to customize your self
                  or e-mail ltauxe@ucsd.edu for help.
@@ -64,12 +62,19 @@ def main():
         print(main.__doc__)
         sys.exit()
 
-    dataframe = extractor.command_line_dataframe([ ['WD', False, '.'], ['ID', False, '.'], ['usr', False, ''], ['ncn', False, '1'], ['k15', False, False], ['ins', False, ''], ['f', True, ''], ['F', False, 'magic_measurements.txt'], ['Fa', False, 'rmag_anisotropy.txt'], ['Fsi', False, 'er_specimens.txt'], ['loc', False, 'unknown'], ['spc', False, 0], ['fsi', False, None]])
+    dataframe = extractor.command_line_dataframe([ ['WD', False, '.'], ['ID', False, '.'],
+                                                   ['usr', False, ''], ['ncn', False, '1'],
+                                                   ['k15', False, False], ['ins', False, ''],
+                                                   ['f', True, ''], ['F', False, 'measurements.txt'],
+                                                   ['Fa', False, 'rmag_anisotropy.txt'],
+                                                   ['Fsi', False, 'specimens.txt'],
+                                                   ['loc', False, 'unknown'], ['spc', False, 0],
+                                                   ['fsi', False, None], ['DM', False, 3] ])
     #'WD', 'ID', 'usr', 'ncn', 'k15', 'ins', 'f', 'F', 'Fa', 'Fsi', 'loc', 'spc',
     checked_args = extractor.extract_and_check_args(args, dataframe)
-    output_dir_path, input_dir_path, user, sample_naming_con, static_15_position_mode, instrument, ascfile, meas_output, aniso_output, spec_outfile, locname, specnum, spec_infile = extractor.get_vars(['WD', 'ID', 'usr', 'ncn', 'k15', 'ins', 'f', 'F', 'Fa', 'Fsi', 'loc', 'spc', 'fsi'], checked_args)
+    output_dir_path, input_dir_path, user, sample_naming_con, static_15_position_mode, instrument, ascfile, meas_output, aniso_output, spec_outfile, locname, specnum, spec_infile, data_model_num = extractor.get_vars(['WD', 'ID', 'usr', 'ncn', 'k15', 'ins', 'f', 'F', 'Fa', 'Fsi', 'loc', 'spc', 'fsi', 'DM'], checked_args)
 
-    ipmag.SUFAR4_magic(ascfile, meas_output, aniso_output, spec_infile, spec_outfile, specnum=specnum, sample_naming_con=sample_naming_con, user=user, locname=locname, instrument=instrument, static_15_position_mode=static_15_position_mode, output_dir_path=output_dir_path, input_dir_path=input_dir_path)
+    ipmag.SUFAR4_magic(ascfile, meas_output, aniso_output, spec_infile, spec_outfile, specnum=specnum, sample_naming_con=sample_naming_con, user=user, locname=locname, instrument=instrument, static_15_position_mode=static_15_position_mode, output_dir_path=output_dir_path, input_dir_path=input_dir_path, data_model_num=data_model_num)
 
     # do we need -new flag??
 if __name__ == "__main__":

@@ -313,8 +313,12 @@ class TestSUFAR_asc_magic(unittest.TestCase):
         pass
 
     def tearDown(self):
-        filelist = ['magic_measurements.txt', 'my_magic_measurements.txt', 'er_specimens.txt', 'er_samples.txt', 'my_er_samples.txt', 'er_sites.txt', 'rmag_anisotropy.txt', 'my_rmag_anisotropy.txt', 'rmag_results.txt', 'my_rmag_results.txt']
-        pmag.remove_files(filelist, WD)
+        filelist = ['magic_measurements.txt', 'my_magic_measurements.txt',
+                    'er_specimens.txt', 'er_samples.txt', 'my_er_samples.txt',
+                    'er_sites.txt', 'rmag_anisotropy.txt', 'my_rmag_anisotropy.txt',
+                    'rmag_results.txt', 'my_rmag_results.txt', 'measurements.txt',
+                    'specimens.txt', 'samples.txt', 'sites.txt', 'locations.txt']
+        #pmag.remove_files(filelist, WD)
         os.chdir(WD)
 
 
@@ -327,7 +331,8 @@ class TestSUFAR_asc_magic(unittest.TestCase):
                                  'Measurement_Import', 'SUFAR_asc_magic')
         infile = 'fake_sufar4-asc_magic_example.txt'
         program_ran, error_message = ipmag.SUFAR4_magic(infile,
-                                                        input_dir_path=input_dir)
+                                                        input_dir_path=input_dir,
+                                                        data_model_num=2)
         self.assertFalse(program_ran)
         self.assertEqual(error_message,
                          'Error opening file: {}'.format(os.path.join(input_dir,
@@ -339,9 +344,33 @@ class TestSUFAR_asc_magic(unittest.TestCase):
                                  'SUFAR_asc_magic')
         infile = 'sufar4-asc_magic_example.txt'
         program_ran, outfile = ipmag.SUFAR4_magic(infile,
-                                                  input_dir_path=input_dir)
+                                                  input_dir_path=input_dir,
+                                                  data_model_num=2)
         self.assertTrue(program_ran)
         self.assertEqual(outfile, os.path.join('.', 'magic_measurements.txt'))
+        with open(outfile, 'r') as ofile:
+            lines = ofile.readlines()
+            self.assertEqual(292, len(lines))
+
+
+    def test_SUFAR4_succeed_data_model3(self):
+        input_dir = os.path.join(WD, 'data_files', 'Measurement_Import',
+                                 'SUFAR_asc_magic')
+        infile = 'sufar4-asc_magic_example.txt'
+        program_ran, outfile = ipmag.SUFAR4_magic(infile,
+                                                  input_dir_path=input_dir)
+        self.assertTrue(program_ran)
+        self.assertEqual(outfile, os.path.join('.', 'measurements.txt'))
+        with open(outfile, 'r') as ofile:
+            lines = ofile.readlines()
+            self.assertEqual(292, len(lines))
+            self.assertEqual('measurements', lines[0].split('\t')[1].strip())
+        con = nb.Contribution(WD)
+        self.assertEqual(sorted(con.tables),
+                         sorted(['measurements', 'specimens',
+                                 'samples', 'sites']))
+
+
 
     def test_SUFAR4_fail_option4(self):
         input_dir = os.path.join(WD, 'data_files',
@@ -349,7 +378,8 @@ class TestSUFAR_asc_magic(unittest.TestCase):
         infile = 'sufar4-asc_magic_example.txt'
         program_ran, error_message = ipmag.SUFAR4_magic(infile,
                                                         input_dir_path=input_dir,
-                                                        sample_naming_con='4')
+                                                        sample_naming_con='4',
+                                                        data_model_num=2)
         self.assertFalse(program_ran)
         self.assertEqual(error_message, "option [4] must be in form 4-Z where Z is an integer")
 
@@ -363,7 +393,8 @@ class TestSUFAR_asc_magic(unittest.TestCase):
         program_ran, outfile = ipmag.SUFAR4_magic(infile,
                                                   meas_output=ofile,
                                                   input_dir_path=input_dir,
-                                                  sample_naming_con='4-2')
+                                                  sample_naming_con='4-2',
+                                                  data_model_num=2)
         self.assertTrue(program_ran)
         self.assertEqual(outfile, os.path.join('.', ofile))
 
@@ -371,7 +402,12 @@ class TestSUFAR_asc_magic(unittest.TestCase):
         input_dir = os.path.join(WD, 'data_files',
                                  'Measurement_Import', 'SUFAR_asc_magic')
         infile = 'sufar4-asc_magic_example.txt'
-        program_ran, outfile = ipmag.SUFAR4_magic(infile, meas_output='my_magic_measurements.txt', aniso_output="my_rmag_anisotropy.txt", specnum=2, locname="Here", instrument="INST", static_15_position_mode=True, input_dir_path=input_dir, sample_naming_con='5')
+        program_ran, outfile = ipmag.SUFAR4_magic(infile, meas_output='my_magic_measurements.txt',
+                                                  aniso_output="my_rmag_anisotropy.txt",
+                                                  specnum=2, locname="Here", instrument="INST",
+                                                  static_15_position_mode=True, input_dir_path=input_dir,
+                                                  sample_naming_con='5',
+                                                  data_model_num=2)
         self.assertTrue(program_ran)
         self.assertEqual(outfile, os.path.join('.', 'my_magic_measurements.txt'))
 

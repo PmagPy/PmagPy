@@ -6416,7 +6416,7 @@ def k15_magic(k15file, specnum=0, sample_naming_con='1', er_location_name="unkno
     return True, measfile
 
 
-def SUFAR4_magic(ascfile, meas_output='magic_measurements.txt', aniso_output='rmag_anisotropy.txt', spec_infile=None, spec_outfile='er_specimens.txt', samp_outfile='er_samples.txt', site_outfile='er_sites.txt', specnum=0, sample_naming_con='1', user="", locname="unknown", instrument='', static_15_position_mode=False, output_dir_path='.', input_dir_path='.'):
+def SUFAR4_magic(ascfile, meas_output='measurements.txt', aniso_output='rmag_anisotropy.txt', spec_infile=None, spec_outfile='specimens.txt', samp_outfile='samples.txt', site_outfile='sites.txt', specnum=0, sample_naming_con='1', user="", locname="unknown", instrument='', static_15_position_mode=False, output_dir_path='.', input_dir_path='.', data_model_num=3):
     """
     NAME
         sufar4-asc_magic.py
@@ -6431,11 +6431,10 @@ def SUFAR4_magic(ascfile, meas_output='magic_measurements.txt', aniso_output='rm
     OPTIONS
         -h: prints the help message and quits
         -f FILE: specify .asc input file name
-        -fsi SINFILE: specify er_specimens input file with location, sample, site, etc. information
-        -F MFILE: specify magic_measurements output file
-        -Fa AFILE: specify rmag_anisotropy output file
-        -Fr RFILE: specify rmag_results output file
-        -Fsi SFILE: specify er_specimens output file
+        -fsp SINFILE: specify er_specimens input file with location, sample, site, etc. information
+        -F MFILE: specify measurements output file
+        -Fa AFILE: specify rmag_anisotropy output file # MagIC 2 only
+        -Fsi SFILE: specify specimens output file
         -usr USER: specify who made the measurements
         -loc LOC: specify location name for study
         -ins INST: specify instrument used
@@ -6445,14 +6444,13 @@ def SUFAR4_magic(ascfile, meas_output='magic_measurements.txt', aniso_output='rm
         -new : replace all existing magic files
 
     DEFAULTS
-        AFILE: rmag_anisotropy.txt
-        RFILE: rmag_results.txt
-        SFILE: default is to create new er_specimen.txt file
+        AFILE: rmag_anisotropy.txt  # MagIC 2 only
+        SFILE: default is to create new specimen file
         USER: ""
         LOC: "unknown"
         INST: ""
         SPEC: 0  sample name is same as site (if SPEC is 1, sample is all but last character)
-        appends to  'er_specimens.txt, er_samples.txt, er_sites.txt' files
+        appends to  specimen/sample/site files
        Sample naming convention:
             [1] XXXXY: where XXXX is an arbitrary length site designation and Y
                 is the single character sample designation.  e.g., TG001a is the
@@ -6476,10 +6474,95 @@ def SUFAR4_magic(ascfile, meas_output='magic_measurements.txt', aniso_output='rm
     AniRecSs, AniRecs, SpecRecs, SampRecs, SiteRecs, MeasRecs = [], [], [], [], [], []
     isspec = '0'
     spin = 0
+    data_model_num = int(data_model_num)
 
+    # set defaults for MagIC 2
+    print('meas_output', meas_output)
+    if data_model_num == 2:
+        if meas_output == 'measurements.txt':
+            meas_output = 'magic_measurements.txt'
+        if spec_outfile == 'specimens.txt':
+            spec_outfile = 'er_specimens.txt'
+        if samp_outfile == 'samples.txt':
+            samp_outfile = 'er_samples.txt'
+        if site_outfile == 'sites.txt':
+            site_outfile = 'er_sites.txt'
+
+    print('meas_output', meas_output)
+    print('spec_outfile', spec_outfile)
+    print('samp_outfile', samp_outfile)
+    print('site_outfile', site_outfile)
+
+    # set column names for MagIC 3
+    spec_name_col = 'specimen'
+    samp_name_col = 'sample'
+    site_name_col = 'site'
+    loc_name_col = 'location'
+    citation_col = 'citations'
+    method_col = 'method_codes'
+    site_description_col = 'description'
+    expedition_col = 'expedition_name'
+    instrument_col = 'instrument_codes'
+    experiment_col = 'experiments'
+    analyst_col = 'analysts'
+    quality_col = 'quality'
+    aniso_quality_col = 'result_quality'
+    meas_standard_col = 'standard'
+    meas_description_col = 'description'
+    aniso_type_col = 'aniso_type'
+    aniso_unit_col = 'aniso_s_unit'
+    aniso_n_col = 'aniso_s_n_measurements'
+    azimuth_col = 'azimuth'
+    spec_volume_col = 'volume'
+    samp_dip_col = 'dip'
+    bed_dip_col = 'bed_dip'
+    bed_dip_direction_col = 'bed_dip_direction'
+    chi_vol_col = 'susc_chi_volume'
+    aniso_sigma_col = 'aniso_s_sigma'
+    aniso_unit_col = 'aniso_s_unit'
+    aniso_tilt_corr_col = 'aniso_tilt_correction'
+    meas_table_name = 'measurements'
+    spec_table_name = 'specimens'
+    samp_table_name = 'samples'
+    site_table_name = 'sites'
+
+    # set column names for MagIC 2
+    if data_model_num == 2:
+        spec_name_col = 'er_specimen_name'
+        samp_name_col = 'er_sample_name'
+        site_name_col = 'er_site_name'
+        loc_name_col = 'er_location_name'
+        citation_col = 'er_citation_names'
+        method_col = 'magic_method_codes'
+        site_description_col = 'site_description'
+        expedition_col = 'er_expedition_name'
+        instrument_col = 'magic_instrument_codes'
+        experiment_col = 'magic_experiment_names'
+        analyst_col = 'er_analyst_mail_names'
+        quality_col = 'measurement_flag'
+        aniso_quality_col = 'anisotropy_flag'
+        meas_standard_col = 'measurement_standard'
+        meas_description_col = 'measurement_description'
+        aniso_type_col = 'anisotropy_type'
+        aniso_unit_col = 'anisotropy_unit'
+        aniso_n_col = 'anisotropy_n'
+        azimuth_col = 'sample_azimuth'
+        spec_volume_col = 'specimen_volume'
+        samp_dip_col = 'sample_dip'
+        bed_dip_col = 'sample_bed_dip'
+        bed_dip_direction_col = 'sample_bed_dip_direction'
+        chi_vol_col = 'measurement_chi_volume'
+        aniso_sigma_col = 'anisotropy_sigma'
+        aniso_unit_col = 'anisotropy_unit'
+        aniso_tilt_corr_col = 'anisotropy_tilt_correction'
+        meas_table_name = 'magic_measurements'
+        spec_table_name = 'er_specimens'
+        samp_table_name = 'er_samples'
+        site_table_name = 'er_samples'
+
+    # create full path for files
     ascfile = os.path.join(input_dir_path, ascfile)
     aniso_output = os.path.join(output_dir_path, aniso_output)
-    # rmag_output = os.path.join(output_dir_path, 'rmag_results.txt') --
     # initialized but not used
     meas_output = os.path.join(output_dir_path, meas_output)
 
@@ -6552,73 +6635,78 @@ def SUFAR4_magic(ascfile, meas_output='magic_measurements.txt', aniso_output='rm
         if "ANISOTROPY" in words:  # first line of data for the spec
             MeasRec, AniRec, SpecRec, SampRec, SiteRec = {}, {}, {}, {}, {}
             specname = words[0]
-            AniRec['er_specimen_name'] = specname
+            AniRec[spec_name_col] = specname
             if isspec == "1":
                 for spec in specs:
-                    if spec['er_specimen_name'] == specname:
-                        AniRec['er_sample_name'] = spec['er_sample_name']
-                        AniRec['er_site_name'] = spec['er_site_name']
-                        AniRec['er_location_name'] = spec['er_location_name']
+                    if spec[spec_name_col] == specname:
+                        AniRec[samp_name_col] = spec[samp_name_col]
+                        AniRec[site_name_col] = spec[site_name_col]
+                        AniRec[loc_name_col] = spec[loc_name_col]
                         break
             elif isspec == "0":
                 if specnum != 0:
                     sampname = specname[:-specnum]
                 else:
                     sampname = specname
-                AniRec['er_sample_name'] = sampname
-                SpecRec['er_specimen_name'] = specname
-                SpecRec['er_sample_name'] = sampname
-                SampRec['er_sample_name'] = sampname
-                SiteRec['er_sample_name'] = sampname
-                SiteRec['site_description'] = 's'
+                AniRec[samp_name_col] = sampname
+                SpecRec[spec_name_col] = specname
+                SpecRec[samp_name_col] = sampname
+                SampRec[samp_name_col] = sampname
+                SiteRec[samp_name_col] = sampname
+                SiteRec[site_description_col] = 's'
                 if sample_naming_con != "9":
-                    AniRec['er_site_name'] = pmag.parse_site(
-                        AniRec['er_sample_name'], sample_naming_con, Z)
-                    SpecRec['er_site_name'] = pmag.parse_site(
-                        AniRec['er_sample_name'], sample_naming_con, Z)
-                    SampRec['er_site_name'] = pmag.parse_site(
-                        AniRec['er_sample_name'], sample_naming_con, Z)
-                    SiteRec['er_site_name'] = pmag.parse_site(
-                        AniRec['er_sample_name'], sample_naming_con, Z)
+                    AniRec[site_name_col] = pmag.parse_site(
+                        AniRec[samp_name_col], sample_naming_con, Z)
+                    SpecRec[site_name_col] = pmag.parse_site(
+                        AniRec[samp_name_col], sample_naming_con, Z)
+                    SampRec[site_name_col] = pmag.parse_site(
+                        AniRec[samp_name_col], sample_naming_con, Z)
+                    SiteRec[site_name_col] = pmag.parse_site(
+                        AniRec[samp_name_col], sample_naming_con, Z)
                 else:
-                    AniRec['er_site_name'] = specname
-                    SpecRec['er_site_name'] = specname
-                    SampRec['er_site_name'] = specname
-                    SiteRec['er_site_name'] = specname
+                    AniRec[site_name_col] = specname
+                    SpecRec[site_name_col] = specname
+                    SampRec[site_name_col] = specname
+                    SiteRec[site_name_col] = specname
                     pieces = specname.split('-')
-                    AniRec['er_expedition_name'] = pieces[0]
-                    SpecRec['er_expedition_name'] = pieces[0]
-                    SampRec['er_expedition_name'] = pieces[0]
-                    SiteRec['er_expedition_name'] = pieces[0]
+                    AniRec[expedition_col] = pieces[0]
+                    SpecRec[expedition_col] = pieces[0]
+                    SampRec[expedition_col] = pieces[0]
+                    SiteRec[expedition_col] = pieces[0]
                     location = pieces[1]
-                AniRec['er_location_name'] = locname
-                SpecRec['er_location_name'] = locname
-                SampRec['er_location_name'] = locname
-                SiteRec['er_location_name'] = locname
-                AniRec['er_citation_names'] = "This study"
-                SpecRec['er_citation_names'] = "This study"
-                SampRec['er_citation_names'] = "This study"
-                SiteRec['er_citation_names'] = "This study"
-            AniRec['er_citation_names'] = "This study"
-            AniRec['magic_instrument_codes'] = instrument
-            AniRec['magic_method_codes'] = "LP-X:AE-H:LP-AN-MS"
-            AniRec['magic_experiment_names'] = specname + ":" + "LP-AN-MS"
-            AniRec['er_analyst_mail_names'] = user
+                AniRec[loc_name_col] = locname
+                SpecRec[loc_name_col] = locname
+                SampRec[loc_name_col] = locname
+                SiteRec[loc_name_col] = locname
+                AniRec[citation_col] = "This study"
+                SpecRec[citation_col] = "This study"
+                SampRec[citation_col] = "This study"
+                SiteRec[citation_col] = "This study"
+            AniRec[citation_col] = "This study"
+            AniRec[instrument_col] = instrument
+            AniRec[method_col] = "LP-X:AE-H:LP-AN-MS"
+            AniRec[experiment_col] = specname + ":" + "LP-AN-MS"
+            AniRec[analyst_col] = user
             for key in list(AniRec.keys()):
                 MeasRec[key] = AniRec[key]
-            MeasRec['magic_experiment_name'] = AniRec.get('magic_experiment_names', '')
-            if 'magic_experiment_names' in MeasRec:
-                MeasRec.pop('magic_experiment_names')
-            MeasRec['measurement_flag'] = 'g'
-            AniRec['anisotropy_flag'] = 'g'
-            MeasRec['measurement_standard'] = 'u'
-            MeasRec['measurement_description'] = 'Bulk sucsecptibility measurement'
-            AniRec['anisotropy_type'] = "AMS"
-            AniRec['anisotropy_unit'] = "Normalized by trace"
+            if data_model_num == 2:
+                MeasRec['magic_experiment_name'] = AniRec.get('magic_experiment_names', '')
+                if 'magic_experiment_names' in MeasRec:
+                    MeasRec.pop('magic_experiment_names')
+            if data_model_num == 3:
+                MeasRec['experiment'] = AniRec.get('experiments', '')
+                if 'experiments' in MeasRec:
+                    MeasRec.pop('experiments')
+            MeasRec[quality_col] = 'g'
+            AniRec[aniso_quality_col] = 'g'
+            MeasRec[meas_standard_col] = 'u'
+            MeasRec[meas_description_col] = 'Bulk sucsecptibility measurement'
+            AniRec[aniso_type_col] = "AMS"
+            AniRec[aniso_unit_col] = "Normalized by trace"
             if spin == 1:
-                AniRec['anisotropy_n'] = "192"
+                AniRec[aniso_n_col] = "192"
             else:
-                AniRec['anisotropy_n'] = "15"
+                AniRec[aniso_n_col] = "15"
         if 'Azi' in words and isspec == '0':
             az = float(words[1])
             P1 = float(words[4])
@@ -6633,49 +6721,62 @@ def SUFAR4_magic(ascfile, meas_output='magic_measurements.txt', aniso_output='rm
             elif az <= -360:
                 az = az + 360
             labaz = az
-            SampRec['sample_azimuth'] = str(round(az, 1))
+            SampRec[azimuth_col] = str(round(az, 1))
         if 'Dip' in words:
             # convert actual volume to m^3 from cm^3
-            SpecRec['specimen_volume'] = '%8.3e' % (float(words[10]) * 1e-6)
+            SpecRec[spec_volume_col] = '%8.3e' % (float(words[10]) * 1e-6)
             dip = float(words[1])
             if P2 == 90:
                 dip = dip - 90.
             labdip = dip
-            SampRec['sample_dip'] = str(round(dip, 1))
+            SampRec[samp_dip_col] = str(round(dip, 1))
         if 'T1' in words and 'F1' in words:
             k += 2  # read in fourth line down
             line = Data[k]
             rec = line.split()
             dd = rec[1].split('/')
             dip_direction = int(dd[0]) + 90
-            SampRec['sample_bed_dip_direction'] = '%i' % (dip_direction)
-            SampRec['sample_bed_dip'] = dd[1]
+            SampRec[bed_dip_direction_col] = '%i' % (dip_direction)
+            SampRec[bed_dip_col] = dd[1]
             bed_dip = float(dd[1])
         if "Mean" in words:
             k += 4  # read in fourth line down
             line = Data[k]
             rec = line.split()
-            MeasRec['measurement_chi_volume'] = rec[1]
+            MeasRec[chi_vol_col] = rec[1]
             sigma = .01 * float(rec[2]) / 3.
-            AniRec['anisotropy_sigma'] = '%7.4f' % (sigma)
-            AniRec['anisotropy_unit'] = 'SI'
+            AniRec[aniso_sigma_col] = '%7.4f' % (sigma)
+            AniRec[aniso_unit_col] = 'SI'
         if "factors" in words:
             k += 4  # read in second line down
             line = Data[k]
             rec = line.split()
         if "Specimen" in words:  # first part of specimen data
             # eigenvalues sum to unity - not 3
-            AniRec['anisotropy_s1'] = '%7.4f' % (old_div(float(words[5]), 3.))
-            AniRec['anisotropy_s2'] = '%7.4f' % (old_div(float(words[6]), 3.))
-            AniRec['anisotropy_s3'] = '%7.4f' % (old_div(float(words[7]), 3.))
+            s1_val = '%7.4f' % (old_div(float(words[5]), 3.))
+            s2_val = '%7.4f' % (old_div(float(words[6]), 3.))
+            s3_val = '%7.4f' % (old_div(float(words[7]), 3.))
             k += 1
             line = Data[k]
             rec = line.split()
             # eigenvalues sum to unity - not 3
-            AniRec['anisotropy_s4'] = '%7.4f' % (old_div(float(rec[5]), 3.))
-            AniRec['anisotropy_s5'] = '%7.4f' % (old_div(float(rec[6]), 3.))
-            AniRec['anisotropy_s6'] = '%7.4f' % (old_div(float(rec[7]), 3.))
-            AniRec['anisotropy_tilt_correction'] = '-1'
+            s4_val= '%7.4f' % (old_div(float(rec[5]), 3.))
+            s5_val = '%7.4f' % (old_div(float(rec[6]), 3.))
+            s6_val = '%7.4f' % (old_div(float(rec[7]), 3.))
+            # parse for data model 2
+            if data_model_num == 2:
+                AniRec['anisotropy_s1'] = s1_val
+                AniRec['anisotropy_s2'] = s2_val
+                AniRec['anisotropy_s3'] = s3_val
+                AniRec['anisotropy_s4'] = s4_val
+                AniRec['anisotropy_s5'] = s5_val
+                AniRec['anisotropy_s6'] = s6_val
+            # parse for data model 3
+            else:
+                vals = (s1_val, s2_val, s3_val, s4_val, s5_val, s6_val)
+                AniRec['aniso_s'] = ":".join([v.strip() for v in vals])
+            #
+            AniRec[aniso_tilt_corr_col] = '-1'
             AniRecs.append(AniRec)
             AniRecG, AniRecT = {}, {}
             for key in list(AniRec.keys()):
@@ -6683,58 +6784,94 @@ def SUFAR4_magic(ascfile, meas_output='magic_measurements.txt', aniso_output='rm
             for key in list(AniRec.keys()):
                 AniRecT[key] = AniRec[key]
             sbar = []
-            sbar.append(float(AniRec['anisotropy_s1']))
-            sbar.append(float(AniRec['anisotropy_s2']))
-            sbar.append(float(AniRec['anisotropy_s3']))
-            sbar.append(float(AniRec['anisotropy_s4']))
-            sbar.append(float(AniRec['anisotropy_s5']))
-            sbar.append(float(AniRec['anisotropy_s6']))
+            sbar.append(float(s1_val))
+            sbar.append(float(s2_val))
+            sbar.append(float(s3_val))
+            sbar.append(float(s4_val))
+            sbar.append(float(s5_val))
+            sbar.append(float(s6_val))
             sbarg = pmag.dosgeo(sbar, labaz, labdip)
-            AniRecG["anisotropy_s1"] = '%12.10f' % (sbarg[0])
-            AniRecG["anisotropy_s2"] = '%12.10f' % (sbarg[1])
-            AniRecG["anisotropy_s3"] = '%12.10f' % (sbarg[2])
-            AniRecG["anisotropy_s4"] = '%12.10f' % (sbarg[3])
-            AniRecG["anisotropy_s5"] = '%12.10f' % (sbarg[4])
-            AniRecG["anisotropy_s6"] = '%12.10f' % (sbarg[5])
-            AniRecG["anisotropy_tilt_correction"] = '0'
+            s1_g = '%12.10f' % (sbarg[0])
+            s2_g = '%12.10f' % (sbarg[1])
+            s3_g = '%12.10f' % (sbarg[2])
+            s4_g = '%12.10f' % (sbarg[3])
+            s5_g = '%12.10f' % (sbarg[4])
+            s6_g = '%12.10f' % (sbarg[5])
+            if data_model_num == 2:
+                AniRecG["anisotropy_s1"] = s1_g
+                AniRecG["anisotropy_s2"] = s2_g
+                AniRecG["anisotropy_s3"] = s3_g
+                AniRecG["anisotropy_s4"] = s4_g
+                AniRecG["anisotropy_s5"] = s5_g
+                AniRecG["anisotropy_s6"] = s6_g
+            else:
+                vals = (s1_g, s2_g, s3_g, s4_g, s5_g, s6_g)
+                AniRecG['aniso_s'] = ":".join([v.strip() for v in vals])
+            AniRecG[aniso_tilt_corr_col] = '0'
             AniRecs.append(AniRecG)
             if bed_dip != "" and bed_dip != 0:  # have tilt correction
                 sbart = pmag.dostilt(sbarg, dip_direction, bed_dip)
-                AniRecT["anisotropy_s1"] = '%12.10f' % (sbart[0])
-                AniRecT["anisotropy_s2"] = '%12.10f' % (sbart[1])
-                AniRecT["anisotropy_s3"] = '%12.10f' % (sbart[2])
-                AniRecT["anisotropy_s4"] = '%12.10f' % (sbart[3])
-                AniRecT["anisotropy_s5"] = '%12.10f' % (sbart[4])
-                AniRecT["anisotropy_s6"] = '%12.10f' % (sbart[5])
-                AniRecT["anisotropy_tilt_correction"] = '100'
+                s1_t = '%12.10f' % (sbart[0])
+                s2_t = '%12.10f' % (sbart[1])
+                s3_t = '%12.10f' % (sbart[2])
+                s4_t = '%12.10f' % (sbart[3])
+                s5_t = '%12.10f' % (sbart[4])
+                s6_t = '%12.10f' % (sbart[5])
+                if data_model_num == 2:
+                    AniRecT["anisotropy_s1"] = s1_t
+                    AniRecT["anisotropy_s2"] = s2_t
+                    AniRecT["anisotropy_s3"] = s3_t
+                    AniRecT["anisotropy_s4"] = s4_t
+                    AniRecT["anisotropy_s5"] = s5_t
+                    AniRecT["anisotropy_s6"] = s6_t
+                else:
+                    vals = (s1_t, s2_t, s3_t, s4_t, s5_t, s6_t)
+                    AniRecT["aniso_s"] = ":".join([v.strip() for v in vals])
+                AniRecT[aniso_tilt_corr_col] = '100'
                 AniRecs.append(AniRecT)
             MeasRecs.append(MeasRec)
-            if SpecRec['er_specimen_name'] not in specnames:
+            if SpecRec[spec_name_col] not in specnames:
                 SpecRecs.append(SpecRec)
-                specnames.append(SpecRec['er_specimen_name'])
-            if SampRec['er_sample_name'] not in sampnames:
+                specnames.append(SpecRec[spec_name_col])
+            if SampRec[samp_name_col] not in sampnames:
                 SampRecs.append(SampRec)
-                sampnames.append(SampRec['er_sample_name'])
-            if SiteRec['er_site_name'] not in sitenames:
+                sampnames.append(SampRec[samp_name_col])
+            if SiteRec[site_name_col] not in sitenames:
                 SiteRecs.append(SiteRec)
-                sitenames.append(SiteRec['er_site_name'])
+                sitenames.append(SiteRec[site_name_col])
         k += 1  # skip to next specimen
-    pmag.magic_write(aniso_output, AniRecs, 'rmag_anisotropy')
-    print("anisotropy tensors put in ", aniso_output)
-    pmag.magic_write(meas_output, MeasRecs, 'magic_measurements')
+
+    pmag.magic_write(meas_output, MeasRecs, meas_table_name)
     print("bulk measurements put in ", meas_output)
     # if isspec=="0":
     SpecOut, keys = pmag.fillkeys(SpecRecs)
-    #output = output_dir_path+"/er_specimens.txt"
-    pmag.magic_write(spec_outfile, SpecOut, 'er_specimens')
-    print("specimen info put in ", spec_outfile)
-    #output = output_dir_path+"/er_samples.txt"
+    #
+    # for MagIC 2, anisotropy records go in rmag_anisotropy
+    if data_model_num == 2:
+        pmag.magic_write(aniso_output, AniRecs, 'rmag_anisotropy')
+        print("anisotropy tensors put in ", aniso_output)
+    # for MagIC 3, anisotropy records go in specimens
+    if data_model_num == 3:
+        full_SpecOut = []
+        spec_list = []
+        for rec in SpecOut:
+            spec_name = rec[spec_name_col]
+            if spec_name not in spec_list:
+                spec_list.append(spec_name)
+                ani_recs = pmag.get_dictitem(AniRecs, spec_name_col, spec_name, 'T')
+                full_SpecOut.append(rec)
+                full_SpecOut.extend(ani_recs)
+        # FILL KEYS
+        full_SpecOut, keys = pmag.fillkeys(full_SpecOut)
+    else:
+        full_SpecOut = SpecOut
+    pmag.magic_write(spec_outfile, full_SpecOut, spec_table_name)
+    print("specimen/anisotropy info put in ", spec_outfile)
     SampOut, keys = pmag.fillkeys(SampRecs)
-    pmag.magic_write(samp_outfile, SampOut, 'er_samples')
+    pmag.magic_write(samp_outfile, SampOut, samp_table_name)
     print("sample info put in ", samp_outfile)
-    #output = output_dir_path+"/er_sites.txt"
     SiteOut, keys = pmag.fillkeys(SiteRecs)
-    pmag.magic_write(site_outfile, SiteOut, 'er_sites')
+    pmag.magic_write(site_outfile, SiteOut, site_table_name)
     print("site info put in ", site_outfile)
     return True, meas_output
 
