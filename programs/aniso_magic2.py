@@ -338,19 +338,19 @@ def main():
               if iboot==1: print("compare with [d]irection ")
               print(" plot [g]reat circle,  change [c]oord. system, change [e]llipse calculation,  s[a]ve plots, [q]uit ")
               if isite==1: print("  [p]revious, [s]ite, [q]uit, <return> for next ")
-              ans=raw_input("")
+              ans=input("")
               if ans=="q":
                  sys.exit()
               if ans=="e":
                  iboot,ipar,ihext,ivec=1,0,0,0
-                 e=raw_input("Do Hext Statistics  1/[0]: ")
+                 e=input("Do Hext Statistics  1/[0]: ")
                  if e=="1":ihext=1
-                 e=raw_input("Suppress bootstrap 1/[0]: ")
+                 e=input("Suppress bootstrap 1/[0]: ")
                  if e=="1":iboot=0
                  if iboot==1:
-                     e=raw_input("Parametric bootstrap 1/[0]: ")
+                     e=input("Parametric bootstrap 1/[0]: ")
                      if e=="1":ipar=1
-                     e=raw_input("Plot bootstrap eigenvectors:  1/[0]: ")
+                     e=input("Plot bootstrap eigenvectors:  1/[0]: ")
                      if e=="1":ivec=1
                      if iplot==1:
                          if inittcdf==0:
@@ -364,7 +364,7 @@ def main():
                   if CS=='-1':print(" Specimen")
                   if CS=='0':print(" Geographic")
                   if CS=='100':print(" Tilt corrected")
-                  key=raw_input(" Enter desired coordinate system: [s]pecimen, [g]eographic, [t]ilt corrected ")
+                  key=input(" Enter desired coordinate system: [s]pecimen, [g]eographic, [t]ilt corrected ")
                   if key=='s':CS='-1'
                   if key=='g':CS='0'
                   if key=='t': CS='100'
@@ -403,7 +403,7 @@ def main():
                   con=1
                   while con==1:
                       try:
-                          vdi=raw_input("Vi D I: ").split()
+                          vdi=input("Vi D I: ").split()
                           vec=int(vdi[0])-1
                           Dir=[float(vdi[1]),float(vdi[2])]
                           con=0
@@ -416,7 +416,7 @@ def main():
                   while con==1:
                       try:
                           print(" Input:  input pole to great circle ( D I) to  plot a great circle:   ")
-                          di=raw_input(" D I: ").split()
+                          di=input(" D I: ").split()
                           PDir.append(float(di[0]))
                           PDir.append(float(di[1]))
                           con=0
@@ -438,7 +438,7 @@ def main():
                   goon=0
               if ans=="s":
                   keepon=1
-                  site=raw_input(" print site or part of site desired: ")
+                  site=input(" print site or part of site desired: ")
                   while keepon==1:
                       try:
                           k=sitelist.index(site)
@@ -449,7 +449,7 @@ def main():
                               if site in sitelist[qq]:tmplist.append(sitelist[qq])
                           print(site," not found, but this was: ")
                           print(tmplist)
-                          site=raw_input('Select one or try again\n ')
+                          site=input('Select one or try again\n ')
                           k=sitelist.index(site)
                   goon,ans=0,""
               if ans=="a":
