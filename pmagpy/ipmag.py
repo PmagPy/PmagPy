@@ -5726,11 +5726,10 @@ def iodp_samples_magic(samp_file, output_samp_file=None, output_dir_path='.', in
 
 
 def kly4s_magic(infile, specnum=0, locname="unknown", inst='SIO-KLY4S',
-                samp_con="1", or_con='3', user='', measfile='magic_measurements.txt',
+                samp_con="1", or_con='3', user='', measfile='measurements.txt',
                 aniso_outfile='rmag_anisotropy.txt', samp_infile='', spec_infile='',
-                spec_outfile='er_specimens.txt', azdip_infile='', output_dir_path='.',
-                input_dir_path='.'):
-    'magic_instrument_codes'
+                spec_outfile='specimens.txt', azdip_infile='', output_dir_path='.',
+                input_dir_path='.', data_model_num=3):
     """
     def kly4s_magic(infile, specnum=0, locname="unknown", inst='SIO-KLY4S', samp_con="1", or_con='3' ,user='', measfile='magic_measurements.txt', aniso_outfile='rmag_anisotropy.txt', samp_infile='', spec_infile='', azdip_infile='', output_dir_path='.', input_dir_path='.'):
 
@@ -5759,6 +5758,7 @@ def kly4s_magic(infile, specnum=0, locname="unknown", inst='SIO-KLY4S',
         -ins INST: specify instrument used
         -spc SPEC: specify number of characters to specify specimen from sample
         -ncn NCON:  specify naming convention: default is #1 below
+        -DM NUM: MagIC data model 3 or 2, default is 3
 
     DEFAULTS
         MFILE: magic_measurements.txt
@@ -5799,11 +5799,18 @@ def kly4s_magic(infile, specnum=0, locname="unknown", inst='SIO-KLY4S',
 
     # initialize variables
     # not used: #cont=0
-
+    data_model_num = int(float(data_model_num))
     ask = 0
     Z = 1
     AniRecs, SpecRecs, SampRecs, MeasRecs = [], [], [], []
     AppSpec = 0
+
+    # set defaults for MagIC 2
+    if data_model_num == 2:
+        if measfile == 'measurements.txt':
+            measfile = 'magic_measurements.txt'
+        if spec_outfile == 'specimens.txt':
+            spec_outfile = 'er_specimens.txt'
 
     # format variables
     specnum = int(specnum)
@@ -5825,6 +5832,83 @@ def kly4s_magic(infile, specnum=0, locname="unknown", inst='SIO-KLY4S',
         samp_infile = os.path.join(output_dir_path, samp_infile)
     measfile = os.path.join(output_dir_path, measfile)
     anisfile = os.path.join(output_dir_path, aniso_outfile)
+
+    # set column names for MagIC 3
+    spec_name_col = 'specimen'  #
+    samp_name_col = 'sample'   #
+    site_name_col = 'site'   #
+    loc_name_col = 'location' #
+    citation_col = 'citations'
+    method_col = 'method_codes'
+    site_description_col = 'description'
+    expedition_col = 'expedition_name'
+    instrument_col = 'instrument_codes'
+    experiment_col = 'experiments'
+    analyst_col = 'analysts'
+    quality_col = 'quality'
+    aniso_quality_col = 'result_quality'
+    meas_standard_col = 'standard'
+    meas_description_col = 'description'
+    aniso_type_col = 'aniso_type'
+    aniso_unit_col = 'aniso_s_unit'
+    aniso_n_col = 'aniso_s_n_measurements'
+    azimuth_col = 'azimuth'
+    spec_volume_col = 'volume'
+    samp_dip_col = 'dip'
+    bed_dip_col = 'bed_dip'
+    bed_dip_direction_col = 'bed_dip_direction'
+    chi_vol_col = 'susc_chi_volume'
+    aniso_sigma_col = 'aniso_s_sigma'
+    aniso_unit_col = 'aniso_s_unit'
+    aniso_tilt_corr_col = 'aniso_tilt_correction'
+    meas_table_name = 'measurements'
+    spec_table_name = 'specimens'
+    samp_table_name = 'samples'
+    site_table_name = 'sites'
+    #
+    meas_name_col = 'measurement'
+    meas_time_col = 'timestamp'
+    meas_ac_col = 'meas_field_ac'
+    meas_temp_col = "meas_temp"
+
+    # set column names for MagIC 2
+    if data_model_num == 2:
+        spec_name_col = 'er_specimen_name'
+        samp_name_col = 'er_sample_name'
+        site_name_col = 'er_site_name'
+        loc_name_col = 'er_location_name'
+        citation_col = 'er_citation_names'
+        method_col = 'magic_method_codes'
+        site_description_col = 'site_description'
+        expedition_col = 'er_expedition_name'
+        instrument_col = 'magic_instrument_codes'
+        experiment_col = 'magic_experiment_names'
+        analyst_col = 'er_analyst_mail_names'
+        quality_col = 'measurement_flag'
+        aniso_quality_col = 'anisotropy_flag'
+        meas_standard_col = 'measurement_standard'
+        meas_description_col = 'measurement_description'
+        aniso_type_col = 'anisotropy_type'
+        aniso_unit_col = 'anisotropy_unit'
+        aniso_n_col = 'anisotropy_n'
+        azimuth_col = 'sample_azimuth'
+        spec_volume_col = 'specimen_volume'
+        samp_dip_col = 'sample_dip'
+        bed_dip_col = 'sample_bed_dip'
+        bed_dip_direction_col = 'sample_bed_dip_direction'
+        chi_vol_col = 'measurement_chi_volume'
+        aniso_sigma_col = 'anisotropy_sigma'
+        aniso_unit_col = 'anisotropy_unit'
+        aniso_tilt_corr_col = 'anisotropy_tilt_correction'
+        meas_table_name = 'magic_measurements'
+        spec_table_name = 'er_specimens'
+        samp_table_name = 'er_samples'
+        site_table_name = 'er_samples'
+        #
+        meas_name_col = 'measurement_number'
+        meas_time_col = 'measurement_date'
+        meas_ac_col = 'measurement_lab_field_ac'
+        meas_temp_col = "measurement_temp"
 
     # validate variables
     if "4" in samp_con[0]:
@@ -5856,8 +5940,8 @@ def kly4s_magic(infile, specnum=0, locname="unknown", inst='SIO-KLY4S',
                 spec_infile)  # append new records to existing
             if len(SpecRecs) > 0:
                 for spec in SpecRecs:
-                    if spec['er_specimen_name'] not in speclist:
-                        speclist.append(spec['er_specimen_name'])
+                    if spec[spec_name_col] not in speclist:
+                        speclist.append(spec[spec_name_col])
         except IOError:
             print('trouble opening ', spec_infile)
     Data = file_input.readlines()
@@ -5886,15 +5970,15 @@ def kly4s_magic(infile, specnum=0, locname="unknown", inst='SIO-KLY4S',
             else:
                 sampname = specname
             site = pmag.parse_site(sampname, samp_con, Z)
-            AniRec['er_location_name'] = locname
-            AniRec['er_citation_names'] = "This study"
-            AniRec['magic_instrument_codes'] = inst
+            AniRec[loc_name_col] = locname
+            AniRec[citation_col] = "This study"
+            AniRec[instrument_col] = inst
             method_codes = ['LP-X', 'AE-H', 'LP-AN-MS']
-            AniRec['magic_experiment_names'] = specname + ":" + "LP-AN-MS"
-            AniRec['er_analyst_mail_names'] = user
-            AniRec['er_site_name'] = site
-            AniRec['er_sample_name'] = sampname
-            AniRec['er_specimen_name'] = specname
+            AniRec[experiment_col] = specname + ":" + "LP-AN-MS"
+            AniRec[analyst_col] = user
+            AniRec[site_name_col] = site
+            AniRec[samp_name_col] = sampname
+            AniRec[spec_name_col] = specname
             labaz, labdip, bed_dip_direction, bed_dip = "", "", "", ""
             if azdip_infile:
                 for key in list(AniRec.keys()):
@@ -5924,11 +6008,11 @@ def kly4s_magic(infile, specnum=0, locname="unknown", inst='SIO-KLY4S',
                 else:
                     for key in list(AniRec.keys()):
                         SampRec[key] = AniRec[key]
-                    SampRec['sample_azimuth'] = '%7.1f' % (labaz)
-                    SampRec['sample_dip'] = '%7.1f' % (labdip)
-                    SampRec['sample_bed_dip_direction'] = '%7.1f' % (
+                    SampRec[azimuth_col] = '%7.1f' % (labaz)
+                    SampRec[dip_col] = '%7.1f' % (labdip)
+                    SampRec[bed_dip_direction_col] = '%7.1f' % (
                         bed_dip_direction)
-                    SampRec['sample_bed_dip'] = '%7.1f' % (bed_dip)
+                    SampRec[bed_dip_col] = '%7.1f' % (bed_dip)
                     SampRecs.append(SampRec)
             elif samp_infile:
                 redo, p = 1, 0
@@ -5936,16 +6020,16 @@ def kly4s_magic(infile, specnum=0, locname="unknown", inst='SIO-KLY4S',
                 if len(SO_methods) == 1:
                     az_type = SO_methods[0]
                     orient = pmag.find_samp_rec(
-                        AniRec["er_sample_name"], samps, az_type)
-                    if orient['sample_azimuth'] != "":
+                        AniRec[samp_name_col], samps, az_type)
+                    if orient[azimuth_col] != "":
                         method_codes.append(az_type)
                     else:
                         print("no orientation data for ",
-                              AniRec["er_sample_name"], labaz)
-                        orient["sample_azimuth"] = ""
-                        orient["sample_dip"] = ""
-                        orient["sample_bed_dip_direction"] = ""
-                        orient["sample_bed_dip"] = ""
+                              AniRec[samp_name_col], labaz)
+                        orient[azimuth_col] = ""
+                        orient[dip_col] = ""
+                        orient[bed_dip_direction_col] = ""
+                        orient[dip_col] = ""
                         noorient = 1
                         method_codes.append("SO-NO")
                         redo = 0
@@ -5953,11 +6037,11 @@ def kly4s_magic(infile, specnum=0, locname="unknown", inst='SIO-KLY4S',
                 while redo == 1:
                     if p >= len(SO_priorities):
                         print("no orientation data for ",
-                              AniRec["er_sample_name"], labaz)
-                        orient["sample_azimuth"] = ""
-                        orient["sample_dip"] = ""
-                        orient["sample_bed_dip_direction"] = ""
-                        orient["sample_bed_dip"] = ""
+                              AniRec[samp_name_col], labaz)
+                        orient[azimuth_col] = ""
+                        orient[dip_col] = ""
+                        orient[bed_dip_direction_col] = ""
+                        orient[bed_dip_col] = ""
                         noorient = 1
                         method_codes.append("SO-NO")
                         redo = 0
@@ -5965,40 +6049,50 @@ def kly4s_magic(infile, specnum=0, locname="unknown", inst='SIO-KLY4S',
                         az_type = SO_methods[SO_methods.index(
                             SO_priorities[p])]
                         orient = pmag.find_samp_rec(
-                            AniRec["er_sample_name"], samps, az_type)
-                        if orient["sample_azimuth"] != "":
+                            AniRec[samp_name_col], samps, az_type)
+                        if orient[azimuth_col] != "":
                             method_codes.append(az_type)
                             redo = 0
                         noorient = 0
                     p += 1
-                if orient['sample_azimuth'] != "":
-                    labaz = float(orient['sample_azimuth'])
-                if orient['sample_dip'] != "":
-                    labdip = float(orient['sample_dip'])
-                if "sample_bed_dip_direction" in list(orient.keys()) and orient['sample_bed_dip_direction'] != "":
+                if orient[azimuth_col] != "":
+                    labaz = float(orient[azimuth_col])
+                if orient[dip_col] != "":
+                    labdip = float(orient[dip_col])
+                if dip_direction_col in list(orient.keys()) and orient[dip_direction_col] != "":
                     bed_dip_direction = float(
-                        orient['sample_bed_dip_direction'])
-                if "sample_bed_dip" in list(orient.keys()) and orient['sample_bed_dip'] != "":
-                    sample_bed_dip = float(orient['sample_bed_dip'])
+                        orient[dip_direction_col])
+                if dip_col in list(orient.keys()) and orient[dip_col] != "":
+                    sample_bed_dip = float(orient[dip_col])
             for key in list(AniRec.keys()):
                 SpecRec[key] = AniRec[key]
             for key in list(AniRec.keys()):
                 MeasRec[key] = AniRec[key]
-            AniRec['anisotropy_type'] = "AMS"
-            AniRec['anisotropy_n'] = "192"
-            AniRec['anisotropy_s1'] = rec[1]
-            AniRec['anisotropy_s2'] = rec[2]
-            AniRec['anisotropy_s3'] = rec[3]
-            AniRec['anisotropy_s4'] = rec[4]
-            AniRec['anisotropy_s5'] = rec[5]
-            AniRec['anisotropy_s6'] = rec[6]
-            AniRec['anisotropy_sigma'] = rec[7]
-            AniRec['anisotropy_tilt_correction'] = '-1'
-            AniRec['anisotropy_unit'] = 'Normalized by trace'
-            SpecRec['specimen_volume'] = '%8.3e' % (
+            AniRec[aniso_type_col] = "AMS"
+            AniRec[aniso_n_col] = "192"
+            s1_val = rec[1]
+            s2_val = rec[2]
+            s3_val = rec[3]
+            s4_val = rec[4]
+            s5_val = rec[5]
+            s6_val = rec[6]
+            if data_model_num == 2:
+                AniRec['anisotropy_s1'] = s1_val
+                AniRec['anisotropy_s2'] = s2_val
+                AniRec['anisotropy_s3'] = s3_val
+                AniRec['anisotropy_s4'] = s4_val
+                AniRec['anisotropy_s5'] = s5_val
+                AniRec['anisotropy_s6'] = s6_val
+            else:
+                vals = [s1_val, s2_val, s3_val, s4_val, s5_val, s6_val]
+                AniRec['aniso_s'] = ":".join([val.strip() for val in vals])
+            AniRec[aniso_sigma_col] = rec[7]
+            AniRec[aniso_tilt_corr_col] = '-1'
+            AniRec[aniso_unit_col] = 'Normalized by trace'
+            SpecRec[spec_volume_col] = '%8.3e' % (
                 1e-6 * float(rec[12]))  # volume from cc to m^3
-            MeasRec['measurement_flag'] = 'g'  # good
-            MeasRec['measurement_standard'] = 'u'  # unknown
+            MeasRec[quality_col] = 'g'  # good
+            MeasRec[meas_standard_col] = 'u'  # unknown
             date = rec[14].split('/')
             if int(date[2]) > 80:
                 date[2] = '19' + date[2]
@@ -6006,33 +6100,39 @@ def kly4s_magic(infile, specnum=0, locname="unknown", inst='SIO-KLY4S',
                 date[2] = '20' + date[2]
             datetime = date[2] + ':' + date[0] + ':' + date[1] + ":"
             datetime = datetime + rec[15]
-            MeasRec['measurement_number'] = '1'
-            MeasRec['measurement_date'] = datetime
-            MeasRec['measurement_lab_field_ac'] = '%8.3e' % (
+            MeasRec[meas_name_col] = '1'
+            MeasRec[meas_time_col] = datetime
+            MeasRec[meas_ac_col] = '%8.3e' % (
                 4 * np.pi * 1e-7 * float(rec[11]))  # convert from A/m to T
-            MeasRec['measurement_temp'] = "300"  # assumed room T in kelvin
-            MeasRec['measurement_chi_volume'] = rec[8]
-            MeasRec['measurement_description'] = 'Bulk measurement'
-            MeasRec['magic_method_codes'] = 'LP-X'
+            MeasRec[meas_temp_col] = "300"  # assumed room T in kelvin
+            MeasRec[chi_vol_col] = rec[8]
+            MeasRec[meas_description_col] = 'Bulk measurement'
+            MeasRec[method_col] = 'LP-X'
             # remove keys that aren't valid in MagIC 2.5
-            for remove_key in ['magic_instrument_codes', 'magic_experiment_names']:
-                if remove_key in SpecRec:
-                    val = SpecRec.pop(remove_key)
-            #for remove_key in ['magic_experiment_name']:
-            #    if remove_key in AniRec:
-            #        AniRec.pop(remove_key)
-            MeasRec['magic_experiment_name'] = AniRec.get('magic_experiment_names', '')
-            if 'magic_experiment_names' in MeasRec:
-                MeasRec.pop('magic_experiment_names')
-            if SpecRec['er_specimen_name'] not in speclist:  # add to list
-                speclist.append(SpecRec['er_specimen_name'])
+            if data_model_num == 2:
+                for remove_key in ['magic_instrument_codes', 'magic_experiment_names']:
+                    if remove_key in SpecRec:
+                        val = SpecRec.pop(remove_key)
+                #for remove_key in ['magic_experiment_name']:
+                #    if remove_key in AniRec:
+                #        AniRec.pop(remove_key)
+                MeasRec['magic_experiment_name'] = AniRec.get('magic_experiment_names', '')
+                if 'magic_experiment_names' in MeasRec:
+                    MeasRec.pop('magic_experiment_names')
+            else:
+                MeasRec['experiment'] = AniRec.get('experiments', '')
+                if 'experiments' in MeasRec:
+                    MeasRec.pop('experiments')
+            #
+            if SpecRec[spec_name_col] not in speclist:  # add to list
+                speclist.append(SpecRec[spec_name_col])
                 SpecRecs.append(SpecRec)
             MeasRecs.append(MeasRec)
             methods = ""
             for meth in method_codes:
                 methods = methods + meth + ":"
             # get rid of annoying spaces in Anthony's export files
-            AniRec["magic_method_codes"] = methods[:-1]
+            AniRec[method_col] = methods.strip()
             AniRecs.append(AniRec)
             if labaz != "":  # have orientation info
                 AniRecG, AniRecT = {}, {}
@@ -6041,44 +6141,66 @@ def kly4s_magic(infile, specnum=0, locname="unknown", inst='SIO-KLY4S',
                 for key in list(AniRec.keys()):
                     AniRecT[key] = AniRec[key]
                 sbar = []
-                sbar.append(float(AniRec['anisotropy_s1']))
-                sbar.append(float(AniRec['anisotropy_s2']))
-                sbar.append(float(AniRec['anisotropy_s3']))
-                sbar.append(float(AniRec['anisotropy_s4']))
-                sbar.append(float(AniRec['anisotropy_s5']))
-                sbar.append(float(AniRec['anisotropy_s6']))
+                sbar.append(float(s1_val))
+                sbar.append(float(s2_val))
+                sbar.append(float(s3_val))
+                sbar.append(float(s4_val))
+                sbar.append(float(s5_val))
+                sbar.append(float(s6_val))
                 sbarg = pmag.dosgeo(sbar, labaz, labdip)
-                AniRecG["anisotropy_s1"] = '%12.10f' % (sbarg[0])
-                AniRecG["anisotropy_s2"] = '%12.10f' % (sbarg[1])
-                AniRecG["anisotropy_s3"] = '%12.10f' % (sbarg[2])
-                AniRecG["anisotropy_s4"] = '%12.10f' % (sbarg[3])
-                AniRecG["anisotropy_s5"] = '%12.10f' % (sbarg[4])
-                AniRecG["anisotropy_s6"] = '%12.10f' % (sbarg[5])
-                AniRecG["anisotropy_tilt_correction"] = '0'
+                if data_model_num == 2:
+                    AniRecG["anisotropy_s1"] = '%12.10f' % (sbarg[0])
+                    AniRecG["anisotropy_s2"] = '%12.10f' % (sbarg[1])
+                    AniRecG["anisotropy_s3"] = '%12.10f' % (sbarg[2])
+                    AniRecG["anisotropy_s4"] = '%12.10f' % (sbarg[3])
+                    AniRecG["anisotropy_s5"] = '%12.10f' % (sbarg[4])
+                    AniRecG["anisotropy_s6"] = '%12.10f' % (sbarg[5])
+                else:
+                    AniRecG['aniso_s'] = ":".join([str(a) for a in sbarg])
+                AniRecG[aniso_tilt_corr_col] = '0'
                 AniRecs.append(AniRecG)
                 if bed_dip != "" and bed_dip != 0:  # have tilt correction
                     sbart = pmag.dostilt(sbarg, bed_dip_direction, bed_dip)
-                    AniRecT["anisotropy_s1"] = '%12.10f' % (sbart[0])
-                    AniRecT["anisotropy_s2"] = '%12.10f' % (sbart[1])
-                    AniRecT["anisotropy_s3"] = '%12.10f' % (sbart[2])
-                    AniRecT["anisotropy_s4"] = '%12.10f' % (sbart[3])
-                    AniRecT["anisotropy_s5"] = '%12.10f' % (sbart[4])
-                    AniRecT["anisotropy_s6"] = '%12.10f' % (sbart[5])
-                    AniRecT["anisotropy_tilt_correction"] = '100'
+                    if data_model_num == 2:
+                        AniRecT["anisotropy_s1"] = '%12.10f' % (sbart[0])
+                        AniRecT["anisotropy_s2"] = '%12.10f' % (sbart[1])
+                        AniRecT["anisotropy_s3"] = '%12.10f' % (sbart[2])
+                        AniRecT["anisotropy_s4"] = '%12.10f' % (sbart[3])
+                        AniRecT["anisotropy_s5"] = '%12.10f' % (sbart[4])
+                        AniRecT["anisotropy_s6"] = '%12.10f' % (sbart[5])
+                    else:
+                        AniRecT['aniso_s'] = ":".join([str(a) for a in sbart])
+                    AniRecT[aniso_tilt_corr_col] = '100'
                     AniRecs.append(AniRecT)
-    pmag.magic_write(anisfile, AniRecs, 'rmag_anisotropy')
-    pmag.magic_write(measfile, MeasRecs, 'magic_measurements')
+
+    # for MagIC 2, anisotropy records go in rmag_anisotropy
+    if data_model_num == 2:
+        pmag.magic_write(anisfile, AniRecs, 'rmag_anisotropy')
+        print("anisotropy data saved in ", anisfile)
+    # for MagIC 3, anisotropy records go in specimens
+    else:
+        full_SpecRecs = []
+        spec_list = []
+        for rec in SpecRecs:
+            full_SpecRecs.append(rec)
+            spec_name = rec[spec_name_col]
+            if spec_name not in spec_list:
+                ani_recs = pmag.get_dictitem(AniRecs, spec_name_col, spec_name, 'T')
+                full_SpecRecs.extend(ani_recs)
+        full_SpecRecs, keys = pmag.fillkeys(full_SpecRecs)
+        SpecRecs = full_SpecRecs
+        print('anisotropy data added to specimen records')
     if AppSpec:
-        pmag.magic_write(spec_infile, SpecRecs, 'er_specimens')
+        pmag.magic_write(spec_infile, SpecRecs, spec_table_name)
         print('specimen information appended to {}'.format(spec_infile))
     else:
-        pmag.magic_write(spec_outfile, SpecRecs, 'er_specimens')
+        pmag.magic_write(spec_outfile, SpecRecs, spec_table_name)
         print('specimen information written to new file: {}'.format(spec_outfile))
-    print('anisotropy data saved in ', anisfile)
+    pmag.magic_write(measfile, MeasRecs, meas_table_name)
     print('measurement data saved in ', measfile)
     if azdip_infile:
         sampfile = 'er_samples.txt'
-        pmag.magic_write(sampfile, SampRecs, 'er_samples')
+        pmag.magic_write(sampfile, SampRecs, samp_table_name)
         print('sample data saved in ', sampfile)
     return True, measfile
 
@@ -6474,10 +6596,9 @@ def SUFAR4_magic(ascfile, meas_output='measurements.txt', aniso_output='rmag_ani
     AniRecSs, AniRecs, SpecRecs, SampRecs, SiteRecs, MeasRecs = [], [], [], [], [], []
     isspec = '0'
     spin = 0
-    data_model_num = int(data_model_num)
+    data_model_num = int(float(data_model_num))
 
     # set defaults for MagIC 2
-    print('meas_output', meas_output)
     if data_model_num == 2:
         if meas_output == 'measurements.txt':
             meas_output = 'magic_measurements.txt'
@@ -6487,11 +6608,6 @@ def SUFAR4_magic(ascfile, meas_output='measurements.txt', aniso_output='rmag_ani
             samp_outfile = 'er_samples.txt'
         if site_outfile == 'sites.txt':
             site_outfile = 'er_sites.txt'
-
-    print('meas_output', meas_output)
-    print('spec_outfile', spec_outfile)
-    print('samp_outfile', samp_outfile)
-    print('site_outfile', site_outfile)
 
     # set column names for MagIC 3
     spec_name_col = 'specimen'
@@ -6855,12 +6971,14 @@ def SUFAR4_magic(ascfile, meas_output='measurements.txt', aniso_output='rmag_ani
         full_SpecOut = []
         spec_list = []
         for rec in SpecOut:
+            full_SpecOut.append(rec)
             spec_name = rec[spec_name_col]
             if spec_name not in spec_list:
                 spec_list.append(spec_name)
                 ani_recs = pmag.get_dictitem(AniRecs, spec_name_col, spec_name, 'T')
-                full_SpecOut.append(rec)
                 full_SpecOut.extend(ani_recs)
+
+
         # FILL KEYS
         full_SpecOut, keys = pmag.fillkeys(full_SpecOut)
     else:
