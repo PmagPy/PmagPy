@@ -172,7 +172,10 @@ def main():
         if isite == 0:
             sdata = spec_df
             if 'location' in sdata.columns:
-                loc_name = ':'.join(sdata['location'].unique())
+                try:
+                    loc_name = ':'.join(sdata['location'].unique())
+                except TypeError:
+                    loc_name = ""
         else:
             site = sitelist[k]
             sdata = spec_df[spec_df['site'] == site]
