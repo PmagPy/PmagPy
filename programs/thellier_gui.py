@@ -6409,6 +6409,9 @@ You can combine multiple measurement files into one measurement file using Pmag 
                 axis='columns').columns
             # plot first intensity method found - normalized to initial value
             # anyway - doesn't matter which used
+            if not len(intensity_types):
+                print('-E- No intensity columns found')
+                return {}, {}
             int_key = intensity_types[0]
             # get all the non-null intensity records of the same type
             meas_data3_0 = meas_data3_0[meas_data3_0[int_key].notnull()]
