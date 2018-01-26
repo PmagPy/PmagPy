@@ -341,7 +341,7 @@ class ImportKly4s(wx.Frame):
 
         #---sizer 1 ---
         # changed to er_samples only, not azdip
-        self.bSizer1 = pw.choose_file(pnl, btn_text='add er_samples file (optional)', method = self.on_add_AZDIP_file_button)
+        self.bSizer1 = pw.choose_file(pnl, btn_text='add samples file (optional)', method = self.on_add_AZDIP_file_button)
 
         #---sizer 2 ----
         self.bSizer2 = pw.labeled_text_field(pnl)
@@ -393,7 +393,7 @@ class ImportKly4s(wx.Frame):
         pw.on_add_file_button(self.bSizer0, text)
 
     def on_add_AZDIP_file_button(self,event):
-        text = "choose er_samples file (optional)"
+        text = "choose samples file (optional)"
         pw.on_add_file_button(self.bSizer1, text)
 
     def on_okButton(self, event):
@@ -402,12 +402,20 @@ class ImportKly4s(wx.Frame):
         full_infile = self.bSizer0.return_value()
         ID, infile = os.path.split(full_infile)
         outfile = infile + ".magic"
-        spec_outfile = infile[:infile.find('.')] + "_er_specimens.txt"
-        ani_outfile = infile[:infile.find('.')] + "_rmag_anisotropy.txt"
+        if self.Parent.data_model_num == 2:
+            spec_outfile = infile[:infile.find('.')] + "_er_specimens.txt"
+            ani_outfile = infile[:infile.find('.')] + "_rmag_anisotropy.txt"
+            site_outfile = ''
+        else:
+            spec_outfile = infile[:infile.find('.')] + "_specimens.txt"
+            ani_outfile = ''
+            site_outfile = infile[:infile.find('.')] + "_sites.txt"
         full_samp_file = self.bSizer1.return_value()
         samp_file = os.path.split(full_samp_file)[1]
-        if samp_file:
-            samp_file = "-fsa " + samp_file
+        if not samp_file:
+            samp_outfile = infile[:infile.find('.')] + "_samples.txt"
+        else:
+            samp_outfile = samp_file
         user = self.bSizer2.return_value()
         if user:
             user = "-usr " + user
@@ -426,18 +434,22 @@ class ImportKly4s(wx.Frame):
             ins = "-ins " + ins
         else:
             instrument='SIO-KLY4S'
-        COMMAND = "kly4s_magic.py -WD {} -f {} -F {} {} -ncn {} {} {} {} {} -ID {} -fsp {}".format(self.WD, infile, outfile, samp_file, ncn, user, n, loc, ins, ID, spec_outfile)
+        print('self.Parent', self.Parent, type(self.Parent))
+        print(self.Parent.data_model_num)
+        COMMAND = "kly4s_magic.py -WD {} -f {} -F {} -fsa {} -ncn {} {} {} {} {} -ID {} -fsp {} -DM {}".format(self.WD, infile, outfile, samp_file, ncn, user, n, loc, ins, ID, spec_outfile, self.Parent.data_model_num)
         program_ran, error_message = ipmag.kly4s_magic(infile, specnum=specnum,
                                                        locname=location, inst=instrument,
                                                        samp_con=ncn, user=user, measfile=outfile,
                                                        aniso_outfile=ani_outfile,
                                                        samp_infile=samp_file, spec_infile='',
                                                        spec_outfile=spec_outfile,
-                                                       output_dir_path=self.WD, input_dir_path=ID)
+                                                       output_dir_path=self.WD, input_dir_path=ID,
+                                                       data_model_num=self.Parent.data_model_num,
+                                                       samp_outfile=samp_outfile,
+                                                       site_outfile=site_outfile)
         if program_ran:
             pw.close_window(self, COMMAND, outfile)
             outfiles = [f for f in [outfile, spec_outfile, ani_outfile] if f]
-            pw.simple_warning('kly4s_magic has not been updated to MagIC data model 3.\nPlease upgrade output files by following these steps:\n\n1) Follow upgrade process at:\nhttps://www2.earthref.org/MagIC/upgrade\n2) Select "Save as Text"\n3) add the Upgraded Contribution file to your working directory\n4) In Pmag GUI, select "Unpack txt file downloaded from MagIC"\n\nOutput files:\n{}'.format(', '.join(outfiles)))
         else:
             pw.simple_warning(error_message)
 
