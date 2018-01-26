@@ -268,7 +268,7 @@ class TestKly4s_magic(unittest.TestCase):
                                                  input_dir_path=in_dir, data_model_num=3)
 
         con = nb.Contribution(WD)
-        self.assertEqual(['measurements', 'specimens'], sorted(con.tables))
+        self.assertEqual(['measurements', 'samples', 'sites', 'specimens'], sorted(con.tables))
 
 
 

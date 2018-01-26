@@ -5729,7 +5729,8 @@ def kly4s_magic(infile, specnum=0, locname="unknown", inst='SIO-KLY4S',
                 samp_con="1", or_con='3', user='', measfile='measurements.txt',
                 aniso_outfile='rmag_anisotropy.txt', samp_infile='', spec_infile='',
                 spec_outfile='specimens.txt', azdip_infile='', output_dir_path='.',
-                input_dir_path='.', data_model_num=3):
+                input_dir_path='.', data_model_num=3, samp_outfile='samples.txt',
+                site_outfile='sites.txt'):
     """
     def kly4s_magic(infile, specnum=0, locname="unknown", inst='SIO-KLY4S', samp_con="1", or_con='3' ,user='', measfile='magic_measurements.txt', aniso_outfile='rmag_anisotropy.txt', samp_infile='', spec_infile='', azdip_infile='', output_dir_path='.', input_dir_path='.'):
 
@@ -6180,13 +6181,25 @@ def kly4s_magic(infile, specnum=0, locname="unknown", inst='SIO-KLY4S',
     # for MagIC 3, anisotropy records go in specimens
     else:
         full_SpecRecs = []
+        SampRecs = []
+        SiteRecs = []
         spec_list = []
+        samp_list = []
+        site_list = []
         for rec in SpecRecs:
             full_SpecRecs.append(rec)
             spec_name = rec[spec_name_col]
+            samp_name = rec.get(samp_name_col, '')
+            site_name = rec.get(site_name_col, '')
+            loc_name = rec.get(loc_name_col, '')
             if spec_name not in spec_list:
                 ani_recs = pmag.get_dictitem(AniRecs, spec_name_col, spec_name, 'T')
                 full_SpecRecs.extend(ani_recs)
+                if (samp_name not in samp_list) and (samp_name):
+                    samp_list.append(samp_name)
+                    SampRecs.append({samp_name_col: samp_name, site_name_col: site_name})
+                    if (site_name not in site_list) and (site_name):
+                        SiteRecs.append({site_name_col: site_name, loc_name_col: loc_name})
         full_SpecRecs, keys = pmag.fillkeys(full_SpecRecs)
         SpecRecs = full_SpecRecs
         print('anisotropy data added to specimen records')
@@ -6202,6 +6215,12 @@ def kly4s_magic(infile, specnum=0, locname="unknown", inst='SIO-KLY4S',
         sampfile = 'er_samples.txt'
         pmag.magic_write(sampfile, SampRecs, samp_table_name)
         print('sample data saved in ', sampfile)
+    if data_model_num == 3:
+        if not azdip_infile:
+            if SampRecs:
+                pmag.magic_write(samp_outfile, SampRecs, samp_table_name)
+        if SiteRecs:
+            pmag.magic_write(site_outfile, SiteRecs, site_table_name)
     return True, measfile
 
 
