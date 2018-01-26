@@ -5903,7 +5903,7 @@ def kly4s_magic(infile, specnum=0, locname="unknown", inst='SIO-KLY4S',
         meas_table_name = 'magic_measurements'
         spec_table_name = 'er_specimens'
         samp_table_name = 'er_samples'
-        site_table_name = 'er_samples'
+        site_table_name = 'er_sites'
         #
         meas_name_col = 'measurement_number'
         meas_time_col = 'measurement_date'
@@ -6205,9 +6205,9 @@ def kly4s_magic(infile, specnum=0, locname="unknown", inst='SIO-KLY4S',
     return True, measfile
 
 
-def k15_magic(k15file, specnum=0, sample_naming_con='1', er_location_name="unknown", measfile='magic_measurements.txt', sampfile="er_samples.txt", aniso_outfile='rmag_anisotropy.txt', result_file="rmag_results.txt", input_dir_path='.', output_dir_path='.'):
+def k15_magic(k15file, specnum=0, sample_naming_con='1', er_location_name="unknown", measfile='magic_measurements.txt', sampfile="er_samples.txt", aniso_outfile='rmag_anisotropy.txt', result_file="rmag_results.txt", input_dir_path='.', output_dir_path='.', data_model_num=2):
     """
-    def k15_magic(k15file, specnum=0, sample_naming_con='1', er_location_name="unknown", measfile='magic_measurements.txt', sampfile="er_samples.txt", aniso_outfile='rmag_anisotropy.txt', result_file="rmag_results.txt", input_dir_path='.', output_dir_path='.'):
+    def k15_magic(k15file, specnum=0, sample_naming_con='1', er_location_name="unknown", measfile='magic_measurements.txt', sampfle="er_samples.txt", aniso_outfile='rmag_anisotropy.txt', result_file="rmag_results.txt", input_dir_path='.', output_dir_path='.'):
 
     NAME
         k15_magic.py
@@ -6257,17 +6257,115 @@ def k15_magic(k15file, specnum=0, sample_naming_con='1', er_location_name="unkno
       3 rows of 5 measurements for each specimen
 
     """
-
     #
     # initialize some variables
     #
-    # removed 'inst' variable because it is never used
     version_num = pmag.get_version()
     syn = 0
     itilt, igeo, linecnt, key = 0, 0, 0, ""
     first_save = 1
     k15 = []
     citation = 'This study'
+
+    data_model_num = int(float(data_model_num))
+    if data_model_num != 2:
+        print("-E- k15_magic is not yet implemented for MagIC data model 3")
+        return False, "-E- k15_magic is not yet implemented for MagIC data model 3"
+
+    # set column names for MagIC 3
+    spec_name_col = 'specimen'  #
+    samp_name_col = 'sample'   #
+    site_name_col = 'site'   #
+    loc_name_col = 'location' #
+    citation_col = 'citations'
+    method_col = 'method_codes'
+    site_description_col = 'description'
+    expedition_col = 'expedition_name'
+    instrument_col = 'instrument_codes'
+    experiment_col = 'experiments'
+    analyst_col = 'analysts'
+    quality_col = 'quality'
+    aniso_quality_col = 'result_quality'
+    meas_standard_col = 'standard'
+    meas_description_col = 'description'
+    aniso_type_col = 'aniso_type'
+    aniso_unit_col = 'aniso_s_unit'
+    aniso_n_col = 'aniso_s_n_measurements'
+    azimuth_col = 'azimuth'
+    spec_volume_col = 'volume'
+    samp_dip_col = 'dip'
+    bed_dip_col = 'bed_dip'
+    bed_dip_direction_col = 'bed_dip_direction'
+    chi_vol_col = 'susc_chi_volume'
+    aniso_sigma_col = 'aniso_s_sigma'
+    aniso_unit_col = 'aniso_s_unit'
+    aniso_tilt_corr_col = 'aniso_tilt_correction'
+    meas_table_name = 'measurements'
+    spec_table_name = 'specimens'
+    samp_table_name = 'samples'
+    site_table_name = 'sites'
+    meas_name_col = 'measurement'
+    meas_time_col = 'timestamp'
+    meas_ac_col = 'meas_field_ac'
+    meas_temp_col = "meas_temp"
+    #
+    software_col = 'software_packages'
+    description_col = 'description' # sites.description
+    treat_temp_col = 'treat_temp'
+    meas_orient_phi_col = "meas_orient_phi"
+    meas_orient_theta_col = "meas_orient_theta"
+    aniso_mean_col = 'aniso_s_mean'
+    result_description_col = "description"
+
+
+    # set column names for MagIC 2
+    if data_model_num == 2:
+        spec_name_col = 'er_specimen_name'
+        samp_name_col = 'er_sample_name'
+        site_name_col = 'er_site_name'
+        loc_name_col = 'er_location_name'
+        citation_col = 'er_citation_names'
+        method_col = 'magic_method_codes'
+        site_description_col = 'site_description'
+        expedition_col = 'er_expedition_name'
+        instrument_col = 'magic_instrument_codes'
+        experiment_col = 'magic_experiment_names'
+        analyst_col = 'er_analyst_mail_names'
+        quality_col = 'measurement_flag'
+        aniso_quality_col = 'anisotropy_flag'
+        meas_standard_col = 'measurement_standard'
+        meas_description_col = 'measurement_description'
+        aniso_type_col = 'anisotropy_type'
+        aniso_unit_col = 'anisotropy_unit'
+        aniso_n_col = 'anisotropy_n'
+        azimuth_col = 'sample_azimuth'
+        spec_volume_col = 'specimen_volume'
+        samp_dip_col = 'sample_dip'
+        bed_dip_col = 'sample_bed_dip'
+        bed_dip_direction_col = 'sample_bed_dip_direction'
+        chi_vol_col = 'measurement_chi_volume'
+        aniso_sigma_col = 'anisotropy_sigma'
+        aniso_unit_col = 'anisotropy_unit'
+        aniso_tilt_corr_col = 'anisotropy_tilt_correction'
+        meas_table_name = 'magic_measurements'
+        spec_table_name = 'er_specimens'
+        samp_table_name = 'er_samples'
+        site_table_name = 'er_sites'
+        meas_name_col = 'measurement_number'
+        meas_time_col = 'measurement_date'
+        meas_ac_col = 'measurement_lab_field_ac'
+        meas_temp_col = "measurement_temp"
+        #
+        software_col = 'magic_software_packages'
+        description_col = 'rmag_result_name'
+        treat_temp_col = 'treatment_temp'
+        meas_temp_col = "measurement_temp"
+        meas_orient_phi_col = "measurement_orient_phi"
+        meas_orient_theta_col = "measurement_orient_theta"
+        aniso_mean_col = 'anisotropy_mean'
+        result_description_col = "result_description"
+
+
 # pick off stuff from command line
     Z = ""
     if "4" in sample_naming_con:
@@ -6279,7 +6377,7 @@ def k15_magic(k15file, specnum=0, sample_naming_con='1', er_location_name="unkno
             sample_naming_con = "4"
     if sample_naming_con == '6':
         Samps, filetype = pmag.magic_read(
-            os.path.join(input_dir_path, 'er_samples.txt'))
+            os.path.join(input_dir_path, samp_table_name + ".txt"))
     sampfile = os.path.join(output_dir_path, sampfile)
     measfile = os.path.join(output_dir_path, measfile)
     aniso_outfile = os.path.join(output_dir_path, aniso_outfile)
@@ -6293,8 +6391,8 @@ def k15_magic(k15file, specnum=0, sample_naming_con='1', er_location_name="unkno
             sampfile)  # append new records to existing
         samplist = []
         for samp in SampRecs:
-            if samp['er_sample_name'] not in samplist:
-                samplist.append(samp['er_sample_name'])
+            if samp[samp_name_col] not in samplist:
+                samplist.append(samp[samp_name_col])
     except IOError:
         SampRecs = []
     # measurement directions for Jelinek 1977 protocol:
@@ -6314,66 +6412,66 @@ def k15_magic(k15file, specnum=0, sample_naming_con='1', er_location_name="unkno
         linecnt += 1
         rec = line.split()
         if linecnt == 1:
-            MeasRec["magic_method_codes"] = ""
-            SpecRec["magic_method_codes"] = ""
-            SampRec["magic_method_codes"] = ""
-            AnisRec["magic_method_codes"] = ""
-            SiteRec["magic_method_codes"] = ""
-            ResRec["magic_method_codes"] = ""
-            MeasRec["magic_software_packages"] = version_num
-            SpecRec["magic_software_packages"] = version_num
-            SampRec["magic_software_packages"] = version_num
-            AnisRec["magic_software_packages"] = version_num
-            SiteRec["magic_software_packages"] = version_num
-            ResRec["magic_software_packages"] = version_num
-            MeasRec["magic_method_codes"] = "LP-X"
-            MeasRec["measurement_flag"] = "g"
-            MeasRec["measurement_standard"] = "u"
-            MeasRec["er_citation_names"] = "This study"
-            SpecRec["er_citation_names"] = "This study"
-            SampRec["er_citation_names"] = "This study"
-            AnisRec["er_citation_names"] = "This study"
-            ResRec["er_citation_names"] = "This study"
-            MeasRec["er_specimen_name"] = rec[0]
-            MeasRec["magic_experiment_name"] = rec[0] + ":LP-AN-MS"
-            AnisRec["magic_experiment_names"] = rec[0] + ":AMS"
-            ResRec["magic_experiment_names"] = rec[0] + ":AMS"
-            SpecRec["er_specimen_name"] = rec[0]
-            AnisRec["er_specimen_name"] = rec[0]
-            SampRec["er_specimen_name"] = rec[0]
-            ResRec["rmag_result_name"] = rec[0]
+            MeasRec[method_col] = ""
+            SpecRec[method_col] = ""
+            SampRec[method_col] = ""
+            AnisRec[method_col] = ""
+            SiteRec[method_col] = ""
+            ResRec[method_col] = ""
+            MeasRec[software_col] = version_num
+            SpecRec[software_col] = version_num
+            SampRec[software_col] = version_num
+            AnisRec[software_col] = version_num
+            SiteRec[software_col] = version_num
+            ResRec[software_col] = version_num
+            MeasRec[method_col] = "LP-X"
+            MeasRec[quality_col] = "g"
+            MeasRec[meas_standard_col] = "u"
+            MeasRec[citation_col] = "This study"
+            SpecRec[citation_col] = "This study"
+            SampRec[citation_col] = "This study"
+            AnisRec[citation_col] = "This study"
+            ResRec[citation_col] = "This study"
+            MeasRec[spec_name_col] = rec[0]
+            MeasRec[experiment_col] = rec[0] + ":LP-AN-MS"
+            AnisRec[experiment_col] = rec[0] + ":AMS"
+            ResRec[experiment_col] = rec[0] + ":AMS"
+            SpecRec[spec_name_col] = rec[0]
+            AnisRec[spec_name_col] = rec[0]
+            SampRec[spec_name_col] = rec[0]
+            ResRec[description_col] = rec[0]
             specnum = int(specnum)
             if specnum != 0:
-                MeasRec["er_sample_name"] = rec[0][:-specnum]
+                MeasRec[samp_name_col] = rec[0][:-specnum]
             if specnum == 0:
-                MeasRec["er_sample_name"] = rec[0]
-            SampRec["er_sample_name"] = MeasRec["er_sample_name"]
-            SpecRec["er_sample_name"] = MeasRec["er_sample_name"]
-            AnisRec["er_sample_name"] = MeasRec["er_sample_name"]
-            ResRec["er_sample_names"] = MeasRec["er_sample_name"]
+                MeasRec[samp_name_col] = rec[0]
+            SampRec[samp_name_col] = MeasRec[samp_name_col]
+            SpecRec[samp_name_col] = MeasRec[samp_name_col]
+            AnisRec[samp_name_col] = MeasRec[samp_name_col]
+            ResRec[samp_name_col + "s"] = MeasRec[samp_name_col]
             if sample_naming_con == "6":
                 for samp in Samps:
-                    if samp['er_sample_name'] == AnisRec["er_sample_name"]:
-                        sitename = samp['er_site_name']
-                        er_location_name = samp['er_location_name']
+                    if samp[samp_name_col] == AnisRec[samp_name_col]:
+                        sitename = samp[site_name_col]
+                        er_location_name = samp[loc_name_col]
             elif sample_naming_con != "":
                 sitename = pmag.parse_site(
-                    AnisRec['er_sample_name'], sample_naming_con, Z)
-            MeasRec["er_site_name"] = sitename
-            MeasRec["er_location_name"] = er_location_name
-            SampRec["er_site_name"] = MeasRec["er_site_name"]
-            SpecRec["er_site_name"] = MeasRec["er_site_name"]
-            AnisRec["er_site_name"] = MeasRec["er_site_name"]
-            ResRec["er_site_names"] = MeasRec["er_site_name"]
-            SampRec["er_location_name"] = MeasRec["er_location_name"]
-            SpecRec["er_location_name"] = MeasRec["er_location_name"]
-            AnisRec["er_location_name"] = MeasRec["er_location_name"]
-            ResRec["er_location_names"] = MeasRec["er_location_name"]
+                    AnisRec[samp_name_col], sample_naming_con, Z)
+            MeasRec[site_name_col] = sitename
+            MeasRec[loc_name_col] = er_location_name
+            SampRec[site_name_col] = MeasRec[site_name_col]
+            SpecRec[site_name_col] = MeasRec[site_name_col]
+            AnisRec[site_name_col] = MeasRec[site_name_col]
+            ResRec[site_name_col + "s"] = MeasRec[site_name_col]
+            SampRec[loc_name_col] = MeasRec[loc_name_col]
+            SpecRec[loc_name_col] = MeasRec[loc_name_col]
+            AnisRec[loc_name_col] = MeasRec[loc_name_col]
+            ResRec[loc_name_col + "s"] = MeasRec[loc_name_col]
             if len(rec) >= 3:
-                SampRec["sample_azimuth"], SampRec["sample_dip"] = rec[1], rec[2]
+                SampRec[azimuth_col], SampRec[samp_dip_col] = rec[1], rec[2]
                 az, pl, igeo = float(rec[1]), float(rec[2]), 1
             if len(rec) == 5:
-                SampRec["sample_bed_dip_direction"], SampRec["sample_bed_dip"] = '%7.1f' % (
+                SampRec[bed_dip_direction_col], SampRec[bed_dip_col] = '%7.1f' % (
                     90. + float(rec[3])), (rec[4])
                 bed_az, bed_dip, itilt, igeo = 90. + \
                     float(rec[3]), float(rec[4]), 1, 1
@@ -6384,39 +6482,53 @@ def k15_magic(k15file, specnum=0, sample_naming_con='1', er_location_name="unkno
             if linecnt == 4:
                 sbar, sigma, bulk = pmag.dok15_s(k15)
                 hpars = pmag.dohext(9, sigma, sbar)
-                MeasRec["treatment_temp"] = '%8.3e' % (
+                MeasRec[treat_temp_col] = '%8.3e' % (
                     273)  # room temp in kelvin
-                MeasRec["measurement_temp"] = '%8.3e' % (
+                MeasRec[meas_temp_col] = '%8.3e' % (
                     273)  # room temp in kelvin
                 for i in range(15):
                     NewMeas = copy.deepcopy(MeasRec)
-                    NewMeas["measurement_orient_phi"] = '%7.1f' % (Decs[i])
-                    NewMeas["measurement_orient_theta"] = '%7.1f' % (Incs[i])
-                    NewMeas["measurement_chi_volume"] = '%12.10f' % (k15[i])
-                    NewMeas["measurement_number"] = '%i' % (i + 1)
+                    NewMeas[meas_orient_phi_col] = '%7.1f' % (Decs[i])
+                    NewMeas[meas_orient_theta_col] = '%7.1f' % (Incs[i])
+                    NewMeas[chi_vol_col] = '%12.10f' % (k15[i])
+                    NewMeas[meas_name_col] = '%i' % (i + 1)
+                    ### FIX
                     NewMeas["magic_experiment_name"] = rec[0] + ":LP-AN-MS"
                     MeasRecs.append(NewMeas)
-                if SampRec['er_sample_name'] not in samplist:
+                if SampRec[samp_name_col] not in samplist:
                     SampRecs.append(SampRec)
-                    samplist.append(SampRec['er_sample_name'])
+                    samplist.append(SampRec[samp_name_col])
                 SpecRecs.append(SpecRec)
-                AnisRec["anisotropy_type"] = "AMS"
-                ResRec["anisotropy_type"] = "AMS"
-                AnisRec["anisotropy_s1"] = '%12.10f' % (sbar[0])
-                AnisRec["anisotropy_s2"] = '%12.10f' % (sbar[1])
-                AnisRec["anisotropy_s3"] = '%12.10f' % (sbar[2])
-                AnisRec["anisotropy_s4"] = '%12.10f' % (sbar[3])
-                AnisRec["anisotropy_s5"] = '%12.10f' % (sbar[4])
-                AnisRec["anisotropy_s6"] = '%12.10f' % (sbar[5])
-                AnisRec["anisotropy_mean"] = '%12.10f' % (bulk)
-                AnisRec["anisotropy_sigma"] = '%12.10f' % (sigma)
-                AnisRec["anisotropy_unit"] = 'SI'
-                AnisRec["anisotropy_n"] = '15'
-                AnisRec["anisotropy_tilt_correction"] = '-1'
-                AnisRec["magic_method_codes"] = 'LP-X:AE-H:LP-AN-MS'
+                AnisRec[aniso_type_col] = "AMS"
+                ResRec[aniso_type_col] = "AMS"
+
+                s1_val = '%12.10f' % (sbar[0])
+                s2_val = '%12.10f' % (sbar[1])
+                s3_val = '%12.10f' % (sbar[2])
+                s4_val = '%12.10f' % (sbar[3])
+                s5_val = '%12.10f' % (sbar[4])
+                s6_val = '%12.10f' % (sbar[5])
+                # MAgIC 2
+                if data_model_num == 2:
+                    AnisRec["anisotropy_s1"] = s1_val
+                    AnisRec["anisotropy_s2"] = s2_val
+                    AnisRec["anisotropy_s3"] = s3_val
+                    AnisRec["anisotropy_s4"] = s4_val
+                    AnisRec["anisotropy_s5"] = s5_val
+                    AnisRec["anisotropy_s6"] = s6_val
+                # MagIC 3
+                else:
+                    vals = [s1_val, s2_val, s3_val, s4_val, s5_val]
+                    AnisRec['aniso_s'] = ":".join([str(v).strip() for v in vals])
+                AnisRec[aniso_mean_col] = '%12.10f' % (bulk)
+                AnisRec[aniso_sigma_col] = '%12.10f' % (sigma)
+                AnisRec[aniso_unit_col] = 'SI'
+                AnisRec[aniso_n_col] = '15'
+                AnisRec[aniso_tilt_corr_col] = '-1'
+                AnisRec[method_col] = 'LP-X:AE-H:LP-AN-MS'
                 AnisRecs.append(AnisRec)
-                ResRec["magic_method_codes"] = 'LP-X:AE-H:LP-AN-MS'
-                ResRec["anisotropy_tilt_correction"] = '-1'
+                ResRec[method_col] = 'LP-X:AE-H:LP-AN-MS'
+                ResRec[aniso_tilt_corr_col] = '-1'
                 ResRec["anisotropy_t1"] = '%12.10f' % (hpars['t1'])
                 ResRec["anisotropy_t2"] = '%12.10f' % (hpars['t2'])
                 ResRec["anisotropy_t3"] = '%12.10f' % (hpars['t3'])
@@ -6453,7 +6565,7 @@ def k15_magic(k15file, specnum=0, sample_naming_con='1', er_location_name="unkno
                     hpars['e13'])
                 ResRec["anisotropy_v3_zeta_semi_angle"] = '%7.1f' % (
                     hpars['e23'])
-                ResRec["result_description"] = 'Critical F: ' + \
+                ResRec[result_description_col] = 'Critical F: ' + \
                     hpars["F_crit"] + ';Critical F12/F13: ' + hpars["F12_crit"]
                 ResRecs.append(ResRec)
                 if igeo == 1:
@@ -6467,8 +6579,8 @@ def k15_magic(k15file, specnum=0, sample_naming_con='1', er_location_name="unkno
                     AnisRecG["anisotropy_s4"] = '%12.10f' % (sbarg[3])
                     AnisRecG["anisotropy_s5"] = '%12.10f' % (sbarg[4])
                     AnisRecG["anisotropy_s6"] = '%12.10f' % (sbarg[5])
-                    AnisRecG["anisotropy_tilt_correction"] = '0'
-                    ResRecG["anisotropy_tilt_correction"] = '0'
+                    AnisRecG[aniso_tilt_corr_col] = '0'
+                    ResRecG[aniso_tilt_corr_col] = '0'
                     ResRecG["anisotropy_v1_dec"] = '%7.1f' % (hparsg['v1_dec'])
                     ResRecG["anisotropy_v2_dec"] = '%7.1f' % (hparsg['v2_dec'])
                     ResRecG["anisotropy_v3_dec"] = '%7.1f' % (hparsg['v3_dec'])
@@ -6487,7 +6599,7 @@ def k15_magic(k15file, specnum=0, sample_naming_con='1', er_location_name="unkno
                     ResRecG['anisotropy_v3_eta_inc'] = ResRecG['anisotropy_v1_inc']
                     ResRecG['anisotropy_v3_zeta_dec'] = ResRecG['anisotropy_v2_dec']
                     ResRecG['anisotropy_v3_zeta_inc'] = ResRecG['anisotropy_v2_inc']
-                    ResRecG["result_description"] = 'Critical F: ' + \
+                    ResRecG[result_description_col] = 'Critical F: ' + \
                         hpars["F_crit"] + ';Critical F12/F13: ' + \
                         hpars["F12_crit"]
                     ResRecs.append(ResRecG)
@@ -6530,10 +6642,10 @@ def k15_magic(k15file, specnum=0, sample_naming_con='1', er_location_name="unkno
                     AnisRecs.append(AnisRecT)
                 k15, linecnt = [], 0
                 MeasRec, SpecRec, SampRec, SiteRec, AnisRec = {}, {}, {}, {}, {}
-    pmag.magic_write(sampfile, SampRecs, 'er_samples')
-    pmag.magic_write(aniso_outfile, AnisRecs, 'rmag_anisotropy')
-    pmag.magic_write(result_file, ResRecs, 'rmag_results')
-    pmag.magic_write(measfile, MeasRecs, 'magic_measurements')
+    pmag.magic_write(sampfile, SampRecs, samp_table_name)
+    pmag.magic_write(aniso_outfile, AnisRecs, 'rmag_anisotropy')  # add to specimens?
+    pmag.magic_write(result_file, ResRecs, 'rmag_results') # add to sites?
+    pmag.magic_write(measfile, MeasRecs, meas_table_name)
     print("Data saved to: ", sampfile, aniso_outfile, result_file, measfile)
     return True, measfile
 
@@ -6674,7 +6786,7 @@ def SUFAR4_magic(ascfile, meas_output='measurements.txt', aniso_output='rmag_ani
         meas_table_name = 'magic_measurements'
         spec_table_name = 'er_specimens'
         samp_table_name = 'er_samples'
-        site_table_name = 'er_samples'
+        site_table_name = 'er_sites'
 
     # create full path for files
     ascfile = os.path.join(input_dir_path, ascfile)

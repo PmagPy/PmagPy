@@ -13,15 +13,15 @@ def main():
     DESCRIPTION
         converts .k15 format data to magic_measurements  format.
         assums Jelinek Kappabridge measurement scheme
-   
-    SYNTAX 
+
+    SYNTAX
         k15_magic.py [-h] [command line options]
-    
+
     OPTIONS
         -h prints help message and quits
         -f KFILE: specify .k15 format input file
         -F MFILE: specify magic_measurements format output file
-        -Fsa SFILE, specify er_samples format file for output 
+        -Fsa SFILE, specify er_samples format file for output
         -Fa AFILE, specify rmag_anisotropy format file for output
         -Fr RFILE, specify rmag_results format file for output
         -loc LOC: specify location name for study
@@ -49,7 +49,7 @@ def main():
         RFILE: rmag_results.txt
         LOC: unknown
         INST: unknown
-        
+
     INPUT
       name [az,pl,strike,dip], followed by
       3 rows of 5 measurements for each specimen
@@ -62,10 +62,10 @@ def main():
 
     #def k15_magic(k15file, specnum=0, sample_naming_con='1', er_location_name="unknown", measfile='magic_measurements.txt', sampfile="er_samples.txt", aniso_outfile='rmag_anisotropy.txt', result_file="rmag_results.txt", input_dir_path='.', output_dir_path='.'):
 
-    dataframe = extractor.command_line_dataframe([['f', True, ''], ['F', False, 'magic_measurements.txt'], ['Fsa', False, 'er_samples.txt'], ['Fa', False, 'rmag_anisotropy.txt'], ['Fr', False, 'rmag_results.txt'], ['spc', False, 0], ['ncn', False, '1'], ['loc', False, 'unknown'], ['WD', False, '.'], ['ID', False, '.']])
+    dataframe = extractor.command_line_dataframe([['f', True, ''], ['F', False, 'magic_measurements.txt'], ['Fsa', False, 'er_samples.txt'], ['Fa', False, 'rmag_anisotropy.txt'], ['Fr', False, 'rmag_results.txt'], ['spc', False, 0], ['ncn', False, '1'], ['loc', False, 'unknown'], ['WD', False, '.'], ['ID', False, '.'], ['DM', False, 2]])
     checked_args = extractor.extract_and_check_args(args, dataframe)
-    k15file, measfile, sampfile, aniso_outfile, result_file, specnum, sample_naming_con, location_name, output_dir_path, input_dir_path = extractor.get_vars(['f', 'F', 'Fsa', 'Fa', 'Fr', 'spc', 'ncn', 'loc', 'WD', 'ID'], checked_args)
-    program_ran, error_message = ipmag.k15_magic(k15file, specnum=specnum, sample_naming_con=sample_naming_con, er_location_name=location_name, measfile=measfile, sampfile=sampfile, aniso_outfile=aniso_outfile, result_file=result_file, input_dir_path=input_dir_path, output_dir_path=output_dir_path)
+    k15file, measfile, sampfile, aniso_outfile, result_file, specnum, sample_naming_con, location_name, output_dir_path, input_dir_path, data_model_num = extractor.get_vars(['f', 'F', 'Fsa', 'Fa', 'Fr', 'spc', 'ncn', 'loc', 'WD', 'ID', 'DM'], checked_args)
+    program_ran, error_message = ipmag.k15_magic(k15file, specnum=specnum, sample_naming_con=sample_naming_con, er_location_name=location_name, measfile=measfile, sampfile=sampfile, aniso_outfile=aniso_outfile, result_file=result_file, input_dir_path=input_dir_path, output_dir_path=output_dir_path, data_model_num=data_model_num)
 
 ## assign values to variables based on their associated command-line flag
 #fmt, size, plot = get_vars(['fmt', 's', 'sav'], checked_args)
@@ -83,9 +83,9 @@ def main():
     syn=0
     er_location_name="unknown"
     inst="unknown"
-    itilt,igeo,linecnt,key=0,0,0,"" 
+    itilt,igeo,linecnt,key=0,0,0,""
     first_save=1
-    k15,specnum=[],0 
+    k15,specnum=[],0
     citation='This study'
     dir_path='.'
     if '-WD' in sys.argv:
@@ -99,23 +99,23 @@ def main():
     output_dir_path = dir_path
 # pick off stuff from command line
 
-        
+
     if '-f' in sys.argv:
         ind=sys.argv.index('-f')
-        k15file=sys.argv[ind+1] 
+        k15file=sys.argv[ind+1]
     if '-F' in sys.argv:
         ind=sys.argv.index('-F')
-        measfile=sys.argv[ind+1] 
+        measfile=sys.argv[ind+1]
     if '-Fsa' in sys.argv:
         ind=sys.argv.index('-Fsa')
         sampfile=sys.argv[ind+1]
     resfile = pmag.get_named_arg_from_sys('-Fr', 'rmag_results.txt')
     if '-Fa' in sys.argv:
         ind=sys.argv.index('-Fa')
-        anisfile=sys.argv[ind+1] 
+        anisfile=sys.argv[ind+1]
     if '-loc' in sys.argv:
         ind=sys.argv.index('-loc')
-        er_location_name=sys.argv[ind+1] 
+        er_location_name=sys.argv[ind+1]
     if '-spc' in sys.argv:
         ind=sys.argv.index('-spc')
         specnum=-int(sys.argv[ind+1])
@@ -211,18 +211,18 @@ def main():
                 SpecRec["er_location_name"]=MeasRec["er_location_name"]
                 AnisRec["er_location_name"]=MeasRec["er_location_name"]
                 ResRec["er_location_names"]=MeasRec["er_location_name"]
-                if len(rec)>=3: 
+                if len(rec)>=3:
                     SampRec["sample_azimuth"],SampRec["sample_dip"]=rec[1],rec[2]
                     az,pl,igeo=float(rec[1]),float(rec[2]),1
-                if len(rec)==5: 
+                if len(rec)==5:
                     SampRec["sample_bed_dip_direction"],SampRec["sample_bed_dip"]= '(%7.1f)'%(90.+float(rec[3])),(rec[4])
                     bed_az,bed_dip,itilt,igeo=90.+float(rec[3]),float(rec[4]),1,1
-            else: 
+            else:
                 for i in range(5):
                     k15.append(1e-6*float(rec[i])) # assume measurements in micro SI
                 if linecnt==4:
-                    sbar,sigma,bulk=pmag.dok15_s(k15) 
-                    hpars=pmag.dohext(9,sigma,sbar) 
+                    sbar,sigma,bulk=pmag.dok15_s(k15)
+                    hpars=pmag.dohext(9,sigma,sbar)
                     MeasRec["treatment_temp"]='%8.3e' % (273) # room temp in kelvin
                     MeasRec["measurement_temp"]='%8.3e' % (273) # room temp in kelvin
                     for i in range(15):
@@ -286,9 +286,9 @@ def main():
                     ResRec["anisotropy_v3_zeta_semi_angle"]='%7.1f'%(hpars['e23'])
                     ResRec["result_description"]='Critical F: '+hpars["F_crit"]+';Critical F12/F13: '+hpars["F12_crit"]
                     ResRecs.append(ResRec)
-                    if igeo==1: 
-                        sbarg=pmag.dosgeo(sbar,az,pl) 
-                        hparsg=pmag.dohext(9,sigma,sbarg) 
+                    if igeo==1:
+                        sbarg=pmag.dosgeo(sbar,az,pl)
+                        hparsg=pmag.dohext(9,sigma,sbarg)
                         AnisRecG=copy.copy(AnisRec)
                         ResRecG=copy.copy(ResRec)
                         AnisRecG["anisotropy_s1"]='%12.10f'%(sbarg[0])
@@ -320,8 +320,8 @@ def main():
                         ResRecG["result_description"]='Critical F: '+hpars["F_crit"]+';Critical F12/F13: '+hpars["F12_crit"]
                         ResRecs.append(ResRecG)
                         AnisRecs.append(AnisRecG)
-                    if itilt==1: 
-                        sbart=pmag.dostilt(sbarg,bed_az,bed_dip) 
+                    if itilt==1:
+                        sbart=pmag.dostilt(sbarg,bed_az,bed_dip)
                         hparst=pmag.dohext(9,sigma,sbart)
                         AnisRecT=copy.copy(AnisRec)
                         ResRecT=copy.copy(ResRec)
