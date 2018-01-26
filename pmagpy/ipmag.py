@@ -6492,8 +6492,10 @@ def k15_magic(k15file, specnum=0, sample_naming_con='1', er_location_name="unkno
                     NewMeas[meas_orient_theta_col] = '%7.1f' % (Incs[i])
                     NewMeas[chi_vol_col] = '%12.10f' % (k15[i])
                     NewMeas[meas_name_col] = '%i' % (i + 1)
-                    ### FIX
-                    NewMeas["magic_experiment_name"] = rec[0] + ":LP-AN-MS"
+                    if data_model_num == 2:
+                        NewMeas["magic_experiment_name"] = rec[0] + ":LP-AN-MS"
+                    else:
+                        NewMeas["experiment"] = rec[0] + ":LP-AN-MS"
                     MeasRecs.append(NewMeas)
                 if SampRec[samp_name_col] not in samplist:
                     SampRecs.append(SampRec)
@@ -6501,7 +6503,6 @@ def k15_magic(k15file, specnum=0, sample_naming_con='1', er_location_name="unkno
                 SpecRecs.append(SpecRec)
                 AnisRec[aniso_type_col] = "AMS"
                 ResRec[aniso_type_col] = "AMS"
-
                 s1_val = '%12.10f' % (sbar[0])
                 s2_val = '%12.10f' % (sbar[1])
                 s3_val = '%12.10f' % (sbar[2])
