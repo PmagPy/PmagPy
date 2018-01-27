@@ -642,10 +642,18 @@ class ImportSufarAscii(wx.Frame):
         full_infile = self.bSizer0.return_value()
         ID, infile = os.path.split(full_infile)
         meas_outfile = infile[:infile.find('.')] + ".magic"
-        aniso_outfile = infile[:infile.find('.')] + "_rmag_anisotropy.txt"
-        spec_outfile = infile[:infile.find('.')] + "_er_specimens.txt"
-        samp_outfile = infile[:infile.find('.')] + "_er_samples.txt"
-        site_outfile = infile[:infile.find('.')] + "_er_sites.txt"
+        if self.Parent.data_model_num == 2:
+            aniso_outfile = infile[:infile.find('.')] + "_rmag_anisotropy.txt"
+            spec_outfile = infile[:infile.find('.')] + "_er_specimens.txt"
+            samp_outfile = infile[:infile.find('.')] + "_er_samples.txt"
+            site_outfile = infile[:infile.find('.')] + "_er_sites.txt"
+        else:
+            aniso_outfile = ''
+            spec_outfile = infile[:infile.find('.')] + "_specimens.txt"
+            samp_outfile = infile[:infile.find('.')] + "_samples.txt"
+            site_outfile = infile[:infile.find('.')] + "_sites.txt"
+
+
         usr = self.bSizer1.return_value()
         if usr:
             user = usr
@@ -673,12 +681,11 @@ class ImportSufarAscii(wx.Frame):
             static_15_position_mode = True
         spec_infile = None
         instrument = ""
-        COMMAND = "SUFAR4-asc_magic.py -WD {} -f {} -F {} {} -spc {} -ncn {} {} {} {} -ID {}".format(WD, infile, meas_outfile, usr, specnum, ncn, loc, ins, k15, ID)
-        program_ran, error_message = ipmag.SUFAR4_magic(infile, meas_outfile, aniso_outfile, spec_infile, spec_outfile, samp_outfile, site_outfile, specnum, ncn, user, location, instrument, static_15_position_mode, WD, ID)
+        data_model_num = self.Parent.data_model_num
+        COMMAND = "SUFAR4-asc_magic.py -WD {} -f {} -F {} {} -spc {} -ncn {} {} {} {} -ID {} -DM {}".format(WD, infile, meas_outfile, usr, specnum, ncn, loc, ins, k15, ID, data_model_num)
+        program_ran, error_message = ipmag.SUFAR4_magic(infile, meas_outfile, aniso_outfile, spec_infile, spec_outfile, samp_outfile, site_outfile, specnum, ncn, user, location, instrument, static_15_position_mode, WD, ID, data_model_num)
         if program_ran:
             pw.close_window(self, COMMAND, meas_outfile)
-            outfiles = [f for f in [meas_outfile, spec_outfile, aniso_outfile] if f]
-            pw.simple_warning('SUFAR4_asc_magic has not been updated to MagIC data model 3.\nPlease upgrade output files by following these steps:\n\n1) Follow upgrade process at:\nhttps://www2.earthref.org/MagIC/upgrade\n2) Select "Save as Text"\n3) add the Upgraded Contribution file to your working directory\n4) In Pmag GUI, select "Unpack txt file downloaded from MagIC"\n\nOutput files:\n{}'.format(', '.join(outfiles)))
         else:
             pw.simple_warning(error_message)
 
