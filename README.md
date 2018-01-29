@@ -18,40 +18,38 @@
 ## Main features
 
 PmagPy is comprised of:
-  - GUI programs for getting data into MagIC database format (pmag_gui), analyzing demagnetization data (demag_gui) and analyzing paleointensity data (thellier_gui). These GUIs are also availible for download as executable programs outside of this repository:
-    - [Mac PmagPy Executable Application](https://github.com/PmagPy/PmagPy-Standalone-OSX/releases/latest)
-    - [Windows PmagPy Executable Application](https://github.com/PmagPy/PmagPy-Standalone-Windows/releases/latest)
-    - [Linux PmagPy Executable Application](https://github.com/PmagPy/PmagPy-Standalone-Linux/releases)
+  - GUI programs for getting data into MagIC database format (pmag\_gui), analyzing demagnetization data (demag\_gui) and analyzing paleointensity data (thellier\_gui). These GUIs are available as part of the python package pmagpy-cli.  Alternatively, these GUIs are availible for download as [executable programs](#stand-alone-applications) outside of this repository.
   - Command line programs for all sorts of paleomagnetic data analysis and wrangling (contained within the programs folder of the repository and pip installed as pmagpy-cli).
-  - The pmagpy function module for paleomagnetic data analysis (pmagpy.pmag) and plotting (pmagpy.pmagplotlib) as well as a function module that further enables paleomagnetic data analysis within interactive computing environments such as the Jupyter notebook (pmagpy.ipmag). The functions within these modules are at the heart of the GUI and command line programs. With pmagpy in the python path (which is accomplished using pip, see below), these modules are can be imported (e.g. ```import pmagpy.ipmag as ipmag```).
-  - Example data files that are used in the examples provided in the PmagPy cookbook http://earthref.org/PmagPy/cookbook
+  - The pmagpy function module for paleomagnetic data analysis (pmagpy.pmag) and plotting (pmagpy.pmagplotlib) as well as a function module that further enables paleomagnetic data analysis within interactive computing environments such as the Jupyter notebook (pmagpy.ipmag). The functions within these modules are at the heart of the GUI and command line programs. With pmagpy installed ([described below](#full-pmagpy-install)), these modules are can be imported (e.g. ```from pmagpy import ipmag```).
+  - Example data files that are used in the examples provided in the [PmagPy cookbook](http://earthref.org/PmagPy/cookbook)
 
-Use of all these features is described in the cookbook and the underlying science behind the data and code can be explored in the book Essentials of Paleomagnetism: Third Web Edition (http://earthref.org/MagIC/books/Tauxe/Essentials/). Example Jupyter notebooks using PmagPy can be found in this repository: https://github.com/PmagPy/2016_Tauxe-et-al_PmagPy_Notebooks.
+Use of all these features is described in the [Cookbook](http://earthref.org/PmagPy/cookbook) and the underlying science behind the data and code can be explored in the book [Essentials of Paleomagnetism: Third Web Edition](http://earthref.org/MagIC/books/Tauxe/Essentials/). Example Jupyter notebooks using PmagPy can be found in this [repository](https://github.com/PmagPy/2016_Tauxe-et-al_PmagPy_Notebooks)
 
 ## How to get it
 
-Much more complete documentation for PmagPy installation and use is available in the PmagPy cookbook: http://earthref.org/PmagPy/cookbook
+Much more complete documentation for PmagPy installation and use is available in the [PmagPy cookbook](http://earthref.org/PmagPy/cookbook)
 
 ### Stand alone applications
 If you do not need the full PmagPy functionality, and you only want to use Pmag GUI, MagIC GUI, Thellier GUI, and Demag GUI, there a standalone download for which Python does not need to be installed.
+
 
 #### OSX Standalone download
 
 To get started, download the zip file and put the resulting folder on your desktop. Inside the PmagPy-Standalone folder you will have one folder each for Pmag GUI and MagIC GUI. Open the appropriate folder and double click the icon (depending on your security settings, you may have to right click the icon and then select “ok” the first time you open it).
 You’ll find the latest stable release at:
-https://github.com/PmagPy/PmagPy-Standalone-OSX/releases/latest
+    - [Mac PmagPy Executable Application](https://github.com/PmagPy/PmagPy-Standalone-OSX/releases/latest)
 
 ####  Windows Standalone download
 
 Get started by downloading the zip file (see links below) and putting the resulting folder wherever you wish. You’ll need to “extract all” files. Inside the PmagPy-Standalone folder you will find icons for Pmag GUI and MagIC GUI.
 You’ll find the latest stable release at:
-https://github.com/PmagPy/PmagPy-Standalone-Windows/releases/latest
+    - [Windows PmagPy Executable Application](https://github.com/PmagPy/PmagPy-Standalone-Windows/releases/latest)
 
 ####  Linux Standalone download
 
 This binary has only been tested on a Ubuntu 14.04 (Trusty) distribution and might experience problems on other distributions. You can simply clone the standalone repository or download and unzip. The GUIs should run when you double click the executable, but will take time to start up (anywhere from 5 to 30 seconds) please be patient.
 You’ll find the latest stable release at:
-https://github.com/PmagPy/PmagPy-Standalone-Linux/releases
+    - [Linux PmagPy Executable Application](https://github.com/PmagPy/PmagPy-Standalone-Linux/releases)
 
 ### Full PmagPy install
 
@@ -66,7 +64,7 @@ To get the full use of PmagPy functionality, you will first have to have a Pytho
 
 If you want access to the master branch rather than the latest release, see the [developer install instructions](https://earthref.org/PmagPy/cookbook/#developer_install).
 
-- Alternatively if you want simply to install the latest under development version without messing with environment variables you can download or clone the repository and run `python setup.py install` and it will use setup tools to install PmagPy somewhere where it is accessible to python and in your path. This, however, does not update your in path version of the library when you update using `git pull origin master` but rather you must update using setup tools manually.
+<!-- Alternatively if you want simply to install the latest under development version without messing with environment variables you can download or clone the repository and run `python setup.py install` and it will use setup tools to install PmagPy somewhere where it is accessible to python and in your path. This, however, does not update your in path version of the library when you update using `git pull origin master` but rather you must update using setup tools manually.-->
 
 ## Background and support
 
