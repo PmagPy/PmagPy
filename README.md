@@ -36,20 +36,17 @@ If you do not need the full PmagPy functionality, and you only want to use Pmag 
 #### OSX Standalone download
 
 To get started, download the zip file and put the resulting folder on your desktop. Inside the PmagPy-Standalone folder you will have one folder each for Pmag GUI and MagIC GUI. Open the appropriate folder and double click the icon (depending on your security settings, you may have to right click the icon and then select “ok” the first time you open it).
-You’ll find the latest stable release at:
-    - [Mac PmagPy Executable Application](https://github.com/PmagPy/PmagPy-Standalone-OSX/releases/latest)
+You’ll find the latest stable release here: [Mac PmagPy Executable Application](https://github.com/PmagPy/PmagPy-Standalone-OSX/releases/latest)
 
 ####  Windows Standalone download
 
 Get started by downloading the zip file (see links below) and putting the resulting folder wherever you wish. You’ll need to “extract all” files. Inside the PmagPy-Standalone folder you will find icons for Pmag GUI and MagIC GUI.
-You’ll find the latest stable release at:
-    - [Windows PmagPy Executable Application](https://github.com/PmagPy/PmagPy-Standalone-Windows/releases/latest)
+You’ll find the latest stable release here: [Windows PmagPy Executable Application](https://github.com/PmagPy/PmagPy-Standalone-Windows/releases/latest)
 
 ####  Linux Standalone download
 
 This binary has only been tested on a Ubuntu 14.04 (Trusty) distribution and might experience problems on other distributions. You can simply clone the standalone repository or download and unzip. The GUIs should run when you double click the executable, but will take time to start up (anywhere from 5 to 30 seconds) please be patient.
-You’ll find the latest stable release at:
-    - [Linux PmagPy Executable Application](https://github.com/PmagPy/PmagPy-Standalone-Linux/releases)
+You’ll find the latest stable release here: [Linux PmagPy Executable Application](https://github.com/PmagPy/PmagPy-Standalone-Linux/releases)
 
 ### Full PmagPy install
 
